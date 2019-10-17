@@ -60,5 +60,3 @@ core
 .vscode
 py_dict
 .settings
-
-defines_HAL.mk

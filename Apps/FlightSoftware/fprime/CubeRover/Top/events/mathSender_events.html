@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>mathSender:MathSender Component Dictionary</title>
+</head>
+<body>
+
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+}
+th {
+    text-align: left;
+}
+html {
+    font-family: Arial, sans-serif ;
+    font-size: 90% ;
+}
+</style>
+
+<h1><b>Events: mathSender:MathSender</b></h1>
+
+<table>
+	<thead>
+		<tr style = "border-right: 2px solid black; border-left: 2px solid black; border-top: 2px solid black;">
+			<th rowspan = "2">Event Name</th>
+			<th rowspan = "2">ID</th>
+			<th rowspan = "2">Description</th>
+			<th rowspan = "1" colspan = "4">Arguments</th>
+		</tr>
+		<tr style = "border-right: 2px solid black; ">
+			<th>Argument</th>
+			<th>Type</th>
+			<th>Size</th>
+			<th>Description</th>
+		<tr>
+	</thead>
+	<tbody>
+
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">MS_COMMAND_RECV</td>
+			<td rowspan="4">1 (0x1)</td>
+			<td rowspan="4">Math command received</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>val1</td>
+						<td>F32</td>
+						<td></td>
+						<td>The val1 argument</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>val2</td>
+						<td>F32</td>
+						<td></td>
+						<td>The val2 argument</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>op</td>
+						<td>MathOpEv</td>
+						<td></td>
+						<td>The requested operation</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">MS_RESULT</td>
+			<td rowspan="2">2 (0x2)</td>
+			<td rowspan="2">Received math result</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>result</td>
+						<td>F32</td>
+						<td></td>
+						<td>The math result</td>
+					</tr>
+		</tr>
+	</tbody>
+</table>
+
+</body>
+</html>

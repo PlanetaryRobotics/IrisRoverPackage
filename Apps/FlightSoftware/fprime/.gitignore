@@ -20,6 +20,8 @@ RemoteSystemsTempFiles
 Dict
 *.core
 
+!**/defines_common.*
+
 *.gcov
 !**/test/ut/output/*.gcov
 #GTestBase.*

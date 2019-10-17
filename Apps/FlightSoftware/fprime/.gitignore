@@ -22,9 +22,9 @@ Dict
 
 *.gcov
 !**/test/ut/output/*.gcov
-GTestBase.*
-TesterBase.*
-Tester.*
+#GTestBase.*
+#TesterBase.*
+#Tester.*
 !**/test/ut/GTestBase.*
 !**/test/ut/TesterBase.*
 !**/test/ut/Tester.*

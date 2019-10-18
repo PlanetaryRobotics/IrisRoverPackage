@@ -1,6 +1,8 @@
 # Makefile to run global make.
 DEPLOYMENT := CubeRover
-BUILD_ROOT ?= $(subst /$(DEPLOYMENT),,$(CURDIR))
+BUILD_ROOT ?= $(PWD)/..
+
+MODULES = MathPorts MathReceiver MathSender MathTypes PingReceiver Top
 
 export BUILD_ROOT
 

@@ -4,10 +4,7 @@
 
 # derive module name from directory
 
-MODULES = 	Fatal Ping ActiveLogger Cycle Sched ActiveRateGroup BufferAccumulator \
-			BufferLogger BufferManager CmdDispatcher Seq CmdSequencer Cycle FatalHandle \
-			FileManager Time LinuxTime LinuxTimer RateGroupDriver Sched TlmChan Ping \
-			PassiveTextLogger PrmDb
+MODULES = DataTypes BlockDriver
 
 BASE_DIR = $(notdir $(CURDIR))
 

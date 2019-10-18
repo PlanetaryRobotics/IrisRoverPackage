@@ -26,19 +26,19 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>F-Prime/CubeRover</name>
+			<name>CubeRover</name>
 			<type>2</type>
-			<locationURI>$%7BPARENT-2-PROJECT_LOC%7D/fprime/CubeRover</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/fprime/CubeRover</locationURI>
 		</link>
 	</linkedResources>
 	<variableList>
 		<variable>
-			<name>FPRIME_CUBEROVER_LIBS_ROOT</name>
-			<value>~/ASTRO_ROOT/Libs</value>
+			<name>FPRIME_ROOT</name>
+			<value>$%7BPROJECT_LOC%7D/../../fprime</value>
 		</variable>
 		<variable>
-			<name>FPRIME_ROOT</name>
-			<value>../../fprime</value>
+			<name>FPRIME_ROOT_LOC</name>
+			<value>$%7BPROJECT_LOC%7D/../../fprime</value>
 		</variable>
 	</variableList>
 </projectDescription>

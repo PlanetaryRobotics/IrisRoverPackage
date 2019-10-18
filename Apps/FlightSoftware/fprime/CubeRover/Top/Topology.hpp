@@ -34,6 +34,7 @@
  * @brief      Construct application
  */
 void constructApp(void);
+void run1cycle(void);
 
 
 

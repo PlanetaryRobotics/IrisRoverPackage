@@ -4,7 +4,7 @@
 
 # derive module name from directory
 
-MODULES = Types Buffer Obj Port Comp Cmd Tlm Time Prm Log Com ComFile
+MODULES = Types Buffer Obj Port Comp Cmd Tlm Time Prm Log Com ComFile Cfg SerializableFile
 
 BASE_DIR = $(notdir $(CURDIR))
 

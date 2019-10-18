@@ -31,14 +31,4 @@
 			<locationURI>PARENT-2-PROJECT_LOC/fprime/CubeRover</locationURI>
 		</link>
 	</linkedResources>
-	<variableList>
-		<variable>
-			<name>FPRIME_ROOT</name>
-			<value>$%7BPROJECT_LOC%7D/../../fprime</value>
-		</variable>
-		<variable>
-			<name>FPRIME_ROOT_LOC</name>
-			<value>$%7BPROJECT_LOC%7D/../../fprime</value>
-		</variable>
-	</variableList>
 </projectDescription>

@@ -73,26 +73,12 @@
 
 /* External Functions */
 /*SAFETYMCUSW 218 S MR:20.2 <APPROVED> "Functions from library" */
-#ifdef __cplusplus
-extern "C" {
-#endif
-    extern void __TI_auto_init(void);
-#ifdef __cplusplus
-}
-#endif
-
+extern void __TI_auto_init(void);
 /*SAFETYMCUSW 354 S MR:NA <APPROVED> " Startup code(main should be declared by the user)" */
-int main(void);
-
+extern int main(void);
 /*SAFETYMCUSW 122 S MR:20.11 <APPROVED> "Startup code(exit and abort need to be present)" */
 /*SAFETYMCUSW 354 S MR:NA <APPROVED> " Startup code(Extern declaration present in the library)" */
-#ifdef __cplusplus
-extern "C" {
-#endif
-    extern void exit(int _status);
-#ifdef __cplusplus
-}
-#endif
+extern void exit(int _status);
 
 
 /* USER CODE BEGIN (3) */
@@ -104,15 +90,10 @@ void _c_int00(void);
 /* USER CODE BEGIN (4) */
 /* USER CODE END */
 
-#ifdef __cplusplus
-#pragma CODE_STATE 32
-#pragma INTERRUPT RESET
-#pragma WEAK
-#else
 #pragma CODE_STATE(_c_int00, 32)
 #pragma INTERRUPT(_c_int00, RESET)
 #pragma WEAK(_c_int00)
-#endif
+
 /* SourceId : STARTUP_SourceId_001 */
 /* DesignId : STARTUP_DesignId_001 */
 /* Requirements : HL_SR508 */

@@ -88,11 +88,7 @@
 
 
 /*----------------------------------------------------------------------------*/
-#ifdef __cplusplus
-#pragma SWI_ALIAS 1
-#else
 #pragma SWI_ALIAS(prvRaisePrivilege, 1);
-#endif
 extern BaseType_t prvRaisePrivilege( void );
 
 /*----------------------------------------------------------------------------*/

@@ -53,16 +53,10 @@
 /* USER CODE BEGIN (1) */
 /* USER CODE END */
 
-
-#ifdef __cplusplus
-#pragma CODE_STATE 32
-#pragma INTERRUPT IRQ
-#pragma WEAK
-#else
 #pragma CODE_STATE(phantomInterrupt, 32)
 #pragma INTERRUPT(phantomInterrupt, IRQ)
 #pragma WEAK(phantomInterrupt)
-#endif
+
 void phantomInterrupt(void)
 {
 /* USER CODE BEGIN (2) */

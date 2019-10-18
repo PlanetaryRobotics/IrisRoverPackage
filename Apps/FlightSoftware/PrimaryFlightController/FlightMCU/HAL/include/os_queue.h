@@ -690,7 +690,6 @@ typedef void * QueueSetMemberHandle_t;
  * \ingroup QueueManagement
  */
 BaseType_t xQueueGenericSend( QueueHandle_t xQueue, const void * const pvItemToQueue, TickType_t xTicksToWait, const BaseType_t xCopyPosition ) PRIVILEGED_FUNCTION;
-BaseType_t MPU_xQueueGenericSend( QueueHandle_t xQueue, const void * const pvItemToQueue, TickType_t xTicksToWait, const BaseType_t xCopyPosition ) PRIVILEGED_FUNCTION;
 
 /**
  * queue. h
@@ -1012,7 +1011,6 @@ BaseType_t xQueuePeekFromISR( QueueHandle_t xQueue, void * const pvBuffer ) PRIV
  * \ingroup QueueManagement
  */
 BaseType_t xQueueGenericReceive( QueueHandle_t xQueue, void * const pvBuffer, TickType_t xTicksToWait, const BaseType_t xJustPeek ) PRIVILEGED_FUNCTION;
-BaseType_t MPU_xQueueGenericReceive( QueueHandle_t xQueue, void * const pvBuffer, TickType_t xTicksToWait, const BaseType_t xJustPeek ) PRIVILEGED_FUNCTION;
 
 /**
  * queue. h
@@ -1028,7 +1026,6 @@ BaseType_t MPU_xQueueGenericReceive( QueueHandle_t xQueue, void * const pvBuffer
  * \ingroup QueueManagement
  */
 UBaseType_t uxQueueMessagesWaiting( const QueueHandle_t xQueue ) PRIVILEGED_FUNCTION;
-UBaseType_t MPU_uxQueueMessagesWaiting( const QueueHandle_t xQueue ) PRIVILEGED_FUNCTION;
 
 /**
  * queue. h
@@ -1060,7 +1057,6 @@ UBaseType_t uxQueueSpacesAvailable( const QueueHandle_t xQueue ) PRIVILEGED_FUNC
  * \ingroup QueueManagement
  */
 void vQueueDelete( QueueHandle_t xQueue ) PRIVILEGED_FUNCTION;
-void MPU_vQueueDelete( QueueHandle_t xQueue ) PRIVILEGED_FUNCTION;
 
 /**
  * queue. h
@@ -1561,8 +1557,6 @@ BaseType_t xQueueCRReceive( QueueHandle_t xQueue, void *pvBuffer, TickType_t xTi
  * these functions directly.
  */
 QueueHandle_t xQueueCreateMutex( const uint8_t ucQueueType ) PRIVILEGED_FUNCTION;
-QueueHandle_t MPU_xQueueCreateMutex( const uint8_t ucQueueType ) PRIVILEGED_FUNCTION;
-
 QueueHandle_t xQueueCreateMutexStatic( const uint8_t ucQueueType, StaticQueue_t *pxStaticQueue ) PRIVILEGED_FUNCTION;
 QueueHandle_t xQueueCreateCountingSemaphore( const UBaseType_t uxMaxCount, const UBaseType_t uxInitialCount ) PRIVILEGED_FUNCTION;
 QueueHandle_t xQueueCreateCountingSemaphoreStatic( const UBaseType_t uxMaxCount, const UBaseType_t uxInitialCount, StaticQueue_t *pxStaticQueue ) PRIVILEGED_FUNCTION;
@@ -1642,9 +1636,7 @@ BaseType_t xQueueGiveMutexRecursive( QueueHandle_t pxMutex ) PRIVILEGED_FUNCTION
  * RTOS objects that use the queue structure as their base.
  */
 #if( configSUPPORT_DYNAMIC_ALLOCATION == 1 )
-	
-		QueueHandle_t xQueueGenericCreate( const UBaseType_t uxQueueLength, const UBaseType_t uxItemSize, const uint8_t ucQueueType ) PRIVILEGED_FUNCTION;
-		QueueHandle_t MPU_xQueueGenericCreate( const UBaseType_t uxQueueLength, const UBaseType_t uxItemSize, const uint8_t ucQueueType ) PRIVILEGED_FUNCTION;
+	QueueHandle_t xQueueGenericCreate( const UBaseType_t uxQueueLength, const UBaseType_t uxItemSize, const uint8_t ucQueueType ) PRIVILEGED_FUNCTION;
 #endif
 
 /*

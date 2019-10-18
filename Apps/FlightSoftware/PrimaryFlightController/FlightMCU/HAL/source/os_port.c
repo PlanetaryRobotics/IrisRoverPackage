@@ -117,18 +117,12 @@ R0 (in which the parameters are passed. */
 /*-----------------------------------------------------------*/
 
 /* vPortStartFirstSTask() is defined in portASM.asm */
-#ifdef __cplusplus
-extern "C" {
-#endif
-    extern void vPortStartFirstTask( void );
+extern void vPortStartFirstTask( void );
 
 /* MPU access routines defined in portASM.asm */
-    extern void prvMpuEnable( void );
-    extern void prvMpuDisable( void );
-    extern void prvMpuSetRegion( unsigned region, unsigned base, unsigned size, unsigned access );
-#ifdef __cplusplus
-}
-#endif
+extern void prvMpuEnable( void );
+extern void prvMpuDisable( void );
+extern void prvMpuSetRegion( unsigned region, unsigned base, unsigned size, unsigned access );
 
 /* USER CODE BEGIN (4) */
 /* USER CODE END */

@@ -69,11 +69,7 @@
 
 /* USER CODE BEGIN (0) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(esmGroup1Notification)
-#endif
 void esmGroup1Notification(uint32 channel)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -83,11 +79,7 @@ void esmGroup1Notification(uint32 channel)
 
 /* USER CODE BEGIN (2) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(esmGroup2Notification)
-#endif
 void esmGroup2Notification(uint32 channel)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -97,11 +89,7 @@ void esmGroup2Notification(uint32 channel)
 
 /* USER CODE BEGIN (4) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(memoryPort0TestFailNotification)
-#endif
 void memoryPort0TestFailNotification(uint32 groupSelect, uint32 dataSelect, uint32 address, uint32 data)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -111,11 +99,7 @@ void memoryPort0TestFailNotification(uint32 groupSelect, uint32 dataSelect, uint
 
 /* USER CODE BEGIN (6) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(memoryPort1TestFailNotification)
-#endif
 void memoryPort1TestFailNotification(uint32 groupSelect, uint32 dataSelect, uint32 address, uint32 data)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -125,11 +109,7 @@ void memoryPort1TestFailNotification(uint32 groupSelect, uint32 dataSelect, uint
 
 /* USER CODE BEGIN (8) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(adcNotification)
-#endif
 void adcNotification(adcBASE_t *adc, uint32 group)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -139,22 +119,15 @@ void adcNotification(adcBASE_t *adc, uint32 group)
 
 /* USER CODE BEGIN (12) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(canErrorNotification)
-#endif
 void canErrorNotification(canBASE_t *node, uint32 notification)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
 /* USER CODE BEGIN (13) */
 /* USER CODE END */
 }
-#ifdef __cplusplus
-#pragma WEAK
-#else
+
 #pragma WEAK(canStatusChangeNotification)
-#endif
 void canStatusChangeNotification(canBASE_t *node, uint32 notification)  
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -162,11 +135,7 @@ void canStatusChangeNotification(canBASE_t *node, uint32 notification)
 /* USER CODE END */
 }
 
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(canMessageNotification)
-#endif
 void canMessageNotification(canBASE_t *node, uint32 messageBox)  
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -176,11 +145,7 @@ void canMessageNotification(canBASE_t *node, uint32 messageBox)
 
 /* USER CODE BEGIN (16) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(dccNotification)
-#endif
 void dccNotification(dccBASE_t  *dcc,uint32 flags)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -190,11 +155,7 @@ void dccNotification(dccBASE_t  *dcc,uint32 flags)
 
 /* USER CODE BEGIN (18) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(gioNotification)
-#endif
 void gioNotification(gioPORT_t *port, uint32 bit)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -204,11 +165,7 @@ void gioNotification(gioPORT_t *port, uint32 bit)
 
 /* USER CODE BEGIN (20) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(i2cNotification)
-#endif
 void i2cNotification(i2cBASE_t *i2c, uint32 flags)      
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -218,11 +175,7 @@ void i2cNotification(i2cBASE_t *i2c, uint32 flags)
 
 /* USER CODE BEGIN (22) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(linNotification)
-#endif
 void linNotification(linBASE_t *lin, uint32 flags)      
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -232,11 +185,7 @@ void linNotification(linBASE_t *lin, uint32 flags)
 
 /* USER CODE BEGIN (24) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(mibspiNotification)
-#endif
 void mibspiNotification(mibspiBASE_t *mibspi, uint32 flags)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -246,11 +195,7 @@ void mibspiNotification(mibspiBASE_t *mibspi, uint32 flags)
 
 /* USER CODE BEGIN (26) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(mibspiGroupNotification)
-#endif
 void mibspiGroupNotification(mibspiBASE_t *mibspi, uint32 group)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -260,11 +205,7 @@ void mibspiGroupNotification(mibspiBASE_t *mibspi, uint32 group)
 /* USER CODE BEGIN (28) */
 /* USER CODE END */
 
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(sciNotification)
-#endif
 void sciNotification(sciBASE_t *sci, uint32 flags)     
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -274,11 +215,7 @@ void sciNotification(sciBASE_t *sci, uint32 flags)
 
 /* USER CODE BEGIN (30) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(spiNotification)
-#endif
 void spiNotification(spiBASE_t *spi, uint32 flags)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -288,11 +225,7 @@ void spiNotification(spiBASE_t *spi, uint32 flags)
 
 /* USER CODE BEGIN (32) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(spiEndNotification)
-#endif
 void spiEndNotification(spiBASE_t *spi)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -302,11 +235,8 @@ void spiEndNotification(spiBASE_t *spi)
 
 /* USER CODE BEGIN (34) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
+
 #pragma WEAK(pwmNotification)
-#endif
 void pwmNotification(hetBASE_t * hetREG,uint32 pwm, uint32 notification)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -316,11 +246,7 @@ void pwmNotification(hetBASE_t * hetREG,uint32 pwm, uint32 notification)
 
 /* USER CODE BEGIN (36) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(edgeNotification)
-#endif
 void edgeNotification(hetBASE_t * hetREG,uint32 edge)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -330,11 +256,7 @@ void edgeNotification(hetBASE_t * hetREG,uint32 edge)
 
 /* USER CODE BEGIN (38) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(hetNotification)
-#endif
 void hetNotification(hetBASE_t *het, uint32 offset)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -344,11 +266,8 @@ void hetNotification(hetBASE_t *het, uint32 offset)
 
 /* USER CODE BEGIN (40) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
+
 #pragma WEAK(crcNotification)
-#endif
 void crcNotification(crcBASE_t *crc, uint32 flags)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -361,22 +280,14 @@ void crcNotification(crcBASE_t *crc, uint32 flags)
 /* USER CODE BEGIN (43) */
 /* USER CODE END */
 
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(etpwmNotification)
-#endif
 void etpwmNotification(etpwmBASE_t *node)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
 /* USER CODE BEGIN (44) */
 /* USER CODE END */
 }
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(etpwmTripNotification)
-#endif
 void etpwmTripNotification(etpwmBASE_t *node,uint16 flags)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -390,11 +301,7 @@ void etpwmTripNotification(etpwmBASE_t *node,uint16 flags)
 /* USER CODE BEGIN (47) */
 /* USER CODE END */
 
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(eqepNotification)
-#endif
 void eqepNotification(eqepBASE_t *eqep,uint16 flags)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -407,11 +314,7 @@ void eqepNotification(eqepBASE_t *eqep,uint16 flags)
 /* USER CODE BEGIN (50) */
 /* USER CODE END */
 
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(ecapNotification)
-#endif
 void ecapNotification(ecapBASE_t *ecap,uint16 flags)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -424,11 +327,7 @@ void ecapNotification(ecapBASE_t *ecap,uint16 flags)
 /* USER CODE BEGIN (53) */
 /* USER CODE END */
 
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(dmaGroupANotification)
-#endif
 void dmaGroupANotification(dmaInterrupt_t inttype, uint32 channel)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -440,11 +339,7 @@ void dmaGroupANotification(dmaInterrupt_t inttype, uint32 channel)
 
 /* USER CODE BEGIN (56) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(emacTxNotification)
-#endif
 void emacTxNotification(hdkif_t *hdkif)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
@@ -454,11 +349,7 @@ void emacTxNotification(hdkif_t *hdkif)
 
 /* USER CODE BEGIN (58) */
 /* USER CODE END */
-#ifdef __cplusplus
-#pragma WEAK
-#else
 #pragma WEAK(emacRxNotification)
-#endif
 void emacRxNotification(hdkif_t *hdkif)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */

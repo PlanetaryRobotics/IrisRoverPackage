@@ -89,11 +89,8 @@ task.h is included from an application file. */
 /* Assumes 8bit bytes! */
 #define heapBITS_PER_BYTE		( ( size_t ) 8 )
 
-#ifdef __cplusplus
-#pragma DATA_SECTION(".kernelHEAP")
-#else
 #pragma DATA_SECTION(ucHeap, ".kernelHEAP")
-#endif
+
 
 /* Allocate the memory for the heap. */
 static uint8_t ucHeap[ configTOTAL_HEAP_SIZE ];
@@ -226,7 +223,7 @@ void *pvReturn = NULL;
 						block following the number of bytes requested. The void
 						cast is used to prevent byte alignment warnings from the
 						compiler. */
-						pxNewBlockLink = (BlockLink_t *) ( void * ) ( ( ( uint8_t * ) pxBlock ) + xWantedSize );
+						pxNewBlockLink = ( void * ) ( ( ( uint8_t * ) pxBlock ) + xWantedSize );
 						configASSERT( ( ( ( uint32_t ) pxNewBlockLink ) & portBYTE_ALIGNMENT_MASK ) == 0 );
 
 						/* Calculate the sizes of two blocks split from the
@@ -308,7 +305,7 @@ BlockLink_t *pxLink;
 		puc -= xHeapStructSize;
 
 		/* This casting is to keep the compiler from issuing warnings. */
-		pxLink = ( BlockLink_t * ) puc;
+		pxLink = ( void * ) puc;
 
 		/* Check the block is actually allocated. */
 		configASSERT( ( pxLink->xBlockSize & xBlockAllocatedBit ) != 0 );
@@ -383,7 +380,7 @@ size_t xTotalHeapSize = configTOTAL_HEAP_SIZE;
 
 	/* xStart is used to hold a pointer to the first item in the list of free
 	blocks.  The void cast is used to prevent compiler warnings. */
-	xStart.pxNextFreeBlock = ( BlockLink_t * ) pucAlignedHeap;
+	xStart.pxNextFreeBlock = ( void * ) pucAlignedHeap;
 	xStart.xBlockSize = ( size_t ) 0;
 
 	/* pxEnd is used to mark the end of the list of free blocks and is inserted
@@ -391,13 +388,13 @@ size_t xTotalHeapSize = configTOTAL_HEAP_SIZE;
 	ulAddress = ( ( uint32_t ) pucAlignedHeap ) + xTotalHeapSize;
 	ulAddress -= xHeapStructSize;
 	ulAddress &= ~portBYTE_ALIGNMENT_MASK;
-	pxEnd = ( BlockLink_t * ) ulAddress;
+	pxEnd = ( void * ) ulAddress;
 	pxEnd->xBlockSize = 0;
 	pxEnd->pxNextFreeBlock = NULL;
 
 	/* To start with there is a single free block that is sized to take up the
 	entire heap space, minus the space taken by pxEnd. */
-	pxFirstFreeBlock = ( BlockLink_t * ) pucAlignedHeap;
+	pxFirstFreeBlock = ( void * ) pucAlignedHeap;
 	pxFirstFreeBlock->xBlockSize = ulAddress - ( uint32_t ) pxFirstFreeBlock;
 	pxFirstFreeBlock->pxNextFreeBlock = pxEnd;
 

@@ -87,16 +87,11 @@ typedef enum systemInterrupt
 /* USER CODE END */
 
 /* Interrupt Handlers */
-#ifdef __cplusplus
-extern "C"{
-#endif
-    extern void esmHighInterrupt(void);
-    extern void phantomInterrupt(void);
-    extern void vPortPreemptiveTick(void);
-    extern void vPortYeildWithinAPI(void);
-#ifdef __cplusplus
-}
-#endif
+
+extern void esmHighInterrupt(void);
+extern void phantomInterrupt(void);
+extern void vPortPreemptiveTick(void);
+extern void vPortYeildWithinAPI(void);
 
 /* USER CODE BEGIN (3) */
 /* USER CODE END */

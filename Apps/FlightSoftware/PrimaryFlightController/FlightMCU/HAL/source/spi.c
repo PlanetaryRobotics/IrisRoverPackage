@@ -50,7 +50,7 @@
 *   @brief globals
 *
 */
-static struct g_spiPacket
+static volatile struct g_spiPacket
 {
     spiDAT1_t g_spiDataFormat;
     uint32  tx_length;

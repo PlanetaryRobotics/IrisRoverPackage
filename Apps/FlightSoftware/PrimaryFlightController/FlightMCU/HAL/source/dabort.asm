@@ -42,7 +42,7 @@
 ;-------------------------------------------------------------------------------
 ; Run Memory Test
 
-    .weak	custom_dabort
+    .ref	custom_dabort
     .def	_dabort
     .asmfunc
 

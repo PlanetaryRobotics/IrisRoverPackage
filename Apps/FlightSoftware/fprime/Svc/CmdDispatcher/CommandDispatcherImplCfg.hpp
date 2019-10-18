@@ -11,8 +11,8 @@
 // Define configuration values for dispatcher
 
 enum {
-    CMD_DISPATCHER_DISPATCH_TABLE_SIZE = 100, // !< The size of the table holding opcodes to dispatch
-    CMD_DISPATCHER_SEQUENCER_TABLE_SIZE = 25, // !< The size of the table holding commands in progress
+    CMD_DISPATCHER_DISPATCH_TABLE_SIZE = 6, // !< The size of the table holding opcodes to dispatch
+    CMD_DISPATCHER_SEQUENCER_TABLE_SIZE = 5, // !< The size of the table holding commands in progress
 };
 
 

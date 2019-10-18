@@ -325,7 +325,7 @@ List_t * const pxConstList = ( pxList );													\
 	{																						\
 		( pxConstList )->pxIndex = ( pxConstList )->pxIndex->pxNext;						\
 	}																						\
-	( pxTCB ) = (TCB_t *)( pxConstList )->pxIndex->pvOwner;                                    \
+	( pxTCB ) = ( pxConstList )->pxIndex->pvOwner;											\
 }
 
 

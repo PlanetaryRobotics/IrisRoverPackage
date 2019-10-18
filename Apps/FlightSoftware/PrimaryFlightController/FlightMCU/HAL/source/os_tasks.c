@@ -4800,11 +4800,6 @@ const TickType_t xConstTickCount = xTickCount;
 	#endif /* INCLUDE_vTaskSuspend */
 }
 
-extern void run1cycle(void);
-
-void vApplicationIdleHook(void){
-    asm("  NOP");
-}
 
 #ifdef FREERTOS_MODULE_TEST
 	#include "tasks_test_access_functions.h"

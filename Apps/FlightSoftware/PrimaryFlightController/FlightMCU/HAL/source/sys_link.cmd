@@ -83,9 +83,9 @@ SECTIONS
     .kernelBSS    : {} > KRAM
     .kernelHEAP   : {} > RAM
     .bss          : {} > RAM
-    .data         : {} > RAM
-    .sysmem	      : {} > RAM
-    .init_array	  : {} > FLASH0
+    .data         : {} > RAM    
+    .sysmem		  : {} > RAM
+    .init_array   : {} > FLASH0
 
 /* USER CODE BEGIN (4) */
 /* USER CODE END */

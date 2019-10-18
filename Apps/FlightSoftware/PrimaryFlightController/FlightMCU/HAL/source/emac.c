@@ -1091,7 +1091,7 @@ void EMACDMAInit(hdkif_t *hdkif)
       /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */     
       txch_dma->free_head = (volatile emac_tx_bd_t*)(hdkif->emac_ctrl_ram);
       txch_dma->next_bd_to_process = txch_dma->free_head;
-      txch_dma->active_tail = (volatile emac_tx_bd_t*) NULL;
+      txch_dma->active_tail = NULL;
 
       /* Set the number of descriptors for the channel */
       num_bd = (SIZE_EMAC_CTRL_RAM >> 1U) / sizeof(emac_tx_bd_t);
@@ -1130,7 +1130,7 @@ void EMACDMAInit(hdkif_t *hdkif)
       rxch_dma->active_head = (volatile emac_rx_bd_t *)curr_txbd;
 
       /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */         
-      rxch_dma->free_head = (volatile emac_rx_bd_t*)NULL;
+      rxch_dma->free_head = NULL;
       /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */          
       curr_bd = rxch_dma->active_head;
       /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */          
@@ -1157,7 +1157,7 @@ void EMACDMAInit(hdkif_t *hdkif)
          if (pbuf_cnt == (MAX_RX_PBUF_ALLOC - 1U))
          {
              /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */  
-             curr_bd->next = (volatile emac_rx_bd_t *)NULL;
+             curr_bd->next = NULL;
              /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */              
              last_bd = curr_bd;
 
@@ -1175,7 +1175,7 @@ void EMACDMAInit(hdkif_t *hdkif)
       
       /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
       /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */         
-      last_bd->next = (volatile emac_rx_bd_t *)NULL;
+      last_bd->next = NULL;
       /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */          
       rxch_dma->active_tail = last_bd;
 }
@@ -1427,7 +1427,7 @@ boolean EMACTransmit(hdkif_t *hdkif, pbuf_t *pbuf)
   /* Indicate the start and end of the packet */
   /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
   /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */       
-  bd_end->next = (volatile emac_rx_bd_t *)NULL;
+  bd_end->next = NULL;
   /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
   bd_end->flags_pktlen |= EMAC_BUF_DESC_EOP;
 
@@ -1659,7 +1659,7 @@ void EMACReceive(hdkif_t *hdkif)
       /* The last element in the already processed Rx descriptor chain is now the end of list. */
       /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
       /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */     
-      last_bd->next = (volatile emac_rx_bd_t *)NULL;
+      last_bd->next = NULL;
 
 
         /**

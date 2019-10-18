@@ -72,7 +72,7 @@ extern "C" {
 *
 *	@note: Use this macro for SVC Mode Stack length (in bytes)
 */
-#define SVC_STACK_LENGTH    0x00000100U
+#define SVC_STACK_LENGTH    0x00000800U
 
 /** @def FIQ_STACK_LENGTH
 *   @brief FIQ Mode Stack length (in bytes)

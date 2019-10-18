@@ -759,13 +759,8 @@ void esmGetConfigValue(esm_config_reg_t *config_reg, config_value_type_t type)
 /** @fn void esmHighInterrupt(void)
 *   @brief High Level Interrupt for ESM
 */
-#ifdef __cplusplus
-#pragma CODE_STATE(32)
-#pragma INTERRUPT(FIQ)
-#else
 #pragma CODE_STATE(esmHighInterrupt, 32)
 #pragma INTERRUPT(esmHighInterrupt, FIQ)
-#endif
 /* SourceId : ESM_SourceId_018 */
 /* DesignId : ESM_DesignId_018 */
 /* Requirements : HL_SR21, HL_SR22 */

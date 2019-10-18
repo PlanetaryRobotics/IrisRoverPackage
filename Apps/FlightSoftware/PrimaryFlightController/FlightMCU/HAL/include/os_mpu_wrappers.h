@@ -128,7 +128,7 @@ only for ports that are using the MPU. */
 		#define xTaskCheckForTimeOut					MPU_xTaskCheckForTimeOut
 		#define xTaskGetSchedulerState					MPU_xTaskGetSchedulerState
 
-		// Map standard queue.h API functions to the MPU equivalents.
+		/* Map standard queue.h API functions to the MPU equivalents. */
 		#define xQueueGenericSend						MPU_xQueueGenericSend
 		#define xQueueGenericReceive					MPU_xQueueGenericReceive
 		#define uxQueueMessagesWaiting					MPU_uxQueueMessagesWaiting

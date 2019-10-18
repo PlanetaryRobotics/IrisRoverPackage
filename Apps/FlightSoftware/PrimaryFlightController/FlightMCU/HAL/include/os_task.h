@@ -363,13 +363,6 @@ is used in assert() statements. */
 							void * const pvParameters,
 							UBaseType_t uxPriority,
 							TaskHandle_t * const pxCreatedTask ) PRIVILEGED_FUNCTION; /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
-    BaseType_t MPU_xTaskCreate( TaskFunction_t pxTaskCode,
-                            const char * const pcName,
-                            const uint16_t usStackDepth,
-                            void * const pvParameters,
-                            UBaseType_t uxPriority,
-                            TaskHandle_t * const pxCreatedTask ) PRIVILEGED_FUNCTION; /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
-
 #endif
 
 /**
@@ -648,7 +641,7 @@ void vTaskAllocateMPURegions( TaskHandle_t xTask, const MemoryRegion_t * const p
  * \ingroup Tasks
  */
 void vTaskDelete( TaskHandle_t xTaskToDelete ) PRIVILEGED_FUNCTION;
-void MPU_vTaskDelete( TaskHandle_t xTaskToDelete ) PRIVILEGED_FUNCTION;
+
 /*-----------------------------------------------------------
  * TASK CONTROL API
  *----------------------------------------------------------*/
@@ -759,7 +752,7 @@ void vTaskDelay( const TickType_t xTicksToDelay ) PRIVILEGED_FUNCTION;
  * \ingroup TaskCtrl
  */
 void vTaskDelayUntil( TickType_t * const pxPreviousWakeTime, const TickType_t xTimeIncrement ) PRIVILEGED_FUNCTION;
-void MPU_vTaskDelayUntil( TickType_t * const pxPreviousWakeTime, const TickType_t xTimeIncrement ) PRIVILEGED_FUNCTION;
+
 /**
  * task. h
  * <pre>BaseType_t xTaskAbortDelay( TaskHandle_t xTask );</pre>
@@ -857,7 +850,7 @@ UBaseType_t uxTaskPriorityGetFromISR( TaskHandle_t xTask ) PRIVILEGED_FUNCTION;
  * functions return value being tested by the calling task.
  */
 eTaskState eTaskGetState( TaskHandle_t xTask ) PRIVILEGED_FUNCTION;
-eTaskState MPU_eTaskGetState( TaskHandle_t xTask ) PRIVILEGED_FUNCTION;
+
 /**
  * task. h
  * <pre>void vTaskGetInfo( TaskHandle_t xTask, TaskStatus_t *pxTaskStatus, BaseType_t xGetFreeStackSpace, eTaskState eState );</pre>
@@ -1006,7 +999,7 @@ void vTaskPrioritySet( TaskHandle_t xTask, UBaseType_t uxNewPriority ) PRIVILEGE
  * \ingroup TaskCtrl
  */
 void vTaskSuspend( TaskHandle_t xTaskToSuspend ) PRIVILEGED_FUNCTION;
-void MPU_vTaskSuspend( TaskHandle_t xTaskToSuspend ) PRIVILEGED_FUNCTION;
+
 /**
  * task. h
  * <pre>void vTaskResume( TaskHandle_t xTaskToResume );</pre>
@@ -1055,7 +1048,7 @@ void MPU_vTaskSuspend( TaskHandle_t xTaskToSuspend ) PRIVILEGED_FUNCTION;
  * \ingroup TaskCtrl
  */
 void vTaskResume( TaskHandle_t xTaskToResume ) PRIVILEGED_FUNCTION;
-void MPU_vTaskResume( TaskHandle_t xTaskToResume ) PRIVILEGED_FUNCTION;
+
 /**
  * task. h
  * <pre>void xTaskResumeFromISR( TaskHandle_t xTaskToResume );</pre>
@@ -1293,7 +1286,6 @@ BaseType_t xTaskResumeAll( void ) PRIVILEGED_FUNCTION;
  * \ingroup TaskUtils
  */
 TickType_t xTaskGetTickCount( void ) PRIVILEGED_FUNCTION;
-TickType_t MPU_xTaskGetTickCount( void ) PRIVILEGED_FUNCTION;
 
 /**
  * task. h
@@ -1310,7 +1302,7 @@ TickType_t MPU_xTaskGetTickCount( void ) PRIVILEGED_FUNCTION;
  * \ingroup TaskUtils
  */
 TickType_t xTaskGetTickCountFromISR( void ) PRIVILEGED_FUNCTION;
-TickType_t MPU_xTaskGetTickCountFromISR( void ) PRIVILEGED_FUNCTION;
+
 /**
  * task. h
  * <PRE>uint16_t uxTaskGetNumberOfTasks( void );</PRE>

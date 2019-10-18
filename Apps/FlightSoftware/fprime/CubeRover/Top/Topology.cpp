@@ -77,7 +77,6 @@ Svc::RateGroupDriverImpl rateGroupDriverComp
 void run1cycle(void) {
     // call interrupt to emulate a clock
     blockDrv.callIsr();
-    Os::Task::delay(1000);
 }
 
 /**

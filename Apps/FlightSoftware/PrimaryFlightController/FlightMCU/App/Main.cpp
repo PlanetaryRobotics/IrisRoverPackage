@@ -16,9 +16,9 @@ extern "C" {
 }
 
 void vApplicationIdleHook( void ){
-    //run1cycle();
+    run1cycle();
     gioToggleBit(gioPORTB, 1);
-    //Os::Task::delay(1000);
+    for(uint32_t i=0; i<2000000; i++) asm("  NOP");
 }
 
 void main(void)

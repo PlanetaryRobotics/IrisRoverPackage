@@ -85,7 +85,7 @@ SECTIONS
     .bss          : {} > RAM
     .data         : {} > RAM
     .sysmem		  : {} > RAM
-    .init_array   : {} > FLASH0
+    .init_array	  : {} > FLASH0
 
 /* USER CODE BEGIN (4) */
 /* USER CODE END */

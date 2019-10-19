@@ -29,7 +29,7 @@
 <!-- Connect Rate Group driver to Rate Group "Medium Frequency" -->
   <connection name = "rgDriver_to_rgMedFreq">
     <source component = "rateGroupDriver" port = "CycleOut" type = "Cycle" num = "1"/>
-    <target component = "rateGroupLowFreq" port = "CycleIn" type = "Cycle" num = "0"/>
+    <target component = "rateGroupMedFreq" port = "CycleIn" type = "Cycle" num = "0"/>
   </connection>
 
 <!-- Connect Rate Group driver to Rate Group "High Frequency" -->

@@ -16,6 +16,7 @@ Drv::BlockDriverImpl blockDriver(
 
 // ---------------------------------------------------------------------------
 // Rate Group Driver Component
+// That array sets the frequency divider for the rate groups
 static NATIVE_INT_TYPE rgDivs[] = {RATEGROUP_DIVIDER_HI_FREQ,
                                    RATEGROUP_DIVIDER_MED_FREQ,
                                    RATEGROUP_DIVIDER_LOW_FREQ};
@@ -52,9 +53,9 @@ Svc::ActiveRateGroupImpl rateGroupHiFreq(
 #endif
     rgHiFreqContext, FW_NUM_ARRAY_ELEMENTS(rgHiFreqContext));
 
-
+// Temporary code to simulate block driver rate group
 void run1cycle(void) {
-
+    blockDriver.callIsr();
 }
 
 

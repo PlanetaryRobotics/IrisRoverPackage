@@ -5,11 +5,11 @@
  *      Author: cedric
  */
 
+#include <CubeRoverConfig.hpp>
 #include "FreeRTOS.h"
 #include "os_task.h"
 #include "CubeRover/Top/Topology.hpp"
 #include "gio.h"
-#include "main.hpp"
 
 extern "C" {
     void vApplicationIdleHook( void );

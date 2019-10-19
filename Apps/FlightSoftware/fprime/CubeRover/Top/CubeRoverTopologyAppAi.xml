@@ -1,8 +1,41 @@
 <assembly name = "CubeRover">
 
-
+<!-- Import components to project -->
+  <import_component_type>Drv/BlockDriver/BlockDriverComponentAi.xml</import_component_type>
   <import_component_type>Svc/RateGroupDriver/RateGroupDriverComponentAi.xml</import_component_type>
+  <import_component_type>Svc/ActiveRateGroup/ActiveRateGroupComponentAi.xml</import_component_type>
 
-  <instance namespace="Svc" name="rateGroupDriverComp" type="RateGroupDriver" base_id="1"  base_id_window="20" />
+<!-- Declaration of block driver that drive F-prime clocking and other async event -->
+  <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
+
+<!-- Declaration of components handling synchronization of tasks -->
+  <instance namespace="Svc" name="rateGroupDriver" type="RateGroupDriver" base_id="21"  base_id_window="20" />
+  <instance namespace="Svc" name="rateGroupLowFreq" type="ActiveRateGroup" base_id="41" base_id_window="20" />
+  <instance namespace="Svc" name="rateGroupMedFreq" type="ActiveRateGroup" base_id="61" base_id_window="20" />
+  <instance namespace="Svc" name="rateGroupHiFreq" type="ActiveRateGroup" base_id="81" base_id_window="20" />
+
+<!-- Connect Block Driver "CycleOut" to input "CycleIn" (sync_input) of Rate Group Driver -->
+  <connection name = "blockDriver_to_rgDriver">
+    <source component = "blockDriver" port = "CycleOut" type = "Cycle" num = "0"/>
+    <target component = "rateGroupDriver" port = "CycleIn" type = "Cycle" num = "0"/>
+  </connection>
+
+<!-- Connect Rate Group driver to Rate Group "Low Frequency" -->
+  <connection name = "rgDriver_to_rgLowFreq">
+    <source component = "rateGroupDriver" port = "CycleOut" type = "Cycle" num = "0"/>
+    <target component = "rateGroupLowFreq" port = "CycleIn" type = "Cycle" num = "0"/>
+  </connection>
+
+<!-- Connect Rate Group driver to Rate Group "Medium Frequency" -->
+  <connection name = "rgDriver_to_rgMedFreq">
+    <source component = "rateGroupDriver" port = "CycleOut" type = "Cycle" num = "1"/>
+    <target component = "rateGroupLowFreq" port = "CycleIn" type = "Cycle" num = "0"/>
+  </connection>
+
+<!-- Connect Rate Group driver to Rate Group "High Frequency" -->
+  <connection name = "rgDriver_to_rgHiFreq">
+    <source component = "rateGroupDriver" port = "CycleOut" type = "Cycle" num = "2"/>
+    <target component = "rateGroupHiFreq" port = "CycleIn" type = "Cycle" num = "0"/>
+  </connection>  
 
 </assembly>

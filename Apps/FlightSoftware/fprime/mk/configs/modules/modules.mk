@@ -199,14 +199,10 @@ acdev_MODULES := \
 	$(ACDEVTEST_MODULES)
 	
 CubeRover_MODULES := \
-	CubeRover/MathPorts \
-	CubeRover/MathTypes \
-	CubeRover/MathSender \
-	CubeRover/MathReceiver \
-	CubeRover/PingReceiver \
 	CubeRover/Top \
 	$(FW_MODULES) \
-	$(OS_MODULES) 
+	$(OS_MODULES) \
+	$(SVC_MODULES)
 	
 # Other modules to build, but not to link with deployment binaries
 OTHER_MODULES := \

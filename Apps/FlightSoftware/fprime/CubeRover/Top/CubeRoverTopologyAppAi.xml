@@ -1,39 +1,36 @@
-<!-- <?xml version="1.0" encoding="UTF-8"?> -->
-<!-- <?xml-model href="../../Autocoders/Python/schema/ISF/topology_schema.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?> -->
 <assembly name = "CubeRover">
-    <import_component_type>CubeRover/MathSender/MathSenderComponentAi.xml</import_component_type>
-    <import_component_type>CubeRover/MathReceiver/MathReceiverComponentAi.xml</import_component_type>
-    <import_component_type>Svc/CmdDispatcher/CommandDispatcherComponentAi.xml</import_component_type>
-    <import_component_type>Drv/BlockDriver/BlockDriverComponentAi.xml</import_component_type>
-    <import_component_type>Svc/RateGroupDriver/RateGroupDriverComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/MathSender/MathSenderComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/MathReceiver/MathReceiverComponentAi.xml</import_component_type>
+  <import_component_type>Svc/Time/TimeComponentAi.xml</import_component_type>
+...
 
-
-   <instance namespace="CubeRover" name="mathSender" type="MathSender" base_id="1"  base_id_window="20" />
-   <instance namespace="CubeRover" name="mathReceiver" type="MathReceiver" base_id="21"  base_id_window="20" />
-   <instance namespace="Svc" name="cmdDisp" type="CommandDispatcher" base_id="41"  base_id_window="20" />
-   <instance namespace="Drv" name="blockDrv" type="BlockDriver" base_id="61"  base_id_window="20" />
-   <instance namespace="Svc" name="rateGroupDriverComp" type="RateGroupDriver" base_id="81"  base_id_window="20" />
+   <instance namespace="CubeRover" name="mathSender" type="MathSender" base_id="600"  base_id_window="20" />
+   <instance namespace="CubeRover" name="mathReceiver" type="MathReceiver" base_id="700"  base_id_window="20" />
+   <instance namespace="Svc" name="linuxTime" type="Time" base_id="800" base_id_window="20" />
+...
 
    <!-- Command Registration Ports - Registration port number must match dispatch port for each component -->
-  
+
    <connection name = "MathSenderReg">
         <source component = "mathSender" port = "CmdReg" type = "CmdReg" num = "0"/>
-        <target component = "cmdDisp" port = "compCmdReg" type = "CmdReg" num = "1"/>
+        <target component = "cmdDisp" port = "compCmdReg" type = "CmdReg" num = "20"/>
    </connection>
-   <connection name = "MathSenderDisp">
-        <source component = "cmdDisp" port = "compCmdSend" type = "Cmd" num = "1"/>
-        <target component = "mathSender" port = "CmdDisp" type = "Cmd" num = "0"/>
-   </connection>
-
    <connection name = "MathReceiverReg">
         <source component = "mathReceiver" port = "CmdReg" type = "CmdReg" num = "0"/>
-        <target component = "cmdDisp" port = "compCmdReg" type = "CmdReg" num = "2"/>
+        <target component = "cmdDisp" port = "compCmdReg" type = "CmdReg" num = "21"/>
+   </connection>
+   
+    <!-- Command Dispatch Ports - Dispatch port number must match registration port for each component -->
+
+   <connection name = "MathSenderDisp">
+        <source component = "cmdDisp" port = "compCmdSend" type = "Cmd" num = "20"/>
+        <target component = "mathSender" port = "CmdDisp" type = "Cmd" num = "0"/>
    </connection>
    <connection name = "MathReceiverDisp">
-        <source component = "cmdDisp" port = "compCmdSend" type = "Cmd" num = "2"/>
+        <source component = "cmdDisp" port = "compCmdSend" type = "Cmd" num = "21"/>
         <target component = "mathReceiver" port = "CmdDisp" type = "Cmd" num = "0"/>
    </connection>
-    
+   
     <!-- Command Reply Ports - Go to the same response port on the dispatcher -->
 
    <connection name = "MathSenderReply">
@@ -44,22 +41,9 @@
       <source component = "mathReceiver" port = "CmdStatus" type = "CmdResponse" num = "0"/>
       <target component = "cmdDisp" port = "compCmdStat" type = "CmdResponse" num = "0"/>
    </connection>
- 
-    <!-- Map unused ports -->
-
-    <connection name = "CmdDispatcher">
-     <source component = "cmdDisp" port = "compCmdSend" type = "Cmd" num = "7"/>
-     <target component = "cmdDisp" port = "CmdDisp" type = "Cmd" num = "0"/>
-    </connection>
-    <connection name = "CmdDispatcherReg">
-     <source component = "cmdDisp" port = "CmdReg" type = "CmdReg" num = "0"/>
-     <target component = "cmdDisp" port = "compCmdReg" type = "CmdReg" num = "7"/>
-    </connection>
-
-    
 
    <!-- Event Logger Binary Connections -->
-  
+   
    <connection name = "MathSenderLog">
        <source component = "mathSender" port = "Log" type = "Log" num = "0"/>
         <target component = "eventLogger" port = "LogRecv" type = "Log" num = "0"/>
@@ -70,7 +54,7 @@
    </connection>
 
    <!-- Event Logger Text Connections -->
-
+   
    <connection name = "MathSenderTextLog">
        <source component = "mathSender" port = "LogText" type = "LogText" num = "0"/>
         <target component = "textLogger" port = "TextLogger" type = "LogText" num = "0"/>
@@ -79,7 +63,7 @@
        <source component = "mathReceiver" port = "LogText" type = "LogText" num = "0"/>
         <target component = "textLogger" port = "TextLogger" type = "LogText" num = "0"/>
    </connection>
-
+   
    <!-- Telemetry Connections -->
 
    <connection name = "MathSenderTextTlm">
@@ -90,9 +74,9 @@
        <source component = "mathReceiver" port = "Tlm" type = "Tlm" num = "0"/>
         <target component = "chanTlm" port = "TlmRecv" type = "Tlm" num = "0"/>
    </connection>
-  
+   
    <!-- Parameter Connections -->
-
+   
    <connection name = "MathReceiverPrmGet">
        <source component = "mathReceiver" port = "ParamGet" type = "PrmGet" num = "0"/>
         <target component = "prmDb" port = "getPrm" type = "PrmGet" num = "0"/>
@@ -106,27 +90,27 @@
 
    <connection name = "MathSenderTime">
        <source component = "mathSender" port = "Time" type = "Time" num = "0"/>
-        <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0"/>
+        <target component = "linuxTime" port = "timeGetPort" type = "Time" num = "0"/>
    </connection>
    <connection name = "MathReceiverTime">
        <source component = "mathReceiver" port = "Time" type = "Time" num = "0"/>
-        <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0"/>
+        <target component = "linuxTime" port = "timeGetPort" type = "Time" num = "0"/>
    </connection>
+
 
    <!-- Math Connection -->
    <connection name = "MathOpConnection">
-       <source component = "mathSender" port = "mathOut" type = "CubeRover::MathOp" num = "0"/>
-        <target component = "mathReceiver" port = "mathIn" type = "CubeRover::MathOp" num = "0"/>
+       <source component = "mathSender" port = "mathOut" type = "Ref::MathOp" num = "0"/>
+        <target component = "mathReceiver" port = "mathIn" type = "Ref::MathOp" num = "0"/>
    </connection>
    <connection name = "MathResultConnection">
-       <source component = "mathReceiver" port = "mathOut" type = "CubeRover::MathResult" num = "0"/>
-        <target component = "mathSender" port = "mathIn" type = "CubeRover::MathResult" num = "0"/>
+       <source component = "mathReceiver" port = "mathOut" type = "Ref::MathResult" num = "0"/>
+        <target component = "mathSender" port = "mathIn" type = "Ref::MathResult" num = "0"/>
    </connection>
-
-   <!-- Rate group -->
-   <connection name = "RateGroupConnection">
-   <source component = "blockDrv" port = "CycleOut" type = "Cycle" num = "0"/>
-   <target component = "rateGroupDriverComp" port = "CycleIn" type = "Cycle" num = "0"/>
-   </connection>
-
+   
+   <!-- Scheduler Connection -->
+    <connection name = "MathReceiverRG">
+         <source component = "rateGroup1Comp" port = "RateGroupMemberOut" type = "Sched" num = "3"/>
+         <target component = "mathReceiver" port = "SchedIn" type = "Sched" num = "0"/>
+    </connection>
 </assembly>

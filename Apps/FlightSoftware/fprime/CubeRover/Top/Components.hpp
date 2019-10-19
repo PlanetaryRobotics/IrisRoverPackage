@@ -19,7 +19,7 @@
 #include <Svc/PrmDb/PrmDbImpl.hpp>
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 #include <Svc/RateGroupDriver/RateGroupDriverImpl.hpp>
-#include <Drv/BlockDriver/BlockDriverImpl.hpp>
+#include <Svc/LinuxTime/CubeRoverTimeImpl.hpp>
 
 extern CubeRover::PingReceiverComponentImpl pingRcvr;
 extern CubeRover::MathReceiverComponentImpl mathReceiver;
@@ -31,9 +31,6 @@ extern Svc::TlmChanImpl chanTlm;
 extern Svc::CommandDispatcherImpl cmdDisp;
 extern Svc::PrmDbImpl prmDb;
 extern Svc::RateGroupDriverImpl rateGroupDriverComp;
-
-extern Drv::BlockDriverImpl blockDrv;
-
-
+extern Svc::CubeRoverTimeImpl linuxTime;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

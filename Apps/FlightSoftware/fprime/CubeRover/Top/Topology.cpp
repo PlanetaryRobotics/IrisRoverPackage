@@ -17,11 +17,11 @@ CubeRover::MathReceiverComponentImpl mathReceiver
 #endif
 ;
 
-//CubeRover::PingReceiverComponentImpl pingRcvr
-//#if FW_OBJECT_NAMES == 1
-//    ("pingRcvr")
-//#endif
-//;
+CubeRover::PingReceiverComponentImpl pingRcvr
+#if FW_OBJECT_NAMES == 1
+    ("pingRcvr")
+#endif
+;
 
 
 Svc::ConsoleTextLoggerImpl textLogger
@@ -60,10 +60,9 @@ Svc::PrmDbImpl prmDb
 #endif
 ;
 
-// Driver Component
-Drv::BlockDriverImpl blockDrv
+Svc::CubeRoverTimeImpl linuxTime
 #if FW_OBJECT_NAMES == 1
-    ("BDRV")
+    ("LNXTM")
 #endif
 ;
 
@@ -75,8 +74,7 @@ Svc::RateGroupDriverImpl rateGroupDriverComp
      rgDivs,FW_NUM_ARRAY_ELEMENTS(rgDivs));
 
 void run1cycle(void) {
-    // call interrupt to emulate a clock
-    blockDrv.callIsr();
+
 }
 
 /**
@@ -87,7 +85,7 @@ void constructApp(void){
     // Initialize rate group driver
     rateGroupDriverComp.init();
 
-	//pingRcvr.init(3);
+	pingRcvr.init(1);
     mathSender.init(1,0);
     mathReceiver.init(1,0);
     textLogger.init();
@@ -96,28 +94,19 @@ void constructApp(void){
     chanTlm.init(TLM_CHAN_QUEUE_DEPTH,0);
     cmdDisp.init(CMD_DISP_QUEUE_DEPTH,0);
     prmDb.init(PARAM_DB_QUEUE_DEPTH,0);
-
-    // Initialize block driver
-    blockDrv.init(BLOCK_DRV_QUEUE_DEPTH);
+    linuxTime.init(0);
 
 	constructCubeRoverArchitecture();
 
 	// Register commands. Registration order matters.
-    //pingRcvr.regCommands();
 	mathSender.regCommands();
 	mathReceiver.regCommands();
-    //cmdDisp.regCommands();
-	//eventLogger.regCommands();
-	//prmDb.regCommands();
-
-	//Start block driver
-	blockDrv.start(BLOCK_DRV_ID, BLOCK_DRV_AFF,BLOCK_DRV_QUEUE_DEPTH * 128);
 
     // start dispatcher
-    //cmdDisp.start(CMD_DISP_ID, CMD_DISP_AFF, CMD_DISP_QUEUE_DEPTH * 128);
+    cmdDisp.start(CMD_DISP_ID, CMD_DISP_AFF, CMD_DISP_QUEUE_DEPTH * 1024);
 
     // start telemetry
-    //eventLogger.start(EVENT_LOGGER_ID, EVENT_LOGGER_AFF, EVENT_LOGGER_QUEUE_DEPTH * 128);
-    //chanTlm.start(TLM_CHAN_ID, TLM_CHAN_AFF, TLM_CHAN_QUEUE_DEPTH * 128);
-    //prmDb.start(PARAM_DB_ID, PARAM_DB_AFF, PARAM_DB_QUEUE_DEPTH * 128);
+    eventLogger.start(EVENT_LOGGER_ID, EVENT_LOGGER_AFF, EVENT_LOGGER_QUEUE_DEPTH * 1024);
+    chanTlm.start(TLM_CHAN_ID, TLM_CHAN_AFF, TLM_CHAN_QUEUE_DEPTH * 1024);
+    prmDb.start(PARAM_DB_ID, PARAM_DB_AFF, PARAM_DB_QUEUE_DEPTH * 1024);
 }

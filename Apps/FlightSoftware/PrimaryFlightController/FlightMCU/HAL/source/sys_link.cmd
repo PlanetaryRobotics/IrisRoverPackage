@@ -83,7 +83,7 @@ SECTIONS
     .kernelBSS    : {} > KRAM
     .kernelHEAP   : {} > RAM
     .bss          : {} > RAM
-    .data         : {} > RAM    
+    .data         : {} > RAM
     .sysmem		  : {} > RAM
     .init_array   : {} > FLASH0
 

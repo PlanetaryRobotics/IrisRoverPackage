@@ -28,14 +28,21 @@
 #define BLOCK_DRV_QUEUE_DEPTH       1
 
 #define RG_LOW_FREQ_ID              0
-#define RG_LOW_FREQ_AFF             0
+#define RG_LOW_FREQ_AFF             120
 #define RG_LOW_FREQ_QUEUE_DEPTH     1
 
-#define RG_MED_FREQ_ID              0
-#define RG_MED_FREQ_AFF             0
+#define RG_MED_FREQ_ID              1
+#define RG_MED_FREQ_AFF             119
 #define RG_MED_FREQ_QUEUE_DEPTH     1
 
-#define RG_HI_FREQ_ID              0
-#define RG_HI_FREQ_AFF             0
+#define RG_HI_FREQ_ID              2
+#define RG_HI_FREQ_AFF             118
 #define RG_HI_FREQ_QUEUE_DEPTH     1
+
+#define BLK_DRV_ID                  0
+#define BLK_DRV_AFF                 140
+#define BLK_DRV_QUEUE_DEPTH         1
+
+#define MIN_STACK_SIZE_BYTES        1024
+
 #endif /* INCLUDE_CUBEROVERCONFIG_HPP_ */

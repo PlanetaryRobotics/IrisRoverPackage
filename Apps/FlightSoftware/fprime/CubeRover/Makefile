@@ -2,7 +2,7 @@
 DEPLOYMENT := CubeRover
 BUILD_ROOT ?= $(PWD)/..
 
-MODULES = MathPorts MathReceiver MathSender MathTypes PingReceiver Top
+MODULES = Top
 
 export BUILD_ROOT
 

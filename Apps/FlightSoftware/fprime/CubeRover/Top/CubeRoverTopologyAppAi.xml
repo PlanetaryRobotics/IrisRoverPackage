@@ -1,2 +1,8 @@
 <assembly name = "CubeRover">
+
+
+  <import_component_type>Svc/RateGroupDriver/RateGroupDriverComponentAi.xml</import_component_type>
+
+  <instance namespace="Svc" name="rateGroupDriverComp" type="RateGroupDriver" base_id="1"  base_id_window="20" />
+
 </assembly>

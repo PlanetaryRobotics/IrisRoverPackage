@@ -8,9 +8,14 @@
 #ifndef F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_
 #define F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_
 
+// Include drivers
 #include <Drv/BlockDriver/BlockDriverImpl.hpp>
+
+// Include services
 #include <Svc/RateGroupDriver/RateGroupDriverImpl.hpp>
 #include <Svc/ActiveRateGroup/ActiveRateGroupImpl.hpp>
+#include <Svc/LinuxTime/CubeRoverTimeImpl.hpp>
+#include <Svc/TlmChan/TlmChanImpl.hpp>
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -20,5 +25,11 @@ extern Svc::RateGroupDriverImpl rateGroupDriver;
 extern Svc::ActiveRateGroupImpl rateGroupMedFreq;
 extern Svc::ActiveRateGroupImpl rateGroupLowFreq;
 extern Svc::ActiveRateGroupImpl rateGroupHiFreq;
+
+// Time component that keep track of time on CubeRover
+extern Svc::CubeRoverTimeImpl cubeRoverTime;
+
+// Telemetric channel component that takes care of channeling all data to a central place
+extern Svc::TlmChanImpl tlmChan;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

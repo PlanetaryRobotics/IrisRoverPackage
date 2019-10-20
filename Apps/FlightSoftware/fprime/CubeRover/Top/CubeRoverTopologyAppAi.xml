@@ -1,9 +1,14 @@
 <assembly name = "CubeRover">
 
 <!-- Import components to project -->
+  <!-- Drivers -->
   <import_component_type>Drv/BlockDriver/BlockDriverComponentAi.xml</import_component_type>
+
+  <!-- Services -->
   <import_component_type>Svc/RateGroupDriver/RateGroupDriverComponentAi.xml</import_component_type>
   <import_component_type>Svc/ActiveRateGroup/ActiveRateGroupComponentAi.xml</import_component_type>
+  <import_component_type>Svc/Time/TimeComponentAi.xml</import_component_type>
+  <import_component_type>Svc/TlmChan/TlmChanComponentAi.xml</import_component_type>
 
 <!-- Declaration of block driver that drive F-prime clocking and other async event -->
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
@@ -14,28 +19,108 @@
   <instance namespace="Svc" name="rateGroupMedFreq" type="ActiveRateGroup" base_id="61" base_id_window="20" />
   <instance namespace="Svc" name="rateGroupHiFreq" type="ActiveRateGroup" base_id="81" base_id_window="20" />
 
+<!-- Declaration of time component that will be used by other module to capture time stamp -->
+  <instance namespace="Svc" name="cubeRoverTime" type="Time" base_id="101"  base_id_window="20" />
+
+<!-- Declaration of telemetric chan that gathers all telemetric parameters (synchronous, synchronized by rate group low freq) -->
+  <instance namespace="Svc" name="tlmChan" type="TlmChan" base_id="121"  base_id_window="20" />
+
+<!-- *********************************************************************************************************
+        CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
+     ********************************************************************************************************* 
+      -->
+
 <!-- Connect Block Driver "CycleOut" to input "CycleIn" (sync_input) of Rate Group Driver -->
   <connection name = "blockDriver_to_rgDriver">
     <source component = "blockDriver" port = "CycleOut" type = "Cycle" num = "0"/>
     <target component = "rateGroupDriver" port = "CycleIn" type = "Cycle" num = "0"/>
   </connection>
 
-<!-- Connect Rate Group driver to Rate Group "Low Frequency" -->
+<!-- Connect Rate Group driver to Rate Group "Low Frequency" (port 0) -->
   <connection name = "rgDriver_to_rgLowFreq">
     <source component = "rateGroupDriver" port = "CycleOut" type = "Cycle" num = "0"/>
     <target component = "rateGroupLowFreq" port = "CycleIn" type = "Cycle" num = "0"/>
   </connection>
 
-<!-- Connect Rate Group driver to Rate Group "Medium Frequency" -->
+<!-- Connect Rate Group driver to Rate Group "Medium Frequency" (port 1) -->
   <connection name = "rgDriver_to_rgMedFreq">
     <source component = "rateGroupDriver" port = "CycleOut" type = "Cycle" num = "1"/>
     <target component = "rateGroupMedFreq" port = "CycleIn" type = "Cycle" num = "0"/>
   </connection>
 
-<!-- Connect Rate Group driver to Rate Group "High Frequency" -->
+<!-- Connect Rate Group driver to Rate Group "High Frequency" (port 2-->
   <connection name = "rgDriver_to_rgHiFreq">
     <source component = "rateGroupDriver" port = "CycleOut" type = "Cycle" num = "2"/>
     <target component = "rateGroupHiFreq" port = "CycleIn" type = "Cycle" num = "0"/>
   </connection>  
+
+<!-- *********************************************************************************************************
+        CONNECTION BETWEEN LOW FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
+     *********************************************************************************************************
+     -->
+  <!-- Connect output to telemetry Run input to update telemetric content (port 0) --> 
+  <connection name = "rgLowFreq_to_tlmChan_clk">
+    <source component = "rateGroupLowFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <target component = "tlmChan" port = "Run" type = "Sched" num = "0"/>
+  </connection>
+
+<!-- *********************************************************************************************************
+        CONNECTION OF TIME PORTS BETWEEN CUBEROVER TIME ALL TIME-STAMPED COMPONENTS
+     ********************************************************************************************************* 
+      -->
+
+  <!-- Connection of time between cubeRoverTime and rate group low-frequency component --> 
+  <connection name = "rgLowFreq_to_cubeRoverTime">
+    <source component = "rateGroupLowFreq" port = "Time" type = "Time" num = "0" />
+    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0"/>
+  </connection>
+
+  <!-- Connection of time between cubeRoverTime and rate group medium-frequency component --> 
+  <connection name = "rgMedFreq_to_cubeRoverTime">
+    <source component = "rateGroupMedFreq" port = "Time" type = "Time" num = "0" />
+    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0"/>
+  </connection>  
+
+  <!-- Connection of time between cubeRoverTime and rate group  high-frequency component --> 
+  <connection name = "rgHiFreq_to_cubeRoverTime">
+    <source component = "rateGroupHiFreq" port = "Time" type = "Time" num = "0" />
+    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0"/>
+  </connection>
+
+    <!-- Connection of time between cubeRoverTime and block driver --> 
+  <connection name = "blockDriver_to_cubeRoverTime">
+    <source component = "blockDriver" port = "Time" type = "Time" num = "0" />
+    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0"/>
+  </connection>
+
+<!-- *********************************************************************************************************
+        CONNECTION OF MONITORED COMPONENTS TO TELEMETRIC CHAN COMPONENT
+     ********************************************************************************************************* 
+      -->
+      <!--
+      Summary of mapping of telemetric channels:
+      Port # 0 : Rate Group Low Frequency
+      Port # 1 : Rate Group Medium Frequency
+      Port # 2 : Rate Group High Frequency
+      Port # 3 : TBD
+      -->
+
+      <!-- Rate group low Freq to telemetric channel (port 0) -->
+  <connection name = "rgLowFreq_to_chanTlm">
+    <source component = "rateGroupLowFreq" port = "Tlm" type = "Tlm" num = "0" />
+    <target component = "tlmChan" port = "TlmRecv" type = "Tlm" num = "0" />
+  </connection>
+
+      <!-- Rate group Medium Freq to telemetric channel (port 1) -->
+  <connection name = "rgMedFreq_to_chanTlm">
+    <source component = "rateGroupMedFreq" port = "Tlm" type = "Tlm" num = "0" />
+    <target component = "tlmChan" port = "TlmRecv" type = "Tlm" num = "0" />
+  </connection>
+
+      <!-- Rate group Medium Freq to telemetric channel (port 2) -->
+  <connection name = "rgHiFreq_to_chanTlm">
+    <source component = "rateGroupHiFreq" port = "Tlm" type = "Tlm" num = "0" />
+    <target component = "tlmChan" port = "TlmRecv" type = "Tlm" num = "0" />
+  </connection>
 
 </assembly>

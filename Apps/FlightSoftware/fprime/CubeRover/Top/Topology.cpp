@@ -8,6 +8,7 @@
 
 // ---------------------------------------------------------------------------
 // Block Driver Component
+// Block driver generates trigger signal for rate group driver
 Drv::BlockDriverImpl blockDriver(
 #if FW_OBJECT_NAMES == 1
     "BlockDriver"
@@ -53,6 +54,22 @@ Svc::ActiveRateGroupImpl rateGroupHiFreq(
 #endif
     rgHiFreqContext, FW_NUM_ARRAY_ELEMENTS(rgHiFreqContext));
 
+// ---------------------------------------------------------------------------
+// Time - contains current CubeRover Time used for time stamping events
+Svc::CubeRoverTimeImpl cubeRoverTime(
+#if FW_OBJECT_NAMES == 1
+    "CubeRoverTime"
+#endif
+     );
+
+// ---------------------------------------------------------------------------
+// Telemetric channel component used to centralized of telemetric data
+Svc::TlmChanImpl tlmChan(
+#if FW_OBJECT_NAMES == 1
+    "TlmChan"
+#endif
+);
+
 // Temporary code to simulate block driver rate group
 void run1cycle(void) {
     blockDriver.callIsr();
@@ -74,6 +91,12 @@ void constructApp(void){
     rateGroupMedFreq.init(RG_MED_FREQ_QUEUE_DEPTH, RG_MED_FREQ_ID);
     rateGroupHiFreq.init(RG_HI_FREQ_QUEUE_DEPTH, RG_HI_FREQ_ID);
 
+    // Initialize cubeRover time component (passive)
+    cubeRoverTime.init(0);
+
+    // Initialize the telemetric channel component (active)
+    tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
+
     // Construct the application and make all connections between components
 	constructCubeRoverArchitecture();
 
@@ -92,4 +115,9 @@ void constructApp(void){
     blockDriver.start(0, /* identifier */
                      BLK_DRV_AFF, /* Thread affinity */
                      BLK_DRV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+
+    tlmChan.start(0, /* identifier */
+                  TLM_CHAN_AFF, /* thread affinity */
+                  TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+
 }

@@ -16,6 +16,7 @@
 #include <Svc/ActiveRateGroup/ActiveRateGroupImpl.hpp>
 #include <Svc/LinuxTime/CubeRoverTimeImpl.hpp>
 #include <Svc/TlmChan/TlmChanImpl.hpp>
+#include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -31,5 +32,7 @@ extern Svc::CubeRoverTimeImpl cubeRoverTime;
 
 // Telemetric channel component that takes care of channeling all data to a central place
 extern Svc::TlmChanImpl tlmChan;
+
+extern Svc::ActiveLoggerImpl activeLogger;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

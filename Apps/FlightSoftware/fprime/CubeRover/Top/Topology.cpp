@@ -70,7 +70,6 @@ Svc::TlmChanImpl tlmChan(
 #endif
   );
 
-
 /**
  * @brief      Run 1 cycle (debug)
  */

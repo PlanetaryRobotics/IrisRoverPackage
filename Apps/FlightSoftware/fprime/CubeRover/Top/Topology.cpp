@@ -76,7 +76,13 @@ Svc::CommandDispatcherImpl cmdDispatcher(
 #if FW_OBJECT_NAMES == 1
         "CmdDispatcher"
 #endif
-);
+  );
+
+Svc::ActiveLoggerImpl activeLogger(
+#if FW_OBJECT_NAMES == 1
+        "ActiveLogger"
+#endif
+  );
 
 /**
  * @brief      Run 1 cycle (debug)

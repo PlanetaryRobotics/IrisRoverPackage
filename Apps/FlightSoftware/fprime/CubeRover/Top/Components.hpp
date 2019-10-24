@@ -20,6 +20,7 @@
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
 
+
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
 
@@ -35,13 +36,10 @@ extern Svc::CubeRoverTimeImpl cubeRoverTime;
 // Telemetric channel component that takes care of channeling all data to a central place
 extern Svc::TlmChanImpl tlmChan;
 
-// Service that handle active logging
-extern Svc::ActiveLoggerImpl activeLogger;
-
-// FreeRTOS Serial driver to interface radio module
-extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
-
 // command dispatcher
 extern Svc::CommandDispatcherImpl cmdDispatcher;
+
+extern Svc::ActiveLoggerImpl activeLogger;
+
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

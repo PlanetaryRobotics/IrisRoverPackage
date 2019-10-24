@@ -70,6 +70,12 @@ Svc::TlmChanImpl tlmChan(
 #endif
 );
 
+Svc::ActiveLoggerImpl activeLogger(
+#if FW_OBJECT_NAMES == 1
+        "ActiveLogger"
+#endif
+        );
+
 // Temporary code to simulate block driver rate group
 void run1cycle(void) {
     blockDriver.callIsr();

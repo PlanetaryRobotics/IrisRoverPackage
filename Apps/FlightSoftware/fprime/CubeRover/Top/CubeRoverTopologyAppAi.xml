@@ -131,11 +131,4 @@
     <source component = "rateGroupHiFreq" port = "Tlm" type = "Tlm" num = "0" />
     <target component = "tlmChan" port = "TlmRecv" type = "Tlm" num = "0" />
   </connection>
-
-    <!-- Radio serial interface to telemetnic channel (port 3) -->
-  <connection name = "radioSerialInterface_to_chanTlm">
-    <source component = "radioSerialInterface" port = "Tlm" type = "Tlm" num = "0" />
-    <target component = "tlmChan" port = "TlmRecv" type = "Tlm" num = "0" />
-  </connection>
-
 </assembly>

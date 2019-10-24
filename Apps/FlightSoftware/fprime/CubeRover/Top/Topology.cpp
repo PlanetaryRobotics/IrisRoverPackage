@@ -29,7 +29,7 @@ Svc::RateGroupDriverImpl rateGroupDriver(
 
 // ---------------------------------------------------------------------------
 // Rate group - Low Frequency tasks
-static NATIVE_UINT_TYPE rgLoFreqContext[] = {0,0,0,0,0,0,0,0,0,0};
+static NATIVE_UINT_TYPE rgLoFreqContext[] = {0,0,0,0};
 Svc::ActiveRateGroupImpl rateGroupLowFreq(
 #if FW_OBJECT_NAMES == 1
     "RateGroupLowFreq", 
@@ -38,7 +38,7 @@ Svc::ActiveRateGroupImpl rateGroupLowFreq(
 
 // ---------------------------------------------------------------------------
 // Rate group - Medium Frequency tasks
-static NATIVE_UINT_TYPE rgMedFreqContext[] = {0,0,0,0,0,0,0,0,0,0};
+static NATIVE_UINT_TYPE rgMedFreqContext[] = {0,0,0,0};
 Svc::ActiveRateGroupImpl rateGroupMedFreq(
 #if FW_OBJECT_NAMES == 1
     "RateGroupMedFreq",
@@ -47,7 +47,7 @@ Svc::ActiveRateGroupImpl rateGroupMedFreq(
 
 // ---------------------------------------------------------------------------
 // Rate group - High Frequency tasks
-static NATIVE_UINT_TYPE rgHiFreqContext[] = {0,0,0,0,0,0,0,0,0,0};
+static NATIVE_UINT_TYPE rgHiFreqContext[] = {0,0,0,0};
 Svc::ActiveRateGroupImpl rateGroupHiFreq(
 #if FW_OBJECT_NAMES == 1
     "RateGroupHiFreq",

@@ -48,6 +48,7 @@
 									<listOptionValue builtIn="false" value="${PROJECT_LOC}/HAL/include"/>
 									<listOptionValue builtIn="false" value="${PROJECT_LOC}/Include"/>
 									<listOptionValue builtIn="false" value="${FPRIME_ROOT_LOC}"/>
+									<listOptionValue builtIn="false" value="${FPRIME_ROOT_LOC}/CubeRover"/>
 									<listOptionValue builtIn="false" value="${FPRIME_ROOT_LOC}/Fw/Types/TIR4"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.LITTLE_ENDIAN.61860419" name="Little endian code [See 'General' page to edit] (--little_endian, -me)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.LITTLE_ENDIAN" useByScannerDiscovery="false" value="true" valueType="boolean"/>

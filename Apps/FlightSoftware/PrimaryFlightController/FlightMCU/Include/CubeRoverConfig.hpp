@@ -43,6 +43,14 @@
 #define BLK_DRV_AFF                 32
 #define BLK_DRV_QUEUE_DEPTH         1
 
+#define ACTIVE_LOGGER_ID            0
+#define ACTIVE_LOGGER_AFF           26
+#define ACTIVE_LOGGER_QUEUE_DEPTH   1
+
+#define MOTOR_CONTROL_ID            0
+#define MOTOR_CONTROL_AFF           25
+#define MOTOR_CONTROL_QUEUE_DEPTH   1
+
 #define MIN_STACK_SIZE_BYTES        1024
 
 #endif /* INCLUDE_CUBEROVERCONFIG_HPP_ */

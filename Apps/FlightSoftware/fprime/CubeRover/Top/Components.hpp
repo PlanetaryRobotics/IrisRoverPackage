@@ -18,6 +18,9 @@
 #include <Svc/TlmChan/TlmChanImpl.hpp>
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 
+// Include component exclusive to CubeRover project
+#include "MotorControl/MotorControlComponentImpl.hpp"
+
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
 
@@ -33,6 +36,10 @@ extern Svc::CubeRoverTimeImpl cubeRoverTime;
 // Telemetric channel component that takes care of channeling all data to a central place
 extern Svc::TlmChanImpl tlmChan;
 
+// Service that handle active logging
 extern Svc::ActiveLoggerImpl activeLogger;
+
+// Components exclusive to CubeRover
+extern CubeRover::MotorControlComponentImpl motorControl;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

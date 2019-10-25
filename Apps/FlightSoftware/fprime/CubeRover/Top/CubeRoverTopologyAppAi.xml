@@ -11,10 +11,13 @@
   <import_component_type>Svc/TlmChan/TlmChanComponentAi.xml</import_component_type>
   <import_component_type>Svc/ActiveLogger/ActiveLoggerComponentAi.xml</import_component_type>
 
-<!-- Declaration of block driver that drive F-prime clocking and other async event -->
+  <!-- Component exclusive to CubeRover -->
+  <import_component_type>CubeRover/MotorControl/MotorControlComponentAi.xml</import_component_type>
+
+  <!-- Declaration of block driver that drive F-prime clocking and other async event -->
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
 
-<!-- Declaration of components handling synchronization of tasks -->
+  <!-- Declaration of components handling synchronization of tasks -->
   <instance namespace="Svc" name="rateGroupDriver" type="RateGroupDriver" base_id="21"  base_id_window="20" />
   <instance namespace="Svc" name="rateGroupLowFreq" type="ActiveRateGroup" base_id="41" base_id_window="20" />
   <instance namespace="Svc" name="rateGroupMedFreq" type="ActiveRateGroup" base_id="61" base_id_window="20" />
@@ -27,9 +30,11 @@
   <instance namespace="Svc" name="tlmChan" type="TlmChan" base_id="121"  base_id_window="20" />
 
 <!-- Declaration of the passive text logger component that logs events in non-volatile memory -->
-<!-- For CubeRover - we use eternal FRAM memory to store data, i.e. a custom implementation of that component is necessary -->
+<!-- For CubeRover - we use external FRAM memory to store data, i.e. a custom implementation of that component is necessary -->
   <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="141" base_id_window="20" />
 
+<!-- Declaration of motor control component exclusive to CubeRover -->
+  <instance namespace="CubeRover" name="motorControl" type="MotorControl" base_id="161" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -64,10 +69,21 @@
         CONNECTION BETWEEN LOW FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
      *********************************************************************************************************
      -->
-  <!-- Connect output to telemetry Run input to update telemetric content (port 0) --> 
+  <!-- Connect output of telemetry Run input to update telemetric content (port 0) --> 
   <connection name = "rgLowFreq_to_tlmChan_clk">
     <source component = "rateGroupLowFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
     <target component = "tlmChan" port = "Run" type = "Sched" num = "0"/>
+  </connection>
+
+<!-- *********************************************************************************************************
+        CONNECTION BETWEEN MEDIUM FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
+     *********************************************************************************************************
+     -->
+
+  <!-- Connect output rategroup sched to motor control scheduled in -->
+  <connection name = "rgMedFreq_to_MotorCtrl_clk">
+    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <target component = "motorControl" port = "schedIn" type = "Sched" num = "0" />
   </connection>
 
 <!-- *********************************************************************************************************
@@ -93,10 +109,22 @@
     <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0"/>
   </connection>
 
-    <!-- Connection of time between cubeRoverTime and block driver --> 
+  <!-- Connection of time between cubeRoverTime and block driver --> 
   <connection name = "blockDriver_to_cubeRoverTime">
     <source component = "blockDriver" port = "Time" type = "Time" num = "0" />
     <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0"/>
+  </connection>
+
+  <!-- Connection of time between cubeRoverTime and active logger component -->
+  <connection name = "activeLogger_to_cubeRoverTime">
+    <source component = "activeLogger" port = "Time" type = "Time" num = "0" />
+    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
+  </connection>
+
+  <!-- Connection of time between cubeRoverTime and motor control component -->
+  <connection name = "motorControl_to_cubeRoverTime">
+    <source component = "motorControl" port = "timeCaller" type = "Time" num = "0" />
+    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num= "0" />
   </connection>
 
 <!-- *********************************************************************************************************
@@ -131,7 +159,7 @@
 
   <!-- *********************************************************************************************************
         CONNECTION OF MONITORED COMPONENTS TO TELEMETRIC ACTIVE LOGGER COMPONENT
-     ********************************************************************************************************* 
+       ********************************************************************************************************* 
       -->
 
       <!-- Rate group low freq to active logger -->

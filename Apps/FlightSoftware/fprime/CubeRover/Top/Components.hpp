@@ -21,6 +21,9 @@
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
 
 
+// Include component exclusive to CubeRover project
+#include "MotorControl/MotorControlComponentImpl.hpp"
+
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
 
@@ -40,6 +43,5 @@ extern Svc::TlmChanImpl tlmChan;
 extern Svc::CommandDispatcherImpl cmdDispatcher;
 
 extern Svc::ActiveLoggerImpl activeLogger;
-
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

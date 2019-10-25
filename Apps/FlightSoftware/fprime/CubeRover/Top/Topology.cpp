@@ -71,12 +71,20 @@ Svc::TlmChanImpl tlmChan(
   );
 
 // ---------------------------------------------------------------------------
+
 // command dispatcher component used to dispatch commands
 Svc::CommandDispatcherImpl cmdDispatcher(
 #if FW_OBJECT_NAMES == 1
         "CmdDispatcher"
 #endif
-);
+  );
+
+// Motor controller component
+CubeRover::MotorControlComponentImpl motorControl(
+#if FW_OBJECT_NAMES == 1
+  "MotorControl"
+#endif
+  );
 
 /**
  * @brief      Run 1 cycle (debug)
@@ -128,4 +136,8 @@ void constructApp(void){
   tlmChan.start(0, /* identifier */
                 TLM_CHAN_AFF, /* thread affinity */
                 TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+
+  motorControl.start(MOTOR_CONTROL_ID, /* identifier */
+                    MOTOR_CONTROL_AFF, /* CPU priority  */
+                    MOTOR_CONTROL_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 }

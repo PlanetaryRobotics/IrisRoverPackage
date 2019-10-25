@@ -1,0 +1,13 @@
+<commands>
+	<command kind="async" opcode="0x00" mnemonic="MC_LedCtrl">
+		<comment>Control the led</comment>
+		<args>
+			<arg name="control" type="ENUM">
+				<enum name="controlState">
+					<item name="TURN_ON"/>
+					<item name="TURN_OFF"/>
+				</enum>
+			</arg>
+		</args>
+	</command>
+</commands>

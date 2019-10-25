@@ -51,9 +51,6 @@
 #define MOTOR_CONTROL_AFF           25
 #define MOTOR_CONTROL_QUEUE_DEPTH   1
 
-#define RADIO_SERIAL_QUEUE_DEPTH    1
-#define RADIO_SERIAL_AFF            24
-
 #define MIN_STACK_SIZE_BYTES        1024
 
 // Configuration of I2C interfaces address and ports

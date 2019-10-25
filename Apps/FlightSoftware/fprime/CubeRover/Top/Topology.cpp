@@ -68,13 +68,23 @@ Svc::TlmChanImpl tlmChan(
 #if FW_OBJECT_NAMES == 1
     "TlmChan"
 #endif
-);
+    );
 
+// ---------------------------------------------------------------------------
+// Active logger data component used to log system events
 Svc::ActiveLoggerImpl activeLogger(
 #if FW_OBJECT_NAMES == 1
         "ActiveLogger"
 #endif
-        );
+    );
+
+// ---------------------------------------------------------------------------
+// Active logger data component used to log system events
+CubeRover::MotorControlComponentImpl motorControl(
+#if FW_OBJECT_NAMES == 1
+        "MotorControl"
+#endif
+);
 
 // Temporary code to simulate block driver rate group
 void run1cycle(void) {
@@ -103,27 +113,41 @@ void constructApp(void){
     // Initialize the telemetric channel component (active)
     tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
 
+    // Initialize the active logger
+    activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
+
+    // Initialize the motor control
+    motorControl.init(MOTOR_CONTROL_QUEUE_DEPTH, MOTOR_CONTROL_ID);
+
     // Construct the application and make all connections between components
 	constructCubeRoverArchitecture();
 
-	rateGroupLowFreq.start(0, /* identifier */
-	                       RG_LOW_FREQ_AFF, /* Thread affinity */
+	rateGroupLowFreq.start(RG_LOW_FREQ_ID, /* identifier */
+	                       RG_LOW_FREQ_AFF, /* CPU priority */
 	                       RG_LOW_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 
-    rateGroupMedFreq.start(0, /* identifier */
-                           RG_MED_FREQ_AFF, /* Thread affinity */
+    rateGroupMedFreq.start(RG_MED_FREQ_ID, /* identifier */
+                           RG_MED_FREQ_AFF, /* CPU priority  */
                            RG_MED_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 
-    rateGroupHiFreq.start(0, /* identifier */
-                           RG_HI_FREQ_AFF, /* Thread affinity */
-                           RG_HI_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+    rateGroupHiFreq.start(RG_HI_FREQ_ID, /* identifier */
+                          RG_HI_FREQ_AFF, /* CPU priority  */
+                          RG_HI_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 
-    blockDriver.start(0, /* identifier */
-                     BLK_DRV_AFF, /* Thread affinity */
-                     BLK_DRV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+    blockDriver.start(BLK_DRV_ID, /* identifier */
+                      BLK_DRV_AFF, /* CPU priority  */
+                      BLK_DRV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 
-    tlmChan.start(0, /* identifier */
-                  TLM_CHAN_AFF, /* thread affinity */
+    tlmChan.start(TLM_CHAN_ID, /* identifier */
+                  TLM_CHAN_AFF, /* CPU priority */
                   TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+
+    activeLogger.start(ACTIVE_LOGGER_ID, /* identifier */
+                       ACTIVE_LOGGER_AFF, /* CPU priority  */
+                       ACTIVE_LOGGER_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+
+    motorControl.start(MOTOR_CONTROL_ID, /* identifier */
+                       MOTOR_CONTROL_AFF, /* CPU priority  */
+                       MOTOR_CONTROL_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 
 }

@@ -15,7 +15,63 @@
 
 #include "CubeRover/MotorControl/MotorControlComponentAc.hpp"
 
+
 namespace CubeRover {
+
+  #define MC_BUFFER_MAX_SIZE 16 // Maximum size of I2C buffer
+
+  typedef uint8_t MotorControlI2cRegId_t;
+
+  typedef enum {
+    I2C_ADDRESS = 0x01,
+    RELATIVE_TARGET_POSITION,
+    DIRECTION,
+    TARGET_SPEED,
+    CURRENT_POSITION,
+    MOTOR_CURRENT,
+    P_CURRENT,
+    I_CURRENT,
+    P_VELOCITY,
+    I_VELOCITY,
+    D_VELOCITY,
+    P_POSITION,
+    I_POSITION,
+    D_POSITION,
+    ACCELERATION,
+    DECELERATION,
+    EXECUTE_CMD,
+    CURRENT_VELOCITY,
+    ENABLE_DRIVER,
+    DISABLE_DRIVER,
+    RESET_CONTROLLER,
+    FAULT_REGISTER,
+    CLEAR_FAULT,
+    STATUS_REGISTER,
+    POSITION_SENSOR_CURRENT_COMBINATION,
+    MC_MAX_NUM_OF_ELEMENTS
+  }MotorControlI2cRegId;
+
+  typedef enum {
+      MC_NO_ERROR,
+      MC_UNEXPECTED_ERROR
+  }MCError;
+
+  typedef enum {
+    CRC8              = 0xD5,
+    CRC8_CCITT        = 0x07,
+    CRC8_DALLAS_MAXIM = 0x31,
+    CRC8_SAE_J1850    = 0x1D,
+    CRC_8_WCDMA       = 0x9B
+  }ChecksumType;
+
+  typedef uint8_t MotorControlChecksum;
+
+  typedef uint8_t I2cSlaveAddress;
+
+  typedef int32_t Distance_cm;
+  typedef int32_t Motor_tick;
+  typedef uint8_t Speed_percent;
+
 
   class MotorControlComponentImpl :
     public MotorControlComponentBase
@@ -67,15 +123,81 @@ namespace CubeRover {
       // Command handler implementations
       // ----------------------------------------------------------------------
 
-      //! Implementation for MC_LedCtrl command handler
-      //! Control the led
-      void MC_LedCtrl_cmdHandler(
+      //! Implementation for MC_DrivingConfiguration command handler
+      //! Configure forward command
+      void MC_DrivingConfiguration_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq, /*!< The command sequence number*/
-          controlState control 
+          CommandList CommandConfiguration, 
+          ParameterList Parameter, 
+          U8 Value 
       );
 
+      //! Implementation for MC_ExecuteDriving command handler
+      //! Execute one configured command
+      void MC_ExecuteDriving_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          DriveCommandList DrivingCommand 
+      );
 
+      //! Implementation for MC_TuningParameters command handler
+      //! Contains all motor control parameters
+      void MC_TuningParameters_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          tuningParameterList TuningParameter, 
+          U16 Value 
+      );
+
+      //! Implementation for MC_AccelerationProfiles command handler
+      //! Contains acceleration and deceleration profile
+      void MC_AccelerationProfiles_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          accelerationParameterList AccelerationParameter, 
+          U16 Value 
+      );
+
+      //! Implementation for MC_StallDetection command handler
+      //! Enable / disable detection of motor stall
+      void MC_StallDetection_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          motorStallEnableList motorStallEnable 
+      );
+
+      //! Implementation for MC_PositionCounterReset command handler
+      //! Reset position counter
+      void MC_PositionCounterReset_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          U8 ResetPositionCounter 
+      );
+
+    private:
+      uint8_t txData[MC_BUFFER_MAX_SIZE];
+      uint8_t rxData[MC_BUFFER_MAX_SIZE];
+      void writeMotorControlRegister(i2cBASE_t *i2c, const MotorControlI2cRegId id, uint32_t data);
+      MCError i2cMasterTransmit(i2cBASE_t *i2c, const uint32_t sadd, const uint32_t length, uint8_t * data);
+      MCError i2cMasterReceive(i2cBASE_t *i2c, const uint32_t sadd, const uint32_t length, uint8_t * data);
+      uint32_t getSizeData(const MotorControlI2cRegId id);
+
+      uint8_t checksumLookUpTable[256];
+
+      // left and right turn parameters
+      uint8_t m_rightSpeed;
+      uint8_t m_leftSpeed;
+      uint8_t m_rightAngle;
+      uint8_t m_leftAngle;
+
+      // forward and reverse parameters
+      Distance_cm m_fwDist;
+      Distance_cm m_reDist;
+      uint8_t m_fwSpeed;
+      uint8_t m_reSpeed;
+
+      float m_encoderTickToCmRatio;
     };
 
 } // end namespace CubeRover

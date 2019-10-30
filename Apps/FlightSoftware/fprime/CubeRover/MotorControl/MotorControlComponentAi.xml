@@ -25,6 +25,6 @@
     <port name="log" kind="output" data_type="Fw::Log" max_number="1" role="LogEvent"></port>
     <port name="timeCaller" kind="output" data_type="Fw::Time" max_number="1" role="TimeGet"></port>
     <port name="schedIn" data_type="Svc::Sched" kind="async_input" max_number="1"></port>
-    <port name="tlmOut" data_type="Fw::Tlm" kind="output" role="Telemetry" max_number="1"></port>
+    <port name="tlmOut" data_type="Fw::Tlm" kind="output" role="Telemetry" max_number="11"></port>
  </ports>
 </component>

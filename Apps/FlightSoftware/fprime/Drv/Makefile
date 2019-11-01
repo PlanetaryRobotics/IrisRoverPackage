@@ -4,7 +4,7 @@
 
 # derive module name from directory
 
-MODULES = DataTypes BlockDriver FreeRtosSerialDriver
+MODULES = DataTypes BlockDriver SerialDriverPorts FreeRtosSerialDriver
 
 BASE_DIR = $(notdir $(CURDIR))
 

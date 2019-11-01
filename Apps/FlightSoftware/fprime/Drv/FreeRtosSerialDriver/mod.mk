@@ -1,8 +1,7 @@
 
-SRC = FreeRtosSerialDriverComponentAi.xml 
-#FreeRtosSerialDriverComponentImpl.cpp
+SRC = FreeRtosSerialDriverComponentAi.xml FreeRtosSerialDriverComponentImpl.cpp
 
-#HDR = FreeRtosSerialDriverComponentImpl.hpp
+HDR = FreeRtosSerialDriverComponentImpl.hpp
 
 #SUBDIRS = test
 

@@ -33,12 +33,31 @@ namespace Drv {
 
   }
 
-  void FreeRtosSerialDriverComponentImpl ::
-    init(
+  void FreeRtosSerialDriverComponentImpl :: init(
         const NATIVE_INT_TYPE instance
     )
   {
     FreeRtosSerialDriverComponentBase::init(instance);
+  }
+
+  bool FreeRtosSerialDriverComponentImpl :: open( sciBASE_t *sci, 
+                                                  UartBaudRate baud, 
+                                                  UartFlowControl fc, 
+                                                  UartParity parity, 
+                                                  bool block){
+    if(sci == NULL) return false;
+
+    m_sci = sci;
+    
+    muxInit();
+    sciInit();
+
+    sciEnterResetState(m_sci);
+    sciSetBaudrate(m_sci, baud);
+
+    sciEnableNotification(m_sci, SCI_RX_INT);
+
+    sciExitResetState(m_sci);
   }
 
   FreeRtosSerialDriverComponentImpl ::
@@ -66,7 +85,22 @@ namespace Drv {
         Fw::Buffer &serBuffer
     )
   {
-    // TODO
+    uint32_t tries = 10;
+    unsigned char* data = reinterpret_cast<unsigned char*>(serBuffer.getdata());
+    NATIVE_INT_TYPE xferSize = serBuffer.getsize();
+
+    // Block here if a tx is already underway
+    while(--tries && !sciIsTxReady(sciREG));
+
+    if(!tries){
+      Fw::LogStringArg _arg = "FreeRtosSerialDriver";
+      this->log_WARNING_HI_DR_WriteError(_arg, -1);
+      return;
+    } 
+
+    //Send data using interrupt, do not call sciSend again until data is fully sent
+    sciSend(m_sci, data, xferSize);
+
   }
 
 } // end namespace Drv

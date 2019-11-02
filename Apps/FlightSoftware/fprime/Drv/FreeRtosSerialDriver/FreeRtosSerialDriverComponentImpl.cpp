@@ -10,9 +10,10 @@
 //
 // ======================================================================
 
-
 #include <Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentImpl.hpp>
-#include "Fw/Types/BasicTypes.hpp"
+#include <Fw/Types/BasicTypes.hpp>
+#include <Fw/Types/EightyCharString.hpp>
+
 
 namespace Drv {
 
@@ -49,7 +50,6 @@ namespace Drv {
 
     m_sci = sci;
     
-    muxInit();
     sciInit();
 
     sciEnterResetState(m_sci);
@@ -58,6 +58,8 @@ namespace Drv {
     sciEnableNotification(m_sci, SCI_RX_INT);
 
     sciExitResetState(m_sci);
+
+    return true;
   }
 
   FreeRtosSerialDriverComponentImpl ::
@@ -70,27 +72,99 @@ namespace Drv {
   // Handler implementations for user-defined typed input ports
   // ----------------------------------------------------------------------
 
-  void FreeRtosSerialDriverComponentImpl ::
-    readBufferSend_handler(
-        const NATIVE_INT_TYPE portNum,
-        Fw::Buffer &fwBuffer
-    )
-  {
-    // TODO
+  void FreeRtosSerialDriverComponentImpl :: readBufferSend_handler(const NATIVE_INT_TYPE portNum,
+                                                                    Fw::Buffer &fwBuffer){
+    Drv::SerialReadStatus serReadStat;
+    FreeRtosSerialDriverComponentImpl* comp = static_cast<FreeRtosSerialDriverComponentImpl*>(ptr);
+    Fw::Buffer buff;
+    uint32_t tries = 10;
+
+    while (1) {
+        // wait for data
+        int sizeRead = 0;
+
+        // find open buffer
+        comp->m_readBuffMutex.lock();
+
+        // search for open entry
+        NATIVE_INT_TYPE entryFound = false;
+        for(NATIVE_INT_TYPE entry = 0; entry < DR_MAX_NUM_BUFFERS; entry++){
+            if (comp->m_buffSet[entry].available) {
+                comp->m_buffSet[entry].available = false;
+                buff = comp->m_buffSet[entry].readBuffer;
+                entryFound = true;
+                break;
+            }
+        }
+
+        comp->m_readBuffMutex.unLock();
+
+        if (not entryFound) {
+            Fw::LogStringArg _arg = comp->m_device;
+            comp->log_WARNING_HI_DR_NoBuffers(_arg);
+            serReadStat = Drv::SER_NO_BUFFERS;
+            comp->serialRecv_out(0,buff,serReadStat);
+            // to avoid spinning, wait 50 ms
+            Os::Task::delay(50);
+            continue;
+        }
+
+        bool waiting = true;
+        int stat = 0;
+
+        while (waiting){
+          if(comp->m_quitReadThread) {
+            return;
+          }
+
+          // Block here if a rx is already underway
+          while(--tries && !sciIsRxReady(m_sci));
+
+          //Blocking until timeout or data available
+          stat = sciReceive(m_sci, 
+                           buff.getsize(),
+                           reinterpret_cast<unsigned char*>(buff.getdata()));
+
+          // Good read:
+          if (stat > 0) {
+            sizeRead = stat;
+          }
+
+          // check for timeout
+          if (stat == 0) {
+            if (comp->m_quitReadThread) {
+              return;
+            }
+          } else { // quit if other error or data
+              waiting = false;
+            }
+        } // end of while waiting
+
+        if (comp->m_quitReadThread) {
+            return;
+        }
+
+        // check stat, maybe output event
+        if (stat == -1) {
+            Fw::LogStringArg _arg = comp->m_device;
+            comp->log_WARNING_HI_DR_ReadError(_arg,stat);
+            serReadStat = Drv::SER_OTHER_ERR;
+        } else {
+            buff.setsize(sizeRead);
+            serReadStat = Drv::SER_OK;
+        }
+        comp->serialRecv_out(0,buff,serReadStat);
+      }
   }
 
-  void FreeRtosSerialDriverComponentImpl ::
-    serialSend_handler(
-        const NATIVE_INT_TYPE portNum,
-        Fw::Buffer &serBuffer
-    )
-  {
+  void FreeRtosSerialDriverComponentImpl :: serialSend_handler(const NATIVE_INT_TYPE portNum,
+                                                                Fw::Buffer &serBuffer){
     uint32_t tries = 10;
     unsigned char* data = reinterpret_cast<unsigned char*>(serBuffer.getdata());
     NATIVE_INT_TYPE xferSize = serBuffer.getsize();
 
     // Block here if a tx is already underway
-    while(--tries && !sciIsTxReady(sciREG));
+    while(--tries && !sciIsTxReady(m_sci));
 
     if(!tries){
       Fw::LogStringArg _arg = "FreeRtosSerialDriver";

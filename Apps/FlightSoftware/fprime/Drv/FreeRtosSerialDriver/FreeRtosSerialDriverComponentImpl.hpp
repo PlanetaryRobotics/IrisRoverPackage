@@ -13,9 +13,16 @@
 #ifndef FreeRtosSerialDriver_HPP
 #define FreeRtosSerialDriver_HPP
 
+#include <sci.h>
+#include <Os/Mutex.hpp>
+
 #include "Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentAc.hpp"
 
 namespace Drv {
+
+  enum {
+    DR_MAX_NUM_BUFFERS = 20,
+  };
 
   class FreeRtosSerialDriverComponentImpl :
     public FreeRtosSerialDriverComponentBase

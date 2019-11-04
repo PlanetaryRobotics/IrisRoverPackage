@@ -15,7 +15,7 @@
 #include "Fw/Types/BasicTypes.hpp"
 
 #include "i2c.h"
-#include "CubeRoverConfig.hpp"
+#include "Include/CubeRoverConfig.hpp"
 
 namespace CubeRover {
 
@@ -98,51 +98,51 @@ namespace CubeRover {
       case FORWARD_CFG:
         switch(Parameter){
           case DISTANCE:
-            m_fwDist = value;
+            m_fwDist = Value;
             break;
           case SPEED:
-            m_fwSpeed = value;
+            m_fwSpeed = Value;
             break;
           default:
-            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_FAIL);
+            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
             return;
         }
         break;
       case REVERSE_CFG:
         switch(Parameter){
           case DISTANCE:
-            m_reDist = value;
+            m_reDist = Value;
             break;
           case SPEED:
-            m_reSpeed = value;
+            m_reSpeed = Value;
             break;
           default:
-            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_FAIL);
+            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
             return;
         }
       case LEFT_CFG:
         switch(Parameter){
           case SPEED:
-            m_leftSpeed = value;
+            m_leftSpeed = Value;
             break;
           case ANGLE:
-            m_leftAngle = value;
+            m_leftAngle = Value;
             break;
           default:
-            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_FAIL);
+            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
             return;
         }
         break;
       case RIGHT_CFG:
         switch(Parameter){
           case SPEED:
-            m_rightSpeed = value;
+            m_rightSpeed = Value;
             break;
           case ANGLE:
-            m_rightAngle = value;
+            m_rightAngle = Value;
             break;
           default:
-            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_FAIL);
+            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
             return;
         }
 
@@ -168,25 +168,27 @@ namespace CubeRover {
   }
 
   inline MCError MotorControlComponentImpl :: disableDrivers(){
-    if(err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG, 
-                                        DISABLE_DRIVER, 
+    MCError err = MC_NO_ERROR;
+
+    if((err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG, 
+                                        I2C_DISABLE_DRIVER, 
                                         FRONT_LEFT_MC_I2C_ADDR,
-                                        0xff /*dummy write*/) != MC_NO_ERROR)
+                                        0xff /*dummy write*/)) != MC_NO_ERROR)
       return err;
-    if(err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG, 
-                                        DISABLE_DRIVER, 
+    if((err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG, 
+                                        I2C_DISABLE_DRIVER, 
                                         REAR_LEFT_MC_I2C_ADDR,
-                                        0xff /*dummy write*/) != MC_NO_ERROR)
+                                        0xff /*dummy write*/)) != MC_NO_ERROR)
       return err;
-    if(err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG, 
-                                        DISABLE_DRIVER, 
+    if((err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG, 
+                                        I2C_DISABLE_DRIVER, 
                                         FRONT_RIGHT_MC_I2C_ADDR,
-                                        0xff /*dummy write*/) != MC_NO_ERROR)
+                                        0xff /*dummy write*/)) != MC_NO_ERROR)
       return err;
-    if(err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG, 
-                                        DISABLE_DRIVER, 
+    if((err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG, 
+                                        I2C_DISABLE_DRIVER, 
                                         REAR_RIGHT_MC_I2C_ADDR,
-                                        0xff /*dummy write*/) != MC_NO_ERROR)
+                                        0xff /*dummy write*/)) != MC_NO_ERROR)
       return err;    
     return MC_NO_ERROR;
   }
@@ -200,75 +202,74 @@ namespace CubeRover {
     )
   {
     MCError err = MC_NO_ERROR;
+    Motor_tick targetTick = cmToMotorTicks(m_fwDist);
 
     switch(DrivingCommand){
       case GO_FORWARD:
       case GO_REVERSE:
-        Motor_tick targetTick = cmToMotorTicks(m_fwDist);
-
         // Set target position in ticks
-        if(err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG, 
-                                            RELATIVE_TARGET_POSITION, 
+        if((err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG, 
+                                            I2C_RELATIVE_TARGET_POSITION, 
                                             FRONT_LEFT_MC_I2C_ADDR,
-                                            targetTick) != MC_NO_ERROR){
-          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_FAIL);
+                                            targetTick)) != MC_NO_ERROR){
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;
         }
 
-        if(err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG,
-                                            RELATIVE_TARGET_POSITION,
+        if((err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG,
+                                            I2C_RELATIVE_TARGET_POSITION,
                                             FRONT_RIGHT_MC_I2C_ADDR,
-                                            targetTick) != MC_NO_ERROR){
-          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_FAIL);
+                                            targetTick)) != MC_NO_ERROR){
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;
         }
 
-        if(err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG,
-                                            RELATIVE_TARGET_POSITION,
+        if((err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG,
+                                            I2C_RELATIVE_TARGET_POSITION,
                                             REAR_LEFT_MC_I2C_ADDR,
-                                            targetTick) != MC_NO_ERROR){
-          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_FAIL);
+                                            targetTick)) != MC_NO_ERROR){
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
         }
 
-        if(err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG,
-                                            RELATIVE_TARGET_POSITION,
+        if((err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG,
+                                            I2C_RELATIVE_TARGET_POSITION,
                                             REAR_RIGHT_MC_I2C_ADDR,
-                                            targetTick) != MC_NO_ERROR){
-          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_FAIL);
+                                            targetTick)) != MC_NO_ERROR){
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;            
         }
         
         // Set target speed in percentage
-        if(err = writeRegister(MOTOR_CONTROL_I2CREG,
-                               TARGET_SPEED,
+        if((err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                               I2C_TARGET_SPEED,
                                FRONT_LEFT_MC_I2C_ADDR,
-                               targetTick) != MC_NO_ERROR){
-          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_FAIL);
+                               targetTick)) != MC_NO_ERROR){
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;             
         }
 
-        if(err = writeRegister(MOTOR_CONTROL_I2CREG,
-                               TARGET_SPEED,
+        if((err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                               I2C_TARGET_SPEED,
                                FRONT_RIGHT_MC_I2C_ADDR,
-                               targetTick) != MC_NO_ERROR){
-          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_FAIL);
+                               targetTick)) != MC_NO_ERROR){
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;            
         }
 
-        if(err = writeRegister(MOTOR_CONTROL_I2CREG,
-                               TARGET_SPEED,
+        if((err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                               I2C_TARGET_SPEED,
                                REAR_LEFT_MC_I2C_ADDR,
-                               targetTick) != MC_NO_ERROR){
-          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_FAIL);
+                               targetTick)) != MC_NO_ERROR){
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;            
         }
 
-        if(err = writeRegister( MOTOR_CONTROL_I2CREG,
-                                TARGET_SPEED,
+        if((err = writeMotorControlRegister( MOTOR_CONTROL_I2CREG,
+                                I2C_TARGET_SPEED,
                                 REAR_RIGHT_MC_I2C_ADDR,
-                                targetTick) != MC_NO_ERROR){
-          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_FAIL);
+                                targetTick)) != MC_NO_ERROR){
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;            
         }     
         break;
@@ -279,16 +280,16 @@ namespace CubeRover {
 
         break;
       default:
-        this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_FAIL);
+        this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
         return;
     }
 
     enableDrivers();
 
-    writeRegister(MOTOR_CONTROL_I2CREG, EXECUTE_CMD, FRONT_LEFT_MC_I2C_ADDR, DrivingCommand);
-    writeRegister(MOTOR_CONTROL_I2CREG, EXECUTE_CMD, FRONT_RIGHT_MC_I2C_ADDR, DrivingCommand);
-    writeRegister(MOTOR_CONTROL_I2CREG, EXECUTE_CMD, REAR_LEFT_MC_I2C_ADDR, DrivingCommand);
-    writeRegister(MOTOR_CONTROL_I2CREG, EXECUTE_CMD, REAR_RIGHT_MC_I2C_ADDR, DrivingCommand);
+    writeMotorControlRegister(MOTOR_CONTROL_I2CREG, I2C_EXECUTE_CMD, FRONT_LEFT_MC_I2C_ADDR, DrivingCommand);
+    writeMotorControlRegister(MOTOR_CONTROL_I2CREG, I2C_EXECUTE_CMD, FRONT_RIGHT_MC_I2C_ADDR, DrivingCommand);
+    writeMotorControlRegister(MOTOR_CONTROL_I2CREG, I2C_EXECUTE_CMD, REAR_LEFT_MC_I2C_ADDR, DrivingCommand);
+    writeMotorControlRegister(MOTOR_CONTROL_I2CREG, I2C_EXECUTE_CMD, REAR_RIGHT_MC_I2C_ADDR, DrivingCommand);
 
     disableDrivers();
 
@@ -352,56 +353,35 @@ namespace CubeRover {
   uint32_t MotorControlComponentImpl :: getSizeData(const MotorControlI2cRegId id){
     switch(id){
         case I2C_ADDRESS:
+        case I2C_DIRECTION:
+        case I2C_TARGET_SPEED:
+        case I2C_EXECUTE_CMD:
+        case I2C_ENABLE_DRIVER:
+        case I2C_DISABLE_DRIVER:
+        case I2C_RESET_CONTROLLER:
+        case I2C_FAULT_REGISTER:
+        case I2C_CLEAR_FAULT:
+        case I2C_STATUS_REGISTER:
+        case I2C_POSITION_SENSOR_CURRENT_COMBINATION:
           return 1;
-        case RELATIVE_TARGET_POSITION:
+        case I2C_MOTOR_CURRENT:
+        case I2C_P_CURRENT:
+        case I2C_I_CURRENT:
+        case I2C_P_VELOCITY:
+        case I2C_I_VELOCITY:
+        case I2C_D_VELOCITY:
+        case I2C_P_POSITION:
+        case I2C_I_POSITION:
+        case I2C_D_POSITION:
+        case I2C_ACCELERATION:
+        case I2C_DECELERATION:
+        case I2C_CURRENT_VELOCITY:
+          return 2;
+        case I2C_RELATIVE_TARGET_POSITION:
+        case I2C_CURRENT_POSITION:
           return 4;
-        case DIRECTION:
-          return 1;
-        case TARGET_SPEED:
-          return 1;
-        case CURRENT_POSITION:
-          return 4;
-        case MOTOR_CURRENT:
-          return 2;
-        case P_CURRENT:
-          return 2;
-        case I_CURRENT:
-          return 2;
-        case P_VELOCITY:
-          return 2;
-        case I_VELOCITY:
-          return 2;
-        case D_VELOCITY:
-          return 2;
-        case P_POSITION:
-          return 2;
-        case I_POSITION:
-          return 2;
-        case D_POSITION:
-          return 2;
-        case ACCELERATION:
-          return 2;
-        case DECELERATION:
-          return 2;
-        case EXECUTE_CMD:
-          return 1;
-        case CURRENT_VELOCITY:
-          return 2;
-        case ENABLE_DRIVER:
-          return 1;
-        case DISABLE_DRIVER:
-          return 1;
-        case RESET_CONTROLLER:
-          return 1;
-        case FAULT_REGISTER:
-          return 1;
-        case CLEAR_FAULT:
-          return 1;
-        case STATUS_REGISTER:
-          return 1;
-        case POSITION_SENSOR_CURRENT_COMBINATION:
-          return 1;
-        case MC_MAX_NUM_OF_ELEMENTS:
+        case I2C_MC_MAX_NUM_OF_ELEMENTS:
+        default:
           return 0;
       }   
   }
@@ -423,7 +403,7 @@ namespace CubeRover {
    * @return     { description_of_the_return_value }
    */
   size_t MotorControlComponentImpl :: checksumSize(){
-    return sizeof(MotorControlChecksum_t);
+    return sizeof(MotorControlChecksum);
   }
 
 
@@ -465,7 +445,7 @@ namespace CubeRover {
    MCError MotorControlComponentImpl :: computeChecksum8( uint8_t *data,
                                                           const size_t bufferLength,
                                                           MotorControlChecksum *checksum){
-    MotorControlChecksum_t sum = 0;
+    MotorControlChecksum sum = 0;
 
     if(data == NULL)
       return MC_UNEXPECTED_ERROR;
@@ -501,8 +481,8 @@ namespace CubeRover {
 
     txData[0] = id;
     txData[1] = dataLength;
-    memcpy(txData+2, data, sizeof(data));
-    txData[packetLength-1] = computeChecksum8(txData, packetLength-1);
+    memcpy(txData+2, &data, sizeof(data));
+    computeChecksum8(txData, packetLength-1, txData+packetLength-1 );
 
     return MC_NO_ERROR;
   }
@@ -531,11 +511,11 @@ namespace CubeRover {
       if(i2c == NULL)
         return MC_UNEXPECTED_ERROR;
 
-      if(ret = packTransmitBuffer(id, data, dataLength) != MC_NO_ERROR)
+      if((ret = packTransmitBuffer(id, data, dataLength)) != MC_NO_ERROR)
         return ret;
 
       // Send command to all motor controllers
-      if(ret = i2cMasterTransmit(i2c, add, dataLength, bufferLength) != MC_NO_ERROR)
+      if((ret = i2cMasterTransmit(i2c, add, dataLength, txData)) != MC_NO_ERROR)
         return ret;
 
       return ret;
@@ -555,7 +535,7 @@ namespace CubeRover {
   MCError MotorControlComponentImpl :: i2cMasterTransmit(i2cBASE_t *i2c,
                                                       const I2cSlaveAddress sadd,
                                                       const uint32_t length,
-                                                      const uint8_t * data){
+                                                      uint8_t * data){
     if(i2c == NULL)
       return MC_UNEXPECTED_ERROR;
 
@@ -607,9 +587,9 @@ namespace CubeRover {
    * @return     { description_of_the_return_value }
    */
   MCError MotorControlComponentImpl :: i2cMasterReceive(i2cBASE_t *i2c,
-                                                     const uint32_t sadd,
+                                                     const I2cSlaveAddress sadd,
                                                      const uint32_t length,
-                                                     const uint8_t * data){
+                                                     uint8_t * data){
     if(i2c == NULL)
       return MC_UNEXPECTED_ERROR;
 

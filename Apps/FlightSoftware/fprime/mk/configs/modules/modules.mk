@@ -73,7 +73,6 @@ SVC_MODULES := \
 	Svc/UdpSender \
 	Svc/UdpReceiver
 	
-
 DEMO_DRV_MODULES := \
 	Drv/DataTypes \
 	Drv/BlockDriver \
@@ -86,7 +85,11 @@ LINUX_DRV_MODULES := \
 	Drv/SerialDriverPorts \
 	Drv/SpiDriverPorts \
 	Drv/GpioDriverPorts
-	
+
+CUBEROVER_DRV_MODULES := \
+	Drv/FreeRtosSerialDriver \
+	Drv/SerialDriverPorts
+
 REF_MODULES := \
 	Ref/Top \
 	Ref/RecvBuffApp \
@@ -203,7 +206,8 @@ CubeRover_MODULES := \
 	CubeRover/MotorControl \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
-	$(SVC_MODULES)
+	$(SVC_MODULES) \
+	$(CUBEROVER_DRV_MODULES)
 	
 # Other modules to build, but not to link with deployment binaries
 OTHER_MODULES := \

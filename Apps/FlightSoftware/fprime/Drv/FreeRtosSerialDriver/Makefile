@@ -4,12 +4,10 @@
 
 # derive module name from directory
 
-MODULES = DataTypes BlockDriver SerialDriverPorts FreeRtosSerialDriver
+MODULE_DIR = Drv/FreeRtosSerialDriver
+MODULE = $(subst /,,$(MODULE_DIR))
 
-BASE_DIR = $(notdir $(CURDIR))
-
-BUILD_ROOT ?= $(subst /$(BASE_DIR),,$(CURDIR))
+BUILD_ROOT ?= $(subst /$(MODULE_DIR),,$(CURDIR))
 export BUILD_ROOT
 
-include $(BUILD_ROOT)/mk/makefiles/base_targets.mk
-
+include $(BUILD_ROOT)/mk/makefiles/module_targets.mk

@@ -1,7 +1,7 @@
 // ======================================================================
-// \title  LinuxSerialDriverImpl.hpp
-// \author tcanham
-// \brief  hpp file for LinuxSerialDriver component implementation class
+// \title  FreeRtosSerialDriverComponentImpl.hpp
+// \author cedric
+// \brief  hpp file for FreeRtosSerialDriver component implementation class
 //
 // \copyright
 // Copyright 2009-2015, by the California Institute of Technology.
@@ -10,40 +10,27 @@
 //
 // ======================================================================
 
-#ifndef LinuxSerialDriver_HPP
-#define LinuxSerialDriver_HPP
+#ifndef FreeRtosSerialDriver_HPP
+#define FreeRtosSerialDriver_HPP
 
-#include <Drv/LinuxSerialDriver/LinuxSerialDriverComponentAc.hpp>
-#include <Drv/LinuxSerialDriver/LinuxSerialDriverComponentImplCfg.hpp>
+#include <sci.h>
+#include <sci_supplement.h>
+
 #include <Os/Mutex.hpp>
+
+#include "Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentAc.hpp"
 
 namespace Drv {
 
-  class LinuxSerialDriverComponentImpl :
-    public LinuxSerialDriverComponentBase
+  enum {
+    DR_MAX_NUM_BUFFERS = 20,
+  };
+
+  class FreeRtosSerialDriverComponentImpl :
+    public FreeRtosSerialDriverComponentBase
   {
 
     public:
-
-      // ----------------------------------------------------------------------
-      // Construction, initialization, and destruction
-      // ----------------------------------------------------------------------
-
-      //! Construct object LinuxSerialDriver
-      //!
-      LinuxSerialDriverComponentImpl(
-#if FW_OBJECT_NAMES == 1
-          const char *const compName /*!< The component name*/
-#else
-          void
-#endif
-      );
-
-      //! Initialize object LinuxSerialDriver
-      //!
-      void init(
-          const NATIVE_INT_TYPE instance = 0 /*!< The instance number*/
-      );
 
       //! Configure UART parameters
       typedef enum BAUD_RATE {
@@ -68,43 +55,68 @@ namespace Drv {
           PARITY_EVEN
       } UartParity;
 
-      // Open device with specified baud and flow control.
-      bool open(sciBASE_t *sci, UartBaudRate baud, UartFlowControl fc, UartParity parity, bool block);
+      // ----------------------------------------------------------------------
+      // Construction, initialization, and destruction
+      // ----------------------------------------------------------------------
+
+      //! Construct object FreeRtosSerialDriver
+      //!
+      FreeRtosSerialDriverComponentImpl(
+#if FW_OBJECT_NAMES == 1
+          const char *const compName /*!< The component name*/
+#else
+          void
+#endif
+      );
+
+      //! Initialize object FreeRtosSerialDriver
+      //!
+      void init(
+          const NATIVE_INT_TYPE instance = 0 /*!< The instance number*/
+      );
+
+// Open device with specified baud and flow control.
+      bool open(sciBASE_t *sci, 
+                UartBaudRate baud, 
+                UartFlowControl fc, 
+                UartParity parity, 
+                bool block);
 
       //! start the serial poll thread.
       //! buffSize is the max receive buffer size
       //!
-      void startReadThread(NATIVE_INT_TYPE priority, NATIVE_INT_TYPE stackSize, NATIVE_INT_TYPE cpuAffinity = -1);
+      void startReadThread(NATIVE_INT_TYPE priority,
+                           NATIVE_INT_TYPE stackSize,
+                           NATIVE_INT_TYPE cpuAffinity = -1);
 
       //! Quit thread
       void quitReadThread(void);
 
-      //! Destroy object LinuxSerialDriver
+      //! Destroy object FreeRtosSerialDriver
       //!
-      ~LinuxSerialDriverComponentImpl(void);
+      ~FreeRtosSerialDriverComponentImpl(void);
 
     PRIVATE:
+      
+      sciBASE_t * m_sci;
 
       // ----------------------------------------------------------------------
       // Handler implementations for user-defined typed input ports
       // ----------------------------------------------------------------------
 
-      //! Handler implementation for serialSend
-      //!
-      void serialSend_handler(
-              NATIVE_INT_TYPE portNum, /*!< The port number*/
-              Fw::Buffer &serBuffer
-          );
-
       //! Handler implementation for readBufferSend
       //!
       void readBufferSend_handler(
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
-          Fw::Buffer& fwBuffer
+          Fw::Buffer &fwBuffer 
       );
 
-      NATIVE_INT_TYPE m_fd; //!< file descriptor returned for I/O device
-      const char* m_device; //!< original device path
+      //! Handler implementation for serialSend
+      //!
+      void serialSend_handler(
+          const NATIVE_INT_TYPE portNum, /*!< The port number*/
+          Fw::Buffer &serBuffer 
+      );
 
       //! This method will be called by the new thread to wait for input on the serial port.
       static void serialReadTaskEntry(void * ptr);

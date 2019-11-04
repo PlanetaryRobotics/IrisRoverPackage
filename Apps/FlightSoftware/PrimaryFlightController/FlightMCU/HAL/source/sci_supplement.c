@@ -1,11 +1,11 @@
 #include "sci.h"
+#include "sci_supplement.h"
 #include "sys_vim.h"
 #include "math.h"
 
-int32 sciReceive(sciBASE_t *sci, uint32 length, uint8 * data, uint32_t timeoutMs)
+int32_t sciReceiveWithTimeout(sciBASE_t *sci, uint32 length, uint8 * data, uint32_t timeoutMs)
 {
     int32 bytesRead = 0;
-    uint32_t tries = 0xffffffff;
 
     if ((sci->SETINT & (uint32)SCI_RX_INT) == (uint32)SCI_RX_INT)
     {
@@ -23,7 +23,7 @@ int32 sciReceive(sciBASE_t *sci, uint32 length, uint8 * data, uint32_t timeoutMs
         while (length > 0U)
         {
 	        /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Potentially infinite loop found - Hardware Status check for execution sequence" */
-            while ((sci->FLR & (uint32)SCI_RX_INT) == 0U && --tries > 0){ 
+            while ((sci->FLR & (uint32)SCI_RX_INT) == 0U && --timeoutMs > 0){ 
             } /* Wait */
 
             if(!tries)

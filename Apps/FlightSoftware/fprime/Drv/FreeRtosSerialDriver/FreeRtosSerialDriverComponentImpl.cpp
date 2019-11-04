@@ -72,7 +72,7 @@ namespace Drv {
   // Handler implementations for user-defined typed input ports
   // ----------------------------------------------------------------------
  //! This method will be called by the new thread to wait for input on the serial port.
-  void FreeRtosSerialDriverComponentImpl :: serialReadTaskEntry(void * ptr){}
+  void FreeRtosSerialDriverComponentImpl :: serialReadTaskEntry(void * ptr){
     Drv::SerialReadStatus serReadStat;
     FreeRtosSerialDriverComponentImpl* comp = static_cast<FreeRtosSerialDriverComponentImpl*>(ptr);
     Fw::Buffer buff;
@@ -99,7 +99,7 @@ namespace Drv {
         comp->m_readBuffMutex.unLock();
 
         if (not entryFound) {
-            Fw::LogStringArg _arg = comp->m_device;
+            Fw::LogStringArg _arg = "FreeRtosSerialDriver";
             comp->log_WARNING_HI_DR_NoBuffers(_arg);
             serReadStat = Drv::SER_NO_BUFFERS;
             comp->serialRecv_out(0,buff,serReadStat);
@@ -117,12 +117,13 @@ namespace Drv {
           }
 
           // Block here if a rx is already underway
-          while(--tries && !sciIsRxReady(m_sci));
+          while(--tries && !sciIsRxReady(comp->m_sci));
 
           //Blocking until timeout or data available
-          stat = sciReceive(m_sci, 
-                           buff.getsize(),
-                           reinterpret_cast<unsigned char*>(buff.getdata()));
+          stat = sciReceiveWithTimeout(comp->m_sci, 
+                                      buff.getsize(),
+                                      reinterpret_cast<unsigned char*>(buff.getdata()),
+                                      0xffffffff); /*Max timeout */
 
           // Good read:
           if (stat > 0) {
@@ -145,7 +146,7 @@ namespace Drv {
 
         // check stat, maybe output event
         if (stat == -1) {
-            Fw::LogStringArg _arg = comp->m_device;
+            Fw::LogStringArg _arg = "FreeRtosSerialDriver";
             comp->log_WARNING_HI_DR_ReadError(_arg,stat);
             serReadStat = Drv::SER_OTHER_ERR;
         } else {
@@ -172,7 +173,7 @@ namespace Drv {
     } 
 
     //Send data using interrupt, do not call sciSend again until data is fully sent
-    sciSend(m_sci, data, xferSize);
+    sciSend(m_sci, xferSize, data);
 
   }
 

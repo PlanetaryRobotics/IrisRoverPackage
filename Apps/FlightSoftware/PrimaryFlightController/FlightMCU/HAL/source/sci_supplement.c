@@ -3,14 +3,16 @@
 #include "sys_vim.h"
 #include "math.h"
 
+extern g_sciTransfer_t;
+
 int32_t sciReceiveWithTimeout(sciBASE_t *sci, uint32 length, uint8 * data, uint32_t timeoutMs)
 {
-    int32 bytesRead = 0;
+    int32_t bytesRead = 0;
 
     if ((sci->SETINT & (uint32)SCI_RX_INT) == (uint32)SCI_RX_INT)
     {
         /* we are in interrupt mode */
-        uint32 index = (sci == sciREG) ? 0U : 1U;
+        uint32_t index = (sci == sciREG) ? 0U : 1U;
         
         /* clear error flags */
         sci->FLR = ((uint32) SCI_FE_INT | (uint32) SCI_OE_INT | (uint32) SCI_PE_INT);
@@ -26,7 +28,7 @@ int32_t sciReceiveWithTimeout(sciBASE_t *sci, uint32 length, uint8 * data, uint3
             while ((sci->FLR & (uint32)SCI_RX_INT) == 0U && --timeoutMs > 0){ 
             } /* Wait */
 
-            if(!tries)
+            if(!timeoutMs)
                 return 0; // timeout
 
 		    *data = (uint8)(sci->RD & 0x000000FFU);

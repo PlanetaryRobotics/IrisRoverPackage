@@ -71,9 +71,8 @@ namespace Drv {
   // ----------------------------------------------------------------------
   // Handler implementations for user-defined typed input ports
   // ----------------------------------------------------------------------
-
-  void FreeRtosSerialDriverComponentImpl :: readBufferSend_handler(const NATIVE_INT_TYPE portNum,
-                                                                    Fw::Buffer &fwBuffer){
+ //! This method will be called by the new thread to wait for input on the serial port.
+  void FreeRtosSerialDriverComponentImpl :: serialReadTaskEntry(void * ptr){}
     Drv::SerialReadStatus serReadStat;
     FreeRtosSerialDriverComponentImpl* comp = static_cast<FreeRtosSerialDriverComponentImpl*>(ptr);
     Fw::Buffer buff;

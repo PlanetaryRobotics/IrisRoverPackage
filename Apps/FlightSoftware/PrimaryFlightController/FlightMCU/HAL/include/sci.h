@@ -194,6 +194,7 @@ void sciGetConfigValue(sci_config_reg_t *config_reg, config_value_type_t type);
 void sciNotification(sciBASE_t *sci, uint32 flags);
 
 /* USER CODE BEGIN (1) */
+int32_t sciReceiveWithTimeout(sciBASE_t *sci, uint32 length, uint8 * data, uint32_t timeoutMs);
 /* USER CODE END */
 /**@}*/
 #ifdef __cplusplus

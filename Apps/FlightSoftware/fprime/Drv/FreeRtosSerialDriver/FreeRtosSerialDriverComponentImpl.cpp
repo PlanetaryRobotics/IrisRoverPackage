@@ -177,4 +177,38 @@ namespace Drv {
 
   }
 
+  void FreeRtosSerialDriverComponentImpl :: startReadThread(NATIVE_INT_TYPE priority, 
+                                                            NATIVE_INT_TYPE stackSize,
+                                                            NATIVE_INT_TYPE cpuAffinity) {
+
+      Fw::EightyCharString task("SerReader");
+      Os::Task::TaskStatus stat = this->m_readTask.start(task, 0, priority, stackSize,
+                                                         serialReadTaskEntry, this, cpuAffinity);
+      FW_ASSERT(stat == Os::Task::TASK_OK, stat);
+  }
+
+  void FreeRtosSerialDriverComponentImpl :: quitReadThread(void) {
+      this->m_quitReadThread = true;
+  }
+
+  void FreeRtosSerialDriverComponentImpl :: readBufferSend_handler(const NATIVE_INT_TYPE portNum,
+                                                                    Fw::Buffer& Buffer){
+        this->m_readBuffMutex.lock();
+        bool found = false;
+
+        // search for open entry
+        for (NATIVE_UINT_TYPE entry = 0; entry < DR_MAX_NUM_BUFFERS; entry++) {
+            // Look for slots to fill. "Available" is from
+            // the perspective of the driver thread looking for
+            // buffers to fill, so add the buffer and make it available.
+            if (not this->m_buffSet[entry].available) {
+                this->m_buffSet[entry].readBuffer = Buffer;
+                this->m_buffSet[entry].available = true;
+                found = true;
+                break;
+            }
+        }
+        this->m_readBuffMutex.unLock();
+        FW_ASSERT(found,Buffer.getbufferID(),Buffer.getmanagerID());
+  }
 } // end namespace Drv

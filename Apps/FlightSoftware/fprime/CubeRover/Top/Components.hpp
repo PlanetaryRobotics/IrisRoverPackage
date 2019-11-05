@@ -10,6 +10,7 @@
 
 // Include drivers
 #include <Drv/BlockDriver/BlockDriverImpl.hpp>
+#include <Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentImpl.hpp>
 
 // Include services
 #include <Svc/RateGroupDriver/RateGroupDriverImpl.hpp>
@@ -41,5 +42,8 @@ extern Svc::ActiveLoggerImpl activeLogger;
 
 // Components exclusive to CubeRover
 extern CubeRover::MotorControlComponentImpl motorControl;
+
+// FreeRTOS Serial driver to interface radio module
+extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

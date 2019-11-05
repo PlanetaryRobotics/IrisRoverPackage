@@ -3,7 +3,14 @@
 #include "sys_vim.h"
 #include "math.h"
 
-extern g_sciTransfer_t;
+extern volatile struct g_sciTransfer
+{
+    uint32   mode;         /* Used to check for TX interrupt Enable */
+    uint32   tx_length;    /* Transmit data length in number of Bytes */
+    uint32   rx_length;    /* Receive data length in number of Bytes */
+    uint8    * tx_data;    /* Transmit data pointer */
+    uint8    * rx_data;    /* Receive data pointer */
+} g_sciTransfer_t[2U];
 
 int32_t sciReceiveWithTimeout(sciBASE_t *sci, uint32 length, uint8 * data, uint32_t timeoutMs)
 {

@@ -86,6 +86,14 @@ CubeRover::MotorControlComponentImpl motorControl(
 #endif
 );
 
+// ---------------------------------------------------------------------------
+// Serial interface to support radio interface
+Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface(
+#if FW_OBJECT_NAMES == 1
+        "RadioInterface"
+#endif
+);
+
 // Temporary code to simulate block driver rate group
 void run1cycle(void) {
     blockDriver.callIsr();
@@ -115,6 +123,9 @@ void constructApp(void){
 
     // Initialize the active logger
     activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
+
+    // Initialize serial interface to radio module
+    radioSerialInterface.init();
 
     // Initialize the motor control
     motorControl.init(MOTOR_CONTROL_QUEUE_DEPTH, MOTOR_CONTROL_ID);
@@ -150,4 +161,11 @@ void constructApp(void){
                        MOTOR_CONTROL_AFF, /* CPU priority  */
                        MOTOR_CONTROL_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 
+    radioSerialInterface.open(sciREG,
+                              Drv::FreeRtosSerialDriverComponentImpl::BAUD_9600,
+                              Drv::FreeRtosSerialDriverComponentImpl::NO_FLOW,
+                              Drv::FreeRtosSerialDriverComponentImpl::PARITY_NONE,
+                              false);
+
+    radioSerialInterface.startReadThread(RADIO_SERIAL_AFF, RADIO_SERIAL_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
 }

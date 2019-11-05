@@ -14,8 +14,6 @@
 #define FreeRtosSerialDriver_HPP
 
 #include <sci.h>
-#include <sci_supplement.h>
-
 #include <Os/Mutex.hpp>
 
 #include "Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentAc.hpp"

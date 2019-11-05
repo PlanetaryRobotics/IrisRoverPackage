@@ -3,6 +3,7 @@
 <!-- Import components to project -->
 <!-- Drivers -->
   <import_component_type>Drv/BlockDriver/BlockDriverComponentAi.xml</import_component_type>
+  <import_component_type>Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentAi.xml</import_component_type>
 
 <!-- Services -->
   <import_component_type>Svc/RateGroupDriver/RateGroupDriverComponentAi.xml</import_component_type>
@@ -28,6 +29,9 @@
 
 <!-- Declaration of the command dispatcher -->
   <instance namespace="Svc" name="cmdDispatcher" type="CommandDispatcher" base_id="201" base_id_window="20" />
+
+<!-- Declaration of the FreeRTOS serial driver interface -->
+  <instance namespace="Drv" name="radioSerialInterface" type="FreeRtosSerialDriver" base_id="181" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -138,4 +142,9 @@
     <target component = "tlmChan" port = "TlmRecv" type = "Tlm" num = "0" />
   </connection>
 
+      <!-- Radio serial componnet to active logger -->
+  <connection name = "radioSerialInterface_to_aLogger" >
+    <source component = "radioSerialInterface" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
 </assembly>

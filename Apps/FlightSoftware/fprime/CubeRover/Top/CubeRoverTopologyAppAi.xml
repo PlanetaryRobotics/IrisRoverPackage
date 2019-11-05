@@ -3,6 +3,7 @@
 <!-- Import components to project -->
 <!-- Drivers -->
   <import_component_type>Drv/BlockDriver/BlockDriverComponentAi.xml</import_component_type>
+  <import_component_type>Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentAi.xml</import_component_type>
 
 <!-- Services -->
   <import_component_type>Svc/RateGroupDriver/RateGroupDriverComponentAi.xml</import_component_type>
@@ -28,6 +29,9 @@
 
 <!-- Declaration of the command dispatcher -->
   <instance namespace="Svc" name="cmdDispatcher" type="CommandDispatcher" base_id="201" base_id_window="20" />
+
+<!-- Declaration of the FreeRTOS serial driver interface -->
+  <instance namespace="Drv" name="radioSerialInterface" type="FreeRtosSerialDriver" base_id="181" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -102,6 +106,12 @@
     <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0"/>
   </connection>
 
+  <!-- Connection of time betweeen cubeRoverTime to radioSerialInterface -->
+  <connection name = "radioSerialInterface_to_cubeRoverTime">
+    <source component = "radioSerialInterface" port="Time" type = "Time" num = "0" />
+    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
+  </connection>
+
 <!-- *********************************************************************************************************
         CONNECTION OF MONITORED COMPONENTS TO TELEMETRIC CHAN COMPONENT
      ********************************************************************************************************* 
@@ -137,5 +147,4 @@
     <source component = "radioSerialInterface" port = "Tlm" type = "Tlm" num = "0" />
     <target component = "tlmChan" port = "TlmRecv" type = "Tlm" num = "0" />
   </connection>
-
 </assembly>

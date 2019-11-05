@@ -44,4 +44,7 @@ extern Svc::CommandDispatcherImpl cmdDispatcher;
 // Components exclusive to CubeRover
 extern CubeRover::MotorControlComponentImpl motorControl;
 
+// FreeRTOS Serial driver to interface radio module
+extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
+
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

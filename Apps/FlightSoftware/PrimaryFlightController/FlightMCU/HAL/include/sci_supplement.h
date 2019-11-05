@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-  int32_t sciReceiveWithTimeout(sciBASE_t *sci, uint32 length, uint8 * data, uint32_t timeoutMs);
+int32_t sciReceiveWithTimeout(sciBASE_t *sci, uint32 length, uint8 * data, uint32_t timeoutMs);
 
 #ifdef __cplusplus
 }

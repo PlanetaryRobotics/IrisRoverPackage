@@ -10,10 +10,11 @@
 //
 // ======================================================================
 
+#include "CubeRover/MotorControl/MotorControlComponentImpl.hpp"
+#include <stdlib.h>
+#include <string.h>
 
-#include <CubeRover/MotorControl/MotorControlComponentImpl.hpp>
 #include "Fw/Types/BasicTypes.hpp"
-
 #include "i2c.h"
 #include "Include/CubeRoverConfig.hpp"
 
@@ -33,7 +34,15 @@ namespace CubeRover {
     MotorControlComponentImpl(void)
 #endif
   {
-
+      m_encoderTickToCmRatio = 0;
+      m_fwDist = 0;
+      m_fwSpeed = 0;
+      m_leftSpeed = 0;
+      m_reDist = 0;
+      m_reSpeed = 0;
+      m_rightAngle = 0;
+      m_leftAngle = 0;
+      m_rightSpeed = 0;
   }
 
   void MotorControlComponentImpl ::
@@ -120,6 +129,7 @@ namespace CubeRover {
             this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
             return;
         }
+        break;
       case LEFT_CFG:
         switch(Parameter){
           case SPEED:
@@ -392,7 +402,7 @@ namespace CubeRover {
    *
    * @return     { description_of_the_return_value }
    */
-  size_t MotorControlComponentImpl :: headerSize(){
+  uint32_t MotorControlComponentImpl :: headerSize(){
     return sizeof(MotorControlI2cRegId_t) + 1 /* data size */;
   }
 
@@ -402,7 +412,7 @@ namespace CubeRover {
    *
    * @return     { description_of_the_return_value }
    */
-  size_t MotorControlComponentImpl :: checksumSize(){
+  uint32_t MotorControlComponentImpl :: checksumSize(){
     return sizeof(MotorControlChecksum);
   }
 
@@ -443,7 +453,7 @@ namespace CubeRover {
     * @return     The checksum 8.
     */
    MCError MotorControlComponentImpl :: computeChecksum8( uint8_t *data,
-                                                          const size_t bufferLength,
+                                                          const uint32_t bufferLength,
                                                           MotorControlChecksum *checksum){
     MotorControlChecksum sum = 0;
 
@@ -471,9 +481,9 @@ namespace CubeRover {
    */
   MCError MotorControlComponentImpl :: packTransmitBuffer(const MotorControlI2cRegId id,
                                                           const uint32_t data,
-                                                          const size_t dataLength){
+                                                          const uint32_t dataLength){
 
-    size_t packetLength = headerSize() + dataLength + checksumSize();
+      uint32_t packetLength = headerSize() + dataLength + checksumSize();
 
     if(packetLength <= 0 || packetLength > MC_BUFFER_MAX_SIZE){
       return MC_UNEXPECTED_ERROR;
@@ -503,7 +513,7 @@ namespace CubeRover {
                                                                   const I2cSlaveAddress add,
                                                                   uint32_t data){
       MCError ret = MC_NO_ERROR;
-      size_t dataLength = getSizeData(id);
+      uint32_t dataLength = getSizeData(id);
 
       if(dataLength <= 0) 
         return MC_UNEXPECTED_ERROR;

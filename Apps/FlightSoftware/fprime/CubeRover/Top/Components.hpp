@@ -44,4 +44,7 @@ extern Svc::CommandDispatcherImpl cmdDispatcher;
 
 extern Svc::ActiveLoggerImpl activeLogger;
 
+// FreeRTOS Serial driver to interface radio module
+extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
+
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

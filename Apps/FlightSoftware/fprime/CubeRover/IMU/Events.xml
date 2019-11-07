@@ -1,0 +1,10 @@
+<events>
+  <event
+    id="0"
+    name="Imu_AngleWarning"
+    severity="WARNING_HI"
+    format_string="High roll/tilt angle"
+  >
+    <comment>A notification that the rover is close to tipping point</comment>
+  </event>
+</events>

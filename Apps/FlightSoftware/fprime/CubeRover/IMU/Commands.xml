@@ -1,0 +1,11 @@
+<commands>
+
+  <command
+    kind="async"
+    opcode="0"
+    mnemonic="Imu_ReportData"
+  >
+    <comment>A command to force an IMU data.</comment>
+  </command>
+
+</commands>

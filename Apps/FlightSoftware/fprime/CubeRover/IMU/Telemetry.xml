@@ -1,0 +1,27 @@
+<telemetry>
+
+  <channel id="0" name="Acc_X" data_type="F32" abbrev="IMU-0000">
+    <comment>Accelerometer X</comment>
+  </channel>
+
+  <channel id="1" name="Acc_Y" data_type="F32" abbrev="IMU-0001">
+    <comment>Accelerometer Y</comment>
+  </channel>
+
+  <channel id="2" name="Acc_Z" data_type="F32" abbrev="IMU-0002">
+    <comment>Accelerometer Z</comment>
+  </channel>
+
+  <channel id="3" name="Gyro_X" data_type="F32" abbrev="IMU-0003">
+    <comment>Gyrometer X</comment>
+  </channel>
+
+  <channel id="4" name="Gyro_Y" data_type="F32" abbrev="IMU-0004">
+    <comment>Gyrometer Y</comment>
+  </channel>
+
+  <channel id="5" name="Gyro_Z" data_type="F32" abbrev="IMU-0005">
+    <comment>Gyrometer Z</comment>
+  </channel>
+
+</telemetry>

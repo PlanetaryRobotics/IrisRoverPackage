@@ -148,4 +148,6 @@ void constructApp(void){
                             false);
 
   radioSerialInterface.startReadThread(RADIO_SERIAL_AFF, RADIO_SERIAL_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
+
+  // radioSerialInterface.startReadThread(RADIO_SERIAL_AFF, RADIO_SERIAL_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
 }

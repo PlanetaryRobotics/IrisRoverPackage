@@ -54,7 +54,6 @@
 #include "can.h"
 #include "gio.h"
 #include "lin.h"
-#include "mibspi.h"
 #include "sci.h"
 #include "spi.h"
 #include "het.h"
@@ -184,25 +183,6 @@ void linNotification(linBASE_t *lin, uint32 flags)
 }
 
 /* USER CODE BEGIN (24) */
-/* USER CODE END */
-#pragma WEAK(mibspiNotification)
-void mibspiNotification(mibspiBASE_t *mibspi, uint32 flags)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (25) */
-/* USER CODE END */
-}
-
-/* USER CODE BEGIN (26) */
-/* USER CODE END */
-#pragma WEAK(mibspiGroupNotification)
-void mibspiGroupNotification(mibspiBASE_t *mibspi, uint32 group)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (27) */
-/* USER CODE END */
-}
-/* USER CODE BEGIN (28) */
 /* USER CODE END */
 
 #pragma WEAK(sciNotification)

@@ -146,9 +146,10 @@ namespace CubeRover {
       if(length > SPI_RX_BUFFER_SIZE)
           return IMU_WRONG_DATA_SIZE;
 
-      gioSetBit(spiPORT3, SPI3_CS0, 0);
+      gioSetBit(spiPORT3, 1, 0);
       spiTransmitData(m_spi, &m_accDataConfig, 1, (uint16_t *)&m_spiTxBuff);
       spiReceiveData(m_spi, &m_accDataConfig, length, (uint16_t *)&m_spiRxBuff);
+      gioSetBit(spiPORT3, 1, 1);
 
       memcpy(rxData, m_spiRxBuff + 1 , length);
 

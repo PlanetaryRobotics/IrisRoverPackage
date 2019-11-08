@@ -117,10 +117,6 @@ namespace CubeRover {
     if(deviceId !=  ADXL_DEVICE_ID){
         return IMU_UNEXPECTED_ERROR;
     }
-
-    dataFormat = 0b00000111;    // no self-test, 4-wire SPI,no interrupt invert, 10-bit mode, justified, +/-12g
-    err = accWriteData(AdxlRegister::DATA_FORMAT, &dataFormat, 1);
-
     //to do implement the rest of the configuration
 
     return err;

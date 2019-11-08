@@ -38,11 +38,11 @@ extern Svc::TlmChanImpl tlmChan;
 // Service that handle active logging
 extern Svc::ActiveLoggerImpl activeLogger;
 
-// FreeRTOS Serial driver to interface radio module
-extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
-
 // command dispatcher
 extern Svc::CommandDispatcherImpl cmdDispatcher;
+
+// Components exclusive to CubeRover
+extern CubeRover::ImuComponentImpl imu;
 
 // FreeRTOS Serial driver to interface radio module
 extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;

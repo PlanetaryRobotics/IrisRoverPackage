@@ -71,10 +71,17 @@ Svc::TlmChanImpl tlmChan(
   );
 
 // ---------------------------------------------------------------------------
+
 // command dispatcher component used to dispatch commands
 Svc::CommandDispatcherImpl cmdDispatcher(
 #if FW_OBJECT_NAMES == 1
         "CmdDispatcher"
+#endif
+
+// IMU component used to keep track of orientation of the rover
+CubeRover::ImuComponentImpl imu(
+#if FW_OBJECT_NAMES == 1
+        "IMU"
 #endif
 );
 
@@ -94,6 +101,9 @@ void constructApp(void){
 
   // Initialize rate group driver driver (passive)
   rateGroupDriver.init();
+
+  // Initialize the IMU
+  imu.init(IMU_QUEUE_DEPTH, IMU_ID);
 
   // Initialize rate group components (active)
   rateGroupLowFreq.init(RG_LOW_FREQ_QUEUE_DEPTH, RG_LOW_FREQ_ID);
@@ -124,6 +134,9 @@ void constructApp(void){
   blockDriver.start(0, /* identifier */
                    BLK_DRV_AFF, /* Thread affinity */
                    BLK_DRV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+
+  // setup communication with IMU over SPI
+  imu.setup(IMU_SPI_REG);
 
   tlmChan.start(0, /* identifier */
                 TLM_CHAN_AFF, /* thread affinity */

@@ -13,6 +13,7 @@
 
 #include <CubeRover/IMU/ImuComponentImpl.hpp>
 #include "Fw/Types/BasicTypes.hpp"
+#include <string.h>
 
 namespace CubeRover {
 
@@ -30,7 +31,20 @@ namespace CubeRover {
     ImuComponentImpl(void)
 #endif
   {
-    m_setup = false;
+      // Gyrometer data configuration
+      m_gyroDataConfig.CS_HOLD = false;
+      m_gyroDataConfig.DFSEL = SPI_FMT_0;
+      m_gyroDataConfig.WDEL = false;
+      m_gyroDataConfig.CSNR = 0;
+
+      // Accelerometer data configuration
+      m_accDataConfig.CS_HOLD = false;
+      m_accDataConfig.DFSEL = SPI_FMT_0;
+      m_accDataConfig.WDEL = false;
+      m_accDataConfig.CSNR = 0;
+
+      m_spi = NULL;
+      m_setup = false;
   }
 
   void ImuComponentImpl ::
@@ -81,123 +95,88 @@ namespace CubeRover {
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
-
   /**
    * @brief      { function_description }
    */
-  void ImuComponentImpl :: setup(){
-    if(m_setup) 
-      return;
+  ImuError ImuComponentImpl :: setup(spiBASE_t *spi){
+     uint16_t deviceId = 0;
+     uint16_t dataFormat = 0;
+     ImuError err;
 
+     if(m_setup)
+      return IMU_NO_ERROR;
+
+    spiInit();
+    m_spi = spi;
     m_setup = true;
+
+
+    err = accReadData(AdxlRegister::DEVICE_ID, &deviceId, 1);
+
+    if(deviceId !=  ADXL_DEVICE_ID){
+        return IMU_UNEXPECTED_ERROR;
+    }
+
+    dataFormat = 0b00000111;    // no self-test, 4-wire SPI,no interrupt invert, 10-bit mode, justified, +/-12g
+    err = accWriteData(AdxlRegister::DATA_FORMAT, &dataFormat, 1);
+
+    //to do implement the rest of the configuration
+
+    return err;
   }
 
-  /**
-   * @brief      { function_description }
-   *
-   * @param      i2c     I 2 c
-   * @param[in]  sadd    The sadd
-   * @param[in]  length  The length
-   * @param      data    The data
-   *
-   * @return     { description_of_the_return_value }
-   */
-  ImuError ImuComponentImpl :: i2cMasterTransmit(i2cBASE_t *i2c,
-                                                const ImuI2cSlaveAddress sadd,
-                                                const uint32_t length,
-                                                uint8_t * data){
-    if(i2c == NULL)
-      return IMU_UNEXPECTED_ERROR;
+  ImuError ImuComponentImpl :: accReadData(const AdxlRegister regStartAddr, uint16_t *rxData, const uint8_t length){
 
-    if(data == NULL)
-      return IMU_UNEXPECTED_ERROR;
+      m_spiTxBuff[0] = (uint8_t) regStartAddr;
+      m_spiTxBuff[0] |= SET_ADXL_SPI_MULTITRANS(m_spiTxBuff[0]);
+      m_spiTxBuff[0] |= SET_ADXL_SPI_READ_BIT (m_spiTxBuff[0]);
 
-    /* Configure address of Slave to talk to */
-    i2cSetSlaveAdd(i2c, sadd);
+      // todo return an error
+      if(length > SPI_RX_BUFFER_SIZE)
+          return IMU_UNEXPECTED_ERROR;
 
-    /* Set direction to Transmitter */
-    i2cSetDirection(i2c, I2C_TRANSMITTER);
+      spiTransmitData(m_spi, &m_accDataConfig, 1, (uint16_t *)&m_spiTxBuff);
+      spiReceiveData(m_spi, &m_accDataConfig, length, (uint16_t *)&m_spiRxBuff);
 
-    /* Configure Data count */
-    i2cSetCount(i2c, length);
+      memcpy(rxData, m_spiRxBuff + 1 , length);
 
-    /* Set mode as Master */
-    i2cSetMode(i2c, I2C_MASTER);
-
-    /* Set Stop after programmed Count */
-    i2cSetStop(i2c);
-
-    /* Transmit Start Condition */
-    i2cSetStart(i2c);
-
-    /* Transmit DATA_COUNT number of data in Polling mode */
-    i2cSend(i2c, length, data);
-
-    /* Wait until Bus Busy is cleared */
-    while(i2cIsBusBusy(i2c) == true);
-
-    /* Wait until Stop is detected */
-    while(i2cIsStopDetected(i2c) == 0);
-
-    /* Clear the Stop condition */
-    i2cClearSCD(i2c);
-
-    return IMU_NO_ERROR;
+      return IMU_NO_ERROR;
   }
 
+  ImuError ImuComponentImpl :: accWriteData(const AdxlRegister regStartAddr, uint16_t *txData, const uint8_t length){
 
-   /**
-    * @brief      { function_description }
-    *
-    * @param      i2c     I 2 c
-    * @param[in]  sadd    The sadd
-    * @param[in]  length  The length
-    * @param      data    The data
-    *
-    * @return     { description_of_the_return_value }
-    */
-   ImuError ImuComponentImpl :: i2cMasterReceive(i2cBASE_t *i2c,
-                                                const ImuI2cSlaveAddress sadd,
-                                                const uint32_t length,
-                                                uint8_t * data){
-    if(i2c == NULL)
-      return IMU_UNEXPECTED_ERROR;
+      m_spiTxBuff[0] = (uint8_t) regStartAddr;
+      m_spiTxBuff[0] |= SET_ADXL_SPI_MULTITRANS(m_spiTxBuff[0]);
+      m_spiTxBuff[0] |= SET_ADXL_SPI_READ_BIT (m_spiTxBuff[0]);
 
-    if(data == NULL)
-      return IMU_UNEXPECTED_ERROR;
+      // todo return an error
+      if(length+1 > SPI_TX_BUFFER_SIZE)
+          return IMU_UNEXPECTED_ERROR;
 
-    /* Configure address of Slave to talk to */
-    i2cSetSlaveAdd(i2c, sadd);
+      memcpy(m_spiTxBuff+1, txData, length);
 
-    /* Set direction to receiver */
-    i2cSetDirection(i2c, I2C_RECEIVER);
+      spiTransmitData(m_spi, &m_accDataConfig, 1+length, (uint16_t *)&m_spiTxBuff);
 
-    /* Configure Data count */
-    i2cSetCount(i2c, length);
-
-    /* Set mode as Master */
-    i2cSetMode(i2c, I2C_MASTER);
-
-    /* Set Stop after programmed Count */
-    i2cSetStop(i2c);
-
-    /* Transmit Start Condition */
-    i2cSetStart(i2c);
-
-    /* Transmit DATA_COUNT number of data in Polling mode */
-    i2cReceive(i2c, length, data);
-
-    /* Wait until Bus Busy is cleared */
-    // TODO add timeout
-    while(i2cIsBusBusy(i2c) == true);
-
-    /* Wait until Stop is detected */
-    while(i2cIsStopDetected(i2c) == 0);
-
-    /* Clear the Stop condition */
-    i2cClearSCD(i2c);
-
-    return IMU_NO_ERROR;
+      return IMU_NO_ERROR;
   }
+
+  ImuError ImuComponentImpl :: readAccelerations(float32 *accX, float32 *accY,  float32 *accZ){
+      uint16_t rxBuffer[6]; // 3 x 2 bytes
+      uint16_t tmp;
+      ImuError err = IMU_NO_ERROR;
+      err = accReadData(AdxlRegister::DATAX0, rxBuffer, sizeof(rxBuffer));
+
+      tmp = rxBuffer[0] + rxBuffer[1] << 8;
+      *accX = (float32)(tmp) * 0.0009765625 * 12.0f /*normalize to 1.0 then maximum g range*/;
+
+      tmp = rxBuffer[2] + rxBuffer[3] << 8;
+      *accY = (float32)(tmp) * 0.0009765625 * 12.0f;
+
+      tmp = rxBuffer[4] + rxBuffer[5] << 8;
+      *accZ = (float32)(tmp) * 0.0009765625 * 12.0f;
+
+      return err;
+  }
+
 
 } // end namespace CubeRover

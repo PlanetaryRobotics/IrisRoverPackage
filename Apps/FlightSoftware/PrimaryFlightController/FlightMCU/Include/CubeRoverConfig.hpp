@@ -51,10 +51,16 @@
 #define MOTOR_CONTROL_AFF           25
 #define MOTOR_CONTROL_QUEUE_DEPTH   1
 
+#define IMU_ID                      0
+#define IMU_QUEUE_DEPTH             1
+
 #define RADIO_SERIAL_QUEUE_DEPTH    1
 #define RADIO_SERIAL_AFF            24
 
 #define MIN_STACK_SIZE_BYTES        1024
+
+// Confiugration of the SPI interfaces
+#define IMU_SPI_REG                spiREG1
 
 // Configuration of I2C interfaces address and ports
 // For the motor controllers

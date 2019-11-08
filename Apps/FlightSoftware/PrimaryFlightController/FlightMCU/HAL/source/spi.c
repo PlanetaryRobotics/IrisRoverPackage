@@ -265,6 +265,7 @@ uint32 spiReceiveData(spiBASE_t *spi, spiDAT1_t *dataconfig_t, uint32 blocksize,
 {
 /* USER CODE BEGIN (6) */
 /* USER CODE END */
+    uint32_t timeout = 10000;
     uint32 Chip_Select_Hold = (dataconfig_t->CS_HOLD) ? 0x10000000U : 0U;
     uint32 WDelay = (dataconfig_t->WDEL) ? 0x04000000U : 0U;
     SPIDATAFMT_t DataFormat = dataconfig_t->DFSEL;
@@ -288,7 +289,7 @@ uint32 spiReceiveData(spiBASE_t *spi, spiDAT1_t *dataconfig_t, uint32 blocksize,
                     (Chip_Select_Hold)  |
                     (0x00000000U);
         /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Hardware status bit read check" */
-        while((spi->FLG & 0x00000100U) != 0x00000100U)
+        while((spi->FLG & 0x00000100U) != 0x00000100U && --timeout)
         {
         } /* Wait */
         /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
@@ -354,6 +355,7 @@ void spiGetData(spiBASE_t *spi, spiDAT1_t *dataconfig_t, uint32 blocksize, uint1
 /* Requirements : HL_SR131 */
 uint32 spiTransmitData(spiBASE_t *spi, spiDAT1_t *dataconfig_t, uint32 blocksize, uint16 * srcbuff)
 {
+    uint32_t timeout = 100000;
     volatile uint32 SpiBuf;
     uint16 Tx_Data;
     uint32 Chip_Select_Hold = (dataconfig_t->CS_HOLD) ? 0x10000000U : 0U;
@@ -385,13 +387,18 @@ uint32 spiTransmitData(spiBASE_t *spi, spiDAT1_t *dataconfig_t, uint32 blocksize
         /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer increment needed" */
         srcbuff++;
         /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Hardware status bit read check" */
-        while((spi->FLG & 0x00000100U) != 0x00000100U)
+        while((spi->FLG & 0x00000100U) != 0x00000100U && --timeout)
         {
         } /* Wait */
+
+        if(!timeout)
+            return (spi->FLG & 0xFFU);
+
         SpiBuf = spi->BUF;
 
         blocksize--;
     }
+
 
 /* USER CODE BEGIN (11) */
 /* USER CODE END */

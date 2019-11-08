@@ -23,6 +23,7 @@ namespace CubeRover {
   typedef enum{
     IMU_NO_ERROR,
     IMU_UNEXPECTED_ERROR,
+    IMU_WRONG_DATA_SIZE,
     IMU_MAX_ENUM_SIZE
   }ImuError;
 
@@ -47,7 +48,7 @@ namespace CubeRover {
         OFFSET_Y        = 0x1F,
         OFFSET_Z        = 0x20,
         THRESH_ACT      = 0x24,
-        ThRESH_INACT    = 0x25,
+        THRESH_INACT    = 0x25,
         TIME_INACT      = 0x26,
         ACT_INACT_CTL   = 0x27,
         BW_RATE         = 0x2C,

@@ -10,8 +10,6 @@
     <import_dictionary>CubeRover/IMU/Telemetry.xml</import_dictionary>
     <import_dictionary>CubeRover/IMU/Events.xml</import_dictionary>
     <ports>
-
-
         <port name="cmdRegOut" data_type="Fw::CmdReg"  kind="output" role="CmdRegistration"    max_number="1">
         </port>
 

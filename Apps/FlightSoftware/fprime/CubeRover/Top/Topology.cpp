@@ -141,4 +141,8 @@ void constructApp(void){
   tlmChan.start(0, /* identifier */
                 TLM_CHAN_AFF, /* thread affinity */
                 TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+  
+  imu.start(IMU_ID, /* identifier */
+            IMU_AFF, /* CPU priority */
+            IMU_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 }

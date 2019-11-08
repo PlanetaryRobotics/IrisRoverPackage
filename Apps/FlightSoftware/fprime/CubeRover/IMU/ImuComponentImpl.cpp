@@ -74,6 +74,8 @@ namespace CubeRover {
     float gyroY = 0.0f;
     float gyroZ = 0.0f;
 
+    readAccelerations(&accX, &accY, &accZ);
+
     tlmWrite_Acc_X(accX);
     tlmWrite_Acc_Y(accY);
     tlmWrite_Acc_Z(accZ);
@@ -106,7 +108,6 @@ namespace CubeRover {
      if(m_setup)
       return IMU_NO_ERROR;
 
-    spiInit();
     m_spi = spi;
     m_setup = true;
 
@@ -125,6 +126,16 @@ namespace CubeRover {
     return err;
   }
 
+
+  /**
+   * @brief      { function_description }
+   *
+   * @param[in]  regStartAddr  The register start address
+   * @param      rxData        The receive data
+   * @param[in]  length        The length
+   *
+   * @return     { description_of_the_return_value }
+   */
   ImuError ImuComponentImpl :: accReadData(const AdxlRegister regStartAddr, uint16_t *rxData, const uint8_t length){
 
       m_spiTxBuff[0] = (uint8_t) regStartAddr;
@@ -133,8 +144,9 @@ namespace CubeRover {
 
       // todo return an error
       if(length > SPI_RX_BUFFER_SIZE)
-          return IMU_UNEXPECTED_ERROR;
+          return IMU_WRONG_DATA_SIZE;
 
+      gioSetBit(spiPORT3, SPI3_CS0, 0);
       spiTransmitData(m_spi, &m_accDataConfig, 1, (uint16_t *)&m_spiTxBuff);
       spiReceiveData(m_spi, &m_accDataConfig, length, (uint16_t *)&m_spiRxBuff);
 
@@ -143,6 +155,16 @@ namespace CubeRover {
       return IMU_NO_ERROR;
   }
 
+
+  /**
+   * @brief      { function_description }
+   *
+   * @param[in]  regStartAddr  The register start address
+   * @param      txData        The transmit data
+   * @param[in]  length        The length
+   *
+   * @return     { description_of_the_return_value }
+   */
   ImuError ImuComponentImpl :: accWriteData(const AdxlRegister regStartAddr, uint16_t *txData, const uint8_t length){
 
       m_spiTxBuff[0] = (uint8_t) regStartAddr;
@@ -160,10 +182,22 @@ namespace CubeRover {
       return IMU_NO_ERROR;
   }
 
+
+  /**
+   * @brief      Reads accelerations.
+   *
+   * @param      accX  The acc x
+   * @param      accY  The acc y
+   * @param      accZ  The acc z
+   *
+   * @return     { description_of_the_return_value }
+   */
   ImuError ImuComponentImpl :: readAccelerations(float32 *accX, float32 *accY,  float32 *accZ){
       uint16_t rxBuffer[6]; // 3 x 2 bytes
       uint16_t tmp;
       ImuError err = IMU_NO_ERROR;
+
+      // read all acceleration data
       err = accReadData(AdxlRegister::DATAX0, rxBuffer, sizeof(rxBuffer));
 
       tmp = rxBuffer[0] + rxBuffer[1] << 8;

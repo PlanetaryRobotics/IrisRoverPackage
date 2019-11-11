@@ -5,6 +5,14 @@
     severity="WARNING_HI"
     format_string="High roll/tilt angle"
   >
-    <comment>A notification that the rover is close to tipping point</comment>
+  <comment>A notification that the rover is close to tipping point</comment>
+  </event>
+  <event
+  	id="1"
+  	name="Imu_CommunicationFailure"
+  	severity="WARNING_HI"
+  	format_string="Communication failure with IMU"
+  	>
+  <comment>A notification that a communication has failed</comment>
   </event>
 </events>

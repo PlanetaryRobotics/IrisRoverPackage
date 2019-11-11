@@ -20,177 +20,338 @@
 
 namespace CubeRover {
 
-  typedef enum{
-    IMU_NO_ERROR,
-    IMU_UNEXPECTED_ERROR,
-    IMU_WRONG_DATA_SIZE,
-    IMU_MAX_ENUM_SIZE
-  }ImuError;
+    typedef enum{
+        IMU_NO_ERROR,
+        IMU_UNEXPECTED_ERROR,
+        IMU_WRONG_DATA_SIZE,
+        IMU_MAX_ENUM_SIZE
+    }ImuError;
 
-  typedef uint8_t ImuI2cSlaveAddress;
-  #define SET_ADXL_SPI_WRITE_BIT(x) (x & ~(0x01 << 7))
-  #define SET_ADXL_SPI_READ_BIT(x) (x | (0x01 << 7))
-  #define SET_ADXL_SPI_SINGLETRANS(x) (x & ~(0x01 << 6))
-  #define SET_ADXL_SPI_MULTITRANS(x) (x | (0x01 << 6))
-  #define ADXL_DEVICE_ID      0xE5
+    typedef uint8_t ImuI2cSlaveAddress;
+    #define SET_ADXL_SPI_WRITE_BIT(x)     (x & ~(0x01 << 7))
+    #define SET_ADXL_SPI_READ_BIT(x)      (x | (0x01 << 7))
+    #define SET_ADXL_SPI_SINGLETRANS(x)   (x & ~(0x01 << 6))
+    #define SET_ADXL_SPI_MULTITRANS(x)    (x | (0x01 << 6))
 
-  class ImuComponentImpl :
-    public ImuComponentBase
-  {
+    #define ADXL_DEVICE_ID                0xE5
+    #define ACCELEROMETER_RANGE           12.0        // g
+
+    #define L3GD20H_DEVICE_ID             0xD7
+    #define GYRO_RANGE                    245         // dps
+
+    #define CS_SPIPORT3_BIT_ADXL          1
+    #define CS_SPIPORT3_BIT_L3GD20H       2
+
     enum SpiBufferSize{
         SPI_RX_BUFFER_SIZE=16,
         SPI_TX_BUFFER_SIZE=16
     };
 
-    enum AdxlRegister{
-        DEVICE_ID       = 0x00,
-        OFFSET_X        = 0x1E,
-        OFFSET_Y        = 0x1F,
-        OFFSET_Z        = 0x20,
-        THRESH_ACT      = 0x24,
-        THRESH_INACT    = 0x25,
-        TIME_INACT      = 0x26,
-        ACT_INACT_CTL   = 0x27,
-        BW_RATE         = 0x2C,
-        POWER_CTL       = 0x2D,
-        INT_ENABLE      = 0x2E,
-        INT_MAP         = 0x2F,
-        INT_SOURCE      = 0x30,
-        DATA_FORMAT     = 0x31,
-        DATAX0          = 0x32,
-        DATAX1          = 0x33,
-        DATAY0          = 0x34,
-        DATAY1          = 0x35,
-        DATAZ0          = 0x36,
-        DATAZ1          = 0x37,
-        FIFO_CTL        = 0x38,
-        FIFO_STATUS     = 0x39
-    };
+    namespace Adxl312{
+         // ADXL312 register definitions
+        enum AdxlRegister{
+            DEVICE_ID       = 0x00,
+            OFFSET_X        = 0x1E,
+            OFFSET_Y        = 0x1F,
+            OFFSET_Z        = 0x20,
+            THRESH_ACT      = 0x24,
+            THRESH_INACT    = 0x25,
+            TIME_INACT      = 0x26,
+            ACT_INACT_CTL   = 0x27,
+            BW_RATE         = 0x2C,
+            POWER_CTL       = 0x2D,
+            INT_ENABLE      = 0x2E,
+            INT_MAP         = 0x2F,
+            INT_SOURCE      = 0x30,
+            DATA_FORMAT     = 0x31,
+            DATAX0          = 0x32,
+            DATAX1          = 0x33,
+            DATAY0          = 0x34,
+            DATAY1          = 0x35,
+            DATAZ0          = 0x36,
+            DATAZ1          = 0x37,
+            FIFO_CTL        = 0x38,
+            FIFO_STATUS     = 0x39
+        };
 
-    struct ActInactCtlBits{
-        uint8_t INACT_Z_enable:1;
-        uint8_t INACT_Y_enable:1;
-        uint8_t INACT_X_enable:1;
-        uint8_t INACT_ac_dc:1;
-        uint8_t ACT_Z_enable:1;
-        uint8_t ACT_Y_enable:1;
-        uint8_t ACT_X_enable:1;
-        uint8_t ACT_ac_dc:1;
-    };
+        struct ActInactCtlBits{
+            uint8_t INACT_Z_enable:1;
+            uint8_t INACT_Y_enable:1;
+            uint8_t INACT_X_enable:1;
+            uint8_t INACT_ac_dc:1;
+            uint8_t ACT_Z_enable:1;
+            uint8_t ACT_Y_enable:1;
+            uint8_t ACT_X_enable:1;
+            uint8_t ACT_ac_dc:1;
+        };
 
-    union ActInactCtlReg{
-        uint8_t all;
-        ActInactCtlBits bit;
-    };
+        union ActInactCtlReg{
+            uint8_t all;
+            ActInactCtlBits bit;
+        };
 
-    struct BwRateBits{
-        uint8_t rate:4;
-        uint8_t low_power:1;
-        uint8_t rsv:3;
-    };
+        struct BwRateBits{
+            uint8_t rate:4;
+            uint8_t low_power:1;
+            uint8_t rsv:3;
+        };
 
-    union BwRateReg{
-        uint8_t all;
-        BwRateBits bit;
-    };
+        union BwRateReg{
+            uint8_t all;
+            BwRateBits bit;
+        };
 
-    typedef enum WakeupBits{
-        WAKE_UP_8HZ=0,
-        WAKE_UP_4HZ=1,
-        WAKE_UP_2HZ=2,
-        WAKE_UP_1HZ=3,
-    }WakeupBits;
+        typedef enum WakeupBits{
+            WAKE_UP_8HZ=0,
+            WAKE_UP_4HZ=1,
+            WAKE_UP_2HZ=2,
+            WAKE_UP_1HZ=3,
+        }WakeupBits;
 
-    struct PowerCtlBits{
-        uint8_t wakeup:2;
-        uint8_t sleep:1;
-        uint8_t measure:1;
-        uint8_t auto_sleep:1;
-        uint8_t link:1;
-        uint8_t rsv:2;
-    };
+        struct PowerCtlBits{
+            uint8_t wakeup:2;
+            uint8_t sleep:1;
+            uint8_t measure:1;
+            uint8_t auto_sleep:1;
+            uint8_t link:1;
+            uint8_t rsv:2;
+        };
 
-    union PowerCtlReg{
-        uint8_t all;
-        PowerCtlBits bit;
-    };
+        union PowerCtlReg{
+            uint8_t all;
+            PowerCtlBits bit;
+        };
 
-    struct IntRegBits{
-        uint8_t overrun:1;
-        uint8_t watermark:1;
-        uint8_t rsv:1;
-        uint8_t inactivity:1;
-        uint8_t activity:1;
-        uint8_t rsv2:1;
-        uint8_t data_ready:1;
-    };
+        struct IntRegBits{
+            uint8_t overrun:1;
+            uint8_t watermark:1;
+            uint8_t rsv:1;
+            uint8_t inactivity:1;
+            uint8_t activity:1;
+            uint8_t rsv2:1;
+            uint8_t data_ready:1;
+        };
 
-    union IntReg{
-        uint8_t all;
-        IntRegBits bit;
-    };
+        union IntReg{
+            uint8_t all;
+            IntRegBits bit;
+        };
 
-    union IntMapReg{
-        uint8_t all;
-        IntRegBits bit;
-    };
+        union IntMapReg{
+            uint8_t all;
+            IntRegBits bit;
+        };
 
-    union IntSrcReg{
-        uint8_t all;
-        IntRegBits bit;
-    };
+        union IntSrcReg{
+            uint8_t all;
+            IntRegBits bit;
+        };
 
-    typedef enum DataFormatRange{
-        RANGE_1_5G = 0b00,
-        RANGE_3G = 0b01,
-        RANGE_6G = 0b10,
-        RANGE_12G = 0b11
-    }DataFormatRange;
+        typedef enum DataFormatRange{
+            RANGE_1_5G = 0b00,
+            RANGE_3G = 0b01,
+            RANGE_6G = 0b10,
+            RANGE_12G = 0b11
+        }DataFormatRange;
 
-    struct DataFormatBits{
-        uint8_t range:2;
-        uint8_t justify:1;
-        uint8_t fullRes:1;
-        uint8_t rsv:1;
-        uint8_t int_invert:1;
-        uint8_t spi:1;
-        uint8_t self_test:1;
-    };
+        struct DataFormatBits{
+            uint8_t range:2;
+            uint8_t justify:1;
+            uint8_t fullRes:1;
+            uint8_t rsv:1;
+            uint8_t int_invert:1;
+            uint8_t spi:1;
+            uint8_t self_test:1;
+        };
 
-    union DataFormatReg{
-        uint8_t all;
-        DataFormatBits bit;
-    };
+        union DataFormatReg{
+            uint8_t all;
+            DataFormatBits bit;
+        };
 
-    typedef enum FifoMode{
-        BYPASS=0,
-        FIFO=1,
-        STREAM=2,
-        TRIGGER=3
-    }FifoMode;
+        typedef enum FifoMode{
+            BYPASS=0,
+            FIFO=1,
+            STREAM=2,
+            TRIGGER=3
+        }FifoMode;
 
-    struct FifoCtlBits{
-        uint8_t samples:5;
-        uint8_t trigger:1;
-        uint8_t fifo_mode:2;
-    };
+        struct FifoCtlBits{
+            uint8_t samples:5;
+            uint8_t trigger:1;
+            uint8_t fifo_mode:2;
+        };
 
-    union FifoCtlReg{
-        uint8_t all;
-        FifoCtlBits bit;
-    };
+        union FifoCtlReg{
+            uint8_t all;
+            FifoCtlBits bit;
+        };
 
-    struct FifoStsBits{
-        uint8_t entries:6;
-        uint8_t rsv:1;
-        uint8_t fifo_trig:1;
-    };
+        struct FifoStsBits{
+            uint8_t entries:6;
+            uint8_t rsv:1;
+            uint8_t fifo_trig:1;
+        };
 
-    union FIFO_STS{
-        uint8_t all;
-        FifoStsBits bit;
-    };
+        union FIFO_STS{
+            uint8_t all;
+            FifoStsBits bit;
+        };
+    } // end of namespace adxl312
 
+    namespace L3gd20h{
+        //L3GD20H register definition
+        enum L3gd20hRegister{
+            WHO_AM_I    = 0x0F,
+            CTRL1       = 0x20,
+            CTRL2       = 0x21,
+            CTRL3       = 0x22,
+            CTRL4       = 0x23,
+            CTRL5       = 0x24,
+            REFERENCE   = 0x25,
+            OUT_TEMP    = 0x26,
+            STATUS      = 0x27,
+            OUT_X_L     = 0x28,
+            OUT_X_H     = 0x29,
+            OUT_Y_L     = 0x2A,
+            OUT_Y_H     = 0x2B,
+            OUT_Z_L     = 0x2C,
+            OUT_Z_H     = 0x2D,
+            FIFO_CTL    = 0x2E,
+            FIFO_SRC    = 0x2F,
+            IG_CFG      = 0x30,
+            IG_SRC      = 0x31,
+            IG_THS_XH   = 0x32,
+            IG_THS_XL   = 0x33,
+            IG_THS_YH   = 0x34,
+            IG_THS_YL   = 0x35,
+            IG_THS_ZH   = 0x36,
+            IG_THS_ZL   = 0x37,
+            IG_DURATION = 0x38,
+            LOW_ODR     = 0x39
+        };
+
+        struct Ctl1Bits{
+            uint8_t yen:1;
+            uint8_t xen:1;
+            uint8_t zen:1;
+            uint8_t pd:1;
+            uint8_t bw:2;
+            uint8_t dr:2;
+        };
+
+        union Ctl1Reg{
+            uint8_t all;
+            Ctl1Bits bit;
+        };
+
+        typedef enum Hpm{
+            NORMAL_MODE =0,
+            REFERENCE_SIGNAL =1,
+            NORMAL_MODE_2 =2,
+            AUTORESET =3
+        }Hpm;
+
+        struct Ctl2Bits{
+            uint8_t hpcf:4;
+            uint8_t hpm:2;
+            uint8_t extRen:1;
+        };
+
+        union Ctl2Reg{
+            uint8_t all;
+            Ctl2Bits bit;
+        };
+
+        struct Ctl3Bits{
+            uint8_t int2Empty:1;
+            uint8_t int2ORun:1;
+            uint8_t int2Fth:1;
+            uint8_t int2Drdy:1;
+            uint8_t ppOd:1;
+            uint8_t hLactive:1;
+            uint8_t int1Boot:1;
+            uint8_t int1Ig:1;
+        };
+
+        union Ctl3Reg{
+            uint8_t all;
+            Ctl3Bits bit;
+        };
+
+        struct Ctl4Bits{
+            uint8_t sim:1;
+            uint8_t st:2;
+            uint8_t imPen:1;
+            uint8_t fs:2;
+            uint8_t ble:1;
+            uint8_t bdu:1;
+        };
+
+        union Ctl4Reg{
+            uint8_t all;
+            Ctl4Bits bit;
+        };
+
+        struct Ctl5Bits{
+            uint8_t outsel:2;
+            uint8_t igsel:2;
+            uint8_t hPen:2;
+            uint8_t stopOnFth:1;
+            uint8_t fifoEn:1;
+            uint8_t boot:1;
+        };
+
+        union Ctl5Reg{
+            uint8_t all;
+            Ctl5Bits bit;
+        };
+
+        struct StatusRegBits{
+            uint8_t xda:1;
+            uint8_t yda:1;
+            uint8_t zda:1;
+            uint8_t zyxda:1;
+            uint8_t xovr:1;
+            uint8_t yovr:1;
+            uint8_t zovr:1;
+            uint8_t zyxovr:1;
+        };
+
+        union StatusReg{
+            uint8_t all;
+            StatusRegBits bit;
+        };
+
+        struct FifoCtlRegBits{
+            uint8_t fifo_thresh:5;
+            uint8_t fifo_mode:3;
+        };
+
+        union FifoCtlReg{
+            uint8_t all;
+            FifoCtlRegBits bit;
+        };
+
+        struct LowOdrRegBits{
+            uint8_t lowOdr:1;
+            uint8_t rsv:1;
+            uint8_t swRes:1;
+            uint8_t i2cDis:1;
+            uint8_t rsv2:1;
+            uint8_t drdyHl:1;
+            uint8_t rsv3:2;
+        };
+
+        union LowOdrReg{
+            uint8_t all;
+            LowOdrRegBits bit;
+        };
+    } // end of namespace L3gd20h
+
+    class ImuComponentImpl :
+      public ImuComponentBase
+    {
     public:
 
       // ----------------------------------------------------------------------
@@ -219,10 +380,16 @@ namespace CubeRover {
       ~ImuComponentImpl(void);
 
       ImuError setup(spiBASE_t *spi);
-      ImuError readAccelerations(float32 *accX, float32 *accY,  float32 *accZ);
-      ImuError accWriteData(const AdxlRegister regStartAddr, uint16_t *txData, const uint8_t length);
-      ImuError accReadData(const AdxlRegister regStartAddr, uint16_t *rxData, const uint8_t length);
+      ImuError setupAccelerometer(spiBASE_t *spi);
+      ImuError setupGyroscope(spiBASE_t *spi);
 
+      ImuError readAccelerations(float32 *accX, float32 *accY,  float32 *accZ);
+      ImuError accWriteData(const Adxl312::AdxlRegister regStartAddr, uint16_t *txData, const uint8_t length);
+      ImuError accReadData(const Adxl312::AdxlRegister regStartAddr, uint16_t *rxData, const uint8_t length);
+
+      ImuError gyroReadData(const L3gd20h::L3gd20hRegister regStartAddr, uint16_t *rxData, const uint8_t length);
+      ImuError gyroWriteData(const L3gd20h::L3gd20hRegister regStartAddr, uint16_t *txData, const uint8_t length);
+      ImuError readAngularRates(float32 *gyrX, float32 *gyrY,  float32 *gyrZ);
     PRIVATE:
 
       // ----------------------------------------------------------------------

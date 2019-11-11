@@ -28,8 +28,8 @@ namespace CubeRover {
   }ImuError;
 
   typedef uint8_t ImuI2cSlaveAddress;
-  #define SET_ADXL_SPI_READ_BIT(x) (x & ~(0x01 << 7))
-  #define SET_ADXL_SPI_WRITE_BIT(x) (x | (0x01 << 7))
+  #define SET_ADXL_SPI_WRITE_BIT(x) (x & ~(0x01 << 7))
+  #define SET_ADXL_SPI_READ_BIT(x) (x | (0x01 << 7))
   #define SET_ADXL_SPI_SINGLETRANS(x) (x & ~(0x01 << 6))
   #define SET_ADXL_SPI_MULTITRANS(x) (x | (0x01 << 6))
   #define ADXL_DEVICE_ID      0xE5
@@ -65,6 +65,130 @@ namespace CubeRover {
         DATAZ1          = 0x37,
         FIFO_CTL        = 0x38,
         FIFO_STATUS     = 0x39
+    };
+
+    struct ActInactCtlBits{
+        uint8_t INACT_Z_enable:1;
+        uint8_t INACT_Y_enable:1;
+        uint8_t INACT_X_enable:1;
+        uint8_t INACT_ac_dc:1;
+        uint8_t ACT_Z_enable:1;
+        uint8_t ACT_Y_enable:1;
+        uint8_t ACT_X_enable:1;
+        uint8_t ACT_ac_dc:1;
+    };
+
+    union ActInactCtlReg{
+        uint8_t all;
+        ActInactCtlBits bit;
+    };
+
+    struct BwRateBits{
+        uint8_t rate:4;
+        uint8_t low_power:1;
+        uint8_t rsv:3;
+    };
+
+    union BwRateReg{
+        uint8_t all;
+        BwRateBits bit;
+    };
+
+    typedef enum WakeupBits{
+        WAKE_UP_8HZ=0,
+        WAKE_UP_4HZ=1,
+        WAKE_UP_2HZ=2,
+        WAKE_UP_1HZ=3,
+    }WakeupBits;
+
+    struct PowerCtlBits{
+        uint8_t wakeup:2;
+        uint8_t sleep:1;
+        uint8_t measure:1;
+        uint8_t auto_sleep:1;
+        uint8_t link:1;
+        uint8_t rsv:2;
+    };
+
+    union PowerCtlReg{
+        uint8_t all;
+        PowerCtlBits bit;
+    };
+
+    struct IntRegBits{
+        uint8_t overrun:1;
+        uint8_t watermark:1;
+        uint8_t rsv:1;
+        uint8_t inactivity:1;
+        uint8_t activity:1;
+        uint8_t rsv2:1;
+        uint8_t data_ready:1;
+    };
+
+    union IntReg{
+        uint8_t all;
+        IntRegBits bit;
+    };
+
+    union IntMapReg{
+        uint8_t all;
+        IntRegBits bit;
+    };
+
+    union IntSrcReg{
+        uint8_t all;
+        IntRegBits bit;
+    };
+
+    typedef enum DataFormatRange{
+        RANGE_1_5G = 0b00,
+        RANGE_3G = 0b01,
+        RANGE_6G = 0b10,
+        RANGE_12G = 0b11
+    }DataFormatRange;
+
+    struct DataFormatBits{
+        uint8_t range:2;
+        uint8_t justify:1;
+        uint8_t fullRes:1;
+        uint8_t rsv:1;
+        uint8_t int_invert:1;
+        uint8_t spi:1;
+        uint8_t self_test:1;
+    };
+
+    union DataFormatReg{
+        uint8_t all;
+        DataFormatBits bit;
+    };
+
+    typedef enum FifoMode{
+        BYPASS=0,
+        FIFO=1,
+        STREAM=2,
+        TRIGGER=3
+    }FifoMode;
+
+    struct FifoCtlBits{
+        uint8_t samples:5;
+        uint8_t trigger:1;
+        uint8_t fifo_mode:2;
+    };
+
+    union FifoCtlReg{
+        uint8_t all;
+        FifoCtlBits bit;
+    };
+
+    struct FifoStsBits{
+        uint8_t entries:6;
+        uint8_t rsv:1;
+        uint8_t fifo_trig:1;
+    };
+
+    union FIFO_STS{
+        uint8_t all;
+        FifoStsBits bit;
     };
 
     public:

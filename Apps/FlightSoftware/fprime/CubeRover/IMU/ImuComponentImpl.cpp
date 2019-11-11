@@ -38,7 +38,7 @@ namespace CubeRover {
       m_gyroDataConfig.CSNR = 0;
 
       // Accelerometer data configuration
-      m_accDataConfig.CS_HOLD = false;
+      m_accDataConfig.CS_HOLD = true;
       m_accDataConfig.DFSEL = SPI_FMT_0;
       m_accDataConfig.WDEL = false;
       m_accDataConfig.CSNR = 0;
@@ -111,13 +111,31 @@ namespace CubeRover {
     m_spi = spi;
     m_setup = true;
 
-
     err = accReadData(AdxlRegister::DEVICE_ID, &deviceId, 1);
 
-    if(deviceId !=  ADXL_DEVICE_ID){
-        return IMU_UNEXPECTED_ERROR;
-    }
+    // to do uncomment when we get the board
+    //if(deviceId !=  ADXL_DEVICE_ID){
+    //    return IMU_UNEXPECTED_ERROR;
+    //}
+
     //to do implement the rest of the configuration
+
+    // to do move that to command handling to support turn on and off of the device
+    PowerCtlReg powerCtl;
+    powerCtl.all = 0;
+    powerCtl.bit.measure = 1; // turn on measure
+    err = accWriteData(AdxlRegister::POWER_CTL, (uint16_t *)&powerCtl.all, 1);
+
+    DataFormatReg format;
+    format.all = 0;
+    format.bit.fullRes = 1;
+    format.bit.range = RANGE_12G;
+    err = accWriteData(AdxlRegister::DATA_FORMAT, (uint16_t *)&format.all, 1);
+
+    FifoCtlReg fifoCtl;
+    fifoCtl.all = 0;
+    fifoCtl.bit.fifo_mode = FIFO;
+    err =  accWriteData(AdxlRegister::FIFO_CTL, (uint16_t *)&fifoCtl.all, 1);
 
     return err;
   }
@@ -135,10 +153,9 @@ namespace CubeRover {
   ImuError ImuComponentImpl :: accReadData(const AdxlRegister regStartAddr, uint16_t *rxData, const uint8_t length){
 
       m_spiTxBuff[0] = (uint8_t) regStartAddr;
-      m_spiTxBuff[0] |= SET_ADXL_SPI_MULTITRANS(m_spiTxBuff[0]);
-      m_spiTxBuff[0] |= SET_ADXL_SPI_READ_BIT (m_spiTxBuff[0]);
+      m_spiTxBuff[0] |= 0x40; // multi-bytes read
+      m_spiTxBuff[0] |= 0x80; // read
 
-      // todo return an error
       if(length > SPI_RX_BUFFER_SIZE)
           return IMU_WRONG_DATA_SIZE;
 
@@ -147,7 +164,7 @@ namespace CubeRover {
       spiReceiveData(m_spi, &m_accDataConfig, length, (uint16_t *)&m_spiRxBuff);
       gioSetBit(spiPORT3, 1, 1);
 
-      memcpy(rxData, m_spiRxBuff + 1 , length);
+      memcpy(rxData, m_spiRxBuff, length);
 
       return IMU_NO_ERROR;
   }
@@ -165,8 +182,7 @@ namespace CubeRover {
   ImuError ImuComponentImpl :: accWriteData(const AdxlRegister regStartAddr, uint16_t *txData, const uint8_t length){
 
       m_spiTxBuff[0] = (uint8_t) regStartAddr;
-      m_spiTxBuff[0] |= SET_ADXL_SPI_MULTITRANS(m_spiTxBuff[0]);
-      m_spiTxBuff[0] |= SET_ADXL_SPI_READ_BIT (m_spiTxBuff[0]);
+      m_spiTxBuff[0] |= 0x40; // multibyte write
 
       // todo return an error
       if(length+1 > SPI_TX_BUFFER_SIZE)
@@ -174,7 +190,9 @@ namespace CubeRover {
 
       memcpy(m_spiTxBuff+1, txData, length);
 
+      gioSetBit(spiPORT3, 1, 0);
       spiTransmitData(m_spi, &m_accDataConfig, 1+length, (uint16_t *)&m_spiTxBuff);
+      gioSetBit(spiPORT3, 1, 1);
 
       return IMU_NO_ERROR;
   }

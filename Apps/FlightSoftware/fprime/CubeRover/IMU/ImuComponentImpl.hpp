@@ -42,6 +42,13 @@ namespace CubeRover {
     #define CS_SPIPORT3_BIT_ADXL          1
     #define CS_SPIPORT3_BIT_L3GD20H       2
 
+    #define ONE_OVER_1024                 0.0009765625
+    #define ONE_OVER_PI                   0.3183098861837
+
+    #define IMU_LPF_COEFF                 0.01
+    #define MAX_ROVER_PITCH_ANGLE         40
+    #define MAX_ROVER_ROLL_ANGLE          40
+
     enum SpiBufferSize{
         SPI_RX_BUFFER_SIZE=16,
         SPI_TX_BUFFER_SIZE=16
@@ -323,6 +330,16 @@ namespace CubeRover {
             StatusRegBits bit;
         };
 
+        typedef enum FifoMode{
+          BYPASS = 0,
+          FIFO = 1,
+          STREAM = 2,
+          STREAM_TO_FIFO = 3,
+          BYPASS_TO_STREAM = 4,
+          DYNAMIC_STREAM = 6,
+          BYPASS_TO_FIFO =7
+        }FifoMode;
+
         struct FifoCtlRegBits{
             uint8_t fifo_thresh:5;
             uint8_t fifo_mode:3;
@@ -383,6 +400,8 @@ namespace CubeRover {
       ImuError setupAccelerometer(spiBASE_t *spi);
       ImuError setupGyroscope(spiBASE_t *spi);
 
+      void computePitchRoll(float32 *pitch, float32 *roll, const float32 accX, const float32 accY, const float32 accZ);
+
       ImuError readAccelerations(float32 *accX, float32 *accY,  float32 *accZ);
       ImuError accWriteData(const Adxl312::AdxlRegister regStartAddr, uint16_t *txData, const uint8_t length);
       ImuError accReadData(const Adxl312::AdxlRegister regStartAddr, uint16_t *rxData, const uint8_t length);
@@ -423,6 +442,9 @@ namespace CubeRover {
       uint16_t m_spiTxBuff[SPI_TX_BUFFER_SIZE];
       spiDAT1_t m_gyroDataConfig;
       spiDAT1_t m_accDataConfig;
+      float32 m_lpfAccX;
+      float32 m_lpfAccY;
+      float32 m_lpfAccZ;
     };
 
 } // end namespace CubeRover

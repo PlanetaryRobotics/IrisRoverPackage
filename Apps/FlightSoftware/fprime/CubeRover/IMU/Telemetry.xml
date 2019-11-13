@@ -24,4 +24,12 @@
     <comment>Gyrometer Z</comment>
   </channel>
 
+  <channel id="6" name="Roll" data_type="F32" abbrev="IMU-0006">
+    <comment>Roll angle</comment>
+  </channel>
+
+  <channel id="7" name="Pitch" data_type="F32" abbrev="IMU-0007">
+    <comment>Pitch angle</comment>
+  </channel>
+
 </telemetry>

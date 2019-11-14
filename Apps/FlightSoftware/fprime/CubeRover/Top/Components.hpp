@@ -18,7 +18,7 @@
 #include <Svc/LinuxTime/CubeRoverTimeImpl.hpp>
 #include <Svc/TlmChan/TlmChanImpl.hpp>
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
-
+#include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
 // Include component exclusive to CubeRover project
 #include "MotorControl/MotorControlComponentImpl.hpp"
 
@@ -45,5 +45,8 @@ extern CubeRover::MotorControlComponentImpl motorControl;
 
 // FreeRTOS Serial driver to interface radio module
 extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
+
+// command dispatcher
+extern Svc::CommandDispatcherImpl cmdDispatcher;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

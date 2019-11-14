@@ -72,7 +72,7 @@ Svc::TlmChanImpl tlmChan(
 
 // ---------------------------------------------------------------------------
 // command dispatcher component used to dispatch commands
-Svc::CmdDispatcherComponentImpl cmdDispatcher(
+Svc::CommandDispatcherImpl cmdDispatcher(
 #if FW_OBJECT_NAMES == 1
         "CmdDispatcher"
 #endif

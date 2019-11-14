@@ -201,7 +201,6 @@ namespace CubeRover {
     powerCtl.bit.measure = 1; // turn on measure mode
 
     err = accWriteData(Adxl312::AdxlRegister::POWER_CTL, (uint16_t *)&powerCtl.all, 1);
-      return err;
 
     if(err != IMU_NO_ERROR)
       return err;

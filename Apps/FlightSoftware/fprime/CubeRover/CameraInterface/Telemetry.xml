@@ -1,0 +1,5 @@
+<telemetry>
+  <channel id="0" name="CAM_Image" data_type="String" length="10">
+    <comment>Image, TBD refine image size</comment>
+  </channel>
+</telemetry>

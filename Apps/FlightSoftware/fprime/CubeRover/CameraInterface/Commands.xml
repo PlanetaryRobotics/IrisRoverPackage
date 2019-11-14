@@ -1,0 +1,9 @@
+<commands>
+	<command kind="async" opcode="0x01" mnemonic="CAM_CaptureImage">
+		<comment>Capture image from camera</comment>
+	</command>
+
+	<command kind="async" opcode="0x02" mnemonic="CAM_FetchImage">
+		<comment>Fetch an image from the camera</comment>
+	</command>
+</commands>

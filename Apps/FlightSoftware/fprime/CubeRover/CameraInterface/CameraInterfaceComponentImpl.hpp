@@ -17,6 +17,14 @@
 
 namespace CubeRover {
 
+  namespace S25fl064l{
+    typedef enum FlashSpiRegister{
+
+    };
+  }
+
+  typedef uint32_t  CameraError;
+
   class CameraInterfaceComponentImpl :
     public CameraInterfaceComponentBase
   {
@@ -48,6 +56,13 @@ namespace CubeRover {
       //!
       ~CameraInterfaceComponentImpl(void);
 
+    CameraError flashReadData(const S25fl064l::FlashSpiRegister regStartAddr, 
+                              uint16_t *rxData,
+                              const uint8_t length);
+
+    CameraError flashWriteData(const S25fl064l::FlashSpiRegister regStartAddr,
+                               uint16_t *txData, 
+                               const uint8_t length);
     PRIVATE:
 
       // ----------------------------------------------------------------------
@@ -81,6 +96,8 @@ namespace CubeRover {
           const U32 cmdSeq /*!< The command sequence number*/
       );
 
+    private:
+      m_flashDataConfig;
 
     };
 

@@ -209,7 +209,7 @@ namespace CubeRover {
     // datasheet for further details.
     format.all = 0;         // clear register
     format.bit.fullRes = 0; // report accelerometer data in a 10-bit resolution
-    format.bit.range = Adxl312::RANGE_12G; // use +/-12g range
+    format.bit.range = SPI_ACC_RANGE; // check ImuComponentImpl.hpp for value
     err = accWriteData(Adxl312::AdxlRegister::DATA_FORMAT, (uint16_t *)&format.all, 1);
     if(err != IMU_NO_ERROR)
         return err;
@@ -235,6 +235,8 @@ namespace CubeRover {
     ImuError err = IMU_NO_ERROR;
     uint16_t deviceId;
     L3gd20h::FifoCtlReg fifoReg;
+    L3gd20h::Ctl1Reg ctl1Reg;
+    L3gd20h::Ctl4Reg ctl4Reg;
 
     if(spi == NULL){
       return IMU_UNEXPECTED_ERROR;
@@ -251,8 +253,25 @@ namespace CubeRover {
 
     fifoReg.all = 0;  //clear register
     fifoReg.bit.fifo_mode = L3gd20h::FifoMode::BYPASS; // configure FIFO buffer to be by-passed, collect instant data
-
     err = gyroWriteData(L3gd20h::L3gd20hRegister::FIFO_CTL, (uint16_t *)&fifoReg.all, 1);
+
+    if(err != IMU_NO_ERROR)
+        return err;
+
+    ctl1Reg.all = 0; //clear register
+    ctl1Reg.bit.pd = 1; // enable normal mode
+    ctl1Reg.bit.xen = 1; // enable x-axis
+    ctl1Reg.bit.yen = 1; // enable y-axis
+    ctl1Reg.bit.zen = 1; // enable z-axis
+    err = gyroWriteData(L3gd20h::L3gd20hRegister::CTRL1, (uint16_t *)&ctl1Reg.all, 1);
+
+    if(err != IMU_NO_ERROR)
+        return err;
+
+    ctl4Reg.all = 0;    // clear register
+    ctl4Reg.bit.fs = SPI_GYRO_RANGE; // range detection, check ImuComponentImpl.hpp for value
+    err = gyroWriteData(L3gd20h::L3gd20hRegister::CTRL4, (uint16_t *)&ctl4Reg.all, 1);
+
     return err;
   }
 
@@ -371,13 +390,13 @@ namespace CubeRover {
     err = accReadData(Adxl312::AdxlRegister::DATAX0, rxBuffer, sizeof(rxBuffer));
 
     tmp = rxBuffer[0] | rxBuffer[1] << 8;
-    *accX = (float32)(tmp) * ONE_OVER_1024 * ACCELEROMETER_RANGE /*normalize to 1.0 then maximum g range*/;
+    *accX = (float32)(tmp) * ACC_SENSITIVITY /*normalize to 1.0 then maximum g range*/;
 
     tmp = rxBuffer[2] | rxBuffer[3] << 8;
-    *accY = (float32)(tmp) * ONE_OVER_1024 * ACCELEROMETER_RANGE;
+    *accY = (float32)(tmp) * ACC_SENSITIVITY;
 
     tmp = rxBuffer[4] | rxBuffer[5] << 8;
-    *accZ = (float32)(tmp) * ONE_OVER_1024 * ACCELEROMETER_RANGE;
+    *accZ = (float32)(tmp) * ACC_SENSITIVITY;
 
     return err;
   }
@@ -467,13 +486,13 @@ namespace CubeRover {
     err = gyroReadData(L3gd20h::L3gd20hRegister::OUT_X_L, rxBuffer, sizeof(rxBuffer));
 
     tmp = rxBuffer[0] | rxBuffer[1] << 8;
-    *gyrX = (float32)(tmp) * ONE_OVER_1024 * GYRO_RANGE /*normalize to 1.0 then maximum g range*/;
+    *gyrX = (float32)(tmp) * GYRO_SENSITIVITY /*normalize to 1.0 then maximum g range*/;
 
     tmp = rxBuffer[2] | rxBuffer[3] << 8;
-    *gyrY = (float32)(tmp) * ONE_OVER_1024 * GYRO_RANGE;
+    *gyrY = (float32)(tmp) * GYRO_SENSITIVITY;
 
     tmp = rxBuffer[4] | rxBuffer[5] << 8;
-    *gyrZ = (float32)(tmp) * ONE_OVER_1024 * GYRO_RANGE;
+    *gyrZ = (float32)(tmp) * GYRO_SENSITIVITY;
 
     return err;
   }

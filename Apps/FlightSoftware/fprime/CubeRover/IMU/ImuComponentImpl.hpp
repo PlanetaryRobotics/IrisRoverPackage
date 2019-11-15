@@ -34,15 +34,40 @@ namespace CubeRover {
     #define SET_ADXL_SPI_MULTITRANS(x)    (x | (0x01 << 6))
 
     #define ADXL_DEVICE_ID                0xE5
-    #define ACCELEROMETER_RANGE           12.0        // g
+
 
     #define L3GD20H_DEVICE_ID             0xD7
-    #define GYRO_RANGE                    245         // dps
 
     #define CS_SPIPORT3_BIT_ADXL          1
-    #define CS_SPIPORT3_BIT_L3GD20H       2
+    #define CS_SPIPORT3_BIT_L3GD20H       1
 
-    #define ONE_OVER_1024                 0.0009765625
+    #define ACCELEROMETER_RANGE           3   // g
+    #if ACCELEROMETER_RANGE == 1
+        #define SPI_ACC_RANGE                 0
+        #define ACC_SENSITIVITY               0.0029f
+    #elif ACCELEROMETER_RANGE == 3
+        #define SPI_ACC_RANGE                 1
+        #define ACC_SENSITIVITY               0.0058f
+    #elif ACCELEROMETER_RANGE == 6
+        #define SPI_ACC_RANGE                 2
+        #define ACC_SENSITIVITY               0.0116f
+    #elif ACCELEROMETER_RANGE == 12
+        #define SPI_ACC_RANGE                 3
+        #define ACC_SENSITIVITY               0.0232f
+    #endif
+
+    #define GYRO_RANGE                       245    // dps
+    #if GYRO_RANGE == 245
+        #define SPI_GYRO_RANGE                0          // SPI register set to 0
+        #define GYRO_SENSITIVITY              0.00875f   // sensitivity for 245 dps range
+    #elif GYRO_RANGE == 500
+        #define SPI_GYRO_RANGE                1          // SPI register set to 1
+        #define GYRO_SENSITIVITY              0.01750f   // sensitivity for 500 dps range
+    #elif GYRO_RANGE == 2000
+        #define SPI_GYRO_RANGE                2          // SPI register set to 2
+        #define GYRO_SENSITIVITY              0.07000f   // sensitivity for 2000 dps range
+    #endif
+
     #define ONE_OVER_PI                   0.3183098861837
 
     #define IMU_LPF_COEFF                 0.01

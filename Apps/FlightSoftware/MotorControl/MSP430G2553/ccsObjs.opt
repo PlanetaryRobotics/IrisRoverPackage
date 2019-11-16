@@ -1,0 +1,1 @@
+"./Driver_HAL.obj" "./HAL.obj" "./main.obj" "./smbuslib/MSP430G2xx3/smbus_phy.obj" "./smbuslib/smbus.obj" "./smbuslib/smbus_nwk.obj" "../lnk_msp430g2553.cmd" -llibc.a 

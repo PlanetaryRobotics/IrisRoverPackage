@@ -12,7 +12,13 @@
 
 
 #include <CubeRover/CameraInterface/CameraInterfaceComponentImpl.hpp>
+#include <stdlib.h>
+#include <string.h>
+
 #include "Fw/Types/BasicTypes.hpp"
+//#include "CubeRoverConfig.hpp"
+#include "gio.h"
+#include "spi.h"
 
 namespace CubeRover {
 
@@ -35,9 +41,10 @@ namespace CubeRover {
       m_flashDataConfig.DFSEL = SPI_FMT_0;
       m_flashDataConfig.WDEL = false;
       m_flashDataConfig.CSNR = 0;
-
-      m_spi = NULL;
+      m_readLatencyCycles = 0;
       m_setup = false;
+      m_spi = NULL;
+      m_addressLengthFormat = CameraInterface::S25fl064l::ADDRESS_LENGTH_3_BYTES; // default setting of the external memory
   }
 
   void CameraInterfaceComponentImpl ::
@@ -72,6 +79,8 @@ namespace CubeRover {
 
     if(err != CAMERA_NO_ERROR)
       return err;
+
+    return err;
   }
 
 
@@ -90,8 +99,8 @@ namespace CubeRover {
       return CAMERA_UNEXPECTED_ERROR; 
     }
 
-
-    err = flashReadData(,,);
+    uint16_t id[3];
+    m_readLatencyCycles = flashReadData(CameraInterface::S25fl064l::RDID, id, 3);
 
     if(err != CAMERA_NO_ERROR)
         return err;
@@ -99,64 +108,175 @@ namespace CubeRover {
     return err;
   }
 
+  CameraError CameraInterfaceComponentImpl :: setupFPGAInterface(spiBASE_t *spi){
+      return CAMERA_NO_ERROR;
+  }
 
   /**
-   * @brief      Read spi register from external flash 
+   * @brief      Gets the address length byte.
    *
+   * @param[in]  cmd   The command
+   *
+   * @return     The address length byte.
+   */
+  uint16_t CameraInterfaceComponentImpl :: getAddressLengthByte(const CameraInterface::S25fl064l::FlashSpiCommands cmd){
+    switch(cmd){
+      case CameraInterface::S25fl064l::RDID:   // Read ID
+      case CameraInterface::S25fl064l::RDQID:   // Read Quad ID
+      case CameraInterface::S25fl064l::RUID:   // Read Unique ID
+      case CameraInterface::S25fl064l::RDSR1:   // Read Status Register 1
+      case CameraInterface::S25fl064l::RDSR2:   // Read Status Register 2
+      case CameraInterface::S25fl064l::RDCR1:   // Read Control Register 1
+      case CameraInterface::S25fl064l::RDCR2:   // Read Control Register 2
+      case CameraInterface::S25fl064l::RDCR3:   // Read Control Register 3
+      case CameraInterface::S25fl064l::WRR:   // Write Register (Status -1 and configuration -1,2,3)
+      case CameraInterface::S25fl064l::WRDI:   // Write Disable
+      case CameraInterface::S25fl064l::WREN:   // Write enable for non volatile data change
+      case CameraInterface::S25fl064l::WRENV:   // Write enable for volatile status and configuration registers
+      case CameraInterface::S25fl064l::CLSR:   // Clear status register
+      case CameraInterface::S25fl064l::_4BEN:   // Enter 4 byte address mode
+      case CameraInterface::S25fl064l::_4BEX:   // Exit 4 byte address mode
+      case CameraInterface::S25fl064l::SBEL:   // Set burst length
+      case CameraInterface::S25fl064l::QPIEN:   // Enter QPI
+      case CameraInterface::S25fl064l::QPIEX:   // Exit QPI
+      case CameraInterface::S25fl064l::DLPRD:   // Data learning pattern read
+      case CameraInterface::S25fl064l::PDLRNV:   // Program NV data learning register
+      case CameraInterface::S25fl064l::WDLRV:   // Write volatile data learning center
+      case CameraInterface::S25fl064l::CE:   // Chip erase
+      case CameraInterface::S25fl064l::EPS:   // Erase / program suspend
+      case CameraInterface::S25fl064l::EPR:   // Erase / program resume
+      case CameraInterface::S25fl064l::GBL:   // Global IBL block
+      case CameraInterface::S25fl064l::GBUL:   // Global IBL unblock
+      case CameraInterface::S25fl064l::RSTEN:        // Software reset enable
+      case CameraInterface::S25fl064l::RST:        // Software reset
+      case CameraInterface::S25fl064l::MBR:        // Mode bit reset
+      case CameraInterface::S25fl064l::DPD:        // Deep power down
+      case CameraInterface::S25fl064l::RES:     //from deep power down / device idcase 
+        return 0;
+      case CameraInterface::S25fl064l::RSFDP:   // Read JEDEC Serial Flash Discoverable parameters
+      case CameraInterface::S25fl064l::RDAR: 
+      case CameraInterface::S25fl064l::WRAR:   // Write any register
+      case CameraInterface::S25fl064l::READ:   // Read
+      case CameraInterface::S25fl064l::FAST_READ:   // Fast read
+      case CameraInterface::S25fl064l::DOR:   // Dual output read
+      case CameraInterface::S25fl064l::QOR:   // Quad output read
+      case CameraInterface::S25fl064l::QIOR:   // Quad I/O read
+      case CameraInterface::S25fl064l::DIOR:   // Dual I/O read
+      case CameraInterface::S25fl064l::DDRQIOR:   // DDR Quad I/O read
+      case CameraInterface::S25fl064l::PP:   // Page program
+      case CameraInterface::S25fl064l::QPP:   // Quad page program
+      case CameraInterface::S25fl064l::SE:   // Sector erase
+      case CameraInterface::S25fl064l::HBE:   // Half-block erase
+      case CameraInterface::S25fl064l::BE:   // Block erase
+      case CameraInterface::S25fl064l::SECRE:   // Security region erase
+      case CameraInterface::S25fl064l::SECRP:   // Security region program
+      case CameraInterface::S25fl064l::SECRR:   // Security region read
+      case CameraInterface::S25fl064l::IBLRD:   // IBL read
+      case CameraInterface::S25fl064l::IBL:   // IBL lock
+      case CameraInterface::S25fl064l::IBUL:   // IBL unblock
+      case CameraInterface::S25fl064l::SPRP:   // Set pointer region protection
+        return m_addressLengthFormat;
+      case CameraInterface::S25fl064l::_4READ:   // Read
+      case CameraInterface::S25fl064l::_4FAST_READ:   // Read
+      case CameraInterface::S25fl064l::_4DOR:   // Dual output read
+      case CameraInterface::S25fl064l::_4QOR:   // Dual output read
+      case CameraInterface::S25fl064l::_4DIOR:   // Dual I/O read
+      case CameraInterface::S25fl064l::_4QIOR:   // Quad I/O read
+      case CameraInterface::S25fl064l::_4DDRQIOR:   // DDR Quad I/O read
+      case CameraInterface::S25fl064l::_4PP:   // Page program
+      case CameraInterface::S25fl064l::_4QPP:   // Quad page program
+      case CameraInterface::S25fl064l::_4SE:   // Sector erase
+      case CameraInterface::S25fl064l::_4HBE:   // Half-block erase
+      case CameraInterface::S25fl064l::_4BE:   // Block erase
+      case CameraInterface::S25fl064l::_4IBLRD:   // IBL read
+      case CameraInterface::S25fl064l::_4IBUL:   // IBL unblock
+      case CameraInterface::S25fl064l::_4IBL:   // IBL lock
+      case CameraInterface::S25fl064l::_4SPRP:   // Set pointer region protection
+        return 4;
+      default:
+        return 0;
+      }
+  }
+
+  /**
+   * @brief      Read spi register from external flash
+   *
+   * @param[in]  cmd             The command
+   * @param      rxData          The receive data
+   * @param[in]  dataReadLength  The data read length
+   * @param[in]  address         The address
    * @param[in]  regStartAddr  The register start address
-   * @param      rxData        The receive data
    * @param[in]  length        The length
    *
    * @return     The camera error code
    */
-  CameraError CameraInterfaceComponentImpl :: flashReadData(const S25fl064l::FlashSpiRegister regStartAddr,
-                                                            uint16_t *rxData, 
-                                                            const uint8_t length){
+  CameraError CameraInterfaceComponentImpl :: flashReadData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
+                                                            uint16_t *rxData,
+                                                            const uint16_t dataReadLength,
+                                                            CameraInterface::S25fl064l::Address address){ 
+    uint16_t addressLength;
+    uint16_t totalBytesToTransmit; 
 
     if(rxData == NULL){
       return CAMERA_UNEXPECTED_ERROR;
     }
 
-    m_spiTxBuff[0] = (uint8_t) regStartAddr;
+    // at first, we just send command + any dummy cycles (converted to number of bytes)
+    totalBytesToTransmit = (m_readLatencyCycles >> 3) + 1;
+    m_spiTxBuff[0] = (uint8_t) cmd;
 
-    if(length > SPI_RX_BUFFER_SIZE)
+    addressLength = getAddressLengthByte(cmd);
+    totalBytesToTransmit += addressLength;
+
+    if(dataReadLength > SPI_RX_BUFFER_MAX_LENGTH)
         return CAMERA_WRONG_DATA_SIZE;
 
+    if(addressLength > 0){
+      if(address == NULL){
+        return CAMERA_UNEXPECTED_ERROR;
+      }
+
+      memcpy(m_spiTxBuff+1, address, addressLength);
+    }
+
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 0);
-    spiTransmitData(m_spi, &m_flashDataConfig, 1, (uint16_t *)&m_spiTxBuff);
-    spiReceiveData(m_spi, &m_flashDataConfig, length, (uint16_t *)&m_spiRxBuff);
+    // Send transmission data + a number of dummy cyles (m_readLatencyCycles) required by the device
+    // The number of cycles is a multiple of 8, one byte = 8 cycles
+    spiTransmitData(m_spi, &m_flashDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff); 
+    spiReceiveData(m_spi, &m_flashDataConfig, dataReadLength, (uint16_t *)&m_spiRxBuff);
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 1);
 
-    memcpy(rxData, m_spiRxBuff, length);
+    memcpy(rxData, m_spiRxBuff, dataReadLength);
 
     return CAMERA_NO_ERROR;
   }
 
 
   /**
-   * @brief      Write spi register to external flash
+   * @brief      Write data flash device over SPI
    *
-   * @param[in]  regStartAddr  The register start address
-   * @param      txData        The transmit data
-   * @param[in]  length        The length
+   * @param[in]  cmd     The command
+   * @param      txData  The transmit data
+   * @param[in]  length  The length
    *
    * @return     The camera error code
    */
-  CameraError CameraInterfaceComponentImpl :: flashWriteData(const S25fl064l::FlashSpiRegister regStartAddr,
+  CameraError CameraInterfaceComponentImpl :: flashWriteData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                                              uint16_t *txData, 
-                                                             const uint8_t length){
+                                                             const uint16_t length){
 
-    if(txData == NULL){
+    if(txData == NULL && length > 0){
       return CAMERA_UNEXPECTED_ERROR;
     }
 
-    m_spiTxBuff[0] = (uint8_t) regStartAddr;
-    m_spiTxBuff[0] |= 0x40; // multibyte write
+    m_spiTxBuff[0] = (uint8_t) cmd;
 
-    if(length+1 > SPI_TX_BUFFER_SIZE)
+    if(length+1 > SPI_TX_BUFFER_MAX_LENGTH)
         return CAMERA_WRONG_DATA_SIZE;
 
-    memcpy(m_spiTxBuff+1, txData, length);
+    if(txData != NULL){
+      memcpy(m_spiTxBuff+1, txData, length);
+    }
 
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 0);
     spiTransmitData(m_spi, &m_flashDataConfig, length+1, (uint16_t *)&m_spiTxBuff);

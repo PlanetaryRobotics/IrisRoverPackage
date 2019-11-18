@@ -68,4 +68,8 @@
 #define MOTOR_NB_PAIR_POLES				1.0f
 #define MOTOR_GEAR_BOX_REDUCTION		5.0f
 
+// SPI configuration
+// CS pin allocation for SPI interface
+#define CS_SPIPORT3_BIT_EXT_FLASH   1
+
 #endif /* INCLUDE_CUBEROVERCONFIG_HPP_ */

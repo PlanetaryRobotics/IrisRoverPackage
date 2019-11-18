@@ -2,9 +2,8 @@
 # mod.mk
 # ---------------------------------------------------------------------- 
 
-SRC = CameraInterfaceComponentAi.xml 
-#CameraInterfaceComponentImpl.cpp
+SRC = CameraInterfaceComponentAi.xml CameraInterfaceComponentImpl.cpp
 
-#HDR = CameraInterfaceComponentImpl.hpp
+HDR = CameraInterfaceComponentImpl.hpp
 
 #SUBDIRS = test

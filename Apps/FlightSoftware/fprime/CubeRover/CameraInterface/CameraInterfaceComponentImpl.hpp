@@ -18,8 +18,8 @@
 
 namespace CubeRover {
   namespace CameraInterface{
-    #define SPI_RX_BUFFER_MAX_LENGTH 256
-    #define SPI_TX_BUFFER_MAX_LENGTH 256
+    #define SPI_RX_BUFFER_MAX_LENGTH 261    // Worst case: 256 data payload bytes + 1 byte command + 4 bytes addressing
+    #define SPI_TX_BUFFER_MAX_LENGTH 261
 
     namespace S25fl064l{
       enum AddressLengthFormat{
@@ -147,6 +147,10 @@ namespace CubeRover {
       typedef uint8_t VolatileDataLearningDataRegister;
 
       typedef uint8_t* Address;
+      
+      typedef uint16_t PageNumber;
+
+      #define PAGE_SIZE         256
 
       typedef enum FlashSpiCommands{
         // Read Device ID
@@ -277,14 +281,15 @@ namespace CubeRover {
       CameraError setup(spiBASE_t *spi);
       CameraError setupExternalFlash(spiBASE_t *spi);
       CameraError setupFPGAInterface(spiBASE_t *spi);
-      CameraError flashReadData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
+      CameraError flashSpiReadData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                 uint16_t *rxData,
                                 const uint16_t dataReadLength,
                                 CameraInterface::S25fl064l::Address address = NULL); 
 
-      CameraError flashWriteData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
+      CameraError flashSpiWriteData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                 uint16_t *txData = NULL, 
-                                const uint16_t length = 0);
+                                const uint16_t dataWriteLength = 0,
+                                CameraInterface::S25fl064l::Address address = NULL); 
     PRIVATE:
 
       // ----------------------------------------------------------------------

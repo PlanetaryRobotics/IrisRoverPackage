@@ -129,7 +129,7 @@ namespace CubeRover {
       case CameraInterface::S25fl064l::RDCR1:   // Read Control Register 1
       case CameraInterface::S25fl064l::RDCR2:   // Read Control Register 2
       case CameraInterface::S25fl064l::RDCR3:   // Read Control Register 3
-      case CameraInterface::S25fl064l::WRR:   // Write Register (Status -1 and configuration -1,2,3)
+      case CameraInterface::S25fl064l::WRR:     // Write Register (Status -1 and configuration -1,2,3)
       case CameraInterface::S25fl064l::WRDI:   // Write Disable
       case CameraInterface::S25fl064l::WREN:   // Write enable for non volatile data change
       case CameraInterface::S25fl064l::WRENV:   // Write enable for volatile status and configuration registers
@@ -201,18 +201,19 @@ namespace CubeRover {
   /**
    * @brief      Read spi register from external flash
    *
-   * @param[in]  cmd             The command
-   * @param      rxData          The receive data
+   * @param[in]  cmd           The command
+   * @param      rxData        The receive data
+   * @param[in]  sizeOfRxData  The size of the receive data
+   * @param[in]  address       The address
    * @param[in]  dataReadLength  The data read length
-   * @param[in]  address         The address
-   * @param[in]  regStartAddr  The register start address
-   * @param[in]  length        The length
+   * @param[in]  regStartAddr    The register start address
+   * @param[in]  length          The length
    *
    * @return     The camera error code
    */
-  CameraError CameraInterfaceComponentImpl :: flashReadData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
+  CameraError CameraInterfaceComponentImpl :: flashSpiReadData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                                             uint16_t *rxData,
-                                                            const uint16_t dataReadLength,
+                                                            const uint16_t sizeOfRxData,
                                                             CameraInterface::S25fl064l::Address address){ 
     uint16_t addressLength;
     uint16_t totalBytesToTransmit; 
@@ -228,7 +229,7 @@ namespace CubeRover {
     addressLength = getAddressLengthByte(cmd);
     totalBytesToTransmit += addressLength;
 
-    if(dataReadLength > SPI_RX_BUFFER_MAX_LENGTH)
+    if(sizeOfRxData > SPI_RX_BUFFER_MAX_LENGTH)
         return CAMERA_WRONG_DATA_SIZE;
 
     if(addressLength > 0){
@@ -236,14 +237,17 @@ namespace CubeRover {
         return CAMERA_UNEXPECTED_ERROR;
       }
 
-      memcpy(m_spiTxBuff+1, address, addressLength);
+    if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH)
+        return CAMERA_WRONG_DATA_SIZE;
+
+      memcpy(m_spiTxBuff+1, (uint8_t *)address, addressLength);
     }
 
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 0);
     // Send transmission data + a number of dummy cyles (m_readLatencyCycles) required by the device
     // The number of cycles is a multiple of 8, one byte = 8 cycles
     spiTransmitData(m_spi, &m_flashDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff); 
-    spiReceiveData(m_spi, &m_flashDataConfig, dataReadLength, (uint16_t *)&m_spiRxBuff);
+    spiReceiveData(m_spi, &m_flashDataConfig, sizeOfRxData, (uint16_t *)&m_spiRxBuff);
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 1);
 
     memcpy(rxData, m_spiRxBuff, dataReadLength);
@@ -261,28 +265,128 @@ namespace CubeRover {
    *
    * @return     The camera error code
    */
-  CameraError CameraInterfaceComponentImpl :: flashWriteData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
-                                                             uint16_t *txData, 
-                                                             const uint16_t length){
+  CameraError CameraInterfaceComponentImpl :: flashSpiWriteData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
+                                                                uint16_t *txData, 
+                                                                const uint16_t sizeOfTxData,
+                                                                CameraInterface::S25fl064l::Address address){
+    uint16_t addressLength;
+    uint16_t totalBytesToTransmit; 
 
-    if(txData == NULL && length > 0){
+    if(txData == NULL && sizeOfTxData > 0){
       return CAMERA_UNEXPECTED_ERROR;
     }
 
+    addressLength = getAddressLengthByte(cmd);
     m_spiTxBuff[0] = (uint8_t) cmd;
+    totalBytesToTransmit = sizeOfTxData + 1 /*command*/ + addressLength;
 
-    if(length+1 > SPI_TX_BUFFER_MAX_LENGTH)
+    if(addressLength > 0){
+      if(address == NULL){
+        return CAMERA_UNEXPECTED_ERROR;
+      }
+
+      if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH){
         return CAMERA_WRONG_DATA_SIZE;
+      }
 
-    if(txData != NULL){
-      memcpy(m_spiTxBuff+1, txData, length);
+      // Copy the address section to the transmit buffer
+      memcpy(m_spiTxBuff+1, (uint8_t *)address, addressLength);     
+
+      if(txData == NULL){
+        return CAMERA_UNEXPECTED_ERROR;
+      }
+
+      // Copy data to transmit to transmit buffer
+      memcpy(m_spiTxBuff + 1 /*command */ + addressLength, txData, sizeOfTxData);
     }
 
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 0);
-    spiTransmitData(m_spi, &m_flashDataConfig, length+1, (uint16_t *)&m_spiTxBuff);
+    spiTransmitData(m_spi, &m_flashDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 1);
 
     return CAMERA_NO_ERROR;
+  }
+
+
+  /**
+   * @brief      Program a page in flash memory
+   *
+   * @param[in]  page    The page
+   * @param      txData  The transmit data
+   * @param[in]  size    The size
+   *
+   * @return     The error code
+   */
+  CameraError CameraInterfaceComponentImpl :: pageProgram(const PageNumber page, uint16_t *txData, const uint16_t size){
+    CameraInterface::S25fl064l::Address address;
+    CameraInterface::S25fl064l::StatusRegister1Bits status1;
+    CameraInterface::S25fl064l::StatusRegister2Bits status2;
+    CameraError err;
+    uint16_t tries = 100;
+
+    if(txData == NULL){
+      return CAMERA_UNEXPECTED_ERROR;
+    }
+
+    // Enable writing to the device
+    err = flashSpiWriteData(CameraInterface::S25fl064l::WREN);
+
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    // Read status register
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
+    
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    // Write Enable Latch must be set at that point
+    if(status.bit.wel == 0){
+      return CAMERA_FAIL_PAGE_PROGRAM;
+    }
+
+    // Convert page number into byte address.
+    // Best results are archieved when write is aligned with page address
+    address = pageNumber * CameraInterface::S25fl064l::PAGE_SIZE;
+
+    // Send data to perform page programming
+    err = flashSpiWriteData(CameraInterface::S25fl064l::PP, txData, size, address);
+    
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    while(tries > 0){
+      err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
+      if(err != CAMERA_NO_ERROR){
+        return err;
+      }
+
+      if(status.bit.wip == 1){
+        tries--;
+      }
+      else{
+        break;
+      }
+    }
+
+    // Check if an error occured at completion of the programming
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR2, &status2.all, 1);
+
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+    
+    if(status2.bit.p_err){
+      return CAMERA_FAIL_PAGE_PROGRAM;
+    }
+
+    // Disable writing to the device
+    err = flashSpiWriteData(CameraInterface::S25fl064l::WRDI);
+
+    return err;
   }
 
 

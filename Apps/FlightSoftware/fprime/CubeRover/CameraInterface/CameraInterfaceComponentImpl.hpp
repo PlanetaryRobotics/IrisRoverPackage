@@ -146,19 +146,19 @@ namespace CubeRover {
 
       typedef uint8_t VolatileDataLearningDataRegister;
 
-      typedef uint8_t* Address;
+      typedef uint32_t Address;
 
       typedef uint16_t PageNumber;
 
-      #define PAGE_SIZE         0x100     // 256
-      #define HALF_BLOCK_SIZE   0x8000    // 32Kb
-      #define BLOCK_SIZE        0x10000   // 64Kb
+      #define PAGE_SIZE         0x100     // 256B
+      #define SECTOR_SIZE       0x1000    // 4KB
+      #define HALF_BLOCK_SIZE   0x8000    // 32KB
+      #define BLOCK_SIZE        0x10000   // 64KB
 
       #define MAX_MEMORY_ADDESS     0x7FFFFF            // 64MB
       #define MAX_BLOCK_RANGE       128                 // There is 128 blocks (from block #0 to block #127)
       #define MAX_HALF_BLOCK_RANGE  MAX_BLOCK_RANGE*2 
-      #define MAX_SECTOR_RANGE      2048      
-
+      #define MAX_SECTOR_RANGE      MAX_BLOCK_RANGE*16  // There are 16 sectors per block (16*128 = 2048 sectors)     
 
       typedef enum FlashSpiCommands{
         // Read Device ID
@@ -292,12 +292,12 @@ namespace CubeRover {
       CameraError flashSpiReadData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                 uint16_t *rxData,
                                 const uint16_t dataReadLength,
-                                CameraInterface::S25fl064l::Address address = NULL); 
+                                CameraInterface::S25fl064l::Address *address = NULL); 
 
       CameraError flashSpiWriteData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                 uint16_t *txData = NULL, 
                                 const uint16_t dataWriteLength = 0,
-                                CameraInterface::S25fl064l::Address address = NULL); 
+                                CameraInterface::S25fl064l::Address *address = NULL); 
     PRIVATE:
 
       // ----------------------------------------------------------------------

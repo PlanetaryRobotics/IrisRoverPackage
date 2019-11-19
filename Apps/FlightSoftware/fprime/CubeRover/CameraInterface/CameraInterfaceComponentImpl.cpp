@@ -44,7 +44,8 @@ namespace CubeRover {
       m_readLatencyCycles = 0;
       m_setup = false;
       m_spi = NULL;
-      m_addressLengthFormat = CameraInterface::S25fl064l::ADDRESS_LENGTH_3_BYTES; // default setting of the external memory
+      // default setting of the external memory
+      m_addressLengthFormat = CameraInterface::S25fl064l::ADDRESS_LENGTH_3_BYTES; 
   }
 
   void CameraInterfaceComponentImpl ::
@@ -214,7 +215,7 @@ namespace CubeRover {
   CameraError CameraInterfaceComponentImpl :: flashSpiReadData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                                             uint16_t *rxData,
                                                             const uint16_t sizeOfRxData,
-                                                            CameraInterface::S25fl064l::Address address){ 
+                                                            CameraInterface::S25fl064l::Address *address){ 
     uint16_t addressLength;
     uint16_t totalBytesToTransmit; 
 
@@ -268,7 +269,7 @@ namespace CubeRover {
   CameraError CameraInterfaceComponentImpl :: flashSpiWriteData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                                                 uint16_t *txData, 
                                                                 const uint16_t sizeOfTxData,
-                                                                CameraInterface::S25fl064l::Address address){
+                                                                CameraInterface::S25fl064l::Address *address){
     uint16_t addressLength;
     uint16_t totalBytesToTransmit; 
 
@@ -378,7 +379,6 @@ namespace CubeRover {
     return err;
   } 
 
-
   /**
    * @brief      Perform a soft reset of the device
    *
@@ -399,81 +399,11 @@ namespace CubeRover {
     return err;
   }
 
-  /**
-   * @brief      Erase memry block
-   *
-   * @param[in]  block  The block of memory to erase
+ /**
+   * @brief      Erase the chip memory
    *
    * @return     The camera error
    */
-  CameraError CameraInterfaceComponentImpl :: blockErase(const Block block){
-    CameraInterface::S25fl064l::Address address;
-    CameraInterface::S25fl064l::StatusRegister1 status1;
-    CameraInterface::S25fl064l::StatusRegister2 status2;
-    CameraError err;
-    uint16_t tries = 100;
-
-    // Enable writing to the device
-    err = flashSpiWriteData(CameraInterface::S25fl064l::WREN);
-
-    if(err != CAMERA_NO_ERROR){
-      return err;
-    }
-
-    address = block * BLOCK_SIZE;
-
-    // Send sector erase
-    // The flash spi write doesn't require to write any data, only address is required
-    err = flashSpiWriteData(CameraInterface::S25fl064l::BE, NULL, 0, address);
-
-    // Read status register to check that write is enabled
-    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
-    
-    if(err != CAMERA_NO_ERROR){
-      return err;
-    }
-
-    // Write Enable Latch must be set at that point
-    if(status1.bit.wel == 0){
-      return CAMERA_FAIL_SECTOR_ERASE;
-    }
-
-    // Poll the device to check the "work in progress" flag from the status register 1
-    while(tries > 0){
-      err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
-      if(err != CAMERA_NO_ERROR){
-        return err;
-      }
-
-      if(status1.bit.wip == 1){
-        tries--;
-      }
-      else{
-        break;
-      }
-    }
-
-    if(tries == 0){
-      return CAMERA_FAIL_BLOCK_ERASE;
-    }
-
-    // Check if an error occured at completion of the programming
-    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR2, &status2.all, 1);
-
-    if(err != CAMERA_NO_ERROR){
-      return err;
-    }
-
-    if(status2.bit.e_err){
-      return CAMERA_FAIL_PAGE_PROGRAM;
-    }
-
-    // Disable writing to the device
-    err = flashSpiWriteData(CameraInterface::S25fl064l::WRDI);
-
-    return err;
-  }
-  
   CameraError CameraInterfaceComponentImpl :: chipErase(){
     CameraInterface::S25fl064l::StatusRegister1 status1;
     CameraInterface::S25fl064l::StatusRegister2 status2;
@@ -540,6 +470,85 @@ namespace CubeRover {
   }
 
   /**
+   * @brief      Erase memry block
+   *
+   * @param[in]  block  The block of memory to erase
+   *
+   * @return     The camera error
+   */
+  CameraError CameraInterfaceComponentImpl :: blockErase(const Block block){
+    CameraInterface::S25fl064l::Address address;
+    CameraInterface::S25fl064l::StatusRegister1 status1;
+    CameraInterface::S25fl064l::StatusRegister2 status2;
+    CameraError err;
+    uint16_t tries = 100;
+
+    if(block > MAX_BLOCK_RANGE){
+      return CAMERA_UNEXPECTED_ERROR;
+    }
+
+    // Enable writing to the device
+    err = flashSpiWriteData(CameraInterface::S25fl064l::WREN);
+
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    address = block * BLOCK_SIZE;
+
+    // Send sector erase
+    // The flash spi write doesn't require to write any data, only address is required
+    err = flashSpiWriteData(CameraInterface::S25fl064l::BE, NULL, 0, &address);
+
+    // Read status register to check that write is enabled
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
+    
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    // Write Enable Latch must be set at that point
+    if(status1.bit.wel == 0){
+      return CAMERA_FAIL_SECTOR_ERASE;
+    }
+
+    // Poll the device to check the "work in progress" flag from the status register 1
+    while(tries > 0){
+      err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
+      if(err != CAMERA_NO_ERROR){
+        return err;
+      }
+
+      if(status1.bit.wip == 1){
+        tries--;
+      }
+      else{
+        break;
+      }
+    }
+
+    if(tries == 0){
+      return CAMERA_FAIL_BLOCK_ERASE;
+    }
+
+    // Check if an error occured at completion of the programming
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR2, &status2.all, 1);
+
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    if(status2.bit.e_err){
+      return CAMERA_FAIL_PAGE_PROGRAM;
+    }
+
+    // Disable writing to the device
+    err = flashSpiWriteData(CameraInterface::S25fl064l::WRDI);
+
+    return err;
+  }
+  
+  /**
    * @brief      Erase half-block of memory
    *
    * @param[in]  block  The block
@@ -553,6 +562,10 @@ namespace CubeRover {
     CameraError err;
     uint16_t tries = 100;
 
+    if(halfBlock > MAX_HALF_BLOCK_RANGE){
+      return CAMERA_UNEXPECTED_ERROR;
+    }
+
     // Enable writing to the device
     err = flashSpiWriteData(CameraInterface::S25fl064l::WREN);
 
@@ -564,7 +577,7 @@ namespace CubeRover {
 
     // Send sector erase
     // The flash spi write doesn't require to write any data, only address is required
-    err = flashSpiWriteData(CameraInterface::S25fl064l::HBE, NULL, 0, address);
+    err = flashSpiWriteData(CameraInterface::S25fl064l::HBE, NULL, 0, &address);
 
     // Read status register to check that write is enabled
     err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
@@ -628,6 +641,10 @@ namespace CubeRover {
     CameraError err;
     uint16_t tries = 100;
 
+    if(sector > MAX_SECTOR_RANGE){
+      return CAMERA_UNEXPECTED_ERROR;
+    }
+
     // Enable writing to the device
     err = flashSpiWriteData(CameraInterface::S25fl064l::WREN);
 
@@ -635,11 +652,11 @@ namespace CubeRover {
       return err;
     }
 
-    address = pageNumber * CameraInterface::S25fl064l::PAGE_SIZE;
+    address = sector * CameraInterface::S25fl064l::SECTOR_SIZE;
 
     // Send sector erase
     // The flash spi write doesn't require to write any data, only address is required
-    err = flashSpiWriteData(CameraInterface::S25fl064l::SE, NULL, 0, address);
+    err = flashSpiWriteData(CameraInterface::S25fl064l::SE, NULL, 0, &address);
 
     // Read status register to check that write is enabled
     err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
@@ -689,21 +706,38 @@ namespace CubeRover {
     return err;
   }
 
+  CameraError CameraInterfaceComponentImpl :: allocateFlashMemory(const uint32_t size,
+                                                                  CameraInterface::S25fl064l::Address *address){
+    
+  }
+  PageNumber CameraInterfaceComponentImpl :: writeDataToFlash(const CameraInterface::S25fl064l::Address address){
+    if()
+    return 
+  }
+
+
   /**
-   * @brief      Program a page in flash memory
+   * @brief      Program a page
    *
-   * @param[in]  page    The page
-   * @param      txData  The transmit data
-   * @param[in]  size    The size
+   * @param[in]  address  The address
+   * @param      txData   The transmit data
+   * @param[in]  size     The size
    *
-   * @return     The error code
+   * @return     The error code.
    */
-  CameraError CameraInterfaceComponentImpl :: pageProgram(const PageNumber page, uint16_t *txData, const uint16_t size){
+  CameraError CameraInterfaceComponentImpl :: pageProgram(const CameraInterface::S25fl064l::Address address,
+                                                          uint16_t *txData,
+                                                          const uint16_t size){
     CameraInterface::S25fl064l::Address address;
     CameraInterface::S25fl064l::StatusRegister1 status1;
     CameraInterface::S25fl064l::StatusRegister2 status2;
     CameraError err;
     uint16_t tries = 100;
+
+    // the size of a page is 256 bytes
+    if(size > PAGE_SIZE){
+      return CAMERA_UNEXPECTED_ERROR;
+    }
 
     if(txData == NULL){
       return CAMERA_UNEXPECTED_ERROR;
@@ -728,12 +762,8 @@ namespace CubeRover {
       return CAMERA_FAIL_PAGE_PROGRAM;
     }
 
-    // Convert page number into byte address.
-    // Best results are archieved when write is aligned with page address
-    address = pageNumber * CameraInterface::S25fl064l::PAGE_SIZE;
-
     // Send data to perform page programming
-    err = flashSpiWriteData(CameraInterface::S25fl064l::PP, txData, size, address);
+    err = flashSpiWriteData(CameraInterface::S25fl064l::PP, txData, size, &address);
     
     if(err != CAMERA_NO_ERROR){
       return err;
@@ -770,7 +800,6 @@ namespace CubeRover {
 
     return err;
   }
-
 
   // ----------------------------------------------------------------------
   // Handler implementations for user-defined typed input ports

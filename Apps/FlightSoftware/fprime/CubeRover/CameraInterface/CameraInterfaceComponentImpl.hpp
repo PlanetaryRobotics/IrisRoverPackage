@@ -147,10 +147,18 @@ namespace CubeRover {
       typedef uint8_t VolatileDataLearningDataRegister;
 
       typedef uint8_t* Address;
-      
+
       typedef uint16_t PageNumber;
 
-      #define PAGE_SIZE         256
+      #define PAGE_SIZE         0x100     // 256
+      #define HALF_BLOCK_SIZE   0x8000    // 32Kb
+      #define BLOCK_SIZE        0x10000   // 64Kb
+
+      #define MAX_MEMORY_ADDESS     0x7FFFFF            // 64MB
+      #define MAX_BLOCK_RANGE       128                 // There is 128 blocks (from block #0 to block #127)
+      #define MAX_HALF_BLOCK_RANGE  MAX_BLOCK_RANGE*2 
+      #define MAX_SECTOR_RANGE      2048      
+
 
       typedef enum FlashSpiCommands{
         // Read Device ID

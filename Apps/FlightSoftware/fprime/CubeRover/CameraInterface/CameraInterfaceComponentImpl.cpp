@@ -296,8 +296,10 @@ namespace CubeRover {
         return CAMERA_UNEXPECTED_ERROR;
       }
 
-      // Copy data to transmit to transmit buffer
-      memcpy(m_spiTxBuff + 1 /*command */ + addressLength, txData, sizeOfTxData);
+      if(txData != NULL && sizeOfTxData > 0){
+        // Copy data to transmit buffer
+        memcpy(m_spiTxBuff + 1 /*command */ + addressLength, txData, sizeOfTxData);
+      }
     }
 
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 0);
@@ -307,6 +309,385 @@ namespace CubeRover {
     return CAMERA_NO_ERROR;
   }
 
+  /**
+   * @brief      Suspend an erase or program operation
+   *
+   * @return     The camera error code
+   */
+  CameraError CameraInterfaceComponentImpl :: programEraseSuspend(){
+    CameraInterface::S25fl064l::StatusRegister1 status1;
+    CameraInterface::S25fl064l::StatusRegister2 status2;
+    CameraError err;
+
+    // Read status register to check if program/erase is on-going
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR2, &status2.all, 1);
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    // Check if erase or program are in progress, if not, there is nothing to
+    // suspend Check if an erase suspend or program suspend is already
+    // happening, if so, don't do anything.
+    if(status1.bit.wip == 0 && (status2.bit.es || status2.bit.ps)){
+      return CAMERA_NO_ERROR;
+    }
+
+    // Send sector erase The flash spi write doesn't require to write any data,
+    // only address is required
+    err = flashSpiWriteData(CameraInterface::S25fl064l::EPS);
+
+    return err;
+  }
+
+
+  /**
+   * @brief      Resume programming / erase
+   *
+   * @return     The camera error code
+   */
+  CameraError CameraInterfaceComponentImpl :: programEraseResume(){
+    CameraInterface::S25fl064l::StatusRegister1 status1;
+    CameraInterface::S25fl064l::StatusRegister2 status2;
+    CameraError err;
+
+    // Read status register to check if program/erase is on-going
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR2, &status2.all, 1);
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    // If nothing is in progress or suspended, return immediately
+    if(status1.bit.wip == 0 && status2.bit.es == 0 && status2.bit.ps == 0){
+      return CAMERA_NO_ERROR;
+    }
+
+    // Send sector erase The flash spi write doesn't require to write any data,
+    // only address is required
+    err = flashSpiWriteData(CameraInterface::S25fl064l::EPR);
+
+    return err;
+  } 
+
+
+  /**
+   * @brief      Perform a soft reset of the device
+   *
+   * @return     The camera error code
+   */
+  CameraError CameraInterfaceComponentImpl :: resetDevice(){
+    CameraError err;
+
+    // Enable reset command
+    err = flashSpiWriteData(CameraInterface::S25fl064l::RSTEN);
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    // Perform a soft reset of the device
+    err = flashSpiWriteData(CameraInterface::S25fl064l::RST);
+
+    return err;
+  }
+
+  /**
+   * @brief      Erase memry block
+   *
+   * @param[in]  block  The block of memory to erase
+   *
+   * @return     The camera error
+   */
+  CameraError CameraInterfaceComponentImpl :: blockErase(const Block block){
+    CameraInterface::S25fl064l::Address address;
+    CameraInterface::S25fl064l::StatusRegister1 status1;
+    CameraInterface::S25fl064l::StatusRegister2 status2;
+    CameraError err;
+    uint16_t tries = 100;
+
+    // Enable writing to the device
+    err = flashSpiWriteData(CameraInterface::S25fl064l::WREN);
+
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    address = block * BLOCK_SIZE;
+
+    // Send sector erase
+    // The flash spi write doesn't require to write any data, only address is required
+    err = flashSpiWriteData(CameraInterface::S25fl064l::BE, NULL, 0, address);
+
+    // Read status register to check that write is enabled
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
+    
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    // Write Enable Latch must be set at that point
+    if(status1.bit.wel == 0){
+      return CAMERA_FAIL_SECTOR_ERASE;
+    }
+
+    // Poll the device to check the "work in progress" flag from the status register 1
+    while(tries > 0){
+      err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
+      if(err != CAMERA_NO_ERROR){
+        return err;
+      }
+
+      if(status1.bit.wip == 1){
+        tries--;
+      }
+      else{
+        break;
+      }
+    }
+
+    if(tries == 0){
+      return CAMERA_FAIL_BLOCK_ERASE;
+    }
+
+    // Check if an error occured at completion of the programming
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR2, &status2.all, 1);
+
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    if(status2.bit.e_err){
+      return CAMERA_FAIL_PAGE_PROGRAM;
+    }
+
+    // Disable writing to the device
+    err = flashSpiWriteData(CameraInterface::S25fl064l::WRDI);
+
+    return err;
+  }
+  
+  CameraError CameraInterfaceComponentImpl :: chipErase(){
+    CameraInterface::S25fl064l::StatusRegister1 status1;
+    CameraInterface::S25fl064l::StatusRegister2 status2;
+    CameraError err;
+    uint16_t tries = 100;
+
+    // Enable writing to the device
+    err = flashSpiWriteData(CameraInterface::S25fl064l::WREN);
+
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    // Send sector erase
+    // The flash spi write doesn't require to write any data, only address is required
+    err = flashSpiWriteData(CameraInterface::S25fl064l::CE);
+
+    // Read status register to check that write is enabled
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
+    
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    // Write Enable Latch must be set at that point
+    if(status1.bit.wel == 0){
+      return CAMERA_FAIL_ERASE_CHIP;
+    }
+
+    // Poll the device to check the "work in progress" flag from the status register 1
+    while(tries > 0){
+      err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
+      if(err != CAMERA_NO_ERROR){
+        return err;
+      }
+
+      if(status1.bit.wip == 1){
+        tries--;
+      }
+      else{
+        break;
+      }
+    }
+
+    if(tries == 0){
+      return CAMERA_FAIL_ERASE_CHIP;
+    }
+
+    // Check if an error occured at completion of the programming
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR2, &status2.all, 1);
+
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    if(status2.bit.e_err){
+      return CAMERA_FAIL_PAGE_PROGRAM;
+    }
+
+    // Disable writing to the device
+    err = flashSpiWriteData(CameraInterface::S25fl064l::WRDI);
+
+    return err;
+  }
+
+  /**
+   * @brief      Erase half-block of memory
+   *
+   * @param[in]  block  The block
+   *
+   * @return     The camera error
+   */
+  CameraError CameraInterfaceComponentImpl :: halfBlockErase(const HalfBlock halfBlock){
+    CameraInterface::S25fl064l::Address address;
+    CameraInterface::S25fl064l::StatusRegister1 status1;
+    CameraInterface::S25fl064l::StatusRegister2 status2;
+    CameraError err;
+    uint16_t tries = 100;
+
+    // Enable writing to the device
+    err = flashSpiWriteData(CameraInterface::S25fl064l::WREN);
+
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    address = halfBlock * HALF_BLOCK_SIZE;
+
+    // Send sector erase
+    // The flash spi write doesn't require to write any data, only address is required
+    err = flashSpiWriteData(CameraInterface::S25fl064l::HBE, NULL, 0, address);
+
+    // Read status register to check that write is enabled
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
+    
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    // Write Enable Latch must be set at that point
+    if(status1.bit.wel == 0){
+      return CAMERA_FAIL_HALF_BLOCK_ERASE;
+    }
+
+    // Poll the device to check the "work in progress" flag from the status register 1
+    while(tries > 0){
+      err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
+      if(err != CAMERA_NO_ERROR){
+        return err;
+      }
+
+      if(status1.bit.wip == 1){
+        tries--;
+      }
+      else{
+        break;
+      }
+    }
+
+    if(tries == 0){
+      return CAMERA_FAIL_HALF_BLOCK_ERASE;
+    }
+
+    // Check if an error occured at completion of the erase
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR2, &status2.all, 1);
+
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    if(status2.bit.e_err){
+      return CAMERA_FAIL_PAGE_PROGRAM;
+    }
+
+    // Disable writing to the device
+    err = flashSpiWriteData(CameraInterface::S25fl064l::WRDI);
+
+    return err;
+  }
+
+  /**
+   * @brief      Erase a sector
+   *
+   * @param[in]  sector  The sector
+   *
+   * @return     Return a camera error
+   */
+  CameraError CameraInterfaceComponentImpl :: sectorErase(const Sector sector){
+    CameraInterface::S25fl064l::Address address;
+    CameraInterface::S25fl064l::StatusRegister1 status1;
+    CameraInterface::S25fl064l::StatusRegister2 status2;
+    CameraError err;
+    uint16_t tries = 100;
+
+    // Enable writing to the device
+    err = flashSpiWriteData(CameraInterface::S25fl064l::WREN);
+
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    address = pageNumber * CameraInterface::S25fl064l::PAGE_SIZE;
+
+    // Send sector erase
+    // The flash spi write doesn't require to write any data, only address is required
+    err = flashSpiWriteData(CameraInterface::S25fl064l::SE, NULL, 0, address);
+
+    // Read status register to check that write is enabled
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
+    
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    // Write Enable Latch must be set at that point
+    if(status1.bit.wel == 0){
+      return CAMERA_FAIL_SECTOR_ERASE;
+    }
+
+    // Poll the device to check the "work in progress" flag from the status register 1
+    while(tries > 0){
+      err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
+      if(err != CAMERA_NO_ERROR){
+        return err;
+      }
+
+      if(status1.bit.wip == 1){
+        tries--;
+      }
+      else{
+        break;
+      }
+    }
+
+    if(tries == 0){
+      return CAMERA_FAIL_SECTOR_ERASE;
+    }
+
+    // Check if an error occured at completion of the erase
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDSR2, &status2.all, 1);
+
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    if(status2.bit.e_err){
+      return CAMERA_FAIL_PAGE_PROGRAM;
+    }
+
+    // Disable writing to the device
+    err = flashSpiWriteData(CameraInterface::S25fl064l::WRDI);
+
+    return err;
+  }
 
   /**
    * @brief      Program a page in flash memory
@@ -319,8 +700,8 @@ namespace CubeRover {
    */
   CameraError CameraInterfaceComponentImpl :: pageProgram(const PageNumber page, uint16_t *txData, const uint16_t size){
     CameraInterface::S25fl064l::Address address;
-    CameraInterface::S25fl064l::StatusRegister1Bits status1;
-    CameraInterface::S25fl064l::StatusRegister2Bits status2;
+    CameraInterface::S25fl064l::StatusRegister1 status1;
+    CameraInterface::S25fl064l::StatusRegister2 status2;
     CameraError err;
     uint16_t tries = 100;
 
@@ -343,7 +724,7 @@ namespace CubeRover {
     }
 
     // Write Enable Latch must be set at that point
-    if(status.bit.wel == 0){
+    if(status1.bit.wel == 0){
       return CAMERA_FAIL_PAGE_PROGRAM;
     }
 
@@ -358,13 +739,14 @@ namespace CubeRover {
       return err;
     }
 
+    // Poll the device to check the "work in progress" flag from the status register 1
     while(tries > 0){
       err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, &status1.all, 1);
       if(err != CAMERA_NO_ERROR){
         return err;
       }
 
-      if(status.bit.wip == 1){
+      if(status1.bit.wip == 1){
         tries--;
       }
       else{
@@ -378,7 +760,7 @@ namespace CubeRover {
     if(err != CAMERA_NO_ERROR){
       return err;
     }
-    
+
     if(status2.bit.p_err){
       return CAMERA_FAIL_PAGE_PROGRAM;
     }

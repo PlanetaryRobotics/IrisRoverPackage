@@ -143,22 +143,27 @@ namespace CubeRover {
       }PointerRegionProtectionRegister;
 
       typedef uint8_t NonVolatileDataLearningDataRegister;
-
       typedef uint8_t VolatileDataLearningDataRegister;
-
       typedef uint32_t Address;
-
       typedef uint16_t PageNumber;
+      typedef uint16_t Block;
+      typedef uint16_t HalfBlock;
+      typedef uint16_t Sector;
 
       #define PAGE_SIZE         0x100     // 256B
       #define SECTOR_SIZE       0x1000    // 4KB
       #define HALF_BLOCK_SIZE   0x8000    // 32KB
       #define BLOCK_SIZE        0x10000   // 64KB
 
-      #define MAX_MEMORY_ADDESS     0x7FFFFF            // 64MB
+      #define MAX_MEMORY_ADDRESS     0x7FFFFF            // 64MB
       #define MAX_BLOCK_RANGE       128                 // There is 128 blocks (from block #0 to block #127)
       #define MAX_HALF_BLOCK_RANGE  MAX_BLOCK_RANGE*2 
       #define MAX_SECTOR_RANGE      MAX_BLOCK_RANGE*16  // There are 16 sectors per block (16*128 = 2048 sectors)     
+
+      typedef struct MemAlloc{
+        Address startAddress;
+        uint32_t reservedSize;
+      }MemAlloc;
 
       typedef enum FlashSpiCommands{
         // Read Device ID
@@ -252,7 +257,11 @@ namespace CubeRover {
   typedef enum CameraError{
       CAMERA_NO_ERROR = 0,
       CAMERA_UNEXPECTED_ERROR = -1,
-      CAMERA_WRONG_DATA_SIZE = -2
+      CAMERA_WRONG_DATA_SIZE = -2,
+      CAMERA_FAIL_MEM_ALLOCATION = -3,
+      CAMERA_FAIL_PAGE_PROGRAM = -4,
+      CAMERA_FAIL_SECTOR_ERASE = -5,
+      CAMERA_FAIL_WRITE_DATA_FLASH = -6
   }CameraError;
 
   class CameraInterfaceComponentImpl :
@@ -287,8 +296,13 @@ namespace CubeRover {
       ~CameraInterfaceComponentImpl(void);
 
       CameraError setup(spiBASE_t *spi);
-      CameraError setupExternalFlash(spiBASE_t *spi);
+
+    private:
+      //Functions specific to interface to FPGA
       CameraError setupFPGAInterface(spiBASE_t *spi);
+
+      //Functions specific to interface to external flash memory
+      CameraError setupExternalFlash(spiBASE_t *spi);
       CameraError flashSpiReadData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                 uint16_t *rxData,
                                 const uint16_t dataReadLength,
@@ -298,6 +312,17 @@ namespace CubeRover {
                                 uint16_t *txData = NULL, 
                                 const uint16_t dataWriteLength = 0,
                                 CameraInterface::S25fl064l::Address *address = NULL); 
+      uint16_t getAddressLengthByte(const CameraInterface::S25fl064l::FlashSpiCommands cmd);
+      CameraError allocateFlashMemory(const uint32_t size,
+                                      CameraInterface::S25fl064l::MemAlloc);
+      CameraError sectorErase(const CameraInterface::S25fl064l::Sector sector);
+      CameraError halfBlockErase(const CameraInterface::S25fl064l::HalfBlock halfBlock);
+      CameraError blockErase(const CameraInterface::S25fl064l::Block block);
+      CameraError chipErase();
+      CameraError resetDevice();
+      CameraError programEraseResume();
+      CameraError programEraseSuspend();
+
     PRIVATE:
 
       // ----------------------------------------------------------------------
@@ -339,8 +364,10 @@ namespace CubeRover {
       uint32_t m_readLatencyCycles;
       uint16_t m_spiRxBuff[SPI_RX_BUFFER_MAX_LENGTH];
       uint16_t m_spiTxBuff[SPI_TX_BUFFER_MAX_LENGTH];
-      uint16_t getAddressLengthByte(const CameraInterface::S25fl064l::FlashSpiCommands cmd);
+      uint8_t m_writeScratchpad[PAGE_SIZE];
+      uint8_t m_sectorBackup[SECTOR_SIZE];
       CameraInterface::S25fl064l::AddressLengthFormat m_addressLengthFormat;
+      CameraInterface::S25fl064l::Address m_memAllocPointer;
     };
 
 } // end namespace CubeRover

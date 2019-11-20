@@ -44,6 +44,7 @@ namespace CubeRover {
       m_readLatencyCycles = 0;
       m_setup = false;
       m_spi = NULL;
+      m_memAllocPointer = 0;
       // default setting of the external memory
       m_addressLengthFormat = CameraInterface::S25fl064l::ADDRESS_LENGTH_3_BYTES; 
   }
@@ -101,7 +102,7 @@ namespace CubeRover {
     }
 
     uint16_t id[3];
-    m_readLatencyCycles = flashReadData(CameraInterface::S25fl064l::RDID, id, 3);
+    m_readLatencyCycles = flashSpiReadData(CameraInterface::S25fl064l::RDID, id, 3);
 
     if(err != CAMERA_NO_ERROR)
         return err;
@@ -706,15 +707,110 @@ namespace CubeRover {
     return err;
   }
 
+
+  /**
+   * @brief      Allocate flash memory. This is a simple implementation of a
+   *             malloc function. It reserves memory aligned with sectors and
+   *             blocks. It update the reserved size argument and update address
+   *             pointer with a valid address or NULL and an error code if
+   *             address cannot be reserved.
+   *
+   * @param[in]  size   The size
+   * @param      alloc  The allocated memory structure
+   *
+   * @return     The camera error
+   */
   CameraError CameraInterfaceComponentImpl :: allocateFlashMemory(const uint32_t size,
-                                                                  CameraInterface::S25fl064l::Address *address){
-    
-  }
-  PageNumber CameraInterfaceComponentImpl :: writeDataToFlash(const CameraInterface::S25fl064l::Address address){
-    if()
-    return 
+                                                                  CameraInterface::S25fl064l::MemAlloc *alloc{
+    CameraInterface::S25fl064l::Address tmp = m_memAllocPointer;
+
+    // Reset reserved memory to zero
+    alloc->reservedSize = 0;
+
+    // Calculate new address pointer by PAGE_SIZE increment
+    tmp += (size / PAGE_SIZE) * PAGE_SIZE;
+    tmp += (size % PAGE_SIZE) ? PAGE_SIZE : 0;
+
+    // Check that new memory allocation pointer is within memory range 
+    if(tmp > MAX_MEMORY_ADDRESS){
+      return CAMERA_FAIL_MEM_ALLOCATION;
+    }
+
+    //Update address with valid address pointer
+    alloc->address = m_memAllocPointer;
+
+    // Update the reserved size (larger or equal to size requested)
+    alloc->reservedSize = tmp - m_memAllocPointer;
+
+    //Increment address pointer for next memory allocation
+    m_memAllocPointer += tmp;
+
+    return CAMERA_NO_ERROR;
   }
 
+
+  CameraError CameraInterfaceComponentImpl :: writeDataToFlash(CameraInterface::S25fl064l::MemAlloc *alloc,
+                                                               uint8_t *data,
+                                                               const uint16_t dataSize){
+    CameraError err;
+    CameraInterface::S25fl064l::Address sectorAddress;
+    uint16_t i;
+    uint16_t sectorOverlaps = 0;
+    uint16_t totalBytesToWrite = dataSize;
+
+    // Check if memory allocation is valid
+    if(alloc->reservedSize == 0){
+      return CAMERA_FAIL_WRITE_DATA_FLASH;
+    }
+
+    // Check if desired data write will fit in device memory range
+    if(alloc->address + offset + dataSize > MAX_MEMORY_ADDRESS){
+      return CAMERA_FAIL_WRITE_DATA_FLASH;
+    }
+
+    while(1){
+      // Calculate the block address that belong to data to write.
+      // Go to next sector if the data to write overlaps sectors
+      sectorAddress = alloc->address / SECTOR_SIZE * (SECTOR_SIZE + sectorOverlaps);
+
+      // Back-up sector content to a back-up buffer
+      err = flashSpiReadData( CameraInterface::S25fl064l::READ,
+                              &m_sectorBackup,
+                              sizeof(m_sectorBackup),
+                              sectorAddress);
+
+      // Erase sector address
+      err = sectorErase((Sector)sectorAddress);
+
+      // Copy data to scratchpad
+      uint16_t bytesToCopy = min(totalBytesToWrite, sectorAddress + SECTOR_SIZE - alloc->startAddress);
+
+
+      // Overwrite data in the m_sectorBackup. Don't copy data that overlap
+      // sectors
+      mempcy(m_sectorBackup + alloc->startAddress + (sectorOverlaps*SECTOR_SIZE) - sectorAddress,
+             data,
+             bytesToCopy);
+
+      totalBytesToWrite -= bytesToCopy;
+
+      // Program the whole using page programming with updated data
+      for(i=0; i< SECTOR_SIZE / PAGE_SIZE; i++){
+        err = pageProgram(alloc->address, m_sectorBackup + i*PAGE_SIZE, PAGE_SIZE);
+        if(err != CAMERA_NO_ERROR){
+          return err;
+        }
+      }
+
+      // if there is still some bytes to write, go to next memory sector
+      if(totalBytesToWrite > 0){
+        sectorOverlaps++;
+      }
+      else{
+        break;  // write completed
+      }
+    } // end of while loop
+  }
 
   /**
    * @brief      Program a page

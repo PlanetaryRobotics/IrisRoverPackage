@@ -13,6 +13,7 @@
 #ifndef CameraInterface_HPP
 #define CameraInterface_HPP
 
+#include <stdlib.h>
 #include "CubeRover/CameraInterface/CameraInterfaceComponentAc.hpp"
 #include "spi.h"
 
@@ -261,7 +262,10 @@ namespace CubeRover {
       CAMERA_FAIL_MEM_ALLOCATION = -3,
       CAMERA_FAIL_PAGE_PROGRAM = -4,
       CAMERA_FAIL_SECTOR_ERASE = -5,
-      CAMERA_FAIL_WRITE_DATA_FLASH = -6
+      CAMERA_FAIL_WRITE_DATA_FLASH = -6,
+      CAMERA_FAIL_ERASE_CHIP = -7,
+      CAMERA_FAIL_HALF_BLOCK_ERASE = -8,
+      CAMERA_FAIL_BLOCK_ERASE = -9
   }CameraError;
 
   class CameraInterfaceComponentImpl :
@@ -313,8 +317,8 @@ namespace CubeRover {
                                 const uint16_t dataWriteLength = 0,
                                 CameraInterface::S25fl064l::Address *address = NULL); 
       uint16_t getAddressLengthByte(const CameraInterface::S25fl064l::FlashSpiCommands cmd);
-      CameraError allocateFlashMemory(const uint32_t size,
-                                      CameraInterface::S25fl064l::MemAlloc);
+      CameraError allocateFlashMemory(CameraInterface::S25fl064l::MemAlloc *alloc,
+                                      const uint32_t size);
       CameraError sectorErase(const CameraInterface::S25fl064l::Sector sector);
       CameraError halfBlockErase(const CameraInterface::S25fl064l::HalfBlock halfBlock);
       CameraError blockErase(const CameraInterface::S25fl064l::Block block);
@@ -322,6 +326,12 @@ namespace CubeRover {
       CameraError resetDevice();
       CameraError programEraseResume();
       CameraError programEraseSuspend();
+      CameraError writeDataToFlash(CameraInterface::S25fl064l::MemAlloc *alloc,
+                                   uint8_t *data,
+                                   const uint16_t dataSize);
+      CameraError pageProgram(CameraInterface::S25fl064l::Address address,
+                              uint16_t *txData,
+                              const uint16_t size);
 
     PRIVATE:
 

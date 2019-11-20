@@ -830,6 +830,29 @@ namespace CubeRover {
     return CAMERA_NO_ERROR;
   }
 
+
+  /**
+   * @brief      Reads a data from flash.
+   *
+   * @param      alloc     The allocate
+   * @param      data      The data
+   * @param[in]  dataSize  The data size
+   *
+   * @return     The camera error
+   */
+  CameraError readDataFromFlash(CameraInterface::S25fl064l::MemAlloc *alloc,
+                                uint8_t *data,
+                                const uint16_t dataSize){
+    CameraError err;
+
+    err = flashSpiReadData( CameraInterface::S25fl064l::READ,
+                            (uint16_t *)&m_sectorBackup,
+                            sizeof(m_sectorBackup),
+                            &sectorAddress);
+
+    return err;
+  }
+
   /**
    * @brief      Program a page
    *

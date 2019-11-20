@@ -326,12 +326,16 @@ namespace CubeRover {
       CameraError resetDevice();
       CameraError programEraseResume();
       CameraError programEraseSuspend();
-      CameraError writeDataToFlash(CameraInterface::S25fl064l::MemAlloc *alloc,
-                                   uint8_t *data,
-                                   const uint16_t dataSize);
       CameraError pageProgram(CameraInterface::S25fl064l::Address address,
                               uint16_t *txData,
                               const uint16_t size);
+      
+      CameraError writeDataToFlash(CameraInterface::S25fl064l::MemAlloc *alloc,
+                                   uint8_t *data,
+                                   const uint16_t dataSize);
+      CameraError readDataFromFlash(CameraInterface::S25fl064l::MemAlloc *alloc,
+                                    uint8_t *data,
+                                    const uint16_t dataSize);
 
     PRIVATE:
 

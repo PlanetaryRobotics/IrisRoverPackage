@@ -218,7 +218,7 @@ namespace CubeRover {
   CameraError CameraInterfaceComponentImpl :: flashSpiReadData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                                             uint16_t *rxData,
                                                             const uint16_t sizeOfRxData,
-                                                            CameraInterface::S25fl064l::Address *address){ 
+                                                            const CameraInterface::S25fl064l::Address address){
     uint16_t addressLength;
     uint16_t totalBytesToTransmit; 
 
@@ -237,7 +237,7 @@ namespace CubeRover {
         return CAMERA_WRONG_DATA_SIZE;
 
     if(addressLength > 0){
-      if(address == NULL){
+      if(address == ADDRESS_NOT_DEFINED){
         return CAMERA_UNEXPECTED_ERROR;
       }
 
@@ -247,11 +247,15 @@ namespace CubeRover {
       memcpy(m_spiTxBuff+1, (uint8_t *)address, addressLength);
     }
 
+    // Set CS low
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 0);
+
     // Send transmission data + a number of dummy cyles (m_readLatencyCycles) required by the device
     // The number of cycles is a multiple of 8, one byte = 8 cycles
     spiTransmitData(m_spi, &m_flashDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff); 
     spiReceiveData(m_spi, &m_flashDataConfig, sizeOfRxData, (uint16_t *)&m_spiRxBuff);
+
+    // Set CS high
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 1);
 
     memcpy(rxData, m_spiRxBuff, sizeOfRxData);
@@ -272,7 +276,7 @@ namespace CubeRover {
   CameraError CameraInterfaceComponentImpl :: flashSpiWriteData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                                                 uint16_t *txData, 
                                                                 const uint16_t sizeOfTxData,
-                                                                CameraInterface::S25fl064l::Address *address){
+                                                                CameraInterface::S25fl064l::Address address){
     uint16_t addressLength;
     uint16_t totalBytesToTransmit; 
 
@@ -285,7 +289,7 @@ namespace CubeRover {
     totalBytesToTransmit = sizeOfTxData + 1 /*command*/ + addressLength;
 
     if(addressLength > 0){
-      if(address == NULL){
+      if(address == ADDRESS_NOT_DEFINED){
         return CAMERA_UNEXPECTED_ERROR;
       }
 
@@ -294,7 +298,7 @@ namespace CubeRover {
       }
 
       // Copy the address section to the transmit buffer
-      memcpy(m_spiTxBuff+1, (uint8_t *)address, addressLength);     
+      memcpy(m_spiTxBuff+1, (uint8_t *)&address, addressLength);     
 
       if(txData == NULL){
         return CAMERA_UNEXPECTED_ERROR;
@@ -306,8 +310,12 @@ namespace CubeRover {
       }
     }
 
+    // Set CS low
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 0);
+
     spiTransmitData(m_spi, &m_flashDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
+
+    // Set CS high
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 1);
 
     return CAMERA_NO_ERROR;
@@ -501,7 +509,7 @@ namespace CubeRover {
 
     // Send sector erase
     // The flash spi write doesn't require to write any data, only address is required
-    err = flashSpiWriteData(CameraInterface::S25fl064l::BE, NULL, 0, &address);
+    err = flashSpiWriteData(CameraInterface::S25fl064l::BE, NULL, 0, address);
 
     // Read status register to check that write is enabled
     err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, (uint16_t *)&status1.all, 1);
@@ -580,7 +588,7 @@ namespace CubeRover {
 
     // Send sector erase
     // The flash spi write doesn't require to write any data, only address is required
-    err = flashSpiWriteData(CameraInterface::S25fl064l::HBE, NULL, 0, &address);
+    err = flashSpiWriteData(CameraInterface::S25fl064l::HBE, NULL, 0, address);
 
     // Read status register to check that write is enabled
     err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, (uint16_t *)&status1.all, 1);
@@ -659,7 +667,7 @@ namespace CubeRover {
 
     // Send sector erase
     // The flash spi write doesn't require to write any data, only address is required
-    err = flashSpiWriteData(CameraInterface::S25fl064l::SE, NULL, 0, &address);
+    err = flashSpiWriteData(CameraInterface::S25fl064l::SE, NULL, 0, address);
 
     // Read status register to check that write is enabled
     err = flashSpiReadData(CameraInterface::S25fl064l::RDSR1, (uint16_t *)&status1.all, 1);
@@ -790,7 +798,7 @@ namespace CubeRover {
       err = flashSpiReadData( CameraInterface::S25fl064l::READ,
                               (uint16_t *)&m_sectorBackup,
                               sizeof(m_sectorBackup),
-                              &sectorAddress);
+                              sectorAddress);
 
       // Erase sector address
       err = sectorErase((CameraInterface::S25fl064l::Sector) sectorAddress);
@@ -840,15 +848,24 @@ namespace CubeRover {
    *
    * @return     The camera error
    */
-  CameraError readDataFromFlash(CameraInterface::S25fl064l::MemAlloc *alloc,
+  CameraError CameraInterfaceComponentImpl :: readDataFromFlash(CameraInterface::S25fl064l::MemAlloc *alloc,
                                 uint8_t *data,
                                 const uint16_t dataSize){
     CameraError err;
+    uint16_t totalBytesToRead = dataSize;
+    uint16_t overflow = 0;
 
-    err = flashSpiReadData( CameraInterface::S25fl064l::READ,
-                            (uint16_t *)&m_sectorBackup,
-                            sizeof(m_sectorBackup),
-                            &sectorAddress);
+    while(totalBytesToRead){
+      uint16_t bytesToRead = (totalBytesToRead < PAGE_SIZE) ? totalBytesToRead : PAGE_SIZE;
+
+      err = flashSpiReadData( CameraInterface::S25fl064l::READ,
+                              (uint16_t *)data + PAGE_SIZE * overflow,
+                              bytesToRead,
+                              alloc->startAddress + PAGE_SIZE * overflow);
+
+      totalBytesToRead -= bytesToRead;
+      overflow++;
+    }
 
     return err;
   }
@@ -899,7 +916,7 @@ namespace CubeRover {
     }
 
     // Send data to perform page programming
-    err = flashSpiWriteData(CameraInterface::S25fl064l::PP, txData, size, &address);
+    err = flashSpiWriteData(CameraInterface::S25fl064l::PP, txData, size, address);
     
     if(err != CAMERA_NO_ERROR){
       return err;
@@ -935,6 +952,51 @@ namespace CubeRover {
     err = flashSpiWriteData(CameraInterface::S25fl064l::WRDI);
 
     return err;
+  }
+
+  void CameraInterfaceComponentImpl :: fpgaSpiWrite(){
+    uint16_t addressLength;
+    uint16_t totalBytesToTransmit; 
+
+    if(txData == NULL && sizeOfTxData > 0){
+      return CAMERA_UNEXPECTED_ERROR;
+    }
+
+    addressLength = getAddressLengthByte(cmd);
+    m_spiTxBuff[0] = (uint8_t) cmd;
+    totalBytesToTransmit = sizeOfTxData + 1 /*command*/ + addressLength;
+
+    if(addressLength > 0){
+      if(address == ADDRESS_NOT_DEFINED){
+        return CAMERA_UNEXPECTED_ERROR;
+      }
+
+      if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH){
+        return CAMERA_WRONG_DATA_SIZE;
+      }
+
+      // Copy the address section to the transmit buffer
+      memcpy(m_spiTxBuff+1, (uint8_t *)&address, addressLength);     
+
+      if(txData == NULL){
+        return CAMERA_UNEXPECTED_ERROR;
+      }
+
+      if(txData != NULL && sizeOfTxData > 0){
+        // Copy data to transmit buffer
+        memcpy(m_spiTxBuff + 1 /*command */ + addressLength, txData, sizeOfTxData);
+      }
+    }
+
+    // Set CS low
+    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_FPGA, 0);
+
+    spiTransmitData(m_spi, &m_fpgaDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
+
+    // Set CS high
+    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_FPGA, 1);
+
+    return CAMERA_NO_ERROR;
   }
 
   // ----------------------------------------------------------------------

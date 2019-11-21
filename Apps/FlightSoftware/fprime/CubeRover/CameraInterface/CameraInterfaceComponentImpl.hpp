@@ -156,10 +156,12 @@ namespace CubeRover {
       #define HALF_BLOCK_SIZE   0x8000    // 32KB
       #define BLOCK_SIZE        0x10000   // 64KB
 
-      #define MAX_MEMORY_ADDRESS     0x7FFFFF            // 64MB
+      #define MAX_MEMORY_ADDRESS    0x7FFFFF            // 64MB
       #define MAX_BLOCK_RANGE       128                 // There is 128 blocks (from block #0 to block #127)
       #define MAX_HALF_BLOCK_RANGE  MAX_BLOCK_RANGE*2 
-      #define MAX_SECTOR_RANGE      MAX_BLOCK_RANGE*16  // There are 16 sectors per block (16*128 = 2048 sectors)     
+      #define MAX_SECTOR_RANGE      MAX_BLOCK_RANGE*16  // There are 16 sectors per block (16*128 = 2048 sectors)
+
+      #define ADDRESS_NOT_DEFINED   0xFFFFFFFF     
 
       typedef struct MemAlloc{
         Address startAddress;
@@ -310,12 +312,12 @@ namespace CubeRover {
       CameraError flashSpiReadData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                 uint16_t *rxData,
                                 const uint16_t dataReadLength,
-                                CameraInterface::S25fl064l::Address *address = NULL); 
+                                CameraInterface::S25fl064l::Address address = ADDRESS_NOT_DEFINED); 
 
       CameraError flashSpiWriteData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                 uint16_t *txData = NULL, 
                                 const uint16_t dataWriteLength = 0,
-                                CameraInterface::S25fl064l::Address *address = NULL); 
+                                CameraInterface::S25fl064l::Address address = ADDRESS_NOT_DEFINED); 
       uint16_t getAddressLengthByte(const CameraInterface::S25fl064l::FlashSpiCommands cmd);
       CameraError allocateFlashMemory(CameraInterface::S25fl064l::MemAlloc *alloc,
                                       const uint32_t size);
@@ -329,7 +331,7 @@ namespace CubeRover {
       CameraError pageProgram(CameraInterface::S25fl064l::Address address,
                               uint16_t *txData,
                               const uint16_t size);
-      
+
       CameraError writeDataToFlash(CameraInterface::S25fl064l::MemAlloc *alloc,
                                    uint8_t *data,
                                    const uint16_t dataSize);

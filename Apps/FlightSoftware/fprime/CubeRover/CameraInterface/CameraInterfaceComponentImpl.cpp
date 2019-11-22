@@ -45,7 +45,8 @@ namespace CubeRover {
       m_flashDataConfig.CSNR = 0;
       m_readLatencyCycles = 0;
       m_setup = false;
-      m_spi = NULL;
+      m_flashSpi = NULL;
+      m_fpgaSpi = NULL;
       m_memAllocPointer = 0;
       // default setting of the external memory
       m_addressLengthFormat = CameraInterface::S25fl064l::ADDRESS_LENGTH_3_BYTES; 
@@ -66,23 +67,22 @@ namespace CubeRover {
 
   }
 
-  CameraError CameraInterfaceComponentImpl :: setup(spiBASE_t *spi){
+  CameraError CameraInterfaceComponentImpl :: setup(spiBASE_t *spiFlash, spiBASE_t *spiFpga){
     CameraError err = CAMERA_NO_ERROR;
 
-    if(spi == NULL){
+    if(spiFlash == NULL || spiFpga == NULL){
       return CAMERA_UNEXPECTED_ERROR;
     }
 
     if(m_setup)
       return err;
 
-    m_spi = spi;
-    m_setup = true;
-
-    err = setupExternalFlash(spi);
+    err = setupExternalFlash(spiFlash);
 
     if(err != CAMERA_NO_ERROR)
       return err;
+
+    m_setup = true;
 
     return err;
   }
@@ -99,9 +99,11 @@ namespace CubeRover {
 
     CameraError err = CAMERA_NO_ERROR;
 
-    if(spi == NULL){
+    if(m_flashSpi == NULL){
       return CAMERA_UNEXPECTED_ERROR; 
     }
+
+    m_flashSpi = spi;
 
     uint16_t id[3];
     m_readLatencyCycles = flashSpiReadData(CameraInterface::S25fl064l::RDID, id, 3);
@@ -113,6 +115,8 @@ namespace CubeRover {
   }
 
   CameraError CameraInterfaceComponentImpl :: setupFPGAInterface(spiBASE_t *spi){
+      m_fpgaSpi = spi;
+
       return CAMERA_NO_ERROR;
   }
 
@@ -252,8 +256,8 @@ namespace CubeRover {
 
     // Send transmission data + a number of dummy cyles (m_readLatencyCycles) required by the device
     // The number of cycles is a multiple of 8, one byte = 8 cycles
-    spiTransmitData(m_spi, &m_flashDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff); 
-    spiReceiveData(m_spi, &m_flashDataConfig, sizeOfRxData, (uint16_t *)&m_spiRxBuff);
+    spiTransmitData(m_flashSpi, &m_flashDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
+    spiReceiveData(m_flashSpi, &m_flashDataConfig, sizeOfRxData, (uint16_t *)&m_spiRxBuff);
 
     // Set CS high
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 1);
@@ -313,7 +317,7 @@ namespace CubeRover {
     // Set CS low
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 0);
 
-    spiTransmitData(m_spi, &m_flashDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
+    spiTransmitData(m_flashSpi, &m_flashDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
 
     // Set CS high
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_EXT_FLASH, 1);
@@ -954,50 +958,50 @@ namespace CubeRover {
     return err;
   }
 
-  void CameraInterfaceComponentImpl :: fpgaSpiWrite(){
-    uint16_t addressLength;
-    uint16_t totalBytesToTransmit; 
-
-    if(txData == NULL && sizeOfTxData > 0){
-      return CAMERA_UNEXPECTED_ERROR;
-    }
-
-    addressLength = getAddressLengthByte(cmd);
-    m_spiTxBuff[0] = (uint8_t) cmd;
-    totalBytesToTransmit = sizeOfTxData + 1 /*command*/ + addressLength;
-
-    if(addressLength > 0){
-      if(address == ADDRESS_NOT_DEFINED){
-        return CAMERA_UNEXPECTED_ERROR;
-      }
-
-      if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH){
-        return CAMERA_WRONG_DATA_SIZE;
-      }
-
-      // Copy the address section to the transmit buffer
-      memcpy(m_spiTxBuff+1, (uint8_t *)&address, addressLength);     
-
-      if(txData == NULL){
-        return CAMERA_UNEXPECTED_ERROR;
-      }
-
-      if(txData != NULL && sizeOfTxData > 0){
-        // Copy data to transmit buffer
-        memcpy(m_spiTxBuff + 1 /*command */ + addressLength, txData, sizeOfTxData);
-      }
-    }
-
-    // Set CS low
-    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_FPGA, 0);
-
-    spiTransmitData(m_spi, &m_fpgaDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
-
-    // Set CS high
-    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_FPGA, 1);
-
-    return CAMERA_NO_ERROR;
-  }
+//  void CameraInterfaceComponentImpl :: fpgaSpiWrite(){
+//    uint16_t addressLength;
+//    uint16_t totalBytesToTransmit;
+//
+//    if(txData == NULL && sizeOfTxData > 0){
+//      return CAMERA_UNEXPECTED_ERROR;
+//    }
+//
+//    addressLength = getAddressLengthByte(cmd);
+//    m_spiTxBuff[0] = (uint8_t) cmd;
+//    totalBytesToTransmit = sizeOfTxData + 1 /*command*/ + addressLength;
+//
+//    if(addressLength > 0){
+//      if(address == ADDRESS_NOT_DEFINED){
+//        return CAMERA_UNEXPECTED_ERROR;
+//      }
+//
+//      if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH){
+//        return CAMERA_WRONG_DATA_SIZE;
+//      }
+//
+//      // Copy the address section to the transmit buffer
+//      memcpy(m_spiTxBuff+1, (uint8_t *)&address, addressLength);
+//
+//      if(txData == NULL){
+//        return CAMERA_UNEXPECTED_ERROR;
+//      }
+//
+//      if(txData != NULL && sizeOfTxData > 0){
+//        // Copy data to transmit buffer
+//        memcpy(m_spiTxBuff + 1 /*command */ + addressLength, txData, sizeOfTxData);
+//      }
+//    }
+//
+//    // Set CS low
+//    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_FPGA, 0);
+//
+//    spiTransmitData(m_spi, &m_fpgaDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
+//
+//    // Set CS high
+//    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_FPGA, 1);
+//
+//    return CAMERA_NO_ERROR;
+//  }
 
   // ----------------------------------------------------------------------
   // Handler implementations for user-defined typed input ports

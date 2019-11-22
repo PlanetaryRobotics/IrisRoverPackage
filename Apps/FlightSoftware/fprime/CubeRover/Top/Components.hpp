@@ -22,6 +22,7 @@
 
 // Include component exclusive to CubeRover project
 #include "MotorControl/MotorControlComponentImpl.hpp"
+#include "CameraInterface/CameraInterfaceComponentImpl.hpp"
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -43,6 +44,7 @@ extern Svc::CommandDispatcherImpl cmdDispatcher;
 
 // Components exclusive to CubeRover
 extern CubeRover::MotorControlComponentImpl motorControl;
+extern CubeRover::CameraInterfaceComponentImpl cameraInterface;
 
 // FreeRTOS Serial driver to interface radio module
 extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;

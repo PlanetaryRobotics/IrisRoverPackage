@@ -301,7 +301,8 @@ namespace CubeRover {
       //!
       ~CameraInterfaceComponentImpl(void);
 
-      CameraError setup(spiBASE_t *spi);
+      // Setup interface to flash memory and fpga
+      CameraError setup(spiBASE_t *spiFlash, spiBASE_t *spiFpga);
 
     private:
       //Functions specific to interface to FPGA
@@ -375,7 +376,8 @@ namespace CubeRover {
     private:
       spiDAT1_t m_flashDataConfig;
       spiDAT1_t m_fpgaXfaceConfig;
-      spiBASE_t *m_spi;
+      spiBASE_t *m_flashSpi;
+      spiBASE_t *m_fpgaSpi;
       bool m_setup;
       uint32_t m_readLatencyCycles;
       uint16_t m_spiRxBuff[SPI_RX_BUFFER_MAX_LENGTH];

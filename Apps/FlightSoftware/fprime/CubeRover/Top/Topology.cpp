@@ -78,6 +78,14 @@ Svc::CommandDispatcherImpl cmdDispatcher(
 #endif
   );
 
+//----------------------------------------------------------------------------
+// Camera interface
+CubeRover::CameraInterfaceComponentImpl cameraInterface(
+#if FW_OBJECT_NAMES == 1
+        "CameraInterface"
+#endif
+);
+
 /**
  * @brief      Run 1 cycle (debug)
  */
@@ -94,6 +102,9 @@ void constructApp(void){
 
   // Initialize rate group driver driver (passive)
   rateGroupDriver.init();
+
+  // Initialize the camera
+  cameraInterface.init(CAMERA_INTERFACE_QUEUE_DEPTH, CAMERA_INTERFACE_ID);
 
   // Initialize rate group components (active)
   rateGroupLowFreq.init(RG_LOW_FREQ_QUEUE_DEPTH, RG_LOW_FREQ_ID);
@@ -121,11 +132,9 @@ void constructApp(void){
                          RG_HI_FREQ_AFF, /* Thread affinity */
                          RG_HI_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 
-  blockDriver.start(0, /* identifier */
-                   BLK_DRV_AFF, /* Thread affinity */
-                   BLK_DRV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+  cameraInterface.start(CAMERA_INTERFACE_ID, /* identifier */
+                        CAMERA_INTERFACE_AFF, /* CPU priority */
+                        CAMERA_INTERFACE_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 
-  tlmChan.start(0, /* identifier */
-                TLM_CHAN_AFF, /* thread affinity */
-                TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+  cameraInterface.setup(EXTFLASH_SPI_REG, EXTFLASH_SPI_REG);
 }

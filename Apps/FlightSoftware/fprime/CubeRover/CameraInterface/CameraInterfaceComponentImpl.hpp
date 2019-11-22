@@ -28,6 +28,9 @@ namespace CubeRover {
         ADDRESS_LENGTH_4_BYTES  = 4
       };
 
+       #define DEFAULT_DUMMY_CYCLES 8
+       #define MAX_DUMMY_CYCLES     16
+
       struct StatusRegister1Bits{
         uint8_t wip:1;
         uint8_t wel:1;
@@ -302,14 +305,14 @@ namespace CubeRover {
       ~CameraInterfaceComponentImpl(void);
 
       // Setup interface to flash memory and fpga
-      CameraError setup(spiBASE_t *spiFlash, spiBASE_t *spiFpga);
+      CameraError setup(spiBASE_t *flashSpi, spiBASE_t *fpgaSpi);
 
     private:
       //Functions specific to interface to FPGA
-      CameraError setupFPGAInterface(spiBASE_t *spi);
+      CameraError setupFPGAInterface();
 
       //Functions specific to interface to external flash memory
-      CameraError setupExternalFlash(spiBASE_t *spi);
+      CameraError setupExternalFlash();
       CameraError flashSpiReadData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                 uint16_t *rxData,
                                 const uint16_t dataReadLength,
@@ -384,6 +387,7 @@ namespace CubeRover {
       uint16_t m_spiTxBuff[SPI_TX_BUFFER_MAX_LENGTH];
       uint8_t m_writeScratchpad[PAGE_SIZE];
       uint8_t m_sectorBackup[SECTOR_SIZE];
+      uint8_t m_dummyBuffer[MAX_DUMMY_CYCLES];
       CameraInterface::S25fl064l::AddressLengthFormat m_addressLengthFormat;
       CameraInterface::S25fl064l::Address m_memAllocPointer;
     };

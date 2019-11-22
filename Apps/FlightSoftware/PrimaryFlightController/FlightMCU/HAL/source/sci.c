@@ -661,6 +661,8 @@ void sciGetConfigValue(sci_config_reg_t *config_reg, config_value_type_t type)
 	}
 }
 
+
+
 /* USER CODE BEGIN (37) */
 int32_t sciReceiveWithTimeout(sciBASE_t *sci, uint32 length, uint8 * data, uint32_t timeoutMs)
 {

@@ -43,7 +43,11 @@ namespace CubeRover {
       m_flashDataConfig.DFSEL = SPI_FMT_0;
       m_flashDataConfig.WDEL = false;
       m_flashDataConfig.CSNR = 0;
-      m_readLatencyCycles = 0;
+
+      // Refer to datasheet, default number of dummy cycles between a SDI and SDO
+      // is set by default to 8 clock cycles
+      m_readLatencyCycles = DEFAULT_DUMMY_CYCLES;
+
       m_setup = false;
       m_flashSpi = NULL;
       m_fpgaSpi = NULL;
@@ -67,17 +71,20 @@ namespace CubeRover {
 
   }
 
-  CameraError CameraInterfaceComponentImpl :: setup(spiBASE_t *spiFlash, spiBASE_t *spiFpga){
+  CameraError CameraInterfaceComponentImpl :: setup(spiBASE_t *flashSpi, spiBASE_t *fpgaSpi){
     CameraError err = CAMERA_NO_ERROR;
 
-    if(spiFlash == NULL || spiFpga == NULL){
+    if(flashSpi == NULL || fpgaSpi == NULL){
       return CAMERA_UNEXPECTED_ERROR;
     }
+
+    m_flashSpi = flashSpi;
+    m_fpgaSpi = fpgaSpi;
 
     if(m_setup)
       return err;
 
-    err = setupExternalFlash(spiFlash);
+    err = setupExternalFlash();
 
     if(err != CAMERA_NO_ERROR)
       return err;
@@ -95,7 +102,7 @@ namespace CubeRover {
    *
    * @return     The camera error code
    */
-  CameraError CameraInterfaceComponentImpl :: setupExternalFlash(spiBASE_t *spi){
+  CameraError CameraInterfaceComponentImpl :: setupExternalFlash(){
 
     CameraError err = CAMERA_NO_ERROR;
 
@@ -103,10 +110,8 @@ namespace CubeRover {
       return CAMERA_UNEXPECTED_ERROR; 
     }
 
-    m_flashSpi = spi;
-
     uint16_t id[3];
-    m_readLatencyCycles = flashSpiReadData(CameraInterface::S25fl064l::RDID, id, 3);
+    err = flashSpiReadData(CameraInterface::S25fl064l::RDID, id, 3);
 
     if(err != CAMERA_NO_ERROR)
         return err;
@@ -114,8 +119,7 @@ namespace CubeRover {
     return err;
   }
 
-  CameraError CameraInterfaceComponentImpl :: setupFPGAInterface(spiBASE_t *spi){
-      m_fpgaSpi = spi;
+  CameraError CameraInterfaceComponentImpl :: setupFPGAInterface(){
 
       return CAMERA_NO_ERROR;
   }
@@ -231,7 +235,7 @@ namespace CubeRover {
     }
 
     // at first, we just send command + any dummy cycles (converted to number of bytes)
-    totalBytesToTransmit = (m_readLatencyCycles >> 3) + 1;
+    totalBytesToTransmit = 1;
     m_spiTxBuff[0] = (uint8_t) cmd;
 
     addressLength = getAddressLengthByte(cmd);
@@ -244,6 +248,9 @@ namespace CubeRover {
       if(address == ADDRESS_NOT_DEFINED){
         return CAMERA_UNEXPECTED_ERROR;
       }
+
+    // Add dummy cycles required for commands having an address
+    totalBytesToTransmit += (m_readLatencyCycles >> 3);
 
     if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH)
         return CAMERA_WRONG_DATA_SIZE;

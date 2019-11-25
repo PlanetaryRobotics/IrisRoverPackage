@@ -164,7 +164,15 @@ namespace CubeRover {
       #define MAX_HALF_BLOCK_RANGE  MAX_BLOCK_RANGE*2 
       #define MAX_SECTOR_RANGE      MAX_BLOCK_RANGE*16  // There are 16 sectors per block (16*128 = 2048 sectors)
 
-      #define ADDRESS_NOT_DEFINED   0xFFFFFFFF     
+      #define ADDRESS_NOT_DEFINED   0xFFFFFFFF
+
+      #define FLASH_MANUFACTURER_ID   0x01
+      #define FLASH_DEVICE_ID_MSB     0x60
+      #define FLASH_DEVICE_ID_LSB     0x17
+
+      #define SIZE_NAVIGATION_IMAGE1  65536 // bytes
+      #define SIZE_NAVIGATION_IMAGE2  65536 // bytes
+      #define SIZE_SCIENCE_IMAGE      5000000 //bytes
 
       typedef struct MemAlloc{
         Address startAddress;
@@ -270,7 +278,8 @@ namespace CubeRover {
       CAMERA_FAIL_WRITE_DATA_FLASH = -6,
       CAMERA_FAIL_ERASE_CHIP = -7,
       CAMERA_FAIL_HALF_BLOCK_ERASE = -8,
-      CAMERA_FAIL_BLOCK_ERASE = -9
+      CAMERA_FAIL_BLOCK_ERASE = -9,
+      CAMERA_INCORRECT_FLASH_MEMORY = -10
   }CameraError;
 
   class CameraInterfaceComponentImpl :
@@ -314,12 +323,12 @@ namespace CubeRover {
       //Functions specific to interface to external flash memory
       CameraError setupExternalFlash();
       CameraError flashSpiReadData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
-                                uint16_t *rxData,
+                                uint8_t *rxData,
                                 const uint16_t dataReadLength,
                                 CameraInterface::S25fl064l::Address address = ADDRESS_NOT_DEFINED); 
 
       CameraError flashSpiWriteData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
-                                uint16_t *txData = NULL, 
+                                uint8_t *txData = NULL,
                                 const uint16_t dataWriteLength = 0,
                                 CameraInterface::S25fl064l::Address address = ADDRESS_NOT_DEFINED); 
       uint16_t getAddressLengthByte(const CameraInterface::S25fl064l::FlashSpiCommands cmd);
@@ -333,15 +342,18 @@ namespace CubeRover {
       CameraError programEraseResume();
       CameraError programEraseSuspend();
       CameraError pageProgram(CameraInterface::S25fl064l::Address address,
-                              uint16_t *txData,
+                              uint8_t *txData,
                               const uint16_t size);
 
       CameraError writeDataToFlash(CameraInterface::S25fl064l::MemAlloc *alloc,
+                                   const uint32_t offset,
                                    uint8_t *data,
                                    const uint16_t dataSize);
       CameraError readDataFromFlash(CameraInterface::S25fl064l::MemAlloc *alloc,
+                                    const uint32_t offset,
                                     uint8_t *data,
                                     const uint16_t dataSize);
+      uint8_t getReadDummyCycles(const CameraInterface::S25fl064l::FlashSpiCommands cmd);
 
     PRIVATE:
 
@@ -389,7 +401,13 @@ namespace CubeRover {
       uint8_t m_sectorBackup[SECTOR_SIZE];
       uint8_t m_dummyBuffer[MAX_DUMMY_CYCLES];
       CameraInterface::S25fl064l::AddressLengthFormat m_addressLengthFormat;
+
+      //memory pointer that keeps track of the last allocated memory pointer
       CameraInterface::S25fl064l::Address m_memAllocPointer;
+
+      CameraInterface::S25fl064l::MemAlloc m_memAllocNavCam1;
+      CameraInterface::S25fl064l::MemAlloc m_memAllocNavCam2;
+      CameraInterface::S25fl064l::MemAlloc m_memAllocScienceImg;
     };
 
 } // end namespace CubeRover

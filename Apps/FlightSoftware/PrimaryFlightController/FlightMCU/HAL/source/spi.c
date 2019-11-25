@@ -281,7 +281,7 @@ void spiInit(void)
                   | (uint32)((uint32)0U << 22U)  /* parity enable */
                   | (uint32)((uint32)0U << 21U)  /* wait on enable */
                   | (uint32)((uint32)0U << 20U)  /* shift direction */
-                  | (uint32)((uint32)1U << 17U)  /* clock polarity */
+                  | (uint32)((uint32)0U << 17U)  /* clock polarity */
                   | (uint32)((uint32)1U << 16U)  /* clock phase */
                   | (uint32)((uint32)109U << 8U) /* baudrate prescale */
                   | (uint32)((uint32)8U << 0U);  /* data word length */
@@ -412,7 +412,7 @@ void spiInit(void)
                     | (uint32)((uint32)0U << 3U)  /* SCS[3] */
                     | (uint32)((uint32)0U << 4U)  /* SCS[4] */
                     | (uint32)((uint32)0U << 5U)  /* SCS[5] */
-                    | (uint32)((uint32)1U << 8U)  /* ENA */
+                    | (uint32)((uint32)0U << 8U)  /* ENA */
                     | (uint32)((uint32)1U << 9U)  /* CLK */
                     | (uint32)((uint32)1U << 10U)  /* SIMO */
                     | (uint32)((uint32)1U << 11U); /* SOMI */

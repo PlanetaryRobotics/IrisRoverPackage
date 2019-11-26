@@ -430,8 +430,37 @@ namespace CubeRover {
     private:
       //Functions specific to interface to FPGA
       CameraError setupFPGAInterface();
+      uint16_t getCmdArgLengthByte(const CameraInterface::CycloneFpga::SpiRegister reg);
+      uint16_t getSizeOfAckData(const CameraInterface::CycloneFpga::SpiRegister reg);
+      CameraError getImageSize(const CameraInterface::CycloneFpga::ImageIndex index, ImageSize *size);
+      CameraError getNumberImageStored(uint32_t *nbImageStored);
+      CameraError getImage(const CameraInterface::CycloneFpga::ImageIndex index,
+                           const bool newRead,
+                           const uint8_t *imgData,
+                           const uint32_t nbOfByteToRead);
+      CameraError takePicture(const CameraInterface::CycloneFpga::CameraId id, 
+                              const CameraInterface::CycloneFpga::ImageIndex imgIndex);
+      CameraError setImageCropping(const CameraInterface::CycloneFpga::CameraId id,
+                                   const CameraInterface::CycloneFpga::PixelCoordinate upperLeft,
+                                   const CameraInterface::CycloneFpga::PixelCoordinate lowerRight);
+      CameraError setShutterSpeed(const CameraInterface::CycloneFpga::CameraId id,
+                                  const CameraInterface::CycloneFpga::ShutterSpeed shut);
+      CameraError setExposureValue(const CameraInterface::CycloneFpga::CameraId id,
+                                   const CameraInterface::CycloneFpga::CameraExposure exp);
+      CameraError setImageColorMode(const CameraInterface::CycloneFpga::CameraId id,
+                                    const CameraInterface::CycloneFpga::ImageColorType rgb);
+      CameraError setImageCompressionLevel(const CameraInterface::CycloneFpga::CameraId id,
+                                           const CameraInterface::CycloneFpga::CompressionLevel comp);
+      CameraError fpgaSpiWrite(const CameraInterface::CycloneFpga::SpiRegister reg,
+                               uint8_t *txData,
+                               const uint16_t sizeOfTxData);
+      CameraError fpgaSpiRead(const CameraInterface::CycloneFpga::SpiRegister reg,
+                              uint8_t *rxData,
+                              const uint16_t sizeOfRxData,
+                              uint8_t *argData = NULL);
 
-      //Functions specific to interface to external flash memory
+      //-------------------------------------------------------------------------------------------
+      // Functions specific to external memory
       CameraError setupExternalFlash();
       CameraError flashSpiReadData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
                                 uint8_t *rxData,
@@ -439,9 +468,9 @@ namespace CubeRover {
                                 CameraInterface::S25fl064l::Address address = ADDRESS_NOT_DEFINED); 
 
       CameraError flashSpiWriteData(const CameraInterface::S25fl064l::FlashSpiCommands cmd,
-                                uint8_t *txData = NULL,
-                                const uint16_t dataWriteLength = 0,
-                                CameraInterface::S25fl064l::Address address = ADDRESS_NOT_DEFINED); 
+                                    uint8_t *txData = NULL,
+                                    const uint16_t dataWriteLength = 0,
+                                    CameraInterface::S25fl064l::Address address = ADDRESS_NOT_DEFINED); 
       uint16_t getAddressLengthByte(const CameraInterface::S25fl064l::FlashSpiCommands cmd);
       CameraError allocateFlashMemory(CameraInterface::S25fl064l::MemAlloc *alloc,
                                       const uint32_t size);

@@ -1302,9 +1302,9 @@ namespace CubeRover {
     CameraError err;
     uint32_t tries = __INT_MAX;
 
-    ctl.all = 0;
-    ctl.bit.cameraId = id;
-    ctl.bit.imgStoreIndex = imgIndex;
+    ctlReg.all = 0;
+    ctlReg.bit.cameraId = id;
+    ctlReg.bit.imgStoreIndex = imgIndex;
 
     // Send a command to capture a picture from a camera at a given index.
     err = fpgaSpiWrite(CameraInterface::CycloneFpga::SpiRegister::CTL, &ctlReg.all, sizeof(ctlReg.all));
@@ -1345,7 +1345,7 @@ namespace CubeRover {
    */
   CameraError CameraInterfaceComponentImpl ::
     setImageCropping(const CameraInterface::CycloneFpga::CameraId id,
-                     const CameraInterface::CycloneFpga::PixelCoordinate upperLeft
+                     const CameraInterface::CycloneFpga::PixelCoordinate upperLeft,
                      const CameraInterface::CycloneFpga::PixelCoordinate lowerRight){
 
     CameraInterface::CycloneFpga::CameraCropRegister *cropReg;
@@ -1515,7 +1515,7 @@ namespace CubeRover {
    *
    * @return     The camera error
    */
-  CameraError CameraInterfaceComponentImpl :: fpgaSpiWrite(const CameraInterface::CycloneFpga::CycloneFpgaRegister reg,
+  CameraError CameraInterfaceComponentImpl :: fpgaSpiWrite(const CameraInterface::CycloneFpga::SpiRegister reg,
                                                            uint8_t *txData,
                                                            const uint16_t sizeOfTxData){
     uint16_t totalBytesToTransmit;
@@ -1585,7 +1585,7 @@ namespace CubeRover {
    *
    * @return     The camera error
    */
-  CameraError CameraInterfaceComponentImpl :: fpgaSpiRead(const CycloneFpgaRegister reg,
+  CameraError CameraInterfaceComponentImpl :: fpgaSpiRead(const SpiRegister reg,
                                                           uint8_t *rxData,
                                                           const uint16_t sizeOfRxData,
                                                           uint8_t *argData){
@@ -1616,7 +1616,6 @@ namespace CubeRover {
       }
     }
 
-
     // Check that the total number of bytes to transmit fit the transmit buffer
     if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH){
       return CAMERA_WRONG_DATA_SIZE;
@@ -1636,8 +1635,6 @@ namespace CubeRover {
 
     // Set CS high
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_FPGA, 1);
-
-    //Copy data to receiving buyggger
 
     return CAMERA_NO_ERROR;
   }

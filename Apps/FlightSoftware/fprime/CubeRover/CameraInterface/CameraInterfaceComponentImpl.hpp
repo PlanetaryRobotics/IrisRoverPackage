@@ -266,10 +266,12 @@ namespace CubeRover {
     namespace CycloneFpga{
 
       typedef uint16_t ImageIndex;
+      typedef uint16_t CameraExposure;
+      typedef uint32_t ImageSize;
 
-      typedef enum CycloneFpgaRegister{
+      typedef enum SpiRegister{
         STS       =    0x00,
-        TAKE_PIC  =    0x01,
+        CTL       =    0x01,
         CFG_CAM_1 =    0x02,
         CFG_CAM_2 =    0x03,
         ERROR =        0x04,
@@ -279,11 +281,28 @@ namespace CubeRover {
         IMG_STR =      0x08,
         IMG_SIZE =     0x09,
         ERASE =        0x0A
-      }CycloneFpgaRegister;
+      }SpiRegister;
+
+      typedef enum CameraId{
+        CAM_ONE =   0,
+        CAM_TWO =   1
+      }CameraId;
+
+      typedef enum ImageColorType{
+        GRAYSCALE_IMG = 0,
+        COLOR_IMG = 1
+      }ImageColorType;
+
+      typedef enum CompressionLevel{
+        NO_COMPRESSION = 0,
+        COMPRESSION_25_PERCENT = 1,
+        COMPRESSION_50_PERCENT = 2,
+        COMPRESSION_75_PERCENT = 3
+      }CompressionLevel;
 
       struct StatusRegisterBits{
-        uint8_t wipImage1:1; // capture/compress in progress for image sensor #1
-        uint8_t wipImage2:1; // capture/compress in progress for image sensor #2
+        uint8_t wipCamera1:1; // capture/compress in progress for image sensor #1
+        uint8_t wipCamera2:1; // capture/compress in progress for image sensor #2
         uint8_t eip:1;       // erase in progress
         uint8_t error:1;     // error bit
         uint8_t bip:1;       // boot in progress
@@ -295,16 +314,16 @@ namespace CubeRover {
         StatusRegisterBits bit;
       }StatusRegister;
 
-      struct TakePictureRegisterBits{
+      struct ControlRegisterBits{
         uint32_t cameraId:1;          // Camera selection 0b: camera 1, 1b: camera 2
         uint32_t imgStoreIndex:16;    // Storage index of the image
         uint32_t rsv:15;              // reserved for future use
-      }TakePictureRegisterBits;
+      }ControlRegisterBits;
 
-      typedef union TakePictureRegister{
+      typedef union ControlRegister{
         uint32_t all;
-        TakePictureRegisterBits bit;
-      }TakePictureRegister;
+        ControlRegisterBits bit;
+      }ControlRegister;
 
       struct ConfigurationRegisterBits{
         uint32_t compressionLevel:2;    //Compression level 00b:0%, 01b:25%, 10b:50%, 11b:75%
@@ -336,11 +355,14 @@ namespace CubeRover {
         ErrorRegisterBits bit;
       }ErrorRegister;
 
+      typedef struct PixelCoordinate{
+        uint32_t x;
+        uint32_t y;
+      }PixelCoordinate;
+
       struct CameraCropRegister{
-        uint32_t upperLeftXValue;       // image crop upper left corner x-axis
-        uint32_t upperLeftYValue;       // image crop upper left corner y-axis
-        uint32_t lowerRightXValue;      // image crop lower right corner x-axis
-        uint32_t lowerRightYValue;      // image crop lower right corner y-axis
+        PixelCoordinate upperLeft;      
+        PixelCoordinate lowerRight;         
       };
 
       struct JpegDataRegister{
@@ -367,7 +389,8 @@ namespace CubeRover {
       CAMERA_FAIL_HALF_BLOCK_ERASE = -8,
       CAMERA_FAIL_BLOCK_ERASE = -9,
       CAMERA_INCORRECT_FLASH_MEMORY = -10,
-      CAMERA_FAIL_SPI_WRITE = -11
+      CAMERA_FAIL_SPI_WRITE = -11,
+      CAMERA_FAIL_IMAGE_CAPTURE = -12
   }CameraError;
 
   class CameraInterfaceComponentImpl :

@@ -1167,22 +1167,22 @@ namespace CubeRover {
    *
    * @return     The data length byte.
    */
-  uint16_t CameraInterfaceComponentImpl :: getDataLengthByte(const CycloneFpgaRegister reg){
+  uint16_t CameraInterfaceComponentImpl :: getCmdArgLengthByte(const CameraInterface::CycloneFpga::SpiRegister reg){
     switch(reg){
-      case STS:
-      case IMG_STR:
+      case CameraInterface::CycloneFpga::SpiRegister::STS:
+      case CameraInterface::CycloneFpga::SpiRegister::IMG_STR:
         return 0;
-      case IMG_SIZE:
-      case ERASE:
-      case ERROR:
+      case CameraInterface::CycloneFpga::SpiRegister::IMG_SIZE:
+      case CameraInterface::CycloneFpga::SpiRegister::ERASE:
+      case CameraInterface::CycloneFpga::SpiRegister::ERROR:
         return 2;
-      case TAKE_PIC:
-      case CFG_CAM_1:
-      case CFG_CAM_2:
-      case JPEG_DAT:
+      case CameraInterface::CycloneFpga::SpiRegister::TAKE_PIC:
+      case CameraInterface::CycloneFpga::SpiRegister::CFG_CAM_1:
+      case CameraInterface::CycloneFpga::SpiRegister::CFG_CAM_2:
+      case CameraInterface::CycloneFpga::SpiRegister::JPEG_DAT:
         return 4;
-      case CROP_CAM_1:
-      case CROP_CAM_2:
+      case CameraInterface::CycloneFpga::SpiRegister::CROP_CAM_1:
+      case CameraInterface::CycloneFpga::SpiRegister::CROP_CAM_2:
         return 16;
       default:
         return 0;
@@ -1197,37 +1197,327 @@ namespace CubeRover {
    *
    * @return     The size of acknowledge data.
    */
-  uint16_t CameraInterfaceComponentImpl :: getSizeOfAckData(const CycloneFpgaRegister reg){
+  uint16_t CameraInterfaceComponentImpl :: getSizeOfAckData(const CameraInterface::CycloneFpga::SpiRegister reg){
     switch(reg){
-        case TAKE_PIC:
-        case CFG_CAM_1:
-        case CFG_CAM_2:
-        case ERROR:
-          return 4;
-        case CROP_CAM_1:
-        case CROP_CAM_2:
-          return 16;
-        case STS:
-        case IMG_STR:
-        case IMG_SIZE:
-        case JPEG_DAT:
-        case ERASE:
-        case IMG_STR:
+        case CameraInterface::CycloneFpga::SpiRegister::TAKE_PIC:
+        case CameraInterface::CycloneFpga::SpiRegister::CFG_CAM_1:
+        case CameraInterface::CycloneFpga::SpiRegister::CFG_CAM_2:
+        case CameraInterface::CycloneFpga::SpiRegister::ERROR:
+          return 4; // size of the data acknowledgmenet. See software design spec document.
+        case CameraInterface::CycloneFpga::SpiRegister::CROP_CAM_1:
+        case CameraInterface::CycloneFpga::SpiRegister::CROP_CAM_2:
+          return 16; // size of the data acknowledgmenet. See software design spec document.
+        case CameraInterface::CycloneFpga::SpiRegister::STS:
+        case CameraInterface::CycloneFpga::SpiRegister::IMG_STR:
+        case CameraInterface::CycloneFpga::SpiRegister::IMG_SIZE:
+        case CameraInterface::CycloneFpga::SpiRegister::JPEG_DAT:
+        case CameraInterface::CycloneFpga::SpiRegister::ERASE:
+        case CameraInterface::CycloneFpga::SpiRegister::IMG_STR:
         default:
-          return 0;
+          return 0; // size of the data acknowledgmenet. See software design spec document.
     }
   }
 
+
+  /**
+   * @brief      Gets the image size.
+   *
+   * @param[in]  index  The index
+   * @param      size   The image size
+   *
+   * @return     The camera error.
+   */
+  CameraError CameraInterfaceComponentImpl :: getImageSize(const CameraInterface::CycloneFpga::ImageIndex index,
+                                                           ImageSize *size){
+    if(size == NULL){
+      return CAMERA_UNEXPECTED_ERROR;
+    }
+
+    return fpgaSpiRead(CameraInterface::CycloneFpga::SpiRegister::IMG_SIZE,
+                      size,
+                      sizeof(ImageSize),
+                      &index);
+  }
+
+
+  /**
+   * @brief      Gets the number image stored.
+   *
+   * @param      nbImageStored  The number of image stored
+   *
+   * @return     The camera error code
+   */
+  CameraError CameraInterfaceComponentImpl :: getNumberImageStored(uint32_t *nbImageStored){
+    if(nbImageStored == NULL){
+      return CAMERA_UNEXPECTED_ERROR;
+    }
+
+    return fpgaSpiRead(CameraInterface::CycloneFpga::SpiRegister::IMG_STR,
+                       nbImageStored,
+                       sizeof(uint32_t));
+  } 
+
+  /**
+   * @brief      Gets the image.
+   *
+   * @param[in]  index           The index
+   * @param[in]  newRead         The new read
+   * @param[in]  imgData         The image data
+   * @param[in]  nbOfByteToRead  The number of of byte to read
+   *
+   * @return     The image.
+   */
+  CameraError CameraInterfaceComponentImpl :: getImage(const CameraInterface::CycloneFpga::ImageIndex index,
+                                                       const bool newRead,
+                                                       const uint8_t *imgData,
+                                                       const uint32_t nbOfByteToRead){
+    CameraError err;
+    JpegDataRegister jpgReg;
+
+    jpegReg.bit.imageIndex = index;
+
+    // If marked as new read, reset image pointer
+    jpegReg.bit.resetImagePointer = (newRead) ? 1b : 0b;
+
+    err = fpgaSpiRead(CameraInterface::CycloneFpga::SpiRegister::JPEG_DAT,
+                      imgData,
+                      nbOfByteToRead,
+                      &jpegReg.all);
+    return err;
+  }
+
+  /**
+   * @brief      Take a picture from the front or rear camera and store it with
+   *             an index
+   *
+   * @param[in]  id        The identifier
+   * @param[in]  imgIndex  The image index
+   *
+   * @return     The camera error code 
+   */
+  CameraError CameraInterfaceComponentImpl :: takePicture(const CameraInterface::CycloneFpga::CameraId id, 
+                                                          const CameraInterface::CycloneFpga::ImageIndex imgIndex){
+    CameraInterface::CycloneFpga::ControlRegister ctlReg;
+    CameraInterface::CycloneFpga::StatusRegister statusReg;
+    CameraError err;
+    uint32_t tries = __INT_MAX;
+
+    ctl.all = 0;
+    ctl.bit.cameraId = id;
+    ctl.bit.imgStoreIndex = imgIndex;
+
+    // Send a command to capture a picture from a camera at a given index.
+    err = fpgaSpiWrite(CameraInterface::CycloneFpga::SpiRegister::CTL, &ctlReg.all, sizeof(ctlReg.all));
+
+    if(err != CAMERA_NO_ERROR){
+      return err;
+    }
+
+    // Read the status register to check when the image capture is completed.
+    while(tries > 0){
+      err = fpgaSpiRead(STS, &statusReg.all, sizeof(statusReg.all));
+      if(err != CAMERA_NO_ERROR){
+        return err;
+      }   
+
+      // Check if image processing is in progress
+      if(statusReg.bit.wipImage1 || statusReg.bit.wipImage2){
+        tries--;
+        continue;
+      }  
+
+      if(statusReg.bit.error){
+        return CAMERA_FAIL_IMAGE_CAPTURE;
+      }
+    }
+
+    return CAMERA_NO_ERROR;
+  }
+
+
+  /**
+   * @brief      Sets the image cropping.
+   *
+   * @param[in]  id         The new value
+   * @param[in]  upperLeft  The top left
+   *
+   * @return     The camera error
+   */
+  CameraError CameraInterfaceComponentImpl ::
+    setImageCropping(const CameraInterface::CycloneFpga::CameraId id,
+                     const CameraInterface::CycloneFpga::PixelCoordinate upperLeft
+                     const CameraInterface::CycloneFpga::PixelCoordinate lowerRight){
+
+    CameraInterface::CycloneFpga::CameraCropRegister *cropReg;
+    CameraInterface::CycloneFpga::CycloneFpgaRegister reg;
+    CameraError err = CAMERA_NO_ERROR;
+
+    // Create table that will store all pixel coordinates
+    uint8_t txData[sizeof(CameraCropRegister)];
+
+    // Set local configuration register pointer to corresponding camera configuration register
+    cropReg = (id == CAM_ONE) ? &m_cropCam1 : &m_cropCam2;
+
+    // Populate data to be sent to FPGA
+    cropReg->upperLeft->x = upperLeft.x;
+    cropReg->upperLeft->y = upperLeft.y;
+    cropReg->lowerRight->x = lowerRight.x;
+    cropReg->lowerRight->y = lowerRight.y;
+
+    // Point to correct spi register corresponding to camera selected
+    reg = (id == CAM_ONE) ? CameraInterface::CycloneFpga::SpiRegister::CROP_CAM_1:
+                            CameraInterface::CycloneFpga::SpiRegister::CROP_CAM_2;
+
+    // Update color mode for the camera
+    cfgReg->bit->shutterSpeed = shut & 0x3FF; // just take the 12 LSB
+
+    // Send a command to capture a picture from a camera at a given index.
+    err = fpgaSpiWrite(reg, cropReg, sizeof(cropReg));
+
+    return err;    
+  }
+
+  /**
+   * @brief      Sets the shutter speed.
+   *
+   * @param[in]  id    The new value
+   * @param[in]  shut  The shut
+   *
+   * @return     The camera error
+   */
+  CameraError CameraInterfaceComponentImpl ::
+    setShutterSpeed(const CameraInterface::CycloneFpga::CameraId id,
+                    const CameraInterface::CycloneFpga::ShutterSpeed shut){
+
+    CameraInterface::CycloneFpga::ConfigurationRegister *cfgReg;
+    CameraInterface::CycloneFpga::CycloneFpgaRegister reg;
+    CameraError err = CAMERA_NO_ERROR;
+
+    //Set local configuration register pointer to corresponding camera configuration register
+    cfgReg = (id == CAM_ONE) ? &m_cfgCam1 : &m_cfgCam2;
+
+    //Point to correct spi register corresponding to camera selected
+    reg = (id == CAM_ONE) ? CameraInterface::CycloneFpga::SpiRegister::CFG_CAM_1 :
+                            CameraInterface::CycloneFpga::SpiRegister::CFG_CAM_2;
+
+    //Update color mode for the camera
+    cfgReg->bit->shutterSpeed = shut & 0x3FF; // just take the 12 LSB
+
+    // Send a command to capture a picture from a camera at a given index.
+    err = fpgaSpiWrite(reg, cfgReg->all, sizeof(cfgReg->all));
+
+    return err;    
+  }
+
+
+  /**
+   * @brief      Sets the camera exposure value.
+   *
+   * @param[in]  id    The new value
+   * @param[in]  exp   The new value
+   *
+   * @return     The camera error
+   */
+  CameraError CameraInterfaceComponentImpl ::
+    setExposureValue(const CameraInterface::CycloneFpga::CameraId id,
+                     const CameraInterface::CycloneFpga::CameraExposure exp){
+
+    CameraInterface::CycloneFpga::ConfigurationRegister *cfgReg;
+    CameraInterface::CycloneFpga::CycloneFpgaRegister reg;
+    CameraError err = CAMERA_NO_ERROR;
+
+    //Set local configuration register pointer to corresponding camera configuration register
+    cfgReg = (id == CAM_ONE) ? &m_cfgCam1 : &m_cfgCam2;
+
+    //Point to correct spi register corresponding to camera selected
+    reg = (id == CAM_ONE) ? CameraInterface::CycloneFpga::SpiRegister::CFG_CAM_1 :
+                            CameraInterface::CycloneFpga::SpiRegister::CFG_CAM_2;
+
+    //Update color mode for the camera
+    cfgReg->bit->exposure = exp & 0x3FF; // just take the 12 LSB
+
+    // Send a command to capture a picture from a camera at a given index.
+    err = fpgaSpiWrite(reg, cfgReg->all, sizeof(cfgReg->all));
+
+    return err;    
+  }
+
+  /**
+   * @brief      Sets the image color mode.
+   *
+   * @param[in]  id    The new value
+   * @param[in]  rgb   The new value
+   *
+   * @return     The camera error
+   */
+  CameraError CameraInterfaceComponentImpl ::
+    setImageColorMode(const CameraInterface::CycloneFpga::CameraId id,
+                      const CameraInterface::CycloneFpga::ImageColorType rgb){
+
+    CameraInterface::CycloneFpga::ConfigurationRegister *cfgReg;
+    CameraInterface::CycloneFpga::CycloneFpgaRegister reg;
+    CameraError err = CAMERA_NO_ERROR;
+
+    //Set local configuration register pointer to corresponding camera configuration register
+    cfgReg = (id == CAM_ONE) ? &m_cfgCam1 : &m_cfgCam2;
+
+    //Point to correct spi register corresponding to camera selected
+    reg = (id == CAM_ONE) ? CameraInterface::CycloneFpga::SpiRegister::CFG_CAM_1 :
+                            CameraInterface::CycloneFpga::SpiRegister::CFG_CAM_2;
+
+    //Update color mode for the camera
+    cfgReg->bit->rgb = rgb;
+
+    // Send a command to capture a picture from a camera at a given index.
+    err = fpgaSpiWrite(reg, cfgReg->all, sizeof(cfgReg->all));
+
+    return err;
+  }
+
+  /**
+   * @brief      Sets the image compression level.
+   *
+   * @param[in]  id    The new value
+   * @param[in]  comp  The component
+   *
+   * @return     The camera error
+   */
+  CameraError CameraInterfaceComponentImpl ::
+    setImageCompressionLevel(const CameraInterface::CycloneFpga::CameraId id,
+                             const CameraInterface::CycloneFpga::CompressionLevel comp){
+
+    CameraInterface::CycloneFpga::ConfigurationRegister *cfgReg;
+    CameraInterface::CycloneFpga::CycloneFpgaRegister reg;
+    CameraError err = CAMERA_NO_ERROR;
+
+    //Set local configuration register pointer to corresponding camera configuration register
+    cfgReg = (id == CAM_ONE) ? &m_cfgCam1 : &m_cfgCam2;
+
+    //Point to correct spi register corresponding to camera selected
+    reg = (id == CAM_ONE) ? CameraInterface::CycloneFpga::SpiRegister::CFG_CAM_1 :
+                            CameraInterface::CycloneFpga::SpiRegister::CFG_CAM_2;
+
+    //Update compression level
+    cfgReg->bit->comp = comp;
+
+    // Send a command to capture a picture from a camera at a given index.
+    err = fpgaSpiWrite(reg, cfgReg->all, sizeof(cfgReg->all));
+
+    return err;
+  }
+                                                              
   /**
    * @brief      Send data over SPI to the FPGA
    *
    * @param[in]  reg           The register
    * @param      txData        The transmit data
    * @param[in]  sizeOfTxData  The size of the transmit data
+   *
+   * @return     The camera error
    */
-  void CameraInterfaceComponentImpl :: fpgaSpiWrite(const CycloneFpgaRegister reg,
-                                                    uint8_t *txData,
-                                                    const uint16_t sizeOfTxData){
+  CameraError CameraInterfaceComponentImpl :: fpgaSpiWrite(const CameraInterface::CycloneFpga::CycloneFpgaRegister reg,
+                                                           uint8_t *txData,
+                                                           const uint16_t sizeOfTxData){
     uint16_t totalBytesToTransmit;
     uint16_t sizeOfTxReply;
     uint8_t txAck;
@@ -1239,7 +1529,7 @@ namespace CubeRover {
 
     m_spiTxBuff[0] = (uint8_t) reg & 0x7F; // mask MSB that contains Write/Read bit
 
-    totalBytesToTransmit = sizeOfTxData + 1 /*command*/ + getDataLengthByte(reg) /* specific to address to write */;
+    totalBytesToTransmit = sizeOfTxData + 1 /*command*/ + getCmdArgLengthByte(reg) /* specific to address to write */;
 
     // Check that the total number of bytes to transmit fit the transmit buffer
     if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH){
@@ -1283,11 +1573,24 @@ namespace CubeRover {
     return CAMERA_NO_ERROR;
   }
 
-  void CameraInterfaceComponentImpl :: fpgaSpiRead(const CycloneFpgaRegister reg,
-                                                    uint8_t *rxData,
-                                                    const uint16_t sizeOfRxData){
+
+  /**
+   * @brief      Read some data over SPI
+   *
+   * @param[in]  reg           The register
+   * @param      rxData        The receive data
+   * @param[in]  sizeOfRxData  The size of the receive data
+   * @param      argData       The transmit data (required only when an arg is
+   *                           passed to read some data)
+   *
+   * @return     The camera error
+   */
+  CameraError CameraInterfaceComponentImpl :: fpgaSpiRead(const CycloneFpgaRegister reg,
+                                                          uint8_t *rxData,
+                                                          const uint16_t sizeOfRxData,
+                                                          uint8_t *argData){
     uint16_t totalBytesToTransmit;
-    uint16_t sizeOfTxReply;
+    uint16_t argDataSize;
     uint32_t i;
 
     if(rxData == NULL && sizeOfRxData > 0){
@@ -1298,6 +1601,21 @@ namespace CubeRover {
     m_spiTxBuff[0] |= 0x80; // set bit for a read command
 
     totalBytesToTransmit = 1 /*command*/;
+
+    // This is only true when an argument is required to read some data
+    argDataSize = getCmdArgLengthByte(reg);
+
+    if(argDataSize > 0){
+      if(argData == NULL){ 
+        return CAMERA_UNEXPECTED_ERROR;
+      }
+
+      totalBytesToTransmit += argDataSize;
+      for(i=0; i<argDataSize; i++){
+        m_spiTxBuff[i+1 /*command*/] = argData[i];
+      }
+    }
+
 
     // Check that the total number of bytes to transmit fit the transmit buffer
     if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH){

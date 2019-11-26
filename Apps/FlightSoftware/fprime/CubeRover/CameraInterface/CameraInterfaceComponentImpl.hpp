@@ -110,6 +110,11 @@ namespace CubeRover {
         uint16_t rsv3:9;
       };
 
+      typedef union IrpRegister{
+        uint16_t all;
+        IrpRegisterBits bit;
+      }IrpRegister;
+
       typedef uint64_t PasswordRegister;
 
       struct ProtectionStatusRegisterBits{
@@ -124,10 +129,6 @@ namespace CubeRover {
         uint8_t ProtectionStatusRegisterBits;
       }ProtectionStatusRegister;
 
-      typedef union IrpRegister{
-        uint16_t all;
-        IrpRegisterBits bit;
-      }IrpRegister;
 
       typedef uint8_t IblAccessRegister;
 
@@ -263,8 +264,94 @@ namespace CubeRover {
     };
 
     namespace CycloneFpga{
+
+      typedef uint16_t ImageIndex;
+
       typedef enum CycloneFpgaRegister{
+        STS       =    0x00,
+        TAKE_PIC  =    0x01,
+        CFG_CAM_1 =    0x02,
+        CFG_CAM_2 =    0x03,
+        ERROR =        0x04,
+        CROP_CAM_1 =   0x05,
+        CROP_CAM_2 =   0x06,
+        JPEG_DAT =     0x07,
+        IMG_STR =      0x08,
+        IMG_SIZE =     0x09,
+        ERASE =        0x0A
       }CycloneFpgaRegister;
+
+      struct StatusRegisterBits{
+        uint8_t wipImage1:1; // capture/compress in progress for image sensor #1
+        uint8_t wipImage2:1; // capture/compress in progress for image sensor #2
+        uint8_t eip:1;       // erase in progress
+        uint8_t error:1;     // error bit
+        uint8_t bip:1;       // boot in progress
+        uint8_t rsv:3;       // reserved for future use
+      };
+
+      typedef union StatusRegister{
+        uint8_t all;
+        StatusRegisterBits bit;
+      }StatusRegister;
+
+      struct TakePictureRegisterBits{
+        uint32_t cameraId:1;          // Camera selection 0b: camera 1, 1b: camera 2
+        uint32_t imgStoreIndex:16;    // Storage index of the image
+        uint32_t rsv:15;              // reserved for future use
+      }TakePictureRegisterBits;
+
+      typedef union TakePictureRegister{
+        uint32_t all;
+        TakePictureRegisterBits bit;
+      }TakePictureRegister;
+
+      struct ConfigurationRegisterBits{
+        uint32_t compressionLevel:2;    //Compression level 00b:0%, 01b:25%, 10b:50%, 11b:75%
+        uint32_t rgb:1;                 // 0b: grayscale, 1b color
+        uint32_t exposure:12;           // exposure time
+        uint32_t shutterSpeed:12;       // shutter speed
+        uint32_t rsv:5;                 // reserved for future use
+      };
+
+      typedef union ConfigurationRegister{
+        uint32_t all;
+        ConfigurationRegisterBits bit;
+      }ConfigurationRegister;
+
+      struct ErrorRegisterBits{
+        uint32_t imageIndex:16;         // image index 
+        uint32_t cameraId:1;            // camera id 0b : camera 1, 1b camera 2
+        uint32_t cameraTimeout:10;      // timeout occured during the camera image acquisition / configuration
+        uint32_t imageCaptureFail:1;    // image capture failed
+        uint32_t cameraNotDetected:1;   // camera not detected
+        uint32_t writeFailure:1;        // image write to FPGA ext. memory failed
+        uint32_t readFailure:1;         // image read from FPGA ext. memory failed
+        uint32_t eraseFailure:1;        // image erase from FPGA ext. memory failed
+        uint32_t rsv:9;                 // reserved for future use
+      };
+
+      typedef union ErrorRegister{
+        uint32_t all;
+        ErrorRegisterBits bit;
+      }ErrorRegister;
+
+      struct CameraCropRegister{
+        uint32_t upperLeftXValue;       // image crop upper left corner x-axis
+        uint32_t upperLeftYValue;       // image crop upper left corner y-axis
+        uint32_t lowerRightXValue;      // image crop lower right corner x-axis
+        uint32_t lowerRightYValue;      // image crop lower right corner y-axis
+      };
+
+      struct JpegDataRegister{
+        uint32_t imageIndex:16;         // image index
+        uint32_t resetImagePointer:1;   // reset image pointer
+        uint32_t rsv:15;
+      };
+
+      typedef uint16_t ImageSizeRegister;
+      typedef uint32_t EraseRegister;
+
     }
   }
 
@@ -279,7 +366,8 @@ namespace CubeRover {
       CAMERA_FAIL_ERASE_CHIP = -7,
       CAMERA_FAIL_HALF_BLOCK_ERASE = -8,
       CAMERA_FAIL_BLOCK_ERASE = -9,
-      CAMERA_INCORRECT_FLASH_MEMORY = -10
+      CAMERA_INCORRECT_FLASH_MEMORY = -10,
+      CAMERA_FAIL_SPI_WRITE = -11
   }CameraError;
 
   class CameraInterfaceComponentImpl :
@@ -355,7 +443,7 @@ namespace CubeRover {
                                     const uint16_t dataSize);
       uint8_t getReadDummyCycles(const CameraInterface::S25fl064l::FlashSpiCommands cmd);
 
-    PRIVATE:
+    private:
 
       // ----------------------------------------------------------------------
       // Handler implementations for user-defined typed input ports
@@ -368,7 +456,7 @@ namespace CubeRover {
           NATIVE_UINT_TYPE context /*!< The call order*/
       );
 
-    PRIVATE:
+    private:
 
       // ----------------------------------------------------------------------
       // Command handler implementations

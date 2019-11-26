@@ -38,42 +38,58 @@ namespace CubeRover {
     CameraInterfaceComponentImpl(void)
 #endif
   {
-      // External Flash SPI data configuration
-      // Clock configuration need to be:
-      // Clock polarity unchecked
-      // Clock phase checked
-      m_flashDataConfig.CS_HOLD = false;
-      m_flashDataConfig.DFSEL = SPI_FMT_0;
-      m_flashDataConfig.WDEL = false;
-      m_flashDataConfig.CSNR = 0;
+    // External Flash SPI data configuration
+    // Clock configuration need to be:
+    // Clock polarity unchecked
+    // Clock phase checked
+    m_flashDataConfig.CS_HOLD = false;
+    m_flashDataConfig.DFSEL = SPI_FMT_0;
+    m_flashDataConfig.WDEL = false;
+    m_flashDataConfig.CSNR = 0;
 
-      // Refer to datasheet, default number of dummy cycles between a SDI and SDO
-      // is set by default to 8 clock cycles
-      m_readLatencyCycles = DEFAULT_DUMMY_CYCLES;
+    // Refer to datasheet, default number of dummy cycles between a SDI and SDO
+    // is set by default to 8 clock cycles
+    m_readLatencyCycles = DEFAULT_DUMMY_CYCLES;
 
-      m_setup = false;
-      m_flashSpi = NULL;
-      m_fpgaSpi = NULL;
-      m_memAllocPointer = 0;
-      // default setting of the external memory
-      m_addressLengthFormat = CameraInterface::S25fl064l::ADDRESS_LENGTH_3_BYTES; 
+    m_setup = false;
+    m_flashSpi = NULL;
+    m_fpgaSpi = NULL;
+    m_memAllocPointer = 0;
+    // default setting of the external memory
+    m_addressLengthFormat = CameraInterface::S25fl064l::ADDRESS_LENGTH_3_BYTES; 
   }
 
-  void CameraInterfaceComponentImpl ::
-    init(
-        const NATIVE_INT_TYPE queueDepth,
-        const NATIVE_INT_TYPE instance
-    )
-  {
+
+  /**
+   * @brief      Initialize the camera interface
+   *
+   * @param[in]  queueDepth  The queue depth
+   * @param[in]  instance    The instance
+   */
+  void CameraInterfaceComponentImpl :: init( const NATIVE_INT_TYPE queueDepth,
+                                             const NATIVE_INT_TYPE instance){
     CameraInterfaceComponentBase::init(queueDepth, instance);
   }
 
+
+  /**
+   * @brief      Destroys the object.
+   */
   CameraInterfaceComponentImpl ::
     ~CameraInterfaceComponentImpl(void)
   {
 
   }
 
+
+  /**
+   * @brief      Setup the interface to the external flash memory
+   *
+   * @param      flashSpi  The flash spi
+   * @param      fpgaSpi   The fpga spi
+   *
+   * @return     The camera error
+   */
   CameraError CameraInterfaceComponentImpl :: setup(spiBASE_t *flashSpi, spiBASE_t *fpgaSpi){
     CameraError err = CAMERA_NO_ERROR;
 
@@ -99,9 +115,10 @@ namespace CubeRover {
 
 
   /**
-   * @brief      Setup external flash (S25FL064L)
+   * @brief      Setup external flash (S25FL064L). The memory is a 64Mb(8MB)
+   *             flash memory device
    *
-   * @param      spi   The spi
+   * @param      spi   The spi interface of the hercules
    *
    * @return     The camera error code
    */
@@ -120,12 +137,14 @@ namespace CubeRover {
     if(err != CAMERA_NO_ERROR)
         return err;
 
+    // Check that the device is connected and correct
     if(id[0] != FLASH_MANUFACTURER_ID ||
        id[1] != FLASH_DEVICE_ID_MSB ||
        id[2] != FLASH_DEVICE_ID_LSB)
         return CAMERA_INCORRECT_FLASH_MEMORY;
 
-    // Check latency cycles
+    // Check read latency cycles. Read latency cycles are requried for some read
+    // operation on the device.
     CameraInterface::S25fl064l::ConfigurationRegister3 configRegister3;
     err = flashSpiReadData(CameraInterface::S25fl064l::RDCR3, &configRegister3.all, 1);
     if(err != CAMERA_NO_ERROR){
@@ -133,7 +152,10 @@ namespace CubeRover {
     }
     m_readLatencyCycles = configRegister3.bit.rl;
 
-    // allocate memory space to store navigation and science images
+    // Reserve memory space to store navigation and science images Memory space
+    // allocated is aligned to speed read and write operation on the device. The
+    // memory allocation might be greater than requested to maintain memory
+    // alignment. Memory allocations are continuous.
     err = allocateFlashMemory(&m_memAllocNavCam1, SIZE_NAVIGATION_IMAGE1);
     if(err != CAMERA_NO_ERROR){
         return err;
@@ -149,19 +171,14 @@ namespace CubeRover {
         return err;
     }
 
-    uint16_t i;
-    uint8_t dummyTxData[512];
-    uint8_t dummyRxData[512];
-    for(i=0;i<sizeof(dummyTxData); i++){
-        dummyTxData[i]= i%256;
-    }
-
-    //test
-    err = writeDataToFlash(&m_memAllocNavCam1, 10, dummyTxData, sizeof(dummyTxData));
-    err = readDataFromFlash(&m_memAllocNavCam1, 256, dummyRxData, sizeof(dummyRxData));
     return err;
   }
 
+  /**
+   * @brief      Setup the FPGA interface
+   *
+   * @return     The camera error
+   */
   CameraError CameraInterfaceComponentImpl :: setupFPGAInterface(){
 
       return CAMERA_NO_ERROR;
@@ -374,6 +391,7 @@ namespace CubeRover {
     addressLength = getAddressLengthByte(cmd);
     totalBytesToTransmit += addressLength;
 
+    // Address must be defined if addressLength greater than 0
     if(addressLength > 0){
       if(address == ADDRESS_NOT_DEFINED){
         return CAMERA_UNEXPECTED_ERROR;
@@ -401,7 +419,9 @@ namespace CubeRover {
     spiTransmitData(m_flashSpi, &m_flashDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
 
     while(totalBytesToRead > 0){
-        uint16_t bytesToRead = (totalBytesToRead < SPI_RX_BUFFER_MAX_LENGTH) ? totalBytesToRead : SPI_RX_BUFFER_MAX_LENGTH;
+        // min(totalBytesToRead, SPI_RX_BUFFER_MAX_LENGTH)
+        uint16_t bytesToRead = (totalBytesToRead < SPI_RX_BUFFER_MAX_LENGTH) ? 
+                                totalBytesToRead : SPI_RX_BUFFER_MAX_LENGTH;
         spiReceiveData(m_flashSpi, &m_flashDataConfig, bytesToRead, (uint16_t *)m_spiRxBuff);
 
         // remove bytes to read
@@ -927,6 +947,8 @@ namespace CubeRover {
    * @brief      Writes a data to flash.
    *
    * @param      alloc     The allocate
+   * @param[in]  offset    The offset from the start address of the memory
+   *                       allocation
    * @param      data      The data
    * @param[in]  dataSize  The data size
    *
@@ -972,6 +994,7 @@ namespace CubeRover {
       if(err != CAMERA_NO_ERROR){
           return err;
       }
+
       // Erase sector address
       err = sectorErase((CameraInterface::S25fl064l::Sector) sectorAddress);
 
@@ -980,6 +1003,7 @@ namespace CubeRover {
       }
 
       // Copy data to scratchpad
+      // Only copy a number of bytes to not overlap sectors
       uint16_t bytesToCopy = (totalBytesToWrite <= sectorAddress + SECTOR_SIZE - (alloc->startAddress + offset)) ?
                               totalBytesToWrite : sectorAddress + SECTOR_SIZE - (alloc->startAddress + offset);
 
@@ -1019,15 +1043,16 @@ namespace CubeRover {
    * @brief      Reads a data from flash.
    *
    * @param      alloc     The allocate
+   * @param[in]  offset    The offset
    * @param      data      The data
    * @param[in]  dataSize  The data size
    *
    * @return     The camera error
    */
   CameraError CameraInterfaceComponentImpl :: readDataFromFlash(CameraInterface::S25fl064l::MemAlloc *alloc,
-                                const uint32_t offset,
-                                uint8_t *data,
-                                const uint16_t dataSize){
+                                                                const uint32_t offset,
+                                                                uint8_t *data,
+                                                                const uint16_t dataSize){
     CameraError err;
     uint16_t totalBytesToRead = dataSize;
     uint16_t overflow = 0;
@@ -1035,6 +1060,8 @@ namespace CubeRover {
     while(totalBytesToRead){
       uint16_t bytesToRead = (totalBytesToRead < PAGE_SIZE) ? totalBytesToRead : PAGE_SIZE;
 
+      // Read data from flash memory
+      // Send the READ command
       err = flashSpiReadData( CameraInterface::S25fl064l::READ,
                               data + PAGE_SIZE * overflow,
                               bytesToRead,
@@ -1069,6 +1096,7 @@ namespace CubeRover {
       return CAMERA_UNEXPECTED_ERROR;
     }
 
+    // Check if pointer to transmit buffer exists
     if(txData == NULL){
       return CAMERA_UNEXPECTED_ERROR;
     }
@@ -1131,50 +1159,170 @@ namespace CubeRover {
     return err;
   }
 
-//  void CameraInterfaceComponentImpl :: fpgaSpiWrite(){
-//    uint16_t addressLength;
-//    uint16_t totalBytesToTransmit;
-//
-//    if(txData == NULL && sizeOfTxData > 0){
-//      return CAMERA_UNEXPECTED_ERROR;
-//    }
-//
-//    addressLength = getAddressLengthByte(cmd);
-//    m_spiTxBuff[0] = (uint8_t) cmd;
-//    totalBytesToTransmit = sizeOfTxData + 1 /*command*/ + addressLength;
-//
-//    if(addressLength > 0){
-//      if(address == ADDRESS_NOT_DEFINED){
-//        return CAMERA_UNEXPECTED_ERROR;
-//      }
-//
-//      if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH){
-//        return CAMERA_WRONG_DATA_SIZE;
-//      }
-//
-//      // Copy the address section to the transmit buffer
-//      memcpy(m_spiTxBuff+1, (uint8_t *)&address, addressLength);
-//
-//      if(txData == NULL){
-//        return CAMERA_UNEXPECTED_ERROR;
-//      }
-//
-//      if(txData != NULL && sizeOfTxData > 0){
-//        // Copy data to transmit buffer
-//        memcpy(m_spiTxBuff + 1 /*command */ + addressLength, txData, sizeOfTxData);
-//      }
-//    }
-//
-//    // Set CS low
-//    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_FPGA, 0);
-//
-//    spiTransmitData(m_spi, &m_fpgaDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
-//
-//    // Set CS high
-//    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_FPGA, 1);
-//
-//    return CAMERA_NO_ERROR;
-//  }
+
+  /**
+   * @brief      Gets the data length byte for a SDI data transfer
+   *
+   * @param[in]  reg   The register
+   *
+   * @return     The data length byte.
+   */
+  uint16_t CameraInterfaceComponentImpl :: getDataLengthByte(const CycloneFpgaRegister reg){
+    switch(reg){
+      case STS:
+      case IMG_STR:
+        return 0;
+      case IMG_SIZE:
+      case ERASE:
+      case ERROR:
+        return 2;
+      case TAKE_PIC:
+      case CFG_CAM_1:
+      case CFG_CAM_2:
+      case JPEG_DAT:
+        return 4;
+      case CROP_CAM_1:
+      case CROP_CAM_2:
+        return 16;
+      default:
+        return 0;
+    }
+  }
+
+
+  /**
+   * @brief      Gets the size of acknowledge data for write commands
+   *
+   * @param[in]  reg   The register
+   *
+   * @return     The size of acknowledge data.
+   */
+  uint16_t CameraInterfaceComponentImpl :: getSizeOfAckData(const CycloneFpgaRegister reg){
+    switch(reg){
+        case TAKE_PIC:
+        case CFG_CAM_1:
+        case CFG_CAM_2:
+        case ERROR:
+          return 4;
+        case CROP_CAM_1:
+        case CROP_CAM_2:
+          return 16;
+        case STS:
+        case IMG_STR:
+        case IMG_SIZE:
+        case JPEG_DAT:
+        case ERASE:
+        case IMG_STR:
+        default:
+          return 0;
+    }
+  }
+
+  /**
+   * @brief      Send data over SPI to the FPGA
+   *
+   * @param[in]  reg           The register
+   * @param      txData        The transmit data
+   * @param[in]  sizeOfTxData  The size of the transmit data
+   */
+  void CameraInterfaceComponentImpl :: fpgaSpiWrite(const CycloneFpgaRegister reg,
+                                                    uint8_t *txData,
+                                                    const uint16_t sizeOfTxData){
+    uint16_t totalBytesToTransmit;
+    uint16_t sizeOfTxReply;
+    uint8_t txAck;
+    uint32_t i;
+
+    if(txData == NULL && sizeOfTxData > 0){
+      return CAMERA_UNEXPECTED_ERROR;
+    }
+
+    m_spiTxBuff[0] = (uint8_t) reg & 0x7F; // mask MSB that contains Write/Read bit
+
+    totalBytesToTransmit = sizeOfTxData + 1 /*command*/ + getDataLengthByte(reg) /* specific to address to write */;
+
+    // Check that the total number of bytes to transmit fit the transmit buffer
+    if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH){
+      return CAMERA_WRONG_DATA_SIZE;
+    }
+
+    // Check that pointer is valid when we need to send data
+    if(sizeOfTxData > 0 && txData == NULL){
+      return CAMERA_UNEXPECTED_ERROR;
+    }
+
+    // Copy the data to transmit into the transmit buffer
+    for(i=0; i< totalBytesToTransmit-1 /* don't include header byte */; i++){
+      m_spiTxBuff[i+1] = *txData;
+      txData++;
+    }
+
+    // Set CS low
+    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_FPGA, 0);
+
+    // Transmit data
+    spiTransmitData(m_fpgaSpi, &m_fpgaDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
+
+    // Receive slave copy of write commands 
+    sizeOfTxReply = getSizeOfAckData(reg);
+
+    if(sizeOfTxReply > 0){
+      spiReceiveData(m_fpgaSpi, &m_fpgaDataConfig, sizeOfTxReply, (uint16_t *)&m_spiRxBuff);
+    }
+
+    // Set CS high
+    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_FPGA, 1);
+
+    // Check that the command acknowledge match the command sent
+    for(i=0; i<sizeOfTxData; i++){
+      if(m_spiTxBuff[i+1 /*offset by 1 to exclude command*/] != m_spiRxBuff[i]){
+        return CAMERA_FAIL_SPI_WRITE;
+      }
+    }
+
+    return CAMERA_NO_ERROR;
+  }
+
+  void CameraInterfaceComponentImpl :: fpgaSpiRead(const CycloneFpgaRegister reg,
+                                                    uint8_t *rxData,
+                                                    const uint16_t sizeOfRxData){
+    uint16_t totalBytesToTransmit;
+    uint16_t sizeOfTxReply;
+    uint32_t i;
+
+    if(rxData == NULL && sizeOfRxData > 0){
+      return CAMERA_UNEXPECTED_ERROR;
+    }
+
+    m_spiTxBuff[0] = (uint8_t) reg & 0x7F;
+    m_spiTxBuff[0] |= 0x80; // set bit for a read command
+
+    totalBytesToTransmit = 1 /*command*/;
+
+    // Check that the total number of bytes to transmit fit the transmit buffer
+    if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH){
+      return CAMERA_WRONG_DATA_SIZE;
+    }
+
+    // Check that pointer is valid when we need to send data
+    if(sizeOfRxData > 0 && rxData == NULL){
+      return CAMERA_UNEXPECTED_ERROR;
+    }
+
+    // Set CS low
+    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_FPGA, 0);
+
+    // Transmit data
+    spiTransmitData(m_fpgaSpi, &m_fpgaDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
+    spiReceiveData(m_fpgaSpi, &m_fpgaDataConfig, sizeOfRxData, (uint16_t *)&m_spiRxBuff);
+
+    // Set CS high
+    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_FPGA, 1);
+
+    //Copy data to receiving buyggger
+
+    return CAMERA_NO_ERROR;
+  }
 
   // ----------------------------------------------------------------------
   // Handler implementations for user-defined typed input ports

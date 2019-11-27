@@ -1,0 +1,5 @@
+<commands>
+	<command kind="async" opcode="0x01" mnemonic="ND_CollectData">
+		<comment>Collect the data on asynchronous command</comment>
+	</command>
+</commands>

@@ -1,0 +1,5 @@
+<telemetry>
+	<channel id="0" name="ArrayOutput" data_type="string" size="80">
+    <comment>Telemetry data output of the neutron detector, each byte represent a sensor data</comment>
+ 	</channel>
+</telemetry>

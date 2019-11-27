@@ -268,13 +268,14 @@ namespace CubeRover {
       typedef uint16_t ImageIndex;
       typedef uint16_t CameraExposure;
       typedef uint32_t ImageSize;
+      typedef uint16_t ShutterSpeed;
 
       typedef enum SpiRegister{
         STS       =    0x00,
         CTL       =    0x01,
         CFG_CAM_1 =    0x02,
         CFG_CAM_2 =    0x03,
-        ERROR =        0x04,
+        ERROR_FPGA =   0x04,
         CROP_CAM_1 =   0x05,
         CROP_CAM_2 =   0x06,
         JPEG_DAT =     0x07,
@@ -318,7 +319,7 @@ namespace CubeRover {
         uint32_t cameraId:1;          // Camera selection 0b: camera 1, 1b: camera 2
         uint32_t imgStoreIndex:16;    // Storage index of the image
         uint32_t rsv:15;              // reserved for future use
-      }ControlRegisterBits;
+      };
 
       typedef union ControlRegister{
         uint32_t all;
@@ -365,11 +366,16 @@ namespace CubeRover {
         PixelCoordinate lowerRight;         
       };
 
-      struct JpegDataRegister{
+      struct JpegDataRegisterBits{
         uint32_t imageIndex:16;         // image index
         uint32_t resetImagePointer:1;   // reset image pointer
         uint32_t rsv:15;
       };
+
+      typedef union JpegDataRegister{
+          uint32_t all;
+          JpegDataRegisterBits bit;
+      }JpegDataRegister;
 
       typedef uint16_t ImageSizeRegister;
       typedef uint32_t EraseRegister;
@@ -432,7 +438,8 @@ namespace CubeRover {
       CameraError setupFPGAInterface();
       uint16_t getCmdArgLengthByte(const CameraInterface::CycloneFpga::SpiRegister reg);
       uint16_t getSizeOfAckData(const CameraInterface::CycloneFpga::SpiRegister reg);
-      CameraError getImageSize(const CameraInterface::CycloneFpga::ImageIndex index, ImageSize *size);
+      CameraError getImageSize(const CameraInterface::CycloneFpga::ImageIndex index,
+                               CameraInterface::CycloneFpga::ImageSize *size);
       CameraError getNumberImageStored(uint32_t *nbImageStored);
       CameraError getImage(const CameraInterface::CycloneFpga::ImageIndex index,
                            const bool newRead,
@@ -451,9 +458,10 @@ namespace CubeRover {
                                     const CameraInterface::CycloneFpga::ImageColorType rgb);
       CameraError setImageCompressionLevel(const CameraInterface::CycloneFpga::CameraId id,
                                            const CameraInterface::CycloneFpga::CompressionLevel comp);
+      CameraError getError(CameraInterface::CycloneFpga::ErrorRegister *reg);
+      CameraError clearError(CameraInterface::CycloneFpga::ErrorRegister *msk);
       CameraError fpgaSpiWrite(const CameraInterface::CycloneFpga::SpiRegister reg,
-                               uint8_t *txData,
-                               const uint16_t sizeOfTxData);
+                               uint8_t *txData);
       CameraError fpgaSpiRead(const CameraInterface::CycloneFpga::SpiRegister reg,
                               uint8_t *rxData,
                               const uint16_t sizeOfRxData,
@@ -530,7 +538,7 @@ namespace CubeRover {
 
     private:
       spiDAT1_t m_flashDataConfig;
-      spiDAT1_t m_fpgaXfaceConfig;
+      spiDAT1_t m_fpgaDataConfig;
       spiBASE_t *m_flashSpi;
       spiBASE_t *m_fpgaSpi;
       bool m_setup;
@@ -548,6 +556,11 @@ namespace CubeRover {
       CameraInterface::S25fl064l::MemAlloc m_memAllocNavCam1;
       CameraInterface::S25fl064l::MemAlloc m_memAllocNavCam2;
       CameraInterface::S25fl064l::MemAlloc m_memAllocScienceImg;
+
+      CameraInterface::CycloneFpga::CameraCropRegister m_cropCam1;
+      CameraInterface::CycloneFpga::CameraCropRegister m_cropCam2;
+      CameraInterface::CycloneFpga::ConfigurationRegister m_cfgCam1;
+      CameraInterface::CycloneFpga::ConfigurationRegister m_cfgCam2;
     };
 
 } // end namespace CubeRover

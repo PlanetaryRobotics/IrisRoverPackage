@@ -21,6 +21,7 @@
 
 // Include component exclusive to CubeRover project
 #include "MotorControl/MotorControlComponentImpl.hpp"
+#include "NeutronDetector/NeutronDetectorComponentImpl.hpp"
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -42,6 +43,7 @@ extern Svc::ActiveLoggerImpl activeLogger;
 
 // Components exclusive to CubeRover
 extern CubeRover::MotorControlComponentImpl motorControl;
+extern CubeRover::NeutronDetectorComponentImpl neutronDetector;
 
 // FreeRTOS Serial driver to interface radio module
 extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;

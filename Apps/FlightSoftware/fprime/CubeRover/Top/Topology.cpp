@@ -86,6 +86,13 @@ CubeRover::MotorControlComponentImpl motorControl(
 #endif
 );
 
+//----------------------------------------------------------------------------
+CubeRover::NeutronDetectorComponentImpl neutronDetector(
+#if FW_OBJECT_NAMES == 1
+        "NeutronDetector"
+#endif
+);
+
 // ---------------------------------------------------------------------------
 // Serial interface to support radio interface
 Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface(
@@ -130,6 +137,8 @@ void constructApp(void){
     // Initialize the motor control
     motorControl.init(MOTOR_CONTROL_QUEUE_DEPTH, MOTOR_CONTROL_ID);
 
+    neutronDetector.init(NEUTRON_DETECTOR_QUEUE_DEPTH, NEUTRON_DETECTOR_ID);
+
     // Construct the application and make all connections between components
 	constructCubeRoverArchitecture();
 
@@ -160,6 +169,12 @@ void constructApp(void){
     motorControl.start(MOTOR_CONTROL_ID, /* identifier */
                        MOTOR_CONTROL_AFF, /* CPU priority  */
                        MOTOR_CONTROL_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+
+    neutronDetector.start(NEUTRON_DETECTOR_ID,                                  /* identifier */
+                          NEUTRON_DETECTOR_AFF,                                 /* CPU priority  */
+                          NEUTRON_DETECTOR_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);   /* stack size */
+
+    neutronDetector.setupDetector();
 
     radioSerialInterface.open(sciREG,
                               Drv::FreeRtosSerialDriverComponentImpl::BAUD_9600,

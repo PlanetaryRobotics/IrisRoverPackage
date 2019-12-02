@@ -14,6 +14,7 @@
 
 <!-- Component exclusive to CubeRover -->
   <import_component_type>CubeRover/MotorControl/MotorControlComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/NeutronDetector/NeutronDetectorComponentAi.xml</import_component_type>
 
 <!-- Declaration of block driver that drive F-prime clocking and other async event -->
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
@@ -36,9 +37,10 @@
 
 <!-- Declaration of motor control component exclusive to CubeRover -->
   <instance namespace="CubeRover" name="motorControl" type="MotorControl" base_id="161" base_id_window="20" />
+  <instance namespace="CubeRover" name="neutronDetector" type="NeutronDetector" base_id="181" base_id_window="20" />
 
 <!-- Declaration of the FreeRTOS serial driver interface -->
-  <instance namespace="Drv" name="radioSerialInterface" type="FreeRtosSerialDriver" base_id="181" base_id_window="20" />
+  <instance namespace="Drv" name="radioSerialInterface" type="FreeRtosSerialDriver" base_id="201" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -88,6 +90,12 @@
   <connection name = "rgMedFreq_to_MotorCtrl_clk">
     <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
     <target component = "motorControl" port = "schedIn" type = "Sched" num = "0" />
+  </connection>
+
+  <!-- Connect output rategroup sched to neutron detector scheduled in -->
+  <connection name = "rgMedFreq_to_neutronDetect_clk">
+    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <target component = "neutronDetector" port = "schedIn" type = "Sched" num = "0" />
   </connection>
 
 <!-- *********************************************************************************************************

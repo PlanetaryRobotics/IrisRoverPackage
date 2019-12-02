@@ -18,8 +18,9 @@
 #include "CubeRover/NeutronDetector/NeutronDetectorComponentAc.hpp"
 
 // include required peripherals
-#include "spi.h"
 #include "gio.h"
+#include "etpwm.h"
+#include "sys_core.h"
 
 #include "CubeRoverConfig.hpp"
 
@@ -30,7 +31,7 @@ namespace CubeRover {
     #define TOTAL_MSND_PER_PLATE        16
     #define MSND_TX_PACKET_SIZE_BYTE    1
     #define MSND_RX_PACKET_SIZE_BYTE    1
-    #define SPI_REG_MSND                spiREG3
+    #define TIMER_EPWM_REG              etpwmREG6
 
     typedef uint8_t NeutronSensorData;
     typedef NeutronSensorData * NeutronSensorArray;
@@ -83,6 +84,9 @@ namespace CubeRover {
     private:
       NeutronDetector::Error setMultiplexer(const uint16_t sensor, const uint16_t sensorPlate);
       NeutronDetector::Error spiReadSensorData(NeutronDetector::NeutronSensorData *data);
+      NeutronDetector::Error spiTransmitAndReceiveData(uint16_t totalBytesToTransmit,
+                                                       uint16_t * txBuff,
+                                                       uint16_t * rxBuff);
       void mapMuxOutputs();
 
     private:
@@ -90,8 +94,6 @@ namespace CubeRover {
       NeutronDetector::MuxPortMap m_muxPlateSelect[TOTAL_MSND_PLATE];
       NeutronDetector::MuxPortMap m_muxSensorSelect[TOTAL_MUX_SENSOR_SELECT];
 
-      spiDAT1_t m_msndDataConfig;
-      spiBASE_t *m_msndSpi;
       uint8_t m_spiTxBuff[MSND_TX_PACKET_SIZE_BYTE];
       uint8_t m_spiRxBuff[MSND_RX_PACKET_SIZE_BYTE];
 

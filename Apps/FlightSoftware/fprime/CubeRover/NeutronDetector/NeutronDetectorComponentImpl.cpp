@@ -16,6 +16,9 @@
 
 namespace CubeRover {
 
+  // Global variable required to process etpwm interrupt
+  NeutronDetector::MuxPortMap g_muxReadInput;
+
   // ----------------------------------------------------------------------
   // Construction, initialization, and destruction
   // ----------------------------------------------------------------------
@@ -30,7 +33,7 @@ namespace CubeRover {
     NeutronDetectorComponentImpl(void)
 #endif
   {
-      m_msndSpi = NULL;
+
   }
 
 
@@ -73,9 +76,12 @@ namespace CubeRover {
     uint8_t i;
     // Plate selection is done by activating one output at a time
     // First disable all outputs
-    for(i=0; i< TOTAL_MSND_PLATE; i++){
+    for(i=0; i<TOTAL_MSND_PLATE; i++){
       gioSetBit(m_muxPlateSelect[i].port, m_muxPlateSelect[i].bit, 0);
-      gioSetBit(m_muxSensorSelect[i].port, m_muxSensorSelect[i].bit, 0);      
+    }
+
+    for(i=0; i<TOTAL_MUX_SENSOR_SELECT; i++){
+      gioSetBit(m_muxSensorSelect[i].port, m_muxSensorSelect[i].bit, 0);
     }
 
     // Then activate desired plate
@@ -123,6 +129,9 @@ namespace CubeRover {
 
       m_muxSensorSelect[3].port = gioPORTA;
       m_muxSensorSelect[3].bit = 8;
+
+      g_muxReadInput.port = gioPORTA;
+      g_muxReadInput.bit = 1;
   }
 
 
@@ -132,13 +141,25 @@ namespace CubeRover {
    * @return     The neutron detector error
    */
   NeutronDetector::Error NeutronDetectorComponentImpl ::setupDetector(){
+    // map outputs
     mapMuxOutputs();
 
-    m_msndSpi = SPI_REG_MSND;
-    // SPI data configuration
-    m_msndDataConfig.CS_HOLD = false;
-    m_msndDataConfig.DFSEL = SPI_FMT_0;
-    m_msndDataConfig.WDEL = false;
+    // PWM timer is used to set clock signal
+    // Set through HALCOGEN
+    // HALCOGEN must be set to:
+    // 4000ns period (250KHz)
+    // Up-count mode (by default)
+    // CMPA set to 50% duty cycle, it generates the clock signal output to the sensor
+    // CMPB set 97% duty cycle, it triggers the read of the data
+    // Interrupt is set to trigger on event set to CTR_UP_CMPB
+    // Enable PWM6 interrupt in VIM in Halcogen
+    etpwmInit();
+
+    // Clear event interrupt flag
+    etpwmClearEventFlag(TIMER_EPWM_REG, Event_Interrupt);
+
+    // Start timer B clock
+    etpwmStartTBCLK();
 
     return NeutronDetector::ND_NO_ERROR;
   }
@@ -170,6 +191,50 @@ namespace CubeRover {
     return NeutronDetector::ND_NO_ERROR;
   }
 
+static uint8_t g_bitToRead = 0;
+static uint8_t *g_msndByte = NULL;
+bool g_readCompleted;
+
+extern "C"{
+  void etpwmNotification(etpwmBASE_t *node)
+  {
+      if(g_bitToRead > 0){
+         *g_msndByte |= gioGetBit(g_muxReadInput.port, g_muxReadInput.bit) << (g_bitToRead - 1);
+          g_bitToRead--;
+      }
+      else{
+          g_readCompleted = true; // no more bit to read
+      }
+  }
+}
+
+  NeutronDetector::Error NeutronDetectorComponentImpl ::  spiTransmitAndReceiveData(uint16_t totalBytesToTransmit,
+                                                                                    uint16_t * txBuff,
+                                                                                    uint16_t * rxBuff){
+      uint8_t i;
+
+      g_msndByte = (uint8_t *)rxBuff;
+
+      for(i=0 ; i<totalBytesToTransmit; i++){
+          g_bitToRead = 8; // 8 bits per byte
+          g_readCompleted = false;
+
+          // Enable capture compare. Set event interrupt flag when compare B is triggered
+          // on first event.
+          etpwmEnableInterrupt(TIMER_EPWM_REG, CTR_UP_CMPB, EventPeriod_FirstEvent);
+
+          // block until all bits have been pushed
+          while(g_readCompleted == false);
+
+          // increment pointer
+          g_msndByte++;
+      }
+
+      // Stop the timer interrupt
+      etpwmDisableInterrupt(TIMER_EPWM_REG);
+
+      return NeutronDetector::ND_NO_ERROR;
+  }
 
   /**
    * @brief      Read sensor data over SPI
@@ -185,16 +250,14 @@ namespace CubeRover {
     uint16_t i;
 
     // Set CS low
-    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_NEUTRON_DETECT, 0);
+    gioSetBit(gioPORTA, CS_SPIPORT3_BIT_NEUTRON_DETECT, 0);
 
-    spiTransmitAndReceiveData(m_msndSpi,                /* SPI register handler */
-                              &m_msndDataConfig,        /* SPI configuration register handler */
-                              totalBytesToTransmit,     /* Total byte(s) to transfert to ND */
+    spiTransmitAndReceiveData(totalBytesToTransmit,     /* Total byte(s) to transfert to ND */
                               (uint16_t *)&m_spiTxBuff, /* Tx data */
                               (uint16_t *)&m_spiRxBuff);/* Rx data */
     
     // Set CS high
-    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_NEUTRON_DETECT, 1);
+    gioSetBit(gioPORTA, CS_SPIPORT3_BIT_NEUTRON_DETECT, 1);
 
     // Copy data from buffer to data to return
     for(i=0; i< sizeof(m_spiRxBuff); i++){
@@ -215,6 +278,10 @@ namespace CubeRover {
         NATIVE_UINT_TYPE context
     )
   {
+      // test
+      NeutronDetector::NeutronSensorData test[TOTAL_MSND_PLATE*TOTAL_MSND_PER_PLATE];
+
+      getSensorArray((NeutronDetector::NeutronSensorArray)test);
     // TODO
   }
 

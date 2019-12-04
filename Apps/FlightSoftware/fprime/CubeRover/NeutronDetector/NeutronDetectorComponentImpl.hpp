@@ -19,6 +19,8 @@
 
 // include required peripherals
 #include "gio.h"
+#include "spi.h"
+
 #include "etpwm.h"
 #include "sys_core.h"
 
@@ -32,13 +34,52 @@ namespace CubeRover {
     #define MSND_TX_PACKET_SIZE_BYTE    1
     #define MSND_RX_PACKET_SIZE_BYTE    1
     #define TIMER_EPWM_REG              etpwmREG6
+    #define SPI_REG_PORT                spiPORT3
+    #define SPI_REG                     spiREG3
+    #define SPI3_CS_BIT                 0
+    #define SPI_TX_PACKET_SIZE_BYTE     2
+    #define SPI_RX_PACKET_SIZE_BYTE     1
 
     typedef uint8_t NeutronSensorData;
     typedef NeutronSensorData * NeutronSensorArray;
 
+    typedef uint16_t SensorIterator;
+    typedef uint16_t SensorPlateIterator;
+
     typedef enum Error{
       ND_NO_ERROR = 0
     }NeutronError;
+
+    typedef enum IoExpanderRegAddress{
+        IODIRA      = 0x00,
+        IPOLA       = 0x01,
+        GPINTENA    = 0x02,
+        GPPUA       = 0x06,
+        GPIOA       = 0x09,
+        OLATA       = 0x0A,
+        IODIRB      = 0x10,
+        IPOLB       = 0x11,
+        GPINTENB    = 0x12,
+        GPPUB       = 0x16,
+        GPIOB       = 0x19,
+        OLATB       = 0x1A
+    }IoExpanderRegAddress;
+
+    struct IoconRegBits{
+        uint8_t rsv:1;
+        uint8_t intPol:1;
+        uint8_t odr:1;
+        uint8_t haen:1;
+        uint8_t disslw:1;
+        uint8_t seqop:1;
+        uint8_t mirror:1;
+        uint8_t bank:1;
+    };
+
+    typedef union Ioconreg{
+        uint8_t all;
+        IoconRegBits bit;
+    }Ioconreg;
 
     typedef struct MuxPortMap{
         gioPORT_t *port;
@@ -83,19 +124,23 @@ namespace CubeRover {
 
     private:
       NeutronDetector::Error setMultiplexer(const uint16_t sensor, const uint16_t sensorPlate);
-      NeutronDetector::Error spiReadSensorData(NeutronDetector::NeutronSensorData *data);
-      NeutronDetector::Error spiTransmitAndReceiveData(uint16_t totalBytesToTransmit,
-                                                       uint16_t * txBuff,
-                                                       uint16_t * rxBuff);
+      NeutronDetector::Error readSensorData(NeutronDetector::NeutronSensorData *data);
+      NeutronDetector::Error spiWriteRegister(const NeutronDetector::IoExpanderRegAddress addr, const uint8_t val);
+      NeutronDetector::Error spiReadRegister(const NeutronDetector::IoExpanderRegAddress addr, uint8_t *val);
+      NeutronDetector::Error setupGioExpander();
       void mapMuxOutputs();
+      void resetIO();
 
     private:
       NeutronDetector::NeutronSensorData m_neutronSensorArray[TOTAL_MSND_PLATE*TOTAL_MSND_PER_PLATE];
       NeutronDetector::MuxPortMap m_muxPlateSelect[TOTAL_MSND_PLATE];
       NeutronDetector::MuxPortMap m_muxSensorSelect[TOTAL_MUX_SENSOR_SELECT];
 
-      uint8_t m_spiTxBuff[MSND_TX_PACKET_SIZE_BYTE];
-      uint8_t m_spiRxBuff[MSND_RX_PACKET_SIZE_BYTE];
+      uint8_t m_msndBuff[MSND_RX_PACKET_SIZE_BYTE];
+      uint8_t m_spiTxBuff[SPI_TX_PACKET_SIZE_BYTE];
+      uint8_t m_spiRxBuff[SPI_RX_PACKET_SIZE_BYTE];
+
+      spiDAT1_t m_spiDataConfigHandler;
 
       // ----------------------------------------------------------------------
       // Handler implementations for user-defined typed input ports

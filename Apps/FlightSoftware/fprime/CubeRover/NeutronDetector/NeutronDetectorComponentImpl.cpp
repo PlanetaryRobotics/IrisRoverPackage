@@ -73,12 +73,10 @@ namespace CubeRover {
    */
   NeutronDetector::Error NeutronDetectorComponentImpl :: setMultiplexer(const NeutronDetector::SensorIterator sensor,
                                                                         const NeutronDetector::SensorPlateIterator sensorPlate){
-    uint8_t i;
     // Plate selection is done by activating one output at a time
     // First disable all outputs
-    resetIO();
-
-
+    spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOA, m_plateLookUpTable[sensorPlate]);
+    spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOB, m_decoderLookUpTable[sensor]);
 
     return NeutronDetector::ND_NO_ERROR;
   }
@@ -89,17 +87,18 @@ namespace CubeRover {
    * @return     The neutron detector error
    */
   NeutronDetector::Error NeutronDetectorComponentImpl ::setupDetector(){
-    // PWM timer is used to set clock signal
-    // Set through HALCOGEN
-    // HALCOGEN must be set to:
-    // 4000ns period (250KHz)
-    // Up-count mode (by default)
-    // CMPA set to 50% duty cycle, it generates the clock signal output to the sensor
-    // CMPB set 97% duty cycle, it triggers the read of the data
-    // Interrupt is set to trigger on event set to CTR_UP_CMPB
-    // Enable PWM6 interrupt in VIM in Halcogen
+
+    // PWM timer used to generate the clock signal
+    // output is toggled from the PWM ISR on period event
     etpwmInit();
     spiInit();
+
+    // Accelerometer data configuration
+    m_spiDataConfigHandler.CS_HOLD = false;
+    m_spiDataConfigHandler.CS_HOLD = true;
+    m_spiDataConfigHandler.DFSEL = SPI_FMT_0;
+    m_spiDataConfigHandler.WDEL = false;
+    m_spiDataConfigHandler.CSNR = 0;
 
     g_muxReadInput.port = gioPORTA;
     g_muxReadInput.bit = 0;
@@ -116,26 +115,81 @@ namespace CubeRover {
   }
   
   NeutronDetector::Error NeutronDetectorComponentImpl :: spiWriteRegister(const NeutronDetector::IoExpanderRegAddress addr, const uint8_t val){
-      m_spiTxBuff[0] = 0x40; // address 7 MSB, write bit 8
+
+      m_spiTxBuff[0] = GIO_DEV_PREFIX_ADDRESS + GIO_DEV_ADDRESS + 0x00 /* write */;
       m_spiTxBuff[1] = addr;
+      m_spiTxBuff[2] = val;
 
       // set CS low
       gioSetBit(SPI_REG_PORT, SPI3_CS_BIT, 0);
-      spiTransmitData(SPI_REG, &m_spiDataConfigHandler, sizeof(m_spiTxBuff), (uint16_t *)m_spiTxBuff);
 
+      // send data
+      spiTransmitData(SPI_REG, &m_spiDataConfigHandler, 3 /*3 bytes to send */, (uint16_t *)m_spiTxBuff);
 
+      // set CS high
       gioSetBit(SPI_REG_PORT, SPI3_CS_BIT, 1);
 
       return NeutronDetector::ND_NO_ERROR;
   }
 
-  NeutronDetector::Error NeutronDetectorComponentImpl :: spiReadRegister(const NeutronDetector::IoExpanderRegAddress addr, uint8_t *val){
-      m_spiTxBuff[0] = 0x41; // address 7 MSB, read bit 8
+  NeutronDetector::Error NeutronDetectorComponentImpl :: spiReadRegister(const NeutronDetector::IoExpanderRegAddress addr,
+                                                                         uint8_t *val,
+                                                                         const uint8_t sizeOfData){
+
+      m_spiTxBuff[0] = GIO_DEV_PREFIX_ADDRESS + GIO_DEV_ADDRESS + 0x01 /* read */;
       m_spiTxBuff[1] = addr;
+
+      if(sizeOfData + 2 > SPI_RX_MAX_PACKET_SIZE_BYTE){
+          return NeutronDetector::ND_DATA_SIZE_ERROR;
+      }
+
+      // set CS low
+      gioSetBit(SPI_REG_PORT, SPI3_CS_BIT, 0);
+
+      // send/receive data
+      spiTransmitData(SPI_REG, &m_spiDataConfigHandler, 3 /*3 bytes to send */, (uint16_t *)m_spiTxBuff);
+      spiReceiveData(SPI_REG, &m_spiDataConfigHandler, sizeOfData, (uint16_t *)m_spiRxBuff);
+
+      // set CS high
+      gioSetBit(SPI_REG_PORT, SPI3_CS_BIT, 1);
+
       return NeutronDetector::ND_NO_ERROR;
   }
 
   NeutronDetector::Error NeutronDetectorComponentImpl :: setupGioExpander(){
+      // Configure all pints as outputs
+      spiWriteRegister(NeutronDetector::IoExpanderRegAddress::IODIRA, 0x00 /* all outputs */);
+      spiWriteRegister(NeutronDetector::IoExpanderRegAddress::IODIRB, 0x00 /* all outputs */);
+      spiWriteRegister(NeutronDetector::IoExpanderRegAddress::IPOLA, 0x00 /* no polarity change */);
+      spiWriteRegister(NeutronDetector::IoExpanderRegAddress::IPOLB, 0x00 /* no polarity change  */);
+      spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOA, 0xFF /* all outputs set high*/);
+      spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOB, 0xFF /* all outputs set high*/);
+
+      // Plate look-up is active low
+      m_plateLookUpTable[0] = 0b11110;
+      m_plateLookUpTable[1] = 0b11101;
+      m_plateLookUpTable[2] = 0b11011;
+      m_plateLookUpTable[3] = 0b10111;
+      m_plateLookUpTable[4] = 0b01111;
+
+      // Decoder look-up table per RDT documentation
+      m_decoderLookUpTable[0] = 12;
+      m_decoderLookUpTable[1] = 8;
+      m_decoderLookUpTable[2] = 4;
+      m_decoderLookUpTable[3] = 0;
+      m_decoderLookUpTable[4] = 13;
+      m_decoderLookUpTable[5] = 9;
+      m_decoderLookUpTable[6] = 5;
+      m_decoderLookUpTable[7] = 1;
+      m_decoderLookUpTable[8] = 14;
+      m_decoderLookUpTable[9] = 10;
+      m_decoderLookUpTable[10] = 6;
+      m_decoderLookUpTable[11] = 2;
+      m_decoderLookUpTable[12] = 15;
+      m_decoderLookUpTable[13] = 11;
+      m_decoderLookUpTable[14] = 7;
+      m_decoderLookUpTable[15] = 3;
+
       return NeutronDetector::ND_NO_ERROR;
   }
 
@@ -192,7 +246,8 @@ extern "C"{
 }
 
   void NeutronDetectorComponentImpl :: resetIO(){
-
+      spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOA, 0xFF /* all outputs */);
+      spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOB, 0xFF /* all outputs */);
   }
 
   /**

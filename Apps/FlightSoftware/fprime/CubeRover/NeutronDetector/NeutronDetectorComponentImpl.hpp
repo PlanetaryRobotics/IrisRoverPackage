@@ -34,11 +34,14 @@ namespace CubeRover {
     #define MSND_TX_PACKET_SIZE_BYTE    1
     #define MSND_RX_PACKET_SIZE_BYTE    1
     #define TIMER_EPWM_REG              etpwmREG6
+
     #define SPI_REG_PORT                spiPORT3
     #define SPI_REG                     spiREG3
     #define SPI3_CS_BIT                 0
-    #define SPI_TX_PACKET_SIZE_BYTE     2
-    #define SPI_RX_PACKET_SIZE_BYTE     1
+    #define SPI_TX_MAX_PACKET_SIZE_BYTE 3
+    #define SPI_RX_MAX_PACKET_SIZE_BYTE 1
+    #define GIO_DEV_PREFIX_ADDRESS      0x40
+    #define GIO_DEV_ADDRESS             0x00
 
     typedef uint8_t NeutronSensorData;
     typedef NeutronSensorData * NeutronSensorArray;
@@ -47,7 +50,8 @@ namespace CubeRover {
     typedef uint16_t SensorPlateIterator;
 
     typedef enum Error{
-      ND_NO_ERROR = 0
+      ND_NO_ERROR = 0,
+      ND_DATA_SIZE_ERROR = -1,
     }NeutronError;
 
     typedef enum IoExpanderRegAddress{
@@ -126,7 +130,7 @@ namespace CubeRover {
       NeutronDetector::Error setMultiplexer(const uint16_t sensor, const uint16_t sensorPlate);
       NeutronDetector::Error readSensorData(NeutronDetector::NeutronSensorData *data);
       NeutronDetector::Error spiWriteRegister(const NeutronDetector::IoExpanderRegAddress addr, const uint8_t val);
-      NeutronDetector::Error spiReadRegister(const NeutronDetector::IoExpanderRegAddress addr, uint8_t *val);
+      NeutronDetector::Error spiReadRegister(const NeutronDetector::IoExpanderRegAddress addr, uint8_t *val, const uint8_t sizeOfData);
       NeutronDetector::Error setupGioExpander();
       void mapMuxOutputs();
       void resetIO();
@@ -137,8 +141,10 @@ namespace CubeRover {
       NeutronDetector::MuxPortMap m_muxSensorSelect[TOTAL_MUX_SENSOR_SELECT];
 
       uint8_t m_msndBuff[MSND_RX_PACKET_SIZE_BYTE];
-      uint8_t m_spiTxBuff[SPI_TX_PACKET_SIZE_BYTE];
-      uint8_t m_spiRxBuff[SPI_RX_PACKET_SIZE_BYTE];
+      uint8_t m_spiTxBuff[SPI_TX_MAX_PACKET_SIZE_BYTE];
+      uint8_t m_spiRxBuff[SPI_RX_MAX_PACKET_SIZE_BYTE];
+      uint8_t m_decoderLookUpTable[TOTAL_MSND_PER_PLATE];
+      uint8_t m_plateLookUpTable[TOTAL_MSND_PLATE];
 
       spiDAT1_t m_spiDataConfigHandler;
 

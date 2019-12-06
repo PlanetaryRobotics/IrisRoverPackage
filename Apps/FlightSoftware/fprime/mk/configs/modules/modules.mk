@@ -203,7 +203,6 @@ acdev_MODULES := \
 	
 CubeRover_MODULES := \
 	CubeRover/Top \
-	CubeRover/MotorControl \
 	CubeRover/IMU \
 	$(FW_MODULES) \
 	$(OS_MODULES) \

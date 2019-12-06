@@ -35,7 +35,6 @@ extern Svc::CubeRoverTimeImpl cubeRoverTime;
 // Telemetric channel component that takes care of channeling all data to a central place
 extern Svc::TlmChanImpl tlmChan;
 
-<<<<<<< HEAD
 // Service that handle active logging
 extern Svc::ActiveLoggerImpl activeLogger;
 

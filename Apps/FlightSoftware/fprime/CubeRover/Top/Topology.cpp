@@ -76,14 +76,15 @@ Svc::TlmChanImpl tlmChan(
 Svc::CommandDispatcherImpl cmdDispatcher(
 #if FW_OBJECT_NAMES == 1
         "CmdDispatcher"
+        );
 #endif
 
 // IMU component used to keep track of orientation of the rover
 CubeRover::ImuComponentImpl imu(
 #if FW_OBJECT_NAMES == 1
         "IMU"
+        );
 #endif
-);
 
 /**
  * @brief      Run 1 cycle (debug)

@@ -17,7 +17,6 @@
 #include "Fw/Types/BasicTypes.hpp"
 #include "i2c.h"
 #include "Include/CubeRoverConfig.hpp"
->>>>>>> clean up dependency to active logger and did some code clean-up
 
 namespace CubeRover {
 
@@ -40,6 +39,15 @@ namespace CubeRover {
     MotorControlComponentImpl(void)
 #endif
   {
+      m_encoderTickToCmRatio = 0;
+      m_fwDist = 0;
+      m_fwSpeed = 0;
+      m_leftSpeed = 0;
+      m_reDist = 0;
+      m_reSpeed = 0;
+      m_rightAngle = 0;
+      m_leftAngle = 0;
+      m_rightSpeed = 0;
   }
 
 
@@ -723,4 +731,5 @@ namespace CubeRover {
 
     return MC_NO_ERROR;
   }
+
 } // end namespace CubeRover

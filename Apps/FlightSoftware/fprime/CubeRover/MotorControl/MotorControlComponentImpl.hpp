@@ -123,6 +123,59 @@ namespace CubeRover {
       // ----------------------------------------------------------------------
       // Command handler implementations
       // ----------------------------------------------------------------------
+
+      //! Implementation for MC_DrivingConfiguration command handler
+      //! Configure forward command
+      void MC_DrivingConfiguration_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          CommandList CommandConfiguration, 
+          ParameterList Parameter, 
+          U8 Value 
+      );
+
+      //! Implementation for MC_ExecuteDriving command handler
+      //! Execute one configured command
+      void MC_ExecuteDriving_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          DriveCommandList DrivingCommand 
+      );
+
+      //! Implementation for MC_TuningParameters command handler
+      //! Contains all motor control parameters
+      void MC_TuningParameters_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          tuningParameterList TuningParameter, 
+          U16 Value 
+      );
+
+      //! Implementation for MC_AccelerationProfiles command handler
+      //! Contains acceleration and deceleration profile
+      void MC_AccelerationProfiles_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          accelerationParameterList AccelerationParameter, 
+          U16 Value 
+      );
+
+      //! Implementation for MC_StallDetection command handler
+      //! Enable / disable detection of motor stall
+      void MC_StallDetection_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          motorStallEnableList motorStallEnable 
+      );
+
+      //! Implementation for MC_PositionCounterReset command handler
+      //! Reset position counter
+      void MC_PositionCounterReset_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          U8 ResetPositionCounter 
+      );
+
     private:
       uint8_t txData[MC_BUFFER_MAX_SIZE];
       uint8_t rxData[MC_BUFFER_MAX_SIZE];

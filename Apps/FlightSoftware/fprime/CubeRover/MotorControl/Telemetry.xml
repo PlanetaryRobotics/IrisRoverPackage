@@ -1,11 +1,39 @@
 <telemetry>
 
-  <channel
-    id="0"
-    name="MotorControl_ledState"
-    data_type="U8"
-  >
-    <comment>The led status</comment>
+  <channel id="0" name="MC_FL_Current" data_type="U16">
+    <comment>Front Left motor current in milliAmps</comment>
   </channel>
-
+  <channel id="1" name="MC_FR_Current" data_type="U16">
+  	<comment>Front Right motor current in milliAmps</comment>
+  </channel>
+  <channel id="2" name="MC_RL_Current" data_type="U16">
+  	<comment>Rear Left motor current in milliAmps</comment>
+  </channel>
+  <channel id="3" name="MC_RR_Current" data_type="U16">
+  	<comment>Rear Right motor current in milliAmps</comment>
+  </channel>
+  <channel id="4" name="MC_FL_Speed" data_type="I32">
+  	<comment>Front Left motor speed (RPM)</comment>
+  </channel>
+  <channel id="5" name="MC_FR_Speed" data_type="I32">
+  	<comment>Front Right motor speed (RPM)</comment>
+  </channel>
+  <channel id="6" name="MC_RL_Speed" data_type="I32">
+  	<comment>Rear Left motor speed (RPM)</comment>
+  </channel>
+  <channel id="7" name="MC_RR_Speed" data_type="I32">
+  	<comment>Rear Right motor speed (RPM)</comment>
+  </channel>
+  <channel id="8" name="MC_FL_Revolution" data_type="I32">
+    <comment>Front Left motor Revolution</comment>
+  </channel>
+  <channel id="9" name="MC_FR_Revolution" data_type="I32">
+  	<comment>Front Right motor Revolution</comment>
+  </channel>
+  <channel id="10" name="MC_RL_Revolution" data_type="I32">
+  	<comment>Rear Left motor Revolution</comment>
+  </channel>
+  <channel id="11" name="MC_RR_Revolution" data_type="I32">
+  	<comment>Rear Right motor Revolution</comment>
+  </channel>
 </telemetry>

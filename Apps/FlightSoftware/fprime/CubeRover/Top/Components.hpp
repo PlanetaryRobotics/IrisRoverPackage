@@ -21,7 +21,6 @@
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
 
 // Include component exclusive to CubeRover project
-#include "MotorControl/MotorControlComponentImpl.hpp"
 #include "CameraInterface/CameraInterfaceComponentImpl.hpp"
 
 // Block driver sequencing F-Prime and other sync events
@@ -43,10 +42,6 @@ extern Svc::TlmChanImpl tlmChan;
 extern Svc::CommandDispatcherImpl cmdDispatcher;
 
 // Components exclusive to CubeRover
-extern CubeRover::MotorControlComponentImpl motorControl;
 extern CubeRover::CameraInterfaceComponentImpl cameraInterface;
-
-// FreeRTOS Serial driver to interface radio module
-extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

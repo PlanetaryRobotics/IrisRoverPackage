@@ -76,6 +76,6 @@
 // CS pin allocation for SPI interface
 #define CS_SPIPORT3_BIT_EXT_FLASH   1
 #define CS_SPIPORT3_BIT_FPGA        1
-#define EXTFLASH_SPI_REG            spiREG3
+#define CAMERA_XFCE_SPI_REG         spiREG3
 
 #endif /* INCLUDE_CUBEROVERCONFIG_HPP_ */

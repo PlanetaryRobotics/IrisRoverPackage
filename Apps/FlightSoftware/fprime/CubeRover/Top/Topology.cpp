@@ -136,5 +136,5 @@ void constructApp(void){
                         CAMERA_INTERFACE_AFF, /* CPU priority */
                         CAMERA_INTERFACE_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 
-  cameraInterface.setup(EXTFLASH_SPI_REG, EXTFLASH_SPI_REG);
+  cameraInterface.setup(CAMERA_XFCE_SPI_REG);
 }

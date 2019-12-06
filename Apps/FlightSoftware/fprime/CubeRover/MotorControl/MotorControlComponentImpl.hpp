@@ -14,6 +14,7 @@
 #define MotorControl_HPP
 
 #include "CubeRover/MotorControl/MotorControlComponentAc.hpp"
+#include "i2c.h"
 
 namespace CubeRover {
 

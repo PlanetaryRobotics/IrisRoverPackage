@@ -4,6 +4,8 @@
 #include <Fw/Cfg/Config.hpp>
 #include <Fw/Types/BasicTypes.hpp>
 
+#include "FreeRTOS/S25fl064l.hpp"
+
 namespace Os {
 
     // This class encapsulates a very simple file interface that has the most often-used features
@@ -55,6 +57,11 @@ namespace Os {
             NATIVE_INT_TYPE m_fd; //!<  Stored file descriptor
             Mode m_mode; //!<  Stores mode for error checking
             NATIVE_INT_TYPE m_lastError; //!<  stores last error
+            
+            // required to run 
+            S25fl064l m_flashMem;
+            S25fl064l::MemAlloc m_headerMemAlloc;
+
 
     };
 

@@ -31,6 +31,9 @@
 <!-- Declaration of the command dispatcher -->
   <instance namespace="Svc" name="cmdDispatcher" type="CommandDispatcher" base_id="201" base_id_window="20" />
 
+<!-- Declaration of the FreeRTOS serial driver interface -->
+  <instance namespace="Drv" name="radioSerialInterface" type="FreeRtosSerialDriver" base_id="181" base_id_window="20" />
+
 <!-- Declaration of the IMU driver interface -->
   <instance namespace="CubeRover" name="imu" type="Imu" base_id="201" base_id_window="20" />
 

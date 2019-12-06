@@ -20,6 +20,9 @@
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
 
+// Include component exclusive to CubeRover project
+#include "IMU/ImuComponentImpl.hpp"
+
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
 

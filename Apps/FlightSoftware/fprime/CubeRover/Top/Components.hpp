@@ -19,8 +19,6 @@
 #include <Svc/TlmChan/TlmChanImpl.hpp>
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
-// Include component exclusive to CubeRover project
-#include "MotorControl/MotorControlComponentImpl.hpp"
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -39,9 +37,6 @@ extern Svc::TlmChanImpl tlmChan;
 
 // Service that handle active logging
 extern Svc::ActiveLoggerImpl activeLogger;
-
-// Components exclusive to CubeRover
-extern CubeRover::MotorControlComponentImpl motorControl;
 
 // FreeRTOS Serial driver to interface radio module
 extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;

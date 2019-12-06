@@ -3,18 +3,13 @@
 <!-- Import components to project -->
 <!-- Drivers -->
   <import_component_type>Drv/BlockDriver/BlockDriverComponentAi.xml</import_component_type>
-  <import_component_type>Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentAi.xml</import_component_type>
 
 <!-- Services -->
   <import_component_type>Svc/RateGroupDriver/RateGroupDriverComponentAi.xml</import_component_type>
   <import_component_type>Svc/ActiveRateGroup/ActiveRateGroupComponentAi.xml</import_component_type>
   <import_component_type>Svc/Time/TimeComponentAi.xml</import_component_type>
   <import_component_type>Svc/TlmChan/TlmChanComponentAi.xml</import_component_type>
-  <import_component_type>Svc/ActiveLogger/ActiveLoggerComponentAi.xml</import_component_type>
   <import_component_type>Svc/CmdDispatcher/CommandDispatcherComponentAi.xml</import_component_type>
-
-<!-- Component exclusive to CubeRover -->
-  <import_component_type>CubeRover/MotorControl/MotorControlComponentAi.xml</import_component_type>
 
 <!-- Declaration of block driver that drive F-prime clocking and other async event -->
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
@@ -30,16 +25,6 @@
 
 <!-- Declaration of telemetric chan that gathers all telemetric parameters (synchronous, synchronized by rate group low freq) -->
   <instance namespace="Svc" name="tlmChan" type="TlmChan" base_id="121"  base_id_window="20" />
-
-<!-- Declaration of the passive text logger component that logs events in non-volatile memory -->
-<!-- For CubeRover - we use external FRAM memory to store data, i.e. a custom implementation of that component is necessary -->
-  <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="141" base_id_window="20" />
-
-<!-- Declaration of motor control component exclusive to CubeRover -->
-  <instance namespace="CubeRover" name="motorControl" type="MotorControl" base_id="161" base_id_window="20" />
-
-<!-- Declaration of the FreeRTOS serial driver interface -->
-  <instance namespace="Drv" name="radioSerialInterface" type="FreeRtosSerialDriver" base_id="181" base_id_window="20" />
 
 <!-- Declaration of the command dispatcher -->
   <instance namespace="Svc" name="cmdDispatcher" type="CommandDispatcher" base_id="201" base_id_window="20" />
@@ -88,12 +73,6 @@
      *********************************************************************************************************
      -->
 
-  <!-- Connect output rategroup sched to motor control scheduled in -->
-  <connection name = "rgMedFreq_to_MotorCtrl_clk">
-    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
-    <target component = "motorControl" port = "schedIn" type = "Sched" num = "0" />
-  </connection>
-
 <!-- *********************************************************************************************************
         CONNECTION OF TIME PORTS BETWEEN CUBEROVER TIME ALL TIME-STAMPED COMPONENTS
      ********************************************************************************************************* 
@@ -121,24 +100,6 @@
   <connection name = "blockDriver_to_cubeRoverTime">
     <source component = "blockDriver" port = "Time" type = "Time" num = "0" />
     <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0"/>
-  </connection>
-
-  <!-- Connection of time between cubeRoverTime and active logger component -->
-  <connection name = "activeLogger_to_cubeRoverTime">
-    <source component = "activeLogger" port = "Time" type = "Time" num = "0" />
-    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
-  </connection>
-
-  <!-- Connection of time between cubeRoverTime and motor control component -->
-  <connection name = "motorControl_to_cubeRoverTime">
-    <source component = "motorControl" port = "timeCaller" type = "Time" num = "0" />
-    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num= "0" />
-  </connection>
-
-  <!-- Connection of time betweeen cubeRoverTime to radioSerialInterface -->
-  <connection name = "radioSerialInterface_to_cubeRoverTime">
-    <source component = "radioSerialInterface" port="Time" type = "Time" num = "0" />
-    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
   </connection>
 
 <!-- *********************************************************************************************************
@@ -175,41 +136,6 @@
   <connection name = "radioSerialInterface_to_chanTlm">
     <source component = "radioSerialInterface" port = "Tlm" type = "Tlm" num = "0" />
     <target component = "tlmChan" port = "TlmRecv" type = "Tlm" num = "0" />
-  </connection>
-
-  <!-- *********************************************************************************************************
-        CONNECTION OF MONITORED COMPONENTS TO TELEMETRIC ACTIVE LOGGER COMPONENT
-       ********************************************************************************************************* 
-      -->
-
-      <!-- Rate group low freq to active logger -->
-  <connection name = "rgLowFreq_to_aLogger">
-    <source component = "rateGroupLowFreq" port = "Log" type = "Log" num = "0" />
-    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
-  </connection>
-
-      <!-- Rate group med freq to active logger -->
-  <connection name = "rgMedFreq_to_aLogger">
-    <source component = "rateGroupMedFreq" port = "Log" type = "Log" num = "0" />
-    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
-  </connection>
-
-      <!-- Rate group high freq to active logger -->
-  <connection name = "rgHiFreq_to_aLogger">
-    <source component = "rateGroupHiFreq" port = "Log" type = "Log" num = "0" />
-    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
-  </connection>
-
-      <!-- Radio serial componnet to active logger -->
-  <connection name = "radioSerialInterface_to_aLogger" >
-    <source component = "radioSerialInterface" port = "Log" type = "Log" num = "0" />
-    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
-  </connection>
-
-      <!-- command dispatcher componnet to active logger -->
-  <connection name = "cmdDispatcher_to_aLogger" >
-    <source component = "cmdDispatcher" port = "Log" type = "Log" num = "0" />
-    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
   </connection>
 
 </assembly>

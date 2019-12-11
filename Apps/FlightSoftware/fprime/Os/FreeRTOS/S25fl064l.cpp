@@ -883,9 +883,17 @@ S25fl064l::S25fl064lError S25fl064l :: writeDataToFlash(S25fl064l::MemAlloc *all
 
     // Overwrite data in the m_sectorBackup. Don't copy data that overlap
     // sectors
-    memcpy(m_sectorBackup + alloc->startAddress + offset + (sectorOverlaps*SECTOR_SIZE) - sectorAddress,
-           data,
-           bytesToCopy);
+    // If data is NULL, then fill it with NULL character
+    if(data != NULL){
+      memcpy(m_sectorBackup + alloc->startAddress + offset + (sectorOverlaps*SECTOR_SIZE) - sectorAddress,
+             data,
+             bytesToCopy);
+    }
+    else{
+      for(uint16_t i=0; i<bytesToCopy; i++){
+        m_sectorBackup[alloc->startAddress + offset + (sectorOverlaps*SECTOR_SIZE) - sectorAddress + i] = '\0';
+      }
+    }
 
     // Program the whole sector using page programming with updated data
     // Programming is done aligned with page addresses

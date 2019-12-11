@@ -14,19 +14,6 @@ class S25fl064l{
   #define CS_SPI_PORT spiPORT3
   #define CS_SPI_BIT  0
 
-  typedef enum S25fl064lError{
-    S25FL064L_NO_ERROR = 0,
-    S25FL064L_UNEXPECTED_ERROR = -1,
-    S25FL064L_INCORRECT_FLASH_MEMORY = -2,
-    S25FL064L_WRONG_DATA_SIZE = -3,
-    S25FL064L_FAIL_ERASE_CHIP = -4,
-    S25FL064L_FAIL_BLOCK_ERASE = -5,
-    S25FL064L_FAIL_PAGE_PROGRAM = -6,
-    S25FL064L_FAIL_SECTOR_ERASE = -7,
-    S25FL064L_FAIL_MEM_ALLOCATION = -8,
-    S25FL064L_FAIL_WRITE_DATA_FLASH = -9,
-    S25FL064L_FAIL_HALF_BLOCK_ERASE = -10
-  }S25fl064lError;
 
   enum AddressLengthFormat{
     ADDRESS_LENGTH_3_BYTES  = 3,
@@ -165,7 +152,7 @@ class S25fl064l{
   #define HALF_BLOCK_SIZE         0x8000    // 32KB
   #define BLOCK_SIZE              0x10000   // 64KB
 
-  #define MAX_MEMORY_ADDRESS      0x7FFFFF            // 64MB
+  #define MAX_MEMORY_ADDRESS      0x7FFFFF            // 64Mb
   #define MAX_BLOCK_RANGE         128                 // There is 128 blocks (from block #0 to block #127)
   #define MAX_HALF_BLOCK_RANGE    MAX_BLOCK_RANGE*2 
   #define MAX_SECTOR_RANGE        MAX_BLOCK_RANGE*16  // There are 16 sectors per block (16*128 = 2048 sectors)
@@ -176,14 +163,6 @@ class S25fl064l{
   #define FLASH_DEVICE_ID_MSB     0x60
   #define FLASH_DEVICE_ID_LSB     0x17
 
-  #define SIZE_NAVIGATION_IMAGE1  65536 // bytes
-  #define SIZE_NAVIGATION_IMAGE2  65536 // bytes
-  #define SIZE_SCIENCE_IMAGE      5000000 //bytes
-
-  typedef struct MemAlloc{
-    Address startAddress;
-    uint32_t reservedSize;
-  }MemAlloc;
 
   typedef enum FlashSpiCommands{
     // Read Device ID
@@ -267,6 +246,26 @@ class S25fl064l{
     RES =         0xAB    // Release from deep power down / device id
   }FlashSpiCommands;
 
+  public:
+    typedef struct MemAlloc{
+      Address startAddress;
+      uint32_t reservedSize;
+    }MemAlloc;
+
+  typedef enum S25fl064lError{
+    S25FL064L_NO_ERROR = 0,
+    S25FL064L_UNEXPECTED_ERROR = -1,
+    S25FL064L_INCORRECT_FLASH_MEMORY = -2,
+    S25FL064L_WRONG_DATA_SIZE = -3,
+    S25FL064L_FAIL_ERASE_CHIP = -4,
+    S25FL064L_FAIL_BLOCK_ERASE = -5,
+    S25FL064L_FAIL_PAGE_PROGRAM = -6,
+    S25FL064L_FAIL_SECTOR_ERASE = -7,
+    S25FL064L_FAIL_MEM_ALLOCATION = -8,
+    S25FL064L_FAIL_WRITE_DATA_FLASH = -9,
+    S25FL064L_FAIL_HALF_BLOCK_ERASE = -10
+  }S25fl064lError;
+
   //-------------------------------------------------------------------------------------------
   // Functions specific to external memory
   public:
@@ -280,7 +279,7 @@ class S25fl064l{
                                 const uint32_t offset,
                                 uint8_t *data,
                                 const uint16_t dataSize);
-    S25fl064lError setupDevice(spiBASE_t *flashSpi);
+    S25fl064lError setupDevice();
 
   private:
     S25fl064lError flashSpiReadData(const S25fl064l::FlashSpiCommands cmd,

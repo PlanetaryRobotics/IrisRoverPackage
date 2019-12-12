@@ -43,13 +43,11 @@ SVC_MODULES := \
 	Svc/CmdDispatcher \
 	Svc/CmdSequencer \
 	Svc/Seq \
-	Svc/GndIf \
+	Svc/GroundInterface \
 	Svc/ActiveRateGroup \
 	Svc/RateGroupDriver \
 	Svc/Sched \
 	Svc/ComLogger \
-	Svc/SocketGndIf \
-	Svc/BuffGndSockIf \
 	Svc/TlmChan \
 	Svc/PassiveTextLogger \
 	Svc/PassiveConsoleTextLogger \
@@ -203,7 +201,6 @@ acdev_MODULES := \
 	
 CubeRover_MODULES := \
 	CubeRover/Top \
-	CubeRover/MotorControl \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

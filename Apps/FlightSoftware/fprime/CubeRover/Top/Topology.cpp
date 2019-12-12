@@ -78,6 +78,13 @@ Svc::CommandDispatcherImpl cmdDispatcher(
 #endif
 );
 
+// --------------------------------------------------------------------------
+Svc::GroundInterfaceComponentImpl groundInterface(
+#if FW_OBJECT_NAMES == 1
+        "GroundInterface"
+#endif
+);
+
 /**
  * @brief      Run 1 cycle (debug)
  */
@@ -105,6 +112,9 @@ void constructApp(void){
 
   // Initialize the telemetric channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
+
+  // Initialize the ground interface (active)
+  groundInterface.init(0);
 
   // Construct the application and make all connections between components
   constructCubeRoverArchitecture();

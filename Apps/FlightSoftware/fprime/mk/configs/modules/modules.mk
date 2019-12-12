@@ -203,7 +203,8 @@ acdev_MODULES := \
 	
 CubeRover_MODULES := \
 	CubeRover/Top \
-	CubeRover/MotorControl \
+	CubeRover/CubeRoverPorts \
+	CubeRover/ModeManager \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

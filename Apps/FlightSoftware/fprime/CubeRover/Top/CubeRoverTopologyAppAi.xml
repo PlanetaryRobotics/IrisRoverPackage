@@ -10,7 +10,6 @@
   <import_component_type>Svc/Time/TimeComponentAi.xml</import_component_type>
   <import_component_type>Svc/TlmChan/TlmChanComponentAi.xml</import_component_type>
   <import_component_type>Svc/CmdDispatcher/CommandDispatcherComponentAi.xml</import_component_type>
-  <import_component_type>Svc/Health/HealthComponentAi.xml</import_component_type>
   <import_component_type>Svc/GroundInterface/GroundInterfaceComponentAi.xml</import_component_type>
 
 <!-- Declaration of block driver that drive F-prime clocking and other async event -->
@@ -31,11 +30,8 @@
 <!-- Declaration of the command dispatcher -->
   <instance namespace="Svc" name="cmdDispatcher" type="CommandDispatcher" base_id="201" base_id_window="20" />
 
-<!-- Declaration of the health service -->
-  <instance namespace="Svc" name="health" type="Health" base_id="221" base_id_window="20" />
-
 <!-- Declaration of the ground interface service -->
-  <instance namespace="Svc" name="groundInterface" type="GroundInterface" base_id="241" base_id_window="20" />
+  <instance namespace="Svc" name="groundInterface" type="GroundInterface" base_id="221" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -76,10 +72,6 @@
     <target component = "tlmChan" port = "Run" type = "Sched" num = "0"/>
   </connection>
 
-  <connection name = "rgLowFreq_to_health_clk">
-    <source component = "rateGroupLowFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
-    <target component = "health" port = "Run" type = "Sched" num = "0"/>
-  </connection>
 <!-- *********************************************************************************************************
         CONNECTION BETWEEN MEDIUM FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
      *********************************************************************************************************
@@ -89,15 +81,9 @@
         CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
      *********************************************************************************************************
      -->
-
-  <connection name = "rgHiFreq_to_tlmChan_clk">
-    <source component = "rateGroupHiFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
-    <target component = "cmdDispatcher" port = "Run" type = "Sched" num = "0"/>
-  </connection>
-
   <connection name = "rgHiFreq_to_groundInterface_clk">
     <source component = "rateGroupHiFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
-    <target component = "groundInterface" port = "Run" type = "Sched" num = "0" />
+    <target component = "groundInterface" port = "schedIn" type = "Sched" num = "0" />
   </connection>
 
 <!-- *********************************************************************************************************

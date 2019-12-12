@@ -19,6 +19,7 @@
 #include <Svc/TlmChan/TlmChanImpl.hpp>
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
+#include <Svc/GroundInterface/GroundInterfaceImpl.hpp>
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -37,6 +38,9 @@ extern Svc::TlmChanImpl tlmChan;
 
 // Service that handle active logging
 extern Svc::ActiveLoggerImpl activeLogger;
+
+// Interface to ground for radio
+extern Svc::GroundInterfaceComponentImpl groundInterface;
 
 // FreeRTOS Serial driver to interface radio module
 extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;

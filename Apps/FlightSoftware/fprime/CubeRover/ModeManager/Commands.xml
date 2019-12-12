@@ -1,0 +1,21 @@
+<!--============ CmdSequencer Commands =================================== -->
+
+<commands>
+	<command kind="async" opcode="0" mnemonic="GOTO_MODE">
+		<comment>Goto a specifified mode</comment>
+		<args>
+			<arg type="ENUM" name="Mode_cmd">
+                <enum name="OpModeCmd">
+	                <item name="IDLE_CMD"/>
+	                <item name="SLEEP_CMD"/>
+	                <item name="FAULT_CMD"/>
+	                <item name="RESET_CMD"/>
+	                <!-- <item name="DRIVE_CMD"/>
+	                <item name="IMAGE_CMD"/> -->
+	                <item name="ENUM_ERROR_CMD"/>         
+                </enum>
+			</arg>
+		</args>
+	</command>
+
+</commands>

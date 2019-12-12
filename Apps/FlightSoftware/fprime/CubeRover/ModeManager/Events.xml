@@ -1,0 +1,70 @@
+<!--====================================================================== 
+
+  CubeRover
+  ModeManager
+  Events
+
+======================================================================-->
+
+<events>
+  <event
+    id="0"
+    name="ModeChanged"
+    severity="ACTIVITY_LO"
+    format_string="Past Mode: %s, Current Mode: %s">
+      <comment>Rover Mode Changed</comment>
+      <args>
+        <arg 
+          type="ENUM" 
+          name="past_mode">
+            <enum name="OpModeEvPast">
+                <item name="IDLE_EV_PAST"/>
+                <item name="SLEEP_EV_PAST"/>
+                <item name="FAULT_EV_PAST"/>
+                <item name="RESET_EV_PAST"/>
+                <item name="DRIVE_EV_PAST"/>
+                <item name="IMAGE_EV_PAST"/>
+                <item name="ENUM_ERROR_EV_PAST"/>
+            </enum>
+        </arg>
+        <arg
+          type="ENUM"
+          name="current_mode">
+            <enum name="CurrOpModeEvCurr">
+                <item name="IDLE_EV_CURR"/>
+                <item name="SLEEP_EV_CURR"/>
+                <item name="FAULT_EV_CURR"/>
+                <item name="RESET_EV_CURR"/>
+                <item name="DRIVE_EV_CURR"/>
+                <item name="IMAGE_EV_CURR"/>
+                <item name="ENUM_ERROR_EV_CURR"/>
+            </enum>
+        </arg>
+      </args>
+  </event>
+
+  <event
+    id="1"
+    name="UnexpectedMode"
+    severity="ACTIVITY_HI"
+    format_string="Unknown Mode: %s">
+      <comment>Rover Attempted Unknown Mode</comment>
+      <args>
+        <arg 
+          type="U32" 
+          name="unknown_mode">
+        </arg>
+      </args>
+  </event>
+
+  <event
+    id="2"
+    name="FatalTriggered"
+    severity="ACTIVITY_HI"
+    format_string="Fatal Port Triggered: ">
+      <comment>Fatal Port Triggered</comment>
+      <args>
+        <!--TODO-->
+      </args>
+  </event>
+</events>

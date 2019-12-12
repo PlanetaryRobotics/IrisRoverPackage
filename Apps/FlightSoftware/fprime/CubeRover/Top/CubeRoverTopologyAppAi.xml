@@ -1,6 +1,7 @@
 <assembly name = "CubeRover">
 
 <!-- Import components to project -->
+
 <!-- Drivers -->
   <import_component_type>Drv/BlockDriver/BlockDriverComponentAi.xml</import_component_type>
 
@@ -10,6 +11,9 @@
   <import_component_type>Svc/Time/TimeComponentAi.xml</import_component_type>
   <import_component_type>Svc/TlmChan/TlmChanComponentAi.xml</import_component_type>
   <import_component_type>Svc/CmdDispatcher/CommandDispatcherComponentAi.xml</import_component_type>
+
+<!-- CubeRover -->
+  <import_component_type>CubeRover/ModeManager/ModeManagerComponentAi.xml</import_component_type>
 
 <!-- Declaration of block driver that drive F-prime clocking and other async event -->
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
@@ -28,6 +32,9 @@
 
 <!-- Declaration of the command dispatcher -->
   <instance namespace="Svc" name="cmdDispatcher" type="CommandDispatcher" base_id="201" base_id_window="20" />
+
+<!-- Declaration of mode manager that handles CubeRover state machine -->
+<instance namespace="CubeRover" name="modeManager" type="ModeManager" base_id="301" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS

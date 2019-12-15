@@ -202,6 +202,7 @@ acdev_MODULES := \
 CubeRover_MODULES := \
 	CubeRover/Top \
 	CubeRover/CubeRoverPorts \
+	CubeRover/UdpReceiver \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

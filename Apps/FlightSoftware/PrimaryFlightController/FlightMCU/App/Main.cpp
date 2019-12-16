@@ -11,7 +11,7 @@
 #include "CubeRover/Top/Topology.hpp"
 
 #include "gio.h"
-#include "i2c.h"
+#include "spi.h"
 
 extern "C" {
     void vApplicationIdleHook( void );
@@ -27,7 +27,6 @@ void main(void)
 {
 /* USER CODE BEGIN (3) */
     gioInit();
-    i2cInit();
 
     constructApp();
 

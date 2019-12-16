@@ -16,8 +16,6 @@
 #include <sci.h>
 #include <Os/Mutex.hpp>
 
-#include "Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentAc.hpp"
-
 namespace Drv {
 
   enum {

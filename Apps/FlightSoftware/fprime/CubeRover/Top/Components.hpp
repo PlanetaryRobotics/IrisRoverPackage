@@ -10,7 +10,6 @@
 
 // Include drivers
 #include <Drv/BlockDriver/BlockDriverImpl.hpp>
-#include <Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentImpl.hpp>
 
 // Include services
 #include <Svc/RateGroupDriver/RateGroupDriverImpl.hpp>
@@ -20,7 +19,6 @@
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 
 // Include component exclusive to CubeRover project
-#include "MotorControl/MotorControlComponentImpl.hpp"
 #include "NeutronDetector/NeutronDetectorComponentImpl.hpp"
 
 // Block driver sequencing F-Prime and other sync events
@@ -42,10 +40,6 @@ extern Svc::TlmChanImpl tlmChan;
 extern Svc::ActiveLoggerImpl activeLogger;
 
 // Components exclusive to CubeRover
-extern CubeRover::MotorControlComponentImpl motorControl;
 extern CubeRover::NeutronDetectorComponentImpl neutronDetector;
-
-// FreeRTOS Serial driver to interface radio module
-extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

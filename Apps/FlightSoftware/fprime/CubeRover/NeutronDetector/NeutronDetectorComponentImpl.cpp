@@ -17,7 +17,8 @@
 namespace CubeRover {
 
   // Global variable required to process etpwm interrupt
-  NeutronDetector::MuxPortMap g_muxReadInput;
+  NeutronDetector::MuxPortMap g_readInput;
+  NeutronDetector::MuxPortMap g_clockOutput;
 
   // ----------------------------------------------------------------------
   // Construction, initialization, and destruction
@@ -93,15 +94,18 @@ namespace CubeRover {
     etpwmInit();
     spiInit();
 
-    // Accelerometer data configuration
     m_spiDataConfigHandler.CS_HOLD = false;
-    m_spiDataConfigHandler.CS_HOLD = true;
     m_spiDataConfigHandler.DFSEL = SPI_FMT_0;
     m_spiDataConfigHandler.WDEL = false;
     m_spiDataConfigHandler.CSNR = 0;
 
-    g_muxReadInput.port = gioPORTA;
-    g_muxReadInput.bit = 0;
+    // define port/bit used to read data from sensor
+    g_readInput.port = gioPORTA;
+    g_readInput.bit = 0;
+
+    // define port/bit used to send clock signal to sensor
+    g_clockOutput.port = gioPORTA;
+    g_clockOutput.bit = 1;
 
     setupGioExpander();
 
@@ -229,16 +233,16 @@ extern "C"{
   {
       // First read the bit
       if(g_bitToRead > 0){
-         *g_msndByte |= gioGetBit(g_muxReadInput.port, g_muxReadInput.bit) << (g_bitToRead - 1);
+         *g_msndByte |= gioGetBit(g_readInput.port, g_readInput.bit) << (g_bitToRead - 1);
           g_bitToRead--;
 
           // toggle output
-          gioToggleBit(gioPORTA, 0);
+          gioToggleBit(g_clockOutput.port, g_clockOutput.bit);
       }
       else{
           g_readCompleted = true; // no more bit to read
           //no more toggling
-          gioSetBit(gioPORTA, 0, 0);
+          gioSetBit(g_clockOutput.port, g_clockOutput.bit, 1);
           // Stop the timer interrupt
           etpwmDisableInterrupt(TIMER_EPWM_REG);
       }

@@ -70,34 +70,10 @@ Svc::TlmChanImpl tlmChan(
 #endif
     );
 
-// ---------------------------------------------------------------------------
-// Active logger data component used to log system events
-Svc::ActiveLoggerImpl activeLogger(
-#if FW_OBJECT_NAMES == 1
-        "ActiveLogger"
-#endif
-    );
-
-// ---------------------------------------------------------------------------
-// Active logger data component used to log system events
-CubeRover::MotorControlComponentImpl motorControl(
-#if FW_OBJECT_NAMES == 1
-        "MotorControl"
-#endif
-);
-
 //----------------------------------------------------------------------------
 CubeRover::NeutronDetectorComponentImpl neutronDetector(
 #if FW_OBJECT_NAMES == 1
         "NeutronDetector"
-#endif
-);
-
-// ---------------------------------------------------------------------------
-// Serial interface to support radio interface
-Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface(
-#if FW_OBJECT_NAMES == 1
-        "RadioInterface"
 #endif
 );
 
@@ -128,15 +104,6 @@ void constructApp(void){
     // Initialize the telemetric channel component (active)
     tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
 
-    // Initialize the active logger
-    activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
-
-    // Initialize serial interface to radio module
-    radioSerialInterface.init();
-
-    // Initialize the motor control
-    motorControl.init(MOTOR_CONTROL_QUEUE_DEPTH, MOTOR_CONTROL_ID);
-
     neutronDetector.init(NEUTRON_DETECTOR_QUEUE_DEPTH, NEUTRON_DETECTOR_ID);
 
     // Construct the application and make all connections between components
@@ -162,13 +129,6 @@ void constructApp(void){
                   TLM_CHAN_AFF, /* CPU priority */
                   TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 
-    activeLogger.start(ACTIVE_LOGGER_ID, /* identifier */
-                       ACTIVE_LOGGER_AFF, /* CPU priority  */
-                       ACTIVE_LOGGER_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
-
-    motorControl.start(MOTOR_CONTROL_ID, /* identifier */
-                       MOTOR_CONTROL_AFF, /* CPU priority  */
-                       MOTOR_CONTROL_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 
     neutronDetector.start(NEUTRON_DETECTOR_ID,                                  /* identifier */
                           NEUTRON_DETECTOR_AFF,                                 /* CPU priority  */
@@ -176,11 +136,4 @@ void constructApp(void){
 
     neutronDetector.setupDetector();
 
-    radioSerialInterface.open(sciREG,
-                              Drv::FreeRtosSerialDriverComponentImpl::BAUD_9600,
-                              Drv::FreeRtosSerialDriverComponentImpl::NO_FLOW,
-                              Drv::FreeRtosSerialDriverComponentImpl::PARITY_NONE,
-                              false);
-
-   // radioSerialInterface.startReadThread(RADIO_SERIAL_AFF, RADIO_SERIAL_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
 }

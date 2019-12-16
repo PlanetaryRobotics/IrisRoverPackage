@@ -37,7 +37,7 @@ namespace CubeRover {
 
     #define SPI_REG_PORT                spiPORT3
     #define SPI_REG                     spiREG3
-    #define SPI3_CS_BIT                 0
+    #define SPI3_CS_BIT                 1
     #define SPI_TX_MAX_PACKET_SIZE_BYTE 3
     #define SPI_RX_MAX_PACKET_SIZE_BYTE 1
     #define GIO_DEV_PREFIX_ADDRESS      0x40
@@ -141,8 +141,8 @@ namespace CubeRover {
       NeutronDetector::MuxPortMap m_muxSensorSelect[TOTAL_MUX_SENSOR_SELECT];
 
       uint8_t m_msndBuff[MSND_RX_PACKET_SIZE_BYTE];
-      uint8_t m_spiTxBuff[SPI_TX_MAX_PACKET_SIZE_BYTE];
-      uint8_t m_spiRxBuff[SPI_RX_MAX_PACKET_SIZE_BYTE];
+      uint16_t m_spiTxBuff[SPI_TX_MAX_PACKET_SIZE_BYTE];
+      uint16_t m_spiRxBuff[SPI_RX_MAX_PACKET_SIZE_BYTE];
       uint8_t m_decoderLookUpTable[TOTAL_MSND_PER_PLATE];
       uint8_t m_plateLookUpTable[TOTAL_MSND_PLATE];
 

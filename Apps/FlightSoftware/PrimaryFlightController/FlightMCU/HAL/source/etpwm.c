@@ -152,7 +152,7 @@ void etpwmInit(void)
 
 
     /** - Sets up the event for interrupt */
-    etpwmREG6->ETSEL = (uint16)CTR_PRD;
+    etpwmREG6->ETSEL = (uint16)NO_EVENT;
 
     if ((etpwmREG6->ETSEL & 0x0007U) != 0U)
     {

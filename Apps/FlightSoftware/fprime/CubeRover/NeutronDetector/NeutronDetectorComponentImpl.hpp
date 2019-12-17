@@ -39,7 +39,7 @@ namespace CubeRover {
     #define SPI_REG                     spiREG3
     #define SPI3_CS_BIT                 1
     #define SPI_TX_MAX_PACKET_SIZE_BYTE 3
-    #define SPI_RX_MAX_PACKET_SIZE_BYTE 1
+    #define SPI_RX_MAX_PACKET_SIZE_BYTE 3
     #define GIO_DEV_PREFIX_ADDRESS      0x40
     #define GIO_DEV_ADDRESS             0x00
 
@@ -56,17 +56,17 @@ namespace CubeRover {
 
     typedef enum IoExpanderRegAddress{
         IODIRA      = 0x00,
-        IPOLA       = 0x01,
-        GPINTENA    = 0x02,
-        GPPUA       = 0x06,
-        GPIOA       = 0x09,
-        OLATA       = 0x0A,
-        IODIRB      = 0x10,
-        IPOLB       = 0x11,
-        GPINTENB    = 0x12,
-        GPPUB       = 0x16,
-        GPIOB       = 0x19,
-        OLATB       = 0x1A
+        IPOLA       = 0x02,
+        GPINTENA    = 0x04,
+        GPPUA       = 0x0C,
+        GPIOA       = 0x12,
+        OLATA       = 0x14,
+        IODIRB      = 0x01,
+        IPOLB       = 0x03,
+        GPINTENB    = 0x05,
+        GPPUB       = 0x0D,
+        GPIOB       = 0x13,
+        OLATB       = 0x15
     }IoExpanderRegAddress;
 
     struct IoconRegBits{
@@ -127,6 +127,7 @@ namespace CubeRover {
       NeutronDetector::Error getSensorArray(NeutronDetector::NeutronSensorArray array);
 
     private:
+      NeutronDetector::Error resetMultiplexer();
       NeutronDetector::Error setMultiplexer(const uint16_t sensor, const uint16_t sensorPlate);
       NeutronDetector::Error readSensorData(NeutronDetector::NeutronSensorData *data);
       NeutronDetector::Error spiWriteRegister(const NeutronDetector::IoExpanderRegAddress addr, const uint8_t val);

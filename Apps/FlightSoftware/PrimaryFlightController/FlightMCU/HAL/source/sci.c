@@ -110,7 +110,7 @@ void sciInit(void)
                  | (uint32)((uint32)0U << 1U); /* rx pin */
 
     /** - set SCI pins output direction */
-    sciREG->PIO1 = (uint32)((uint32)1U << 2U)  /* tx pin */
+    sciREG->PIO1 = (uint32)((uint32)0U << 2U)  /* tx pin */
                  | (uint32)((uint32)0U << 1U); /* rx pin */
 
     /** - set SCI pins open drain enable */
@@ -118,8 +118,8 @@ void sciInit(void)
                  | (uint32)((uint32)0U << 1U); /* rx pin */
 
     /** - set SCI pins pullup/pulldown enable */
-    sciREG->PIO7 = (uint32)((uint32)1U << 2U)  /* tx pin */
-                 | (uint32)((uint32)1U << 1U); /* rx pin */
+    sciREG->PIO7 = (uint32)((uint32)0U << 2U)  /* tx pin */
+                 | (uint32)((uint32)0U << 1U); /* rx pin */
 
     /** - set SCI pins pullup/pulldown select */
     sciREG->PIO8 = (uint32)((uint32)1U << 2U)  /* tx pin */

@@ -64,6 +64,13 @@ namespace CubeRover {
   }
 
 
+  NeutronDetector::Error NeutronDetectorComponentImpl :: resetMultiplexer(){
+    spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOA, 0xFF);
+    spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOB, 0xFF);
+
+    return NeutronDetector::ND_NO_ERROR;
+  }
+
   /**
    * @brief      Sets the multiplexer.
    *
@@ -143,7 +150,7 @@ namespace CubeRover {
       m_spiTxBuff[0] = GIO_DEV_PREFIX_ADDRESS + GIO_DEV_ADDRESS + 0x01 /* read */;
       m_spiTxBuff[1] = addr;
 
-      if(sizeOfData + 2 > SPI_RX_MAX_PACKET_SIZE_BYTE){
+      if(sizeOfData > SPI_RX_MAX_PACKET_SIZE_BYTE){
           return NeutronDetector::ND_DATA_SIZE_ERROR;
       }
 
@@ -151,11 +158,16 @@ namespace CubeRover {
       gioSetBit(SPI_REG_PORT, SPI3_CS_BIT, 0);
 
       // send/receive data
-      spiTransmitData(SPI_REG, &m_spiDataConfigHandler, 3 /*3 bytes to send */, (uint16_t *)m_spiTxBuff);
+      spiTransmitData(SPI_REG, &m_spiDataConfigHandler, 2 /*2 bytes to send */, (uint16_t *)m_spiTxBuff);
       spiReceiveData(SPI_REG, &m_spiDataConfigHandler, sizeOfData, (uint16_t *)m_spiRxBuff);
 
       // set CS high
       gioSetBit(SPI_REG_PORT, SPI3_CS_BIT, 1);
+
+      for(uint8_t i=0; i<sizeOfData; i++){
+       *val = m_spiRxBuff[i];
+       val++;
+      }
 
       return NeutronDetector::ND_NO_ERROR;
   }
@@ -210,6 +222,8 @@ namespace CubeRover {
     NeutronDetector::SensorIterator sensor;
     NeutronDetector::SensorPlateIterator sensorPlate;
 
+    resetMultiplexer();
+
     // Scan through each sensor
     for(sensorPlate = 0; sensorPlate < TOTAL_MSND_PLATE; sensorPlate++){
      for(sensor = 0; sensor < TOTAL_MSND_PER_PLATE; sensor++){
@@ -218,6 +232,8 @@ namespace CubeRover {
 
         // Read the data from a single sensor and store it at the correct location
         readSensorData(array + sensor + sensorPlate*TOTAL_MSND_PER_PLATE);
+
+        resetMultiplexer();
      }
    }
     return NeutronDetector::ND_NO_ERROR;

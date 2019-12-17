@@ -83,8 +83,8 @@ namespace CubeRover {
                                                                         const NeutronDetector::SensorPlateIterator sensorPlate){
     // Plate selection is done by activating one output at a time
     // First disable all outputs
-    spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOA, m_plateLookUpTable[sensorPlate]);
     spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOB, m_decoderLookUpTable[sensor]);
+    spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOA, m_plateLookUpTable[sensorPlate]);
 
     return NeutronDetector::ND_NO_ERROR;
   }
@@ -94,7 +94,7 @@ namespace CubeRover {
    *
    * @return     The neutron detector error
    */
-  NeutronDetector::Error NeutronDetectorComponentImpl ::setupDetector(){
+  NeutronDetector::Error NeutronDetectorComponentImpl :: setupDetector(){
 
     // PWM timer used to generate the clock signal
     // output is toggled from the PWM ISR on period event
@@ -265,11 +265,6 @@ extern "C"{
   }
 }
 
-  void NeutronDetectorComponentImpl :: resetIO(){
-      spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOA, 0xFF /* all outputs */);
-      spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOB, 0xFF /* all outputs */);
-  }
-
   /**
    * @brief      Read sensor data
    *
@@ -286,6 +281,7 @@ extern "C"{
     g_msndByte = (uint8_t *)m_msndBuff;
 
     for(i=0 ; i<totalBytesToTransmit; i++){
+        *g_msndByte = 0; // reset value to read
         g_bitToRead = 8; // 8 bits per byte
         g_readCompleted = false;
 
@@ -300,8 +296,6 @@ extern "C"{
 
         // increment pointer
         g_msndByte++;
-
-        resetIO();
     }
 
     // Copy data from buffer to data to return

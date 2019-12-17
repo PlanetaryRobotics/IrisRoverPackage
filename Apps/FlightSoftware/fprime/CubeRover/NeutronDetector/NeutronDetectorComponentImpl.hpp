@@ -134,7 +134,6 @@ namespace CubeRover {
       NeutronDetector::Error spiReadRegister(const NeutronDetector::IoExpanderRegAddress addr, uint8_t *val, const uint8_t sizeOfData);
       NeutronDetector::Error setupGioExpander();
       void mapMuxOutputs();
-      void resetIO();
 
     private:
       NeutronDetector::NeutronSensorData m_neutronSensorArray[TOTAL_MSND_PLATE*TOTAL_MSND_PER_PLATE];

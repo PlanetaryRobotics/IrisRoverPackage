@@ -33,7 +33,7 @@
   <instance namespace="Svc" name="cmdDispatcher" type="CommandDispatcher" base_id="201" base_id_window="20" />
 
 <!-- Declaration of the IMU driver interface -->
-  <instance namespace="CubeRover" name="imu" type="Imu" base_id="201" base_id_window="20" />
+  <instance namespace="CubeRover" name="imu" type="Imu" base_id="221" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS

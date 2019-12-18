@@ -20,6 +20,7 @@
 // include required peripherals
 #include "gio.h"
 #include "spi.h"
+#include "sci.h"
 
 #include "etpwm.h"
 #include "sys_core.h"
@@ -127,6 +128,7 @@ namespace CubeRover {
       NeutronDetector::Error getSensorArray(NeutronDetector::NeutronSensorArray array);
 
     private:
+      NeutronDetector::Error sendSensorArrayData(NeutronDetector::NeutronSensorData *data, const uint32_t sizeOfData);
       NeutronDetector::Error resetMultiplexer();
       NeutronDetector::Error setMultiplexer(const uint16_t sensor, const uint16_t sensorPlate);
       NeutronDetector::Error readSensorData(NeutronDetector::NeutronSensorData *data);

@@ -265,6 +265,22 @@ extern "C"{
   }
 }
 
+  NeutronDetector::Error NeutronDetectorComponentImpl :: sendSensorArrayData(NeutronDetector::NeutronSensorData *data, const uint32_t sizeOfData){
+      unsigned char header = 0xAA;
+      unsigned char ender = 0xBB;
+      char integerStr[8];
+
+      sciSend(sciREG, 1, &header);
+
+      for(uint16_t i=0; i<sizeOfData; i++){
+          ltoa(*data, (char *)integerStr);
+          sciSend(sciREG, strlen(integerStr), (uint8_t *) integerStr);
+          data++;
+      }
+
+      sciSend(sciREG, 1, &ender);
+  }
+
   /**
    * @brief      Read sensor data
    *
@@ -318,7 +334,7 @@ extern "C"{
     )
   {
       getSensorArray((NeutronDetector::NeutronSensorArray)m_neutronSensorArray);
-    // TODO
+      sendSensorArrayData(m_neutronSensorArray, sizeof(m_neutronSensorArray));
   }
 
   // ----------------------------------------------------------------------

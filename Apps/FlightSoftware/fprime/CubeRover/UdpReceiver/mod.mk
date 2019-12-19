@@ -5,10 +5,8 @@
 #
 #
 
-SRC = UdpReceiverComponentAi.xml 
-#UdpReceiverComponentImpl.cpp
+SRC = UdpReceiverComponentAi.xml UdpReceiverComponentImpl.cpp
 
-HDR =  
-#UdpReceiverComponentImpl.hpp
+HDR =  UdpReceiverComponentImpl.hpp
 
 #SUBDIRS = test

@@ -34,7 +34,8 @@ CFDP_GTEST_MODULES := \
 	CFDP/Checksum/GTest
 	
 UTILS_MODULES := \
-	Utils/Hash
+	Utils/Hash	\
+	Utils/Types
         
 SVC_MODULES := \
 	Svc/BufferAccumulator \

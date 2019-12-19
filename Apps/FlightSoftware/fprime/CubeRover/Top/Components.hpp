@@ -10,7 +10,6 @@
 
 // Include drivers
 #include <Drv/BlockDriver/BlockDriverImpl.hpp>
-#include <Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentImpl.hpp>
 
 // Include services
 #include <Svc/RateGroupDriver/RateGroupDriverImpl.hpp>
@@ -20,6 +19,9 @@
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
 #include <Svc/GroundInterface/GroundInterfaceImpl.hpp>
+
+// Include custom components
+#include <CubeRover/UdpReceiver/UdpReceiverComponentImpl.hpp>
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -42,10 +44,10 @@ extern Svc::ActiveLoggerImpl activeLogger;
 // Interface to ground for radio
 extern Svc::GroundInterfaceComponentImpl groundInterface;
 
-// FreeRTOS Serial driver to interface radio module
-extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
-
 // command dispatcher
 extern Svc::CommandDispatcherImpl cmdDispatcher;
+
+// UDP receiver
+extern CubeRover::UdpReceiverComponentImpl udpReceiver;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

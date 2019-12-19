@@ -85,6 +85,13 @@ Svc::GroundInterfaceComponentImpl groundInterface(
 #endif
 );
 
+// --------------------------------------------------------------------------
+CubeRover::UdpReceiverComponentImpl udpReceiver(
+#if FW_OBJECT_NAMES == 1
+        "UdpReceiver"
+#endif
+);
+
 /**
  * @brief      Run 1 cycle (debug)
  */
@@ -115,6 +122,8 @@ void constructApp(void){
 
   // Initialize the ground interface (active)
   groundInterface.init(0);
+
+  udpReceiver.init(0);
 
   // Construct the application and make all connections between components
   constructCubeRoverArchitecture();

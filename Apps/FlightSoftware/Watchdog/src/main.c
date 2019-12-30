@@ -1,6 +1,8 @@
 #include <msp430.h>
+
 #include "include/buffer.h"
 #include "include/uart.h"
+#include "include/bsp.h"
 
 /* define all of the buffers used in other files */
 __volatile struct buffer uart0rx, uart0tx, uart1rx, uart1tx, i2crx, i2ctx;
@@ -19,18 +21,19 @@ int main(void)
     /* set up uart */
     uart_init();
 
+    initializeGpios();
 
-	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
+    enable24VPowerRail();
+    powerOnHercules();
+    powerOnFpga();
+    powerOnMotors();
+
+    releaseHerculesReset();
+    releaseRadioReset();
+    releaseFPGAReset();
 	
 	// Enable changes to port registers
     PM5CTL0 &= ~LOCKLPM5;
-
-    // setup on-board LEDs
-    P1OUT &= 0x00;               // Shut down everything
-    P1DIR &= 0x00;
-    P1DIR |= BIT0;       // P1.0 and P1.1 pins output, the rest are input
-    P1DIR |= BIT1;
-    P1DIR |= BIT2;
 
     // setup buttons
     P5REN |= BIT6;                 // Enable internal pull-up/down resistors

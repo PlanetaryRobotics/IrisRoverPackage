@@ -67,7 +67,7 @@ namespace CubeRover {
   NeutronDetector::Error NeutronDetectorComponentImpl :: resetMultiplexer(){
     spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOA, 0xFF);
     spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOB, 0xFF);
-
+    for(int i=0; i<1000; i++) asm("  NOP");
     return NeutronDetector::ND_NO_ERROR;
   }
 
@@ -85,7 +85,7 @@ namespace CubeRover {
     // First disable all outputs
     spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOB, m_decoderLookUpTable[sensor]);
     spiWriteRegister(NeutronDetector::IoExpanderRegAddress::GPIOA, m_plateLookUpTable[sensorPlate]);
-
+    for(int i=0; i<1000; i++) asm("  NOP");
     return NeutronDetector::ND_NO_ERROR;
   }
 
@@ -100,6 +100,7 @@ namespace CubeRover {
     // output is toggled from the PWM ISR on period event
     etpwmInit();
     spiInit();
+    sciInit();
 
     m_spiDataConfigHandler.CS_HOLD = false;
     m_spiDataConfigHandler.DFSEL = SPI_FMT_0;
@@ -234,6 +235,8 @@ namespace CubeRover {
         readSensorData(array + sensor + sensorPlate*TOTAL_MSND_PER_PLATE);
 
         resetMultiplexer();
+
+
      }
    }
     return NeutronDetector::ND_NO_ERROR;
@@ -242,6 +245,7 @@ namespace CubeRover {
 static uint8_t g_bitToRead;
 static uint8_t *g_msndByte = NULL;
 bool g_readCompleted;
+bool g_startClockCycle;
 
 // triggers on period event
 extern "C"{
@@ -249,16 +253,20 @@ extern "C"{
   {
       // First read the bit
       if(g_bitToRead > 0){
-         *g_msndByte |= gioGetBit(g_readInput.port, g_readInput.bit) << (g_bitToRead - 1);
-          g_bitToRead--;
+          if(g_startClockCycle){
+              *g_msndByte |= gioGetBit(g_readInput.port, g_readInput.bit) << (g_bitToRead - 1);
+              g_bitToRead--;
+          }
 
           // toggle output
           gioToggleBit(g_clockOutput.port, g_clockOutput.bit);
+          g_startClockCycle = true;
       }
       else{
+          g_startClockCycle = false;
           g_readCompleted = true; // no more bit to read
           //no more toggling
-          gioSetBit(g_clockOutput.port, g_clockOutput.bit, 1);
+          //gioSetBit(g_clockOutput.port, g_clockOutput.bit, 1);
           // Stop the timer interrupt
           etpwmDisableInterrupt(TIMER_EPWM_REG);
       }
@@ -266,19 +274,20 @@ extern "C"{
 }
 
   NeutronDetector::Error NeutronDetectorComponentImpl :: sendSensorArrayData(NeutronDetector::NeutronSensorData *data, const uint32_t sizeOfData){
-      unsigned char header = 0xAA;
-      unsigned char ender = 0xBB;
       char integerStr[8];
 
-      sciSend(sciREG, 1, &header);
+      sciSendByte(sciREG, 0xAA); // header
 
       for(uint16_t i=0; i<sizeOfData; i++){
           ltoa(*data, (char *)integerStr);
           sciSend(sciREG, strlen(integerStr), (uint8_t *) integerStr);
+          sciSendByte(sciREG, 0x20); // space character
           data++;
       }
 
-      sciSend(sciREG, 1, &ender);
+      sciSendByte(sciREG, 0x0D); // carriage return
+
+      return NeutronDetector::ND_NO_ERROR;
   }
 
   /**
@@ -334,6 +343,12 @@ extern "C"{
     )
   {
       getSensorArray((NeutronDetector::NeutronSensorArray)m_neutronSensorArray);
+
+      for(int i=0; i< sizeof(m_neutronSensorArray); i++){
+          if(m_neutronSensorArray[i] != 0){
+              asm(" NOP");
+          }
+      }
       sendSensorArrayData(m_neutronSensorArray, sizeof(m_neutronSensorArray));
   }
 

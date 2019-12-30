@@ -598,10 +598,10 @@ typedef struct etpwm_config_reg
 
 #define ETPWM6_TBCTL_CONFIGVALUE          ((uint16)((uint16)0U << 7U) | (uint16)((uint16)0U << 10U))
 #define ETPWM6_TBPHS_CONFIGVALUE          0x00000000U
-#define ETPWM6_TBPRD_CONFIGVALUE          439U
+#define ETPWM6_TBPRD_CONFIGVALUE          2199U
 #define ETPWM6_CMPCTL_CONFIGVALUE         0x00000000U
-#define ETPWM6_CMPA_CONFIGVALUE           220U
-#define ETPWM6_CMPB_CONFIGVALUE           220U
+#define ETPWM6_CMPA_CONFIGVALUE           1100U
+#define ETPWM6_CMPB_CONFIGVALUE           1100U
 #define ETPWM6_AQCTLA_CONFIGVALUE         ((uint16)((uint16)ActionQual_Set << 0U) | (uint16)((uint16)ActionQual_Clear << 4U))
 #define ETPWM6_AQCTLB_CONFIGVALUE         ((uint16)((uint16)ActionQual_Set << 0U) | (uint16)((uint16)ActionQual_Clear << 8U))
 #define ETPWM6_DBCTL_CONFIGVALUE          ((uint16)((uint16)0U << 5U) | (uint16)((uint16)0u << 4U) | (uint16)((uint16)0U << 3U) | (uint16)((uint16)0U << 2U) | (uint16)((uint16)0U << 1U) | (uint16)((uint16)0U << 0U)) 

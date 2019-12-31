@@ -77,12 +77,12 @@ inline void disableHeater(){ P2OUT &= ~BIT2; }
 /**
  * @brief      Enables the 24 v power rail.
  */
-inline void enable24VPowerRail() { P4OUT |= BIT6; }
+inline void enable24VPowerRail() { P4DIR &= ~BIT6; P4OUT &= ~BIT6; }
 
 /**
  * @brief      Disables the 24 v power rail.
  */
-inline void disable24VPowerRail() { P4OUT &= ~BIT6; }
+inline void disable24VPowerRail() { P4DIR |= BIT6; P4OUT |= BIT6; }
 
 /**
  * @brief      Releases a hercules reset.

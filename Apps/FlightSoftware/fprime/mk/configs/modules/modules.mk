@@ -204,7 +204,6 @@ CubeRover_MODULES := \
 	CubeRover/Top \
 	CubeRover/CubeRoverPorts \
 	CubeRover/UdpReceiver \
-	CubeRover/Wf121 \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

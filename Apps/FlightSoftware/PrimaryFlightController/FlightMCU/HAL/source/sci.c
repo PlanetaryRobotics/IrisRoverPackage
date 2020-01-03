@@ -90,13 +90,13 @@ void sciInit(void)
     sciREG->GCR1 =  (uint32)((uint32)1U << 25U)  /* enable transmit */
                   | (uint32)((uint32)1U << 24U)  /* enable receive */
                   | (uint32)((uint32)1U << 5U)   /* internal clock (device has no clock pin) */
-                  | (uint32)((uint32)(2U-1U) << 4U)  /* number of stop bits */
+                  | (uint32)((uint32)(1U-1U) << 4U)  /* number of stop bits */
                   | (uint32)((uint32)0U << 3U)  /* even parity, otherwise odd */
                   | (uint32)((uint32)0U << 2U)  /* enable parity */
                   | (uint32)((uint32)1U << 1U);  /* asynchronous timing mode */
 
     /** - set baudrate */
-    sciREG->BRS = 715U;  /* baudrate */
+    sciREG->BRS = 59U;  /* baudrate */
 
     /** - transmission length */
     sciREG->FORMAT = 8U - 1U;  /* length */
@@ -660,6 +660,8 @@ void sciGetConfigValue(sci_config_reg_t *config_reg, config_value_type_t type)
 		config_reg->CONFIG_PIO8      = sciREG->PIO8; 
 	}
 }
+
+
 
 /* USER CODE BEGIN (37) */
 int32_t sciReceiveWithTimeout(sciBASE_t *sci, uint32 length, uint8 * data, uint32_t timeoutMs)

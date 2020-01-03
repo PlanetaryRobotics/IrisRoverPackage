@@ -125,7 +125,7 @@ void constructApp(void){
 
   udpReceiver.init(0);
 
-  // Construct the application and make all connections between components
+   // Construct the application and make all connections between components
   constructCubeRoverArchitecture();
 
   rateGroupLowFreq.start(0, /* identifier */

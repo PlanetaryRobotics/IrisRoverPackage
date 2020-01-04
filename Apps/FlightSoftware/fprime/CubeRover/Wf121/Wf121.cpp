@@ -118,17 +118,30 @@ ErrorCode Wf121Driver :: transmitCommand(BgApiHeader *header, uint8_t *payload){
 ErrorCode Wf121Driver :: executeSystemCallback(BgApiHeader *header,
                                                uint8_t *payload,
                                                const uint16_t payloadSize){
-  switch(header->bit.msgId){
-    case 0x00: // Sync 
-      break;
-    case 0x01: // Reset
-      break;
-    case 0x02: // Hello
-      break;
-    case 0x03: // Set Max Power Saving State
-      break;
-    default:
-      return COMMAND_NOT_RECOGNIZED;
+  // Process command reply
+  if(header->bit.msgType == CMD_RSP_TYPE){
+    switch(header->bit.msgId){
+      case 0x00: // Sync 
+        break;
+      case 0x01: // Reset
+        break;
+      case 0x02: // Hello
+        break;
+      case 0x03: // Set Max Power Saving State
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }
+  }
+
+  // Process event reply
+  if(header->bit.msgType == EVENT_TYPE){
+    switch(header->bit.msgId){
+      case 0x00: // Boot
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }
   }
 
   return NO_ERROR;
@@ -147,11 +160,27 @@ ErrorCode Wf121Driver :: executeSystemCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executeConfigurationCallback(BgApiHeader *header,
                                                       uint8_t *payload,
                                                       const uint16_t payloadSize){
-  switch(header->bit.msgId){
-    default:
-      return COMMAND_NOT_RECOGNIZED;
+  // Process command reply
+  if(header->bit.msgType == CMD_RSP_TYPE){
+    switch(header->bit.msgId){
+      case 0x00:  // Get MAC
+        break;
+      case 0x01:  // Set MAC
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }
   }
 
+  // Process event reply
+  if(header->bit.msgType == EVENT_TYPE){
+    switch(header->bit.msgId){
+      case 0x00: // MAC address
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }
+  }
   return NO_ERROR;    
 }
 
@@ -168,9 +197,104 @@ ErrorCode Wf121Driver :: executeConfigurationCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
                                              uint8_t *payload,
                                              const uint16_t payloadSize){
-  switch(header->bit.msgId){
-    default:
-      return COMMAND_NOT_RECOGNIZED;
+  // Process command reply
+  if(header->bit.msgType == CMD_RSP_TYPE){
+    switch(header->bit.msgId){
+      case 0x00: // Wifi ON
+        break;
+      case 0x01: // Wifi OFF
+        break;
+      case 0x09: // Set scan channels
+        break;
+      case 0x03: // Start scan channels
+        break;
+      case 0x04: // Stop scan channels
+        break;
+      case 0x06: // Connect BSSID
+        break;
+      case 0x08: // Disconnect
+        break;
+      case 0x0D: // Scan results
+        break;
+      case 0x05: // Set password
+        break;
+      case 0x07: // Connect SSID
+        break;
+      case 0x13: // Get signal quality
+        break;
+      case 0x11: // Start WPS
+        break;
+      case 0x12: // Stop WPS
+        break;
+      case 0x0A: // Set operating mode
+        break;
+      case 0x10: // Set AP max clients
+        break;
+      case 0x0F: // Set AP password
+        break;
+      case 0x0B: // Start AP mode
+        break;
+      case 0x0C: // Stop AP mode
+        break;
+      case 0x0E: // AP disconnect client
+        break; 
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }
+  }
+
+  // Process event reply
+  if(header->bit.msgType == EVENT_TYPE){
+    switch(header->bit.msgId){
+      case 0x00: // Wifi ON
+        break;
+      case 0x01: // Wifi OFF
+        break;
+      case 0x02: // Scan result
+        break;
+      case 0x03: // Scan result drop
+        break;
+      case 0x04: // Scanned
+        break;
+      case 0x0F: // Scan sort result
+        break;
+      case 0x10: // Scan sort finished
+        break;
+      case 0x05: // Connected
+        break;
+      case 0x09: // Connect retry
+        break;
+      case 0x08: // Connect failed
+        break;
+      case 0x06: // Disconnected
+        break;
+      case 0x14: // WPS credential SSID
+        break;
+      case 0x15: // WPS credential password
+        break;
+      case 0x12: // WPS completed
+        break;
+      case 0x13: // WPS failed
+        break;
+      case 0x11: // WPS stopped
+        break;
+      case 0x16: // signal quality
+        break;
+      case 0x0A: // AP mode started
+        break;
+      case 0x0B: // AP mode stopped
+        break;
+      case 0x0C: // AP mode failed
+        break;
+      case 0x0D: // AP client joined
+        break;
+      case 0x0E: // AP client left
+        break;
+      case 0x07: // interface status
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }    
   }
 
   return NO_ERROR;
@@ -189,9 +313,42 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executeEndpointCallback(BgApiHeader *header,
                                                  uint8_t *payload,
                                                  const uint16_t payloadSize){
-  switch(header->bit.msgId){
-    default:
-      return COMMAND_NOT_RECOGNIZED;
+  // Process command reply
+  if(header->bit.msgType == CMD_RSP_TYPE){
+    switch(header->bit.msgId){
+      case 0x02: // set active
+        break;
+      case 0x00: // send
+        break;
+      case 0x05: // set transmit size
+        break;
+      case 0x01: // set streaming
+        break;
+      case 0x03: // set streaming destination
+        break;
+      case 0x04: // close endpoint
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }
+  }
+
+  // Process event reply
+  if(header->bit.msgType == EVENT_TYPE){
+    switch(header->bit.msgId){
+      case 0x02: // status
+        break;
+      case 0x01: // data
+        break;
+      case 0x03: // closing
+        break;
+      case 0x04: // error
+        break;
+      case 0x00: // syntax error
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }    
   }
 
   return NO_ERROR;
@@ -210,12 +367,59 @@ ErrorCode Wf121Driver :: executeEndpointCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executeHardwareCallback(BgApiHeader *header,
                                                  uint8_t *payload,
                                                  const uint16_t payloadSize){
+  // Process command reply
+  if(header->bit.msgType == CMD_RSP_TYPE){
     switch(header->bit.msgId){
+      case 0x09: // ADC read
+        break;
+      case 0x02: // Change notification
+        break;
+      case 0x03: // Change notification pullup
+        break;
+      case 0x01: // External interrupt
+        break;
+      case 0x04: // IO port config direction
+        break;
+      case 0x05: // IO port config drain
+        break;
+      case 0x07: // IO port read
+        break;
+      case 0x06: // IO port write
+        break;
+      case 0x08: // IO port compare
+        break;
+      case 0x0A: // RTC init
+        break;
+      case 0x0B: // RTC set time
+        break;
+      case 0x0C: // RTC get time
+        break;
+      case 0x0D: // RTC set alarm
+        break;
+      case 0x00: // set soft timer
+        break;
       default:
         return COMMAND_NOT_RECOGNIZED;
     }
+  }
 
-    return NO_ERROR;
+  // Process event reply
+  if(header->bit.msgType == EVENT_TYPE){
+    switch(header->bit.msgId){
+      case 0x01: // change notification
+        break;
+      case 0x02: // external interrupt
+        break;
+      case 0x03: // RTC alarm
+        break;
+      case 0x00: // soft timer
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }    
+  }
+
+  return NO_ERROR;
 }
 
 
@@ -231,12 +435,51 @@ ErrorCode Wf121Driver :: executeHardwareCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
                                                  uint8_t *payload,
                                                  const uint16_t payloadSize){
+  // Process command reply
+  if(header->bit.msgType == CMD_RSP_TYPE){
     switch(header->bit.msgId){
+      case 0x04: // configure
+        break;
+      case 0x08: // DHCP set hostname
+        break;
+      case 0x05: // DNS configure
+        break;
+      case 0x06: // DNS get host by name
+        break;
+      case 0x01: // TCP connect
+        break;
+      case 0x00: // Start TCP server
+        break;
+      case 0x03: // UDP connect
+        break;
+      case 0x07: // UDP bind
+        break;
+      case 0x02: // start UDP server
+        break; 
       default:
-      return COMMAND_NOT_RECOGNIZED;
+        return COMMAND_NOT_RECOGNIZED;
     }
+  }
 
-    return NO_ERROR;
+  // Process event reply
+  if(header->bit.msgType == EVENT_TYPE){
+    switch(header->bit.msgId){
+      case 0x00: // configuration
+        break;
+      case 0x01: // configuration DNS
+        break;
+      case 0x03: // Get host by name result
+        break;
+      case 0x02: // endpoint status
+        break;
+      case 0x04: //UDP data
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }    
+  }
+
+  return NO_ERROR;
 }
 
 
@@ -252,9 +495,28 @@ ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executeWiredEthernetCallback(BgApiHeader *header,
                                                       uint8_t *payload,
                                                       const uint16_t payloadSize){
-  switch(header->bit.msgId){
-    default:
-      return COMMAND_NOT_RECOGNIZED;
+  // Process command reply
+  if(header->bit.msgType == CMD_RSP_TYPE){
+    switch(header->bit.msgId){
+      case 0x02: // connected
+        break;
+      case 0x00: // set data route
+        break;
+      case 0x01: // close
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }
+  }
+
+  // Process event reply
+  if(header->bit.msgType == EVENT_TYPE){
+    switch(header->bit.msgId){
+      case 0x00: // link status
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }    
   }
 
   return NO_ERROR;
@@ -273,9 +535,36 @@ ErrorCode Wf121Driver :: executeWiredEthernetCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executePersistentStoreCallback(BgApiHeader *header,
                                                       uint8_t *payload,
                                                       const uint16_t payloadSize){
-  switch(header->bit.msgId){
-    default:
-      return COMMAND_NOT_RECOGNIZED;
+  // Process command reply
+  if(header->bit.msgType == CMD_RSP_TYPE){
+    switch(header->bit.msgId){
+      case 0x03: // PS save
+        break;
+      case 0x04: // PS load
+        break;
+      case 0x07: // PS dump
+        break;
+      case 0x00: // PS defrag
+        break;
+      case 0x05: // PS erase
+        break;
+      case 0x02: // PS erase all
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }
+  }
+
+  // Process event reply
+  if(header->bit.msgType == EVENT_TYPE){
+    switch(header->bit.msgId){
+      case 0x01: // PS keyy changed
+        break;
+      case 0x00: // PS key
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }    
   }
 
   return NO_ERROR;
@@ -294,9 +583,26 @@ ErrorCode Wf121Driver :: executePersistentStoreCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executeHttpServerCallback(BgApiHeader *header,
                                                     uint8_t *payload,
                                                     const uint16_t payloadSize){
-  switch(header->bit.msgId){
-    default:
-      return COMMAND_NOT_RECOGNIZED;
+  // Process command reply
+  if(header->bit.msgType == CMD_RSP_TYPE){
+    switch(header->bit.msgId){
+      case 0x00: // enable
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }
+  }
+
+  // Process event reply
+  if(header->bit.msgType == EVENT_TYPE){
+    switch(header->bit.msgId){
+      case 0x01: // button
+        break;
+      case 0x00: // on req
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }    
   }
 
   return NO_ERROR;
@@ -315,9 +621,68 @@ ErrorCode Wf121Driver :: executeHttpServerCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executeDeviceFirmwareUpgradeCallback(BgApiHeader *header,
                                                               uint8_t *payload,
                                                               const uint16_t payloadSize){
-  switch(header->bit.msgId){
-    default:
-      return COMMAND_NOT_RECOGNIZED;
+  // Process command reply
+  if(header->bit.msgType == CMD_RSP_TYPE){
+    switch(header->bit.msgId){
+      case 0x00: // reset
+        break;
+      case 0x01: // flash set address
+        break;
+      case 0x02: // flash upload
+        break;
+      case 0x03: // flash upload finished
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }
+  }
+
+  // Process event reply
+  if(header->bit.msgType == EVENT_TYPE){
+    switch(header->bit.msgId){
+      case 0x00: // boot
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }    
+  }
+
+  return NO_ERROR;
+}
+
+
+/**
+ * @brief      Execute i2c callback
+ *
+ * @param      header       The header
+ * @param      payload      The payload
+ * @param[in]  payloadSize  The payload size
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: executeI2cCallback(BgApiHeader *header,
+                                            uint8_t *payload,
+                                            const uint16_t payloadSize){
+  // Process command reply
+  if(header->bit.msgType == CMD_RSP_TYPE){
+    switch(header->bit.msgId){
+      case 0x00: // start read
+        break;
+      case 0x01: // start write
+        break;
+      case 0x02: // stop
+        break;
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }
+  }
+
+  // Process event reply
+  if(header->bit.msgType == EVENT_TYPE){
+    switch(header->bit.msgId){
+      default:
+        return COMMAND_NOT_RECOGNIZED;
+    }    
   }
 
   return NO_ERROR;
@@ -393,7 +758,7 @@ ErrorCode Wf121Driver :: executeCallbacks(){
   if(err != NO_ERROR) return err;
 
   // the command response is fully completed, now we can accept more command
-  if(header->bit.msgType == CMD_RSP_TYPE){
+  if(header.bit.msgType == CMD_RSP_TYPE){
     m_processingCmd = false;
   }
 

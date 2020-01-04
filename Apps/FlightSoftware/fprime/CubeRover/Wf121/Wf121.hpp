@@ -9,9 +9,12 @@
 #include "sci.h"
 #include "gio.h"
 
-#define MAX_SIZE_PAYLOAD    2048
+#define MAX_SIZE_PAYLOAD    2048    // in byte
 #define SCI_REG             sciREG
-#define BLOCKING_TIMEOUT_US 1000
+#define BLOCKING_TIMEOUT_US 1000    // in us
+
+#define MAC_ADDRESS_SIZE      6       // in byte
+#define HARDWARE_ADDRESS_SIZE 6       // in byte
 
 #define __USE_CTS_RTS__     1
 
@@ -74,10 +77,10 @@ namespace Wf121{
     TCP_IP_UNKNOWN_HOST = 0x0280
   }ErrorCode; 
 
-  typedef enum ReplyType{
+  typedef enum MsgType{
     CMD_RSP_TYPE = 0,
     EVENT_TYPE = 1
-  }ReplyType;
+  }MsgType;
 
   typedef struct BgApiHeaderBits{
     uint32_t lengthHigh:3;            // bit 0..2
@@ -100,7 +103,42 @@ namespace Wf121{
     DFU_BOOT = 0x01     // Firmware update boot
   }BootMode;
 
+  typedef enum PowerSavingState{
+    LOW_LATENCY = 0,
+    SAVE_POWER = 1,
+    DEEP_SLEEP = 2
+  }PowerSavingState;
+
+  typedef enum OperatingMode{
+    STATION = 1,
+    ACCESS_POINT = 2
+  }OperatingMode;
+
+  typedef enum SecurityMode{
+    OPEN_SECURITY = 0,
+    WPA_SECURITY = 1,
+    WPA2_SECURITY = 2,
+    WEP_SECURITY = 3
+  }SecurityMode;
+
+  typedef enum HardwareInterface{
+    WIFI = 0
+  }HardwareInterface;
+
   typedef uint32_t Timeout;
+
+  typedef uint8_t MacAddress[MAC_ADDRESS_SIZE];
+  typedef uint8_t HardwareAddress[HARDWARE_ADDRESS_SIZE];
+
+  typedef uint8_t Channel;
+  typedef uint8_t ChannelList;
+  typedef uint8_t ChannelListSize;
+
+  typedef uint8_t Password;
+  typedef uint8_t PasswordSize;
+
+  typedef uint8_t Ssid;
+  typedef uint8_t SsidSize;
 
   class Wf121Driver{
     public:

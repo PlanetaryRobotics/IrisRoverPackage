@@ -11,6 +11,7 @@
 
 #define MAX_SIZE_PAYLOAD    2048
 #define SCI_REG             sciREG
+#define BLOCKING_TIMEOUT_US 1000
 
 #define __USE_CTS_RTS__     1
 
@@ -73,13 +74,18 @@ namespace Wf121{
     TCP_IP_UNKNOWN_HOST = 0x0280
   }ErrorCode; 
 
+  typedef enum ReplyType{
+    CMD_RSP_TYPE = 0,
+    EVENT_TYPE = 1
+  }ReplyType;
+
   typedef struct BgApiHeaderBits{
     uint32_t lengthHigh:3;            // bit 0..2
     uint32_t technologyType:4;       // Bit 3..6, 0000: bluetooth 4.0 single mode
                                      //           0001: wifi
     uint32_t msgType:1;              // Bit 7, 0: command/response
                                      //        1: event 
-    uint32_t lengthLow:8;              // Bit 5..15, payload size
+    uint32_t lengthLow:8;            // Bit 5..15, payload size
     uint32_t classId:8;              // Bit 16..23, command class ID
     uint32_t cmdId:8;                // Bit 24..31, command ID
   }BgApiHeaderBits;
@@ -89,17 +95,24 @@ namespace Wf121{
     BgApiHeaderBits bit;
   }BgApiHeader;
 
+  typedef enum BootMode{
+    SYSTEM_BOOT = 0x00, // Normal boot
+    DFU_BOOT = 0x01     // Firmware update boot
+  }BootMode;
+
+  typedef uint32_t Timeout;
+
   class Wf121Driver{
     public:
       ErrorCode HelloSystem();
       ErrorCode resetSystemWifi(const BootMode bootMode);
     private:
-      ErrorCode transmitData(BgApiHeader *header, uint8_t *payload = NULL);
-      ErrorCode receiveData(BgApiHeader *header, uint8_t *payload = NULL);
+      ErrorCode transmitCommand(BgApiHeader *header, uint8_t *payload = NULL);
+      ErrorCode receiveCommand(BgApiHeader *header, uint8_t *payload = NULL);
       uint16_t getPayloadSizeFromHeader(BgApiHeader *header);
       void setHeaderPayloadSize(BgApiHeader *header, const uint16_t size);
 
-     // uint8_t m_rxBuffer[4 /*header*/ + MAX_SIZE_PAYLOAD];
+      uint8_t m_payloadBuffer[MAX_SIZE_PAYLOAD];
   };
 }  // Wf121
 

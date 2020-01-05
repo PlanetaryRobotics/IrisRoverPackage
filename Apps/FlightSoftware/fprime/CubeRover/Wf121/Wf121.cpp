@@ -1,7 +1,5 @@
 #include "Wf121.hpp"
 
-#define MAX_SIZE_PAYLOAD    2048
-
 using namespace Wf121;
 
 /**
@@ -11,8 +9,6 @@ using namespace Wf121;
  */
 ErrorCode Wf121Driver :: HelloSystem(){
   BgApiHeader txHeader;
-  BgApiHeader rxHeader;
-  ErrorCode err;
 
   txHeader.bit.msgType = CMD_RSP_TYPE; // command
   txHeader.bit.technologyType = 1; // wifi
@@ -20,17 +16,7 @@ ErrorCode Wf121Driver :: HelloSystem(){
   txHeader.bit.classId = CLASS_SYSTEM;
   txHeader.bit.cmdId = 0x02;
 
-  err = transmitCommand(&txHeader);
-
-  if(err != NO_ERROR) return err;
-
-  err = receiveCommand(&rxHeader);
-
-  if(err != NO_ERROR) return err;
-
-  // transmitted header has to match received header
-  // to check that the module is working properly
-  return (txHeader.all == rxHeader.all) ? NO_ERROR : HARDWARE_FAILURE;
+  return transmitCommand(&txHeader);
 }
 
 /**
@@ -43,8 +29,7 @@ ErrorCode Wf121Driver :: HelloSystem(){
  */
 ErrorCode Wf121Driver :: ResetSystemWifi(const BootMode bootMode){
   BgApiHeader txHeader;
-  uint8_t payload[1];
-  ErrorCode err;
+  uint8_t payload[1] /* size of boot mode */;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -69,8 +54,7 @@ ErrorCode Wf121Driver :: ResetSystemWifi(const BootMode bootMode){
  */
 ErrorCode Wf121Driver :: SetMaxPowerSavingState(const PowerSavingState state){
   BgApiHeader txHeader;
-  uint8_t payload[1];
-  ErrorCode err;
+  uint8_t payload[1] /* size of state */;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -93,7 +77,6 @@ ErrorCode Wf121Driver :: SetMaxPowerSavingState(const PowerSavingState state){
  */
 ErrorCode Wf121Driver :: SyncSystem(){
   BgApiHeader txHeader;
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -115,8 +98,7 @@ ErrorCode Wf121Driver :: SyncSystem(){
  */
 ErrorCode Wf121Driver :: GetMacAddress(const HardwareInterface interface){
   BgApiHeader txHeader;
-  uint8_t payload[1];
-  ErrorCode err;
+  uint8_t payload[1] /* size of interface */;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -143,7 +125,6 @@ ErrorCode Wf121Driver :: GetMacAddress(const HardwareInterface interface){
 ErrorCode Wf121Driver :: SetMacAddress(const HardwareInterface interface, const MacAddress mac){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(HardwareInterface) + sizeof(MacAddress)];
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -167,7 +148,6 @@ ErrorCode Wf121Driver :: SetMacAddress(const HardwareInterface interface, const 
  */
 ErrorCode Wf121Driver :: TurnOnWifi(){
   BgApiHeader txHeader;
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -187,7 +167,6 @@ ErrorCode Wf121Driver :: TurnOnWifi(){
  */
 ErrorCode Wf121Driver :: TurnOffWifi(){
   BgApiHeader txHeader;
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -214,7 +193,6 @@ ErrorCode Wf121Driver :: SetScanChannels(const HardwareInterface interface,
                                          const ChannelListSize channelListSize){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(HardwareInterface) + sizeof(ChannelListSize) + channelListSize];
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -248,7 +226,6 @@ ErrorCode Wf121Driver :: StartScanChannels(const HardwareInterface interface,
                                            const ChannelListSize channelListSize){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(HardwareInterface) + sizeof(ChannelListSize) + channelListSize];
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -275,7 +252,6 @@ ErrorCode Wf121Driver :: StartScanChannels(const HardwareInterface interface,
  */
 ErrorCode Wf121Driver :: StopScanChannels(){
   BgApiHeader txHeader;
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -299,7 +275,6 @@ ErrorCode Wf121Driver :: StopScanChannels(){
 ErrorCode Wf121Driver :: ConnectBSSID(const HardwareAddress hwAddr){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(HardwareAddress)];
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -323,7 +298,6 @@ ErrorCode Wf121Driver :: ConnectBSSID(const HardwareAddress hwAddr){
  */
 ErrorCode Wf121Driver :: Disconnect(){
   BgApiHeader txHeader;
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -346,7 +320,6 @@ ErrorCode Wf121Driver :: Disconnect(){
 ErrorCode Wf121Driver :: ScanResultsRssi(const uint8_t amount){
   BgApiHeader txHeader;
   uint8_t payload[1];
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -374,7 +347,6 @@ ErrorCode Wf121Driver :: ScanResultsRssi(const uint8_t amount){
 ErrorCode Wf121Driver :: SetPassword(const Password *pwd, const PasswordSize pwdSize){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(PasswordSize) + pwdSize];
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -406,7 +378,6 @@ ErrorCode Wf121Driver :: SetPassword(const Password *pwd, const PasswordSize pwd
 ErrorCode Wf121Driver :: ConnectSSID(const Ssid *ssid, const SsidSize ssidSize){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(SsidSize) + ssidSize];
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -433,7 +404,6 @@ ErrorCode Wf121Driver :: ConnectSSID(const Ssid *ssid, const SsidSize ssidSize){
  */
 ErrorCode Wf121Driver :: GetSignalQuality(){
   BgApiHeader txHeader;
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -453,7 +423,6 @@ ErrorCode Wf121Driver :: GetSignalQuality(){
  */
 ErrorCode Wf121Driver :: StartWPS(){
   BgApiHeader txHeader;
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -474,7 +443,6 @@ ErrorCode Wf121Driver :: StartWPS(){
  */
 ErrorCode Wf121Driver :: StopWPS(){
   BgApiHeader txHeader;
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -497,8 +465,7 @@ ErrorCode Wf121Driver :: StopWPS(){
  */
 ErrorCode Wf121Driver :: SetOperatingMode(const OperatingMode mode){
   BgApiHeader txHeader;
-  uint8_t payload[1];
-  ErrorCode err;
+  uint8_t payload[1] /* mode size */;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -523,8 +490,7 @@ ErrorCode Wf121Driver :: SetOperatingMode(const OperatingMode mode){
  */
 ErrorCode Wf121Driver :: SetApMaxClient(const uint8_t maxClients){
   BgApiHeader txHeader;
-  uint8_t payload[1];
-  ErrorCode err;
+  uint8_t payload[1] /* maxClients size */;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -551,7 +517,6 @@ ErrorCode Wf121Driver :: SetApMaxClient(const uint8_t maxClients){
 ErrorCode Wf121Driver :: SetApPassword(const Password *pwd, const PasswordSize pwdSize){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(PasswordSize) + pwdSize];
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -588,7 +553,6 @@ ErrorCode Wf121Driver :: StartApMode(const Channel chan,
                                      const SsidSize ssidSize){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(Channel) + 1 /*Security Mode */ + sizeof(SsidSize) + ssidSize];
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -618,7 +582,6 @@ ErrorCode Wf121Driver :: StartApMode(const Channel chan,
  */
 ErrorCode Wf121Driver :: StopApMode(){
   BgApiHeader txHeader;
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -642,7 +605,6 @@ ErrorCode Wf121Driver :: StopApMode(){
 ErrorCode Wf121Driver :: DisconnectApClient(const HardwareAddress hwAddr){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(HardwareAddress)];
-  ErrorCode err;
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -658,6 +620,314 @@ ErrorCode Wf121Driver :: DisconnectApClient(const HardwareAddress hwAddr){
   return transmitCommand(&txHeader, payload);
 }
 
+
+/**
+ * @brief      Configure TCP IP connection
+ *
+ * @param[in]  ip       The ip address in byte format
+ * @param[in]  mask     The mask in byte format
+ * @param[in]  gateway  The gateway in byte format
+ * @param[in]  useDhcp  The use dhcp
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: ConfigureTcpIp(const IpAddress ip, 
+                                        const NetMask mask,
+                                        const Gateway gateway,
+                                        const bool useDhcp){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(IpAddress) + sizeof(NetMask) + sizeof(Gateway) + sizeof(bool)];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x04; // configure command
+
+  // Prepare payload
+  memcpy(payload, ip, sizeof(IpAddress));
+  
+  memcpy(payload + sizeof(IpAddress),
+         mask,
+         sizeof(NetMask));
+  
+  memcpy(payload + sizeof(IpAddress) + sizeof(NetMask),
+         gateway,
+         sizeof(Gateway));
+
+  memcpy(payload + sizeof(IpAddress) + sizeof(NetMask) + sizeof(Gateway),
+         useDhcp,
+         sizeof(bool));
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);
+}
+
+
+/**
+ * @brief      Sets the dhcp host name.
+ *
+ * @param      hostName      The host name
+ * @param[in]  hostNameSize  The host name size
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: SetDHCPHostName(DchpHostName  *hostName,
+                                         const DhcpHostNameSize hostNameSize){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(DhcpHostNameSize) + hostNameSize];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x08; // set DCHP host name command 
+
+  // prepare the payload (see datasheet for format)
+  payload[0] = hostNameSize;
+
+  memcpy(payload + sizeof(DhcpHostNameSize),
+         hostName,
+         hostNameSize);
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);    
+}
+
+/**
+ * @brief      Configure the DNS server
+ *
+ * @param[in]  index  The index
+ * @param[in]  ip     The ip address encoded in bytes
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: ConfigureDNS(const DnsIndex index, IpAddress *ip){
+  BgApiHeader txHeader;
+  uint8_t payload[1 /*DnsIndex */ + sizeof(IpAddress)];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x05; // configure DNS command 
+
+  // prepare the payload (see datasheet for format)
+  payload[0] = index;
+
+  memcpy(payload + 1,
+         ip,
+         sizeof(IpAddress));
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);   
+}
+
+
+/**
+ * @brief      Gets the dns host by name.
+ *
+ * @param      name  The name
+ * @param[in]  size  The size
+ *
+ * @return     The error code
+ */
+ErrorCode Wf121Driver :: GetDNSHostByName(DchpHostName * name, const DhcpHostNameSize size){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(DhcpHostNameSize) + size];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x06; // get dhcp host by name command 
+
+  // prepare the payload (see datasheet for format)
+  payload[0] = size;
+
+  memcpy(payload + 1,
+         name,
+         size);
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);  
+}
+
+
+/**
+ * @brief      Connect to TCP
+ *
+ * @param      ip       IP address to connect to
+ * @param[in]  port     The port
+ * @param[in]  routing  The routing endpoint
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: TcpConnect(IpAddress *ip, 
+                                    const TcpPort port,
+                                    const int8_t routing){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(IpAddress) + sizeof(TcpPort) + 1 /* routing endpoint*/];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x01; // TCP connect command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         ip,
+         sizeof(IpAddress));
+
+  memcpy(payload + sizeof(IpAddress),
+         &port,
+         sizeof(TcpPort));
+
+  payload[sizeof(IpAddress) + sizeof(TcpPort)] = routing;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload); 
+}
+
+
+/**
+ * @brief      Starts a tcp server.
+ *
+ * @param[in]  port                The port
+ * @param[in]  defaultDestination  The default destination
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: StartTcpServer(const TcpPort port,
+                                        const uint8_t defaultDestination){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(TcpPort) + 1 /* default destination*/];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x00; // TCP connect command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         &port,
+         sizeof(TcpPort));
+
+  payload[sizeof(TcpPort)] = defaultDestination;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);
+}
+
+
+/**
+ * @brief      Connect to UDP
+ *
+ * @param      ip       The IP address
+ * @param[in]  port     The port
+ * @param[in]  routing  The routing
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: UdpConnect(IpAddress *ip, 
+                                    const UdpPort port,
+                                    const int8_t routing){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(IpAddress) + sizeof(UdpPort) + 1 /* routing endpoint*/];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x03; // UDP connect command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         ip,
+         sizeof(IpAddress));
+
+  memcpy(payload + sizeof(IpAddress),
+         &port,
+         sizeof(UdpPort));
+
+  payload[sizeof(IpAddress) + sizeof(UdpPort)] = routing;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload); 
+}
+
+
+/**
+ * @brief      Bind to UDP port
+ *
+ * @param[in]  endpoint  The endpoint
+ * @param[in]  port      The port
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: UdpBind(const uint8_t endpoint, 
+                                 const UdpPort port){
+  BgApiHeader txHeader;
+  uint8_t payload[1 /* endpoint */ + sizeof(UdpPort)];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x07; // UDP bind command 
+
+  // prepare the payload (see datasheet for format)
+  payload[0] = endpoint;
+
+  memcpy(payload + 1,
+         port,
+         sizeof(UdpPort));
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload); 
+}
+
+
+/**
+ * @brief      Starts an udp server.
+ *
+ * @param[in]  port                The port
+ * @param[in]  defaultDestination  The default destination
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: StartUdpServer(const UdpPort port,
+                                        const uint8_t defaultDestination){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(UdpPort) + 1 /* default destination*/];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x02; // TCP connect command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         &port,
+         sizeof(UdpPort));
+
+  payload[sizeof(UdpPort)] = defaultDestination;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);
+}
 
 /**
  * @brief      Transmit data to WF121 module

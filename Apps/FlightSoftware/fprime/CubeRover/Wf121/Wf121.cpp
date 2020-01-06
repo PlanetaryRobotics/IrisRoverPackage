@@ -3,7 +3,8 @@
 using namespace Wf121;
 
 /**
- * @brief      Hello System to check if the hardware is connected properly
+ * @brief      This command can be used to check whether communication between
+ *             the Wi-Fi software and hardware functions.
  *
  * @return     The error code.
  */
@@ -20,8 +21,8 @@ ErrorCode Wf121Driver :: HelloSystem(){
 }
 
 /**
- * @brief      Reset the wi-fi card to either main entry point or firmware
- *             update mode. Return an event when command is complete
+ * @brief      This command can be used to reset the Wi-Fi module. This command
+ *             does not have a response, but it triggers the boot event.
  *
  * @param[in]  bootMode  The boot mode
  *
@@ -46,9 +47,22 @@ ErrorCode Wf121Driver :: ResetSystemWifi(const BootMode bootMode){
 }
 
 /**
- * @brief      Sets the maximum power saving state.
+ * @brief      This command can be used to set the maximum power saving state
+ *             allowed for the Wi-Fi module
  *
- * @param[in]  state  The state
+ * @param[in]  state  * Mode 0: No power saving is in use. Use this mode for the
+ *                    lowest latency and best performance.
+ *                    * Mode 1: The Wi-Fi radio is allowed to sleep and it will
+ *                      automatically go to sleep after 6000 ms of inactivity.
+ *                    * Mode 2: Both MCU and Wi-Fi radio are allowed to go to
+ *                      sleep after an inactivity timeout defined in the
+ *                      hardware configuration file. The module wakes up
+ *                      automatically every eight (8) seconds to check for
+ *                      scheduled tasks and it also generates  event to notify
+ *                      the host of the scheduled Power Saving Statewake up.
+ *                    * If the sleep configuration is not used in the hardware
+ *                      configuration file then only states 0 and 1 are
+ *                      <sleep>possible.
  *
  * @return     The error code.
  */
@@ -71,7 +85,10 @@ ErrorCode Wf121Driver :: SetMaxPowerSavingState(const PowerSavingState state){
 }
 
 /**
- * @brief      Synchronize the wifi module
+ * @brief      This command can be used to synchronize the system state. When
+ *             the sync command is sent, multiple events are output representing
+ *             the system status. This command can be used to synchronize the
+ *             host software's status with the Wi-Fi software's status.
  *
  * @return     The error code.
  */
@@ -90,7 +107,7 @@ ErrorCode Wf121Driver :: SyncSystem(){
 }
 
 /**
- * @brief      Gets the mac address.
+ * @brief      This command can be used to read the IEEE address of the device.
  *
  * @param[in]  interface  The interface
  *
@@ -115,14 +132,16 @@ ErrorCode Wf121Driver :: GetMacAddress(const HardwareInterface interface){
 }
 
 /**
- * @brief      Sets the mac address.
+ * @brief      This command can be used to write an IEEE address into the
+ *             device.
  *
  * @param[in]  interface  The interface
  * @param[in]  mac        The new value
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: SetMacAddress(const HardwareInterface interface, const MacAddress mac){
+ErrorCode Wf121Driver :: SetMacAddress(const HardwareInterface interface,
+                                       const MacAddress mac){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(HardwareInterface) + sizeof(MacAddress)];
 
@@ -142,7 +161,7 @@ ErrorCode Wf121Driver :: SetMacAddress(const HardwareInterface interface, const 
 }
 
 /**
- * @brief      Turn on the wifi module
+ * @brief      This command can be used to turn on the 802.11 radio.
  *
  * @return     The error code.
  */
@@ -161,7 +180,7 @@ ErrorCode Wf121Driver :: TurnOnWifi(){
 }
 
 /**
- * @brief      Turn off the wifi module
+ * @brief      This command can be used to turn off the 802.11 radio.
  *
  * @return     The error code.
  */
@@ -180,7 +199,8 @@ ErrorCode Wf121Driver :: TurnOffWifi(){
 }
 
 /**
- * @brief      Sets the scan channels.
+ * @brief      This command can be used to set the default scan channel list for
+ *             commands  and .Start ScanConnect Ssid
  *
  * @param[in]  interface        The interface
  * @param[in]  list             The list
@@ -213,11 +233,12 @@ ErrorCode Wf121Driver :: SetScanChannels(const HardwareInterface interface,
 }
 
 /**
- * @brief      Starts scan channels.
+ * @brief      This command initiates a scan for Access Points. Scanning is not
+ *             possible once connected.
  *
- * @param[in]  interface    The interface
- * @param[in]  list         The list
- * @param[in]  channelSize  The channel size
+ * @param[in]  interface        The interface
+ * @param[in]  list             The list
+ * @param[in]  channelListSize  The channel size
  *
  * @return     The error code.
  */
@@ -246,7 +267,7 @@ ErrorCode Wf121Driver :: StartScanChannels(const HardwareInterface interface,
 }
 
 /**
- * @brief      Stops scan channels.
+ * @brief      This command can be used to terminate the active scanning procedure.
  *
  * @return     The error code.
  */
@@ -266,13 +287,19 @@ ErrorCode Wf121Driver :: StopScanChannels(){
 
 
 /**
- * @brief      Connects a bssid.
+ * @brief      This command can be used to try to connect to a specific Access
+ *             Point using its unique BSSID. In order to succeed, this command
+ *             requires a preceding  command and that the desired wireless
+ *             network sme_start_scanwas found during that scan. If the Access
+ *             Point is using channel 12 or 13, for the connection to be
+ *             successful at least one of the Access Points found within radio
+ *             coverage range must advertise the use of channels up to 13.
  *
- * @param[in]  hwAddr  The hardware address
+ * @param[in]  bssid  The bssid
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: ConnectBSSID(const HardwareAddress hwAddr){
+ErrorCode Wf121Driver :: ConnectBssid(const HardwareAddress bssid){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(HardwareAddress)];
 
@@ -284,7 +311,7 @@ ErrorCode Wf121Driver :: ConnectBSSID(const HardwareAddress hwAddr){
   txHeader.bit.cmdId = 0x06; // connect bssid command
 
   // Prepare payload
-  memcpy(payload, hwAddr, sizeof(HardwareAddress));
+  memcpy(payload, bssid, sizeof(HardwareAddress));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);
@@ -292,7 +319,8 @@ ErrorCode Wf121Driver :: ConnectBSSID(const HardwareAddress hwAddr){
 
 
 /**
- * @brief      Disconnects from AP.
+ * @brief      This command can be used to disconnect from the currently
+ *             connected Access Point.
  *
  * @return     The error code.
  */
@@ -311,13 +339,16 @@ ErrorCode Wf121Driver :: Disconnect(){
 }
 
 /**
- * @brief      Scans a results rssi.
+ * @brief      This command can be used to resend scan results of a previous
+ *             scan, sorted according to RSSI value. This command can be run
+ *             only after the command  has been issued at least once during the
+ *             current sme_start_scansession.
  *
  * @param[in]  amount  The amount of wireless network to scans. closest on top
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: ScanResultsRssi(const uint8_t amount){
+ErrorCode Wf121Driver :: ScanResultsSortRssi(const uint8_t amount){
   BgApiHeader txHeader;
   uint8_t payload[1];
 
@@ -337,14 +368,76 @@ ErrorCode Wf121Driver :: ScanResultsRssi(const uint8_t amount){
 
 
 /**
- * @brief      Sets the password.
+ * @brief      This command can be used to initiate an active scan for Access
+ *             Points. Scanning is not possible once connected.
+ *
+ * @param[in]  ssid      The ssid
+ * @param[in]  ssidSize  The ssid size
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: StartSsidScan(const Ssid *ssid, 
+                                       const SsidSize ssidSize){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(SsidSize) + ssidSize];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_WIFI;
+  txHeader.bit.cmdId = 0x14; // connect SSID command
+
+  // prepare the payload (see datasheet for format)
+  payload[0] = ssidSize;
+
+  memcpy(payload + sizeof(SsidSize),
+          ssid,
+          ssidSize);
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);
+}
+
+
+/**
+ * @brief      This command can be used to set whether the Access Point is
+ *             hidden or visible. The Access Point is set visible by default
+ *
+ * @param[in]  hidden  The hidden
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: SetApHidden(const bool hidden){
+   BgApiHeader txHeader;
+  uint8_t payload[1] /* hidden */;
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_WIFI;
+  txHeader.bit.cmdId = 0x14; // connect SSID command
+
+  // prepare the payload (see datasheet for format)
+  payload[0] = hidden;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload); 
+}
+
+
+/**
+ * @brief      This command can be used to set the network password used when
+ *             authenticating with an Access Point.
  *
  * @param[in]  pwd      The new value of the password in ascii format
  * @param[in]  pwdSize  The password size
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: SetPassword(const Password *pwd, const PasswordSize pwdSize){
+ErrorCode Wf121Driver :: SetPassword(const Password *pwd,
+                                     const PasswordSize pwdSize){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(PasswordSize) + pwdSize];
 
@@ -368,14 +461,26 @@ ErrorCode Wf121Driver :: SetPassword(const Password *pwd, const PasswordSize pwd
 
 
 /**
- * @brief      Connects to AP with a given SSID. SSID encoded in ASCII format
+ * @brief      This command can be used to start a connection establishment
+ *             procedure with an Access Point with the given SSID. This command
+ *             supports both visible and hidden SSIDs.Executing this command
+ *             will also launch a transparent scan procedure in order to
+ *             discover the Access Points in range, but the results of the scan
+ *             procedure will not be exposed to the user. The channels used in
+ *             the scan procedure can be defined with the  command. If the
+ *             command has not been executed all Set Scan Channelschannels (1 to
+ *             13) will be scanned. If the Access Point is using channel 12 or
+ *             13, for the connection to be successful, at least one of the
+ *             Access Points found in range must advertise the use of channels
+ *             up to 13
  *
  * @param[in]  ssid      The ssid
  * @param[in]  ssidSize  The ssid size
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: ConnectSSID(const Ssid *ssid, const SsidSize ssidSize){
+ErrorCode Wf121Driver :: ConnectSsid(const Ssid *ssid,
+                                     const SsidSize ssidSize){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(SsidSize) + ssidSize];
 
@@ -398,7 +503,8 @@ ErrorCode Wf121Driver :: ConnectSSID(const Ssid *ssid, const SsidSize ssidSize){
 }
 
 /**
- * @brief      Gets the signal quality.
+ * @brief      This command can be used to get a value indicating the signal
+ *             quality of the connection.
  *
  * @return     The signal quality.
  */
@@ -417,11 +523,13 @@ ErrorCode Wf121Driver :: GetSignalQuality(){
 }
 
 /**
- * @brief      Starts a wps.
+ * @brief      This command can be used to start the Wi-Fi Protected Setup (WPS)
+ *             session. Only WPS PUSH mode for the Wi-Fi client side is
+ *             available
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: StartWPS(){
+ErrorCode Wf121Driver :: StartWps(){
   BgApiHeader txHeader;
 
   //Prepare command header
@@ -437,11 +545,12 @@ ErrorCode Wf121Driver :: StartWPS(){
 
 
 /**
- * @brief      Stops a wps.
+ * @brief      This command can be used to stop the Wi-Fi Protected Setup (WPS)
+ *             session.
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: StopWPS(){
+ErrorCode Wf121Driver :: StopWps(){
   BgApiHeader txHeader;
 
   //Prepare command header
@@ -457,7 +566,10 @@ ErrorCode Wf121Driver :: StopWPS(){
 
 
 /**
- * @brief      Sets the operating mode.
+ * @brief      This command can be used to set the Wi-Fi operating mode either
+ *             to Wi-Fi client (STA) or Wi-Fi Access Point (AP). The selected
+ *             operating mode will become effective after the next time the
+ *             radio is turned on by launching the command .sme_wifi_on
  *
  * @param[in]  mode  The mode
  *
@@ -482,7 +594,64 @@ ErrorCode Wf121Driver :: SetOperatingMode(const OperatingMode mode){
 
 
 /**
- * @brief      Sets the ap maximum client.
+ * @brief      This command can be used to select whether 802.11n mode is
+ *             enabled or disabled. The mode is enabled by default.
+ *
+ * @param[in]  mode  The mode 0: disabled, 1: enabled
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: Set11nMode(const bool mode){
+  BgApiHeader txHeader;
+  uint8_t payload[1] /* mode size */;
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_WIFI;
+  txHeader.bit.cmdId = 0x16; // set operating mode command
+
+  payload[0] = mode;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);   
+}
+
+
+/**
+ * @brief      This command can be used to isolate clients from each other in
+ *             Access Point mode. Multiple clients can be connected to the AP
+ *             and communicate with the AP but not with each other. The
+ *             isolation is disabled by default. Note that in this mode no
+ *             multicast traffic is re-transmitted by the AP
+ *
+ * @param[in]  isolation  The isolation 0: disabled, 1: enabled
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: SetApClientIsolation(const bool isolation){
+  BgApiHeader txHeader;
+  uint8_t payload[1] /* mode size */;
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_WIFI;
+  txHeader.bit.cmdId = 0x16; // set operating mode command
+
+  payload[0] = isolation;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);   
+}
+
+
+
+/**
+ * @brief      This command can be used to set the maximum amount of stations
+ *             that can be associated to the Access Point at the same time.
  *
  * @param[in]  maxClients  The maximum number of clients
  *
@@ -507,14 +676,16 @@ ErrorCode Wf121Driver :: SetApMaxClient(const uint8_t maxClients){
 
 
 /**
- * @brief      Sets the ap password.
+ * @brief      This command can be used to set the Wi-Fi password for an Access
+ *             Point.
  *
  * @param[in]  pwd      The new value
  * @param[in]  pwdSize  The password size
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: SetApPassword(const Password *pwd, const PasswordSize pwdSize){
+ErrorCode Wf121Driver :: SetApPassword(const Password *pwd,
+                                       const PasswordSize pwdSize){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(PasswordSize) + pwdSize];
 
@@ -622,12 +793,22 @@ ErrorCode Wf121Driver :: DisconnectApClient(const HardwareAddress hwAddr){
 
 
 /**
- * @brief      Configure TCP IP connection
+ * @brief      This command can be used to configure TCP/IP settings.When using
+ *             static IP addresses, this command can be used to configure the
+ *             local IP address, netmask and gateway.When enabling a DHCP Client
+ *             the settings for the static IP will be stored, but they will be
+ *             overridden as soon as the remote DHCP Server will assign its IP
+ *             configuration to the module.
  *
- * @param[in]  ip       The ip address in byte format
- * @param[in]  mask     The mask in byte format
- * @param[in]  gateway  The gateway in byte format
- * @param[in]  useDhcp  The use dhcp
+ * @param[in]  ip       The local IP address of the device.
+ * @param[in]  mask     The netmask of the device.
+ * @param[in]  gateway  The gateway used by the device when in station (client)
+ *                      mode.In access point mode this is not relevant, because
+ *                      the local DHCP server will automatically use the local
+ *                      IP address above as the gateway to pass to remote
+ *                      clients.
+ * @param[in]  useDhcp  Use DHCP 0 : Use static IP settings 1 : DHCP Client is
+ *                      used to obtain the dynamic IP configuration
  *
  * @return     The error code.
  */
@@ -666,14 +847,15 @@ ErrorCode Wf121Driver :: ConfigureTcpIp(const IpAddress ip,
 
 
 /**
- * @brief      Sets the dhcp host name.
+ * @brief      This command can be used to set the DHCP host name parameter
+ *             (option 12) used in client DHCPDISCOVER and DHCPREQUEST messages
  *
  * @param      hostName      The host name
  * @param[in]  hostNameSize  The host name size
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: SetDHCPHostName(DchpHostName  *hostName,
+ErrorCode Wf121Driver :: SetDhcpHostName(DchpHostName  *hostName,
                                          const DhcpHostNameSize hostNameSize){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(DhcpHostNameSize) + hostNameSize];
@@ -697,14 +879,17 @@ ErrorCode Wf121Driver :: SetDHCPHostName(DchpHostName  *hostName,
 }
 
 /**
- * @brief      Configure the DNS server
+ * @brief      This command can be used to configure DNS client settings.
  *
- * @param[in]  index  The index
- * @param[in]  ip     The ip address encoded in bytes
+ * @param[in]  index  TTwo different DNS servers can be stored. Index indicates
+ *                    which of the two this is.0 : primary DNS server 1 :
+ *                    secondary DNS server
+ * @param[in]  ip     The IP address of the DNS server
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: ConfigureDNS(const DnsIndex index, IpAddress *ip){
+ErrorCode Wf121Driver :: ConfigureDns(const DnsIndex index, 
+                                      IpAddress *ip){
   BgApiHeader txHeader;
   uint8_t payload[1 /*DnsIndex */ + sizeof(IpAddress)];
 
@@ -728,14 +913,18 @@ ErrorCode Wf121Driver :: ConfigureDNS(const DnsIndex index, IpAddress *ip){
 
 
 /**
- * @brief      Gets the dns host by name.
+ * @brief      This command can be used to start a procedure to resolve the
+ *             hostname related to an IP address using the configured DNS
+ *             servers
  *
- * @param      name  The name
+ * @param      name  The name of the server whose IP address should be resolved,
+ *                   for example www.bluegiga.com.
  * @param[in]  size  The size
  *
  * @return     The error code
  */
-ErrorCode Wf121Driver :: GetDNSHostByName(DchpHostName * name, const DhcpHostNameSize size){
+ErrorCode Wf121Driver :: GetDnsHostByName(DchpHostName * name,
+                                          const DhcpHostNameSize size){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(DhcpHostNameSize) + size];
 
@@ -759,11 +948,418 @@ ErrorCode Wf121Driver :: GetDNSHostByName(DchpHostName * name, const DhcpHostNam
 
 
 /**
- * @brief      Connect to TCP
+ * @brief      This command can be used to set the mDNS hostname. mDNS service
+ *             cannot be started until the hostname is set. The maximum length
+ *             of hostname is 63 bytes.
  *
- * @param      ip       IP address to connect to
- * @param[in]  port     The port
- * @param[in]  routing  The routing endpoint
+ * @param      name  The name
+ * @param[in]  size  The size
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: SetMdnsHostName(MdnsHostName * name,
+                                          const MdnsHostNameSize size){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(MdnsHostNameSize) + size];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x0A; // set mdns hostname command 
+
+  // prepare the payload (see datasheet for format)
+  payload[0] = size;
+
+  memcpy(payload + 1,
+         name,
+         size);
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);  
+}
+
+
+/**
+ * @brief      This command can be used to start the mDNS service.
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: StartMDns(){
+  BgApiHeader txHeader;
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, 0); // no payload
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x0B; // start mdsn command 
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, NULL);  
+}
+
+
+/**
+ * @brief      This command can be used to stop a mDNS service.
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: StopMDns(){
+  BgApiHeader txHeader;
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, 0); // no payload
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x0C; // stop mdsn command 
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, NULL);  
+}
+
+
+/**
+ * @brief      This command can be used to add a new DNS-SD service. The maximum
+ *             length of the service name is 15 bytes
+ *
+ * @param[in]  port             The port
+ * @param[in]  protocol         The protocol
+ * @param[in]  serviceName      The service name
+ * @param[in]  serviceNameSize  The service name size
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: DnsSdAddService(const TcpPort port,
+                                         const Protocol protocol,
+                                         const ServiceName *serviceName,
+                                         const ServiceNameSize serviceNameSize){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(TcpPort) + sizeof(Protocol) + sizeof(ServiceNameSize) + serviceNameSize];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x0D; // set dns add service command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         port,
+         sizeof(TcpPort));
+
+  memcpy(payload + sizeof(TcpPort),
+         protocol,
+         sizeof(Protocol));
+
+  memcpy(payload + sizeof(TcpPort) + sizeof(Protocol),
+         serviceNameSize,
+         sizeof(serviceNameSize));
+
+  memcpy(payload + sizeof(TcpPort) + sizeof(Protocol) + sizeof(ServiceNameSize),
+         serviceName,
+         serviceNameSize);
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);   
+}
+
+
+/**
+ * @brief      This command can be used to add a DNS-SD service instance name.
+ *             The maximum length of the service instance name is 63 bytes. The
+ *             DNS-SD service cannot be started until the instance name is set
+ *
+ * @param[in]  index            The index
+ * @param[in]  serviceName      The service name
+ * @param[in]  serviceNameSize  The service name size
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: DnsSdAddServiceInstance(const uint8_t index,
+                                                 const ServiceName *serviceName,
+                                                 const ServiceNameSize serviceNameSize){
+  BgApiHeader txHeader;
+  uint8_t payload[1 /* index */ + sizeof(ServiceNameSize) + serviceNameSize];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x0E; // set dns add service instance command 
+
+  // prepare the payload (see datasheet for format)
+  payload[0] = index;
+
+  memcpy(payload + 1 /* index */,
+         serviceNameSize,
+         sizeof(ServiceNameSize));
+
+  memcpy(payload + 1 /* index */ + sizeof(ServiceNameSize),
+         serviceName,
+         serviceNameSize);
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);   
+}
+
+
+/**
+ * @brief      This command can be used to add a DNS-SD service attribute. The
+ *             maximum length of the service attribute is 63 bytes
+ *
+ * @param[in]  index                 The index
+ * @param[in]  serviceAttribute      The service attribute
+ * @param[in]  serviceAttributeSize  The service attribute size
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: DnsSdAddServiceAttribute(const uint8_t index,
+                                                  const ServiceAttribute *serviceAttribute,
+                                                  const ServiceAttributeSize serviceAttributeSize){
+  BgApiHeader txHeader;
+  uint8_t payload[1 /* index */ + sizeof(ServiceAttribute) + serviceAttributeSize];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x0F; // set dns add service attribute command 
+
+  // prepare the payload (see datasheet for format)
+  payload[0] = index;
+
+  memcpy(payload + 1 /* index */,
+         serviceAttributeSize,
+         sizeof(ServiceAttributeSize));
+
+  memcpy(payload + 1 /* index */ + sizeof(ServiceAttributeSize),
+         serviceAttribute,
+         serviceAttributeSize);
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);   
+}
+
+
+/**
+ * @brief      This command can be used to remove a DNS-SD service
+ *
+ * @param[in]  index  The index
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: DnsSdRemoveService(const uint8_t index){
+  BgApiHeader txHeader;
+  uint8_t payload[1];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x10; // remove service command 
+
+  // prepare the payload (see datasheet for format)
+  payload[0] = index;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);   
+}
+
+
+/**
+ * @brief      This command can be used to start a DNS-SD service
+ *
+ * @param[in]  index  The index
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: DnsSdStartService(const uint8_t index){
+  BgApiHeader txHeader;
+  uint8_t payload[1];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x11; // start service command 
+
+  // prepare the payload (see datasheet for format)
+  payload[0] = index;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);   
+}
+
+
+/**
+ * @brief      This command can be used to stop a DNS-SD service.
+ *
+ * @param[in]  index  The index
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: DnsSdStopService(const uint8_t index){
+  BgApiHeader txHeader;
+  uint8_t payload[1];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x12; // stop service command 
+
+  // prepare the payload (see datasheet for format)
+  payload[0] = index;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);   
+}
+
+
+/**
+ * @brief      This command is used to join a multicast group.Maximum number of
+ *             multicast groups that can be joined is 4. Use 224.0.0.2 -
+ *             224.0.0.254 as address range. Note that 224.0.0.1 is
+ *             automatically joined.
+ *
+ * @param      ip    IP address of the multicast group
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: MulticastJoin(IpAddress *ip){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(IpAddress)];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x13; // multicast join command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         ip,
+         sizeof(IpAddress));
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);   
+}
+
+
+/**
+ * @brief      This command is used to leave a multicast group.
+ *
+ * @param      ip    IP address of the multicast group
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: MulticastLeave(IpAddress *ip){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(IpAddress)];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x14; // multicast leave command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         ip,
+         sizeof(IpAddress));
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);   
+}
+
+
+/**
+ * @brief      This command can be used to configure DHCP Server subnetwork mask
+ *             and address lease time.Values are saved in PS-keys called
+ *             FLASH_PS_KEY_DHCPS_SPACE, FLASH_PS_KEY_DHCPS_MASK and
+ *             FLASH_PS_KEY_DHCPS_LEASETIME and default values are 192.168.1.2,
+ *             255.255.255.0 and 86400 seconds. Parameters are taken in use on
+ *             DHCP server startup.
+ *
+ * @param      ip         First IPv4 address of address leasing pool
+ * @param      netmask    Subnetwork mask
+ * @param[in]  leaseTime  DHCP address lease timeout in seconds
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: DhcpConfigure(IpAddress *ip,
+                                       Netmask *netmask,
+                                       const uint32_t leaseTime){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(IpAddress)];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x15; // dhcp configure leave command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         ip,
+         sizeof(IpAddress));
+
+  memcpy(payload + sizeof(IpAddress),
+         netmask,
+         sizeof(Netmask));
+
+  memcpy(payload + sizeof(IpAddress) + sizeof(Netmask),
+         leaseTime, /* lease time */
+         4);
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);   
+}
+
+
+/**
+ * @brief      This command can be used to get IPv4 address and MAC address of
+ *             each client connected to WF121 access point.
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: DhcpClients(){
+  BgApiHeader txHeader;
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, 0);
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x16; // dhcp clients command 
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, NULL);   
+}
+
+/**
+ * @brief      This command can be used to attempt the creation of a new TCP
+ *             socket to a TCP server
+ *
+ * @param      ip       The IP address of the remote server to which the module
+ *                      should connect.
+ * @param[in]  port     The TCP port on the remote server
+ * @param[in]  routing  The endpoint where the incoming data from the TCP server
+ *                      should be routed to. : data received is not
+ *                      automatically routed to other endpoint, but received as
+ *                      -1 endpoint event.
  *
  * @return     The error code.
  */
@@ -797,15 +1393,27 @@ ErrorCode Wf121Driver :: TcpConnect(IpAddress *ip,
 
 
 /**
- * @brief      Starts a tcp server.
+ * @brief      This command can be used to start a TCP server.Once the TCP
+ *             server is started, and a remote client establishes a new
+ *             connection, the data coming from this client will be routed by
+ *             default to the endpoint specified in the  parameter. If such
+ *             endpoint, default_destinationsay the UART interface, is
+ *             configured to communicate with host via the BGAPI, then data will
+ *             be carried via the event, otherwise raw data is sent out of the
+ *             specified interface. When -1 is used, data received endpoint_data
+ *             -1from the client is passed to BGScript via event, and/or event
+ *             containing the data endpoint_data endpoint_data is sent out of
+ *             the interfaces over which BGAPI is enable
  *
  * @param[in]  port                The port
- * @param[in]  defaultDestination  The default destination
+ * @param[in]  defaultDestination  Endpoint where data from connected client
+ *                                 will be routed to. Use -1 to generate events
+ *                                 instead
  *
  * @return     The error code.
  */
 ErrorCode Wf121Driver :: StartTcpServer(const TcpPort port,
-                                        const uint8_t defaultDestination){
+                                        const int8_t defaultDestination){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(TcpPort) + 1 /* default destination*/];
 
@@ -833,7 +1441,13 @@ ErrorCode Wf121Driver :: StartTcpServer(const TcpPort port,
  *
  * @param      ip       The IP address
  * @param[in]  port     The port
- * @param[in]  routing  The routing
+ * @param[in]  routing  The endpoint index where the data from this connection
+ *                      should be routed to. Notice that in the current
+ *                      firmwares there cannot be data coming from the endpoint
+ *                      assigned to this UDP connection, due to the
+ *                      connectionless nature of the UDP protocol. So, any index
+ *                      can be used here and no practical effect should be
+ *                      expected.
  *
  * @return     The error code.
  */
@@ -867,17 +1481,21 @@ ErrorCode Wf121Driver :: UdpConnect(IpAddress *ip,
 
 
 /**
- * @brief      Bind to UDP port
+ * @brief      In case an UDP endpoint exists, this command can be used to
+ *             change the currently used local source port (which is otherwise
+ *             pseudo-randomly generated by the firmware) to a desired specific
+ *             source port. Use this command after the command tcpip_udp_connect
+ *             is issued and the UDP endpoint assigned
  *
- * @param[in]  endpoint  The endpoint
- * @param[in]  port      The port
+ * @param[in]  endpoint  The endpoint which source port to change
+ * @param[in]  port      The UDP port of source
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: UdpBind(const uint8_t endpoint, 
+ErrorCode Wf121Driver :: UdpBind(const Endpoint endpoint, 
                                  const UdpPort port){
   BgApiHeader txHeader;
-  uint8_t payload[1 /* endpoint */ + sizeof(UdpPort)];
+  uint8_t payload[sizeof(Endpoint) + sizeof(UdpPort)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -889,7 +1507,7 @@ ErrorCode Wf121Driver :: UdpBind(const uint8_t endpoint,
   // prepare the payload (see datasheet for format)
   payload[0] = endpoint;
 
-  memcpy(payload + 1,
+  memcpy(payload + sizeof(Endpoint),
          port,
          sizeof(UdpPort));
 
@@ -899,10 +1517,14 @@ ErrorCode Wf121Driver :: UdpBind(const uint8_t endpoint,
 
 
 /**
- * @brief      Starts an udp server.
+ * @brief      This command can be used to start an UDP server
  *
- * @param[in]  port                The port
- * @param[in]  defaultDestination  The default destination
+ * @param[in]  port                the local UDP port that the server listens on
+ * @param[in]  defaultDestination  The endpoint to which incoming UDP packets
+ *                                 should be written.-1 for destination means
+ *                                 incoming data is notified with Udp data event Udp
+ *                                 Dataw hich is the event carrying in addition
+ *                                 the source IP address and port.
  *
  * @return     The error code.
  */
@@ -916,7 +1538,7 @@ ErrorCode Wf121Driver :: StartUdpServer(const UdpPort port,
   txHeader.bit.technologyType = 1; // wifi
   setHeaderPayloadSize(&txHeader, sizeof(payload));
   txHeader.bit.classId = CLASS_TCP_STACK;
-  txHeader.bit.cmdId = 0x02; // TCP connect command 
+  txHeader.bit.cmdId = 0x02; // start udp server command 
 
   // prepare the payload (see datasheet for format)
   memcpy(payload,
@@ -929,6 +1551,378 @@ ErrorCode Wf121Driver :: StartUdpServer(const UdpPort port,
   return transmitCommand(&txHeader, payload);
 }
 
+
+/**
+ * @brief      This command can be used to enable or disable gateway and DNS
+ *             router options in DHCP server offer and ack. Options are enabled
+ *             by default.
+ *
+ * @param[in]  enable  The enable
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: DhcpEnableRouting(const bool enable){
+  BgApiHeader txHeader;
+  uint8_t payload[1 /* enable */];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_TCP_STACK;
+  txHeader.bit.cmdId = 0x09; // start udp server command 
+
+  // prepare the payload (see datasheet for format)
+  payload[0] = enable;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);
+}
+
+
+/**
+ * @brief      This command can be used to activate or deactivate endpoints. By
+ *             default endpoints are active, i.e. you can send data to them, and
+ *             data can be received from them. This command allows you to
+ *             temporarily halt the outgoing data from an endpoint by
+ *             deactivating it. For example, deactivating a UART endpoint over
+ *             which BGAPI is carried, will prevent BGAPI events and responses
+ *             to go out of that UART interface (but host can still send BGAPI
+ *             commands to it). Similarly, deactivating the BGScript endpoint
+ *             will prevent events to be passed to the script, thus preventing
+ *             the calls in it to be executed. Server endpoints however are
+ *             never active, as they can neither send nor receive data
+ *
+ * @param[in]  endpoint        The endpoint
+ * @param[in]  endpointStatus  Endpoint status 0 : inactive 1 : active
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: SetActiveEndpoint(const Endpoint endpoint,
+                                           const bool endpointStatus){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(Endpoint) + 1 /* endpointStatus */];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_ENDPOINT;
+  txHeader.bit.cmdId = 0x02; // set active endpoint command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         &endpoint,
+         sizeof(Endpoint));
+
+  payload[sizeof(Endpoint)] = endpointStatus;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);
+}
+
+
+/**
+ * @brief      Sends data to an endpoint.
+ *
+ * @param[in]  endpoint  The endpoint
+ * @param      data      The data
+ * @param[in]  dataSize  The data size
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: SendEndpoint(const Endpoint endpoint,
+                                      uint8_t *data,
+                                      const DataSize dataSize){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(Endpoint) + sizeof(DataSize) + dataSize];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_ENDPOINT;
+  txHeader.bit.cmdId = 0x00; // send data to endpoint command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         &endpoint,
+         sizeof(Endpoint));
+
+  memcpy(payload + sizeof(Endpoint),
+         dataSize,
+         sizeof(DataSize));
+
+  memcpy(payload + sizeof(Endpoint) + sizeof(DataSize),
+         data,
+         dataSize);
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);    
+}
+
+
+/**
+ * @brief      This command can be used to set the desired transmit packet size:
+ *             endpoint will buffer outgoing data until packet size is reached
+ *             and then transmit it to remote end. This only applies to UDP
+ *             endpoints, and should not be used with any other type of
+ *             endpoint, including TCP. When using packet size 0, the data will
+ *             be sent not be used with any other type of endpoint, including
+ *             TCP.If the transmit packet size is set to a higher value than
+ *             255, then multiple endpoint_send command need to be issued to
+ *             fill the transmit buffer and to effectively send the data to the
+ *             remote end, due to the fact that the endpoint_send command can
+ *             carry at most 255 payload bytes.
+ *
+ * @param[in]  endpoint      The endpoint
+ * @param[in]  transmitSize  The transmit size
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: SetTransmitSize(const Endpoint endpoint,
+                                         const uint16_t transmitSize){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(Endpoint) + sizeof(uint16_t) /* transmitSize */];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_ENDPOINT;
+  txHeader.bit.cmdId = 0x05; // set transmit size command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         &endpoint,
+         sizeof(Endpoint));
+
+  memcpy(payload + sizeof(Endpoint),
+         transmitSize,
+         sizeof(transmitSize));
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);  
+}
+
+
+/**
+ * @brief      This command can be used to configure an UART into a streaming or
+ *             BGAPI mode. When an UART endpoint is in a streaming mode, the
+ *             data gets transparently routed to another endpoint like TCP. In
+ *             BGAPI mode the data is exposed via BGAPI.This setting currently
+ *             only operates on UART endpoints
+ *
+ * @param[in]  endpoint   The endpoint
+ * @param[in]  streaming  Endpoint mode 0 : Use as BGAPI interface 1 : Streaming
+ *                        to another endpoint
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: SetStreaming(const Endpoint endpoint,
+                                      const Streaming streaming){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(Endpoint) + sizeof(uint8_t) /* streaming */];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_ENDPOINT;
+  txHeader.bit.cmdId = 0x01; // set streaming command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         &endpoint,
+         sizeof(Endpoint));
+
+  payload[sizeof(Endpoint)] = streaming;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);  
+}
+
+
+/**
+ * @brief      This command can be used to set the destination where data from an endpoint will be routed to.
+ *
+ * @param[in]  endpoint  The endpoint
+ * @param[in]  dest      The destination
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: SetStreamingDestination(const Endpoint endpoint,
+                                                 const StreamingDestination dest){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(Endpoint) + sizeof(StreamingDestination)];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_ENDPOINT;
+  txHeader.bit.cmdId = 0x03; // set streaming destination command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         &endpoint,
+         sizeof(Endpoint));
+
+  memcpy(payload + sizeof(Endpoint),
+         dest,
+         sizeof(StreamingDestination));
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);  
+}
+
+
+/**
+ * @brief      This command can be used to close an endpoint. This command is
+ *             valid only for UDP or TCP endpoints
+ *
+ * @param[in]  endpoint  The endpoint
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: CloseEndpoint(const Endpoint endpoint){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(Endpoint)];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_ENDPOINT;
+  txHeader.bit.cmdId = 0x04; // close endpoint command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         &endpoint,
+         sizeof(Endpoint));
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);  
+}
+
+/**
+ * @brief      This command can be used to disable an UART type endpoint. This
+ *             command effectively turns down an UART interface until the module
+ *             is reset or power-cycled. When an UART interface is disabled its
+ *             pins go to high-impedance state.
+ *
+ * @param[in]  endpoint  Index of the endpoint to disable 0: UART0 1: UART1
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: DisableEndpoint(const Endpoint endpoint){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(Endpoint)];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_ENDPOINT;
+  txHeader.bit.cmdId = 0x06; // disable endpoint command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         &endpoint,
+         sizeof(Endpoint));
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);  
+}
+
+/**
+ * @brief      This command can be used to enable the software timer. Multiple
+ *             concurrent timers can be running at the same time
+ *
+ * @param[in]  timeMs      Interval between how often to send events, in
+ *                         milliseconds.If time is 0, removes the scheduled
+ *                         timer
+ * @param[in]  handleTimer The handle
+ * @param[in]  singleShot  The single shot
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: SetSoftTimer(const TimeMs timeMs,
+                                      const HandleTimer handle,
+                                      const bool singleShot){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(TimeMs) + sizeof(HandleTimer) + 1 /* singleshot */];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_HARDWARE;
+  txHeader.bit.cmdId = 0x00; // set soft timer command 
+
+  // prepare the payload (see datasheet for format)
+  memcpy(payload,
+         &timeMs,
+         sizeof(TimeMs));
+
+  memcpy(payload + sizeof(TimeMs),
+         &handle,
+         sizeof(HandleTimer));
+
+  payload[sizeof(TimeMs) + sizeof(HandleTimer)] = singleshot;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload);  
+}
+
+
+/**
+ * @brief      This command can be used to configure pins which will generate
+ *             interrupts.In the WF121 Wi-Fi module there are four pins which
+ *             support interrupts: RD0/INT0, RD9/INT2, RD10/INT3, RD11/INT4.
+ *             INT1 is reserved for WF121's internal use and cannot be used for
+ *             other purposes. Interrupts can be triggered either on the rising
+ *             edge or the falling edge
+ *
+ * @param[in]  enable    External interrupt bits to enable 
+ *                       INT0 : 0x01
+ *                       INT2 : 0x04
+ *                       INT3 : 0x08
+ *                       INT4 : 0x10
+ *                       Example: interrupts INT0 and INT4 are enabled 
+ *                       with value of 0x5
+ * @param[in]  polarity  External interrupt polarity bits, rising edge if set, 
+ *                       falling edge otherwise
+ *                       INT0 : 0x01
+ *                       INT2 : 0x04
+ *                       INT3 : 0x08
+ *                       INT4 : 0x10
+ *                       Example: INT0 as falling and INT2 as rising 
+ *                       are set with value of 0x4
+ *
+ * @return     The error code.
+ */
+ErrorCode Wf121Driver :: ConfigureExternalInterrupt(const InterruptMask enable,
+                                                    const InterruptMask polarity){
+  BgApiHeader txHeader;
+  uint8_t payload[sizeof(InterruptMask) + sizeof(InterruptMask)];
+
+  //Prepare command header
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.technologyType = 1; // wifi
+  setHeaderPayloadSize(&txHeader, sizeof(payload));
+  txHeader.bit.classId = CLASS_HARDWARE;
+  txHeader.bit.cmdId = 0x01; // configure external command 
+
+  // prepare the payload (see datasheet for format)
+  payload[0] = enable;
+  payload[1] = polarity;
+
+  // transmit a command, an event is expected in  return
+  return transmitCommand(&txHeader, payload); 
+}
+
+
 /**
  * @brief      Transmit data to WF121 module
  *
@@ -937,7 +1931,8 @@ ErrorCode Wf121Driver :: StartUdpServer(const UdpPort port,
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: transmitCommand(BgApiHeader *header, uint8_t *payload){
+ErrorCode Wf121Driver :: transmitCommand(BgApiHeader *header,
+                                         uint8_t *payload){
 
   // check if a command is already being sent out, if so, only one command can
   // be sent at a time.

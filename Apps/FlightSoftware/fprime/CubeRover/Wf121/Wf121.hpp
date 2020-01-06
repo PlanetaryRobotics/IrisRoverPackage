@@ -133,6 +133,16 @@ namespace Wf121{
     SECONDARY_DNS_SERVER = 1
   }DnsIndex;
 
+  typedef enum Streaming{
+    BGAPI_INTERFACE       = 0,
+    STREAMING_TO_OTHER_EP = 1
+  }Streaming;
+
+  typedef enum Protocol{
+    TCP = 0,
+    UDP = 1
+  }Protocol;
+
   typedef uint32_t Timeout;
 
   typedef uint8_t IpAddress[IP_ADDRESS_V4_SIZE];
@@ -154,8 +164,24 @@ namespace Wf121{
   typedef uint8_t DhcpHostName;
   typedef uint8_t DhcpHostNameSize;
 
+  typedef uint8_t MdnsHostName;
+  typedef uint8_t MdnsHostNameSize;
+
+  typedef uint8_t ServiceName;
+  typedef uint8_t ServiceNameSize;
+
   typedef uint16_t TcpPort;
   typedef uint16_t UdpPort;
+
+  typedef uint8_t DataSize;
+
+  typedef int8_t StreamingDestination;
+
+  typedef uint8_t HandleTimer;
+  typedef uint32_t TimeMs;
+
+  typedef uint8_t InterruptMask;
+
 
   class Wf121Driver{
     public:

@@ -9,9 +9,9 @@
 #include "sci.h"
 #include "gio.h"
 
-#define MAX_SIZE_PAYLOAD    2048    // in byte
+#define MAX_SIZE_PAYLOAD    256    // in byte
 #define SCI_REG             sciREG
-#define BLOCKING_TIMEOUT_US 1000    // in us
+#define BLOCKING_TIMEOUT_US 10000    // in us
 
 #define MAC_ADDRESS_SIZE      6       // in byte
 #define HARDWARE_ADDRESS_SIZE 6       // in byte
@@ -84,6 +84,11 @@ namespace Wf121{
     CMD_RSP_TYPE = 0,
     EVENT_TYPE = 1
   }MsgType;
+
+  typedef enum TechnologyType{
+    TT_BLUETOOTH = 0,
+    TT_WIFI = 1
+  }TechnologyType;
 
   typedef struct BgApiHeaderBits{
     uint32_t lengthHigh:3;            // bit 0..2
@@ -227,6 +232,9 @@ namespace Wf121{
   typedef uint8_t DhcpHostName;
   typedef uint8_t DhcpHostNameSize;
 
+  typedef uint8_t ServiceAttribute;
+  typedef uint8_t ServiceAttributeSize;
+
   typedef uint8_t MdnsHostName;
   typedef uint8_t MdnsHostNameSize;
 
@@ -254,9 +262,15 @@ namespace Wf121{
 
   typedef uint8_t InterruptMask;
 
+  typedef uint8_t Endpoint;
 
   class Wf121Driver{
     public:
+      Wf121Driver();
+      ~Wf121Driver();
+      ErrorCode Init();
+
+      // List of commands
       ErrorCode HelloSystem();
       ErrorCode ResetSystemWifi(const BootMode bootMode);
       ErrorCode SetMaxPowerSavingState(const PowerSavingState state);
@@ -299,14 +313,14 @@ namespace Wf121{
       ErrorCode StopApMode();
       ErrorCode DisconnectApClient(const HardwareAddress hwAddr);
       ErrorCode ConfigureTcpIp(const IpAddress ip, 
-                               const NetMask mask,
+                               const Netmask mask,
                                const Gateway gateway,
                                const bool useDhcp); 
-      ErrorCode SetDhcpHostName(DchpHostName  *hostName,
+      ErrorCode SetDhcpHostName(DhcpHostName  *hostName,
                                 const DhcpHostNameSize hostNameSize);
       ErrorCode ConfigureDns(const DnsIndex index, 
                              IpAddress *ip);
-      ErrorCode GetDnsHostByName(DchpHostName * name,
+      ErrorCode GetDnsHostByName(DhcpHostName * name,
                                  const DhcpHostNameSize size);
       ErrorCode SetMdnsHostName(MdnsHostName * name,
                                 const MdnsHostNameSize size);
@@ -434,16 +448,62 @@ namespace Wf121{
       ErrorCode LoadPersistentStore(const uint16_t key);
       ErrorCode DumpPersistentStore();
       ErrorCode ErasePersistentStore(const uint16_t key);
+
+      // List of events
+
+      // Other functions
+      ErrorCode ExecuteCallbacks();
+      bool CommandIsProcessing();
     private:
+
       ErrorCode transmitCommand(BgApiHeader *header,
                                 uint8_t *payload = NULL);
       ErrorCode receiveCommand(BgApiHeader *header,
                                uint8_t *payload = NULL);
       uint16_t getPayloadSizeFromHeader(BgApiHeader *header);
+      ErrorCode getReplyHeader(BgApiHeader *header);
+      ErrorCode getReplyPayload(uint8_t *payload,
+                                const uint16_t payloadSize);
       void setHeaderPayloadSize(BgApiHeader *header,
                                 const uint16_t size);
 
+      // Callbacks
+      ErrorCode executeSystemCallback(BgApiHeader *header,
+                                      uint8_t *payload,
+                                      const uint16_t payloadSize);
+      ErrorCode executeConfigurationCallback(BgApiHeader *header,
+                                             uint8_t *payload,
+                                             const uint16_t payloadSize);
+      ErrorCode executeWifiCallback(BgApiHeader *header,
+                                    uint8_t *payload,
+                                    const uint16_t payloadSize);
+      ErrorCode executeEndpointCallback(BgApiHeader *header,
+                                        uint8_t *payload,
+                                        const uint16_t payloadSize);
+      ErrorCode executeHardwareCallback(BgApiHeader *header,
+                                        uint8_t *payload,
+                                        const uint16_t payloadSize);
+      ErrorCode executeTcpStackCallback(BgApiHeader *header,
+                                        uint8_t *payload,
+                                        const uint16_t payloadSize);
+      ErrorCode executeWiredEthernetCallback(BgApiHeader *header,
+                                             uint8_t *payload,
+                                             const uint16_t payloadSize);
+      ErrorCode executePersistentStoreCallback(BgApiHeader *header,
+                                               uint8_t *payload,
+                                               const uint16_t payloadSize);
+      ErrorCode executeHttpServerCallback(BgApiHeader *header,
+                                          uint8_t *payload,
+                                          const uint16_t payloadSize);
+      ErrorCode executeDeviceFirmwareUpgradeCallback(BgApiHeader *header,
+                                                     uint8_t *payload,
+                                                     const uint16_t payloadSize);
+      ErrorCode executeI2cCallback(BgApiHeader *header,
+                                   uint8_t *payload,
+                                   const uint16_t payloadSize);
+      // Private members
       uint8_t m_payloadBuffer[MAX_SIZE_PAYLOAD];
+      bool m_processingCmd;
   };
 }  // Wf121
 

@@ -2,6 +2,23 @@
 
 using namespace Wf121;
 
+Wf121Driver :: Wf121Driver(){
+    m_processingCmd = false;
+}
+
+Wf121Driver :: ~Wf121Driver(){
+
+}
+
+ErrorCode Wf121Driver :: Init(){
+#if __USE_CTS_RTS__
+  gioSetBit(gioPORTB,3,1);       // Pull high RTS : not ready to receive some data
+#endif //#if __USE_CTS_RTS__
+
+
+  return NO_ERROR;
+}
+
 /**
  * @brief      Transmit data to WF121 module
  *
@@ -61,7 +78,7 @@ ErrorCode Wf121Driver :: executeSystemCallback(BgApiHeader *header,
                                                const uint16_t payloadSize){
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x00: // Sync 
         break;
       case 0x01: // Reset
@@ -77,7 +94,7 @@ ErrorCode Wf121Driver :: executeSystemCallback(BgApiHeader *header,
 
   // Process event reply
   if(header->bit.msgType == EVENT_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x00: // Boot
         break;
       default:
@@ -103,7 +120,7 @@ ErrorCode Wf121Driver :: executeConfigurationCallback(BgApiHeader *header,
                                                       const uint16_t payloadSize){
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x00:  // Get MAC
         break;
       case 0x01:  // Set MAC
@@ -115,7 +132,7 @@ ErrorCode Wf121Driver :: executeConfigurationCallback(BgApiHeader *header,
 
   // Process event reply
   if(header->bit.msgType == EVENT_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x00: // MAC address
         break;
       default:
@@ -140,7 +157,7 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
                                              const uint16_t payloadSize){
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x00: // Wifi ON
         break;
       case 0x01: // Wifi OFF
@@ -186,7 +203,7 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
 
   // Process event reply
   if(header->bit.msgType == EVENT_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x00: // Wifi ON
         break;
       case 0x01: // Wifi OFF
@@ -256,7 +273,7 @@ ErrorCode Wf121Driver :: executeEndpointCallback(BgApiHeader *header,
                                                  const uint16_t payloadSize){
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x02: // set active
         break;
       case 0x00: // send
@@ -276,7 +293,7 @@ ErrorCode Wf121Driver :: executeEndpointCallback(BgApiHeader *header,
 
   // Process event reply
   if(header->bit.msgType == EVENT_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x02: // status
         break;
       case 0x01: // data
@@ -286,6 +303,8 @@ ErrorCode Wf121Driver :: executeEndpointCallback(BgApiHeader *header,
       case 0x04: // error
         break;
       case 0x00: // syntax error
+
+          cb_EventEndpointSyntaxError();
         break;
       default:
         return COMMAND_NOT_RECOGNIZED;
@@ -310,7 +329,7 @@ ErrorCode Wf121Driver :: executeHardwareCallback(BgApiHeader *header,
                                                  const uint16_t payloadSize){
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x09: // ADC read
         break;
       case 0x02: // Change notification
@@ -346,7 +365,7 @@ ErrorCode Wf121Driver :: executeHardwareCallback(BgApiHeader *header,
 
   // Process event reply
   if(header->bit.msgType == EVENT_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x01: // change notification
         break;
       case 0x02: // external interrupt
@@ -378,7 +397,7 @@ ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
                                                  const uint16_t payloadSize){
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x04: // configure
         break;
       case 0x08: // DHCP set hostname
@@ -404,7 +423,7 @@ ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
 
   // Process event reply
   if(header->bit.msgType == EVENT_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x00: // configuration
         break;
       case 0x01: // configuration DNS
@@ -438,7 +457,7 @@ ErrorCode Wf121Driver :: executeWiredEthernetCallback(BgApiHeader *header,
                                                       const uint16_t payloadSize){
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x02: // connected
         break;
       case 0x00: // set data route
@@ -452,7 +471,7 @@ ErrorCode Wf121Driver :: executeWiredEthernetCallback(BgApiHeader *header,
 
   // Process event reply
   if(header->bit.msgType == EVENT_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x00: // link status
         break;
       default:
@@ -478,7 +497,7 @@ ErrorCode Wf121Driver :: executePersistentStoreCallback(BgApiHeader *header,
                                                       const uint16_t payloadSize){
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x03: // PS save
         break;
       case 0x04: // PS load
@@ -498,7 +517,7 @@ ErrorCode Wf121Driver :: executePersistentStoreCallback(BgApiHeader *header,
 
   // Process event reply
   if(header->bit.msgType == EVENT_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x01: // PS keyy changed
         break;
       case 0x00: // PS key
@@ -526,7 +545,7 @@ ErrorCode Wf121Driver :: executeHttpServerCallback(BgApiHeader *header,
                                                     const uint16_t payloadSize){
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x00: // enable
         break;
       default:
@@ -536,7 +555,7 @@ ErrorCode Wf121Driver :: executeHttpServerCallback(BgApiHeader *header,
 
   // Process event reply
   if(header->bit.msgType == EVENT_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x01: // button
         break;
       case 0x00: // on req
@@ -564,7 +583,7 @@ ErrorCode Wf121Driver :: executeDeviceFirmwareUpgradeCallback(BgApiHeader *heade
                                                               const uint16_t payloadSize){
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x00: // reset
         break;
       case 0x01: // flash set address
@@ -580,7 +599,7 @@ ErrorCode Wf121Driver :: executeDeviceFirmwareUpgradeCallback(BgApiHeader *heade
 
   // Process event reply
   if(header->bit.msgType == EVENT_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x00: // boot
         break;
       default:
@@ -606,7 +625,7 @@ ErrorCode Wf121Driver :: executeI2cCallback(BgApiHeader *header,
                                             const uint16_t payloadSize){
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       case 0x00: // start read
         break;
       case 0x01: // start write
@@ -620,7 +639,7 @@ ErrorCode Wf121Driver :: executeI2cCallback(BgApiHeader *header,
 
   // Process event reply
   if(header->bit.msgType == EVENT_TYPE){
-    switch(header->bit.msgId){
+    switch(header->bit.cmdId){
       default:
         return COMMAND_NOT_RECOGNIZED;
     }    
@@ -634,20 +653,18 @@ ErrorCode Wf121Driver :: executeI2cCallback(BgApiHeader *header,
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: executeCallbacks(){
+ErrorCode Wf121Driver :: ExecuteCallbacks(){
   ErrorCode err = NO_ERROR;
   BgApiHeader header;
   uint16_t payloadSize;
-
-  //Check if some data is available in receiving buffer
-  if(select(BLOCKING_TIMEOUT_US) == false) return NO_ERROR;
+  ErrorCode cmdResult;
 
   //Some data is available in the buffer, process it
   err = getReplyHeader(&header);
   if(err != NO_ERROR) return err;
 
   // Get the payload if any. 
-  payloadSize = getPayloadSizeFromHeader(header);
+  payloadSize = getPayloadSizeFromHeader(&header);
 
   // Some data need to be processed
   // Should not block at that point
@@ -656,8 +673,28 @@ ErrorCode Wf121Driver :: executeCallbacks(){
     if(err != NO_ERROR) return err;
   }
 
+  // If the command is a response, then the first two bytes of the reply are
+  // result of the command.
+  if(header.bit.msgType == CMD_RSP_TYPE){
+    // If payload > 0 than zero, it means the result of the command is in the payload
+    // except for some cases (like "hello system" that acknowledge the command without payload)
+    if(payloadSize > 0){
+        memcpy(&cmdResult,
+               m_payloadBuffer,
+               sizeof(cmdResult));
+    
+        // If there is an error, return the command failure immediately
+        if(cmdResult != NO_ERROR){
+          m_processingCmd = false;
+          return cmdResult;
+        }
+    }
+
+    m_processingCmd = false;
+  }
+
   // Execute class specific callback
-  // 
+  // Some payload data is expected at that point
   switch(header.bit.classId){
     case CLASS_SYSTEM:
       err = executeSystemCallback(&header, m_payloadBuffer, payloadSize);
@@ -684,7 +721,7 @@ ErrorCode Wf121Driver :: executeCallbacks(){
       err = executeWiredEthernetCallback(&header, m_payloadBuffer, payloadSize);
       break;
     case CLASS_HTTP_SERVER:
-      err = executeHttpServerCallback(&header, m_payloadSize, payloadSize);
+      err = executeHttpServerCallback(&header, m_payloadBuffer, payloadSize);
       break;
     case CLASS_PERSISTENT_STORE:
       err = executePersistentStoreCallback(&header, m_payloadBuffer, payloadSize);
@@ -696,42 +733,7 @@ ErrorCode Wf121Driver :: executeCallbacks(){
       return COMMAND_NOT_RECOGNIZED;
   }
 
-  if(err != NO_ERROR) return err;
-
-  // the command response is fully completed, now we can accept more command
-  if(header.bit.msgType == CMD_RSP_TYPE){
-    m_processingCmd = false;
-  }
-
-  return NO_ERROR;
-}
-
-
-/**
- * @brief      Poll receiving buffer
- *
- * @return    true if some data is available
- */
-bool Wf121Driver :: select(const Timeout timeout){
-  bool dataReady = false;
-  Timeout counter;
-
-#if __USE_CTS_RTS__
-  gioSetBit(gioPORTB,3,0);       // Pull low RTS : ready to receive some data
-#endif //#if __USE_CTS_RTS__
-
-  for(counter = timeout; counter > 0; counter--){
-    if(sciIsRxReady(SCI_REG)){
-      dataReady = true;
-      break;
-    }
-  }
-
- #if __USE_CTS_RTS__
-  gioSetBit(gioPORTB,3,1);    // Release RTS
-#endif //#if __USE_CTS_RTS__   
-
-  return dataReady;
+  return err;
 }
 
 
@@ -743,9 +745,26 @@ bool Wf121Driver :: select(const Timeout timeout){
  * @return     The reply header.
  */
 ErrorCode Wf121Driver :: getReplyHeader(BgApiHeader *header){
+  Timeout counter;
+  bool dataReady = false;
+
 #if __USE_CTS_RTS__
   gioSetBit(gioPORTB,3,0);       // Pull low RTS : ready to receive some data
 #endif //#if __USE_CTS_RTS__
+
+  for(counter = BLOCKING_TIMEOUT_US; counter > 0; counter--){
+    if(sciIsRxReady(SCI_REG)){
+      dataReady = true;
+      break;
+    }
+  }
+
+  if(dataReady == false){
+#if __USE_CTS_RTS__
+    gioSetBit(gioPORTB,3,1);       // Pull low RTS : ready to receive some data
+#endif //#if __USE_CTS_RTS__
+    return TIMEOUT;
+  }
 
   // Always receive 4 bytes to start the message
   sciReceive(SCI_REG, sizeof(header), (uint8_t*) header);
@@ -753,6 +772,21 @@ ErrorCode Wf121Driver :: getReplyHeader(BgApiHeader *header){
 #if __USE_CTS_RTS__
   gioSetBit(gioPORTB,3,1);    // Release RTS
 #endif //#if __USE_CTS_RTS__
+
+  // Check for consistency of the message received
+  if(header->bit.technologyType != TT_BLUETOOTH && header->bit.technologyType != TT_WIFI){
+      return COMMAND_NOT_RECOGNIZED;
+  }
+
+  if(header->bit.msgType != CMD_RSP_TYPE && header->bit.msgType != EVENT_TYPE){
+      return COMMAND_NOT_RECOGNIZED;
+  }
+
+  if(header->bit.classId > CLASS_WIRED_ETHERNET){
+      return COMMAND_NOT_RECOGNIZED;
+  }
+
+  return NO_ERROR;
 }
 
 /**
@@ -763,7 +797,8 @@ ErrorCode Wf121Driver :: getReplyHeader(BgApiHeader *header){
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: getReplyPayload(uint8_t *payload, const uint16_t payloadSize){
+ErrorCode Wf121Driver :: getReplyPayload(uint8_t *payload,
+                                         const uint16_t payloadSize){
 
   // Check if there is more data to read
   if(payload == NULL){
@@ -793,7 +828,7 @@ ErrorCode Wf121Driver :: getReplyPayload(uint8_t *payload, const uint16_t payloa
  * @return     The payload size from header.
  */
 uint16_t Wf121Driver :: getPayloadSizeFromHeader(BgApiHeader *header){
-    return header->bit.lengthLow + header->bit.lengthHigh << 8;
+    return header->bit.lengthLow + (header->bit.lengthHigh << 8);
 }
 
 
@@ -806,5 +841,16 @@ uint16_t Wf121Driver :: getPayloadSizeFromHeader(BgApiHeader *header){
 void Wf121Driver :: setHeaderPayloadSize(BgApiHeader *header, const uint16_t size){
     header->bit.lengthLow = size & 0xFF;
     header->bit.lengthHigh = size >> 8 & 0x7;
+}
+
+
+/**
+ * @brief      Return if a command is processing or not
+ *
+ * @return     If a command is processing then the function return true,
+ *             otherwise it returns false.
+ */
+bool Wf121Driver :: CommandIsProcessing(){
+  return m_processingCmd;
 }
 

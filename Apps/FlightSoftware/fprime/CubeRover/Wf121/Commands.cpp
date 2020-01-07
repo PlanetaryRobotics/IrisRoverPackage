@@ -813,11 +813,11 @@ ErrorCode Wf121Driver :: DisconnectApClient(const HardwareAddress hwAddr){
  * @return     The error code.
  */
 ErrorCode Wf121Driver :: ConfigureTcpIp(const IpAddress ip, 
-                                        const NetMask mask,
+                                        const Netmask mask,
                                         const Gateway gateway,
                                         const bool useDhcp){
   BgApiHeader txHeader;
-  uint8_t payload[sizeof(IpAddress) + sizeof(NetMask) + sizeof(Gateway) + sizeof(bool)];
+  uint8_t payload[sizeof(IpAddress) + sizeof(Netmask) + sizeof(Gateway) + sizeof(bool)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -831,14 +831,14 @@ ErrorCode Wf121Driver :: ConfigureTcpIp(const IpAddress ip,
   
   memcpy(payload + sizeof(IpAddress),
          mask,
-         sizeof(NetMask));
+         sizeof(Netmask));
   
-  memcpy(payload + sizeof(IpAddress) + sizeof(NetMask),
+  memcpy(payload + sizeof(IpAddress) + sizeof(Netmask),
          gateway,
          sizeof(Gateway));
 
-  memcpy(payload + sizeof(IpAddress) + sizeof(NetMask) + sizeof(Gateway),
-         useDhcp,
+  memcpy(payload + sizeof(IpAddress) + sizeof(Netmask) + sizeof(Gateway),
+         &useDhcp,
          sizeof(bool));
 
   // transmit a command, an event is expected in  return
@@ -855,7 +855,7 @@ ErrorCode Wf121Driver :: ConfigureTcpIp(const IpAddress ip,
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: SetDhcpHostName(DchpHostName  *hostName,
+ErrorCode Wf121Driver :: SetDhcpHostName(DhcpHostName  *hostName,
                                          const DhcpHostNameSize hostNameSize){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(DhcpHostNameSize) + hostNameSize];
@@ -923,7 +923,7 @@ ErrorCode Wf121Driver :: ConfigureDns(const DnsIndex index,
  *
  * @return     The error code
  */
-ErrorCode Wf121Driver :: GetDnsHostByName(DchpHostName * name,
+ErrorCode Wf121Driver :: GetDnsHostByName(DhcpHostName * name,
                                           const DhcpHostNameSize size){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(DhcpHostNameSize) + size];
@@ -972,7 +972,7 @@ ErrorCode Wf121Driver :: SetMdnsHostName(MdnsHostName * name,
   // prepare the payload (see datasheet for format)
   payload[0] = size;
 
-  memcpy(payload + 1,
+  memcpy(payload + sizeof(MdnsHostNameSize),
          name,
          size);
 
@@ -1037,7 +1037,7 @@ ErrorCode Wf121Driver :: DnsSdAddService(const TcpPort port,
                                          const ServiceName *serviceName,
                                          const ServiceNameSize serviceNameSize){
   BgApiHeader txHeader;
-  uint8_t payload[sizeof(TcpPort) + sizeof(Protocol) + sizeof(ServiceNameSize) + serviceNameSize];
+  uint8_t payload[sizeof(TcpPort) + 1 /* size of protocol */ + sizeof(ServiceNameSize) + serviceNameSize];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -1048,18 +1048,18 @@ ErrorCode Wf121Driver :: DnsSdAddService(const TcpPort port,
 
   // prepare the payload (see datasheet for format)
   memcpy(payload,
-         port,
+         &port,
          sizeof(TcpPort));
 
   memcpy(payload + sizeof(TcpPort),
-         protocol,
-         sizeof(Protocol));
+         &protocol,
+         1 /* size of protocol */);
 
-  memcpy(payload + sizeof(TcpPort) + sizeof(Protocol),
-         serviceNameSize,
+  memcpy(payload + sizeof(TcpPort) + 1 /* size of protocol */,
+         &serviceNameSize,
          sizeof(serviceNameSize));
 
-  memcpy(payload + sizeof(TcpPort) + sizeof(Protocol) + sizeof(ServiceNameSize),
+  memcpy(payload + sizeof(TcpPort) + 1 /* size of protocol */ + sizeof(ServiceNameSize),
          serviceName,
          serviceNameSize);
 
@@ -1096,7 +1096,7 @@ ErrorCode Wf121Driver :: DnsSdAddServiceInstance(const uint8_t index,
   payload[0] = index;
 
   memcpy(payload + 1 /* index */,
-         serviceNameSize,
+         &serviceNameSize,
          sizeof(ServiceNameSize));
 
   memcpy(payload + 1 /* index */ + sizeof(ServiceNameSize),
@@ -1134,11 +1134,11 @@ ErrorCode Wf121Driver :: DnsSdAddServiceAttribute(const uint8_t index,
   // prepare the payload (see datasheet for format)
   payload[0] = index;
 
-  memcpy(payload + 1 /* index */,
-         serviceAttributeSize,
+  memcpy(payload + sizeof(index),
+         &serviceAttributeSize,
          sizeof(ServiceAttributeSize));
 
-  memcpy(payload + 1 /* index */ + sizeof(ServiceAttributeSize),
+  memcpy(payload + sizeof(index) + sizeof(ServiceAttributeSize),
          serviceAttribute,
          serviceAttributeSize);
 
@@ -1302,7 +1302,7 @@ ErrorCode Wf121Driver :: DhcpConfigure(IpAddress *ip,
                                        Netmask *netmask,
                                        const uint32_t leaseTime){
   BgApiHeader txHeader;
-  uint8_t payload[sizeof(IpAddress)];
+  uint8_t payload[sizeof(IpAddress) + sizeof(Netmask) + sizeof(leaseTime)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -1321,8 +1321,8 @@ ErrorCode Wf121Driver :: DhcpConfigure(IpAddress *ip,
          sizeof(Netmask));
 
   memcpy(payload + sizeof(IpAddress) + sizeof(Netmask),
-         leaseTime, /* lease time */
-         4);
+         &leaseTime,
+         sizeof(leaseTime));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);   
@@ -1367,7 +1367,7 @@ ErrorCode Wf121Driver :: TcpConnect(IpAddress *ip,
                                     const TcpPort port,
                                     const int8_t routing){
   BgApiHeader txHeader;
-  uint8_t payload[sizeof(IpAddress) + sizeof(TcpPort) + 1 /* routing endpoint*/];
+  uint8_t payload[sizeof(IpAddress) + sizeof(TcpPort) + sizeof(routing)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -1415,7 +1415,7 @@ ErrorCode Wf121Driver :: TcpConnect(IpAddress *ip,
 ErrorCode Wf121Driver :: StartTcpServer(const TcpPort port,
                                         const int8_t defaultDestination){
   BgApiHeader txHeader;
-  uint8_t payload[sizeof(TcpPort) + 1 /* default destination*/];
+  uint8_t payload[sizeof(TcpPort) + sizeof(defaultDestination)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -1455,7 +1455,7 @@ ErrorCode Wf121Driver :: UdpConnect(IpAddress *ip,
                                     const UdpPort port,
                                     const int8_t routing){
   BgApiHeader txHeader;
-  uint8_t payload[sizeof(IpAddress) + sizeof(UdpPort) + 1 /* routing endpoint*/];
+  uint8_t payload[sizeof(IpAddress) + sizeof(UdpPort) + sizeof(routing)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -1508,7 +1508,7 @@ ErrorCode Wf121Driver :: UdpBind(const Endpoint endpoint,
   payload[0] = endpoint;
 
   memcpy(payload + sizeof(Endpoint),
-         port,
+         &port,
          sizeof(UdpPort));
 
   // transmit a command, an event is expected in  return
@@ -1531,7 +1531,7 @@ ErrorCode Wf121Driver :: UdpBind(const Endpoint endpoint,
 ErrorCode Wf121Driver :: StartUdpServer(const UdpPort port,
                                         const uint8_t defaultDestination){
   BgApiHeader txHeader;
-  uint8_t payload[sizeof(UdpPort) + 1 /* default destination*/];
+  uint8_t payload[sizeof(UdpPort) + sizeof(defaultDestination)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -1650,7 +1650,7 @@ ErrorCode Wf121Driver :: SendEndpoint(const Endpoint endpoint,
          sizeof(Endpoint));
 
   memcpy(payload + sizeof(Endpoint),
-         dataSize,
+         &dataSize,
          sizeof(DataSize));
 
   memcpy(payload + sizeof(Endpoint) + sizeof(DataSize),
@@ -1683,7 +1683,7 @@ ErrorCode Wf121Driver :: SendEndpoint(const Endpoint endpoint,
 ErrorCode Wf121Driver :: SetTransmitSize(const Endpoint endpoint,
                                          const uint16_t transmitSize){
   BgApiHeader txHeader;
-  uint8_t payload[sizeof(Endpoint) + sizeof(uint16_t) /* transmitSize */];
+  uint8_t payload[sizeof(Endpoint) + sizeof(transmitSize)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -1698,7 +1698,7 @@ ErrorCode Wf121Driver :: SetTransmitSize(const Endpoint endpoint,
          sizeof(Endpoint));
 
   memcpy(payload + sizeof(Endpoint),
-         transmitSize,
+         &transmitSize,
          sizeof(transmitSize));
 
   // transmit a command, an event is expected in  return
@@ -1722,7 +1722,7 @@ ErrorCode Wf121Driver :: SetTransmitSize(const Endpoint endpoint,
 ErrorCode Wf121Driver :: SetStreaming(const Endpoint endpoint,
                                       const Streaming streaming){
   BgApiHeader txHeader;
-  uint8_t payload[sizeof(Endpoint) + sizeof(uint8_t) /* streaming */];
+  uint8_t payload[sizeof(Endpoint) + sizeof(streaming)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -1769,7 +1769,7 @@ ErrorCode Wf121Driver :: SetStreamingDestination(const Endpoint endpoint,
          sizeof(Endpoint));
 
   memcpy(payload + sizeof(Endpoint),
-         dest,
+         &dest,
          sizeof(StreamingDestination));
 
   // transmit a command, an event is expected in  return
@@ -1869,7 +1869,7 @@ ErrorCode Wf121Driver :: SetSoftTimer(const TimeMs timeMs,
          &handle,
          sizeof(HandleTimer));
 
-  payload[sizeof(TimeMs) + sizeof(HandleTimer)] = singleshot;
+  payload[sizeof(TimeMs) + sizeof(HandleTimer)] = singleShot;
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);  
@@ -1940,19 +1940,19 @@ ErrorCode Wf121Driver :: ConfigureExternalInterrupt(const InterruptMask enable,
  */
 ErrorCode Wf121Driver :: ConfigureChangeNotification(const uint32_t enable){
   BgApiHeader txHeader;
-  uint8_t payload[4 /* enable */];
+  uint8_t payload[sizeof(enable)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
   txHeader.bit.technologyType = 1; // wifi
   setHeaderPayloadSize(&txHeader, sizeof(payload));
   txHeader.bit.classId = CLASS_HARDWARE;
-  txHeader.bit.cmdId = 0x02; // config change notificiation command 
+  txHeader.bit.cmdId = 0x02; // config change notification command
 
   // prepare the payload (see datasheet for format)
   memcpy(payload,
          &enable,
-         4 /*size of enable */);
+         sizeof(enable));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);  
@@ -1971,7 +1971,7 @@ ErrorCode Wf121Driver :: ConfigureChangeNotification(const uint32_t enable){
  */
 ErrorCode Wf121Driver :: ChangeNotificationPullup(const uint32_t pullup){
   BgApiHeader txHeader;
-  uint8_t payload[4 /* pullup */];
+  uint8_t payload[sizeof(pullup)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -1983,7 +1983,7 @@ ErrorCode Wf121Driver :: ChangeNotificationPullup(const uint32_t pullup){
   // prepare the payload (see datasheet for format)
   memcpy(payload,
          &pullup,
-         4 /*size of enable */);
+         sizeof(pullup));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);  
@@ -2006,7 +2006,7 @@ ErrorCode Wf121Driver :: ConfigureIoPort(const Wf121IoPort port,
                                          const uint16_t bitMask,
                                          const uint16_t bitDirection){
   BgApiHeader txHeader;
-  uint8_t payload[1 /* port */ + 2 /* bitmask */ + 2 /* bit direction */];
+  uint8_t payload[1 /* port */ + sizeof(bitMask) + sizeof(bitDirection)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2020,11 +2020,11 @@ ErrorCode Wf121Driver :: ConfigureIoPort(const Wf121IoPort port,
 
   memcpy(payload + 1,
          &bitMask,
-         2 /* size of bit mask */);
+         sizeof(bitMask));
 
   memcpy(payload + 3, /* port + bit mask */
          &bitDirection,
-         2 /* size of bit direction */);
+         sizeof(bitDirection));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);  
@@ -2049,7 +2049,7 @@ ErrorCode Wf121Driver :: ConfigureIoOpenDrain(const Wf121IoPort port,
                                               const uint16_t bitMask,
                                               const uint16_t openDrain){
   BgApiHeader txHeader;
-  uint8_t payload[1 /* port */ + 2 /* bitmask */ + 2 /* open drain */];
+  uint8_t payload[1 /* port */ + sizeof(bitMask) + sizeof(openDrain)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2063,11 +2063,11 @@ ErrorCode Wf121Driver :: ConfigureIoOpenDrain(const Wf121IoPort port,
 
   memcpy(payload + 1,
          &bitMask,
-         2 /* size of bit mask */);
+         sizeof(bitMask));
 
-  memcpy(payload + 3, /* port + bit mask */
+  memcpy(payload + 1 + sizeof(bitMask),
          &openDrain,
-         2 /* size of open drain */);
+         sizeof(openDrain));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);  
@@ -2090,7 +2090,7 @@ ErrorCode Wf121Driver :: WriteIoPort(const Wf121IoPort port,
                                      const uint16_t bitMask,
                                      const uint16_t val){
   BgApiHeader txHeader;
-  uint8_t payload[1 /* port */ + 2 /* bitmask */ + 2 /* val*/];
+  uint8_t payload[1 /* port */ + sizeof(bitMask) + sizeof(val)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2104,11 +2104,11 @@ ErrorCode Wf121Driver :: WriteIoPort(const Wf121IoPort port,
 
   memcpy(payload + 1,
          &bitMask,
-         2 /* size of bit mask */);
+         sizeof(bitMask));
 
-  memcpy(payload + 3, /* port + bit mask */
+  memcpy(payload + 1 + sizeof(bitMask),
          &val,
-         2 /* size of open drain */);
+         sizeof(val));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);  
@@ -2127,7 +2127,7 @@ ErrorCode Wf121Driver :: WriteIoPort(const Wf121IoPort port,
 ErrorCode Wf121Driver :: ReadIoPort(const Wf121IoPort port,
                                      const uint16_t bitMask){
   BgApiHeader txHeader;
-  uint8_t payload[1 /* port */ + 2 /* bitmask */];
+  uint8_t payload[1 /* port */ + sizeof(bitMask)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2141,7 +2141,7 @@ ErrorCode Wf121Driver :: ReadIoPort(const Wf121IoPort port,
 
   memcpy(payload + 1,
          &bitMask,
-         2 /* size of bit mask */);
+         sizeof(bitMask));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);  
@@ -2184,7 +2184,7 @@ ErrorCode Wf121Driver :: OutputCompare(const CompareModuleIndex index,
                                        const CompareModuleMode mode,
                                        const uint32_t compareValue){
   BgApiHeader txHeader;
-  uint8_t payload[1 /* index */ + 1 /* bit32 */ + 1 /* timer */ + 1 /* mode */ + 4 /* compareValue */];
+  uint8_t payload[1 /* index */ + sizeof(bit32) + 1 /* timer */ + 1 /* mode */ + sizeof(compareValue)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2201,7 +2201,7 @@ ErrorCode Wf121Driver :: OutputCompare(const CompareModuleIndex index,
 
   memcpy(payload + 4,
          &compareValue,
-         4 /* size of compare value */);
+         sizeof(compareValue));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);  
@@ -2220,7 +2220,7 @@ ErrorCode Wf121Driver :: OutputCompare(const CompareModuleIndex index,
  */
 ErrorCode Wf121Driver :: AdcRead(const uint8_t adcInput){
   BgApiHeader txHeader;
-  uint8_t payload[1 /* adc input */];
+  uint8_t payload[sizeof(adcInput)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2248,7 +2248,7 @@ ErrorCode Wf121Driver :: AdcRead(const uint8_t adcInput){
 ErrorCode Wf121Driver :: RtcInit(const bool enable,
                                  const int16_t drift){
   BgApiHeader txHeader;
-  uint8_t payload[1 /*enable */ + 2 /* drift */];
+  uint8_t payload[1 /*enable */ + sizeof(drift)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2262,7 +2262,7 @@ ErrorCode Wf121Driver :: RtcInit(const bool enable,
 
   memcpy(payload + 1,
          &drift,
-         2 /* size of drift */);
+         sizeof(drift));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);  
@@ -2302,7 +2302,7 @@ ErrorCode Wf121Driver :: RtcSetTime(const int16_t year,
   // prepare the payload (see datasheet for format)
   memcpy(payload,
          &year,
-         2 /* size of year */);
+         sizeof(year));
 
   payload[2] = month;
   payload[3] = day;
@@ -2332,7 +2332,7 @@ ErrorCode Wf121Driver :: RtcGetTime(){
   txHeader.bit.cmdId = 0x0C; // RTC get time command 
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, payload);  
+  return transmitCommand(&txHeader, NULL);
 }
 
 
@@ -2374,19 +2374,19 @@ ErrorCode Wf121Driver :: RtcSetAlarm( const int16_t year,
   // prepare the payload (see datasheet for format)
   memcpy(payload,
          &year,
-         2 /* size of year */);
+         sizeof(year));
 
-  payload[2] = month;
-  payload[3] = day;
-  payload[4] = weekday;
-  payload[5] = hour;
-  payload[6] = minute;
-  payload[7] = second;
-  payload[8] = repeatMask;
+  payload[sizeof(year)] = month;
+  payload[sizeof(year)+1] = day;
+  payload[sizeof(year)+2] = weekday;
+  payload[sizeof(year)+3] = hour;
+  payload[sizeof(year)+4] = minute;
+  payload[sizeof(year)+5] = second;
+  payload[sizeof(year)+6] = repeatMask;
 
-  memcpy(payload + 9,
+  memcpy(payload + sizeof(year)+7,
          &repeatCount,
-         2 /* size of repeat count */);
+         sizeof(repeatCount));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);  
@@ -2426,7 +2426,7 @@ ErrorCode Wf121Driver :: ConfigureUart(const uint8_t uartId,
 
   memcpy(payload + 1,
          &baudrate,
-         4 /* size of baudrate */);
+         sizeof(baudrate));
   
   payload[5] = format;
   payload[6] = stop;
@@ -2448,7 +2448,7 @@ ErrorCode Wf121Driver :: ConfigureUart(const uint8_t uartId,
  */
 ErrorCode Wf121Driver :: GetHardwareConfiguration(const uint8_t uartId){
   BgApiHeader txHeader;
-  uint8_t payload[1];
+  uint8_t payload[sizeof(uartId)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2479,7 +2479,7 @@ ErrorCode Wf121Driver :: I2cStartRead(const uint8_t endpoint,
                                       const uint16_t slaveAddress,
                                       const uint8_t length){
   BgApiHeader txHeader;
-  uint8_t payload[1 /* endpoint */ + 2 /*slave address */ + 1 /* length */];
+  uint8_t payload[sizeof(endpoint) + sizeof(slaveAddress) + sizeof(length)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2491,9 +2491,9 @@ ErrorCode Wf121Driver :: I2cStartRead(const uint8_t endpoint,
   // prepare the payload (see datasheet for format)
   payload[0] = endpoint;
 
-  memcpy(payload + 1,
+  memcpy(payload + sizeof(endpoint),
          &slaveAddress,
-         2 /* size of slave address */);
+         sizeof(slaveAddress));
 
   payload[3] = length;
 
@@ -2514,7 +2514,7 @@ ErrorCode Wf121Driver :: I2cStartRead(const uint8_t endpoint,
 ErrorCode Wf121Driver :: I2cStartwrite(const uint8_t endpoint,
                                        const uint16_t slaveAddress){
   BgApiHeader txHeader;
-  uint8_t payload[1 /* endpoint */ + 2 /*slave address */];
+  uint8_t payload[sizeof(endpoint) + sizeof(slaveAddress)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2528,7 +2528,7 @@ ErrorCode Wf121Driver :: I2cStartwrite(const uint8_t endpoint,
 
   memcpy(payload + 1,
          &slaveAddress,
-         2 /* size of slave address */);
+         sizeof(slaveAddress));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);    
@@ -2544,7 +2544,7 @@ ErrorCode Wf121Driver :: I2cStartwrite(const uint8_t endpoint,
  */
 ErrorCode Wf121Driver :: I2cStop(const uint8_t endpoint){
   BgApiHeader txHeader;
-  uint8_t payload[1 /* endpoint */];
+  uint8_t payload[sizeof(endpoint)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2585,7 +2585,7 @@ ErrorCode Wf121Driver :: I2cStop(const uint8_t endpoint){
  */
 ErrorCode Wf121Driver :: SetDataRoute(const WiredEthernetRoute route){
   BgApiHeader txHeader;
-  uint8_t payload[1 /* route */];
+  uint8_t payload[sizeof(WiredEthernetRoute)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2691,7 +2691,7 @@ ErrorCode Wf121Driver :: AddServerPath(const uint8_t device,
                                  ServerPath *path,
                                  const ServerPathSize pathSize){
   BgApiHeader txHeader;
-  uint8_t payload[1 /* device */ + pathSize + sizeof(ServerPathSize)];
+  uint8_t payload[sizeof(device) + sizeof(ServerPathSize) + pathSize];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2727,7 +2727,7 @@ ErrorCode Wf121Driver :: ApiResponse(const uint32_t request,
                                      HttpResponseData *data,
                                      const HttpResponseDataSize dataSize){
   BgApiHeader txHeader;
-  uint8_t payload[4 /* request */ + dataSize + sizeof(HttpResponseDataSize)];
+  uint8_t payload[sizeof(request) + dataSize + sizeof(HttpResponseDataSize)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2739,13 +2739,13 @@ ErrorCode Wf121Driver :: ApiResponse(const uint32_t request,
   // prepare the payload (see datasheet for format)
   memcpy(payload,
          &request,
-         4 /* request */);
+         sizeof(request));
 
-  memcpy(payload + 4,
+  memcpy(payload + sizeof(request),
          &dataSize,
          sizeof(HttpResponseDataSize));
 
-  memcpy(payload + 4 + sizeof(HttpResponseDataSize),
+  memcpy(payload + sizeof(request) + sizeof(HttpResponseDataSize),
          data,
          dataSize);
 
@@ -2764,7 +2764,7 @@ ErrorCode Wf121Driver :: ApiResponse(const uint32_t request,
  */
 ErrorCode Wf121Driver :: ApiResponseFinish(const uint32_t request){
   BgApiHeader txHeader;
-  uint8_t payload[4 /* request */];
+  uint8_t payload[sizeof(request)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2776,7 +2776,7 @@ ErrorCode Wf121Driver :: ApiResponseFinish(const uint32_t request){
   // prepare the payload (see datasheet for format)
   memcpy(payload,
          &request,
-         4 /* request */);
+         sizeof(request));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);     
@@ -2838,7 +2838,7 @@ ErrorCode Wf121Driver :: SavePersistentStore(const uint16_t key,
                                              KeyValue *keyVal,
                                              const KeyValueSize keyValSize){
   BgApiHeader txHeader;
-  uint8_t payload[2 /* key */ + sizeof(KeyValueSize) + keyValSize];
+  uint8_t payload[sizeof(key) + sizeof(KeyValueSize) + keyValSize];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2850,15 +2850,15 @@ ErrorCode Wf121Driver :: SavePersistentStore(const uint16_t key,
   // prepare the payload (see datasheet for format)
   memcpy(payload,
          &key,
-         2 /* sizeof key */);
+         sizeof(key));
 
   memcpy(payload + 2,
          &keyValSize,
          sizeof(KeyValueSize));
 
-  memcpy(payload + 2 + sizeof(KeyValueSize),
+  memcpy(payload + sizeof(key) + sizeof(KeyValueSize),
          keyVal,
-         KeyValueSize);
+         keyValSize);
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);    
@@ -2875,7 +2875,7 @@ ErrorCode Wf121Driver :: SavePersistentStore(const uint16_t key,
  */
 ErrorCode Wf121Driver :: LoadPersistentStore(const uint16_t key){
   BgApiHeader txHeader;
-  uint8_t payload[2 /* key */];
+  uint8_t payload[sizeof(key)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2887,7 +2887,7 @@ ErrorCode Wf121Driver :: LoadPersistentStore(const uint16_t key){
   // prepare the payload (see datasheet for format)
   memcpy(payload,
          &key,
-         2 /* sizeof key */);
+         sizeof(key));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);    
@@ -2927,7 +2927,7 @@ ErrorCode Wf121Driver :: DumpPersistentStore(){
  */
 ErrorCode Wf121Driver :: ErasePersistentStore(const uint16_t key){
   BgApiHeader txHeader;
-  uint8_t payload[2 /* key */];
+  uint8_t payload[sizeof(key)];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -2939,7 +2939,7 @@ ErrorCode Wf121Driver :: ErasePersistentStore(const uint16_t key){
   // prepare the payload (see datasheet for format)
   memcpy(payload,
          &key,
-         2 /* sizeof key */);
+         sizeof(key));
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, payload);      

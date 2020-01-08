@@ -271,6 +271,9 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executeEndpointCallback(BgApiHeader *header,
                                                  uint8_t *payload,
                                                  const uint16_t payloadSize){
+  uint16_t result;
+  Endpoint endpoint;
+
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
     switch(header->bit.cmdId){
@@ -303,8 +306,11 @@ ErrorCode Wf121Driver :: executeEndpointCallback(BgApiHeader *header,
       case 0x04: // error
         break;
       case 0x00: // syntax error
-
-          cb_EventEndpointSyntaxError();
+          memcpy(&result,
+                 payload,
+                 sizeof(result));
+          endpoint = payload[sizeof(result)];
+          cb_EventEndpointSyntaxError(result, endpoint);
         break;
       default:
         return COMMAND_NOT_RECOGNIZED;

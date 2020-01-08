@@ -450,6 +450,7 @@ namespace Wf121{
       ErrorCode ErasePersistentStore(const uint16_t key);
 
       // List of events
+      virtual ErrorCode cb_EventEndpointSyntaxError(uint16_t result, Endpoint endpoint) { return NO_ERROR; };
 
       // Other functions
       ErrorCode ExecuteCallbacks();

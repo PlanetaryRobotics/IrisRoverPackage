@@ -1,6 +1,12 @@
 #ifndef CUBEROVER_WF121_WF121_HPP_
 #define CUBEROVER_WF121_WF121_HPP_
 
+/**
+ *  Implementation of the Bluegiga-Wifi- Software API 3.0 
+ *  https://www.silabs.com/documents/public/reference-manuals/Bluegiga-WiFi-Software-3.0-API-RM.pdf
+ *  
+ */
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -11,7 +17,7 @@
 
 #define MAX_SIZE_PAYLOAD    256    // in byte
 #define SCI_REG             sciREG
-#define BLOCKING_TIMEOUT_US 10000    // in us
+#define BLOCKING_TIMEOUT_US 1000    // in us
 
 #define MAC_ADDRESS_SIZE      6       // in byte
 #define HARDWARE_ADDRESS_SIZE 6       // in byte
@@ -211,6 +217,34 @@ namespace Wf121{
     ROUTE_ETHERNET_DEVICE = 3
   }WiredEthernetRoute;
 
+  typedef enum EndpointType{
+    ENDPOINT_FREE       = 0,
+    ENDPOINT_UART       = 1,
+    ENDPOINT_USB        = 2,
+    ENDPOINT_TCP        = 4,
+    ENDPOINT_TCP_SERVER = 8,
+    ENDPOINT_UDP        = 16,
+    ENDPOINT_UDP_SERVER = 32,
+    ENDPOINT_SCRIPT     = 64,
+    ENDPOINT_WAIT_CLOSE = 128,
+    ENDPOINT_SPI        = 256,
+    ENDPOINT_I2C        = 512,
+    ENFPOINT_DROP       = 1024
+  }EndpointType;
+
+  typedef enum RtcAlarmRepeat{
+    HARDWARE_ALARM_EVERY_HALF_SECOND = 0,
+    HARDWARE_ALARM_EVERY_SECOND = 1,
+    HARDWARE_ALARM_EVERY_TEN_SECONDS = 2,
+    HARDWARE_ALARM_EVERY_MINUTE = 3,
+    HARDWARE_ALARM_EVERY_TEN_MINUTES = 4,
+    HARDWARE_ALARM_EVERY_HOUR = 5,
+    HARDWARE_ALARM_EVERY_DAY = 6,
+    HARDWARE_ALARM_EVERY_WEEK = 7,
+    HARDWARE_ALARM_EVERY_MONTH = 8,
+    HARDWARE_ALARM_EVERY_YEAR = 9
+  }RtcAlarmRepeat;
+
   typedef uint32_t Timeout;
 
   typedef uint8_t IpAddress[IP_ADDRESS_V4_SIZE];
@@ -241,6 +275,9 @@ namespace Wf121{
   typedef uint8_t ServiceName;
   typedef uint8_t ServiceNameSize;
 
+  typedef uint8_t DnsName;
+  typedef uint8_t DnsNameSize;
+
   typedef uint8_t ServerPath;
   typedef uint8_t ServerPathSize;
 
@@ -267,14 +304,17 @@ namespace Wf121{
   class Wf121Driver{
     public:
       Wf121Driver();
-      ~Wf121Driver();
+      virtual ~Wf121Driver() {}
       ErrorCode Init();
 
       // List of commands
+      // System class commands
       ErrorCode HelloSystem();
       ErrorCode ResetSystemWifi(const BootMode bootMode);
       ErrorCode SetMaxPowerSavingState(const PowerSavingState state);
       ErrorCode SyncSystem();
+
+      // Configuration wi-fi commands
       ErrorCode GetMacAddress(const HardwareInterface interface);
       ErrorCode SetMacAddress(const HardwareInterface interface,
                               const MacAddress mac);
@@ -321,7 +361,7 @@ namespace Wf121{
       ErrorCode ConfigureDns(const DnsIndex index, 
                              IpAddress *ip);
       ErrorCode GetDnsHostByName(DhcpHostName * name,
-                                 const DhcpHostNameSize size);
+                                 consenablet DhcpHostNameSize size);
       ErrorCode SetMdnsHostName(MdnsHostName * name,
                                 const MdnsHostNameSize size);
       ErrorCode StartMDns();
@@ -378,9 +418,9 @@ namespace Wf121{
                                            const InterruptMask polarity);
       ErrorCode ConfigureChangeNotification(const uint32_t enable);
       ErrorCode ChangeNotificationPullup(const uint32_t pullup);
-      ErrorCode ConfigureIoPort(const Wf121IoPort port,
-                                const uint16_t bitMask,
-                                const uint16_t bitDirection);
+      ErrorCode ConfigureIoPortDirection(const Wf121IoPort port,
+                                         const uint16_t bitMask,
+                                         const uint16_t bitDirection);
       ErrorCode ConfigureIoOpenDrain(const Wf121IoPort port,
                                      const uint16_t bitMask,
                                      const uint16_t openDrain);
@@ -449,8 +489,832 @@ namespace Wf121{
       ErrorCode DumpPersistentStore();
       ErrorCode ErasePersistentStore(const uint16_t key);
 
-      // List of events
-      virtual ErrorCode cb_EventEndpointSyntaxError(uint16_t result, Endpoint endpoint) { return NO_ERROR; };
+      // -------------------------------------------------------------------------------------
+      // List of event callbacks
+      //--------------------------------------------------------------------------------------
+
+      /**
+       * @brief      This event indicates that a protocol error was detected in
+       *             BGAPI command parser. This event is triggered if a BGAPI
+       *             command from the host contains syntax error(s), or if a
+       *             command is only partially sent. Then the BGAPI parser has a
+       *             1 second command timeout and if a valid command is not
+       *             transmitted within this timeout an error is raised and the
+       *             partial or wrong command will be ignored
+       *
+       * @param[in]  result    Error reasonTypical errors are:
+       *                       - 0x0184 Command Not Recognized
+       *                       - 0x0185 TimeoutFor these and other
+       *                       error codes refer to the  documentation
+       * @param[in]  endpoint  The endpoint
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventEndpointSyntaxError(const uint16_t result,
+                                                    const Endpoint endpoint) { return NO_ERROR; }
+
+      /**
+       * @brief      This event indicates that the device has started and is
+       *             ready to receive commands.
+       *
+       * @param[in]  major              The major
+       * @param[in]  minor              The minor
+       * @param[in]  patch              The patch
+       * @param[in]  build              The build
+       * @param[in]  bootloaderVersion  The bootloader version
+       * @param[in]  tcpIpVersion       The tcp ip version
+       * @param[in]  hwVersion          The hardware version
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventBoot(const uint16_t major,
+                                     const uint16_t minor,
+                                     const uint16_t patch,
+                                     const uint16_t build,
+                                     const uint16_t bootloaderVersion,
+                                     const uint16_t tcpIpVersion,
+                                     const uint16_t hwVersion) { return NO_ERROR; }
+
+      /**
+       * @brief      This event indicates that a software exception has
+       *             occurred.
+       *
+       * @param[in]  address  Address where exception occurred
+       * @param[in]  type     Type of exception.
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventSoftwareException(const uint32_t address,
+                                                  const uint8_t type) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates the power saving state into which the
+       *             module has entered
+       *
+       * @param[in]  state  The state
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventPowerSavingState(const PowerSavingState state) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates the current MAC address of the device
+       *
+       * @param[in]  interface  The hardware interface to use 0: Wi-Fi
+       * @param[in]  hwAddr     The current MAC address
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventMacAddress(const HardwareInterface interface,
+                                           const HardwareAddress hwAddr) { return NO_ERROR; }
+
+      
+      /**
+       * @brief      This event indicates that the 802.11 radio is powered up
+       *             and ready to receive commands.
+       *
+       * @param[in]  result  Return code 0 : success non-zero : An error
+       *                     occurred
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventWifiIsOn(const uint16_t result) { return NO_ERROR; }
+
+
+ 
+      /**
+       * @brief      This command can be used to turn off the 802.11 radio.
+       *
+       * @param[in]  result  The result
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventWifiIsOff(const uint16_t result) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates Access Point scan results. After a
+       *             scan has been started these events are sent every time an
+       *             Access Point is discovered. Access Point is also added to
+       *             internal scan list and it is possible to connect to it.
+       *
+       * @param[in]  hwAddr    The BSSID of an Access Point which was found
+       * @param[in]  channel   The channel on which an Access Point was seen
+       * @param[in]  rssi      The received signal strength indication of the
+       *                       found Access Point, in dBm.The RSSI values are
+       *                       reported in 1dBm steps.This event is triggered
+       *                       only if the RSSI value corresponds to -88dBm or
+       *                       above.
+       * @param[in]  snr       The signal to noise ratio of an Access Point. The
+       *                       values are reported in 1dB steps
+       * @param[in]  secure    Access Point security status as a bitmask.bit 0:
+       *                       whether the AP supports secure connectionsbit 1:
+       *                       whether the AP supports WPS
+       * @param[in]  ssid      The SSID of the network the Access Point belongs
+       *                       to
+       * @param[in]  ssidSize  The ssid size
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventScanResult(const HardwareAddress hwAddr,
+                                           const int8_t channel,
+                                           const int16_t rssi,
+                                           const int8_t snr,
+                                           const uint8_t secure,
+                                           const Ssid *ssid,
+                                           const SsidSize ssidSize) { return NO_ERROR; }
+
+      /**
+       * @brief      This event indicates that the Access Point was dropped from
+       *             the internal scan list. It is not possible to connect to it
+       *             anymore.
+       *
+       * @param[in]  hwAddr  The BSSID of the Access Point that was dropped
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventScanResultDrop(const HardwareAddress hwAddr) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates the Access Point scan is finished.
+       *
+       * @param[in]  scanStatus  Scan status 0 : scan finished normally
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventScanned(const int8_t scanStatus) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates a successful connection to an Access Point.
+       *
+       * @param[in]  status       Wi-Fi connection status 0: Wi-Fi is connected 1:Wi-Fi is not connected
+       * @param[in]  hwInterface  The hardware interface
+       * @param[in]  ssid         The BSSID of the device that the module connected to
+       * @param[in]  ssidSize     The ssid size
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventConnected(const int8_t status,
+                                          const HardwareInterface hwInterface,
+                                          const Ssid *bssid,
+                                          const SsidSize bssidSize) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates a disconnection from an Access Point.
+       *             The event occurs either because sme_disconnectcommand was
+       *             issued or connection to an Access Point was lost.
+       *             Connection loss could occur because the Access Point has
+       *             been switched off or the user has moved out of coverage.
+       *             The timeout for detecting a lost connection is 50 beacons
+       *             which under typical network configuration translates to
+       *             roughly 5 seconds.
+       *
+       * @param[in]  reason       Disconnect reason For values refer to the
+       *                          error code documentation
+       * @param[in]  hwInterface  The hardware interface
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventDisconnected(const uint16_t reason,
+                                             const HardwareInterface hwInterface) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates the current network status. If for
+       *             example DHCP has successfully finished and the module has
+       *             an IP address, it will send this event with status = 1.
+       *
+       * @param[in]  hwInterface  The hardware interface
+       * @param[in]  status       Network status 0 : network down 1 : network up
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventInterfaceStatus(const HardwareInterface hwInterface,
+                                                const uint8_t status) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates a failed connection to an Access
+       *             Point. This event may occur if the device is unable to
+       *             establish a connection to an Access Point or if the Access
+       *             Point disconnects the device during the connection.
+       *
+       * @param[in]  reason       The reason
+       * @param[in]  hwInterface  The hardware interface
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventConnectFailed(const uint16_t reason,
+                                              const HardwareInterface hwInterface) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates that a connection attempt failed,
+       *             which will eventually lead to an automatic retry. This
+       *             event appears typically when the module is commanded to
+       *             connect to a wireless network but the given password is
+       *             wrong. The amount of retries is fixed to 10 and the retries
+       *             can be stopped with the command
+       *
+       * @param[in]  hwInterface  The hardware interface
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventConnectRetry(const HardwareInterface hwInterface) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates that the Wi-Fi Access Point mode has
+       *             been successfully started.
+       *
+       * @param[in]  hwInterface  The hardware interface
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventApModeStarted(const HardwareInterface hwInterface) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates that the Wi-Fi Access Point mode has
+       *             been stopped
+       *
+       * @param[in]  hwInterface  The hardware interface
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventApModeStopped(const HardwareInterface hwInterface) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates that the Wi-Fi Access Point mode has failed.
+       *
+       * @param[in]  reason       The reason
+       * @param[in]  hwInterface  The hardware interface
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventApModeFailed(const uint16_t reason,
+                                             const HardwareInterface hwInterface) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates that a Wi-Fi client has joined the network
+       *
+       * @param[in]  address      MAC address of the station
+       * @param[in]  hwInterface  Hardware interface 0 : Wi-Fi
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventApClientJoined(const HardwareAddress address,
+                                               const HardwareInterface hwInterface) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates that a Wi-Fi client (client), has left
+       *             the Access Point.In case a station moves out of range or is
+       *             abruptly powered off, it might take from 180 to 270 seconds
+       *             for this event to be issued at the module operating as the
+       *             Access Point. This timeout range is due to the fact that
+       *             the remote station is not sending any message to indicate
+       *             that it is going to disconnect, while at the module side
+       *             the conditions to declare that a client has left are the
+       *             following: considering slots of 90 seconds from the moment
+       *             the client connected, if in one slot there has been no
+       *             message from the client, then the next slot is used to send
+       *             empty frames to the client (at the interval of 15 seconds)
+       *             and if there is still no response from the client then the
+       *             connection is considered down, at which time this event is
+       *             generated.
+       *
+       * @param[in]  address      MAC address of the station
+       * @param[in]  hwInterface  The hardware interface
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventApClientLeft(const HardwareAddress address,
+                                             const HardwareInterface hwInterface) { return NO_ERROR; }     
+
+
+      /**
+       * @brief      This event indicates the scan result.
+       *
+       * @param[in]  address   The address
+       * @param[in]  channel   The channel
+       * @param[in]  rssi      The rssi
+       * @param[in]  snr       The snr
+       * @param[in]  secure    The secure
+       * @param[in]  ssid      The ssid
+       * @param[in]  ssidSize  The ssid size
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventScanSortResult(const HardwareAddress address,
+                                               const int8_t channel,
+                                               const int16_t rssi,
+                                               const int8_t snr,
+                                               const uint8_t secure,
+                                               const Ssid *ssid,
+                                               const SsidSize ssidSize) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates that the scan result sort is finished.
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventScanSortFinished() { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates that the Wi-Fi Protected Setup (WPS)
+       *             session was stopped.
+       *
+       * @param[in]  hwInterface  The hardware interface
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventWpsStopped(const HardwareInterface hwInterface) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates that the Wi-Fi Protected Setup (WPS)
+       *             session was completed successfully.
+       *
+       * @param[in]  hwInterface  The hardware interface
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventWpsCompleted(const HardwareInterface hwInterface) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates that the Wi-Fi Protected Setup (WPS)
+       *             session failed
+       *
+       * @param[in]  reason       The reason
+       * @param[in]  hwInterface  The hardware interface
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventWpsFailed(const uint16_t reason,
+                                          const HardwareInterface hwInterface) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates the SSID of the network in relation to
+       *             Wi-Fi Protected Setup (WPS).
+       *
+       * @param[in]  hwInterface  The hardware interface
+       * @param[in]  ssid         The ssid
+       * @param[in]  ssidSize     The ssid size
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventCredentialSsid(const HardwareInterface hwInterface,
+                                               const Ssid *ssid,
+                                               const SsidSize ssidSize) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates the password of then network in
+       *             relation to Wi-Fi Protected Setup (WPS).
+       *
+       * @param[in]  hwInterface   The hardware interface
+       * @param[in]  password      The password
+       * @param[in]  passwordSize  The password size
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventWpsCredentialPassword(const HardwareInterface hwInterface,
+                                                      const Password *password,
+                                                      const PasswordSize passwordSize) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates the signal quality (RSSI value) of the
+       *             connection in dBm units
+       *
+       * @param[in]  rssi         The received signal strength indication (RSSI)
+       *                          in dBm units
+       * @param[in]  hwInterface  The hardware interface
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventSignalQuality(const int8_t rssi,
+                                              const HardwareInterface hwInterface) { return NO_ERROR; }
+
+ 
+      /**
+       * @brief      This event indicates TCP/IP configuration status
+       *
+       * @param[in]  address  The address
+       * @param[in]  netmask  The netmask
+       * @param[in]  gateway  The gateway
+       * @param[in]  useDhcp  DHCP used 0 = DHCP Client not being used 1 = DHCP Client being used
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventConfigureTcpIp(const IpAddress address,
+                                               const Netmask netmask,
+                                               const Gateway gateway,
+                                               const uint8_t useDhcp) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates DNS configuration status.Note that if
+       *             static IP configuration is in use and no DNS configuration
+       *             has been provided by the user, the primary DNS server
+       *             defaults to 208.67.222.222 (resolver1.opendns.com)
+       *
+       * @param[in]  index    DNS server ID 0: primary DNS server 1: secondary DNS server
+       * @param[in]  address  The address
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventDnsConfigureTcpIp(const uint8_t index,
+                                                  const IpAddress address) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates the current status of a TCP/IP
+       *             endpoint.
+       *
+       * @param[in]  endpoint    The endpoint index this message describes
+       * @param[in]  localIp     The local IP address of this endpoint
+       * @param[in]  localPort   The local port of this endpoint
+       * @param[in]  remoteIp    The remote IP address of this endpoint. For
+       *                         server endpoints (which have no client), this
+       *                         will not contain any valid value
+       * @param[in]  remotePort  The port of the remote device. For server
+       *                         endpoints (which have no client), this will not
+       *                         contain any valid value.
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventTcpIpEndpointStatus(const uint8_t endpoint,
+                                                    const IpAddress localIp,
+                                                    const uint16_t localPort,
+                                                    const IpAddress remoteIp,
+                                                    const uint16_t remotePort) { return NO_ERROR; }
+
+      /**
+       * @brief      This event is generated as a response to a  command. If the
+       *             procedure is successful, this DNS Gethostbynamemessage
+       *             contains the IP address of the queried address.
+       *
+       * @param[in]  result       The result
+       * @param[in]  address      The resolved IP address of the server
+       * @param[in]  dnsName      The dns name
+       * @param[in]  dnsNameSize  Name of the server whose IP address was resolved
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventGetDnsHostByName(const uint16_t result,
+                                                 const IpAddress address,
+                                                 const DnsName * dnsName,
+                                                 const DnsNameSize dnsNameSize) { return NO_ERROR; }
+
+      /**
+       * @brief      This event indicates incoming data from an UDP endpoint. In
+       *             order to receive this event, instead of the Endpoint event,
+       *             use -1 as the default destination in the  command.
+       *
+       * @param[in]  endpoint    The endpoint which received this data, i.e. to
+       *                         which it was sent
+       * @param[in]  srcAddress  IP address of the client that sent this data
+       * @param[in]  srcPort     Client UDP port where this data was sent from
+       * @param[in]  data        The data
+       * @param[in]  dataSize    The data size
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventUdpData(const Endpoiunt endpoint,
+                                        const IpAddress srcAddress,
+                                        const uint16_t srcPort,
+                                        const uint8_t * data,
+                                        const DataSize dataSize) { return NO_ERROR; }
+
+      /**
+       * @brief      This event indicates that a mDNS service has been
+       *             successfully started
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventMDnsStarted() { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates that a mDNS service has failed.
+       *
+       * @param[in]  reason  For values refer to the error code documentation
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventMDnsFailed(const uint16_t reason) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates that a mDNS service has been stopped.
+       *
+       * @param[in]  reason  For values refer to the error code documentation
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventMDnsStopped(const uint16_t reason) { return NO_ERROR; } 
+
+
+      /**
+       * @brief      This event indicates that a DNS-SD service has been
+       *             successfully started.
+       *
+       * @param[in]  index  Service index
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventDnsSdServiceStarted(const uint8_t index) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates that a DNS-SD service has failed.
+       *
+       * @param[in]  reason  Failure reason For values refer to the error code
+       *                     documentation
+       * @param[in]  index   Service index
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventDnsSdServiceFailed(const uint16_t reason,
+                                                    const uint8_t index) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates that a DNS-SD service has stopped
+       *
+       * @param[in]  reason  Failure reasonFor values refer to the error code
+       *                     documentation
+       * @param[in]  index   The index
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventDnsSdServiceStopped(const uint16_t reason,
+                                                    const uint8_t index) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event contains DHCP Server configuration.
+       *
+       * @param[in]  routingEnabled  DHCP server routing enabled0 = DHCP server
+       *                             responses  include gateway and DNS
+       *                             don'tserver information1 = Gateway and DNS
+       *                             server information are included in
+       *                             responses
+       * @param[in]  address         First address of DHCP Server address pool
+       * @param[in]  subnetMask      Subnetwork mask
+       * @param[in]  leaseTime       DHCP address lease timeout
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventDhcpConfiguration(const uint8_t routingEnabled,
+                                                  const IpAddress address,
+                                                  const Netmask subnetMask,
+                                                  const uint32_t leaseTime) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event contains IPv4 address and MAC address of one
+       *             client connected to WF121 Access Point. Message is sent for
+       *             each client one after another
+       *
+       * @param[in]  address  The address
+       * @param[in]  address  The address
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventDhcpClient(const IpAddress ipAddress,
+                                           const HardwareAddress hwAddress) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates incoming data from an endpoint.
+       *
+       * @param[in]  endpoint  The endpoint which received this data, i.e. to
+       *                       which it was sent.
+       * @param      data      The raw data
+       * @param[in]  dataSize  The data size
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventDataEndpoint(const Endpoint endpoint,
+                                             uint8_t * data,
+                                             const DataSize dataSize) { return NO_ERROR; }
+
+
+ 
+      /**
+       * @brief      cb_EventTcpIpEndpointStatus
+       *
+       * @param[in]  endpoint      The index of the endpoint whose status this
+       *                           event describe
+       * @param[in]  endpointType  The type of endpoint, see the endpoint type
+       *                           enumeration
+       * @param[in]  streaming     Endpoint mode 0 : Endpoint is connected to
+       *                           BGAPI 1 : Endpoint is streaming to another
+       *                           endpoint
+       * @param[in]  destination   The index of the endpoint to which the
+       *                           incoming data goes
+       * @param[in]  active        Endpoint status 0 : receiving and sending of
+       *                           data is blocked 1 : receiving and sending is
+       *                           allowed.
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventEndpointStatus(const Endpoint endpoint,
+                                               const EndpointType endpointType,
+                                               const uint8_t streaming,
+                                               const int8_t destination,
+                                               const uint8_t active) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates an endpoint is closing or indicates
+       *             that the remote end has terminated the connection. The
+       *             event should be acknowledged by calling the  command or
+       *             otherwise the software will not re-use endpoint closethe
+       *             endpoint index.
+       *
+       * @param[in]  reason    Zero indicates success. For other values refer to
+       *                       the error code documentation
+       * @param[in]  endpoint  The endpoint which is closing
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventClosingEndpoint(const uint16_t reason,
+                                                const Endpoint endpoint) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates an error in an endpoint
+       *
+       * @param[in]  reason    Error reason For values refer to the error code
+       *                       documentation
+       * @param[in]  endpoint  The endpoint where the error occurred
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventErrorEndpoint(const uint16_t reason,
+                                              const Endpoint endpoint) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates that a software timer has reached the
+       *             defined count (elapsed)
+       *
+       * @param[in]  handle  The handle
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventSoftTimer(const uint8_t handle) { return NO_ERROR; }
+
+      // -------------------------------------------------------------------------------------
+      // List of command callbacks
+      //--------------------------------------------------------------------------------------
+
+      // System class callbacks
+      virtual ErrorCode cb_CommandHelloSystem() { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSyncSystem() { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetMaxPowerSavingState(const uint16_t result) { return NO_ERROR; }
+
+      // Configuration wi-fi callbacks
+      virtual ErrorCode cb_CommandGetMacAddress(const uint16_t result,
+                                                const HardwareInterface interface) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetMacAddress(const uint16_t result,
+                                                const HardwareInterface interface) { return NO_ERROR; }
+
+      // Wi-fi callbacks
+      virtual ErrorCode cb_CommandTurnOnWifi(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandTurnOffWifi(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandStartScanChannels(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandStopScanChannels(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetPassword(const uint8_t status) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandConnectBssid(const uint16_t result,
+                                               const HardwareInterface interface,
+                                               const HardwareAddress address) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandConnectSsid(const uint16_t result,
+                                              const HardwareInterface interface,
+                                              const HardwareAddress address) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandDisconnect(const uint16_t result,
+                                             const HardwareInterface interface) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetScanChannels(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetOperatingMode(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandStartApMode(const uint16_t result,
+                                              const HardwareInterface interface) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandStopApMode(const uint16_t result,
+                                             const HardwareInterface interface) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandScanResultsSortRssi(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandDisconnectApClient(const uint16_t result,
+                                                     const HardwareInterface interface) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetApPassword(const uint8_t status) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetApMaxClients(const uint16_t result,
+                                                  const HardwareInterface interface) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandStartWps(const uint16_t result,
+                                           const HardwareInterface interface) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandStopWps(const uint16_t result,
+                                         const HardwareInterface interface) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandGetSignalQuality(const uint16_t result,
+                                                   const HardwareInterface interface) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandStartSsidScan(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetApHidden(const uint16_t result,
+                                              const HardwareInterface interface) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSet11nMode(const uint16_t result,
+                                              const HardwareInterface interface) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetApClientIsolation(const uint16_t result,
+                                                       const HardwareInterface interface) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandStartTcpServer(const uint16_t result,
+                                                 const uint8_t endpoint) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandTcpConnect(const uint16_t result,
+                                             const uint8_t endpoint) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandStartUdpServer(const uint16_t result,
+                                                 const uint8_t endpoint) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandUdpConnect(const uint16_t result,
+                                             const uint8_t endpoint) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandConfigureTcpIp(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandDnsConfigure(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandGetDnsHostByName(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandUdpBind(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetDhcpHostName(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandDhcpEnableRouting(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetMdnsHostName(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandStartMDns(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandStopMDns(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandDnsSdAddService(const uint16_t result,
+                                                  const uint8_t endpoint) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandDnsSdAddServiceInstance(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandDnsSdAddServiceAttribute(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandDnsSdRemoveService(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandDnsSdStartService(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandDnsSdStopService(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandMulticastJoin(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandMulticastLeave(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandDhcpConfigure(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandDhcpClients(const uint16_t result,
+                                              const uint8_t clientCount) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSendEndpoint(const uint16_t result,
+                                               const Endpoint endpoint) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetStreaming(const uint16_t result,
+                                                          const Endpoint endpoint) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetActiveEndpoint(const uint16_t result,
+                                                    const Endpoint endpoint) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetStreamingDestination(const uint16_t result,
+                                                          const Endpoint endpoint) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandCloseEndpoint(const uint16_t result,
+                                                const Endpoint endpoint) { return NO_ERROR; } 
+      virtual ErrorCode cb_CommandSetTransmitSize(const uint16_t result,
+                                                  const Endpoint endpoint) { return NO_ERROR; } 
+      virtual ErrorCode cb_CommandDisableEndpoint(const uint16_t result,
+                                                  const Endpoint endpoint) { return NO_ERROR; } 
+      virtual ErrorCode cb_CommandSetSoftTimer(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandConfigureExternalInterrupt(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandConfigureChangeNotification(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandConfigureIoPortDirection(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandConfigureIoOpenDrain(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandWriteIoPort(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandReadIoPort(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandOutputCompare(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandAdcRead(const uint16_t result,
+                                          const uint8_t input,
+                                          const uint16_t value) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandRtcInit(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandRtcSetTime(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandRtcGetTime(const uint16_t result,
+                                             const int16_t year,
+                                             const int8_t month,
+                                             const int8_t day,
+                                             const int8_t weekday,
+                                             const int8_t hour,
+                                             const int8_t minute,
+                                             const int8_t second) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetAlarm(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandConfigureUart(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandGetUartConfiguration(const uint16_t result) { return NO_ERROR; }
 
       // Other functions
       ErrorCode ExecuteCallbacks();

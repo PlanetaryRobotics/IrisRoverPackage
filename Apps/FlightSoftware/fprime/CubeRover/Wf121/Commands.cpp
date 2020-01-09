@@ -2002,9 +2002,9 @@ ErrorCode Wf121Driver :: ChangeNotificationPullup(const uint32_t pullup){
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: ConfigureIoPort(const Wf121IoPort port,
-                                         const uint16_t bitMask,
-                                         const uint16_t bitDirection){
+ErrorCode Wf121Driver :: ConfigureIoPortDirection(const Wf121IoPort port,
+                                                  const uint16_t bitMask,
+                                                  const uint16_t bitDirection){
   BgApiHeader txHeader;
   uint8_t payload[1 /* port */ + sizeof(bitMask) + sizeof(bitDirection)];
 

@@ -7,12 +7,15 @@ using namespace Wf121;
 
 class CubeRoverNetworkManager : public Wf121Driver{
 public:
+  ErrorCode InitializeCubeRoverNetworkManager();
 
   // Callback event
   ErrorCode cb_EventEndpointSyntaxError(const uint16_t result, const Endpoint endpoint);
 
   // Callback command
   ErrorCode cb_CommandHelloSystem();
+  ErrorCode cb_CommandTurnOnWifi();
+
 private:
 };
 

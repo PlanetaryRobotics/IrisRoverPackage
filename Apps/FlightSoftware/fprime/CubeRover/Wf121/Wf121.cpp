@@ -114,7 +114,7 @@ ErrorCode Wf121Driver :: executeSystemCallback(BgApiHeader *header,
         memcpy(&minor,
                payload + 2, /* sizeof minor */
                sizeof(minor));
-        mempcy(&patch,
+        memcpy(&patch,
                payload + 4, /* sizeof minor, major */
                sizeof(patch));
         memcpy(&build,
@@ -122,7 +122,7 @@ ErrorCode Wf121Driver :: executeSystemCallback(BgApiHeader *header,
                sizeof(build));
         memcpy(&bootloaderVersion,
                payload + 8, /* sizeof minor, major, patch, build */
-               sizeof(bootloaderVersion);
+               sizeof(bootloaderVersion));
         memcpy(&tcpIpVersion,
                payload + 10, /* sizeof minor, major, patch, build, bootloader version */
               sizeof(tcpIpVersion));
@@ -140,7 +140,7 @@ ErrorCode Wf121Driver :: executeSystemCallback(BgApiHeader *header,
         if(payloadSize < sizeof(address) + sizeof(type)){
           return UNSPECIFIED_ERROR; // should not happen at that point
         }
-        mempcy(&address,
+        memcpy(&address,
                payload,
                sizeof(address));
         memcpy(&type,
@@ -148,7 +148,7 @@ ErrorCode Wf121Driver :: executeSystemCallback(BgApiHeader *header,
                sizeof(type));
         return cb_EventSoftwareException(address, type);
       case 0x03: // Power saving state
-        state = payload[0];
+        state = (PowerSavingState) payload[0];
         return cb_EventPowerSavingState(state);
       default:
         return COMMAND_NOT_RECOGNIZED;
@@ -182,13 +182,13 @@ ErrorCode Wf121Driver :: executeConfigurationCallback(BgApiHeader *header,
         memcpy(&result,
                payload,
                sizeof(result));
-        interface = payload[sizeof(result)];
+        interface = (HardwareInterface) payload[sizeof(result)];
         return cb_CommandGetMacAddress(result, interface);
       case 0x01:  // Set MAC address
         memcpy(&result,
                payload,
                sizeof(result));
-        interface = payload[sizeof(result)];
+        interface = (HardwareInterface) payload[sizeof(result)];
         return cb_CommandSetMacAddress(result, interface);
       default:
         return COMMAND_NOT_RECOGNIZED;
@@ -199,7 +199,7 @@ ErrorCode Wf121Driver :: executeConfigurationCallback(BgApiHeader *header,
   if(header->bit.msgType == EVENT_TYPE){
     switch(header->bit.cmdId){
       case 0x00: // MAC address
-        interface = payload[0];
+        interface = (HardwareInterface) payload[0];
         memcpy(&hwAddr,
               payload + 1 /* hardware interface */,
               sizeof(HardwareAddress));
@@ -233,7 +233,7 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
   int16_t rssi;
   int8_t snr;
   uint8_t secure;
-  Ssid ssid;
+  Ssid *ssid;
   SsidSize ssidSize;
 
   // Process command reply
@@ -268,7 +268,7 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
         memcpy(&result,
                payload,
                sizeof(result)); 
-        interface = payload[2];
+        interface = (HardwareInterface)payload[2];
         memcpy(&address,
                payload + 3, /* offset by interface + result */
                sizeof(HardwareAddress));
@@ -279,7 +279,7 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
         memcpy(&result,
                payload,
                sizeof(result));
-        interface = payload[2]; 
+        interface = (HardwareInterface)payload[2];
         return cb_CommandDisconnect(result,
                                     interface);
       case 0x0D: // Scan results
@@ -294,7 +294,7 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
         memcpy(&result,
                payload,
                sizeof(result)); 
-        interface = payload[2];
+        interface = (HardwareInterface)payload[2];
         memcpy(&address,
                payload + 3, /* offset by interface + result */
                sizeof(HardwareAddress));
@@ -305,7 +305,7 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
         memcpy(&result,
                payload,
                sizeof(result)); 
-        interface = payload[2];      
+        interface = (HardwareInterface)payload[2];
         return cb_CommandGetSignalQuality(result,
                                           interface);
       case 0x14: // Start sssid scan
@@ -317,35 +317,35 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
         memcpy(&result,
                payload,
                sizeof(result)); 
-        interface = payload[2];        
+        interface = (HardwareInterface)payload[2];
         return cb_CommandSetApHidden(result,
                                      interface);
       case 0x16: // Set 11n mode
         memcpy(&result,
                payload,
                sizeof(result)); 
-        interface = payload[2];
+        interface = (HardwareInterface)payload[2];
         return cb_CommandSet11nMode(result,
                                     interface);
       case 0x17: // Set Ap client isolation
         memcpy(&result,
                payload,
                sizeof(result)); 
-        interface = payload[2];     
+        interface = (HardwareInterface)payload[2];
         return cb_CommandSetApClientIsolation(result,
                                               interface);
       case 0x11: // Start WPS
         memcpy(&result,
                payload,
                sizeof(result)); 
-        interface = payload[2];
+        interface = (HardwareInterface)payload[2];
         return cb_CommandStartWps(result,
                                   interface);
       case 0x12: // Stop WPS
         memcpy(&result,
                payload,
                sizeof(result)); 
-        interface = payload[2];
+        interface = (HardwareInterface)payload[2];
         return cb_CommandStopWps(result,
                                  interface);
       case 0x0A: // Set operating mode
@@ -357,7 +357,7 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
         memcpy(&result,
                payload,
                sizeof(result)); 
-        interface = payload[2];
+        interface = (HardwareInterface)payload[2];
         return cb_CommandSetApMaxClients(result,
                                         interface);
       case 0x0F: // Set AP password
@@ -367,21 +367,21 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
         memcpy(&result,
                payload,
                sizeof(result));
-        interface = payload[2];         
+        interface = (HardwareInterface)payload[2];
         return cb_CommandStartApMode(result,
                                      interface);
       case 0x0C: // Stop AP mode
         memcpy(&result,
                payload,
                sizeof(result));
-        interface = payload[2];         
+        interface = (HardwareInterface)payload[2];
         return cb_CommandStopApMode(result,
                                     interface);
       case 0x0E: // AP disconnect client
         memcpy(&result,
                payload,
                sizeof(result));
-        interface = payload[2];         
+        interface = (HardwareInterface)payload[2];
         return cb_CommandDisconnectApClient(result,
                                             interface);
       default:
@@ -412,7 +412,7 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
         memcpy(&rssi,
                payload + sizeof(address) + sizeof(channel),
                sizeof(rssi));
-        memcpy(snr,
+        memcpy(&snr,
                payload + sizeof(address) + sizeof(channel) + sizeof(rssi),
                sizeof(snr));
         memcpy(&secure,
@@ -421,9 +421,8 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
         memcpy(&ssidSize,
                payload + sizeof(address) + sizeof(channel) + sizeof(rssi) + sizeof(snr) + sizeof(secure),
                sizeof(ssidSize));
-        mempcy(&ssid,
-               payload + sizeof(address) + sizeof(channel) + sizeof(rssi) + sizeof(snr) + sizeof(secure) + sizeof(ssidSize),
-               ssidSize);
+        ssid = payload + sizeof(address) + sizeof(channel) + sizeof(rssi) + sizeof(snr) + sizeof(secure) + sizeof(ssidSize);
+
         return cb_EventScanResult(address,
                                   channel,
                                   rssi,
@@ -448,7 +447,7 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
         memcpy(&rssi,
                payload + sizeof(address) + sizeof(channel),
                sizeof(rssi));
-        memcpy(snr,
+        memcpy(&snr,
                payload + sizeof(address) + sizeof(channel) + sizeof(rssi),
                sizeof(snr));
         memcpy(&secure,
@@ -457,9 +456,7 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
         memcpy(&ssidSize,
                payload + sizeof(address) + sizeof(channel) + sizeof(rssi) + sizeof(snr) + sizeof(secure),
                sizeof(ssidSize));
-        mempcy(ssid,
-               payload + sizeof(address) + sizeof(channel) + sizeof(rssi) + sizeof(snr) + sizeof(secure) + sizeof(ssidSize),
-               ssidSize);
+        ssid = payload + sizeof(address) + sizeof(channel) + sizeof(rssi) + sizeof(snr) + sizeof(secure) + sizeof(ssidSize);
         return cb_EventScanSortResult(address,
                                       channel,
                                       rssi,
@@ -471,35 +468,33 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
         return cb_EventScanSortFinished();
       case 0x05: // Connected
         status = payload[0];
-        interface = payload[1];
-        bssidSize = payload[2];
-        mempcy(bssid,
-               payload + 3,
-               bssidSize);
+        interface = (HardwareInterface)payload[1];
+        ssidSize = payload[2];
+        ssid = payload + 3;
         return cb_EventConnected(status,
                                  interface,
-                                 bssid,
-                                 bssidSize);
+                                 ssid,
+                                 ssidSize);
       case 0x09: // Connect retry
-        interface = payload[sizeof(reason)];        
+        interface = (HardwareInterface)payload[sizeof(reason)];
         return cb_EventConnectRetry(interface);     
       case 0x08: // Connect failed
-        memcpy(reason,
+        memcpy(&reason,
                payload,
                sizeof(reason));
-        interface = payload[sizeof(reason)];        
+        interface = (HardwareInterface)payload[sizeof(reason)];
         return cb_EventConnectFailed(reason,
                                      interface);
       case 0x06: // Disconnected
-        memcpy(reason,
+        memcpy(&reason,
                payload,
                sizeof(reason));
-        interface = payload[sizeof(reason)];
+        interface = (HardwareInterface)payload[sizeof(reason)];
         return cb_EventDisconnected(reason,
                                     interface);
       case 0x14: // WPS credential SSID
-        interface = payload[0];
-        mempcy(&ssidSize,
+        interface = (HardwareInterface)payload[0];
+        memcpy(&ssidSize,
                payload + 1 ,
                sizeof(ssidSize));
         return cb_EventCredentialSsid(interface,
@@ -510,52 +505,52 @@ ErrorCode Wf121Driver :: executeWifiCallback(BgApiHeader *header,
                                              payload + 1,
                                              payload[0]);
       case 0x12: // WPS completed
-        interface = payload[0];
+        interface = (HardwareInterface)payload[0];
         return cb_EventWpsCompleted(interface);
       case 0x13: // WPS failed
-        memcpy(reason,
+        memcpy(&reason,
                payload,
                sizeof(reason));
-        interface = payload[sizeof(reason)]; 
+        interface = (HardwareInterface)payload[sizeof(reason)];
         return cb_EventWpsFailed(reason,
                                  interface);
       case 0x11: // WPS stopped
-        interface = payload[0];
+        interface = (HardwareInterface)payload[0];
         return cb_EventWpsStopped(interface);
       case 0x16: // signal quality
         rssi = payload[0];
-        interface = payload[1];
+        interface = (HardwareInterface)payload[1];
         return cb_EventSignalQuality(rssi,
                                      interface);
       case 0x0A: // AP mode started
-        interface = payload[0];
+        interface = (HardwareInterface)payload[0];
         return cb_EventApModeStarted(interface);
       case 0x0B: // AP mode stopped
-        interface = payload[0];
+        interface = (HardwareInterface)payload[0];
         return cb_EventApModeStopped(interface);
       case 0x0C: // AP mode failed
-        memcpy(reason,
+        memcpy(&reason,
                payload,
                sizeof(reason));
-        interface = payload[sizeof(reason)];
+        interface = (HardwareInterface)payload[sizeof(reason)];
         return cb_EventApModeFailed(reason,
                                     interface);
       case 0x0D: // AP client joined
         memcpy(&address,
                payload,
                sizeof(HardwareAddress));
-        interface = payload[sizeof(HardwareAddress)];
+        interface = (HardwareInterface)payload[sizeof(HardwareAddress)];
         return cb_EventApClientJoined(address,
                                       interface);
       case 0x0E: // AP client left
         memcpy(&address,
                payload,
                sizeof(HardwareAddress));
-        interface = payload[sizeof(HardwareAddress)];
+        interface = (HardwareInterface)payload[sizeof(HardwareAddress)];
         return cb_EventApClientLeft(address,
                                       interface);
       case 0x07: // interface status
-        interface = payload[0];
+        interface = (HardwareInterface)payload[0];
         status = payload[1];
         return cb_EventInterfaceStatus(interface,
                                        status);
@@ -634,7 +629,7 @@ ErrorCode Wf121Driver :: executeEndpointCallback(BgApiHeader *header,
         endpoint = payload[2];
         return cb_CommandCloseEndpoint(result,
                                        endpoint);
-      case 0x05: // disable endpoint
+      case 0x06: // disable endpoint
         memcpy(&result,
                payload,
                sizeof(result)); 
@@ -658,7 +653,7 @@ ErrorCode Wf121Driver :: executeEndpointCallback(BgApiHeader *header,
       destination = payload[sizeof(endpoint) + sizeof(endpointType) + sizeof(endpointType) + sizeof(streaming)];
       active = payload[sizeof(endpointType) + sizeof(endpointType) + sizeof(streaming) + sizeof(destination)];
       return cb_EventEndpointStatus(endpoint,
-                                    endpointType,
+                                    (EndpointType)endpointType,
                                     streaming,
                                     destination,
                                     active);
@@ -715,6 +710,22 @@ ErrorCode Wf121Driver :: executeHardwareCallback(BgApiHeader *header,
   uint8_t input;
   uint16_t value;
   uint8_t handle;
+  uint32_t changeNotification;
+  uint8_t irq;
+  uint32_t timestamp;
+  uint8_t id;
+  uint32_t rate;
+  uint8_t dataBits;
+  uint8_t stopBits;
+  uint8_t parity;
+  uint8_t flowCtl;
+  uint16_t year;
+  uint8_t month;
+  uint8_t day;
+  uint8_t weekday;
+  uint8_t hour;
+  uint8_t minute;
+  uint8_t second;
 
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
@@ -830,14 +841,38 @@ ErrorCode Wf121Driver :: executeHardwareCallback(BgApiHeader *header,
   if(header->bit.msgType == EVENT_TYPE){
     switch(header->bit.cmdId){
       case 0x01: // change notification
-        break;
+        memcpy(&changeNotification,
+               payload,
+               sizeof(changeNotification));
+        return cb_EventChangeNotification(changeNotification);
       case 0x02: // external interrupt
-        break;
+        irq = payload[0];
+        memcpy(&timestamp,
+               payload,
+               sizeof(timestamp));
+        return cb_EventExternalInterrupt(irq,
+                                         timestamp);
       case 0x03: // RTC alarm
-        break;
+        return cb_EventRtcAlarm();
       case 0x00: // soft timer
         handle = payload[0];
-       return cb_EventSoftTimer(handle);
+        return cb_EventSoftTimer(handle);
+      case 0x04: // UART configuration
+        id = payload[0];
+        memcpy(&rate,
+               payload,
+               sizeof(rate));
+        dataBits = payload[sizeof(id) + sizeof(rate)];
+        stopBits = payload[sizeof(id) + sizeof(rate) + sizeof(dataBits)];
+        parity = payload[sizeof(id) + sizeof(rate) + sizeof(dataBits) + sizeof(stopBits)];
+        flowCtl = payload[sizeof(id) + sizeof(rate) + sizeof(dataBits) + sizeof(stopBits) + sizeof(parity)];
+
+        return cb_EventUartConfiguration(id,
+                                         rate,
+                                         dataBits,
+                                         stopBits,
+                                         parity,
+                                         flowCtl);
       default:
         return COMMAND_NOT_RECOGNIZED;
     }    
@@ -876,6 +911,8 @@ ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
   uint32_t leaseTime;
   Netmask subnetMask;
   HardwareAddress hwAddress;
+  Gateway gateway;
+  uint8_t useDhcp;
 
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
@@ -914,14 +951,13 @@ ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
         endpoint = payload[sizeof(result)];
         return cb_CommandStartTcpServer(result,
                                         endpoint);
-        break;
       case 0x03: // UDP connect
         memcpy(&result,
                payload,
                sizeof(result));
         endpoint = payload[sizeof(result)];
-        return cb_CommandStartUdpConnect(result,
-                                        endpoint);
+        return cb_CommandUdpConnect(result,
+                                    endpoint);
       case 0x07: // UDP bind
         memcpy(&result,
                payload,
@@ -953,7 +989,7 @@ ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
         memcpy(&result,
                payload,
                sizeof(result));         
-        return cb_CommandStopMDNs(result);
+        return cb_CommandStopMDns(result);
       case 0x0D: // sd add service
         memcpy(&result,
                payload,
@@ -1020,15 +1056,15 @@ ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
         memcpy(address,
                payload,
                sizeof(address));
-        memcpy(netmask,
+        memcpy(&subnetMask,
                payload + sizeof(address),
-               sizeof(netmask));
+               sizeof(subnetMask));
         memcpy(gateway,
-               payload + sizeof(address) + sizeof(netmask),
+               payload + sizeof(address) + sizeof(subnetMask),
                sizeof(gateway));
-        useDhcp = payload[sizeof(address) + sizeof(netmask) + sizeof(gateway)];
+        useDhcp = payload[sizeof(address) + sizeof(subnetMask) + sizeof(gateway)];
         return cb_EventConfigureTcpIp(address,
-                                      netmask,
+                                      subnetMask,
                                       gateway,
                                       useDhcp);
       case 0x01: // configuration DNS
@@ -1075,7 +1111,7 @@ ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
       case 0x04: //UDP data
         memcpy(&endpoint,
                payload,
-               sizeof(endpoint);
+               sizeof(endpoint));
         memcpy(&remoteIp,
                payload + sizeof(endpoint),
                sizeof(IpAddress));
@@ -1112,14 +1148,14 @@ ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
                payload,
                sizeof(result));
         index = payload[sizeof(result)];
-        return cb_EventDnsSdServiceFailed(reason,
-                                           index);
+        return cb_EventDnsSdServiceFailed(result,
+                                          index);
       case 0x0A:
         memcpy(&result,
                payload,
                sizeof(result));
         index = payload[sizeof(result)];
-        return cb_EventDnsSdServiceStopped(reason,
+        return cb_EventDnsSdServiceStopped(result,
                                            index); 
       case 0x0B:
         routingEnabled = payload[0];
@@ -1129,7 +1165,7 @@ ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
         memcpy(subnetMask,
                payload + sizeof(routingEnabled) + sizeof(address),
                sizeof(subnetMask));
-        memcpy(leaseTime,
+        memcpy(&leaseTime,
                payload + sizeof(routingEnabled) + sizeof(address) + sizeof(subnetMask),
                sizeof(leaseTime));
         return cb_EventDhcpConfiguration(routingEnabled,
@@ -1154,6 +1190,8 @@ ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
 }
 
 
+
+
 /**
  * @brief      Execute wired ethernet callback
  *
@@ -1166,15 +1204,25 @@ ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executeWiredEthernetCallback(BgApiHeader *header,
                                                       uint8_t *payload,
                                                       const uint16_t payloadSize){
+  uint16_t result;
+  uint8_t state;
+
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
     switch(header->bit.cmdId){
       case 0x02: // connected
-        break;
+        state = payload[0]; 
+        return cb_CommandRouteConnected(state);
       case 0x00: // set data route
-        break;
+        memcpy(&result,
+               payload,
+               sizeof(result));   
+        return cb_CommandSetDataRoute(result); 
       case 0x01: // close
-        break;
+      memcpy(&result,
+             payload,
+             sizeof(result));
+        return cb_CommandCloseRoute(result);
       default:
         return COMMAND_NOT_RECOGNIZED;
     }
@@ -1184,7 +1232,8 @@ ErrorCode Wf121Driver :: executeWiredEthernetCallback(BgApiHeader *header,
   if(header->bit.msgType == EVENT_TYPE){
     switch(header->bit.cmdId){
       case 0x00: // link status
-        break;
+        state = payload[0];
+        return cb_EventLinkStatus(state);
       default:
         return COMMAND_NOT_RECOGNIZED;
     }    
@@ -1206,21 +1255,43 @@ ErrorCode Wf121Driver :: executeWiredEthernetCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executePersistentStoreCallback(BgApiHeader *header,
                                                       uint8_t *payload,
                                                       const uint16_t payloadSize){
+  uint16_t result;
+  uint8_t dataSize;
+  uint8_t *data;
+
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
     switch(header->bit.cmdId){
       case 0x03: // PS save
-        break;
+        memcpy(&result,
+               payload,
+               sizeof(result));
+        return cb_CommandDefragPersistentStore(result);
       case 0x04: // PS load
-        break;
+        memcpy(&result,
+               payload,
+               sizeof(result));
+        return cb_CommandLoadPersistentStore(result);
       case 0x07: // PS dump
-        break;
+        memcpy(&result,
+               payload,
+               sizeof(result));
+        return cb_CommandDumpPersistentStore(result);
       case 0x00: // PS defrag
-        break;
+        memcpy(&result,
+               payload,
+               sizeof(result));
+        return cb_CommandDefragPersistentStore(result);
       case 0x05: // PS erase
-        break;
+        memcpy(&result,
+               payload,
+               sizeof(result));
+        return cb_CommandEraseAllPersistentStore(result);
       case 0x02: // PS erase all
-        break;
+        memcpy(&result,
+               payload,
+               sizeof(result));
+        return cb_CommandErasePersistentStore(result);
       default:
         return COMMAND_NOT_RECOGNIZED;
     }
@@ -1229,10 +1300,22 @@ ErrorCode Wf121Driver :: executePersistentStoreCallback(BgApiHeader *header,
   // Process event reply
   if(header->bit.msgType == EVENT_TYPE){
     switch(header->bit.cmdId){
-      case 0x01: // PS keyy changed
-        break;
+      case 0x01: // PS key changed
+        memcpy(&result,
+               payload,
+               sizeof(result)); 
+        return cb_EventPersistentStoreKeyChanged(result);
       case 0x00: // PS key
-        break;
+        memcpy(&result,
+               payload,
+               sizeof(result));
+        dataSize = payload[sizeof(result)]; 
+        data =  payload + sizeof(result) + sizeof(dataSize);
+        return cb_EventPersistentStoreKey(result,
+                                          dataSize,
+                                          data);
+      case 0x02: // low voltage
+        return cb_EventLowVoltageFlash();
       default:
         return COMMAND_NOT_RECOGNIZED;
     }    
@@ -1254,11 +1337,37 @@ ErrorCode Wf121Driver :: executePersistentStoreCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executeHttpServerCallback(BgApiHeader *header,
                                                     uint8_t *payload,
                                                     const uint16_t payloadSize){
+  uint16_t result;
+  uint32_t request;
+  uint8_t method;
+  uint8_t resourceSize;
+  uint8_t *resource;
+  uint8_t dataSize;
+  uint8_t *data;
+
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
     switch(header->bit.cmdId){
       case 0x00: // enable
-        break;
+        memcpy(&result,
+               payload,
+               sizeof(result)); 
+        return cb_CommandEnableServers(result);
+      case 0x01: // add path
+        memcpy(&result,
+               payload,
+               sizeof(result));       
+        return cb_CommandAddServerPath(result);
+      case 0x02: // Api response
+        memcpy(&result,
+               payload,
+               sizeof(result)); 
+        return cb_CommandApiResponse(result);
+      case 0x03: // Api response finish
+        memcpy(&result,
+               payload,
+               sizeof(result));        
+        return cb_CommandApiResponseFinsh(result);
       default:
         return COMMAND_NOT_RECOGNIZED;
     }
@@ -1267,11 +1376,33 @@ ErrorCode Wf121Driver :: executeHttpServerCallback(BgApiHeader *header,
   // Process event reply
   if(header->bit.msgType == EVENT_TYPE){
     switch(header->bit.cmdId){
-      case 0x01: // button
-        break;
-      case 0x00: // on req
-        break;
+      case 0x02: // Api request
+        memcpy(&request,
+               payload,
+               sizeof(request));
+        method = payload[sizeof(request)];
+        resourceSize = payload[sizeof(request) + sizeof(method)];
+        resource = payload + sizeof(request) + sizeof(method) + sizeof(resourceSize);
+        return cb_EventApiRequest(request,
+                                  method,
+                                  resourceSize,
+                                  resource);
+      case 0x04: // Api request data
+        memcpy(&request,
+               payload,
+               sizeof(request)); 
+        dataSize = payload[sizeof(request)];
+        data = payload + sizeof(request) + sizeof(dataSize);
+        return cb_EventApiRequestData(request,
+                                      dataSize,
+                                      data);
+      case 0x05: // Api request finished
+        memcpy(&request,
+               payload,
+               sizeof(request)); 
+        return cb_EventApiRequestFinished(request);
       default:
+
         return COMMAND_NOT_RECOGNIZED;
     }    
   }
@@ -1292,29 +1423,23 @@ ErrorCode Wf121Driver :: executeHttpServerCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executeDeviceFirmwareUpgradeCallback(BgApiHeader *header,
                                                               uint8_t *payload,
                                                               const uint16_t payloadSize){
+  uint16_t result;
+
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
     switch(header->bit.cmdId){
-      case 0x00: // reset
-        break;
-      case 0x01: // flash set address
-        break;
-      case 0x02: // flash upload
-        break;
-      case 0x03: // flash upload finished
-        break;
       default:
-        return COMMAND_NOT_RECOGNIZED;
+        return FEATURE_NOT_IMPLEMENTED;   // FIRMWARE UPGRADE COMMAND NOT SUPPORTED IN CURRENT API
+                                          // IMPLEMENTATION
     }
   }
 
   // Process event reply
   if(header->bit.msgType == EVENT_TYPE){
     switch(header->bit.cmdId){
-      case 0x00: // boot
-        break;
       default:
-        return COMMAND_NOT_RECOGNIZED;
+        return FEATURE_NOT_IMPLEMENTED;   // FIRMWARE UPGRADE COMMAND NOT SUPPORTED IN CURRENT API
+                                          // IMPLEMENTATION
     }    
   }
 
@@ -1334,15 +1459,26 @@ ErrorCode Wf121Driver :: executeDeviceFirmwareUpgradeCallback(BgApiHeader *heade
 ErrorCode Wf121Driver :: executeI2cCallback(BgApiHeader *header,
                                             uint8_t *payload,
                                             const uint16_t payloadSize){
+  uint16_t result;
+
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
     switch(header->bit.cmdId){
       case 0x00: // start read
-        break;
+        memcpy(&result,
+               payload,
+               sizeof(result));
+        return cb_CommandI2cRead(result); 
       case 0x01: // start write
-        break;
+        memcpy(&result,
+               payload,
+               sizeof(result));
+        return cb_CommandI2cWrite(result); 
       case 0x02: // stop
-        break;
+        memcpy(&result,
+               payload,
+               sizeof(result));
+        return cb_CommandI2cStop(result); 
       default:
         return COMMAND_NOT_RECOGNIZED;
     }

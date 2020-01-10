@@ -44,46 +44,108 @@ namespace Wf121{
 
   typedef enum ErrorCode{
     NO_ERROR                      = 0,
-    INVALID_PARAMETER             = 0x0180,
-    DEVICE_WRONG_STATE            = 0x0181,
-    OUT_OF_MEMORY                 = 0x0182,
-    FEATURE_NOT_IMPLEMENTED       = 0x0183,
-    COMMAND_NOT_RECOGNIZED        = 0x0184,
-    TIMEOUT                       = 0x0185,
-    UNSPECIFIED_ERROR             = 0x0186,
-    HARDWARE_FAILURE              = 0x0187,
-    INTERNAL_BUFFER_FULL          = 0x0188,
-    DISCONNECTED                  = 0x0189,
-    TOO_MANY_REQUEST              = 0x018A,
-    ACCESS_POINT_NOT_IN_SCANLIST  = 0x018B,
-    INVALID_PASSWORD              = 0x018C,
-    AUTHENTIFICATION_FAILURE      = 0x018D,
-    OVERFLOW                      = 0x018E,
-    MULTIPLE_PBC_SESSIONS         = 0x018F,
-    ETHERNET_NOT_CONNECTED        = 0x0190,
-    ETHERNET_ROUTE_NOT_SET        = 0x0191,
-    WRONG_OPERATING_MODE          = 0x0192,
-    PS_STORE_FULL                 = 0x0301,
-    PS_KEY_NOT_FOUND              = 0x0302,
-    I2C_WRITE_ALREADY_IN_PROGRESS = 0x0303,
-    I2C_ACK_MISSING               = 0x0304,
-    TCP_IP_SUCCESS                = 0x0200,
-    TCP_IP_OUT_OF_MEMORY          = 0x0201,
-    TCP_IP_BUFFER_ERROR           = 0x0202,
-    TCP_IP_TIMEOUT                = 0x0203,
-    TCP_IP_ROUTING                = 0x0204,
-    TCP_IP_IN_PROGRESS            = 0x0205,
-    TCP_IP_ILLEGAL_VALUE          = 0x0206,
-    TCP_IP_WOULD_BLOCK            = 0x0207,
-    TCP_IP_ADDRESS_IN_USE         = 0x0208,
-    TCP_IP_ALREADY_CONNECTED      = 0x0209,
-    TCP_IP_CONNECTION_ABORTED     = 0x020A,
-    TCP_IP_CONNECTION_RESET       = 0x020B,
-    TCP_IP_CONNECTION_CLOSED      = 0x020C,
-    TCP_IP_NOT_CONNECTED          = 0x020D,
-    TCP_IP_ILLEGAL_ARGUMENT       = 0x020E,
-    TCP_IP_INTERFACE_LEVEL_ERROR  = 0x020F,
-    TCP_IP_UNKNOWN_HOST           = 0x0280
+    INVALID_PARAMETER             = 0x0180, // This error code indicates that a command contained an invalid
+                                            // parameter
+    DEVICE_WRONG_STATE            = 0x0181, // This error code indicates that the device is in wrong state to
+                                            // accept commands.
+    OUT_OF_MEMORY                 = 0x0182, // This error indicates that the device has run out of memory.
+    FEATURE_NOT_IMPLEMENTED       = 0x0183, // This error indicates that the feature in question has not been
+                                            // implemented.
+    COMMAND_NOT_RECOGNIZED        = 0x0184, // This error indicates that the issued command was not recognized.
+    TIMEOUT                       = 0x0185, // This error indicates that a command or procedure failed due to
+                                            // timeout.This error code is generated e.g. if you send an
+                                            // incomplete command to the Wi-Fi module - after the timeout of 1
+                                            // second this error code is sent to the host transported by the
+                                            // event .endpoint_syntax_errorThis error code is generated also
+                                            // e.g. when the maximum number of retry attempts (10) to try to
+                                            // connect to a wireless network have been executed. A typical
+                                            // example of such a case might be when the issued password is
+                                            // invalid, in which case the error code is transported by the event
+                                            // .wifi_evt_sme_connect_failed
+    UNSPECIFIED_ERROR             = 0x0186, // This error code is generated when an unspecified error is
+                                            // detected.
+    HARDWARE_FAILURE              = 0x0187, // This error code is generated when a hardware failure is detected.
+    INTERNAL_BUFFER_FULL          = 0x0188, // This error code is generated the a command was not accepted due
+                                            // to full internal buffers.
+    DISCONNECTED                  = 0x0189, // This error code is generated when a command or procedure has
+                                            // failed due to disconnection.
+    TOO_MANY_REQUEST              = 0x018A, // This error code is generated when there are too many simultaneous
+                                            // requests.
+    ACCESS_POINT_NOT_IN_SCANLIST  = 0x018B, // This error code is generated when the defined Access Point is not
+                                            // found from the scanlist.
+    INVALID_PASSWORD              = 0x018C, // This error code is generated in the following cases:1) you try to
+                                            // connect to a secured network without setting the password or the
+                                            // password is too short2) you try to start a secured AP without
+                                            // setting the password or the password is too short3) you try to
+                                            // set a 64-character PSK with non-hex characters4) you try to set
+                                            // an invalid WEP key (invalid characters or invalid length)Notice
+                                            // that WPA does not contain any standard way for the Access Point
+                                            // to communicate to the station that the password is invalid. The
+                                            // Access Point just disconnects the client during authentication if
+                                            // the password is found invalid. Some stations take an educated
+                                            // guess that this probably means the password is incorrect. WF121
+                                            // simply retries the authentication until it exceeds the maximum
+                                            // amount of retries (10) which then causes the 0x0185 Timeout
+                                            // Error.
+    AUTHENTIFICATION_FAILURE      = 0x018D, // This error code is generated when the WPA/WPA2 authentication has
+                                            // failed.
+    OVERFLOW                      = 0x018E, // This error code is generated when an overflow has been detected.
+    MULTIPLE_PBC_SESSIONS         = 0x018F, // This error code is generated when multiple PBC (Push Button
+                                            // Configuration) sessions have been detected.
+    ETHERNET_NOT_CONNECTED        = 0x0190, // This error code is generated when the Ethernet cable is not
+                                            // connected
+    ETHERNET_ROUTE_NOT_SET        = 0x0191, // This error code is generated if the Ethernet route is not set
+    WRONG_OPERATING_MODE          = 0x0192, // This error code is generated if the operating mode is wrong for
+                                            // the issued command
+    WIFI_NOT_FOUND                = 0x0193, // This error code is generated if the requested resource was not
+                                            // found.
+    WIFI_NOT_ALREADY_EXIST        = 0x0194, // This error is generated if the requested resource already exists.
+    WIFI_INVALID_CONFIGURATION    = 0x0195, // This error code is generated if the current configuration is
+                                            // invalid.
+    WIFI_ACCESS_POINT_LOST        = 0x0196, // This error code is generated if the connection to an Access Point
+                                            // is lost.
+    PS_STORE_FULL                 = 0x0301, // This error is generated if the Flash which is reserved for the PS
+                                            // (Persistent Store) is full.
+    PS_KEY_NOT_FOUND              = 0x0302, // This error is generated if the PS key (Persistent Store key) was
+                                            // not found.
+    I2C_WRITE_ALREADY_IN_PROGRESS = 0x0303, // This error is generated if I2C transmission was initiated while a
+                                            // transmission was already in progress.
+    I2C_ACK_MISSING               = 0x0304, // This error is generated if an acknowledgement for I2C was not
+                                            // received.
+    FLASH_WRITE_FAILED            = 0x0308, // This error code is generated if writing to Flash failed.
+    FILE_NOT_OPENED               = 0x0305, // This error code is generated if an access was attempted to an
+                                            // unopened file.
+    FILE_NOT_FOUND                = 0x0306, // This error code is generated if the requested file was not found
+                                            // in the SD card.
+    DISK_ERROR                    = 0x0307, // This error code is generated if an SD card error was detected of
+                                            // if the SD card is full
+    TCP_IP_SUCCESS                = 0x0200, // This code indicates that no error was detected.
+    TCP_IP_OUT_OF_MEMORY          = 0x0201, // This error code is generated when the system has run out of
+                                            // memory.
+    TCP_IP_BUFFER_ERROR           = 0x0202, // This error code is generated when handling of buffers has failed
+    TCP_IP_TIMEOUT                = 0x0203, // This error code is generated when a timeout has been detected.
+    TCP_IP_ROUTING                = 0x0204, // This error code is generated when a route could not be found.
+    TCP_IP_IN_PROGRESS            = 0x0205, // This error code is generated when an operation is in progress
+    TCP_IP_ILLEGAL_VALUE          = 0x0206, // This error code is generated when the issued value is deemed
+                                            // illegal.
+    TCP_IP_WOULD_BLOCK            = 0x0207, // This error code is generated when an operation blocks.
+    TCP_IP_ADDRESS_IN_USE         = 0x0208, // This error code is generated when the issued address is already
+                                            // in use
+    TCP_IP_ALREADY_CONNECTED      = 0x0209, // This error code is generated when the Wi-Fi module is already
+                                            // connected
+    TCP_IP_CONNECTION_ABORTED     = 0x020A, // This error code is generated when a connection is aborted.
+    TCP_IP_CONNECTION_RESET       = 0x020B, // This error code is generated when a connection has been reset
+    TCP_IP_CONNECTION_CLOSED      = 0x020C, // This error code is generated when a connection has been closed.
+    TCP_IP_NOT_CONNECTED          = 0x020D, // This error code is generated when the Wi-Fi module is not connected.
+    TCP_IP_ILLEGAL_ARGUMENT       = 0x020E, // This error code is generated if an illegal argument was issued.
+    TCP_IP_INTERFACE_LEVEL_ERROR  = 0x020F, // This error code is generated if an interface error was detected
+    TCP_IP_UNKNOWN_HOST           = 0x0280, // This error is generated if an unknown host is detected.
+    SERVICE_NOT_RUNNING           = 0x0210, // This error code is generated if the specified service is not
+                                            // running.
+    SERVICE_RUNNING               = 0x0211, // This error code is generated if the specified service is already
+                                            // running
+    HOSTNAME_NOT_SET              = 0x0212, // This error code is generated if the hostname has not been set
+    HOSTNAME_CONFLICT             = 0x0213  // This error code is generated if a hostname conflict was detected.
   }ErrorCode; 
 
   typedef enum MsgType{
@@ -361,7 +423,7 @@ namespace Wf121{
       ErrorCode ConfigureDns(const DnsIndex index, 
                              IpAddress *ip);
       ErrorCode GetDnsHostByName(DhcpHostName * name,
-                                 consenablet DhcpHostNameSize size);
+                                 const DhcpHostNameSize size);
       ErrorCode SetMdnsHostName(MdnsHostName * name,
                                 const MdnsHostNameSize size);
       ErrorCode StartMDns();
@@ -1002,7 +1064,7 @@ namespace Wf121{
        *
        * @return     The error code.
        */
-      virtual ErrorCode cb_EventUdpData(const Endpoiunt endpoint,
+      virtual ErrorCode cb_EventUdpData(const Endpoint endpoint,
                                         const IpAddress srcAddress,
                                         const uint16_t srcPort,
                                         const uint8_t * data,
@@ -1183,7 +1245,6 @@ namespace Wf121{
                                               const Endpoint endpoint) { return NO_ERROR; }
 
 
-
       /**
        * @brief      This event indicates that a software timer has reached the
        *             defined count (elapsed)
@@ -1193,6 +1254,172 @@ namespace Wf121{
        * @return     The error code.
        */
       virtual ErrorCode cb_EventSoftTimer(const uint8_t handle) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates an IO port status change and provides
+       *             a time stamp when the change occurred
+       *
+       * @param[in]  handle  Timestamp of when the change occurred
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventChangeNotification(const uint32_t handle) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event is generated when an external interrupt occurs
+       *             and provides a time stamp and IRQ. The IRQ's and their
+       *             corresponding pins are documented in the WF121 datasheet,
+       *             page 9, table 2.
+       *
+       * @param[in]  irq        IRQ index
+       * @param[in]  timestamp  Time stamp of when the interrupt occurred
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventExternalInterrupt(const uint8_t irq,
+                                                  const uint32_t timestamp) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates and alarm generated from the internal
+       *             Real Time Clock (RTC).
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventRtcAlarm() { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event reports the current configuration of a UART
+       *             interface. It follows the command .hardware_uart_conf_get
+       *
+       * @param[in]  id        UART id
+       * @param[in]  rate      Baud rate in bps e.g. 115200
+       * @param[in]  dataBits  Data bits 8 or 9
+       * @param[in]  stopBits  Stop bits 1 or 2
+       * @param[in]  parity    Parity 0=none, 1=odd, 2=even
+       * @param[in]  flowCtl   Flow control 0=none, 1=rts/cts 2=rts
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventUartConfiguration(const uint8_t id,
+                                                  const uint32_t rate,
+                                                  const uint8_t dataBits,
+                                                  const uint8_t stopBits,
+                                                  const uint8_t parity,
+                                                  const uint8_t flowCtl) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event indicates the status changes of Ethernet link
+       *             state
+       *
+       * @param[in]  status  Link state 0: link is downlink is up
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventLinkStatus(const uint8_t status) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This command can be used to send HTTP response data to a
+       *             pending HTTP request.
+       *
+       * @param[in]  request       The request
+       * @param[in]  method        The method
+       * @param[in]  resourceSize  The resource size
+       * @param[in]  resource      The resource
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventApiRequest(const uint32_t request,
+                                           const uint8_t method,
+                                           const uint8_t resourceSize,
+                                           const uint8_t * resource) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event includes the HTTP header data of a particular
+       *             HTTP request. At least one event is expected to be
+       *             generated, but multiple events may be also generated.
+       *
+       * @param[in]  request   Request number
+       * @param[in]  dataSize  Request header data
+       * @param[in]  data      The data
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventApiRequestHeader(const uint32_t request,
+                                                 const uint8_t dataSize,
+                                                 const uint8_t * data) { return NO_ERROR; }
+
+
+      /**
+       * @brief      This event includes HTTP payload data of a particular HTTP
+       *             request. Multiple events may be generated, or none if the
+       *             request does not carry data at all.
+       *
+       * @param[in]  request   Request number
+       * @param[in]  dataSize  Request data
+       * @param[in]  data      The data
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventApiRequestData(const uint32_t request,
+                                               const uint8_t dataSize,
+                                               const uint8_t * data) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates that all HTTP header data, and payload
+       *             data if any, have been fully delivered for a particular
+       *             HTTP request. The HTTP request is left pending until  has
+       *             been called or a API Response Finishtimeout occurs
+       *
+       * @param[in]  request  The request
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventApiRequestFinished(const uint32_t request) { return NO_ERROR; }
+
+
+
+
+      /**
+       * @brief      This event is generated when PS keys are dumped from the
+       *             Persistent Store
+       *
+       * @param[in]  key    Key index 65535 : Last key
+       * @param[in]  size   The size
+       * @param[in]  value  The value
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventPersistentStoreKey(const uint16_t key,
+                                                   const uint8_t size,
+                                                   const uint8_t *value) { return NO_ERROR; }
+
+      /**
+       * @brief      This event indicates that a PS key has been changed
+       *
+       * @param[in]  key   The key
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventPersistentStoreKeyChanged(const uint16_t key) { return NO_ERROR; }
+
+
+
+      /**
+       * @brief      This event indicates that a PS key has been changed
+       *
+       * @return     The error code.
+       */
+      virtual ErrorCode cb_EventLowVoltageFlash() { return NO_ERROR; }
 
       // -------------------------------------------------------------------------------------
       // List of command callbacks
@@ -1315,6 +1542,22 @@ namespace Wf121{
       virtual ErrorCode cb_CommandSetAlarm(const uint16_t result) { return NO_ERROR; }
       virtual ErrorCode cb_CommandConfigureUart(const uint16_t result) { return NO_ERROR; }
       virtual ErrorCode cb_CommandGetUartConfiguration(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandI2cWrite(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandI2cRead(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandI2cStop(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetDataRoute(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandCloseRoute(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandRouteConnected(const uint8_t state) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandEnableServers(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandAddServerPath(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandApiResponse(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandApiResponseFinsh(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandDefragPersistentStore(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandEraseAllPersistentStore(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSavePersistentStore(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandLoadPersistentStore(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandDumpPersistentStore(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandErasePersistentStore(const uint16_t result) { return NO_ERROR; }
 
       // Other functions
       ErrorCode ExecuteCallbacks();

@@ -684,7 +684,7 @@ namespace Wf121{
        * @return     The error code.
        */
       virtual ErrorCode cb_EventScanResult(const HardwareAddress hwAddr,
-                                           const int8_t channel,
+                                           const int8_t channelIndex,
                                            const int16_t rssi,
                                            const int8_t snr,
                                            const uint8_t secure,

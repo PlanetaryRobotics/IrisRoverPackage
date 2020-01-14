@@ -90,15 +90,13 @@ ErrorCode Wf121Driver :: executeSystemCallback(BgApiHeader *header,
     switch(header->bit.cmdId){
       case 0x00: // Sync 
         return cb_CommandSyncSystem();
-      case 0x01: // Reset
-        break;
       case 0x02: // Hello
         return cb_CommandHelloSystem();
-      case 0x03: // Set Max Power Saving State
+      case 0x03: // Set Power Saving State
         memcpy(&result,
               payload,
               sizeof(result));
-        return cb_CommandSetMaxPowerSavingState(result);
+        return cb_CommandSetPowerSavingState(result);
       default:
         return COMMAND_NOT_RECOGNIZED;
     }
@@ -108,6 +106,7 @@ ErrorCode Wf121Driver :: executeSystemCallback(BgApiHeader *header,
   if(header->bit.msgType == EVENT_TYPE){
     switch(header->bit.cmdId){
       case 0x00: // Boot
+        m_processingCmd = false; // the command is processed
         memcpy(&major,
                payload,
                sizeof(major));
@@ -683,8 +682,7 @@ ErrorCode Wf121Driver :: executeEndpointCallback(BgApiHeader *header,
                  payload,
                  sizeof(result));
           endpoint = payload[sizeof(result)];
-          cb_EventEndpointSyntaxError(result, endpoint);
-        break;
+          return cb_EventEndpointSyntaxError(result, endpoint);
       default:
         return COMMAND_NOT_RECOGNIZED;
     }    
@@ -1423,8 +1421,6 @@ ErrorCode Wf121Driver :: executeHttpServerCallback(BgApiHeader *header,
 ErrorCode Wf121Driver :: executeDeviceFirmwareUpgradeCallback(BgApiHeader *header,
                                                               uint8_t *payload,
                                                               const uint16_t payloadSize){
-  uint16_t result;
-
   // Process command reply
   if(header->bit.msgType == CMD_RSP_TYPE){
     switch(header->bit.cmdId){
@@ -1610,7 +1606,7 @@ ErrorCode Wf121Driver :: getReplyHeader(BgApiHeader *header){
 #if __USE_CTS_RTS__
     gioSetBit(gioPORTB,3,1);       // Pull low RTS : ready to receive some data
 #endif //#if __USE_CTS_RTS__
-    return TIMEOUT;
+    return TRY_AGAIN;
   }
 
   // Always receive 4 bytes to start the message

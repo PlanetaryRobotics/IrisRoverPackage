@@ -44,6 +44,7 @@ namespace Wf121{
 
   typedef enum ErrorCode{
     NO_ERROR                      = 0,
+    TRY_AGAIN                     = 0x0001,
     INVALID_PARAMETER             = 0x0180, // This error code indicates that a command contained an invalid
                                             // parameter
     DEVICE_WRONG_STATE            = 0x0181, // This error code indicates that the device is in wrong state to
@@ -182,7 +183,8 @@ namespace Wf121{
   typedef enum PowerSavingState{
     LOW_LATENCY = 0,
     SAVE_POWER  = 1,
-    DEEP_SLEEP  = 2
+    DEEP_SLEEP  = 2,
+    NOT_DEFINED = 3
   }PowerSavingState;
 
   typedef enum OperatingMode{
@@ -373,7 +375,7 @@ namespace Wf121{
       // System class commands
       ErrorCode HelloSystem();
       ErrorCode ResetSystemWifi(const BootMode bootMode);
-      ErrorCode SetMaxPowerSavingState(const PowerSavingState state);
+      ErrorCode SetPowerSavingState(const PowerSavingState state);
       ErrorCode SyncSystem();
 
       // Configuration wi-fi commands
@@ -1428,7 +1430,7 @@ namespace Wf121{
       // System class callbacks
       virtual ErrorCode cb_CommandHelloSystem() { return NO_ERROR; }
       virtual ErrorCode cb_CommandSyncSystem() { return NO_ERROR; }
-      virtual ErrorCode cb_CommandSetMaxPowerSavingState(const uint16_t result) { return NO_ERROR; }
+      virtual ErrorCode cb_CommandSetPowerSavingState(const uint16_t result) { return NO_ERROR; }
 
       // Configuration wi-fi callbacks
       virtual ErrorCode cb_CommandGetMacAddress(const uint16_t result,

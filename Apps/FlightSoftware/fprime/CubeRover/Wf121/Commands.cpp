@@ -66,7 +66,7 @@ ErrorCode Wf121Driver :: ResetSystemWifi(const BootMode bootMode){
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: SetMaxPowerSavingState(const PowerSavingState state){
+ErrorCode Wf121Driver :: SetPowerSavingState(const PowerSavingState state){
   BgApiHeader txHeader;
   uint8_t payload[1] /* size of state */;
 
@@ -173,7 +173,7 @@ ErrorCode Wf121Driver :: TurnOnWifi(){
   txHeader.bit.technologyType = 1; // wifi
   setHeaderPayloadSize(&txHeader, 0); // payload of size 0
   txHeader.bit.classId = CLASS_WIFI;
-  txHeader.bit.cmdId = 0x03; // turn on wifi command
+  txHeader.bit.cmdId = 0x00; // turn on wifi command
 
   // transmit a command, an event is expected in  return
   return transmitCommand(&txHeader, NULL);   

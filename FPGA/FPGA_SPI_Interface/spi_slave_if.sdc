@@ -8,7 +8,7 @@ set_time_format -unit ns -decimal_places 3
 # and set which port in the design it is.
 # The example below describes a 50MHz clock with 50% duty cycle 
 # (rise at 0ns, then fall at 10ns) driving the 'clk' top level port
-create_clock -name Cy10_Clock -period 20 -waveform { 0.000  10 } [get_ports { clk }]
+create_clock -name Cy10_Clock -period "50 MHz" [get_ports { sysClk }]
 
 # You can make more than one clock if needed.
 

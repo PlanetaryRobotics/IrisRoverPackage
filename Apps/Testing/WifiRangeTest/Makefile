@@ -1,10 +1,14 @@
 CC = g++
 CFLAGS =
-DEPS = main.hpp
-OBJ = main.cpp 
+DEPS =
+OBJ_TX = transmitter.cpp 
+OBJ_RX = receiver.cpp
 
 %.o: %.cpp $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-WifiRangeTest: $(OBJ)
+Transmitter:   $(OBJ_TX)
+			   $(CC) -o $@ $^ $(CFLAGS)
+
+Receiver:   $(OBJ_RX)
 			   $(CC) -o $@ $^ $(CFLAGS)

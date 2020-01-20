@@ -13,6 +13,7 @@
 
 #define PORT              8080
 #define CLIENT_IP_ADDRESS "192.168.1.2"
+#define TIMEOUT_RX_SECOND 1
 
 using namespace std;
 
@@ -22,10 +23,13 @@ int main(int argc, char *argv[]){
   int result; 
   struct sockaddr_in servaddr, cliaddr; 
   string devname = "wlx00e04c295d5e";
-  char *txBuffer; 
+  char *txBuffer;
+  char *rxBuffer; 
   uint32_t nbOfMessageToSend;
   uint32_t txFrequency;
   uint32_t payloadSize;
+  struct timeval tv;
+  uint32_t receivedBytes;
 
   if(argc < 4){
     cout << "Usage Transmitter <nbOfMessageToSend> <txFrequency> <payloadSize>" << endl;
@@ -47,6 +51,7 @@ int main(int argc, char *argv[]){
   payloadSize = atoi(argv[3]);
 
   txBuffer = (char *)malloc(payloadSize);
+  rxBuffer = (char *)malloc(payloadSize);
 
   // Creating socket file descriptor 
   if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
@@ -56,6 +61,11 @@ int main(int argc, char *argv[]){
   
   setsockopt(sockfd, IPPROTO_UDP, SO_BINDTODEVICE, devname.c_str(), devname.length());
   
+  // set the timeout for the reception
+  tv.tv_sec = TIMEOUT_RX_SECOND;
+  tv.tv_usec = 0;
+  setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+
   memset(&servaddr, 0, sizeof(servaddr)); 
   memset(&cliaddr, 0, sizeof(cliaddr)); 
   
@@ -78,8 +88,12 @@ int main(int argc, char *argv[]){
   } 
 
   for(uint32_t i=0; i<nbOfMessageToSend; i++){
+    // First 4 bytes indicates the packet number
+    memcpy(txBuffer, &i, sizeof(i));
+
+    // Fill buffer with some test bytes
     for(uint32_t ii=0; ii<payloadSize; ii++){
-      txBuffer[ii] = i%255;
+      memset(txBuffer+sizeof(i), 0xAA, sizeof(txBuffer) - sizeof(i));
     }
 
     result = sendto(sockfd,
@@ -89,12 +103,32 @@ int main(int argc, char *argv[]){
                     (struct sockaddr *) &cliaddr, 
                     sizeof(cliaddr));
 
+    cout << "Tx[" << i+1 << "/" << nbOfMessageToSend << "] ";
+
     if(result < 0){
       cout << "Error during data sent:" << strerror(errno) << endl;
       exit(EXIT_FAILURE);
     }
+    else{
+      cout << endl;
+    }
 
-    cout << "Tx[" << i+1 << "/" << nbOfMessageToSend << "]" << endl;
+
+    receivedBytes = sizeof(rxBuffer);
+
+    result = recvfrom(sockfd,
+                      rxBuffer,
+                      sizeof(rxBuffer),
+                      0,
+                      (struct sockaddr *) &cliaddr,
+                      &receivedBytes);
+
+    cout << "Rx[" << i+1 << "/" << nbOfMessageToSend << "] ";
+
+    if(result < 0){
+      cout << "Error[" << errno << "] during reception: " << strerror(errno) << endl;
+    }
+
     usleep(1000000 / txFrequency); 
   } 
 

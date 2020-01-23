@@ -1,0 +1,12 @@
+{
+  "include_files": [
+    "command_type_id.json"
+  ],
+  "EStopCommand": {
+    "type": "message",
+    "command_type_id": "CommandTypeId.ESTOP",
+    "command_id": 0,
+    "description": "Immediately stops any active robot motions",
+    "fields": []
+  }
+}

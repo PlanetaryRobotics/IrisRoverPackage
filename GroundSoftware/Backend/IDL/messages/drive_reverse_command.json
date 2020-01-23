@@ -1,0 +1,35 @@
+{
+  "include_files": [
+    "command_type_id.json",
+    "driving_command_id.json"
+  ],
+  "DriveReverseCommand": {
+    "type": "message",
+    "command_type_id": "CommandTypeId.DRIVING",
+    "command_id": "DrivingCommandId.REVERSE",
+    "description": "Commands the robot to drive straight backwards a specified distance",
+    "fields": [
+      {
+        "Distance": {
+          "type": "uint8",
+          "units": "cm",
+          "default_value": 0
+        }
+      },
+      {
+        "Speed": {
+          "type": "uint8",
+          "units": "cm/s",
+          "default_value": 4
+        }
+      },
+      {
+        "Images": {
+          "type": "uint8",
+          "units": "num",
+          "default_value": 1
+        }
+      }
+    ]
+  }
+}

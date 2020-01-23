@@ -1,1 +1,3 @@
-Readme
+# Ignore precompiled python files
+__pycache__/
+*.py[cod]

@@ -1,0 +1,7 @@
+# Declares "mschnur" to be the code owner of all files under GroundSoftware/Backend,
+# which means that mschnur can be automatically added as a reviewer to reviews that
+# change files under that directory, and PRs can be made to require mschnur's approval.
+# Organization and repository admins don't require this approval to merge a PR. There
+# can also be more than one code owner for these files. See 
+# https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+GroundSoftware/Backend @mschnur

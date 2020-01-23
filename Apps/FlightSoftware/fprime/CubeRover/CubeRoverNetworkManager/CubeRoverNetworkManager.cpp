@@ -5,7 +5,7 @@
  * @brief      Constructs a new instance.
  */
 CubeRoverNetworkManager :: CubeRoverNetworkManager(){
-  m_powerSavingState = NOT_DEFINED;
+  m_powerSavingState = PowerSavingState::NOT_DEFINED;
   m_wifiModuleDetected = false;
   m_wifiModuleIdentified = false;
   m_macAddressIdentified = false;
@@ -23,6 +23,10 @@ CubeRoverNetworkManager :: CubeRoverNetworkManager(){
   m_userCbNotGoodSignal = NULL;
   m_userCbUnusableSignal = NULL;
   m_signalLevel = CubeRoverSignalLevels::NOT_DEFINED;
+  m_udpConnectSet = false;
+  m_udpServerStarted = false;
+  m_logNbOfBytesReceived = 0;
+  m_logNbOfBytesSent = 0;
 
   //Initialize lander wifi network 
   memcpy(m_landerWifi.ssid,
@@ -213,6 +217,8 @@ ErrorCode CubeRoverNetworkManager :: manageSignalStrength(){
       if(errorCode != TRY_AGAIN && errorCode != NO_ERROR) return errorCode;
       tries--;
     }
+
+    if(!tries) return TIMEOUT;
 
     if(errorCode != NO_ERROR) return errorCode;
 
@@ -419,7 +425,6 @@ ErrorCode CubeRoverNetworkManager :: turnOnWifiAdapter(){
  */
 ErrorCode CubeRoverNetworkManager :: scanWifiNetwork(){
   ErrorCode errorCode;
-  uint16_t tries;
   ChannelList list[] = "";
 
   // Command scan wifi network already sent
@@ -441,12 +446,10 @@ ErrorCode CubeRoverNetworkManager :: scanWifiNetwork(){
                                 0);
 
   // Block until it timeouts or generate an error
-  tries = TRIES_EXECUTE_CALLBACK;
-  while(tries > 0 && m_state != SCANNING){
+  while(m_state != SCANNING){
     errorCode = ExecuteCallbacks();
     if(errorCode != TRY_AGAIN && errorCode != NO_ERROR)
       return errorCode;
-    tries--;
   }
 
   return errorCode;
@@ -492,7 +495,43 @@ ErrorCode CubeRoverNetworkManager :: connectToWifiNetwork(){
   // Failed to execute the command
   if(!tries) return TIMEOUT;
 
-  return NO_ERROR;
+  m_udpConnectSet = false;
+
+  // Connect to UDP to support outcoming data
+  errorCode = UdpConnect(&m_udpGatewayAddress,
+                         GATEWAY_PORT,
+                         -1);
+
+  // Block until it timeouts or generate an error
+  tries = TRIES_EXECUTE_CALLBACK;
+  while(tries > 0 && m_udpConnectSet == false){
+    errorCode = ExecuteCallbacks();
+    if(errorCode != TRY_AGAIN && errorCode != NO_ERROR)
+      return errorCode;
+    tries--;
+  }
+
+  m_udpServerStarted = false;
+  
+  // Create a UDP server to support incoming data
+  errorCode = StartUdpServer(ROVER_UDP_PORT,
+                             -1);
+
+  // Block until it timeouts or generate an error
+  tries = TRIES_EXECUTE_CALLBACK;
+  while(tries > 0 && m_udpServerStarted == false){
+    errorCode = ExecuteCallbacks();
+    if(errorCode != TRY_AGAIN && errorCode != NO_ERROR)
+      return errorCode;
+    tries--;
+  } 
+
+  if(!tries) return TIMEOUT;
+
+  // Yay we are connected!
+  m_state = CONNECTED;      // CONNECTING --> CONNECTED
+
+  return errorCode;
 }
 
 
@@ -522,6 +561,25 @@ ErrorCode CubeRoverNetworkManager :: disconnectFromWifiNetwork(){
   }
 
   return NO_ERROR;
+}
+
+
+/**
+ * @brief      This helper verifies that the IP addresses passed are matching
+ *
+ * @param[in]  addr1  The address 1
+ * @param[in]  addr2  The address 2
+ *
+ * @return     { description_of_the_return_value }
+ */
+bool CubeRoverNetworkManager :: ipAddressesMatch(const IpAddress addr1, const IpAddress addr2){
+  for(uint8_t i=0; i< sizeof(IpAddress); i++){
+    if(*addr1 != *addr2)  return false;
+    addr1++;
+    addr2++;
+  }
+
+  return true;
 }
 
 //--------------------------------------------------------------------------------------
@@ -651,6 +709,20 @@ ErrorCode CubeRoverNetworkManager :: cb_CommandGetSignalQuality(const uint16_t r
 
 
 /**
+ * @brief      This event is reported in case UDP command is sent.
+ *
+ * @param[in]  result    The result
+ * @param[in]  endpoint  The endpoint
+ *
+ * @return     The error code.
+ */
+ErrorCode CubeRoverNetworkManager :: cb_CommandUdpConnect(const uint16_t result,
+                                                          const uint8_t endpoint){
+    m_udpConnectSet = true;
+    return (ErrorCode) result;
+}
+
+/**
  * @brief      This event is reported after the command disconnect is sent.
  *
  * @param[in]  result     The result
@@ -664,6 +736,33 @@ ErrorCode CubeRoverNetworkManager :: cb_CommandDisconnect(const uint16_t result,
     m_state = DISCONNECTING;
   }
   return (ErrorCode) result;
+}
+
+/**
+ * @brief      This event is reported after the UDP command is sent. 
+ *
+ * @param[in]  result  The result
+ *
+ * @return     The error code.
+ */
+ErrorCode CubeRoverNetworkManager :: cb_CommandUdpBind(const uint16_t result){
+    return (ErrorCode) result;
+}
+
+/**
+ * @brief      This event is reported after the UDP start command is sent.
+ *
+ * @param[in]  result    The result
+ * @param[in]  endpoint  The endpoint
+ *
+ * @return     The error code.
+ */
+ErrorCode CubeRoverNetworkManager :: cb_CommandStartUdpServer(const uint16_t result,
+                                                              const uint8_t endpoint){
+    if(result == NO_ERROR){
+        m_udpServerStarted = true;
+    }
+    return (ErrorCode) result;
 }
 
 //--------------------------------------------------------------------------------------
@@ -829,6 +928,7 @@ ErrorCode CubeRoverNetworkManager :: cb_EventScanSortResult(const HardwareAddres
  */
 ErrorCode CubeRoverNetworkManager :: cb_EventScanSortFinished(){
   m_state = SCANNED; // SCANNING --> SCANNED
+  m_scanIndex = 0;  // reset scan index to 0. At that point we know that best reception is at index 0
   return NO_ERROR;
 }
 
@@ -847,9 +947,7 @@ ErrorCode CubeRoverNetworkManager :: cb_EventConnected(const int8_t status,
                                                         const HardwareInterface hwInterface,
                                                         const Ssid *bssid,
                                                         const SsidSize bssidSize){ 
-  // Yay we are connected!
-  m_state = CONNECTED;      // CONNECTING --> CONNECTED
-  return NO_ERROR; 
+  return NO_ERROR;
 }
 
 /**
@@ -905,6 +1003,56 @@ ErrorCode CubeRoverNetworkManager :: cb_EventSignalQuality(const int8_t rssi,
   }
 
   return NO_ERROR;
+}
+
+
+/**
+ * @brief      The module received some data in the UDP buffer.
+ *
+ * @param[in]  endpoint    The endpoint
+ * @param[in]  srcAddress  The source address
+ * @param[in]  srcPort     The source port
+ * @param[in]  data        The data
+ * @param[in]  dataSize    The data size
+ *
+ * @return     The error code.
+ */
+ErrorCode CubeRoverNetworkManager :: cb_EventUdpData(const Endpoint endpoint,
+                                                     const IpAddress srcAddress,
+                                                     const uint16_t srcPort,
+                                                     const uint8_t * data,
+                                                     const DataSize dataSize){
+  if(ipAddressesMatch(srcAddress, m_udpGatewayAddress)){
+      m_logNbOfBytesReceived += dataSize;
+      m_dataReceived = true;
+  }
+  return NO_ERROR;
+}
+
+
+/**
+ * @brief      The TCP/IP status changed
+ *
+ * @param[in]  endpoint    The endpoint
+ * @param[in]  localIp     The local ip
+ * @param[in]  localPort   The local port
+ * @param[in]  remoteIp    The remote ip
+ * @param[in]  remotePort  The remote port
+ *
+ * @return     The error code.
+ */
+ErrorCode CubeRoverNetworkManager :: cb_EventTcpIpEndpointStatus( const uint8_t endpoint,
+                                                                  const IpAddress localIp,
+                                                                  const uint16_t localPort,
+                                                                  const IpAddress remoteIp,
+                                                                  const uint16_t remotePort){
+  ErrorCode errorCode = NO_ERROR;
+
+  if(localPort != ROVER_UDP_PORT){
+    errorCode = UdpBind(endpoint,
+                        ROVER_UDP_PORT);
+  }
+  return errorCode;
 }
 
 

@@ -454,13 +454,13 @@ namespace Wf121{
                            const int8_t routing);
       ErrorCode StartTcpServer(const TcpPort port,
                                const int8_t defaultDestination);
-      ErrorCode UdpConnect(IpAddress *ip, 
+      ErrorCode UdpConnect(IpAddress *ip,
                            const UdpPort port,
                            const int8_t routing);
       ErrorCode UdpBind(const Endpoint endpoint, 
                         const UdpPort port);
       ErrorCode StartUdpServer(const UdpPort port,
-                               const uint8_t defaultDestination);
+                               const int8_t defaultDestination);
       ErrorCode DhcpEnableRouting(const bool enable);
       ErrorCode SetActiveEndpoint(const Endpoint endpoint,
                                   const bool endpointStatus);

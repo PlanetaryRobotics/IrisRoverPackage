@@ -9,13 +9,17 @@
 
 #define ROVER_IP_ADDRESS        {192, 168, 1, 2}
 #define ROVER_MASK_ADDRESS      {255, 255, 255, 0}
-#define ROVER_GATEWAY_ADDRESS   {192, 168, 1, 3}
+#define ROVER_GATEWAY_ADDRESS   {192, 168, 1, 1}
+#define GATEWAY_PORT            8080
+#define ROVER_UDP_PORT          8080
 
-#define LANDER_SSID                     "Astro-Secure"
-#define LANDER_NETWORK_PASSWORD         "HelloWorld"
+#define LANDER_SSID                     "PeregrineLander"
+#define LANDER_NETWORK_PASSWORD         "Hello123"
 #define MAX_SIZE_SSID_NAME              32
 #define MAX_NUMBER_CHANNEL_PER_NETWORK  11
 #define MAX_SORTING_LIST_SIZE           5
+#define RX_MAX_BUFFER_SIZE              128
+#define TX_MAX_BUFFER_SIZE              128
 
 using namespace Wf121;
 
@@ -46,7 +50,7 @@ typedef struct WifiNetwork{
 }WifiNetwork;
 
 typedef enum CubeRoverSignalLevels{
-  VERY_GOOD = -67,
+  VERY_GOOD = -10,
   OKAY      = -70,
   NOT_GOOD  = -80,
   UNUSABLE  = -90,
@@ -65,7 +69,12 @@ public:
 
   void ConnectCallback(const CubeRoverSignalLevels signal,
                        NetworkManagerUserCbFunctionPtr cb);
-
+  ErrorCode SendUdpData(uint8_t * data,
+                        const uint32_t size,
+                        const uint32_t timeoutus);
+  ErrorCode ReceiveUdpData(uint8_t * data,
+                          const uint32_t size,
+                          const uint32_t timeout);
 
   // Callback event
   ErrorCode cb_EventEndpointSyntaxError(const uint16_t result, const Endpoint endpoint);
@@ -99,6 +108,16 @@ public:
                                   const HardwareInterface hwInterface);
   ErrorCode cb_EventSignalQuality(const int8_t rssi,
                                   const HardwareInterface hwInterface);
+  ErrorCode cb_EventUdpData(const Endpoint endpoint,
+                            const IpAddress srcAddress,
+                            const uint16_t srcPort,
+                            const uint8_t * data,
+                            const DataSize dataSize);
+  ErrorCode cb_EventTcpIpEndpointStatus(const uint8_t endpoint,
+                                        const IpAddress localIp,
+                                        const uint16_t localPort,
+                                        const IpAddress remoteIp,
+                                        const uint16_t remotePort);
 
   // Callback command
   ErrorCode cb_CommandHelloSystem();
@@ -114,6 +133,12 @@ public:
                                        const HardwareInterface interface); 
   ErrorCode cb_CommandDisconnect(const uint16_t result,
                                  const HardwareInterface interface);
+  ErrorCode cb_CommandUdpConnect(const uint16_t result,
+                                 const uint8_t endpoint);
+  ErrorCode cb_CommandUdpBind(const uint16_t result);
+  ErrorCode cb_CommandStartUdpServer(const uint16_t result,
+                                     const uint8_t endpoint);
+
 private:
   ErrorCode initializeNetworkManager();
   ErrorCode turnOnWifiAdapter();
@@ -121,6 +146,8 @@ private:
   ErrorCode connectToWifiNetwork();
   ErrorCode manageSignalStrength();
   ErrorCode disconnectFromWifiNetwork();
+  bool ipAddressesMatch(const IpAddress addr1,
+                        const IpAddress addr2);
 
   CubeRoverNetworkStateMachine m_state;
   bool m_wifiModuleDetected;
@@ -132,6 +159,8 @@ private:
   bool m_ipConfigurationSet;
   bool m_passwordSet;
   bool m_commandSignalQualitySet;
+  bool m_udpConnectSet;
+  bool m_udpServerStarted;
   IpAddress m_roverIpAddress = ROVER_IP_ADDRESS;
   Netmask m_roverMaskAddress = ROVER_MASK_ADDRESS;
   Gateway m_udpGatewayAddress = ROVER_GATEWAY_ADDRESS;
@@ -145,6 +174,11 @@ private:
   NetworkManagerUserCbFunctionPtr m_userCbOkaySignal;
   NetworkManagerUserCbFunctionPtr m_userCbNotGoodSignal;
   NetworkManagerUserCbFunctionPtr m_userCbUnusableSignal;
+  uint32_t m_logNbOfBytesReceived;
+  uint32_t m_logNbOfBytesSent;
+  uint8_t m_rxBuffer[RX_MAX_BUFFER_SIZE];
+  uint8_t m_txBuffer[TX_MAX_BUFFER_SIZE];
+  bool m_dataReceived;
 };
 
 #endif

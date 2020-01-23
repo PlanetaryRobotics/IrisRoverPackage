@@ -1451,7 +1451,7 @@ ErrorCode Wf121Driver :: StartTcpServer(const TcpPort port,
  *
  * @return     The error code.
  */
-ErrorCode Wf121Driver :: UdpConnect(IpAddress *ip, 
+ErrorCode Wf121Driver :: UdpConnect(IpAddress *ip,
                                     const UdpPort port,
                                     const int8_t routing){
   BgApiHeader txHeader;
@@ -1529,7 +1529,7 @@ ErrorCode Wf121Driver :: UdpBind(const Endpoint endpoint,
  * @return     The error code.
  */
 ErrorCode Wf121Driver :: StartUdpServer(const UdpPort port,
-                                        const uint8_t defaultDestination){
+                                        const int8_t defaultDestination){
   BgApiHeader txHeader;
   uint8_t payload[sizeof(UdpPort) + sizeof(defaultDestination)];
 

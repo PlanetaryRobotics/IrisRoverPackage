@@ -172,6 +172,10 @@ ErrorCode CubeRoverNetworkManager :: SendUdpData(uint8_t * data,
   errorCode = SendEndpoint(m_udpSendEndpoint,
                           data,
                           size);
+
+  if(errorCode == NO_ERROR){
+    m_logNbOfBytesSent += size;
+  }
   
   return errorCode;
 }
@@ -627,6 +631,9 @@ ErrorCode CubeRoverNetworkManager :: disconnectFromWifiNetwork(){
       return errorCode;
     tries--;
   }
+
+  // DISCONNECTING --> SCANNED
+  m_state = SCANNED;
 
   return NO_ERROR;
 }

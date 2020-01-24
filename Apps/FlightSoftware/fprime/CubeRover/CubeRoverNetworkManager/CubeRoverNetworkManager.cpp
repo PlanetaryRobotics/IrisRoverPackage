@@ -27,6 +27,11 @@ CubeRoverNetworkManager :: CubeRoverNetworkManager(){
   m_udpServerStarted = false;
   m_logNbOfBytesReceived = 0;
   m_logNbOfBytesSent = 0;
+  m_rxUdpFifoBytesCount = 0;
+  m_txUdpFifoBytesCount = 0;
+  m_rxUdpFifoTailPointer = 0;
+  m_rxUdpFifoHeadPointer = 0;
+  m_udpSendEndpoint = 0;
 
   //Initialize lander wifi network 
   memcpy(m_landerWifi.ssid,
@@ -158,27 +163,90 @@ void CubeRoverNetworkManager :: ConnectCallback(const CubeRoverSignalLevels sign
 ErrorCode CubeRoverNetworkManager :: SendUdpData(uint8_t * data,
                                                  const uint32_t size,
                                                  const uint32_t timeoutus){
+  ErrorCode errorCode;
 
-  return NO_ERROR;
+  if(m_state != CONNECTED){
+    return ETHERNET_NOT_CONNECTED;
+  }
+
+  errorCode = SendEndpoint(m_udpSendEndpoint,
+                          data,
+                          size);
+  
+  return errorCode;
 }
-
 
 /**
  * @brief      Receives the UDP data
  *
- * @param      data     The data
- * @param[in]  size     The size
- * @param[in]  timeout  The timeout
+ * @param      data      The data
+ * @param[in]  dataSize  The data size, once read, the variable report the
+ *                       number of bytes actually read
+ * @param[in]  mode      The mode can be a combination of WAIT_UNTIL_READY,
+ *                       NORMAL_READ, PEEK_READ flags
+ * @param[in]  timeout   The timeout
+ * @param[in]  size  The size
  *
  * @return     The error code.
  */
 ErrorCode CubeRoverNetworkManager :: ReceiveUdpData(uint8_t * data,
-                                                    const uint32_t size,
+                                                    uint32_t * dataSize,
+                                                    const uint8_t mode,
                                                     const uint32_t timeout){
-  
+  ErrorCode errorCode;
+  uint32_t timer = timeout;
+  uint8_t *ptrData = data;
+  uint32_t byteToRead = *dataSize;
+
+  if(m_state != CONNECTED){
+    return ETHERNET_NOT_CONNECTED;
+  }
+
+  // Loop here until
+  if(mode & WAIT_UNTIL_READY){
+    while(timer-- && m_rxUdpFifoBytesCount < *dataSize){
+      errorCode = ExecuteCallbacks();
+      if(errorCode != TRY_AGAIN && errorCode != NO_ERROR) return errorCode;
+    }
+
+    // timeout! return immediately
+    if(!timer || m_rxUdpFifoBytesCount < *dataSize){
+        *dataSize = 0;
+        return TIMEOUT;
+    }
+  }
+  else{ // don't wait
+    errorCode = ExecuteCallbacks();
+    if(errorCode != TRY_AGAIN && errorCode != NO_ERROR) return errorCode;    
+  }
+
+  // dataSize is updated to report the number of byte actually read
+  *dataSize = 0;
+
+  // Implementation of a simple ring buffer
+  for(uint16_t i=0; i < byteToRead; i++){
+    if(m_rxUdpFifoHeadPointer == m_rxUdpFifoTailPointer){
+      return TCP_IP_BUFFER_ERROR;
+    }
+   
+    *dataSize++; // increment the number of byte read
+
+    // Normal read consumes bytes from the ring buffer
+    if(mode & NORMAL_READ){
+      m_rxUdpFifoBytesCount--;
+      m_rxUdpFifoTailPointer = (m_rxUdpFifoTailPointer + 1) % RX_MAX_BUFFER_SIZE; 
+      *ptrData = m_rxBuffer[m_rxUdpFifoTailPointer];
+    }
+
+    // Peek read doesn't consume bytes from the ring buffer
+    if(mode & PEEK_READ){
+      *ptrData = m_rxBuffer[i];
+    }
+    ptrData++;
+  }
+
   return NO_ERROR;
 }
-
 
 /**
  * @brief      This function manages the signal strengh of the cuberover and
@@ -719,6 +787,7 @@ ErrorCode CubeRoverNetworkManager :: cb_CommandGetSignalQuality(const uint16_t r
 ErrorCode CubeRoverNetworkManager :: cb_CommandUdpConnect(const uint16_t result,
                                                           const uint8_t endpoint){
     m_udpConnectSet = true;
+    m_udpSendEndpoint = endpoint;
     return (ErrorCode) result;
 }
 
@@ -1005,7 +1074,6 @@ ErrorCode CubeRoverNetworkManager :: cb_EventSignalQuality(const int8_t rssi,
   return NO_ERROR;
 }
 
-
 /**
  * @brief      The module received some data in the UDP buffer.
  *
@@ -1020,12 +1088,30 @@ ErrorCode CubeRoverNetworkManager :: cb_EventSignalQuality(const int8_t rssi,
 ErrorCode CubeRoverNetworkManager :: cb_EventUdpData(const Endpoint endpoint,
                                                      const IpAddress srcAddress,
                                                      const uint16_t srcPort,
-                                                     const uint8_t * data,
+                                                     uint8_t * data,
                                                      const DataSize dataSize){
+  uint8_t *ptrData = data;
+
   if(ipAddressesMatch(srcAddress, m_udpGatewayAddress)){
-      m_logNbOfBytesReceived += dataSize;
-      m_dataReceived = true;
+
+    // Log the number of bytes received
+    m_logNbOfBytesReceived += dataSize;
+
+    // Implementation of a simple ring buffer
+    for(uint16_t i=0; i<dataSize; i++){
+      if(m_rxUdpFifoHeadPointer + 1 == m_rxUdpFifoTailPointer){
+        return TCP_IP_BUFFER_ERROR;
+      }
+
+      // Increment number of byte available for a read
+      m_rxUdpFifoBytesCount++;
+
+      m_rxUdpFifoHeadPointer = (m_rxUdpFifoHeadPointer + 1) % RX_MAX_BUFFER_SIZE; 
+      m_rxBuffer[m_rxUdpFifoHeadPointer] = *ptrData;
+      ptrData++;
+    }
   }
+
   return NO_ERROR;
 }
 
@@ -1054,5 +1140,3 @@ ErrorCode CubeRoverNetworkManager :: cb_EventTcpIpEndpointStatus( const uint8_t 
   }
   return errorCode;
 }
-
-

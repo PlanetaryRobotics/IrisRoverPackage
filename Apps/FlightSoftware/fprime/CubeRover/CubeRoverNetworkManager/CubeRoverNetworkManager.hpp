@@ -11,13 +11,14 @@
 #define ROVER_MASK_ADDRESS      {255, 255, 255, 0}
 #define ROVER_GATEWAY_ADDRESS   {192, 168, 1, 1}
 #define GATEWAY_PORT            8080
-#define ROVER_UDP_PORT          8080
+#define ROVER_UDP_PORT          8080 
 
 #define LANDER_SSID                     "PeregrineLander"
 #define LANDER_NETWORK_PASSWORD         "Hello123"
 #define MAX_SIZE_SSID_NAME              32
 #define MAX_NUMBER_CHANNEL_PER_NETWORK  11
 #define MAX_SORTING_LIST_SIZE           5
+
 #define RX_MAX_BUFFER_SIZE              128
 #define TX_MAX_BUFFER_SIZE              128
 
@@ -35,6 +36,12 @@ typedef enum CubeRoverNetworkStateMachine{
   CONNECTED,
   DISCONNECTING
 }CubeRoverNetworkStateMachine;
+
+enum {
+  WAIT_UNTIL_READY = 0x01,// wait until data is available 
+  NORMAL_READ = 0x02,     // read the data and dequeue buffer
+  PEEK_READ = 0x04        // read the data without modifying the ring buffer
+};
 
 typedef struct WifiNetworkChannel{
   HardwareAddress bssid;
@@ -73,7 +80,8 @@ public:
                         const uint32_t size,
                         const uint32_t timeoutus);
   ErrorCode ReceiveUdpData(uint8_t * data,
-                          const uint32_t size,
+                          uint32_t * dataSize,
+                          const uint8_t mode,
                           const uint32_t timeout);
 
   // Callback event
@@ -111,7 +119,7 @@ public:
   ErrorCode cb_EventUdpData(const Endpoint endpoint,
                             const IpAddress srcAddress,
                             const uint16_t srcPort,
-                            const uint8_t * data,
+                            uint8_t * data,
                             const DataSize dataSize);
   ErrorCode cb_EventTcpIpEndpointStatus(const uint8_t endpoint,
                                         const IpAddress localIp,
@@ -176,9 +184,12 @@ private:
   NetworkManagerUserCbFunctionPtr m_userCbUnusableSignal;
   uint32_t m_logNbOfBytesReceived;
   uint32_t m_logNbOfBytesSent;
+  uint32_t m_rxUdpFifoBytesCount;
+  uint32_t m_txUdpFifoBytesCount;
   uint8_t m_rxBuffer[RX_MAX_BUFFER_SIZE];
-  uint8_t m_txBuffer[TX_MAX_BUFFER_SIZE];
-  bool m_dataReceived;
+  uint8_t m_rxUdpFifoHeadPointer;
+  uint8_t m_rxUdpFifoTailPointer;
+  uint8_t m_udpSendEndpoint;
 };
 
 #endif

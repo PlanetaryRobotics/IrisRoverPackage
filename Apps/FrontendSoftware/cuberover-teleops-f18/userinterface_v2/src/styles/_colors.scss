@@ -1,0 +1,23 @@
+/*
+ * SCSS partial for allowing easy and consistent standardization of colors
+ * across the application.
+ *
+ * Author: Connor W. Colombo, CMU
+ * Created: 2/4/2019
+ * Last Updated: 2/25/2019, Moosbrugger
+ */
+
+/* NB: If you need a slightly modified color, use scss tint(), darken(), etc. */
+
+$color-primary: #A56DFF;
+$color-nominal: #21DF84;
+$color-caution: #FFD039;
+$color-danger: #FF2F46;
+
+$color-near-white: #FCFCFC;
+$color-grey-light: #E7E7E7;
+$color-grey: #9F9F9F;
+$color-grey-dark: #585858;
+$color-near-black: #222222;
+
+$color-background: #333333;

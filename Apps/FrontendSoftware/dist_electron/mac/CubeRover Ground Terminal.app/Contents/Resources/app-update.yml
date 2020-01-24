@@ -1,0 +1,4 @@
+owner: PlanetaryRobotics
+repo: cuberover-userinterface
+provider: github
+updaterCacheDirName: cuberover-ground-terminal-updater

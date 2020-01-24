@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="../../Autocoders/schema/ISF/interface_schema.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+
+<interface name="Log" namespace="Fw">
+    <include_header>Fw/Time/Time.hpp</include_header>
+    <include_header>Fw/Log/LogBuffer.hpp</include_header>
+    <comment>
+    Port Type interface arguments.
+    </comment>
+    <args>
+        <arg name="id" type="FwEventIdType" pass_by="value">
+        </arg>
+        <arg name="timetag" type="Fw::Time" pass_by="reference">
+        </arg>
+        <arg name="severity" type="ENUM" pass_by="value">
+           <enum name="LogSeverity">
+              <item name="LOG_FATAL"/>
+              <item name="LOG_WARNING_HI"/>
+              <item name="LOG_WARNING_LO"/>
+              <item name="LOG_COMMAND"/>
+              <item name="LOG_ACTIVITY_HI"/>
+              <item name="LOG_ACTIVITY_LO"/>
+              <item name="LOG_DIAGNOSTIC"/>
+           </enum>
+        </arg>
+        <arg name="args" type="Fw::LogBuffer" pass_by="reference">
+        </arg>
+    </args>
+</interface>

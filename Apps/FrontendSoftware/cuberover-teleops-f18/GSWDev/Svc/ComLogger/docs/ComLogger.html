@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ComLogger Component Dictionary</title>
+</head>
+<body>
+
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+}
+th {
+    text-align: left;
+}
+html {
+    font-family: Arial, sans-serif ;
+    font-size: 90% ;
+}
+</style>
+
+
+<h1><b>Commands</b></h1>
+
+
+
+<table>
+	<thead>
+		<tr style = "border-right: 2px solid black; border-left: 2px solid black; border-top: 2px solid black;">
+			<th rowspan = "2">Mnemonic</th>
+			<th rowspan = "2">ID</th>
+			<th rowspan = "2">Description</th>
+			<th rowspan = "1" colspan = "3">Arguments</th>
+		</tr>
+		<tr style = "border-right: 2px solid black; ">
+			<th>Argument</th>
+			<th>Type</th>
+			<th>Description</th>
+		<tr>
+	</thead>
+	<tbody>
+	
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">CloseFile</td>
+			<td rowspan="1">['0x0']</td>
+			<td rowspan="1">Forces a close of the currently opened file.</td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+	</tbody>
+</table>   
+
+
+
+</table>
+
+<h1><b>Events</b></h1>
+
+
+
+
+<table>
+	<thead>
+		<tr style = "border-right: 2px solid black; border-left: 2px solid black; border-top: 2px solid black;">
+			<th rowspan = "2">Event Name</th>
+			<th rowspan = "2">ID</th>
+			<th rowspan = "2">Description</th>
+			<th rowspan = "1" colspan = "4">Arguments</th>
+		</tr>
+		<tr style = "border-right: 2px solid black; ">
+			<th>Argument</th>
+			<th>Type</th>
+			<th>Size</th>
+			<th>Description</th>
+		<tr>
+	</thead>
+	<tbody>
+	
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">FileOpenError</td>
+			<td rowspan="3">['0x0']</td>
+			<td rowspan="3">The ComLogger encountered an error opening a file</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>errornum</td>
+						<td>U32</td>
+						<td></td>
+						<td>The error number returned from open file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>file</td>
+						<td>Fw::LogStringArg&</td>
+						<td>240</td>
+						<td>The file</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="5">FileWriteError</td>
+			<td rowspan="5">['0x1']</td>
+			<td rowspan="5">The ComLogger encountered an error writing to a file</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>errornum</td>
+						<td>U32</td>
+						<td></td>
+						<td>The error number returned from write file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">					
+						<td>bytesWritten</td>
+						<td>U32</td>
+						<td></td>
+						<td>The number of bytes successfully written to file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">					
+						<td>bytesToWrite</td>
+						<td>U32</td>
+						<td></td>
+						<td>The number of bytes attempted to write to file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>file</td>
+						<td>Fw::LogStringArg&</td>
+						<td>240</td>
+						<td>The file</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">FileValidationError</td>
+			<td rowspan="4">['0x2']</td>
+			<td rowspan="4">The ComLogger encountered an error writing the validation file</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>validationFile</td>
+						<td>Fw::LogStringArg&</td>
+						<td>240</td>
+						<td>The validation file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">					
+						<td>file</td>
+						<td>Fw::LogStringArg&</td>
+						<td>240</td>
+						<td>The file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>status</td>
+						<td>U32</td>
+						<td></td>
+						<td>The Os::Validate::Status return</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">FileClosed</td>
+			<td rowspan="2">['0x3']</td>
+			<td rowspan="2">The ComLogger successfully closed a file on command.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>file</td>
+						<td>Fw::LogStringArg&</td>
+						<td>240</td>
+						<td>The file</td>
+					</tr>
+		</tr>
+	</tbody>
+</table> 
+
+
+
+</body>
+</html>

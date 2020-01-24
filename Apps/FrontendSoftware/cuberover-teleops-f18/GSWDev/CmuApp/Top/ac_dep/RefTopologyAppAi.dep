@@ -1,0 +1,20 @@
+$(BUILD_ROOT)/CmuApp/Top/RefTopologyAppAc.cpp:\
+    $(BUILD_ROOT)/Drv/BlockDriver/BlockDriverComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/GndIf/GndIfComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/PassiveTextLogger/PassiveTextLoggerComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/FileDownlink/FileDownlinkComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/FatalHandler/FatalHandlerComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/AssertFatalAdapter/AssertFatalAdapterComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/ActiveLogger/ActiveLoggerComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/Time/TimeComponentAi.xml  \
+    $(BUILD_ROOT)/CmuApp/RateCounter/RateCounterComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/PrmDb/PrmDbComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/FileUplink/FileUplinkComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/TlmChan/TlmChanComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/BufferManager/BufferManagerComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/RateGroupDriver/RateGroupDriverComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/CmdDispatcher/CommandDispatcherComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/Health/HealthComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/ActiveRateGroup/ActiveRateGroupComponentAi.xml  \
+    $(BUILD_ROOT)/Svc/CmdSequencer/CmdSequencerComponentAi.xml  
+

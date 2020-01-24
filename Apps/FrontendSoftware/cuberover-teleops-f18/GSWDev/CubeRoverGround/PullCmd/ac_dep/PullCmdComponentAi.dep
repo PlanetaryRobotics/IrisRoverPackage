@@ -1,0 +1,13 @@
+$(BUILD_ROOT)/CubeRoverGround/PullCmd/PullCmdComponentAc.cpp:\
+    $(BUILD_ROOT)/Fw/Time/TimePortAi.xml  \
+    $(BUILD_ROOT)/Fw/Cmd/CmdRegPortAi.xml  \
+    $(BUILD_ROOT)/Fw/Cmd/CmdPortAi.xml  \
+    $(BUILD_ROOT)/Svc/Sched/SchedPortAi.xml  \
+    $(BUILD_ROOT)/Fw/Log/LogTextPortAi.xml  \
+    $(BUILD_ROOT)/Fw/Log/LogPortAi.xml  \
+    $(BUILD_ROOT)/Fw/Cmd/CmdResponsePortAi.xml  \
+    $(BUILD_ROOT)/Fw/Tlm/TlmPortAi.xml  \
+    $(BUILD_ROOT)/CubeRoverGround/PullCmd/Commands.xml  \
+    $(BUILD_ROOT)/CubeRoverGround/PullCmd/Telemetry.xml  \
+    $(BUILD_ROOT)/CubeRoverGround/PullCmd/Events.xml  
+

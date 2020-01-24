@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CmdSequencer Component Dictionary</title>
+</head>
+<body>
+
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+}
+th {
+    text-align: left;
+}
+html {
+    font-family: Arial, sans-serif ;
+    font-size: 90% ;
+}
+</style>
+
+
+<h1><b>Commands</b></h1>
+
+
+
+<table>
+	<thead>
+		<tr style = "border-right: 2px solid black; border-left: 2px solid black; border-top: 2px solid black;">
+			<th rowspan = "2">Mnemonic</th>
+			<th rowspan = "2">ID</th>
+			<th rowspan = "2">Description</th>
+			<th rowspan = "1" colspan = "3">Arguments</th>
+		</tr>
+		<tr style = "border-right: 2px solid black; ">
+			<th>Argument</th>
+			<th>Type</th>
+			<th>Description</th>
+		<tr>
+	</thead>
+	<tbody>
+	
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">CS_Run</td>
+			<td rowspan="2">['0']</td>
+			<td rowspan="2">Run a command sequence file</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::CmdStringArg</td>
+						<td>The name of the sequence file</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">CS_Validate</td>
+			<td rowspan="2">['1']</td>
+			<td rowspan="2">Validate a command sequence file</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::CmdStringArg</td>
+						<td>The name of the sequence file</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">CS_Cancel</td>
+			<td rowspan="1">['2']</td>
+			<td rowspan="1">Cancel a command sequence</td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">CS_Start</td>
+			<td rowspan="1">['3']</td>
+			<td rowspan="1">Start running a command sequence</td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">CS_Step</td>
+			<td rowspan="1">['4']</td>
+			<td rowspan="1">Perform one step in a command sequence. Valid only if CmdSequencer is in MANUAL run mode.</td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">CS_Auto</td>
+			<td rowspan="1">['5']</td>
+			<td rowspan="1">Set the run mode to AUTO.</td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">CS_Manual</td>
+			<td rowspan="1">['6']</td>
+			<td rowspan="1">Set the run mode to MANUAL.</td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+	</tbody>
+</table>   
+
+
+
+<h1><b>Telemetry</b></h1>
+<table>
+  <tr>
+     <th>Channel Name</th>
+     <th>ID</th>
+     <th>Type</th>
+     <th>Description</th>
+ </tr>
+
+ <tr>
+    <td>CS_LoadCommands</td>
+    <td>['0']</td>
+    <td>U32</td>
+    <td>The number of Load commands executed</td>
+ </tr>
+ <tr>
+    <td>CS_CancelCommands</td>
+    <td>['1']</td>
+    <td>U32</td>
+    <td>The number of Cancel commands executed</td>
+ </tr>
+ <tr>
+    <td>CS_Errors</td>
+    <td>['2']</td>
+    <td>U32</td>
+    <td>The number of errors that have occurred</td>
+ </tr>
+ <tr>
+    <td>CS_CommandsExecuted</td>
+    <td>['3']</td>
+    <td>U32</td>
+    <td>The number of commands executed across all sequences.</td>
+ </tr>
+ <tr>
+    <td>CS_SequencesCompleted</td>
+    <td>['4']</td>
+    <td>U32</td>
+    <td>The number of sequences completed.</td>
+ </tr>
+</table>
+
+<h1><b>Events</b></h1>
+
+
+
+
+<table>
+	<thead>
+		<tr style = "border-right: 2px solid black; border-left: 2px solid black; border-top: 2px solid black;">
+			<th rowspan = "2">Event Name</th>
+			<th rowspan = "2">ID</th>
+			<th rowspan = "2">Description</th>
+			<th rowspan = "1" colspan = "4">Arguments</th>
+		</tr>
+		<tr style = "border-right: 2px solid black; ">
+			<th>Argument</th>
+			<th>Type</th>
+			<th>Size</th>
+			<th>Description</th>
+		<tr>
+	</thead>
+	<tbody>
+	
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">CS_SequenceLoaded</td>
+			<td rowspan="2">['0']</td>
+			<td rowspan="2">Sequence file was successfully loaded.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The name of the sequence file</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">CS_SequenceCanceled</td>
+			<td rowspan="2">['1']</td>
+			<td rowspan="2">A command sequence was successfully canceled.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The name of the sequence file</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">CS_FileReadError</td>
+			<td rowspan="2">['2']</td>
+			<td rowspan="2">The Sequence File Loader could not read the sequence file.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The name of the sequence file</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">CS_FileInvalid</td>
+			<td rowspan="4">['3']</td>
+			<td rowspan="4">The sequence file format was invalid.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The name of the sequence file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">					
+						<td>stage</td>
+						<td>FileReadStage</td>
+						<td></td>
+						<td>The read stage</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>error</td>
+						<td>I32</td>
+						<td></td>
+						<td>The error code</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">CS_RecordInvalid</td>
+			<td rowspan="4">['4']</td>
+			<td rowspan="4">The format of a command record was invalid.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The name of the sequence file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">					
+						<td>recordNumber</td>
+						<td>U32</td>
+						<td></td>
+						<td>The record number</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>error</td>
+						<td>I32</td>
+						<td></td>
+						<td>The error code</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">CS_FileSizeError</td>
+			<td rowspan="3">['5']</td>
+			<td rowspan="3">The sequence file was too large.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The name of the sequence file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>size</td>
+						<td>U32</td>
+						<td></td>
+						<td>Inavalid size</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">CS_FileNotFound</td>
+			<td rowspan="2">['6']</td>
+			<td rowspan="2">The sequence file was not found</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The sequence file</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">CS_FileCrcFailure</td>
+			<td rowspan="4">['7']</td>
+			<td rowspan="4">The sequence file validation failed</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The sequence file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">					
+						<td>storedCRC</td>
+						<td>U32</td>
+						<td></td>
+						<td>The CRC stored in the file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>computedCRC</td>
+						<td>U32</td>
+						<td></td>
+						<td>The CRC computed over the file</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">CS_CommandComplete</td>
+			<td rowspan="4">['8']</td>
+			<td rowspan="4">The Command Sequencer issued a command and received a success status in return.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The name of the sequence file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">					
+						<td>recordNumber</td>
+						<td>U32</td>
+						<td></td>
+						<td>The record number of the command</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>opCode</td>
+						<td>U32</td>
+						<td></td>
+						<td>The command opcode</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">CS_SequenceComplete</td>
+			<td rowspan="2">['9']</td>
+			<td rowspan="2">A command sequence successfully completed.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The name of the sequence file</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="5">CS_CommandError</td>
+			<td rowspan="5">['10']</td>
+			<td rowspan="5">The Command Sequencer issued a command and received an error status in return.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The name of the sequence file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">					
+						<td>recordNumber</td>
+						<td>U32</td>
+						<td></td>
+						<td>The record number</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">					
+						<td>opCode</td>
+						<td>U32</td>
+						<td></td>
+						<td>The opcode</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>errorStatus</td>
+						<td>U32</td>
+						<td></td>
+						<td>The error status</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">CS_InvalidMode</td>
+			<td rowspan="1">['11']</td>
+			<td rowspan="1">The Command Sequencer received a command that was invalid for its current mode.</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">CS_RecordMismatch</td>
+			<td rowspan="4">['12']</td>
+			<td rowspan="4">Number of records in header doesn't match number in file</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The name of the sequence file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">					
+						<td>header_records</td>
+						<td>U32</td>
+						<td></td>
+						<td>The number of records in the header</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>extra_bytes</td>
+						<td>U32</td>
+						<td></td>
+						<td>The number of bytes beyond last record</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">CS_TimeBaseMismatch</td>
+			<td rowspan="4">['13']</td>
+			<td rowspan="4">The running time base doesn't match the time base in the sequence files</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The name of the sequence file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">					
+						<td>time_base</td>
+						<td>U16</td>
+						<td></td>
+						<td>The current time</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>seq_time_base</td>
+						<td>U16</td>
+						<td></td>
+						<td>The sequence time base</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">CS_TimeContextMismatch</td>
+			<td rowspan="4">['14']</td>
+			<td rowspan="4">The running time base doesn't match the time base in the sequence files</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The name of the sequence file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">					
+						<td>currTimeBase</td>
+						<td>U8</td>
+						<td></td>
+						<td>The current time base</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>seqTimeBase</td>
+						<td>U8</td>
+						<td></td>
+						<td>The sequence time base</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">CS_PortSequenceStarted</td>
+			<td rowspan="2">['15']</td>
+			<td rowspan="2">A local port request to run a sequence was started</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>filename</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The sequence file</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">CS_UnexpectedCompletion</td>
+			<td rowspan="2">['16']</td>
+			<td rowspan="2">A command status came back when no sequence was running</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>opcode</td>
+						<td>U32</td>
+						<td></td>
+						<td>The reported opcode</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">CS_ModeSwitched</td>
+			<td rowspan="2">['17']</td>
+			<td rowspan="2">Switched step mode</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>mode</td>
+						<td>SeqMode</td>
+						<td></td>
+						<td>The new mode</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">CS_NoSequenceActive</td>
+			<td rowspan="1">['18']</td>
+			<td rowspan="1">A sequence related command came with no active sequence</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">CS_SequenceValid</td>
+			<td rowspan="2">['19']</td>
+			<td rowspan="2">A sequence passed validation</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>filename</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The sequence file</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">CS_SequenceTimeout</td>
+			<td rowspan="3">['20']</td>
+			<td rowspan="3">A sequence passed validation</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>filename</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The sequence file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>command</td>
+						<td>U32</td>
+						<td></td>
+						<td>The command that timed out</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">CS_CmdStepped</td>
+			<td rowspan="3">['21']</td>
+			<td rowspan="3">A commmand in a sequence was stepped through</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>filename</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The sequence file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>command</td>
+						<td>U32</td>
+						<td></td>
+						<td>The command that was stepped</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">CS_CmdStarted</td>
+			<td rowspan="2">['22']</td>
+			<td rowspan="2">A manual sequence was started</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>filename</td>
+						<td>Fw::LogStringArg&</td>
+						<td>60</td>
+						<td>The sequence file</td>
+					</tr>
+		</tr>
+	</tbody>
+</table> 
+
+
+
+</body>
+</html>

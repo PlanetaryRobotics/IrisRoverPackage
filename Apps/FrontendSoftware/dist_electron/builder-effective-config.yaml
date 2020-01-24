@@ -1,0 +1,9 @@
+directories:
+  output: dist_electron
+  buildResources: build
+  app: dist_electron/bundled
+files:
+  - filter:
+      - '**'
+extends: null
+electronVersion: 3.1.13

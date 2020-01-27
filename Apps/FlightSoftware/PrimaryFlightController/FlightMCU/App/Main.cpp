@@ -26,9 +26,13 @@ void vApplicationIdleHook( void ){
 
 using namespace Wf121;
 
+uint8_t g_rxBuffer[256];
+uint8_t g_txBuffer[256];
+
 void main(void)
 {
     CubeRoverNetworkManager wf121;
+    uint16_t dataSize = 10;
 
     /* USER CODE BEGIN (3) */
     gioInit();
@@ -39,7 +43,8 @@ void main(void)
 
     while(1){
         wf121.UpdateNetworkManager();
-        for(uint32_t i=0;i < 20000; i++ ) asm("  NOP");
+        dataSize = 10;
+        wf121.ReceiveUdpData(g_rxBuffer,&dataSize,UdpReadMode::WAIT_UNTIL_READY,10);
     }
 
     vTaskStartScheduler();

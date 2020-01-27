@@ -12,6 +12,7 @@ ErrorCode Wf121Driver :: Init(){
   gioSetBit(gioPORTB,3,1);       // Pull high RTS : not ready to receive some data
 #endif //#if __USE_CTS_RTS__
 
+  m_processingCmd = false;
 
   return NO_ERROR;
 }
@@ -577,7 +578,7 @@ ErrorCode Wf121Driver :: executeEndpointCallback(BgApiHeader *header,
   uint16_t result;
   Endpoint endpoint;
   uint8_t * data;
-  DataSize dataSize;
+  DataSize8 dataSize8;
   uint32_t endpointType;
   uint8_t streaming;
   int8_t destination;
@@ -658,11 +659,11 @@ ErrorCode Wf121Driver :: executeEndpointCallback(BgApiHeader *header,
                                     active);
       case 0x01: // data
         endpoint = payload[0];
-        dataSize = payload[1];
-        data = payload + sizeof(dataSize) + sizeof(endpoint);
+        dataSize8 = payload[1];
+        data = payload + sizeof(dataSize8) + sizeof(endpoint);
         return cb_EventDataEndpoint(endpoint,
                                     data,
-                                    dataSize); 
+                                    dataSize8);
       case 0x03: // closing
         memcpy(&result,
                payload,
@@ -904,7 +905,7 @@ ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
   DnsName * dnsName;
   DnsNameSize dnsNameSize;
   uint8_t * data;
-  DataSize dataSize;
+  DataSize16 dataSize16;
   uint8_t routingEnabled;
   uint32_t leaseTime;
   Netmask subnetMask;
@@ -1116,16 +1117,16 @@ ErrorCode Wf121Driver :: executeTcpStackCallback(BgApiHeader *header,
         memcpy(&remotePort,
                payload + sizeof(endpoint) + sizeof(IpAddress),
                sizeof(remotePort));
-        memcpy(&dataSize,
+        memcpy(&dataSize16,
                payload + sizeof(endpoint) + sizeof(IpAddress) + sizeof(remotePort),
-               sizeof(dataSize));
-        data = payload + sizeof(endpoint) + sizeof(IpAddress) + sizeof(remotePort) + sizeof(dataSize);
+               sizeof(dataSize16));
+        data = payload + sizeof(endpoint) + sizeof(IpAddress) + sizeof(remotePort) + sizeof(dataSize16);
 
         return cb_EventUdpData(endpoint,
                                remoteIp,
                                remotePort,
                                data,
-                               dataSize);
+                               dataSize16);
       case 0x05: //mDSN started
         return cb_EventMDnsStarted();
       case 0x06: //mDSN failed
@@ -1513,7 +1514,9 @@ ErrorCode Wf121Driver :: ExecuteCallbacks(){
   // Should not block at that point
   if(payloadSize > 0){
     err = getReplyPayload(m_payloadBuffer, payloadSize);
-    if(err != NO_ERROR) return err;
+    if(err != NO_ERROR){
+        return err;
+    }
   }
 
   // If the command is a response, then the first two bytes of the reply are
@@ -1522,17 +1525,21 @@ ErrorCode Wf121Driver :: ExecuteCallbacks(){
     // If payload > 0 than zero, it means the result of the command is in the payload
     // except for some cases (like "hello system" that acknowledge the command without payload)
     if(payloadSize > 0){
-        memcpy(&cmdResult,
-               m_payloadBuffer,
-               sizeof(cmdResult));
-    
-        // If there is an error, return the command failure immediately
-        if(cmdResult != NO_ERROR){
-          m_processingCmd = false;
-          return cmdResult;
+        // Process special command cases
+        if(header.bit.classId == CLASS_WIFI && header.bit.cmdId == 0x05 /* password set */){
+        }
+        else{         // end of special command cases
+            memcpy(&cmdResult,
+                   m_payloadBuffer,
+                   sizeof(cmdResult));
+
+            // If there is an error, return the command failure immediately
+            if(cmdResult != NO_ERROR){
+              m_processingCmd = false;
+              return cmdResult;
+            }
         }
     }
-
     m_processingCmd = false;
   }
 
@@ -1695,5 +1702,14 @@ void Wf121Driver :: setHeaderPayloadSize(BgApiHeader *header, const uint16_t siz
  */
 bool Wf121Driver :: CommandIsProcessing(){
   return m_processingCmd;
+}
+
+ErrorCode Wf121Driver :: cb_EventEndpointSyntaxError(const uint16_t result,
+                                                     const Endpoint endpoint){
+    if(result != NO_ERROR){
+        m_processingCmd = false;
+    }
+
+    return (ErrorCode) result;
 }
 

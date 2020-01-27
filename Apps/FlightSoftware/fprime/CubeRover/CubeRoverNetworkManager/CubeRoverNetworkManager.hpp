@@ -3,7 +3,7 @@
 
 #include "CubeRover/Wf121/Wf121.hpp"
 
-#define TRIES_EXECUTE_CALLBACK    10000
+#define TRIES_EXECUTE_CALLBACK    50000
 #define PRESCALE_CHECK_SIGNAL     0         // Used to throttle how often wifi signal quality need to checked
                                             // 0: for no prescaling
 
@@ -34,14 +34,15 @@ typedef enum CubeRoverNetworkStateMachine{
   SCANNED,
   CONNECTING,
   CONNECTED,
-  DISCONNECTING
+  DISCONNECTING,
+  UDP_CONNECTED
 }CubeRoverNetworkStateMachine;
 
-enum {
+typedef enum UdpReadMode{
   WAIT_UNTIL_READY = 0x01,// wait until data is available 
   NORMAL_READ = 0x02,     // read the data and dequeue buffer
   PEEK_READ = 0x04        // read the data without modifying the ring buffer
-};
+}UdpReadMode;
 
 typedef struct WifiNetworkChannel{
   HardwareAddress bssid;
@@ -80,12 +81,11 @@ public:
                         const uint32_t size,
                         const uint32_t timeoutus);
   ErrorCode ReceiveUdpData(uint8_t * data,
-                          uint32_t * dataSize,
+                          uint16_t * dataSize,
                           const uint8_t mode,
                           const uint32_t timeout);
 
   // Callback event
-  ErrorCode cb_EventEndpointSyntaxError(const uint16_t result, const Endpoint endpoint);
   ErrorCode cb_EventBoot(const uint16_t major,
                          const uint16_t minor,
                          const uint16_t patch,
@@ -120,12 +120,16 @@ public:
                             const IpAddress srcAddress,
                             const uint16_t srcPort,
                             uint8_t * data,
-                            const DataSize dataSize);
+                            const DataSize16 dataSize);
   ErrorCode cb_EventTcpIpEndpointStatus(const uint8_t endpoint,
                                         const IpAddress localIp,
                                         const uint16_t localPort,
                                         const IpAddress remoteIp,
                                         const uint16_t remotePort);
+  ErrorCode cb_EventConfigureTcpIp(const IpAddress address,
+                                   const Netmask netmask,
+                                   const Gateway gateway,
+                                   const uint8_t useDhcp);
 
   // Callback command
   ErrorCode cb_CommandHelloSystem();
@@ -154,6 +158,7 @@ private:
   ErrorCode connectToWifiNetwork();
   ErrorCode manageSignalStrength();
   ErrorCode disconnectFromWifiNetwork();
+  ErrorCode startUdpServer();
   bool ipAddressesMatch(const IpAddress addr1,
                         const IpAddress addr2);
 
@@ -168,7 +173,10 @@ private:
   bool m_passwordSet;
   bool m_commandSignalQualitySet;
   bool m_udpConnectSet;
+  bool m_connectBssidSet;
   bool m_udpServerStarted;
+  bool m_udpBindSet;
+
   IpAddress m_roverIpAddress = ROVER_IP_ADDRESS;
   Netmask m_roverMaskAddress = ROVER_MASK_ADDRESS;
   Gateway m_udpGatewayAddress = ROVER_GATEWAY_ADDRESS;

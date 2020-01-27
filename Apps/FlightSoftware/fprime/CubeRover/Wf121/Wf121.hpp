@@ -354,7 +354,8 @@ namespace Wf121{
   typedef uint16_t TcpPort;
   typedef uint16_t UdpPort;
 
-  typedef uint8_t DataSize;
+  typedef uint8_t DataSize8;
+  typedef uint16_t DataSize16;
 
   typedef int8_t StreamingDestination;
 
@@ -466,7 +467,7 @@ namespace Wf121{
                                   const bool endpointStatus);
       ErrorCode SendEndpoint(const Endpoint endpoint,
                               uint8_t *data,
-                              const DataSize dataSize);
+                              const DataSize8 dataSize);
       ErrorCode SetTransmitSize(const Endpoint endpoint,
                                  const uint16_t transmitSize);
       ErrorCode SetStreaming(const Endpoint endpoint,
@@ -574,8 +575,8 @@ namespace Wf121{
        *
        * @return     The error code.
        */
-      virtual ErrorCode cb_EventEndpointSyntaxError(const uint16_t result,
-                                                    const Endpoint endpoint) { return NO_ERROR; }
+       ErrorCode cb_EventEndpointSyntaxError(const uint16_t result,
+                                             const Endpoint endpoint);
 
       /**
        * @brief      This event indicates that the device has started and is
@@ -1069,8 +1070,8 @@ namespace Wf121{
       virtual ErrorCode cb_EventUdpData(const Endpoint endpoint,
                                         const IpAddress srcAddress,
                                         const uint16_t srcPort,
-                                        const uint8_t * data,
-                                        const DataSize dataSize) { return NO_ERROR; }
+                                        uint8_t * data,
+                                        const DataSize16 dataSize) { return NO_ERROR; }
 
       /**
        * @brief      This event indicates that a mDNS service has been
@@ -1186,7 +1187,7 @@ namespace Wf121{
        */
       virtual ErrorCode cb_EventDataEndpoint(const Endpoint endpoint,
                                              uint8_t * data,
-                                             const DataSize dataSize) { return NO_ERROR; }
+                                             const DataSize8 dataSize) { return NO_ERROR; }
 
 
  

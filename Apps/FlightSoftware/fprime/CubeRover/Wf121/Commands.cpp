@@ -442,8 +442,8 @@ ErrorCode Wf121Driver :: SetPassword(const Password *pwd,
   uint8_t payload[sizeof(PasswordSize) + pwdSize];
 
   //Prepare command header
-  txHeader.bit.msgType = CMD_RSP_TYPE; //command
-  txHeader.bit.technologyType = 1; // wifi
+  txHeader.bit.msgType = CMD_RSP_TYPE;  //command
+  txHeader.bit.technologyType = 1;      // wifi
   setHeaderPayloadSize(&txHeader, sizeof(payload));
   txHeader.bit.classId = CLASS_WIFI;
   txHeader.bit.cmdId = 0x05; // set password command
@@ -1633,9 +1633,9 @@ ErrorCode Wf121Driver :: SetActiveEndpoint(const Endpoint endpoint,
  */
 ErrorCode Wf121Driver :: SendEndpoint(const Endpoint endpoint,
                                       uint8_t *data,
-                                      const DataSize dataSize){
+                                      const DataSize8 dataSize){
   BgApiHeader txHeader;
-  uint8_t payload[sizeof(Endpoint) + sizeof(DataSize) + dataSize];
+  uint8_t payload[sizeof(Endpoint) + sizeof(DataSize8) + dataSize];
 
   //Prepare command header
   txHeader.bit.msgType = CMD_RSP_TYPE; //command
@@ -1651,9 +1651,9 @@ ErrorCode Wf121Driver :: SendEndpoint(const Endpoint endpoint,
 
   memcpy(payload + sizeof(Endpoint),
          &dataSize,
-         sizeof(DataSize));
+         sizeof(DataSize8));
 
-  memcpy(payload + sizeof(Endpoint) + sizeof(DataSize),
+  memcpy(payload + sizeof(Endpoint) + sizeof(DataSize8),
          data,
          dataSize);
 

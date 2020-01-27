@@ -26,13 +26,14 @@ void vApplicationIdleHook( void ){
 
 using namespace Wf121;
 
-uint8_t g_rxBuffer[256];
-uint8_t g_txBuffer[256];
+uint8_t g_testBuffer[256];
 
 void main(void)
 {
     CubeRoverNetworkManager wf121;
-    uint16_t dataSize = 10;
+    uint16_t headerSize = 8;    // 8 bytes
+    uint16_t byteRead = 0;
+    uint32_t payloadSize = 0;
 
     /* USER CODE BEGIN (3) */
     gioInit();
@@ -43,8 +44,15 @@ void main(void)
 
     while(1){
         wf121.UpdateNetworkManager();
-        dataSize = 10;
-        wf121.ReceiveUdpData(g_rxBuffer,&dataSize,UdpReadMode::WAIT_UNTIL_READY,10);
+
+        wf121.ReceiveUdpData(g_testBuffer, headerSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::PEEK_READ, 10);
+
+        if(byteRead == headerSize){
+            // check how big the packet actually is, then consume the bytes from the ring buffer
+            memcpy(&payloadSize, g_testBuffer+4 /* offset by packet number */, sizeof(payloadSize));
+            wf121.ReceiveUdpData(g_testBuffer, payloadSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
+            wf121.SendUdpData(g_testBuffer, payloadSize, 10);
+        }
     }
 
     vTaskStartScheduler();

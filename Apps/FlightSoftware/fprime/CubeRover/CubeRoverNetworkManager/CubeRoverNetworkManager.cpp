@@ -169,7 +169,7 @@ ErrorCode CubeRoverNetworkManager :: SendUdpData(uint8_t * data,
                                                  const uint32_t timeoutus){
   ErrorCode errorCode;
 
-  if(m_state != CONNECTED){
+  if(m_state != UDP_CONNECTED){
     return ETHERNET_NOT_CONNECTED;
   }
 
@@ -198,13 +198,14 @@ ErrorCode CubeRoverNetworkManager :: SendUdpData(uint8_t * data,
  * @return     The error code.
  */
 ErrorCode CubeRoverNetworkManager :: ReceiveUdpData(uint8_t * data,
-                                                    uint16_t * dataSize,
+                                                    const uint16_t dataSize,
+                                                    uint16_t * dataRead,
                                                     const uint8_t mode,
                                                     const uint32_t timeout){
   ErrorCode errorCode;
   uint32_t timer = timeout;
   uint8_t *ptrData = data;
-  uint32_t byteToRead = *dataSize;
+  uint32_t byteToRead = dataSize;
 
   if(m_state != UDP_CONNECTED){
     return ETHERNET_NOT_CONNECTED;
@@ -212,24 +213,29 @@ ErrorCode CubeRoverNetworkManager :: ReceiveUdpData(uint8_t * data,
 
   // Loop here until
   if(mode & WAIT_UNTIL_READY){
-    while(timer-- && m_rxUdpFifoBytesCount < *dataSize){
+    while(timer-- && m_rxUdpFifoBytesCount < byteToRead){
       errorCode = ExecuteCallbacks();
       if(errorCode != TRY_AGAIN && errorCode != NO_ERROR) return errorCode;
     }
 
     // timeout! return immediately
-    if(!timer || m_rxUdpFifoBytesCount < *dataSize){
-        *dataSize = 0;
+    if(!timer || m_rxUdpFifoBytesCount < byteToRead){
+        *dataRead = 0;
         return TIMEOUT;
     }
   }
   else{ // don't wait
     errorCode = ExecuteCallbacks();
-    if(errorCode != TRY_AGAIN && errorCode != NO_ERROR) return errorCode;    
+
+    if(errorCode != TRY_AGAIN && errorCode != NO_ERROR) return errorCode;
+
+    if(m_rxUdpFifoBytesCount < byteToRead){
+        return NO_ERROR;
+    }
   }
 
   // dataSize is updated to report the number of byte actually read
-  *dataSize = 0;
+  *dataRead = 0;
 
   // Implementation of a simple ring buffer
   for(uint16_t i=0; i < byteToRead; i++){
@@ -237,18 +243,18 @@ ErrorCode CubeRoverNetworkManager :: ReceiveUdpData(uint8_t * data,
       return TCP_IP_BUFFER_ERROR;
     }
    
-    *dataSize++; // increment the number of byte read
+    *dataRead = *dataRead + 1; // increment the number of byte read
 
     // Normal read consumes bytes from the ring buffer
     if(mode & NORMAL_READ){
       m_rxUdpFifoBytesCount--;
-      m_rxUdpFifoTailPointer = (m_rxUdpFifoTailPointer + 1) % RX_MAX_BUFFER_SIZE; 
       *ptrData = m_rxBuffer[m_rxUdpFifoTailPointer];
+      m_rxUdpFifoTailPointer = (m_rxUdpFifoTailPointer + 1) % RX_MAX_BUFFER_SIZE; 
     }
 
     // Peek read doesn't consume bytes from the ring buffer
     if(mode & PEEK_READ){
-      *ptrData = m_rxBuffer[i];
+      *ptrData = m_rxBuffer[(m_rxUdpFifoTailPointer + i) % RX_MAX_BUFFER_SIZE];
     }
     ptrData++;
   }
@@ -1187,7 +1193,7 @@ ErrorCode CubeRoverNetworkManager :: cb_EventUdpData(const Endpoint endpoint,
     for(uint16_t i=0; i<dataSize; i++){
       // Check if we can write new data to the ring buffer by looking
       // where the read pointer is located
-      if(m_rxUdpFifoHeadPointer + 1 == m_rxUdpFifoTailPointer){
+      if((m_rxUdpFifoHeadPointer + 1 % RX_MAX_BUFFER_SIZE) == m_rxUdpFifoTailPointer){
         return TCP_IP_BUFFER_ERROR;
       }
 

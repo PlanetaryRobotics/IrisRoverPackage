@@ -81,7 +81,8 @@ public:
                         const uint32_t size,
                         const uint32_t timeoutus);
   ErrorCode ReceiveUdpData(uint8_t * data,
-                          uint16_t * dataSize,
+                          const uint16_t dataSize,
+                          uint16_t * dataRead,
                           const uint8_t mode,
                           const uint32_t timeout);
 

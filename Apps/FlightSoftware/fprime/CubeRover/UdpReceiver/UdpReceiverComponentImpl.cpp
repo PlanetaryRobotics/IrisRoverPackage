@@ -153,7 +153,7 @@ namespace CubeRover {
     // get port number
     uint8_t port;
     stat = m_recvBuff.deserialize(port);
-    // check for deserialization error or port number too high
+    // check for de-serialization error or port number too high
     if (stat != Fw::FW_SERIALIZE_OK || port > this->getNum_readPoll_InputPorts()) {
       this->log_WARNING_HI_UR_DecodeError(DECODE_PORT, stat);
       this->m_decodeErrors++;

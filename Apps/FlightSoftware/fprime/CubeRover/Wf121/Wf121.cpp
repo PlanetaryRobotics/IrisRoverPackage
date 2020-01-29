@@ -1513,7 +1513,7 @@ ErrorCode Wf121Driver :: ExecuteCallbacks(){
   // Some data need to be processed
   // Should not block at that point
   if(payloadSize > 0){
-    err = getReplyPayload(m_payloadBuffer, payloadSize);
+    err = getReplyPayload(g_payloadBuffer, payloadSize);
     if(err != NO_ERROR){
         return err;
     }
@@ -1530,7 +1530,7 @@ ErrorCode Wf121Driver :: ExecuteCallbacks(){
         }
         else{         // end of special command cases
             memcpy(&cmdResult,
-                   m_payloadBuffer,
+                   g_payloadBuffer,
                    sizeof(cmdResult));
 
             // If there is an error, return the command failure immediately
@@ -1547,37 +1547,37 @@ ErrorCode Wf121Driver :: ExecuteCallbacks(){
   // Some payload data is expected at that point
   switch(header.bit.classId){
     case CLASS_SYSTEM:
-      err = executeSystemCallback(&header, m_payloadBuffer, payloadSize);
+      err = executeSystemCallback(&header, g_payloadBuffer, payloadSize);
       break;
     case CLASS_CONFIGURATION:
-      err = executeConfigurationCallback(&header, m_payloadBuffer, payloadSize);
+      err = executeConfigurationCallback(&header, g_payloadBuffer, payloadSize);
       break;
     case CLASS_WIFI:
-      err = executeWifiCallback(&header, m_payloadBuffer, payloadSize);
+      err = executeWifiCallback(&header, g_payloadBuffer, payloadSize);
       break;
     case CLASS_TCP_STACK:
-      err = executeTcpStackCallback(&header, m_payloadBuffer, payloadSize);
+      err = executeTcpStackCallback(&header, g_payloadBuffer, payloadSize);
       break;
     case CLASS_ENDPOINT:
-      err = executeEndpointCallback(&header, m_payloadBuffer, payloadSize);
+      err = executeEndpointCallback(&header, g_payloadBuffer, payloadSize);
       break;
     case CLASS_HARDWARE:
-      err = executeHardwareCallback(&header, m_payloadBuffer, payloadSize);
+      err = executeHardwareCallback(&header, g_payloadBuffer, payloadSize);
       break;
     case CLASS_I2C:
-      err = executeI2cCallback(&header, m_payloadBuffer, payloadSize);
+      err = executeI2cCallback(&header, g_payloadBuffer, payloadSize);
       break;
     case CLASS_WIRED_ETHERNET:
-      err = executeWiredEthernetCallback(&header, m_payloadBuffer, payloadSize);
+      err = executeWiredEthernetCallback(&header, g_payloadBuffer, payloadSize);
       break;
     case CLASS_HTTP_SERVER:
-      err = executeHttpServerCallback(&header, m_payloadBuffer, payloadSize);
+      err = executeHttpServerCallback(&header, g_payloadBuffer, payloadSize);
       break;
     case CLASS_PERSISTENT_STORE:
-      err = executePersistentStoreCallback(&header, m_payloadBuffer, payloadSize);
+      err = executePersistentStoreCallback(&header, g_payloadBuffer, payloadSize);
       break;
     case CLASS_DEVICE_FIRMWARE_UPGRADE:
-      err = executeDeviceFirmwareUpgradeCallback(&header, m_payloadBuffer, payloadSize);
+      err = executeDeviceFirmwareUpgradeCallback(&header, g_payloadBuffer, payloadSize);
       break;
     default:
       return COMMAND_NOT_RECOGNIZED;

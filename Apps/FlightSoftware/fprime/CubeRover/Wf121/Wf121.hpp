@@ -15,7 +15,7 @@
 #include "sci.h"
 #include "gio.h"
 
-#define MAX_SIZE_PAYLOAD    256    // in byte
+#define MAX_SIZE_PAYLOAD    2048    // in byte
 #define SCI_REG             sciREG
 #define BLOCKING_TIMEOUT_US 1000    // in us
 
@@ -365,6 +365,8 @@ namespace Wf121{
   typedef uint8_t InterruptMask;
 
   typedef uint8_t Endpoint;
+
+  static uint8_t g_payloadBuffer[MAX_SIZE_PAYLOAD];
 
   class Wf121Driver{
     public:
@@ -1613,7 +1615,6 @@ namespace Wf121{
                                    uint8_t *payload,
                                    const uint16_t payloadSize);
       // Private members
-      uint8_t m_payloadBuffer[MAX_SIZE_PAYLOAD];
       bool m_processingCmd;
   };
 }  // Wf121

@@ -34,6 +34,8 @@ CubeRoverNetworkManager :: CubeRoverNetworkManager(){
   m_rxUdpFifoHeadPointer = 0;
   m_udpSendEndpoint = 0;
   m_udpBindSet = false;
+  m_commandSendEndpointSet = false;
+  m_commandTransmitSizeSet = false;
 
   //Initialize lander wifi network 
   memcpy(m_landerWifi.ssid,
@@ -166,19 +168,62 @@ void CubeRoverNetworkManager :: ConnectCallback(const CubeRoverSignalLevels sign
  */
 ErrorCode CubeRoverNetworkManager :: SendUdpData(uint8_t * data,
                                                  const uint32_t size,
-                                                 const uint32_t timeoutus){
+                                                 const uint32_t timeout){
   ErrorCode errorCode;
+  int32_t byteToSend = size;
+  uint32_t timer = timeout;
 
+  if(!size) return NO_ERROR;  // nothing to do
+
+  // Check we are in the right connection state
   if(m_state != UDP_CONNECTED){
     return ETHERNET_NOT_CONNECTED;
   }
 
-  errorCode = SendEndpoint(m_udpSendEndpoint,
-                          data,
-                          size);
+  m_commandTransmitSizeSet = false;
 
-  if(errorCode == NO_ERROR){
-    m_logNbOfBytesSent += size;
+  errorCode = SetTransmitSize(m_udpSendEndpoint,
+                              byteToSend);
+
+  while((timer >0) && (m_commandTransmitSizeSet == false)){
+    errorCode = ExecuteCallbacks();
+    if(errorCode != TRY_AGAIN && errorCode != NO_ERROR){
+      return errorCode;
+    }
+    timer--;
+  }
+
+  timer = timeout;
+
+  // loop until all data is sent
+  while(byteToSend > 0){
+    // max number of bytes to send at one time is 255 by hardware restriction
+    uint8_t byteToSendThisLoop = (byteToSend > 0xff) ? 0xff : byteToSend;
+    m_commandSendEndpointSet = false;
+
+    errorCode = SendEndpoint(m_udpSendEndpoint,
+                             data,
+                             byteToSendThisLoop); 
+
+    while((timer > 0) && (m_commandSendEndpointSet == false)){
+      errorCode = ExecuteCallbacks();
+      if(errorCode != TRY_AGAIN && errorCode != NO_ERROR) return errorCode;
+      timer--;
+    }
+
+    if(!timer) return TIMEOUT;
+
+    timer = timeout;
+
+    // wait until all data is sent
+    if(errorCode == NO_ERROR){
+      m_logNbOfBytesSent += byteToSendThisLoop;
+      data += byteToSendThisLoop;
+      byteToSend -= byteToSendThisLoop;
+    }
+    else{
+      break; // exit loop on error
+    }
   }
   
   return errorCode;
@@ -230,7 +275,7 @@ ErrorCode CubeRoverNetworkManager :: ReceiveUdpData(uint8_t * data,
     if(errorCode != TRY_AGAIN && errorCode != NO_ERROR) return errorCode;
 
     if(m_rxUdpFifoBytesCount < byteToRead){
-        return NO_ERROR;
+      return NO_ERROR;
     }
   }
 
@@ -248,13 +293,13 @@ ErrorCode CubeRoverNetworkManager :: ReceiveUdpData(uint8_t * data,
     // Normal read consumes bytes from the ring buffer
     if(mode & NORMAL_READ){
       m_rxUdpFifoBytesCount--;
-      *ptrData = m_rxBuffer[m_rxUdpFifoTailPointer];
-      m_rxUdpFifoTailPointer = (m_rxUdpFifoTailPointer + 1) % RX_MAX_BUFFER_SIZE; 
+      *ptrData = g_rxRingBuffer[m_rxUdpFifoTailPointer];
+      m_rxUdpFifoTailPointer = (m_rxUdpFifoTailPointer + 1) % RX_RING_BUFFER_SIZE;
     }
 
     // Peek read doesn't consume bytes from the ring buffer
     if(mode & PEEK_READ){
-      *ptrData = m_rxBuffer[(m_rxUdpFifoTailPointer + i) % RX_MAX_BUFFER_SIZE];
+      *ptrData = g_rxRingBuffer[(m_rxUdpFifoTailPointer + i) % RX_RING_BUFFER_SIZE];
     }
     ptrData++;
   }
@@ -547,6 +592,10 @@ ErrorCode CubeRoverNetworkManager :: scanWifiNetwork(){
                                 list,
                                 0);
 
+  if(errorCode != NO_ERROR){
+      return errorCode;
+  }
+
   // Block until it timeouts or generate an error
   while(m_state != SCANNING){
     errorCode = ExecuteCallbacks();
@@ -625,6 +674,11 @@ ErrorCode CubeRoverNetworkManager :: connectToWifiNetwork(){
   return errorCode;
 }
 
+/**
+ * @brief      Starts an udp server.
+ *
+ * @return     The error code.
+ */
 ErrorCode CubeRoverNetworkManager :: startUdpServer(){
   ErrorCode errorCode;
   uint16_t tries;
@@ -641,7 +695,7 @@ ErrorCode CubeRoverNetworkManager :: startUdpServer(){
                          -1);
 
   if(errorCode != NO_ERROR){
-      return errorCode;
+    return errorCode;
   }
 
   // Block until it timeouts or generate an error
@@ -656,14 +710,14 @@ ErrorCode CubeRoverNetworkManager :: startUdpServer(){
 
   // Failed to execute the command
   if(!tries){
-      return TIMEOUT;
+    return TIMEOUT;
   }
   
   errorCode = UdpBind(m_udpSendEndpoint,
                       ROVER_UDP_PORT);
 
   if(errorCode != NO_ERROR){
-      return errorCode;
+    return errorCode;
   }
 
   // Block until it timeouts or generate an error
@@ -678,7 +732,7 @@ ErrorCode CubeRoverNetworkManager :: startUdpServer(){
 
   // Failed to execute the command
   if(!tries){
-      return TIMEOUT;
+    return TIMEOUT;
   }
 
   // Create a UDP server to support incoming data
@@ -686,7 +740,7 @@ ErrorCode CubeRoverNetworkManager :: startUdpServer(){
                              -1);
 
   if(errorCode != NO_ERROR){
-      return errorCode;
+    return errorCode;
   }
 
   // Block until it timeouts or generate an error
@@ -732,8 +786,8 @@ ErrorCode CubeRoverNetworkManager :: disconnectFromWifiNetwork(){
     tries--;
   }
 
-  // DISCONNECTING --> SCANNED
-  m_state = SCANNED;
+  // DISCONNECTING --> WIFI_ON
+  m_state = WIFI_ON;
 
   return NO_ERROR;
 }
@@ -844,6 +898,7 @@ ErrorCode CubeRoverNetworkManager :: cb_CommandConnectBssid(const uint16_t resul
   if(result == NO_ERROR){
     m_connectBssidSet = true;
   }
+
   return (ErrorCode) result;
 }
 
@@ -892,7 +947,7 @@ ErrorCode CubeRoverNetworkManager :: cb_CommandGetSignalQuality(const uint16_t r
  */
 ErrorCode CubeRoverNetworkManager :: cb_CommandUdpConnect(const uint16_t result,
                                                           const uint8_t endpoint){
-    return (ErrorCode) result;
+  return (ErrorCode) result;
 }
 
 /**
@@ -908,6 +963,7 @@ ErrorCode CubeRoverNetworkManager :: cb_CommandDisconnect(const uint16_t result,
   if(result == NO_ERROR && m_state == CONNECTED){
     m_state = DISCONNECTING;
   }
+
   return (ErrorCode) result;
 }
 
@@ -919,8 +975,10 @@ ErrorCode CubeRoverNetworkManager :: cb_CommandDisconnect(const uint16_t result,
  * @return     The error code.
  */
 ErrorCode CubeRoverNetworkManager :: cb_CommandUdpBind(const uint16_t result){
+  if(result == NO_ERROR){
     m_udpBindSet = true;
-    return (ErrorCode) result;
+  }
+  return (ErrorCode) result;
 }
 
 /**
@@ -933,10 +991,46 @@ ErrorCode CubeRoverNetworkManager :: cb_CommandUdpBind(const uint16_t result){
  */
 ErrorCode CubeRoverNetworkManager :: cb_CommandStartUdpServer(const uint16_t result,
                                                               const uint8_t endpoint){
-    if(result == NO_ERROR){
-        m_udpServerStarted = true;
-    }
-    return (ErrorCode) result;
+  if(result == NO_ERROR){
+    m_udpServerStarted = true;
+  }
+  return (ErrorCode) result;
+}
+
+
+/**
+ * @brief      This event is reported when some data has been to an endpoint
+ *
+ * @param[in]  result    The result
+ * @param[in]  endpoint  The endpoint
+ *
+ * @return     The error code.
+ */
+ErrorCode CubeRoverNetworkManager :: cb_CommandSendEndpoint(const uint16_t result,
+                                                            const Endpoint endpoint){
+  if(result == NO_ERROR){
+    m_commandSendEndpointSet = true;
+  }
+
+  return (ErrorCode)result;
+}
+
+
+/**
+ * @brief      This event is reported when set transmit size command is sent
+ *
+ * @param[in]  result    The result
+ * @param[in]  endpoint  The endpoint
+ *
+ * @return     The error code.
+ */
+ErrorCode CubeRoverNetworkManager :: cb_CommandSetTransmitSize(const uint16_t result,
+                                                               const Endpoint endpoint){
+  if(result == NO_ERROR){
+      m_commandTransmitSizeSet = true;
+  }
+
+  return (ErrorCode)result;
 }
 
 //--------------------------------------------------------------------------------------
@@ -1193,14 +1287,14 @@ ErrorCode CubeRoverNetworkManager :: cb_EventUdpData(const Endpoint endpoint,
     for(uint16_t i=0; i<dataSize; i++){
       // Check if we can write new data to the ring buffer by looking
       // where the read pointer is located
-      if((m_rxUdpFifoHeadPointer + 1 % RX_MAX_BUFFER_SIZE) == m_rxUdpFifoTailPointer){
+      if((m_rxUdpFifoHeadPointer + 1 % RX_RING_BUFFER_SIZE) == m_rxUdpFifoTailPointer){
         return TCP_IP_BUFFER_ERROR;
       }
 
       // Increment number of byte available for a read
       m_rxUdpFifoBytesCount++;
-      m_rxBuffer[m_rxUdpFifoHeadPointer] = *ptrData;
-      m_rxUdpFifoHeadPointer = (m_rxUdpFifoHeadPointer + 1) % RX_MAX_BUFFER_SIZE;
+      g_rxRingBuffer[m_rxUdpFifoHeadPointer] = *ptrData;
+      m_rxUdpFifoHeadPointer = (m_rxUdpFifoHeadPointer + 1) % RX_RING_BUFFER_SIZE;
       ptrData++;
     }
   }
@@ -1234,10 +1328,23 @@ ErrorCode CubeRoverNetworkManager :: cb_EventTcpIpEndpointStatus( const uint8_t 
   return errorCode;
 }
 
+
+/**
+ * @brief      Event returned when ip address is set.
+ *
+ * @param[in]  address  The address
+ * @param[in]  netmask  The netmask
+ * @param[in]  gateway  The gateway
+ * @param[in]  useDhcp  The use dhcp
+ *
+ * @return     The error code.
+ */
 ErrorCode CubeRoverNetworkManager :: cb_EventConfigureTcpIp( const IpAddress address,
                                                              const Netmask netmask,
                                                              const Gateway gateway,
                                                              const uint8_t useDhcp){
-    m_ipConfigurationSet = true;
-    return NO_ERROR;
+  m_ipConfigurationSet = true;
+  return NO_ERROR;
 }
+
+

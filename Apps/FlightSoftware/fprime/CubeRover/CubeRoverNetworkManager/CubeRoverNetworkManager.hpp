@@ -19,8 +19,7 @@
 #define MAX_NUMBER_CHANNEL_PER_NETWORK  11
 #define MAX_SORTING_LIST_SIZE           5
 
-#define RX_MAX_BUFFER_SIZE              128
-#define TX_MAX_BUFFER_SIZE              128
+#define RX_RING_BUFFER_SIZE              MAX_SIZE_PAYLOAD
 
 using namespace Wf121;
 
@@ -66,6 +65,8 @@ typedef enum CubeRoverSignalLevels{
 }CubeRoverSignalLevels;
 
 typedef void(*NetworkManagerUserCbFunctionPtr)(void);
+
+uint8_t g_rxRingBuffer[RX_RING_BUFFER_SIZE];
 
 class CubeRoverNetworkManager : public Wf121Driver{
 public:
@@ -151,6 +152,10 @@ public:
   ErrorCode cb_CommandUdpBind(const uint16_t result);
   ErrorCode cb_CommandStartUdpServer(const uint16_t result,
                                      const uint8_t endpoint);
+  ErrorCode cb_CommandSendEndpoint(const uint16_t result,
+                                   const Endpoint endpoint);
+  ErrorCode cb_CommandSetTransmitSize(const uint16_t result,
+                                      const Endpoint endpoint);
 
 private:
   ErrorCode initializeNetworkManager();
@@ -177,6 +182,8 @@ private:
   bool m_connectBssidSet;
   bool m_udpServerStarted;
   bool m_udpBindSet;
+  bool m_commandSendEndpointSet;
+  bool m_commandTransmitSizeSet;
 
   IpAddress m_roverIpAddress = ROVER_IP_ADDRESS;
   Netmask m_roverMaskAddress = ROVER_MASK_ADDRESS;
@@ -195,9 +202,8 @@ private:
   uint32_t m_logNbOfBytesSent;
   uint32_t m_rxUdpFifoBytesCount;
   uint32_t m_txUdpFifoBytesCount;
-  uint8_t m_rxBuffer[RX_MAX_BUFFER_SIZE];
-  uint8_t m_rxUdpFifoHeadPointer;
-  uint8_t m_rxUdpFifoTailPointer;
+  uint16_t m_rxUdpFifoHeadPointer;
+  uint16_t m_rxUdpFifoTailPointer;
   uint8_t m_udpSendEndpoint;
 };
 

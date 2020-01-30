@@ -11,11 +11,12 @@
 #include <stdint.h>
 #include <string.h>
 #include <stddef.h>
+#include <math.h>
 
 #include "sci.h"
 #include "gio.h"
 
-#define MAX_SIZE_PAYLOAD    2048    // in byte
+#define MAX_SIZE_PAYLOAD    4096    // in byte
 #define SCI_REG             sciREG
 #define BLOCKING_TIMEOUT_US 1000    // in us
 

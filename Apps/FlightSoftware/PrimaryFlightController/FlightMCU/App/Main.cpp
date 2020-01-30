@@ -26,7 +26,7 @@ void vApplicationIdleHook( void ){
 
 using namespace Wf121;
 
-uint8_t g_testBuffer[256];
+uint8_t g_testBuffer[RX_RING_BUFFER_SIZE];
 
 void main(void)
 {
@@ -51,7 +51,7 @@ void main(void)
             // check how big the packet actually is, then consume the bytes from the ring buffer
             memcpy(&payloadSize, g_testBuffer+4 /* offset by packet number */, sizeof(payloadSize));
             wf121.ReceiveUdpData(g_testBuffer, payloadSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
-            wf121.SendUdpData(g_testBuffer, payloadSize, 10);
+            wf121.SendUdpData(g_testBuffer, payloadSize*2, 10000);
         }
     }
 

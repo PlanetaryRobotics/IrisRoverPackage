@@ -48,10 +48,15 @@ void main(void)
         wf121.ReceiveUdpData(g_testBuffer, headerSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::PEEK_READ, 10);
 
         if(byteRead == headerSize){
+            // get size of the received packet
             // check how big the packet actually is, then consume the bytes from the ring buffer
             memcpy(&payloadSize, g_testBuffer+4 /* offset by packet number */, sizeof(payloadSize));
             wf121.ReceiveUdpData(g_testBuffer, payloadSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
-            wf121.SendUdpData(g_testBuffer, payloadSize*2, 10000);
+
+            // send back signal quality
+            g_testBuffer[8] = wf121.GetSignalRssi();
+            g_testBuffer[9] = wf121.GetSignalNoiseRatio();
+            wf121.SendUdpData(g_testBuffer, payloadSize, 10000);
         }
     }
 

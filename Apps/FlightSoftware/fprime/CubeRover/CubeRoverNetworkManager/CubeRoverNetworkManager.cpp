@@ -115,12 +115,26 @@ CubeRoverNetworkStateMachine CubeRoverNetworkManager :: GetState(){
  *             otherwise.
  */
 int8_t CubeRoverNetworkManager :: GetSignalRssi(){
-  if(m_state != CONNECTED)
+  if(m_landerWifi.channel[m_scanIndex].active == false){
     return 0xFF;
+  }
 
   return m_landerWifi.channel[m_scanIndex].rssi;
 }
 
+
+/**
+ * @brief      Gets the signal noise ratio.
+ *
+ * @return     The signal noise ratio.
+ */
+int8_t CubeRoverNetworkManager :: GetSignalNoiseRatio(){
+  if(m_landerWifi.channel[m_scanIndex].active == false){
+      return 0xFF;
+  }
+
+  return m_landerWifi.channel[m_scanIndex].snr;
+}
 
 /**
  * @brief      Gets the signal level.
@@ -128,6 +142,7 @@ int8_t CubeRoverNetworkManager :: GetSignalRssi(){
  * @return     The signal level.
  */
 CubeRoverSignalLevels CubeRoverNetworkManager :: GetSignalLevel(){
+
     return m_signalLevel;
 }
 
@@ -184,6 +199,8 @@ ErrorCode CubeRoverNetworkManager :: SendUdpData(uint8_t * data,
 
   errorCode = SetTransmitSize(m_udpSendEndpoint,
                               byteToSend);
+
+  if(errorCode != NO_ERROR) return errorCode;
 
   while((timer >0) && (m_commandTransmitSizeSet == false)){
     errorCode = ExecuteCallbacks();
@@ -329,7 +346,7 @@ ErrorCode CubeRoverNetworkManager :: manageSignalStrength(){
 
   // Manage the signal strength while being connected to either try
   // to find a new channel or re-scan network
-  if(m_state == CONNECTED){
+  if((m_state == UDP_CONNECTED) || (m_state == CONNECTED)){
     
     // reset flag that keep track if command is already sent
     m_commandSignalQualitySet = false;
@@ -786,6 +803,14 @@ ErrorCode CubeRoverNetworkManager :: disconnectFromWifiNetwork(){
     tries--;
   }
 
+  // Clear information about wifi channels
+  for(uint8_t i=0; i<sizeof(MAX_NUMBER_CHANNEL_PER_NETWORK); i++){
+     m_landerWifi.channel[i].active = 0;
+  }
+
+  m_nbChannelFound = 0;
+  m_connectIndex = 0;
+
   // DISCONNECTING --> WIFI_ON
   m_state = WIFI_ON;
 
@@ -1237,6 +1262,7 @@ ErrorCode CubeRoverNetworkManager :: cb_EventConnectFailed(const uint16_t reason
 
   // If we attempt to connect to all channel, re-do a scan of the network
   if(m_connectIndex == m_nbChannelFound) {
+    m_connectIndex = 0;
     m_state = WIFI_ON;
   }
   return (ErrorCode) reason;
@@ -1253,7 +1279,7 @@ ErrorCode CubeRoverNetworkManager :: cb_EventConnectFailed(const uint16_t reason
  */
 ErrorCode CubeRoverNetworkManager :: cb_EventSignalQuality(const int8_t rssi,
                                                            const HardwareInterface hwInterface){
-  if(m_state == CONNECTED){
+  if(m_state == CONNECTED || m_state == UDP_CONNECTED){
     m_landerWifi.channel[m_scanIndex].rssi = rssi;
   }
 
@@ -1322,8 +1348,8 @@ ErrorCode CubeRoverNetworkManager :: cb_EventTcpIpEndpointStatus( const uint8_t 
   ErrorCode errorCode = NO_ERROR;
 
   if(localPort != ROVER_UDP_PORT){
-      m_udpConnectSet = true;
-      m_udpSendEndpoint = endpoint;
+    m_udpConnectSet = true;
+    m_udpSendEndpoint = endpoint;
   }
   return errorCode;
 }

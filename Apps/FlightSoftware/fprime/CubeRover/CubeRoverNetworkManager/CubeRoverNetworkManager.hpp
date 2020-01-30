@@ -74,6 +74,7 @@ public:
   ErrorCode UpdateNetworkManager();
   CubeRoverNetworkStateMachine GetState();
   int8_t GetSignalRssi();
+  int8_t CubeRoverNetworkManager :: GetSignalNoiseRatio();
   CubeRoverSignalLevels GetSignalLevel();
 
   void ConnectCallback(const CubeRoverSignalLevels signal,

@@ -153,7 +153,9 @@ class CompFactory:
                 atype   = a.get_type()
                 comment = a.get_comment()
                 size    = a.get_size()
-                arg_obj_list.append(Arg.Arg(name, atype, None, size, comment))
+                unit    = a.get_unit()
+                dgv     = a.get_default_gui_val()
+                arg_obj_list.append(Arg.Arg(name, atype, None, size, comment, unit=unit, default_gui_val=dgv))
             command_obj_list.append(Command.Command(m, o, arg_obj_list, s, p, c, comp_xml_filename,comp_full_name , component_base_name = comp_name , base_opcode = command_obj.get_base_opcode() , full  = f))
 
 

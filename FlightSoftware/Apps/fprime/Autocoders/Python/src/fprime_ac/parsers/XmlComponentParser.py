@@ -312,7 +312,9 @@ class XmlComponentParser(object):
                                     s = arg.attrib['size']
                                 else:
                                     s = None
-                                command_arg_obj = CommandArg(n,t,s)
+                                u = arg.attrib.get('unit', None)
+                                dgv = arg.attrib.get('default_gui_val', None)
+                                command_arg_obj = CommandArg(n,t,s,unit=u,default_gui_val=dgv)
                                 for arg_tag in arg:
                                     # only valid tag in command args is comment
                                     if arg_tag.tag == 'comment':
@@ -1123,11 +1125,13 @@ class CommandArg(object):
     """
     Data container for an command argument
     """
-    def __init__(self,name,type,size=None,comment=None):
+    def __init__(self,name,type,size=None,comment=None,unit=None,default_gui_val=None):
         self.__name = name
         self.__type = type
         self.__size = size
         self.__comment = comment
+        self.__unit = unit
+        self.__default_gui_val = default_gui_val
 
     def get_name(self):
         return self.__name
@@ -1141,6 +1145,14 @@ class CommandArg(object):
         return self.__comment
     def set_comment(self, comment):
         self.__comment = comment
+    def get_unit(self):
+        return self.__unit
+    def set_unit(self, unit):
+        self.__unit = unit
+    def get_default_gui_val(self):
+        return self.__default_gui_val
+    def set_default_gui_val(self, default_gui_val):
+        self.__default_gui_val = default_gui_val
 
 
 class Command(object):

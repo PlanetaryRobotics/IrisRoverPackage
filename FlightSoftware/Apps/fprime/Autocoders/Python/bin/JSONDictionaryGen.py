@@ -188,13 +188,23 @@ def main():
                     typeObj = format_type_item(typeItem)
                     arguments.append(typeObj)
 
+                argument_full_details = []
+                for arg in command.get_args():
+                    arg_details = {}
+                    arg_details["name"] = arg.get_name()
+                    arg_details["unit"] = arg.get_unit()
+                    arg_details["type"] = format_type_item(arg.get_type())
+                    arg_details["default_gui_val"] = arg.get_default_gui_val()
+                    argument_full_details.append(arg_details)
+
                 metadata = {
                     "id": opcode,
                     "name": name,
                     "instance": comp_name,
                     "description": command.get_comment(),
                     "component": component,
-                    "arguments" : arguments
+                    "arguments" : arguments,
+                    "arguments_full_details": argument_full_details
                 }
 
                 commands[opcode] = metadata

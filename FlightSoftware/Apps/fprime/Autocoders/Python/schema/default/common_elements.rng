@@ -265,6 +265,20 @@
                 </attribute>
             </optional>
 
+            <optional>
+                <attribute name = "unit">
+                    <a:documentation>The unit of the argument.</a:documentation>
+                    <data type="string"></data>
+                </attribute>
+            </optional>
+
+            <optional>
+                <attribute name = "default_gui_val">
+                    <a:documentation>The default value to use for this command in the ground frontend.</a:documentation>
+                    <data type="string"></data>
+                </attribute>
+            </optional>
+
             <!-- The interleave is used to mix together Attribute typed paired with an enum element if type = ENUM and a comment block -->
             <interleave>
                 <ref name = "type_size_choice_define"></ref>

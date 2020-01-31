@@ -41,7 +41,7 @@ class Arg(object):
     Note: This class is a container of basic argument information.
     @todo: Serializables might need to be incorperated into this.
     """
-    def __init__(self, name, atype, modifier, size = None, comment=None):
+    def __init__(self, name, atype, modifier, size = None, comment=None, unit=None, default_gui_val=None):
         """
         Constructor
         @param name:  Name of arg (each instance must be unique).
@@ -49,12 +49,16 @@ class Arg(object):
         @param modifier: Modification of the argument (i.e. pointer or reference)
         @param size: size of array of type (string or buffer)
         @param comment:  A single or multline comment
+        @param unit: The unit of the arg (as a string)
+        @param default_gui_val: The default value to use for this arg in the ground frontend (as a string)
         """
         self.__name = name
         self.__type = atype
         self.__modifier = modifier
         self.__size = size
         self.__comment = comment
+        self.__unit = unit
+        self.__default_gui_val = default_gui_val
 
     def get_name(self):
         return self.__name
@@ -66,3 +70,7 @@ class Arg(object):
         return self.__size
     def get_comment(self):
         return self.__comment
+    def get_unit(self):
+        return self.__unit
+    def get_default_gui_value(self):
+        return self.__default_gui_val

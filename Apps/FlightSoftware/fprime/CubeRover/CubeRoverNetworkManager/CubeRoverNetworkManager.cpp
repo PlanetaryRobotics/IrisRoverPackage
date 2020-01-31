@@ -130,7 +130,7 @@ int8_t CubeRoverNetworkManager :: GetSignalRssi(){
  */
 int8_t CubeRoverNetworkManager :: GetSignalNoiseRatio(){
   if(m_landerWifi.channel[m_scanIndex].active == false){
-      return 0xFF;
+    return 0xFF;
   }
 
   return m_landerWifi.channel[m_scanIndex].snr;

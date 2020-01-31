@@ -57,6 +57,7 @@ void main(void)
             g_testBuffer[8] = wf121.GetSignalRssi();
             g_testBuffer[9] = wf121.GetSignalNoiseRatio();
             wf121.SendUdpData(g_testBuffer, payloadSize, 10000);
+            sciSend(scilinREG, payloadSize, g_testBuffer);
         }
     }
 

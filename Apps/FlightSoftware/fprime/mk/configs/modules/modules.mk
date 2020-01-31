@@ -90,13 +90,18 @@ CUBEROVER_DRV_MODULES := \
 	Drv/FreeRtosSerialDriver \
 	Drv/SerialDriverPorts
 
+CUBEROVER_MODULES := \
+	CubeRover/Top \
+	CubeRover/CubeRoverPorts \
+	CubeRover/Led
+
 REF_MODULES := \
 	Ref/Top \
 	Ref/RecvBuffApp \
 	Ref/SendBuffApp \
 	Ref/SignalGen \
 	Ref/PingReceiver
-	
+
 Ref_MODULES := \
 	\
 	$(REF_MODULES) \
@@ -202,8 +207,7 @@ acdev_MODULES := \
 	$(ACDEVTEST_MODULES)
 	
 CubeRover_MODULES := \
-	CubeRover/Top \
-	CubeRover/CubeRoverPorts \
+	$(CUBEROVER_MODULES) \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

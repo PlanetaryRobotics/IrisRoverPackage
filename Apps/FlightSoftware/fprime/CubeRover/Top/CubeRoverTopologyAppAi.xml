@@ -10,6 +10,7 @@
   <import_component_type>Svc/Time/TimeComponentAi.xml</import_component_type>
   <import_component_type>Svc/TlmChan/TlmChanComponentAi.xml</import_component_type>
   <import_component_type>Svc/CmdDispatcher/CommandDispatcherComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/Led/LedComponentAi.xml</import_component_type>
 
 <!-- Declaration of block driver that drive F-prime clocking and other async event -->
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
@@ -28,6 +29,9 @@
 
 <!-- Declaration of the command dispatcher -->
   <instance namespace="Svc" name="cmdDispatcher" type="CommandDispatcher" base_id="201" base_id_window="20" />
+
+<!-- Declaration of the LED -->
+  <instance namespace="CubeRover" name="led" type="Led" base_id="221" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -66,6 +70,12 @@
   <connection name = "rgLowFreq_to_tlmChan_clk">
     <source component = "rateGroupLowFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
     <target component = "tlmChan" port = "Run" type = "Sched" num = "0"/>
+  </connection>
+
+  <!-- Connect output of led Run input to update telemetric content (port 0) --> 
+  <connection name = "rgLowFreq_to_led_clk">
+    <source component = "rateGroupLowFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <target component = "led" port = "Run" type = "Sched" num = "0"/>
   </connection>
 
 <!-- *********************************************************************************************************

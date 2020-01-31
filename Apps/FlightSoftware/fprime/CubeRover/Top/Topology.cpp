@@ -78,6 +78,14 @@ Svc::CommandDispatcherImpl cmdDispatcher(
 #endif
 );
 
+// ---------------------------------------------------------------------------
+// led component used to toggle led
+CubeRover::LedComponentImpl led(
+#if FW_OBJECT_NAMES == 1
+        "Led"
+#endif
+);
+
 /**
  * @brief      Run 1 cycle (debug)
  */
@@ -105,6 +113,8 @@ void constructApp(void){
 
   // Initialize the telemetric channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
+
+  led.init();
 
   // Construct the application and make all connections between components
   constructCubeRoverArchitecture();

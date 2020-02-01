@@ -1,9 +1,9 @@
 CC = g++
-CFLAGS =
+CFLAGS = -I/usr/include/libftdi1
 DEPS =
 OBJ_TX = transmitter.cpp 
 OBJ_RX = receiver.cpp
-LIBS =
+LIBS = -lftdi1
 
 %.o: %.cpp $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)

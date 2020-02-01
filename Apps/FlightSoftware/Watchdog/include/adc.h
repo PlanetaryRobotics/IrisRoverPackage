@@ -9,10 +9,17 @@
 
 #include "buffer.h"
 
+extern unsigned short adc_values[4];
+
 /**
  * @brief Initialize ADC hardware.
  * Sets up the interrupts and whatnot for ADC.
  */
 void adc_init();
+
+/**
+ * @brief Take one ADC sample
+ */
+void adc_sample();
 
 #endif /* __ADC_INC */

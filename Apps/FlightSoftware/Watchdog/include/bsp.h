@@ -9,6 +9,10 @@ void enableHeater();
 
 void disableHeater();
 
+void enable3V3PowerRail();
+
+void disable3V3PowerRail();
+
 void enable24VPowerRail();
 
 void disable24VPowerRail();

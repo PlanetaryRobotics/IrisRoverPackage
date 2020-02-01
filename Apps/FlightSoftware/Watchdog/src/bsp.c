@@ -7,25 +7,25 @@ void initializeGpios(){
   // P1 configuration
   P1DIR &= 0x00;  // All bits as input  
 
+  // UART configuration done in uart_init()
+
   // Configure i2c interface
   P1SEL1 |= BIT6; // P1.6 SDA
   P1SEL1 |= BIT7; // P1.7 SCL
 
+  /*TODO: It may be better coding conventions to use the respective
+   * on/off functions than to set P2OUT directly, in case things change */
   // P2 configuration
-  P2DIR &= 0x00;  
+  P2DIR &= 0x00;
+  P2OUT &= ~(BIT2 | BIT3 | BIT4); // Initially everything is off
   P2DIR |= BIT2;  // P2.2 output Heater
   P2DIR |= BIT3;  // P2.3 output Motor control reset
-  P2DIR |= BIT4;  // P2.4 output Radio ON 
+  P2DIR |= BIT4;  // P2.4 output Radio ON
   P2DIR &= ~BIT7;  // P2.7 input Power good 1V2
 
-  P2SEL1 |= BIT0; // P2.0 UCA0TXD
-  P2SEL1 |= BIT1; // P2.1 UCA0RXD
-
-  P2SEL1 |= BIT5; // P2.5 UCA1TXD
-  P2SEL1 |= BIT6; // P2.6 UCA1RXD
-
   // P3 configuration
-  P3DIR &= 0x00; 
+  P3DIR &= 0x00;
+  P3OUT &= ~(BIT1 | BIT2 | BIT3 | BIT4 | BIT6 | BIT7); // Initially everything is off
   P3DIR &= ~BIT0;  // P3.0 input battery
   P3DIR |= BIT1; // P3.1 output Hercules POR
   P3DIR |= BIT2; // P3.2 output Hercules Reset
@@ -37,111 +37,110 @@ void initializeGpios(){
 
   // P4 configuration
   P4DIR &= 0x00;
+  P4OUT |= BIT6; // Initially everything is off (NOTE: 24V0 OFF = HI)
   P4DIR &= ~BIT4; // P4.4 input power good input (1V8)
   P4DIR &= ~BIT5; // P4.5 input power good input (3V3)
   P4DIR |= BIT6; // P4.6 output 24V0 enable
   P4DIR &= ~BIT7; // P4.7 input power good input (5V0)
-                   
-  //Analog input configuration
-  P4SEL0 |= BIT0; // P4.0 Analog input 8 (VCC 2V5)
-  P4SEL1 |= BIT0; // P4.0 Analog input 8 (VCC 2V5)
 
-  P4SEL0 |= BIT1; // P4.1 Analog input 9 (VCC 2V8)
-  P4SEL1 |= BIT1; // P4.1 Analog input 9 (VCC 2V8)
-
-  P4SEL0 |= BIT2; // P4.2 Analog input 10 (VCC 28V0)
-  P4SEL1 |= BIT2; // P4.2 Analog input 10 (VCC 28V0)
-
-  P4SEL0 |= BIT3; // P4.3 Analog input 11 (VCC 24V0)
-  P4SEL1 |= BIT3; // P4.3 Analog input 11 (VCC 24V0)
+  //Analog input configuration done in adc_init()
 
   // PJ configuration
+  PJOUT &= ~(BIT0 | BIT1 | BIT2); // Initially everything is off
   PJDIR &= 0x00;
   PJDIR |= BIT0; // PJ.0 output Hercules ON
   PJDIR |= BIT1; // PJ.1 output FPGA ON
   PJDIR |= BIT2; // PJ.2 output MOTORS ON
-  PJDIR &= ~BIT3; // PJ.3 input CHRG 
+  PJDIR &= ~BIT3; // PJ.3 input CHRG
 }
 
-
 /**
- * @brief      Enables the heater.
+ * @brief      Enables the heater. (HI = ON)
  */
 inline void enableHeater(){ P2OUT |= BIT2; }
 
 /**
- * @brief      Disables the heater.
+ * @brief      Disables the heater. (LO = OFF)
  */
 inline void disableHeater(){ P2OUT &= ~BIT2; }
 
 /**
- * @brief      Enables the 24 v power rail.
+ * @brief      Enables the 3.3 v power rail. (HI = ON)
  */
-inline void enable24VPowerRail() { P4DIR &= ~BIT6; P4OUT &= ~BIT6; }
+inline void enable3V3PowerRail() { P3OUT |= BIT7; }
 
 /**
- * @brief      Disables the 24 v power rail.
+ * @brief      Disables the 3.3 v power rail. (LO = OFF)
  */
-inline void disable24VPowerRail() { P4DIR |= BIT6; P4OUT |= BIT6; }
+inline void disable3V3PowerRail() { P3OUT &= ~BIT7; }
 
 /**
- * @brief      Releases a hercules reset.
+ * @brief      Enables the 24 v power rail. (LO = ON)
  */
-inline void releaseHerculesReset() { P3OUT |= BIT1 + BIT2; }
+inline void enable24VPowerRail() { P4OUT &= ~BIT6; }
 
 /**
- * @brief      Sets the hercules reset.
+ * @brief      Disables the 24 v power rail. (HI = OFF)
  */
-inline void setHerculesReset() { P3OUT &= ~(BIT1 + BIT2); }
+inline void disable24VPowerRail() { P4OUT |= BIT6; }
 
 /**
- * @brief      Releases a radio reset.
+ * @brief      Releases a hercules reset. (HI = NORMAL)
+ */
+inline void releaseHerculesReset() { P3OUT |= BIT1 | BIT2; }
+
+/**
+ * @brief      Sets the hercules reset. (LO = RESET)
+ */
+inline void setHerculesReset() { P3OUT &= ~(BIT1 | BIT2); }
+
+/**
+ * @brief      Releases a radio reset. (HI = NORMAL)
  */
 inline void releaseRadioReset() { P3OUT |= BIT3; }
 
 /**
- * @brief      Sets the radio reset.
+ * @brief      Sets the radio reset. (LO = RESET)
  */
 inline void setRadioReset() { P3OUT &= ~BIT3; }
 
 /**
- * @brief      Releases a fpga reset.
+ * @brief      Releases a fpga reset. (HI = NORMAL)
  */
 inline void releaseFPGAReset() { P3OUT |= BIT6; }
 
 /**
- * @brief      Sets the fpga reset.
+ * @brief      Sets the fpga reset. (LO = RESET)
  */
 inline void setFPGAReset() { P3OUT &= ~BIT6; }
 
 /**
- * @brief      Power the hercules MCU
+ * @brief      Power the hercules MCU (HI = ON)
  */
 inline void powerOnHercules() { PJOUT |= BIT0; }
 
-
 /**
- * @brief      Power off the hercules MCU
+ * @brief      Power off the hercules MCU (LO = OFF)
  */
 inline void powerOffHercules() { PJOUT &= ~BIT0; }
 
-
 /**
- * @brief      Power on the FPGA
+ * @brief      Power on the FPGA (HI = ON)
  */
 inline void powerOnFpga() { PJOUT |= BIT1; }
 
 /**
- * @brief      Power off the FPGA
+ * @brief      Power off the FPGA (LO = OFF)
  */
 inline void powerOffFpga() { PJOUT &= BIT1; }
 
 /**
- * @brief      Power on the motors
+ * @brief      Power on the motors (HI = ON)
  */
 inline void powerOnMotors() { PJOUT |= BIT2; }
 
 /**
- * @brief      Power off the motors
+ * @brief      Power off the motors (LO = OFF)
  */
 inline void powerOffMotors() { PJOUT &= BIT2; }
+

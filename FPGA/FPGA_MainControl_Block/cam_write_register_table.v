@@ -122,6 +122,7 @@ module cam_write_register_table(input           sysClk, //clock
 
 										  /*all cam stuff*/
 										  output        cam_id,
+											output [9:0]  timestamp,
 											output 				trigger,
 											output[15:0] 	trigger_index
 										  output        output_valid
@@ -134,6 +135,7 @@ module cam_write_register_table(input           sysClk, //clock
 					reg [7:0] cam_i2c_byte_out_r;
 					reg trigger_r;
 					reg[15:0] trigger_index_r;
+					reg[9:0] timestamp_r;
 
 					assign output_valid = output_valid_r;
 					assign cam_id = cam_id_r;
@@ -142,7 +144,7 @@ module cam_write_register_table(input           sysClk, //clock
 					assign cam_i2c_byte_out = cam_i2c_byte_out_r;
 					assign trigger_index = trigger_index_r;
 					assign trigger = trigger_r;
-
+					assign timestamp_r = timestamp;
 
 
 					wire [4:0] byte_counter_w;
@@ -217,6 +219,7 @@ module cam_write_register_table(input           sysClk, //clock
 								if(reg_addr == 8'h01) begin
 									trigger_r <= 1;
 									trigger_index_r <= reg_data[16:1];
+									timestamp_r <= reg_data[26:44];
 									cam_id_r <= reg_data[0];
 									bytes_vals_valid_r <= 1;
 								end

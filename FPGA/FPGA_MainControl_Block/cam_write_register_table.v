@@ -6,18 +6,6 @@
 	 Row bin  -> set of instr for img sensor
 	 Column bin  -> set of instr for img sensor
 */
-
-module cam_val_converter(input[2:0] val_type,
-								 input[2:0] step,
-								 input[31:0] val_in,
-
-								 output[15:0] val_out
-								 );
-
-
-endmodule
-
-
 module cam_i2c_command_map(
 						       input[7:0]   reg_addr,
 						       input[63:0]  reg_data,
@@ -34,61 +22,80 @@ module cam_i2c_command_map(
 				assign cam_i2c_byte = byte_out_r;
 
 				always@(*) begin
+				  if(valid_input) begin
+						all_bytes_out = 0;
 						if((reg_addr == 8'h02) | (reg_addr == 8'h03))begin //shutter width upper, shutter width lower, and shutter delay
 								case(byte_counter) begin
-									5'b00000: byte_out_r <= 8'h08; //shutter width upper reg addr
-									5'b00001: byte_out_r <= 8'h00;
-									5'b00010: byte_out_r <= {4'b0000, reg_data[22:19]};
+									5'b00000: byte_out_r = 8'h08; //shutter width upper reg addr
+									5'b00001: byte_out_r = 8'h00;
+									5'b00010: byte_out_r = {4'b0000, reg_data[22:19]};
 
-									5'b00011: byte_out_r <= 8'h09; //shutter width lower reg addr
-									5'b00100: byte_out_r <= reg_data[18:11];
-									5'b00101: byte_out_r <= reg_data[10:3];
+									5'b00011: byte_out_r = 8'h09; //shutter width lower reg addr
+									5'b00100: byte_out_r = reg_data[18:11];
+									5'b00101: byte_out_r = reg_data[10:3];
 
-									5'b00110: byte_out_r <= 8'h0C; //shutter delay addr
-									5'b00111: byte_out_r <= {3'b000, reg_data[35:31]};
-									5'b01000: byte_out_r <= reg_data[30:23];
+									5'b00110: byte_out_r = 8'h0C; //shutter delay addr
+									5'b00111: byte_out_r = {3'b000, reg_data[35:31]};
+									5'b01000: byte_out_r = reg_data[30:23];
 
-									5'b01001: byte_out_r <= 8'h22; // Row Address Mode (for Row Bin)
-									5'b01010: byte_out_r <= ;
-									5'b01011: byte_out_r <= ;
+									5'b01001: byte_out_r = 8'h22; // Row Address Mode (for Row Bin)
+									5'b01010: byte_out_r = 8'h00;
+									5'b01011: byte_out_r = {2'b00, reg_data[37:36], 4'h0};
 
-									5'b01100: byte_out_r <= 8'h23; //Column Address Mode (for Col Bin)
-									5'b01101: byte_out_r <= ;
-									5'b01110: byte_out_r <= ;
+									5'b01100: byte_out_r = 8'h23; //Column Address Mode (for Col Bin)
+									5'b01101: byte_out_r = 8'h00;
+									5'b01110: byte_out_r = {2'b00, reg_data[39:38], 4'h0};
 
-									5'b01111: byte_out_r <= 8'h05; //Horizontal Blanking
-									5'b1001: byte_out_r <= ;
-									5'b1001: byte_out_r <= ;
+									5'b01111: byte_out_r = 8'h05; //Horizontal Blanking
+									5'b10000: byte_out_r = {4'h0, reg_data[51:48]};
+									5'b10001: byte_out_r = reg_data[47:40];
 
-									5'b1001: byte_out_r <= 8'h06; //Vertical Blanking
-									5'b1001: byte_out_r <= ;
-									5'b1001: byte_out_r <= ;
+									5'b10010: byte_out_r = 8'h06; //Vertical Blanking
+									5'b10011: byte_out_r = {5'b00000, reg_data[62:60]};
+									5'b10100: byte_out_r = reg_data[59:52];
 
-
-									default: byte_out_r <= ;
+									default: byte_out_r = 8'h00;
 								endcase
-						end
+
+								cam_i2c_output_valid = 1;
+								if(byte_counter == 5'b10100) begin
+									all_bytes_out = 1;
+								end
+					  end //if((reg_addr == 8'h02) | (reg_addr == 8'h03))
 
 						else if((reg_addr == 8'h05) | (reg_addr == 8'h06)) begin
-						case(byte_counter) begin
-							4'b0000: byte_out_r <= 8'h01; //Row Start
-							4'b0001: byte_out_r <= ;
-							4'b0010: byte_out_r <= ;
-							4'b0011: byte_out_r <= 8'h02; //Column Start
-							4'b0100: byte_out_r <= ;
-							4'b0101: byte_out_r <= ;
-							4'b0110: byte_out_r <= 8'h03; // Row size
-							4'b0111: byte_out_r <= ;
-							4'b1000: byte_out_r <= ;
-							4'b1001: byte_out_r <= 8'h04; //column size
-							4'b1010: byte_out_r <= ;
-							4'b1011: byte_out_r <= ;
-							default: byte_out_r <= ;
-						endcase
-						end
+								case(byte_counter) begin
+									5'b00000: byte_out_r = 8'h01; //Row Start
+									5'b00001: byte_out_r = {5'b00000, reg_addr[10:8]};
+									5'b00010: byte_out_r = reg_addr[7:0];
+
+									5'b00011: byte_out_r = 8'h02; //Column Start
+									5'b00100: byte_out_r = {4'b0000, reg_addr[22:19]};
+									5'b00101: byte_out_r = reg_addr[18:11];
+
+									5'b00110: byte_out_r = 8'h03; // Row size
+									5'b00111: byte_out_r = {5'b00000, reg_addr[33:31]};
+									5'b01000: byte_out_r = reg_addr[30:23];
+
+									5'b01001: byte_out_r = 8'h04; //column size
+									5'b01010: byte_out_r = {4'b0000, reg_addr[45:42]};
+									5'b01011: byte_out_r = reg_addr[41:34];
+
+									default: byte_out_r = 8'h00;
+								endcase
+
+								cam_i2c_output_valid = 1;
+								if(byte_counter == 5'b01011) begin
+									all_bytes_out = 1;
+								end
+						end //else if((reg_addr == 8'h05) | (reg_addr == 8'h06))
 						else begin
 
-						end
+						end //else
+					end //if(valid_input)
+					else begin
+							cam_i2c_output_valid = 0;
+					end
 				end
 
 
@@ -125,13 +132,18 @@ module cam_write_register_table(input           sysClk, //clock
 					reg [1:0] compression_r;
 					reg RGB_r;
 					reg [7:0] cam_i2c_byte_out_r;
-
+					reg trigger_r;
+					reg[15:0] trigger_index_r;
 
 					assign output_valid = output_valid_r;
 					assign cam_id = cam_id_r;
 					assign compression = compression_r;
 					assign RGB = RGB_r;
 					assign cam_i2c_byte_out = cam_i2c_byte_out_r;
+					assign trigger_index = trigger_index_r;
+					assign trigger = trigger_r;
+
+
 
 					wire [4:0] byte_counter_w;
 					reg  [4:0] byte_counter_r;
@@ -142,26 +154,74 @@ module cam_write_register_table(input           sysClk, //clock
 					wire 		valid_input_for_commandmap;
 					wire[7:0] byte_out_from_commandmap;
 					wire byte_valid_out_from_commandmap;
-					wire all_instr_out_flag;
+					wire all_byte_out_flag;
+
+					reg valid_input_for_commandmap_r;
+
+					assign valid_input_for_commandmap = valid_input_for_commandmap_r;
+
+					cam_i2c_command_map cicm(
+													reg_addr,
+													reg_data,
+													valid_input_for_commandmap,
+													byte_counter_w,
+
+													byte_out_from_commandmap,
+													byte_valid_out_from_commandmap,
+													all_byte_out_flag
+										);
+
+					wire other_vals_valid;
+					reg other_vals_valid_r;
+
+					assign other_vals_valid = other_vals_valid_r;
+
+					wire bytes_vals_valid;
+					reg bytes_vals_valid_r;
+
+					assign bytes_vals_valid = bytes_vals_valid_r;
+
+					assign output_valid = ((~reg_addr[2]) & bytes_vals_valid & other_vals_valid) | bytes_vals_valid;
 
 
-					always@(posedge clock) begin
+					always@(posedge sysClk) begin
 							if(intr_valid_input) begin
-								cam_id_r <= (reg_addr == 8'h02);
-								if() begin
+								byte_counter_r <= 0;
+								valid_input_for_commandmap_r <= 1;
+								if(byte_valid_out_from_commandmap) begin
+									valid_input_for_commandmap_r <= 0;
+									 cam_i2c_byte_out_r <= byte_out_from_commandmap;
+									 cam_id_r <= ((reg_addr == 8'h03) | (reg_addr == 8'h06));
+									 bytes_vals_valid_r <= 1;
+								end
 
-								end
-								if(~reg_addr[2]) begin //for the configs
-										compression_r <= reg_data[1:0];
-										RGB_r <= reg_data[2];
-								end
-								else begin //for the crops
-
-								end
+								byte_counter_r <= byte_counter_w + 1;
+								bytes_vals_valid_r <= 0;
 							end
 					end
 
 
+					always@(posedge sysClk) begin
+							if(intr_valid_input) begin
+								if(~reg_addr[2]) begin
+									RGB_r <= reg_data[2];
+									compression_r <= reg_data[1:0];
+									other_vals_valid_r <= 1;
+								end
+								else begin
+									RGB_r <= 0;
+									compression_r <= 0;
+									other_vals_valid_r <= 0;
+								end
+
+								if(reg_addr == 8'h01) begin
+									trigger_r <= 1;
+									trigger_index_r <= reg_data[16:1];
+									cam_id_r <= reg_data[0];
+									bytes_vals_valid_r <= 1;
+								end
+							end
+					end
 
 
 

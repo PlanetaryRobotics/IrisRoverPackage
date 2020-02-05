@@ -49,6 +49,7 @@ int main(void)
     releaseHerculesReset();
     releaseRadioReset();
     releaseFPGAReset();
+    releaseMotorControllerReset();
 
     // Enable UART module
     EUSCI_A_UART_enable(EUSCI_A0_BASE); // Hercules

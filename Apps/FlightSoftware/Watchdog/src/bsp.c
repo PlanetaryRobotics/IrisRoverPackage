@@ -111,6 +111,16 @@ inline void releaseHerculesReset() { P3OUT |= BIT1 + BIT2; }
 inline void setHerculesReset() { P3OUT &= ~(BIT1 + BIT2); }
 
 /**
+ * @brief      Release motor control reset.
+ */
+inline void releaseMotorControllerReset() { P2OUT |= BIT3; }
+
+/**
+ * @brief      Set motor control reset.
+ */
+inline void setMotorControllerReset() { P2OUT &= ~BIT3; }
+
+/**
  * @brief      Releases a radio reset.
  */
 inline void releaseRadioReset() { P3OUT |= BIT3; }

@@ -25,7 +25,7 @@ void initializeGpios(){
   // P2 configuration
   P2DIR &= 0x00;  
   P2DIR |= BIT2;  // P2.2 output Heater
-  P2DIR |= BIT3;  // P2.3 output Motor control reset
+  //P2DIR |= BIT3;  // P2.3 output Motor control reset
   P2DIR |= BIT4;  // P2.4 output Radio ON 
   P2DIR |= BIT5;  // P2.5 output UCA1TXD
   P2DIR &= ~BIT7;  // P2.7 input Power good 1V2

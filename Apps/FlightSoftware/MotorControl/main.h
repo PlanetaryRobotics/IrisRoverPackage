@@ -1,8 +1,11 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
-#define CLOCK_FREQUENCY     16 //MHz
-#define PWM_FREQUENCY       20 //KHz
+#include "driverlib.h"
+#include "bsp.h"
+#include "math.h"
+
+#define PWM_PERIOD_TICKS    400     // 20KHz @ 16MHz
 
 
 

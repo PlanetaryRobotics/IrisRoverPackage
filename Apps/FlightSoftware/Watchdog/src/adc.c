@@ -55,11 +55,10 @@ void adc_init() {
     // Implicitly sets data encoding mode to unsigned binary and disables low power mode
     ADC12CTL2 = ADC12RES_2;
 
-    // CSTARTADD_0 = start converting at memory slot 0
-    ADC12CTL3 = ADC12CSTARTADD0;
+    // Implicitly start reading at MEM0
+    ADC12CTL3 = 0;
 
-    // enable interrupts for the various
-    // TODO: where are interrupts mentioned for the ADC in the user guide?
+    // enable interrupts for each reading
     ADC12IER0 = ADC12IE0 | ADC12IE1 | ADC12IE2 | ADC12IE3;
 
     //ADC12SSELx
@@ -79,21 +78,28 @@ void adc_init() {
     /* note that using equals signs implicitly disable comparators, disable
      * differential mode, and uses VCC (3V3) and VSS (0V) as references
      */
-    ADC12MCTL0 = ADC12INCH_0; // P4.0 stored in MEM0
-    ADC12MCTL1 = ADC12INCH_1; // P4.1 stored in MEM1
-    ADC12MCTL2 = ADC12INCH_2; // P4.2 stored in MEM2
-    ADC12MCTL3 = ADC12INCH_3 | ADC12EOS; // P4.3 stored in MEM3 (also, EOS)
+    ADC12MCTL0 = ADC12INCH_8; // A8 = P4.0 stored in MEM0
+    ADC12MCTL1 = ADC12INCH_9; // A9 = P4.1 stored in MEM1
+    ADC12MCTL2 = ADC12INCH_10; // A10 = P4.2 stored in MEM2
+    ADC12MCTL3 = ADC12INCH_11 | ADC12EOS; // A11 = P4.3 stored in MEM3 (also, EOS)
 }
+
+unsigned short adc_readings_3 = 0;
 
 /**
  * @brief take one sample of the ADC
  */
 inline void adc_sample() {
+    // wait until existing sample done
+    while (ADC12CTL1 & ADC12BUSY) { __no_operation(); }
     // take one sample of the ADC
-    ADC12CTL0 |= ADC12SC;
+    ADC12CTL0 |= ADC12SC | ADC12ENC;
+    adc_readings_3 += 1;
 }
 
-unsigned short adc_values[4] = {0,0,0,0};
+volatile unsigned short adc_values[4] = {0,0,0,0};
+volatile unsigned short adc_readings = 0;
+volatile unsigned short adc_readings_2 = 0;
 
 // Interrupt handler for when the ADC has completed a reading
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
@@ -106,19 +112,21 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
 #endif
 {
     __no_operation();
+    adc_readings += 1;
     switch (__even_in_range(ADC12IV, ADC12IV_ADC12RDYIFG))
     {
         case ADC12IV_ADC12IFG0: // ADC12IE0 interrupt
             adc_values[0] = ADC12MEM0; // Save MEM0
-            break;
+            adc_readings_2 += 1;
         case ADC12IV_ADC12IFG1: // ADC12IE1 interrupt
             adc_values[1] = ADC12MEM1; // Save MEM1
-            break;
+            adc_readings_2 += 1;
         case ADC12IV_ADC12IFG2: // ADC12IE2 interrupt
             adc_values[2] = ADC12MEM2; // Save MEM2
-            break;
+            adc_readings_2 += 1;
         case ADC12IV_ADC12IFG3: // ADC12IE3 interrupt
             adc_values[3] = ADC12MEM3; // Save MEM3
+            adc_readings_2 += 1;
             break;
         default: break;
     }

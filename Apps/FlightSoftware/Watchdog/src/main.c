@@ -36,12 +36,12 @@ int main(void)
     adc_sample();
 
     //powerOnHercules();
-    //powerOnFpga();
+    powerOnFpga();
     //powerOnMotors();
 
     //releaseHerculesReset();
     //releaseRadioReset();
-    //releaseFPGAReset();
+    releaseFPGAReset();
 
     __bis_SR_register(GIE); // Enable all interrupts
 
@@ -52,12 +52,3 @@ int main(void)
 
 	return 0;
 }
-
-
-// Timer A0 interrupt service routine
-#pragma vector=TIMER0_A0_VECTOR
-__interrupt void Timer_A (void)
-{
-    P1OUT ^= BIT0;
-}
-

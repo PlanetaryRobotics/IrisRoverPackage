@@ -9,7 +9,7 @@
 
 #include "buffer.h"
 
-extern unsigned short adc_values[4];
+extern volatile unsigned short adc_values[4];
 
 /**
  * @brief Initialize ADC hardware.

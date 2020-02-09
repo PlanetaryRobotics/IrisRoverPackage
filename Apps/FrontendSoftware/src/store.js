@@ -7,6 +7,7 @@ import IMG from '@/components/ImageViewer/store.js'
 import SAND from '@/components/Sandboxes/store.js'
 import ATOMIC from "@/components/atomic/store.js"
 import MAP from '@/components/Map/store.js'
+import POI from '@/components/POI/store.js';
 
 Vue.use(Vuex)
 
@@ -16,7 +17,8 @@ export default new Vuex.Store({
     IMG,
     SAND,
     ATOMIC,
-    MAP
+    MAP,
+    POI
   },
 
   // Store Assets Unrelated to Any Major Component:

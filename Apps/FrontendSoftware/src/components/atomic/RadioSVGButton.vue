@@ -183,10 +183,11 @@ export default {
 /* The container */
 .container {
   color: white;
-  display: block;
+  display: flex;
+  justify-content: center;
   font-size: 1.5rem;
   position: relative;
-  margin: 2rem;
+  // margin: 2rem;
   cursor: pointer;
   -webkit-user-select: none;
   -moz-user-select: none;

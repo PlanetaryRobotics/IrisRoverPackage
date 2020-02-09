@@ -116,7 +116,6 @@ export default {
   text-decoration: none;
   display: inline-block;
   font-size: 1.5rem;
-  margin: 2rem;
   cursor: pointer;
 }
 

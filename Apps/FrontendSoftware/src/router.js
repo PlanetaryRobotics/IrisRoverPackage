@@ -7,7 +7,7 @@ import Home from './views/Home.vue'
 
 // Sandboxes:
 // import AtomicTest from './views/sandboxes/AtomicTest.vue' // NB: just importing this breaks the app ...
-// import MapTest from './views/sandboxes/MapTest.vue'
+import MapTest from './views/sandboxes/MapTest.vue'
 
 import { remote } from 'electron'
 
@@ -26,11 +26,11 @@ export default new Router({
       path: '/home',
       name: 'home',
       component: Home
-    }/*,
+    },
     {
       path: '/sandbox_mapTest',
       name: 'sandbox_mapTest',
       component: MapTest
-    }*/
+    }
   ]
 });

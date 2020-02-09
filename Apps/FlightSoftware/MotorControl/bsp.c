@@ -17,6 +17,10 @@ void initializeGpios(){
                                               GPIO_SECONDARY_MODULE_FUNCTION);
 
   // Configure Port 2
+  GPIO_setAsInputPin(GPIO_PORT_P2,
+                     GPIO_PIN5 + /* V */
+                     GPIO_PIN6 /* U */);
+
   GPIO_setAsOutputPin(GPIO_PORT_P2,
                       GPIO_PIN1 /* LOW_C */ +
                       GPIO_PIN2 /* HIGH_C */);

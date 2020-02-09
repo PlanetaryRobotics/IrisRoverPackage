@@ -1,17 +1,28 @@
 #include "main.h"
 
-float g_currentPhaseA;
-float g_currentPhaseB;
-float g_currentPhaseC;
+_iq g_currentPhaseA;
+_iq g_currentPhaseB;
+_iq g_currentPhaseC;
 
 // Used for calibration
 volatile bool g_calibrating;
 volatile bool g_calibrationDone;
-volatile uint16_t g_currentOffsetPhaseA;
-volatile uint16_t g_currentOffsetPhaseB;
-volatile uint16_t g_currentOffsetPhaseC;
+volatile _iq g_currentOffsetPhaseA;
+volatile _iq g_currentOffsetPhaseB;
+volatile _iq g_currentOffsetPhaseC;
+volatile _iq g_currentSpeed;
 
-uint8_t g_commState;
+volatile uint8_t g_commState;
+HallSensor g_hallSensor;
+
+int32_t g_currentPosition;
+int32_t g_targetPosition;
+
+volatile uint8_t g_controlPrescaler;
+uint8_t g_hallMap[8];
+
+PI_CONTROLLER g_piSpd;
+PI_CONTROLLER g_piCur;
 
 void initializePwmModules(){
     //Start Timer
@@ -62,47 +73,49 @@ void initializePwmModules(){
 }
 
 inline void setPwmAPeriod(uint16_t period){
-    Timer_B_setCompareValue(TIMER_B0_BASE, PWMA_H_CCR_REGISTER, PWM_PERIOD_TICKS - period);
+    HWREG16(TIMER_B0_BASE + PWMA_H_CCR_REGISTER + OFS_TBxR) = PWM_PERIOD_TICKS - period;
 }
 
 inline void setPwmBPeriod(uint16_t period){
-    Timer_B_setCompareValue(TIMER_B0_BASE, PWMB_H_CCR_REGISTER, PWM_PERIOD_TICKS - period);
+    HWREG16(TIMER_B0_BASE + PWMB_H_CCR_REGISTER + OFS_TBxR) = PWM_PERIOD_TICKS - period;
 }
 
 inline void setPwmCPeriod(uint16_t period){
-    Timer_B_setCompareValue(TIMER_B0_BASE, PWMC_H_CCR_REGISTER, PWM_PERIOD_TICKS -period);
+    HWREG16(TIMER_B0_BASE + PWMC_H_CCR_REGISTER + OFS_TBxR) = PWM_PERIOD_TICKS - period;
 }
 
 inline void enableHalfBridgeA() {
-    GPIO_setOutputHighOnPin(GPIO_PORT_P3, GPIO_PIN6);
+    P3OUT |= GPIO_PIN6;
 }
 
 inline void disableHalfBridgeA() {
-    GPIO_setOutputLowOnPin(GPIO_PORT_P3, GPIO_PIN6);
+    P3OUT &= ~GPIO_PIN6;
 }
 
 inline void enableHalfBridgeB() {
-    GPIO_setOutputHighOnPin(GPIO_PORT_P3, GPIO_PIN4);
+    P3OUT |= GPIO_PIN4;
 }
 
 inline void disableHalfBridgeB() {
-    GPIO_setOutputLowOnPin(GPIO_PORT_P3, GPIO_PIN4);
+    P3OUT &= ~GPIO_PIN4;
 }
 
 inline void enableHalfBridgeC() {
-    GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN1);
+    P2OUT |= GPIO_PIN1;
 }
 
 inline void disableHalfBridgeC() {
-    GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN1);
+    P2OUT &= ~GPIO_PIN1;
 }
 
 inline void enableGateDriver(){
     GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    __delay_cycles(1600000);    // 100 ms
 }
 
 inline void disableGateDriver(){
     GPIO_setOutputLowOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    __delay_cycles(1600000);    // 100 ms
 }
 
 void initializeAdcModule(){
@@ -151,10 +164,11 @@ void initializeAdcModule(){
 }
 
 void currentOffsetCalibration(){
-    enableGateDriver();
     // Enable calibration
     GPIO_setOutputHighOnPin(GPIO_PORT_P4,
                             GPIO_PIN4);
+
+    enableGateDriver();
 
     g_calibrationDone = false;
     g_calibrating = true;
@@ -180,63 +194,121 @@ void initializeI2cModule(){
     EUSCI_B_I2C_initSlave(EUSCI_B0_BASE, &i2cParam);
 }
 
-inline void pwmGenerator(const uint8_t state, float dutyCycle){
-    uint16_t period;
-    uint16_t periodCmpl;
-    period = (dutyCycle * PWM_PERIOD_TICKS * 0.5) + PWM_PERIOD_TICKS * 0.5;
-    periodCmpl = PWM_PERIOD_TICKS - period;
-    switch(state){
+inline void pwmGenerator(const uint8_t commutation, _iq dutyCycle){
+    uint16_t dc; //duty cycle
+    uint16_t dcCmpl; //complement
+
+    // Normalize duty cycle -1.0 < dc < +1.0 to 0 < dc < 512
+    dc = (uint16_t)(dutyCycle >> 7) + PWM_HALF_PERIOD_TICKS;
+    dcCmpl = PWM_PERIOD_TICKS - dc;
+
+    switch(commutation){
     case 1:
-        setPwmAPeriod(period);
+        setPwmAPeriod(dc);
         enableHalfBridgeA();
-        setPwmBPeriod(periodCmpl);
+        setPwmBPeriod(dcCmpl);
         enableHalfBridgeB();
         setPwmCPeriod(0);
         disableHalfBridgeC();
         break;
     case 2:
-        setPwmAPeriod(period);
+        setPwmAPeriod(dc);
         enableHalfBridgeA();
         setPwmBPeriod(0);
         disableHalfBridgeB();
-        setPwmCPeriod(periodCmpl);
+        setPwmCPeriod(dcCmpl);
         enableHalfBridgeC();
         break;
     case 3:
         setPwmAPeriod(0);
         disableHalfBridgeA();
-        setPwmBPeriod(period);
+        setPwmBPeriod(dc);
         enableHalfBridgeB();
-        setPwmCPeriod(periodCmpl);
+        setPwmCPeriod(dcCmpl);
         enableHalfBridgeC();
         break;
     case 4:
-        setPwmAPeriod(periodCmpl);
+        setPwmAPeriod(dcCmpl);
         enableHalfBridgeA();
-        setPwmBPeriod(period);
+        setPwmBPeriod(dc);
         enableHalfBridgeB();
         setPwmCPeriod(0);
         disableHalfBridgeC();
         break;
     case 5:
-        setPwmAPeriod(periodCmpl);
+        setPwmAPeriod(dcCmpl);
         enableHalfBridgeA();
         setPwmBPeriod(0);
         disableHalfBridgeB();
-        setPwmCPeriod(period);
+        setPwmCPeriod(dc);
         enableHalfBridgeC();
         break;
     case 6:
         setPwmAPeriod(0);
         disableHalfBridgeA();
-        setPwmBPeriod(periodCmpl);
+        setPwmBPeriod(dcCmpl);
         enableHalfBridgeB();
-        setPwmCPeriod(period);
+        setPwmCPeriod(dc);
         enableHalfBridgeC();
         break;
     default:
         break;
     }
+}
+
+inline void readHallSensor(){
+    g_hallSensor.pattern = (P4IN & GPIO_PIN3) << 2;   // W
+    g_hallSensor.pattern |= (P2IN & GPIO_PIN5) << 1;  // V
+    g_hallSensor.pattern |= (P2IN & GPIO_PIN6);       // U
+    g_hallSensor.event = g_hallSensor.pattern ^ g_hallSensor.oldPattern;
+    g_hallSensor.oldPattern = g_hallSensor.pattern;
+    if(g_hallSensor.pattern == 7) g_hallSensor.error = 1;
+    if(g_hallSensor.pattern == 0) g_hallSensor.error = 1;
+}
+
+void initializeHallInterface(){
+    g_hallMap[0] = 7;
+    g_hallMap[7] = 7;
+
+    g_hallMap[5] = 1;
+    g_hallMap[1] = 2;
+    g_hallMap[3] = 3;
+    g_hallMap[2] = 4;
+    g_hallMap[6] = 5;
+    g_hallMap[4] = 6;
+}
+
+void resetPiController(PI_CONTROLLER *pi){
+    pi->i1 = _IQ(0.0);
+    pi->ui = _IQ(0.0);
+    pi->v1 = _IQ(0.0);
+    pi->up = _IQ(0.0);
+    pi->Umax = _IQ(1.0);
+    pi->Umin = _IQ(-1.0);
+}
+
+inline _iq _IQ15mpy_inline(_iq iq31Arg1, _iq iq31Arg2){
+    uint32_t ui31Result;
+    uint16_t *ptr = (uint16_t *)&ui31Result + 1;
+    uint16_t *ptrArg1 = (uint16_t *)&iq31Arg1 + 1;
+    uint16_t *ptrArg2 = (uint16_t *)&iq31Arg2 + 1;
+
+    /* Set the multiplier to fractional mode. */
+    MPY32CTL0 = MPYFRAC;
+    /* Perform multiplication and save result. */
+    MPYS32L = iq31Arg1;
+    MPYS32H = *ptrArg1;
+    OP2L = iq31Arg2;
+    OP2H = *ptrArg2;
+    asm(" NOP");
+    asm(" NOP");
+    asm(" NOP");
+    asm(" NOP");
+    asm(" NOP");
+    ui31Result = RES1;
+    *ptr = RES2;
+
+    return (_iq)ui31Result;
 }
 
 void main(void){
@@ -253,54 +325,88 @@ void main(void){
     CS_initClockSignal(CS_MCLK,CS_DCOCLK_SELECT,CS_CLOCK_DIVIDER_1);
 
     // Initialize global variables
-    g_calibrating = false;
     g_currentOffsetPhaseA = 0;
     g_currentOffsetPhaseB = 0;
     g_currentOffsetPhaseC = 0;
     g_commState = 1;
+    g_hallSensor.pattern = 0;
+    g_hallSensor.oldPattern = 0;
+    g_currentPosition = 0;
+    g_targetPosition = 0;
+    g_controlPrescaler = PI_CONTROL_PRESCALER;
+
+    resetPiController(&g_piSpd);
+    resetPiController(&g_piCur);
+
+    g_piSpd.Kp = _IQ(KP_SPD);
+    g_piSpd.Ki = _IQ(KI_SPD);
+    g_piCur.Kp = _IQ(KP_CUR);
+    g_piCur.Ki = _IQ(KI_CUR);
+
+    g_piSpd.Ref = _IQ(0.1);
 
     //initializeI2cModule();
     initializePwmModules();
     initializeAdcModule();
+    initializeHallInterface();
 
     __bis_SR_register(GIE);
 
     currentOffsetCalibration();
 
-
-
-    setPwmAPeriod(25);
-    enableHalfBridgeA();
-    setPwmBPeriod(200);
-    enableHalfBridgeB();
-    setPwmCPeriod(75);
-    enableHalfBridgeC();
+    enableGateDriver();
 
     while(1);
 
 }
 
-// Control Loop
+// Capture current
 #pragma CODE_SECTION(TIMER0_B0_ISR, ".TI.ramfunc")
 #pragma vector=TIMER0_B0_VECTOR
 __interrupt void TIMER0_B0_ISR (void){
-    float dutyCycle = 0.25;
 
     // Prepare ADC conversion for next round
     HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) &= ~(ADC12ENC);
     HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) |= ADC12ENC + ADC12SC;
 
-    uint16_t interruptSrc = __even_in_range(TB0IV,14);
     if(g_calibrating){
        g_currentOffsetPhaseA = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_0));
        g_currentOffsetPhaseB = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_1));
        g_currentOffsetPhaseC = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_2));
-       //g_calibrationDone = true;
+       g_calibrationDone = true;
        return;
     }
-    else{
-       // pwmGenerator(g_commState, dutyCycle);
+
+    if(!g_calibrationDone) return;
+
+    readHallSensor();
+//    if(g_hallSensor.error) return;
+
+    if(g_hallSensor.event){
+        g_commState = g_hallMap[g_hallSensor.pattern];
     }
+
+    if(g_controlPrescaler == 0){
+        g_controlPrescaler = PI_CONTROL_PRESCALER;
+
+        // Normalize from -256 ~ + 255 to -1.0 ~ 1.0
+        g_piSpd.Ref = (g_targetPosition - g_currentPosition) << 7;
+        g_piSpd.Fbk = g_currentSpeed;
+        PI_MACRO(g_piSpd);
+    }
+
+    g_controlPrescaler = g_controlPrescaler -1;
+
+   // remove offset
+    g_currentPhaseA = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_0)) - g_currentOffsetPhaseA;
+    g_currentPhaseB = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_1)) - g_currentOffsetPhaseB;
+    g_currentPhaseC = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_2)) - g_currentOffsetPhaseC;
+    // Normalize current values from  0 < adc < +4095 to iq15 --> -1.0 < adc < 1.0 and convert to iq format
+    g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 4;
+    g_piCur.Ref = g_piSpd.Out;
+    PI_MACRO(g_piCur);
+
+    pwmGenerator(g_commState, g_piCur.Out);
 }
 
 #pragma vector=ADC12_VECTOR

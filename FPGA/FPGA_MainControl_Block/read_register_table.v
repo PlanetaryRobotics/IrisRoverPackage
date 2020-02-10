@@ -14,12 +14,12 @@ module reg_read_register_table( input sysClk,
 							 output status_reg_read,
 
 							 /*to the byte buffer that sends bytes to the SPI interface*/
-							 output [7:0] byte_out,
-							 output 			byte_out_valid
+							 output reg [7:0] byte_out,
+							 output reg			byte_out_valid
 							 );
 
-		assign status_reg_read = instr_valid_reg_stuff & (reg_addr = 8'h00);
-		assign error_reg_read = instr_valid_reg_stuff & (reg_addr == 8'h04);
+		assign status_reg_read = instr_valid_reg_stuff & (reg_addr == 8'h00) &(~(done_reading_flag_r));
+		assign error_reg_read = instr_valid_reg_stuff & (reg_addr == 8'h04) &(~(done_reading_flag_r));
 
 
 		wire[31:0] reg_buff;
@@ -56,10 +56,10 @@ module reg_read_register_table( input sysClk,
 							default: byte_out <= 8'h00;
 					endcase
 					byte_out_valid <= 1;
-					done_reading_flag <= ~(byte_counter == 2'b11);
+					done_reading_flag_r <= ~(byte_counter == 2'b11);
 				end
 				else begin
-					byte_out_valid = 0;
+					byte_out_valid <= 0;
 				end
 			end
 		end

@@ -3,13 +3,13 @@ module num_img_stored_reg(input nav_img_added,
 
 								  input        start_flush_numimg_reg,
 
-								  output[31:0] out_numimg_reg,
-								  output		   out_valid_numimg_reg
+								  output reg[31:0] out_numimg_reg,
+								  output	reg	   out_valid_numimg_reg
 								  );
 
 
-			wire [15:0] num_science_img_buff;
-			wire [15:0] num_nav_img_buff;
+			reg [15:0] num_science_img_buff;
+			reg [15:0] num_nav_img_buff;
 
 			always@(*) begin
 				if(nav_img_added) begin
@@ -22,7 +22,6 @@ module num_img_stored_reg(input nav_img_added,
 				if(start_flush_numimg_reg)begin
 					out_numimg_reg = {num_nav_img_buff, num_science_img_buff};
 					out_valid_numimg_reg = 1;
-					start_flush_numimg_reg = 0;
 				end
 				else begin
 					out_valid_numimg_reg = 0;

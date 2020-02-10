@@ -13,8 +13,8 @@ module cam_i2c_command_map(
 									 input[4:0]   byte_counter,
 
 									 output [7:0] cam_i2c_byte,
-									 output        cam_i2c_output_valid,
-									 output        all_bytes_out
+									 output reg       cam_i2c_output_valid,
+									 output reg    all_bytes_out
 						 );
 
 				reg[7:0] byte_out_r;
@@ -25,7 +25,7 @@ module cam_i2c_command_map(
 				  if(valid_input) begin
 						all_bytes_out = 0;
 						if((reg_addr == 8'h02) | (reg_addr == 8'h03))begin //shutter width upper, shutter width lower, and shutter delay
-								case(byte_counter) begin
+								case(byte_counter) 
 									5'b00000: byte_out_r = 8'h08; //shutter width upper reg addr
 									5'b00001: byte_out_r = 8'h00;
 									5'b00010: byte_out_r = {4'b0000, reg_data[22:19]};
@@ -64,7 +64,7 @@ module cam_i2c_command_map(
 					  end //if((reg_addr == 8'h02) | (reg_addr == 8'h03))
 
 						else if((reg_addr == 8'h05) | (reg_addr == 8'h06)) begin
-								case(byte_counter) begin
+								case(byte_counter) 
 									5'b00000: byte_out_r = 8'h01; //Row Start
 									5'b00001: byte_out_r = {5'b00000, reg_addr[10:8]};
 									5'b00010: byte_out_r = reg_addr[7:0];
@@ -110,7 +110,7 @@ module cam_write_register_table(input           sysClk, //clock
 										  input    		   intr_valid_input,
 
 											/*from cam interface */
-											input ready_for_next_byte;
+											input ready_for_next_byte,
 
 
 										  /* cam i2c stuff */
@@ -122,9 +122,12 @@ module cam_write_register_table(input           sysClk, //clock
 
 										  /*all cam stuff*/
 										  output        cam_id,
-											output [9:0]  timestamp,
+											output [27:0]  timestamp,
 											output 				trigger,
-											output[15:0] 	trigger_index
+											output[15:0] 	trigger_index,
+
+											output soft_reset,
+											output hard_reset,
 										  output        output_valid
 										  );
 
@@ -144,7 +147,7 @@ module cam_write_register_table(input           sysClk, //clock
 					assign cam_i2c_byte_out = cam_i2c_byte_out_r;
 					assign trigger_index = trigger_index_r;
 					assign trigger = trigger_r;
-					assign timestamp_r = timestamp;
+					assign timestamp = timestamp_r;
 
 
 					wire [4:0] byte_counter_w;
@@ -218,6 +221,7 @@ module cam_write_register_table(input           sysClk, //clock
 
 								if(reg_addr == 8'h01) begin
 									trigger_r <= 1;
+									
 									trigger_index_r <= reg_data[16:1];
 									timestamp_r <= reg_data[26:44];
 									cam_id_r <= reg_data[0];

@@ -7,11 +7,14 @@
 
 #include "driverlib.h"
 #include "bsp.h"
-#include "pi.h"
 
-#define PWM_PERIOD_TICKS        512     // 15.6KHz @ 16MHz
-#define PWM_HALF_PERIOD_TICKS   256
-#define PI_CONTROL_PRESCALER    10     // 1.5KHz, speed control
+#include "pi.h"
+#include "mod6_cnt.h"
+#include "impulse.h"
+
+#define PWM_PERIOD_TICKS            512     // 15.6 KHz @ 16MHz
+#define PWM_HALF_PERIOD_TICKS       256
+#define PI_SPD_CONTROL_PRESCALER    1000    // 15.6 Hz, speed control
 
 #define KP_POS                  0.1
 #define KP_SPD                  0.1
@@ -19,16 +22,35 @@
 #define KP_CUR                  0.1
 #define KI_CUR                  0.0
 
+#define OPEN_LOOP_TORQUE        0.01        // Normalized to 1.0, 1.0 being maximum current system can produce
+#define PERIOD_IMPULSE          200
 
 #define ONE_OVER_4096           0.0002441
+
+#define MAX_TARGET_WINDOW       63
+#define MIN_TARGET_WINDOW       -MAX_TARGET_WINDOW
 
 inline _iq _IQ15mpy_inline(_iq,_iq);
 
 typedef struct HallSensor{
-    uint8_t pattern;
-    uint8_t oldPattern;
-    bool event;
-    bool error;
+    uint8_t Pattern;
+    uint8_t OldPattern;
+    bool Event;
+    bool Error;
 }HallSensor;
+
+typedef enum StateMachine{
+    UNINITIALIZED,
+    IDLE,
+    RUNNING,
+    STOPPED
+}StateMachine;
+
+typedef enum CmdState{
+    RUN,
+    STOP,
+    DISABLE,
+    NO_CMD
+}CmdState;
 
 #endif /* MAIN_H_ */

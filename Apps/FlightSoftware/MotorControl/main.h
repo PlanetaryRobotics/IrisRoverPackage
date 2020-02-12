@@ -2,7 +2,7 @@
 #define MAIN_H_
 
 /* Include the IQmath header file. */
-#define GLOBAL_IQ   15
+#define GLOBAL_IQ                   15
 #include "IQmathLib.h"
 
 #include "driverlib.h"
@@ -16,15 +16,14 @@
 #define PWM_HALF_PERIOD_TICKS       256
 #define PI_SPD_CONTROL_PRESCALER    1000    // 15.6 Hz, speed control
 
-#define KP_POS                  0.1
-#define KP_SPD                  0.1
-#define KI_SPD                  0.0
+#define KP_SPD                  0.35
+#define KI_SPD                  0.003
 #define KP_CUR                  1.5
 #define KI_CUR                  0.0004
 
 #define OPEN_LOOP_TORQUE        0.1       // Normalized to 1.0, 1.0 being maximum current system can produce
-#define PERIOD_IMPULSE          100
-#define CLOSE_LOOP_THRESHOLD    0.05      // Close loop threshold from open to close loop
+#define PERIOD_IMPULSE          200
+#define CLOSE_LOOP_THRESHOLD    0.01      // Close loop threshold from open to close loop
 
 #define ONE_OVER_4096           0.0002441
 

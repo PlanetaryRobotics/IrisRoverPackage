@@ -31,8 +31,7 @@ typedef struct {  _iq  Ref;   			// Input: reference set-point
 																\
 	/* control output */ 										\
 	v.v1 = v.up + v.ui;											\
-    v.Out = (v.v1 < v.Umin) ? v.Umin : v.v1;                    \
-    v.Out = (v.v1 > v.Umax) ? v.Umax : v.v1;                    \
+    v.Out = _IQsat(v.v1, v.Umax, v.Umin);                       \
     v.w1 = (v.v1 != v.Out) ? 1 : 0;
 
 #endif // __PI_H__

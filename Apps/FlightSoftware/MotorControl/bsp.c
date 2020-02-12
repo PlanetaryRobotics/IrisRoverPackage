@@ -1,10 +1,6 @@
 #include "bsp.h"
 #include "driverlib.h"
 
-#define READ_HALL_U     (P2IN & GPIO_PIN6)
-#define READ_HALL_V     (P2IN & GPIO_PIN5)
-#define READ_HALL_W     (P4IN & GPIO_PIN3)
-
 void initializeGpios(){
 
   // Configure Port 1
@@ -22,8 +18,8 @@ void initializeGpios(){
 
   // Configure Port 2
   GPIO_setAsInputPin(GPIO_PORT_P2,
-                     GPIO_PIN5 + /* V */
-                     GPIO_PIN6 /* U */);
+                       GPIO_PIN5 + /* V */
+                       GPIO_PIN6 /* U */);
 
   GPIO_setAsOutputPin(GPIO_PORT_P2,
                       GPIO_PIN1 /* LOW_C */ +
@@ -56,9 +52,9 @@ void initializeGpios(){
 
   // Configure Port 4
   GPIO_setAsInputPin(GPIO_PORT_P4,
-                     GPIO_PIN0 /* ADD1 */ +
-                     GPIO_PIN1 /* ADD2 */ +
-                     GPIO_PIN3 /* HALL_W */ );
+                       GPIO_PIN0 /* ADD1 */ +
+                       GPIO_PIN1 /* ADD2 */ +
+                       GPIO_PIN3 /* HALL_W */ );
   GPIO_setAsOutputPin(GPIO_PORT_P4,
                       GPIO_PIN4 /* CAL */);
 

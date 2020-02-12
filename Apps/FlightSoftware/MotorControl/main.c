@@ -13,6 +13,11 @@ volatile _iq g_currentOffsetPhaseC;
 volatile _iq g_currentSpeed;
 volatile _iq g_openLoopTorque;
 
+volatile _iq g_currentRefTest;
+volatile _iq g_speedRefTest;
+
+volatile _iq g_closeLoopThreshold;
+
 volatile uint8_t g_commState;
 volatile uint8_t g_oldCommState;
 HallSensor g_hallSensor;
@@ -34,6 +39,11 @@ volatile bool g_targetReached;
 
 volatile StateMachine g_state;
 volatile CmdState g_cmdState;
+
+volatile uint8_t g_rxData[I2C_RX_BUFFER_MAX_SIZE];
+volatile uint8_t g_txData[I2C_TX_BUFFER_MAX_SIZE];
+volatile uint8_t g_rxBufferIdx;
+volatile uint8_t g_txBufferIdx;
 
 void initializePwmModules(){
     //Start Timer
@@ -207,19 +217,30 @@ void currentOffsetCalibration(){
 
     g_calibrating = false;
 
-    diableCalibration();
+    disableCalibration();
 
     disableGateDriver();
 }
 
 void initializeI2cModule(){
     // Configure I2C interface for slave interface
-    EUSCI_B_I2C_initSlaveParam i2cParam;
-    i2cParam.slaveAddress = 0x00;
-    i2cParam.slaveAddressOffset = 0;
-    i2cParam.slaveOwnAddressEnable = 0;
+    EUSCI_B_I2C_initSlaveParam param = {0};
+    param.slaveAddress = (READ_ADDR1) ? 0x01 : 0x00;
+    param.slaveAddress |= (READ_ADDR2) ? 0x02 : 0x00;
+    param.slaveAddressOffset = EUSCI_B_I2C_OWN_ADDRESS_OFFSET0;
+    param.slaveOwnAddressEnable = EUSCI_B_I2C_OWN_ADDRESS_ENABLE;
+    EUSCI_B_I2C_initSlave(EUSCI_B0_BASE, &param);
 
-    EUSCI_B_I2C_initSlave(EUSCI_B0_BASE, &i2cParam);
+    EUSCI_B_I2C_enable(EUSCI_B0_BASE);
+
+    EUSCI_B_I2C_clearInterrupt(EUSCI_B0_BASE,
+                               EUSCI_B_I2C_RECEIVE_INTERRUPT0);
+
+    EUSCI_B_I2C_enableInterrupt(EUSCI_B0_BASE,
+                                EUSCI_B_I2C_RECEIVE_INTERRUPT0);
+
+    g_rxBufferIdx = 0;
+    g_txBufferIdx = 0;
 }
 
 inline void pwmGenerator(const uint8_t commutation, _iq dutyCycle){
@@ -443,6 +464,7 @@ void main(void){
     g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
     g_closedLoop = false;
     g_state = UNINITIALIZED;
+    g_currentRefTest = _IQ(0.05);
 
     g_openLoopTorque = _IQ(OPEN_LOOP_TORQUE);
     g_impulse.Period = PERIOD_IMPULSE;
@@ -457,8 +479,9 @@ void main(void){
     g_piCur.Ki = _IQ(KI_CUR);
 
     g_piSpd.Ref = _IQ(0.1);
+    g_closeLoopThreshold = _IQ(CLOSE_LOOP_THRESHOLD);
 
-    //initializeI2cModule();
+    initializeI2cModule();
     initializePwmModules();
     initializeAdcModule();
     initializeHallInterface();
@@ -470,16 +493,26 @@ void main(void){
     enableGateDriver(); // TODO <<<< remove this line
 
     while(1){
-        //updateStateMachine();
+        g_closedLoop = (g_currentSpeed > g_closeLoopThreshold) ? true : false;
+       //updateStateMachine();
     }
 
+}
+
+void processI2cData(void){
+    if(g_rxBufferIdx >= EXPECTED_I2C_PACKET_SIZE){
+        __disable_interrupt();  // enter critical section of code
+        g_rxBufferIdx= 0;
+        //g_rxBuffer[0] =
+        __enable_interrupt();
+
+    }
 }
 
 // Capture current
 #pragma CODE_SECTION(TIMER0_B0_ISR, ".TI.ramfunc")
 #pragma vector=TIMER0_B0_VECTOR
 __interrupt void TIMER0_B0_ISR (void){
-
     // Prepare ADC conversion for next round
     HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) &= ~(ADC12ENC);
     HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) |= ADC12ENC + ADC12SC;
@@ -530,7 +563,7 @@ __interrupt void TIMER0_B0_ISR (void){
         g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
 
         // Normalize from -64 ~ + 63 to -1.0 ~ 1.0
-        g_piSpd.Ref = (_IQsat(g_targetPosition - g_currentPosition, MAX_TARGET_WINDOW, MIN_TARGET_WINDOW)) << 9;
+        g_piSpd.Ref = g_speedTestRef; //(_IQsat(g_targetPosition - g_currentPosition, MAX_TARGET_WINDOW, MIN_TARGET_WINDOW)) << 9;
         g_targetReached =  (g_piSpd.Ref == 0) ? true : false;
         g_piSpd.Fbk = getSpeed();
         PI_MACRO(g_piSpd);
@@ -545,11 +578,59 @@ __interrupt void TIMER0_B0_ISR (void){
 
     // Normalize current values from  0 < adc < +4095 to iq15 --> -1.0 < adc < 1.0 and convert to iq format
     g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 4;
-    g_piCur.Ref = (g_closedLoop) ? g_piSpd.Out : g_openLoopTorque;
+    g_piCur.Ref = g_piSpd.Out;
     PI_MACRO(g_piCur);
 
+    if(g_closedLoop == false){
+        g_piCur.i1 = 0;
+        g_piCur.ui = 0;
+        g_piCur.Out = g_openLoopTorque;
+    }
+
     // If target is reached no need to move
-    if(g_targetReached) g_piCur.Out = 0;
+    //if(g_targetReached) g_piCur.Out = 0;
 
     pwmGenerator(g_commState, g_piCur.Out);
+}
+
+#pragma vector=USCI_B0_VECTOR
+__interrupt void USCIB0_ISR(void){
+    switch(__even_in_range(UCB0IV, USCI_I2C_UCBIT9IFG)){
+        case USCI_NONE:             // No interrupts break;
+            break;
+        case USCI_I2C_UCALIFG:      // Arbitration lost
+            break;
+        case USCI_I2C_UCNACKIFG:    // NAK received (master only)
+            break;
+        case USCI_I2C_UCSTTIFG:     // START condition detected with own address (slave mode only)
+            break;
+        case USCI_I2C_UCSTPIFG:     // STOP condition detected (master & slave mode)
+            break;
+        case USCI_I2C_UCRXIFG3:     // RXIFG3
+            break;
+        case USCI_I2C_UCTXIFG3:     // TXIFG3
+            break;
+        case USCI_I2C_UCRXIFG2:     // RXIFG2
+            break;
+        case USCI_I2C_UCTXIFG2:     // TXIFG2
+            break;
+        case USCI_I2C_UCRXIFG1:     // RXIFG1
+            break;
+        case USCI_I2C_UCTXIFG1:     // TXIFG1
+            break;
+        case USCI_I2C_UCRXIFG0:     // RXIFG0
+            g_rxData[g_rxBufferIdx] = EUSCI_B_I2C_slaveGetData(EUSCI_B0_BASE);
+            g_rxBufferIdx++;
+            break;
+        case USCI_I2C_UCTXIFG0:     // TXIFG0
+            break;
+        case USCI_I2C_UCBCNTIFG:    // Byte count limit reached (UCBxTBCNT)
+            break;
+        case USCI_I2C_UCCLTOIFG:    // Clock low timeout - clock held low too long
+            break;
+        case USCI_I2C_UCBIT9IFG:    // Generated on 9th bit of a transmit (for debugging)
+            break;
+        default:
+            break;
+    }
 }

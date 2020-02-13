@@ -36,7 +36,7 @@ volatile MOD6CNT g_mod6cnt;
 
 volatile bool g_closedLoop;
 volatile bool g_targetReached;
-volatile uint16_t g_maxSpeed;
+volatile int16_t g_maxSpeed;
 
 volatile StateMachine g_state;
 volatile CmdState g_cmdState;

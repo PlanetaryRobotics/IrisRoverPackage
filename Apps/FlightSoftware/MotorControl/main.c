@@ -638,19 +638,19 @@ __interrupt void TIMER0_B0_ISR (void){
   }
 
   if(g_hallSensor.Event){
-    if(g_commState == 5 && g_oldCommState == 0){
+    if(g_hallMap[g_hallSensor.Pattern] == 5 && g_oldCommState == 0){
       g_currentPosition--;
     }
-    else if(g_commState == 0 && g_oldCommState == 5){
+    else if(g_hallMap[g_hallSensor.Pattern] == 0 && g_oldCommState == 5){
       g_currentPosition++;
     }
-    else if(g_commState > g_oldCommState){
+    else if(g_hallMap[g_hallSensor.Pattern] > g_oldCommState){
       g_currentPosition++;
     }
     else{
       g_currentPosition--;
     }
-    g_oldCommState = g_commState;
+    g_oldCommState = g_hallMap[g_hallSensor.Pattern];
   }
 
   if(g_controlPrescaler == 0){

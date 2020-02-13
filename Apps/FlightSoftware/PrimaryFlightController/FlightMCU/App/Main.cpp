@@ -18,6 +18,25 @@ extern "C" {
     void vApplicationIdleHook( void );
 }
 
+typedef enum I2cRegisterIds{
+    I2C_ADDRESS = 0,
+    RELATIVE_TARGET_POSITION = 1,
+    TARGET_SPEED = 2,
+    CURRENT_POSITION = 3,
+    CURRENT_SPEED = 4,
+    MOTOR_CURRENT = 5,
+    P_CURRENT = 6,
+    I_CURRENT = 7,
+    P_SPEED = 8,
+    I_SPEED = 9,
+    ACC_RATE = 10,
+    DEC_RATE = 11,
+    CONTROL_REGISTER = 12,
+    STATUS_REGISTER = 13,
+    FAULT_REGISTER = 14,
+    MAX_NB_CMDS = 15
+}I2cRegisterIds;
+
 void vApplicationIdleHook( void ){
     run1cycle();
     //gioToggleBit(gioPORTB, 1);
@@ -26,12 +45,75 @@ void vApplicationIdleHook( void ){
 
 using namespace Wf121;
 
-uint8_t g_testBuffer[RX_RING_BUFFER_SIZE];
+uint8_t g_rxBuffer[RX_RING_BUFFER_SIZE];
+uint8_t g_txBUffer[1];
+
+void handleI2cMotorControlCommand(uint8_t *cmd){
+    i2cSetSlaveAdd(i2cREG1, 0x80);
+
+    /* Set mode as Master */
+    i2cSetMode(i2cREG1, I2C_MASTER);
+
+    /* Set Stop after programmed Count */
+    i2cSetStop(i2cREG1);
+
+    /* Transmit Start Condition */
+    i2cSetStart(i2cREG1);
+
+    i2cSendByte(i2cREG1, cmd[0]); // send the address register
+
+    /* Wait until Bus Busy is cleared */
+    while(i2cIsBusBusy(i2cREG1) == true);
+
+    /* Wait until Stop is detected */
+    while(i2cIsStopDetected(i2cREG1) == 0);
+
+    /* Clear the Stop condition */
+    i2cClearSCD(i2cREG1);
+
+    switch(cmd){
+        case I2C_ADDRESS:
+            break;
+        case RELATIVE_TARGET_POSITION:
+            break;
+        case TARGET_SPEED:
+            break;
+        case CURRENT_POSITION:
+            break;
+        case CURRENT_SPEED:
+            break;
+        case MOTOR_CURRENT:
+            break;
+        case P_CURRENT:
+            break;
+        case I_CURRENT:
+            break;
+        case P_SPEED:
+            break;
+        case I_SPEED:
+            break;
+        case ACC_RATE:
+            break;
+        case DEC_RATE:
+            break;
+        case CONTROL_REGISTER:
+            break;
+        case STATUS_REGISTER:
+            break;
+        case FAULT_REGISTER:
+            break;
+    }
+
+    }
+
+    /* Clear Stop Condition detect flag  */
+    i2cClearSCD(i2cREG1);
+}
 
 void main(void)
 {
     CubeRoverNetworkManager wf121;
-    uint16_t headerSize = 8;    // 8 bytes
+    uint16_t commandPacketSize = 8;    // 8 bytes
     uint16_t byteRead = 0;
     uint32_t payloadSize = 0;
 
@@ -42,22 +124,17 @@ void main(void)
 
     constructApp();
 
+
     while(1){
         wf121.UpdateNetworkManager();
 
-        wf121.ReceiveUdpData(g_testBuffer, headerSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::PEEK_READ, 10);
+        wf121.ReceiveUdpData(g_rxBuffer, commandPacketSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
 
-        if(byteRead == headerSize){
-            // get size of the received packet
-            // check how big the packet actually is, then consume the bytes from the ring buffer
-            memcpy(&payloadSize, g_testBuffer+4 /* offset by packet number */, sizeof(payloadSize));
-            wf121.ReceiveUdpData(g_testBuffer, payloadSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
+        if(byteRead == commandPacketSize){
+            handleI2cMotorControlCommand(g_rxBuffer);
 
-            // send back signal quality
-            g_testBuffer[8] = wf121.GetSignalRssi();
-            g_testBuffer[9] = wf121.GetSignalNoiseRatio();
-            sciSend(scilinREG, payloadSize, g_testBuffer);
-            wf121.SendUdpData(g_testBuffer, payloadSize, 10000);
+            g_txBuffer[0] = 0xAA;   // send back acknowledgment
+            wf121.SendUdpData(g_txBuffer, g_txBuffer, 10000);
         }
     }
 

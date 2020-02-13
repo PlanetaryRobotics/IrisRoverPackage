@@ -1,3 +1,5 @@
+import * as d3 from "d3";
+
 export function calculateRelativeSegmentCoordinates(segment, id, index, roverXPosPx, roverYPosPx, gridUnitCm, gridUnitPx) {
   let point = d3.select("#"+id+"Point"+index);
 
@@ -201,4 +203,6 @@ export function plotNewSegment(container, id, index, angle, startX, startY, endX
   if (isDashed) {
     line.style("stroke-dasharray", "5 3");
   }
+
+  return getAbsoluteCoordinates(circle);
 }

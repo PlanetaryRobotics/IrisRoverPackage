@@ -1,5 +1,8 @@
 import * as d3 from "d3";
 
+const WIDTH = 200;
+const HEIGHT = 130;
+
 function removeModal(id) {
   d3.select("#routeModals")
     .select("#" + id + "-" + "Modal")
@@ -18,7 +21,7 @@ export function toggleModal(selection, route, segmentNum, pointX, pointY) {
   let dragHandler = d3.drag()
     .on("drag", function () {
         d3.select(this)
-          .attr("transform", "translate(" + (d3.event.x - 100) + "," + (d3.event.y - (130/2)) + ")")
+          .attr("transform", "translate(" + (d3.event.x - (WIDTH/2)) + "," + (d3.event.y - (HEIGHT/2)) + ")")
   });
 
   let circle = d3.select(selection).select("circle");
@@ -31,28 +34,33 @@ export function toggleModal(selection, route, segmentNum, pointX, pointY) {
     // Container
     let group = d3.select("#routeModals")
                   .append("g")
-                  .attr("transform", "translate(" + (pointX + 50) + "," + (pointY) + ")")
+                  .attr("transform", "translate(" + (pointX + 20) + "," + (pointY) + ")")
                   .lower()
-                  .attr("id", id + "-" + "Modal")
-                  .on("mouseover", function(d) {
-                    d3.select(this).style("cursor", "-webkit-grab");
-                  });    
+                  .attr("id", id + "-" + "Modal");
 
     dragHandler(group);
 
     // Rect
     group.append("svg")
-          .attr("width", 200)
-          .attr("height", 130)
-          .attr("viewbox", "0 0 200 130")
+          .attr("width", WIDTH)
+          .attr("height", HEIGHT)
+          .attr("viewbox", `0 0 ${WIDTH} ${HEIGHT}`)
             .append("rect")
             .attr("x", 0.5)
             .attr("y", 0.5)
-            .attr("width", 199)
-            .attr("height", 129)
+            .attr("width", WIDTH-1)
+            .attr("height", HEIGHT-1)
             .attr("rx", 3.5)
             .attr("fill", "#2E2E2E")
             .attr("stroke", "#7F31FF")
+            .on("mouseover", function(d) {
+              d3.select(this).style("cursor", "-webkit-grab")
+                             .attr("stroke", "#C6A3FF");
+            })
+            .on("mouseout", function(d) {
+              d3.select(this)
+                .attr("stroke", "#7F31FF");
+            });    
     
     // Close button
     let button = group.append("g")
@@ -92,7 +100,7 @@ export function toggleModal(selection, route, segmentNum, pointX, pointY) {
           .append("text")
           .text(route.routeName)
           .attr("class", "text")
-          .attr("fill", "white")
+          .attr("fill", "#8F8F8F")
     
     // Segment text
     group.append("g")
@@ -101,6 +109,21 @@ export function toggleModal(selection, route, segmentNum, pointX, pointY) {
           .text("Segment-" + segmentNum)
           .attr("class", "text__smallCaps--bold")
           .attr("fill", "white")
+
+    // Commands text
+    group.append("g")
+          .attr("transform", "translate(10, 80)")
+          .append("text")
+          .text("TurnLeft (A, B)")
+          .attr("class", "text")
+          .attr("fill", "white")  
+
+    group.append("g")
+          .attr("transform", "translate(10, 100)")
+          .append("text")
+          .text("MoveForward (A, B)")
+          .attr("class", "text")
+          .attr("fill", "white")       
   }
   else {
     resetSegmentColor(circle, line);

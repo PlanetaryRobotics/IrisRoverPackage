@@ -46,68 +46,71 @@ void vApplicationIdleHook( void ){
 using namespace Wf121;
 
 uint8_t g_rxBuffer[RX_RING_BUFFER_SIZE];
-uint8_t g_txBUffer[1];
+uint8_t g_txBuffer[8];
 
 void handleI2cMotorControlCommand(uint8_t *cmd){
-    i2cSetSlaveAdd(i2cREG1, 0x80);
+    for(uint8_t mcId=0; mcId < 1; mcId++){
+        i2cSetSlaveAdd(i2cREG1, 0x48+mcId);
 
-    /* Set mode as Master */
-    i2cSetMode(i2cREG1, I2C_MASTER);
+        /* Set mode as Master */
+        i2cSetMode(i2cREG1, I2C_MASTER);
 
-    /* Set Stop after programmed Count */
-    i2cSetStop(i2cREG1);
+        /* Set Stop after programmed Count */
+        i2cSetStop(i2cREG1);
 
-    /* Transmit Start Condition */
-    i2cSetStart(i2cREG1);
+        /* Transmit Start Condition */
+        i2cSetStart(i2cREG1);
 
-    i2cSendByte(i2cREG1, cmd[0]); // send the address register
+        i2cSendByte(i2cREG1, cmd[0]); // send the address register
 
-    /* Wait until Bus Busy is cleared */
-    while(i2cIsBusBusy(i2cREG1) == true);
+        /* Wait until Bus Busy is cleared */
+        while(i2cIsBusBusy(i2cREG1) == true);
 
-    /* Wait until Stop is detected */
-    while(i2cIsStopDetected(i2cREG1) == 0);
+        switch(cmd[0]){
+            case I2C_ADDRESS:
+                break;
+            case RELATIVE_TARGET_POSITION:
+                i2cReceive(i2cREG1, 4, cmd+1);
+                /* Wait until Bus Busy is cleared */
+                while(i2cIsBusBusy(i2cREG1) == true);
+                break;
+            case TARGET_SPEED:
+                break;
+            case CURRENT_POSITION:
+                break;
+            case CURRENT_SPEED:
+                break;
+            case MOTOR_CURRENT:
+                break;
+            case P_CURRENT:
+                break;
+            case I_CURRENT:
+                break;
+            case P_SPEED:
+                break;
+            case I_SPEED:
+                break;
+            case ACC_RATE:
+                break;
+            case DEC_RATE:
+                break;
+            case CONTROL_REGISTER:
+                break;
+            case STATUS_REGISTER:
+                break;
+            case FAULT_REGISTER:
+                break;
+        }
 
-    /* Clear the Stop condition */
-    i2cClearSCD(i2cREG1);
+        /* Wait until Stop is detected */
+        while(i2cIsStopDetected(i2cREG1) == 0);
 
-    switch(cmd){
-        case I2C_ADDRESS:
-            break;
-        case RELATIVE_TARGET_POSITION:
-            break;
-        case TARGET_SPEED:
-            break;
-        case CURRENT_POSITION:
-            break;
-        case CURRENT_SPEED:
-            break;
-        case MOTOR_CURRENT:
-            break;
-        case P_CURRENT:
-            break;
-        case I_CURRENT:
-            break;
-        case P_SPEED:
-            break;
-        case I_SPEED:
-            break;
-        case ACC_RATE:
-            break;
-        case DEC_RATE:
-            break;
-        case CONTROL_REGISTER:
-            break;
-        case STATUS_REGISTER:
-            break;
-        case FAULT_REGISTER:
-            break;
+        /* Clear the Stop condition */
+        i2cClearSCD(i2cREG1);
+
+        // test delay
+        for(uint32_t delay=0;delay<1000000;delay++);
     }
-
-    }
-
-    /* Clear Stop Condition detect flag  */
-    i2cClearSCD(i2cREG1);
 }
 
 void main(void)
@@ -126,16 +129,19 @@ void main(void)
 
 
     while(1){
-        wf121.UpdateNetworkManager();
+        g_rxBuffer[0] = 0x01;
+        g_rxBuffer[1] = 100;
+        handleI2cMotorControlCommand(g_rxBuffer);
 
-        wf121.ReceiveUdpData(g_rxBuffer, commandPacketSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
-
-        if(byteRead == commandPacketSize){
-            handleI2cMotorControlCommand(g_rxBuffer);
-
-            g_txBuffer[0] = 0xAA;   // send back acknowledgment
-            wf121.SendUdpData(g_txBuffer, g_txBuffer, 10000);
-        }
+//        wf121.UpdateNetworkManager();
+//        wf121.ReceiveUdpData(g_rxBuffer, commandPacketSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
+//
+//        if(byteRead == commandPacketSize){
+//            handleI2cMotorControlCommand(g_rxBuffer);
+//
+//            g_txBuffer[0] = 0xAA;   // send back acknowledgment
+//            wf121.SendUdpData(g_txBuffer, g_txBuffer, 10000);
+//        }
     }
 
     vTaskStartScheduler();

@@ -239,8 +239,9 @@ void initializeI2cModule(){
 
   // Configure I2C interface for slave interface
   EUSCI_B_I2C_initSlaveParam param = {0};
-  param.slaveAddress = (I2C_SLAVE_ADDRESS) ? 0x01 : 0x00;
-  param.slaveAddress |= (I2C_SLAVE_ADDRESS) ? 0x02 : 0x00;
+  param.slaveAddress = I2C_SLAVE_ADDRESS;
+  param.slaveAddress |= (READ_ADDR1) ? 0x01 : 0x00;
+  param.slaveAddress |= (READ_ADDR2) ? 0x02 : 0x00;
   g_i2cSlaveAddress = param.slaveAddress;
   param.slaveAddressOffset = EUSCI_B_I2C_OWN_ADDRESS_OFFSET0;
   param.slaveOwnAddressEnable = EUSCI_B_I2C_OWN_ADDRESS_ENABLE;

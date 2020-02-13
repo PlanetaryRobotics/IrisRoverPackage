@@ -18,7 +18,7 @@
 #define PI_SPD_CONTROL_PRESCALER    1000    // 15.6 Hz, speed control
 
 #define KP_SPD                  0.35
-#define KI_SPD                  0.003
+#define KI_SPD                  0.0001
 #define KP_CUR                  1.5
 #define KI_CUR                  0.0004
 

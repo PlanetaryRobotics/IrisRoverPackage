@@ -52,8 +52,8 @@ import MapNavigationLeft from '@/components/Map/MapComponents/MapNavigationLeft.
 import Grid from '@/components/Map/MapComponents/Grid.vue';
 import POIList from '@/components/Map/MapComponents/POIList.vue';
 import Routes from '@/components/Map/MapComponents/RouteManager/Routes.vue';
-import CreateRoute from '@/components/Map/MapComponents/CreateRoute.vue';
-import AddToRoute from '@/components/Map/MapComponents/AddToRoute.vue';
+import CreateRoute from '@/components/Map/MapComponents/FormComponents/CreateRoute.vue';
+import AddToRoute from '@/components/Map/MapComponents/FormComponents/AddToRoute.vue';
 import RadioSVGButton from '@/components/atomic/RadioSVGButton.vue';
 
 export default {
@@ -103,6 +103,7 @@ export default {
 }
 
 .right-panel {
+  z-index: 10;
   background-color: $color-near-black;
   position: relative;
   height: 100%;

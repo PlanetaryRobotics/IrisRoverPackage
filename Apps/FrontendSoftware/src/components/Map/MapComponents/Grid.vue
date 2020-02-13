@@ -5,6 +5,7 @@
           </g>
 
           <g id ="gridContents">
+            <g id ="routeModals"/>
             <RoverFan />
             <g id ="polarPlot" v-show="polarPlotEnabled"/>
             <Lander />
@@ -13,7 +14,6 @@
               :rover = {rover}
               :gridSquare = {gridSquare}
             />
-
             <Rover />
           </g>
       </svg>
@@ -29,13 +29,13 @@ import RoverFan from '@/components/Map/MapComponents/GridComponents/RoverFan.vue
 
 import $ from 'jquery';
 import * as d3 from "d3";
-import { mapState, mapGetters, mapMutations } from 'vuex';
+import { mapGetters } from 'vuex';
 import { plotNewSegment, 
          generateFirstSegmentVars, 
          generateAppendedSegmentVars, 
          calculateRelativeSegmentCoordinates,
          getAbsoluteCoordinates } from '@/components/Map/Utility/SegmentPlotter.js';
-import GridEventBus from '@/components/Map/GridEventBus.js';
+// import GridEventBus from '@/components/Map/GridEventBus.js';
 
 export default {
   name: "Grid",
@@ -111,21 +111,21 @@ export default {
            .attr("stroke-opacity", 1)
       }
     },
-    currSegmentUpdate(newVal, oldVal) {
+    currSegmentUpdate() {
       this.drawCurrRoute(this.currSegment);
     },
-    removeCurrSegment(newVal, oldVal) {
+    removeCurrSegment() {
       if (!d3.select("#NewRoute").empty()) {
          d3.select("#NewRoute").remove();
       }
     },
-    appendedSegmentUpdate(newVal, oldVal) {
+    appendedSegmentUpdate() {
       this.drawAppendedSegment();
     },
-    removeAppendedSegment(newVal, oldVal) {
+    removeAppendedSegment() {
       if (!d3.select("#Appended-Segment-Editing").empty()) {
         d3.select("#Appended-Segment-Editing").remove();
-      };
+      }
     }
   },
   methods: {
@@ -177,7 +177,7 @@ export default {
         // let ft_name = features[i];
         let angle = (Math.PI / 2) + ((2 * Math.PI * i) / numLines);
         let line_coordinate = angleToCoordinate(angle, 10);
-        let label_coordinate = angleToCoordinate(angle, 10.5);
+        //let label_coordinate = angleToCoordinate(angle, 10.5);
 
         //draw axis line
         svg.append("line")
@@ -230,7 +230,7 @@ export default {
         let roverTrans = this.convertCmToPx(this.rover.xCmFromLander, this.rover.yCmFromLander);
         calculateRelativeSegmentCoordinates(segment, 
                                             "Appended-Segment-Editing", 
-                                            lastSegmendIdx+1, 
+                                            lastSegmentIdx+1, 
                                             this.rover.xPosPx - roverTrans.xPx, //Subtract by rover trans
                                             this.rover.yPosPx - roverTrans.yPx, 
                                             this.gridSquare.gridUnitCm, 
@@ -374,8 +374,6 @@ export default {
                   .scaleExtent([1, 3])
                   .on("zoom", zoomed);
 
-      var comp = this;
-
       function zoomed() {
         
         let x = d3.event.transform.x;
@@ -477,22 +475,8 @@ export default {
   top: 0px;
 }
 
-#lander {
-  z-index: 1
-}
-
-#rover {
-  z-index: 2
-}
-
-#map-canvas {
-  background: $color-near-black;
-}
-
-#map-container {
-  height: 100%;
+#grid-container {
   position: relative;
-  padding: 2px;
 }
 
 </style>

@@ -1,24 +1,25 @@
 <template>
-    <g :id = "routeName">
+    <g :id = "routeName" class="route">
     </g>
 </template>
 
 <script>
 
-import $ from 'jquery';
 import * as d3 from "d3";
-import { mapGetters } from 'vuex';
 import { plotNewSegment, 
          generateFirstSegmentVars, 
          generateAppendedSegmentVars, 
-         calculateRelativeSegmentCoordinates } from '../../Utility/SegmentPlotter.js';
-import RelativeSegment from "@/data_classes/RelativeSegment";
-import AbsoluteSegment from "@/data_classes/AbsoluteSegment";
-import GridEventBus from '@/components/Map/GridEventBus.js';
+         calculateRelativeSegmentCoordinates } from '@/components/Map/Utility/SegmentPlotter.js';
+import { toggleModal } from '@/components/Map/Utility/ModalPlotter.js';
 
 export default {
   name: "Route",
   props: ['route', 'origin', 'rover', 'gridSquare'],
+  data() {
+    return {
+      
+    }
+  },
   computed: {
     routeName: function () {
       return this.route.routeName;
@@ -40,12 +41,9 @@ export default {
             .style("display", "none")
       }
     }
-
     //});
-
   },
   methods: {
-
     /**
      * Performs necessary computations to plot the line and point
      * for the route depending on the tab it is on.
@@ -80,7 +78,10 @@ export default {
               .append('g')
               .attr("id", route.routeName+"-Group")
               .append('g')
-              .attr("id", route.routeName+"-Segment0");
+              .attr("id", route.routeName+"-Segment0")
+              .on("click", function() {
+                toggleModal(this, route, 0, endX, endY); 
+              });
 
           plotNewSegment(currRouteTransform, route.routeName, 0, angle, startX, startY, endX, endY, false);
 
@@ -108,8 +109,11 @@ export default {
                                                                                         this.origin.origin.yPosPx);
 
           let transform = d3.select("#"+route.routeName+"-Group")
-                        .append('g')
-                        .attr("id", route.routeName+"-Segment"+i);
+                            .append('g')
+                            .attr("id", route.routeName+"-Segment"+i)
+                            .on("click", function() {
+                              toggleModal(this, route, i, endX, endY); 
+                            });
 
           plotNewSegment(transform, route.routeName, i, computedAngle, startX, startY, endX, endY, false);
 
@@ -154,5 +158,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/_typography.scss';
+@import '@/styles/_colors.scss';
 
 </style>

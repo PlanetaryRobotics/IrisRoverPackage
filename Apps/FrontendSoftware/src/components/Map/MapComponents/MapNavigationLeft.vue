@@ -63,13 +63,8 @@
 
 <script>
 
-import RadioSVGButton from '@/components/atomic/RadioSVGButton.vue';
-
 export default {
   name: "MapNavigationLeft",
-  components: {
-    RadioSVGButton
-  },
   methods: {
     togglePolarPlot() {
       this.$store.commit("togglePolarPlotButton");
@@ -85,6 +80,7 @@ export default {
 @import '@/styles/_functional.scss';
 
 #mapNavigationLeft {
+  z-index: 10;
   display: flex;
   flex-direction: column;
 

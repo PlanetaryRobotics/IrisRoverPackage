@@ -1,15 +1,15 @@
-import path from 'path'
-import fs from 'fs'
+// import path from 'path'
+// import fs from 'fs'
 
 import POICard from "@/data_classes/POICard.js";
 import ImageData from '@/data_classes/ImageData.js'
 import Tag from '@/data_classes/Tag.js'
 
 // Simulate the binary image data which will be Received from the DB:
-function bytes(file){
-  let data = fs.readFileSync(file);
-  return Uint8Array.from(data);
-}
+// function bytes(file){
+//   let data = fs.readFileSync(file);
+//   return Uint8Array.from(data);
+// }
 
 export default {
   state: {
@@ -19,10 +19,8 @@ export default {
           importanceLevel: 1,
           category: "OBSTACLE",
           thumbnail: new ImageData({
-            lookupID: 1,
-            commandLookupID: 1,
             name: 'CR_M01_0000',
-            bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
+            // bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
             camera: "Front",
             sendTime: new Date(),
             command: "forward",
@@ -48,55 +46,45 @@ export default {
           description: "I am a hella beautiful rock on the moon.",
           images: [
             new ImageData({
-              lookupID: 6,
-              commandLookupID: 3,
+              name: 'CR_M01_0001',
+              // bin: bytes(path.join(__static,'./images/Kd2V45y.jpg')),
+              camera: "Front",
+              sendTime: new Date(),
+              command: "Forward",
+              commandDesc: "10cm",
+              tags: []
+            }),
+            new ImageData({
+              name: 'CR_M01_0002',
+              // bin: bytes(path.join(__static,'./images/uJg1pom.jpg')),
+              camera: "Rear",
+              sendTime: new Date(),
+              command: "forward",
+              commandDesc: "10cm",
+              tags: []
+            }),
+            new ImageData({
+              name: 'CR_M01_0003',
+              // bin: bytes(path.join(__static,'./images/OUuN3i4.jpg')),
+              camera: "Front",
+              sendTime: new Date(),
+              command: "forward",
+              commandDesc: "10cm",
+              tags: []
+            }),
+            new ImageData({
+              name: 'CR_M01_0004',
+              // bin: bytes(path.join(__static,'./images/E9DbeBD.jpg')),
+              camera: "Front",
+              sendTime: new Date(),
+              command: "forward",
+              commandDesc: "10cm",
+              tags: []
+            }),
+            new ImageData({
               name: 'CR_M01_0005',
-              bin: bytes(path.join(__static,'./images/466fWFX.jpg')),
-              camera: "Rear",
-              sendTime: new Date(),
-              command: "forward",
-              commandDesc: "10cm",
-              tags: []
-            }),
-            new ImageData({
-              lookupID: 7,
-              commandLookupID: 4,
-              name: 'CR_M01_0006',
-              bin: bytes(path.join(__static,'./images/FBig7ow.jpg')),
+              // bin: bytes(path.join(__static,'./images/466fWFX.jpg')),
               camera: "Front",
-              sendTime: new Date(),
-              command: "forward",
-              commandDesc: "10cm",
-              tags: []
-            }),
-            new ImageData({
-              lookupID: 8,
-              commandLookupID: 4,
-              name: 'CR_M01_0007',
-              bin: bytes(path.join(__static,'./images/MTipXK1.jpg')),
-              camera: "Rear",
-              sendTime: new Date(),
-              command: "forward",
-              commandDesc: "10cm",
-              tags: []
-            }),
-            new ImageData({
-              lookupID: 9,
-              commandLookupID: 5,
-              name: 'CR_M01_0008',
-              bin: bytes(path.join(__static,'./images/dICMJTn.jpg')),
-              camera: "Front",
-              sendTime: new Date(),
-              command: "forward",
-              commandDesc: "10cm",
-              tags: []
-            }),
-            new ImageData({
-              lookupID: 10,
-              commandLookupID: 5,
-              name: 'CR_M01_0009',
-              bin: bytes(path.join(__static,'./images/hOhhfSy.jpg')),
-              camera: "Rear",
               sendTime: new Date(),
               command: "forward",
               commandDesc: "10cm",
@@ -110,10 +98,8 @@ export default {
           importanceLevel: 2,
           category: "SHADOW",
           thumbnail: new ImageData({
-            lookupID: 1,
-            commandLookupID: 1,
             name: 'CR_M01_0000',
-            bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
+            // bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
             camera: "Front",
             sendTime: new Date(),
             command: "forward",
@@ -144,10 +130,8 @@ export default {
           importanceLevel: 3,
           category: "ATTRACTION",
           thumbnail: new ImageData({
-            lookupID: 1,
-            commandLookupID: 1,
             name: 'CR_M01_0000',
-            bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
+            // bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
             camera: "Front",
             sendTime: new Date(),
             command: "forward",

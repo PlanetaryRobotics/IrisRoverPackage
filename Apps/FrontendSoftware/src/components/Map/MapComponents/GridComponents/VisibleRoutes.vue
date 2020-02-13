@@ -12,11 +12,8 @@
 
 <script>
 
-import $ from 'jquery';
-import * as d3 from "d3";
 import { mapGetters } from 'vuex';
 import Route from '@/components/Map/MapComponents/GridComponents/Route.vue';
-import GridEventBus from '@/components/Map/GridEventBus.js';
 
 export default {
   name: "VisibleRoutes",
@@ -41,11 +38,11 @@ export default {
   watch: {
     routeList: {
       deep: true, 
-      handler(routeList){
+      handler(){
         this.updateRouteListKey++;
       }
     },
-    routeListUpdate(newVal, oldVal) {
+    routeListUpdate() {
       this.updateRouteListKey++;
     }
   },
@@ -56,5 +53,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
+#visibleRoutes {
+  &:hover {
+    cursor:pointer;
+  }
+}
 </style>

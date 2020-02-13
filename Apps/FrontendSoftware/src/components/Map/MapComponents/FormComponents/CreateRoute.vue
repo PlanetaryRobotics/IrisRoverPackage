@@ -1,5 +1,5 @@
 <template>
-  <div id = "addToRoute">
+  <div id = "createRoute">
     <div class="mapTab">
 
       <!-- HEADER --> 
@@ -7,23 +7,12 @@
         <svg width="14" height="7" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg" class="mapTab__icon" :class="{ open : show.createTab }">
         <path d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5" stroke-linecap="round"/>
         </svg>
-        <h2 class="text__main--bold mapTab__title">Add Segment To Route</h2>
+        <h2 class="text__main--bold mapTab__title">Create Route</h2>
       </div>
 
       <!-- CONTENT --> 
       <div class="mapTab__content" v-show = "show.createTab">
         <div class="content">
-          <div class="dropDownContainer">
-            <label>Route: </label>
-            <select id="dropDown" name="dropDown" v-model="selectedRoute">
-              <option value="" selected disabled>Select a Route</option>
-              <option v-for="(route, index) in routeList" 
-                      :key="index" 
-                      :value="route">
-                      {{route.routeName}}
-              </option>
-            </select>
-          </div>
           <span class="tabContainer">
             <button class="tabButton left"
                     :class="{selected: 'absolute' == selectedTab}"
@@ -41,6 +30,19 @@
 
           <!-- FORM FOR RELATIVE SEGMENT -->
           <div v-if="selectedTab === 'relative'">
+
+            <div class="inputBlock">
+              <label>Route Name: </label>
+              <input type="text" 
+                    placeholder="Enter name of route"
+                    v-model="relativeFormInputs.routeName" 
+                    @input="updateRelativeSegment('routeName', $event.target.value)"
+                    />
+            </div>
+            <div class="errorBlock">
+              {{show.errorMessages.routeName ? errorMessages.routeName : ""}}
+            </div>
+
             <div class="inputBlock">
               <label>Distance: </label>
               <input type="text" 
@@ -67,6 +69,18 @@
           <!-- FORM FOR ABSOLUTE SEGMENT -->
           <div v-else>
             <div class="inputBlock">
+              <label>Route Name: </label>
+              <input type="text" 
+                    placeholder="Enter name of route"
+                    v-model="absoluteFormInputs.routeName" 
+                    @input="updateAbsoluteSegment('routeName', $event.target.value)"
+                    />
+            </div>
+            <div class="errorBlock">
+              {{show.errorMessages.routeName ? errorMessages.routeName : ""}}
+            </div>
+
+            <div class="inputBlock">
               <label>X Coordinate: </label>
               <input type="text" 
                     placeholder="Enter x coordinate in cm"
@@ -74,7 +88,7 @@
                     @input="updateAbsoluteSegment('xCoord', $event.target.value)"/>
             </div>
             <div class="errorBlock">
-              {{show.errorMessages.xCoord? errorMessages.xCoord : ""}}
+              {{show.errorMessages.xCoord ? errorMessages.xCoord : ""}}
             </div>
 
             <div class="inputBlock">
@@ -89,11 +103,12 @@
             </div>
           </div>
 
+          <!-- CANCEL/PLAN BUTTON -->
           <span class="buttonContainer">
             <AtomicButton v-bind="cancelRouteButton" 
                           @click.native="cancelRoute"/>
             <AtomicButton v-bind="planRouteButton" 
-                          @click.native="saveSegment"/>
+                          @click.native="saveRoute"/>
           </span>
         </div>
       </div>
@@ -105,21 +120,12 @@
 
 <script>
 
-import $ from 'jquery'
 import AtomicButton from '@/components/atomic/AtomicButton.vue';
-import { mapMutations, mapGetters } from 'vuex';
-import RelativeSegment from "@/data_classes/RelativeSegment";
-import AbsoluteSegment from "@/data_classes/AbsoluteSegment";
 
 export default {
-  name: "AddToRoute",
+  name: "CreateRoute",
   components: {
     AtomicButton
-  },
-  computed: {
-    ...mapGetters({
-      routeList: 'routeList',
-    }),
   },
   data() {
     return {
@@ -129,8 +135,17 @@ export default {
         errorMessages: {
           routeName: false,
           angle: false,
-          distance: false
+          distance: false,
+          xCoord: false,
+          yCoord: false
         }
+      },
+      errorMessages: {
+        routeName: "",
+        distance: "",
+        angle: "",
+        xCoord: "",
+        yCoord: ""
       },
       cancelRouteButton: {
         id:'cancelRouteButton',
@@ -149,42 +164,18 @@ export default {
         storeId: 'MAP'
       },
       relativeFormInputs: {
-        routeType: "",
-        route: "",
+        routeName: "",
         distance: "",
         angle: "",
       },
       absoluteFormInputs: {
-        routeType: "",
-        route: "",
+        routeName: "",
         xCoord: "",
         yCoord: "",
       },
-      errorMessages: {
-        routeName: "",
-        distance: "",
-        angle: ""
-      },
-      selectedRoute: null
-    }
-  },
-  watch: {
-    selectedRoute: function(selectedRoute) {
-      if (selectedRoute) {
-        for (let route of this.routeList) {
-          if (route.routeName !== selectedRoute.routeName){
-            route.isVisible = false;
-          }
-        }
-        selectedRoute.isVisible = true;
-        this.triggerRouteListUpdate();
-      }
     }
   },
   methods: {
-    ...mapMutations({
-      triggerRouteListUpdate: 'triggerRouteListUpdate'
-    }),
     /**
      * Will show/hide the addEditTab on click.
     */
@@ -214,7 +205,44 @@ export default {
       this.selectedTab = tabName;
 
       // Remove what is currently plotted
-      this.$store.commit("triggerAppendedSegmentRemoval");
+      this.$store.commit("triggerCurrSegmentRemoval");
+    },
+
+    updateAbsoluteSegment: function(param, value) {
+
+      if (param === "xCoord" || param === "yCoord") {
+        if (this.validationCheckNumber(value)) {
+          this.show.errorMessages[param] = false;
+        }
+        else if (value === "-") {
+          return
+        }
+        else if (value === "") {
+          this.show.errorMessages[param] = false;
+        }
+        else {
+          this.errorMessages[param] = "Coordinate must be a number.";
+          this.show.errorMessages[param] = true;
+          this.planRouteButton.enabled = false;
+          return;
+        }
+      }
+
+      if (param === "routeName") {
+        this.absoluteFormInputs[param] = value;
+      }
+
+      this.absoluteFormInputs.routeType = this.selectedTab;
+
+      // Commit updated currRoute to store
+      this.$store.commit("updateCurrSegment", this.absoluteFormInputs);
+
+      // Enables PLAN button if route has all necessary params
+      if (this.isSegmentComplete()) {
+        this.planRouteButton.enabled = true;
+      } else {
+        this.planRouteButton.enabled = false;
+      }
     },
 
     /**
@@ -231,9 +259,10 @@ export default {
      * @param {string} value      value of the param
     */
     updateRelativeSegment: function(param, value) {
-
-      // Validation check
+      
+      // Validation check on distance and angle
       if (param === "distance" || param === "angle") {
+
         // Distance cannot be negative
         if (param === "distance" && value === "-") {
           this.errorMessages["distance"] = "Distance must be a positive number.";
@@ -242,8 +271,11 @@ export default {
           return;
         }
         // Check is valid number (and can be pos/neg if is angle)
-        else if (this.validationCheckNumber(value) || value === "-") {
+        else if (this.validationCheckNumber(value)) {
           this.show.errorMessages[param] = false;
+        }
+        else if (value === "-") {
+          return
         }
         else if (value === "") {
           this.show.errorMessages[param] = false;
@@ -263,44 +295,14 @@ export default {
         this.relativeFormInputs[param] = value;
       }
 
-      // Commit updated currRoute to store + makes grid render it
-      this.relativeFormInputs.route = this.selectedRoute;
-      this.relativeFormInputs.routeType = this.selectedTab;
-      this.$store.commit("updateAppendedSegment", this.relativeFormInputs);
-
-      // Enables PLAN button if route has all necessary params
-      if (this.isSegmentComplete()) {
-        this.planRouteButton.enabled = true;
-      } else {
-        this.planRouteButton.enabled = false;
-      }
-    },
-
-    updateAbsoluteSegment: function(param, value) {
-
-      if (param === "xCoord" || param === "yCoord") {
-        if (this.validationCheckNumber(value) || value === "-") {
-          this.show.errorMessages[param] = false;
-        }
-        else if (value === "") {
-          this.show.errorMessages[param] = false;
-        }
-        else {
-          this.errorMessages[param] = "Coordinate must be a number.";
-          this.show.errorMessages[param] = true;
-          this.planRouteButton.enabled = false;
-          return;
-        }
-      }
-
       if (param === "routeName") {
-        this.absoluteFormInputs[param] = value;
+        this.relativeFormInputs[param] = value;
       }
+
+      this.relativeFormInputs.routeType = this.selectedTab;
 
       // Commit updated currRoute to store
-      this.absoluteFormInputs.route = this.selectedRoute;
-      this.absoluteFormInputs.routeType = this.selectedTab;
-      this.$store.commit("updateAppendedSegment", this.absoluteFormInputs);
+      this.$store.commit("updateCurrSegment", this.relativeFormInputs);
 
       // Enables PLAN button if route has all necessary params
       if (this.isSegmentComplete()) {
@@ -320,7 +322,7 @@ export default {
       return /^\d+$/.test(value) || value < 0;
     },
     
-    /**
+     /**
      * Checks if form is complete.
      * 
      * @return {boolean}
@@ -339,18 +341,16 @@ export default {
           return false;
         }
       }
+
       return true;
     },
 
-    saveSegment() {
-      let segment;
+    saveRoute() {
       if (this.selectedTab === "relative") {
-        segment = new RelativeSegment(this.relativeFormInputs.distance, this.relativeFormInputs.angle);
+        this.$store.commit("saveCurrRoute", this.relativeFormInputs.routeName);
       } else {
-        segment = new AbsoluteSegment(this.absoluteFormInputs.xCoord, this.absoluteFormInputs.yCoord);
+        this.$store.commit("saveCurrRoute", this.absoluteFormInputs.routeName);
       }
-
-      this.$store.commit("saveSegment", {route: this.selectedRoute, segment: segment});
       this.resetForm();
       this.planRouteButton.enabled = false;
     },
@@ -358,27 +358,21 @@ export default {
     cancelRoute() {
       this.resetForm();
       this.planRouteButton.enabled = false;
-      this.$store.commit("triggerAppendedSegmentRemoval");
+      this.$store.commit("triggerCurrSegmentRemoval");
     },
 
     resetForm() {
-      this.selectedRoute = null;
-      if (this.selectedTab === "relative") {
-        this.relativeFormInputs = {
-          route: "",
-          routeType: "",
-          distance: "",
-          angle: "",
+      let keys = this.selectedTab === "relative" ? Object.keys(this.relativeFormInputs) : Object.keys(this.absoluteFormInputs);
+      for (let key of keys) {
+        if (this.selectedTab === "relative") {
+          this.relativeFormInputs[key] = "";
+        } else {
+          this.absoluteFormInputs[key] = "";
         }
-      } else {
-        this.absoluteFormInputs = {
-          route: "",
-          routeType: "",
-          xCoord: "",
-          yCoord: "",
-        }
+        this.show.errorMessages[key] = false;
+        this.errorMessages[key] = "";
       }
-    },
+    }
   },
 }
 
@@ -392,10 +386,9 @@ export default {
 
 $left-offset: 14px; 
 
-#addToRoute {
+#createRoute {
   background-color: $color-background;
 }
-
 .content {
   padding-top: 2rem;
 
@@ -498,26 +491,6 @@ $left-offset: 14px;
   padding-left: 8rem;
   height: 2rem;
   margin-bottom: 0.5rem;
-}
-
-.dropDownContainer {
-  display: flex;
-  flex-direction: row;
-  margin-bottom: 2rem;
-
-  label {
-    width: 8rem;
-    padding-right: 1rem;
-    align-self: center;
-    color: white;
-    font-weight: bold;
-  }
-}
-
-#dropDown {
-  height: 3rem;
-  width: 18rem;
-  font-size: 1.2rem;
 }
 
 </style>

@@ -79,11 +79,13 @@ export default {
               .attr("id", route.routeName+"-Group")
               .append('g')
               .attr("id", route.routeName+"-Segment0")
-              .on("click", function() {
-                toggleModal(this, route, 0, endX, endY); 
-              });
 
-          plotNewSegment(currRouteTransform, route.routeName, 0, angle, startX, startY, endX, endY, false);
+          let circleCoords = plotNewSegment(currRouteTransform, route.routeName, 0, angle, startX, startY, endX, endY, false);
+          
+          // Set up modal once have coords w/ rotation
+          currRouteTransform.on("click", function() {
+                              toggleModal(this, route, 0, circleCoords.x, circleCoords.y); 
+                            });
 
           // Calculate coords for relatives
           if (segment.constructor.name === "RelativeSegment") {
@@ -110,12 +112,14 @@ export default {
 
           let transform = d3.select("#"+route.routeName+"-Group")
                             .append('g')
-                            .attr("id", route.routeName+"-Segment"+i)
-                            .on("click", function() {
-                              toggleModal(this, route, i, endX, endY); 
-                            });
+                            .attr("id", route.routeName+"-Segment"+i);
+   
+          let circleCoords = plotNewSegment(transform, route.routeName, i, computedAngle, startX, startY, endX, endY, false);
 
-          plotNewSegment(transform, route.routeName, i, computedAngle, startX, startY, endX, endY, false);
+          // Set up modal once have coords w/ rotation
+          transform.on("click", function() {
+                        toggleModal(this, route, i, circleCoords.x, circleCoords.y); 
+                    });
 
           // Calculate coords for relatives
           if (segment.constructor.name === "RelativeSegment") {

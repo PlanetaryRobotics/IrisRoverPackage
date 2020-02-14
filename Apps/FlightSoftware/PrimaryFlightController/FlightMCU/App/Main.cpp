@@ -51,6 +51,7 @@ uint8_t g_txBuffer[8];
 void handleI2cMotorControlCommand(uint8_t *cmd){
     for(uint8_t mcId=0; mcId < 1; mcId++){
         i2cSetSlaveAdd(i2cREG1, 0x48+mcId);
+        i2cSetDirection(i2cREG1, I2C_TRANSMITTER);
 
         /* Set mode as Master */
         i2cSetMode(i2cREG1, I2C_MASTER);
@@ -70,6 +71,7 @@ void handleI2cMotorControlCommand(uint8_t *cmd){
             case I2C_ADDRESS:
                 break;
             case RELATIVE_TARGET_POSITION:
+                i2cSetDirection(i2cREG1, I2C_RECEIVER);
                 i2cReceive(i2cREG1, 4, cmd+1);
                 /* Wait until Bus Busy is cleared */
                 while(i2cIsBusBusy(i2cREG1) == true);

@@ -22,17 +22,31 @@ const ICON =
 // Standard scheme must be registered before the app is ready
 protocol.registerStandardSchemes(['app'], { secure: true })
 function initProgram(){
+  // Determine if a splash-screen should be skipped:
+  let no_splash = false; // default
+  // Process command-line arguments:
+  let argv = JSON.parse(process.env.npm_config_argv).remain; // grab unused arguments
+  let keys = argv.filter((v,i) => !(i % 2)); // grab keys
+  let vals = argv.filter((v,i) => i % 2); // grab values associated with keys
+  let splashlessIdx = keys.indexOf("splashless"); // Index of db-mission value
+  if(splashlessIdx != -1){
+    if( parseInt(vals[splashlessIdx]) ){
+      no_splash = true;
+    }
+  }
+
   let windowOptions = {
     width: 1300,
     height: 800,
     minWidth: 869,
     minHeight: 580,
     icon: ICON,
-    show: false // don't show until content rendered (handled by Login.vue)
+    show: no_splash // only hide if a splash-screen is shown
   }
   if(!isDevelopment){
     windowOptions = Object.assign(windowOptions, {
       frame: false,
+      show: false // don't show until content rendered (handled by Login.vue)
     });
   }
 
@@ -52,6 +66,10 @@ function initProgram(){
     website: '',
     text: 'Initializing . . .'
   });
+
+  if(no_splash){
+    hideSplashscreen();
+  }
 }
 
 function renderWindow() {

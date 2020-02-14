@@ -12,6 +12,11 @@ npm run electron:serve
 ```
 
 ### Special command-line arguments for use in development
+The following arguments can be chained together indefinitely. Presently, all arguments must come in name-value pairs (You can't just add an argument name without also giving it a value; if you do, all subsequent arguments will fail to load.)
+*splashless*: Automatically closes the splash-screen on startup for dev purposes. NOTE: Must be given the arg `1` to actually skip. Example:
+```
+npm run electron:serve splashless 1
+```
 *route-to*: Bypasses the login and starts the program at the given page registered in `router.js`.
 Note: The given page must be listed in the router and must be at root level (eg. `path :'/sandbox_mapTest'` not `path :'/sandbox/mapTest'`).
 Example:

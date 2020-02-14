@@ -71,6 +71,14 @@ Svc::TlmChanImpl tlmChan(
   );
 
 // ---------------------------------------------------------------------------
+// Health component used to check the condition of all other components
+Svc::HealthImpl health(
+#if FW_OBJECT_NAMES == 1
+  "Health"
+#endif
+  );
+
+// ---------------------------------------------------------------------------
 // command dispatcher component used to dispatch commands
 Svc::CommandDispatcherImpl cmdDispatcher(
 #if FW_OBJECT_NAMES == 1
@@ -105,6 +113,20 @@ void constructApp(void){
 
   // Initialize the telemetric channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
+
+  // Initializing health component
+  //TODO: not sure if this is needed
+  health.init(25,0);
+
+  Svc::HealthImpl::PingEntry pingEntries[] = {
+        {3,5,rateGroupLowFreq.getObjName()}, // 0
+        {3,5,rateGroupMedFreq.getObjName()}, // 1
+        {3,5,rateGroupHiFreq.getObjName()}, // 2
+    };
+
+    // register ping table
+    health.setPingEntries(pingEntries,FW_NUM_ARRAY_ELEMENTS(pingEntries),0x123);
+//END TODO
 
   // Construct the application and make all connections between components
   constructCubeRoverArchitecture();

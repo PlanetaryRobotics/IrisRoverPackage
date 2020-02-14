@@ -9,6 +9,7 @@
   <import_component_type>Svc/ActiveRateGroup/ActiveRateGroupComponentAi.xml</import_component_type>
   <import_component_type>Svc/Time/TimeComponentAi.xml</import_component_type>
   <import_component_type>Svc/TlmChan/TlmChanComponentAi.xml</import_component_type>
+  <import_component_type>Svc/Health/HealthComponentAi.xml</import_component_type>
   <import_component_type>Svc/CmdDispatcher/CommandDispatcherComponentAi.xml</import_component_type>
 
 <!-- Declaration of block driver that drive F-prime clocking and other async event -->
@@ -25,6 +26,9 @@
 
 <!-- Declaration of telemetric chan that gathers all telemetric parameters (synchronous, synchronized by rate group low freq) -->
   <instance namespace="Svc" name="tlmChan" type="TlmChan" base_id="121"  base_id_window="20" />
+
+<!-- Declaration of health -->
+  <instance namespace="Svc" name="health" type="Health" base_id="141"  base_id_window="20" />
 
 <!-- Declaration of the command dispatcher -->
   <instance namespace="Svc" name="cmdDispatcher" type="CommandDispatcher" base_id="201" base_id_window="20" />
@@ -72,6 +76,53 @@
         CONNECTION BETWEEN MEDIUM FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
      *********************************************************************************************************
      -->
+
+
+
+<!-- *********************************************************************************************************
+        CONNECTION PING FROM HEALTH PORT TO ALL OTHER MODULES
+     ********************************************************************************************************* 
+    -->
+
+    <connection name = "health_to_tlmChan_PingIn">
+    <source component = "health" port = "PingSend" type = "Ping" num = "0" />
+    <target component = "tlmChan" port = "pingIn" type = "Ping" num = "0" />
+  </connection>
+  <connection name = "tlmChan_to_health_PingOut">
+    <source component = "tlmChan" port = "pingOut" type = "Ping" num = "0" />
+    <target component = "health" port = "PingReturn" type = "Ping" num = "0" />
+  </connection>
+
+    <!--
+
+  <connection name = "health_to_rgLowFreq">
+    <source component = "health" port = "PingSend" type = "Ping" num = "0" />
+    <target component = "rateGroupLowFreq" port = "PingIn" type = "Ping" num = "0" />
+  </connection>
+  <connection name = "rgLowFreq_to_health">
+    <source component = "rateGroupLowFreq" port = "PingOut" type = "Ping" num = "0" />
+    <target component = "health" port = "PingReturn" type = "Ping" num = "0" />
+  </connection>
+
+  <connection name = "health_to_rgMedFreq">
+    <source component = "health" port = "PingSend" type = "Ping" num = "0" />
+    <target component = "rateGroupMedFreq" port = "PingIn" type = "Ping" num = "0" />
+  </connection>
+  <connection name = "rgMedFreq_to_health">
+    <source component = "rateGroupMedFreq" port = "PingOut" type = "Ping" num = "0" />
+    <target component = "health" port = "PingReturn" type = "Ping" num = "0" />
+  </connection>
+
+  <connection name = "health_to_rgHiFreq">
+    <source component = "health" port = "PingSend" type = "Ping" num = "0" />
+    <target component = "rateGroupHiFreq" port = "PingIn" type = "Ping" num = "0" />
+  </connection>
+  <connection name = "rgHiFreq_to_health">
+    <source component = "rateGroupHiFreq" port = "PingOut" type = "Ping" num = "0" />
+    <target component = "health" port = "PingReturn" type = "Ping" num = "0" />
+  </connection>
+
+  -->
 
 <!-- *********************************************************************************************************
         CONNECTION OF TIME PORTS BETWEEN CUBEROVER TIME ALL TIME-STAMPED COMPONENTS

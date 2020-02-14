@@ -18,6 +18,7 @@
 #include <Svc/LinuxTime/CubeRoverTimeImpl.hpp>
 #include <Svc/TlmChan/TlmChanImpl.hpp>
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
+#include <Svc/Health/HealthComponentImpl.hpp>
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
 
 // Block driver sequencing F-Prime and other sync events
@@ -40,6 +41,9 @@ extern Svc::ActiveLoggerImpl activeLogger;
 
 // FreeRTOS Serial driver to interface radio module
 extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
+
+// health component that checks the health of all other components
+extern Svc::HealthImpl health;
 
 // command dispatcher
 extern Svc::CommandDispatcherImpl cmdDispatcher;

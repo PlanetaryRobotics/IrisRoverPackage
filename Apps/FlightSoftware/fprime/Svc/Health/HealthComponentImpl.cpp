@@ -13,6 +13,7 @@
 #include <Svc/Health/HealthComponentImpl.hpp>
 #include "Fw/Types/BasicTypes.hpp"
 #include <Fw/Types/Assert.hpp>
+#include <Svc/Health/VxWorks/HealthComponentVxWorksChecks.cpp>
 
 namespace Svc {
 

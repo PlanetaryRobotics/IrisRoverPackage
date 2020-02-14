@@ -39,7 +39,7 @@ extern Svc::CubeRoverTimeImpl cubeRoverTime;
 extern Svc::TlmChanImpl tlmChan;
 
 // Health component that checks to see if all components are working by pinging them
-extern Svc::HealthImpl health;
+extern Svc::HealthComponentImpl health;
 
 // Service that handle active logging
 extern Svc::ActiveLoggerImpl activeLogger;

@@ -72,7 +72,7 @@ Svc::TlmChanImpl tlmChan(
 
 // ---------------------------------------------------------------------------
 //Health channel component used to check if other components are working
-Svc::HealthImpl health(
+Svc::HealthComponentImpl health(
 #if FW_OBJECT_NAMES == 1
   "Health"
 #endif

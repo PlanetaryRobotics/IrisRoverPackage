@@ -37,6 +37,25 @@ typedef enum I2cRegisterIds{
     MAX_NB_CMDS = 15
 }I2cRegisterIds;
 
+typedef enum CommandList{
+  TGT_SPEED_MOTOR_LEFT =      0x00,
+  TGT_SPEED_MOTOR_RIGHT =     0x01,
+  TGT_POSITION_MOTOR_LEFT =   0x02,
+  TGT_POSITION_MOTOR_RIGHT =  0x03,
+  RUN =                   0x04,
+  STOP =                  0x05,
+  GET_CURRENT =           0x06,
+  GET_POSITION =          0x07,
+  GET_STATUS =            0x08
+}CommandList;
+
+typedef enum Motor{
+    MOTOR_FRONT_LEFT  =   0x00,
+    MOTOR_FRONT_RIGHT =   0x01,
+    MOTOR_REAR_LEFT =     0x02,
+    MOTOR_REAR_RIGHT =    0x03
+}Motor;
+
 void vApplicationIdleHook( void ){
     run1cycle();
     //gioToggleBit(gioPORTB, 1);
@@ -48,71 +67,68 @@ using namespace Wf121;
 uint8_t g_rxBuffer[RX_RING_BUFFER_SIZE];
 uint8_t g_txBuffer[8];
 
-void handleI2cMotorControlCommand(uint8_t *cmd){
-    for(uint8_t mcId=0; mcId < 1; mcId++){
-        i2cSetSlaveAdd(i2cREG1, 0x48+mcId);
-        i2cSetDirection(i2cREG1, I2C_TRANSMITTER);
+void handleI2cMotorControlCommand(Motor motorId, I2cRegisterIds reg, uint8_t *data, uint8_t dataSize){
+    uint16_t i;
 
-        /* Set mode as Master */
-        i2cSetMode(i2cREG1, I2C_MASTER);
+    i2cSetSlaveAdd(i2cREG1, 0x48+motorId);
+    i2cSetDirection(i2cREG1, I2C_TRANSMITTER);
 
-        /* Set Stop after programmed Count */
-        i2cSetStop(i2cREG1);
+    /* Set mode as Master */
+    i2cSetMode(i2cREG1, I2C_MASTER);
 
-        /* Transmit Start Condition */
-        i2cSetStart(i2cREG1);
+    /* Set Stop after programmed Count */
+    i2cSetStop(i2cREG1);
 
-        i2cSendByte(i2cREG1, cmd[0]); // send the address register
+    /* Transmit Start Condition */
+    i2cSetStart(i2cREG1);
 
-        /* Wait until Bus Busy is cleared */
-        while(i2cIsBusBusy(i2cREG1) == true);
+    i2cSendByte(i2cREG1, reg); // send the address register
 
-        switch(cmd[0]){
-            case I2C_ADDRESS:
-                break;
-            case RELATIVE_TARGET_POSITION:
-                i2cSetDirection(i2cREG1, I2C_RECEIVER);
-                i2cReceive(i2cREG1, 4, cmd+1);
-                /* Wait until Bus Busy is clleared */
-                while(i2cIsBusBusy(i2cREG1) == true);
-                break;
-            case TARGET_SPEED:
-                break;
-            case CURRENT_POSITION:
-                break;
-            case CURRENT_SPEED:
-                break;
-            case MOTOR_CURRENT:
-                break;
-            case P_CURRENT:
-                break;
-            case I_CURRENT:
-                break;
-            case P_SPEED:
-                break;
-            case I_SPEED:
-                break;
-            case ACC_RATE:
-                break;
-            case DEC_RATE:
-                break;
-            case CONTROL_REGISTER:
-                break;
-            case STATUS_REGISTER:
-                break;
-            case FAULT_REGISTER:
-                break;
-        }
+    /* Wait until Bus Busy is cleared */
+    while(i2cIsBusBusy(i2cREG1) == true);
 
-        /* Wait until Stop is detected */
-        while(i2cIsStopDetected(i2cREG1) == 0);
-
-        /* Clear the Stop condition */
-        i2cClearSCD(i2cREG1);
-
-        // test delay
-        for(uint32_t delay=0;delay<1000000;delay++);
+    switch(reg){
+        case I2C_ADDRESS:
+            break;
+        case RELATIVE_TARGET_POSITION:
+            break;
+        case TARGET_SPEED:
+            break;
+        case CURRENT_POSITION:
+            i2cSetDirection(i2cREG1, I2C_RECEIVER);
+            i2cReceive(i2cREG1, dataSize, data);
+            /* Wait until Bus Busy is cleared */
+            while(i2cIsBusBusy(i2cREG1) == true);
+            break;
+        case CURRENT_SPEED:
+            break;
+        case MOTOR_CURRENT:
+            break;
+        case P_CURRENT:
+            break;
+        case I_CURRENT:
+            break;
+        case P_SPEED:
+            break;
+        case I_SPEED:
+            break;
+        case ACC_RATE:
+            break;
+        case DEC_RATE:
+            break;
+        case CONTROL_REGISTER:
+            break;
+        case STATUS_REGISTER:
+            break;
+        case FAULT_REGISTER:
+            break;
     }
+
+    /* Wait until Stop is detected */
+    while(i2cIsStopDetected(i2cREG1) == 0);
+
+    /* Clear the Stop condition */
+    i2cClearSCD(i2cREG1);
 }
 
 void main(void)
@@ -131,12 +147,6 @@ void main(void)
 
 
     while(1){
-        g_rxBuffer[0] = 10; // Left Speed
-        g_rxBuffer[1] = 10;  // Right speed
-        g_rxBuffer[2] = 100; // Left position
-        g_rxBuffer[6] = 100; // Right position
-
-        handleI2cMotorControlCommand(g_rxBuffer);
 
         //wf121.UpdateNetworkManager();
         //wf121.ReceiveUdpData(g_rxBuffer, commandPacketSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
@@ -146,6 +156,52 @@ void main(void)
         //    g_txBuffer[0] = 0xAA;   // send back acknowledgment
         //    wf121.SendUdpData(g_txBuffer, g_txBuffer, 10000);
         // }
+        //cmd = g_rxBuffer[0];
+        //g_txBuffer[0] = g_rxBuffer[0];
+
+        switch(cmd){
+            case TGT_SPEED_MOTOR_LEFT:
+                handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, TARGET_SPEED, g_rxBuffer+1, 1);
+                handleI2cMotorControlCommand(MOTOR_REAR_LEFT, TARGET_SPEED, g_rxBuffer+1, 1);
+                break;
+            case TGT_SPEED_MOTOR_RIGHT:
+                handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, TARGET_SPEED, g_rxBuffer+1, 1);
+                handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, TARGET_SPEED, g_rxBuffer+1, 1);
+                break;
+            case TGT_POSITION_MOTOR_LEFT:
+                handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, RELATIVE_TARGET_POSITION, g_rxBuffer+1, 4);
+                handleI2cMotorControlCommand(MOTOR_REAR_LEFT, RELATIVE_TARGET_POSITION, g_rxBuffer+1, 4);
+                break;
+            case TGT_POSITION_MOTOR_RIGHT:
+                handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, RELATIVE_TARGET_POSITION, g_rxBuffer+1, 4);
+                handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, RELATIVE_TARGET_POSITION, g_rxBuffer+1, 4);
+                break;
+            case RUN:
+            case STOP:
+                handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, CONTROL_REGISTER, g_rxBuffer+1, 1);
+                handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, CONTROL_REGISTER, g_rxBuffer+1, 1);
+                handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, CONTROL_REGISTER, g_rxBuffer+1, 1);
+                handleI2cMotorControlCommand(MOTOR_REAR_LEFT, CONTROL_REGISTER, g_rxBuffer+1, 1);
+                break;
+            case GET_CURRENT:
+                handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, MOTOR_CURRENT, g_txBuffer+1, 2);
+                handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, MOTOR_CURRENT, g_txBuffer+3, 2);
+                handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, MOTOR_CURRENT, g_txBuffer+5, 2);
+                handleI2cMotorControlCommand(MOTOR_REAR_LEFT, MOTOR_CURRENT, g_txBuffer+7, 2);
+                break;
+            case GET_POSITION:
+                handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, CURRENT_POSITION, g_txBuffer+1, 4);
+                handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, CURRENT_POSITION, g_txBuffer+5, 4);
+                handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, CURRENT_POSITION, g_txBuffer+9, 4);
+                handleI2cMotorControlCommand(MOTOR_REAR_LEFT, CURRENT_POSITION, g_txBuffer+13, 4);
+                break;
+            case GET_STATUS:
+                handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, CURRENT_POSITION, g_txBuffer+1, 4);
+                handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, CURRENT_POSITION, g_txBuffer+1, 4);
+                handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, CURRENT_POSITION, g_txBuffer+1, 4);
+                handleI2cMotorControlCommand(MOTOR_REAR_LEFT, CURRENT_POSITION, g_txBuffer+1, 4);
+                break;
+        }
     }
 
     vTaskStartScheduler();

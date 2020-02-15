@@ -73,7 +73,7 @@ void handleI2cMotorControlCommand(uint8_t *cmd){
             case RELATIVE_TARGET_POSITION:
                 i2cSetDirection(i2cREG1, I2C_RECEIVER);
                 i2cReceive(i2cREG1, 4, cmd+1);
-                /* Wait until Bus Busy is cleared */
+                /* Wait until Bus Busy is clleared */
                 while(i2cIsBusBusy(i2cREG1) == true);
                 break;
             case TARGET_SPEED:
@@ -135,15 +135,14 @@ void main(void)
         g_rxBuffer[1] = 100;
         handleI2cMotorControlCommand(g_rxBuffer);
 
-//        wf121.UpdateNetworkManager();
-//        wf121.ReceiveUdpData(g_rxBuffer, commandPacketSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
-//
-//        if(byteRead == commandPacketSize){
-//            handleI2cMotorControlCommand(g_rxBuffer);
-//
-//            g_txBuffer[0] = 0xAA;   // send back acknowledgment
-//            wf121.SendUdpData(g_txBuffer, g_txBuffer, 10000);
-//        }
+        wf121.UpdateNetworkManager();
+        wf121.ReceiveUdpData(g_rxBuffer, commandPacketSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
+
+        if(byteRead == commandPacketSize){
+            handleI2cMotorControlCommand(g_rxBuffer);
+            g_txBuffer[0] = 0xAA;   // send back acknowledgment
+            wf121.SendUdpData(g_txBuffer, g_txBuffer, 10000);
+        }
     }
 
     vTaskStartScheduler();

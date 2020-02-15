@@ -131,18 +131,21 @@ void main(void)
 
 
     while(1){
-        g_rxBuffer[0] = 0x01;
-        g_rxBuffer[1] = 100;
+        g_rxBuffer[0] = 10; // Left Speed
+        g_rxBuffer[1] = 10;  // Right speed
+        g_rxBuffer[2] = 100; // Left position
+        g_rxBuffer[6] = 100; // Right position
+
         handleI2cMotorControlCommand(g_rxBuffer);
 
-        wf121.UpdateNetworkManager();
-        wf121.ReceiveUdpData(g_rxBuffer, commandPacketSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
+        //wf121.UpdateNetworkManager();
+        //wf121.ReceiveUdpData(g_rxBuffer, commandPacketSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
 
-        if(byteRead == commandPacketSize){
-            handleI2cMotorControlCommand(g_rxBuffer);
-            g_txBuffer[0] = 0xAA;   // send back acknowledgment
-            wf121.SendUdpData(g_txBuffer, g_txBuffer, 10000);
-        }
+        //if(byteRead == commandPacketSize){
+        //    handleI2cMotorControlCommand(g_rxBuffer);
+        //    g_txBuffer[0] = 0xAA;   // send back acknowledgment
+        //    wf121.SendUdpData(g_txBuffer, g_txBuffer, 10000);
+        // }
     }
 
     vTaskStartScheduler();

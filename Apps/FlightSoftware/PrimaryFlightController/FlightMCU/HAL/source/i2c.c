@@ -545,7 +545,6 @@ uint8 i2cReceiveByte(i2cBASE_t *i2c)
 /* Requirements : HL_SR290 */
 void i2cReceive(i2cBASE_t *i2c, uint32 length, uint8 * data)
 {
-
 /* USER CODE BEGIN (26) */
 /* USER CODE END */
     if ((i2c->IMR & (uint32)I2C_RX_INT) != 0U)
@@ -563,9 +562,8 @@ void i2cReceive(i2cBASE_t *i2c, uint32 length, uint8 * data)
         while (length > 0U)
         {
             /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Potentially infinite loop found - Hardware Status check for execution sequence" */
-            while ((i2c->STR & (uint32)I2C_RX_INT) == 0U)
-            {
-            } /* Wait */
+            while ((i2c->STR & (uint32)I2C_RX_INT) == 0U);
+
             /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
             *data = ((uint8)i2c->DRR);
             /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */

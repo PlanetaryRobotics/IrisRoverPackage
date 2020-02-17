@@ -237,6 +237,8 @@ void initializeI2cModule(){
   g_slaveMode = RX_REG_ADDRESS_MODE;
   g_readRegAddr = 0;
 
+  initializeCmdLength();
+
   // Configure I2C interface for slave interface
   EUSCI_B_I2C_initSlaveParam param = {0};
   param.slaveAddress = I2C_SLAVE_ADDRESS;

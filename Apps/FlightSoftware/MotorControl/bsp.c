@@ -12,7 +12,7 @@ void initializeGpios(){
                                               GPIO_PIN2, /* Phase A current sense */
                                               GPIO_TERNARY_MODULE_FUNCTION);
 
-  GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P1,
+  GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1,
                                               GPIO_PIN6 + GPIO_PIN7, /* I2C */
                                               GPIO_SECONDARY_MODULE_FUNCTION);
 

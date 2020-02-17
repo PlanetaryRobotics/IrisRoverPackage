@@ -296,11 +296,13 @@ int main(int argc, char *argv[]){
     exit(EXIT_FAILURE); 
   } 
 
-  setTargetSpeedRight(targetSpeedRevRight);
-  setTargetSpeedLeft(targetSpeedRevLeft);
-  setTargetPositionRight(targetPosTicksRight);
+  //setTargetSpeedRight(targetSpeedRevRight);
+  //setTargetSpeedLeft(targetSpeedRevLeft);
+  //setTargetPositionRight(targetPosTicksRight);
   setTargetPositionLeft(targetPosTicksLeft);
-  run();
+  //run();
+
+  return 0;
 
   while(getStatus() != MotorStatus::TARGET_REACHED){
     getPositions(&positionFrontLeft, &positionFrontRight, &positionRearLeft, &positionRearRight);

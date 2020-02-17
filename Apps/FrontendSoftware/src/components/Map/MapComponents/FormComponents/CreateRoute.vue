@@ -20,11 +20,17 @@
                     >
               Absolute[A]
             </button>
-            <button class="tabButton right"
+            <button class="tabButton center"
                     :class="{selected: 'relative' == selectedTab}"
                     @click="setSelectedTab('relative')"
                     >
               Relative[R]
+            </button>
+            <button class="tabButton right"
+                    :class="{selected: 'waypoint' == selectedTab}"
+                    @click="setSelectedTab('waypoint')"
+                    >
+              Waypoint[W]
             </button>
           </span>
 
@@ -67,7 +73,7 @@
           </div>
 
           <!-- FORM FOR ABSOLUTE SEGMENT -->
-          <div v-else>
+          <div v-if="selectedTab === 'absolute'">
             <div class="inputBlock">
               <label>Route Name: </label>
               <input type="text" 
@@ -103,6 +109,26 @@
             </div>
           </div>
 
+          <!-- FORM FOR WAYPOINT -->
+          <div v-if="selectedTab === 'waypoint'">
+            
+            <div class="inputBlock">
+              <label>Route Name: </label>
+              <input type="text" 
+                    placeholder="Enter name of route"
+                    v-model="waypointFormInputs.routeName" 
+                    @input="updateWaypointSegment('routeName', $event.target.value)"
+                    />
+            </div>
+            <div class="errorBlock">
+              {{show.errorMessages.routeName ? errorMessages.routeName : ""}}
+            </div>
+
+            <div class="inputBlock__text">
+              Select a location on the map for the new waypoint.
+            </div>
+          </div>
+
           <!-- CANCEL/PLAN BUTTON -->
           <span class="buttonContainer">
             <AtomicButton v-bind="cancelRouteButton" 
@@ -120,6 +146,7 @@
 
 <script>
 
+import { mapGetters } from 'vuex';
 import AtomicButton from '@/components/atomic/AtomicButton.vue';
 
 export default {
@@ -129,6 +156,7 @@ export default {
   },
   data() {
     return {
+      validTabs: ["absolute", "relative", "waypoint"],
       selectedTab: "absolute",
       show: {
         createTab: false,
@@ -167,12 +195,36 @@ export default {
         routeName: "",
         distance: "",
         angle: "",
+        segmentType: "",
       },
       absoluteFormInputs: {
         routeName: "",
         xCoord: "",
         yCoord: "",
+        segmentType: "",
       },
+      waypointFormInputs: { //coords are being pushed from the grid component
+        routeName: "",
+        segmentType: ""
+      }
+    }
+  },
+  computed: {
+    ...mapGetters({
+      currWaypointSegment: 'currWaypointSegment',
+      routeList: 'routeList'
+    })
+  },
+  watch: {
+    currWaypointSegment(newSegment) {
+      this.waypointFormInputs.xCoord = newSegment.xCoordinate;
+      this.waypointFormInputs.yCoord = newSegment.yCoordinate;
+
+      if (this.isSegmentComplete()) {
+        this.planRouteButton.enabled = true;
+      } else {
+        this.planRouteButton.enabled = false;
+      }
     }
   },
   methods: {
@@ -194,8 +246,14 @@ export default {
     */
     setSelectedTab(tabName) {
 
-      if (tabName !== "absolute" && tabName !== "relative") {
-        throw new Error("tabName is not valid. Must be either 'absolute' or 'relative'.");
+      if (!this.validTabs.includes(tabName)) {
+        throw new Error("tabName is not valid. Must be one of: " + this.validTabs);
+      }
+
+      if (tabName === "waypoint") {
+        this.$store.commit("setIsListeningForWaypoint", true);
+      } else  {
+        this.$store.commit("setIsListeningForWaypoint", false);
       }
 
       // Reset all form inputs on switch
@@ -229,10 +287,10 @@ export default {
       }
 
       if (param === "routeName") {
-        this.absoluteFormInputs[param] = value;
+        this.validateRouteName(value);
       }
 
-      this.absoluteFormInputs.routeType = this.selectedTab;
+      this.absoluteFormInputs.segmentType = this.selectedTab;
 
       // Commit updated currRoute to store
       this.$store.commit("updateCurrSegment", this.absoluteFormInputs);
@@ -296,10 +354,10 @@ export default {
       }
 
       if (param === "routeName") {
-        this.relativeFormInputs[param] = value;
+        this.validateRouteName(value);
       }
 
-      this.relativeFormInputs.routeType = this.selectedTab;
+      this.relativeFormInputs.segmentType = this.selectedTab;
 
       // Commit updated currRoute to store
       this.$store.commit("updateCurrSegment", this.relativeFormInputs);
@@ -312,6 +370,43 @@ export default {
       }
     },
 
+    updateWaypointSegment: function(param, value) {
+      if (param === "routeName") {
+        this.validateRouteName(value);
+      }
+
+      this.waypointFormInputs.segmentType = this.selectedTab;
+
+      // Enables PLAN button if route has all necessary params
+      if (this.isSegmentComplete()) {
+        this.planRouteButton.enabled = true;
+      } else {
+        this.planRouteButton.enabled = false;
+      }
+    },
+
+    validateRouteName(value) {
+      let param = "routeName";
+      if (!this.isUniqueRouteName(value)) {
+          this.errorMessages[param] = value + " is a route name that has already been taken."
+          this.show.errorMessages[param] = true;
+          this.planRouteButton.enabled = false;
+          return;
+        } else {
+          this.show.errorMessages[param] = false;
+          this.relativeFormInputs[param] = value;
+      }
+    },
+
+    isUniqueRouteName(routeName) {
+      for (let route of this.routeList) {
+        if (route.routeName === routeName) {
+          return false;
+        }
+      }
+
+      return true;
+    },
     /**
      * Checks if string is a valid number (positive or negative).
      * 
@@ -331,8 +426,10 @@ export default {
       let form;
       if (this.selectedTab === "relative") {
         form = this.relativeFormInputs;
-      } else {
+      } else if (this.selectedTab === "absolute") {
         form = this.absoluteFormInputs;
+      } else if (this.selectedTab === "waypoint") {
+        form = this.waypointFormInputs;
       }
 
       let keys = Object.keys(form);
@@ -347,10 +444,13 @@ export default {
 
     saveRoute() {
       if (this.selectedTab === "relative") {
-        this.$store.commit("saveCurrRoute", this.relativeFormInputs.routeName);
-      } else {
-        this.$store.commit("saveCurrRoute", this.absoluteFormInputs.routeName);
+        this.$store.commit("saveCurrRoute", {routeName: this.relativeFormInputs.routeName, routeType: "relative"});
+      } else if (this.selectedTab === "absolute") {
+        this.$store.commit("saveCurrRoute", {routeName: this.absoluteFormInputs.routeName, routeType: "absolute"});
+      } else if (this.selectedTab === "waypoint") {
+        this.$store.commit("saveCurrRoute", {routeName: this.waypointFormInputs.routeName, routeType: "waypoint"});
       }
+
       this.resetForm();
       this.planRouteButton.enabled = false;
     },
@@ -362,12 +462,24 @@ export default {
     },
 
     resetForm() {
-      let keys = this.selectedTab === "relative" ? Object.keys(this.relativeFormInputs) : Object.keys(this.absoluteFormInputs);
+      let keys;
+      if (this.selectedTab === "relative") {
+        keys = Object.keys(this.relativeFormInputs);
+      }
+      else if (this.selectedTab === "absolute") {
+        keys = Object.keys(this.absoluteFormInputs);
+      }
+      else if (this.selectedTab === "waypoint") {
+        keys = Object.keys(this.waypointFormInputs);
+      }
+
       for (let key of keys) {
         if (this.selectedTab === "relative") {
           this.relativeFormInputs[key] = "";
-        } else {
+        } else if (this.selectedTab === "absolute") {
           this.absoluteFormInputs[key] = "";
+        } else if (this.selectedTab === "waypoint") {
+          this.waypointFormInputs[key] = "";
         }
         this.show.errorMessages[key] = false;
         this.errorMessages[key] = "";
@@ -389,6 +501,7 @@ $left-offset: 14px;
 #createRoute {
   background-color: $color-background;
 }
+
 .content {
   padding-top: 2rem;
 
@@ -426,7 +539,7 @@ $left-offset: 14px;
 .tabButton {
   background-color: $color-grey-dark;
   color: white;
-  padding: 0.5rem 1.5rem;
+  padding: 0.5rem 1rem;
   border: none;
 
   &.selected {
@@ -435,6 +548,10 @@ $left-offset: 14px;
 
   &.left {
     border-radius: 5px 0 0 5px;
+  }
+
+  &.center {
+    border-radius: 0px;
   }
 
   &.right {
@@ -452,6 +569,11 @@ $left-offset: 14px;
     align-self: center;
     color: white;
     font-weight: bold;
+  }
+
+  &__text {
+    padding-left: 8rem;
+    padding-bottom: 2rem;
   }
 
   input {
@@ -491,6 +613,7 @@ $left-offset: 14px;
   padding-left: 8rem;
   height: 2rem;
   margin-bottom: 0.5rem;
+  font-size: 1.1rem;
 }
 
 </style>

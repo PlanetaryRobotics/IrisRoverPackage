@@ -41,8 +41,12 @@
           <div>{{"[R] " + segment.angle + " &#176;"}}</div>
           <div>{{"[R] [" + segment.xCoordinate + "cm, " +  segment.yCoordinate + "cm]"}}</div>
         </div>
-        <div class = "segment__attr" v-else>
+        <div class = "segment__attr" v-if = "segment.constructor.name === 'AbsoluteSegment'">
           <div>{{"[A] [" + segment.xCoordinate + "cm, " +  segment.yCoordinate + "cm]"}}</div>
+        </div>
+        <!-- TODO: do we transform coord to CM? -->
+        <div class = "segment__attr" v-if = "segment.constructor.name === 'WaypointSegment'">
+          <div>{{"[W] [" + segment.xCoordinate + "px, " +  segment.yCoordinate + "px]"}}</div>
         </div>
       </div>
 

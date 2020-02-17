@@ -35,13 +35,8 @@ export function generateFirstSegmentVars(segment, roverXPosPx, roverYPosPx, orig
     endX = startX;
     endY = startY + coords.yPx;
 
-    //let coords2 = convertCmToPx(xCmFromLander, yCmFromLander, gridUnitCm, gridUnitPx);
-    // Save the coords in Cm for printing in route manager
-    // TODO: account for displacement of rover --> need to get the endX and endY coords AFTER FREAKING ROTATION
-    // saveCoordsInCm(segment, endX-roverXPosPx, endY-roverYPosPx, gridUnitCm, gridUnitPx);
-
   // Handle absolute segment
-  } else {
+  } else if (segment.constructor.name === "AbsoluteSegment") {
 
     // Convert cm to px
     let coords = convertCmToPx(segment.xCoordinate, segment.yCoordinate, gridUnitCm, gridUnitPx);
@@ -54,12 +49,18 @@ export function generateFirstSegmentVars(segment, roverXPosPx, roverYPosPx, orig
     endX = originXPosPx + coords.xPx;
     endY = originYPosPx + coords.yPx;
     angle = 0;
+  
+  } else if (segment.constructor.name === "WaypointSegment") {
 
-    // let opp = coords.xPx;
-    // let adj = Math.sqrt(Math.pow(endX-startX, 2) + Math.pow(endY-startY, 2));
-    // let relAngle = Math.atan(Math.abs(opp)/Math.abs(adj)) * (180/Math.PI);
-    // segment.angle = relAngle;
-    // console.log(relAngle);
+    // Start coords is rover position
+    startX = roverXPosPx;
+    startY = roverYPosPx;
+
+    // End coords is segment coords applied to origin position
+    endX = segment.xCoordinate;
+    endY = segment.yCoordinate;
+    angle = 0;
+
   }
 
   return {angle: angle, startX: startX, startY: startY, endX: endX, endY: endY};

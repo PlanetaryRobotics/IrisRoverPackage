@@ -37,6 +37,8 @@ export default {
         currSegmentUpdate: 0,
         removeCurrSegment: 0,
 
+        currWaypointSegment: null,
+        
         // ADD TO ROUTE
         appendedSegmentData: {
           segment: null,
@@ -49,6 +51,8 @@ export default {
         routeList: [new Route("RelativeRoute", true, new RelativeSegment(30, 30)),
                     new Route("AbsoluteRoute", true, new AbsoluteSegment(60, -30))],
         routeListUpdate: 0, // For watching the visibility toggles on routes.vue
+
+        isListeningForWaypoint: false,
     },
     getters: {
       polarPlotEnabled: state => {
@@ -74,6 +78,15 @@ export default {
 
       removeCurrSegment: state => {
         return state.removeCurrSegment;
+      },
+
+      // --- Waypoint related
+      isListeningForWaypoint: state => {
+        return state.isListeningForWaypoint;
+      },
+
+      currWaypointSegment: state => {
+        return state.currWaypointSegment;
       },
 
       // AddToRoute.vue
@@ -108,20 +121,37 @@ export default {
         state.removeCurrSegment += 1;
       },
 
-      saveCurrRoute(state, routeName) {
-        let route = new Route(routeName, true, state.currSegment);
+      saveCurrRoute(state, {routeName, routeType}) {
+        let segment;
+        if (routeType === "waypoint") {
+          segment = state.currWaypointSegment;
+          state.currWaypointSegment = null;
+        } else {
+          segment = state.currSegment;
+          state.currSegment = null;
+        }
+
+        let route = new Route(routeName, true, segment);
         state.routeList.push(route);
-        state.currSegment = null;
         this.commit("triggerCurrSegmentRemoval");
       },
 
-      updateCurrSegment(state, {distance, angle, xCoord, yCoord, routeType}) { 
-        if (routeType === "relative") {
+      updateCurrSegment(state, {distance, angle, xCoord, yCoord, segmentType}) { 
+        if (segmentType === "relative") {
           state.currSegment = new RelativeSegment(distance, angle);
-        } else {
+        } else if (segmentType === "absolute") {
           state.currSegment = new AbsoluteSegment(xCoord, yCoord);
         }
         state.currSegmentUpdate += 1;
+      },
+
+      // -- Waypoint related
+      setIsListeningForWaypoint(state, isListening) {
+        state.isListeningForWaypoint = isListening;
+      },
+
+      setCurrWaypointSegment(state, segment) {
+        state.currWaypointSegment = segment;
       },
 
       //////////////////////////////////

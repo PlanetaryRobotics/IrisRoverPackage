@@ -20,7 +20,7 @@ export default {
           category: "OBSTACLE",
           thumbnail: new ImageData({
             name: 'CR_M01_0000',
-            // bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
+            //bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
             camera: "Front",
             sendTime: new Date(),
             command: "forward",

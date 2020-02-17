@@ -1,6 +1,6 @@
 <template>
     <div id = "grid-container">
-      <svg id = "grid">
+      <svg id = "grid" @click="gridClicked($event)">
           <g id = "gridLines">
           </g>
 
@@ -35,6 +35,8 @@ import { plotNewSegment,
          generateAppendedSegmentVars, 
          calculateRelativeSegmentCoordinates,
          getAbsoluteCoordinates } from '@/components/Map/Utility/SegmentPlotter.js';
+import WaypointSegment from "@/data_classes/WaypointSegment.js";
+
 // import GridEventBus from '@/components/Map/GridEventBus.js';
 
 export default {
@@ -72,13 +74,14 @@ export default {
         numBisections: 3,
         ringSeparationCm: 30,
         diameterCm: 1000, //100m
-      }
+      },
     }
   },
   computed: {
     ...mapGetters({
       routeList: 'routeList',
       polarPlotEnabled: 'polarPlotEnabled',
+      isListeningForWaypoint: 'isListeningForWaypoint',
 
       // CreateRoute.vue
       currSegment: 'currSegment',
@@ -129,6 +132,48 @@ export default {
     }
   },
   methods: {
+    gridClicked(event) {
+      // isListening means form is set to waypoint
+      if (this.isListeningForWaypoint) {
+
+        let navLeftWidth = d3.select("#mapNavigationLeft").node().getBoundingClientRect().width;
+        let menuBarHeight = d3.select("#menuBar").node().getBoundingClientRect().height;
+
+        let currWaypointSegment = new WaypointSegment(event.pageX - navLeftWidth, event.pageY-menuBarHeight);
+        this.$store.commit("setCurrWaypointSegment", currWaypointSegment);
+
+        let {angle, startX, startY, endX, endY} = generateFirstSegmentVars(currWaypointSegment, 
+                                                              this.rover.xPosPx, 
+                                                              this.rover.yPosPx,
+                                                              this.origin.xPosPx,
+                                                              this.origin.yPosPx,
+                                                              this.gridSquare.gridUnitCm,
+                                                              this.gridSquare.gridUnitPx,
+                                                              this.rover.xCmFromLander,
+                                                              this.rover.yCmFromLander);
+      
+        let currRouteTransform;
+
+        if (d3.select("#NewRoute").empty()) {
+          currRouteTransform = 
+            d3.select("#gridContents")
+              .append('g')
+              .lower()
+              .attr("id", "NewRoute")
+              .append('g')
+              .attr("id", "NewRoute-Group")
+              .append('g')
+              .attr("id", "NewRoute-Segment0");
+
+        } else {
+          currRouteTransform = d3.select("#NewRoute")
+                                  .select("#NewRoute-Segment0");
+          currRouteTransform.selectAll("*").remove();
+        }
+
+        plotNewSegment(currRouteTransform, "NewRoute", 0, angle, startX, startY, endX, endY, true);
+      } 
+    },
     drawPolar() {
       let ringDistance = (this.polarPlot.ringSeparationCm/ this.gridSquare.gridUnitCm) * this.gridSquare.gridUnitPx;
       let radius = (this.polarPlot.diameterCm/ this.gridSquare.gridUnitCm) * this.gridSquare.gridUnitPx;

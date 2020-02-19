@@ -167,6 +167,7 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
         copyArray((uint8_t*)g_rxBuffer,
                   (uint8_t*)&g_targetPosition,
                   sizeof(g_targetPosition));
+        g_currentPosition = 0; // reset current position
         break;
       case TARGET_SPEED:
         copyArray((uint8_t*)g_rxBuffer,
@@ -212,10 +213,10 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
 void initializeCmdLength(){
   g_i2cCmdLength[I2C_ADDRESS] = 1;
   g_i2cCmdLength[RELATIVE_TARGET_POSITION] = 4;
-  g_i2cCmdLength[TARGET_SPEED] = 1;
+  g_i2cCmdLength[TARGET_SPEED] = 2;
   g_i2cCmdLength[CURRENT_POSITION] = 4;
-  g_i2cCmdLength[CURRENT_SPEED] = 1;
-  g_i2cCmdLength[MOTOR_CURRENT] = 2;
+  g_i2cCmdLength[CURRENT_SPEED] = 2;
+  g_i2cCmdLength[MOTOR_CURRENT] = 4;
   g_i2cCmdLength[P_CURRENT] = 2;
   g_i2cCmdLength[I_CURRENT] = 2;
   g_i2cCmdLength[P_SPEED] = 2;

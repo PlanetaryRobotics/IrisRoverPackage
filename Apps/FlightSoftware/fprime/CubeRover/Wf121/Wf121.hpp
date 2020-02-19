@@ -1578,8 +1578,7 @@ namespace Wf121{
       ErrorCode getReplyHeader(BgApiHeader *header);
       ErrorCode getReplyPayload(uint8_t *payload,
                                 const uint16_t payloadSize);
-      void setHeaderPayloadSize(BgApiHeader *header,
-                                const uint16_t size);
+      void setHeaderPayloadSize(BgApiHeader *header, const uint16_t size);
 
       // Callbacks
       ErrorCode executeSystemCallback(BgApiHeader *header,

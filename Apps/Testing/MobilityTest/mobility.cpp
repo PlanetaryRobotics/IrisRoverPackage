@@ -96,17 +96,19 @@ void setTargetPositionRight(const int32_t position){
   sendCmd(cmdSize);
 }
 
-void setTargetSpeedLeft(const uint8_t speedPercent){
-  uint8_t cmdSize = 2;
+void setTargetSpeedLeft(const int16_t speedPercent){
+  uint8_t cmdSize = 3;
   g_txBuffer[0] = CommandList::SPEED_MOTOR_LEFT;
   g_txBuffer[1] = speedPercent;
+  g_txBuffer[2] = speedPercent >> 8;
   sendCmd(cmdSize);
 }
 
-void setTargetSpeedRight(const uint8_t speedPercent){
-  uint8_t cmdSize = 2;
+void setTargetSpeedRight(const int16_t speedPercent){
+  uint8_t cmdSize = 3;
   g_txBuffer[0] = CommandList::SPEED_MOTOR_RIGHT;
   g_txBuffer[1] = speedPercent;
+  g_txBuffer[2] = speedPercent >> 8;
   sendCmd(cmdSize);  
 }
 
@@ -122,9 +124,9 @@ void stop(){
   sendCmd(cmdSize);
 }
 
-void getCurrents(int16_t *frontLeft, int16_t *frontRight, int16_t *rearLeft, int16_t *rearRight){
+void getCurrents(int32_t *frontLeft, int32_t *frontRight, int32_t *rearLeft, int32_t *rearRight){
   uint8_t cmdSize = 1;
-  uint8_t replySize = 1 /* header */ + 8;
+  uint8_t replySize = 1 /* header */ + 16;
   g_txBuffer[0] = CommandList::GET_CURRENT;
 
   sendCmd(cmdSize);
@@ -133,16 +135,16 @@ void getCurrents(int16_t *frontLeft, int16_t *frontRight, int16_t *rearLeft, int
   if(g_rxBuffer[0] == CommandList::GET_CURRENT){
     memcpy(frontLeft,
            g_rxBuffer + 1,
-           sizeof(int16_t));
-    memcpy(frontRight,
-           g_rxBuffer + 3,
-           sizeof(int16_t));
+           sizeof(int32_t));
     memcpy(rearLeft,
            g_rxBuffer + 5,
-           sizeof(int16_t));
+           sizeof(int32_t));
+    memcpy(frontRight,
+           g_rxBuffer + 9,
+           sizeof(int32_t));
     memcpy(rearRight,
-           g_rxBuffer + 7,
-           sizeof(int16_t));                     
+           g_rxBuffer + 13,
+           sizeof(int32_t));                     
   }
 }
 
@@ -152,17 +154,16 @@ void getPositions(int32_t *frontLeft, int32_t *frontRight, int32_t *rearLeft, in
   g_txBuffer[0] = CommandList::GET_POSITION;
 
   sendCmd(cmdSize);
-  
   readData(replySize);
   
   if(g_rxBuffer[0] == CommandList::GET_POSITION){
     memcpy(frontLeft,
            g_rxBuffer + 1,
            sizeof(int32_t));
-    memcpy(frontRight,
+    memcpy(rearLeft,
            g_rxBuffer + 5,
            sizeof(int32_t));
-    memcpy(rearLeft,
+    memcpy(frontRight,
            g_rxBuffer + 9,
            sizeof(int32_t));
     memcpy(rearRight,
@@ -210,10 +211,10 @@ int main(int argc, char *argv[]){
   int32_t positionRearRight;
   int32_t positionRearLeft;
 
-  int16_t currentFrontRight;
-  int16_t currentFrontLeft;
-  int16_t currentRearRight;
-  int16_t currentRearLeft;
+  int32_t currentFrontRight;
+  int32_t currentFrontLeft;
+  int32_t currentRearRight;
+  int32_t currentRearLeft;
 
   // Create log file
   time_t now = time(0);
@@ -246,20 +247,24 @@ int main(int argc, char *argv[]){
 
   // translate commands to motor control format
   float roverMaxRevSpeed = (float)(ROVER_MOTOR_MAX_SPEED_RPM) / (float)(MOTOR_GEARBOX_RATIO); 
-  float targetSpeedRevPercentLeft = (uint16_t) ( (float) targetSpeedRevLeft / (float) roverMaxRevSpeed * 100.0);
-  float targetSpeedRevPercentRight = (uint16_t) ( (float) targetSpeedRevRight / (float) roverMaxRevSpeed * 100.0);
+  int16_t targetSpeedRevPercentLeft = (uint16_t) ( (float) targetSpeedRevLeft / (float) roverMaxRevSpeed * 127.0);
+  int16_t targetSpeedRevPercentRight = (uint16_t) ( (float) targetSpeedRevRight / (float) roverMaxRevSpeed * 127.0);
+
+  if(targetSpeedRevPercentLeft > 127) targetSpeedRevPercentLeft = 127;
+  if(targetSpeedRevPercentRight > 127) targetSpeedRevPercentRight = 127;
+  if(targetSpeedRevPercentRight < -128) targetSpeedRevPercentRight = -128;
+  if(targetSpeedRevPercentLeft < -128) targetSpeedRevPercentLeft = -128; 
 
   int32_t targetPosTicksLeft =  targetPosRevLeft * MOTOR_GEARBOX_RATIO * MOTOR_TICKS_PER_MECH_REV;
   int32_t targetPosTicksRight =  targetPosRevRight * MOTOR_GEARBOX_RATIO * MOTOR_TICKS_PER_MECH_REV;
 
+  targetPosTicksRight = -targetPosTicksRight; 
   cout << "Rover theorical max speed (rev/min): " << roverMaxRevSpeed << endl;
-  cout << "Target speed left (rev/min): " << targetSpeedRevLeft << " (" << targetSpeedRevPercentLeft << "%)" << endl;
+  cout << "Target speed left (rev/min): " << targetSpeedRevLeft << endl;
   cout << "Target position left (rev): " << targetPosRevLeft << " (" << targetPosTicksLeft << " ticks)" << endl;
-  cout << "Target speed right (rev/min): " << targetSpeedRevRight << " (" << targetSpeedRevPercentRight << "%)" << endl;
+  cout << "Target speed right (rev/min): " << targetSpeedRevRight << endl;
   cout << "Target position right (rev): " << targetPosRevRight << " (" << targetPosTicksRight << " ticks)" << endl;
 
-  targetSpeedRevPercentLeft = (float)(targetSpeedRevPercentLeft) * 0.63; // scale to motor control command
-  targetSpeedRevPercentRight = (float)(targetSpeedRevPercentRight) * 0.63; // scale to motor control command
 
   // Creating socket file descriptor 
   if((g_sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0){ 
@@ -296,22 +301,28 @@ int main(int argc, char *argv[]){
     exit(EXIT_FAILURE); 
   } 
 
-  //setTargetSpeedRight(targetSpeedRevRight);
-  //setTargetSpeedLeft(targetSpeedRevLeft);
-  //setTargetPositionRight(targetPosTicksRight);
+  cout << "value sent" << targetSpeedRevPercentLeft << " " << targetSpeedRevPercentRight <<  endl;
+  setTargetSpeedRight(targetSpeedRevPercentRight);
+  setTargetSpeedLeft(targetSpeedRevPercentLeft);
+  setTargetPositionRight(targetPosTicksRight);
   setTargetPositionLeft(targetPosTicksLeft);
   //run();
 
-  return 0;
+  //return 0;
 
-  while(getStatus() != MotorStatus::TARGET_REACHED){
-    getPositions(&positionFrontLeft, &positionFrontRight, &positionRearLeft, &positionRearRight);
-    getCurrents(&currentFrontLeft, &currentFrontRight, &currentRearLeft, &currentRearRight);
+  cout << "Enter while loop..." << endl;
+  while(1){//getStatus() != MotorStatus::TARGET_REACHED){
+    //getPositions(&positionFrontLeft, &positionFrontRight, &positionRearLeft, &positionRearRight);
+    //usleep(1000);
+    //getCurrents(&currentFrontLeft, &currentFrontRight, &currentRearLeft, &currentRearRight);
+    //usleep(1000);
     time_t tnow = time(0);
     string snow = ctime(&tnow);
-    logFile << snow << " Position: " << positionFrontLeft << " " << positionFrontRight << " " << positionRearLeft << " " << positionRearRight << endl;
-    logFile << snow << " Current: " << currentFrontLeft << " " << currentFrontRight << " " << currentRearLeft << " " << currentRearRight << endl;
-    cout << "Running..." << endl;
+    //logFile << snow << " Position: " << positionFrontLeft << " " << positionFrontRight << " " << positionRearLeft << " " << positionRearRight << endl;
+    //logFile << snow << " Current: " << currentFrontLeft << " " << currentFrontRight << " " << currentRearLeft << " " << currentRearRight << endl;
+    //cout << "Running..." << endl;
+    cout << "Positions - FL: " << positionFrontLeft << " RL: " << positionRearLeft << " FR: " << positionFrontRight << " RR:" << positionRearRight << endl;
+    cout << "Currents - FL:" << currentFrontLeft << " RL: " << currentRearLeft << " FR:" << currentFrontRight << " RR:" << currentRearRight << endl;
   }
 
   stop();

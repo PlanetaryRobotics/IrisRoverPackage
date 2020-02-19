@@ -17,10 +17,10 @@
 #define PWM_HALF_PERIOD_TICKS       256
 #define PI_SPD_CONTROL_PRESCALER    1000    // 15.6 Hz, speed control
 
-#define KP_SPD                  0.35
+#define KP_SPD                  0.3
 #define KI_SPD                  0.0001
 #define KP_CUR                  1.5
-#define KI_CUR                  0.0004
+#define KI_CUR                  0.0015
 
 #define OPEN_LOOP_TORQUE        0.1       // Normalized to 1.0, 1.0 being maximum current system can produce
 #define PERIOD_IMPULSE          200
@@ -28,7 +28,7 @@
 
 #define ONE_OVER_4096           0.0002441
 
-#define MAX_TARGET_SPEED                   63
+#define MAX_TARGET_SPEED                   127
 #define MIN_TARGET_SPEED                  -MAX_TARGET_SPEED
 
 inline _iq _IQ15mpy_inline(_iq,_iq);

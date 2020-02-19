@@ -3,6 +3,7 @@
 _iq g_currentPhaseA;
 _iq g_currentPhaseB;
 _iq g_currentPhaseC;
+_iq g_feedforwardFW;
 
 // Used for calibration
 volatile bool g_calibrating;
@@ -216,9 +217,9 @@ inline void disableGateDriver(){
  * @return     The speed.
  */
 inline _iq getSpeed(){
-  // Normalize speed to -64 ticks < diff < 63 to -1.0 < diff < +1.0
-  // 64 ticks per (PI_SPD_CONTROL_PRESCALER * PWM_PERIOD_TICKS) represents 9.600 eRPM
-  g_currentSpeed = (g_currentPosition - g_oldPosition) << 7;
+  // Normalize speed to -128 ticks < diff < 128 to -1.0 < diff < +1.0
+  // 255 ticks per (PI_SPD_CONTROL_PRESCALER * PWM_PERIOD_TICKS) represents 9.600 eRPM
+  g_currentSpeed = (g_currentPosition - g_oldPosition) << 8;
   g_oldPosition = g_currentPosition;
   return g_currentSpeed;
 }
@@ -539,6 +540,7 @@ inline void updateStateMachine(){
  * @brief      main function
  */
 void main(void){
+
   // Turn off the watchdog
   WDT_A_hold(WDT_A_BASE);
 
@@ -565,6 +567,8 @@ void main(void){
   g_state = UNINITIALIZED;
   g_currentRefTest = _IQ(0.05);
   g_speedRefTest = _IQ(0.0);
+
+  g_feedforwardFW = _IQ(0.0);
 
   g_maxSpeed = MAX_TARGET_SPEED;
 
@@ -596,7 +600,22 @@ void main(void){
 
   while(1){
    g_closedLoop = (_IQabs(g_currentSpeed) > g_closeLoopThreshold) ? true : false;
-   //g_direction = (g_speedRefTest > 0) ? 1 : -1;
+   if(g_piSpd.w1){
+       __disable_interrupt();
+      g_piSpd.i1 = 0;
+       g_piSpd.ui = 0;
+       g_piSpd.v1 = 0;
+       __enable_interrupt();
+   }
+
+//   if(g_piCur.w1){
+//       __disable_interrupt();
+//       g_piCur.i1 = 0;
+//       g_piCur.ui = 0;
+//       g_piCur.v1 = 0;
+//       __enable_interrupt();
+//   }
+
    //updateStateMachine();
   }
 }
@@ -656,8 +675,8 @@ __interrupt void TIMER0_B0_ISR (void){
   if(g_controlPrescaler == 0){
     g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
 
-    // Normalize from -64 ~ + 63 to -1.0 ~ 1.0
-    g_piSpd.Ref = (_IQsat(g_targetPosition - g_currentPosition, g_maxSpeed, -g_maxSpeed)) << 9;
+    // Normalize from -255 ~ + 255 to -1.0 ~ 1.0
+    g_piSpd.Ref = (_IQsat(g_targetPosition - g_currentPosition, g_maxSpeed, -g_maxSpeed)) << 8;
     g_targetReached =  (_IQabs(g_piSpd.Ref) < 0.01) ? true : false;
     g_direction = (g_piSpd.Ref >= 0) ? 1 : -1;
     g_piSpd.Fbk = getSpeed();
@@ -671,9 +690,9 @@ __interrupt void TIMER0_B0_ISR (void){
   g_currentPhaseB = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_1)) - g_currentOffsetPhaseB;
   g_currentPhaseC = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_2)) - g_currentOffsetPhaseC;
 
-  // Normalize current values from  0 < adc < +4095 to iq15 --> -1.0 < adc < 1.0 and convert to iq format
-  g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 4;
-  g_piCur.Ref = g_piSpd.Out;
+  // Normalize current values from  -2047 < adc < +2048 to iq15 --> -1.0 < adc < 1.0 and convert to iq format
+  g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 5;
+  g_piCur.Ref = g_piSpd.Out + _IQ15mpy_inline(g_feedforwardFW, g_piSpd.Fbk);
   PI_MACRO(g_piCur);
 
   if(g_closedLoop == false){

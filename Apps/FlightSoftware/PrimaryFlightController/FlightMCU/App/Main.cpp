@@ -53,9 +53,9 @@ typedef enum CommandList{
 
 typedef enum Motor{
     MOTOR_FRONT_LEFT  =   0x00,
-    MOTOR_FRONT_RIGHT =   0x01,
-    MOTOR_REAR_LEFT =     0x02,
-    MOTOR_REAR_RIGHT =    0x03
+    MOTOR_FRONT_RIGHT =   0x03,
+    MOTOR_REAR_LEFT =     0x01,
+    MOTOR_REAR_RIGHT =    0x02
 }Motor;
 
 void vApplicationIdleHook( void ){
@@ -67,9 +67,12 @@ void vApplicationIdleHook( void ){
 using namespace Wf121;
 
 uint8_t g_rxBuffer[RX_RING_BUFFER_SIZE];
-uint8_t g_txBuffer[8];
+uint8_t g_txBuffer[32];
 
 void i2cReadRegisterSlave(uint8_t slaveAddr, I2cRegisterIds reg, uint8_t *data, uint8_t dataSize){
+
+    uint32_t delay;
+
     i2cSetSlaveAdd(i2cREG1, slaveAddr);
 
     i2cSetDirection(i2cREG1, I2C_TRANSMITTER);
@@ -96,6 +99,9 @@ void i2cReadRegisterSlave(uint8_t slaveAddr, I2cRegisterIds reg, uint8_t *data, 
     /* Clear the Stop condition */
     i2cClearSCD(i2cREG1);
 
+    // some delay to let the motor control process command
+    for(delay=0; delay<100000; delay++);
+
     while(i2cIsMasterReady(i2cREG1) != true);
     i2cSetSlaveAdd(i2cREG1, slaveAddr);
     i2cSetDirection(i2cREG1, I2C_RECEIVER);
@@ -107,9 +113,11 @@ void i2cReadRegisterSlave(uint8_t slaveAddr, I2cRegisterIds reg, uint8_t *data, 
     while(i2cIsBusBusy(i2cREG1) == true);
     while(i2cIsStopDetected(i2cREG1) == 0);
     i2cClearSCD(i2cREG1);
+    while(i2cIsMasterReady(i2cREG1) != true);
 }
 
 void i2cWriteRegisterSlave(uint8_t slaveAddr, I2cRegisterIds reg, uint8_t *data, uint8_t dataSize){
+
     /* Configure address of Slave to talk to */
     i2cSetSlaveAdd(i2cREG1, slaveAddr);
 
@@ -144,6 +152,8 @@ void i2cWriteRegisterSlave(uint8_t slaveAddr, I2cRegisterIds reg, uint8_t *data,
 
     /* Clear the Stop condition */
     i2cClearSCD(i2cREG1);
+
+    while(i2cIsMasterReady(i2cREG1) != true);
 }
 
 void handleI2cMotorControlCommand(Motor motorId, I2cRegisterIds reg, uint8_t *data, uint8_t dataSize){
@@ -200,9 +210,7 @@ void handleI2cMotorControlCommand(Motor motorId, I2cRegisterIds reg, uint8_t *da
 void main(void)
 {
     CubeRoverNetworkManager wf121;
-    uint16_t commandPacketSize = 8;    // 8 bytes
     uint16_t byteRead = 0;
-    uint32_t payloadSize = 0;
 
     /* USER CODE BEGIN (3) */
     gioInit();
@@ -211,31 +219,30 @@ void main(void)
 
     constructApp();
 
-
     while(1){
 
         wf121.UpdateNetworkManager();
 
         // Get the header first
-        wf121.ReceiveUdpData(g_rxBuffer, 1, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
+        wf121.ReceiveUdpData(g_rxBuffer, 1, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 1000);
 
         if(byteRead > 0){
             uint8_t sizeOfReply = 0;
             switch(g_rxBuffer[0]){
                 case TGT_SPEED_MOTOR_LEFT:
-                    wf121.ReceiveUdpData(g_rxBuffer, 1, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
-                    handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, TARGET_SPEED, g_rxBuffer, 1);
-                    handleI2cMotorControlCommand(MOTOR_REAR_LEFT, TARGET_SPEED, g_rxBuffer, 1);
+                    wf121.ReceiveUdpData(g_rxBuffer, 2, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
+                    handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, TARGET_SPEED, g_rxBuffer, 2);
+                    handleI2cMotorControlCommand(MOTOR_REAR_LEFT, TARGET_SPEED, g_rxBuffer, 2);
                     break;
                 case TGT_SPEED_MOTOR_RIGHT:
-                    wf121.ReceiveUdpData(g_rxBuffer, 1, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
-                    handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, TARGET_SPEED, g_rxBuffer, 1);
-                    handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, TARGET_SPEED, g_rxBuffer, 1);
+                    wf121.ReceiveUdpData(g_rxBuffer, 2, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
+                    handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, TARGET_SPEED, g_rxBuffer, 2);
+                    handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, TARGET_SPEED, g_rxBuffer, 2);
                     break;
                 case TGT_POSITION_MOTOR_LEFT:
                     wf121.ReceiveUdpData(g_rxBuffer, 4, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
                     handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, RELATIVE_TARGET_POSITION, g_rxBuffer, 4);
-                    //handleI2cMotorControlCommand(MOTOR_REAR_LEFT, RELATIVE_TARGET_POSITION, g_rxBuffer, 4);
+                    handleI2cMotorControlCommand(MOTOR_REAR_LEFT, RELATIVE_TARGET_POSITION, g_rxBuffer, 4);
                     break;
                 case TGT_POSITION_MOTOR_RIGHT:
                     wf121.ReceiveUdpData(g_rxBuffer, 4, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
@@ -245,28 +252,31 @@ void main(void)
                 case RUN:
                 case STOP:
                     wf121.ReceiveUdpData(g_rxBuffer, 1, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
-                    handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, CONTROL_REGISTER, g_rxBuffer, 1);
                     handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, CONTROL_REGISTER, g_rxBuffer, 1);
+                    handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, CONTROL_REGISTER, g_rxBuffer, 1);
                     handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, CONTROL_REGISTER, g_rxBuffer, 1);
                     handleI2cMotorControlCommand(MOTOR_REAR_LEFT, CONTROL_REGISTER, g_rxBuffer, 1);
                     break;
                 case GET_CURRENT:
-                    handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, MOTOR_CURRENT, g_txBuffer+1, 2);
-                    handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, MOTOR_CURRENT, g_txBuffer+3, 2);
-                    handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, MOTOR_CURRENT, g_txBuffer+5, 2);
-                    handleI2cMotorControlCommand(MOTOR_REAR_LEFT, MOTOR_CURRENT, g_txBuffer+7, 2);
+                    handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, MOTOR_CURRENT, g_txBuffer+1, 4);
+                    handleI2cMotorControlCommand(MOTOR_REAR_LEFT, MOTOR_CURRENT, g_txBuffer+5, 4);
+                    handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, MOTOR_CURRENT, g_txBuffer+9, 4);
+                    handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, MOTOR_CURRENT, g_txBuffer+13, 4);
+                    sizeOfReply = 17;
                     break;
                 case GET_POSITION:
                     handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, CURRENT_POSITION, g_txBuffer+1, 4);
-                    //handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, CURRENT_POSITION, g_txBuffer+5, 4);
-                    //handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, CURRENT_POSITION, g_txBuffer+9, 4);
-                    //handleI2cMotorControlCommand(MOTOR_REAR_LEFT, CURRENT_POSITION, g_txBuffer+13, 4);
+                    handleI2cMotorControlCommand(MOTOR_REAR_LEFT, CURRENT_POSITION, g_txBuffer+5, 4);
+                    handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, CURRENT_POSITION, g_txBuffer+9, 4);
+                    handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, CURRENT_POSITION, g_txBuffer+13, 4);
+                    sizeOfReply = 17;
                     break;
                 case GET_STATUS:
-                    handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, STATUS_REGISTER, g_txBuffer+1, 1);
-                    handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, STATUS_REGISTER, g_txBuffer+2, 1);
-                    handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, STATUS_REGISTER, g_txBuffer+3, 1);
-                    handleI2cMotorControlCommand(MOTOR_REAR_LEFT, STATUS_REGISTER, g_txBuffer+4, 1);
+                    handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, STATUS_REGISTER, g_txBuffer+1, 1);
+                    //handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, STATUS_REGISTER, g_txBuffer+2, 1);
+                    //handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, STATUS_REGISTER, g_txBuffer+3, 1);
+                    //handleI2cMotorControlCommand(MOTOR_REAR_LEFT, STATUS_REGISTER, g_txBuffer+4, 1);
+                    sizeOfReply = 1;
                     break;
             }
 

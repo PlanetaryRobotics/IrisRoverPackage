@@ -1503,6 +1503,8 @@ ErrorCode Wf121Driver :: ExecuteCallbacks(){
   uint16_t payloadSize;
   ErrorCode cmdResult;
 
+  header.all = 0;
+
   //Some data is available in the buffer, process it
   err = getReplyHeader(&header);
   if(err != NO_ERROR) return err;
@@ -1632,7 +1634,7 @@ ErrorCode Wf121Driver :: getReplyHeader(BgApiHeader *header){
       return COMMAND_NOT_RECOGNIZED;
   }
 
-  if(header->bit.classId > CLASS_WIRED_ETHERNET){
+  if(header->bit.classId > CLASS_WIRED_ETHERNET || header->bit.classId == 0){
       return COMMAND_NOT_RECOGNIZED;
   }
 

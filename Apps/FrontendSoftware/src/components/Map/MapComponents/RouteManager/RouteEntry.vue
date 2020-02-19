@@ -58,7 +58,6 @@
 
 <script>
 
-import $ from 'jquery';
 import { mapMutations, mapGetters } from 'vuex';
 
 export default {

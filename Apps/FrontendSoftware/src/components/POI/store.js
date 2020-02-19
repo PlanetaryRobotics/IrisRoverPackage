@@ -8,7 +8,7 @@ import Tag from '@/data_classes/Tag.js'
 // Simulate the binary image data which will be Received from the DB:
 // function bytes(file){
 //   let data = fs.readFileSync(file);
-//   return Uint8Array.from(data);
+//   return Buffer.from(Uint8Array.from(data));
 // }
 
 export default {
@@ -20,7 +20,7 @@ export default {
           category: "OBSTACLE",
           thumbnail: new ImageData({
             name: 'CR_M01_0000',
-            //bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
+            //bin: bytes(path.join(__static,'./images/Kd2V45y.jpg')),
             camera: "Front",
             sendTime: new Date(),
             command: "forward",
@@ -31,7 +31,7 @@ export default {
           height: 5,
           sizeUnit: "CM",
           tagList: [
-            new Tag({name: "Dwayne", initialImage:"CR_M01_0001", tagNames:[]}),
+            new Tag({name: "dksjghdskjg", initialImage:"CR_M01_0001", tagNames:[]}),
             new Tag({name: "Squid", initialImage:"CR_M01_0001", tagNames:[]}),
             new Tag({name: "Rock", initialImage:"CR_M01_0001", tagNames:[]}),
             new Tag({name: "Rocco", initialImage:"CR_M01_0001", tagNames:[]}),
@@ -44,10 +44,11 @@ export default {
           ],
           creator: "Caitlin Coyiuto",
           description: "I am a hella beautiful rock on the moon.",
-          images: [
+          images: 
+          [
             new ImageData({
               name: 'CR_M01_0001',
-              // bin: bytes(path.join(__static,'./images/Kd2V45y.jpg')),
+              //bin: bytes(path.join(__static,'./images/Kd2V45y.jpg')),
               camera: "Front",
               sendTime: new Date(),
               command: "Forward",
@@ -114,12 +115,6 @@ export default {
             new Tag({name: "Squid", initialImage:"CR_M01_0001", tagNames:[]}),
             new Tag({name: "Rock", initialImage:"CR_M01_0001", tagNames:[]}),
             new Tag({name: "Rocco", initialImage:"CR_M01_0001", tagNames:[]}),
-            new Tag({name: "Steve", initialImage:"CR_M01_0000", tagNames:[]}),
-            new Tag({name: "Dwayne", initialImage:"CR_M01_0001", tagNames:[]}),
-            new Tag({name: "Squid", initialImage:"CR_M01_0001", tagNames:[]}),
-            new Tag({name: "Rock", initialImage:"CR_M01_0001", tagNames:[]}),
-            new Tag({name: "Rocco", initialImage:"CR_M01_0001", tagNames:[]}),
-            new Tag({name: "Steve", initialImage:"CR_M01_0000", tagNames:[]})
           ],
           creator: "Caitlin Coyiuto",
           description: "I am a hella beautiful rock on the moon."
@@ -147,11 +142,6 @@ export default {
             new Tag({name: "Rock", initialImage:"CR_M01_0001", tagNames:[]}),
             new Tag({name: "Rocco", initialImage:"CR_M01_0001", tagNames:[]}),
             new Tag({name: "Steve", initialImage:"CR_M01_0000", tagNames:[]}),
-            new Tag({name: "Dwayne", initialImage:"CR_M01_0001", tagNames:[]}),
-            new Tag({name: "Squid", initialImage:"CR_M01_0001", tagNames:[]}),
-            new Tag({name: "Rock", initialImage:"CR_M01_0001", tagNames:[]}),
-            new Tag({name: "Rocco", initialImage:"CR_M01_0001", tagNames:[]}),
-            new Tag({name: "Steve", initialImage:"CR_M01_0000", tagNames:[]})
           ],
           creator: "Caitlin Coyiuto",
           description: "I am a hella beautiful rock on the moon."

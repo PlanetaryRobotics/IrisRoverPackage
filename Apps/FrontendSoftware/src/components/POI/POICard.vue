@@ -32,14 +32,19 @@
 
         <!--TAGS-->
         <div class="POICard__tags">
-            <div class="tagPill" v-for="(name, index) of tagNames" :key="index">
-                {{name}}
+            <div class="pill__tag" v-for="(name, index) of tagNames" :key="index">
+                {{getShortName(name)}}
             </div>  
+        </div>
+
+        <div class="POICard__tags__viewMore" v-if="viewMoreTagsNumber() > 0">
+              {{"+" + viewMoreTagsNumber() + ">"}}
         </div>
 
         <!--IMAGE AND WIDTH/HEIGHT -->
         <div class="POICard__imageRow">
-          <img :src="POIData.thumbnail.url">
+          <!-- <img :src="POIData.thumbnail.url"> -->
+          <img :src="testImage"> <!-- REPLACE WITH ACTUAL URL -->
           <div class="POICard__imageDimensions">
             <div class="POICard__imageDimension">
               <div class="text__main--bold">
@@ -86,7 +91,7 @@
             </div>
           </div>
           <div class="POICard__tags">
-            <div class="tagPill" v-for="(image, index) of images" :key="index">
+            <div class="pill" v-for="(image, index) of images" :key="index">
               {{image.name()}}
             </div>  
           </div>
@@ -103,6 +108,7 @@
 <script>
 
 import POICard from "@/data_classes/POICard.js";
+import testImage from "./testImage.jpg";
 
 export default {
   name: "POICard",
@@ -110,13 +116,30 @@ export default {
     return {
       show: {
         moreData: false,
-      }
+      },
+      testImage: testImage,
     }
   },
   props: {
     POIData: Object
   },
   computed: {
+    viewMoreNumbers: function() {
+      return {
+        tags () {
+          if (this.POIData.tagList.length > 5) {
+            return this.POIData.tagList.length - 5;
+          } 
+          return 0;
+        },
+        images () {
+          if (this.POIData.images.length > 4) {
+            return this.POIData.images.length - 4;
+          } 
+          return 0;
+        }
+      }
+    },
     importanceColor: function() {
       let category = this.POIData.category;
       let ans = POICard.CATEGORY_COLORS[category];
@@ -138,7 +161,11 @@ export default {
     tagNames: function() {
       let tagList = this.POIData.tagList;
       let nameList = [];
-      tagList.forEach(tag => nameList.push(tag.getName()));
+      if (tagList.length > 7) {
+        tagList.slice(0, 7).forEach(tag => nameList.push(tag.getName()));
+      } else {
+        tagList.forEach(tag => nameList.push(tag.getName()));
+      }
       return nameList;
     },
     images: function() {
@@ -161,6 +188,18 @@ export default {
     },
     toggleShowMore(){
       this.show.moreData = !this.show.moreData;
+    },
+    getShortName(name) {
+      if (name.length > 7) {
+        return name.substring(0, 7) + "...";
+      } 
+      return name;
+    },
+    viewMoreTagsNumber() {
+      if (this.POIData.tagList.length > 7) {
+        return this.POIData.tagList.length - 7;
+      } 
+      return 0;
     }
   }
 }
@@ -242,6 +281,19 @@ export default {
     flex-direction: row;
     flex-wrap: wrap;
     padding-top: 1rem;
+
+    &__viewMore {
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-start;
+      margin-top: -2.5rem;
+      margin-bottom: 1rem;
+      
+      &:hover {
+        color: $color-primary;
+        cursor: pointer;
+      }
+    }
   }
 
   &__imageRow {
@@ -303,14 +355,22 @@ export default {
   }
 }
 
-.tagPill {
+$tagPillWidth: 7rem;
+
+.pill {
   display: flex;
   flex-direction: row;
+  justify-content: center;
   padding: 4px 10px 4px 10px;
   border: 1px solid #585858;
   border-radius: 20px;
   margin-right: 0.5rem;
   margin-bottom: 1rem;
+
+  &__tag {
+    @extend .pill;
+    width: $tagPillWidth;
+  }
 }
 
 .open {

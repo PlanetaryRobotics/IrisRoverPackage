@@ -23,7 +23,7 @@
 <script>
 
 import POICard from "@/components/POI/POICard.vue";
-import { mapMutations, mapGetters } from 'vuex';
+import { mapGetters } from 'vuex';
 
 export default {
   name: "POIList",

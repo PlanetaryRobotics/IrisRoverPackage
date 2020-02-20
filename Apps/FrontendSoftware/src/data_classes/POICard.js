@@ -1,6 +1,7 @@
 'use strict';
 import ImageData from "@/data_classes/ImageData.js";
 import Tag from "@/data_classes/Tag.js";
+import testImage from "@/components/POI/testImage.jpg";
 
 export default class POICard{
   
@@ -11,7 +12,10 @@ export default class POICard{
     {
       importanceLevel: null,
       category: null,
-      thumbnail: null,
+      thumbnail: {     // TODO: temp fix for demo purposes - figure out how to pull 
+                       //       img from DB in store 
+        url: testImage
+      },
       width: null,
       height: null,
       sizeUnit: null,
@@ -20,7 +24,7 @@ export default class POICard{
       description: null,
       images: [],
     }
-
+    
     this.validationChecks(inputData);
 
     Object.assign(this.data, inputData);

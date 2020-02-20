@@ -13,20 +13,26 @@ import Tag from '@/data_classes/Tag.js'
 
 export default {
   state: {
+    show: {
+      showModalContainer: false,
+      showPOIManagement: true,
+      showTagManagement: false,
+    },
+
     POIList: [
       new POICard(
         {
           importanceLevel: 1,
           category: "OBSTACLE",
-          thumbnail: new ImageData({
-            name: 'CR_M01_0000',
-            //bin: bytes(path.join(__static,'./images/Kd2V45y.jpg')),
-            camera: "Front",
-            sendTime: new Date(),
-            command: "forward",
-            commandDesc: "10cm",
-            tags: ["Nathan"]
-          }),
+          // thumbnail: new ImageData({
+          //   name: 'CR_M01_0000',
+          //   bin: bytes(path.join(__static,'./images/Kd2V45y.jpg')),
+          //   camera: "Front",
+          //   sendTime: new Date(),
+          //   command: "forward",
+          //   commandDesc: "10cm",
+          //   tags: ["Nathan"]
+          // }),
           width: 5,
           height: 5,
           sizeUnit: "CM",
@@ -98,15 +104,15 @@ export default {
         {
           importanceLevel: 2,
           category: "SHADOW",
-          thumbnail: new ImageData({
-            name: 'CR_M01_0000',
-            // bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
-            camera: "Front",
-            sendTime: new Date(),
-            command: "forward",
-            commandDesc: "10cm",
-            tags: ["Nathan"]
-          }),
+          // thumbnail: new ImageData({
+          //   name: 'CR_M01_0000',
+          //   // bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
+          //   camera: "Front",
+          //   sendTime: new Date(),
+          //   command: "forward",
+          //   commandDesc: "10cm",
+          //   tags: ["Nathan"]
+          // }),
           width: 5,
           height: 5,
           sizeUnit: "CM",
@@ -124,15 +130,42 @@ export default {
         {
           importanceLevel: 3,
           category: "ATTRACTION",
-          thumbnail: new ImageData({
-            name: 'CR_M01_0000',
-            // bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
-            camera: "Front",
-            sendTime: new Date(),
-            command: "forward",
-            commandDesc: "10cm",
-            tags: ["Nathan"]
-          }),
+          // thumbnail: new ImageData({
+          //   name: 'CR_M01_0000',
+          //   // bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
+          //   camera: "Front",
+          //   sendTime: new Date(),
+          //   command: "forward",
+          //   commandDesc: "10cm",
+          //   tags: ["Nathan"]
+          // }),
+          width: 5,
+          height: 5,
+          sizeUnit: "CM",
+          tagList: [
+            new Tag({name: "Dwayne", initialImage:"CR_M01_0001", tagNames:[]}),
+            new Tag({name: "Squid", initialImage:"CR_M01_0001", tagNames:[]}),
+            new Tag({name: "Rock", initialImage:"CR_M01_0001", tagNames:[]}),
+            new Tag({name: "Rocco", initialImage:"CR_M01_0001", tagNames:[]}),
+            new Tag({name: "Steve", initialImage:"CR_M01_0000", tagNames:[]}),
+          ],
+          creator: "Caitlin Coyiuto",
+          description: "I am a hella beautiful rock on the moon."
+        }
+      ),
+      new POICard(
+        {
+          importanceLevel: 3,
+          category: "ATTRACTION",
+          // thumbnail: new ImageData({
+          //   name: 'CR_M01_0000',
+          //   // bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
+          //   camera: "Front",
+          //   sendTime: new Date(),
+          //   command: "forward",
+          //   commandDesc: "10cm",
+          //   tags: ["Nathan"]
+          // }),
           width: 5,
           height: 5,
           sizeUnit: "CM",
@@ -152,9 +185,17 @@ export default {
   getters: {
     POIList: state => {
       return state.POIList;
+    },
+    showModal: state => {
+      return state.show.showModalContainer;
+    },
+    showPOIManagement: state => {
+      return state.show.showPOIManagement;
     }
   },
   mutations: {
-    
+    toggleModal: state => {
+      state.show.showModalContainer = !state.show.showModalContainer;
+    }
   }
 };

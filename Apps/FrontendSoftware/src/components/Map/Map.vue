@@ -42,6 +42,7 @@
         </div>
       </div>
       
+      <POIModal />
     <!-- END MAP CONTAINER --> 
     </div>
 </template>
@@ -50,7 +51,8 @@
 
 import MapNavigationLeft from '@/components/Map/MapComponents/MapNavigationLeft.vue';
 import Grid from '@/components/Map/MapComponents/Grid.vue';
-import POIList from '@/components/Map/MapComponents/POIList.vue';
+import POIList from '@/components/POI/POIList.vue';
+import POIModal from '@/components/POI/POIModal.vue';
 import Routes from '@/components/Map/MapComponents/RouteManager/Routes.vue';
 import CreateRoute from '@/components/Map/MapComponents/FormComponents/CreateRoute.vue';
 import AddToRoute from '@/components/Map/MapComponents/FormComponents/AddToRoute.vue';
@@ -63,6 +65,7 @@ export default {
     Grid,
     Routes,
     POIList,
+    POIModal,
     CreateRoute,
     AddToRoute,
     RadioSVGButton
@@ -100,6 +103,7 @@ export default {
   display: grid;
   grid-template-columns: 4rem 2fr 1fr 4rem;
   grid-gap: 2px;
+  overflow: hidden;
 }
 
 .right-panel {

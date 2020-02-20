@@ -43,8 +43,7 @@
 
         <!--IMAGE AND WIDTH/HEIGHT -->
         <div class="POICard__imageRow">
-          <!-- <img :src="POIData.thumbnail.url"> -->
-          <img :src="testImage"> <!-- REPLACE WITH ACTUAL URL -->
+          <img :src="POIData.thumbnail.url">
           <div class="POICard__imageDimensions">
             <div class="POICard__imageDimension">
               <div class="text__main--bold">
@@ -86,7 +85,7 @@
             <div class="text__main--bold">
               Images
             </div>
-            <div class="POICard__imagesViewMore">
+            <div class="POICard__imagesViewMore" @click="openModal()">
               {{"View All (" + this.POIData.images.length + ")"}}
             </div>
           </div>
@@ -108,7 +107,6 @@
 <script>
 
 import POICard from "@/data_classes/POICard.js";
-import testImage from "./testImage.jpg";
 
 export default {
   name: "POICard",
@@ -117,7 +115,6 @@ export default {
       show: {
         moreData: false,
       },
-      testImage: testImage,
     }
   },
   props: {
@@ -200,6 +197,10 @@ export default {
         return this.POIData.tagList.length - 7;
       } 
       return 0;
+    },
+    openModal() {
+      debugger;
+      this.$store.commit('toggleModal');
     }
   }
 }
@@ -288,7 +289,7 @@ export default {
       align-items: flex-start;
       margin-top: -2.5rem;
       margin-bottom: 1rem;
-      
+
       &:hover {
         color: $color-primary;
         cursor: pointer;

@@ -83,6 +83,7 @@ export default {
   z-index: 10;
   display: flex;
   flex-direction: column;
+  justify-content: center;
 
   .topOptions {
     display: flex;

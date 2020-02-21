@@ -1,0 +1,65 @@
+<template>
+    <div class="POIManagement">
+        <div class="POIManagementHeader" v-for="(POICard, index) in POIList" :key="index">
+          <POIManagementCard :POIData="POICard.getData()"/>
+        </div>
+    </div> 
+</template>
+
+<script>
+
+import POIManagementCard from "@/components/POI/POIManagement/POIManagementCard.vue";
+
+export default {
+  name: "POIManagement",
+  components: {
+    POIManagementCard
+  },
+  data() {
+    return {
+      show: {
+        images: true,
+      },
+      POICard: "",
+    }
+  },
+  props: {
+  },
+  computed: {
+    POIList() {
+      return this.$store.state.POI.POIList;
+    }
+  },
+  methods: {
+    toggleImages() {
+      this.show.images = !this.show.images;
+    }
+  }
+}
+
+</script>
+
+<style lang="scss" scoped>
+
+@import '@/styles/_colors.scss';
+@import '@/styles/_typography.scss';
+
+.POIManagementHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  &__title {
+    flex-grow: 1;
+  }
+
+  &__toggle {
+    transform: rotate(-180deg);
+    transition: .1s ease-in-out;
+  }
+}
+
+.open {
+  transform: rotate(0deg);
+}
+</style>

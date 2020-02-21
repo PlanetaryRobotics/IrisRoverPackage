@@ -149,7 +149,7 @@ export default {
     user-select: none;
     padding: 0.5rem 1.5rem;
     background-color: $color-background;
-    border-bottom: 1px solid $color-grey;
+    border-bottom: 2px solid $color-near-black;
     display: inline-flex;
     align-items: center;
     &>p{

@@ -3,17 +3,7 @@
       <!--HEADER --> 
       <div class="POICard__header">
 
-        <div class="POICard__importance">
-          <div v-for="index in importanceSize" :key="index">
-            <svg width="2" height="16" viewBox="0 0 2 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="1" y1="-4.37114e-08" x2="1" y2="16" :style="importanceColor" stroke-width="2"/>
-            </svg>
-          </div>
-        </div>
-
-        <div class="POICard__title text__smallCaps--bold" :style="titleColor">
-          {{getTitle() + "-08"}}
-        </div>
+        <POIHeader :POIData="POIData" class="POICard__headerObject"/>
 
         <div class="POICard__headerButtons">
           <!-- EDIT BUTTON -->
@@ -96,20 +86,19 @@
           </div>
         </div> <!-- END ADDITIONAL INFO --> 
       </div> <!-- END POI CARD CONTENT --> 
-
-      <!-- MODAL -->
-      <!-- <div class = "POIModal__images" :style="modalImagesStyle">
-        I am the modal
-      </div> -->
     </div> <!-- END POI CARD --> 
 </template>
 
 <script>
 
 import POICard from "@/data_classes/POICard.js";
+import POIHeader from "@/components/POI/POIHeader.vue";
 
 export default {
   name: "POICard",
+  components: {
+    POIHeader
+  },
   data() {
     return {
       show: {
@@ -219,6 +208,10 @@ export default {
     padding-right: 1rem;
     display: flex;
     flex-direction: row;
+  }
+
+  &__headerObject {
+    flex-grow: 1;
   }
 
   &__imagesHeader {

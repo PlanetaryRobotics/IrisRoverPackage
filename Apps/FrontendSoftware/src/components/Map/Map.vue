@@ -1,21 +1,25 @@
 <template>
     <div class="map-container">
 
-      <!-- LEFT NAVIGATION --> 
-      <MapNavigationLeft />
+      <POIModal v-if="POIModalOpen" />
 
-      <!-- GRID --> 
-      <Grid />
+      <div class="map-body" v-else>
+        <!-- LEFT NAVIGATION --> 
+        <MapNavigationLeft />
 
-      <!-- RIGHT PANEL --> 
-      <div class="right-panel">
-        <div class="right-panel__container" v-show="show.routesAndFeatures">
-          <Routes class="right-panel--top"/>
-          <POIList class="right-panel--bottom"/>
-        </div>
-        <div v-show="show.routeManager">
-          <CreateRoute />
-          <AddToRoute />
+        <!-- GRID --> 
+        <Grid />
+
+        <!-- RIGHT PANEL --> 
+        <div class="right-panel">
+          <div class="right-panel__container" v-show="show.routesAndFeatures">
+            <Routes class="right-panel--top"/>
+            <POIList class="right-panel--bottom"/>
+          </div>
+          <div v-show="show.routeManager">
+            <CreateRoute />
+            <AddToRoute />
+          </div>
         </div>
       </div>
 
@@ -41,14 +45,13 @@
                   />
         </div>
       </div>
-      
-      <POIModal />
     <!-- END MAP CONTAINER --> 
     </div>
 </template>
 
 <script>
 
+import { mapGetters } from 'vuex';
 import MapNavigationLeft from '@/components/Map/MapComponents/MapNavigationLeft.vue';
 import Grid from '@/components/Map/MapComponents/Grid.vue';
 import POIList from '@/components/POI/POIList.vue';
@@ -78,6 +81,9 @@ export default {
       }
     }
   },
+  computed: {
+    ...mapGetters(['POIModalOpen'])
+  },
   methods: {
     switchRightPanelView(state) {
       if (state === "routeManager") {
@@ -99,11 +105,17 @@ export default {
 
 .map-container{
   position: relative;
-  height: 100%;
+  max-height: 100%;
   display: grid;
-  grid-template-columns: 4rem 2fr 1fr 4rem;
+  grid-template-columns: 1fr 4rem;
+  grid-template-rows: 1fr;
   grid-gap: 2px;
   overflow: hidden;
+}
+
+.map-body {
+  display: grid;
+  grid-template-columns: 4rem 2fr 1fr;
 }
 
 .right-panel {

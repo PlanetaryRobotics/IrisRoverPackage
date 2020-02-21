@@ -4,6 +4,8 @@ import RelativeSegment from '@/data_classes/RelativeSegment.js';
 
 export default {
     state: {
+        POIModalOpen: true,
+
         // POLAR PLOT BUTTON:
         PolarPlotSVG: {
           clicked: true,
@@ -55,6 +57,10 @@ export default {
         isListeningForWaypoint: false,
     },
     getters: {
+      POIModalOpen: state => {
+        return state.POIModalOpen;
+      },
+
       polarPlotEnabled: state => {
         return state.PolarPlotSVG.enabled;
       },

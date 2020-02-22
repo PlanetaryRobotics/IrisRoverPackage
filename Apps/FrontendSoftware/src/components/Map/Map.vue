@@ -52,7 +52,7 @@
 import { mapGetters } from 'vuex';
 import MapNavigationLeft from '@/components/Map/MapComponents/MapNavigationLeft.vue';
 import Grid from '@/components/Map/MapComponents/Grid.vue';
-import POIList from '@/components/POI/POIList.vue';
+import POIList from '@/components/POI/POIList/POIList.vue';
 import Routes from '@/components/Map/MapComponents/RouteManager/Routes.vue';
 import CreateRoute from '@/components/Map/MapComponents/FormComponents/CreateRoute.vue';
 import AddToRoute from '@/components/Map/MapComponents/FormComponents/AddToRoute.vue';

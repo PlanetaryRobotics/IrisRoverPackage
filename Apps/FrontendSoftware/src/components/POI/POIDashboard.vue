@@ -5,12 +5,12 @@
 
       <div class="POIDashboardContent__header">
         <div class="text__large header" 
-              v-bind:class="{'current': current.POI}"
+              v-bind:class="{'current': show.POIManagement}"
               @click="toggleManager()">
           POI Management
         </div>
         <div class="text__large header"
-            v-bind:class="{'current': current.Tag}"
+            v-bind:class="{'current': !show.POIManagement}"
             @click="toggleManager()">
           Tag Management
         </div>
@@ -18,7 +18,8 @@
       
 
       <div class="POIDashboardContent__body scrollable">
-        <POIManagement v-if="showPOIManagement"/>
+        <POIManagement v-if="show.POIManagement"/>
+        <TagManagement v-else />
       </div>
     </div>
     
@@ -31,33 +32,33 @@
 
 <script>
 
-import POIList from "@/components/POI/POIList.vue";
+import POIList from "@/components/POI/POIList/POIList.vue";
 import POIManagement from "@/components/POI/POIManagement/POIManagement.vue";
-import { mapGetters } from 'vuex';
+import TagManagement from "@/components/POI/TagManagement/TagManagement.vue";
+// import { mapGetters } from 'vuex';
 
 export default {
   name: "POIDashboard",
   components: {
     POIList,
-    POIManagement
+    POIManagement,
+    TagManagement
   },
   data() {
     return {
-      current: {
-        POI: true,
-        Tag: false
+      show: {
+        POIManagement: true
       }
     }
   },
   props: {
   },
   computed: {
-    ...mapGetters(['showPOIManagement', 'showTagManagement'])
+    // ...mapGetters(['showPOIManagement', 'showTagManagement'])
   },
   methods: {
     toggleManager() {
-      this.current.POI = !this.current.POI;
-      this.current.Tag = !this.current.Tag;
+      this.show.POIManagement = !this.show.POIManagement;
     }
   }
 }

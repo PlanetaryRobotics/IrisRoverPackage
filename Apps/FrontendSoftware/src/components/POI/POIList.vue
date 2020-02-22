@@ -10,13 +10,12 @@
       </div>
 
       <!-- LIST --> 
-      <div class="POIList__list" v-show = "show.POIList">
+      <div class="POIList__list scrollable" v-show = "show.POIList">
         <div class="POIList__item" v-for="(POICard, index) in POIList" :key="index">
           <POICard :POIData = "POICard.getData()"/>
         </div>
       </div>
     </div>
-
   </div>
 </template>
 

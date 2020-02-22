@@ -1,8 +1,9 @@
 <template>
-  <div class="POIModalContent">
-    <div class="POIModalContent__manager">
-      <!-- HEADERS -->
-      <div class="POIModalContent__header">
+  <div class="POIDashboardContent noSelect">
+    
+    <div class="POIDashboardContent__leftColumn">
+
+      <div class="POIDashboardContent__header">
         <div class="text__large header" 
               v-bind:class="{'current': current.POI}"
               @click="toggleManager()">
@@ -15,14 +16,15 @@
         </div>
       </div>
       
-      <!-- MAIN CONTENT -->
-      <div class="POIModalContent__body scrollable">
+
+      <div class="POIDashboardContent__body scrollable">
         <POIManagement v-if="showPOIManagement"/>
       </div>
     </div>
+    
 
     <!-- RIGHT COLUMN -->
-    <POIList class="POIModalContent__rightColumn"/>
+    <POIList class="POIDashboardContent__rightColumn"/>
 
   </div>
 </template>
@@ -34,7 +36,7 @@ import POIManagement from "@/components/POI/POIManagement/POIManagement.vue";
 import { mapGetters } from 'vuex';
 
 export default {
-  name: "POIModal",
+  name: "POIDashboard",
   components: {
     POIList,
     POIManagement
@@ -53,9 +55,6 @@ export default {
     ...mapGetters(['showPOIManagement', 'showTagManagement'])
   },
   methods: {
-    toggleModal() {
-      this.$store.commit("toggleModal");
-    },
     toggleManager() {
       this.current.POI = !this.current.POI;
       this.current.Tag = !this.current.Tag;
@@ -69,17 +68,23 @@ export default {
 
 @import '@/styles/_colors.scss';
 @import '@/styles/_typography.scss';
+@import '@/styles/_noSelect.scss';
 
-.POIModalContent {
+.POIDashboardContent {
   border-radius: 4px;
-  height: 95vh; // TODO: do not use absolute vals, fix the stretching issue on parent components
   width: 100%;
   display: grid;
   grid-template-columns: 3fr 1fr;
-  overflow: hidden;
+
+  &__leftColumn {
+    height: 95vh;
+    padding-left: 34px 8px 34px 0px;
+    background-color: $color-background;
+    display: flex;
+    flex-direction: column;
+  }
 
   &__body {
-    height: 95vh; // TODO: do not use absolute vals, fix the stretching issue on parent components
     padding-left: 34px;
     padding-right: 34px;
   }
@@ -88,13 +93,8 @@ export default {
     padding-bottom: 16px;
   }
 
-  &__manager {
-    padding-left: 34px 8px 34px 0px;
-    background-color: $color-background;
-  }
-
   &__rightColumn {
-    height: 95vh; // TODO: do not use absolute vals, fix the stretching issue on parent components
+    height: 95vh;
     background-color: $color-near-black;
   }
 }

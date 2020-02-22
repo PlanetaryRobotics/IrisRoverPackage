@@ -75,7 +75,7 @@
             <div class="text__main--bold">
               Images
             </div>
-            <div class="POICard__imagesViewMore" @click="openModal()">
+            <div class="POICard__imagesViewMore">
               {{"View All (" + this.POIData.images.length + ")"}}
             </div>
           </div>
@@ -187,10 +187,6 @@ export default {
       } 
       return 0;
     },
-    openModal() {
-      debugger;
-      this.$store.commit('toggleModal');
-    }
   }
 }
 

@@ -1,20 +1,21 @@
-// import path from 'path'
-// import fs from 'fs'
+import path from 'path'
+import fs from 'fs'
 
 import POICard from "@/data_classes/POICard.js";
 import ImageData from '@/data_classes/ImageData.js'
 import Tag from '@/data_classes/Tag.js'
 
+/* global __static */ // <- keep eslint from complaining about the __static directory
 // Simulate the binary image data which will be Received from the DB:
-// function bytes(file){
-//   let data = fs.readFileSync(file);
-//   return Buffer.from(Uint8Array.from(data));
-// }
+function bytes(file){
+  let data = fs.readFileSync(file);
+  return Buffer.from(Uint8Array.from(data));
+}
 
 const tempImages = [
   new ImageData({
     name: 'CR_M01_0001',
-    //bin: bytes(path.join(__static,'./images/Kd2V45y.jpg')),
+    bin: bytes(path.join(__static,'./images/Kd2V45y.jpg')),
     camera: "Front",
     sendTime: new Date(),
     command: "Forward",
@@ -107,7 +108,6 @@ const tempImages = [
 export default {
   state: {
     show: {
-      showModalContainer: true,
       showPOIManagement: true,
       showTagManagement: false,
     },
@@ -263,9 +263,6 @@ export default {
     POIList: state => {
       return state.POIList;
     },
-    showModal: state => {
-      return state.show.showModalContainer;
-    },
     showPOIManagement: state => {
       return state.show.showPOIManagement;
     },
@@ -273,9 +270,4 @@ export default {
       return state.show.showTagManagement;
     }
   },
-  mutations: {
-    toggleModal: state => {
-      state.show.showModalContainer = !state.show.showModalContainer;
-    }
-  }
 };

@@ -16,6 +16,7 @@ export default class POICard{
                        //       img from DB in store 
         url: testImage
       },
+      //thumbnail: null,
       width: null,
       height: null,
       sizeUnit: null,

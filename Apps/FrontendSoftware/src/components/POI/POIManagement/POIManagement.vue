@@ -1,5 +1,5 @@
 <template>
-    <div class="POIManagement">
+    <div class="POIManagement scrollable">
         <div class="POIManagementHeader" v-for="(POICard, index) in POIList" :key="index">
           <POIManagementCard :POIData="POICard.getData()"/>
         </div>
@@ -19,22 +19,14 @@ export default {
     return {
       show: {
         images: true,
-      },
-      POICard: "",
+      }
     }
-  },
-  props: {
   },
   computed: {
     POIList() {
       return this.$store.state.POI.POIList;
     }
   },
-  methods: {
-    toggleImages() {
-      this.show.images = !this.show.images;
-    }
-  }
 }
 
 </script>
@@ -59,7 +51,4 @@ export default {
   }
 }
 
-.open {
-  transform: rotate(0deg);
-}
 </style>

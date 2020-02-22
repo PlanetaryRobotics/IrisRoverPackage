@@ -90,11 +90,12 @@ export default {
 
   &__card {
     padding-right: 4px;
+    padding-bottom: 8px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    
+
     > img {
       width: 150px;
       height: 90px;
@@ -145,8 +146,6 @@ export default {
     margin-bottom: 1rem;
     width: auto;
   }
-
 }
-
 
 </style>

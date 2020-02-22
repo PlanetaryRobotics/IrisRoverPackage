@@ -36,6 +36,10 @@ export default new Vuex.Store({
       MAP: {
         name: "SHARED MAP",
         menu: ["Close", "Smile", "Refresh"]
+      },
+      POI: {
+        name: "POI DASHBOARD",
+        menu: ["Close", "Smile", "Refresh"]
       }
     }
   },

@@ -16,8 +16,7 @@
 
       <div class = "images" v-show = "show.images">
         <div class = "images__card" v-for="(image, index) of POIData.images" :key="index">
-          <!-- <img :src="image.thumbnail.url"> -->
-          <img :src="testImage">
+          <img :src="image.url">
           {{image.time}}
         </div>
       </div>
@@ -28,7 +27,6 @@
 
 import POIHeader from "@/components/POI/POIHeader.vue";
 import { mapGetters } from 'vuex';
-import testImage from "@/components/POI/testImage.jpg";
 
 export default {
   name: "POIManagement",
@@ -40,7 +38,6 @@ export default {
       show: {
         images: true,
       },
-      testImage: testImage
     }
   },
   props: {

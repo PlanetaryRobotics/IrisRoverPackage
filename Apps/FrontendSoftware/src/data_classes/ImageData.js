@@ -56,8 +56,8 @@ export default class ImageData extends DBObject{
   get url(){
     if(this.data.url){
      return this.data.url;
-    } else if(this.bin && this.bin.length > 0){
-     return `data:image/${ENCODING};base64,` + this.bin.toString('base64');
+    } else if(this.data.bin && this.data.bin.length > 0){
+     return `data:image/${ENCODING};base64,` + this.data.bin.toString('base64');
     } else{
      return ""; // no valid image data exits
     }

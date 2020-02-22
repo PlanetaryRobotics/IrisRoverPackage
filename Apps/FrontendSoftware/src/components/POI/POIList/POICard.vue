@@ -33,7 +33,7 @@
 
         <!--IMAGE AND WIDTH/HEIGHT -->
         <div class="POICard__imageRow">
-          <img :src="POIData.thumbnail.url">
+          <img :src="getThumbnailURL()">
           <div class="POICard__imageDimensions">
             <div class="POICard__imageDimension">
               <div class="text__main--bold">
@@ -187,6 +187,9 @@ export default {
       } 
       return 0;
     },
+    getThumbnailURL() {
+      return this.POIData.thumbnail.url;
+    }
   }
 }
 

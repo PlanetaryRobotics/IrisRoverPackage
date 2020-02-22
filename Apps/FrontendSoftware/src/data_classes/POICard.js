@@ -1,7 +1,6 @@
 'use strict';
 import ImageData from "@/data_classes/ImageData.js";
 import Tag from "@/data_classes/Tag.js";
-import testImage from "@/components/POI/testImage.jpg";
 
 export default class POICard{
   
@@ -12,11 +11,7 @@ export default class POICard{
     {
       importanceLevel: null,
       category: null,
-      thumbnail: {     // TODO: temp fix for demo purposes - figure out how to pull 
-                       //       img from DB in store 
-        url: testImage
-      },
-      //thumbnail: null,
+      thumbnail: null,
       width: null,
       height: null,
       sizeUnit: null,
@@ -27,7 +22,6 @@ export default class POICard{
     }
     
     this.validationChecks(inputData);
-
     Object.assign(this.data, inputData);
   } 
 
@@ -56,8 +50,8 @@ export default class POICard{
     // Validation check on ImageinputData
     if (!(inputData.thumbnail instanceof ImageData)) {
       console.error("Thumbnail is not of type ImageData.");
-    } else {
-      this.data.images.push(inputData.thumbnail);
+    }  else {
+      inputData.images.unshift(inputData.thumbnail);
     }
 
     // Validation check on width
@@ -108,6 +102,14 @@ export default class POICard{
     if (typeof inputData.description !== "string" || inputData.description === "") {
       console.error("Description is not of type string of is empty.");
       console.log(inputData.description);
+    }
+
+    // Validation check on images
+    for (let image of inputData.images) {
+      if (!(image instanceof ImageData)) {
+        console.error("Image is not of type ImageData");
+        console.log(image);
+      } 
     }
   }
 

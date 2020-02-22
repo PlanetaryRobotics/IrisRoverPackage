@@ -21,7 +21,7 @@
 
 <script>
 
-import POICard from "@/components/POI/POICard.vue";
+import POICard from "@/components/POI/POIList/POICard.vue";
 import { mapGetters } from 'vuex';
 
 export default {

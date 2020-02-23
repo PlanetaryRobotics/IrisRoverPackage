@@ -1,9 +1,9 @@
 <template>
     <div class = "POIManagementCard">
-      <div class = "header">
+      <div class = "header" @click="toggleImages">
         <POIHeader :POIData = "POIData" class="header__title"/>
 
-        <svg :class="{ open : show.images }" @click="toggleImages" class="header__toggle" width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg :class="{ open : show.images }" class="header__toggle" width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path fill-rule="evenodd" clip-rule="evenodd" d="M14.8898 10.8798C14.7459 11.0286 14.5085 11.0327 14.3596 10.889L8.42936 5.16832C8.18715 4.93466 7.80309 4.93466 7.56087 5.16832L1.63066 10.889C1.48171 11.0327 1.24431 11.0286 1.10041 10.8798C0.956516 10.7311 0.960617 10.494 1.10957 10.3503L7.03978 4.62967C7.57265 4.11563 8.41758 4.11563 8.95045 4.62967L14.8807 10.3503C15.0296 10.494 15.0337 10.7311 14.8898 10.8798Z" fill="#FCFCFC"/>
         </svg>
       </div>
@@ -99,6 +99,7 @@ export default {
     }
   }
 }
+
 .header {
   display: flex;
   flex-direction: row;
@@ -113,10 +114,13 @@ export default {
   &__toggle {
     transform: rotate(-180deg);
     transition: .1s ease-in-out;
+  }
 
-    &:hover * {
+  &:hover {
+    cursor: pointer;
+
+    .header__toggle * {
       fill: $color-primary;
-      cursor: pointer;
     }
   }
 }

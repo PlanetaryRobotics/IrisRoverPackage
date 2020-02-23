@@ -19,6 +19,7 @@ export default class POICard{
       creator: null,
       description: null,
       images: [],
+      createTimeObject: null,
     }
     
     this.validationChecks(inputData);
@@ -52,6 +53,7 @@ export default class POICard{
       console.error("Thumbnail is not of type ImageData.");
     }  else {
       inputData.images.unshift(inputData.thumbnail);
+      inputData.createTimeObject = inputData.thumbnail.timeObject;
     }
 
     // Validation check on width

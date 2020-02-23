@@ -118,6 +118,11 @@ export default class ImageData extends DBObject{
      return this.data.sendTime ? this.data.sendTime.toLocaleDateString('en-US', { timezone: 'UTC', hour12 : false, day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'}) : "";
    }
 
+   // Used for ease of sorting by time in UI
+   get timeObject() {
+     return this.data.sendTime ? new Date(Date.now()) : ""; 
+   }
+
    name(){
      return this.data.name
    }

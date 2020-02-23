@@ -22,8 +22,9 @@
 
         <!--TAGS-->
         <div class="POICard__tags">
-            <div class="pill__tag" v-for="(name, index) of tagNames" :key="index">
-                {{getShortName(name)}}
+            <div class="pill__tag" v-for="(name, index) of tagNames" :key="index" >
+               <!-- <div v-html="searchQuery ? marked.tags[index] : name"/> -->
+               {{getShortName(name)}}
             </div>  
         </div>
 
@@ -58,18 +59,16 @@
             <div class="POICard__updateHistorySmall--line text__small">
               <div>Created:</div> 
               <div>Helen T.</div>            <!--TODO: draw from POIData -->
-              <div>10-01-2019 20:05:00</div> <!--TODO: draw from POIData -->
+              <div>{{POIData.thumbnail.time}}</div>
             </div>
             <div class="POICard__updateHistorySmall--line text__small">
               <div>Modified:</div>
               <div>Helen T.</div>            <!--TODO: draw from POIData -->
-              <div>10-01-2019 20:05:00</div> <!--TODO: draw from POIData -->
+              <div>{{POIData.thumbnail.time}}</div> <!--TODO: draw from POIData -->
             </div>
           </div>
           <!-- DESCRIPTION -->
-          <div class="POICard__description">
-            {{this.POIData.description}}
-          </div>
+          <div class="POICard__description" v-html="POIData.description" />
           <!-- IMAGES -->
           <div class="POICard__imagesHeader">
             <div class="text__main--bold">
@@ -91,7 +90,6 @@
 
 <script>
 
-import POICard from "@/data_classes/POICard.js";
 import POIHeader from "@/components/POI/POIHeader.vue";
 
 export default {
@@ -104,10 +102,22 @@ export default {
       show: {
         moreData: false,
       },
+      marked: {
+        tags: [],
+      }
     }
   },
   props: {
-    POIData: Object
+    POIData: Object,
+    searchQuery: String, 
+  },
+  watch: { 
+    searchQuery(newVal) { // watch it
+    debugger;
+      if (newVal) {
+        this.markText();
+      }
+    }
   },
   computed: {
     viewMoreNumbers: function() {
@@ -126,31 +136,13 @@ export default {
         }
       }
     },
-    importanceColor: function() {
-      let category = this.POIData.category;
-      let ans = POICard.CATEGORY_COLORS[category];
-      return {
-        stroke : ans,
-      };
-    },
-    importanceSize: function() {
-      let size = this.POIData.importanceLevel;
-      return new Array(size);
-    },
-    titleColor: function() {
-      let category = this.POIData.category;
-      let ans = POICard.CATEGORY_COLORS[category];
-      return {
-        color : ans,
-      };
-    },
     tagNames: function() {
       let tagList = this.POIData.tagList;
       let nameList = [];
       if (tagList.length > 7) {
-        tagList.slice(0, 7).forEach(tag => nameList.push(tag.getName()));
+        tagList.slice(0, 7).forEach(tag => nameList.push(this.getShortName(tag.getName())));
       } else {
-        tagList.forEach(tag => nameList.push(tag.getName()));
+        tagList.forEach(tag => nameList.push(this.getShortName(tag.getName())));
       }
       return nameList;
     },
@@ -163,6 +155,17 @@ export default {
     },
   },
   methods: {
+    markText() {
+      let markedTags = [];
+
+      for (let tag of this.tagNames) {
+        let regex = new RegExp(this.searchQuery, 'g');
+        let markedTag = tag.replace(regex, '<mark>' + this.searchQuery + '</mark>');
+        markedTags.push(markedTag);
+      }
+
+      this.marked.tags = markedTags;
+    },
     getTitle() {
       if (this.POIData.category === "ATTRACTION") {
         return "ATTR-";
@@ -200,8 +203,11 @@ export default {
 @import '@/styles/_colors.scss';
 @import '@/styles/_typography.scss';
 
-.POICard {
+.POICard /deep/ mark {
+  background-color: $color-primary;
+}
 
+.POICard {
   &__header {
     padding-top: 1rem;
     padding-right: 1rem;
@@ -327,8 +333,11 @@ export default {
   }
 
   &__updateHistorySmall {
-    width: 80%;
     padding-bottom: 2rem;
+
+    > div {
+      padding-right: 2px;
+    }
 
     > div:nth-child(1) {
       padding-bottom: 1rem;

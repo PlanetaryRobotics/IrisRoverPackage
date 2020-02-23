@@ -35,7 +35,6 @@
 import POIList from "@/components/POI/POIList/POIList.vue";
 import POIManagement from "@/components/POI/POIManagement/POIManagement.vue";
 import TagManagement from "@/components/POI/TagManagement/TagManagement.vue";
-// import { mapGetters } from 'vuex';
 
 export default {
   name: "POIDashboard",
@@ -54,7 +53,6 @@ export default {
   props: {
   },
   computed: {
-    // ...mapGetters(['showPOIManagement', 'showTagManagement'])
   },
   methods: {
     toggleManager() {

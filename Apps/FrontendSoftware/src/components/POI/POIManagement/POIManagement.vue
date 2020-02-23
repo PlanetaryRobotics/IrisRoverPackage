@@ -24,7 +24,7 @@ export default {
   },
   computed: {
     POIList() {
-      return this.$store.state.POI.POIList;
+      return this.$store.getters.POIList;
     }
   },
 }

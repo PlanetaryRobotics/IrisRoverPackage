@@ -36,14 +36,14 @@
       <div class="POIOrderBy">
           <select name="POIOrderBy__dropdown" class="POIOrderBy__dropdown" v-model="orderBy"
           :style="{ background: `url(${arrowSVG}) no-repeat 95% #585858` }">
-              <option value="null" selected disabled>Filter</option>
+              <option value="null" selected>Filter</option>
               <option value="IMPORTANCE">Importance</option>
               <option value="TIME ADDED">Time Added</option>
           </select>
       </div>
 
       <!-- LIST --> 
-      <div class="POIList__list scrollable" v-show = "show.POIList">
+      <div class="POIList__list scrollable" v-show = "show.POIList" :key="rerenderList">
         <div class="POIList__item" v-for="(POICard, index) in POIList" :key="index">
           <POICard :POIData = "POICard.getData()" :searchQuery = "searchQuery"/>
         </div>
@@ -57,8 +57,6 @@
 import POICard from "@/components/POI/POIList/POICard.vue";
 import POIListDataClass from "@/data_classes/POIList.js";
 import arrowSVG from "@/assets/icons/icon_arrow_white.svg";
-
-// import { mapGetters } from 'vuex';
 
 export default {
   name: "POIList",
@@ -83,7 +81,8 @@ export default {
       selectedFilter: null,
       orderBy: null,
       searchQuery: null,
-      arrowSVG: arrowSVG
+      arrowSVG: arrowSVG,
+      rerenderList: 0
     }
   },
   methods: {
@@ -96,6 +95,7 @@ export default {
       } else {
         this.selectedFilter = filter;
       }
+      this.rerenderList++;
     }
   }
 }

@@ -22,7 +22,8 @@
 
 #define MOTOR_GEARBOX_RATIO     416
 #define MOTOR_TICKS_PER_MECH_REV  24      
-#define ROVER_MOTOR_MAX_SPEED_RPM 8000      
+#define ROVER_MOTOR_MAX_SPEED_RPM 8000  
+#define MAX_MEASURABLE_CURRENT 0.7625	// A    
 
 using namespace std;
 
@@ -183,6 +184,12 @@ uint8_t getStatus(){
   return g_rxBuffer[0];
 }
 
+#define IQ		15
+
+double fixedPointToDouble(int32_t in){
+	return (double)in / (double)(1 << IQ);
+}
+
 /**
  * @brief      main function
  *
@@ -258,7 +265,8 @@ int main(int argc, char *argv[]){
   int32_t targetPosTicksLeft =  targetPosRevLeft * MOTOR_GEARBOX_RATIO * MOTOR_TICKS_PER_MECH_REV;
   int32_t targetPosTicksRight =  targetPosRevRight * MOTOR_GEARBOX_RATIO * MOTOR_TICKS_PER_MECH_REV;
 
-  targetPosTicksRight = -targetPosTicksRight; 
+  targetPosTicksRight = -targetPosTicksRight;
+
   cout << "Rover theorical max speed (rev/min): " << roverMaxRevSpeed << endl;
   cout << "Target speed left (rev/min): " << targetSpeedRevLeft << endl;
   cout << "Target position left (rev): " << targetPosRevLeft << " (" << targetPosTicksLeft << " ticks)" << endl;
@@ -301,28 +309,34 @@ int main(int argc, char *argv[]){
     exit(EXIT_FAILURE); 
   } 
 
-  cout << "value sent" << targetSpeedRevPercentLeft << " " << targetSpeedRevPercentRight <<  endl;
   setTargetSpeedRight(targetSpeedRevPercentRight);
   setTargetSpeedLeft(targetSpeedRevPercentLeft);
   setTargetPositionRight(targetPosTicksRight);
   setTargetPositionLeft(targetPosTicksLeft);
   //run();
 
-  //return 0;
-
   cout << "Enter while loop..." << endl;
   while(1){//getStatus() != MotorStatus::TARGET_REACHED){
-    //getPositions(&positionFrontLeft, &positionFrontRight, &positionRearLeft, &positionRearRight);
-    //usleep(1000);
-    //getCurrents(&currentFrontLeft, &currentFrontRight, &currentRearLeft, &currentRearRight);
-    //usleep(1000);
+    getPositions(&positionFrontLeft, &positionFrontRight, &positionRearLeft, &positionRearRight);
+    usleep(1000);
+    getCurrents(&currentFrontLeft, &currentFrontRight, &currentRearLeft, &currentRearRight);
+    usleep(1000);
     time_t tnow = time(0);
     string snow = ctime(&tnow);
-    //logFile << snow << " Position: " << positionFrontLeft << " " << positionFrontRight << " " << positionRearLeft << " " << positionRearRight << endl;
-    //logFile << snow << " Current: " << currentFrontLeft << " " << currentFrontRight << " " << currentRearLeft << " " << currentRearRight << endl;
-    //cout << "Running..." << endl;
+    double currentRearRightDouble;
+    double currentRearLeftDouble;
+    double currentFrontRightDouble;
+    double currentFrontLeftDouble;
+
+    currentRearLeftDouble = fixedPointToDouble(currentRearLeft) * MAX_MEASURABLE_CURRENT;
+    currentFrontLeftDouble = fixedPointToDouble(currentFrontLeft) * MAX_MEASURABLE_CURRENT;
+    currentFrontRightDouble = fixedPointToDouble(currentFrontRight) * MAX_MEASURABLE_CURRENT;
+    currentRearRightDouble = fixedPointToDouble(currentRearRight) * MAX_MEASURABLE_CURRENT;
+
+    logFile << snow << " Position: " << positionFrontLeft << " " << positionFrontRight << " " << positionRearLeft << " " << positionRearRight << endl;
+    logFile << snow << " Current: " << currentFrontLeftDouble << " " << currentFrontRightDouble << " " << currentRearLeftDouble << " " << currentRearRightDouble << endl;;
     cout << "Positions - FL: " << positionFrontLeft << " RL: " << positionRearLeft << " FR: " << positionFrontRight << " RR:" << positionRearRight << endl;
-    cout << "Currents - FL:" << currentFrontLeft << " RL: " << currentRearLeft << " FR:" << currentFrontRight << " RR:" << currentRearRight << endl;
+    cout << "Currents - FL:" << currentFrontLeftDouble << " RL: " << currentRearLeftDouble << " FR:" << currentFrontRightDouble << " RR:" << currentRearRightDouble << endl;
   }
 
   stop();

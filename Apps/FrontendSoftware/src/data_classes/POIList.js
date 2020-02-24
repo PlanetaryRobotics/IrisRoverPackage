@@ -51,7 +51,8 @@ export default class POIList{
   }
 
   static orderBy(order, POIList) {
-    if (!order) {
+
+    if (!order || order === "null") {
       return POIList;
     }
 

@@ -23,8 +23,8 @@
         <!--TAGS-->
         <div class="POICard__tags">
             <div class="pill__tag" v-for="(name, index) of tagNames" :key="index" >
-               <!-- <div v-html="searchQuery ? marked.tags[index] : name"/> -->
-               {{getShortName(name)}}
+               <div v-html="searchQuery ? marked.tags[index] : name"/>
+               <!-- {{getShortName(name)}} -->
             </div>  
         </div>
 
@@ -111,9 +111,13 @@ export default {
     POIData: Object,
     searchQuery: String, 
   },
+  mounted() {
+    if (this.searchQuery || this.searchQuery !== "null") {
+      this.markText();
+    }
+  },
   watch: { 
     searchQuery(newVal) { // watch it
-    debugger;
       if (newVal) {
         this.markText();
       }

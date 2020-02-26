@@ -5,9 +5,12 @@
 #include <vector>
 #include <fstream>
 #include <ctime>
+#include <chrono>
+#include <signal.h>
 
 #include <unistd.h> 
 #include <sys/types.h> 
+#include <sys/time.h>
 #include <sys/socket.h> 
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
@@ -15,7 +18,7 @@
 #define ROVER_PORT              8080
 #define LOCAL_PORT              8080
 #define CLIENT_IP_ADDRESS       "192.168.1.2"
-#define TIMEOUT_RX_SECOND       10
+#define TIMEOUT_RX_SECOND       1
 #define WIRELESS_ADAPTER_NAME   "wlx00e04c295d5e"
 #define MAX_TX_BUFFER_SIZE    10
 #define MAX_RX_BUFFER_SIZE    10
@@ -26,12 +29,14 @@
 #define MAX_MEASURABLE_CURRENT 0.7625	// A    
 
 using namespace std;
+using namespace chrono;
 
 uint8_t g_rxBuffer[MAX_RX_BUFFER_SIZE]; 
 uint8_t g_txBuffer[MAX_TX_BUFFER_SIZE];
 // Network variables
 int g_sockfd; 
 struct sockaddr_in g_servaddr, g_cliaddr; 
+bool g_runApp;
 
 typedef enum CommandList{
   SPEED_MOTOR_LEFT =      0x00,
@@ -79,6 +84,11 @@ void readData(const uint8_t size){
 
     if(result >= 0){
       bytesToRead -= result;
+    }
+
+    if(result < 0){
+      cout << "Timeout during data reception..." << endl;
+      break;
     }
   }
 }
@@ -190,6 +200,20 @@ double fixedPointToDouble(int32_t in){
 	return (double)in / (double)(1 << IQ);
 }
 
+void quitApplication(int s){
+  g_runApp = false;
+}
+
+std::string dateTime(){
+  time_t rawtime;
+  struct tm * timeinfo;
+  char buffer[80];
+  time (&rawtime);
+  timeinfo = localtime(&rawtime);
+  strftime(buffer,80,"%d-%m-%Y %H-%M-%S", timeinfo);
+  return std::string(buffer);
+}
+
 /**
  * @brief      main function
  *
@@ -202,31 +226,39 @@ int main(int argc, char *argv[]){
   string devname = WIRELESS_ADAPTER_NAME;
   struct timeval tv;
   uint32_t bytesToRead;
+  struct sigaction sigIntHandler;
 
   // Logging variables
   ofstream logFile;
   string testDescription;
+
   
   // Rover related variable
-  float targetPosRevLeft;     // revolution
-  float targetSpeedRevLeft;   // rev/s
-  float targetPosRevRight;    // revolution
-  float targetSpeedRevRight;  // rev/s
+  float targetPosRevLeft = 0;     // revolution
+  float targetSpeedRevLeft = 0;   // rev/s
+  float targetPosRevRight = 0;    // revolution
+  float targetSpeedRevRight = 0;  // rev/s
   
-  int32_t positionFrontRight;
-  int32_t positionFrontLeft;
-  int32_t positionRearRight;
-  int32_t positionRearLeft;
+  int32_t positionFrontRight = 0;
+  int32_t positionFrontLeft = 0;
+  int32_t positionRearRight = 0;
+  int32_t positionRearLeft = 0;
 
-  int32_t currentFrontRight;
-  int32_t currentFrontLeft;
-  int32_t currentRearRight;
-  int32_t currentRearLeft;
+  int32_t currentFrontRight = 0;
+  int32_t currentFrontLeft = 0;
+  int32_t currentRearRight = 0;
+  int32_t currentRearLeft = 0;
 
-  // Create log file
-  time_t now = time(0);
-  string nowDate = ctime(&now);
-  logFile.open(nowDate.c_str());
+  string filename = dateTime() + ".txt";
+  logFile.open(filename);
+
+  sigIntHandler.sa_handler = quitApplication;
+  sigemptyset(&sigIntHandler.sa_mask);
+  sigIntHandler.sa_flags = 0;
+
+  sigaction(SIGINT, &sigIntHandler, NULL);
+
+  g_runApp = true;
 
   // check integrity of arguments
   if(argc < 5){
@@ -309,20 +341,29 @@ int main(int argc, char *argv[]){
     exit(EXIT_FAILURE); 
   } 
 
+  cout << "Send motor control commands..." << endl;
   setTargetSpeedRight(targetSpeedRevPercentRight);
   setTargetSpeedLeft(targetSpeedRevPercentLeft);
   setTargetPositionRight(targetPosTicksRight);
   setTargetPositionLeft(targetPosTicksLeft);
-  //run();
+  
+  cout << "Start monitoring of motors..." << endl;
 
-  cout << "Enter while loop..." << endl;
-  while(1){//getStatus() != MotorStatus::TARGET_REACHED){
+  struct timeval tic;
+  struct timeval toc;  
+  gettimeofday(&tic, NULL);
+  long int ticms = tic.tv_sec * 1000 + tic.tv_usec / 1000;
+
+  logFile << "Data format: <time in ms since beginning>,<position ticks FL>,<position ticks FR>,<position ticks RL>,<position ticks RR>,<current mA FL>,<current mA FR>,<current mA RL>,<current mA RR>" << endl;
+  while(g_runApp){
+    usleep(1000);
     getPositions(&positionFrontLeft, &positionFrontRight, &positionRearLeft, &positionRearRight);
     usleep(1000);
     getCurrents(&currentFrontLeft, &currentFrontRight, &currentRearLeft, &currentRearRight);
-    usleep(1000);
-    time_t tnow = time(0);
-    string snow = ctime(&tnow);
+
+    gettimeofday(&toc, NULL);
+    long int tocms = toc.tv_sec * 1000 + toc.tv_usec / 1000;  
+
     double currentRearRightDouble;
     double currentRearLeftDouble;
     double currentFrontRightDouble;
@@ -333,14 +374,14 @@ int main(int argc, char *argv[]){
     currentFrontRightDouble = fixedPointToDouble(currentFrontRight) * MAX_MEASURABLE_CURRENT;
     currentRearRightDouble = fixedPointToDouble(currentRearRight) * MAX_MEASURABLE_CURRENT;
 
-    logFile << snow << " Position: " << positionFrontLeft << " " << positionFrontRight << " " << positionRearLeft << " " << positionRearRight << endl;
-    logFile << snow << " Current: " << currentFrontLeftDouble << " " << currentFrontRightDouble << " " << currentRearLeftDouble << " " << currentRearRightDouble << endl;;
+    logFile << tocms - ticms << "," << positionFrontLeft << "," << positionFrontRight << "," << positionRearLeft << "," << positionRearRight << "," << currentFrontLeftDouble << "," << currentFrontRightDouble << "," << currentRearLeftDouble << "," << currentRearRightDouble << endl;
     cout << "Positions - FL: " << positionFrontLeft << " RL: " << positionRearLeft << " FR: " << positionFrontRight << " RR:" << positionRearRight << endl;
     cout << "Currents - FL:" << currentFrontLeftDouble << " RL: " << currentRearLeftDouble << " FR:" << currentFrontRightDouble << " RR:" << currentRearRightDouble << endl;
   }
 
-  stop();
+  //stop();
 
+  cout << "Exit application..." << endl;
 
   return 0; 
 } 

@@ -79,6 +79,7 @@ class MultiprocessDbHandler:
                                                                             err))
         else:
             new_cmd = command.Command.from_database(new_cmd_dict)
+        return new_cmd
 
     @staticmethod
     def db_new_commands_handler(db_collection, 

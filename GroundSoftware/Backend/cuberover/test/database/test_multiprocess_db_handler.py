@@ -50,16 +50,16 @@ class TestDBHandler(unittest.TestCase):
         self.mock_output_queue.put.assert_called_once()                                              
         # self.mock_output_queue.assert_called_once_with(MultiprocessDbHandler.new_command_from_db_output(test_command))
 
-    # def test3(self):
-    #     # self.recently_updated_lookup_ids = [15]
-    #     test_command = {'args': {'Angle': 111, 'Images': 4, 'Speed': 11}, 'lookupID': 13, 'name': 'DriveLeftCommand'}
-    #     test_command_skipped = {'args': {'Angle': 13, 'Images': 12, 'Speed': 3}, 'lookupID': 14, 'name': 'DriveRightCommand'}
-    #     mock_new_commands = [test_command_skipped]
-    #     self.mock_db_collection.changes.get_all_new.return_value = mock_new_commands
-    #     MultiprocessDbHandler.db_new_commands_handler(self.mock_db_collection,
-    #                                                   self.recently_updated_lookup_ids,
-    #                                                   self.mock_output_queue)
-    #     self.mock_output_queue.assert_not_called()
+    def test3(self):
+        # self.recently_updated_lookup_ids = [15]
+        test_command = {'args': {'Angle': 111, 'Images': 4, 'Speed': 11}, 'lookupID': 13, 'name': 'DriveLeftCommand'}
+        test_command_skipped = {'args': {'Angle': 13, 'Images': 12, 'Speed': 3}, 'lookupID': 14, 'name': 'DriveRightCommand'}
+        mock_new_commands = [test_command_skipped]
+        self.mock_db_collection.changes.get_all_new.return_value = mock_new_commands
+        MultiprocessDbHandler.db_new_commands_handler(self.mock_db_collection,
+                                                      self.recently_updated_lookup_ids,
+                                                      self.mock_output_queue)
+        self.mock_output_queue.assert_not_called()
 
     # def test4(self):
     #     test_command = {'args': {'Angle': 111, 'Images': 4, 'Speed': 11}, 'lookupID': 13, 'name': 'DriveLeftCommand'}
@@ -79,7 +79,7 @@ class TestDBHandler(unittest.TestCase):
     #                                                   self.recently_updated_lookup_ids,
     #                                                   self.mock_output_queue)
 
-    #     self.mock_output_queue.assert_called_once()
+        self.mock_output_queue.assert_called_once()
 
 
     # def new_command_from_db_output(new_cmd_dict):

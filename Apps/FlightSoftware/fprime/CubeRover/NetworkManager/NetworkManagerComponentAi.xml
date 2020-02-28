@@ -1,0 +1,64 @@
+<component name="NetworkManager" kind="passive" namespace="CubeRover">
+    <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
+    <import_port_type>Fw/Buffer/BufferSendPortAi.xml</import_port_type>
+    <import_port_type>Fw/Buffer/BufferGetPortAi.xml</import_port_type>
+
+    <comment> Network manager to support the wi-fi interface </comment>
+
+    <ports>
+    	<port name="run" data_type="Svc::Sched" kind="sync_input">
+    		<comment> Input to run synchronous task </comment>
+    	</port>
+    	<port name="readData" data_type="Fw::BufferGet" kind="sync_input">
+    		<comment> write port </comment>
+    	</port>
+    	<port name="writeData" data_type="Fw::BufferSend" kind="sync_input">
+    		<comment> write port </comment>
+    	</port>
+    </ports>
+
+    	<events>
+    		<event id="0" name="NM_NetworkLevelChange" severity="ACTIVITY_HI" format_string = "Network Level Change to: %d">
+    			<comment> Network level change notification </comment>
+    			<args>
+    				<arg name = "level" type = "U8" />	
+    			</args>
+    		</event>
+    		
+    		<event id="1" name="NM_PacketDecodingError" severity="ACTIVITY_HI" format_string = "Error during packet decoding (total error: %d)">
+				<comment> Error during packet decoding </comment>
+				<args>
+					<arg name = "totalDecodingErrors" type = "U32" />
+				</args>
+			</event>
+
+			<event id="2" name="NM_WifiModuleError" severity="ACTIVITY_HI" format_string = "Error during communication with the wifi module (error code: %d)">
+				<comment> Error during communication with wifi module </comment>
+				<args>
+					<arg name = "errorCode" type = "U16" /> 
+				</args>	    	
+			</event>
+    	</events>
+
+    <telemetry>
+        <channel id="0" name="NM_PacketsReceived" data_type="U32" update = "on_change">
+            <comment> Number of packets received </comment>
+        </channel>
+        <channel id="1" name="NM_PacketsTransmitted" data_type="U32" update = "on_change">
+        	<comment> Number of packets transmitted </comment>
+       	</channel>
+       	<channel id="2" name="NM_Rssi" data_type="U32" update = "on_change">
+       		<comment> RSSI level </comment>
+       	</channel>
+        <channel id="3" name="NM_BytesReceived" data_type="U32" update = "on_change">
+            <comment> Total number of bytes received </comment>
+        </channel>
+        <channel id="4" name="NM_BytesTransmitted" data_type="U32" update = "on_change">
+            <comment> Total number of bytes transmitted </comment>
+        </channel>
+        <channel id="5" name="NM_DecodeErrors" data_type="U32" update = "on_change">
+            <comment> Total number of packet decode errors </comment>
+        </channel>
+    </telemetry>
+
+</component>

@@ -74,7 +74,7 @@ module instr_data_buffer(input sysClk,
 			if(rx_valid & (~(output_complete))) begin
 				next_byte_buffer <=  (byte_in << (shift_amount));
 				completed_buffer_s <= (completed_buffer | byte_buffer);
-				byte_counter_s <= byte_counter + 1;	
+				byte_counter_s <= byte_counter + 4'b0001;	
 				running_s <= 1;
 			end
 			if((running &(~(rx_valid)))) begin

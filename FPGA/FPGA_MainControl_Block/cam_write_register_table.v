@@ -25,7 +25,7 @@ module cam_i2c_command_map(
 				  if(valid_input) begin
 						all_bytes_out = 0;
 						if((reg_addr == 8'h02) | (reg_addr == 8'h03))begin //shutter width upper, shutter width lower, and shutter delay
-								case(byte_counter) 
+								case(byte_counter)
 									5'b00000: byte_out_r = 8'h08; //shutter width upper reg addr
 									5'b00001: byte_out_r = 8'h00;
 									5'b00010: byte_out_r = {4'b0000, reg_data[22:19]};
@@ -64,7 +64,7 @@ module cam_i2c_command_map(
 					  end //if((reg_addr == 8'h02) | (reg_addr == 8'h03))
 
 						else if((reg_addr == 8'h05) | (reg_addr == 8'h06)) begin
-								case(byte_counter) 
+								case(byte_counter)
 									5'b00000: byte_out_r = 8'h01; //Row Start
 									5'b00001: byte_out_r = {5'b00000, reg_addr[10:8]};
 									5'b00010: byte_out_r = reg_addr[7:0];
@@ -138,7 +138,7 @@ module cam_write_register_table(input           sysClk, //clock
 					reg [7:0] cam_i2c_byte_out_r;
 					reg trigger_r;
 					reg[15:0] trigger_index_r;
-					reg[9:0] timestamp_r;
+					reg[27:0] timestamp_r;
 
 					assign output_valid = output_valid_r;
 					assign cam_id = cam_id_r;
@@ -186,49 +186,55 @@ module cam_write_register_table(input           sysClk, //clock
 
 					assign bytes_vals_valid = bytes_vals_valid_r;
 
-					assign output_valid = ((~reg_addr[2]) & bytes_vals_valid & other_vals_valid) | bytes_vals_valid;
 
 
 					always@(posedge sysClk) begin
-							if(intr_valid_input) begin
-								byte_counter_r <= 0;
-								valid_input_for_commandmap_r <= 1;
-								if(byte_valid_out_from_commandmap) begin
-									valid_input_for_commandmap_r <= 0;
-									 cam_i2c_byte_out_r <= byte_out_from_commandmap;
-									 cam_id_r <= ((reg_addr == 8'h03) | (reg_addr == 8'h06));
-									 bytes_vals_valid_r <= 1;
-								end
-
-								byte_counter_r <= byte_counter_w + 1;
-								bytes_vals_valid_r <= 0;
-							end
+						if(intr_valid_input) begin
+							
+						end
 					end
 
-
-					always@(posedge sysClk) begin
-							if(intr_valid_input) begin
-								if(~reg_addr[2]) begin
-									RGB_r <= reg_data[2];
-									compression_r <= reg_data[1:0];
-									other_vals_valid_r <= 1;
-								end
-								else begin
-									RGB_r <= 0;
-									compression_r <= 0;
-									other_vals_valid_r <= 0;
-								end
-
-								if(reg_addr == 8'h01) begin
-									trigger_r <= 1;
-									
-									trigger_index_r <= reg_data[16:1];
-									timestamp_r <= reg_data[26:44];
-									cam_id_r <= reg_data[0];
-									bytes_vals_valid_r <= 1;
-								end
-							end
-					end
+					// always@(posedge sysClk) begin
+					// 		if(intr_valid_input) begin
+					// 			byte_counter_r <= 0;
+					// 			valid_input_for_commandmap_r <= 1;
+					// 			if(byte_valid_out_from_commandmap) begin
+					// 				valid_input_for_commandmap_r <= 0;
+					// 				 cam_i2c_byte_out_r <= byte_out_from_commandmap;
+					// 				 cam_id_r <= ((reg_addr == 8'h04) | (reg_addr == 8'h06) | ((reg_addr == 8'h01) & (reg_data[0])));
+					// 				 bytes_vals_valid_r <= 1;
+					// 			end
+					//
+					// 			byte_counter_r <= byte_counter_w + 5'b00001;
+					// 			bytes_vals_valid_r <= 0;
+					// 		end
+					//
+					// 		output_valid_r = ((~reg_addr[2]) & bytes_vals_valid & other_vals_valid) | bytes_vals_valid;
+					// end
+					//
+					//
+					// always@(posedge sysClk) begin
+					// 		if(intr_valid_input) begin
+					// 			if(~reg_addr[2]) begin
+					// 				RGB_r <= reg_data[2];
+					// 				compression_r <= reg_data[1:0];
+					// 				other_vals_valid_r <= 1;
+					// 			end
+					// 			else begin
+					// 				RGB_r <= 0;
+					// 				compression_r <= 0;
+					// 				other_vals_valid_r <= 0;
+					// 			end
+					//
+					// 			if(reg_addr == 8'h01) begin
+					// 				trigger_r <= 1;
+					//
+					// 				trigger_index_r <= reg_data[16:1];
+					// 				timestamp_r <= reg_data[44:26];
+					// 				bytes_vals_valid_r <= 1;
+					// 			end
+					// 		end
+					// end
 
 
 

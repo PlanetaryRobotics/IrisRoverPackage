@@ -14,15 +14,27 @@ module main_control_block_tb();
 	 wire         valid_buffer_for_read;
 	 wire         valid_buffer_for_mem;
 
+	 wire[7:0] cam_i2c_byte;
+	 wire[1:0] compression;
+	 wire RGB;
+	 wire cam_id;
+	 wire[27:0] timestamp;
+	 wire       trigger;
+	 wire[15:0] trigger_index;
+	 wire soft_reset;
+	 wire hard_reset;
+	 wire output_valid;
+
+
 
 	 wire[71:0] full_buff;
-	 assign full_buff = 	24'h02FFFF;
+	 assign full_buff = 	72'b1010000110001110111111100110111110100110001101100001101010101010;
 
 
 	 wire[3:0] byte_counter;
 	 reg[3:0] byte_counter_s;
 
-	 assign byte_counter = byte_counter_s; 
+	 assign byte_counter = byte_counter_s;
 
 	 FPGA_MainControl_Block dut(
 					.sysClk(sysClk),
@@ -32,7 +44,18 @@ module main_control_block_tb();
 					.data_MCB(data),
 					.valid_buffer_for_camwrite_MCB(valid_buffer_for_camwrite),
 					.valid_buffer_for_read_MCB(valid_buffer_for_read),
-					.valid_buffer_for_mem_MCB(valid_buffer_for_mem)
+					.valid_buffer_for_mem_MCB(valid_buffer_for_mem),
+
+					.cam_i2c_byte_MCB(cam_i2c_byte),
+			 	  .compression_MCB(compression),
+			 	  .RGB_MCB(RGB),
+			 	  .cam_id_MCB(cam_id),
+			 	  .timestamp_MCB(timestamp),
+			 	  .trigger_MCB(trigger),
+			 	  .trigger_index_MCB(trigger_index),
+			 	  .soft_reset_MCB(soft_reset),
+			 	  .hard_reset_MCB(hard_reset),
+			 	  .output_valid_MCB(output_valid)
 					);
 
 	//reg initiate;
@@ -45,8 +68,8 @@ module main_control_block_tb();
 		//initiate = 0;
 	 end
 
-		
-		
+
+
 		always begin
 			/*if(~initiate) begin
 				#10
@@ -57,9 +80,9 @@ module main_control_block_tb();
 			end*/
 			#10
 			sysClk = ~sysClk;
-			
 
-			
+
+
 		end
 
 		always@(posedge sysClk) begin
@@ -69,19 +92,19 @@ module main_control_block_tb();
 			rx_valid = 1;
 			//if(initiate) begin
 				case (byte_counter)
-					4'b0000: byte_in <= full_buff[23:16];
-					4'b0001: byte_in <= full_buff[15:8];
-					4'b0010: byte_in <= full_buff[7:0];
-//					4'b0011: byte_in <= full_buff[15:8];
-//					4'b0100: byte_in <= full_buff[7:0];
-//					4'b0101: byte_in <= full_buff[31:24];
-//					4'b0110: byte_in <= full_buff[23:16];
-//					4'b0111: byte_in <= full_buff[15:8];
-//					4'b1000: byte_in <= full_buff[7:0];
+					4'b0000: byte_in <= full_buff[71:64];
+					4'b0001: byte_in <= full_buff[63:56];
+					4'b0010: byte_in <= full_buff[55:48];
+					4'b0011: byte_in <= full_buff[47:40];
+					4'b0100: byte_in <= full_buff[39:32];
+					4'b0101: byte_in <= full_buff[31:24];
+					4'b0110: byte_in <= full_buff[23:16];
+					4'b0111: byte_in <= full_buff[15:8];
+					4'b1000: byte_in <= full_buff[7:0];
 				endcase
 			//end
 
-			if(byte_counter == 4'b0101) begin
+			if(byte_counter == 4'b1001) begin
 				byte_counter_s = 4'b0000;
 				rx_valid = 0;
 				//initiate = 0;

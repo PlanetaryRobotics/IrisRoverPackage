@@ -90,25 +90,29 @@ module cam_i2c_command_map(
 								end
 						end //else if((reg_addr == 8'h05) | (reg_addr == 8'h06))
 						else if(reg_addr == 8'h0B)begin
-							case(byte_counter) begin
-								5'00000: byte_out_r = 8'h0D;
-								5'00001: byte_out_r = 8'h00;
-								5'00010: byte_out_r = {7'b0000000, reg_data[1]};
+							case(byte_counter)
+								5'b00000: byte_out_r = 8'h0D;
+								5'b00001: byte_out_r = 8'h00;
+								5'b00010: byte_out_r = {7'b0000000, reg_data[1]};
 
 								default: byte_out_r = 8'h00;
 							endcase
 
 							cam_i2c_output_valid = 1;
-							if(byte_counter == 5'00010) begin
+							if(byte_counter == 5'b00010) begin
 								all_bytes_out = 1;
 							end
 						end //else if(reg_addr == 8'h0B
 						else begin
-
+							byte_out_r = 8'h00;
+							all_bytes_out = 0;
+							cam_i2c_output_valid = 0;
 						end //else
 					end //if(valid_input)
 					else begin
-							cam_i2c_output_valid = 0;
+						byte_out_r = 8'h00;
+						all_bytes_out = 0;
+						cam_i2c_output_valid = 0;
 					end
 				end
 
@@ -215,7 +219,8 @@ module cam_write_register_table(input           sysClk, //clock
 					assign stopping = stopping_s;
 
 					initial begin
-						 output_valid_r <= 0;
+						 cam_i2c_output_valid_r <= 0;
+						 cam_interface_output_valid_r <= 0;
 						 cam_id_r <= 0;
 						 compression_r <= 0;
 						 RGB_r <= 0;
@@ -231,23 +236,33 @@ module cam_write_register_table(input           sysClk, //clock
 						 stopping_s <= 0;
 					end
 
-					always@(posedge sysClk) begin
-						running_buffer_s <= {running_buffer[1:0], intr_valid_input};
-						if(running_buffer == 2'b01) begin
-							running_s <= 1;
-							byte_counter_r <= 0;
-						end
-					end
+//					always@(posedge sysClk) begin
+//						running_buffer_s <= {running_buffer[1:0], intr_valid_input};
+//						if(running_buffer == 2'b01) begin
+//							running_s <= 1;
+//							stopping_s <= 0;
+//							byte_counter_r <= 0;
+//						end
+//					end
 
 
 					always@(posedge sysClk) begin
+							running_buffer_s <= {running_buffer[1:0], intr_valid_input};
+							if(running_buffer == 2'b01) begin
+								running_s <= 1;
+								stopping_s <= 0;
+								byte_counter_r <= 0;
+							end
+
+
 							if(running_s)begin
 								if(reg_addr == 8'h01) begin
 										trigger_r <= 1;
 										cam_id_r <= reg_data[0];
 										trigger_index_r <= reg_data[16:1];
 										timestamp_r <= reg_data[44:17];
-										output_valid_r <= 1;
+										cam_interface_output_valid_r <= 1;
+										cam_i2c_output_valid_r <= 0;
 										stopping_s <= 1;
 										cam_interface_output_valid_r <= 1;
 								end
@@ -263,10 +278,15 @@ module cam_write_register_table(input           sysClk, //clock
 										compression_r = reg_data[1:0];
 										RGB_r <= reg_data[2];
 										valid_input_for_commandmap_r <= 1;
-										byte_counter_r <= byte_counter_w + 1;
+
+										if(byte_valid_out_from_commandmap)begin
+											cam_i2c_byte_out_r <= byte_out_from_commandmap;
+											byte_counter_r <= byte_counter_w + 5'b00001;
+										end
+
 									end
 								end
-								else if((reg_addr == 8'h05) | (reg_addr = 8'h06))begin
+								else if((reg_addr == 8'h05) | (reg_addr == 8'h06))begin
 									if(all_byte_out_flag) begin
 										stopping_s <= 1;
 										valid_input_for_commandmap_r <= 0;
@@ -276,11 +296,11 @@ module cam_write_register_table(input           sysClk, //clock
 											cam_interface_output_valid_r <= 0;
 											cam_i2c_output_valid_r <= 1;
 											valid_input_for_commandmap_r <= 1;
-											byte_counter_r <= byte_counter_w + 1;
-											if(all_byte_out_flag) begin
-												stopping_s <= 1;
-												valid_input_for_commandmap_r <= 0;
+											if(byte_valid_out_from_commandmap)begin
+												cam_i2c_byte_out_r <= byte_out_from_commandmap;
+												byte_counter_r <= byte_counter_w + 5'b00001;
 											end
+
 										end
 								end
 								else if(reg_addr == 8'h0B) begin
@@ -289,22 +309,27 @@ module cam_write_register_table(input           sysClk, //clock
 										valid_input_for_commandmap_r <= 0;
 									end
 									else begin
-											cam_id_r <= (reg_addr[0]);
-											cam_interface_output_valid_r <= 0;
-											cam_i2c_output_valid_r <= 1;
-											valid_input_for_commandmap_r <= 1;
-											byte_counter_r <= byte_counter_w + 1;
-											if(all_byte_out_flag) begin
-												stopping_s <= 1;
-												valid_input_for_commandmap_r <= 0;
-											end
+										cam_id_r <= (reg_addr[0]);
+										cam_interface_output_valid_r <= 0;
+										cam_i2c_output_valid_r <= 1;
+										valid_input_for_commandmap_r <= 1;
+										if(byte_valid_out_from_commandmap)begin
+											cam_i2c_byte_out_r <= byte_out_from_commandmap;
+											byte_counter_r <= byte_counter_w + 5'b00001;
 										end
+									end
 								end
 								else begin
 
 								end
 
-								
+								if(stopping)begin
+									running_s <= 0;
+									cam_interface_output_valid_r <= 0;
+									cam_i2c_output_valid_r <= 0;
+									valid_input_for_commandmap_r <= 0;
+								end
+
 							end
 					end
 

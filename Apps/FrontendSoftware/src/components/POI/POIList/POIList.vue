@@ -1,67 +1,81 @@
 <template>
   <div class="POIList scrollable">
-    <div class="mapTab">
-      <!-- HEADER --> 
-      <div class="mapTab__header" @click="togglePOIList">
-        <svg width="14" height="7" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg" class="mapTab__icon" :class="{ open : show.POIList }">
-        <path d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5" stroke-linecap="round"/>
-        </svg>
-        <h2 class="text__main--bold mapTab__title">Point of Interests</h2>
-      </div>
-
-      <!-- FILTER -->
-      <div class="POIFilter" v-show = "show.POIList">
-        <div class="POIFilter__FiltersRow">
-          <div class="FilterTag" :class="{'selected': selectedFilter === 'ATTRACTION'}" @click="filterBy('ATTRACTION')" >
-            Attraction
-          </div>
-          <div class="FilterTag" :class="{'selected': selectedFilter === 'OBSTACLE'}" @click="filterBy('OBSTACLE')">
-            Obstacle
-          </div>
-          <div class="FilterTag" :class="{'selected': selectedFilter === 'SHADOW'}" @click="filterBy('SHADOW')">
-            Shadow
-          </div>
-        </div>
-      </div>
-
-      <!-- SEARCH -->
-      <div class="POISearch">
-        <input type="text" 
-                placeholder="Search"
-                v-model="searchQuery" 
-                />
-      </div>
-
-      <!-- ORDER BY -->
-      <div class="POIOrderBy">
-          <select name="POIOrderBy__dropdown" class="POIOrderBy__dropdown" v-model="orderBy"
-          :style="{ background: `url(${arrowSVG}) no-repeat 95% #585858` }">
-              <option value="null" selected>Filter</option>
-              <option value="IMPORTANCE">Importance</option>
-              <option value="TIME ADDED">Time Added</option>
-          </select>
-      </div>
-
-      <!-- LIST --> 
-      <div class="POIList__list scrollable" v-show = "show.POIList" :key="rerenderList">
-        <div class="POIList__item" v-for="(POICard, index) in POIList" :key="index">
-          <POICard :POIData = "POICard.getData()" :searchQuery = "searchQuery"/>
-        </div>
-      </div>
+    <!-- EDIT WINDOW -->
+    <div v-if = "show.editWindow">
+      <POIEdit :POICard = "POICardToEdit.cardObject" />
     </div>
+    
+    <!-- REGULAR VIEW -->
+    <div v-else>
+      <div class="mapTab">
+        <!-- HEADER --> 
+        <div class="mapTab__header" @click="togglePOIList">
+          <svg width="14" height="7" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg" class="mapTab__icon" :class="{ open : show.POIList }">
+          <path d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5" stroke-linecap="round"/>
+          </svg>
+          <h2 class="text__main--bold mapTab__title">Point of Interests</h2>
+        </div>
+
+        <!-- FILTER -->
+        <div class="POIFilter" v-show = "show.POIList">
+          <div class="POIFilter__FiltersRow">
+            <div class="FilterTag" :class="{'selected': selectedFilter === 'ATTRACTION'}" @click="filterBy('ATTRACTION')" >
+              Attraction
+            </div>
+            <div class="FilterTag" :class="{'selected': selectedFilter === 'OBSTACLE'}" @click="filterBy('OBSTACLE')">
+              Obstacle
+            </div>
+            <div class="FilterTag" :class="{'selected': selectedFilter === 'SHADOW'}" @click="filterBy('SHADOW')">
+              Shadow
+            </div>
+          </div>
+        </div>
+
+        <!-- SEARCH -->
+        <div class="POISearch" v-show = "show.POIList">
+          <input type="text" 
+                  placeholder="Search"
+                  v-model="searchQuery" 
+                  />
+        </div>
+
+        <!-- ORDER BY -->
+        <div class="POIOrderBy" v-show = "show.POIList">
+            <select name="POIOrderBy__dropdown" class="POIOrderBy__dropdown" v-model="orderBy"
+            :style="{ background: `url(${arrowSVG}) no-repeat 95% #585858` }">
+                <option value="null" selected>Filter</option>
+                <option value="IMPORTANCE">Importance</option>
+                <option value="TIME ADDED">Time Added</option>
+            </select>
+        </div>
+
+        <!-- LIST --> 
+        <div class="POIList__list scrollable" v-show = "show.POIList" :key="rerenderList">
+          <div class="POIList__item" v-for="(POICard, index) in POIList" :key="index">
+            <POICard :POIData = "POICard.getData()" 
+                    :searchQuery = "searchQuery"
+                    :POICard = "POICard"/>
+          </div>
+        </div> <!-- END MAPTAB -->
+      </div> <!-- END V-ELSE CONTAINER -->
+    </div> <!-- END REGULAR VIEW -->
   </div>
 </template>
 
 <script>
 
 import POICard from "@/components/POI/POIList/POICard.vue";
+import POIEdit from "@/components/POI/POIList/POIEdit.vue";
+
 import POIListDataClass from "@/data_classes/POIList.js";
 import arrowSVG from "@/assets/icons/icon_arrow_white.svg";
+import POIListEventBus from "@/components/POI/POIList/POIListEventBus.js";
 
 export default {
   name: "POIList",
   components: {
-    POICard
+    POICard,
+    POIEdit
   },
   computed: {
     POIList() {
@@ -77,13 +91,40 @@ export default {
     return {
       show: {
         POIList: true,
+        editWindow: false,
       },
       selectedFilter: null,
       orderBy: null,
       searchQuery: null,
       arrowSVG: arrowSVG,
-      rerenderList: 0
+      rerenderList: 0,
+      POICardToEdit: {
+        cardObject: null,
+        JSON: null,
+      }
     }
+  },
+  created() {
+    
+    POIListEventBus.$on('OPEN_EDIT_POI_WINDOW', (card) => {
+      this.POICardToEdit.cardObject = card;
+      this.POICardToEdit.JSON = JSON.stringify(card);
+
+      this.show.editWindow = true;
+    })
+
+    POIListEventBus.$on('CLOSE_EDIT_POI_WINDOW', (card) => {
+      if (JSON.stringify(card) !== this.POICardToEdit.JSON) {
+        card.addToModificationHistory();
+      }
+
+      this.POICardToEdit = {
+        cardObject: null,
+        JSON: null,
+      }
+      this.show.editWindow = false;
+    })
+
   },
   methods: {
     togglePOIList() {

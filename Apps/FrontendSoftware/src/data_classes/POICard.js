@@ -9,17 +9,22 @@ export default class POICard{
     // Default 
     this.data = 
     {
+      number: 0,
       importanceLevel: null,
       category: null,
       thumbnail: null,
       width: null,
       height: null,
+      depth: null,
       sizeUnit: null,
       tagList: [],
       creator: null,
       description: null,
       images: [],
       createTimeObject: null,
+      modificationHistory: [
+        {"user": "Caitlin Coyiuto", "time": POICard.formatTime(new Date(Date.now()))} //TODO: Pull user name from DB
+      ]
     }
     
     this.validationChecks(inputData);
@@ -66,6 +71,12 @@ export default class POICard{
     if (typeof inputData.height !== "number" || inputData.height === "") {
       console.error("Height is not a number or not defined.");
       console.log(inputData.height);
+    }
+
+    // Validation check on depth
+    if (typeof inputData.depth !== "number" || inputData.depth === "") {
+      console.error("Depth is not a number or not defined.");
+      console.log(inputData.depth);
     }
 
     // Validation check on sizeUnit
@@ -127,7 +138,69 @@ export default class POICard{
       this.data.images.push(image);
     }
   }
-  
+
+  addToModificationHistory() {
+    let user = "Caitlin Coyiuto"; // TODO: pull from DB for this
+    let time = POICard.formatTime(new Date(Date.now()));
+
+    this.data.modificationHistory.push({user: user, time: time});
+  }
+
+  set category(newCategory) {
+    if (!Object.keys(POICard.CATEGORY_COLORS).includes(newCategory)) {
+      console.error("New category for POI is not valid.");
+      console.log(newCategory);
+    }
+    this.data.category = newCategory;
+  }
+
+  set number(number) {
+    if (this.isNumber(number)) {
+      this.data.number = number;
+    }
+  }
+
+  set width(width) {
+    if (this.isNumber(width)) {
+      this.data.width = width;
+    }
+  }
+
+  set height(height) {
+    if (this.isNumber(height)) {
+      this.data.height = height;
+    }
+  }
+
+  set depth(depth) {
+    if (this.isNumber(depth)) {
+      this.data.depth = depth;
+    }
+  }
+
+  set description(newDescription) {
+    this.data.description = newDescription;
+  }
+
+  isNumber(value) {
+    if (isNaN(value)) {
+      console.error("Value is not an number");
+      console.log(value);
+      return false;
+    }
+    return true;
+  }
+
+  removeTag(tag) {
+    let tagList = this.data.tagList;
+    this.data.tagList = tagList.filter(item => item !== tag);
+  }
+
+  removeImage(image) {
+    let images = this.data.images;
+    this.data.images = images.filter(item => item !== image);
+  }
+
   static get CATEGORY_COLORS() {
     return {ATTRACTION: "#21DF84", OBSTACLE: "#FF2F46", SHADOW: "#FF2F46"};
   }
@@ -136,4 +209,21 @@ export default class POICard{
     return ["CM"];
   }
 
- } 
+  static formatTime(obj) {
+    let year = obj.getFullYear();
+    let month = obj.getUTCMonth() + 1; 
+    let day = obj.getUTCDate();
+    let hours = obj.getHours();
+    let min = obj.getMinutes();
+
+    function addZero(x) {
+      if (x.toString().length === 1) {
+        return "0" + x;
+      }
+      return x;
+    }
+
+    return addZero(month) + "-" + addZero(day) + "-" + year + " " + addZero(hours) + ":" + addZero(min);
+  }
+
+} 

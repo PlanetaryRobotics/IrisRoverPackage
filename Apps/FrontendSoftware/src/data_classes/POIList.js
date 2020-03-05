@@ -6,11 +6,18 @@ export default class POIList{
   constructor(POICardsArray){
 
     this._list = [];
+    this._numCategories = {ATTRACTION: 0, OBSTACLE: 0, SHADOW: 0};
+
     for (let card of POICardsArray) {
       if (!(card instanceof POICard)) {
         console.error("Card is not of type ImageData.");
         console.log(card);
       } else {
+        let category = card.getData().category;
+        let num = this._numCategories[category] + 1;
+        this._numCategories[category] = num;
+        card.number = num;
+        
         this._list.push(card);
       }
     }

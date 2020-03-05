@@ -164,7 +164,6 @@ module cam_write_register_table(input           sysClk, //clock
 					assign cam_id = cam_id_r;
 					assign compression = compression_r;
 					assign RGB = RGB_r;
-					assign cam_i2c_byte_out = cam_i2c_byte_out_r;
 					assign trigger_index = trigger_index_r;
 					assign trigger = trigger_r;
 					assign timestamp = timestamp_r;
@@ -191,7 +190,7 @@ module cam_write_register_table(input           sysClk, //clock
 													valid_input_for_commandmap,
 													byte_counter_w,
 
-													byte_out_from_commandmap,
+													cam_i2c_byte_out,
 													byte_valid_out_from_commandmap,
 													all_byte_out_flag
 										);
@@ -235,15 +234,6 @@ module cam_write_register_table(input           sysClk, //clock
 						 running_s <= 0;
 						 stopping_s <= 0;
 					end
-
-//					always@(posedge sysClk) begin
-//						running_buffer_s <= {running_buffer[1:0], intr_valid_input};
-//						if(running_buffer == 2'b01) begin
-//							running_s <= 1;
-//							stopping_s <= 0;
-//							byte_counter_r <= 0;
-//						end
-//					end
 
 
 					always@(posedge sysClk) begin

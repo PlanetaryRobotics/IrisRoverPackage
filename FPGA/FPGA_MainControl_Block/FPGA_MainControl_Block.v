@@ -72,21 +72,21 @@ module FPGA_MainControl_Block(input sysClk,
 										);
 
 										cam_write_register_table cwrt_test(
-												  sysClk,
-												  instruction,
-												  data,
-												  valid_buffer_for_camwrite,
-
-												  cam_i2c_byte_MCB,
-												  compression_MCB,
-												  RGB_MCB,
-												  cam_id_MCB,
-												  timestamp_MCB,
-												  trigger_MCB,
-												  trigger_index_MCB,
-												  hard_reset_MCB,
-												  cam_i2c_output_valid_MCB,
-												  cam_interface_output_valid_MCB
+										  .sysClk(sysClk),
+										  .reg_addr(instruction),
+										  .reg_data(data),
+										  .intr_valid_input(valid_buffer_for_camwrite),
+                                .ready_for_next_byte(ready_for_next_byte_MCB),
+										  .cam_i2c_byte_out(cam_i2c_byte_MCB),
+										  .compression(compression_MCB),
+										  .RGB(RGB_MCB),
+										  .cam_id(cam_id_MCB),
+										  .timestamp(timestamp_MCB),
+										  .trigger(trigger_MCB),
+										  .trigger_index(trigger_index_MCB),
+										  .hard_reset(hard_reset_MCB),
+										  .cam_i2c_output_valid(cam_i2c_output_valid_MCB),
+										  .cam_interface_output_valid(cam_interface_output_valid_MCB)
 											);
 
 

@@ -7,7 +7,7 @@
 
         <div class="POICard__headerButtons">
           <!-- EDIT BUTTON -->
-          <svg class = "POICARD__edit" width="13" height="13" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class = "POICARD__edit" @click="openEditWindow(POICard)" width="13" height="13" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M6.84607 0.543934C6.78749 0.485355 6.69251 0.485355 6.63393 0.543934L5.82295 1.35492C5.76437 1.41349 5.76437 1.50847 5.82295 1.56705L6.43727 2.18136C6.69111 2.4352 6.69111 2.84676 6.43727 3.1006L1.60678 7.93109C1.55989 7.97798 1.4963 8.00431 1.43 8.00431H0V6.57431C0 6.50801 0.0263392 6.44442 0.0732233 6.39754L4.39989 2.07087C4.49752 1.97324 4.65581 1.97324 4.75344 2.07087C4.85107 2.1685 4.85107 2.32679 4.75344 2.42442L0.5 6.67787V7.50431H1.32645L6.08371 2.74705C6.14229 2.68847 6.14229 2.59349 6.08371 2.53491L5.4694 1.9206C5.21556 1.66676 5.21556 1.2552 5.4694 1.00136L6.28038 0.190381C6.53422 -0.0634599 6.94578 -0.0634605 7.19962 0.19038L7.81393 0.804695C8.06778 1.05854 8.06777 1.47009 7.81393 1.72393L7.50678 2.03109C7.40915 2.12872 7.25085 2.12872 7.15322 2.03109C7.05559 1.93346 7.05559 1.77517 7.15322 1.67754L7.46038 1.37038C7.51896 1.3118 7.51896 1.21683 7.46038 1.15825L6.84607 0.543934Z" fill="#FCFCFC"/>
           </svg>
           <!-- SHOW MORE BUTTON --> 
@@ -34,7 +34,7 @@
 
         <!--IMAGE AND WIDTH/HEIGHT -->
         <div class="POICard__imageRow">
-          <img :src="getThumbnailURL()">
+          <img :src="POIData.thumbnail.url">
           <div class="POICard__imageDimensions">
             <div class="POICard__imageDimension">
               <div class="text__main--bold">
@@ -58,13 +58,13 @@
           <div class="POICard__updateHistorySmall">
             <div class="POICard__updateHistorySmall--line text__small">
               <div>Created:</div> 
-              <div>Helen T.</div>            <!--TODO: draw from POIData -->
-              <div>{{POIData.thumbnail.time}}</div>
+              <div>{{POIData.modificationHistory[0].user}}</div>
+              <div>{{POIData.modificationHistory[0].time}}</div>
             </div>
-            <div class="POICard__updateHistorySmall--line text__small">
+            <div v-if = "POIData.modificationHistory.length > 1" class="POICard__updateHistorySmall--line text__small">
               <div>Modified:</div>
-              <div>Helen T.</div>            <!--TODO: draw from POIData -->
-              <div>{{POIData.thumbnail.time}}</div> <!--TODO: draw from POIData -->
+              <div>{{POIData.modificationHistory[POIData.modificationHistory.length-1].user}}</div> 
+              <div>{{POIData.modificationHistory[POIData.modificationHistory.length-1].time}}</div>
             </div>
           </div>
           <!-- DESCRIPTION -->
@@ -80,7 +80,7 @@
           </div>
           <div class="POICard__tags">
             <div class="pill" v-for="(image, index) of images" :key="index">
-              {{image.name()}}
+              {{image.timeForTagFormatting}}
             </div>  
           </div>
         </div> <!-- END ADDITIONAL INFO --> 
@@ -90,7 +90,9 @@
 
 <script>
 
+import POICard from "@/data_classes/POICard.js";
 import POIHeader from "@/components/POI/POIHeader.vue";
+import POIListEventBus from "@/components/POI/POIList/POIListEventBus.js";
 
 export default {
   name: "POICard",
@@ -109,7 +111,8 @@ export default {
   },
   props: {
     POIData: Object,
-    searchQuery: String, 
+    searchQuery: String,
+    POICard: POICard, 
   },
   mounted() {
     if (this.searchQuery || this.searchQuery !== "null") {
@@ -124,22 +127,6 @@ export default {
     }
   },
   computed: {
-    viewMoreNumbers: function() {
-      return {
-        tags () {
-          if (this.POIData.tagList.length > 5) {
-            return this.POIData.tagList.length - 5;
-          } 
-          return 0;
-        },
-        images () {
-          if (this.POIData.images.length > 4) {
-            return this.POIData.images.length - 4;
-          } 
-          return 0;
-        }
-      }
-    },
     tagNames: function() {
       let tagList = this.POIData.tagList;
       let nameList = [];
@@ -194,9 +181,9 @@ export default {
       } 
       return 0;
     },
-    getThumbnailURL() {
-      return this.POIData.thumbnail.url;
-    }
+    openEditWindow() {
+      POIListEventBus.$emit('OPEN_EDIT_POI_WINDOW', this.POICard);
+    },
   }
 }
 
@@ -223,14 +210,14 @@ export default {
     flex-grow: 1;
   }
 
-  &__imagesHeader {
+  &__imagesHeader, &__historyHeader {
     padding-top: 1rem;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
   }
 
-  &__imagesViewMore {
+  &__imagesViewMore, &__historyViewMore {
     &:hover {
       color: $color-primary;
       cursor: pointer;
@@ -333,10 +320,11 @@ export default {
 
   &__divider {
     border-bottom: 1px solid #585858;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
   }
 
   &__updateHistorySmall {
+    padding-top: 1rem;
     padding-bottom: 2rem;
 
     > div {

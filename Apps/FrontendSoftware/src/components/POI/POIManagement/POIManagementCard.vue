@@ -17,7 +17,7 @@
       <div class = "images" v-show = "show.images">
         <div class = "images__card" v-for="(image, index) of POIData.images" :key="index">
           <img :src="image.url">
-          {{image.time}}
+          {{image.timeForTagFormatting}}
         </div>
       </div>
     </div> 
@@ -94,8 +94,8 @@ export default {
     align-items: center;
 
     > img {
-      width: 150px;
-      height: 90px;
+      width: 112px;
+      height: 84px;
     }
   }
 }

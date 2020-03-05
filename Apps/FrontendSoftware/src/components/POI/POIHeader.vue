@@ -2,14 +2,14 @@
   <div class = "POIHeaderContainer">
       <div class="POIHeader__importance">
         <div v-for="index in importanceSize" :key="index">
-            <svg width="2" height="16" viewBox="0 0 2 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="1" y1="-4.37114e-08" x2="1" y2="16" :style="importanceColor" stroke-width="2"/>
-            </svg>
+          <svg width="2" height="16" viewBox="0 0 2 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="1" y1="-4.37114e-08" x2="1" y2="16" :style="importanceColor" stroke-width="2"/>
+          </svg>
         </div>
       </div>
 
       <div class="POIHeader__title text__smallCaps--bold" :style="titleColor">
-        {{getTitle() + "8"}}
+        {{getTitle() + POIData.number}}
       </div>
   </div>
 </template>

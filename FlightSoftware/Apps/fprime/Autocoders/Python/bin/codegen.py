@@ -412,6 +412,8 @@ def generate_topology(the_parsed_topology_xml, xml_filename, opt):
                                 if arg_type == "string":
                                     arg_elem.attrib["len"] = arg.get_size()
                             arg_elem.attrib["type"] = type_name
+                            arg_elem.attrib["unit"] = arg.get_unit()
+                            arg_elem.attrib["default_gui_val"] = arg.get_default_gui_val()
                             args_elem.append(arg_elem)
                         command_elem.append(args_elem)
                         command_list.append(command_elem)

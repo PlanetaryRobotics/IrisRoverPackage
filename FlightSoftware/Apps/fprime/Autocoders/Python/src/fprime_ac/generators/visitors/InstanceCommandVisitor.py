@@ -238,7 +238,7 @@ class InstanceCommandVisitor(AbstractVisitor.AbstractVisitor):
                     (type_string,ser_import,dontcare,dontcare2) = DictTypeConverter.DictTypeConverter().convert(arg_obj.get_type(),arg_obj.get_size())
                     if ser_import != None:
                         c.ser_import_list.append(ser_import)
-                    c.arglist.append((arg_obj.get_name(),arg_obj.get_comment(),type_string))
+                    c.arglist.append((arg_obj.get_name(),arg_obj.get_comment(),type_string,arg_obj.get_unit(),arg_obj.get_default_gui_value()))
                 self._writeTmpl(c, self.__fp1[fname], "commandBodyVisit")
                 self.__fp1[fname].close()
                 

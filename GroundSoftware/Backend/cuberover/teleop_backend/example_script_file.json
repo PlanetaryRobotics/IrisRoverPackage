@@ -1,58 +1,68 @@
 [
   {
-    "name": "DriveForwardCommand",
+    "type": "command",
+    "opcode": 205,
     "args": {
-      "Distance": 10,
-      "Images": 2,
-      "Speed": 5
+      "driving": 1,
+      "command": 0,
+      "distance": 10,
+      "speed": 5
     }
   },
   {
-    "name": "Sleep",
+    "type": "sleep",
     "duration": 5
   },
   {
-    "name": "DriveReverseCommand",
+    "type": "command",
+    "opcode": 205,
     "args": {
-      "Distance": 10,
-      "Images": 2,
-      "Speed": 5
+      "driving": 1,
+      "command": 1,
+      "distance": 10,
+      "speed": 5
     }
   },
   {
-    "name": "Sleep",
+    "name": "sleep",
     "duration": 5
   },
   {
-    "name": "DriveLeftCommand",
+    "type": "command",
+    "opcode": 205,
     "args": {
-      "Angle": 10,
-      "Images": 2,
-      "Speed": 5
+      "driving": 1,
+      "command": 3,
+      "distance": 10,
+      "speed": 5
     }
   },
   {
-    "name": "Sleep",
+    "name": "sleep",
     "duration": 5
   },
   {
-    "name": "DriveRightCommand",
+    "type": "command",
+    "opcode": 205,
     "args": {
-      "Angle": 20,
-      "Images": 2,
-      "Speed": 5
+      "driving": 1,
+      "command": 2,
+      "distance": 10,
+      "speed": 5
     }
   },
   {
-    "name": "Sleep",
+    "name": "sleep",
     "duration": 10
   },
   {
-    "name": "DriveLeftCommand",
+    "type": "command",
+    "opcode": 205,
     "args": {
-      "Angle": 10,
-      "Images": 2,
-      "Speed": 5
+      "driving": 1,
+      "command": 3,
+      "distance": 10,
+      "speed": 5
     }
   }
 ]

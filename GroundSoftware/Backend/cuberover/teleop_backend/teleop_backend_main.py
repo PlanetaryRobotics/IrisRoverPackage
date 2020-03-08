@@ -11,63 +11,19 @@ if __TELEOP_BACKEND_DIR not in sys.path:
     sys.path.insert(0, __TELEOP_BACKEND_DIR)
 
 import argparse
-import multiprocessing
-import queue
+import pathlib
 
-from teleop_backend.network import multiprocess_tcp_client
-from teleop_backend.network import message_parsing_state_machine
-from teleop_backend.database import multiprocess_db_handler
-from teleop_backend.database import mongo_db_collection
-
-from teleop_backend.utils import signal_utils
-
+from teleop_backend.utils import fprime_import_utils
 
 USING_IDL = True
-if USING_IDL:
-    from teleop_backend.idl_msgs import msg_utilities
+
+# This is a workaround for differing behavior of the pathlib.Path.resolve() method between Python <3.6 and >=3.6.
+# Calling path.resolve(**__PATH_RESOLVE_KWARGS) gives the behavior of path.resolve() in <3.6 which is equivalent to
+# path.resolve(strict=True) in >=3.6
+if sys.version_info >= (3, 6):
+    __PATH_RESOLVE_KWARGS = {"strict": True}
 else:
-    from teleop_backend.commands import command
-
-def send_messages_and_update_db(application_wide_shutdown_event: multiprocessing.Event,
-                                new_command_output_queue: multiprocessing.Queue,
-                                command_status_update_queue: multiprocessing.Queue,
-                                tcp_client: multiprocess_tcp_client.MultiprocessTcpClient):
-    try:
-        signal_utils.setup_signal_handler_for_process(shutdown_event=application_wide_shutdown_event)
-
-        while not application_wide_shutdown_event.is_set():
-            try:
-                new_cmd = new_command_output_queue.get(block=True, timeout=0.5)
-                lookup_id = new_cmd.lookup_id
-
-                update = None
-                try:
-                    if USING_IDL:
-                        tcp_client.send(new_cmd.serialize(use_big_endian=True))
-                    else:
-                        tcp_client.send(new_cmd.to_encoded_bytes())
-
-                    update = multiprocess_db_handler.StatusUpdate(lookup_id=lookup_id,
-                                                                  new_state=mongo_db_collection.MongoDbState.SUCC_SENT)
-                except Exception as err:
-                    print("[send_messages_and_update_db]: Sending {} failed due to error:"
-                          " {}".format(new_cmd.__class__.__name__, err))
-                    update = multiprocess_db_handler.StatusUpdate(
-                        lookup_id=lookup_id,
-                        new_state=mongo_db_collection.MongoDbState.FAIL,
-                        err_string="Failed to send due to error: {}".format(err))
-                    raise
-                finally:
-                    if update is not None:
-                        print("[send_messages_and_update_db]: Writing status update for lookup id {}:"
-                              " {}".format(update.lookup_id, update.get_update_dict()))
-                        command_status_update_queue.put(update)
-
-            except queue.Empty:
-                pass
-    finally:
-        application_wide_shutdown_event.set()
-        print("[send_messages_and_update_db]: main task exiting")
+    __PATH_RESOLVE_KWARGS = {}
 
 
 def main():
@@ -76,29 +32,91 @@ def main():
                         help="The address to which the client should connect")
     parser.add_argument("-p", "--port", type=int, required=True,
                         help="The port to which the client should connect")
+    parser.add_argument("-g", "--generated_file_directory", type=str, required=True,
+                        help="The directory that contains the generated Python source files for the commands, events, "
+                             "and telemetry channels defined within the F Prime distribution. It is expected that this "
+                             "directory will contain three subdirectories: 'commands', 'channels', and 'events', which "
+                             "contain the command files, telemetry channel files, and event files, respectively.")
+    parser.add_argument("--fprime_gds_python_directory", type=str, required=False, default=None,
+                        help="The root directory of the F Prime GDS Python package. This directory normally lives at "
+                             "'<fprime_root>/Gds/src/fprime_gds'. If this argument is not specified, it is attempted "
+                             "to automatically detect this by finding the root of the git repository that contains this"
+                             " file. If this file is not in the CubeRoverPackage repository, then this is argument must"
+                             " be given for this application to function.")
+    parser.add_argument("--fprime_python_directory", type=str, required=False, default=None,
+                        help="The root directory of the F Prime Fw Python package. This directory normally lives at "
+                             "'<fprime_root>/Fw/Python/src/fprime'. If this argument is not specified, it is attempted "
+                             "to automatically detect this by finding the root of the git repository that contains this"
+                             " file. If this file is not in the CubeRoverPackage repository, then this is argument must"
+                             " be given for this application to function.")
+    parser.add_argument("--response_command_name", type=str, required=False, default="Response",
+                        help="The exact name of the command sent by the rover as a response to all of the commands"
+                             " that it receives. If not specified, \"Response\" is used by default.")
     args = parser.parse_args()
 
-    completed_msg_queue = multiprocessing.Queue()
-    msg_parser = message_parsing_state_machine.MessageParsingStateMachine(input_bytes_will_be_big_endian=True)
-    msg_parser.register_completed_message_queue(completed_message_queue=completed_msg_queue)
+    # Get the fprime and fprime_gds package directories, either from command line arguments or based on the expected
+    # location of the F Prime distribution root directory in the CubeRoverPackage git repo that we expect contains the
+    # entire teleop_backend package.
+    fprime_root_path = None
 
-    app_wide_shutdown_event = multiprocessing.Event()
-    tcp_client = multiprocess_tcp_client.MultiprocessTcpClient(application_wide_shutdown_event=app_wide_shutdown_event)
-    tcp_client.register_data_handler(handler=msg_parser)
-    tcp_client.connect(address=args.address, port=args.port)
+    try:
+        if args.fprime_gds_python_directory is None:
+            fprime_root_path = fprime_import_utils.get_fprime_root_path_from_git_root()
+            fprime_gds_path = fprime_import_utils.get_fprime_gds_python_package_path_from_fprime_root(fprime_root_path)
+        else:
+            fprime_gds_path = pathlib.Path(args.fprime_gds_python_directory).resolve(**__PATH_RESOLVE_KWARGS)
 
-    new_command_output_queue = multiprocessing.Queue()
-    command_status_update_queue = multiprocessing.Queue()
-    db_handler = multiprocess_db_handler.MultiprocessDbHandler(app_wide_shutdown_event,
-                                                               new_command_output_queue,
-                                                               command_status_update_queue)
-    db_handler.start()
+            if not fprime_gds_path.is_dir():
+                raise FileNotFoundError("A file exists at the path ({}) expected to contain the fprime_gds Python "
+                                        "package".format(str(fprime_gds_path)))
+    except Exception as e:
+        print("Failed to find directory of the fprime_gds Python package due to error: {}: {}. Cannot "
+              "continue, as the fprime_gds package needs to be imported for the backend to "
+              "operate.".format(type(e).__name__, e), file=sys.stderr)
+        return -1
 
-    send_messages_and_update_db(app_wide_shutdown_event,
-                                new_command_output_queue,
-                                command_status_update_queue,
-                                tcp_client)
+    try:
+        if args.fprime_python_directory is None:
+            # We don't need to get the F Prime root again if we've already gotten it
+            if fprime_root_path is None:
+                fprime_root_path = fprime_import_utils.get_fprime_root_path_from_git_root()
 
+            fprime_python_path = fprime_import_utils.get_fprime_fw_python_package_path_from_fprime_root(
+                fprime_root_path)
+        else:
+            fprime_python_path = pathlib.Path(args.fprime_python_directory).resolve(**__PATH_RESOLVE_KWARGS)
+
+            if not fprime_python_path.is_dir():
+                raise FileNotFoundError("A file exists at the path ({}) expected to contain the fprime Python package "
+                                        "(from the Fw module)".format(str(fprime_python_path)))
+
+    except Exception as e:
+        print("Failed to find directory of the fprime Python package (from the Fw module) due to error: {}: {}. Cannot "
+              "continue, as the fprime package needs to be imported for the backend to "
+              "operate.".format(type(e).__name__, e), file=sys.stderr)
+        return -1
+
+    # Add fprime and fprime_gds package directories to the path
+    fprime_python_path_str = str(fprime_python_path)
+    fprime_gds_path_str = str(fprime_gds_path)
+
+    if fprime_python_path_str not in sys.path:
+        sys.path.insert(0, fprime_python_path_str)
+
+    if fprime_gds_path_str not in sys.path:
+        sys.path.insert(0, fprime_gds_path_str)
+
+    # Import the stuff from teleop_backend that we need. This happens here instead of at the top of the file because we
+    # need to add fprime to the path first. fprime needs to be in the path because these other teleop_backend files may
+    # import stuff from fprime.
+    from teleop_backend.pipeline import pipeline
+    backend_pipeline = pipeline.Pipeline()
+    backend_pipeline.build_pipeline(server_address=args.address,
+                                            server_port=args.port,
+                                            response_msg_name=args.response_command_name,
+                                            generated_file_directory_path=pathlib.Path(args.generated_file_directory))
+
+    backend_pipeline.spin()
 
 if __name__ == "__main__":
     main()

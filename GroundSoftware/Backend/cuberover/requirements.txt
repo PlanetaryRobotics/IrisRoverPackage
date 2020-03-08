@@ -1,5 +1,5 @@
-### pip requirements for the DB interface. ###
-### Install by calling: `pip3 install -r requirements.txt`
+### pip requirements for the backend. ###
+### Install by calling: `python3 -m pip install --user -r requirements.txt`
 ###
 ### N.B. If using a Mac and having connection authentications issues (such as an
 ### error indicating "[SSL: CERTIFICATE_VERIFY_FAILED]"), this is possibly due
@@ -9,3 +9,4 @@
 ###
 pymongo >= 3.8.0
 dnspython >= 1.16.0
+gitpython

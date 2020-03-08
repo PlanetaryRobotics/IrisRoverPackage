@@ -63,11 +63,15 @@ class CmdPyLoader(python_loader.PythonLoader):
         name_dict = dict()
 
         for cmd_dict in module_dicts:
+            # Ignore any additional fields added to each entry in the arguments list. We want to ignore the custom
+            # fields we added, such as unit and default_gui_val
+            default_fprime_arguments = [arg[:3] for arg in cmd_dict[self.ARGS_FIELD]]
+
             # Create a cmd template object
             cmd_temp = cmd_template.CmdTemplate(cmd_dict[self.OP_CODE_FIELD],
                                                 cmd_dict[self.MNEMONIC_FIELD],
                                                 cmd_dict[self.COMPONENT_FIELD],
-                                                cmd_dict[self.ARGS_FIELD],
+                                                default_fprime_arguments,
                                                 cmd_dict[self.DESC_FIELD])
 
             id_dict[cmd_dict[self.OP_CODE_FIELD]] = cmd_temp

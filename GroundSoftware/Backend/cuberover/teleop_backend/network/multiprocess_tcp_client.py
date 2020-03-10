@@ -3,6 +3,7 @@ import select
 import socket
 
 from teleop_backend.utils import signal_utils
+import warnings
 
 class MultiprocessTcpClient:
     RECV_MAX_SIZE = 4096
@@ -23,7 +24,7 @@ class MultiprocessTcpClient:
                              "is larger than the maximum ({})".format(select_timeout,self.MAX_SELECT_TIMEOUT))
 
         self.__select_timeout = select_timeout
-
+      #patch multiprocessing
     def connect(self, address: str, port: int):
         self.__sock.connect((address, port))
         self.__recv_proc = multiprocessing.Process(target=MultiprocessTcpClient.recv_task,
@@ -38,7 +39,7 @@ class MultiprocessTcpClient:
     def register_data_handler(self, handler):
         self.__data_handlers.append(handler)
 
-    def send(self, data: bytes, flags=0):
+    def send(self, data: bytes, flags=0): # assert_called_once_with
         print("[[MultiprocessTcpClient]: Attempting to send {} bytes of data".format(len(data)))
         result = self.__sock.sendall(data, flags)
         if result is None:
@@ -55,6 +56,20 @@ class MultiprocessTcpClient:
         except multiprocessing.TimeoutError:
             self.__recv_proc.terminate()
 
+    @staticmethod
+    def recv_data_from_socket(socket, data_handlers):
+        chunk = socket.recv(MultiprocessTcpClient.RECV_MAX_SIZE)
+        if len(chunk) == 0:
+            print("[MultiprocessTcpClient]: Peer closed the connection")
+            return False
+        else:
+            print("[MultiprocessTcpClient]: Got {} bytes of data".format(len(chunk)))
+        if(len(data_handlers) == 0):
+            warnings.warn("Empty data_handlers", Warning)
+        for d in data_handlers:
+            d.new_bytes(chunk)
+        return True
+        
     @staticmethod
     def recv_task(app_wide_shutdown_event,
                   this_client_shutdown_event,

@@ -57,7 +57,20 @@ class MultiprocessTcpClient:
             self.__recv_proc.terminate()
 
     @staticmethod
-    def recv_data_from_socket(socket, data_handlers):
+    def recv_data_from_socket(socket: socket.socket, data_handlers: list) -> bool:
+        """Tests are portion of recv_task
+        A type name is valid if it is all ASCII characters and contains only letters, numbers, and underscores.
+        
+        Args:
+            socket: socket to recieve data from
+            data_handers: a list of data handers to parse data from socket
+        
+        Returns:
+            True if data is recieved from the socket
+        
+        Raises:
+            Warning: If data_handlers is empty list
+        """
         chunk = socket.recv(MultiprocessTcpClient.RECV_MAX_SIZE)
         if len(chunk) == 0:
             print("[MultiprocessTcpClient]: Peer closed the connection")

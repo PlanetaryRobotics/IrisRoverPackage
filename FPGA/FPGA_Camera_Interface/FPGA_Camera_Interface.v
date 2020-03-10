@@ -7,7 +7,6 @@ module FPGA_Camera_Interface(input sysClk,
                              input[27:0] timestamp,
                              input       trigger,
                              input[15:0] trigger_index,
-                             input       soft_reset,
                              input       hard_reset,
                              input      MCB_input_valid,
 
@@ -47,10 +46,10 @@ module FPGA_Camera_Interface(input sysClk,
 
                             /*To JPEG Block */
                             output[11:0] image_pixel_data,
-                            output image_metadata_line,
                             output image_data_valid,
                             output image_metadata_valid
                               );
+
 
 
 

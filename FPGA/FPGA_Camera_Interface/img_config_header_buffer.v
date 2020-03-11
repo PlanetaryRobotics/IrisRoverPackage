@@ -6,7 +6,10 @@ module img_metadata_header_buffer(input      sysClk,
 										  input [27:0] timestamp,
 										  input [15:0] trigger_index,
 										  input 			valid_input,
-
+											input[10:0] upper_left_x_val,
+											input[11:0] upper_left_y_val,
+											input[10:0] img_height,
+											input[11:0] img_width,
 										  /*once all the pixels of an image with this metadata goes through to the JPEG block, flush this metadata right after */
 										  input all_pixels_in,
 

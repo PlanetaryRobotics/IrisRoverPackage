@@ -134,17 +134,21 @@ module cam_write_register_table(input           sysClk, //clock
 										  /* cam i2c stuff */
 										  output [7:0]  cam_i2c_byte_out,
 
-										  /* cam interface config stuff */
+										  /* header stuff */
 										  output [1:0]  compression,
 										  output        RGB,
-
-										  /*all cam stuff*/
 										  output        cam_id,
 											output [27:0]  timestamp,
-											output 				trigger,
 											output[15:0] 	trigger_index,
+											output[10:0] upper_x_val,
+											output[11:0] upper_y_val,
+											output[10:0] img_height,
+											output[11:0] img_width,
 
+											/* cam stuff*/
+											output 				trigger,
 											output hard_reset,
+
 										  output cam_i2c_output_valid,
 											output cam_interface_output_valid
 										  );
@@ -157,6 +161,10 @@ module cam_write_register_table(input           sysClk, //clock
 					reg [7:0] cam_i2c_byte_out_r;
 					reg trigger_r;
 					reg[15:0] trigger_index_r;
+					reg[10:0] upper_x_val_s,
+					reg[11:0] upper_y_val_s,
+					reg[10:0] img_height_s,
+					reg[11:0] img_width_s,
 					reg[27:0] timestamp_r;
 
 					assign cam_i2c_output_valid = cam_i2c_output_valid_r;
@@ -167,6 +175,10 @@ module cam_write_register_table(input           sysClk, //clock
 					assign trigger_index = trigger_index_r;
 					assign trigger = trigger_r;
 					assign timestamp = timestamp_r;
+					assign upper_x_val = upper_x_val_s;
+					assign upper_y_val = upper_y_val_s;
+					assign img_height = img_height_s;
+					assign img_width = img_width_s;
 
 
 					wire [4:0] byte_counter_w;
@@ -283,8 +295,13 @@ module cam_write_register_table(input           sysClk, //clock
 									end
 									else begin
 											cam_id_r <= (reg_addr == 8'h06);
-											cam_interface_output_valid_r <= 0;
+											cam_interface_output_valid_r <= 1;
 											cam_i2c_output_valid_r <= 1;
+											upper_x_val_s <= reg_data[10:0];
+											upper_y_val_s <= reg_data[22:11];
+											img_height_s <= reg_data[33:23];
+											img_width_s <= reg_data[45:34];
+
 											valid_input_for_commandmap_r <= 1;
 											if(byte_valid_out_from_commandmap)begin
 												cam_i2c_byte_out_r <= byte_out_from_commandmap;

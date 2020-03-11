@@ -161,10 +161,10 @@ module cam_write_register_table(input           sysClk, //clock
 					reg [7:0] cam_i2c_byte_out_r;
 					reg trigger_r;
 					reg[15:0] trigger_index_r;
-					reg[10:0] upper_x_val_s,
-					reg[11:0] upper_y_val_s,
-					reg[10:0] img_height_s,
-					reg[11:0] img_width_s,
+					reg[10:0] upper_x_val_s;
+					reg[11:0] upper_y_val_s;
+					reg[10:0] img_height_s;
+					reg[11:0] img_width_s;
 					reg[27:0] timestamp_r;
 
 					assign cam_i2c_output_valid = cam_i2c_output_valid_r;

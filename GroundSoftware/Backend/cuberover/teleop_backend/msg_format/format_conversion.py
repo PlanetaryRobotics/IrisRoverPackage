@@ -29,8 +29,8 @@ def convert_event_from_data_type_to_database(data_type_obj: event_data.EventData
     if event_args is None:
         arg_str = "EMPTY EVENT OBJ"
     else:
-        # The arguments are currently serializable objects which cannot be used to fill in a format string. Convert
-        # them to values that can be
+        # The arguments are currently serializable objects which cannot be used to fill in a format string. This
+        # converts them to values that can be.
         arg_val_list = [arg_obj.val for arg_obj in event_args]
         arg_str = event_temp.get_format_str() % tuple(arg_val_list)
 
@@ -91,7 +91,9 @@ def convert_command_from_data_type_to_database(data_type_obj: cmd_data.CmdData) 
     """
     cmd_temp = data_type_obj.get_template()  # type: cmd_template.CmdTemplate
 
-    # A list of tuples of (name, description, arg_obj). We don't want to modify arg
+    # temp_args is a list of tuples of (name, description, arg_obj). We don't want to modify any of the arg_obj's
+    # because they are shared references with the template - if we change them, they will be changed in the one and
+    # template object for this command type.
     temp_args = cmd_temp.get_args()
 
     args_dict = {}
@@ -188,7 +190,7 @@ def convert_command_from_database_to_data_type(database_obj: dict, cmd_opcode_di
             print(error_msg, file=sys.stderr)
             raise DatabaseObjectFormatError(error_msg)
 
-        # Their CmdData expects all the args to be strings and converts them to the appropriate native type itself
+        # Their CmdData expects all the args to be strings and converts them to the appropriate native type itself.
         args_vals_from_db.append(str(db_args_dict[expected_arg_name]))
 
     return cmd_data.CmdData(cmd_args=args_vals_from_db, cmd_temp=the_cmd_template)

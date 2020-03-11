@@ -1,8 +1,8 @@
-###Notes
+### Notes
 - The ground backend can only be run on Linux.
 - The teleoperation backend requires Python 3.5 or newer in order to run.
 - In these instructions, the root of the CubeRoverPackage repository will be referred to as `<ROOT>`, `<ROOT>/GroundSoftware/Backend` will be referred to as `<BACKEND_ROOT>`, and `<ROOT>/FlightSoftware/Apps/fprime` will be referred to as `<FPRIME_ROOT>`
-###Set-up
+### Set-up
 
 
 1. Change directory to `<BACKEND_ROOT>`
@@ -41,7 +41,7 @@
         14. `make TIR4`
         15. Note that it is OK and currently expected for the final `make` command to end in an error. What's important is to verify that inside of the current directory (which should be `CubeRover`), there should now be a directory named `py_dict`, and inside of that directory there should be three more directories: `channels`, `commands`, and `events`. Finally, the `py_dict/commands` directory should contain at least `Navigation.py` and `Response.py`.
 
-###Back-end verification
+### Back-end verification
 Verifying the back-end requires three terminals. In all three terminals, the current working directory should be `<BACKEND_ROOT>`.
 1. In the first terminal, start the teleop_fake_server:
     ```
@@ -64,7 +64,7 @@ Note that the `python3` command might not exist on your machine, particularly if
 
 ### Data Flow Diagram
 ![](./teleop_backend_data_flow.svg)
-#####Some notes on the data flow diagram:
+##### Some notes on the data flow diagram:
 - The overall pipeline is constructed in the file `<BACKEND_ROOT>/cuberover/teleop_backend/pipeline/pipeline.py`.
 - In the code, the queues in the diagram go by the following names:
     - The top left queue in the diagram, which is fed by the "DbHandler" and consumed by the "Command From Database Sender", goes by "new command output queue"

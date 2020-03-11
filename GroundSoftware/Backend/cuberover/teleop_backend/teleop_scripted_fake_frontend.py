@@ -26,26 +26,52 @@ SLEEP_DURATION_KEY = "duration"
 COMMAND_ARGS_KEY = "args"
 
 
-def path_resolve_strict(path: pathlib.Path) -> pathlib.Path:
-    if sys.version_info >= (3, 6):
-        resolved_path = pathlib.Path(path).resolve(strict=True)
-    else:
-        resolved_path = pathlib.Path(path).resolve()
-    return resolved_path
+# This is a workaround for differing behavior of the pathlib.Path.resolve() method between Python <3.6 and >=3.6.
+# Calling path.resolve(**__PATH_RESOLVE_KWARGS) gives the behavior of path.resolve() in <3.6 which is equivalent to
+# path.resolve(strict=True) in >=3.6
+if sys.version_info >= (3, 6):
+    __PATH_RESOLVE_KWARGS = {"strict": True}
+else:
+    __PATH_RESOLVE_KWARGS = {}
 
 
 def get_path(path_string: str, *, require_exists: bool = False) -> pathlib.Path:
+    """Gets the absolute and expanded path from the given string, possibly checking if something exists at that path.
+    
+    This expands the user directory ("~") as well as environment variables in the path. 
+    
+    Args:
+        path_string: The string path which may have unexpanded user directory or environment variables in it.
+        require_exists: If true, this function will ensure that something exists at the resolved path - if not, an error
+                        will be raised.
+
+    Returns:
+        The expanded path.
+        
+    Raises:
+       FileNotFoundError: If require_exists is True and nothing exists at the expanded path. 
+    """
     expanded_path_str = os.path.abspath(os.path.expanduser(os.path.expandvars(path_string)))
 
     path = pathlib.Path(expanded_path_str)
 
     if require_exists:
-        path = path_resolve_strict(pathlib.Path(path))
+        path = pathlib.Path(path).resolve(**__PATH_RESOLVE_KWARGS)
 
     return path
 
 
 def main():
+    """Implements a scripted fake "frontend", placing messages into the database according to a script file.
+    
+    The path of the command sequence json file. This json file is expected to contain an array of objects, where each 
+    object specifies either a command or a sleep. For a command, the object must have a "type" key with the string value
+    "command", an "opcode" key with an integer value, and an "args" key with a object value. The "args" value should 
+    contain the argument names (as the keys) and argument values (as the values) of all arguments for that command. The 
+    name of the command and name of the arguments much exactly match (including capitalization) the corresponding names
+    in the IDL message definition. For a sleep, the object must have a "type" key with the value "sleep", and a 
+    "duration" key with a floating point or integer number value. The value is the sleep duration in seconds.
+    """
     parser = argparse.ArgumentParser(description="Reads a sequence of commands and sleeps, encoded in json, "
                                                  "from a file, then push the commands to the database")
     parser.add_argument("command_file", type=str,

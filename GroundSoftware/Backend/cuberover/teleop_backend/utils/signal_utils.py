@@ -14,7 +14,7 @@ class SignalObject:
     but no exception will be immediately thrown. However, when the internal counter becomes greater than or equal to
     MAX_TERMINATE_CALLED, then a KeyboardInterrupt is raised.
 
-    The above behavior means that we can signal a gracious shutdown when interrupted once, but if the user Ctrl-C's
+    The above behavior means that we can signal a graceful shutdown when interrupted once, but if the user Ctrl-C's
     multiple times then we'll except out by raising the KeyboardInterrupt.
 
     Attributes:

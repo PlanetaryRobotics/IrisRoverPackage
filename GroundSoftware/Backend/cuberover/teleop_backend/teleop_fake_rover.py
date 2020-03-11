@@ -26,6 +26,13 @@ else:
 
 
 def main():
+    """A fake "rover" that acts as a TCP server for the backend to connect to and responds to commands.
+
+    Specifically, this fake "rover" will send a Response message indicating success for every command it receives from
+    the backend. The data flow within this fake rover work similar to the backend itself but a bit simpler and in
+    reverse, as we receive an F Prime encoded message, convert it to database-format for easy printing and parsing,
+    then create a Response message, serialize it, and send it back to the backend.
+    """
     parser = argparse.ArgumentParser(description="Acts as a fake receiver and prints the commands it receives")
     parser.add_argument("-a", "--address", type=str, required=True,
                         help="The address to which the client should connect")
@@ -105,14 +112,14 @@ def main():
     if fprime_gds_path_str not in sys.path:
         sys.path.insert(0, fprime_gds_path_str)
 
-    from teleop_backend import teleop_fake_server_pipeline
-    server_pipeline = teleop_fake_server_pipeline.FakeServerPipeline()
-    server_pipeline.build_pipeline(address=args.address,
-                                   port=args.port,
-                                   response_msg_name=args.response_command_name,
-                                   generated_file_directory_path=pathlib.Path(args.generated_file_directory))
+    from teleop_backend import teleop_fake_rover_pipeline
+    rover_pipeline = teleop_fake_rover_pipeline.FakeRoverPipeline()
+    rover_pipeline.build_pipeline(address=args.address,
+                                  port=args.port,
+                                  response_msg_name=args.response_command_name,
+                                  generated_file_directory_path=pathlib.Path(args.generated_file_directory))
 
-    server_pipeline.spin()
+    rover_pipeline.spin()
 
 
 if __name__ == "__main__":

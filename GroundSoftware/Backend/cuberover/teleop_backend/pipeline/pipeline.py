@@ -16,6 +16,10 @@ from fprime_gds.common.decoders import ch_decoder
 from fprime_gds.common.decoders import event_decoder
 from fprime_gds.common.encoders import cmd_encoder
 
+from fprime_gds.common.templates import cmd_template
+from fprime_gds.common.templates import event_template
+from fprime_gds.common.templates import ch_template
+
 from fprime_gds.common.utils import data_desc_type
 
 # teleop_backend imports
@@ -28,6 +32,16 @@ from teleop_backend.network import message_parsing_state_machine
 from teleop_backend.database import multiprocess_db_handler
 from teleop_backend.database import mongo_db_collection
 from teleop_backend.utils import signal_utils
+
+_AllMessageDictionaries = typing.NamedTuple('_MessageDictionaries',
+                                            [
+                                                ('command_id_dict', typing.Dict[int, cmd_template.CmdTemplate]),
+                                                ('command_name_dict', typing.Dict[str, cmd_template.CmdTemplate]),
+                                                ('event_id_dict', typing.Dict[int, event_template.EventTemplate]),
+                                                ('event_name_dict', typing.Dict[str, event_template.EventTemplate]),
+                                                ('telemetry_id_dict', typing.Dict[int, ch_template.ChTemplate]),
+                                                ('telemetry_name_dict', typing.Dict[str, ch_template.ChTemplate])
+                                            ])
 
 
 class Pipeline:
@@ -61,7 +75,7 @@ class Pipeline:
         __tcp_client: The TCP client, which contains a process that receives a stream of data from "Houston" and feeds
                       the message parsing state machine. This object additionally provides a function to send data to
                       "Houston", and this function is used by the "command from database sender" process.
-        __db_handler: The database handler process.
+        __db_handler_process: The database handler process.
         __command_from_database_sender_process: The "command from database sender" process, which consumes data objects
                                                 from the __new_command_output_queue, serializes them, then sends them
                                                 to "Houston". This process will also put a command status update into
@@ -85,7 +99,7 @@ class Pipeline:
 
         # Our subprocesses
         self.__tcp_client = None
-        self.__db_handler = None
+        self.__db_handler_process = None
         self.__command_from_database_sender_process = None
         self.__message_parser_pump_process = None
 
@@ -108,8 +122,44 @@ class Pipeline:
 
         Returns:
             None
-        """
 
+        Raises:
+            ValueError: If the given response message name is not in the dictionary of command names.
+        """
+        # Get the dictionaries from opcodes to message templates and the ones from names to message templates for all
+        # three types of message. This is done by loading the generated F Prime Python dictionary files.
+        all_msg_dicts = self.__get_message_dictionaries(generated_file_directory_path)
+
+        # Get the opcode corresponding to the given Response name
+        if response_msg_name not in all_msg_dicts.command_name_dict:
+            raise ValueError("Response message name ({}) is not in dictionary of command names (dictionary keys: "
+                             "{})".format(response_msg_name, list(all_msg_dicts.command_name_dict.keys())))
+
+        response_opcode = all_msg_dicts.command_name_dict[response_msg_name].get_op_code()
+
+        # Create all of the multiprocessing.Queue instance variables
+        self.__create_queues()
+
+        # Create the dictionary of decoders needed by the Message Parser Pump process
+        decoder_dict = self.__create_decoder_dictionary(all_msg_dicts.command_id_dict,
+                                                        all_msg_dicts.event_id_dict,
+                                                        all_msg_dicts.telemetry_id_dict)
+
+        # Create then start all of our processes
+        self.__create_all_processes(decoder_dict, all_msg_dicts.command_id_dict, response_opcode)
+        self.__start_all_processes(server_address, server_port)
+
+    def __get_message_dictionaries(self, generated_file_directory_path: pathlib.Path) -> _AllMessageDictionaries:
+        """Loads all message types from the F Prime Python dictionary files and stores them in maps by opcode and name.
+
+        Args:
+            generated_file_directory_path: The path of the root directory containing generated python dictionary files.
+                                           This directory should contain directories called "channels", "commands", and
+                                           "events".
+
+        Returns:
+            An _AllMessageDictionaries namedtuple that contains all of the message dictionaries.
+        """
         generated_events_path = generated_file_directory_path.joinpath("events")
         generated_telemetry_path = generated_file_directory_path.joinpath("channels")
         generated_commands_path = generated_file_directory_path.joinpath("commands")
@@ -121,23 +171,24 @@ class Pipeline:
         command_loader = cmd_py_loader.CmdPyLoader()
         command_id_dict, command_name_dict = command_loader.construct_dicts(str(generated_commands_path))
 
-        if response_msg_name not in command_name_dict:
-             raise ValueError("Response message name ({}) is not in dictionary of command names (dictionary keys: "
-                              "{})".format(response_msg_name, list(command_name_dict.keys())))
-
-        response_opcode = command_name_dict[response_msg_name].get_op_code()
-
         telemetry_loader = ch_py_loader.ChPyLoader()
         telemetry_id_dict, telemetry_name_dict = \
             telemetry_loader.construct_dicts(str(generated_telemetry_path))
 
+        return _AllMessageDictionaries(command_id_dict=command_id_dict,
+                                       command_name_dict=command_name_dict,
+                                       event_id_dict=event_id_dict,
+                                       event_name_dict=event_name_dict,
+                                       telemetry_id_dict=telemetry_id_dict,
+                                       telemetry_name_dict=telemetry_name_dict)
+
+    def __create_queues(self) -> None:
+        """Create all of the queue instance variables that are part of the pipeline."""
         # This is the queue of message received from the rover, as tuples of
         # (message type (DataDescType), message header (bytes), and message contents (bytes))
         # The message header/contents is such that the contents are ready for input to the event, command, or telemetry
         # decoders.
         self.__received_serialized_msg_queue = multiprocessing.Queue()
-        msg_parser = message_parsing_state_machine.MessageParsingStateMachine()
-        msg_parser.register_completed_message_queue(completed_message_queue=self.__received_serialized_msg_queue)
 
         # This is the queue of messages received from the rover, as database-formatted objects. This is the input to the
         # multiprocess_db_handler, and is the output of message consumers. The message consumers are given the
@@ -147,6 +198,28 @@ class Pipeline:
         # is fed directly with data received from the network.
         self.__received_db_object_queue = multiprocessing.Queue()
 
+        self.__new_command_output_queue = multiprocessing.Queue()
+        self.__command_status_update_queue = multiprocessing.Queue()
+
+    def __create_decoder_dictionary(self,
+                                    command_id_dict: typing.Dict[int, cmd_template.CmdTemplate],
+                                    event_id_dict: typing.Dict[int, event_template.EventTemplate],
+                                    telemetry_id_dict: typing.Dict[int, ch_template.ChTemplate]) \
+            -> typing.Dict[data_desc_type.DataDescType, decoder.Decoder]:
+        """Creates a dictionary of decoders to use for decoding different message types.
+
+        This dictionary is used by the message parsing state machine pump to select the correct decoder to which
+        serialized message contents should be passed.
+
+        Args:
+            command_id_dict: A map from command opcodes to the templates of those commands.
+            event_id_dict: A map from event opcodes to the templates of those events.
+            telemetry_id_dict: A map from telemetry opcodes to the templates of those telemetry messages.
+
+        Returns:
+             A map from the data description type (DataDescType) of the different kinds of messages to the decoder
+             object that is appropriate for decoding that kind of message.
+        """
         the_event_consumer = event_consumer.EventConsumer(queue=self.__received_db_object_queue)
         the_command_consumer = command_consumer.CommandConsumer(queue=self.__received_db_object_queue)
         the_telemetry_consumer = telemetry_consumer.TelemetryConsumer(queue=self.__received_db_object_queue)
@@ -163,18 +236,38 @@ class Pipeline:
         the_command_decoder.register(consumer_obj=the_command_consumer)
         the_telemetry_decoder.register(consumer_obj=the_telemetry_consumer)
 
-        # This is a map from the data description type (DataDescType) of the different kinds of messages to the
-        # decoder object that is appropriate for decoding that kind of message. This dictionary is used by the message
-        # parsing state machine pump to select the correct decoder to which serialized message contents should be
-        # passed.
         decoder_dict = {
-            # This isn't an error; annoyingly the DataDescType for events is called "LOG"
+            # This isn't an error; the DataDescType for events is called "LOG"
             data_desc_type.DataDescType["FW_PACKET_LOG"]: the_event_decoder,
             data_desc_type.DataDescType["FW_PACKET_COMMAND"]: the_command_decoder,
             data_desc_type.DataDescType["FW_PACKET_TELEM"]: the_telemetry_decoder
         }
 
+        return decoder_dict
+
+    def __create_all_processes(self,
+                               decoder_dict: typing.Dict[data_desc_type.DataDescType, decoder.Decoder],
+                               command_id_dict: typing.Dict[int, cmd_template.CmdTemplate],
+                               response_opcode: int) -> None:
+        """Instantiates all of the multiprocessing process object instance variables, but does not start them.
+
+        Args:
+            decoder_dict: A map from the data description type (DataDescType) of the different kinds of messages to
+                          the decoder object that is appropriate for decoding that kind of message.
+            command_id_dict: A map from command opcodes to the corresponding command templates.
+            response_opcode: The opcode of the response command.
+
+        Returns:
+            None
+        """
+        # Create the shutdown event for all of the processes we're about to create
         self.__application_wide_shutdown_event = multiprocessing.Event()
+
+        msg_parser = message_parsing_state_machine.MessageParsingStateMachine()
+        msg_parser.register_completed_message_queue(completed_message_queue=self.__received_serialized_msg_queue)
+        self.__tcp_client = multiprocess_tcp_client.MultiprocessTcpClient(
+            application_wide_shutdown_event=self.__application_wide_shutdown_event)
+        self.__tcp_client.register_data_handler(handler=msg_parser)
 
         self.__message_parser_pump_process = \
             MultiprocessingRunner(task_name="message_parsing_state_machine_pump",
@@ -182,22 +275,14 @@ class Pipeline:
                                   function_to_repeatedly_run=Pipeline.transfer_msg_from_parser_queue_to_decoder,
                                   function_args=[self.__received_serialized_msg_queue, decoder_dict])
 
-        tcp_client = multiprocess_tcp_client.MultiprocessTcpClient(
-            application_wide_shutdown_event=self.__application_wide_shutdown_event)
-        tcp_client.register_data_handler(handler=msg_parser)
-
-        self.__new_command_output_queue = multiprocessing.Queue()
-        self.__command_status_update_queue = multiprocessing.Queue()
-
-        db_handler_process = multiprocess_db_handler.DbHandlerProcess(command_id_dict,
-                                                                      response_opcode,
-                                                                      self.__application_wide_shutdown_event,
-                                                                      self.__new_command_output_queue,
-                                                                      self.__received_db_object_queue,
-                                                                      self.__command_status_update_queue)
+        self.__db_handler_process = multiprocess_db_handler.DbHandlerProcess(command_id_dict,
+                                                                             response_opcode,
+                                                                             self.__application_wide_shutdown_event,
+                                                                             self.__new_command_output_queue,
+                                                                             self.__received_db_object_queue,
+                                                                             self.__command_status_update_queue)
 
         the_cmd_encoder = cmd_encoder.CmdEncoder()
-
         self.__command_from_database_sender_process = \
             MultiprocessingRunner(task_name="command_from_database_sender",
                                   application_wide_shutdown_event=self.__application_wide_shutdown_event,
@@ -205,23 +290,33 @@ class Pipeline:
                                   function_args=[self.__new_command_output_queue,
                                                  self.__command_status_update_queue,
                                                  the_cmd_encoder,
-                                                 tcp_client])
+                                                 self.__tcp_client])
 
+    def __start_all_processes(self, server_address: str, server_port: int) -> None:
+        """Starts all of the instance processes, retrying TCP connection until it is successful.
+
+        Args:
+            server_address: The IP address of the "Houston" server.
+            server_port: The port number of the "Houston" server.
+
+        Returns:
+            None
+        """
         try:
             while not self.__application_wide_shutdown_event.is_set():
                 try:
-                    tcp_client.connect(address=server_address, port=server_port)
+                    self.__tcp_client.connect(address=server_address, port=server_port)
                     break
                 except Exception as e:
                     print("Failed to connect to server due to {}, "
                           "will wait 5 seconds then retry connection".format(e), file=sys.stderr)
                     time.sleep(5)
         except KeyboardInterrupt:
-            print("Building of pipeline exiting because of Ctrl-C")
+            print("Building of pipeline exiting because of Ctrl-C while trying to connect to TCP server")
             self.__application_wide_shutdown_event.set()
             return
 
-        db_handler_process.start()
+        self.__db_handler_process.start()
         self.__command_from_database_sender_process.start()
         self.__message_parser_pump_process.start()
 

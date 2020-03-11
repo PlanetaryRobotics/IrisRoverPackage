@@ -116,7 +116,7 @@ class MessageParsingStateMachine:
         | and argument data              |  | and argument data              |  | and argument data              |
         | (4 bytes)                      |  | (4 bytes)                      |  | (4 bytes)                      |
         +--------------------------------+  +--------------------------------+  +--------------------------------+
-        | Descriptor type = 0            |  | Descriptor type = 0            |  | Descriptor type = 0            |
+        | Descriptor type = 0            |  | Descriptor type = 1            |  | Descriptor type = 2            |
         | (4 bytes)                      |  | (4 bytes)                      |  | (4 bytes)                      |
         +--------------------------------+  +--------------------------------+  +--------------------------------+
         | Data                           |  | Data                           |  | Data                           |
@@ -414,7 +414,7 @@ class MessageParsingStateMachine:
         """Performs the actions of the WAITING_FOR_TYPE_DESCRIPTOR state.
 
         If the unknown data buffer has at least 4 bytes, parse the first 4 bytes as a big-endian integer. If the integer
-        if not one of the three expected message types, then restart by transitioning back to WAITING_FOR_HEADER_A5A5.
+        is not one of the three expected message types, then restart by transitioning back to WAITING_FOR_HEADER_A5A5.
         Otherwise, store the message type, subtract 4 from the data size, and transition to WAITING_FOR_DATA.
 
         Returns:

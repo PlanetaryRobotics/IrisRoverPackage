@@ -18,7 +18,7 @@ module img_metadata_header_buffer(input      sysClk,
 							reg  			dozen_out_valid_s;
 
 							assign dozen_out = dozen_out_s;
-							assign dozen_out_valid_s = dozen_out_valid;
+							assign dozen_out_valid= dozen_out_valid_s;
 
 							reg[47:0] full_metadata_buffer_r;
 							wire[47:0] full_metadata_buffer;

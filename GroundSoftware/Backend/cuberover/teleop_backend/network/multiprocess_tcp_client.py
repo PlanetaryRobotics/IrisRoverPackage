@@ -4,6 +4,7 @@ import socket
 
 from teleop_backend.utils import signal_utils
 import warnings
+from test.network.customWarnings import *
 
 class MultiprocessTcpClient:
     RECV_MAX_SIZE = 4096
@@ -58,19 +59,23 @@ class MultiprocessTcpClient:
 
     @staticmethod
     def recv_data_from_socket(socket: socket.socket, data_handlers: list) -> bool:
-        """Tests are portion of recv_task
-        A type name is valid if it is all ASCII characters and contains only letters, numbers, and underscores.
-        
+        """Tests a portion of recv_task
+
+        Tests code for when ready[0] is True
+
         Args:
             socket: socket to recieve data from
-            data_handers: a list of data handers to parse data from socket
-        
+            data_handlers: a list of data handers to parse data from socket
+
         Returns:
-            True if data is recieved from the socket
-        
+            True if data recieved from socket
+
+        Warns:
+            UserWarning: If data_handlers is empty
+
         Raises:
-            Warning: If data_handlers is empty list
-        """
+            IOError: socket.recv
+        """ 
         chunk = socket.recv(MultiprocessTcpClient.RECV_MAX_SIZE)
         if len(chunk) == 0:
             print("[MultiprocessTcpClient]: Peer closed the connection")
@@ -78,7 +83,7 @@ class MultiprocessTcpClient:
         else:
             print("[MultiprocessTcpClient]: Got {} bytes of data".format(len(chunk)))
         if(len(data_handlers) == 0):
-            warnings.warn("Empty data_handlers", Warning)
+            warnings.warn("Empty data_handlers", EmptyDataHandlerWarning)
         for d in data_handlers:
             d.new_bytes(chunk)
         return True

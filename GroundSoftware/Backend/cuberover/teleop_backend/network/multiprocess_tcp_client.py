@@ -4,7 +4,10 @@ import socket
 
 from teleop_backend.utils import signal_utils
 import warnings
-from test.network.customWarnings import *
+
+class EmptyDataHandlerWarning(UserWarning):
+    """The warning used when data is received on the socket but there are no registered data handlers."""
+    pass
 
 class MultiprocessTcpClient:
     RECV_MAX_SIZE = 4096
@@ -59,22 +62,22 @@ class MultiprocessTcpClient:
 
     @staticmethod
     def recv_data_from_socket(socket: socket.socket, data_handlers: list) -> bool:
-        """Tests a portion of recv_task
+        """Receives data from the server with the given socket, then gives all data handlers a copy of that data.
 
-        Tests code for when ready[0] is True
+        If there is no data available to be received on the given socket, this function will block until data is received.
 
         Args:
-            socket: socket to recieve data from
-            data_handlers: a list of data handers to parse data from socket
+            socket: The socket with which this function will receive data.
+            data_handlers: A list of data handlers, each of which will be given a copy of the data received by the socket.
 
         Returns:
-            True if data recieved from socket
+            True if data was received, or False if the server closed the connection.
 
         Warns:
-            UserWarning: If data_handlers is empty
+            EmptyDataHandlerWarning: If data is received on the socket when the data_handlers argument is empty.
 
         Raises:
-            IOError: socket.recv
+            IOError: If any errors occur during the recv() system call.
         """ 
         chunk = socket.recv(MultiprocessTcpClient.RECV_MAX_SIZE)
         if len(chunk) == 0:
@@ -83,7 +86,7 @@ class MultiprocessTcpClient:
         else:
             print("[MultiprocessTcpClient]: Got {} bytes of data".format(len(chunk)))
         if(len(data_handlers) == 0):
-            warnings.warn("Empty data_handlers", EmptyDataHandlerWarning)
+            warnings.warn("The TCP client received data, but no data handlers have been registered to be given that data. The received data will be discarded.", EmptyDataHandlerWarning)
         for d in data_handlers:
             d.new_bytes(chunk)
         return True

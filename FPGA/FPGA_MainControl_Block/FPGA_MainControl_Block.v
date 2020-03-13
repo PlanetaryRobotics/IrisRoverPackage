@@ -4,13 +4,13 @@ module FPGA_MainControl_Block(input sysClk,
 														input       spi_input_valid, //from spi block
 														input [3:0] spi_byte_num,
 														/*for status_reg */
-														input proc_img_1_flag, //from cam interface block
+												/*		input proc_img_1_flag, //from cam interface block
 														input proc_img_2_flag, //from cam interface block
 														input erase_img_flag, //from mem interface block
 														input booting_cam_flag, //from cam interface block
-
+												*/
 														/*for error_table */
-														input [15:0] index_of_error, //from mem interface block
+												/*		input [15:0] index_of_error, //from mem interface block
 														input 			 camid_of_error, //from cam interface block
 														input 		   cam_timeout_error_flag, //from cam interface block
 														input        cap_failure_flag, //from cam interface block
@@ -18,26 +18,26 @@ module FPGA_MainControl_Block(input sysClk,
 														input        write_fail_flag, //from cam interface block
 														input        read_fail_flag, //from cam interface block
 														input        erase_fail_flag, //from mem interface block
-
+												*/
 														/*for mem_register_table */
-														input [23:0] jpg_size_MCB, //from mem interface block
+												/*		input [23:0] jpg_size_MCB, //from mem interface block
 														input        jpg_size_valid_MCB, //from mem interface block
 														input        done_reading_img_flag_MCB, //from mem interface block
 														input        done_erasing_img_flag_MCB, //from mem interface block
-
+												*/
 														/*for num_img_stored_reg */
-														input nav_img_added_flag_MCB, // from mem interface block
+												/*		input nav_img_added_flag_MCB, // from mem interface block
 														input science_img_added_flag_MCB, //from mem interface block
 
 														/*for cam_write_register_table */
-														input ready_for_next_byte_MCB,
-
+												/*		input ready_for_next_byte_MCB,
+												*/
 														/*currently testing outputs for instr_data_buffer */
-														output [7:0]  instruction_MCB,
-														output [63:0] data_MCB,
-														output        valid_buffer_for_camwrite_MCB,
-														output        valid_buffer_for_read_MCB,
-														output        valid_buffer_for_mem_MCB,
+//														output [7:0]  instruction_MCB,
+//														output [63:0] data_MCB,
+//														output        valid_buffer_for_camwrite_MCB,
+//														output        valid_buffer_for_read_MCB,
+//														output        valid_buffer_for_mem_MCB,
 
 														/*currently testing outputs from cam_write_register_table */
 														output[7:0] cam_i2c_byte_MCB,
@@ -53,17 +53,17 @@ module FPGA_MainControl_Block(input sysClk,
 														output[11:0] img_width,
 														output hard_reset_MCB,
 														output cam_i2c_output_valid_MCB,
-														output cam_interface_output_valid_MCB,
+														output cam_interface_output_valid_MCB
 
 														/*currently testing outputs from mem_register_table */
-														 output read_img_size_MCB,
-														 output [11:0] img_index_MCB,
-														 output stop_reading_img_flag_MCB,
-														 output reset_img_pointer_flag_MCB,
-														 output start_reading_img_flag_MCB,
-														 output start_erasing_img_flag_MCB,
-														 output [7:0]  byte_out_MCB,
-														 output byte_out_valid_MCB
+//														 output read_img_size_MCB,
+//														 output [11:0] img_index_MCB,
+//														 output stop_reading_img_flag_MCB,
+//														 output reset_img_pointer_flag_MCB,
+//														 output start_reading_img_flag_MCB,
+//														 output start_erasing_img_flag_MCB,
+//														 output [7:0]  byte_out_MCB,
+//														 output byte_out_valid_MCB
 								  );
 								wire [7:0]  instruction;
 								wire [63:0] data;
@@ -105,10 +105,10 @@ module FPGA_MainControl_Block(input sysClk,
 										   .cam_interface_output_valid(cam_interface_output_valid_MCB)
 										 	);
 
-										wire begin_numimg_flush;
-										wire [31:0] out_numimg;
-										wire out_numimg_valid;
-
+//										wire begin_numimg_flush;
+//										wire [31:0] out_numimg;
+//										wire out_numimg_valid;
+/*
 										num_img_stored_reg nisr(
 												nav_img_added_flag_MCB,
 												science_img_added_flag_MCB,
@@ -143,5 +143,5 @@ module FPGA_MainControl_Block(input sysClk,
 											);
 
 
-
+*/
 endmodule

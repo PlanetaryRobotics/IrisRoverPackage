@@ -42,7 +42,8 @@ volatile int16_t g_maxSpeed;
 volatile StateMachine g_state;
 volatile CmdState g_cmdState;
 
-volatile int8_t g_direction;
+volatile int8_t g_targetDirection;
+volatile int8_t g_oldTargetDirection;
 
 uint8_t g_statusRegister;
 uint8_t g_controlRegister;
@@ -467,7 +468,7 @@ inline void run(){
   __disable_interrupt();
   enableGateDriver();
   //g_targetPosition = i2c;
-  g_direction = (g_targetPosition -  g_currentPosition>= 0) ? 1 : -1;
+  g_targetDirection = (g_targetPosition -  g_currentPosition>= 0) ? 1 : -1;
   g_currentPosition = 0;
   g_targetReached = false;
   g_state = RUNNING;
@@ -568,13 +569,13 @@ void main(void){
   g_currentRefTest = _IQ(0.05);
   g_speedRefTest = _IQ(0.0);
 
-  g_feedforwardFW = _IQ(0.0);
+  g_feedforwardFW = _IQ(0.07);
 
   g_maxSpeed = MAX_TARGET_SPEED;
 
   g_openLoopTorque = _IQ(OPEN_LOOP_TORQUE);
   g_impulse.Period = PERIOD_IMPULSE;
-  g_direction = 1;
+  g_targetDirection = 1;
 
   resetPiController(&g_piSpd);
   resetPiController(&g_piCur);
@@ -584,7 +585,7 @@ void main(void){
   g_piCur.Kp = _IQ(KP_CUR);
   g_piCur.Ki = _IQ(KI_CUR);
 
-  g_piSpd.Ref = _IQ(0.1);
+  //g_piSpd.Ref = _IQ(0.1);
   g_closeLoopThreshold = _IQ(CLOSE_LOOP_THRESHOLD);
 
   initializeI2cModule();
@@ -599,22 +600,23 @@ void main(void){
   enableGateDriver(); // TODO <<<< remove this line
 
   while(1){
-   g_closedLoop = (_IQabs(g_currentSpeed) > g_closeLoopThreshold) ? true : false;
+   g_closedLoop = (_IQabs(g_currentSpeed) > g_closeLoopThreshold && !g_targetReached) ? true : false;
+
    if(g_piSpd.w1){
        __disable_interrupt();
       g_piSpd.i1 = 0;
-       g_piSpd.ui = 0;
-       g_piSpd.v1 = 0;
-       __enable_interrupt();
+      g_piSpd.ui = 0;
+      g_piSpd.v1 = 0;
+      __enable_interrupt();
    }
 
-//   if(g_piCur.w1){
-//       __disable_interrupt();
-//       g_piCur.i1 = 0;
-//       g_piCur.ui = 0;
-//       g_piCur.v1 = 0;
-//       __enable_interrupt();
-//   }
+   if(g_piCur.w1){
+       __disable_interrupt();
+       g_piCur.i1 = 0;
+       g_piCur.ui = 0;
+       g_piCur.v1 = 0;
+       __enable_interrupt();
+   }
 
    //updateStateMachine();
   }
@@ -636,7 +638,6 @@ __interrupt void TIMER0_B0_ISR (void){
     g_currentOffsetPhaseB = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_1));
     g_currentOffsetPhaseC = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_2));
     g_calibrationDone = true;
-    return;
   }
 
   if(!g_calibrationDone) return;
@@ -649,7 +650,7 @@ __interrupt void TIMER0_B0_ISR (void){
     IMPULSE_MACRO(g_impulse);
     if(g_impulse.Out){
       MOD6CNT_MACRO(g_mod6cnt);
-      g_commState = (g_direction > 0) ? g_mod6cnt.Counter : 5 - g_mod6cnt.Counter;
+      g_commState = (g_targetDirection > 0) ? g_mod6cnt.Counter : 5 - g_mod6cnt.Counter;
     }
   }
   else{
@@ -676,10 +677,18 @@ __interrupt void TIMER0_B0_ISR (void){
     g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
 
     // Normalize from -255 ~ + 255 to -1.0 ~ 1.0
-    g_piSpd.Ref = (_IQsat(g_targetPosition - g_currentPosition, g_maxSpeed, -g_maxSpeed)) << 8;
-    g_targetReached =  (_IQabs(g_piSpd.Ref) < 0.01) ? true : false;
-    g_direction = (g_piSpd.Ref >= 0) ? 1 : -1;
+    g_targetReached =  (_IQabs(g_targetPosition - g_currentPosition) < 5) ? true : false;
+    if(g_targetReached == false){
+        g_piSpd.Ref = (_IQsat(g_targetPosition - g_currentPosition, g_maxSpeed, -g_maxSpeed)) << 8;
+    }
+    else{
+        g_piSpd.Ref = 0;
+    }
+
+    g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
+
     g_piSpd.Fbk = getSpeed();
+
     PI_MACRO(g_piSpd);
   }
 
@@ -691,17 +700,25 @@ __interrupt void TIMER0_B0_ISR (void){
   g_currentPhaseC = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_2)) - g_currentOffsetPhaseC;
 
   // Normalize current values from  -2047 < adc < +2048 to iq15 --> -1.0 < adc < 1.0 and convert to iq format
-  g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 5;
-  g_piCur.Ref = g_piSpd.Out + _IQ15mpy_inline(g_feedforwardFW, g_piSpd.Fbk);
+  g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 4;
+
+  // Compense motor direction.
+  if(g_targetDirection < 0){
+      g_piCur.Ref = g_piSpd.Out - _IQ15mpy_inline(g_feedforwardFW, g_piSpd.Fbk);
+  }
+  else{
+      g_piCur.Ref = g_piSpd.Out;
+  }
   PI_MACRO(g_piCur);
 
   if(g_closedLoop == false){
     g_piCur.i1 = 0;
     g_piCur.ui = 0;
+    g_piSpd.i1 = 0;
+    g_piSpd.ui = 0;
     g_piCur.Out = g_openLoopTorque;
   }
 
   // If target is reached no need to move
-  if(g_targetReached) g_piCur.Out = 0;
   pwmGenerator(g_commState, g_piCur.Out);
 }

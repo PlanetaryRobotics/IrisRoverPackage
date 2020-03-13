@@ -13,7 +13,7 @@
 #define GATEWAY_PORT            8080
 #define ROVER_UDP_PORT          8080 
 
-#define LANDER_SSID                     "PeregrineLander"
+#define LANDER_SSID                     "HermesPLR"
 #define LANDER_NETWORK_PASSWORD         "Hello123"
 #define MAX_SIZE_SSID_NAME              32
 #define MAX_NUMBER_CHANNEL_PER_NETWORK  11

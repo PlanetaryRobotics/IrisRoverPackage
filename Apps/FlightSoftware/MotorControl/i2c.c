@@ -173,6 +173,7 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
         copyArray((uint8_t*)g_rxBuffer,
                   (uint8_t*)&g_maxSpeed,
                   sizeof(g_maxSpeed));
+        if(g_maxSpeed > MAX_TARGET_SPEED) g_maxSpeed = MAX_TARGET_SPEED;
         break;
       case P_CURRENT:
         copyArray((uint8_t*)g_rxBuffer,

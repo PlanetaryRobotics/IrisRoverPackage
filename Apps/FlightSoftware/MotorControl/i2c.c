@@ -13,7 +13,7 @@ volatile uint8_t g_readRegAddr;
 
 extern volatile _iq g_currentSpeed;
 extern volatile int32_t g_currentPosition;
-extern volatile int32_t g_targetPosition;
+extern volatile int32_t g_targetSpeed;
 extern volatile PI_CONTROLLER g_piSpd;
 extern volatile PI_CONTROLLER g_piCur;
 extern volatile uint16_t g_maxSpeed;
@@ -164,16 +164,11 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
       case FAULT_REGISTER:
         break;
       case RELATIVE_TARGET_POSITION:
-        copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&g_targetPosition,
-                  sizeof(g_targetPosition));
-        g_currentPosition = 0; // reset current position
         break;
       case TARGET_SPEED:
         copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&g_maxSpeed,
-                  sizeof(g_maxSpeed));
-        if(g_maxSpeed > MAX_TARGET_SPEED) g_maxSpeed = MAX_TARGET_SPEED;
+                  (uint8_t*)&g_targetSpeed,
+                  sizeof(g_targetSpeed));
         break;
       case P_CURRENT:
         copyArray((uint8_t*)g_rxBuffer,

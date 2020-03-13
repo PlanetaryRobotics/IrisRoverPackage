@@ -25,7 +25,7 @@ HallSensor g_hallSensor;
 
 volatile int32_t g_currentPosition;
 volatile int32_t g_oldPosition;
-volatile int32_t g_targetPosition;
+volatile int32_t g_targetSpeed;
 
 volatile uint16_t g_controlPrescaler;
 uint8_t g_hallMap[8];
@@ -37,7 +37,7 @@ volatile MOD6CNT g_mod6cnt;
 
 volatile bool g_closedLoop;
 volatile bool g_targetReached;
-volatile int16_t g_maxSpeed;
+volatile int32_t g_maxSpeed;
 
 volatile StateMachine g_state;
 volatile CmdState g_cmdState;
@@ -453,8 +453,8 @@ inline void disable(){
   __disable_interrupt();
   disableGateDriver();
   g_state = IDLE;
-  g_targetPosition = 0;
   g_currentPosition = 0;
+  g_oldPosition = 0;
   __enable_interrupt();
 }
 
@@ -467,8 +467,6 @@ inline void run(){
 
   __disable_interrupt();
   enableGateDriver();
-  //g_targetPosition = i2c;
-  g_targetDirection = (g_targetPosition -  g_currentPosition>= 0) ? 1 : -1;
   g_currentPosition = 0;
   g_targetReached = false;
   g_state = RUNNING;
@@ -482,7 +480,6 @@ inline void stop(){
   if(g_state == STOPPED) return; // already in STOPPED, nothing to do
 
   __disable_interrupt();
-  g_targetPosition = g_targetPosition - g_currentPosition;
   g_state = STOPPED;
   __enable_interrupt();
 }
@@ -561,8 +558,8 @@ void main(void){
   g_hallSensor.Pattern = 0;
   g_hallSensor.OldPattern = 0;
   g_currentPosition = 0;
+  g_targetSpeed = _IQ(0.0);
   g_oldPosition = g_currentPosition;
-  g_targetPosition = 0;
   g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
   g_closedLoop = false;
   g_state = UNINITIALIZED;
@@ -571,7 +568,7 @@ void main(void){
 
   g_feedforwardFW = _IQ(0.07);
 
-  g_maxSpeed = MAX_TARGET_SPEED;
+  g_maxSpeed = _IQ(1.0);
 
   g_openLoopTorque = _IQ(OPEN_LOOP_TORQUE);
   g_impulse.Period = PERIOD_IMPULSE;
@@ -676,16 +673,8 @@ __interrupt void TIMER0_B0_ISR (void){
   if(g_controlPrescaler == 0){
     g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
 
-    // Normalize from -255 ~ + 255 to -1.0 ~ 1.0
-    g_targetReached =  (_IQabs(g_targetPosition - g_currentPosition) < 5) ? true : false;
-    if(g_targetReached == false){
-        g_piSpd.Ref = (_IQsat(g_targetPosition - g_currentPosition, g_maxSpeed, -g_maxSpeed)) << 8;
-    }
-    else{
-        g_piSpd.Ref = 0;
-    }
-
-    g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
+    g_piSpd.Ref = _IQsat(g_targetSpeed, g_maxSpeed, -g_maxSpeed) << 8;
+    g_targetDirection = (g_piSpd.Ref >= 0) ? 1 : -1;
 
     g_piSpd.Fbk = getSpeed();
 
@@ -711,12 +700,16 @@ __interrupt void TIMER0_B0_ISR (void){
   }
   PI_MACRO(g_piCur);
 
+  if(g_piSpd.Ref == 0){
+      g_closedLoop = false;
+  }
+
   if(g_closedLoop == false){
     g_piCur.i1 = 0;
     g_piCur.ui = 0;
     g_piSpd.i1 = 0;
     g_piSpd.ui = 0;
-    g_piCur.Out = g_openLoopTorque;
+    g_piCur.Out = (g_piSpd.Ref == 0) ? 0 : g_openLoopTorque;
   }
 
   // If target is reached no need to move

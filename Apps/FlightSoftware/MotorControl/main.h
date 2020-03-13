@@ -28,7 +28,7 @@
 
 #define ONE_OVER_4096           0.0002441
 
-#define MAX_TARGET_SPEED                   100
+#define MAX_TARGET_SPEED                   127
 #define MIN_TARGET_SPEED                  -MAX_TARGET_SPEED
 
 inline _iq _IQ15mpy_inline(_iq,_iq);

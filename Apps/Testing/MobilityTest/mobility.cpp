@@ -107,19 +107,17 @@ void setTargetPositionRight(const int32_t position){
   sendCmd(cmdSize);
 }
 
-void setTargetSpeedLeft(const int16_t speedPercent){
-  uint8_t cmdSize = 3;
+void setTargetSpeedLeft(const int32_t speedPercent){
+  uint8_t cmdSize = 5;
   g_txBuffer[0] = CommandList::SPEED_MOTOR_LEFT;
-  g_txBuffer[1] = speedPercent;
-  g_txBuffer[2] = speedPercent >> 8;
+  memcpy(g_txBuffer+1, &speedPercent, sizeof(speedPercent));  
   sendCmd(cmdSize);
 }
 
-void setTargetSpeedRight(const int16_t speedPercent){
-  uint8_t cmdSize = 3;
+void setTargetSpeedRight(const int32_t speedPercent){
+  uint8_t cmdSize = 5;
   g_txBuffer[0] = CommandList::SPEED_MOTOR_RIGHT;
-  g_txBuffer[1] = speedPercent;
-  g_txBuffer[2] = speedPercent >> 8;
+  memcpy(g_txBuffer+1, &speedPercent, sizeof(speedPercent));
   sendCmd(cmdSize);  
 }
 
@@ -286,8 +284,8 @@ int main(int argc, char *argv[]){
 
   // translate commands to motor control format
   float roverMaxRevSpeed = (float)(ROVER_MOTOR_MAX_SPEED_RPM) / (float)(MOTOR_GEARBOX_RATIO); 
-  int16_t targetSpeedRevPercentLeft = (uint16_t) ( (float) targetSpeedRevLeft / (float) roverMaxRevSpeed * 127.0);
-  int16_t targetSpeedRevPercentRight = (uint16_t) ( (float) targetSpeedRevRight / (float) roverMaxRevSpeed * 127.0);
+  int32_t targetSpeedRevPercentLeft = (uint16_t) ( (float) targetSpeedRevLeft / (float) roverMaxRevSpeed * 127.0);
+  int32_t targetSpeedRevPercentRight = (uint16_t) ( (float) targetSpeedRevRight / (float) roverMaxRevSpeed * 127.0);
 
   if(targetSpeedRevPercentLeft > 127) targetSpeedRevPercentLeft = 127;
   if(targetSpeedRevPercentRight > 127) targetSpeedRevPercentRight = 127;

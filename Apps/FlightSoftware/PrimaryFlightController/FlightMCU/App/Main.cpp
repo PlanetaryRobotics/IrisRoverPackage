@@ -207,6 +207,9 @@ void handleI2cMotorControlCommand(Motor motorId, I2cRegisterIds reg, uint8_t *da
     }
 }
 
+int32_t g_targetPositionLeft;
+int32_t g_targetPositionRight;
+
 void main(void)
 {
     CubeRoverNetworkManager wf121;
@@ -218,6 +221,9 @@ void main(void)
     sciInit();
 
     constructApp();
+
+    g_targetPositionLeft = 0;
+    g_targetPositionRight = 0;
 
     while(1){
 
@@ -231,23 +237,21 @@ void main(void)
             switch(g_rxBuffer[0]){
                 case TGT_SPEED_MOTOR_LEFT:
                     wf121.ReceiveUdpData(g_rxBuffer, 2, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
-                    handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, TARGET_SPEED, g_rxBuffer, 2);
-                    handleI2cMotorControlCommand(MOTOR_REAR_LEFT, TARGET_SPEED, g_rxBuffer, 2);
+                    handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, TARGET_SPEED, g_rxBuffer, 4);
+                    handleI2cMotorControlCommand(MOTOR_REAR_LEFT, TARGET_SPEED, g_rxBuffer, 4);
                     break;
                 case TGT_SPEED_MOTOR_RIGHT:
                     wf121.ReceiveUdpData(g_rxBuffer, 2, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
-                    handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, TARGET_SPEED, g_rxBuffer, 2);
-                    handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, TARGET_SPEED, g_rxBuffer, 2);
+                    handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, TARGET_SPEED, g_rxBuffer, 4);
+                    handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, TARGET_SPEED, g_rxBuffer, 4);
                     break;
                 case TGT_POSITION_MOTOR_LEFT:
                     wf121.ReceiveUdpData(g_rxBuffer, 4, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
-                    handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, RELATIVE_TARGET_POSITION, g_rxBuffer, 4);
-                    handleI2cMotorControlCommand(MOTOR_REAR_LEFT, RELATIVE_TARGET_POSITION, g_rxBuffer, 4);
+                    memcpy(&g_targetPositionLeft, g_rxBuffer+1, 4);
                     break;
                 case TGT_POSITION_MOTOR_RIGHT:
                     wf121.ReceiveUdpData(g_rxBuffer, 4, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
-                    handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, RELATIVE_TARGET_POSITION, g_rxBuffer, 4);
-                    handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, RELATIVE_TARGET_POSITION, g_rxBuffer, 4);
+                    memcpy(&g_targetPositionRight, g_rxBuffer+1, 4);
                     break;
                 case RUN:
                 case STOP:

@@ -2,10 +2,22 @@
     <div class="POICard">
       <!-- SIDE MODALS -->
       <div v-if="show.modalImages">
-        <Sidemodal :key="0" :POIListEl='POIListEl' :target='this.$refs.images'/>
+        <Sidemodal :key="0" 
+                   :POIListEl='POIListEl' 
+                   :target='this.$refs.images'
+                   :data='POICard.getData().images'
+                   type='IMAGES'
+                   header="Images"
+                   @closeModal='toggleModal'/>
       </div>
       <div v-if="show.modalTags">
-        <Sidemodal :key="1" :POIListEl='POIListEl' :target='this.$refs.tags'/>
+        <Sidemodal :key="1" 
+                   :POIListEl='POIListEl' 
+                   :target='this.$refs.tags'
+                   :data='[0, 1, 2]'
+                   type='TAGS'
+                   header='Tags'
+                   @closeModal='toggleModal'/>
       </div>
 
       <!--HEADER --> 

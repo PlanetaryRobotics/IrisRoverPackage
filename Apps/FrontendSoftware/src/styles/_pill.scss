@@ -19,6 +19,7 @@
 
   &__tag {
     @extend .pill;
+    justify-content: center;
     width: 8rem;
   }
 

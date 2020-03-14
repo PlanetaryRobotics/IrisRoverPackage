@@ -194,120 +194,120 @@ var cards = [
       ]
     }
   ),
-  // new POICard(
-  //   {
-  //     importanceLevel: 3,
-  //     category: "ATTRACTION",
-  //     thumbnail: new ImageData({
-  //       name: 'CR_M01_0000',
-  //       bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
-  //       camera: "Front",
-  //       sendTime: new Date(),
-  //       command: "forward",
-  //       commandDesc: "10cm",
-  //       tags: ["Nathan"]
-  //     }),
-  //     width: 5,
-  //     height: 5,
-  //     depth: 5,
-  //     sizeUnit: "CM",
-  //     tagList: [
-  //       new Tag({name: "Dwayne", initialImage:"CR_M01_0001", tagNames:[]}),
-  //       new Tag({name: "Squid", initialImage:"CR_M01_0001", tagNames:[]}),
-  //       new Tag({name: "Rock", initialImage:"CR_M01_0001", tagNames:[]}),
-  //       new Tag({name: "Rocco", initialImage:"CR_M01_0001", tagNames:[]}),
-  //       new Tag({name: "Steve", initialImage:"CR_M01_0000", tagNames:[]}),
-  //     ],
-  //     creator: "Caitlin Coyiuto",
-  //     description: "I am a hella beautiful rock on the moon.",
-  //     images: [
-  //       new ImageData({
-  //         name: 'CR_M01_0001',
-  //         bin: bytes(path.join(__static,'./images/Kd2V45y.jpg')),
-  //         camera: "Front",
-  //         sendTime: new Date(),
-  //         command: "Forward",
-  //         commandDesc: "10cm",
-  //         tags: [],
-  //       }),
-  //       new ImageData({
-  //         name: 'CR_M01_0002',
-  //         bin: bytes(path.join(__static,'./images/uJg1pom.jpg')),
-  //         camera: "Rear",
-  //         sendTime: new Date(),
-  //         command: "forward",
-  //         commandDesc: "10cm",
-  //         tags: [],
-  //       }),
-  //       new ImageData({
-  //         name: 'CR_M01_0003',
-  //         bin: bytes(path.join(__static,'./images/OUuN3i4.jpg')),
-  //         camera: "Front",
-  //         sendTime: new Date(),
-  //         command: "forward",
-  //         commandDesc: "10cm",
-  //         tags: [],
-  //       }),
-  //     ]
-  //   }
-  // ),
-  // new POICard(
-  //   {
-  //     importanceLevel: 3,
-  //     category: "ATTRACTION",
-  //     thumbnail: new ImageData({
-  //       name: 'CR_M01_0000',
-  //       bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
-  //       camera: "Front",
-  //       sendTime: new Date(),
-  //       command: "forward",
-  //       commandDesc: "10cm",
-  //       tags: ["Nathan"]
-  //     }),
-  //     width: 5,
-  //     height: 5,
-  //     depth: 5,
-  //     sizeUnit: "CM",
-  //     tagList: [
-  //       new Tag({name: "Dwayne", initialImage:"CR_M01_0001", tagNames:[]}),
-  //       new Tag({name: "Squid", initialImage:"CR_M01_0001", tagNames:[]}),
-  //       new Tag({name: "Rock", initialImage:"CR_M01_0001", tagNames:[]}),
-  //       new Tag({name: "Rocco", initialImage:"CR_M01_0001", tagNames:[]}),
-  //       new Tag({name: "Steve", initialImage:"CR_M01_0000", tagNames:[]}),
-  //     ],
-  //     creator: "Caitlin Coyiuto",
-  //     description: "I am a hella beautiful rock on the moon.",
-  //     images: [
-  //       new ImageData({
-  //         name: 'CR_M01_0001',
-  //         bin: bytes(path.join(__static,'./images/Kd2V45y.jpg')),
-  //         camera: "Front",
-  //         sendTime: new Date(),
-  //         command: "Forward",
-  //         commandDesc: "10cm",
-  //         tags: [],
-  //       }),
-  //       new ImageData({
-  //         name: 'CR_M01_0002',
-  //         bin: bytes(path.join(__static,'./images/uJg1pom.jpg')),
-  //         camera: "Rear",
-  //         sendTime: new Date(),
-  //         command: "forward",
-  //         commandDesc: "10cm",
-  //         tags: [],
-  //       }),
-  //       new ImageData({
-  //         name: 'CR_M01_0003',
-  //         bin: bytes(path.join(__static,'./images/OUuN3i4.jpg')),
-  //         camera: "Front",
-  //         sendTime: new Date(),
-  //         command: "forward",
-  //         commandDesc: "10cm",
-  //         tags: [],
-  //       }),
-  //     ]
-  //   }
-  // ),
+  new POICard(
+    {
+      importanceLevel: 3,
+      category: "ATTRACTION",
+      thumbnail: new ImageData({
+        name: 'CR_M01_0000',
+        bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
+        camera: "Front",
+        sendTime: new Date(),
+        command: "forward",
+        commandDesc: "10cm",
+        tags: ["Nathan"]
+      }),
+      width: 5,
+      height: 5,
+      depth: 5,
+      sizeUnit: "CM",
+      tagList: [
+        new Tag({name: "Dwayne", initialImage:"CR_M01_0001", tagNames:[]}),
+        new Tag({name: "Squid", initialImage:"CR_M01_0001", tagNames:[]}),
+        new Tag({name: "Rock", initialImage:"CR_M01_0001", tagNames:[]}),
+        new Tag({name: "Rocco", initialImage:"CR_M01_0001", tagNames:[]}),
+        new Tag({name: "Steve", initialImage:"CR_M01_0000", tagNames:[]}),
+      ],
+      creator: "Caitlin Coyiuto",
+      description: "I am a hella beautiful rock on the moon.",
+      images: [
+        new ImageData({
+          name: 'CR_M01_0001',
+          bin: bytes(path.join(__static,'./images/Kd2V45y.jpg')),
+          camera: "Front",
+          sendTime: new Date(),
+          command: "Forward",
+          commandDesc: "10cm",
+          tags: [],
+        }),
+        new ImageData({
+          name: 'CR_M01_0002',
+          bin: bytes(path.join(__static,'./images/uJg1pom.jpg')),
+          camera: "Rear",
+          sendTime: new Date(),
+          command: "forward",
+          commandDesc: "10cm",
+          tags: [],
+        }),
+        new ImageData({
+          name: 'CR_M01_0003',
+          bin: bytes(path.join(__static,'./images/OUuN3i4.jpg')),
+          camera: "Front",
+          sendTime: new Date(),
+          command: "forward",
+          commandDesc: "10cm",
+          tags: [],
+        }),
+      ]
+    }
+  ),
+  new POICard(
+    {
+      importanceLevel: 3,
+      category: "ATTRACTION",
+      thumbnail: new ImageData({
+        name: 'CR_M01_0000',
+        bin: bytes(path.join(__static,'./images/NFwvadh.jpg')),
+        camera: "Front",
+        sendTime: new Date(),
+        command: "forward",
+        commandDesc: "10cm",
+        tags: ["Nathan"]
+      }),
+      width: 5,
+      height: 5,
+      depth: 5,
+      sizeUnit: "CM",
+      tagList: [
+        new Tag({name: "Dwayne", initialImage:"CR_M01_0001", tagNames:[]}),
+        new Tag({name: "Squid", initialImage:"CR_M01_0001", tagNames:[]}),
+        new Tag({name: "Rock", initialImage:"CR_M01_0001", tagNames:[]}),
+        new Tag({name: "Rocco", initialImage:"CR_M01_0001", tagNames:[]}),
+        new Tag({name: "Steve", initialImage:"CR_M01_0000", tagNames:[]}),
+      ],
+      creator: "Caitlin Coyiuto",
+      description: "I am a hella beautiful rock on the moon.",
+      images: [
+        new ImageData({
+          name: 'CR_M01_0001',
+          bin: bytes(path.join(__static,'./images/Kd2V45y.jpg')),
+          camera: "Front",
+          sendTime: new Date(),
+          command: "Forward",
+          commandDesc: "10cm",
+          tags: [],
+        }),
+        new ImageData({
+          name: 'CR_M01_0002',
+          bin: bytes(path.join(__static,'./images/uJg1pom.jpg')),
+          camera: "Rear",
+          sendTime: new Date(),
+          command: "forward",
+          commandDesc: "10cm",
+          tags: [],
+        }),
+        new ImageData({
+          name: 'CR_M01_0003',
+          bin: bytes(path.join(__static,'./images/OUuN3i4.jpg')),
+          camera: "Front",
+          sendTime: new Date(),
+          command: "forward",
+          commandDesc: "10cm",
+          tags: [],
+        }),
+      ]
+    }
+  ),
   
 ]
 

@@ -5,6 +5,9 @@ import warnings
 from teleop_backend.network.multiprocess_tcp_client import EmptyDataHandlerWarning
 
 class TestMultiprocessTcpClient(unittest.TestCase):
+    
+    """Tests recv_data_from_socket"""
+
     def test_emptyDataHandler(self):
         """
         Checks for when there are no data handlers and there is data
@@ -80,6 +83,36 @@ class TestMultiprocessTcpClient(unittest.TestCase):
             tcp_client = multiprocess_tcp_client.MultiprocessTcpClient(mock_shutdown_event)
             mock_socket.recv.side_effect = IOError
         self.assertRaises(IOError, tcp_client.recv_data_from_socket, mock_socket, data_handlers)
+
+    """Tests send"""
+    def test_sendSuccessful(self):
+        """
+        Tests behavior when sendall is successful
+        
+        Expected Behavior: returns True
+        """
+        with unittest.mock.patch("socket.socket") as mock_socket:
+            mock_shutdown_event = unittest.mock.MagicMock()
+            tcp_client = multiprocess_tcp_client.MultiprocessTcpClient(mock_shutdown_event)
+            mock_socket.sendall.return_value = None
+            test_data = b"sample data"
+            test_flag = 0
+        self.assertTrue(tcp_client.send_data(mock_socket, test_data, test_flag))
+        mock_socket.sendall.assert_called_once_with(b"sample data", test_flag)
+
+    def test_sendUnSuccessful(self):
+        """
+        Tests behavior when sendall is unsuccessful (exception raised)
+        
+        Expected Behavior: returns False
+        """
+        with unittest.mock.patch("socket.socket") as mock_socket:
+            mock_shutdown_event = unittest.mock.MagicMock()
+            tcp_client = multiprocess_tcp_client.MultiprocessTcpClient(mock_shutdown_event)
+            mock_socket.sendall.return_value = IOError
+            test_data = b"sample data"
+            test_flag = 0
+        self.assertFalse(tcp_client.send_data(mock_socket, test_data, test_flag))        
 
 if __name__ == '__main__':
     unittest.main()

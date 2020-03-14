@@ -25,7 +25,7 @@
 
 <script>
 
-import POIHeader from "@/components/POI/POIHeader.vue";
+import POIHeader from "@/components/POI/Components/POIHeader.vue";
 import { mapGetters } from 'vuex';
 
 export default {

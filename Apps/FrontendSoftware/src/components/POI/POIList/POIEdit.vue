@@ -1,5 +1,25 @@
 <template>
-  <div class="POIEdit scrollable">
+  <div class="POIEdit" >
+    <!-- SIDE MODALS -->
+    <div v-if="show.modalImages">
+      <Sidemodal :key="0" 
+                 :POIListEl='POIListEl' 
+                 :POICard='POICard'
+                 :target='this.$refs.images' 
+                 :data='POICard.getData().images'
+                 type='IMAGES_EDITABLE'
+                 header="Images" />
+    </div>
+    <div v-if="show.modalHistory">
+      <Sidemodal :key="1" 
+                 :POIListEl='POIListEl' 
+                 :POICard='POICard'
+                 :target='this.$refs.history' 
+                 :data='POICard.getData().modificationHistory'
+                 type="HISTORY"
+                 header="Modification History"/>
+    </div>
+
     <!-- HEADER -->
     <div class="header">
       <!-- RETURN BUTTON -->
@@ -58,18 +78,12 @@
 
     <!-- TAG LIST -->
     <div class="tags">
-      <div class="pill__tag" v-for="(tag, index) of tagList" :key="index" >
+      <div class="pill__tag--edit" v-for="(tag, index) of this.POICard.getData().tagList" :key="index" >
         {{getShortName(tag.getName())}}
 
         <svg @click="POICard.removeTag(tag)" class="removeButton" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M8.23048 1.98065C8.31184 1.89929 8.31184 1.76738 8.23048 1.68602C8.14912 1.60466 8.01721 1.60466 7.93585 1.68602L4.95818 4.66369L1.98051 1.68603C1.89916 1.60467 1.76725 1.60467 1.68589 1.68603C1.60453 1.76738 1.60453 1.89929 1.68589 1.98065L4.66355 4.95832L1.68385 7.93802C1.60249 8.01938 1.60249 8.15129 1.68385 8.23265C1.76521 8.31401 1.89712 8.31401 1.97848 8.23265L4.95818 5.25295L7.93789 8.23266C8.01925 8.31401 8.15116 8.31401 8.23252 8.23266C8.31388 8.1513 8.31388 8.01939 8.23252 7.93803L5.25281 4.95832L8.23048 1.98065Z" fill="#FCFCFC"/>
         </svg>
-      </div>
-    </div>
-
-    <div class="tags__viewMore" v-if="viewMoreTagsNumber() > 0">
-      <div class="tags__viewMore--text">
-      {{"+" + viewMoreTagsNumber() + ">"}}
       </div>
     </div>
 
@@ -126,10 +140,10 @@
 
     <!-- IMAGES HEADER -->
     <div class="imagesHeader">
-      <div class="imagesHeader__title text__main--bold">
+      <div class="imagesHeader__title text__main--bold" ref="images">
         Images
       </div>
-      <div class="viewMore">
+      <div class="viewMore" @click="toggleEditModal('modalImages')">
         {{"View All (" + this.POICard.getData().images.length + ")  >"}}
       </div>
     </div>
@@ -147,10 +161,10 @@
 
     <!-- MODIFICATION HISTORY -->
     <div class="historyHeader">
-      <div class="historyHeader__title text__main--bold">
+      <div class="historyHeader__title text__main--bold" ref="history">
         Modification History
       </div>
-      <div class="viewMore">
+      <div class="viewMore" @click="toggleEditModal('modalHistory')">
         {{"View All (" + this.POICard.getData().modificationHistory.length + ")  >"}}
       </div>
     </div>
@@ -175,15 +189,26 @@
 
 import POICard from "@/data_classes/POICard.js";
 import POIListEventBus from "@/components/POI/POIList/POIListEventBus.js";
+import Sidemodal from "@/components/POI/Components/Sidemodal.vue";
 import arrowSVG from "@/assets/icons/icon_arrow_white.svg";
 
 export default {
   name: "POIEdit",
   props: {
     POICard: POICard,
+    POIListEl: HTMLDivElement
   },
   components: {
-
+    Sidemodal
+  },
+  data() {
+    return {
+      arrowSVG: arrowSVG,
+      show: {
+         modalImages: false,
+         modalHistory: false 
+      }
+    }
   },
   computed: {
     description: {
@@ -240,14 +265,6 @@ export default {
       let size = this.POICard.getData().importanceLevel;
       return new Array(size);
     },
-    tagList: function() {
-      let tagList = this.POICard.getData().tagList;
-
-      if (tagList.length > 7) {
-        return tagList.slice(0, 7);
-      }
-      return tagList;
-    },
     images: function() {
       let images = this.POICard.getData().images;
       if (images.length > 4) {
@@ -256,12 +273,10 @@ export default {
       return images;
     },
   },
-  data() {
-    return {
-      arrowSVG: arrowSVG,
-    }
-  },
   methods: {
+    toggleEditModal(key){
+      this.show[key] = !this.show[key];
+    },
     closeEdit() {
       POIListEventBus.$emit('CLOSE_EDIT_POI_WINDOW', this.POICard);
     },
@@ -290,6 +305,7 @@ export default {
       } 
       return 0;
     },
+
   }
 }
 
@@ -298,6 +314,7 @@ export default {
 <style lang="scss" scoped>
 
 @import '@/styles/_colors.scss';
+@import '@/styles/_pill.scss';
 
 .header {
   display: flex;
@@ -371,44 +388,6 @@ export default {
   flex-direction: row;
   flex-wrap: wrap;
   padding-left: 2rem;
-
-  &__viewMore {
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-start;
-    margin-top: -2.5rem;
-    margin-bottom: 1rem;
-    padding-right: 2rem;
-    
-    &--text {
-      &:hover {
-        color: $color-primary;
-        cursor: pointer;
-      }
-    }
-  }
-}
-
-.pill {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 10px 4px 10px;
-  border: 1px solid #585858;
-  border-radius: 20px;
-  margin-right: 0.5rem;
-  margin-bottom: 1rem;
-
-  &__tag {
-    @extend .pill;
-    width: 10rem;
-  }
-
-  &__image {
-    @extend .pill;
-    width: 11rem;
-  }
 }
 
 .removeButton {

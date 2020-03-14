@@ -1,8 +1,9 @@
 <template>
-  <div class="POIList scrollable">
+  <div id="POIList" ref="POIList" class="POIList scrollable">
     <!-- EDIT WINDOW -->
     <div v-if = "show.editWindow">
-      <POIEdit :POICard = "POICardToEdit.cardObject" />
+      <POIEdit :POICard = "POICardToEdit.cardObject" 
+               :POIListEl = "POIListEl"/>
     </div>
     
     <!-- REGULAR VIEW -->
@@ -53,8 +54,10 @@
         <div class="POIList__list scrollable" v-show = "show.POIList" :key="rerenderList">
           <div class="POIList__item" v-for="(POICard, index) in POIList" :key="index">
             <POICard :POIData = "POICard.getData()" 
-                    :searchQuery = "searchQuery"
-                    :POICard = "POICard"/>
+                     :searchQuery = "searchQuery"
+                     :POIListEl = "POIListEl"
+                     :POICard = "POICard"
+                     />
           </div>
         </div> <!-- END MAPTAB -->
       </div> <!-- END V-ELSE CONTAINER -->
@@ -85,7 +88,7 @@ export default {
       list = POIListDataClass.orderBy(this.orderBy, list);
 
       return list;
-    }
+    },
   },
   data() {
     return {
@@ -101,7 +104,8 @@ export default {
       POICardToEdit: {
         cardObject: null,
         JSON: null,
-      }
+      },
+      POIListEl: null
     }
   },
   created() {
@@ -125,6 +129,9 @@ export default {
       this.show.editWindow = false;
     })
 
+  },
+  mounted() {
+    this.POIListEl = this.$refs.POIList;
   },
   methods: {
     togglePOIList() {

@@ -1,5 +1,13 @@
 <template>
     <div class="POICard">
+      <!-- SIDE MODALS -->
+      <div v-if="show.modalImages">
+        <Sidemodal :key="0" :POIListEl='POIListEl' :target='this.$refs.images'/>
+      </div>
+      <div v-if="show.modalTags">
+        <Sidemodal :key="1" :POIListEl='POIListEl' :target='this.$refs.tags'/>
+      </div>
+
       <!--HEADER --> 
       <div class="POICard__header">
 
@@ -21,14 +29,14 @@
       <div class="POICard__content">
 
         <!--TAGS-->
-        <div class="POICard__tags">
+        <div class="POICard__tags" ref="tags">
             <div class="pill__tag" v-for="(name, index) of tagNames" :key="index" >
                <div v-html="searchQuery ? marked.tags[index] : name"/>
                <!-- {{getShortName(name)}} -->
             </div>  
         </div>
 
-        <div class="POICard__tags__viewMore" v-if="viewMoreTagsNumber() > 0">
+        <div class="POICard__tags__viewMore" v-if="viewMoreTagsNumber() > 0" @click="toggleModal('modalTags')">
               {{"+" + viewMoreTagsNumber() + ">"}}
         </div>
 
@@ -71,10 +79,10 @@
           <div class="POICard__description" v-html="POIData.description" />
           <!-- IMAGES -->
           <div class="POICard__imagesHeader">
-            <div class="text__main--bold">
+            <div class="text__main--bold" ref="images">
               Images
             </div>
-            <div class="POICard__imagesViewMore">
+            <div class="POICard__imagesViewMore" @click="toggleModal('modalImages')">
               {{"View All (" + this.POIData.images.length + ")"}}
             </div>
           </div>
@@ -90,29 +98,35 @@
 
 <script>
 
+import POIHeader from "@/components/POI/Components/POIHeader.vue";
+import Sidemodal from "@/components/POI/Components/Sidemodal.vue";
+
 import POICard from "@/data_classes/POICard.js";
-import POIHeader from "@/components/POI/POIHeader.vue";
 import POIListEventBus from "@/components/POI/POIList/POIListEventBus.js";
 
 export default {
   name: "POICard",
   components: {
-    POIHeader
+    POIHeader, 
+    Sidemodal
   },
   data() {
     return {
       show: {
         moreData: false,
+        modalImages: false,
+        modalTags: false,
       },
       marked: {
         tags: [],
-      }
+      },
     }
   },
   props: {
     POIData: Object,
     searchQuery: String,
     POICard: POICard, 
+    POIListEl: HTMLDivElement
   },
   mounted() {
     if (this.searchQuery || this.searchQuery !== "null") {
@@ -146,6 +160,9 @@ export default {
     },
   },
   methods: {
+    toggleModal(key){
+      this.show[key] = !this.show[key];
+    },
     markText() {
       let markedTags = [];
 
@@ -193,6 +210,7 @@ export default {
 
 @import '@/styles/_colors.scss';
 @import '@/styles/_typography.scss';
+@import '@/styles/_pill.scss';
 
 .POICard /deep/ mark {
   background-color: $color-primary;
@@ -340,30 +358,6 @@ export default {
       flex-direction: row;
       justify-content: space-between;
     }
-  }
-}
-
-.POIModal {
-  &__images {
-    position: absolute;
-  }
-}
-
-$tagPillWidth: 7rem;
-
-.pill {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  padding: 4px 10px 4px 10px;
-  border: 1px solid #585858;
-  border-radius: 20px;
-  margin-right: 0.5rem;
-  margin-bottom: 1rem;
-
-  &__tag {
-    @extend .pill;
-    width: $tagPillWidth;
   }
 }
 

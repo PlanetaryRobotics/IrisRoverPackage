@@ -1,6 +1,8 @@
 <template>
   <div class="POIEdit" >
     <!-- SIDE MODALS -->
+
+    <!-- IMAGE MODAL -->
     <div v-if="show.modalImages">
       <Sidemodal :key="0" 
                  :POIListEl='POIListEl' 
@@ -8,8 +10,10 @@
                  :target='this.$refs.images' 
                  :data='POICard.getData().images'
                  type='IMAGES_EDITABLE'
-                 header="Images" />
+                 header="Images"
+                 @closeModal='toggleModal'/>
     </div>
+     <!-- HISTORY MODAL -->
     <div v-if="show.modalHistory">
       <Sidemodal :key="1" 
                  :POIListEl='POIListEl' 
@@ -17,8 +21,21 @@
                  :target='this.$refs.history' 
                  :data='POICard.getData().modificationHistory'
                  type="HISTORY"
-                 header="Modification History"/>
+                 header="Modification History"
+                 @closeModal='toggleModal'/>
     </div>
+    <!-- IMPORTANCE MODAL -->
+    <div v-if="show.modalImportance">
+      <Sidemodal :key="2" 
+                 :POIListEl='POIListEl' 
+                 :POICard='POICard'
+                 :target='this.$refs.importance' 
+                 :data='[1,2,3]'
+                 type="IMPORTANCE"
+                 header="Importance"
+                 @closeModal='toggleModal'/>
+    </div>
+    <!-- END SIDE MODALS -->
 
     <!-- HEADER -->
     <div class="header">
@@ -42,11 +59,11 @@
     </div> <!-- END HEADER -->
 
     <!-- TITLE -->
-    <div class="title">
+    <div class="title" ref="importance">
 
       <!-- IMPORTANCE -->
-      <div class="importance">
-        <div v-for="index in importanceSize" :key="index">
+      <div class="importance" @click="toggleModal('modalImportance')">
+        <div v-for="index in importanceSizeArray" :key="index">
             <svg width="2" height="16" viewBox="0 0 2 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <line x1="1" y1="-4.37114e-08" x2="1" y2="16" :style="importanceColor" stroke-width="2"/>
             </svg>
@@ -143,7 +160,7 @@
       <div class="imagesHeader__title text__main--bold" ref="images">
         Images
       </div>
-      <div class="viewMore" @click="toggleEditModal('modalImages')">
+      <div class="viewMore" @click="toggleModal('modalImages')">
         {{"View All (" + this.POICard.getData().images.length + ")  >"}}
       </div>
     </div>
@@ -164,7 +181,7 @@
       <div class="historyHeader__title text__main--bold" ref="history">
         Modification History
       </div>
-      <div class="viewMore" @click="toggleEditModal('modalHistory')">
+      <div class="viewMore" @click="toggleModal('modalHistory')">
         {{"View All (" + this.POICard.getData().modificationHistory.length + ")  >"}}
       </div>
     </div>
@@ -206,7 +223,8 @@ export default {
       arrowSVG: arrowSVG,
       show: {
          modalImages: false,
-         modalHistory: false 
+         modalHistory: false,
+         modalImportance: false
       }
     }
   },
@@ -261,7 +279,7 @@ export default {
         stroke : ans,
       };
     },
-    importanceSize: function() {
+    importanceSizeArray: function() {
       let size = this.POICard.getData().importanceLevel;
       return new Array(size);
     },
@@ -274,7 +292,7 @@ export default {
     },
   },
   methods: {
-    toggleEditModal(key){
+    toggleModal(key){
       this.show[key] = !this.show[key];
     },
     closeEdit() {
@@ -344,6 +362,10 @@ export default {
 
   > div {
     padding-right: 2px;
+  }
+
+  &:hover {
+    cursor: pointer;
   }
 }
 

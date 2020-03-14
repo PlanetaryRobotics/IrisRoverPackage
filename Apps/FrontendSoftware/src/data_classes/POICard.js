@@ -182,6 +182,10 @@ export default class POICard{
     this.data.description = newDescription;
   }
 
+  set importanceLevel(newLevel) {
+    this.data.importanceLevel = newLevel;
+  }
+
   isNumber(value) {
     if (isNaN(value)) {
       console.error("Value is not an number");

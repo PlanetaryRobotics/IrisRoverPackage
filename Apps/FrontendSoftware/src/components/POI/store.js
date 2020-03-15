@@ -21,4 +21,9 @@ export default {
       return state.show.showTagManagement;
     }
   },
+  mutations: {
+    deletePOI(state, POI) {
+      state.POIList.deletePOI(POI);
+    },
+  }
 };

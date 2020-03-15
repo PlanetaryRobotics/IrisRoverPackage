@@ -129,6 +129,11 @@ export default {
       this.show.editWindow = false;
     })
 
+    POIListEventBus.$on('DELETE_POI', (card) => {
+      this.$store.commit("deletePOI", card);
+      this.show.editWindow = false;
+    })
+
   },
   mounted() {
     this.POIListEl = this.$refs.POIList;

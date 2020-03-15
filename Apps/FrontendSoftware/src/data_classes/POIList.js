@@ -36,6 +36,15 @@ export default class POIList{
     }
   }
 
+  deletePOI(card) {
+    if (!(card instanceof POICard)) {
+      console.error("Card is not of type ImageData.");
+      console.log(card);
+    } else {
+      this._list = this._list.filter(item => item !== card);
+    }
+  }
+
   static filterBy(filter, POIList) {
     if (!filter) {
       return POIList;

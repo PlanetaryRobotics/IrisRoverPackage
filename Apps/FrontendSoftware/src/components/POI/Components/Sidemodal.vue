@@ -23,7 +23,7 @@
 
     <!-- EDITABLE IMAGES -->
     <div class = "content" v-if='type==="IMAGES_EDITABLE"'>
-      <div class="pill__image--edit" v-for="(image, index) of data" :key="index" >
+      <div class="pill__image" v-for="(image, index) of data" :key="index" >
           {{image.timeForTagFormatting}}
 
           <svg @click="POICard.removeImage(image)" class="removeButton" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">

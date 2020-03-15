@@ -37,6 +37,15 @@
     </div>
     <!-- END SIDE MODALS -->
 
+    <!-- DELETE MODAL -->
+    <div v-if="show.modalDelete">
+      <Deletemodal :key="3"
+                   :POICard='POICard'
+                   @closeModal='toggleModal'/>
+    </div>
+
+    <!-- END DELETE MODAL -->
+
     <!-- HEADER -->
     <div class="header">
       <!-- RETURN BUTTON -->
@@ -49,7 +58,7 @@
       </div>
 
       <!-- TRASH BUTTON -->
-      <svg class="icon" width="15" height="19" viewBox="0 0 15 19" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff">
+      <svg @click="toggleModal('modalDelete')" class="icon" width="15" height="19" viewBox="0 0 15 19" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff">
         <rect x="0.5" y="2.69006" width="13.2813" height="15.6615" rx="1.5" stroke-linecap="round"/>
         <line x1="3.77295" y1="5.07031" x2="3.77295" y2="15.9714" stroke-linecap="round"/>
         <line x1="7.04541" y1="5.07031" x2="7.04541" y2="15.9714" stroke-linecap="round"/>
@@ -207,6 +216,7 @@
 import POICard from "@/data_classes/POICard.js";
 import POIListEventBus from "@/components/POI/POIList/POIListEventBus.js";
 import Sidemodal from "@/components/POI/Components/Sidemodal.vue";
+import Deletemodal from "@/components/POI/Components/Deletemodal.vue";
 import arrowSVG from "@/assets/icons/icon_arrow_white.svg";
 
 export default {
@@ -216,7 +226,8 @@ export default {
     POIListEl: HTMLDivElement
   },
   components: {
-    Sidemodal
+    Sidemodal,
+    Deletemodal
   },
   data() {
     return {
@@ -224,7 +235,8 @@ export default {
       show: {
          modalImages: false,
          modalHistory: false,
-         modalImportance: false
+         modalImportance: false,
+         modalDelete: false
       }
     }
   },

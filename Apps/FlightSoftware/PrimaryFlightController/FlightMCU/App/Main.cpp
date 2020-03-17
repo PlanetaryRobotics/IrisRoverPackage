@@ -230,14 +230,14 @@ void main(void)
             uint8_t sizeOfReply = 0;
             switch(g_rxBuffer[0]){
                 case TGT_SPEED_MOTOR_LEFT:
-                    wf121.ReceiveUdpData(g_rxBuffer, 2, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
+                    wf121.ReceiveUdpData(g_rxBuffer, 4, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
                     handleI2cMotorControlCommand(MOTOR_FRONT_LEFT, TARGET_SPEED, g_rxBuffer, 2);
-                    handleI2cMotorControlCommand(MOTOR_REAR_LEFT, TARGET_SPEED, g_rxBuffer, 2);
+                    handleI2cMotorControlCommand(MOTOR_REAR_LEFT, TARGET_SPEED, g_rxBuffer+2, 2);
                     break;
                 case TGT_SPEED_MOTOR_RIGHT:
-                    wf121.ReceiveUdpData(g_rxBuffer, 2, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
+                    wf121.ReceiveUdpData(g_rxBuffer, 4, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
                     handleI2cMotorControlCommand(MOTOR_FRONT_RIGHT, TARGET_SPEED, g_rxBuffer, 2);
-                    handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, TARGET_SPEED, g_rxBuffer, 2);
+                    handleI2cMotorControlCommand(MOTOR_REAR_RIGHT, TARGET_SPEED, g_rxBuffer+2, 2);
                     break;
                 case TGT_POSITION_MOTOR_LEFT:
                     wf121.ReceiveUdpData(g_rxBuffer, 4, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);

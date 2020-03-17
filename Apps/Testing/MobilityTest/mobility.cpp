@@ -107,19 +107,19 @@ void setTargetPositionRight(const int32_t position){
   sendCmd(cmdSize);
 }
 
-void setTargetSpeedLeft(const int16_t speedPercent){
-  uint8_t cmdSize = 3;
+void setTargetSpeedLeft(const int16_t speedPercentFront, const int16_t speedPercentBack){
+  uint8_t cmdSize = 5;
   g_txBuffer[0] = CommandList::SPEED_MOTOR_LEFT;
-  g_txBuffer[1] = speedPercent;
-  g_txBuffer[2] = speedPercent >> 8;
+  memcpy(g_txBuffer+1, &speedPercentFront, sizeof(speedPercentFront));
+  memcpy(g_txBuffer+3, &speedPercentBack, sizeof(speedPercentBack));
   sendCmd(cmdSize);
 }
 
-void setTargetSpeedRight(const int16_t speedPercent){
-  uint8_t cmdSize = 3;
+void setTargetSpeedRight(const int16_t speedPercentFront, const int16_t speedPercentBack){
+  uint8_t cmdSize = 5;
   g_txBuffer[0] = CommandList::SPEED_MOTOR_RIGHT;
-  g_txBuffer[1] = speedPercent;
-  g_txBuffer[2] = speedPercent >> 8;
+  memcpy(g_txBuffer+1, &speedPercentFront, sizeof(speedPercentFront));
+  memcpy(g_txBuffer+3, &speedPercentBack, sizeof(speedPercentBack));
   sendCmd(cmdSize);  
 }
 
@@ -235,9 +235,11 @@ int main(int argc, char *argv[]){
   
   // Rover related variable
   float targetPosRevLeft = 0;     // revolution
-  float targetSpeedRevLeft = 0;   // rev/s
+  float targetSpeedRevLeftFront = 0;   // rev/s
+  float targetSpeedRevLeftBack = 0;
   float targetPosRevRight = 0;    // revolution
-  float targetSpeedRevRight = 0;  // rev/s
+  float targetSpeedRevRightFront = 0;  // rev/s
+  float targetSpeedRevRightBack = 0;
   
   int32_t positionFrontRight = 0;
   int32_t positionFrontLeft = 0;
@@ -261,8 +263,8 @@ int main(int argc, char *argv[]){
   g_runApp = true;
 
   // check integrity of arguments
-  if(argc < 5){
-    cout << "Usage: Mobility <left speed (rev/min)>  <relative target position left (rev)> <right speed (rev/min)> <relative target position right (rev)>" << endl;
+  if(argc < 7){
+    cout << "Usage: Mobility <left speed front (rev/min)>  <left speed back (rev/min)> <relative target position left (rev)> <right speed front (rev/min)> <right speed back (rev/min)> <relative target position right (rev)>" << endl;
     exit(EXIT_FAILURE);
   }
 
@@ -273,26 +275,37 @@ int main(int argc, char *argv[]){
   // logFile << endl;
 
   // Capture and convert commands to send to the rover
-  targetSpeedRevLeft = atof(argv[1]);
-  targetPosRevLeft = atoi(argv[2]);
-  targetSpeedRevRight = atof(argv[3]);
-  targetPosRevRight = atoi(argv[4]);
+  targetSpeedRevLeftFront = atof(argv[1]);
+  targetSpeedRevLeftBack= atof(argv[2]);
+  targetPosRevLeft = atoi(argv[3]);
+  targetSpeedRevRightFront = atof(argv[4]);
+  targetSpeedRevRightBack = atof(argv[5]);
+  targetPosRevRight = atoi(argv[6]);
 
-  logFile << "Target speed left (rev/min): " << targetSpeedRevLeft << endl;
-  logFile << "Target speed right (rev/min): " << targetSpeedRevRight << endl;
+  logFile << "Target speed left front (rev/min): " << targetSpeedRevLeftFront << endl;
+  logFile << "Target speed left back (rev/min): " << targetSpeedRevLeftBack << endl;
+  logFile << "Target speed right front (rev/min): " << targetSpeedRevRightFront << endl;
+  logFile << "Target speed right back (rev/min): " << targetSpeedRevRightBack << endl;
 
   logFile << "Target pos left (rev): " << targetPosRevLeft << endl;
   logFile << "Target pos right (rev): " << targetPosRevRight << endl;
 
   // translate commands to motor control format
   float roverMaxRevSpeed = (float)(ROVER_MOTOR_MAX_SPEED_RPM) / (float)(MOTOR_GEARBOX_RATIO); 
-  int16_t targetSpeedRevPercentLeft = (uint16_t) ( (float) targetSpeedRevLeft / (float) roverMaxRevSpeed * 127.0);
-  int16_t targetSpeedRevPercentRight = (uint16_t) ( (float) targetSpeedRevRight / (float) roverMaxRevSpeed * 127.0);
+  int16_t targetSpeedRevPercentLeftFront = (int16_t) ( (float) targetSpeedRevLeftFront / (float) roverMaxRevSpeed * 127.0);
+  int16_t targetSpeedRevPercentRightFront = (int16_t) ( (float) targetSpeedRevRightFront / (float) roverMaxRevSpeed * 127.0);
+  int16_t targetSpeedRevPercentLeftBack = (int16_t) ( (float) targetSpeedRevLeftBack / (float) roverMaxRevSpeed * 127.0);
+  int16_t targetSpeedRevPercentRightBack = (int16_t) ( (float) targetSpeedRevRightBack / (float) roverMaxRevSpeed * 127.0);
 
-  if(targetSpeedRevPercentLeft > 127) targetSpeedRevPercentLeft = 127;
-  if(targetSpeedRevPercentRight > 127) targetSpeedRevPercentRight = 127;
-  if(targetSpeedRevPercentRight < -128) targetSpeedRevPercentRight = -128;
-  if(targetSpeedRevPercentLeft < -128) targetSpeedRevPercentLeft = -128; 
+  if(targetSpeedRevPercentLeftFront > 127) targetSpeedRevPercentLeftFront = 127;
+  if(targetSpeedRevPercentRightFront > 127) targetSpeedRevPercentRightFront = 127;
+  if(targetSpeedRevPercentRightFront < -128) targetSpeedRevPercentRightFront = -128;
+  if(targetSpeedRevPercentLeftFront < -128) targetSpeedRevPercentLeftFront = -128; 
+
+  if(targetSpeedRevPercentLeftBack > 127) targetSpeedRevPercentLeftBack = 127;
+  if(targetSpeedRevPercentRightBack > 127) targetSpeedRevPercentRightBack = 127;
+  if(targetSpeedRevPercentRightBack < -128) targetSpeedRevPercentRightBack = -128;
+  if(targetSpeedRevPercentLeftBack < -128) targetSpeedRevPercentLeftBack = -128;  
 
   int32_t targetPosTicksLeft =  targetPosRevLeft * MOTOR_GEARBOX_RATIO * MOTOR_TICKS_PER_MECH_REV;
   int32_t targetPosTicksRight =  targetPosRevRight * MOTOR_GEARBOX_RATIO * MOTOR_TICKS_PER_MECH_REV;
@@ -300,9 +313,11 @@ int main(int argc, char *argv[]){
   targetPosTicksRight = -targetPosTicksRight;
 
   cout << "Rover theorical max speed (rev/min): " << roverMaxRevSpeed << endl;
-  cout << "Target speed left (rev/min): " << targetSpeedRevLeft << endl;
+  cout << "Target speed front left (rev/min): " << targetSpeedRevLeftFront << endl;
+  cout << "Target speed back left (rev/min): " << targetSpeedRevLeftBack << endl;
   cout << "Target position left (rev): " << targetPosRevLeft << " (" << targetPosTicksLeft << " ticks)" << endl;
-  cout << "Target speed right (rev/min): " << targetSpeedRevRight << endl;
+  cout << "Target speed right front (rev/min): " << targetSpeedRevRightFront << endl;
+  cout << "Target speed right back (rev/min): " << targetSpeedRevRightBack << endl;
   cout << "Target position right (rev): " << targetPosRevRight << " (" << targetPosTicksRight << " ticks)" << endl;
 
 
@@ -342,8 +357,8 @@ int main(int argc, char *argv[]){
   } 
 
   cout << "Send motor control commands..." << endl;
-  setTargetSpeedRight(targetSpeedRevPercentRight);
-  setTargetSpeedLeft(targetSpeedRevPercentLeft);
+  setTargetSpeedRight(targetSpeedRevPercentRightFront, targetSpeedRevPercentRightBack);
+  setTargetSpeedLeft(targetSpeedRevPercentLeftFront, targetSpeedRevPercentRightBack);
   setTargetPositionRight(targetPosTicksRight);
   setTargetPositionLeft(targetPosTicksLeft);
   

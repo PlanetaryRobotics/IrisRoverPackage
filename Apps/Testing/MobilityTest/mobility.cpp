@@ -358,7 +358,7 @@ int main(int argc, char *argv[]){
 
   cout << "Send motor control commands..." << endl;
   setTargetSpeedRight(targetSpeedRevPercentRightFront, targetSpeedRevPercentRightBack);
-  setTargetSpeedLeft(targetSpeedRevPercentLeftFront, targetSpeedRevPercentRightBack);
+  setTargetSpeedLeft(targetSpeedRevPercentLeftFront, targetSpeedRevPercentLeftBack);
   setTargetPositionRight(targetPosTicksRight);
   setTargetPositionLeft(targetPosTicksLeft);
   
@@ -371,9 +371,9 @@ int main(int argc, char *argv[]){
 
   logFile << "Data format: <time in ms since beginning>,<position ticks FL>,<position ticks FR>,<position ticks RL>,<position ticks RR>,<current mA FL>,<current mA FR>,<current mA RL>,<current mA RR>" << endl;
   while(g_runApp){
-    usleep(1000);
+    usleep(50000);
     getPositions(&positionFrontLeft, &positionFrontRight, &positionRearLeft, &positionRearRight);
-    usleep(1000);
+    usleep(50000);
     getCurrents(&currentFrontLeft, &currentFrontRight, &currentRearLeft, &currentRearRight);
 
     gettimeofday(&toc, NULL);

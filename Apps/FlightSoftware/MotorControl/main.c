@@ -587,6 +587,7 @@ void main(void){
 
   //g_piSpd.Ref = _IQ(0.1);
   g_closeLoopThreshold = _IQ(CLOSE_LOOP_THRESHOLD);
+  g_closedLoop = false;
 
   initializeI2cModule();
   initializePwmModules();
@@ -600,7 +601,7 @@ void main(void){
   enableGateDriver(); // TODO <<<< remove this line
 
   while(1){
-   g_closedLoop = (_IQabs(g_currentSpeed) > g_closeLoopThreshold && !g_targetReached) ? true : false;
+   //g_closedLoop = (_IQabs(g_currentSpeed) > g_closeLoopThreshold && !g_targetReached) ? true : false;
 
    if(g_piSpd.w1){
        __disable_interrupt();
@@ -677,15 +678,20 @@ __interrupt void TIMER0_B0_ISR (void){
     g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
 
     // Normalize from -255 ~ + 255 to -1.0 ~ 1.0
-    g_targetReached =  (_IQabs(g_targetPosition - g_currentPosition) < 5) ? true : false;
-    if(g_targetReached == false){
-        g_piSpd.Ref = (_IQsat(g_targetPosition - g_currentPosition, g_maxSpeed, -g_maxSpeed)) << 8;
-    }
-    else{
-        g_piSpd.Ref = 0;
-    }
+    g_targetReached =  (_IQabs(g_targetPosition - g_currentPosition) < 50) ? true : false;
+    //if(g_targetReached == false){
+    //    g_piSpd.Ref = (_IQsat(g_targetPosition - g_currentPosition, g_maxSpeed, -g_maxSpeed)) << 8;
+    //}
+    //else{
+    //    g_piSpd.Ref = 0;
+    //}
+
+    //g_piSpd.Ref = g_maxSpeed << 8;
 
     g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
+
+    if(g_targetDirection > 0) g_piSpd.Ref = g_maxSpeed << 8;
+    else g_piSpd.Ref = -g_maxSpeed << 8;
 
     g_piSpd.Fbk = getSpeed();
 
@@ -711,12 +717,24 @@ __interrupt void TIMER0_B0_ISR (void){
   }
   PI_MACRO(g_piCur);
 
-  if(g_closedLoop == false){
+  if(g_closedLoop == false && g_targetReached == false){
     g_piCur.i1 = 0;
     g_piCur.ui = 0;
     g_piSpd.i1 = 0;
     g_piSpd.ui = 0;
     g_piCur.Out = g_openLoopTorque;
+    if(_IQabs(g_currentSpeed) > g_closeLoopThreshold){
+        g_closedLoop = true;
+    }
+  }
+
+  if(g_targetReached == true){
+      g_piCur.i1 = 0;
+      g_piCur.ui = 0;
+      g_piSpd.i1 = 0;
+      g_piSpd.ui = 0;
+      g_piCur.Out = 0;
+      g_closedLoop = false;
   }
 
   // If target is reached no need to move

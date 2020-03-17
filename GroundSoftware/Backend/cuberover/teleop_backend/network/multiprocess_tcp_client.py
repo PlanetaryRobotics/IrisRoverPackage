@@ -28,7 +28,7 @@ class MultiprocessTcpClient:
                              "is larger than the maximum ({})".format(select_timeout,self.MAX_SELECT_TIMEOUT))
 
         self.__select_timeout = select_timeout
-      #patch multiprocessing
+
     def connect(self, address: str, port: int):
         self.__sock.connect((address, port))
         self.__recv_proc = multiprocessing.Process(target=MultiprocessTcpClient.recv_task,
@@ -45,12 +45,12 @@ class MultiprocessTcpClient:
 
     @staticmethod
     def send_data(sock: socket.socket, data: bytes, flags=0):
-        """Sends the given data with the given socket
+        """Sends the given data using the given socket
 
         Args:
             sock: The socket with which this function will send the data
             data: A list of data handlers, each of which will be given a copy of the data received by the socket.
-            flags: ???
+            flags: The flags you be passed to the underlying sendall() system call (set to 0 by default)
 
         Returns:
             True if data was successfully sent, or False if data unsucessfully sent.

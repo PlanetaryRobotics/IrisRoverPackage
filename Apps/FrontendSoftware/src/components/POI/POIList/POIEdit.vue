@@ -254,7 +254,7 @@ export default {
         return this.POICard.getData().category;
       },
       set(newCategory) {
-        this.POICard.category = newCategory;
+        this.$store.commit("updatePOICategory", {POI: this.POICard, newCategory: newCategory});
       }
     },
     width: {

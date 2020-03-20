@@ -5,8 +5,8 @@ export default class POIList{
   
   constructor(POICardsArray){
 
-    this._list = [];
-    this._numCategories = {ATTRACTION: 0, OBSTACLE: 0, SHADOW: 0};
+    this._list = {ATTRACTION: [], OBSTACLE: [], SHADOW: []};
+    // this._numCategories = {ATTRACTION: 0, OBSTACLE: 0, SHADOW: 0};
 
     for (let card of POICardsArray) {
       if (!(card instanceof POICard)) {
@@ -14,25 +14,46 @@ export default class POIList{
         console.log(card);
       } else {
         let category = card.getData().category;
-        let num = this._numCategories[category] + 1;
-        this._numCategories[category] = num;
+        let num = this._list[category].length + 1;
+        // this._numCategories[category] = num;
         card.number = num;
         
-        this._list.push(card);
+        this._list[category].push(card);
       }
     }
   } 
 
   get list() {
-    return this._list;
+    let result = [];
+    
+    Object.keys(this._list).forEach(key => {
+      result.push(...this._list[key]);
+    })
+
+    return result;
   }
 
-  addPOI(POICard) {
-    if (!(POICard instanceof POICard)) {
+  nextNumForCategory(category) {
+    return this._list[category].length + 1;
+  }
+
+  updatePOICategory(POI, newCategory) {
+    let newNum = this.nextNumForCategory(newCategory);
+
+    // Remove POI from old category list
+    this.deletePOI(POI);
+
+    // Set new num and category, then add to list
+    POI.number = newNum;
+    POI.category = newCategory;
+    this.addPOI(POI);
+  }
+  addPOI(card) {
+    if (!(card instanceof POICard)) {
       console.error("Card is not of type ImageData.");
-      console.log(POICard);
+      console.log(card);
     } else {
-      this._list.push(POICard);
+      this._list[card.getData().category].push(card);
     }
   }
 
@@ -41,7 +62,8 @@ export default class POIList{
       console.error("Card is not of type ImageData.");
       console.log(card);
     } else {
-      this._list = this._list.filter(item => item !== card);
+      let category = card.getData().category;
+      this._list[category] = this._list[category].filter(item => item !== card);
     }
   }
 

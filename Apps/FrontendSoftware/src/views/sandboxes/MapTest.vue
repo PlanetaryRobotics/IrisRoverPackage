@@ -36,7 +36,7 @@ export default {
     grid-gap: .5rem;
     // grid-template-columns: 50rem 1fr;
     grid-template-rows: 1fr;
-    background-color: $color-near-black;
+    background-color: $color-background;
     padding: .5rem;
   }
 

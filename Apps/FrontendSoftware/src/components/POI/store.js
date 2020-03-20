@@ -6,8 +6,6 @@ export default {
       showPOIManagement: true,
       showTagManagement: false,
     },
-
-    POIListFreeze: testPOIList,
     POIList: testPOIList
   },
   getters: {
@@ -25,5 +23,9 @@ export default {
     deletePOI(state, POI) {
       state.POIList.deletePOI(POI);
     },
+
+    updatePOICategory(state, {POI, newCategory}) {
+      state.POIList.updatePOICategory(POI, newCategory);
+    }
   }
 };

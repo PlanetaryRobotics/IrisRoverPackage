@@ -14,7 +14,7 @@
         <Sidemodal :key="1" 
                    :POIListEl='POIListEl' 
                    :target='this.$refs.tags'
-                   :data='[0, 1, 2]'
+                   :data='tagNames'
                    type='TAGS'
                    header='Tags'
                    @closeModal='toggleModal'/>
@@ -58,13 +58,21 @@
           <div class="POICard__imageDimensions">
             <div class="POICard__imageDimension">
               <div class="text__main--bold">
-                {{"Width: "}} &nbsp;
+                {{"Width"}} 
               </div>
               {{" " + POIData.width + " " + POIData.sizeUnit}}
             </div>
+            <div class="POICard__imageDimensionSeparator">x</div>
             <div class="POICard__imageDimension">
               <div class="text__main--bold">
-                {{"Height: "}} &nbsp;
+                {{"Depth"}} 
+              </div>
+              {{" " + POIData.depth + " " + POIData.sizeUnit}}
+            </div>
+            <div class="POICard__imageDimensionSeparator">x</div>
+            <div class="POICard__imageDimension">
+              <div class="text__main--bold">
+                {{"Height"}} &nbsp;
               </div>
               {{" " + POIData.height + " " + POIData.sizeUnit}}
             </div>
@@ -322,7 +330,7 @@ export default {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-around;
 
     > img {
       width: 4rem;
@@ -340,8 +348,16 @@ export default {
 
   &__imageDimension {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    justify-content: center;
     padding-left: 1rem;
+  }
+
+  &__imageDimensionSeparator {
+    padding: 0 0.5rem 0 0.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
   }
 
   &__moreData {

@@ -38,7 +38,8 @@
 
 .scrollable{
   overflow: auto;
-
+  overflow-x: hidden;
+  
   &::-webkit-scrollbar {
     width: 1em;
   }

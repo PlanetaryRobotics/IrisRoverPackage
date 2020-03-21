@@ -62,3 +62,8 @@ core
 .vscode
 py_dict
 .settings
+
+# Ignore generated dictionary files
+**/CubeRoverDictionary.json
+**/dictPath.txt
+

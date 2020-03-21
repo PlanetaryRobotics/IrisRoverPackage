@@ -21,7 +21,7 @@ class MongoDbState(enum.Enum):
 
 class MongoDbCollection:
     # Selector indicating which fields of a document in a collection are intended for the backend:
-    BACKEND_FIELD_SELECTOR = {'lookupID': 1, 'name': 1, 'args': 1}
+    BACKEND_FIELD_SELECTOR = {'lookupID': 1, 'name': 1, 'args': 1, 'type': 1, 'opcode': 1}
 
     class Names(enum.Enum):
         """Enumeration of all valid collection names."""

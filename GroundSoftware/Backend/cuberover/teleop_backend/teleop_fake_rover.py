@@ -10,12 +10,11 @@ __TELEOP_BACKEND_DIR = os.path.dirname(__THIS_FILE_DIR)
 if __TELEOP_BACKEND_DIR not in sys.path:
     sys.path.insert(0, __TELEOP_BACKEND_DIR)
 
+# system imports
 import argparse
 import pathlib
 
 from teleop_backend.utils import fprime_import_utils
-
-USING_IDL = True
 
 # This is a workaround for differing behavior of the pathlib.Path.resolve() method between Python <3.6 and >=3.6.
 # Calling path.resolve(**__PATH_RESOLVE_KWARGS) gives the behavior of path.resolve() in <3.6 which is equivalent to
@@ -27,7 +26,14 @@ else:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Reads commands from database and sends them out")
+    """A fake "rover" that acts as a TCP server for the backend to connect to and responds to commands.
+
+    Specifically, this fake "rover" will send a Response message indicating success for every command it receives from
+    the backend. The data flow within this fake rover work similar to the backend itself but a bit simpler and in
+    reverse, as we receive an F Prime encoded message, convert it to database-format for easy printing and parsing,
+    then create a Response message, serialize it, and send it back to the backend.
+    """
+    parser = argparse.ArgumentParser(description="Acts as a fake receiver and prints the commands it receives")
     parser.add_argument("-a", "--address", type=str, required=True,
                         help="The address to which the client should connect")
     parser.add_argument("-p", "--port", type=int, required=True,
@@ -106,17 +112,15 @@ def main():
     if fprime_gds_path_str not in sys.path:
         sys.path.insert(0, fprime_gds_path_str)
 
-    # Import the stuff from teleop_backend that we need. This happens here instead of at the top of the file because we
-    # need to add fprime to the path first. fprime needs to be in the path because these other teleop_backend files may
-    # import stuff from fprime.
-    from teleop_backend.pipeline import pipeline
-    backend_pipeline = pipeline.Pipeline()
-    backend_pipeline.build_pipeline(server_address=args.address,
-                                            server_port=args.port,
-                                            response_msg_name=args.response_command_name,
-                                            generated_file_directory_path=pathlib.Path(args.generated_file_directory))
+    from teleop_backend import teleop_fake_rover_pipeline
+    rover_pipeline = teleop_fake_rover_pipeline.FakeRoverPipeline()
+    rover_pipeline.build_pipeline(address=args.address,
+                                  port=args.port,
+                                  response_msg_name=args.response_command_name,
+                                  generated_file_directory_path=pathlib.Path(args.generated_file_directory))
 
-    backend_pipeline.spin()
+    rover_pipeline.spin()
+
 
 if __name__ == "__main__":
     main()

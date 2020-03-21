@@ -80,10 +80,43 @@
                 </arg>
             </args>
         </command>
-        <command kind="async" opcode="3" mnemonic="CMD_CLEAR_TRACKING" >
+        <command kind="async" opcode="3" mnemonic="Response" >
             <comment>
-            Clear command tracking info to recover from components not returning status
+            The response sent to ground, used by the rover to indicate the status of all received commands.
             </comment>
+            <args>
+                <arg name="type" type="U8">
+                    <comment>The opcode of the command to which this command is a response</comment>
+                </arg>
+                <arg name="command" type="U8">
+                    <comment>The subcommand specifier</comment>
+                </arg>
+                <arg name="errorCode" type="U8">
+                    <comment>The code of the error that occurred, or 0 if it succeeded</comment>
+                </arg>
+                <arg name="additionalData" type="U16">
+                    <comment>Additional data about the error</comment>
+                </arg>
+            </args>
+        </command>
+        <command kind="async" opcode="4" mnemonic="Navigation" >
+            <comment>
+            A command for the robot to move in a specified direction or to stop moving.
+            </comment>
+            <args>
+                <arg name="driving" type="U8">
+                    <comment>Always 0x1</comment>
+                </arg>
+                <arg name="command" type="U8">
+                    <comment>The type of driving command</comment>
+                </arg>
+                <arg name="distance" type="U8">
+                    <comment>The distance in either centimeters in the range (0,30] or degrees in the range (0,90]</comment>
+                </arg>
+                <arg name="speed" type="U8">
+                    <comment>The speed in either cm/sec in the range (0,10] or deg/sec in the range (0,10]</comment>
+                </arg>
+            </args>
         </command>
     </commands>
     <events>

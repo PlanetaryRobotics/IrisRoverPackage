@@ -13,7 +13,16 @@
 | | | |arg1|I32|The I32 command argument|
 | | | |arg2|F32|The F32 command argument|
 | | | |arg3|U8|The U8 command argument|
-|CMD_CLEAR_TRACKING|3 (0x3)|Clear command tracking info to recover from components not returning status| | |
+|Response|3 (0x3)|The response sent to ground, used by the rover to indicate the status of all received commands.| | |
+| | | |type|U8|The opcode of the command to which this command is a response|
+| | | |command|U8|The subcommand specifier|
+| | | |errorCode|U8|The code of the error that occurred, or 0 if it succeeded|
+| | | |additionalData|U16|Additional data about the error|
+|Navigation|4 (0x4)|A command for the robot to move in a specified direction or to stop moving.| | |
+| | | |driving|U8|Always 0x1|
+| | | |command|U8|The type of driving command|
+| | | |distance|U8|The distance in either centimeters in the range (0,30] or degrees in the range (0,90]|
+| | | |speed|U8|The speed in either cm/sec in the range (0,10] or deg/sec in the range (0,10]|
 
 ## Telemetry Channel List
 

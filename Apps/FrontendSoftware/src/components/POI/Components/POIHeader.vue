@@ -63,7 +63,7 @@ export default {
 @import '@/styles/_typography.scss';
 
 .POIHeaderContainer {
-  padding-top: 1rem;
+  // padding-top: 1rem;
   padding-right: 1rem;
   display: flex;
   flex-direction: row;

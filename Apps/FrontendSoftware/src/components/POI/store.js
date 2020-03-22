@@ -6,7 +6,11 @@ export default {
       showPOIManagement: true,
       showTagManagement: false,
     },
-    POIList: testPOIList
+    POIList: testPOIList,
+    POIImageSelected: {
+      POICard: null,
+      imageIndex: -1,
+    }
   },
   getters: {
     POIList: state => {
@@ -17,6 +21,9 @@ export default {
     },
     showTagManagement: state => {
       return state.show.showTagManagement;
+    },
+    POIImageSelected: state => {
+      return state.POIImageSelected;
     }
   },
   mutations: {
@@ -26,6 +33,13 @@ export default {
 
     updatePOICategory(state, {POI, newCategory}) {
       state.POIList.updatePOICategory(POI, newCategory);
+    },
+
+    setPOIImageSelected(state, {POICard, imageIndex}) {
+      state.POIImageSelected = {
+        POICard: POICard,
+        imageIndex: imageIndex
+      };
     }
   }
 };

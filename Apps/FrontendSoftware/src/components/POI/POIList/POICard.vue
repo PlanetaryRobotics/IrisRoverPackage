@@ -14,7 +14,7 @@
         <Sidemodal :key="1" 
                    :POIListEl='POIListEl' 
                    :target='this.$refs.tags'
-                   :data='tagNames'
+                   :data='tagNames.slice(7)'
                    type='TAGS'
                    header='Tags'
                    @closeModal='toggleModal'/>
@@ -42,7 +42,7 @@
 
         <!--TAGS-->
         <div class="POICard__tags" ref="tags">
-            <div class="pill__tag" v-for="(name, index) of tagNames" :key="index" >
+            <div class="pill__tag" v-for="(name, index) of tagNames.slice(0, 7)" :key="index" >
                <div v-html="searchQuery ? marked.tags[index] : name"/>
                <!-- {{getShortName(name)}} -->
             </div>  
@@ -122,7 +122,7 @@ import POIHeader from "@/components/POI/Components/POIHeader.vue";
 import Sidemodal from "@/components/POI/Components/Sidemodal.vue";
 
 import POICard from "@/data_classes/POICard.js";
-import POIListEventBus from "@/components/POI/POIList/POIListEventBus.js";
+import POIEventBus from "@/components/POI//POIEventBus.js";
 
 export default {
   name: "POICard",
@@ -164,11 +164,8 @@ export default {
     tagNames: function() {
       let tagList = this.POIData.tagList;
       let nameList = [];
-      if (tagList.length > 7) {
-        tagList.slice(0, 7).forEach(tag => nameList.push(this.getShortName(tag.getName())));
-      } else {
-        tagList.forEach(tag => nameList.push(this.getShortName(tag.getName())));
-      }
+      tagList.forEach(tag => nameList.push(this.getShortName(tag.getName())));
+
       return nameList;
     },
     images: function() {
@@ -219,7 +216,7 @@ export default {
       return 0;
     },
     openEditWindow() {
-      POIListEventBus.$emit('OPEN_EDIT_POI_WINDOW', this.POICard);
+      POIEventBus.$emit('OPEN_EDIT_POI_WINDOW', this.POICard);
     },
   }
 }
@@ -238,7 +235,7 @@ export default {
 
 .POICard {
   &__header {
-    padding-top: 1rem;
+    padding-top: 2rem;
     padding-right: 1rem;
     display: flex;
     flex-direction: row;

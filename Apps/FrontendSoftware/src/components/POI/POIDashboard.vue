@@ -4,7 +4,7 @@
     <div class="POIDashboardContent__leftColumn">
 
       <div class="POIDashboardContent__header">
-        <div class="text__large header" 
+        <div class="text__large header POIHeader" 
               v-bind:class="{'current': show.POIManagement}"
               @click="toggleManager()">
           POI Management
@@ -84,8 +84,8 @@ export default {
   }
 
   &__body {
-    padding-left: 34px;
-    padding-right: 34px;
+    padding-left: 38px;
+    padding-right: 30px;
   }
 
   &__header {
@@ -116,6 +116,10 @@ export default {
   &:hover {
     cursor: pointer;
   }
+}
+
+.POIHeader {
+  padding-left: 38px;
 }
 
 .current {

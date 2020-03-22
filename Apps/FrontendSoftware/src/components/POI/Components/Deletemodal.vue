@@ -31,7 +31,7 @@
 <script>
 
 import POICard from "@/data_classes/POICard.js";
-import POIListEventBus from "@/components/POI/POIList/POIListEventBus.js";
+import POIEventBus from "@/components/POI//POIEventBus.js";
 
 export default {
   name: "Deletemodal",
@@ -71,7 +71,7 @@ export default {
       this.$emit('closeModal', 'modalDelete');
     },
     deletePOI() {
-      POIListEventBus.$emit('DELETE_POI', this.POICard);
+      POIEventBus.$emit('DELETE_POI', this.POICard);
     }
   }
 }
@@ -97,13 +97,18 @@ export default {
 .deletemodal {
   position: absolute;
   width: 36rem;
+  height: 18rem;
   background-color: $color-near-black;
-  top: 8rem;
-  right: 6rem;
+  margin: auto;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
   z-index: 999;
   border-radius: 4px;
   box-shadow: 3px 3px 3px rgba(0, 0, 0, .28);
   padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .header {

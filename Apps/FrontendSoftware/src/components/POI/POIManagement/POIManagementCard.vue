@@ -16,7 +16,9 @@
 
       <div class = "images" v-show = "show.images">
         <div class = "images__card" v-for="(image, index) of POIData.images" :key="index">
-          <img :src="image.url">
+          <img :src="image.url" 
+               @click="setSelectedImage(index)"
+               v-bind:class="computeIndex(index)">
           {{image.timeForTagFormatting}}
         </div>
       </div>
@@ -25,31 +27,46 @@
 
 <script>
 
-import POIHeader from "@/components/POI/Components/POIHeader.vue";
 import { mapGetters } from 'vuex';
+import POICard from "@/data_classes/POICard.js";
+import POIHeader from "@/components/POI/Components/POIHeader.vue";
 
 export default {
   name: "POIManagement",
   components: {
-    POIHeader
+    POIHeader,
   },
   data() {
     return {
       show: {
         images: true,
       },
+      selectedImageIndex: -1,
     }
   },
   props: {
-    POIData: Object
+    POIData: Object,
+    POICard: POICard
   },
   computed: {
-    ...mapGetters(['POIList']),
+    ...mapGetters(['POIList', 'POIImageSelected']),
     tagNames: function() {
       let tagList = this.POIData.tagList;
       let nameList = [];
       tagList.forEach(tag => nameList.push(tag.getName()));
       return nameList;
+    },
+  },
+  watch: {
+    POIImageSelected: {
+      deep: true, 
+      handler(newObj){
+        if (newObj.POICard === this.POICard && newObj.imageIndex !== this.selectedImageIndex) {
+          this.selectedImageIndex = newObj.imageIndex;
+        } else if (this.selectedImageIndex !== -1) {
+          this.selectedImageIndex = -1;
+        }
+      }
     },
   },
   methods: {
@@ -62,6 +79,14 @@ export default {
       } 
       return name;
     },
+    setSelectedImage(index) {
+      this.$store.commit("setPOIImageSelected", {POICard: this.POICard, imageIndex: index});
+    },
+    computeIndex(index) {
+      if (index === this.selectedImageIndex) {
+        return "selected";
+      }
+    }
   }
 }
 
@@ -147,6 +172,10 @@ export default {
     margin-bottom: 1rem;
     width: auto;
   }
+}
+
+.selected {
+  border: 1px solid $color-primary;
 }
 
 </style>

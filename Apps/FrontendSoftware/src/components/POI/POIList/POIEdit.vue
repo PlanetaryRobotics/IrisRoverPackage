@@ -214,7 +214,7 @@
 <script>
 
 import POICard from "@/data_classes/POICard.js";
-import POIListEventBus from "@/components/POI/POIList/POIListEventBus.js";
+import POIEventBus from "@/components/POI//POIEventBus.js";
 import Sidemodal from "@/components/POI/Components/Sidemodal.vue";
 import Deletemodal from "@/components/POI/Components/Deletemodal.vue";
 import arrowSVG from "@/assets/icons/icon_arrow_white.svg";
@@ -308,7 +308,7 @@ export default {
       this.show[key] = !this.show[key];
     },
     closeEdit() {
-      POIListEventBus.$emit('CLOSE_EDIT_POI_WINDOW', this.POICard);
+      POIEventBus.$emit('CLOSE_EDIT_POI_WINDOW', this.POICard);
     },
     getCategoryShortForm(category) {
       if (category === "ATTRACTION") {

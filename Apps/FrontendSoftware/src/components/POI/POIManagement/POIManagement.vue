@@ -1,7 +1,7 @@
 <template>
     <div class="POIManagement scrollable">
         <div class="POIManagementHeader" v-for="(POICard, index) in POIList" :key="index">
-          <POIManagementCard :POIData="POICard.getData()"/>
+          <POIManagementCard :POIData="POICard.getData()" :POICard="POICard"/>
         </div>
     </div> 
 </template>

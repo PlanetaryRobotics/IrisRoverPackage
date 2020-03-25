@@ -1,8 +1,15 @@
 <template>
   <div class="POIDashboardContent noSelect">
     
+    <!-- SIDE SCROLLER FOR TAG MANAGEMENT -->
+    <div class="POIDashboardContent__alphabetScroller">
+      <AlphabetScroller v-show="!show.POIManagement"/>
+    </div>
+
+    <!-- DASHBOARD BODY -->
     <div class="POIDashboardContent__leftColumn">
 
+      <!-- HEADERS --> 
       <div class="POIDashboardContent__header">
         <div class="text__large header POIHeader" 
               v-bind:class="{'current': show.POIManagement}"
@@ -17,9 +24,10 @@
       </div>
       
 
+      <!-- BODY -->
       <div class="POIDashboardContent__body scrollable">
-        <POIManagement v-if="show.POIManagement"/>
-        <TagManagement v-else />
+        <POIManagement v-show="show.POIManagement"/>
+        <TagManagement v-show="!show.POIManagement" />
       </div>
     </div>
     
@@ -35,13 +43,15 @@
 import POIList from "@/components/POI/POIList/POIList.vue";
 import POIManagement from "@/components/POI/POIManagement/POIManagement.vue";
 import TagManagement from "@/components/POI/TagManagement/TagManagement.vue";
+import AlphabetScroller from "@/components/POI/TagManagement/AlphabetScroller.vue";
 
 export default {
   name: "POIDashboard",
   components: {
     POIList,
     POIManagement,
-    TagManagement
+    TagManagement,
+    AlphabetScroller
   },
   data() {
     return {
@@ -73,18 +83,17 @@ export default {
   border-radius: 4px;
   width: 100%;
   display: grid;
-  grid-template-columns: 3fr 1fr;
+  grid-template-columns: 38px 3fr 1fr;
 
   &__leftColumn {
     height: 95vh;
-    padding-left: 34px 8px 34px 0px;
     background-color: $color-background;
     display: flex;
     flex-direction: column;
+    padding-left: 8px;
   }
 
   &__body {
-    padding-left: 38px;
     padding-right: 30px;
   }
 
@@ -106,20 +115,17 @@ export default {
 }
 
 .header {
-  display: inline-block;
-  padding-left: 34px;
+  display: inline;
   padding-right: 34px;
-  line-height: 4rem;
+  padding-bottom: 4px;
+  line-height: 6rem;
   border-bottom: 4px solid #9F9F9F;
   color: #9F9F9F;
+  text-align: center;
 
   &:hover {
     cursor: pointer;
   }
-}
-
-.POIHeader {
-  padding-left: 38px;
 }
 
 .current {

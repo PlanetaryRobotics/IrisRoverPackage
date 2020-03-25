@@ -13,6 +13,18 @@ function bytes(file){
   return Buffer.from(Uint8Array.from(data));
 }
 
+const TAGLIST = [
+  new Tag({name: "kjsdhgkjsdgh", initialImage:"CR_M01_0001", tagNames:[]}),
+  new Tag({name: "obst2", initialImage:"CR_M01_0001", tagNames:[]}),
+  new Tag({name: "obst3", initialImage:"CR_M01_0001", tagNames:[]}),
+  new Tag({name: "obst4", initialImage:"CR_M01_0001", tagNames:[]}),
+  new Tag({name: "obst5", initialImage:"CR_M01_0000", tagNames:[]}),
+  new Tag({name: "obst6", initialImage:"CR_M01_0000", tagNames:[]}),
+  new Tag({name: "obst7", initialImage:"CR_M01_0000", tagNames:[]}),
+  new Tag({name: "obst8", initialImage:"CR_M01_0000", tagNames:[]}),
+  new Tag({name: "obst9", initialImage:"CR_M01_0000", tagNames:[]}),
+];
+
 var cards = [
   new POICard(
     {
@@ -31,17 +43,7 @@ var cards = [
       height: 5,
       depth: 5,
       sizeUnit: "CM",
-      tagList: [
-        new Tag({name: "kjsdhgkjsdgh", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "obst2", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "obst3", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "obst4", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "obst5", initialImage:"CR_M01_0000", tagNames:[]}),
-        new Tag({name: "obst6", initialImage:"CR_M01_0000", tagNames:[]}),
-        new Tag({name: "obst7", initialImage:"CR_M01_0000", tagNames:[]}),
-        new Tag({name: "obst8", initialImage:"CR_M01_0000", tagNames:[]}),
-        new Tag({name: "obst9", initialImage:"CR_M01_0000", tagNames:[]}),
-      ],
+      tagList: [...TAGLIST],
       creator: "Caitlin Coyiuto",
       description: "I am a hella beautiful rock on the moon.",
       images: [
@@ -245,12 +247,7 @@ var cards = [
       height: 5,
       depth: 5,
       sizeUnit: "CM",
-      tagList: [
-        new Tag({name: "shdw1", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "shdw2", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "shdw3", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "shdw4", initialImage:"CR_M01_0001", tagNames:[]}),
-      ],
+      tagList: [...TAGLIST.slice(0,5)],
       creator: "Caitlin Coyiuto",
       description: "I am a hella beautiful rock on the moon.",
       images: [
@@ -301,13 +298,7 @@ var cards = [
       height: 5,
       depth: 5,
       sizeUnit: "CM",
-      tagList: [
-        new Tag({name: "Dwayne", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "Squid", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "Rock", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "Rocco", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "Steve", initialImage:"CR_M01_0000", tagNames:[]}),
-      ],
+      tagList: [...TAGLIST.slice(0,5)],
       creator: "Caitlin Coyiuto",
       description: "I am a hella beautiful rock on the moon.",
       images: [
@@ -358,13 +349,7 @@ var cards = [
       height: 5,
       depth: 5,
       sizeUnit: "CM",
-      tagList: [
-        new Tag({name: "Dwayne", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "Squid", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "Rock", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "Rocco", initialImage:"CR_M01_0001", tagNames:[]}),
-        new Tag({name: "Steve", initialImage:"CR_M01_0000", tagNames:[]}),
-      ],
+      tagList: [...TAGLIST.slice(0,5)],
       creator: "Caitlin Coyiuto",
       description: "I am a hella beautiful rock on the moon.",
       images: [

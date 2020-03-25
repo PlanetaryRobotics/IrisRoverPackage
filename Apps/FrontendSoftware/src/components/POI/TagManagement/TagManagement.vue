@@ -1,21 +1,24 @@
 <template>
     <div class="TagManagement scrollable">
-      Bloop tag management
+        <div class="TagManagementHeader" v-for="(tag, index) in POITagList.keys()" :key="index">
+          <TagManagementCard :tag="tag" :list="POITagList.get(tag)"/>
+        </div>
     </div> 
 </template>
 
 <script>
 
+import TagManagementCard from "@/components/POI/TagManagement/TagManagementCard.vue";
+
 export default {
   name: "TagManagement",
   components: {
-   
-  },
-  data() {
-    return {
-    }
+    TagManagementCard
   },
   computed: {
+    POITagList() {
+      return this.$store.getters.POIByTagList;
+    }
   },
 }
 
@@ -26,5 +29,10 @@ export default {
 @import '@/styles/_colors.scss';
 @import '@/styles/_typography.scss';
 
+.TagManagementHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
 
 </style>

@@ -191,15 +191,6 @@ export default {
 
       this.marked.tags = markedTags;
     },
-    getTitle() {
-      if (this.POIData.category === "ATTRACTION") {
-        return "ATTR-";
-      } else if (this.POIData.category === "OBSTACLE") {
-        return "OBST-";
-      } else {
-        return "SHDW-";
-      }
-    },
     toggleShowMore(){
       this.show.moreData = !this.show.moreData;
     },

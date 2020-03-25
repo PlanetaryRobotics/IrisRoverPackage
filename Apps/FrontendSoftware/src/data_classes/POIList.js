@@ -6,20 +6,10 @@ export default class POIList{
   constructor(POICardsArray){
 
     this._list = {ATTRACTION: [], OBSTACLE: [], SHADOW: []};
-    // this._numCategories = {ATTRACTION: 0, OBSTACLE: 0, SHADOW: 0};
+    this._POIByTagList = new Map();  // { TAG OBJ : [POICARD, POICARD ... ] }
 
     for (let card of POICardsArray) {
-      if (!(card instanceof POICard)) {
-        console.error("Card is not of type ImageData.");
-        console.log(card);
-      } else {
-        let category = card.getData().category;
-        let num = this._list[category].length + 1;
-        // this._numCategories[category] = num;
-        card.number = num;
-        
-        this._list[category].push(card);
-      }
+      this.addPOI(card);
     }
   } 
 
@@ -31,6 +21,10 @@ export default class POIList{
     })
 
     return result;
+  }
+
+  get POIByTagList() {
+    return this._POIByTagList;
   }
 
   nextNumForCategory(category) {
@@ -48,12 +42,18 @@ export default class POIList{
     POI.category = newCategory;
     this.addPOI(POI);
   }
+
   addPOI(card) {
     if (!(card instanceof POICard)) {
       console.error("Card is not of type ImageData.");
       console.log(card);
     } else {
-      this._list[card.getData().category].push(card);
+      let category = card.getData().category;
+      let num = this._list[category].length + 1;
+      card.number = num;
+
+      this._list[category].push(card);
+      this.addToPOITagList(card);
     }
   }
 
@@ -64,6 +64,33 @@ export default class POIList{
     } else {
       let category = card.getData().category;
       this._list[category] = this._list[category].filter(item => item !== card);
+      this.removeFromPOITagList(card);
+    }
+  }
+
+  addToPOITagList(card) {
+    let tagsInCard = card.getData().tagList;
+
+    for (let tag of tagsInCard) {
+      if (!this._POIByTagList.has(tag)){
+        this._POIByTagList.set(tag, [card]);
+      } else {
+        let arr = this._POIByTagList.get(tag);
+        this._POIByTagList.set(tag, [...arr, card]);
+      }
+    }
+  }
+
+  removeFromPOITagList(card) {
+    let tagsInCard = card.getData().tagList;
+
+    for (let tag of tagsInCard) {
+      let array = this._POIByTagList.get(tag);
+      let index = array.indexOf(card);
+      if (index !== -1) {
+        array.splice(index, 1);
+        this._POIByTagList.set(tag, array);
+      }
     }
   }
 

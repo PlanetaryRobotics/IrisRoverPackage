@@ -15,13 +15,6 @@ export default {
   components: {
     POIManagementCard
   },
-  data() {
-    return {
-      show: {
-        images: true,
-      }
-    }
-  },
   computed: {
     POIList() {
       return this.$store.getters.POIList;
@@ -40,15 +33,6 @@ export default {
   display: flex;
   flex-direction: row;
   align-items: center;
-
-  &__title {
-    flex-grow: 1;
-  }
-
-  &__toggle {
-    transform: rotate(-180deg);
-    transition: .1s ease-in-out;
-  }
 }
 
 </style>

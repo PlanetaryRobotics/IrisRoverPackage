@@ -130,6 +130,24 @@ export default class POICard{
     return this.data;
   }
 
+  getName() {
+    let str = "";
+    if (this.data.category === "ATTRACTION") {
+      str += "ATTR-";
+    } else if (this.data.category === "OBSTACLE") {
+      str += "OBST-";
+    } else {
+      str += "SHDW-";
+    }
+
+    return str += this.data.number;
+  }
+
+  getColor() {
+    let category = this.data.category;
+    return POICard.CATEGORY_COLORS[category];
+  }
+
   addImage(image) {
     if (!(image instanceof ImageData)){
       console.error("Image is not of type ImageData. Image not added to POICard.");

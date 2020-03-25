@@ -2,10 +2,6 @@ import {testPOIList} from "@/components/POI/testPOIData.js";
 
 export default {
   state: {
-    show: {
-      showPOIManagement: true,
-      showTagManagement: false,
-    },
     POIList: testPOIList,
     POIImageSelected: {
       POICard: null,
@@ -16,14 +12,11 @@ export default {
     POIList: state => {
       return state.POIList.list;
     },
-    showPOIManagement: state => {
-      return state.show.showPOIManagement;
-    },
-    showTagManagement: state => {
-      return state.show.showTagManagement;
-    },
     POIImageSelected: state => {
       return state.POIImageSelected;
+    },
+    POIByTagList: state => {
+      return state.POIList.POIByTagList;
     }
   },
   mutations: {
@@ -33,7 +26,7 @@ export default {
 
     updatePOICategory(state, {POI, newCategory}) {
       state.POIList.updatePOICategory(POI, newCategory);
-    },
+    },     
 
     setPOIImageSelected(state, {POICard, imageIndex}) {
       state.POIImageSelected = {

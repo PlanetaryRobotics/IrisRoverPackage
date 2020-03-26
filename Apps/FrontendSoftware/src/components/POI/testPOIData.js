@@ -14,15 +14,16 @@ function bytes(file){
 }
 
 const TAGLIST = [
-  new Tag({name: "kjsdhgkjsdgh", initialImage:"CR_M01_0001", tagNames:[]}),
-  new Tag({name: "obst2", initialImage:"CR_M01_0001", tagNames:[]}),
-  new Tag({name: "obst3", initialImage:"CR_M01_0001", tagNames:[]}),
-  new Tag({name: "obst4", initialImage:"CR_M01_0001", tagNames:[]}),
-  new Tag({name: "obst5", initialImage:"CR_M01_0000", tagNames:[]}),
-  new Tag({name: "obst6", initialImage:"CR_M01_0000", tagNames:[]}),
-  new Tag({name: "obst7", initialImage:"CR_M01_0000", tagNames:[]}),
-  new Tag({name: "obst8", initialImage:"CR_M01_0000", tagNames:[]}),
-  new Tag({name: "obst9", initialImage:"CR_M01_0000", tagNames:[]}),
+  new Tag({name: "rocco", initialImage:"CR_M01_0001", tagNames:[]}),
+  new Tag({name: "ricco", initialImage:"CR_M01_0001", tagNames:[]}),
+  new Tag({name: "darkrocco", initialImage:"CR_M01_0001", tagNames:[]}),
+  new Tag({name: "moonrock", initialImage:"CR_M01_0001", tagNames:[]}),
+  new Tag({name: "hole", initialImage:"CR_M01_0001", tagNames:[]}),
+  new Tag({name: "steve", initialImage:"CR_M01_0000", tagNames:[]}),
+  new Tag({name: "pebble", initialImage:"CR_M01_0000", tagNames:[]}),
+  new Tag({name: "aaaaaa", initialImage:"CR_M01_0000", tagNames:[]}),
+  new Tag({name: "ccccc", initialImage:"CR_M01_0000", tagNames:[]}),
+  new Tag({name: "idkman", initialImage:"CR_M01_0000", tagNames:[]}),
 ];
 
 var cards = [

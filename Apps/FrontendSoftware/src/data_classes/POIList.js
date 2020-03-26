@@ -24,6 +24,13 @@ export default class POIList{
   }
 
   get POIByTagList() {
+    // Sort the map by tag name
+    let sortedMap = new Map([...this._POIByTagList.entries()].sort((a,b) => {
+      return a[0].getName().localeCompare(b[0].getName());
+    }));
+
+    // Save sorted version
+    this._POIByTagList = sortedMap;
     return this._POIByTagList;
   }
 

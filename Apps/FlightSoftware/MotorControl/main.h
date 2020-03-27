@@ -17,10 +17,10 @@
 #define PWM_HALF_PERIOD_TICKS       256
 #define PI_SPD_CONTROL_PRESCALER    1000    // 15.6 Hz, speed control
 
-#define KP_SPD                  0.3
-#define KI_SPD                  0.001
+#define KP_SPD                  1.0
+#define KI_SPD                  0.0009
 #define KP_CUR                  0.95
-#define KI_CUR                  0.001
+#define KI_CUR                  0.002
 
 #define OPEN_LOOP_TORQUE        0.1       // Normalized to 1.0, 1.0 being maximum current system can produce
 #define PERIOD_IMPULSE          150

@@ -52,23 +52,23 @@
           </div>
 
           <!-- IMAGE INFO -->
-          <div class="ImageInfo">
+          <div class="ImageInfo" v-if="selectedImage">
             <div class="ImageInfo__header text__main--bold">Images</div>
             <div class="ImageInfo__row">
-              <div class="text__main--bold">Src Name: </div> 
-              dsjkghsdjgsdkd
+              <div class="text__main--bold ImageInfo__property">Src Name: </div> 
+              {{selectedImage.name()}}
             </div>
             <div class="ImageInfo__row">
-              <div class="text__main--bold">Modified: </div> 
-              dsjkghsdjgsdkd
+              <div class="text__main--bold ImageInfo__property">Modified:</div> 
+              {{selectedImage.timeForTagFormatting}}
             </div>
             <div class="ImageInfo__row">
-              <div class="text__main--bold">Dimension: </div> 
-              dsjkghsdjgsdkd
+              <div class="text__main--bold ImageInfo__property">Dimension: </div> 
+              UNKNOWN?
             </div>
             <div class="ImageInfo__row">
-              <div class="text__main--bold">Detail: </div> 
-              dsjkghsdjgsdkd
+              <div class="text__main--bold ImageInfo__property">Detail: </div> 
+              UNKNOWN?
             </div>
           </div>
 
@@ -90,6 +90,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 
 import POICard from "@/components/POI/POIList/POICard.vue";
 import POIEdit from "@/components/POI/POIList/POIEdit.vue";
@@ -105,6 +106,7 @@ export default {
     POIEdit
   },
   computed: {
+    ...mapGetters(['POIImageSelected']),
     POIList() {
       let POIList = this.$store.getters.POIList;
     
@@ -112,6 +114,14 @@ export default {
       list = POIListDataClass.orderBy(this.orderBy, list);
 
       return list;
+    },
+  },
+  watch: {
+    POIImageSelected: {
+      deep: true, 
+      handler(newObj){
+       this.selectedImage = newObj.image;
+      }
     },
   },
   data() {
@@ -129,7 +139,8 @@ export default {
         cardObject: null,
         JSON: null,
       },
-      POIListEl: null
+      POIListEl: null,
+      selectedImage: null
     }
   },
   created() {
@@ -292,6 +303,10 @@ export default {
     display: flex;
     flex-direction: row;
     margin: 1rem 0 1rem 0;
+  }
+
+  &__property {
+    margin-right: 1rem;
   }
 }
 

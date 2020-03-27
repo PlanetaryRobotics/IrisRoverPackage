@@ -16,9 +16,9 @@
 
       <div class = "images" v-show = "show.images">
         <div class = "images__card" v-for="(image, index) of POIData.images" :key="index">
-          <img :src="image.url" 
-               @click="setSelectedImage(index)"
-               v-bind:class="computeIndex(index)">
+          <img :id="generateId(image)" 
+               :src="image.url"
+               @click="setSelectedImage(generateId(image), image)">
           {{image.timeForTagFormatting}}
         </div>
       </div>
@@ -41,7 +41,6 @@ export default {
       show: {
         images: true,
       },
-      selectedImageIndex: -1,
     }
   },
   props: {
@@ -49,7 +48,7 @@ export default {
     POICard: POICard
   },
   computed: {
-    ...mapGetters(['POIList', 'POIImageSelected']),
+    ...mapGetters(['POIList', 'POIImageSelectedId']),
     tagNames: function() {
       let tagList = this.POIData.tagList;
       let nameList = [];
@@ -57,19 +56,12 @@ export default {
       return nameList;
     },
   },
-  watch: {
-    POIImageSelected: {
-      deep: true, 
-      handler(newObj){
-        if (newObj.POICard === this.POICard && newObj.imageIndex !== this.selectedImageIndex) {
-          this.selectedImageIndex = newObj.imageIndex;
-        } else if (this.selectedImageIndex !== -1) {
-          this.selectedImageIndex = -1;
-        }
-      }
-    },
-  },
   methods: {
+    generateId(image) {
+      // TODO: need to double check that this is effectively like a uuid
+      let str = this.POICard.getName() + "-" + image.fileName;
+      return str.split(' ').join('');
+    },
     toggleImages() {
       this.show.images = !this.show.images;
     },
@@ -79,13 +71,26 @@ export default {
       } 
       return name;
     },
-    setSelectedImage(index) {
-      this.$store.commit("setPOIImageSelected", {POICard: this.POICard, imageIndex: index});
-    },
-    computeIndex(index) {
-      if (index === this.selectedImageIndex) {
-        return "selected";
+    setSelectedImage(id, image) {
+      if (!this.POIImageSelectedId) {
+        let elem = document.getElementById(id);
+        elem.classList.add("selected");
       }
+      else {
+        // Remove the old ver
+        let oldElem = document.getElementById(this.POIImageSelectedId);
+        oldElem.classList.remove("selected");
+
+        if (id !== this.POIImageSelectedId) {
+          let elem = document.getElementById(id);
+          elem.classList.add("selected");
+
+        }
+      }
+
+      id === this.POIImageSelectedId ? 
+        this.$store.commit("updatePOIImageSelectedId", {image: null, id: null}) : 
+        this.$store.commit("updatePOIImageSelectedId", {image: image, id: id});
     }
   }
 }

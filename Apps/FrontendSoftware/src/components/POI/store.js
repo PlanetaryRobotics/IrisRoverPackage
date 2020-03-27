@@ -4,19 +4,22 @@ export default {
   state: {
     POIList: testPOIList,
     POIImageSelected: {
-      POICard: null,
-      imageIndex: -1,
+      image: null,
+      id: null,
     }
   },
   getters: {
     POIList: state => {
       return state.POIList.list;
     },
-    POIImageSelected: state => {
-      return state.POIImageSelected;
-    },
     POIByTagList: state => {
       return state.POIList.POIByTagList;
+    },
+    POIImageSelectedId: state => {
+      return state.POIImageSelected.id;
+    },
+    POIImageSelected: state => {
+      return state.POIImageSelected;
     }
   },
   mutations: {
@@ -28,11 +31,12 @@ export default {
       state.POIList.updatePOICategory(POI, newCategory);
     },     
 
-    setPOIImageSelected(state, {POICard, imageIndex}) {
-      state.POIImageSelected = {
-        POICard: POICard,
-        imageIndex: imageIndex
-      };
+    updatePOIImageSelectedId(state, {id, image}) {
+      let obj = {
+        image: image,
+        id: id
+      }
+      state.POIImageSelected = obj;
     }
   }
 };

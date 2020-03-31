@@ -30,12 +30,14 @@ export default class Route{
    }
 
    addToSegmentList(newSegment) {
-     if (newSegment.constructor.name === "RelativeSegment" ||
-         newSegment.constructor.name === "AbsoluteSegment") {
-        this._segmentList.push(newSegment);
-     } else {
+     if (newSegment.constructor.name === "WaypointSegment") {
+      this._segmentList.push(newSegment);
+     }
+    //  if (newSegment.constructor.name === "RelativeSegment" ||
+    //      newSegment.constructor.name === "AbsoluteSegment") {
+    //     this._segmentList.push(newSegment);
+     else {
         throw new Error("Trying to add an object that is not a Segment to SegmentList of Route.");
      }
-     
    }
  } 

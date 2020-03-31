@@ -11,10 +11,9 @@
 
       <!-- ROUTE LIST --> 
       <div class="mapTab__content" v-show = "show.routes">
-        <div class="route">
-
+        <div class="routeList">
           <!-- ROUTE -->
-          <div class="route__item" v-for="(route, index) in routeList" :key="index">
+          <div class="routeList__item" v-for="(route, index) in routeList" :key="index">
             <RouteEntry :route="route"/>
           </div>
         </div>
@@ -26,7 +25,6 @@
 
 <script>
 
-import $ from 'jquery';
 import { mapMutations, mapGetters } from 'vuex';
 import RouteEntry from "@/components/Map/MapComponents/RouteManager/RouteEntry.vue";
 
@@ -73,15 +71,14 @@ export default {
 @import '@/styles/_mapTab.scss';
 
 #routes {
-  background-color: $color-background;
-  border-bottom: 3px solid $color-near-black;
+  background-color: $color-near-black;
 }
 
-.route {
-  padding-top: 2rem;
+.routeList {
+  margin-left: 1rem;
 
   &__item {
-    padding-bottom: 2rem;
+    margin: 1rem 2rem 1rem 2rem;
 
     &--visibility {
       display: flex;

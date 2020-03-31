@@ -1,6 +1,7 @@
 import Route from '@/data_classes/Route.js';
 import AbsoluteSegment from '@/data_classes/AbsoluteSegment.js';
 import RelativeSegment from '@/data_classes/RelativeSegment.js';
+import WaypointSegment from '@/data_classes/WaypointSegment.js';
 
 export default {
     state: {
@@ -48,8 +49,9 @@ export default {
         removeAppendedSegment: 0,
 
         // ROUTELIST
-        routeList: [new Route("RelativeRoute", true, new RelativeSegment(30, 30)),
-                    new Route("AbsoluteRoute", true, new AbsoluteSegment(60, -30))],
+        routeList: [new Route("WaypointRoute", true, new WaypointSegment(600, 300)),
+                    new Route("WaypointRoute2", true, new WaypointSegment(600, 600))],
+                    // new Route("AbsoluteRoute", true, new AbsoluteSegment(60, -30))],
         routeListUpdate: 0, // For watching the visibility toggles on routes.vue
 
         isListeningForWaypoint: false,

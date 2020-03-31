@@ -124,7 +124,7 @@ export default {
     height: 95vh;
     position: relative;
     display: grid;
-    grid-template-rows: 1fr 2fr;
+    grid-template-rows: 2fr 1.5fr;
   }
 }
 

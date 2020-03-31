@@ -69,8 +69,7 @@ export default {
                                                                 this.origin.origin.yPosPx,
                                                                 this.gridSquare.gridSquare.gridUnitCm,
                                                                 this.gridSquare.gridSquare.gridUnitPx,
-                                                                this.rover.rover.xCmFromLander,
-                                                                this.rover.rover.yCmFromLander);
+                                                                );
  
           let currRouteTransform = 
             d3.select("#visibleRoutes")
@@ -88,7 +87,7 @@ export default {
                             });
 
           // Calculate coords for relatives
-          if (segment.constructor.name === "RelativeSegment") {
+          //if (segment.constructor.name === "RelativeSegment") {
             calculateRelativeSegmentCoordinates(segment, 
                                                 route.routeName, 
                                                 0, 
@@ -96,7 +95,7 @@ export default {
                                                 this.rover.rover.yPosPx - roverTrans.yPx, 
                                                 this.gridSquare.gridSquare.gridUnitCm, 
                                                 this.gridSquare.gridSquare.gridUnitPx);
-          }
+          //}
 
         // Appended segments
         } else {

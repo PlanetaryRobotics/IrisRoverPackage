@@ -1,15 +1,26 @@
 <template>
   <div class="routeEntry">
+
+    <!-- ROUTETAB -->
     <div class="routeTab">
       <!-- DOWN ARROW -->
       <div class="routeTab__header" @click="toggleSegmentList">
         <svg width="14" height="7" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg" class="routeTab__icon" :class="{ open : show.segmentList }">
-        <path d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5" stroke-linecap="round"/>
+          <path d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5" stroke-linecap="round"/>
         </svg>
+
+        <!-- ROUTE NAME --> 
+        <p class="route__item--name text__main"> {{route.routeName}} </p>
       </div>
 
-      <!-- ROUTE NAME --> 
-      <p class="route__item--name text__main"> {{route.routeName}} </p>
+      <!-- PLUS ICON -->   
+      <div class="route__item--plus"  >
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg" class="routeIcon selected">
+          <line x1="8.5" y1="4.5" x2="8.5" y2="12.5" stroke="#333333" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="4.5" y1="8.5" x2="12.5" y2="8.5" stroke="#333333" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="8.5" cy="8.5" r="8" stroke="#333333"/>
+        </svg>
+      </div>
 
       <!-- VISIBILITY ICON -->
       <div class="route__item--visibility" @click="toggleVisibility(route)" >
@@ -18,50 +29,35 @@
           <path d="M9.5 1C4.92308 1 1 4.92308 1 6.88462C1 8.84615 4.92308 12.7692 9.5 12.7692C14.0769 12.7692 18 8.84615 18 6.88462C18 4.92308 14.0769 1 9.5 1Z"/>
         </svg>
       </div>
-    </div>
+    </div> <!-- END ROUTETAB -->
   
-    <!-- SEGMENT LIST -->
-    <div class="segmentList" v-show = "show.segmentList">
-      <div class="segment" v-for="(segment, index) in route.segmentList" :key="index">
+    <!-- ROUTEBODY -->
+    <div class="routeBody">
 
-        <!-- SEGMENT HEADER -->
-        <div class="segment__header">
-          <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="8.75" x2="8.75" y2="9" stroke="#C4C4C4" stroke-width="1.5"/>
-            <line y1="8.25" x2="9" y2="8.25" stroke="#C4C4C4" stroke-width="1.5"/>
-          </svg>
-          <div class="segment__name">
-            {{'SEG-' + index}}
-          </div>
-        </div>
-        
-        <!-- SEGMENT ATTR -->
-        <div class = "segment__attr" v-if = "segment.constructor.name === 'RelativeSegment'">
-          <div>{{"[R] " + segment.distance + " cm"}}</div>
-          <div>{{"[R] " + segment.angle + " &#176;"}}</div>
-          <div>{{"[R] [" + segment.xCoordinate + "cm, " +  segment.yCoordinate + "cm]"}}</div>
-        </div>
-        <div class = "segment__attr" v-if = "segment.constructor.name === 'AbsoluteSegment'">
-          <div>{{"[A] [" + segment.xCoordinate + "cm, " +  segment.yCoordinate + "cm]"}}</div>
-        </div>
-        <!-- TODO: do we transform coord to CM? -->
-        <div class = "segment__attr" v-if = "segment.constructor.name === 'WaypointSegment'">
-          <div>{{"[W] [" + segment.xCoordinate + "px, " +  segment.yCoordinate + "px]"}}</div>
-        </div>
-      </div>
+      <div class="line" />
 
-    </div>
+      <!-- SEGMENT LIST -->
+      <div class="segmentList" v-show = "show.segmentList">
+        <div class="segmentList__segment" v-for="(segment, index) in route.segmentList" :key="index">
+          <SegmentInfo :segment = "segment" :index="index"/>
+        </div>
+      </div> 
 
-  </div>    
+    </div> <!-- END ROUTEBODY -->
+  </div>  <!-- END ROUTE ENTRY -->
   
 </template>
 
 <script>
 
+import SegmentInfo from "@/components/Map/MapComponents/RouteManager/SegmentInfo.vue";
 import { mapMutations, mapGetters } from 'vuex';
 
 export default {
   name: "RouteEntry",
+  components: {
+    SegmentInfo
+  },
   props: {
     route: Object
   },
@@ -98,32 +94,7 @@ export default {
 
 @import '@/styles/_colors.scss';
 @import '@/styles/_functional.scss';
-
-.segmentList {
-  padding-top: 2rem;
-  padding-left: 3rem;
-}
-
-.segment {
-  padding-bottom: 1rem;
-
-  &__header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-  }
-
-  &__name {
-    padding-left: 1rem;
-    font-weight: bold;
-  }
-
-  &__attr {
-    >div {
-      padding: 1rem 0 0 2rem;
-    }
-  }
-}
+@import '@/styles/_mapTab.scss';
 
 .routeTab {
   display: flex;
@@ -132,23 +103,48 @@ export default {
 
   &__header {
     display: flex;
+    justify-content: flex-end;
     align-items: center;
     cursor: pointer;
     user-select: none;
-    padding-left: 1rem;
+    flex-grow: 1;
   }
 
   &__icon {
-    stroke: $color-grey-light;
+    stroke: $color-grey;
     width: 14px;
     height: 14px;
     transform: rotate(-90deg);
     transition: .1s ease-in-out;
+
+    &:hover {
+      stroke: $color-primary;
+    }
   }
 
   &__name {
     padding-left: 0.5rem;
-    flex-grow: 1;
+  }
+}
+
+.routeBody {
+  display: flex;
+  flex-direction: row;
+}
+
+.line {
+  border-left: 1px solid $color-grey-dark;
+  margin-top: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.segmentList {
+  margin-top: 1.5rem;
+  margin-left: 2rem;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+  &__segment {
+    width: 100%;
   }
 }
 
@@ -159,13 +155,19 @@ export default {
     justify-content: space-between;
 
     &--name {
-      padding-left: 0.5rem;
+      padding-left: 1rem;
       flex-grow: 1;
     }
 
     &--visibility {
       display: flex;
       align-items: center;
+    }
+
+    &--plus {
+      display: flex;
+      align-items: center;
+      margin-right: 0.5rem;
     }
   }
 }
@@ -177,6 +179,15 @@ export default {
 
   &.selected {
     stroke: $color-near-white;
+    * {
+      stroke: $color-near-white;
+    } 
+  }
+
+  &:hover {
+    > * {
+      stroke: $color-primary;
+    }
   }
 }
 

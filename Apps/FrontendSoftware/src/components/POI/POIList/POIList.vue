@@ -8,7 +8,7 @@
     
     <!-- REGULAR VIEW -->
     <div v-else>
-      <div class="mapTab" >
+      <div class="mapTab dark" >
         <!-- HEADER --> 
         <div class="mapTab__header" @click="togglePOIList">
           <svg width="14" height="7" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg" class="mapTab__icon" :class="{ open : show.POIList }">
@@ -17,7 +17,7 @@
           <h2 class="text__main--bold mapTab__title">Point of Interests</h2>
         </div>
 
-        <div v-show = "show.POIList">
+        <div class="mapTab__body" v-show = "show.POIList">
           <!-- FILTER -->
           <div class="POIFilter">
             <div class="POIFilter__FiltersRow">
@@ -201,6 +201,10 @@ export default {
     background-color: $color-background;
     margin-top: 2rem;
   }
+}
+
+.dark {
+  background-color: $color-near-black;
 }
 
 .POIFilter {

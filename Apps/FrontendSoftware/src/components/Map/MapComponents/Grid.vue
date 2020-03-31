@@ -149,8 +149,7 @@ export default {
                                                               this.origin.yPosPx,
                                                               this.gridSquare.gridUnitCm,
                                                               this.gridSquare.gridUnitPx,
-                                                              this.rover.xCmFromLander,
-                                                              this.rover.yCmFromLander);
+                                                              );
       
         let currRouteTransform;
 
@@ -311,8 +310,7 @@ export default {
                                                               this.origin.yPosPx,
                                                               this.gridSquare.gridUnitCm,
                                                               this.gridSquare.gridUnitPx,
-                                                              this.rover.xCmFromLander,
-                                                              this.rover.yCmFromLander);
+                                                              );
       
       let currRouteTransform;
 

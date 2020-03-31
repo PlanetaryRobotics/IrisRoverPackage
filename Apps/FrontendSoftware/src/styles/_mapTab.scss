@@ -7,13 +7,18 @@
  */
 
  .mapTab {
-  padding: 1.5rem 2rem;
-
   &__header {
+    padding: 1.5rem 2rem;
     display: flex;
     align-items: center;
     cursor: pointer;
     user-select: none;
+    background-color: $color-background;
+  }
+
+  &__body {
+    padding: 0 2rem 1.5rem 2rem;
+    background-color: $color-near-black;
   }
 
   &__icon {
@@ -25,7 +30,8 @@
   }
 
   &__title {
-    margin-left: 1rem;
+    margin-left: 2rem;
+    flex: 1;
   }
 }
 

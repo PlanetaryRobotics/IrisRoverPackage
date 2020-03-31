@@ -10,7 +10,7 @@ export function calculateRelativeSegmentCoordinates(segment, id, index, roverXPo
   segment.yCoordinate = yCm.toFixed(1);
 }
 
-export function generateFirstSegmentVars(segment, roverXPosPx, roverYPosPx, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx, xCmFromLander, yCmFromLander) {
+export function generateFirstSegmentVars(segment, roverXPosPx, roverYPosPx, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
 
   let startX, startY, endX, endY, angle;
 
@@ -57,8 +57,8 @@ export function generateFirstSegmentVars(segment, roverXPosPx, roverYPosPx, orig
     startY = roverYPosPx;
 
     // End coords is segment coords applied to origin position
-    endX = segment.xCoordinate;
-    endY = segment.yCoordinate;
+    endX = segment.xPxCoordinate;
+    endY = segment.yPxCoordinate;
     angle = 0;
 
   }

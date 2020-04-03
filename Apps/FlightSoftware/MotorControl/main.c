@@ -699,7 +699,7 @@ __interrupt void TIMER0_B0_ISR (void){
   g_currentPhaseC = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_2)) - g_currentOffsetPhaseC;
 
   // Normalize current values from  -2047 < adc < +2048 to iq15 --> -1.0 < adc < 1.0 and convert to iq format
-  g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB) << 4;
+  g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 4;
   g_piCur.Ref = g_piSpd.Out;
 
   PI_MACRO(g_piCur);

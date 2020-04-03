@@ -5,9 +5,9 @@
 #
 #
 
-SRC = NetworkManagerComponentAi.xml 
-#NetworkManagerComponentImpl.cpp
+SRC = NetworkManagerComponentAi.xml \
+      NetworkManagerComponentImpl.cpp
 
-#HDR = NetworkManagerComponentImpl.hpp
+HDR = NetworkManagerComponentImpl.hpp
 
 #SUBDIRS = test

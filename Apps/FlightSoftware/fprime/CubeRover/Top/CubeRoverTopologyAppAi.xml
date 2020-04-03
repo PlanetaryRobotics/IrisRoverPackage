@@ -13,7 +13,7 @@
   <import_component_type>Svc/GroundInterface/GroundInterfaceComponentAi.xml</import_component_type>
 
 <!-- Specifics tp CubeRover -->
-  <import_component_type>CubeRover/UdpReceiver/UdpReceiverComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/NetworkManager/NetworkManagerComponentAi.xml</import_component_type>
 
 <!-- Declaration of block driver that drive F-prime clocking and other async event -->
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
@@ -37,7 +37,7 @@
   <instance namespace="Svc" name="groundInterface" type="GroundInterface" base_id="221" base_id_window="20" />
 
 <!-- Declaration of the components that implement UDP interface -->
-  <instance namespace="CubeRover" name="udpReceiver" type="UdpReceiver" base_id="241" base_id_window="20" />
+  <instance namespace="CubeRover" name="networkManager" type="NetworkManager" base_id="241" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -152,8 +152,8 @@
   </connection>
 
     <!-- Radio serial interface to telemetnic channel (port 3) -->
-  <connection name = "udpReceiver_to_chanTlm">
-    <source component = "udpReceiver" port = "Tlm" type = "Tlm" num = "0" />
+  <connection name = "networkManager_to_chanTlm">
+    <source component = "networkManager" port = "Tlm" type = "Tlm" num = "0" />
     <target component = "tlmChan" port = "TlmRecv" type = "Tlm" num = "0" />
   </connection>
 
@@ -161,8 +161,8 @@
         CONNECTION OF UDP INTERFACE TO GROUND INTERFACE COMPONENTS
      ********************************************************************************************************* 
       -->
-  <connection name = "groundInterface_to_udpReceiver_readPoll">
+  <connection name = "groundInterface_to_networkManager_readPoll">
     <source component = "groundInterface" port = "readPoll" type = "Fw::BufferSend" num = "0" />
-    <target component = "udpReceiver" port = "readPoll" type = "Fw::BufferGet" num = "0"/>
+    <target component = "networkManager" port = "readData" type = "Fw::BufferSend" num = "0"/>
   </connection>
 </assembly>

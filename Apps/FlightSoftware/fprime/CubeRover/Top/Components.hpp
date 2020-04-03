@@ -21,7 +21,7 @@
 #include <Svc/GroundInterface/GroundInterfaceImpl.hpp>
 
 // Include custom components
-#include <CubeRover/UdpReceiver/UdpReceiverComponentImpl.hpp>
+#include <CubeRover/NetworkManager/NetworkManagerComponentImpl.hpp>
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -47,7 +47,7 @@ extern Svc::GroundInterfaceComponentImpl groundInterface;
 // command dispatcher
 extern Svc::CommandDispatcherImpl cmdDispatcher;
 
-// UDP receiver
-extern CubeRover::UdpReceiverComponentImpl udpReceiver;
+// network manager
+extern CubeRover::NetworkManagerComponentImpl networkManager;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

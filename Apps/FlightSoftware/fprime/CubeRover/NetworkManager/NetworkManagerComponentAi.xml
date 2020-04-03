@@ -6,10 +6,11 @@
     <comment> Network manager to support the wi-fi interface </comment>
 
     <ports>
+        <!--  input -->
     	<port name="run" data_type="Svc::Sched" kind="sync_input">
     		<comment> Input to run synchronous task </comment>
     	</port>
-    	<port name="readData" data_type="Fw::BufferGet" kind="sync_input">
+    	<port name="readData" data_type="Fw::BufferSend" kind="sync_input">
     		<comment> write port </comment>
     	</port>
     	<port name="writeData" data_type="Fw::BufferSend" kind="sync_input">

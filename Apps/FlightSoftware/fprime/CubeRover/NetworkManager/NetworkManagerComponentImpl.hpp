@@ -14,6 +14,7 @@
 #define NetworkManager_HPP
 
 #include "CubeRover/NetworkManager/NetworkManagerComponentAc.hpp"
+#include "CubeRover/NetworkManager/NetworkManager.hpp"
 
 namespace CubeRover {
 
@@ -63,19 +64,17 @@ namespace CubeRover {
 
       //! Handler implementation for readPoll
       //!
-      void readPoll_handler(
-          const NATIVE_INT_TYPE portNum, /*!< The port number*/
-          Fw::Buffer &fwBuffer 
-      );
+      void readData_handler(
+            const NATIVE_INT_TYPE portNum,
+            Fw::Buffer &fwBuffer
+        );
 
-      //! Handler implementation for write
+      //! Handler implementation for writeData
       //!
-      void write_handler(
-          const NATIVE_INT_TYPE portNum, /*!< The port number*/
-          U32 size 
-      );
-
-
+      void writeData_handler(
+            const NATIVE_INT_TYPE portNum,
+            Fw::Buffer &fwBuffer
+        );
     };
 
 } // end namespace CubeRover

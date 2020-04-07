@@ -217,13 +217,15 @@ export default {
   },
   watch: {
     currWaypointSegment(newSegment) {
-      this.waypointFormInputs.xCoord = newSegment.xCoordinate;
-      this.waypointFormInputs.yCoord = newSegment.yCoordinate;
+      if (newSegment) {
+        this.waypointFormInputs.xCoord = newSegment.xPxCoordinate;
+        this.waypointFormInputs.yCoord = newSegment.yPxCoordinate;
 
-      if (this.isSegmentComplete()) {
-        this.planRouteButton.enabled = true;
-      } else {
-        this.planRouteButton.enabled = false;
+        if (this.isSegmentComplete()) {
+          this.planRouteButton.enabled = true;
+        } else {
+          this.planRouteButton.enabled = false;
+        }
       }
     }
   },
@@ -387,7 +389,7 @@ export default {
 
     validateRouteName(value) {
       let param = "routeName";
-      if (!this.isUniqueRouteName(value)) {
+      if (this.routeList.hasRouteName(value)) {
           this.errorMessages[param] = value + " is a route name that has already been taken."
           this.show.errorMessages[param] = true;
           this.planRouteButton.enabled = false;
@@ -398,15 +400,6 @@ export default {
       }
     },
 
-    isUniqueRouteName(routeName) {
-      for (let route of this.routeList) {
-        if (route.routeName === routeName) {
-          return false;
-        }
-      }
-
-      return true;
-    },
     /**
      * Checks if string is a valid number (positive or negative).
      * 

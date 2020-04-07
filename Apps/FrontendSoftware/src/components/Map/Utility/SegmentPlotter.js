@@ -6,8 +6,8 @@ export function calculateRelativeSegmentCoordinates(segment, id, index, roverXPo
   let centre = getAbsoluteCoordinates(point);
 
   let {xCm, yCm} = convertPxToCm(centre.x-roverXPosPx, centre.y-roverYPosPx, gridUnitCm, gridUnitPx);
-  segment.xCoordinate = xCm.toFixed(1);
-  segment.yCoordinate = yCm.toFixed(1);
+  segment.xCmCoordinate = xCm.toFixed(1);
+  segment.yCmCoordinate = yCm.toFixed(1);
 }
 
 export function generateFirstSegmentVars(segment, roverXPosPx, roverYPosPx, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {

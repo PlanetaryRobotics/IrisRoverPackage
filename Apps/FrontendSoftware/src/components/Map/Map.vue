@@ -1,46 +1,48 @@
 <template>
-    <div class="map-container noSelect">
+    <div class="noSelect">
+      <SegmentModal v-if="show.segmentModal" />
+      <div class="map-container">
+        <div class="map-body">
+          <!-- LEFT NAVIGATION --> 
+          <MapNavigationLeft />
 
-      <div class="map-body">
-        <!-- LEFT NAVIGATION --> 
-        <MapNavigationLeft />
+          <!-- GRID --> 
+          <Grid />
 
-        <!-- GRID --> 
-        <Grid />
-
-        <!-- RIGHT PANEL --> 
-        <div class="right-panel">
-          <div class="right-panel__container" v-show="show.routesAndFeatures">
-            <Routes />
-            <POIList />
-          </div>
-          <div v-show="show.routeManager">
-            <CreateRoute />
-            <AddToRoute />
+          <!-- RIGHT PANEL --> 
+          <div class="right-panel">
+            <div class="right-panel__container" v-show="show.routesAndFeatures">
+              <RouteManager />
+              <POIList />
+            </div>
+            <div v-show="show.routeManager">
+              <CreateRoute />
+              <AddToRoute />
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- RIGHT NAVIGATION --> 
-      <div id="mapNavigationRight">
-        <div class="functional menu">
-            <RadioSVGButton :id="'RouteAndFeaturesRadioSVG'"
-                  :initiallyChecked="true"
-                  :value="'true'"
-                  :svgName="'icon_visible'" 
-                  :storeId="'MAP'"
-                  class="icon"
-                  v-on:click.native="switchRightPanelView('routesAndFeatures')"
-                  />
-            
-            <RadioSVGButton :id="'RouteManagerRadioSVG'"
-                  :initiallyChecked="false"
-                  :value="'false'"
-                  :svgName="'icon_route_manager'" 
-                  :storeId="'MAP'"
-                  class="icon"
-                  v-on:click.native="switchRightPanelView('routeManager')"
-                  />
+        <!-- RIGHT NAVIGATION --> 
+        <div id="mapNavigationRight">
+          <div class="functional menu">
+              <RadioSVGButton :id="'RouteAndFeaturesRadioSVG'"
+                    :initiallyChecked="true"
+                    :value="'true'"
+                    :svgName="'icon_visible'" 
+                    :storeId="'MAP'"
+                    class="icon"
+                    v-on:click.native="switchRightPanelView('routesAndFeatures')"
+                    />
+              
+              <RadioSVGButton :id="'RouteManagerRadioSVG'"
+                    :initiallyChecked="false"
+                    :value="'false'"
+                    :svgName="'icon_route_manager'" 
+                    :storeId="'MAP'"
+                    class="icon"
+                    v-on:click.native="switchRightPanelView('routeManager')"
+                    />
+          </div>
         </div>
       </div>
     <!-- END MAP CONTAINER --> 
@@ -53,33 +55,45 @@ import { mapGetters } from 'vuex';
 import MapNavigationLeft from '@/components/Map/MapComponents/MapNavigationLeft.vue';
 import Grid from '@/components/Map/MapComponents/Grid.vue';
 import POIList from '@/components/POI/POIList/POIList.vue';
-import Routes from '@/components/Map/MapComponents/RouteManager/Routes.vue';
+import RouteManager from '@/components/Map/MapComponents/RouteManager/RouteManager.vue';
 import CreateRoute from '@/components/Map/MapComponents/FormComponents/CreateRoute.vue';
 import AddToRoute from '@/components/Map/MapComponents/FormComponents/AddToRoute.vue';
 import RadioSVGButton from '@/components/atomic/RadioSVGButton.vue';
+import SegmentModal from "@/components/Map/MapComponents/RouteManager/SegmentModal.vue";
+import GridEventBus from '@/components/Map/GridEventBus.js';
 
 export default {
   name: "Map",
   components: {
     MapNavigationLeft,
     Grid,
-    Routes,
+    RouteManager,
     POIList,
-    // POIDashboard,
     CreateRoute,
     AddToRoute,
-    RadioSVGButton
+    RadioSVGButton,
+    SegmentModal
   },
   data() {
     return {
       show: {
         routesAndFeatures: true,
         routeManager: false,
+        segmentModal: false
       }
     }
   },
   computed: {
     ...mapGetters(['POIDashboardOpen'])
+  },
+  mounted() {
+    GridEventBus.$on('CLOSE_ADD_MODAL', () => {
+      this.show.segmentModal = false;
+    });
+
+    GridEventBus.$on('OPEN_ADD_MODAL', () => {
+      this.show.segmentModal = true;
+    })
   },
   methods: {
     switchRightPanelView(state) {

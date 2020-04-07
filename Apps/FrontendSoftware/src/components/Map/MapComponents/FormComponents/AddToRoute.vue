@@ -17,7 +17,7 @@
             <label>Route: </label>
             <select id="dropDown" name="dropDown" v-model="selectedRoute">
               <option value="" selected disabled>Select a Route</option>
-              <option v-for="(route, index) in routeList" 
+              <option v-for="(route, index) in routeList.routes" 
                       :key="index" 
                       :value="route">
                       {{route.routeName}}
@@ -170,7 +170,7 @@ export default {
   watch: {
     selectedRoute: function(selectedRoute) {
       if (selectedRoute) {
-        for (let route of this.routeList) {
+        for (let route of this.routeList.routes) {
           if (route.routeName !== selectedRoute.routeName){
             route.isVisible = false;
           }

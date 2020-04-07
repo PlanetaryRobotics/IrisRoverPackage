@@ -14,7 +14,7 @@
       </div>
 
       <!-- PLUS ICON -->   
-      <div class="route__item--plus"  >
+      <div class="route__item--plus" @click="openAddModal()">
         <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg" class="routeIcon selected">
           <line x1="8.5" y1="4.5" x2="8.5" y2="12.5" stroke="#333333" stroke-linecap="round" stroke-linejoin="round"/>
           <line x1="4.5" y1="8.5" x2="12.5" y2="8.5" stroke="#333333" stroke-linecap="round" stroke-linejoin="round"/>
@@ -49,7 +49,7 @@
 </template>
 
 <script>
-
+import GridEventBus from '@/components/Map/GridEventBus.js';
 import SegmentInfo from "@/components/Map/MapComponents/RouteManager/SegmentInfo.vue";
 import { mapMutations, mapGetters } from 'vuex';
 
@@ -84,6 +84,9 @@ export default {
     toggleVisibility(route) {
       route.isVisible = !route.isVisible;
       this.triggerRouteListUpdate();
+    },
+    openAddModal() {
+      GridEventBus.$emit("OPEN_ADD_MODAL");
     }
   }
 }

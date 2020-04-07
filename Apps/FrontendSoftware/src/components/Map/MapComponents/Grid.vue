@@ -37,8 +37,6 @@ import { plotNewSegment,
          getAbsoluteCoordinates } from '@/components/Map/Utility/SegmentPlotter.js';
 import WaypointSegment from "@/data_classes/WaypointSegment.js";
 
-// import GridEventBus from '@/components/Map/GridEventBus.js';
-
 export default {
   name: "Grid",
   components: {
@@ -141,7 +139,7 @@ export default {
 
         let currWaypointSegment = new WaypointSegment(event.pageX - navLeftWidth, event.pageY-menuBarHeight);
         this.$store.commit("setCurrWaypointSegment", currWaypointSegment);
-
+  
         let {angle, startX, startY, endX, endY} = generateFirstSegmentVars(currWaypointSegment, 
                                                               this.rover.xPosPx, 
                                                               this.rover.yPosPx,

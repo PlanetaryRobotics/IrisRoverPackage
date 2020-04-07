@@ -1,5 +1,5 @@
 <template>
-  <div id="atomicButton">
+  <div :id="id">
     <button v-if="enabled" 
             class="button"
             :class="flavor"
@@ -116,6 +116,7 @@ export default {
   text-decoration: none;
   display: inline-block;
   font-size: 1.5rem;
+  border-radius: 4px;
   cursor: pointer;
 }
 
@@ -129,12 +130,14 @@ export default {
 }
 
 .primary {
-  border: 1px solid $color-primary;
+  background-color: $color-primary;
+  color: white;
+  font-weight: 600;
 }
 
 .primary:hover {
-  color: black;
-  background-color: $color-primary;
+  background-color: black;
+  border: 1px solid $color-primary;
 }
 
 .nominal {

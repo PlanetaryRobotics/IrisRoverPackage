@@ -1,10 +1,16 @@
 import Route from '@/data_classes/Route.js';
 import AbsoluteSegment from '@/data_classes/AbsoluteSegment.js';
 import RelativeSegment from '@/data_classes/RelativeSegment.js';
-import WaypointSegment from '@/data_classes/WaypointSegment.js';
+// import WaypointSegment from '@/data_classes/WaypointSegment.js';
+import RouteList from '@/data_classes/RouteList.js';
 
 export default {
     state: {
+        addRouteButton: {
+          clicked: false,
+          hovered: false
+        },
+
         // POLAR PLOT BUTTON:
         PolarPlotSVG: {
           clicked: true,
@@ -49,9 +55,10 @@ export default {
         removeAppendedSegment: 0,
 
         // ROUTELIST
-        routeList: [new Route("WaypointRoute", true, new WaypointSegment(600, 300)),
-                    new Route("WaypointRoute2", true, new WaypointSegment(600, 600))],
-                    // new Route("AbsoluteRoute", true, new AbsoluteSegment(60, -30))],
+        // routeList: [new Route("WaypointRoute", true, new WaypointSegment(600, 300)),
+        //             new Route("WaypointRoute2", true, new WaypointSegment(600, 600)),
+        //             ],
+        routeList: new RouteList(),
         routeListUpdate: 0, // For watching the visibility toggles on routes.vue
 
         isListeningForWaypoint: false,
@@ -63,6 +70,10 @@ export default {
 
       routeList: state => {
         return state.routeList;
+      },
+
+      routeListIsEmpty: state => {
+        return state.routeList.isListEmpty();
       },
       
       routeListUpdate: state => {
@@ -134,7 +145,7 @@ export default {
         }
 
         let route = new Route(routeName, true, segment);
-        state.routeList.push(route);
+        state.routeList.addRoute(route);
         this.commit("triggerCurrSegmentRemoval");
       },
 

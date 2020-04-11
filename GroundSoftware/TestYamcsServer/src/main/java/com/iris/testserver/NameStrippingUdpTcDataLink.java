@@ -24,10 +24,7 @@ public class NameStrippingUdpTcDataLink extends UdpTcDataLink {
     public void uplinkCommand(PreparedCommand pc) throws IOException {
         byte[] binary = cmdPostProcessor.process(pc);
         if (binary != null) {
-            DatagramPacket packet = new DatagramPacket(binary, binary.length, address, port);
-            socket.send(packet);
-            dataCount++;
-            ackCommand(pc.getCommandId());
+            super.uplinkCommand(pc);
         }
     }
 }

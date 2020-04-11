@@ -1,0 +1,28 @@
+example_role:
+  Command:
+  - independent
+  - /Astrobotic-M1/independent
+  - dependent
+  - /Astrobotic-M1/dependent
+  - hazardous
+  - /Astrobotic-M1/hazardous
+  CommandHistory:
+  - independent
+  - /Astrobotic-M1/independent
+  - dependent
+  - /Astrobotic-M1/dependent
+  - hazardous
+  - /Astrobotic-M1/hazardous
+  InsertCommandQueue:
+  - example_independent
+  - example_dependent
+  - example_hazardous
+  ReadParameter:
+  - example-payload-tm
+  - /Astrobotic-M1/example-payload-tm
+  - simple-udp-example-payload-tm
+  - /Astrobotic-M1/simple-udp-example-payload-tm
+  System:
+  - Command
+  - ReadPacket
+  - GetMissionDatabase

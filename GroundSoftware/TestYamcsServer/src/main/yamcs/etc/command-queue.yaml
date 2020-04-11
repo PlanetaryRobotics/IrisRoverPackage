@@ -1,0 +1,15 @@
+example_dependent:
+  minLevel: warning
+  state: blocked
+  users:
+  - example
+example_hazardous:
+  minLevel: critical
+  state: blocked
+  users:
+  - example
+example_independent:
+  minLevel: none
+  state: enabled
+  users:
+  - example

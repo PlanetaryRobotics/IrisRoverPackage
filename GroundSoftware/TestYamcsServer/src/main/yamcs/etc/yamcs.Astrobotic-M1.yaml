@@ -1,0 +1,95 @@
+services:
+  - class: org.yamcs.tctm.DataLinkInitialiser
+  - class: org.yamcs.archive.XtceTmRecorder
+  - class: org.yamcs.archive.ParameterRecorder
+  - class: org.yamcs.archive.AlarmRecorder
+  - class: org.yamcs.archive.EventRecorder
+  - class: org.yamcs.archive.ReplayServer
+  - class: org.yamcs.archive.IndexServer
+  - class: org.yamcs.parameter.SystemParametersCollector
+    args:
+      provideJvmVariables: true
+      provideFsVariables: true
+  - class: org.yamcs.ProcessorCreatorService
+    args:
+      name: realtime
+      type: realtime
+  - class: org.yamcs.archive.CommandHistoryRecorder
+  - class: org.yamcs.parameterarchive.ParameterArchive
+    args:
+      realtimeFiller: 
+        enabled: false
+      backFiller:
+        enabled: true
+        warmupTime: 60
+
+dataLinks:
+  - name: udp-in
+    class: org.yamcs.tctm.UdpTmDataLink
+    args:
+      stream: tm_realtime
+      port: 10015
+      # The packet preprocessor gets the packets (one per datagram received on this data link) and 
+      # extracts a timestamp and a sequence count from it. For historical reasons the default packet
+      # preprocessor is the IssPacketPreprocessor, which reads packets according to the ISS 
+      # (International Space Station) definition. The generic packet preprocessor reads a timestamp
+      # in number of milliseconds since 1970 as well as a 4-byte sequence count. The location of
+      # both of these values in the packet is configured below. We could also configure it to 
+      # expect the last two bytes to be a checksum if we specified a errorDetection value below, 
+      # like:
+      #
+      #   errorDetection: 
+      #      type: "CRC-16-CCIIT"  # Can be "CRC-16-CCIIT" or "16-SUM"
+      #
+      # but by not specifying any errorDetection value we disable the expectation that the last two
+      # bytes have a checksum. We use the generic packet preprocessor because it allows us to
+      # receive simple UDP packets with a protobuf-encoded ParameterData object, prefixed with a 
+      # timestamp and sequence number as described above and configured below. This means we don't
+      # need to mess with CCSDS in our "fake lander" app.
+      packetPreprocessorClassName: org.yamcs.tctm.GenericPacketPreprocessor
+      packetPreprocessorArgs:
+        timestampOffset: 0 # Where to read the 8 bytes timestamp offset from
+        seqCountOffset: 8 # Where to read the 4 bytes sequence count from 
+  - name: udp-out
+    # A custom class derived from UdpTcDataLink that rejects the command if the byte array returned 
+    # from the postprocessor is a null array.
+    class: com.iris.testserver.NameStrippingUdpTcDataLink
+    args:
+      stream: tc_realtime
+      host: localhost
+      port: 10025
+      # A custom class derived from GenericCommandPostProcessor. This version loads a list of
+      # from a file, where each line of the file is loaded as a separate string. Each string
+      # should be the name of a command sent from the ground system to the rover. These strings
+      # must exactly match the ones prepended to serialized F Prime message data that is being
+      # sent to the Rover.  If the first bytes of a received command match a the UTF-8 representation
+      # of one of the valid command names, then those matching bytes will be stripped from the
+      # message and the remaining data will be sent.  
+      #
+      # The absolute path of the file can be specified using a "validCommandNameFileAbsPath" 
+      # argument within "commandPostprocessorArgs". Alternatively, if a 
+      # "validCommandNameFileAbsPath" is not given then the server will look for a file 
+      # named "validCommandNameFile.txt" in the configuration ("etc") directory.
+      #
+      # The final result of all of this is that the UDP datagram that will be sent for the 
+      # command will contain only the binary blob of F Prime message data intended for the 
+      # rover. Or at least, that's the hope.
+      commandPostprocessorClassName: com.iris.testserver.NameStrippingCommandPostprocessor
+mdb:
+  # Configuration of the active loaders
+  # Valid loaders are: sheet, xtce or fully qualified name of the class
+  - type: "sheet"
+    # This means astrobotic-ccsds.xls should be in src/main/yamcs/mdb
+    spec: "mdb/astrobotic-ccsds.xls"
+
+# Configuration for streams created at server startup
+streamConfig:
+  tm:
+    - name: "tm_realtime"
+      rootContainer: "/Astrobotic-M1/simple-udp-tm-container"
+    - name: "tm_dump"
+  cmdHist: ["cmdhist_realtime", "cmdhist_dump"]
+  event: ["events_realtime", "events_dump"]
+  param: ["pp_realtime", "sys_param", "proc_param"]
+  parameterAlarm: ["alarms_realtime"]
+  tc: ["tc_realtime"]

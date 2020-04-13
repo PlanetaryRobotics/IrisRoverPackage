@@ -1,6 +1,6 @@
 <template>
     <div id = "grid-container">
-      <svg id = "grid" @click="gridClicked($event)">
+      <svg id = "grid" >
           <g id = "gridLines">
           </g>
 
@@ -33,7 +33,7 @@ import { mapGetters } from 'vuex';
 import { plotNewSegment, 
          generateFirstSegmentVars, 
          generateAppendedSegmentVars, 
-         calculateRelativeSegmentCoordinates,
+         calculateCmCoordinatesForSegment,
          getAbsoluteCoordinates } from '@/components/Map/Utility/SegmentPlotter.js';
 import WaypointSegment from "@/data_classes/WaypointSegment.js";
 
@@ -73,6 +73,7 @@ export default {
         ringSeparationCm: 30,
         diameterCm: 1000, //100m
       },
+      mouseCoords: null,
     }
   },
   computed: {
@@ -80,10 +81,6 @@ export default {
       routeList: 'routeList',
       polarPlotEnabled: 'polarPlotEnabled',
       isListeningForWaypoint: 'isListeningForWaypoint',
-
-      // CreateRoute.vue
-      currSegment: 'currSegment',
-      currSegmentUpdate: 'currSegmentUpdate',
       removeCurrSegment: 'removeCurrSegment',
 
       // AddToRoute.vue
@@ -98,7 +95,6 @@ export default {
     this.setLander();
     this.setRover();
     this.drawPolar();
-    //GridEventBus.$emit('GRID_MOUNTED');
   },
   watch: {
     polarPlotEnabled(isEnabled) {
@@ -111,9 +107,6 @@ export default {
            .selectAll("line")
            .attr("stroke-opacity", 1)
       }
-    },
-    currSegmentUpdate() {
-      this.drawCurrRoute(this.currSegment);
     },
     removeCurrSegment() {
       if (!d3.select("#NewRoute").empty()) {
@@ -130,16 +123,11 @@ export default {
     }
   },
   methods: {
-    gridClicked(event) {
+    gridClicked() {
       // isListening means form is set to waypoint
       if (this.isListeningForWaypoint) {
 
-        let navLeftWidth = d3.select("#mapNavigationLeft").node().getBoundingClientRect().width;
-        let menuBarHeight = d3.select("#menuBar").node().getBoundingClientRect().height;
-
-        let currWaypointSegment = new WaypointSegment(event.pageX - navLeftWidth, event.pageY-menuBarHeight);
-        this.$store.commit("setCurrWaypointSegment", currWaypointSegment);
-  
+        let currWaypointSegment = new WaypointSegment(this.mouseCoords[0], this.mouseCoords[1]);
         let {angle, startX, startY, endX, endY} = generateFirstSegmentVars(currWaypointSegment, 
                                                               this.rover.xPosPx, 
                                                               this.rover.yPosPx,
@@ -148,7 +136,9 @@ export default {
                                                               this.gridSquare.gridUnitCm,
                                                               this.gridSquare.gridUnitPx,
                                                               );
-      
+
+        this.$store.commit("setCurrWaypointSegment", currWaypointSegment);
+
         let currRouteTransform;
 
         if (d3.select("#NewRoute").empty()) {
@@ -270,7 +260,7 @@ export default {
       if (segment.constructor.name === "RelativeSegment") {
 
         let roverTrans = this.convertCmToPx(this.rover.xCmFromLander, this.rover.yCmFromLander);
-        calculateRelativeSegmentCoordinates(segment, 
+        calculateCmCoordinatesForSegment(segment, 
                                             "Appended-Segment-Editing", 
                                             lastSegmentIdx+1, 
                                             this.rover.xPosPx - roverTrans.xPx, //Subtract by rover trans
@@ -335,7 +325,7 @@ export default {
       if (segment.constructor.name === "RelativeSegment") {
 
         let roverTrans = this.convertCmToPx(this.rover.xCmFromLander, this.rover.yCmFromLander);
-        calculateRelativeSegmentCoordinates(segment, 
+        calculateCmCoordinatesForSegment(segment, 
                                             "NewRoute", 
                                             0, 
                                             this.rover.xPosPx - roverTrans.xPx, //Subtract by rover trans
@@ -426,6 +416,18 @@ export default {
         d3.select("#gridContents")
           .attr("transform", "translate(" + x + "," + y + ")scale(" + k + ")");
       }
+
+      // Watch the mouse click inside grid and convert the coords
+      let that = this;
+      svg.on("click", function() {
+        var xy = d3.mouse(this);
+        
+        var transform = d3.zoomTransform(svg.node());
+        var xy1 = transform.invert(xy);
+
+        that.mouseCoords = xy1;
+        that.gridClicked();
+      })
 
       svg.call(zoom)
          // To center move 1/2 box up

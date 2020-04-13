@@ -4,7 +4,11 @@ export default class Route{
    constructor(routeName, isVisible, firstSegment){
       this._routeName = routeName;
       this._isVisible = isVisible;
-      this._segmentList = [firstSegment];
+      if (!firstSegment) {
+        this._segmentList = [];
+      } else {
+        this._segmentList = [firstSegment];
+      }
    } 
 
    get routeName() {
@@ -33,9 +37,6 @@ export default class Route{
      if (newSegment.constructor.name === "WaypointSegment") {
       this._segmentList.push(newSegment);
      }
-    //  if (newSegment.constructor.name === "RelativeSegment" ||
-    //      newSegment.constructor.name === "AbsoluteSegment") {
-    //     this._segmentList.push(newSegment);
      else {
         throw new Error("Trying to add an object that is not a Segment to SegmentList of Route.");
      }

@@ -5,10 +5,26 @@ export default class RouteList{
   constructor(){
     this._routes = [];
     this._routeNames = new Set();
+    this._untitledNum = 1;
   } 
 
   get routes() {
+    debugger;
     return this._routes;
+  }
+
+  renameRouteName(oldName, newName) {
+    if (this.hasRouteName(newName)) {
+      return false;
+    }
+
+    let targetRoute = this._routes.find(r => r.routeName === oldName);
+    targetRoute.routeName = newName;
+
+    this._routeNames.delete(oldName);
+    this._routeNames.add(newName);
+
+    return true;
   }
 
   hasRouteName(name) {
@@ -32,5 +48,22 @@ export default class RouteList{
 
     this._routes.push(route);
     this._routeNames.add(route.routeName);
+  }
+
+  addEmptyRoute() {
+
+    let name = "Untitled" + this._untitledNum;
+
+    while (this._routeNames.has(name)) {
+      this._untitledNum++;
+      name = "Untitled" + this._untitledNum;
+    }
+
+    let r = new Route(name, true, null);
+
+    this._routes.push(r);
+    this._routeNames.add(r.routeName);
+
+    this._untitledNum++;
   }
 } 

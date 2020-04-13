@@ -18,25 +18,20 @@
             <RouteEntry :route="route"/>
           </div>
         </div>
-        <div v-else class="emptyRouteList">
-          <div class="text">Start a route by adding waypoints or circumnavigations.</div>
-          <div class="emptyRouteList__button">
-            Start
-          </div>
-        </div>
       </div>
     </div>
     <!-- END TAB -->
-
-    <AtomicButton v-bind="buttons.addRoute" 
-                         @click.native="addRoute"
-                         v-show="!routeListIsEmpty"/>
+    <div class="buttonContainer">
+          <AtomicButton v-bind="buttons.addRoute" 
+                  @click.native="addEmptyRoute"
+                  v-show = "show.routes" />
+    </div>
   </div>
 </template>
 
 <script>
 
-import { mapMutations, mapGetters } from 'vuex';
+import { mapGetters } from 'vuex';
 import RouteEntry from "@/components/Map/MapComponents/RouteManager/RouteEntry.vue";
 import AtomicButton from '@/components/atomic/AtomicButton.vue';
 
@@ -69,33 +64,26 @@ export default {
   computed: {
     ...mapGetters(['routeList', 'routeListIsEmpty']),
   },
-  mounted() {
-    // Add route button positioning
-    this.setAddButtonPosition();
-    let that = this;
-    window.onresize = function() {
-      that.setAddButtonPosition();
-    };
+  watch: {
+    routeListIsEmpty() {
+      this.setAddButtonPosition();
+    }
   },
   methods: {
-    ...mapMutations({
-      triggerRouteListUpdate: 'triggerRouteListUpdate'
-    }),
     toggleRoutes() {
       this.show.routes = !this.show.routes;
-    },
-    toggleVisibility(route) {
-      route.isVisible = !route.isVisible;
-      this.triggerRouteListUpdate();
+      if (this.show.routes) {
+        this.setAddButtonPosition()
+      }
     },
     setAddButtonPosition() {
       let button = document.getElementById("addRouteButton");
       let parent = document.getElementById("routeManager");
       button.style.left = parent.clientWidth/2 - button.clientWidth/2 + "px";
     },
-    addRoute() {
-
-    }
+    addEmptyRoute() {
+      this.$store.commit("createEmptyRoute");
+    },
   }
 }
 
@@ -109,14 +97,11 @@ export default {
 
 #routeManager {
   background-color: $color-near-black;
+  height: 100%;
 }
 
 .routeList {
-  margin-left: 1rem;
-
   &__item {
-    margin: 1rem 2rem 1rem 2rem;
-
     &--visibility {
       display: flex;
       align-items: center;
@@ -157,11 +142,20 @@ export default {
   }
 }
 
-#addRouteButton{
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: absolute;
-  z-index: 10;
   bottom: 43vh;
-  margin: 0 auto;
+  width: 100%;
+}
+
+#addRouteButton{
+  // position: absolute;
+  // z-index: 10;
+  // bottom: 43vh;
+  // margin: 0 auto;
 }
 
 </style>

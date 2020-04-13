@@ -14,7 +14,6 @@
   <import_component_type>Svc/ActiveLogger/ActiveLoggerComponentAi.xml</import_component_type>
 
 <!-- Component exclusive to CubeRover -->
-  <import_component_type>CubeRover/MotorControl/MotorControlComponentAi.xml</import_component_type>
 
 <!-- Declaration of block driver that drive F-prime clocking and other async event -->
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
@@ -38,11 +37,6 @@
 <!-- For CubeRover - we use external FRAM memory to store data, i.e. a custom implementation of that component is necessary -->
   <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="141" base_id_window="20" />
 
-<!-- Declaration of motor control component exclusive to CubeRover -->
-  <instance namespace="CubeRover" name="motorControl" type="MotorControl" base_id="161" base_id_window="20" />
-
-<!-- Declaration of the FreeRTOS serial driver interface -->
-  <instance namespace="Drv" name="radioSerialInterface" type="FreeRtosSerialDriver" base_id="181" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -123,17 +117,6 @@
     <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
   </connection>
 
-  <!-- Connection of time between cubeRoverTime and motor control component -->
-  <connection name = "motorControl_to_cubeRoverTime">
-    <source component = "motorControl" port = "timeCaller" type = "Time" num = "0" />
-    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num= "0" />
-  </connection>
-
-  <!-- Connection of time betweeen cubeRoverTime to radioSerialInterface -->
-  <connection name = "radioSerialInterface_to_cubeRoverTime">
-    <source component = "radioSerialInterface" port="Time" type = "Time" num = "0" />
-    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
-  </connection>
 
 <!-- *********************************************************************************************************
         CONNECTION OF MONITORED COMPONENTS TO TELEMETRIC CHAN COMPONENT
@@ -165,12 +148,6 @@
     <target component = "tlmChan" port = "TlmRecv" type = "Tlm" num = "0" />
   </connection>
 
-    <!-- Radio serial interface to telemetnic channel (port 3) -->
-  <connection name = "radioSerialInterface_to_chanTlm">
-    <source component = "radioSerialInterface" port = "Tlm" type = "Tlm" num = "0" />
-    <target component = "tlmChan" port = "TlmRecv" type = "Tlm" num = "0" />
-  </connection>
-
   <!-- *********************************************************************************************************
         CONNECTION OF MONITORED COMPONENTS TO TELEMETRIC ACTIVE LOGGER COMPONENT
        ********************************************************************************************************* 
@@ -194,9 +171,4 @@
     <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
   </connection>
 
-      <!-- Radio serial componnet to active logger -->
-  <connection name = "radioSerialInterface_to_aLogger" >
-    <source component = "radioSerialInterface" port = "Log" type = "Log" num = "0" />
-    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
-  </connection>
 </assembly>

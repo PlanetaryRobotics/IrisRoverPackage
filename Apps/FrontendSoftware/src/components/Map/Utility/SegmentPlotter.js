@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 
-export function calculateRelativeSegmentCoordinates(segment, id, index, roverXPosPx, roverYPosPx, gridUnitCm, gridUnitPx) {
+export function calculateCmCoordinatesForSegment(segment, id, index, roverXPosPx, roverYPosPx, gridUnitCm, gridUnitPx) {
   let point = d3.select("#"+id+"Point"+index);
 
   let centre = getAbsoluteCoordinates(point);
@@ -14,43 +14,43 @@ export function generateFirstSegmentVars(segment, roverXPosPx, roverYPosPx, orig
 
   let startX, startY, endX, endY, angle;
 
-  // Handle relative segment
-  if (segment.constructor.name === "RelativeSegment") {
+  // // Handle relative segment
+  // if (segment.constructor.name === "RelativeSegment") {
 
-    // Convert cm to px 
-    let coords = convertCmToPx(0, segment.distance, gridUnitCm, gridUnitPx);
+  //   // Convert cm to px 
+  //   let coords = convertCmToPx(0, segment.distance, gridUnitCm, gridUnitPx);
 
-    // If angle is not defined, set to 0
-    if ((segment.angle && segment.angle === "-") || !segment.angle) {
-      angle = 0
-    } else {
-      angle = segment.angle;
-    }
+  //   // If angle is not defined, set to 0
+  //   if ((segment.angle && segment.angle === "-") || !segment.angle) {
+  //     angle = 0
+  //   } else {
+  //     angle = segment.angle;
+  //   }
       
-    // Start coords is rover position
-    startX = roverXPosPx;
-    startY = roverYPosPx;
+  //   // Start coords is rover position
+  //   startX = roverXPosPx;
+  //   startY = roverYPosPx;
 
-    // Compute end coords
-    endX = startX;
-    endY = startY + coords.yPx;
+  //   // Compute end coords
+  //   endX = startX;
+  //   endY = startY + coords.yPx;
 
-  // Handle absolute segment
-  } else if (segment.constructor.name === "AbsoluteSegment") {
+  // // Handle absolute segment
+  // } else if (segment.constructor.name === "AbsoluteSegment") {
 
-    // Convert cm to px
-    let coords = convertCmToPx(segment.xCoordinate, segment.yCoordinate, gridUnitCm, gridUnitPx);
+  //   // Convert cm to px
+  //   let coords = convertCmToPx(segment.xCoordinate, segment.yCoordinate, gridUnitCm, gridUnitPx);
 
-    // Start coords is rover position
-    startX = roverXPosPx;
-    startY = roverYPosPx;
+  //   // Start coords is rover position
+  //   startX = roverXPosPx;
+  //   startY = roverYPosPx;
 
-    // End coords is segment coords applied to origin position
-    endX = originXPosPx + coords.xPx;
-    endY = originYPosPx + coords.yPx;
-    angle = 0;
+  //   // End coords is segment coords applied to origin position
+  //   endX = originXPosPx + coords.xPx;
+  //   endY = originYPosPx + coords.yPx;
+  //   angle = 0;
   
-  } else if (segment.constructor.name === "WaypointSegment") {
+  // } else if (segment.constructor.name === "WaypointSegment") {
 
     // Start coords is rover position
     startX = roverXPosPx;
@@ -61,7 +61,12 @@ export function generateFirstSegmentVars(segment, roverXPosPx, roverYPosPx, orig
     endY = segment.yPxCoordinate;
     angle = 0;
 
-  }
+  //}
+
+  // Compute the coords into cm and save into segment
+  let {xCm, yCm} = convertPxToCm(endX-startX, endY-startY, gridUnitCm, gridUnitPx);
+  segment.xCmCoordinate = xCm;
+  segment.yCmCoordinate = yCm;
 
   return {angle: angle, startX: startX, startY: startY, endX: endX, endY: endY};
 }

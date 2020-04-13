@@ -36,12 +36,6 @@ export default {
     this.updateRouteListKey++;
   },
   watch: {
-    routeList: {
-      deep: true, 
-      handler(){
-        this.updateRouteListKey++;
-      }
-    },
     routeListUpdate() {
       this.updateRouteListKey++;
     }

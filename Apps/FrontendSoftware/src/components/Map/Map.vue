@@ -1,6 +1,6 @@
 <template>
     <div class="noSelect">
-      <SegmentModal v-if="show.segmentModal" />
+      <SegmentModal v-if="show.segmentModal" :route="this.modalRoute" />
       <div class="map-container">
         <div class="map-body">
           <!-- LEFT NAVIGATION --> 
@@ -16,7 +16,6 @@
               <POIList />
             </div>
             <div v-show="show.routeManager">
-              <CreateRoute />
               <AddToRoute />
             </div>
           </div>
@@ -56,7 +55,6 @@ import MapNavigationLeft from '@/components/Map/MapComponents/MapNavigationLeft.
 import Grid from '@/components/Map/MapComponents/Grid.vue';
 import POIList from '@/components/POI/POIList/POIList.vue';
 import RouteManager from '@/components/Map/MapComponents/RouteManager/RouteManager.vue';
-import CreateRoute from '@/components/Map/MapComponents/FormComponents/CreateRoute.vue';
 import AddToRoute from '@/components/Map/MapComponents/FormComponents/AddToRoute.vue';
 import RadioSVGButton from '@/components/atomic/RadioSVGButton.vue';
 import SegmentModal from "@/components/Map/MapComponents/RouteManager/SegmentModal.vue";
@@ -69,7 +67,6 @@ export default {
     Grid,
     RouteManager,
     POIList,
-    CreateRoute,
     AddToRoute,
     RadioSVGButton,
     SegmentModal
@@ -80,7 +77,8 @@ export default {
         routesAndFeatures: true,
         routeManager: false,
         segmentModal: false
-      }
+      },
+      modalRoute: null
     }
   },
   computed: {
@@ -91,7 +89,8 @@ export default {
       this.show.segmentModal = false;
     });
 
-    GridEventBus.$on('OPEN_ADD_MODAL', () => {
+    GridEventBus.$on('OPEN_ADD_MODAL', (route) => {
+      this.modalRoute = route;
       this.show.segmentModal = true;
     })
   },

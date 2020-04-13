@@ -9,7 +9,7 @@ import * as d3 from "d3";
 import { plotNewSegment, 
          generateFirstSegmentVars, 
          generateAppendedSegmentVars, 
-         calculateRelativeSegmentCoordinates } from '@/components/Map/Utility/SegmentPlotter.js';
+         calculateCmCoordinatesForSegment } from '@/components/Map/Utility/SegmentPlotter.js';
 import { toggleModal } from '@/components/Map/Utility/ModalPlotter.js';
 
 export default {
@@ -88,7 +88,7 @@ export default {
 
           // Calculate coords for relatives
           //if (segment.constructor.name === "RelativeSegment") {
-            calculateRelativeSegmentCoordinates(segment, 
+            calculateCmCoordinatesForSegment(segment, 
                                                 route.routeName, 
                                                 0, 
                                                 this.rover.rover.xPosPx - roverTrans.xPx, //Subtract by rover trans
@@ -122,7 +122,7 @@ export default {
 
           // Calculate coords for relatives
           if (segment.constructor.name === "RelativeSegment") {
-            calculateRelativeSegmentCoordinates(segment, 
+            calculateCmCoordinatesForSegment(segment, 
                                                 route.routeName, 
                                                 i, 
                                                 this.rover.rover.xPosPx - roverTrans.xPx, //Subtract by rover trans

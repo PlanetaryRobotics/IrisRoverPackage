@@ -9,7 +9,6 @@ export default class RouteList{
   } 
 
   get routes() {
-    debugger;
     return this._routes;
   }
 

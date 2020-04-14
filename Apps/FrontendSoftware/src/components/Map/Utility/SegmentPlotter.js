@@ -14,43 +14,25 @@ export function generateFirstSegmentVars(segment, roverXPosPx, roverYPosPx, orig
 
   let startX, startY, endX, endY, angle;
 
-  // // Handle relative segment
-  // if (segment.constructor.name === "RelativeSegment") {
+  // Handle version where CM coords are known
+  if (segment.xCmCoordinate && segment.yCmCoordinate) {
 
-  //   // Convert cm to px 
-  //   let coords = convertCmToPx(0, segment.distance, gridUnitCm, gridUnitPx);
+    // Convert cm to px
+    let coords = convertCmToPx(segment.xCmCoordinate, segment.yCmCoordinate, gridUnitCm, gridUnitPx);
 
-  //   // If angle is not defined, set to 0
-  //   if ((segment.angle && segment.angle === "-") || !segment.angle) {
-  //     angle = 0
-  //   } else {
-  //     angle = segment.angle;
-  //   }
-      
-  //   // Start coords is rover position
-  //   startX = roverXPosPx;
-  //   startY = roverYPosPx;
+    // Start coords is rover position
+    startX = roverXPosPx;
+    startY = roverYPosPx;
 
-  //   // Compute end coords
-  //   endX = startX;
-  //   endY = startY + coords.yPx;
+    // End coords is segment coords applied to origin position
+    endX = originXPosPx + coords.xPx;
+    endY = originYPosPx + coords.yPx;
+    angle = 0;
 
-  // // Handle absolute segment
-  // } else if (segment.constructor.name === "AbsoluteSegment") {
-
-  //   // Convert cm to px
-  //   let coords = convertCmToPx(segment.xCoordinate, segment.yCoordinate, gridUnitCm, gridUnitPx);
-
-  //   // Start coords is rover position
-  //   startX = roverXPosPx;
-  //   startY = roverYPosPx;
-
-  //   // End coords is segment coords applied to origin position
-  //   endX = originXPosPx + coords.xPx;
-  //   endY = originYPosPx + coords.yPx;
-  //   angle = 0;
+    segment.setPxCoordinates(endX, endY);
   
-  // } else if (segment.constructor.name === "WaypointSegment") {
+  // Handle version where PX coords are known
+  } else {
 
     // Start coords is rover position
     startX = roverXPosPx;
@@ -61,12 +43,10 @@ export function generateFirstSegmentVars(segment, roverXPosPx, roverYPosPx, orig
     endY = segment.yPxCoordinate;
     angle = 0;
 
-  //}
-
-  // Compute the coords into cm and save into segment
-  let {xCm, yCm} = convertPxToCm(endX-startX, endY-startY, gridUnitCm, gridUnitPx);
-  segment.xCmCoordinate = xCm;
-  segment.yCmCoordinate = yCm;
+    // Compute the coords into cm and save into segment
+    let {xCm, yCm} = convertPxToCm(endX-originXPosPx, endY-originYPosPx, gridUnitCm, gridUnitPx);
+    segment.setCmCoordinates(xCm, yCm);
+  }
 
   return {angle: angle, startX: startX, startY: startY, endX: endX, endY: endY};
 }

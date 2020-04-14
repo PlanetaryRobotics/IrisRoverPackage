@@ -7,7 +7,6 @@
 
 import * as d3 from "d3";
 import { plotNewSegment, 
-         generateFirstSegmentVars, 
          generateAppendedSegmentVars, 
          calculateCmCoordinatesForSegment } from '@/components/Map/Utility/SegmentPlotter.js';
 import { toggleModal } from '@/components/Map/Utility/ModalPlotter.js';
@@ -62,15 +61,15 @@ export default {
         // If first segment
         if (i === 0) {
 
-          let {angle, startX, startY, endX, endY} = generateFirstSegmentVars(segment, 
-                                                                this.rover.rover.xPosPx, 
-                                                                this.rover.rover.yPosPx,
-                                                                this.origin.origin.xPosPx,
-                                                                this.origin.origin.yPosPx,
-                                                                this.gridSquare.gridSquare.gridUnitCm,
-                                                                this.gridSquare.gridSquare.gridUnitPx,
-                                                                );
- 
+          // Start coords is rover position
+          let startX = this.rover.rover.xPosPx;
+          let startY = this.rover.rover.yPosPx;
+
+          // End coords is from segment itself
+          let endX = segment.xPxCoordinate;
+          let endY = segment.yPxCoordinate;
+          let angle = 0;
+
           let currRouteTransform = 
             d3.select("#visibleRoutes")
               .select("#"+route.routeName)
@@ -85,17 +84,6 @@ export default {
           currRouteTransform.on("click", function() {
                               toggleModal(this, route, 0, circleCoords.x, circleCoords.y); 
                             });
-
-          // Calculate coords for relatives
-          //if (segment.constructor.name === "RelativeSegment") {
-            calculateCmCoordinatesForSegment(segment, 
-                                                route.routeName, 
-                                                0, 
-                                                this.rover.rover.xPosPx - roverTrans.xPx, //Subtract by rover trans
-                                                this.rover.rover.yPosPx - roverTrans.yPx, 
-                                                this.gridSquare.gridSquare.gridUnitCm, 
-                                                this.gridSquare.gridSquare.gridUnitPx);
-          //}
 
         // Appended segments
         } else {

@@ -149,9 +149,10 @@ export default {
     }
   },
   watch: {
-    currWaypointSegment(newSeg) {
-      this.formValues.segment.XCOORD = Math.round(newSeg.xCmCoordinate);
-      this.formValues.segment.YCOORD = Math.round(newSeg.yCmCoordinate);
+    // Waypoint segment will be saved into store from grid
+    // and grid ensures that segment has all coords before saving.
+    // So whenever seg updates, it is ready to save.
+    currWaypointSegment() {
       this.buttons.planButton.enabled = true;
     }
   },
@@ -161,8 +162,16 @@ export default {
   mounted() {
     this.$store.commit("setIsListeningForWaypoint", true);
     this.setupModalPositioning();
+
+    GridEventBus.$on('WAYPOINT_GRID_UPDATE', (data) => {
+      this.updateFormValues(data.xCm, data.yCm);
+    })
   },
   methods: {
+    updateFormValues(xCm, yCm) {
+      this.formValues.segment.XCOORD = Math.round(xCm);
+      this.formValues.segment.YCOORD = Math.round(yCm);
+    },
     validateInput(key, value) {
       // Validate is a number
       if (value !== "" && !this.validateIsNumber(value)) {
@@ -170,13 +179,11 @@ export default {
         return;
       } 
 
-      // Check for non-angle vals, cannot be negative
-      if (key !== "ANGLE" && Number(value) < 0) {
-        this.errors[key] = key + " cannot be a negative number.";
-        return;
-      }
-
       this.errors[key] = "";
+
+      // Emit to form updates to grid
+      GridEventBus.$emit('WAYPOINT_FORM_UPDATE', {xCm: this.formValues.segment.XCOORD, 
+                                                  yCm: this.formValues.segment.YCOORD});
     },
     validateIsNumber(value) {
       return !isNaN(parseFloat(value)) && isFinite(value);
@@ -190,6 +197,13 @@ export default {
     saveSegment() {
       this.$store.commit("saveSegment", {route: this.route, segment: this.currWaypointSegment});
       this.closeModal();
+    },
+    cancelSegment() {
+      this.$store.commit("triggerCurrSegmentRemoval");
+      let keys = Object.keys(this.formValues.segment);
+      for (let k of keys) {
+        this.formValues.segment[k] = "";
+      }
     },
     closeModal() {
       GridEventBus.$emit('CLOSE_ADD_MODAL');

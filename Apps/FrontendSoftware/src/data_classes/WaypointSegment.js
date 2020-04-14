@@ -3,13 +3,23 @@
 export default class WaypointSegment{
   
   // Coordinates in px
-  constructor(xPxCoordinate, yPxCoordinate){
-    this._xPxCoordinate = Number(xPxCoordinate);
-    this._yPxCoordinate = Number(yPxCoordinate);
+  constructor(){
+    this._xPxCoordinate = null;
+    this._yPxCoordinate = null;
 
     this._xCmCoordinate = null;
     this._yCmCoordinate = null;
   } 
+
+  setPxCoordinates(xPx, yPx) {
+    this._xPxCoordinate = xPx;
+    this._yPxCoordinate = yPx;
+  }
+
+  setCmCoordinates(xCm, yCm) {
+    this._xCmCoordinate = xCm;
+    this._yCmCoordinate = yCm;
+  }
 
   get xPxCoordinate() {
     return this._xPxCoordinate;

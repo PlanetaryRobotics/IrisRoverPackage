@@ -151,11 +151,4 @@ export default {
   width: 100%;
 }
 
-#addRouteButton{
-  // position: absolute;
-  // z-index: 10;
-  // bottom: 43vh;
-  // margin: 0 auto;
-}
-
 </style>

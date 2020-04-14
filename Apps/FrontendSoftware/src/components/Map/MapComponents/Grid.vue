@@ -29,6 +29,7 @@ import RoverFan from '@/components/Map/MapComponents/GridComponents/RoverFan.vue
 
 import $ from 'jquery';
 import * as d3 from "d3";
+import GridEventBus from '@/components/Map/GridEventBus.js';
 import { mapGetters } from 'vuex';
 import { plotNewSegment, 
          generateFirstSegmentVars, 
@@ -95,6 +96,10 @@ export default {
     this.setLander();
     this.setRover();
     this.drawPolar();
+
+    GridEventBus.$on('WAYPOINT_FORM_UPDATE', (data) => {
+      this.updateCurrWaypointSegment(data.xCm, data.yCm);
+    })
   },
   watch: {
     polarPlotEnabled(isEnabled) {
@@ -123,11 +128,49 @@ export default {
     }
   },
   methods: {
+    updateCurrWaypointSegment(xCm, yCm) {
+      let currWaypointSegment = new WaypointSegment();
+      currWaypointSegment.setCmCoordinates(xCm, yCm);
+
+      let {angle, startX, startY, endX, endY} = generateFirstSegmentVars(currWaypointSegment, 
+                                                              this.rover.xPosPx, 
+                                                              this.rover.yPosPx,
+                                                              this.origin.xPosPx,
+                                                              this.origin.yPosPx,
+                                                              this.gridSquare.gridUnitCm,
+                                                              this.gridSquare.gridUnitPx,
+                                                              );
+      
+      this.$store.commit("setCurrWaypointSegment", currWaypointSegment);
+
+      let currRouteTransform;
+
+      if (d3.select("#NewRoute").empty()) {
+        currRouteTransform = 
+          d3.select("#gridContents")
+            .append('g')
+            .lower()
+            .attr("id", "NewRoute")
+            .append('g')
+            .attr("id", "NewRoute-Group")
+            .append('g')
+            .attr("id", "NewRoute-Segment0");
+
+      } else {
+        currRouteTransform = d3.select("#NewRoute")
+                                .select("#NewRoute-Segment0");
+        currRouteTransform.selectAll("*").remove();
+      }
+
+      plotNewSegment(currRouteTransform, "NewRoute", 0, angle, startX, startY, endX, endY, true);
+    },
     gridClicked() {
       // isListening means form is set to waypoint
       if (this.isListeningForWaypoint) {
 
-        let currWaypointSegment = new WaypointSegment(this.mouseCoords[0], this.mouseCoords[1]);
+        let currWaypointSegment = new WaypointSegment();
+        currWaypointSegment.setPxCoordinates(this.mouseCoords[0], this.mouseCoords[1]);
+
         let {angle, startX, startY, endX, endY} = generateFirstSegmentVars(currWaypointSegment, 
                                                               this.rover.xPosPx, 
                                                               this.rover.yPosPx,
@@ -136,6 +179,9 @@ export default {
                                                               this.gridSquare.gridUnitCm,
                                                               this.gridSquare.gridUnitPx,
                                                               );
+
+        GridEventBus.$emit('WAYPOINT_GRID_UPDATE', {xCm: currWaypointSegment.xCmCoordinate, 
+                                                    yCm: currWaypointSegment.yCmCoordinate});
 
         this.$store.commit("setCurrWaypointSegment", currWaypointSegment);
 

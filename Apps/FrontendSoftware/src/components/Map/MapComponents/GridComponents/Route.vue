@@ -6,9 +6,7 @@
 <script>
 
 import * as d3 from "d3";
-import { plotNewSegment, 
-         generateAppendedSegmentVars, 
-         calculateCmCoordinatesForSegment } from '@/components/Map/Utility/SegmentPlotter.js';
+import { plotNewSegment, getAbsoluteCoordinates } from '@/components/Map/Utility/SegmentPlotter.js';
 import { toggleModal } from '@/components/Map/Utility/ModalPlotter.js';
 
 export default {
@@ -27,9 +25,6 @@ export default {
   mounted() {
     let comp = this;
 
-    // When grid is mounted, draw ALL saved routes so that they
-    // have the right transform
-    //GridEventBus.$on("GRID_MOUNTED", function (payLoad) {
     if (this.rover.rover.xPosPx) { //Check that happens AFTER grid is ready
       comp.drawSegments(comp.route);
       if (comp.route.isVisible) {
@@ -40,7 +35,7 @@ export default {
             .style("display", "none")
       }
     }
-    //});
+ 
   },
   methods: {
     /**
@@ -52,7 +47,6 @@ export default {
      * @param {object} route      Route object
     */
     drawSegments(route) {
-      let roverTrans = this.convertCmToPx(this.rover.rover.xCmFromLander, this.rover.rover.yCmFromLander);
 
       for (let i = 0; i < route.segmentList.length; i++) {
 
@@ -87,37 +81,43 @@ export default {
 
         // Appended segments
         } else {
-          let {computedAngle, startX, startY, endX, endY} = generateAppendedSegmentVars(route, 
-                                                                                        segment, 
-                                                                                        i-1, 
-                                                                                        this.gridSquare.gridSquare.gridUnitCm, 
-                                                                                        this.gridSquare.gridSquare.gridUnitPx,
-                                                                                        this.rover.rover.xPosPx,
-                                                                                        this.rover.rover.yPosPx,
-                                                                                        this.origin.origin.xPosPx,
-                                                                                        this.origin.origin.yPosPx);
+
+          // let {computedAngle, startX, startY, endX, endY} = generateAppendedSegmentVars(route, 
+          //                                                                               segment, 
+          //                                                                               i-1, 
+          //                                                                               this.gridSquare.gridSquare.gridUnitCm, 
+          //                                                                               this.gridSquare.gridSquare.gridUnitPx,
+          //                                                                               this.rover.rover.xPosPx,
+          //                                                                               this.rover.rover.yPosPx,
+          //                                                                               this.origin.origin.xPosPx,
+          //                                                                               this.origin.origin.yPosPx);
+
+          // Get last point in route
+          let lastCircle = d3.select("#"+route.routeName+"-Segment"+(i-1))
+                             .select("circle");
+                        
+          // Need to get the transformed coordinates of the previous circle
+          let centre = getAbsoluteCoordinates(lastCircle);
+
+          // Set start coords
+          let startX = Number(centre.x);
+          let startY = Number(centre.y);
+
+          // Set end coords
+          let endX = segment.xPxCoordinate;
+          let endY = segment.yPxCoordinate;
+          let angle = 0;
 
           let transform = d3.select("#"+route.routeName+"-Group")
                             .append('g')
                             .attr("id", route.routeName+"-Segment"+i);
    
-          let circleCoords = plotNewSegment(transform, route.routeName, i, computedAngle, startX, startY, endX, endY, false);
+          let circleCoords = plotNewSegment(transform, route.routeName, i, angle, startX, startY, endX, endY, false);
 
           // Set up modal once have coords w/ rotation
           transform.on("click", function() {
                         toggleModal(this, route, i, circleCoords.x, circleCoords.y); 
                     });
-
-          // Calculate coords for relatives
-          if (segment.constructor.name === "RelativeSegment") {
-            calculateCmCoordinatesForSegment(segment, 
-                                                route.routeName, 
-                                                i, 
-                                                this.rover.rover.xPosPx - roverTrans.xPx, //Subtract by rover trans
-                                                this.rover.rover.yPosPx - roverTrans.yPx, 
-                                                this.gridSquare.gridSquare.gridUnitCm, 
-                                                this.gridSquare.gridSquare.gridUnitPx);
-          }
         }
       }
       

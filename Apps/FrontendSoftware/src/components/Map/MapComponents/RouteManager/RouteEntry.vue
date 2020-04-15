@@ -192,8 +192,9 @@ export default {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  padding: 0rem 1rem 0rem 3rem;
-
+  padding: 0 1rem 0 3rem;
+  margin-top: 1rem;
+  
   &__header {
     display: flex;
     justify-content: flex-end;
@@ -236,10 +237,10 @@ export default {
 .segmentList {
   margin-top: 1.5rem;
   margin-left: 2rem;
-  margin-bottom: 1.5rem;
   flex-grow: 1;
   &__segment {
     width: 100%;
+    margin-bottom: 2rem;
   }
 }
 

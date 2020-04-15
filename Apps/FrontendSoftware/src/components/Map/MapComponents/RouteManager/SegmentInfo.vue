@@ -24,7 +24,7 @@
 
     <!-- COORD LIST -->
     <div class = "segment__attr">
-      <div>{{"(" + segment.xCmCoordinate + "cm, " +  segment.yCmCoordinate + "cm)"}}</div>
+      <div>{{"(" + Math.round(segment.xCmCoordinate) + "cm, " +  Math.round(segment.yCmCoordinate) + "cm)"}}</div>
     </div>
 
     <!-- COMMANDS -->

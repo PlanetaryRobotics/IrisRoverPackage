@@ -33,8 +33,6 @@ import GridEventBus from '@/components/Map/GridEventBus.js';
 import { mapGetters } from 'vuex';
 import { plotNewSegment, 
          generateFirstSegmentVars, 
-         generateAppendedSegmentVars, 
-         calculateCmCoordinatesForSegment,
          getAbsoluteCoordinates } from '@/components/Map/Utility/SegmentPlotter.js';
 import WaypointSegment from "@/data_classes/WaypointSegment.js";
 
@@ -83,11 +81,7 @@ export default {
       polarPlotEnabled: 'polarPlotEnabled',
       isListeningForWaypoint: 'isListeningForWaypoint',
       removeCurrSegment: 'removeCurrSegment',
-
-      // AddToRoute.vue
-      appendedSegmentData: 'appendedSegmentData',
-      appendedSegmentUpdate: 'appendedSegmentUpdate',
-      removeAppendedSegment: 'removeAppendedSegment',
+      editingRoute: 'editingRoute',
     }),
   },
   mounted() {
@@ -118,21 +112,15 @@ export default {
          d3.select("#NewRoute").remove();
       }
     },
-    appendedSegmentUpdate() {
-      this.drawAppendedSegment();
-    },
-    removeAppendedSegment() {
-      if (!d3.select("#Appended-Segment-Editing").empty()) {
-        d3.select("#Appended-Segment-Editing").remove();
-      }
-    }
   },
   methods: {
     updateCurrWaypointSegment(xCm, yCm) {
       let currWaypointSegment = new WaypointSegment();
       currWaypointSegment.setCmCoordinates(xCm, yCm);
 
-      let {angle, startX, startY, endX, endY} = generateFirstSegmentVars(currWaypointSegment, 
+      let {angle, startX, startY, endX, endY} = generateFirstSegmentVars(
+                                                              this.editingRoute,
+                                                              currWaypointSegment, 
                                                               this.rover.xPosPx, 
                                                               this.rover.yPosPx,
                                                               this.origin.xPosPx,
@@ -171,7 +159,9 @@ export default {
         let currWaypointSegment = new WaypointSegment();
         currWaypointSegment.setPxCoordinates(this.mouseCoords[0], this.mouseCoords[1]);
 
-        let {angle, startX, startY, endX, endY} = generateFirstSegmentVars(currWaypointSegment, 
+        let {angle, startX, startY, endX, endY} = generateFirstSegmentVars(
+                                                              this.editingRoute,
+                                                              currWaypointSegment, 
                                                               this.rover.xPosPx, 
                                                               this.rover.yPosPx,
                                                               this.origin.xPosPx,
@@ -270,114 +260,6 @@ export default {
         // .attr("x", label_coordinate.x)
         // .attr("y", label_coordinate.y)
         // .text(ft_name);
-      }
-    },
-    drawAppendedSegment() {
-      let route = this.appendedSegmentData.route;
-      let segment = this.appendedSegmentData.segment;
-      let lastSegmentIdx = route.segmentList.length-1;
-
-      let {computedAngle, startX, startY, endX, endY} = generateAppendedSegmentVars(route, 
-                                                                                    segment, 
-                                                                                    lastSegmentIdx, 
-                                                                                    this.gridSquare.gridUnitCm, 
-                                                                                    this.gridSquare.gridUnitPx,
-                                                                                    this.rover.xPosPx,
-                                                                                    this.rover.yPosPx,
-                                                                                    this.origin.xPosPx,
-                                                                                    this.origin.yPosPx,
-                                                                                    this.rover.xCmFromLander,
-                                                                                    this.rover.yCmFromLander);
-      
-      let transform;
-
-      if (d3.select("#Appended-Segment-Editing").empty()) {
-        transform = d3.select("#"+route.routeName+"-Group")
-                      .append('g')
-                      .attr("id", "Appended-Segment-Editing");
-      } else {
-        transform = d3.select("#Appended-Segment-Editing");
-        transform.selectAll("*").remove();
-      }
-
-      plotNewSegment(transform, route.routeName, lastSegmentIdx+1, computedAngle, startX, startY, endX, endY, true);
-
-      // Calculate coords for relatives
-      if (segment.constructor.name === "RelativeSegment") {
-
-        let roverTrans = this.convertCmToPx(this.rover.xCmFromLander, this.rover.yCmFromLander);
-        calculateCmCoordinatesForSegment(segment, 
-                                            "Appended-Segment-Editing", 
-                                            lastSegmentIdx+1, 
-                                            this.rover.xPosPx - roverTrans.xPx, //Subtract by rover trans
-                                            this.rover.yPosPx - roverTrans.yPx, 
-                                            this.gridSquare.gridUnitCm, 
-                                            this.gridSquare.gridUnitPx);
-      }
-    },
-
-    /**
-     * Performs necessary computations to plot the line and point
-     * for the route depending on the tab it is on.
-     * 
-     * Will draw the route if there is at least distance defined.
-     * 
-     * @param {object} segment      Segment object
-    */
-    drawCurrRoute(segment) {
-
-      // Only draw if there is AT LEAST distance param inputted
-      if (segment.constructor.name === "RelativeSegment" &&
-         (segment.distance === "")) {
-           return;
-      }
-
-      if (segment.constructor.name === "AbsoluteSegment" &&
-         (segment.xCoordinate === 0 && segment.yCoordinate === 0)) {
-           return;
-      }
-
-      let {angle, startX, startY, endX, endY} = generateFirstSegmentVars(segment, 
-                                                              this.rover.xPosPx, 
-                                                              this.rover.yPosPx,
-                                                              this.origin.xPosPx,
-                                                              this.origin.yPosPx,
-                                                              this.gridSquare.gridUnitCm,
-                                                              this.gridSquare.gridUnitPx,
-                                                              );
-      
-      let currRouteTransform;
-
-      if (d3.select("#NewRoute").empty()) {
-        currRouteTransform = 
-          d3.select("#gridContents")
-            .append('g')
-            .lower()
-            .attr("id", "NewRoute")
-            .append('g')
-            .attr("id", "NewRoute-Group")
-            .append('g')
-            .attr("id", "NewRoute-Segment0");
-
-      } else {
-        currRouteTransform = d3.select("#NewRoute")
-                                .select("#NewRoute-Segment0");
-        currRouteTransform.selectAll("*").remove();
-      }
-
-      plotNewSegment(currRouteTransform, "NewRoute", 0, angle, startX, startY, endX, endY, true);
-
-      // Calculate coords for relatives
-      if (segment.constructor.name === "RelativeSegment") {
-
-        let roverTrans = this.convertCmToPx(this.rover.xCmFromLander, this.rover.yCmFromLander);
-        calculateCmCoordinatesForSegment(segment, 
-                                            "NewRoute", 
-                                            0, 
-                                            this.rover.xPosPx - roverTrans.xPx, //Subtract by rover trans
-                                            this.rover.yPosPx - roverTrans.yPx, 
-                                            this.gridSquare.gridUnitCm, 
-                                            this.gridSquare.gridUnitPx);
       }
     },
 

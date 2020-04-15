@@ -10,115 +10,87 @@ export function calculateCmCoordinatesForSegment(segment, id, index, roverXPosPx
   segment.yCmCoordinate = yCm.toFixed(1);
 }
 
-export function generateFirstSegmentVars(segment, roverXPosPx, roverYPosPx, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
+export function generateFirstSegmentVars(route, segment, roverXPosPx, roverYPosPx, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
 
   let startX, startY, endX, endY, angle;
 
-  // Handle version where CM coords are known
-  if (segment.xCmCoordinate && segment.yCmCoordinate) {
+  if (!route.segmentList.length) {
+    // Handle version where CM coords are known
+    if (segment.xCmCoordinate && segment.yCmCoordinate) {
 
-    // Convert cm to px
-    let coords = convertCmToPx(segment.xCmCoordinate, segment.yCmCoordinate, gridUnitCm, gridUnitPx);
+      // Convert cm to px
+      let coords = convertCmToPx(segment.xCmCoordinate, segment.yCmCoordinate, gridUnitCm, gridUnitPx);
 
-    // Start coords is rover position
-    startX = roverXPosPx;
-    startY = roverYPosPx;
+      // Start coords is rover position
+      startX = roverXPosPx;
+      startY = roverYPosPx;
 
-    // End coords is segment coords applied to origin position
-    endX = originXPosPx + coords.xPx;
-    endY = originYPosPx + coords.yPx;
-    angle = 0;
+      // End coords is segment coords applied to origin position
+      endX = originXPosPx + coords.xPx;
+      endY = originYPosPx + coords.yPx;
+      angle = 0;
 
-    segment.setPxCoordinates(endX, endY);
-  
-  // Handle version where PX coords are known
+      segment.setPxCoordinates(endX, endY);
+    
+    // Handle version where PX coords are known
+    } else {
+
+      // Start coords is rover position
+      startX = roverXPosPx;
+      startY = roverYPosPx;
+
+      // End coords is segment coords applied to origin position
+      endX = segment.xPxCoordinate;
+      endY = segment.yPxCoordinate;
+      angle = 0;
+
+      // Compute the coords into cm and save into segment
+      let {xCm, yCm} = convertPxToCm(endX-originXPosPx, endY-originYPosPx, gridUnitCm, gridUnitPx);
+      segment.setCmCoordinates(xCm, yCm);
+    }
+
   } else {
 
-    // Start coords is rover position
-    startX = roverXPosPx;
-    startY = roverYPosPx;
+    // Get last point in route
+    let index = route.segmentList.length - 1;
+    let lastCircle = d3.select("#"+route.routeName+"-Segment"+(index))
+                    .select("circle")
+                  
+    // Need to get the transformed coordinates of the previous circle
+    let centre = getAbsoluteCoordinates(lastCircle);
 
-    // End coords is segment coords applied to origin position
-    endX = segment.xPxCoordinate;
-    endY = segment.yPxCoordinate;
-    angle = 0;
+    // Set start coords
+    startX = Number(centre.x);
+    startY = Number(centre.y);
 
-    // Compute the coords into cm and save into segment
-    let {xCm, yCm} = convertPxToCm(endX-originXPosPx, endY-originYPosPx, gridUnitCm, gridUnitPx);
-    segment.setCmCoordinates(xCm, yCm);
+    // Handle version where CM coords are known
+    if (segment.xCmCoordinate && segment.yCmCoordinate) {
+
+      // Convert cm to px
+      let coords = convertCmToPx(segment.xCmCoordinate, segment.yCmCoordinate, gridUnitCm, gridUnitPx);
+
+      // End coords is segment coords applied to origin position
+      endX = originXPosPx + coords.xPx;
+      endY = originYPosPx + coords.yPx;
+      angle = 0;
+
+      segment.setPxCoordinates(endX, endY);
+    
+    // Handle version where PX coords are known
+    } else {  
+
+      // Set end coords
+      endX = segment.xPxCoordinate;
+      endY = segment.yPxCoordinate;
+      angle = 0;
+
+      // Compute the coords into cm and save into segment
+      let {xCm, yCm} = convertPxToCm(endX-originXPosPx, endY-originYPosPx, gridUnitCm, gridUnitPx);
+      segment.setCmCoordinates(xCm, yCm);
+    }
   }
 
   return {angle: angle, startX: startX, startY: startY, endX: endX, endY: endY};
-}
-
-export function generateAppendedSegmentVars(route, segment, index, gridUnitCm, gridUnitPx, roverXPosPx, roverYPosPx, originXPosPx, originYPosPx) {
-
-  let startX, startY, endX, endY, angle, computedAngle, lastCircle;
-
-  // Handling for relative
-  if (segment.constructor.name === "RelativeSegment") {
-
-    let coords = convertCmToPx(0, segment.distance, gridUnitCm, gridUnitPx);
-
-    // Get last point in route
-    lastCircle = d3.select("#"+route.routeName+"-Segment"+(index))
-                    .select("circle")
-                  
-    // Need to get the transformed coordinates of the previous circle
-    let centre = getAbsoluteCoordinates(lastCircle);
-
-    // Set start coords
-    startX = Number(centre.x);
-    startY = Number(centre.y);
-
-    // Obtain sum of all prev angles in route
-    let sumPrevAngles = 0;
-    let list = route.segmentList.slice(0, index+1);
-    list.forEach(seg => sumPrevAngles += seg.angle);
-    
-    // If angle is not defined, set to 0
-    if ((segment.angle && segment.angle === "-") || !segment.angle) {
-      angle = 0
-    } else {
-      angle = segment.angle;
-    }
-
-    computedAngle = sumPrevAngles + angle;
-
-    // Set end coords
-    endX = startX;
-    endY = startY + coords.yPx;
-  }
-
-  // Handling for absolute
-  else {
-    let coords = convertCmToPx(segment.xCoordinate, segment.yCoordinate, gridUnitCm, gridUnitPx);
-
-    // Get last point in route
-    lastCircle = d3.select("#"+route.routeName+"-Segment"+(index))
-                    .select("circle")
-                  
-    // Need to get the transformed coordinates of the previous circle
-    let centre = getAbsoluteCoordinates(lastCircle);
-
-    // Set start coords
-    startX = Number(centre.x);
-    startY = Number(centre.y);
-
-    // Set end coords
-    endX = originXPosPx + coords.xPx;
-    endY = originYPosPx + coords.yPx;
-
-    computedAngle = 0;
-
-    // Compute the angle of the segment relative to the previous segment
-    // tan(angle) = |m2 - m1 \ 1 + m2*m1|
-    // let mPrev = (startY - roverYPosPx) / (startX - roverXPosPx);
-    // let mCurr = (endY - roverYPosPx) / (endX - roverXPosPx);
-    // segment.angle = Math.atan(Math.abs((mCurr - mPrev)/(1 + mCurr*mPrev))) * (180/Math.PI);
-  }
-
-  return {computedAngle: computedAngle, startX: startX, startY: startY, endX: endX, endY: endY};
 }
 
 /**

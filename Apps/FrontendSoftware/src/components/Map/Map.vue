@@ -11,38 +11,13 @@
 
           <!-- RIGHT PANEL --> 
           <div class="right-panel">
-            <div class="right-panel__container" v-show="show.routesAndFeatures">
+            <div class="right-panel__container">
               <RouteManager />
               <POIList />
-            </div>
-            <div v-show="show.routeManager">
-              <AddToRoute />
             </div>
           </div>
         </div>
 
-        <!-- RIGHT NAVIGATION --> 
-        <div id="mapNavigationRight">
-          <div class="functional menu">
-              <RadioSVGButton :id="'RouteAndFeaturesRadioSVG'"
-                    :initiallyChecked="true"
-                    :value="'true'"
-                    :svgName="'icon_visible'" 
-                    :storeId="'MAP'"
-                    class="icon"
-                    v-on:click.native="switchRightPanelView('routesAndFeatures')"
-                    />
-              
-              <RadioSVGButton :id="'RouteManagerRadioSVG'"
-                    :initiallyChecked="false"
-                    :value="'false'"
-                    :svgName="'icon_route_manager'" 
-                    :storeId="'MAP'"
-                    class="icon"
-                    v-on:click.native="switchRightPanelView('routeManager')"
-                    />
-          </div>
-        </div>
       </div>
     <!-- END MAP CONTAINER --> 
     </div>
@@ -55,8 +30,6 @@ import MapNavigationLeft from '@/components/Map/MapComponents/MapNavigationLeft.
 import Grid from '@/components/Map/MapComponents/Grid.vue';
 import POIList from '@/components/POI/POIList/POIList.vue';
 import RouteManager from '@/components/Map/MapComponents/RouteManager/RouteManager.vue';
-import AddToRoute from '@/components/Map/MapComponents/FormComponents/AddToRoute.vue';
-import RadioSVGButton from '@/components/atomic/RadioSVGButton.vue';
 import SegmentModal from "@/components/Map/MapComponents/RouteManager/SegmentModal.vue";
 import GridEventBus from '@/components/Map/GridEventBus.js';
 
@@ -67,8 +40,6 @@ export default {
     Grid,
     RouteManager,
     POIList,
-    AddToRoute,
-    RadioSVGButton,
     SegmentModal
   },
   data() {
@@ -118,7 +89,7 @@ export default {
 .map-container{
   position: relative;
   display: grid;
-  grid-template-columns: 1fr 4rem;
+  grid-template-columns: 1fr;
   grid-template-rows: 1fr;
   grid-gap: 2px;
   overflow: hidden;

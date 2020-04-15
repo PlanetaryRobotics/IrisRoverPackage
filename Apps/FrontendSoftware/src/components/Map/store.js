@@ -1,5 +1,3 @@
-import AbsoluteSegment from '@/data_classes/AbsoluteSegment.js';
-import RelativeSegment from '@/data_classes/RelativeSegment.js';
 //import WaypointSegment from '@/data_classes/WaypointSegment.js';
 import RouteList from '@/data_classes/RouteList.js';
 
@@ -49,22 +47,14 @@ export default {
         },
 
         // CREATE FIRST SEG TO A ROUTE
+        isListeningForWaypoint: false,
         removeCurrSegment: 0,
         currWaypointSegment: null,
-        
-        // ADD TO ROUTE
-        appendedSegmentData: {
-          segment: null,
-          route: null,
-        },
-        appendedSegmentUpdate: 0,
-        removeAppendedSegment: 0,
+        editingRoute: null,
 
         // ROUTELIST
         routeList: new RouteList(),
         routeListUpdate: 0, // For watching the visibility toggles on routes.vue
-
-        isListeningForWaypoint: false,
     },
     getters: {
       polarPlotEnabled: state => {
@@ -96,18 +86,9 @@ export default {
         return state.removeCurrSegment;
       },
 
-      // AddToRoute.vue
-      appendedSegmentData: state => {
-        return state.appendedSegmentData;
+      editingRoute: state => {
+        return state.editingRoute;
       },
-
-      appendedSegmentUpdate: state => {
-        return state.appendedSegmentUpdate;
-      },
-
-      removeAppendedSegment: state => {
-        return state.removeAppendedSegment;
-      }
     
     },
     mutations: {
@@ -142,27 +123,9 @@ export default {
       setCurrWaypointSegment(state, segment) {
         state.currWaypointSegment = segment;
       },
-      
-      //////////////////////////////////
-      // AddToRoute.vue
-      //////////////////////////////////
 
-      triggerAppendedSegmentRemoval(state) {
-        state.appendedSegmentData = {
-          segment: null,
-          route: null,
-        };
-        state.removeAppendedSegment += 1;
-      },
-
-      updateAppendedSegment(state, {route, routeType, distance, angle, xCoord, yCoord}) {
-        state.appendedSegmentData.route = route;
-        if (routeType === "relative") {
-          state.appendedSegmentData.segment = new RelativeSegment(distance, angle);
-        } else {
-          state.appendedSegmentData.segment = new AbsoluteSegment(xCoord, yCoord);
-        }
-        state.appendedSegmentUpdate += 1;
+      setEditingRoute(state, route) {
+        state.editingRoute = route;
       },
 
       // saveSegment(state, {route, segment}) {

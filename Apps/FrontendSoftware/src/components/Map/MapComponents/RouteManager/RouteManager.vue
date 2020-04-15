@@ -1,5 +1,5 @@
 <template>
-  <div id = "routeManager" class="scrollable">
+  <div id = "routeManager" class="scrollable" >
     <!-- TAB -->
     <div class="mapTab">
       <!-- HEADER --> 
@@ -97,7 +97,6 @@ export default {
 
 #routeManager {
   background-color: $color-near-black;
-  height: 100%;
 }
 
 .routeList {

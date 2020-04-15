@@ -1,68 +1,77 @@
 <template>
-  <div class="segmentModal" id="segmentModal">
-    <!-- HEADER -->
-    <div class="header">
-      <div class="header__title bold">{{"Add " + segmentName}}</div> <!-- TODO: UPDATE THIS -->
-      <svg class="header__close" @click="closeModal()" width="12" height="13" viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M11.8866 0.822569C12.0329 0.674049 12.0329 0.43325 11.8866 0.28473C11.7402 0.13621 11.5029 0.13621 11.3566 0.28473L5.99999 5.72043L0.643436 0.284741C0.497078 0.136221 0.259785 0.136221 0.113427 0.284741C-0.0329308 0.433261 -0.0329308 0.67406 0.113427 0.82258L5.46999 6.25827L0.109768 11.6977C-0.0365894 11.8462 -0.0365896 12.087 0.109768 12.2355C0.256126 12.384 0.49342 12.384 0.639778 12.2355L5.99999 6.79611L11.3602 12.2355C11.5066 12.384 11.7439 12.384 11.8902 12.2355C12.0366 12.087 12.0366 11.8462 11.8902 11.6977L6.53 6.25827L11.8866 0.822569Z" fill="#FCFCFC"/>
-      </svg>
+  <div>
+    <!-- SEGMENT NAME -->
+    <div class="segName">
+      <div class="segName__label formLabel">Name</div>
+      <div class="segName__name">{{segmentName}}</div>
     </div>
-
-    <!-- TOGGLE -->
-    <div class="toggle">
-      <div class="toggle__label formLabel">Type</div>
-      <div class="toggle__container">
-        <div class="toggle__button--left" :class="{selected: show.segmentForm}" @click.capture="toggleType('segment')">
-          Segment
-        </div>
-        <div class="toggle__button--right" :class="{selected: !show.segmentForm}" @click.capture="toggleType('circum')">
-          Circumnav.
-        </div>
+    
+    <!-- COORDINATES -->
+    <div class="coordinates">
+      <div class="coordinates__x">
+        <label class="formLabel">X* </label>
+        <input type="text"
+                placeholder="Enter X"
+                v-model="formValues.XCOORD"
+                @input="validateInput('XCOORD', $event.target.value)"/>
+      </div>
+      <div class="coordinates__y">
+        <label class="formLabel">Y* </label>
+        <input type="text"
+                placeholder="Enter Y"
+                v-model="formValues.YCOORD"
+                @input="validateInput('YCOORD', $event.target.value)">
       </div>
     </div>
 
-    <!-- DIVIDER -->
-    <div class="divider"/>
-
-    <!-- SEGMENT FORM -->
-    <SegmentForm :route = "route" v-if="show.segmentForm"/>
-
-    <!-- CIRCUMNAV FORM -->
-    <div v-else>
-      Circumnav form
+    <!-- ANGLE -->
+    <div class="angle">
+      <label class="formLabel">Angle </label>
+      <input class="angle__input" 
+              type="text"
+              placeholder="Enter angle to turn rover"
+              v-model="formValues.ANGLE"
+              @input="validateInput('ANGLE', $event.target.value)">
     </div>
+
+    <div class="errorContainer">
+      <div class="error" v-for="(key, index) in Object.keys(errors)" :key="index">
+        {{errors[key]}}
+      </div>
+    </div>
+    
+    <!-- BUTTONS -->
+    <div class="buttonContainer">
+      <AtomicButton v-bind="buttons.cancelButton" 
+                            @click.native="cancelSegment"/>
+      <AtomicButton v-bind="buttons.planButton" 
+                            @click.native="saveSegment"/>
+
+   </div>
 
   </div>
 </template>
 
 <script>
+import GridEventBus from '@/components/Map/GridEventBus.js';
 import Route from "@/data_classes/Route.js";
-import SegmentForm from "@/components/Map/MapComponents/RouteManager/Forms/SegmentForm.vue";
+import AtomicButton from '@/components/atomic/AtomicButton.vue';
+import { mapGetters } from 'vuex';
 
 export default {
-  name: "SegmentModal",
+  name: "SegmentForm",
   components: {
-    SegmentForm
+    AtomicButton
   },
   props: {
     route: Route
   },
   data() {
     return {
-      windowHeight: null,
-      windowWidth: null,
-      show: {
-        segmentForm: true
-      },
-      formValues: {
-        segment: {
-          XCOORD: "",
-          YCOORD: "",
-          ANGLE: ""
-        },
-        circumnav: {
-          //TODO
-        }
+      formValues: { 
+        XCOORD: "",
+        YCOORD: "",
+        ANGLE: ""
       },
       errors: {
         XCOORD: "",
@@ -90,67 +99,67 @@ export default {
     }
   },
   computed: {
+    ...mapGetters(['currWaypointSegment']),
     segmentName: function() {
       let currLength = this.route.segmentList.length;
       return "SEG-" + (currLength + 1);
     }
   },
+  watch: {
+    // Waypoint segment will be saved into store from grid
+    // and grid ensures that segment has all coords before saving.
+    // So whenever seg updates, it is ready to save.
+    currWaypointSegment() {
+      this.buttons.planButton.enabled = true;
+    }
+  },
+  destroyed() {
+    this.$store.commit("setIsListeningForWaypoint", false);
+    this.$store.commit("setEditingRoute", null);
+  },
   mounted() {
-    this.setupModalPositioning();
+    this.$store.commit("setIsListeningForWaypoint", true);
+    this.$store.commit("setEditingRoute", this.route);
+
+    GridEventBus.$on('WAYPOINT_GRID_UPDATE', (data) => {
+      this.updateFormValues(data.xCm, data.yCm);
+    })
   },
   methods: {
-    toggleType(type) {
-      if (type === 'segment' && !this.show.segmentForm ||
-          type === 'circum' && this.show.segmentForm) {
-        this.show.segmentForm = !this.show.segmentForm;
+    updateFormValues(xCm, yCm) {
+      this.formValues.XCOORD = Math.round(xCm);
+      this.formValues.YCOORD = Math.round(yCm);
+    },
+    validateInput(key, value) {
+      // Validate is a number
+      if (value !== "" && !this.validateIsNumber(value)) {
+        this.errors[key] = key + " is not a number.";
+        return;
+      } 
+
+      this.errors[key] = "";
+
+      // Emit to form updates to grid
+      GridEventBus.$emit('WAYPOINT_FORM_UPDATE', {xCm: this.formValues.XCOORD, 
+                                                  yCm: this.formValues.YCOORD});
+    },
+    validateIsNumber(value) {
+      return !isNaN(parseFloat(value)) && isFinite(value);
+    },
+    saveSegment() {
+      this.$store.commit("saveSegment", {route: this.route, segment: this.currWaypointSegment});
+      this.closeModal();
+    },
+    cancelSegment() {
+      this.$store.commit("triggerCurrSegmentRemoval");
+      let keys = Object.keys(this.formValues);
+      for (let k of keys) {
+        this.formValues[k] = "";
       }
     },
-    setupModalPositioning() {
-      window.onresize = function() {
-        this.windowHeight = window.innerHeight;
-        this.windowWidth = window.innerWidth;
-      };
-
-      addListeners();
-      this.windowHeight = window.innerHeight;
-      this.windowWidth = window.innerWidth;
-
-      function addListeners(){
-        document.querySelector(".segmentModal").addEventListener('mousedown', mouseDown, false);
-        window.addEventListener('mouseup', mouseUp, false);
-      }
-
-      function mouseUp(){
-        window.removeEventListener('mousemove', divMove, true);
-      }
-
-      function mouseDown(e){
-        e.stopPropagation();
-        window.addEventListener('mousemove', divMove, true);
-      }
-
-      function divMove(e){
-        e.stopPropagation();
-        var div = document.querySelector(".segmentModal");
-        div.style.position = 'absolute';
-
-        function calculateValue(client, boundary) {
-          let val = client;
-          if (client < 0) {
-            val = 0;
-          } else if (client > boundary) {
-            val = boundary;
-          }
-          return val;
-        }
-
-        let x = calculateValue(e.clientX, this.windowWidth);
-        let y = calculateValue(e.clientY, this.windowHeight);
-
-        div.style.top = y + 'px';
-        div.style.left = x + 'px';
-      }
-    }
+    closeModal() {
+      GridEventBus.$emit('CLOSE_ADD_MODAL');
+    },
   }
 }
 

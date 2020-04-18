@@ -5,8 +5,7 @@ import warnings
 from teleop_backend.network.multiprocess_tcp_client import EmptyDataHandlerWarning
 
 class TestMultiprocessTcpClient(unittest.TestCase):
-    
-    """Tests recv_data_from_socket"""
+    """Unit tests the functionality of multiprocess_tcp_client.py"""
 
     def test_emptyDataHandler(self):
         """
@@ -84,7 +83,7 @@ class TestMultiprocessTcpClient(unittest.TestCase):
             mock_socket.recv.side_effect = IOError
         self.assertRaises(IOError, tcp_client.recv_data_from_socket, mock_socket, data_handlers)
 
-    """Tests send"""
+    #Tests send
     def test_sendSuccessful(self):
         """
         Tests behavior when sendall is successful
@@ -109,7 +108,7 @@ class TestMultiprocessTcpClient(unittest.TestCase):
         with unittest.mock.patch("socket.socket") as mock_socket:
             mock_shutdown_event = unittest.mock.MagicMock()
             tcp_client = multiprocess_tcp_client.MultiprocessTcpClient(mock_shutdown_event)
-            mock_socket.sendall.return_value = IOError
+            mock_socket.sendall.side_effect = IOError
             test_data = b"sample data"
             test_flag = 0
         self.assertFalse(tcp_client.send_data(mock_socket, test_data, test_flag))        

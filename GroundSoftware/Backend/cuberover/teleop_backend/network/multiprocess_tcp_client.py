@@ -62,20 +62,21 @@ class MultiprocessTcpClient:
             IOError: If any errors occur during the sendall() system call.
         """ 
         print("[[MultiprocessTcpClient]: Attempting to send {} bytes of data".format(len(data)))
-        result = sock.sendall(data, flags)
-        if result is None:
+        try:
+            sock.sendall(data, flags)
             print("[MultiprocessTcpClient]: Send successful")
             return True
-        else:
-            print("[MultiprocessTcpClient]: Send unsuccessful, result={}".format(result))
+        except IOError as err:
+            warnings.warn("An error occurred while attempting to send data: {}".format(err), EmptyDataHandlerWarning)
             return False
 
     def send(self, data: bytes, flags=0): # assert_called_once_with
         print("[[MultiprocessTcpClient]: Attempting to send {} bytes of data".format(len(data)))
         result = self.__sock.sendall(data, flags)
-        if result is None:
+        try:
+            self.__sock.sendall(data, flags)
             print("[MultiprocessTcpClient]: Send successful")
-        else:
+        except IOError as err:
             print("[MultiprocessTcpClient]: Send unsuccessful, result={}".format(result))
 
     def shutdown(self):
@@ -113,8 +114,8 @@ class MultiprocessTcpClient:
         else:
             print("[MultiprocessTcpClient]: Got {} bytes of data".format(len(chunk)))
         if(len(data_handlers) == 0):
-            warnings.warn("The TCP client received data, but no data handlers have been registered to be \
-                given that data. The received data will be discarded.", EmptyDataHandlerWarning)
+            warnings.warn("The TCP client received data, but no data handlers have been registered to be"
+                " given that data. The received data will be discarded.", EmptyDataHandlerWarning)
         for d in data_handlers:
             d.new_bytes(chunk)
         return True

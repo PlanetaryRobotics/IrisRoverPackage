@@ -2,7 +2,7 @@
   <div class="segmentModal" id="segmentModal">
     <!-- HEADER -->
     <div class="header">
-      <div class="header__title bold">{{"Add " + segmentName}}</div> <!-- TODO: UPDATE THIS -->
+      <div class="header__title bold">{{action.charAt(0) + action.substring(1).toLowerCase() + " " + getSegmentName()}}</div> <!-- TODO: UPDATE THIS -->
       <svg class="header__close" @click="closeModal()" width="12" height="13" viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M11.8866 0.822569C12.0329 0.674049 12.0329 0.43325 11.8866 0.28473C11.7402 0.13621 11.5029 0.13621 11.3566 0.28473L5.99999 5.72043L0.643436 0.284741C0.497078 0.136221 0.259785 0.136221 0.113427 0.284741C-0.0329308 0.433261 -0.0329308 0.67406 0.113427 0.82258L5.46999 6.25827L0.109768 11.6977C-0.0365894 11.8462 -0.0365896 12.087 0.109768 12.2355C0.256126 12.384 0.49342 12.384 0.639778 12.2355L5.99999 6.79611L11.3602 12.2355C11.5066 12.384 11.7439 12.384 11.8902 12.2355C12.0366 12.087 12.0366 11.8462 11.8902 11.6977L6.53 6.25827L11.8866 0.822569Z" fill="#FCFCFC"/>
       </svg>
@@ -24,11 +24,14 @@
     <!-- DIVIDER -->
     <div class="divider"/>
 
-    <!-- SEGMENT FORM -->
-    <SegmentForm :route = "route" v-if="show.segmentForm"/>
+    <!-- ADD SEGMENT FORM -->
+    <div v-if="show.segmentForm">
+      <AddSegmentForm :route = "route" v-if="action === 'ADD'"/>
+      <EditSegmentForm :route = "route" :segment = "segment" :segmentIndex = "segmentIndex" v-else/>
+    </div>
 
     <!-- CIRCUMNAV FORM -->
-    <div v-else>
+    <div v-if="!show.segmentForm">
       Circumnav form
     </div>
 
@@ -36,16 +39,46 @@
 </template>
 
 <script>
+import GridEventBus from '@/components/Map/GridEventBus.js';
 import Route from "@/data_classes/Route.js";
-import SegmentForm from "@/components/Map/MapComponents/RouteManager/Forms/SegmentForm.vue";
+import AddSegmentForm from "@/components/Map/MapComponents/RouteManager/Forms/AddSegmentForm.vue";
+import EditSegmentForm from "@/components/Map/MapComponents/RouteManager/Forms/EditSegmentForm.vue";
+import WaypointSegment from "@/data_classes/WaypointSegment.js";
 
 export default {
   name: "SegmentModal",
   components: {
-    SegmentForm
+    AddSegmentForm,
+    EditSegmentForm,
   },
   props: {
-    route: Route
+    route: Route,
+    action: {
+      validator: function (value) {
+        return ['ADD', 'EDIT'].indexOf(value) !== -1;
+      }
+    },
+    segment: {
+      validator: function (value) {
+        // When it is an ADD modal
+        if (!value || value === "") { return true; }
+
+        // When it is an EDIT modal
+        if (value instanceof WaypointSegment) {return true; }
+        return false;
+      }
+    },
+    segmentIndex: {
+      validator: function(value) {
+        if (!value || value === "") {return true;}
+
+        if (typeof value === "number") {
+          return true;
+        }
+
+        return false;
+      }
+    }
   },
   data() {
     return {
@@ -54,51 +87,26 @@ export default {
       show: {
         segmentForm: true
       },
-      formValues: {
-        segment: {
-          XCOORD: "",
-          YCOORD: "",
-          ANGLE: ""
-        },
-        circumnav: {
-          //TODO
-        }
-      },
-      errors: {
-        XCOORD: "",
-        YCOORD: "",
-        ANGLE: ""
-      },
-      buttons: {
-        cancelButton: {
-          id:'cancelSegmentButton',
-          flavor:'primary',
-          text:'CANCEL',
-          value: 'cancelSegment',
-          enabled: true,
-          storeId: 'MAP'
-        },
-        planButton: {
-          id:'planSegmentButton',
-          flavor:'primary',
-          text:'PLAN',
-          value: 'planSegment',
-          enabled: false,
-          storeId: 'MAP'
-        },
-      }
-    }
-  },
-  computed: {
-    segmentName: function() {
-      let currLength = this.route.segmentList.length;
-      return "SEG-" + (currLength + 1);
     }
   },
   mounted() {
     this.setupModalPositioning();
   },
   methods: {
+    getSegmentName: function() {
+      if (this.action === "ADD") {
+        let currLength = this.route.segmentList.length;
+        return "SEG-" + (currLength);
+      } else {
+        return "SEG-" + this.segmentIndex;
+      }
+    },
+    isAdd() {
+      return this.action === "ADD";
+    },
+    closeModal() {
+      GridEventBus.$emit('CLOSE_SEGMENT_MODAL');
+    },
     toggleType(type) {
       if (type === 'segment' && !this.show.segmentForm ||
           type === 'circum' && this.show.segmentForm) {

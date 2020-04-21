@@ -72,7 +72,7 @@ export default {
               .append('g')
               .attr("id", route.routeName+"-Segment0")
 
-          let circleCoords = plotNewSegment(currRouteTransform, route.routeName, 0, angle, startX, startY, endX, endY, false);
+          let circleCoords = plotNewSegment(currRouteTransform, route.routeName, 0, angle, startX, startY, endX, endY, false, segment.roverAngle);
           
           // Set up modal once have coords w/ rotation
           currRouteTransform.on("click", function() {
@@ -81,16 +81,6 @@ export default {
 
         // Appended segments
         } else {
-
-          // let {computedAngle, startX, startY, endX, endY} = generateAppendedSegmentVars(route, 
-          //                                                                               segment, 
-          //                                                                               i-1, 
-          //                                                                               this.gridSquare.gridSquare.gridUnitCm, 
-          //                                                                               this.gridSquare.gridSquare.gridUnitPx,
-          //                                                                               this.rover.rover.xPosPx,
-          //                                                                               this.rover.rover.yPosPx,
-          //                                                                               this.origin.origin.xPosPx,
-          //                                                                               this.origin.origin.yPosPx);
 
           // Get last point in route
           let lastCircle = d3.select("#"+route.routeName+"-Segment"+(i-1))
@@ -112,7 +102,7 @@ export default {
                             .append('g')
                             .attr("id", route.routeName+"-Segment"+i);
    
-          let circleCoords = plotNewSegment(transform, route.routeName, i, angle, startX, startY, endX, endY, false);
+          let circleCoords = plotNewSegment(transform, route.routeName, i, angle, startX, startY, endX, endY, false, segment.roverAngle);
 
           // Set up modal once have coords w/ rotation
           transform.on("click", function() {

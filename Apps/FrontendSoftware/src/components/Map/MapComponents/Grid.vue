@@ -92,7 +92,7 @@ export default {
     this.drawPolar();
 
     GridEventBus.$on('WAYPOINT_FORM_UPDATE', (data) => {
-      this.updateCurrWaypointSegment(data.xCm, data.yCm);
+      this.updateCurrWaypointSegment(data.xCm, data.yCm, data.angle);
     })
   },
   watch: {
@@ -114,9 +114,13 @@ export default {
     },
   },
   methods: {
-    updateCurrWaypointSegment(xCm, yCm) {
+    updateCurrWaypointSegment(xCm, yCm, roverAngle) {
       let currWaypointSegment = new WaypointSegment();
       currWaypointSegment.setCmCoordinates(xCm, yCm);
+
+      if (roverAngle && roverAngle !== "") {
+        currWaypointSegment.roverAngle = roverAngle;
+      }
 
       let {angle, startX, startY, endX, endY} = generateFirstSegmentVars(
                                                               this.editingRoute,
@@ -150,7 +154,7 @@ export default {
         currRouteTransform.selectAll("*").remove();
       }
 
-      plotNewSegment(currRouteTransform, "NewRoute", 0, angle, startX, startY, endX, endY, true);
+      plotNewSegment(currRouteTransform, "NewRoute", 0, angle, startX, startY, endX, endY, true, roverAngle);
     },
     gridClicked() {
       // isListening means form is set to waypoint

@@ -49,7 +49,7 @@
       <!-- SEGMENT LIST -->
       <div class="segmentList" v-show = "show.segmentList">
         <div class="segmentList__segment" v-for="(segment, index) in route.segmentList" :key="index">
-          <SegmentInfo :segment = "segment" :index="index"/>
+          <SegmentInfo :segment = "segment" :route = "route" :index="index"/>
         </div>
       </div> 
 
@@ -129,7 +129,7 @@ export default {
       this.triggerRouteListUpdate();
     },
     openAddModal() {
-      GridEventBus.$emit("OPEN_ADD_MODAL", this.route);
+      GridEventBus.$emit("OPEN_SEGMENT_MODAL", {route: this.route, action: "ADD"});
     },
     handleInputFormatting() {
       let that = this;

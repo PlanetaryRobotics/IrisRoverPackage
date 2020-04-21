@@ -17,7 +17,7 @@
       </div>
 
       <!-- EDIT ICON -->
-      <svg class="icon pencil" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg @click="openEditModal()" class="icon pencil" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd" clip-rule="evenodd" d="M8.84607 2.54393C8.78749 2.48536 8.69251 2.48536 8.63393 2.54393L7.82295 3.35492C7.76437 3.41349 7.76437 3.50847 7.82295 3.56705L8.43727 4.18136C8.69111 4.4352 8.69111 4.84676 8.43727 5.1006L3.60678 9.93109C3.55989 9.97798 3.4963 10.0043 3.43 10.0043H2V8.57431C2 8.50801 2.02634 8.44442 2.07322 8.39754L6.39989 4.07087C6.49752 3.97324 6.65581 3.97324 6.75344 4.07087C6.85107 4.1685 6.85107 4.32679 6.75344 4.42442L2.5 8.67787V9.50431H3.32645L8.08371 4.74705C8.14229 4.68847 8.14229 4.59349 8.08371 4.53491L7.4694 3.9206C7.21556 3.66676 7.21556 3.2552 7.4694 3.00136L8.28038 2.19038C8.53422 1.93654 8.94578 1.93654 9.19962 2.19038L9.81393 2.8047C10.0678 3.05854 10.0678 3.47009 9.81393 3.72393L9.50678 4.03109C9.40915 4.12872 9.25085 4.12872 9.15322 4.03109C9.05559 3.93346 9.05559 3.77517 9.15322 3.67754L9.46038 3.37038C9.51896 3.3118 9.51896 3.21683 9.46038 3.15825L8.84607 2.54393Z" fill="#FCFCFC"/>
       </svg>
     </div>
@@ -41,12 +41,15 @@
 
 <script>
 
+import GridEventBus from '@/components/Map/GridEventBus.js';
 import WaypointSegment from "@/data_classes/WaypointSegment.js";
+import Route from "@/data_classes/Route.js";
 
 export default {
   name: "SegmentInfo",
   props: {
     segment: WaypointSegment,
+    route: Route,
     index: Number,
   },
   data() {
@@ -59,6 +62,9 @@ export default {
   methods: {
     toggleCommands() {
       this.show.commands = !this.show.commands;
+    },
+    openEditModal() {
+       GridEventBus.$emit("OPEN_SEGMENT_MODAL", {route: this.route, segment: this.segment, segmentIndex: this.index, action: "EDIT"});
     },
   }
 }

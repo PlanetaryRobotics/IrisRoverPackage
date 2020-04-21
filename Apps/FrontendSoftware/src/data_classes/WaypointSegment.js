@@ -9,6 +9,8 @@ export default class WaypointSegment{
 
     this._xCmCoordinate = null;
     this._yCmCoordinate = null;
+
+    this._roverAngle = null;
   } 
 
   setPxCoordinates(xPx, yPx) {
@@ -19,6 +21,14 @@ export default class WaypointSegment{
   setCmCoordinates(xCm, yCm) {
     this._xCmCoordinate = xCm;
     this._yCmCoordinate = yCm;
+  }
+
+  get roverAngle() {
+    return this._roverAngle;
+  }
+
+  set roverAngle(angle) {
+    this._roverAngle = angle;
   }
 
   get xPxCoordinate() {

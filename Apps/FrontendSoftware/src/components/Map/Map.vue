@@ -1,6 +1,6 @@
 <template>
     <div class="noSelect">
-      <SegmentModal v-if="show.segmentModal" :route="this.modalRoute" />
+      <SegmentModal v-if="show.segmentModal" :route="this.modalRoute" :segment="this.modalSegment" :segmentIndex="this.modalSegmentIndex" :action="this.modalAction"/>
       <div class="map-container">
         <div class="map-body">
           <!-- LEFT NAVIGATION --> 
@@ -49,20 +49,30 @@ export default {
         routeManager: false,
         segmentModal: false
       },
-      modalRoute: null
+      modalRoute: null,
+      modalSegment: null,
+      modalSegmentIndex: null,
+      modalAction: null,
     }
   },
   computed: {
     ...mapGetters(['POIDashboardOpen'])
   },
   mounted() {
-    GridEventBus.$on('CLOSE_ADD_MODAL', () => {
+    GridEventBus.$on('CLOSE_SEGMENT_MODAL', () => {
       this.show.segmentModal = false;
+      this.modalAction = null;
+      this.modalRoute = null;
     });
 
-    GridEventBus.$on('OPEN_ADD_MODAL', (route) => {
+    GridEventBus.$on('OPEN_SEGMENT_MODAL', (data) => {
+      let {route, segment, segmentIndex, action} = data;
+
       this.modalRoute = route;
+      this.modalSegment = segment;
+      this.modalSegmentIndex = segmentIndex;
       this.show.segmentModal = true;
+      this.modalAction = action;
     })
   },
   methods: {

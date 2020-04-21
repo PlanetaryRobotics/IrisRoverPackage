@@ -59,7 +59,7 @@ import AtomicButton from '@/components/atomic/AtomicButton.vue';
 import { mapGetters } from 'vuex';
 
 export default {
-  name: "SegmentForm",
+  name: "AddSegmentForm",
   components: {
     AtomicButton
   },
@@ -102,7 +102,7 @@ export default {
     ...mapGetters(['currWaypointSegment']),
     segmentName: function() {
       let currLength = this.route.segmentList.length;
-      return "SEG-" + (currLength + 1);
+      return "SEG-" + (currLength);
     }
   },
   watch: {
@@ -114,6 +114,7 @@ export default {
     }
   },
   destroyed() {
+    this.$store.commit("triggerCurrSegmentRemoval");
     this.$store.commit("setIsListeningForWaypoint", false);
     this.$store.commit("setEditingRoute", null);
   },
@@ -137,11 +138,18 @@ export default {
         return;
       } 
 
+      // Validate that angle is within normal bounds
+      if (key === "ANGLE" && (Number(value) > 360 || Number(value) < -360)){
+        this.errors[key] = key + " must be between -360 and 360 degrees.";
+        return;
+      }
+
       this.errors[key] = "";
 
       // Emit to form updates to grid
       GridEventBus.$emit('WAYPOINT_FORM_UPDATE', {xCm: this.formValues.XCOORD, 
-                                                  yCm: this.formValues.YCOORD});
+                                                  yCm: this.formValues.YCOORD,
+                                                  angle: this.formValues.ANGLE});
     },
     validateIsNumber(value) {
       return !isNaN(parseFloat(value)) && isFinite(value);
@@ -158,7 +166,7 @@ export default {
       }
     },
     closeModal() {
-      GridEventBus.$emit('CLOSE_ADD_MODAL');
+      GridEventBus.$emit('CLOSE_SEGMENT_MODAL');
     },
   }
 }

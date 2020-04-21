@@ -137,7 +137,55 @@ export function getAbsoluteCoordinates(point) {
 
 }
 
-export function plotNewSegment(container, id, index, angle, startX, startY, endX, endY, isDashed) {
+export function plotNewSegment(container, id, index, angle, startX, startY, endX, endY, isDashed, roverAngle) {
+
+  let line = container.append("line")
+                      .attr("id", id+"Line"+index)
+                      .attr("transform", `rotate(${angle} ${startX} ${startY})`)
+                      .attr("x1", startX)
+                      .attr("y1", startY)
+                      .attr("x2", endX)
+                      .attr("y2", endY)
+                      .style("stroke", "yellow") 
+                      .style("stroke-width", "3px");
+
+  // function getWidth(a) {
+  //   return Math.sqrt(4 * a / Math.sqrt(3));
+  // }
+  // function getHeight(l) {
+  //   return Math.sqrt(3)*l/2;
+  // }
+
+  if (roverAngle && roverAngle !== "") {
+
+    let deg = roverAngle;
+    var chairOriginX = endX + ((10) * Math.sin(0));
+    var chairOriginY = endY - ((10) * Math.cos(0));
+
+    // Square
+    container.append("rect")
+              .attr("x", chairOriginX - 5)
+              .attr("y", chairOriginY - 2.5)
+              .attr('width', 8)
+              .attr('height', 5)
+              .style("stroke", "#35BAF3")
+              .style("fill", "#35BAF3")
+              .attr("transform", `rotate(${deg} ${endX} ${endY})`);
+
+    // let tWidth = getWidth(100);
+    // let tHeight = getHeight(100);
+    // console.log(tWidth);
+    // console.log(tHeight);
+    // console.log(deg);
+    // // Triangle
+    // let arc = d3.symbol().type(d3.symbolTriangle).size(100);
+    //  container.append("g")
+    //           .attr("transform", `translate(${chairOriginX} ${chairOriginY}) rotate(${deg} ${endX} ${tHeight})`)
+    //           .append('path')
+    //           .attr('d', arc)
+    //           .attr('fill', '#A56DFF')
+    //           .attr("transform", `rotate(${deg} ${tWidth} ${tHeight})`);
+  }
 
   let circle = container
                 .append("circle")
@@ -148,16 +196,6 @@ export function plotNewSegment(container, id, index, angle, startX, startY, endX
                 .attr("r", "3px")
                 .style("fill", "yellow");
 
-  let line = container.append("line")
-            .attr("id", id+"Line"+index)
-            .attr("transform", `rotate(${angle} ${startX} ${startY})`)
-            .attr("x1", startX)
-            .attr("y1", startY)
-            .attr("x2", endX)
-            .attr("y2", endY)
-            .style("stroke", "yellow") 
-            .style("stroke-width", "3px");
-  
   if (isDashed) {
     line.style("stroke-dasharray", "5 3");
   }

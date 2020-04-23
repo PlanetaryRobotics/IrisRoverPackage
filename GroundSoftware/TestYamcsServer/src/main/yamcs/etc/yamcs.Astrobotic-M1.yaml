@@ -32,24 +32,10 @@ dataLinks:
       # The packet preprocessor gets the packets (one per datagram received on this data link) and 
       # extracts a timestamp and a sequence count from it. For historical reasons the default packet
       # preprocessor is the IssPacketPreprocessor, which reads packets according to the ISS 
-      # (International Space Station) definition. The generic packet preprocessor reads a timestamp
-      # in number of milliseconds since 1970 as well as a 4-byte sequence count. The location of
-      # both of these values in the packet is configured below. We could also configure it to 
-      # expect the last two bytes to be a checksum if we specified a errorDetection value below, 
-      # like:
-      #
-      #   errorDetection: 
-      #      type: "CRC-16-CCIIT"  # Can be "CRC-16-CCIIT" or "16-SUM"
-      #
-      # but by not specifying any errorDetection value we disable the expectation that the last two
-      # bytes have a checksum. We use the generic packet preprocessor because it allows us to
-      # receive simple UDP packets with a protobuf-encoded ParameterData object, prefixed with a 
-      # timestamp and sequence number as described above and configured below. This means we don't
-      # need to mess with CCSDS in our "fake lander" app.
-      packetPreprocessorClassName: org.yamcs.tctm.GenericPacketPreprocessor
-      packetPreprocessorArgs:
-        timestampOffset: 0 # Where to read the 8 bytes timestamp offset from
-        seqCountOffset: 8 # Where to read the 4 bytes sequence count from 
+      # (International Space Station) definition. This custom preprocessor keeps an internal sequence
+      # count for all packets and uses the current time as the timestamp, so the packet itself can
+      # consist of only the serialized F Prime message data.
+      packetPreprocessorClassName: com.iris.testserver.PassThroughPacketPreprocessor
   - name: udp-out
     # A custom class derived from UdpTcDataLink that rejects the command if the byte array returned 
     # from the postprocessor is a null array.

@@ -23,7 +23,9 @@ public class NameStrippingUdpTcDataLink extends UdpTcDataLink {
     @Override
     public void uplinkCommand(PreparedCommand pc) throws IOException {
         byte[] binary = cmdPostProcessor.process(pc);
-        if (binary != null) {
+        if (binary == null) {
+            failedCommand(pc.getCommandId(), "Command does not contain a valid command name");
+        } else {
             super.uplinkCommand(pc);
         }
     }

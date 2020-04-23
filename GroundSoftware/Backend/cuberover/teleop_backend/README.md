@@ -39,7 +39,9 @@
         14. `make TIR4`
         15. Note that it is OK and currently expected for the final `make` command to end in an error. What's important is to verify that inside of the current directory (which should be `CubeRover`), there should now be a directory named `py_dict`, and inside of that directory there should be three more directories: `channels`, `commands`, and `events`. Finally, the `py_dict/commands` directory should contain at least `Navigation.py` and `Response.py`.
 5. Install prerequisites for running the YAMCS test server:
-    1. `sudo apt update && sudo apt install -y openjdk-8-jre-headless maven`````
+   ```bash
+   sudo apt update && sudo apt install -y openjdk-8-jre-headless maven
+   ```
 ### Back-end verification
 Verifying the back-end requires four terminals. In all four terminals, the current working directory should be `<BACKEND_ROOT>`.
 1. In the first terminal, start the test YAMCS server:

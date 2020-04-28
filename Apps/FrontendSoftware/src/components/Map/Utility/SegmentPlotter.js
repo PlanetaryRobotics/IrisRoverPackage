@@ -21,13 +21,14 @@ export function generateFirstSegmentVars(route, segment, roverXPosPx, roverYPosP
       // Convert cm to px
       let coords = convertCmToPx(segment.xCmCoordinate, segment.yCmCoordinate, gridUnitCm, gridUnitPx);
 
-      // Start coords is rover position
-      startX = roverXPosPx;
-      startY = roverYPosPx;
-
       // End coords is segment coords applied to origin position
       endX = originXPosPx + coords.xPx;
       endY = originYPosPx + coords.yPx;
+
+      // Start coords is same as end for very first waypoint
+      startX = endX;
+      startY = endY;
+
       angle = 0;
 
       segment.setPxCoordinates(endX, endY);
@@ -35,13 +36,13 @@ export function generateFirstSegmentVars(route, segment, roverXPosPx, roverYPosP
     // Handle version where PX coords are known
     } else {
 
-      // Start coords is rover position
-      startX = roverXPosPx;
-      startY = roverYPosPx;
-
       // End coords is segment coords applied to origin position
       endX = segment.xPxCoordinate;
       endY = segment.yPxCoordinate;
+
+      // Start coords is same as end for very first waypoint
+      startX = endX;
+      startY = endY;
       angle = 0;
 
       // Compute the coords into cm and save into segment
@@ -201,4 +202,31 @@ export function plotNewSegment(container, id, index, angle, startX, startY, endX
   }
 
   return getAbsoluteCoordinates(circle);
+}
+
+// TODO: this needs to be updated to reflect waypoint add (AKA seg-0 does NOT come from rover pos)
+export function updateExistingSegment(routeName, segmentIdx, xCm, yCm, roverAngle, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
+
+  // Convert cm to px
+  let coords = convertCmToPx(xCm, yCm, gridUnitCm, gridUnitPx);
+
+  // End coords is segment coords applied to origin position
+  let endX = originXPosPx + coords.xPx;
+  let endY = originYPosPx + coords.yPx;
+
+  // Update the start of next seg
+  if (!d3.select("#"+routeName+"Line"+(segmentIdx+1)).empty()) {
+    d3.select("#"+routeName+"Line"+(segmentIdx+1))
+      .attr('x1', endX)
+      .attr('y1', endY);
+  }
+
+  // Update the current segment
+  d3.select("#"+routeName+"Line"+(segmentIdx))
+    .attr('x2', endX)
+    .attr('y2', endY);
+
+  d3.select("#"+routeName+"Point"+(segmentIdx))
+    .attr("cx", endX)
+    .attr("cy", endY);
 }

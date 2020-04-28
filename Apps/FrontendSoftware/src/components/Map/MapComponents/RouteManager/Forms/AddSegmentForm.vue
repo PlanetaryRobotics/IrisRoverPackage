@@ -147,7 +147,7 @@ export default {
       this.errors[key] = "";
 
       // Emit to form updates to grid
-      GridEventBus.$emit('WAYPOINT_FORM_UPDATE', {xCm: this.formValues.XCOORD, 
+      GridEventBus.$emit('ADD_SEG_FORM_UPDATE', {xCm: this.formValues.XCOORD, 
                                                   yCm: this.formValues.YCOORD,
                                                   angle: this.formValues.ANGLE});
     },

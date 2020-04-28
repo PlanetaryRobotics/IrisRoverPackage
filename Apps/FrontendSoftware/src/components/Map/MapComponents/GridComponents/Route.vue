@@ -55,13 +55,14 @@ export default {
         // If first segment
         if (i === 0) {
 
-          // Start coords is rover position
-          let startX = this.rover.rover.xPosPx;
-          let startY = this.rover.rover.yPosPx;
-
           // End coords is from segment itself
           let endX = segment.xPxCoordinate;
           let endY = segment.yPxCoordinate;
+
+          // Start coords is same as end for very first waypoint
+          let startX = endX;
+          let startY = endY;
+
           let angle = 0;
 
           let currRouteTransform = 

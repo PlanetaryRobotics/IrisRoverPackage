@@ -33,7 +33,8 @@ import GridEventBus from '@/components/Map/GridEventBus.js';
 import { mapGetters } from 'vuex';
 import { plotNewSegment, 
          generateFirstSegmentVars, 
-         getAbsoluteCoordinates } from '@/components/Map/Utility/SegmentPlotter.js';
+         getAbsoluteCoordinates,
+         updateExistingSegment } from '@/components/Map/Utility/SegmentPlotter.js';
 import WaypointSegment from "@/data_classes/WaypointSegment.js";
 
 export default {
@@ -91,8 +92,20 @@ export default {
     this.setRover();
     this.drawPolar();
 
-    GridEventBus.$on('WAYPOINT_FORM_UPDATE', (data) => {
+    GridEventBus.$on('ADD_SEG_FORM_UPDATE', (data) => {
       this.updateCurrWaypointSegment(data.xCm, data.yCm, data.angle);
+    })
+
+    GridEventBus.$on('EDIT_SEG_FORM_UPDATE', (data) => {
+      updateExistingSegment(data.routeName,
+                                 data.segmentIndex, 
+                                 data.xCm, 
+                                 data.yCm, 
+                                 data.roverAngle,
+                                 this.origin.xPosPx, 
+                                 this.origin.yPosPx,
+                                 this.gridSquare.gridUnitCm,
+                                 this.gridSquare.gridUnitPx);
     })
   },
   watch: {

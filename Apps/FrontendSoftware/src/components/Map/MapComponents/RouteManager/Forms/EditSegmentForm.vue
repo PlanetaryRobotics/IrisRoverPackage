@@ -116,8 +116,7 @@ export default {
       this.buttons.planButton.enabled = true;
     }
   },
-  destroyed() {
-    this.$store.commit("triggerCurrSegmentRemoval");
+  destroyed() { 
     this.$store.commit("setIsListeningForWaypoint", false);
     this.$store.commit("setEditingRoute", null);
   },
@@ -129,12 +128,12 @@ export default {
     this.formValues.YCOORD = Math.round(this.segment.yCmCoordinate);
     this.formValues.ANGLE = this.segment.roverAngle;
 
-    this.$store.commit("setIsListeningForWaypoint", true);
-    this.$store.commit("setEditingRoute", this.route);
+    // this.$store.commit("setIsListeningForWaypoint", true);
+    // this.$store.commit("setEditingRoute", this.route);
 
-    GridEventBus.$on('WAYPOINT_GRID_UPDATE', (data) => {
-      this.updateFormValues(data.xCm, data.yCm);
-    })
+    // GridEventBus.$on('WAYPOINT_GRID_UPDATE', (data) => {
+    //   this.updateFormValues(data.xCm, data.yCm);
+    // })
   },
   methods: {
     updateFormValues(xCm, yCm) {
@@ -150,23 +149,29 @@ export default {
 
       this.errors[key] = "";
 
-      // Emit to form updates to grid
-      GridEventBus.$emit('WAYPOINT_FORM_UPDATE', {xCm: this.formValues.XCOORD, 
-                                                  yCm: this.formValues.YCOORD});
+      GridEventBus.$emit('EDIT_SEG_FORM_UPDATE', {routeName: this.route.routeName, segmentIndex: this.segmentIndex, xCm: this.formValues.XCOORD, yCm: this.formValues.YCOORD, roverAngle: this.formValues.roverAngle});
+    
+      this.buttons.planButton.enabled = true; // At this point, can technically save
     },
     validateIsNumber(value) {
       return !isNaN(parseFloat(value)) && isFinite(value);
     },
     saveSegment() {
-      this.$store.commit("saveSegment", {route: this.route, segment: this.currWaypointSegment});
+      this.segment.xCmCoordinate = this.formValues.XCOORD;
+      this.segment.yCmCoordinate = this.formValues.YCOORD;
+      this.segment.roverAngle = this.formValues.ANGLE;
+      
       this.closeModal();
     },
     cancelSegment() {
-      this.$store.commit("triggerCurrSegmentRemoval");
-      let keys = Object.keys(this.formValues);
-      for (let k of keys) {
-        this.formValues[k] = "";
+      let obj = {
+        XCOORD: Math.round(this.segment.xCmCoordinate),
+        YCOORD: Math.round(this.segment.yCmCoordinate),
+        ANGLE: this.segment.roverAngle
       }
+      this.formValues = obj;
+      GridEventBus.$emit('EDIT_SEG_FORM_UPDATE', {routeName: this.route.routeName, segmentIndex: this.segmentIndex, xCm: this.formValues.XCOORD, yCm: this.formValues.YCOORD, roverAngle: this.formValues.roverAngle});
+      this.buttons.planButton.enabled = false; // Reverting to original, so disable again
     },
     closeModal() {
       GridEventBus.$emit('CLOSE_SEGMENT_MODAL');

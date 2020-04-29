@@ -34,7 +34,9 @@ import { mapGetters } from 'vuex';
 import { plotNewSegment, 
          generateFirstSegmentVars, 
          getAbsoluteCoordinates,
-         updateExistingSegment } from '@/components/Map/Utility/SegmentPlotter.js';
+         updateExistingSegment,
+         calculateCmToPxCoords,
+         calculatePxToCmCoords } from '@/components/Map/Utility/SegmentPlotter.js';
 import WaypointSegment from "@/data_classes/WaypointSegment.js";
 
 export default {
@@ -77,13 +79,13 @@ export default {
     }
   },
   computed: {
-    ...mapGetters({
-      routeList: 'routeList',
-      polarPlotEnabled: 'polarPlotEnabled',
-      isListeningForWaypoint: 'isListeningForWaypoint',
-      removeCurrSegment: 'removeCurrSegment',
-      editingRoute: 'editingRoute',
-    }),
+    ...mapGetters(['routeList',
+                   'polarPlotEnabled',
+                   'isListeningForNewWaypoint',
+                   'isListeningForEditWaypoint',
+                   'removeCurrSegment',
+                   'editingRoute',
+                   'editingSegmentInfo']),
   },
   mounted() {
     this.initializeGridSize();
@@ -97,15 +99,24 @@ export default {
     })
 
     GridEventBus.$on('EDIT_SEG_FORM_UPDATE', (data) => {
+      let coords = {
+        xCm: data.xCm,
+        yCm: data.yCm
+      }
+
       updateExistingSegment(data.routeName,
                                  data.segmentIndex, 
-                                 data.xCm, 
-                                 data.yCm, 
+                                 coords, 
                                  data.roverAngle,
                                  this.origin.xPosPx, 
                                  this.origin.yPosPx,
                                  this.gridSquare.gridUnitCm,
                                  this.gridSquare.gridUnitPx);
+    })
+
+    GridEventBus.$on('COMPUTE_SEG_PX_COORDS', (segment) => {
+      let {xPx, yPx} = calculateCmToPxCoords(segment.xCmCoordinate, segment.yCmCoordinate, this.origin.xPosPx, this.origin.yPosPx, this.gridSquare.gridUnitCm, this.gridSquare.gridUnitPx);
+      segment.setPxCoordinates(xPx, yPx);
     })
   },
   watch: {
@@ -171,7 +182,7 @@ export default {
     },
     gridClicked() {
       // isListening means form is set to waypoint
-      if (this.isListeningForWaypoint) {
+      if (this.isListeningForNewWaypoint) {
 
         let currWaypointSegment = new WaypointSegment();
         currWaypointSegment.setPxCoordinates(this.mouseCoords[0], this.mouseCoords[1]);
@@ -213,6 +224,26 @@ export default {
 
         plotNewSegment(currRouteTransform, "NewRoute", 0, angle, startX, startY, endX, endY, true);
       } 
+      else if (this.isListeningForEditWaypoint) {
+        let coords = {
+          xPx: this.mouseCoords[0],
+          yPx: this.mouseCoords[1]
+        }
+
+        updateExistingSegment(this.editingSegmentInfo.route.routeName,
+                              this.editingSegmentInfo.segmentIdx, 
+                              coords, 
+                              null,
+                              this.origin.xPosPx, 
+                              this.origin.yPosPx,
+                              this.gridSquare.gridUnitCm,
+                              this.gridSquare.gridUnitPx);
+       
+        let {xCm, yCm} = calculatePxToCmCoords(coords.xPx, coords.yPx, this.origin.xPosPx, this.origin.yPosPx, this.gridSquare.gridUnitCm, this.gridSquare.gridUnitPx);
+      
+        GridEventBus.$emit('WAYPOINT_GRID_UPDATE', {xCm: xCm, 
+                                                    yCm: yCm});
+      }
     },
     drawPolar() {
       let ringDistance = (this.polarPlot.ringSeparationCm/ this.gridSquare.gridUnitCm) * this.gridSquare.gridUnitPx;

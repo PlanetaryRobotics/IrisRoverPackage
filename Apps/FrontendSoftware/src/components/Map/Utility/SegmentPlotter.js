@@ -94,6 +94,24 @@ export function generateFirstSegmentVars(route, segment, roverXPosPx, roverYPosP
   return {angle: angle, startX: startX, startY: startY, endX: endX, endY: endY};
 }
 
+export function calculateCmToPxCoords(xCm, yCm, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
+  // Convert cm to px
+  let coords = convertCmToPx(xCm, yCm, gridUnitCm, gridUnitPx);
+
+  // End coords is segment coords applied to origin position
+  let endX = originXPosPx + coords.xPx;
+  let endY = originYPosPx + coords.yPx;
+
+  return {xPx: endX, yPx: endY};
+}
+
+
+export function calculatePxToCmCoords(xPx, yPx, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
+  let {xCm, yCm} = convertPxToCm(xPx-originXPosPx, yPx-originYPosPx, gridUnitCm, gridUnitPx);
+
+  return {xCm: xCm, yCm: yCm};
+}
+
 /**
  * Converts a coord in cm units to pixel units
  * 
@@ -150,43 +168,7 @@ export function plotNewSegment(container, id, index, angle, startX, startY, endX
                       .style("stroke", "yellow") 
                       .style("stroke-width", "3px");
 
-  // function getWidth(a) {
-  //   return Math.sqrt(4 * a / Math.sqrt(3));
-  // }
-  // function getHeight(l) {
-  //   return Math.sqrt(3)*l/2;
-  // }
-
-  if (roverAngle && roverAngle !== "") {
-
-    let deg = roverAngle;
-    var chairOriginX = endX + ((10) * Math.sin(0));
-    var chairOriginY = endY - ((10) * Math.cos(0));
-
-    // Square
-    container.append("rect")
-              .attr("x", chairOriginX - 5)
-              .attr("y", chairOriginY - 2.5)
-              .attr('width', 8)
-              .attr('height', 5)
-              .style("stroke", "#35BAF3")
-              .style("fill", "#35BAF3")
-              .attr("transform", `rotate(${deg} ${endX} ${endY})`);
-
-    // let tWidth = getWidth(100);
-    // let tHeight = getHeight(100);
-    // console.log(tWidth);
-    // console.log(tHeight);
-    // console.log(deg);
-    // // Triangle
-    // let arc = d3.symbol().type(d3.symbolTriangle).size(100);
-    //  container.append("g")
-    //           .attr("transform", `translate(${chairOriginX} ${chairOriginY}) rotate(${deg} ${endX} ${tHeight})`)
-    //           .append('path')
-    //           .attr('d', arc)
-    //           .attr('fill', '#A56DFF')
-    //           .attr("transform", `rotate(${deg} ${tWidth} ${tHeight})`);
-  }
+  createRoverAngle(container, roverAngle, endX, endY);
 
   let circle = container
                 .append("circle")
@@ -204,15 +186,60 @@ export function plotNewSegment(container, id, index, angle, startX, startY, endX
   return getAbsoluteCoordinates(circle);
 }
 
-// TODO: this needs to be updated to reflect waypoint add (AKA seg-0 does NOT come from rover pos)
-export function updateExistingSegment(routeName, segmentIdx, xCm, yCm, roverAngle, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
+function createRoverAngle(container, roverAngle, endX, endY) {
 
-  // Convert cm to px
-  let coords = convertCmToPx(xCm, yCm, gridUnitCm, gridUnitPx);
+  if (roverAngle && roverAngle !== "") {
+    let deg = roverAngle;
+    var chairOriginX = endX + ((10) * Math.sin(0));
+    var chairOriginY = endY - ((10) * Math.cos(0));
 
-  // End coords is segment coords applied to origin position
-  let endX = originXPosPx + coords.xPx;
-  let endY = originYPosPx + coords.yPx;
+    // Square
+    container.append("rect")
+              .attr("x", chairOriginX - 5)
+              .attr("y", chairOriginY - 2.5)
+              .attr('width', 8)
+              .attr('height', 5)
+              .style("stroke", "#35BAF3")
+              .style("fill", "#35BAF3")
+              .attr("transform", `rotate(${deg} ${endX} ${endY})`);
+  }
+}
+
+/**
+ * Updates an existing segment based on what is supplied in the coords.
+ * Will take in either xCm, yCm or xPx, yPx in coords object.
+ * 
+ * @param {string} routeName 
+ * @param {int} segmentIdx 
+ * @param {object} coords 
+ * @param {double} roverAngle 
+ * @param {double} originXPosPx 
+ * @param {double} originYPosPx 
+ * @param {double} gridUnitCm 
+ * @param {double} gridUnitPx 
+ */
+export function updateExistingSegment(routeName, segmentIdx, coords, roverAngle, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
+  
+  let endX, endY;
+
+  if (('xCm' in coords) && ('yCm' in coords)) {
+    let {xCm, yCm} = coords;
+
+    // Convert cm to px
+    let newCoords = convertCmToPx(xCm, yCm, gridUnitCm, gridUnitPx);
+
+    // End coords is segment coords applied to origin position
+    endX = originXPosPx + newCoords.xPx;
+    endY = originYPosPx + newCoords.yPx;
+  }
+  else if ('xPx' in coords && 'yPx' in coords) {
+    let {xPx, yPx} = coords;
+
+    endX = xPx;
+    endY = yPx;
+  }
+
+  let container = d3.select("#"+routeName+"-Segment"+(segmentIdx));
 
   // Update the start of next seg
   if (!d3.select("#"+routeName+"Line"+(segmentIdx+1)).empty()) {
@@ -222,11 +249,64 @@ export function updateExistingSegment(routeName, segmentIdx, xCm, yCm, roverAngl
   }
 
   // Update the current segment
-  d3.select("#"+routeName+"Line"+(segmentIdx))
-    .attr('x2', endX)
-    .attr('y2', endY);
+  container.select("line")
+            .attr('x2', endX)
+            .attr('y2', endY);
 
-  d3.select("#"+routeName+"Point"+(segmentIdx))
-    .attr("cx", endX)
-    .attr("cy", endY);
+  container.select("circle")
+          .attr("cx", endX)
+          .attr("cy", endY);
+
+  // If is the first segment, update the start of line too
+  if (segmentIdx === 0) {
+    container.select("line")
+             .attr("x1", endX)
+             .attr("y1", endY);
+  }
+
+  // Update rover angle
+  if (roverAngle && roverAngle !== "") {
+ 
+    if (d3.select("#"+routeName+"-Segment"+(segmentIdx) + " rect").empty()) {
+      createRoverAngle(container, roverAngle, endX, endY);
+    } else {
+      let deg = roverAngle;
+      var chairOriginX = endX + ((10) * Math.sin(0));
+      var chairOriginY = endY - ((10) * Math.cos(0));
+
+      // Square
+      container.select("rect")
+              .attr("x", chairOriginX - 5)
+              .attr("y", chairOriginY - 2.5)
+              .attr("transform", `rotate(${deg} ${endX} ${endY})`);
+    }
+  }
+}
+
+export function highlightSegment() {
+
+  // Store state of prev route + index using closure
+  var prevRoute;
+  var prevIdx;
+
+  return {
+    set: function(route, segmentIdx) {
+      if (prevRoute !== undefined) {
+        this.changeColor(prevRoute.routeName, prevIdx, "yellow");
+      }
+      this.changeColor(route.routeName, segmentIdx, "#A56DFF");
+      prevRoute = route;
+      prevIdx = segmentIdx;
+    },
+    changeColor: function(name, index, color) {  
+      let container = d3.select("#"+name + "-Segment"+(index));
+      container.select("circle").style("fill", color);
+      container.select("line").style("stroke", color);
+    },
+    removeColor: function() {
+      if (prevRoute !== undefined) {
+        this.changeColor(prevRoute.routeName, prevIdx, "yellow");
+      }
+    }
+  }
 }

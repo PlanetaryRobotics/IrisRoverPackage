@@ -47,10 +47,17 @@ export default {
         },
 
         // CREATE FIRST SEG TO A ROUTE
-        isListeningForWaypoint: false,
+        isListeningForNewWaypoint: false,
         removeCurrSegment: 0,
         currWaypointSegment: null,
         editingRoute: null,
+
+        // EDITING A SEG
+        isListeningforEditWaypoint: false,
+        editingSegmentInfo: {
+          route: null,
+          segmentIdx: null,
+        },
 
         // ROUTELIST
         routeList: new RouteList(),
@@ -73,9 +80,9 @@ export default {
         return state.routeListUpdate;
       },
 
-      // --- Waypoint related
-      isListeningForWaypoint: state => {
-        return state.isListeningForWaypoint;
+      // --- Add Waypoint related
+      isListeningForNewWaypoint: state => {
+        return state.isListeningForNewWaypoint;
       },
 
       currWaypointSegment: state => {
@@ -89,6 +96,15 @@ export default {
       editingRoute: state => {
         return state.editingRoute;
       },
+
+      // --- Edit Waypoint related
+      isListeningForEditWaypoint: state => {
+        return state.isListeningForEditWaypoint;
+      },
+
+      editingSegmentInfo: state => {
+        return state.editingSegmentInfo;
+      }
     
     },
     mutations: {
@@ -115,9 +131,9 @@ export default {
         state.removeCurrSegment += 1;
       },
 
-      // -- Waypoint related
-      setIsListeningForWaypoint(state, isListening) {
-        state.isListeningForWaypoint = isListening;
+      // -- Adding waypoint
+      setIsListeningForNewWaypoint(state, isListening) {
+        state.isListeningForNewWaypoint = isListening;
       },
 
       setCurrWaypointSegment(state, segment) {
@@ -128,19 +144,16 @@ export default {
         state.editingRoute = route;
       },
 
-      // saveSegment(state, {route, segment}) {
-      //   let idx = state.routeList.findIndex(r => r.routeName === route.routeName);
-      //   let target = state.routeList[idx];
+      // -- Editing waypoint
+      setIsListeningForEditWaypoint(state, isListening) {
+        state.isListeningForEditWaypoint = isListening;
+      },
 
-      //   target.addToSegmentList(segment);
-
-      //   // Update state
-      //   state.routeList[idx] = target;
-      //   state.appendedSegmentData = {
-      //     segment: null,
-      //     route: null,
-      //   };
-      // }
-
+      setEditingSegmentInfo(state, {route, segmentIdx}) {
+        state.editingSegmentInfo = {
+          route: route,
+          segmentIdx: segmentIdx
+        }
+      }
     }
 };

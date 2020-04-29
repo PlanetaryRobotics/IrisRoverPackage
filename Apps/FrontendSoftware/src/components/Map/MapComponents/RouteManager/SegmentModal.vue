@@ -114,49 +114,63 @@ export default {
       }
     },
     setupModalPositioning() {
-      window.onresize = function() {
-        this.windowHeight = window.innerHeight;
-        this.windowWidth = window.innerWidth;
-      };
+      dragElement(document.querySelector(".segmentModal"));
 
-      addListeners();
-      this.windowHeight = window.innerHeight;
-      this.windowWidth = window.innerWidth;
-
-      function addListeners(){
-        document.querySelector(".segmentModal").addEventListener('mousedown', mouseDown, false);
-        window.addEventListener('mouseup', mouseUp, false);
-      }
-
-      function mouseUp(){
-        window.removeEventListener('mousemove', divMove, true);
-      }
-
-      function mouseDown(e){
-        e.stopPropagation();
-        window.addEventListener('mousemove', divMove, true);
-      }
-
-      function divMove(e){
-        e.stopPropagation();
-        var div = document.querySelector(".segmentModal");
-        div.style.position = 'absolute';
-
-        function calculateValue(client, boundary) {
-          let val = client;
-          if (client < 0) {
-            val = 0;
-          } else if (client > boundary) {
-            val = boundary;
-          }
-          return val;
+      function dragElement(elmnt) {
+        var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        if (document.getElementById(elmnt.id + "header")) {
+          /* if present, the header is where you move the DIV from:*/
+          document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+        } else {
+          /* otherwise, move the DIV from anywhere inside the DIV:*/
+          elmnt.onmousedown = dragMouseDown;
         }
 
-        let x = calculateValue(e.clientX, this.windowWidth);
-        let y = calculateValue(e.clientY, this.windowHeight);
+        function dragMouseDown(e) {
+          e = e || window.event;
+          e.stopPropagation();
+          // get the mouse cursor position at startup:
+          pos3 = e.clientX;
+          pos4 = e.clientY;
+          document.onmouseup = closeDragElement;
+          // call a function whenever the cursor moves:
+          document.onmousemove = elementDrag;
+        }
 
-        div.style.top = y + 'px';
-        div.style.left = x + 'px';
+        function elementDrag(e) {
+          e = e || window.event;
+          e.stopPropagation();
+          // calculate the new cursor position:
+          pos1 = pos3 - e.clientX;
+          pos2 = pos4 - e.clientY;
+          pos3 = e.clientX;
+          pos4 = e.clientY;
+
+          // set the element's new position:
+          let posY = (elmnt.offsetTop - pos2);
+          let posX = (elmnt.offsetLeft - pos1);
+
+          if (posY < 0) {
+            posY = 0;
+          } else if ( posY > window.innerHeight) {
+            posY = window.innerHeight;
+          }
+
+          if (posX < 0) {
+            posX = 0;
+          } else if ( posX > window.innerWidth) {
+            posX = window.innerWidth;
+          }
+
+          elmnt.style.top = posY + "px";
+          elmnt.style.left = posX + "px";
+        }
+
+        function closeDragElement() {
+          /* stop moving when mouse button is released:*/
+          document.onmouseup = null;
+          document.onmousemove = null;
+        }
       }
     }
   }
@@ -189,6 +203,10 @@ export default {
   padding: 2rem;
   background-color: $color-background;
   box-shadow: 3px 3px 3px rgba(0, 0, 0, .28);
+
+  &:active {
+    cursor: grab;
+  }
 }
 
 .header {

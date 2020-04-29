@@ -57,7 +57,8 @@ import GridEventBus from '@/components/Map/GridEventBus.js';
 import Route from "@/data_classes/Route.js";
 import WaypointSegment from "@/data_classes/WaypointSegment.js";
 import AtomicButton from '@/components/atomic/AtomicButton.vue';
-import { mapGetters } from 'vuex';
+import { highlightSegment } from '@/components/Map/Utility/SegmentPlotter.js';
+// import { mapGetters } from 'vuex';
 
 export default {
   name: "EditSegmentForm",
@@ -71,6 +72,7 @@ export default {
   },
   data() {
     return {
+      highlight: "",
       originalSegment: "",
       formValues: { 
         XCOORD: "",
@@ -103,43 +105,53 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['currWaypointSegment']),
     segmentName: function() {
       return "SEG-" + this.segmentIndex;
     }
   },
   watch: {
-    // Waypoint segment will be saved into store from grid
-    // and grid ensures that segment has all coords before saving.
-    // So whenever seg updates, it is ready to save.
-    currWaypointSegment() {
-      this.buttons.planButton.enabled = true;
+    segment() {
+      this.setFormValues();
+      this.highlight.set(this.route, this.segmentIndex);
     }
   },
   destroyed() { 
-    this.$store.commit("setIsListeningForWaypoint", false);
-    this.$store.commit("setEditingRoute", null);
+    this.$store.commit("setIsListeningForEditWaypoint", false);
+    this.$store.commit("setEditingSegmentInfo", {route: null, segmentIdx: null});
+    this.highlight.removeColor();
   },
   mounted() {
-    // Save state of segment before modification
-    this.originalSegment = this.segment;
+    this.setFormValues();
+    this.highlight = highlightSegment();
+    this.highlight.set(this.route, this.segmentIndex);
 
-    this.formValues.XCOORD = Math.round(this.segment.xCmCoordinate);
-    this.formValues.YCOORD = Math.round(this.segment.yCmCoordinate);
-    this.formValues.ANGLE = this.segment.roverAngle;
+    this.$store.commit("setIsListeningForEditWaypoint", true);
+    this.$store.commit("setEditingSegmentInfo", {route: this.route, segmentIdx: this.segmentIndex});
 
-    // this.$store.commit("setIsListeningForWaypoint", true);
-    // this.$store.commit("setEditingRoute", this.route);
-
-    // GridEventBus.$on('WAYPOINT_GRID_UPDATE', (data) => {
-    //   this.updateFormValues(data.xCm, data.yCm);
-    // })
+    GridEventBus.$on('WAYPOINT_GRID_UPDATE', (data) => {
+      this.updateFormValues(data.xCm, data.yCm);
+      this.buttons.planButton.enabled = true;
+    })
   },
   methods: {
+    /**
+     * Sets the form values based on what is stored in the segment object.
+     */
+    setFormValues() {
+      this.originalSegment = this.segment;
+      this.formValues.XCOORD = Math.round(this.segment.xCmCoordinate);
+      this.formValues.YCOORD = Math.round(this.segment.yCmCoordinate);
+      this.formValues.ANGLE = this.segment.roverAngle;
+    },
+
+    /**
+     * Updates form values based on input.
+     */
     updateFormValues(xCm, yCm) {
       this.formValues.XCOORD = Math.round(xCm);
       this.formValues.YCOORD = Math.round(yCm);
     },
+
     validateInput(key, value) {
       // Validate is a number
       if (value !== "" && !this.validateIsNumber(value)) {
@@ -149,7 +161,7 @@ export default {
 
       this.errors[key] = "";
 
-      GridEventBus.$emit('EDIT_SEG_FORM_UPDATE', {routeName: this.route.routeName, segmentIndex: this.segmentIndex, xCm: this.formValues.XCOORD, yCm: this.formValues.YCOORD, roverAngle: this.formValues.roverAngle});
+      GridEventBus.$emit('EDIT_SEG_FORM_UPDATE', {routeName: this.route.routeName, segmentIndex: this.segmentIndex, xCm: this.formValues.XCOORD, yCm: this.formValues.YCOORD, roverAngle: this.formValues.ANGLE});
     
       this.buttons.planButton.enabled = true; // At this point, can technically save
     },
@@ -157,10 +169,13 @@ export default {
       return !isNaN(parseFloat(value)) && isFinite(value);
     },
     saveSegment() {
+      // Save the CM coordinates and angle into object
       this.segment.xCmCoordinate = this.formValues.XCOORD;
       this.segment.yCmCoordinate = this.formValues.YCOORD;
       this.segment.roverAngle = this.formValues.ANGLE;
-      
+
+      // Make the PX version of coords are computed too
+      GridEventBus.$emit('COMPUTE_SEG_PX_COORDS', this.segment);
       this.closeModal();
     },
     cancelSegment() {

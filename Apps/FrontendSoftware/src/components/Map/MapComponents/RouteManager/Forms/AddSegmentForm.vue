@@ -115,11 +115,11 @@ export default {
   },
   destroyed() {
     this.$store.commit("triggerCurrSegmentRemoval");
-    this.$store.commit("setIsListeningForWaypoint", false);
+    this.$store.commit("setIsListeningForNewWaypoint", false);
     this.$store.commit("setEditingRoute", null);
   },
   mounted() {
-    this.$store.commit("setIsListeningForWaypoint", true);
+    this.$store.commit("setIsListeningForNewWaypoint", true);
     this.$store.commit("setEditingRoute", this.route);
 
     GridEventBus.$on('WAYPOINT_GRID_UPDATE', (data) => {

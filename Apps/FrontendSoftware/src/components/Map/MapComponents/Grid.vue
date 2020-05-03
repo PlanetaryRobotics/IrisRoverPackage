@@ -181,7 +181,8 @@ export default {
       plotNewSegment(currRouteTransform, "NewRoute", 0, angle, startX, startY, endX, endY, true, roverAngle);
     },
     gridClicked() {
-      // isListening means form is set to waypoint
+
+      // Add form is open, and listening for any clicks on grid
       if (this.isListeningForNewWaypoint) {
 
         let currWaypointSegment = new WaypointSegment();
@@ -224,6 +225,7 @@ export default {
 
         plotNewSegment(currRouteTransform, "NewRoute", 0, angle, startX, startY, endX, endY, true);
       } 
+      // An edit form is open, and listening for any clicks
       else if (this.isListeningForEditWaypoint) {
         let coords = {
           xPx: this.mouseCoords[0],

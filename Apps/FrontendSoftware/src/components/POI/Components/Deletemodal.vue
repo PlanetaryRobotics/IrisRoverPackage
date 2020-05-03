@@ -15,14 +15,13 @@
       </div>
 
       <!-- TEXT -->
-      <div class="content">
-        Are you sure you want to delete the POI card <span class="text__main--bold" :style="importanceColor">{{POINameString}}</span>? This action cannot be undone.
+      <div class="content" v-html="rawHTML">
       </div>
 
       <!-- BUTTONS -->
       <div class="buttonContainer">
         <button @click='closeModal' class="button__cancel">CANCEL</button>
-        <button @click='deletePOI' class="button__delete">DELETE</button>
+        <button @click='executeDelete' class="button__delete">DELETE</button>
       </div>
     </div>
   </div>
@@ -30,49 +29,20 @@
 
 <script>
 
-import POICard from "@/data_classes/POICard.js";
-import POIEventBus from "@/components/POI//POIEventBus.js";
-
 export default {
   name: "Deletemodal",
   props: {
-    POICard: POICard,
-  },
-  data() {
-    return {
-    }
-  },
-  computed: {
-    POINameString() {
-      let category = this.POICard.getData().category;
-      let shortname;
-      if (category === "ATTRACTION") {
-        shortname = "ATTR-";
-      }
-      else if (category === "OBSTACLE") {
-        shortname = "OBST-";
-      }
-      else if (category === "SHADOW") {
-        shortname = "SHDW-";
-      }
-      shortname += this.POICard.getData().number;
-      return shortname;
-    },
-    importanceColor(){
-      let category = this.POICard.getData().category;
-      let ans = POICard.CATEGORY_COLORS[category];
-      return {
-        color : ans,
-      };
-    },
+    rawHTML: String,
+    deleteCallback: Function
   },
   methods: {
+    executeDelete() {
+      this.deleteCallback();
+      this.closeModal();
+    },
     closeModal() {
       this.$emit('closeModal', 'modalDelete');
     },
-    deletePOI() {
-      POIEventBus.$emit('DELETE_POI', this.POICard);
-    }
   }
 }
 

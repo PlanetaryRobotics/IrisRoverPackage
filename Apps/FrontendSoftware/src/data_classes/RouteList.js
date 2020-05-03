@@ -65,4 +65,10 @@ export default class RouteList{
 
     this._untitledNum++;
   }
+
+  delete(route) {
+    let idx = this._routes.indexOf(route);
+    this._routes.splice(idx, 1);
+    this._routeNames.delete(route.routeName);
+  }
 } 

@@ -30,6 +30,18 @@
             <path d="M9.5 1C4.92308 1 1 4.92308 1 6.88462C1 8.84615 4.92308 12.7692 9.5 12.7692C14.0769 12.7692 18 8.84615 18 6.88462C18 4.92308 14.0769 1 9.5 1Z"/>
           </svg>
         </div>
+
+        <!-- TRASH ICON -->
+        <div class="route__item--trash" @click="toggleDeleteModal()">
+          <svg class="routeIcon" width="15" height="19" viewBox="0 0 15 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0.5" y="2.69006" width="13.2813" height="15.6615" rx="1.5" stroke-linecap="round"/>
+            <line x1="3.77295" y1="5.07031" x2="3.77295" y2="15.9714" stroke-linecap="round"/>
+            <line x1="7.04541" y1="5.07031" x2="7.04541" y2="15.9714" stroke-linecap="round"/>
+            <line x1="1.68994" y1="0.5" x2="12.591" y2="0.5" stroke-linecap="round"/>
+            <line x1="10.3184" y1="5.07031" x2="10.3184" y2="15.9714" stroke-linecap="round"/>
+          </svg>
+        </div>
+
       </div> <!-- END ROUTETAB -->
       
       <!-- ERROR MSG FOR DUPE ROUTE NAME -->
@@ -54,6 +66,13 @@
       </div> 
 
     </div> <!-- END ROUTEBODY -->
+
+    <!-- <div v-if="show.deleteModal">
+      <Deletemodal :rawHTML='routeName'
+                   :deleteCallback='deleteRoute'
+                   @closeModal='toggleModal'/>
+    </div> -->
+
   </div>  <!-- END ROUTE ENTRY -->
   
 </template>
@@ -68,7 +87,7 @@ import $ from 'jquery';
 export default {
   name: "RouteEntry",
   components: {
-    SegmentInfo
+    SegmentInfo,
   },
   props: {
     route: Route
@@ -79,7 +98,8 @@ export default {
         segmentList: false,
         route: false,
         errorDupeRouteName: false,
-        errorEmptyRouteName: false
+        errorEmptyRouteName: false,
+        deleteModal: false,
       },
       routeNameDisplay: "",
     }
@@ -89,8 +109,10 @@ export default {
       routeList: 'routeList',
     }),
     routeName: {
+      //TODO: there is something buggy with the editing of route name and routeNameDisplay etc.
       get: function() {
-        return this.routeNameDisplay;
+        return this.route.routeName;
+        //return this.routeNameDisplay;
       },
       set: function(newValue) {
         this.routeNameDisplay = newValue;
@@ -128,6 +150,17 @@ export default {
       route.isVisible = !route.isVisible;
       this.triggerRouteListUpdate();
     },
+    toggleDeleteModal() {
+      let html = `Are you sure you want to delete route `;
+      html += `<span class='text__main--bold' style='color:red'>${this.routeName}</span>? This action cannot be undone.`;
+      
+      let payload = {
+        html: html,
+        deleteCallback: this.deleteRoute,
+      };
+
+      GridEventBus.$emit("TOGGLE_DELETE_MODAL", payload);
+    },
     openAddModal() {
       GridEventBus.$emit("OPEN_SEGMENT_MODAL", {route: this.route, action: "ADD"});
     },
@@ -164,6 +197,9 @@ export default {
 
         }
       });
+    },
+    deleteRoute() {
+      this.routeList.delete(this.route);
     }
   }
 }
@@ -258,6 +294,7 @@ export default {
     &--visibility {
       display: flex;
       align-items: center;
+      margin-right: 0.5rem;
     }
 
     &--plus {
@@ -265,11 +302,16 @@ export default {
       align-items: center;
       margin-right: 0.5rem;
     }
+
+    &--trash {
+      display: flex;
+      align-items: center;
+    }
   }
 }
 
 .routeIcon {
-  stroke: $color-grey-dark;
+  stroke: white;
   transform: scale(.8);
   cursor: pointer;
 

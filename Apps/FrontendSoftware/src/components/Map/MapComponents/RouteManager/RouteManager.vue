@@ -26,25 +26,39 @@
                   @click.native="addEmptyRoute"
                   v-show = "show.routes" />
     </div>
+
+    <div v-if="show.deleteModal">
+      <Deletemodal :rawHTML='deleteModal.text'
+                   :deleteCallback='deleteModal.callback'
+                   @closeModal='toggleDeleteModal'/>
+    </div>
   </div>
 </template>
 
 <script>
 
-import { mapGetters } from 'vuex';
+import GridEventBus from '@/components/Map/GridEventBus.js';
+import { mapGetters, mapMutations } from 'vuex';
 import RouteEntry from "@/components/Map/MapComponents/RouteManager/RouteEntry.vue";
 import AtomicButton from '@/components/atomic/AtomicButton.vue';
+import Deletemodal from "@/components/POI/Components/Deletemodal.vue";
 
 export default {
   name: "RouteManager",
   components: {
     RouteEntry,
+    Deletemodal,
     AtomicButton
   },
   data() {
     return {
+      deleteModal: {
+        text: '',
+        callback: '',
+      },
       show: {
         routes: false,
+        deleteModal: false
       },
       route: {
         visible: true
@@ -62,14 +76,32 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['routeList', 'routeListIsEmpty']),
+    ...mapGetters(['routeList', 'routeListIsEmpty', 'triggerouteListUpdate']),
   },
   watch: {
     routeListIsEmpty() {
       this.setAddButtonPosition();
     }
   },
+  mounted() {
+    // Catching the event from RouteEntry to open modal, which has the payload 
+    GridEventBus.$on('TOGGLE_DELETE_MODAL', ({html, deleteCallback}) => {
+      this.deleteModal.text = html
+      this.deleteModal.callback = deleteCallback;
+      this.toggleDeleteModal();
+    });
+  },
   methods: {
+     ...mapMutations({
+      triggerRouteListUpdate: 'triggerRouteListUpdate'
+    }),
+    toggleDeleteModal() {
+      this.show.deleteModal = !this.show.deleteModal;
+      if (!this.show.deleteModal) {
+        // TODO: need a better way to update the list
+        this.triggerRouteListUpdate();
+      }
+    },
     toggleRoutes() {
       this.show.routes = !this.show.routes;
       if (this.show.routes) {

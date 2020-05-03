@@ -40,7 +40,8 @@
     <!-- DELETE MODAL -->
     <div v-if="show.modalDelete">
       <Deletemodal :key="3"
-                   :POICard='POICard'
+                   :rawHTML='getDeleteModalHTML()'
+                   :deleteCallback='getDeleteCallback'
                    @closeModal='toggleModal'/>
     </div>
 
@@ -309,6 +310,20 @@ export default {
     },
     closeEdit() {
       POIEventBus.$emit('CLOSE_EDIT_POI_WINDOW', this.POICard);
+    },
+    getDeleteCallback() {
+      POIEventBus.$emit('DELETE_POI', this.POICard);
+    },
+    getDeleteModalHTML() {
+      let html = `Are you sure you want to delete the POI card `;
+      let color = POICard.CATEGORY_COLORS[this.POICard.getData().category];
+      html += `<span class='text__main--bold' style='color:${color}'>${this.getName()}</span>? This action cannot be undone.`;
+      return html;
+    },
+    getName() {
+      let category = this.POICard.getData().category;
+      let shortname = this.getCategoryShortForm(category) + "-" + this.POICard.getData().number;
+      return shortname;
     },
     getCategoryShortForm(category) {
       if (category === "ATTRACTION") {

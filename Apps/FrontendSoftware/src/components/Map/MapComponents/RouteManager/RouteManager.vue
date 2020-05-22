@@ -98,7 +98,7 @@ export default {
     toggleDeleteModal() {
       this.show.deleteModal = !this.show.deleteModal;
       if (!this.show.deleteModal) {
-        // TODO: need a better way to update the list
+        // TODO: need to force this so the plotted routes are still displayed
         this.triggerRouteListUpdate();
       }
     },

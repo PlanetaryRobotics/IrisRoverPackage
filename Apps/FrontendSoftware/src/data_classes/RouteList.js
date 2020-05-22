@@ -14,7 +14,7 @@ export default class RouteList{
 
   renameRouteName(oldName, newName) {
     if (this.hasRouteName(newName)) {
-      return false;
+      return;
     }
 
     let targetRoute = this._routes.find(r => r.routeName === oldName);
@@ -22,8 +22,6 @@ export default class RouteList{
 
     this._routeNames.delete(oldName);
     this._routeNames.add(newName);
-
-    return true;
   }
 
   hasRouteName(name) {

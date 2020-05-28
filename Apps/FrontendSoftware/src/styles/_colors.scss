@@ -9,15 +9,35 @@
 
 /* NB: If you need a slightly modified color, use scss tint(), darken(), etc. */
 
-$color-primary: #A56DFF;
-$color-nominal: #21DF84;
+// LOGO & BRANDING:
+$color-iris-red: #FF3D00;
+$color-brand: $color-iris-red;
+
+// Palette:
+$color-primary: #8A6DFF;
+$color-nominal: #21DF9A;
 $color-caution: #FFD039;
 $color-danger: #FF2F46;
 
-$color-near-white: #FCFCFC;
-$color-grey-light: #E7E7E7;
-$color-grey: #9F9F9F;
-$color-grey-dark: #585858;
-$color-near-black: #222222;
+// Grayscale:
+$color-grey0: #FCFCFC;
+$color-grey1: #E9E9E9;
+$color-grey2: #9F9F9F;
+$color-grey3: #585858;
+$color-grey4: #424242;
+$color-grey5: #2A2A2A;
+$color-grey6: #222222;
 
-$color-background: #2A2A2A;
+$color-near-white: $color-grey0;
+$color-grey-light: $color-grey1;
+$color-grey: $color-grey2;
+$color-grey-dark: $color-grey3;
+$color-near-black: $color-grey6;
+
+// Common Feature Colors:
+$color-background: $color-grey5;
+
+// Shared with node through sass-loader:
+:export {
+  colorbackground: $color-background;
+}

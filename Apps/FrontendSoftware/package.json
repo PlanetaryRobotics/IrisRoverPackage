@@ -1,8 +1,8 @@
 {
-  "name": "CubeRover-Ground-Terminal",
-  "productName": "CubeRover Ground Terminal",
-  "version": "0.4.0",
-  "author": "CubeRover & CMU",
+  "name": "IrisRover-Ground-Terminal",
+  "productName": "IrisRover Ground Terminal",
+  "version": "0.5.0",
+  "author": "Iris Rover Project & CMU",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",

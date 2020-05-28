@@ -1,8 +1,13 @@
 <template>
   <div class="login">
-    <transition name="logo-intro">
-      <div v-if="logoLoaded" class="logo" v-html="logoSVG" />
-    </transition>
+    <div class="logo-overlay">
+      <transition name="logo-intro-wipe">
+        <div v-if="logoLoaded" class="logo arc" v-html="logoSVGArc" />
+      </transition>
+      <transition name="logo-intro">
+        <div v-if="logoLoaded" class="logo" v-html="logoSVG" />
+      </transition>
+    </div>
     <div class="input-block">
         <TextInput
           placeholder="Mission Name"
@@ -42,7 +47,7 @@
         />
         <button
           :style="{opacity: openInputBlock ? 1.0 : 0.0}"
-          class="login-button button button__primary addTag__buttons--input"
+          class="login-button button button__brand_mute addTag__buttons--input"
           @click="$eventHub.$emit(submitEvent);"
         > {{ connecting ? "・ ・ ・" : "CONNECT" }}</button>
     </div>
@@ -63,7 +68,8 @@ export default {
     return {
       submitEvent: "submit-login", // Name of Submission Event on the Global Event Bus
       errorEvent: "error-login", // Name of Login Error Event on the Global Event Bus
-      logoSVG: "", // Inline SVG HTML for the Radial Grid
+      logoSVG: "", // Inline SVG HTML for the Main Portion of the Logo
+      logoSVGArc: "", // Inline SVG HTML for the Arc of the Logo
       logoLoaded: false,
       openInputBlock: false, // Flag turns true when it's time to animate in the input block
       missionName: "",
@@ -78,7 +84,8 @@ export default {
   },
   mounted(){
     // Tell App.vue  Login is Mounted (so, it can activate the window now):
-    this.logoSVG = fs.readFileSync(path.join(__static,'./cuberover_logo_old.svg'), 'utf8');
+    this.logoSVG = fs.readFileSync(path.join(__static,'./iris_logo_main.svg'), 'utf8');
+    this.logoSVGArc = fs.readFileSync(path.join(__static,'./iris_logo_arc.svg'), 'utf8');
 
     this.$eventHub.$emit('loginMounted');
   },
@@ -95,11 +102,11 @@ export default {
       // Cue logo:
       setTimeout( () => {
         this.logoLoaded = true;
-      }, 1000);
+      }, 500);
       // Cue Input Block:
       setTimeout( () => {
         this.openInputBlock = true;
-      }, 3500);
+      }, 2100);
     },
 
     collectMissionName(x){
@@ -171,21 +178,33 @@ export default {
     padding: .5rem;
   }
 
-  #logoSVG {
+  $logo-box-size: 50vmin; // Size of the box containing the logo
+  $logo-size: 38vmin; // Size of the logo itself
+
+  .logo-overlay {
     grid-area: logo;
     align-item: center;
-    width: 50vmin;
-    height: 50vmin;
-    svg {
-      width: 100%;
-      height: 100%;
-    }
+    position: relative;
+    width: $logo-box-size;
+    height: $logo-box-size;
   }
 
-  $transition-duration: 5s;
-  $logo-opacity: 0.7;
+  $transition-duration: 4s;
+  $arc-offset-angle: (3.15px / 11); // [1px=2radians] Half of the width of the wedge in which there is no arc (ie b/c the arc doesn't span 360deg)
+  $logo-opacity: 0.9;
   .logo {
     opacity: $logo-opacity;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: $logo-size;
+    height: $logo-size;
+    transform: translate((($logo-box-size - $logo-size)/2), (($logo-box-size - $logo-size)/2));
+
+    &.arc {
+      stroke-dasharray: (3.15px - $arc-offset-angle);
+      stroke-dashoffset: (3.15px - $arc-offset-angle);
+    }
   }
 
   .logo-intro-enter-active {
@@ -199,6 +218,37 @@ export default {
       opacity: 0;
     }
     100% {
+      opacity: $logo-opacity;
+    }
+  }
+
+  .logo-intro-wipe-enter-active {
+    animation: logo-wipe ($transition-duration/2) ease-in-out forwards;
+  }
+  .logo-intro-wipe-enter-to,
+  .logo-intro-wipe-leave {
+    stroke-dashoffset: (3.15px - $arc-offset-angle);
+    opacity: 1;
+  }
+  .logo-intro-wipe-leave-active {
+    animation: logo-wipe reverse ($transition-duration/2) ease-in-out forwards;
+  }
+  .logo-intro-wipe-enter,
+  .logo-intro-wipe-leave-to {
+    stroke-dashoffset: 0px;
+    opacity: 0.1;
+  }
+  @keyframes logo-wipe {
+    0% {
+      stroke-dashoffset: 0px;
+      opacity: 0.1;
+    }
+    50% {
+      stroke-dashoffset: 0px;
+      opacity: 0.1;
+    }
+    100% {
+      stroke-dashoffset: (3.15px - $arc-offset-angle);
       opacity: $logo-opacity;
     }
   }

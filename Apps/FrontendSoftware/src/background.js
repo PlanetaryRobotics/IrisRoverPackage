@@ -61,8 +61,8 @@ function initProgram(){
     width: 500,
     height: 300,
     brand: '',
-    productName: 'CubeRover',
-    logo: path.join(__dirname, 'assets/cuberover_logo.svg'),
+    productName: 'Iris Rover',
+    logo: path.join(__dirname, 'assets/iris_icon_multisize.ico'), // TODO: Doesn't show logo
     website: '',
     text: 'Initializing . . .'
   });

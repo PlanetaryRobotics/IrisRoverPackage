@@ -9,6 +9,8 @@ import { remote } from 'electron'
 import { reportReady } from 'electron-splashscreen'
 import DB from '@/DBInterface/DBInterface'
 
+import colors from '@/styles/_colors.scss'
+
 export default {
   name: 'App',
   components: {

@@ -1,0 +1,20 @@
+<svg width="100%" height="100%" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <mask id="logoReveal" maskContentUnits="objectBoundingBox">
+    <rect width="100%" height="100%" fill="white"/>
+    <circle r="0.5" cx="0.5" cy="0.5" transform="matrix(-1,0,0,-1,1,1) rotate(180, 0.5, 0.5)" fill="none" stroke="black" />
+  </mask>
+</defs>
+<g mask="url(#logoReveal)" clip-path="url(#clip0)">
+<path d="M268.773 80.3133C245.101 49.14 207.871 29.0449 166 29.0449C94.4791 29.0449 36.5 87.6755 36.5 160C36.5 232.324 94.4791 290.955 166 290.955C207.871 290.955 245.101 270.86 268.773 239.687C244.483 273.223 205.257 295 161 295C87.27 295 27.5 234.558 27.5 160C27.5 85.4416 87.27 25 161 25C205.257 25 244.484 46.7774 268.773 80.3133Z" fill="url(#paint0_angular)"/>
+</g>
+<defs>
+<radialGradient id="paint0_angular" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(169 160.506) rotate(-38.2511) scale(54.1191 54.7182)">
+<stop offset="0.0788968" stop-color="#1D1D1D"/>
+<stop offset="0.19042" stop-color="#8F8F8F"/>
+</radialGradient>
+<clipPath id="clip0">
+<rect width="320" height="320" fill="white"/>
+</clipPath>
+</defs>
+</svg>

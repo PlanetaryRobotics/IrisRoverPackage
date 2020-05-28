@@ -1,7 +1,7 @@
 # CubeRover Interface 2019 v.1
 
 ## Project setup
-Install `node`, `npm`, `yarn`, and a c-compiler (`xcode` if on a mac).
+Install `node@12.5.0`, `npm`, `yarn`, and a c-compiler (`xcode` if on a mac).
 ```
 npm install
 npm audit fix

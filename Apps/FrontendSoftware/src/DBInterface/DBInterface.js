@@ -3,7 +3,7 @@
  * Set of All Functionality for Pushing or Pulling JSON Data to/from the Database.
 
  * Author: Sofia Hurtado, CMU
- * Last Update: 11/8/2019, Colombo
+ * Last Update: 05/28/2020, Colombo
  */
  // TODO: Let user w/o permissions push command to db but have it flagged and ignored. (this behavior should be moved to CommandField.vue)
  // TODO: Update connected & currentlyConnected everywhere it could be caught (#onCollection, #onClient, etc.)
@@ -404,11 +404,19 @@ export default {
       you want to access the changed document, use change.fullDocument. The
       change type is given under change.operationType can be 'insert', 'update',
       'delete'.
+      streamIdx is an optional advanced parameter which specifies which change
+      to resume the stream after, if the connection is distrupted. If not given
+      (or is Infinity), the stream will be resumed at the latest change
+      previously observed by this process.
+      onStatusChange({connected}) gets called with an object argument
+      (containing the connection status) when the change stream is first
+      connected to or if the connection status changes (due to timeout etc).
+
       Returns a promise which resolves with whether the collection was
       connected to successfully.
    */
-   onChange(collection, callback, streamIdx){
-     if(streamIdx === undefined){ // if not given a streamIdx, create a new one
+   onChange(collection, callback, streamIdx, onStatusChange){
+     if(streamIdx === undefined || streamIdx === Infinity){ // if not given a streamIdx, create a new one
        streamIdx = this.changeStreamLog.length;
        this.changeStreamLog[streamIdx] = null;
      }
@@ -422,7 +430,7 @@ export default {
        resumeAfter: this.changeStreamLog[streamIdx]
      };
      return new Promise( (resolve,reject) => {
-        let connected = this.onCollection(collection, ({collection}) => {
+        let connected = this.onCollection(collection, ({client, collection}) => {
           collection.watch(pipeline, options)
             .on("change", (change) => {
               this.changeStreamLog[streamIdx] = change._id;
@@ -432,17 +440,19 @@ export default {
               // Change Stream connection times out if nothing new has come in in a while; so, re-watch stream
               console.log("Change Stream Error for " + collection.collectionName + ": " + err);
               console.log("Attempting to establish ChangeStream . . .");
-              this.onChange(collection.collectionName, callback, streamIdx).then(
+              this.onChange(collection.collectionName, callback, streamIdx, onStatusChange).then(
                 () => { console.log("ChangeStream for " + collection.collectionName + " Re-established."); },
                 () => { console.warn("ChangeStream for " + collection.collectionName + " Could Not Re-established."); }
               ); // resume watching stream at same point
+              client.close(); // Close out the original client.
             });
           resolve(true);
+          onStatusChange({connected: true});
           return true; // For return from onCollection
         });
         connected.then(
           ()=>{},
-          err => reject(err)
+          err => { onStatusChange({connected: false}); reject(err); }
         );
       });
    },

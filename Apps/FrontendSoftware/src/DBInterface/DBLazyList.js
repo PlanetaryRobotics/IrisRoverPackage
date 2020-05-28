@@ -18,7 +18,8 @@
  */
  // TODO: Allow Individual List Items to be Edited / Replaced.
  // TODO: Better #watcher Implementation than using hash (?) (simple flags won't work in case multiple agents are checking #watcher)
- // TODO: FIXME: Change streams don't currently care out headIdx or length (all changes are captured).
+ // TODO: FIXME: Change streams don't currently care about headIdx or length (all changes are captured).
+ // TODO: Account for 'delete' changes.
 
  import { sha256 } from 'js-sha256'
 
@@ -90,7 +91,7 @@
       // Once DB is Connected:
       DB.eventBus.on('statusChange', ({connected}) => {
         if(connected && !this.changeStreamConnected){
-          DB.onChange(this.collection, this.streamUpdate);
+          DB.onChange(this.collection, this.streamUpdate, Infinity, ({connected}) => {this.changeStreamConnected = connected;})
         }
       });
   }

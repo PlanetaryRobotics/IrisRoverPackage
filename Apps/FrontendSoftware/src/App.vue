@@ -9,12 +9,12 @@ import { remote } from 'electron'
 import { reportReady } from 'electron-splashscreen'
 import DB from '@/DBInterface/DBInterface'
 
-import Login from '@/views/Login.vue'
+// import Login from '@/views/Login.vue'
 
 export default {
   name: 'App',
   components: {
-    Login
+    // Login
   },
   created: function() {
     // Add event listners to the global event hub:

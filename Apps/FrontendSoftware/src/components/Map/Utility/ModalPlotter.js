@@ -53,11 +53,11 @@ export function toggleModal(selection, route, segmentNum, pointX, pointY) {
             .attr("rx", 3.5)
             .attr("fill", "#2E2E2E")
             .attr("stroke", "#7F31FF")
-            .on("mouseover", function(d) {
+            .on("mouseover", function() {
               d3.select(this).style("cursor", "-webkit-grab")
                              .attr("stroke", "#C6A3FF");
             })
-            .on("mouseout", function(d) {
+            .on("mouseout", function() {
               d3.select(this)
                 .attr("stroke", "#7F31FF");
             });    
@@ -70,17 +70,17 @@ export function toggleModal(selection, route, segmentNum, pointX, pointY) {
                       .attr("width", 10)
                       .attr("height", 11)
                       .attr("viewBox", "0 0 10 11")
-                      .on("mouseover", function(d) {
+                      .on("mouseover", function() {
                         d3.select(this).selectAll("path")
                                        .attr("stroke", "purple")
                                        .style("cursor", "pointer");
                       })                  
-                      .on("mouseout", function(d) {
+                      .on("mouseout", function() {
                         d3.select(this).selectAll("path")
                                        .attr("stroke", "white")
                                        .style("cursor", "pointer");
                       })
-                      .on("click", function(d) {
+                      .on("click", function() {
                         d3.event.stopPropagation();
                         resetSegmentColor(circle, line);
                         removeModal(id);

@@ -7,9 +7,7 @@
  * Last Updated: 10/7/19, Colombo
  */
 
-/* global __static */ // <- keep eslint from complaining about the __static directory
-import path from 'path'
-import fs from 'fs'
+// import fs from 'fs'
 
 import DBLazyList from '@/DBInterface/DBLazyList.js'
 import Collections from '@/DBInterface/Collections.js'
@@ -19,10 +17,10 @@ import Preset from '@/data_classes/Preset.js'
 import Tag from '@/data_classes/Tag.js'
 
 // Simulate the binary image data which will be Received from the DB:
-function bytes(file){
-  let data = fs.readFileSync(file);
-  return Buffer.from(Uint8Array.from(data));
-}
+// function bytes(file){
+//   let data = fs.readFileSync(file);
+//   return Buffer.from(Uint8Array.from(data));
+// }
 
 export default {
   state: {

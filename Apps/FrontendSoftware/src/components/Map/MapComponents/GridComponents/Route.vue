@@ -12,11 +12,6 @@ import { toggleModal } from '@/components/Map/Utility/ModalPlotter.js';
 export default {
   name: "Route",
   props: ['route', 'origin', 'rover', 'gridSquare'],
-  data() {
-    return {
-      
-    }
-  },
   computed: {
     routeName: function () {
       return this.route.routeName;

@@ -1,10 +1,12 @@
 'use strict';
 import Route from "@/data_classes/Route.js";
+import { v1 as uuidv1 } from 'uuid';
 
 export default class RouteList{
   constructor(){
     this._routes = [];
     this._routeNames = new Set();
+    this._uniqueIDS = new Set();
     this._untitledNum = 1;
   } 
 
@@ -43,6 +45,10 @@ export default class RouteList{
       console.log(route.routename);
     }
 
+    while (this._uniqueIDS.has(route.uuid)) {
+      route.uuid = uuidv1();
+    }
+
     this._routes.push(route);
     this._routeNames.add(route.routeName);
   }
@@ -68,5 +74,6 @@ export default class RouteList{
     let idx = this._routes.indexOf(route);
     this._routes.splice(idx, 1);
     this._routeNames.delete(route.routeName);
+    this._uniqueIDS.delete(route.uuid);
   }
 } 

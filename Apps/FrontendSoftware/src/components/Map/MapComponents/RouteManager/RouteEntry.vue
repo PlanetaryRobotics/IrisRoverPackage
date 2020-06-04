@@ -75,7 +75,7 @@
 import GridEventBus from '@/components/Map/GridEventBus.js';
 import SegmentInfo from "@/components/Map/MapComponents/RouteManager/SegmentInfo.vue";
 import Route from "@/data_classes/Route.js";
-import { mapMutations, mapGetters } from 'vuex';
+import { mapGetters } from 'vuex';
 
 export default {
   name: "RouteEntry",
@@ -112,15 +112,12 @@ export default {
     },
   },
   methods: {
-    ...mapMutations({
-      triggerRouteListUpdate: 'triggerRouteListUpdate'
-    }),
     toggleSegmentList() {
       this.show.segmentList = !this.show.segmentList;
     },
     toggleVisibility(route) {
       route.isVisible = !route.isVisible;
-      this.triggerRouteListUpdate();
+      route.setVisibility();
     },
     toggleDeleteModal() {
       let html = `Are you sure you want to delete route `;

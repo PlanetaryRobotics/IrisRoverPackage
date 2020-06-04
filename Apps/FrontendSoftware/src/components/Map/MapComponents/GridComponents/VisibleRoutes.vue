@@ -1,8 +1,8 @@
 <template>
-    <g id = "visibleRoutes" :key = "updateRouteListKey">
-      <Route v-for="(route, idx) in routeList.routes"
+    <g id = "visibleRoutes" :key="updateRouteListKey">
+      <Route v-for="(route) in routeList.routes"
              :route="route"
-             :key="idx"
+             :key="route.uuid"
              :origin="origin"
              :rover="rover"
              :gridSquare="gridSquare"

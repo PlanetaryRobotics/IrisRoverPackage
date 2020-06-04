@@ -29,7 +29,8 @@
 
     <div v-if="show.deleteModal">
       <Deletemodal :rawHTML='deleteModal.text'
-                   :deleteCallback='deleteModal.callback'
+                   :deleteCallback='deleteModal.deleteCallback'
+                   :cancelCallback='deleteModal.cancelCallback'
                    @closeModal='toggleDeleteModal'/>
     </div>
   </div>
@@ -38,7 +39,7 @@
 <script>
 
 import GridEventBus from '@/components/Map/GridEventBus.js';
-import { mapGetters, mapMutations } from 'vuex';
+import { mapGetters } from 'vuex';
 import RouteEntry from "@/components/Map/MapComponents/RouteManager/RouteEntry.vue";
 import AtomicButton from '@/components/atomic/AtomicButton.vue';
 import Deletemodal from "@/components/POI/Components/Deletemodal.vue";
@@ -54,7 +55,8 @@ export default {
     return {
       deleteModal: {
         text: '',
-        callback: '',
+        deleteCallback: '',
+        cancelCallback: '',
       },
       show: {
         routes: false,
@@ -76,7 +78,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['routeList', 'routeListIsEmpty', 'triggerouteListUpdate']),
+    ...mapGetters(['routeList', 'routeListIsEmpty']),
   },
   watch: {
     routeListIsEmpty() {
@@ -85,22 +87,16 @@ export default {
   },
   mounted() {
     // Catching the event from RouteEntry to open modal, which has the payload 
-    GridEventBus.$on('TOGGLE_DELETE_MODAL', ({html, deleteCallback}) => {
+    GridEventBus.$on('TOGGLE_DELETE_MODAL', ({html, deleteCallback, cancelCallback}) => {
       this.deleteModal.text = html
-      this.deleteModal.callback = deleteCallback;
+      this.deleteModal.deleteCallback = deleteCallback;
+      this.deleteModal.cancelCallback = (cancelCallback === undefined ? ()=>{} : cancelCallback);
       this.toggleDeleteModal();
     });
   },
   methods: {
-     ...mapMutations({
-      triggerRouteListUpdate: 'triggerRouteListUpdate'
-    }),
     toggleDeleteModal() {
       this.show.deleteModal = !this.show.deleteModal;
-      if (!this.show.deleteModal) {
-        // TODO: need to force this so the plotted routes are still displayed
-        this.triggerRouteListUpdate();
-      }
     },
     toggleRoutes() {
       this.show.routes = !this.show.routes;

@@ -33,7 +33,8 @@ export default {
   name: "Deletemodal",
   props: {
     rawHTML: String,
-    deleteCallback: Function
+    deleteCallback: Function,
+    cancelCallback: Function
   },
   methods: {
     executeDelete() {
@@ -41,6 +42,7 @@ export default {
       this.closeModal();
     },
     closeModal() {
+      this.cancelCallback();
       this.$emit('closeModal', 'modalDelete');
     },
   }

@@ -1,9 +1,13 @@
 'use strict';
+import { v1 as uuidv1 } from 'uuid';
+import * as d3 from "d3";
 
 export default class Route{
    constructor(routeName, isVisible, firstSegment){
       this._routeName = routeName;
       this._isVisible = isVisible;
+      this._uuid = uuidv1();
+
       if (!firstSegment) {
         this._segmentList = [];
       } else {
@@ -11,6 +15,14 @@ export default class Route{
       }
    } 
 
+   get uuid() {
+      return this._uuid;
+   }
+
+   set uuid(newId) {
+      this._uuid = newId;
+   }
+   
    get routeName() {
      return this._routeName;
    }
@@ -40,5 +52,23 @@ export default class Route{
      else {
         throw new Error("Trying to add an object that is not a Segment to SegmentList of Route.");
      }
+   }
+
+   deleteSegment(segment) {
+     let idx = this._segmentList.indexOf(segment);
+     if (idx === -1) {
+       throw new Error("Segment does not exist.");
+     }
+     this.segmentList.splice(idx, 1);
+   }
+
+   setVisibility() {
+      let visibility = "none";
+      if (this._isVisible) {
+        visibility = "block";
+      }
+
+      d3.select("#" + this._routeName + "-Group")
+        .style("display", visibility);
    }
  } 

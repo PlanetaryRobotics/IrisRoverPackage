@@ -14,6 +14,10 @@ const isDevelopment = process.env.NODE_ENV !== 'production'
 let win;
 let hideSplashscreen;
 
+// Handle all unhandled exceptions for diagnostics (and reporting):
+const unhandled = require('electron-unhandled');
+unhandled();
+
 const ICON =
   process.platform == 'darwin' ? path.join(__dirname, 'assets/icons/mac/logo.png.hqx')
   : process.platform == 'win32' ? path.join(__dirname, 'assets/icons/win/logo.png.ico')
@@ -25,13 +29,15 @@ function initProgram(){
   // Determine if a splash-screen should be skipped:
   let no_splash = false; // default
   // Process command-line arguments:
-  let argv = JSON.parse(process.env.npm_config_argv).remain; // grab unused arguments
-  let keys = argv.filter((v,i) => !(i % 2)); // grab keys
-  let vals = argv.filter((v,i) => i % 2); // grab values associated with keys
-  let splashlessIdx = keys.indexOf("splashless"); // Index of db-mission value
-  if(splashlessIdx != -1){
-    if( parseInt(vals[splashlessIdx]) ){
-      no_splash = true;
+  if(process && process.env && process.env.npm_config_argv){
+    let argv = JSON.parse(process.env.npm_config_argv).remain; // grab unused arguments
+    let keys = argv.filter((v,i) => !(i % 2)); // grab keys
+    let vals = argv.filter((v,i) => i % 2); // grab values associated with keys
+    let splashlessIdx = keys.indexOf("splashless"); // Index of db-mission value
+    if(splashlessIdx != -1){
+      if( parseInt(vals[splashlessIdx]) ){
+        no_splash = true;
+      }
     }
   }
 
@@ -62,7 +68,7 @@ function initProgram(){
     height: 300,
     brand: '',
     productName: 'Iris Rover',
-    logo: path.join(__dirname, 'assets/iris_icon_multisize.ico'), // TODO: Doesn't show logo
+    logo: path.join(__static, 'iris_logo.svg'),
     website: '',
     text: 'Initializing . . .'
   });
@@ -110,7 +116,7 @@ app.on('activate', () => {
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
   initProgram();
-  if (1 || isDevelopment && !process.env.IS_TEST) {
+  if (isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools
     await installVueDevtools()
   }

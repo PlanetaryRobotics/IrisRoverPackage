@@ -11,7 +11,7 @@ export function calculateCmCoordinatesForSegment(segment, id, index, roverXPosPx
 }
 
 export function generateFirstSegmentVars(route, segment, roverXPosPx, roverYPosPx, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
-  debugger;
+
   let startX, startY, endX, endY, angle;
 
   if (!route.segmentList.length) {
@@ -299,7 +299,6 @@ export function highlightSegment() {
       prevIdx = segmentIdx;
     },
     changeColor: function(name, index, color) {  
-      debugger;
       let container = d3.select("#"+name + "-Segment"+(index));
       container.select("circle").style("fill", color);
       container.select("line").style("stroke", color);

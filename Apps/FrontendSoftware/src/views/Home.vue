@@ -6,7 +6,7 @@
       :fuzzyIndicator="connectionStatus"
       fuzzyIndicatorTip="Rover Connection Status"
       :menuData="[
-        { text:'Auto Speed Run by Command', callback: speedRun }
+        /*{ text:'Auto Speed Run by Command', callback: speedRun }*/
       ]"
     >
       <!-- Locations Relative to __static Directory, Found in /public -->

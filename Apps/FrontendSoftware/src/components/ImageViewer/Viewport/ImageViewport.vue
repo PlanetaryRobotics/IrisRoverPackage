@@ -203,7 +203,7 @@ export default {
   }
 
   /* port fade animation: */
-  $overlay-opacity: 0.6;
+  $overlay-opacity: 0.925;
   .port_overlay {
     z-index: 2;
     opacity: $overlay-opacity;

@@ -54,6 +54,7 @@ import GridEventBus from '@/components/Map/GridEventBus.js';
 import WaypointSegment from "@/data_classes/WaypointSegment.js";
 import Route from "@/data_classes/Route.js";
 import { highlightSegment } from '@/components/Map/Utility/SegmentPlotter.js';
+import { mapMutations } from 'vuex';
 
 export default {
   name: "SegmentInfo",
@@ -71,6 +72,7 @@ export default {
     }
   },
   methods: {
+    ...mapMutations(['deleteWaypoint']),
     toggleCommands() {
       this.show.commands = !this.show.commands;
     },
@@ -95,8 +97,7 @@ export default {
       this.highlight.set(this.route, this.index);
     },
     deleteSegment() {
-      //TODO: handle the delete!!
-      console.log("CALL GRID HERE OR SOMETHING");
+      this.deleteWaypoint({route: this.route, segment: this.segment});
     },
     cancelDeleteSegment() {
       this.highlight.removeColor();

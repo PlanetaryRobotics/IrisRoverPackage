@@ -59,7 +59,7 @@
       <div class="line" />
 
       <!-- SEGMENT LIST -->
-      <div class="segmentList" v-show = "show.segmentList">
+      <div class="segmentList" v-show = "canShowSegmentList()">
         <div class="segmentList__segment" v-for="(segment, index) in route.segmentList" :key="index">
           <SegmentInfo :segment = "segment" :route = "route" :index="index"/>
         </div>
@@ -112,6 +112,9 @@ export default {
     },
   },
   methods: {
+    canShowSegmentList() {
+      return this.show.segmentList && this.route.segmentList.length;
+    },
     toggleSegmentList() {
       this.show.segmentList = !this.show.segmentList;
     },

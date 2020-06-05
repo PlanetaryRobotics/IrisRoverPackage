@@ -154,6 +154,15 @@ export default {
           route: route,
           segmentIdx: segmentIdx
         }
+      },
+
+      // -- Delete waypoint
+      deleteWaypoint(state, {route, segment}) {
+        // Delete the segment from route
+        route.deleteSegment(segment);
+
+        // Now make a new UUID so the UI can refresh
+        state.routeList.updateUUID(route);
       }
     }
 };

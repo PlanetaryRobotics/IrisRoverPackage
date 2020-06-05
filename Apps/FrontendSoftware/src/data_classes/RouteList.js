@@ -30,31 +30,24 @@ export default class RouteList{
     return this._routeNames.has(name);
   }
 
+  updateUUID(route) {
+    let newUUID = uuidv1();
+
+    while (this._uniqueIDS.has(newUUID)) {
+      newUUID = uuidv1();
+    }
+
+    this._uniqueIDS.delete(route.uuid);
+
+    route.uuid = newUUID;
+    this._uniqueIDS.add(newUUID);
+  }
+
   isListEmpty() {
     return this._routes.length === 0;
   }
 
-  addRoute(route) {
-    if (!(route instanceof Route)) {
-      console.error("Input is not of type Route.");
-      return;
-    }
-
-    if (this.hasRouteName(route.routeName)) {
-      console.error("Route name already exists.");
-      console.log(route.routename);
-    }
-
-    while (this._uniqueIDS.has(route.uuid)) {
-      route.uuid = uuidv1();
-    }
-
-    this._routes.push(route);
-    this._routeNames.add(route.routeName);
-  }
-
   addEmptyRoute() {
-
     let name = "Untitled" + this._untitledNum;
 
     while (this._routeNames.has(name)) {
@@ -63,6 +56,11 @@ export default class RouteList{
     }
 
     let r = new Route(name, true, null);
+
+    while (this._uniqueIDS.has(r.uuid)) {
+      r.uuid = uuidv1();
+    }
+    this._uniqueIDS.add(r.uuid);
 
     this._routes.push(r);
     this._routeNames.add(r.routeName);

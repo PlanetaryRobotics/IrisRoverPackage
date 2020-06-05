@@ -3,7 +3,7 @@ Creates the row of images used in the timeline and controls selected image.data.
 
 Author: John Walker Moosbrugger, CMU
 Created: 3/19/2019
-Last Updated: 10/9/2019, Colombo
+Last Updated: 06/05/2020, Colombo
 -->
 
 <template>
@@ -196,7 +196,7 @@ export default {
         let cmd = this.commandHistory.filter(c => c.data.lookupID == img.data.commandLookupID)[0];
         if(cmd){
           let commandOption = this.commandOptions.find( c => c.name == cmd.data.name );
-          if(commandOption){
+          if(commandOption && commandOption.params.length){
             let paramIdx = Object.keys(cmd.data.args).indexOf(commandOption.params[0].name);
             str = Object.values(cmd.data.args)[paramIdx] + commandOption.formattedUnits[0];
           }

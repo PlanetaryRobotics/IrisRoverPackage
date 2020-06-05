@@ -14,7 +14,7 @@
  * when used reactively in Vue).
  *
  * Author: Connor W. Colombo, CMU
- * Last Update: 11/8/2019, Colombo
+ * Last Update: 05/28/2020, Colombo
  */
  // TODO: Allow Individual List Items to be Edited / Replaced.
  // TODO: Better #watcher Implementation than using hash (?) (simple flags won't work in case multiple agents are checking #watcher)
@@ -70,6 +70,7 @@
           case 'insert':{
             let doc = change.fullDocument;
             this.coreData.push(this.objClass.fromJSON(doc));
+            this.dataUpdateRoutine();
           } break;
           case 'update':{
             let doc = change.fullDocument;
@@ -79,11 +80,13 @@
                 this.coreData.splice(i, 1, this.objClass.fromJSON(doc));
               }
             }
+            this.dataUpdateRoutine();
           } break;
           case 'delete':{
             // TODO
             console.log("Document deleted from ", this.collection);
             console.log(change);
+            this.dataUpdateRoutine();
           } break;
         }
       }
@@ -136,6 +139,8 @@
     }
   }
 
+
+  get coreData(){ return this._coreData; }
   /*
    * Updates the underlying '_coreData' property and alerts any observers of the
    * change.
@@ -143,13 +148,20 @@
   set coreData(arr){
     // Must call splice instead of simple '=' assignment to maintain Vuex reactivity:
     this._coreData.splice(0, this._coreData.length+1, ...arr);
+    this.dataUpdateRoutine();
+  }
+  // Tasks to Perform Every Time Data is Updated:
+  dataUpdateRoutine(){
+    this.callObservers();
+  }
+  // Notify Registered Observers about a Data Update:
+  callObservers(){
     // Notify Registered Observers about this Update:
     this.permObservers.forEach( f => f() );
     this.tempObservers.forEach( f => f() );
     // Empty list of temporary observers:
     this.tempObservers.splice(0, this.tempObservers.length);
   }
-  get coreData(){ return this._coreData; }
 
   /*
     Pushes the Given Object to the Database Collection this List is Connected to.

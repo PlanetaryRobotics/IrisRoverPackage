@@ -18,7 +18,7 @@
   *
   * Author: Connor W. Colombo, CMU
   * Created: 1/25/2019
-  * Last Update: 9/19/2019, Colombo
+  * Last Update: 06/05/2020, Colombo
  */
 
 export default class CommandOption{
@@ -78,12 +78,14 @@ export default class CommandOption{
 
      // Format Powers of Each Term in Numerator:
      ufn.split(' ').forEach( term => { // Isolate each term (ex. "m" or "s^-2")
-       let pcs = term.split('^'); // Split term into pieces
-       if( (pcs[1]||"").includes('-') ){ // This term should actually be in the denominator
-         pcs[1] = pcs[1].replace('-',"");
-         denom += `${pcs[0]}<sup>${pcs[1]||""}</sup>`;
-       } else{
-         num += `${pcs[0]}<sup>${pcs[1]||""}</sup>`;
+       if(term !== ""){
+         let pcs = term.split('^'); // Split term into pieces
+         if( (pcs[1]||"").includes('-') ){ // This term should actually be in the denominator
+           pcs[1] = pcs[1].replace('-',"");
+           denom += `${pcs[0]}<sup>${pcs[1]||""}</sup>`;
+         } else{
+           num += `${pcs[0]}<sup>${pcs[1]||""}</sup>`;
+         }
        }
      });
 
@@ -94,6 +96,11 @@ export default class CommandOption{
          denom += `${pcs[0]}<sup>${pcs[1]||""}</sup>`;
        });
      }
+
+     if(num == ""){
+       num = "&nbsp;<sup></sup>";
+     }
+
      return "&hairsp;" + (denom ? `<span style="font-size:0.75em;"><sup>${num}</sup>/<sub>${denom}</sub></span>` : `<span style="font-size:0.95em">${num}</span>`);
    }
  } // class: CommandObject

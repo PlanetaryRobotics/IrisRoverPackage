@@ -8,7 +8,7 @@ TODO:
 
 Author: Connor W. Colombo, CMU
 Created: 1/31/2019
-Last Updated: 11/8/2019, Colombo
+Last Updated: 06/05/2020, Colombo
 -->
 <template>
   <div class="command-field">
@@ -38,11 +38,11 @@ Last Updated: 11/8/2019, Colombo
       <span v-for="(arg,idx) in currentArgs" v-bind:key="idx">
         {{ idx > 0 ? ',' : '' }}&nbsp;
         <transition name="fade" mode="out-in">
-          <span key="1" v-if="!inputWarning[idx]" v-bind:class="{complete: arg!=='', suggested: arg==='', focused: idx == focusIdx}">
-            {{ arg=="" ? currentCommand.params[idx].name : arg }}<span v-if="arg" v-html="currentCommand.formattedUnits[idx]"></span>
+          <span key="1" v-if="!inputWarning[idx]" v-bind:class="{complete: arg!=='' && !noArgs, suggested: arg==='' || noArgs, focused: idx == focusIdx}">
+            {{ noArgs ? "NoArgs" : arg=="" ? currentCommand.params[idx].name : arg }}<span v-if="arg" v-html="currentCommand.formattedUnits[idx]"></span>
           </span>
           <span key="2" v-if="inputWarning[idx]" class="focused--warning">
-            <span v-if="arg" v-html="inputWarning[idx]"></span>
+            <span v-if="arg || noArgs" v-html="inputWarning[idx]"></span>
           </span>
         </transition>
       </span>
@@ -86,27 +86,52 @@ export default {
     // Returns Whether a Command Option is Currently Selected:
     commandSelected(){
       return this.isCmd(this.currentCommand);
+    },
+
+    // Whether this command should take no arguments (there are no required args)
+    noArgs(){
+      return this.currentCommand && this.currentCommand.params && !this.currentCommand.params.length;
     }
   },
   methods: {
+    // Execute Command (given from outside this component) with the Given Name
+    // String and Given List of Arguments. Only executes if command exists and
+    // arguments validate.
+    // Returns whether the command validated and was issued.
+    // NOTE: USE WITH CAUTION (ie. only in dev scenarios) SINCE IT BYPASSES
+    // USER INPUT.
+    execute(name, args){
+      console.warn("Automatic Command Entry. User Input Bypassed.");
+      this.currentCommand = this.selectCommand(name);
+      this.currentArgs = args;
+      let sent = this.sendCommand();
+      console.warn(`\t > ${sent ? 'Issued' : 'Tried but Failed to Issue'}: ${name}(${args})`);
+      return sent;
+    },
+
     // Identifies if the Given Object is a Valid Command Object:
     isCmd(c){
       return c instanceof CommandOption;
     },
 
     // Sets the Current Command Option to the Currently Suggested Command:
-    selectCommand(){
+    // If given a str (ex. from an external autosequencer), that string will be
+    // substituted for the inputText.
+    selectCommand(str){
       // Set Command:
-      this.currentCommand = this.suggestion(this.inputText, this.commandSuggestionNum);
+      this.currentCommand = this.suggestion(str || this.inputText, this.commandSuggestionNum);
       // Check if a Command has been Suggested (not the {} object):
       if(this.commandSelected){
         // Prepopulate with the Appropriate Number of Empty Arguments:
-        this.currentArgs = this.currentCommand.params.map( () => "" );
+        if(this.noArgs){
+          this.currentArgs = [""]; // Insert a blank so list still show the "NoArgs" warning
+        } else {
+          this.currentArgs = this.currentCommand.params.map( () => "" );
+        }
         this.inputText = this.currentCommand.name; // Ensure consistency
       } else{
         this.currentArgs = [];
       }
-      this.showArgument = this.currentCommand.params.map( () => 1 );
     },
 
     // Undoes a Command Selection (returns to name entering option):
@@ -128,19 +153,25 @@ export default {
       }
     },
 
-    // Sends the Current Command to the Log (where it is executed):
+    // Sends the Current Command to the Log (where it is executed).
+    // Returns whether the command validated and was succesfully sent (issued to
+    // the CLI).
     sendCommand(){
-      this.currentArgs = this.currentArgs.map( (a,idx) => {
-        if(a===""){
-          // Populate Any Empty Args with Default Values:
-          return this.currentCommand.params[idx].defaultVal;
-        } else if(a == parseFloat(a)){
-          // If field contains only numbers, convert them string to numbers:
-          return parseFloat(a);
-        } else{
-          return a;
-        }
-      } );
+      if(this.noArgs){
+        this.currentArgs = [];
+      } else{
+        this.currentArgs = this.currentArgs.map( (a,idx) => {
+          if(a===""){
+            // Populate Any Empty Args with Default Values:
+            return this.currentCommand.params[idx].defaultVal;
+          } else if(a == parseFloat(a)){
+            // If field contains only numbers, convert the string to numbers:
+            return parseFloat(a);
+          } else{
+            return a;
+          }
+        } );
+      }
 
       if(this.commandSelected){
         let valid = true;
@@ -149,8 +180,8 @@ export default {
         }
         if(valid){
           // Created Named Args List:
-          let namedArgs = {Images: 1};
-          for(let i in this.currentCommand.params){
+          let namedArgs = {Images: 1}; // TODO: Remove when new IDL integrated (should be included as arg if needed)
+          for(let i in this.currentCommand.params){ // pull from params not currentArgs to prevent errors on noArgs
             namedArgs[this.currentCommand.params[i].name] = this.currentArgs[i];
           }
           // Construct Command Data Object:
@@ -164,8 +195,12 @@ export default {
 
           this.unselectCommand();
           this.commandSuggestionNum = 0;
+
+          return true;
         }
       }
+
+      return false;
     },
 
     // Determines whether the given input is valid for the given type.
@@ -182,6 +217,7 @@ export default {
     validateInput(input, type, specialsAllowed){
       // Input Validation (one character at a time while still considering the complete result):
       let regexCharCheck = {
+        "none": /$^/, // Validate Nothing
         "string": /.*/, // Any character
         "float": /^[-\d.e]*$/i, // only digits, minus sign, decimal, or "e"
         "uint8": /^[\d]*$/, // only digits
@@ -212,18 +248,24 @@ export default {
       // If the new character is a member of this type's set:
       if(input === ""){
         valid = true; // ensure this trivial base case is considered valid
+      } else if(this.noArgs){ // Not supposed to be any arguments
+        warningString = "No Arguments";
       } else if(regexCharCheck[type].test(input)){
         // Ensure that the new argument formed by adding it will still be a valid member of the type
         // (can't go straight to this step b/c "." would make it through for int types):
         let parsedValue = typeChecks[type](input);
         if(parsedValue == input){
           // Ensure the parsed value is within acceptable limits, if there are any:
-          if(parsedValue < limits[type][0]){
-            warningString = input + " < " + limits[type][0]; // Pop up a warning
-            outOfBounds = true;
-          } else if(parsedValue > limits[type][1]){
-            warningString = input + " > " + limits[type][1]; // Pop up a warning
-            outOfBounds = true;
+          if(type in limits){
+            if(parsedValue < limits[type][0]){
+              warningString = input + " < " + limits[type][0]; // Pop up a warning
+              outOfBounds = true;
+            } else if(parsedValue > limits[type][1]){
+              warningString = input + " > " + limits[type][1]; // Pop up a warning
+              outOfBounds = true;
+            } else {
+              valid = true;
+            }
           } else{
             valid = true;
           }
@@ -258,7 +300,7 @@ export default {
     // completely valid, if it's not, a warning is generated.
     // Returns whether this argument was valid.
     validateArgument(argIdx){
-      let {valid, warningString} = this.validateInput(this.currentArgs[argIdx], this.currentCommand.params[argIdx].type, false);
+      let {valid, warningString} = this.validateInput(this.currentArgs[argIdx], this.noArgs ? "none" : this.currentCommand.params[argIdx].type, false);
 
       if(!valid){ // Warn if a warning was given:
         this.warnArgument(warningString, argIdx);
@@ -291,7 +333,7 @@ export default {
         } else{
           this.clearInputWarning(); // Immediately clear any existing input warnings
           let input = this.inputText.substring(this.currentCommand.name.length); // Extract Entered Text by Comparing with Command Name
-          let type = this.currentCommand.params[this.focusIdx].type;
+          let type = this.noArgs ? 'none' : this.currentCommand.params[this.focusIdx].type;
           // Keep adding characters until input is invalid:
           for(let char of input){
             let newArg = this.currentArgs[this.focusIdx] + char;
@@ -301,6 +343,8 @@ export default {
               this.currentArgs.splice(this.focusIdx, 1, newArg);
             } else if(outOfBounds){ // Only show outOfBounds warnings here. Otherwise, just refuse the input.
               this.warnArgument(warningString + this.currentCommand.formattedUnits[this.focusIdx]);
+            } else {
+              this.warnArgument(warningString);
             }
           }  // for char of input
         }

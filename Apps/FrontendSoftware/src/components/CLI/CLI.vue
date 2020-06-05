@@ -7,8 +7,8 @@ Last Update: 2/25/2019, Moosbrugger
 -->
 <template>
   <div class="cli">
-    <Log class="command-history"/>
-    <CommandField class="command-field"/>
+    <Log class="command-history" />
+    <CommandField class="command-field" ref="commandField" />
     <queue />
   </div>
 </template>

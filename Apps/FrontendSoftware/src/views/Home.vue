@@ -5,9 +5,12 @@
       :header="headers.CLI"
       :fuzzyIndicator="connectionStatus"
       fuzzyIndicatorTip="Rover Connection Status"
+      :menuData="[
+        { text:'Auto Speed Run by Command', callback: speedRun }
+      ]"
     >
       <!-- Locations Relative to __static Directory, Found in /public -->
-      <CLI />
+      <CLI ref="cli" />
     </ComponentContainer>
     <ComponentContainer
       class='IMG'
@@ -26,6 +29,8 @@
 <script>
 import { mapGetters, mapState } from 'vuex'
 const { dialog } = require('electron').remote
+const fs = require('fs');
+const csv = require('neat-csv');
 
 import CLI from '@/components/CLI/CLI.vue'
 import ImageViewer from '@/components/ImageViewer/ImageViewer.vue'
@@ -42,14 +47,96 @@ export default {
   },
   computed: {
     ...mapGetters({
+      commandsDB: 'LogList', // List of Commands in the DB
       currentImage: 'selectedImage',
       allImages: 'images'
     }),
     ...mapState({
+      commandLog: state => state.CLI.Log, // LazyList Object of Commands in the DB
+      imageLog: state => state.IMG.imageList, // LazyList Object of Images in the DB
       headers: state => state.headers
     })
   },
   methods: {
+    // Saves Images in the Given List of ImageData
+    speedRun(){
+      // Fetch Save Directory using OS Dialog:
+      const files = dialog.showOpenDialog({
+        properties: ['openFile'],
+        message: 'Select a List of Commands',
+        filters: [
+          { name: 'Commands List', extensions: ['csv'] },
+          { name: 'All Files', extensions: ['*'] }
+        ],
+        buttonLabel: "Load"
+      });
+
+      if(files && files.length > 0){
+        console.log(`> Loading Commands List File from: "${files[0]}"`);
+        fs.readFile(files[0], async (e, d) => {
+          if(e){
+            console.error(e);
+            return;
+          }
+
+          let commands = await csv(d);
+          console.log("- - Loaded Speed Run Data: - -");
+          console.log(commands);
+
+          let cf = this.$refs.cli.$refs.commandField;
+          cf.inputText = "Speed Running...";
+
+          let i = 0;
+          let prevCommandID = -1; // lookupID of last entry in DB of when previous command was sent.
+          // On first loop this will ensure that the most recent command has been sent and received a response.
+          let checkForCommand = () => { // Capture the next command on the DB.
+            // If there's still another command to execute:
+            console.log("Checking for command...");
+            if(i < commands.length){
+              // Get command ID of latest entry in DB:
+              let commandID = this.commandsDB[this.commandsDB.length-1].data.lookupID;
+
+              // If Command ID is different than it was when the previous command
+              // was sent, send the next command.
+              console.log(commandID);
+              console.log(prevCommandID);
+              if(commandID != prevCommandID){ // TODO FIXME: RECURSE WITH ARGUMENT (prevCommandID)
+                console.log("in");
+                // Wait for Image to Come Back for the Most Recently Issued Command:
+                let checkForResponseImage = () => {
+                  console.log(this.allImages);
+                  console.log(this.allImages[this.allImages.length - 1]);
+                  console.log(this.allImages[this.allImages.length - 1].data.commandLookupID);
+                  console.warn('---');
+
+                  if(this.allImages[this.allImages.length - 1].data.commandLookupID == commandID){
+                    let cmd = commands[i];
+                    cf.execute(cmd.name, [cmd.amount, cmd.speed]);
+                    ++i;
+                    this.commandLog.onNextUpdate(checkForCommand);
+                  } else {
+                    imageLog.onNextUpdate(checkForResponseImage); // Check again (later).
+                  }
+                };
+                console.log("out");
+                imageLog.onNextUpdate(checkForResponseImage);
+                console.log(prevCommandID);
+                prevCommandID = commandID;
+                console.log(prevCommandID);
+                console.warn('----');
+              } else {
+                this.commandLog.onNextUpdate(checkForCommand); // Check again (later).
+              }
+            } else {
+              console.log(`${i} Command Sequence Complete.`);
+            }
+          };
+          this.commandLog.onNextUpdate( () => { checkForCommand(); });
+          this.commandLog.onUpdate( () => { console.warn("UPDATE"); });
+        });
+      }
+    },
+
     // Saves Images in the Given List of ImageData
     saveImages(images){
       // Fetch Save Directory using OS Dialog:

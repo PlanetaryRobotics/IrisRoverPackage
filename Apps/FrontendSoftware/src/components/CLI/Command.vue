@@ -9,7 +9,7 @@ TODO:
 
 Author: Connor W. Colombo, CMU
 Created: 1/24/2019
-Last Updated: 9/19/2019, Colombo
+Last Updated: 06/05/2020, Colombo
 -->
 <template>
   <div ref="container" class="command-container">
@@ -17,15 +17,15 @@ Last Updated: 9/19/2019, Colombo
       <div ref="content" class="content">
         <span ref="commandTag" class="command-tag" v-html="displayString"></span>
         <span v-bind:style="{visibility: showInlineData ? 'visible' : 'hidden'}">
-          <p class="command-time" v-if="sent||failed||corrupted"> {{ sendTime }} </p>
-          <p class="command-size" v-if="!sent&&!failed&&!corrupted"> {{ byteSize }} bytes</p>
+          <p class="command-time" v-if="executed||sent||failed||corrupted">{{ sendTime }}</p>
+          <p class="command-size" v-if="!executed&&!sent&&!failed&&!corrupted"> {{ byteSize }} bytes</p>
         </span>
       </div>
       <div class="status" v-bind:class="stateClass"></div>
     </div>
-    <!-- ERROR MESSAGE -->
+    <!-- NOTICE / ERROR MESSAGE -->
     <transition name="notice-in" enter-active-class="animated slideInDown" leave-active-class="animated slideOutUp">
-      <div class="notice" v-if="!sent || corrupted" v-bind:class="stateClass" v-html="notice"></div>
+      <div class="notice" v-if="!executed || corrupted" v-bind:class="stateClass" v-html="notice"></div>
     </transition>
     <!-- COMMAND DESCRIPTION / INFO EXPANSION-->
     <transition name="info-in" enter-active-class="animated slideInDown" leave-active-class="animated slideOutUp">
@@ -78,7 +78,9 @@ export default{
     }),
 
     /* Check to See Whether the Core Data of this Command is Corrupted or
-    improperly formatted. */
+    improperly formatted.
+    TODO: Make this more comprehensive (if needed)
+    */
     corrupted(){
       // Improper Formatting Check:
       return !this.commandOption
@@ -93,7 +95,12 @@ export default{
 
     // Whether the message has been successfully sent to the Rover
     sent(){
-      return this.core.data.stateUI === States.UI.SUCCESS || this.core.data.stateFp === States.Fp.SUCC_EXEC || this.core.data.stateFp === States.Fp.SUCC_SENT;
+      return this.core.data.stateUI === States.UI.SUCCESS || this.core.data.stateFp === States.Fp.SUCC_SENT;
+    },
+
+    // Whether the command has been successfully executed by the Rover
+    executed(){
+      return this.core.data.stateFp === States.Fp.SUCC_EXEC;
     },
 
     // Whether the command failed at any stage
@@ -127,20 +134,22 @@ export default{
     // Returns a Class Object which Assigns a CSS Class, Based on the Current Command State:
     stateClass(){
       return {
-        success: this.sent && !this.corrupted,
+        success: this.executed && !this.corrupted,
+        executing: !this.executed && this.sent && !this.corrupted,
         fail: this.failed || this.corrupted,
         local: this.localOnly,
-        waiting: !this.sent&&!this.failed&&!this.localOnly&&!this.corrupted
+        waiting: !this.executed&&!this.sent&&!this.failed&&!this.localOnly&&!this.corrupted
       };
     },
 
     // Any notices to the user, based on either the state
     notice(){
       return this.corrupted ? "Command contains corrupted or improper data. Expand for raw data."
-           : this.sent ? ""
+           : this.executed ? ""
+           : this.sent && !this.executed ? "Executing on Rover&nbsp;…"
            : this.failed ? `<b>FAILURE:</b> ${this.core.data.stateFp === States.Fp.FAIL ? `<br />Rover: ${Strings[this.core.data.errorFp]}` : ""} ${this.core.data.stateUI === States.UI.FAIL ? `Interface: ${Strings[this.core.data.errorUI]}` : ""}`
            : this.localOnly ? "This Command is <b>Local Only</b>. It is currently waiting to be pushed to the database server from which it will be forwarded to the Rover. <br /> Until this command is on the database, it risks being lost if this program closes."
-           : "Waiting for Completion.";
+           : "Logged. Waiting to Send to Rover.";
     },
 
     // Compute Minimum Size of Command in Bytes (REALLY ROUGH):
@@ -173,16 +182,22 @@ export default{
     } else{
       this.displayString = `${this.commandOption.name}&nbsp;&nbsp;[`;
       this.commandString = `${this.commandOption.name}&nbsp;&nbsp;[`;
-      this.args.forEach((val,i) => {
-        if(i > 0){
-          this.displayString += ',';
-          this.commandString += ',';
-        }
-        this.displayString += '&nbsp;&nbsp;' + val + this.commandOption.formattedUnits[i];
-        this.commandString += '&nbsp;&nbsp;' + val + this.commandOption.params[i].units;
-      });
-      this.displayString += "&nbsp;&nbsp;]";
-      this.commandString += "&nbsp;&nbsp;]";
+      if(this.args.length > 0){
+        this.args.forEach((val,i) => {
+          if(i > 0){
+            this.displayString += ',';
+            this.commandString += ',';
+          }
+          this.displayString += '&nbsp;&nbsp;' + val + this.commandOption.formattedUnits[i];
+          this.commandString += '&nbsp;&nbsp;' + val + this.commandOption.params[i].units;
+        });
+        this.displayString += "&nbsp;&nbsp;]";
+        this.commandString += "&nbsp;&nbsp;]";
+      } else {
+        // Ensure display is structured (padded, etc) as if it had units by adding blank unit formatting:
+        this.displayString += this.commandOption.formatUnits("") + "]";
+        this.commandString += "]";
+      }
 
       // Perform Basic Error Checks:
       if( this.commandOption.params.length !== this.args.length ){
@@ -200,6 +215,10 @@ export default{
   .success{
     color: $color-near-white;
     background-color: $color-nominal;
+  }
+  .executing{
+    color: $color-near-white;
+    background-color: $color-primary;
   }
   .fail{
     color: $color-near-white;

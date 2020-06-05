@@ -4,7 +4,7 @@
  *
  * Author: Connor W. Colombo, CMU
  * Created: 2/5/2019
- * Last Updated: 5/12/2019, Colombo
+ * Last Updated: 06/05/2020, Colombo
  */
  // TODO: Limit on number of commands which can be in LogWaiting.
  // FIXME: Make ErrorState show up in Command.vue when changed (currently *.vue has no idea)
@@ -23,10 +23,10 @@ import CommandOption from '@/data_classes/CommandOption.js'
 
 export default {
   getters: {
-    // Returns a function to force vuex to recompute on each call
-    // (otherwise it uses a cached value which only changes when the
-    // /value/ of state.CLI.Log changes):
-    LogList: state => () => state.Log.list
+    // Returns a the list by calling a lambda function to force vuex to
+    // recompute on each call (otherwise it uses a cached value which only
+    // changes when the /value/ of state.CLI.Log changes):
+    LogList: state => (() => state.Log.list)()
   },
   state: {
     // List of CommandData Objects Held in the Log in the Database's Commands Collection:
@@ -37,6 +37,44 @@ export default {
 
     // List of all available command options (such as TurnLeft, MoveForward):
     CommandOptions: [
+      // ARTEMIS Special Commands:
+      new CommandOption(
+        "ARTEMIS_Deploy",
+        "Deploys the Rover in ARTEMIS.",
+        "Movement",
+        [
+        ],
+        "sample_action.js"
+      ),
+      new CommandOption(
+        "ARTEMIS_Undeploy",
+        "Undeploys the Rover in ARTEMIS, resetting it.",
+        "Movement",
+        [
+        ],
+        "sample_action.js"
+      ),
+      new CommandOption(
+        "ARTEMIS_SetSignalDelay",
+        "Sets the simulated round-trip communication time in ARTEMIS.",
+        "Setting",
+        [
+          {name: "Delay",      units: "s",      defaultVal: 8, type: "uint8"},
+        ],
+        "sample_action.js"
+      ),
+
+      // Imaging Commands:
+      new CommandOption(
+        "TakeScienceImage",
+        "Requests a Science Image from the Current View",
+        "Camera",
+        [
+        ],
+        "sample_action.js"
+      ),
+
+      // Movement Commands:
       new CommandOption(
          "MoveForward",
          "Moves the robot forward by a specified amount, with a specified speed and acceleration, after a specified delay",

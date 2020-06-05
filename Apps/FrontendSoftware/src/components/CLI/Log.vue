@@ -35,7 +35,7 @@ export default {
 
     // List of all commands issued
     commands(){
-      return this.commandsDB().concat(this.commandsLocal);
+      return this.commandsDB.concat(this.commandsLocal);
     },
 
     listLength(){

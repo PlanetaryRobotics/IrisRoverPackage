@@ -115,11 +115,11 @@ export default {
                     ++i;
                     this.commandLog.onNextUpdate(checkForCommand);
                   } else {
-                    imageLog.onNextUpdate(checkForResponseImage); // Check again (later).
+                    this.imageLog.onNextUpdate(checkForResponseImage); // Check again (later).
                   }
                 };
                 console.log("out");
-                imageLog.onNextUpdate(checkForResponseImage);
+                this.imageLog.onNextUpdate(checkForResponseImage);
                 console.log(prevCommandID);
                 prevCommandID = commandID;
                 console.log(prevCommandID);

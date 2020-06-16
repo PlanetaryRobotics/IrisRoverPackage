@@ -1,10 +1,12 @@
 'use strict';
 import ImageData from "@/data_classes/ImageData.js";
 import Tag from "@/data_classes/Tag.js";
+import { v1 as uuidv1 } from 'uuid';
 
 export default class POICard{
   
   constructor(inputData){
+    this._uuid = uuidv1();
 
     // Default 
     this.data = 
@@ -16,6 +18,7 @@ export default class POICard{
       width: null,
       height: null,
       depth: null,
+      location: [], // [x, y] coords in cm - abs coords for now
       sizeUnit: null,
       tagList: [],
       creator: null,
@@ -30,6 +33,10 @@ export default class POICard{
     this.validationChecks(inputData);
     Object.assign(this.data, inputData);
   } 
+
+  get uuid() {
+    return this._uuid;
+  }
 
   validationChecks(inputData) {
 
@@ -77,6 +84,12 @@ export default class POICard{
     if (typeof inputData.depth !== "number" || inputData.depth === "") {
       console.error("Depth is not a number or not defined.");
       console.log(inputData.depth);
+    }
+
+    // Validation check on location
+    if (!Array.isArray(inputData.location) || inputData.location.length < 2) {
+      console.error("Location is not an array or not fully defined.");
+      console.log(inputData.location);
     }
 
     // Validation check on sizeUnit
@@ -154,6 +167,7 @@ export default class POICard{
       console.log(typeof image);
     } else {
       this.data.images.push(image);
+      this._uuid = uuidv1();
     }
   }
 
@@ -162,6 +176,7 @@ export default class POICard{
     let time = POICard.formatTime(new Date(Date.now()));
 
     this.data.modificationHistory.push({user: user, time: time});
+    this._uuid = uuidv1();
   }
 
   set category(newCategory) {
@@ -170,38 +185,45 @@ export default class POICard{
       console.log(newCategory);
     }
     this.data.category = newCategory;
+    this._uuid = uuidv1();
   }
 
   set number(number) {
     if (this.isNumber(number)) {
       this.data.number = number;
+      this._uuid = uuidv1();
     }
   }
 
   set width(width) {
     if (this.isNumber(width)) {
       this.data.width = width;
+      this._uuid = uuidv1();
     }
   }
 
   set height(height) {
     if (this.isNumber(height)) {
       this.data.height = height;
+      this._uuid = uuidv1();
     }
   }
 
   set depth(depth) {
     if (this.isNumber(depth)) {
       this.data.depth = depth;
+      this._uuid = uuidv1();
     }
   }
 
   set description(newDescription) {
     this.data.description = newDescription;
+    this._uuid = uuidv1();
   }
 
   set importanceLevel(newLevel) {
     this.data.importanceLevel = newLevel;
+    this._uuid = uuidv1();
   }
 
   isNumber(value) {
@@ -216,11 +238,13 @@ export default class POICard{
   removeTag(tag) {
     let tagList = this.data.tagList;
     this.data.tagList = tagList.filter(item => item !== tag);
+    this._uuid = uuidv1();
   }
 
   removeImage(image) {
     let images = this.data.images;
     this.data.images = images.filter(item => item !== image);
+    this._uuid = uuidv1();
   }
 
   static get CATEGORY_COLORS() {

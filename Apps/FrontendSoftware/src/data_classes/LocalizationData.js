@@ -14,7 +14,7 @@
  * Last Update: 06/05/2020, Colombo
  */
 
-import Enum from './Enum.js'
+//import Enum from './Enum.js'
 import DBObject from './DBObject.js'
 
 export default class LocalizationData extends DBObject{

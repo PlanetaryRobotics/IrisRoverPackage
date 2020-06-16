@@ -1,4 +1,4 @@
-//import WaypointSegment from '@/data_classes/WaypointSegment.js';
+import LocalizationTestList from './LocalizationTestList.js';
 import RouteList from '@/data_classes/RouteList.js';
 
 export default {
@@ -61,9 +61,15 @@ export default {
 
         // ROUTELIST
         routeList: new RouteList(),
-        routeListUpdate: 0, // For watching the visibility toggles on routes.vue
+
+        // LOCALIZATION DATA
+        localizationData: new LocalizationTestList(),
     },
     getters: {
+      localizationData: state => {
+        return state.localizationData.getList();
+      },
+
       polarPlotEnabled: state => {
         return state.PolarPlotSVG.enabled;
       },
@@ -74,10 +80,6 @@ export default {
 
       routeListIsEmpty: state => {
         return state.routeList.isListEmpty();
-      },
-      
-      routeListUpdate: state => {
-        return state.routeListUpdate;
       },
 
       // --- Add Waypoint related
@@ -114,16 +116,11 @@ export default {
 
       saveSegment(state, {route, segment}) {
         route.addToSegmentList(segment);
-        this.commit("triggerRouteListUpdate");
         this.commit("triggerCurrSegmentRemoval");
       },
 
       togglePolarPlotButton(state) {
         state.PolarPlotSVG.enabled = !state.PolarPlotSVG.enabled;
-      },
-
-      triggerRouteListUpdate(state) {
-        state.routeListUpdate += 1;
       },
 
       triggerCurrSegmentRemoval(state) {
@@ -158,11 +155,7 @@ export default {
 
       // -- Delete waypoint
       deleteWaypoint(state, {route, segment}) {
-        // Delete the segment from route
         route.deleteSegment(segment);
-
-        // Now make a new UUID so the UI can refresh
-        state.routeList.updateUUID(route);
       }
     }
 };

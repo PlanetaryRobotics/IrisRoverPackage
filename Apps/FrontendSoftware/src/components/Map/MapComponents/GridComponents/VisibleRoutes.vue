@@ -1,5 +1,5 @@
 <template>
-    <g id = "visibleRoutes" :key="updateRouteListKey">
+    <g id = "visibleRoutes" >
       <Route v-for="(route) in routeList.routes"
              :route="route"
              :key="route.uuid"
@@ -29,16 +29,9 @@ export default {
   computed: {
     ...mapGetters({
       routeList: 'routeList',
-      routeListUpdate: 'routeListUpdate'
     }),
   },
-  mounted() {
-    this.updateRouteListKey++;
-  },
   watch: {
-    routeListUpdate() {
-      this.updateRouteListKey++;
-    }
   },
   methods: {
   }

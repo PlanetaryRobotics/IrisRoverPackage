@@ -18,10 +18,6 @@ export default class Route{
    get uuid() {
       return this._uuid;
    }
-
-   set uuid(newId) {
-      this._uuid = newId;
-   }
    
    get routeName() {
      return this._routeName;
@@ -48,6 +44,7 @@ export default class Route{
    addToSegmentList(newSegment) {
      if (newSegment.constructor.name === "WaypointSegment") {
       this._segmentList.push(newSegment);
+      this._uuid = uuidv1(); // So vue v-for will know to update
      }
      else {
         throw new Error("Trying to add an object that is not a Segment to SegmentList of Route.");
@@ -60,6 +57,7 @@ export default class Route{
        throw new Error("Segment does not exist.");
      }
      this.segmentList.splice(idx, 1);
+     this._uuid = uuidv1(); // So vue v-for will know to update
    }
 
    setVisibility() {

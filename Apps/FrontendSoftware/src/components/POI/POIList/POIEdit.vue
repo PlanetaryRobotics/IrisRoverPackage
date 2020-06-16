@@ -42,6 +42,7 @@
       <Deletemodal :key="3"
                    :rawHTML='getDeleteModalHTML()'
                    :deleteCallback='getDeleteCallback'
+                   :cancelCallback='()=>{}'
                    @closeModal='toggleModal'/>
     </div>
 

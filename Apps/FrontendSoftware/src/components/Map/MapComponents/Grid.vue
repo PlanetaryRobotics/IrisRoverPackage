@@ -5,6 +5,12 @@
           </g>
 
           <g id ="gridContents">
+            <g id = "POIObjects" v-if="show.POIObjects">
+              <POIObject v-for="(POI) in $store.state.POI.POIList.list"
+                  :POI = "POI"
+                  :key = "POI.uuid"
+                  :positionPx = "computePOIPxPosition(POI)"/>
+            </g>
             <g id ="routeModals"/>
             <RoverFan />
             <g id ="polarPlot" v-show="polarPlotEnabled"/>
@@ -26,6 +32,7 @@ import VisibleRoutes from '@/components/Map/MapComponents/GridComponents/Visible
 import Lander from '@/components/Map/MapComponents/GridComponents/Lander.vue';
 import Rover from '@/components/Map/MapComponents/GridComponents/Rover.vue';
 import RoverFan from '@/components/Map/MapComponents/GridComponents/RoverFan.vue';
+import POIObject from '@/components/Map/MapComponents/GridComponents/POIObject.vue';
 
 import $ from 'jquery';
 import * as d3 from "d3";
@@ -45,7 +52,8 @@ export default {
     VisibleRoutes,
     Lander,
     Rover,
-    RoverFan
+    RoverFan,
+    POIObject
   },
   data() {
     return {
@@ -76,6 +84,9 @@ export default {
         diameterCm: 1000, //100m
       },
       mouseCoords: null,
+      show: {
+        POIObjects: false,
+      }
     }
   },
   computed: {
@@ -85,19 +96,28 @@ export default {
                    'isListeningForEditWaypoint',
                    'removeCurrSegment',
                    'editingRoute',
-                   'editingSegmentInfo']),
+                   'editingSegmentInfo',
+                   'localizationData']),
   },
+
   mounted() {
+
+    // Initialize main objects on grid
     this.initializeGridSize();
     this.drawGrid();
     this.setLander();
     this.setRover();
     this.drawPolar();
 
+    // Now let POIs render since grid constant computations are done
+    this.show.POIObjects = true;
+
+    // Event listener when a new segment needs to update
     GridEventBus.$on('ADD_SEG_FORM_UPDATE', (data) => {
       this.updateCurrWaypointSegment(data.xCm, data.yCm, data.angle);
     })
 
+    // Event listener when an existing segment needs to update
     GridEventBus.$on('EDIT_SEG_FORM_UPDATE', (data) => {
       let coords = {
         xCm: data.xCm,
@@ -114,6 +134,7 @@ export default {
                                  this.gridSquare.gridUnitPx);
     })
 
+    // Event listener to calculate + set the PX coords for the segment
     GridEventBus.$on('COMPUTE_SEG_PX_COORDS', (segment) => {
       let {xPx, yPx} = calculateCmToPxCoords(segment.xCmCoordinate, segment.yCmCoordinate, this.origin.xPosPx, this.origin.yPosPx, this.gridSquare.gridUnitCm, this.gridSquare.gridUnitPx);
       segment.setPxCoordinates(xPx, yPx);
@@ -135,6 +156,13 @@ export default {
       if (!d3.select("#NewRoute").empty()) {
          d3.select("#NewRoute").remove();
       }
+    },
+    localizationData(newData) {
+      this.rover.xCmFromLander = newData[0].data.position[0];
+      this.rover.yCmFromLander = newData[0].data.position[1];
+      this.rover.angle = newData[0].data.position[2];
+
+      this.setRover();
     },
   },
   methods: {
@@ -460,6 +488,14 @@ export default {
       // Set fan coords
       d3.select("#roverFanGroup")
         .attr("transform", `translate(${xPos}, ${yPos}) rotate(${this.rover.angle}, ${d3.select("#roverFanSVG").node().getBBox().width/2}, ${d3.select("#roverFanSVG").node().getBBox().height})`);
+    },
+
+    computePOIPxPosition(POI) {
+      let coords = this.convertCmToPx(POI.getData().location[0], POI.getData().location[1]);
+      let x = this.origin.xPosPx + coords.xPx;
+      let y = this.origin.yPosPx + coords.yPx;
+
+      return {xPx: x, yPx: y};
     },
 
     /**

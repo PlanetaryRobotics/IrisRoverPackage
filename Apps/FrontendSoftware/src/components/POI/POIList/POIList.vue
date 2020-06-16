@@ -73,8 +73,8 @@
           </div>
 
           <!-- LIST --> 
-          <div class="POIList__list scrollable" :key="rerenderList">
-            <div class="POIList__item" v-for="(POICard, index) in POIList" :key="index">
+          <div class="POIList__list scrollable">
+            <div class="POIList__item" v-for="(POICard) in POIList" :key="POICard.uuid">
               <POICard :POIData = "POICard.getData()" 
                       :searchQuery = "searchQuery"
                       :POIListEl = "POIListEl"
@@ -134,7 +134,6 @@ export default {
       orderBy: null,
       searchQuery: null,
       arrowSVG: arrowSVG,
-      rerenderList: 0,
       POICardToEdit: {
         cardObject: null,
         JSON: null,
@@ -183,7 +182,6 @@ export default {
       } else {
         this.selectedFilter = filter;
       }
-      this.rerenderList++;
     }
   }
 }

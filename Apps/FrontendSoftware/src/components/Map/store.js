@@ -1,5 +1,6 @@
-import LocalizationTestList from './LocalizationTestList.js';
+import LocalizationTestList from '@/components/Map/Test/LocalizationTestList.js';
 import RouteList from '@/data_classes/RouteList.js';
+import {getReorganizedList} from "@/components/Map/Utility/LocalizationDataPostProcessor.js";
 
 export default {
     state: {
@@ -64,10 +65,41 @@ export default {
 
         // LOCALIZATION DATA
         localizationData: new LocalizationTestList(),
+        oldList: null,
+        framePoints: [],
     },
     getters: {
       localizationData: state => {
-        return state.localizationData.getList();
+        let newList = state.localizationData.getList();
+
+        // No list initialized yet
+        if (!state.oldList) {
+          state.oldList = [...newList];
+          return state.oldList;
+        }
+
+        // This happens when we get new data with SAME lookupID, so length of list is the same
+        if (state.oldList.length === newList.length) {
+          state.oldList = [...newList];
+          return state.oldList;
+        }
+
+        // Check if the new obj is a frame, if so, add to framePoints
+        if (newList[newList.length - 1].data.frame.n > 0 && newList[newList.length - 1].data.frame.len > 0){
+          state.framePoints.push(newList[newList.length - 1]);
+        }
+
+        // Reorder the list
+        let adjustedList = getReorganizedList(state.oldList, newList);
+
+        // Do a copy otherwise saving mem addr
+        state.oldList = [...adjustedList];
+
+        return state.oldList;
+      },
+
+      framePoints: state => {
+        return state.framePoints;
       },
 
       polarPlotEnabled: state => {

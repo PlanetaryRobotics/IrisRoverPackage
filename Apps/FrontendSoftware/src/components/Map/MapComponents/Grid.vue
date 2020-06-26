@@ -20,6 +20,11 @@
               :rover = {rover}
               :gridSquare = {gridSquare}
             />
+            <LocalizedTrail 
+              :origin = {origin}
+              :rover = {rover}
+              :gridSquare = {gridSquare}
+            />
             <Rover />
           </g>
       </svg>
@@ -33,6 +38,7 @@ import Lander from '@/components/Map/MapComponents/GridComponents/Lander.vue';
 import Rover from '@/components/Map/MapComponents/GridComponents/Rover.vue';
 import RoverFan from '@/components/Map/MapComponents/GridComponents/RoverFan.vue';
 import POIObject from '@/components/Map/MapComponents/GridComponents/POIObject.vue';
+import LocalizedTrail from '@/components/Map/MapComponents/GridComponents/LocalizedTrail.vue';
 
 import $ from 'jquery';
 import * as d3 from "d3";
@@ -53,7 +59,8 @@ export default {
     Lander,
     Rover,
     RoverFan,
-    POIObject
+    POIObject,
+    LocalizedTrail
   },
   data() {
     return {
@@ -63,9 +70,9 @@ export default {
         yPosPx: "",
       },
       rover: {
-        angle: -30,
-        xCmFromLander: 30,
-        yCmFromLander: 30,
+        angle: 0,
+        xCmFromLander: 0,
+        yCmFromLander: 0,
         xPosPx: "",
         yPosPx: ""
       },
@@ -158,9 +165,11 @@ export default {
       }
     },
     localizationData(newData) {
-      this.rover.xCmFromLander = newData[0].data.position[0];
-      this.rover.yCmFromLander = newData[0].data.position[1];
-      this.rover.angle = newData[0].data.position[2];
+      let idx = newData.length - 1; // Using last in list to move rover
+
+      this.rover.xCmFromLander = newData[idx].data.position[0];
+      this.rover.yCmFromLander = newData[idx].data.position[1];
+      this.rover.angle = newData[idx].data.position[2];
 
       this.setRover();
     },

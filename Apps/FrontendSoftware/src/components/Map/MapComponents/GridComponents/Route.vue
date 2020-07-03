@@ -49,7 +49,7 @@ export default {
 
         // If first segment
         if (i === 0) {
-
+          
           // End coords is from segment itself
           let endX = segment.xPxCoordinate;
           let endY = segment.yPxCoordinate;
@@ -68,7 +68,7 @@ export default {
               .append('g')
               .attr("id", route.routeName+"-Segment0")
 
-          let circleCoords = plotNewSegment(currRouteTransform, route.routeName, 0, angle, startX, startY, endX, endY, false, segment.roverAngle);
+          let circleCoords = plotNewSegment(currRouteTransform, route.routeName, 0, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
           
           // Set up modal once have coords w/ rotation
           currRouteTransform.on("click", function() {
@@ -98,7 +98,7 @@ export default {
                             .append('g')
                             .attr("id", route.routeName+"-Segment"+i);
    
-          let circleCoords = plotNewSegment(transform, route.routeName, i, angle, startX, startY, endX, endY, false, segment.roverAngle);
+          let circleCoords = plotNewSegment(transform, route.routeName, i, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
 
           // Set up modal once have coords w/ rotation
           transform.on("click", function() {

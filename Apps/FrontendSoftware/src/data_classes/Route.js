@@ -2,7 +2,7 @@
 import { v1 as uuidv1 } from 'uuid';
 import * as d3 from "d3";
 
-export default class Route{
+export default class Route {
    constructor(routeName, isVisible, firstSegment){
       this._routeName = routeName;
       this._isVisible = isVisible;

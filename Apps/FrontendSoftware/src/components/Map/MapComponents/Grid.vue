@@ -239,7 +239,7 @@ export default {
         currRouteTransform.selectAll("*").remove();
       }
 
-      plotNewSegment(currRouteTransform, "NewRoute", 0, angle, startX, startY, endX, endY, true, roverAngle);
+      plotNewSegment(currRouteTransform, "NewRoute", 0, angle, startX, startY, endX, endY, true, roverAngle, currWaypointSegment.state);
     },
     gridClicked() {
 
@@ -282,7 +282,7 @@ export default {
           currRouteTransform.selectAll("*").remove();
         }
 
-        plotNewSegment(currRouteTransform, "NewRoute", 0, angle, startX, startY, endX, endY, true);
+        plotNewSegment(currRouteTransform, "NewRoute", 0, angle, startX, startY, endX, endY, true, null, currWaypointSegment.state);
       } 
       // An edit form is open, and listening for any clicks
       else if (this.isListeningForEditWaypoint) {

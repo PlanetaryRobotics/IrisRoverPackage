@@ -1,11 +1,13 @@
 import data from "@/components/Map/Test/TestData/TestFrames.js";
 //import data from "@/components/Map/Test/TestData/TestExistingLookup.js";
+//const data = null;
 
 class LocalizationTestList {
   constructor() {
     this._list = [];
     this._currIdx = 0;
     this._tick = 1000;
+    if (!data) {return;}
     this.addData();
   }
 

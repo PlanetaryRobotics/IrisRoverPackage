@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import {COLORS} from "./SegmentColorer.js";
+import States from "@/data_classes/WaypointStates.js";
 
 export function generateFirstSegmentVars(route, segment, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
 
@@ -147,7 +148,15 @@ export function getAbsoluteCoordinates(point) {
 
 }
 
-export function plotNewSegment(container, id, index, angle, startX, startY, endX, endY, isDashed, roverAngle) {
+export function plotNewSegment(container, id, index, angle, startX, startY, endX, endY, isDashed, roverAngle, state) {
+
+  let color;
+  if (state === States.Waypoint.UNVISITED) {
+    color = COLORS.YELLOW;
+  }
+  else if (state === States.Waypoint.VISITED) {
+    color = COLORS.GREEN;
+  }
 
   let line = container.append("line")
                       .attr("id", id+"Line"+index)
@@ -156,7 +165,7 @@ export function plotNewSegment(container, id, index, angle, startX, startY, endX
                       .attr("y1", startY)
                       .attr("x2", endX)
                       .attr("y2", endY)
-                      .style("stroke", COLORS.YELLOW) 
+                      .style("stroke", color)
                       .style("stroke-width", "3px");
 
   createRoverAngle(container, roverAngle, endX, endY);
@@ -168,7 +177,7 @@ export function plotNewSegment(container, id, index, angle, startX, startY, endX
                 .attr("cx", endX)
                 .attr("cy", endY)
                 .attr("r", "3px")
-                .style("fill", COLORS.YELLOW);
+                .style("fill", color);
 
   if (isDashed) {
     line.style("stroke-dasharray", "5 3");

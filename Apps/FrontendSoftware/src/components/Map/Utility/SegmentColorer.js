@@ -4,6 +4,7 @@ export const COLORS = {
   RED: "#F35B6C",
   PURPLE: "#A56DFF",
   YELLOW: "#FFC700",
+  GREEN: "#21DF9A",
 }
 
 export function highlightSegment() {

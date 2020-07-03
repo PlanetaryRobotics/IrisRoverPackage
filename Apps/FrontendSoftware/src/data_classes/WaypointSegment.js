@@ -1,8 +1,8 @@
 'use strict';
+import States from './WaypointStates.js'
 
 export default class WaypointSegment{
   
-  // Coordinates in px
   constructor(){
     this._xPxCoordinate = null;
     this._yPxCoordinate = null;
@@ -11,6 +11,7 @@ export default class WaypointSegment{
     this._yCmCoordinate = null;
 
     this._roverAngle = null;
+    this._state = States.Waypoint.UNVISITED;
   } 
 
   setPxCoordinates(xPx, yPx) {
@@ -21,6 +22,14 @@ export default class WaypointSegment{
   setCmCoordinates(xCm, yCm) {
     this._xCmCoordinate = xCm;
     this._yCmCoordinate = yCm;
+  }
+
+  setAsVisited() {
+    this._state = States.Waypoint.VISITED;
+  }
+
+  get state() {
+    return this._state;
   }
 
   get roverAngle() {

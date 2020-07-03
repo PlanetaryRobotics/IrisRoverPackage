@@ -16,7 +16,7 @@ export default {
   props: ['origin', 'rover', 'gridSquare'],
   data() {
     return {
-      currTargetWaypoint: null
+      currTargetWaypointData: null
     }
   },
   computed: {
@@ -27,10 +27,21 @@ export default {
       handler: function (newData) {
         if (newData.length === 0) {return; }
 
-        let targetWaypoint = newData[newData.length-1].data.waypointData.segment;
+        // Get the last command if it has waypoint data
+        let lastCommand = newData[newData.length-1].data;
+        let targetWaypoint = lastCommand.waypointData !== null ? lastCommand.waypointData : null;
         
-        if (this.currTargetWaypoint !== targetWaypoint) {
-          this.currTargetWaypoint = targetWaypoint;
+        // Waypoint exists and is not same as the prev one, then make
+        // it the new target
+        if (targetWaypoint && this.currTargetWaypointData !== targetWaypoint) {
+
+          // If there was a prev segment already visited
+          if (this.currTargetWaypointData) {
+            this.setTravelledSegmentColor();
+          }
+
+          // Set the current segment
+          this.currTargetWaypointData = targetWaypoint;
           this.updateTrail();
         }
       }, 
@@ -39,12 +50,16 @@ export default {
     },
   },
   methods: {
-
+    setTravelledSegmentColor() {
+      this.currTargetWaypointData.segment.setAsVisited();
+      let container = d3.select("#"+this.currTargetWaypointData.route.routeName + "-Segment"+(this.currTargetWaypointData.index));
+      container.select("circle").style("fill", "#21DF9A");
+      container.select("line").style("stroke", "#21DF9A");
+    },
     updateTrail() {
-
       //Container for the gradient
       var defs = d3.select("#targetTrail").append("defs");
-      debugger;
+
       //Append a linear horizontal gradient
       var linearGradient = defs.append("linearGradient")
           .attr("id","animate-gradient") //unique id for reference
@@ -83,84 +98,35 @@ export default {
           .attr("dur","2s")
           .attr("repeatCount","indefinite");
 
+      // Get end coords
+      let endX = this.currTargetWaypointData.segment.xPxCoordinate;
+      let endY = this.currTargetWaypointData.segment.yPxCoordinate;
+
       // Set line
       d3.select("#targetTrail line")
         .attr("x1", this.rover.rover.xPosPx)
         .attr("y1", this.rover.rover.yPosPx)
-        .attr("x2", this.currTargetWaypoint.xPxCoordinate)
-        .attr("y2", this.currTargetWaypoint.yPxCoordinate)
+        .attr("x2", endX)
+        .attr("y2", endY)
         .style("stroke", "url(#animate-gradient)") 
         .style("stroke-width", "3px");
 
       // Set end circles
       d3.select("#targetTrail circle#inner")
-        .attr("cx", this.currTargetWaypoint.xPxCoordinate)
-        .attr("cy", this.currTargetWaypoint.yPxCoordinate)
-        .attr("r", "3px")
+        .attr("cx", endX)
+        .attr("cy", endY)
+        .attr("r", "4px")
         .style("fill", "#8A6DFF");
 
       d3.select("#targetTrail circle#outer")
-        .attr("cx", this.currTargetWaypoint.xPxCoordinate)
-        .attr("cy", this.currTargetWaypoint.yPxCoordinate)
-        .attr("r", "6px")
+        .attr("cx", endX)
+        .attr("cy", endY)
+        .attr("r", "7px")
         .style("stroke", "#8A6DFF")
         .style("fill", "black")
         .style("stroke-width","2px");
     },
 
-    drawTrail(data) {
-      let that = this;
-
-      let valueline = d3.line()
-          .x(function(d) { 
-            return that.computeCmToPx("X", d.data.position[0]);
-          })
-          .y(function(d) { 
-            return that.computeCmToPx("Y", d.data.position[1]);
-          });
-
-      d3.select("#localizedTrail .line") 
-        .attr("d", valueline(data));
-
-      d3.select("#localizedTrail .underLine")
-        .attr("d", valueline(data));
-    },
-
-    plotPoint(point) {
-      let diamond = d3.symbol().type(d3.symbolDiamond).size(30);
-      let x = this.computeCmToPx("X", point.data.position[0]);
-      let y = this.computeCmToPx("Y", point.data.position[1]);
-
-      d3.select("#localizedTrail")
-        .append("path")
-        .attr("class", "diamond")
-        .attr("d", diamond)
-        .attr("transform", `translate(${x},${y})`)
-        .style("stroke", "white")
-        .style("stroke-width", 2)
-        .style("fill", "#8A6DFF");
-    },
-
-    /**
-     * Converts a cm units to pixel units
-     * 
-     * @param {string} type    "X" or "Y"
-     * @param {number} cm      cm value
-     * 
-     * @return {number}        px value
-    */
-    computeCmToPx(type, cm) {
-      let px = (cm / this.gridSquare.gridSquare.gridUnitCm) * this.gridSquare.gridSquare.gridUnitPx;
-
-      if (type === "Y") {
-        px *= -1;
-        px += this.origin.origin.yPosPx;
-      } else {
-        px += this.origin.origin.xPosPx;
-      }
-
-      return px;
-    }
   }
 }
 

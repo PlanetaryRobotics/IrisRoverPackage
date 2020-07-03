@@ -1,5 +1,5 @@
-import data from "@/components/Map/Test/TestFrames.js";
-//import data from "@/components/Map/Test/TestExistingLookup.js";
+import data from "@/components/Map/Test/TestData/TestFrames.js";
+//import data from "@/components/Map/Test/TestData/TestExistingLookup.js";
 
 class LocalizationTestList {
   constructor() {
@@ -19,6 +19,7 @@ class LocalizationTestList {
       }
       this._currIdx++;
 
+      console.log(this._list.map(elem => elem.data.position));
     }.bind(this), this._tick);
   }
 

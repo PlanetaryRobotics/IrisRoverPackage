@@ -67,8 +67,19 @@ export default {
         localizationData: new LocalizationTestList(),
         oldList: null,
         framePoints: [],
+
+        // COMMAND DATA
+        // TODO: this will eventually have to pull from CLI store 
+        commandData: []
     },
+
     getters: {
+      commandData: state => {
+        return state.commandData;
+      },
+
+      //(() => state.Log.list)()
+      // localizationData: state => (()=>state.localizationData.getList())(),
       localizationData: state => {
         let newList = state.localizationData.getList();
 
@@ -94,7 +105,7 @@ export default {
 
         // Do a copy otherwise saving mem addr
         state.oldList = [...adjustedList];
-
+        
         return state.oldList;
       },
 
@@ -188,6 +199,11 @@ export default {
       // -- Delete waypoint
       deleteWaypoint(state, {route, segment}) {
         route.deleteSegment(segment);
+      },
+
+      // -- CLI testing (remove later)
+      addCommand(state, data) {
+        state.commandData.push(data);
       }
     }
 };

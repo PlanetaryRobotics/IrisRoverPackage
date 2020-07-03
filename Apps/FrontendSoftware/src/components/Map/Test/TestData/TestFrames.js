@@ -81,18 +81,6 @@ const data = [
         tot: 2 // Total number of frames in this move
       }
     }),
-
-    new LocalizationData({
-      lookupID: 3,
-      collectionTime: 154, // time data was collected (on rover)
-      sendTime: 162, // time data packet was finished being processed by localization and sent from backend to frontend
-      position: [-60, 50, -90], // cm, cm, deg
-      uncertainty: [0.3, 1.5, 0.5], // cm, cm, deg
-      commandLookupID: 3, // still associated with the same command
-      frame: {
-        n: 0, // this data isn't associated with an image frame
-      }
-    }),
 ];
 
 export default data;

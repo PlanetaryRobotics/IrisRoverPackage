@@ -1,16 +1,7 @@
 import * as d3 from "d3";
+import {COLORS} from "./SegmentColorer.js";
 
-export function calculateCmCoordinatesForSegment(segment, id, index, roverXPosPx, roverYPosPx, gridUnitCm, gridUnitPx) {
-  let point = d3.select("#"+id+"Point"+index);
-
-  let centre = getAbsoluteCoordinates(point);
-
-  let {xCm, yCm} = convertPxToCm(centre.x-roverXPosPx, centre.y-roverYPosPx, gridUnitCm, gridUnitPx);
-  segment.xCmCoordinate = xCm.toFixed(1);
-  segment.yCmCoordinate = yCm.toFixed(1);
-}
-
-export function generateFirstSegmentVars(route, segment, roverXPosPx, roverYPosPx, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
+export function generateFirstSegmentVars(route, segment, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
 
   let startX, startY, endX, endY, angle;
 
@@ -165,7 +156,7 @@ export function plotNewSegment(container, id, index, angle, startX, startY, endX
                       .attr("y1", startY)
                       .attr("x2", endX)
                       .attr("y2", endY)
-                      .style("stroke", "yellow") 
+                      .style("stroke", COLORS.YELLOW) 
                       .style("stroke-width", "3px");
 
   createRoverAngle(container, roverAngle, endX, endY);
@@ -177,7 +168,7 @@ export function plotNewSegment(container, id, index, angle, startX, startY, endX
                 .attr("cx", endX)
                 .attr("cy", endY)
                 .attr("r", "3px")
-                .style("fill", "yellow");
+                .style("fill", COLORS.YELLOW);
 
   if (isDashed) {
     line.style("stroke-dasharray", "5 3");
@@ -283,30 +274,3 @@ export function updateExistingSegment(routeName, segmentIdx, coords, roverAngle,
   }
 }
 
-export function highlightSegment() {
-
-  // Store state of prev route + index using closure
-  var prevRoute;
-  var prevIdx;
-
-  return {
-    set: function(route, segmentIdx) {
-      if (prevRoute !== undefined) {
-        this.changeColor(prevRoute.routeName, prevIdx, "yellow");
-      }
-      this.changeColor(route.routeName, segmentIdx, "#A56DFF");
-      prevRoute = route;
-      prevIdx = segmentIdx;
-    },
-    changeColor: function(name, index, color) {  
-      let container = d3.select("#"+name + "-Segment"+(index));
-      container.select("circle").style("fill", color);
-      container.select("line").style("stroke", color);
-    },
-    removeColor: function() {
-      if (prevRoute !== undefined) {
-        this.changeColor(prevRoute.routeName, prevIdx, "yellow");
-      }
-    }
-  }
-}

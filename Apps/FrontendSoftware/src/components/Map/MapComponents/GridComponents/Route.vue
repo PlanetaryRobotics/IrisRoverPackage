@@ -11,7 +11,7 @@ import { toggleModal } from '@/components/Map/Utility/ModalPlotter.js';
 
 export default {
   name: "Route",
-  props: ['route', 'origin', 'rover', 'gridSquare'],
+  props: ['route', 'origin', 'gridSquare'],
   computed: {
     routeName: function () {
       return this.route.routeName;
@@ -20,7 +20,7 @@ export default {
   mounted() {
     let comp = this;
 
-    if (this.rover.rover.xPosPx) { //Check that happens AFTER grid is ready
+    if (this.origin.origin.xPosPx) { //Check that happens AFTER grid is ready
       comp.drawSegments(comp.route);
       if (comp.route.isVisible) {
           d3.select("#" + comp.route.routeName + "-Group")

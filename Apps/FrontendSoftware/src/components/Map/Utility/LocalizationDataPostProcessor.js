@@ -18,6 +18,7 @@ export function getReorganizedList(oldList, newList) {
   } else {
     oldList.push(lastElem);
   }
+
   return oldList;
 }
 

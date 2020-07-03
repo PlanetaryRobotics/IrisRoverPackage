@@ -4,7 +4,6 @@
              :route="route"
              :key="route.uuid"
              :origin="origin"
-             :rover="rover"
              :gridSquare="gridSquare"
              />
     </g>
@@ -17,14 +16,9 @@ import Route from '@/components/Map/MapComponents/GridComponents/Route.vue';
 
 export default {
   name: "VisibleRoutes",
-  props: ['origin', 'rover', 'gridSquare'],
+  props: ['origin', 'gridSquare'],
   components: {
     Route
-  },
-  data() {
-    return {
-      updateRouteListKey: 0
-    }
   },
   computed: {
     ...mapGetters({

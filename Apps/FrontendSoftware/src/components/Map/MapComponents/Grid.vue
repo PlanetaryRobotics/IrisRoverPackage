@@ -1,30 +1,52 @@
 <template>
     <div id = "grid-container">
       <svg id = "grid" >
+          <!-- GRID LINES -->
           <g id = "gridLines">
           </g>
 
+          <!-- GRID CONTENT -->
           <g id ="gridContents">
+
+            <!-- POI OBJECTS -->
             <g id = "POIObjects" v-if="show.POIObjects">
               <POIObject v-for="(POI) in $store.state.POI.POIList.list"
                   :POI = "POI"
                   :key = "POI.uuid"
                   :positionPx = "computePOIPxPosition(POI)"/>
             </g>
+
+            <!-- MODALS -->
             <g id ="routeModals"/>
+
+            <!-- ROVER FAN -->
             <RoverFan />
+
+            <!-- POLAR PLOT -->
             <g id ="polarPlot" v-show="polarPlotEnabled"/>
+
+            <!-- LANDER -->
             <Lander />
+
+            <!-- SAVED ROUTES -->
             <VisibleRoutes 
               :origin = {origin}
-              :rover = {rover}
               :gridSquare = {gridSquare}
             />
+
+            <!-- ROVER'S TRAILS -->
             <LocalizedTrail 
               :origin = {origin}
               :rover = {rover}
               :gridSquare = {gridSquare}
             />
+            <TargetTrail
+              :origin = {origin}
+              :rover = {rover}
+              :gridSquare = {gridSquare}
+            />
+
+            <!-- ROVER -->
             <Rover />
           </g>
       </svg>
@@ -39,6 +61,7 @@ import Rover from '@/components/Map/MapComponents/GridComponents/Rover.vue';
 import RoverFan from '@/components/Map/MapComponents/GridComponents/RoverFan.vue';
 import POIObject from '@/components/Map/MapComponents/GridComponents/POIObject.vue';
 import LocalizedTrail from '@/components/Map/MapComponents/GridComponents/LocalizedTrail.vue';
+import TargetTrail from '@/components/Map/MapComponents/GridComponents/TargetTrail.vue';
 
 import $ from 'jquery';
 import * as d3 from "d3";
@@ -60,7 +83,8 @@ export default {
     Rover,
     RoverFan,
     POIObject,
-    LocalizedTrail
+    LocalizedTrail,
+    TargetTrail
   },
   data() {
     return {
@@ -69,6 +93,7 @@ export default {
         xPosPx: "",
         yPosPx: "",
       },
+      // Init values
       rover: {
         angle: 0,
         xCmFromLander: 0,
@@ -167,6 +192,7 @@ export default {
     localizationData(newData) {
       let idx = newData.length - 1; // Using last in list to move rover
 
+      // Set the rover's new position
       this.rover.xCmFromLander = newData[idx].data.position[0];
       this.rover.yCmFromLander = newData[idx].data.position[1];
       this.rover.angle = newData[idx].data.position[2];
@@ -186,8 +212,6 @@ export default {
       let {angle, startX, startY, endX, endY} = generateFirstSegmentVars(
                                                               this.editingRoute,
                                                               currWaypointSegment, 
-                                                              this.rover.xPosPx, 
-                                                              this.rover.yPosPx,
                                                               this.origin.xPosPx,
                                                               this.origin.yPosPx,
                                                               this.gridSquare.gridUnitCm,
@@ -228,8 +252,6 @@ export default {
         let {angle, startX, startY, endX, endY} = generateFirstSegmentVars(
                                                               this.editingRoute,
                                                               currWaypointSegment, 
-                                                              this.rover.xPosPx, 
-                                                              this.rover.yPosPx,
                                                               this.origin.xPosPx,
                                                               this.origin.yPosPx,
                                                               this.gridSquare.gridUnitCm,

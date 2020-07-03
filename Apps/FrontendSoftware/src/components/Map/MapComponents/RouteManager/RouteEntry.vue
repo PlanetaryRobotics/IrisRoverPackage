@@ -266,12 +266,9 @@ export default {
 }
 
 .segmentList {
-  margin-top: 1.5rem;
-  margin-left: 2rem;
   flex-grow: 1;
   &__segment {
     width: 100%;
-    margin-bottom: 2rem;
   }
 }
 

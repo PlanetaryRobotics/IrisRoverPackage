@@ -1,6 +1,9 @@
 <template>
     <g id="localizedTrail">
       <path class="line" d=""/>
+      <!-- <text v-for="(ldata) in localizationData" v-bind:key="ldata.data.lookupID">
+        {{ldata.data.position}}
+      </text> -->
     </g>
 </template>
 
@@ -16,8 +19,12 @@ export default {
     ...mapGetters(['localizationData', 'framePoints']),
   },
   watch: {
-    localizationData(newData) {
-      this.drawTrail(newData);
+    localizationData: {
+      handler: function (newData) {
+        this.drawTrail(newData);
+      }, 
+      deep:true,
+      immediate: true
     },
     framePoints(data) {
       // The last point is the newest point to be plotted
@@ -38,6 +45,9 @@ export default {
 
       d3.select("#localizedTrail .line") 
         .attr("d", valueline(data));
+
+      d3.select("#localizedTrail .underLine")
+        .attr("d", valueline(data));
     },
 
     plotPoint(point) {
@@ -51,8 +61,8 @@ export default {
         .attr("d", diamond)
         .attr("transform", `translate(${x},${y})`)
         .style("stroke", "white")
-        .style("stroke-width", 1)
-        .style("fill", "#21DF84");
+        .style("stroke-width", 2)
+        .style("fill", "#8A6DFF");
     },
 
     /**
@@ -81,10 +91,16 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+  @import '@/styles/_colors.scss';
+
   #localizedTrail .line {
-    stroke: #21DF84;
+    stroke: $color-primary;
     stroke-width: 3;
     fill: none;
+  }
+
+  .temp {
+    fill: white;
   }
 
 </style>

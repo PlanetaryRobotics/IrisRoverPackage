@@ -57,7 +57,7 @@ import GridEventBus from '@/components/Map/GridEventBus.js';
 import Route from "@/data_classes/Route.js";
 import WaypointSegment from "@/data_classes/WaypointSegment.js";
 import AtomicButton from '@/components/atomic/AtomicButton.vue';
-import { highlightSegment } from '@/components/Map/Utility/SegmentPlotter.js';
+import { highlightSegment } from '@/components/Map/Utility/SegmentColorer.js';
 // import { mapGetters } from 'vuex';
 
 export default {

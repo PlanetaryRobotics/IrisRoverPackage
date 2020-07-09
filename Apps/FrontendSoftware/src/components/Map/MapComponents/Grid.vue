@@ -131,7 +131,6 @@ export default {
                    'editingSegmentInfo',
                    'localizationData']),
   },
-
   mounted() {
 
     // Initialize main objects on grid
@@ -286,6 +285,7 @@ export default {
       } 
       // An edit form is open, and listening for any clicks
       else if (this.isListeningForEditWaypoint) {
+        debugger;
         let coords = {
           xPx: this.mouseCoords[0],
           yPx: this.mouseCoords[1]

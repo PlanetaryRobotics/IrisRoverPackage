@@ -60,6 +60,13 @@ export default {
           segmentIdx: null,
         },
 
+        // CREATING A CIRCUMNAV
+        isListeningForPOIClick: false,
+        targetPOI: {
+          POICard: null,
+          positionPx: null,
+        },
+
         // ROUTELIST
         routeList: new RouteList(),
 
@@ -74,6 +81,7 @@ export default {
     },
 
     getters: {
+      // --- DB Sync
       commandData: state => {
         return state.commandData;
       },
@@ -113,10 +121,12 @@ export default {
         return state.framePoints;
       },
 
+      // --- Polar plot
       polarPlotEnabled: state => {
         return state.PolarPlotSVG.enabled;
       },
 
+      // --- Routelist
       routeList: state => {
         return state.routeList;
       },
@@ -149,8 +159,16 @@ export default {
 
       editingSegmentInfo: state => {
         return state.editingSegmentInfo;
-      }
+      },
     
+      // --- Add Circumnav related
+      isListeningForPOIClick: state => {
+        return state.isListeningForPOIClick;
+      },
+
+      targetPOI: state => {
+        return state.targetPOI;
+      },
     },
     mutations: {
       createEmptyRoute(state) {
@@ -166,11 +184,6 @@ export default {
         state.PolarPlotSVG.enabled = !state.PolarPlotSVG.enabled;
       },
 
-      triggerCurrSegmentRemoval(state) {
-        state.currSegment = null;
-        state.removeCurrSegment += 1;
-      },
-
       // -- Adding waypoint
       setIsListeningForNewWaypoint(state, isListening) {
         state.isListeningForNewWaypoint = isListening;
@@ -182,6 +195,11 @@ export default {
 
       setEditingRoute(state, route) {
         state.editingRoute = route;
+      },
+
+      triggerCurrSegmentRemoval(state) {
+        state.currSegment = null;
+        state.removeCurrSegment += 1;
       },
 
       // -- Editing waypoint
@@ -199,6 +217,15 @@ export default {
       // -- Delete waypoint
       deleteWaypoint(state, {route, segment}) {
         route.deleteSegment(segment);
+      },
+
+      // -- Adding circumnav
+      setIsListeningForPOIClick(state, isListening) {
+        state.isListeningForPOIClick = isListening;
+      },
+
+      setTargetPOI(state, {POICard, positionPx}) {
+        state.targetPOI = Object.assign({}, {POICard: POICard, positionPx: positionPx});
       },
 
       // -- CLI testing (remove later)

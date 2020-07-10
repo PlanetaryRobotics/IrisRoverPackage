@@ -145,7 +145,7 @@ export default {
 
     // Event listener when a new segment needs to update
     GridEventBus.$on('ADD_SEG_FORM_UPDATE', (data) => {
-      this.updateCurrWaypointSegment(data.xCm, data.yCm, data.angle);
+      this.plotNewSegmentPreview(data.xCm, data.yCm, data.angle);
     })
 
     // Event listener when an existing segment needs to update
@@ -200,7 +200,8 @@ export default {
     },
   },
   methods: {
-    updateCurrWaypointSegment(xCm, yCm, roverAngle) {
+    plotNewSegmentPreview(xCm, yCm, roverAngle) {
+
       let currWaypointSegment = new WaypointSegment();
       currWaypointSegment.setCmCoordinates(xCm, yCm);
 
@@ -241,7 +242,6 @@ export default {
       plotNewSegment(currRouteTransform, "NewRoute", 0, angle, startX, startY, endX, endY, true, roverAngle, currWaypointSegment.state);
     },
     gridClicked() {
-
       // Add form is open, and listening for any clicks on grid
       if (this.isListeningForNewWaypoint) {
 
@@ -285,7 +285,7 @@ export default {
       } 
       // An edit form is open, and listening for any clicks
       else if (this.isListeningForEditWaypoint) {
-        debugger;
+        
         let coords = {
           xPx: this.mouseCoords[0],
           yPx: this.mouseCoords[1]

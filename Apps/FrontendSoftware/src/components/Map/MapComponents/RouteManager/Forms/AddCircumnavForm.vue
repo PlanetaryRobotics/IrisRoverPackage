@@ -66,9 +66,9 @@
     <!-- BUTTONS -->
     <div class="buttonContainer">
       <AtomicButton v-bind="buttons.cancelButton" 
-                            @click.native="cancelSegment"/>
+                            @click.native="cancelCircumnav"/>
       <AtomicButton v-bind="buttons.planButton" 
-                            @click.native="saveSegment"/>
+                            @click.native="saveCircumnav"/>
 
    </div>
 
@@ -101,9 +101,10 @@ export default {
         TARGETPOI: null,
       },
       errors: {
-        XCOORD: "",
-        YCOORD: "",
-        ANGLE: ""
+        STARTANG: "",
+        ENDANG: "",
+        PHOTOS: "",
+        RADIUS: "",
       },
       buttons: {
         cancelButton: {
@@ -134,6 +135,8 @@ export default {
     targetPOI(data) {
       this.POIName = data.POICard.getName();
       this.formValues.TARGETPOI = data;
+
+      this.activateGridPreview();
     }
   },
   destroyed() {
@@ -147,13 +150,20 @@ export default {
     this.$store.commit("setIsListeningForPOIClick", true);
   },
   methods: {
+    /**
+     * Sets the ISCLOCKWISE value in the form.
+    */
     toggleDirection(key) {
       if (key === "clockwise") {
         this.formValues.ISCLOCKWISE = true;
-        return;
+      } else {
+        this.formValues.ISCLOCKWISE = false;
       }
-      this.formValues.ISCLOCKWISE = false;
+      this.activateGridPreview();
     },
+    /**
+     * Validates the values from input divs. 
+    */
     validateInput(key, value) {
       // Validate is a number
       if (value !== "" && !this.validateIsNumber(value)) {
@@ -169,20 +179,48 @@ export default {
 
       this.errors[key] = "";
 
-      // Emit to form updates to grid
-      GridEventBus.$emit('ADD_SEG_FORM_UPDATE', {xCm: this.formValues.XCOORD, 
-                                                  yCm: this.formValues.YCOORD,
-                                                  angle: this.formValues.ANGLE});
+      this.activateGridPreview();
     },
     validateIsNumber(value) {
       return !isNaN(parseFloat(value)) && isFinite(value);
     },
-    saveSegment() {
-      this.$store.commit("saveSegment", {route: this.route, segment: this.currWaypointSegment});
+    /**
+     * Checks if the form is complete, and if so, emits the payload to the 
+     * grid to preview the circumnavigation segments.
+    */
+    activateGridPreview() {
+      if (this.formIsComplete()) {
+        console.log("COMPLETE!");
+
+      //Emit to form updates to grid
+      GridEventBus.$emit('ADD_SEG_FORM_UPDATE', {xCm: this.formValues.XCOORD, 
+                                                  yCm: this.formValues.YCOORD,
+                                                  angle: this.formValues.ANGLE});
+      } else {
+        console.log("NOT COMPLETE!");
+      }
+    },
+    /**
+     * Checks if the form is complete.
+    */
+    formIsComplete() {
+      let keys = Object.keys(this.formValues);
+      for (let key of keys) {
+        if (this.formValues[key] === null || this.formValues[key] === "") {
+          this.buttons.planButton.enabled = false;
+          return false;
+        }
+      }
+
+      this.buttons.planButton.enabled = true;
+      return true;
+    },
+    saveCircumnav() {
+      // this.$store.commit("saveSegment", {route: this.route, segment: this.currWaypointSegment});
       this.closeModal();
     },
-    cancelSegment() {
-      this.$store.commit("triggerCurrSegmentRemoval");
+    cancelCircumnav() {
+      // this.$store.commit("triggerCurrSegmentRemoval");
       let keys = Object.keys(this.formValues);
       for (let k of keys) {
         this.formValues[k] = "";

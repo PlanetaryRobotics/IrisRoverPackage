@@ -192,10 +192,8 @@ export default {
       if (this.formIsComplete()) {
         console.log("COMPLETE!");
 
-      //Emit to form updates to grid
-      GridEventBus.$emit('ADD_SEG_FORM_UPDATE', {xCm: this.formValues.XCOORD, 
-                                                  yCm: this.formValues.YCOORD,
-                                                  angle: this.formValues.ANGLE});
+        //Emit to form updates to grid
+        GridEventBus.$emit('ADD_CIRCUM_FORM_UPDATE', this.formValues);
       } else {
         console.log("NOT COMPLETE!");
       }

@@ -112,7 +112,7 @@ export function calculatePxToCmCoords(xPx, yPx, originXPosPx, originYPosPx, grid
  * 
  * @return {object}         {xPx: x, yPx: y}
 */
-function convertCmToPx(xCm, yCm, gridUnitCm, gridUnitPx) {
+export function convertCmToPx(xCm, yCm, gridUnitCm, gridUnitPx) {
 
   let y = (yCm / gridUnitCm) * gridUnitPx;
   let x = (xCm / gridUnitCm) * gridUnitPx;
@@ -124,7 +124,7 @@ function convertCmToPx(xCm, yCm, gridUnitCm, gridUnitPx) {
   return {xPx: x, yPx: y};
 }
 
-function convertPxToCm(xPx, yPx, gridUnitCm, gridUnitPx) {
+export function convertPxToCm(xPx, yPx, gridUnitCm, gridUnitPx) {
 
   let y = (yPx / gridUnitPx) * gridUnitCm;
   let x = (xPx / gridUnitPx) * gridUnitCm;
@@ -186,8 +186,7 @@ export function plotNewSegment(container, id, index, angle, startX, startY, endX
   return getAbsoluteCoordinates(circle);
 }
 
-function createRoverAngle(container, roverAngle, endX, endY) {
-
+export function createRoverAngle(container, roverAngle, endX, endY) {
   if (roverAngle && roverAngle !== "") {
     let deg = roverAngle;
     var chairOriginX = endX + ((10) * Math.sin(0));

@@ -73,6 +73,7 @@ import { plotNewSegment,
          updateExistingSegment,
          calculateCmToPxCoords,
          calculatePxToCmCoords } from '@/components/Map/Utility/SegmentPlotter.js';
+import { plotNewCircumNav } from '@/components/Map/Utility/CircumnavPlotter.js';
 import WaypointSegment from "@/data_classes/WaypointSegment.js";
 
 export default {
@@ -169,6 +170,12 @@ export default {
     GridEventBus.$on('COMPUTE_SEG_PX_COORDS', (segment) => {
       let {xPx, yPx} = calculateCmToPxCoords(segment.xCmCoordinate, segment.yCmCoordinate, this.origin.xPosPx, this.origin.yPosPx, this.gridSquare.gridUnitCm, this.gridSquare.gridUnitPx);
       segment.setPxCoordinates(xPx, yPx);
+    })
+
+    // Event listener when a new circumnav segment set needs to update
+    GridEventBus.$on('ADD_CIRCUM_FORM_UPDATE', (data) => {
+      plotNewCircumNav(data, this.gridSquare.gridUnitCm, this.gridSquare.gridUnitPx);
+      // get new circumnav object and save into store
     })
   },
   watch: {
@@ -285,7 +292,7 @@ export default {
       } 
       // An edit form is open, and listening for any clicks
       else if (this.isListeningForEditWaypoint) {
-        
+
         let coords = {
           xPx: this.mouseCoords[0],
           yPx: this.mouseCoords[1]

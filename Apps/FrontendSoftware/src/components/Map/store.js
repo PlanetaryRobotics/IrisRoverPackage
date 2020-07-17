@@ -66,6 +66,7 @@ export default {
           POICard: null,
           positionPx: null,
         },
+        currCircumnav: null,
 
         // ROUTELIST
         routeList: new RouteList(),
@@ -169,6 +170,10 @@ export default {
       targetPOI: state => {
         return state.targetPOI;
       },
+
+      currCircumnav: state => {
+        return state.currCircumnav;
+      },
     },
     mutations: {
       createEmptyRoute(state) {
@@ -226,6 +231,10 @@ export default {
 
       setTargetPOI(state, {POICard, positionPx}) {
         state.targetPOI = Object.assign({}, {POICard: POICard, positionPx: positionPx});
+      },
+
+      setCurrCircumnav(state, circumnav) {
+        state.currCircumnav = circumnav;
       },
 
       // -- CLI testing (remove later)

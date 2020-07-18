@@ -1,11 +1,12 @@
 import * as d3 from "d3";
 import WaypointSegment from "@/data_classes/WaypointSegment.js";
+import Circumnavigation from "@/data_classes/Circumnavigation.js";
 import States from "@/data_classes/WaypointStates.js";
 import {COLORS} from "./SegmentColorer.js";
 import { convertPxToCm, 
          getAbsoluteCoordinates } from '@/components/Map/Utility/SegmentPlotter.js';
 
-export function plotNewCircumNav(data, gridUnitCm, gridUnitPx) {
+export function plotNewCircumNav(data, route, gridUnitCm, gridUnitPx) {
   // Destructure data + convert to number (since values coming from form)
   let {STARTANG, ENDANG, PHOTOS, RADIUS, ISCLOCKWISE, TARGETPOI} = data;
   STARTANG = Number(STARTANG);
@@ -13,7 +14,9 @@ export function plotNewCircumNav(data, gridUnitCm, gridUnitPx) {
   RADIUS = Number(RADIUS);
   PHOTOS = Number(PHOTOS);
 
+  let circumnav = new Circumnavigation(STARTANG, ENDANG, PHOTOS, RADIUS, ISCLOCKWISE, TARGETPOI.POICard,TARGETPOI.positionPx);
   let container;
+  let waypoints = [];
 
   // If doesn't exist yet, create the container
   if (d3.select("#NewCircum").empty()) {
@@ -35,18 +38,31 @@ export function plotNewCircumNav(data, gridUnitCm, gridUnitPx) {
   let startX = TARGETPOI.positionPx.xPx; 
   let startY = TARGETPOI.positionPx.yPx;
 
-  // Compute end coords if just straight line 
+  // Compute end coords if just straight line upwards at 0 deg
+  // (rotation handled in d3)
   let endX = startX;
   let endY = startY - (RADIUS / gridUnitCm) * gridUnitPx; // Basically is radius converted into px
 
-  // Plot first point
-  let absCoords = plotFirstPoint(container, "NewCircum", 0, STARTANG, startX, startY, endX, endY, States.Waypoint.UNVISITED);
-  let {xCm, yCm} = convertPxToCm(absCoords.x, absCoords.y, gridUnitCm, gridUnitPx);
-
-  // Save first waypoint coords
   let firstWaypoint = new WaypointSegment();
-  firstWaypoint.setPxCoordinates(absCoords.x, absCoords.y);
-  firstWaypoint.setCmCoordinates(xCm, yCm);
+
+  // If first in route, plot circle only
+  if (!route.segmentList.length) {
+    // Plot first point
+    let absCoords = plotPoint(container, "NewCircum", 0, STARTANG, startX, startY, endX, endY, States.Waypoint.UNVISITED);
+    let {xCm, yCm} = convertPxToCm(absCoords.x, absCoords.y, gridUnitCm, gridUnitPx);
+  
+    firstWaypoint.setPxCoordinates(absCoords.x, absCoords.y);
+    firstWaypoint.setCmCoordinates(xCm, yCm);
+    firstWaypoint.roverAngle = STARTANG - 180;
+
+  // Else plot a segment
+  } else {
+    let lastSeg = route.segmentList[route.segmentList.length - 1];
+    firstWaypoint = plotSegment(container, "NewCircum", 0, STARTANG, lastSeg, startX, startY, endX, endY, true, gridUnitCm, gridUnitPx, States.Waypoint.UNVISITED)
+  }
+
+  // Save first waypoint 
+  waypoints.push(firstWaypoint);
 
   // Get the degree difference
   let degIncrement = getAngleIncrement(STARTANG, ENDANG, PHOTOS, ISCLOCKWISE);
@@ -54,19 +70,26 @@ export function plotNewCircumNav(data, gridUnitCm, gridUnitPx) {
   let prevWaypoint = firstWaypoint;
   let currAng = STARTANG + degIncrement;
 
+  // Create new waypoints depending on number of photos
   for (let i = 1; i < PHOTOS; i++) {
     let nextWaypoint = plotSegment(container, "NewCircum", i, currAng, prevWaypoint, startX, startY, endX, endY, true, gridUnitCm, gridUnitPx, States.Waypoint.UNVISITED)
     currAng += degIncrement;
     prevWaypoint = nextWaypoint;
+    
+    waypoints.push(nextWaypoint);
   }
 
-  // Return new circumnav object
+  // Save waypoints array
+  circumnav.waypoints = waypoints;
+
+  // Return circumnav object
+  return circumnav;
 }
 
 /*
  * Plots the first point in the circumnavigation. 
  */
-function plotFirstPoint(container, id, index, angle, startX, startY, endX, endY, state) {
+function plotPoint(container, id, index, angle, startX, startY, endX, endY, state) {
   
   let color = getColor(state);
 
@@ -87,7 +110,7 @@ function plotFirstPoint(container, id, index, angle, startX, startY, endX, endY,
 }
 
 /*
- * Plots the a segment in the circumnavigation (any waypoint after the first)
+ * Plots the segment in the circumnavigation (any waypoint after the first)
  */
 function plotSegment(container, id, index, angle, prevWaypoint, startX, startY, endX, endY, isDashed, gridUnitCm, gridUnitPx, state) {
 
@@ -130,6 +153,7 @@ function plotSegment(container, id, index, angle, prevWaypoint, startX, startY, 
   let waypoint = new WaypointSegment();
   waypoint.setPxCoordinates(absCoords.x, absCoords.y);
   waypoint.setCmCoordinates(xCm, yCm);
+  waypoint.roverAngle = (angle-180);
 
   return waypoint;
 }

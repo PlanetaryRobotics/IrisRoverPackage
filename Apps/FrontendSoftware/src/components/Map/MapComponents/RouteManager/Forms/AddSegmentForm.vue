@@ -109,12 +109,16 @@ export default {
     // Waypoint segment will be saved into store from grid
     // and grid ensures that segment has all coords before saving.
     // So whenever seg updates, it is ready to save.
-    currWaypointSegment() {
-      this.buttons.planButton.enabled = true;
+    currWaypointSegment(newVal) {
+      if (newVal !== null) {
+        this.buttons.planButton.enabled = true;
+      } else {
+        this.buttons.planButton.enabled = false;
+      }
     }
   },
   destroyed() {
-    this.$store.commit("triggerCurrSegmentRemoval");
+    this.$store.commit("setCurrWaypointSegment", null);
     this.$store.commit("setIsListeningForNewWaypoint", false);
     this.$store.commit("setEditingRoute", null);
   },
@@ -159,7 +163,7 @@ export default {
       this.closeModal();
     },
     cancelSegment() {
-      this.$store.commit("triggerCurrSegmentRemoval");
+      this.$store.commit("setCurrWaypointSegment", null);
       let keys = Object.keys(this.formValues);
       for (let k of keys) {
         this.formValues[k] = "";

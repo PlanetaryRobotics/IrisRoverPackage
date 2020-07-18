@@ -127,10 +127,11 @@ export default {
                    'polarPlotEnabled',
                    'isListeningForNewWaypoint',
                    'isListeningForEditWaypoint',
-                   'removeCurrSegment',
                    'editingRoute',
                    'editingSegmentInfo',
-                   'localizationData']),
+                   'localizationData',
+                   'currWaypointSegment',
+                   'currCircumnav',]),
   },
   mounted() {
 
@@ -174,8 +175,8 @@ export default {
 
     // Event listener when a new circumnav segment set needs to update
     GridEventBus.$on('ADD_CIRCUM_FORM_UPDATE', (data) => {
-      plotNewCircumNav(data, this.gridSquare.gridUnitCm, this.gridSquare.gridUnitPx);
-      // get new circumnav object and save into store
+      let circumnav = plotNewCircumNav(data, this.editingRoute, this.gridSquare.gridUnitCm, this.gridSquare.gridUnitPx);
+      this.$store.commit("setCurrCircumnav", circumnav);
     })
   },
   watch: {
@@ -190,9 +191,11 @@ export default {
            .attr("stroke-opacity", 1)
       }
     },
-    removeCurrSegment() {
-      if (!d3.select("#NewRoute").empty()) {
-         d3.select("#NewRoute").remove();
+    currWaypointSegment(state) {
+      if (state === null) {
+        if (!d3.select("#NewRoute").empty()) {
+          d3.select("#NewRoute").remove();
+        }
       }
     },
     localizationData(newData) {
@@ -205,6 +208,13 @@ export default {
 
       this.setRover();
     },
+    currCircumnav(state) {
+      if (state === null) {
+        if (!d3.select("#NewCircum").empty()) {
+          d3.select("#NewCircum").remove();
+        } 
+      }
+    }
   },
   methods: {
     plotNewSegmentPreview(xCm, yCm, roverAngle) {

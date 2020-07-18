@@ -42,12 +42,12 @@ export default class Route {
    }
 
    addToSegmentList(newSegment) {
-     if (newSegment.constructor.name === "WaypointSegment") {
+     if (newSegment.constructor.name === "WaypointSegment" || newSegment.constructor.name === "Circumnavigation") {
       this._segmentList.push(newSegment);
       this._uuid = uuidv1(); // So vue v-for will know to update
      }
      else {
-        throw new Error("Trying to add an object that is not a Segment to SegmentList of Route.");
+        throw new Error("Trying to add an object that is not a Segment or Circumnavigation to SegmentList of Route.");
      }
    }
 

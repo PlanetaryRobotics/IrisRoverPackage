@@ -127,27 +127,42 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['targetPOI']),
+    ...mapGetters(['targetPOI', 'currCircumnav']),
   },
   watch: {
     // Triggered when a POI is clicked on the grid
     // when this modal is open
     targetPOI(data) {
-      this.POIName = data.POICard.getName();
-      this.formValues.TARGETPOI = data;
+      if (data.POICard && data.positionPx) {
+        this.POIName = data.POICard.getName();
+        this.formValues.TARGETPOI = data;
 
-      this.activateGridPreview();
+        this.activateGridPreview();
+      }
+    },
+    currCircumnav(newVal) {
+      if (newVal !== null) {
+        this.buttons.planButton.enabled = true;
+      } else {
+        this.buttons.planButton.enabled = false;
+      }
     }
   },
   destroyed() {
+    // Remove circumnav from grid
+    this.$store.commit("setCurrCircumnav", null);
     // Disabling POI click listening
     this.$store.commit("setIsListeningForPOIClick", false);
     // Reset the target POI
     this.$store.commit("setTargetPOI", {POICard: null, positionPx: null});
+    // Reset editing route
+    this.$store.commit("setEditingRoute", null);
   },
   mounted() {
     // Make POIs listen for clicks 
     this.$store.commit("setIsListeningForPOIClick", true);
+    // Set editing route
+    this.$store.commit("setEditingRoute", this.route);
   },
   methods: {
     /**
@@ -190,13 +205,9 @@ export default {
     */
     activateGridPreview() {
       if (this.formIsComplete()) {
-        console.log("COMPLETE!");
-
         //Emit to form updates to grid
         GridEventBus.$emit('ADD_CIRCUM_FORM_UPDATE', this.formValues);
-      } else {
-        console.log("NOT COMPLETE!");
-      }
+      } 
     },
     /**
      * Checks if the form is complete.
@@ -205,24 +216,26 @@ export default {
       let keys = Object.keys(this.formValues);
       for (let key of keys) {
         if (this.formValues[key] === null || this.formValues[key] === "") {
-          this.buttons.planButton.enabled = false;
           return false;
         }
       }
-
-      this.buttons.planButton.enabled = true;
       return true;
     },
     saveCircumnav() {
-      // this.$store.commit("saveSegment", {route: this.route, segment: this.currWaypointSegment});
+      this.$store.commit("saveCircumnav", this.route);
       this.closeModal();
     },
     cancelCircumnav() {
-      // this.$store.commit("triggerCurrSegmentRemoval");
+      this.$store.commit("setCurrCircumnav", null);
+      this.$store.commit("setTargetPOI", {POICard: null, positionPx: null});
+      this.POIName = "Click POI on grid";
+
       let keys = Object.keys(this.formValues);
       for (let k of keys) {
         this.formValues[k] = "";
       }
+
+      this.formValues.ISCLOCKWISE = true;
     },
     closeModal() {
       GridEventBus.$emit('CLOSE_SEGMENT_MODAL');

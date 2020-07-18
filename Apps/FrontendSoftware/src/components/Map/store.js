@@ -182,7 +182,12 @@ export default {
 
       saveSegment(state, {route, segment}) {
         route.addToSegmentList(segment);
-        this.commit("triggerCurrSegmentRemoval");
+        state.currWaypointSegment = null;
+      },
+
+      saveCircumnav(state, route) {
+        route.addToSegmentList(state.currCircumnav);
+        state.currCircumnav = null;
       },
 
       togglePolarPlotButton(state) {
@@ -200,11 +205,6 @@ export default {
 
       setEditingRoute(state, route) {
         state.editingRoute = route;
-      },
-
-      triggerCurrSegmentRemoval(state) {
-        state.currSegment = null;
-        state.removeCurrSegment += 1;
       },
 
       // -- Editing waypoint

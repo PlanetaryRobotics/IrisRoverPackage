@@ -6,6 +6,19 @@ import {COLORS} from "./SegmentColorer.js";
 import { convertPxToCm, 
          getAbsoluteCoordinates } from '@/components/Map/Utility/SegmentPlotter.js';
 
+/*
+ * Helper to return last circle d3 selection in the circumnav object
+ * at index i in the route's segment list. 
+ */
+export function getCircumnavLastPoint(route, i) {
+  let lastCircumIdx = route.segmentList[i].waypoints.length - 1;
+
+  let lastCircle = d3.select("#"+route.routeName+"-Segment"+(i))
+                    .select("#"+route.routeName+"-CircumSegment"+lastCircumIdx)
+                    .select("circle");
+  return lastCircle;
+}
+
 export function plotNewCircumNav(data, route, gridUnitCm, gridUnitPx) {
   // Destructure data + convert to number (since values coming from form)
   let {STARTANG, ENDANG, PHOTOS, RADIUS, ISCLOCKWISE, TARGETPOI} = data;
@@ -58,6 +71,12 @@ export function plotNewCircumNav(data, route, gridUnitCm, gridUnitPx) {
   // Else plot a segment
   } else {
     let lastSeg = route.segmentList[route.segmentList.length - 1];
+
+    // If prev segment was circumnav, get last waypoint
+    if (lastSeg.constructor.name === "Circumnavigation") {
+      lastSeg = lastSeg.waypoints[lastSeg.waypoints.length - 1];
+    }
+
     firstWaypoint = plotSegment(container, "NewCircum", 0, STARTANG, lastSeg, startX, startY, endX, endY, true, gridUnitCm, gridUnitPx, States.Waypoint.UNVISITED)
   }
 

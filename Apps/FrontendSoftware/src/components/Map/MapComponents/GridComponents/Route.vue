@@ -7,7 +7,7 @@
 
 import * as d3 from "d3";
 import { plotNewSegment, getAbsoluteCoordinates } from '@/components/Map/Utility/SegmentPlotter.js';
-import { toggleModal } from '@/components/Map/Utility/ModalPlotter.js';
+import { getCircumnavLastPoint } from '@/components/Map/Utility/CircumnavPlotter.js';
 
 export default {
   name: "Route",
@@ -44,12 +44,99 @@ export default {
     drawSegments(route) {
 
       for (let i = 0; i < route.segmentList.length; i++) {
-
+ 
         let segment = route.segmentList[i];
 
         // If first segment
         if (i === 0) {
-          
+          if (segment.constructor.name === "WaypointSegment") {
+            this.plotFirstSegment(route, segment);
+          } else {
+            this.plotFirstCircumnav(route, segment);
+          }
+        // Appended segments
+        } else {
+          if (segment.constructor.name === "WaypointSegment") {
+            this.plotNextSegment(route, segment, i);
+          } else {
+            this.plotNextCircumnav(route, segment, i);
+          }
+        }
+      }
+    },
+
+    plotFirstSegment(route, segment) {
+      // End coords is from segment itself
+      let endX = segment.xPxCoordinate;
+      let endY = segment.yPxCoordinate;
+
+      // Start coords is same as end for very first waypoint
+      let startX = endX;
+      let startY = endY;
+
+      let angle = 0;
+
+      let currRouteTransform = 
+        d3.select("#visibleRoutes")
+          .select("#"+route.routeName)
+          .append('g')
+          .attr("id", route.routeName+"-Group")
+          .append('g')
+          .attr("id", route.routeName+"-Segment0");
+
+      plotNewSegment(currRouteTransform, route.routeName, 0, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
+    },
+
+    plotNextSegment(route, segment, i) {
+
+      let lastCircle; 
+
+      // Check if prev segment was a circumnav
+      if (route.segmentList[i-1].constructor.name === "Circumnavigation") {
+        lastCircle = getCircumnavLastPoint(route, i-1);
+      // Else just get last point in route
+      } else {
+        lastCircle = d3.select("#"+route.routeName+"-Segment"+(i-1))
+                        .select("circle");
+      }
+                    
+      // Need to get the transformed coordinates of the previous circle
+      let centre = getAbsoluteCoordinates(lastCircle);
+
+      // Set start coords
+      let startX = Number(centre.x);
+      let startY = Number(centre.y);
+
+      // Set end coords
+      let endX = segment.xPxCoordinate;
+      let endY = segment.yPxCoordinate;
+      let angle = 0;
+
+      let transform = d3.select("#"+route.routeName+"-Group")
+                        .append('g')
+                        .attr("id", route.routeName+"-Segment"+i);
+
+      plotNewSegment(transform, route.routeName, i, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
+    },
+
+    plotFirstCircumnav(route, circumnav) {
+
+      let container = 
+        d3.select("#visibleRoutes")
+          .select("#"+route.routeName)
+          .append('g')
+          .attr("id", route.routeName+"-Group")
+          .append('g')
+          .attr("id", route.routeName+"-Segment0")
+
+      for (let i = 0; i < circumnav.waypoints.length; i++) {
+
+        let segment = circumnav.waypoints[i];
+        
+        let group = container.append('g').attr('id', route.routeName + "-CircumSegment" + i);
+
+        // For the first point
+        if (i === 0) {
           // End coords is from segment itself
           let endX = segment.xPxCoordinate;
           let endY = segment.yPxCoordinate;
@@ -59,28 +146,14 @@ export default {
           let startY = endY;
 
           let angle = 0;
-
-          let currRouteTransform = 
-            d3.select("#visibleRoutes")
-              .select("#"+route.routeName)
-              .append('g')
-              .attr("id", route.routeName+"-Group")
-              .append('g')
-              .attr("id", route.routeName+"-Segment0")
-
-          let circleCoords = plotNewSegment(currRouteTransform, route.routeName, 0, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
           
-          // Set up modal once have coords w/ rotation
-          currRouteTransform.on("click", function() {
-                              toggleModal(this, route, 0, circleCoords.x, circleCoords.y); 
-                            });
-
-        // Appended segments
+          plotNewSegment(group, route.routeName, i, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
+        
+        // Preceding segments
         } else {
-
           // Get last point in route
-          let lastCircle = d3.select("#"+route.routeName+"-Segment"+(i-1))
-                             .select("circle");
+          let lastCircle = container.select("#"+route.routeName+"-CircumSegment"+(i-1))
+                                    .select("circle");
                         
           // Need to get the transformed coordinates of the previous circle
           let centre = getAbsoluteCoordinates(lastCircle);
@@ -94,19 +167,53 @@ export default {
           let endY = segment.yPxCoordinate;
           let angle = 0;
 
-          let transform = d3.select("#"+route.routeName+"-Group")
-                            .append('g')
-                            .attr("id", route.routeName+"-Segment"+i);
-   
-          let circleCoords = plotNewSegment(transform, route.routeName, i, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
-
-          // Set up modal once have coords w/ rotation
-          transform.on("click", function() {
-                        toggleModal(this, route, i, circleCoords.x, circleCoords.y); 
-                    });
+          plotNewSegment(group, route.routeName, i, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
         }
       }
+    },
+
+    plotNextCircumnav(route, circumnav, currIdx) {
+
+      let container = d3.select("#"+route.routeName+"-Group")
+                        .append('g')
+                        .attr("id", route.routeName+"-Segment"+currIdx);
       
+      for (let i = 0; i < circumnav.waypoints.length; i++) {
+
+        let segment = circumnav.waypoints[i];
+        
+        let group = container.append('g').attr('id', route.routeName + "-CircumSegment" + i);
+
+        let lastCircle;
+        if (i === 0) {
+          // Get last point in prev circumnav
+          if (route.segmentList[currIdx-1].constructor.name === "Circumnavigation") {
+            lastCircle = getCircumnavLastPoint(route, currIdx-1);
+          // Get point in prev segment
+          } else {
+            lastCircle = d3.select("#"+route.routeName+"-Segment"+(currIdx-1))
+                          .select("circle");
+          }
+        // Get last point in current circumnav's 
+        } else {
+          lastCircle = container.select("#"+route.routeName+"-CircumSegment"+(i-1))
+                                .select("circle");
+        }
+
+        // Need to get the transformed coordinates of the previous circle
+        let centre = getAbsoluteCoordinates(lastCircle);
+
+        // Set start coords
+        let startX = Number(centre.x);
+        let startY = Number(centre.y);
+
+        // Set end coords
+        let endX = segment.xPxCoordinate;
+        let endY = segment.yPxCoordinate;
+        let angle = 0;
+
+        plotNewSegment(group, route.routeName, i, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
+      }
     },
 
      /**

@@ -60,9 +60,35 @@
 
       <!-- SEGMENT LIST -->
       <div class="segmentList" v-show = "canShowSegmentList()">
+        <!-- FOR LOOP -->
         <div class="segmentList__segment" v-for="(segment, index) in route.segmentList" :key="index">
-          <SegmentInfo :segment = "segment" :route = "route" :index="index"/>
-        </div>
+          <!-- IF WAYPOINT -->
+          <div v-if="segment.constructor.name === 'WaypointSegment'">
+            <SegmentInfo :segment = "segment" :route = "route" :index="index"/>
+          </div>
+          <!-- IF CIRCUMNAV -->
+          <div v-else>
+            <div class="circumnav">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M13.3704 8.74926C12.793 11.4015 10.415 13.4002 7.55214 13.4002C4.68929 13.4002 2.31127 11.4015 1.73387 8.74926H0.104278C0.703168 12.2969 3.80977 15.0002 7.55214 15.0002C11.2945 15.0002 14.4011 12.2969 15 8.74926H13.3704ZM1.98239 5.41589C2.83073 3.19014 4.99857 1.6 7.55214 1.6C10.1057 1.6 12.2735 3.19014 13.1219 5.41589H14.8089C13.8995 2.28772 10.9948 0 7.55214 0C4.10943 0 1.20475 2.28772 0.295419 5.41589H1.98239ZM9.7075e-05 7.46165C3.23839e-05 7.47445 0 7.48726 0 7.50008C0 7.5129 3.23839e-05 7.52571 9.7075e-05 7.53852V7.46165Z" fill="#C4C4C4"/>
+              </svg>
+              <div class="circumnav__label">
+                {{segment.POICard.getName()}}
+              </div>
+            </div>
+            <div class="circumnav__segments">
+              <SegmentInfo v-for="(circumnavSeg, index) in segment.waypoints" :segment = "circumnavSeg" :route = "route" :index="index" :key="index"/> 
+            </div>
+            <div class="circumnav">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M13.3704 8.74926C12.793 11.4015 10.415 13.4002 7.55214 13.4002C4.68929 13.4002 2.31127 11.4015 1.73387 8.74926H0.104278C0.703168 12.2969 3.80977 15.0002 7.55214 15.0002C11.2945 15.0002 14.4011 12.2969 15 8.74926H13.3704ZM1.98239 5.41589C2.83073 3.19014 4.99857 1.6 7.55214 1.6C10.1057 1.6 12.2735 3.19014 13.1219 5.41589H14.8089C13.8995 2.28772 10.9948 0 7.55214 0C4.10943 0 1.20475 2.28772 0.295419 5.41589H1.98239ZM9.7075e-05 7.46165C3.23839e-05 7.47445 0 7.48726 0 7.50008C0 7.5129 3.23839e-05 7.52571 9.7075e-05 7.53852V7.46165Z" fill="#C4C4C4"/>
+              </svg>
+              <div class="circumnav__label">
+                {{"END OF " + segment.POICard.getName()}}
+              </div>
+            </div>
+          </div> <!-- END IF CIRCUMNAV -->
+        </div> <!-- END FOR LOOP -->
       </div> 
 
     </div> <!-- END ROUTEBODY -->
@@ -269,6 +295,20 @@ export default {
   flex-grow: 1;
   &__segment {
     width: 100%;
+  }
+}
+
+.circumnav {
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-left: 2rem;
+  &__label {
+    margin-left: 1rem;
+  }
+  &__segments {
+    margin-left: 2rem;
   }
 }
 

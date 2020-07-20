@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import {COLORS} from "./SegmentColorer.js";
 import States from "@/data_classes/WaypointStates.js";
+import { getCircumnavLastPoint } from '@/components/Map/Utility/CircumnavPlotter.js';
 
 export function generateFirstSegmentVars(route, segment, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
 
@@ -44,11 +45,20 @@ export function generateFirstSegmentVars(route, segment, originXPosPx, originYPo
 
   } else {
 
-    // Get last point in route
-    let index = route.segmentList.length - 1;
-    let lastCircle = d3.select("#"+route.routeName+"-Segment"+(index))
-                    .select("circle")
-                  
+    let newIdx = route.segmentList.length;
+    let lastCircle;
+
+    // Check if is circumnavigation
+    if (route.segmentList[newIdx-1].constructor.name === "Circumnavigation") {
+      lastCircle = getCircumnavLastPoint(route, newIdx-1);
+
+    // Else get last waypoint
+    } else {
+      let index = route.segmentList.length - 1;
+      lastCircle = d3.select("#"+route.routeName+"-Segment"+(index))
+                      .select("circle")
+    }
+        
     // Need to get the transformed coordinates of the previous circle
     let centre = getAbsoluteCoordinates(lastCircle);
 
@@ -187,7 +197,8 @@ export function plotNewSegment(container, id, index, angle, startX, startY, endX
 }
 
 export function createRoverAngle(container, roverAngle, endX, endY) {
-  if (roverAngle && roverAngle !== "") {
+
+  if (roverAngle !== null && roverAngle !== "") {
     let deg = roverAngle;
     var chairOriginX = endX + ((10) * Math.sin(0));
     var chairOriginY = endY - ((10) * Math.cos(0));

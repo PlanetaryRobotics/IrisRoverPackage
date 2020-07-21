@@ -46,7 +46,7 @@ export default class Circumnavigation{
     this._radius = radius;
   }
 
-  get isClockwsie() {
+  get isClockwise() {
     return this._isClockwise;
   }
 

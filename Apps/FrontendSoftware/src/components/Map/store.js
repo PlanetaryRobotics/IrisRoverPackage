@@ -54,7 +54,7 @@ export default {
         editingRoute: null,
 
         // EDITING A SEG
-        isListeningforEditWaypoint: false,
+        isListeningForEditWaypoint: false,
         editingSegmentInfo: {
           route: null,
           segmentIdx: null,

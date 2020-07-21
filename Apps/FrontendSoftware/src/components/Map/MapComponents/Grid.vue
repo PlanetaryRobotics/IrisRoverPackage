@@ -157,14 +157,14 @@ export default {
         yCm: data.yCm
       }
 
-      updateExistingSegment(data.routeName,
-                                 data.segmentIndex, 
-                                 coords, 
-                                 data.roverAngle,
-                                 this.origin.xPosPx, 
-                                 this.origin.yPosPx,
-                                 this.gridSquare.gridUnitCm,
-                                 this.gridSquare.gridUnitPx);
+      updateExistingSegment(data.route,
+                            data.segmentIndex, 
+                            coords, 
+                            data.roverAngle,
+                            this.origin.xPosPx, 
+                            this.origin.yPosPx,
+                            this.gridSquare.gridUnitCm,
+                            this.gridSquare.gridUnitPx);
     })
 
     // Event listener to calculate + set the PX coords for the segment
@@ -302,13 +302,12 @@ export default {
       } 
       // An edit form is open, and listening for any clicks
       else if (this.isListeningForEditWaypoint) {
-
         let coords = {
           xPx: this.mouseCoords[0],
           yPx: this.mouseCoords[1]
         }
 
-        updateExistingSegment(this.editingSegmentInfo.route.routeName,
+        updateExistingSegment(this.editingSegmentInfo.route,
                               this.editingSegmentInfo.segmentIdx, 
                               coords, 
                               null,

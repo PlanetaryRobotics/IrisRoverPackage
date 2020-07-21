@@ -228,7 +228,7 @@ export function createRoverAngle(container, roverAngle, endX, endY) {
  * @param {double} gridUnitCm 
  * @param {double} gridUnitPx 
  */
-export function updateExistingSegment(routeName, segmentIdx, coords, roverAngle, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
+export function updateExistingSegment(route, segmentIdx, coords, roverAngle, originXPosPx, originYPosPx, gridUnitCm, gridUnitPx) {
   
   let endX, endY;
 
@@ -249,13 +249,22 @@ export function updateExistingSegment(routeName, segmentIdx, coords, roverAngle,
     endY = yPx;
   }
 
-  let container = d3.select("#"+routeName+"-Segment"+(segmentIdx));
+  let container = d3.select("#"+route.routeName+"-Segment"+(segmentIdx));
 
   // Update the start of next seg
-  if (!d3.select("#"+routeName+"Line"+(segmentIdx+1)).empty()) {
-    d3.select("#"+routeName+"Line"+(segmentIdx+1))
-      .attr('x1', endX)
-      .attr('y1', endY);
+  if (!d3.select("#"+route.routeName+"Line"+(segmentIdx+1)).empty()) {
+    if (route.segmentList[segmentIdx+1].constructor.name === "Circumnavigation") {
+      d3.select("#" + route.routeName+"-Segment"+(segmentIdx+1))
+        .select("#" + route.routeName+"-CircumSegment0")
+        .select("line")
+        .attr('x1', endX)
+        .attr('y1', endY);
+
+    } else {
+      d3.select("#"+route.routeName+"Line"+(segmentIdx+1))
+        .attr('x1', endX)
+        .attr('y1', endY);
+    }
   }
 
   // Update the current segment
@@ -277,7 +286,7 @@ export function updateExistingSegment(routeName, segmentIdx, coords, roverAngle,
   // Update rover angle
   if (roverAngle && roverAngle !== "") {
  
-    if (d3.select("#"+routeName+"-Segment"+(segmentIdx) + " rect").empty()) {
+    if (d3.select("#"+route.routeName+"-Segment"+(segmentIdx) + " rect").empty()) {
       createRoverAngle(container, roverAngle, endX, endY);
     } else {
       let deg = roverAngle;

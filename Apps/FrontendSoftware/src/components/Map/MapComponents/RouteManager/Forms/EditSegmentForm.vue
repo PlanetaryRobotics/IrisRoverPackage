@@ -120,7 +120,7 @@ export default {
       let oldRoute = this.state.getPrevState().route;
       let oldSegment = this.state.getPrevState().segment;
       let oldIdx = this.state.getPrevState().segmentIndex;
-      GridEventBus.$emit('EDIT_SEG_FORM_UPDATE', {routeName: oldRoute.routeName, 
+      GridEventBus.$emit('EDIT_SEG_FORM_UPDATE', {route: oldRoute, 
                                                   segmentIndex: oldIdx, 
                                                   xCm: oldSegment.xCmCoordinate, 
                                                   yCm: oldSegment.yCmCoordinate, 
@@ -215,7 +215,7 @@ export default {
 
       this.errors[key] = "";
 
-      GridEventBus.$emit('EDIT_SEG_FORM_UPDATE', {routeName: this.route.routeName, segmentIndex: this.segmentIndex, xCm: this.formValues.XCOORD, yCm: this.formValues.YCOORD, roverAngle: this.formValues.ANGLE});
+      GridEventBus.$emit('EDIT_SEG_FORM_UPDATE', {route: this.route, segmentIndex: this.segmentIndex, xCm: this.formValues.XCOORD, yCm: this.formValues.YCOORD, roverAngle: this.formValues.ANGLE});
     
       this.buttons.planButton.enabled = true; // At this point, can technically save
     },
@@ -239,7 +239,7 @@ export default {
         ANGLE: this.segment.roverAngle
       }
       this.formValues = obj;
-      GridEventBus.$emit('EDIT_SEG_FORM_UPDATE', {routeName: this.route.routeName, segmentIndex: this.segmentIndex, xCm: this.formValues.XCOORD, yCm: this.formValues.YCOORD, roverAngle: this.formValues.roverAngle});
+      GridEventBus.$emit('EDIT_SEG_FORM_UPDATE', {route: this.route, segmentIndex: this.segmentIndex, xCm: this.formValues.XCOORD, yCm: this.formValues.YCOORD, roverAngle: this.formValues.roverAngle});
       this.buttons.planButton.enabled = false; // Reverting to original, so disable again
     },
     closeModal() {

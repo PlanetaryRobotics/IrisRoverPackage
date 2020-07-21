@@ -12,10 +12,10 @@
     <div class="toggle">
       <div class="toggle__label formLabel">Type</div>
       <div class="toggle__container">
-        <div class="toggle__button--left" :class="{selected: show.segmentForm}" @click.capture="toggleType('segment')">
+        <div ref="segmentToggle" class="toggle__button--left" :class="{selected: show.segmentForm}" @click.capture="toggleType('segment')">
           Segment
         </div>
-        <div class="toggle__button--right" :class="{selected: !show.segmentForm}" @click.capture="toggleType('circum')">
+        <div ref="circumnavToggle" class="toggle__button--right" :class="{selected: !show.segmentForm}" @click.capture="toggleType('circum')">
           Circumnav.
         </div>
       </div>
@@ -33,6 +33,7 @@
     <!-- CIRCUMNAV FORM -->
     <div v-if="!show.segmentForm">
       <AddCircumnavForm :route = "route" v-if="action === 'ADD'"/>
+      <EditCircumnavForm :route = "route" :circumnavigation = "segment" :segmentIndex = "segmentIndex" v-else />
     </div>
 
   </div>
@@ -44,14 +45,17 @@ import Route from "@/data_classes/Route.js";
 import AddSegmentForm from "@/components/Map/MapComponents/RouteManager/Forms/AddSegmentForm.vue";
 import EditSegmentForm from "@/components/Map/MapComponents/RouteManager/Forms/EditSegmentForm.vue";
 import AddCircumnavForm from "@/components/Map/MapComponents/RouteManager/Forms/AddCircumnavForm.vue";
+import EditCircumnavForm from "@/components/Map/MapComponents/RouteManager/Forms/EditCircumnavForm.vue";
 import WaypointSegment from "@/data_classes/WaypointSegment.js";
+import Circumnavigation from "@/data_classes/Circumnavigation.js";
 
 export default {
   name: "SegmentModal",
   components: {
     AddSegmentForm,
     EditSegmentForm,
-    AddCircumnavForm
+    AddCircumnavForm,
+    EditCircumnavForm
   },
   props: {
     route: Route,
@@ -66,7 +70,7 @@ export default {
         if (!value || value === "") { return true; }
 
         // When it is an EDIT modal
-        if (value instanceof WaypointSegment) {return true; }
+        if (value instanceof WaypointSegment || value instanceof Circumnavigation) {return true; }
         return false;
       }
     },
@@ -91,6 +95,12 @@ export default {
       },
     }
   },
+  created() {
+    // When editing circumnav, force it to the right form
+    if (this.action === "EDIT" && this.segment.constructor.name === "Circumnavigation") {
+      this.show.segmentForm = false;
+    }
+  },
   mounted() {
     this.setupModalPositioning();
   },
@@ -110,6 +120,9 @@ export default {
       GridEventBus.$emit('CLOSE_SEGMENT_MODAL');
     },
     toggleType(type) {
+      // Disable toggle if action is an edit 
+      if (this.action === "EDIT") {return; }
+
       if (type === 'segment' && !this.show.segmentForm ||
           type === 'circum' && this.show.segmentForm) {
         this.show.segmentForm = !this.show.segmentForm;
@@ -238,8 +251,6 @@ export default {
 .toggle {
   display: flex;
   flex-direction: row;
-  // align-items: center;
-  // justify-content: center;
 
   &__container {
     display: flex;

@@ -97,7 +97,7 @@ export default {
       this.show.commands = !this.show.commands;
     },
     openEditModal() {
-       GridEventBus.$emit("OPEN_SEGMENT_MODAL", {route: this.route, segment: this.segment, segmentIndex: this.index, action: "EDIT"});
+      GridEventBus.$emit("OPEN_SEGMENT_MODAL", {route: this.route, segment: this.segment, segmentIndex: this.index, action: "EDIT"});
     },
     toggleDeleteModal() {
       let html = `Are you sure you want to delete `;

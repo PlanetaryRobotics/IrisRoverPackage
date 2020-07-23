@@ -73,7 +73,8 @@ import { plotNewSegment,
          updateExistingSegment,
          calculateCmToPxCoords,
          calculatePxToCmCoords } from '@/components/Map/Utility/SegmentPlotter.js';
-import { plotNewCircumNav } from '@/components/Map/Utility/CircumnavPlotter.js';
+import { plotNewCircumnav,
+         replaceExistingCircumnav } from '@/components/Map/Utility/CircumnavPlotter.js';
 import WaypointSegment from "@/data_classes/WaypointSegment.js";
 
 export default {
@@ -175,8 +176,15 @@ export default {
 
     // Event listener when a new circumnav segment set needs to update
     GridEventBus.$on('ADD_CIRCUM_FORM_UPDATE', (data) => {
-      let circumnav = plotNewCircumNav(data, this.editingRoute, this.gridSquare.gridUnitCm, this.gridSquare.gridUnitPx);
+      let circumnav = plotNewCircumnav(data, this.editingRoute, this.origin.xPosPx, this.origin.yPosPx, this.gridSquare.gridUnitCm, this.gridSquare.gridUnitPx);
       this.$store.commit("setCurrCircumnav", circumnav);
+    })
+
+    // Event listener when an existing circumnav needs to be updated
+    GridEventBus.$on('EDIT_CIRCUM_FORM_UPDATE', (payload) => {
+      let {route, segmentIndex, data} = payload;
+      let circumnav = replaceExistingCircumnav(data, route, segmentIndex, this.origin.xPosPx, this.origin.yPosPx, this.gridSquare.gridUnitCm, this.gridSquare.gridUnitPx);
+      this.$store.commit("setEditingCircumnav", circumnav);
     })
   },
   watch: {

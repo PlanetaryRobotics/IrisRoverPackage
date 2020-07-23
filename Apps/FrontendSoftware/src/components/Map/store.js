@@ -60,13 +60,14 @@ export default {
           segmentIdx: null,
         },
 
-        // CREATING A CIRCUMNAV
+        // CIRCUMNAV
         isListeningForPOIClick: false,
         targetPOI: {
           POICard: null,
           positionPx: null,
         },
-        currCircumnav: null,
+        currCircumnav: null, // Temp circumnav when adding
+        editingCircumnav: null, // Temp cirumnav when editing
 
         // ROUTELIST
         routeList: new RouteList(),
@@ -174,6 +175,11 @@ export default {
       currCircumnav: state => {
         return state.currCircumnav;
       },
+
+      // --- Edit Circumnav related
+      editingCircumnav: state => {
+        return state.editingCircumnav;
+      },
     },
     mutations: {
       createEmptyRoute(state) {
@@ -235,6 +241,11 @@ export default {
 
       setCurrCircumnav(state, circumnav) {
         state.currCircumnav = circumnav;
+      },
+
+      // -- Editing circumnav
+      setEditingCircumnav(state, circumnav) {
+        state.editingCircumnav = circumnav;
       },
 
       // -- CLI testing (remove later)

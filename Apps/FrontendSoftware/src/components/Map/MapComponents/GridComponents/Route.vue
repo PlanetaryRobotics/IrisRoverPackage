@@ -167,7 +167,7 @@ export default {
           let endY = segment.yPxCoordinate;
           let angle = 0;
 
-          plotNewSegment(group, route.routeName, i, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
+          plotNewSegment(group, route.routeName+"-CircumSegment", i, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
         }
       }
     },
@@ -192,7 +192,7 @@ export default {
           // Get point in prev segment
           } else {
             lastCircle = d3.select("#"+route.routeName+"-Segment"+(currIdx-1))
-                          .select("circle");
+                           .select("circle");
           }
         // Get last point in current circumnav's 
         } else {
@@ -212,7 +212,7 @@ export default {
         let endY = segment.yPxCoordinate;
         let angle = 0;
 
-        plotNewSegment(group, route.routeName, i, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
+        plotNewSegment(group, route.routeName+"-CircumSegment", i, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
       }
     },
 

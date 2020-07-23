@@ -80,6 +80,7 @@ import GridEventBus from '@/components/Map/GridEventBus.js';
 import Route from "@/data_classes/Route.js";
 import Circumnavigation from "@/data_classes/Circumnavigation.js";
 import AtomicButton from '@/components/atomic/AtomicButton.vue';
+import { highlightSegment } from '@/components/Map/Utility/SegmentColorer.js';
 import { mapGetters } from 'vuex';
 
 export default {
@@ -94,6 +95,7 @@ export default {
   },
   data() {
     return {
+      highlight: "",
       POIName: "",
       formValues: { 
         STARTANG: "",
@@ -130,7 +132,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['targetPOI', 'currCircumnav']),
+    ...mapGetters(['targetPOI', 'editingCircumnav']),
   },
   watch: {
     // Triggered when a POI is clicked on the grid
@@ -140,34 +142,28 @@ export default {
         this.POIName = data.POICard.getName();
         this.formValues.TARGETPOI = data;
 
-        this.activateGridPreview();
+        this.updateGrid();
       }
     },
-    currCircumnav(newVal) {
-      if (newVal !== null) {
-        this.buttons.planButton.enabled = true;
-      } else {
-        this.buttons.planButton.enabled = false;
-      }
-    }
   },
   destroyed() {
-    // Remove circumnav from grid
-    this.$store.commit("setCurrCircumnav", null);
     // Disabling POI click listening
     this.$store.commit("setIsListeningForPOIClick", false);
     // Reset the target POI
     this.$store.commit("setTargetPOI", {POICard: null, positionPx: null});
-    // Reset editing route
-    this.$store.commit("setEditingRoute", null);
+    // Reset color
+    this.highlight.removeColor();
+    // Reset the editing circumnav
+    this.$store.commit("setEditingCircumnav", null);
   },
   mounted() {
     // Set the values to be displayed on form based on current circumnav
     this.setFormValues();
     // Make POIs listen for clicks 
     this.$store.commit("setIsListeningForPOIClick", true);
-    // Set editing route
-    this.$store.commit("setEditingRoute", this.route);
+    // Highlight segment
+    this.highlight = highlightSegment();
+    this.highlight.set(this.route, this.segmentIndex);
   },
   methods: {
     
@@ -182,7 +178,6 @@ export default {
       this.formValues.RADIUS = this.circumnavigation.radius;
       this.formValues.ISCLOCKWISE = this.circumnavigation.isClockwise;
       this.formValues.TARGETPOI = {POICard: this.circumnavigation.POICard, positionPx: this.circumnavigation.POIPosition};
-      console.log(this.formValues);
     },
 
     /**
@@ -194,7 +189,7 @@ export default {
       } else {
         this.formValues.ISCLOCKWISE = false;
       }
-      this.activateGridPreview();
+      this.updateGrid();
     },
     /**
      * Validates the values from input divs. 
@@ -214,7 +209,7 @@ export default {
 
       this.errors[key] = "";
 
-      this.activateGridPreview();
+      this.updateGrid();
     },
     validateIsNumber(value) {
       return !isNaN(parseFloat(value)) && isFinite(value);
@@ -223,10 +218,13 @@ export default {
      * Checks if the form is complete, and if so, emits the payload to the 
      * grid to preview the circumnavigation segments.
     */
-    activateGridPreview() {
+    updateGrid() {
       if (this.formIsComplete()) {
         //Emit to form updates to grid
-        GridEventBus.$emit('ADD_CIRCUM_FORM_UPDATE', this.formValues);
+        GridEventBus.$emit('EDIT_CIRCUM_FORM_UPDATE', {route: this.route, segmentIndex: this.segmentIndex, data: this.formValues});
+        
+        // Enable save
+        this.buttons.planButton.enabled = true;
       } 
     },
     /**
@@ -236,26 +234,34 @@ export default {
       let keys = Object.keys(this.formValues);
       for (let key of keys) {
         if (this.formValues[key] === null || this.formValues[key] === "") {
+          this.buttons.planButton.enabled = false;
           return false;
         }
       }
       return true;
     },
     saveCircumnav() {
-      this.$store.commit("saveCircumnav", this.route);
+      // Get the new circum created from grid
+      let newCircum = this.editingCircumnav;
+
+      // Set the orignal circumnavigation obj with updated vals
+      this.circumnavigation.startAngle = newCircum.startAngle;
+      this.circumnavigation.endAngle = newCircum.endAngle;
+      this.circumnavigation.numPhotos = newCircum.numPhotos;
+      this.circumnavigation.radius = newCircum.radius;
+      this.circumnavigation.isClockwise = newCircum.isClockwise;
+      this.circumnavigation.POICard = newCircum.POICard;
+      this.circumnavigation.POIPosition = newCircum.POIPosition;
+      this.circumnavigation.waypoints = newCircum.waypoints;
+
       this.closeModal();
     },
     cancelCircumnav() {
-      this.$store.commit("setCurrCircumnav", null);
-      this.$store.commit("setTargetPOI", {POICard: null, positionPx: null});
-      this.POIName = "Click POI on grid";
+      // Populate form with original circumnav
+      this.setFormValues();
 
-      let keys = Object.keys(this.formValues);
-      for (let k of keys) {
-        this.formValues[k] = "";
-      }
-
-      this.formValues.ISCLOCKWISE = true;
+      // Plot the original version
+      GridEventBus.$emit('EDIT_CIRCUM_FORM_UPDATE', {route: this.route, segmentIndex: this.segmentIndex, data: this.formValues});
     },
     closeModal() {
       GridEventBus.$emit('CLOSE_SEGMENT_MODAL');

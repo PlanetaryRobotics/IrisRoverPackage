@@ -17,22 +17,39 @@ export function highlightSegment() {
   return {
     set: function(route, segmentIdx) {
       if (prevRoute !== undefined) {
-        this.changeColor(prevRoute.routeName, prevIdx, prevColor);
+        this.changeColor(prevRoute, prevIdx, prevColor);
       }
-      this.changeColor(route.routeName, segmentIdx, COLORS.RED);
+      this.changeColor(route, segmentIdx, COLORS.RED);
       prevRoute = route;
       prevIdx = segmentIdx;
     },
-    changeColor: function(name, index, color) {  
-      let container = d3.select("#"+name + "-Segment"+(index));
-      prevColor = container.select("circle").node().style.fill;
+    changeColor: function(route, index, color) {  
+      let container = d3.select("#"+route.routeName + "-Segment"+(index));
 
-      container.select("circle").style("fill", color);
-      container.select("line").style("stroke", color);
+      // If waypoint
+      if (route.segmentList[index].constructor.name === "WaypointSegment") {
+        prevColor = container.select("circle").node().style.fill;
+
+        container.select("circle").style("fill", color);
+        container.select("line").style("stroke", color);
+
+      // If circumnavigation
+      } else {
+        let circumnavigation = route.segmentList[index];
+        prevColor = container.select("#"+route.routeName+"-CircumSegment0")
+                             .select("circle").node().style.fill;
+        
+        for (let i = 0; i < circumnavigation.waypoints.length; i++) {
+          let seg = container.select("#"+route.routeName+"-CircumSegment" + i);
+
+          seg.select("circle").style("fill", color);
+          seg.select("line").style("stroke", color);
+        }
+      }
     },
     removeColor: function() {
       if (prevRoute !== undefined) {
-        this.changeColor(prevRoute.routeName, prevIdx, prevColor);
+        this.changeColor(prevRoute, prevIdx, prevColor);
       }
     }
   }

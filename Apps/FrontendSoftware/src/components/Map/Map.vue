@@ -1,6 +1,6 @@
 <template>
     <div class="noSelect">
-      <SegmentModal v-if="show.segmentModal" :route="this.modalRoute" :segment="this.modalSegment" :segmentIndex="this.modalSegmentIndex" :action="this.modalAction"/>
+      <SegmentModal :key="modalRerender" v-if="show.segmentModal" :route="this.modalRoute" :segment="this.modalSegment" :segmentIndex="this.modalSegmentIndex" :action="this.modalAction"/>
       <div class="map-container">
         <div class="map-body">
           <!-- LEFT NAVIGATION --> 
@@ -53,6 +53,7 @@ export default {
       modalSegment: null,
       modalSegmentIndex: null,
       modalAction: null,
+      modalRerender: 0,
     }
   },
   computed: {
@@ -66,6 +67,13 @@ export default {
     });
 
     GridEventBus.$on('OPEN_SEGMENT_MODAL', (data) => {
+      // Force modal to re-render if it is already open
+      // (updated data may change the type of form that is rendered, so 
+      // existing one has to be forcibly overriden)
+      if (this.show.segmentModal) {
+        this.modalRerender++;
+      }
+
       let {route, segment, segmentIndex, action} = data;
 
       this.modalRoute = route;

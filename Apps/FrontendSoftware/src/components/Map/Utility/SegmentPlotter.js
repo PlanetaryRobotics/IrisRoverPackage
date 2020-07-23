@@ -252,7 +252,7 @@ export function updateExistingSegment(route, segmentIdx, coords, roverAngle, ori
   let container = d3.select("#"+route.routeName+"-Segment"+(segmentIdx));
 
   // Update the start of next seg
-  if (!d3.select("#"+route.routeName+"Line"+(segmentIdx+1)).empty()) {
+  if (!d3.select("#"+route.routeName+"-Segment"+(segmentIdx+1)).empty()) {
     if (route.segmentList[segmentIdx+1].constructor.name === "Circumnavigation") {
       d3.select("#" + route.routeName+"-Segment"+(segmentIdx+1))
         .select("#" + route.routeName+"-CircumSegment0")

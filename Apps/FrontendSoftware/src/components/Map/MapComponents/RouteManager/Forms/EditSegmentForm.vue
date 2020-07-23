@@ -58,7 +58,6 @@ import Route from "@/data_classes/Route.js";
 import WaypointSegment from "@/data_classes/WaypointSegment.js";
 import AtomicButton from '@/components/atomic/AtomicButton.vue';
 import { highlightSegment } from '@/components/Map/Utility/SegmentColorer.js';
-// import { mapGetters } from 'vuex';
 
 export default {
   name: "EditSegmentForm",
@@ -73,7 +72,6 @@ export default {
   data() {
     return {
       highlight: "",
-      originalSegment: "",
       formValues: { 
         XCOORD: "",
         YCOORD: "",
@@ -110,30 +108,6 @@ export default {
       return "SEG-" + this.segmentIndex;
     }
   },
-  watch: {
-    // This happens when another edit modal is opened while the current is opened
-    segment() {
-      // Set the new state
-      this.state.setNewState(this.route, this.segment, this.segmentIndex);
-
-      // Make sure to revert the previous since was not saved
-      let oldRoute = this.state.getPrevState().route;
-      let oldSegment = this.state.getPrevState().segment;
-      let oldIdx = this.state.getPrevState().segmentIndex;
-      GridEventBus.$emit('EDIT_SEG_FORM_UPDATE', {route: oldRoute, 
-                                                  segmentIndex: oldIdx, 
-                                                  xCm: oldSegment.xCmCoordinate, 
-                                                  yCm: oldSegment.yCmCoordinate, 
-                                                  roverAngle: oldSegment.roverAngle});
-      
-      // Set the values to be displayed on form based on current new segment
-      this.setFormValues();
-      // Highlight it
-      this.highlight.set(this.route, this.segmentIndex);
-      // Update store so grid knows which seg we are editing
-      this.$store.commit("setEditingSegmentInfo", {route: this.route, segmentIdx: this.segmentIndex});
-    }
-  },
   destroyed() { 
     // Make grid stop listening for clicks
     this.$store.commit("setIsListeningForEditWaypoint", false);
@@ -153,10 +127,6 @@ export default {
     this.$store.commit("setIsListeningForEditWaypoint", true);
     this.$store.commit("setEditingSegmentInfo", {route: this.route, segmentIdx: this.segmentIndex});
 
-    // Init a state tracker (in event user clicks to edit another seg while modal is open)
-    let method = this.stateTracker;
-    this.state = new method({route: this.route, segment: this.segment, segmentIndex: this.segmentIndex});
-
     // Listens for when there is grid clicked
     GridEventBus.$on('WAYPOINT_GRID_UPDATE', (data) => {
       this.updateFormValues(data.xCm, data.yCm);
@@ -164,31 +134,10 @@ export default {
     })
   },
   methods: {
-
-    /**
-     * Helper function obj used to track the current segment being edited, and any previous segment. 
-     * 
-     * @param {object} state in format {route: route, segment: segment, segmentIndex: index}
-     */
-    stateTracker(state) {
-      let prevState = null;
-      let currState = state;
-      return {
-        setNewState: function(route, segment, idx) {
-          prevState = currState;
-          currState = {route: route, segment: segment, segmentIndex: idx};
-        },
-        getPrevState: function() {
-          return prevState;
-        }
-      }
-    },
-
     /**
      * Sets the form values based on what is stored in the segment object.
      */
     setFormValues() {
-      this.originalSegment = this.segment;
       this.formValues.XCOORD = Math.round(this.segment.xCmCoordinate);
       this.formValues.YCOORD = Math.round(this.segment.yCmCoordinate);
       this.formValues.ANGLE = this.segment.roverAngle;

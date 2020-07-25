@@ -20,7 +20,7 @@
 
       <!-- BUTTONS -->
       <div class="buttonContainer">
-        <button @click='closeModal' class="button__cancel">CANCEL</button>
+        <button @click='executeCancel' class="button__cancel">CANCEL</button>
         <button @click='executeDelete' class="button__delete">DELETE</button>
       </div>
     </div>
@@ -37,12 +37,15 @@ export default {
     cancelCallback: Function
   },
   methods: {
+    executeCancel() {
+      this.cancelCallback();
+      this.closeModal();
+    },
     executeDelete() {
       this.deleteCallback();
       this.closeModal();
     },
     closeModal() {
-      this.cancelCallback();
       this.$emit('closeModal', 'modalDelete');
     },
   }

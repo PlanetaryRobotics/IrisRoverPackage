@@ -88,8 +88,6 @@ export default {
         return state.commandData;
       },
 
-      //(() => state.Log.list)()
-      // localizationData: state => (()=>state.localizationData.getList())(),
       localizationData: state => {
         let newList = state.localizationData.getList();
 

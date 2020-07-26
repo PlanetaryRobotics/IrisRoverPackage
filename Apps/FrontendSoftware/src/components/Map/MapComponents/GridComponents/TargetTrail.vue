@@ -52,7 +52,23 @@ export default {
   methods: {
     setTravelledSegmentColor() {
       this.currTargetWaypointData.segment.setAsVisited();
-      let container = d3.select("#"+this.currTargetWaypointData.route.routeName + "-Segment"+(this.currTargetWaypointData.index));
+
+      let container;
+
+      // If was a circumnav's WP
+      if (this.currTargetWaypointData.circumnavigation.index !== null) {
+        let routeName = this.currTargetWaypointData.route.routeName;
+        let segIndex = this.currTargetWaypointData.circumnavigation.index;
+        let circumIndex = this.currTargetWaypointData.index;
+
+        container = d3.select("#"+routeName + "-Segment"+ segIndex)
+                          .select("#"+routeName + "-CircumSegment" + circumIndex);
+
+      // Else was a regular WP
+      } else {
+        container = d3.select("#"+this.currTargetWaypointData.route.routeName + "-Segment"+(this.currTargetWaypointData.index));
+      }
+      
       container.select("circle").style("fill", "#21DF9A");
       container.select("line").style("stroke", "#21DF9A");
     },

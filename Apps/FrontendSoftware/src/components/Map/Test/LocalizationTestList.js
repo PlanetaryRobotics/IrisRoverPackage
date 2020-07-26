@@ -1,6 +1,8 @@
-import data from "@/components/Map/Test/TestData/TestFrames.js";
-//import data from "@/components/Map/Test/TestData/TestExistingLookup.js";
-//const data = null;
+// Tests:
+// import data from "@/components/Map/Test/TestData/TestFrames.js";
+// import data from "@/components/Map/Test/TestData/TestExistingLookup.js";
+
+const data = null;
 
 class LocalizationTestList {
   constructor() {
@@ -17,6 +19,7 @@ class LocalizationTestList {
       let nextData = data[this._currIdx];
 
       if (!this.replaceInList(nextData)) {
+        // Push new data if lookupID doesn't exist in array
         this._list.push(nextData);
       }
       this._currIdx++;
@@ -25,8 +28,11 @@ class LocalizationTestList {
     }.bind(this), this._tick);
   }
 
+  // Replaces the obj if the lookupID exists
   replaceInList(nextData) {
     let idx = this._list.findIndex(elem => elem.data.lookupID === nextData.data.lookupID);
+    
+    // If index already exists, replace it with new obj
     if (idx !== -1) {
       this._list[idx] = nextData;
       return true;

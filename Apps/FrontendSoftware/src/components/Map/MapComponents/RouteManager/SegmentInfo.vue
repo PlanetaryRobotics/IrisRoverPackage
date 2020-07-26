@@ -68,10 +68,18 @@ import Errors from '@/data_classes/CommandErrors.js'
 export default {
   name: "SegmentInfo",
   props: {
-    segment: WaypointSegment,
     route: Route,
+    segment: WaypointSegment,
     index: Number,
-    POIName: String
+    POIName: String,
+    circumnavigation: {
+      validator: function (value) {
+        if (value === null) {return true}
+        if (value.constructor.name === "Circumnavigation") {return true}
+        return false;
+      }
+    },
+    circumnavigationIndex: Number
   },
   data() {
     return {
@@ -141,7 +149,11 @@ export default {
         waypointData: {
           segment: that.segment,
           route: that.route,
-          index: that.index
+          index: that.index,
+          circumnavigation: {
+            data: that.circumnavigation,
+            index: that.circumnavigationIndex
+          }
         }
       });
       console.log("---SEND TO CLI---");

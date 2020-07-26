@@ -64,7 +64,7 @@
         <div class="segmentList__segment" v-for="(segment, index) in route.segmentList" :key="index">
           <!-- IF WAYPOINT -->
           <div v-if="segment.constructor.name === 'WaypointSegment'">
-            <SegmentInfo :segment = "segment" :route = "route" :index = "index" :POIName="null"/>
+            <SegmentInfo :segment = "segment" :route = "route" :index = "index" :POIName="null" :circumnavigation="null" :circumnavigationIndex="null"/>
           </div>
           <!-- IF CIRCUMNAV -->
           <div v-else>

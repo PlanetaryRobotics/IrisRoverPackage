@@ -28,8 +28,8 @@
     </div>
     <!-- CIRCUMNAV SEGMENTS -->
     <div class="circumnav__segments">
-      <SegmentInfo v-for="(circumnavSeg, index) in circumnavigation.waypoints" :segment = "circumnavSeg" :route = "route" :index = "index" :POIName="circumnavigation.POICard.getName()" :key = "index"/> 
-    </div>
+      <SegmentInfo v-for="(circumnavSeg, wpIndex) in circumnavigation.waypoints" :segment = "circumnavSeg" :route = "route" :index = "wpIndex" :POIName="circumnavigation.POICard.getName()" :key = "wpIndex" :circumnavigation="circumnavigation" :circumnavigationIndex="index"/> 
+    </div> 
     <!-- CIRCUMNAV END ROW -->
     <div class="circumnav">
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">

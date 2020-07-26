@@ -92,6 +92,12 @@ export default {
 }
 @font-face {
   font-family: 'Barlow';
+  src: url('./styles/Barlow/Barlow-Medium.ttf')  format('truetype');
+  font-weight: medium;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Barlow';
   src: url('./styles/Barlow/Barlow-SemiBold.ttf')  format('truetype');
   font-weight: bold;
   font-style: normal;

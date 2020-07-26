@@ -8,7 +8,7 @@ TODO:
 
 Author: Connor W. Colombo, CMU
 Created: 1/31/2019
-Last Updated: 06/05/2020, Colombo
+Last Updated: 07/23/2020, Colombo
 -->
 <template>
   <div class="command-field">
@@ -376,7 +376,7 @@ export default {
     },
     // Changes the Argument Pointer in the Direction Given by the Sign of dir
     changeArgument(dir){
-      if(this.validateArgument(this.focusIdx)){
+      if(this.commandSelected && this.validateArgument(this.focusIdx)){
         // Only change the focus if this argument is valid. If it's not,
         // #validateArgument generates a warning.
         this.clearInputWarning(); // Immediately clear any existing input warnings

@@ -1,5 +1,23 @@
+<!--
+Defines the Layout and Styling of the Home (main) Screen of the Iris Terminal.
+
+Author: Connor W. Colombo, CMU
+Created: 1/2019
+Last Update: 07/23/2020, Colombo
+-->
+
 <template>
-  <div class="home">
+  <div class="main">
+    <CombinedScreens>
+      <CLI TabName="Command Line" ref="cli" />
+      <div TabName="Telemetry" id="Telemetry" class="box"> Telemetry </div>
+      <div TabName="Error Analysis" id="ErrorAnalysis" class="box"> Error Analysis </div>
+      <div TabName="Map" id="Map" class="box"> Map </div>
+      <div TabName="Image Viewer" id="ImageViewer" class="box"> Image Viewer </div>
+    </CombinedScreens>
+  </div>
+
+  <!--<div class="home">
     <ComponentContainer
       class='CLI'
       :header="headers.CLI"
@@ -9,7 +27,6 @@
         /*{ text:'Auto Speed Run by Command', callback: speedRun }*/
       ]"
     >
-      <!-- Locations Relative to __static Directory, Found in /public -->
       <CLI ref="cli" />
     </ComponentContainer>
     <ComponentContainer
@@ -23,7 +40,7 @@
       <ImageViewer />
     </ComponentContainer>
 
-  </div>
+  </div>-->
 </template>
 
 <script>
@@ -36,11 +53,14 @@ import CLI from '@/components/CLI/CLI.vue'
 import ImageViewer from '@/components/ImageViewer/ImageViewer.vue'
 import ComponentContainer from '@/components/Interface/ComponentContainer.vue'
 
+import CombinedScreens from '@/components/Interface/CombinedScreens.vue'
+
 import DB from '@/DBInterface/DBInterface.js'
 
 export default {
   name: 'home',
   components: {
+    CombinedScreens,
     ComponentContainer,
     CLI,
     ImageViewer
@@ -173,27 +193,21 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import '@/styles/_functional.scss';
-  .home{
+  @import '@/styles/_colors.scss';
+  @import '@/styles/_functional.scss';
+
+  .main{
     height: 100vh;
     width: 100%;
-    display: grid;
-    grid-gap: .5rem;
-    grid-template-columns: 50rem 1fr;
-    grid-template-rows: 1fr;
     background-color: $color-near-black;
-    padding: .5rem;
   }
-  .CLI {
-    grid-column: 1 / 2;
-    grid-row: 1 / 2;
-    border-radius: 1rem;
-    overflow: hidden;
-  }
-  .IMG {
-    grid-column: 2 / 3;
-    grid-row: 1 / 2;
-    border-radius: 1rem;
-    overflow: hidden;
+
+
+  .box {
+    color: $color-near-white;
+    background: $color-primary;
+    padding: 0.3em 0.5em;
+    width: 100%;
+    height: 100%;
   }
 </style>

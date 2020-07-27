@@ -213,7 +213,7 @@ export default {
           break;
           case 3:
             // If new packet is supposed to come after this one, move it so that it comes after all invisible packets too.
-            this.onDropAddBefore(event, maxInvisiblePos+1);
+            this.onDropAddBefore(event, Math.max(maxInvisiblePos, zonePacket.position)+1);
           break;
         }
       } 

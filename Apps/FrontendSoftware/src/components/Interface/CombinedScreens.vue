@@ -21,71 +21,91 @@ reordering packets.
 
 Author: Connor W. Colombo, CMU
 Created: 07/12/2020
-Last Update: 07/25/2020, Colombo
+Last Update: 07/27/2020, Colombo
 -->
 
 <template>
   <div class="combined-screens">
-    <div class="header"
-      @drop='log("TODO: ADD DROP BEHAVIOUR TO HEADER")'
-      @dragover.prevent
-      @dragenter.prevent
-    >
-      <TabHeader
-        v-for="packet in orderedNodePackets" :key="packet.id"
-        :name="packet.name" 
-        :active="Boolean(packet.visible)" :closeable="true" 
-        :onClick="() => { packet.visible = true; log(`${packet.name} Clicked`); }"
-        :onClose="() => { packet.visible = false; log(`${packet.name} Closed`); }"
-        draggable="true"
-        @dragstart.native='startDrag($event, packet)'
-        @dragend.native='endDrag($event, packet)'
-      />
+    <!-- DEFAULT HEADER (for when no tabs are selected): -->
+    <div class="scrollable-header-container" v-if="orderedDisplayNodes.length===0">
+      <div class="header">
+        <TabHeader
+          class = "tab"
+          v-for="tabPacket in orderedNodePackets" :key="tabPacket.id"
+          :name="tabPacket.name" 
+          :active="Boolean(tabPacket.visible)" :closeable="true" 
+          :onClick="() => { tabPacket.visible = true; }"
+          :onClose="() => { tabPacket.visible = false; }"
+          draggable="true"
+          @dragstart.native='startDrag($event, tabPacket)'
+          @dragend.native='endDrag($event, tabPacket)'
+        />
+      </div>
     </div>
+    
+    <!-- MAIN GRID: -->
     <div class="grid-region">
-
-      <div class="grid-hover-overlay" v-show="showHoverRegion">
-        <div
-          class="grid-hover-region--container"
-          v-for="packet in orderedDisplayNodes" :key="packet.id"
+      <div class="grid-row">
+        <div 
+          class="grid-column"
+          v-for="(packet, columnIdx) in orderedDisplayNodes" :key="packet.id"
         >
-          <div class="grid-hover-region--indicator" />
-          <div class="grid-hover-region">
-            <div
-              v-for="idx in 3"
-              :key="idx"
-              class="grid-hover-region--trigger"
-              @dragover.prevent
-              @dragenter.prevent="onDragEnter($event, idx)"
-              @dragleave="onDragLeave($event)"
-              @drop="onDropHandler($event, packet, idx);"
-            />
+          <!-- CONTAINED HEADER: -->
+          <div class="scrollable-header-container">
+            <div class="header">
+              <TabHeader
+                class = "tab"
+                v-for="tabPacket in columnTabs(columnIdx)" :key="tabPacket.id"
+                :name="tabPacket.name" 
+                :active="Boolean(tabPacket.visible)" :closeable="true" 
+                :onClick="() => { packet.visible = false; tabPacket.visible = true; }"
+                :onClose="() => { tabPacket.visible = false; }"
+                draggable="true"
+                @dragstart.native='startDrag($event, tabPacket)'
+                @dragend.native='endDrag($event, tabPacket)'
+              />
+            </div>
           </div>
-        </div>
-      </div>
-      
-      <div class="main-grid">
-        <div class="grid-node-container" v-for="packet in orderedDisplayNodes" :key="packet.id">
-          <VNodeRenderer :node="packet.node" />
-        </div>
-      </div>
 
-      <div class="egg-container" v-show="showEgg">
-        <transition name="egg-bg-intro">
-          <div v-if="showEgg" class="egg-space" />
-        </transition>
-        <transition name="egg-shell-intro">
-          <div v-if="showEgg" class="egg-shell" v-html="eggShellSVG" />
-        </transition>
-        <transition name="egg-albumen-intro">
-          <div v-if="showEgg" class="egg-albumen" v-html="eggAlbumenSVG" />
-        </transition>
-        <transition name="egg-yolk-intro">
-          <div v-if="showEgg" class="egg-yolk" v-html="eggYolkSVG" />
-        </transition>
-      </div>
+          <!-- COLUMN HOVER REGIONS: -->
+          <div class="grid-hover-region--container" v-show="showHoverRegion">
+            <div class="grid-hover-region--indicator" />
+            <div class="grid-hover-region">
+              <div
+                v-for="idx in 3"
+                :key="idx"
+                class="grid-hover-region--trigger"
+                @dragover.prevent
+                @dragenter.prevent="onDragEnter($event, idx)"
+                @dragleave="onDragLeave($event)"
+                @drop="onDropHandler($event, packet, idx, columnIdx)"
+              />
+            </div>
+          </div>
+          
+          <!-- VNODE CONTENT: -->
+          <div class="grid-node-container">
+            <VNodeRenderer :node="packet.node" />
+          </div>
+        </div> <!--grid column-->
+      </div> <!--grid row-->
+    </div> <!--grid region-->
+
+    <div class="egg-container" v-show="showEgg">
+      <transition name="egg-bg-intro">
+        <div v-if="showEgg" class="egg-space" />
+      </transition>
+      <transition name="egg-shell-intro">
+        <div v-if="showEgg" class="egg-shell" v-html="eggShellSVG" />
+      </transition>
+      <transition name="egg-albumen-intro">
+        <div v-if="showEgg" class="egg-albumen" v-html="eggAlbumenSVG" />
+      </transition>
+      <transition name="egg-yolk-intro">
+        <div v-if="showEgg" class="egg-yolk" v-html="eggYolkSVG" />
+      </transition>
     </div>
-  </div>
+  </div> <!--combined screen-->
 </template>
 
 <script>
@@ -115,21 +135,18 @@ export default {
     }
   },
   mounted() {
-    console.log(this.$slots);
-    console.log(this.$slots.default);
-
-    this.eggShellSVG = fs.readFileSync(path.join(__static,'./egg/egg_shell.svg'), 'utf8');
-    this.eggAlbumenSVG = fs.readFileSync(path.join(__static,'./egg/egg_albumen.svg'), 'utf8');
-    this.eggYolkSVG = fs.readFileSync(path.join(__static,'./egg/egg_yolk.svg'), 'utf8');
-
     // Load Nodes from Default Slot and Create Node Packets:
     this.nodePackets = this.$slots.default.map( (x,idx) => ({ 
       id: idx, // Fixed unique identifier
       node: x, // Core VNode representing the contained DOM object
       name: x.data.attrs.TabName, // Name shown on the tab
       position: idx, // Mutible (indicates ordered position of tab)
-      visible: 0 // Whether this packet should be rendered
+      visible: idx===0 // Whether this packet should be rendered (make only first visible by default)
     }));
+
+    this.eggShellSVG = fs.readFileSync(path.join(__static,'./egg/egg_shell.svg'), 'utf8');
+    this.eggAlbumenSVG = fs.readFileSync(path.join(__static,'./egg/egg_albumen.svg'), 'utf8');
+    this.eggYolkSVG = fs.readFileSync(path.join(__static,'./egg/egg_yolk.svg'), 'utf8');
   },
   computed: {
     // Array of Node Packets in the Appropriate Order (sorted by position property)
@@ -147,6 +164,17 @@ export default {
     }
   },
   methods: {
+    // Returns the list of tabs which should be displayed above the column with the given index.
+    // For the first column, it will be an array of all invisible tabs + the first visible tab; 
+    // for the Nth column, it will just be the Nth visible tab (inside an array).
+    columnTabs(colIdx){
+      if(colIdx === 0){
+        return this.orderedNodePackets.filter( p => !p.visible || p.id===this.orderedDisplayNodes[0].id );
+      } else {
+        return [this.orderedDisplayNodes[colIdx]];
+      }
+    },
+
     // When TabHeader is dragged, allow its data packet to be transferred through the move (into the drop zone)
     startDrag(event, packet){
       this.showHoverRegion = true;
@@ -159,21 +187,49 @@ export default {
       this.showHoverRegion = false;
     },
 
-    // Determines the appropriate onDrop behaviours based on the given index of the drop trigger (1=left, 2=center, 3=right)
-    onDropHandler(event, zonePacket, idx){
-      switch(idx){
-        case 1:
-          console.log('left');
-          this.onDropAddBefore(event, zonePacket.position);
-        break;
-        case 2:
-          console.log('center');
-          this.onDropSwap(event, zonePacket);
-        break;
-        case 3:
-          console.log('right');
-          this.onDropAddBefore(event, zonePacket.position+1);
-        break;
+    /**
+     * Determines the appropriate onDrop behaviours based on the given index of the drop trigger (1=left, 2=center, 3=right).
+     * 
+     * If the dropped columnIdx is 0, special behaviour will take place to ensure that all invisible packets come before the 
+     * second visible packet.
+     * columnIdx
+     */
+    onDropHandler(event, zonePacket, idx, columnIdx){
+      // Special case for first column in a row:
+      if(columnIdx === 0){
+        // Get the highest position of all invisible packets:
+        const maxInvisiblePos = this.orderedNodePackets
+                                    .filter( p => !p.visible )
+                                    .reduce( (maxPos, p) => p.position > maxPos ? p.position : maxPos, -1 );
+        switch(idx){
+          case 1:
+            // Correctly position new packet:
+            this.onDropAddBefore(event, zonePacket.position);
+            // The reposition old packet (in drop zone) to after the invisibles:
+            this.insertPacketBefore(zonePacket, maxInvisiblePos+1);
+          break;
+          case 2:
+            this.onDropReplace(event, zonePacket);
+          break;
+          case 3:
+            // If new packet is supposed to come after this one, move it so that it comes after all invisible packets too.
+            this.onDropAddBefore(event, maxInvisiblePos+1);
+          break;
+        }
+      } 
+      // Standard Behaviour:
+      else{
+        switch(idx){
+          case 1:
+            this.onDropAddBefore(event, zonePacket.position);
+          break;
+          case 2:
+            this.onDropReplace(event, zonePacket);
+          break;
+          case 3:
+            this.onDropAddBefore(event, zonePacket.position+1);
+          break;
+        }
       }
     },
 
@@ -186,13 +242,10 @@ export default {
       return { packet, id };
     },
 
-    // When TabHeader is dropped on a drop zone, receive its associated data packet and swap the packet with packet at the position of the drop zone (given by packet which is (currently) beneath the drop zone)
-    onDropSwap(event, zonePacket){
+    // When TabHeader is dropped on a drop zone, receive its associated data packet and replaces packet the position of the drop zone with the packet being dragged (referenced by id in drag event's dataTransfer).
+    onDropReplace(event, zonePacket){
       const { packet } = this.onDropHelper(event);
-      if(zonePacket.id !== packet.id){
-        zonePacket.visible = false;
-      }
-      this.setPacketPosition(packet, zonePacket.position);
+      this.replacePacketWith(zonePacket, packet);
     },
     // When TabHeader is dropped on a drop zone, receive its associated data packet and add the packet before the given position
     onDropAddBefore(event, rightPosition){
@@ -260,6 +313,19 @@ export default {
     },
 
     /**
+     * Effectively replaces `packetOut` with `packetIn` by inserting 
+     * `packetIn` in the position of `packetOut` and making `packetOut`
+     * invisible while making `packetIn` visible;
+     */
+    replacePacketWith(packetOut, packetIn){
+      if(packetIn.id !== packetOut.id){ // Don't bother doing anything if packets are the same.
+        this.setPacketPosition(packetIn, packetOut.position);
+        packetIn.visible = true;
+        packetOut.visible = false;
+      }
+    },
+
+    /**
      * Helper function to set the given packet's position to the given position while ensuring that:
      *  - No other packets occupy that position.
      *  - All packets continue to have continuous position numbers.
@@ -298,6 +364,16 @@ export default {
       targPacket.position = newPos;
     },
 
+    /**
+     * Helper function to set the given packet's position to the given 
+     * position while preserving the intended order by ensuring that the
+     * packet comes right before the given index.
+     * Subtly but significantly distinct from #setPacketPosition.
+     *  - No other packets occupy that position.
+     *  - All packets continue to have continuous position numbers.
+     *  - Every packet position in [0,Npackets) is occupied.
+     *  - Only packet positions in [0,Npackets) are occupied.
+     */
     insertPacketBefore(targPacket, rightPos){
       // Ensure right position satisfies traditional array boundaries:
       if(rightPos > this.nodePackets.length){
@@ -347,11 +423,10 @@ export default {
 <style scoped lang="scss">
 @import '@/styles/_colors.scss';
 @import '@/styles/_functional.scss';
+@import '@/styles/_dimensions.scss';
 
   $min-column-width: 10vw; // Minimum Column Width in the Cosmos Main Grid
   $min-row-height: 40vh; // Minimum Column Width in the Cosmos Main Grid
-
-  $standard-padding: .5rem;
 
   .combined-screens {
     height: 100%;
@@ -362,57 +437,100 @@ export default {
     grid-template-rows: min-content minmax(2*$min-row-height, 1fr);
   }
 
-  .header {
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-end;
+  .scrollable-header-container {
+    // Custom Horizontal Scroll Behaviour (make thumb appear over usual divider):
+    // (looks like normal border when unscrollable)
+    $bg-grey: $color-background;
+    $track-grey: $color-grey4;
 
-    padding-top: $standard-padding;
-    
-    border-bottom: $standard-padding solid $color-grey4;
+    background: $track-grey; // use same color bg as bar to cover up small gap between bar and content
+    @include scrolling-aesthetics();
+    overflow-x: scroll; // Force scrollbar to be permanently visible (thumb automatically hidden when unscrollable)
+
+    &::-webkit-scrollbar {
+      height: $std-padding;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: $track-grey;
+    }
+
+    & > .header {
+      // Fix background to what it should be behind tabs (to cover up track-grey bg in outer scrollable region)
+      min-width: max-content;
+      background: $bg-grey;
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-end;
+
+      padding-top: $std-padding;
+
+      & > .tab {
+        flex-shrink: 0;
+        margin-right: $std-thin-margin;
+      }
+    }
   }
 
   .grid-region {
+    grid-column: 1;
+    grid-row: 2 / span 2;
+      
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: repeat(auto-fit, minmax($min-row-height, 1fr));
 
     height: 100%;
 
-    @mixin main-grid-structure-template(){
+    @mixin grid-row-structure-template(){
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax($min-column-width, 1fr));
       grid-template-rows: repeat(auto-fit, minmax($min-row-height, 1fr));
 
-      grid-gap: $standard-padding;
-      padding: $standard-padding;
+      grid-gap: $std-padding;
     }
 
-    & > .grid-hover-overlay {
-      grid-column: 1;
-      grid-row: 1 / span 2;
-      
-      @include main-grid-structure-template();
-    }
-
-    & > .main-grid {
+    & > .grid-row {
       grid-column: 1;
       grid-row: 1 / span 2;
 
-      @include main-grid-structure-template();
+      @include grid-row-structure-template();
 
       background-color: $color-background;
 
       height: 100%;
 
-      & > .grid-node-container {
-        position: relative;
-        overflow: hidden;
+      & > .grid-column {
+        height: 100%;
+        width: 100%;
+
+        display: grid;
+        grid-template-columns: minmax($min-column-width, 1fr);
+        grid-template-rows: min-content minmax($min-row-height, 1fr);
+
+        & > .scrollable-header-container { // Only add the second border to the containerized header
+          border-bottom: {
+            style: solid;
+            color: $color-background;
+            width: $std-spacing;
+          };
+        }
       }
     }
   }
 
+  .grid-node-container {
+    grid-column: 1;
+    grid-row: 2;
+
+    position: relative;
+    overflow: hidden;
+  }
+
   .grid-hover-region--container {
+    grid-column: 1;
+    grid-row: 2;
+
     background: transparent;
     height: 100%;
     width: 100%;
@@ -524,7 +642,7 @@ export default {
 
     &-container {
       grid-column: 1;
-      grid-row: 1 / span 2;
+      grid-row: 2 / span 2;
       
       width: 100%;
       height: 100%;

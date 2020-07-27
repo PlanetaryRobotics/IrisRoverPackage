@@ -1,0 +1,19 @@
+/*
+ * SCSS partial to standardize dimensions (radii, etc), spacing, and the box-model across components.
+ *
+ * Author: Connor W. Colombo, CMU
+ * Created: 7/26/2019
+ * Last Updated: 7/26/2020, Colombo
+ */
+
+ // Box Model:
+ $std-spacing: 0.5rem;
+ $std-padding: $std-spacing;
+ $std-big-padding: 1.25rem; // used for deep insets
+ $std-margin: $std-spacing;
+ $std-thin-margin: 0.1rem; // used for paper-thin separation between components
+
+
+ // Styling:
+ $std-radius: 0.5rem;
+ $std-gutter-radius: $std-spacing / 2; // Allows the diameter to fix in the gutter created by a spacing gap (for scroll bars etc.)

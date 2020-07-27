@@ -3,11 +3,11 @@ Generic Tab Header for any Tabbed Paging System.
 
 Author: Connor W. Colombo, CMU
 Created: 07/12/2020
-Last Update: 07/18/2020, Colombo
+Last Update: 07/26/2020, Colombo
 -->
 <template>
     <div class="tab-header" :class="{ active }" @click="onClick">
-        <div>
+        <div class="name">
             {{ name }}
         </div>
         <div v-show="closeable" class="close-mark" v-html="closeIconSVG" @click.stop="onClose" />
@@ -62,6 +62,7 @@ export default {
 <style lang="scss" scoped>
     @import '@/styles/_colors.scss';
     @import '@/styles/_functional.scss';
+    @import '@/styles/_dimensions.scss';
     
     $tab-height: 3.25rem;
 
@@ -74,15 +75,18 @@ export default {
         user-select: none;
 
         height: $tab-height;
-        width: 15rem;
+        min-width: 15rem;
 
-        border-top-left-radius: 0.5rem;
-        border-top-right-radius: 0.5rem;
-        padding-top: 1.15rem;
-        padding-bottom: 1.25rem;
-        padding-left: 1.25rem;
-        padding-right: 1.25rem;
-        margin-left: 0.5rem;
+        border-top: {
+            left-radius: $std-radius;
+            right-radius: $std-radius;
+        };
+        padding: {
+            top: 1.15rem;
+            bottom: $std-big-padding;
+            left: $std-big-padding;
+            right: $std-big-padding;
+        };
 
         font-weight: medium;
 
@@ -107,7 +111,13 @@ export default {
         }
     }
 
+    .name {
+        padding-right: 1rem;
+        flex-shrink: 0;
+    }
+
     .close-mark {
+        flex-shrink: 0;
         line-height: 0;
         width: 12px;
         height: 12px;

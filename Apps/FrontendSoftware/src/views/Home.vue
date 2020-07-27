@@ -12,8 +12,8 @@ Last Update: 07/23/2020, Colombo
       <CLI TabName="Command Line" ref="cli" />
       <div TabName="Telemetry" id="Telemetry" class="box"> Telemetry </div>
       <div TabName="Error Analysis" id="ErrorAnalysis" class="box"> Error Analysis </div>
-      <div TabName="Map" id="Map" class="box"> Map </div>
-      <div TabName="Image Viewer" id="ImageViewer" class="box"> Image Viewer </div>
+      <Map TabName="Map with a Very Looong Name" />
+      <ImageViewer TabName="Image Viewer" />
     </CombinedScreens>
   </div>
 
@@ -51,6 +51,7 @@ const csv = require('neat-csv');
 
 import CLI from '@/components/CLI/CLI.vue'
 import ImageViewer from '@/components/ImageViewer/ImageViewer.vue'
+import Map from '@/components/Map/Map.vue'
 import ComponentContainer from '@/components/Interface/ComponentContainer.vue'
 
 import CombinedScreens from '@/components/Interface/CombinedScreens.vue'
@@ -63,7 +64,8 @@ export default {
     CombinedScreens,
     ComponentContainer,
     CLI,
-    ImageViewer
+    ImageViewer,
+    Map
   },
   computed: {
     ...mapGetters({

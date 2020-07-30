@@ -5,7 +5,10 @@
  */
 void initializeGpios(){
   // P1 configuration
-  P1DIR &= 0x00;  // All bits as input  
+  P1DIR &= 0x00;  // All bits as input
+  P1OUT &= ~(BIT4 | BIT5); // Initially everything is off
+  P1DIR |= BIT4;  // P1.4 output Motor control reset B
+  P1DIR |= BIT5;  // P1.5 output Motor control reset C
 
   // UART configuration done in uart_init()
 
@@ -19,7 +22,7 @@ void initializeGpios(){
   P2DIR &= 0x00;
   P2OUT &= ~(BIT2 | BIT3 | BIT4); // Initially everything is off
   P2DIR |= BIT2;  // P2.2 output Heater
-  P2DIR |= BIT3;  // P2.3 output Motor control reset
+  P2DIR |= BIT3;  // P2.3 output Motor control reset A
   P2DIR |= BIT4;  // P2.4 output Radio ON
   P2DIR &= ~BIT7;  // P2.7 input Power good 1V2
 
@@ -46,11 +49,13 @@ void initializeGpios(){
   //Analog input configuration done in adc_init()
 
   // PJ configuration
-  PJOUT &= ~(BIT0 | BIT1 | BIT2); // Initially everything is off
+  PJOUT &= ~(BIT0 | BIT1 | BIT2 | BIT4 | BIT5); // Initially everything is off
   PJDIR &= 0x00;
   PJDIR |= BIT0; // PJ.0 output Hercules ON
   PJDIR |= BIT1; // PJ.1 output FPGA ON
   PJDIR |= BIT2; // PJ.2 output MOTORS ON
+  PJDIR |= BIT4; // PJ.4 output Motor control reset D
+  PJDIR |= BIT5; // PJ.5 output BATTERY
   PJDIR &= ~BIT3; // PJ.3 input CHRG
 }
 
@@ -115,6 +120,16 @@ inline void releaseFPGAReset() { P3OUT |= BIT6; }
 inline void setFPGAReset() { P3OUT &= ~BIT6; }
 
 /**
+ * @brief      Releases the motor resets. (HI = NORMAL)
+ */
+inline void releaseMotorsReset() { P1OUT |= BIT4 | BIT5; P2OUT |= BIT3; PJOUT |= BIT4; }
+
+/**
+ * @brief      Sets the motors to reset. (LO = RESET)
+ */
+inline void setMotorsReset() { P1OUT &= ~(BIT4 | BIT5); P2OUT &= ~BIT3; PJOUT &= ~BIT4; }
+
+/**
  * @brief      Power the hercules MCU (HI = ON)
  */
 inline void powerOnHercules() { PJOUT |= BIT0; }
@@ -132,7 +147,7 @@ inline void powerOnFpga() { PJOUT |= BIT1; }
 /**
  * @brief      Power off the FPGA (LO = OFF)
  */
-inline void powerOffFpga() { PJOUT &= BIT1; }
+inline void powerOffFpga() { PJOUT &= ~BIT1; }
 
 /**
  * @brief      Power on the motors (HI = ON)
@@ -142,5 +157,15 @@ inline void powerOnMotors() { PJOUT |= BIT2; }
 /**
  * @brief      Power off the motors (LO = OFF)
  */
-inline void powerOffMotors() { PJOUT &= BIT2; }
+inline void powerOffMotors() { PJOUT &= ~BIT2; }
+
+/**
+ * @brief      Enable the batteries (HI = ON)
+ */
+inline void enableBatteries() { PJOUT |= BIT5; }
+
+/**
+ * @brief      Disable the batteries (LO = OFF)
+ */
+inline void disableBatteries() { PJOUT &= ~BIT5; }
 

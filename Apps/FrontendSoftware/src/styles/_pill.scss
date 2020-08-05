@@ -20,12 +20,10 @@
   &__tag {
     @extend .pill;
     justify-content: center;
-    width: 8rem;
   }
 
   &__tag--edit {
     @extend .pill;
-    width: 10rem;
   }
 
   &__image {

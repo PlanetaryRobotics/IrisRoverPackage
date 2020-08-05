@@ -35,25 +35,21 @@
 
           <!-- SEARCH -->
           <div class="POISearch">
+            <!-- SEARCH BAR -->
             <input type="text" 
                     placeholder="Search"
                     v-model="searchQuery" 
                     />
-          </div>
-
-          <!-- ORDER BY -->
-          <div class="POIOrderBy">
-              <select name="POIOrderBy__dropdown" class="POIOrderBy__dropdown" v-model="orderBy"
-              :style="{ background: `url(${arrowSVG}) no-repeat 95% #585858` }">
-                  <option value="null" selected>Filter</option>
-                  <option value="IMPORTANCE">Importance</option>
-                  <option value="TIME ADDED">Time Added</option>
-              </select>
+            <!-- ORDER BY BUTTON -->
+            <svg @click="handleOrderClick" class="POIOrderBy" width="20" height="20" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4.74998 2.25C4.74998 2.11193 4.63805 2 4.49998 2C4.3619 2 4.24998 2.11193 4.24998 2.25V11.0364L2.42678 9.21323C2.32915 9.11559 2.17086 9.11559 2.07322 9.21322C1.97559 9.31085 1.97559 9.46915 2.07322 9.56678L4.49997 11.9936L6.92675 9.56678C7.02438 9.46915 7.02438 9.31086 6.92675 9.21323C6.82912 9.11559 6.67083 9.11559 6.5732 9.21323L4.74998 11.0364V2.25Z" fill="#FCFCFC"/>
+              <path d="M9.25002 11.75C9.25002 11.8881 9.36195 12 9.50002 12C9.6381 12 9.75002 11.8881 9.75002 11.75L9.75003 2.96356L11.5732 4.78677C11.6709 4.88441 11.8291 4.88441 11.9268 4.78678C12.0244 4.68915 12.0244 4.53085 11.9268 4.43322L9.50003 2.00644L7.07325 4.43322C6.97562 4.53085 6.97562 4.68914 7.07325 4.78677C7.17088 4.88441 7.32917 4.88441 7.4268 4.78677L9.25003 2.96355L9.25002 11.75Z" fill="#FCFCFC"/>
+            </svg>
           </div>
 
           <!-- IMAGE INFO -->
           <div class="ImageInfo" v-if="selectedImage">
-            <div class="ImageInfo__header text__main--bold">Images</div>
+            <div class="ImageInfo__header text__main--bold">Image</div>
             <div class="ImageInfo__row">
               <div class="text__main--bold ImageInfo__property">Src Name: </div> 
               {{selectedImage.name()}}
@@ -64,11 +60,7 @@
             </div>
             <div class="ImageInfo__row">
               <div class="text__main--bold ImageInfo__property">Dimension: </div> 
-              UNKNOWN?
-            </div>
-            <div class="ImageInfo__row">
-              <div class="text__main--bold ImageInfo__property">Detail: </div> 
-              UNKNOWN?
+              800x600
             </div>
           </div>
 
@@ -109,9 +101,16 @@ export default {
     ...mapGetters(['POIImageSelected']),
     POIList() {
       let POIList = this.$store.getters.POIList;
-    
       let list = POIListDataClass.filterBy(this.selectedFilter, POIList);
-      list = POIListDataClass.orderBy(this.orderBy, list);
+
+      let order;
+      if (this.orderImportanceByMost) {
+        order = "IMPORTANCE-MOST-TO-LEAST"
+      } else {
+        order = "IMPORTANCE-LEAST-TO-MOST"
+      }
+
+      list = POIListDataClass.orderBy(order, list);
 
       return list;
     },
@@ -131,7 +130,7 @@ export default {
         editWindow: false,
       },
       selectedFilter: null,
-      orderBy: null,
+      orderImportanceByMost: true,
       searchQuery: null,
       arrowSVG: arrowSVG,
       POICardToEdit: {
@@ -182,6 +181,9 @@ export default {
       } else {
         this.selectedFilter = filter;
       }
+    },
+    handleOrderClick() {
+      this.orderImportanceByMost = !this.orderImportanceByMost;
     }
   }
 }
@@ -223,9 +225,13 @@ export default {
 }
 
 .POISearch {
-  margin: 2rem 0 2rem 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 2rem 0 0 0;
 
   > input {
+    margin-right: 1rem;
     color: $color-grey;
     width: 100%;
     padding: 8px 8px 8px 12px;
@@ -253,26 +259,14 @@ export default {
       box-shadow: 0 0 5px #719ECE;
     }
   }
-}
 
-.POIOrderBy {
-  width: 100%;
-  margin-top: 2rem;
+  > .POIOrderBy {
+    &:hover {
+      cursor: pointer;
 
-  &__dropdown {
-    color: $color-grey;
-    font-size: 1.4rem;
-    border-radius: 4px;
-    border: none;
-    padding: 8px 8px 8px 12px;
-    width: 100%;
-    -webkit-appearance: none; 
-    background-color: white;
-
-    &:focus {
-      outline: none !important;
-      border:1px solid $color-primary;
-      box-shadow: 0 0 5px #719ECE;
+      > * {
+        fill: $color-primary;
+      }
     }
   }
 }

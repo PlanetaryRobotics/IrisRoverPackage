@@ -128,17 +128,20 @@ export default class POIList{
       return POIList;
     }
 
-    let VALIDORDERS = ["IMPORTANCE", "TIME ADDED"];
+    let VALIDORDERS = ["IMPORTANCE-MOST-TO-LEAST", "IMPORTANCE-LEAST-TO-MOST", "TIME ADDED"];
 
     if (!VALIDORDERS.includes(order)) {
       console.error("Order " + order + " is not valid.");
     } else {
-      if (order === "IMPORTANCE") {
-        // Force immutability w/ slice()
-        return POIList.slice().sort((a, b) => b.getData()["importanceLevel"] - a.getData()["importanceLevel"]);
+      if (order.includes("IMPORTANCE")) {
+        if (order === "IMPORTANCE-MOST-TO-LEAST") {
+          return POIList.slice().sort((a, b) => b.getData()["importanceLevel"] - a.getData()["importanceLevel"]);
+        } else {
+          return POIList.slice().sort((a, b) => a.getData()["importanceLevel"] - b.getData()["importanceLevel"]);
+        }  
       } else {
-         // Force immutability w/ slice()
-        return POIList.slice().sort((a, b) => b.getData()["createTimeObject"]- a.getData()["createTimeObject"]);
+        // Force immutability w/ slice()
+      return POIList.slice().sort((a, b) => b.getData()["createTimeObject"]- a.getData()["createTimeObject"]);
       }
     }
   }

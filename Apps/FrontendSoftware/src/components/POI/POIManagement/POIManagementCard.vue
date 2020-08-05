@@ -10,7 +10,7 @@
 
       <div class="tags">
         <div class="tags__pill" v-for="(name, index) of tagNames" :key="index">
-            {{getShortName(name)}}
+            {{name}}
         </div>  
       </div>
 
@@ -64,12 +64,6 @@ export default {
     },
     toggleImages() {
       this.show.images = !this.show.images;
-    },
-    getShortName(name) {
-      if (name.length > 7) {
-        return name.substring(0, 7) + "...";
-      } 
-      return name;
     },
     setSelectedImage(id, image) {
       if (!this.POIImageSelectedId) {

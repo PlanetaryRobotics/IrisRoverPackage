@@ -23,7 +23,7 @@ const TAGLIST = [
   new Tag({name: "pebble", initialImage:"CR_M01_0000", tagNames:[]}),
   new Tag({name: "aaaaaa", initialImage:"CR_M01_0000", tagNames:[]}),
   new Tag({name: "ccccc", initialImage:"CR_M01_0000", tagNames:[]}),
-  new Tag({name: "idkman", initialImage:"CR_M01_0000", tagNames:[]}),
+  new Tag({name: "iamaverylongnameok", initialImage:"CR_M01_0000", tagNames:[]}),
 ];
 
 var cards = [
@@ -45,9 +45,9 @@ var cards = [
       depth: 5,
       location: [30, 30],
       sizeUnit: "CM",
-      tagList: [...TAGLIST],
+      tagList: [...TAGLIST.slice(0,2)],
       creator: "Caitlin Coyiuto",
-      description: "I am a hella beautiful rock on the moon.",
+      description: "Something's on this moon.",
       images: [
         new ImageData({
           name: 'CR_M01_0001',
@@ -250,9 +250,9 @@ var cards = [
       depth: 5,
       location: [30, 90],
       sizeUnit: "CM",
-      tagList: [...TAGLIST.slice(0,5)],
+      tagList: [...TAGLIST.slice(2,3)],
       creator: "Caitlin Coyiuto",
-      description: "I am a hella beautiful rock on the moon.",
+      description: "Lorem ipsum in a crater.",
       images: [
         new ImageData({
           name: 'CR_M01_0001',
@@ -302,9 +302,9 @@ var cards = [
       depth: 5,
       location: [-30, 100],
       sizeUnit: "CM",
-      tagList: [...TAGLIST.slice(0,5)],
+      tagList: [...TAGLIST.slice(3,4)],
       creator: "Caitlin Coyiuto",
-      description: "I am a hella beautiful rock on the moon.",
+      description: "How many ipsums can fit in a crater?",
       images: [
         new ImageData({
           name: 'CR_M01_0001',
@@ -354,7 +354,7 @@ var cards = [
       depth: 5,
       location: [60, 60],
       sizeUnit: "CM",
-      tagList: [...TAGLIST.slice(0,5)],
+      tagList: [...TAGLIST.slice(5,10)],
       creator: "Caitlin Coyiuto",
       description: "I am a hella beautiful rock on the moon.",
       images: [

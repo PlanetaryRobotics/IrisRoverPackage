@@ -1,5 +1,5 @@
 <template>
-    <div class="POICard">
+    <div class="POICard" v-show="show.card">
       <!-- SIDE MODALS -->
       <div v-if="show.modalImages">
         <Sidemodal :key="0" 
@@ -96,7 +96,7 @@
             </div>
           </div>
           <!-- DESCRIPTION -->
-          <div class="POICard__description" v-html="POIData.description" />
+          <div class="POICard__description" v-html="searchQuery ? marked.description : POIData.description" />
           <!-- IMAGES -->
           <div class="POICard__imagesHeader">
             <div class="text__main--bold" ref="images">
@@ -133,12 +133,14 @@ export default {
   data() {
     return {
       show: {
+        card: true,
         moreData: false,
         modalImages: false,
         modalTags: false,
       },
       marked: {
         tags: [],
+        description: ""
       },
     }
   },
@@ -149,22 +151,18 @@ export default {
     POIListEl: HTMLDivElement
   },
   mounted() {
-    if (this.searchQuery || this.searchQuery !== "null") {
-      this.markText();
-    }
+    this.handleShowCard(this.searchQuery);
   },
   watch: { 
     searchQuery(newVal) { // watch it
-      if (newVal) {
-        this.markText();
-      }
+      this.handleShowCard(newVal);
     }
   },
   computed: {
     tagNames: function() {
       let tagList = this.POIData.tagList;
       let nameList = [];
-      tagList.forEach(tag => nameList.push(this.getShortName(tag.getName())));
+      tagList.forEach(tag => nameList.push(tag.getName()));
 
       return nameList;
     },
@@ -177,28 +175,50 @@ export default {
     },
   },
   methods: {
+    handleShowCard(query) {
+      // If there is a query
+      if (query || query !== null) {
+        if (this.cardHasSearchQuery(query)) {
+          this.show.card = true;
+          this.markText(query);
+        } else {
+          this.show.card = false;
+        }
+      // Else by default show the card
+      } else {
+        this.show.card = true;
+      }
+    },
     toggleModal(key){
       this.show[key] = !this.show[key];
     },
-    markText() {
+    cardHasSearchQuery(searchQuery) {
+      if (this.POIData.description.includes(searchQuery)) {
+        return true;
+      }
+
+      for (let tagName of this.tagNames) {
+        if (tagName.includes(searchQuery)) {
+          return true;
+        }
+      }
+
+      return false;
+    },
+    markText(query) {
       let markedTags = [];
+      let regex = new RegExp(query, 'g');
 
       for (let tag of this.tagNames) {
-        let regex = new RegExp(this.searchQuery, 'g');
-        let markedTag = tag.replace(regex, '<mark>' + this.searchQuery + '</mark>');
+        let markedTag = tag.replace(regex, '<mark>' + query + '</mark>');
         markedTags.push(markedTag);
       }
 
       this.marked.tags = markedTags;
+      this.marked.description = this.POIData.description.replace(regex, '<mark>' + query + '</mark>');
     },
     toggleShowMore(){
       this.show.moreData = !this.show.moreData;
-    },
-    getShortName(name) {
-      if (name.length > 7) {
-        return name.substring(0, 7) + "...";
-      } 
-      return name;
     },
     viewMoreTagsNumber() {
       if (this.POIData.tagList.length > 7) {

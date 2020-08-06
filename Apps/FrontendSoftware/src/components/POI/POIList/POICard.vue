@@ -210,7 +210,7 @@ export default {
       let regex = new RegExp(query, 'g');
 
       for (let tag of this.tagNames) {
-        let markedTag = tag.replace(regex, '<mark>' + query + '</mark>');
+        let markedTag = tag.toLowerCase().replace(regex, '<mark>' + query + '</mark>');
         markedTags.push(markedTag);
       }
 

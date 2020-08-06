@@ -6,7 +6,11 @@ export default {
     POIImageSelected: {
       image: null,
       id: null,
-    }
+    },
+    TagSelected: {
+      tag: null,
+      id: null
+    },
   },
   getters: {
     POIList: state => {
@@ -20,6 +24,9 @@ export default {
     },
     POIImageSelected: state => {
       return state.POIImageSelected;
+    },
+    TagSelected: state => {
+      return state.TagSelected;
     }
   },
   mutations: {
@@ -37,6 +44,10 @@ export default {
         id: id
       }
       state.POIImageSelected = obj;
+    },
+
+    updateTagSelected(state, {tag, id}) {
+      state.TagSelected = {tag: tag, id: id};
     }
   }
 };

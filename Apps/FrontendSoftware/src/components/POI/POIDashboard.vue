@@ -40,6 +40,7 @@
 
 <script>
 
+import { mapGetters } from 'vuex';
 import POIList from "@/components/POI/POIList/POIList.vue";
 import POIManagement from "@/components/POI/POIManagement/POIManagement.vue";
 import TagManagement from "@/components/POI/TagManagement/TagManagement.vue";
@@ -60,13 +61,32 @@ export default {
       }
     }
   },
-  props: {
-  },
   computed: {
+    ...mapGetters(['TagSelected', 'POIImageSelected']),
   },
   methods: {
     toggleManager() {
       this.show.POIManagement = !this.show.POIManagement;
+
+      let id = null;
+      // Remove the side tag/POI depending if management tab is toggled
+      if (this.show.POIManagement) {
+        if (this.TagSelected.id) {
+          id = this.TagSelected.id;
+        }
+        this.$store.commit("updateTagSelected", {tag: null, id: null});
+      } else {
+        if (this.POIImageSelected) {
+          id = this.POIImageSelected.id;
+        }
+        this.$store.commit("updatePOIImageSelectedId", {id: null, image: null});
+      }
+
+      // Remove selected class
+      if (id) {
+        let oldElem = document.getElementById(id);
+        oldElem.classList.remove("selected");
+      }
     }
   }
 }
@@ -103,6 +123,11 @@ export default {
 
   &__rightColumn {
     height: 95vh;
+    background-color: $color-near-black;
+  }
+
+  &__alphabetScroller {
+    height: 100%;
     background-color: $color-near-black;
   }
 }

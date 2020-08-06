@@ -1,7 +1,7 @@
 <template>
     <div class="AlphabetScroller">
-      <div class="letter" v-for="(letter, index) in alphabetList" :key="index">
-          {{letter}}
+      <div :id="getLetterId(obj)" class="letter" v-for="(obj, index) in alphabetList" :key="index" @click="handleScroll(obj)">
+          {{obj[0]}}
       </div>
     </div> 
 </template>
@@ -12,18 +12,47 @@ export default {
   name: "AlphabetScroller",
   data() {
     return {
+      selectedId: null
     }
   },
   computed: {
     alphabetList() {
-      let set = new Set();
+      let map = {};
       Array.from(this.$store.getters.POIByTagList.keys())
-            .forEach(elem => set.add(elem.getName()[0].toUpperCase()));
+           .forEach(elem => {
+             let firstLetter = elem.getName()[0].toUpperCase();
+             // Only save first tag with a never before seen letter
+             if (!(firstLetter in map)) {
+               map[firstLetter] = elem.data.id;
+             }
+           });
       
-      return "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z".split(" ");
-      //return [...set];
+      map = Object.keys(map).map((key) => [key, map[key]]);
+      return map;
     }
   },
+  methods: {
+    // Id for the sidebar letter
+    getLetterId(obj) {
+      return "letter" + obj[1];
+    },
+    handleScroll(obj) {
+      let elem;
+
+      // Remove selected class if there was a prev. letter selected
+      if (this.selectedId){
+        elem = document.getElementById("letter"+this.selectedId);
+        elem.classList.remove("selected");
+      }
+
+      // Scroll to target tag 
+      this.selectedId = obj[1];
+      document.getElementById(obj[1]).scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
+      
+      elem = document.getElementById("letter"+this.selectedId);
+      elem.classList.add("selected");
+    }
+  }
 }
 
 </script>
@@ -35,8 +64,7 @@ export default {
 
 .AlphabetScroller {
   padding-top: 16px;
-  background-color: $color-near-black;
-  height: 100%;
+  height: 80%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -46,6 +74,16 @@ export default {
   font-weight: 600;
   font-size: (70vh/26);
   color: $color-grey-dark;
+  flex-grow: 1;
+
+  &:hover{
+    color: white;
+    cursor: pointer;
+  }
+}
+
+.selected {
+  color: white;
 }
 
 </style>

@@ -14,16 +14,18 @@ function bytes(file){
 }
 
 const TAGLIST = [
-  new Tag({name: "rocco", initialImage:"CR_M01_0001", tagNames:[]}),
-  new Tag({name: "ricco", initialImage:"CR_M01_0001", tagNames:[]}),
-  new Tag({name: "darkrocco", initialImage:"CR_M01_0001", tagNames:[]}),
-  new Tag({name: "moonrock", initialImage:"CR_M01_0001", tagNames:[]}),
-  new Tag({name: "hole", initialImage:"CR_M01_0001", tagNames:[]}),
-  new Tag({name: "steve", initialImage:"CR_M01_0000", tagNames:[]}),
-  new Tag({name: "pebble", initialImage:"CR_M01_0000", tagNames:[]}),
-  new Tag({name: "aaaaaa", initialImage:"CR_M01_0000", tagNames:[]}),
-  new Tag({name: "ccccc", initialImage:"CR_M01_0000", tagNames:[]}),
-  new Tag({name: "iamaverylongnameok", initialImage:"CR_M01_0000", tagNames:[]}),
+  new Tag({name: "avocadoes", initialImage:"CR_M01_0001", tagNames:[], description: "Metadata stuff vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitorm, maecenas faucibus mollis interdum. So creating faucibus mollis interdum."}),
+  new Tag({name: "bananas", initialImage:"CR_M01_0001", tagNames:[], description: "Metadata stuff vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitorm, maecenas faucibus mollis interdum. So creating faucibus mollis interdum."}),
+  new Tag({name: "rocco", initialImage:"CR_M01_0001", tagNames:[], description: "Metadata stuff vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitorm, maecenas faucibus mollis interdum. So creating faucibus mollis interdum."}),
+  new Tag({name: "ricco", initialImage:"CR_M01_0001", tagNames:[], description: "Metadata stuff vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitorm, maecenas faucibus mollis interdum. So creating faucibus mollis interdum."}),
+  new Tag({name: "darkrocco", initialImage:"CR_M01_0001", tagNames:[], description: "Metadata stuff vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitorm, maecenas faucibus mollis interdum. So creating faucibus mollis interdum."}),
+  new Tag({name: "moonrock", initialImage:"CR_M01_0001", tagNames:[], description: "Metadata stuff vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitorm, maecenas faucibus mollis interdum. So creating faucibus mollis interdum."}),
+  new Tag({name: "hole", initialImage:"CR_M01_0001", tagNames:[], description: "Metadata stuff vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitorm, maecenas faucibus mollis interdum. So creating faucibus mollis interdum."}),
+  new Tag({name: "steve", initialImage:"CR_M01_0000", tagNames:[], description: "Metadata stuff vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitorm, maecenas faucibus mollis interdum. So creating faucibus mollis interdum."}),
+  new Tag({name: "pebble", initialImage:"CR_M01_0000", tagNames:[], description: "Metadata stuff vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitorm, maecenas faucibus mollis interdum. So creating faucibus mollis interdum."}),
+  new Tag({name: "aaaaaa", initialImage:"CR_M01_0000", tagNames:[], description: "Metadata stuff vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitorm, maecenas faucibus mollis interdum. So creating faucibus mollis interdum."}),
+  new Tag({name: "aardvarks", initialImage:"CR_M01_0000", tagNames:[], description: "Metadata stuff vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitorm, maecenas faucibus mollis interdum. So creating faucibus mollis interdum."}),
+  new Tag({name: "iamaverylongnameok", initialImage:"CR_M01_0000", tagNames:[], description: "Metadata stuff vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitorm, maecenas faucibus mollis interdum. So creating faucibus mollis interdum."}),
 ];
 
 var cards = [
@@ -45,7 +47,7 @@ var cards = [
       depth: 5,
       location: [30, 30],
       sizeUnit: "CM",
-      tagList: [...TAGLIST.slice(0,2)],
+      tagList: [...TAGLIST.slice(5,10)],
       creator: "Caitlin Coyiuto",
       description: "Something's on this moon.",
       images: [
@@ -250,7 +252,7 @@ var cards = [
       depth: 5,
       location: [30, 90],
       sizeUnit: "CM",
-      tagList: [...TAGLIST.slice(2,3)],
+      tagList: [...TAGLIST.slice(0,5)],
       creator: "Caitlin Coyiuto",
       description: "Lorem ipsum in a crater.",
       images: [
@@ -354,7 +356,7 @@ var cards = [
       depth: 5,
       location: [60, 60],
       sizeUnit: "CM",
-      tagList: [...TAGLIST.slice(5,10)],
+      tagList: [...TAGLIST],
       creator: "Caitlin Coyiuto",
       description: "I am a hella beautiful rock on the moon.",
       images: [

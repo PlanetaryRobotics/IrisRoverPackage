@@ -60,7 +60,31 @@
             </div>
             <div class="ImageInfo__row">
               <div class="text__main--bold ImageInfo__property">Dimension: </div> 
-              800x600
+              800x600 
+            </div>
+          </div>
+
+          <!-- TAG INFO -->
+          <div class="ImageInfo" v-if="selectedTag">
+            <div class="ImageInfo__row">
+              <div class="pill__tag">
+                {{selectedTag.getName()}}
+              </div>
+            </div>
+            <div class="ImageInfo__row">
+              {{selectedTag.data.description}}
+            </div>
+            <div class="ImageInfo__history">
+              <div class="updateHistorySmall--line text__small">
+                <div>Created:</div> 
+                <div>{{selectedTag.data.modificationHistory[0].user}}</div>
+                <div>{{selectedTag.data.modificationHistory[0].time}}</div>
+              </div>
+              <div v-if = "selectedTag.data.modificationHistory.length > 1" class="updateHistorySmall--line text__small">
+                <div>Modified:</div>
+                <div>{{selectedTag.data.modificationHistory[selectedTag.data.modificationHistory.length-1].user}}</div> 
+                <div>{{selectedTag.data.modificationHistory[selectedTag.data.modificationHistory.length-1].time}}</div>
+              </div>
             </div>
           </div>
 
@@ -98,7 +122,7 @@ export default {
     POIEdit
   },
   computed: {
-    ...mapGetters(['POIImageSelected']),
+    ...mapGetters(['POIImageSelected', 'TagSelected']),
     POIList() {
       let POIList = this.$store.getters.POIList;
       let list = POIListDataClass.filterBy(this.selectedFilter, POIList);
@@ -119,9 +143,15 @@ export default {
     POIImageSelected: {
       deep: true, 
       handler(newObj){
-       this.selectedImage = newObj.image;
+        this.selectedImage = newObj.image;
       }
     },
+    TagSelected: {
+      deep: true,
+      handler(newObj) {
+        this.selectedTag = newObj.tag;
+      }
+    }
   },
   data() {
     return {
@@ -138,7 +168,8 @@ export default {
         JSON: null,
       },
       POIListEl: null,
-      selectedImage: null
+      selectedImage: null,
+      selectedTag: null
     }
   },
   created() {
@@ -194,6 +225,7 @@ export default {
 
 @import '@/styles/_colors.scss';
 @import '@/styles/_mapTab.scss';
+@import '@/styles/_pill.scss';
 
 .POIList {
   &__item {
@@ -217,6 +249,7 @@ export default {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-between;
+    border-bottom: 1px solid $color-grey-dark;
 
     >select:focus {
       outline: none;
@@ -272,14 +305,18 @@ export default {
 }
 
 .FilterTag {
-  padding: 3px 16px;
-  border-radius: 20px;
-  border: 1px solid $color-grey-dark;
+  width: 33.33%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px 10px 0 0;
+  padding: 4px 0;
   color: white;
+  font-weight: bold;
 }
 
 .selected, .FilterTag:hover {
-  border: 1px solid $color-primary;
+  border: 1px solid $color-grey-dark;
   background-color: $color-primary;
   color: white;
   cursor: pointer;
@@ -298,11 +335,35 @@ export default {
   &__row {
     display: flex;
     flex-direction: row;
-    margin: 1rem 0 1rem 0;
+    margin: 0rem 0 1rem 0;
   }
 
   &__property {
     margin-right: 1rem;
+  }
+
+  &__history {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.updateHistorySmall {
+  padding-top: 1rem;
+  padding-bottom: 2rem;
+
+  > div {
+    padding-right: 2px;
+  }
+
+  > div:nth-child(1) {
+    padding-bottom: 1rem;
+  }
+
+  &--line {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
   }
 }
 

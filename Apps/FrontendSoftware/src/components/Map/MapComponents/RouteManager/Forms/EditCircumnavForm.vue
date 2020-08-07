@@ -164,6 +164,10 @@ export default {
     // Highlight segment
     this.highlight = highlightSegment();
     this.highlight.set(this.route, this.segmentIndex);
+
+    GridEventBus.$on('RESET_EDITING_CIRCUMNAV', () => {
+      this.cancelCircumnav();
+    })
   },
   methods: {
     

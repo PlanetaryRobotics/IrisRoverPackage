@@ -132,6 +132,10 @@ export default {
       this.updateFormValues(data.xCm, data.yCm);
       this.buttons.planButton.enabled = true;
     })
+
+    GridEventBus.$on('RESET_EDITING_SEGMENT', () => {
+      this.cancelSegment();
+    })
   },
   methods: {
     /**
@@ -157,10 +161,6 @@ export default {
         this.errors[key] = key + " is not a number.";
         return;
       } 
-
-      if (value === "") {
-        this.formValues.key = 0;
-      }
 
       this.errors[key] = "";
 
@@ -188,7 +188,7 @@ export default {
         ANGLE: this.segment.roverAngle
       }
       this.formValues = obj;
-      GridEventBus.$emit('EDIT_SEG_FORM_UPDATE', {route: this.route, segmentIndex: this.segmentIndex, xCm: this.formValues.XCOORD, yCm: this.formValues.YCOORD, roverAngle: this.formValues.roverAngle});
+      GridEventBus.$emit('EDIT_SEG_FORM_UPDATE', {route: this.route, segmentIndex: this.segmentIndex, xCm: this.formValues.XCOORD, yCm: this.formValues.YCOORD, roverAngle: this.segment.roverAngle});
       this.buttons.planButton.enabled = false; // Reverting to original, so disable again
     },
     closeModal() {

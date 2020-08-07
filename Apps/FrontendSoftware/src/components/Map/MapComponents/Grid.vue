@@ -153,6 +153,7 @@ export default {
 
     // Event listener when an existing segment needs to update
     GridEventBus.$on('EDIT_SEG_FORM_UPDATE', (data) => {
+ 
       let coords = {
         xCm: data.xCm,
         yCm: data.yCm
@@ -315,10 +316,13 @@ export default {
           yPx: this.mouseCoords[1]
         }
 
+        // Roverangle is same as current
+        let roverAngle = this.editingSegmentInfo.route.segmentList[this.editingSegmentInfo.segmentIdx].roverAngle;
+
         updateExistingSegment(this.editingSegmentInfo.route,
                               this.editingSegmentInfo.segmentIdx, 
                               coords, 
-                              null,
+                              roverAngle,
                               this.origin.xPosPx, 
                               this.origin.yPosPx,
                               this.gridSquare.gridUnitCm,

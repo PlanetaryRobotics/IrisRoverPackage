@@ -284,7 +284,7 @@ export function updateExistingSegment(route, segmentIdx, coords, roverAngle, ori
   }
 
   // Update rover angle
-  if (roverAngle && roverAngle !== "") {
+  if (roverAngle !== "") {
  
     if (d3.select("#"+route.routeName+"-Segment"+(segmentIdx) + " rect").empty()) {
       createRoverAngle(container, roverAngle, endX, endY);
@@ -299,6 +299,8 @@ export function updateExistingSegment(route, segmentIdx, coords, roverAngle, ori
               .attr("y", chairOriginY - 2.5)
               .attr("transform", `rotate(${deg} ${endX} ${endY})`);
     }
+  } else {
+    container.select('rect').remove();
   }
 }
 

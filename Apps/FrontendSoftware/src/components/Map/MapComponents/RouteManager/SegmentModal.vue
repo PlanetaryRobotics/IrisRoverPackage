@@ -117,6 +117,13 @@ export default {
       return this.action === "ADD";
     },
     closeModal() {
+      if (this.action === "EDIT") {
+        if (this.show.segmentForm) {
+          GridEventBus.$emit('RESET_EDITING_SEGMENT');
+        } else {
+          GridEventBus.$emit('RESET_EDITING_CIRCUMNAV');
+        }
+      }
       GridEventBus.$emit('CLOSE_SEGMENT_MODAL');
     },
     toggleType(type) {

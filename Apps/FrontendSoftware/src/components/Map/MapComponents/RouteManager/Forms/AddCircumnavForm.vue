@@ -187,8 +187,8 @@ export default {
       } 
 
       // Validate that angle is within normal bounds
-      if ((key === "STARTANG" || key === "ENDANG") && (Number(value) > 360 || Number(value) < -360)){
-        this.errors[key] = key + " must be between -360 and 360 degrees.";
+      if ((key === "STARTANG" || key === "ENDANG") && (Number(value) > 360 || Number(value) < 0)){
+        this.errors[key] = key + " must be between 0 and 360 degrees.";
         return;
       }
 

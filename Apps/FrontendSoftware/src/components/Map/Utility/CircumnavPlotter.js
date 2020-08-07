@@ -302,10 +302,21 @@ function getAngleIncrement(startAng, endAng, numPhotos, isClockwise) {
 
   let diff;
 
-  if ((isClockwise && startAng < endAng) || (!isClockwise && startAng > endAng)) {
-    diff = endAng - startAng;
-  } else {
-    diff = endAng + startAng;
+  // For clockwise computations
+  if (isClockwise) {
+    if (startAng < endAng) {
+      diff = endAng - startAng;
+    } else {
+      diff = (360-startAng) + endAng;
+    }
+  }
+  // For counterclockwise
+  else {
+    if (startAng < endAng) {
+      diff = (360-endAng) + startAng;
+    } else {
+      diff = startAng - endAng;
+    }
   }
 
   let deg = diff / (numPhotos - 1);

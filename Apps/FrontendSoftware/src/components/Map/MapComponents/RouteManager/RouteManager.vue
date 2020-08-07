@@ -125,6 +125,8 @@ export default {
 
 #routeManager {
   background-color: $color-near-black;
+  display: flex;
+  flex-direction: column;
 }
 
 .routeList {
@@ -176,6 +178,7 @@ export default {
   position: absolute;
   bottom: 43vh;
   width: 100%;
+  pointer-events:none; 
 }
 
 </style>

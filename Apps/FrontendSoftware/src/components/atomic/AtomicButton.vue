@@ -118,6 +118,7 @@ export default {
   font-size: 1.5rem;
   border-radius: 4px;
   cursor: pointer;
+  pointer-events: all; 
 }
 
 .button:disabled {

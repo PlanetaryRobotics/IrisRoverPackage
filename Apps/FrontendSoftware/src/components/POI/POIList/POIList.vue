@@ -172,8 +172,10 @@ export default {
       selectedTag: null
     }
   },
+  mounted() {
+    this.POIListEl = this.$refs.POIList;
+  },
   created() {
-    
     POIEventBus.$on('OPEN_EDIT_POI_WINDOW', (card) => {
       this.POICardToEdit.cardObject = card;
       this.POICardToEdit.JSON = JSON.stringify(card);
@@ -197,10 +199,11 @@ export default {
       this.$store.commit("deletePOI", card);
       this.show.editWindow = false;
     })
-
   },
-  mounted() {
-    this.POIListEl = this.$refs.POIList;
+  beforeDestroy() {
+    POIEventBus.$off('OPEN_EDIT_POI_WINDOW');
+    POIEventBus.$off('CLOSE_EDIT_POI_WINDOW');
+    POIEventBus.$off('DELETE_POI_WINDOW');
   },
   methods: {
     togglePOIList() {

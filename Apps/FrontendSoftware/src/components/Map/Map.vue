@@ -83,6 +83,10 @@ export default {
       this.modalAction = action;
     })
   },
+  beforeDestroy() {
+    GridEventBus.$off('CLOSE_SEGMENT_MODAL');
+    GridEventBus.$off('OPEN_SEGMENT_MODAL');
+  },
   methods: {
     switchRightPanelView(state) {
       if (state === "routeManager") {

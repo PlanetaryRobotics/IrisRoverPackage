@@ -188,6 +188,13 @@ export default {
       this.$store.commit("setEditingCircumnav", circumnav);
     })
   },
+  beforeDestroy() {
+    GridEventBus.$off('ADD_SEG_FORM_UPDATE');
+    GridEventBus.$off('EDIT_SEG_FORM_UPDATE');
+    GridEventBus.$off('COMPUTE_SEG_PX_COORDS');
+    GridEventBus.$off('ADD_CIRCUM_FORM_UPDATE');
+    GridEventBus.$off('EDIT_CIRCUM_FORM_UPDATE');
+  },
   watch: {
     polarPlotEnabled(isEnabled) {
       if (isEnabled) {

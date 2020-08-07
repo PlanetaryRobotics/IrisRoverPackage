@@ -108,6 +108,10 @@ export default {
       return "SEG-" + this.segmentIndex;
     }
   },
+  beforeDestroy() {
+    GridEventBus.$off('WAYPOINT_GRID_UPDATE');
+    GridEventBus.$off('RESET_EDITING_SEGMENT');
+  },
   destroyed() { 
     // Make grid stop listening for clicks
     this.$store.commit("setIsListeningForEditWaypoint", false);

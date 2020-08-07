@@ -146,6 +146,9 @@ export default {
       }
     },
   },
+  beforeDestroy() {
+    GridEventBus.$off('RESET_EDITING_CIRCUMNAV');
+  },
   destroyed() {
     // Disabling POI click listening
     this.$store.commit("setIsListeningForPOIClick", false);

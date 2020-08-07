@@ -117,6 +117,9 @@ export default {
       }
     }
   },
+  beforeDestroy() {
+    GridEventBus.$off('WAYPOINT_GRID_UPDATE');
+  },
   destroyed() {
     this.$store.commit("setCurrWaypointSegment", null);
     this.$store.commit("setIsListeningForNewWaypoint", false);

@@ -94,6 +94,9 @@ export default {
       this.toggleDeleteModal();
     });
   },
+  beforeDestroy() {
+    GridEventBus.$off('TOGGLE_DELETE_MODAL');
+  },
   methods: {
     toggleDeleteModal() {
       this.show.deleteModal = !this.show.deleteModal;

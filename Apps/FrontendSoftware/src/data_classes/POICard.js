@@ -11,7 +11,7 @@ export default class POICard{
     // Default 
     this.data = 
     {
-      number: 0,
+      number: null,
       importanceLevel: null,
       category: null,
       thumbnail: null,

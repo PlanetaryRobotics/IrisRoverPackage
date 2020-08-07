@@ -35,17 +35,15 @@ export default class POIList{
   }
 
   nextNumForCategory(category) {
-    return this._list[category].length + 1;
+    let lastIdx = this._list[category].length - 1;
+    return this._list[category][lastIdx].data.number + 1;
   }
 
   updatePOICategory(POI, newCategory) {
-    let newNum = this.nextNumForCategory(newCategory);
-
     // Remove POI from old category list
     this.deletePOI(POI);
 
-    // Set new num and category, then add to list
-    POI.number = newNum;
+    // Set category
     POI.category = newCategory;
     this.addPOI(POI);
   }
@@ -56,7 +54,13 @@ export default class POIList{
       console.log(card);
     } else {
       let category = card.getData().category;
-      let num = this._list[category].length + 1;
+      let num;
+
+      if (!card.getData().number) {
+        num = 1;
+      } else {
+        num = this.nextNumForCategory(category);
+      }
       card.number = num;
 
       this._list[category].push(card);

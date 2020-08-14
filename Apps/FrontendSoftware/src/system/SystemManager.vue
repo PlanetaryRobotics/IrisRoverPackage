@@ -5,6 +5,9 @@ software system.
 **Note:** There should only be one SystemManager instatiated on the root Component (App.vue). This class mainly exists as a 
 way of streamlining the code present in the root component.
 
+TODO: Currently doesn't do anything (LazyList autopopulate took over core functionality). Data upkeep operations will be 
+added later.
+
 Author: Connor W. Colombo, CMU
 Created: 08/07/2020
 Last Update: 08/14/2020, Colombo
@@ -17,9 +20,6 @@ Last Update: 08/14/2020, Colombo
 <script>
     import { mapState, mapGetters } from 'vuex'
 
-    import DB from '@/DBInterface/DBInterface.js'
-    import SystemData from '@/data_classes/SystemData.js'
-
     let _instance_count = 0; // Total number of system managers components in existence (there should only be one)
 
     export default {
@@ -31,7 +31,7 @@ Last Update: 08/14/2020, Colombo
         },
         computed: {
             ...mapGetters({
-                log: 'systemStateLog', // Getter FUNCTION for the SystemData entries on the Database from DBLazyList
+                log: 'systemStateLog', // Getter for the SystemData entries on the Database from DBLazyList
                 currentState: 'currentSystemState', // Most recent SystemData entry on the Database from DBLazyList
             }),
             ...mapState({
@@ -43,30 +43,8 @@ Last Update: 08/14/2020, Colombo
             if(_instance_count > 1){
                 console.error(`[IRIS-SYS] There should only be ONE SystemManager. Currently ${_instance_count} have been instantiated.`);
             }
-
-            // Once DB is Connected:
-            DB.eventBus.on('statusChange', this.onDBConnectionChange);
-            DB.checkConnection(); // Force initial connection check.
         },
         beforeDestroy(){
-            DB.eventBus.off('statusChange', this.onDBConnectionChange);
         },
-        methods: {
-            onDBConnectionChange({connected}){
-                if(connected && !this.initialized){
-                    this.logLazyList.forceReactiveUpdate().then( ({data}) => {
-                        /** 
-                         * On first connection to DB, check to see if this terminal is the first to access the DB for this mission (partition).
-                         * If so, initialize the DB by providing an initial SystemData entry.
-                         */
-                        if(data.length === 0){
-                            this.logLazyList.forcePush({obj: new SystemData()});
-                        }
-                        DB.eventBus.off('statusChange', this.onDBConnectionChange); // Deregister. Event handler no longer needed.
-                    });
-                    this.initialized = true;
-                }
-            }
-        }
     }
 </script>

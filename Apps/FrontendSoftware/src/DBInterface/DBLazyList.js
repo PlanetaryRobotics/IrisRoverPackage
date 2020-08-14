@@ -1,16 +1,3 @@
-/**
- * 
- * TODO: Slowly update SystemData + CommandData to use same solution. Look for differences in 
- * impl. that might cause SystemData to not update on changes.
- * 
- * ALSO, (maybe related / useful): After dynamic reload, SystemData can still push to DB, despite 
- * CommandData not being able to load anything.
- * --- Command can also push... just the list doesn't show up (write but not read?)
- * 
- */
-
-
-
 'use strict';
 /*
  * Allows Use of Sub-Lists from Collections to be Used Reactively in Vue. This
@@ -27,12 +14,13 @@
  * when used reactively in Vue).
  *
  * Author: Connor W. Colombo, CMU
- * Last Update: 08/12/2020, Colombo
+ * Last Update: 08/14/2020, Colombo
  */
+ // TODO: FIXME: Allow for removal from onUpdate (possibly just replace impl. with normal node eventBus) and then find all usages of onUpdate and add associated remove in destructor of subscriber (where applicable).
  // TODO: Allow Individual List Items to be Edited / Replaced.
  // TODO: Better #watcher Implementation than using hash (?) (simple flags won't work in case multiple agents are checking #watcher)
  // TODO: FIXME: Change streams don't currently care about headIdx or length (all changes are captured).
- // TODO: Account for 'delete' changes.
+ // TODO: Account for 'delete' changes (from ChangeStream).
 
  import { sha256 } from 'js-sha256'
 
@@ -42,13 +30,22 @@
 
  export default class DBLazyList{
   /* Creates a New DBList.
-  * collection: - Name (String or Collection Enum Symbol) of Sourcing DB Collection
-  * headIdx:    - Index of First Element in the Collection to be Loaded in the List
-  * length:     - Total Number of Elements to be Loaded in the List from the Collection
-  * staleTime:  - Number of Seconds Until the Data is Considered to be Stale and Must be Refreshed (can be Infinity)
-  * objClass:   - A Subclass of DBObject which All Elements of this List must be.
+  * collection:   - Name (String or Collection Enum Symbol) of Sourcing DB Collection
+  * objClass:     - A Subclass of DBObject which All Elements of this List must be.
+  * headIdx:      - Index of First Element in the Collection to be Loaded in the List
+  * length:       - Total Number of Elements to be Loaded in the List from the Collection
+  * staleTime:    - Number of Seconds Until the Data is Considered to be Stale and Must be Refreshed (can be Infinity)
+  * autopopulate: - Whether to autopopulate the DB collection to ensure that there's always at least one entry in it.
   */
-  constructor(collection, headIdx, length, staleTime, objClass){
+  constructor({
+    collection,
+    objClass=DBObject,
+    headIdx=Infinity, // Default: Grab to end
+    length=Infinity, // Default: Grab everything
+    staleTime=10,  // Default: Autoupdate every 10s in addition to ChangeStream calls
+    autopopulate=false
+  } = {}){
+
     if(Collections.contains(collection)){
       this.collection = collection;
     } else{
@@ -57,45 +54,75 @@
         console.error("Attempting to Create a DBList with an Invalid Collection: " + Collections.toString(collection));
       }
     }
-      this._coreData = [];
-      this._headIdx = headIdx;
-      this._length = length;
-      this._staleTime = staleTime;
-      if(objClass.prototype instanceof DBObject){
-        this.objClass = objClass;
-      } else{
-        this.objClass = DBObject;
+    
+    this._coreData = [];
+    this._headIdx = headIdx;
+    this._length = length;
+    this._staleTime = staleTime;
+    if(objClass.prototype instanceof DBObject){
+      this.objClass = objClass;
+    } else{
+      this.objClass = DBObject;
+    }
+    this.needsUpdate = 1; // Whether the DB needs to be updated
+    // Array of Observers Waiting to be Notified about the Next Update (see #onNextUpdate):
+    this.tempObservers = [];
+    // Array of Observers Waiting to be Notified about the Every Update (see #onUpdate):
+    this.permObservers = [];
+
+    this.initialLoad = 0; // Whether all data in range has been initially loaded.
+
+    this.changeStreamConnected = false;
+
+    // Once DB is Connected:
+    // Attempt to setup ChangeStream based on given DB connection status:
+    const attemptChangeStreamSetup = ({connected}) => {
+      if(connected && !this.changeStreamConnected){
+        DB.eventBus.off('statusChange', attemptChangeStreamSetup);
+        DB.onChange(this.collection, this.streamUpdate, Infinity, ({connected}) => {this.changeStreamConnected = connected;});
       }
-      this.needsUpdate = 1; // Whether the DB needs to be updated
-      // Array of Observers Waiting to be Notified about the Next Update (see #onNextUpdate):
-      this.tempObservers = [];
-      // Array of Observers Waiting to be Notified about the Every Update (see #onUpdate):
-      this.permObservers = [];
+    };
+    DB.eventBus.on('statusChange', attemptChangeStreamSetup);
 
-      this.initialLoad = 0; // Whether all data in range has been initially loaded.
-
-      this.changeStreamConnected = false;
-
-      // Once DB is Connected:
-      // Attempt to setup ChangeStream based on given DB connection status:
-      const attemptChangeStreamSetup = ({connected}) => {
-        if(connected && !this.changeStreamConnected){
-          DB.eventBus.off('statusChange', attemptChangeStreamSetup);
-          DB.onChange(this.collection, this.streamUpdate, Infinity, ({connected}) => {this.changeStreamConnected = connected;});
-        }
-      };
-      DB.eventBus.on('statusChange', attemptChangeStreamSetup);
-
-      // Attempt to load data until successful based on the given database connection status:
-      const attemptInitialDataLoad = ({connected}) => {
-        if(connected){
-          DB.eventBus.off('statusChange', attemptInitialDataLoad); // Unregister from eventBus
-          this.updateData(); // Initial data load
-        }
+    // Attempt to load data until successful based on the given database connection status:
+    const attemptInitialDataLoad = ({connected}) => {
+      if(connected){
+        DB.eventBus.off('statusChange', attemptInitialDataLoad); // Unregister from eventBus
+        this.updateData(); // Initial data load
       }
-      DB.eventBus.on('statusChange', attemptInitialDataLoad);
-      
-      DB.checkConnection(); // Force initial connection check.
+    }
+    DB.eventBus.on('statusChange', attemptInitialDataLoad);
+
+    this.autopopulated = false;
+    if(autopopulate){
+      // Once DB is Connected, make sure there is at least one object in the collection:
+      DB.eventBus.on('statusChange', this.autopopulateProcess);
+    }
+    
+    DB.checkConnection(); // Force initial connection check.
+  }
+
+  /**
+   * Special option. Autopopulates the collection with at least one entry.
+   */
+  autopopulateProcess = ({connected}) => {
+      if(connected && !this.autopopulated){
+        this.forceReactiveUpdate().then( ({data}) => {
+            /** 
+             * On first connection to DB, check to see if this terminal is the first to access the DB for this mission (partition).
+             * If so, initialize the DB by providing an initial DataEntry entry.
+             */
+            DB.eventBus.off('statusChange', this.autopopulateProcess); // Deregister. Event handler no longer needed.
+            if(data.length === 0){
+                this.forcePush({obj: new this.objClass()});
+            }
+        }).catch( () => {
+          // If failed to load data, retry:
+          this.autopopulated = false;
+          this.autopopulateProcess({connected});
+        });
+        this.autopopulated = true;
+    }
   }
 
   /**
@@ -157,7 +184,6 @@
       || this.staleTime!==Infinity && (this.needsUpdate || new Date() > this.nextUpdateTime)
       || forceUpdate
       ){
-        this.initialLoad = 1;
         let dataRead;
         if(this.length === Infinity){
           dataRead = DB.read(this.collection, false);
@@ -172,12 +198,11 @@
         dataRead.then( docs => { // NOTE: coreData WON'T be updated automatically
                                   // but this function will return right away with
                                   // the old value.
-
+          this.initialLoad = 1;
           // (map converts plain JSON objects into objects of the specified DBObject class)
           this.coreData = docs.map( d => this.objClass.fromJSON(d) );
           resolve({data: this.coreData, updated: true});
         }).catch( (err) => {
-          this.initialLoad = 0;
           reject(err)
         });
 

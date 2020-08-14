@@ -32,36 +32,19 @@ export default {
       }
     },
     mounted(){
-      // append the svg object to the body of the page
-      this.svg = d3.select("#ftaContainer")
-                   .append("svg")
-                   .append("g")
-                   .attr("transform", "translate(0,0)");
-
-      // Set the sankey diagram properties
-      this.sankey = d3_sankey()
-        .nodeWidth(this.nodeWidth)
-        .nodePadding(this.nodePadding)
-        .size([this.width, this.height]);
-
-      this.path = this.sankey.link();
-
-      // Once DB is Connected, make sure there is at least one FTAData object:
+      // Populate the graph now:
+      this.setup();
+      // And repopulate the graph as data updates:
       this.logLazyList.onUpdate( () => {
-        // Populate the graph:
-        this.jsonUpdateHandler(this.currentState);
+        this.setup();
       });
-
-      // Watch for / react to size changes:
-      this.resizeObserver = new ResizeObserver(() => this.updateSize());
-      this.resizeObserver.observe(this.$refs.container);
     },
     beforeDestroy(){
       this.resizeObserver.disconnect();
     },
     computed: {
       ...mapGetters({
-          log: 'FTALog', //                             - Getter for the FTAData entries on the Database from DBLazyList
+          FTALog: 'FTALog', //                          - Getter for the FTAData entries on the Database from DBLazyList
           currentState: 'currentFTAState', //           - Most recent SystemData entry on the Database from DBLazyList
       }),
       ...mapState({
@@ -69,6 +52,33 @@ export default {
       })
     },
     methods: {
+      // Setup graph:
+      setup(){
+        // Clear / Reclear Space:
+        d3.select("#ftaContainer").html("");
+
+        // append the svg object to the body of the page
+        this.svg = d3.select("#ftaContainer")
+                    .append("svg")
+                    .append("g")
+                    .attr("transform", "translate(0,0)");
+
+        // Set the sankey diagram properties
+        this.sankey = d3_sankey()
+          .nodeWidth(this.nodeWidth)
+          .nodePadding(this.nodePadding)
+          .size([this.width, this.height]);
+
+        this.path = this.sankey.link();
+
+        // Populate the graph now:
+        this.jsonUpdateHandler(this.currentState);
+
+        // Watch for / react to size changes:
+        this.resizeObserver = new ResizeObserver(() => this.updateSize());
+        this.resizeObserver.observe(this.$refs.container);
+      },
+
       // Forces the Sankey plot to resize to fit the container and re-layout accordingly.
       updateSize(){
         this.resize(this.$refs.container.clientWidth, this.$refs.container.clientHeight-this.nodePadding)

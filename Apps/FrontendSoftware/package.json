@@ -22,7 +22,7 @@
     "concat-stream": "^2.0.0",
     "d3": "^5.16.0",
     "d3-sankey": "^0.12.3",
-    "electron": "^3.1.13",
+    "electron": "^7.2.4",
     "electron-splashscreen": "^1.0.0",
     "electron-unhandled": "^3.0.2",
     "eslint": "^5.16.0",

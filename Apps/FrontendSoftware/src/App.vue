@@ -1,5 +1,9 @@
 <template>
   <div id="app" class="text__main">
+    <!-- Headless Components: -->
+    <SystemManager />
+
+    <!-- Renderer: -->
     <router-view/>
   </div>
 </template>
@@ -9,9 +13,12 @@ import { remote } from 'electron'
 import { reportReady } from 'electron-splashscreen'
 import DB from '@/DBInterface/DBInterface'
 
+import SystemManager from '@/system/SystemManager.vue'
+
 export default {
   name: 'App',
   components: {
+    SystemManager
   },
   created: function() {
     // Add event listners to the global event hub:
@@ -20,7 +27,7 @@ export default {
     this.processArgs();
   },
   beforeDestroy: function() { // Removes event listners from the global event hub
-    this.$eventHub.$on('loginMounted')
+    this.$eventHub.$off('loginMounted', this.activateWindow);
   },
   methods: {
     activateWindow: function(){
@@ -55,7 +62,7 @@ export default {
         let code = codeIdx > -1 ? vals[codeIdx] : "";
 
         let connected = await DB.init(mission, code);
-        console.log("DB Connection", connected ? "Successful" : "Failed");
+        console.log("[IRIS-APP] DB Connection", connected ? "Successful" : "Failed");
       }
 
       // Handle the rest of the keys in any order:
@@ -65,11 +72,11 @@ export default {
           case "route-to": { //     - Route to a specific page in views.
             this.$eventHub.$emit('loginMounted'); // skip Login
             try{
-              console.log("Routing to " + vals[i] + " . . .");
+              console.log("[IRIS-APP] Routing to " + vals[i] + " . . .");
               this.$router.push(vals[i]);
             } catch(e){
               console.warn(e);
-              console.log("Page " + vals[i] + " not registered in router.js");
+              console.log("[IRIS-APP] Page " + vals[i] + " not registered in router.js");
             }
           } break;
 
@@ -86,6 +93,12 @@ export default {
   font-family: 'Barlow';
   src: url('./styles/Barlow/Barlow-Regular.ttf')  format('truetype');
   font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Barlow';
+  src: url('./styles/Barlow/Barlow-Medium.ttf')  format('truetype');
+  font-weight: medium;
   font-style: normal;
 }
 @font-face {

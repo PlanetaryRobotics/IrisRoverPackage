@@ -20,7 +20,6 @@ export default class CommandData extends DBObject{
   // Returns the Default Data this Object Should Contain
   static defaultData(){
     return { // data which gets saved to JSON
-      lookupID: -1,
       name: "",
       args: {
         Images: 1, // number of images requested by command

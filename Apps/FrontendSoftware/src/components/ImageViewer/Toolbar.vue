@@ -21,6 +21,8 @@ import path from 'path'
 import fs from 'fs'
 import { mapState } from 'vuex'
 
+import TooltipEquip from '@/styles/TooltipEquip.js'
+
 export default {
   name: 'Toolbar',
   props: {
@@ -32,6 +34,8 @@ export default {
     };
   },
   mounted(){
+    TooltipEquip(this.$el);
+
     // Load Icons as Inline SVG:
     this.radialGridSVG = fs.readFileSync(path.join(__static,'./icons/icon_radial_grid.svg'), 'utf8');
     this.cartesianGridSVG = fs.readFileSync(path.join(__static,'./icons/icon_cartesian_grid.svg'), 'utf8');

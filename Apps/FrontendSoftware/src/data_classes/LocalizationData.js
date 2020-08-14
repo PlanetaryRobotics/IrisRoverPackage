@@ -25,7 +25,6 @@ export default class LocalizationData extends DBObject{
   // Returns the Default Data this Object Should Contain
   static defaultData(){
     return { // data which gets saved to JSON
-      lookupID: -1, // DB ID of this packet
       collectionTime: false, // Time the source data (image) was collected.
       sendTime: false, // Time this packet was completed and pushed to DB.
 

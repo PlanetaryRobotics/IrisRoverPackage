@@ -3,7 +3,7 @@ Basic Three-State Toggle to Select from which Camera Images are Displayed.
 
 Author: Connor W. Colombo, CMU
 Created: 10/6/2019
-Last Updated: 10/8/2019, Colombo
+Last Updated: 08/14/2020, Colombo
 -->
 <template>
   <div id="tritoggle">
@@ -44,12 +44,17 @@ Last Updated: 10/8/2019, Colombo
 </template>
 
 <script>
+import TooltipEquip from '@/styles/TooltipEquip.js'
+
 export default {
   name: "Tritoggle",
   data: function(){
     return {
       selection: 'B' // default selection is both cameras
     }
+  },
+  mounted(){
+    TooltipEquip(this.$el);
   },
   methods: {
     // Select Camera based on Which Button was Clicked:

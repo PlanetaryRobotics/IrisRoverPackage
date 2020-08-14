@@ -3,7 +3,7 @@
  * Set of All Functionality for Pushing or Pulling JSON Data to/from the Database.
 
  * Author: Sofia Hurtado, CMU
- * Last Update: 05/28/2020, Colombo
+ * Last Update: 08/13/2020, Colombo
  */
  // TODO: Let user w/o permissions push command to db but have it flagged and ignored. (this behavior should be moved to CommandField.vue)
  // TODO: Update connected & currentlyConnected everywhere it could be caught (#onCollection, #onClient, etc.)
@@ -115,14 +115,30 @@ export default {
     let connected = await this.checkConnection();
     this.verifyCollectionFormatting(); // Do this only once, on startup
 
+    this.eventBus.on('statusChange', this.persistConnection);
+
     return connected;
+  },
+
+  persistenceTimer: {},
+  // If disconnected, in case all other reconnect measures fail, continuously 
+  // attempt to reconnect at a fixed interval:
+  persistConnection: function({connected}){
+    if(!connected){
+      const check = this.checkConnection;
+      this.persistenceTimer = setInterval(check, 1000);
+    } else {
+      clearInterval(this.persistenceTimer);
+    }
   },
 
   // Performs a Synchronous Check to See if a Connection with the Database Can
   // be Established:
+  // DON'T USE `onClient` here (will cause infinite recursion while not connected)
   checkConnection: async function(){
     let MongoClient = mongo.MongoClient;
     return await new Promise( (resolve) => {
+      console.log("[IRIS-DB] Checking DB Connection Status");
       MongoClient.connect(DB_URL(), {useNewUrlParser: true}, (err,client) => {
         let conn;
         if(err){
@@ -137,8 +153,16 @@ export default {
           currentlyConnected = conn;
           this.eventBus.emit('statusChange', {connected: currentlyConnected});
         }
+        if(client){
+          client.close(); // Close before calling the resolving action (in case it opens a new connection)
+        }
+        if(currentlyConnected){
+          console.log('[IRIS-DB] \t > DB is Connected.');
+        } else {
+          console.warn('[IRIS-DB] \t > DB is Disconnected.');
+        }
+        
         resolve(currentlyConnected);
-        client.close();
       });
     });
   },
@@ -172,20 +196,22 @@ export default {
   validCollection: function(c){
     let valid = Collections.isValid(c);
     if(!valid){
-      console.error(c + " is not a valid Database Collection.");
+      console.error("[IRIS-DB] " + c + " is not a valid Database Collection.");
     }
     return valid;
   },
 
   // Checks if the Given User Has Permission to Send Commands
   checkSendPermission: function(userName){
-    console.log(`User ${userName} has universal permissions for now.`);
-    return true; // TODO: Do real permissions check
+    console.log(`[IRIS-DB] User ${userName} has universal permissions for now.`);
+    return true; // TODO: Do real permissions check (and actually use this function.)
+                // (Permissions should be stored as writeAccess per collection for each user)
   },
 
   /*
-    Attempts to Connect to the DB_URL. Invokes the Callback #command and Supplies
-    as an Argument the Connected MongoDB Client.
+    Attempts to Connect to the DB_URL and performs general system checks.
+    Invokes the Callback #command and Supplies as an Argument the Connected MongoDB Client.
+    NOTE: All DB connection attempts except checkConnection should use this to connect.
     ***NOTE:  It is the caller's responsibility to close the client when done
               using it (done with current operations involving the db) by
               calling #client.close().
@@ -194,7 +220,16 @@ export default {
     let MongoClient = mongo.MongoClient;
     return new Promise( (resolve,reject) => {
       MongoClient.connect(DB_URL(), {useNewUrlParser: true}, (err,client) => {
-        err ? reject(err) : resolve(command(client));
+        if(err){
+          this.checkConnection();
+          reject(err);
+        } else{
+          // If the client was successfully connected to but DB was disconnected on last check (currentlyConnected is false), perform a formal check to update the status:
+          if(!currentlyConnected){
+            this.checkConnection(); // Likely have just reconnected. Perform a formal connection check.
+          }
+          resolve(command(client));
+        }
       });
     });
   },
@@ -254,14 +289,14 @@ export default {
            if(obj instanceof DBObject){
              data = obj.plainJSON();
            } else{
-             console.error(`Attempting to write non-DBObject to database: ${JSON.stringify(obj)}`);
+             console.error(`[IRIS-DB] Attempting to write non-DBObject to database: ${JSON.stringify(obj)}`);
              data = Object.assign({}, obj); // make a copy.
            }
            Object.assign(data, {lookupID: count+1}); // Append or modify lookupID of obj
 
            collection.insertOne(data, function(err){
              if(err){
-               console.error(`Failed to Post ${JSON.stringify(obj)} to ${collection}.`);
+               console.error(`[IRIS-DB] Failed to Post ${JSON.stringify(obj)} to ${collection}.`);
                reject(err);
                throw err;
              }
@@ -438,11 +473,11 @@ export default {
             })
             .on("error", err => {
               // Change Stream connection times out if nothing new has come in in a while; so, re-watch stream
-              console.log("Change Stream Error for " + collection.collectionName + ": " + err);
-              console.log("Attempting to establish ChangeStream . . .");
+              console.log("[IRIS-DB] Change Stream Error for " + collection.collectionName + ": " + err);
+              console.log("[IRIS-DB] Attempting to establish ChangeStream . . .");
               this.onChange(collection.collectionName, callback, streamIdx, onStatusChange).then(
-                () => { console.log("ChangeStream for " + collection.collectionName + " Re-established."); },
-                () => { console.warn("ChangeStream for " + collection.collectionName + " Could Not Re-established."); }
+                () => { console.log("[IRIS-DB] ChangeStream for " + collection.collectionName + " Re-established."); },
+                () => { console.warn("[IRIS-DB] ChangeStream for " + collection.collectionName + " Could Not Re-established."); }
               ); // resume watching stream at same point
               client.close(); // Close out the original client.
             });

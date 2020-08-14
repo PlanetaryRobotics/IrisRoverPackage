@@ -44,8 +44,14 @@ export default {
       }
     },
 
-    // List of CommandData Objects Held in the Log in the Database's Commands Collection:
-    imageList: new DBLazyList(Collections.Images, Infinity, Infinity, Infinity, ImageData),
+    // List of ImageData Objects Held in the Log in the Database's Commands Collection:
+    imageList: new DBLazyList({
+      collection: Collections.Images,
+      objClass: ImageData,
+      headIdx: Infinity,
+      length: Infinity,
+      staleTime: Infinity
+    }),
 
     // Stores bool for if user is creating new tag
     isAddTag: false,

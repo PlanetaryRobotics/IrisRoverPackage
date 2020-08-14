@@ -3,7 +3,7 @@ Simple and informative interface for sending commands to the lunar rover.
 
 Author: Connor W. Colombo, CMU
 Created: 1/30/2019
-Last Update: 2/25/2019, Moosbrugger
+Last Update: 7/31/2020, Colombo
 -->
 <template>
   <div class="cli">

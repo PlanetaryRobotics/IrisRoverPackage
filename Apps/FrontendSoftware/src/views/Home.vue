@@ -13,7 +13,6 @@ Last Update: 07/29/2020, Colombo
       <div TabName="Telemetry" id="Telemetry" class="box"> Telemetry </div>
       <div TabName="Error Analysis" id="ErrorAnalysis" class="box"> Error Analysis </div>
       <Map TabName="Map" />
-      <FTA TabName="Failure Tree" ModalHeader="Failure Tree Analysis" ModalIcon="data" ref="fta" />
 
       <template v-slot:modal-components>
         <CLI ModalHeader="Command Line" ModalIcon="commandLine" ref="cli" />
@@ -58,8 +57,6 @@ import CLI from '@/components/CLI/CLI.vue'
 import ImageViewer from '@/components/ImageViewer/ImageViewer.vue'
 import Map from '@/components/Map/Map.vue'
 
-import FTA from '@/components/FTA/FTA.vue'
-
 import CombinedScreens from '@/components/Interface/CombinedScreens.vue'
 
 import DB from '@/DBInterface/DBInterface.js'
@@ -70,8 +67,7 @@ export default {
     CombinedScreens,
     CLI,
     ImageViewer,
-    Map,
-    FTA
+    Map
   },
   computed: {
     ...mapGetters({

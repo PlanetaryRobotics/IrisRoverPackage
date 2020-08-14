@@ -1,0 +1,59 @@
+/*
+ * SCSS partial for scss functionality which is used across multiple components.
+ *
+ * Author: Connor W. Colombo, CMU
+ * Created: 2/15/2019
+ * Last Updated: 7/26/2020, Colombo
+ */
+@import '@/styles/_dimensions.scss';
+@import '@/styles/_colors.scss';
+@import '@/styles/_context.scss';
+@import '@/styles/_typography.scss';
+@import '@/styles/_inputs.scss';
+@import '@/styles/_modal.scss';
+
+@import "~tooltipster/dist/css/tooltipster.bundle.min.css";
+@import "~tooltipster/dist/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-borderless.min.css";
+
+.selectable-vector {
+	cursor: pointer;
+	stroke: $color-grey-dark;
+	transition: .1s ease-in-out;
+	fill: $color-background;
+
+	&.highlighted, &:hover {
+		stroke: $color-grey-light;
+	}
+}
+
+.tooltipster-sidetip.tooltipster-noir.tooltipster-borderless-customized .tooltipster-box {
+	background: $color-grey;
+	border-radius: 10px;
+}
+
+.tooltipster-sidetip.tooltipster-noir.tooltipster-borderless-customized .tooltipster-content {
+  font-family: Barlow;
+  font-weight: 400;
+  font-size: 1.2rem;
+}
+
+// Standard scrolling mechanics + aesthetics (can be extended to offer custom scrolling mechanics inside a class which includes this package):
+@mixin scrolling-aesthetics() {
+  overflow: auto;
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: $std-gutter-radius;
+    background-color: $color-grey-dark;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: $color-grey2;
+  }
+}
+
+.scrollable{
+  @include scrolling-aesthetics();
+
+  &::-webkit-scrollbar {
+    width: 2 * $std-gutter-radius;
+  }
+}

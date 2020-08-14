@@ -1,0 +1,10 @@
+$(BUILD_ROOT)/Svc/BufferManager/BufferManagerComponentAc.cpp:\
+    $(BUILD_ROOT)/Fw/Time/TimePortAi.xml  \
+    $(BUILD_ROOT)/Fw/Log/LogPortAi.xml  \
+    $(BUILD_ROOT)/Fw/Log/LogTextPortAi.xml  \
+    $(BUILD_ROOT)/Fw/Buffer/BufferSendPortAi.xml  \
+    $(BUILD_ROOT)/Fw/Buffer/BufferGetPortAi.xml  \
+    $(BUILD_ROOT)/Fw/Tlm/TlmPortAi.xml  \
+    $(BUILD_ROOT)/Svc/BufferManager/Telemetry.xml  \
+    $(BUILD_ROOT)/Svc/BufferManager/Events.xml  
+

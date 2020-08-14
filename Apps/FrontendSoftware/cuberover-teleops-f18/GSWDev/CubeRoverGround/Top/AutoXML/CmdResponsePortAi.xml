@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="../../Autocoders/schema/ISF/interface_schema.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+
+<interface name="CmdResponse" namespace="Fw">
+    <comment>
+    Port Type interface arguments.
+    </comment>
+    <args>
+        <arg name="opCode" type="FwOpcodeType" pass_by="value">
+        </arg>
+        <arg name="cmdSeq" type="U32" pass_by="value">
+        </arg>
+        <arg name="response" type="ENUM" pass_by="value">
+           <enum name="CommandResponse">
+              <item name="COMMAND_OK"/>
+              <item name="COMMAND_INVALID_OPCODE"/>
+              <item name="COMMAND_VALIDATION_ERROR"/>
+              <item name="COMMAND_FORMAT_ERROR"/>
+              <item name="COMMAND_EXECUTION_ERROR"/>
+           </enum>
+        </arg>
+    </args>
+</interface>

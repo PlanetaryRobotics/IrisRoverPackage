@@ -1,0 +1,12 @@
+{
+  "DrivingCommandId": {
+    "type": "enum",
+    "underlying_type": "uint8",
+    "members": [
+      {"FORWARD": 0},
+      {"REVERSE": 1},
+      {"LEFT": 2},
+      {"RIGHT": 3}
+    ]
+  }
+}

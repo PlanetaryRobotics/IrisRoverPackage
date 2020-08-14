@@ -1,0 +1,95 @@
+@import '@/styles/_colors.scss';
+
+.input__text--small {
+  border:none;
+  background-color:transparent;
+  box-shadow: none;
+  color: $color-grey-light;
+  padding-bottom: .5rem;
+  border-bottom: 2px solid transparent;
+  width: 60%;
+  transition: .05s ease-in-out;
+
+  &:hover {
+    border-bottom: 2px solid $color-grey-dark;
+  }
+
+  &:focus {
+    outline: none;
+    border-bottom: 2px solid $color-primary;
+  }
+
+  &::placeholder {
+    color: $color-grey;
+  }
+}
+
+.input__text--reg {
+  border: none;
+  background-color: $color-grey-dark;
+  box-shadow: none;
+  color: $color-grey-light;
+  padding: .5rem 1rem;
+  border-radius: 1rem;
+  width: 100%;
+
+  &:focus {
+    outline: none;
+  }
+
+  &::placeholder {
+    color: $color-grey;
+  }
+}
+
+.inputError {
+  border-bottom: 2px solid $color-caution;
+}
+
+.button {
+  padding: .3rem .8rem;
+  color: $color-near-white;
+  border-radius: 10rem;
+  background-color: transparent;
+  transition: .1s ease-in-out;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+  }
+
+  @mixin button-coloring($color){
+    border: 2px solid $color;
+
+    &:hover {
+      background-color: $color;
+    }
+    &_mute {
+      border: 2px solid $color-grey-dark;
+
+      &:hover {
+        border: 2px solid $color;
+        background-color: $color;
+      }
+    }
+  }
+
+  &__primary {
+    @include button-coloring($color-primary);
+  }
+  &__nominal {
+    @include button-coloring($color-nominal);
+  }
+  &__caution {
+    @include button-coloring($color-caution);
+  }
+  &__danger {
+    @include button-coloring($color-danger);
+  }
+  &__subtle {
+    @include button-coloring($color-grey-dark);
+  }
+  &__brand {
+    @include button-coloring($color-brand);
+  }
+}

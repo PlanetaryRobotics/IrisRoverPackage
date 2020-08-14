@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>FileManager Component Dictionary</title>
+</head>
+<body>
+
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+}
+th {
+    text-align: left;
+}
+html {
+    font-family: Arial, sans-serif ;
+    font-size: 90% ;
+}
+</style>
+
+
+<h1><b>Commands</b></h1>
+
+
+
+<table>
+	<thead>
+		<tr style = "border-right: 2px solid black; border-left: 2px solid black; border-top: 2px solid black;">
+			<th rowspan = "2">Mnemonic</th>
+			<th rowspan = "2">ID</th>
+			<th rowspan = "2">Description</th>
+			<th rowspan = "1" colspan = "3">Arguments</th>
+		</tr>
+		<tr style = "border-right: 2px solid black; ">
+			<th>Argument</th>
+			<th>Type</th>
+			<th>Description</th>
+		<tr>
+	</thead>
+	<tbody>
+	
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">CreateDirectory</td>
+			<td rowspan="2">['0x0']</td>
+			<td rowspan="2">Create a directory</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>dirName</td>
+						<td>Fw::CmdStringArg</td>
+						<td>The directory to create</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">MoveFile</td>
+			<td rowspan="3">['0x1']</td>
+			<td rowspan="3">Move a file</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>sourceFileName</td>
+						<td>Fw::CmdStringArg</td>
+						<td>The source file name</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>destFileName</td>
+						<td>Fw::CmdStringArg</td>
+						<td>The destination file name</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">RemoveDirectory</td>
+			<td rowspan="2">['0x2']</td>
+			<td rowspan="2">Remove a directory, which must be empty</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>dirName</td>
+						<td>Fw::CmdStringArg</td>
+						<td>The directory to remove</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">RemoveFile</td>
+			<td rowspan="2">['0x3']</td>
+			<td rowspan="2">Remove a file</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::CmdStringArg</td>
+						<td>The file to remove</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">ShellCommand</td>
+			<td rowspan="3">['0x4']</td>
+			<td rowspan="3">Perform a Linux shell command and write the output to a log file.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>command</td>
+						<td>Fw::CmdStringArg</td>
+						<td>The shell command string</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>logFileName</td>
+						<td>Fw::CmdStringArg</td>
+						<td>The name of the log file</td>
+					</tr>
+		</tr>
+	</tbody>
+</table>   
+
+
+
+<h1><b>Telemetry</b></h1>
+<table>
+  <tr>
+     <th>Channel Name</th>
+     <th>ID</th>
+     <th>Type</th>
+     <th>Description</th>
+ </tr>
+
+ <tr>
+    <td>CommandsExecuted</td>
+    <td>['0x0']</td>
+    <td>U32</td>
+    <td>The total number of commands successfully executed</td>
+ </tr>
+ <tr>
+    <td>Errors</td>
+    <td>['0x1']</td>
+    <td>U32</td>
+    <td>The total number of errors</td>
+ </tr>
+</table>
+
+<h1><b>Events</b></h1>
+
+
+
+
+<table>
+	<thead>
+		<tr style = "border-right: 2px solid black; border-left: 2px solid black; border-top: 2px solid black;">
+			<th rowspan = "2">Event Name</th>
+			<th rowspan = "2">ID</th>
+			<th rowspan = "2">Description</th>
+			<th rowspan = "1" colspan = "4">Arguments</th>
+		</tr>
+		<tr style = "border-right: 2px solid black; ">
+			<th>Argument</th>
+			<th>Type</th>
+			<th>Size</th>
+			<th>Description</th>
+		<tr>
+	</thead>
+	<tbody>
+	
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">DirectoryCreateError</td>
+			<td rowspan="3">['0x0']</td>
+			<td rowspan="3">An error occurred while attempting to create a directory</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>dirName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>256</td>
+						<td>The name of the directory</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>status</td>
+						<td>U32</td>
+						<td></td>
+						<td>The error status</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">DirectoryRemoveError</td>
+			<td rowspan="3">['0x1']</td>
+			<td rowspan="3">An error occurred while attempting to remove a directory</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>dirName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>256</td>
+						<td>The name of the directory</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>status</td>
+						<td>U32</td>
+						<td></td>
+						<td>The error status</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">FileMoveError</td>
+			<td rowspan="4">['0x2']</td>
+			<td rowspan="4">An error occurred while attempting to move a file</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>sourceFileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>256</td>
+						<td>The name of the source file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">					
+						<td>destFileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>256</td>
+						<td>The name of the destination file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>status</td>
+						<td>U32</td>
+						<td></td>
+						<td>The error status</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">FileRemoveError</td>
+			<td rowspan="3">['0x3']</td>
+			<td rowspan="3">An error occurred while attempting to remove a file</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>fileName</td>
+						<td>Fw::LogStringArg&</td>
+						<td>256</td>
+						<td>The name of the file</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>status</td>
+						<td>U32</td>
+						<td></td>
+						<td>The error status</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">ShellCommandFailed</td>
+			<td rowspan="3">['0x4']</td>
+			<td rowspan="3">The File System component executed a shell command that returned status non-zero</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">					
+						<td>command</td>
+						<td>Fw::LogStringArg&</td>
+						<td>256</td>
+						<td>The command string</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">					
+						<td>status</td>
+						<td>U32</td>
+						<td></td>
+						<td>The status code</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">ShellCommandSucceeded</td>
+			<td rowspan="2">['0x5']</td>
+			<td rowspan="2">The File System component executed a shell command that returned status zero</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">					
+						<td>command</td>
+						<td>Fw::LogStringArg&</td>
+						<td>256</td>
+						<td>The command string</td>
+					</tr>
+		</tr>
+	</tbody>
+</table> 
+
+
+
+</body>
+</html>

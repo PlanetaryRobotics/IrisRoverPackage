@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
+
+<!--====================================================================== 
+
+  Svc
+  SignalGen
+  Commands
+
+======================================================================-->
+
+<commands>
+  <command kind="async" opcode="0" mnemonic="RateCounter_report">
+    <comment>Reports current count from the EVR </comment>
+  </command>
+</commands>

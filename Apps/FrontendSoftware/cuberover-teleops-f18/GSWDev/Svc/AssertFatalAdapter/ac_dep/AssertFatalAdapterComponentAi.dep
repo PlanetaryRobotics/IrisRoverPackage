@@ -1,0 +1,6 @@
+$(BUILD_ROOT)/Svc/AssertFatalAdapter/AssertFatalAdapterComponentAc.cpp:\
+    $(BUILD_ROOT)/Fw/Time/TimePortAi.xml  \
+    $(BUILD_ROOT)/Fw/Log/LogPortAi.xml  \
+    $(BUILD_ROOT)/Fw/Log/LogTextPortAi.xml  \
+    $(BUILD_ROOT)/Svc/AssertFatalAdapter/AssertFatalEvents.xml  
+

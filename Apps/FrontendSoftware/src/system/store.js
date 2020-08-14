@@ -14,7 +14,14 @@ import Collections from '@/DBInterface/Collections.js'
 export default {
   state: {
     // List of SystemData Objects Held in the Log in the Database's Commands Collection (only load the most recent entry):
-    stateLogList: new DBLazyList(Collections.System, Infinity, 1, Infinity, SystemData)
+    stateLogList: new DBLazyList({
+      collection: Collections.System,
+      objClass: SystemData,
+      headIdx: Infinity,
+      length: 1,
+      staleTime: Infinity,
+      autopopulate: true
+    })
   },
 
   mutations: {
@@ -31,7 +38,7 @@ export default {
         if(getters.systemStateLog.length){
             return getters.systemStateLog.reduce( (last, curr) => curr.data.lookupID > last.data.lookupID ? curr : last ).data;
         } else{
-            return new SystemData({}).data; // Return blank / default empty image.
+            return new SystemData({}).data; // Return blank / default empty SystemData.
         }
     },
   }

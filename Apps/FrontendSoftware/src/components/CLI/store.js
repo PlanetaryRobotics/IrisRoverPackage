@@ -29,7 +29,13 @@ export default {
   },
   state: {
     // List of CommandData Objects Held in the Log in the Database's Commands Collection:
-    Log: new DBLazyList(Collections.Commands, Infinity, Infinity, 3, CommandData),
+    Log: new DBLazyList({
+      collection: Collections.Commands,
+      objClass: CommandData,
+      headIdx: Infinity,
+      length: Infinity,
+      staleTime: 3
+    }),
     // List of All Commands which have been Ordered to be Sent to the Database but
     // haven't been Successfully Committed Yet:
     LogWaiting: [],

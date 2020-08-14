@@ -75,12 +75,12 @@ Last Update: 08/14/2020, Colombo
                 batteryMinLevelSVGLength: 3, // Length of horizontal section of SVG when battery is at 0%
                 batteryMaxLevelSVGLength: 16.5, // Length of horizontal section of SVG when battery is at 100%
 
-                time: "", // Time to be displayed in the InfoBar
-                lastRoverDataTime: "", // Time of last rover data update to be displayed in the InfoBar
+                time: "+00:00:00", // Time to be displayed in the InfoBar
+                lastRoverDataTime: "+00:00:00", // Time of last rover data update to be displayed in the InfoBar
 
                 // TODO: REMOVEME: Connect to actual battery telemetry signal
                 battery_fade_time: 4.8, // [hr] Time until simulated battery runs out.
-                fake_battery_level: 100,
+                fake_battery_level: 99,
 
                 // Enumeration of all possible rover states (constant) - used for ensuring text consistency and finding the longest one.
                 roverStates: new Map([
@@ -99,9 +99,7 @@ Last Update: 08/14/2020, Colombo
         props: {
             // To be used for syncing the clocks between multiple InfoBar instances (eg. if instances are inside a container that frequently gets v-if'd in and out of existence frequently and you don't want the clock flashing each time).
             syncedClock: {
-                type: Clock,
                 required: false,
-                default: undefined
             }
         },
         mounted(){
@@ -109,6 +107,7 @@ Last Update: 08/14/2020, Colombo
 
             // Update the Clock on Ticks:
             this.clock.eventBus.on('tick', this.onClockTick);
+            this.onClockTick(); // Force clock update right away
 
             this.updateRoverState();
             // Once DB is Connected:
@@ -122,7 +121,6 @@ Last Update: 08/14/2020, Colombo
             DB.eventBus.off('statusChange', this.onDBConnectionChange);
         },
         methods: {
-
             onClockTick(){
                 this.time = this.clock.full({includeStamp: true});
                 this.lastRoverDataTime = this.clock.full({t: this.currentSystemState.avionics.lastMessageTime});
@@ -146,7 +144,6 @@ Last Update: 08/14/2020, Colombo
             onDBConnectionChange({connected}){
                 this.pollingConnection = false;
                 if(connected !== this.connectedToDB){
-                    console.error("UPDATING");
                     this.updateRoverState(connected);
                 }
             },
@@ -154,15 +151,17 @@ Last Update: 08/14/2020, Colombo
              * Returns a string representing the rover's current state.
              * To be called whenever anything that affects the rover connection status changes.
              */
-            async updateRoverState(){
-                this.connectedToDB = await DB.checkConnection(); // Fetch DB Connection Status
+            updateRoverState(dbStatus){
+                this.connectedToDB = dbStatus;
                 this.connectedToRover = this.currentSystemState.backend.connectedToRover; // TODO: Make sure this changes when the rover connection status flag changes on the DB
             }
         },
         watch: {
             currentSystemState(sys){
                 // Update the synchronized clock (if the same clock is to be used across multiple InfoBar instances):
-                this.$emit('update:syncedClock', sys.time.moon || new Clock());
+                if(sys.time.moon && !sys.time.moon.empty){
+                    this.$emit('update:syncedClock', sys.time.moon);
+                }
             }
         },
         computed: {

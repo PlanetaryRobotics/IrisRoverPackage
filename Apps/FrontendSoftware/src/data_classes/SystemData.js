@@ -7,7 +7,7 @@
  *
  * Author: Connor W. Colombo, CMU
  * Created: 08/07/2020
- * Last Update: 08/07/2020, Colombo
+ * Last Update: 08/14/2020, Colombo
  */
 
 const { DateTime } = require('luxon');

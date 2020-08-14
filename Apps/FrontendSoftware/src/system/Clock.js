@@ -50,16 +50,22 @@ export default class Clock{
     // Handle for the Node timer driving the tick events on the eventBus (generates a tick for all Clock subscribers):
     static #pendulum = setInterval(() => Clock.#eventBus.emit('tick'), 1000);
 
-    constructor({
-        code,
-        name = code,
-        zeroTime = DateTime.utc(),
-        toStringUseStamp = false
-    } = {}){
+    #empty;
+
+    constructor(args){
+        const {
+            code,
+            name = code,
+            zeroTime = DateTime.utc(),
+            toStringUseStamp = false
+        } = (args || {});
+
         this.code = code; //                                - Shorthand codename / abbreviation (usually one letter)
         this.name = name; //                                - Longform name
         this.zeroTime = zeroTime; //                        - Reference time (time considered to be X+0)
         this.toStringUseStamp = toStringUseStamp; //        - Whether to use the stamp in the toString override.
+    
+        this.#empty = args == undefined; //                 - Whether this Clock was created as a placeholder (no args)
     }
 
     // Static getter for private eventBus
@@ -70,6 +76,11 @@ export default class Clock{
     // Instance getter for fetching the private static eventBus from an instance (so the class doesn't have to be imported just for this)
     get eventBus(){
         return Clock.eventBus;
+    }
+
+    // Returns whether this Clock was created as a placeholder (no args)
+    get empty(){
+        return this.#empty;
     }
 
     /** Shorthand for `timeDiffFast()`. Returns all days,hours,minutes, and seconds since the zeroTime */

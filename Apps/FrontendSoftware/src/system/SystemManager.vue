@@ -54,15 +54,17 @@ Last Update: 08/12/2020, Colombo
         methods: {
             onDBConnectionChange({connected}){
                 if(connected && !this.initialized){
-                    /** 
-                     * On first connection to DB, check to see if this terminal is the first to access the DB for this mission (partition).
-                     * If so, initialize the DB by providing an initial SystemData entry.
-                     */
-                    if(this.log.length === 0){
-                        this.logLazyList.forcePush({obj: new SystemData()});
-                    }
-                    this.initialized = true;
-                    DB.eventBus.off('statusChange', this.onDBConnectionChange); // Deregister. Event handler no longer needed.
+                    this.logLazyList.forceReactiveUpdate().then( ({data}) => {
+                        /** 
+                         * On first connection to DB, check to see if this terminal is the first to access the DB for this mission (partition).
+                         * If so, initialize the DB by providing an initial SystemData entry.
+                         */
+                        if(data.length === 0){
+                            this.logLazyList.forcePush({obj: new SystemData()});
+                        }
+                        this.initialized = true;
+                        DB.eventBus.off('statusChange', this.onDBConnectionChange); // Deregister. Event handler no longer needed.
+                    });
                 }
             }
         }

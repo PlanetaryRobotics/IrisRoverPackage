@@ -1,3 +1,12 @@
+/**
+ * 
+ * TODO: Slowly update SystemData + CommandData to use same solution. Look for differences in 
+ * impl. that might cause SystemData to not update on changes.
+ * 
+ */
+
+
+
 'use strict';
 /*
  * Allows Use of Sub-Lists from Collections to be Used Reactively in Vue. This
@@ -53,7 +62,6 @@
       } else{
         this.objClass = DBObject;
       }
-      this.setNextUpdateTime();
       this.needsUpdate = 1; // Whether the DB needs to be updated
       // Array of Observers Waiting to be Notified about the Next Update (see #onNextUpdate):
       this.tempObservers = [];
@@ -64,44 +72,71 @@
 
       this.changeStreamConnected = false;
 
-      // Update to Perform from Change Stream:
-      this.streamUpdate = (change) => { // use lambda to preserve "this" to this instance's scope so it doesn't get re-bound by mongodb
-        switch(change.operationType){
-          case 'insert':{
-            let doc = change.fullDocument;
-            this.coreData.push(this.objClass.fromJSON(doc));
-            this.dataUpdateRoutine();
-          } break;
-          case 'update':{
-            let doc = change.fullDocument;
-            // Splice in new document in place of existing document(s) with given lookupID:
-            for(let i in this.coreData){
-              if(this.coreData[i].data.lookupID == doc.lookupID){
-                this.coreData.splice(i, 1, this.objClass.fromJSON(doc));
-              }
-            }
-            this.dataUpdateRoutine();
-          } break;
-          case 'delete':{
-            // TODO: FIXME: BUILDME
-            console.log("Document pseudo-deleted from ", this.collection);
-            console.log(change);
-            this.dataUpdateRoutine();
-          } break;
+      // Once DB is Connected:
+      // Attempt to setup ChangeStream based on given DB connection status:
+      const attemptChangeStreamSetup = ({connected}) => {
+        if(connected && !this.changeStreamConnected){
+          DB.eventBus.off('statusChange', attemptChangeStreamSetup);
+          DB.onChange(this.collection, this.streamUpdate, Infinity, ({connected}) => {this.changeStreamConnected = connected;});
+        }
+      };
+      DB.eventBus.on('statusChange', attemptChangeStreamSetup);
+
+      // Attempt to load data until successful based on the given database connection status:
+      const attemptInitialDataLoad = ({connected}) => {
+        if(connected){
+          DB.eventBus.off('statusChange', attemptInitialDataLoad); // Unregister from eventBus
+          this.updateData(); // Initial data load
         }
       }
-
-      // Once DB is Connected:
-      DB.eventBus.on('statusChange', ({connected}) => {
-        if(connected && !this.changeStreamConnected){
-          DB.onChange(this.collection, this.streamUpdate, Infinity, ({connected}) => {this.changeStreamConnected = connected;})
-        }
-      });
+      DB.eventBus.on('statusChange', attemptInitialDataLoad);
+      
+      DB.checkConnection(); // Force initial connection check.
   }
 
-  // Returns the Sub-List Taken from the Collection, Refreshing it if Necessary
-  get list(){
-    if(DB.connectionEstablished()){
+  /**
+   * Update Data in response to Change Stream.
+   * 
+   * NOTE: Using lambda to preserve "this" to this instance's scope so it doesn't get re-bound by mongodb
+   */ 
+  streamUpdate = (change) => {
+    switch(change.operationType){
+      case 'insert':{
+        let doc = change.fullDocument;
+        this.coreData.push(this.objClass.fromJSON(doc));
+        this.dataUpdateRoutine();
+      } break;
+      case 'update':{
+        let doc = change.fullDocument;
+        // Splice in new document in place of existing document(s) with given lookupID:
+        for(let i in this.coreData){
+          if(this.coreData[i].data.lookupID == doc.lookupID){
+            this.coreData.splice(i, 1, this.objClass.fromJSON(doc));
+          }
+        }
+        this.dataUpdateRoutine();
+      } break;
+      case 'delete':{
+        // TODO: FIXME: BUILDME
+        console.log("Document pseudo-deleted from ", this.collection);
+        console.log(change);
+        this.dataUpdateRoutine();
+      } break;
+    }
+  }
+
+  /**
+   * Checks if a data update is needed and, if so, updates the `coreData`.
+   * Returns a Promise that resolves/rejects when the update / update attempt is complete.
+   * Resolves with:
+   *  {
+   *    `data`: a copy of the `coreData`,
+   *    `updated`: a flag indicating whether the data was updated.
+   *  }
+   * Rejects if there's an error during update with a copy of the error.
+   */
+  async updateData(){
+    return new Promise( (resolve, reject) => {
       if(
         !this.initialLoad
       || this.staleTime!==Infinity && (this.needsUpdate || new Date() > this.nextUpdateTime)
@@ -119,20 +154,29 @@
         }
         // Set coreData once async load has completed:
         dataRead.then( docs => { // NOTE: coreData WON'T be updated automatically
-                                 // but this function will return right away with
-                                 // the old value.
+                                  // but this function will return right away with
+                                  // the old value.
 
           // (map converts plain JSON objects into objects of the specified DBObject class)
           this.coreData = docs.map( d => this.objClass.fromJSON(d) );
-        });
+          resolve({data: this.coreData, updated: true});
+        }).catch( (err) => reject(err) );
 
         // Reset the signals immediately to prevent repeated triggering while the
         // data is being async loaded. Big problem if this list is being actively
         // watched.
         this.needsUpdate = false;
         this.setNextUpdateTime();
+      } else{
+        resolve({data: this.coreData, updated: false});
       }
+    });
+  }
 
+  // Returns the Sub-List Taken from the Collection, Refreshing it if Necessary
+  get list(){
+    if(DB.connectionEstablished()){
+      this.updateData();
       return this.coreData;
     } else{
       return [];
@@ -294,10 +338,13 @@
   /**
    * Force a reactive update (makes Vue notice the update sooner).
    * Useful for fetching new content after a write.
+   * Returns the promise from `updateData`.
    */
   forceReactiveUpdate(){
     this.needsUpdate = true;
-    this.list; // Force update now
+    const promise = this.updateData(); // Force update
+    this.list; // Make sure Vue notices
+    return promise;
   }
 
   // Adds the Given Functions to the List of Functions to be
@@ -316,7 +363,7 @@
     if(this.staleTime !== Infinity){
       this.nextUpdateTime = new Date(); // now
       this.nextUpdateTime.setSeconds(this.nextUpdateTime.getSeconds() + this.staleTime);
-      setTimeout(()=>{this.list}, this.staleTime*1000+1); // Force a reload
+      setTimeout(()=>{this.updateData()}, this.staleTime*1000+1); // Force a reload
     }
   }
 

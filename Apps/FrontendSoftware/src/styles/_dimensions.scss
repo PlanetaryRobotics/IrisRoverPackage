@@ -1,0 +1,35 @@
+/*
+ * SCSS partial to standardize dimensions (radii, etc), spacing, and the box-model across components.
+ *
+ * Author: Connor W. Colombo, CMU
+ * Created: 7/26/2019
+ * Last Updated: 7/26/2020, Colombo
+ */
+
+ // Box Model:
+ $std-spacing: 0.5rem;
+ $std-padding: $std-spacing;
+ $std-big-padding: 1.25rem; // used for deep insets
+ $std-margin: $std-spacing;
+ $std-thin-margin: 0.1rem; // used for paper-thin separation between components
+
+ // Standard Component Sizing:
+ // Tabs:
+ $std-tab-height: 3.25rem;
+ $std-tab-width: 15rem;
+
+ // Combined Screen Modal Container:
+ $std-cs-modal-drawer-icon-size: 32px;
+ $std-cs-modal-height: 500px; // un-maximized size
+ $std-cs-modal-width: 400px; // un-maximized size
+
+ // Styling:
+ $std-radius: 0.5rem;
+ $std-gutter-radius: $std-spacing / 2; // Allows the diameter to fix in the gutter created by a spacing gap (for scroll bars etc.)
+ 
+ :export { // Remember: js has no idea what a 'rem' is (so only export hex, px, %, or constants depending on use case).
+    CSModalDrawerIconSize: $std-cs-modal-drawer-icon-size;
+    CSModalHeight: $std-cs-modal-height;
+    CSModalWidth: $std-cs-modal-width;
+ }
+

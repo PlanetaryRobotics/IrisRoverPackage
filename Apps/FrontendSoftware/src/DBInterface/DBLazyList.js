@@ -1,3 +1,16 @@
+/**
+ * 
+ * TODO: Slowly update SystemData + CommandData to use same solution. Look for differences in 
+ * impl. that might cause SystemData to not update on changes.
+ * 
+ * ALSO, (maybe related / useful): After dynamic reload, SystemData can still push to DB, despite 
+ * CommandData not being able to load anything.
+ * --- Command can also push... just the list doesn't show up (write but not read?)
+ * 
+ */
+
+
+
 'use strict';
 /*
  * Allows Use of Sub-Lists from Collections to be Used Reactively in Vue. This
@@ -14,7 +27,7 @@
  * when used reactively in Vue).
  *
  * Author: Connor W. Colombo, CMU
- * Last Update: 05/28/2020, Colombo
+ * Last Update: 08/12/2020, Colombo
  */
  // TODO: Allow Individual List Items to be Edited / Replaced.
  // TODO: Better #watcher Implementation than using hash (?) (simple flags won't work in case multiple agents are checking #watcher)
@@ -53,7 +66,6 @@
       } else{
         this.objClass = DBObject;
       }
-      this.setNextUpdateTime();
       this.needsUpdate = 1; // Whether the DB needs to be updated
       // Array of Observers Waiting to be Notified about the Next Update (see #onNextUpdate):
       this.tempObservers = [];
@@ -64,47 +76,86 @@
 
       this.changeStreamConnected = false;
 
-      // Update to Perform from Change Stream:
-      this.streamUpdate = (change) => { // use lambda to preserve "this" to this instance's scope so it doesn't get re-bound by mongodb
-        switch(change.operationType){
-          case 'insert':{
-            let doc = change.fullDocument;
-            this.coreData.push(this.objClass.fromJSON(doc));
-            this.dataUpdateRoutine();
-          } break;
-          case 'update':{
-            let doc = change.fullDocument;
-            // Splice in new document in place of existing document(s) with given lookupID:
-            for(let i in this.coreData){
-              if(this.coreData[i].data.lookupID == doc.lookupID){
-                this.coreData.splice(i, 1, this.objClass.fromJSON(doc));
-              }
-            }
-            this.dataUpdateRoutine();
-          } break;
-          case 'delete':{
-            // TODO
-            console.log("Document deleted from ", this.collection);
-            console.log(change);
-            this.dataUpdateRoutine();
-          } break;
+      // Once DB is Connected:
+      // Attempt to setup ChangeStream based on given DB connection status:
+      const attemptChangeStreamSetup = ({connected}) => {
+        if(connected && !this.changeStreamConnected){
+          DB.eventBus.off('statusChange', attemptChangeStreamSetup);
+          DB.onChange(this.collection, this.streamUpdate, Infinity, ({connected}) => {this.changeStreamConnected = connected;});
+        }
+      };
+      DB.eventBus.on('statusChange', attemptChangeStreamSetup);
+
+      // Attempt to load data until successful based on the given database connection status:
+      const attemptInitialDataLoad = ({connected}) => {
+        if(connected){
+          DB.eventBus.off('statusChange', attemptInitialDataLoad); // Unregister from eventBus
+          this.updateData(); // Initial data load
         }
       }
-
-      // Once DB is Connected:
-      DB.eventBus.on('statusChange', ({connected}) => {
-        if(connected && !this.changeStreamConnected){
-          DB.onChange(this.collection, this.streamUpdate, Infinity, ({connected}) => {this.changeStreamConnected = connected;})
-        }
-      });
+      DB.eventBus.on('statusChange', attemptInitialDataLoad);
+      
+      DB.checkConnection(); // Force initial connection check.
   }
 
-  // Returns the Sub-List Taken from the Collection, Refreshing it if Necessary
-  get list(){
-    if(DB.connectionEstablished()){
+  /**
+   * Update Data in response to Change Stream.
+   * 
+   * NOTE: Using lambda to preserve "this" to this instance's scope so it doesn't get re-bound by mongodb
+   */ 
+  streamUpdate = (change) => {
+    switch(change.operationType){
+      case 'insert':{
+        // TODO: Make sure inserted document falls in range and then remove any documents that are now out of range.
+        let doc = change.fullDocument;
+        this.coreData.push(this.objClass.fromJSON(doc));
+        this.dataUpdateRoutine();
+      } break;
+      case 'update':{
+        let doc = change.fullDocument;
+        // Splice in new document in place of existing document(s) with given lookupID:
+        for(let i in this.coreData){
+          if(this.coreData[i].data.lookupID == doc.lookupID){
+            this.coreData.splice(i, 1, this.objClass.fromJSON(doc));
+          }
+        }
+        this.dataUpdateRoutine();
+      } break;
+      case 'replace':{
+        let doc = change.fullDocument;
+        // Splice in new document in place of existing document(s) with given lookupID:
+        for(let i in this.coreData){
+          if(this.coreData[i].data.lookupID == doc.lookupID){
+            this.coreData.splice(i, 1, this.objClass.fromJSON(doc));
+          }
+        }
+        this.dataUpdateRoutine();
+      } break;
+      case 'delete':{
+        // TODO: FIXME: BUILDME
+        console.log("Document pseudo-deleted from ", this.collection);
+        console.log(change);
+        this.dataUpdateRoutine();
+      } break;
+    }
+  }
+
+  /**
+   * Checks if a data update is needed and, if so, updates the `coreData`.
+   * Returns a Promise that resolves/rejects when the update / update attempt is complete.
+   * Resolves with:
+   *  {
+   *    `data`: a copy of the `coreData`,
+   *    `updated`: a flag indicating whether the data was updated.
+   *  }
+   * Rejects if there's an error during update with a copy of the error.
+   */
+  async updateData(forceUpdate=false){
+    return new Promise( (resolve, reject) => {
       if(
         !this.initialLoad
       || this.staleTime!==Infinity && (this.needsUpdate || new Date() > this.nextUpdateTime)
+      || forceUpdate
       ){
         this.initialLoad = 1;
         let dataRead;
@@ -119,11 +170,15 @@
         }
         // Set coreData once async load has completed:
         dataRead.then( docs => { // NOTE: coreData WON'T be updated automatically
-                                 // but this function will return right away with
-                                 // the old value.
+                                  // but this function will return right away with
+                                  // the old value.
 
           // (map converts plain JSON objects into objects of the specified DBObject class)
           this.coreData = docs.map( d => this.objClass.fromJSON(d) );
+          resolve({data: this.coreData, updated: true});
+        }).catch( (err) => {
+          this.initialLoad = 0;
+          reject(err)
         });
 
         // Reset the signals immediately to prevent repeated triggering while the
@@ -131,8 +186,16 @@
         // watched.
         this.needsUpdate = false;
         this.setNextUpdateTime();
+      } else{
+        resolve({data: this.coreData, updated: false});
       }
+    });
+  }
 
+  // Returns the Sub-List Taken from the Collection, Refreshing it if Necessary
+  get list(){
+    if(DB.connectionEstablished()){
+      this.updateData();
       return this.coreData;
     } else{
       return [];
@@ -173,12 +236,134 @@
   async push(obj){
     return new Promise( (resolve,reject) => {
       DB.write(this.collection, obj).then( (lid) => {
-        this.needsUpdate = true;
         resolve(lid);
+        this.forceReactiveUpdate();
       },
-      err => reject(err) // rejects when DB.write rejects
-      ).catch( err => reject(err) ); // rejects when DB.write throws an error
+      err => reject(err) // reject when DB.write rejects
+    ).catch( err => reject(err) ); // reject when DB.write throws an error
     });
+  }  
+
+  /**
+   * @callback dbForcePushCallback
+   * @param {number} [uuid] UUID for the DBObject being pushed
+   * @param {number} [lid] Newly minted lookupID for DBObject on the DB
+   */
+
+  /**
+   * @callback dbForcePushFailCallback
+   * @param {number} [uuid] UUID for the DBObject being pushed
+   */
+
+  /**
+   * Same as `push` but, if it fails, it keeps retrying until the data is successfully 
+   * pushed or an option `maxAttempts` or `maxDelay` is exceeded.
+   * Note: despite any limits imposed by `maxDelay`, there will always be at least 1 attempt; however, if `maxAttempts` is <1, nothing will be attempted.
+   * @param {DBObject} obj Object to push.
+   * @param {number} [maxAttempts] Inclusive maximum number of attempts (default is Infinity)
+   * @param {number} [maxDelay] [ms] Maximum time from `startTime` to spend trying to push data (default is Infinity)
+   * @param {number} [attemptInterval] [ms] Time between attempts (when failure not due to a DB connection issue)
+   * @param {dbForcePushFailCallback} [onFirstFail] Callback after the first attempt fails
+   * @param {dbForcePushFailCallback} [onFail] Callback when an attempt fails
+   * @param {dbForcePushFailCallback} [onFinalFail] Callback after the last attempt fails (if applicable)
+   * @param {dbForcePushCallback} [onSuccess] Callback when the object is successfully pushed to the DB
+   * 
+   * NOTE: The following parameters are used purely in recursive calls and should not need to be supplied by external callers:
+   * @param {Date} [startTime] Reference time to measure operating delay with respect to (don't need to populate this externally. It will get populated once on first call and then carry over to all successive recursive calls via this argument)
+   * @param {Boolean} [firstAttempt] Whether this is the first attempt. (don't need to populate this externally. It will get populated once on first call and then carry over to all successive recursive calls via this argument)
+   */
+  forcePush(args){
+    const {
+      obj,
+      maxAttempts=Infinity,
+      maxDelay=Infinity,
+      attemptInterval=1000,
+      onFirstFail=()=>{},
+      onFail=()=>{},
+      onFinalFail=()=>{},
+      onSuccess=()=>{},
+      startTime=new Date(),
+      firstAttempt=false
+    } = args || {};
+    
+    if(maxAttempts < 1){
+      console.error(`
+        Error in LazyList forcePush on ${this.collection}.
+        \`maxAttempts\` can't be < 1. It's ${maxAttempts}.`
+      );
+    }
+
+    if(maxDelay < 0){
+      console.error(`
+        Error in LazyList forcePush on ${this.collection}.
+        \`maxDelay\` can't be < 0. It's ${maxDelay}.`
+      );
+    }
+
+    if(attemptInterval < 0){
+      console.error(`
+        Error in LazyList forcePush on ${this.collection}.
+        \`attemptInterval\` can't be < 0. It's ${attemptInterval}.`
+      );
+    }
+
+    if(maxAttempts < 1){
+      return; // Don't attempt if no attempts left
+    }
+
+    this.push(obj).then(
+      // Handle Success:
+      (lid) => { onSuccess(obj.uuid, lid) }
+    ).catch(
+      // Cope with Failure:
+      () => {
+        if(firstAttempt){
+          onFirstFail(obj.uuid);
+        }
+        onFail(obj.uuid);
+        if(maxAttempts > 1 && (new Date() - startTime) <= maxDelay){
+          // If this can be reattempted, check why this failed then retry accordingly:
+
+          // Setup a call for another attempt but with fewer attempts remaining
+          // (Note: since `startTime` is preserved, nothing has to be done with `maxDelay`)
+          const nextArgs = Object.assign({}, args);
+          nextArgs.firstAttempt = false;
+          nextArgs.maxAttempts--;
+
+          // Check connection status:
+          DB.checkConnection().then( connectionStatus => {
+            if(!connectionStatus){
+              // If failure was likely due to a connection failure, then wait for DB to reconnect then push:
+              const waitForDBConnect = ({connected}) => {
+                if(connected){
+                  DB.eventBus.off('statusChange', waitForDBConnect); // unregister since this only needs to be a one time thing.
+                  this.forcePush(nextArgs); // "recurse" after unregistering to prevent memory leak (stacked buildup of connection requests)
+                }
+              };
+              DB.eventBus.on('statusChange', waitForDBConnect);
+            } else{
+              // Otherwise, just try again in `attemptInterval` ms:
+              setTimeout(this.forcePush(nextArgs), attemptInterval);
+            }
+          });
+        } else {
+          // Otherwise, this failed for the last time.
+          onFinalFail(obj.uuid);
+        }
+      }
+    );
+  }
+
+  /**
+   * Force a reactive update (makes Vue notice the update sooner).
+   * Useful for fetching new content after a write.
+   * Returns the promise from `updateData`.
+   */
+  forceReactiveUpdate(){
+    this.needsUpdate = true;
+    const promise = this.updateData(1); // Force update
+    this.list; // Make sure Vue notices
+    return promise;
   }
 
   // Adds the Given Functions to the List of Functions to be
@@ -197,15 +382,17 @@
     if(this.staleTime !== Infinity){
       this.nextUpdateTime = new Date(); // now
       this.nextUpdateTime.setSeconds(this.nextUpdateTime.getSeconds() + this.staleTime);
-      setTimeout(()=>{this.list}, this.staleTime*1000+1); // Force a reload
+      setTimeout(()=>{this.updateData()}, this.staleTime*1000+1); // Force a reload
     }
   }
 
-  // Returns a Hash of the JSON of this List for Easy Reactive Watching.
+  /** Returns a Hash of the JSON of this List for Easy Reactive Watching.
+   * NOTE: Only use in very rare circumstances. It is highly advised that 
+   * implementations use `onUpdate` instead.
+   */
   get watcher(){
     return sha256(JSON.stringify(this.list));
   }
-
 
   // Sets the Head Index and Alerts the List that it Needs to Pull From DB Again.
   set headIdx(idx){

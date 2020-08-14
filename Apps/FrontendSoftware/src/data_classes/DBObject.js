@@ -4,23 +4,26 @@
  * be Structured and Accessed. Allows for Consistent Expectations when Passing
  * Data between Mongo and Frontend UI.
  * Author: Connor W. Colombo, CMU
- * Last Update: 5/8/2019, Colombo
+ * Last Update: 08/14/2020, Colombo
  */
  // TODO: Find a more efficient way to imp. #plainJSON. Not big issue, negligible perf. debt at the moment.
 
 import { sha256 } from 'js-sha256'
+import { v1 as uuidv1 } from 'uuid';
 
 export default class DBObject{
    constructor(inputData){
      // Default values:
-     this.data = this.constructor.defaultData();
-     Object.assign(this.data, inputData); // override default values
+     this.data = DBObject.defaultData();
+     Object.assign(this.data, this.constructor.defaultData()); // override any DBObject defaults with extending class defaults
+     Object.assign(this.data, inputData); // override defaults with given values
    } // ctor
 
-   // Returns the Default Data this Object Should Contain
+   // Returns the Default Data that EVERY DBObject Should Contain
    static defaultData(){
      return { // data which gets saved to JSON
-       lookupID: -1
+       lookupID: -1,
+       uuid: uuidv1()
      }
    }
 
@@ -35,6 +38,18 @@ export default class DBObject{
    // Returns a SHA-256 Hash of Plain JSON Contents of this Object.
    get hash(){
      return sha256(this.toJSON());
+   }
+
+   /**
+    * Returns the database assigned `_id` as a string (if this object has been on the DB).
+    * Otherwise, returns the locally assigned `lookupID` as string.
+    */
+   get DBID(){
+    if(this.data._id){
+      return this.data._id.id.join(':'); 
+    } else {
+      return this.data.lookupID.toString();
+    }
    }
 
    // Returns a plain JSON object representing the core data of this instance

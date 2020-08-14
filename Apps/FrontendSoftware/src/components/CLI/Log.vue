@@ -3,12 +3,12 @@ An list of all commands sent (or attempted to be sent) to the rover.
 
 Author: Connor W. Colombo, CMU
 Created: 1/29/2019
-Last Updated: 10/5/2019, Colombo
+Last Updated: 08/14/2020, Colombo
 -->
 <template>
   <div id="logScrollList" class="log scrollable">
     <ul>
-      <li v-for="(command,index) in commands" v-bind:key="command.data.lookupID">
+      <li v-for="(command,index) in commands" v-bind:key="command.DBID">
         <Command v-bind:ref="`command${index}`" v-bind:core="command" />
       </li>
     </ul>
@@ -57,8 +57,13 @@ export default {
 
 <style lang="scss" scoped>
   @import '@/styles/_functional.scss';
+  @import '@/styles/_dimensions.scss';
 
   ul {
     list-style-type: none;
+  }
+
+  li {
+    margin: 2 * $std-spacing;
   }
 </style>

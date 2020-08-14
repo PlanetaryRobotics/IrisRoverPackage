@@ -12,7 +12,6 @@
  // TODO: Pass specific error string from PUSH_TO_CLILOG to CLI via CommandData.
  // TODO: Make ListView.vue for Dynamic headIdx and len capture + dynamic update of contents
 
-import DB from '@/DBInterface/DBInterface.js'
 import DBLazyList from '@/DBInterface/DBLazyList.js'
 import Collections from '@/DBInterface/Collections.js'
 
@@ -146,52 +145,24 @@ export default {
       let awaitingCommand = new CommandData(command.data);
       awaitingCommand.data.stateUI = CommandStates.UI.LOCAL_ONLY; // Identify that it has not yet been sent.
       commit('COMMAND_WAITING', awaitingCommand);
-      let hash = awaitingCommand.hash;
 
-      // Define some internal helper functions for attempting to push data to database:
-      let alertErrorAndRetry, attemptSend, findIdx;
-      findIdx = () => { // Find index of awaitingCommand in LogWaiting list
-                        // (could change due to async nature of pushing)
-        let idx = -1, i = 0;
-        while(idx == -1, i < state.LogWaiting.length){
-          if(state.LogWaiting[i].hash === hash){
-            idx = i;
-            break;
-          }
-          i++;
-        }
-
-        return idx;
-      }
-      alertErrorAndRetry = () => { // Flag that there has been an issue in connection
-                                   // and try again in 1s.
-        awaitingCommand.stateUI = CommandStates.UI.FAIL;
-        awaitingCommand.errorUI = CommandErrors.UI.DB_NOCONNECT;
-        hash = awaitingCommand.hash; // update hash for later find
-        setTimeout(attemptSend, 1000); // retry in 1 sec.
-      }
-      attemptSend = () => {
-        state.Log.push(command).then( lid => {
-          let idx = findIdx();
+      // Push the Command to the DB:
+      state.Log.forcePush({
+        obj: command,
+        onFail: () => {
+          // Flag that there has been an issue in connection (forcePush will keep trying to push):
+          awaitingCommand.stateUI = CommandStates.UI.FAIL;
+          awaitingCommand.errorUI = CommandErrors.UI.DB_NOCONNECT;
+        },
+        onSuccess: (uuid) => {
+          // Find index of awaitingCommand in LogWaiting list (could change due to async nature of pushing):
+          let idx = state.LogWaiting.findIndex( c => c.uuid === uuid);
           state.Log.onNextUpdate( () => {
             // Remove command from waiting once it has been successfully pushed and loaded back in:
             commit('COMMAND_RESOLVED', idx);
           });
-          state.Log.needsUpdate = 1;
-          state.Log.list; // Force update now
-
-          // TODO FIXME: Simulating timeout of completed command rn:
-          let execTime = command.data.command.args[0] / command.data.command.args[1] || 1; // execution time [s]
-          setTimeout(() => {
-            DB.update(Collections.Commands, lid, {stateFp: "SUCC_EXEC", stateUI: "SUCCESS"});
-          }, 1000*execTime+500);
-        },
-        alertErrorAndRetry
-        );
-      }
-
-      // Attempt to send command to database:
-      attemptSend();
+        }
+      });
     }
   }
 }

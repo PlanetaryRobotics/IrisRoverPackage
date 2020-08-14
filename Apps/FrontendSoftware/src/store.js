@@ -8,6 +8,8 @@ import SAND from '@/components/Sandboxes/store.js'
 import ATOMIC from "@/components/atomic/store.js"
 import MAP from '@/components/Map/store.js'
 
+import SYS from '@/system/store.js'
+
 Vue.use(Vuex)
 
 export default new Vuex.Store({
@@ -16,26 +18,13 @@ export default new Vuex.Store({
     IMG,
     SAND,
     ATOMIC,
-    MAP
+    MAP,
+    SYS
   },
 
   // Store Assets Unrelated to Any Major Component:
   state: {
-    // Component header information
-    headers: {
-      IMG: {
-        name: "IMAGE VIEWER",
-        menu: ["Close", "Smile", "Refresh"]
-      },
-      CLI: {
-        name: "COMMAND LINE",
-        menu: ["Close", "Smile", "Refresh"]
-      },
-      MAP: {
-        name: "SHARED MAP",
-        menu: ["Close", "Smile", "Refresh"]
-      }
-    }
+    
   },
 
   getters: {

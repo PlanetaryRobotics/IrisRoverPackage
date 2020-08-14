@@ -1,7 +1,7 @@
 <!--
 Text Input Field that has Autocomplete and Validation Built in.
 If the `validTerms` prop has been given, acceptable inputs will autocomplete as
-the user types. Hitting "tab" or the "left-arrow" will accept the autocomplete.
+the user types. Hitting "tab" or the "right-arrow" will accept the autocomplete.
 Hitting the "up-arrow" or "down-arrow" will cycle through other autocomplete
 options.
 
@@ -15,7 +15,7 @@ entered. Note: if the user hasn't entered any valid inputs, this will be
 
 Author: Connor Colombo, CMU
 Created: 10/10/2019
-Last Updated: 10/11/2019, Colombo
+Last Updated: 08/13/2020, Colombo
 -->
 
 <template>
@@ -122,11 +122,11 @@ export default {
     // Wait for App.vue window to acknowledge that the window is activated and
     // visible before animating any content:
     this.$eventHub.$on(this.formEvent, this.searchTerm);
-    this.$eventHub.$on(this.errorEvent, () => this.showError = true);
+    this.$eventHub.$on(this.errorEvent, this.showErrorOnEvent);
   },
   beforeDestroy: function() { // Removes event listners from the global event hub
-    this.$eventHub.$on(this.formEvent);
-    this.$eventHub.$on(this.errorEvent);
+    this.$eventHub.$off(this.formEvent, this.searchTerm);
+    this.$eventHub.$off(this.errorEvent, this.showErrorOnEvent);
   },
   computed: {
     // Whether a Search / Submission of the Current Input Text is Allowed
@@ -264,6 +264,11 @@ export default {
     Characters but with Each Character Hidden with *'s if `hideText` is true. */
     protectText(txt){
       return this.hideText ? "●".repeat(txt.length) : txt;
+    },
+    
+    // Makes an error visible (needs to be named for event registration/deregistration):
+    showErrorOnEvent(){
+      this.showError = true;
     }
   }
 }

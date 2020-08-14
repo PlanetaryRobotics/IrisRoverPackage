@@ -1,3 +1,4 @@
+<!-- OFFICIALLY DEPRECATED ON 08/02/2020 -->
 <template>
   <div class="componentContainer">
     <div
@@ -58,6 +59,8 @@ import path from 'path'
 import fs from 'fs'
 import { VueContext } from 'vue-context'
 
+import TooltipEquip from '@/styles/TooltipEquip.js'
+
 export default {
   components: {
     VueContext
@@ -92,6 +95,13 @@ export default {
     };
   },
   mounted(){
+    console.warn(`
+      The ComponentContainer component is part of a pre-Cosmos design system and has been officially deprecated on 08/02/2020.
+      Please switch to using the CombinedScreens component.
+    `);
+    
+    TooltipEquip(this.$el);
+
     // Load Icons as Inline SVG:
     this.collapseArrowSVG = fs.readFileSync(path.join(__static,'./icons/icon_arrow.svg'), 'utf8');
     this.contextMenuSVG = fs.readFileSync(path.join(__static,'./icons/icon_hamburger.svg'), 'utf8');

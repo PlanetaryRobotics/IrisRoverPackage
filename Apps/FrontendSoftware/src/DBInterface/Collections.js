@@ -9,5 +9,6 @@ export default new Enum(
   "Images",
   "Filters",
   "Tags",
-  "Users"
+  "Users",
+  "System"
 );

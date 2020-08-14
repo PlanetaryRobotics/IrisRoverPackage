@@ -1,5 +1,27 @@
+<!--
+Defines the Layout and Styling of the Home (main) Screen of the Iris Terminal.
+
+Author: Connor W. Colombo, CMU
+Created: 1/2019
+Last Update: 07/29/2020, Colombo
+-->
+
 <template>
-  <div class="home">
+  <div class="main">
+    <CombinedScreens>
+      <ImageViewer TabName="Image Viewer" />
+      <div TabName="Telemetry" id="Telemetry" class="box"> Telemetry </div>
+      <div TabName="Error Analysis" id="ErrorAnalysis" class="box"> Error Analysis </div>
+      <Map TabName="Map" />
+
+      <template v-slot:modal-components>
+        <CLI ModalHeader="Command Line" ModalIcon="commandLine" ref="cli" />
+        <div ModalHeader="Mini Map" ModalIcon="cartesianGrid" class="box" > Mini Map! </div>
+      </template>
+    </CombinedScreens>
+  </div>
+
+  <!--<div class="home">
     <ComponentContainer
       class='CLI'
       :header="headers.CLI"
@@ -9,7 +31,6 @@
         /*{ text:'Auto Speed Run by Command', callback: speedRun }*/
       ]"
     >
-      <!-- Locations Relative to __static Directory, Found in /public -->
       <CLI ref="cli" />
     </ComponentContainer>
     <ComponentContainer
@@ -23,7 +44,7 @@
       <ImageViewer />
     </ComponentContainer>
 
-  </div>
+  </div>-->
 </template>
 
 <script>
@@ -34,16 +55,19 @@ const csv = require('neat-csv');
 
 import CLI from '@/components/CLI/CLI.vue'
 import ImageViewer from '@/components/ImageViewer/ImageViewer.vue'
-import ComponentContainer from '@/components/Interface/ComponentContainer.vue'
+import Map from '@/components/Map/Map.vue'
+
+import CombinedScreens from '@/components/Interface/CombinedScreens.vue'
 
 import DB from '@/DBInterface/DBInterface.js'
 
 export default {
   name: 'home',
   components: {
-    ComponentContainer,
+    CombinedScreens,
     CLI,
-    ImageViewer
+    ImageViewer,
+    Map
   },
   computed: {
     ...mapGetters({
@@ -173,27 +197,21 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import '@/styles/_functional.scss';
-  .home{
+  @import '@/styles/_colors.scss';
+  @import '@/styles/_functional.scss';
+
+  .main{
     height: 100vh;
     width: 100%;
-    display: grid;
-    grid-gap: .5rem;
-    grid-template-columns: 50rem 1fr;
-    grid-template-rows: 1fr;
     background-color: $color-near-black;
-    padding: .5rem;
   }
-  .CLI {
-    grid-column: 1 / 2;
-    grid-row: 1 / 2;
-    border-radius: 1rem;
-    overflow: hidden;
-  }
-  .IMG {
-    grid-column: 2 / 3;
-    grid-row: 1 / 2;
-    border-radius: 1rem;
-    overflow: hidden;
+
+
+  .box {
+    color: $color-near-white;
+    background: $color-primary;
+    padding: 0.3em 0.5em;
+    width: 100%;
+    height: 100%;
   }
 </style>

@@ -3,7 +3,7 @@ A collection of tabs for making adjustments to images and adding or tracking fea
 
 Author: John Walker Moosbrugger, CMU
 Created: 3/19/2019
-Last Updated: 10/6/2019, Colombo
+Last Updated: 08/14/2020, Colombo
 -->
 
 <template>
@@ -37,6 +37,8 @@ Last Updated: 10/6/2019, Colombo
 import FunctionalEdit from "@/components/ImageViewer/functional/FunctionalEdit.vue"
 import FunctionalFeatures from "@/components/ImageViewer/functional/FunctionalFeatures.vue"
 
+import TooltipEquip from '@/styles/TooltipEquip.js'
+
 export default {
   components: {
     FunctionalEdit,
@@ -47,6 +49,9 @@ export default {
       isEdit: true, //      - Bool controlls if Edit menu is open
       isFeatures: false //  - Bool controlls if Features menu is open
     }
+  },
+  mounted(){
+    TooltipEquip(this.$el);
   },
   methods: {
     selectFeatures: function() { // Opens the features menu, or if it is already open closes it.

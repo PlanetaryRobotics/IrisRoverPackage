@@ -3,11 +3,16 @@ The highest level component for the Image Viewer. Handles layout for each elemen
 
 Author: John Walker Moosbrugger, CMU
 Created: 3/19/2019
-Last Updated: 10/6/2019, Colombo
+Last Updated: 08/13/2020, Colombo
 -->
 
 <template>
-  <div id="imageViewer">
+  <div 
+    id="imageViewer"
+    tabindex="0 /*this allows the container to capture keyevents from anywhere inside it*/"
+    @keyup.right="$eventHub.$emit('IV-keypress-right')"
+    @keyup.left="$eventHub.$emit('IV-keypress-left')"
+  >
     <Functional class="functional"/>
     <ImageViewport class="viewer" />
     <Toolbar class="tools"/>
@@ -36,7 +41,8 @@ export default {
   },
   data: function() {
     return {
-      addTagName: ""
+      addTagName: "",
+      console
     }
   },
 
@@ -54,11 +60,11 @@ export default {
   },
 
   created: function() { // Adds event listners to the global event hub for adding/removing tags from an image
-    this.$eventHub.$on('addTag', this.addTag)
+    this.$eventHub.$on('addTag', this.addTag);
   },
 
   beforeDestroy: function() { // Removes event listners from the global event hub for adding/removing tags from an image
-    this.$eventHub.$off('addTag')
+    this.$eventHub.$off('addTag', this.addTag);
   }
 }
 </script>

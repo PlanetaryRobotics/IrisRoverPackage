@@ -62,6 +62,8 @@ import fs from 'fs'
 import TextInput from "@/components/atomic/TextInput.vue"
 import DB from '@/DBInterface/DBInterface'
 
+import TooltipEquip from '@/styles/TooltipEquip.js';
+
 export default {
   name: 'login',
   data(){
@@ -83,6 +85,8 @@ export default {
     TextInput
   },
   mounted(){
+    TooltipEquip(this.$el);
+    
     // Tell App.vue  Login is Mounted (so, it can activate the window now):
     this.logoSVG = fs.readFileSync(path.join(__static,'./iris_logo_main.svg'), 'utf8');
     this.logoSVGArc = fs.readFileSync(path.join(__static,'./iris_logo_arc.svg'), 'utf8');
@@ -95,7 +99,7 @@ export default {
     this.$eventHub.$on('windowActivated', this.transitionInUI);
   },
   beforeDestroy: function() { // Removes event listners from the global event hub
-    this.$eventHub.$off('windowActivated');
+    this.$eventHub.$off('windowActivated', this.transitionInUI);
   },
   methods: {
     transitionInUI(){
@@ -120,13 +124,13 @@ export default {
     },
 
     async login(){
-      console.log("Mission: ", this.missionName);
-      console.log("Role: ", this.operationsRole);
+      console.log("[IRIS-LOGIN] Mission: ", this.missionName);
+      console.log("[IRIS-LOGIN] Role: ", this.operationsRole);
 
       // Attempt to Connect to DB:
       this.connecting = true;
       let connected = await DB.init(this.missionName, this.missionCode);
-      console.log("DB Connection", connected ? "Successful" : "Failed");
+      console.log("[IRIS-LOGIN] DB Connection", connected ? "Successful" : "Failed");
 
       if(connected){
         this.$router.push('home');

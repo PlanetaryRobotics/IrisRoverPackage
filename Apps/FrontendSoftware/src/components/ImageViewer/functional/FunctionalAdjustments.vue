@@ -3,7 +3,7 @@ Slider adjustments of the image. Can be saved as presets.
 
 Author: John Walker Moosbrugger, CMU
 Created: 3/19/2019
-Last Updated: 5/12/2019, Colombo
+Last Updated: 08/03/2020, Colombo
 -->
 
 <template>
@@ -21,7 +21,14 @@ Last Updated: 5/12/2019, Colombo
 
     <!-- FILTER SAVE -->
     <div class="functionalAdjustments__input">
-      <input type="text" class="input__text--small text__main" placeholder="Preset Name" v-model="editData.name">
+      <input 
+        type="text"
+        class="input__text--small text__main"
+        placeholder="Preset Name"
+        v-model="editData.name"
+        @keyup.stop
+        @keydown.stop
+      >
       <button class="button button__subtle text__smallCaps--bold" @click="createPreset">SAVE</button>
     </div>
     <p class="text__small">{{ inputError }}</p>

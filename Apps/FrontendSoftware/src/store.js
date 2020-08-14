@@ -11,6 +11,7 @@ import IMG from '@/components/ImageViewer/store.js'
 import SAND from '@/components/Sandboxes/store.js'
 import ATOMIC from "@/components/atomic/store.js"
 import MAP from '@/components/Map/store.js'
+import POI from '@/components/POI/store.js';
 
 import SYS from '@/system/store.js'
 
@@ -23,11 +24,31 @@ export default new Vuex.Store({
     SAND,
     ATOMIC,
     MAP,
+    POI,
     SYS
   },
 
   // Store Assets Unrelated to Any Major Component or too small to require their own store file:
   state: {  
+    // Component header information
+    headers: {
+      IMG: {
+        name: "IMAGE VIEWER",
+        menu: ["Close", "Smile", "Refresh"]
+      },
+      CLI: {
+        name: "COMMAND LINE",
+        menu: ["Close", "Smile", "Refresh"]
+      },
+      MAP: {
+        name: "SHARED MAP",
+        menu: ["Close", "Smile", "Refresh"]
+      },
+      POI: {
+        name: "POI DASHBOARD",
+        menu: ["Close", "Smile", "Refresh"]
+      }
+    },
     // List of FTAData Objects Held in the Log in the Database's Commands Collection (only load the most recent entry):
     FTALogList: new DBLazyList({
       collection: Collections.FTA,

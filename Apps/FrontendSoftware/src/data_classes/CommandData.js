@@ -28,7 +28,8 @@ export default class CommandData extends DBObject{
       stateFp: States.Fp.NOT_A_TYPE,
       stateUI: States.UI.NOT_A_TYPE,
       errorFp: Errors.Fp.NOT_A_TYPE,
-      errorUI: Errors.UI.NOT_A_TYPE
+      errorUI: Errors.UI.NOT_A_TYPE,
+      waypointData: null
     }
   }
 

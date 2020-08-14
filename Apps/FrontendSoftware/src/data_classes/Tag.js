@@ -22,6 +22,7 @@
   * Created: 4/14/2019
   * Last Update: 11/1/2019, Colombo
  */
+import { v1 as uuidv1 } from 'uuid';
 
 export default class Tag{
   constructor(inputData){
@@ -30,8 +31,15 @@ export default class Tag{
       The format of the data is a object with keys for the name of the tag and the name of the first image associated with the tag.
     */
     this.data = {
+      id: "" + uuidv1(),
       name: "",
-      images: []
+      images: [],
+      description: "",
+      //TODO: Pull user names/objects from DB
+      modificationHistory: [
+        {"user": "Caitlin Coyiuto", "time": Tag.formatTime(new Date(new Date().setDate(new Date().getDate()-1)))}, 
+        {"user": "Caitlin Coyiuto", "time": Tag.formatTime(new Date(Date.now()))},
+      ]
     }
 
     // Validates name is formatted as a string that is not longer than 30 characters and is not empty
@@ -46,6 +54,11 @@ export default class Tag{
     else if ( inputData.tagNames.includes(inputData.name) ) {
       console.error("Tag name already used, cannot have duplicate tag names.")
       console.log(inputData.name)
+    }
+
+    // Saves description if it exists
+    if (inputData.description) {
+      this.data.description = inputData.description;
     }
 
     // Validates image exists
@@ -104,5 +117,22 @@ export default class Tag{
     if(idx != -1){ // list currently contains tag
       this.data.images.splice(idx, 1);
     }
+  }
+
+  static formatTime(obj) {
+    let year = obj.getFullYear();
+    let month = obj.getUTCMonth() + 1; 
+    let day = obj.getUTCDate();
+    let hours = obj.getHours();
+    let min = obj.getMinutes();
+
+    function addZero(x) {
+      if (x.toString().length === 1) {
+        return "0" + x;
+      }
+      return x;
+    }
+
+    return addZero(month) + "-" + addZero(day) + "-" + year + " " + addZero(hours) + ":" + addZero(min);
   }
 }

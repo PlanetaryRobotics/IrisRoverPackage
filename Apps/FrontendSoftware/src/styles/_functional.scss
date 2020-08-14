@@ -40,7 +40,6 @@
 // Standard scrolling mechanics + aesthetics (can be extended to offer custom scrolling mechanics inside a class which includes this package):
 @mixin scrolling-aesthetics() {
   overflow: auto;
-
   &::-webkit-scrollbar-thumb {
     border-radius: $std-gutter-radius;
     background-color: $color-grey-dark;

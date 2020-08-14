@@ -56,7 +56,9 @@ export default class ImageData extends DBObject{
     if(this.data.url){
      return this.data.url;
     } else if(this.bin && this.bin.length > 0){
-     return `data:image/${ENCODING};base64,` + this.bin.toString('base64');
+      return `data:image/${ENCODING};base64,` + this.bin.toString('base64');
+    } else if(this.data.bin && this.data.bin.length > 0){
+      return `data:image/${ENCODING};base64,` + this.data.bin.toString('base64');
     } else{
      return ""; // no valid image data exits
     }
@@ -115,6 +117,29 @@ export default class ImageData extends DBObject{
    // Returns a Nicely Formatted Timestamp
    get time(){
      return this.data.sendTime ? this.data.sendTime.toLocaleDateString('en-US', { timezone: 'UTC', hour12 : false, day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'}) : "";
+   }
+
+   // Used for ease of sorting by time in UI
+   get timeObject() {
+     return this.data.sendTime ? this.data.sendTime : ""; 
+   }
+
+   get timeForTagFormatting() {
+      let obj = this.data.sendTime;
+
+      let month = obj.getUTCMonth() + 1; 
+      let day = obj.getUTCDate();
+      let hours = obj.getHours();
+      let min = obj.getMinutes();
+
+      function addZero(x) {
+        if (x.toString().length === 1) {
+          return "0" + x;
+        }
+        return x;
+      }
+
+      return addZero(month) + "-" + addZero(day) + " " + addZero(hours) + ":" + addZero(min);
    }
 
    name(){

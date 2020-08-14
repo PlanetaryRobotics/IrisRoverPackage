@@ -24,7 +24,6 @@ export default class ImageData extends DBObject{
   // Returns the Default Data this Object Should Contain
   static defaultData(){
     return { // data which gets saved to JSON
-      lookupID: -1,
       name: 'Bad Image',
       bin: [], // Uint8Array of bytes of image data. 'url' or 'bin' must be supplied. URL must be local (due to same-origin policy).
       file: {}, // MongoDB Object idenifier for file location in GridFS.

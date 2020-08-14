@@ -3,17 +3,22 @@ Defines the Layout and Styling of the Home (main) Screen of the Iris Terminal.
 
 Author: Connor W. Colombo, CMU
 Created: 1/2019
-Last Update: 07/23/2020, Colombo
+Last Update: 07/29/2020, Colombo
 -->
 
 <template>
   <div class="main">
     <CombinedScreens>
-      <CLI TabName="Command Line" ref="cli" />
+      <ImageViewer TabName="Image Viewer" />
       <div TabName="Telemetry" id="Telemetry" class="box"> Telemetry </div>
       <div TabName="Error Analysis" id="ErrorAnalysis" class="box"> Error Analysis </div>
-      <Map TabName="Map with a Very Looong Name" />
-      <ImageViewer TabName="Image Viewer" />
+      <Map TabName="Map" />
+      <FTA TabName="Failure Tree" ModalHeader="Failure Tree Analysis" ModalIcon="data" ref="fta" />
+
+      <template v-slot:modal-components>
+        <CLI ModalHeader="Command Line" ModalIcon="commandLine" ref="cli" />
+        <div ModalHeader="Mini Map" ModalIcon="cartesianGrid" class="box" > Mini Map! </div>
+      </template>
     </CombinedScreens>
   </div>
 
@@ -52,7 +57,8 @@ const csv = require('neat-csv');
 import CLI from '@/components/CLI/CLI.vue'
 import ImageViewer from '@/components/ImageViewer/ImageViewer.vue'
 import Map from '@/components/Map/Map.vue'
-import ComponentContainer from '@/components/Interface/ComponentContainer.vue'
+
+import FTA from '@/components/FTA/FTA.vue'
 
 import CombinedScreens from '@/components/Interface/CombinedScreens.vue'
 
@@ -62,10 +68,10 @@ export default {
   name: 'home',
   components: {
     CombinedScreens,
-    ComponentContainer,
     CLI,
     ImageViewer,
-    Map
+    Map,
+    FTA
   },
   computed: {
     ...mapGetters({

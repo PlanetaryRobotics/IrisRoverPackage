@@ -46,10 +46,16 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 
+import TooltipEquip from '@/styles/TooltipEquip.js'
+
 export default {
+  name: 'Presets',
   data: function() {
     return {
     }
+  },
+  mounted(){
+    TooltipEquip(this.$el);
   },
   methods: {
     toggleVisibility: function(presetName) {

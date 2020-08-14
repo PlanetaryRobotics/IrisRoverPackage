@@ -65,3 +65,6 @@ typings/
 
 # OSX file system metadata
 .DS_Store
+
+# VSCode Metadata
+.vscode

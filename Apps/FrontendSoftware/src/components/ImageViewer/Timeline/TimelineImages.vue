@@ -3,14 +3,14 @@ Creates the row of images used in the timeline and controls selected image.data.
 
 Author: John Walker Moosbrugger, CMU
 Created: 3/19/2019
-Last Updated: 06/05/2020, Colombo
+Last Updated: 08/14/2020, Colombo
 -->
 
 <template>
   <div>
     <!-- Iterates over list of images and creates TimelineImageCard components for each image.data. -->
     <transition-group tag="div" id="timelineImages" name="tl_trans_list" class="scrollable smooth-scroll">
-      <div class="tl__cardCont" v-for="(image, index) in searchedImages" :key="image.data.lookupID">
+      <div class="tl__cardCont" v-for="(image, index) in searchedImages" :key="image.DBID">
         <!-- UNSELECTED IMAGE CARD -->
         <div
           v-if="index != scrollPos"
@@ -89,13 +89,13 @@ export default {
   },
 
   created: function() { // Adds event listners to the global event hub
-    this.$eventHub.$on('leftArrowListener', this.scrollForward)
-    this.$eventHub.$on('rightArrowListener', this.scrollBack)
+    this.$eventHub.$on('IV-keypress-left', this.scrollBack);
+    this.$eventHub.$on('IV-keypress-right', this.scrollForward);
   },
 
   beforeDestroy: function() { // Removes event listners from the global event hub
-    this.$eventHub.$on('leftArrowListener')
-    this.$eventHub.$on('rightArrowListener')
+    this.$eventHub.$off('IV-keypress-left', this.scrollBack);
+    this.$eventHub.$off('IV-keypress-right', this.scrollForward);
   },
 
   data: function() {
@@ -142,7 +142,9 @@ export default {
     scrollIntoView: function(){
       let list = document.getElementById('timelineImages');
       let item = document.getElementById('selectedTimelineCard');
-      list.scrollLeft = list.scrollWidth - list.scrollWidth * (this.scrollPos + 1) / this.searchedImages.length - list.clientWidth / 2 + item.scrollWidth / 2;
+      if(item != undefined && list != undefined){
+        list.scrollLeft = list.scrollWidth - list.scrollWidth * (this.scrollPos + 1) / this.searchedImages.length - list.clientWidth / 2 + item.scrollWidth / 2;
+      }
     },
     // Scrolls timeline's selection, on event from arrow keys
     scrollBack: function() {

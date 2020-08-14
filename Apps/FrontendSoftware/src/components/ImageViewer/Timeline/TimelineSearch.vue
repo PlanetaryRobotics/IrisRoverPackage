@@ -14,7 +14,16 @@ Last Updated: 10/7/2019, Colombo
           {{ tag }}
         </p>
       </div>
-      <input type="text" placeholder="Filter by tags" class="search__input text__main" v-on:keydown.enter="searchTag" v-model="searchText" @keydown.space.prevent>
+      <input 
+        type="text" 
+        placeholder="Filter by tags" 
+        class="search__input text__main" 
+        @keydown.enter="searchTag" 
+        v-model="searchText" 
+        @keydown.space.prevent
+        @keydown.stop
+        @keyup.stop
+      >
     </div>
     <Tritoggle class="camera-toggle" />
   </div>

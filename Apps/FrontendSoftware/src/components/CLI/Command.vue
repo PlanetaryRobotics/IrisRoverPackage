@@ -9,7 +9,7 @@ TODO:
 
 Author: Connor W. Colombo, CMU
 Created: 1/24/2019
-Last Updated: 06/05/2020, Colombo
+Last Updated: 08/05/2020, Colombo
 -->
 <template>
   <div ref="container" class="command-container">
@@ -242,7 +242,6 @@ export default{
   .command-container{
     user-select: none;
     border-radius: .6rem;
-    margin: 1rem;
     overflow: auto;
     /* Keep from being compressed*/
     margin-bottom: 7px;
@@ -250,7 +249,7 @@ export default{
   }
 
   .command{
-    background-color: $color-grey-dark;
+    background-color: $color-grey4;
     color: $color-near-white;
     position: relative;
     z-index: 50;

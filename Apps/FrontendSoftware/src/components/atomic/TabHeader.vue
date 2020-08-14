@@ -3,21 +3,24 @@ Generic Tab Header for any Tabbed Paging System.
 
 Author: Connor W. Colombo, CMU
 Created: 07/12/2020
-Last Update: 07/26/2020, Colombo
+Last Update: 08/07/2020, Colombo
 -->
 <template>
     <div class="tab-header" :class="{ active }" @click="onClick">
         <div class="name">
             {{ name }}
         </div>
-        <div v-show="closeable" class="close-mark" v-html="closeIconSVG" @click.stop="onClose" />
+        <div
+            class="close-mark"
+            :class="{ 'close-mark--hide': !closeable, 'close-mark--hide-until-hover': showCloseOnlyOnHover && closeable }"
+            v-html="CosmosIconPack('close')" 
+            @click.stop="onClose"
+        />
     </div>
 </template>
 
 <script>
-/* global __static */ // <- keep eslint from complaining about the __static directory
-import path from 'path'
-import fs from 'fs'
+import CosmosIconPack from '@/styles/CosmosIconPack.js'
 
 export default {
     name: 'TabHeader',
@@ -36,6 +39,11 @@ export default {
             required: false,
             default: false
         },
+        showCloseOnlyOnHover: { // Whether the close button should be hidden until hovered
+            type: Boolean,
+            required: false,
+            default: false
+        },
         onClick: { // Function called when the tab is clicked (outside of the close button)
             type: Function,
             required: false,
@@ -49,13 +57,9 @@ export default {
     },
     data(){
         return {
-            closeIconSVG: "", // Inline SVG HTML for the Close Button Icon
+            CosmosIconPack
         };
     },
-    mounted(){
-        // Load Icons as Inline SVG:
-        this.closeIconSVG = fs.readFileSync(path.join(__static,'./icons/cosmos-icons/flex/Close.svg'), 'utf8');
-    }
 }
 </script>
 
@@ -64,7 +68,7 @@ export default {
     @import '@/styles/_functional.scss';
     @import '@/styles/_dimensions.scss';
     
-    $tab-height: 3.25rem;
+    $tab-height: $std-tab-height;
 
     $inactive-grey: transparent;
     $inactive-grey-hover: $color-grey4;
@@ -75,7 +79,7 @@ export default {
         user-select: none;
 
         height: $tab-height;
-        min-width: 15rem;
+        min-width: $std-tab-width;
 
         border-top: {
             left-radius: $std-radius;
@@ -123,6 +127,28 @@ export default {
         height: 12px;
 
         stroke: $color-grey2;
+
+        opacity: 1;
+        transition: all 0.25s;
+
+        /*
+         * Hide and remove interactability instead of a v-show to prevent 
+         * oversized tabs from shrinking when close button removed.
+         */
+        @mixin make-invisible() {
+            pointer-events: none;
+            opacity: 0;
+        }
+        &--hide {
+            @include make-invisible();
+        }
+
+        &--hide-until-hover {
+            transition: opacity 0.15s;
+            &:not(:hover) {
+                opacity: 0;
+            }
+        }
 
         &:hover {
             stroke: $color-near-white;

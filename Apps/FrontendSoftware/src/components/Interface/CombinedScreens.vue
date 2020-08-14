@@ -3,8 +3,39 @@ Tabbed Grid Tool Allowing for Multiple Components ("screens") to be Combined and
 in the Window.
 
 A series of DOM objects representing each of the "screens" to be combined is given in 
-the default slot of this component. Each DOM object is then extracted from the default 
-slot as a VNode and wrapped in a `packet` during #mount inside of the nodePackets array. 
+the default slot of this component. The `TabName` attribute in each component will 
+specify the text shown in each respective tab.
+
+Additionally, components can be supplied to the `modal-components` slot to be viewed in a 
+modal container drawer docked to the side. The `ModalHeader` attribute in each such 
+component will specify the text shown in the header (title) of the modal container when expanded.
+The `ModalIcon` attribute in each will specify the CosmosIconPack icon to be used for the component 
+drawer when closed.
+
+Note: The order of components in slots matters. Tabs will be displayed (by default) left-to-right in 
+the order given in the default slot, and modals will be displayed (by default) bottom-to-top in the 
+order given.
+
+Usage:
+----
+  <CombinedScreens>
+    <SomeComponent TabName="First Component" />
+    <div TabName="Second Component" class="can-be-bound-to-classes-in-parent-like-any-other-DOM-node"> 
+      I'm just a normal div, but I could be any html tag with any attributes.
+    </div>
+    <AnotherComponent TabName="Etc..." />
+
+    <template v-slot:modal-components>
+      <OneComponent ModalHeader="A Component" ModalIcon="nameOfAnIconInCosmosIconPack" />
+      <AnotherComponent ModalHeader="B Component" ModalIcon="nameOfAnotherIconInCosmosIconPack" />
+      <Etc />
+    </template>
+  </CombinedScreens>
+
+Operation:
+----
+Each DOM object is  extracted from the default slot as a VNode and wrapped in a `packet` 
+during #mount inside of the nodePackets array.
 
 Each packet contains an id as well as positioning and visibility information. Based on 
 user interactions with the tabs, the positioning and visibility information in these 
@@ -21,28 +52,43 @@ reordering packets.
 
 Author: Connor W. Colombo, CMU
 Created: 07/12/2020
-Last Update: 07/27/2020, Colombo
+Last Update: 08/07/2020, Colombo
 -->
 
 <template>
   <div class="combined-screens">
     <!-- DEFAULT HEADER (for when no tabs are selected): -->
-    <div class="scrollable-header-container" v-if="orderedDisplayNodes.length===0">
+    <div class="scrollable-header-container" ref="CSHeader" id="CSHeader" v-show="orderedDisplayNodes.length===0"> <!-- Note: can't use v-if for the ref to remain persistent -->
       <div class="header">
-        <TabHeader
-          class = "tab"
-          v-for="tabPacket in orderedNodePackets" :key="tabPacket.id"
-          :name="tabPacket.name" 
-          :active="Boolean(tabPacket.visible)" :closeable="true" 
-          :onClick="() => { tabPacket.visible = true; }"
-          :onClose="() => { tabPacket.visible = false; }"
-          draggable="true"
-          @dragstart.native='startDrag($event, tabPacket)'
-          @dragend.native='endDrag($event, tabPacket)'
-        />
+        <div class="header--tab-container">
+          <TabHeader
+            class="tab"
+            v-for="tabPacket in orderedNodePackets" :key="tabPacket.id"
+            :name="tabPacket.name"
+            :active="Boolean(tabPacket.visible)"
+            :closeable="tabPacket.visible"
+            :onClick="() => { tabPacket.visible = true; }"
+            :onClose="() => { tabPacket.visible = false; }"
+            draggable="true"
+            @dragstart.native='startDrag($event, tabPacket)'
+            @dragend.native='endDrag($event, tabPacket)'
+          />
+        </div>
+        <InfoBar />
       </div>
     </div>
-    
+
+
+    <!-- MODAL CONTAINERS: -->
+    <ModalComponentContainer
+      v-for="(node, idx) in $slots['modal-components']" :key="idx"
+      :headerText="node.data.attrs.ModalHeader"
+      :drawerIcon="node.data.attrs.ModalIcon"
+    >
+      <VNodeRenderer :node="node" />
+    </ModalComponentContainer>
+
+
     <!-- MAIN GRID: -->
     <div class="grid-region">
       <div class="grid-row">
@@ -51,19 +97,24 @@ Last Update: 07/27/2020, Colombo
           v-for="(packet, columnIdx) in orderedDisplayNodes" :key="packet.id"
         >
           <!-- CONTAINED HEADER: -->
-          <div class="scrollable-header-container">
+          <div class="scrollable-header-container" :id="`CSHeader${columnIdx}`">
             <div class="header">
-              <TabHeader
-                class = "tab"
-                v-for="tabPacket in columnTabs(columnIdx)" :key="tabPacket.id"
-                :name="tabPacket.name" 
-                :active="Boolean(tabPacket.visible)" :closeable="true" 
-                :onClick="() => { packet.visible = false; tabPacket.visible = true; }"
-                :onClose="() => { tabPacket.visible = false; }"
-                draggable="true"
-                @dragstart.native='startDrag($event, tabPacket)'
-                @dragend.native='endDrag($event, tabPacket)'
-              />
+              <div class="header--tab-container">
+                <TabHeader
+                  class="tab"
+                  v-for="tabPacket in columnTabs(columnIdx)" :key="tabPacket.id"
+                  :name="tabPacket.name" 
+                  :active="Boolean(tabPacket.visible)"
+                  :closeable="tabPacket.visible"
+                  :showCloseOnlyOnHover="columnIdx===0 && orderedDisplayNodes.length===1"
+                  :onClick="() => { packet.visible = false; tabPacket.visible = true; }"
+                  :onClose="() => { tabPacket.visible = false; }"
+                  draggable="true"
+                  @dragstart.native='startDrag($event, tabPacket)'
+                  @dragend.native='endDrag($event, tabPacket)'
+                />
+              </div>
+              <InfoBar :syncedClock.sync="syncedClock" v-if="columnIdx===orderedDisplayNodes.length-1" />
             </div>
           </div>
 
@@ -105,6 +156,7 @@ Last Update: 07/27/2020, Colombo
         <div v-if="showEgg" class="egg-yolk" v-html="eggYolkSVG" />
       </transition>
     </div>
+
   </div> <!--combined screen-->
 </template>
 
@@ -114,11 +166,17 @@ import path from 'path'
 import fs from 'fs'
 
 import TabHeader from '@/components/atomic/TabHeader.vue'
+import InfoBar from '@/components/Interface/InfoBar.vue'
+import ModalComponentContainer from '@/components/Interface/ModalComponentContainer.vue'
+
+import Clock from '@/system/Clock.js'
 
 export default {
   name: 'CombinedScreens',
   components: {
     TabHeader,
+    InfoBar,
+    ModalComponentContainer,
     VNodeRenderer: {
         functional: true,
         render: (h,ctx) => ctx.props.node
@@ -128,6 +186,9 @@ export default {
     return {
       nodePackets: [], // Array of packets containing the VNodes to be rendered as well as associated positioning metadata
       showHoverRegion: false,
+
+      // Clock synced between multiple InfoBar instances (one inside each header):
+      syncedClock: new Clock(),
 
       eggShellSVG: "", // Inline SVG HTML for Egg Shell. Shown when no tabs are selected.
       eggAlbumenSVG: "", // Inline SVG HTML for Egg Albumen. Shown when no tabs are selected.
@@ -164,6 +225,8 @@ export default {
     }
   },
   methods: {
+    /** -- TAB FUNCTIONS --  **/
+
     // Returns the list of tabs which should be displayed above the column with the given index.
     // For the first column, it will be an array of all invisible tabs + the first visible tab; 
     // for the Nth column, it will just be the Nth visible tab (inside an array).
@@ -174,6 +237,8 @@ export default {
         return [this.orderedDisplayNodes[colIdx]];
       }
     },
+
+    /** -- TAB DRAG FUNCTIONS --  **/
 
     // When TabHeader is dragged, allow its data packet to be transferred through the move (into the drop zone)
     startDrag(event, packet){
@@ -198,7 +263,7 @@ export default {
       // Special case for first column in a row:
       if(columnIdx === 0){
         // Get the highest position of all invisible packets:
-        const maxInvisiblePos = this.orderedNodePackets
+        let maxInvisiblePos = this.orderedNodePackets
                                     .filter( p => !p.visible )
                                     .reduce( (maxPos, p) => p.position > maxPos ? p.position : maxPos, -1 );
         switch(idx){
@@ -206,7 +271,7 @@ export default {
             // Correctly position new packet:
             this.onDropAddBefore(event, zonePacket.position);
             // The reposition old packet (in drop zone) to after the invisibles:
-            this.insertPacketBefore(zonePacket, maxInvisiblePos+1);
+            //this.insertPacketBefore(zonePacket, maxInvisiblePos+1); // <- this breaks ordering when you try to move the last window before the penultimate window (can't create an edge case where it appears necessary but it seemed necessary at one point...)
           break;
           case 2:
             this.onDropReplace(event, zonePacket);
@@ -411,10 +476,6 @@ export default {
       else if(original_packet_pos < leftPos){
         targPacket.position = leftPos;
       }
-    },
-
-    log(str){
-      console.log(str);
     }
   }
 }
@@ -436,6 +497,7 @@ export default {
     grid-template-columns: 1fr;
     grid-template-rows: min-content minmax(2*$min-row-height, 1fr);
   }
+
 
   .scrollable-header-container {
     // Custom Horizontal Scroll Behaviour (make thumb appear over usual divider):
@@ -460,17 +522,29 @@ export default {
       min-width: max-content;
       background: $bg-grey;
       display: flex;
-      justify-content: flex-start;
-      align-items: flex-end;
+      justify-content: space-between;
+      align-items: stretch;
 
       padding-top: $std-padding;
 
-      & > .tab {
-        flex-shrink: 0;
-        margin-right: $std-thin-margin;
+      & > .header--tab-container {
+        min-width: max-content;
+        display: flex;
+        justify-content: flex-start;
+        align-items: flex-end;
+
+        & > .tab {
+          flex-shrink: 0;
+          margin-right: $std-thin-margin;
+
+          &:active {
+            cursor: grabbing;
+          }
+        }
       }
     }
   }
+
 
   .grid-region {
     grid-column: 1;
@@ -508,7 +582,7 @@ export default {
         grid-template-columns: minmax($min-column-width, 1fr);
         grid-template-rows: min-content minmax($min-row-height, 1fr);
 
-        & > .scrollable-header-container { // Only add the second border to the containerized header
+        & > .scrollable-header-container { // Also add a second border to the containerized headerz
           border-bottom: {
             style: solid;
             color: $color-background;

@@ -8,7 +8,7 @@ TODO:
 
 Author: Connor W. Colombo, CMU
 Created: 1/31/2019
-Last Updated: 07/23/2020, Colombo
+Last Updated: 08/05/2020, Colombo
 -->
 <template>
   <div class="command-field">
@@ -32,7 +32,8 @@ Last Updated: 07/23/2020, Colombo
       spellcheck="false"
     />
     <p class="command-text" v-bind:class="{highlight: fieldFocused}">
-      <span class="inputText">&nbsp;>&nbsp;{{ inputText }}</span>
+      &nbsp;<span class="cli-arrow" v-html="CosmosIconPack('arrowRight')"></span>
+      <span class="inputText">&nbsp;&nbsp;{{ inputText }}</span>
       <span class="suggested">{{ suggestedText }}</span>
       <span v-if="inputText!=''" v-bind:class="{suggested: !commandSelected, complete: commandSelected}">&nbsp;[</span>
       <span v-for="(arg,idx) in currentArgs" v-bind:key="idx">
@@ -57,10 +58,13 @@ import { mapState } from 'vuex'
 import CommandOption from '@/data_classes/CommandOption.js'
 import CommandData from '@/data_classes/CommandData.js'
 
+import CosmosIconPack from '@/styles/CosmosIconPack.js'
+
 export default {
   name: 'CommandField',
   data(){
     return {
+      CosmosIconPack,
       currentCommand: {}, //      - Current Command Option Chosen
       currentArgs: [], //         - Arguments Given for Command
       commandSuggestionNum: 0, // - Index which Allows for Cycling Through Commands
@@ -441,10 +445,16 @@ export default {
 
 <style lang="scss" scoped>
   @import '@/styles/_colors.scss';
+  @import '@/styles/_dimensions.scss';
 
   .command-field{
     background-color: $color-background;
-    margin: 2rem 1rem 1rem 1rem;
+    margin: {
+      top: 2.5 * $std-spacing;
+      left: 2 * $std-spacing;
+      bottom: 2 * $std-spacing;
+      right: 2 * $std-spacing;
+    };
     position: relative;
   }
 
@@ -478,6 +488,13 @@ export default {
     height: 4rem;
     display: flex;
     align-items: center;
+
+    & > .cli-arrow{
+      width: 12px;
+      height: 12px;
+      line-height: 0;
+      stroke: $color-near-white;
+    }
   }
 
   .highlight{

@@ -115,7 +115,21 @@ export default {
     let connected = await this.checkConnection();
     this.verifyCollectionFormatting(); // Do this only once, on startup
 
+    this.eventBus.on('statusChange', this.persistConnection);
+
     return connected;
+  },
+
+  persistenceTimer: {},
+  // If disconnected, in case all other reconnect measures fail, continuously 
+  // attempt to reconnect at a fixed interval:
+  persistConnection: function({connected}){
+    if(!connected){
+      const check = this.checkConnection;
+      this.persistenceTimer = setInterval(check, 1000);
+    } else {
+      clearInterval(this.persistenceTimer);
+    }
   },
 
   // Performs a Synchronous Check to See if a Connection with the Database Can

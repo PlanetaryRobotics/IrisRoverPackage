@@ -145,32 +145,24 @@ export default {
       let awaitingCommand = new CommandData(command.data);
       awaitingCommand.data.stateUI = CommandStates.UI.LOCAL_ONLY; // Identify that it has not yet been sent.
       commit('COMMAND_WAITING', awaitingCommand);
-      let uuid = awaitingCommand.uuid;
 
-      // Define some internal helper functions for attempting to push data to database:
-      let alertErrorAndRetry, attemptSend, findIdx;
-      // Find index of awaitingCommand in LogWaiting list (could change due to async nature of pushing):
-      findIdx = () => state.LogWaiting.findIndex( c => c.uuid === uuid);
-      alertErrorAndRetry = () => { // Flag that there has been an issue in connection
-                                   // and try again in 1s.
-        awaitingCommand.stateUI = CommandStates.UI.FAIL;
-        awaitingCommand.errorUI = CommandErrors.UI.DB_NOCONNECT;
-        setTimeout(attemptSend, 1000); // retry in 1 sec.
-      }
-      attemptSend = () => {
-        state.Log.push(command).then( () => {
-          let idx = findIdx();
+      // Push the Command to the DB:
+      state.Log.forcePush({
+        obj: command,
+        onFail: () => {
+          // Flag that there has been an issue in connection (forcePush will keep trying to push):
+          awaitingCommand.stateUI = CommandStates.UI.FAIL;
+          awaitingCommand.errorUI = CommandErrors.UI.DB_NOCONNECT;
+        },
+        onSuccess: (uuid) => {
+          // Find index of awaitingCommand in LogWaiting list (could change due to async nature of pushing):
+          let idx = state.LogWaiting.findIndex( c => c.uuid === uuid);
           state.Log.onNextUpdate( () => {
             // Remove command from waiting once it has been successfully pushed and loaded back in:
             commit('COMMAND_RESOLVED', idx);
           });
-        },
-        alertErrorAndRetry
-        );
-      }
-
-      // Attempt to send command to database:
-      attemptSend();
+        }
+      });
     }
   }
 }

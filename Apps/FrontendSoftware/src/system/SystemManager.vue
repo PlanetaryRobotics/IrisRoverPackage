@@ -7,7 +7,7 @@ way of streamlining the code present in the root component.
 
 Author: Connor W. Colombo, CMU
 Created: 08/07/2020
-Last Update: 08/12/2020, Colombo
+Last Update: 08/14/2020, Colombo
 -->
 
 <template>
@@ -62,9 +62,9 @@ Last Update: 08/12/2020, Colombo
                         if(data.length === 0){
                             this.logLazyList.forcePush({obj: new SystemData()});
                         }
-                        this.initialized = true;
                         DB.eventBus.off('statusChange', this.onDBConnectionChange); // Deregister. Event handler no longer needed.
                     });
+                    this.initialized = true;
                 }
             }
         }

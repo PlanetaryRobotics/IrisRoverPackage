@@ -3,6 +3,10 @@
  * TODO: Slowly update SystemData + CommandData to use same solution. Look for differences in 
  * impl. that might cause SystemData to not update on changes.
  * 
+ * ALSO, (maybe related / useful): After dynamic reload, SystemData can still push to DB, despite 
+ * CommandData not being able to load anything.
+ * --- Command can also push... just the list doesn't show up (write but not read?)
+ * 
  */
 
 
@@ -102,11 +106,22 @@
   streamUpdate = (change) => {
     switch(change.operationType){
       case 'insert':{
+        // TODO: Make sure inserted document falls in range and then remove any documents that are now out of range.
         let doc = change.fullDocument;
         this.coreData.push(this.objClass.fromJSON(doc));
         this.dataUpdateRoutine();
       } break;
       case 'update':{
+        let doc = change.fullDocument;
+        // Splice in new document in place of existing document(s) with given lookupID:
+        for(let i in this.coreData){
+          if(this.coreData[i].data.lookupID == doc.lookupID){
+            this.coreData.splice(i, 1, this.objClass.fromJSON(doc));
+          }
+        }
+        this.dataUpdateRoutine();
+      } break;
+      case 'replace':{
         let doc = change.fullDocument;
         // Splice in new document in place of existing document(s) with given lookupID:
         for(let i in this.coreData){
@@ -135,11 +150,12 @@
    *  }
    * Rejects if there's an error during update with a copy of the error.
    */
-  async updateData(){
+  async updateData(forceUpdate=false){
     return new Promise( (resolve, reject) => {
       if(
         !this.initialLoad
       || this.staleTime!==Infinity && (this.needsUpdate || new Date() > this.nextUpdateTime)
+      || forceUpdate
       ){
         this.initialLoad = 1;
         let dataRead;
@@ -160,7 +176,10 @@
           // (map converts plain JSON objects into objects of the specified DBObject class)
           this.coreData = docs.map( d => this.objClass.fromJSON(d) );
           resolve({data: this.coreData, updated: true});
-        }).catch( (err) => reject(err) );
+        }).catch( (err) => {
+          this.initialLoad = 0;
+          reject(err)
+        });
 
         // Reset the signals immediately to prevent repeated triggering while the
         // data is being async loaded. Big problem if this list is being actively
@@ -342,7 +361,7 @@
    */
   forceReactiveUpdate(){
     this.needsUpdate = true;
-    const promise = this.updateData(); // Force update
+    const promise = this.updateData(1); // Force update
     this.list; // Make sure Vue notices
     return promise;
   }
@@ -367,11 +386,13 @@
     }
   }
 
-  // Returns a Hash of the JSON of this List for Easy Reactive Watching.
+  /** Returns a Hash of the JSON of this List for Easy Reactive Watching.
+   * NOTE: Only use in very rare circumstances. It is highly advised that 
+   * implementations use `onUpdate` instead.
+   */
   get watcher(){
     return sha256(JSON.stringify(this.list));
   }
-
 
   // Sets the Head Index and Alerts the List that it Needs to Pull From DB Again.
   set headIdx(idx){

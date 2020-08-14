@@ -31,7 +31,7 @@ Last Update: 08/14/2020, Colombo
         <span 
             class="clickable tooltip"
             title="Status of connection to rover. Click to manually recheck."
-            :style="`width: ${longestRoverStateLength+9}ch`"
+            :style="`width: ${longestRoverStateLength+11}ch`"
             @click="forceConnectionCheck(); roverStateHovered = false;"
             @mouseenter="roverStateHovered = true"
             @mouseleave="roverStateHovered = false"
@@ -58,7 +58,7 @@ Last Update: 08/14/2020, Colombo
 
 <script>
     import Vue from 'vue'
-    import { mapGetters } from 'vuex'
+    import { mapGetters, mapState } from 'vuex'
 
     import AsyncComputed from 'vue-async-computed'
     Vue.use(AsyncComputed);
@@ -115,6 +115,10 @@ Last Update: 08/14/2020, Colombo
 
             // Force connection check to eliminate polling signal and get most accurate current status:
             this.forceConnectionCheck();
+
+            this.stateLogList.onUpdate( () => {
+                this.updateRoverState(true);
+            })
         },
         beforeDestroy(){
             // Unsubscribe to prevent memory leak:
@@ -165,6 +169,9 @@ Last Update: 08/14/2020, Colombo
             }
         },
         computed: {
+            ...mapState({
+                stateLogList: state => state.SYS.stateLogList
+            }),
             ...mapGetters([
                 'currentSystemState' // Most recent SystemData entry on the Database from DBLazyList
             ]),

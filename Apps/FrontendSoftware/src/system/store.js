@@ -4,7 +4,7 @@
  *
  * Author: Connor W. Colombo, CMU
  * Created: 08/07/2020
- * Last Updated: 08/07/2020, Colombo
+ * Last Updated: 08/14/2020, Colombo
  */
 
 import DBLazyList from '@/DBInterface/DBLazyList.js'
@@ -29,7 +29,7 @@ export default {
     // Core Data of the Latest System State:
     currentSystemState: (state, getters) => {
         if(getters.systemStateLog.length){
-            return getters.systemStateLog[getters.systemStateLog.length-1].data;
+            return getters.systemStateLog.reduce( (last, curr) => curr.data.lookupID > last.data.lookupID ? curr : last ).data;
         } else{
             return new SystemData({}).data; // Return blank / default empty image.
         }

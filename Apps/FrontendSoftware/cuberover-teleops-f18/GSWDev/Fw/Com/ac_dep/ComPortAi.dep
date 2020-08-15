@@ -1,3 +1,0 @@
-$(BUILD_ROOT)/Fw/Com/ComPortAc.cpp:\
-    $(BUILD_ROOT)/Fw/Com/ComBuffer.hpp  
-

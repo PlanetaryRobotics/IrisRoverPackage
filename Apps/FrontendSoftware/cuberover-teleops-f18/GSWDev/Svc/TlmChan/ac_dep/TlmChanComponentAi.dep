@@ -1,6 +1,0 @@
-$(BUILD_ROOT)/Svc/TlmChan/TlmChanComponentAc.cpp:\
-    $(BUILD_ROOT)/Fw/Tlm/TlmPortAi.xml  \
-    $(BUILD_ROOT)/Fw/Com/ComPortAi.xml  \
-    $(BUILD_ROOT)/Svc/Sched/SchedPortAi.xml  \
-    $(BUILD_ROOT)/Svc/Ping/PingPortAi.xml  
-

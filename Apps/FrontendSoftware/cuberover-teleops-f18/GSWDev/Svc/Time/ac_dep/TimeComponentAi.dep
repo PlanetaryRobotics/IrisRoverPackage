@@ -1,3 +1,0 @@
-$(BUILD_ROOT)/Svc/Time/TimeComponentAc.cpp:\
-    $(BUILD_ROOT)/Fw/Time/TimePortAi.xml  
-

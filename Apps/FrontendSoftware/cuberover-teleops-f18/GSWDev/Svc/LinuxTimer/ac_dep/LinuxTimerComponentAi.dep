@@ -1,3 +1,0 @@
-$(BUILD_ROOT)/Svc/LinuxTimer/LinuxTimerComponentAc.cpp:\
-    $(BUILD_ROOT)/Svc/Cycle/CyclePortAi.xml  
-

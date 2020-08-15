@@ -1,3 +1,0 @@
-$(BUILD_ROOT)/Svc/PassiveTextLogger/PassiveTextLoggerComponentAc.cpp:\
-    $(BUILD_ROOT)/Fw/Log/LogTextPortAi.xml  
-

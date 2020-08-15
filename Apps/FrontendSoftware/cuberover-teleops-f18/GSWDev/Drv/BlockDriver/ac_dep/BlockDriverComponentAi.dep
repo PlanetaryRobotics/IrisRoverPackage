@@ -1,9 +1,0 @@
-$(BUILD_ROOT)/Drv/BlockDriver/BlockDriverComponentAc.cpp:\
-    $(BUILD_ROOT)/Svc/Sched/SchedPortAi.xml  \
-    $(BUILD_ROOT)/Svc/Cycle/CyclePortAi.xml  \
-    $(BUILD_ROOT)/Drv/DataTypes/DataBufferPortAi.xml  \
-    $(BUILD_ROOT)/Svc/Ping/PingPortAi.xml  \
-    $(BUILD_ROOT)/Fw/Tlm/TlmPortAi.xml  \
-    $(BUILD_ROOT)/Fw/Time/TimePortAi.xml  \
-    $(BUILD_ROOT)/Drv/BlockDriver/Tlm.xml  
-

@@ -1,4 +1,0 @@
-[submodule "cuberover-teleops-f18"]
-	path = cuberover-teleops-f18
-	url = https://github.com/PlanetaryRobotics/cuberover-teleops-f18
-	branch = c2/hermes_backend

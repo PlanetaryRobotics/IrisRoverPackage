@@ -1,3 +1,0 @@
-$(BUILD_ROOT)/Svc/PolyDb/PolyDbComponentAc.cpp:\
-    $(BUILD_ROOT)/Svc/PolyIf/PolyPortAi.xml  
-

@@ -1,0 +1,4 @@
+$(BUILD_ROOT)/Fw/Log/LogPortAc.cpp:\
+    $(BUILD_ROOT)/Fw/Log/LogBuffer.hpp  \
+    $(BUILD_ROOT)/Fw/Time/Time.hpp  
+

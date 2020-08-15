@@ -1,0 +1,9 @@
+Input Ports: 1
+Commands: 4
+ OpCodes: 0,1,2,3
+Channels: 6
+ ChanIds: 0,1,2,3,4,5
+Events: 3
+ EventIds: 0,1,2
+Parameters: 2
+ ParamIds: 0,1

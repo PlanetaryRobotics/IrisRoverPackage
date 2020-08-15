@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="../../Autocoders/schema/ISF/interface_schema.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+
+<interface name="Tlm" namespace="Fw">
+    <include_header>Fw/Time/Time.hpp</include_header>
+    <include_header>Fw/Tlm/TlmBuffer.hpp</include_header>
+    <comment>
+    Port Type interface arguments.
+    </comment>
+    <args>
+        <arg name="id" type="FwChanIdType" pass_by="value">
+        </arg>
+        <arg name="timeTag" type="Fw::Time" pass_by="reference">
+        </arg>
+        <arg name="val" type="Fw::TlmBuffer" pass_by="reference">
+        </arg>
+    </args>
+</interface>

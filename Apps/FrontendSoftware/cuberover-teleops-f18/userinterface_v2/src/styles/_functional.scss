@@ -1,0 +1,28 @@
+/*
+ * SCSS partial for scss functionality which is used across multiple components.
+ *
+ * Author: Connor W. Colombo, CMU
+ * Created: 2/15/2019
+ * Last Updated: 2/15/2019, Colombo
+ */
+@import '@/styles/_colors.scss';
+@import '@/styles/_context.scss';
+@import '@/styles/_typography.scss';
+@import '@/styles/_inputs.scss';
+@import '@/styles/_modal.scss';
+
+.scrollable{
+  overflow: auto;
+
+  &::-webkit-scrollbar {
+    width: 1em;
+  }
+
+  &::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px fade-out($color-grey-dark, 0.7);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: $color-grey-dark;
+  }
+}

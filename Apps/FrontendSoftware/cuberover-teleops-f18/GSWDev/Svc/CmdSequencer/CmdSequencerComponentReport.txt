@@ -1,0 +1,8 @@
+Input Ports: 5
+Output Ports: 9
+Commands: 7
+ OpCodes: 0,1,2,3,4,5,6
+Channels: 5
+ ChanIds: 0,1,2,3,4
+Events: 23
+ EventIds: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22

@@ -1,0 +1,4 @@
+Input Ports: 2
+Output Ports: 7
+Events: 3
+ EventIds: 0,1,2

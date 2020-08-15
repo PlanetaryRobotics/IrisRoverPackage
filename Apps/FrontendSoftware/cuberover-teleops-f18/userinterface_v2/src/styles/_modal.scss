@@ -1,0 +1,15 @@
+.modal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 2rem;
+  z-index: 100;
+  background-color: $color-background;
+  box-shadow: 0 0 2rem $color-near-black;
+  border-radius: 1rem;
+
+  &__header {
+    margin-bottom: 1.5rem;
+  }
+}

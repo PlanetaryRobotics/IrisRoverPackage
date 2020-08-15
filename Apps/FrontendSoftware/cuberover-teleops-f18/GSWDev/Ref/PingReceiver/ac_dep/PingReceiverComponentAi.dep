@@ -1,0 +1,10 @@
+$(BUILD_ROOT)/Ref/PingReceiver/PingReceiverComponentAc.cpp:\
+    $(BUILD_ROOT)/Svc/Ping/PingPortAi.xml  \
+    $(BUILD_ROOT)/Fw/Cmd/CmdPortAi.xml  \
+    $(BUILD_ROOT)/Fw/Cmd/CmdResponsePortAi.xml  \
+    $(BUILD_ROOT)/Fw/Cmd/CmdRegPortAi.xml  \
+    $(BUILD_ROOT)/Fw/Tlm/TlmPortAi.xml  \
+    $(BUILD_ROOT)/Fw/Time/TimePortAi.xml  \
+    $(BUILD_ROOT)/Fw/Log/LogPortAi.xml  \
+    $(BUILD_ROOT)/Fw/Log/LogTextPortAi.xml  
+

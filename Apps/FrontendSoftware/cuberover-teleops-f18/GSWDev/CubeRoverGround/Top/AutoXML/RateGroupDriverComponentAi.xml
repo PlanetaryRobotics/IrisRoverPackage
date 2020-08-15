@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="../../Autocoders/schema/ISF/component_schema.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+
+<component name="RateGroupDriver" kind="passive" namespace="Svc" modeler="true">
+
+    <import_port_type>Svc/Cycle/CyclePortAi.xml</import_port_type>
+    <ports>
+    
+
+        <port name="CycleOut" data_type="Svc::Cycle"  kind="output"    max_number="3">
+        </port>
+
+        <port name="CycleIn" data_type="Svc::Cycle"  kind="sync_input"    max_number="1">
+        </port>
+    </ports>
+
+</component>

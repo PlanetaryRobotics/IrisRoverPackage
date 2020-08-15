@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
+
+<!--====================================================================== 
+
+  Svc
+  SequenceFileLoader
+  Telemetry
+
+======================================================================-->
+
+<telemetry>
+  <channel id="0" name="RateCounter_count" data_type="F32" abbrev="COUNT-0">
+    <comment>RateCounter Output</comment>
+  </channel>
+</telemetry>

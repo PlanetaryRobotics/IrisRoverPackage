@@ -1,0 +1,4 @@
+Input Ports: 3
+Output Ports: 3
+Channels: 1
+ ChanIds: 0

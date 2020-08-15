@@ -1,8 +1,12 @@
 # Install Metadata
 package-lock.json
+yarn.lock
 
-# Builds
+# Built Files
 dist_electron/
+
+# Compiled binary addons (https://nodejs.org/api/addons.html)
+build/Release/
 
 # Logs
 logs/
@@ -34,9 +38,6 @@ bower_components/
 
 # node-waf configuration
 .lock-wscript
-
-# Compiled binary addons (https://nodejs.org/api/addons.html)
-build/Release/
 
 # Dependency directories
 node_modules/

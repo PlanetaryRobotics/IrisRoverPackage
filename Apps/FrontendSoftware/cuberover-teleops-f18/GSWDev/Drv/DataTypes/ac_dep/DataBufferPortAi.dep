@@ -1,3 +1,0 @@
-$(BUILD_ROOT)/Drv/DataTypes/DataBufferPortAc.cpp:\
-    $(BUILD_ROOT)/Drv/DataTypes/DataBuffer.hpp  
-

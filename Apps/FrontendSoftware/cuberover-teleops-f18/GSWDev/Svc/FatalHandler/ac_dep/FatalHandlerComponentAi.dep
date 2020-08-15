@@ -1,3 +1,0 @@
-$(BUILD_ROOT)/Svc/FatalHandler/FatalHandlerComponentAc.cpp:\
-    $(BUILD_ROOT)/Svc/Fatal/FatalEventPortAi.xml  
-

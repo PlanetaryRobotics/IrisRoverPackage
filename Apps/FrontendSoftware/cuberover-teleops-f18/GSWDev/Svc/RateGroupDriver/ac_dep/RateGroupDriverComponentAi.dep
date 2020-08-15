@@ -1,3 +1,0 @@
-$(BUILD_ROOT)/Svc/RateGroupDriver/RateGroupDriverComponentAc.cpp:\
-    $(BUILD_ROOT)/Svc/Cycle/CyclePortAi.xml  
-

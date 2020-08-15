@@ -1,2 +1,0 @@
-Input Ports: 4
-Output Ports: 2

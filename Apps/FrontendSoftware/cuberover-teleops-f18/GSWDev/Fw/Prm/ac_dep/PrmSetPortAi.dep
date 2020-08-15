@@ -1,3 +1,0 @@
-$(BUILD_ROOT)/Fw/Prm/PrmSetPortAc.cpp:\
-    $(BUILD_ROOT)/Fw/Prm/PrmBuffer.hpp  
-

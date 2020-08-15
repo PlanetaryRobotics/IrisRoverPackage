@@ -1,3 +1,0 @@
-$(BUILD_ROOT)/Fw/Buffer/BufferGetPortAc.cpp:\
-    $(BUILD_ROOT)/Fw/Buffer/BufferSerializableAc.hpp  
-

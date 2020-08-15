@@ -1,8 +1,0 @@
-$(BUILD_ROOT)/Svc/BuffGndSockIf/BuffGndSockIfComponentAc.cpp:\
-    $(BUILD_ROOT)/Fw/Log/LogPortAi.xml  \
-    $(BUILD_ROOT)/Fw/Time/TimePortAi.xml  \
-    $(BUILD_ROOT)/Fw/Buffer/BufferSendPortAi.xml  \
-    $(BUILD_ROOT)/Fw/Buffer/BufferGetPortAi.xml  \
-    $(BUILD_ROOT)/Fw/Log/LogTextPortAi.xml  \
-    $(BUILD_ROOT)/Svc/BuffGndSockIf/EvrDict.xml  
-

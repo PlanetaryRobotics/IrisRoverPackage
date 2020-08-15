@@ -1,4 +1,0 @@
-$(BUILD_ROOT)/Fw/Tlm/TlmPortAc.cpp:\
-    $(BUILD_ROOT)/Fw/Tlm/TlmBuffer.hpp  \
-    $(BUILD_ROOT)/Fw/Time/Time.hpp  
-

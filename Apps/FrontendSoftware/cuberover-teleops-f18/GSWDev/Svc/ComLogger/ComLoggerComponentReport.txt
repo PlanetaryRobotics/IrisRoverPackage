@@ -1,6 +1,0 @@
-Input Ports: 3
-Output Ports: 5
-Commands: 1
- OpCodes: 0x0
-Events: 4
- EventIds: 0x0,0x1,0x2,0x3

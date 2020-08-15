@@ -1,9 +1,0 @@
-$(BUILD_ROOT)/Svc/GndIf/GndIfComponentAc.cpp:\
-    $(BUILD_ROOT)/Fw/Buffer/BufferSendPortAi.xml  \
-    $(BUILD_ROOT)/Fw/Log/LogPortAi.xml  \
-    $(BUILD_ROOT)/Fw/Log/LogTextPortAi.xml  \
-    $(BUILD_ROOT)/Fw/Com/ComPortAi.xml  \
-    $(BUILD_ROOT)/Fw/Time/TimePortAi.xml  \
-    $(BUILD_ROOT)/Fw/Buffer/BufferGetPortAi.xml  \
-    $(BUILD_ROOT)/Svc/GndIf/Events.xml  
-

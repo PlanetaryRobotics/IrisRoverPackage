@@ -1,9 +1,0 @@
-Notes:
-
-1) OpCodes needs to finish being merged with Commands and Telemetry List - Kill OpCodes with fiiiiire
-	John Walker
-
-2) Time stamps of incoming telemetry and outgoing commands (numbering instead?) (Avionics check)
-	Raewyn Duvall
-
-3) 

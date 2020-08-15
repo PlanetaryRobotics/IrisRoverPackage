@@ -1,4 +1,0 @@
-$(BUILD_ROOT)/Fw/Log/LogTextPortAc.cpp:\
-    $(BUILD_ROOT)/Fw/Time/Time.hpp  \
-    $(BUILD_ROOT)/Fw/Log/TextLogString.hpp  
-

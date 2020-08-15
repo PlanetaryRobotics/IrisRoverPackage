@@ -7,7 +7,7 @@ import Enum from '@/data_classes/Enum.js'
 export default new Enum(
   "Commands",
   "Images",
-  "Localization"
+  "Localization",
   "FTA",
   "Users",
   "System"

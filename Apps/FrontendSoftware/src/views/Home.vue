@@ -10,7 +10,8 @@ Last Update: 07/29/2020, Colombo
   <div class="main">
     <CombinedScreens>
       <ImageViewer TabName="Image Viewer" />
-      <Map TabName="Map" />
+      <!--<Map TabName="Map" />-->
+      <div TabName="Map" id="Map" class="box"> Map </div>
       <div TabName="Telemetry" id="Telemetry" class="box"> Telemetry </div>
       <div TabName="Error Analysis" id="ErrorAnalysis" class="box"> Error Analysis </div>
       <FTA TabName="Failure Tree" ModalHeader="Failure Tree Analysis" ModalIcon="data" ref="fta" />
@@ -56,7 +57,6 @@ const csv = require('neat-csv');
 
 import CLI from '@/components/CLI/CLI.vue'
 import ImageViewer from '@/components/ImageViewer/ImageViewer.vue'
-import Map from '@/components/Map/Map.vue'
 
 import FTA from '@/components/FTA/FTA.vue'
 
@@ -70,7 +70,6 @@ export default {
     CombinedScreens,
     CLI,
     ImageViewer,
-    Map,
     FTA
   },
   computed: {

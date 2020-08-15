@@ -1,7 +1,7 @@
 {
   "name": "irisrover-ground-terminal-bold-behnken",
-  "productName": "Iris Terminal 0.6.0",
-  "version": "0.6.0",
+  "productName": "Iris Terminal 0.6.2",
+  "version": "0.6.2",
   "author": "Iris Rover Project & CMU",
   "private": true,
   "scripts": {

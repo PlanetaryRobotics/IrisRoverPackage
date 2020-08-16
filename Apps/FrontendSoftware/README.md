@@ -76,9 +76,27 @@ npm run test
 
 ## **Deployment**
 
-### **Compile and minify for production**
+### 1. **Update `email`.**
+Update the `author.email` field in `package.json` to a reliable contact for the individual responsible for this build.
+
+### 2. **Make sure all icons are built for production**
+```
+npm run electron:generate-icons
+```
+
+### 3. **Compile and minify for production**
+#### 3a. For your current platform:
 ```
 npm run electron:build
 ```
+#### 3b. For all distribution platforms:
+To run the following, you must be on a mac with a Parallels Windows 10 VM installed, Parallels Toolbox installed, Shared Folders set to All Disks in Parallels for the VM, and the Parallels VM and Parallels Toolbox open.
+```
+npm run electron:build -- --linux AppImage --win nsis --mac dmg
+```
 
+### **Looking change build settings?**
+Package metadata is handled by `package.json` and platform specific build settings are managed in `pluginOptions.electronBuilder.builderOptions` of `vue.config.js`.
 
+### **Looking to add extra build functionality?**
+Recipes are available at the Vue CLI Plugin Electron Builder [Recipe Page](https://nklayman.github.io/vue-cli-plugin-electron-builder/guide/recipes.html).

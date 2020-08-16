@@ -1,7 +1,7 @@
 'use strict'
 
-import path from 'path'
 import { app, protocol, BrowserWindow } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import { initSplashScreen, OfficeTemplate } from 'electron-splashscreen';
 import {
   createProtocol,
@@ -9,14 +9,17 @@ import {
 } from 'vue-cli-plugin-electron-builder/lib'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
-let win;
-let hideSplashscreen;
+/* global __static */
+import path from 'path'
 
 // Handle all unhandled exceptions for diagnostics (and reporting):
 const unhandled = require('electron-unhandled');
 unhandled();
+
+// Keep a global reference of the window object, if you don't, the window will
+// be closed automatically when the JavaScript object is garbage collected.
+let win;
+let hideSplashscreen;
 
 const ICON =
   process.platform == 'darwin' ? path.join(__dirname, 'assets/icons/mac/logo.png.hqx')
@@ -68,7 +71,7 @@ function initProgram(){
     height: 300,
     brand: '',
     productName: 'Iris Rover',
-    logo: path.join(__static, 'iris_logo.svg'),
+    logo: path.join(__static, 'icon.png'),
     website: '',
     text: 'Initializing . . .'
   });
@@ -86,12 +89,24 @@ function renderWindow() {
     createProtocol('app')
     // Load the index.html when not in development
     win.loadURL('app://./index.html')
+    // Check for Updates to the Github Releases Page:
+    autoUpdater.checkForUpdatesAndNotify();
   }
   if (isDevelopment && !process.env.IS_TEST) win.webContents.openDevTools()
 
   win.on('closed', () => {
     win = null
   })
+}
+
+// Spawns the application:
+async function spawn(){
+  initProgram();
+  if (isDevelopment && !process.env.IS_TEST) {
+    // Install Vue Devtools
+    await installVueDevtools()
+  }
+  renderWindow();
 }
 
 // Quit when all windows are closed.
@@ -107,7 +122,7 @@ app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (win === null) {
-    createWindow()
+    spawn();
   }
 })
 
@@ -115,12 +130,7 @@ app.on('activate', () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
-  initProgram();
-  if (isDevelopment && !process.env.IS_TEST) {
-    // Install Vue Devtools
-    await installVueDevtools()
-  }
-  renderWindow();
+  spawn();
 });
 
 // Exit cleanly on request from parent process in development mode.

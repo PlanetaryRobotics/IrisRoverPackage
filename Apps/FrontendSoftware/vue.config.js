@@ -1,12 +1,16 @@
 // vue.config.js
 
 module.exports = {
+  configureWebpack: {
+    devtool: 'source-map'
+  },
   pluginOptions: {
     electronBuilder: {
       builderOptions: {
         // options placed here will be merged with default configuration and passed to electron-builder
         "appId": "com.iris.terminal",
         "copyright": "Copyright © 2020 ${author}",
+        "publish": ['github'],
         "mac": {
           "target": "dmg",
           "icon": "build/icon.png"
@@ -37,7 +41,8 @@ module.exports = {
           "target": [
             "AppImage",
             "deb"
-          ]
+          ],
+          category: "Science"
         }
       }
     }

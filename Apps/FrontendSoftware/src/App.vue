@@ -32,7 +32,7 @@ export default {
   methods: {
     activateWindow: function(){
       /* Wrapped in timeout to add semi-arbitrary delay (needs to be greater
-      than ~500ms to avoid flashing white screen when opening to fullscreen.
+      than ~1500ms to avoid flashing white screen when opening to fullscreen.
       Can't prevent this by listening for DOM load because Vue will still be
       bringing in resources after first load).
       That said, there almost certainly is a more robust implementation but

@@ -3,7 +3,7 @@ Defines the Layout and Styling of the Home (main) Screen of the Iris Terminal.
 
 Author: Connor W. Colombo, CMU
 Created: 1/2019
-Last Update: 07/29/2020, Colombo
+Last Update: 08/14/2020, Colombo
 -->
 
 <template>

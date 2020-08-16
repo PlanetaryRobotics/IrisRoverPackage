@@ -71,4 +71,8 @@ typings/
 .DS_Store
 
 # VSCode Metadata
-.vscode
+.vscode/*
+
+# Keep VSCode Tasks (Debugging)
+!.vscode/tasks.json
+!.vscode/launch.json

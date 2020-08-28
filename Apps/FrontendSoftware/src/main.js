@@ -1,3 +1,11 @@
+/**
+ * Manages the Renderer process (Vue and Vuex).
+ * 
+ * Author: Connor W. Colombo
+ * Created: 1/2019
+ * Last Updated: 08/17/2020
+ */
+
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'

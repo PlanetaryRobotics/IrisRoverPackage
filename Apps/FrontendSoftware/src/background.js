@@ -1,4 +1,14 @@
 'use strict'
+/**
+ * Manages the background Electron processes and the link between the Application 
+ * Window and the OS. Notably, this includes invoking window creation on application 
+ * startup and launching the renderer (Vue), by loading the app.
+ * This is the first non-engine process invoked when the application is started (see `package.json`).
+ * 
+ * Author: Connor W. Colombo
+ * Created: 1/2019
+ * Last Updated: 08/17/2020
+ */
 
 import { app, protocol, BrowserWindow } from 'electron'
 import { autoUpdater } from 'electron-updater'

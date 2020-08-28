@@ -1,5 +1,10 @@
 <template>
-  <div id="app" class="text__main">
+  <div  
+    id="app"
+    class="text__main"
+    tabindex="0 /*this allows the container to capture keyevents from anywhere inside it*/"
+    @keyup.ctrl.m="() => setFullScreen()"
+  >
     <!-- Headless Components: -->
     <SystemManager />
 
@@ -9,7 +14,7 @@
 </template>
 
 <script>
-import { remote } from 'electron'
+import { remote, BrowserWindow } from 'electron'
 import { reportReady } from 'electron-splashscreen'
 import DB from '@/DBInterface/DBInterface'
 
@@ -19,6 +24,11 @@ export default {
   name: 'App',
   components: {
     SystemManager
+  },
+  data(){
+    return {
+      fullScreenState: false, // Whether the application is currently fullscreen
+    }
   },
   created: function() {
     // Add event listners to the global event hub:
@@ -30,6 +40,29 @@ export default {
     this.$eventHub.$off('loginMounted', this.activateWindow);
   },
   methods: {
+    // Sets the fullscreen state of the window to the given boolean. 
+    // If no state is given, the current state is toggled.
+    setFullScreen(state){
+      if(state){
+        this.fullScreenState = state;
+      } else{
+        this.fullScreenState = !this.fullScreenState;
+      }
+      console.warn(`SETTING FULLSCREEN STATUS ${this.fullScreenState}`);
+      remote.getCurrentWindow().setFullScreen(this.fullScreenState);
+    },
+
+    // Opens a new OS Window Containing a List of the App-Wide Shortcut Keys:
+    openHelpWindow(){
+      let child = new BrowserWindow({
+        parent: win,
+        modal: true,
+        frame: false,
+        show: false
+      });
+      child.loadURL(path.join(__static, '.'))
+    },
+
     activateWindow: function(){
       /* Wrapped in timeout to add semi-arbitrary delay (needs to be greater
       than ~1500ms to avoid flashing white screen when opening to fullscreen.
@@ -41,7 +74,7 @@ export default {
       setTimeout(()=>{
         reportReady(); // App is loaded, close the splash-screen
         if(process.env.NODE_ENV == 'production'){
-          remote.getCurrentWindow().setFullScreen(true);
+          this.setFullScreen(true);
         }
         this.$eventHub.$emit('windowActivated');
       }, 1500);
@@ -72,11 +105,11 @@ export default {
           case "route-to": { //     - Route to a specific page in views.
             this.$eventHub.$emit('loginMounted'); // skip Login
             try{
-              console.log("[IRIS-APP] Routing to " + vals[i] + " . . .");
+              console.log(`[IRIS-APP] Routing to ${vals[i]} . . .`);
               this.$router.push(vals[i]);
             } catch(e){
               console.warn(e);
-              console.log("[IRIS-APP] Page " + vals[i] + " not registered in router.js");
+              console.log(`[IRIS-APP] Page ${vals[i]} not registered in router.js`);
             }
           } break;
 

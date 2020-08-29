@@ -3,6 +3,7 @@ package-lock.json
 yarn.lock
 
 # Built Files
+dist/
 dist_electron/
 
 # Compiled binary addons (https://nodejs.org/api/addons.html)

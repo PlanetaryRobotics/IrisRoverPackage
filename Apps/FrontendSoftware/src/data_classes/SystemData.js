@@ -7,21 +7,13 @@
  *
  * Author: Connor W. Colombo, CMU
  * Created: 08/07/2020
- * Last Update: 08/14/2020, Colombo
+ * Last Update: 08/28/2020, Colombo
  */
 
 const { DateTime } = require('luxon');
 
 import DBObject from './DBObject.js'
 import Clock from '@/system/Clock.js'
-
-/**
- * Returns a luxon DateTime object constructed from the given json string
- * if the given json string is valid.
- */
-function luxonFromJSON(json){
-  return json ? DateTime.fromISO(json) : json;
-}
 
 export default class SystemData extends DBObject{
   constructor(inputData){
@@ -37,6 +29,12 @@ export default class SystemData extends DBObject{
       avionics: {
         deployed: false, //             - Whether a deployment signal has been sent to the rover
         lastMessageTime: undefined, //  - (Luxon) DateTime of last message from the rover received by backend
+        mode: { //                      - Data about the Avionics Mode (TODO:(colombo@cmu.edu): from FPrime Mode Manager?)
+          curr_mode: 0  //                -- Current Mode
+        },
+        health: {//                     - Avionics Health (from FPrime Health Message)
+          modules_ok: false //            -- Whether FPrime modules are in an error state (1 -> ERROR, 0 -> OK)
+        }
       },
       timestamp: DateTime.utc(), //     - DateTime this system state was recorded.
       time: {
@@ -54,8 +52,8 @@ export default class SystemData extends DBObject{
       data = JSON.parse(data);
     }
     // Validate Data Types:
-    data.avionics.lastMessageTime = luxonFromJSON(data.avionics.lastMessageTime);
-    data.timestamp = luxonFromJSON(data.timestamp);
+    data.avionics.lastMessageTime = this.luxonFromJSON(data.avionics.lastMessageTime);
+    data.timestamp = this.luxonFromJSON(data.timestamp);
 
     data.time.launch = Clock.fromJSON(data.time.launch);
     data.time.landing = Clock.fromJSON(data.time.landing);

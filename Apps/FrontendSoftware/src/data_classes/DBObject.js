@@ -4,19 +4,25 @@
  * be Structured and Accessed. Allows for Consistent Expectations when Passing
  * Data between Mongo and Frontend UI.
  * Author: Connor W. Colombo, CMU
- * Last Update: 08/14/2020, Colombo
+ * Last Update: 08/28/2020, Colombo
  */
  // TODO: Find a more efficient way to imp. #plainJSON. Not big issue, negligible perf. debt at the moment.
 
 import { sha256 } from 'js-sha256'
 import { v1 as uuidv1 } from 'uuid';
 
+const { DateTime } = require('luxon');
 export default class DBObject{
-   constructor(inputData){
-     // Default values:
-     this.data = DBObject.defaultData();
-     Object.assign(this.data, this.constructor.defaultData()); // override any DBObject defaults with extending class defaults
-     Object.assign(this.data, inputData); // override defaults with given values
+   constructor(inputData, extendingClassDefaultData){
+      // Default values:
+      this.data = DBObject.defaultData();
+      Object.assign(this.data, this.constructor.defaultData()); // override any DBObject defaults with extending class defaults
+      // If an extending class has supplied extra DefaultData, compound it:
+      if(extendingClassDefaultData){
+        Object.assign(this.data, extendingClassDefaultData);
+      }
+      Object.assign(this.data, inputData); // override defaults with given values
+     }
    } // ctor
 
    // Returns the Default Data that EVERY DBObject Should Contain
@@ -26,6 +32,19 @@ export default class DBObject{
        uuid: uuidv1()
      }
    }
+
+    /**
+     * Returns a luxon DateTime object constructed from the given json string
+     * if the given json string is valid.
+     */
+    static luxonFromJSON(json){
+      return json ? DateTime.fromISO(json) : json;
+    }
+
+    /**
+     * Time value used when no time has been recorded.
+     */
+    static NULL_TIME = DateTime.utc(0,0,0,0,0,0,0);
 
    // Loads Object from JSON.
    static fromJSON(data){

@@ -10,5 +10,10 @@ export default new Enum(
   "Localization",
   "FTA",
   "Users",
-  "System"
+  "System",
+  "TLM_Navigation",
+  "TLM_Motor",
+  "TLM_Watchdog",
+  "TLM_IMU",
+  "TLM_Network"
 );

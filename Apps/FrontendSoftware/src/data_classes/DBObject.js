@@ -22,7 +22,6 @@ export default class DBObject{
         Object.assign(this.data, extendingClassDefaultData);
       }
       Object.assign(this.data, inputData); // override defaults with given values
-     }
    } // ctor
 
    // Returns the Default Data that EVERY DBObject Should Contain

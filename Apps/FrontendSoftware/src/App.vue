@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import { remote, BrowserWindow } from 'electron'
+import { remote } from 'electron'
 import { reportReady } from 'electron-splashscreen'
 import DB from '@/DBInterface/DBInterface'
 
@@ -54,13 +54,13 @@ export default {
 
     // Opens a new OS Window Containing a List of the App-Wide Shortcut Keys:
     openHelpWindow(){
-      let child = new BrowserWindow({
+      /*let child = new BrowserWindow({
         parent: win,
         modal: true,
         frame: false,
         show: false
       });
-      child.loadURL(path.join(__static, '.'))
+      child.loadURL(path.join(__static, '.'))*/
     },
 
     activateWindow: function(){

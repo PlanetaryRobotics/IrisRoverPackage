@@ -21,6 +21,7 @@ Last Updated: 10/7/2019, Colombo
     <!-- CARD BOTTOM -->
     <div class="tl__imgCont--bottom">
       <p>{{ image.time }}</p>
+      <p>{{ image.data.lookupID }}</p>
     </div>
   </div>
 </template>

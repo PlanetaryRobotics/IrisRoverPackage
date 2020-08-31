@@ -17,11 +17,11 @@ export default class TelemetryData_Navigation extends TelemetryData{
   // Returns the Default Data this Object Should Contain
   static defaultData(){
     return { // data which gets saved to JSON
-      moved_forward: 0, //            - Distance the rover moved forward
-      moved_backward: 0, //           - Distance the rover moved backward
-      turned_right: 0, //             - Angle the rover turned right
-      turned_left: 0, //              - Angle the rover turned left
-      took_image: 0 //                - Whether an image was taken during the move
+      distMovedForward: 0, //       - Distance the rover moved forward
+      distMovedBackward: 0, //      - Distance the rover moved backward
+      angleTurnedRight: 0, //       - Angle the rover turned right
+      angleTurnedLeft: 0, //        - Angle the rover turned left
+      imageSize: 0 //                - Size of image that was taken during the move
     }
   }
 

@@ -15,20 +15,28 @@ entered. Note: if the user hasn't entered any valid inputs, this will be
 
 Author: Connor Colombo, CMU
 Created: 10/10/2019
-Last Updated: 08/13/2020, Colombo
+Last Updated: 08/30/2020, Colombo
 -->
 
 <template>
-  <div class="search" :class="{highlight: fieldFocused && !showError, error: showError}">
+  <div
+    class="search"
+    :class="{
+      highlight: fieldFocused && !showError,
+      error: showError
+    }"
+  >
     <input
+      :tabindex="tabOrder"
       v-model="rawInput"
       ref="input"
       type="text"
       class="search__input text__main"
-      @keydown.enter="searchTerm"
+      @keydown.enter="formEvent ? $eventHub.$emit(formEvent) : searchTerm() /* If a formEvent is used to link all fields in a group, fire it; otherwise just search this field.*/"
       @click="fieldFocused = true; showError = false;"
+      @focus.prevent="fieldFocused = true; showError = false;"
       @blur="fieldFocused = false"
-      @keydown.tab.prevent="acceptSuggestion"
+      @keydown.tab="acceptSuggestion() /* keep default behaviour to allow normal tab cycling, just accept suggestion first*/"
       @keydown.right.prevent="acceptSuggestion"
       @keydown.up.prevent="suggestionIdx++"
       @keydown.down.prevent="suggestionIdx--"
@@ -42,9 +50,9 @@ Last Updated: 08/13/2020, Colombo
           {{ protectText(term) }}
         </p>
       </span>
-      <span v-if="searchAllowed" class="text-area">
-        &nbsp;>&nbsp;
-        <span class="inputText" :class="{placeholder: !rawInput && !this.suggestionIdx}">
+      <span v-if="searchAllowed" class="text-field text-area">
+        &nbsp;<span class="input-arrow" v-html="CosmosIconPack('arrowRight')"></span>
+        <span class="input-text" :class="{placeholder: !rawInput && !this.suggestionIdx}">
           {{ rawInput || this.suggestionIdx ? protectText(displayInput) : placeholder }}
         </span>
         <span class="suggested">{{ protectText(suggestedText) }}</span>
@@ -54,6 +62,8 @@ Last Updated: 08/13/2020, Colombo
 </template>
 
 <script>
+
+import CosmosIconPack from '@/styles/CosmosIconPack.js'
 
 export default {
   name: "TextInput",
@@ -70,7 +80,7 @@ export default {
     },
     formEvent: { //     - Name of Event on Global Event Bus to Listen For. When triggered, this field will submit.
       type: String,
-      default: "",
+      default: undefined,
       required: false
     },
     errorEvent: { //    - Name of Event on Global Event Bus to Listen For. When triggered, this indicates that there is an externally-validated error in this input.
@@ -107,10 +117,16 @@ export default {
       type: Boolean,
       default: true,
       required: false
+    },
+    tabOrder: { //      - Relative position in the ordering of items which highlighted when cycling through them with `tab`
+      type: String,
+      default: "-1",
+      required: false
     }
   },
   data: function() {
     return {
+      CosmosIconPack,
       rawInput: "", //      - Raw, Unfiltered, Unprocessed, Unsubmitted User Input
       showError: false, //  - Whether to Display Error
       searchedTerms: [], // - All Searched Terms. Validated if Applicable
@@ -173,6 +189,8 @@ export default {
     callback will be called but input will not be saved to `searchedTerms`.
     */
     searchTerm: function() {
+      let success = false; // Whether a valid term was found and selected during search
+      
       if (this.rawInput != "") { // If text has been entered in the raw input field
         if(this.searchAllowed || this.searchLimit == 0){
          // If Searching is Still Allowed (or no items have been searched <-special case):
@@ -194,21 +212,26 @@ export default {
 
           if(valid && !this.searchedTerms.includes(this.rawInput)){
             /* If valid and not already in list, add a bubble with the term.
-            (shouldn't do this includes test earlier since rawInput Capitalization
-            might not be correct before processing)*/
-
-              if(this.searchLimit == 0){
-                this.callback([this.rawInput]); // Call the callback but don't save.
-              } else if(this.searchAllowed){
-                this.searchedTerms.push(this.rawInput);
-                this.callback(this.searchedTerms); // Call the callback.
-              }
-            }
+            (shouldn't do this `includes` test earlier since rawInput Capitalization
+            might not be correct before processing) */
+            success = true;
+          }
         }
+      }
 
-        if(this.clearOnEnter){
-          this.rawInput = ""; // Always clear the raw input field on search.
+      if(success){
+        if(this.searchLimit == 0){
+          this.callback([this.rawInput]); // Call the callback but don't save.
+        } else if(this.searchAllowed){
+          this.searchedTerms.push(this.rawInput);
+          this.callback(this.searchedTerms); // Call the callback.
         }
+      } else{
+        this.showErrorOnEvent();
+      }
+
+      if(this.clearOnEnter){
+        this.rawInput = ""; // Always clear the raw input field on search.
       }
     },
 
@@ -289,6 +312,11 @@ export default {
     border: .1rem solid $color-grey-dark;
     transition : .05s linear;
 
+    &:focus {
+      outline-width: 0; /* eliminate native highlighting */
+      outline: none;
+    }
+
     &.highlight{
       border-color: $color-primary;
       background-color: $color-background;
@@ -349,13 +377,7 @@ export default {
   .placeholder {
     color: $color-grey;
   }
-
-  .text-output{
-    padding: 1rem .8rem;
-    border-radius: .6rem;
-    height: 4rem;
-  }
-
+  
   .text-area{
     color: $color-near-white;
     border: none;
@@ -364,4 +386,27 @@ export default {
     display: flex;
     align-items: center;
   }
+
+  .text-output{
+    $horiz-padding: 1rem;
+
+    padding: $horiz-padding .8rem;
+    border-radius: .6rem;
+    height: 4rem; 
+
+    & > .text-field {
+      display: flex;
+      align-items: center;
+      line-height: 0;
+
+      & > .input-arrow{
+        width: 12px;
+        height: 12px;
+        margin-right: $horiz-padding;
+        line-height: 0;
+        stroke: $color-near-white;
+      }
+    }
+  }
+
 </style>

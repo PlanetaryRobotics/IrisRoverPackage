@@ -9,11 +9,11 @@
 
 export default class MotorData{
   constructor({
-    encoder_dist = 0,
+    displacement = 0,
     current = 0,
     speed = 0
   } = {}){
-    this.encoder_dist = encoder_dist;
+    this.displacement = displacement;
     this.current = current;
     this.speed = speed;
   } // ctor

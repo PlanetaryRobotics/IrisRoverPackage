@@ -21,7 +21,12 @@ export default class TelemetryData_Watchdog extends TelemetryData{
 
       power: {
         voltage: {
-          voltage_ok: false,
+          voltage_ok: {
+            V1V2: false,
+            V1V8: false,
+            V3V3: false,
+            V5V0: false
+          },
           V2V5: 0,
           V2V8: 0,
           V24V: 0,
@@ -42,7 +47,7 @@ export default class TelemetryData_Watchdog extends TelemetryData{
         hercules: 0,
         FPGA: 0,
         radio: 0,
-        batteryPack: 0,
+        battery: 0,
         camera: {
           front: 0,
           rear: 0

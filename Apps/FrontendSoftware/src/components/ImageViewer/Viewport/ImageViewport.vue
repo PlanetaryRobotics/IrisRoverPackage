@@ -4,7 +4,7 @@ editing via preset filters.
 
 Author: Connor Colombo, CMU
 Created: 3/05/2019
-Last Updated: 11/1/2019, Colombo
+Last Updated: 08/30/2020, Colombo
 
 TODO:
   - Better Denoise
@@ -13,9 +13,9 @@ TODO:
 
 <template>
   <div class="image-viewport">
-    <img class="port" id="imgsrc" v-show="false" :src="selectedImage.url" alt="IMAGE NOT FOUND" @load="onImageUpdate" />
+    <img class="port" id="imgsrc" v-show="false" :src="imageSource" alt="IMAGE NOT FOUND" @load="onImageUpdate" />
     <div id="portContainer">
-      <canvas class="port" style="z-index: 0" id="imgvp" :key="selectedImage.url">
+      <canvas class="port" style="z-index: 0" id="imgvp" :key="imageSource">
         Oops! Something went wrong and really weird. Somehow Electron doesn't support HTML5 Canvas now. What did you do?
       </canvas>
       <canvas id="featurevp" class="port" style="z-index: 1;"/>
@@ -75,6 +75,15 @@ export default {
       editorAdjustments: state => state.IMG.adjustmentsEditorState.adjustments,
       presets: state => state.IMG.Presets
     }),
+
+    imageSource(){
+      return this.selectedImage.failed ? "" : this.selectedImage.url;
+    },
+
+    imageDOM(){
+      return document.getElementById('imgsrc');
+    },
+
     // Keys of the All Adjustments:
     adjustmentKeys(){
       return Object.keys(this.editorAdjustments);
@@ -90,9 +99,6 @@ export default {
         this.adjustmentKeys.forEach(k => tot[k] += p.data.adjustments[k])
       });
       return tot;
-    },
-    imageDOM(){
-      return document.getElementById('imgsrc');
     },
     adjustmentsHash(){
       // TODO: Should use flags / events on update, not this.

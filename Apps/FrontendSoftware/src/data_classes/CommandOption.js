@@ -18,8 +18,10 @@
   *
   * Author: Connor W. Colombo, CMU
   * Created: 1/25/2019
-  * Last Update: 06/05/2020, Colombo
+  * Last Update: 08/29/2020, Colombo
  */
+
+import utils from '@/utils.js'
 
 export default class CommandOption{
    /* Constructs a new CommandOption from the given data.
@@ -50,57 +52,6 @@ export default class CommandOption{
      this.useCount = 0; //            - Number of Times this Command Has Been Used
 
      // Create Cosmetically Formatted Units:
-     this.formattedUnits = this.params.map( p => this.formatUnits(p.units) );
+     this.formattedUnits = this.params.map( p => utils.formatUnits(p.units) );
    } // ctor
-
-   /* Returns the Given Unit String as a Cosmetically Formatted HTML.
-    * Acceptable formats are:
-       ... a^x b^y / c^z d^m ...
-       ... a^x b^y c^-z d^-m ...
-       ... a^x b^y / c^z / d^m ...
-    */
-   formatUnits(str){
-     // Insert Special Unit Symbols:
-     str = str.replace("deg", "&deg;");
-     str = str.replace("ohm", "&Omega;");
-     // Separate Numerator and Denominator:
-     let ds = str.split('/'); // Slash Delimited Strings
-     let ufn = ds[0]; // UnFormatted Numerator
-     let ufd = ""; // UnFormatted Denominator
-     if(ds.length > 1){
-       for(let i=1; i<ds.length; i++){ // Support multiple slashes
-         ufd += ds[i];
-       }
-     }
-
-     let num = "";
-     let denom = "";
-
-     // Format Powers of Each Term in Numerator:
-     ufn.split(' ').forEach( term => { // Isolate each term (ex. "m" or "s^-2")
-       if(term !== ""){
-         let pcs = term.split('^'); // Split term into pieces
-         if( (pcs[1]||"").includes('-') ){ // This term should actually be in the denominator
-           pcs[1] = pcs[1].replace('-',"");
-           denom += `${pcs[0]}<sup>${pcs[1]||""}</sup>`;
-         } else{
-           num += `${pcs[0]}<sup>${pcs[1]||""}</sup>`;
-         }
-       }
-     });
-
-     // Format Powers of Each Term in Denominator (if there is a denominator):
-     if(ufd){
-       ufd.split(' ').forEach( term => { // Isolate each term (ex. "m" or "s^-2")
-         let pcs = term.split('^'); // Split term into pieces
-         denom += `${pcs[0]}<sup>${pcs[1]||""}</sup>`;
-       });
-     }
-
-     if(num == ""){
-       num = "&nbsp;<sup></sup>";
-     }
-
-     return "&hairsp;" + (denom ? `<span style="font-size:0.75em;"><sup>${num}</sup>/<sub>${denom}</sub></span>` : `<span style="font-size:0.95em">${num}</span>`);
-   }
  } // class: CommandObject

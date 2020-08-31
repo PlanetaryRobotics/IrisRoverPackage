@@ -30,7 +30,8 @@ export default class SystemData extends DBObject{
         deployed: false, //             - Whether a deployment signal has been sent to the rover
         lastMessageTime: undefined, //  - (Luxon) DateTime of last message from the rover received by backend
         mode: { //                      - Data about the Avionics Mode (TODO:(colombo@cmu.edu): from FPrime Mode Manager?)
-          curr_mode: 0  //                -- Current Mode
+          currMode: 0,  //                -- Current Mode
+          prevMode: 0  //                 -- Previous Mode
         },
         health: {//                     - Avionics Health (from FPrime Health Message)
           modules_ok: false //            -- Whether FPrime modules are in an error state (1 -> ERROR, 0 -> OK)

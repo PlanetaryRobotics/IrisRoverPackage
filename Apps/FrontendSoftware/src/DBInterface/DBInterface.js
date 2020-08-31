@@ -3,7 +3,7 @@
  * Set of All Functionality for Pushing or Pulling JSON Data to/from the Database.
 
  * Author: Sofia Hurtado, CMU
- * Last Update: 08/13/2020, Colombo
+ * Last Update: 08/30/2020, Colombo
  */
  // TODO: Let user w/o permissions push command to db but have it flagged and ignored. (this behavior should be moved to CommandField.vue)
  // TODO: Update connected & currentlyConnected everywhere it could be caught (#onCollection, #onClient, etc.)
@@ -19,6 +19,15 @@ const { EventEmitter } = require('events'); // Different than Vue eventHub (sinc
     }
 */
 
+class DBEventHub extends EventEmitter {
+  constructor(){
+    super();
+    // Elevate threshold for memory leak detection since default of 10 listener 
+    // is possible for highly subscribed events. NOTE: There should always be a 
+    // (practical) limit to ensure memory leaks are caught (so no Inf, 1e6, or 0 here)
+    this.setMaxListeners(100);
+  }
+}
 
 import Collections from './Collections'
 import DBObject from '@/data_classes/DBObject.js'
@@ -86,13 +95,18 @@ function DB_PARTITION(){
   }
 }
 
+const MongoConnectionOptions = {
+  useNewUrlParser: true
+  // useUnifiedTopology: true // TODO:(colombo@cmu.edu): Migrate to supporting the Node driver's new Unified Topology (currently is a breaking change)
+};
+
 let connected = false; // whether the DB has ever been init'd and successfully connected
 let currentlyConnected = false; // Whether the DB is currentlyConnected (not externally accessible, updated thru #checkConnection)
 
 // --- PUBLIC: ---
 
 export default {
-  eventBus: new EventEmitter(),
+  eventBus: new DBEventHub(),
 
   // Returns whether a connection has even been successfully established with
   // the DB during the lifetime of the program (not necessarily whether it is
@@ -139,7 +153,7 @@ export default {
     let MongoClient = mongo.MongoClient;
     return await new Promise( (resolve) => {
       console.log("[IRIS-DB] Checking DB Connection Status");
-      MongoClient.connect(DB_URL(), {useNewUrlParser: true}, (err,client) => {
+      MongoClient.connect(DB_URL(), MongoConnectionOptions, (err,client) => {
         let conn;
         if(err){
           console.warn(err);
@@ -219,7 +233,7 @@ export default {
   onClient: async function(command){
     let MongoClient = mongo.MongoClient;
     return new Promise( (resolve,reject) => {
-      MongoClient.connect(DB_URL(), {useNewUrlParser: true}, (err,client) => {
+      MongoClient.connect(DB_URL(), MongoConnectionOptions, (err,client) => {
         if(err){
           this.checkConnection();
           reject(err);
@@ -259,6 +273,81 @@ export default {
         reject(true);
       }
     });
+  },
+
+  /**
+   * Used to run a given action function, which requires a DB connection, when the DB is connected.
+   * If the DB isn't currently connected or if it fails due to a connection issue, this retries the 
+   * action once the DB reconnects (after network status change).
+   * 
+   * Note: this function itself can be `await`ed. It will only return and resolve once `action` has 
+   * successfully executed.
+   * 
+   * @param {Function} action Function to be executed (can be async)
+   * @param {...*} args Arguments to the function to be executed (if applicable)
+   * @return {*} The return value of the action once successfully executed.
+   */
+  forceAction: async function(action, ...args){
+    let result; // Result returned by the action
+    let retryLoop = !this.currentlyConnected; // Whether the connect-retry loop should be entered / continued
+
+    // Subscriber function which will listen for DB reconnection if necessary:
+    let waitForDBConnect;
+
+    // Attempt 
+    const makeAttempt = async () => {
+      try {
+        result = await action(...args);
+        retryLoop = false;
+      } catch(err){
+        if(err instanceof mongo.MongoError){
+          // If function fails due to a mongo reason, enter a retry loop:
+          retryLoop = true;
+        } else {
+          // Otherwise, just unsubscribe (to prevent memory leak) and throw the error:
+          if(retryLoop && waitForDBConnect){
+            this.eventBus.off('statusChange', waitForDBConnect); // unregister since this only needs to be a one time thing.
+          }
+          throw err;
+        }
+      }
+    }
+
+    // Try once if the DB was connected on last connection check:
+    if(this.currentlyConnected){
+      await makeAttempt();
+    }
+
+    // If DB not connected or there was a network error check connection status 
+    // keep retrying when status it changes to `connected`:
+    if(retryLoop){
+      let connectionStatus = await this.checkConnection();
+
+      // If connected, now retry:
+      if(connectionStatus){
+        await makeAttempt();
+      }
+
+      // If not connected, or there was a network error during attempt, retry when DB reconnects:
+      if(!connectionStatus || retryLoop){
+        await new Promise( (resolve) => {
+          waitForDBConnect = async ({connected}) => {
+            // If DB reconnected successfully, make yet another attempt:
+            if(connected){
+              await makeAttempt();
+              // Unregister if attempt completed successfully and function can exit the retry loop:
+              if(!retryLoop){
+                this.eventBus.off('statusChange', waitForDBConnect);
+                resolve();
+              }
+            }
+          };
+          this.eventBus.on('statusChange', waitForDBConnect);
+        });
+      }
+    }
+
+    return result;
   },
 
   /*

@@ -10,6 +10,7 @@
     </div>
     <div class="input-block">
         <TextInput
+          tabOrder="1"
           placeholder="Mission Name"
           :callback="collectMissionName"
           :formEvent="submitEvent"
@@ -20,9 +21,10 @@
           :caseSensitive="false"
           :hideText="false"
           :style="{opacity: openInputBlock ? 1.0 : 0.0}"
-          class="text-input mission tooltip" title="Up and down arrows scroll through options. Press tab to select. Enter to confirm."
+          class="text-input mission tooltip" title="Up and down arrows scroll through options. Press right arrow to select, tab to advance."
         />
         <TextInput
+          tabOrder="2"
           placeholder="Mission Passcode"
           :callback="collectMissionCode"
           :formEvent="submitEvent"
@@ -34,6 +36,7 @@
           class="text-input code"
         />
         <TextInput
+          tabOrder="3"
           placeholder="Operations Role"
           :callback="collectRole"
           :formEvent="submitEvent"
@@ -43,9 +46,10 @@
           :caseSensitive="false"
           :hideText="false"
           :style="{opacity: openInputBlock ? 1.0 : 0.0}"
-          class="text-input role tooltip" title="Up and down arrows scroll through options. Press tab to select. Enter to confirm."
+          class="text-input role tooltip" title="Up and down arrows scroll through options. Press right arrow to select, tab to advance."
         />
         <button
+          tabindex="4"
           :style="{opacity: openInputBlock ? 1.0 : 0.0}"
           class="login-button button button__brand_mute addTag__buttons--input"
           @click="$eventHub.$emit(submitEvent);"
@@ -187,7 +191,6 @@ export default {
 
   .logo-overlay {
     grid-area: logo;
-    align-item: center;
     position: relative;
     width: $logo-box-size;
     height: $logo-box-size;

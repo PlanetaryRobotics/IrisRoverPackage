@@ -2,7 +2,10 @@
 
 module.exports = {
   configureWebpack: {
-    devtool: 'source-map'
+    devtool: 'source-map',
+    externals: {
+      "saslprep": "require('saslprep')"
+    }
   },
   pluginOptions: {
     electronBuilder: {

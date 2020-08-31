@@ -19,7 +19,7 @@ export default class TelemetryData_Network extends TelemetryData{
     return { // data which gets saved to JSON
       packet_count: {
         received: 0, //   - Number of packets received by rover
-        transmit: 0, //   - Number of packets transmitted by rover
+        sent: 0, //       - Number of packets sent by rover
       },
       rssi: 0, //         - RSSI in [dB]
       bytes: {

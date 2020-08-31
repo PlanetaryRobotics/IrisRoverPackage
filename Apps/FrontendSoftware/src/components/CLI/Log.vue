@@ -8,7 +8,7 @@ Last Updated: 08/14/2020, Colombo
 <template>
   <div id="logScrollList" class="log scrollable">
     <ul>
-      <li v-for="(command,index) in commands" v-bind:key="command.DBID">
+      <li v-for="(command,index) in commands" v-bind:key="command.uuid">
         <Command v-bind:ref="`command${index}`" v-bind:core="command" />
       </li>
     </ul>

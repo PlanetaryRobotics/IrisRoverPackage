@@ -9,7 +9,7 @@ TODO:
 
 Author: Connor W. Colombo, CMU
 Created: 1/24/2019
-Last Updated: 08/05/2020, Colombo
+Last Updated: 08/29/2020, Colombo
 -->
 <template>
   <div ref="container" class="command-container">
@@ -49,6 +49,8 @@ Last Updated: 08/05/2020, Colombo
 
 <script>
 import { mapState } from 'vuex'
+
+import utils from '@/utils.js'
 
 import States from '@/data_classes/CommandStates.js'
 import Strings from '@/data_classes/CommandStrings.js'
@@ -195,7 +197,7 @@ export default{
         this.commandString += "&nbsp;&nbsp;]";
       } else {
         // Ensure display is structured (padded, etc) as if it had units by adding blank unit formatting:
-        this.displayString += this.commandOption.formatUnits("") + "]";
+        this.displayString += utils.formatUnits("") + "]";
         this.commandString += "]";
       }
 

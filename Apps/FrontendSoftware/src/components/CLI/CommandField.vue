@@ -8,7 +8,7 @@ TODO:
 
 Author: Connor W. Colombo, CMU
 Created: 1/31/2019
-Last Updated: 08/05/2020, Colombo
+Last Updated: 08/29/2020, Colombo
 -->
 <template>
   <div class="command-field">
@@ -477,21 +477,25 @@ export default {
   }
 
   .command-text{
+    $horiz-padding: 1rem;
+
     background-color: $color-grey-dark;
     color: $color-near-white;
     font-weight: normal;
     text-align: left;
-    padding: 1rem .8rem;
+    padding: $horiz-padding .8rem;
     border-radius: .6rem;
     border: .1rem solid $color-grey-dark;
     transition : .05s linear;
     height: 4rem;
     display: flex;
     align-items: center;
+    line-height: 0;
 
     & > .cli-arrow{
       width: 12px;
       height: 12px;
+      margin-right: $horiz-padding/2;
       line-height: 0;
       stroke: $color-near-white;
     }

@@ -4,9 +4,9 @@
  * be Structured and Accessed. Allows for Consistent Expectations when Passing
  * Data between Mongo and Frontend UI.
  * Author: Connor W. Colombo, CMU
- * Last Update: 08/28/2020, Colombo
+ * Last Update: 08/29/2020, Colombo
  */
- // TODO: Find a more efficient way to imp. #plainJSON. Not big issue, negligible perf. debt at the moment.
+ // TODO: Find a more efficient way to imp. #plainJSON. Not big issue, negligible performance debt at the moment.
 
 import { sha256 } from 'js-sha256'
 import { v1 as uuidv1 } from 'uuid';
@@ -53,7 +53,11 @@ export default class DBObject{
      return new DBObject(data);
    } // #fromJSON
 
-   // Returns a SHA-256 Hash of Plain JSON Contents of this Object.
+   /**
+    * Returns a SHA-256 Hash of Plain JSON Contents of this Object.
+    * NOTE: This operation is really expensive and shouldn't be used 
+    * unless absolutely necessary for reactivity.
+    */
    get hash(){
      return sha256(this.toJSON());
    }
@@ -68,6 +72,13 @@ export default class DBObject{
     } else {
       return this.data.lookupID.toString();
     }
+   }
+
+   /**
+    * Returns the object's UUID from the default-fused DB data.
+    */
+   get uuid(){
+    return this.data.uuid;
    }
 
    // Returns a plain JSON object representing the core data of this instance

@@ -101,6 +101,11 @@ Package metadata is handled by `package.json` and platform specific build settin
 ### **Looking to add extra build functionality?**
 Recipes are available at the Vue CLI Plugin Electron Builder [Recipe Page](https://nklayman.github.io/vue-cli-plugin-electron-builder/guide/recipes.html).
 
+
+----
+----
+
+
 ## **Repository Structure**
 ### Naming
 The `master` branch of the `CubeRoverPackage` repository is reserved for the latest fully-integrated, tested, and stable package, all of the code for which has undergone code-review.

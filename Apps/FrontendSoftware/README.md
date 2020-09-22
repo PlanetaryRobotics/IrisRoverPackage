@@ -100,3 +100,25 @@ Package metadata is handled by `package.json` and platform specific build settin
 
 ### **Looking to add extra build functionality?**
 Recipes are available at the Vue CLI Plugin Electron Builder [Recipe Page](https://nklayman.github.io/vue-cli-plugin-electron-builder/guide/recipes.html).
+
+## **Repository Structure**
+### Naming
+The `master` branch of the `CubeRoverPackage` repository is reserved for the latest fully-integrated, tested, and stable package, all of the code for which has undergone code-review.
+
+So, the effective `master` branch for the Frontend is the `frontend-stable`, which contains the latest tested and stable code but still requires E2E testing and documentation.
+
+For each feature or bug fix being developed, each developer will branch off the `-stable` branch for their respective process with a branch named either
+`frontend/<developer_name__or__unique_id>/<feature_name>`
+or
+`frontend/<developer_name__or__unique_id>/bugfix_<bugfix_name>`
+depending on what is being developed. For example:
+`frontend/cwcolomb/user_permissions`
+or
+`frontend/c2/bugfix_changestream_timeout`.
+
+### Usage
+Code from these developer branches will only be merged to the `frontend-stable` branch after a code-review for the developed feature and any associated unit tests has been initiated by submitting a PR on GitHub and passed.
+
+If a developer's branch requires updated code from `frontend-stable` in order to get a new feature, a PR will be initiated from `frontend-stable` to the dev branch.
+
+This structure helps ensure not only that our software will be as flight-ready as possible but also that, if anything does go wrong during mission, we'll be able to perform thorough root-cause analysis afterwards to determine why the failure occurred in terms of both code and engineering processes so that future planetary missions can avoid replicating the same failing.

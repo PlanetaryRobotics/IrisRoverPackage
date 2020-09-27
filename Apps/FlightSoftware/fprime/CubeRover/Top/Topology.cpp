@@ -113,7 +113,7 @@ void constructApp(void){
   rateGroupHiFreq.init(RG_HI_FREQ_QUEUE_DEPTH, RG_HI_FREQ_ID);
 
   // Initialize cubeRover time component (passive)
-  cubeRoverTime.init(0);
+  //cubeRoverTime.init(0);
 
   // Initialize the telemetric channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);

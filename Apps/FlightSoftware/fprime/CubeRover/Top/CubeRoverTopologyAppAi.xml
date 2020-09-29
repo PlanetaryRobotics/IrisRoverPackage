@@ -11,6 +11,9 @@
   <import_component_type>Svc/TlmChan/TlmChanComponentAi.xml</import_component_type>
   <import_component_type>Svc/CmdDispatcher/CommandDispatcherComponentAi.xml</import_component_type>
 
+<!-- CubeRover Components -->
+  <import_component_type>CubeRover/Led/LedComponentAi.xml</import_component_type>
+
 <!-- Declaration of block driver that drive F-prime clocking and other async event -->
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
 
@@ -28,6 +31,8 @@
 
 <!-- Declaration of the command dispatcher -->
   <instance namespace="Svc" name="cmdDispatcher" type="CommandDispatcher" base_id="201" base_id_window="20" />
+
+  <instance namespace="CubeRover" name="led" type="Led" base_id="221" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -99,6 +104,12 @@
     <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0"/>
   </connection>
   -->
+
+  <connection name="rgLowFreq_to_led">
+    <source component="rateGroupLowFreq" port="RateGroupMemberOut" type="Sched" num="0" />
+    <target component="led" port="Run" type="Sched" num="0"/>
+  </connection>
+
 
 <!-- *********************************************************************************************************
         CONNECTION OF MONITORED COMPONENTS TO TELEMETRIC CHAN COMPONENT

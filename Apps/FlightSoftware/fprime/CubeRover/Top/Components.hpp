@@ -19,7 +19,6 @@
 #include <Svc/TlmChan/TlmChanImpl.hpp>
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
-#include <CubeRover/Led/LedComponentImpl.hpp>
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -44,8 +43,5 @@ extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
 
 // command dispatcher
 extern Svc::CommandDispatcherImpl cmdDispatcher;
-
-// LED example
-extern CubeRover::LedComponentImpl led;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

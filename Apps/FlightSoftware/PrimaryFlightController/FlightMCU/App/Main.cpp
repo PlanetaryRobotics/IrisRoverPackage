@@ -19,16 +19,13 @@ extern "C" {
 
 void vApplicationIdleHook(void) {
     run1cycle();
-    gioSetBit(gioPORTB, 1, 1);
-    // for(uint32_t i=0; i<22000; i++) asm("  NOP");
+    //for(uint32_t i=0; i<22000; i++) asm("  NOP");
 }
 
 void main(void)
 {
 /* USER CODE BEGIN (3) */
     gioInit();
-
-    gioSetDirection(gioPORTB, ((uint32)1U << 1U));      // gioB[1] OUTPUT -> Idle task
 
     i2cInit();
 

@@ -1,3 +1,0 @@
-SRC = LedComponentAi.xml
-
-HDR =

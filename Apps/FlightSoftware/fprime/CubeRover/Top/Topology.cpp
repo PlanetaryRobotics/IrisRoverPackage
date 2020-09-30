@@ -80,15 +80,6 @@ Svc::CommandDispatcherImpl cmdDispatcher(
 #endif
 );
 
-// Test LED Component
-CubeRover::LedComponentImpl led(
-#if FW_OBJECT_NAMES == 1
-"led"
-#endif
-);
-
-
-
 
 
 /**
@@ -118,8 +109,6 @@ void constructApp(void){
 
   // Initialize the telemetric channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
-
-  led.init();
 
   // Construct the application and make all connections between components
   constructCubeRoverArchitecture();

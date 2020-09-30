@@ -19,7 +19,7 @@
 +extern Svc::ActiveRateGroupImpl rateGroupHiFreq;
 +extern Svc::TlmChanImpl tlmChan;
 +extern Svc::CommandDispatcherImpl cmdDispatcher;
-+extern CubeRover::LedImpl led;
++extern CubeRover::LedComponentImpl led;
  
  
  

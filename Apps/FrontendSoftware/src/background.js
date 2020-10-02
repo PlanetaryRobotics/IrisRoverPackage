@@ -7,20 +7,26 @@
  * 
  * Author: Connor W. Colombo
  * Created: 1/2019
- * Last Updated: 08/17/2020
+ * Last Updated: 10/01/2020
  */
 
+/* global __static */
+import path from 'path'
+
+// Electron Dependencies:
 import { app, protocol, BrowserWindow } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import { initSplashScreen, OfficeTemplate } from 'electron-splashscreen';
+import log from 'electron-log';
+// autoUpdater.logger = log;
+// autoUpdater.transports.file.level = 'info';
+
+// Vue Dependencies:
 import {
   createProtocol,
   installVueDevtools
 } from 'vue-cli-plugin-electron-builder/lib'
 const isDevelopment = process.env.NODE_ENV !== 'production'
-
-/* global __static */
-import path from 'path'
 
 // Handle all unhandled exceptions for diagnostics (and reporting):
 const unhandled = require('electron-unhandled');
@@ -157,3 +163,37 @@ if (isDevelopment) {
     })
   }
 }
+
+// #### AUTO-UPDATE MESSAGES #### //
+
+function sendUpdateMessage(msg){
+  if(win){
+    win.webContents.send('message', msg);
+  }
+}
+
+autoUpdater.on('checking-for-update', () => {
+  sendUpdateMessage('Checking for update...');
+});
+
+autoUpdater.on('update-available', () => {
+  sendUpdateMessage('Update available!');
+});
+
+autoUpdater.on('update-not-available', () => {
+  sendUpdateMessage('No updates available.');
+});
+
+autoUpdater.on('download-progress', (progress) => {
+  sendUpdateMessage(`Download Speed: ${progress.bytesPerSecond}bps — ${progress.percent}% Complete — ${progress.transferred} / ${progress.total}`);
+});
+
+autoUpdater.on('update-downloaded', () => {
+  sendUpdateMessage(`Update download complete. Installing now. App will close in 10s.`);
+  setTimeout( () => {autoUpdater.quitAndInstall();}, 10000 );
+  
+});
+
+autoUpdater.on('error', (err) => {
+  sendUpdateMessage(`Error during auto-update. Info: ${err.toString()}`);
+});

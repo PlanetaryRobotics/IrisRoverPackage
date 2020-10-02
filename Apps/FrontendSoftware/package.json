@@ -1,7 +1,7 @@
 {
   "name": "irisrover-ground-terminal-bold-behnken",
   "productName": "Iris Terminal",
-  "version": "0.6.3",
+  "version": "0.6.5",
   "description": "Terminal Software for the Iris Rover (L2021)",
   "author": {
     "name": "Iris Rover Project & CMU",
@@ -30,6 +30,7 @@
     "d3": "^5.16.0",
     "d3-sankey": "^0.12.3",
     "electron": "^3.1.13",
+    "electron-log": "^4.2.4",
     "electron-splashscreen": "^1.0.0",
     "electron-unhandled": "^3.0.2",
     "electron-updater": "^4.3.4",

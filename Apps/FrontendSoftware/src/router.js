@@ -9,6 +9,7 @@ import Home from './views/Home.vue'
 // import AtomicTest from './views/sandboxes/AtomicTest.vue' // NB: just importing this breaks the app ...
 import MapTest from './views/sandboxes/MapTest.vue'
 import POIDashboardTest from './views/sandboxes/POIDashboardTest';
+import TeleTest from './views/sandboxes/TeleTest.vue'
 
 import { remote } from 'electron'
 
@@ -18,6 +19,11 @@ export default new Router({
   mode: 'hash', // history doesn't work consistently in production
   base: remote.process.env.BASE_URL,
   routes: [
+    {
+      path: '/',
+      name: 'sandbox_TeleTest',
+      component: TeleTest
+    },
     {
       path: '/',
       name: 'login',
@@ -37,6 +43,6 @@ export default new Router({
       path: '/sandbox_POIDashboardTest',
       name: 'sandbox_POIDashboardTest',
       component: POIDashboardTest
-    }
+    },
   ]
 });

@@ -77,3 +77,6 @@ typings/
 # Keep VSCode Tasks (Debugging)
 !.vscode/tasks.json
 !.vscode/launch.json
+
+# IDE
+.idea/

@@ -58,11 +58,11 @@ Svc::ActiveRateGroupImpl rateGroupHiFreq(
 
 // ---------------------------------------------------------------------------
 // Time - contains current CubeRover Time used for time stamping events
-/*Svc::CubeRoverTimeImpl cubeRoverTime(
+Svc::CubeRoverTimeImpl cubeRoverTime(
 #if FW_OBJECT_NAMES == 1
   "CubeRoverTime"
 #endif
-  );*/
+  );
 
 // ---------------------------------------------------------------------------
 // Telemetric channel component used to centralized of telemetric data
@@ -105,7 +105,7 @@ void constructApp(void){
   rateGroupHiFreq.init(RG_HI_FREQ_QUEUE_DEPTH, RG_HI_FREQ_ID);
 
   // Initialize cubeRover time component (passive)
-  //cubeRoverTime.init(0);
+  cubeRoverTime.init(0);
 
   // Initialize the telemetric channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);

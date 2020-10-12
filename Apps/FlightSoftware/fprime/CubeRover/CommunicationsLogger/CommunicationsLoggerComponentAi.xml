@@ -11,7 +11,12 @@
     <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
     
     <ports>
-        <!-- Output log ports -->
+        <!-- Log ports -->
+        <port name="LogIn" data_type="Fw::Log" kind="async_input" role="LogEvent" max_number="1">
+            <comment>
+            The input port for logs from Active Logger
+            </comment>
+        </port>
         <port name="LogOutGround" data_type="Fw::Log" kind="output" role="LogEvent" max_number="1">
             <comment>
             The output log port to ground
@@ -52,44 +57,52 @@
             </comment>
         </port>
     </ports>
+
     <commands>
 		<command kind="async" opcode="0" mnemonic="Send All to Ground">
 			<comment>
 			Send all logs to ground
 			</comment>
 		</command>
+
 		<command kind="async" opcode="1" mnemonic="Send Specific to Ground">
 			<comment>
 			Send a specific log to ground based on time
 			</comment>
 		</command>
+
 		<command kind="async" opcode="2" mnemonic="Send Set to Ground">
 			<comment>
 			Send a set of logs to ground based on time and duration
 			</comment>
 		</command>
     </commands>
+
     <events>
 		<event id="0" name="ALL_COMMAND_RECV" severity="ACTIVITY_LO" format_string="Send all logs to Ground">
 			<comment>
 			Recieve Command to Send all Logs to Ground
 			</comment>
 		</event>
+
 		<event id="1" name="SPECIFIC_COMMAND_RECV" severity="ACTIVITY_LO" format_string="Send log at time: %f">
 			<comment>
 			Recieve Command to Send a log at a specific time to Ground (may need to add args)
 			</comment>
 		</event>
+
 		<event id="2" name="SPECIFIC_TYPE_COMMAND_RECV" severity="ACTIVITY_LO" format_string="Send log at time: %f of type: %s">
 			<comment>
 			Recieve Command to Send a log at a specific time for a specific component to Ground (may need to add args)
 			</comment>
 		</event>
+		
 		<event id="3" name="SET_OF_COMMAND_RECV" severity="ACTIVITY_LO" format_string="Send logs starting at time: %f for duration: %f">
 			<comment>
 			Recieve Command to Send a set of logs at a specific time for a specific duration to Ground (may need to add args)
 			</comment>
 		</event>
     </events>
+
 </component>
 

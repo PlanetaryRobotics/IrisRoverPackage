@@ -36,6 +36,9 @@ CFDP_GTEST_MODULES := \
 UTILS_MODULES := \
 	Utils/Hash
         
+# XXX: Svc/BuffGndSockIf
+# XXX: Svc/UdpSender
+# XXX: Svc/UdpReceiver
 SVC_MODULES := \
 	Svc/BufferAccumulator \
 	Svc/BufferLogger \
@@ -67,9 +70,7 @@ SVC_MODULES := \
 	Svc/FileDownlink \
     Svc/AssertFatalAdapter \
     Svc/FatalHandler \
-	Svc/FileManager \
-	Svc/UdpSender \
-	Svc/UdpReceiver
+	Svc/FileManager
 	
 DEMO_DRV_MODULES := \
 	Drv/DataTypes \

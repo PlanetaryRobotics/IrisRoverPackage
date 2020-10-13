@@ -34,7 +34,8 @@ CFDP_GTEST_MODULES := \
 	CFDP/Checksum/GTest
 	
 UTILS_MODULES := \
-	Utils/Hash
+	Utils/Hash \
+	Utils/Types
         
 # XXX: Svc/BuffGndSockIf
 # XXX: Svc/UdpSender
@@ -206,7 +207,8 @@ CubeRover_MODULES := \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \
-	$(CUBEROVER_DRV_MODULES)
+	$(CUBEROVER_DRV_MODULES) \
+	$(UTILS_MODULES)
 	
 # Other modules to build, but not to link with deployment binaries
 OTHER_MODULES := \

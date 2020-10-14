@@ -14,10 +14,15 @@ TODO:
 <template>
   <div class="image-viewport">
     <img class="port" id="imgsrc" v-show="false" :src="imageSource" alt="IMAGE NOT FOUND" @load="onImageUpdate" />
+
     <div id="portContainer">
-      <canvas class="port" style="z-index: 0" id="imgvp" :key="imageSource">
-        Oops! Something went wrong and really weird. Somehow Electron doesn't support HTML5 Canvas now. What did you do?
-      </canvas>
+      <drag-select-container selectorClass="itemToBeSelected">
+        <!-- <template> -->
+          <canvas class="port" style="z-index: 0" id="imgvp" :key="imageSource">
+            Oops! Something went wrong and really weird. Somehow Electron doesn't support HTML5 Canvas now. What did you do?
+          </canvas>
+        <!-- </template> -->
+      </drag-select-container>
       <canvas id="featurevp" class="port" style="z-index: 1;"/>
 
       <transition name="overlay">
@@ -35,6 +40,7 @@ const electron = require('electron')
 import { mapState, mapGetters } from 'vuex'
 import { sha256 } from 'js-sha256'
 import fx from '@/lib/glfx/glfx.js'
+import DragSelect from "vue-drag-select/src/DragSelect.vue"
 
 // Helper function to remaps the given number n from a range of (min0 to max0)
 // to a range of (minf to maxf) using linear interpolation.
@@ -49,6 +55,9 @@ export default {
       type: ImageData,
       required: false
     }
+  },
+  components: {
+    'drag-select-container': DragSelect,
   },
 
   data(){
@@ -239,5 +248,4 @@ export default {
       opacity: 0;
     }
   }
-
 </style>

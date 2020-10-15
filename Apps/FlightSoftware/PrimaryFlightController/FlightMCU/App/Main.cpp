@@ -15,10 +15,10 @@
 #include "i2c.h"
 
 extern "C" {
-    void vApplicationIdleHook( void );
+    void vApplicationIdleHook(void);
 }
 
-void vApplicationIdleHook( void ){
+void vApplicationIdleHook(void) {
     run1cycle();
     //gioToggleBit(gioPORTB, 1);
     //for(uint32_t i=0; i<2000000; i++) asm("  NOP");
@@ -37,6 +37,7 @@ void main(void)
 
     /* USER CODE BEGIN (3) */
     gioInit();
+
     i2cInit();
     sciInit();
 

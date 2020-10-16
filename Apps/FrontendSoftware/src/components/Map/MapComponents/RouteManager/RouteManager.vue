@@ -36,14 +36,14 @@
       </div>
     </div>
     <!-- END TAB -->
-    <div class="buttonContainer">
-      <AtomicButton
-        v-bind="buttons.addRoute"
-        @click.native="addEmptyRoute"
-        v-show="show.routes"
-      />
+    <div v-show="show.routes">
+      <div class="emptyContainer">
+        <div>Start a route by adding waypoints or circumnavigations.</div>
+      </div>
+      <div class="buttonContainer">
+        <AtomicButton v-bind="buttons.addRoute" @click.native="addEmptyRoute" />
+      </div>
     </div>
-
     <div v-if="show.deleteModal">
       <Deletemodal
         :rawHTML="deleteModal.text"
@@ -77,7 +77,7 @@ export default {
         cancelCallback: "",
       },
       show: {
-        routes: false,
+        routes: true,
         deleteModal: false,
       },
       route: {
@@ -205,9 +205,18 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  position: absolute;
-  bottom: 43vh;
+  padding-top: 10px;
   width: 100%;
   pointer-events: none;
+}
+.emptyContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding-top: 14vh;
+  width: 100%;
+  pointer-events: none;
+  color: $color-grey;
 }
 </style>

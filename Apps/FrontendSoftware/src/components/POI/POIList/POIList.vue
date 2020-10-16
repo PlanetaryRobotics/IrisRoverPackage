@@ -163,9 +163,12 @@
             <div>Create Point of Interests from the Image Viewer</div>
           </div>
           <div class="POIEmpty__start">
-            <button class="button button__primary text__smallCaps--bold">
+            <div class="buttonContainer">
+              <AtomicButton v-bind="buttons.start" />
+            </div>
+            <!-- <button class="button button__primary text__smallCaps--bold">
               start
-            </button>
+            </button> -->
           </div>
         </div>
         <!-- END V-SHOW === show.POIList -->
@@ -182,7 +185,7 @@ import { mapGetters } from "vuex";
 
 import POICard from "@/components/POI/POIList/POICard.vue";
 import POIEdit from "@/components/POI/POIList/POIEdit.vue";
-
+import AtomicButton from "@/components/atomic/AtomicButton.vue";
 import POIListDataClass from "@/data_classes/POIList.js";
 import arrowSVG from "@/assets/icons/icon_arrow_white.svg";
 import POIEventBus from "@/components/POI//POIEventBus.js";
@@ -192,6 +195,7 @@ export default {
   components: {
     POICard,
     POIEdit,
+    AtomicButton,
   },
   computed: {
     ...mapGetters(["POIImageSelected", "TagSelected"]),
@@ -242,6 +246,16 @@ export default {
       POIListEl: null,
       selectedImage: null,
       selectedTag: null,
+      buttons: {
+        start: {
+          id: "poiStart",
+          flavor: "primary",
+          text: "Start",
+          value: "start",
+          enabled: true,
+          storeId: "POI",
+        },
+      },
     };
   },
   mounted() {

@@ -28,128 +28,144 @@
         </div>
 
         <div class="mapTab__body" v-show="show.POIList">
-          <!-- FILTER -->
-          <div class="POIFilter">
-            <div class="POIFilter__FiltersRow">
-              <div
-                class="FilterTag"
-                :class="{ selected: selectedFilter === 'ATTRACTION' }"
-                @click="filterBy('ATTRACTION')"
-              >
-                Attraction
-              </div>
-              <div
-                class="FilterTag"
-                :class="{ selected: selectedFilter === 'OBSTACLE' }"
-                @click="filterBy('OBSTACLE')"
-              >
-                Obstacle
-              </div>
-              <div
-                class="FilterTag"
-                :class="{ selected: selectedFilter === 'SHADOW' }"
-                @click="filterBy('SHADOW')"
-              >
-                Shadow
-              </div>
-            </div>
-          </div>
-
-          <!-- SEARCH -->
-          <div class="POISearch">
-            <!-- SEARCH BAR -->
-            <input type="text" placeholder="Search" v-model="searchQuery" />
-            <!-- ORDER BY BUTTON -->
-            <svg
-              @click="handleOrderClick"
-              class="POIOrderBy"
-              width="20"
-              height="20"
-              viewBox="0 0 14 14"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M4.74998 2.25C4.74998 2.11193 4.63805 2 4.49998 2C4.3619 2 4.24998 2.11193 4.24998 2.25V11.0364L2.42678 9.21323C2.32915 9.11559 2.17086 9.11559 2.07322 9.21322C1.97559 9.31085 1.97559 9.46915 2.07322 9.56678L4.49997 11.9936L6.92675 9.56678C7.02438 9.46915 7.02438 9.31086 6.92675 9.21323C6.82912 9.11559 6.67083 9.11559 6.5732 9.21323L4.74998 11.0364V2.25Z"
-                fill="#FCFCFC"
-              />
-              <path
-                d="M9.25002 11.75C9.25002 11.8881 9.36195 12 9.50002 12C9.6381 12 9.75002 11.8881 9.75002 11.75L9.75003 2.96356L11.5732 4.78677C11.6709 4.88441 11.8291 4.88441 11.9268 4.78678C12.0244 4.68915 12.0244 4.53085 11.9268 4.43322L9.50003 2.00644L7.07325 4.43322C6.97562 4.53085 6.97562 4.68914 7.07325 4.78677C7.17088 4.88441 7.32917 4.88441 7.4268 4.78677L9.25003 2.96355L9.25002 11.75Z"
-                fill="#FCFCFC"
-              />
-            </svg>
-          </div>
-
-          <!-- IMAGE INFO -->
-          <div class="ImageInfo" v-if="selectedImage">
-            <div class="ImageInfo__header text__main--bold">Image</div>
-            <div class="ImageInfo__row">
-              <div class="text__main--bold ImageInfo__property">Src Name:</div>
-              {{ selectedImage.name() }}
-            </div>
-            <div class="ImageInfo__row">
-              <div class="text__main--bold ImageInfo__property">Modified:</div>
-              {{ selectedImage.timeForTagFormatting }}
-            </div>
-            <div class="ImageInfo__row">
-              <div class="text__main--bold ImageInfo__property">Dimension:</div>
-              800x600
-            </div>
-          </div>
-
-          <!-- TAG INFO -->
-          <div class="ImageInfo" v-if="selectedTag">
-            <div class="ImageInfo__row">
-              <div class="pill__tag">
-                {{ selectedTag.getName() }}
-              </div>
-            </div>
-            <div class="ImageInfo__row">
-              {{ selectedTag.data.description }}
-            </div>
-            <div class="ImageInfo__history">
-              <div class="updateHistorySmall--line text__small">
-                <div>Created:</div>
-                <div>{{ selectedTag.data.modificationHistory[0].user }}</div>
-                <div>{{ selectedTag.data.modificationHistory[0].time }}</div>
-              </div>
-              <div
-                v-if="selectedTag.data.modificationHistory.length > 1"
-                class="updateHistorySmall--line text__small"
-              >
-                <div>Modified:</div>
-                <div>
-                  {{
-                    selectedTag.data.modificationHistory[
-                      selectedTag.data.modificationHistory.length - 1
-                    ].user
-                  }}
+          <div v-if="POIListEl && POIListEl.length > 0">
+            <!-- FILTER -->
+            <div class="POIFilter">
+              <div class="POIFilter__FiltersRow">
+                <div
+                  class="FilterTag"
+                  :class="{ selected: selectedFilter === 'ATTRACTION' }"
+                  @click="filterBy('ATTRACTION')"
+                >
+                  Attraction
                 </div>
-                <div>
-                  {{
-                    selectedTag.data.modificationHistory[
-                      selectedTag.data.modificationHistory.length - 1
-                    ].time
-                  }}
+                <div
+                  class="FilterTag"
+                  :class="{ selected: selectedFilter === 'OBSTACLE' }"
+                  @click="filterBy('OBSTACLE')"
+                >
+                  Obstacle
+                </div>
+                <div
+                  class="FilterTag"
+                  :class="{ selected: selectedFilter === 'SHADOW' }"
+                  @click="filterBy('SHADOW')"
+                >
+                  Shadow
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- LIST -->
-          <div class="POIList__list scrollable">
-            <div
-              class="POIList__item"
-              v-for="POICard in POIList"
-              :key="POICard.uuid"
-            >
-              <POICard
-                :POIData="POICard.getData()"
-                :searchQuery="searchQuery"
-                :POIListEl="POIListEl"
-                :POICard="POICard"
-              />
+            <!-- SEARCH -->
+            <div class="POISearch">
+              <!-- SEARCH BAR -->
+              <input type="text" placeholder="Search" v-model="searchQuery" />
+              <!-- ORDER BY BUTTON -->
+              <svg
+                @click="handleOrderClick"
+                class="POIOrderBy"
+                width="20"
+                height="20"
+                viewBox="0 0 14 14"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4.74998 2.25C4.74998 2.11193 4.63805 2 4.49998 2C4.3619 2 4.24998 2.11193 4.24998 2.25V11.0364L2.42678 9.21323C2.32915 9.11559 2.17086 9.11559 2.07322 9.21322C1.97559 9.31085 1.97559 9.46915 2.07322 9.56678L4.49997 11.9936L6.92675 9.56678C7.02438 9.46915 7.02438 9.31086 6.92675 9.21323C6.82912 9.11559 6.67083 9.11559 6.5732 9.21323L4.74998 11.0364V2.25Z"
+                  fill="#FCFCFC"
+                />
+                <path
+                  d="M9.25002 11.75C9.25002 11.8881 9.36195 12 9.50002 12C9.6381 12 9.75002 11.8881 9.75002 11.75L9.75003 2.96356L11.5732 4.78677C11.6709 4.88441 11.8291 4.88441 11.9268 4.78678C12.0244 4.68915 12.0244 4.53085 11.9268 4.43322L9.50003 2.00644L7.07325 4.43322C6.97562 4.53085 6.97562 4.68914 7.07325 4.78677C7.17088 4.88441 7.32917 4.88441 7.4268 4.78677L9.25003 2.96355L9.25002 11.75Z"
+                  fill="#FCFCFC"
+                />
+              </svg>
             </div>
+
+            <!-- IMAGE INFO -->
+            <div class="ImageInfo" v-if="selectedImage">
+              <div class="ImageInfo__header text__main--bold">Image</div>
+              <div class="ImageInfo__row">
+                <div class="text__main--bold ImageInfo__property">
+                  Src Name:
+                </div>
+                {{ selectedImage.name() }}
+              </div>
+              <div class="ImageInfo__row">
+                <div class="text__main--bold ImageInfo__property">
+                  Modified:
+                </div>
+                {{ selectedImage.timeForTagFormatting }}
+              </div>
+              <div class="ImageInfo__row">
+                <div class="text__main--bold ImageInfo__property">
+                  Dimension:
+                </div>
+                800x600
+              </div>
+            </div>
+
+            <!-- TAG INFO -->
+            <div class="ImageInfo" v-if="selectedTag">
+              <div class="ImageInfo__row">
+                <div class="pill__tag">
+                  {{ selectedTag.getName() }}
+                </div>
+              </div>
+              <div class="ImageInfo__row">
+                {{ selectedTag.data.description }}
+              </div>
+              <div class="ImageInfo__history">
+                <div class="updateHistorySmall--line text__small">
+                  <div>Created:</div>
+                  <div>{{ selectedTag.data.modificationHistory[0].user }}</div>
+                  <div>{{ selectedTag.data.modificationHistory[0].time }}</div>
+                </div>
+                <div
+                  v-if="selectedTag.data.modificationHistory.length > 1"
+                  class="updateHistorySmall--line text__small"
+                >
+                  <div>Modified:</div>
+                  <div>
+                    {{
+                      selectedTag.data.modificationHistory[
+                        selectedTag.data.modificationHistory.length - 1
+                      ].user
+                    }}
+                  </div>
+                  <div>
+                    {{
+                      selectedTag.data.modificationHistory[
+                        selectedTag.data.modificationHistory.length - 1
+                      ].time
+                    }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- LIST -->
+            <div class="POIList__list scrollable">
+              <div
+                class="POIList__item"
+                v-for="POICard in POIList"
+                :key="POICard.uuid"
+              >
+                <POICard
+                  :POIData="POICard.getData()"
+                  :searchQuery="searchQuery"
+                  :POIListEl="POIListEl"
+                  :POICard="POICard"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="POIEmpty__empty text__main" v-else>
+            <div>Create Point of Interests from the Image Viewer</div>
+          </div>
+          <div class="POIEmpty__start">
+            <button class="button button__primary text__smallCaps--bold">
+              start
+            </button>
           </div>
         </div>
         <!-- END V-SHOW === show.POIList -->
@@ -289,6 +305,25 @@ export default {
     border-radius: 4px;
     background-color: $color-background;
     margin-top: 2rem;
+  }
+}
+
+.POIEmpty {
+  &__empty {
+    color: $color-grey;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    padding-top: 15vh;
+  }
+  &__start {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding-top: 10px;
   }
 }
 

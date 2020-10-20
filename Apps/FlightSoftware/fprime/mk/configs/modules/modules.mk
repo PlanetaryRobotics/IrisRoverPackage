@@ -205,6 +205,7 @@ CubeRover_MODULES := \
 	CubeRover/Top \
 	CubeRover/CubeRoverPorts \
 	CubeRover/CommunicationsLogger \
+	CubeRover/WatchDogInterface \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

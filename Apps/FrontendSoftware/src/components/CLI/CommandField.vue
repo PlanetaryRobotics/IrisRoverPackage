@@ -8,7 +8,7 @@ TODO:
 
 Author: Connor W. Colombo, CMU
 Created: 1/31/2019
-Last Updated: 08/29/2020, Colombo
+Last Updated: 10/20/2020, Colombo
 -->
 <template>
   <div class="command-field">
@@ -33,10 +33,11 @@ Last Updated: 08/29/2020, Colombo
     />
     <p class="command-text" v-bind:class="{highlight: fieldFocused}">
       &nbsp;<span class="cli-arrow" v-html="CosmosIconPack('arrowRight')"></span>
+      <span v-if="isAutoSuggested(suggestedCommand)" class="autosuggestion-indicator">*&nbsp;</span> <!--Preface text with "*" if autosuggested-->
       <span class="inputText">&nbsp;&nbsp;{{ inputText }}</span>
       <span class="suggested">{{ suggestedText }}</span>
       <span v-if="inputText!=''" v-bind:class="{suggested: !commandSelected, complete: commandSelected}">&nbsp;[</span>
-      <span v-for="(arg,idx) in currentArgs" v-bind:key="idx">
+      <span v-for="(arg,idx) in displayArgs" v-bind:key="idx">
         {{ idx > 0 ? ',' : '' }}&nbsp;
         <transition name="fade" mode="out-in">
           <span key="1" v-if="!inputWarning[idx]" v-bind:class="{complete: arg!=='' && !noArgs, suggested: arg==='' || noArgs, focused: idx == focusIdx}">
@@ -65,14 +66,16 @@ export default {
   data(){
     return {
       CosmosIconPack,
-      currentCommand: {}, //      - Current Command Option Chosen
-      currentArgs: [], //         - Arguments Given for Command
+      currentCommand: {}, //      - Current Command Option Chosen (`CommandOptions` instance)
+      currentArgs: [], //         - Arguments Given for Command (ordered list of arguments whose names are given by currentCommand.params).
       commandSuggestionNum: 0, // - Index which Allows for Cycling Through Commands
       focusIdx: 0, //             - Index of Argument which Currently Holds Focus
       inputText: "", //           - Input by the User into the Text Field
       fieldFocused: false, //     - Whether the User's Focus is Actively on the Input
       inputWarning: [], //        - Warning Info about Invalid Input for Given Argument
-      inputWarningTimer: [] //    - Timers to Clear Input Warnings
+      inputWarningTimer: [], //   - Timers to Clear Input Warnings
+      autoCommand: "", //         - Automatically Suggested Command Specification (`CommandOptions` instance) (set by `autoSuggestCommand`)
+      autoArgs: [] //             - Automatically Suggested Command Arguments. Array in format of this.currentArgs. (set by `autoSuggestCommand`)
     };
   },
   computed: {
@@ -80,11 +83,28 @@ export default {
       commandOptions: state => state.CLI.CommandOptions
     }),
 
+    // List of arguments to display
+    displayArgs(){
+      if(this.isAutoSuggested(this.suggestedCommand)){
+        // Display all suggested values unless a value has been explicitly given in currentArgs.
+        return this.autoArgs.map( (suggested_arg,i) => i < this.currentArgs.length ? this.currentArgs[i] : suggested_arg);
+      } else {
+        return this.currentArgs
+      }
+    },
+
+    // Returns the command that should currently be suggested based on the current input (after checking that it's a valid command).
+    suggestedCommand(){
+      let cmd = this.suggestion(this.inputText, this.commandSuggestionNum);
+      return this.isCmd(cmd) ? cmd : undefined;
+    },
+
     // Returns the Remainder of the Suggested Command (not currently input by
     // the user).
+    // Note: Purely user-facing (may include cosmetic additions). Don't use for any programmatic checking of input.
     suggestedText(){
-      let cmd = this.suggestion(this.inputText, this.commandSuggestionNum);
-      return this.isCmd(cmd) ? cmd.name.substring(this.inputText.length) : "";
+      let cmd = this.suggestedCommand;
+      return cmd ? cmd.name.substring(this.inputText.length) : "";
     },
 
     // Returns Whether a Command Option is Currently Selected:
@@ -145,14 +165,20 @@ export default {
       this.focusIdx = 0;
     },
 
-    // Reset the Command Field (ex. when esc is pressed). Remove Arguments on
-    // First Call. Clear InputText on Second Call.
-    reset(){
+    /**
+     * Reset the Command Field (ex. when esc is pressed).
+     * Remove Arguments on First Call. Clear InputText on Second Call.
+     * Unless `complete` is true, then everthing is completely reset immediately
+     * 
+     * @param complete Completely reset everything immediately. 
+     */
+    reset(complete = false){
       if(this.commandSelected){ // Remove Arguments on First Call
         this.clearInputWarning(); // Immediately clear any existing input warnings
         this.unselectCommand();
         this.commandSuggestionNum = 0;
-      } else{ // Clear InputText on Second Call
+      }
+      if(!this.commandSelected || complete){ // Clear InputText on Second Call
         this.inputText = '';
       }
     },
@@ -207,17 +233,25 @@ export default {
       return false;
     },
 
-    // Determines whether the given input is valid for the given type.
-    // If 'specialsAllowed', inputs that contain special characters permitted
-    // for the input's type which would normally fail as written will not fail.
-    // (eg. "1e" and  "-" are not valid floats but are necessary interim states
-    // to be able to write the numbers "1e6" and "-1").
-    // Returns an object with the following elements:
-    // - valid: whether the input is valid
-    // - outOfBounds: whether the input is invalid because of an out of bounds
-    //   error.
-    // - warningString: String of text for use in a warning that indicates this
-    //   input as invalid
+    /**
+     * Determines whether the given input is valid for the given type.
+     * 
+     * If 'specialsAllowed', inputs that contain special characters permitted
+     * for the input's type which would normally fail as written will not fail.
+     * (eg. "1e" and  "-" are not valid floats but are necessary interim states
+     * to be able to write the numbers "1e6" and "-1").
+     * 
+     * @param input String representing the input
+     * @param type String representing the type specification the input needs to adhere to (ex. "string", "float", etc.)
+     * @param specialsAllowed Whether special characters intrisic to the type are allowed even if the input doesn't validate with them present [See above for more detail].
+     * 
+     * @returns an object with the following elements:
+        - valid: whether the input is valid
+        - outOfBounds: whether the input is invalid because of an out of bounds
+          error.
+        - warningString: String of text for use in a warning that indicates this
+          input as invalid
+     */
     validateInput(input, type, specialsAllowed){
       // Input Validation (one character at a time while still considering the complete result):
       let regexCharCheck = {
@@ -253,7 +287,7 @@ export default {
       if(input === ""){
         valid = true; // ensure this trivial base case is considered valid
       } else if(this.noArgs){ // Not supposed to be any arguments
-        warningString = "No Arguments";
+        warningString = "No Arguments Allowed";
       } else if(regexCharCheck[type].test(input)){
         // Ensure that the new argument formed by adding it will still be a valid member of the type
         // (can't go straight to this step b/c "." would make it through for int types):
@@ -389,11 +423,77 @@ export default {
       }
     },
 
-    // Returns the Nth Suggested Command for the Given Input String:
+    // 
+    /**
+     * Make CLI automatically suggests the command with the given name or specification with the given 
+     * arguments object, `args`.
+     * Suggestion will be provided so long as the name and args validate with the command specification 
+     * (`CommandOption`) associated with the given command name.
+     * 
+     * @param command Name of the command or, to save time on validation, a `CommandOption` specification.
+     * @param args An object containing arguments as name-value pairs. Arguments must match the params of the `CommandOption` associated with the given command name.
+     * @returns Whether or not the command was validated and the suggestion was displayed to the user.
+     */
+    autoSuggestCommand(command, args){
+      this.clearAutoSuggestion(); // Clear current suggestion
+      this.reset(true); // Reset all input to default state
+      this.commandSuggestionNum = 0; // Ensure command suggestion number is 0 (only index for which the auto suggestion is shown).
+      
+      if(command instanceof CommandOption){
+        this.autoCommand = this.commandOptions.find(x => x === command);
+      } else { // assuming a command name was given
+        this.autoCommand = this.commandOptions.find(x => x.name === command);
+      }
+
+      if(!this.autoCommand){ // if not command found (not valid)
+        this.autoArgs = [];
+        return false;
+      }
+
+      // Only keep arguments which are listed in the params for the `CommandOption`
+      // (use default value for those params not supplied in args)
+      for(let i in this.autoCommand.params){
+        // Copy over value for ith parameter of command specification if given or default value if not:
+        this.autoArgs[i] = args[this.autoCommand.params[i].name] || this.autoCommand.params[i].defaultVal;
+      }
+
+      return true;
+    },
+
+    /* Clears the currently supplied automatically suggested command. */
+    clearAutoSuggestion(){
+      this.autoCommand = undefined;
+      this.autoArgs = [];
+    },
+
+    /**
+     * Returns whether the given command is automatically suggested.
+     * Equivalent to saying:
+     * - (this.autoCommand).
+     * - The current suggestion index is 0 
+     */
+    isAutoSuggested(command){
+      return  this.autoCommand //               - There is a command to auto suggest.
+           && this.commandSuggestionNum===0 //  - (Autosuggestion only shown when n==0. If n!=0, this could just be a normal occurrence of the command.)
+           && command === this.autoCommand; //  - The command is the same as the one automatically supplied (user could have typed something else) 
+    },
+
+    // Returns the Nth Suggested Command (instance of `CommandOption`) for the Given Input String:
     suggestion(str, n){
-      if(str=="" && n==0){ // If field is empty and scrolling hasn't occurred, suggest nothing.
-        return {};
+      if(str=="" && n===0){ // If field is empty and scrolling hasn't occurred, suggest the autosuggestion if supplied (otherwise nothing).
+        if(this.autoCommand){ // If an external command has been supplied by `autoSuggestCommand`
+          return this.autoCommand;
+        } else{
+          return {};
+        }
       } else{
+        // First check for match against auto-suggested command:
+        if(n===0 && this.autoCommand){
+          if(this.autoCommand.name.toLowerCase().startsWith(str.toLowerCase())){
+            return this.autoCommand;
+          }
+        }
+
         // Get All Commands which Match (and correct incorrect capitalization upon selection):
         let suggestions = this.commandOptions.filter( c => c.name.toLowerCase().startsWith(str.toLowerCase()) );
 
@@ -504,6 +604,10 @@ export default {
   .highlight{
     border: .1rem solid $color-primary;
     background-color: $color-background;
+  }
+
+  .autosuggestion-indicator {
+    margin-right: 0.1em;
   }
 
   .suggested{

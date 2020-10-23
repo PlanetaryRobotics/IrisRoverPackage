@@ -4,33 +4,35 @@ editing via preset filters.
 
 Author: Connor Colombo, CMU
 Created: 3/05/2019
-Last Updated: 7/10/2019, Colombo
+Last Updated: 08/30/2020, Colombo
 
 TODO:
   - Better Denoise
   - Toggles on whether an adjustment is active
-  - Reorder filters (?)
 -->
 
 <template>
   <div class="image-viewport">
-    <img id="imgsrc" v-show="false" :src="selectedImage.url" alt="IMAGE NOT FOUND" @load="onImageUpdate" />
-    <div id="canvasContainer" style="position: relative">
-      <span class="selector-handle selector-handle-nw"></span>
-      <span class="selector-handle selector-handle-ne"></span>
-        <canvas id="featurevp" class="port" style="z-index: 1;" />
-        <!--<img class="imgvp" :v-show="radialGrid" style="z-index: 1" src="~@/assets/Overlay.png" />-->
-        <canvas id="imgvp" class="port" style="z-index: 0">
-          Oops! Something went wrong and really weird. Somehow Electron doesn't support HTML5 Canvas now. What did you do?
-        </canvas>
-      <span class="selector-handle selector-handle-se"></span>
-      <span class="selector-handle selector-handle-sw"></span>
+    <img class="port" id="imgsrc" v-show="false" :src="imageSource" alt="IMAGE NOT FOUND" @load="onImageUpdate" />
+    <div id="portContainer">
+      <canvas class="port" style="z-index: 0" id="imgvp" :key="imageSource">
+        Oops! Something went wrong and really weird. Somehow Electron doesn't support HTML5 Canvas now. What did you do?
+      </canvas>
+      <canvas id="featurevp" class="port" style="z-index: 1;"/>
+
+      <transition name="overlay">
+        <img class="port port_overlay" v-if="radialGrid" src="~@/assets/polar_grid10.png" />
+      </transition>
+      <transition name="overlay">
+        <img class="port port_overlay" v-if="cartesianGrid" src="~@/assets/cartesian_grid.png" />
+      </transition>
     </div>
   </div>
 </template>
 
 <script>
-import { mapState } from 'vuex'
+const electron = require('electron')
+import { mapState, mapGetters } from 'vuex'
 import { sha256 } from 'js-sha256'
 import fx from '@/lib/glfx/glfx.js'
 
@@ -51,62 +53,55 @@ export default {
 
   data(){
     return {
+      portContainer: {},
       canvas: {},
+      featureLayer: {},
       texture: {},
-      textureInitialized: false,
-      radialGridImage: {},
-      selectorState: {
-        evnt: {},
-        mousePos: {x: 0, y: 0}
-      }
+      textureInitialized: false
     };
   },
 
   computed: {
+    ...mapGetters({
+      selectedImage: 'selectedImage'
+    }),
     ...mapState({
       radialGrid: state => state.IMG.radialGrid,
-      // Scroll position in the timeline:
-      scrollPos: state => state.IMG.scrollPos,
-      // Images currently in the timeline (after search filters applied):
+      cartesianGrid: state => state.IMG.cartesianGrid,
+      // LookupID of the Selected Image:
+      lookupID: state => state.IMG.selectedImageLookupID,
       images: state => state.IMG.images,
-      // Adjustments currently being edited (those linked to the sliders):
-      liveAdjustments: state => state.IMG.adjustmentsEditorState.adjustments,
-      // All preset image filters:
+      // Adjustments currently being edited with sliders:
+      editorAdjustments: state => state.IMG.adjustmentsEditorState.adjustments,
       presets: state => state.IMG.Presets
     }),
 
-    // JQuery Object for Active Viewport Region:
-    JPort(){
-      return $('#canvasContainer');
+    imageSource(){
+      return this.selectedImage.failed ? "" : this.selectedImage.url;
     },
 
-    // Image that should be displayed in the viewport:
-    selectedImage() {
-      return this.images[this.scrollPos]
-    },
-    // Presets which should be applied to this image:
-    applicablePresets(){
-      return this.presets.filter( x => x.global || x.imageList.includes(selectedImage.name) );
-    },
-    // Superposition of all image adjustments (liveAdjustments + those from the applicablePresets):
-    totalAdjustments(){
-      let adj = Object.assign({}, this.liveAdjustments); // copy liveAdjustments
-      let keys = Object.keys(adj);
-
-      this.applicablePresets.forEach( p => {
-        keys.forEach( a => {
-          adj[a] = adj[a] + p[a];
-        });
-      });
-
-      return adj;
-    },
-    // DOM Object of the Source Image:
     imageDOM(){
       return document.getElementById('imgsrc');
     },
-    // Hash of total (combined) image adjustments:
+
+    // Keys of the All Adjustments:
+    adjustmentKeys(){
+      return Object.keys(this.editorAdjustments);
+    },
+    // Preset adjustment filters applied to this image:
+    appliedPresets(){
+      return this.selectedImage && this.selectedImage.data.name ? this.presets.filter( p => p.data.global || p.data.imageList.includes(this.selectedImage.data.name) ) : [];
+    },
+    // Combined adjustments from the editor and the applied presets.
+    totalAdjustments(){
+      let tot = Object.assign({}, this.editorAdjustments); // make a copy
+      this.appliedPresets.forEach(p => {
+        this.adjustmentKeys.forEach(k => tot[k] += p.data.adjustments[k])
+      });
+      return tot;
+    },
     adjustmentsHash(){
+      // TODO: Should use flags / events on update, not this.
       return sha256(JSON.stringify(this.totalAdjustments));
     }
   },
@@ -117,168 +112,132 @@ export default {
   },
 
   mounted(){
-    //this.canvas = document.getElementById("imgvp");
-    //fx.canvas(this.canvas); // Initialize canvas for glfx
-
-    // Add events:
-    this.JPort.on('mousedown', '.selector-handle', this.resizeFeatureRegion);
+    this.rehookDOM();
   },
 
   methods: {
+    // Update DOM Hooks:
+    rehookDOM(){
+      this.portContainer = document.getElementById("portContainer");
+      this.featureLayer = document.getElementById("featurevp");
+      if(1||!this.canvas || !this.canvas.texture){
+        this.canvas = document.getElementById("imgvp");
+        fx.canvas(this.canvas); // Initialize canvas for glfx
+      }
+    },
+
     onImageUpdate(){
+      this.rehookDOM();
+      /* First, Direct the Canvas (by changing its source image) to Have the
+      Right Aspect Ratio but be way bigger than it could ever need to be - this
+      prevents size capping (where a small canvas sized by a small source image
+      stops growing to fit the container but the images around it continue to grow).
+      Pretty hacky fix but it works with minimal cost. */
+      // Fetch info about all available displays:
+      let displays = electron.screen.getAllDisplays();
+      // Get the largest value for vertical and horizontal size of any display:
+      let maxWidth = displays.reduce((max,d) => d.bounds.width > max ? d.bounds.width : max, 0);
+      let maxHeight = displays.reduce((max,d) => d.bounds.height > max ? d.bounds.height : max, 0);
+      // Determine the largest scaling factor needed to for the image to fill the largest display:
+      let maxScale = Math.max(maxWidth / this.imageDOM.width, maxHeight / this.imageDOM.height);
+      // Direct the Size of the Image to a Size Sufficiently Larger than this Scale to Prevent Clipping:
+      this.imageDOM.width = 1.5 * maxScale * this.imageDOM.width;
+      this.imageDOM.height = 1.5 * maxScale * this.imageDOM.height;
+
+      // (re)Texture the base canvas with the image:
       if(!this.textureInitialized){
         this.texture = this.canvas.texture(this.imageDOM); // Only create texture once
         this.textureInitialized = true;
       } else{
-        this.texture.loadContentsOf(this.imageDOM);
+        this.texture = this.canvas.texture(this.imageDOM); // Only create texture once
+        //this.texture.loadContentsOf(this.imageDOM); // Faster to update
       }
       this.applyEffects(); // Reapply effects
     },
 
     applyEffects(){
-      try {
-        // Redraw Image:
-        let result = this.canvas.draw(this.texture);
+      if(this.canvas && this.textureInitialized){ // Ensure DOM has been loaded
+        try {
+          // Redraw Image:
+          let result = this.canvas.draw(this.texture);
 
-        // Apply Effects:
-        result = result.brightnessContrast(this.totalAdjustments.Exposure, this.totalAdjustments.Contrast)
-                       .vibrance(this.totalAdjustments.Shadows);
-        if(this.totalAdjustments.Denoise > 0.02 || this.totalAdjustments.Denoise < -0.02){ // slider has been moved significantly
-          result.denoise(remap(this.totalAdjustments.Denoise, -1,1, 0,75));
+          // Apply Effects:
+          result = result.brightnessContrast(this.totalAdjustments.Exposure, this.totalAdjustments.Contrast)
+                         .vibrance(this.totalAdjustments.Shadows);
+          if(this.totalAdjustments.Denoise > 0.02 || this.totalAdjustments.Denoise < -0.02){ // slider has been moved
+            result = result.denoise(remap(this.totalAdjustments.Denoise, -1,1, 0,75));
+          }
+
+          // Update Canvas:
+          result.update();
+
+        } catch (e) {
+          console.error(e);
         }
-
-        // Update Canvas:
-        result.update();
-
-      } catch (e) {
-        console.error(e);
       }
-    },
-
-    // Returns the Mouse Position within the Canvas during the Given Event.
-    mousePos(e) {
-      let rect = this.canvas.getBoundingClientRect();
-      let x0 = (e.clientX || e.pageX || e.originalEvent.touches[0].clientX);
-      let y0 = (e.clientY || e.pageY || e.originalEvent.touches[0].clientY);
-      return {
-          x: (x0 - rect.left) / (rect.right - rect.left) * this.canvas.width,
-          y: (y0 - rect.top) / (rect.bottom - rect.top) * this.canvas.height
-      };
-    },
-
-    resizeFeatureRegion(e){
-      e.preventDefault();
-      e.stopPropagation();
-
-      this.saveSelectorState(e);
-      alert(this.mousePos(e));
-    },
-
-    saveSelectorState(e){
-      this.selectorState.evnt = e;
-      this.selectorState.mousePos = this.mousePos(e);
-    }/*,
-
-    startResize(e){
-      e.preventDefault();
-      e.stopPropagation();
-
-      saveEventState(e);
-      this.canvas.on('mousemove', this.resize);
-      this.canvas.on('mouseup', this.endResize);
-    },
-    resize(e){
-      let width,height,left,top;
-      let offset = this.canvas.offset();
-      let mouse = mousePos(e);
-
-      width = mouse.x - event_state.container_left;
-      height = mouse.y  - event_state.container_top;
-      left = this.canvas.container_left;
-      top = this..container_top;
-
-      if(constrain || e.shiftKey){
-          height = width / orig_src.width * orig_src.height;
-      }
-
-      if(width > min_width && height > min_height && width < max_width && height < max_height){
-        resizeImage(width, height);
-        // Without this Firefox will not re-calculate the the image dimensions until drag end
-        this.canvas.offset({'left': left, 'top': top});
-      }
-    },
-    endResize(e){
-      e.preventDefault();
-
-      this.canvas.off('mouseup touchend', this.endResize);
-      this.canvas.off('mousemove touchmove', this.resize);
-    }*/
+    }
   }
 }
 </script>
 
 <style lang="scss" scoped>
   @import '@/styles/_colors.scss';
+
   .image-viewport {
+    padding: 2rem;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  #portContainer {
     user-select: none;
     display: grid;
-    cursor: move;
-    padding: 1rem;
+    grid-template-rows: minmax(0,1fr);
+    grid-template-columns: auto minmax(0,1fr) auto;
+    grid-template-areas: "buffa main buffb";
     align-items: center;
-  }
-  .image-viewport img{
-    display: block;
+    justify-items: center;
+    width: 100%;
+    height: 100%;
   }
 
   .port {
-    position: absolute;
-    width: 100%;
-    grid-area: 1 / 1 / 2 / 2;
+    grid-area: main;
+    object-fit: contain;
+    max-height: 100%;
+    max-width: 100%;
+  }
 
-    &--overlay {
-      opacity: .75;
+  /* port fade animation: */
+  $overlay-opacity: 0.925;
+  .port_overlay {
+    z-index: 2;
+    opacity: $overlay-opacity;
+  }
+
+  .overlay-enter-active {
+    animation: overlay-fade-in 0.9s;
+  }
+  .overlay-leave-active {
+    animation: overlay-fade-out 0.9s;
+  }
+  @keyframes overlay-fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: $overlay-opacity;
+    }
+  }
+  @keyframes overlay-fade-out {
+    /* Can't just reverse overlay-fade-in because simultaneous fade-in and
+    fade-out don't work if they're both using the same keyframe. */
+    0% {
+      opacity: $overlay-opacity;
+    }
+    100% {
+      opacity: 0;
     }
   }
 
-  .port:hover,
-  .port:active {
-    outline: 2px dashed $color-primary;
-  }
-
-  .selector-handle-ne,
-  .selector-handle-ne,
-  .selector-handle-se,
-  .selector-handle-nw,
-  .selector-handle-sw {
-      position: absolute;
-      display: block;
-      width: 10px;
-      height: 10px;
-      background: $color-primary;
-      z-index: 999;
-  }
-
-  .selector-handle-nw {
-      top: -5px;
-      left: -5px;
-      cursor: nw-resize;
-  }
-
-  .selector-handle-sw {
-      bottom: -5px;
-      left: -5px;
-      cursor: sw-resize;
-  }
-
-  .selector-handle-ne {
-      top: -5px;
-      right: -5px;
-      cursor: ne-resize;
-  }
-
-  .selector-handle-se {
-      bottom: -5px;
-      right: -5px;
-      cursor: se-resize;
-  }
 </style>

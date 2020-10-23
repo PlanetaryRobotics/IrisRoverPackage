@@ -13,18 +13,25 @@ TODO:
 
 <template>
   <div class="image-viewport">
-    <img class="port" id="imgsrc" v-show="false" :src="imageSource" alt="IMAGE NOT FOUND" @load="onImageUpdate" />
-
+    <drag-select-container selectorClass="port">
+      <template slot>
+      <img class="port" id="imgsrc" v-show="false" :src="imageSource" alt="IMAGE NOT FOUND" @load="onImageUpdate" />
+      <button class="btn btn-info" @click="addPOI(imageSource)">show modal</button>
+      </template>
+    </drag-select-container>
     <div id="portContainer">
-      <drag-select-container selectorClass="itemToBeSelected">
+      <!-- <drag-select-container selectorClass="itemToBeSelected"> -->
         <!-- <template> -->
           <canvas class="port" style="z-index: 0" id="imgvp" :key="imageSource">
             Oops! Something went wrong and really weird. Somehow Electron doesn't support HTML5 Canvas now. What did you do?
           </canvas>
         <!-- </template> -->
-      </drag-select-container>
-      <canvas id="featurevp" class="port" style="z-index: 1;"/>
+      <!-- </drag-select-container> -->
 
+      <!-- Add POI modal -->
+      <AddPOIPopUp class="modal" v-if="isAddPOI" v-bind:addPOIName="addPOIName"/>
+
+      <canvas id="featurevp" class="port" style="z-index: 1;"/>
       <transition name="overlay">
         <img class="port port_overlay" v-if="radialGrid" src="~@/assets/polar_grid10.png" />
       </transition>
@@ -41,6 +48,7 @@ import { mapState, mapGetters } from 'vuex'
 import { sha256 } from 'js-sha256'
 import fx from '@/lib/glfx/glfx.js'
 import DragSelect from "vue-drag-select/src/DragSelect.vue"
+import AddPOIPopUp from "@/components/ImageViewer/modals/AddPOI.vue"
 
 // Helper function to remaps the given number n from a range of (min0 to max0)
 // to a range of (minf to maxf) using linear interpolation.
@@ -58,6 +66,7 @@ export default {
   },
   components: {
     'drag-select-container': DragSelect,
+    AddPOIPopUp
   },
 
   data(){
@@ -66,7 +75,8 @@ export default {
       canvas: {},
       featureLayer: {},
       texture: {},
-      textureInitialized: false
+      textureInitialized: false,
+      addPOIName: "",
     };
   },
 
@@ -82,7 +92,8 @@ export default {
       images: state => state.IMG.images,
       // Adjustments currently being edited with sliders:
       editorAdjustments: state => state.IMG.adjustmentsEditorState.adjustments,
-      presets: state => state.IMG.Presets
+      presets: state => state.IMG.Presets,
+      isAddPOI: state => state.IMG.isAddPOI
     }),
 
     imageSource(){
@@ -184,7 +195,16 @@ export default {
           console.error(e);
         }
       }
-    }
+    },
+
+    addPOI(payload) { // Opens add POI modal and sets addPOIName to image name
+      this.$store.commit('ADD_POI')
+      this.addPOIName = payload
+    },
+
+    created() { // Adds event listners to the global event hub for adding/removing tags from an image
+      this.$eventHub.$on('addPOI', this.addPOIPopUp);
+    },
   }
 }
 </script>

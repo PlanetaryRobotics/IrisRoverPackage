@@ -118,6 +118,16 @@ export default {
       state.isAddTag = true
     },
 
+    CREATE_POI (state, inputData) {
+      state.Tags.push( new Tag(inputData) )
+      state.tagImg= ""
+      state.isAddPOI = false
+    },
+
+    ADD_POI (state) {
+      state.isAddPOI = true
+    },
+
     CANCEL_ADD_TAG (state) {
       state.isAddTag = false
     },

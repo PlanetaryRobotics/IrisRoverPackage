@@ -4,17 +4,18 @@ editing via preset filters.
 
 Author: Connor Colombo, CMU
 Created: 3/05/2019
-Last Updated: 08/30/2020, Colombo
+Updated: 08/30/2020, Colombo
+Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new POI manually)
 
-TODO:
-  - Better Denoise
-  - Toggles on whether an adjustment is active
+// Resources:
+// Canvas + Vue.js tut: https://medium.com/@scottmatthew/using-html-canvas-with-vue-js-493e5ae60887
+
 -->
 
 <template>
   <div class="image-viewport">
     <img class="port" id="imgsrc" v-show="false" :src="imageSource" alt="IMAGE NOT FOUND" @load="onImageUpdate" />
-    <div id="portContainer">
+    <div id="portContainer" v-on:mousedown="onMouseDown">
       <canvas class="port" style="z-index: 0" id="imgvp" :key="imageSource">
         Oops! Something went wrong and really weird. Somehow Electron doesn't support HTML5 Canvas now. What did you do?
       </canvas>
@@ -57,7 +58,11 @@ export default {
       canvas: {},
       featureLayer: {},
       texture: {},
-      textureInitialized: false
+      textureInitialized: false,
+      mouseDown: false,
+      startCoord: [],
+      endCoord: [],
+      canvasContext: null
     };
   },
 
@@ -113,9 +118,47 @@ export default {
 
   mounted(){
     this.rehookDOM();
+    this.canvasContext = this.canvas.getContext('2d');
   },
 
   methods: {
+    // On mouse down in image port, draw rectangle selector and get start coordinates
+    onMouseDown(event){
+      // Ignore right click
+      if (event.button === 2){
+        return
+      }
+
+      this.mouseDown= true;
+      this.startCoord = [event.clientX, event.clientY];
+      window.addEventListener('mouseup', this.onMouseUp) // listen for mouse up, then trigger onMouseUp()
+    },
+
+     onMouseUp(event){
+      let currStartCoord = this.startCoord; // local start coordinates var to deal with glitches in if start off page
+      this.startCoord=[]; // resets global start coord var
+      this.endCoord = [event.clientX, event.clientY];
+      console.log("Starting Coordinates: ", currStartCoord, "\nEnding Coordinates: ", this.endCoord);
+      this.mouseDown= false;
+      this.setUpSelection(currStartCoord);
+    },
+
+    setUpSelection(start){
+      let topLeft = start; // x1, y1
+      // let topRight = [this.endCoord[0], start[1]]; //x2, y1
+      let bottomRight = this.endCoord; // x2, y2
+      // let bottomLeft = [start[0], this.endCoord[1]]; //x1, y2 
+
+      console.log(this.canvasContext);
+      this.canvasContext.beginPath();
+      this.canvasContext.strokeStyle = 'black';
+      this.canvasContext.lineWidth = 1;
+      this.canvasContext.moveTo(topLeft[0], topLeft[1]);
+      this.canvasContext.lineTo(bottomRight[0], bottomRight[1]);
+      this.canvasContext.stroke();
+      this.canvasContext.closePath();
+    },
+
     // Update DOM Hooks:
     rehookDOM(){
       this.portContainer = document.getElementById("portContainer");

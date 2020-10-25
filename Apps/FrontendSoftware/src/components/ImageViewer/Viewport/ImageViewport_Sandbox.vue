@@ -15,11 +15,12 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
 <template>
   <div class="image-viewport">
     <img class="port" id="imgsrc" v-show="false" :src="imageSource" alt="IMAGE NOT FOUND" @load="onImageUpdate" />
-    <div id="portContainer" v-on:mousedown="onMouseDown">
+    <!-- <img class="port" id="imgsrc" v-show="false" src="~@/assets" alt="IMAGE NOT FOUND" @load="onImageUpdate" /> -->
+    <div id="portContainer" v-on:mousedown.stop="onMouseDown" v-on:mouseup.stop="onMouseUp">
       <canvas class="port" style="z-index: 0" id="imgvp" :key="imageSource">
         Oops! Something went wrong and really weird. Somehow Electron doesn't support HTML5 Canvas now. What did you do?
       </canvas>
-      <canvas id="featurevp" class="port" style="z-index: 1;"/>
+      <canvas id="featurevp" class="port POIport" style="z-index: 1;"/>
 
       <transition name="overlay">
         <img class="port port_overlay" v-if="radialGrid" src="~@/assets/polar_grid10.png" />
@@ -46,7 +47,7 @@ function remap(n, min0,max0, minf,maxf){
 export default {
   name: 'ImageViewport',
   props: {
-    data: {
+    data: { // TO-DO change name of prop
       type: ImageData,
       required: false
     }
@@ -62,7 +63,8 @@ export default {
       mouseDown: false,
       startCoord: [],
       endCoord: [],
-      canvasContext: null
+      poiCanvasContext: null,
+      fxvar: {}
     };
   },
 
@@ -116,9 +118,9 @@ export default {
     }
   },
 
+  // runs after HTML stuff loads ("lifecycle hooks")
   mounted(){
     this.rehookDOM();
-    this.canvasContext = this.canvas.getContext('2d');
   },
 
   methods: {
@@ -130,42 +132,57 @@ export default {
       }
 
       this.mouseDown= true;
-      this.startCoord = [event.clientX, event.clientY];
-      window.addEventListener('mouseup', this.onMouseUp) // listen for mouse up, then trigger onMouseUp()
+      this.startCoord = [(event.offsetX), event.offsetY];
     },
 
      onMouseUp(event){
       let currStartCoord = this.startCoord; // local start coordinates var to deal with glitches in if start off page
       this.startCoord=[]; // resets global start coord var
-      this.endCoord = [event.clientX, event.clientY];
-      console.log("Starting Coordinates: ", currStartCoord, "\nEnding Coordinates: ", this.endCoord);
+      this.endCoord = [event.offsetX, event.offsetY];
       this.mouseDown= false;
       this.setUpSelection(currStartCoord);
     },
 
     setUpSelection(start){
+      console.log("Start coordinates: ", start, "\nEnd Coordinates: ", this.endCoord)
       let topLeft = start; // x1, y1
-      // let topRight = [this.endCoord[0], start[1]]; //x2, y1
+      let topRight = [this.endCoord[0], start[1]]; //x2, y1
       let bottomRight = this.endCoord; // x2, y2
-      // let bottomLeft = [start[0], this.endCoord[1]]; //x1, y2 
+      let bottomLeft = [start[0], this.endCoord[1]]; //x1, y2 
+      this.featureLayer.width = this.featureLayer.offsetWidth; // make sure canvas featurelayer is contained by size of imgvp canvas
+      this.featureLayer.height = this.featureLayer.offsetHeight;
+      this.poiCanvasContext.beginPath();
+      this.poiCanvasContext.strokeStyle = '#D5D5D5';
+      this.poiCanvasContext.lineWidth = 2;
+      
+      // Top side selector rect
+      this.poiCanvasContext.moveTo(topLeft[0], topLeft[1]);
+      this.poiCanvasContext.lineTo(topRight[0], topRight[1]);
 
-      console.log(this.canvasContext);
-      this.canvasContext.beginPath();
-      this.canvasContext.strokeStyle = 'black';
-      this.canvasContext.lineWidth = 1;
-      this.canvasContext.moveTo(topLeft[0], topLeft[1]);
-      this.canvasContext.lineTo(bottomRight[0], bottomRight[1]);
-      this.canvasContext.stroke();
-      this.canvasContext.closePath();
+      // Right side selector rect
+      this.poiCanvasContext.moveTo(topRight[0], topRight[1]);
+      this.poiCanvasContext.lineTo(bottomRight[0], bottomRight[1]);
+      
+      // Bottom side selector rect
+      this.poiCanvasContext.moveTo(bottomRight[0], bottomRight[1]);
+      this.poiCanvasContext.lineTo(bottomLeft[0], bottomLeft[1]);
+
+      // Left side selector rect
+      this.poiCanvasContext.moveTo(bottomLeft[0], bottomLeft[1]);
+      this.poiCanvasContext.lineTo(topLeft[0], topLeft[1]);
+
+      this.poiCanvasContext.stroke();
+      this.poiCanvasContext.closePath();
     },
 
     // Update DOM Hooks:
     rehookDOM(){
       this.portContainer = document.getElementById("portContainer");
       this.featureLayer = document.getElementById("featurevp");
-      if(1||!this.canvas || !this.canvas.texture){
+      if(1 || !this.canvas || !this.canvas.texture){
         this.canvas = document.getElementById("imgvp");
-        fx.canvas(this.canvas); // Initialize canvas for glfx
+        this.fxvar = fx.canvas(this.canvas); // Initialize canvas for glfx
+        this.poiCanvasContext = this.featureLayer.getContext("2d");
       }
     },
 
@@ -249,6 +266,11 @@ export default {
     object-fit: contain;
     max-height: 100%;
     max-width: 100%;
+  }
+
+  .POIport{
+    width: 100%;
+    height: 100%;
   }
 
   /* port fade animation: */

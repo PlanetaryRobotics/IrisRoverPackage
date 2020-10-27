@@ -21,7 +21,9 @@
 
 #define RX_RING_BUFFER_SIZE              MAX_SIZE_PAYLOAD
 
-using namespace Wf121;
+#define MAX_FSM_NO_TRANSITION_COUNT 1024
+
+namespace CubeRoverNetworkManager {
 
 typedef enum CubeRoverNetworkStateMachine{
   UNINITIALIZED,
@@ -44,7 +46,7 @@ typedef enum UdpReadMode{
 }UdpReadMode;
 
 typedef struct WifiNetworkChannel{
-  HardwareAddress bssid;
+  Wf121::HardwareAddress bssid;
   int16_t rssi;
   int8_t snr;
   int8_t channel;
@@ -52,7 +54,7 @@ typedef struct WifiNetworkChannel{
 }WifiNetworkChannel;
 
 typedef struct WifiNetwork{
-  Ssid ssid[MAX_SIZE_SSID_NAME];
+  Wf121::Ssid ssid[MAX_SIZE_SSID_NAME];
   WifiNetworkChannel channel[MAX_NUMBER_CHANNEL_PER_NETWORK];
 }WifiNetwork;
 
@@ -68,113 +70,113 @@ typedef void(*NetworkManagerUserCbFunctionPtr)(void);
 
 uint8_t g_rxRingBuffer[RX_RING_BUFFER_SIZE];
 
-class CubeRoverNetworkManager : public Wf121Driver{
+class CubeRoverNetworkManager : public Wf121::Wf121Driver{
 public:
   CubeRoverNetworkManager();
-  ErrorCode UpdateNetworkManager();
+  Wf121::ErrorCode UpdateNetworkManager();
   CubeRoverNetworkStateMachine GetState();
   int8_t GetSignalRssi();
-  int8_t CubeRoverNetworkManager :: GetSignalNoiseRatio();
+  int8_t GetSignalNoiseRatio();
   CubeRoverSignalLevels GetSignalLevel();
 
   void ConnectCallback(const CubeRoverSignalLevels signal,
                        NetworkManagerUserCbFunctionPtr cb);
-  ErrorCode SendUdpData(uint8_t * data,
+  Wf121::ErrorCode SendUdpData(uint8_t * data,
                         const uint32_t size,
                         const uint32_t timeoutus);
-  ErrorCode ReceiveUdpData(uint8_t * data,
+  Wf121::ErrorCode ReceiveUdpData(uint8_t * data,
                           const uint16_t dataSize,
                           uint16_t * dataRead,
                           const uint8_t mode,
                           const uint32_t timeout);
 
   // Callback event
-  ErrorCode cb_EventBoot(const uint16_t major,
+  Wf121::ErrorCode cb_EventBoot(const uint16_t major,
                          const uint16_t minor,
                          const uint16_t patch,
                          const uint16_t build,
                          const uint16_t bootloaderVersion,
                          const uint16_t tcpIpVersion,
                          const uint16_t hwVersion);
-  ErrorCode cb_EventPowerSavingState(const PowerSavingState state);
-  ErrorCode cb_EventMacAddress(const HardwareInterface interface,
-                               const HardwareAddress hwAddr);
-  ErrorCode cb_EventWifiIsOn(const uint16_t result);
-  ErrorCode cb_EventScanSortResult(const HardwareAddress address,
+  Wf121::ErrorCode cb_EventPowerSavingState(const Wf121::PowerSavingState state);
+  Wf121::ErrorCode cb_EventMacAddress(const Wf121::HardwareInterface interface,
+                               const Wf121::HardwareAddress hwAddr);
+  Wf121::ErrorCode cb_EventWifiIsOn(const uint16_t result);
+  Wf121::ErrorCode cb_EventScanSortResult(const Wf121::HardwareAddress address,
                                    const int8_t channel,
                                    const int16_t rssi,
                                    const int8_t snr,
                                    const uint8_t secure,
-                                   const Ssid *ssid,
-                                   const SsidSize ssidSize);
-  ErrorCode cb_EventScanned(const int8_t scanStatus);
-  ErrorCode cb_EventScanSortFinished();
-  ErrorCode cb_EventConnected(const int8_t status,
-                              const HardwareInterface hwInterface,
-                              const Ssid *bssid,
-                              const SsidSize bssidSize);
-  ErrorCode cb_EventDisconnected(const uint16_t reason,
-                                 const HardwareInterface hwInterface);
-  ErrorCode cb_EventConnectFailed(const uint16_t reason,
-                                  const HardwareInterface hwInterface);
-  ErrorCode cb_EventSignalQuality(const int8_t rssi,
-                                  const HardwareInterface hwInterface);
-  ErrorCode cb_EventUdpData(const Endpoint endpoint,
-                            const IpAddress srcAddress,
+                                   const Wf121::Ssid *ssid,
+                                   const Wf121::SsidSize ssidSize);
+  Wf121::ErrorCode cb_EventScanned(const int8_t scanStatus);
+  Wf121::ErrorCode cb_EventScanSortFinished();
+  Wf121::ErrorCode cb_EventConnected(const int8_t status,
+                              const Wf121::HardwareInterface hwInterface,
+                              const Wf121::Ssid *bssid,
+                              const Wf121::SsidSize bssidSize);
+  Wf121::ErrorCode cb_EventDisconnected(const uint16_t reason,
+                                 const Wf121::HardwareInterface hwInterface);
+  Wf121::ErrorCode cb_EventConnectFailed(const uint16_t reason,
+                                  const Wf121::HardwareInterface hwInterface);
+  Wf121::ErrorCode cb_EventSignalQuality(const int8_t rssi,
+                                  const Wf121::HardwareInterface hwInterface);
+  Wf121::ErrorCode cb_EventUdpData(const Wf121::Endpoint endpoint,
+                            const Wf121::IpAddress srcAddress,
                             const uint16_t srcPort,
                             uint8_t * data,
-                            const DataSize16 dataSize);
-  ErrorCode cb_EventTcpIpEndpointStatus(const uint8_t endpoint,
-                                        const IpAddress localIp,
+                            const Wf121::DataSize16 dataSize);
+  Wf121::ErrorCode cb_EventTcpIpEndpointStatus(const uint8_t endpoint,
+                                        const Wf121::IpAddress localIp,
                                         const uint16_t localPort,
-                                        const IpAddress remoteIp,
+                                        const Wf121::IpAddress remoteIp,
                                         const uint16_t remotePort);
-  ErrorCode cb_EventConfigureTcpIp(const IpAddress address,
-                                   const Netmask netmask,
-                                   const Gateway gateway,
+  Wf121::ErrorCode cb_EventConfigureTcpIp(const Wf121::IpAddress address,
+                                   const Wf121::Netmask netmask,
+                                   const Wf121::Gateway gateway,
                                    const uint8_t useDhcp);
 
   // Callback command
-  ErrorCode cb_CommandHelloSystem();
-  ErrorCode cb_CommandTurnOnWifi(const uint16_t result);
-  ErrorCode cb_CommandSetPowerSavingState(const uint16_t result);
-  ErrorCode cb_CommandConfigureTcpIp(const uint16_t result);
-  ErrorCode cb_CommandStartScanChannels(const uint16_t result);
-  ErrorCode cb_CommandConnectBssid(const uint16_t result,
-                                   const HardwareInterface interface,
-                                   const HardwareAddress address);
-  ErrorCode cb_CommandSetPassword(const uint8_t status);
-  ErrorCode cb_CommandGetSignalQuality(const uint16_t result,
-                                       const HardwareInterface interface); 
-  ErrorCode cb_CommandDisconnect(const uint16_t result,
-                                 const HardwareInterface interface);
-  ErrorCode cb_CommandUdpConnect(const uint16_t result,
+  Wf121::ErrorCode cb_CommandHelloSystem();
+  Wf121::ErrorCode cb_CommandTurnOnWifi(const uint16_t result);
+  Wf121::ErrorCode cb_CommandSetPowerSavingState(const uint16_t result);
+  Wf121::ErrorCode cb_CommandConfigureTcpIp(const uint16_t result);
+  Wf121::ErrorCode cb_CommandStartScanChannels(const uint16_t result);
+  Wf121::ErrorCode cb_CommandConnectBssid(const uint16_t result,
+                                   const Wf121::HardwareInterface interface,
+                                   const Wf121::HardwareAddress address);
+  Wf121::ErrorCode cb_CommandSetPassword(const uint8_t status);
+  Wf121::ErrorCode cb_CommandGetSignalQuality(const uint16_t result,
+                                       const Wf121::HardwareInterface interface); 
+  Wf121::ErrorCode cb_CommandDisconnect(const uint16_t result,
+                                 const Wf121::HardwareInterface interface);
+  Wf121::ErrorCode cb_CommandUdpConnect(const uint16_t result,
                                  const uint8_t endpoint);
-  ErrorCode cb_CommandUdpBind(const uint16_t result);
-  ErrorCode cb_CommandStartUdpServer(const uint16_t result,
+  Wf121::ErrorCode cb_CommandUdpBind(const uint16_t result);
+  Wf121::ErrorCode cb_CommandStartUdpServer(const uint16_t result,
                                      const uint8_t endpoint);
-  ErrorCode cb_CommandSendEndpoint(const uint16_t result,
-                                   const Endpoint endpoint);
-  ErrorCode cb_CommandSetTransmitSize(const uint16_t result,
-                                      const Endpoint endpoint);
+  Wf121::ErrorCode cb_CommandSendEndpoint(const uint16_t result,
+                                   const Wf121::Endpoint endpoint);
+  Wf121::ErrorCode cb_CommandSetTransmitSize(const uint16_t result,
+                                      const Wf121::Endpoint endpoint);
 
 private:
-  ErrorCode initializeNetworkManager();
-  ErrorCode turnOnWifiAdapter();
-  ErrorCode scanWifiNetwork();
-  ErrorCode connectToWifiNetwork();
-  ErrorCode manageSignalStrength();
-  ErrorCode disconnectFromWifiNetwork();
-  ErrorCode startUdpServer();
-  bool ipAddressesMatch(const IpAddress addr1,
-                        const IpAddress addr2);
+  Wf121::ErrorCode initializeNetworkManager();
+  Wf121::ErrorCode turnOnWifiAdapter();
+  Wf121::ErrorCode scanWifiNetwork();
+  Wf121::ErrorCode connectToWifiNetwork();
+  Wf121::ErrorCode manageSignalStrength();
+  Wf121::ErrorCode disconnectFromWifiNetwork();
+  Wf121::ErrorCode startUdpServer();
+  bool ipAddressesMatch(const Wf121::IpAddress addr1,
+                        const Wf121::IpAddress addr2);
 
   CubeRoverNetworkStateMachine m_state;
   bool m_wifiModuleDetected;
-  PowerSavingState m_powerSavingState;
+  Wf121::PowerSavingState m_powerSavingState;
   bool m_wifiModuleIdentified;
   bool m_macAddressIdentified;
-  HardwareAddress m_macAddress;
+  Wf121::HardwareAddress m_macAddress;
   bool m_powerSavingStateSet;
   bool m_ipConfigurationSet;
   bool m_passwordSet;
@@ -186,9 +188,9 @@ private:
   bool m_commandSendEndpointSet;
   bool m_commandTransmitSizeSet;
 
-  IpAddress m_roverIpAddress = ROVER_IP_ADDRESS;
-  Netmask m_roverMaskAddress = ROVER_MASK_ADDRESS;
-  Gateway m_udpGatewayAddress = ROVER_GATEWAY_ADDRESS;
+  Wf121::IpAddress m_roverIpAddress = ROVER_IP_ADDRESS;
+  Wf121::Netmask m_roverMaskAddress = ROVER_MASK_ADDRESS;
+  Wf121::Gateway m_udpGatewayAddress = ROVER_GATEWAY_ADDRESS;
   WifiNetwork m_landerWifi;
   uint8_t m_scanIndex;
   uint8_t m_connectIndex;
@@ -207,5 +209,7 @@ private:
   uint16_t m_rxUdpFifoTailPointer;
   uint8_t m_udpSendEndpoint;
 };
+
+}   // End namespace CubeRoverNetworkManager
 
 #endif

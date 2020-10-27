@@ -1,5 +1,8 @@
 #include "CubeRoverNetworkManager.hpp"
 
+using namespace Wf121;
+
+namespace CubeRoverNetworkManager {
 
 /**
  * @brief      Constructs a new instance.
@@ -1373,4 +1376,4 @@ ErrorCode CubeRoverNetworkManager :: cb_EventConfigureTcpIp( const IpAddress add
   return NO_ERROR;
 }
 
-
+}   // End namespace CubeRoverNetworkManager

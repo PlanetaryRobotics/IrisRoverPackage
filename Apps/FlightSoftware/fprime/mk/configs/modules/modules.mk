@@ -38,6 +38,7 @@ UTILS_MODULES := \
 	Utils/Types
         
 # XXX: Svc/UdpSender
+# XXX: Svc/SocketGndIf
 SVC_MODULES := \
 	Svc/BufferAccumulator \
 	Svc/BufferLogger \
@@ -50,7 +51,6 @@ SVC_MODULES := \
 	Svc/RateGroupDriver \
 	Svc/Sched \
 	Svc/ComLogger \
-	Svc/SocketGndIf \
 	Svc/TlmChan \
 	Svc/PassiveTextLogger \
 	Svc/PassiveConsoleTextLogger \

@@ -37,9 +37,7 @@ UTILS_MODULES := \
 	Utils/Hash \
 	Utils/Types
         
-# XXX: Svc/BuffGndSockIf
 # XXX: Svc/UdpSender
-# XXX: Svc/UdpReceiver
 SVC_MODULES := \
 	Svc/BufferAccumulator \
 	Svc/BufferLogger \
@@ -52,6 +50,7 @@ SVC_MODULES := \
 	Svc/RateGroupDriver \
 	Svc/Sched \
 	Svc/ComLogger \
+	Svc/SocketGndIf \
 	Svc/TlmChan \
 	Svc/PassiveTextLogger \
 	Svc/PassiveConsoleTextLogger \
@@ -205,6 +204,7 @@ acdev_MODULES := \
 CubeRover_MODULES := \
 	CubeRover/Top \
 	CubeRover/CubeRoverPorts \
+	CubeRover/UdpReceiver \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

@@ -1,6 +1,6 @@
---- CubeRoverTopologyAppAc.hpp.orig	2020-10-12 22:40:23.644599922 -0700
-+++ CubeRoverTopologyAppAc.hpp	2020-10-12 22:40:57.353001315 -0700
-@@ -16,15 +16,15 @@
+--- CubeRoverTopologyAppAc.hpp.orig	2020-10-15 15:59:29.896131586 -0700
++++ CubeRoverTopologyAppAc.hpp	2020-10-15 16:00:17.533848364 -0700
+@@ -17,16 +17,16 @@
  extern Fw::SimpleObjRegistry simpleReg;
  
  // Component declarations
@@ -13,6 +13,7 @@
 -extern Svc::TlmChanImpl tlmChan("tlmChan");
 -extern Svc::CommandDispatcherImpl cmdDispatcher("cmdDispatcher");
 -extern Svc::GroundInterfaceImpl groundInterface("groundInterface");
+-extern CubeRover::UdpReceiverImpl udpReceiver("udpReceiver");
 +extern Drv::BlockDriverImpl blockDriver;
 +extern Svc::RateGroupDriverImpl rateGroupDriver;
 +extern Svc::ActiveRateGroupImpl rateGroupLowFreq;
@@ -22,6 +23,7 @@
 +extern Svc::TlmChanImpl tlmChan;
 +extern Svc::CommandDispatcherImpl cmdDispatcher;
 +extern Svc::GroundInterfaceComponentImpl groundInterface;
++extern CubeRover::UdpReceiverComponentImpl udpReceiver;
  
  
  

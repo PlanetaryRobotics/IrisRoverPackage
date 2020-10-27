@@ -1,3 +1,0 @@
-SRC = NetworkManagerComponentAi.xml
-
-HDR = 

@@ -70,8 +70,7 @@ SVC_MODULES := \
 	Svc/FileDownlink \
     Svc/AssertFatalAdapter \
     Svc/FatalHandler \
-	Svc/FileManager \
-	Svc/NetworkManager
+	Svc/FileManager
 	
 DEMO_DRV_MODULES := \
 	Drv/DataTypes \
@@ -205,6 +204,7 @@ CubeRover_MODULES := \
 	CubeRover/Top \
 	CubeRover/CubeRoverPorts \
 	CubeRover/UdpReceiver \
+	CubeRover/CubeRoverNetworkManager \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

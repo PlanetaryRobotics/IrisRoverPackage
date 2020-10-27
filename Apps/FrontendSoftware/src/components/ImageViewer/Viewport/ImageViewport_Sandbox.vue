@@ -7,20 +7,18 @@ Created: 3/05/2019
 Updated: 08/30/2020, Colombo
 Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new POI manually)
 
-// Resources:
-// Canvas + Vue.js tut: https://medium.com/@scottmatthew/using-html-canvas-with-vue-js-493e5ae60887
+// TODO: fix glitch when go past top of image (priority: 1), and when off-sides how box doesn't auto border sides
 
 -->
 
 <template>
-  <div class="image-viewport">
+  <div class="image-viewport" v-on:click.stop="onClick">
     <img class="port" id="imgsrc" v-show="false" :src="imageSource" alt="IMAGE NOT FOUND" @load="onImageUpdate" />
-    <!-- <img class="port" id="imgsrc" v-show="false" src="~@/assets" alt="IMAGE NOT FOUND" @load="onImageUpdate" /> -->
-    <div id="portContainer" v-on:mousedown.stop="onMouseDown" v-on:mouseup.stop="onMouseUp">
+    <div id="portContainer" v-on:mousemove.stop="onMouseMove">
       <canvas class="port" style="z-index: 0" id="imgvp" :key="imageSource">
         Oops! Something went wrong and really weird. Somehow Electron doesn't support HTML5 Canvas now. What did you do?
       </canvas>
-      <canvas id="featurevp" class="port POIport" style="z-index: 1;"/>
+      <canvas id="featurevp" class="port POIport" style="z-index: 1;" v-on:mousedown.stop="onMouseDown" v-on:mouseup.stop="onMouseUp" v-bind:class="{crosshairMouse: isMouseDown}"/>
 
       <transition name="overlay">
         <img class="port port_overlay" v-if="radialGrid" src="~@/assets/polar_grid10.png" />
@@ -57,10 +55,11 @@ export default {
     return {
       portContainer: {},
       canvas: {},
-      featureLayer: {},
+      poiLayer: {},
       texture: {},
       textureInitialized: false,
-      mouseDown: false,
+      isMouseDown: false,
+      isDrag: false,
       startCoord: [],
       endCoord: [],
       poiCanvasContext: null,
@@ -118,71 +117,133 @@ export default {
     }
   },
 
-  // runs after HTML stuff loads ("lifecycle hooks")
+  // runs after HTML stuff loads (part of lifecycle hooks)
   mounted(){
     this.rehookDOM();
   },
 
   methods: {
+
+    onClick(){
+
+      // if not a drag-- just a click, clear canvas
+      if(!this.isDrag){
+        console.log("click");
+        this.setPOILayerDimensions();
+      }
+      else{
+        this.isDrag = false;
+      }
+    },
+
     // On mouse down in image port, draw rectangle selector and get start coordinates
     onMouseDown(event){
+      console.log("mouseDown");
       // Ignore right click
       if (event.button === 2){
         return
       }
 
-      this.mouseDown= true;
-      this.startCoord = [(event.offsetX), event.offsetY];
+      // reset end coord if already exists
+      if (this.endCoord.length > 0){
+        this.endCoord = [];
+      }
+
+      this.startCoord = [event.offsetX, event.offsetY];
+      this.isMouseDown= true;
+
+      // false until proven truthy (aka don't know if drag or click until onMouseMove called or not called)
+      this.isDrag = false;
     },
 
-     onMouseUp(event){
-      let currStartCoord = this.startCoord; // local start coordinates var to deal with glitches in if start off page
-      this.startCoord=[]; // resets global start coord var
-      this.endCoord = [event.offsetX, event.offsetY];
-      this.mouseDown= false;
-      this.setUpSelection(currStartCoord);
+    onMouseMove(event){
+      if(this.isMouseDown){
+        this.isDrag = true;
+        this.endCoord = [event.offsetX, event.offsetY];
+
+        // Ensures selection box constrained to image
+        if(!(this.endCoord[0] <= this.poiLayer.width) || !(this.endCoord[0] >= 0) || !(this.endCoord[1] <= this.poiLayer.height) || !(this.endCoord[1] <= this.poiLayer.width) || !(this.endCoord[1] >= 0)){
+          
+          this.isMouseDown = false;
+
+          // if cursor went past right boundary of image container
+          if(this.endCoord[0] > this.poiLayer.width){
+            this.endCoord[0] = this.poiLayer.width;
+          }
+          // if cursor went past right boundary of image container
+          else if(this.endCoord[0] < 0){
+            this.endCoord[0] = 0;
+          }
+          // if cursor went past top boundary of image container
+          if(this.endCoord[1] > this.poiLayer.height){
+            this.endCoord[1] = this.poiLayer.height;
+          }
+          // if cursor went past bottom boundary of image container
+          else if(this.endCoord[1] < 0){
+            this.endCoord[1] = 0;
+          }
+        }
+
+        this.setUpSelection();
+      }
     },
 
-    setUpSelection(start){
-      console.log("Start coordinates: ", start, "\nEnd Coordinates: ", this.endCoord)
-      let topLeft = start; // x1, y1
-      let topRight = [this.endCoord[0], start[1]]; //x2, y1
+    setUpSelection(){
+      let topLeft = this.startCoord; // x1, y1
+      let topRight = [this.endCoord[0], this.startCoord[1]]; //x2, y1
       let bottomRight = this.endCoord; // x2, y2
-      let bottomLeft = [start[0], this.endCoord[1]]; //x1, y2 
-      this.featureLayer.width = this.featureLayer.offsetWidth; // make sure canvas featurelayer is contained by size of imgvp canvas
-      this.featureLayer.height = this.featureLayer.offsetHeight;
+      let bottomLeft = [this.startCoord[0], this.endCoord[1]]; //x1, y2 
+
+      // Sets POI Layer's dimensions, while also clearing canvas of any drawings currently on it
+      this.setPOILayerDimensions();
+
+      // Begin: drawing POI selector box on canvas
       this.poiCanvasContext.beginPath();
+
+      // Style of selection box
       this.poiCanvasContext.strokeStyle = '#D5D5D5';
       this.poiCanvasContext.lineWidth = 2;
       
-      // Top side selector rect
+      // Start drawing selector box ("rect")
       this.poiCanvasContext.moveTo(topLeft[0], topLeft[1]);
-      this.poiCanvasContext.lineTo(topRight[0], topRight[1]);
 
-      // Right side selector rect
-      this.poiCanvasContext.moveTo(topRight[0], topRight[1]);
-      this.poiCanvasContext.lineTo(bottomRight[0], bottomRight[1]);
-      
-      // Bottom side selector rect
-      this.poiCanvasContext.moveTo(bottomRight[0], bottomRight[1]);
-      this.poiCanvasContext.lineTo(bottomLeft[0], bottomLeft[1]);
-
-      // Left side selector rect
-      this.poiCanvasContext.moveTo(bottomLeft[0], bottomLeft[1]);
-      this.poiCanvasContext.lineTo(topLeft[0], topLeft[1]);
+      this.poiCanvasContext.lineTo(topRight[0], topRight[1]); // Top side of rect
+      this.poiCanvasContext.lineTo(bottomRight[0], bottomRight[1]); // Right side of rect
+      this.poiCanvasContext.lineTo(bottomLeft[0], bottomLeft[1]); // Bottom side of rect
+      this.poiCanvasContext.lineTo(topLeft[0], topLeft[1]); // Left side of rect
 
       this.poiCanvasContext.stroke();
       this.poiCanvasContext.closePath();
     },
 
+    onMouseUp(){
+      this.isMouseDown= false;
+
+      // Checks if mouse down was just a click or if mouse moved at all (i.e. selection box was formed)
+      if(this.endCoord.length == 0){
+        this.startCoord = [];
+
+        //clears canvas of lines/boxes
+        this.setPOILayerDimensions();
+      }
+      
+      // coordinates
+      console.log("Start coordinates: ", this.startCoord, "\nEnd Coordinates: ", this.endCoord);
+    },
+
+    setPOILayerDimensions(){
+      this.poiLayer.height = this.canvas.offsetHeight;
+      this.poiLayer.width = this.canvas.offsetWidth;
+    },
+
     // Update DOM Hooks:
     rehookDOM(){
       this.portContainer = document.getElementById("portContainer");
-      this.featureLayer = document.getElementById("featurevp");
+      this.poiLayer = document.getElementById("featurevp");
       if(1 || !this.canvas || !this.canvas.texture){
         this.canvas = document.getElementById("imgvp");
         this.fxvar = fx.canvas(this.canvas); // Initialize canvas for glfx
-        this.poiCanvasContext = this.featureLayer.getContext("2d");
+        this.poiCanvasContext = this.poiLayer.getContext("2d");
       }
     },
 
@@ -268,9 +329,14 @@ export default {
     max-width: 100%;
   }
 
-  .POIport{
-    width: 100%;
-    height: 100%;
+  // .POIport{
+  //   width: 100%;
+  //   height: 100%;
+  // }
+
+  .crosshairMouse{
+    cursor: crosshair;
+    // cursor: url("/assets/icons/png/cursorCrosshair.png");
   }
 
   /* port fade animation: */

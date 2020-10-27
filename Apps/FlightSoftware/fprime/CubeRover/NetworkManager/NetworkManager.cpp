@@ -39,12 +39,31 @@ namespace CubeRover {
     )
   {
     NetworkManagerComponentBase::init(instance);
+    unsigned no_transition_count = 0
+    CubeRoverNetworkManager::CubeRoverNetworkStateMachine current_state = crnm.GetState();
+    while(1){
+        Wf121::ErrorCode ret = crnm.UpdateNetworkManager();
+        CubeRoverNetworkManager::CubeRoverNetworkStateMachine new_state = crnm.GetState();
+        
+        if (current_state == UDP_CONNECTED)     // Connection & transport layer established
+            break;
+        else if (current_state == new_state)
+            no_transition_count++;
+        else
+            log_ACTIVITY_HI_state_change(current_state, new_state);
+        current_state = new_state;
+
+        if (ret) {} // Need to handle error
+        if (no_transition_count > MAX_FSM_NO_TRANSITION_COUNT) {
+            // Need to handle error
+            break;
+        }
   }
 
   NetworkManagerComponentImpl ::
     ~NetworkManagerComponentImpl(void)
   {
-
+    // XXX: Shutdown wifi?
   }
 
   // ----------------------------------------------------------------------
@@ -75,7 +94,12 @@ namespace CubeRover {
         NATIVE_UINT_TYPE context
     )
   {
-    // TODO
+    // Read and process input/output queues
+    CubeRoverNetworkManager::CubeRoverNetworkStateMachine current_state = crnm.GetState();
+    int8_t rssi = crnm.GetSignalRssi();
+    tlmWrite_RSSI(rssi)
+    int8_t snr = crnm.GetSignalNoiseRatio();
+    CubeRoverNetworkManager::CubeRoverSignalLevels signal_level = crnm.GetSignalLevel();    // Probably won't use this
   }
 
 } // end namespace CubeRover

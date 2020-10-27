@@ -61,10 +61,13 @@
         <channel id="0" name="RSSI" data_type="I8">
             <comment>Received Signal Strength Indication abt WF121 connection to AP in dB</comment>
         </channel>
-        <channel id="1" name="pkt_recv" data_type="U32">
+        <channel id="1" name="SNR" data_type="I8">
+            <comment>Signal to noise radio</comment>
+        </channel>
+        <channel id="2" name="pkt_recv" data_type="U32">
             <comment>Number of packets received (uplink)</comment>
         </channel>
-        <channel id="2" name="pkt_sent" data_type="U32">
+        <channel id="3" name="pkt_sent" data_type="U32">
             <comment>Number of packets sent (downlink)</comment>
         </channel>
     </telemetry>

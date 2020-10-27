@@ -14,6 +14,7 @@
 #define NetworkManager_HPP
 
 #include "CubeRover/NetworkManager/NetworkManagerComponentAc.hpp"
+#include "CubeRover/NetworkManager/CubeRoverNetworkManager.hpp"
 
 namespace CubeRover {
 
@@ -48,6 +49,8 @@ namespace CubeRover {
       ~NetworkManagerComponentImpl(void);
 
     PRIVATE:
+
+      CubeRoverNetworkManager crnm;
 
       // ----------------------------------------------------------------------
       // Handler implementations for user-defined typed input ports

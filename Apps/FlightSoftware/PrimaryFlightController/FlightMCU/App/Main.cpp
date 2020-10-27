@@ -9,7 +9,7 @@
 #include "FreeRTOS.h"
 #include "os_task.h"
 #include "CubeRover/Top/Topology.hpp"
-#include "CubeRover/CubeRoverNetworkManager/CubeRoverNetworkManager.hpp"
+#include "CubeRover/NetworkManager/CubeRoverNetworkManager.hpp"
 
 #include "gio.h"
 #include "i2c.h"

@@ -74,7 +74,7 @@ namespace CubeRover {
   NetworkManagerComponentImpl ::
     ~NetworkManagerComponentImpl(void)
   {
-    // XXX: Shutdown wifi?
+    // This should NEVER get called
   }
 
   // ----------------------------------------------------------------------

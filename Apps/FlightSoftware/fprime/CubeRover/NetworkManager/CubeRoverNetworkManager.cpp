@@ -127,6 +127,28 @@ int8_t CubeRoverNetworkManager :: GetSignalRssi(){
 
 
 /**
+ * @breif       Gets the number of bytes received.
+ *
+ * @return      The number of bytes received so far.
+ *
+ */
+uint32_t  CubeRoverNetworkManager::GetNbOfBytesReceived() {
+    return m_logNbOfBytesReceived;
+}
+
+
+/**
+ * @breif       Gets the number of bytes sent.
+ *
+ * @return      The number of bytes sent so far.
+ *
+ */
+uint32_t  CubeRoverNetworkManager::GetNbOfBytesSent() {
+    return m_logNbOfBytesSent;
+}
+
+
+/**
  * @brief      Gets the signal noise ratio.
  *
  * @return     The signal noise ratio.

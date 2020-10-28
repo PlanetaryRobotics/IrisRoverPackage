@@ -77,6 +77,8 @@ public:
   CubeRoverNetworkStateMachine GetState();
   int8_t GetSignalRssi();
   int8_t GetSignalNoiseRatio();
+  uint32_t GetNbOfBytesReceived();
+  uint32_t GetNbOfBytesSent();
   CubeRoverSignalLevels GetSignalLevel();
 
   void ConnectCallback(const CubeRoverSignalLevels signal,

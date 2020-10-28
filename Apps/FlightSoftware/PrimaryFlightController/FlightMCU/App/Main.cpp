@@ -52,6 +52,7 @@ void main(void)
             // get size of the received packet
             // check how big the packet actually is, then consume the bytes from the ring buffer
             memcpy(&payloadSize, g_testBuffer+4 /* offset by packet number */, sizeof(payloadSize));
+            // FIXME: payloadsize is U32 but in UDP header length is only bytes 4 and 5 (U16)
             wf121.ReceiveUdpData(g_testBuffer, payloadSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
 
             // send back signal quality

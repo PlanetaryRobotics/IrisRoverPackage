@@ -50,7 +50,9 @@ namespace CubeRover {
 
     PRIVATE:
 
-      CubeRoverNetworkManager crnm;
+      CubeRoverNetworkManager::CubeRoverNetworkManager crnm;
+      CubeRoverNetworkManager::CubeRoverNetworkStateMachine current_state;
+      U8 fileUplinkBuffer[MAX_SIZE_PAYLOAD];    // This is not thread-safe. Use and discard immed
 
       // ----------------------------------------------------------------------
       // Handler implementations for user-defined typed input ports
@@ -58,7 +60,7 @@ namespace CubeRover {
 
       //! Handler implementation for fileUplinkBufferGet
       //!
-      void fileUplinkBufferGet_handler(
+      Fw::Buffer fileUplinkBufferGet_handler(
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
           U32 size 
       );
@@ -69,6 +71,8 @@ namespace CubeRover {
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
           Fw::Buffer &fwBuffer 
       );
+
+      void update();    // Behavior of periodic status update
 
       //! Handler implementation for schedIn
       //!

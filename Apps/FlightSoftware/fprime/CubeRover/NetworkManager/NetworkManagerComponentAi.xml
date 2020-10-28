@@ -13,11 +13,11 @@
 
         <!-- Input ports -->
         <port name="fileUplinkBufferGet" data_type="Fw::BufferGet" kind="guarded_input" max_number="1">
-            <comment>GroundInterface gets packets</comment>
+            <comment>GroundInterface gets uplinked packets from NM</comment>
         </port>
 
         <port name="fileDownlinkBufferSendIn" data_type="Fw::BufferSend" kind="guarded_input" max_number="1">
-            <comment>GroundInterface sends packets</comment>
+            <comment>GroundInterface sends packets to NM for downlink</comment>
         </port>
 
         <port name="schedIn" data_type="Svc::Sched" kind="guarded_input" max_number="1">
@@ -29,6 +29,7 @@
 
 
         <!-- Output ports -->
+        <!-- Depracating the following ports since WF121 is an access controlled singleton available only to this class
         <port name="wifiPacketBufferSendOut" data_type="Fw::BufferSend" kind="output" max_number="1">
             <comment>Send packets to WF121</comment>
         </port>
@@ -36,7 +37,7 @@
         <port name="wifiPacketBufferGet" data_type="Fw::BufferGet" kind="output" max_number="1">
             <comment>Get packtes from WF121</comment>
         </port>
-
+        -->
 
         <!-- TODO: MODE -->
 

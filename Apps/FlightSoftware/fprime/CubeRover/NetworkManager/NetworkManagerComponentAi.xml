@@ -65,16 +65,16 @@
         <channel id="1" name="SNR" data_type="I8">
             <comment>Signal to noise radio</comment>
         </channel>
-        <channel id="2" name="pkt_recv" data_type="U32">
+        <channel id="2" name="PktRecv" data_type="U32">
             <comment>Number of packets received (uplink)</comment>
         </channel>
-        <channel id="3" name="pkt_sent" data_type="U32">
+        <channel id="3" name="PktSent" data_type="U32">
             <comment>Number of packets sent (downlink)</comment>
         </channel>
     </telemetry>
 
     <events>
-        <event id="0" name="state_change" severity="ACTIVITY_HI" format_string="WF121 State Changed %d -> %d">
+        <event id="0" name="StateChange" severity="ACTIVITY_HI" format_string="WF121 State Changed %d -> %d">
             <comment>Emit event when ever a state transition occurs within the WF121</comment>
             <args>
                 <arg name="from_state" type="ENUM">
@@ -104,6 +104,15 @@
                     </enum>
                 </arg>
             </args>
+        </event>
+        <event id="1" name="ExecuteCallbackError" severity="WARNING_HI" format_string="ExecuteCallBackError %d">
+            <comment>Emit event when there is an error executing a WF121 callback</comment>
+            <args>
+                <arg name="ErrorCode" type="U16"/>
+            </args>
+        </event>
+        <event id="2" name="WF121InitializationFailed" severity="FATAL" format_string="WF121 Failed to initialize">
+            <comment>Emit event when there is an error executing a WF121 callback</comment>
         </event>
     </events>
 

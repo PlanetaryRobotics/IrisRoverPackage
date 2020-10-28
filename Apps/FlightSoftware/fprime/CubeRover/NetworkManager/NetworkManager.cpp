@@ -31,7 +31,7 @@ namespace CubeRover {
     NetworkManagerComponentImpl(void)
 #endif
   {
-    current_state = CubeRoverNetworkManager::UNINITIALIZED;
+    m_current_state = CubeRoverNetworkManager::UNINITIALIZED;
   }
 
   void NetworkManagerComponentImpl ::
@@ -41,23 +41,32 @@ namespace CubeRover {
   {
     NetworkManagerComponentBase::init(instance);
     unsigned no_transition_count = 0;
-    current_state = crnm.GetState();
-    while (1) {
-        Wf121::ErrorCode ret = crnm.UpdateNetworkManager();
-        CubeRoverNetworkManager::CubeRoverNetworkStateMachine new_state = crnm.GetState();
-        
-        if (current_state == CubeRoverNetworkManager::UDP_CONNECTED)     // Connection & transport layer established
-            break;
-        else if (current_state == new_state)
-            no_transition_count++;
-        else
-            log_ACTIVITY_HI_state_change(current_state, new_state);
-        current_state = new_state;
-
-        if (ret) {} // Need to handle error
-        if (no_transition_count > MAX_FSM_NO_TRANSITION_COUNT) {
-            // Need to handle error
-            break;
+    m_current_state = m_crnm.GetState();
+    bool success = false;
+    while (!success) {
+        while (no_transition_count < MAX_FSM_NO_TRANSITION_COUNT) {
+            Wf121::ErrorCode errorCode = m_crnm.UpdateNetworkManager();
+            if (errorCode == Wf121::TRY_AGAIN) {
+                no_transition_count++;
+                continue;
+            } else if (errorCode != Wf121::NO_ERROR) {
+                log_WARNING_HI_ExecuteCallbackError(errorCode);
+                no_transition_count++;
+                continue;
+            }
+            CubeRoverNetworkManager::CubeRoverNetworkStateMachine new_state = m_crnm.GetState();
+            
+            if (m_current_state == CubeRoverNetworkManager::UDP_CONNECTED)     // Connection & transport layer established
+                success = true;
+            else if (m_current_state == new_state)
+                no_transition_count++;
+            else
+                log_ACTIVITY_HI_StateChange(m_current_state, new_state);
+            m_current_state = new_state;
+        }
+        if (no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
+            log_FATAL_WF121InitializationFailed();
+            // TODO: Watchdog reset WF121
         }
     }
   }
@@ -91,17 +100,17 @@ namespace CubeRover {
     U16 bytesRead;
     U16 headerSize = 8;
     U32 payloadSize;
-    U64 data_ptr = reinterpret_cast<U64>(fileUplinkBuffer);
+    U64 data_ptr = reinterpret_cast<U64>(m_fileUplinkBuffer);
 
-    memset(fileUplinkBuffer, 0, MAX_SIZE_PAYLOAD);  // Clear one datagram buffer
+    memset(m_fileUplinkBuffer, 0, MAX_SIZE_PAYLOAD);  // Clear one datagram buffer
     // XXX: Or maybe we shoould parse datagram header here w/ checksum and only pass payload
     // UDPReceiver!?
 
-    crnm.ReceiveUdpData(fileUplinkBuffer, headerSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::WAIT_UNTIL_READY | CubeRoverNetworkManager::UdpReadMode::PEEK_READ, 10);     // Read UDP header to get payload size
+    m_crnm.ReceiveUdpData(m_fileUplinkBuffer, headerSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::WAIT_UNTIL_READY | CubeRoverNetworkManager::UdpReadMode::PEEK_READ, 10);     // Read UDP header to get payload size
 
     if (bytesRead == headerSize) {  // check how big the packet actually is, then consume the bytes from the ring buffer
-        memcpy(&payloadSize, fileUplinkBuffer+4, sizeof(payloadSize));  // byte 4 of UDP header
-        crnm.ReceiveUdpData(fileUplinkBuffer, payloadSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::WAIT_UNTIL_READY | CubeRoverNetworkManager::UdpReadMode::NORMAL_READ, 10);
+        memcpy(&payloadSize, m_fileUplinkBuffer+4, sizeof(payloadSize));  // byte 4 of UDP header
+        m_crnm.ReceiveUdpData(m_fileUplinkBuffer, payloadSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::WAIT_UNTIL_READY | CubeRoverNetworkManager::UdpReadMode::NORMAL_READ, 10);
 
         if (bytesRead != payloadSize) {} // FIXME: Error, bytes read didnt match payload size
     }
@@ -118,23 +127,22 @@ namespace CubeRover {
   {
     uint8_t *buffer = reinterpret_cast<U8 *>(fwBuffer.getdata());
     uint32_t payloadSize = fwBuffer.getsize();
-    crnm.SendUdpData(buffer, payloadSize, 1000);   // FIXME: What is an appropriate timeout 1s check units
+    m_crnm.SendUdpData(buffer, payloadSize, 1000);   // FIXME: What is an appropriate timeout 1s check units
     schedIn_handler(0, 0);
   }
 
     void NetworkManagerComponentImpl::update() {
-        Wf121::ErrorCode errorCode = crnm.ExecuteCallbacks();   // TODO: Check error
-
-        CubeRoverNetworkManager::CubeRoverNetworkStateMachine updated_state = crnm.GetState();
-        if (updated_state != current_state) {
-            log_ACTIVITY_HI_state_change(current_state, updated_state);
+        Wf121::ErrorCode errorCode = m_crnm.ExecuteCallbacks();   // TODO: Check error
+        CubeRoverNetworkManager::CubeRoverNetworkStateMachine updated_state = m_crnm.GetState();
+        if (updated_state != m_current_state) {
+            log_ACTIVITY_HI_StateChange(m_current_state, updated_state);
             // TODO: TRIGGER MODEMANAGER ON LOS
         }
-        current_state = updated_state;
-        tlmWrite_RSSI(crnm.GetSignalRssi());
-        tlmWrite_SNR(crnm.GetSignalNoiseRatio());
-        tlmWrite_pkt_recv(crnm.GetNbOfBytesReceived());
-        tlmWrite_pkt_sent(crnm.GetNbOfBytesSent());
+        m_current_state = updated_state;
+        tlmWrite_RSSI(m_crnm.GetSignalRssi());
+        tlmWrite_SNR(m_crnm.GetSignalNoiseRatio());
+        tlmWrite_PktRecv(m_crnm.GetNbOfBytesReceived());
+        tlmWrite_PktSent(m_crnm.GetNbOfBytesSent());
     }
 
   void NetworkManagerComponentImpl ::

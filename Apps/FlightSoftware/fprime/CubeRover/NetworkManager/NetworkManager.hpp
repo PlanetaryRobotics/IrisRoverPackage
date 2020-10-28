@@ -50,9 +50,9 @@ namespace CubeRover {
 
     PRIVATE:
 
-      CubeRoverNetworkManager::CubeRoverNetworkManager crnm;
-      CubeRoverNetworkManager::CubeRoverNetworkStateMachine current_state;
-      U8 fileUplinkBuffer[MAX_SIZE_PAYLOAD];    // This is not thread-safe. Use and discard immed
+      CubeRoverNetworkManager::CubeRoverNetworkManager m_crnm;
+      CubeRoverNetworkManager::CubeRoverNetworkStateMachine m_current_state;
+      U8 m_fileUplinkBuffer[MAX_SIZE_PAYLOAD];    // This is not thread-safe. Use and discard immed
 
       // ----------------------------------------------------------------------
       // Handler implementations for user-defined typed input ports

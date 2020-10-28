@@ -42,7 +42,6 @@
         <!-- TODO: MODE -->
 
 
-
         <!-- Standard F prime ports -->
         <port name="Log" data_type="Fw::Log"  kind="output" role="LogEvent"    max_number="1">
         </port>

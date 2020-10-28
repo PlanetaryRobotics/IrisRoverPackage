@@ -103,8 +103,7 @@ namespace CubeRover {
     U64 data_ptr = reinterpret_cast<U64>(m_fileUplinkBuffer);
 
     memset(m_fileUplinkBuffer, 0, MAX_SIZE_PAYLOAD);  // Clear one datagram buffer
-    // XXX: Or maybe we shoould parse datagram header here w/ checksum and only pass payload
-    // UDPReceiver!?
+    // XXX: UDP cehcksum optional for IPv4. Check with Astrobotic if they are providing this
 
     m_crnm.ReceiveUdpData(m_fileUplinkBuffer, headerSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::WAIT_UNTIL_READY | CubeRoverNetworkManager::UdpReadMode::PEEK_READ, 10);     // Read UDP header to get payload size
 
@@ -116,6 +115,7 @@ namespace CubeRover {
     }
 
     buffer.set(this->getInstance(), 0, data_ptr, payloadSize);    // Only one buffer->buferID = 0
+    update();
     return buffer;
   }
 
@@ -128,7 +128,7 @@ namespace CubeRover {
     uint8_t *buffer = reinterpret_cast<U8 *>(fwBuffer.getdata());
     uint32_t payloadSize = fwBuffer.getsize();
     m_crnm.SendUdpData(buffer, payloadSize, 1000);   // FIXME: What is an appropriate timeout 1s check units
-    schedIn_handler(0, 0);
+    update();
   }
 
     void NetworkManagerComponentImpl::update() {

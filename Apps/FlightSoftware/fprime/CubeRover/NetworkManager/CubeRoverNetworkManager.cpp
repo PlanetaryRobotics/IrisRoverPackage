@@ -1345,7 +1345,7 @@ ErrorCode CubeRoverNetworkManager :: cb_EventUdpData(const Endpoint endpoint,
       // Increment number of byte available for a read
       m_rxUdpFifoBytesCount++;
       g_rxRingBuffer[m_rxUdpFifoHeadPointer] = *ptrData;
-      m_rxUdpFifoHeadPointer = (m_rxUdpFifoHeadPointer + 1) % RX_RING_BUFFER_SIZE;
+      m_rxUdpFifoHeadPointer = (m_rxUdpFifoHeadPointer + 1) % RX_RING_BUFFER_SIZE;      // FIXME: Wtf cedric you can't do pointer arithmetic. Offset!?
       ptrData++;
     }
   }

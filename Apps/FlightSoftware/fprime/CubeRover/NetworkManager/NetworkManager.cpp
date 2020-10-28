@@ -116,24 +116,25 @@ namespace CubeRover {
         Fw::Buffer &fwBuffer
     )
   {
-    U8 *buffer = reinterpret_cast<U8 *>(buffer.getdata());
-    U32 payloadSize = buffer.getsize();
+    uint8_t *buffer = reinterpret_cast<U8 *>(fwBuffer.getdata());
+    uint32_t payloadSize = fwBuffer.getsize();
     crnm.SendUdpData(buffer, payloadSize, 1000);   // FIXME: What is an appropriate timeout 1s check units
     schedIn_handler(0, 0);
   }
 
     void NetworkManagerComponentImpl::update() {
-        Wf121::Error errorCode = crnm.ExecuteCallbacks();   // TODO: Check error
+        Wf121::ErrorCode errorCode = crnm.ExecuteCallbacks();   // TODO: Check error
 
         CubeRoverNetworkManager::CubeRoverNetworkStateMachine updated_state = crnm.GetState();
         if (updated_state != current_state) {
-            log_ACTIVITY_HI_state_change(current_state, new_state);
+            log_ACTIVITY_HI_state_change(current_state, updated_state);
             // TODO: TRIGGER MODEMANAGER ON LOS
         }
+        current_state = updated_state;
         tlmWrite_RSSI(crnm.GetSignalRssi());
         tlmWrite_SNR(crnm.GetSignalNoiseRatio());
-        tlmWrite_pkt_recv(crnm.GetNbOfBytesReceived);
-        tlmWrite_pkt_sent(crnm.GetNbOfBytesSent);
+        tlmWrite_pkt_recv(crnm.GetNbOfBytesReceived());
+        tlmWrite_pkt_sent(crnm.GetNbOfBytesSent());
     }
 
   void NetworkManagerComponentImpl ::

@@ -30,7 +30,6 @@ uint8_t g_testBuffer[RX_RING_BUFFER_SIZE];
 
 void main(void)
 {
-    CubeRoverNetworkManager wf121;
     uint16_t headerSize = 8;    // 8 bytes
     uint16_t byteRead = 0;
     uint32_t payloadSize = 0;
@@ -42,7 +41,7 @@ void main(void)
     sciInit();
 
     constructApp();
-
+    /*CubeRoverNetworkManager wf121;
     while(1){
         wf121.UpdateNetworkManager();
 
@@ -51,7 +50,7 @@ void main(void)
         if(byteRead == headerSize){
             // get size of the received packet
             // check how big the packet actually is, then consume the bytes from the ring buffer
-            memcpy(&payloadSize, g_testBuffer+4 /* offset by packet number */, sizeof(payloadSize));
+            memcpy(&payloadSize, g_testBuffer+4, sizeof(payloadSize));
             // FIXME: payloadsize is U32 but in UDP header length is only bytes 4 and 5 (U16)
             wf121.ReceiveUdpData(g_testBuffer, payloadSize, &byteRead, UdpReadMode::WAIT_UNTIL_READY | UdpReadMode::NORMAL_READ, 10);
 
@@ -61,7 +60,7 @@ void main(void)
             sciSend(scilinREG, payloadSize, g_testBuffer);
             wf121.SendUdpData(g_testBuffer, payloadSize, 10000);
         }
-    }
+    }*/
 
     vTaskStartScheduler();
 

@@ -4,6 +4,9 @@ make TIR4
 patch --verbose ./Top/CubeRoverTopologyAppAc.hpp ./Top/CubeRoverTopologyAppAc.hpp.patch
 # find .. | grep --color=never -e ".a$" | xargs --verbose chmod +x
 make TIR4
+pushd NetworkManager
+./build.sh
+popd
 ./clean.sh
 # git checkout ../Autocoders/*      # If your git freaks out over file mode changing
 

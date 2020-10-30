@@ -20,6 +20,9 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
       </canvas>
       <canvas id="featurevp" class="port POIport" style="z-index: 1;" v-on:mousedown.stop="onMouseDown" v-on:mouseup.stop="onMouseUp" v-bind:class="{crosshairMouse: isMouseDown}"/>
 
+      <POIModalChoiceList v-show="isPOIChoiceListModalVisible"></POIModalChoiceList>
+      <POIModalFullDetails></POIModalFullDetails>
+
       <transition name="overlay">
         <img class="port port_overlay" v-if="radialGrid" src="~@/assets/polar_grid10.png" />
       </transition>
@@ -35,6 +38,8 @@ const electron = require('electron')
 import { mapState, mapGetters } from 'vuex'
 import { sha256 } from 'js-sha256'
 import fx from '@/lib/glfx/glfx.js'
+import POIModalChoiceList from "@/components/POI/Components/POIModalChoiceList.vue";
+import POIModalFullDetails from "@/components/POI/Components/POIModalFullDetails.vue";
 
 // Helper function to remaps the given number n from a range of (min0 to max0)
 // to a range of (minf to maxf) using linear interpolation.
@@ -47,8 +52,13 @@ export default {
   props: {
     data: { // TO-DO change name of prop
       type: ImageData,
-      required: false
+      required: false,
     }
+  },
+
+  components: {
+    POIModalChoiceList,
+    POIModalFullDetails
   },
 
   data(){
@@ -63,7 +73,8 @@ export default {
       startCoord: [],
       endCoord: [],
       poiCanvasContext: null,
-      fxvar: {}
+      fxvar: {},
+      isPOIChoiceListModalVisible: false
     };
   },
 
@@ -130,6 +141,7 @@ export default {
       if(!this.isDrag){
         console.log("click");
         this.setPOILayerDimensions();
+        this.closeModal();
       }
       else{
         this.isDrag = false;
@@ -154,6 +166,8 @@ export default {
 
       // false until proven truthy (aka don't know if drag or click until onMouseMove called or not called)
       this.isDrag = false;
+
+      this.closeModal();
     },
 
     onMouseMove(event){
@@ -229,6 +243,17 @@ export default {
       
       // coordinates
       console.log("Start coordinates: ", this.startCoord, "\nEnd Coordinates: ", this.endCoord);
+
+      // Show POI List of Descriptions
+      this.showModal();
+    },
+
+    showModal(){
+      this.isPOIChoiceListModalVisible = true;
+    },
+
+    closeModal(){
+      this.isPOIChoiceListModalVisible = false;
     },
 
     setPOILayerDimensions(){

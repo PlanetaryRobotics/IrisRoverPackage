@@ -20,8 +20,8 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
       </canvas>
       <canvas id="featurevp" class="port POIport" style="z-index: 1;" v-on:mousedown.stop="onMouseDown" v-on:mouseup.stop="onMouseUp" v-bind:class="{crosshairMouse: isMouseDown}"/>
 
-      <POIModalChoiceList v-show="isPOIChoiceListModalVisible"></POIModalChoiceList>
-      <POIModalFullDetails></POIModalFullDetails>
+      <POIModalChoiceList v-show="isPOIChoiceListModalVisible" v-on:childToParent="onChildClick"></POIModalChoiceList>
+      <POIModalFullDetails v-show="arePOIFullDetailsVisible"></POIModalFullDetails>
 
       <transition name="overlay">
         <img class="port port_overlay" v-if="radialGrid" src="~@/assets/polar_grid10.png" />
@@ -74,7 +74,8 @@ export default {
       endCoord: [],
       poiCanvasContext: null,
       fxvar: {},
-      isPOIChoiceListModalVisible: false
+      isPOIChoiceListModalVisible: false,
+      arePOIFullDetailsVisible: false
     };
   },
 
@@ -134,14 +135,19 @@ export default {
   },
 
   methods: {
+    onChildClick(){
+      this.arePOIFullDetailsVisible = true;
+      this.closePOIChoiceModal();
+    },
 
+    // On click of page, close modals
     onClick(){
-
       // if not a drag-- just a click, clear canvas
       if(!this.isDrag){
         console.log("click");
         this.setPOILayerDimensions();
-        this.closeModal();
+        this.closePOIChoiceModal();
+        this.closePOIDetailsModal();
       }
       else{
         this.isDrag = false;
@@ -167,7 +173,7 @@ export default {
       // false until proven truthy (aka don't know if drag or click until onMouseMove called or not called)
       this.isDrag = false;
 
-      this.closeModal();
+      this.closePOIChoiceModal();
     },
 
     onMouseMove(event){
@@ -245,15 +251,19 @@ export default {
       console.log("Start coordinates: ", this.startCoord, "\nEnd Coordinates: ", this.endCoord);
 
       // Show POI List of Descriptions
-      this.showModal();
+      this.showPOIChoiceModal();
     },
 
-    showModal(){
+    showPOIChoiceModal(){
       this.isPOIChoiceListModalVisible = true;
     },
 
-    closeModal(){
+    closePOIChoiceModal(){
       this.isPOIChoiceListModalVisible = false;
+    },
+
+    closePOIDetailsModal(){
+      this.arePOIFullDetailsVisible = false;
     },
 
     setPOILayerDimensions(){

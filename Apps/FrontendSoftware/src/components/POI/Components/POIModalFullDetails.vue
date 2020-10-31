@@ -1,8 +1,14 @@
 <template>
   <div class="modal-backdrop">
-    <div class="POIModalContainer">
+    <div class="POIModalDetailsContainer">
         <section class="modal-row">
             Priority
+            <select>
+              <option disabled value=""><img src="@/assets/imgviewer/two_priority.svg"> Select</option>
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+            </select>
             Type
         </section>
         <section class="modal-row">
@@ -37,10 +43,11 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 2;
 }
 
 /* REM conversion: 1rem = 10px */
-.POIModalContainer {
+.POIModalDetailsContainer {
   background: #424242;
   overflow-x: auto;
   position: fixed;
@@ -53,7 +60,7 @@ export default {
   font-style: normal;
   font-weight: 400;
   text-align: left;
-  z-index: 3;
+  z-index: 2;
 }
 
 .modal-row {

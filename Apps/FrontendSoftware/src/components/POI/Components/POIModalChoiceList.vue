@@ -1,31 +1,38 @@
 <template>
   <!-- <div class="modal-backdrop"> -->
     <div class="POIModalContainer">
-      <section class="modal-body">
+
+      <section v-on:click.stop="selectPOIChoice" class="modal-body">
         <slot name="body">
           <span class="dot-icon green"></span> Attraction
         </slot>
-       </section>
-       <section class="modal-body">
+      </section>
+
+      <section v-on:click.stop="selectPOIChoice" class="modal-body">
         <slot name="body">
            <span class="dot-icon red"></span> Obstacle
         </slot>
-       </section>
-       <section class="modal-body">
+      </section>
+
+      <section v-on:click.stop="selectPOIChoice" class="modal-body">
            <!-- make an atomic modal
            popping up, moving, closing, common to all modals -->
         <slot name="body">
-          <!-- <img class="dot-img" src="@/assets/imgviewer/red-tag-POI.png"> -->
           <span class="dot-icon red"></span> Shadow
         </slot>
-       </section>
+      </section>
     </div>
   <!-- </div> -->
 </template>
 
 <script>
     export default {
-        name: "POIModalChoiceList"
+      name: "POIModalChoiceList",
+      methods: {
+        selectPOIChoice(){
+          this.$emit('childToParent', true)
+        }
+      }
     }
 </script>
 

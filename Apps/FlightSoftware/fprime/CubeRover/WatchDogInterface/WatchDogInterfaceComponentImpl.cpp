@@ -39,6 +39,8 @@ namespace CubeRover {
         const NATIVE_INT_TYPE instance
     )
   {
+    // Pull high RTS: not ready to receive data
+    gioSetBit(gioPORTB, 3, 1);  //NOTE: THIS IS THE WIFI PORT, *****MUST***** CHANGE THIS TO CORRECT WATCHDOG PORT
     WatchDogInterfaceComponentBase::init(queueDepth, instance);
   }
 

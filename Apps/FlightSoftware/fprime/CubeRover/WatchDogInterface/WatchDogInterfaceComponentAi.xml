@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
 
-<component name="WatchDogInterface" kind="passive" namespace="CubeRover">
+<component name="WatchDogInterface" kind="active" namespace="CubeRover">
     <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
     <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
     <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
-    <import_port_type>Fw/Cmd/CmdRegPortPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
     <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
     <import_port_type>Svc/WatchDog/WatchDogPortAi.xml</import_port_type>
 
@@ -19,7 +19,7 @@
         </port>
         
         <!-- Ping ports -->
-        <port name="PingIn" data_type="Svc::Ping" kind="sync_input" max_number="1">
+        <port name="PingIn" data_type="Svc::Ping" kind="async_input" max_number="1">
             <comment>
             Input ping port "Health"
             </comment>
@@ -63,24 +63,28 @@
     </ports>
 
     <commands>
-        <command kind="async" opcode="0x0" mnemonic="">
+        <command kind="async" opcode="0x0" mnemonic="Reset Everything">
             <comment>
-            TODO Commands
+            Command to reset the entire rover
+            </comment>
+        </command>
+
+        <command kind="async" opcode="0x1" mnemonic="Reset Specific">
+            <comment>
+            Command to reset the specific parts of rover
             </comment>
             <args>
-                <arg name="" type="ENUM">
-                    <enum name="">
-                        <item name=""/>
-                        <item name=""/>
-                    </enum>
-                    <comment>EXAMPLE ENUM Argument</comment>
+                <arg name="reset_value" type="U32">
+                    <comment>
+                    	U32 Value where each bit represents which component/device to reset (0 = no reset, 1 = reset)
+                    </comment>
                 </arg>
              </args>
         </command>
     </commands>
 
     <events>
-        <event id="0x0" name="WatchDog MSP430 Not Responding" severity="WARNING_HI">
+        <event id="0x0" name="WatchDog MSP430 Not Responding" severity="WARNING_HI" format_string = "Watchdog MSP430 Not Responding">
             <comment>
             Warning that the WatchDog MSP430 is not responding 
             </comment>
@@ -96,7 +100,18 @@
                 </arg>          
             </args>
         </event>
-    <events>
+
+        <event id="0x2" name="WatchDog Cmd Received" severity="ACTIVITY_HI" format_string = "WatchDog Cmd to reset %s recieved" >
+            <comment>
+            Notification that watchdog interface recieved a command from Cmd_Dispatcher 
+            </comment>
+             <args>
+                <arg name="Cmd" type="string" size="40">
+                    <comment>The cmd that watchdog interface processed</comment>
+                </arg>          
+            </args>
+        </event>
+    </events>
 
 </component>
 

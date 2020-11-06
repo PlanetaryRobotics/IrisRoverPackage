@@ -18,7 +18,11 @@ TODO:
       <canvas class="port" style="z-index: 0" id="imgvp" :key="imageSource">
         Oops! Something went wrong and really weird. Somehow Electron doesn't support HTML5 Canvas now. What did you do?
       </canvas>
-      <canvas id="featurevp" class="port" style="z-index: 1;"/>
+      <div class="buffa" />
+      <div class="buffb" />
+      <div class="port">
+        <!-- <canvas id="featurevp" class="canvas_overlay" style="z-index: 1;"/> -->
+      </div>
 
       <transition name="overlay">
         <img class="port port_overlay" v-if="radialGrid" src="~@/assets/polar_grid10.png" />
@@ -192,8 +196,8 @@ export default {
   #portContainer {
     user-select: none;
     display: grid;
-    grid-template-rows: minmax(0,1fr);
-    grid-template-columns: auto minmax(0,1fr) auto;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr minmax(0,max-content) 1fr;
     grid-template-areas: "buffa main buffb";
     align-items: center;
     justify-items: center;
@@ -206,6 +210,31 @@ export default {
     object-fit: contain;
     max-height: 100%;
     max-width: 100%;
+  }
+
+  .buffa {
+    grid-area: buffa;
+    background: purple;
+    z-index: 1;
+    max-height: 100%;
+    max-width: 100%;
+  }
+
+  .buffb {
+    grid-area: buffb;
+    background: purple;
+    z-index: 1;
+    max-height: 100%;
+    max-width: 100%;
+  }
+
+  .canvas_overlay_container {
+    grid-area: main;
+    position: relative;
+    & .canvas_overlay {
+      max-height: 100%;
+      max-width: 100%;
+    }
   }
 
   /* port fade animation: */

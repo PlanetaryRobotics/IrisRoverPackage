@@ -17,6 +17,19 @@
 
 namespace CubeRover {
 
+  //UART id *UNKNOWN RN*
+  #define UART_id 0
+  //UART Baud Rate
+  #define UART_rate 115200
+  //UART Data bits
+  #define UART_data 8
+  //UART Stop bits
+  #define UART_stop 1
+  //UART Partity bits
+  #define UART_parity 1
+  //UART Flow Control
+  #define UART_flow 1
+
   class WatchDogInterfaceComponentImpl :
     public WatchDogInterfaceComponentBase
   {
@@ -107,6 +120,15 @@ namespace CubeRover {
                     */
       );
 
+      // UART Configuration Implementation
+      void Configure_UART(
+          const uint8_t uartId,       //UART ID value
+          const uint32_t baudrate,    //UART Baudrate
+          const uint8_t dataBits,     //UART # of data bits
+          const uint8_t stopBits,     //UART # of stop bits
+          const uint8_t parity,       //UART odd, even, or no parity
+          const uint8_t flowCtrl      //UART flow control
+      );
 
     };
 

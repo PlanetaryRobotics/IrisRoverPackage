@@ -12,7 +12,7 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
 -->
 
 <template>
-  <div class="image-viewport" v-on:click.stop="onClick">
+  <div class="image-viewport" v-on:click.self="onClick">
     <img class="port" id="imgsrc" v-show="false" :src="imageSource" alt="IMAGE NOT FOUND" @load="onImageUpdate" />
     <div id="portContainer" v-on:mousemove.stop="onMouseMove">
       <canvas class="port" style="z-index: 0" id="imgvp" :key="imageSource">
@@ -21,7 +21,7 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
       <canvas id="featurevp" class="port POIport" style="z-index: 1;" v-on:mousedown.stop="onMouseDown" v-on:mouseup.stop="onMouseUp" v-bind:class="{crosshairMouse: isMouseDown}"/>
 
       <POIModalChoiceList v-show="isPOIChoiceListModalVisible" v-on:POIChoiceSelected="onPOIChoiceSelected"></POIModalChoiceList>
-      
+
       <POIModalFullDetails :parentData="initalPOIChoiceSelected" v-show="arePOIFullDetailsVisible" v-on:closeTheModal="closePOIDetailsModal"></POIModalFullDetails>
 
       <transition name="overlay">
@@ -264,6 +264,7 @@ export default {
 
     closePOIDetailsModal(){
       this.arePOIFullDetailsVisible = false;
+      this.setPOILayerDimensions();
     },
 
     setPOILayerDimensions(){

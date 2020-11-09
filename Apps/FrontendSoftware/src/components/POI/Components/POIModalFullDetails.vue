@@ -1,20 +1,27 @@
+// Resources
+// Dragging info: https://usefulangle.com/post/1/jquery-dragging-image-within-div
+
 <template>
   <div class="modal-backdrop" v-on:click.self="closeModal">
+
     <div id="POIModalDetailsContainer">
+      <div id="edit-thumbnail-backdrop" v-if="edittingThumbnail"></div>
       <h3 class="heading-poi">ADD NEW POI</h3>
+
       <div class="flex-container modal-content">
+
         <div class="modal-col">
           <div class="modal-row flex-container">
+
             <div class="pri-type">
               <div class="label">Priority</div>
-              <div class="dropdwn">
-                <Dropdown
-                  :options="['Low', 'Medium', 'High']"
-                  :default="'Medium'"
-                  class="select"
-                />
-              </div>
+              <Dropdown
+                :options="['Low', 'Medium', 'High']"
+                :default="'Medium'"
+                class="select"
+              />
             </div>
+
             <!-- <span class="dot-icon red"></span> -->
             <div class="pri-type">
               <div class="label">Type</div>
@@ -99,7 +106,7 @@
         <div class="modal-col">
           <div class="flex-container buttons">
             Thumbnail photo
-            <div class="edit-img-buttons-container" v-if="displayEditImageBtns">
+            <div class="edit-img-buttons-container" v-if="edittingThumbnail">
               <button class="button modal-button thumbnail-btn" v-on:click="hideEditButtons">
                 CANCEL
               </button>
@@ -149,8 +156,9 @@ export default {
     return {
       thumbnailBorder: {
         borderRadius: "0.4rem",
+        cursor: "auto",
       },
-      displayEditImageBtns: false,
+      edittingThumbnail: false,
     };
   },
 
@@ -169,11 +177,14 @@ export default {
 
     editThumbnail() {
       this.thumbnailBorder.borderRadius = "0rem";
-      this.displayEditImageBtns = true;
+      this.thumbnailBorder.cursor = "move";
+      this.edittingThumbnail = true;
+      
     },
 
     hideEditButtons() {
-      this.displayEditImageBtns = false;
+      this.edittingThumbnail = false;
+      this.thumbnailBorder.cursor = "auto";
     },
   },
 };
@@ -212,6 +223,16 @@ export default {
   z-index: 2;
 }
 
+#edit-thumbnail-backdrop{
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #2A2A2A;
+  opacity: .7;
+  margin: -2rem;
+  z-index: 3;
+}
+
 .modal-content {
   margin-bottom: 4rem;
 }
@@ -228,6 +249,10 @@ export default {
   padding-right: 2rem;
 }
 
+.modal-col:last-child {
+  z-index: 3;
+}
+
 .modal-row {
   padding: 0.8rem 0;
 }
@@ -242,6 +267,10 @@ export default {
 
 .heading-poi {
   padding: 0 0 2rem 0;
+}
+
+.select{
+  z-index: 2;
 }
 
 .pri-type {
@@ -293,6 +322,10 @@ export default {
 
 .dimension:last-child {
   padding-right: 0;
+}
+
+.dropdwn{
+
 }
 
 .thumbnail {

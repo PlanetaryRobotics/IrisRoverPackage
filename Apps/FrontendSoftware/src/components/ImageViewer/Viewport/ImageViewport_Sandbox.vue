@@ -20,8 +20,9 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
       </canvas>
       <canvas id="featurevp" class="port POIport" style="z-index: 1;" v-on:mousedown.stop="onMouseDown" v-on:mouseup.stop="onMouseUp" v-bind:class="{crosshairMouse: isMouseDown}"/>
 
-      <POIModalChoiceList v-show="isPOIChoiceListModalVisible" v-on:childToParent="onChildClick"></POIModalChoiceList>
-      <POIModalFullDetails v-show="arePOIFullDetailsVisible"></POIModalFullDetails>
+      <POIModalChoiceList v-show="isPOIChoiceListModalVisible" v-on:POIChoiceSelected="onPOIChoiceSelected"></POIModalChoiceList>
+      
+      <POIModalFullDetails :parentData="initalPOIChoiceSelected" v-show="arePOIFullDetailsVisible" v-on:closeTheModal="closePOIDetailsModal"></POIModalFullDetails>
 
       <transition name="overlay">
         <img class="port port_overlay" v-if="radialGrid" src="~@/assets/polar_grid10.png" />
@@ -38,8 +39,8 @@ const electron = require('electron')
 import { mapState, mapGetters } from 'vuex'
 import { sha256 } from 'js-sha256'
 import fx from '@/lib/glfx/glfx.js'
-import POIModalChoiceList from "@/components/POI/Components/POIModalChoiceList.vue";
-import POIModalFullDetails from "@/components/POI/Components/POIModalFullDetails.vue";
+import POIModalChoiceList from "@/components/POI/Components/POIModalChoiceList.vue"
+import POIModalFullDetails from "@/components/POI/Components/POIModalFullDetails.vue"
 
 // Helper function to remaps the given number n from a range of (min0 to max0)
 // to a range of (minf to maxf) using linear interpolation.
@@ -58,7 +59,7 @@ export default {
 
   components: {
     POIModalChoiceList,
-    POIModalFullDetails
+    POIModalFullDetails,
   },
 
   data(){
@@ -75,7 +76,8 @@ export default {
       poiCanvasContext: null,
       fxvar: {},
       isPOIChoiceListModalVisible: false,
-      arePOIFullDetailsVisible: false
+      arePOIFullDetailsVisible: false,
+      initalPOIChoiceSelected: null,
     };
   },
 
@@ -135,8 +137,9 @@ export default {
   },
 
   methods: {
-    onChildClick(){
+    onPOIChoiceSelected(val){
       this.arePOIFullDetailsVisible = true;
+      this.initalPOIChoiceSelected = val;
       this.closePOIChoiceModal();
     },
 
@@ -144,10 +147,8 @@ export default {
     onClick(){
       // if not a drag-- just a click, clear canvas
       if(!this.isDrag){
-        console.log("click");
         this.setPOILayerDimensions();
         this.closePOIChoiceModal();
-        this.closePOIDetailsModal();
       }
       else{
         this.isDrag = false;
@@ -156,7 +157,6 @@ export default {
 
     // On mouse down in image port, draw rectangle selector and get start coordinates
     onMouseDown(event){
-      console.log("mouseDown");
       // Ignore right click
       if (event.button === 2){
         return
@@ -247,8 +247,8 @@ export default {
         this.setPOILayerDimensions();
       }
       
-      // coordinates
-      console.log("Start coordinates: ", this.startCoord, "\nEnd Coordinates: ", this.endCoord);
+      // coordinates- DEBUG
+      // console.log("Start coordinates: ", this.startCoord, "\nEnd Coordinates: ", this.endCoord);
 
       // Show POI List of Descriptions
       this.showPOIChoiceModal();

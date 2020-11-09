@@ -84,13 +84,13 @@
     </commands>
 
     <events>
-        <event id="0x0" name="WatchDog MSP430 Not Responding" severity="WARNING_HI" format_string = "Watchdog MSP430 Not Responding">
+        <event id="0x0" name="WatchDogMSP430NotResponding" severity="WARNING_HI" format_string = "Watchdog MSP430 Not Responding">
             <comment>
             Warning that the WatchDog MSP430 is not responding 
             </comment>
         </event>
 
-        <event id="0x1" name="WatchDog Timed Out" severity="WARNING_HI" format_string = "WatchDog Timer %s has timed out" >
+        <event id="0x1" name="WatchDogTimedOut" severity="WARNING_HI" format_string = "WatchDog Timer %s has timed out" >
             <comment>
             Warning that a WatchDog MSP430 watchdog timer went off 
             </comment>
@@ -101,7 +101,7 @@
             </args>
         </event>
 
-        <event id="0x2" name="WatchDog Cmd Received" severity="ACTIVITY_HI" format_string = "WatchDog Cmd to reset %s recieved" >
+        <event id="0x2" name="WatchDogCmdReceived" severity="ACTIVITY_HI" format_string = "WatchDog Cmd to reset %s recieved" >
             <comment>
             Notification that watchdog interface recieved a command from Cmd_Dispatcher 
             </comment>

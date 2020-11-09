@@ -87,6 +87,19 @@ namespace CubeRover {
     // This run handler happens every 1-100 hz (overview says 100 hz, specific says 1 hz)
     // Sends a U32 to the watchdog as defined in design document. Checks stroke value as to what to send watchdog
     // May need to wait to send command everytime it runs as could be a lot of commands
+	// Create watchdog stroke equal to 1 as first bit 1 to tell watchdog scheduled, rest bits 0 to not reset anything
+    U32 watchdog_stroke = 1;
+    // May want to change sent value to accumulated stroke value?
+    linSend(linREG, &watchdog_stroke);
+    // Check for Response from MSP430 Watchdog
+    U32 watchdog_reponse;
+    linGetData(linREG, &watchdog_reponse);
+    // TODO: DO WE NEED TO LOOK AT TIMEOUTS FOR THIS OR IS IT AUTOMATIC?
+    // Check that response is the same as what was sent
+    if(watchdog_reponse != watchdog_reset)
+    {
+    	this->log_WARNING_HI_WatchDogMSP430NotResponding();
+    }
   }
 
   void WatchDogInterfaceComponentImpl ::
@@ -110,12 +123,25 @@ namespace CubeRover {
         const U32 cmdSeq
     )
   {
+  	// Send Activity Log to know watchdog recieved command
+  	char *command_type = "Reset Everything"
+  	this->log_WARNING_HI_WatchDogCmdReceived(command_type);
     // Sends a command to watchdog to reset all devices AND resets all components (how to do that is TBD)
     // Set watchdog_reset to all 1's from bits 1-17, 0's for bit's 0 and 18-31
     U32 watchdog_reset = 0x7FFFC000;
     // Send watchdog_reset to MSP430 watchdog
-    // TODO
+    linSend(linREG, &watchdog_reset);
     // Reset all Components (UNDECIDED YET)
+    // TODO
+    // Check for Response from MSP430 Watchdog
+    U32 watchdog_reponse;
+    linGetData(linREG, &watchdog_reponse);
+    // TODO: DO WE NEED TO LOOK AT TIMEOUTS FOR THIS OR IS IT AUTOMATIC?
+    // Check that response is the same as what was sent
+    if(watchdog_reponse != watchdog_reset)
+    {
+    	this->log_WARNING_HI_WatchDogMSP430NotResponding();
+    }
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
@@ -126,6 +152,9 @@ namespace CubeRover {
         U32 reset_value
     )
   {
+  	// Send Activity Log to know watchdog recieved command
+  	char *command_type = "Reset Specific"
+  	this->log_WARNING_HI_WatchDogCmdReceived(command_type);
     // Sends a command to watchdog to reset specified devices. Can be hardware through watchdog or component
     // Isolate the first bit of the reset_value to know if we're reseting hardware or component
     U32 reset_choice = reset_value & 1;
@@ -138,39 +167,21 @@ namespace CubeRover {
     // If reset_choice == 0, we are resetting hardware
     else
     {
-      // Copy value of reset_value but set 0 bit and bits 18-31 to zero
-      U32 watchdog_reset = reset_value & 0x7FFFC000;
-      // Send watchdog_reset to MSP430 watchdog
-      // TODO
+      	// Copy value of reset_value but set 0 bit and bits 18-31 to zero
+      	U32 watchdog_reset = reset_value & 0x7FFFC000;
+      	// Send watchdog_reset to MSP430 watchdog
+      	linSend(linREG, &watchdog_reset);
+		// Check for Response from MSP430 Watchdog
+	    U32 watchdog_reponse;
+	    linGetData(linREG, &watchdog_reponse);
+	    // TODO: DO WE NEED TO LOOK AT TIMEOUTS FOR THIS OR IS IT AUTOMATIC?
+	    // Check that response is the same as what was sent
+	    if(watchdog_reponse != watchdog_reset)
+	    {
+	    	this->log_WARNING_HI_WatchDogMSP430NotResponding();
+	    }
     }
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
-  }
-
-  // UART Configuration Implementation
-  void Configure_UART(
-      const uint8_t uartId,       //UART ID value
-      const uint32_t baudrate,    //UART Baudrate
-      const uint8_t dataBits,     //UART # of data bits
-      const uint8_t stopBits,     //UART # of stop bits
-      const uint8_t parity,       //UART odd, even, or no parity
-      const uint8_t flowCtrl      //UART flow control
-    )
-  {
-    uint8_t payload[1 /* uartId size*/ + 4 /*baudrate size*/ + 4 /*4 bits for data*/ + 3 /*3 bits for stop/parity/flow*/];
-    //prepare payload
-    //copy uartID
-    payload[0] = uartId;
-    //copy baudrate
-    memcpy(payload+1, &baudrate, sizeof(baudrate));
-    //copy baudrate
-    memcpy(payload+5, &dataBits, sizeof(dataBits));
-    //copy other bits
-    payload[9] = stopBits;
-    payload[10] = parity;
-    payload[11] = flowCtrl;
-
-    //transmit payload to configure UART
-    //TODO
   }
 
 } // end namespace CubeRover

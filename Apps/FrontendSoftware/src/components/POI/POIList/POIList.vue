@@ -28,7 +28,7 @@
         </div>
 
         <div class="mapTab__body" v-show="show.POIList">
-          <div v-if="POIListEl && POIListEl.length > 0">
+          <div v-if="POIListEl">
             <!-- FILTER -->
             <div class="POIFilter">
               <div class="POIFilter__FiltersRow">
@@ -159,16 +159,15 @@
               </div>
             </div>
           </div>
-          <div class="POIEmpty__empty text__main" v-else>
-            <div>Create Point of Interests from the Image Viewer</div>
-          </div>
-          <div class="POIEmpty__start">
-            <div class="buttonContainer">
-              <AtomicButton v-bind="buttons.start" />
+          <div v-else>
+            <div class="POIEmpty__empty text__main">
+              <div>Create Point of Interests from the Image Viewer</div>
             </div>
-            <!-- <button class="button button__primary text__smallCaps--bold">
-              start
-            </button> -->
+            <div class="POIEmpty__start">
+              <div class="buttonContainer">
+                <AtomicButton v-bind="buttons.start" />
+              </div>
+            </div>
           </div>
         </div>
         <!-- END V-SHOW === show.POIList -->
@@ -415,6 +414,11 @@ export default {
 .mapTab {
   &__header {
     color: $color-near-white;
+    position: absolute;
+    width: 100%;
+  }
+  &__body {
+    padding-top: 44px;
   }
 }
 .FilterTag {

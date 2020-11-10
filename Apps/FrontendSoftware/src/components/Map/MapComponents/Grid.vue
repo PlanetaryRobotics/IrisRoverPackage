@@ -1,8 +1,5 @@
 <template>
   <div id="grid-container" ref="container">
-    <!-- <resize-observer @notify="handleResize" /> -->
-    <h1 style="color: white">{{ grid.width }}</h1>
-    <!-- <svg id="grid" v-bind:viewBox.camel="svgSize.viewbox"> -->
     <svg id="grid">
       <!-- GRID LINES -->
       <g id="gridLines"></g>
@@ -30,21 +27,24 @@
 
         <!-- LANDER -->
         <Lander />
-
+        <!-- <div v-if="show.Routes"></div> -->
         <!-- SAVED ROUTES -->
-        <VisibleRoutes :origin="{ origin }" :gridSquare="{ gridSquare }" />
 
+        <VisibleRoutes :origin="{ origin }" :gridSquare="{ gridSquare }" />
+        <!-- <div v-if="show.Routes"> -->
         <!-- ROVER'S TRAILS -->
         <LocalizedTrail
           :origin="{ origin }"
           :rover="{ rover }"
           :gridSquare="{ gridSquare }"
         />
+
         <TargetTrail
           :origin="{ origin }"
           :rover="{ rover }"
           :gridSquare="{ gridSquare }"
         />
+        <!-- </div> -->
 
         <!-- ROVER -->
         <Rover />
@@ -127,6 +127,7 @@ export default {
       mouseCoords: null,
       show: {
         POIObjects: false,
+        Routes: false,
       },
       resizeObserver: {},
     };
@@ -484,15 +485,23 @@ export default {
      * Function to handle update grid size when window size changes
      **/
     updateGrid() {
-      // select and remove old grid
+      // select and remove everything from old grid
       const svg = d3.select("#grid");
       svg.select("#gridLines").selectAll("line").remove();
+      this.show.POIObjects = false;
+      this.show.Routes = false;
       // redraw grid and rover
       this.drawGrid();
       this.setLander();
       this.setRover();
       this.drawPolar();
-      // TODO update exisiting routes
+      // Force update POI and Routes
+      this.$nextTick().then(() => {
+        // rerender the POI objects
+        this.show.POIObjects = true;
+        // TODO rerender routes
+        this.show.Routes = true;
+      });
     },
     /**
      * Function to handle grid update when window resize

@@ -83,7 +83,6 @@ namespace CubeRover {
         NATIVE_UINT_TYPE context
     )
   {
-    // TODO
     // This run handler happens every 1-100 hz (overview says 100 hz, specific says 1 hz)
     // Sends a U32 to the watchdog as defined in design document. Checks stroke value as to what to send watchdog
     // May need to wait to send command everytime it runs as could be a lot of commands

@@ -89,16 +89,26 @@ namespace CubeRover {
     // May need to wait to send command everytime it runs as could be a lot of commands
 	// Create watchdog stroke equal to 1 as first bit 1 to tell watchdog scheduled, rest bits 0 to not reset anything
     U32 watchdog_stroke = 1;
-    // May want to change sent value to accumulated stroke value?
+    // May want to change wattchdog_stoke sent value to accumulated stroke value?
     linSend(linREG, &watchdog_stroke);
     // Check for Response from MSP430 Watchdog
     U32 watchdog_reponse;
     linGetData(linREG, &watchdog_reponse);
-    // TODO: DO WE NEED TO LOOK AT TIMEOUTS FOR THIS OR IS IT AUTOMATIC?
+    // Check for timeout of response
+    U32 comm_error = linGetStatusFlag(linREG);
+    if(comm_error == LIN_TO_INT)
+    {
+    	this->log_WARNING_HI_WatchDogTimedOut();
+    }
     // Check that response is the same as what was sent
     if(watchdog_reponse != watchdog_reset)
     {
-    	this->log_WARNING_HI_WatchDogMSP430NotResponding();
+    	this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
+    }
+	// Check for any watchdog errors (NOTE: not sure that comm_error should be zero if no errors)
+    if(comm_error)
+    {
+    	this->log_WARNING_HI_WatchDogCommError(comm_error);
     }
   }
 
@@ -136,11 +146,21 @@ namespace CubeRover {
     // Check for Response from MSP430 Watchdog
     U32 watchdog_reponse;
     linGetData(linREG, &watchdog_reponse);
-    // TODO: DO WE NEED TO LOOK AT TIMEOUTS FOR THIS OR IS IT AUTOMATIC?
+    // Check for timeout of response
+    U32 comm_error = linGetStatusFlag(linREG);
+    if(comm_error == LIN_TO_INT)
+    {
+    	this->log_WARNING_HI_WatchDogTimedOut();
+    }
     // Check that response is the same as what was sent
     if(watchdog_reponse != watchdog_reset)
     {
-    	this->log_WARNING_HI_WatchDogMSP430NotResponding();
+    	this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
+    }
+	// Check for any watchdog errors (NOTE: not sure that comm_error should be zero if no errors)
+    if(comm_error)
+    {
+    	this->log_WARNING_HI_WatchDogCommError(comm_error);
     }
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
@@ -174,11 +194,21 @@ namespace CubeRover {
 		// Check for Response from MSP430 Watchdog
 	    U32 watchdog_reponse;
 	    linGetData(linREG, &watchdog_reponse);
-	    // TODO: DO WE NEED TO LOOK AT TIMEOUTS FOR THIS OR IS IT AUTOMATIC?
+	    // Check for timeout of response
+	    U32 comm_error = linGetStatusFlag(linREG);
+	    if(comm_error == LIN_TO_INT)
+	    {
+	    	this->log_WARNING_HI_WatchDogTimedOut();
+	    }
 	    // Check that response is the same as what was sent
 	    if(watchdog_reponse != watchdog_reset)
 	    {
-	    	this->log_WARNING_HI_WatchDogMSP430NotResponding();
+	    	this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
+	    }
+		// Check for any watchdog errors (NOTE: not sure that comm_error should be zero if no errors)
+	    if(comm_error)
+	    {
+	    	this->log_WARNING_HI_WatchDogCommError(comm_error);
 	    }
     }
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);

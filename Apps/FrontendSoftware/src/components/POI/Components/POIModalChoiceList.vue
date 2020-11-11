@@ -1,6 +1,6 @@
 <template>
   <!-- <div class="modal-backdrop"> -->
-  <div class="POIModalContainer">
+  <div class="POIModalContainer" :style="positionModal">
     <section v-on:click.stop="selectPOIChoice('Attraction')" class="modal-body">
       <slot name="body"> <span class="dot-icon green"></span> Attraction </slot>
     </section>
@@ -22,11 +22,23 @@
 export default {
   name: "POIModalChoiceList",
 
+  props:{
+    endCoordinates: Array,
+  },
+
   methods: {
     selectPOIChoice(val) {
       this.$emit("POIChoiceSelected", val);
     },
   },
+
+  computed:{
+    positionModal(){
+      let topPos = 'top: ' + ((this.endCoordinates[1]+67)/10) + 'rem;';
+      let leftPost = 'margin-left: ' + ((this.endCoordinates[0]+1)/10) + 'rem';
+      return topPos + leftPost
+    }
+  }
 };
 </script>
 
@@ -48,7 +60,7 @@ export default {
 .POIModalContainer {
   background: #424242;
   overflow-x: auto;
-  position: absolute;
+  position: fixed;
   display: flex;
   width: 12rem; /* 120px/16px (per 1rem) = 7.5 rem; */
   flex-direction: column;

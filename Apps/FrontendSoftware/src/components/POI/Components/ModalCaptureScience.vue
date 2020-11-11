@@ -1,19 +1,24 @@
 <template>
   <div class="modal-container">
-    <ScienceImageIcon style="display: inline"></ScienceImageIcon> Capture
-    Science Image
+    <div class="flex-container flex-vertical-center">
+      <ScienceImageIcon></ScienceImageIcon> <span class="title thick">Capture
+      Science Image</span>
+    </div>
     <p id="desc">
       You are capturing ATTR-005 as a high-resolution science image. This action
-      will take approximately <span class="thick">{{ time }}</span>.
+      will take approximately <span class="thick">{{ time }}</span
+      >.
     </p>
-    <div class="fl-right">
-      <button class="button modal-button">CANCEL</button>
+    <div class="flex-container button-container">
+      <button class="button modal-button" v-on:click="closeModal">
+        CANCEL
+      </button>
       <button class="button modal-button confirm">CONFIRM</button>
     </div>
   </div>
 </template>
 
-<script>
+<script scoped>
 import ScienceImageIcon from "@/assets/imgviewer/SVGcomponents/ScienceImageIcon.vue";
 
 export default {
@@ -26,16 +31,23 @@ export default {
   data() {
     return {
       time: "33 minutes",
-    }
+    };
   },
-}
+
+  methods: {
+    closeModal() {
+      this.$emit("closeCapSciModal");
+    },
+  },
+};
 </script>
 
 <style scoped>
 /* REM conversion: 1rem = 10px */
 .modal-container {
   background: #2a2a2a;
-  position: absolute;
+  position: fixed;
+  align-self: center;
   display: flex;
   width: 28rem; /* 120px/16px (per 1rem) = 7.5 rem; */
   flex-direction: column;
@@ -44,7 +56,7 @@ export default {
 
   font-size: 1rem;
   font-style: normal;
-  font-weight: 300;
+  font-weight: 400;
   text-align: left;
   z-index: 3;
 }
@@ -54,22 +66,38 @@ export default {
   padding-bottom: 2.8rem;
 }
 
-.thick{
-  font-weight: 800;
+.flex-container{
+  display: flex;
+}
+
+.flex-vertical-center{
+  align-items: center;
+}
+
+.title{
+  margin-left: .4rem;
+}
+
+.thick {
+  font-weight: 700;
 }
 
 /* Buttons */
+.button-container{
+  justify-content: flex-end;
+}
+
 .modal-button {
   font-size: 0.95rem;
   font-weight: 600;
   text-align: center;
   width: 6.5rem;
-  float: right;
+  /* float: right; */
 }
 
 .confirm {
   background-color: #8a6dff;
   border-color: #8a6dff;
-  margin-right: 0.8rem;
+  margin-left: 0.8rem;
 }
 </style>

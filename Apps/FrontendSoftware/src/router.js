@@ -10,6 +10,7 @@ import Home from './views/Home.vue'
 import MapTest from './views/sandboxes/MapTest.vue'
 import POIDashboardTest from './views/sandboxes/POIDashboardTest';
 import ImageViewerTest from './views/sandboxes/ImageViewerTest';
+import HomeTestImgViewer from './views/sandboxes/HomeTestImgViewer.vue';
 
 import { remote } from 'electron'
 
@@ -28,6 +29,11 @@ export default new Router({
       path: '/home',
       name: 'home',
       component: Home
+    },
+    {
+      path: '/home_ImageViewerModsTest',
+      name: 'home_ImageViewerModsTest',
+      component: HomeTestImgViewer
     },
     {
       path: '/sandbox_mapTest',

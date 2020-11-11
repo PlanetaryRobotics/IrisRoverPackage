@@ -1,5 +1,5 @@
 <template>
-  <div id="top-instruction-box">{{ instruction1 }}</div>
+  <div id="top-instruction-box"><span id="instruction">{{ instruction1 }}</span> <span class="done" v-if="instruction2Visible" v-on:click="completeCaptureSelection">Done</span></div>
 </template>
 
 <script>
@@ -12,6 +12,7 @@ export default {
 
   data() {
     return {
+      instruction2Visible: false,
       instruction1: "Select POI in frame:",
       instruction2: "Capture science image with ATTR-005. ",
     };
@@ -27,17 +28,11 @@ export default {
 
   methods: {
     onSelectPOI() {
-      let doneSpan = document.createElement("span");
-      doneSpan.setAttribute("class", "done");
-      doneSpan.innerHTML = "Done";
-      //   doneSpan.onclick = ()=> this.completeCaptureSelection();
-      doneSpan.onclick = this.completeCaptureSelection();
-      document.getElementById("top-instruction-box").innerHTML =
-        this.instruction2 + doneSpan.outerHTML;
+      document.getElementById("instruction").innerHTML = this.instruction2;
+      this.instruction2Visible = true;
     },
 
     completeCaptureSelection() {
-      console.log("doneee");
       this.$emit("captureSelectionSelected");
     },
   },
@@ -45,21 +40,24 @@ export default {
 </script>
 
 <style scoped>
+
 #top-instruction-box {
-  position: absolute;
+  position:absolute;
   padding: 1.2rem 2.5rem;
   background-color: #585858;
   border-radius: 4rem;
-  color: #fcfcfc;
-  top: 5.1rem;
-  margin-left: 25rem;
 
-  font-size: 1.2rem;
+  color: #fcfcfc;
+  font-size: 1.5rem;
   text-align: center;
+  z-index: 3;
 }
 
 .done {
-  text-decoration: underline;
+  padding-left: 1.6rem;
   z-index: 4;
+  font-weight: 400;
+
+  text-decoration: underline;
 }
 </style>

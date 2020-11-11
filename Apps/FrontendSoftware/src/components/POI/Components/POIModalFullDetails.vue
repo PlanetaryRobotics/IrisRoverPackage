@@ -3,16 +3,13 @@
 
 <template>
   <div class="modal-backdrop" v-on:click.self="closeModal">
-
     <div id="POIModalDetailsContainer">
       <div id="edit-thumbnail-backdrop" v-if="edittingThumbnail"></div>
       <h3 class="heading-poi">ADD NEW POI</h3>
 
       <div class="flex-container modal-content">
-
         <div class="modal-col">
           <div class="modal-row flex-container">
-
             <div class="pri-type">
               <div class="label">Priority</div>
               <Dropdown
@@ -91,7 +88,12 @@
               <!-- DEPTH -->
               <div class="dimension">
                 <div class="dimen">Depth (cm)</div>
-                <input type="text" @keydown.space.prevent @keypress="onlyNumber" placeholder="Depth" />
+                <input
+                  type="text"
+                  @keydown.space.prevent
+                  @keypress="onlyNumber"
+                  placeholder="Depth"
+                />
               </div>
             </div>
           </div>
@@ -107,22 +109,29 @@
           <div class="flex-container buttons">
             Thumbnail photo
             <div class="edit-img-buttons-container" v-if="edittingThumbnail">
-              <button class="button modal-button thumbnail-btn" v-on:click="hideEditButtons">
+              <button
+                class="button modal-button thumbnail-btn"
+                v-on:click="hideEditButtons"
+              >
                 CANCEL
               </button>
-              <button class="button modal-button done thumbnail-btn">DONE</button>
+              <button class="button modal-button done thumbnail-btn">
+                DONE
+              </button>
             </div>
           </div>
 
           <span v-on:click="editThumbnail"
             ><EditPencilIcon class="edit-pencil-icon"
           /></span>
-          <img
-            class="thumbnail"
-            v-bind:style="[thumbnailBorder]"
-            draggable="false"
-            src="@/assets/imgviewer/POI_test_image.png"
-          />
+          <!-- draggable="false" -->
+          <!-- <div v-on="thumbnailMoveHandlers" id="pan-img"> -->
+            <img
+              class="thumbnail"
+              draggable="false"
+              v-bind:style="[thumbnailBorder]"
+              src="@/assets/imgviewer/POI_test_image.png"
+            />
         </div>
       </div>
 
@@ -140,6 +149,7 @@
 import Dropdown from "@/components/POI/Components/Dropdown.vue";
 import EditPencilIcon from "@/assets/imgviewer/SVGcomponents/EditPencilIcon.vue";
 
+
 export default {
   name: "POIModalFullDetails",
 
@@ -154,11 +164,21 @@ export default {
 
   data() {
     return {
+      edittingThumbnail: false,
+      mouseDownThumbnail: false,
+      // prevXThumbnailMove: null,
+      // prevYThumbnailMove: null,
+
       thumbnailBorder: {
         borderRadius: "0.4rem",
         cursor: "auto",
       },
-      edittingThumbnail: false,
+
+      // thumbnailMoveHandlers: {
+      //   mousedown: this.onMouseDownThumbnail,
+      //   mouseup: this.onMouseUpThumbnail,
+      //   mousemove: this.panImage,
+      // },
     };
   },
 
@@ -175,17 +195,42 @@ export default {
       }
     },
 
+    // Edit thumbnail methods
     editThumbnail() {
       this.thumbnailBorder.borderRadius = "0rem";
       this.thumbnailBorder.cursor = "move";
       this.edittingThumbnail = true;
-      
     },
 
     hideEditButtons() {
       this.edittingThumbnail = false;
       this.thumbnailBorder.cursor = "auto";
     },
+
+    // Thumbnail drag handlers
+    // onMouseDownThumbnail: function (event) {
+    //   this.prevXThumbnailMove = event.clientX;
+    //   this.prevYThumbnailMove = event.clientY;
+    //   this.mouseDownThumbnail = true;
+    // },
+
+    // onMouseUpThumbnail() {
+    //   this.mouseDownThumbnail = false;
+    // },
+
+    // panImage: function (event) {
+    //   if (this.mouseDownThumbnail && this.edittingThumbnail) {
+    //     event.preventDefault();
+    //     // let directionX = this.prevXThumbnailMove - event.clientX > 0 ? 1 : -1;
+    //     // let directionY = this.prevYThumbnailMove - event.clientY > 0 ? 1 : -1;
+    //     document.getElementById("pan-img").scrollLeft +
+    //       (this.prevXThumbnailMove - event.clientX);
+    //     document.getElementById("pan-img").scrollTop +
+    //       (this.prevYThumbnailMove - event.clientY);
+    //     this.prevXThumbnailMove = event.clientX;
+    //     this.prevYThumbnailMove = event.clientY;
+    //   }
+    // },
   },
 };
 </script>
@@ -223,12 +268,12 @@ export default {
   z-index: 2;
 }
 
-#edit-thumbnail-backdrop{
+#edit-thumbnail-backdrop {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-color: #2A2A2A;
-  opacity: .7;
+  background-color: #2a2a2a;
+  opacity: 0.7;
   margin: -2rem;
   z-index: 3;
 }
@@ -269,7 +314,7 @@ export default {
   padding: 0 0 2rem 0;
 }
 
-.select{
+.select {
   z-index: 2;
 }
 
@@ -324,14 +369,15 @@ export default {
   padding-right: 0;
 }
 
-.dropdwn{
-
-}
-
+// Thumbnail
 .thumbnail {
   width: 100%;
   top: 100%;
   object-fit: cover;
+}
+
+#pan-img {
+  overflow: hidden;
 }
 
 input,
@@ -393,18 +439,18 @@ textarea {
   margin-left: 0.8rem;
 }
 
-.flex-container .buttons{
+.flex-container .buttons {
   justify-content: space-between;
-  margin-bottom: .8rem;
+  margin-bottom: 0.8rem;
   align-items: flex-end;
 }
 
-.edit-img-buttons-container{
+.edit-img-buttons-container {
   position: absolute;
   right: 2rem;
 }
 
-#btn-container{
+#btn-container {
   float: right;
 }
 

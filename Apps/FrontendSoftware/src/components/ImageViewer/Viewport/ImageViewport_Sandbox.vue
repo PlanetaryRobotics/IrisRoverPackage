@@ -12,13 +12,21 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
 -->
 
 <template>
-  <div class="image-viewport" v-on:click.self="onClick">
+  <div class="image-viewport" v-on:click.self="onIVPortClick">
     <img class="port" id="imgsrc" v-show="false" :src="imageSource" alt="IMAGE NOT FOUND" @load="onImageUpdate" />
     <div id="portContainer" v-on:mousemove.stop="onMouseMove">
       <canvas class="port" style="z-index: 0" id="imgvp" :key="imageSource">
         Oops! Something went wrong and really weird. Somehow Electron doesn't support HTML5 Canvas now. What did you do?
       </canvas>
-      <canvas id="featurevp" class="port POIport" style="z-index: 1;" v-on:mousedown.stop="onMouseDown" v-on:mouseup.stop="onMouseUp" v-bind:class="{crosshairMouse: isMouseDown}"/>
+
+      <!-- POI Manual Drag Select -->
+      <canvas id="featurevp" class="port POIport" style="z-index: 1;" v-on:mousedown.stop="onMouseDown" v-on:mouseup.stop="onMouseUp" v-bind:class="{crosshairMouse: isMouseDown}">
+      </canvas>
+
+      <!-- Capture Science Click pop up -->
+      <CaptureScienceInstructionBox :onParentClick="POISelectionInstructions" v-on:captureSelectionSelected="openCapSciModal" />
+      <ModalCaptureScience v-if="capSciSelectionComplete" />
+
 
       <POIModalChoiceList v-show="isPOIChoiceListModalVisible" v-on:POIChoiceSelected="onPOIChoiceSelected"></POIModalChoiceList>
 
@@ -41,6 +49,9 @@ import { sha256 } from 'js-sha256'
 import fx from '@/lib/glfx/glfx.js'
 import POIModalChoiceList from "@/components/POI/Components/POIModalChoiceList.vue"
 import POIModalFullDetails from "@/components/POI/Components/POIModalFullDetails.vue"
+import CaptureScienceInstructionBox from "@/components/POI/Components/CaptureScienceInstructionBox.vue"
+import ModalCaptureScience from "@/components/POI/Components/ModalCaptureScience.vue";
+
 
 // Helper function to remaps the given number n from a range of (min0 to max0)
 // to a range of (minf to maxf) using linear interpolation.
@@ -60,6 +71,8 @@ export default {
   components: {
     POIModalChoiceList,
     POIModalFullDetails,
+    CaptureScienceInstructionBox,
+    ModalCaptureScience,
   },
 
   data(){
@@ -75,9 +88,16 @@ export default {
       endCoord: [],
       poiCanvasContext: null,
       fxvar: {},
+
+      // Manual POI select vars
       isPOIChoiceListModalVisible: false,
       arePOIFullDetailsVisible: false,
       initalPOIChoiceSelected: null,
+
+      // Capture science pop up instruction box visibility
+      capSciActivated: false, //  saving var for when commandline command entered, will turn true
+      POISelectionInstructions: false,
+      capSciSelectionComplete: false,
     };
   },
 
@@ -143,8 +163,14 @@ export default {
       this.closePOIChoiceModal();
     },
 
+    openCapSciModal(){
+      // close capSciBox
+      this.POISelectionInstructions = false;
+      this.capSciSelectionComplete = true;
+    },
+
     // On click of page, close modals
-    onClick(){
+    onIVPortClick(){
       // if not a drag-- just a click, clear canvas
       if(!this.isDrag){
         this.setPOILayerDimensions();
@@ -245,13 +271,16 @@ export default {
 
         //clears canvas of lines/boxes
         this.setPOILayerDimensions();
-      }
-      
-      // coordinates- DEBUG
-      // console.log("Start coordinates: ", this.startCoord, "\nEnd Coordinates: ", this.endCoord);
 
-      // Show POI List of Descriptions
-      this.showPOIChoiceModal();
+        // Checks to make sure manual POI selection box not up
+        if(!this.isPOIChoiceListModalVisible){
+          this.POISelectionInstructions = true;
+        }
+      }
+      else{
+      // Show POI modal list of POI types
+        this.showPOIChoiceModal();
+      }
     },
 
     showPOIChoiceModal(){

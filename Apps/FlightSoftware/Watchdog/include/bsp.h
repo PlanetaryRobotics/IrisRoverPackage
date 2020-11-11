@@ -5,43 +5,29 @@
 
 void initializeGpios();
 
-void enableHeater();
-
-void disableHeater();
-
-void enable3V3PowerRail();
-
-void disable3V3PowerRail();
-
-void enable24VPowerRail();
-
-void disable24VPowerRail();
-
-void releaseHerculesReset();
-
-void setHerculesReset();
-
-void releaseRadioReset();
-
-void setRadioReset();
-
-void releaseFPGAReset() ;
-
-void setFPGAReset();
-
-void powerOnHercules();
-
-void powerOffHercules();
-
-void powerOnFpga();
-
-void powerOffFpga();
-
-void powerOnMotors();
-
-void powerOffMotors();
-
-
-
+inline void enableHeater();
+inline void disableHeater();
+inline void enable3V3PowerRail();
+inline void disable3V3PowerRail();
+inline void enable24VPowerRail();
+inline void disable24VPowerRail();
+inline void releaseHerculesReset();
+inline void setHerculesReset();
+inline void releaseRadioReset();
+inline void setRadioReset();
+inline void releaseFPGAReset();
+inline void setFPGAReset();
+inline void releaseMotorsReset();
+inline void setMotorsReset();
+inline void powerOnHercules();
+inline void powerOffHercules();
+inline void powerOnRadio();
+inline void powerOffRadio();
+inline void powerOnFpga();
+inline void powerOffFpga();
+inline void powerOnMotors();
+inline void powerOffMotors();
+inline void enableBatteries();
+inline void disableBatteries();
 #endif // __BSP_H__
 

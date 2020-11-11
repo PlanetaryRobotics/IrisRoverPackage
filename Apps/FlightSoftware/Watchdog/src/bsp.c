@@ -140,6 +140,16 @@ inline void powerOnHercules() { PJOUT |= BIT0; }
 inline void powerOffHercules() { PJOUT &= ~BIT0; }
 
 /**
+ * @brief      Power on the Radio (HI = ON)
+ */
+inline void powerOnRadio() { P2OUT |= BIT4; }
+
+/**
+ * @brief      Power off the Radio (LO = OFF)
+ */
+inline void powerOffRadio() { P2OUT &= ~BIT4; }
+
+/**
  * @brief      Power on the FPGA (HI = ON)
  */
 inline void powerOnFpga() { PJOUT |= BIT1; }

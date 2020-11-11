@@ -39,6 +39,18 @@ void enterMode(enum rover_state newstate) {
     rovstate = newstate;
 }
 
+void DEBUG_SETUP() {
+    enable24VPowerRail();
+    enable3V3PowerRail();
+    powerOnHercules();
+    releaseHerculesReset();
+    powerOnFpga();
+    powerOnMotors();
+    powerOnRadio();
+    releaseRadioReset();
+    releaseFPGAReset();
+    releaseMotorsReset();
+}
 
 
 int main(void) {
@@ -54,9 +66,14 @@ int main(void) {
     /* set up uart */
     uart_init();
 
+    /* set up watchdog */
+    //watchdog_init();
+
     /* set up the ADC */
     adc_init();
 
+    /* debug setup */
+    DEBUG_SETUP();
 
     __bis_SR_register(GIE); // Enable all interrupts
 
@@ -97,6 +114,8 @@ int main(void) {
                 /* TODO: send kicks to devices */
                 /* check power levels */
                 adc_sample();
+                /* act on any kicks/flags that were set for the watchdog */
+                watchdog_monitor();
                 break;
             case RS_FAULT:
                 /* TODO: wait for boot-back-up message */

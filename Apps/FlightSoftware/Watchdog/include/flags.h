@@ -17,6 +17,10 @@
 
 __volatile extern uint16_t loop_flags;
 
+#define WDFLAG_RADIO_KICK 0x1
+#define WDFLAG_FPGA_KICK 0x2
 
+
+__volatile extern uint16_t watchdog_flags;
 
 #endif /* __FLAGS_INC */

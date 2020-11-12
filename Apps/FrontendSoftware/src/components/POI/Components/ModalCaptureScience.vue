@@ -13,7 +13,7 @@
       <button class="button modal-button" v-on:click="closeModal">
         CANCEL
       </button>
-      <button class="button modal-button confirm">CONFIRM</button>
+      <button class="button modal-button confirm" v-on:click="closeModal">CONFIRM</button>
     </div>
   </div>
 </template>

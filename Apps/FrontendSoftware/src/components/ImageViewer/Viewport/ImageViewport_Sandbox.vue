@@ -24,18 +24,17 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
     <div id="portContainer" v-on:mousemove.stop="onMouseMove">
       <div class="canvas-wrapper port">
         <div class="centering">
-
-        <!-- Capture Science Add pop up -->
-        <CaptureScienceInstructionBox
-          v-if="capSciInstructionsOpen"
-          :onParentClick="POISelectionInstructions"
-          v-on:captureSelectionSelected="onOpenCapSciModal"
-        />
-        <ModalCaptureScience
-          v-if="capSciConfirmationModalOpen"
-          v-on:closeCapSciModal="onCloseCapSciModal"
-        />
-
+          <!-- Capture Science Add pop up -->
+          <CaptureScienceInstructionBox
+            v-if="capSciInstructionsOpen"
+            :onParentClick="POISelectionInstructions"
+            v-on:instructionTwoActivated="setUpCapSciSelection"
+            v-on:captureSelectionSelected="onOpenCapSciModal"
+          />
+          <ModalCaptureScience
+            v-if="capSciConfirmationModalOpen"
+            v-on:closeCapSciModal="onCloseCapSciModal"
+          />
         </div>
 
         <canvas class="port" style="z-index: 0" id="imgvp" :key="imageSource">
@@ -53,7 +52,10 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
           v-on:mousedown.stop="onMouseDown"
           v-on:mouseup.stop="onMouseUp"
           v-bind:class="{
-            crosshairMouse: isMouseDown && !POISelectionInstructions,
+            crosshairMouse:
+              isMouseDown &&
+              !POISelectionInstructions &&
+              !capSciInstructionsOpen,
           }"
         >
         </canvas>
@@ -145,6 +147,10 @@ export default {
       capSciInstructionsOpen: true, //  saving var for when commandline command entered, will turn true and start false
       POISelectionInstructions: false, // specifcally for preventing manual POI add events from occuring
       capSciConfirmationModalOpen: false,
+      greenBoxTopLeftCoords: [209, 194],
+      capSciExpandBoxStartCoords: [],
+      capSciExpandBoxEndCoords: [],
+      dragCapSciBoxActivate: false,
     };
   },
 
@@ -218,7 +224,6 @@ export default {
     },
 
     onOpenCapSciModal() {
-      console.log("onOpenCapSciModal");
       // close capSciInstructionsBox
       this.capSciInstructionsOpen = false;
       //Open confirmation modal
@@ -228,6 +233,131 @@ export default {
     onCloseCapSciModal() {
       this.capSciConfirmationModalOpen = false;
       this.POISelectionInstructions = false;
+
+      //clears canvas of lines/boxes
+      this.setPOILayerDimensions();
+    },
+
+    setUpCapSciSelection() {
+      let baseXOffset= 160;
+      let baseYOffset = 100;
+      // initialize topLeft, xOffset, and yOffset vars
+      let topLeft = 0;
+      let xOffset = baseXOffset;
+      let yOffset = baseYOffset;
+
+      // For setting up base box before drag and adjust
+      if (this.dragCapSciBoxActivate){
+        topLeft = [this.capSciExpandBoxEndCoords[0], this.greenBoxTopLeftCoords[1]]
+        xOffset += Math.abs(this.capSciExpandBoxEndCoords[0]-this.greenBoxTopLeftCoords[0]);
+        // yOffset;
+      }
+
+      // For setting up base box before drag and adjust
+      else{
+        topLeft = this.greenBoxTopLeftCoords; // x1, y1
+      }
+      let topRight = [
+        topLeft[0] + xOffset,
+        topLeft[1],
+      ]; //x2, y1
+      let bottomRight = [
+        topLeft[0] + xOffset,
+        topLeft[1] + yOffset,
+      ]; // x2, y2
+      let bottomLeft = [
+        topLeft[0],
+        topLeft[1] + yOffset,
+      ]; //x1, y2
+
+      console.log("Top left: ", topLeft);
+      console.log("Top right: ", topRight);
+      console.log("Bottom right: ", bottomRight);
+      console.log("Bottom left: ", bottomLeft);
+      console.log("----------");
+
+
+      // Sets POI Layer's dimensions, while also clearing canvas of any drawings currently on it
+      this.setPOILayerDimensions();
+
+      // Begin: drawing POI selector box on canvas
+      this.poiCanvasContext.beginPath();
+
+      // Style of corners
+      this.poiCanvasContext.strokeStyle = "#E9E9E9";
+      this.poiCanvasContext.lineWidth = 2;
+      this.poiCanvasContext.globalAlpha = 1.0;
+
+      // this.poiCanvasContext.translate(0.5, 0.5);
+      // Draw top left corner
+      this.poiCanvasContext.moveTo(topLeft[0] - 0.5, topLeft[1]);
+      this.poiCanvasContext.lineTo(topLeft[0] + 11.5, topLeft[1]);
+      this.poiCanvasContext.moveTo(topLeft[0], topLeft[1]);
+      this.poiCanvasContext.lineTo(topLeft[0], topLeft[1] + 12);
+
+      // Draw top right corner
+      this.poiCanvasContext.moveTo(topRight[0] + 0.5, topRight[1]);
+      this.poiCanvasContext.lineTo(topRight[0] - 11.5, topRight[1]);
+      this.poiCanvasContext.moveTo(topRight[0], topRight[1]);
+      this.poiCanvasContext.lineTo(topRight[0], topRight[1] + 12);
+
+      //Draw bottom right corner
+      this.poiCanvasContext.moveTo(bottomRight[0] + 0.5, bottomRight[1]);
+      this.poiCanvasContext.lineTo(bottomRight[0] - 11.5, bottomRight[1]);
+      this.poiCanvasContext.moveTo(bottomRight[0], bottomRight[1]);
+      this.poiCanvasContext.lineTo(bottomRight[0], bottomRight[1] - 12);
+
+      // Draw bottom left corner
+      this.poiCanvasContext.moveTo(bottomLeft[0] - 0.5, bottomLeft[1]);
+      this.poiCanvasContext.lineTo(bottomLeft[0] + 11.5, bottomLeft[1]);
+      this.poiCanvasContext.moveTo(bottomLeft[0], bottomLeft[1]);
+      this.poiCanvasContext.lineTo(bottomLeft[0], bottomLeft[1] - 12);
+
+      this.poiCanvasContext.stroke();
+
+      this.poiCanvasContext.fillStyle = "#7DE0FF";
+      this.poiCanvasContext.globalAlpha = 0.35;
+      this.poiCanvasContext.fillRect(topLeft[0], topLeft[1], xOffset, yOffset);
+
+      this.poiCanvasContext.stroke();
+
+      // dividers
+      this.poiCanvasContext.lineWidth = 1;
+      this.poiCanvasContext.globalAlpha = 1.0;
+
+      // 1/3 vertical division
+      this.poiCanvasContext.moveTo(
+        topRight[0] - 2 * (xOffset / 3),
+        topRight[1]
+      );
+      this.poiCanvasContext.lineTo(
+        bottomRight[0] - 2 * (xOffset / 3),
+        bottomRight[1]
+      );
+
+      // 2/3 vertical division
+      this.poiCanvasContext.moveTo(topRight[0] - xOffset / 3, topRight[1]);
+      this.poiCanvasContext.lineTo(
+        bottomRight[0] - xOffset / 3,
+        bottomRight[1]
+      );
+
+      // 1/3 horizontal division
+      this.poiCanvasContext.moveTo(
+        topRight[0],
+        topRight[1] + 2 * (yOffset / 3)
+      );
+      this.poiCanvasContext.lineTo(
+        bottomLeft[0],
+        topRight[1] + 2 * (yOffset / 3)
+      );
+
+      // 2/3 horizontal division
+      this.poiCanvasContext.moveTo(topRight[0], topRight[1] + yOffset / 3);
+      this.poiCanvasContext.lineTo(bottomLeft[0], topRight[1] + yOffset / 3);
+
+      this.poiCanvasContext.stroke();
+      this.poiCanvasContext.closePath();
     },
 
     // On click of page, close modals
@@ -258,13 +388,17 @@ export default {
 
       // false until proven truthy (aka don't know if drag or click until onMouseMove called or not called)
       this.isDrag = false;
-
       this.closePOIChoiceModal();
+
+      if (this.POISelectionInstructions && this.capSciInstructionsOpen) {
+        this.capSciExpandBoxStartCoords = this.startCoord;
+      }
     },
 
     onMouseMove(event) {
-      if (!this.POISelectionInstructions) {
-        if (this.isMouseDown) {
+      // If moving for Manual Add POI selection box
+      if (this.isMouseDown) {
+        if (!this.POISelectionInstructions && !this.capSciInstructionsOpen) {
           this.isDrag = true;
           this.endCoord = [event.offsetX, event.offsetY];
           // Ensures selection box constrained to image
@@ -294,13 +428,29 @@ export default {
               this.endCoord[1] = 0;
             }
           }
+          this.setUpPOISelection();
 
-          this.setUpSelection();
+        } else if (
+          this.POISelectionInstructions &&
+          this.capSciInstructionsOpen
+        ) {
+          // dragCapSciActivated
+          this.dragCapSciBoxActivate = true;
+          // On left side drag
+          if (
+            this.capSciExpandBoxStartCoords[0] - 3 <=
+              this.greenBoxTopLeftCoords[0] &&
+            this.capSciExpandBoxStartCoords[0] + 3 >=
+              this.greenBoxTopLeftCoords[0]
+          ) {
+            this.capSciExpandBoxEndCoords = [event.offsetX, event.offsetY];
+            this.setUpCapSciSelection();
+          }
         }
       }
     },
 
-    setUpSelection() {
+    setUpPOISelection() {
       let topLeft = this.startCoord; // x1, y1
       let topRight = [this.endCoord[0], this.startCoord[1]]; //x2, y1
       let bottomRight = this.endCoord; // x2, y2
@@ -330,21 +480,28 @@ export default {
 
     onMouseUp() {
       this.isMouseDown = false;
-      console.log("mouse up");
       // Checks if mouse down was just a click or if mouse moved at all (i.e. selection box was formed)
       if (this.endCoord.length == 0) {
         this.startCoord = [];
 
         //clears canvas of lines/boxes
-        this.setPOILayerDimensions();
+        if (!this.capSciInstructionsOpen) {
+          this.setPOILayerDimensions();
+        }
 
         // Checks to make sure manual POI selection box not up
         if (!this.isPOIChoiceListModalVisible && this.capSciInstructionsOpen) {
           this.POISelectionInstructions = true;
         }
-      } else {
+      }
+      else {
         // Show POI modal list of POI types
         this.showPOIChoiceModal();
+      }
+
+      // if box prev dragged
+      if(this.dragCapSciBoxActivate){
+        this.greenBoxTopLeftCoords = [this.capSciExpandBoxEndCoords[0], this.greenBoxTopLeftCoords[1]];
       }
     },
 
@@ -379,6 +536,16 @@ export default {
 
     onImageUpdate() {
       this.rehookDOM();
+      // clears POI canvas layer of any selection boxes
+      this.setPOILayerDimensions();
+
+      // toggles off any modals visible
+      this.isPOIChoiceListModalVisible = false;
+      this.capSciInstructionsOpen = true;
+      this.POISelectionInstructions = false;
+      this.capSciConfirmationModalOpen = false;
+      this.greenBoxTopLeftCoords = [209, 194];
+
       /* First, Direct the Canvas (by changing its source image) to Have the
       Right Aspect Ratio but be way bigger than it could ever need to be - this
       prevents size capping (where a small canvas sized by a small source image
@@ -482,12 +649,12 @@ export default {
   position: relative;
 }
 
-.centering{
+.centering {
   position: absolute;
   display: flex;
   justify-content: center;
   width: 100%;
-  height:100%;
+  height: 100%;
 }
 
 .crosshairMouse {

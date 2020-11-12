@@ -75,7 +75,7 @@ by the autocoder in ComponentAc.* . The call chain for async inputs is as follow
 
 - Event Loop
     - 1. `doDispatch()`
-    - 2. BLOCKING dequeue args
+    - 2. BLOCKING dequeue and deserialize args
     - 3. void `<port name>_handler(args)`
     -    User implemented behavior
     - loop

@@ -21,7 +21,7 @@ extend queued components by including a `start(..)` method which starts a task f
 component. In FreeRTOS, this method only creates the thread, but does not start the
 scheduler. These component base classes are defined in `Fw/Comp`.
 
-# Guarded and Synchronous Inputs 
+### Guarded and Synchronous Inputs 
 
 The autocoder generates the following call chain for synchronous and guarded inputs:
 
@@ -70,3 +70,9 @@ parse, another task can pre-empt this task until there is something to do.
 
 Queued tasks which have no thread of execution must call doDispatch() in its implmentation
 to handle asynchronous messages.
+
+### Examples
+
+- `Svc/Health`: Queued component with async/sync inputs
+- `Svc/ActiveRateGroup`: Active component with async/sync inputs
+- `Svc/TlmChan`: Active component with guarded/async inputs

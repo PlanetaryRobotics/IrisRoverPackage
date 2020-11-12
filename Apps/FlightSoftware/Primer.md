@@ -4,6 +4,21 @@ Justin N.
 
 Read the F-Prime user guide for more information!
 
+## Differentiating Telemetry and Logs 
+
+> 6.7.3 Telemetry A telemetry channel is intended to be used for periodically measure[d] data.
+> `tlmWrite_<channel name>`
+
+> 6.7.4 Events Events are intermittent and are all recorded to reconstruct a series of actions or events after the fact.
+> `log_<severity>_<event name>`
+
+At JPL logs are also commonly referred to as **EVR**s or Event Reports.
+
+For these timestamped values it is important to note two commonly used additional acronyms in the industry:
+
+- **ERT**: Earth Receive Time (Wall clock time when a packet from the rover is received)
+- **SCET**: Spacecraft Event Time (Rover time when an event is generated)
+
 ## Component and Input Port Types
 
 ```

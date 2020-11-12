@@ -89,7 +89,7 @@ namespace CubeRover {
   {
     // Okay 3 different size variables:
     // - arg U32 size: Hold over from this type for BufferManager supposedly requested buffer size
-    // - MAX_SIZE_PAYLOAD 4096: Maximum expected UDP payload size supposedly...
+    // - MAX_SIZE_PAYLOAD 978: Maximum expected UDP payload size see Wf121.hpp for calculation to arrive at this value
     // - payloadSize: Actual size of the payload in UDP header
     // Since our buffer is statically allocated we are going to ignore arg
     // XXX: The following is a non-thread safe impl (i.e. poop shared pointers) using a single payload statically allocated buffer

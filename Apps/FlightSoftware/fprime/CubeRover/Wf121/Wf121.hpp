@@ -15,10 +15,9 @@
 
 #include "sci.h"
 #include "gio.h"
+#include "CubeRoverConfig.hpp"
 
-// Perigine IDD: IPv4 MTU 1006 bytes
-// 1006byte - 20byte IPv4 header - 8byte UDP header = 978byte payload
-#define MAX_SIZE_PAYLOAD    978    // in byte
+#define MAX_SIZE_PAYLOAD    UDP_MAX_PAYLOAD    // in byte
 #define SCI_REG             sciREG
 #define BLOCKING_TIMEOUT_US 1000    // in us
 

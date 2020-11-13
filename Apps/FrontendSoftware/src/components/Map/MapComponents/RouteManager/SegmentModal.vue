@@ -32,7 +32,7 @@
           :class="{ selected: show.segmentForm }"
           @click.capture="toggleType('segment')"
         >
-          Segment
+          Waypoint
         </div>
         <div
           ref="circumnavToggle"

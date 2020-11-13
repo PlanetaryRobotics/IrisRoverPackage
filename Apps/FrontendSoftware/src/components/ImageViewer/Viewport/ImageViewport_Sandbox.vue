@@ -162,7 +162,7 @@ export default {
       // Height of default Cap Sci selection box
       baseYOffset: 100,
       dragCursor: {
-        cursor: setDragCursor()
+        cursor: this.setDragCursor()
       }
     };
   },

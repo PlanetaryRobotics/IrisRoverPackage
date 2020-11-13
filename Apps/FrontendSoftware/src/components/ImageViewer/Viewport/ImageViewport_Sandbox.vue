@@ -21,8 +21,13 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
       alt="IMAGE NOT FOUND"
       @load="onImageUpdate"
     />
-    <div id="portContainer" v-on:mousemove.stop="onMouseMove">
-      <div class="canvas-wrapper port">
+    <div id="portContainer"
+      v-on:mousemove.stop="onMouseMove"
+      v-bind:style="dragCursor"
+    >
+      <div
+        class="canvas-wrapper port"
+      >
         <div class="centering">
           <!-- Capture Science Add pop up -->
           <CaptureScienceInstructionBox
@@ -151,6 +156,14 @@ export default {
       capSciExpandBoxStartCoords: [],
       capSciExpandBoxEndCoords: [],
       dragCapSciBoxActivate: false,
+      dragSide: null,
+      // Width of default Cap Sci selection box
+      baseXOffset: 160,
+      // Height of default Cap Sci selection box
+      baseYOffset: 100,
+      dragCursor: {
+        cursor: setDragCursor()
+      }
     };
   },
 
@@ -205,6 +218,7 @@ export default {
       return sha256(JSON.stringify(this.totalAdjustments));
     },
   },
+
   watch: {
     adjustmentsHash: function () {
       this.applyEffects();
@@ -238,44 +252,121 @@ export default {
       this.setPOILayerDimensions();
     },
 
+    // set correct cursor icon for capture science drags
+    setDragCursor(){
+      if(this.dragCapSciBoxActivate){
+        if (this.dragSide == "left" || this.dragSide == "right"){
+          console.log("1")
+          return "swResizeCursor";
+        }
+        else if (this.dragSide == "top" || this.dragSide == "bottom"){
+          console.log("2")
+          return "nsResizeCursor";
+        }
+      }
+      console.log("3")
+      return null;
+    },
+
     setUpCapSciSelection() {
-      let baseXOffset= 160;
-      let baseYOffset = 100;
       // initialize topLeft, xOffset, and yOffset vars
-      let topLeft = 0;
-      let xOffset = baseXOffset;
-      let yOffset = baseYOffset;
+      let topLeft = [];
+      let topRight = [];
+      let bottomRight = [];
+      let bottomLeft = [];
+      let xOffset = this.baseXOffset;
+      let yOffset = this.baseYOffset;
 
       // For setting up base box before drag and adjust
-      if (this.dragCapSciBoxActivate){
-        topLeft = [this.capSciExpandBoxEndCoords[0], this.greenBoxTopLeftCoords[1]]
-        xOffset += Math.abs(this.capSciExpandBoxEndCoords[0]-this.greenBoxTopLeftCoords[0]);
-        // yOffset;
+      if (this.dragCapSciBoxActivate) {
+        // On left side drag
+        if (this.dragSide == "left") {
+          topLeft = [
+            this.capSciExpandBoxEndCoords[0],
+            this.greenBoxTopLeftCoords[1],
+          ];
+          topRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.greenBoxTopLeftCoords[1],
+          ];
+          bottomRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          bottomLeft = [
+            this.capSciExpandBoxEndCoords[0],
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          // xOffset += Math.abs(this.capSciExpandBoxEndCoords[0]-this.greenBoxTopLeftCoords[0]);
+        }
+
+        // On right side drag
+        else if (this.dragSide == "right") {
+          topLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.greenBoxTopLeftCoords[1],
+          ];
+          topRight = [
+            this.capSciExpandBoxEndCoords[0],
+            this.greenBoxTopLeftCoords[1],
+          ];
+          bottomRight = [
+            this.capSciExpandBoxEndCoords[0],
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          bottomLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+        }
+
+        // On bottom side drag
+        else if (this.dragSide == "bottom") {
+          topLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.greenBoxTopLeftCoords[1],
+          ];
+          topRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.greenBoxTopLeftCoords[1],
+          ];
+          bottomRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.capSciExpandBoxEndCoords[1],
+          ];
+          bottomLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.capSciExpandBoxEndCoords[1],
+          ];
+        }
+
+        // On bottom side drag
+        else if (this.dragSide == "top") {
+          topLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.capSciExpandBoxEndCoords[1],
+          ];
+          topRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.capSciExpandBoxEndCoords[1],
+          ];
+          bottomRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          bottomLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+        }
       }
-
       // For setting up base box before drag and adjust
-      else{
+      else {
         topLeft = this.greenBoxTopLeftCoords; // x1, y1
+        topRight = [topLeft[0] + xOffset, topLeft[1]]; //x2, y1
+        bottomRight = [topLeft[0] + xOffset, topLeft[1] + yOffset]; // x2, y2
+        bottomLeft = [topLeft[0], topLeft[1] + yOffset]; //x1, y2
       }
-      let topRight = [
-        topLeft[0] + xOffset,
-        topLeft[1],
-      ]; //x2, y1
-      let bottomRight = [
-        topLeft[0] + xOffset,
-        topLeft[1] + yOffset,
-      ]; // x2, y2
-      let bottomLeft = [
-        topLeft[0],
-        topLeft[1] + yOffset,
-      ]; //x1, y2
-
-      console.log("Top left: ", topLeft);
-      console.log("Top right: ", topRight);
-      console.log("Bottom right: ", bottomRight);
-      console.log("Bottom left: ", bottomLeft);
-      console.log("----------");
-
 
       // Sets POI Layer's dimensions, while also clearing canvas of any drawings currently on it
       this.setPOILayerDimensions();
@@ -288,7 +379,6 @@ export default {
       this.poiCanvasContext.lineWidth = 2;
       this.poiCanvasContext.globalAlpha = 1.0;
 
-      // this.poiCanvasContext.translate(0.5, 0.5);
       // Draw top left corner
       this.poiCanvasContext.moveTo(topLeft[0] - 0.5, topLeft[1]);
       this.poiCanvasContext.lineTo(topLeft[0] + 11.5, topLeft[1]);
@@ -317,8 +407,20 @@ export default {
 
       this.poiCanvasContext.fillStyle = "#7DE0FF";
       this.poiCanvasContext.globalAlpha = 0.35;
-      this.poiCanvasContext.fillRect(topLeft[0], topLeft[1], xOffset, yOffset);
 
+      let calculatedXOffset = xOffset;
+      let calculatedYOffset = yOffset;
+      if (this.dragCapSciBoxActivate) {
+        calculatedXOffset = Math.abs(topLeft[0] - topRight[0]);
+        calculatedYOffset = Math.abs(topLeft[1] - bottomRight[1]);
+      }
+
+      this.poiCanvasContext.fillRect(
+        topLeft[0],
+        topLeft[1],
+        calculatedXOffset,
+        calculatedYOffset
+      );
       this.poiCanvasContext.stroke();
 
       // dividers
@@ -327,34 +429,43 @@ export default {
 
       // 1/3 vertical division
       this.poiCanvasContext.moveTo(
-        topRight[0] - 2 * (xOffset / 3),
+        topRight[0] - 2 * (calculatedXOffset / 3),
         topRight[1]
       );
       this.poiCanvasContext.lineTo(
-        bottomRight[0] - 2 * (xOffset / 3),
+        bottomRight[0] - 2 * (calculatedXOffset / 3),
         bottomRight[1]
       );
 
       // 2/3 vertical division
-      this.poiCanvasContext.moveTo(topRight[0] - xOffset / 3, topRight[1]);
+      this.poiCanvasContext.moveTo(
+        topRight[0] - calculatedXOffset / 3,
+        topRight[1]
+      );
       this.poiCanvasContext.lineTo(
-        bottomRight[0] - xOffset / 3,
+        bottomRight[0] - calculatedXOffset / 3,
         bottomRight[1]
       );
 
       // 1/3 horizontal division
       this.poiCanvasContext.moveTo(
         topRight[0],
-        topRight[1] + 2 * (yOffset / 3)
+        topRight[1] + 2 * (calculatedYOffset / 3)
       );
       this.poiCanvasContext.lineTo(
         bottomLeft[0],
-        topRight[1] + 2 * (yOffset / 3)
+        topRight[1] + 2 * (calculatedYOffset / 3)
       );
 
       // 2/3 horizontal division
-      this.poiCanvasContext.moveTo(topRight[0], topRight[1] + yOffset / 3);
-      this.poiCanvasContext.lineTo(bottomLeft[0], topRight[1] + yOffset / 3);
+      this.poiCanvasContext.moveTo(
+        topRight[0],
+        topRight[1] + calculatedYOffset / 3
+      );
+      this.poiCanvasContext.lineTo(
+        bottomLeft[0],
+        topRight[1] + calculatedYOffset / 3
+      );
 
       this.poiCanvasContext.stroke();
       this.poiCanvasContext.closePath();
@@ -429,13 +540,13 @@ export default {
             }
           }
           this.setUpPOISelection();
-
         } else if (
           this.POISelectionInstructions &&
           this.capSciInstructionsOpen
         ) {
           // dragCapSciActivated
           this.dragCapSciBoxActivate = true;
+
           // On left side drag
           if (
             this.capSciExpandBoxStartCoords[0] - 3 <=
@@ -443,6 +554,43 @@ export default {
             this.capSciExpandBoxStartCoords[0] + 3 >=
               this.greenBoxTopLeftCoords[0]
           ) {
+            this.dragSide = "left";
+            this.capSciExpandBoxEndCoords = [event.offsetX, event.offsetY];
+            this.setUpCapSciSelection();
+          }
+
+          // On right side drag
+          else if (
+            this.capSciExpandBoxStartCoords[0] - 3 <=
+              this.greenBoxTopLeftCoords[0] + this.baseXOffset &&
+            this.capSciExpandBoxStartCoords[0] + 3 >=
+              this.greenBoxTopLeftCoords[0] + this.baseXOffset
+          ) {
+            this.dragSide = "right";
+            this.capSciExpandBoxEndCoords = [event.offsetX, event.offsetY];
+            this.setUpCapSciSelection();
+          }
+
+          // On bottom side drag
+          else if (
+            this.capSciExpandBoxStartCoords[1] - 3 <=
+              this.greenBoxTopLeftCoords[1] + this.baseYOffset &&
+            this.capSciExpandBoxStartCoords[1] + 3 >=
+              this.greenBoxTopLeftCoords[1] + this.baseYOffset
+          ) {
+            this.dragSide = "bottom";
+            this.capSciExpandBoxEndCoords = [event.offsetX, event.offsetY];
+            this.setUpCapSciSelection();
+          }
+
+          // On top side drag
+          else if (
+            this.capSciExpandBoxStartCoords[1] - 3 <=
+              this.greenBoxTopLeftCoords[1] &&
+            this.capSciExpandBoxStartCoords[1] + 3 >=
+              this.greenBoxTopLeftCoords[1]
+          ) {
+            this.dragSide = "top";
             this.capSciExpandBoxEndCoords = [event.offsetX, event.offsetY];
             this.setUpCapSciSelection();
           }
@@ -493,15 +641,22 @@ export default {
         if (!this.isPOIChoiceListModalVisible && this.capSciInstructionsOpen) {
           this.POISelectionInstructions = true;
         }
-      }
-      else {
+      } else {
         // Show POI modal list of POI types
         this.showPOIChoiceModal();
       }
 
       // if box prev dragged
-      if(this.dragCapSciBoxActivate){
-        this.greenBoxTopLeftCoords = [this.capSciExpandBoxEndCoords[0], this.greenBoxTopLeftCoords[1]];
+      if (this.dragCapSciBoxActivate) {
+        this.baseXOffset = Math.abs(
+          this.capSciExpandBoxEndCoords[0] -
+            (this.greenBoxTopLeftCoords[0] + this.baseXOffset)
+        );
+
+        this.greenBoxTopLeftCoords = [
+          this.capSciExpandBoxEndCoords[0],
+          this.greenBoxTopLeftCoords[1],
+        ];
       }
     },
 
@@ -545,6 +700,12 @@ export default {
       this.POISelectionInstructions = false;
       this.capSciConfirmationModalOpen = false;
       this.greenBoxTopLeftCoords = [209, 194];
+      this.dragCapSciBoxActivate = false;
+      this.dragSide = null;
+      // Width of default Cap Sci selection box
+      this.baseXOffset = 160;
+      // Height of default Cap Sci selection box
+      this.baseYOffset = 100;
 
       /* First, Direct the Canvas (by changing its source image) to Have the
       Right Aspect Ratio but be way bigger than it could ever need to be - this
@@ -660,6 +821,14 @@ export default {
 .crosshairMouse {
   cursor: crosshair;
   // cursor: url("/assets/icons/png/cursorCrosshair.png");
+}
+
+.ewResizeCursor {
+  cursor: ew-resize;
+}
+
+.nsResizeCursor{
+  cursor: ns-resize;
 }
 
 /* port fade animation: */

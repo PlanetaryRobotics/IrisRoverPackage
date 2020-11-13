@@ -13,6 +13,8 @@
 
 #include <CubeRover/WatchDogInterface/WatchDogInterfaceComponentImpl.hpp>
 #include "Fw/Types/BasicTypes.hpp"
+#include <stdio.h>
+#include <string.h>
 
 namespace CubeRover {
 
@@ -88,7 +90,6 @@ namespace CubeRover {
     // May need to wait to send command everytime it runs as could be a lot of commands
 	// Create watchdog stroke equal to 1 as first bit 1 to tell watchdog scheduled, rest bits 0 to not reset anything
     U32 watchdog_stroke = 1;
-    // May want to change wattchdog_stoke sent value to accumulated stroke value?
     linSend(linREG, &watchdog_stroke);
     // Check for Response from MSP430 Watchdog
     U32 watchdog_reponse;
@@ -132,9 +133,10 @@ namespace CubeRover {
         const U32 cmdSeq
     )
   {
-  	// Send Activity Log to know watchdog recieved command
-  	char *command_type = "Reset Everything"
-  	this->log_WARNING_HI_WatchDogCmdReceived(command_type);
+  	// Send Activity Log/tlm to know watchdog recieved command
+  	char command_type[] = "Reset Everything";
+  	this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type);
+  	this->tlmWrite_LAST_COMMAND(command_type);
     // Sends a command to watchdog to reset all devices AND resets all components (how to do that is TBD)
     // Set watchdog_reset to all 1's from bits 1-17, 0's for bit's 0 and 18-31
     U32 watchdog_reset = 0x7FFFC000;
@@ -171,9 +173,14 @@ namespace CubeRover {
         U32 reset_value
     )
   {
-  	// Send Activity Log to know watchdog recieved command
-  	char *command_type = "Reset Specific"
-  	this->log_WARNING_HI_WatchDogCmdReceived(command_type);
+  	// Send Activity Log/tlm to know watchdog recieved command
+  	char command_type[50] = "Reset Specific:";
+  	char reset_val_char[32];
+  	sprintf(reset_val_char, "%u", reset_val_char);
+  	strcat(command_type, reset_val_char);
+  	this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type);
+  	this->tlmWrite_LAST_COMMAND(command_type);
+
     // Sends a command to watchdog to reset specified devices. Can be hardware through watchdog or component
     // Isolate the first bit of the reset_value to know if we're reseting hardware or component
     U32 reset_choice = reset_value & 1;

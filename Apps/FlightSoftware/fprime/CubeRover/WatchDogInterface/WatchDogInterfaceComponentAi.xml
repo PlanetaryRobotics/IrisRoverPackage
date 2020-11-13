@@ -101,7 +101,7 @@
             Notification that watchdog interface recieved a command from Cmd_Dispatcher 
             </comment>
              <args>
-                <arg name="Cmd" type="string" size="40">
+                <arg name="Cmd" type="string" size="50">
                     <comment>The cmd that watchdog interface processed</comment>
                 </arg>          
             </args>
@@ -119,5 +119,12 @@
         </event>
     </events>
 
+    <telemetry>
+        <channel id="0" name="LAST_COMMAND" data_type="string" size="50">
+            <comment>
+                The command last sent to watchdog interface
+            </comment>
+        </channel>
+    </telemetry>
 </component>
 

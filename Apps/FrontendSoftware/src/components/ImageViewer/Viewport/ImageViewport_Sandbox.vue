@@ -8,11 +8,22 @@ Updated: 08/30/2020, Colombo
 Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new POI manually)
 
 // TODO: fix glitch when go past top of image (priority: 1), and when off-sides how box doesn't auto border sides
+* Setdragcursor() not rendering new mouse
 
 -->
 
 <template>
-  <div class="image-viewport" v-on:click.self="onIVPortClick">
+  <div
+    class="image-viewport"
+    v-on:click.self="onIVPortClick"
+    v-on:mousemove.stop="onMouseMove"
+    v-on:mousedown.stop="onMouseDown"
+    v-on:mouseup.stop="onMouseUp"
+    v-bind:class="{
+      crosshairMouse:
+        isMouseDown && !POISelectionInstructions && !capSciInstructionsOpen,
+    }"
+  >
     <img
       class="port"
       id="imgsrc"
@@ -21,13 +32,12 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
       alt="IMAGE NOT FOUND"
       @load="onImageUpdate"
     />
-    <div id="portContainer"
+    <div
+      id="portContainer"
       v-on:mousemove.stop="onMouseMove"
       v-bind:style="dragCursor"
     >
-      <div
-        class="canvas-wrapper port"
-      >
+      <div class="canvas-wrapper port">
         <div class="centering">
           <!-- Capture Science Add pop up -->
           <CaptureScienceInstructionBox
@@ -50,18 +60,9 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
 
       <!-- POI Manual Drag Select -->
       <div class="canvas-wrapper port">
-        <canvas
-          id="featurevp"
-          class="port POIport"
-          style="z-index: 1"
-          v-on:mousedown.stop="onMouseDown"
-          v-on:mouseup.stop="onMouseUp"
-          v-bind:class="{
-            crosshairMouse:
-              isMouseDown &&
-              !POISelectionInstructions &&
-              !capSciInstructionsOpen,
-          }"
+        <canvas id="featurevp" class="port POIport" style="z-index: 1"
+        v-on:mouseover.stop="mouseOnPOICanvasLayer"
+        v-on:mouseout.stop="mouseOffPOICanvasLayer"
         >
         </canvas>
 
@@ -134,6 +135,7 @@ export default {
       portContainer: {},
       canvas: {},
       poiLayer: {},
+      poiLayerCornerCoords: [],
       texture: {},
       textureInitialized: false,
       isMouseDown: false,
@@ -144,6 +146,7 @@ export default {
       fxvar: {},
 
       // Manual POI select vars
+      cursorOnPOICanvasLayer: false,
       isPOIChoiceListModalVisible: false,
       arePOIFullDetailsVisible: false,
       initalPOIChoiceSelected: null,
@@ -162,8 +165,8 @@ export default {
       // Height of default Cap Sci selection box
       baseYOffset: 100,
       dragCursor: {
-        cursor: this.setDragCursor()
-      }
+        cursor: this.setDragCursor(),
+      },
     };
   },
 
@@ -231,6 +234,14 @@ export default {
   },
 
   methods: {
+    mouseOnPOICanvasLayer(){
+      this.cursorOnPOICanvasLayer = true;
+    },
+
+    mouseOffPOICanvasLayer(){
+      this.cursorOnPOICanvasLayer = false;
+    },
+    
     onPOIChoiceSelected(val) {
       this.arePOIFullDetailsVisible = true;
       this.initalPOIChoiceSelected = val;
@@ -253,18 +264,17 @@ export default {
     },
 
     // set correct cursor icon for capture science drags
-    setDragCursor(){
-      if(this.dragCapSciBoxActivate){
-        if (this.dragSide == "left" || this.dragSide == "right"){
-          console.log("1")
-          return "swResizeCursor";
-        }
-        else if (this.dragSide == "top" || this.dragSide == "bottom"){
-          console.log("2")
+    setDragCursor() {
+      if (this.dragCapSciBoxActivate) {
+        if (this.dragSide == "left" || this.dragSide == "right") {
+          console.log("drag cursor type: ew-resize");
+          return "ewResizeCursor";
+        } else if (this.dragSide == "top" || this.dragSide == "bottom") {
+          console.log("drag cursor type: ns-resize");
           return "nsResizeCursor";
         }
       }
-      console.log("3")
+      console.log("drag cursor type: null");
       return null;
     },
 
@@ -489,13 +499,33 @@ export default {
         return;
       }
 
+      // Get rect coordinates of POI Layer
+      let sideMargin = Math.abs(this.poiLayer.width - document.getElementById("portContainer").clientWidth)/2;
+      let topBottomMargin = Math.abs(this.poiLayer.height - document.getElementById("portContainer").clientHeight)/2;
+      console.log("topBottomMargins: ", topBottomMargin)
+      console.log("x,y coords: ", [event.x, event.y])
+      console.log("client coords: ", [event.clientX, event.clientY])
+      this.poiLayerCornerCoords = [
+        // top left
+        [sideMargin, topBottomMargin],
+        // top right
+        [document.getElementById("portContainer").clientWidth-sideMargin, topBottomMargin],
+        // bottom right
+        [document.getElementById("portContainer").clientWidth-sideMargin, document.getElementById("portContainer").clientHeight-topBottomMargin],
+        // bottom left
+        [sideMargin, document.getElementById("portContainer").clientHeight-topBottomMargin],
+      ];
+
+      console.log(this.poiLayerCornerCoords)
+
       // reset end coord if already exists
       if (this.endCoord.length > 0) {
         this.endCoord = [];
       }
-
-      this.startCoord = [event.offsetX, event.offsetY];
-      this.isMouseDown = true;
+      if(this.cursorOnPOICanvasLayer){
+        this.startCoord = [event.offsetX, event.offsetY];
+        this.isMouseDown = true;
+      }
 
       // false until proven truthy (aka don't know if drag or click until onMouseMove called or not called)
       this.isDrag = false;
@@ -507,40 +537,73 @@ export default {
     },
 
     onMouseMove(event) {
+      // let eventX = event.clientX
+      // let eventY = event.clientY-47;
       // If moving for Manual Add POI selection box
       if (this.isMouseDown) {
         if (!this.POISelectionInstructions && !this.capSciInstructionsOpen) {
           this.isDrag = true;
           this.endCoord = [event.offsetX, event.offsetY];
+          // console.log("POI Layer Height: ", this.poiLayer.height)
+          // console.log("no offset: ", event.y);
+          // console.log("offset: ", this.endCoord[1]);
+          // console.log("----------")
+          
           // Ensures selection box constrained to image
-          if (
-            !(this.endCoord[0] <= this.poiLayer.width) ||
-            !(this.endCoord[0] >= 0) ||
-            !(this.endCoord[1] <= this.poiLayer.height) ||
-            !(this.endCoord[1] <= this.poiLayer.width) ||
-            !(this.endCoord[1] >= 0)
-          ) {
-            this.isMouseDown = false;
+          /* DEBUG:
+          right
+          this.endCoord[0] > this.poiLayer.width ||
+          
+          left but slightly
+          this.endCoord[0] < 0 ||
+          
+          bottom
+          this.endCoord[1] > this.poiLayer.height ||
+          
+          top
+          this.endCoord[1] < 0
+          */
+          if (!this.cursorOnPOICanvasLayer) {
+            // console.log(
+            // "this.endCoord[0] > this.poiLayer.width: ", this.endCoord[0] > this.poiLayer.width, "\n",
+            // "this.endCoord[0] < 0: ", this.endCoord[0] < 0, "\n",
+            // "this.endCoord[1] > this.poiLayer.height: ", this.endCoord[1] > this.poiLayer.height, "\n",
+            // "this.endCoord[1] < 0: ", this.endCoord[1] < 0
+            // )
+            // console.log("y: ", Math.abs(event.y-this.endCoord[1]))
+            // console.log("x: ", Math.abs(event.x-this.endCoord[0]))
 
             // if cursor went past right boundary of image container
             if (this.endCoord[0] > this.poiLayer.width) {
+              console.log("right")
               this.endCoord[0] = this.poiLayer.width;
             }
-            // if cursor went past right boundary of image container
-            else if (this.endCoord[0] < 0) {
+            // if cursor went past top boundary of image container
+            else if (
+              (this.endCoord[1] <= 0) ||
+              (Math.abs(event.y-this.endCoord[1]) < 48)
+            ) {
+              console.log("top")
+              this.endCoord[1] = 0;
+              this.isMouseDown = false;
+            }
+            // if cursor went past left boundary of image container
+            else if (
+              (this.endCoord[0] <= 0) ||
+              (Math.abs(event.x-this.endCoord[0]) < 23)
+            ) {
+              console.log("left")
               this.endCoord[0] = 0;
             }
-            // if cursor went past top boundary of image container
-            if (this.endCoord[1] > this.poiLayer.height) {
-              this.endCoord[1] = this.poiLayer.height;
-            }
-            // if cursor went past bottom boundary of image container
-            else if (this.endCoord[1] < 0) {
-              this.endCoord[1] = 0;
-            }
           }
+
+          // save last x coord
+
+
           this.setUpPOISelection();
-        } else if (
+        } 
+        
+        else if (
           this.POISelectionInstructions &&
           this.capSciInstructionsOpen
         ) {
@@ -827,7 +890,7 @@ export default {
   cursor: ew-resize;
 }
 
-.nsResizeCursor{
+.nsResizeCursor {
   cursor: ns-resize;
 }
 

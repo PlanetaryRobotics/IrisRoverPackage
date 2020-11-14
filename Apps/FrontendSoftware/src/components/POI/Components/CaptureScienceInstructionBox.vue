@@ -32,12 +32,10 @@ export default {
   watch: {
     onParentClick: function () {
       if (this.onParentClick == false){
-        console.log("uh oh");
         document.getElementById("instruction").innerHTML = this.instruction1;
         this.instruction2Visible = false;
       }
       else if (this.onParentClick == true) {
-        console.log("trueee")
         this.onSelectPOI();
         this.$emit("instructionTwoActivated");
       }

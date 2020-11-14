@@ -68,6 +68,15 @@ namespace CubeRover {
           Fw::Buffer &fwBuffer 
       );
 
+      //! Handler implementation for uplinkData
+      //!
+      void uplinkData_handler(
+          const NATIVE_INT_TYPE portNum, /*!< The port number*/
+          Fw::Buffer &fwBuffer 
+      );
+      
+      void updateTelemetry();
+
       int32_t recvfrom(   int sockfd,
                           void *buf,
                           uint32_t len,
@@ -112,7 +121,7 @@ namespace CubeRover {
       UdpSerialBuffer m_recvBuff;
       //UdpSerialBuffer m_portBuff; //!< working buffer for decoding packets
       uint32_t m_packetsReceived;
-      uint32_t m_bytesReceived;
+      uint32_t m_bytesReceived;     // All received packet lengths (and dropped too)
       uint32_t m_packetsDropped;
       uint32_t m_decodeErrors;
       uint32_t m_firstSeq;

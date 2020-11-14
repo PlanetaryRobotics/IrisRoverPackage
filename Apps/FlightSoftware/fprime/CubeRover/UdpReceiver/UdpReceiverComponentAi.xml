@@ -2,18 +2,19 @@
 
     <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
     <import_port_type>Fw/Buffer/BufferSendPortAi.xml</import_port_type>
+    <import_port_type>Fw/Buffer/BufferGetPortAi.xml</import_port_type>
 
     <comment>Receives packets via a UDP connection</comment>
     <ports>
-        <port name="Sched" data_type="Svc::Sched" kind="sync_input" >
+        <port name="uplinkData" data_type="Fw::BufferSend" kind="sync_input" max_number="2">
             <comment>
-            Input port to get called periodically for telemetry
+                A comm source sends a buffer object pointing to the datagram and the size of datagram that was received.
+                UDP Receier will validate the datagram and get a buffer from the ground interface via getReceivedDatagramBuffer
+                and hand off the **payload** to the ground interface.
             </comment>
         </port>
-        <port name="readPoll" data_type="Fw::BufferSend" kind="sync_input" max_number="1">
-            <comment>
-            Input port to ground interface component
-            </comment>
+        <port name="getReceivedDatagramBuffer" data_type="Fw::BufferGet" kind="output" max_number="1">
+            <comment>Get a buffer managed by the ground interface to store the payload of the received datagram.</comment>
         </port>
     </ports>
 
@@ -41,21 +42,19 @@
             <args>
                 <arg name="stage" type="ENUM">
                     <enum name="DecodeStage">
-                        <item name="DECODE_SEQ"/>
-                        <item name="DECODE_PORT"/>
-                        <item name="DECODE_BUFFER"/>           
-                        <item name="PORT_SEND"/>           
+                        <item name="DECODE_HEADER"/>
+                        <item name="DECODE_PAYLOAD"/>           
                     </enum>
                 </arg>
                 <arg name = "error" type = "I32"/>
             </args>
         </event>
-        <event id="5" name="UR_DroppedPacket" severity="WARNING_HI" format_string = "UDP packet(s) dropped (diff %d)" throttle="5">
+        <event id="5" name="UR_DroppedPacket" severity="WARNING_HI" format_string = "UDP packet(s) dropped (checksum %d)" throttle="5">
             <comment>
             Dropped packet was detected
             </comment>
             <args>
-                <arg name = "diff" type = "U32"/>
+                <arg name = "checksum" type = "U32"/>
             </args>
         </event>
     </events>

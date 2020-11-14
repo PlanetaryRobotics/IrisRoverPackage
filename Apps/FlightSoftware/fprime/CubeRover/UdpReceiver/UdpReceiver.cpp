@@ -11,10 +11,11 @@
 // ======================================================================
 
 
-#include <CubeRover/UdpReceiver/UdpReceiverComponentImpl.hpp>
+#include <CubeRover/UdpReceiver/UdpReceiver.hpp>
 #include "Fw/Types/BasicTypes.hpp"
 
 #include "sci.h"
+#include <cstring>
 
 namespace CubeRover {
 
@@ -75,102 +76,67 @@ namespace CubeRover {
   // ----------------------------------------------------------------------
   // Handler implementations for user-defined typed input ports
   // ----------------------------------------------------------------------
-
-
-  /**
-   * @brief      Handler for scheduled event
-   *
-   * @param[in]  portNum  The port number
-   * @param[in]  context  The context
-   */
+  
   void UdpReceiverComponentImpl ::
-    Sched_handler(
+    uplinkData_handler(
         const NATIVE_INT_TYPE portNum,
-        NATIVE_UINT_TYPE context
+        Fw::Buffer &fwBuffer
     )
   {
-    this->tlmWrite_UR_BytesReceived(this->m_bytesReceived);
-    this->tlmWrite_UR_PacketsReceived(this->m_packetsReceived);
-    this->tlmWrite_UR_PacketsDropped(this->m_packetsDropped);
+    
+    struct udpHeader {
+        uint8_t src_port;
+        uint8_t dest_port;
+        uint8_t length;
+        uint8_t checksum;
+    };
+  
+    if (fwBuffer.getsize() < sizeof(struct udpHeader)) {    // Expects a datagram
+        this->log_WARNING_HI_UR_RecvError(static_cast<I32>(fwBuffer.getsize()));
+        this->m_packetsDropped++;
+        updateTelemetry();
+        return;
+    }
+    
+    struct udpHeader *header = reinterpret_cast<struct udpHeader *>(fwBuffer.getdata());
+    
+    // TODO: CHECK SRC & DEST PORTS
+    // TODO: CHECK CHECKSUM
+    if (false) {
+        // TODO: this->log_WARNING_HI_UR_DecodeError(DECODE_HEADER, I32 <received port/checksum>);
+        this->log_WARNING_HI_UR_DroppedPacket(static_cast<U32>(header->checksum));
+        this->m_decodeErrors++;
+        this->m_packetsDropped++;
+        updateTelemetry();
+        return;
+    }
+    
+    uint8_t computedPayloadLen = static_cast<uint8_t>(fwBuffer.getsize()) - sizeof(*header);
+    if (computedPayloadLen != header->length) {
+        this->log_WARNING_HI_UR_DecodeError(DECODE_PAYLOAD, static_cast<I32>(computedPayloadLen));
+        this->log_WARNING_HI_UR_DroppedPacket(static_cast<U32>(header->checksum));
+        this->m_decodeErrors++;
+        this->m_packetsDropped++;
+        updateTelemetry();
+        return;
+    }
+    
+    Fw::Buffer payloadBuffer = getReceivedDatagramBuffer_out(0, header->length);
+    memcpy(reinterpret_cast<uint8_t *>(payloadBuffer.getdata()),
+           reinterpret_cast<uint8_t *>(fwBuffer.getdata()) + sizeof(*header), header->length);
+    
+    m_packetsReceived++;
+    m_bytesReceived += fwBuffer.getsize();  // Note: Datagram size not payload size
+    updateTelemetry();
   }
 
-
-  /**
-   * @brief      Reads poll handler.
-   *
-   * @param[in]  portNum   The port number
-   * @param      fwBuffer  The connected buffer
-   */
-  void UdpReceiverComponentImpl ::
-    readPoll_handler(const NATIVE_INT_TYPE portNum,
-                    Fw::Buffer &fwBuffer)
-  {
-    int32_t psize = recvfrom(m_fd,
-                             m_recvBuff.getBuffAddr(),
-                             m_recvBuff.getBuffCapacity(),
-                             Socket::MSG_WAITALL,
-                             0,
-                             0);
-    if(psize < 0){
-      this->log_WARNING_HI_UR_RecvError(psize);
-      return ;
+    void UdpReceiverComponentImpl::updateTelemetry() {
+        this->tlmWrite_UR_BytesReceived(this->m_bytesReceived);
+        this->tlmWrite_UR_PacketsReceived(this->m_packetsReceived);
+        this->tlmWrite_UR_PacketsDropped(this->m_packetsDropped);
+        this->tlmWrite_UR_DecodeErrors(this->m_decodeErrors);
     }
 
-    // reset buffer for deserialization
-    Fw::SerializeStatus stat = m_recvBuff.setBuffLen(psize);
-    FW_ASSERT(Fw::FW_SERIALIZE_OK == stat, stat);
-
-    // get sequence number
-    uint8_t seqNum;
-    stat = m_recvBuff.deserialize(seqNum);
-
-    // check for deserialization error or port number too high
-    if(stat != Fw::FW_SERIALIZE_OK) {
-      this->log_WARNING_HI_UR_DecodeError(DECODE_SEQ, stat);
-      this->m_decodeErrors++;
-      return;
-    }
-
-    // track sequence number
-    if(this->m_firstSeq) {
-      // first time, set tracked sequence number equal to the one received
-      this->m_currSeq = seqNum;
-      this->m_firstSeq = false;
-    }else {
-      // make sure sequence number has gone up by one
-      if (seqNum != ++this->m_currSeq) {
-        // will only be right if it rolls over only once, but better than
-        // nothing
-        U8 diff = seqNum - this->m_currSeq;
-        this->m_packetsDropped += diff;
-        // send EVR
-        this->log_WARNING_HI_UR_DroppedPacket(diff);
-        // reset to current sequence
-        this->m_currSeq = seqNum;
-      }
-    }
-
-    // get port number
-    uint8_t port;
-    stat = m_recvBuff.deserialize(port);
-    // check for de-serialization error or port number too high
-    if (stat != Fw::FW_SERIALIZE_OK || port > this->getNum_readPoll_InputPorts()) {
-      this->log_WARNING_HI_UR_DecodeError(DECODE_PORT, stat);
-      this->m_decodeErrors++;
-      return;
-    }
-
-    // get buffer for port
-    stat = m_recvBuff.deserialize(fwBuffer);
-    if (stat != Fw::FW_SERIALIZE_OK) {
-      this->log_WARNING_HI_UR_DecodeError(DECODE_BUFFER,stat);
-      this->m_decodeErrors++;
-      return;
-    }
-
-    this->m_packetsReceived++;
-    this->m_bytesReceived += psize;
-  }
 
   // -------------------------------------------------------------------------
   // Implementation of custom functions of UDP receiver

@@ -83,15 +83,6 @@ namespace CubeRover {
   }
 
   void GroundInterfaceComponentImpl ::
-    uplinkStorageBufferGet_handler(
-        const NATIVE_INT_TYPE portNum,
-        U32 size
-    )
-  {
-    // TODO
-  }
-
-  void GroundInterfaceComponentImpl ::
     downlinkBufferSend_handler(
         const NATIVE_INT_TYPE portNum,
         Fw::Buffer &fwBuffer

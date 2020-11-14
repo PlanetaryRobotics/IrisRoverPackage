@@ -78,13 +78,6 @@ namespace CubeRover {
           Fw::Buffer &fwBuffer 
       );
 
-      //! Handler implementation for uplinkStorageBufferGet
-      //!
-      void uplinkStorageBufferGet_handler(
-          const NATIVE_INT_TYPE portNum, /*!< The port number*/
-          U32 size 
-      );
-
       //! Handler implementation for downlinkBufferSend
       //!
       void downlinkBufferSend_handler(

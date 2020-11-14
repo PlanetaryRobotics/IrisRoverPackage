@@ -26,28 +26,32 @@
             </comment>
         </port>
             
-        <port name="appDownlink" data_type="Fw::BufferSend"  kind="guarded_input"    max_number="3">
+        <port name="appDownlink" data_type="Fw::BufferSend"  kind="guarded_input"    max_number="2">
             <comment>
                 Other application components request a buffer to hand off a downlinked packet to be downlinked.
+                0: Camera   1: UWB
             </comment>
         </port>
             
-        <port name="uplinkStorageBufferGet" data_type="Fw::BufferGet"  kind="guarded_input"    max_number="1">
+        <port name="cmdUplink" data_type="Fw::Com"  kind="sync_input"    max_number="2">
             <comment>
-                UDP Receiver requests a buffer to hand off an uplinked packet to be routed by GroundInterface.
+                GroundInterface validates and forwards deserialized a uplinked command to CmdDispatcher.
+                0: WatchDog Serial  1: WF121
             </comment>
         </port>
             
-        <port name="downlinkBufferSend" data_type="Fw::BufferSend"  kind="guarded_input"    max_number="1">
+        <!-- Output ports -->
+        <port name="cmdDispatch" data_type="Fw::Com"  kind="output"    max_number="2">
+            <comment>
+                GroundInterface forwards a validated uplinked command to CmdDispatcher. Commands are buffered by the CommandDispatcher's message queue.
+                0: WatchDog Serial  1: WF121
+            </comment>
+        </port>
+            
+        <port name="downlinkBufferSend" data_type="Fw::BufferSend"  kind="output"    max_number="2">
             <comment>
                 GroundInterface sends buffer of data to be downlinked to UDP sender for framing, MTU fragmentation, and transport.
-            </comment>
-        </port>
-
-        <!-- Output ports -->
-        <port name="cmdUplink" data_type="Fw::Com"  kind="output"    max_number="1">
-            <comment>
-                GroundInterface forwards deserialized uplinked commands to CmdDispatcher.
+                0: WatchDog Serial  1: WF121
             </comment>
         </port>
             

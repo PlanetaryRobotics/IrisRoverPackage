@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
+
+<component name="GroundInterface" kind="passive" namespace="Svc" modeler="true">
+    <import_port_type>Fw/Buffer/BufferSendPortAi.xml</import_port_type>
+    <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
+    <import_port_type>Fw/Log/LogTextPortAi.xml</import_port_type>
+    <import_port_type>Fw/Com/ComPortAi.xml</import_port_type>
+    <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
+    <import_port_type>Fw/Buffer/BufferGetPortAi.xml</import_port_type>
+    <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
+    <ports>
+
+        <!-- Input ports -->
+        <port name="tlmDownlink" data_type="Fw::Com"  kind="guarded_input"    max_number="1">
+            <comment>
+                TlmChannel sends GroundInterface telemetry items to downlink. The GroundInterface component will serialize the
+                data in to application level blocks which is sent to UDP sender to be fragmented by MTU and transport.
+            </comment>
+        </port>
+            
+        <port name="logDownlink" data_type="Fw::Log"  kind="guarded_input"    max_number="1">
+            <comment>
+                ComLogger sends GroundInterface log items to downlink. The GroundInterface component will serialize the
+                data in to application level blocks which is sent to UDP sender for framing, MTU fragmentation, and transport.
+            </comment>
+        </port>
+            
+        <port name="appDownlink" data_type="Fw::BufferSend"  kind="guarded_input"    max_number="3">
+            <comment>
+                Other application components request a buffer to hand off a downlinked packet to be downlinked.
+            </comment>
+        </port>
+            
+        <port name="uplinkStorageBufferGet" data_type="Fw::BufferGet"  kind="guarded_input"    max_number="1">
+            <comment>
+                UDP Receiver requests a buffer to hand off an uplinked packet to be routed by GroundInterface.
+            </comment>
+        </port>
+            
+        <port name="downlinkBufferSend" data_type="Fw::BufferSend"  kind="guarded_input"    max_number="1">
+            <comment>
+                GroundInterface sends buffer of data to be downlinked to UDP sender for framing, MTU fragmentation, and transport.
+            </comment>
+        </port>
+
+        <!-- Output ports -->
+        <port name="cmdUplink" data_type="Fw::Com"  kind="output"    max_number="1">
+            <comment>
+                GroundInterface forwards deserialized uplinked commands to CmdDispatcher.
+            </comment>
+        </port>
+            
+        <port name="bufferStorageGet" data_type="Fw::BufferGet"  kind="output"    max_number="1">
+            <comment>
+                GroundInterface's internal variable length buffers are managed by BufferManager. This is the buffer allocate port.
+            </comment>
+        </port>
+            
+        <port name="bufferStorageReturn" data_type="Fw::BufferSend"  kind="output"    max_number="1">
+            <comment>
+                GroundInterface's internal variable length buffers are managed by BufferManager. This is the buffer free port.
+            </comment>
+        </port>
+            
+        <!-- Standard F prime ports -->
+        <port name="Log" data_type="Fw::Log"  kind="output" role="LogEvent"    max_number="1">
+        </port>
+
+        <port name="LogText" data_type="Fw::LogText"  kind="output" role="LogTextEvent"    max_number="1">
+        </port>
+
+        <port name="Time" data_type="Time"  kind="output" role="TimeGet"    max_number="1">
+        </port>
+
+    </ports>
+
+
+    <!-- TELEMETRY -->
+
+    <telemetry>
+        <channel id="0" name="GI_UplinkSeqNum" data_type="U32">
+            <comment>Increment the uplink sequence number every packet</comment>
+        </channel>
+        <channel id="1" name="GI_DownlinkSeqNum" data_type="U32">
+            <comment>Increment the downlink sequence number every packet</comment>
+        </channel>
+        <channel id="2" name="GI_PacketsReceived" data_type="U32">
+            <comment>Number of packets received from link to F'</comment>
+        </channel>
+        <channel id="3" name="GI_PacketsTransmitted" data_type="U32">
+            <comment>Number of packets transmitted from F' to link</comment>
+        </channel>
+        <channel id="4" name="GI_TlmItemsReceived" data_type="U32">
+            <comment>Number of telemetry items received and queued</comment>
+        </channel>
+        <channel id="5" name="GI_TlmItemsDownlinked" data_type="U32">
+            <comment>Number of telemetry items downlinked</comment>
+        </channel>
+        <channel id="6" name="GI_LogsReceived" data_type="U32">
+            <comment>Number of logs received and queued</comment>
+        </channel>
+        <channel id="7" name="GI_LogsDownlinked" data_type="U32">
+            <comment>Number of logs downlinked</comment>
+        </channel>
+        <channel id="8" name="GI_CmdsUplinked" data_type="U32">
+            <comment>Number of commands uplinked.</comment>
+        </channel>
+        <channel id="9" name="GI_CmdsSent" data_type="U32">
+            <comment>Commands sent to Command Dispatcher</comment>
+        </channel>
+        <channel id="10" name="GI_UplinkPktErrs" data_type="U32">
+            <comment>Number of uplinked packets with errors</comment>
+        </channel>
+        <channel id="11" name="GI_AppBytesReceived" data_type="U32">
+            <comment>Number of bytes from packets from components not TlmChan, ComLogger received</comment>
+        </channel>
+        <channel id="12" name="GI_AppBytesDownlinked" data_type="U32">
+            <comment>Number of bytes from packets from components not TlmChan, ComLogger downlinked</comment>
+        </channel>
+    </telemetry>
+
+        
+    <!-- LOGS -->
+
+    <events>
+        <event id="0" name="GI_UplinkedPacketError" severity="WARNING_HI" format_string="Error with uplinked packet %d %d %d">
+            <comment>Error validating uplinked packet</comment>
+            <args>
+                <arg name="errorType" type="ENUM">
+                    <enum name="uplinkedPacketError">
+                        <item name="MISMATCHED_LENGTH" />
+                        <item name="OUT_OF_SEQUENCE" />
+                        <item name="BAD_CHECKSUM" />
+                    </enum>
+                </arg>
+                <arg name="expected" type="I32">
+                </arg>
+                <arg name="got" type="I32">
+                </arg>
+            </args>
+        </event>
+        <event id="1" name="GI_CommandReceived" severity="ACTIVITY_HI" format_string="Command Received %d %d">
+            <comment>A command packet was received. One command per packet (and datagram) is strictly enforced</comment>
+            <args>
+                <arg name="seq" type="U8"></arg>
+                <arg name="checksum" type="U16"></arg>
+            </args>
+        </event>
+        <event id="2" name="GI_DownlinkedPacket" severity="ACTIVITY_LO" format_string="Packet Downlinked %d %d %d">
+            <comment>A packet sent to UDP receiver for downlink</comment>
+            <args>
+                <arg name="seq" type="U8"></arg>
+                <arg name="checksum" type="U16"></arg>
+                <arg name="length" type="U16"></arg>
+            </args>
+        </event>
+        <event id="3" name="GI_DownlinkedItem" severity="DIAGNOSTIC" format_string="Item Fownlinked %d %d">
+            <comment>An item was added to the packet for downlink</comment>
+            <args>
+                <arg name="seq" type="U8"></arg>
+                <arg name="from" type="ENUM">
+                    <enum name="downlinkPacketType">
+                        <item name="telemetry" />
+                        <item name="log" />
+                        <item name="file" />
+                    </enum>
+                </arg>
+            </args>
+        </event>
+    </events>
+            
+</component>

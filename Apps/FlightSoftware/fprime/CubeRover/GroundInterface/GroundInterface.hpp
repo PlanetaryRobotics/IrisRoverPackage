@@ -78,9 +78,9 @@ namespace CubeRover {
           Fw::Buffer &fwBuffer 
       );
 
-      //! Handler implementation for downlinkBufferSend
+      //! Handler implementation for cmdUplink
       //!
-      void downlinkBufferSend_handler(
+      void cmdUplink_handler(
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
           Fw::Buffer &fwBuffer 
       );

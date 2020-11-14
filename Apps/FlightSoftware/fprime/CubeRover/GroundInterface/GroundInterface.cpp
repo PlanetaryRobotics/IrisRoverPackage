@@ -83,7 +83,7 @@ namespace CubeRover {
   }
 
   void GroundInterfaceComponentImpl ::
-    downlinkBufferSend_handler(
+    cmdUplink_handler(
         const NATIVE_INT_TYPE portNum,
         Fw::Buffer &fwBuffer
     )

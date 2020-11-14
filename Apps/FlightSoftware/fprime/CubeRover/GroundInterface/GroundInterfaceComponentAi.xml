@@ -33,7 +33,7 @@
             </comment>
         </port>
             
-        <port name="cmdUplink" data_type="Fw::Com"  kind="sync_input"    max_number="2">
+        <port name="cmdUplink" data_type="Fw::BufferSend"  kind="sync_input"    max_number="2">
             <comment>
                 GroundInterface validates and forwards deserialized a uplinked command to CmdDispatcher.
                 0: WatchDog Serial  1: WF121

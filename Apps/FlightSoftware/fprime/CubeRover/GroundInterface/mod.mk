@@ -1,3 +1,3 @@
-SRC = GroundInterfaceComponentAi.xml
+SRC = GroundInterfaceComponentAi.xml GroundInterface.cpp
 
-HDR = 
+HDR = GroundInterface.hpp

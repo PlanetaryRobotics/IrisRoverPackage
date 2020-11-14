@@ -15,7 +15,7 @@
 
 #include "CubeRover/GroundInterface/GroundInterfaceComponentAc.hpp"
 
-namespace Svc {
+namespace CubeRover {
 
   class GroundInterfaceComponentImpl :
     public GroundInterfaceComponentBase
@@ -95,6 +95,6 @@ namespace Svc {
 
     };
 
-} // end namespace Svc
+} // end namespace CubeRover
 
 #endif

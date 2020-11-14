@@ -14,7 +14,7 @@
 #include <CubeRover/GroundInterface/GroundInterfaceComponentImpl.hpp>
 #include "Fw/Types/BasicTypes.hpp"
 
-namespace Svc {
+namespace CubeRover {
 
   // ----------------------------------------------------------------------
   // Construction, initialization, and destruction
@@ -100,4 +100,4 @@ namespace Svc {
     // TODO
   }
 
-} // end namespace Svc
+} // end namespace CubeRover

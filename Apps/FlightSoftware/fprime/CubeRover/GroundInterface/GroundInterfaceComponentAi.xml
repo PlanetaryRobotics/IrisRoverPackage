@@ -165,9 +165,9 @@
                 <arg name="seq" type="U8"></arg>
                 <arg name="from" type="ENUM">
                     <enum name="downlinkPacketType">
-                        <item name="telemetry" />
-                        <item name="log" />
-                        <item name="file" />
+                        <item name="DownlinkTelemetry" />
+                        <item name="DownlinkLog" />
+                        <item name="DownlinkFile" />
                     </enum>
                 </arg>
             </args>

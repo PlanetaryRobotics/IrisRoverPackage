@@ -11,9 +11,9 @@
 // ======================================================================
 
 
-#include <CubeRover/GroundInterface/GroundInterfaceComponentImpl.hpp>
+#include <CubeRover/GroundInterface/GroundInterface.hpp>
 #include "Fw/Types/BasicTypes.hpp"
-#include <CubeRoverConfig.hpp>
+#include <cstring>
 
 namespace CubeRover {
 
@@ -26,13 +26,19 @@ namespace CubeRover {
     GroundInterfaceComponentImpl(
         const char *const compName
     ) :
-      GroundInterfaceComponentBase(compName),
-      m_uplinkSeq(0), m_downlinkSeq(0)
+      GroundInterfaceComponentBase(compName)
 #else
     GroundInterfaceComponentImpl(void)
 #endif
   {
-
+      m_uplinkSeq = 0; m_downlinkSeq = 0;
+      m_packetsRx = 0; m_packetsTx = 0;
+      m_tlmItemsReceived = 0; m_tlmItemsDownlinked = 0;
+      m_logsReceived = 0; m_logsDownlinked = 0;
+      m_cmdsUplinked = 0; m_cmdsSent = 0; m_cmdErrs = 0;
+      m_appBytesReceived = 0; m_appBytesDownlinked = 0;
+      m_downlinkBufferPos = m_downlinkBuffer;
+      m_downlinkBufferSpaceAvailable = DOWNLINK_BUFFER_SIZE;
   }
 
   void GroundInterfaceComponentImpl ::
@@ -60,7 +66,12 @@ namespace CubeRover {
         U32 context
     )
   {
-    // TODO
+    m_tlmItemsReceived++;
+    const U8 *tlmData = data.getBuffAddr();
+    uint16_t length = static_cast<uint16_t>(data.getBuffLength());
+    downlinkBufferWrite(tlmData, length, DownlinkTelemetry);
+    m_tlmItemsDownlinked++;
+    updateTelemetry();
   }
 
   void GroundInterfaceComponentImpl ::
@@ -93,18 +104,18 @@ namespace CubeRover {
     
     m_packetsRx++;
 
-    struct FswPacketHeader *packet = reinterpret_cast<struct FswPacketHeader *>(fwBuffer.getdata());
+    struct FswPacket *packet = reinterpret_cast<struct FswPacket *>(fwBuffer.getdata());
     U32 buffer_size = fwBuffer.getsize();
-    if (buffer_size != packet->length) {
+    if (buffer_size != packet->header.length) {
         m_cmdErrs++;
-        log_WARNING_HI_GI_UplinkedPacketError(MISMATCHED_LENGTH,
-                packet->length, static_cast<U16>(buffer_size));
+        log_WARNING_HI_GI_UplinkedPacketError(MISMATCHED_LENGTH, packet->header.length,
+                static_cast<U16>(buffer_size));
     }
     
-    if (packet->seq != m_uplinkSeq + 1) {
+    if (packet->header.seq != m_uplinkSeq + 1) {
         // Out of sequence packet! Drop!
     }
-    m_uplinkSeq = packet->seq;
+    m_uplinkSeq = packet->header.seq;
     
     // TODO: Compute checksum
     
@@ -114,17 +125,49 @@ namespace CubeRover {
     }
     
     m_cmdsUplinked++;
-    log_ACTIVITY_HI_GI_CommandReceived(packet->seq, packet->length);
-    Fw::ComBuffer command(reinterpret_cast<uint8_t *>(packet), packet->length);
+    log_ACTIVITY_HI_GI_CommandReceived(packet->header.seq, packet->header.length);
+    Fw::ComBuffer command(reinterpret_cast<uint8_t *>(packet), packet->header.length);
     m_cmdsSent++;
     
     cmdDispatch_out(0, command, 0);        // TODO: Arg 3 Context?
     
     updateTelemetry();
-    
   }
   
-    void updateTelemetry() {
+    void GroundInterfaceComponentImpl::downlinkBufferWrite(const uint8_t *data, uint16_t size, downlinkPacketType from) {
+        FW_ASSERT(data);
+        FW_ASSERT(size < DOWNLINK_BUFFER_SIZE);
+        bool flushOnWrite = false;
+        if (size > m_downlinkBufferSpaceAvailable) {
+            flushDownlinkBuffer();
+        } else if (size == m_downlinkBufferSpaceAvailable) {
+            flushOnWrite = true;
+        }
+        
+        memcpy(m_downlinkBufferPos, data, size);
+        m_downlinkBufferPos += size;
+        m_downlinkBufferSpaceAvailable -= size;
+        
+        log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, from);
+        
+        if (flushOnWrite)
+            flushDownlinkBuffer();
+        
+    }
+    
+    void GroundInterfaceComponentImpl::flushDownlinkBuffer() {
+        U16 checksum;   // TODO
+        U16 length = static_cast<U16>(m_downlinkBufferPos - m_downlinkBuffer);
+        Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(m_downlinkBuffer), length);
+        log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, length);
+        downlinkBufferSend_out(0, buffer);
+        m_packetsTx++;
+        
+        m_downlinkBufferPos = m_downlinkBuffer;
+        m_downlinkBufferSpaceAvailable = DOWNLINK_BUFFER_SIZE;
+    }
+  
+    void GroundInterfaceComponentImpl::updateTelemetry() {
         tlmWrite_GI_UplinkSeqNum(m_uplinkSeq);
         tlmWrite_GI_DownlinkSeqNum(m_downlinkSeq);
         tlmWrite_GI_PacketsReceived(m_packetsRx);

@@ -14,6 +14,10 @@
 #define GroundInterface_HPP
 
 #include "CubeRover/GroundInterface/GroundInterfaceComponentAc.hpp"
+#include <Include/CubeRoverConfig.hpp>
+
+// Note struct FswPacketHeader is private to GroundInterfaceComponentImpl
+#define DOWNLINK_BUFFER_SIZE UDP_MAX_PAYLOAD - sizeof(struct FswPacketHeader)
 
 namespace CubeRover {
 
@@ -86,30 +90,12 @@ namespace CubeRover {
       );
       
       
-        // User defined methods, memebers, and structs
-        
-        void updateTelemetry();
-      
-        uint8_t  m_uplinkSeq, m_downlinkSeq;                // TLM0, TLM1
-        uint32_t m_packetsRx, m_packetsTx,                  // TLM2, TLM3
-                 m_tlmItemsReceived m_tlmItemsDownlinked,   // TLM4, TLM5
-                 m_logsReceived, m_logsDownlinked,          // TLM6, TLM7
-                 m_cmdsUplinked, m_cmdsSent, m_cmdErrs,     // TLM8, TLM9, TLM10
-                 m_appBytesReceived, m_appBytesDownlinked;  // TLM11, TLM 12
+        // User defined methods, members, and structs
       
         struct FswPacketHeader {
             uint8_t seq;
             uint16_t checksum;
             uint16_t length;
-            union {
-               uint8_t startByte;
-               struct FswCommand command;
-               struct FswTelemetry telemetry;
-               struct Fswlog log;
-            } payload1;
-            // Additional telemetry or logs (but not commands) can follow the first
-            // object in the payload, payload1, up until the end of the packet determined
-            // by length.
         };
         
         struct FswCommand {
@@ -121,14 +107,42 @@ namespace CubeRover {
         
         struct FswTelemetry {
             uint8_t magic;
-            uint8_t comBuffer[ComBuffer::SERIALIZED_SIZE];  // The maximum possible size for an comBuffer Object
+            uint8_t comBuffer[Fw::ComBuffer::SERIALIZED_SIZE];  // The maximum possible size for an comBuffer Object
         };
         
         struct FswLog {
             uint8_t magic;
-            uint8_t comBuffer[ComBuffer::SERIALIZED_SIZE];  // The maximum possible size for an comBuffer Object
+            uint8_t comBuffer[Fw::ComBuffer::SERIALIZED_SIZE];  // The maximum possible size for an comBuffer Object
         };
         
+        struct FswPacket {
+            struct FswPacketHeader header;
+            union {
+               uint8_t startByte;
+               struct FswCommand command;
+               struct FswTelemetry telemetry;
+               struct FswLog log;
+            } payload1;
+            // Additional telemetry or logs (but not commands) can follow the first
+            // object in the payload, payload1, up until the end of the packet determined
+            // by length.
+        };
+            
+        void downlinkBufferWrite(const uint8_t *data, uint16_t size, downlinkPacketType from);
+        void flushDownlinkBuffer();
+        void updateTelemetry();
+      
+        uint8_t  m_uplinkSeq, m_downlinkSeq;                // TLM0, TLM1
+        uint32_t m_packetsRx, m_packetsTx,                  // TLM2, TLM3
+                 m_tlmItemsReceived, m_tlmItemsDownlinked,  // TLM4, TLM5
+                 m_logsReceived, m_logsDownlinked,          // TLM6, TLM7
+                 m_cmdsUplinked, m_cmdsSent, m_cmdErrs,     // TLM8, TLM9, TLM10
+                 m_appBytesReceived, m_appBytesDownlinked;  // TLM11, TLM 12
+        
+        uint8_t m_downlinkBuffer[DOWNLINK_BUFFER_SIZE];
+        uint8_t *m_downlinkBufferPos;
+        uint16_t m_downlinkBufferSpaceAvailable;
+      
 
     };
 

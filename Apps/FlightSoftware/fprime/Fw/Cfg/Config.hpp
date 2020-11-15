@@ -12,6 +12,8 @@
 #ifndef _FW_CONFIG_HPP_
 #define _FW_CONFIG_HPP_
 
+#include <Include/CubeRoverFPrimeConfig.hpp>      // PrimaryFlightController/FlightMCU    ..   Project specific overrides
+
 // A helper macro to declare errors in definitions of the constants
 #define FW_CONFIG_ERROR( condition, name )\
     typedef char assert_failed_ ## name [ (condition) ? 1 : -1 ];

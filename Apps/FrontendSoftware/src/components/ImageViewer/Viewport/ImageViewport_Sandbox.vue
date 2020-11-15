@@ -60,9 +60,12 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
 
       <!-- POI Manual Drag Select -->
       <div class="canvas-wrapper port">
-        <canvas id="featurevp" class="port POIport" style="z-index: 1"
-        v-on:mouseover.stop="mouseOnPOICanvasLayer"
-        v-on:mouseout.stop="mouseOffPOICanvasLayer"
+        <canvas
+          id="featurevp"
+          class="port POIport"
+          style="z-index: 1"
+          v-on:mouseover.stop="mouseOnPOICanvasLayer"
+          v-on:mouseout.stop="mouseOffPOICanvasLayer"
         >
         </canvas>
 
@@ -234,14 +237,14 @@ export default {
   },
 
   methods: {
-    mouseOnPOICanvasLayer(){
+    mouseOnPOICanvasLayer() {
       this.cursorOnPOICanvasLayer = true;
     },
 
-    mouseOffPOICanvasLayer(){
+    mouseOffPOICanvasLayer() {
       this.cursorOnPOICanvasLayer = false;
     },
-    
+
     onPOIChoiceSelected(val) {
       this.arePOIFullDetailsVisible = true;
       this.initalPOIChoiceSelected = val;
@@ -494,35 +497,55 @@ export default {
 
     // On mouse down in image port, draw rectangle selector and get start coordinates
     onMouseDown(event) {
+      console.log("curr: ", [event.offsetX, event.offsetY]);
       // Ignore right click
       if (event.button === 2) {
         return;
       }
 
       // Get rect coordinates of POI Layer
-      let sideMargin = Math.abs(this.poiLayer.width - document.getElementById("portContainer").clientWidth)/2;
-      let topBottomMargin = Math.abs(this.poiLayer.height - document.getElementById("portContainer").clientHeight)/2;
-      console.log("topBottomMargins: ", topBottomMargin)
-      console.log("x,y coords: ", [event.x, event.y])
-      console.log("client coords: ", [event.clientX, event.clientY])
+      let sideMargin =
+        Math.abs(
+          this.poiLayer.width -
+            document.getElementById("portContainer").clientWidth
+        ) / 2;
+      let topBottomMargin =
+        Math.abs(
+          this.poiLayer.height -
+            document.getElementById("portContainer").clientHeight
+        ) / 2;
+      // console.log("topBottomMargins: ", topBottomMargin)
+      // console.log("x,y coords: ", [event.x, event.y])
+      // console.log("client coords: ", [event.clientX, event.clientY])
       this.poiLayerCornerCoords = [
         // top left
         [sideMargin, topBottomMargin],
         // top right
-        [document.getElementById("portContainer").clientWidth-sideMargin, topBottomMargin],
+        [
+          document.getElementById("portContainer").clientWidth - sideMargin,
+          topBottomMargin,
+        ],
         // bottom right
-        [document.getElementById("portContainer").clientWidth-sideMargin, document.getElementById("portContainer").clientHeight-topBottomMargin],
+        [
+          document.getElementById("portContainer").clientWidth - sideMargin,
+          document.getElementById("portContainer").clientHeight -
+            topBottomMargin,
+        ],
         // bottom left
-        [sideMargin, document.getElementById("portContainer").clientHeight-topBottomMargin],
+        [
+          sideMargin,
+          document.getElementById("portContainer").clientHeight -
+            topBottomMargin,
+        ],
       ];
 
-      console.log(this.poiLayerCornerCoords)
+      // console.log(this.poiLayerCornerCoords)
 
       // reset end coord if already exists
       if (this.endCoord.length > 0) {
         this.endCoord = [];
       }
-      if(this.cursorOnPOICanvasLayer){
+      if (this.cursorOnPOICanvasLayer) {
         this.startCoord = [event.offsetX, event.offsetY];
         this.isMouseDown = true;
       }
@@ -548,7 +571,7 @@ export default {
           // console.log("no offset: ", event.y);
           // console.log("offset: ", this.endCoord[1]);
           // console.log("----------")
-          
+
           // Ensures selection box constrained to image
           /* DEBUG:
           right
@@ -575,35 +598,32 @@ export default {
 
             // if cursor went past right boundary of image container
             if (this.endCoord[0] > this.poiLayer.width) {
-              console.log("right")
+              console.log("right");
               this.endCoord[0] = this.poiLayer.width;
             }
             // if cursor went past top boundary of image container
             else if (
-              (this.endCoord[1] <= 0) ||
-              (Math.abs(event.y-this.endCoord[1]) < 48)
+              this.endCoord[1] <= 0 ||
+              Math.abs(event.y - this.endCoord[1]) < 48
             ) {
-              console.log("top")
+              console.log("top");
               this.endCoord[1] = 0;
               this.isMouseDown = false;
             }
             // if cursor went past left boundary of image container
             else if (
-              (this.endCoord[0] <= 0) ||
-              (Math.abs(event.x-this.endCoord[0]) < 23)
+              this.endCoord[0] <= 0 ||
+              Math.abs(event.x - this.endCoord[0]) < 23
             ) {
-              console.log("left")
+              console.log("left");
               this.endCoord[0] = 0;
             }
           }
 
           // save last x coord
 
-
           this.setUpPOISelection();
-        } 
-        
-        else if (
+        } else if (
           this.POISelectionInstructions &&
           this.capSciInstructionsOpen
         ) {
@@ -709,17 +729,40 @@ export default {
         this.showPOIChoiceModal();
       }
 
-      // if box prev dragged
+      // if box prev dragged, set update default box coordinates
       if (this.dragCapSciBoxActivate) {
-        this.baseXOffset = Math.abs(
-          this.capSciExpandBoxEndCoords[0] -
-            (this.greenBoxTopLeftCoords[0] + this.baseXOffset)
-        );
+        if (this.dragSide == "left") {
+          this.baseXOffset = Math.abs(
+            this.capSciExpandBoxEndCoords[0] -
+              (this.greenBoxTopLeftCoords[0] + this.baseXOffset)
+          );
+        } else if (this.dragSide == "right") {
+          this.baseXOffset = Math.abs(
+            this.capSciExpandBoxEndCoords[0] - this.greenBoxTopLeftCoords[0]
+          );
+        } else if (this.dragSide == "top") {
+          this.baseYOffset = Math.abs(
+            this.capSciExpandBoxEndCoords[1] -
+              (this.greenBoxTopLeftCoords[1] + this.baseYOffset)
+          );
+        } else if (this.dragSide == "bottom") {
+          this.baseYOffset = Math.abs(
+            this.capSciExpandBoxEndCoords[1] - this.greenBoxTopLeftCoords[1]
+          );
+        }
 
-        this.greenBoxTopLeftCoords = [
-          this.capSciExpandBoxEndCoords[0],
-          this.greenBoxTopLeftCoords[1],
-        ];
+        if (this.dragSide == "left") {
+          this.greenBoxTopLeftCoords = [
+            this.capSciExpandBoxEndCoords[0],
+            this.greenBoxTopLeftCoords[1],
+          ];
+        }
+        else if(this.dragSide == "top"){
+          this.greenBoxTopLeftCoords = [
+            this.greenBoxTopLeftCoords[0],
+            this.capSciExpandBoxEndCoords[1],
+          ]
+        }
       }
     },
 

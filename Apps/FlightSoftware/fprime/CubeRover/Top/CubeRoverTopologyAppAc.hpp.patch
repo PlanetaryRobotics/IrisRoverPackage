@@ -12,6 +12,9 @@
 -extern Svc::CubeRoverTimeImpl cubeRoverTime("cubeRoverTime");
 -extern Svc::TlmChanImpl tlmChan("tlmChan");
 -extern Svc::CommandDispatcherImpl cmdDispatcher("cmdDispatcher");
+-extern Svc::ActiveLoggerImpl activeLogger("activeLogger");
+-extern Svc::HealthImpl health("health");
+-extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface("watchDogInterface");
 +extern Drv::BlockDriverImpl blockDriver;
 +extern Svc::RateGroupDriverImpl rateGroupDriver;
 +extern Svc::ActiveRateGroupImpl rateGroupMedFreq;
@@ -20,6 +23,8 @@
 +extern Svc::CubeRoverTimeImpl cubeRoverTime;
 +extern Svc::TlmChanImpl tlmChan;
 +extern Svc::CommandDispatcherImpl cmdDispatcher;
- 
++extern Svc::ActiveLoggerImpl activeLogger;
++extern Svc::HealthImpl health;
++extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
  
  

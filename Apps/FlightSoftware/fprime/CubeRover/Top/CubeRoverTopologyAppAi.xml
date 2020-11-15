@@ -11,6 +11,8 @@
   <import_component_type>Svc/TlmChan/TlmChanComponentAi.xml</import_component_type>
   <import_component_type>Svc/CmdDispatcher/CommandDispatcherComponentAi.xml</import_component_type>
   <import_component_type>Svc/ActiveLogger/ActiveLoggerComponentAi.xml</import_component_type>
+  <import_component_type>Svc/Health/HealthComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/WatchDogInterface/WatchDogInterfaceComponentAi.xml</import_component_type>
 
 <!-- Declaration of block driver that drive F-prime clocking and other async event -->
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
@@ -34,6 +36,12 @@
 <!-- For CubeRover - we use external FRAM memory to store data, i.e. a custom implementation of that component is necessary -->
   <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="141" base_id_window="20" />
 
+<!-- Declaration of the health component -->
+  <instance namespace="Svc" name="health" type="Health" base_id="301" base_id_window="20" />
+
+<!-- Declaration of the WatchDog Interface component -->
+  <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="251" base_id_window="20" />
+ 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
      ********************************************************************************************************* 
@@ -77,6 +85,21 @@
         CONNECTION BETWEEN MEDIUM FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
      *********************************************************************************************************
      -->
+  <!-- Connect output of WatchDogInterface to stroke watchdog MSP430 (port 0) --> 
+  <connection name = "rgMedFreq_to_watchDogInterface_clk">
+    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <target component = "watchDogInterface" port = "Run" type = "Sched" num = "0"/>
+  </connection>
+
+<!-- *********************************************************************************************************
+        CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
+     *********************************************************************************************************
+     -->
+  <!-- Connect output of health to ping all components (port 0) --> 
+  <connection name = "rgHighFreq_to_health_clk">
+    <source component = "rateGroupHighFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <target component = "health" port = "Run" type = "Sched" num = "0"/>
+  </connection>
 
 <!-- *********************************************************************************************************
         CONNECTION OF TIME PORTS BETWEEN CUBEROVER TIME ALL TIME-STAMPED COMPONENTS

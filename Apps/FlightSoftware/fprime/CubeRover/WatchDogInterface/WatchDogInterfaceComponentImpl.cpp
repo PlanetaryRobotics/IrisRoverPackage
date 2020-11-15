@@ -41,10 +41,6 @@ namespace CubeRover {
         const NATIVE_INT_TYPE instance
     )
   {
-    // Configure UART with watchdog MSP430
-    Configure_UART(UART_id, UART_rate, UART_data, UART_stop, UART_parity, UART_flow);
-    // Pull high RTS: not ready to receive data
-    gioSetBit(gioPORTB, 3, 1);  //NOTE: THIS IS THE WIFI PORT, *****MUST***** CHANGE THIS TO CORRECT WATCHDOG PORT
     WatchDogInterfaceComponentBase::init(queueDepth, instance);
   }
 
@@ -64,19 +60,7 @@ namespace CubeRover {
         U32 key
     )
   {
-    this->pingOut_out(0, key);
-  }
-
-  void WatchDogInterfaceComponentImpl ::
-    CmdInput_handler(
-        const NATIVE_INT_TYPE portNum,
-        FwOpcodeType opCode,
-        U32 cmdSeq,
-        Fw::CmdArgBuffer &args
-    )
-  {
-    // TODO
-    // how is this different than the command functions defined below?
+    this->PingOut_out(0, key);
   }
 
   void WatchDogInterfaceComponentImpl ::
@@ -86,14 +70,17 @@ namespace CubeRover {
     )
   {
     // This run handler happens every 1-100 hz (overview says 100 hz, specific says 1 hz)
-    // Sends a U32 to the watchdog as defined in design document. Checks stroke value as to what to send watchdog
+    // Sends two U8's to the watchdog as defined in design document. Checks stroke value as to what to send watchdog
     // May need to wait to send command everytime it runs as could be a lot of commands
 	// Create watchdog stroke equal to 1 as first bit 1 to tell watchdog scheduled, rest bits 0 to not reset anything
-    U32 watchdog_stroke = 1;
+    U8 watchdog_stroke = 0;
+    // Send first byte of stroke
     linSend(linREG, &watchdog_stroke);
-    // Check for Response from MSP430 Watchdog
-    U32 watchdog_reponse;
-    linGetData(linREG, &watchdog_reponse);
+    // Send second byte of stroke
+    linSend(linREG, &watchdog_stroke);
+    // Check for Response from MSP430 Watchdog (done twice for each byte)
+    U8 watchdog_reponse_1;
+    linGetData(linREG, &watchdog_reponse_1);
     // Check for timeout of response
     U32 comm_error = linGetStatusFlag(linREG);
     if(comm_error == LIN_TO_INT)
@@ -101,7 +88,27 @@ namespace CubeRover {
     	this->log_WARNING_HI_WatchDogTimedOut();
     }
     // Check that response is the same as what was sent
-    if(watchdog_reponse != watchdog_reset)
+    if(watchdog_reponse_1 != watchdog_stroke)
+    {
+    	this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
+    }
+	// Check for any watchdog errors (NOTE: not sure that comm_error should be zero if no errors)
+    if(comm_error)
+    {
+    	this->log_WARNING_HI_WatchDogCommError(comm_error);
+    }
+
+    // Check for second byte
+    U8 watchdog_reponse_2;
+    linGetData(linREG, &watchdog_reponse_2);
+    // Check for timeout of response
+    comm_error = linGetStatusFlag(linREG);
+    if(comm_error == LIN_TO_INT)
+    {
+    	this->log_WARNING_HI_WatchDogTimedOut();
+    }
+    // Check that response is the same as what was sent
+    if(watchdog_reponse_2 != watchdog_stroke)
     {
     	this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
     }
@@ -128,78 +135,44 @@ namespace CubeRover {
   // ----------------------------------------------------------------------
 
   void WatchDogInterfaceComponentImpl ::
-    Reset Everything_cmdHandler(
-        const FwOpcodeType opCode,
-        const U32 cmdSeq
-    )
-  {
-  	// Send Activity Log/tlm to know watchdog recieved command
-  	char command_type[] = "Reset Everything";
-  	this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type);
-  	this->tlmWrite_LAST_COMMAND(command_type);
-    // Sends a command to watchdog to reset all devices AND resets all components (how to do that is TBD)
-    // Set watchdog_reset to all 1's from bits 1-17, 0's for bit's 0 and 18-31
-    U32 watchdog_reset = 0x7FFFC000;
-    // Send watchdog_reset to MSP430 watchdog
-    linSend(linREG, &watchdog_reset);
-    // Reset all Components (UNDECIDED YET)
-    // TODO
-    // Check for Response from MSP430 Watchdog
-    U32 watchdog_reponse;
-    linGetData(linREG, &watchdog_reponse);
-    // Check for timeout of response
-    U32 comm_error = linGetStatusFlag(linREG);
-    if(comm_error == LIN_TO_INT)
-    {
-    	this->log_WARNING_HI_WatchDogTimedOut();
-    }
-    // Check that response is the same as what was sent
-    if(watchdog_reponse != watchdog_reset)
-    {
-    	this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-    }
-	// Check for any watchdog errors (NOTE: not sure that comm_error should be zero if no errors)
-    if(comm_error)
-    {
-    	this->log_WARNING_HI_WatchDogCommError(comm_error);
-    }
-    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
-  }
-
-  void WatchDogInterfaceComponentImpl ::
-    Reset Specific_cmdHandler(
+    Reset_Specific_cmdHandler(
         const FwOpcodeType opCode,
         const U32 cmdSeq,
-        U32 reset_value
+        U16 reset_value
     )
   {
   	// Send Activity Log/tlm to know watchdog recieved command
-  	char command_type[50] = "Reset Specific:";
-  	char reset_val_char[32];
+  	char command_type[32] = "Reset Specific:";
+  	char reset_val_char[16];
   	sprintf(reset_val_char, "%u", reset_val_char);
   	strcat(command_type, reset_val_char);
-  	this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type);
-  	this->tlmWrite_LAST_COMMAND(command_type);
+  	Fw::LogStringArg command_type_log = command_type;
+  	Fw::TlmString command_type_tlm = command_type;
+  	this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
+  	this->tlmWrite_LAST_COMMAND(command_type_tlm);
 
     // Sends a command to watchdog to reset specified devices. Can be hardware through watchdog or component
-    // Isolate the first bit of the reset_value to know if we're reseting hardware or component
-    U32 reset_choice = reset_value & 1;
-    // If reset_choice == 1, we are resetting components
-    if(reset_choice)
+
+    // If reset_value is greater than 0x20, we are resetting a software component
+    if(reset_value > 0x20)
     {
       // Reset Components (UNDECIDED YET)
       // TODO
     }
-    // If reset_choice == 0, we are resetting hardware
+    // If reset_value less than or equal to 0x20, we are resetting hardware
     else
     {
-      	// Copy value of reset_value but set 0 bit and bits 18-31 to zero
-      	U32 watchdog_reset = reset_value & 0x7FFFC000;
+      	// Copy first byte of reset value
+      	U8 watchdog_reset_byte1 = static_cast<U8>(reset_value);
       	// Send watchdog_reset to MSP430 watchdog
-      	linSend(linREG, &watchdog_reset);
-		// Check for Response from MSP430 Watchdog
-	    U32 watchdog_reponse;
-	    linGetData(linREG, &watchdog_reponse);
+      	linSend(linREG, &watchdog_reset_byte1);
+      	// Copy second byte of reset value by shifting reset_value by 8 bits
+      	U8 watchdog_reset_byte2 = static_cast<U8>(reset_value >> 8);
+      	// Send watchdog_reset to MSP430 watchdog
+      	linSend(linREG, &watchdog_reset_byte2);
+		// Check for first byte Response from MSP430 Watchdog
+	    U8 watchdog_reponse_byte1;
+	    linGetData(linREG, &watchdog_reponse_byte1);
 	    // Check for timeout of response
 	    U32 comm_error = linGetStatusFlag(linREG);
 	    if(comm_error == LIN_TO_INT)
@@ -207,7 +180,27 @@ namespace CubeRover {
 	    	this->log_WARNING_HI_WatchDogTimedOut();
 	    }
 	    // Check that response is the same as what was sent
-	    if(watchdog_reponse != watchdog_reset)
+	    if(watchdog_reponse_byte1 != watchdog_reset_byte1)
+	    {
+	    	this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
+	    }
+		// Check for any watchdog errors (NOTE: not sure that comm_error should be zero if no errors)
+	    if(comm_error)
+	    {
+	    	this->log_WARNING_HI_WatchDogCommError(comm_error);
+	    }
+
+	    // Check for second byte Response from MSP430 Watchdog
+	    U8 watchdog_reponse_byte2;
+	    linGetData(linREG, &watchdog_reponse_byte2);
+	    // Check for timeout of response
+	    comm_error = linGetStatusFlag(linREG);
+	    if(comm_error == LIN_TO_INT)
+	    {
+	    	this->log_WARNING_HI_WatchDogTimedOut();
+	    }
+	    // Check that response is the same as what was sent
+	    if(watchdog_reponse_byte2 != watchdog_reset_byte2)
 	    {
 	    	this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
 	    }

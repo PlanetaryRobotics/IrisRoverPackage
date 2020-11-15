@@ -71,7 +71,7 @@ SVC_MODULES := \
 	Svc/FileDownlink \
     Svc/AssertFatalAdapter \
     Svc/FatalHandler \
-	Svc/FileManager
+	Svc/FileManager 
 	
 DEMO_DRV_MODULES := \
 	Drv/DataTypes \

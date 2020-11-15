@@ -6,10 +6,9 @@
 
 |Mnemonic|ID|Description|Arg Name|Arg Type|Comment
 |---|---|---|---|---|---|
-|Reset Everything|0 (0x0)|Command to reset the entire rover| | |
-|Reset Specific|1 (0x1)|Command to reset the specific parts of rover| | |
-| | | |reset_value|U32|
-                    	U32 Value where each bit represents which component/device to reset (0 = no reset, 1 = reset)
+|Reset_Specific|0 (0x0)|Command to reset the specific parts of rover| | |
+| | | |reset_value|U16|
+                    	U16 Value that specifies which components or hardware need to be reset
                     |
 
 ## Telemetry Channel List

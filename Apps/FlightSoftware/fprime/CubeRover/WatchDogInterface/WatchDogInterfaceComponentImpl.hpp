@@ -64,15 +64,6 @@ namespace CubeRover {
           U32 key /*!< Value to return to pinger*/
       );
 
-      //! Handler implementation for CmdInput
-      //!
-      void CmdInput_handler(
-          const NATIVE_INT_TYPE portNum, /*!< The port number*/
-          FwOpcodeType opCode, /*!< Command Op Code*/
-          U32 cmdSeq, /*!< Command Sequence*/
-          Fw::CmdArgBuffer &args /*!< Buffer containing arguments*/
-      );
-
       //! Handler implementation for Run
       //!
       void Run_handler(
@@ -93,19 +84,12 @@ namespace CubeRover {
       // Command handler implementations
       // ----------------------------------------------------------------------
 
-      //! Implementation for Reset Everything command handler
-      //! Command to reset the entire rover
-      void Reset Everything_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
-      );
-
       //! Implementation for Reset Specific command handler
       //! Command to reset the specific parts of rover
-      void Reset Specific_cmdHandler(
+      void Reset_Specific_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq, /*!< The command sequence number*/
-          U32 reset_value /*!< 
+          U16 reset_value /*!< 
                     	U32 Value where each bit represents which component/device to reset (0 = no reset, 1 = reset)
                     */
       );

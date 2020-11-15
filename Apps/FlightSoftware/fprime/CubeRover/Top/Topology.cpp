@@ -80,6 +80,21 @@ Svc::CommandDispatcherImpl cmdDispatcher(
 #endif
 );
 
+// ---------------------------------------------------------------------------
+// watchdog interface to tell watchdog commands/stroke watchdog
+CubeRover::WatchDogInterfaceComponentImpl watchDogInterface(
+#if FW_OBJECT_NAMES == 1
+        "WatchDogInterface"
+#endif
+);
+
+// ---------------------------------------------------------------------------
+// health components to keep track of health of components
+Svc::HealthImpl healthImpl(
+#if FW_OBJECT_NAMES == 1
+        "Health"
+#endif
+);
 
 
 /**
@@ -107,11 +122,25 @@ void constructApp(void){
   // Initialize cubeRover time component (passive)
   cubeRoverTime.init(0);
 
+  // Initialize the watchdog interface component (queued)
+  watchDogInterface.init(1,          /*Queue Depth*/
+                         0);         /*Instance Number*/
+
+  // Initialize the health component (queued)
+  health.init(25,                   /*Queue Depth*/
+              0);                   /*Instance Number*/
+
   // Initialize the telemetric channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
 
   // Construct the application and make all connections between components
   constructCubeRoverArchitecture();
+
+  // Register Health Commands
+  health.regCommands();
+
+  // Register WatchDog Interface Commands
+  watchDogInterface.regCommands();
 
   rateGroupLowFreq.start(0, /* identifier */
                        RG_LOW_FREQ_AFF, /* Thread affinity */
@@ -132,4 +161,12 @@ void constructApp(void){
   tlmChan.start(0, /* identifier */
                 TLM_CHAN_AFF, /* thread affinity */
                 TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+
+  // Set Health Ping Entries
+  Svc::HealthImpl::PingEntry pingEntries[] = {
+    // {3, 5, name.getObjName()},
+  };
+
+  // Register ping table
+  health.setPingEntries(pingEntries,FW_NUM_ARRAY_ELEMENTS(pingEntries),0x123);
 }

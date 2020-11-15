@@ -72,6 +72,11 @@
 #define UDP_MAX_PAYLOAD     978     // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 768
 // 1006byte - 20byte IPv4 header - 8byte UDP header = 978byte payload
 
+// Magic fields for Fsw packet header
+#define COMMAND_MAGIC       0x42
+#define TELEMETRY_MAGIC     0x7e
+#define LOG_MAGIC           0xac
+#define FILE_MAGIC          0xbf
 
 
 #endif /* INCLUDE_CUBEROVERCONFIG_HPP_ */

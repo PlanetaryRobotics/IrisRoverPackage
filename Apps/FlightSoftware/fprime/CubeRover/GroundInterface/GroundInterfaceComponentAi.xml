@@ -83,11 +83,11 @@
     <!-- TELEMETRY -->
 
     <telemetry>
-        <channel id="0" name="GI_UplinkSeqNum" data_type="U32">
+        <channel id="0" name="GI_UplinkSeqNum" data_type="U8">
             <comment>Increment the uplink sequence number every packet</comment>
         </channel>
-        <channel id="1" name="GI_DownlinkSeqNum" data_type="U32">
-            <comment>Increment the downlink sequence number every packet</comment>
+        <channel id="1" name="GI_DownlinkSeqNum" data_type="U8">
+            <comment>Update the downlink sequence number every packet</comment>
         </channel>
         <channel id="2" name="GI_PacketsReceived" data_type="U32">
             <comment>Number of packets received from link to F'</comment>
@@ -111,7 +111,7 @@
             <comment>Number of commands uplinked.</comment>
         </channel>
         <channel id="9" name="GI_CmdsSent" data_type="U32">
-            <comment>Commands sent to Command Dispatcher</comment>
+            <comment>Commands sent to Command Dispatcher queue.</comment>
         </channel>
         <channel id="10" name="GI_UplinkPktErrs" data_type="U32">
             <comment>Number of uplinked packets with errors</comment>
@@ -138,9 +138,9 @@
                         <item name="BAD_CHECKSUM" />
                     </enum>
                 </arg>
-                <arg name="expected" type="I32">
+                <arg name="expected" type="U16">
                 </arg>
-                <arg name="got" type="I32">
+                <arg name="got" type="U16">
                 </arg>
             </args>
         </event>

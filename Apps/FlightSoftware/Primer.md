@@ -1,8 +1,6 @@
 # F-Prime Primer
 
-Justin N. 
-
-Read the F-Prime user guide for more information!
+Notes about F-Prime by Justin N. **Read the F-Prime user guide and source for more information!**
 
 ## Differentiating Telemetry and Logs 
 
@@ -91,3 +89,49 @@ to handle asynchronous messages.
 - `Svc/Health`: Queued component with async/sync inputs
 - `Svc/ActiveRateGroup`: Active component with async/sync inputs
 - `Svc/TlmChan`: Active component with guarded/async inputs
+
+## Telemetry
+
+For components that declare telemetry items, the respective ports to interface are
+automatically generated. These ports are:
+
+- `port="Tlm" type="Tlm"`
+- `port="time" type="Time"`
+
+and they shall be attached to a TlmChan component for proper storage and routing. The
+time connection is optional, but neccessary for timestamps,
+
+The telemetry item definitions take an id, name, and data type. The autocoded source will
+implement function handles for writing these telemetry items automatically. 
+
+`tlmWrite_<name>(<type>);`
+
+When this method is called, a timestamp is taken and the telemetry item is serialized
+into a `Fw::TlmBuffer` object. The if of the serialized telemetry item is the id of 
+the telemetry channel plus the base_id of the component (the base id is defined in the
+topology xml (generated into the `TopologyAppAc.cpp` file).
+
+The TlmChan component has a "scheduled" run handler which will forward collected telemetry
+out the PktSend port, one item per call, as a member allocated `Fw::ComBuffer`. The contents
+is a serialized `Fw::TlmPacket` object containing the id, timestamp and value. Note that the
+periodic task will only send fresh telemetry items as it iterates over all telemetry items.
+
+`Fw::TlmPacket` serialization is as follows: 
+
+1. `FW_PACKET_TELEM` aka packet type (`enum ComPacket::ComPacketType` aka int)
+2. Id                                (`FwChanIdType` aka `U32`, default #defined in `Fw/Cfg/Config.hpp`)
+3. Time                              (`Fw::Time` see below)
+4. Buffer                            (Variable based on telemetry value type)
+
+Packet type, and time are only serialized if `FW_AMPCS_COMPATIBLE` is **false**..
+
+### Fw::Time serialization:
+
+1. Time base    (`enum TimeBase (aka int) in `Fw/Cfg/Config.hpp`)
+2. Time context (`FwTimeContextStoreType` aka U8, default #defined in `Fw/Cfg/Config.hpp`)
+3. Seoncds      (`U32`)
+4. uSeconds     (`U32`)
+
+Note that time base and time context are only serialize if `FW_USE_TIME_BASE` or
+`FW_USE_TIME_CONTEXT` are #defined respectively. By default they are enabled in
+`fw/Cfg/Config.hpp`.

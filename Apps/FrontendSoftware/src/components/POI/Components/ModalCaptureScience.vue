@@ -13,7 +13,7 @@
       <button class="button modal-button" v-on:click="closeModal">
         CANCEL
       </button>
-      <button class="button modal-button confirm" v-on:click="closeModal">CONFIRM</button>
+      <button class="button modal-button confirm" v-on:click="confirmImage">CONFIRM</button>
     </div>
   </div>
 </template>
@@ -38,6 +38,9 @@ export default {
     closeModal() {
       this.$emit("closeCapSciModal");
     },
+    confirmImage(){
+      this.$emit("confirmCapSciImage");
+    }
   },
 };
 </script>

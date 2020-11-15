@@ -49,6 +49,7 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
           <ModalCaptureScience
             v-if="capSciConfirmationModalOpen"
             v-on:closeCapSciModal="onCloseCapSciModal"
+            v-on:confirmCapSciImage="onCapSciImageConfirmation"
           />
         </div>
 
@@ -266,6 +267,15 @@ export default {
       this.setPOILayerDimensions();
     },
 
+    onCapSciImageConfirmation(){
+      // Send box coordinates to command line
+      this.sendCapSciCoordinates();
+      console.log("Coordinates would be sent to rover CLI now")
+
+      // close Cap Sci Modal
+      this.onCloseCapSciModal();
+    },
+
     // set correct cursor icon for capture science drags
     setDragCursor() {
       if (this.dragCapSciBoxActivate) {
@@ -293,7 +303,10 @@ export default {
       // For setting up base box before drag and adjust
       if (this.dragCapSciBoxActivate) {
         // On left side drag
-        if (this.dragSide == "left") {
+        // makes sure left side doesn't get dragged past right side, if not past right side:
+        if (this.dragSide == "left" &&
+          (this.capSciExpandBoxEndCoords[0]+12) < (this.greenBoxTopLeftCoords[0] + xOffset)
+          ) {
           topLeft = [
             this.capSciExpandBoxEndCoords[0],
             this.greenBoxTopLeftCoords[1],
@@ -310,11 +323,33 @@ export default {
             this.capSciExpandBoxEndCoords[0],
             this.greenBoxTopLeftCoords[1] + yOffset,
           ];
-          // xOffset += Math.abs(this.capSciExpandBoxEndCoords[0]-this.greenBoxTopLeftCoords[0]);
+        }
+        // if left side past right side == illegal drag
+        else if (this.dragSide == "left") {
+          topLeft = [
+            this.greenBoxTopLeftCoords[0] + xOffset - 12,
+            this.greenBoxTopLeftCoords[1],
+          ];
+          topRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.greenBoxTopLeftCoords[1],
+          ];
+          bottomRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          bottomLeft = [
+            this.greenBoxTopLeftCoords[0] + xOffset - 12,
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          this.capSciExpandBoxEndCoords = topLeft;
         }
 
         // On right side drag
-        else if (this.dragSide == "right") {
+        // if legal drag (i.e. right side not past left side)
+        else if (this.dragSide == "right" && 
+          (this.capSciExpandBoxEndCoords[0] > this.greenBoxTopLeftCoords[0]+12)
+        ) {
           topLeft = [
             this.greenBoxTopLeftCoords[0],
             this.greenBoxTopLeftCoords[1],
@@ -332,9 +367,32 @@ export default {
             this.greenBoxTopLeftCoords[1] + yOffset,
           ];
         }
+        // illegal drag
+        else if (this.dragSide == "right"){
+          topLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.greenBoxTopLeftCoords[1],
+          ];
+          topRight = [
+            this.greenBoxTopLeftCoords[0] + 12,
+            this.greenBoxTopLeftCoords[1],
+          ];
+          bottomRight = [
+            this.greenBoxTopLeftCoords[0] + 12,
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          bottomLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          this.capSciExpandBoxEndCoords = topRight;
+        }
 
         // On bottom side drag
-        else if (this.dragSide == "bottom") {
+        // if legal drag (i.e. bottom side not dragged past top side)
+        else if(this.dragSide == "bottom" &&
+          this.capSciExpandBoxEndCoords[1] > (this.greenBoxTopLeftCoords[1] + 12)
+        ) {
           topLeft = [
             this.greenBoxTopLeftCoords[0],
             this.greenBoxTopLeftCoords[1],
@@ -352,9 +410,32 @@ export default {
             this.capSciExpandBoxEndCoords[1],
           ];
         }
+        // illegal drag
+        else if(this.dragSide == "bottom"){
+          topLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.greenBoxTopLeftCoords[1],
+          ];
+          topRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.greenBoxTopLeftCoords[1],
+          ];
+          bottomRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.greenBoxTopLeftCoords[1] + 12,
+          ];
+          bottomLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.greenBoxTopLeftCoords[1] + 12,
+          ];
+          this.capSciExpandBoxEndCoords = bottomRight;
+        }
 
         // On bottom side drag
-        else if (this.dragSide == "top") {
+        // if legal drag (i.e. top side not dragged past bottom side)
+        else if (this.dragSide == "top" &&
+          this.capSciExpandBoxEndCoords[1] < (this.greenBoxTopLeftCoords[1] + yOffset - 12)
+        ) {
           topLeft = [
             this.greenBoxTopLeftCoords[0],
             this.capSciExpandBoxEndCoords[1],
@@ -371,6 +452,26 @@ export default {
             this.greenBoxTopLeftCoords[0],
             this.greenBoxTopLeftCoords[1] + yOffset,
           ];
+        }
+        // illegal drag
+        else if(this.dragSide == "top"){
+          topLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.greenBoxTopLeftCoords[1] + yOffset - 12,
+          ];
+          topRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.greenBoxTopLeftCoords[1] + yOffset - 12,
+          ];
+          bottomRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          bottomLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          this.capSciExpandBoxEndCoords = topLeft;
         }
       }
       // For setting up base box before drag and adjust
@@ -497,7 +598,6 @@ export default {
 
     // On mouse down in image port, draw rectangle selector and get start coordinates
     onMouseDown(event) {
-      console.log("curr: ", [event.offsetX, event.offsetY]);
       // Ignore right click
       if (event.button === 2) {
         return;
@@ -729,7 +829,7 @@ export default {
         this.showPOIChoiceModal();
       }
 
-      // if box prev dragged, set update default box coordinates
+      // if box prev dragged, set update default box coordinates: offsets
       if (this.dragCapSciBoxActivate) {
         if (this.dragSide == "left") {
           this.baseXOffset = Math.abs(
@@ -751,19 +851,34 @@ export default {
           );
         }
 
+        // update default box coordinates to new box coords
         if (this.dragSide == "left") {
           this.greenBoxTopLeftCoords = [
             this.capSciExpandBoxEndCoords[0],
             this.greenBoxTopLeftCoords[1],
           ];
-        }
-        else if(this.dragSide == "top"){
+        } else if (this.dragSide == "top") {
           this.greenBoxTopLeftCoords = [
             this.greenBoxTopLeftCoords[0],
             this.capSciExpandBoxEndCoords[1],
-          ]
+          ];
         }
       }
+    },
+
+    sendCapSciCoordinates(){
+      let boxCoordinates = [
+        // top left corner coordinates (within POI layer canvas)
+        this.greenBoxTopLeftCoords,
+        // top right corner coordinates (within POI layer canvas)
+        [this.greenBoxTopLeftCoords[0] + this.baseXOffset, this.greenBoxTopLeftCoords[1]],
+        // bottom right corner coordinates (within POI layer canvas)
+        [this.greenBoxTopLeftCoords[0] + this.baseXOffset, this.greenBoxTopLeftCoords[1]+this.baseYOffset],
+        // bottom left corner coordinates (within POI layer canvas)
+        [this.greenBoxTopLeftCoords[0], this.greenBoxTopLeftCoords[1]+this.baseYOffset]
+      ];
+
+      return boxCoordinates;
     },
 
     showPOIChoiceModal() {

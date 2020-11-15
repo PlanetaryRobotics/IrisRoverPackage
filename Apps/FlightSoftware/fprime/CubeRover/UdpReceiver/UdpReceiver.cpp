@@ -83,7 +83,7 @@ namespace CubeRover {
         Fw::Buffer &fwBuffer
     )
   {
-    
+      
     struct udpHeader {
         uint8_t src_port;
         uint8_t dest_port;
@@ -111,9 +111,8 @@ namespace CubeRover {
         return;
     }
     
-    uint8_t computedPayloadLen = static_cast<uint8_t>(fwBuffer.getsize()) - sizeof(*header);
-    if (computedPayloadLen != header->length) {
-        this->log_WARNING_HI_UR_DecodeError(DECODE_PAYLOAD, static_cast<I32>(computedPayloadLen));
+    if (static_cast<uint8_t>(fwBuffer.getsize()) != header->length) {
+        this->log_WARNING_HI_UR_DecodeError(DECODE_PAYLOAD, static_cast<I32>(header->length));
         this->log_WARNING_HI_UR_DroppedPacket(static_cast<U32>(header->checksum));
         this->m_decodeErrors++;
         this->m_packetsDropped++;
@@ -121,9 +120,9 @@ namespace CubeRover {
         return;
     }
     
-    Fw::Buffer payloadBuffer = getReceivedDatagramBuffer_out(0, header->length);
-    memcpy(reinterpret_cast<uint8_t *>(payloadBuffer.getdata()),
-           reinterpret_cast<uint8_t *>(fwBuffer.getdata()) + sizeof(*header), header->length);
+    uint8_t computedPayloadLen = static_cast<uint8_t>(fwBuffer.getsize()) - sizeof(*header);
+    U64 payloadStart = reinterpret_cast<U64>(reinterpret_cast<uint8_t *>(fwBuffer.getdata()) + sizeof(*header))
+    Fw::Buffer payloadBuffer(0, 0, payloadstart, header->length - sizeof(*header)); // XXX: Set buffer manager to 0xfff...?
     
     m_packetsReceived++;
     m_bytesReceived += fwBuffer.getsize();  // Note: Datagram size not payload size

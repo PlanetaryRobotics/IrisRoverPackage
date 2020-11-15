@@ -14,7 +14,7 @@
             </comment>
         </port>
         <port name="getReceivedDatagramBuffer" data_type="Fw::BufferGet" kind="output" max_number="1">
-            <comment>Get a buffer managed by the ground interface to store the payload of the received datagram.</comment>
+            <comment>Get a buffer managed by the ground interface to store the **payload** of the received datagram.</comment>
         </port>
     </ports>
 

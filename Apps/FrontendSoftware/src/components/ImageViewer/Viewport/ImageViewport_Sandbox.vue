@@ -8,8 +8,8 @@ Updated: 08/30/2020, Colombo
 Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new POI manually)
 
 // TODO: fix glitch when go past top of image (priority: 1), and when off-sides how box doesn't auto border sides
-* Setdragcursor() not rendering new mouse
 
+SET DRAG CURSOR: can work on hover if take coordinates that set this.dragSide out of onMouseDown condition
 -->
 
 <template>
@@ -23,6 +23,7 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
       crosshairMouse:
         isMouseDown && !POISelectionInstructions && !capSciInstructionsOpen,
     }"
+    v-bind:style="dragCursor"
   >
     <img
       class="port"
@@ -35,7 +36,6 @@ Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new PO
     <div
       id="portContainer"
       v-on:mousemove.stop="onMouseMove"
-      v-bind:style="dragCursor"
     >
       <div class="canvas-wrapper port">
         <div class="centering">
@@ -169,7 +169,7 @@ export default {
       // Height of default Cap Sci selection box
       baseYOffset: 100,
       dragCursor: {
-        cursor: this.setDragCursor(),
+        cursor: "inherit",
       },
     };
   },
@@ -230,6 +230,16 @@ export default {
     adjustmentsHash: function () {
       this.applyEffects();
     },
+
+  //   dragCapSciBoxActivate: function() {
+  //     if (this.dragCapSciBoxActivate) {
+  //       this.setDragCursor();
+  //     }
+  //   },
+
+    dragSide: function(){
+      this.setDragCursor();
+    }
   },
 
   // runs after HTML stuff loads (part of lifecycle hooks)
@@ -281,14 +291,18 @@ export default {
       if (this.dragCapSciBoxActivate) {
         if (this.dragSide == "left" || this.dragSide == "right") {
           console.log("drag cursor type: ew-resize");
-          return "ewResizeCursor";
+          this.dragCursor.cursor = "ew-resize";
         } else if (this.dragSide == "top" || this.dragSide == "bottom") {
           console.log("drag cursor type: ns-resize");
-          return "nsResizeCursor";
+          this.dragCursor.cursor = "ns-resize";
+        }
+        else{
+          this.dragCursor.cursor = "inherit";
         }
       }
-      console.log("drag cursor type: null");
-      return null;
+      else{
+        this.dragCursor.cursor = "inherit";
+      }
     },
 
     setUpCapSciSelection() {
@@ -720,8 +734,6 @@ export default {
             }
           }
 
-          // save last x coord
-
           this.setUpPOISelection();
         } else if (
           this.POISelectionInstructions &&
@@ -816,7 +828,7 @@ export default {
         this.startCoord = [];
 
         //clears canvas of lines/boxes
-        if (!this.capSciInstructionsOpen) {
+        if (!this.capSciInstructionsOpen && !this.capSciConfirmationModalOpen) {
           this.setPOILayerDimensions();
         }
 
@@ -863,6 +875,8 @@ export default {
             this.capSciExpandBoxEndCoords[1],
           ];
         }
+        this.dragSide = null;
+        this.setDragCursor();
       }
     },
 
@@ -1042,14 +1056,6 @@ export default {
 .crosshairMouse {
   cursor: crosshair;
   // cursor: url("/assets/icons/png/cursorCrosshair.png");
-}
-
-.ewResizeCursor {
-  cursor: ew-resize;
-}
-
-.nsResizeCursor {
-  cursor: ns-resize;
 }
 
 /* port fade animation: */

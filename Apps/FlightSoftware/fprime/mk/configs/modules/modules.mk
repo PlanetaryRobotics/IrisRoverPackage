@@ -205,6 +205,7 @@ CubeRover_MODULES := \
 	CubeRover/CubeRoverPorts \
 	CubeRover/UdpReceiver \
 	CubeRover/NetworkManager \
+	CubeRover/GroundInterface \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

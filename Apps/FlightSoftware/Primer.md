@@ -132,6 +132,6 @@ Packet type, and time are only serialized if `FW_AMPCS_COMPATIBLE` is **false**.
 3. Seoncds      (`U32`)
 4. uSeconds     (`U32`)
 
-Note that time base and time context are only serialize if `FW_USE_TIME_BASE` or
+Note that time base and time context are only serialized if `FW_USE_TIME_BASE` or
 `FW_USE_TIME_CONTEXT` are #defined respectively. By default they are enabled in
-`fw/Cfg/Config.hpp`.
+`Fw/Cfg/Config.hpp`.

@@ -15,6 +15,8 @@
 #include "Fw/Types/BasicTypes.hpp"
 #include <cstring>
 
+#define DOWNLINK_BUFFER_SIZE UDP_MAX_PAYLOAD - sizeof(struct FswPacketHeader)
+
 namespace CubeRover {
 
   // ----------------------------------------------------------------------
@@ -37,7 +39,8 @@ namespace CubeRover {
       m_logsReceived = 0; m_logsDownlinked = 0;
       m_cmdsUplinked = 0; m_cmdsSent = 0; m_cmdErrs = 0;
       m_appBytesReceived = 0; m_appBytesDownlinked = 0;
-      m_downlinkBufferPos = m_downlinkBuffer;
+      m_downlinkPacket = reinterpret_cast<struct FswPacketHeader *>(m_downlinkBuffer + 8);  // 8 byte UDP header
+      m_downlinkBufferPos = m_downlinkBuffer + sizeof(struct FswPacketHeader);
       m_downlinkBufferSpaceAvailable = DOWNLINK_BUFFER_SIZE;
   }
 
@@ -67,7 +70,7 @@ namespace CubeRover {
     )
   {
     m_tlmItemsReceived++;
-    const U8 *tlmData = data.getBuffAddr();
+    uint8_t *tlmData = reinterpret_cast<uint8_t *>(data.getBuffAddr());
     uint16_t length = static_cast<uint16_t>(data.getBuffLength());
     downlinkBufferWrite(tlmData, length, DownlinkTelemetry);
     m_tlmItemsDownlinked++;
@@ -92,7 +95,51 @@ namespace CubeRover {
         Fw::Buffer &fwBuffer
     )
   {
-    // TODO
+    uint8_t *data = reinterpret_cast<uint8_t *>(fwBuffer.getdata());
+    U32 dataSize = fwBuffer.getsize();
+    U32 singlePacketSize = dataSize + sizeof(struct FswFile);
+    m_appBytesReceived += dataSize;
+    if (singlePacketSize <= DOWNLINK_BUFFER_SIZE) {
+        uint8_t downlinkBuffer[singlePacketSize];
+        struct FswPacket *packet = reinterpret_cast<struct FswPacket*>(downlinkBuffer);
+        packet->payload0.file.magic = FSW_FILE_MAGIC;
+        packet->payload0.file.totalBlocks = 1;
+        packet->payload0.file.blockNumber = 1;
+        packet->payload0.file.length = dataSize;
+        memcpy(&packet->payload0.file.byte0, data, dataSize);
+        downlinkBufferWrite(downlinkBuffer, static_cast<uint16_t>(singlePacketSize), DownlinkFile);
+        m_appBytesDownlinked += singlePacketSize;
+    } else {    // Send file fragments
+        flushDownlinkBuffer();  // Flush first to get new seq
+        int numBlocks = dataSize % (UDP_MAX_PAYLOAD - sizeof(struct FswPacketHeader) - sizeof(struct FswFile));
+        int readStride = static_cast<int>(dataSize) / numBlocks;
+        uint8_t downlinkBuffer[UDP_MAX_PAYLOAD];
+        struct FswPacket *packet = reinterpret_cast<struct FswPacket*>(downlinkBuffer);
+        for (int blockNum = 1; blockNum <= numBlocks; ++blockNum) {
+            packet->payload0.file.magic = FSW_FILE_MAGIC;
+            packet->payload0.file.totalBlocks = numBlocks;
+            packet->payload0.file.blockNumber = blockNum;
+            uint16_t blockLength;
+            if (blockNum < numBlocks) {     // Send full datagram fragment
+                blockLength = readStride;
+                dataSize -= readStride;
+                packet->payload0.file.length = blockLength;
+                memcpy(&packet->payload0.file.byte0, data, blockLength);
+                uint16_t datagramLength = 8 + sizeof(struct FswPacketHeader) + sizeof(struct FswFile) + blockLength;
+                log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
+                downlink(packet, datagramLength);
+                data += datagramLength;
+            } else {        // Final Fragment is written to the member buffer to downlink with other objects
+                FW_ASSERT(dataSize > 0);
+                blockLength = static_cast<uint16_t>(dataSize);
+                packet->payload0.file.length = blockLength;
+                memcpy(&packet->payload0.file.byte0, data, blockLength);
+                downlinkBufferWrite(&packet->payload0.file, sizeof(struct FswFile) + blockLength, DownlinkFile);
+            }
+            m_appBytesDownlinked += blockLength;
+        }
+    }
+    updateTelemetry();
   }
 
   void GroundInterfaceComponentImpl ::
@@ -113,14 +160,15 @@ namespace CubeRover {
     }
     
     if (packet->header.seq != m_uplinkSeq + 1) {
-        // Out of sequence packet! Drop!
+        m_cmdErrs++;
+        return;
     }
     m_uplinkSeq = packet->header.seq;
     
     // TODO: Compute checksum
     
     // ASSUME ONE COMMAND PER PACKET
-    if (packet->payload1.command.magic != COMMAND_MAGIC) {
+    if (packet->payload0.command.magic != COMMAND_MAGIC) {
         // Uplinked packet not a recognized command! Drop!
     }
     
@@ -129,14 +177,16 @@ namespace CubeRover {
     Fw::ComBuffer command(reinterpret_cast<uint8_t *>(packet), packet->header.length);
     m_cmdsSent++;
     
+    // TODO: Any parsing or decoding required?
     cmdDispatch_out(0, command, 0);        // TODO: Arg 3 Context?
     
     updateTelemetry();
   }
   
-    void GroundInterfaceComponentImpl::downlinkBufferWrite(const uint8_t *data, uint16_t size, downlinkPacketType from) {
-        FW_ASSERT(data);
-        FW_ASSERT(size < DOWNLINK_BUFFER_SIZE);
+    void GroundInterfaceComponentImpl::downlinkBufferWrite(void *_data, uint16_t size, downlinkPacketType from) {
+        FW_ASSERT(_data);
+        FW_ASSERT(size <= DOWNLINK_BUFFER_SIZE);
+        uint8_t *data = reinterpret_cast<uint8_t *>(_data);
         bool flushOnWrite = false;
         if (size > m_downlinkBufferSpaceAvailable) {
             flushDownlinkBuffer();
@@ -156,15 +206,26 @@ namespace CubeRover {
     }
     
     void GroundInterfaceComponentImpl::flushDownlinkBuffer() {
-        U16 checksum;   // TODO
-        U16 length = static_cast<U16>(m_downlinkBufferPos - m_downlinkBuffer);
-        Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(m_downlinkBuffer), length);
-        log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, length);
-        downlinkBufferSend_out(0, buffer);
-        m_packetsTx++;
-        
-        m_downlinkBufferPos = m_downlinkBuffer;
+        uint16_t length = static_cast<uint16_t>(m_downlinkBufferPos - m_downlinkBuffer);
+        downlink(m_downlinkBuffer, length);
+        m_downlinkBufferPos = m_downlinkBuffer + sizeof(struct FswPacketHeader);
         m_downlinkBufferSpaceAvailable = DOWNLINK_BUFFER_SIZE;
+    }
+    
+    void GroundInterfaceComponentImpl::downlink(void *_data, uint16_t size) {
+        FW_ASSERT(_data);
+        uint16_t checksum;   // TODO
+        uint8_t *data = reinterpret_cast<uint8_t *>(_data);
+        struct FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacketHeader *>(data + 8);   // 8 byte UDP header
+        packetHeader->seq = m_downlinkSeq;
+        packetHeader->checksum = checksum;
+        packetHeader->length = size;
+        FW_ASSERT(size < UDP_MAX_PAYLOAD);
+        Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data), size);
+        log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size);
+        downlinkBufferSend_out(0, buffer);
+        m_downlinkSeq++;
+        m_packetsTx++;
     }
   
     void GroundInterfaceComponentImpl::updateTelemetry() {

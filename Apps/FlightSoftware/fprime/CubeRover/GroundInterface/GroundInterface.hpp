@@ -16,9 +16,6 @@
 #include "CubeRover/GroundInterface/GroundInterfaceComponentAc.hpp"
 #include <Include/CubeRoverConfig.hpp>
 
-// Note struct FswPacketHeader is private to GroundInterfaceComponentImpl
-#define DOWNLINK_BUFFER_SIZE UDP_MAX_PAYLOAD - sizeof(struct FswPacketHeader)
-
 namespace CubeRover {
 
   class GroundInterfaceComponentImpl :
@@ -91,45 +88,56 @@ namespace CubeRover {
       
       
         // User defined methods, members, and structs
+        // TODO: component/field length should be sourced from Config.hpp
       
         struct FswPacketHeader {
             uint8_t seq;
             uint16_t checksum;
             uint16_t length;
-        };
+        } __attribute__((packed));
         
         struct FswCommand {
-            uint8_t magic;
-            uint8_t component;
-            uint8_t command;
-            uint8_t arguments_start;
-        };
+            uint32_t magic;
+            uint8_t component;      // This field along with command make up the
+            uint8_t opcode;         // id when concatenated resulting in a U16
+            uint8_t byte0;
+        } __attribute__((packed));
         
-        struct FswTelemetry {
-            uint8_t magic;
-            uint8_t comBuffer[Fw::ComBuffer::SERIALIZED_SIZE];  // The maximum possible size for an comBuffer Object
-        };
+        struct FswCommandResponse { // This is downlinked via the file (app downlink port)
+            uint32_t magic;
+            uint8_t component;      // Same as command
+            uint8_t opcode;         // Same as command
+            uint8_t errorcode;
+            uint16_t errorinfo;
+        } __attribute__((packed));
         
-        struct FswLog {
-            uint8_t magic;
-            uint8_t comBuffer[Fw::ComBuffer::SERIALIZED_SIZE];  // The maximum possible size for an comBuffer Object
-        };
-        
+        struct FswFile {
+            uint32_t magic;
+            uint8_t totalBlocks;
+            uint8_t blockNumber;    // This is 1-indexed
+            uint16_t length;        // This is the size of the following data **not including this header**
+            uint8_t byte0;
+        } __attribute__((packed));
+            
         struct FswPacket {
             struct FswPacketHeader header;
             union {
                uint8_t startByte;
+               uint32_t magic0;     // Magic of first packet
                struct FswCommand command;
-               struct FswTelemetry telemetry;
-               struct FswLog log;
-            } payload1;
+               struct FswCommandResponse cmdResp;
+               struct FswFile file;
+               // struct FswTelemetry telemetry;
+               // struct FswLog log;
+            } payload0;
             // Additional telemetry or logs (but not commands) can follow the first
-            // object in the payload, payload1, up until the end of the packet determined
+            // object in the payload, payload0, up until the end of the packet determined
             // by length.
         };
             
-        void downlinkBufferWrite(const uint8_t *data, uint16_t size, downlinkPacketType from);
+        void downlinkBufferWrite(void *_data, uint16_t size, downlinkPacketType from);
         void flushDownlinkBuffer();
+        void downlink(void *_data, uint16_t size);
         void updateTelemetry();
       
         uint8_t  m_uplinkSeq, m_downlinkSeq;                // TLM0, TLM1
@@ -139,7 +147,8 @@ namespace CubeRover {
                  m_cmdsUplinked, m_cmdsSent, m_cmdErrs,     // TLM8, TLM9, TLM10
                  m_appBytesReceived, m_appBytesDownlinked;  // TLM11, TLM 12
         
-        uint8_t m_downlinkBuffer[DOWNLINK_BUFFER_SIZE];
+        uint8_t m_downlinkBuffer[UDP_MAX_PAYLOAD];  // Entire datagram. UdpSender will complete Udp header
+        struct FswPacketHeader *m_downlinkPacket;   // Start of FswPacket in datagram
         uint8_t *m_downlinkBufferPos;
         uint16_t m_downlinkBufferSpaceAvailable;
       

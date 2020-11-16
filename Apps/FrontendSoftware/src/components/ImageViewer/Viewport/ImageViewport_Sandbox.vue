@@ -19,10 +19,6 @@ Manual POI add big modal stopped poppping up on click
     v-on:mousemove.stop="onMouseMove"
     v-on:mousedown.stop="onMouseDown"
     v-on:mouseup.stop="onMouseUp"
-    v-bind:class="{
-      crosshairMouse:
-        isMouseDown && !POISelectionInstructions && !capSciInstructionsOpen,
-    }"
     v-bind:style="dragCursor"
   >
     <img
@@ -35,7 +31,6 @@ Manual POI add big modal stopped poppping up on click
     />
     <div
       id="portContainer"
-      v-on:mousemove.stop="onMouseMove"
     >
       <div class="canvas-wrapper port">
         <div class="centering">
@@ -67,6 +62,10 @@ Manual POI add big modal stopped poppping up on click
           style="z-index: 1"
           v-on:mouseover.stop="mouseOnPOICanvasLayer"
           v-on:mouseout.stop="mouseOffPOICanvasLayer"
+          v-bind:class="{
+            crosshairMouse:
+            isMouseDown && !POISelectionInstructions && !capSciInstructionsOpen,
+          }"
         >
         </canvas>
 
@@ -157,7 +156,7 @@ export default {
 
       // Capture science pop up instruction box visibility
       capSciInstructionsOpen: true, //  saving var for when commandline command entered, will turn true and start false
-      POISelectionInstructions: false, // specifcally for preventing manual POI add events from occuring
+      POISelectionInstructions: false, // specifcally for preventing manual POI add events like selection box event from occuring
       capSciConfirmationModalOpen: false,
       greenBoxTopLeftCoords: [209, 194],
       capSciExpandBoxStartCoords: [],
@@ -251,6 +250,7 @@ export default {
     },
 
     onPOIChoiceSelected(val) {
+      console.log("choice selected is: ", val)
       this.arePOIFullDetailsVisible = true;
       this.initalPOIChoiceSelected = val;
       this.closePOIChoiceModal();
@@ -282,7 +282,7 @@ export default {
 
     // set correct cursor icon for capture science drags
     setDragCursor() {
-      // if (this.dragCapSciBoxActivate) {
+      if (this.capSciInstructionsOpen) {
         if (this.dragSide == "left" || this.dragSide == "right") {
           this.dragCursor.cursor = "ew-resize";
         } else if (this.dragSide == "top" || this.dragSide == "bottom") {
@@ -291,10 +291,10 @@ export default {
         else{
           this.dragCursor.cursor = "inherit";
         }
-      // }
-      // else{
-      //   this.dragCursor.cursor = "inherit";
-      // }
+      }
+      else{
+        this.dragCursor.cursor = "inherit";
+      }
     },
 
     setUpCapSciSelection() {
@@ -593,6 +593,7 @@ export default {
 
     // On click of page, close modals
     onIVPortClick() {
+      console.log("IVPort Click")
       // if not a drag-- just a click, clear canvas
       if (!this.isDrag) {
         this.setPOILayerDimensions();
@@ -658,7 +659,9 @@ export default {
 
       // false until proven truthy (aka don't know if drag or click until onMouseMove called or not called)
       this.isDrag = false;
-      this.closePOIChoiceModal();
+      if (this.cursorOnPOICanvasLayer){
+        this.closePOIChoiceModal();
+      }
 
       if (this.POISelectionInstructions && this.capSciInstructionsOpen) {
         this.capSciExpandBoxStartCoords = this.startCoord;
@@ -704,7 +707,6 @@ export default {
 
             // if cursor went past right boundary of image container
             if (this.endCoord[0] > this.poiLayer.width) {
-              console.log("right");
               this.endCoord[0] = this.poiLayer.width;
             }
             // if cursor went past top boundary of image container
@@ -712,7 +714,6 @@ export default {
               this.endCoord[1] <= 0 ||
               Math.abs(event.y - this.endCoord[1]) < 48
             ) {
-              console.log("top");
               this.endCoord[1] = 0;
               this.isMouseDown = false;
             }
@@ -721,7 +722,6 @@ export default {
               this.endCoord[0] <= 0 ||
               Math.abs(event.x - this.endCoord[0]) < 23
             ) {
-              console.log("left");
               this.endCoord[0] = 0;
             }
           }
@@ -867,7 +867,7 @@ export default {
         this.startCoord = [];
 
         //clears canvas of lines/boxes
-        if (!this.capSciInstructionsOpen && !this.capSciConfirmationModalOpen) {
+        if (!this.isPOIChoiceListModalVisible && !this.capSciInstructionsOpen && !this.capSciConfirmationModalOpen) {
           this.setPOILayerDimensions();
         }
 

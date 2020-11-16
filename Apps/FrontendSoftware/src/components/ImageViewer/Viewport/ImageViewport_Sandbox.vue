@@ -233,12 +233,6 @@ export default {
       this.applyEffects();
     },
 
-  //   dragCapSciBoxActivate: function() {
-  //     if (this.dragCapSciBoxActivate) {
-  //       this.setDragCursor();
-  //     }
-  //   },
-
     dragSide: function(){
       this.setDragCursor();
     }
@@ -290,21 +284,19 @@ export default {
 
     // set correct cursor icon for capture science drags
     setDragCursor() {
-      if (this.dragCapSciBoxActivate) {
+      // if (this.dragCapSciBoxActivate) {
         if (this.dragSide == "left" || this.dragSide == "right") {
-          console.log("drag cursor type: ew-resize");
           this.dragCursor.cursor = "ew-resize";
         } else if (this.dragSide == "top" || this.dragSide == "bottom") {
-          console.log("drag cursor type: ns-resize");
           this.dragCursor.cursor = "ns-resize";
         }
         else{
           this.dragCursor.cursor = "inherit";
         }
-      }
-      else{
-        this.dragCursor.cursor = "inherit";
-      }
+      // }
+      // else{
+      //   this.dragCursor.cursor = "inherit";
+      // }
     },
 
     setUpCapSciSelection() {
@@ -737,6 +729,7 @@ export default {
           }
 
           this.setUpPOISelection();
+
         } else if (
           this.POISelectionInstructions &&
           this.capSciInstructionsOpen
@@ -792,6 +785,52 @@ export default {
             this.setUpCapSciSelection();
           }
         }
+      }
+      // When mouse not down but hovering over cap sci box sides, change cursor
+      else{
+        // hover over left side of selection box
+          if (
+            event.offsetX - 3 <=
+              this.greenBoxTopLeftCoords[0] &&
+            event.offsetX + 3 >=
+              this.greenBoxTopLeftCoords[0]
+          ) {
+            this.dragSide = "left";
+          }
+
+          // hover over right side of cap sci selection box
+          else if (
+            event.offsetX - 3 <=
+              this.greenBoxTopLeftCoords[0] + this.baseXOffset &&
+            event.offsetX + 3 >=
+              this.greenBoxTopLeftCoords[0] + this.baseXOffset
+          ) {
+            this.dragSide = "right";
+          }
+
+          // hover over bottom side of cap sci selection box
+          else if (
+            event.offsetY - 3 <=
+              this.greenBoxTopLeftCoords[1] + this.baseYOffset &&
+            event.offsetY + 3 >=
+              this.greenBoxTopLeftCoords[1] + this.baseYOffset
+          ) {
+            this.dragSide = "bottom";
+          }
+
+          // hover over top side of cap sci selection box
+          else if (
+            event.offsetY - 3 <=
+              this.greenBoxTopLeftCoords[1] &&
+            event.offsetY + 3 >=
+              this.greenBoxTopLeftCoords[1]
+          ) {
+            this.dragSide = "top";
+          }
+
+          else{
+            this.dragSide = null;
+          }
       }
     },
 
@@ -878,7 +917,6 @@ export default {
           ];
         }
         this.dragSide = null;
-        this.setDragCursor();
       }
     },
 

@@ -58,13 +58,13 @@ export default {
 <style scoped>
 #top-instruction-box {
   position: absolute;
-  padding: 1.2rem 2.5rem;
+  padding: 1.2rem 2.4rem;
   background-color: #585858;
   border-radius: 2.8rem;
   top: 2rem;
 
   color: #fcfcfc;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 600;
   text-align: center;
   z-index: 3;
@@ -75,9 +75,8 @@ export default {
 }
 
 .done {
-  padding-left: 1.6rem;
-  z-index: 4;
-  font-weight: 400;
+  margin-left: 1.6rem;
+  cursor: pointer;
 
   text-decoration: underline;
 }

@@ -5,11 +5,9 @@ editing via preset filters.
 Author: Connor Colombo, CMU
 Created: 3/05/2019
 Updated: 08/30/2020, Colombo
-Last Update: 10/24/2020, Gabbi LaBorwit (adding selection tool for adding new POI manually)
+Last Update: 11/15/2020, Gabbi LaBorwit
 
 // TODO: fix glitch when go past top of image (priority: 1), and when off-sides how box doesn't auto border sides
-
-SET DRAG CURSOR: can work on hover if take coordinates that set this.dragSide out of onMouseDown condition
 
 Manual POI add big modal stopped poppping up on click
 -->

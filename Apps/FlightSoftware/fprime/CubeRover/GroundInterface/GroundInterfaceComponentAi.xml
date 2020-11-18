@@ -55,18 +55,6 @@
             </comment>
         </port>
             
-        <port name="bufferStorageGet" data_type="Fw::BufferGet"  kind="output"    max_number="1">
-            <comment>
-                GroundInterface's internal variable length buffers are managed by BufferManager. This is the buffer allocate port.
-            </comment>
-        </port>
-            
-        <port name="bufferStorageReturn" data_type="Fw::BufferSend"  kind="output"    max_number="1">
-            <comment>
-                GroundInterface's internal variable length buffers are managed by BufferManager. This is the buffer free port.
-            </comment>
-        </port>
-            
         <!-- Standard F prime ports -->
         <port name="Log" data_type="Fw::Log"  kind="output" role="LogEvent"    max_number="1">
         </port>

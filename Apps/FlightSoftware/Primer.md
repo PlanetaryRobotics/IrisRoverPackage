@@ -135,3 +135,15 @@ Packet type, and time are only serialized if `FW_AMPCS_COMPATIBLE` is **false**.
 Note that time base and time context are only serialized if `FW_USE_TIME_BASE` or
 `FW_USE_TIME_CONTEXT` are #defined respectively. By default they are enabled in
 `Fw/Cfg/Config.hpp`.
+
+## Topology Checklist
+
+- Object is declared with unique base ID corresponding to the C&TL 
+- If rate driven component, that component is connected to its respective rate group's `RateGroupMemberOut` with type `Svc::Sched`
+- The component is connected to the CubeRoverTime `timeGetPort` of type `Time`
+- The component is connected to TlmChan `TlmRecv` port of type `Tlm`
+- The component is connected to CmdDispatcher `compCmdReg` port of type `CmdReg`
+- The component is connected to CmdDispatcher `compCmdSend` port of type `Cmd`
+- The component is connected to CmdDispatcher `compCmdStat` port of type `CmdResponse`
+- TODO: Log connections
+

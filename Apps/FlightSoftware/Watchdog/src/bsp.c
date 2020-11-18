@@ -1,5 +1,7 @@
 #include "include/bsp.h"
 
+#define PROGRAM_MOTOR_CONTROLLERS
+
 /**
  * @brief      Initializes the gpios.
  */
@@ -7,8 +9,10 @@ void initializeGpios(){
   // P1 configuration
   P1DIR &= 0x00;  // All bits as input
   P1OUT &= ~(BIT4 | BIT5); // Initially everything is off
+#ifndef PROGRAM_MOTOR_CONTROLLERS
   P1DIR |= BIT4;  // P1.4 output Motor control reset B
   P1DIR |= BIT5;  // P1.5 output Motor control reset C
+#endif
 
   // UART configuration done in uart_init()
 
@@ -22,7 +26,9 @@ void initializeGpios(){
   P2DIR &= 0x00;
   P2OUT &= ~(BIT2 | BIT3 | BIT4); // Initially everything is off
   P2DIR |= BIT2;  // P2.2 output Heater
+#ifndef PROGRAM_MOTOR_CONTROLLERS
   P2DIR |= BIT3;  // P2.3 output Motor control reset A
+#endif
   P2DIR |= BIT4;  // P2.4 output Radio ON
   P2DIR &= ~BIT7;  // P2.7 input Power good 1V2
 
@@ -54,7 +60,9 @@ void initializeGpios(){
   PJDIR |= BIT0; // PJ.0 output Hercules ON
   PJDIR |= BIT1; // PJ.1 output FPGA ON
   PJDIR |= BIT2; // PJ.2 output MOTORS ON
+#ifndef PROGRAM_MOTOR_CONTROLLERS
   PJDIR |= BIT4; // PJ.4 output Motor control reset D
+#endif
   PJDIR |= BIT5; // PJ.5 output BATTERY
   PJDIR &= ~BIT3; // PJ.3 input CHRG
 }
@@ -122,12 +130,20 @@ inline void setFPGAReset() { P3OUT &= ~BIT6; }
 /**
  * @brief      Releases the motor resets. (HI = NORMAL)
  */
-inline void releaseMotorsReset() { P1OUT |= BIT4 | BIT5; P2OUT |= BIT3; PJOUT |= BIT4; }
+inline void releaseMotorsReset() {
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    P1OUT |= BIT4 | BIT5; P2OUT |= BIT3; PJOUT |= BIT4;
+#endif
+}
 
 /**
  * @brief      Sets the motors to reset. (LO = RESET)
  */
-inline void setMotorsReset() { P1OUT &= ~(BIT4 | BIT5); P2OUT &= ~BIT3; PJOUT &= ~BIT4; }
+inline void setMotorsReset() {
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    P1OUT &= ~(BIT4 | BIT5); P2OUT &= ~BIT3; PJOUT &= ~BIT4;
+#endif
+}
 
 /**
  * @brief      Power the hercules MCU (HI = ON)

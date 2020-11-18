@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "ip_udp.h"
+#include "include/ip_udp.h"
 
 /* note - msp430 is little endian; networks are big endian */
 

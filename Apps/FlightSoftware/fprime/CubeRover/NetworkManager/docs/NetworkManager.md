@@ -21,4 +21,3 @@
 |ExecuteCallbackError|1 (0x1)|Emit event when there is an error executing a WF121 callback| | | | |
 | | | |ErrorCode|U16|||
 |WF121InitializationFailed|2 (0x2)|Emit event when there is an error executing a WF121 callback| | | | |
-|GroundInterfaceError|0 (0x0)|An error in the ground interface, here to make the UTs happy.| | | | |

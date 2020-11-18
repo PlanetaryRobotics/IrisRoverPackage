@@ -100,7 +100,7 @@ namespace CubeRover {
     )
   {
       update();
-      // TODO: getUplinkDatagram() IFF data available
+      getUplinkDatagram();
   }
 
     void NetworkManagerComponentImpl::update() {
@@ -129,11 +129,13 @@ namespace CubeRover {
         memset(m_fileUplinkBuffer, 0, MAX_SIZE_PAYLOAD);  // Clear one datagram buffer
         // XXX: UDP cehcksum optional for IPv4. Check with Astrobotic if they are providing this
 
-        m_crnm.ReceiveUdpData(m_fileUplinkBuffer, headerSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::WAIT_UNTIL_READY | CubeRoverNetworkManager::UdpReadMode::PEEK_READ, 10);     // Read UDP header to get payload size TODO: WE DON"T WANT THIS TO BLOCK
+        m_crnm.ReceiveUdpData(m_fileUplinkBuffer, headerSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::PEEK_READ, 10);     // Read UDP header to get payload size
+        if (bytesRead == 0)
+            return;     // No data to read
 
         if (bytesRead == headerSize) {  // check how big the packet actually is, then consume the bytes from the ring buffer
             memcpy(&payloadSize, m_fileUplinkBuffer+4, sizeof(payloadSize));  // byte 4 of UDP header
-            m_crnm.ReceiveUdpData(m_fileUplinkBuffer, payloadSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::WAIT_UNTIL_READY | CubeRoverNetworkManager::UdpReadMode::NORMAL_READ, 10);
+            m_crnm.ReceiveUdpData(m_fileUplinkBuffer, payloadSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::NORMAL_READ, 10);
 
             if (bytesRead != payloadSize) {} // FIXME: Error, bytes read didnt match payload size
         }

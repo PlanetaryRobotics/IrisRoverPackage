@@ -61,8 +61,6 @@ namespace CubeRover {
           Fw::Buffer &fwBuffer 
       );
 
-      void update();    // Behavior of periodic status update
-
       //! Handler implementation for schedIn
       //!
       void schedIn_handler(
@@ -76,6 +74,7 @@ namespace CubeRover {
         CubeRoverNetworkManager::CubeRoverNetworkManager m_crnm;
         CubeRoverNetworkManager::CubeRoverNetworkStateMachine m_current_state;
         U8 m_fileUplinkBuffer[MAX_SIZE_PAYLOAD];
+        void update();    // Behavior of periodic status update
         void getUplinkDatagram();
 
     };

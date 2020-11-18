@@ -81,46 +81,8 @@ namespace CubeRover {
   // Handler implementations for user-defined typed input ports
   // ----------------------------------------------------------------------
 
-  Fw::Buffer NetworkManagerComponentImpl ::
-    fileUplinkBufferGet_handler(
-        const NATIVE_INT_TYPE portNum,
-        U32 size
-    )
-  {
-    // Okay 3 different size variables:
-    // - arg U32 size: Hold over from this type for BufferManager supposedly requested buffer size
-    // - MAX_SIZE_PAYLOAD 978: Maximum expected UDP payload size see CubeRoverConfig for calculation to arrive at this value
-    // - payloadSize: Actual size of the payload in UDP header
-    // Since our buffer is statically allocated we are going to ignore arg
-    // FIXME: The following is a non-thread safe impl (i.e. poop shared pointers) using a single payload statically allocated buffer
-    // for transferring uplink commands to GroundInterface. This is okay if GroundInterface discards
-    // the pointer immediately before this function is called again.
-    FW_ASSERT(size <= MAX_SIZE_PAYLOAD);
-    Fw::Buffer buffer;
-    U16 bytesRead;
-    U16 headerSize = 8;
-    U32 payloadSize;
-    U64 data_ptr = reinterpret_cast<U64>(m_fileUplinkBuffer);
-
-    memset(m_fileUplinkBuffer, 0, MAX_SIZE_PAYLOAD);  // Clear one datagram buffer
-    // XXX: UDP cehcksum optional for IPv4. Check with Astrobotic if they are providing this
-
-    m_crnm.ReceiveUdpData(m_fileUplinkBuffer, headerSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::WAIT_UNTIL_READY | CubeRoverNetworkManager::UdpReadMode::PEEK_READ, 10);     // Read UDP header to get payload size
-
-    if (bytesRead == headerSize) {  // check how big the packet actually is, then consume the bytes from the ring buffer
-        memcpy(&payloadSize, m_fileUplinkBuffer+4, sizeof(payloadSize));  // byte 4 of UDP header
-        m_crnm.ReceiveUdpData(m_fileUplinkBuffer, payloadSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::WAIT_UNTIL_READY | CubeRoverNetworkManager::UdpReadMode::NORMAL_READ, 10);
-
-        if (bytesRead != payloadSize) {} // FIXME: Error, bytes read didnt match payload size
-    }
-
-    buffer.set(this->getInstance(), 0, data_ptr, payloadSize);    // Only one buffer->buferID = 0
-    update();
-    return buffer;
-  }
-
   void NetworkManagerComponentImpl ::
-    fileDownlinkBufferSendIn_handler(
+    downlink_handler(
         const NATIVE_INT_TYPE portNum,
         Fw::Buffer &fwBuffer
     )
@@ -129,6 +91,16 @@ namespace CubeRover {
     uint32_t payloadSize = fwBuffer.getsize();
     m_crnm.SendUdpData(buffer, payloadSize, 1000);   // FIXME: What is an appropriate timeout 1s check units
     update();
+  }
+
+  void NetworkManagerComponentImpl ::
+    schedIn_handler(
+        const NATIVE_INT_TYPE portNum,
+        NATIVE_UINT_TYPE context
+    )
+  {
+      update();
+      // TODO: getUplinkDatagram() IFF data available
   }
 
     void NetworkManagerComponentImpl::update() {
@@ -144,14 +116,32 @@ namespace CubeRover {
         tlmWrite_PktRecv(m_crnm.GetNbOfBytesReceived());
         tlmWrite_PktSent(m_crnm.GetNbOfBytesSent());
     }
+  
+    void NetworkManagerComponentImpl::getUplinkDatagram() {
+        // - MAX_SIZE_PAYLOAD 978: Maximum expected UDP payload size see CubeRoverConfig for 
+        // calculation to arrive at this value
+        // - payloadSize: Actual size of the payload in UDP header
+        U16 bytesRead;
+        U16 headerSize = 8;
+        U32 payloadSize;
+        U64 data_ptr = reinterpret_cast<U64>(m_fileUplinkBuffer);
 
-  void NetworkManagerComponentImpl ::
-    schedIn_handler(
-        const NATIVE_INT_TYPE portNum,
-        NATIVE_UINT_TYPE context
-    )
-  {
-      update();
-  }
+        memset(m_fileUplinkBuffer, 0, MAX_SIZE_PAYLOAD);  // Clear one datagram buffer
+        // XXX: UDP cehcksum optional for IPv4. Check with Astrobotic if they are providing this
+
+        m_crnm.ReceiveUdpData(m_fileUplinkBuffer, headerSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::WAIT_UNTIL_READY | CubeRoverNetworkManager::UdpReadMode::PEEK_READ, 10);     // Read UDP header to get payload size TODO: WE DON"T WANT THIS TO BLOCK
+
+        if (bytesRead == headerSize) {  // check how big the packet actually is, then consume the bytes from the ring buffer
+            memcpy(&payloadSize, m_fileUplinkBuffer+4, sizeof(payloadSize));  // byte 4 of UDP header
+            m_crnm.ReceiveUdpData(m_fileUplinkBuffer, payloadSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::WAIT_UNTIL_READY | CubeRoverNetworkManager::UdpReadMode::NORMAL_READ, 10);
+
+            if (bytesRead != payloadSize) {} // FIXME: Error, bytes read didnt match payload size
+        }
+
+        Fw::Buffer buffer(this->getInstance(), 0, data_ptr, payloadSize);    // Only one buffer->buferID = 0 this buffermanager id should be 0 to probs
+        uplink_out(0, buffer);
+        update();
+    }
+
 
 } // end namespace CubeRover

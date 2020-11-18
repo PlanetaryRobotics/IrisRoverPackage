@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>mathReceiver:MathReceiver Component Dictionary</title>
+<title>udpReceiver:UdpReceiver Component Dictionary</title>
 </head>
 <body>
 
@@ -22,7 +22,7 @@ html {
 }
 </style>
 
-<h1><b>Events: mathReceiver:MathReceiver</b></h1>
+<h1><b>Events: udpReceiver:UdpReceiver</b></h1>
 
 <table>
 	<thead>
@@ -42,46 +42,54 @@ html {
 	<tbody>
 
 		<tr style = "border: 2px solid black;">
-			<td rowspan="2">MR_SET_FACTOR1</td>
-			<td rowspan="2">21 (0x15)</td>
-			<td rowspan="2">Operation factor 1</td>
+			<td rowspan="2">UR_PortOpened</td>
+			<td rowspan="2">181 (0xb5)</td>
+			<td rowspan="2">Connection opened</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
-						<td>val</td>
-						<td>F32</td>
+						<td>port</td>
+						<td>U32</td>
 						<td></td>
-						<td>The factor value</td>
+						<td></td>
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="2">MR_UPDATED_FACTOR2</td>
-			<td rowspan="2">22 (0x16)</td>
-			<td rowspan="2">Updated factor 2</td>
+			<td rowspan="2">UR_RecvError</td>
+			<td rowspan="2">182 (0xb6)</td>
+			<td rowspan="2">UDP receive error</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
-						<td>val</td>
-						<td>F32</td>
+						<td>error</td>
+						<td>I32</td>
 						<td></td>
-						<td>The factor value</td>
+						<td></td>
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="2">MR_OPERATION_PERFORMED</td>
-			<td rowspan="2">23 (0x17)</td>
-			<td rowspan="2">Math operation performed</td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
-						<td>val</td>
-						<td>CubeRover::MathOp</td>
+			<td rowspan="3">UR_DecodeError</td>
+			<td rowspan="3">183 (0xb7)</td>
+			<td rowspan="3">Port decode error</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>stage</td>
+						<td>DecodeStage</td>
 						<td></td>
-						<td>The operation</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>error</td>
+						<td>I32</td>
+						<td></td>
+						<td></td>
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="1">MR_THROTTLE_CLEARED</td>
-			<td rowspan="1">24 (0x18)</td>
-			<td rowspan="1">Event throttle cleared</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
+			<td rowspan="2">UR_DroppedPacket</td>
+			<td rowspan="2">186 (0xba)</td>
+			<td rowspan="2">Dropped packet was detected</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>checksum</td>
+						<td>U32</td>
+						<td></td>
+						<td></td>
+					</tr>
 		</tr>
 	</tbody>
 </table>

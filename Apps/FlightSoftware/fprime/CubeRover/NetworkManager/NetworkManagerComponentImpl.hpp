@@ -14,7 +14,6 @@
 #define NetworkManager_HPP
 
 #include "CubeRover/NetworkManager/NetworkManagerComponentAc.hpp"
-#include "CubeRover/NetworkManager/CubeRoverNetworkManager.hpp"
 
 namespace CubeRover {
 
@@ -54,14 +53,19 @@ namespace CubeRover {
       // Handler implementations for user-defined typed input ports
       // ----------------------------------------------------------------------
 
+      //! Handler implementation for fileUplinkBufferGet
+      //!
+      void fileUplinkBufferGet_handler(
+          const NATIVE_INT_TYPE portNum, /*!< The port number*/
+          U32 size 
+      );
+
       //! Handler implementation for fileDownlinkBufferSendIn
       //!
-      void downlink_handler(
+      void fileDownlinkBufferSendIn_handler(
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
           Fw::Buffer &fwBuffer 
       );
-
-      void update();    // Behavior of periodic status update
 
       //! Handler implementation for schedIn
       //!
@@ -69,14 +73,20 @@ namespace CubeRover {
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
           NATIVE_UINT_TYPE context /*!< The call order*/
       );
-      
-      
-        // User defined methods, members, and structs
-       
-        CubeRoverNetworkManager::CubeRoverNetworkManager m_crnm;
-        CubeRoverNetworkManager::CubeRoverNetworkStateMachine m_current_state;
-        U8 m_fileUplinkBuffer[MAX_SIZE_PAYLOAD];
-        void getUplinkDatagram();
+
+    PRIVATE:
+
+      // ----------------------------------------------------------------------
+      // Command handler implementations
+      // ----------------------------------------------------------------------
+
+      //! Implementation for reset_wf121 command handler
+      //! 
+      void reset_wf121_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
 
     };
 

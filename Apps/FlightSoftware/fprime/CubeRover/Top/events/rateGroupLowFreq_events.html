@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>mathSender:MathSender Component Dictionary</title>
+<title>rateGroupLowFreq:ActiveRateGroup Component Dictionary</title>
 </head>
 <body>
 
@@ -22,7 +22,7 @@ html {
 }
 </style>
 
-<h1><b>Events: mathSender:MathSender</b></h1>
+<h1><b>Events: rateGroupLowFreq:ActiveRateGroup</b></h1>
 
 <table>
 	<thead>
@@ -42,37 +42,23 @@ html {
 	<tbody>
 
 		<tr style = "border: 2px solid black;">
-			<td rowspan="4">MS_COMMAND_RECV</td>
-			<td rowspan="4">1 (0x1)</td>
-			<td rowspan="4">Math command received</td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>val1</td>
-						<td>F32</td>
-						<td></td>
-						<td>The val1 argument</td>
-					</tr>
-					<tr style = "border-right: 2px solid black;">
-						<td>val2</td>
-						<td>F32</td>
-						<td></td>
-						<td>The val2 argument</td>
-					</tr>
-					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>op</td>
-						<td>MathOpEv</td>
-						<td></td>
-						<td>The requested operation</td>
-					</tr>
+			<td rowspan="1">RateGroupStarted</td>
+			<td rowspan="1">41 (0x29)</td>
+			<td rowspan="1">Informational event that rate group has started</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="2">MS_RESULT</td>
-			<td rowspan="2">2 (0x2)</td>
-			<td rowspan="2">Received math result</td>
+			<td rowspan="2">RateGroupCycleSlip</td>
+			<td rowspan="2">42 (0x2a)</td>
+			<td rowspan="2">Warning event that rate group has had a cycle slip</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
-						<td>result</td>
-						<td>F32</td>
+						<td>cycle</td>
+						<td>U32</td>
 						<td></td>
-						<td>The math result</td>
+						<td>The cycle where the cycle occurred</td>
 					</tr>
 		</tr>
 	</tbody>

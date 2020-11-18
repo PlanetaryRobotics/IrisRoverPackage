@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>blockDrv:BlockDriver Component Dictionary</title>
+<title>cmdDispatcher:CommandDispatcher Component Dictionary</title>
 </head>
 <body>
 
@@ -23,7 +23,7 @@ html {
 </style>
 
 
-<h1><b>Telemetry Channels: blockDrv:BlockDriver</b></h1>
+<h1><b>Telemetry Channels: cmdDispatcher:CommandDispatcher</b></h1>
 <table>
   <tr>
      <th>Channel Name</th>
@@ -33,10 +33,16 @@ html {
  </tr>
 
  <tr>
-    <td>BD_Cycles</td>
-    <td>61 (0x3d)</td>
+    <td>CommandsDispatched</td>
+    <td>141 (0x8d)</td>
     <td>U32</td>
-    <td>Driver cycle count</td>
+    <td>Number of commands dispatched</td>
+ </tr>
+ <tr>
+    <td>CommandErrors</td>
+    <td>142 (0x8e)</td>
+    <td>U32</td>
+    <td>Number of command errors</td>
  </tr>
 </table>
 </body>

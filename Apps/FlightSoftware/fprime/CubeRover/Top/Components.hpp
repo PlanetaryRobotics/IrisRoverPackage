@@ -18,10 +18,11 @@
 #include <Svc/TlmChan/TlmChanImpl.hpp>
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
-#include <Svc/GroundInterface/GroundInterfaceImpl.hpp>
 
 // Include custom components
-#include <CubeRover/UdpReceiver/UdpReceiverComponentImpl.hpp>
+#include <CubeRover/GroundInterface/GroundInterface.hpp>
+#include <CubeRover/UdpReceiver/UdpReceiver.hpp>
+#include <CubeRover/NetworkManager/NetworkManager.hpp>
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -41,13 +42,16 @@ extern Svc::TlmChanImpl tlmChan;
 // Service that handle active logging
 extern Svc::ActiveLoggerImpl activeLogger;
 
-// Interface to ground for radio
-extern Svc::GroundInterfaceComponentImpl groundInterface;
-
 // command dispatcher
 extern Svc::CommandDispatcherImpl cmdDispatcher;
 
+// Interface to ground for radio
+extern CubeRover::GroundInterfaceComponentImpl groundInterface;
+
 // UDP receiver
 extern CubeRover::UdpReceiverComponentImpl udpReceiver;
+
+// NetworkManager
+extern CubeRover::NetworkManagerComponentImpl networkManager;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

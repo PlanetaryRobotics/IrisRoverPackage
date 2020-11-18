@@ -81,7 +81,7 @@ Svc::CommandDispatcherImpl cmdDispatcher(
 );
 
 // --------------------------------------------------------------------------
-Svc::GroundInterfaceComponentImpl groundInterface(
+CubeRover::GroundInterfaceComponentImpl groundInterface(
 #if FW_OBJECT_NAMES == 1
         "GroundInterface"
 #endif
@@ -89,6 +89,13 @@ Svc::GroundInterfaceComponentImpl groundInterface(
 
 // --------------------------------------------------------------------------
 CubeRover::UdpReceiverComponentImpl udpReceiver(
+#if FW_OBJECT_NAMES == 1
+        "UdpReceiver"
+#endif
+);
+// 
+// --------------------------------------------------------------------------
+CubeRover::NetworkManagerComponentImpl networkManager(
 #if FW_OBJECT_NAMES == 1
         "UdpReceiver"
 #endif
@@ -123,9 +130,11 @@ void constructApp(void){
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
 
   // Initialize the ground interface (active)
-  groundInterface.init(0);
+  groundInterface.init();
 
-  udpReceiver.init(0);
+  udpReceiver.init();
+  
+  networkManager.init();
 
    // Construct the application and make all connections between components
   constructCubeRoverArchitecture();

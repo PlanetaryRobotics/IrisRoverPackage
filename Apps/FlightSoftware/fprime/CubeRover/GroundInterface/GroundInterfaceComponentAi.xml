@@ -9,6 +9,16 @@
     <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
     <import_port_type>Fw/Buffer/BufferGetPortAi.xml</import_port_type>
     <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
+        
+    <comment>
+        Validates inbound/outbound FSW packets and routes them to the correct endpoint. For uplinked
+        packets, they are received/validated  synchronously and immediately queued on to the 
+        CommandDispatcher message queue to be processed. Downlink items on the otherhand are buffered
+        internally to pack multiple downlink objects in to fewer packets. This requires downlink
+        handlers be guarded to ensure thread safety of the buffer. This component only checks packets
+        at the FSW packet header level, all UDP framing needs to occur outside of this component.
+    </comment>
+            
     <ports>
 
         <!-- Input ports -->
@@ -33,10 +43,9 @@
             </comment>
         </port>
             
-        <port name="cmdUplink" data_type="Fw::BufferSend"  kind="sync_input"    max_number="2">
+        <port name="cmdUplink" data_type="Fw::BufferSend"  kind="sync_input"    max_number="1">
             <comment>
                 GroundInterface validates and forwards deserialized a uplinked command to CmdDispatcher.
-                0: WatchDog Serial  1: WF121
             </comment>
         </port>
             

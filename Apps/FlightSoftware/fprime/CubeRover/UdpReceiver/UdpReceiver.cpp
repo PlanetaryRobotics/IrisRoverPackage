@@ -121,8 +121,9 @@ namespace CubeRover {
     }
     
     uint8_t computedPayloadLen = static_cast<uint8_t>(fwBuffer.getsize()) - sizeof(*header);
-    U64 payloadStart = reinterpret_cast<U64>(reinterpret_cast<uint8_t *>(fwBuffer.getdata()) + sizeof(*header))
-    Fw::Buffer payloadBuffer(0, 0, payloadstart, header->length - sizeof(*header)); // XXX: Set buffer manager to 0xfff...?
+    U64 payloadStart = reinterpret_cast<U64>(reinterpret_cast<uint8_t *>(fwBuffer.getdata()) + sizeof(*header));
+    Fw::Buffer payloadBuffer(0, 0, payloadStart, header->length - sizeof(*header)); // XXX: Set buffer manager to 0xfff...?
+    forwardDatagramPayload_out(0, payloadBuffer);
     
     m_packetsReceived++;
     m_bytesReceived += fwBuffer.getsize();  // Note: Datagram size not payload size

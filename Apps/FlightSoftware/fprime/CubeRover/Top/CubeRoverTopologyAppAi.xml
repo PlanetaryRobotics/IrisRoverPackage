@@ -216,7 +216,7 @@
   </connection>
 
   <connection name="udpReceiver_to_groundInterface">
-    <source component="udpReceiver" port="getReceivedDatagramBuffer" type="Fw::BufferGet" num="0" />
+    <source component="udpReceiver" port="forwardDatagramPayload" type="Fw::BufferSend" num="0" />
     <target component="groundInterface" port="cmdUplink" type="Fw::BufferSend" num="0"/>
   </connection>
       

@@ -81,6 +81,14 @@ Svc::CommandDispatcherImpl cmdDispatcher(
 );
 
 // ---------------------------------------------------------------------------
+// Active Logger data component used to log system events
+Svc::ActiveLoggerImpl activeLogger(
+#if FW_OBJECT_NAMES == 1
+        "ActiveLogger"
+#endif
+);
+
+// ---------------------------------------------------------------------------
 // watchdog interface to tell watchdog commands/stroke watchdog
 CubeRover::WatchDogInterfaceComponentImpl watchDogInterface(
 #if FW_OBJECT_NAMES == 1
@@ -90,7 +98,7 @@ CubeRover::WatchDogInterfaceComponentImpl watchDogInterface(
 
 // ---------------------------------------------------------------------------
 // health components to keep track of health of components
-Svc::HealthImpl healthImpl(
+Svc::HealthImpl health(
 #if FW_OBJECT_NAMES == 1
         "Health"
 #endif
@@ -121,6 +129,8 @@ void constructApp(void){
 
   // Initialize cubeRover time component (passive)
   cubeRoverTime.init(0);
+
+  activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
 
   // Initialize the watchdog interface component (queued)
   watchDogInterface.init(1,          /*Queue Depth*/

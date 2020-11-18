@@ -1,6 +1,6 @@
---- CubeRoverTopologyAppAc.hpp	2020-09-28 17:58:46.310851294 -0700
-+++ CubeRoverTopologyAppAc.hpp.bak	2020-09-28 18:01:46.347818934 -0700
-@@ -16,14 +16,14 @@
+--- CubeRoverTopologyAppAc.hpp.orig	2020-11-18 14:35:00.915941054 -0500
++++ CubeRoverTopologyAppAc.hpp	2020-11-18 14:35:47.859857878 -0500
+@@ -18,17 +18,17 @@
  extern Fw::SimpleObjRegistry simpleReg;
  
  // Component declarations
@@ -14,11 +14,11 @@
 -extern Svc::CommandDispatcherImpl cmdDispatcher("cmdDispatcher");
 -extern Svc::ActiveLoggerImpl activeLogger("activeLogger");
 -extern Svc::HealthImpl health("health");
--extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface("watchDogInterface");
+-extern CubeRover::WatchDogInterfaceImpl watchDogInterface("watchDogInterface");
 +extern Drv::BlockDriverImpl blockDriver;
 +extern Svc::RateGroupDriverImpl rateGroupDriver;
-+extern Svc::ActiveRateGroupImpl rateGroupMedFreq;
 +extern Svc::ActiveRateGroupImpl rateGroupLowFreq;
++extern Svc::ActiveRateGroupImpl rateGroupMedFreq;
 +extern Svc::ActiveRateGroupImpl rateGroupHiFreq;
 +extern Svc::CubeRoverTimeImpl cubeRoverTime;
 +extern Svc::TlmChanImpl tlmChan;
@@ -26,5 +26,6 @@
 +extern Svc::ActiveLoggerImpl activeLogger;
 +extern Svc::HealthImpl health;
 +extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
+ 
  
  

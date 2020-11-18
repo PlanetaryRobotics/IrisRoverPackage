@@ -47,9 +47,9 @@ extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
 extern Svc::CommandDispatcherImpl cmdDispatcher;
 
 // Health
-extern Svc::HealthImpl healthImpl;
+extern Svc::HealthImpl health;
 
 // WatchDog Interface
-extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterfaceComponentImpl;
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

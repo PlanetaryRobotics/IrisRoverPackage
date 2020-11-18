@@ -55,8 +55,9 @@ const fs = require('fs');
 const csv = require('neat-csv');
 
 import CLI from '@/components/CLI/CLI.vue'
+
 import ImageViewer from '@/views/sandboxes/ImageViewerTest.vue'
-// import ImageViewer from '@/components/ImageViewer/ImageViewer.vue'
+
 import Map from '@/components/Map/Map.vue'
 
 import FTA from '@/components/FTA/FTA.vue'
@@ -66,7 +67,7 @@ import CombinedScreens from '@/components/Interface/CombinedScreens.vue'
 import DB from '@/DBInterface/DBInterface.js'
 
 export default {
-  name: 'home',
+  name: 'hometestimgviewer',
   components: {
     CombinedScreens,
     CLI,

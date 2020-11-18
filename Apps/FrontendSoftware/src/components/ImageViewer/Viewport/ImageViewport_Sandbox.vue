@@ -271,13 +271,44 @@ export default {
       this.setPOILayerDimensions();
     },
 
+    normalizeCoordinates(){
+      let POILayerDiv = document.getElementById("featurevp");
+
+      let topLeft = [];
+      topLeft[0] = this.greenBoxTopLeftCoords[0]/POILayerDiv.clientWidth;
+      topLeft[1] = this.greenBoxTopLeftCoords[0]/POILayerDiv.clientHeight;
+
+      let topRight = [];
+      topRight[0] = (this.greenBoxTopLeftCoords[0] + this.baseXOffset)/POILayerDiv.clientWidth;
+      topRight[1] = this.greenBoxTopLeftCoords[1]/POILayerDiv.height;
+
+      let bottomRight = [];
+      bottomRight[0] = (this.greenBoxTopLeftCoords[0] + this.baseXOffset)/POILayerDiv.clientWidth;
+      bottomRight[1] = (this.greenBoxTopLeftCoords[1] + this.baseYOffset)/POILayerDiv.clientHeight;
+
+      let bottomLeft = [];
+      bottomLeft[0] = this.greenBoxTopLeftCoords[0]/POILayerDiv.clientWidth;
+      bottomLeft[1] = (this.greenBoxTopLeftCoords[1] + this.baseYOffset)/POILayerDiv.clientHeight;
+      
+      return [topLeft, topRight, bottomRight, bottomLeft];
+    },
+
     onCapSciImageConfirmation(){
-      // Send box coordinates to command line
-      this.sendCapSciCoordinates();
-      console.log("Coordinates would be sent to rover CLI now")
+      //Normalize coordinates to be 0-1 (long float)
+      let arr = this.normalizeCoordinates();
+
+      let coordArr = {
+        topLeft: arr[0],
+        topRight: arr[1],
+        bottomRight: arr[2],
+        bottomLeft: arr[3]
+      }
 
       // close Cap Sci Modal
       this.onCloseCapSciModal();
+
+      // Send box coordinates to command line
+      this.sendCapSciCoordinates(coordArr);
     },
 
     // set correct cursor icon for capture science drags
@@ -918,19 +949,16 @@ export default {
       }
     },
 
-    sendCapSciCoordinates(){
-      let boxCoordinates = [
-        // top left corner coordinates (within POI layer canvas)
-        this.greenBoxTopLeftCoords,
-        // top right corner coordinates (within POI layer canvas)
-        [this.greenBoxTopLeftCoords[0] + this.baseXOffset, this.greenBoxTopLeftCoords[1]],
-        // bottom right corner coordinates (within POI layer canvas)
-        [this.greenBoxTopLeftCoords[0] + this.baseXOffset, this.greenBoxTopLeftCoords[1]+this.baseYOffset],
-        // bottom left corner coordinates (within POI layer canvas)
-        [this.greenBoxTopLeftCoords[0], this.greenBoxTopLeftCoords[1]+this.baseYOffset]
-      ];
+    // Command to send coordinates to rover
+    sendCapSciCoordinates(coords){
+      // Object is array of coords with following keys:
+      /* coords = {
+          topLeft, topRight, bottomRight, bottomLeft
+         }
+      (e.g. coords.topLeft or coords.bottomLeft)
+      */
 
-      return boxCoordinates;
+      console.log("coords: ", coords);
     },
 
     showPOIChoiceModal() {

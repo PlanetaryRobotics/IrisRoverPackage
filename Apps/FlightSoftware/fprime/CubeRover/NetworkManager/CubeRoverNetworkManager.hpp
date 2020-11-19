@@ -2,6 +2,7 @@
 #define __CUBEROVER_NETWORK_MANAGER__
 
 #include "CubeRover/Wf121/Wf121.hpp"
+#include "Include/FswPacket.hpp"      // PrimaryFlightController/FlightMCU/Include
 
 #define TRIES_EXECUTE_CALLBACK    50000
 #define PRESCALE_CHECK_SIGNAL     0         // Used to throttle how often wifi signal quality need to checked
@@ -13,8 +14,8 @@
 #define GATEWAY_PORT            8080
 #define ROVER_UDP_PORT          8080 
 
-#define LANDER_SSID                     "PeregrineLander"
-#define LANDER_NETWORK_PASSWORD         "Hello123"
+#define LANDER_SSID                     "houston"
+#define LANDER_NETWORK_PASSWORD         "redr0ver"
 #define MAX_SIZE_SSID_NAME              32
 #define MAX_NUMBER_CHANNEL_PER_NETWORK  11
 #define MAX_SORTING_LIST_SIZE           5

@@ -15,7 +15,7 @@
 #include "Fw/Types/BasicTypes.hpp"
 #include <cstring>
 
-#define DOWNLINK_BUFFER_SIZE UDP_MAX_PAYLOAD - sizeof(struct FswPacketHeader)
+#define DOWNLINK_BUFFER_SIZE UDP_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader)
 
 namespace CubeRover {
 
@@ -39,8 +39,8 @@ namespace CubeRover {
       m_logsReceived = 0; m_logsDownlinked = 0;
       m_cmdsUplinked = 0; m_cmdsSent = 0; m_cmdErrs = 0;
       m_appBytesReceived = 0; m_appBytesDownlinked = 0;
-      m_downlinkPacket = reinterpret_cast<struct FswPacketHeader *>(m_downlinkBuffer + 8);  // 8 byte UDP header
-      m_downlinkBufferPos = m_downlinkBuffer + sizeof(struct FswPacketHeader);
+      m_downlinkPacket = reinterpret_cast<struct FswPacket::FswPacketHeader *>(m_downlinkBuffer + 8);  // 8 byte UDP header
+      m_downlinkBufferPos = m_downlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
       m_downlinkBufferSpaceAvailable = DOWNLINK_BUFFER_SIZE;
   }
 
@@ -71,7 +71,7 @@ namespace CubeRover {
   {
     m_tlmItemsReceived++;
     uint8_t *tlmData = reinterpret_cast<uint8_t *>(data.getBuffAddr());
-    uint16_t length = static_cast<uint16_t>(data.getBuffLength());
+    FswPacket::Length_t length = static_cast<FswPacket::Length_t>(data.getBuffLength());
     downlinkBufferWrite(tlmData, length, DownlinkTelemetry);
     m_tlmItemsDownlinked++;
     updateTelemetry();
@@ -97,44 +97,44 @@ namespace CubeRover {
   {
     uint8_t *data = reinterpret_cast<uint8_t *>(fwBuffer.getdata());
     U32 dataSize = fwBuffer.getsize();
-    U32 singlePacketSize = dataSize + sizeof(struct FswFile);
+    U32 singlePacketSize = dataSize + sizeof(struct FswPacket::FswFile);
     m_appBytesReceived += dataSize;
     if (singlePacketSize <= DOWNLINK_BUFFER_SIZE) {
         uint8_t downlinkBuffer[singlePacketSize];
-        struct FswPacket *packet = reinterpret_cast<struct FswPacket*>(downlinkBuffer);
+        struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket*>(downlinkBuffer);
         packet->payload0.file.magic = FSW_FILE_MAGIC;
         packet->payload0.file.totalBlocks = 1;
         packet->payload0.file.blockNumber = 1;
-        packet->payload0.file.length = dataSize;
+        packet->payload0.file.length = static_cast<FswPacket::FileLength_t>(dataSize);
         memcpy(&packet->payload0.file.byte0, data, dataSize);
-        downlinkBufferWrite(downlinkBuffer, static_cast<uint16_t>(singlePacketSize), DownlinkFile);
+        downlinkBufferWrite(downlinkBuffer, static_cast<FswPacket::Length_t>(singlePacketSize), DownlinkFile);
         m_appBytesDownlinked += singlePacketSize;
     } else {    // Send file fragments
         flushDownlinkBuffer();  // Flush first to get new seq
-        int numBlocks = dataSize % (UDP_MAX_PAYLOAD - sizeof(struct FswPacketHeader) - sizeof(struct FswFile));
+        int numBlocks = dataSize % (UDP_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader) - sizeof(struct FswPacket::FswFile));
         int readStride = static_cast<int>(dataSize) / numBlocks;
         uint8_t downlinkBuffer[UDP_MAX_PAYLOAD];
-        struct FswPacket *packet = reinterpret_cast<struct FswPacket*>(downlinkBuffer);
+        struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket*>(downlinkBuffer);
         for (int blockNum = 1; blockNum <= numBlocks; ++blockNum) {
             packet->payload0.file.magic = FSW_FILE_MAGIC;
             packet->payload0.file.totalBlocks = numBlocks;
             packet->payload0.file.blockNumber = blockNum;
-            uint16_t blockLength;
+            FswPacket::FileLength_t blockLength;
             if (blockNum < numBlocks) {     // Send full datagram fragment
                 blockLength = readStride;
                 dataSize -= readStride;
                 packet->payload0.file.length = blockLength;
                 memcpy(&packet->payload0.file.byte0, data, blockLength);
-                uint16_t datagramLength = 8 + sizeof(struct FswPacketHeader) + sizeof(struct FswFile) + blockLength;
+                FswPacket::Length_t datagramLength = 8 + sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFile) + blockLength;
                 log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
                 downlink(packet, datagramLength);
                 data += datagramLength;
             } else {        // Final Fragment is written to the member buffer to downlink with other objects
                 FW_ASSERT(dataSize > 0);
-                blockLength = static_cast<uint16_t>(dataSize);
+                blockLength = static_cast<FswPacket::FileLength_t>(dataSize);
                 packet->payload0.file.length = blockLength;
                 memcpy(&packet->payload0.file.byte0, data, blockLength);
-                downlinkBufferWrite(&packet->payload0.file, sizeof(struct FswFile) + blockLength, DownlinkFile);
+                downlinkBufferWrite(&packet->payload0.file, sizeof(struct FswPacket::FswFile) + blockLength, DownlinkFile);
             }
             m_appBytesDownlinked += blockLength;
         }
@@ -151,7 +151,7 @@ namespace CubeRover {
     
     m_packetsRx++;
 
-    struct FswPacket *packet = reinterpret_cast<struct FswPacket *>(fwBuffer.getdata());
+    struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket *>(fwBuffer.getdata());
     U32 buffer_size = fwBuffer.getsize();
     if (buffer_size != packet->header.length) {
         m_cmdErrs++;
@@ -183,7 +183,7 @@ namespace CubeRover {
     updateTelemetry();
   }
   
-    void GroundInterfaceComponentImpl::downlinkBufferWrite(void *_data, uint16_t size, downlinkPacketType from) {
+    void GroundInterfaceComponentImpl::downlinkBufferWrite(void *_data, FswPacket::Length_t size, downlinkPacketType from) {
         FW_ASSERT(_data);
         FW_ASSERT(size <= DOWNLINK_BUFFER_SIZE);
         uint8_t *data = reinterpret_cast<uint8_t *>(_data);
@@ -206,17 +206,17 @@ namespace CubeRover {
     }
     
     void GroundInterfaceComponentImpl::flushDownlinkBuffer() {
-        uint16_t length = static_cast<uint16_t>(m_downlinkBufferPos - m_downlinkBuffer);
+        FswPacket::Length_t length = static_cast<FswPacket::Length_t>(m_downlinkBufferPos - m_downlinkBuffer);
         downlink(m_downlinkBuffer, length);
-        m_downlinkBufferPos = m_downlinkBuffer + sizeof(struct FswPacketHeader);
+        m_downlinkBufferPos = m_downlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
         m_downlinkBufferSpaceAvailable = DOWNLINK_BUFFER_SIZE;
     }
     
-    void GroundInterfaceComponentImpl::downlink(void *_data, uint16_t size) {
+    void GroundInterfaceComponentImpl::downlink(void *_data, FswPacket::Length_t size) {
         FW_ASSERT(_data);
-        uint16_t checksum;   // TODO
+        FswPacket::Checksum_t checksum;   // TODO
         uint8_t *data = reinterpret_cast<uint8_t *>(_data);
-        struct FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacketHeader *>(data + 8);   // 8 byte UDP header
+        struct FswPacket::FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacket::FswPacketHeader *>(data + 8);   // 8 byte UDP header
         packetHeader->seq = m_downlinkSeq;
         packetHeader->checksum = checksum;
         packetHeader->length = size;

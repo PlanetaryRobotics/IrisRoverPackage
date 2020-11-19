@@ -9,6 +9,7 @@
 #define COMPACKET_HPP_
 
 #include <Fw/Types/Serializable.hpp>
+#include <Include/FswPacket.hpp>    // PrimaryFlightController/FlightMCU
 
 // Packet format:
 // |32-bit packet type|packet type-specific data|

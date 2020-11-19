@@ -68,15 +68,4 @@
 #define MOTOR_NB_PAIR_POLES				1.0f
 #define MOTOR_GEAR_BOX_REDUCTION		5.0f
 
-#define IPV4_MTU            1006    // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 791 **FRAGMENTATION *NOT* SUPPORTED**
-#define UDP_MAX_PAYLOAD     978     // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 768
-// 1006byte - 20byte IPv4 header - 8byte UDP header = 978byte payload
-
-// FSW Packet Magic
-#define FSW_COMMAND_MAGIC           0x00bada55
-#define FSW_LOG_MAGIC               0x0deadbad
-#define FSW_TELEMETRY_MAGIC         0xc00010ff
-#define FSW_FILE_MAGIC              0xdabad000
-#define FSW_COMMAND_RESPONSE_MAGIC  0xc001d00d
-
 #endif /* INCLUDE_CUBEROVERCONFIG_HPP_ */

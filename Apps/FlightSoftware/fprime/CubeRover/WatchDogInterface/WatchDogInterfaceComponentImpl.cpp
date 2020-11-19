@@ -70,17 +70,15 @@ namespace CubeRover {
     )
   {
     // This run handler happens every 1-100 hz (overview says 100 hz, specific says 1 hz)
-    // Sends two U8's to the watchdog as defined in design document. Checks stroke value as to what to send watchdog
+    // Sends U16 to the watchdog as defined in design document. Checks stroke value as to what to send watchdog
     // May need to wait to send command everytime it runs as could be a lot of commands
 	// Create watchdog stroke equal to 1 as first bit 1 to tell watchdog scheduled, rest bits 0 to not reset anything
-    U8 watchdog_stroke = 0;
+    U16 watchdog_stroke = 0x00;
     // Send first byte of stroke
-    linSend(linREG, &watchdog_stroke);
-    // Send second byte of stroke
-    linSend(linREG, &watchdog_stroke);
+    linSend(linREG, (uint8_t *)&watchdog_stroke);
     // Check for Response from MSP430 Watchdog (done twice for each byte)
-    U8 watchdog_reponse_1;
-    linGetData(linREG, &watchdog_reponse_1);
+    U16 watchdog_reponse_1;
+    linGetData(linREG, (uint8_t *)&watchdog_reponse_1);
     // Check for timeout of response
     U32 comm_error = linGetStatusFlag(linREG);
     if(comm_error == LIN_TO_INT)
@@ -89,26 +87,6 @@ namespace CubeRover {
     }
     // Check that response is the same as what was sent
     if(watchdog_reponse_1 != watchdog_stroke)
-    {
-    	this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-    }
-	// Check for any watchdog errors (NOTE: not sure that comm_error should be zero if no errors)
-    if(comm_error)
-    {
-    	this->log_WARNING_HI_WatchDogCommError(comm_error);
-    }
-
-    // Check for second byte
-    U8 watchdog_reponse_2;
-    linGetData(linREG, &watchdog_reponse_2);
-    // Check for timeout of response
-    comm_error = linGetStatusFlag(linREG);
-    if(comm_error == LIN_TO_INT)
-    {
-    	this->log_WARNING_HI_WatchDogTimedOut();
-    }
-    // Check that response is the same as what was sent
-    if(watchdog_reponse_2 != watchdog_stroke)
     {
     	this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
     }
@@ -163,16 +141,12 @@ namespace CubeRover {
     else
     {
       	// Copy first byte of reset value
-      	U8 watchdog_reset_byte1 = static_cast<U8>(reset_value);
+      	U16 watchdog_reset_byte1 = reset_value;
       	// Send watchdog_reset to MSP430 watchdog
-      	linSend(linREG, &watchdog_reset_byte1);
-      	// Copy second byte of reset value by shifting reset_value by 8 bits
-      	U8 watchdog_reset_byte2 = static_cast<U8>(reset_value >> 8);
-      	// Send watchdog_reset to MSP430 watchdog
-      	linSend(linREG, &watchdog_reset_byte2);
+      	linSend(linREG, (uint8_t *)&watchdog_reset_byte1);
 		// Check for first byte Response from MSP430 Watchdog
-	    U8 watchdog_reponse_byte1;
-	    linGetData(linREG, &watchdog_reponse_byte1);
+	    U16 watchdog_reponse_byte1;
+	    linGetData(linREG, (uint8_t *)&watchdog_reponse_byte1);
 	    // Check for timeout of response
 	    U32 comm_error = linGetStatusFlag(linREG);
 	    if(comm_error == LIN_TO_INT)
@@ -181,26 +155,6 @@ namespace CubeRover {
 	    }
 	    // Check that response is the same as what was sent
 	    if(watchdog_reponse_byte1 != watchdog_reset_byte1)
-	    {
-	    	this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-	    }
-		// Check for any watchdog errors (NOTE: not sure that comm_error should be zero if no errors)
-	    if(comm_error)
-	    {
-	    	this->log_WARNING_HI_WatchDogCommError(comm_error);
-	    }
-
-	    // Check for second byte Response from MSP430 Watchdog
-	    U8 watchdog_reponse_byte2;
-	    linGetData(linREG, &watchdog_reponse_byte2);
-	    // Check for timeout of response
-	    comm_error = linGetStatusFlag(linREG);
-	    if(comm_error == LIN_TO_INT)
-	    {
-	    	this->log_WARNING_HI_WatchDogTimedOut();
-	    }
-	    // Check that response is the same as what was sent
-	    if(watchdog_reponse_byte2 != watchdog_reset_byte2)
 	    {
 	    	this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
 	    }

@@ -92,8 +92,8 @@ namespace CubeRover {
       
         struct FswPacketHeader {
             uint8_t seq;
-            uint16_t checksum;
             uint16_t length;
+            uint16_t checksum;
         } __attribute__((packed));
         
         struct FswCommand {

@@ -56,15 +56,19 @@ namespace CubeRover {
             }
             CubeRoverNetworkManager::CubeRoverNetworkStateMachine new_state = m_crnm.GetState();
             
-            if (m_current_state == CubeRoverNetworkManager::UDP_CONNECTED)     // Connection & transport layer established
-                success = true;
-            else if (m_current_state == new_state)
+            if (m_current_state == new_state)
                 no_transition_count++;
             else
                 log_ACTIVITY_HI_StateChange(m_current_state, new_state);
+            
             m_current_state = new_state;
+            
+            if (m_current_state == CubeRoverNetworkManager::UDP_CONNECTED) {     // Connection & transport layer established
+                success = true;
+                break;
+            }
         }
-        if (no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
+        if (no_transition_count > MAX_FSM_NO_TRANSITION_COUNT) {
             log_FATAL_WF121InitializationFailed();
             // TODO: Watchdog reset WF121
         }

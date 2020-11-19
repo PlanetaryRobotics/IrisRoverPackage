@@ -199,9 +199,9 @@
     <target component="groundInterface" port="tlmDownlink" type="Com" num="0" />
   </connection>
       
-  <connection name="chanTlm_to_groundInterface">
-    <source component="tlmChan" port="PktSend" type="Com" num="0" />
-    <target component="groundInterface" port="tlmDownlink" type="Com" num="0" />
+  <connection name="groundInterface_to_networkManager">
+    <source component="groundInterface" port="downlinkBufferSend" type="Buffer" num="0" />
+    <target component="networkManager" port="downlink" type="Buffer" num="0" />
   </connection>
 
       

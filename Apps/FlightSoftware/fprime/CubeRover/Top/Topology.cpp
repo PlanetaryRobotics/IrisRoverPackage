@@ -97,7 +97,7 @@ CubeRover::UdpReceiverComponentImpl udpReceiver(
 // --------------------------------------------------------------------------
 CubeRover::NetworkManagerComponentImpl networkManager(
 #if FW_OBJECT_NAMES == 1
-        "UdpReceiver"
+        "NetworkManager"
 #endif
 );
 

@@ -22,7 +22,7 @@
 
 #define RX_RING_BUFFER_SIZE              MAX_SIZE_PAYLOAD
 
-#define MAX_FSM_NO_TRANSITION_COUNT 1024
+#define MAX_FSM_NO_TRANSITION_COUNT 1024000000            // TODO: TUNE ME
 
 namespace CubeRoverNetworkManager {
 

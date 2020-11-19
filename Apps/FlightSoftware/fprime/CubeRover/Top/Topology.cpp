@@ -112,7 +112,7 @@ void run1cycle(void) {
  * @brief      Construct the F-prime application
  */
 void constructApp(void){
-  //Initialize the block driver
+  //Initialize the block driver (active)
   blockDriver.init(BLK_DRV_QUEUE_DEPTH);
 
   // Initialize rate group driver driver (passive)
@@ -126,14 +126,19 @@ void constructApp(void){
   // Initialize cubeRover time component (passive)
   cubeRoverTime.init(0);
 
-  // Initialize the telemetric channel component (active)
+  // Initialize the telemetry channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
+  // 
+  // Initialize the CommandDispatcher component (active)
+  cmdDispatcher.init(CMD_DISP_QUEUE_DEPTH, CMD_DISP_ID);
 
-  // Initialize the ground interface (active)
+  // Initialize the ground interface (passive)
   groundInterface.init();
 
+  // Initialize the ground interface (passive)
   udpReceiver.init();
   
+  // Initialize the ground interface (passive)
   networkManager.init();
 
    // Construct the application and make all connections between components
@@ -158,4 +163,8 @@ void constructApp(void){
   tlmChan.start(0, /* identifier */
                 TLM_CHAN_AFF, /* thread affinity */
                 TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+  
+  cmdDispatcher.start(0,
+                      CMD_DISP_AFF, 
+                      CMD_DISP_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
 }

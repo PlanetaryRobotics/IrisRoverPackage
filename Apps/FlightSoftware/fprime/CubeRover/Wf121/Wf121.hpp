@@ -15,7 +15,7 @@
 
 #include "sci.h"
 #include "gio.h"
-#include "Include/CubeRoverConfig.hpp"      // PrimaryFlightController/FlightMCU/Include
+#include "Include/FswPacket.hpp"      // PrimaryFlightController/FlightMCU/Include
 
 #define MAX_SIZE_PAYLOAD    UDP_MAX_PAYLOAD    // in byte
 #define SCI_REG             sciREG

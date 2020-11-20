@@ -173,8 +173,12 @@ void constructApp(void){
                 TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 
   // Set Health Ping Entries
+  // **** THIS IS WHERE YOU CAN ADD ANY COMPONENTS THAT HAVE HEALTH PINGS ****
   Svc::HealthImpl::PingEntry pingEntries[] = {
     // {3, 5, name.getObjName()},
+    // 3 -> number of cycles before WARNING
+    // 5 -> number of cycles before FATAL
+    // name.getObjName() -> the name of the entry where "name" is replace with component name
   };
 
   // Register ping table

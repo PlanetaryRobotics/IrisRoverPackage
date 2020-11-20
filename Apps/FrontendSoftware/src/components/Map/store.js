@@ -4,6 +4,19 @@ import {getReorganizedList} from "@/components/Map/Utility/LocalizationDataPostP
 
 export default {
     state: {
+        // GRID:
+        // Metadata about drawn rover:
+        roverMetadata: {
+          angle: 0,
+          xCmFromLander: 0,
+          yCmFromLander: 0,
+          xPosPx: "",
+          yPosPx: "",
+        },
+
+        
+
+        // BUTTON STATES:
         addRouteButton: {
           clicked: false,
           hovered: false
@@ -180,6 +193,10 @@ export default {
       },
     },
     mutations: {
+      updateRoverMetadata(state, data) {
+        Object.assign(state.roverMetadata, data);
+      },
+
       createEmptyRoute(state) {
         state.routeList.addEmptyRoute();
       },

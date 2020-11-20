@@ -30,7 +30,10 @@
         <!-- <div v-if="show.Routes"></div> -->
         <!-- SAVED ROUTES -->
 
-        <VisibleRoutes :origin="{ origin }" :gridSquare="{ gridSquare }" />
+        <VisibleRoutes
+          :origin="origin"
+          :gridSquare="gridSquare"
+        />
         <!-- <div v-if="show.Routes"> -->
         <!-- ROVER'S TRAILS -->
         <LocalizedTrail
@@ -41,7 +44,6 @@
 
         <TargetTrail
           :origin="{ origin }"
-          :rover="{ rover }"
           :gridSquare="{ gridSquare }"
         />
         <!-- </div> -->
@@ -65,7 +67,7 @@ import TargetTrail from "@/components/Map/MapComponents/GridComponents/TargetTra
 import $ from "jquery";
 import * as d3 from "d3";
 import GridEventBus from "@/components/Map/GridEventBus.js";
-import { mapGetters } from "vuex";
+import { mapState, mapGetters, mapMutations } from "vuex";
 import {
   plotNewSegment,
   generateFirstSegmentVars,
@@ -99,14 +101,6 @@ export default {
         xPosPx: "",
         yPosPx: "",
       },
-      // Init values
-      rover: {
-        angle: 0,
-        xCmFromLander: 0,
-        yCmFromLander: 0,
-        xPosPx: "",
-        yPosPx: "",
-      },
       svgSize: {
         viewbox: null,
       },
@@ -127,7 +121,7 @@ export default {
       mouseCoords: null,
       show: {
         POIObjects: false,
-        Routes: false,
+        Routes: true,
       },
       resizeObserver: {},
     };
@@ -142,8 +136,11 @@ export default {
       "editingSegmentInfo",
       "localizationData",
       "currWaypointSegment",
-      "currCircumnav",
+      "currCircumnav"
     ]),
+    ...mapState({
+      rover: (state) => state.MAP.roverMetadata
+    })
   },
   mounted() {
     // Initialize main objects on grid
@@ -246,9 +243,11 @@ export default {
       let idx = newData.length - 1; // Using last in list to move rover
 
       // Set the rover's new position
-      this.rover.xCmFromLander = newData[idx].data.position[0];
-      this.rover.yCmFromLander = newData[idx].data.position[1];
-      this.rover.angle = newData[idx].data.position[2];
+      this.updateRoverMetadata({
+        xCmFromLander: newData[idx].data.position[0],
+        yCmFromLander: newData[idx].data.position[1],
+        angle: newData[idx].data.position[2]
+      });
 
       this.setRover();
     },
@@ -261,8 +260,9 @@ export default {
     },
   },
   methods: {
+    ...mapMutations(["updateRoverMetadata"]),
     plotNewSegmentPreview(xCm, yCm, roverAngle) {
-      let currWaypointSegment = new WaypointSegment();
+      let currWaypointSegment = new WaypointSegment(this.gridSquare);
       currWaypointSegment.setCmCoordinates(xCm, yCm);
 
       if (roverAngle && roverAngle !== "") {
@@ -316,7 +316,7 @@ export default {
     gridClicked() {
       // Add form is open, and listening for any clicks on grid
       if (this.isListeningForNewWaypoint) {
-        let currWaypointSegment = new WaypointSegment();
+        let currWaypointSegment = new WaypointSegment(this.gridSquare);
         currWaypointSegment.setPxCoordinates(
           this.mouseCoords[0],
           this.mouseCoords[1]
@@ -686,9 +686,10 @@ export default {
       let xPos = originX + coord.xPx - roverWidth / 2;
 
       // Save rover's position (without rover centering adjustment)
-      this.rover.xPosPx = xPos + d3.select("#rover").node().getBBox().width / 2;
-      this.rover.yPosPx =
-        yPos + d3.select("#rover").node().getBBox().height / 2;
+      this.updateRoverMetadata({
+        xPosPx: xPos + d3.select("#rover").node().getBBox().width / 2,
+        yPosPx: yPos + d3.select("#rover").node().getBBox().height / 2
+      })
 
       // Set rover coords
       d3.select("#roverGroup").attr(

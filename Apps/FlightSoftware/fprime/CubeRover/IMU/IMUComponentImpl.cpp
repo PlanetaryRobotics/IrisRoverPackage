@@ -69,20 +69,6 @@ namespace CubeRover {
     // TODO
   }
 
-  void IMUComponentImpl ::
-    IMUDataOut_handler(
-        const NATIVE_INT_TYPE portNum,
-        I16 x_acc,
-        I16 y_acc,
-        I16 z_acc,
-        I16 x_ang,
-        I16 y_ang,
-        I16 z_ang
-    )
-  {
-    // TODO
-  }
-
   // ----------------------------------------------------------------------
   // Command handler implementations
   // ----------------------------------------------------------------------

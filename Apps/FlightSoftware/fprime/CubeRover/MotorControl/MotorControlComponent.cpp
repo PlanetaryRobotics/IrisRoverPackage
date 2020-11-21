@@ -100,27 +100,7 @@ namespace CubeRover {
    */
   void MotorControlComponentImpl :: PingIn_handler( const NATIVE_INT_TYPE portNum, U32 key)
   {
-    // TODO
-  }
-
-  /**
-   * @brief      Handler implementation for motorData transfer
-   *
-   * @param[in]  portNum                The port number
-   * @param[in]  movement_in_progress   Is movement in progress
-   * @param[in]  encoder_dist_motor_0   Distance encoder of motor 0 has recorded
-   * @param[in]  encoder_dist_motor_1   Distance encoder of motor 1 has recorded
-   * @param[in]  encoder_dist_motor_2   Distance encoder of motor 2 has recorded
-   * @param[in]  encoder_dist_motor_3   Distance encoder of motor 3 has recorded
-   */
-  void MotorControlComponentImpl :: motorDataOut_handler( const NATIVE_INT_TYPE portNum,
-                                                          bool movement_in_progress,
-                                                          I32 encoder_dist_motor_0,
-                                                          I32 encoder_dist_motor_1,
-                                                          I32 encoder_dist_motor_2,
-                                                          I32 encoder_dist_motor_3)
-  {
-    // TODO
+    this->PingOut_out(portNum, key);
   }
 
   /**
@@ -255,7 +235,7 @@ namespace CubeRover {
 
         // Set target position in ticks for the front left wheel
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                        MotorControllerI2C::I2C_RELATIVE_TARGET_POSITION, 
+                                        MotorControllerI2C::RELATIVE_TARGET_POSITION, 
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         targetTick);
         if(err != MC_NO_ERROR)
@@ -266,7 +246,7 @@ namespace CubeRover {
 
         // Set target position in ticks for the front right wheel
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I2C_RELATIVE_TARGET_POSITION,
+                                        MotorControllerI2C::RELATIVE_TARGET_POSITION,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         targetTick);
         if(err != MC_NO_ERROR)
@@ -277,7 +257,7 @@ namespace CubeRover {
 
         // Set target position in ticks for the rear right wheel
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I2C_RELATIVE_TARGET_POSITION,
+                                        MotorControllerI2C::RELATIVE_TARGET_POSITION,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         targetTick);
         if(err != MC_NO_ERROR)
@@ -288,7 +268,7 @@ namespace CubeRover {
 
         // Set target position in ticks for the rear left wheel
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I2C_RELATIVE_TARGET_POSITION,
+                                        MotorControllerI2C::RELATIVE_TARGET_POSITION,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         targetTick);
         if(err != MC_NO_ERROR)
@@ -299,7 +279,7 @@ namespace CubeRover {
         
         // Set target speed in percentage for front left motor
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I2C_TARGET_SPEED,
+                                        MotorControllerI2C::TARGET_SPEED,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         targetTick);
         if(err != MC_NO_ERROR)
@@ -310,7 +290,7 @@ namespace CubeRover {
 
         // Set target speed in percentage for front right motor
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I2C_TARGET_SPEED,
+                                        MotorControllerI2C::TARGET_SPEED,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         targetTick);
         if(err != MC_NO_ERROR)
@@ -321,7 +301,7 @@ namespace CubeRover {
 
         // Set target speed in percentage for rear right motor
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I2C_TARGET_SPEED,
+                                        MotorControllerI2C::TARGET_SPEED,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         targetTick);
         if(err != MC_NO_ERROR)
@@ -332,7 +312,7 @@ namespace CubeRover {
 
         // Set target speed in percentage for rear left motor
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I2C_TARGET_SPEED,
+                                        MotorControllerI2C::TARGET_SPEED,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         targetTick);
         if(err != MC_NO_ERROR)
@@ -357,48 +337,21 @@ namespace CubeRover {
     enableDrivers();
 
     // Send command to all motor controllers to execute driving command
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::I2C_EXECUTE_CMD,
-                                    FRONT_LEFT_MC_I2C_ADDR,
-                                    DrivingCommand);
+    err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
+                            MotorControllerI2C::EXECUTE_CMD,
+                            DrivingCommand);
+
     if(err != MC_NO_ERROR)
     {
       this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
       return;          
     }
 
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::I2C_EXECUTE_CMD,
-                                    FRONT_RIGHT_MC_I2C_ADDR,
-                                    DrivingCommand);
-    if(err != MC_NO_ERROR)
+    else
     {
-      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
-      return;          
-    }  
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::I2C_EXECUTE_CMD,
-                                    REAR_LEFT_MC_I2C_ADDR,
-                                    DrivingCommand);
-    if(err != MC_NO_ERROR)
-    {
-      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
-      return;          
-    }  
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::I2C_EXECUTE_CMD,
-                                    REAR_RIGHT_MC_I2C_ADDR,
-                                    DrivingCommand);
-    if(err != MC_NO_ERROR)
-    {
-      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
-      return;          
-    }  
-
-    // Everything was successful if we reached here
-    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+      // Everything was successful if we reached here
+      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+    }
   }
 
   /**
@@ -414,8 +367,55 @@ namespace CubeRover {
                                                                    tuningParameterList TuningParameter,
                                                                    U16 Value)
   {
-    // TODO
-    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+     // Preset some necessary variables
+    MCError err = MC_NO_ERROR;
+    MotorControllerI2C::I2cRegisterId paramToChange;
+
+    // Determine which parameter needs to change
+    if (TuningParameter == P_CURRENT)
+    {
+      paramToChange = MotorControllerI2C::P_CURRENT;
+    }
+
+    else if (TuningParameter == I_CURRENT)
+    {
+      paramToChange = MotorControllerI2C::I_CURRENT;
+    }
+
+    else if (TuningParameter == P_SPEED)
+    {
+      paramToChange = MotorControllerI2C::P_SPEED;
+    }
+
+    else if (TuningParameter == I_SPEED)
+    {
+      paramToChange = MotorControllerI2C::I_SPEED;
+    }
+
+    // Complain if command isn't configured correctly
+    else
+    {
+      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+      return;  
+    }
+    
+    // Send command to all motor controllers to update parameter
+    // If the casting okay?
+    err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
+                            paramToChange,
+                            Value);
+
+    if(err != MC_NO_ERROR)
+    {
+      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+      return;          
+    }
+
+    else
+    {
+      // Everything was successful if we reached here
+      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+    }
   }
 
   /**
@@ -431,10 +431,54 @@ namespace CubeRover {
                                                                        accelerationParameterList AccelerationParameter,
                                                                        U16 Value)
   {
-    // TODO
-    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+    // Preset some necessary variables
+    MCError err = MC_NO_ERROR;
+    MotorControllerI2C::I2cRegisterId paramToChange;
+
+    // Determine if we are modifying accleration or deceleration
+    if (AccelerationParameter == ACCELERATION)
+    {
+      paramToChange = MotorControllerI2C::ACC_RATE;
+    }
+
+    else if (AccelerationParameter == DECELERATION)
+    {
+      paramToChange = MotorControllerI2C::DEC_RATE;
+    }
+
+    // Complain if command isn't configured correctly
+    else
+    {
+      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+      return;  
+    }
+    
+    // Send command to all motor controllers to update parameter
+    // If the casting okay?
+    err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
+                            paramToChange,
+                            Value);
+
+    if(err != MC_NO_ERROR)
+    {
+      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+      return;          
+    }
+
+    else
+    {
+      // Everything was successful if we reached here
+      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+    }
   }
 
+  /**
+   * @brief      Handle commands that adjust acceleration profiles of the rover
+   *
+   * @param[in]  opCode                 The operation code
+   * @param[in]  cmdSeq                 The command sequence
+   * @param[in]  motorStallEnable       The desired new state of stall detection (ENABLED or DISABLED)
+   */
   void MotorControlComponentImpl :: MC_StallDetection_cmdHandler(const FwOpcodeType opCode,
                                                                  const U32 cmdSeq,
                                                                  motorStallEnableList motorStallEnable)
@@ -455,34 +499,79 @@ namespace CubeRover {
       default:
         this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
         return;
-        break;
     }
 
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
+  /**
+   * @brief      Handle commands that adjust acceleration profiles of the rover
+   *
+   * @param[in]  opCode                 The operation code
+   * @param[in]  cmdSeq                 The command sequence
+   * @param[in]  ResetPositionCounter   Bit mask selecting which motor(s) to reset
+   */
   void MotorControlComponentImpl :: MC_PositionCounterReset_cmdHandler(const FwOpcodeType opCode,
                                                                        const U32 cmdSeq,
                                                                        U8 ResetPositionCounter)
   {
-    // TODO
+    // The "first" 4 bits are the desired encoders to reset
+    // Follows the mentality that motor 0 (bit 0) if FL, and moves in the clockwise formation
+
+    // Motor 0 (FL)
+    if(00000001 & ResetPositionCounter != 0)
+    {
+      FL_Encoder_Count_Offset = -FL_Encoder_Count;
+    }
+
+    // Motor 1 (FR)
+    if(00000010 & ResetPositionCounter != 0)
+    {
+      FR_Encoder_Count_Offset = -FR_Encoder_Count;
+    }
+
+    // Motor 2 (RR)
+    if(00000100 & ResetPositionCounter != 0)
+    {
+      RR_Encoder_Count_Offset = -RR_Encoder_Count;
+    }
+
+    // Motor 3 (RL)
+    if(00001000 & ResetPositionCounter != 0)
+    {
+      RL_Encoder_Count_Offset = -RL_Encoder_Count;
+    }
+
+    // If none of the bits were set, the operator is calling a meaningless command, so raise an error
+    if(00001111 & ResetPositionCounter != 0)
+    {
+      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+      return;
+    }
+
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
+  /**
+   * @brief      Handler for updating the telemetry channel
+   *
+   * @param[in]  opCode                 The operation code
+   * @param[in]  cmdSeq                 The command sequence
+   */
   void MotorControlComponentImpl :: MC_UpdateTelemetry_cmdHandler(const FwOpcodeType opCode,
                                                                   const U32 cmdSeq)
   {
+    // FIRST CHECK STATUS!
+
     MCError err = MC_NO_ERROR;
     uint8_t Data_buffer[MC_BUFFER_MAX_SIZE];
-    // Front left (FL), Front right (FR), Rear right (RR), Rear left (RL) tick counts
-    uint32_t FL_Tick_Count, FR_Tick_Count, RR_Tick_Count, RL_Tick_Count;
 
-    uint32_t Data_size = getSizeData(MotorControllerI2C::I2C_CURRENT_POSITION);
+    uint32_t Data_size = getSizeData(MotorControllerI2C::CURRENT_POSITION);
 
 
     // Requesting Front Left Tick count
     err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::I2C_CURRENT_POSITION,
+                                    MotorControllerI2C::CURRENT_POSITION,
                                     FRONT_LEFT_MC_I2C_ADDR,
                                     0);
     if(err != MC_NO_ERROR)
@@ -504,11 +593,11 @@ namespace CubeRover {
     }
 
     // Copy from the buffer
-    RL_Tick_Count = Data_buffer[0];
+    FL_Encoder_Count = Data_buffer[0];
 
     // Requesting Front right Tick count
     err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::I2C_CURRENT_POSITION,
+                                    MotorControllerI2C::CURRENT_POSITION,
                                     FRONT_RIGHT_MC_I2C_ADDR,
                                     0);
     if(err != MC_NO_ERROR)
@@ -530,11 +619,11 @@ namespace CubeRover {
     }
 
     // Copy from the buffer
-    FR_Tick_Count = Data_buffer[0];
+    FR_Encoder_Count = Data_buffer[0];
 
     // Requesting Rear right Tick count
     err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::I2C_CURRENT_POSITION,
+                                    MotorControllerI2C::CURRENT_POSITION,
                                     REAR_RIGHT_MC_I2C_ADDR,
                                     0);
     if(err != MC_NO_ERROR)
@@ -556,11 +645,11 @@ namespace CubeRover {
     }
 
     // Copy from the buffer
-    RR_Tick_Count = Data_buffer[0];
+    RR_Encoder_Count = Data_buffer[0];
 
     // Requesting Rear left Tick count
     err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::I2C_CURRENT_POSITION,
+                                    MotorControllerI2C::CURRENT_POSITION,
                                     REAR_LEFT_MC_I2C_ADDR,
                                     0);
     if(err != MC_NO_ERROR)
@@ -582,7 +671,7 @@ namespace CubeRover {
     }
 
     // Copy from the buffer
-    RL_Tick_Count = Data_buffer[0];
+    RL_Encoder_Count = Data_buffer[0];
 
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
@@ -599,34 +688,34 @@ namespace CubeRover {
     switch(id)
     {
         case MotorControllerI2C::I2C_ADDRESS:
-        case MotorControllerI2C::I2C_DIRECTION:
-        case MotorControllerI2C::I2C_TARGET_SPEED:
-        case MotorControllerI2C::I2C_EXECUTE_CMD:
-        case MotorControllerI2C::I2C_ENABLE_DRIVER:
-        case MotorControllerI2C::I2C_DISABLE_DRIVER:
-        case MotorControllerI2C::I2C_RESET_CONTROLLER:
-        case MotorControllerI2C::I2C_FAULT_REGISTER:
-        case MotorControllerI2C::I2C_CLEAR_FAULT:
-        case MotorControllerI2C::I2C_STATUS_REGISTER:
-        case MotorControllerI2C::I2C_POSITION_SENSOR_CURRENT_COMBINATION:
+        //case MotorControllerI2C::DIRECTION:
+        case MotorControllerI2C::TARGET_SPEED:
+        case MotorControllerI2C::EXECUTE_CMD:
+        case MotorControllerI2C::ENABLE_DRIVER:
+        case MotorControllerI2C::DISABLE_DRIVER:
+        case MotorControllerI2C::RESET_CONTROLLER:
+        case MotorControllerI2C::FAULT_REGISTER:
+        case MotorControllerI2C::CLEAR_FAULT:
+        case MotorControllerI2C::STATUS_REGISTER:
+        //case MotorControllerI2C::POSITION_SENSOR_CURRENT_COMBINATION:
           return 1;
-        case MotorControllerI2C::I2C_MOTOR_CURRENT:
-        case MotorControllerI2C::I2C_P_CURRENT:
-        case MotorControllerI2C::I2C_I_CURRENT:
-        case MotorControllerI2C::I2C_P_VELOCITY:
-        case MotorControllerI2C::I2C_I_VELOCITY:
-        case MotorControllerI2C::I2C_D_VELOCITY:
-        case MotorControllerI2C::I2C_P_POSITION:
-        case MotorControllerI2C::I2C_I_POSITION:
-        case MotorControllerI2C::I2C_D_POSITION:
-        case MotorControllerI2C::I2C_ACCELERATION:
-        case MotorControllerI2C::I2C_DECELERATION:
-        case MotorControllerI2C::I2C_CURRENT_VELOCITY:
+        case MotorControllerI2C::MOTOR_CURRENT:
+        case MotorControllerI2C::P_CURRENT:
+        case MotorControllerI2C::I_CURRENT:
+        case MotorControllerI2C::P_SPEED:
+        case MotorControllerI2C::I_SPEED:
+        //case MotorControllerI2C::D_VELOCITY:
+        //case MotorControllerI2C::P_POSITION:
+        //case MotorControllerI2C::I_POSITION:
+        //case MotorControllerI2C::D_POSITION:
+        case MotorControllerI2C::ACC_RATE:
+        case MotorControllerI2C::DEC_RATE:
+        //case MotorControllerI2C::CURRENT_VELOCITY:
           return 2;
-        case MotorControllerI2C::I2C_RELATIVE_TARGET_POSITION:
-        case MotorControllerI2C::I2C_CURRENT_POSITION:
+        case MotorControllerI2C::RELATIVE_TARGET_POSITION:
+        case MotorControllerI2C::CURRENT_POSITION:
           return 4;
-        case MotorControllerI2C::I2C_MC_MAX_NUM_OF_ELEMENTS:
+        case MotorControllerI2C::MAX_NB_CMDS:
         default:
           return 0;
       }   
@@ -739,6 +828,60 @@ namespace CubeRover {
     return MC_NO_ERROR;
   }
 
+  /**
+   * @brief      Sends the same data to every motor register, returning any errors found
+   *
+   * @param      i2c   I 2 c
+   * @param[in]  id    The identifier
+   * @param[in]  data  The data
+   *
+   * @return     Motor Controller error
+   */
+
+  MCError MotorControlComponentImpl :: sendAllMotorsData(i2cBASE_t *i2c,
+                            const MotorControllerI2C::I2cRegisterId id,
+                            uint32_t data)
+  {
+    MCError err = MC_NO_ERROR;
+    // Send command to all motor controllers
+    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                    id,
+                                    FRONT_LEFT_MC_I2C_ADDR,
+                                    data);
+    if(err != MC_NO_ERROR)
+    {
+      return err;          
+    }
+
+    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                    id,
+                                    FRONT_RIGHT_MC_I2C_ADDR,
+                                    data);
+    if(err != MC_NO_ERROR)
+    {
+      return err;          
+    }  
+
+    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                    id,
+                                    REAR_LEFT_MC_I2C_ADDR,
+                                    data);
+    if(err != MC_NO_ERROR)
+    {
+      return err;          
+    }  
+
+    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                    id,
+                                    REAR_RIGHT_MC_I2C_ADDR,
+                                    data);
+    if(err != MC_NO_ERROR)
+    {
+      return err;          
+    }
+
+    return MC_NO_ERROR;  
+  }
 
   /**
    * @brief      Writes a register.

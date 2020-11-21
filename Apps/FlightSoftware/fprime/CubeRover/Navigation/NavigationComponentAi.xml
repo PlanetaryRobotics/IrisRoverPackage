@@ -1,47 +1,117 @@
-<component name = "Navigation" kind="passive" namespace="CubeRover">
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
 
-    <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
-    <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
-    <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
-    <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
-    <comment>A component that manages navigation and requests navigation images</comment>
+<component name="Navigation" kind="active" namespace="CubeRover" modeler="true">
+  <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
+  <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
+  <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
+  <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
+  <import_port_type>Fw/Tlm/TlmPortAi.xml</import_port_type> 
+  <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
+  <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+  <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+  <import_port_type>CubeRover/CubeRoverPorts/MotorData/MotorDataPortAi.xml</import_port_type>
+  <import_port_type>CubeRover/CubeRoverPorts/IMUData/IMUDataPortAi.xml</import_port_type>
 
+    <!-- PORTS -->
     <ports>
-        <port name="run" data_type="Svc::Sched" kind="guarded_input" max_number="1">
-            <comment>
-            Port that signals this module to run
-            </comment>
-        </port>
+        <!-- Command ports -->
+        <port name="cmdIn" data_type="Fw::Cmd" kind="guarded_input"  max_number="1" role="Cmd"></port>
 
-        <port name="cmdIn" data_type="FW::Cmd" kind="guarded_input" max_number="1">
-            <comment>
-            Recieves commands to start navigation procedure
-            </comment>
-        </port>
+        <port name="cmdRegOut" data_type="Fw::CmdReg" kind="output" max_number="1" role="CmdRegistration"></port>
 
-        <port name="logOut" data_type="FW::Log" kind="output" max_number="1">
-            <comment>
-            Port for navigation to log information
-            </comment>
-        </port>
+        <port name="cmdResponseOut" data_type="Fw::CmdResponse" kind="output" max_number="1" role="CmdResponse"></port>
 
-        <port name="imuCmdOut" data_type="FW::Cmd" kind="output" max_number="1">
-            <comment>
-            Command port for nav to request imu data
-            </comment>
-        </port>
+        <!-- Logging and telemetry ports -->
+        <port name="log" data_type="Fw::Log" kind="output"  max_number="1" role="LogEvent"></port>
 
-        <port name="imgCmdOut" data_type="FW::Cmd" kind="output" max_number="1">
-            <comment>
-            Command port for nav to request imaging
-            </comment>
-        </port>
+        <port name="tlmOut" data_type="Fw::Tlm" kind="output" role="Telemetry" max_number="1"></port>
 
-        <port name="motorCmdOut" data_type="FW::Cmd" kind="output" max_number="1">
-            <comment>
-            Command port for nav to control motors
-            </comment>
-        </port>
+        <port name="timeCaller" data_type="Fw::Time" kind="output" max_number="1" role="TimeGet"></port>
+
+        <!-- Ping ports -->
+        <port name="PingIn" data_type="Svc::Ping" kind="sync_input" max_number="1"></port>
+
+        <port name="PingOut" data_type="Svc::Ping" kind="output" max_number="1"></port>
+
+        <!-- Custom data ports-->
+        <port name="MotorDataOut" data_type="CubeRoverPorts::MotorData" kind="input" max_number="1"></port>
+
+        <port name="IMUDataOut" data_type="CubeRoverPorts::IMUData" kind="input" max_number="1"></port>
+
+        <!-- TODO -->
+        <!-- Still need Mode manager port(s)! -->
+        <!-- Still need Camera port(s)! -->
     </ports>
 
+    <commands>
+        <command kind="guarded" opcode="0x00" mnemonic="MC_DrivingConfiguration">
+            <comment>Configure movement command</comment>
+            <args>
+                <arg name="CommandConfiguration" type="ENUM">
+                <enum name ="CommandList">
+                <item name="FORWARD_CFG" />
+                <item name="REVERSE_CFG" />
+                <item name="LEFT_CFG" />
+                <item name="RIGHT_CFG" />
+                </enum>
+                </arg>
+                <arg name="Parameter" type="ENUM" >
+                <enum name="ParameterList" >
+                <item name="DISTANCE" />
+                <item name="SPEED" />
+                <item name="ANGLE" />
+                </enum>
+                </arg>
+                <arg type="U8" name="Value" />
+            </args>
+        </command>
+
+    </commands>
+
+    <!-- EVENTS -->
+    <events>
+        <event id="0" name="MC_moveStarted" severity="COMMAND" format_string="Move sequence has started">
+            <comment> A notification a move sequence has started </comment>
+        </event>
+
+        <event id="1" name="MC_moveComplete" severity="COMMAND" format_string="Move sequence has finished">
+            <comment> A notification a move sequence has finished </comment>
+        </event>
+
+        <event id="2" name="MC_MSPFaultDetected" severity="WARNING_HI" format_string="Motor controller has detected a fault">
+            <comment> A notification an MSP has thrown a fault </comment>
+        </event>
+
+        <event id="3" name="MC_MSPNotResponding" severity="WARNING_HI" format_string="Motor controller not responding">
+         <comment> A notification an MSP is not communicating </comment>
+        </event>
+
+        <event id="4" name="MC_MSPNotReporting" severity="WARNING_HI" format_string="Motor controller not communicating requested data">
+            <comment> A notification an MSP is not reporting data </comment>
+        </event>
+    </events>
+
+    <!-- TELEMETRY -->
+    <telemetry>
+        <channel id="0" name="Nav_Moved_Forward" data_type="U16">
+            <comment> The distance moved forward in cm </comment>
+        </channel>
+
+        <channel id="1" name="Nav_Moved_Backward" data_type="U16">
+            <comment> The distance moved backward in cm </comment>
+        </channel>
+
+        <channel id="2" name="Nav_Turned_Left" data_type="U16">
+            <comment> The angle turned to the left (counter clockwise) in degrees </comment>
+        </channel>
+
+        <channel id="3" name="Nav_Turned_Right" data_type="U16">
+            <comment> The angle turned to the right (clockwise) in degrees </comment>
+        </channel>
+
+        <channel id="4" name="Nav_Image_Size" data_type="U16">
+            <comment> Image size </comment>
+        </channel>
+    </telemetry>
 </component>

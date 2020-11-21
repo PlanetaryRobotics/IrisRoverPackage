@@ -67,18 +67,6 @@ namespace CubeRover {
           U32 key /*!< Value to return to pinger*/
       );
 
-      //! Handler implementation for IMUDataOut
-      //!
-      void IMUDataOut_handler(
-          const NATIVE_INT_TYPE portNum, /*!< The port number*/
-          I16 x_acc, 
-          I16 y_acc, 
-          I16 z_acc, 
-          I16 x_ang, 
-          I16 y_ang, 
-          I16 z_ang 
-      );
-
     PRIVATE:
 
       // ----------------------------------------------------------------------

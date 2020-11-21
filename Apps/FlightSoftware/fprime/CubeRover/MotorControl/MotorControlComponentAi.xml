@@ -38,6 +38,7 @@
     <!-- Or does Motor Control assume Navigation took care of it?-->
 
     <!-- Motor Data port -->
+    <port name="MotorDataOut" data_type="CubeRoverPorts::MotorData" kind="output" max_number="1"></port>
 
   </ports>
 
@@ -133,6 +134,25 @@
 
   <!-- EVENTS -->
   <events>
+    <event id="0" name="MC_moveStarted" severity="COMMAND" format_string="Move sequence has started">
+          <comment> A notification a move sequence has started </comment>
+    </event>
+
+    <event id="1" name="MC_moveComplete" severity="COMMAND" format_string="Move sequence has finished">
+          <comment> A notification a move sequence has finished </comment>
+    </event>
+
+    <event id="2" name="MC_MSPFaultDetected" severity="WARNING_HI" format_string="Motor controller has detected a fault">
+          <comment> A notification an MSP has thrown a fault </comment>
+    </event>
+
+    <event id="3" name="MC_MSPNotResponding" severity="WARNING_HI" format_string="Motor controller not responding">
+          <comment> A notification an MSP is not communicating </comment>
+    </event>
+
+    <event id="4" name="MC_MSPNotReporting" severity="WARNING_HI" format_string="Motor controller not communicating requested data">
+          <comment> A notification an MSP is not reporting data </comment>
+    </event>
   </events>
 
   <!-- TELEMETRY -->

@@ -60,19 +60,6 @@ namespace CubeRover {
     // TODO
   }
 
-  void MotorControlComponentImpl ::
-    motorDataOut_handler(
-        const NATIVE_INT_TYPE portNum,
-        bool movement_in_progress,
-        I32 encoder_dist_motor_0,
-        I32 encoder_dist_motor_1,
-        I32 encoder_dist_motor_2,
-        I32 encoder_dist_motor_3
-    )
-  {
-    // TODO
-  }
-
   // ----------------------------------------------------------------------
   // Command handler implementations
   // ----------------------------------------------------------------------

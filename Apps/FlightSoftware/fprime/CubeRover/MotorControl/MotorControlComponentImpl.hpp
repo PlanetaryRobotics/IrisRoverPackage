@@ -60,17 +60,6 @@ namespace CubeRover {
           U32 key /*!< Value to return to pinger*/
       );
 
-      //! Handler implementation for motorDataOut
-      //!
-      void motorDataOut_handler(
-          const NATIVE_INT_TYPE portNum, /*!< The port number*/
-          bool movement_in_progress, /*!<  A simple boolean to show if the MoC is driving the motors */
-          I32 encoder_dist_motor_0, /*!<  In units of encoder counts */
-          I32 encoder_dist_motor_1, /*!<  In units of encoder counts */
-          I32 encoder_dist_motor_2, /*!<  In units of encoder counts */
-          I32 encoder_dist_motor_3 /*!<  In units of encoder counts */
-      );
-
     PRIVATE:
 
       // ----------------------------------------------------------------------

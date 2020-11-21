@@ -150,4 +150,6 @@ void constructApp(void){
                 TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
 
   motorControl.init(0);
+
+  IMU.init(0);
 }

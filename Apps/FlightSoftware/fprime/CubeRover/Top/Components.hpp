@@ -23,6 +23,7 @@
 
 // Include component exclusive to CubeRover project
 #include "CubeRover/MotorControl/MotorControlComponent.hpp"
+#include "CubeRover/IMU/IMUComponent.hpp"
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -53,5 +54,8 @@ extern Svc::CommandDispatcherImpl cmdDispatcher;
 
 // motor control
 extern CubeRover::MotorControlComponentImpl motorControl;
+
+// IMU
+extern CubeRover::IMUComponentImpl IMU;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

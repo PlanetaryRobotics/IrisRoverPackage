@@ -25,9 +25,9 @@ namespace CubeRover {
         IMU_UNEXPECTED_ERROR,
         IMU_WRONG_DATA_SIZE,
         IMU_MAX_ENUM_SIZE
-    }ImuError;
+    }IMUError;
 
-    typedef uint8_t ImuI2cSlaveAddress;
+    typedef uint8_t IMUI2cSlaveAddress;
     #define SET_ADXL_SPI_WRITE_BIT(x)     (x & ~(0x01 << 7))
     #define SET_ADXL_SPI_READ_BIT(x)      (x | (0x01 << 7))
     #define SET_ADXL_SPI_SINGLETRANS(x)   (x & ~(0x01 << 6))
@@ -391,8 +391,8 @@ namespace CubeRover {
         };
     } // end of namespace L3gd20h
 
-    class ImuComponentImpl :
-      public ImuComponentBase
+    class IMUComponentImpl :
+      public IMUComponentBase
     {
     public:
 
@@ -402,7 +402,7 @@ namespace CubeRover {
 
       //! Construct object Imu
       //!
-      ImuComponentImpl(
+      IMUComponentImpl(
 #if FW_OBJECT_NAMES == 1
           const char *const compName /*!< The component name*/
 #else
@@ -413,28 +413,26 @@ namespace CubeRover {
       //! Initialize object Imu
       //!
       void init(
-          const NATIVE_INT_TYPE queueDepth, /*!< The queue depth*/
           const NATIVE_INT_TYPE instance = 0 /*!< The instance number*/
       );
 
       //! Destroy object Imu
       //!
-      ~ImuComponentImpl(void);
+      ~IMUComponentImpl(void);
 
-      ImuError setup(spiBASE_t *spi);
-      ImuError setupAccelerometer(spiBASE_t *spi);
-      ImuError setupGyroscope(spiBASE_t *spi);
+      IMUError setup(spiBASE_t *spi);
+      IMUError setupAccelerometer(spiBASE_t *spi);
+      IMUError setupGyroscope(spiBASE_t *spi);
 
       void computePitchRoll(float32 *pitch, float32 *roll, const float32 accX, const float32 accY, const float32 accZ);
 
-      ImuError readAccelerations(float32 *accX, float32 *accY,  float32 *accZ);
-      ImuError accWriteData(const Adxl312::AdxlRegister regStartAddr, uint16_t *txData, const uint8_t length);
-      ImuError accReadData(const Adxl312::AdxlRegister regStartAddr, uint16_t *rxData, const uint8_t length);
+      IMUError readAccelerations(float32 *accX, float32 *accY,  float32 *accZ);
+      IMUError accWriteData(const Adxl312::AdxlRegister regStartAddr, uint16_t *txData, const uint8_t length);
+      IMUError accReadData(const Adxl312::AdxlRegister regStartAddr, uint16_t *rxData, const uint8_t length);
 
-      ImuError gyroReadData(const L3gd20h::L3gd20hRegister regStartAddr, uint16_t *rxData, const uint8_t length);
-      ImuError gyroWriteData(const L3gd20h::L3gd20hRegister regStartAddr, uint16_t *txData, const uint8_t length);
-      ImuError readAngularRates(float32 *gyrX, float32 *gyrY,  float32 *gyrZ);
-    PRIVATE:
+      IMUError gyroReadData(const L3gd20h::L3gd20hRegister regStartAddr, uint16_t *rxData, const uint8_t length);
+      IMUError gyroWriteData(const L3gd20h::L3gd20hRegister regStartAddr, uint16_t *txData, const uint8_t length);
+      IMUError readAngularRates(float32 *gyrX, float32 *gyrY,  float32 *gyrZ);
 
       // ----------------------------------------------------------------------
       // Handler implementations for user-defined typed input ports
@@ -442,12 +440,14 @@ namespace CubeRover {
 
       //! Handler implementation for schedIn
       //!
-      void schedIn_handler(
-          const NATIVE_INT_TYPE portNum, /*!< The port number*/
-          NATIVE_UINT_TYPE context /*!< The call order*/
-      );
+      void schedIn_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
+                           NATIVE_UINT_TYPE context /*!< The call order*/);
 
-    PRIVATE:
+      //! Handler implementation for PingIn
+      //!
+      void PingIn_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
+                          U32 key /*!< Value to return to pinger*/);
+
 
       // ----------------------------------------------------------------------
       // Command handler implementations
@@ -455,10 +455,8 @@ namespace CubeRover {
 
       //! Implementation for Imu_ReportData command handler
       //! A command to force an IMU data.
-      void Imu_ReportData_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
-      );
+      void IMU_ReportData_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
+                                     const U32 cmdSeq /*!< The command sequence number*/);
 
     private:
       bool m_setup;

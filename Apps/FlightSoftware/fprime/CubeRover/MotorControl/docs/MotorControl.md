@@ -41,3 +41,12 @@
 |MC_RL_Current|10 (0xa)|U16|Rear Left motor current in milliAmps|
 |MC_RL_Speed|11 (0xb)|I16|Rear Left motor speed in centimeters per second|
 
+## Event List
+
+|Event Name|ID|Description|Arg Name|Arg Type|Arg Size|Description
+|---|---|---|---|---|---|---|
+|MC_moveStarted|0 (0x0)|A notification a move sequence has started| | | | |
+|MC_moveComplete|1 (0x1)|A notification a move sequence has finished| | | | |
+|MC_MSPFaultDetected|2 (0x2)|A notification an MSP has thrown a fault| | | | |
+|MC_MSPNotResponding|3 (0x3)|A notification an MSP is not communicating| | | | |
+|MC_MSPNotReporting|4 (0x4)|A notification an MSP is not reporting data| | | | |

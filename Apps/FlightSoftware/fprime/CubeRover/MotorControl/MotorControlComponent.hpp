@@ -43,7 +43,13 @@ namespace CubeRover {
       CONTROL_REGISTER = 12,
       STATUS_REGISTER = 13,
       FAULT_REGISTER = 14,
-      MAX_NB_CMDS = 15
+      MAX_NB_CMDS = 15,
+
+      EXECUTE_CMD = 16,
+      ENABLE_DRIVER = 17,
+      DISABLE_DRIVER = 18,
+      RESET_CONTROLLER = 19,
+      CLEAR_FAULT = 20
 
       // Previous implement
       /*
@@ -136,15 +142,6 @@ namespace CubeRover {
       void PingIn_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
                           U32 key /*!< Value to return to pinger*/);
 
-      //! Handler implementation for motorDataOut
-      //!
-      void motorDataOut_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
-                                bool movement_in_progress, /*!<  A simple boolean to show if the MoC is driving the motors */
-                                I32 encoder_dist_motor_0, /*!<  In units of encoder counts */
-                                I32 encoder_dist_motor_1, /*!<  In units of encoder counts */
-                                I32 encoder_dist_motor_2, /*!<  In units of encoder counts */
-                                I32 encoder_dist_motor_3 /*!<  In units of encoder counts */);
-
       // ----------------------------------------------------------------------
       // Command handler implementations
       // ----------------------------------------------------------------------
@@ -229,6 +226,10 @@ namespace CubeRover {
                                  const uint32_t data,
                                  const uint32_t dataLength);
 
+      MCError sendAllMotorsData(i2cBASE_t *i2c,
+                                const MotorControllerI2C::I2cRegisterId id,
+                                uint32_t data);
+
       uint8_t checksumLookUpTable[256];
 
       Motor_tick cmToMotorTicks(const Distance_cm dist);
@@ -248,11 +249,23 @@ namespace CubeRover {
       uint8_t m_reSpeed;
 
       // Encoder Converting value
-      const float m_encoderTickToCmRatio;
+      float m_encoderTickToCmRatio;
 
       // Stall detection
       bool m_stallDetectectionEnabled = false;
 
+      // Front left (FL), Front right (FR), Rear right (RR), Rear left (RL) tick counts
+      // Internal tick counter
+      uint32_t FL_Encoder_Count;
+      uint32_t FR_Encoder_Count;
+      uint32_t RR_Encoder_Count;
+      uint32_t RL_Encoder_Count;
+
+      // Offset for resetting tick count
+      uint32_t FL_Encoder_Count_Offset = 0;
+      uint32_t FR_Encoder_Count_Offset = 0;
+      uint32_t RR_Encoder_Count_Offset = 0;
+      uint32_t RL_Encoder_Count_Offset = 0;
     };
 
 } // end namespace CubeRover

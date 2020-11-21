@@ -1,0 +1,47 @@
+<component name = "Navigation" kind="passive" namespace="CubeRover">
+
+    <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
+    <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
+    <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
+    <comment>A component that manages navigation and requests navigation images</comment>
+
+    <ports>
+        <port name="run" data_type="Svc::Sched" kind="guarded_input" max_number="1">
+            <comment>
+            Port that signals this module to run
+            </comment>
+        </port>
+
+        <port name="cmdIn" data_type="FW::Cmd" kind="guarded_input" max_number="1">
+            <comment>
+            Recieves commands to start navigation procedure
+            </comment>
+        </port>
+
+        <port name="logOut" data_type="FW::Log" kind="output" max_number="1">
+            <comment>
+            Port for navigation to log information
+            </comment>
+        </port>
+
+        <port name="imuCmdOut" data_type="FW::Cmd" kind="output" max_number="1">
+            <comment>
+            Command port for nav to request imu data
+            </comment>
+        </port>
+
+        <port name="imgCmdOut" data_type="FW::Cmd" kind="output" max_number="1">
+            <comment>
+            Command port for nav to request imaging
+            </comment>
+        </port>
+
+        <port name="motorCmdOut" data_type="FW::Cmd" kind="output" max_number="1">
+            <comment>
+            Command port for nav to control motors
+            </comment>
+        </port>
+    </ports>
+
+</component>

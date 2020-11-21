@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
+
+<component name="MotorControl" kind="passive" namespace="CubeRover" modeler="true">
+  <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
+  <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
+  <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
+  <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
+  <import_port_type>Fw/Tlm/TlmPortAi.xml</import_port_type>	
+  <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
+  <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+  <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+  <import_port_type>CubeRover/CubeRoverPorts/MotorData/MotorDataPortAi.xml</import_port_type>
+
+  <!-- PORTS -->
+  <ports>
+  	<!-- Command ports -->
+    <port name="cmdIn" data_type="Fw::Cmd" kind="guarded_input"  max_number="1" role="Cmd"></port>
+
+    <port name="cmdRegOut" data_type="Fw::CmdReg" kind="output" max_number="1" role="CmdRegistration"></port>
+
+    <port name="cmdResponseOut" data_type="Fw::CmdResponse" kind="output" max_number="1" role="CmdResponse"></port>
+
+    <!-- Logging and telemetry ports -->
+    <port name="log" data_type="Fw::Log" kind="output"  max_number="1" role="LogEvent"></port>
+
+    <port name="tlmOut" data_type="Fw::Tlm" kind="output" role="Telemetry" max_number="1"></port>
+
+    <port name="timeCaller" data_type="Fw::Time" kind="output" max_number="1" role="TimeGet"></port>
+
+    <!-- Ping ports -->
+    <port name="PingIn" data_type="Svc::Ping" kind="sync_input" max_number="1"></port>
+
+    <port name="PingOut" data_type="Svc::Ping" kind="output" max_number="1"></port>
+
+    <!-- TODO -->
+    <!-- Still need Mode manager port(s)! -->
+    <!-- Or does Motor Control assume Navigation took care of it?-->
+
+    <!-- Motor Data port -->
+
+  </ports>
+
+  <!-- COMMANDS -->
+  <commands>
+    <command kind="guarded" opcode="0x00" mnemonic="MC_DrivingConfiguration">
+      <comment>Configure movement command</comment>
+      <args>
+        <arg name="CommandConfiguration" type="ENUM">
+          <enum name ="CommandList">
+            <item name="FORWARD_CFG" />
+            <item name="REVERSE_CFG" />
+            <item name="LEFT_CFG" />
+            <item name="RIGHT_CFG" />
+          </enum>
+        </arg>
+        <arg name="Parameter" type="ENUM" >
+          <enum name="ParameterList" >
+            <item name="DISTANCE" />
+            <item name="SPEED" />
+            <item name="ANGLE" />
+          </enum>
+        </arg>
+        <arg type="U8" name="Value" />
+      </args>
+    </command>
+
+    <command kind="guarded" opcode="0x01" mnemonic="MC_ExecuteDriving">
+      <comment>Execute one configured command</comment>
+      <args>
+        <arg name="DrivingCommand" type="ENUM">
+          <enum name="DriveCommandList">
+            <item name="GO_FORWARD"/>
+            <item name="GO_REVERSE"/>
+            <item name="TURN_LEFT"/>
+            <item name="TURN_RIGHT"/>
+          </enum>
+        </arg>
+      </args>
+    </command>
+
+    <command kind="guarded" opcode="0x02" mnemonic="MC_TuningParameters">
+      <comment>Contains all motor control parameters</comment>
+      <args>
+        <arg name="TuningParameter" type="ENUM">
+          <enum name ="tuningParameterList" >
+            <item name = "P_CURRENT" />
+            <item name = "I_CURRENT" />
+            <item name = "P_SPEED" />
+            <item name = "I_SPEED" />
+          </enum>
+        </arg>
+        <arg name="Value" type="U16" />
+      </args>
+    </command>
+
+    <command kind="guarded" opcode="0x03" mnemonic="MC_AccelerationProfiles">
+      <comment>Contains acceleration and deceleration profile</comment>
+      <args>
+        <arg name="AccelerationParameter" type="ENUM">
+          <enum name="accelerationParameterList">
+            <item name = "ACCELERATION" />
+            <item name = "DECELERATION" />
+          </enum>
+        </arg>
+        <arg name="Value" type="U16" />
+      </args>
+    </command>
+
+    <command kind="guarded" opcode="0x04" mnemonic="MC_StallDetection">
+    <comment> Enable / disable detection of motor stall </comment>
+    <args>
+      <arg name="motorStallEnable" type="ENUM">
+        <enum name = "motorStallEnableList">
+          <item name = "ENABLED" />
+          <item name = "DISABLED" />
+        </enum>
+      </arg>
+    </args>
+    </command>
+
+    <command kind="guarded" opcode="0x05" mnemonic="MC_PositionCounterReset">
+      <comment> Reset position counter </comment>
+      <args>
+        <arg name="ResetPositionCounter" type="U8" />
+      </args>
+    </command>
+
+    <command kind="guarded" opcode="0x06" mnemonic="MC_UpdateTelemetry">
+        <comment> Requests an update from each of the motor controllers </comment>
+    </command>
+  </commands>
+
+  <!-- EVENTS -->
+  <events>
+  </events>
+
+  <!-- TELEMETRY -->
+  <telemetry>
+    <!-- Motor 0 | Front left motor -->
+    <channel id="0" name="MC_FL_Encoder_Dist" data_type="I32">
+      <comment>Front Left motor encoder displacement in encoder ticks</comment>
+    </channel>
+
+    <channel id="1" name="MC_FL_Current" data_type="U16">
+      <comment>Front Left motor current in milliAmps</comment>
+    </channel>
+
+    <channel id="2" name="MC_FL_Speed" data_type="I16">
+      <comment>Front Left motor speed in centimeters per second (positive rotation is counter clockwise</comment>
+    </channel>
+
+    <!-- Motor 1 | Front right motor -->
+    <channel id="3" name="MC_FR_Encoder_Dist" data_type="I32">
+      <comment>Front Right motor encoder displacement in encoder ticks</comment>
+    </channel>
+
+    <channel id="4" name="MC_FR_Current" data_type="U16">
+      <comment>Front Right motor current in milliAmps</comment>
+    </channel>
+
+    <channel id="5" name="MC_FR_Speed" data_type="I16">
+      <comment>Front Right motor speed in centimeters per second</comment>
+    </channel>
+
+    <!-- Motor 2 | Rear right motor -->
+    <channel id="6" name="MC_RR_Encoder_Dist" data_type="I32">
+      <comment>Rear Right motor encoder displacement in encoder ticks</comment>
+    </channel>
+
+    <channel id="7" name="MC_RR_Current" data_type="U16">
+      <comment>Rear Right motor current in milliAmps</comment>
+    </channel>
+
+    <channel id="8" name="MC_RR_Speed" data_type="I16">
+      <comment>Rear Right motor speed in centimeters per second</comment>
+    </channel>
+
+    <!-- Motor 3 | Read right motor -->
+    <channel id="9" name="MC_RL_Encoder_Dist" data_type="I32">
+      <comment>Rear Left motor encoder displacement in encoder ticks</comment>
+    </channel>
+
+    <channel id="10" name="MC_RL_Current" data_type="U16">
+      <comment>Rear Left motor current in milliAmps</comment>
+    </channel>
+
+    <channel id="11" name="MC_RL_Speed" data_type="I16">
+      <comment>Rear Left motor speed in centimeters per second</comment>
+    </channel>
+  </telemetry>
+
+</component>

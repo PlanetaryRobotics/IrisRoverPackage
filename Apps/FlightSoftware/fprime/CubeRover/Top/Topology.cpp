@@ -1,10 +1,12 @@
 #include <Os/Task.hpp>
 #include <Os/Log.hpp>
 #include <HAL/include/FreeRTOS.h>
+#include <Include/CubeRoverConfig.hpp>      // PrimaryFlightController/FlightMCU
 
-#include "CubeRoverConfig.hpp"
 #include "Topology.hpp"
-#include "Components.hpp"
+
+
+
 
 // ---------------------------------------------------------------------------
 // Block Driver Component
@@ -71,10 +73,25 @@ Svc::TlmChanImpl tlmChan(
   );
 
 // ---------------------------------------------------------------------------
+
 // command dispatcher component used to dispatch commands
 Svc::CommandDispatcherImpl cmdDispatcher(
 #if FW_OBJECT_NAMES == 1
         "CmdDispatcher"
+#endif
+  );
+
+// Motor controller component
+CubeRover::MotorControlComponentImpl motorControl(
+#if FW_OBJECT_NAMES == 1
+  "MotorControl"
+#endif
+  );
+
+// --------------------------------------------------------------------------
+Svc::GroundInterfaceComponentImpl groundInterface(
+#if FW_OBJECT_NAMES == 1
+        "GroundInterface"
 #endif
 );
 
@@ -106,6 +123,9 @@ void constructApp(void){
   // Initialize the telemetric channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
 
+  // Initialize the ground interface (active)
+  groundInterface.init(0);
+
   // Construct the application and make all connections between components
   constructCubeRoverArchitecture();
 
@@ -128,4 +148,6 @@ void constructApp(void){
   tlmChan.start(0, /* identifier */
                 TLM_CHAN_AFF, /* thread affinity */
                 TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+
+  motorControl.init(0);
 }

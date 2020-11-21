@@ -1,0 +1,31 @@
+<interface name="MotorData" namespace="CubeRoverPorts">
+    <comment>
+    Port to return the necssary data from the motors
+    </comment>
+    <args>
+        <!-- Motors are driving -->
+        <arg name="movement_in_progress" type="bool">
+            <comment> A simple boolean to show if the MoC is driving the motors </comment>
+        </arg> 
+
+        <!-- Motor 0 -->
+        <arg name="encoder_dist_motor_0" type="I32">
+            <comment> In units of encoder counts </comment>
+        </arg>
+
+        <!-- Motor 1 -->
+        <arg name="encoder_dist_motor_1" type="I32">
+            <comment> In units of encoder counts </comment>
+        </arg>
+
+        <!-- Motor 2 -->
+        <arg name="encoder_dist_motor_2" type="I32">
+            <comment> In units of encoder counts </comment>
+        </arg>
+
+        <!-- Motor 3 -->
+        <arg name="encoder_dist_motor_3" type="I32">
+            <comment> In units of encoder counts </comment>
+        </arg>
+    </args>
+</interface>

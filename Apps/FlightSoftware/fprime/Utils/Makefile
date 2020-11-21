@@ -4,7 +4,7 @@
 
 # derive module name from directory
 
-MODULES = Hash
+MODULES = Hash Types
 
 BASE_DIR = $(notdir $(CURDIR))
 

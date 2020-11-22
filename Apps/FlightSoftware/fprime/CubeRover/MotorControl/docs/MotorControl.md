@@ -6,23 +6,9 @@
 
 |Mnemonic|ID|Description|Arg Name|Arg Type|Comment
 |---|---|---|---|---|---|
-|MC_DrivingConfiguration|0 (0x0)|Configure movement command| | |
-| | | |CommandConfiguration|CommandList||
-| | | |Parameter|ParameterList||
-| | | |Value|U8||
-|MC_ExecuteDriving|1 (0x1)|Execute one configured command| | |
-| | | |DrivingCommand|DriveCommandList||
-|MC_TuningParameters|2 (0x2)|Contains all motor control parameters| | |
-| | | |TuningParameter|tuningParameterList||
-| | | |Value|U16||
-|MC_AccelerationProfiles|3 (0x3)|Contains acceleration and deceleration profile| | |
-| | | |AccelerationParameter|accelerationParameterList||
-| | | |Value|U16||
-|MC_StallDetection|4 (0x4)|Enable / disable detection of motor stall| | |
-| | | |motorStallEnable|motorStallEnableList||
-|MC_PositionCounterReset|5 (0x5)|Reset position counter| | |
-| | | |ResetPositionCounter|U8||
-|MC_UpdateTelemetry|6 (0x6)|Requests an update from each of the motor controllers| | |
+|MC_DrvingCommand|0 (0x0)|| | |
+| | | |Motor_ID|U8|The motor id from 0 - 3 (Motor 0 is Front Left motor and goes counter clockwise) |
+| | | |Command|CommandList|The motor id from 0 - 3 (Motor 0 is Front Left motor and goes counter clockwise) |
 
 ## Telemetry Channel List
 

@@ -66,63 +66,13 @@ namespace CubeRover {
       // Command handler implementations
       // ----------------------------------------------------------------------
 
-      //! Implementation for MC_DrivingConfiguration command handler
-      //! Configure movement command
-      void MC_DrivingConfiguration_cmdHandler(
+      //! Implementation for MC_DrvingCommand command handler
+      //! 
+      void MC_DrvingCommand_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq, /*!< The command sequence number*/
-          CommandList CommandConfiguration, 
-          ParameterList Parameter, 
-          U8 Value 
-      );
-
-      //! Implementation for MC_ExecuteDriving command handler
-      //! Execute one configured command
-      void MC_ExecuteDriving_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq, /*!< The command sequence number*/
-          DriveCommandList DrivingCommand 
-      );
-
-      //! Implementation for MC_TuningParameters command handler
-      //! Contains all motor control parameters
-      void MC_TuningParameters_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq, /*!< The command sequence number*/
-          tuningParameterList TuningParameter, 
-          U16 Value 
-      );
-
-      //! Implementation for MC_AccelerationProfiles command handler
-      //! Contains acceleration and deceleration profile
-      void MC_AccelerationProfiles_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq, /*!< The command sequence number*/
-          accelerationParameterList AccelerationParameter, 
-          U16 Value 
-      );
-
-      //! Implementation for MC_StallDetection command handler
-      //! Enable / disable detection of motor stall
-      void MC_StallDetection_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq, /*!< The command sequence number*/
-          motorStallEnableList motorStallEnable 
-      );
-
-      //! Implementation for MC_PositionCounterReset command handler
-      //! Reset position counter
-      void MC_PositionCounterReset_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq, /*!< The command sequence number*/
-          U8 ResetPositionCounter 
-      );
-
-      //! Implementation for MC_UpdateTelemetry command handler
-      //! Requests an update from each of the motor controllers
-      void MC_UpdateTelemetry_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          U8 Motor_ID, /*!< The motor id from 0 - 3 (Motor 0 is Front Left motor and goes counter clockwise) */
+          CommandList Command /*!< The motor id from 0 - 3 (Motor 0 is Front Left motor and goes counter clockwise) */
       );
 
 

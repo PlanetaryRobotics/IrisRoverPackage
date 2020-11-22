@@ -2,8 +2,8 @@
 # mod.mk
 # ---------------------------------------------------------------------- 
 
-SRC = MotorControlComponentAi.xml MotorControlComponent.cpp
+SRC = MotorControlComponentAi.xml
 
-HDR = MotorControlComponent.hpp
+HDR = 
 
 #SUBDIRS = test

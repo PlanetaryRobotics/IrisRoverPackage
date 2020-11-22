@@ -44,6 +44,30 @@
 
   <!-- COMMANDS -->
   <commands>
+    <command kind="guarded" opcode="0x00" mnemonic="MC_DrvingCommand">
+      <args>
+        <arg name="Motor_ID" type="U8">
+          <comment>The motor id from 0 - 3 (Motor 0 is Front Left motor and goes counter clockwise) </comment>
+        </arg>
+        <arg name="Command" type="ENUM">
+          <comment>The motor id from 0 - 3 (Motor 0 is Front Left motor and goes counter clockwise) </comment>
+          <enum name ="CommandList">
+            <item name="CURRENT_PID" />
+            <item name="SPEED_PID" />
+            <item name="POSITION_PID" />
+            <item name="ACCELERATION" />
+            <item name="STALL_DETECTION" />
+            <item name="RESET_POSITION" />
+            <item name="SET_POSITION" />
+            <item name="SPIN" />
+            <item name="POWER_BOOST" />
+          </enum>
+        </arg>
+      </args>
+    </command>
+  </commands> 
+  <!--
+  <commands>
     <command kind="guarded" opcode="0x00" mnemonic="MC_DrivingConfiguration">
       <comment>Configure movement command</comment>
       <args>
@@ -130,7 +154,7 @@
     <command kind="guarded" opcode="0x06" mnemonic="MC_UpdateTelemetry">
         <comment> Requests an update from each of the motor controllers </comment>
     </command>
-  </commands>
+  </commands> -->
 
   <!-- EVENTS -->
   <events>

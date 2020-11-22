@@ -200,12 +200,17 @@ acdev_MODULES := \
 	$(OS_MODULES) \
 	\
 	$(ACDEVTEST_MODULES)
+
+CubeRoverPorts_MODULES := \
+	CubeRover/CubeRoverPorts/IMUData \
+	CubeRover/CubeRoverPorts/MotorData
 	
 CubeRover_MODULES := \
 	CubeRover/Top \
 	CubeRover/CubeRoverPorts \
 	CubeRover/MotorControl \
 	CubeRover/IMU \
+	CubeRover/Navigation \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

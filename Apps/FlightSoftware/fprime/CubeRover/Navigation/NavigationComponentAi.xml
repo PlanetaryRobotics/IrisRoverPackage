@@ -10,13 +10,14 @@
   <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
   <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
   <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+  <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
   <import_port_type>CubeRover/CubeRoverPorts/MotorData/MotorDataPortAi.xml</import_port_type>
   <import_port_type>CubeRover/CubeRoverPorts/IMUData/IMUDataPortAi.xml</import_port_type>
 
     <!-- PORTS -->
     <ports>
         <!-- Command ports -->
-        <port name="cmdIn" data_type="Fw::Cmd" kind="guarded_input"  max_number="1" role="Cmd"></port>
+        <port name="cmdIn" data_type="Fw::Cmd" kind="async_input"  max_number="1" role="Cmd"></port>
 
         <port name="cmdRegOut" data_type="Fw::CmdReg" kind="output" max_number="1" role="CmdRegistration"></port>
 
@@ -34,6 +35,9 @@
 
         <port name="PingOut" data_type="Svc::Ping" kind="output" max_number="1"></port>
 
+        <!-- Scheduler port -->
+        <port name="schedIn" data_type="Svc::Sched" kind="async_input" max_number="1"></port>
+
         <!-- Custom data ports-->
         <port name="MotorDataOut" data_type="CubeRoverPorts::MotorData" kind="input" max_number="1"></port>
 
@@ -45,28 +49,22 @@
     </ports>
 
     <commands>
-        <command kind="guarded" opcode="0x00" mnemonic="MC_DrivingConfiguration">
-            <comment>Configure movement command</comment>
-            <args>
-                <arg name="CommandConfiguration" type="ENUM">
-                <enum name ="CommandList">
-                <item name="FORWARD_CFG" />
-                <item name="REVERSE_CFG" />
-                <item name="LEFT_CFG" />
-                <item name="RIGHT_CFG" />
-                </enum>
-                </arg>
-                <arg name="Parameter" type="ENUM" >
-                <enum name="ParameterList" >
-                <item name="DISTANCE" />
-                <item name="SPEED" />
-                <item name="ANGLE" />
-                </enum>
-                </arg>
-                <arg type="U8" name="Value" />
-            </args>
+        <command kind="guarded" opcode="0x00" mnemonic="Nav_DriveCommand">
+          <comment> Movement command </comment>
+          <args>
+            <arg name="Command" type="ENUM" >
+              <enum name="NAV_COMMANDLIST" >
+                <item name="Forward" />
+                <item name="Backward" />
+                <item name="Right" />
+                <item name="Left" />
+                <item name="Stop" />
+              </enum>
+            </arg>
+            <arg name="Distance" type="U8" />
+            <arg name="Speed" type="U8" />
+          </args>
         </command>
-
     </commands>
 
     <!-- EVENTS -->

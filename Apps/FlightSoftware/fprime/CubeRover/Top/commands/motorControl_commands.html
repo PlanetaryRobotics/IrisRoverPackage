@@ -44,92 +44,19 @@ html {
 	<tbody>
 
 		<tr style = "border: 2px solid black;">
-			<td rowspan="4">MC_DrivingConfiguration</td>
-			<td rowspan="4">321 (0x141)</td>
-			<td rowspan="4">Configure movement command</td>
+			<td rowspan="3">MC_DrvingCommand</td>
+			<td rowspan="3">321 (0x141)</td>
+			<td rowspan="3"></td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>CommandConfiguration</td>
+						<td>Motor_ID</td>
+						<td>U8</td>
+						<td>The motor id from 0 - 3 (Motor 0 is Front Left motor and goes counter clockwise) </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>Command</td>
 						<td>CommandList</td>
-						<td></td>
+						<td>The motor id from 0 - 3 (Motor 0 is Front Left motor and goes counter clockwise) </td>
 					</tr>
-					<tr style = "border-right: 2px solid black;">
-						<td>Parameter</td>
-						<td>ParameterList</td>
-						<td></td>
-					</tr>
-					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>Value</td>
-						<td>U8</td>
-						<td></td>
-					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="2">MC_ExecuteDriving</td>
-			<td rowspan="2">322 (0x142)</td>
-			<td rowspan="2">Execute one configured command</td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
-						<td>DrivingCommand</td>
-						<td>DriveCommandList</td>
-						<td></td>
-					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="3">MC_TuningParameters</td>
-			<td rowspan="3">323 (0x143)</td>
-			<td rowspan="3">Contains all motor control parameters</td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>TuningParameter</td>
-						<td>tuningParameterList</td>
-						<td></td>
-					</tr>
-					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>Value</td>
-						<td>U16</td>
-						<td></td>
-					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="3">MC_AccelerationProfiles</td>
-			<td rowspan="3">324 (0x144)</td>
-			<td rowspan="3">Contains acceleration and deceleration profile</td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>AccelerationParameter</td>
-						<td>accelerationParameterList</td>
-						<td></td>
-					</tr>
-					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>Value</td>
-						<td>U16</td>
-						<td></td>
-					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="2">MC_StallDetection</td>
-			<td rowspan="2">325 (0x145)</td>
-			<td rowspan="2">Enable / disable detection of motor stall</td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
-						<td>motorStallEnable</td>
-						<td>motorStallEnableList</td>
-						<td></td>
-					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="2">MC_PositionCounterReset</td>
-			<td rowspan="2">326 (0x146)</td>
-			<td rowspan="2">Reset position counter</td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
-						<td>ResetPositionCounter</td>
-						<td>U8</td>
-						<td></td>
-					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="1">MC_UpdateTelemetry</td>
-			<td rowspan="1">327 (0x147)</td>
-			<td rowspan="1">Requests an update from each of the motor controllers</td>
-				<td></td>
-				<td></td>
-				<td></td>
 		</tr>
 	</tbody>
 </table>

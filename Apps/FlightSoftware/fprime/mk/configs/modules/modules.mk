@@ -202,8 +202,8 @@ acdev_MODULES := \
 	$(ACDEVTEST_MODULES)
 
 CubeRoverPorts_MODULES := \
-	CubeRover/CubeRoverPorts/IMUData \
-	CubeRover/CubeRoverPorts/MotorData
+	CubeRover/IMUData \
+	CubeRover/MotorData
 	
 CubeRover_MODULES := \
 	CubeRover/Top \
@@ -215,6 +215,7 @@ CubeRover_MODULES := \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \
 	$(CUBEROVER_DRV_MODULES) \
+	$(CubeRoverPorts_MODULES) \
 	$(UTILS_MODULES)
 	
 # Other modules to build, but not to link with deployment binaries

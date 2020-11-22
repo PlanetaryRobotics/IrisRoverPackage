@@ -47,7 +47,6 @@ export default {
      * Update the Route Drawing.
      */
     update(){
-      console.log(this.origin.xPosPx)
       if (this.origin.xPosPx != undefined) { //Check that happens AFTER grid is ready
         let comp = this;
 

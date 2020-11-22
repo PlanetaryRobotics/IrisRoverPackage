@@ -14,8 +14,6 @@ export default {
           yPosPx: "",
         },
 
-        
-
         // BUTTON STATES:
         addRouteButton: {
           clicked: false,

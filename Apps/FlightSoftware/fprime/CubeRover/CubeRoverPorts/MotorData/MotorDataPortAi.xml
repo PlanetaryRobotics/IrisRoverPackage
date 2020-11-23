@@ -1,4 +1,4 @@
-<interface name="MotorData" namespace="CubeRover">
+<interface name="MotorData" namespace="CubeRoverPorts">
     <comment>
     Port to return the necssary data from the motors
     </comment>

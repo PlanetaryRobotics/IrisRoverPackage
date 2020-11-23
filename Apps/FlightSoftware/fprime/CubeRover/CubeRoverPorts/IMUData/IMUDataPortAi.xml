@@ -1,4 +1,4 @@
-<interface name="IMUData" namespace="CubeRover">
+<interface name="IMUData" namespace="CubeRoverPorts">
     <comment>
     Port to return the data from the IMU
     </comment>

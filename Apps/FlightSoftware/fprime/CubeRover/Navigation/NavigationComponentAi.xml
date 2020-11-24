@@ -2,17 +2,17 @@
 <?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
 
 <component name="Navigation" kind="active" namespace="CubeRover" modeler="true">
-  <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
-  <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
-  <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
-  <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
-  <import_port_type>Fw/Tlm/TlmPortAi.xml</import_port_type> 
-  <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
-  <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
-  <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
-  <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
-  <import_port_type>CubeRover/CubeRoverPorts/MotorData/MotorDataPortAi.xml</import_port_type>
-  <import_port_type>CubeRover/CubeRoverPorts/IMUData/IMUDataPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
+    <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
+    <import_port_type>Fw/Tlm/TlmPortAi.xml</import_port_type> 
+    <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
+    <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+    <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+    <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/MotorData/MotorDataPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/IMUData/IMUDataPortAi.xml</import_port_type>
 
     <!-- PORTS -->
     <ports>

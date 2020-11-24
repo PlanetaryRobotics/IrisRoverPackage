@@ -43,13 +43,13 @@ namespace CubeRover {
       CONTROL_REGISTER = 12,
       STATUS_REGISTER = 13,
       FAULT_REGISTER = 14,
-      MAX_NB_CMDS = 15,
-
-      EXECUTE_CMD = 16,
-      ENABLE_DRIVER = 17,
-      DISABLE_DRIVER = 18,
-      RESET_CONTROLLER = 19,
-      CLEAR_FAULT = 20
+      EXECUTE_CMD = 15,
+      ENABLE_DRIVER = 16,
+      DISABLE_DRIVER = 17,
+      RESET_CONTROLLER = 18,
+      CLEAR_FAULT = 19,
+      MAX_NB_CMDS = 20,
+      UNSET = 99
 
       // Previous implement
       /*
@@ -146,11 +146,19 @@ namespace CubeRover {
       // Command handler implementations
       // ----------------------------------------------------------------------
 
+      //! Implementation for MC_MotorConfiguration command handler
+      //! Configure motors command
+      void MC_MotorConfiguration_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
+                                            const U32 cmdSeq, /*!< The command sequence number*/
+                                            U8 Motor_ID, /*!< The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors */
+                                            MP_CommandList MotorParameter, 
+                                            U32 Value);
+
       //! Implementation for MC_DrivingConfiguration command handler
       //! Configure movement command
       void MC_DrivingConfiguration_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
                                               const U32 cmdSeq, /*!< The command sequence number*/
-                                              CommandList CommandConfiguration, 
+                                              CC_CommandList CommandConfiguration, 
                                               ParameterList Parameter, 
                                               U8 Value);
 
@@ -159,20 +167,6 @@ namespace CubeRover {
       void MC_ExecuteDriving_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
                                         const U32 cmdSeq, /*!< The command sequence number*/
                                         DriveCommandList DrivingCommand);
-
-      //! Implementation for MC_TuningParameters command handler
-      //! Contains all motor control parameters
-      void MC_TuningParameters_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                          const U32 cmdSeq, /*!< The command sequence number*/
-                                          tuningParameterList TuningParameter, 
-                                          U16 Value);
-
-      //! Implementation for MC_AccelerationProfiles command handler
-      //! Contains acceleration and deceleration profile
-      void MC_AccelerationProfiles_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                              const U32 cmdSeq, /*!< The command sequence number*/
-                                              accelerationParameterList AccelerationParameter, 
-                                              U16 Value);
 
       //! Implementation for MC_StallDetection command handler
       //! Enable / disable detection of motor stall

@@ -65,11 +65,68 @@ namespace CubeRover {
   // ----------------------------------------------------------------------
 
   void MotorControlComponentImpl ::
-    MC_DrvingCommand_cmdHandler(
+    MC_MotorConfiguration_cmdHandler(
         const FwOpcodeType opCode,
         const U32 cmdSeq,
         U8 Motor_ID,
-        CommandList Command
+        MP_CommandList MotorParameter,
+        U32 Value
+    )
+  {
+    // TODO
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void MotorControlComponentImpl ::
+    MC_DrivingConfiguration_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq,
+        CC_CommandList CommandConfiguration,
+        ParameterList Parameter,
+        U8 Value
+    )
+  {
+    // TODO
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void MotorControlComponentImpl ::
+    MC_ExecuteDriving_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq,
+        DriveCommandList DrivingCommand
+    )
+  {
+    // TODO
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void MotorControlComponentImpl ::
+    MC_StallDetection_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq,
+        motorStallEnableList motorStallEnable
+    )
+  {
+    // TODO
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void MotorControlComponentImpl ::
+    MC_PositionCounterReset_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq,
+        U8 ResetPositionCounter
+    )
+  {
+    // TODO
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void MotorControlComponentImpl ::
+    MC_UpdateTelemetry_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
     )
   {
     // TODO

@@ -12,13 +12,13 @@
         <arg name="z_acc" type="I16">
         </arg>
 
-        <arg name="x_ang" type="I16">
+        <arg name="x_gyro" type="I16">
         </arg>
 
-        <arg name="y_ang" type="I16">
+        <arg name="y_gyro" type="I16">
         </arg>
 
-        <arg name="z_ang" type="I16">
+        <arg name="z_gyro" type="I16">
         </arg>
     </args>
 </interface>

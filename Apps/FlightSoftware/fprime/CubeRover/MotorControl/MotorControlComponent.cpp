@@ -98,9 +98,288 @@ namespace CubeRover {
    * @param[in]  portNum  The port number
    * @param[in]  key      Value to return to pinger
    */
-  void MotorControlComponentImpl :: PingIn_handler( const NATIVE_INT_TYPE portNum, U32 key)
+  void MotorControlComponentImpl :: PingIn_handler(const NATIVE_INT_TYPE portNum, U32 key)
   {
     this->PingOut_out(portNum, key);
+  }
+
+  /**
+   * @brief      Motor configuration command handler implementation
+   *
+   * @param[in]  opCode          The operation code
+   * @param[in]  cmdSeq          The command sequence
+   * @param[in]  Motor_ID        The selected motor (4 means all motors)
+   * @param[in]  MotorParameter  The targeted parameter to change
+   * @param[in]  Value           The new value
+   */
+  void MotorControlComponentImpl :: MC_MotorConfiguration_cmdHandler(const FwOpcodeType opCode,
+                                                                     const U32 cmdSeq,
+                                                                     U8 Motor_ID,
+                                                                     MP_CommandList MotorParameter,
+                                                                     U32 Value)
+  {
+    // Need to determine which motor we are targetting
+    uint8_t Target_motor;
+    switch(Motor_ID)
+    {
+      // Motor 0 | Front Left Motor
+      case 0:
+        Target_motor = FRONT_LEFT_MC_I2C_ADDR;
+        break;
+
+      // Motor 1 | Front Right Motor
+      case 1:
+        Target_motor = FRONT_RIGHT_MC_I2C_ADDR;
+        break;
+
+      // Motor 2 | Rear Right Motor
+      case 2:
+        Target_motor = REAR_RIGHT_MC_I2C_ADDR;
+        break;
+
+      // Motor 3 | Rear Left Motor
+      case 3:
+        Target_motor = REAR_LEFT_MC_I2C_ADDR;
+        break;
+
+      // All motors
+      case 4:
+        Target_motor = ALL_MOTOR_ADDR;
+
+      default:
+        this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+        return;
+    }
+
+    // Minor trick to remove duplicate code
+    I2cRegisterId P_Param_Register = MotorControllerI2C::UNSET;
+    I2cRegisterId I_Param_Register = MotorControllerI2C::UNSET;
+
+    // Determine what needs to be done
+    switch(CommandConfiguration)
+    {
+      // Change the Current control parameters
+      case CURRENT_PID:
+        P_Param_Register = MotorControllerI2C::P_CURRENT;
+        I_Param_Register = MotorControllerI2C::I_CURRENT;
+
+      // Change the Speed control parameters
+      case SPEED_PID:
+        if (P_Param_Register == MotorControllerI2C::UNSET)
+        {
+          P_Param_Register = MotorControllerI2C::P_CURRENT;
+          I_Param_Register = MotorControllerI2C::I_CURRENT;
+        }
+
+      // Change the Acceleration and Deceleration parameters
+      // Not quite P and I, but it has the same structure
+      case ACCELERATION:
+        if (P_Param_Register == MotorControllerI2C::UNSET)
+        {
+          P_Param_Register = MotorControllerI2C::ACC_RATE;
+          I_Param_Register = MotorControllerI2C::DEC_RATE;
+        }
+
+        // Select the lower 16 bits
+        uint16_t P_Parameter = Value & 0xFFFF;
+
+        // Select the upper 16 bits
+        uint16_t I_Parameter = Value >>> 16;
+
+        // Send the data to all motors
+        if (Target_motor == ALL_MOTOR_ADDR)
+        {
+          err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
+                                  MotorControllerI2C::P_Param_Register,
+                                  P_Parameter);
+
+          if(err != MC_NO_ERROR)
+          {
+            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+            return;          
+          }
+
+          err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
+                                  MotorControllerI2C::I_Param_Register,
+                                  I_Parameter);
+
+          if(err != MC_NO_ERROR)
+          {
+            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+            return;          
+          }
+        }
+
+        // Send the data to the specific motor
+        else
+        {
+          err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                          MotorControllerI2C::P_Param_Register, 
+                                          Target_motor,
+                                          P_Parameter);
+
+          if(err != MC_NO_ERROR)
+          {
+            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+            return;          
+          }
+
+          err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                          MotorControllerI2C::I_Param_Register, 
+                                          Target_motor,
+                                          I_Parameter);
+
+          if(err != MC_NO_ERROR)
+          {
+            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+            return;          
+          }
+        }
+        break; // End SPEED and CURRENT case
+
+      // Configures stall detection
+      case STALL_DETECTION:
+        // Reconfigure the request
+        motorStallEnableList Desired_able;
+        if (value == 0x0)
+          Desired_able = DISABLED;
+        else
+          Desired_able = ENABLED;
+
+        // TODO: Should stall detection be motor specific?
+        // Send it all motors 
+        if (Target_motor == ALL_MOTOR_ADDR)
+        {
+          MC_StallDetection_cmdHandler(opCode,cmdSeq,Desired_able)
+        }
+
+        else
+        {
+
+        }
+        break;
+
+      // Resets the encoder position
+      case RESET_POSITION:
+        if (Target_motor == ALL_MOTOR_ADDR)
+        {
+          // MAGIC NUMBER!
+          MC_PositionCounterReset_cmdHandler(opCode,cmdSeq,0x1111);
+        }
+
+        else
+        {
+          uint8_t Motor_Selection = 1;
+          // Quick way to shift the appropriate amount to target the right motor
+          Motor_Selection = <<< Target_motor - 1;
+          MC_PositionCounterReset_cmdHandler(opCode,cmdSeq,Motor_Selection);
+        }
+        break;
+
+      // Sets the targeted position of the motors
+      case SET_POSITION:
+        // Send the data to all motors
+        if (Target_motor == ALL_MOTOR_ADDR)
+        {
+          err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
+                                  MotorControllerI2C::CURRENT_POSITION,
+                                  Value);
+
+          if(err != MC_NO_ERROR)
+          {
+            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+            return;          
+          }
+        }
+
+        // Send the data to the specific motor
+        else
+        {
+          err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                          MotorControllerI2C::CURRENT_POSITION, 
+                                          Target_motor,
+                                          Value);
+
+          if(err != MC_NO_ERROR)
+          {
+            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+            return;          
+          }
+        }
+
+      // Activate Spin mode!
+      case SPIN:
+        switch (Value)
+        {
+          // MAGIC NUMBER!
+          // Stop command
+          case 0:
+            Value = 0;
+
+          // Forward Spin
+          case 1:
+            Value = MAX_SPIN_DISTANCE;
+
+          // Backward Spin
+          case 2:
+          Value = -MAX_SPIN_DISTANCE;
+
+          // Not a value option
+          default:
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+        }
+
+        // Send the data to all motors
+        if (Target_motor == ALL_MOTOR_ADDR)
+        {
+          err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
+                                  MotorControllerI2C::CURRENT_POSITION,
+                                  Value);
+
+          if(err != MC_NO_ERROR)
+          {
+            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+            return;          
+          }
+        }
+
+        // Send the data to the specific motor
+        else
+        {
+          err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                          MotorControllerI2C::CURRENT_POSITION, 
+                                          Target_motor,
+                                          Value);
+
+          if(err != MC_NO_ERROR)
+          {
+            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+            return;          
+          }
+        }
+
+      // TODO: What does Power boost mean?
+      // Not implimented!
+      case POWER_BOOST:
+        if (Target_motor == ALL_MOTOR_ADDR)
+        {
+
+        }
+
+        else
+        {
+
+        }
+        break;
+
+      // Not a valid option!
+      default:
+        this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+        return;
+    }
+
+    // If we reached here we succeded.
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   /**
@@ -112,11 +391,11 @@ namespace CubeRover {
    * @param[in]  Parameter             The parameter
    * @param[in]  Value                 The value
    */
-  void MotorControlComponentImpl :: MC_DrivingConfiguration_cmdHandler( const FwOpcodeType opCode,
-                                                                        const U32 cmdSeq,
-                                                                        CommandList CommandConfiguration,
-                                                                        ParameterList Parameter,
-                                                                        U8 Value)
+  void MotorControlComponentImpl :: MC_DrivingConfiguration_cmdHandler(const FwOpcodeType opCode,
+                                                                       const U32 cmdSeq,
+                                                                       CC_CommandList CommandConfiguration,
+                                                                       ParameterList Parameter,
+                                                                       U8 Value)
   {
     switch(CommandConfiguration)
     {
@@ -355,124 +634,6 @@ namespace CubeRover {
   }
 
   /**
-   * @brief      Handle commands that adjust motor tuning parameters
-   *
-   * @param[in]  opCode           The operation code
-   * @param[in]  cmdSeq           The command sequence
-   * @param[in]  TuningParameter  The tuning parameter
-   * @param[in]  Value            The value
-   */
-  void MotorControlComponentImpl :: MC_TuningParameters_cmdHandler(const FwOpcodeType opCode,
-                                                                   const U32 cmdSeq,
-                                                                   tuningParameterList TuningParameter,
-                                                                   U16 Value)
-  {
-     // Preset some necessary variables
-    MCError err = MC_NO_ERROR;
-    MotorControllerI2C::I2cRegisterId paramToChange;
-
-    // Determine which parameter needs to change
-    if (TuningParameter == P_CURRENT)
-    {
-      paramToChange = MotorControllerI2C::P_CURRENT;
-    }
-
-    else if (TuningParameter == I_CURRENT)
-    {
-      paramToChange = MotorControllerI2C::I_CURRENT;
-    }
-
-    else if (TuningParameter == P_SPEED)
-    {
-      paramToChange = MotorControllerI2C::P_SPEED;
-    }
-
-    else if (TuningParameter == I_SPEED)
-    {
-      paramToChange = MotorControllerI2C::I_SPEED;
-    }
-
-    // Complain if command isn't configured correctly
-    else
-    {
-      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
-      return;  
-    }
-    
-    // Send command to all motor controllers to update parameter
-    // If the casting okay?
-    err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
-                            paramToChange,
-                            Value);
-
-    if(err != MC_NO_ERROR)
-    {
-      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
-      return;          
-    }
-
-    else
-    {
-      // Everything was successful if we reached here
-      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
-    }
-  }
-
-  /**
-   * @brief      Handle commands that adjust acceleration profiles of the rover
-   *
-   * @param[in]  opCode                 The operation code
-   * @param[in]  cmdSeq                 The command sequence
-   * @param[in]  AccelerationParameter  The acceleration parameter
-   * @param[in]  Value                  The value
-   */
-  void MotorControlComponentImpl :: MC_AccelerationProfiles_cmdHandler(const FwOpcodeType opCode,
-                                                                       const U32 cmdSeq,
-                                                                       accelerationParameterList AccelerationParameter,
-                                                                       U16 Value)
-  {
-    // Preset some necessary variables
-    MCError err = MC_NO_ERROR;
-    MotorControllerI2C::I2cRegisterId paramToChange;
-
-    // Determine if we are modifying accleration or deceleration
-    if (AccelerationParameter == ACCELERATION)
-    {
-      paramToChange = MotorControllerI2C::ACC_RATE;
-    }
-
-    else if (AccelerationParameter == DECELERATION)
-    {
-      paramToChange = MotorControllerI2C::DEC_RATE;
-    }
-
-    // Complain if command isn't configured correctly
-    else
-    {
-      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
-      return;  
-    }
-    
-    // Send command to all motor controllers to update parameter
-    // If the casting okay?
-    err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
-                            paramToChange,
-                            Value);
-
-    if(err != MC_NO_ERROR)
-    {
-      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
-      return;          
-    }
-
-    else
-    {
-      // Everything was successful if we reached here
-      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
-    }
-  }
-
-  /**
    * @brief      Handle commands that adjust acceleration profiles of the rover
    *
    * @param[in]  opCode                 The operation code
@@ -673,6 +834,8 @@ namespace CubeRover {
     // Copy from the buffer
     RL_Encoder_Count = Data_buffer[0];
 
+    // NOW WE UPDATE TLM but we also need current and speed!
+    //tlmWrite_X_Acc(accX);
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 

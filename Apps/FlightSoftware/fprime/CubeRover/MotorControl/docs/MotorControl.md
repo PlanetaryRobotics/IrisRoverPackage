@@ -6,9 +6,21 @@
 
 |Mnemonic|ID|Description|Arg Name|Arg Type|Comment
 |---|---|---|---|---|---|
-|MC_DrvingCommand|0 (0x0)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 3 (Motor 0 is Front Left motor and goes counter clockwise) |
-| | | |Command|CommandList|The motor id from 0 - 3 (Motor 0 is Front Left motor and goes counter clockwise) |
+|MC_MotorConfiguration|0 (0x0)|| | |
+| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |MotorParameter|MP_CommandList||
+| | | |Value|U32||
+|MC_DrivingConfiguration|1 (0x1)|Configure movement command| | |
+| | | |CommandConfiguration|CC_CommandList||
+| | | |Parameter|ParameterList||
+| | | |Value|U8||
+|MC_ExecuteDriving|2 (0x2)|Execute one configured command| | |
+| | | |DrivingCommand|DriveCommandList||
+|MC_StallDetection|3 (0x3)|Enable / disable detection of motor stall| | |
+| | | |motorStallEnable|motorStallEnableList||
+|MC_PositionCounterReset|4 (0x4)|Reset the position counter of specific motor(s)| | |
+| | | |ResetPositionCounter|U8||
+|MC_UpdateTelemetry|5 (0x5)|Requests an update from each of the motor controllers| | |
 
 ## Telemetry Channel List
 

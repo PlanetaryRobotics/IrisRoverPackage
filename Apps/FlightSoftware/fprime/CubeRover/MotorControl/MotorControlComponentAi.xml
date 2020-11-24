@@ -44,17 +44,15 @@
 
   <!-- COMMANDS -->
   <commands>
-    <command kind="guarded" opcode="0x00" mnemonic="MC_DrvingCommand">
+    <command kind="guarded" opcode="0x00" mnemonic="MC_MotorConfiguration">
       <args>
         <arg name="Motor_ID" type="U8">
-          <comment>The motor id from 0 - 3 (Motor 0 is Front Left motor and goes counter clockwise) </comment>
+          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
         </arg>
-        <arg name="Command" type="ENUM">
-          <comment>The motor id from 0 - 3 (Motor 0 is Front Left motor and goes counter clockwise) </comment>
-          <enum name ="CommandList">
+        <arg name="MotorParameter" type="ENUM">
+          <enum name ="MP_CommandList">
             <item name="CURRENT_PID" />
             <item name="SPEED_PID" />
-            <item name="POSITION_PID" />
             <item name="ACCELERATION" />
             <item name="STALL_DETECTION" />
             <item name="RESET_POSITION" />
@@ -63,16 +61,17 @@
             <item name="POWER_BOOST" />
           </enum>
         </arg>
+        <arg type="U32" name="Value" />
       </args>
     </command>
   </commands> 
-  <!--
+
   <commands>
-    <command kind="guarded" opcode="0x00" mnemonic="MC_DrivingConfiguration">
+    <command kind="guarded" opcode="0x01" mnemonic="MC_DrivingConfiguration">
       <comment>Configure movement command</comment>
       <args>
         <arg name="CommandConfiguration" type="ENUM">
-          <enum name ="CommandList">
+          <enum name ="CC_CommandList">
             <item name="FORWARD_CFG" />
             <item name="REVERSE_CFG" />
             <item name="LEFT_CFG" />
@@ -90,7 +89,7 @@
       </args>
     </command>
 
-    <command kind="guarded" opcode="0x01" mnemonic="MC_ExecuteDriving">
+    <command kind="guarded" opcode="0x02" mnemonic="MC_ExecuteDriving">
       <comment>Execute one configured command</comment>
       <args>
         <arg name="DrivingCommand" type="ENUM">
@@ -104,35 +103,7 @@
       </args>
     </command>
 
-    <command kind="guarded" opcode="0x02" mnemonic="MC_TuningParameters">
-      <comment>Contains all motor control parameters</comment>
-      <args>
-        <arg name="TuningParameter" type="ENUM">
-          <enum name ="tuningParameterList" >
-            <item name = "P_CURRENT" />
-            <item name = "I_CURRENT" />
-            <item name = "P_SPEED" />
-            <item name = "I_SPEED" />
-          </enum>
-        </arg>
-        <arg name="Value" type="U16" />
-      </args>
-    </command>
-
-    <command kind="guarded" opcode="0x03" mnemonic="MC_AccelerationProfiles">
-      <comment>Contains acceleration and deceleration profile</comment>
-      <args>
-        <arg name="AccelerationParameter" type="ENUM">
-          <enum name="accelerationParameterList">
-            <item name = "ACCELERATION" />
-            <item name = "DECELERATION" />
-          </enum>
-        </arg>
-        <arg name="Value" type="U16" />
-      </args>
-    </command>
-
-    <command kind="guarded" opcode="0x04" mnemonic="MC_StallDetection">
+    <command kind="guarded" opcode="0x03" mnemonic="MC_StallDetection">
     <comment> Enable / disable detection of motor stall </comment>
     <args>
       <arg name="motorStallEnable" type="ENUM">
@@ -144,17 +115,17 @@
     </args>
     </command>
 
-    <command kind="guarded" opcode="0x05" mnemonic="MC_PositionCounterReset">
-      <comment> Reset position counter </comment>
-      <args>
-        <arg name="ResetPositionCounter" type="U8" />
-      </args>
+    <command kind="guarded" opcode="0x04" mnemonic="MC_PositionCounterReset">
+    <comment> Reset the position counter of specific motor(s) </comment>
+    <args>
+      <arg name="ResetPositionCounter" type="U8" />
+    </args>
     </command>
 
-    <command kind="guarded" opcode="0x06" mnemonic="MC_UpdateTelemetry">
+    <command kind="guarded" opcode="0x05" mnemonic="MC_UpdateTelemetry">
         <comment> Requests an update from each of the motor controllers </comment>
     </command>
-  </commands> -->
+  </commands> 
 
   <!-- EVENTS -->
   <events>

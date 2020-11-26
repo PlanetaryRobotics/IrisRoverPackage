@@ -1,154 +1,173 @@
-// Resources
-// Dragging info: https://usefulangle.com/post/1/jquery-dragging-image-within-div
-
 <template>
   <div class="modal-backdrop" v-on:click.self="closeModal">
     <div id="POIModalDetailsContainer">
-      <div id="edit-thumbnail-backdrop" v-if="edittingThumbnail"></div>
       <h3 class="heading-poi">ADD NEW POI</h3>
 
       <div class="flex-container modal-content">
+        <!-- First Column: form information -->
         <div class="modal-col">
-          <div class="modal-row flex-container">
-            <div class="pri-type">
-              <div class="label">Priority</div>
-              <Dropdown
-                :options="['Low', 'Medium', 'High']"
-                :default="'Medium'"
-                class="select"
-              />
-            </div>
-
-            <!-- <span class="dot-icon red"></span> -->
-            <div class="pri-type">
-              <div class="label">Type</div>
-              <Dropdown
-                :options="['Attraction', 'Obstacle', 'Shadow']"
-                :default="parentData"
-                class="select"
-              />
-              <!-- @input="alert(displayToKey($event))" -->
-            </div>
-          </div>
-
-          <div class="modal-row">
-            <div class="label">Name*</div>
-            <input type="text" readonly placeholder="OBST-005" />
-            <div class="sublabel">* Automatically Populated</div>
-          </div>
-          <div class="modal-row">
-            <div class="label">Size</div>
-            <div class="flex-container vertically-center">
-              <!-- WIDTH -->
-              <div class="dimension">
-                <div class="dimen">Width (cm)</div>
-                <input
-                  type="text"
-                  @keydown.space.prevent
-                  @keypress="onlyNumber"
-                  placeholder="Width"
+          <!-- Left Column Form 1 -->
+          <span v-if="formOneVisible">
+            <div class="modal-row flex-container">
+              <div class="pri-type">
+                <div class="label">Priority</div>
+                <Dropdown
+                  :options="['Low', 'Medium', 'High']"
+                  :default="'Medium'"
+                  class="select"
                 />
               </div>
 
-              <svg
-                class="x-icon"
-                width="10"
-                height="11"
-                viewBox="0 0 10 11"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M1 1L9 10" stroke="white" />
-                <path d="M8.75555 1L1.24445 10" stroke="white" />
-              </svg>
-
-              <!-- HEIGHT -->
-              <div class="dimension">
-                <div class="dimen">Height (cm)</div>
-                <input
-                  type="text"
-                  @keydown.space.prevent
-                  @keypress="onlyNumber"
-                  placeholder="Height"
-                />
-              </div>
-
-              <svg
-                class="x-icon"
-                width="10"
-                height="11"
-                viewBox="0 0 10 11"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M1 1L9 10" stroke="white" />
-                <path d="M8.75555 1L1.24445 10" stroke="white" />
-              </svg>
-
-              <!-- DEPTH -->
-              <div class="dimension">
-                <div class="dimen">Depth (cm)</div>
-                <input
-                  type="text"
-                  @keydown.space.prevent
-                  @keypress="onlyNumber"
-                  placeholder="Depth"
+              <!-- <span class="dot-icon red"></span> -->
+              <div class="pri-type">
+                <div class="label">Type</div>
+                <Dropdown
+                  :options="['Attraction', 'Obstacle', 'Shadow']"
+                  :default="parentData"
+                  class="select"
                 />
               </div>
             </div>
-          </div>
 
-          <div class="modal-row">
-            <div class="label">Details</div>
-            <textarea rows="6" placeholder="Fill out details here"></textarea>
-          </div>
+            <div class="modal-row">
+              <div class="label">Name*</div>
+              <input type="text" readonly placeholder="OBST-005" />
+              <div class="sublabel">* Automatically Populated.</div>
+            </div>
+            <div class="modal-row">
+              <div class="label">Size</div>
+              <div class="flex-container vertically-bottom">
+                <!-- WIDTH -->
+                <div class="dimension">
+                  <div class="dimen">Width (cm)</div>
+                  <input
+                    type="text"
+                    @keydown.space.prevent
+                    @keypress="onlyNumber"
+                    placeholder="Width"
+                  />
+                </div>
+
+                <svg
+                  class="x-icon"
+                  width="10"
+                  height="11"
+                  viewBox="0 0 10 11"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M1 1L9 10" stroke="white" />
+                  <path d="M8.75555 1L1.24445 10" stroke="white" />
+                </svg>
+
+                <!-- HEIGHT -->
+                <div class="dimension">
+                  <div class="dimen">Height (cm)</div>
+                  <input
+                    type="text"
+                    @keydown.space.prevent
+                    @keypress="onlyNumber"
+                    placeholder="Height"
+                  />
+                </div>
+
+                <svg
+                  class="x-icon"
+                  width="10"
+                  height="11"
+                  viewBox="0 0 10 11"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M1 1L9 10" stroke="white" />
+                  <path d="M8.75555 1L1.24445 10" stroke="white" />
+                </svg>
+
+                <!-- DEPTH -->
+                <div class="dimension">
+                  <div class="dimen">Depth (cm)</div>
+                  <input
+                    type="text"
+                    @keydown.space.prevent
+                    @keypress="onlyNumber"
+                    placeholder="Depth"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-row">
+              <div class="label">Details</div>
+              <textarea rows="6" placeholder="Fill out details here"></textarea>
+            </div>
+          </span>
+
+          <!-- Form 2-- hidden until next button clicked on form 1 modal -->
+          <span v-if="formTwoVisible">
+            <div class="modal-row">
+              <div class="label">Tags</div>
+              <div class="add-tag-input-container flex-container vertically-center">
+                <input class="add-tag-input" type="text" placeholder="Search" />
+                <div
+                  class="addTagButton flex-container vertically-center"
+                  v-on:click="addTag"
+                  >
+                  <WhiteAddIcon class="white-add-icon"/>
+                </div>
+              </div>
+            </div>
+          </span>
         </div>
 
         <!-- Second Column: thumbnail image -->
         <div class="modal-col">
-          <div class="flex-container buttons">
-            Thumbnail photo
-            <div class="edit-img-buttons-container" v-if="edittingThumbnail">
-              <button
-                class="button modal-button thumbnail-btn"
-                v-on:click="hideEditButtons"
-              >
-                CANCEL
-              </button>
-              <button class="button modal-button done thumbnail-btn">
-                DONE
-              </button>
-            </div>
-          </div>
-
-          <span v-on:click="editThumbnail"
-            ><EditPencilIcon class="edit-pencil-icon"
-          /></span>
-          <!-- draggable="false" -->
-          <!-- <div v-on="thumbnailMoveHandlers" id="pan-img"> -->
-            <img
-              class="thumbnail"
-              draggable="false"
-              v-bind:style="[thumbnailBorder]"
-              src="@/assets/imgviewer/POI_test_image.png"
-            />
+          <div class="label">Thumbnail Photo</div>
+          <img
+            class="thumbnail"
+            draggable="false"
+            src="@/assets/imgviewer/POI_test_image.png"
+          />
         </div>
       </div>
 
       <div id="btn-container">
-        <button class="button modal-button" v-on:click="closeModal">
-          CANCEL
-        </button>
-        <button class="button modal-button next">NEXT</button>
+
+        <!-- Form 1 Buttons -->
+        <span v-if="formOneVisible">
+          <button class="button modal-button" v-on:click="closeModal">
+            CANCEL
+          </button>
+          <button
+            class="button modal-button next purple"
+            v-on:click="populateAsFormTwo"
+          >
+            NEXT
+          </button>
+        </span>
+
+        <!-- Form 2 Buttons -->
+        <span v-if="formTwoVisible">
+
+          <button class="button modal-button" v-on:click="closeModal">
+            CANCEL
+          </button>
+
+          <button class="button modal-button purple previous" v-on:click="populateAsFormOne">PREVIOUS</button>
+
+          <button class="button modal-button purple create">CREATE</button>
+          
+        </span>
       </div>
+
+      <AddTagModalWithinPOIModal v-if="addTagModalVisible" v-on:closeModal="closeAddTagModal" />
     </div>
   </div>
 </template>
 
 <script>
 import Dropdown from "@/components/POI/Components/Dropdown.vue";
-import EditPencilIcon from "@/assets/imgviewer/SVGcomponents/EditPencilIcon.vue";
-
+import WhiteAddIcon from "@/assets/imgviewer/SVGcomponents/WhiteAddIcon.vue";
+import AddTagModalWithinPOIModal from "@/components/POI/Components/AddTagModalWithinPOIModal.vue";
 
 export default {
   name: "POIModalFullDetails",
@@ -159,32 +178,28 @@ export default {
 
   components: {
     Dropdown,
-    EditPencilIcon,
+    WhiteAddIcon,
+    AddTagModalWithinPOIModal,
   },
 
   data() {
     return {
-      edittingThumbnail: false,
       mouseDownThumbnail: false,
-      // prevXThumbnailMove: null,
-      // prevYThumbnailMove: null,
 
-      thumbnailBorder: {
-        borderRadius: "0.4rem",
-        cursor: "auto",
-      },
+      formOneVisible: true,
+      formTwoVisible: false,
 
-      // thumbnailMoveHandlers: {
-      //   mousedown: this.onMouseDownThumbnail,
-      //   mouseup: this.onMouseUpThumbnail,
-      //   mousemove: this.panImage,
-      // },
+      addTagModalVisible: false,
     };
   },
 
   methods: {
     closeModal() {
       this.$emit("closeTheModal");
+    },
+
+    closeAddTagModal(){
+      this.addTagModalVisible = false;
     },
 
     onlyNumber($event) {
@@ -195,42 +210,25 @@ export default {
       }
     },
 
-    // Edit thumbnail methods
-    editThumbnail() {
-      this.thumbnailBorder.borderRadius = "0rem";
-      this.thumbnailBorder.cursor = "move";
-      this.edittingThumbnail = true;
+    populateAsFormOne(){
+      // Show form 1
+      this.formOneVisible = true;
+
+      // Hide form 2
+      this.formTwoVisible = false;
     },
 
-    hideEditButtons() {
-      this.edittingThumbnail = false;
-      this.thumbnailBorder.cursor = "auto";
+    populateAsFormTwo() {
+      // Hide form 1 divs in left column
+      this.formOneVisible = false;
+
+      // Show form 2 divs in left column
+      this.formTwoVisible = true;
     },
 
-    // Thumbnail drag handlers
-    // onMouseDownThumbnail: function (event) {
-    //   this.prevXThumbnailMove = event.clientX;
-    //   this.prevYThumbnailMove = event.clientY;
-    //   this.mouseDownThumbnail = true;
-    // },
-
-    // onMouseUpThumbnail() {
-    //   this.mouseDownThumbnail = false;
-    // },
-
-    // panImage: function (event) {
-    //   if (this.mouseDownThumbnail && this.edittingThumbnail) {
-    //     event.preventDefault();
-    //     // let directionX = this.prevXThumbnailMove - event.clientX > 0 ? 1 : -1;
-    //     // let directionY = this.prevYThumbnailMove - event.clientY > 0 ? 1 : -1;
-    //     document.getElementById("pan-img").scrollLeft +
-    //       (this.prevXThumbnailMove - event.clientX);
-    //     document.getElementById("pan-img").scrollTop +
-    //       (this.prevYThumbnailMove - event.clientY);
-    //     this.prevXThumbnailMove = event.clientX;
-    //     this.prevYThumbnailMove = event.clientY;
-    //   }
-    // },
+    addTag() {
+      this.addTagModalVisible = true;
+    },
   },
 };
 </script>
@@ -266,16 +264,6 @@ export default {
   font-weight: 400;
   text-align: left;
   z-index: 2;
-}
-
-#edit-thumbnail-backdrop {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-color: #2a2a2a;
-  opacity: 0.7;
-  margin: -2rem;
-  z-index: 3;
 }
 
 .modal-content {
@@ -336,6 +324,10 @@ export default {
 }
 
 .vertically-center {
+  align-items: center;
+}
+
+.vertically-bottom {
   align-items: flex-end;
 }
 
@@ -374,10 +366,8 @@ export default {
   width: 100%;
   top: 100%;
   object-fit: cover;
-}
-
-#pan-img {
-  overflow: hidden;
+  border-radius: "0.4rem";
+  cursor: "auto";
 }
 
 input,
@@ -415,13 +405,18 @@ textarea {
 }
 
 input {
-  padding-left: 0.6rem;
+  padding-left: 0.8rem;
+}
+
+.add-tag-input{
+  padding-right: 2rem;
 }
 
 textarea {
   overflow-y: scroll;
   resize: none;
   width: 100%;
+  padding-left: 0.8rem;
 }
 
 // Buttons
@@ -433,21 +428,26 @@ textarea {
 }
 
 .next,
-.done {
+.done,
+.previous,
+.create {
+  margin-left: 0.8rem;
+}
+
+.purple {
   background-color: $color-primary;
   border-color: $color-primary;
-  margin-left: 0.8rem;
+}
+
+.purple:hover{
+  background-color: #6148C5;
+  border-color: #6148C5;
 }
 
 .flex-container .buttons {
   justify-content: space-between;
   margin-bottom: 0.8rem;
   align-items: flex-end;
-}
-
-.edit-img-buttons-container {
-  position: absolute;
-  right: 2rem;
 }
 
 #btn-container {
@@ -473,11 +473,20 @@ textarea {
   background-color: #21df9a;
 }
 
-.edit-pencil-icon {
+.white-add-icon {
+  position: relative;
+  right: 0rem;
+}
+
+.add-tag-input-container{
+  position: relative;
+}
+
+.addTagButton {
+  padding: 0.3rem 0rem;
   position: absolute;
-  margin-top: 1.6rem;
-  right: 3.6rem;
-  width: 1.2rem;
+  right: 0.4rem;
+
   cursor: pointer;
 }
 </style>

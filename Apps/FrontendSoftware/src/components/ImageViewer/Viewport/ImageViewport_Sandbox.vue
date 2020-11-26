@@ -34,9 +34,11 @@ Manual POI add big modal stopped poppping up on click
     >
       <div class="canvas-wrapper port">
         <div class="centering">
+
           <!-- Capture Science Add pop up -->
           <CaptureScienceInstructionBox
             v-if="capSciInstructionsOpen"
+            v-show="!capSciInstructionsHidden"
             :onParentClick="POISelectionInstructions"
             v-on:instructionTwoActivated="setUpCapSciSelection"
             v-on:captureSelectionSelected="onOpenCapSciModal"
@@ -156,6 +158,7 @@ export default {
 
       // Capture science pop up instruction box visibility
       capSciInstructionsOpen: true, //  saving var for when commandline command entered, will turn true and start false
+      capSciInstructionsHidden: false, // to hide instructions modal when user dragging capture science box so user can see full image
       POISelectionInstructions: false, // specifcally for preventing manual POI add events like selection box event from occuring
       capSciConfirmationModalOpen: false,
       greenBoxTopLeftCoords: [209, 194],
@@ -250,7 +253,6 @@ export default {
     },
 
     onPOIChoiceSelected(val) {
-      console.log("choice selected is: ", val)
       this.arePOIFullDetailsVisible = true;
       this.initalPOIChoiceSelected = val;
       this.closePOIChoiceModal();
@@ -337,13 +339,11 @@ export default {
       let xOffset = this.baseXOffset;
       let yOffset = this.baseYOffset;
 
-      // For setting up base box before drag and adjust
       if (this.dragCapSciBoxActivate) {
         // On left side drag
         // makes sure left side doesn't get dragged past right side, if not past right side:
         if (this.dragSide == "left" &&
-          (this.capSciExpandBoxEndCoords[0]+12) < (this.greenBoxTopLeftCoords[0] + xOffset)
-          ) {
+          (this.capSciExpandBoxEndCoords[0]+12) < (this.greenBoxTopLeftCoords[0] + xOffset)) {
           topLeft = [
             this.capSciExpandBoxEndCoords[0],
             this.greenBoxTopLeftCoords[1],
@@ -383,9 +383,10 @@ export default {
         }
 
         // On right side drag
-        // if legal drag (i.e. right side not past left side)
+        // if legal drag (i.e. right side not past left side and not past image boundary)
         else if (this.dragSide == "right" && 
-          (this.capSciExpandBoxEndCoords[0] > this.greenBoxTopLeftCoords[0]+12)
+          (this.capSciExpandBoxEndCoords[0] > this.greenBoxTopLeftCoords[0]+12) &&
+          ((this.capSciExpandBoxEndCoords[0] - this.greenBoxTopLeftCoords[0]) < (document.getElementById("imgvp").clientWidth-this.greenBoxTopLeftCoords[0]))
         ) {
           topLeft = [
             this.greenBoxTopLeftCoords[0],
@@ -404,8 +405,10 @@ export default {
             this.greenBoxTopLeftCoords[1] + yOffset,
           ];
         }
-        // illegal drag
-        else if (this.dragSide == "right"){
+        // illegal drag due to right side passing left side
+        else if (this.dragSide == "right" &&
+        (this.capSciExpandBoxEndCoords[0] < this.greenBoxTopLeftCoords[0]+12)
+        ){
           topLeft = [
             this.greenBoxTopLeftCoords[0],
             this.greenBoxTopLeftCoords[1],
@@ -424,11 +427,31 @@ export default {
           ];
           this.capSciExpandBoxEndCoords = topRight;
         }
+        // illegal drag due to drag past image boundary
+        else if(this.dragSide == "right"){
+          topLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.greenBoxTopLeftCoords[1],
+          ];
+          topRight = [
+            document.getElementById("imgvp").clientWidth,
+            this.greenBoxTopLeftCoords[1],
+          ];
+          bottomRight = [
+            document.getElementById("imgvp").clientWidth,
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          bottomLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          this.capSciExpandBoxEndCoords = topRight;
+        }
 
         // On bottom side drag
         // if legal drag (i.e. bottom side not dragged past top side)
         else if(this.dragSide == "bottom" &&
-          this.capSciExpandBoxEndCoords[1] > (this.greenBoxTopLeftCoords[1] + 12)
+          this.capSciExpandBoxEndCoords[1] >= (this.greenBoxTopLeftCoords[1] + 12)
         ) {
           topLeft = [
             this.greenBoxTopLeftCoords[0],
@@ -468,9 +491,10 @@ export default {
           this.capSciExpandBoxEndCoords = bottomRight;
         }
 
-        // On bottom side drag
-        // if legal drag (i.e. top side not dragged past bottom side)
+        // On top side drag
+        // if legal drag (i.e. top side not dragged past bottom side or top of image boundary)
         else if (this.dragSide == "top" &&
+          (Math.abs((this.greenBoxTopLeftCoords[1] + yOffset) - this.capSciExpandBoxEndCoords[1]) < (this.greenBoxTopLeftCoords[1] + yOffset - 1)) &&
           this.capSciExpandBoxEndCoords[1] < (this.greenBoxTopLeftCoords[1] + yOffset - 12)
         ) {
           topLeft = [
@@ -490,8 +514,10 @@ export default {
             this.greenBoxTopLeftCoords[1] + yOffset,
           ];
         }
-        // illegal drag
-        else if(this.dragSide == "top"){
+        // illegal drag due to top dragged past bottom
+        else if(this.dragSide == "top" &&
+          this.capSciExpandBoxEndCoords[1] >= (this.greenBoxTopLeftCoords[1] + yOffset - 12)
+        ){
           topLeft = [
             this.greenBoxTopLeftCoords[0],
             this.greenBoxTopLeftCoords[1] + yOffset - 12,
@@ -510,7 +536,28 @@ export default {
           ];
           this.capSciExpandBoxEndCoords = topLeft;
         }
+        // illegal drag due to top dragged past top image boundary
+        else if(this.dragSide == "top"){
+          topLeft = [
+            this.greenBoxTopLeftCoords[0],
+            0,
+          ];
+          topRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            0,
+          ];
+          bottomRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          bottomLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          this.capSciExpandBoxEndCoords = topLeft;
+        }
       }
+
       // For setting up base box before drag and adjust
       else {
         topLeft = this.greenBoxTopLeftCoords; // x1, y1
@@ -624,7 +671,6 @@ export default {
 
     // On click of page, close modals
     onIVPortClick() {
-      console.log("IVPort Click")
       // if not a drag-- just a click, clear canvas
       if (!this.isDrag) {
         this.setPOILayerDimensions();
@@ -765,6 +811,9 @@ export default {
         ) {
           // dragCapSciActivated
           this.dragCapSciBoxActivate = true;
+
+          // close Instructions while dragging so user can see full image
+          this.capSciInstructionsHidden = true;
 
           // On left side drag
           if (
@@ -946,6 +995,8 @@ export default {
           ];
         }
         this.dragSide = null;
+        this.capSciInstructionsHidden = false;
+        this.capSci
       }
     },
 

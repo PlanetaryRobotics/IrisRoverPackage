@@ -103,4 +103,9 @@ export default {
   border-color: #8a6dff;
   margin-left: 0.8rem;
 }
+
+.confirm:hover{
+  background-color: #6148C5;
+  border-color: #6148C5;
+}
 </style>

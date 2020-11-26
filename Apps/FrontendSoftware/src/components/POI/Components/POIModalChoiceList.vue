@@ -28,7 +28,6 @@ export default {
 
   methods: {
     selectPOIChoice(val) {
-      console.log("clicked")
       this.$emit("POIChoiceSelected", val);
     },
   },

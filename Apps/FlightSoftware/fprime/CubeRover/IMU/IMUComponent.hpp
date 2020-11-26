@@ -1,7 +1,8 @@
 // ======================================================================
-// \title  ImuComponentImpl.hpp
-// \author cedric
-// \brief  hpp file for Imu component implementation class
+// \title   ImuComponentImpl.hpp
+// \author  cedric
+// \editted michael
+// \brief   hpp file for Imu component implementation class
 //
 // \copyright
 // Copyright 2009-2015, by the California Institute of Technology.

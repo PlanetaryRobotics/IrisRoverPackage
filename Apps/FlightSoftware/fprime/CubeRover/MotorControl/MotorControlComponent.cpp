@@ -54,7 +54,6 @@ namespace CubeRover {
   /**
    * @brief      Initialize the motor control component
    *
-   * @param[in]  queueDepth  The queue depth
    * @param[in]  instance    The instance
    */
   void MotorControlComponentImpl :: init( const NATIVE_INT_TYPE instance)

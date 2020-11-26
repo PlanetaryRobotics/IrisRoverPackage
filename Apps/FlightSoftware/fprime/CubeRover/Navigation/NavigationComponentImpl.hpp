@@ -40,6 +40,7 @@ namespace CubeRover {
       //! Initialize object Navigation
       //!
       void init(
+          const NATIVE_INT_TYPE queueDepth, /*!< The queue depth*/
           const NATIVE_INT_TYPE instance = 0 /*!< The instance number*/
       );
 
@@ -53,20 +54,53 @@ namespace CubeRover {
       // Handler implementations for user-defined typed input ports
       // ----------------------------------------------------------------------
 
-      //! Handler implementation for run
+      //! Handler implementation for PingIn
       //!
-      void run_handler(
+      void PingIn_handler(
+          const NATIVE_INT_TYPE portNum, /*!< The port number*/
+          U32 key /*!< Value to return to pinger*/
+      );
+
+      //! Handler implementation for schedIn
+      //!
+      void schedIn_handler(
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
           NATIVE_UINT_TYPE context /*!< The call order*/
       );
 
-      //! Handler implementation for cmdIn
+      //! Handler implementation for MotorDataOut
       //!
-      void cmdIn_handler(
+      void MotorDataOut_handler(
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
-          FwOpcodeType opCode, /*!< Command Op Code*/
-          U32 cmdSeq, /*!< Command Sequence*/
-          Fw::CmdArgBuffer &args /*!< Buffer containing arguments*/
+          bool movement_finished /*!<  A simple boolean to tell Nav motion is finished */
+      );
+
+      //! Handler implementation for IMUDataOut
+      //!
+      void IMUDataOut_handler(
+          const NATIVE_INT_TYPE portNum, /*!< The port number*/
+          I16 x_acc, 
+          I16 y_acc, 
+          I16 z_acc, 
+          I16 x_gyro, 
+          I16 y_gyro, 
+          I16 z_gyro 
+      );
+
+    PRIVATE:
+
+      // ----------------------------------------------------------------------
+      // Command handler implementations
+      // ----------------------------------------------------------------------
+
+      //! Implementation for Nav_DriveCommand command handler
+      //! Movement command
+      void Nav_DriveCommand_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          NAV_COMMANDLIST Command, 
+          U8 Distance, 
+          U8 Speed 
       );
 
 

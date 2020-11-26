@@ -35,10 +35,11 @@ namespace CubeRover {
 
   void NavigationComponentImpl ::
     init(
+        const NATIVE_INT_TYPE queueDepth,
         const NATIVE_INT_TYPE instance
     )
   {
-    NavigationComponentBase::init(instance);
+    NavigationComponentBase::init(queueDepth, instance);
   }
 
   NavigationComponentImpl ::
@@ -52,7 +53,16 @@ namespace CubeRover {
   // ----------------------------------------------------------------------
 
   void NavigationComponentImpl ::
-    run_handler(
+    PingIn_handler(
+        const NATIVE_INT_TYPE portNum,
+        U32 key
+    )
+  {
+    // TODO
+  }
+
+  void NavigationComponentImpl ::
+    schedIn_handler(
         const NATIVE_INT_TYPE portNum,
         NATIVE_UINT_TYPE context
     )
@@ -61,14 +71,43 @@ namespace CubeRover {
   }
 
   void NavigationComponentImpl ::
-    cmdIn_handler(
+    MotorDataOut_handler(
         const NATIVE_INT_TYPE portNum,
-        FwOpcodeType opCode,
-        U32 cmdSeq,
-        Fw::CmdArgBuffer &args
+        bool movement_finished
     )
   {
     // TODO
+  }
+
+  void NavigationComponentImpl ::
+    IMUDataOut_handler(
+        const NATIVE_INT_TYPE portNum,
+        I16 x_acc,
+        I16 y_acc,
+        I16 z_acc,
+        I16 x_gyro,
+        I16 y_gyro,
+        I16 z_gyro
+    )
+  {
+    // TODO
+  }
+
+  // ----------------------------------------------------------------------
+  // Command handler implementations
+  // ----------------------------------------------------------------------
+
+  void NavigationComponentImpl ::
+    Nav_DriveCommand_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq,
+        NAV_COMMANDLIST Command,
+        U8 Distance,
+        U8 Speed
+    )
+  {
+    // TODO
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
 } // end namespace CubeRover

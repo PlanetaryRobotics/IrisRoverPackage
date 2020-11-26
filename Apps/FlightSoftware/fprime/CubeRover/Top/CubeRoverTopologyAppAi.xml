@@ -50,13 +50,13 @@
 
 <!-- Declaration of the passive text logger component that logs events in non-volatile memory -->
 <!-- For CubeRover - we use external FRAM memory to store data, i.e. a custom implementation of that component is necessary -->
-  <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="141" base_id_window="20" />
+  <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="221" base_id_window="20" />
 
 <!-- Declaration of the health component -->
   <instance namespace="Svc" name="health" type="Health" base_id="301" base_id_window="20" />
 
 <!-- Declaration of the WatchDog Interface component -->
-  <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="251" base_id_window="20" />
+  <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="241" base_id_window="20" />
  
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS

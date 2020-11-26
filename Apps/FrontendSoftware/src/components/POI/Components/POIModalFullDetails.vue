@@ -107,7 +107,7 @@
             <div class="modal-row">
               <div class="label">Tags</div>
               <div class="add-tag-input-container flex-container vertically-center">
-                <input class="add-tag-input" type="text" placeholder="Search" />
+                <input class="add-tag-input" @keydown.space.prevent type="text" v-model.trim="tagUserInput" placeholder="Search" />
                 <div
                   class="addTagButton flex-container vertically-center"
                   v-on:click="addTag"
@@ -158,9 +158,8 @@
           
         </span>
       </div>
-
-      <AddTagModalWithinPOIModal v-if="addTagModalVisible" v-on:closeModal="closeAddTagModal" />
     </div>
+    <AddTagModalWithinPOIModal v-if="addTagModalVisible" v-on:closeModal="closeAddTagModal" v-bind:tagInput="tagUserInput" />
   </div>
 </template>
 
@@ -185,7 +184,6 @@ export default {
   data() {
     return {
       mouseDownThumbnail: false,
-
       formOneVisible: true,
       formTwoVisible: false,
 

@@ -11,6 +11,16 @@
         <div class="label">Details</div>
         <textarea rows="6" placeholder="Fill out details here"></textarea>
       </div>
+
+      <div id="btn-container">
+
+          <button class="button modal-button" v-on:click="closeModal">
+            CANCEL
+          </button>
+
+          <button class="button modal-button purple create">CREATE</button>
+          
+      </div>
     </div>
   </div>
 </template>
@@ -19,9 +29,12 @@
 export default {
   name: "AddTagModalWithinPOIModal",
 
+  props: {
+    tagInput: String,
+  },
+
   data() {
     return {
-      tagInput: "Pointy",
     };
   },
 
@@ -57,7 +70,7 @@ export default {
   position: fixed;
   width: 24.2rem;
   border-radius: 0.4rem;
-  padding: 2rem;
+  padding: 1.6rem;
 
   font-size: 1rem;
   font-style: normal;
@@ -133,5 +146,32 @@ textarea {
   resize: none;
   width: 100%;
   padding-left: 0.8rem;
+}
+
+#btn-container {
+  float: right;
+  margin-top:1.2rem;
+}
+
+// button styles
+.modal-button {
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+  width: 6.5rem;
+}
+
+.create {
+  margin-left: 0.8rem;
+}
+
+.purple {
+  background-color: $color-primary;
+  border-color: $color-primary;
+}
+
+.purple:hover{
+  background-color: #6148C5;
+  border-color: #6148C5;
 }
 </style>

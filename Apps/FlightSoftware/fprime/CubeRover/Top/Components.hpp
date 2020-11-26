@@ -10,6 +10,7 @@
 
 // Include drivers
 #include <Drv/BlockDriver/BlockDriverImpl.hpp>
+//#include <Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentImpl.hpp>
 
 // Include services
 #include <Svc/RateGroupDriver/RateGroupDriverImpl.hpp>
@@ -55,9 +56,9 @@ extern CubeRover::UdpReceiverComponentImpl udpReceiver;
 
 // NetworkManager
 extern CubeRover::NetworkManagerComponentImpl networkManager;
-// 
+
 // FreeRTOS Serial driver to interface radio module
-extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
+// extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
 
 // Health
 extern Svc::HealthImpl health;

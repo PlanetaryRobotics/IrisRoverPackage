@@ -18,6 +18,8 @@
 #include <Svc/TlmChan/TlmChanImpl.hpp>
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
+#include <Svc/Health/HealthComponentImpl.hpp>
+#include <CubeRover/WatchDogInterface/WatchDogInterfaceComponentImpl.hpp>
 
 // Include custom components
 #include <CubeRover/GroundInterface/GroundInterface.hpp>
@@ -53,5 +55,14 @@ extern CubeRover::UdpReceiverComponentImpl udpReceiver;
 
 // NetworkManager
 extern CubeRover::NetworkManagerComponentImpl networkManager;
+// 
+// FreeRTOS Serial driver to interface radio module
+extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
+
+// Health
+extern Svc::HealthImpl health;
+
+// WatchDog Interface
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

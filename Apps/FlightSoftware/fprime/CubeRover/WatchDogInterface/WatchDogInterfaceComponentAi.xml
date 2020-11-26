@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
+
+<component name="WatchDogInterface" kind="queued" namespace="CubeRover">
+    <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
+    <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+    <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
+    <import_port_type>Svc/WatchDog/WatchDogPortAi.xml</import_port_type>
+
+    <ports>
+        <!-- Output log port -->
+        <port name="LogOut" data_type="Fw::Log" kind="output" role="LogEvent" max_number="1">
+            <comment>
+            The output log port
+            </comment>
+        </port>
+        
+        <!-- Ping ports -->
+        <port name="PingIn" data_type="Svc::Ping" kind="async_input" max_number="1">
+            <comment>
+            Input ping port "Health"
+            </comment>
+        </port>
+        <port name="PingOut" data_type="Svc::Ping" kind="output" max_number="1">
+            <comment>
+            Output ping port "Health"
+            </comment>
+        </port>
+
+        <!-- Cmd ports-->
+        <port name="CmdInput" data_type="Fw::Cmd" kind="sync_input" role="Cmd" max_number="1">
+            <comment>
+            The input port for Commands from Cmd Dispatcher
+            </comment>
+        </port>
+        <port name="CmdResponse" data_type="Fw::CmdResponse" kind="output" role="CmdResponse" max_number="1">
+            <comment>
+            The output port for responses to Commands from Cmd Dispatcher
+            </comment>
+        </port>
+        <port name="CmdReg" data_type="Fw::CmdReg" kind="output" role="CmdRegistration" max_number="1">
+            <comment>
+            The port for registering what commands mean
+            </comment>
+        </port>
+        
+        <!-- Rate Group Port -->
+        <port name="Run" data_type="Svc::Sched" kind="sync_input" max_number="1">
+            <comment>
+            Run port
+            </comment>
+        </port>
+
+        <!-- Watch Dog Port -->
+        <port name="WdogStroke" data_type="Svc::WatchDog" kind="sync_input" max_number="1">
+            <comment>
+            Input port from Health Component.
+            </comment>
+        </port>
+    </ports>
+
+    <commands>
+        <command kind="async" opcode="0x0" mnemonic="Reset_Specific">
+            <comment>
+            Command to reset the specific parts of rover
+            </comment>
+            <args>
+                <arg name="reset_value" type="U16">
+                    <comment>
+                    	U16 Value that specifies which components or hardware need to be reset
+                    </comment>
+                </arg>
+             </args>
+        </command>
+    </commands>
+
+    <events>
+        <event id="0x0" name="WatchDogMSP430IncorrectResp" severity="WARNING_HI" format_string = "Watchdog MSP430 Sent back Incorrect Response">
+            <comment>
+            Warning that the WatchDog MSP430 sent back a response different than what was sent to it
+            </comment>
+        </event>
+
+        <event id="0x1" name="WatchDogTimedOut" severity="WARNING_HI" format_string = "WatchDog Timer has timed out" >
+            <comment>
+            Warning that a WatchDog MSP430 watchdog timer went off 
+            </comment>
+        </event>
+
+        <event id="0x2" name="WatchDogCmdReceived" severity="ACTIVITY_HI" format_string = "WatchDog Cmd to reset %s recieved" >
+            <comment>
+            Notification that watchdog interface recieved a command from Cmd_Dispatcher 
+            </comment>
+             <args>
+                <arg name="Cmd" type="string" size="50">
+                    <comment>The cmd that watchdog interface processed</comment>
+                </arg>          
+            </args>
+        </event>
+
+        <event id="0x3" name="WatchDogCommError" severity="WARNING_HI" format_string = "WatchDog Interface has error: %u" >
+            <comment>
+            Warning that a WatchDog MSP430 error has occured.
+            </comment>
+             <args>
+                <arg name="error" type="U32">
+                    <comment>The watchdog error value (reference to documentation)</comment>
+                </arg>          
+            </args>
+        </event>
+    </events>
+
+    <telemetry>
+        <channel id="0" name="LAST_COMMAND" data_type="string" size="50">
+            <comment>
+                The command last sent to watchdog interface
+            </comment>
+        </channel>
+    </telemetry>
+</component>
+

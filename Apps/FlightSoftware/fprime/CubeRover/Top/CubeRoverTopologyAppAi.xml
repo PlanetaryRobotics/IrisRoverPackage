@@ -10,6 +10,9 @@
   <import_component_type>Svc/LinuxTime/CubeRoverTimeComponentAi.xml</import_component_type>
   <import_component_type>Svc/TlmChan/TlmChanComponentAi.xml</import_component_type>
   <import_component_type>Svc/CmdDispatcher/CommandDispatcherComponentAi.xml</import_component_type>
+  <import_component_type>Svc/ActiveLogger/ActiveLoggerComponentAi.xml</import_component_type>
+  <import_component_type>Svc/Health/HealthComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/WatchDogInterface/WatchDogInterfaceComponentAi.xml</import_component_type>
 
 <!-- Specifics to CubeRover -->
   <import_component_type>CubeRover/GroundInterface/GroundInterfaceComponentAi.xml</import_component_type>
@@ -45,6 +48,16 @@
 <!-- Declaration of the components that implement NetworkManager and Wifi Stack -->
   <instance namespace="CubeRover" name="networkManager" type="NetworkManager" base_id="201" base_id_window="20" />
 
+<!-- Declaration of the passive text logger component that logs events in non-volatile memory -->
+<!-- For CubeRover - we use external FRAM memory to store data, i.e. a custom implementation of that component is necessary -->
+  <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="141" base_id_window="20" />
+
+<!-- Declaration of the health component -->
+  <instance namespace="Svc" name="health" type="Health" base_id="301" base_id_window="20" />
+
+<!-- Declaration of the WatchDog Interface component -->
+  <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="251" base_id_window="20" />
+ 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
      ********************************************************************************************************* 
@@ -88,6 +101,21 @@
         CONNECTION BETWEEN MEDIUM FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
      *********************************************************************************************************
      -->
+  <!-- Connect output of WatchDogInterface to stroke watchdog MSP430 (port 0) --> 
+  <connection name = "rgMedFreq_to_watchDogInterface_clk">
+    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <target component = "watchDogInterface" port = "Run" type = "Sched" num = "0"/>
+  </connection>
+
+<!-- *********************************************************************************************************
+        CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
+     *********************************************************************************************************
+     -->
+  <!-- Connect output of health to ping all components (port 0) --> 
+  <connection name = "rgHighFreq_to_health_clk">
+    <source component = "rateGroupHighFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <target component = "health" port = "Run" type = "Sched" num = "0"/>
+  </connection>
 
   <connection name="rgMedFreq_to_networkManager">
     <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
@@ -141,6 +169,12 @@
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
   </connection>
       
+  <!-- Connection of time between cubeRoverTime and active logger component -->
+  <connection name = "activeLogger_to_cubeRoverTime">
+    <source component = "activeLogger" port = "Time" type = "Time" num = "0" />
+    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
+  </connection>
+
 <!-- *********************************************************************************************************
         CONNECTION OF MONITORED COMPONENTS TO TELEMETRY CHAN COMPONENT
      ********************************************************************************************************* 
@@ -225,4 +259,27 @@
     <target component="cmdDispatcher" port="seqCmdBuff" type="Fw::Com" num="0"/>
   </connection>
       
+  <!-- *********************************************************************************************************
+        CONNECTION OF MONITORED COMPONENTS TO TELEMETRIC ACTIVE LOGGER COMPONENT
+       ********************************************************************************************************* 
+      -->
+
+      <!-- Rate group low freq to active logger -->
+  <connection name = "rgLowFreq_to_aLogger">
+    <source component = "rateGroupLowFreq" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+
+      <!-- Rate group med freq to active logger -->
+  <connection name = "rgMedFreq_to_aLogger">
+    <source component = "rateGroupMedFreq" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+
+      <!-- Rate group high freq to active logger -->
+  <connection name = "rgHiFreq_to_aLogger">
+    <source component = "rateGroupHiFreq" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  
 </assembly>

@@ -87,13 +87,37 @@ CubeRover::GroundInterfaceComponentImpl groundInterface(
 #endif
 );
 
+// ---------------------------------------------------------------------------
+// Active Logger data component used to log system events
+Svc::ActiveLoggerImpl activeLogger(
+#if FW_OBJECT_NAMES == 1
+        "ActiveLogger"
+#endif
+);
+
+// ---------------------------------------------------------------------------
+// watchdog interface to tell watchdog commands/stroke watchdog
+CubeRover::WatchDogInterfaceComponentImpl watchDogInterface(
+#if FW_OBJECT_NAMES == 1
+        "WatchDogInterface"
+#endif
+);
+
+// ---------------------------------------------------------------------------
+// health components to keep track of health of components
+Svc::HealthImpl health(
+#if FW_OBJECT_NAMES == 1
+        "Health"
+#endif
+);
+
 // --------------------------------------------------------------------------
 CubeRover::UdpReceiverComponentImpl udpReceiver(
 #if FW_OBJECT_NAMES == 1
         "UdpReceiver"
 #endif
 );
-// 
+
 // --------------------------------------------------------------------------
 CubeRover::NetworkManagerComponentImpl networkManager(
 #if FW_OBJECT_NAMES == 1
@@ -126,9 +150,21 @@ void constructApp(void){
   // Initialize cubeRover time component (passive)
   cubeRoverTime.init(0);
 
+  // Initialize the active logger component (active)
+  // TODO: This hasn't been started yet
+  activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
+
+  // Initialize the watchdog interface component (queued)
+  watchDogInterface.init(1,          /*Queue Depth*/
+                         0);         /*Instance Number*/
+
+  // Initialize the health component (queued)
+  health.init(25,                   /*Queue Depth*/
+              0);                   /*Instance Number*/
+
   // Initialize the telemetry channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
-  // 
+
   // Initialize the CommandDispatcher component (active)
   cmdDispatcher.init(CMD_DISP_QUEUE_DEPTH, CMD_DISP_ID);
 
@@ -143,6 +179,12 @@ void constructApp(void){
 
    // Construct the application and make all connections between components
   constructCubeRoverArchitecture();
+
+  // Register Health Commands
+  health.regCommands();
+
+  // Register WatchDog Interface Commands
+  watchDogInterface.regCommands();
 
   rateGroupLowFreq.start(0, /* identifier */
                        RG_LOW_FREQ_AFF, /* Thread affinity */
@@ -167,4 +209,16 @@ void constructApp(void){
   cmdDispatcher.start(0,
                       CMD_DISP_AFF, 
                       CMD_DISP_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
+
+  // Set Health Ping Entries
+  // **** THIS IS WHERE YOU CAN ADD ANY COMPONENTS THAT HAVE HEALTH PINGS ****
+  Svc::HealthImpl::PingEntry pingEntries[] = {
+    // {3, 5, name.getObjName()},
+    // 3 -> number of cycles before WARNING
+    // 5 -> number of cycles before FATAL
+    // name.getObjName() -> the name of the entry where "name" is replace with component name
+  };
+
+  // Register ping table
+  health.setPingEntries(pingEntries,FW_NUM_ARRAY_ELEMENTS(pingEntries),0x123);
 }

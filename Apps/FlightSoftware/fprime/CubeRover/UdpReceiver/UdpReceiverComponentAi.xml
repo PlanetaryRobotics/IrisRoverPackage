@@ -4,26 +4,26 @@
     <import_port_type>Fw/Buffer/BufferSendPortAi.xml</import_port_type>
     <import_port_type>Fw/Buffer/BufferGetPortAi.xml</import_port_type>
 
-        <comment>Receives packets via a UDP connection</comment>
-        <ports>
-            <port name="uplinkData" data_type="Fw::BufferSend" kind="sync_input" max_number="2">
-                <comment>
-                    A comm source sends a buffer object pointing to the datagram and the size of
-                    datagram that was received. UDP Receier will validate the
-                    datagram and get a buffer from the ground interface via
-                    forwardDatagramPayload and hand off the **payload** to the
-                    ground interface.
-                    0: WatchDog Serial  1: WF121
-                </comment>
-            </port>
-            <port name="forwardDatagramPayload" data_type="Fw::BufferSend" kind="output" max_number="1">
-                <comment>
-                    Get a buffer managed by the ground interface to store the **payload** of the
-                    received datagram.
-                </comment>
-            </port>
-        </ports>
-
+    <comment>Receives packets via a UDP connection</comment>
+    <ports>
+        <port name="uplinkData" data_type="Fw::BufferSend" kind="sync_input" max_number="2">
+            <comment>
+                A comm source sends a buffer object pointing to the datagram and the size of
+                datagram that was received. UDP Receier will validate the
+                datagram and get a buffer from the ground interface via
+                forwardDatagramPayload and hand off the **payload** to the
+                ground interface.
+                0: WatchDog Serial  1: WF121
+            </comment>
+        </port>
+        <port name="forwardDatagramPayload" data_type="Fw::BufferSend" kind="output" max_number="1">
+            <comment>
+                Get a buffer managed by the ground interface to store the **payload** of the
+                received datagram.
+            </comment>
+        </port>
+    </ports>
+            
     <events>
         <event id="0" name="UR_PortOpened" severity="ACTIVITY_HI" format_string = "UdpReceiver port %d opened">
             <comment>

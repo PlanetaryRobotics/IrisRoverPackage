@@ -20,7 +20,7 @@
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
 #include <Svc/Health/HealthComponentImpl.hpp>
-#include <CubeRover/WatchDogInterface/WatchDogInterfaceComponentImpl.hpp>
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
 
 // Include custom components
 #include <CubeRover/GroundInterface/GroundInterface.hpp>

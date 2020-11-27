@@ -1,5 +1,6 @@
-SRC = WatchDogInterfaceComponentAi.xml 
+SRC = WatchDogInterfaceComponentAi.xml \
+	  WatchDogInterface.cpp
 
-HDR = 
+HDR = WatchDogInterface.hpp
 
 SUBDIRS = 

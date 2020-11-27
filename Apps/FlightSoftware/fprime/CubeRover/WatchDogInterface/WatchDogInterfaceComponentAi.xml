@@ -8,9 +8,26 @@
     <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
     <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
     <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
+    <import_port_type>Fw/Buffer/BufferSendPortAi.xml</import_port_type>
     <import_port_type>Svc/WatchDog/WatchDogPortAi.xml</import_port_type>
 
     <ports>
+        <!-- Rate Group Port -->
+        <port name="Run" data_type="Svc::Sched" kind="sync_input" max_number="1">
+            <comment>
+            Run port
+            </comment>
+        </port>
+        
+        <!-- Network interfaces for messages exchanged via Lander RS422 -->
+        <port name="downlink" data_type="Fw::BufferSend" kind="guarded_input" max_number="1">
+            <comment>GroundInterface sends packets to Watchdog for downlink</comment>
+        </port>
+            
+        <port name="uplink" data_type="Fw::BufferSend" kind="output" max_number="1">
+            <comment>Watchdog sends received packets to UDPReceiver and GroundInterface</comment>
+        </port>
+        
         <!-- Ping ports -->
         <port name="PingIn" data_type="Svc::Ping" kind="async_input" max_number="1">
             <comment>
@@ -20,13 +37,6 @@
         <port name="PingOut" data_type="Svc::Ping" kind="output" max_number="1">
             <comment>
             Output ping port "Health"
-            </comment>
-        </port>
-        
-        <!-- Rate Group Port -->
-        <port name="Run" data_type="Svc::Sched" kind="sync_input" max_number="1">
-            <comment>
-            Run port
             </comment>
         </port>
 

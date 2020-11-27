@@ -1,6 +1,6 @@
 // ======================================================================
 // \title  WatchDogInterfaceComponentImpl.cpp
-// \author alec
+// \author alec and justin
 // \brief  cpp file for WatchDogInterface component implementation class
 //
 // \copyright
@@ -55,15 +55,6 @@ namespace CubeRover {
   // ----------------------------------------------------------------------
 
   void WatchDogInterfaceComponentImpl ::
-    PingIn_handler(
-        const NATIVE_INT_TYPE portNum,
-        U32 key
-    )
-  {
-    this->PingOut_out(0, key);
-  }
-
-  void WatchDogInterfaceComponentImpl ::
     Run_handler(
         const NATIVE_INT_TYPE portNum,
         NATIVE_UINT_TYPE context
@@ -96,6 +87,24 @@ namespace CubeRover {
     	this->log_WARNING_HI_WatchDogCommError(comm_error);
     }
   }
+  
+  void WatchDogInterfaceComponentImpl ::
+    downlink_handler(
+        const NATIVE_INT_TYPE portNum,
+        Fw::Buffer &fwBuffer
+    )
+  {
+    // TODO
+  }
+  
+  void WatchDogInterfaceComponentImpl ::
+    PingIn_handler(
+        const NATIVE_INT_TYPE portNum,
+        U32 key
+    )
+  {
+    this->PingOut_out(0, key);
+  }
 
   void WatchDogInterfaceComponentImpl ::
     WdogStroke_handler(
@@ -107,7 +116,7 @@ namespace CubeRover {
     // Happens everytime Health sends a watchdog code to Watchdog interface
     // Watchdog code will have info on what components status is (MUST FIGURE OUT HOW CODE WORKS)
   }
-
+  
   // ----------------------------------------------------------------------
   // Command handler implementations
   // ----------------------------------------------------------------------

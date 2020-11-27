@@ -11,13 +11,6 @@
     <import_port_type>Svc/WatchDog/WatchDogPortAi.xml</import_port_type>
 
     <ports>
-        <!-- Output log port -->
-        <port name="LogOut" data_type="Fw::Log" kind="output" role="LogEvent" max_number="1">
-            <comment>
-            The output log port
-            </comment>
-        </port>
-        
         <!-- Ping ports -->
         <port name="PingIn" data_type="Svc::Ping" kind="async_input" max_number="1">
             <comment>
@@ -27,23 +20,6 @@
         <port name="PingOut" data_type="Svc::Ping" kind="output" max_number="1">
             <comment>
             Output ping port "Health"
-            </comment>
-        </port>
-
-        <!-- Cmd ports-->
-        <port name="CmdInput" data_type="Fw::Cmd" kind="sync_input" role="Cmd" max_number="1">
-            <comment>
-            The input port for Commands from Cmd Dispatcher
-            </comment>
-        </port>
-        <port name="CmdResponse" data_type="Fw::CmdResponse" kind="output" role="CmdResponse" max_number="1">
-            <comment>
-            The output port for responses to Commands from Cmd Dispatcher
-            </comment>
-        </port>
-        <port name="CmdReg" data_type="Fw::CmdReg" kind="output" role="CmdRegistration" max_number="1">
-            <comment>
-            The port for registering what commands mean
             </comment>
         </port>
         

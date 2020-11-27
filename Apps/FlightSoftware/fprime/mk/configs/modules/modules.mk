@@ -37,9 +37,8 @@ UTILS_MODULES := \
 	Utils/Hash \
 	Utils/Types
         
-# XXX: Svc/BuffGndSockIf
 # XXX: Svc/UdpSender
-# XXX: Svc/UdpReceiver
+# XXX: Svc/SocketGndIf
 SVC_MODULES := \
 	Svc/BufferAccumulator \
 	Svc/BufferLogger \
@@ -47,6 +46,7 @@ SVC_MODULES := \
 	Svc/CmdDispatcher \
 	Svc/CmdSequencer \
 	Svc/Seq \
+	Svc/GroundInterface \
 	Svc/ActiveRateGroup \
 	Svc/RateGroupDriver \
 	Svc/Sched \
@@ -207,6 +207,9 @@ CubeRover_MODULES := \
 	CubeRover/Top \
 	CubeRover/CubeRoverPorts \
 	CubeRover/IMU \
+	CubeRover/UdpReceiver \
+	CubeRover/NetworkManager \
+	CubeRover/GroundInterface \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

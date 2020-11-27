@@ -19,15 +19,18 @@ extern "C" {
 
 void vApplicationIdleHook(void) {
     run1cycle();
-    //for(uint32_t i=0; i<22000; i++) asm("  NOP");
+    //gioToggleBit(gioPORTB, 1);
+    //for(uint32_t i=0; i<2000000; i++) asm("  NOP");
 }
+
 
 void main(void)
 {
-/* USER CODE BEGIN (3) */
+    /* USER CODE BEGIN (3) */
     gioInit();
 
     i2cInit();
+    sciInit();
 
     constructApp();
 

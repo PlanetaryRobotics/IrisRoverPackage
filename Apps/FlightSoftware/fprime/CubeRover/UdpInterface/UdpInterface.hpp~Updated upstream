@@ -1,7 +1,7 @@
 // ======================================================================
-// \title  UdpInterfaceComponentImpl.hpp
+// \title  UdpReceiverComponentImpl.hpp
 // \author cedric
-// \brief  hpp file for UdpInterface component implementation class
+// \brief  hpp file for UdpReceiver component implementation class
 //
 // \copyright
 // Copyright 2009-2015, by the California Institute of Technology.
@@ -10,16 +10,16 @@
 //
 // ======================================================================
 
-#ifndef UdpInterface_HPP
-#define UdpInterface_HPP
+#ifndef UdpReceiver_HPP
+#define UdpReceiver_HPP
 
-#include "CubeRover/UdpInterface/UdpInterfaceComponentAc.hpp"
+#include "CubeRover/UdpReceiver/UdpReceiverComponentAc.hpp"
 #include "CubeRover/CubeRoverSocket/SocketCommon.hpp"
 
 namespace CubeRover {
 
-  class UdpInterfaceComponentImpl :
-    public UdpInterfaceComponentBase
+  class UdpReceiverComponentImpl :
+    public UdpReceiverComponentBase
   {
 
     public:
@@ -28,9 +28,9 @@ namespace CubeRover {
       // Construction, initialization, and destruction
       // ----------------------------------------------------------------------
 
-      //! Construct object UdpInterface
+      //! Construct object UdpReceiver
       //!
-      UdpInterfaceComponentImpl(
+      UdpReceiverComponentImpl(
 #if FW_OBJECT_NAMES == 1
           const char *const compName /*!< The component name*/
 #else
@@ -38,15 +38,15 @@ namespace CubeRover {
 #endif
       );
 
-      //! Initialize object UdpInterface
+      //! Initialize object UdpReceiver
       //!
       void init(
           const NATIVE_INT_TYPE instance = 0 /*!< The instance number*/
       );
 
-      //! Destroy object UdpInterface
+      //! Destroy object UdpReceiver
       //!
-      ~UdpInterfaceComponentImpl(void);
+      ~UdpReceiverComponentImpl(void);
 
     PRIVATE:
 
@@ -54,16 +54,23 @@ namespace CubeRover {
       // Handler implementations for user-defined typed input ports
       // ----------------------------------------------------------------------
 
-      //! Handler implementation for uplinkData
+      //! Handler implementation for Sched
       //!
-      void uplinkData_handler(
+      void Sched_handler(
+          const NATIVE_INT_TYPE portNum, /*!< The port number*/
+          NATIVE_UINT_TYPE context /*!< The call order*/
+      );
+
+      //! Handler implementation for readPoll
+      //!
+      void readPoll_handler(
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
           Fw::Buffer &fwBuffer 
       );
 
-      //! Handler implementation for downlinkData
+      //! Handler implementation for uplinkData
       //!
-      void downlinkData_handler(
+      void uplinkData_handler(
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
           Fw::Buffer &fwBuffer 
       );
@@ -119,7 +126,6 @@ namespace CubeRover {
       uint32_t m_decodeErrors;
       uint32_t m_firstSeq;
       uint32_t m_currSeq;
-      uint32_t m_fd;
     };
 
 } // end namespace CubeRover

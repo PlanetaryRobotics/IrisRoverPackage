@@ -1,7 +1,7 @@
 // ======================================================================
-// \title  UdpInterfaceComponentImpl.cpp
-// \author justin
-// \brief  cpp file for UdpInterface component implementation class
+// \title  UdpReceiverComponentImpl.cpp
+// \author cedric
+// \brief  cpp file for UdpReceiver component implementation class
 //
 // \copyright
 // Copyright 2009-2015, by the California Institute of Technology.
@@ -11,11 +11,8 @@
 // ======================================================================
 
 
-#include <CubeRover/UdpInterface/UdpInterface.hpp>
+#include <CubeRover/UdpReceiver/UdpReceiver.hpp>
 #include "Fw/Types/BasicTypes.hpp"
-
-#include "sci.h"
-#include <cstring>
 
 namespace CubeRover {
 
@@ -29,16 +26,15 @@ namespace CubeRover {
    *
    * @param[in]  compName  The component name
    */
-  UdpInterfaceComponentImpl ::
+  UdpReceiverComponentImpl ::
 #if FW_OBJECT_NAMES == 1
-    UdpInterfaceComponentImpl(
+    UdpReceiverComponentImpl(
         const char *const compName
     ) :
-      UdpInterfaceComponentBase(compName)
+      UdpReceiverComponentBase(compName)
 #else
-    UdpInterfaceComponentImpl(void)
+    UdpReceiverComponentImpl(void)
 #endif
-    ,m_fd((uint32_t)(SCI_REG))
     ,m_packetsReceived(0)
     ,m_bytesReceived(0)
     ,m_packetsDropped(0)
@@ -55,20 +51,20 @@ namespace CubeRover {
    *
    * @param[in]  instance  The instance
    */
-  void UdpInterfaceComponentImpl ::
+  void UdpReceiverComponentImpl ::
     init(
         const NATIVE_INT_TYPE instance
     )
   {
-    UdpInterfaceComponentBase::init(instance);
+    UdpReceiverComponentBase::init(instance);
   }
 
 
   /**
    * @brief      Destroys the object.
    */
-  UdpInterfaceComponentImpl ::
-    ~UdpInterfaceComponentImpl(void)
+  UdpReceiverComponentImpl ::
+    ~UdpReceiverComponentImpl(void)
   {
 
   }
@@ -77,7 +73,7 @@ namespace CubeRover {
   // Handler implementations for user-defined typed input ports
   // ----------------------------------------------------------------------
   
-  void UdpInterfaceComponentImpl ::
+  void UdpReceiverComponentImpl ::
     uplinkData_handler(
         const NATIVE_INT_TYPE portNum,
         Fw::Buffer &fwBuffer
@@ -129,65 +125,12 @@ namespace CubeRover {
     m_bytesReceived += fwBuffer.getsize();  // Note: Datagram size not payload size
     updateTelemetry();
   }
-  
-  void UdpInterfaceComponentImpl ::
-    downlinkData_handler(
-        const NATIVE_INT_TYPE portNum,
-        Fw::Buffer &fwBuffer
-    )
-  {
-    // TODO
-  }
 
-    void UdpInterfaceComponentImpl::updateTelemetry() {
+    void UdpReceiverComponentImpl::updateTelemetry() {
         this->tlmWrite_UR_BytesReceived(this->m_bytesReceived);
         this->tlmWrite_UR_PacketsReceived(this->m_packetsReceived);
         this->tlmWrite_UR_PacketsDropped(this->m_packetsDropped);
         this->tlmWrite_UR_DecodeErrors(this->m_decodeErrors);
     }
 
-  // -------------------------------------------------------------------------
-  // Implementation of custom functions of UDP interface
-  // -------------------------------------------------------------------------
-
-
-  /**
-   * @brief      Open the communication port
-   *
-   * @param[in]  port  The port
-   */
-  void UdpInterfaceComponentImpl::open(
-          const char* port
-          ){
-
-  }
-
-  int32_t UdpInterfaceComponentImpl :: recvfrom( int sockfd,
-                                              void *buf,
-                                              uint32_t len,
-                                              Socket::SocketFlag flags,
-                                              struct sockaddr *src_addr,
-                                              Socket::SockLength *addrlen){
-
-    uint32_t status;
-
-    // First check for receiving buffer error
-    status = sciRxError((volatile sciBASE_t *)sockfd);
-
-    // Check for frame error, overrun and parity
-    if((status & SCI_FE_INT) || (status & SCI_OE_INT) || (status & SCI_PE_INT)){
-      return -1;
-    }
-
-    if(flags & Socket::MSG_WAITALL){
-      // blocking read
-      sciReceive((volatile sciBASE_t *)sockfd, len, (uint8_t *)buf);
-      return len; // at that point all expected data has been received
-    }
-    else{
-      return Socket::EINVAL; // no supported by current driver
-    }
-
-    return 0;
-  }
 } // end namespace CubeRover

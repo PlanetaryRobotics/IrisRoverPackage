@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>udpInterface:UdpInterface Component Dictionary</title>
+</head>
+<body>
+
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+}
+th {
+    text-align: left;
+}
+html {
+    font-family: Arial, sans-serif ;
+    font-size: 90% ;
+}
+</style>
+
+<h1><b>Events: udpInterface:UdpInterface</b></h1>
+
+<table>
+	<thead>
+		<tr style = "border-right: 2px solid black; border-left: 2px solid black; border-top: 2px solid black;">
+			<th rowspan = "2">Event Name</th>
+			<th rowspan = "2">ID</th>
+			<th rowspan = "2">Description</th>
+			<th rowspan = "1" colspan = "4">Arguments</th>
+		</tr>
+		<tr style = "border-right: 2px solid black; ">
+			<th>Argument</th>
+			<th>Type</th>
+			<th>Size</th>
+			<th>Description</th>
+		<tr>
+	</thead>
+	<tbody>
+
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">UR_PortOpened</td>
+			<td rowspan="2">181 (0xb5)</td>
+			<td rowspan="2">Connection opened</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>port</td>
+						<td>U32</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">UR_RecvError</td>
+			<td rowspan="2">182 (0xb6)</td>
+			<td rowspan="2">UDP receive error</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>error</td>
+						<td>I32</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">UR_DecodeError</td>
+			<td rowspan="3">183 (0xb7)</td>
+			<td rowspan="3">Port decode error</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>stage</td>
+						<td>DecodeStage</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>error</td>
+						<td>I32</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">UR_DroppedPacket</td>
+			<td rowspan="2">186 (0xba)</td>
+			<td rowspan="2">Dropped packet was detected</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>checksum</td>
+						<td>U32</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+	</tbody>
+</table>
+
+</body>
+</html>

@@ -203,7 +203,7 @@ acdev_MODULES := \
 CubeRover_MODULES := \
 	CubeRover/Top \
 	CubeRover/CubeRoverPorts \
-	CubeRover/UdpReceiver \
+	CubeRover/UdpInterface \
 	CubeRover/NetworkManager \
 	CubeRover/GroundInterface \
 	CubeRover/WatchDogInterface \

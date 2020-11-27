@@ -13,7 +13,7 @@
 -extern Svc::TlmChanImpl tlmChan("tlmChan");
 -extern Svc::CommandDispatcherImpl cmdDispatcher("cmdDispatcher");
 -extern CubeRover::GroundInterfaceImpl groundInterface("groundInterface");
--extern CubeRover::UdpReceiverImpl udpReceiver("udpReceiver");
+-extern CubeRover::UdpInterfaceImpl udpInterface("udpInterface");
 -extern CubeRover::NetworkManagerImpl networkManager("networkManager");
 -extern Svc::ActiveLoggerImpl activeLogger("activeLogger");
 -extern Svc::HealthImpl health("health");
@@ -27,7 +27,7 @@
 +extern Svc::TlmChanImpl tlmChan;
 +extern Svc::CommandDispatcherImpl cmdDispatcher;
 +extern CubeRover::GroundInterfaceComponentImpl groundInterface;
-+extern CubeRover::UdpReceiverComponentImpl udpReceiver;
++extern CubeRover::UdpInterfaceComponentImpl udpInterface;
 +extern CubeRover::NetworkManagerComponentImpl networkManager;
 +extern Svc::ActiveLoggerImpl activeLogger;
 +extern Svc::HealthImpl health;

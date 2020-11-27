@@ -112,9 +112,9 @@ Svc::HealthImpl health(
 );
 
 // --------------------------------------------------------------------------
-CubeRover::UdpReceiverComponentImpl udpReceiver(
+CubeRover::UdpInterfaceComponentImpl udpInterface(
 #if FW_OBJECT_NAMES == 1
-        "UdpReceiver"
+        "UdpInterface"
 #endif
 );
 
@@ -172,7 +172,7 @@ void constructApp(void){
   groundInterface.init();
 
   // Initialize the ground interface (passive)
-  udpReceiver.init();
+  udpInterface.init();
   
   // Initialize the ground interface (passive)
   networkManager.init();

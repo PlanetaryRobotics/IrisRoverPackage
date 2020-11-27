@@ -1,31 +1,42 @@
-<component name="UdpReceiver" kind="passive" namespace="CubeRover">
+<component name="UdpInterface" kind="passive" namespace="CubeRover">
 
     <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
     <import_port_type>Fw/Buffer/BufferSendPortAi.xml</import_port_type>
-    <import_port_type>Fw/Buffer/BufferGetPortAi.xml</import_port_type>
 
-    <comment>Receives packets via a UDP connection</comment>
+    <comment>Handles encapsulation of UDP data flowing in and out of Fprime</comment>
     <ports>
-        <port name="uplinkData" data_type="Fw::BufferSend" kind="sync_input" max_number="2">
+        <!-- Uplink Ports -->
+        <port name="uplinkData" data_type="Fw::BufferSend" kind="sync_input" max_number="1">
             <comment>
-                A comm source sends a buffer object pointing to the datagram and the size of
-                datagram that was received. UDP Receier will validate the
-                datagram and get a buffer from the ground interface via
-                forwardDatagramPayload and hand off the **payload** to the
-                ground interface.
-                0: WatchDog Serial  1: WF121
+                A comm source sends a buffer pointing to the datagram and the size of
+                datagram that was received. UDPInterface will validate the
+                datagram and foward the **payload** to GroundInterface via forwardDatagramPayload.
             </comment>
         </port>
         <port name="forwardDatagramPayload" data_type="Fw::BufferSend" kind="output" max_number="1">
             <comment>
-                Get a buffer managed by the ground interface to store the **payload** of the
-                received datagram.
+                 Send the**payload** of the received datagram to GroundInterface.
+            </comment>
+        </port>
+            
+        <!-- Downlink Ports -->
+        <port name="downlinkData" data_type="Fw::BufferSend" kind="sync_input" max_number="1">
+            <comment>
+                GroundInterface sends a buffer pointing to a datagram with the payload filled.
+                This component will generate the checksum, compute the datagram length, and fill
+                the port numbers in the header and forward the completed datagram to Watchdog
+                for downlink.
+            </comment>
+        </port>
+        <port name="forwardDatagram" data_type="Fw::BufferSend" kind="output" max_number="1">
+            <comment>
+                 Send the completed datagram to Watchdog.
             </comment>
         </port>
     </ports>
             
     <events>
-        <event id="0" name="UR_PortOpened" severity="ACTIVITY_HI" format_string = "UdpReceiver port %d opened">
+        <event id="0" name="UR_PortOpened" severity="ACTIVITY_HI" format_string = "UdpInterface port %d opened">
             <comment>
             Connection opened
             </comment>
@@ -33,7 +44,7 @@
                 <arg name = "port" type = "U32"/>
             </args>
         </event>
-        <event id="1" name="UR_RecvError" severity="WARNING_HI" format_string = "UDPReceiver receive error: %d">
+        <event id="1" name="UR_RecvError" severity="WARNING_HI" format_string = "UDPInterface receive error: %d">
             <comment>
             UDP receive error
             </comment>

@@ -257,7 +257,7 @@ export default {
 
         // create cross image
         let imgDiv = document.createElement("img");
-        imgDiv.src="~@/assets/icons/icon_cross.svg";
+        imgDiv.src="~src/assets/icons/icon_cross.svg";
         imgDiv.setAttribute("class", "x-tag-pill");
         imgDiv.onclick  = ()=> {this.removeTag(arr)};
         tagDiv.appendChild(imgDiv);

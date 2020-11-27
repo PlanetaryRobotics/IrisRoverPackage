@@ -37,8 +37,7 @@ UTILS_MODULES := \
 	Utils/Hash \
 	Utils/Types
         
-# XXX: Svc/UdpSender
-# XXX: Svc/SocketGndIf
+# Svc/UdpSender Svc/SocketGndIf Svc/GroundInterface
 SVC_MODULES := \
 	Svc/BufferAccumulator \
 	Svc/BufferLogger \
@@ -46,7 +45,6 @@ SVC_MODULES := \
 	Svc/CmdDispatcher \
 	Svc/CmdSequencer \
 	Svc/Seq \
-	Svc/GroundInterface \
 	Svc/ActiveRateGroup \
 	Svc/RateGroupDriver \
 	Svc/Sched \

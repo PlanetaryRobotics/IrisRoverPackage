@@ -205,6 +205,7 @@ CubeRover_MODULES := \
 	CubeRover/NetworkManager \
 	CubeRover/GroundInterface \
 	CubeRover/WatchDogInterface \
+	CubeRover/Camera \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

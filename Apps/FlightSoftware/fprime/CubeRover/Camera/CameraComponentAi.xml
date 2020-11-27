@@ -1,0 +1,47 @@
+<component name="Camera" kind="passive" namespace="CubeRover">
+
+    <import_port_type>Fw/Com/ComPortAi.xml</import_port_type>
+    <import_port_type>Fw/Buffer/BufferSendPortAi.xml</import_port_type>
+
+    <comment>Manages the CubeRover cameras</comment>
+    <ports>
+        <port name="takeImage" data_type="Fw::Com"  kind="sync_input"    max_number="1">
+            <comment>
+                Command component to take an image. This port is for other components to request an image to be taken.
+            </comment>
+        </port>
+        <port name="downlinkImage" data_type="Fw::BufferSend" kind="output" max_number="1">
+            <comment>
+                Send an image to GroundInterface for downlink.
+            </comment>
+        </port>
+    </ports>
+            
+    <!-- Any logs?? <events>
+    </events>-->
+    
+    <telemetry>
+        <channel id="0" name="Cam_ComponentImagesRequested" data_type="U32" update = "on_change">
+            <comment>
+                Number of images requested by other Fprime components
+            </comment>
+        </channel>
+        <channel id="0" name="Cam_CommandImagesRequested" data_type="U32" update = "on_change">
+            <comment>
+                Number of images commanded from the ground
+            </comment>
+        </channel>
+        <channel id="1" name="Cam_ImagesSent" data_type="U32" update = "on_change">
+            <comment>
+                Number of images sent for downlink
+            </comment>
+        </channel>
+        <channel id="2" name="Cam_BytesSent" data_type="U32" update = "on_change">
+            <comment>
+                Number of bytes sent for downlink
+            </comment>
+        </channel>
+        <!-- Error telemetry items? -->
+    </telemetry>
+</component>
+

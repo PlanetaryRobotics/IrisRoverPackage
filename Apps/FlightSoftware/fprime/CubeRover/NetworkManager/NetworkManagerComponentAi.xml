@@ -22,7 +22,7 @@
 
         <!-- Output ports -->
         <port name="uplink" data_type="Fw::BufferSend" kind="output" max_number="1">
-            <comment>NM sends received packets to UDPReceiver and GroundInterface</comment>
+            <comment>NM sends received packets to GroundInterface</comment>
         </port>
 
         <!-- TODO: MODE -->

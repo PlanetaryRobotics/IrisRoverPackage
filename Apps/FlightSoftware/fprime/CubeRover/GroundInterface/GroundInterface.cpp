@@ -223,7 +223,7 @@ namespace CubeRover {
         FW_ASSERT(size < UDP_MAX_PAYLOAD);
         Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data), size);
         log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size);
-        downlinkBufferSend_out(0, buffer);
+        downlinkBufferSend_out(1, buffer);      // TODO: Dynamic output port selection  0: WF121   1: WD RS422
         m_downlinkSeq++;
         m_packetsTx++;
     }

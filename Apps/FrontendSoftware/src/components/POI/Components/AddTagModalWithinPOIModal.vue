@@ -3,13 +3,13 @@
     <div id="add-tag-container">
       <div class="modal-row">
         <div class="label">Tag Name*</div>
-        <input type="text" placeholder="Tag Name" :value="[tagInput]" />
+        <input type="text" placeholder="Tag Name" @keydown.space.prevent v-model="currTagName" />
         <div class="sublabel">* A feature name is required.</div>
       </div>
 
       <div class="modal-row">
         <div class="label">Details</div>
-        <textarea rows="6" placeholder="Fill out details here"></textarea>
+        <textarea rows="6" v-on:input="detailsInput = $event.target.value" placeholder="Fill out details here"></textarea>
       </div>
 
       <div id="btn-container">
@@ -18,7 +18,7 @@
             CANCEL
           </button>
 
-          <button class="button modal-button purple create">CREATE</button>
+          <button class="button modal-button purple create" v-on:click="createTag">CREATE</button>
           
       </div>
     </div>
@@ -35,12 +35,27 @@ export default {
 
   data() {
     return {
+      currTagName: this.tagInput,
+      detailsInput: "",
     };
   },
 
   methods: {
       closeModal(){
         this.$emit("closeModal");
+      },
+
+      createTag(){
+        // Create new tag instance
+        let newTag = {
+          name: this.currTagName,
+          details: this.detailsInput
+        }
+        
+        // Send new tag instance to parent
+        this.$emit("newTag", newTag);
+
+        this.closeModal();
       }
   },
 };

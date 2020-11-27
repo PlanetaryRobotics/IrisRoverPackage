@@ -107,13 +107,18 @@
             <div class="modal-row">
               <div class="label">Tags</div>
               <div class="add-tag-input-container flex-container vertically-center">
-                <input class="add-tag-input" @keydown.space.prevent type="text" v-model.trim="tagUserInput" placeholder="Search" />
+                <input class="add-tag-input" @keydown.space.prevent type="text" v-on:input="tagUserInput = $event.target.value" placeholder="Search" />
                 <div
                   class="addTagButton flex-container vertically-center"
-                  v-on:click="addTag"
+                  v-on:click="createNewTag"
                   >
                   <WhiteAddIcon class="white-add-icon"/>
                 </div>
+              </div>
+            </div>
+
+            <div class="modal-row">
+              <div id="tag-pill-container">
               </div>
             </div>
           </span>
@@ -159,7 +164,8 @@
         </span>
       </div>
     </div>
-    <AddTagModalWithinPOIModal v-if="addTagModalVisible" v-on:closeModal="closeAddTagModal" v-bind:tagInput="tagUserInput" />
+
+    <AddTagModalWithinPOIModal v-if="addTagModalVisible" v-on:closeModal="closeAddTagModal" v-on:newTag="pushNewTag" v-bind:tagInput="tagUserInput" />
   </div>
 </template>
 
@@ -186,6 +192,9 @@ export default {
       mouseDownThumbnail: false,
       formOneVisible: true,
       formTwoVisible: false,
+      tagUserInput: "",
+
+      chosenTagList: [],
 
       addTagModalVisible: false,
     };
@@ -198,6 +207,12 @@ export default {
 
     closeAddTagModal(){
       this.addTagModalVisible = false;
+    },
+
+    // Push new tag from tag creation modal to chosen tag list
+    pushNewTag(tag){
+      // Push new tag to array of chosen tags
+      this.chosenTagList.push(tag);
     },
 
     onlyNumber($event) {
@@ -224,10 +239,48 @@ export default {
       this.formTwoVisible = true;
     },
 
-    addTag() {
+    createNewTag() {
       this.addTagModalVisible = true;
     },
+
+    updateTagPills(){
+      // clear current tags
+      document.getElementById("tag-pill-container").innerHTML = '';
+
+      // for tag in this.chosenTagList: create new tag pill so updates when tags deleted and created
+      for(var i=0; i < this.chosenTagList.length; i++){
+        let arr = this.chosenTagList[i]
+
+        let tagDiv = document.createElement("div");
+        tagDiv.setAttribute("class", "tag-pill");
+        tagDiv.innerHTML = arr.name + " ";
+
+        // create cross image
+        let imgDiv = document.createElement("img");
+        imgDiv.src="~@/assets/icons/icon_cross.svg";
+        imgDiv.setAttribute("class", "x-tag-pill");
+        imgDiv.onclick  = ()=> {this.removeTag(arr)};
+        tagDiv.appendChild(imgDiv);
+        document.getElementById("tag-pill-container").appendChild(tagDiv);
+      }
+    },
+
+    removeTag(tagVal){
+      for(var i=0; i < this.chosenTagList.length; i++){
+        if(this.chosenTagList[i] == tagVal){
+          this.chosenTagList.splice(i, 1); 
+          break;
+        }
+      }
+      console.log("tag list: ", this.chosenTagList)
+    },
   },
+
+  watch: {
+    chosenTagList: function(){
+      this.updateTagPills();
+    }
+  }
 };
 </script>
 
@@ -245,7 +298,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2;
+  z-index: 11;
 }
 
 /* REM conversion: 1rem = 10px */
@@ -261,7 +314,7 @@ export default {
   font-style: normal;
   font-weight: 400;
   text-align: left;
-  z-index: 2;
+  z-index: 11;
 }
 
 .modal-content {
@@ -281,7 +334,7 @@ export default {
 }
 
 .modal-col:last-child {
-  z-index: 3;
+  z-index: 11;
 }
 
 .modal-row {
@@ -301,7 +354,7 @@ export default {
 }
 
 .select {
-  z-index: 2;
+  z-index: 11;
 }
 
 .pri-type {
@@ -319,6 +372,7 @@ export default {
 
 .label {
   margin-bottom: 0.8rem;
+  font-weight: 600;
 }
 
 .vertically-center {
@@ -452,6 +506,13 @@ textarea {
   float: right;
 }
 
+// Tag pills on form 2: tags
+#tag-pill-container {
+  padding-top: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+}
+
 // Icons
 .dot-icon {
   width: 0.8rem;
@@ -485,6 +546,25 @@ textarea {
   position: absolute;
   right: 0.4rem;
 
+  cursor: pointer;
+}
+</style>
+
+<style>
+/* unscoped style */
+.tag-pill{
+  margin: 0.4rem;
+  margin-left: 0;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #585858;
+  border-radius: 0.4rem;
+
+  font-size: 1rem;
+  color:#E9E9E9;
+}
+
+.x-tag-pill{
+  margin-left: 0.4rem;
   cursor: pointer;
 }
 </style>

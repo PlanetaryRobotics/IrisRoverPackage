@@ -88,6 +88,7 @@ Manual POI add big modal stopped poppping up on click
         <img
           class="port port_overlay"
           v-if="radialGrid"
+          draggable="false"
           src="~@/assets/polar_grid10.png"
         />
       </transition>
@@ -95,6 +96,7 @@ Manual POI add big modal stopped poppping up on click
         <img
           class="port port_overlay"
           v-if="cartesianGrid"
+          draggable="false"
           src="~@/assets/cartesian_grid.png"
         />
       </transition>

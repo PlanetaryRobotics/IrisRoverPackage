@@ -47,7 +47,6 @@ SVC_MODULES := \
 	Svc/CmdDispatcher \
 	Svc/CmdSequencer \
 	Svc/Seq \
-	Svc/GroundInterface \
 	Svc/ActiveRateGroup \
 	Svc/RateGroupDriver \
 	Svc/Sched \
@@ -69,8 +68,8 @@ SVC_MODULES := \
 	Svc/WatchDog \
 	Svc/FileUplink \
 	Svc/FileDownlink \
-    Svc/AssertFatalAdapter \
-    Svc/FatalHandler \
+  Svc/AssertFatalAdapter \
+  Svc/FatalHandler \
 	Svc/FileManager
 	
 DEMO_DRV_MODULES := \
@@ -202,15 +201,12 @@ acdev_MODULES := \
 	$(ACDEVTEST_MODULES)
 
 CubeRoverPorts_MODULES := \
-	CubeRover/CubeRoverPorts/IMUData \
-	CubeRover/CubeRoverPorts/MotorData
+	CubeRover/CubeRoverPorts/IMUData
 	
 CubeRover_MODULES := \
 	CubeRover/Top \
 	CubeRover/CubeRoverPorts \
-	CubeRover/MotorControl \
 	CubeRover/IMU \
-	CubeRover/Navigation \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

@@ -49,7 +49,7 @@
 
   <!-- COMMANDS -->
   <commands>
-      <command kind="guarded" opcode="0" mnemonic="Imu_ReportData">
+      <command kind="guarded" opcode="0" mnemonic="IMU_ReportData">
           <comment>A command to force an IMU data.</comment>
       </command>
 

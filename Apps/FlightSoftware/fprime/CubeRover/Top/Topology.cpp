@@ -73,7 +73,6 @@ Svc::TlmChanImpl tlmChan(
   );
 
 // ---------------------------------------------------------------------------
-
 // command dispatcher component used to dispatch commands
 Svc::CommandDispatcherImpl cmdDispatcher(
 #if FW_OBJECT_NAMES == 1
@@ -81,17 +80,10 @@ Svc::CommandDispatcherImpl cmdDispatcher(
 #endif
   );
 
-// Motor controller component
-CubeRover::MotorControlComponentImpl motorControl(
-#if FW_OBJECT_NAMES == 1
-  "MotorControl"
-#endif
-  );
-
 // --------------------------------------------------------------------------
-Svc::GroundInterfaceComponentImpl groundInterface(
+CubeRover::IMUComponentImpl IMU(
 #if FW_OBJECT_NAMES == 1
-        "GroundInterface"
+        "IMU"
 #endif
 );
 
@@ -123,9 +115,6 @@ void constructApp(void){
   // Initialize the telemetric channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
 
-  // Initialize the ground interface (active)
-  groundInterface.init(0);
-
   // Construct the application and make all connections between components
   constructCubeRoverArchitecture();
 
@@ -148,8 +137,6 @@ void constructApp(void){
   tlmChan.start(0, /* identifier */
                 TLM_CHAN_AFF, /* thread affinity */
                 TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
-
-  motorControl.init(0);
 
   IMU.init(0);
 }

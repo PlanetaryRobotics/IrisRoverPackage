@@ -84,21 +84,21 @@ namespace CubeRover {
     )
   {
       
-    struct udpHeader {
+    struct UdpHeader {
         uint8_t src_port;
         uint8_t dest_port;
         uint8_t length;
         uint8_t checksum;
     };
   
-    if (fwBuffer.getsize() < sizeof(struct udpHeader)) {    // Expects a datagram
+    if (fwBuffer.getsize() < sizeof(struct UdpHeader)) {    // Expects a datagram
         this->log_WARNING_HI_UR_RecvError(static_cast<I32>(fwBuffer.getsize()));
         this->m_packetsDropped++;
         updateTelemetry();
         return;
     }
     
-    struct udpHeader *header = reinterpret_cast<struct udpHeader *>(fwBuffer.getdata());
+    struct UdpHeader *header = reinterpret_cast<struct UdpHeader *>(fwBuffer.getdata());
     
     // TODO: CHECK SRC & DEST PORTS
     // TODO: CHECK CHECKSUM

@@ -1,8 +1,23 @@
 #ifndef _FSW_PACKET_H_
 #define _FSW_PACKET_H_
 
-#define IPV4_MTU            1006    // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 791 **FRAGMENTATION *NOT* SUPPORTED**
-#define UDP_MAX_PAYLOAD     978     // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 768
+// Wifi Connection Parameters
+#define ROVER_IP_ADDRESS        {192, 168, 1, 2}
+#define ROVER_MASK_ADDRESS      {255, 255, 255, 0}
+#define ROVER_GATEWAY_ADDRESS   {192, 168, 1, 1}
+#define GATEWAY_PORT            8080
+#define ROVER_UDP_PORT          8080 
+
+#define LANDER_SSID             "Houston"
+#define LANDER_NETWORK_PASSWORD "redr0ver"
+
+// Wired (RS422 via WatchDog) Connection Parameters
+#define WIRED_UDP_PORT_ROVER    8080
+#define WIRED_UDP_PORT_LANDER   8080
+
+// Packet sizes
+#define IPV4_MTU                1006    // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 791 **FRAGMENTATION *NOT* SUPPORTED**
+#define UDP_MAX_PAYLOAD         978     // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 768
 // 1006byte - 20byte IPv4 header - 8byte UDP header = 978byte payload
 
 // FSW Packet Magic (32bit)

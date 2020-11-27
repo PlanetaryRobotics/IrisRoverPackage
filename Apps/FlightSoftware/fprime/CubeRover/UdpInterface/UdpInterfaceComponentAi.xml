@@ -36,12 +36,12 @@
     </ports>
             
     <events>
-        <event id="0" name="UR_PortOpened" severity="ACTIVITY_HI" format_string = "UdpInterface port %d opened">
+        <event id="0" name="UR_SendError" severity="WARNING_HI" format_string = "UdpInterface send error: %d">
             <comment>
-            Connection opened
+            UDP send error
             </comment>
             <args>
-                <arg name = "port" type = "U32"/>
+                <arg name = "error" type = "I32"/>
             </args>
         </event>
         <event id="1" name="UR_RecvError" severity="WARNING_HI" format_string = "UDPInterface receive error: %d">
@@ -77,22 +77,32 @@
     </events>
     
     <telemetry>
-        <channel id="0" name="UR_PacketsReceived" data_type="U32" update = "on_change">
+        <channel id="0" name="UR_PacketsSent" data_type="U32" update = "on_change">
+            <comment>
+            Number of packetssent 
+            </comment>
+        </channel>
+        <channel id="1" name="UR_BytesSent" data_type="U32" update = "on_change">
+            <comment>
+            Number of bytes sent 
+            </comment>
+        </channel>
+        <channel id="2" name="UR_PacketsReceived" data_type="U32" update = "on_change">
             <comment>
             Number of packets received
             </comment>
         </channel>
-        <channel id="1" name="UR_BytesReceived" data_type="U32" update = "on_change">
+        <channel id="3" name="UR_BytesReceived" data_type="U32" update = "on_change">
             <comment>
             Number of bytes received
             </comment>
         </channel>
-        <channel id="2" name="UR_PacketsDropped" data_type="U32" update = "on_change">
+        <channel id="4" name="UR_PacketsDropped" data_type="U32" update = "on_change">
             <comment>
             Number of packets dropped
             </comment>
         </channel>
-        <channel id="3" name="UR_DecodeErrors" data_type="U32" update = "on_change">
+        <channel id="5" name="UR_DecodeErrors" data_type="U32" update = "on_change">
             <comment>
             Number of packet decode errors
             </comment>

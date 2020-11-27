@@ -38,7 +38,9 @@ namespace CubeRover {
 #else
     UdpInterfaceComponentImpl(void)
 #endif
-    ,m_fd((uint32_t)(SCI_REG))
+    //,m_fd((uint32_t)(SCI_REG))
+    ,m_packetsSent(0)
+    ,m_bytesSent(0)
     ,m_packetsReceived(0)
     ,m_bytesReceived(0)
     ,m_packetsDropped(0)
@@ -84,13 +86,6 @@ namespace CubeRover {
     )
   {
       
-    struct UdpHeader {
-        uint8_t src_port;
-        uint8_t dest_port;
-        uint8_t length;
-        uint8_t checksum;
-    };
-  
     if (fwBuffer.getsize() < sizeof(struct UdpHeader)) {    // Expects a datagram
         this->log_WARNING_HI_UR_RecvError(static_cast<I32>(fwBuffer.getsize()));
         this->m_packetsDropped++;
@@ -136,10 +131,22 @@ namespace CubeRover {
         Fw::Buffer &fwBuffer
     )
   {
-    // TODO
+    struct UdpPacket *packet = reinterpret_cast<struct UdpPacket *>(fwBuffer.getdata());
+    packet->header.src_port = static_cast<uint16_t>(WIRED_UDP_PORT_ROVER);
+    packet->header.dest_port = static_cast<uint16_t>(WIRED_UDP_PORT_LANDER);
+    packet->header.length = static_cast<uint16_t>(fwBuffer.getsize());
+    // ASSERT length is less than MTU
+    // TODO: Compute checksum
+    
+    forwardDatagram_out(0, fwBuffer);
+    m_packetsSent++;
+    m_bytesSent += fwBuffer.getsize(); 
+    updateTelemetry();
   }
 
     void UdpInterfaceComponentImpl::updateTelemetry() {
+        this->tlmWrite_UR_BytesSent(this->m_bytesSent);
+        this->tlmWrite_UR_PacketsSent(this->m_packetsSent);
         this->tlmWrite_UR_BytesReceived(this->m_bytesReceived);
         this->tlmWrite_UR_PacketsReceived(this->m_packetsReceived);
         this->tlmWrite_UR_PacketsDropped(this->m_packetsDropped);

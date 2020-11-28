@@ -57,14 +57,27 @@ struct FswCommandResponse { // This is downlinked via the file (app downlink por
     uint16_t errorinfo;
 } __attribute__((packed));
 
-struct FswFile {
+struct FswFileHeader {
     Magic_t magic;
+    uint16_t hashedId;          // Used to differentiate between file blocks if multiple files are being downlinked at once
     uint8_t totalBlocks;
-    uint8_t blockNumber;    // This is 1-indexed
+    uint8_t blockNumber;        // This is 1-indexed, 0-index is optional and contains file-specific metadata
     FileLength_t length;        // This is the size of the following data **not including this header**
-    uint8_t byte0;
+};
+
+struct FswFileMetadata {        // Block 0 of files
+    uint16_t callbackId;
+    uint32_t timestamp;
+};
+
+struct FswFile {
+    struct FswFileHeader header;
+    union {
+        uint8_t byte0;
+        struct FswFileMetadata metadata;
+    } file;
 } __attribute__((packed));
-    
+
 struct FswPacket {
     struct FswPacketHeader header;
     union {

@@ -92,49 +92,59 @@ namespace CubeRover {
   void GroundInterfaceComponentImpl ::
     appDownlink_handler(
         const NATIVE_INT_TYPE portNum,
+        U16 callbackId,
+        U32 createTime,
         Fw::Buffer &fwBuffer
     )
   {
     uint8_t *data = reinterpret_cast<uint8_t *>(fwBuffer.getdata());
     U32 dataSize = fwBuffer.getsize();
-    U32 singlePacketSize = dataSize + sizeof(struct FswPacket::FswFile);
+    U32 singlePacketSize = dataSize + sizeof(struct FswPacket::FswFileHeader);
     m_appBytesReceived += dataSize;
+    
+    Fw::Time _txStart = getTime();
+    // FW_ASSERT(_txStart.getTimeBase() != TB_NONE);   // Assert time port is connected
+    uint32_t txStart = static_cast<uint32_t>(_txStart.get_time_ms());
+    uint16_t hashedId = hashTime(txStart);
+    
     if (singlePacketSize <= DOWNLINK_BUFFER_SIZE) {
         uint8_t downlinkBuffer[singlePacketSize];
         struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket*>(downlinkBuffer);
-        packet->payload0.file.magic = FSW_FILE_MAGIC;
-        packet->payload0.file.totalBlocks = 1;
-        packet->payload0.file.blockNumber = 1;
-        packet->payload0.file.length = static_cast<FswPacket::FileLength_t>(dataSize);
-        memcpy(&packet->payload0.file.byte0, data, dataSize);
+        packet->payload0.file.header.magic = FSW_FILE_MAGIC;
+        packet->payload0.file.header.totalBlocks = 1;
+        packet->payload0.file.header.blockNumber = 1;
+        packet->payload0.file.header.length = static_cast<FswPacket::FileLength_t>(dataSize);
+        memcpy(&packet->payload0.file.file.byte0, data, dataSize);
+        downlinkFileMetadata(hashedId, 1, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(createTime));
         downlinkBufferWrite(downlinkBuffer, static_cast<FswPacket::Length_t>(singlePacketSize), DownlinkFile);
         m_appBytesDownlinked += singlePacketSize;
     } else {    // Send file fragments
         flushDownlinkBuffer();  // Flush first to get new seq
-        int numBlocks = dataSize % (UDP_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader) - sizeof(struct FswPacket::FswFile));
+        int numBlocks = dataSize % (UDP_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader) - sizeof(struct FswPacket::FswFileHeader));
+        downlinkFileMetadata(hashedId, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(createTime));
         int readStride = static_cast<int>(dataSize) / numBlocks;
         uint8_t downlinkBuffer[UDP_MAX_PAYLOAD];
         struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket*>(downlinkBuffer);
         for (int blockNum = 1; blockNum <= numBlocks; ++blockNum) {
-            packet->payload0.file.magic = FSW_FILE_MAGIC;
-            packet->payload0.file.totalBlocks = numBlocks;
-            packet->payload0.file.blockNumber = blockNum;
+            packet->payload0.file.header.magic = FSW_FILE_MAGIC;
+            packet->payload0.file.header.totalBlocks = numBlocks;
+            packet->payload0.file.header.blockNumber = blockNum;
             FswPacket::FileLength_t blockLength;
             if (blockNum < numBlocks) {     // Send full datagram fragment
                 blockLength = readStride;
                 dataSize -= readStride;
-                packet->payload0.file.length = blockLength;
-                memcpy(&packet->payload0.file.byte0, data, blockLength);
-                FswPacket::Length_t datagramLength = 8 + sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFile) + blockLength;
+                packet->payload0.file.header.length = blockLength;
+                memcpy(&packet->payload0.file.file.byte0, data, blockLength);
+                FswPacket::Length_t datagramLength = 8 + sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + blockLength;
                 log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
                 downlink(packet, datagramLength);
                 data += datagramLength;
             } else {        // Final Fragment is written to the member buffer to downlink with other objects
                 FW_ASSERT(dataSize > 0);
                 blockLength = static_cast<FswPacket::FileLength_t>(dataSize);
-                packet->payload0.file.length = blockLength;
-                memcpy(&packet->payload0.file.byte0, data, blockLength);
-                downlinkBufferWrite(&packet->payload0.file, sizeof(struct FswPacket::FswFile) + blockLength, DownlinkFile);
+                packet->payload0.file.header.length = blockLength;
+                memcpy(&packet->payload0.file.file.byte0, data, blockLength);
+                downlinkBufferWrite(&packet->payload0.file, sizeof(struct FswPacket::FswFileHeader) + blockLength, DownlinkFile);
             }
             m_appBytesDownlinked += blockLength;
         }
@@ -242,6 +252,27 @@ namespace CubeRover {
         tlmWrite_GI_UplinkPktErrs(m_cmdErrs);
         tlmWrite_GI_AppBytesReceived(m_appBytesReceived);
         tlmWrite_GI_AppBytesDownlinked(m_appBytesDownlinked);
+    }
+    
+    uint16_t GroundInterfaceComponentImpl::hashTime(uint32_t time) {
+        uint16_t hash = 0;
+        uint16_t *_time = reinterpret_cast<uint16_t *>(&time);
+        hash += *_time;
+        _time++;
+        hash += *_time;
+        return ~hash;
+    }
+    
+    void GroundInterfaceComponentImpl::downlinkFileMetadata(uint16_t hashedId, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms) {
+        struct FswPacket::FswFile metadata = {0};
+        metadata.header.magic = FSW_FILE_MAGIC;
+        metadata.header.hashedId = hashedId;
+        metadata.header.totalBlocks = totalBlocks;
+        metadata.header.blockNumber = 0;
+        metadata.header.length = sizeof(struct FswPacket::FswFileMetadata);
+        metadata.file.metadata.callbackId = callbackId;
+        metadata.file.metadata.timestamp = timestamp_ms;
+        downlinkBufferWrite(&metadata, static_cast<FswPacket::Length_t>(sizeof(metadata)), DownlinkFile);
     }
 
 } // end namespace CubeRover

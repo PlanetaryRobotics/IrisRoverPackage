@@ -33,6 +33,8 @@ namespace Fw {
             FwTimeContextStoreType getContext(void) const; // !< get the context value
             SerializeStatus serialize(SerializeBufferBase& buffer) const; // !< Serialize method
             SerializeStatus deserialize(SerializeBufferBase& buffer); // !< Deserialize method
+            U32 get_time_ms();
+            void set_time_ms(U32 ms);
             bool operator==(const Time& other) const;
             bool operator!=(const Time& other) const;
             bool operator>(const Time& other) const;

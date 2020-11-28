@@ -76,7 +76,9 @@ namespace CubeRover {
       //!
       void appDownlink_handler(
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
-          Fw::Buffer &fwBuffer 
+          U16 callbackId, /*!< Metadata Field: Unique Id to map this file to the command that generated it*/
+          U32 createTime, /*!< Metadata Field: Time the file was created in ms epoch*/
+          Fw::Buffer &fwBuffer /*!< Buffer containing the data*/
       );
 
       //! Handler implementation for cmdUplink
@@ -88,6 +90,8 @@ namespace CubeRover {
       
         // User defined methods, members, and structs
             
+        void downlinkFileMetadata(uint16_t hashedId, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms);
+        uint16_t hashTime(uint32_t time);   // Used for files to get unique Id for parallel downlinks
         void downlinkBufferWrite(void *_data, uint16_t size, downlinkPacketType from);
         void flushDownlinkBuffer();
         void downlink(void *_data, uint16_t size);

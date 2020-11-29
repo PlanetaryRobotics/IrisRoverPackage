@@ -27,7 +27,7 @@ int watchdog_init() {
     /* timer setup */
     TA0CTL = TASSEL_1 | ID_0 | TAIE;           // ACLK/1, interrupt on overflow
     TA0EX0 = TAIDEX_0;                  // ??/1
-    TA0CCR0 =  10000;                           // 12.5 Hz (pretty sure its not)
+    TA0CCR0 =  1000;                           // 12.5 Hz (pretty sure its not)
     TA0CTL |= MC_2;                 // Start timer in continuous mode
 
     return 0;

@@ -52,6 +52,7 @@ void DEBUG_SETUP() {
     releaseMotorsReset();
 }
 
+extern void echo_test();
 
 int main(void) {
     /* stop watchdog timer */
@@ -64,10 +65,11 @@ int main(void) {
     initializeGpios();
 
     /* set up uart */
+    echo_test();
     uart_init();
 
     /* set up watchdog */
-    //watchdog_init();
+    watchdog_init();
 
     /* set up the ADC */
     adc_init();
@@ -94,7 +96,7 @@ int main(void) {
         }
         if (loop_flags & FLAG_UART1_RX_PACKET) {
             /* TODO: handle event for packet from hercules */
-            P1OUT ^= BIT1;
+            echo_test_handler();
             /* clear event when done */
             loop_flags ^= FLAG_UART1_RX_PACKET;
         }
@@ -105,6 +107,8 @@ int main(void) {
         }
         if (loop_flags & FLAG_TIMER_TICK) {
             /* TODO: handle event for heartbeat & kicks */
+            P1OUT ^= BIT0;
+            uart1_tx_nonblocking(5, "tick!");
             switch (rovstate) {
             case RS_LANDER:
                 /* TODO: send heartbeat */

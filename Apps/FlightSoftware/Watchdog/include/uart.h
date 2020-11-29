@@ -15,9 +15,6 @@
 
 #include "buffer.h"
 
-extern void (*uart0_rx_handler)(uint16_t len, struct buffer *buf);
-extern void (*uart1_rx_handler)(uint16_t len, struct buffer *buf);
-
 /**
  * @brief Initialize UART hardware.
  * Sets up the interrupts and whatnot for UART.

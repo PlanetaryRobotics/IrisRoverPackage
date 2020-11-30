@@ -29,8 +29,16 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
 
         if (buf[2] & 0x08) {
             /* reset FPGA */
+            setRadioReset();
             setFPGAReset();
-            releaseFPGAReset();
+            setMotorsReset();
+            setHerculesReset();
+            powerOffHercules();
+            powerOffFpga();
+            powerOffMotors();
+            powerOffRadio();
+            disable24VPowerRail();
+            disable3V3PowerRail();
         }
     }
 }

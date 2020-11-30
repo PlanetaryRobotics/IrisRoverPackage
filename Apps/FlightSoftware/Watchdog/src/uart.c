@@ -138,7 +138,9 @@ void __attribute__ ((interrupt(EUSCI_A1_VECTOR))) USCI_A1_ISR (void) {
         /* we are done here */
     end_rx:
         UCA1IFG &= ~UCRXIFG;
-        if (uart1rx.idx >= BUFFER_SIZE) uart1rx.idx -= BUFFER_SIZE;
+        if (uart1rx.idx >= BUFFER_SIZE) {
+            uart1rx.idx -= BUFFER_SIZE;
+        }
         break;
     default: /* some other possibilities */
         break;

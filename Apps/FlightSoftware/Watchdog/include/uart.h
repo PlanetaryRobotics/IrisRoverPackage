@@ -9,10 +9,6 @@
 #ifndef __UART_INC
 #define __UART_INC
 
-/* baud rate configurations - be sure to use a uint32_t!! */
-#define UART0_BAUD 115200
-#define UART1_BAUD 115200
-
 #include "buffer.h"
 
 /**

@@ -21,7 +21,7 @@ struct buffer {
 };
 
 /* all of the buffers that exist; total = 3KiB used for tx/rx buffers */
-__volatile extern struct buffer uart0rx, uart0tx, uart1rx, uart1tx, i2crx, i2ctx;
+__volatile extern struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx, i2crx, i2ctx;
 
 /**
  * Allocate n bytes in the buffer x.

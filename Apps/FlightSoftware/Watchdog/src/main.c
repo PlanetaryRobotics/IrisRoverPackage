@@ -7,7 +7,7 @@
 #include "include/flags.h"
 
 /* define all of the buffers used in other files */
-__volatile struct buffer uart0rx, uart0tx, uart1rx, uart1tx, i2crx, i2ctx;
+__volatile struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx, i2crx, i2ctx;
 __volatile uint16_t loop_flags;
 
 /**
@@ -90,13 +90,20 @@ int main(void) {
 
         /* a cool thing happened! now time to check what it was */
         if (loop_flags & FLAG_UART0_RX_PACKET) {
-            /* TODO: handle event for packet from lander */
+            /* TODO: handle event for packet from hercules */
             /* clear event when done */
             loop_flags ^= FLAG_UART0_RX_PACKET;
         }
         if (loop_flags & FLAG_UART1_RX_PACKET) {
-            /* TODO: handle event for packet from hercules */
-            echo_test_handler();
+            /* copy over the bytes into a processing buffer */
+            pbuf.used = uart1rx.idx - 1;
+            /* reset uart1rx */
+            /* TODO: potential race conditions here. is it possible for more bytes to come in while we copy old ones? */
+            uart1rx.idx = 0;
+            memcpy(pbuf.buf, uart1rx.buf, pbuf.used);
+            pbuf.idx = 0;
+            /* parse the packet */
+            parse_ground_cmd(pbuf);
             /* clear event when done */
             loop_flags ^= FLAG_UART1_RX_PACKET;
         }

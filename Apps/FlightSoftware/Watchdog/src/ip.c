@@ -135,15 +135,21 @@ void ipudp_send_packet(uint8_t *data, uint16_t data_len) {
  * @return Pointer to the start of the payload
  */
 uint8_t *ipudp_parse_packet(struct buffer *buf, uint16_t *pp_len) {
+    uint16_t n;
     if (!ip_verify_packet(buf->buf, buf->used)) {
         /* TODO: for debugging purposes right now, we ignore erroneous cases where the checksum is wrong */
     }
 
     /* TODO: proper checking of stuff here ... */
+    n = sizeof(struct ip_udp_pckt);
+    if (buf->used < n) {
+        /* too small */
+        return (void *)0;
+    }
 
-    *pp_len = buf->used - sizeof(struct ip_udp_pckt);
+    *pp_len = buf->used - n;
     /* skip past the ip and udp headers, and we're left with the payload! */
-    return buf->buf + sizeof(struct ip_udp_pckt);
+    return buf->buf + n;
 }
 
 /* to compile: gcc ip_udp.c -Wall -Wxtra -Werror -D__TEST_IP_UDP -o test_ip_udp */

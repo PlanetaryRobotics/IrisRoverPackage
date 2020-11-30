@@ -71,6 +71,7 @@ void __attribute__ ((interrupt(EUSCI_A0_VECTOR))) USCI_A0_ISR (void) {
 }
 
 __volatile int is_escaped = 0;
+__volatile int has_started = 0;
 
 /* UCA1 interrupt handler (watchdog SLIP) */
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
@@ -105,6 +106,16 @@ void __attribute__ ((interrupt(EUSCI_A1_VECTOR))) USCI_A1_ISR (void) {
         /* get the received character */
         rcv = UCA1RXBUF;
 
+        if (!has_started) {
+            if (rcv == SLIP_END) {
+                /* start now */
+                has_started = 1;
+                goto end_rx;
+            } else {
+                goto end_rx;
+            }
+        }
+
         /* deal with escaped characters */
         if (is_escaped && rcv == SLIP_ESC_END) {
             /* push the escaped character */
@@ -123,6 +134,7 @@ void __attribute__ ((interrupt(EUSCI_A1_VECTOR))) USCI_A1_ISR (void) {
         case SLIP_END:
             /* done reading; skip storing the end byte, and signal to the main loop that we are done */
             loop_flags |= FLAG_UART1_RX_PACKET;
+            has_started = 0;
             break;
         case SLIP_ESC:
             /* about to start escape sequence; skip storing this byte */
@@ -206,12 +218,12 @@ void uart_init() {
     // UCBRFx = int ( (52.083-52)*16) = 1
     UCA0BRW = 52;                           // 8000000/16/9600
     UCA0MCTLW |= UCOS16 | UCBRF_1 | 0x4900; // ???
-    UCA0CTLW0 &= ~UCSWRST;                  // Initialize eUSCI_A0
+    UCA0CTLW0 &= ~UCSWRST;                  // Release eUSCI_A0 reset
     UCA0IE |= UCRXIE;                       // Enable USCI_A0 RX interrupt
 
     UCA1BRW = 52;                           // 8000000/16/9600
     UCA1MCTLW |= UCOS16 | UCBRF_1 | 0x4900; // ???
-    UCA1CTLW0 &= ~UCSWRST;                  // Initialize eUSCI_A1
+    UCA1CTLW0 &= ~UCSWRST;                  // Release eUSCI_A1 reset
     UCA1IE |= UCRXIE;                       // Enable USCI_A1 RX interrupt
 }
 
@@ -219,6 +231,9 @@ void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer) {
     uint16_t i;
     unsigned char b;
     uint16_t curr_idx = uart1tx.idx + uart1tx.used;
+
+    uart1tx.buf[curr_idx++] = SLIP_END;
+    uart1tx.used += 1;
 
     for (i = 0; i < length; i++) {
         b = buffer[i];
@@ -248,7 +263,10 @@ void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer) {
             break;
         }
     }
+    uart1tx.buf[curr_idx++] = SLIP_END;
+    uart1tx.used += 1;
 
+    /* start interrupts for sending async */
     UCA1IE |= UCTXIE;
 }
 

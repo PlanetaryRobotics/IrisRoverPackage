@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include "include/bsp.h"
 #include "include/buffer.h"
+#include "include/ip_udp.h"
 
 /**
  * Handle a ground command
@@ -57,6 +58,10 @@ void parse_ground_cmd(struct buffer *pp) {
 
     /* parse the ip and udp headers */
     buf = ipudp_parse_packet(pp, &pp_len);
+    if (!buf) {
+        /* malformed packet */
+        return;
+    }
 
     /* check that the length is greater than the base sane amount */
     if (pp_len < 9) {
@@ -72,11 +77,12 @@ void parse_ground_cmd(struct buffer *pp) {
     if (packet_len != pp_len) {
         /* TODO: what is the packet_len field actually representing? */
     }
+
     /* TODO: check the checksum */
     /* get the type */
     if (buf[5] == 0x00 && buf[6] == 0xBA && buf[7] == 0xDA && buf[8] == 0x55) {
         /* command */
-        handle_ground_cmd(buf + 8, pp_len - 8);
+        handle_ground_cmd(buf + 9, pp_len - 9);
     }
 }
 

@@ -235,8 +235,8 @@ namespace CubeRover {
             m_fpgaFlash.readDataFromFlash(&alloc, 0, imageLineBuffer, sizeof(imageLineBuffer));
             alloc.startAddress = 6 * PAGE_SIZE * i; // jump to next available block
 #endif
-            downsampleLine();
-            downlinkImage(imageLineBuffer, sizeof(imageLineBuffer) / DOWNSAMPLING, callbackId, createTime);
+            // downsampleLine();
+            downlinkImage(imageLineBuffer, sizeof(imageLineBuffer), callbackId, createTime);
         }
     }
     

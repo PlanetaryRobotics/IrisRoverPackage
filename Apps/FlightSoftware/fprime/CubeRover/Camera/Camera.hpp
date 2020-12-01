@@ -18,7 +18,7 @@
 #include "S25fl512l.hpp"
 
 #define IMAGE_WIDTH        2592
-#define IMAGE_HEIGHT       (1944 / DOWNSAMPLING)
+#define IMAGE_HEIGHT       1944
 
 #define DOWNSAMPLING        2
 #define DOWNSAMPLED_IMG_WIDTH   (IMAGE_WIDTH / DOWNSAMPLING)

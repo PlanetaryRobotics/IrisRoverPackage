@@ -256,29 +256,22 @@ namespace CubeRover {
      */
     void GroundInterfaceComponentImpl::downlink(void *_data, FswPacket::Length_t size) {
         FW_ASSERT(_data);
+        FW_ASSERT(size < UDP_MAX_PAYLOAD);
+        uint8_t *data = reinterpret_cast<uint8_t *>(_data);     // Start of the ddatagram
+        struct FswPacket::FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacket::FswPacketHeader *>(data + 8);   // 8 byte UDP header
+        FswPacket::Checksum_t checksum = 0x8008;   // TODO
+        packetHeader->seq = m_downlinkSeq;
+        packetHeader->checksum = checksum;
+        packetHeader->length = size - 8 - sizeof(struct FswPacket::FswPacketHeader);
         int port = 0;
         if (port == 0) {  // FIXME: 0 for now is WF121, but should 1 for WF121 see XML
-            FswPacket::Checksum_t checksum = 0x8008;   // TODO
-            uint8_t *data = reinterpret_cast<uint8_t *>(_data);
-            struct FswPacket::FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacket::FswPacketHeader *>(data);   // 8 byte UDP header
-            packetHeader->seq = m_downlinkSeq;
-            packetHeader->checksum = checksum;
-            packetHeader->length = size - 8 - sizeof(struct FswPacket::FswPacketHeader);    // Length of the underlying data not including the headers
-            FW_ASSERT(size < UDP_MAX_PAYLOAD);
             Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data + 8), size - 8);     // Dont't send the UDP header for WF121
             log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size - 8);
-            downlinkBufferSend_out(0, buffer);      // FIXME: WF121 SHOULD BE 1
+            downlinkBufferSend_out(port, buffer);      // FIXME: WF121 SHOULD BE 1
         } else if (port == 1) {   // FIXME: The below is for Watchdog
-            FswPacket::Checksum_t checksum = 0x8008;   // TODO
-            uint8_t *data = reinterpret_cast<uint8_t *>(_data);
-            struct FswPacket::FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacket::FswPacketHeader *>(data + 8);   // 8 byte UDP header
-            packetHeader->seq = m_downlinkSeq;
-            packetHeader->checksum = checksum;
-            packetHeader->length = size;
-            FW_ASSERT(size < UDP_MAX_PAYLOAD);
             Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data), size);
             log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size);
-            downlinkBufferSend_out(0, buffer);
+            downlinkBufferSend_out(port, buffer);
         }
         m_downlinkSeq++;
         m_packetsTx++;

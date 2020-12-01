@@ -1,0 +1,11 @@
+--- NetworkManagerComponentAc.cpp.orig	2020-10-28 10:31:19.664185048 -0700
++++ NetworkManagerComponentAc.cpp	2020-10-28 10:32:02.544568583 -0700
+@@ -604,7 +604,7 @@
+ 
+   void NetworkManagerComponentBase ::
+     log_ACTIVITY_HI_StateChange(
+-        networkmanager_state_from from_state, networkmanager_state_to to_state
++        CubeRoverNetworkManager::CubeRoverNetworkStateMachine from_state, CubeRoverNetworkManager::CubeRoverNetworkStateMachine to_state
+     )
+   {
+ 

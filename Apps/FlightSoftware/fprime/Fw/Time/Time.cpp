@@ -75,7 +75,7 @@ namespace Fw {
         return ((LT == c) or (EQ == c));
     }
     
-    U32 Time::get_time_ms() {
+    U32 Time::get_time_ms() const {
         return this->m_seconds * 1000 + static_cast<U32>(this->m_useconds / 1000);
     }
 

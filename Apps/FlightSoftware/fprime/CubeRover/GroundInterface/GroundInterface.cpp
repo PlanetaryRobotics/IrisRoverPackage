@@ -40,7 +40,7 @@ namespace CubeRover {
       m_cmdsUplinked = 0; m_cmdsSent = 0; m_cmdErrs = 0;
       m_appBytesReceived = 0; m_appBytesDownlinked = 0;
       m_downlinkPacket = reinterpret_cast<struct FswPacket::FswPacketHeader *>(m_downlinkBuffer + 8);   // 8byte UDP header
-      m_downlinkBufferPos = m_downlinkPacket + sizeof(struct FswPacket::FswPacketHeader);
+      m_downlinkBufferPos = reinterpret_cast<uint8_t *>(m_downlinkPacket) + sizeof(struct FswPacket::FswPacketHeader);
       m_downlinkBufferSpaceAvailable = DOWNLINK_OBJECTS_SIZE;
   }
 
@@ -109,7 +109,7 @@ namespace CubeRover {
     
     if (singleFileObjectSize <= DOWNLINK_OBJECTS_SIZE) {
         uint8_t downlinkBuffer[singleFileObjectSize];
-        struct FswPacket::FswPacket *obj = reinterpret_cast<struct FswFile file *>(downlinkBuffer);
+        struct FswPacket::FswFile *obj = reinterpret_cast<struct FswPacket::FswFile *>(downlinkBuffer);
         obj->header.magic = FSW_FILE_MAGIC;
         obj->header.totalBlocks = 1;
         obj->header.blockNumber = 1;
@@ -132,17 +132,19 @@ namespace CubeRover {
             packet->payload0.file.header.hashedId = hashedId;
             packet->payload0.file.header.totalBlocks = numBlocks;
             packet->payload0.file.header.blockNumber = blockNum;
+            FswPacket::FileLength_t blockLength;
             if (blockNum < numBlocks) {     // Send full datagram fragment
-                dataSize -= readStride;
-                packet->payload0.file.header.length = readStride;
-                memcpy(&packet->payload0.file.file.byte0, data, readStride);
-                FswPacket::Length_t datagramLength = 8 + sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + readStride;
+                blockLength = readStride;
+                dataSize -= blockLength;
+                packet->payload0.file.header.length = blockLength;
+                memcpy(&packet->payload0.file.file.byte0, data, blockLength);
+                FswPacket::Length_t datagramLength = 8 + sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + blockLength;
                 log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
                 downlink(packet, datagramLength);
                 data += datagramLength;
             } else {        // Final Fragment is written to the member buffer to downlink with other objects
                 FW_ASSERT(dataSize > 0);
-                FileLength_t blockLength = static_cast<FswPacket::FileLength_t>(dataSize);
+                blockLength = static_cast<FswPacket::FileLength_t>(dataSize);
                 packet->payload0.file.header.length = blockLength;
                 memcpy(&packet->payload0.file.file.byte0, data, blockLength);
                 downlinkBufferWrite(&packet->payload0.file,
@@ -239,7 +241,7 @@ namespace CubeRover {
     void GroundInterfaceComponentImpl::flushDownlinkBuffer() {
         FswPacket::Length_t length = static_cast<FswPacket::Length_t>(m_downlinkBufferPos - m_downlinkBuffer);
         downlink(m_downlinkBuffer, length);
-        m_downlinkBufferPos = m_downlinkPacket + sizeof(struct FswPacket::FswPacketHeader);
+        m_downlinkBufferPos = reinterpret_cast<uint8_t *>(m_downlinkPacket) + sizeof(struct FswPacket::FswPacketHeader);
         m_downlinkBufferSpaceAvailable = DOWNLINK_OBJECTS_SIZE;
     }
     

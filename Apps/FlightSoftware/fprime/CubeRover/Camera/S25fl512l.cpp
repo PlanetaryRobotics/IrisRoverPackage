@@ -1,4 +1,4 @@
-#include <S25fl512l.hpp>
+#include "S25fl512l.hpp"
 
 S25fl512l :: S25fl512l(){
   // External Flash SPI data configuration

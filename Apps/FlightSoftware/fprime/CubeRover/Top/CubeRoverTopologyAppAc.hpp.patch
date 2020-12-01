@@ -16,8 +16,6 @@
 -extern CubeRover::UdpInterfaceImpl udpInterface("udpInterface");
 -extern CubeRover::NetworkManagerImpl networkManager("networkManager");
 -extern Svc::ActiveLoggerImpl activeLogger("activeLogger");
--extern Svc::HealthImpl health("health");
--extern CubeRover::WatchDogInterfaceImpl watchDogInterface("watchDogInterface");
 -extern CubeRover::CameraImpl camera("camera");
 +extern Drv::BlockDriverImpl blockDriver;
 +extern Svc::RateGroupDriverImpl rateGroupDriver;
@@ -31,8 +29,6 @@
 +extern CubeRover::UdpInterfaceComponentImpl udpInterface;
 +extern CubeRover::NetworkManagerComponentImpl networkManager;
 +extern Svc::ActiveLoggerImpl activeLogger;
-+extern Svc::HealthImpl health;
-+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 +extern CubeRover::CameraComponentImpl camera;
  
  

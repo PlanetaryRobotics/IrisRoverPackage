@@ -176,7 +176,7 @@ namespace CubeRover {
           const U32 cmdSeq /*!< The command sequence number*/
       );
       
-      
+    public:
         void downsampleLine();
         void selectCamera(int camera);
         void triggerImageCapture(uint16_t callbackId);

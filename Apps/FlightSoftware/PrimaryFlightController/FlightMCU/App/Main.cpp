@@ -17,7 +17,11 @@ extern "C" {
     void vApplicationIdleHook(void);
 }
 
+int test = 0;
+
 void vApplicationIdleHook(void) {
+    if (test)
+        camera.triggerImageCapture(53);
     run1cycle();
     //gioToggleBit(gioPORTB, 1);
     //for(uint32_t i=0; i<2000000; i++) asm("  NOP");

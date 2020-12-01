@@ -144,6 +144,9 @@
       <div ref="errorEmptyRouteName" class="error">
         Route name cannot be empty.
       </div>
+      <div ref="invalidRouteName" class="error">
+        Route name cannot start with number.
+      </div>
     </div>
 
     <!-- ROUTEBODY -->
@@ -275,14 +278,18 @@ export default {
     enableError(type) {
       if (type === "EMPTY_ROUTE_NAME") {
         this.$refs.errorEmptyRouteName.style.display = "block";
-      } else {
+      } else if(type==="INVALID_ROUTE_NAME"){
+        this.$refs.invalidRouteName.style.display = "block";
+      }else {
         this.$refs.errorDupeRouteName.style.display = "block";
       }
     },
     disableError(type) {
       if (type === "EMPTY_ROUTE_NAME") {
         this.$refs.errorEmptyRouteName.style.display = "none";
-      } else {
+      }else if(type==="INVALID_ROUTE_NAME"){
+        this.$refs.invalidRouteName.style.display = "none";
+      }else {
         this.$refs.errorDupeRouteName.style.display = "none";
       }
     },
@@ -295,6 +302,12 @@ export default {
         return;
       } else {
         this.disableError("EMPTY_ROUTE_NAME");
+      }
+      // route name can't start with number
+      if(!isNaN(this.routeNameDisplay.charAt(0))){
+          this.enableError("INVALID_ROUTE_NAME")
+      }else{
+        this.disableError("INVALID_ROUTE_NAME")
       }
 
       if (
@@ -315,12 +328,17 @@ export default {
       ) {
         this.disableError("EMPTY_ROUTE_NAME");
         this.disableError("DUPE_ROUTE_NAME");
-        this.$refs.routeNameInput.value = this.route.routeName;
+        this.disableError("INVALID_ROUTE_NAME");
+        this.$refs.routeNameInput.value = this.route.routeName.replace(/\s/g,'');
       } else {
+        // remove space in the route name before saving
+        this.route.routeName=this.route.routeName.replace(/\s/g,''),
+        this.route.routeNameDisplay=this.routeNameDisplay.replace(/\s/g,'')
+        this.$refs.routeNameInput.value = this.route.routeName.replace(/\s/g,'');
         // Model level now updates with new route name
         this.routeList.renameRouteName(
           this.route.routeName,
-          this.routeNameDisplay
+          this.routeNameDisplay.replace(/\s/g,'')
         );
       }
     },

@@ -34,6 +34,8 @@ void vApplicationIdleHook(void) {
 void main(void)
 {
     /* USER CODE BEGIN (3) */
+    int hold = 0;
+    while(not hold);     // Stop here and wait for debugger
     gioInit();
     i2cInit();
     sciInit();

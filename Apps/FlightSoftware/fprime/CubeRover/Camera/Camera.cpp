@@ -39,7 +39,7 @@ namespace CubeRover {
     CameraComponentImpl(void)
 #endif
   {
-
+      // m_fpgaFlash.setupDevice();
   }
 
   void CameraComponentImpl ::

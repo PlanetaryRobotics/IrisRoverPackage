@@ -41,6 +41,7 @@ void main(void)
     spiInit();
     linInit();
 
+    camera.m_fpgaFlash.setupDevice();
 
     constructApp();
 

@@ -177,4 +177,10 @@ void constructApp(void){
   cmdDispatcher.start(0,
                       CMD_DISP_AFF, 
                       CMD_DISP_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
+
+  // Runs necessary set-up
+
+  // setup communication with IMU over SPI
+  IMU.setup(IMU_SPI_REG);
+
 }

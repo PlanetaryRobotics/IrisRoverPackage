@@ -1,5 +1,5 @@
 <component name="Camera" kind="passive" namespace="CubeRover">
-    <import_port_type>Fw/Buffer/BufferSendPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAi.xml</import_port_type>
     <import_port_type>CubeRover/CubeRoverPorts/CameraSelect/CameraSelectPortAi.xml</import_port_type>
 
     <comment>Manages the CubeRover cameras</comment>
@@ -11,7 +11,7 @@
                 0: Camera 0     1: Camera 1
             </comment>
         </port>
-        <port name="downlinkImage" data_type="Fw::BufferSend" kind="output" max_number="1">
+        <port name="downlinkImage" data_type="CubeRover::FileDownlink" kind="output" max_number="1">
             <comment>
                 Send an image to GroundInterface for downlink.
             </comment>

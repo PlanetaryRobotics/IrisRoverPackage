@@ -83,6 +83,7 @@ struct FswPacket {
     union {
        uint8_t startByte;
        Magic_t magic0;     // Magic of first packet
+       // FSWPacket Object headers
        struct FswCommand command;
        struct FswCommandResponse cmdResp;
        struct FswFile file;

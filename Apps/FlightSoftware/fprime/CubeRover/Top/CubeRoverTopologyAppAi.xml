@@ -18,6 +18,7 @@
   <import_component_type>CubeRover/GroundInterface/GroundInterfaceComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/UdpInterface/UdpInterfaceComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/NetworkManager/NetworkManagerComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/Camera/CameraComponentAi.xml</import_component_type>
 
 <!-- Declaration of block driver that drive F-prime clocking and other async event -->
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
@@ -46,7 +47,7 @@
   <!-- TODO: NEED CUSTOM UDP SENDER CLASS -->
 
 <!-- Declaration of the components that implement NetworkManager and Wifi Stack -->
-  <instance namespace="CubeRover" name="networkManager" type="NetworkManager" base_id="201" base_id_window="20" />
+  <instance namespace="CubeRover" name="networkManager" type="NetworkManager" base_id="241" base_id_window="20" />
 
 <!-- Declaration of the passive text logger component that logs events in non-volatile memory -->
 <!-- For CubeRover - we use external FRAM memory to store data, i.e. a custom implementation of that component is necessary -->
@@ -56,7 +57,10 @@
   <instance namespace="Svc" name="health" type="Health" base_id="301" base_id_window="20" />
 
 <!-- Declaration of the WatchDog Interface component -->
-  <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="241" base_id_window="20" />
+  <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="62208" base_id_window="20" />
+      
+<!-- Declaration of the Camera component -->
+  <instance namespace="CubeRover" name="camera" type="Camera" base_id="62508" base_id_window="20" />
  
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -227,6 +231,11 @@
         CONNECTION OF DOWNLINK COMPONENTS 
      ********************************************************************************************************* 
       -->
+      
+  <connection name="camera_to_groundInterface">
+    <source component="camera" port="downlinkImage" type="CubeRover::FileDownlink" num="0" />
+    <target component="groundInterface" port="appDownlink" type="CubeRover::FileDownlink" num="0" />
+  </connection>
       
   <connection name="chanTlm_to_groundInterface">
     <source component="tlmChan" port="PktSend" type="Com" num="0" />

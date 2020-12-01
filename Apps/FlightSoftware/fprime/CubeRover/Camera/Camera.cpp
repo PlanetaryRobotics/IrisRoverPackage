@@ -20,6 +20,9 @@
 #include "spi.h"
 #include "lin.h"
 
+#define CAMERA_1_SELECT         0x0001
+#define CAMERA_2_SELECT         0x0001
+
 namespace CubeRover {
 
   // ----------------------------------------------------------------------
@@ -196,7 +199,8 @@ namespace CubeRover {
   
     void CameraComponentImpl::selectCamera(int camera) {
         // ASSERT camera == 0 or 1
-        gioSetBit(linPORT, 1, g_cameraSelect & 0x01);
+        int cameraSelect = CAMERA_1_SELECT;
+        gioSetBit(linPORT, 1, cameraSelect & 0x01);   // FIXME: Replace camera select with dynamic val
         
         // add small delays to make sure camera is selection is done
         for(int delay=0; delay<500; delay++) asm("  NOP");
@@ -204,10 +208,9 @@ namespace CubeRover {
   
     // TODO: Implement dual queue image capture to allow for two threads to downlink an
     // image at once (ie navigation and science photo)
-    void CameraComponentImpl::triggerImageCapture() {
+    void CameraComponentImpl::triggerImageCapture(uint16_t callbackId) {
         uint16_t spiTxCmd = 0xFF;
         spiDAT1_t fpgaDataConfig;
-        uint16_t rxWord = 0;
         
         S25fl512l::MemAlloc alloc;
         alloc.startAddress = 0;     // Uhhh. Should use S25fl512l alloc method
@@ -223,27 +226,23 @@ namespace CubeRover {
         gioSetBit(spiPORT1, 0, 1); // set CS HIGH
         
         while(gioGetBit(gioPORTB, 1));  // Wait until image capture complete
+        uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
             
         for(int i = 0; i < IMAGE_HEIGHT; i++) {
 #ifdef __USE_DUMMY_IMAGE__
             getLineDummyImage(i, imageLineBuffer);
 #else
-            fpgaFlash.readDataFromFlash(&alloc, 0, imageLineBuffer, sizeof(imageLineBuffer));
+            m_fpgaFlash.readDataFromFlash(&alloc, 0, imageLineBuffer, sizeof(imageLineBuffer));
             alloc.startAddress = 6 * PAGE_SIZE * i; // jump to next available block
 #endif
             downsampleLine();
-            downlinkImage(imageLineBuffer, sizeof(imageLineBuffer) / DOWNSAMPLING);
+            downlinkImage(imageLineBuffer, sizeof(imageLineBuffer) / DOWNSAMPLING, callbackId, createTime);
         }
     }
     
-    void CameraComponentImpl::downlinkImage(uint8_t *image, int size) {
-        uint8_t buffer[UDP_MAX_PAYLOAD] = {0};
-        struct FswFile *fileBuffer = buffer;
-        
-        
-        
-        Fw::Buffer fwBuffer(0, 0, buffer;
-        downlinkImage_out(0, fwBuffer);
+    void CameraComponentImpl::downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime) {
+        Fw::Buffer fwBuffer(0, 0, reinterpret_cast<U64>(image), size);
+        downlinkImage_out(0, callbackId, createTime, fwBuffer);
     }
     
 

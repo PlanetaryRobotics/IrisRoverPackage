@@ -15,6 +15,15 @@
 
 #include "CubeRover/Camera/CameraComponentAc.hpp"
 
+#include "S25fl512l.hpp"
+
+#define IMAGE_WIDTH        2592
+#define IMAGE_HEIGHT       (1944 / DOWNSAMPLING)
+
+#define DOWNSAMPLING        2
+#define DOWNSAMPLED_IMG_WIDTH   (IMAGE_WIDTH / DOWNSAMPLING)
+#define DOWNSAMPLE_IMG_HEIGHT   (IMAGE_HEIGHT / DOWNSAMPLING)
+
 namespace CubeRover {
 
   class CameraComponentImpl :
@@ -170,7 +179,8 @@ namespace CubeRover {
       
         void downsampleLine();
         void selectCamera(int camera);
-        void triggerImageCapture();
+        void triggerImageCapture(uint16_t callbackId);
+        void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime);
       
         S25fl512l m_fpgaFlash;
         uint8_t imageLineBuffer[IMAGE_WIDTH];

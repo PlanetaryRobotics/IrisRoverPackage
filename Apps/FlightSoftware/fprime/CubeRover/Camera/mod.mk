@@ -1,12 +1,3 @@
-#
-#   Copyright 2004-2008, by the California Institute of Technology.
-#   ALL RIGHTS RESERVED. United States Government Sponsorship
-#   acknowledged.
-#
-#
+SRC = CameraComponentAi.xml Camera.cpp S25fl512l.cpp
 
-SRC = CameraComponentAi.xml Camera.cpp
-
-HDR =  Camera.hpp
-
-#SUBDIRS = test
+HDR =  Camera.hpp S25fl512l.hpp

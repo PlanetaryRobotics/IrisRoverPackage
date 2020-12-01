@@ -125,6 +125,14 @@ CubeRover::NetworkManagerComponentImpl networkManager(
 #endif
 );
 
+// ---------------------------------------------------------------------------
+// watchdog interface to tell watchdog commands/stroke watchdog
+CubeRover::CameraComponentImpl camera(
+#if FW_OBJECT_NAMES == 1
+        "Camera"
+#endif
+);
+
 /**
  * @brief      Run 1 cycle (debug)
  */
@@ -176,6 +184,9 @@ void constructApp(void){
   
   // Initialize the ground interface (passive)
   networkManager.init();
+  
+  // Initialize the camera (passive)
+  camera.init();
 
    // Construct the application and make all connections between components
   constructCubeRoverArchitecture();

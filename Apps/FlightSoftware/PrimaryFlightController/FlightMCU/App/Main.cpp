@@ -14,6 +14,7 @@
 #include "i2c.h"
 #include "spi.h"
 #include "adc.h"
+#include "lin.h"
 
 extern "C" {
     void vApplicationIdleHook(void);
@@ -38,6 +39,7 @@ void main(void)
     sciInit();
     adcInit();
     spiInit();
+    linInit();
 
 
     constructApp();

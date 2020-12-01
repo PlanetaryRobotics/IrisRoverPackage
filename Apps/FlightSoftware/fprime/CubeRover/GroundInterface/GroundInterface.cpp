@@ -147,9 +147,7 @@ namespace CubeRover {
                 blockLength = static_cast<FswPacket::FileLength_t>(dataSize);
                 packet->payload0.file.header.length = blockLength;
                 memcpy(&packet->payload0.file.file.byte0, data, blockLength);
-                downlinkBufferWrite(&packet->payload0.file,
-                                    8 + sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + blockLength, 
-                                    DownlinkFile);
+                downlinkBufferWrite(&packet->payload0.file, sizeof(struct FswPacket::FswFileHeader) + blockLength, DownlinkFile);
             }
             m_appBytesDownlinked += blockLength;
         }
@@ -258,16 +256,30 @@ namespace CubeRover {
      */
     void GroundInterfaceComponentImpl::downlink(void *_data, FswPacket::Length_t size) {
         FW_ASSERT(_data);
-        FswPacket::Checksum_t checksum = 0x8008;   // TODO
-        uint8_t *data = reinterpret_cast<uint8_t *>(_data);
-        struct FswPacket::FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacket::FswPacketHeader *>(data + 8);   // 8 byte UDP header
-        packetHeader->seq = m_downlinkSeq;
-        packetHeader->checksum = checksum;
-        packetHeader->length = size;
-        FW_ASSERT(size < UDP_MAX_PAYLOAD);
-        Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data), size);
-        log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size);
-        downlinkBufferSend_out(0, buffer);
+        int port = 0;
+        if (port == 0) {  // FIXME: 0 for now is WF121, but should 1 for WF121 see XML
+            FswPacket::Checksum_t checksum = 0x8008;   // TODO
+            uint8_t *data = reinterpret_cast<uint8_t *>(_data);
+            struct FswPacket::FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacket::FswPacketHeader *>(data);   // 8 byte UDP header
+            packetHeader->seq = m_downlinkSeq;
+            packetHeader->checksum = checksum;
+            packetHeader->length = size - 8 - sizeof(struct FswPacket::FswPacketHeader);    // Length of the underlying data not including the headers
+            FW_ASSERT(size < UDP_MAX_PAYLOAD);
+            Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data + 8), size - 8);     // Dont't send the UDP header for WF121
+            log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size - 8);
+            downlinkBufferSend_out(0, buffer);      // FIXME: WF121 SHOULD BE 1
+        } else if (port == 1) {   // FIXME: The below is for Watchdog
+            FswPacket::Checksum_t checksum = 0x8008;   // TODO
+            uint8_t *data = reinterpret_cast<uint8_t *>(_data);
+            struct FswPacket::FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacket::FswPacketHeader *>(data + 8);   // 8 byte UDP header
+            packetHeader->seq = m_downlinkSeq;
+            packetHeader->checksum = checksum;
+            packetHeader->length = size;
+            FW_ASSERT(size < UDP_MAX_PAYLOAD);
+            Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data), size);
+            log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size);
+            downlinkBufferSend_out(0, buffer);
+        }
         m_downlinkSeq++;
         m_packetsTx++;
     }

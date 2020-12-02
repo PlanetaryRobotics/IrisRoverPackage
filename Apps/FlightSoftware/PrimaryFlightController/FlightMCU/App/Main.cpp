@@ -12,6 +12,7 @@
 
 #include "gio.h"
 #include "i2c.h"
+#include "spi.h"
 
 extern "C" {
     void vApplicationIdleHook(void);
@@ -23,7 +24,6 @@ void vApplicationIdleHook(void) {
     //for(uint32_t i=0; i<2000000; i++) asm("  NOP");
 }
 
-
 void main(void)
 {
     /* USER CODE BEGIN (3) */
@@ -31,6 +31,7 @@ void main(void)
 
     i2cInit();
     sciInit();
+    spiInit();
 
     constructApp();
 

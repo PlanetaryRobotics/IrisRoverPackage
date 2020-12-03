@@ -151,11 +151,14 @@ namespace CubeRover {
     }
 
     // Minor trick to remove duplicate code
-    I2cRegisterId P_Param_Register = MotorControllerI2C::UNSET;
-    I2cRegisterId I_Param_Register = MotorControllerI2C::UNSET;
+    MotorControllerI2C::I2cRegisterId P_Param_Register = MotorControllerI2C::UNSET;
+    MotorControllerI2C::I2cRegisterId I_Param_Register = MotorControllerI2C::UNSET;
+
+    // Error preset
+    MCError err;
 
     // Determine what needs to be done
-    switch(CommandConfiguration)
+    switch(MotorParameter)
     {
       // Change the Current control parameters
       case CURRENT_PID:
@@ -183,13 +186,13 @@ namespace CubeRover {
         uint16_t P_Parameter = Value & 0xFFFF;
 
         // Select the upper 16 bits
-        uint16_t I_Parameter = Value >>> 16;
+        uint16_t I_Parameter = Value >> 16;
 
         // Send the data to all motors
         if (Target_motor == ALL_MOTOR_ADDR)
         {
           err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
-                                  MotorControllerI2C::P_Param_Register,
+                                  P_Param_Register,
                                   P_Parameter);
 
           if(err != MC_NO_ERROR)
@@ -199,7 +202,7 @@ namespace CubeRover {
           }
 
           err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
-                                  MotorControllerI2C::I_Param_Register,
+                                  I_Param_Register,
                                   I_Parameter);
 
           if(err != MC_NO_ERROR)
@@ -213,7 +216,7 @@ namespace CubeRover {
         else
         {
           err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                          MotorControllerI2C::P_Param_Register, 
+                                          P_Param_Register, 
                                           Target_motor,
                                           P_Parameter);
 
@@ -224,7 +227,7 @@ namespace CubeRover {
           }
 
           err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                          MotorControllerI2C::I_Param_Register, 
+                                          I_Param_Register, 
                                           Target_motor,
                                           I_Parameter);
 
@@ -240,7 +243,7 @@ namespace CubeRover {
       case STALL_DETECTION:
         // Reconfigure the request
         motorStallEnableList Desired_able;
-        if (value == 0x0)
+        if (Value == 0x0)
           Desired_able = DISABLED;
         else
           Desired_able = ENABLED;
@@ -249,7 +252,7 @@ namespace CubeRover {
         // Send it all motors 
         if (Target_motor == ALL_MOTOR_ADDR)
         {
-          MC_StallDetection_cmdHandler(opCode,cmdSeq,Desired_able)
+          MC_StallDetection_cmdHandler(opCode,cmdSeq,Desired_able);
         }
 
         else
@@ -270,7 +273,7 @@ namespace CubeRover {
         {
           uint8_t Motor_Selection = 1;
           // Quick way to shift the appropriate amount to target the right motor
-          Motor_Selection = <<< Target_motor - 1;
+          Motor_Selection = 1 << (Target_motor - 1);
           MC_PositionCounterReset_cmdHandler(opCode,cmdSeq,Motor_Selection);
         }
         break;
@@ -1188,6 +1191,28 @@ namespace CubeRover {
     i2cClearSCD(i2c);
 
     return MC_NO_ERROR;
+  }
+
+  /**
+  * @brief      eEnables all motors
+  *
+  * @return     Motor controller error
+  */
+  MCError MotorControlComponentImpl :: enableDrivers()
+  {
+    return MC_NO_ERROR;
+  }
+
+  /**
+  * @brief      eEnables all motors
+  *
+  * @param[in]  Distance the system wants to travel in cm    
+  *
+  * @return     Motor controller error
+  */
+  Motor_tick MotorControlComponentImpl :: cmToMotorTicks(const Distance_cm dist)
+  {
+    return 0;
   }
 
 } // end namespace CubeRover

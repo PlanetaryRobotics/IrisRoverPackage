@@ -11,7 +11,7 @@
 // ======================================================================
 
 
-#include <CubeRover/Navigation/NavigationComponentImpl.hpp>
+#include <CubeRover/Navigation/NavigationComponent.hpp>
 #include "Fw/Types/BasicTypes.hpp"
 
 namespace CubeRover {

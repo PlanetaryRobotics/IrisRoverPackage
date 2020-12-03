@@ -201,12 +201,15 @@ acdev_MODULES := \
 	$(ACDEVTEST_MODULES)
 
 CubeRoverPorts_MODULES := \
-	CubeRover/CubeRoverPorts/IMUData
+	CubeRover/CubeRoverPorts/IMUData \
+	CubeRover/CubeRoverPorts/MotorData
 	
 CubeRover_MODULES := \
 	CubeRover/Top \
 	CubeRover/CubeRoverPorts \
 	CubeRover/IMU \
+	CubeRover/Navigation \
+	CubeRover/MotorControl \
 	CubeRover/UdpReceiver \
 	CubeRover/NetworkManager \
 	CubeRover/GroundInterface \

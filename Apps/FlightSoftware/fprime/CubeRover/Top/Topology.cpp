@@ -88,6 +88,20 @@ CubeRover::IMUComponentImpl IMU(
 );
 
 // --------------------------------------------------------------------------
+CubeRover::MotorControlComponentImpl motorControl(
+#if FW_OBJECT_NAMES == 1
+        "MotorControl"
+#endif
+);
+
+// --------------------------------------------------------------------------
+CubeRover::NavigationComponentImpl navigation(
+#if FW_OBJECT_NAMES == 1
+        "Navigation"
+#endif
+);
+
+// --------------------------------------------------------------------------
 CubeRover::GroundInterfaceComponentImpl groundInterface(
 #if FW_OBJECT_NAMES == 1
         "GroundInterface"

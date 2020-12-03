@@ -21,10 +21,11 @@
 
 // Include component exclusive to CubeRover project
 #include <CubeRover/IMU/IMUComponent.hpp>
+#include <CubeRover/MotorControl/MotorControlComponent.hpp>
+#include <CubeRover/Navigation/NavigationComponent.hpp>
 #include <CubeRover/GroundInterface/GroundInterface.hpp>
 #include <CubeRover/UdpReceiver/UdpReceiver.hpp>
 #include <CubeRover/NetworkManager/NetworkManager.hpp>
-
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -49,6 +50,12 @@ extern Svc::CommandDispatcherImpl cmdDispatcher;
 
 // IMU
 extern CubeRover::IMUComponentImpl IMU;
+
+// Motor Control
+extern CubeRover::MotorControlComponentImpl motorControl;
+
+// Navigation
+extern CubeRover::NavigationComponentImpl navigation;
 
 // Interface to ground for radio
 extern CubeRover::GroundInterfaceComponentImpl groundInterface;

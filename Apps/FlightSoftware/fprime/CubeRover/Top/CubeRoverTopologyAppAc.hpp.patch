@@ -1,4 +1,4 @@
-22,33c22,33
+24,39c24,37
 < extern Drv::BlockDriverImpl blockDriver("blockDriver");
 < extern Svc::RateGroupDriverImpl rateGroupDriver("rateGroupDriver");
 < extern Svc::ActiveRateGroupImpl rateGroupLowFreq("rateGroupLowFreq");
@@ -10,7 +10,11 @@
 < extern CubeRover::GroundInterfaceImpl groundInterface("groundInterface");
 < extern CubeRover::UdpReceiverImpl udpReceiver("udpReceiver");
 < extern CubeRover::NetworkManagerImpl networkManager("networkManager");
+< extern CubeRover::NavigationImpl navigation("navigation");
+< extern CubeRover::MotorControlImpl motorControl("motorControl");
 < extern CubeRover::IMUImpl IMU("IMU");
+< 
+< 
 ---
 > extern Drv::BlockDriverImpl blockDriver;
 > extern Svc::RateGroupDriverImpl rateGroupDriver;
@@ -23,4 +27,6 @@
 > extern CubeRover::GroundInterfaceComponentImpl groundInterface;
 > extern CubeRover::UdpReceiverComponentImpl udpReceiver;
 > extern CubeRover::NetworkManagerComponentImpl networkManager;
+> extern CubeRover::NavigationComponentImpl navigation;
+> extern CubeRover::MotorControlComponentImpl motorControl;
 > extern CubeRover::IMUComponentImpl IMU;

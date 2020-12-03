@@ -73,7 +73,6 @@ Svc::TlmChanImpl tlmChan(
   );
 
 // ---------------------------------------------------------------------------
-
 // command dispatcher component used to dispatch commands
 Svc::CommandDispatcherImpl cmdDispatcher(
 #if FW_OBJECT_NAMES == 1
@@ -81,17 +80,31 @@ Svc::CommandDispatcherImpl cmdDispatcher(
 #endif
   );
 
-// Motor controller component
-CubeRover::MotorControlComponentImpl motorControl(
+// --------------------------------------------------------------------------
+CubeRover::IMUComponentImpl IMU(
 #if FW_OBJECT_NAMES == 1
-  "MotorControl"
+        "IMU"
 #endif
-  );
+);
 
 // --------------------------------------------------------------------------
-Svc::GroundInterfaceComponentImpl groundInterface(
+CubeRover::GroundInterfaceComponentImpl groundInterface(
 #if FW_OBJECT_NAMES == 1
         "GroundInterface"
+#endif
+);
+
+// --------------------------------------------------------------------------
+CubeRover::UdpReceiverComponentImpl udpReceiver(
+#if FW_OBJECT_NAMES == 1
+        "UdpReceiver"
+#endif
+);
+// 
+// --------------------------------------------------------------------------
+CubeRover::NetworkManagerComponentImpl networkManager(
+#if FW_OBJECT_NAMES == 1
+        "NetworkManager"
 #endif
 );
 
@@ -106,7 +119,7 @@ void run1cycle(void) {
  * @brief      Construct the F-prime application
  */
 void constructApp(void){
-  //Initialize the block driver
+  //Initialize the block driver (active)
   blockDriver.init(BLK_DRV_QUEUE_DEPTH);
 
   // Initialize rate group driver driver (passive)
@@ -120,13 +133,25 @@ void constructApp(void){
   // Initialize cubeRover time component (passive)
   cubeRoverTime.init(0);
 
-  // Initialize the telemetric channel component (active)
+  // Initialize the telemetry channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
+  // 
+  // Initialize the CommandDispatcher component (active)
+  cmdDispatcher.init(CMD_DISP_QUEUE_DEPTH, CMD_DISP_ID);
 
-  // Initialize the ground interface (active)
-  groundInterface.init(0);
+  // Initialize the ground interface (passive)
+  groundInterface.init();
 
-  // Construct the application and make all connections between components
+  // Initialize the ground interface (passive)
+  udpReceiver.init();
+  
+  // Initialize the ground interface (passive)
+  networkManager.init();
+
+  // Initialize the IMU interface (passive)
+  IMU.init();
+
+   // Construct the application and make all connections between components
   constructCubeRoverArchitecture();
 
   rateGroupLowFreq.start(0, /* identifier */
@@ -148,8 +173,14 @@ void constructApp(void){
   tlmChan.start(0, /* identifier */
                 TLM_CHAN_AFF, /* thread affinity */
                 TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+  
+  cmdDispatcher.start(0,
+                      CMD_DISP_AFF, 
+                      CMD_DISP_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
 
-  motorControl.init(0);
+  // Runs necessary set-up
 
-  IMU.init(0);
+  // setup communication with IMU over SPI
+  IMU.setup(IMU_SPI_REG);
+
 }

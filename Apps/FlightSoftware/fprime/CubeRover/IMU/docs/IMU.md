@@ -6,7 +6,7 @@
 
 |Mnemonic|ID|Description|Arg Name|Arg Type|Comment
 |---|---|---|---|---|---|
-|Imu_ReportData|0 (0x0)|A command to force an IMU data.| | |
+|IMU_ReportData|0 (0x0)|A command to force an IMU data.| | |
 
 ## Telemetry Channel List
 

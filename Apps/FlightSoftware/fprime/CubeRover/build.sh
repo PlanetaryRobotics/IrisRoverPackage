@@ -1,7 +1,16 @@
 # This was my build step (mostly because my arm compiler won't link *.a without executable enabled??
 make clean
 make TIR4
-patch --verbose ./Top/CubeRoverTopologyAppAc.hpp ./Top/CubeRoverTopologyAppAc.hpp.patch
+
+# Call component specific build scripts here
+pushd Top
+./build.sh
+popd
+
+pushd NetworkManager
+./build.sh
+popd
+
 # find .. | grep --color=never -e ".a$" | xargs --verbose chmod +x
 make TIR4
 ./clean.sh

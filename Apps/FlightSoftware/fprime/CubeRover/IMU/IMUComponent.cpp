@@ -92,13 +92,15 @@ namespace CubeRover {
     float roll = 0.0f;
     float pitch = 0.0f;
 
-    if((readAccelerations(&accX, &accY, &accZ)) != IMU_NO_ERROR){
+    if((readAccelerations(&accX, &accY, &accZ)) != IMU_NO_ERROR)
+    {
         // @todo       see how to pass argument to log events
         log_WARNING_HI_Imu_CommunicationFailure();
         return;
     }
 
-    if((readAngularRates(&gyroX, &gyroY, &gyroZ)) != IMU_NO_ERROR){
+    if((readAngularRates(&gyroX, &gyroY, &gyroZ)) != IMU_NO_ERROR)
+    {
         log_WARNING_HI_Imu_CommunicationFailure();
         return;
     }
@@ -112,7 +114,8 @@ namespace CubeRover {
 
     computePitchRoll(&pitch, &roll, accX, accY, accZ);
 
-    if(fabs(pitch) > MAX_ROVER_PITCH_ANGLE || fabs(roll) > MAX_ROVER_ROLL_ANGLE){
+    if(fabs(pitch) > MAX_ROVER_PITCH_ANGLE || fabs(roll) > MAX_ROVER_ROLL_ANGLE)
+    {
       log_WARNING_HI_Imu_AngleWarning();
     }
   }
@@ -139,7 +142,6 @@ namespace CubeRover {
     // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
-
   
   /**
    * @brief      Calculates the pitch roll. See example of implementation in
@@ -169,7 +171,6 @@ namespace CubeRover {
     *roll = atan2(-m_lpfAccX, m_lpfAccZ) * 180.0f * ONE_OVER_PI;
   }
 
-
   /**
    * @brief      Setup the accelerometer operating parameters
    *
@@ -183,12 +184,12 @@ namespace CubeRover {
     Adxl312::PowerCtlReg powerCtl;
     Adxl312::DataFormatReg format;
     Adxl312::FifoCtlReg fifoCtl;
+    Adxl312::IntReg intEnable;
     IMUError err = IMU_NO_ERROR;
 
     if(spi == NULL){
       return IMU_UNEXPECTED_ERROR; 
     }
-
 
     err = accReadData(Adxl312::AdxlRegister::DEVICE_ID, &deviceId, 1);
 
@@ -201,16 +202,6 @@ namespace CubeRover {
 
     // @TODO implement the rest of the configuration @TODO move that to command
     // handling to support turn on and off of the device
-
-    // Configure the Adxl312 accelerometer power control register Consult
-    // Adxl312 datasheet for further details.
-    powerCtl.all = 0;         // clear register
-    powerCtl.bit.measure = 1; // turn on measure mode
-
-    err = accWriteData(Adxl312::AdxlRegister::POWER_CTL, (uint16_t *)&powerCtl.all, 1);
-
-    if(err != IMU_NO_ERROR)
-      return err;
 
     // Configure the Adxl312 accelerometer data format register Consult Adxl312
     // datasheet for further details.
@@ -226,7 +217,15 @@ namespace CubeRover {
     fifoCtl.all = 0; // clear register
     fifoCtl.bit.fifo_mode = Adxl312::BYPASS; // configure FIFO buffer to be by-passed, only collect instant data
     err = accWriteData(Adxl312::AdxlRegister::FIFO_CTL, (uint16_t *)&fifoCtl.all, 1);
+    if(err != IMU_NO_ERROR)
+      return err;
 
+    // Configure the Adxl312 accelerometer power control register Consult
+    // Adxl312 datasheet for further details.
+    powerCtl.all = 0;         // clear register
+    powerCtl.bit.measure = 1; // turn on measure mode
+    err = accWriteData(Adxl312::AdxlRegister::POWER_CTL, (uint16_t *)&powerCtl.all, 1);
+  
     return err;
   }
 

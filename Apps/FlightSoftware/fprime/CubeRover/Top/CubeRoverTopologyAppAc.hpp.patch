@@ -1,0 +1,26 @@
+22,33c22,33
+< extern Drv::BlockDriverImpl blockDriver("blockDriver");
+< extern Svc::RateGroupDriverImpl rateGroupDriver("rateGroupDriver");
+< extern Svc::ActiveRateGroupImpl rateGroupLowFreq("rateGroupLowFreq");
+< extern Svc::ActiveRateGroupImpl rateGroupMedFreq("rateGroupMedFreq");
+< extern Svc::ActiveRateGroupImpl rateGroupHiFreq("rateGroupHiFreq");
+< extern Svc::CubeRoverTimeImpl cubeRoverTime("cubeRoverTime");
+< extern Svc::TlmChanImpl tlmChan("tlmChan");
+< extern Svc::CommandDispatcherImpl cmdDispatcher("cmdDispatcher");
+< extern CubeRover::GroundInterfaceImpl groundInterface("groundInterface");
+< extern CubeRover::UdpReceiverImpl udpReceiver("udpReceiver");
+< extern CubeRover::NetworkManagerImpl networkManager("networkManager");
+< extern CubeRover::IMUImpl IMU("IMU");
+---
+> extern Drv::BlockDriverImpl blockDriver;
+> extern Svc::RateGroupDriverImpl rateGroupDriver;
+> extern Svc::ActiveRateGroupImpl rateGroupLowFreq;
+> extern Svc::ActiveRateGroupImpl rateGroupMedFreq;
+> extern Svc::ActiveRateGroupImpl rateGroupHiFreq;
+> extern Svc::CubeRoverTimeImpl cubeRoverTime;
+> extern Svc::TlmChanImpl tlmChan;
+> extern Svc::CommandDispatcherImpl cmdDispatcher;
+> extern CubeRover::GroundInterfaceComponentImpl groundInterface;
+> extern CubeRover::UdpReceiverComponentImpl udpReceiver;
+> extern CubeRover::NetworkManagerComponentImpl networkManager;
+> extern CubeRover::IMUComponentImpl IMU;

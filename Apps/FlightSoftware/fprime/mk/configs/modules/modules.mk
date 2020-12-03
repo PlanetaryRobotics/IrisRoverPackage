@@ -37,9 +37,8 @@ UTILS_MODULES := \
 	Utils/Hash \
 	Utils/Types
         
-# XXX: Svc/BuffGndSockIf
 # XXX: Svc/UdpSender
-# XXX: Svc/UdpReceiver
+# XXX: Svc/SocketGndIf
 SVC_MODULES := \
 	Svc/BufferAccumulator \
 	Svc/BufferLogger \
@@ -69,8 +68,8 @@ SVC_MODULES := \
 	Svc/WatchDog \
 	Svc/FileUplink \
 	Svc/FileDownlink \
-    Svc/AssertFatalAdapter \
-    Svc/FatalHandler \
+  Svc/AssertFatalAdapter \
+  Svc/FatalHandler \
 	Svc/FileManager
 	
 DEMO_DRV_MODULES := \
@@ -202,15 +201,15 @@ acdev_MODULES := \
 	$(ACDEVTEST_MODULES)
 
 CubeRoverPorts_MODULES := \
-	CubeRover/CubeRoverPorts/IMUData \
-	CubeRover/CubeRoverPorts/MotorData
+	CubeRover/CubeRoverPorts/IMUData
 	
 CubeRover_MODULES := \
 	CubeRover/Top \
 	CubeRover/CubeRoverPorts \
-	CubeRover/MotorControl \
 	CubeRover/IMU \
-	CubeRover/Navigation \
+	CubeRover/UdpReceiver \
+	CubeRover/NetworkManager \
+	CubeRover/GroundInterface \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

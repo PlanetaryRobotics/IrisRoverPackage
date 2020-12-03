@@ -10,7 +10,6 @@
 
 // Include drivers
 #include <Drv/BlockDriver/BlockDriverImpl.hpp>
-#include <Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentImpl.hpp>
 
 // Include services
 #include <Svc/RateGroupDriver/RateGroupDriverImpl.hpp>
@@ -19,12 +18,13 @@
 #include <Svc/TlmChan/TlmChanImpl.hpp>
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
-#include <Svc/GroundInterface/GroundInterfaceImpl.hpp>
 
 // Include component exclusive to CubeRover project
-#include "CubeRover/MotorControl/MotorControlComponent.hpp"
-#include "CubeRover/IMU/IMUComponent.hpp"
-#include "CubeRover/Navigation/NavigationComponent.hpp"
+#include <CubeRover/IMU/IMUComponent.hpp>
+#include <CubeRover/GroundInterface/GroundInterface.hpp>
+#include <CubeRover/UdpReceiver/UdpReceiver.hpp>
+#include <CubeRover/NetworkManager/NetworkManager.hpp>
+
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -44,22 +44,19 @@ extern Svc::TlmChanImpl tlmChan;
 // Service that handle active logging
 extern Svc::ActiveLoggerImpl activeLogger;
 
-// Interface to ground for radio
-extern Svc::GroundInterfaceComponentImpl groundInterface;
-
-// FreeRTOS Serial driver to interface radio module
-extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
-
 // command dispatcher
 extern Svc::CommandDispatcherImpl cmdDispatcher;
-
-// motor control
-extern CubeRover::MotorControlComponentImpl motorControl;
 
 // IMU
 extern CubeRover::IMUComponentImpl IMU;
 
-// Navigation
-//extern CubeRover::NavigationComponentImpl navigation;
+// Interface to ground for radio
+extern CubeRover::GroundInterfaceComponentImpl groundInterface;
+
+// UDP receiver
+extern CubeRover::UdpReceiverComponentImpl udpReceiver;
+
+// NetworkManager
+extern CubeRover::NetworkManagerComponentImpl networkManager;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

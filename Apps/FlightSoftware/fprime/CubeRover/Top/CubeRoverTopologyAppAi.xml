@@ -40,11 +40,9 @@
 <!-- Declaration of the ground interface service -->
   <instance namespace="CubeRover" name="groundInterface" type="GroundInterface" base_id="161" base_id_window="20" />
 
-<!-- Declaration of the components that implement UDP interface XXX: Right now Lander Serial iface -->
+<!-- Declaration of the components that implement UDP interface (Lander RS422 Serial) -->
   <instance namespace="CubeRover" name="udpInterface" type="UdpInterface" base_id="181" base_id_window="20" />
       
-  <!-- TODO: NEED CUSTOM UDP SENDER CLASS -->
-
 <!-- Declaration of the components that implement NetworkManager and Wifi Stack -->
   <instance namespace="CubeRover" name="networkManager" type="NetworkManager" base_id="201" base_id_window="20" />
 

@@ -7,7 +7,7 @@
         <!-- First Column: form information -->
         <div class="modal-col">
           <!-- Left Column Form 1 -->
-          <span v-if="formOneVisible">
+          <span v-show="formOneVisible">
             <div class="modal-row flex-container">
               <div class="pri-type">
                 <div class="label">Priority</div>
@@ -103,23 +103,30 @@
           </span>
 
           <!-- Form 2-- hidden until next button clicked on form 1 modal -->
-          <span v-if="formTwoVisible">
+          <span v-show="formTwoVisible">
             <div class="modal-row">
               <div class="label">Tags</div>
-              <div class="add-tag-input-container flex-container vertically-center">
-                <input class="add-tag-input" @keydown.space.prevent type="text" v-on:input="tagUserInput = $event.target.value" placeholder="Search" />
+              <div
+                class="add-tag-input-container flex-container vertically-center"
+              >
+                <input
+                  class="add-tag-input"
+                  @keydown.space.prevent
+                  type="text"
+                  v-on:input="tagUserInput = $event.target.value"
+                  placeholder="Search"
+                />
                 <div
                   class="addTagButton flex-container vertically-center"
                   v-on:click="createNewTag"
-                  >
-                  <WhiteAddIcon class="white-add-icon"/>
+                >
+                  <WhiteAddIcon class="white-add-icon" />
                 </div>
               </div>
             </div>
 
             <div class="modal-row">
-              <div id="tag-pill-container">
-              </div>
+              <div id="tag-pill-container"></div>
             </div>
           </span>
         </div>
@@ -136,7 +143,6 @@
       </div>
 
       <div id="btn-container">
-
         <!-- Form 1 Buttons -->
         <span v-if="formOneVisible">
           <button class="button modal-button" v-on:click="closeModal">
@@ -152,20 +158,28 @@
 
         <!-- Form 2 Buttons -->
         <span v-if="formTwoVisible">
-
           <button class="button modal-button" v-on:click="closeModal">
             CANCEL
           </button>
 
-          <button class="button modal-button purple previous" v-on:click="populateAsFormOne">PREVIOUS</button>
+          <button
+            class="button modal-button purple previous"
+            v-on:click="populateAsFormOne"
+          >
+            PREVIOUS
+          </button>
 
           <button class="button modal-button purple create">CREATE</button>
-          
         </span>
       </div>
     </div>
 
-    <AddTagModalWithinPOIModal v-if="addTagModalVisible" v-on:closeModal="closeAddTagModal" v-on:newTag="pushNewTag" v-bind:tagInput="tagUserInput" />
+    <AddTagModalWithinPOIModal
+      v-if="addTagModalVisible"
+      v-on:closeModal="closeAddTagModal"
+      v-on:newTag="pushNewTag"
+      v-bind:tagInput="tagUserInput"
+    />
   </div>
 </template>
 
@@ -193,9 +207,7 @@ export default {
       formOneVisible: true,
       formTwoVisible: false,
       tagUserInput: "",
-
-      chosenTagList: [],
-
+      chosenTagList: [{details: "Details test", name: "testing"}],
       addTagModalVisible: false,
     };
   },
@@ -237,6 +249,8 @@ export default {
 
       // Show form 2 divs in left column
       this.formTwoVisible = true;
+        // Auto populate tags visible if any already created (e.g. if back button pushed then next pushed again)
+      this.updateTagPills();
     },
 
     createNewTag() {
@@ -256,11 +270,24 @@ export default {
         tagDiv.innerHTML = arr.name + " ";
 
         // create cross image
-        let imgDiv = document.createElement("img");
-        imgDiv.src="~src/assets/icons/icon_cross.svg";
-        imgDiv.setAttribute("class", "x-tag-pill");
-        imgDiv.onclick  = ()=> {this.removeTag(arr)};
-        tagDiv.appendChild(imgDiv);
+        var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute('width', '8');
+        svg.setAttribute('height', '8');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('viewbox', '0 0 8 8');
+        svg.setAttribute("class", "x-tag-pill");
+
+        var path1 = document.createElementNS("http://www.w3.org/2000/svg", 'path');
+        path1.setAttribute('d', "M7.23045 0.980647C7.31181 0.899288 7.31181 0.767379 7.23045 0.686019C7.14909 0.60466 7.01718 0.60466 6.93582 0.686019L3.95815 3.66369L0.980484 0.686025C0.899125 0.604666 0.767215 0.604666 0.685856 0.686025C0.604497 0.767385 0.604497 0.899294 0.685856 0.980653L3.66352 3.95832L0.683822 6.93802C0.602463 7.01938 0.602463 7.15129 0.683822 7.23265C0.765181 7.31401 0.897091 7.31401 0.97845 7.23265L3.95815 4.25295L6.93786 7.23266C7.01922 7.31401 7.15113 7.31401 7.23249 7.23266C7.31385 7.1513 7.31385 7.01939 7.23249 6.93803L4.25278 3.95832L7.23045 0.980647Z");
+        path1.setAttribute('fill', '#FCFCFC');
+
+        svg.appendChild(path1);
+        
+        svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
+
+        svg.onclick  = ()=> {this.removeTag(arr)};
+
+        tagDiv.appendChild(svg);
         document.getElementById("tag-pill-container").appendChild(tagDiv);
       }
     },
@@ -279,7 +306,7 @@ export default {
   watch: {
     chosenTagList: function(){
       this.updateTagPills();
-    }
+    },
   }
 };
 </script>
@@ -460,7 +487,7 @@ input {
   padding-left: 0.8rem;
 }
 
-.add-tag-input{
+.add-tag-input {
   padding-right: 2rem;
 }
 
@@ -491,9 +518,9 @@ textarea {
   border-color: $color-primary;
 }
 
-.purple:hover{
-  background-color: #6148C5;
-  border-color: #6148C5;
+.purple:hover {
+  background-color: #6148c5;
+  border-color: #6148c5;
 }
 
 .flex-container .buttons {
@@ -508,7 +535,7 @@ textarea {
 
 // Tag pills on form 2: tags
 #tag-pill-container {
-  padding-top: 2rem;
+  padding-top: 0.4rem;
   display: flex;
   flex-wrap: wrap;
 }
@@ -537,7 +564,7 @@ textarea {
   right: 0rem;
 }
 
-.add-tag-input-container{
+.add-tag-input-container {
   position: relative;
 }
 
@@ -552,7 +579,7 @@ textarea {
 
 <style>
 /* unscoped style */
-.tag-pill{
+.tag-pill {
   margin: 0.4rem;
   margin-left: 0;
   padding: 0.4rem 0.8rem;
@@ -560,10 +587,10 @@ textarea {
   border-radius: 0.4rem;
 
   font-size: 1rem;
-  color:#E9E9E9;
+  color: #e9e9e9;
 }
 
-.x-tag-pill{
+.x-tag-pill {
   margin-left: 0.4rem;
   cursor: pointer;
 }

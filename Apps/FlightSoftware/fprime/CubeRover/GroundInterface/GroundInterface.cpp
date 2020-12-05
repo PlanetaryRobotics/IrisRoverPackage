@@ -148,6 +148,7 @@ namespace CubeRover {
         Fw::Buffer &fwBuffer
     )
   {
+    // TODO: Use portnumber to increment some internal variable for which packet came from where
     
     m_packetsRx++;
 
@@ -223,7 +224,7 @@ namespace CubeRover {
         FW_ASSERT(size < UDP_MAX_PAYLOAD);
         Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data), size);
         log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size);
-        downlinkBufferSend_out(1, buffer);      // TODO: Dynamic output port selection  0: WF121   1: WD RS422
+        downlinkBufferSend_out(1, buffer);      // TODO: Dynamic output port selection  0: Lander RS422  1: WF121
         m_downlinkSeq++;
         m_packetsTx++;
     }

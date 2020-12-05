@@ -235,12 +235,12 @@
       
   <!-- TODO: Connect Camera & UWB to goundInterface HERE -->
       
-  <connection name="groundInterface_to_udpInterface"><!-- GROUNDINTERFACE cmdUplink PORT #0 -->
+  <connection name="groundInterface_to_udpInterface"><!-- GROUNDINTERFACE downlinkBufferSend PORT #0 -->
     <source component="groundInterface" port="downlinkBufferSend" type="Fw::BufferSend" num="0" />
     <target component="udpInterface" port="downlinkDatagram" type="Fw::BufferSend" num="0"/>
   </connection>
       
-  <connection name="groundInterface_to_networkManager"><!-- GROUNDINTERFACE cmdUplink PORT #1 -->
+  <connection name="groundInterface_to_networkManager"><!-- GROUNDINTERFACE downlinkBufferSend PORT #1 -->
     <source component="groundInterface" port="downlinkBufferSend" type="Buffer" num="0" />
     <target component="networkManager" port="downlink" type="Buffer" num="1" />
   </connection>

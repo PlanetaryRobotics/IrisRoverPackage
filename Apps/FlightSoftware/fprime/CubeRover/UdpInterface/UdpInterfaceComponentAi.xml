@@ -20,7 +20,7 @@
         </port>
             
         <!-- Downlink Ports -->
-        <port name="downlinkData" data_type="Fw::BufferSend" kind="sync_input" max_number="1">
+        <port name="downlinkDatagram" data_type="Fw::BufferSend" kind="sync_input" max_number="1">
             <comment>
                 GroundInterface sends a buffer pointing to a datagram with the payload filled.
                 This component will generate the checksum, compute the datagram length, and fill

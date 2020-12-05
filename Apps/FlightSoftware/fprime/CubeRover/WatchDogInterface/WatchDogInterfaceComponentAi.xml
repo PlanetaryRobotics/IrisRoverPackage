@@ -21,11 +21,11 @@
         
         <!-- Network interfaces for messages exchanged via Lander RS422 -->
         <port name="downlink" data_type="Fw::BufferSend" kind="guarded_input" max_number="1">
-            <comment>GroundInterface sends packets to Watchdog for downlink</comment>
+            <comment>UDPInterface sends packets to Watchdog for downlink</comment>
         </port>
             
         <port name="uplink" data_type="Fw::BufferSend" kind="output" max_number="1">
-            <comment>Watchdog sends received packets to UDPReceiver and GroundInterface</comment>
+            <comment>Watchdog sends received packets to UDPInterface</comment>
         </port>
         
         <!-- Ping ports -->

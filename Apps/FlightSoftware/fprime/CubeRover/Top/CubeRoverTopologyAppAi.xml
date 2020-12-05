@@ -230,6 +230,10 @@
     <source component="tlmChan" port="PktSend" type="Com" num="0" />
     <target component="groundInterface" port="tlmDownlink" type="Com" num="0" />
   </connection>
+    
+  <!-- TODO: Connect Logs to goundInterface HERE -->
+      
+  <!-- TODO: Connect Camera & UWB to goundInterface HERE -->
       
   <connection name="groundInterface_to_udpInterface">
     <source component="groundInterface" port="downlinkBufferSend" type="Fw::BufferSend" num="0" />

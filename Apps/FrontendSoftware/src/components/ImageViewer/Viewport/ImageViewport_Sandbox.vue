@@ -8,8 +8,6 @@ Updated: 08/30/2020, Colombo
 Last Update: 11/15/2020, Gabbi LaBorwit
 
 // TODO: fix glitch when go past top of image (priority: 1), and when off-sides how box doesn't auto border sides
-
-Manual POI add big modal stopped poppping up on click
 -->
 
 <template>

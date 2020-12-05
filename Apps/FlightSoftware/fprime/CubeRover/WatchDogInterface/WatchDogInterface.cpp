@@ -11,7 +11,7 @@
 // ======================================================================
 
 
-#include <CubeRover/WatchDogInterface/WatchDogInterfaceComponentImpl.hpp>
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
 #include "Fw/Types/BasicTypes.hpp"
 #include <stdio.h>
 #include <string.h>

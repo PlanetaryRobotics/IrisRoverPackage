@@ -160,7 +160,7 @@ void constructApp(void){
   udpReceiver.init();
   
   // Initialize the ground interface (passive)
-  networkManager.init();
+  //networkManager.init();
 
   // Initialize the IMU interface (passive)
   IMU.init();

@@ -46,7 +46,7 @@ namespace CubeRover {
    */
   void NavigationComponentImpl :: init(const NATIVE_INT_TYPE queueDepth,const NATIVE_INT_TYPE instance)
   {
-    NavigationComponentBase::init(instance);
+    NavigationComponentBase::init(queueDepth, instance);
   }
 
   /**

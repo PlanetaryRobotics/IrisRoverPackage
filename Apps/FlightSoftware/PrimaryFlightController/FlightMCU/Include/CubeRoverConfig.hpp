@@ -47,9 +47,9 @@
 #define ACTIVE_LOGGER_AFF           26
 #define ACTIVE_LOGGER_QUEUE_DEPTH   1
 
-#define MOTOR_CONTROL_ID            0
-#define MOTOR_CONTROL_AFF           25
-#define MOTOR_CONTROL_QUEUE_DEPTH   1
+#define NAV_ID                      0
+#define NAV_AFF                     25
+#define NAV_QUEUE_DEPTH             1
 
 // Hercules SPI register that handles IMU interface
 #define IMU_SPI_REG                	spiREG3

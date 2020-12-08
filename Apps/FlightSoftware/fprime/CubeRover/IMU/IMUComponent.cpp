@@ -91,7 +91,7 @@ namespace CubeRover {
     float gyroZ = 0.0f;
     float roll = 0.0f;
     float pitch = 0.0f;
-
+/*
     if((readAccelerations(&accX, &accY, &accZ)) != IMU_NO_ERROR)
     {
         // @todo       see how to pass argument to log events
@@ -104,7 +104,7 @@ namespace CubeRover {
         log_WARNING_HI_Imu_CommunicationFailure();
         return;
     }
-
+*/
     tlmWrite_X_Acc(accX);
     tlmWrite_Y_Acc(accY);
     tlmWrite_Z_Acc(accZ);
@@ -302,12 +302,12 @@ namespace CubeRover {
     m_spi = spi;
     m_setup = true;
 
-    err = setupAccelerometer(spi);
+    //err = setupAccelerometer(spi);
 
     if(err != IMU_NO_ERROR)
       return err;
 
-    err = setupGyroscope(spi);
+    //err = setupGyroscope(spi);
     return err;
   }
 

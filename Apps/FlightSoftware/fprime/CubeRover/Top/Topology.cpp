@@ -160,10 +160,16 @@ void constructApp(void){
   udpReceiver.init();
   
   // Initialize the ground interface (passive)
-  //networkManager.init();
+  networkManager.init();
 
   // Initialize the IMU interface (passive)
   IMU.init();
+
+  // Initialize the Motor control interface (passive)
+  motorControl.init();
+
+  // Initialize the navigation component (active)
+  navigation.init(NAV_QUEUE_DEPTH,NAV_ID);
 
    // Construct the application and make all connections between components
   constructCubeRoverArchitecture();
@@ -192,7 +198,9 @@ void constructApp(void){
                       CMD_DISP_AFF, 
                       CMD_DISP_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
 
-  // Runs necessary set-up
+  navigation.start(0,
+                   NAV_AFF,
+                   NAV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
 
   // setup communication with IMU over SPI
   IMU.setup(IMU_SPI_REG);

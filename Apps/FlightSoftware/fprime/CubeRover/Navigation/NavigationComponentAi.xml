@@ -9,7 +9,6 @@
     <import_port_type>Fw/Tlm/TlmPortAi.xml</import_port_type> 
     <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
-    <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
     <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
     <import_port_type>CubeRover/CubeRoverPorts/MotorData/MotorDataPortAi.xml</import_port_type>
     <import_port_type>CubeRover/CubeRoverPorts/IMUData/IMUDataPortAi.xml</import_port_type>
@@ -38,10 +37,12 @@
         <!-- Scheduler port -->
         <port name="schedIn" data_type="Svc::Sched" kind="async_input" max_number="1"></port>
 
-        <!-- Custom data ports-->
-        <port name="MotorDataOut" data_type="CubeRoverPorts::MotorData" kind="async_input" max_number="1"></port>
+        <port name="schedOut" data_type="Svc::Sched" kind="output" max_number="1"></port>
 
-        <port name="IMUDataOut" data_type="CubeRoverPorts::IMUData" kind="async_input" max_number="1"></port>
+        <!-- Custom data ports-->
+        <port name="MotorDataIn" data_type="CubeRoverPorts::MotorData" kind="async_input" max_number="1"></port>
+
+        <port name="IMUDataIn" data_type="CubeRoverPorts::IMUData" kind="async_input" max_number="1"></port>
 
         <!-- TODO -->
         <!-- Still need Mode manager port(s)! -->

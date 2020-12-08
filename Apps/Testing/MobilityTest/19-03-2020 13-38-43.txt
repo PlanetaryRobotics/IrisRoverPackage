@@ -1,0 +1,20 @@
+Target speed left front (rev/min): 10
+Target speed left back (rev/min): 10
+Target speed right front (rev/min): 10
+Target speed right back (rev/min): 10
+Target pos left (rev): 1
+Target pos right (rev): 1
+Data format: <time in ms since beginning>,<position ticks FL>,<position ticks FR>,<position ticks RL>,<position ticks RR>,<current mA FL>,<current mA FR>,<current mA RL>,<current mA RR>
+2127,0,0,0,0,0,0,0,0
+4239,0,0,0,0,0,0,0,0
+6351,0,0,0,0,0,0,0,0
+8463,0,0,0,0,0,0,0,0
+10575,0,0,0,0,0,0,0,0
+12686,0,0,0,0,0,0,0,0
+14798,0,0,0,0,0,0,0,0
+16910,0,0,0,0,0,0,0,0
+19022,0,0,0,0,0,0,0,0
+21135,0,0,0,0,0,0,0,0
+23247,0,0,0,0,0,0,0,0
+25359,0,0,0,0,0,0,0,0
+26555,0,0,0,0,0,0,0,0

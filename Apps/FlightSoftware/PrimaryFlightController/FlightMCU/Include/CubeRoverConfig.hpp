@@ -58,11 +58,12 @@
 
 // Configuration of I2C interfaces address and ports
 // For the motor controllers
-#define ALL_MOTOR_ADDR						0x00
-#define FRONT_LEFT_MC_I2C_ADDR   	0x01
-#define FRONT_RIGHT_MC_I2C_ADDR  	0x02
-#define REAR_LEFT_MC_I2C_ADDR    	0x03
-#define REAR_RIGHT_MC_I2C_ADDR   	0x04
+#define ALL_MOTOR_ADDR			    0x00
+#define BASE_ADDRESS                0x0640
+#define FRONT_LEFT_MC_I2C_ADDR      0x0688
+#define FRONT_RIGHT_MC_I2C_ADDR     0x0689
+#define REAR_LEFT_MC_I2C_ADDR       0x0690
+#define REAR_RIGHT_MC_I2C_ADDR      0x0691
 #define MOTOR_CONTROL_I2CREG     	i2cREG1
 
 #define CUBEROVER_WHEEL_DIAMETER_CM	20.0f

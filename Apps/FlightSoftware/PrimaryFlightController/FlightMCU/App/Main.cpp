@@ -10,6 +10,7 @@
 #include "os_task.h"
 #include "CubeRover/Top/Topology.hpp"
 
+#include "adc.h"
 #include "gio.h"
 #include "i2c.h"
 #include "spi.h"
@@ -27,10 +28,11 @@ void vApplicationIdleHook(void) {
 void main(void)
 {
     /* USER CODE BEGIN (3) */
-    gioInit();
 
+    gioInit();
     i2cInit();
     sciInit();
+    adcInit();
     spiInit();
 
     constructApp();

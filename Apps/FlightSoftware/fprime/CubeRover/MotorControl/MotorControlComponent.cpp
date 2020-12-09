@@ -110,11 +110,8 @@ namespace CubeRover {
    */
   void MotorControlComponentImpl :: schedIn_handler(const NATIVE_INT_TYPE portNum, NATIVE_UINT_TYPE context)
   {
-    tick_count++;
-    if(tick_count == 200)
-    {
-      Move_all_motors(3*rotations_to_ticks);
-    }
+
+    Move_all_motors(3*rotations_to_ticks);
     
   }
 

@@ -246,6 +246,31 @@
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
       
+
+<!-- *********************************************************************************************************
+        CONNECTION OF INTERCONNECTED COMPONENTS
+     ********************************************************************************************************* 
+      -->
+
+  <!-- Nav to MC pseduo scheduler -->
+  <connection name="navigation_to_motorControl_sched">
+    <source component="Navigation" port="schedOut" type="sched" num="0" />
+    <target component="motorControl" port="schedIn" type="sched" num="0" />
+  </connection>
+
+   <!-- MC to Nav  -->
+  <connection name="motorControl_to_navigation_motorData">
+    <source component="motorControl" port="motorDataOut" type="motorData" num="0" />
+    <target component="navigation" port="motorDataIn" type="motorData" num="0" />
+  </connection>
+
+  <!-- IMU to Nav  -->
+  <connection name="IMU_to_Navigation_IMUData">
+    <source component="IMU" port="IMUDataOut" type="IMUData" num="0" />
+    <target component="navigation" port="IMUDataIn" type="IMUData" num="0" />
+  </connection>
+
+
 <!-- *********************************************************************************************************
         CONNECTION OF DOWNLINK COMPONENTS 
      ********************************************************************************************************* 

@@ -62,12 +62,12 @@ namespace CubeRover {
 
       //! Handler implementation for MotorDataOut
       //!
-      void MotorDataOut_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
+      void motorDataIn_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
                                 bool movement_finished /*!<  A simple boolean to tell Nav motion is finished */);
 
       //! Handler implementation for IMUDataOut
       //!
-      void IMUDataOut_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
+      void IMUDataIn_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
                               I16 x_acc, 
                               I16 y_acc, 
                               I16 z_acc, 

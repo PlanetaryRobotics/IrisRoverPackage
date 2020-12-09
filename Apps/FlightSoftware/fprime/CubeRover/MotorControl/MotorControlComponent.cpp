@@ -103,6 +103,49 @@ namespace CubeRover {
   }
 
   /**
+   * @brief      Handler implementation for ping (health)
+   *
+   * @param[in]  portNum  The port number
+   * @param[in]  context  ???
+   */
+  void MotorControlComponentImpl :: schedIn_handler(const NATIVE_INT_TYPE portNum, NATIVE_UINT_TYPE context)
+  {
+    tick_count++;
+    if(tick_count == 200)
+    {
+      Move_all_motors(3*rotations_to_ticks);
+    }
+    
+  }
+
+
+  void MotorControlComponentImpl :: Move_all_motors(uint32_t distance)
+  {
+    // Error preset
+    MCError err;
+    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                    MotorControllerI2C::CURRENT_POSITION, 
+                                    FRONT_LEFT_MC_I2C_ADDR,
+                                    distance);
+
+    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                    MotorControllerI2C::CURRENT_POSITION, 
+                                    FRONT_RIGHT_MC_I2C_ADDR,
+                                    distance);
+
+    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                    MotorControllerI2C::CURRENT_POSITION, 
+                                    REAR_RIGHT_MC_I2C_ADDR,
+                                    distance);
+
+    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                    MotorControllerI2C::CURRENT_POSITION, 
+                                    REAR_LEFT_MC_I2C_ADDR,
+                                    distance);
+
+  }
+
+  /**
    * @brief      Motor configuration command handler implementation
    *
    * @param[in]  opCode          The operation code

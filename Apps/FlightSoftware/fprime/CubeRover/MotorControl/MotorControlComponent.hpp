@@ -142,6 +142,11 @@ namespace CubeRover {
       void PingIn_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
                           U32 key /*!< Value to return to pinger*/);
 
+      //! Handler implementation for schedIn
+      //!
+      void schedIn_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
+                           NATIVE_UINT_TYPE context /*!< The call order*/);
+
       // ----------------------------------------------------------------------
       // Command handler implementations
       // ----------------------------------------------------------------------
@@ -229,6 +234,13 @@ namespace CubeRover {
       Motor_tick cmToMotorTicks(const Distance_cm dist);
       MCError enableDrivers();
       MCError disableDrivers();
+
+      void MotorControlComponentImpl :: Move_all_motors(uint32_t distance);
+
+      //Debug functions/items
+      uint32_t tick_count = 0;
+
+      uint8_t rotations_to_ticks;
 
       // left and right turn parameters
       uint8_t m_rightSpeed;

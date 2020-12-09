@@ -40,7 +40,7 @@
         <port name="schedOut" data_type="Svc::Sched" kind="output" max_number="1"></port>
 
         <!-- Custom data ports-->
-        <port name="MotorDataIn" data_type="CubeRoverPorts::MotorData" kind="async_input" max_number="1"></port>
+        <port name="motorDataIn" data_type="CubeRoverPorts::MotorData" kind="async_input" max_number="1"></port>
 
         <port name="IMUDataIn" data_type="CubeRoverPorts::IMUData" kind="async_input" max_number="1"></port>
 

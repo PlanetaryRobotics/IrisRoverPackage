@@ -80,7 +80,7 @@ namespace CubeRover {
    */
   void NavigationComponentImpl :: schedIn_handler(const NATIVE_INT_TYPE portNum, NATIVE_UINT_TYPE context)
   {
-    // TODO
+    schedOut_out(portNum,context);
   }
 
   /**
@@ -89,7 +89,7 @@ namespace CubeRover {
    * @param[in]  portNum            The port number
    * @param[in]  movement_finished  Flag for movement being finished
    */
-  void NavigationComponentImpl :: MotorDataOut_handler(const NATIVE_INT_TYPE portNum, bool movement_finished)
+  void NavigationComponentImpl :: motorDataIn_handler(const NATIVE_INT_TYPE portNum, bool movement_finished)
   {
     // TODO
   }
@@ -100,7 +100,7 @@ namespace CubeRover {
    * @param[in]  portNum  The port number
    * @param[in]  x_acc    Accleration of the X direction returned by the IMU (units of m/s^2)
    */
-  void NavigationComponentImpl :: IMUDataOut_handler(const NATIVE_INT_TYPE portNum,
+  void NavigationComponentImpl :: IMUDataIn_handler(const NATIVE_INT_TYPE portNum,
                                                      I16 x_acc,
                                                      I16 y_acc,
                                                      I16 z_acc,

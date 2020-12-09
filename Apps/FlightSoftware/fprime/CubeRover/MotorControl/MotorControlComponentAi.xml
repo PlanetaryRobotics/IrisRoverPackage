@@ -41,7 +41,7 @@
     <!-- Or does Motor Control assume Navigation took care of it?-->
 
     <!-- Motor Data port -->
-    <port name="MotorDataOut" data_type="CubeRoverPorts::MotorData" kind="output" max_number="1"></port>
+    <port name="motorDataOut" data_type="CubeRoverPorts::MotorData" kind="output" max_number="1"></port>
 
   </ports>
 

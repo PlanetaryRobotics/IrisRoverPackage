@@ -105,9 +105,9 @@
     <target component="networkManager" port="schedIn" type="sched" num="0"/>
   </connection>
 
-  <connection name="rgMedFreq_to_navigation">
+  <connection name="rgMedFreq_to_motorControl">
     <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
-    <target component="navigation" port="schedIn" type="sched" num="0"/>
+    <target component="motorControl" port="schedIn" type="sched" num="0"/>
   </connection>
 
 <!-- *********************************************************************************************************
@@ -251,12 +251,6 @@
         CONNECTION OF INTERCONNECTED COMPONENTS
      ********************************************************************************************************* 
       -->
-
-  <!-- Nav to MC pseduo scheduler -->
-  <connection name="navigation_to_motorControl_sched">
-    <source component="Navigation" port="schedOut" type="sched" num="0" />
-    <target component="motorControl" port="schedIn" type="sched" num="0" />
-  </connection>
 
    <!-- MC to Nav  -->
   <connection name="motorControl_to_navigation_motorData">

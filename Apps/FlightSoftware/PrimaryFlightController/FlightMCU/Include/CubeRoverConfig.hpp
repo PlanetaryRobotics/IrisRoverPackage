@@ -60,10 +60,10 @@
 // For the motor controllers
 #define ALL_MOTOR_ADDR			    0x00
 #define BASE_ADDRESS                0x0640
-#define FRONT_LEFT_MC_I2C_ADDR      0x0688
-#define FRONT_RIGHT_MC_I2C_ADDR     0x0689
-#define REAR_LEFT_MC_I2C_ADDR       0x0690
-#define REAR_RIGHT_MC_I2C_ADDR      0x0691
+#define FRONT_LEFT_MC_I2C_ADDR      0x1
+#define FRONT_RIGHT_MC_I2C_ADDR     0x2
+#define REAR_LEFT_MC_I2C_ADDR       0x3
+#define REAR_RIGHT_MC_I2C_ADDR      0x4
 #define MOTOR_CONTROL_I2CREG     	i2cREG1
 
 #define CUBEROVER_WHEEL_DIAMETER_CM	20.0f

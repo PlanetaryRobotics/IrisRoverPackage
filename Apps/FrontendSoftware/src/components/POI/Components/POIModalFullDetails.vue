@@ -187,12 +187,22 @@
 import Dropdown from "@/components/POI/Components/Dropdown.vue";
 import WhiteAddIcon from "@/assets/imgviewer/SVGcomponents/WhiteAddIcon.vue";
 import AddTagModalWithinPOIModal from "@/components/POI/Components/AddTagModalWithinPOIModal.vue";
+import { mapGetters } from "vuex";
+import getPixels from "get-pixels";
+import util from "util";
+import savePixels from "save-pixels";
+import streamConcat from "concat-stream";
+
+// Promisify function for image data getters in computed
+const getPromisedPixels = util.promisify(getPixels);
 
 export default {
   name: "POIModalFullDetails",
 
   props: {
     parentData: String,
+    startCoord: Array,
+    endCoord: Array
   },
 
   components: {
@@ -207,7 +217,7 @@ export default {
       formOneVisible: true,
       formTwoVisible: false,
       tagUserInput: "",
-      chosenTagList: [{details: "Details test", name: "testing"}],
+      chosenTagList: [{ details: "Details test", name: "testing" }],
       addTagModalVisible: false,
     };
   },
@@ -217,12 +227,12 @@ export default {
       this.$emit("closeTheModal");
     },
 
-    closeAddTagModal(){
+    closeAddTagModal() {
       this.addTagModalVisible = false;
     },
 
     // Push new tag from tag creation modal to chosen tag list
-    pushNewTag(tag){
+    pushNewTag(tag) {
       // Push new tag to array of chosen tags
       this.chosenTagList.push(tag);
     },
@@ -235,7 +245,7 @@ export default {
       }
     },
 
-    populateAsFormOne(){
+    populateAsFormOne() {
       // Show form 1
       this.formOneVisible = true;
 
@@ -249,7 +259,7 @@ export default {
 
       // Show form 2 divs in left column
       this.formTwoVisible = true;
-        // Auto populate tags visible if any already created (e.g. if back button pushed then next pushed again)
+      // Auto populate tags visible if any already created (e.g. if back button pushed then next pushed again)
       this.updateTagPills();
     },
 
@@ -257,13 +267,13 @@ export default {
       this.addTagModalVisible = true;
     },
 
-    updateTagPills(){
+    updateTagPills() {
       // clear current tags
-      document.getElementById("tag-pill-container").innerHTML = '';
+      document.getElementById("tag-pill-container").innerHTML = "";
 
       // for tag in this.chosenTagList: create new tag pill so updates when tags deleted and created
-      for(var i=0; i < this.chosenTagList.length; i++){
-        let arr = this.chosenTagList[i]
+      for (var i = 0; i < this.chosenTagList.length; i++) {
+        let arr = this.chosenTagList[i];
 
         let tagDiv = document.createElement("div");
         tagDiv.setAttribute("class", "tag-pill");
@@ -271,44 +281,88 @@ export default {
 
         // create cross image
         var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute('width', '8');
-        svg.setAttribute('height', '8');
-        svg.setAttribute('fill', 'none');
-        svg.setAttribute('viewbox', '0 0 8 8');
+        svg.setAttribute("width", "8");
+        svg.setAttribute("height", "8");
+        svg.setAttribute("fill", "none");
+        svg.setAttribute("viewbox", "0 0 8 8");
         svg.setAttribute("class", "x-tag-pill");
 
-        var path1 = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-        path1.setAttribute('d', "M7.23045 0.980647C7.31181 0.899288 7.31181 0.767379 7.23045 0.686019C7.14909 0.60466 7.01718 0.60466 6.93582 0.686019L3.95815 3.66369L0.980484 0.686025C0.899125 0.604666 0.767215 0.604666 0.685856 0.686025C0.604497 0.767385 0.604497 0.899294 0.685856 0.980653L3.66352 3.95832L0.683822 6.93802C0.602463 7.01938 0.602463 7.15129 0.683822 7.23265C0.765181 7.31401 0.897091 7.31401 0.97845 7.23265L3.95815 4.25295L6.93786 7.23266C7.01922 7.31401 7.15113 7.31401 7.23249 7.23266C7.31385 7.1513 7.31385 7.01939 7.23249 6.93803L4.25278 3.95832L7.23045 0.980647Z");
-        path1.setAttribute('fill', '#FCFCFC');
+        var path1 = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "path"
+        );
+        path1.setAttribute(
+          "d",
+          "M7.23045 0.980647C7.31181 0.899288 7.31181 0.767379 7.23045 0.686019C7.14909 0.60466 7.01718 0.60466 6.93582 0.686019L3.95815 3.66369L0.980484 0.686025C0.899125 0.604666 0.767215 0.604666 0.685856 0.686025C0.604497 0.767385 0.604497 0.899294 0.685856 0.980653L3.66352 3.95832L0.683822 6.93802C0.602463 7.01938 0.602463 7.15129 0.683822 7.23265C0.765181 7.31401 0.897091 7.31401 0.97845 7.23265L3.95815 4.25295L6.93786 7.23266C7.01922 7.31401 7.15113 7.31401 7.23249 7.23266C7.31385 7.1513 7.31385 7.01939 7.23249 6.93803L4.25278 3.95832L7.23045 0.980647Z"
+        );
+        path1.setAttribute("fill", "#FCFCFC");
 
         svg.appendChild(path1);
-        
-        svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
 
-        svg.onclick  = ()=> {this.removeTag(arr)};
+        svg.setAttributeNS(
+          "http://www.w3.org/2000/xmlns/",
+          "xmlns:xlink",
+          "http://www.w3.org/1999/xlink"
+        );
+
+        svg.onclick = () => {
+          this.removeTag(arr);
+        };
 
         tagDiv.appendChild(svg);
         document.getElementById("tag-pill-container").appendChild(tagDiv);
       }
     },
 
-    removeTag(tagVal){
-      for(var i=0; i < this.chosenTagList.length; i++){
-        if(this.chosenTagList[i] == tagVal){
-          this.chosenTagList.splice(i, 1); 
+    removeTag(tagVal) {
+      for (var i = 0; i < this.chosenTagList.length; i++) {
+        if (this.chosenTagList[i] == tagVal) {
+          this.chosenTagList.splice(i, 1);
           break;
         }
       }
-      console.log("tag list: ", this.chosenTagList)
+      console.log("tag list: ", this.chosenTagList);
     },
   },
 
   watch: {
-    chosenTagList: function(){
+    chosenTagList: function () {
       this.updateTagPills();
     },
+  },
+
+  computed: {
+    ...mapGetters({
+      selectedImage: "selectedImage",
+    }),
+  },
+
+  asyncComputed: {
+    async imgData(){
+      let rowStart = Math.min(this.startCoord[1], this.endCoord[1]);
+      let rowEnd = Math.max(this.startCoord[1], this.endCoord[1]);
+
+      let colStart = Math.min(this.startCoord[0], this.endCoord[0]);
+      let colEnd = Math.max(this.startCoord[0], this.endCoord[0]);
+
+      let pixels = await getPromisedPixels(this.selectedImage.url);
+      let croppedMatrix = pixels.hi(rowEnd, colEnd).lo(rowStart, colStart)
+
+      let stream = savePixels(croppedMatrix, "png");
+
+      return await new Promise( (resolve,reject) => {
+        stream.pipe(streamConcat( buf => {
+          resolve(buf);
+        }));
+        stream.on('error', err => {
+          reject(err);
+        });
+      })
+    },
   }
-};
+}
+
+// Make img tag set src = imgDatafromcomputed like in imgviewersandbox
 </script>
 
 <style lang="scss" scoped>

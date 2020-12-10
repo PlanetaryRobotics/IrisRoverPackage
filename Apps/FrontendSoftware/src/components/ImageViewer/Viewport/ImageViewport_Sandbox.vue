@@ -77,6 +77,8 @@ Last Update: 11/15/2020, Gabbi LaBorwit
         />
         <POIModalFullDetails
           :parentData="initalPOIChoiceSelected"
+          :startCoord="startCoord"
+          :endCoord="endCoord"
           v-if="arePOIFullDetailsVisible"
           v-on:closeTheModal="closePOIDetailsModal"
         />

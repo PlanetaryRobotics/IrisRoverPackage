@@ -54,9 +54,9 @@
             Command to reset the specific parts of rover
             </comment>
             <args>
-                <arg name="reset_value" type="U16">
+                <arg name="reset_value" type="U8">
                     <comment>
-                    	U16 Value that specifies which components or hardware need to be reset
+                    	U8 Value that specifies which components or hardware need to be reset
                     </comment>
                 </arg>
              </args>

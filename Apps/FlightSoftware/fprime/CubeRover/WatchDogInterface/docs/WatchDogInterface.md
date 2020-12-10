@@ -7,8 +7,8 @@
 |Mnemonic|ID|Description|Arg Name|Arg Type|Comment
 |---|---|---|---|---|---|
 |Reset_Specific|0 (0x0)|Command to reset the specific parts of rover| | |
-| | | |reset_value|U16|
-                    	U16 Value that specifies which components or hardware need to be reset
+| | | |reset_value|U8|
+                    	U8 Value that specifies which components or hardware need to be reset
                     |
 
 ## Telemetry Channel List

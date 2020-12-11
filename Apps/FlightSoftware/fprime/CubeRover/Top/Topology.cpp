@@ -162,6 +162,9 @@ void constructApp(void){
   // Initialize the IMU interface (passive)
   IMU.init();
   
+  // setup communication with IMU over SPI
+  IMU.setup(IMU_SPI_REG);
+
   // Initialize the ground interface (passive)
   networkManager.init();
 
@@ -202,7 +205,5 @@ void constructApp(void){
                    NAV_AFF,
                    NAV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
 
-  // setup communication with IMU over SPI
-  IMU.setup(IMU_SPI_REG);
 
 }

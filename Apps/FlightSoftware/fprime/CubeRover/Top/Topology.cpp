@@ -158,12 +158,12 @@ void constructApp(void){
 
   // Initialize the ground interface (passive)
   udpReceiver.init();
-  
-  // Initialize the ground interface (passive)
-  networkManager.init();
 
   // Initialize the IMU interface (passive)
   IMU.init();
+  
+  // Initialize the ground interface (passive)
+  networkManager.init();
 
   // Initialize the Motor control interface (passive)
   motorControl.init();

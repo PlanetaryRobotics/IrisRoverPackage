@@ -111,7 +111,36 @@ namespace CubeRover {
   void MotorControlComponentImpl :: schedIn_handler(const NATIVE_INT_TYPE portNum, NATIVE_UINT_TYPE context)
   {
 
-    Move_all_motors(3*rotations_to_ticks);
+    /* Configure address of Slave to talk to */
+    i2cSetSlaveAdd(i2c, 0x11);
+
+    /* Set direction to Transmitter */
+    i2cSetDirection(i2c, I2C_TRANSMITTER);
+
+    /* Configure Data count */
+    //i2cSetCount(i2c, 8);
+
+    /* Set mode as Master */
+    i2cSetMode(i2c, I2C_MASTER);
+
+    /* Set Stop after programmed Count */
+    i2cSetStop(i2c);
+
+    /* Transmit Start Condition */
+    i2cSetStart(i2c);
+
+    /* Transmit DATA_COUNT number of data in Polling mode */
+    i2cSendByte(i2c, 0x85);
+
+    /* Wait until Bus Busy is cleared */
+    while(i2cIsBusBusy(i2c) == true);
+
+    /* Wait until Stop is detected */
+    while(i2cIsStopDetected(i2c) == 0);
+
+    /* Clear the Stop condition */
+    i2cClearSCD(i2c);
+    //Move_all_motors(3*rotations_to_ticks);
     
   }
 

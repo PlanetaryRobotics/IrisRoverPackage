@@ -105,40 +105,40 @@ void i2cInit(void)
     i2cREG1->DMACR = 0x00U;
 
     /** - set i2c data count */
-    i2cREG1->CNT = 8U;
+    i2cREG1->CNT = 8U; // 8 Data bits until stop condition
 
     /** - disable all interrupts */
     i2cREG1->IMR = 0x00U;
 
     /** - set prescale */
-    i2cREG1->PSC = 13U;
+    i2cREG1->PSC = 13U; // Results with a Module CLK Freq of 8 MHz (Underlying clock controlling I2C)
 
     /** - set clock rate */
-    i2cREG1->CKH = 34U;
-    i2cREG1->CKL = 34U;
+    i2cREG1->CKH = 5U; 
+    i2cREG1->CKL = 5U; // Configures Baud Rate to be 400KHz
 
     /** - set i2c pins functional mode */
-    i2cREG1->PFNC = (0U);
+    i2cREG1->PFNC = (0U); // Selects I2C mode instead of general I/O pins
 
     /** - set i2c pins default output value */
     i2cREG1->DOUT = (uint32)((uint32)0U << 1U)     /* sda pin */
-                  | (uint32)(0U);     /* scl pin */
+                  | (uint32)(0U);                  /* scl pin */
 
     /** - set i2c pins output direction */
     i2cREG1->DIR  = (uint32)((uint32)0U << 1U)     /* sda pin */
-                  | (uint32)(0U);     /* scl pin */
+                  | (uint32)(0U);                  /* scl pin */
 
     /** - set i2c pins open drain enable */
     i2cREG1->PDR  = (uint32)((uint32)0U << 1U)     /* sda pin */
-                  | (uint32)(0U);     /* scl pin */
+                  | (uint32)(0U);                  /* scl pin */
 
     /** - set i2c pins pullup/pulldown enable */
     i2cREG1->PDIS = (uint32)((uint32)0U << 1U)     /* sda pin */
-                  | (uint32)(0U);     /* scl pin */
+                  | (uint32)(0U);                  /* scl pin */
 
     /** - set i2c pins pullup/pulldown select */
     i2cREG1->PSEL = (uint32)((uint32)1U << 1U)     /* sda pin */
-                  | (uint32)(1U);     /* scl pin */
+                  | (uint32)(1U);                  /* scl pin */
 
     /** - set interrupt enable */
     i2cREG1->IMR  = (uint32)((uint32)0U << 6U)     /* Address as slave interrupt      */
@@ -147,7 +147,7 @@ void i2cInit(void)
                   | (uint32)((uint32)0U << 3U)     /* Receive data ready interrupt    */
                   | (uint32)((uint32)0U << 2U)     /* Register Access ready interrupt */
                   | (uint32)((uint32)0U << 1U)     /* No Acknowledgement interrupt    */
-                  | (uint32)((uint32)0U);     /* Arbitration Lost interrupt      */
+                  | (uint32)((uint32)0U);          /* Arbitration Lost interrupt      */
 
     /** - i2c Out of reset */
     i2cREG1->MDR |= (uint32)I2C_RESET_OUT;

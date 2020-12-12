@@ -82,22 +82,24 @@ void i2cInit(void)
     i2cREG1->MDR = (uint32)((uint32)0U << 5U);
 
     /** - set i2c mode */
-    i2cREG1->MDR =   (uint32)((uint32)0U << 15U)     /* nack mode                         */
-                   | (uint32)((uint32)0U << 14U)     /* free running                      */
-                   | (uint32)(0U)              /* start condition - master only     */
-                   | (uint32)((uint32)1U <<11U)      /* stop condition                    */
-                   | (uint32)((uint32)1U <<10U)      /* Master/Slave mode                 */
-                   | (uint32)((uint32)I2C_TRANSMITTER)     /* Transmitter/receiver              */
-                   | (uint32)((uint32)I2C_7BIT_AMODE)      /* xpanded address                   */
-                   | (uint32)((uint32)0U << 7U)      /* repeat mode                       */
-                   | (uint32)((uint32)0U << 6U)     /* digital loop back                  */
-                   | (uint32)((uint32)0U << 4U)     /* start byte - master only          */
-                   | (uint32)((uint32)0U << 3U)           /* free data format                  */
-                   | (uint32)(I2C_8_BIT);   /* bit count                         */
+    i2cREG1->MDR =   (uint32)((uint32)0U << 15U)        /* nack mode                         */
+                   | (uint32)((uint32)0U << 14U)        /* free running                      */
+                   | (uint32)((uint32)0U << 13U)        /* start condition - master only     */
+                                                        /* 12 is reserved                    */
+                   | (uint32)((uint32)1U <<11U)         /* stop condition                    */
+                   | (uint32)((uint32)1U <<10U)         /* Master/Slave mode                 */
+                   | (uint32)((uint32)I2C_TRANSMITTER)  /* Transmitter/receiver              */
+                   | (uint32)((uint32)I2C_7BIT_AMODE)   /* xpanded address                   */
+                   | (uint32)((uint32)0U << 7U)         /* repeat mode                       */
+                   | (uint32)((uint32)0U << 6U)         /* digital loop back                 */
+                                                        /* 5 is reset                        */
+                   | (uint32)((uint32)0U << 4U)         /* start byte - master only          */
+                   | (uint32)((uint32)0U << 3U)         /* free data format                  */
+                   | (uint32)(I2C_8_BIT);               /* bit count                         */
 
 
     /** - set i2c Backward Compatibility mode */
-    i2cREG1->EMDR = 0U;
+    i2cREG1->EMDR = 1U;
 
     /** - Disable DMA */
     i2cREG1->DMACR = 0x00U;

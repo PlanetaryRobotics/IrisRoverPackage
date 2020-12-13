@@ -9,6 +9,7 @@ uint8_t g_testData = 0xAA;
  */
 int main(void)
 {
+    int32_t delay;
 	WDT_A_hold(WDT_A_BASE);
 
 	initializeGpios();
@@ -46,10 +47,14 @@ int main(void)
     powerOnMotors();
     powerOnRadio();
 
-    releaseHerculesReset();
     releaseRadioReset();
-    releaseFPGAReset();
+    for(delay=0; delay<10000; delay++) asm("  NOP");
     releaseMotorControllerReset();
+    for(delay=0; delay<10000; delay++) asm("  NOP");
+    releaseHerculesReset();
+    for(delay=0; delay<10000; delay++) asm("  NOP");
+    releaseFPGAReset();
+    for(delay=0; delay<10000; delay++) asm("  NOP");
 
     // Enable UART module
     EUSCI_A_UART_enable(EUSCI_A0_BASE); // Hercules

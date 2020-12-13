@@ -113,7 +113,7 @@ namespace CubeRover {
     if(i2cIsTxReady(MOTOR_CONTROL_I2CREG))
     {
       /* Configure address of Slave to talk to */
-      i2cSetSlaveAdd(MOTOR_CONTROL_I2CREG, 0x1);
+      i2cSetSlaveAdd(MOTOR_CONTROL_I2CREG, 0x48);
 
       /* Set direction to Transmitter */
       i2cSetDirection(MOTOR_CONTROL_I2CREG, I2C_TRANSMITTER);

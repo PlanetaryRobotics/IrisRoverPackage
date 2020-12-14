@@ -110,43 +110,63 @@ namespace CubeRover {
    */
   void MotorControlComponentImpl :: schedIn_handler(const NATIVE_INT_TYPE portNum, NATIVE_UINT_TYPE context)
   {
-    if(i2cIsTxReady(MOTOR_CONTROL_I2CREG))
-    {
-      /* Configure address of Slave to talk to */
-      i2cSetSlaveAdd(MOTOR_CONTROL_I2CREG, 0x48);
 
-      /* Set direction to Transmitter */
-      i2cSetDirection(MOTOR_CONTROL_I2CREG, I2C_TRANSMITTER);
+      MCError err;
+      err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                      MotorControllerI2C::RELATIVE_TARGET_POSITION,
+                                      0x48,
+                                      0);
 
-      /* Configure Data count */
-      i2cSetCount(MOTOR_CONTROL_I2CREG, 8);
+      uint8_t stop_dummy_buffer[2] = {0x0,0x0};
+      uint8_t dummy_buffer[2] = {0x00,0xFF};
+      i2cMasterTransmit(MOTOR_CONTROL_I2CREG, 0x48, 2, dummy_buffer);
 
-      /* Set mode as Master */
-      i2cSetMode(MOTOR_CONTROL_I2CREG, I2C_MASTER);
+      i2cMasterTransmit(MOTOR_CONTROL_I2CREG, 0x48, 2, stop_dummy_buffer);
 
-      /* Set Stop after programmed Count */
-      i2cSetStop(MOTOR_CONTROL_I2CREG);
 
-      /* Transmit Start Condition */
-      i2cSetStart(MOTOR_CONTROL_I2CREG);
-
-      /* Transmit DATA_COUNT number of data in Polling mode */
-      i2cSendByte(MOTOR_CONTROL_I2CREG, 0x85);
-
-      /* Wait until Bus Busy is cleared */
-      while(i2cIsBusBusy(MOTOR_CONTROL_I2CREG) == true);
-
-      /* Wait until Stop is detected */
-      while(i2cIsStopDetected(MOTOR_CONTROL_I2CREG) == 0);
-
-      /* Clear the Stop condition */
-      i2cClearSCD(MOTOR_CONTROL_I2CREG);
-    }
-    else
-    {
-      // TX is not ready
-      //Move_all_motors(3*rotations_to_ticks);
-    }
+      /*
+      uint8_t data_buffer[] = {0,0,0,0};
+      err = i2cMasterReceive(MOTOR_CONTROL_I2CREG,
+                             0x48,
+                             4,
+                             data_buffer);*/
+//    if(i2cIsTxReady(MOTOR_CONTROL_I2CREG))
+//    {
+//      /* Configure address of Slave to talk to */
+//      i2cSetSlaveAdd(MOTOR_CONTROL_I2CREG, 0x48);
+//
+//      /* Set direction to Transmitter */
+//      i2cSetDirection(MOTOR_CONTROL_I2CREG, I2C_TRANSMITTER);
+//
+//      /* Configure Data count */
+//      i2cSetCount(MOTOR_CONTROL_I2CREG, 8);
+//
+//      /* Set mode as Master */
+//      i2cSetMode(MOTOR_CONTROL_I2CREG, I2C_MASTER);
+//
+//      /* Set Stop after programmed Count */
+//      i2cSetStop(MOTOR_CONTROL_I2CREG);
+//
+//      /* Transmit Start Condition */
+//      i2cSetStart(MOTOR_CONTROL_I2CREG);
+//
+//      /* Transmit DATA_COUNT number of data in Polling mode */
+//      i2cSendByte(MOTOR_CONTROL_I2CREG, 0x85);
+//
+//      /* Wait until Bus Busy is cleared */
+//      while(i2cIsBusBusy(MOTOR_CONTROL_I2CREG) == true);
+//
+//      /* Wait until Stop is detected */
+//      while(i2cIsStopDetected(MOTOR_CONTROL_I2CREG) == 0);
+//
+//      /* Clear the Stop condition */
+//      i2cClearSCD(MOTOR_CONTROL_I2CREG);
+//    }
+//    else
+//    {
+//      // TX is not ready
+//      //Move_all_motors(3*rotations_to_ticks);
+//    }
     
   }
 

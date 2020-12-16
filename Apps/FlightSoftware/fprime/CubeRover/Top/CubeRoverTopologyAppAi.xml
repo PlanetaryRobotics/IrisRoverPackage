@@ -101,8 +101,8 @@
      -->
   <!-- Connect output of WatchDogInterface to stroke watchdog MSP430 (port 0) --> 
   <connection name = "rgMedFreq_to_watchDogInterface_clk">
-    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
-    <target component = "watchDogInterface" port = "Run" type = "Sched" num = "0"/>
+    <source component = "rateGroupLowFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <target component = "watchDogInterface" port = "Run" type = "sched" num = "0"/>
   </connection>
 
 <!-- *********************************************************************************************************
@@ -242,7 +242,7 @@
       
   <connection name="groundInterface_to_networkManager"><!-- GROUNDINTERFACE downlinkBufferSend PORT #1 -->
     <source component="groundInterface" port="downlinkBufferSend" type="Buffer" num="0" />
-    <target component="networkManager" port="downlink" type="Buffer" num="1" />
+    <target component="networkManager" port="downlink" type="Buffer" num="0" />
   </connection>
       
   <connection name="udpInterface_to_watchDogInterface">
@@ -296,6 +296,58 @@
   <connection name = "rgHiFreq_to_aLogger">
     <source component = "rateGroupHiFreq" port = "Log" type = "Log" num = "0" />
     <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+
+
+  <!-- *********************************************************************************************************
+        CONNECTION OF COMMAND REGISTRATION PORTS
+       ********************************************************************************************************* 
+      -->
+
+      <!-- Health -->
+  <connection name = "HealthReg">
+    <source component = "health" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
+  </connection>
+
+      <!-- Watchdog -->
+  <connection name = "WatchdogReg">
+    <source component = "watchDogInterface" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
+  </connection>
+
+  <!-- *********************************************************************************************************
+        CONNECTION OF COMMAND DISPATCH PORTS
+       ********************************************************************************************************* 
+      -->
+
+      <!-- Health -->
+  <connection name = "HealthDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
+    <target component = "health" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
+
+      <!-- Watchdog -->
+  <connection name = "WatchdogDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
+    <target component = "watchDogInterface" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
+
+  <!-- *********************************************************************************************************
+        CONNECTION OF COMMAND RESPONSE PORTS
+       ********************************************************************************************************* 
+      -->
+
+      <!-- Health -->
+  <connection name = "HealthReg">
+    <source component = "health" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+
+      <!-- Watchdog -->
+  <connection name = "WatchdogReg">
+    <source component = "watchDogInterface" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
   </connection>
   
 </assembly>

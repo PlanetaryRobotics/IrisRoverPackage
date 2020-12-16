@@ -5,6 +5,10 @@
 # fprime$ cd ..
 # fprime$ ./install_libs.sh
 
+pushd Os
+make TIR4
+popd
+
 pushd Fw
 make TIR4
 popd

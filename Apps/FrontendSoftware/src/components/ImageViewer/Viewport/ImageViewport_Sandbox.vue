@@ -5,7 +5,7 @@ editing via preset filters.
 Author: Connor Colombo, CMU
 Created: 3/05/2019
 Updated: 08/30/2020, Colombo
-Last Update: 11/15/2020, Gabbi LaBorwit
+Last Update: 12/16/2020, Gabbi LaBorwit
 
 // TODO: fix glitch when go past top of image (priority: 1), and when off-sides how box doesn't auto border sides
 -->
@@ -77,8 +77,6 @@ Last Update: 11/15/2020, Gabbi LaBorwit
         />
         <POIModalFullDetails
           :parentData="initalPOIChoiceSelected"
-          :startCoord="startCoord"
-          :endCoord="endCoord"
           v-if="arePOIFullDetailsVisible"
           v-on:closeTheModal="closePOIDetailsModal"
         />
@@ -106,7 +104,7 @@ Last Update: 11/15/2020, Gabbi LaBorwit
 
 <script>
 const electron = require("electron");
-import { mapState, mapGetters } from "vuex";
+import { mapState, mapGetters, mapMutations } from "vuex";
 import { sha256 } from "js-sha256";
 import fx from "@/lib/glfx/glfx.js";
 import POIModalChoiceList from "@/components/POI/Components/POIModalChoiceList.vue";
@@ -192,6 +190,10 @@ export default {
       editorAdjustments: (state) =>
         state.IMG.adjustmentsEditorState.adjustments,
       presets: (state) => state.IMG.Presets,
+
+      // Manual POI Pop Up
+      savedStartCoord: 'savedStartCoord',
+      savedEndCoord: 'savedEndCoord',
     }),
 
     imageSource() {
@@ -246,6 +248,20 @@ export default {
   },
 
   methods: {
+        // Functions for POI Manual add states in Store
+    ...mapMutations([
+      'UPDATE_POICOORDS'
+    ]),
+
+    updatethePOICoords() {
+      console.log("Before (START): ", this.savedStartCoord)
+      console.log("Before (END): ", this.savedEndCoord)
+      this.UPDATE_POICOORDS([this.startCoord, this.endCoord])
+      console.log("After (END): ", this.savedEndCoord)
+      console.log("After (START): ", this.savedStartCoord)
+    },
+
+
     mouseOnPOICanvasLayer() {
       this.cursorOnPOICanvasLayer = true;
     },
@@ -958,6 +974,8 @@ export default {
           this.POISelectionInstructions = true;
         }
       } else {
+        // Update coords in store state
+        this.updatethePOICoords();
         // Show POI modal list of POI types
         this.showPOIChoiceModal();
       }

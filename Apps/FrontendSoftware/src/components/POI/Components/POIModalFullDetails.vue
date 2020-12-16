@@ -137,8 +137,13 @@
           <img
             class="thumbnail"
             draggable="false"
-            src="@/assets/imgviewer/POI_test_image.png"
+            src="imgData"
           />
+          <!-- <img
+            class="thumbnail"
+            draggable="false"
+            src="@/assets/imgviewer/POI_test_image.png"
+          /> -->
         </div>
       </div>
 
@@ -187,7 +192,7 @@
 import Dropdown from "@/components/POI/Components/Dropdown.vue";
 import WhiteAddIcon from "@/assets/imgviewer/SVGcomponents/WhiteAddIcon.vue";
 import AddTagModalWithinPOIModal from "@/components/POI/Components/AddTagModalWithinPOIModal.vue";
-import { mapGetters } from "vuex";
+import { mapState, mapGetters } from "vuex";
 import getPixels from "get-pixels";
 import util from "util";
 import savePixels from "save-pixels";
@@ -201,8 +206,6 @@ export default {
 
   props: {
     parentData: String,
-    startCoord: Array,
-    endCoord: Array
   },
 
   components: {
@@ -332,6 +335,12 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      // Manual POI Pop Up
+      savedStartCoord: 'savedStartCoord',
+      savedEndCoord: 'savedEndCoord',
+    }),
+
     ...mapGetters({
       selectedImage: "selectedImage",
     }),
@@ -339,11 +348,11 @@ export default {
 
   asyncComputed: {
     async imgData(){
-      let rowStart = Math.min(this.startCoord[1], this.endCoord[1]);
-      let rowEnd = Math.max(this.startCoord[1], this.endCoord[1]);
+      let rowStart = Math.min(this.savedStartCoord[1], this.savedEndCoord[1]);
+      let rowEnd = Math.max(this.savedStartCoord[1], this.savedEndCoord[1]);
 
-      let colStart = Math.min(this.startCoord[0], this.endCoord[0]);
-      let colEnd = Math.max(this.startCoord[0], this.endCoord[0]);
+      let colStart = Math.min(this.savedStartCoord[0], this.savedEndCoord[0]);
+      let colEnd = Math.max(this.savedStartCoord[0], this.savedEndCoord[0]);
 
       let pixels = await getPromisedPixels(this.selectedImage.url);
       let croppedMatrix = pixels.hi(rowEnd, colEnd).lo(rowStart, colStart)

@@ -56,7 +56,10 @@ export default new Vuex.Store({
       length: 1,
       staleTime: Infinity,
       autopopulate: true
-    })
+    }),
+
+    savedStartCoord: {},
+    savedEndCoord: {},
   },
 
   getters: {
@@ -72,13 +75,27 @@ export default new Vuex.Store({
             return new FTAData({}).data; // Return blank / default empty FTAData.
         }
     },
+
+    // // Manual POI coord add
+    // POIStartCoords: state => {
+    //   return state.savedStartCoord
+    // },
+
+    // POIEndCoords: state => {
+    //   return state.savedEndCoord
+    // }
   },
 
   mutations: {
-
+    UPDATE_POICOORDS: (state, arr) => {
+      state.savedStartCoord = arr[0];
+      state.savedEndCoord = arr[1];
+    },
   },
 
   actions: {
-
+    updatePOICoords: (context, start, end) => {
+      context.commit("UPDATE_POICOORDS", start, end)
+    },
   }
 })

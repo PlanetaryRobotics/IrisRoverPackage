@@ -254,11 +254,7 @@ export default {
     ]),
 
     updatethePOICoords() {
-      console.log("Before (START): ", this.savedStartCoord)
-      console.log("Before (END): ", this.savedEndCoord)
       this.UPDATE_POICOORDS([this.startCoord, this.endCoord])
-      console.log("After (END): ", this.savedEndCoord)
-      console.log("After (START): ", this.savedStartCoord)
     },
 
 

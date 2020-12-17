@@ -137,7 +137,7 @@
           <img
             class="thumbnail"
             draggable="false"
-            src="imgData"
+            :src="imgData"
           />
           <!-- <img
             class="thumbnail"
@@ -324,7 +324,7 @@ export default {
           break;
         }
       }
-      console.log("tag list: ", this.chosenTagList);
+      console.log("Tag list: ", this.chosenTagList);
     },
   },
 
@@ -348,6 +348,8 @@ export default {
 
   asyncComputed: {
     async imgData(){
+      console.log("START: ", this.savedStartCoord)
+      console.log("END): ", this.savedEndCoord)
       let rowStart = Math.min(this.savedStartCoord[1], this.savedEndCoord[1]);
       let rowEnd = Math.max(this.savedStartCoord[1], this.savedEndCoord[1]);
 

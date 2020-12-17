@@ -192,7 +192,7 @@
 import Dropdown from "@/components/POI/Components/Dropdown.vue";
 import WhiteAddIcon from "@/assets/imgviewer/SVGcomponents/WhiteAddIcon.vue";
 import AddTagModalWithinPOIModal from "@/components/POI/Components/AddTagModalWithinPOIModal.vue";
-import { mapState, mapGetters } from "vuex";
+import { mapGetters } from "vuex";
 import getPixels from "get-pixels";
 import util from "util";
 import savePixels from "save-pixels";
@@ -335,26 +335,23 @@ export default {
   },
 
   computed: {
-    ...mapState({
       // Manual POI Pop Up
-      savedStartCoord: 'savedStartCoord',
-      savedEndCoord: 'savedEndCoord',
-    }),
-
     ...mapGetters({
       selectedImage: "selectedImage",
+      POIStartCoords: "POIStartCoords",
+      POIEndCoords: "POIEndCoords"
     }),
   },
 
   asyncComputed: {
     async imgData(){
-      console.log("START: ", this.savedStartCoord)
-      console.log("END): ", this.savedEndCoord)
-      let rowStart = Math.min(this.savedStartCoord[1], this.savedEndCoord[1]);
-      let rowEnd = Math.max(this.savedStartCoord[1], this.savedEndCoord[1]);
+      console.log("START: ", this.POIStartCoords)
+      console.log("END): ", this.POIEndCoords)
+      let rowStart = Math.min(this.POIStartCoords[1], this.POIEndCoords[1]);
+      let rowEnd = Math.max(this.POIStartCoords[1], this.POIEndCoords[1]);
 
-      let colStart = Math.min(this.savedStartCoord[0], this.savedEndCoord[0]);
-      let colEnd = Math.max(this.savedStartCoord[0], this.savedEndCoord[0]);
+      let colStart = Math.min(this.POIStartCoords[0], this.POIEndCoords[0]);
+      let colEnd = Math.max(this.POIStartCoords[0], this.POIEndCoords[0]);
 
       let pixels = await getPromisedPixels(this.selectedImage.url);
       let croppedMatrix = pixels.hi(rowEnd, colEnd).lo(rowStart, colStart)

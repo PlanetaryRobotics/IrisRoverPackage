@@ -76,14 +76,14 @@ export default new Vuex.Store({
         }
     },
 
-    // // Manual POI coord add
-    // POIStartCoords: state => {
-    //   return state.savedStartCoord
-    // },
+    // Manual POI coord add
+    POIStartCoords: state => {
+      return state.savedStartCoord
+    },
 
-    // POIEndCoords: state => {
-    //   return state.savedEndCoord
-    // }
+    POIEndCoords: state => {
+      return state.savedEndCoord
+    }
   },
 
   mutations: {

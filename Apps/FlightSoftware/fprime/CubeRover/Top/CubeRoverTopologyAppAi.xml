@@ -100,20 +100,20 @@
      *********************************************************************************************************
      -->
   <!-- Connect output of WatchDogInterface to stroke watchdog MSP430 (port 0) --> 
-  <connection name = "rgMedFreq_to_watchDogInterface_clk">
+  <!--<connection name = "rgMedFreq_to_watchDogInterface_clk">
     <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
     <target component = "watchDogInterface" port = "Run" type = "Sched" num = "0"/>
-  </connection>
+  </connection>-->
 
 <!-- *********************************************************************************************************
         CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
      *********************************************************************************************************
      -->
   <!-- Connect output of health to ping all components (port 0) --> 
-  <connection name = "rgHighFreq_to_health_clk">
+  <!--<connection name = "rgHighFreq_to_health_clk">
     <source component = "rateGroupHighFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
     <target component = "health" port = "Run" type = "Sched" num = "0"/>
-  </connection>
+  </connection>-->
 
   <connection name="rgMedFreq_to_networkManager">
     <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
@@ -241,8 +241,8 @@
   </connection>
       
   <connection name="groundInterface_to_networkManager"><!-- GROUNDINTERFACE downlinkBufferSend PORT #1 -->
-    <source component="groundInterface" port="downlinkBufferSend" type="Buffer" num="0" />
-    <target component="networkManager" port="downlink" type="Buffer" num="1" />
+    <source component="groundInterface" port="downlinkBufferSend" type="Buffer" num="1" />
+    <target component="networkManager" port="downlink" type="Buffer" num="0" />
   </connection>
       
   <connection name="udpInterface_to_watchDogInterface">

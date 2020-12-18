@@ -13,7 +13,7 @@
 
 #include <CubeRover/GroundInterface/GroundInterface.hpp>
 #include "Fw/Types/BasicTypes.hpp"
-#include <cstring>
+#include <string.h>
 
 #define DOWNLINK_BUFFER_SIZE UDP_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader)
 

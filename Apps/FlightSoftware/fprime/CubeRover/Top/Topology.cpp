@@ -155,12 +155,12 @@ void constructApp(void){
   activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
 
   // Initialize the watchdog interface component (queued)
-  watchDogInterface.init(1,          /*Queue Depth*/
-                         0);         /*Instance Number*/
+  //watchDogInterface.init(1,          /*Queue Depth*/
+  //                       0);         /*Instance Number*/
 
   // Initialize the health component (queued)
-  health.init(25,                   /*Queue Depth*/
-              0);                   /*Instance Number*/
+  //health.init(25,                   /*Queue Depth*/
+  //            0);                   /*Instance Number*/
 
   // Initialize the telemetry channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
@@ -181,10 +181,10 @@ void constructApp(void){
   constructCubeRoverArchitecture();
 
   // Register Health Commands
-  health.regCommands();
+  //health.regCommands();
 
   // Register WatchDog Interface Commands
-  watchDogInterface.regCommands();
+  //watchDogInterface.regCommands();
 
   rateGroupLowFreq.start(0, /* identifier */
                        RG_LOW_FREQ_AFF, /* Thread affinity */
@@ -212,7 +212,7 @@ void constructApp(void){
 
   // Set Health Ping Entries
   // **** THIS IS WHERE YOU CAN ADD ANY COMPONENTS THAT HAVE HEALTH PINGS ****
-  Svc::HealthImpl::PingEntry pingEntries[] = {
+  //Svc::HealthImpl::PingEntry pingEntries[] = {
     // {3, 5, name.getObjName()},
     // 3 -> number of cycles before WARNING
     // 5 -> number of cycles before FATAL
@@ -243,8 +243,8 @@ void constructApp(void){
         {3, 5, blockDriver.getObjName()},    //20
 
     */
-  };
+  //};
 
   // Register ping table
-  health.setPingEntries(pingEntries,FW_NUM_ARRAY_ELEMENTS(pingEntries),0x123);
+  // shealth.setPingEntries(pingEntries,FW_NUM_ARRAY_ELEMENTS(pingEntries),0x123);
 }

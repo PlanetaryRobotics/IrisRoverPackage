@@ -13,19 +13,38 @@
 
     <ports>
         <!-- Rate Group Port -->
-        <port name="Run" data_type="Svc::Sched" kind="sync_input" max_number="1">
+        <port name="Run" data_type="Svc::Sched" kind="guarded_input" max_number="1">
             <comment>
             Run port
+            </comment>
+        </port>
+
+        <!-- Command Ports -->
+        <port name="CmdReg" data_type="Fw::CmdReg" kind="output" role="CmdRegistration" max_number="1">
+            <comment>
+            Command Registration Port
+            </comment>
+        </port>
+
+        <port name="CmdStatus" data_type="Fw::CmdResponse" kind="output" role="CmdResponse" max_number="1">
+            <comment>
+            Command Response Port
+            </comment>
+        </port>
+
+        <port name="CmdDisp" data_type="Fw::Cmd" kind="input" role="Cmd" max_number="1">
+            <comment>
+            Command Input Port
             </comment>
         </port>
         
         <!-- Network interfaces for messages exchanged via Lander RS422 -->
         <port name="downlink" data_type="Fw::BufferSend" kind="guarded_input" max_number="1">
-            <comment>GroundInterface sends packets to Watchdog for downlink</comment>
+            <comment>UDPInterface sends packets to Watchdog for downlink</comment>
         </port>
             
         <port name="uplink" data_type="Fw::BufferSend" kind="output" max_number="1">
-            <comment>Watchdog sends received packets to UDPReceiver and GroundInterface</comment>
+            <comment>Watchdog sends received packets to UDPInterface</comment>
         </port>
         
         <!-- Ping ports -->
@@ -49,17 +68,22 @@
     </ports>
 
     <commands>
-        <command kind="async" opcode="0x0" mnemonic="Reset_Specific">
+        <command kind="async" opcode="0x00" mnemonic="Reset_Specific">
             <comment>
             Command to reset the specific parts of rover
             </comment>
             <args>
-                <arg name="reset_value" type="U16">
+                <arg name="reset_value" type="U8">
                     <comment>
-                    	U16 Value that specifies which components or hardware need to be reset
+                    	U8 Value that specifies which components or hardware need to be reset
                     </comment>
                 </arg>
              </args>
+        </command>
+        <command kind="async" opcode="0x01" mnemonic="Disengage_From_Lander">
+            <comment>
+            Command to send signal to MSP430 that it should send a signal to lander to disengage
+            </comment>
         </command>
     </commands>
 
@@ -103,6 +127,36 @@
         <channel id="0" name="LAST_COMMAND" data_type="string" size="50">
             <comment>
                 The command last sent to watchdog interface
+            </comment>
+        </channel>
+        <channel id="2" name="VOLTAGE_2_5V" data_type="int16_t">
+            <comment>
+                Voltage from 2.5V line from Watchdog
+            </comment>
+        </channel>
+        <channel id="3" name="VOLTAGE_2_8V" data_type="int16_t">
+            <comment>
+                Voltage from 2.8V line from Watchdog
+            </comment>
+        </channel>
+        <channel id="4" name="VOLTAGE_24V" data_type="int16_t">
+            <comment>
+                Voltage from 24V line from Watchdog
+            </comment>
+        </channel>
+        <channel id="5" name="VOLTAGE_28V" data_type="int16_t">
+            <comment>
+                Voltage from 28V line from Watchdog
+            </comment>
+        </channel>
+        <channel id="16" name="BATTERY_THERMISTOR" data_type="U8">
+            <comment>
+                Boolean for Battery Charging or not from Watchdog
+            </comment>
+        </channel>
+        <channel id="23" name="SYSTEM_STATUS" data_type="int8_t">
+            <comment>
+                Boolean for Heater On/Off from Watchdog
             </comment>
         </channel>
     </telemetry>

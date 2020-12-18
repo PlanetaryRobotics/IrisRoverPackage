@@ -96,9 +96,16 @@ namespace CubeRover {
       void Reset_Specific_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq, /*!< The command sequence number*/
-          U16 reset_value /*!< 
-                    	U32 Value where each bit represents which component/device to reset (0 = no reset, 1 = reset)
+          U8 reset_value /*!< 
+                    	U8 Value that represents which things need to be reset
                     */
+      );
+
+      //! Implementation for Disengage_From_Lander command handler
+      //! Command to send signal to MSP430 that it should send a signal to lander to disengage
+      void Disengage_From_Lander_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
       );
 
     };

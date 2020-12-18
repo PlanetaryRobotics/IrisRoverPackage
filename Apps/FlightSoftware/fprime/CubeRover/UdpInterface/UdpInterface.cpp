@@ -126,7 +126,7 @@ namespace CubeRover {
   }
   
   void UdpInterfaceComponentImpl ::
-    downlinkData_handler(
+    downlinkDatagram_handler(
         const NATIVE_INT_TYPE portNum,
         Fw::Buffer &fwBuffer
     )

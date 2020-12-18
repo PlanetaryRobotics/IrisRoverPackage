@@ -44,6 +44,8 @@ void main(void)
     linInit();
 
     camera.m_fpgaFlash.setupDevice();
+    linInit();
+
 
     constructApp();
 

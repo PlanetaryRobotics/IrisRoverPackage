@@ -49,11 +49,19 @@ html {
 			<td rowspan="2">Command to reset the specific parts of rover</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
 						<td>reset_value</td>
-						<td>U16</td>
+						<td>U8</td>
 						<td>
-                    	U16 Value that specifies which components or hardware need to be reset
+                    	U8 Value that specifies which components or hardware need to be reset
                     </td>
 					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">Disengage_From_Lander</td>
+			<td rowspan="1">242 (0xf2)</td>
+			<td rowspan="1">Command to send signal to MSP430 that it should send a signal to lander to disengage</td>
+				<td></td>
+				<td></td>
+				<td></td>
 		</tr>
 	</tbody>
 </table>

@@ -62,9 +62,9 @@ namespace CubeRover {
           Fw::Buffer &fwBuffer 
       );
 
-      //! Handler implementation for downlinkData
+      //! Handler implementation for downlinkDatagram
       //!
-      void downlinkData_handler(
+      void downlinkDatagram_handler(
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
           Fw::Buffer &fwBuffer 
       );

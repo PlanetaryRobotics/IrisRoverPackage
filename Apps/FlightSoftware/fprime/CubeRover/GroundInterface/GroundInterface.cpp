@@ -13,7 +13,7 @@
 
 #include <CubeRover/GroundInterface/GroundInterface.hpp>
 #include "Fw/Types/BasicTypes.hpp"
-#include <cstring>
+#include <string.h>
 
 #define DOWNLINK_OBJECTS_SIZE UDP_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader)
 
@@ -161,6 +161,7 @@ namespace CubeRover {
         Fw::Buffer &fwBuffer
     )
   {
+    // TODO: Use portnumber to increment some internal variable for which packet came from where
     
     m_packetsRx++;
 
@@ -263,14 +264,14 @@ namespace CubeRover {
         packetHeader->seq = m_downlinkSeq;
         packetHeader->checksum = checksum;
         packetHeader->length = size - 8 - sizeof(struct FswPacket::FswPacketHeader);
-        int port = 0;
-        if (port == 0) {  // FIXME: 0 for now is WF121, but should 1 for WF121 see XML
-            Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data + 8), size - 8);     // Dont't send the UDP header for WF121
-            log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size - 8);
-            downlinkBufferSend_out(port, buffer);      // FIXME: WF121 SHOULD BE 1
-        } else if (port == 1) {   // FIXME: The below is for Watchdog
+        int port = 1;
+        if (port == 0) {
             Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data), size);
             log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size);
+            downlinkBufferSend_out(port, buffer);
+        } else if (port == 1) {
+            Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data + 8), size - 8);     // Dont't send the UDP header for WF121
+            log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size - 8);
             downlinkBufferSend_out(port, buffer);
         }
         m_downlinkSeq++;

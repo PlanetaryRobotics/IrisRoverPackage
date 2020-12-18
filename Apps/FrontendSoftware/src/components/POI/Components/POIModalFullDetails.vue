@@ -138,6 +138,7 @@
             class="thumbnail"
             draggable="false"
             :src="imgData"
+            alt="Selected area of image not loaded"
           />
           <!-- <img
             class="thumbnail"
@@ -347,11 +348,14 @@ export default {
     async imgData(){
       console.log("START: ", this.POIStartCoords)
       console.log("END): ", this.POIEndCoords)
-      let rowStart = Math.min(this.POIStartCoords[1], this.POIEndCoords[1]);
-      let rowEnd = Math.max(this.POIStartCoords[1], this.POIEndCoords[1]);
 
-      let colStart = Math.min(this.POIStartCoords[0], this.POIEndCoords[0]);
-      let colEnd = Math.max(this.POIStartCoords[0], this.POIEndCoords[0]);
+      let rowStart = Math.min(this.POIStartCoords[0], this.POIEndCoords[0]);
+      let rowEnd = Math.max(this.POIStartCoords[0], this.POIEndCoords[0]);
+
+      let colStart = Math.min(this.POIStartCoords[1], this.POIEndCoords[1]);
+      let colEnd = Math.max(this.POIStartCoords[1], this.POIEndCoords[1]);
+
+      console.log("Row start: ", rowStart, "\nRow end: ", rowEnd, "\nCol start: ", colStart, "\nCol end: ", colEnd)
 
       let pixels = await getPromisedPixels(this.selectedImage.url);
       let croppedMatrix = pixels.hi(rowEnd, colEnd).lo(rowStart, colStart)
@@ -359,10 +363,12 @@ export default {
       let stream = savePixels(croppedMatrix, "png");
 
       return await new Promise( (resolve,reject) => {
-        stream.pipe(streamConcat( buf => {
-          resolve(buf);
+        stream.pipe( streamConcat( buf => {
+          console.log("yay")
+          resolve("data:image/png;base64,"+buf.toString('base64'));
         }));
         stream.on('error', err => {
+          console.log("err")
           reject(err);
         });
       })

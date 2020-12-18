@@ -31,6 +31,8 @@ void main(void)
 
     i2cInit();
     sciInit();
+    linInit();
+
 
     constructApp();
 

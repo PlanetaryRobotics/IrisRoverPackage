@@ -155,7 +155,7 @@ void constructApp(void){
   activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
 
   // Initialize the watchdog interface component (queued)
-  //watchDogInterface.init(1,          /*Queue Depth*/
+  //watchDogInterface.init(10,          /*Queue Depth*/
   //                       0);         /*Instance Number*/
 
   // Initialize the health component (queued)
@@ -175,7 +175,7 @@ void constructApp(void){
   udpInterface.init();
   
   // Initialize the ground interface (passive)
-  networkManager.init();
+  networkManager.init();   //******************CHANGE THIS BACK WHEN FINISHED TESTING WATCHDOG******************
 
    // Construct the application and make all connections between components
   constructCubeRoverArchitecture();
@@ -231,7 +231,7 @@ void constructApp(void){
         {3, 5, ****NAVIGATION****.getObjName()},    //8  *MUST CHANGE TO NAVIGATION COMPONENT NAME*
         {3, 5, tlmChan.getObjName()},    //9
         {3, 5, activeLogger.getObjName()},    //10
-        {3, 5, ****COMMLOGGER****.getObjName()},    //11  *MUST CHANGE TO UWB COMPONENT NAME*
+        {3, 5, ****COMMLOGGER****.getObjName()},    //11  *MUST CHANGE TO COMMLOGGER COMPONENT NAME*
         {3, 5, groundInterface.getObjName()},    //12
         {3, 5, cmdDispatcher.getObjName()},    //13
         {3, 5, ****MODE MANAGER****.getObjName()},    //14  *MUST CHANGE TO MODE MANAGER* COMPONENT NAME*

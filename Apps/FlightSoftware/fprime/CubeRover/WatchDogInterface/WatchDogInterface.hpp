@@ -101,6 +101,13 @@ namespace CubeRover {
                     */
       );
 
+      //! Implementation for Disengage_From_Lander command handler
+      //! Command to send signal to MSP430 that it should send a signal to lander to disengage
+      void Disengage_From_Lander_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
     };
 
 } // end namespace CubeRover

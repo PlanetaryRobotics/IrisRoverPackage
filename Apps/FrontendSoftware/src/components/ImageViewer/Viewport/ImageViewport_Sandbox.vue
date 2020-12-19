@@ -254,7 +254,13 @@ export default {
     ]),
 
     updatethePOICoords() {
-      this.UPDATE_POICOORDS([this.startCoord, this.endCoord])
+      let POILayerDiv = document.getElementById("featurevp");
+
+      let newStart = [this.startCoord[0]/POILayerDiv.clientWidth, this.startCoord[1]/POILayerDiv.clientHeight]
+
+      let newEnd = [this.endCoord[0]/POILayerDiv.clientWidth, this.endCoord[1]/POILayerDiv.clientHeight]
+
+      this.UPDATE_POICOORDS([newStart, newEnd])
     },
 
 

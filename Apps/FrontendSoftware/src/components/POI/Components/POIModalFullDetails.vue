@@ -346,19 +346,67 @@ export default {
 
   asyncComputed: {
     async imgData(){
+      // let POILayerDiv = document.getElementById("featurevp");
       console.log("START: ", this.POIStartCoords)
       console.log("END): ", this.POIEndCoords)
 
-      let rowStart = Math.min(this.POIStartCoords[0], this.POIEndCoords[0]);
-      let rowEnd = Math.max(this.POIStartCoords[0], this.POIEndCoords[0]);
+      let rowStart = Math.min(this.POIStartCoords[1], this.POIEndCoords[1]);
+      let rowEnd = Math.max(this.POIStartCoords[1], this.POIEndCoords[1]);
 
-      let colStart = Math.min(this.POIStartCoords[1], this.POIEndCoords[1]);
-      let colEnd = Math.max(this.POIStartCoords[1], this.POIEndCoords[1]);
+      let colStart = Math.min(this.POIStartCoords[0], this.POIEndCoords[0]);
+      let colEnd = Math.max(this.POIStartCoords[0], this.POIEndCoords[0]);
 
-      console.log("Row start: ", rowStart, "\nRow end: ", rowEnd, "\nCol start: ", colStart, "\nCol end: ", colEnd)
 
       let pixels = await getPromisedPixels(this.selectedImage.url);
-      let croppedMatrix = pixels.hi(rowEnd, colEnd).lo(rowStart, colStart)
+
+      let pixelsWidth = pixels.shape[0]
+      let pixelsHeight = pixels.shape[1]
+
+      // "un"normailze coords
+      rowStart = rowStart*pixelsHeight;
+      rowEnd = rowEnd*pixelsHeight;
+      colStart = colStart*pixelsWidth;
+      colEnd = colEnd* pixelsWidth;
+
+      // If col > row, add rows
+      // visa versa, and will hit errors when edge cases (literally)
+      // Use https://github.com/scijs/ndarray-concat-cols and https://github.com/scijs/ndarray-concat-rows
+      // ndarray zeros
+
+      // PSEUDO CODE
+      // after creating row start, end, etc.
+      // find selection width and height, if selWidth > height, make more rows to be square and visa versa
+      // (selection width-selection height)/2
+      // update col start and col end
+      // decrease col start (-) by (selection width-selection height)/2
+      // increase col end + (selection width-selection height)/2
+
+      // Edge cases
+      // If you go under:
+      // Is new col start < 0
+      // If true: make a topoverflow to make for extra cols needed on top
+        // top overflow should be equal to absolute val = (0-colStart)
+        // bottom overflow = colEnd - pixels.height
+
+        // *use concat rows in link above* (https://github.com/scijs/ndarray-concat-rows)
+        // will have a matrix that's some width and some height and add a couple rows on top and bottom (this is for rare case where someone selects almost or fully entire image)
+        // DO: concatrows with ndarray:
+        // concatRows([zeros([pixelWidth, topoverflowRows, 4]), selection, zeros([pixelWidth, bottom overflow rows, 4]))
+        // EXPLANATION: create something as wide as image and only as tall as overflow
+        // and visa versa then stack them and 4 as placeholder for RGBA
+        // selection is referring to image
+        // set colend to height-1
+        // set colstart to 0 if overflow on top
+        // From there create 0 arrays from 0 function sent above and concat to stack them
+          // Look into "pool".zero? https://github.com/scijs/ndarray-scratch#poolzerosshapedtype
+            // can multiple by shades of gray if want but if all black then just 0s
+
+        // all identical if switched for overflow on width just switch cols to rows and visa versa
+
+
+      // console.log("Row start: ", rowStart, "\nRow end: ", rowEnd, "\nCol start: ", colStart, "\nCol end: ", colEnd)
+
+      let croppedMatrix = pixels.hi(colEnd, rowEnd).lo(colStart, rowStart);
 
       let stream = savePixels(croppedMatrix, "png");
 

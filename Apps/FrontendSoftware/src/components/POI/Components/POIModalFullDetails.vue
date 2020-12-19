@@ -368,7 +368,21 @@ export default {
       colStart = colStart*pixelsWidth;
       colEnd = colEnd* pixelsWidth;
 
+      let numCols = Math.abs(colEnd - colStart);
+      let numRows = Math.abs(rowEnd - rowStart);
+      let extraPadding = Math.abs(numRows-numCols)/2;
+
       // If col > row, add rows
+      if( numCols > numRows ){
+        rowStart = rowStart - extraPadding;
+        rowEnd = rowEnd + extraPadding;
+
+      }
+      // If row > col, add cols
+      else if( numRows > numCols ){
+        colStart = colStart - extraPadding;
+        colEnd = colEnd + extraPadding;
+      }
       // visa versa, and will hit errors when edge cases (literally)
       // Use https://github.com/scijs/ndarray-concat-cols and https://github.com/scijs/ndarray-concat-rows
       // ndarray zeros

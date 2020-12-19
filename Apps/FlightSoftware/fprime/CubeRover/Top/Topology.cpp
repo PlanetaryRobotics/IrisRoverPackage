@@ -110,12 +110,27 @@ CubeRover::NetworkManagerComponentImpl networkManager(
 );
 
 // ---------------------------------------------------------------------------
-// watchdog interface to tell watchdog commands/stroke watchdog
 CubeRover::CameraComponentImpl camera(
 #if FW_OBJECT_NAMES == 1
         "Camera"
 #endif
 );
+
+// ---------------------------------------------------------------------------
+Svc::HealthImpl health(
+#if FW_OBJECT_NAMES == 1
+        "Health"
+#endif
+);
+
+// ---------------------------------------------------------------------------
+CubeRover::WatchDogInterfaceComponentImpl watchDogInterface(
+#if FW_OBJECT_NAMES == 1
+        "Watchdog"
+#endif
+);
+
+
 
 /**
  * @brief      Run 1 cycle (debug)

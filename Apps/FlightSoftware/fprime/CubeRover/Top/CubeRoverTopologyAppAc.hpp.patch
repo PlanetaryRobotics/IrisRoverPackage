@@ -1,6 +1,6 @@
---- CubeRoverTopologyAppAc.hpp.orig	2020-11-26 14:35:04.218021212 -0800
-+++ CubeRoverTopologyAppAc.hpp	2020-11-26 14:35:23.777138860 -0800
-@@ -21,20 +21,20 @@
+--- CubeRoverTopologyAppAc.hpp.orig	2020-12-18 16:16:06.576595847 -0500
++++ CubeRoverTopologyAppAc.hpp	2020-12-18 16:16:23.240625539 -0500
+@@ -22,21 +22,21 @@
  extern Fw::SimpleObjRegistry simpleReg;
  
  // Component declarations
@@ -16,6 +16,8 @@
 -extern CubeRover::UdpInterfaceImpl udpInterface("udpInterface");
 -extern CubeRover::NetworkManagerImpl networkManager("networkManager");
 -extern Svc::ActiveLoggerImpl activeLogger("activeLogger");
+-extern Svc::HealthImpl health("health");
+-extern CubeRover::WatchDogInterfaceImpl watchDogInterface("watchDogInterface");
 -extern CubeRover::CameraImpl camera("camera");
 +extern Drv::BlockDriverImpl blockDriver;
 +extern Svc::RateGroupDriverImpl rateGroupDriver;
@@ -29,6 +31,8 @@
 +extern CubeRover::UdpInterfaceComponentImpl udpInterface;
 +extern CubeRover::NetworkManagerComponentImpl networkManager;
 +extern Svc::ActiveLoggerImpl activeLogger;
++extern Svc::HealthImpl health;
++extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 +extern CubeRover::CameraComponentImpl camera;
  
  

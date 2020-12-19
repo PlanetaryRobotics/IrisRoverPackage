@@ -119,11 +119,12 @@ namespace CubeRover {
         downlinkBufferWrite(downlinkBuffer, static_cast<FswPacket::Length_t>(singleFileObjectSize), DownlinkFile);
         m_appBytesDownlinked += singleFileObjectSize;
     } else {    // Send file fragments
-        flushDownlinkBuffer();  // Flush first to get new seq
+        // TESTING don't intersperse telemetry or logs with file!!! flushDownlinkBuffer();  // Flush first to get new seq
         int numBlocks = static_cast<int>(dataSize) / (DOWNLINK_OBJECTS_SIZE - sizeof(struct FswPacket::FswFileHeader));
         if (static_cast<int>(dataSize) % (DOWNLINK_OBJECTS_SIZE - sizeof(struct FswPacket::FswFileHeader)) > 0)
             numBlocks++;
         downlinkFileMetadata(hashedId, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(createTime));
+        flushDownlinkBuffer();   // TESTING!! DOWNLINK METADATA PRIOR TO FILE DOWNLINK
         int readStride = static_cast<int>(dataSize) / numBlocks;
         uint8_t downlinkBuffer[UDP_MAX_PAYLOAD + 8];    // 8byte UDP header
         struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket*>(downlinkBuffer + 8);
@@ -140,14 +141,15 @@ namespace CubeRover {
                 memcpy(&packet->payload0.file.file.byte0, data, blockLength);
                 FswPacket::Length_t datagramLength = 8 + sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + blockLength;
                 log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
-                downlink(packet, datagramLength);
-                data += datagramLength;
+                downlink(downlinkBuffer, datagramLength);
+                data += blockLength;
             } else {        // Final Fragment is written to the member buffer to downlink with other objects
                 FW_ASSERT(dataSize > 0);
                 blockLength = static_cast<FswPacket::FileLength_t>(dataSize);
                 packet->payload0.file.header.length = blockLength;
                 memcpy(&packet->payload0.file.file.byte0, data, blockLength);
                 downlinkBufferWrite(&packet->payload0.file, sizeof(struct FswPacket::FswFileHeader) + blockLength, DownlinkFile);
+                flushDownlinkBuffer();   // TESTING!! DOWNLINK FINAL BLOCK WITHOUT INTERRUPTION
             }
             m_appBytesDownlinked += blockLength;
         }

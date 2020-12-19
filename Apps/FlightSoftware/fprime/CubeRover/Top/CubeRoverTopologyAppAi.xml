@@ -52,10 +52,10 @@
   <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="221" base_id_window="20" />
 
 <!-- Declaration of the health component -->
-      <!-- <instance namespace="Svc" name="health" type="Health" base_id="301" base_id_window="20" />-->
+      <instance namespace="Svc" name="health" type="Health" base_id="301" base_id_window="20" />
 
 <!-- Declaration of the WatchDog Interface component -->
-      <!--<instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="62208" base_id_window="20" />-->
+      <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="62208" base_id_window="20" />
       
 <!-- Declaration of the Camera component -->
   <instance namespace="CubeRover" name="camera" type="Camera" base_id="62508" base_id_window="20" />

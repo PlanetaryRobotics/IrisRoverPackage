@@ -48,6 +48,7 @@ namespace CubeRover {
     )
   {
     CameraComponentBase::init(instance);
+    m_fpgaFlash.setupDevice();
   }
 
   CameraComponentImpl ::

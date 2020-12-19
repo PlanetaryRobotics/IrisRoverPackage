@@ -61,6 +61,12 @@ extern CubeRover::NetworkManagerComponentImpl networkManager;
 // FreeRTOS Serial driver to interface radio module
 // extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
 
+// Health
+extern Svc::HealthImpl health;
+
+// Watchdog
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
+
 // Camera
 extern CubeRover::CameraComponentImpl camera;
 

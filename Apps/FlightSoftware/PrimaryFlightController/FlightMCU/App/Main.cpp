@@ -20,10 +20,11 @@ extern "C" {
     void vApplicationIdleHook(void);
 }
 
-int test = 0;
+extern CubeRover::CameraComponentImpl camera;
 
 void vApplicationIdleHook(void) {
-    if (test)
+    static bool test_camera = 0;
+    if (test_camera)
         camera.triggerImageCapture(53);
     run1cycle();
     //gioToggleBit(gioPORTB, 1);
@@ -34,18 +35,14 @@ void vApplicationIdleHook(void) {
 void main(void)
 {
     /* USER CODE BEGIN (3) */
-    int hold = 0;
-    while(not hold);     // Stop here and wait for debugger
+    int waithere = 1;
+    while(waithere);     // Stop here and wait for debugger
     gioInit();
     i2cInit();
     sciInit();
     adcInit();
     spiInit();
     linInit();
-
-    camera.m_fpgaFlash.setupDevice();
-    linInit();
-
 
     constructApp();
 

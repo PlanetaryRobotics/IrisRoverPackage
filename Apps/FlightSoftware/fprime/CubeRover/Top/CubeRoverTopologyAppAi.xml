@@ -57,13 +57,13 @@
       <instance namespace="Svc" name="health" type="Health" base_id="301" base_id_window="20" />
 
   <!-- Declaration of the Navigation handling module -->
-  <instance namespace="CubeRover" name="navigation" type="Navigation" base_id="221" base_id_window="20" />
+  <instance namespace="CubeRover" name="navigation" type="Navigation" base_id="2221" base_id_window="20" />
 
   <!-- Declaration of the Motor control interface module -->
-  <instance namespace="CubeRover" name="motorControl" type="MotorControl" base_id="241" base_id_window="20" />
+  <instance namespace="CubeRover" name="motorControl" type="MotorControl" base_id="2241" base_id_window="20" />
 
   <!-- Declaration of the IMU interface module -->
-  <instance namespace="CubeRover" name="IMU" type="IMU" base_id="261" base_id_window="20" />
+  <instance namespace="CubeRover" name="IMU" type="IMU" base_id="2261" base_id_window="20" />
 
 <!-- Declaration of the WatchDog Interface component -->
   <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="62208" base_id_window="20" />

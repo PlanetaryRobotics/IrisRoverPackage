@@ -1,14 +1,15 @@
-#include <msp430.h>
-
 /**
  * This file contains the code that does most of the watching of
  * the rest of the subsystems
+ * <b>watchdog_monitor() should only ever be called in MISSION mode!</b>
+ * There is no real watchdogging to do in lander connected mode.
  *
  * The way this file is laid out is that there are a number of ISRs. Some ISRs are taking in
  * kicks and setting a flag, and the other ISR is connected to a timer, which will check if the flags
  * are set, and clear them if they are.
  */
 
+#include <msp430.h>
 #include <stdint.h>
 #include "include/flags.h"
 
@@ -62,23 +63,7 @@ int watchdog_monitor() {
     /* check ADC values */
     if (watchdog_flags & WDFLAG_ADC_READY) {
         /* ensure ADC values are in spec */
-        switch (rovstate) {
-        case RS_LANDER:
-            // check 24V rail voltage
-            adc_values[ADC_BATT_LEVEL_IDX];
-            // check thermistor voltage
-            if (adc_values[ADC_TEMP_IDX]) {
-
-            }
-            break;
-        case RS_MISSION:
-            // TODO: check 24V rail voltage (battery?)
-            // TODO: check 2V5 rail voltage
-            // TODO: check 2V8 rail voltage
-            break;
-
-        }
-        watchdog_flags ^= WDFLAG_ADC_READY
+        watchdog_flags ^= WDFLAG_ADC_READY;
     }
 
     /* re-enable interrupts */

@@ -12,6 +12,7 @@
 #include "include/ip_udp.h"
 #include "include/uart.h"
 #include "include/adc.h"
+#include "include/flags.h"
 
 /**
  * Handle watchdog reset-specific hardware commands

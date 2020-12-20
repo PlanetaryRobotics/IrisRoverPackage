@@ -2,6 +2,7 @@
 #define __BSP_H__
 
 #include <msp430.h>
+#include <stdint.h>
 
 extern uint8_t heaterStatus;
 extern uint8_t hasDeployed;

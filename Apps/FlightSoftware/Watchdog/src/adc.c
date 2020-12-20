@@ -62,40 +62,39 @@ void adc_init() {
 
     // Implicitly start reading at MEM0
     ADC12CTL3 = 0;
+}
+
+void adc_setup_lander() { // set up adc to read values for lander mode
+    // wait until existing sample done
+    while (ADC12CTL1 & ADC12BUSY) { __no_operation(); }
 
     // enable interrupts only on last reading
-    ADC12IER0 = ADC12IE4;
+    ADC12IER0 = ADC12IE1;
 
-    //ADC12SSELx
-    // SMCLK, MCLK, ACLK, and the MODCLK are the possible ADC12CLK sources
-    // The ADC12PDIV bits set the initial divider on the input clock (1, 4, 32, or 64),
-    // and then ADC12DIV bits set an additional divider of 1 to 8
-
-    // CSTARTADDx
-    // The CSTARTADDx bits define the first ADC12MCTLx used for any conversion. If the conversion mode is single-channel or repeat-single-channel, the CSTARTADDx points to the single ADC12MCTLx to be used.
-    // If the conversion mode selected is either sequence-of-channels or repeat-sequence-of-channels, CSTARTADDx points to the first ADC12MCTLx location to be used in a sequence. A pointer, not visible to software, is incremented automatically to the next ADC12MCTLx in sequence when each conversion completes. The sequence continues until an ADC12EOS bit in ADC12MCTLx is processed; this is, the last control byte processed.
-
-    // I think we want ADC12DF = 0 with ADC12DIF = 0
-
-    // Sequence-of-Channels Mode = ADC12MSC
-
-    // set up each pin
-    /* note that using equals signs implicitly disable comparators, disable
-     * differential mode, and uses VCC (3V3) and VSS (0V) as references
-     */
-    ADC12MCTL0 = ADC12INCH_8; // A8 = P4.0 stored in MEM0
-    ADC12MCTL1 = ADC12INCH_9; // A9 = P4.1 stored in MEM1
-    ADC12MCTL2 = ADC12INCH_10 | ADC12VRSEL_1; // A10 = P4.2 stored in MEM2
-    ADC12MCTL3 = ADC12INCH_11 | ADC12VRSEL_1; // A11 = P4.3 stored in MEM3
-    ADC12MCTL4 = ADC12INCH_12 | ADC12VRSEL_1 | ADC12EOS; // A12 = P3.0 stored in MEM4 (also, EOS)
-}
-
-volatile unsigned uint8_t adc_values_n = 0;
-
-void adc_setup_lander() {
     // set up the ADC for the lander state
+    ADC12MCTL0 = ADC12INCH_10 | ADC12VRSEL_1; // A10 = P4.2 stored in MEM0
+    ADC12MCTL1 = ADC12INCH_12 | ADC12VRSEL_1 | ADC12EOS; // A12 = P3.0 stored in MEM1 (also, EOS)
 
+    // clear sample ready, if set
+    watchdog_flags &= ~WDFLAG_ADC_READY;
 }
+
+void adc_setup_mission() { // set up adc to read values for mission mode (voltage rails)
+    // wait until existing sample done
+    while (ADC12CTL1 & ADC12BUSY) { __no_operation(); }
+
+    // enable interrupts only on last reading
+    ADC12IER0 = ADC12IE2;
+
+    // set up the ADC for the mission state
+    ADC12MCTL0 = ADC12INCH_8 | ADC12VRSEL_1; // A8 = P4.0 stored in MEM0
+    ADC12MCTL1 = ADC12INCH_9 | ADC12VRSEL_1; // A9 = P4.1 stored in MEM1
+    ADC12MCTL2 = ADC12INCH_11 | ADC12VRSEL_1 | ADC12EOS; // A11 = P4.3 stored in MEM2
+
+    // clear sample ready, if set
+    watchdog_flags &= ~WDFLAG_ADC_READY;
+}
+
 
 /**
  * @brief take one sample of the ADC
@@ -107,7 +106,7 @@ inline void adc_sample() {
     ADC12CTL0 |= ADC12SC | ADC12ENC;
 }
 
-volatile unsigned short adc_values[5] = {0,0,0,0,0};
+volatile unsigned short adc_values[3] = {0,0,0,0,0};
 
 // Interrupt handler for when the ADC has completed a reading
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
@@ -119,17 +118,16 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
 #error Compiler not supported!
 #endif
 {
-    switch (__even_in_range(ADC12IV, ADC12IV_ADC12RDYIFG))
-    {
-        case ADC12IV_ADC12IFG4: // ADC12IE4 interrupt
-            adc_values[0] = ADC12MEM0; // Save MEM0
-            adc_values[1] = ADC12MEM1; // Save MEM1
-            adc_values[2] = ADC12MEM2; // Save MEM2
-            adc_values[3] = ADC12MEM3; // Save MEM3
-            adc_values[4] = ADC12MEM4; // Save MEM4
-            watchdog_flags |= WDFLAG_ADC_READY;
-            break;
-        default: break;
+    switch (__even_in_range(ADC12IV, ADC12IV_ADC12RDYIFG)) {
+    case ADC12IV_ADC12IFG2: // ADC12IE2 interrupt
+        adc_values[2] = ADC12MEM2; // Save MEM2
+    case ADC12IV_ADC12IFG1: // ADC12IE1 interrupt
+        adc_values[1] = ADC12MEM1; // Save MEM1
+        adc_values[0] = ADC12MEM0; // Save MEM0
+        watchdog_flags |= WDFLAG_ADC_READY; // signal ready to main loop
+        break;
+    default:
+        break;
     }
 }
 

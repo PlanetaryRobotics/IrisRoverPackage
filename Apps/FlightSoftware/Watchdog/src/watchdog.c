@@ -14,11 +14,13 @@
 
 volatile uint16_t watchdog_flags;
 
+// BELOW heater_on_min, heater turns on. ABOVE heater_off_max, heater turns off.
+uint16_t heater_on_min = 0x600, heater_off_max = 0x900;
+
 /**
  * Set up the ISRs for the watchdog
  */
 int watchdog_init() {
-
     /* trigger on P1.0 Hi/lo edge */
     P1IE |= BIT0;                    // P1.0 interrupt enabled
     P1IES |= BIT0;                   // P1.0 Hi/lo edge
@@ -55,6 +57,28 @@ int watchdog_monitor() {
     } else {
         /* MISSING FPGA kick! */
         // TODO: reset FPGA
+    }
+
+    /* check ADC values */
+    if (watchdog_flags & WDFLAG_ADC_READY) {
+        /* ensure ADC values are in spec */
+        switch (rovstate) {
+        case RS_LANDER:
+            // check 24V rail voltage
+            adc_values[ADC_BATT_LEVEL_IDX];
+            // check thermistor voltage
+            if (adc_values[ADC_TEMP_IDX]) {
+
+            }
+            break;
+        case RS_MISSION:
+            // TODO: check 24V rail voltage (battery?)
+            // TODO: check 2V5 rail voltage
+            // TODO: check 2V8 rail voltage
+            break;
+
+        }
+        watchdog_flags ^= WDFLAG_ADC_READY
     }
 
     /* re-enable interrupts */
@@ -98,6 +122,8 @@ void __attribute__ ((interrupt(PORT1_VECTOR))) port1_isr_handler (void) {
     switch(__even_in_range(P1IV, P1IV__P1IFG7)) {
         case P1IV__P1IFG0: // P1.0: Radio Kick
             watchdog_flags |= WDFLAG_RADIO_KICK;
+            // exit LPM
+            __bic_SR_register(DEFAULT_LPM);
             break;
         default: // default: ignore
             break;
@@ -116,6 +142,8 @@ void __attribute__ ((interrupt(PORT3_VECTOR))) port3_isr_handler (void) {
     switch(__even_in_range(P3IV, P3IV__P3IFG7)) {
         case P3IV__P3IFG5: // P3.5: FPGA Kick
             watchdog_flags |= WDFLAG_FPGA_KICK;
+            // exit LPM
+            __bic_SR_register(DEFAULT_LPM);
             break;
         default: // default: ignore
             break;
@@ -135,6 +163,8 @@ void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer0_A1_ISR (void) {
     switch (__even_in_range(TA0IV, TAIV__TAIFG)) {
         case TAIV__TAIFG: /* timer tick overflowed */
             loop_flags |= FLAG_TIMER_TICK;
+            // exit LPM
+            __bic_SR_register(DEFAULT_LPM);
             break;
         default: break;
     }

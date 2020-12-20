@@ -2,6 +2,9 @@
 
 #define PROGRAM_MOTOR_CONTROLLERS
 
+uint8_t heaterStatus;
+uint8_t hasDeployed;
+
 /**
  * @brief      Initializes the gpios.
  */
@@ -20,8 +23,6 @@ void initializeGpios(){
   P1SEL1 |= BIT6; // P1.6 SDA
   P1SEL1 |= BIT7; // P1.7 SCL
 
-  /*TODO: It may be better coding conventions to use the respective
-   * on/off functions than to set P2OUT directly, in case things change */
   // P2 configuration
   P2DIR &= 0x00;
   P2OUT &= ~(BIT2 | BIT3 | BIT4); // Initially everything is off
@@ -65,17 +66,21 @@ void initializeGpios(){
 #endif
   PJDIR |= BIT5; // PJ.5 output BATTERY
   PJDIR &= ~BIT3; // PJ.3 input CHRG
+
+  // Initial statuses
+  heaterStatus = 0;
+  hasDeployed = 0;
 }
 
 /**
  * @brief      Enables the heater. (HI = ON)
  */
-inline void enableHeater(){ P2OUT |= BIT2; }
+inline void enableHeater(){ P2OUT |= BIT2; heaterStatus = 1; }
 
 /**
  * @brief      Disables the heater. (LO = OFF)
  */
-inline void disableHeater(){ P2OUT &= ~BIT2; }
+inline void disableHeater(){ P2OUT &= ~BIT2; heaterStatus = 0; }
 
 /**
  * @brief      Enables the 3.3 v power rail. (HI = ON)
@@ -194,4 +199,14 @@ inline void enableBatteries() { PJOUT |= BIT5; }
  * @brief      Disable the batteries (LO = OFF)
  */
 inline void disableBatteries() { PJOUT &= ~BIT5; }
+
+/**
+ * @brief      Deploy the rover from the lander
+ */
+inline void setDeploy() { hasDeployed = 1; P3OUT |= BIT4; }
+
+/**
+ * @brief      Un-set deploy from lander
+ */
+inline void unsetDeploy() { P3OUT &= ~BIT4; }
 

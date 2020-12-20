@@ -3,6 +3,9 @@
 
 #include <msp430.h>
 
+extern uint8_t heaterStatus;
+extern uint8_t hasDeployed;
+
 void initializeGpios();
 
 inline void enableHeater();
@@ -29,5 +32,7 @@ inline void powerOnMotors();
 inline void powerOffMotors();
 inline void enableBatteries();
 inline void disableBatteries();
+inline void setDeploy();
+inline void unsetDeploy();
 #endif // __BSP_H__
 

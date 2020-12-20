@@ -17,6 +17,7 @@
  */
 void uart_init();
 
+void uart0_tx_nonblocking(uint16_t length, unsigned char *buffer);
 void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer);
 
 #endif /* __UART_INC */

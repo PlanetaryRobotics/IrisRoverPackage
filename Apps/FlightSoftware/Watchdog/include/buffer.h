@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-#define BUFFER_SIZE 550
+#define BUFFER_SIZE 600
 
 struct buffer {
     /* the actual array of characters */

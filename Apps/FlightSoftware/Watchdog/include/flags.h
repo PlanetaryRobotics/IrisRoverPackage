@@ -19,8 +19,17 @@ __volatile extern uint16_t loop_flags;
 
 #define WDFLAG_RADIO_KICK 0x1
 #define WDFLAG_FPGA_KICK 0x2
+#define WDFLAG_ADC_READY 0x4
 
+#define DEFAULT_LPM LPM2_bits
 
 __volatile extern uint16_t watchdog_flags;
+
+enum rover_state {
+    RS_LANDER, // connected to the lander 28V
+    RS_MISSION, // disconnected from lander 28V. we're on our own now ...
+    RS_FAULT // oops
+};
+extern enum rover_state rovstate;
 
 #endif /* __FLAGS_INC */

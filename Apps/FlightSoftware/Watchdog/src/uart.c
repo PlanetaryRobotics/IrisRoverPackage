@@ -2,6 +2,8 @@
  * Code for interfacing with UART protocol hardware module.
  *
  * UART communication uses eUSCI_A0 (Hercules) and eUSCI_A1 (Lander).
+ *
+ * 9600 baud, 1 stop bit, no parity
  */
 #include <msp430.h>
 #include "include/uart.h"
@@ -30,7 +32,7 @@ void __attribute__ ((interrupt(EUSCI_A0_VECTOR))) USCI_A0_ISR (void) {
     unsigned char rcv;
 
     /* two possibilities; rx or tx */
-    switch(__even_in_range(UCA1IV, USCI_UART_UCTXCPTIFG)) {
+    switch(__even_in_range(UCA0IV, USCI_UART_UCTXCPTIFG)) {
     case USCI_UART_UCTXIFG: /* transmitted byte successfully */
         /* decrement the number of bytes used */
         uart0tx.used--;
@@ -48,16 +50,11 @@ void __attribute__ ((interrupt(EUSCI_A0_VECTOR))) USCI_A0_ISR (void) {
         /* get the received character */
         rcv = UCA0RXBUF;
 
-        /* regular case (not escaped character) */
-        switch (rcv) {
-        case SLIP_END:
-            /* done reading; skip storing the end byte, and signal to the main loop that we are done */
+        /* regular byte */
+        uart0rx.buf[uart0rx.idx++] = rcv;
+
+        if (rcv == 0x11) {
             loop_flags |= FLAG_UART0_RX_PACKET;
-            break;
-        default:
-            /* regular byte */
-            uart0rx.buf[uart0rx.idx++] = rcv;
-            break;
         }
 
         /* clear UART_A0 receive flag */
@@ -135,6 +132,8 @@ void __attribute__ ((interrupt(EUSCI_A1_VECTOR))) USCI_A1_ISR (void) {
             /* done reading; skip storing the end byte, and signal to the main loop that we are done */
             loop_flags |= FLAG_UART1_RX_PACKET;
             has_started = 0;
+            // exit LPM
+            __bic_SR_register(DEFAULT_LPM);
             break;
         case SLIP_ESC:
             /* about to start escape sequence; skip storing this byte */
@@ -173,32 +172,23 @@ void uart_init() {
     uart1rx.idx = 0;
     uart1rx.used = 0;
 
-    /* Setup for eUSCI_A0 */
-    /* On the MSP430FR5994, pin P2.0 is used for MOSI/SIMO, pin P2.1 is used for
-     * MISO/SOMI (ref: pg 92 of datasheet), pin 1.4 is used for STE, and pin 1.5
-     * is used for CLK (ref: pg 89 of datasheet) */
-    /* P1.4 STE: x = 4; P1SEL1.x = 1, P1SEL0.x = 0 */
-    /* P1.5 CLK: x = 5; P1SEL1.x = 1, P1SEL0.x = 0 */
+    UCA0CTLW0 = UCSWRST;                    // Put eUSCI_A0 in reset
+    UCA1CTLW0 = UCSWRST;                    // Put eUSCI_A1 in reset
 
-    /* set P1SEL0.4 and P1SEL0.5 to 0 */
-    P1SEL0 &= ~(0b00110000);
-    /* set P1SEL1.4 and P1SEL1.5 to 1 */
-    P1SEL1 |= (0b00110000);
-
-    /* P2.0 MOSI/SIMO: x = 0; P2SEL1.x = 1, P2SEL0.x = 0 */
-    /* P2.1 MISO/SOMI: x = 1; P2SEL1.x = 1, P2SEL0.x = 0 */
-    /* see below (wrapped into one operation) */
-
-    /* Setup for eUSCI_A1 */
+    /* Setup for eUSCI_A0 and eUSCI_A1 */
+    /* On the MSP430FR5994, pin P2.0 is used for TX and pin P2.1 is used for RX
+     * (ref: pg 92 of datasheet) */
+    /* P2.0 TX: x = 0; P2SEL1.x = 1, P2SEL0.x = 0 */
+    /* P2.1 RX: x = 1; P2SEL1.x = 1, P2SEL0.x = 0 */
     /* On the MSP430FR5994, pin P2.5 is used for TX and pin P2.6 is used for RX
      * (ref: pg 95 of datasheet) */
     /* P2.5 TX: x = 5; P2SEL1.x = 1, P2SEL0.x = 0 */
     /* P2.6 RX: x = 6; P2SEL1.x = 1, P2SEL0.x = 0 */
 
     /* set P2SEL0.5, P2SEL0.6, P2SEL0.1, and P2SEL0.0 to 0 */
-    P2SEL0 &= ~(0b01100011);
+    P2SEL0 &= ~(BIT0 | BIT1 | BIT5 | BIT6);
     /* set P2SEL1.5, P2SEL1.6, P2SEL1.1, and P2SEL1.0 to 1 */
-    P2SEL1 |= (0b01100011);
+    P2SEL1 |= (BIT0 | BIT1 | BIT5 | BIT6);
 
     CSCTL0_H = CSKEY_H;                     // Unlock CS registers
     CSCTL1 = DCOFSEL_3 | DCORSEL;           // Set DCO to 8MHz
@@ -206,10 +196,7 @@ void uart_init() {
     CSCTL3 = DIVA__1 | DIVS__1 | DIVM__1;   // Set all dividers
     CSCTL0_H = 0;                           // Lock CS registers
 
-    UCA0CTLW0 = UCSWRST;                    // Put eUSCI_A0 in reset
     UCA0CTLW0 |= UCSSEL__SMCLK;             // CLK = SMCLK
-
-    UCA1CTLW0 = UCSWRST;                    // Put eUSCI_A1 in reset
     UCA1CTLW0 |= UCSSEL__SMCLK;             // CLK = SMCLK
     // Baud Rate calculation
     // 8000000/(16*9600) = 52.083
@@ -225,6 +212,23 @@ void uart_init() {
     UCA1MCTLW |= UCOS16 | UCBRF_1 | 0x4900; // ???
     UCA1CTLW0 &= ~UCSWRST;                  // Release eUSCI_A1 reset
     UCA1IE |= UCRXIE;                       // Enable USCI_A1 RX interrupt
+}
+
+
+void uart0_tx_nonblocking(uint16_t length, unsigned char *buffer) {
+    uint16_t i;
+    unsigned char b;
+    uint16_t curr_idx = uart0tx.idx + uart0tx.used;
+
+    for (i = 0; i < length; i++) {
+        b = buffer[i];
+        uart0tx.buf[curr_idx++] = b;
+        if (curr_idx >= BUFFER_SIZE) curr_idx = 0;
+        uart0tx.used++;
+    }
+
+    /* start interrupts for sending async */
+    UCA0IE |= UCTXIE;
 }
 
 void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer) {
@@ -269,4 +273,5 @@ void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer) {
     /* start interrupts for sending async */
     UCA1IE |= UCTXIE;
 }
+
 

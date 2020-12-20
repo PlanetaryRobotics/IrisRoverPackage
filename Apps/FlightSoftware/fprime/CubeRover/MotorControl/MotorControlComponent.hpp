@@ -235,7 +235,7 @@ namespace CubeRover {
       MCError enableDrivers();
       MCError disableDrivers();
 
-      void MotorControlComponentImpl :: Move_all_motors(uint32_t distance);
+      void Move_all_motors(uint32_t distance);
 
       //Debug functions/items
       uint32_t tick_count = 0;

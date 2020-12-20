@@ -89,6 +89,7 @@ ErrorCode CubeRoverNetworkManager :: UpdateNetworkManager(){
     case CONNECTED:
     case UDP_CONNECTED:
       errorCode = startUdpServer();
+      if(errorCode != NO_ERROR) return errorCode;
       errorCode = manageSignalStrength();
       break;
     case DISCONNECTING:
@@ -305,6 +306,8 @@ ErrorCode CubeRoverNetworkManager :: ReceiveUdpData(uint8_t * data,
   uint32_t timer = timeout;
   uint8_t *ptrData = data;
   uint32_t byteToRead = dataSize;
+
+  *dataRead = 0;
 
   if(m_state != UDP_CONNECTED){
     return ETHERNET_NOT_CONNECTED;
@@ -668,7 +671,7 @@ ErrorCode CubeRoverNetworkManager :: scanWifiNetwork(){
  */
 ErrorCode CubeRoverNetworkManager :: connectToWifiNetwork(){
   ErrorCode errorCode;
-  uint16_t tries;
+  uint32_t tries;
 
   // If the current is connecting, don't try again
   if(m_state == CONNECTING || m_state == CONNECTED) return NO_ERROR;
@@ -696,7 +699,7 @@ ErrorCode CubeRoverNetworkManager :: connectToWifiNetwork(){
   m_state = CONNECTING;             // SCANNDED --> CONNECTING
 
   // Block until it timeouts or generate an error
-  tries = TRIES_EXECUTE_CALLBACK;
+  tries = TRIES_EXECUTE_CALLBACK*10;
   while(tries > 0 && m_connectBssidSet == false){
     errorCode = ExecuteCallbacks();
     if(errorCode != TRY_AGAIN && errorCode != NO_ERROR){
@@ -717,6 +720,9 @@ ErrorCode CubeRoverNetworkManager :: connectToWifiNetwork(){
   while(tries > 0 && m_state != CONNECTED){
       tries--;
       errorCode = ExecuteCallbacks();
+      if(errorCode != TRY_AGAIN && errorCode != NO_ERROR){
+          return errorCode;
+      }
   }
 
   // Failed to execute the command
@@ -735,7 +741,6 @@ ErrorCode CubeRoverNetworkManager :: connectToWifiNetwork(){
  */
 ErrorCode CubeRoverNetworkManager :: startUdpServer(){
   ErrorCode errorCode;
-  uint16_t tries;
 
   if(m_state == UDP_CONNECTED) return NO_ERROR;
 
@@ -753,18 +758,11 @@ ErrorCode CubeRoverNetworkManager :: startUdpServer(){
   }
 
   // Block until it timeouts or generate an error
-  tries = TRIES_EXECUTE_CALLBACK;
-  while(tries > 0 && m_udpConnectSet == false){
+  while(m_udpConnectSet == false){
     errorCode = ExecuteCallbacks();
     if(errorCode != TRY_AGAIN && errorCode != NO_ERROR){
       return errorCode;
     }
-    tries--;
-  }
-
-  // Failed to execute the command
-  if(!tries){
-    return TIMEOUT;
   }
   
   errorCode = UdpBind(m_udpSendEndpoint,
@@ -775,18 +773,12 @@ ErrorCode CubeRoverNetworkManager :: startUdpServer(){
   }
 
   // Block until it timeouts or generate an error
-  tries = TRIES_EXECUTE_CALLBACK;
-  while(tries > 0 && m_udpBindSet == false){
+  //tries = TRIES_EXECUTE_CALLBACK;
+  while(m_udpBindSet == false){
     errorCode = ExecuteCallbacks();
     if(errorCode != TRY_AGAIN && errorCode != NO_ERROR){
       return errorCode;
     }
-    tries--;
-  }
-
-  // Failed to execute the command
-  if(!tries){
-    return TIMEOUT;
   }
 
   // Create a UDP server to support incoming data
@@ -798,16 +790,13 @@ ErrorCode CubeRoverNetworkManager :: startUdpServer(){
   }
 
   // Block until it timeouts or generate an error
-  tries = TRIES_EXECUTE_CALLBACK;
-  while(tries > 0 && m_udpServerStarted == false){
+
+  while(m_udpServerStarted == false){
     errorCode = ExecuteCallbacks();
     if(errorCode != TRY_AGAIN && errorCode != NO_ERROR){
       return errorCode;
     }
-    tries--;
   } 
-
-  if(!tries) return TIMEOUT;
 
   m_state = UDP_CONNECTED;
 

@@ -74,8 +74,9 @@
 									<listOptionValue builtIn="false" value="libSvcActiveRateGroup.a"/>
 									<listOptionValue builtIn="false" value="libDrvBlockDriver.a"/>
 									<listOptionValue builtIn="false" value="libFwSerializableFile.a"/>
-									<listOptionValue builtIn="false" value="libFwTime.a"/>
+									<listOptionValue builtIn="false" value="libFwLog.a"/>
 									<listOptionValue builtIn="false" value="libFwTlm.a"/>
+									<listOptionValue builtIn="false" value="libFwTime.a"/>
 									<listOptionValue builtIn="false" value="libFwTypes.a"/>
 									<listOptionValue builtIn="false" value="libOs.a"/>
 									<listOptionValue builtIn="false" value="libSvcActiveLogger.a"/>
@@ -95,7 +96,6 @@
 									<listOptionValue builtIn="false" value="libFwCom.a"/>
 									<listOptionValue builtIn="false" value="libFwComFile.a"/>
 									<listOptionValue builtIn="false" value="libFwComp.a"/>
-									<listOptionValue builtIn="false" value="libFwLog.a"/>
 									<listOptionValue builtIn="false" value="libFwObj.a"/>
 									<listOptionValue builtIn="false" value="libFwPort.a"/>
 									<listOptionValue builtIn="false" value="libFwPrm.a"/>

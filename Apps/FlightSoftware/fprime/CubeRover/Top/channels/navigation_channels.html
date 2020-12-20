@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>navigation:Navigation Component Dictionary</title>
+</head>
+<body>
+
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+}
+th {
+    text-align: left;
+}
+html {
+    font-family: Arial, sans-serif ;
+    font-size: 90% ;
+}
+</style>
+
+
+<h1><b>Telemetry Channels: navigation:Navigation</b></h1>
+<table>
+  <tr>
+     <th>Channel Name</th>
+     <th>ID</th>
+     <th>Type</th>
+     <th>Description</th>
+ </tr>
+
+ <tr>
+    <td>Nav_Moved_Forward</td>
+    <td>2221 (0x8ad)</td>
+    <td>U16</td>
+    <td>The distance moved forward in cm</td>
+ </tr>
+ <tr>
+    <td>Nav_Moved_Backward</td>
+    <td>2222 (0x8ae)</td>
+    <td>U16</td>
+    <td>The distance moved backward in cm</td>
+ </tr>
+ <tr>
+    <td>Nav_Turned_Left</td>
+    <td>2223 (0x8af)</td>
+    <td>U16</td>
+    <td>The angle turned to the left (counter clockwise) in degrees</td>
+ </tr>
+ <tr>
+    <td>Nav_Turned_Right</td>
+    <td>2224 (0x8b0)</td>
+    <td>U16</td>
+    <td>The angle turned to the right (clockwise) in degrees</td>
+ </tr>
+ <tr>
+    <td>Nav_Image_Size</td>
+    <td>2225 (0x8b1)</td>
+    <td>U16</td>
+    <td>Image size</td>
+ </tr>
+</table>
+</body>
+</html>

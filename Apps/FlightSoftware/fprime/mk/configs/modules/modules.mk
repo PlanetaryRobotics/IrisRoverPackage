@@ -66,9 +66,9 @@ SVC_MODULES := \
 	Svc/WatchDog \
 	Svc/FileUplink \
 	Svc/FileDownlink \
-    Svc/AssertFatalAdapter \
-    Svc/FatalHandler \
-	Svc/FileManager 
+  Svc/AssertFatalAdapter \
+  Svc/FatalHandler \
+	Svc/FileManager
 	
 DEMO_DRV_MODULES := \
 	Drv/DataTypes \
@@ -197,10 +197,17 @@ acdev_MODULES := \
 	$(OS_MODULES) \
 	\
 	$(ACDEVTEST_MODULES)
+
+CubeRoverPorts_MODULES := \
+	CubeRover/CubeRoverPorts/IMUData \
+	CubeRover/CubeRoverPorts/MotorData
 	
 CubeRover_MODULES := \
 	CubeRover/Top \
 	CubeRover/CubeRoverPorts \
+	CubeRover/IMU \
+	CubeRover/Navigation \
+	CubeRover/MotorControl \
 	CubeRover/UdpInterface \
 	CubeRover/NetworkManager \
 	CubeRover/GroundInterface \
@@ -212,6 +219,7 @@ CubeRover_MODULES := \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \
 	$(CUBEROVER_DRV_MODULES) \
+	$(CubeRoverPorts_MODULES) \
 	$(UTILS_MODULES)
 	
 # Other modules to build, but not to link with deployment binaries

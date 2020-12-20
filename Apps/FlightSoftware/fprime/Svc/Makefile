@@ -9,6 +9,7 @@ MODULES = 	Fatal Ping ActiveLogger Cycle Sched ActiveRateGroup BufferAccumulator
 			FileManager Time LinuxTime LinuxTimer RateGroupDriver Sched TlmChan Ping \
 			PassiveTextLogger PrmDb PassiveConsoleTextLogger Health WatchDog
 
+
 BASE_DIR = $(notdir $(CURDIR))
 
 BUILD_ROOT ?= $(subst /$(BASE_DIR),,$(CURDIR))

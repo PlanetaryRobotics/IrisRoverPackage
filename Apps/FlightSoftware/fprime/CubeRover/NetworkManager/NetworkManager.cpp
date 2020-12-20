@@ -57,7 +57,7 @@ namespace CubeRover {
     unsigned no_transition_count = 0;
     m_current_state = m_crnm.GetState();
     bool success = false;
-    while (!success) {
+    /*while (!success) {
         while (no_transition_count < MAX_FSM_NO_TRANSITION_COUNT) {
             Wf121::ErrorCode errorCode = m_crnm.UpdateNetworkManager();
             if (errorCode == Wf121::TRY_AGAIN) {
@@ -86,7 +86,7 @@ namespace CubeRover {
             log_FATAL_WF121InitializationFailed();
             // TODO: Watchdog reset WF121
         }
-    }
+    }*/
   }
 
   NetworkManagerComponentImpl ::

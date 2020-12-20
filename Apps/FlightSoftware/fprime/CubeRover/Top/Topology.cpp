@@ -78,6 +78,27 @@ Svc::CommandDispatcherImpl cmdDispatcher(
 #if FW_OBJECT_NAMES == 1
         "CmdDispatcher"
 #endif
+  );
+
+// --------------------------------------------------------------------------
+CubeRover::IMUComponentImpl IMU(
+#if FW_OBJECT_NAMES == 1
+        "IMU"
+#endif
+);
+
+// --------------------------------------------------------------------------
+CubeRover::MotorControlComponentImpl motorControl(
+#if FW_OBJECT_NAMES == 1
+        "MotorControl"
+#endif
+);
+
+// --------------------------------------------------------------------------
+CubeRover::NavigationComponentImpl navigation(
+#if FW_OBJECT_NAMES == 1
+        "Navigation"
+#endif
 );
 
 // --------------------------------------------------------------------------
@@ -180,12 +201,21 @@ void constructApp(void){
 
   // Initialize the ground interface (passive)
   udpInterface.init();
-  
+
+  // Initialize the IMU interface (passive)
+  IMU.init();
+
   // Initialize the ground interface (passive)
   networkManager.init();
   
   // Initialize the camera (passive)
   camera.init();
+
+  // Initialize the Motor control interface (passive)
+  motorControl.init();
+
+  // Initialize the navigation component (active)
+  navigation.init(NAV_QUEUE_DEPTH,NAV_ID);
 
    // Construct the application and make all connections between components
   constructCubeRoverArchitecture();
@@ -219,6 +249,14 @@ void constructApp(void){
   cmdDispatcher.start(0,
                       CMD_DISP_AFF, 
                       CMD_DISP_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
+
+  navigation.start(0,
+                   NAV_AFF,
+                   NAV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
+
+  // setup communication with IMU over SPI
+  IMU.setup(IMU_SPI_REG);
+
 
   // Set Health Ping Entries
   // **** THIS IS WHERE YOU CAN ADD ANY COMPONENTS THAT HAVE HEALTH PINGS ****

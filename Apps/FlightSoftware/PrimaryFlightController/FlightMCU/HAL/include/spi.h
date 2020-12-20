@@ -225,6 +225,7 @@ void spiDisableLoopback(spiBASE_t *spi);
 SpiDataStatus_t SpiTxStatus(spiBASE_t *spi);
 SpiDataStatus_t SpiRxStatus(spiBASE_t *spi);
 void spi1GetConfigValue(spi_config_reg_t *config_reg, config_value_type_t type);
+void spi3GetConfigValue(spi_config_reg_t *config_reg, config_value_type_t type);
 void spi4GetConfigValue(spi_config_reg_t *config_reg, config_value_type_t type);
 
 /** @fn void spiNotification(spiBASE_t *spi, uint32 flags)

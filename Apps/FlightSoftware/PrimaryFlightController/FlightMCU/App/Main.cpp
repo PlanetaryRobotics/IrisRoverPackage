@@ -10,6 +10,7 @@
 #include "os_task.h"
 #include "CubeRover/Top/Topology.hpp"
 
+#include "adc.h"
 #include "gio.h"
 #include "i2c.h"
 #include "spi.h"
@@ -31,10 +32,10 @@ void vApplicationIdleHook(void) {
     //for(uint32_t i=0; i<2000000; i++) asm("  NOP");
 }
 
-
 void main(void)
 {
     /* USER CODE BEGIN (3) */
+
     int waithere = 1;
     while(waithere);     // Stop here and wait for debugger
     gioInit();

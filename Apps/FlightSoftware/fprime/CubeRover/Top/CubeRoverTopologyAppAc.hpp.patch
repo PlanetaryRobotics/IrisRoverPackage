@@ -1,9 +1,33 @@
---- CubeRoverTopologyAppAc.hpp.orig	2020-12-18 16:16:06.576595847 -0500
-+++ CubeRoverTopologyAppAc.hpp	2020-12-18 16:16:23.240625539 -0500
-@@ -22,21 +22,21 @@
- extern Fw::SimpleObjRegistry simpleReg;
- 
- // Component declarations
+--- CubeRoverTopologyAppAc.hpp.orig	2020-12-20 11:34:17.490796390 -0800
++++ CubeRoverTopologyApp.hpp	1969-12-31 16:00:00.000000000 -0800
+@@ -1,69 +0,0 @@
+-#include <Fw/Obj/SimpleObjRegistry.hpp>
+-#include <string.h>
+-
+-#include <Drv/BlockDriver/BlockDriverComponentAc.hpp>
+-#include <Svc/RateGroupDriver/RateGroupDriverComponentAc.hpp>
+-#include <Svc/ActiveRateGroup/ActiveRateGroupComponentAc.hpp>
+-#include <Svc/LinuxTime/CubeRoverTimeComponentAc.hpp>
+-#include <Svc/TlmChan/TlmChanComponentAc.hpp>
+-#include <Svc/CmdDispatcher/CommandDispatcherComponentAc.hpp>
+-#include <Svc/ActiveLogger/ActiveLoggerComponentAc.hpp>
+-#include <Svc/Health/HealthComponentAc.hpp>
+-#include <CubeRover/WatchDogInterface/WatchDogInterfaceComponentAc.hpp>
+-#include <CubeRover/GroundInterface/GroundInterfaceComponentAc.hpp>
+-#include <CubeRover/UdpInterface/UdpInterfaceComponentAc.hpp>
+-#include <CubeRover/NetworkManager/NetworkManagerComponentAc.hpp>
+-#include <CubeRover/IMU/IMUComponentAc.hpp>
+-#include <CubeRover/MotorControl/MotorControlComponentAc.hpp>
+-#include <CubeRover/Navigation/NavigationComponentAc.hpp>
+-#include <CubeRover/Camera/CameraComponentAc.hpp>
+-
+-#include <unistd.h>
+-
+-using namespace std;
+-
+-extern Fw::SimpleObjRegistry simpleReg;
+-
+-// Component declarations
 -extern Drv::BlockDriverImpl blockDriver("blockDriver");
 -extern Svc::RateGroupDriverImpl rateGroupDriver("rateGroupDriver");
 -extern Svc::ActiveRateGroupImpl rateGroupLowFreq("rateGroupLowFreq");
@@ -17,27 +41,32 @@
 -extern CubeRover::NetworkManagerImpl networkManager("networkManager");
 -extern Svc::ActiveLoggerImpl activeLogger("activeLogger");
 -extern Svc::HealthImpl health("health");
--extern CubeRover::WatchDogInterfaceImpl watchDogInterface("watchDogInterface");
--extern CubeRover::CameraImpl camera("camera");
 -extern CubeRover::NavigationImpl navigation("navigation");
 -extern CubeRover::MotorControlImpl motorControl("motorControl");
 -extern CubeRover::IMUImpl IMU("IMU");
-+extern Drv::BlockDriverImpl blockDriver;
-+extern Svc::RateGroupDriverImpl rateGroupDriver;
-+extern Svc::ActiveRateGroupImpl rateGroupLowFreq;
-+extern Svc::ActiveRateGroupImpl rateGroupMedFreq;
-+extern Svc::ActiveRateGroupImpl rateGroupHiFreq;
-+extern Svc::CubeRoverTimeImpl cubeRoverTime;
-+extern Svc::TlmChanImpl tlmChan;
-+extern Svc::CommandDispatcherImpl cmdDispatcher;
-+extern CubeRover::GroundInterfaceComponentImpl groundInterface;
-+extern CubeRover::UdpInterfaceComponentImpl udpInterface;
-+extern CubeRover::NetworkManagerComponentImpl networkManager;
-+extern Svc::ActiveLoggerImpl activeLogger;
-+extern Svc::HealthImpl health;
-+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
-+extern CubeRover::CameraComponentImpl camera;
-+extern CubeRover::NavigationComponentImpl navigation;
-+extern CubeRover::MotorControlComponentImpl motorControl;
-+extern CubeRover::IMUComponentImpl IMU;
-
+-extern CubeRover::WatchDogInterfaceImpl watchDogInterface("watchDogInterface");
+-extern CubeRover::CameraImpl camera("camera");
+-
+-
+-
+-extern "C" {
+-    void dumparch(void);
+-    void dumpobj(const char* objName);
+-}
+-
+-
+-void dumparch(void);
+-
+-void dumpobj(const char* objName);
+-
+-void setRef_Ids(void);
+-
+-void CubeRoverInit(void);
+-
+-void CubeRoverStart(void);
+-
+-void CubeRoverRegister(void);
+-
+-void constructCubeRoverArchitecture(void);
+-
+-void exitTasks(void) ;

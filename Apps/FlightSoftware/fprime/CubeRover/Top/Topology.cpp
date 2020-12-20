@@ -108,19 +108,50 @@ CubeRover::GroundInterfaceComponentImpl groundInterface(
 #endif
 );
 
-// --------------------------------------------------------------------------
-CubeRover::UdpReceiverComponentImpl udpReceiver(
+// ---------------------------------------------------------------------------
+// Active Logger data component used to log system events
+Svc::ActiveLoggerImpl activeLogger(
 #if FW_OBJECT_NAMES == 1
-        "UdpReceiver"
+        "ActiveLogger"
 #endif
 );
-// 
+
+// --------------------------------------------------------------------------
+CubeRover::UdpInterfaceComponentImpl udpInterface(
+#if FW_OBJECT_NAMES == 1
+        "UdpInterface"
+#endif
+);
+
 // --------------------------------------------------------------------------
 CubeRover::NetworkManagerComponentImpl networkManager(
 #if FW_OBJECT_NAMES == 1
         "NetworkManager"
 #endif
 );
+
+// ---------------------------------------------------------------------------
+CubeRover::CameraComponentImpl camera(
+#if FW_OBJECT_NAMES == 1
+        "Camera"
+#endif
+);
+
+// ---------------------------------------------------------------------------
+Svc::HealthImpl health(
+#if FW_OBJECT_NAMES == 1
+        "Health"
+#endif
+);
+
+// ---------------------------------------------------------------------------
+CubeRover::WatchDogInterfaceComponentImpl watchDogInterface(
+#if FW_OBJECT_NAMES == 1
+        "Watchdog"
+#endif
+);
+
+
 
 /**
  * @brief      Run 1 cycle (debug)
@@ -147,9 +178,21 @@ void constructApp(void){
   // Initialize cubeRover time component (passive)
   cubeRoverTime.init(0);
 
+  // Initialize the active logger component (active)
+  // TODO: This hasn't been started yet
+  activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
+
+  // Initialize the watchdog interface component (queued)
+  //watchDogInterface.init(10,          /*Queue Depth*/
+  //                       0);         /*Instance Number*/
+
+  // Initialize the health component (queued)
+  //health.init(25,                   /*Queue Depth*/
+  //            0);                   /*Instance Number*/
+
   // Initialize the telemetry channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
-  // 
+
   // Initialize the CommandDispatcher component (active)
   cmdDispatcher.init(CMD_DISP_QUEUE_DEPTH, CMD_DISP_ID);
 
@@ -161,12 +204,12 @@ void constructApp(void){
 
   // Initialize the IMU interface (passive)
   IMU.init();
-  
-  // setup communication with IMU over SPI
-  IMU.setup(IMU_SPI_REG);
 
   // Initialize the ground interface (passive)
   networkManager.init();
+  
+  // Initialize the camera (passive)
+  camera.init();
 
   // Initialize the Motor control interface (passive)
   motorControl.init();
@@ -176,6 +219,12 @@ void constructApp(void){
 
    // Construct the application and make all connections between components
   constructCubeRoverArchitecture();
+
+  // Register Health Commands
+  //health.regCommands();
+
+  // Register WatchDog Interface Commands
+  //watchDogInterface.regCommands();
 
   rateGroupLowFreq.start(0, /* identifier */
                        RG_LOW_FREQ_AFF, /* Thread affinity */
@@ -205,5 +254,45 @@ void constructApp(void){
                    NAV_AFF,
                    NAV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
 
+  // setup communication with IMU over SPI
+  IMU.setup(IMU_SPI_REG);
 
+
+  // Set Health Ping Entries
+  // **** THIS IS WHERE YOU CAN ADD ANY COMPONENTS THAT HAVE HEALTH PINGS ****
+  //Svc::HealthImpl::PingEntry pingEntries[] = {
+    // {3, 5, name.getObjName()},
+    // 3 -> number of cycles before WARNING
+    // 5 -> number of cycles before FATAL
+    // name.getObjName() -> the name of the entry where "name" is replace with component name
+
+    /*    Start of Ping Entry List (Please let Alec know if changed/added to)
+        
+        {3, 5, watchDogInterface.getObjName()},    //0
+        {3, 5, ****IMU****.getObjName()},    //1  *MUST CHANGE TO IMU COMPONENT NAME*
+        {3, 5, ****MOTORCONTROLLER****.getObjName()},    //2  *MUST CHANGE TO MOTOR CONTROLLER COMPONENT NAME*
+        {3, 5, ****CAMERA****.getObjName()},    //3  *MUST CHANGE TO CAMERA COMPONENT NAME*
+        {3, 5, ****UWB****.getObjName()},    //4  *MUST CHANGE TO UWB COMPONENT NAME*
+        {3, 5, ****FLASH****.getObjName()},    //5  *MUST CHANGE TO FLASH COMPONENT NAME (NOT SURE CAN DO)*
+        {3, 5, networkManager.getObjName()},    //6
+        {3, 5, ****WIFI****.getObjName()},    //7  *MUST CHANGE TO WIFI COMPONENT NAME (NOT SURE CAN DO)*
+        {3, 5, ****NAVIGATION****.getObjName()},    //8  *MUST CHANGE TO NAVIGATION COMPONENT NAME*
+        {3, 5, tlmChan.getObjName()},    //9
+        {3, 5, activeLogger.getObjName()},    //10
+        {3, 5, ****COMMLOGGER****.getObjName()},    //11  *MUST CHANGE TO COMMLOGGER COMPONENT NAME*
+        {3, 5, groundInterface.getObjName()},    //12
+        {3, 5, cmdDispatcher.getObjName()},    //13
+        {3, 5, ****MODE MANAGER****.getObjName()},    //14  *MUST CHANGE TO MODE MANAGER* COMPONENT NAME*
+        {3, 5, cubeRoverTime.getObjName()},    //15
+        {3, 5, rateGroupHiFreq.getObjName()},    //16
+        {3, 5, rateGroupMedFreq.getObjName()},    //17
+        {3, 5, rateGroupLowFreq.getObjName()},    //18
+        {3, 5, rateGroupDriver.getObjName()},    //19
+        {3, 5, blockDriver.getObjName()},    //20
+
+    */
+  //};
+
+  // Register ping table
+  // shealth.setPingEntries(pingEntries,FW_NUM_ARRAY_ELEMENTS(pingEntries),0x123);
 }

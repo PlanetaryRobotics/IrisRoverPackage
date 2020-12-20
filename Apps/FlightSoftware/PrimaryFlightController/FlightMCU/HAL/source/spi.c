@@ -254,10 +254,6 @@ void spiInit(void)
     /** - Finally start SPI1 */
     spiREG1->GCR1 = (spiREG1->GCR1 & 0xFEFFFFFFU) | 0x01000000U;
 
-    
-    
-    
-    
     /** @b initialize @b SPI3 */
 
     /** bring SPI out of reset */
@@ -437,8 +433,7 @@ void spiInit(void)
 
     /** - Finally start SPI3 */
     spiREG3->GCR1 = (spiREG3->GCR1 & 0xFEFFFFFFU) | 0x01000000U;
-    
-    
+
 
 
 

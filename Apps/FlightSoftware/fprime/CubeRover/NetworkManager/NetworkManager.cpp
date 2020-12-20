@@ -12,6 +12,7 @@
 
 
 #include <CubeRover/NetworkManager/NetworkManager.hpp>
+#include "CubeRover/Wf121/Wf121.hpp"
 #include "Fw/Types/BasicTypes.hpp"
 #include <cstring>
 
@@ -40,6 +41,19 @@ namespace CubeRover {
     )
   {
     NetworkManagerComponentBase::init(instance);
+
+    /*  Not currently working
+    do {    // Reset WF121 on component initialization
+        m_crnm.ResetSystemWifi(Wf121::SYSTEM_BOOT);
+        for (int i = 0; i < 10; ++i) {          // Max number of times to check for callbacks
+            for (int i = 100000; i > 0; --i);   // A delay
+            m_crnm.ExecuteCallbacks();
+            if (m_crnm.GetWifiModuleIdentified())
+                break;
+        }
+    } while (not m_crnm.GetWifiModuleIdentified());
+    */
+    
     unsigned no_transition_count = 0;
     m_current_state = m_crnm.GetState();
     bool success = false;

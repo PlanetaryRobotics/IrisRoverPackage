@@ -14,9 +14,6 @@
 #include <CubeRover/UdpReceiver/UdpReceiver.hpp>
 #include "Fw/Types/BasicTypes.hpp"
 
-#include "sci.h"
-#include <cstring>
-
 namespace CubeRover {
 
   // ----------------------------------------------------------------------
@@ -38,7 +35,6 @@ namespace CubeRover {
 #else
     UdpReceiverComponentImpl(void)
 #endif
-    ,m_fd((uint32_t)(SCI_REG))
     ,m_packetsReceived(0)
     ,m_bytesReceived(0)
     ,m_packetsDropped(0)
@@ -84,21 +80,21 @@ namespace CubeRover {
     )
   {
       
-    struct udpHeader {
+    struct UdpHeader {
         uint8_t src_port;
         uint8_t dest_port;
         uint8_t length;
         uint8_t checksum;
     };
   
-    if (fwBuffer.getsize() < sizeof(struct udpHeader)) {    // Expects a datagram
+    if (fwBuffer.getsize() < sizeof(struct UdpHeader)) {    // Expects a datagram
         this->log_WARNING_HI_UR_RecvError(static_cast<I32>(fwBuffer.getsize()));
         this->m_packetsDropped++;
         updateTelemetry();
         return;
     }
     
-    struct udpHeader *header = reinterpret_cast<struct udpHeader *>(fwBuffer.getdata());
+    struct UdpHeader *header = reinterpret_cast<struct UdpHeader *>(fwBuffer.getdata());
     
     // TODO: CHECK SRC & DEST PORTS
     // TODO: CHECK CHECKSUM
@@ -137,49 +133,4 @@ namespace CubeRover {
         this->tlmWrite_UR_DecodeErrors(this->m_decodeErrors);
     }
 
-
-  // -------------------------------------------------------------------------
-  // Implementation of custom functions of UDP receiver
-  // -------------------------------------------------------------------------
-
-
-  /**
-   * @brief      Open the communication port
-   *
-   * @param[in]  port  The port
-   */
-  void UdpReceiverComponentImpl::open(
-          const char* port
-          ){
-
-  }
-
-  int32_t UdpReceiverComponentImpl :: recvfrom( int sockfd,
-                                              void *buf,
-                                              uint32_t len,
-                                              Socket::SocketFlag flags,
-                                              struct sockaddr *src_addr,
-                                              Socket::SockLength *addrlen){
-
-    uint32_t status;
-
-    // First check for receiving buffer error
-    status = sciRxError((volatile sciBASE_t *)sockfd);
-
-    // Check for frame error, overrun and parity
-    if((status & SCI_FE_INT) || (status & SCI_OE_INT) || (status & SCI_PE_INT)){
-      return -1;
-    }
-
-    if(flags & Socket::MSG_WAITALL){
-      // blocking read
-      sciReceive((volatile sciBASE_t *)sockfd, len, (uint8_t *)buf);
-      return len; // at that point all expected data has been received
-    }
-    else{
-      return Socket::EINVAL; // no supported by current driver
-    }
-
-    return 0;
-  }
 } // end namespace CubeRover

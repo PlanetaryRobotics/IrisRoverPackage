@@ -113,6 +113,18 @@ CubeRoverNetworkStateMachine CubeRoverNetworkManager :: GetState(){
 
 
 /**
+ * @brief      Getter for WifiModuleIdentified.
+ * 
+ * m_wifiModuleIdentified set on WF121 boot.
+ *
+ * @return     The state.
+ */
+bool CubeRoverNetworkManager :: GetWifiModuleIdentified() {
+    return m_wifiModuleIdentified;
+}
+
+
+/**
  * @brief      Gets the signal RSSI.
  *
  * @return     The signal quality, the actual signal strengh is connected, 0xff

@@ -126,7 +126,6 @@ namespace CubeRover {
       uint32_t m_decodeErrors;
       uint32_t m_firstSeq;
       uint32_t m_currSeq;
-      uint32_t m_fd;
     };
 
 } // end namespace CubeRover

@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
+
+<component name="WatchDogInterface" kind="queued" namespace="CubeRover">
+    <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
+    <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+    <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
+    <import_port_type>Fw/Buffer/BufferSendPortAi.xml</import_port_type>
+    <import_port_type>Svc/WatchDog/WatchDogPortAi.xml</import_port_type>
+
+    <ports>
+        <!-- Rate Group Port -->
+        <port name="Run" data_type="Svc::Sched" kind="guarded_input" max_number="1">
+            <comment>
+            Run port
+            </comment>
+        </port>
+
+        <!-- Command Ports -->
+        <port name="CmdReg" data_type="Fw::CmdReg" kind="output" role="CmdRegistration" max_number="1">
+            <comment>
+            Command Registration Port
+            </comment>
+        </port>
+
+        <port name="CmdStatus" data_type="Fw::CmdResponse" kind="output" role="CmdResponse" max_number="1">
+            <comment>
+            Command Response Port
+            </comment>
+        </port>
+
+        <port name="CmdDisp" data_type="Fw::Cmd" kind="input" role="Cmd" max_number="1">
+            <comment>
+            Command Input Port
+            </comment>
+        </port>
+        
+        <!-- Network interfaces for messages exchanged via Lander RS422 -->
+        <port name="downlink" data_type="Fw::BufferSend" kind="guarded_input" max_number="1">
+            <comment>UDPInterface sends packets to Watchdog for downlink</comment>
+        </port>
+            
+        <port name="uplink" data_type="Fw::BufferSend" kind="output" max_number="1">
+            <comment>Watchdog sends received packets to UDPInterface</comment>
+        </port>
+        
+        <!-- Ping ports -->
+        <port name="PingIn" data_type="Svc::Ping" kind="async_input" max_number="1">
+            <comment>
+            Input ping port "Health"
+            </comment>
+        </port>
+        <port name="PingOut" data_type="Svc::Ping" kind="output" max_number="1">
+            <comment>
+            Output ping port "Health"
+            </comment>
+        </port>
+
+        <!-- Watch Dog Port -->
+        <port name="WdogStroke" data_type="Svc::WatchDog" kind="sync_input" max_number="1">
+            <comment>
+            Input port from Health Component.
+            </comment>
+        </port>
+    </ports>
+
+    <commands>
+        <command kind="async" opcode="0x00" mnemonic="Reset_Specific">
+            <comment>
+            Command to reset the specific parts of rover
+            </comment>
+            <args>
+                <arg name="reset_value" type="U8">
+                    <comment>
+                    	U8 Value that specifies which components or hardware need to be reset
+                    </comment>
+                </arg>
+             </args>
+        </command>
+        <command kind="async" opcode="0x01" mnemonic="Disengage_From_Lander">
+            <comment>
+            Command to send signal to MSP430 that it should send a signal to lander to disengage
+            </comment>
+        </command>
+    </commands>
+
+    <events>
+        <event id="0x0" name="WatchDogMSP430IncorrectResp" severity="WARNING_HI" format_string = "Watchdog MSP430 Sent back Incorrect Response">
+            <comment>
+            Warning that the WatchDog MSP430 sent back a response different than what was sent to it
+            </comment>
+        </event>
+
+        <event id="0x1" name="WatchDogTimedOut" severity="WARNING_HI" format_string = "WatchDog Timer has timed out" >
+            <comment>
+            Warning that a WatchDog MSP430 watchdog timer went off 
+            </comment>
+        </event>
+
+        <event id="0x2" name="WatchDogCmdReceived" severity="ACTIVITY_HI" format_string = "WatchDog Cmd to reset %s recieved" >
+            <comment>
+            Notification that watchdog interface recieved a command from Cmd_Dispatcher 
+            </comment>
+             <args>
+                <arg name="Cmd" type="string" size="50">
+                    <comment>The cmd that watchdog interface processed</comment>
+                </arg>          
+            </args>
+        </event>
+
+        <event id="0x3" name="WatchDogCommError" severity="WARNING_HI" format_string = "WatchDog Interface has error: %u" >
+            <comment>
+            Warning that a WatchDog MSP430 error has occured.
+            </comment>
+             <args>
+                <arg name="error" type="U32">
+                    <comment>The watchdog error value (reference to documentation)</comment>
+                </arg>          
+            </args>
+        </event>
+    </events>
+
+    <telemetry>
+        <channel id="0" name="LAST_COMMAND" data_type="string" size="50">
+            <comment>
+                The command last sent to watchdog interface
+            </comment>
+        </channel>
+        <channel id="2" name="VOLTAGE_2_5V" data_type="int16_t">
+            <comment>
+                Voltage from 2.5V line from Watchdog
+            </comment>
+        </channel>
+        <channel id="3" name="VOLTAGE_2_8V" data_type="int16_t">
+            <comment>
+                Voltage from 2.8V line from Watchdog
+            </comment>
+        </channel>
+        <channel id="4" name="VOLTAGE_24V" data_type="int16_t">
+            <comment>
+                Voltage from 24V line from Watchdog
+            </comment>
+        </channel>
+        <channel id="5" name="VOLTAGE_28V" data_type="int16_t">
+            <comment>
+                Voltage from 28V line from Watchdog
+            </comment>
+        </channel>
+        <channel id="16" name="BATTERY_THERMISTOR" data_type="U8">
+            <comment>
+                Boolean for Battery Charging or not from Watchdog
+            </comment>
+        </channel>
+        <channel id="23" name="SYSTEM_STATUS" data_type="int8_t">
+            <comment>
+                Boolean for Heater On/Off from Watchdog
+            </comment>
+        </channel>
+    </telemetry>
+</component>
+

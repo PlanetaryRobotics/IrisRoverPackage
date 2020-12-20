@@ -10,14 +10,18 @@
   <import_component_type>Svc/LinuxTime/CubeRoverTimeComponentAi.xml</import_component_type>
   <import_component_type>Svc/TlmChan/TlmChanComponentAi.xml</import_component_type>
   <import_component_type>Svc/CmdDispatcher/CommandDispatcherComponentAi.xml</import_component_type>
+  <import_component_type>Svc/ActiveLogger/ActiveLoggerComponentAi.xml</import_component_type>
+  <import_component_type>Svc/Health/HealthComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/WatchDogInterface/WatchDogInterfaceComponentAi.xml</import_component_type>
 
 <!-- Specifics to CubeRover -->
   <import_component_type>CubeRover/GroundInterface/GroundInterfaceComponentAi.xml</import_component_type>
-  <import_component_type>CubeRover/UdpReceiver/UdpReceiverComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/UdpInterface/UdpInterfaceComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/NetworkManager/NetworkManagerComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/IMU/IMUComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/MotorControl/MotorControlComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/Navigation/NavigationComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/Camera/CameraComponentAi.xml</import_component_type>
 
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
 
@@ -39,13 +43,18 @@
 <!-- Declaration of the ground interface service -->
   <instance namespace="CubeRover" name="groundInterface" type="GroundInterface" base_id="161" base_id_window="20" />
 
-<!-- Declaration of the components that implement UDP interface XXX: Right now Lander Serial iface -->
-  <instance namespace="CubeRover" name="udpReceiver" type="UdpReceiver" base_id="181" base_id_window="20" />
+<!-- Declaration of the components that implement UDP interface (Lander RS422 Serial) -->
+  <instance namespace="CubeRover" name="udpInterface" type="UdpInterface" base_id="181" base_id_window="20" />
       
-  <!-- TODO: NEED CUSTOM UDP SENDER CLASS -->
-
 <!-- Declaration of the components that implement NetworkManager and Wifi Stack -->
-  <instance namespace="CubeRover" name="networkManager" type="NetworkManager" base_id="201" base_id_window="20" />
+  <instance namespace="CubeRover" name="networkManager" type="NetworkManager" base_id="241" base_id_window="20" />
+
+<!-- Declaration of the passive text logger component that logs events in non-volatile memory -->
+<!-- For CubeRover - we use external FRAM memory to store data, i.e. a custom implementation of that component is necessary -->
+  <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="221" base_id_window="20" />
+
+<!-- Declaration of the health component -->
+      <instance namespace="Svc" name="health" type="Health" base_id="301" base_id_window="20" />
 
   <!-- Declaration of the Navigation handling module -->
   <instance namespace="CubeRover" name="navigation" type="Navigation" base_id="221" base_id_window="20" />
@@ -55,6 +64,12 @@
 
   <!-- Declaration of the IMU interface module -->
   <instance namespace="CubeRover" name="IMU" type="IMU" base_id="261" base_id_window="20" />
+
+<!-- Declaration of the WatchDog Interface component -->
+  <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="62208" base_id_window="20" />
+      
+<!-- Declaration of the Camera component -->
+  <instance namespace="CubeRover" name="camera" type="Camera" base_id="62508" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -99,16 +114,32 @@
         CONNECTION BETWEEN MEDIUM FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
      *********************************************************************************************************
      -->
+  <!-- Connect output of WatchDogInterface to stroke watchdog MSP430 (port 0) --> 
+  <!--<connection name = "rgMedFreq_to_watchDogInterface_clk">
+    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <target component = "watchDogInterface" port = "Run" type = "Sched" num = "0"/>
+  </connection>-->
+
+<!-- *********************************************************************************************************
+        CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
+     *********************************************************************************************************
+     -->
+  <!-- Connect output of health to ping all components (port 0) --> 
+  <!--<connection name = "rgHighFreq_to_health_clk">
+    <source component = "rateGroupHighFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <target component = "health" port = "Run" type = "Sched" num = "0"/>
+  </connection>-->
 
   <connection name="rgMedFreq_to_networkManager">
     <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
     <target component="networkManager" port="schedIn" type="sched" num="0"/>
   </connection>
 
+<!-- Motor Control Testing
   <connection name="rgMedFreq_to_motorControl">
     <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
     <target component="motorControl" port="schedIn" type="sched" num="0"/>
-  </connection>
+  </connection> -->
 
 <!-- *********************************************************************************************************
         CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
@@ -150,8 +181,8 @@
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
   </connection>
   
-  <connection name="udpReceiver_to_cubeRoverTime">
-    <source component="udpReceiver" port="Time" type="Time" num="0" />
+  <connection name="udpInterface_to_cubeRoverTime">
+    <source component="udpInterface" port="Time" type="Time" num="0" />
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
   </connection>
 
@@ -173,6 +204,11 @@
   <connection name="motorControl_to_cubeRoverTime">
     <source component="motorControl" port="timeCaller" type="Time" num="0" />
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
+      
+  <!-- Connection of time between cubeRoverTime and active logger component -->
+  <connection name = "activeLogger_to_cubeRoverTime">
+    <source component = "activeLogger" port = "Time" type = "Time" num = "0" />
+    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
   </connection>
 
 <!-- *********************************************************************************************************
@@ -217,8 +253,8 @@
   </connection>
 
     <!-- Radio serial and Wifi UDP interface to telemetry channel (port 4) -->
-  <connection name="udpReceiver_to_chanTlm">
-    <source component="udpReceiver" port="Tlm" type="Tlm" num="0" />
+  <connection name="udpInterface_to_chanTlm">
+    <source component="udpInterface" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
 
@@ -270,30 +306,53 @@
      ********************************************************************************************************* 
       -->
       
+  <connection name="camera_to_groundInterface">
+    <source component="camera" port="downlinkImage" type="CubeRover::FileDownlink" num="0" />
+    <target component="groundInterface" port="appDownlink" type="CubeRover::FileDownlink" num="0" />
+  </connection>
+      
   <connection name="chanTlm_to_groundInterface">
     <source component="tlmChan" port="PktSend" type="Com" num="0" />
     <target component="groundInterface" port="tlmDownlink" type="Com" num="0" />
   </connection>
+    
+  <!-- TODO: Connect Logs to goundInterface HERE -->
       
-  <connection name="groundInterface_to_networkManager">
-    <source component="groundInterface" port="downlinkBufferSend" type="Buffer" num="0" />
+  <!-- TODO: Connect Camera & UWB to goundInterface HERE -->
+      
+  <connection name="groundInterface_to_udpInterface"><!-- GROUNDINTERFACE downlinkBufferSend PORT #0 -->
+    <source component="groundInterface" port="downlinkBufferSend" type="Fw::BufferSend" num="0" />
+    <target component="udpInterface" port="downlinkDatagram" type="Fw::BufferSend" num="0"/>
+  </connection>
+      
+  <connection name="groundInterface_to_networkManager"><!-- GROUNDINTERFACE downlinkBufferSend PORT #1 -->
+    <source component="groundInterface" port="downlinkBufferSend" type="Buffer" num="1" />
     <target component="networkManager" port="downlink" type="Buffer" num="0" />
   </connection>
-
+      
+  <connection name="udpInterface_to_watchDogInterface">
+      <source component="udpInterface" port="forwardDatagram" type="Fw::BufferSend" num="0" />
+    <target component="watchDogInterface" port="downlink" type="Fw::BufferSend" num="0"/>
+  </connection>
       
 <!-- *********************************************************************************************************
         CONNECTION OF UPLINK COMPONENTS
      ********************************************************************************************************* 
       -->
       
-  <connection name="networkManager_to_udpReceiver">
-      <source component="networkManager" port="uplink" type="Fw::BufferSend" num="0" />
-    <target component="udpReceiver" port="uplinkData" type="Fw::BufferSend" num="0"/>
+  <connection name="watchDogInterface_to_udpInterface">
+      <source component="watchDogInterface" port="uplink" type="Fw::BufferSend" num="0" />
+    <target component="udpInterface" port="uplinkData" type="Fw::BufferSend" num="0"/>
   </connection>
 
-  <connection name="udpReceiver_to_groundInterface">
-    <source component="udpReceiver" port="forwardDatagramPayload" type="Fw::BufferSend" num="0" />
+  <connection name="udpInterface_to_groundInterface"><!-- GROUNDINTERFACE cmdUplink PORT #0 -->
+    <source component="udpInterface" port="forwardDatagramPayload" type="Fw::BufferSend" num="0" />
     <target component="groundInterface" port="cmdUplink" type="Fw::BufferSend" num="0"/>
+  </connection>
+
+  <connection name="networkManager_to_groundInterface"><!-- GROUNDINTERFACE cmdUplink PORT #1 -->
+    <source component="networkManager" port="uplink" type="Fw::BufferSend" num="0" />
+    <target component="groundInterface" port="cmdUplink" type="Fw::BufferSend" num="1"/>
   </connection>
 
   <connection name="groundInterface_to_cmdDispatcher">
@@ -301,4 +360,79 @@
     <target component="cmdDispatcher" port="seqCmdBuff" type="Fw::Com" num="0"/>
   </connection>
       
+  <!-- *********************************************************************************************************
+        CONNECTION OF MONITORED COMPONENTS TO TELEMETRIC ACTIVE LOGGER COMPONENT
+       ********************************************************************************************************* 
+      -->
+
+      <!-- Rate group low freq to active logger -->
+  <connection name = "rgLowFreq_to_aLogger">
+    <source component = "rateGroupLowFreq" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+
+      <!-- Rate group med freq to active logger -->
+  <connection name = "rgMedFreq_to_aLogger">
+    <source component = "rateGroupMedFreq" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+
+      <!-- Rate group high freq to active logger -->
+  <connection name = "rgHiFreq_to_aLogger">
+    <source component = "rateGroupHiFreq" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+
+
+  <!-- *********************************************************************************************************
+        CONNECTION OF COMMAND REGISTRATION PORTS
+       ********************************************************************************************************* 
+      -->
+
+      <!-- Health -->
+  <connection name = "HealthReg">
+    <source component = "health" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
+  </connection>
+
+      <!-- Watchdog -->
+  <connection name = "WatchdogReg">
+    <source component = "watchDogInterface" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
+  </connection>
+
+  <!-- *********************************************************************************************************
+        CONNECTION OF COMMAND DISPATCH PORTS
+       ********************************************************************************************************* 
+      -->
+
+      <!-- Health -->
+  <connection name = "HealthDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
+    <target component = "health" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
+
+      <!-- Watchdog -->
+  <connection name = "WatchdogDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
+    <target component = "watchDogInterface" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
+
+  <!-- *********************************************************************************************************
+        CONNECTION OF COMMAND RESPONSE PORTS
+       ********************************************************************************************************* 
+      -->
+
+      <!-- Health -->
+  <connection name = "HealthReg">
+    <source component = "health" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+
+      <!-- Watchdog -->
+  <connection name = "WatchdogReg">
+    <source component = "watchDogInterface" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+  
 </assembly>

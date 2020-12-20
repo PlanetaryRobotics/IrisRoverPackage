@@ -10,6 +10,7 @@
 
 // Include drivers
 #include <Drv/BlockDriver/BlockDriverImpl.hpp>
+//#include <Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentImpl.hpp>
 
 // Include services
 #include <Svc/RateGroupDriver/RateGroupDriverImpl.hpp>
@@ -18,14 +19,17 @@
 #include <Svc/TlmChan/TlmChanImpl.hpp>
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
+#include <Svc/Health/HealthComponentImpl.hpp>
 
 // Include component exclusive to CubeRover project
 #include <CubeRover/IMU/IMUComponent.hpp>
 #include <CubeRover/MotorControl/MotorControlComponent.hpp>
 #include <CubeRover/Navigation/NavigationComponent.hpp>
 #include <CubeRover/GroundInterface/GroundInterface.hpp>
-#include <CubeRover/UdpReceiver/UdpReceiver.hpp>
+#include <CubeRover/UdpInterface/UdpInterface.hpp>
 #include <CubeRover/NetworkManager/NetworkManager.hpp>
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
+#include <CubeRover/Camera/Camera.hpp>
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -61,9 +65,21 @@ extern CubeRover::NavigationComponentImpl navigation;
 extern CubeRover::GroundInterfaceComponentImpl groundInterface;
 
 // UDP receiver
-extern CubeRover::UdpReceiverComponentImpl udpReceiver;
+extern CubeRover::UdpInterfaceComponentImpl udpInterface;
 
 // NetworkManager
 extern CubeRover::NetworkManagerComponentImpl networkManager;
+
+// FreeRTOS Serial driver to interface radio module
+// extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
+
+// Health
+extern Svc::HealthImpl health;
+
+// Watchdog
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
+
+// Camera
+extern CubeRover::CameraComponentImpl camera;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

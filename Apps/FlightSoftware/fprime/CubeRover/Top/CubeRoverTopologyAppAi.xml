@@ -204,6 +204,7 @@
   <connection name="motorControl_to_cubeRoverTime">
     <source component="motorControl" port="timeCaller" type="Time" num="0" />
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
+  </connection>
       
   <!-- Connection of time between cubeRoverTime and active logger component -->
   <connection name = "activeLogger_to_cubeRoverTime">

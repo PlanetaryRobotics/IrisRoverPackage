@@ -28,11 +28,8 @@ void main(void)
 {
     /* USER CODE BEGIN (3) */
     gioInit();
-
     i2cInit();
     sciInit();
-    linInit();
-
 
     constructApp();
 

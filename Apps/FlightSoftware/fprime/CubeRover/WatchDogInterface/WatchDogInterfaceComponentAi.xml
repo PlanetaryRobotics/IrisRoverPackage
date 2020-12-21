@@ -124,7 +124,7 @@
     </events>
 
     <telemetry>
-        <channel id="0" name="LAST_COMMAND" data_type="string" size="50">
+        <channel id="0" name="LAST_COMMAND" data_type="string" size="24">
             <comment>
                 The command last sent to watchdog interface
             </comment>

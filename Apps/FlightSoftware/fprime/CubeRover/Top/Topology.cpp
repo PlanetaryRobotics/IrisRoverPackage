@@ -78,6 +78,27 @@ Svc::CommandDispatcherImpl cmdDispatcher(
 #if FW_OBJECT_NAMES == 1
         "CmdDispatcher"
 #endif
+  );
+
+// --------------------------------------------------------------------------
+CubeRover::IMUComponentImpl IMU(
+#if FW_OBJECT_NAMES == 1
+        "IMU"
+#endif
+);
+
+// --------------------------------------------------------------------------
+CubeRover::MotorControlComponentImpl motorControl(
+#if FW_OBJECT_NAMES == 1
+        "MotorControl"
+#endif
+);
+
+// --------------------------------------------------------------------------
+CubeRover::NavigationComponentImpl navigation(
+#if FW_OBJECT_NAMES == 1
+        "Navigation"
+#endif
 );
 
 // --------------------------------------------------------------------------
@@ -95,22 +116,6 @@ Svc::ActiveLoggerImpl activeLogger(
 #endif
 );
 
-// ---------------------------------------------------------------------------
-// watchdog interface to tell watchdog commands/stroke watchdog
-CubeRover::WatchDogInterfaceComponentImpl watchDogInterface(
-#if FW_OBJECT_NAMES == 1
-        "WatchDogInterface"
-#endif
-);
-
-// ---------------------------------------------------------------------------
-// health components to keep track of health of components
-Svc::HealthImpl health(
-#if FW_OBJECT_NAMES == 1
-        "Health"
-#endif
-);
-
 // --------------------------------------------------------------------------
 CubeRover::UdpInterfaceComponentImpl udpInterface(
 #if FW_OBJECT_NAMES == 1
@@ -124,6 +129,29 @@ CubeRover::NetworkManagerComponentImpl networkManager(
         "NetworkManager"
 #endif
 );
+
+// ---------------------------------------------------------------------------
+CubeRover::CameraComponentImpl camera(
+#if FW_OBJECT_NAMES == 1
+        "Camera"
+#endif
+);
+
+// ---------------------------------------------------------------------------
+Svc::HealthImpl health(
+#if FW_OBJECT_NAMES == 1
+        "Health"
+#endif
+);
+
+// ---------------------------------------------------------------------------
+CubeRover::WatchDogInterfaceComponentImpl watchDogInterface(
+#if FW_OBJECT_NAMES == 1
+        "Watchdog"
+#endif
+);
+
+
 
 /**
  * @brief      Run 1 cycle (debug)
@@ -155,12 +183,12 @@ void constructApp(void){
   activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
 
   // Initialize the watchdog interface component (queued)
-  watchDogInterface.init(10,          /*Queue Depth*/
-                         0);         /*Instance Number*/
+  //watchDogInterface.init(10,          /*Queue Depth*/
+  //                       0);         /*Instance Number*/
 
   // Initialize the health component (queued)
-  health.init(25,                   /*Queue Depth*/
-              0);                   /*Instance Number*/
+  //health.init(25,                   /*Queue Depth*/
+  //            0);                   /*Instance Number*/
 
   // Initialize the telemetry channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
@@ -173,18 +201,30 @@ void constructApp(void){
 
   // Initialize the ground interface (passive)
   udpInterface.init();
-  
+
+  // Initialize the IMU interface (passive)
+  IMU.init();
+
   // Initialize the ground interface (passive)
-  networkManager.init();   //******************CHANGE THIS BACK WHEN FINISHED TESTING WATCHDOG******************
+  networkManager.init();
+  
+  // Initialize the camera (passive)
+  camera.init();
+
+  // Initialize the Motor control interface (passive)
+  motorControl.init();
+
+  // Initialize the navigation component (active)
+  navigation.init(NAV_QUEUE_DEPTH,NAV_ID);
 
    // Construct the application and make all connections between components
   constructCubeRoverArchitecture();
 
   // Register Health Commands
-  health.regCommands();
+  //health.regCommands();
 
   // Register WatchDog Interface Commands
-  watchDogInterface.regCommands();
+  //watchDogInterface.regCommands();
 
   rateGroupLowFreq.start(0, /* identifier */
                        RG_LOW_FREQ_AFF, /* Thread affinity */
@@ -210,9 +250,17 @@ void constructApp(void){
                       CMD_DISP_AFF, 
                       CMD_DISP_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
 
+  navigation.start(0,
+                   NAV_AFF,
+                   NAV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
+
+  // setup communication with IMU over SPI
+  IMU.setup(IMU_SPI_REG);
+
+
   // Set Health Ping Entries
   // **** THIS IS WHERE YOU CAN ADD ANY COMPONENTS THAT HAVE HEALTH PINGS ****
-  Svc::HealthImpl::PingEntry pingEntries[] = {
+  //Svc::HealthImpl::PingEntry pingEntries[] = {
     // {3, 5, name.getObjName()},
     // 3 -> number of cycles before WARNING
     // 5 -> number of cycles before FATAL
@@ -243,8 +291,8 @@ void constructApp(void){
         {3, 5, blockDriver.getObjName()},    //20
 
     */
-  };
+  //};
 
   // Register ping table
-  health.setPingEntries(pingEntries,FW_NUM_ARRAY_ELEMENTS(pingEntries),0x123);
+  // shealth.setPingEntries(pingEntries,FW_NUM_ARRAY_ELEMENTS(pingEntries),0x123);
 }

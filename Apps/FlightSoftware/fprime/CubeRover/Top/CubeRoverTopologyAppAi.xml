@@ -18,11 +18,14 @@
   <import_component_type>CubeRover/GroundInterface/GroundInterfaceComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/UdpInterface/UdpInterfaceComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/NetworkManager/NetworkManagerComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/IMU/IMUComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/MotorControl/MotorControlComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/Navigation/NavigationComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/Camera/CameraComponentAi.xml</import_component_type>
 
-<!-- Declaration of block driver that drive F-prime clocking and other async event -->
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
 
-<!-- Declaration of components handling synchronization of tasks -->
+  <!-- Declaration of components handling synchronization of tasks -->
   <instance namespace="Svc" name="rateGroupDriver" type="RateGroupDriver" base_id="21"  base_id_window="20" />
   <instance namespace="Svc" name="rateGroupLowFreq" type="ActiveRateGroup" base_id="41" base_id_window="20" />
   <instance namespace="Svc" name="rateGroupMedFreq" type="ActiveRateGroup" base_id="61" base_id_window="20" />
@@ -44,18 +47,30 @@
   <instance namespace="CubeRover" name="udpInterface" type="UdpInterface" base_id="181" base_id_window="20" />
       
 <!-- Declaration of the components that implement NetworkManager and Wifi Stack -->
-  <instance namespace="CubeRover" name="networkManager" type="NetworkManager" base_id="201" base_id_window="20" />
+  <instance namespace="CubeRover" name="networkManager" type="NetworkManager" base_id="241" base_id_window="20" />
 
 <!-- Declaration of the passive text logger component that logs events in non-volatile memory -->
 <!-- For CubeRover - we use external FRAM memory to store data, i.e. a custom implementation of that component is necessary -->
   <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="221" base_id_window="20" />
 
 <!-- Declaration of the health component -->
-  <instance namespace="Svc" name="health" type="Health" base_id="301" base_id_window="20" />
+      <instance namespace="Svc" name="health" type="Health" base_id="301" base_id_window="20" />
+
+  <!-- Declaration of the Navigation handling module -->
+  <instance namespace="CubeRover" name="navigation" type="Navigation" base_id="2221" base_id_window="20" />
+
+  <!-- Declaration of the Motor control interface module -->
+  <instance namespace="CubeRover" name="motorControl" type="MotorControl" base_id="2241" base_id_window="20" />
+
+  <!-- Declaration of the IMU interface module -->
+  <instance namespace="CubeRover" name="IMU" type="IMU" base_id="2261" base_id_window="20" />
 
 <!-- Declaration of the WatchDog Interface component -->
-  <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="241" base_id_window="20" />
- 
+  <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="62208" base_id_window="20" />
+      
+<!-- Declaration of the Camera component -->
+  <instance namespace="CubeRover" name="camera" type="Camera" base_id="62508" base_id_window="20" />
+
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
      ********************************************************************************************************* 
@@ -100,32 +115,41 @@
      *********************************************************************************************************
      -->
   <!-- Connect output of WatchDogInterface to stroke watchdog MSP430 (port 0) --> 
-  <connection name = "rgMedFreq_to_watchDogInterface_clk">
-    <source component = "rateGroupLowFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
-    <target component = "watchDogInterface" port = "Run" type = "sched" num = "0"/>
-  </connection>
+  <!--<connection name = "rgMedFreq_to_watchDogInterface_clk">
+    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <target component = "watchDogInterface" port = "Run" type = "Sched" num = "0"/>
+  </connection>-->
 
 <!-- *********************************************************************************************************
         CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
      *********************************************************************************************************
      -->
   <!-- Connect output of health to ping all components (port 0) --> 
-  <connection name = "rgHighFreq_to_health_clk">
+  <!--<connection name = "rgHighFreq_to_health_clk">
     <source component = "rateGroupHighFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
     <target component = "health" port = "Run" type = "Sched" num = "0"/>
-  </connection>
+  </connection>-->
 
   <connection name="rgMedFreq_to_networkManager">
     <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
     <target component="networkManager" port="schedIn" type="sched" num="0"/>
   </connection>
 
+<!-- Motor Control Testing
+  <connection name="rgMedFreq_to_motorControl">
+    <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
+    <target component="motorControl" port="schedIn" type="sched" num="0"/>
+  </connection> -->
+
 <!-- *********************************************************************************************************
         CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
      *********************************************************************************************************
      -->
       
-  <!-- TODO -->
+  <connection name="rgHiFreq_to_IMU">
+    <source component="rateGroupHiFreq" port="RateGroupMemberOut" type="Sched" num="0" />
+    <target component="IMU" port="schedIn" type="sched" num="0"/>
+  </connection>
 
 <!-- *********************************************************************************************************
         CONNECTION OF TIME PORTS BETWEEN CUBEROVER TIME ALL TIME-STAMPED COMPONENTS
@@ -166,6 +190,21 @@
     <source component="networkManager" port="Time" type="Time" num="0" />
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
   </connection>
+
+  <connection name="imu_to_cubeRoverTime">
+    <source component="IMU" port="timeCaller" type="Time" num="0" />
+    <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
+  </connection>
+
+  <connection name="navigation_to_cubeRoverTime">
+    <source component="navigation" port="timeCaller" type="Time" num="0" />
+    <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
+  </connection>
+
+  <connection name="motorControl_to_cubeRoverTime">
+    <source component="motorControl" port="timeCaller" type="Time" num="0" />
+    <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
+  </connection>
       
   <!-- Connection of time between cubeRoverTime and active logger component -->
   <connection name = "activeLogger_to_cubeRoverTime">
@@ -182,7 +221,12 @@
       Port # 0 : Rate Group Low Frequency
       Port # 1 : Rate Group Medium Frequency
       Port # 2 : Rate Group High Frequency
-      Port # 3 : TBD
+      Port # 3 : Ground Interface
+      Port # 4 : UDP Reciever
+      Port # 5 : Network Manager
+      Port # 6 : Navigation
+      Port # 7 : Motor Control
+      Port # 8 : IMU
       -->
 
       <!-- Rate group low Freq to telemetry channel (port 0) -->
@@ -220,11 +264,53 @@
     <source component="networkManager" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
+
+  <!-- Navigation to telemetry channel (port 6) -->
+  <connection name="navigation_to_chanTlm">
+    <source component="navigation" port="tlmOut" type="Tlm" num="0" />
+    <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
+  </connection>
+
+  <!-- Motor Control to telemetry channel (port 7) -->
+  <connection name="motorControl_to_chanTlm">
+    <source component="motorControl" port="tlmOut" type="Tlm" num="0" />
+    <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
+  </connection>
+
+  <!-- IMU to telemetry channel (port 8) -->
+  <connection name="imu_to_chanTlm">
+    <source component="IMU" port="tlmOut" type="Tlm" num="0" />
+    <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
+  </connection>
       
+
+<!-- *********************************************************************************************************
+        CONNECTION OF INTERCONNECTED COMPONENTS
+     ********************************************************************************************************* 
+      -->
+
+   <!-- MC to Nav  -->
+  <connection name="motorControl_to_navigation_motorData">
+    <source component="motorControl" port="motorDataOut" type="motorData" num="0" />
+    <target component="navigation" port="motorDataIn" type="motorData" num="0" />
+  </connection>
+
+  <!-- IMU to Nav  -->
+  <connection name="IMU_to_Navigation_IMUData">
+    <source component="IMU" port="IMUDataOut" type="IMUData" num="0" />
+    <target component="navigation" port="IMUDataIn" type="IMUData" num="0" />
+  </connection>
+
+
 <!-- *********************************************************************************************************
         CONNECTION OF DOWNLINK COMPONENTS 
      ********************************************************************************************************* 
       -->
+      
+  <connection name="camera_to_groundInterface">
+    <source component="camera" port="downlinkImage" type="CubeRover::FileDownlink" num="0" />
+    <target component="groundInterface" port="appDownlink" type="CubeRover::FileDownlink" num="0" />
+  </connection>
       
   <connection name="chanTlm_to_groundInterface">
     <source component="tlmChan" port="PktSend" type="Com" num="0" />
@@ -241,7 +327,7 @@
   </connection>
       
   <connection name="groundInterface_to_networkManager"><!-- GROUNDINTERFACE downlinkBufferSend PORT #1 -->
-    <source component="groundInterface" port="downlinkBufferSend" type="Buffer" num="0" />
+    <source component="groundInterface" port="downlinkBufferSend" type="Buffer" num="1" />
     <target component="networkManager" port="downlink" type="Buffer" num="0" />
   </connection>
       

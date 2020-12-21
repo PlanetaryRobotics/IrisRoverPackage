@@ -20,12 +20,16 @@
 #include <Svc/ActiveLogger/ActiveLoggerImpl.hpp>
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
 #include <Svc/Health/HealthComponentImpl.hpp>
-#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
 
-// Include custom components
+// Include component exclusive to CubeRover project
+#include <CubeRover/IMU/IMUComponent.hpp>
+#include <CubeRover/MotorControl/MotorControlComponent.hpp>
+#include <CubeRover/Navigation/NavigationComponent.hpp>
 #include <CubeRover/GroundInterface/GroundInterface.hpp>
 #include <CubeRover/UdpInterface/UdpInterface.hpp>
 #include <CubeRover/NetworkManager/NetworkManager.hpp>
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
+#include <CubeRover/Camera/Camera.hpp>
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -48,6 +52,15 @@ extern Svc::ActiveLoggerImpl activeLogger;
 // command dispatcher
 extern Svc::CommandDispatcherImpl cmdDispatcher;
 
+// IMU
+extern CubeRover::IMUComponentImpl IMU;
+
+// Motor Control
+extern CubeRover::MotorControlComponentImpl motorControl;
+
+// Navigation
+extern CubeRover::NavigationComponentImpl navigation;
+
 // Interface to ground for radio
 extern CubeRover::GroundInterfaceComponentImpl groundInterface;
 
@@ -63,7 +76,10 @@ extern CubeRover::NetworkManagerComponentImpl networkManager;
 // Health
 extern Svc::HealthImpl health;
 
-// WatchDog Interface
+// Watchdog
 extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
+
+// Camera
+extern CubeRover::CameraComponentImpl camera;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

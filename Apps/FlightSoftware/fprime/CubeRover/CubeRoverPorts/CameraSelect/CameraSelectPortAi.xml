@@ -1,0 +1,15 @@
+<interface name="CameraSelect" namespace="CubeRover">
+
+    <comment>
+    Port to select camera to take an image
+    </comment>
+
+    <args>
+        
+        <arg name="CameraNum" type="U8">
+            <comment>Camera Number</comment>
+        </arg>
+
+    </args>
+
+</interface>

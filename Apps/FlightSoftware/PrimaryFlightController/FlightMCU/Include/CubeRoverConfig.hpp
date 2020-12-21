@@ -47,25 +47,28 @@
 #define ACTIVE_LOGGER_AFF           26
 #define ACTIVE_LOGGER_QUEUE_DEPTH   1
 
-#define MOTOR_CONTROL_ID            0
-#define MOTOR_CONTROL_AFF           25
-#define MOTOR_CONTROL_QUEUE_DEPTH   1
+#define NAV_ID                      0
+#define NAV_AFF                     25
+#define NAV_QUEUE_DEPTH             1
 
-#define RADIO_SERIAL_QUEUE_DEPTH    1
-#define RADIO_SERIAL_AFF            24
+// Hercules SPI register that handles IMU interface
+#define IMU_SPI_REG                	spiREG3
 
 #define MIN_STACK_SIZE_BYTES        1024
 
 // Configuration of I2C interfaces address and ports
 // For the motor controllers
-#define FRONT_LEFT_MC_I2C_ADDR   	0x01
-#define FRONT_RIGHT_MC_I2C_ADDR  	0x02
-#define REAR_LEFT_MC_I2C_ADDR    	0x03
-#define REAR_RIGHT_MC_I2C_ADDR   	0x04
+#define ALL_MOTOR_ADDR			    0x00
+#define BASE_ADDRESS                0x0640
+#define FRONT_LEFT_MC_I2C_ADDR      0x48
+#define FRONT_RIGHT_MC_I2C_ADDR     0x49
+#define REAR_LEFT_MC_I2C_ADDR       0x4A
+#define REAR_RIGHT_MC_I2C_ADDR      0x4B
 #define MOTOR_CONTROL_I2CREG     	i2cREG1
 
-#define CUBEROVER_WHEEL_DIAMETER_CM		20.0f
-#define MOTOR_NB_PAIR_POLES				1.0f
+#define CUBEROVER_WHEEL_DIAMETER_CM	20.0f
+#define MOTOR_NB_PAIR_POLES					1.0f
 #define MOTOR_GEAR_BOX_REDUCTION		5.0f
+#define MAX_SPIN_DISTANCE						0x7FFFFFF
 
 #endif /* INCLUDE_CUBEROVERCONFIG_HPP_ */

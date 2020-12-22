@@ -73,7 +73,7 @@
   <instance namespace="CubeRover" name="camera" type="Camera" base_id="62508" base_id_window="20" />
 
 <!-- Declaration of the Com Logger component -->
-<instance namespace="CubeRover" name="comLogger" type="ComLogger" base_id="251" base_id_window="20" />
+<instance namespace="CubeRover" name="comLogger" type="ComLogger" base_id="62541" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS

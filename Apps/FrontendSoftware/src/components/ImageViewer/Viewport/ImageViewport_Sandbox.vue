@@ -967,7 +967,8 @@ export default {
         this.startCoord = [];
 
         //clears canvas of lines/boxes
-        if (!this.isPOIChoiceListModalVisible && !this.capSciInstructionsOpen && !this.capSciConfirmationModalOpen) {
+        if (!this.isPOIChoiceListModalVisible && !this.capSciInstructionsOpen && !this.capSciConfirmationModalOpen && !this.arePOIFullDetailsVisible) {
+          console.log("CLICK")
           this.setPOILayerDimensions();
         }
 

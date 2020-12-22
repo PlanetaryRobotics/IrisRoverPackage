@@ -134,7 +134,7 @@
         <!-- Second Column: thumbnail image -->
         <div class="modal-col">
           <div class="label">Thumbnail Photo</div>
-          <div class="canvas-wrapper" v-on:click="clickImageThumbnail">
+          <div class="canvas-wrapper">
             <canvas id="imgCanvas" height="100%" width="100%" />
             <img
               class="thumbnail"
@@ -253,7 +253,7 @@ export default {
       }
     },
 
-    makeContextOutlines(rowStart, rowEnd, colStart, colEnd) {
+    makeContextOutlines(numRows, numCols, sidePadding) {
       let imgLayer = document.getElementById("imgCanvas");
 
       // Canvas Width and Height
@@ -262,19 +262,9 @@ export default {
       let canvasWidth = imgLayer.width;
       let canvasHeight = imgLayer.height;
 
-      rowStart = rowStart * canvasHeight; // y0: y-axis start coord
-      rowEnd = rowEnd * canvasHeight; // y1: y-axis end coord
-      colStart = colStart * canvasWidth; // x0: x-axis start coord
-      colEnd = colEnd * canvasWidth; // x1: x-axis end coord
-
-      let numCols = Math.abs(colEnd - colStart);
-      let numRows = Math.abs(rowEnd - rowStart);
-      let sidePadding = Math.abs(numRows - numCols) / 2;
-      
-      console.log("Side padding: ", sidePadding)
-
-
-      // let yStart = canvasHeight-numRows-sidePadding;
+      // Check if original image longer in terms of height or width (e.g. #rows vs #cols)
+      let rowsHeavy = (numRows >= numCols);
+      console.log(rowsHeavy)
 
       let imgContextCanvasContext = imgLayer.getContext("2d");
 
@@ -282,23 +272,28 @@ export default {
       imgContextCanvasContext.beginPath();
 
       // Style of selection box
-      // imgContextCanvasContext.strokeStyle = "#ffffff";
-      // imgContextCanvasContext.lineWidth = 1;
       imgContextCanvasContext.fillStyle = "#000000";
       imgContextCanvasContext.globalAlpha = 0.5;
 
       // Start drawing selector box ("rect")
-      // imgContextCanvasContext.moveTo(0, 0);
-      console.log("start: ", colStart, " end: ", colEnd, " side padding: ", sidePadding);
 
-      imgContextCanvasContext.fillRect(0, 0, canvasWidth, 104); // (top left: x,y; width, height)
+      if(!rowsHeavy){
+        // top black context rectangle
+        imgContextCanvasContext.fillRect(0, 0, canvasWidth-0.7, sidePadding); // (top left: x,y; width, height)
+        imgContextCanvasContext.stroke();
 
-      // imgContextCanvasContext.lineTo(canvasWidth, 0); // Top side of rect
-      // imgContextCanvasContext.lineTo(canvasWidth, rowStart/2); // Right side of rect
-      // imgContextCanvasContext.lineTo(0, rowStart/2); // Bottom side of rect
-      // imgContextCanvasContext.lineTo(0, 0); // Left side of rect
+        // bottom black context rectangle
+        imgContextCanvasContext.fillRect(0, canvasHeight-1.8-sidePadding, canvasWidth-0.7, sidePadding); // (top left: x,y; width, height)
+      }
+      else if(rowsHeavy){
+        // top black context rectangle
+        imgContextCanvasContext.fillRect(0, 0, sidePadding, canvasHeight-1.8); // (top left: x,y; width, height)
+        imgContextCanvasContext.stroke();
 
-      imgContextCanvasContext.stroke();
+        // bottom black context rectangle
+        imgContextCanvasContext.fillRect(canvasWidth-0.7-sidePadding, 0, sidePadding, canvasHeight-1.8); // (top left: x,y; width, height)
+      }
+
       imgContextCanvasContext.closePath();
     },
 
@@ -322,11 +317,6 @@ export default {
 
     createNewTag() {
       this.addTagModalVisible = true;
-    },
-
-    // DEBUGGING
-    clickImageThumbnail(event){
-      console.log("CLICK: ", event.offsetX, event.offsetY);
     },
 
     updateTagPills() {
@@ -426,6 +416,7 @@ export default {
       let numCols = Math.abs(colEnd - colStart);
       let numRows = Math.abs(rowEnd - rowStart);
       let extraPadding = Math.abs(numRows - numCols) / 2;
+      let proportionalSidePadding = 0;
 
       // Make black outlines on image for context
       // If col > row, add rows
@@ -433,16 +424,16 @@ export default {
         // After black outlines set
         rowStart = rowStart - extraPadding;
         rowEnd = rowEnd + extraPadding;
+        proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numCols;
       }
       // If row > col, add cols
       else if (numRows > numCols) {
         colStart = colStart - extraPadding;
         colEnd = colEnd + extraPadding;
+        proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numRows;
       }
 
-      // this.makeContextOutlines(rowStart, rowEnd, colStart, colEnd, extraPadding)
-
-      this.makeContextOutlines(normalizedRowStart, normalizedRowEnd, normalizedColStart, normalizedColEnd);
+      this.makeContextOutlines(numRows, numCols, proportionalSidePadding);
       // visa versa, and will hit errors when edge cases (literally)
       // Use https://github.com/scijs/ndarray-concat-cols and https://github.com/scijs/ndarray-concat-rows
       // ndarray zeros

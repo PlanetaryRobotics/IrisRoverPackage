@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# ---------------------------------------------------------------------- 
+# runtest_LINUX
+# ---------------------------------------------------------------------- 
+
+cd ${BUILD_ROOT}/CubeRover/ComLogger/test/ut
+echo "Running ${BUILD_ROOT}/CubeRover/ComLogger/test/ut/$1/test_ut"
+${BUILD_ROOT}/CubeRover/ComLogger/test/ut/$1/test_ut
+

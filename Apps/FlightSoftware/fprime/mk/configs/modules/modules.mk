@@ -62,8 +62,8 @@ SVC_MODULES := \
 	Svc/PolyDb \
 	Svc/PrmDb \
 	Svc/Ping \
-	Svc/Health \
 	Svc/WatchDog \
+	Svc/Health \
 	Svc/FileUplink \
 	Svc/FileDownlink \
   Svc/AssertFatalAdapter \

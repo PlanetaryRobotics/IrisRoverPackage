@@ -215,6 +215,7 @@ CubeRover_MODULES := \
 	CubeRover/Camera \
 	CubeRover/CubeRoverPorts/CameraSelect \
 	CubeRover/CubeRoverPorts/FileDownlink \
+	CubeRover/ComLogger \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

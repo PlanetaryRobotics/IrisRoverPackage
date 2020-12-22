@@ -22,6 +22,7 @@
   <import_component_type>CubeRover/MotorControl/MotorControlComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/Navigation/NavigationComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/Camera/CameraComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/ComLogger/ComLoggerComponentAi.xml</import_component_type>
 
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
 
@@ -70,6 +71,9 @@
       
 <!-- Declaration of the Camera component -->
   <instance namespace="CubeRover" name="camera" type="Camera" base_id="62508" base_id_window="20" />
+
+<!-- Declaration of the Com Logger component -->
+<instance namespace="CubeRover" name="comLogger" type="ComLogger" base_id="251" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -434,6 +438,17 @@
   <connection name = "WatchdogReg">
     <source component = "watchDogInterface" port = "CmdStatus" type = "CmdResponse" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+
+    <!-- *********************************************************************************************************
+        CONNECTION OF ACTIVE LOGGER TO COMLOGGER
+       ********************************************************************************************************* 
+      -->
+
+      <!-- Pass logs from active logger to comlogger -->
+  <connection name = "activeLogger_to_comLogger">
+    <source component = "activeLogger" port = "PktSend" type = "Com" num = "0" />
+    <target component = "comLogger" port = "comIn" type = "Com" num = "0" />
   </connection>
   
 </assembly>

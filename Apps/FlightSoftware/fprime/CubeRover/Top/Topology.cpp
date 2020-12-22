@@ -151,7 +151,15 @@ CubeRover::WatchDogInterfaceComponentImpl watchDogInterface(
 #endif
 );
 
-
+// ---------------------------------------------------------------------------
+CubeRover::ComLogger comLogger(
+#if FW_OBJECT_NAMES == 1
+        "ComLogger",  //compName
+#endif
+        "",     //filePrefix
+        1024    //maxFileSize
+                //can change store buffer length from true to false here
+);
 
 /**
  * @brief      Run 1 cycle (debug)
@@ -181,6 +189,8 @@ void constructApp(void){
   // Initialize the active logger component (active)
   // TODO: This hasn't been started yet
   activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
+
+  comLogger.init(100,0);
 
   // Initialize the watchdog interface component (queued)
   //watchDogInterface.init(10,          /*Queue Depth*/
@@ -257,6 +267,9 @@ void constructApp(void){
   // setup communication with IMU over SPI
   IMU.setup(IMU_SPI_REG);
 
+  activeLogger.start(ACTIVE_LOGGER_ID, 
+                     ACTIVE_LOGGER_AFF, 
+                     ACTIVE_LOGGER_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
 
   // Set Health Ping Entries
   // **** THIS IS WHERE YOU CAN ADD ANY COMPONENTS THAT HAVE HEALTH PINGS ****

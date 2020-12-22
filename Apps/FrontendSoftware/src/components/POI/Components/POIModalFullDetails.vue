@@ -134,18 +134,20 @@
         <!-- Second Column: thumbnail image -->
         <div class="modal-col">
           <div class="label">Thumbnail Photo</div>
-          <!-- <canvas id="imgCanvas" /> -->
-          <img
-            class="thumbnail"
-            draggable="false"
-            :src="imgData"
-            alt="Selected area of image not loaded"
-          />
-          <!-- <img
+          <div class="canvas-wrapper" v-on:click="clickImageThumbnail">
+            <canvas id="imgCanvas" height="100%" width="100%" />
+            <img
+              class="thumbnail"
+              draggable="false"
+              :src="imgData"
+              alt="Selected area of image not loaded"
+            />
+            <!-- <img
             class="thumbnail"
             draggable="false"
             src="@/assets/imgviewer/POI_test_image.png"
           /> -->
+          </div>
         </div>
       </div>
 
@@ -224,6 +226,7 @@ export default {
       tagUserInput: "",
       chosenTagList: [{ details: "Details test", name: "testing" }],
       addTagModalVisible: false,
+      imgContextCanvasContext: null,
     };
   },
 
@@ -250,6 +253,55 @@ export default {
       }
     },
 
+    makeContextOutlines(rowStart, rowEnd, colStart, colEnd) {
+      let imgLayer = document.getElementById("imgCanvas");
+
+      // Canvas Width and Height
+      imgLayer.width="245";
+      imgLayer.height="246";
+      let canvasWidth = imgLayer.width;
+      let canvasHeight = imgLayer.height;
+
+      rowStart = rowStart * canvasHeight; // y0: y-axis start coord
+      rowEnd = rowEnd * canvasHeight; // y1: y-axis end coord
+      colStart = colStart * canvasWidth; // x0: x-axis start coord
+      colEnd = colEnd * canvasWidth; // x1: x-axis end coord
+
+      let numCols = Math.abs(colEnd - colStart);
+      let numRows = Math.abs(rowEnd - rowStart);
+      let sidePadding = Math.abs(numRows - numCols) / 2;
+      
+      console.log("Side padding: ", sidePadding)
+
+
+      // let yStart = canvasHeight-numRows-sidePadding;
+
+      let imgContextCanvasContext = imgLayer.getContext("2d");
+
+      // Begin: drawing POI selector box on canvas
+      imgContextCanvasContext.beginPath();
+
+      // Style of selection box
+      // imgContextCanvasContext.strokeStyle = "#ffffff";
+      // imgContextCanvasContext.lineWidth = 1;
+      imgContextCanvasContext.fillStyle = "#000000";
+      imgContextCanvasContext.globalAlpha = 0.5;
+
+      // Start drawing selector box ("rect")
+      // imgContextCanvasContext.moveTo(0, 0);
+      console.log("start: ", colStart, " end: ", colEnd, " side padding: ", sidePadding);
+
+      imgContextCanvasContext.fillRect(0, 0, canvasWidth, 104); // (top left: x,y; width, height)
+
+      // imgContextCanvasContext.lineTo(canvasWidth, 0); // Top side of rect
+      // imgContextCanvasContext.lineTo(canvasWidth, rowStart/2); // Right side of rect
+      // imgContextCanvasContext.lineTo(0, rowStart/2); // Bottom side of rect
+      // imgContextCanvasContext.lineTo(0, 0); // Left side of rect
+
+      imgContextCanvasContext.stroke();
+      imgContextCanvasContext.closePath();
+    },
+
     populateAsFormOne() {
       // Show form 1
       this.formOneVisible = true;
@@ -270,6 +322,11 @@ export default {
 
     createNewTag() {
       this.addTagModalVisible = true;
+    },
+
+    // DEBUGGING
+    clickImageThumbnail(event){
+      console.log("CLICK: ", event.offsetX, event.offsetY);
     },
 
     updateTagPills() {
@@ -348,33 +405,32 @@ export default {
     async imgData() {
       // let POILayerDiv = document.getElementById("featurevp");
 
-      let rowStart = Math.min(this.POIStartCoords[1], this.POIEndCoords[1]);
-      let rowEnd = Math.max(this.POIStartCoords[1], this.POIEndCoords[1]);
+      let normalizedRowStart = Math.min(this.POIStartCoords[1], this.POIEndCoords[1]);
+      let normalizedRowEnd = Math.max(this.POIStartCoords[1], this.POIEndCoords[1]);
 
-      let colStart = Math.min(this.POIStartCoords[0], this.POIEndCoords[0]);
-      let colEnd = Math.max(this.POIStartCoords[0], this.POIEndCoords[0]);
+      let normalizedColStart = Math.min(this.POIStartCoords[0], this.POIEndCoords[0]);
+      let normalizedColEnd = Math.max(this.POIStartCoords[0], this.POIEndCoords[0]);
 
       let pixels = await getPromisedPixels(this.selectedImage.url);
 
       let pixelsWidth = pixels.shape[0];
       let pixelsHeight = pixels.shape[1];
 
+
       // "un"normailze coords
-      rowStart = rowStart * pixelsHeight;
-      rowEnd = rowEnd * pixelsHeight;
-      colStart = colStart * pixelsWidth;
-      colEnd = colEnd * pixelsWidth;
+      let rowStart = normalizedRowStart * pixelsHeight;
+      let rowEnd = normalizedRowEnd * pixelsHeight;
+      let colStart = normalizedColStart * pixelsWidth;
+      let colEnd = normalizedColEnd * pixelsWidth;
 
       let numCols = Math.abs(colEnd - colStart);
       let numRows = Math.abs(rowEnd - rowStart);
       let extraPadding = Math.abs(numRows - numCols) / 2;
 
-      // shape imgCanvas to square
-      document.getElementById("imgCanvas").width = numCols
-      document.getElementById("imgCanvas").height = numRows
-
+      // Make black outlines on image for context
       // If col > row, add rows
       if (numCols > numRows) {
+        // After black outlines set
         rowStart = rowStart - extraPadding;
         rowEnd = rowEnd + extraPadding;
       }
@@ -383,6 +439,10 @@ export default {
         colStart = colStart - extraPadding;
         colEnd = colEnd + extraPadding;
       }
+
+      // this.makeContextOutlines(rowStart, rowEnd, colStart, colEnd, extraPadding)
+
+      this.makeContextOutlines(normalizedRowStart, normalizedRowEnd, normalizedColStart, normalizedColEnd);
       // visa versa, and will hit errors when edge cases (literally)
       // Use https://github.com/scijs/ndarray-concat-cols and https://github.com/scijs/ndarray-concat-rows
       // ndarray zeros
@@ -507,7 +567,7 @@ export default {
   padding-bottom: 0;
 }
 
-#imgCanvas{
+#imgCanvas {
   position: absolute;
 }
 
@@ -725,5 +785,9 @@ textarea {
 .x-tag-pill {
   margin-left: 0.4rem;
   cursor: pointer;
+}
+
+.canvas-wrapper {
+  position: relative;
 }
 </style>

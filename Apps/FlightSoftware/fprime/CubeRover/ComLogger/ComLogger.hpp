@@ -8,7 +8,7 @@
 #define CubeRover_ComLogger_HPP
 
 #include "CubeRover/ComLogger/ComLoggerComponentAc.hpp"
-#include <Os/File.hpp>
+#include <Os/FreeRTOS/File.hpp>
 #include <Os/Mutex.hpp>
 #include <Fw/Types/Assert.hpp>
 //#include <Utils/Hash/Hash.hpp>

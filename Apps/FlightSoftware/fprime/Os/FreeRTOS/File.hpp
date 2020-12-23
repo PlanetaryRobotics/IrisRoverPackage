@@ -4,16 +4,15 @@
 #include <Fw/Cfg/Config.hpp>
 #include <Fw/Types/BasicTypes.hpp>
 
-#include "FreeRTOS/S25fl064l.hpp"
+#include <Os/FreeRTOS/S25fl064l.hpp>
 
-#ifdef __TIR4__
-    #define SYSTEM_FILE_HEADER_MEM_ALLOC  PAGE_SIZE  // memory allocated to save the system file look-up table
+    #define SYSTEM_FILE_HEADER_MEM_ALLOC  PAGE_SIZE_FLASH  // memory allocated to save the system file look-up table
     #define MAX_NUMBER_OF_FILES           2   // max number of file that can be created 
     #define SIZE_OF_FILENAME              16  // bytes
     #define SIZE_OF_FILE_START_ADDRESS    4   // bytes
     #define SIZE_OF_FILE_CURRENT_POINTER  4   // bytes
     #define SIZE_OF_FILE_SIZE             4   // bytes
-    #define NEW_DEFAULT_FILE_SIZE         (MAX_MEMORY_ADDRESS - (PAGE_SIZE)) / MAX_NUMBER_OF_FILES
+    #define NEW_DEFAULT_FILE_SIZE         (MAX_MEMORY_ADDRESS_FLASH - (PAGE_SIZE_FLASH)) / MAX_NUMBER_OF_FILES
     #define SYSTEM_FILE_ENTRY_SIZE        SIZE_OF_FILENAME + SIZE_OF_FILE_START_ADDRESS + SIZE_OF_FILE_CURRENT_POINTER + SIZE_OF_FILE_SIZE   
 
     typedef char FileName[SIZE_OF_FILENAME];
@@ -21,7 +20,6 @@
     typedef AddressPointer StartAddress;
     typedef AddressPointer FilePointer;
     typedef uint32_t FileSize;
-#endif
 
 namespace Os {
 
@@ -78,7 +76,6 @@ namespace Os {
             Mode m_mode; //!<  Stores mode for error checking
             NATIVE_INT_TYPE m_lastError; //!<  stores last error
         
-        #ifdef __TIR4__
             // required to run 
             S25fl064l m_flashMem;
             S25fl064l::MemAlloc m_headerMemAlloc;
@@ -88,7 +85,6 @@ namespace Os {
             StartAddress m_fileStartAddress;
             FilePointer m_fileOffsetPointer;
             FileSize m_fileSize;
-        #endif
     };
 
 }

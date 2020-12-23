@@ -1,6 +1,6 @@
 #include <Fw/Cfg/Config.hpp>
 #include <Fw/Types/BasicTypes.hpp>
-#include <Os/File.hpp>
+#include <Os/FreeRTOS/File.hpp>
 #include <Fw/Types/Assert.hpp>
 
 #ifdef __cplusplus
@@ -31,7 +31,7 @@ namespace Os {
    */
   File::File() {
     m_headerMemAlloc.startAddress = 0; // the look-up table is located at the beginning of the flash memory array
-    m_headerMemAlloc.reservedSize = PAGE_SIZE;
+    m_headerMemAlloc.reservedSize = PAGE_SIZE_FLASH;
   }
 
 

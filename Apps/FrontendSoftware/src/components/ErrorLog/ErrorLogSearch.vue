@@ -42,7 +42,10 @@
           v-for="(suggest, index) in allSuggestedText"
           :key="suggest"
           @mouseover="mouseOver(index)"
-          @click="clickDropdownTerm()"
+          @click="
+            clickDropdownTerm();
+            $emit('update:search-input', searchedTerms);
+          "
         >
           <p class="suggest_text">{{ protectText(suggest) }}</p>
         </div>
@@ -61,7 +64,10 @@
           <p
             class="search__tags--item"
             :class="{ highlight: fieldFocused }"
-            @click="unsearchTerm(term)"
+            @click="
+              unsearchTerm(term);
+              $emit('update:search-input', searchedTerms);
+            "
           >
             {{ protectText(term) }}
             <span class="cross_wrapper"> &#10005; </span>
@@ -81,6 +87,8 @@ export default {
 
   extends: TagSearch,
 
+  methods: {},
+
   components: {
     //TagSearch,
   },
@@ -90,12 +98,6 @@ export default {
 <style lang="scss" scoped>
 @import "@/styles/_colors.scss";
 @import "@/styles/_functional.scss";
-
-/*
-::placeholder {
-  font-size: 1rem;
-}
-*/
 
 input[type="text"] {
   font-size: 0.7rem;
@@ -174,6 +176,11 @@ input:focus {
   display: none;
 }
 
+.dropdown-content::-webkit-scrollbar {
+  background-color: $color-grey4;
+  width: 0.5em;
+}
+
 /* Dropdown Content when turned on */
 .is-on {
   display: flex;
@@ -191,7 +198,7 @@ input:focus {
 .dropdown-content-items-wrapper {
   margin-top: 0px;
   padding-left: 5px;
-  overflow: hidden;
+  //overflow: hidden;
   background-color: $color-grey3;
 }
 

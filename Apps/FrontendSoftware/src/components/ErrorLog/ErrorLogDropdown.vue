@@ -29,7 +29,10 @@
           class="dropdown-content-items-wrapper"
           v-for="(category, index) in searchCategories"
           :key="category"
-          @click="clickDropdownTerm(index)"
+          @click="
+            clickDropdownTerm(index);
+            turnDropdownOff();
+          "
         >
           <p>{{ category }}</p>
         </div>
@@ -54,7 +57,7 @@ export default {
       searchCategories: [
         "Error Tag",
         "Error ID",
-        "Sensory Name",
+        "Sensor Name",
         "Mission Time Frame (M+)",
         "Created By",
         "Date Created",
@@ -67,7 +70,7 @@ export default {
       current_icon: "\u{02228}",
       ui_icons: { closed: "\u{02228}", open: "\u{0002B}" },
       suggestionIdx: -1,
-      currentCategory: "Error Tag",
+      currentCategory: "Options",
     };
   },
 
@@ -79,7 +82,7 @@ export default {
       } else {
         this.turnDropdownOn();
       }
-      console.log("dropdown toggled");
+      //console.log("dropdown toggled");
     },
 
     // switch ui + turn on dropdown
@@ -107,7 +110,6 @@ export default {
       this.categoryIdx = index;
       let curHighlighted = elements[index];
       curHighlighted.style.background = colors.colorprimary;
-      //console.log("updated idx to " + this.categoryIdx );
     },
 
     clickDropdownTerm(index) {
@@ -115,13 +117,12 @@ export default {
       this.categoryIdx = index;
       this.currentCategory = this.searchCategories[this.categoryIdx];
       console.log(
-        "clicked" +
-          this.categoryIdx +
+        "dropdown clicked! " +
           "the category is: " +
           this.searchCategories[this.categoryIdx]
       );
       this.$emit(
-        "Update:SearchCategory",
+        "update:search-category",
         this.searchCategories[this.categoryIdx]
       );
     },
@@ -236,6 +237,18 @@ span .medium {
   float: left;
 }
 
+.dropdown-content::-webkit-scrollbar {
+  background-color: $color-grey4;
+  width: 0.5em;
+}
+.dropdown-content::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+.dropdown-content::-webkit-scrollbar-thumb {
+  background-color: $color-grey3;
+  border-radius: 30px;
+}
+
 /* Dropdown Content (Hidden by Default) */
 .dropdown-content {
   display: none;
@@ -267,7 +280,7 @@ span .medium {
   margin-top: 0px;
   padding-left: 10px;
   overflow: hidden;
-  background: $color-grey3; // #666666 in FIGMA
+  background: $color-grey4; // #666666 in FIGMA
 }
 .dropdown-content-items-wrapper:hover {
   background-color: #8a6dff;

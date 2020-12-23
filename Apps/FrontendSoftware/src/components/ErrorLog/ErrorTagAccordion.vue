@@ -7,10 +7,10 @@
       v-on:expandall:fromparent="toggleAccordion"
     >
       <!----- TODO: not aligned ---->
-      <div class="row">
-        <p class="header-text">{{ this.header }} {{ this.fixed_header }}</p>
-        <span class="arrow"></span>
-      </div>
+      <p class="header-text inline">
+        {{ this.header }} {{ this.fixed_header }}
+      </p>
+      <p class="arrow inline align-right"></p>
     </div>
 
     <div class="accordion-body" :class="this.opened ? 'open' : 'collapse'">
@@ -57,6 +57,7 @@ export default {
   },
   methods: {
     toggleAccordion() {
+      console.log("here");
       this.opened = !this.opened;
     },
   },
@@ -72,19 +73,24 @@ export default {
   color: white;
 }
 
-.row {
-  position: relative;
-}
 .header-text {
   font-weight: 1000;
 }
 
+.align-right {
+  display: inline-block;
+  text-align: right;
+}
+
 .accordion-header {
+  padding-bottom: 1em;
+  padding-top: 1em;
   cursor: pointer;
 
   color: #ffffff;
   transition: 0.15s ease;
   -webkit-transition: 0.15s ease;
+
   &.active .arrow {
     -webkit-transform: rotate(45deg) translate(-4px, -4px);
     transform: rotate(45deg) translate(-4px, -4px);
@@ -100,9 +106,9 @@ export default {
   .arrow {
     width: 8px;
     height: 8px;
-    position: relative;
     bottom: 0;
-    left: 80%;
+    padding: 0;
+    margin: 0;
     -webkit-transition: 0.4s ease;
     transition: 0.4s ease;
     text-align: left;
@@ -129,6 +135,10 @@ export default {
     top: -4px;
     left: 4px;
   }
+}
+
+.inline {
+  display: inline;
 }
 
 .open {

@@ -14,45 +14,54 @@
 
       <div class="tagName">{{ errorTag.id }}</div>
 
-      <div
-        class="col category align-self-end row"
-        :class="this.opened ? 'active' : ''"
-      >
-        <span> Category: {{ errorTag.category }} </span>
+      <div class="col category row" :class="this.opened ? 'active' : ''">
+        <span class="category_text"> Category: {{ errorTag.category }} </span>
 
         <span class="arrow"></span>
       </div>
     </div>
 
     <div class="row">
-      <p>
-        <b> Sensor Name({{ errorTag.name.length }}): </b> {{ errorTag.name }}
+      <p class="inline title_text">
+        Sensor Name ({{ errorTag.sensors.length }}): &nbsp;
+      </p>
+      <p v-for="sensor in errorTag.sensors" v-bind:key="sensor" class="inline">
+        {{ sensor }}
       </p>
     </div>
 
     <div class="row">
-      <p><b> Time Frame (M+): </b> {{ errorTag.timeFrame }}</p>
+      <p class="inline title_text">Time Frame (M+): &nbsp;</p>
+      <p class="inline">{{ errorTag.start }} - {{ errorTag.end }}</p>
     </div>
 
     <div class="details" :class="this.opened ? 'open' : 'collapse'">
       <div class="row">
-        <p><b> Summary: </b> {{ errorTag.summary }}</p>
+        <p class="inline title_text">Summary:&nbsp;</p>
+        <p class="inline">{{ errorTag.summary }}</p>
       </div>
 
       <div class="row">
-        <p><b> Notes: </b> {{ errorTag.notes }}</p>
+        <p class="inline title_text">Notes:&nbsp;</p>
+        <p class="inline">{{ errorTag.notes }}</p>
       </div>
 
       <div class="row">
-        <p><b> Tags: </b> {{ errorTag.tags }}</p>
+        <p class="inline title_text">Tags:&nbsp;</p>
+
+        <p v-for="tag in errorTag.tags" v-bind:key="tag" class="inline">
+          {{ tag }}
+        </p>
       </div>
 
       <div class="row">
-        <p><b> Created: </b> {{ errorTag.timeFrame[0] }}</p>
+        <p class="inline title_text">Created:&nbsp;</p>
+        <p class="inline">{{ errorTag.created }}</p>
       </div>
 
       <div class="row">
-        <p><b> Last modified: </b> {{ errorTag.timeFrame[0] }}</p>
+        <p class="inline title_text">Last modified:&nbsp;</p>
+        <p class="inline">{{ errorTag.lastModified }}</p>
       </div>
     </div>
 
@@ -112,11 +121,15 @@ export default {
 .errorTag {
   position: relative;
   border-radius: 4px;
-  width: 95%;
   padding-left: 16px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-right: 4px;
   font-size: 1.1rem;
   line-height: 12px;
   margin-bottom: 8px;
+  background-color: $color-grey5;
+  width: 85%;
 
   .row {
     margin-bottom: 8px;
@@ -200,6 +213,14 @@ export default {
     color: #ff2f46;
   }
 
+  .title_text {
+    font-weight: 400;
+  }
+  .category_text {
+    font-size: 0.8em;
+    font-weight: 100;
+  }
+
   .viewButton {
     cursor: pointer;
     padding-top: 12px;
@@ -218,6 +239,10 @@ export default {
 
   .collapse {
     display: none;
+  }
+
+  .inline {
+    display: inline;
   }
 }
 </style>

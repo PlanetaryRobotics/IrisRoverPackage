@@ -30,21 +30,23 @@
         <!-- <div v-if="show.Routes"></div> -->
         <!-- SAVED ROUTES -->
 
+        <!-- TODO: CHANGE THE REFERENCE IN VISIBLE ROUTES -->
         <VisibleRoutes
-          :origin="origin"
-          :gridSquare="gridSquare"
+          :origin="grids"
+          :gridSquare="grids"
         />
         <!-- <div v-if="show.Routes"> -->
         <!-- ROVER'S TRAILS -->
+        <!-- TODO: CHANGE THE LOCALIZEDTRAIL IN VISIBLE ROUTES -->
         <LocalizedTrail
-          :origin="{ origin }"
+          :origin="{ grids }"
           :rover="{ rover }"
-          :gridSquare="{ gridSquare }"
+          :gridSquare="{ grids }"
         />
-
+        <!-- TODO: CHANGE THE TARGETTRAIL IN VISIBLE ROUTES -->
         <TargetTrail
-          :origin="{ origin }"
-          :gridSquare="{ gridSquare }"
+          :origin="{ grids }"
+          :gridSquare="{ grids }"
         />
         <!-- </div> -->
 
@@ -97,21 +99,30 @@ export default {
   data() {
     return {
       // Lander coords always = origin
-      origin: {
-        xPosPx: "",
-        yPosPx: "",
-      },
+      // origin: {
+      //   xPosPx: "",
+      //   yPosPx: "",
+      // },
       svgSize: {
         viewbox: null,
       },
-      grid: {
-        width: null,
-        height: null,
-        numSquares: 10,
-      },
-      gridSquare: {
+      // grid: {
+      //   width: null,
+      //   height: null,
+      //   numSquares: 10,
+      // },
+      // gridSquare: {
+      //   gridUnitPx: null,
+      //   gridUnitCm: 30,
+      // },
+      grids:{
+        xPosPx: "",
+        yPosPx: "",
         gridUnitPx: null,
         gridUnitCm: 30,
+        width: "",
+        height: "",
+        numSquares: 10,
       },
       polarPlot: {
         numBisections: 3,
@@ -136,10 +147,12 @@ export default {
       "editingSegmentInfo",
       "localizationData",
       "currWaypointSegment",
-      "currCircumnav"
+      "currCircumnav",
+      // "getGridMetadata",
     ]),
     ...mapState({
-      rover: (state) => state.MAP.roverMetadata
+       rover: (state) => state.MAP.roverMetadata,
+      //  grids: state => state.MAP.gridMetadata,
     })
   },
   mounted() {
@@ -169,10 +182,10 @@ export default {
         data.segmentIndex,
         coords,
         data.roverAngle,
-        this.origin.xPosPx,
-        this.origin.yPosPx,
-        this.gridSquare.gridUnitCm,
-        this.gridSquare.gridUnitPx
+        this.grids.xPosPx,
+        this.grids.yPosPx,
+        this.grids.gridUnitCm,
+        this.grids.gridUnitPx
       );
     });
 
@@ -181,10 +194,10 @@ export default {
       let { xPx, yPx } = calculateCmToPxCoords(
         segment.xCmCoordinate,
         segment.yCmCoordinate,
-        this.origin.xPosPx,
-        this.origin.yPosPx,
-        this.gridSquare.gridUnitCm,
-        this.gridSquare.gridUnitPx
+        this.grids.xPosPx,
+        this.grids.yPosPx,
+        this.grids.gridUnitCm,
+        this.grids.gridUnitPx
       );
       segment.setPxCoordinates(xPx, yPx);
     });
@@ -194,10 +207,10 @@ export default {
       let circumnav = plotNewCircumnav(
         data,
         this.editingRoute,
-        this.origin.xPosPx,
-        this.origin.yPosPx,
-        this.gridSquare.gridUnitCm,
-        this.gridSquare.gridUnitPx
+        this.grids.xPosPx,
+        this.grids.yPosPx,
+        this.grids.gridUnitCm,
+        this.grids.gridUnitPx
       );
       this.$store.commit("setCurrCircumnav", circumnav);
     });
@@ -209,10 +222,10 @@ export default {
         data,
         route,
         segmentIndex,
-        this.origin.xPosPx,
-        this.origin.yPosPx,
-        this.gridSquare.gridUnitCm,
-        this.gridSquare.gridUnitPx
+        this.grids.xPosPx,
+        this.grids.yPosPx,
+        this.grids.gridUnitCm,
+        this.grids.gridUnitPx
       );
       this.$store.commit("setEditingCircumnav", circumnav);
     });
@@ -260,9 +273,15 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(["updateRoverMetadata"]),
+    ...mapMutations([
+      "updateRoverMetadata", 
+    // "updateGridMetadata"
+    ]),
     plotNewSegmentPreview(xCm, yCm, roverAngle) {
-      let currWaypointSegment = new WaypointSegment(this.gridSquare);
+      let currWaypointSegment = new WaypointSegment({
+          gridUnitPx: this.grids.gridUnitPx,
+          gridUnitCm: this.grids.gridUnitCm,
+        });
       currWaypointSegment.setCmCoordinates(xCm, yCm);
 
       if (roverAngle && roverAngle !== "") {
@@ -272,10 +291,10 @@ export default {
       let { angle, startX, startY, endX, endY } = generateFirstSegmentVars(
         this.editingRoute,
         currWaypointSegment,
-        this.origin.xPosPx,
-        this.origin.yPosPx,
-        this.gridSquare.gridUnitCm,
-        this.gridSquare.gridUnitPx
+        this.grids.xPosPx,
+        this.grids.yPosPx,
+        this.grids.gridUnitCm,
+        this.grids.gridUnitPx
       );
 
       this.$store.commit("setCurrWaypointSegment", currWaypointSegment);
@@ -316,7 +335,10 @@ export default {
     gridClicked() {
       // Add form is open, and listening for any clicks on grid
       if (this.isListeningForNewWaypoint) {
-        let currWaypointSegment = new WaypointSegment(this.gridSquare);
+        let currWaypointSegment = new WaypointSegment({
+          gridUnitPx: this.grids.gridUnitPx,
+          gridUnitCm: this.grids.gridUnitCm,
+        });
         currWaypointSegment.setPxCoordinates(
           this.mouseCoords[0],
           this.mouseCoords[1]
@@ -325,10 +347,10 @@ export default {
         let { angle, startX, startY, endX, endY } = generateFirstSegmentVars(
           this.editingRoute,
           currWaypointSegment,
-          this.origin.xPosPx,
-          this.origin.yPosPx,
-          this.gridSquare.gridUnitCm,
-          this.gridSquare.gridUnitPx
+          this.grids.xPosPx,
+          this.grids.yPosPx,
+          this.grids.gridUnitCm,
+          this.grids.gridUnitPx
         );
 
         GridEventBus.$emit("WAYPOINT_GRID_UPDATE", {
@@ -388,19 +410,19 @@ export default {
           this.editingSegmentInfo.segmentIdx,
           coords,
           roverAngle,
-          this.origin.xPosPx,
-          this.origin.yPosPx,
-          this.gridSquare.gridUnitCm,
-          this.gridSquare.gridUnitPx
+          this.grids.xPosPx,
+          this.grids.yPosPx,
+          this.grids.gridUnitCm,
+          this.grids.gridUnitPx
         );
 
         let { xCm, yCm } = calculatePxToCmCoords(
           coords.xPx,
           coords.yPx,
-          this.origin.xPosPx,
-          this.origin.yPosPx,
-          this.gridSquare.gridUnitCm,
-          this.gridSquare.gridUnitPx
+          this.grids.xPosPx,
+          this.grids.yPosPx,
+          this.grids.gridUnitCm,
+          this.grids.gridUnitPx
         );
 
         GridEventBus.$emit("WAYPOINT_GRID_UPDATE", { xCm: xCm, yCm: yCm });
@@ -408,11 +430,11 @@ export default {
     },
     drawPolar() {
       let ringDistance =
-        (this.polarPlot.ringSeparationCm / this.gridSquare.gridUnitCm) *
-        this.gridSquare.gridUnitPx;
+        (this.polarPlot.ringSeparationCm / this.grids.gridUnitCm) *
+        this.grids.gridUnitPx;
       let radius =
-        (this.polarPlot.diameterCm / this.gridSquare.gridUnitCm) *
-        this.gridSquare.gridUnitPx;
+        (this.polarPlot.diameterCm / this.grids.gridUnitCm) *
+        this.grids.gridUnitPx;
       let numRings = radius / ringDistance;
 
       let diameter = radius * 2;
@@ -507,11 +529,7 @@ export default {
      * Function to handle grid update when window resize
      */
     handleResize() {
-      // update grid width and height state
-      this.grid.width = this.$refs.container.clientWidth;
-      this.grid.height = this.$refs.container.clientHeight;
-      // update the grid size
-      this.updateGrid();
+      // TODO: handle resize
     },
     /**
      * Initializes the grid size by using client height/width
@@ -519,8 +537,13 @@ export default {
      */
     initializeGridSize() {
       var parent = $("#grid-container")[0];
-      this.grid.width = parent.clientWidth;
-      this.grid.height = parent.clientHeight;
+      // update the grid state store
+      // this.updateGridMetadata({
+      //   width: parent.clientWidth,
+      //   height: parent.clientHeight
+      // });
+      this.grids.width = parent.clientWidth;
+      this.grids.height = parent.clientHeight;
       // select grid container to watch window resizes
       const gridContainer = document.querySelector("#grid-container");
       // set inital state of the observer start status
@@ -554,18 +577,17 @@ export default {
      * https://stackoverflow.com/questions/31698668/d3-js-how-can-i-make-an-infinite-background-grid
      */
     drawGrid() {
-      const width = this.grid.width;
-      const height = this.grid.height;
-
+      // get the width and height from state
+      const width = this.grids.width;
+      const height = this.grids.height;
+      const numSquares = this.grids.numSquares;
       // Set # of px per grid unit
-      this.gridSquare.gridUnitPx = width / this.grid.numSquares;
-
+      let gridUnitPx = width/ numSquares;
       // Set origin coord to be center of the grid
-      this.origin.xPosPx =
-        Math.ceil(this.grid.numSquares / 2) * this.gridSquare.gridUnitPx;
-      this.origin.yPosPx =
-        Math.ceil(this.grid.numSquares / 2) * this.gridSquare.gridUnitPx;
-
+      let xPosPx = Math.ceil(numSquares / 2) * gridUnitPx;
+      let yPosPx = Math.ceil(numSquares/ 2) * gridUnitPx;
+      console.log(xPosPx, yPosPx)
+      // set up the grid lines
       const svg = d3
         .select("#grid")
         .attr("width", "100%")
@@ -574,10 +596,10 @@ export default {
         .attr("preserveAspectRatio", "xMinYMin");
 
       const boxG = svg.select("#gridLines");
-
-      const numBoxes = this.grid.numSquares;
+      // set svg box properties
+      const numBoxes = numSquares;
       const boxSize = width / numBoxes;
-      const boxWidth = width / this.grid.numSquares;
+      const boxWidth = width / numSquares;
       const boxHeight = boxWidth;
       // set the range to be the the boxes match the longest side at init
       const arr = d3.range(
@@ -652,6 +674,15 @@ export default {
       svg.call(zoom);
       // To center move 1/2 box up
       //.call(zoom.transform, d3.zoomIdentity.translate(0, -boxWidth/2).scale(1))
+      // update the grid state store
+      // this.updateGridMetadata({
+      //   width, height, numSquares, gridUnitPx, xPosPx, yPosPx
+      // })
+      // update grids
+      this.grids = {
+        ...this.grids,
+         width, height, numSquares, gridUnitPx, xPosPx, yPosPx
+      }
     },
     /**
      * Sets position of the lander to be at center of grid.
@@ -659,8 +690,8 @@ export default {
     setLander() {
       let svg = $("#lander")[0];
 
-      let left = this.origin.xPosPx - svg.getBBox().width / 2;
-      let top = this.origin.yPosPx - svg.getBBox().height / 2;
+      let left = this.grids.xPosPx - svg.getBBox().width / 2;
+      let top = this.grids.yPosPx - svg.getBBox().height / 2;
 
       $("#landerGroup").attr("transform", `translate(${left}, ${top})`);
     },
@@ -670,8 +701,8 @@ export default {
      * defined in the data().
      */
     setRover() {
-      let originY = this.origin.yPosPx;
-      let originX = this.origin.xPosPx;
+      let originY = this.grids.yPosPx;
+      let originX = this.grids.xPosPx;
 
       let yCm = this.rover.yCmFromLander;
       let xCm = this.rover.xCmFromLander;
@@ -721,8 +752,8 @@ export default {
         POI.getData().location[0],
         POI.getData().location[1]
       );
-      let x = this.origin.xPosPx + coords.xPx;
-      let y = this.origin.yPosPx + coords.yPx;
+      let x = this.grids.xPosPx + coords.xPx;
+      let y = this.grids.yPosPx + coords.yPx;
 
       return { xPx: x, yPx: y };
     },
@@ -736,8 +767,8 @@ export default {
      * @return {object}         {xPx: xPx, yPx: yPx}
      */
     convertCmToPx(xCm, yCm) {
-      let yPx = (yCm / this.gridSquare.gridUnitCm) * this.gridSquare.gridUnitPx;
-      let xPx = (xCm / this.gridSquare.gridUnitCm) * this.gridSquare.gridUnitPx;
+      let yPx = (yCm / this.grids.gridUnitCm) * this.grids.gridUnitPx;
+      let xPx = (xCm / this.grids.gridUnitCm) * this.grids.gridUnitPx;
 
       // Invert sign since pos value means negative translation
       // (moving up) from origin

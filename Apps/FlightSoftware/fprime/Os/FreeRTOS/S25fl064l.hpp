@@ -7,12 +7,12 @@
 #include <math.h>
 
 class S25fl064l{
-  #define SPI_RX_BUFFER_MAX_LENGTH 261    // Worst case: 256 data payload bytes + 1 byte command + 4 bytes addressing
-  #define SPI_TX_BUFFER_MAX_LENGTH 261
+  #define SPI_RX_BUFFER_MAX_LENGTH_FLASH 261    // Worst case: 256 data payload bytes + 1 byte command + 4 bytes addressing
+  #define SPI_TX_BUFFER_MAX_LENGTH_FLASH  261
 
-  #define SPI_REG spiREG3
-  #define CS_SPI_PORT spiPORT3
-  #define CS_SPI_BIT  0
+  #define SPI_REG_FLASH spiREG3
+  #define CS_SPI_PORT_FLASH spiPORT3
+  #define CS_SPI_BIT_FLASH  0
 
 
   enum AddressLengthFormat{
@@ -147,15 +147,15 @@ class S25fl064l{
   typedef uint16_t HalfBlock;
   typedef uint16_t Sector;
 
-  #define PAGE_SIZE               0x100     // 256B
-  #define SECTOR_SIZE             0x1000    // 4KB
+  #define PAGE_SIZE_FLASH               0x100     // 256B
+  #define SECTOR_SIZE_FLASH            0x1000    // 4KB
   #define HALF_BLOCK_SIZE         0x8000    // 32KB
   #define BLOCK_SIZE              0x10000   // 64KB
 
-  #define MAX_MEMORY_ADDRESS      0x7FFFFF            // 64Mb
+  #define MAX_MEMORY_ADDRESS_FLASH      0x7FFFFF            // 64Mb
   #define MAX_BLOCK_RANGE         128                 // There is 128 blocks (from block #0 to block #127)
   #define MAX_HALF_BLOCK_RANGE    MAX_BLOCK_RANGE*2 
-  #define MAX_SECTOR_RANGE        MAX_BLOCK_RANGE*16  // There are 16 sectors per block (16*128 = 2048 sectors)
+  #define MAX_SECTOR_RANGE_FLASH        MAX_BLOCK_RANGE*16  // There are 16 sectors per block (16*128 = 2048 sectors)
 
   #define ADDRESS_NOT_DEFINED     0xFFFFFFFF
 
@@ -317,10 +317,10 @@ class S25fl064l{
 
     bool m_setup;
     uint32_t m_readLatencyCycles;
-    uint16_t m_spiRxBuff[SPI_RX_BUFFER_MAX_LENGTH];
-    uint16_t m_spiTxBuff[SPI_TX_BUFFER_MAX_LENGTH];
-    uint8_t m_writeScratchpad[PAGE_SIZE];
-    uint8_t m_sectorBackup[SECTOR_SIZE];
+    uint16_t m_spiRxBuff[SPI_RX_BUFFER_MAX_LENGTH_FLASH];
+    uint16_t m_spiTxBuff[SPI_TX_BUFFER_MAX_LENGTH_FLASH];
+    uint8_t m_writeScratchpad[PAGE_SIZE_FLASH];
+    uint8_t m_sectorBackup[SECTOR_SIZE_FLASH];
     uint8_t m_dummyBuffer[MAX_DUMMY_CYCLES];
 }; // end of class
 

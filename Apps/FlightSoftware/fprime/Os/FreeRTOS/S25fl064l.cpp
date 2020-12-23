@@ -32,7 +32,7 @@ S25fl064l :: S25fl064l(){
 S25fl064l::S25fl064lError S25fl064l :: setupDevice(){
   S25fl064lError err = S25FL064L_NO_ERROR;
 
-  m_flashSpi = SPI_REG;
+  m_flashSpi = SPI_REG_FLASH;
 
   // Check that the correct device is connected to the MCU
   uint8_t id[3];
@@ -278,7 +278,7 @@ S25fl064l::S25fl064lError S25fl064l :: flashSpiReadData(const S25fl064l::FlashSp
   // Default value set by S25FL064 is 8
   totalBytesToTransmit += getReadDummyCycles(cmd) >> 3;
 
-  if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH)
+  if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH_FLASH)
       return S25FL064L_WRONG_DATA_SIZE;
 
    // copy address to Tx buffer
@@ -288,15 +288,15 @@ S25fl064l::S25fl064lError S25fl064l :: flashSpiReadData(const S25fl064l::FlashSp
   }
 
   // Set CS low
-  gioSetBit(CS_SPI_PORT, CS_SPI_BIT, 0);
+  gioSetBit(CS_SPI_PORT_FLASH, CS_SPI_BIT_FLASH, 0);
 
   // Send transmission data
   spiTransmitData(m_flashSpi, &m_flashDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
 
   while(totalBytesToRead > 0){
-      // min(totalBytesToRead, SPI_RX_BUFFER_MAX_LENGTH)
-      uint16_t bytesToRead = (totalBytesToRead < SPI_RX_BUFFER_MAX_LENGTH) ? 
-                              totalBytesToRead : SPI_RX_BUFFER_MAX_LENGTH;
+      // min(totalBytesToRead, SPI_RX_BUFFER_MAX_LENGTH_FLASH)
+      uint16_t bytesToRead = (totalBytesToRead < SPI_RX_BUFFER_MAX_LENGTH_FLASH) ? 
+                              totalBytesToRead : SPI_RX_BUFFER_MAX_LENGTH_FLASH;
       spiReceiveData(m_flashSpi, &m_flashDataConfig, bytesToRead, (uint16_t *)m_spiRxBuff);
 
       // remove bytes to read
@@ -310,7 +310,7 @@ S25fl064l::S25fl064lError S25fl064l :: flashSpiReadData(const S25fl064l::FlashSp
   }
 
   // Set CS high
-  gioSetBit(CS_SPI_PORT, CS_SPI_BIT, 1);
+  gioSetBit(CS_SPI_PORT_FLASH, CS_SPI_BIT_FLASH, 1);
 
   return S25FL064L_NO_ERROR;
 }
@@ -346,7 +346,7 @@ S25fl064l::S25fl064lError S25fl064l :: flashSpiWriteData(const S25fl064l::FlashS
       return S25FL064L_UNEXPECTED_ERROR;
     }
 
-    if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH){
+    if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH_FLASH){
       return S25FL064L_WRONG_DATA_SIZE;
     }
 
@@ -366,12 +366,12 @@ S25fl064l::S25fl064lError S25fl064l :: flashSpiWriteData(const S25fl064l::FlashS
   }
 
   // Set CS low
-  gioSetBit(CS_SPI_PORT, CS_SPI_BIT, 0);
+  gioSetBit(CS_SPI_PORT_FLASH, CS_SPI_BIT_FLASH, 0);
 
   spiTransmitData(m_flashSpi, &m_flashDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
 
   // Set CS high
-  gioSetBit(CS_SPI_PORT, CS_SPI_BIT, 1);
+  gioSetBit(CS_SPI_PORT_FLASH, CS_SPI_BIT_FLASH, 1);
 
   return S25FL064L_NO_ERROR;
 }
@@ -707,7 +707,7 @@ S25fl064l::S25fl064lError S25fl064l :: sectorErase(const S25fl064l::Sector secto
   S25fl064lError err;
   uint32_t tries = __INT_MAX;
 
-  if(sector > MAX_SECTOR_RANGE){
+  if(sector > MAX_SECTOR_RANGE_FLASH){
     return S25FL064L_UNEXPECTED_ERROR;
   }
 
@@ -732,7 +732,7 @@ S25fl064l::S25fl064lError S25fl064l :: sectorErase(const S25fl064l::Sector secto
 
   // Send sector erase
   // The flash spi write doesn't require to write any data, only address is required
-  address = sector * SECTOR_SIZE;
+  address = sector * SECTOR_SIZE_FLASH;
   err = flashSpiWriteData(S25fl064l::SE, (uint8_t *)NULL, 0, address);
 
   if(err != S25FL064L_NO_ERROR){
@@ -796,12 +796,12 @@ S25fl064l::S25fl064lError S25fl064l :: allocateFlashMemory(S25fl064l::MemAlloc *
   // Reset reserved memory to zero
   alloc->reservedSize = 0;
 
-  // Calculate new address pointer by PAGE_SIZE increment
-  tmp += (size / PAGE_SIZE) * PAGE_SIZE;
-  tmp += (size % PAGE_SIZE) ? PAGE_SIZE : 0;
+  // Calculate new address pointer by PAGE_SIZE_FLASH increment
+  tmp += (size / PAGE_SIZE_FLASH) * PAGE_SIZE_FLASH;
+  tmp += (size % PAGE_SIZE_FLASH) ? PAGE_SIZE_FLASH : 0;
 
   // Check that new memory allocation pointer is within memory range 
-  if(tmp > MAX_MEMORY_ADDRESS){
+  if(tmp > MAX_MEMORY_ADDRESS_FLASH){
     return S25FL064L_FAIL_MEM_ALLOCATION;
   }
 
@@ -845,7 +845,7 @@ S25fl064l::S25fl064lError S25fl064l :: writeDataToFlash(S25fl064l::MemAlloc *all
   }
 
   // Check if desired data write will fit in device memory range
-  if(alloc->startAddress + offset + dataSize > MAX_MEMORY_ADDRESS){
+  if(alloc->startAddress + offset + dataSize > MAX_MEMORY_ADDRESS_FLASH){
     return S25FL064L_FAIL_WRITE_DATA_FLASH;
   }
 
@@ -858,7 +858,7 @@ S25fl064l::S25fl064lError S25fl064l :: writeDataToFlash(S25fl064l::MemAlloc *all
   while(1){
     // Calculate the block address that belong to data to write.
     // Go to next sector if the data to write overlaps sectors
-    sectorAddress = (alloc->startAddress + offset) / SECTOR_SIZE * (SECTOR_SIZE + sectorOverlaps);
+    sectorAddress = (alloc->startAddress + offset) / SECTOR_SIZE_FLASH * (SECTOR_SIZE_FLASH + sectorOverlaps);
 
     // Back-up sector content to a back-up buffer
     err = flashSpiReadData( S25fl064l::READ,
@@ -879,28 +879,28 @@ S25fl064l::S25fl064lError S25fl064l :: writeDataToFlash(S25fl064l::MemAlloc *all
 
     // Copy data to scratchpad
     // Only copy a number of bytes to not overlap sectors
-    uint16_t bytesToCopy = (totalBytesToWrite <= sectorAddress + SECTOR_SIZE - (alloc->startAddress + offset)) ?
-                            totalBytesToWrite : sectorAddress + SECTOR_SIZE - (alloc->startAddress + offset);
+    uint16_t bytesToCopy = (totalBytesToWrite <= sectorAddress + SECTOR_SIZE_FLASH - (alloc->startAddress + offset)) ?
+                            totalBytesToWrite : sectorAddress + SECTOR_SIZE_FLASH - (alloc->startAddress + offset);
 
 
     // Overwrite data in the m_sectorBackup. Don't copy data that overlap
     // sectors
     // If data is NULL, then fill it with NULL character
     if(data != NULL){
-      memcpy(m_sectorBackup + alloc->startAddress + offset + (sectorOverlaps*SECTOR_SIZE) - sectorAddress,
+      memcpy(m_sectorBackup + alloc->startAddress + offset + (sectorOverlaps*SECTOR_SIZE_FLASH) - sectorAddress,
              data,
              bytesToCopy);
     }
     else{
       for(uint16_t i=0; i<bytesToCopy; i++){
-        m_sectorBackup[alloc->startAddress + offset + (sectorOverlaps*SECTOR_SIZE) - sectorAddress + i] = '\0';
+        m_sectorBackup[alloc->startAddress + offset + (sectorOverlaps*SECTOR_SIZE_FLASH) - sectorAddress + i] = '\0';
       }
     }
 
     // Program the whole sector using page programming with updated data
     // Programming is done aligned with page addresses
-    for(i=0; i< SECTOR_SIZE / PAGE_SIZE; i++){
-      err = pageProgram(alloc->startAddress+ i*PAGE_SIZE, m_sectorBackup + i*PAGE_SIZE, PAGE_SIZE);
+    for(i=0; i< SECTOR_SIZE_FLASH / PAGE_SIZE_FLASH; i++){
+      err = pageProgram(alloc->startAddress+ i*PAGE_SIZE_FLASH, m_sectorBackup + i*PAGE_SIZE_FLASH, PAGE_SIZE_FLASH);
       if(err != S25FL064L_NO_ERROR){
         return err;
       }
@@ -941,14 +941,14 @@ S25fl064l::S25fl064lError S25fl064l :: readDataFromFlash(S25fl064l::MemAlloc *al
   uint16_t overflow = 0;
 
   while(totalBytesToRead){
-    uint16_t bytesToRead = (totalBytesToRead < PAGE_SIZE) ? totalBytesToRead : PAGE_SIZE;
+    uint16_t bytesToRead = (totalBytesToRead < PAGE_SIZE_FLASH) ? totalBytesToRead : PAGE_SIZE_FLASH;
 
     // Read data from flash memory
     // Send the READ command
     err = flashSpiReadData( S25fl064l::READ,
-                            data + PAGE_SIZE * overflow,
+                            data + PAGE_SIZE_FLASH * overflow,
                             bytesToRead,
-                            alloc->startAddress + PAGE_SIZE * overflow + offset);
+                            alloc->startAddress + PAGE_SIZE_FLASH * overflow + offset);
 
     totalBytesToRead -= bytesToRead;
     overflow++;
@@ -975,7 +975,7 @@ S25fl064l::S25fl064lError S25fl064l :: pageProgram(S25fl064l::Address address,
   uint32_t tries = __INT_MAX;
 
   // the size of a page is 256 bytes
-  if(size > PAGE_SIZE){
+  if(size > PAGE_SIZE_FLASH){
     return S25FL064L_UNEXPECTED_ERROR;
   }
 

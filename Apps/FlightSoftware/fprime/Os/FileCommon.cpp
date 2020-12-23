@@ -1,6 +1,6 @@
 #include <Fw/Cfg/Config.hpp>
 #include <Fw/Types/BasicTypes.hpp>
-#include <Os/File.hpp>
+#include <Os/FreeRTOS/File.hpp>
 #include <Fw/Types/Assert.hpp>
 
 #ifdef __cplusplus

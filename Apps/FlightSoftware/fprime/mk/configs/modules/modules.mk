@@ -199,6 +199,8 @@ acdev_MODULES := \
 	$(ACDEVTEST_MODULES)
 
 CubeRoverPorts_MODULES := \
+	CubeRover/CubeRoverPorts/CameraTakePicture \
+	CubeRover/CubeRoverPorts/FileDownlink \
 	CubeRover/CubeRoverPorts/IMUData \
 	CubeRover/CubeRoverPorts/MotorData
 	
@@ -213,8 +215,6 @@ CubeRover_MODULES := \
 	CubeRover/GroundInterface \
 	CubeRover/WatchDogInterface \
 	CubeRover/Camera \
-	CubeRover/CubeRoverPorts/CameraSelect \
-	CubeRover/CubeRoverPorts/FileDownlink \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

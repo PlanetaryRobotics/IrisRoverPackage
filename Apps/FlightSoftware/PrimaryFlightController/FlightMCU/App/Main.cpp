@@ -21,12 +21,7 @@ extern "C" {
     void vApplicationIdleHook(void);
 }
 
-extern CubeRover::CameraComponentImpl camera;
-
 void vApplicationIdleHook(void) {
-    static bool test_camera = 0;
-    if (test_camera)
-        camera.triggerImageCapture(53);
     run1cycle();
     //gioToggleBit(gioPORTB, 1);
     //for(uint32_t i=0; i<2000000; i++) asm("  NOP");
@@ -36,7 +31,7 @@ void main(void)
 {
     /* USER CODE BEGIN (3) */
 
-    int waithere = 1;
+    int waithere = 1;    // Used for pausing prior to netowrk connect
     while(waithere);     // Stop here and wait for debugger
     gioInit();
     i2cInit();

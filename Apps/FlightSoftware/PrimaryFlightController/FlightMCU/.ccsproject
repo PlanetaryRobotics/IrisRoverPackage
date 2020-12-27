@@ -7,7 +7,7 @@
 	<deviceEndianness value="little"/>
 	<codegenToolVersion value="18.12.2.LTS"/>
 	<isElfFormat value="true"/>
-	<connection value="common/targetdb/connections/BH-XDS560v2-USB_Connection.xml"/>
+	<connection value="common/targetdb/connections/TIXDS110_Connection.xml"/>
 	<rts value="rtsv7R4_T_le_v3D16_eabi.lib"/>
 	<createSlaveProjects value=""/>
 	<templateProperties value="id=com.ti.common.project.core.emptyProjectTemplate"/>

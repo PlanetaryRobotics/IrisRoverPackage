@@ -45,11 +45,14 @@ namespace CubeRover {
     WatchDogInterfaceComponentBase::init(queueDepth, instance);
     // Setup scilinReg port
     sciBASE_t * m_sci = scilinREG;
-    //sciInit();
     sciEnterResetState(m_sci);
     sciSetBaudrate(m_sci, 9600);
-    //sciEnableNotification(m_sci, SCI_RX_INT);
     sciExitResetState(m_sci);
+
+    // RESET THE WIFI CHIP ON STARTUP
+    FwOpcodeType opCode = 0; // Put as zero but may need to be changed as unsure what the value should be
+    U32 cmdSeq = 0; // Put as zero but may need to be changed
+    Reset_Specific_cmdHandler(opCode, cmdSeq, 0x04 /*RESET WIFI*/);
   }
 
   WatchDogInterfaceComponentImpl ::
@@ -322,9 +325,9 @@ namespace CubeRover {
   	sprintf(reset_val_char, "%u", reset_value);
   	strcat(command_type, reset_val_char);
   	Fw::LogStringArg command_type_log = command_type;
-  	Fw::TlmString command_type_tlm = command_type;
+  	//Fw::TlmString command_type_tlm = command_type;
   	this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
-  	this->tlmWrite_LAST_COMMAND(command_type_tlm);
+  	//this->tlmWrite_LAST_COMMAND(command_type_tlm);
 
     // Sends a command to watchdog to reset specified devices. Can be hardware through watchdog or component
 
@@ -346,7 +349,7 @@ namespace CubeRover {
 	    if(tries == 0)
 	    {
 	    	this->log_WARNING_HI_WatchDogTimedOut();
-	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
 	    	return;
 	    }
 	    sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
@@ -360,7 +363,7 @@ namespace CubeRover {
 	    if(tries == 0)
 	    {
 	    	this->log_WARNING_HI_WatchDogTimedOut();
-	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
 	    	return;
 	    }
 	    size_read = sciReceiveWithTimeout(scilinREG,
@@ -376,7 +379,7 @@ namespace CubeRover {
 	        if(size_read < 4)
 	        {
 	            this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-	            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+	            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
 	            return;
 	        }
 	        // Check that response is the same as what was sent
@@ -395,7 +398,7 @@ namespace CubeRover {
 	                if(tries == 0)
 				    {
 				    	this->log_WARNING_HI_WatchDogTimedOut();
-				    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+				    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
 				    	return;
 				    }
 	                stat = sciReceiveWithTimeout(scilinREG,
@@ -433,7 +436,7 @@ namespace CubeRover {
 	            if(tries == 0)
 				{
 				    this->log_WARNING_HI_WatchDogTimedOut();
-				    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+				    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
 				    return;
 				}
 	            stat = sciReceiveWithTimeout(scilinREG,
@@ -495,9 +498,9 @@ namespace CubeRover {
 	  	// Send Activity Log/tlm to know watchdog recieved command
 	  	char command_type[24] = "Disengage From Rover";
 	  	Fw::LogStringArg command_type_log = command_type;
-	  	Fw::TlmString command_type_tlm = command_type;
+	  	//Fw::TlmString command_type_tlm = command_type;
 	  	this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
-	  	this->tlmWrite_LAST_COMMAND(command_type_tlm);
+	  	//this->tlmWrite_LAST_COMMAND(command_type_tlm);
 
       	U32 watchdog_stroke = 0x00EE0000;
 	    // Send stroke once Tx ready
@@ -507,7 +510,7 @@ namespace CubeRover {
 	    if(tries == 0)
 	    {
 	    	this->log_WARNING_HI_WatchDogTimedOut();
-	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
 	    	return;
 	    }
 	    sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
@@ -521,7 +524,7 @@ namespace CubeRover {
 	    if(tries == 0)
 	    {
 	    	this->log_WARNING_HI_WatchDogTimedOut();
-	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
 	    	return;
 	    }
 	    size_read = sciReceiveWithTimeout(scilinREG,
@@ -537,7 +540,7 @@ namespace CubeRover {
 	        if(size_read < 4)
 	        {
 	            this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-	            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+	            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
 	            return;
 	        }
 	        // Check that response is the same as what was sent
@@ -556,7 +559,7 @@ namespace CubeRover {
 	                if(tries == 0)
 				    {
 				    	this->log_WARNING_HI_WatchDogTimedOut();
-				    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+				    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
 				    	return;
 				    }
 	                stat = sciReceiveWithTimeout(scilinREG,
@@ -594,7 +597,7 @@ namespace CubeRover {
 	            if(tries == 0)
 				{
 				    this->log_WARNING_HI_WatchDogTimedOut();
-				    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+				    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
 				    return;
 				}
 	            stat = sciReceiveWithTimeout(scilinREG,

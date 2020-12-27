@@ -124,11 +124,13 @@
     </events>
 
     <telemetry>
+        <!--
         <channel id="0" name="LAST_COMMAND" data_type="string" size="24">
             <comment>
                 The command last sent to watchdog interface
             </comment>
         </channel>
+        -->
         <channel id="2" name="VOLTAGE_2_5V" data_type="int16_t">
             <comment>
                 Voltage from 2.5V line from Watchdog

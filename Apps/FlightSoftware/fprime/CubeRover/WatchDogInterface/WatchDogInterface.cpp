@@ -52,7 +52,7 @@ namespace CubeRover {
     // RESET THE WIFI CHIP ON STARTUP
     FwOpcodeType opCode = 0; // Put as zero but may need to be changed as unsure what the value should be
     U32 cmdSeq = 0; // Put as zero but may need to be changed
-    Reset_Specific_cmdHandler(opCode, cmdSeq, 0x04 /*RESET WIFI*/);
+    // Reset_Specific_cmdHandler(opCode, cmdSeq, 0x04 /*RESET WIFI*/);   // FIXME: Alec to update this
   }
 
   WatchDogInterfaceComponentImpl ::

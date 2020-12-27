@@ -16,7 +16,6 @@
 
 |Channel Name|ID|Type|Description|
 |---|---|---|---|
-|LAST_COMMAND|0 (0x0)|string|The command last sent to watchdog interface|
 |VOLTAGE_2_5V|2 (0x2)|int16_t|Voltage from 2.5V line from Watchdog|
 |VOLTAGE_2_8V|3 (0x3)|int16_t|Voltage from 2.8V line from Watchdog|
 |VOLTAGE_24V|4 (0x4)|int16_t|Voltage from 24V line from Watchdog|

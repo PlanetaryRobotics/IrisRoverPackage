@@ -240,6 +240,7 @@ namespace CubeRover {
      * 
      */
     void GroundInterfaceComponentImpl::flushDownlinkBuffer() {
+        // TODO: Check on mode manager wired MTU is 255B
         FswPacket::Length_t length = static_cast<FswPacket::Length_t>(m_downlinkBufferPos - m_downlinkBuffer);
         downlink(m_downlinkBuffer, length);
         m_downlinkBufferPos = reinterpret_cast<uint8_t *>(m_downlinkPacket) + sizeof(struct FswPacket::FswPacketHeader);
@@ -267,7 +268,7 @@ namespace CubeRover {
         packetHeader->checksum = checksum;
         packetHeader->length = size - 8 - sizeof(struct FswPacket::FswPacketHeader);
         int port = 1;
-        if (port == 0) {
+        if (port == 0) {  // TODO: Swap between these dynamically (need way to check for inconsistent connection)
             Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data), size);
             log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size);
             downlinkBufferSend_out(port, buffer);

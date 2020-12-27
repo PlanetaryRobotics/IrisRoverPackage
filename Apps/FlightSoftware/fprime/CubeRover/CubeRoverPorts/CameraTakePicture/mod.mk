@@ -6,5 +6,5 @@
 #
 
 
-SRC =	CameraSelectPortAi.xml 
+SRC =	CameraTakePicturePortAi.xml 
 

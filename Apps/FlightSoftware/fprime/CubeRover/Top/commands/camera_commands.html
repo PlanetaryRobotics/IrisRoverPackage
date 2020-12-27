@@ -52,14 +52,21 @@ html {
 				<td></td>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="2">Take_Image</td>
-			<td rowspan="2">62509 (0xf42d)</td>
-			<td rowspan="2">Take an Image</td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+			<td rowspan="3">Take_Image</td>
+			<td rowspan="3">62509 (0xf42d)</td>
+			<td rowspan="3">Take an Image</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
 						<td>camera_num</td>
 						<td>U8</td>
 						<td>
                         0: Camera 0     1: Camera 1
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>callback_id</td>
+						<td>U16</td>
+						<td>
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
                     </td>
 					</tr>
 		</tr>

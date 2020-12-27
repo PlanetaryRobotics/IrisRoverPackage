@@ -64,9 +64,10 @@ namespace CubeRover {
 
       //! Handler implementation for takeImage
       //!
-      void takeImage_handler(
+      void takePicture_handler(
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
-          U8 CameraNum /*!< Camera Number*/
+          U8 CameraNum, /*!< Camera Number*/
+          U16 CallbackId /*!< Identifier downlinked with the image allowing us to map the command which triggered image capture to this image*/
       );
 
     PRIVATE:
@@ -87,8 +88,11 @@ namespace CubeRover {
       void Take_Image_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq, /*!< The command sequence number*/
-          U8 camera_num /*!< 
+          U8 camera_num, /*!< 
                         0: Camera 0     1: Camera 1
+                    */
+          U16 callback_id /*!< 
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
                     */
       );
 
@@ -176,14 +180,20 @@ namespace CubeRover {
           const U32 cmdSeq /*!< The command sequence number*/
       );
       
-    public:
+      
+      // User methods
+      
         void downsampleLine();
         void selectCamera(int camera);
-        void triggerImageCapture(uint16_t callbackId);
+        void triggerImageCapture(uint8_t camera, uint16_t callbackId);
         void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime);
       
         S25fl512l m_fpgaFlash;
-        uint8_t imageLineBuffer[IMAGE_WIDTH];
+        uint8_t m_imageLineBuffer[IMAGE_WIDTH];
+        U32 m_numComponentImgsReq;
+        U32 m_numGroundImgsReq;
+        U32 m_imagesSent;
+        U32 m_bytesSent;
 
     };
 

@@ -1,14 +1,12 @@
 <component name="Camera" kind="passive" namespace="CubeRover">
     <import_port_type>CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAi.xml</import_port_type>
-    <import_port_type>CubeRover/CubeRoverPorts/CameraSelect/CameraSelectPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/CameraTakePicture/CameraTakePicturePortAi.xml</import_port_type>
 
     <comment>Manages the CubeRover cameras</comment>
     <ports>
-        <port name="takeImage" data_type="CubeRover::CameraSelect" kind="sync_input" max_number="2">
+        <port name="takePicture" data_type="CubeRover::CameraTakePicture" kind="sync_input" max_number="2">
             <comment>
-                Command component to take an image. This port is for other components to request an image to be taken (Navigation).
-                The argument is the callbackId identifying the movement command which triggered the image to be taken.
-                0: Camera 0     1: Camera 1
+                This port is for other components to request an picture to be taken (Navigation).
             </comment>
         </port>
         <port name="downlinkImage" data_type="CubeRover::FileDownlink" kind="output" max_number="1">
@@ -42,7 +40,7 @@
                 Number of bytes sent for downlink
             </comment>
         </channel>
-        <channel id="4" name="Cam_PrevCallbackId" data_type="U16" update="on_change">
+        <channel id="4" name="Cam_LatestCallbackId" data_type="U16" update="on_change">
             <comment>
                 The latest callback ID that triggerd an image to be taken
             </comment>
@@ -64,6 +62,11 @@
                 <arg name="camera_num" type="U8">
                     <comment>
                         0: Camera 0     1: Camera 1
+                    </comment>
+                </arg>
+                <arg name="callback_id" type="U16">
+                    <comment>
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
                     </comment>
                 </arg>
              </args>

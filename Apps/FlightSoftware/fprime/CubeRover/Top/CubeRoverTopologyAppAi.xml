@@ -311,6 +311,8 @@
     <source component="camera" port="downlinkImage" type="CubeRover::FileDownlink" num="0" />
     <target component="groundInterface" port="appDownlink" type="CubeRover::FileDownlink" num="0" />
   </connection>
+  
+  <!-- TODO: Connect UWB to goundInterface HERE -->
       
   <connection name="chanTlm_to_groundInterface">
     <source component="tlmChan" port="PktSend" type="Com" num="0" />
@@ -318,8 +320,6 @@
   </connection>
     
   <!-- TODO: Connect Logs to goundInterface HERE -->
-      
-  <!-- TODO: Connect Camera & UWB to goundInterface HERE -->
       
   <connection name="groundInterface_to_udpInterface"><!-- GROUNDINTERFACE downlinkBufferSend PORT #0 -->
     <source component="groundInterface" port="downlinkBufferSend" type="Fw::BufferSend" num="0" />
@@ -401,7 +401,12 @@
     <source component = "watchDogInterface" port = "CmdReg" type = "CmdReg" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
   </connection>
-
+  
+  <connection name = "cameraCmdReg_to_cmdDispatcher">
+    <source component = "camera" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
+  </connection>
+  
   <!-- *********************************************************************************************************
         CONNECTION OF COMMAND DISPATCH PORTS
        ********************************************************************************************************* 
@@ -418,6 +423,11 @@
     <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
     <target component = "watchDogInterface" port = "CmdDisp" type = "Cmd" num = "0" />
   </connection>
+  
+  <connection name = "cmdDispatcherSendCmd_to_cameraCmdDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
+    <target component = "camera" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
 
   <!-- *********************************************************************************************************
         CONNECTION OF COMMAND RESPONSE PORTS
@@ -433,6 +443,11 @@
       <!-- Watchdog -->
   <connection name = "WatchdogReg">
     <source component = "watchDogInterface" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+  
+  <connection name = "cameraCmdStatus_to_cmdDispatcher_CmdStatus">
+    <source component = "camera" port = "CmdStatus" type = "CmdResponse" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
   </connection>
   

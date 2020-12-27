@@ -108,6 +108,14 @@ namespace CubeRover {
           const U32 cmdSeq /*!< The command sequence number*/
       );
 
+      //! Implementation for Reset Specific for init of cuberover
+      //! Only difference between this and Reset_Specific_cmdHandler is no cmd response
+      void Reset_Specific_initHandler(
+          U8 reset_value /*!< 
+                      U8 Value that represents which things need to be reset
+                    */
+      );
+
     };
 
 } // end namespace CubeRover

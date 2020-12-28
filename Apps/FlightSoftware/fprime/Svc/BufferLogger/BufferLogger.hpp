@@ -14,7 +14,7 @@
 #define Svc_BufferLogger_HPP
 
 #include "Svc/BufferLogger/BufferLoggerComponentAc.hpp"
-#include "Os/File.hpp"
+#include "Os/FreeRTOS/File.hpp"
 #include "Fw/Types/EightyCharString.hpp"
 #include "Fw/Types/Assert.hpp"
 #include "Os/Mutex.hpp"

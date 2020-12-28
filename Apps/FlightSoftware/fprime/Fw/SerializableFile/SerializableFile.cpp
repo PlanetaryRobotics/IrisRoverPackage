@@ -12,7 +12,7 @@
 
 #include "Fw/SerializableFile/SerializableFile.hpp"
 #include "Fw/Types/Assert.hpp"
-#include "Os/File.hpp"
+#include "Os/FreeRTOS/File.hpp"
 
 namespace Fw {
 

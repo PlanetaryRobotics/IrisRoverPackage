@@ -22,7 +22,7 @@
 -extern CubeRover::IMUImpl IMU("IMU");
 -extern CubeRover::WatchDogInterfaceImpl watchDogInterface("watchDogInterface");
 -extern CubeRover::CameraImpl camera("camera");
--extern CubeRover::ComLogger comLogger("comLogger");
+-extern CubeRover::ComLoggerImpl comLogger("comLogger");
 +extern Drv::BlockDriverImpl blockDriver;
 +extern Svc::RateGroupDriverImpl rateGroupDriver;
 +extern Svc::ActiveRateGroupImpl rateGroupLowFreq;

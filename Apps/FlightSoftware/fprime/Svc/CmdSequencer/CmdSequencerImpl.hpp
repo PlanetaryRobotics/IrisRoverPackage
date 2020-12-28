@@ -15,7 +15,7 @@
 
 #include "Fw/Com/ComBuffer.hpp"
 #include "Fw/Types/MemAllocator.hpp"
-#include "Os/File.hpp"
+#include "Os/FreeRTOS/File.hpp"
 #include "Os/ValidateFile.hpp"
 #include "Svc/CmdSequencer/CmdSequencerComponentAc.hpp"
 

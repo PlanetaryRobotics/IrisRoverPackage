@@ -9,7 +9,7 @@
 #include <Fw/Types/Assert.hpp>
 #include <Fw/Types/EightyCharString.hpp>
 
-#include <Os/File.hpp>
+#include "Os/FreeRTOS/File.hpp"
 
 #include <cstring>
 #include <stdio.h>

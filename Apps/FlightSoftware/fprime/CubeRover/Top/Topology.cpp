@@ -183,8 +183,8 @@ void constructApp(void){
   activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
 
   // Initialize the watchdog interface component (queued)
-  //watchDogInterface.init(10,          /*Queue Depth*/
-  //                       0);         /*Instance Number*/
+  watchDogInterface.init(10,          /*Queue Depth*/
+                         0);         /*Instance Number*/
 
   // Initialize the health component (queued)
   //health.init(25,                   /*Queue Depth*/

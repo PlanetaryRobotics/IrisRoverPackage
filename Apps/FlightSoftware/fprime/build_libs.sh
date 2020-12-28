@@ -14,17 +14,14 @@
 # $ ./build_libs.sh
 # $ ./install_libs.sh
 
+umask 022   # Tries to fix the make: execvp <build product>: Permission denied...
+
 pushd Os
 make clean
 make TIR4
 popd
 
 pushd Fw
-./clean.sh
-make TIR4
-popd
-
-pushd Drv
 ./clean.sh
 make TIR4
 popd
@@ -36,6 +33,17 @@ popd
 
 pushd Svc
 ./clean.sh
+
+# Health depends on WatchDog port, for some reason Fprime builds this out of order
+pushd WatchDog
 make TIR4
 popd
 
+make TIR4
+popd
+
+# Has compoennts that depend on ports in Svc
+pushd Drv
+./clean.sh
+make TIR4
+popd

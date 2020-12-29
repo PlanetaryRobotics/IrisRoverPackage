@@ -151,7 +151,12 @@ CubeRover::WatchDogInterfaceComponentImpl watchDogInterface(
 #endif
 );
 
-
+// ---------------------------------------------------------------------------
+CubeRover::UWBComponentImpl UWB(
+#if FW_OBJECT_NAMES == 1
+        "UWB"
+#endif
+);
 
 /**
  * @brief      Run 1 cycle (debug)

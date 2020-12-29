@@ -30,6 +30,7 @@
 #include <CubeRover/NetworkManager/NetworkManager.hpp>
 #include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
 #include <CubeRover/Camera/Camera.hpp>
+#include <CubeRover/UWB/UWB.hpp>
 
 // Block driver sequencing F-Prime and other sync events
 extern Drv::BlockDriverImpl blockDriver;
@@ -81,5 +82,8 @@ extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 // Camera
 extern CubeRover::CameraComponentImpl camera;
+
+// UWB
+extern CubeRover::UWBComponentImpl UWB;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

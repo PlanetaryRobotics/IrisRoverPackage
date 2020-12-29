@@ -1,0 +1,3 @@
+SRC = 				\
+                    UWBInterfaceComponentAi.xml
+HDR = 				\

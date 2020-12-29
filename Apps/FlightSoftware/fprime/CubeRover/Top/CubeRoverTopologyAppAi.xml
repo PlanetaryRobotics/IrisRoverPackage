@@ -22,6 +22,7 @@
   <import_component_type>CubeRover/MotorControl/MotorControlComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/Navigation/NavigationComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/Camera/CameraComponentAi.xml</import_component_type>
+  <import_component_type>CubeRover/UWB/UWBComponentAi.xml</import_component_type>
 
   <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
 
@@ -54,7 +55,7 @@
   <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="221" base_id_window="20" />
 
 <!-- Declaration of the health component -->
-      <instance namespace="Svc" name="health" type="Health" base_id="301" base_id_window="20" />
+  <instance namespace="Svc" name="health" type="Health" base_id="301" base_id_window="20" />
 
   <!-- Declaration of the Navigation handling module -->
   <instance namespace="CubeRover" name="navigation" type="Navigation" base_id="2221" base_id_window="20" />
@@ -70,6 +71,9 @@
       
 <!-- Declaration of the Camera component -->
   <instance namespace="CubeRover" name="camera" type="Camera" base_id="62508" base_id_window="20" />
+
+  <!-- Declaration of the UWB component -->
+  <instance namespace="CubeRover" name="UWB" type="UWB" base_id="62530" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS

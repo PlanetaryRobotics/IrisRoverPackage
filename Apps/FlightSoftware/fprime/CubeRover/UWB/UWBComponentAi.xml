@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
+
+<component name="UWB" kind="active" namespace="CubeRover">
+    <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
+    <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+    <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
+
+    <ports>
+        <!-- Rate Group Port -->
+        <port name="Run" data_type="Svc::Sched" kind="guarded_input" max_number="1">
+            <comment>
+            Run port
+            </comment>
+        </port>
+
+        <!-- Command Ports -->
+        <port name="CmdReg" data_type="Fw::CmdReg" kind="output" role="CmdRegistration" max_number="1">
+            <comment>
+            Command Registration Port
+            </comment>
+        </port>
+
+        <port name="CmdStatus" data_type="Fw::CmdResponse" kind="output" role="CmdResponse" max_number="1">
+            <comment>
+            Command Response Port
+            </comment>
+        </port>
+
+        <port name="CmdDisp" data_type="Fw::Cmd" kind="input" role="Cmd" max_number="1">
+            <comment>
+            Command Input Port
+            </comment>
+        </port>
+        
+        <!-- Ping ports -->
+        <port name="PingIn" data_type="Svc::Ping" kind="async_input" max_number="1">
+            <comment>
+            Input ping port "Health"
+            </comment>
+        </port>
+        
+        <port name="PingOut" data_type="Svc::Ping" kind="output" max_number="1">
+            <comment>
+            Output ping port "Health"
+            </comment>
+        </port>
+
+    </ports>
+
+    <commands>
+        <command kind="async" opcode="0x00" mnemonic="Reset_Specific">
+            <comment>
+            Command to reset the specific parts of rover
+            </comment>
+            <args>
+                <arg name="reset_value" type="U8">
+                    <comment>
+                    	U8 Value that specifies which components or hardware need to be reset
+                    </comment>
+                </arg>
+             </args>
+        </command>
+    </commands>
+
+    <events>
+        <event id="0x0" name="WatchDogMSP430IncorrectResp" severity="WARNING_HI" format_string = "Watchdog MSP430 Sent back Incorrect Response">
+            <comment>
+            Warning that the WatchDog MSP430 sent back a response different than what was sent to it
+            </comment>
+        </event>
+    </events>
+
+    <telemetry>
+        <channel id="2" name="VOLTAGE_2_5V" data_type="int16_t">
+            <comment>
+                Voltage from 2.5V line from Watchdog
+            </comment>
+        </channel>
+    </telemetry>
+</component>
+

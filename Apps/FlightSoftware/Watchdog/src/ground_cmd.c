@@ -36,7 +36,9 @@ void handle_watchdog_reset_cmd(uint8_t cmd) {
         break;
     /* 0x04: Reset Radio */
     case 0x04:
-        // TODO
+        setRadioReset();
+        // queue up an radio unreset
+        watchdog_flags |= WDFLAG_UNRESET_RADIO1;
         break;
     /* 0x05: Radio Power On */
     case 0x05:
@@ -48,7 +50,8 @@ void handle_watchdog_reset_cmd(uint8_t cmd) {
         break;
     /* 0x07: Reset Camera FPGA */
     case 0x07:
-        // TODO
+        // TODO is delay cycles really the best way to do things?
+        __delay_cycles(1000);
         break;
     /* 0x08: Camera FPGA Power On */
     case 0x08:
@@ -113,11 +116,13 @@ void handle_watchdog_reset_cmd(uint8_t cmd) {
     /* 0x17: Deploy */
     case 0x17:
         // only allow this deploy mode if we are not currently attached to the lander
+        // TODO: don't use
         if (hasDeployed) setDeploy();
         break;
     /* 0x18: Unset deploy */
     case 0x18:
-        //
+        // TODO
+        break;
     }
 }
 

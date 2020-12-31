@@ -18,8 +18,9 @@
 __volatile extern uint16_t loop_flags;
 
 #define WDFLAG_RADIO_KICK 0x1
-#define WDFLAG_FPGA_KICK 0x2
-#define WDFLAG_ADC_READY 0x4
+#define WDFLAG_ADC_READY 0x2
+#define WDFLAG_UNRESET_RADIO1 0x4
+#define WDFLAG_UNRESET_RADIO2 0x8
 
 #define DEFAULT_LPM LPM2_bits
 

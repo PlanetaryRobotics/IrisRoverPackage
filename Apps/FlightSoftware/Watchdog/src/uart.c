@@ -53,9 +53,8 @@ void __attribute__ ((interrupt(EUSCI_A0_VECTOR))) USCI_A0_ISR (void) {
         /* regular byte */
         uart0rx.buf[uart0rx.idx++] = rcv;
 
-        if (rcv == 0x11) {
-            loop_flags |= FLAG_UART0_RX_PACKET;
-        }
+        /* note that we received a byte in main loop */
+        loop_flags |= FLAG_UART0_RX_PACKET;
 
         /* clear UART_A0 receive flag */
         /* we are done here */

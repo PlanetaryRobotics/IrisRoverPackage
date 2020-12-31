@@ -21,6 +21,8 @@ inline void releaseRadioReset();
 inline void setRadioReset();
 inline void releaseFPGAReset();
 inline void setFPGAReset();
+inline void fpgaCameraSelectHi();
+inline void fpgaCameraSelectLo();
 inline void releaseMotorsReset();
 inline void setMotorsReset();
 inline void powerOnHercules();

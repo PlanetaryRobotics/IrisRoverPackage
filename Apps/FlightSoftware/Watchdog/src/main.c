@@ -74,6 +74,9 @@ int main(void) {
     // TODO: do NOT enter mission mode right away...
     enterMode(RS_MISSION);
 
+    // TODO: camera switch is for debugging only
+    fpgaCameraSelectHi();
+
     __bis_SR_register(GIE); // Enable all interrupts
 
     // the core structure of this program is like an event loop
@@ -87,19 +90,58 @@ int main(void) {
 
         /* a cool thing happened! now time to check what it was */
         if (loop_flags & FLAG_UART0_RX_PACKET) {
-            /* TODO: handle event for packet from hercules */
-            uart0_tx_nonblocking(uart0rx.idx, uart0rx.buf);
+            // temporarily disable uart0 interrupt
+            UCA0IE &= ~UCRXIE;
+            int i = 0, len = 0;
+            while (i + 4 <= uart0rx.idx) {
+                /* stroke rx'd */
+                if (uart0rx.buf[i] == 0x0 && uart0rx.buf[i + 1] == 0x0) {
+                    // no special commands
+                    // TODO: is this right? maybe want i + 3.
+                    handle_watchdog_reset_cmd(uart0rx.buf[i + 2]);
+                    // echo back watchdog command
+                    uart0_tx_nonblocking(uart0rx.idx, uart0rx.buf);
+                } else {
+                    len = (uart0rx.buf[i]) | (uart0rx.buf[i + 1] << 8);
+                    if (len + 4 > uart0rx.idx) {
+                        // need to wait for more bytes to come in
+                        break;
+                    } else {
+                        // TODO: actually parse udp instead of skipping it
+                        i += len;
+                    }
+                }
+                i += 4;
+            }
+
+            // leftovers
+            if (i < uart0rx.idx) {
+                // copy over leftovers to front of buffer
+                memcpy(uart0rx.buf, uart0rx.buf + i, uart0rx.idx - i);
+                uart0rx.idx = uart0rx.idx - i;
+            } else {
+                // no leftovers
+                uart0rx.idx = 0;
+            }
+
+            // re-enable uart0 interrupt
+            UCA0IE |= UCRXIE;
+
             /* clear event when done */
             loop_flags ^= FLAG_UART0_RX_PACKET;
         }
         if (loop_flags & FLAG_UART1_RX_PACKET) {
+            // temporarily disable uart1 interrupt
+            UCA1IE &= ~UCRXIE;
             /* copy over the bytes into a processing buffer */
             pbuf.used = uart1rx.idx;
             /* reset uart1rx */
-            /* TODO: potential race conditions here. is it possible for more bytes to come in while we copy old ones? */
             uart1rx.idx = 0;
+            /* copy over uart1rx buffer into processing buffer */
             memcpy(pbuf.buf, uart1rx.buf, pbuf.used);
             pbuf.idx = 0;
+            // re-enable uart1 interrupt
+            UCA1IE |= UCRXIE;
             /* parse the packet */
             parse_ground_cmd(pbuf);
             /* clear event when done */

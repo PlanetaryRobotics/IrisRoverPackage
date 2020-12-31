@@ -35,13 +35,13 @@ void initializeGpios(){
 
   // P3 configuration
   P3DIR &= 0x00;
-  P3OUT &= ~(BIT1 | BIT2 | BIT3 | BIT4 | BIT6 | BIT7); // Initially everything is off
-  P3DIR &= ~BIT0;  // P3.0 input battery
+  P3OUT &= ~(BIT1 | BIT2 | BIT3 | BIT4 | BIT5 | BIT6 | BIT7); // Initially everything is off
+  P3DIR &= ~BIT0;  // P3.0 input battery thermistor
   P3DIR |= BIT1; // P3.1 output Hercules POR
   P3DIR |= BIT2; // P3.2 output Hercules Reset
   P3DIR |= BIT3; // P3.3 output Radio Reset
   P3DIR |= BIT4; // P3.4 output deployment
-  P3DIR &= ~BIT5; // P3.5 input FPGA kick
+  P3DIR |= BIT5; // P3.5 output FPGA camera select
   P3DIR |= BIT6; // P3.6 output FPGA reset
   P3DIR |= BIT7; // P3.7 output 3V3 enable
 
@@ -131,6 +131,16 @@ inline void releaseFPGAReset() { P3OUT |= BIT6; }
  * @brief      Sets the fpga reset. (LO = RESET)
  */
 inline void setFPGAReset() { P3OUT &= ~BIT6; }
+
+/**
+ * @brief      Select camera 1 in FPGA
+ */
+inline void fpgaCameraSelectHi() { P3OUT |= BIT5; }
+
+/**
+ * @brief      Select camera 0 in FPGA
+ */
+inline void fpgaCameraSelectLo() { P3OUT &= ~BIT5; }
 
 /**
  * @brief      Releases the motor resets. (HI = NORMAL)

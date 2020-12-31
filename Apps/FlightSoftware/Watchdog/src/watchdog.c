@@ -38,6 +38,8 @@ int watchdog_init() {
 
 /**
  * Perform the watchdog monitoring steps here
+ *
+ * Function called every ~5s
  */
 int watchdog_monitor() {
     /* temporarily disable interrupts */
@@ -52,12 +54,16 @@ int watchdog_monitor() {
         // TODO: reset radio
     }
 
-    if (watchdog_flags & WDFLAG_FPGA_KICK) {
-        /* FPGA kick received, all ok! */
-        watchdog_flags ^= WDFLAG_FPGA_KICK;
-    } else {
-        /* MISSING FPGA kick! */
-        // TODO: reset FPGA
+    /* unreset wifi chip */
+    if (watchdog_flags & WDFLAG_UNRESET_RADIO2) {
+        releaseRadioReset();
+        watchdog_flags ^= WDFLAG_UNRESET_RADIO2;
+    }
+
+    /* unreset wifi chip */
+    if (watchdog_flags & WDFLAG_UNRESET_RADIO1) {
+        watchdog_flags |= WDFLAG_UNRESET_RADIO2;
+        watchdog_flags ^= WDFLAG_UNRESET_RADIO1;
     }
 
     /* check ADC values */
@@ -125,11 +131,6 @@ void __attribute__ ((interrupt(PORT3_VECTOR))) port3_isr_handler (void) {
 #error Compiler not supported!
 #endif
     switch(__even_in_range(P3IV, P3IV__P3IFG7)) {
-        case P3IV__P3IFG5: // P3.5: FPGA Kick
-            watchdog_flags |= WDFLAG_FPGA_KICK;
-            // exit LPM
-            __bic_SR_register(DEFAULT_LPM);
-            break;
         default: // default: ignore
             break;
     }

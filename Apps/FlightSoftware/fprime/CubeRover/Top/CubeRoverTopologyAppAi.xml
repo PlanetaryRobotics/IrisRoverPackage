@@ -115,10 +115,10 @@
      *********************************************************************************************************
      -->
   <!-- Connect output of WatchDogInterface to stroke watchdog MSP430 (port 0) --> 
-  <!--<connection name = "rgMedFreq_to_watchDogInterface_clk">
+  <connection name = "rgMedFreq_to_watchDogInterface_clk">
     <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
     <target component = "watchDogInterface" port = "Run" type = "Sched" num = "0"/>
-  </connection>-->
+  </connection>
 
 <!-- *********************************************************************************************************
         CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS

@@ -1,3 +1,3 @@
 SRC = 				\
-                    UWBInterfaceComponentAi.xml
+                    UWBComponentAi.xml
 HDR = 				\

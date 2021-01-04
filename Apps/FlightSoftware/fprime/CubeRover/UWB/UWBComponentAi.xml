@@ -13,10 +13,10 @@
         <!-- Rate Group Port -->
         <port name="Run" data_type="Svc::Sched" kind="guarded_input" max_number="1">
             <comment>
-            Run port
+            Run port (RateGroupHiFreq [1 kHz])
             </comment>
         </port>
-
+		
         <!-- Command Ports -->
         <port name="CmdReg" data_type="Fw::CmdReg" kind="output" role="CmdRegistration" max_number="1">
             <comment>
@@ -49,17 +49,24 @@
             </comment>
         </port>
 
+        <!-- Output Port 
+        <port name="GndOut" data_type="Fw::Com" kind="output" max_number="1">
+            <comment>
+            Log out (buffered) port to ground
+            </comment>
+        </port>
+		-->
     </ports>
 
     <commands>
-        <command kind="async" opcode="0x00" mnemonic="Reset_Specific">
+        <command kind="async" opcode="0x00" mnemonic="Change_Rate">
             <comment>
-            Command to reset the specific parts of rover
+            Command to change the rate the UWB takes measurements
             </comment>
             <args>
-                <arg name="reset_value" type="U8">
+                <arg name="cycles" type="U8">
                     <comment>
-                    	U8 Value that specifies which components or hardware need to be reset
+                    	U8 Value that represents how many cycles the UWB module waits to execute
                     </comment>
                 </arg>
              </args>
@@ -67,17 +74,56 @@
     </commands>
 
     <events>
-        <event id="0x0" name="WatchDogMSP430IncorrectResp" severity="WARNING_HI" format_string = "Watchdog MSP430 Sent back Incorrect Response">
+        <event id="0x0" name="FirstResponseTimeout" severity="WARNING_LO" format_string = "UWB First Response Timed Out, Error Code: %d">
             <comment>
-            Warning that the WatchDog MSP430 sent back a response different than what was sent to it
+            Warning that the UWB Module first response timed out
             </comment>
+            <args>
+                <arg name="error_code" type="U32">
+                    <comment>
+                    	U32 value that represents the Error Code for UWB Module
+                    </comment>
+                </arg>
+             </args>
+        </event>
+        <event id="0x1" name="SecondResponseTimeout" severity="WARNING_LO" format_string = "UWB Second Response Timed Out, Error Code: %d">
+            <comment>
+            Warning that the UWB Module second response timed out
+            </comment>
+            <args>
+                <arg name="error_code" type="U32">
+                    <comment>
+                    	U32 value that represents the Error Code for UWB Module
+                    </comment>
+                </arg>
+             </args>
         </event>
     </events>
 
     <telemetry>
-        <channel id="2" name="VOLTAGE_2_5V" data_type="int16_t">
+        <channel id="1" name="TimeStamp1" data_type="U32">
             <comment>
-                Voltage from 2.5V line from Watchdog
+                Timestamp 1 Array from UWB
+            </comment>
+        </channel>
+        <channel id="2" name="TimeStamp2" data_type="U32">
+            <comment>
+                Timestamp 2 Array from UWB
+            </comment>
+        </channel>
+        <channel id="3" name="TimeStamp3" data_type="U32">
+            <comment>
+                Timestamp 3 Array from UWB
+            </comment>
+        </channel>
+        <channel id="4" name="TimeStamp4" data_type="U32">
+            <comment>
+                Timestamp 4 Array from UWB
+            </comment>
+        </channel>
+        <channel id="5" name="UWBPower" data_type="U32">
+            <comment>
+               	U32 representing the power from the UWB
             </comment>
         </channel>
     </telemetry>

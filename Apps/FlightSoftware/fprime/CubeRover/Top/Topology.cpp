@@ -195,6 +195,10 @@ void constructApp(void){
   //health.init(25,                   /*Queue Depth*/
   //            0);                   /*Instance Number*/
 
+  // Initialize the UWB component
+  UWB.init(10,          /*Queue Depth*/
+            0);         /*Instance Number*/
+
   // Initialize the telemetry channel component (active)
   tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
 

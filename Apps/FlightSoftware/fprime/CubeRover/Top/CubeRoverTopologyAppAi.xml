@@ -155,6 +155,11 @@
     <target component="IMU" port="schedIn" type="sched" num="0"/>
   </connection>
 
+  <connection name="rgHiFreq_to_UWB">
+    <source component="rateGroupHiFreq" port="RateGroupMemberOut" type="Sched" num="0" />
+    <target component="UWB" port="Run" type="sched" num="0"/>
+  </connection>
+
 <!-- *********************************************************************************************************
         CONNECTION OF TIME PORTS BETWEEN CUBEROVER TIME ALL TIME-STAMPED COMPONENTS
      ********************************************************************************************************* 
@@ -315,8 +320,6 @@
     <source component="camera" port="downlinkImage" type="CubeRover::FileDownlink" num="0" />
     <target component="groundInterface" port="appDownlink" type="CubeRover::FileDownlink" num="0" />
   </connection>
-  
-  <!-- TODO: Connect UWB to goundInterface HERE -->
       
   <connection name="chanTlm_to_groundInterface">
     <source component="tlmChan" port="PktSend" type="Com" num="0" />

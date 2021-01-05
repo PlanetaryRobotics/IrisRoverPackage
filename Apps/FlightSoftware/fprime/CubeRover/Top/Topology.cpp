@@ -227,7 +227,7 @@ void constructApp(void){
   //watchDogInterface.regCommands();
   
   // Register Camera Commands
-  camera.regCommands();
+  //camera.regCommands();
 
   rateGroupLowFreq.start(0, /* identifier */
                        RG_LOW_FREQ_AFF, /* Thread affinity */

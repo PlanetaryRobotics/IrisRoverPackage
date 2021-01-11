@@ -80,7 +80,15 @@ namespace CubeRover {
     	this->log_WARNING_HI_WatchDogTimedOut();
     	return;
     }
+
+    // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+    if(!Send_Frame(header))
+      return;
+
     sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
+
+    if(!Send_Frame(footer))
+      return;
 
     // Check for Response from MSP430 Watchdog
     U32 watchdog_reponse;
@@ -229,6 +237,11 @@ namespace CubeRover {
     	this->log_WARNING_HI_WatchDogTimedOut();
     	return;
     }
+
+    // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+    if(!Send_Frame(header))
+      return;
+
     sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
 
     // Check for Response from MSP430 Watchdog
@@ -265,13 +278,16 @@ namespace CubeRover {
         else if(watchdog_reponse == watchdog_stroke)
         {
             tries = 10;
-		    while(--tries && !sciIsTxReady(scilinREG));
-		    if(tries == 0)
-		    {
-		    	this->log_WARNING_HI_WatchDogTimedOut();
-		    	return;
-		    }
-		    sciSend(scilinREG, payloadSize, reinterpret_cast<unsigned char*>(fwBuffer.getdata()));
+    		    while(--tries && !sciIsTxReady(scilinREG));
+    		    if(tries == 0)
+    		    {
+    		    	this->log_WARNING_HI_WatchDogTimedOut();
+    		    	return;
+    		    }
+    		    sciSend(scilinREG, payloadSize, reinterpret_cast<unsigned char*>(fwBuffer.getdata()));
+
+            if(!Send_Frame(footer))
+              return;
         }
     }
     // check for timeout
@@ -350,7 +366,15 @@ namespace CubeRover {
 	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
 	    	return;
 	    }
+
+      // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+      if(!Send_Frame(header))
+        return;
+
 	    sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
+
+      if(!Send_Frame(footer))
+      return;
 
 	    // Check for Response from MSP430 Watchdog
 	    U32 watchdog_reponse;
@@ -500,7 +524,7 @@ namespace CubeRover {
 	  	this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
 	  	//this->tlmWrite_LAST_COMMAND(command_type_tlm);
 
-      	U32 watchdog_stroke = 0x00EE0000;
+      U32 watchdog_stroke = 0x00EE0000;
 	    // Send stroke once Tx ready
 
 	    int tries = 10;
@@ -511,7 +535,15 @@ namespace CubeRover {
 	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
 	    	return;
 	    }
+
+      // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+      if(!Send_Frame(header))
+        return;
+
 	    sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
+
+      if(!Send_Frame(footer))
+      return;
 
 	    // Check for Response from MSP430 Watchdog
 	    U32 watchdog_reponse;
@@ -648,7 +680,7 @@ namespace CubeRover {
   }
 
 
-  void WatchDogInterfaceComponentImpl ::
+  bool WatchDogInterfaceComponentImpl ::
     Reset_Specific_initHandler(
         U8 reset_value
     )
@@ -670,22 +702,31 @@ namespace CubeRover {
     {
       // Reset Components in software
       // TODO
+      return true;
     }
     // If reset_value less than or equal to 0x1B, we are resetting hardware
     else
     {
-        // Copy reset value and shift it left by 4 bytes to get 0x0000 as our first byte and reset_value as our second byte
-        U32 watchdog_stroke = (static_cast<U32>(reset_value) << 16);
+      // Copy reset value and shift it left by 4 bytes to get 0x0000 as our first byte and reset_value as our second byte
+      U32 watchdog_stroke = (static_cast<U32>(reset_value) << 16);
+      
       // Send stroke once Tx ready
-
       int tries = 10;
       while(--tries && !sciIsTxReady(scilinREG));
       if(tries == 0)
       {
         this->log_WARNING_HI_WatchDogTimedOut();
-        return;
+        return false;
       }
+
+      // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+      if(!Send_Frame(header))
+        return false;
+      
       sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
+
+      if(!Send_Frame(footer))
+      return;
 
       // Check for Response from MSP430 Watchdog
       U32 watchdog_reponse;
@@ -696,7 +737,7 @@ namespace CubeRover {
       if(tries == 0)
       {
         this->log_WARNING_HI_WatchDogTimedOut();
-        return;
+        return false;
       }
       size_read = sciReceiveWithTimeout(scilinREG,
                                    sizeof(watchdog_reponse),
@@ -711,7 +752,7 @@ namespace CubeRover {
           if(size_read < 4)
           {
               this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-              return;
+              return false;
           }
           // Check that response is the same as what was sent
           else if(watchdog_reponse != watchdog_stroke)
@@ -727,10 +768,10 @@ namespace CubeRover {
                   tries = 10;
                   while(--tries && !sciIsRxReady(scilinREG));
                   if(tries == 0)
-            {
-              this->log_WARNING_HI_WatchDogTimedOut();
-              return;
-            }
+                  {
+                    this->log_WARNING_HI_WatchDogTimedOut();
+                    return false;
+                  }
                   stat = sciReceiveWithTimeout(scilinREG,
                                                UDP_size,
                                                reinterpret_cast<unsigned char*>(buff.getdata()),
@@ -745,15 +786,20 @@ namespace CubeRover {
                   if (stat == 0)
                   {
                       this->log_WARNING_HI_WatchDogTimedOut();
+                      return false;
                   }
                   // Return other Error
                   else
                   {
                      this->log_WARNING_HI_WatchDogCommError(comm_error);
+                     return false;
                   }
               }
               else
+              {
                   this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
+                  return false;
+              }
           }
           else if(watchdog_reponse == watchdog_stroke)
           {
@@ -764,10 +810,10 @@ namespace CubeRover {
               tries = 10;
               while(--tries && !sciIsRxReady(scilinREG));
               if(tries == 0)
-        {
-            this->log_WARNING_HI_WatchDogTimedOut();
-            return;
-        }
+              {
+                  this->log_WARNING_HI_WatchDogTimedOut();
+                  return false;
+              }
               stat = sciReceiveWithTimeout(scilinREG,
                                            10,  //10 bytes is how big total telemetry should be
                                            (uint8_t *)&buff,
@@ -796,11 +842,13 @@ namespace CubeRover {
                if (stat == 0)
                {
                    this->log_WARNING_HI_WatchDogTimedOut();
+                   return false;
                }
                // Return other Error
                else
                {
                   this->log_WARNING_HI_WatchDogCommError(comm_error);
+                  return false;
                }
           }
       }
@@ -808,12 +856,79 @@ namespace CubeRover {
       if (size_read == 0)
       {
           this->log_WARNING_HI_WatchDogTimedOut();
+          return false;
       }
       // quit if other error or data
       else
       {
           this->log_WARNING_HI_WatchDogCommError(comm_error);
+          return false;
       }
+      return true;
     }
+  }
+
+  bool WatchDogInterfaceComponentImpl :: Send_Frame(frame_type frame_input)
+  {
+      //Create Value for frame
+      U32 frame;
+      if(frame_input == header)
+        frame = 0x2A465F8B;
+      else
+        frame = 0xB8F564A2;
+
+      int tries = 10;
+      while(--tries && !sciIsTxReady(scilinREG));
+      if(tries == 0)
+      {
+        this->log_WARNING_HI_WatchDogTimedOut();
+        return false;
+      }
+      sciSend(scilinREG, sizeof(frame), (uint8_t *)&frame);
+
+      // Check for Response from MSP430 Watchdog
+      U32 frame_reponse;
+      //Blocking until timeout or data available
+      int32_t size_read = 0;
+      tries = 10;
+      while(--tries && !sciIsRxReady(scilinREG));
+      if(tries == 0)
+      {
+        this->log_WARNING_HI_WatchDogTimedOut();
+        return false;
+      }
+      size_read = sciReceiveWithTimeout(scilinREG,
+                                   sizeof(frame_reponse),
+                                   (uint8_t *)&frame_reponse,
+                                   0x00002710); /*10 second timeout*/
+
+      U32 comm_error = sciRxError(scilinREG);
+
+      // Good read:
+      if (size_read > 0)
+      {
+        if(frame != frame_reponse)
+        {
+          this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
+          return false;
+        }
+        else
+          return true;
+      }
+      // check for timeout
+      if (size_read == 0)
+      {
+          this->log_WARNING_HI_WatchDogTimedOut();
+          return false;
+      }
+      // quit if other error or data
+      else
+      {
+          this->log_WARNING_HI_WatchDogCommError(comm_error);
+          return false;
+      }
+
+      // Return false by default, should never get to this point
+      return false;
   }
 } // end namespace CubeRover

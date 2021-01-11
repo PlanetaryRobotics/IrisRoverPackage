@@ -125,10 +125,10 @@
      *********************************************************************************************************
      -->
   <!-- Connect output of health to ping all components (port 0) --> 
-  <!--<connection name = "rgHighFreq_to_health_clk">
+  <connection name = "rgHighFreq_to_health_clk">
     <source component = "rateGroupHighFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
     <target component = "health" port = "Run" type = "Sched" num = "0"/>
-  </connection>-->
+  </connection>
 
   <connection name="rgMedFreq_to_networkManager">
     <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
@@ -209,6 +209,11 @@
   <!-- Connection of time between cubeRoverTime and active logger component -->
   <connection name = "activeLogger_to_cubeRoverTime">
     <source component = "activeLogger" port = "Time" type = "Time" num = "0" />
+    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
+  </connection>
+
+  <connection name = "health_to_cubeRoverTime">
+    <source component = "health" port = "Time" type = "Time" num = "0" />
     <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
   </connection>
 
@@ -384,6 +389,11 @@
     <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
   </connection>
 
+  <connection name = "watchDogInterface_to_aLogger">
+    <source component = "watchDogInterface" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+
 
   <!-- *********************************************************************************************************
         CONNECTION OF COMMAND REGISTRATION PORTS
@@ -450,5 +460,104 @@
     <source component = "camera" port = "CmdStatus" type = "CmdResponse" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
   </connection>
+
+  <!-- *********************************************************************************************************
+        CONNECTION OF Health PORTS
+       ********************************************************************************************************* 
+      -->
   
+  <connection name = "rateGroupLowFreqPingIn">
+    <source component = "health" port = "PingSend" type = "Ping" num = "0" />
+    <target component = "rateGroupLowFreq" port = "PingIn" type = "Ping" num = "0" />
+  </connection>
+  <connection name = "rateGroupLowFreqPingOut">
+    <source component = "rateGroupLowFreq" port = "PingOut" type = "Ping" num = "0" />
+    <target component = "health" port = "PingReturn" type = "Ping" num = "0" />
+  </connection>
+
+  <connection name = "rateGroupMedFreqPingIn">
+    <source component = "health" port = "PingSend" type = "Ping" num = "1" />
+    <target component = "rateGroupMedFreq" port = "PingIn" type = "Ping" num = "0" />
+  </connection>
+  <connection name = "rateGroupMedFreqPingOut">
+    <source component = "rateGroupMedFreq" port = "PingOut" type = "Ping" num = "0" />
+    <target component = "health" port = "PingReturn" type = "Ping" num = "1" />
+  </connection>
+
+  <connection name = "rateGroupHiFreqPingIn">
+    <source component = "health" port = "PingSend" type = "Ping" num = "2" />
+    <target component = "rateGroupHiFreq" port = "PingIn" type = "Ping" num = "0" />
+  </connection>
+  <connection name = "rateGroupHiFreqPingOut">
+    <source component = "rateGroupHiFreq" port = "PingOut" type = "Ping" num = "0" />
+    <target component = "health" port = "PingReturn" type = "Ping" num = "2" />
+  </connection>
+
+  <connection name = "activeLoggerPingIn">
+    <source component = "health" port = "PingSend" type = "Ping" num = "3" />
+    <target component = "activeLogger" port = "pingIn" type = "Ping" num = "0" />
+  </connection>
+  <connection name = "activeLoggerPingOut">
+    <source component = "activeLogger" port = "pingOut" type = "Ping" num = "0" />
+    <target component = "health" port = "PingReturn" type = "Ping" num = "3" />
+  </connection>
+
+  <connection name = "navigationPingIn">
+    <source component = "health" port = "PingSend" type = "Ping" num = "4" />
+    <target component = "navigation" port = "PingIn" type = "Ping" num = "0" />
+  </connection>
+  <connection name = "navigationPingOut">
+    <source component = "navigation" port = "PingOut" type = "Ping" num = "0" />
+    <target component = "health" port = "PingReturn" type = "Ping" num = "4" />
+  </connection>
+
+  <connection name = "watchDogInterfacePingIn">
+    <source component = "health" port = "PingSend" type = "Ping" num = "5" />
+    <target component = "watchDogInterface" port = "PingIn" type = "Ping" num = "0" />
+  </connection>
+  <connection name = "watchDogInterfacePingOut">
+    <source component = "watchDogInterface" port = "PingOut" type = "Ping" num = "0" />
+    <target component = "health" port = "PingReturn" type = "Ping" num = "5" />
+  </connection>
+
+  <connection name = "blockDriverPingIn">
+    <source component = "health" port = "PingSend" type = "Ping" num = "6" />
+    <target component = "blockDriver" port = "PingIn" type = "Ping" num = "0" />
+  </connection>
+  <connection name = "blockDriverPingOut">
+    <source component = "blockDriver" port = "PingOut" type = "Ping" num = "0" />
+    <target component = "health" port = "PingReturn" type = "Ping" num = "6" />
+  </connection>
+
+  <!--	NO HEALH PORTS IN .xml FILE
+  <connection name = "tlmChanPingIn">
+    <source component = "health" port = "PingSend" type = "Ping" num = "7" />
+    <target component = "tlmChan" port = "PingIn" type = "Ping" num = "0" />
+  </connection>
+  <connection name = "tlmChanPingOut">
+    <source component = "tlmChan" port = "PingOut" type = "Ping" num = "0" />
+    <target component = "health" port = "PingReturn" type = "Ping" num = "7" />
+  </connection>
+  -->
+  <!--	NO HEALH PORTS IN .xml FILE
+  <connection name = "cmdDispatcherPingIn">
+    <source component = "health" port = "PingSend" type = "Ping" num = "8" />
+    <target component = "cmdDispatcher" port = "PingIn" type = "Ping" num = "0" />
+  </connection>
+  <connection name = "cmdDispatcherPingOut">
+    <source component = "cmdDispatcher" port = "PingOut" type = "Ping" num = "0" />
+    <target component = "health" port = "PingReturn" type = "Ping" num = "8" />
+  </connection>
+  -->
+  <!--	Component doesn't exist yet
+  <connection name = "comLoggerPingIn">
+    <source component = "health" port = "PingSend" type = "Ping" num = "9" />
+    <target component = "comLogger" port = "PingIn" type = "Ping" num = "0" />
+  </connection>
+  <connection name = "comLoggerPingOut">
+    <source component = "comLogger" port = "PingOut" type = "Ping" num = "0" />
+    <target component = "health" port = "PingReturn" type = "Ping" num = "9" />
+  </connection>
+  -->
+
 </assembly>

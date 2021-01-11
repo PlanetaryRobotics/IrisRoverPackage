@@ -11,6 +11,7 @@
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
     <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
     <import_port_type>CubeRover/CubeRoverPorts/MotorData/MotorDataPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/MotorCommand/MotorCommandPortAi.xml</import_port_type>
     <import_port_type>CubeRover/CubeRoverPorts/IMUData/IMUDataPortAi.xml</import_port_type>
 
     <!-- PORTS -->
@@ -37,12 +38,12 @@
         <!-- Scheduler port -->
         <port name="schedIn" data_type="Svc::Sched" kind="async_input" max_number="1"></port>
 
-        <port name="schedOut" data_type="Svc::Sched" kind="output" max_number="1"></port>
-
         <!-- Custom data ports-->
         <port name="motorDataIn" data_type="CubeRoverPorts::MotorData" kind="async_input" max_number="1"></port>
 
         <port name="IMUDataIn" data_type="CubeRoverPorts::IMUData" kind="async_input" max_number="1"></port>
+
+        <port name="motorCommandOut" data_type="CubeRoverPorts::MotorCommand" kind="output" max_number="1"></port>
 
         <!-- TODO -->
         <!-- Still need Mode manager port(s)! -->
@@ -50,21 +51,60 @@
     </ports>
 
     <commands>
-        <command kind="guarded" opcode="0x00" mnemonic="Nav_DriveCommand">
-          <comment> Movement command </comment>
+        <command kind="guarded" opcode="0x00" mnemonic="Nav_DriveForward">
+          <comment> Forward movement command </comment>
           <args>
-            <arg name="Command" type="ENUM" >
-              <enum name="NAV_COMMANDLIST" >
-                <item name="Forward" />
-                <item name="Backward" />
-                <item name="Right" />
-                <item name="Left" />
-                <item name="Stop" />
-              </enum>
+            <arg name="Distance" type="U8">
+                <comment>0x00 - 0x5A meaning 0-30 cm</comment>
             </arg>
-            <arg name="Distance" type="U8" />
-            <arg name="Speed" type="U8" />
+            <arg name="Speed" type="U8">
+                <comment>0x00 - 0x0A meaning 0-10 cm/s</comment>
+            </arg>
+            <arg name="Callback_ID" type="U16" />
           </args>
+        </command>
+
+        <command kind="guarded" opcode="0x01" mnemonic="Nav_DriveBackwards">
+          <comment> Backward movement command </comment>
+          <args>
+            <arg name="Distance" type="U8">
+                <comment>0x00 - 0x5A meaning 0-30 cm</comment>
+            </arg>
+            <arg name="Speed" type="U8">
+                <comment>0x00 - 0x0A meaning 0-10 cm/s</comment>
+            </arg>
+            <arg name="Callback_ID" type="U16" />
+          </args>
+        </command>
+
+        <command kind="guarded" opcode="0x02" mnemonic="Nav_RotateRight">
+          <comment> Clockwise rotation command </comment>
+          <args>
+            <arg name="Distance" type="U8">
+                <comment>0x00 - 0x5A meaning 0-90 deg</comment>
+            </arg>
+            <arg name="Speed" type="U8">
+                <comment>0x00 - 0x0A meaning 0-10 deg/s</comment>
+            </arg>
+            <arg name="Callback_ID" type="U16" />
+          </args>
+        </command>
+
+        <command kind="guarded" opcode="0x03" mnemonic="Nav_RotateLeft">
+          <comment> Counter-clockwise rotation command </comment>
+          <args>
+            <arg name="Distance" type="U8">
+                <comment>0x00 - 0x5A meaning 0-90 deg</comment>
+            </arg>
+            <arg name="Speed" type="U8">
+                <comment>0x00 - 0x0A meaning 0-10 deg/s</comment>
+            </arg>
+            <arg name="Callback_ID" type="U16" />
+          </args>
+        </command>
+
+        <command kind="guarded" opcode="0x04" mnemonic="Nav_StopMovement">
+          <comment> Stops all movement </comment>
         </command>
     </commands>
 
@@ -93,23 +133,23 @@
 
     <!-- TELEMETRY -->
     <telemetry>
-        <channel id="0" name="Nav_Moved_Forward" data_type="U16">
+        <channel id="0" name="Nav_Moved_Forward" data_type="U16" update = "on_change">
             <comment> The distance moved forward in cm </comment>
         </channel>
 
-        <channel id="1" name="Nav_Moved_Backward" data_type="U16">
+        <channel id="1" name="Nav_Moved_Backward" data_type="U16" update = "on_change">
             <comment> The distance moved backward in cm </comment>
         </channel>
 
-        <channel id="2" name="Nav_Turned_Left" data_type="U16">
+        <channel id="2" name="Nav_Turned_Left" data_type="U16" update = "on_change">
             <comment> The angle turned to the left (counter clockwise) in degrees </comment>
         </channel>
 
-        <channel id="3" name="Nav_Turned_Right" data_type="U16">
+        <channel id="3" name="Nav_Turned_Right" data_type="U16" update = "on_change">
             <comment> The angle turned to the right (clockwise) in degrees </comment>
         </channel>
 
-        <channel id="4" name="Nav_Image_Size" data_type="U16">
+        <channel id="4" name="Nav_Image_Size" data_type="U16" update = "on_change">
             <comment> Image size </comment>
         </channel>
     </telemetry>

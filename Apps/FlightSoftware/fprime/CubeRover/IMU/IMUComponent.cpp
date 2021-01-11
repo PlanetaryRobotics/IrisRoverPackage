@@ -103,20 +103,19 @@ namespace CubeRover {
     float gyroZ = 0.0f;
     float roll = 0.0f;
     float pitch = 0.0f;
-/*
+
     if((readAccelerations(&accX, &accY, &accZ)) != IMU_NO_ERROR)
     {
-        // @todo       see how to pass argument to log events
-        log_WARNING_HI_Imu_CommunicationFailure();
+        log_WARNING_HI_IMU_CommunicationFailure();
         return;
     }
 
     if((readAngularRates(&gyroX, &gyroY, &gyroZ)) != IMU_NO_ERROR)
     {
-        log_WARNING_HI_Imu_CommunicationFailure();
+        log_WARNING_HI_IMU_CommunicationFailure();
         return;
     }
-*/
+
     tlmWrite_X_Acc(accX);
     tlmWrite_Y_Acc(accY);
     tlmWrite_Z_Acc(accZ);
@@ -128,7 +127,7 @@ namespace CubeRover {
 
     if(fabs(pitch) > MAX_ROVER_PITCH_ANGLE || fabs(roll) > MAX_ROVER_ROLL_ANGLE)
     {
-      log_WARNING_HI_Imu_AngleWarning();
+      log_WARNING_HI_IMU_AngleWarning();
     }
   }
 

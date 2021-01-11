@@ -202,7 +202,8 @@ CubeRoverPorts_MODULES := \
 	CubeRover/CubeRoverPorts/CameraTakePicture \
 	CubeRover/CubeRoverPorts/FileDownlink \
 	CubeRover/CubeRoverPorts/IMUData \
-	CubeRover/CubeRoverPorts/MotorData
+	CubeRover/CubeRoverPorts/MotorData \
+	CubeRover/CubeRoverPorts/MotorCommand
 	
 CubeRover_MODULES := \
 	CubeRover/Top \

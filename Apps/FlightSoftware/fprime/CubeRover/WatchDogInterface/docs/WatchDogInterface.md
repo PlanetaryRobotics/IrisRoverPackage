@@ -22,8 +22,12 @@
 |VOLTAGE_28V|5 (0x5)|int16_t|Voltage from 28V line from Watchdog|
 |BATTERY_THERMISTOR|16 (0x10)|U8|Boolean for Battery Charging or not from Watchdog|
 |SYSTEM_STATUS|23 (0x17)|int8_t|Boolean for Heater On/Off from Watchdog|
-|THERM_1|24 (0x18)|U8|12 bit Value for Thermistor value|
-|THERM_2|25 (0x19)|U8|12 bit Value for Thermistor value|
+|THERM_0|24 (0x18)|U8|12 bit Value for Thermistor value|
+|THERM_1|25 (0x19)|U8|12 bit Value for Thermistor value|
+|THERM_2|26 (0x1a)|U8|12 bit Value for Thermistor value|
+|THERM_3|27 (0x1b)|U8|12 bit Value for Thermistor value|
+|THERM_4|28 (0x1c)|U8|12 bit Value for Thermistor value|
+|THERM_5|29 (0x1d)|U8|12 bit Value for Thermistor value|
 
 ## Event List
 

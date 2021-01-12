@@ -16,6 +16,7 @@
 #include "CubeRover/WatchDogInterface/WatchDogInterfaceComponentAc.hpp"
 
 #include "lin.h"
+#include "adc.h"
 
 namespace CubeRover {
 
@@ -126,6 +127,9 @@ namespace CubeRover {
       bool Send_Frame(
           frame_type frame_input  // Type of frame we want to send
           );
+
+      //! Implementation for checking the tempurature senors from the ADC
+      bool Read_Temp();
 
     };
 

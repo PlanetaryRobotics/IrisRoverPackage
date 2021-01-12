@@ -52,11 +52,6 @@ namespace CubeRover {
       //!
       ~WatchDogInterfaceComponentImpl(void);
 
-      typedef enum{
-        header,
-        footer
-      } frame_type;
-
     PRIVATE:
 
       // ----------------------------------------------------------------------
@@ -125,7 +120,7 @@ namespace CubeRover {
       //! Implementation for sending frame and checking that frame was sent to watchdog
       //! Sends a Frame start everytime data is sent from cuberover to watchdog
       bool Send_Frame(
-          frame_type frame_input  // Type of frame we want to send
+          U32 stroke  // Type of frame we want to send
           );
 
       //! Implementation for checking the tempurature senors from the ADC

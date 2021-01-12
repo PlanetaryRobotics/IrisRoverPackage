@@ -76,6 +76,11 @@ namespace CubeRover {
 
     // Sends U32 to the watchdog as defined in design document. Checks stroke value as to what to send watchdog
     U32 watchdog_stroke = 0x00000000;
+
+    // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+    if(!Send_Frame(watchdog_stroke))
+      return;
+
     // Send stroke once Tx ready
     int tries = 10;
     while(--tries && !sciIsTxReady(scilinREG));
@@ -84,15 +89,7 @@ namespace CubeRover {
     	this->log_WARNING_HI_WatchDogTimedOut();
     	return;
     }
-
-    // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-    if(!Send_Frame(header))
-      return;
-
     sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
-
-    if(!Send_Frame(footer))
-      return;
 
     // Check for Response from MSP430 Watchdog
     U32 watchdog_reponse;
@@ -232,8 +229,12 @@ namespace CubeRover {
     uint16_t payloadSize = fwBuffer.getsize(); 
     // Send header of reset 0x0000 and UDP data size
     U32 watchdog_stroke = 0x0000FFFF & payloadSize;
-    // Send stroke once Tx ready
 
+    // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+    if(!Send_Frame(watchdog_stroke))
+      return;
+
+    // Send stroke once Tx ready
     int tries = 10;
     while(--tries && !sciIsTxReady(scilinREG));
     if(tries == 0)
@@ -241,11 +242,6 @@ namespace CubeRover {
     	this->log_WARNING_HI_WatchDogTimedOut();
     	return;
     }
-
-    // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-    if(!Send_Frame(header))
-      return;
-
     sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
 
     // Check for Response from MSP430 Watchdog
@@ -289,9 +285,6 @@ namespace CubeRover {
     		    	return;
     		    }
     		    sciSend(scilinREG, payloadSize, reinterpret_cast<unsigned char*>(fwBuffer.getdata()));
-
-            if(!Send_Frame(footer))
-              return;
         }
     }
     // check for timeout
@@ -360,8 +353,12 @@ namespace CubeRover {
     {
       	// Copy reset value and shift it left by 4 bytes to get 0x0000 as our first byte and reset_value as our second byte
       	U32 watchdog_stroke = (static_cast<U32>(reset_value) << 16);
-	    // Send stroke once Tx ready
 
+      	// Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+      	if(!Send_Frame(watchdog_stroke))
+        	return;
+	    
+	    // Send stroke once Tx ready
 	    int tries = 10;
 	    while(--tries && !sciIsTxReady(scilinREG));
 	    if(tries == 0)
@@ -370,15 +367,7 @@ namespace CubeRover {
 	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
 	    	return;
 	    }
-
-      // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-      if(!Send_Frame(header))
-        return;
-
 	    sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
-
-      if(!Send_Frame(footer))
-      return;
 
 	    // Check for Response from MSP430 Watchdog
 	    U32 watchdog_reponse;
@@ -528,9 +517,13 @@ namespace CubeRover {
 	  	this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
 	  	//this->tlmWrite_LAST_COMMAND(command_type_tlm);
 
-      U32 watchdog_stroke = 0x00EE0000;
-	    // Send stroke once Tx ready
+      	U32 watchdog_stroke = 0x00EE0000;
 
+      	// Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+	    if(!Send_Frame(watchdog_stroke))
+	      return;
+	    
+	    // Send stroke once Tx ready
 	    int tries = 10;
 	    while(--tries && !sciIsTxReady(scilinREG));
 	    if(tries == 0)
@@ -539,15 +532,7 @@ namespace CubeRover {
 	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
 	    	return;
 	    }
-
-      // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-      if(!Send_Frame(header))
-        return;
-
 	    sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
-
-      if(!Send_Frame(footer))
-      return;
 
 	    // Check for Response from MSP430 Watchdog
 	    U32 watchdog_reponse;
@@ -714,6 +699,10 @@ namespace CubeRover {
       // Copy reset value and shift it left by 4 bytes to get 0x0000 as our first byte and reset_value as our second byte
       U32 watchdog_stroke = (static_cast<U32>(reset_value) << 16);
       
+      // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+      if(!Send_Frame(watchdog_stroke))
+        return false;
+
       // Send stroke once Tx ready
       int tries = 10;
       while(--tries && !sciIsTxReady(scilinREG));
@@ -722,15 +711,7 @@ namespace CubeRover {
         this->log_WARNING_HI_WatchDogTimedOut();
         return false;
       }
-
-      // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-      if(!Send_Frame(header))
-        return false;
-      
       sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
-
-      if(!Send_Frame(footer))
-      return;
 
       // Check for Response from MSP430 Watchdog
       U32 watchdog_reponse;
@@ -872,14 +853,24 @@ namespace CubeRover {
     }
   }
 
-  bool WatchDogInterfaceComponentImpl :: Send_Frame(frame_type frame_input)
+  bool WatchDogInterfaceComponentImpl :: Send_Frame(U32 stroke)
   {
-      //Create Value for frame
-      U32 frame;
-      if(frame_input == header)
-        frame = 0x2A465F8B;
-      else
-        frame = 0xB8F564A2;
+      // Create Value for frame
+      U32 frame = 0x0021B00B;
+
+      // Calculate Parity for Message by summing each byte then Inversing it
+      U32 parity = 0;
+      parity = !((frame&0x000000FF) + 
+      		  ((frame&0x0000FF00) >> 8) + 
+      		  ((frame&0x00FF0000) >> 16) +
+      		  ((frame&0xFF000000) >> 24) + 
+      		  (stroke&0x000000FF) +
+      		  ((stroke&0x0000FF00) >> 8) +
+      		  ((stroke&0x00FF0000) >> 16) +
+      		  ((stroke&0xFF000000) >> 24))
+
+      // Add Parity to frame
+      frame = (parity << 24) | frame;
 
       int tries = 10;
       while(--tries && !sciIsTxReady(scilinREG));
@@ -911,7 +902,7 @@ namespace CubeRover {
       // Good read:
       if (size_read > 0)
       {
-        if(frame != frame_reponse)
+        if((frame_reponse & 0x00FFFFFF) != 0x0021B00B)
         {
           this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
           return false;

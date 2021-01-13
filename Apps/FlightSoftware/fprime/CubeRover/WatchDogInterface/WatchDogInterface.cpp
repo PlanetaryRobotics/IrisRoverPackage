@@ -867,7 +867,7 @@ namespace CubeRover {
       		  (stroke&0x000000FF) +
       		  ((stroke&0x0000FF00) >> 8) +
       		  ((stroke&0x00FF0000) >> 16) +
-      		  ((stroke&0xFF000000) >> 24))
+      		  ((stroke&0xFF000000) >> 24));
 
       // Add Parity to frame
       frame = (parity << 24) | frame;
@@ -950,7 +950,8 @@ namespace CubeRover {
 
       // Create char array of size 24 for all possible Thermistor Values. Size is 24 as 12-bit conversion, 12 bits -> 1.5 bytes, 16 thermistors * 1.5 bytes = 24 bytes. Char is 1 byte
       char data[24];
-      adcData_t* data_ptr = &data;
+      adcData_t* data_ptr;
+      data_ptr = (adcData_t*)&data;
 
       // adcGetData returns how many conversions happened, saves data into data_ptr
       U32 num_conversions = adcGetData(adcREG1, adcGROUP1, data_ptr);

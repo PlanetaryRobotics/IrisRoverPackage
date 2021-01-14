@@ -188,8 +188,8 @@ void constructApp(void){
   // Initialize the active logger component (active)
   // TODO: This hasn't been started yet
   activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
-  
-  comLogger.init(100,0);
+
+  comLogger.init(0);
 
   // Initialize the watchdog interface component (queued)
   watchDogInterface.init(10,          /*Queue Depth*/

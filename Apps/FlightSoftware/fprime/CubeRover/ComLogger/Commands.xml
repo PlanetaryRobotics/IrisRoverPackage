@@ -11,15 +11,15 @@
 
 <commands opcode_base="0x00">
 
-  <command kind="async" opcode="0x00" mnemonic="CloseFile">
+  <command kind="sync" opcode="0x00" mnemonic="CloseFile">
     <comment>Forces a close of the currently opened file.</comment>
   </command>
 
-  <command kind="async" opcode="0x01" mnemonic="SendAllLogs">
+  <command kind="sync" opcode="0x01" mnemonic="SendAllLogs">
     <comment>Sends all logs from flash to Ground</comment>
   </command>
 
-  <command kind="async" opcode="0x02" mnemonic="SendSetofLogs">
+  <command kind="sync" opcode="0x02" mnemonic="SendSetofLogs">
     <comment>Sends a set of logs from flash to Ground</comment>
     <args>
     	<arg name="start" type="U32">

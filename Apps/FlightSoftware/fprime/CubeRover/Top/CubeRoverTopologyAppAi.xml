@@ -69,7 +69,7 @@
   <instance namespace="CubeRover" name="camera" type="Camera" base_id="4352" base_id_window="255" />
 
 <!-- Declaration of the Com Logger component -->
-<instance namespace="CubeRover" name="comLogger" type="ComLogger" base_id="62541" base_id_window="20" />
+<instance namespace="CubeRover" name="comLogger" type="ComLogger" base_id="4608" base_id_window="20" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -367,12 +367,94 @@
     <source component = "rateGroupHiFreq" port = "Log" type = "Log" num = "0" />
     <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
   </connection>
+  <!--
+  <connection name = "blockDriver_to_aLogger">
+    <source component = "blockDriver" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <!--
+  <connection name = "rateGroupDriver_to_aLogger">
+    <source component = "rateGroupDriver" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <!--
+  <connection name = "cubeRoverTime_to_aLogger">
+    <source component = "cubeRoverTime" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <!--
+  <connection name = "tlmChan_to_aLogger">
+    <source component = "tlmChan" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <connection name = "cmdDispatcher_to_aLogger">
+    <source component = "cmdDispatcher" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
 
+  <connection name = "watchdog_to_aLogger">
+    <source component = "watchDogInterface" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+
+<<<<<<< HEAD
   <connection name = "watchDogInterface_to_aLogger">
     <source component = "watchDogInterface" port = "Log" type = "Log" num = "0" />
     <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
   </connection>
 
+=======
+  <connection name = "health_to_aLogger">
+    <source component = "health" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+
+  <connection name = "networkmanager_to_aLogger">
+    <source component = "networkManager" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  <!--
+  <connection name = "IMU_to_aLogger">
+    <source component = "IMU" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <connection name = "aLogger_to_aLogger">
+    <source component = "activeLogger" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  <!--
+  <connection name = "comLogger_to_aLogger">
+    <source component = "comLogger" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <connection name = "groundInterface_to_aLogger">
+    <source component = "groundInterface" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  <!--
+  <connection name = "navigation_to_aLogger">
+    <source component = "navigation" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <!--
+  <connection name = "motorControl_to_aLogger">
+    <source component = "motorControl" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <!--
+  <connection name = "camera_to_aLogger">
+    <source component = "camera" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
 
   <!-- *********************************************************************************************************
         CONNECTION OF COMMAND REGISTRATION PORTS
@@ -433,17 +515,6 @@
   <connection name = "WatchdogReg">
     <source component = "watchDogInterface" port = "CmdStatus" type = "CmdResponse" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
-  </connection>
-
-    <!-- *********************************************************************************************************
-        CONNECTION OF ACTIVE LOGGER TO COMLOGGER
-       ********************************************************************************************************* 
-      -->
-
-      <!-- Pass logs from active logger to comlogger -->
-  <connection name = "activeLogger_to_comLogger">
-    <source component = "activeLogger" port = "PktSend" type = "Com" num = "0" />
-    <target component = "comLogger" port = "comIn" type = "Com" num = "0" />
   </connection>
   
   <connection name = "cameraCmdStatus_to_cmdDispatcher_CmdStatus">
@@ -549,5 +620,16 @@
     <target component = "health" port = "PingReturn" type = "Ping" num = "9" />
   </connection>
   -->
+
+    <!-- *********************************************************************************************************
+      CONNECTION OF ACTIVE LOGGER TO COMLOGGER
+      ********************************************************************************************************* 
+    -->
+
+      <!-- Pass logs from active logger to comlogger -->
+  <connection name = "activeLogger_to_comLogger">
+    <source component = "activeLogger" port = "PktSend" type = "Com" num = "0" />
+    <target component = "comLogger" port = "comIn" type = "Com" num = "0" />
+  </connection>
 
 </assembly>

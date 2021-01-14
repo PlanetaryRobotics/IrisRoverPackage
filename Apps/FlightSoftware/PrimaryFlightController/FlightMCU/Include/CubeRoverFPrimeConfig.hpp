@@ -1,4 +1,4 @@
-#include <Include/CubeRoverConfig.hpp>
+#include "../PrimaryFlightController/FlightMCU/Include/CubeRoverConfig.hpp"
 
 #ifndef _CUBEROVER_FPRIME_CONFIG_HPP_
 #define _CUBEROVER_FPRIME_CONFIG_HPP_

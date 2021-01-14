@@ -128,13 +128,25 @@
 
     <command kind="guarded" opcode="0x08" mnemonic="MC_SetParameter">
       <args>
-        <arg name="Value" type="ENUM">
+        <arg name="ParamSelect" type="ENUM">
           <enum name ="MC_ParameterSelection">
             <item name="MC_Param1" />
             <item name="MC_Param2" />
-        	<comment>Enables the  </comment>
+          </enum>
+        	<comment> Change internal parameters of the module </comment>
+        </arg>
+        <arg name="New_Value" type="U32">
+        	<comment> The new value to be used in place </comment>
         </arg>
       </args>
+    </command>
+
+    <command kind="guarded" opcode="0x09" mnemonic="MC_GetParameters">
+       <comment> Returns all current parameters of the module </comment>
+    </command>
+
+    <command kind="guarded" opcode="0x10" mnemonic="MC_UpdateTelemetry">
+       <comment> Forces a telemetry update from the motors </comment>
     </command>
 
   </commands> 
@@ -161,7 +173,7 @@
           <comment> A notification an MSP is not reporting data </comment>
     </event>
 
-    <event id="5" name="MC_ParameterChanged" severity="COMMAND" format_string="A Motor Controller parameter has been changed">
+    <event id="5" name="MC_ParameterChanged" severity="COMMAND" format_string="A Motor controller parameter has been changed">
           <comment> A notification that an MC parameter has been modified </comment>
     </event>
   </events>

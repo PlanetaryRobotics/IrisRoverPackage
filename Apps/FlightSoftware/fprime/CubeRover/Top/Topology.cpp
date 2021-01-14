@@ -117,13 +117,6 @@ Svc::ActiveLoggerImpl activeLogger(
 );
 
 // --------------------------------------------------------------------------
-CubeRover::UdpInterfaceComponentImpl udpInterface(
-#if FW_OBJECT_NAMES == 1
-        "UdpInterface"
-#endif
-);
-
-// --------------------------------------------------------------------------
 CubeRover::NetworkManagerComponentImpl networkManager(
 #if FW_OBJECT_NAMES == 1
         "NetworkManager"
@@ -175,6 +168,12 @@ void constructApp(void){
   rateGroupMedFreq.init(RG_MED_FREQ_QUEUE_DEPTH, RG_MED_FREQ_ID);
   rateGroupHiFreq.init(RG_HI_FREQ_QUEUE_DEPTH, RG_HI_FREQ_ID);
 
+  // Initialize the telemetry channel component (active)
+  tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
+
+  // Initialize the CommandDispatcher component (active)
+  cmdDispatcher.init(CMD_DISP_QUEUE_DEPTH, CMD_DISP_ID);
+
   // Initialize cubeRover time component (passive)
   cubeRoverTime.init(0);
 
@@ -190,17 +189,8 @@ void constructApp(void){
   //health.init(25,                   /*Queue Depth*/
   //            0);                   /*Instance Number*/
 
-  // Initialize the telemetry channel component (active)
-  tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
-
-  // Initialize the CommandDispatcher component (active)
-  cmdDispatcher.init(CMD_DISP_QUEUE_DEPTH, CMD_DISP_ID);
-
   // Initialize the ground interface (passive)
   groundInterface.init();
-
-  // Initialize the ground interface (passive)
-  udpInterface.init();
 
   // Initialize the IMU interface (passive)
   IMU.init();
@@ -221,13 +211,13 @@ void constructApp(void){
   constructCubeRoverArchitecture();
 
   // Register Health Commands
-  //health.regCommands();
+  // health.regCommands();
 
   // Register WatchDog Interface Commands
-  //watchDogInterface.regCommands();
+  watchDogInterface.regCommands();
   
   // Register Camera Commands
-  //camera.regCommands();
+  camera.regCommands();
 
   // Set Health Ping Entries
   // **** THIS IS WHERE YOU CAN ADD ANY COMPONENTS THAT HAVE HEALTH PINGS ****

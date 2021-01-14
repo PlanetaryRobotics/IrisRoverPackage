@@ -26,7 +26,6 @@
 #include <CubeRover/MotorControl/MotorControlComponent.hpp>
 #include <CubeRover/Navigation/NavigationComponent.hpp>
 #include <CubeRover/GroundInterface/GroundInterface.hpp>
-#include <CubeRover/UdpInterface/UdpInterface.hpp>
 #include <CubeRover/NetworkManager/NetworkManager.hpp>
 #include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
 #include <CubeRover/Camera/Camera.hpp>
@@ -63,9 +62,6 @@ extern CubeRover::NavigationComponentImpl navigation;
 
 // Interface to ground for radio
 extern CubeRover::GroundInterfaceComponentImpl groundInterface;
-
-// UDP receiver
-extern CubeRover::UdpInterfaceComponentImpl udpInterface;
 
 // NetworkManager
 extern CubeRover::NetworkManagerComponentImpl networkManager;

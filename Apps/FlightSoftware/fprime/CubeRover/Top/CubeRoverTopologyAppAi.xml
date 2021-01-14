@@ -16,7 +16,6 @@
 
 <!-- Specifics to CubeRover -->
   <import_component_type>CubeRover/GroundInterface/GroundInterfaceComponentAi.xml</import_component_type>
-  <import_component_type>CubeRover/UdpInterface/UdpInterfaceComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/NetworkManager/NetworkManagerComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/IMU/IMUComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/MotorControl/MotorControlComponentAi.xml</import_component_type>
@@ -43,9 +42,6 @@
 <!-- Declaration of the ground interface service -->
   <instance namespace="CubeRover" name="groundInterface" type="GroundInterface" base_id="161" base_id_window="20" />
 
-<!-- Declaration of the components that implement UDP interface (Lander RS422 Serial) -->
-  <instance namespace="CubeRover" name="udpInterface" type="UdpInterface" base_id="181" base_id_window="20" />
-      
 <!-- Declaration of the components that implement NetworkManager and Wifi Stack -->
   <instance namespace="CubeRover" name="networkManager" type="NetworkManager" base_id="241" base_id_window="20" />
 
@@ -181,11 +177,6 @@
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
   </connection>
   
-  <connection name="udpInterface_to_cubeRoverTime">
-    <source component="udpInterface" port="Time" type="Time" num="0" />
-    <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
-  </connection>
-
   <connection name="networkManager_to_cubeRoverTime">
     <source component="networkManager" port="Time" type="Time" num="0" />
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
@@ -227,7 +218,7 @@
       Port # 1 : Rate Group Medium Frequency
       Port # 2 : Rate Group High Frequency
       Port # 3 : Ground Interface
-      Port # 4 : UDP Reciever
+      Port # 4 : ~~Depracated~~UDP Reciever
       Port # 5 : Network Manager
       Port # 6 : Navigation
       Port # 7 : Motor Control
@@ -255,12 +246,6 @@
   <!-- Ground Interface to telemetry channel (port 3) -->
   <connection name="groundInterface_to_chanTlm">
     <source component="groundInterface" port="Tlm" type="Tlm" num="0" />
-    <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
-  </connection>
-
-    <!-- Radio serial and Wifi UDP interface to telemetry channel (port 4) -->
-  <connection name="udpInterface_to_chanTlm">
-    <source component="udpInterface" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
 
@@ -326,9 +311,9 @@
     
   <!-- TODO: Connect Logs to goundInterface HERE -->
       
-  <connection name="groundInterface_to_udpInterface"><!-- GROUNDINTERFACE downlinkBufferSend PORT #0 -->
+  <connection name="groundInterface_to_watchDogInterface"><!-- GROUNDINTERFACE downlinkBufferSend PORT #0 -->
     <source component="groundInterface" port="downlinkBufferSend" type="Fw::BufferSend" num="0" />
-    <target component="udpInterface" port="downlinkDatagram" type="Fw::BufferSend" num="0"/>
+    <target component="watchDogInterface" port="downlink" type="Fw::BufferSend" num="0"/>
   </connection>
       
   <connection name="groundInterface_to_networkManager"><!-- GROUNDINTERFACE downlinkBufferSend PORT #1 -->
@@ -336,23 +321,13 @@
     <target component="networkManager" port="downlink" type="Buffer" num="0" />
   </connection>
       
-  <connection name="udpInterface_to_watchDogInterface">
-      <source component="udpInterface" port="forwardDatagram" type="Fw::BufferSend" num="0" />
-    <target component="watchDogInterface" port="downlink" type="Fw::BufferSend" num="0"/>
-  </connection>
-      
 <!-- *********************************************************************************************************
         CONNECTION OF UPLINK COMPONENTS
      ********************************************************************************************************* 
       -->
       
-  <connection name="watchDogInterface_to_udpInterface">
-      <source component="watchDogInterface" port="uplink" type="Fw::BufferSend" num="0" />
-    <target component="udpInterface" port="uplinkData" type="Fw::BufferSend" num="0"/>
-  </connection>
-
-  <connection name="udpInterface_to_groundInterface"><!-- GROUNDINTERFACE cmdUplink PORT #0 -->
-    <source component="udpInterface" port="forwardDatagramPayload" type="Fw::BufferSend" num="0" />
+  <connection name="watchDogInterface_to_groundInterface">
+    <source component="watchDogInterface" port="uplink" type="Fw::BufferSend" num="0" />
     <target component="groundInterface" port="cmdUplink" type="Fw::BufferSend" num="0"/>
   </connection>
 

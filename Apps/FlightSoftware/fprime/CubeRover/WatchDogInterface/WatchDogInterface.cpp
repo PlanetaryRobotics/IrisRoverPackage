@@ -50,7 +50,7 @@ namespace CubeRover {
     sciExitResetState(m_sci);
 
     // RESET THE WIFI CHIP ON STARTUP
-    Reset_Specific_initHandler(0x04 /*RESET WIFI*/);
+    Reset_Specific_Handler(0x04 /*RESET WIFI*/);
     for (unsigned i = 200000000; i; --i);    // Watchdog resets WF121 for 10s, delay for ~15s to ensure it finishes resetting
   }
 
@@ -671,7 +671,7 @@ namespace CubeRover {
 
 
   bool WatchDogInterfaceComponentImpl ::
-    Reset_Specific_initHandler(
+    Reset_Specific_Handler(
         U8 reset_value
     )
   {

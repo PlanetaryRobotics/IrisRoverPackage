@@ -49,7 +49,7 @@ namespace CubeRover {
 #endif
 
       void init(
-          NATIVE_INT_TYPE queueDepth, //!< The queue depth
+          //NATIVE_INT_TYPE queueDepth, //!< The queue depth
           NATIVE_INT_TYPE instance //!< The instance number
       );
 
@@ -74,10 +74,10 @@ namespace CubeRover {
 
       //! Handler implementation for pingIn
       //!
-      void pingIn_handler(
-          const NATIVE_INT_TYPE portNum, /*!< The port number*/
-          U32 key /*!< Value to return to pinger*/
-      );
+      //void pingIn_handler(
+          //const NATIVE_INT_TYPE portNum, /*!< The port number*/
+          //U32 key /*!< Value to return to pinger*/
+      //);
 
       //! Implementation for SendAllLogs command handler
       //! Sends all logs from flash to Ground

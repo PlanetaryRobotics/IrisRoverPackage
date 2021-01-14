@@ -184,12 +184,12 @@
     <source component="groundInterface" port="Time" type="Time" num="0" />
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
   </connection>
-  
+  <!--
   <connection name="udpInterface_to_cubeRoverTime">
     <source component="udpInterface" port="Time" type="Time" num="0" />
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
   </connection>
-
+  -->
   <connection name="networkManager_to_cubeRoverTime">
     <source component="networkManager" port="Time" type="Time" num="0" />
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
@@ -258,11 +258,11 @@
   </connection>
 
     <!-- Radio serial and Wifi UDP interface to telemetry channel (port 4) -->
-  <connection name="udpInterface_to_chanTlm">
+  <!--<connection name="udpInterface_to_chanTlm">
     <source component="udpInterface" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
-
+	-->
   <!-- Network Manager to telemetry channel (port 5) -->
   <connection name="networkManager_to_chanTlm">
     <source component="networkManager" port="Tlm" type="Tlm" num="0" />
@@ -325,9 +325,9 @@
       
   <!-- TODO: Connect Camera & UWB to goundInterface HERE -->
       
-  <connection name="groundInterface_to_udpInterface"><!-- GROUNDINTERFACE downlinkBufferSend PORT #0 -->
+  <connection name="groundInterface_to_watchDogInterface"><!-- GROUNDINTERFACE downlinkBufferSend PORT #0 -->
     <source component="groundInterface" port="downlinkBufferSend" type="Fw::BufferSend" num="0" />
-    <target component="udpInterface" port="downlinkDatagram" type="Fw::BufferSend" num="0"/>
+    <target component="watchDogInterface" port="downlink" type="Fw::BufferSend" num="0"/>
   </connection>
       
   <connection name="groundInterface_to_networkManager"><!-- GROUNDINTERFACE downlinkBufferSend PORT #1 -->
@@ -335,23 +335,23 @@
     <target component="networkManager" port="downlink" type="Buffer" num="0" />
   </connection>
       
-  <connection name="udpInterface_to_watchDogInterface">
+  <!--<connection name="udpInterface_to_watchDogInterface">
       <source component="udpInterface" port="forwardDatagram" type="Fw::BufferSend" num="0" />
     <target component="watchDogInterface" port="downlink" type="Fw::BufferSend" num="0"/>
   </connection>
-      
+     --> 
 <!-- *********************************************************************************************************
         CONNECTION OF UPLINK COMPONENTS
      ********************************************************************************************************* 
       -->
       
-  <connection name="watchDogInterface_to_udpInterface">
+  <!--<connection name="watchDogInterface_to_udpInterface">
       <source component="watchDogInterface" port="uplink" type="Fw::BufferSend" num="0" />
     <target component="udpInterface" port="uplinkData" type="Fw::BufferSend" num="0"/>
-  </connection>
+  </connection>-->
 
-  <connection name="udpInterface_to_groundInterface"><!-- GROUNDINTERFACE cmdUplink PORT #0 -->
-    <source component="udpInterface" port="forwardDatagramPayload" type="Fw::BufferSend" num="0" />
+  <connection name="watchDogInterface_to_groundInterface"><!-- GROUNDINTERFACE cmdUplink PORT #0 -->
+      <source component="watchDogInterface" port="uplink" type="Fw::BufferSend" num="0" />
     <target component="groundInterface" port="cmdUplink" type="Fw::BufferSend" num="0"/>
   </connection>
 
@@ -387,7 +387,87 @@
     <source component = "rateGroupHiFreq" port = "Log" type = "Log" num = "0" />
     <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
   </connection>
+  <!--
+  <connection name = "blockDriver_to_aLogger">
+    <source component = "blockDriver" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <!--
+  <connection name = "rateGroupDriver_to_aLogger">
+    <source component = "rateGroupDriver" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <!--
+  <connection name = "cubeRoverTime_to_aLogger">
+    <source component = "cubeRoverTime" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <!--
+  <connection name = "tlmChan_to_aLogger">
+    <source component = "tlmChan" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <connection name = "cmdDispatcher_to_aLogger">
+    <source component = "cmdDispatcher" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
 
+  <connection name = "watchdog_to_aLogger">
+    <source component = "watchDogInterface" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+
+  <connection name = "health_to_aLogger">
+    <source component = "health" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+
+  <connection name = "networkmanager_to_aLogger">
+    <source component = "networkManager" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  <!--
+  <connection name = "IMU_to_aLogger">
+    <source component = "IMU" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <connection name = "aLogger_to_aLogger">
+    <source component = "activeLogger" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  <!--
+  <connection name = "comLogger_to_aLogger">
+    <source component = "comLogger" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <connection name = "groundInterface_to_aLogger">
+    <source component = "groundInterface" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  <!--
+  <connection name = "navigation_to_aLogger">
+    <source component = "navigation" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <!--
+  <connection name = "motorControl_to_aLogger">
+    <source component = "motorControl" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
+  <!--
+  <connection name = "camera_to_aLogger">
+    <source component = "camera" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+  -->
 
   <!-- *********************************************************************************************************
         CONNECTION OF COMMAND REGISTRATION PORTS

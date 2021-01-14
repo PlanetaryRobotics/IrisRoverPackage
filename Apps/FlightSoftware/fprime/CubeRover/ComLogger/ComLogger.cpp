@@ -56,11 +56,11 @@ namespace CubeRover {
 
   void ComLogger :: 
     init(
-      NATIVE_INT_TYPE queueDepth, //!< The queue depth
+      //NATIVE_INT_TYPE queueDepth, //!< The queue depth
       NATIVE_INT_TYPE instance //!< The instance number
     )
   {
-    ComLoggerComponentBase::init(queueDepth, instance);
+    ComLoggerComponentBase::init(instance);
   }
 
   ComLogger ::
@@ -282,7 +282,7 @@ namespace CubeRover {
     // Send Output buffer to ground
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
-
+  /*
   void ComLogger ::
     pingIn_handler(
         const NATIVE_INT_TYPE portNum,
@@ -292,7 +292,7 @@ namespace CubeRover {
       // return key
       this->pingOut_out(0,key);
   }
-
+  */
   void ComLogger ::
     openFile(
     )

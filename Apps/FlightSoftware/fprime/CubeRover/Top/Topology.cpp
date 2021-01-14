@@ -190,11 +190,11 @@ void constructApp(void){
   // TODO: This hasn't been started yet
   activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
 
-  comLogger.init(100,0);
+  comLogger.init(0);
 
   // Initialize the watchdog interface component (queued)
-  //watchDogInterface.init(10,          /*Queue Depth*/
-  //                       0);         /*Instance Number*/
+  watchDogInterface.init(10,          /*Queue Depth*/
+                         0);         /*Instance Number*/
 
   // Initialize the health component (queued)
   //health.init(25,                   /*Queue Depth*/

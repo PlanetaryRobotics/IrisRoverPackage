@@ -176,12 +176,12 @@ namespace CubeRover {
 			    return;
 			}
             stat = sciReceiveWithTimeout(scilinREG,
-                                         10,	//10 bytes is how big total telemetry should be
+                                         12,	//12 bytes is how big total telemetry should be
                                          (uint8_t *)&buff,
                                          0x00002710); /*10 second timeout*/
             comm_error = sciRxError(scilinREG);
             // Good read:
-            if (stat >= 10)
+            if (stat >= 12)
             {
                 int16_t voltage_tlm = 0;
                 memcpy(&voltage_tlm, &(buff), 2); // Copy two bytes for tlm value
@@ -198,6 +198,9 @@ namespace CubeRover {
                 int8_t sys_stat = 0;
                 memcpy(&sys_stat, &(buff)+9, 1);    // Copy a byte for system status value
                 this->tlmWrite_SYSTEM_STATUS(sys_stat);
+                U16 bat_level = 0;
+                memcpy(&bat_level, &(buff)+10, 2);    // Copy two bytes for battery voltage level value
+                this->tlmWrite_BATTERY_LEVEL(bat_level);
              }
              // check for timeout
              if (stat == 0)
@@ -458,12 +461,12 @@ namespace CubeRover {
 				    return;
 				}
 	            stat = sciReceiveWithTimeout(scilinREG,
-	                                         10,	//10 bytes is how big total telemetry should be
+	                                         12,	//12 bytes is how big total telemetry should be
 	                                         (uint8_t *)&buff,
 	                                         0x00002710); /*10 second timeout*/
 	            comm_error = sciRxError(scilinREG);
 	            // Good read:
-	            if (stat >= 10)
+	            if (stat >= 12)
 	            {
 	                int16_t voltage_tlm = 0;
 	                memcpy(&voltage_tlm, &(buff), 2); // Copy two bytes for tlm value
@@ -480,6 +483,9 @@ namespace CubeRover {
 	                int8_t sys_stat = 0;
 	                memcpy(&sys_stat, &(buff)+9, 1);    // Copy a byte for system status value
 	                this->tlmWrite_SYSTEM_STATUS(sys_stat);
+                  U16 bat_level = 0;
+                  memcpy(&bat_level, &(buff)+10, 2);    // Copy two bytes for battery voltage level value
+                  this->tlmWrite_BATTERY_LEVEL(bat_level);
 	             }
 	             // check for timeout
 	             if (stat == 0)
@@ -623,12 +629,12 @@ namespace CubeRover {
 				    return;
 				}
 	            stat = sciReceiveWithTimeout(scilinREG,
-	                                         10,	//10 bytes is how big total telemetry should be
+	                                         12,	//12 bytes is how big total telemetry should be
 	                                         (uint8_t *)&buff,
 	                                         0x00002710); /*10 second timeout*/
 	            comm_error = sciRxError(scilinREG);
 	            // Good read:
-	            if (stat >= 10)
+	            if (stat >= 12)
 	            {
 	                int16_t voltage_tlm = 0;
 	                memcpy(&voltage_tlm, &(buff), 2); // Copy two bytes for tlm value
@@ -645,6 +651,9 @@ namespace CubeRover {
 	                int8_t sys_stat = 0;
 	                memcpy(&sys_stat, &(buff)+9, 1);    // Copy a byte for system status value
 	                this->tlmWrite_SYSTEM_STATUS(sys_stat);
+                  U16 bat_level = 0;
+                  memcpy(&bat_level, &(buff)+10, 2);    // Copy two bytes for battery voltage level value
+                  this->tlmWrite_BATTERY_LEVEL(bat_level);
 	             }
 	             // check for timeout
 	             if (stat == 0)
@@ -803,12 +812,12 @@ namespace CubeRover {
                   return false;
               }
               stat = sciReceiveWithTimeout(scilinREG,
-                                           10,  //10 bytes is how big total telemetry should be
+                                           12,  //12 bytes is how big total telemetry should be
                                            (uint8_t *)&buff,
                                            0x00002710); /*10 second timeout*/
               comm_error = sciRxError(scilinREG);
               // Good read:
-              if (stat >= 10)
+              if (stat >= 12)
               {
                   int16_t voltage_tlm = 0;
                   memcpy(&voltage_tlm, &(buff), 2); // Copy two bytes for tlm value
@@ -825,6 +834,9 @@ namespace CubeRover {
                   int8_t sys_stat = 0;
                   memcpy(&sys_stat, &(buff)+9, 1);    // Copy a byte for system status value
                   this->tlmWrite_SYSTEM_STATUS(sys_stat);
+                  U16 bat_level = 0;
+                  memcpy(&bat_level, &(buff)+10, 2);    // Copy two bytes for battery voltage level value
+                  this->tlmWrite_BATTERY_LEVEL(bat_level);
                }
                // check for timeout
                if (stat == 0)

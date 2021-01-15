@@ -203,7 +203,8 @@ CubeRoverPorts_MODULES := \
 	CubeRover/CubeRoverPorts/FileDownlink \
 	CubeRover/CubeRoverPorts/IMUData \
 	CubeRover/CubeRoverPorts/MotorData \
-	CubeRover/CubeRoverPorts/MotorCommand
+	CubeRover/CubeRoverPorts/MotorCommand \
+	CubeRover/CubeRoverPorts/WatchdogReset
 	
 CubeRover_MODULES := \
 	CubeRover/Top \

@@ -1,0 +1,8 @@
+<interface name="WatchdogReset" namespace="CubeRoverPorts">
+    <comment>
+    Port to trigger a reset
+    </comment>
+    <args>
+        <arg name="Reset_value" type="U8" />
+    </args>
+</interface>

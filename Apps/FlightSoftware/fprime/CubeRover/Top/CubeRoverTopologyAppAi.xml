@@ -22,50 +22,50 @@
   <import_component_type>CubeRover/Navigation/NavigationComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/Camera/CameraComponentAi.xml</import_component_type>
 
-  <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
+  <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="256" base_id_window="255" />
 
   <!-- Declaration of components handling synchronization of tasks -->
-  <instance namespace="Svc" name="rateGroupDriver" type="RateGroupDriver" base_id="21"  base_id_window="20" />
-  <instance namespace="Svc" name="rateGroupLowFreq" type="ActiveRateGroup" base_id="41" base_id_window="20" />
-  <instance namespace="Svc" name="rateGroupMedFreq" type="ActiveRateGroup" base_id="61" base_id_window="20" />
-  <instance namespace="Svc" name="rateGroupHiFreq" type="ActiveRateGroup" base_id="81" base_id_window="20" />
+  <instance namespace="Svc" name="rateGroupDriver" type="RateGroupDriver" base_id="512"  base_id_window="255" />
+  <instance namespace="Svc" name="rateGroupLowFreq" type="ActiveRateGroup" base_id="768" base_id_window="255" />
+  <instance namespace="Svc" name="rateGroupMedFreq" type="ActiveRateGroup" base_id="1024" base_id_window="255" />
+  <instance namespace="Svc" name="rateGroupHiFreq" type="ActiveRateGroup" base_id="1280" base_id_window="255" />
 
 <!-- Declaration of time component that will be used by other module to capture time stamp -->
-  <instance namespace="Svc" name="cubeRoverTime" type="CubeRoverTime" base_id="101"  base_id_window="20" />
+  <instance namespace="Svc" name="cubeRoverTime" type="CubeRoverTime" base_id="1536"  base_id_window="255" />
 
 <!-- Declaration of telemetry chan that gathers all telemetry parameters (synchronous, synchronized by rate group low freq) -->
-  <instance namespace="Svc" name="tlmChan" type="TlmChan" base_id="121"  base_id_window="20" />
+  <instance namespace="Svc" name="tlmChan" type="TlmChan" base_id="1792"  base_id_window="255" />
 
 <!-- Declaration of the command dispatcher -->
-  <instance namespace="Svc" name="cmdDispatcher" type="CommandDispatcher" base_id="141" base_id_window="20" />
+  <instance namespace="Svc" name="cmdDispatcher" type="CommandDispatcher" base_id="2048" base_id_window="255" />
 
 <!-- Declaration of the ground interface service -->
-  <instance namespace="CubeRover" name="groundInterface" type="GroundInterface" base_id="161" base_id_window="20" />
+  <instance namespace="CubeRover" name="groundInterface" type="GroundInterface" base_id="2304" base_id_window="255" />
 
 <!-- Declaration of the components that implement NetworkManager and Wifi Stack -->
-  <instance namespace="CubeRover" name="networkManager" type="NetworkManager" base_id="241" base_id_window="20" />
+  <instance namespace="CubeRover" name="networkManager" type="NetworkManager" base_id="2560" base_id_window="255" />
 
 <!-- Declaration of the passive text logger component that logs events in non-volatile memory -->
 <!-- For CubeRover - we use external FRAM memory to store data, i.e. a custom implementation of that component is necessary -->
-  <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="221" base_id_window="20" />
+  <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="2816" base_id_window="255" />
 
 <!-- Declaration of the health component -->
-      <instance namespace="Svc" name="health" type="Health" base_id="301" base_id_window="20" />
+      <instance namespace="Svc" name="health" type="Health" base_id="3072" base_id_window="255" />
 
   <!-- Declaration of the Navigation handling module -->
-  <instance namespace="CubeRover" name="navigation" type="Navigation" base_id="2221" base_id_window="20" />
+  <instance namespace="CubeRover" name="navigation" type="Navigation" base_id="3328" base_id_window="255" />
 
   <!-- Declaration of the Motor control interface module -->
-  <instance namespace="CubeRover" name="motorControl" type="MotorControl" base_id="2241" base_id_window="20" />
+  <instance namespace="CubeRover" name="motorControl" type="MotorControl" base_id="3584" base_id_window="255" />
 
   <!-- Declaration of the IMU interface module -->
-  <instance namespace="CubeRover" name="IMU" type="IMU" base_id="2261" base_id_window="20" />
+  <instance namespace="CubeRover" name="IMU" type="IMU" base_id="3840" base_id_window="255" />
 
 <!-- Declaration of the WatchDog Interface component -->
-  <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="62208" base_id_window="20" />
+  <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="4096" base_id_window="255" />
       
 <!-- Declaration of the Camera component -->
-  <instance namespace="CubeRover" name="camera" type="Camera" base_id="62508" base_id_window="20" />
+  <instance namespace="CubeRover" name="camera" type="Camera" base_id="4352" base_id_window="255" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS

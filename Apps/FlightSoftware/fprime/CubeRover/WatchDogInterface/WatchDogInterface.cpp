@@ -49,6 +49,8 @@ namespace CubeRover {
     sciSetBaudrate(m_sci, 9600);
     sciExitResetState(m_sci);
 
+    Read_Temp();
+
     // RESET THE WIFI CHIP ON STARTUP
     Reset_Specific_Handler(0x04 /*RESET WIFI*/);
     for (unsigned i = 200000000; i; --i);    // Watchdog resets WF121 for 10s, delay for ~15s to ensure it finishes resetting
@@ -934,7 +936,7 @@ namespace CubeRover {
     adcStartConversion(adcREG1, adcGROUP1);
 
     // Check if all ADC Conversions are done
-    int tries = 10;
+    int tries = 50;
     while(--tries && !adcIsConversionComplete(adcREG1, adcGROUP1));
     if(tries == 0)
     {
@@ -949,10 +951,9 @@ namespace CubeRover {
       // Conversion SHOULD end automatically once all ADC values have been converted but this should end it otherwise
       adcStopConversion(adcREG1, adcGROUP1);
 
-      // Create char array of size 24 for all possible Thermistor Values. Size is 24 as 12-bit conversion, 12 bits -> 1.5 bytes, 16 thermistors * 1.5 bytes = 24 bytes. Char is 1 byte
-      char data[24];
-      adcData_t* data_ptr;
-      data_ptr = (adcData_t*)&data;
+      // Create adcData_t array of size 6 for all Thermistors
+      adcData_t data[6];
+      adcData_t* data_ptr = (adcData_t*)&data;
 
       // adcGetData returns how many conversions happened, saves data into data_ptr
       U32 num_conversions = adcGetData(adcREG1, adcGROUP1, data_ptr);
@@ -960,32 +961,19 @@ namespace CubeRover {
       if(num_conversions >= 6)
       {
         // Report tempurature as telemetry
-        U16 temp_data;    // Create temp var to hold 12 bit (must use 16 bits in this case) thermistor value
 
         // Send Thermistor 12 bit values to Telemetry
-        memcpy(&temp_data, &(data)+(12*0), 2);   // Copy two bytes for thermistor value
-        temp_data = temp_data & 0x0FFF;       // Remove last 4 bits as are from other thermistor value
-        this->tlmWrite_THERM_0(temp_data);
+        this->tlmWrite_THERM_0(data[0].value);
 
-        memcpy(&temp_data, &(data)+(12*1), 2);   // Copy two bytes for thermistor value
-        temp_data = temp_data & 0x0FFF;       // Remove last 4 bits as are from other thermistor value
-        this->tlmWrite_THERM_1(temp_data);
+        this->tlmWrite_THERM_1(data[1].value);
 
-        memcpy(&temp_data, &(data)+(12*2), 2);   // Copy two bytes for thermistor value
-        temp_data = temp_data & 0x0FFF;       // Remove last 4 bits as are from other thermistor value
-        this->tlmWrite_THERM_2(temp_data);
+        this->tlmWrite_THERM_2(data[2].value);
 
-        memcpy(&temp_data, &(data)+(12*3), 2);   // Copy two bytes for thermistor value
-        temp_data = temp_data & 0x0FFF;       // Remove last 4 bits as are from other thermistor value
-        this->tlmWrite_THERM_3(temp_data);
+        this->tlmWrite_THERM_3(data[3].value);
 
-        memcpy(&temp_data, &(data)+(12*4), 2);   // Copy two bytes for thermistor value
-        temp_data = temp_data & 0x0FFF;       // Remove last 4 bits as are from other thermistor value
-        this->tlmWrite_THERM_4(temp_data);
+        this->tlmWrite_THERM_4(data[4].value);
 
-        memcpy(&temp_data, &(data)+(12*5), 2);   // Copy two bytes for thermistor value
-        temp_data = temp_data & 0x0FFF;       // Remove last 4 bits as are from other thermistor value
-        this->tlmWrite_THERM_5(temp_data);
+        this->tlmWrite_THERM_5(data[5].value);
       }
       else
       {

@@ -105,7 +105,7 @@ namespace CubeRover {
         Fw::Buffer &fwBuffer
     )
   {
-    uint8_t *buffer = reinterpret_cast<U8 *>(fwBuffer.getdata());
+    uint8_t *buffer = reinterpret_cast<uint8_t *>(fwBuffer.getdata());
     uint32_t payloadSize = fwBuffer.getsize();
     m_crnm.SendUdpData(buffer, payloadSize, 1000);   // FIXME: What is an appropriate timeout 1s check units
     update();

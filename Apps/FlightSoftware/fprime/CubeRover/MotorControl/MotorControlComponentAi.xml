@@ -12,6 +12,7 @@
   <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
   <import_port_type>CubeRover/CubeRoverPorts/MotorData/MotorDataPortAi.xml</import_port_type>
   <import_port_type>CubeRover/CubeRoverPorts/MotorCommand/MotorCommandPortAi.xml</import_port_type>
+  <import_port_type>CubeRover/CubeRoverPorts/WatchdogReset/WatchdogResetPortAi.xml</import_port_type>
 
   <!-- PORTS -->
   <ports>
@@ -46,6 +47,9 @@
 
     <!-- Motor Command port -->
     <port name="motorCommandIn" data_type="CubeRoverPorts::MotorCommand" kind="sync_input" max_number="1"></port>
+
+    <!-- Watchdog Reset port -->
+    <port name="WatchdogResetOut" data_type="CubeRoverPorts::WatchdogReset" kind="output" max_number="1"></port>
 
   </ports>
 
@@ -149,6 +153,10 @@
        <comment> Forces a telemetry update from the motors </comment>
     </command>
 
+    <command kind="guarded" opcode="0x99" mnemonic="MC_SelfTest">
+       <comment> Runs through a routine to confirms the MSP are functioning properly </comment>
+    </command>
+
   </commands> 
 
   <!-- EVENTS -->
@@ -174,6 +182,10 @@
     </event>
 
     <event id="5" name="MC_ParameterChanged" severity="COMMAND" format_string="A Motor controller parameter has been changed">
+          <comment> A notification that an MC parameter has been modified </comment>
+    </event>
+
+    <event id="5" name="MC_EncoderReset" severity="COMMAND" format_string="A Motor encoder count has been reset">
           <comment> A notification that an MC parameter has been modified </comment>
     </event>
   </events>

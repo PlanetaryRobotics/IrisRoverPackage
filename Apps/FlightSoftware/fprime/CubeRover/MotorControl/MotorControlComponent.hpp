@@ -268,97 +268,94 @@ namespace CubeRover {
                                               const U32 cmdSeq, /*!< The command sequence number*/
                                               U8 ResetPositionCounter);
 
+      //! Implementation for MC_SelfTest command handler
+      //! Runs through a routine to confirms the MSP are functioning properly
+      void MC_SelfTest_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
+                                  const U32 cmdSeq /*!< The command sequence number*/);
+
     private:
       uint8_t txData[MC_BUFFER_MAX_SIZE];
       uint8_t rxData[MC_BUFFER_MAX_SIZE];
 
+      MCError sendAllMotorsData(i2cBASE_t *i2c,
+                                const MotorControllerI2C::I2cRegisterId id,
+                                int8_t * data);
+
       MCError writeMotorControlRegister(i2cBASE_t *i2c,
                                         const MotorControllerI2C::I2cRegisterId id,
                                         const MotorControllerI2C::I2cSlaveAddress address,
-                                        uuint8_t * data);
+                                        int8_t * data);
 
       MCError i2cMasterTransmit(i2cBASE_t *i2c,
                                 const MotorControllerI2C::I2cSlaveAddress sadd,
                                 const uint32_t length,
-                                uint8_t * data);
+                                int8_t * data);
 
       MCError i2cMasterReceive(i2cBASE_t *i2c,
                                const MotorControllerI2C :: I2cSlaveAddress sadd,
                                const uint32_t length,
-                               uint8_t * data);
+                               int8_t * data);
 
       uint32_t getSizeData(const MotorControllerI2C::I2cRegisterId id);
 
-      uint32_t getHeaderSize();
+      /*uint32_t getHeaderSize(); Not used
 
-      uint32_t getChecksumSize();
+      uint32_t getChecksumSize(); Not used
 
-      void generateChecksumTable(const ChecksumType polynomial);
+      void generateChecksumTable(const ChecksumType polynomial); Not used
 
       MCError computeChecksum8(uint8_t *data,
                                const uint32_t bufferLength,
-                               MotorControlChecksum *checksum);
+                               MotorControlChecksum *checksum); Not used
 
       MCError packTransmitBuffer(const MotorControllerI2C::I2cRegisterId id,
                                  const uint32_t data,
-                                 const uint32_t dataLength);
-
-      MCError sendAllMotorsData(i2cBASE_t *i2c,
-                                const MotorControllerI2C::I2cRegisterId id,
-                                uint32_t data);
+                                 const uint32_t dataLength); Not used*/ 
 
       MCError moveAllMotorsStraight(uint8_t distance, uint8_t speed);
-
       MCError rotateAllMotors(uint8_t angle, uint8_t speed);
+      MCError spinMotors(bool forward);
 
-      uint8_t checksumLookUpTable[256];
-
-      Motor_tick cmToMotorTicks(const Distance_cm dist);
       MCError enableDrivers();
       MCError disableDrivers();
 
-      void delayForI2C();
-
+      Motor_tick groundCMToMotorTicks(int8_t dist);
+      Speed_percent groundSpeedToSpeedPrecent(uint8_t speed);
       
+      void delayForI2C();
 
       //Debug functions/items
       uint32_t tick_count = 0;
 
-      uint8_t rotations_to_ticks;
+      uint8_t m_ticksToRotation;
 
-      // left and right turn parameters
-      uint8_t m_rightSpeed;
-      uint8_t m_leftSpeed;
-      uint8_t m_rightAngle;
-      uint8_t m_leftAngle;
+      // Encoder Converting values
+      float m_encoderTickToCMRatio;
 
-      // forward and reverse parameters
-      Distance_cm m_fwDist;
-      Distance_cm m_reDist;
-      uint8_t m_fwSpeed;
-      uint8_t m_reSpeed;
-
-      // Encoder Converting value
-      float m_encoderTickToCmRatio;
+      // Angular distance converting value
+      float m_angularToLinear;
 
       // Stall detection
-      bool m_stallDetectectionEnabled = false;
+      bool m_stallDetectectionEnabled[4];
+
+      // Shortcut to rotate the wheels accordingly
+      bool m_clockwise_is_positive = true;
 
       // Front left (FL), Front right (FR), Rear right (RR), Rear left (RL) tick counts
       // Internal tick counter
-      uint32_t FL_Encoder_Count;
-      uint32_t FR_Encoder_Count;
-      uint32_t RR_Encoder_Count;
-      uint32_t RL_Encoder_Count;
+      int32_t m_FL_Encoder_Count;
+      int32_t m_FR_Encoder_Count;
+      int32_t m_RR_Encoder_Count;
+      int32_t m_RL_Encoder_Count;
 
       // Offset for resetting tick count
-      uint32_t FL_Encoder_Count_Offset = 0;
-      uint32_t FR_Encoder_Count_Offset = 0;
-      uint32_t RR_Encoder_Count_Offset = 0;
-      uint32_t RL_Encoder_Count_Offset = 0;
+      int32_t m_FL_Encoder_Count_Offset:
+      int32_t m_FR_Encoder_Count_Offset;
+      int32_t m_RR_Encoder_Count_Offset;
+      int32_t m_RL_Encoder_Count_Offset;
 
       // Timeout for I2C communication
-      i2c_timeout_threshold = 1350;
+      uint16_t m_i2c_timeout_threshold = 1350;
     };
 
 } // end namespace CubeRover

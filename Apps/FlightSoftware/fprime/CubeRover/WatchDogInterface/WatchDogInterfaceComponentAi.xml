@@ -121,6 +121,12 @@
                 </arg>          
             </args>
         </event>
+
+        <event id="0x4" name="ADCThermistorError" severity="WARNING_HI" format_string = "ADC Thermistor Conversion Error" >
+            <comment>
+            Warning that less than 16 thermistors had conversions or conversion never completed meaning no new tempurature values are being generated
+            </comment>
+        </event>
     </events>
 
     <telemetry>
@@ -159,6 +165,36 @@
         <channel id="23" name="SYSTEM_STATUS" data_type="int8_t">
             <comment>
                 Boolean for Heater On/Off from Watchdog
+            </comment>
+        </channel>
+        <channel id="24" name="THERM_0" data_type="U8">
+            <comment>
+                12 bit Value for Thermistor value
+            </comment>
+        </channel>
+        <channel id="25" name="THERM_1" data_type="U8">
+            <comment>
+                12 bit Value for Thermistor value
+            </comment>
+        </channel>
+        <channel id="26" name="THERM_2" data_type="U8">
+            <comment>
+                12 bit Value for Thermistor value
+            </comment>
+        </channel>
+        <channel id="27" name="THERM_3" data_type="U8">
+            <comment>
+                12 bit Value for Thermistor value
+            </comment>
+        </channel>
+        <channel id="28" name="THERM_4" data_type="U8">
+            <comment>
+                12 bit Value for Thermistor value
+            </comment>
+        </channel>
+        <channel id="29" name="THERM_5" data_type="U8">
+            <comment>
+                12 bit Value for Thermistor value
             </comment>
         </channel>
     </telemetry>

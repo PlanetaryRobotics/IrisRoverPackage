@@ -147,3 +147,13 @@ Note that time base and time context are only serialized if `FW_USE_TIME_BASE` o
 - The component is connected to CmdDispatcher `compCmdStat` port of type `CmdResponse`
 - TODO: Log connections
 
+## Command Uplink Format
+
+Commands are treated as binary data (ComPacket) until they are received by the Command Dispatcher.
+Command Packet deserializes the command from the ComPacket following this struct:
+
+struct command {
+    FwPacketDescriptorType magic;
+    FwOpcodeType opcode;
+    variable_length argument;
+} __attribute__ ((packed));

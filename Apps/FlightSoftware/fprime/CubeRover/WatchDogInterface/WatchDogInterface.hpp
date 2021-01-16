@@ -16,6 +16,7 @@
 #include "CubeRover/WatchDogInterface/WatchDogInterfaceComponentAc.hpp"
 
 #include "lin.h"
+#include "adc.h"
 
 namespace CubeRover {
 
@@ -107,6 +108,23 @@ namespace CubeRover {
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq /*!< The command sequence number*/
       );
+
+      //! Implementation for Reset Specific for init of cuberover
+      //! Only difference between this and Reset_Specific_cmdHandler is no cmd response
+      bool Reset_Specific_initHandler(
+          U8 reset_value /*!< 
+                      U8 Value that represents which things need to be reset
+                    */
+      );
+
+      //! Implementation for sending frame and checking that frame was sent to watchdog
+      //! Sends a Frame start everytime data is sent from cuberover to watchdog
+      bool Send_Frame(
+          U32 stroke  // Type of frame we want to send
+          );
+
+      //! Implementation for checking the tempurature senors from the ADC
+      bool Read_Temp();
 
     };
 

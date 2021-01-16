@@ -39,8 +39,7 @@ namespace CubeRover {
       m_logsReceived = 0; m_logsDownlinked = 0;
       m_cmdsUplinked = 0; m_cmdsSent = 0; m_cmdErrs = 0;
       m_appBytesReceived = 0; m_appBytesDownlinked = 0;
-      m_downlinkPacket = reinterpret_cast<struct FswPacket::FswPacketHeader *>(m_downlinkBuffer + 8);   // 8byte UDP header
-      m_downlinkBufferPos = reinterpret_cast<uint8_t *>(m_downlinkPacket) + sizeof(struct FswPacket::FswPacketHeader);
+      m_downlinkBufferPos = m_downlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
       m_downlinkBufferSpaceAvailable = DOWNLINK_OBJECTS_SIZE;
   }
 
@@ -126,8 +125,8 @@ namespace CubeRover {
         downlinkFileMetadata(hashedId, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(createTime));
         flushDownlinkBuffer();   // TESTING!! DOWNLINK METADATA PRIOR TO FILE DOWNLINK
         int readStride = static_cast<int>(dataSize) / numBlocks;
-        uint8_t downlinkBuffer[UDP_MAX_PAYLOAD + 8];    // 8byte UDP header
-        struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket*>(downlinkBuffer + 8);
+        uint8_t downlinkBuffer[UDP_MAX_PAYLOAD];
+        struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket*>(downlinkBuffer);
         for (int blockNum = 1; blockNum <= numBlocks; ++blockNum) {
             packet->payload0.file.header.magic = FSW_FILE_MAGIC;
             packet->payload0.file.header.hashedId = hashedId;
@@ -139,7 +138,7 @@ namespace CubeRover {
                 dataSize -= blockLength;
                 packet->payload0.file.header.length = blockLength;
                 memcpy(&packet->payload0.file.file.byte0, data, blockLength);
-                FswPacket::Length_t datagramLength = 8 + sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + blockLength;
+                FswPacket::Length_t datagramLength = sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + blockLength;
                 log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
                 downlink(downlinkBuffer, datagramLength);
                 data += blockLength;
@@ -190,7 +189,7 @@ namespace CubeRover {
     
     m_cmdsUplinked++;
     log_ACTIVITY_HI_GI_CommandReceived(packet->header.seq, packet->header.length);
-    Fw::ComBuffer command(reinterpret_cast<uint8_t *>(packet), packet->header.length);
+    Fw::ComBuffer command(reinterpret_cast<uint8_t *>(&packet->payload0.command), packet->header.length - sizeof(FswPacket::FswPacketHeader));
     m_cmdsSent++;
     
     // TODO: Any parsing or decoding required?
@@ -243,40 +242,33 @@ namespace CubeRover {
         // TODO: Check on mode manager wired MTU is 255B
         FswPacket::Length_t length = static_cast<FswPacket::Length_t>(m_downlinkBufferPos - m_downlinkBuffer);
         downlink(m_downlinkBuffer, length);
-        m_downlinkBufferPos = reinterpret_cast<uint8_t *>(m_downlinkPacket) + sizeof(struct FswPacket::FswPacketHeader);
+        m_downlinkBufferPos = m_downlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
         m_downlinkBufferSpaceAvailable = DOWNLINK_OBJECTS_SIZE;
     }
     
     /*
      * @brief Downlink
      * 
-     * Downlink data at the given buffer and size. The buffer must point to a packet formatted as a UDP datagram
-     * encapsulating a FSWPacket. The UDP header will be filled out at the transport layer (either UDP sender or
-     * WF121). This method will fill the FSWPacket fields and update this object respectively.
+     * Downlink data at the given buffer and size. The buffer must point to a packet formatted as a FSWPacket.
+     * This method will fill the FSWPacket fields and update this object respectively.
      * 
-     * @param _data Pointer to the UDP Buffer
-     * @param size  Size of the object in the UDP buffer including the size of the UDP and FSWPacket headers
+     * @param _data Pointer to the FSWPacket Buffer
+     * @param size  Size of the object in the UDP buffer including the size of the FSWPacket headers
      * 
      */
     void GroundInterfaceComponentImpl::downlink(void *_data, FswPacket::Length_t size) {
         FW_ASSERT(_data);
         FW_ASSERT(size < UDP_MAX_PAYLOAD);
         uint8_t *data = reinterpret_cast<uint8_t *>(_data);     // Start of the ddatagram
-        struct FswPacket::FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacket::FswPacketHeader *>(data + 8);   // 8 byte UDP header
+        struct FswPacket::FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacket::FswPacketHeader *>(data);
         FswPacket::Checksum_t checksum = 0x8008;   // TODO
         packetHeader->seq = m_downlinkSeq;
         packetHeader->checksum = checksum;
-        packetHeader->length = size - 8 - sizeof(struct FswPacket::FswPacketHeader);
-        int port = 1;
-        if (port == 0) {  // TODO: Swap between these dynamically (need way to check for inconsistent connection)
-            Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data), size);
-            log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size);
-            downlinkBufferSend_out(port, buffer);
-        } else if (port == 1) {
-            Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data + 8), size - 8);     // Dont't send the UDP header for WF121
-            log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size - 8);
-            downlinkBufferSend_out(port, buffer);
-        }
+        packetHeader->length = size - sizeof(struct FswPacket::FswPacketHeader);
+        int port = 1;  // 0: Lander Serial via WD   1: WF121
+        Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data), size);
+        log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size);
+        downlinkBufferSend_out(port, buffer);
         m_downlinkSeq++;
         m_packetsTx++;
     }

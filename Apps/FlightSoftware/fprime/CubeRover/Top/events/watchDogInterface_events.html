@@ -43,7 +43,7 @@ html {
 
 		<tr style = "border: 2px solid black;">
 			<td rowspan="1">WatchDogMSP430IncorrectResp</td>
-			<td rowspan="1">62208 (0xf300)</td>
+			<td rowspan="1">4096 (0x1000)</td>
 			<td rowspan="1">Warning that the WatchDog MSP430 sent back a response different than what was sent to it</td>
 				<td></td>
 				<td></td>
@@ -52,7 +52,7 @@ html {
 		</tr>
 		<tr style = "border: 2px solid black;">
 			<td rowspan="1">WatchDogTimedOut</td>
-			<td rowspan="1">62209 (0xf301)</td>
+			<td rowspan="1">4097 (0x1001)</td>
 			<td rowspan="1">Warning that a WatchDog MSP430 watchdog timer went off</td>
 				<td></td>
 				<td></td>
@@ -61,7 +61,7 @@ html {
 		</tr>
 		<tr style = "border: 2px solid black;">
 			<td rowspan="2">WatchDogCmdReceived</td>
-			<td rowspan="2">62210 (0xf302)</td>
+			<td rowspan="2">4098 (0x1002)</td>
 			<td rowspan="2">Notification that watchdog interface recieved a command from Cmd_Dispatcher</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
 						<td>Cmd</td>
@@ -72,7 +72,7 @@ html {
 		</tr>
 		<tr style = "border: 2px solid black;">
 			<td rowspan="2">WatchDogCommError</td>
-			<td rowspan="2">62211 (0xf303)</td>
+			<td rowspan="2">4099 (0x1003)</td>
 			<td rowspan="2">Warning that a WatchDog MSP430 error has occured.</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
 						<td>error</td>
@@ -80,6 +80,15 @@ html {
 						<td></td>
 						<td>The watchdog error value (reference to documentation)</td>
 					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">ADCThermistorError</td>
+			<td rowspan="1">4100 (0x1004)</td>
+			<td rowspan="1">Warning that less than 16 thermistors had conversions or conversion never completed meaning no new tempurature values are being generated</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
 		</tr>
 	</tbody>
 </table>

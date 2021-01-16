@@ -31,14 +31,12 @@ void main(void)
 {
     /* USER CODE BEGIN (3) */
 
-    int waithere = 1;    // Used for pausing prior to netowrk connect
-    while(waithere);     // Stop here and wait for debugger
     gioInit();
     i2cInit();
     sciInit();
     adcInit();
     spiInit();
-    linInit();
+    //linInit();            //linInit() changes the settings of watchdog interface port, please do not use
 
     constructApp();
 

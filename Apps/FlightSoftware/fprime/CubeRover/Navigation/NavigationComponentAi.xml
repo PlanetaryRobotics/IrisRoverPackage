@@ -13,6 +13,7 @@
     <import_port_type>CubeRover/CubeRoverPorts/MotorData/MotorDataPortAi.xml</import_port_type>
     <import_port_type>CubeRover/CubeRoverPorts/MotorCommand/MotorCommandPortAi.xml</import_port_type>
     <import_port_type>CubeRover/CubeRoverPorts/IMUData/IMUDataPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/CameraTakePicture/CameraTakePicturePortAi.xml</import_port_type>
 
     <!-- PORTS -->
     <ports>
@@ -45,9 +46,10 @@
 
         <port name="motorCommandOut" data_type="CubeRoverPorts::MotorCommand" kind="output" max_number="1"></port>
 
+        <port name="cameraTakePictureOut" data_type="CubeRover::CameraTakePicture" kind="output" max_number="1"></port>
+
         <!-- TODO -->
         <!-- Still need Mode manager port(s)! -->
-        <!-- Still need Camera port(s)! -->
     </ports>
 
     <commands>

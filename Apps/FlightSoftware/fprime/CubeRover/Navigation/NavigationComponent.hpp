@@ -79,13 +79,42 @@ namespace CubeRover {
       // Command handler implementations
       // ----------------------------------------------------------------------
 
-      //! Implementation for Nav_DriveCommand command handler
-      //! Movement command
-      void Nav_DriveCommand_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
+      //! Implementation for Nav_DriveForward command handler
+      //! Forward movement command
+      void Nav_DriveForward_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
                                        const U32 cmdSeq, /*!< The command sequence number*/
-                                       NAV_COMMANDLIST Command, 
-                                       U8 Distance, 
-                                       U8 Speed);
+                                       U8 Distance, /*!< 0x00 - 0x5A meaning 0-30 cm*/
+                                       U8 Speed, /*!< 0x00 - 0x0A meaning 0-10 cm/s*/
+                                       U16 Callback_ID);
+
+      //! Implementation for Nav_DriveBackwards command handler
+      //! Backward movement command
+      void Nav_DriveBackwards_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
+                                         const U32 cmdSeq, /*!< The command sequence number*/
+                                         U8 Distance, /*!< 0x00 - 0x5A meaning 0-30 cm*/
+                                         U8 Speed, /*!< 0x00 - 0x0A meaning 0-10 cm/s*/
+                                         U16 Callback_ID);
+
+      //! Implementation for Nav_RotateRight command handler
+      //! Clockwise rotation command
+      void Nav_RotateRight_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
+                                      const U32 cmdSeq, /*!< The command sequence number*/
+                                      U8 Distance, /*!< 0x00 - 0x5A meaning 0-90 deg*/
+                                      U8 Speed, /*!< 0x00 - 0x0A meaning 0-10 deg/s*/
+                                      U16 Callback_ID);
+
+      //! Implementation for Nav_RotateLeft command handler
+      //! Counter-clockwise rotation command
+      void Nav_RotateLeft_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
+                                     const U32 cmdSeq, /*!< The command sequence number*/
+                                     U8 Distance, /*!< 0x00 - 0x5A meaning 0-90 deg*/
+                                     U8 Speed, /*!< 0x00 - 0x0A meaning 0-10 deg/s*/
+                                     U16 Callback_ID);
+
+      //! Implementation for Nav_StopMovement command handler
+      //! Stops all movement
+      void Nav_StopMovement_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
+                                       const U32 cmdSeq /*!< The command sequence number*/);
     };
 
 } // end namespace CubeRover

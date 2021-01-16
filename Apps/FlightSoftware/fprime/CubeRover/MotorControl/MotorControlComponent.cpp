@@ -181,7 +181,73 @@ namespace CubeRover {
                                                            U8 Distance,
                                                            U8 Speed)
   {
-    // TODO
+    MCError err;
+    switch(command_type)
+    {
+      // We actively want to be moving
+      case MC_DrivingConfiguration:
+        switch(movement_type)
+        {
+          case MC_Forward:
+            err = moveAllMotorsStraight(Distance, Speed);
+            if (err != MC_NO_ERROR)
+            {
+              log_WARNING_HI_MC_MSPNotResponding();
+            }
+            log_COMMAND_MC_moveStarted();
+            break;
+
+          case MC_Backward:
+            err = moveAllMotorsStraight(-Distance, Speed);
+            if (err != MC_NO_ERROR)
+            {
+              log_WARNING_HI_MC_MSPNotResponding();
+            }
+            log_COMMAND_MC_moveStarted();
+            break;
+
+          case MC_Left:
+            err = rotateAllMotors(Distance, Speed);
+            if (err != MC_NO_ERROR)
+            {
+              log_WARNING_HI_MC_MSPNotResponding();
+            }
+            log_COMMAND_MC_moveStarted();
+            break;
+
+          case MC_Right:
+            err = rotateAllMotors(-Distance, Speed);
+            if (err != MC_NO_ERROR)
+            {
+              log_WARNING_HI_MC_MSPNotResponding();
+            }
+            log_COMMAND_MC_moveStarted();
+            break;
+
+          // Stopping the system
+          case MC_Stop:
+            err = moveAllMotorsStraight(0, 0);
+            if (err != MC_NO_ERROR)
+            {
+              log_WARNING_HI_MC_MSPNotResponding();
+            }
+            break;
+
+          // Not a valid option, just leave
+          default;
+            return
+        }
+        break;
+
+      // Constant heartbeat to keep updating ground telemetry
+      case MC_UpdateTelemetry:
+        // Call telemetry function
+        break;
+
+      // Not a valid option, just leave
+      default:
+        return
+    }
   }
 
   // ----------------------------------------------------------------------

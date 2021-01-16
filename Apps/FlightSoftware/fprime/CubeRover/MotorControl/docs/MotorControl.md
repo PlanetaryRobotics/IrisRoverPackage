@@ -30,9 +30,11 @@
 | | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
 | | | |Value|U8|0x00 is On, 0xFF is Off |
 |MC_SetParameter|8 (0x8)|| | |
-| | | |Value|MC_ParameterSelection| Change internal parameters of the module |
+| | | |ParamSelect|MC_ParameterSelection| Change internal parameters of the module |
 | | | |New_Value|U32| The new value to be used in place |
-|MC_GetParameter|9 (0x9)|Returns all current parameters of the module| | |
+|MC_GetParameters|9 (0x9)|Returns all current parameters of the module| | |
+|MC_UpdateTelemetry|16 (0x10)|Forces a telemetry update from the motors| | |
+|MC_SelfTest|153 (0x99)|Runs through a routine to confirms the MSP are functioning properly| | |
 
 ## Telemetry Channel List
 
@@ -61,3 +63,4 @@
 |MC_MSPNotResponding|3 (0x3)|A notification an MSP is not communicating| | | | |
 |MC_MSPNotReporting|4 (0x4)|A notification an MSP is not reporting data| | | | |
 |MC_ParameterChanged|5 (0x5)|A notification that an MC parameter has been modified| | | | |
+|MC_EncoderReset|5 (0x5)|A notification that an MC parameter has been modified| | | | |

@@ -80,7 +80,7 @@ namespace CubeRover {
    */
   void NavigationComponentImpl :: schedIn_handler(const NATIVE_INT_TYPE portNum, NATIVE_UINT_TYPE context)
   {
-    schedOut_out(portNum,context);
+    // TODO
   }
 
   /**
@@ -98,7 +98,6 @@ namespace CubeRover {
    * @brief      Implementation for Motor Control to pass information back to Navigation
    *
    * @param[in]  portNum  The port number
-   * @param[in]  x_acc    Accleration of the X direction returned by the IMU (units of m/s^2)
    */
   void NavigationComponentImpl :: IMUDataIn_handler(const NATIVE_INT_TYPE portNum,
                                                      I16 x_acc,
@@ -111,28 +110,81 @@ namespace CubeRover {
     // TODO
   }
 
-  void NavigationComponentImpl :: Nav_DriveCommand_cmdHandler(const FwOpcodeType opCode,
+  /**
+   * @brief      Implementation for forward driving command
+   *
+   * @param[in]  portNum  The port number
+   */
+  void NavigationComponentImpl :: Nav_DriveForward_cmdHandler(const FwOpcodeType opCode,
                                                               const U32 cmdSeq,
-                                                              NAV_COMMANDLIST Command,
                                                               U8 Distance,
-                                                              U8 Speed)
+                                                              U8 Speed,
+                                                              U16 Callback_ID)
   {
-    switch(Command)
-    {
-      case Forward:
-      break;
-      case Backward:
-      break;
-      case Right:
-      break;
-      case Left:
-      break;
-      case Stop:
-      default:
-      break;
-    }
+    motorCommandOut_out(0,MC_DrivingConfiguration, MC_Forward, Distance, Speed);
+        NATIVE_INT_TYPE portNum, /*!< The port number*/
+        CubeRoverPorts::MC_CommandType command_type, /*!<  Selector for which command should be called */
+        CubeRoverPorts::MC_MovementType movement_type, /*!<  Selector how movement should be interpreted */
+        U8 Distance, 
+        U8 Speed 
 
+    // TODO
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
 
+  /**
+   * @brief      Implementation for backward driving command
+   *
+   * @param[in]  portNum  The port number
+   */
+  void NavigationComponentImpl :: Nav_DriveBackwards_cmdHandler(const FwOpcodeType opCode,
+                                                                const U32 cmdSeq,
+                                                                U8 Distance,
+                                                                U8 Speed,
+                                                                U16 Callback_ID)
+  {
+    // TODO
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  /**
+   * @brief      Implementation for clockwise rotating command
+   *
+   * @param[in]  portNum  The port number
+   */
+  void NavigationComponentImpl :: Nav_RotateRight_cmdHandler(const FwOpcodeType opCode,
+                                                             const U32 cmdSeq,
+                                                             U8 Distance,
+                                                             U8 Speed,
+                                                             U16 Callback_ID)
+  {
+    // TODO
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  /**
+   * @brief      Implementation for counter-clockwise rotating command
+   *
+   * @param[in]  portNum  The port number
+   */
+  void NavigationComponentImpl :: Nav_RotateLeft_cmdHandler(const FwOpcodeType opCode,
+                                                            const U32 cmdSeq,
+                                                            U8 Distance,
+                                                            U8 Speed,
+                                                            U16 Callback_ID)
+  {
+    // TODO
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  /**
+   * @brief      Implementation for stopping moving command
+   *
+   * @param[in]  portNum  The port number
+   */
+  void NavigationComponentImpl :: Nav_StopMovement_cmdHandler(const FwOpcodeType opCode,
+                                                              const U32 cmdSeq)
+  {
     // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }

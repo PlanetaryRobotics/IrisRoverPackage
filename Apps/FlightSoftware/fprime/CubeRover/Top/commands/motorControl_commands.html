@@ -44,79 +44,155 @@ html {
 	<tbody>
 
 		<tr style = "border: 2px solid black;">
-			<td rowspan="4">MC_MotorConfiguration</td>
-			<td rowspan="4">3584 (0xe00)</td>
-			<td rowspan="4"></td>
+			<td rowspan="3">MC_Current_PID</td>
+			<td rowspan="3">3584 (0xe00)</td>
+			<td rowspan="3"></td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
 						<td>Motor_ID</td>
 						<td>U8</td>
 						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
 					</tr>
-					<tr style = "border-right: 2px solid black;">
-						<td>MotorParameter</td>
-						<td>MP_CommandList</td>
-						<td></td>
-					</tr>
 					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>Value</td>
+						<td>PI_Values</td>
 						<td>U32</td>
 						<td></td>
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="4">MC_DrivingConfiguration</td>
-			<td rowspan="4">3585 (0xe01)</td>
-			<td rowspan="4">Configure movement command</td>
+			<td rowspan="3">MC_Speed_PID</td>
+			<td rowspan="3">3585 (0xe01)</td>
+			<td rowspan="3"></td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>CommandConfiguration</td>
-						<td>CC_CommandList</td>
+						<td>Motor_ID</td>
+						<td>U8</td>
+						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>PID_Values</td>
+						<td>U64</td>
 						<td></td>
 					</tr>
-					<tr style = "border-right: 2px solid black;">
-						<td>Parameter</td>
-						<td>ParameterList</td>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">MC_Position_PID</td>
+			<td rowspan="3">3586 (0xe02)</td>
+			<td rowspan="3"></td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>Motor_ID</td>
+						<td>U8</td>
+						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>PID_Values</td>
+						<td>U64</td>
 						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">MC_Acceleration</td>
+			<td rowspan="3">3587 (0xe03)</td>
+			<td rowspan="3"></td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>Motor_ID</td>
+						<td>U8</td>
+						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>Rate_Values</td>
+						<td>U32</td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">MC_StallDetection</td>
+			<td rowspan="3">3588 (0xe04)</td>
+			<td rowspan="3"></td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>Motor_ID</td>
+						<td>U8</td>
+						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
 					</tr>
 					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
 						<td>Value</td>
 						<td>U8</td>
-						<td></td>
+						<td>0x00 is disabled, 0xFF is enabled </td>
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="2">MC_ExecuteDriving</td>
-			<td rowspan="2">3586 (0xe02)</td>
-			<td rowspan="2">Execute one configured command</td>
+			<td rowspan="2">MC_ResetPosition</td>
+			<td rowspan="2">3589 (0xe05)</td>
+			<td rowspan="2"></td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
-						<td>DrivingCommand</td>
-						<td>DriveCommandList</td>
-						<td></td>
+						<td>Motor_ID</td>
+						<td>U8</td>
+						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="2">MC_StallDetection</td>
-			<td rowspan="2">3587 (0xe03)</td>
-			<td rowspan="2">Enable / disable detection of motor stall</td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
-						<td>motorStallEnable</td>
-						<td>motorStallEnableList</td>
-						<td></td>
+			<td rowspan="3">MC_Spin</td>
+			<td rowspan="3">3590 (0xe06)</td>
+			<td rowspan="3"></td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>Motor_ID</td>
+						<td>U8</td>
+						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
 					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="2">MC_PositionCounterReset</td>
-			<td rowspan="2">3588 (0xe04)</td>
-			<td rowspan="2">Reset the position counter of specific motor(s)</td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
-						<td>ResetPositionCounter</td>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>Spin_Type</td>
 						<td>U8</td>
 						<td></td>
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
+			<td rowspan="3">MC_PowerBoost</td>
+			<td rowspan="3">3591 (0xe07)</td>
+			<td rowspan="3"></td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>Motor_ID</td>
+						<td>U8</td>
+						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>Value</td>
+						<td>U8</td>
+						<td>0x00 is On, 0xFF is Off </td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">MC_SetParameter</td>
+			<td rowspan="3">3592 (0xe08)</td>
+			<td rowspan="3"></td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>ParamSelect</td>
+						<td>MC_ParameterSelection</td>
+						<td> Change internal parameters of the module </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>New_Value</td>
+						<td>U32</td>
+						<td> The new value to be used in place </td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">MC_GetParameters</td>
+			<td rowspan="1">3593 (0xe09)</td>
+			<td rowspan="1">Returns all current parameters of the module</td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+		<tr style = "border: 2px solid black;">
 			<td rowspan="1">MC_UpdateTelemetry</td>
-			<td rowspan="1">3589 (0xe05)</td>
-			<td rowspan="1">Requests an update from each of the motor controllers</td>
+			<td rowspan="1">3600 (0xe10)</td>
+			<td rowspan="1">Forces a telemetry update from the motors</td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">MC_SelfTest</td>
+			<td rowspan="1">3737 (0xe99)</td>
+			<td rowspan="1">Runs through a routine to confirms the MSP are functioning properly</td>
 				<td></td>
 				<td></td>
 				<td></td>

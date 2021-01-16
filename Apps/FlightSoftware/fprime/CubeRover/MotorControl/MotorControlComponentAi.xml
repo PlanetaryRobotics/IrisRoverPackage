@@ -185,7 +185,7 @@
           <comment> A notification that an MC parameter has been modified </comment>
     </event>
 
-    <event id="5" name="MC_EncoderReset" severity="COMMAND" format_string="A Motor encoder count has been reset">
+    <event id="6" name="MC_EncoderReset" severity="COMMAND" format_string="A Motor encoder count has been reset">
           <comment> A notification that an MC parameter has been modified </comment>
     </event>
   </events>

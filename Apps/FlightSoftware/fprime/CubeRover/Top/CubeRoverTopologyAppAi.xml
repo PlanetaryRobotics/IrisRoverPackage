@@ -116,6 +116,16 @@
     <target component = "watchDogInterface" port = "Run" type = "Sched" num = "0"/>
   </connection>
 
+  <connection name="rgMedFreq_to_networkManager">
+    <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
+    <target component="networkManager" port="schedIn" type="sched" num="0"/>
+  </connection>
+  
+  <connection name = "rgMedFreq_to_navigation_clk">
+    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <target component = "navigation" port = "schedIn" type = "Sched" num = "0"/>
+  </connection>
+
 <!-- *********************************************************************************************************
         CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
      *********************************************************************************************************
@@ -125,17 +135,6 @@
     <source component = "rateGroupHighFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
     <target component = "health" port = "Run" type = "Sched" num = "0"/>
   </connection>
-
-  <connection name="rgMedFreq_to_networkManager">
-    <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
-    <target component="networkManager" port="schedIn" type="sched" num="0"/>
-  </connection>
-
-<!-- Motor Control Testing
-  <connection name="rgMedFreq_to_motorControl">
-    <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
-    <target component="motorControl" port="schedIn" type="sched" num="0"/>
-  </connection> -->
 
 <!-- *********************************************************************************************************
         CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
@@ -275,7 +274,7 @@
       
 
 <!-- *********************************************************************************************************
-        CONNECTION OF INTERCONNECTED COMPONENTS
+        CONNECTION OF NAVIGATION RELATED COMPONENTS
      ********************************************************************************************************* 
       -->
 
@@ -392,6 +391,11 @@
     <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
   </connection>
   
+  <connection name = "navigationCmdReg_to_cmdDispatcher">
+    <source component = "navigation" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
+  </connection>
+  
   <!-- *********************************************************************************************************
         CONNECTION OF COMMAND DISPATCH PORTS
        ********************************************************************************************************* 
@@ -413,6 +417,11 @@
     <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
     <target component = "camera" port = "CmdDisp" type = "Cmd" num = "0" />
   </connection>
+  
+  <connection name = "cmdDispatcherSendCmd_to_navigationCmdDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
+    <target component = "navigation" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
 
   <!-- *********************************************************************************************************
         CONNECTION OF COMMAND RESPONSE PORTS
@@ -433,6 +442,11 @@
   
   <connection name = "cameraCmdStatus_to_cmdDispatcher_CmdStatus">
     <source component = "camera" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+  
+  <connection name = "navigationCmdStatus_to_cmdDispatcher_CmdStatus">
+    <source component = "navigation" port = "CmdStatus" type = "CmdResponse" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
   </connection>
 

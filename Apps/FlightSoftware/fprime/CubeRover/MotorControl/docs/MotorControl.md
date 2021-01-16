@@ -63,4 +63,4 @@
 |MC_MSPNotResponding|3 (0x3)|A notification an MSP is not communicating| | | | |
 |MC_MSPNotReporting|4 (0x4)|A notification an MSP is not reporting data| | | | |
 |MC_ParameterChanged|5 (0x5)|A notification that an MC parameter has been modified| | | | |
-|MC_EncoderReset|5 (0x5)|A notification that an MC parameter has been modified| | | | |
+|MC_EncoderReset|6 (0x6)|A notification that an MC parameter has been modified| | | | |

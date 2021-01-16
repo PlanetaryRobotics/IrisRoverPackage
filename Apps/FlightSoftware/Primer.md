@@ -215,11 +215,11 @@ The two separate bitfield structs required for these two commands should then be
 struct Command_Configure_Camera0_Arg_config {
     uint8_t compression : 2;
     uint32_t shutter_width : 20;
-    uint32_t shutter_delay : 13;
+    uint16_t shutter_delay : 13;
     uint8_t row_bin : 2;
     uint8_t col_bin : 2;
-    uint8_t horiz_blanking : 12;
-    uint8_t vert_blanking : 11;
+    uint16_t horiz_blanking : 12;
+    uint16_t vert_blanking : 11;
     uint8_t reserved : 2; // pad up to U64 (arg type)
 } __attribute__((packed));
 

@@ -149,7 +149,7 @@ Note that time base and time context are only serialized if `FW_USE_TIME_BASE` o
 
 
 ## Bitfield Standards
-An aside on how Ground Software expects the standards for bitfields to be defined. Reach out to Connor Colombo (`colombo@cmu.edu`) with any questions.
+An aside on how Ground Software expects the standards for bitfields to be defined. Reach out to Connor Colombo (`colombo@cmu.edu`, `@connor_colombo`) with any questions.
 
 ### Specifics
 Each **component** which expects a bitfield as a command argument (eg. `Configure_Camera0` command) or telemetry which returns a bitfield must include the structs which define how those bitfields are structured in a file in the component's directory (eg. in `fprime/CubeRover/Camera` for the Camera component). If not such file is present, all it will be assumed no bitfields are required and all command arguments will be populated using their raw types (eg. `U64`).

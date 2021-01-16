@@ -12,9 +12,10 @@
 #define MAX_NUMBER_CHANNEL_PER_NETWORK  11
 #define MAX_SORTING_LIST_SIZE           5
 
-#define RX_RING_BUFFER_SIZE              MAX_SIZE_PAYLOAD
+#define RX_RING_BUFFER_SIZE             UDP_MAX_PAYLOAD + sizeof(Wf121::DataSize16)
 
-#define MAX_FSM_NO_TRANSITION_COUNT 1024000000            // TODO: TUNE ME
+// On average it takes ~250000 cycles to conenct to the accesspoint, we provide 3x the time to connect
+#define MAX_FSM_NO_TRANSITION_COUNT     7500000
 
 namespace CubeRoverNetworkManager {
 
@@ -61,6 +62,9 @@ typedef enum CubeRoverSignalLevels{
 
 typedef void(*NetworkManagerUserCbFunctionPtr)(void);
 
+// Circular buffer for received UDP data
+// As UDP datagrams are received thir data is written to the ring buffer with a DataSize16 size first
+// followed by the the datagram payload
 uint8_t g_rxRingBuffer[RX_RING_BUFFER_SIZE];
 
 class CubeRoverNetworkManager : public Wf121::Wf121Driver{

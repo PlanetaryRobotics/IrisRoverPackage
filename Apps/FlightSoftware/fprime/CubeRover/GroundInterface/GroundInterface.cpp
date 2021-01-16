@@ -189,7 +189,7 @@ namespace CubeRover {
     
     m_cmdsUplinked++;
     log_ACTIVITY_HI_GI_CommandReceived(packet->header.seq, packet->header.length);
-    Fw::ComBuffer command(reinterpret_cast<uint8_t *>(packet), packet->header.length);
+    Fw::ComBuffer command(reinterpret_cast<uint8_t *>(&packet->payload0.command), packet->header.length - sizeof(FswPacket::FswPacketHeader));
     m_cmdsSent++;
     
     // TODO: Any parsing or decoding required?

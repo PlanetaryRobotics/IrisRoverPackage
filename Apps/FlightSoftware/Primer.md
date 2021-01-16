@@ -147,3 +147,88 @@ Note that time base and time context are only serialized if `FW_USE_TIME_BASE` o
 - The component is connected to CmdDispatcher `compCmdStat` port of type `CmdResponse`
 - TODO: Log connections
 
+
+## Bitfield Standards
+An aside on how Ground Software expects the standards for bitfields to be defined. Reach out to Connor Colombo (`colombo@cmu.edu`) with any questions.
+
+### Specifics
+Each **component** which expects a bitfield as a command argument (eg. `Configure_Camera0` command) or telemetry which returns a bitfield must include the structs which define how those bitfields are structured in a file in the component's directory (eg. in `fprime/CubeRover/Camera` for the Camera component). If not such file is present, all it will be assumed no bitfields are required and all command arguments will be populated using their raw types (eg. `U64`).
+
+### Requirements and Naming Conventions:
+- All bitfields for a component must be contained in a single file called `{ComponentName}_Bitfields.hpp` which contains only structs in the component's directory. Eg: `fprime/CubeRover/Camera/Camera_Bitfields.hpp` for the Camera component.
+- All structs should be packed.
+- All structs should be named `Command_{mnemonic}_Arg_{name}` where `mnemonic` is the command's mnemonic from the defining XML file and `name` is the argument's name from the XML file.
+
+**Note:** The expected fields for all bitfield structs are listed in C&TL but the official source of truth shared by both FSW and GSW will be these bitfield definition files; so, name your struct fields reasonably since these will be the names that show up on the frontend (though reformatted to be human readable).
+
+### Example
+This example should clarify all bitfield requirements
+
+The modified and abbreviated `Camera` component shown below has two commands `Configure_Camera0` and `Camera0_Crop` which require bitfield arguments. Each of these commands has one bitfield argument called `config`, though `Configure_Camera0` has two arguments in total. This is all defined in the XML file `fprime/CubeRover/Camera/CameraComponentAi.xml` as follows.
+```
+<component name="Camera" kind="passive" namespace="CubeRover">
+    ...
+    <commands>
+        ...
+        <command kind="sync" opcode="0x3" mnemonic="Configure_Camera0">
+            <comment>
+                Configure camera 0
+            </comment>
+            <args>
+                <arg name="somethingElse" type="U8">
+                    <comment>
+                        Some other normal non-bitfield U8 argument. This is here to illustrate why the arg must
+                    </comment>
+                </arg>
+                <arg name="config" type="U64">
+                    <comment>
+                        Packed bitfield containing camera configurations. Defined in Camera bitfield definition file.
+                    </comment>
+                </arg>
+            </args>
+        </command>
+        <command kind="sync" opcode="0x4" mnemonic="Camera0_Crop">
+            <comment>
+                Defines the crop for camera 0
+            </comment>
+            <args>
+                <arg name="config" type="U64">
+                    <comment>
+                        Packed bitfield containing crop locations. Defined in Camera bitfield definition file.
+                    </comment>
+                </arg>
+            </args>
+        </command>
+        ...
+    </commands>
+    ...
+</component>
+
+```
+
+The two separate bitfield structs required for these two commands should then be defined in `fprime/CubeRover/Camera/Camera_Bitfields.hpp` and formatted as shown below.
+```
+...
+# include guards, imports, etc.
+# but no non-struct Cpp code in this file
+...
+struct Command_Configure_Camera0_Arg_config {
+    uint8_t compression : 2;
+    uint32_t shutter_width : 20;
+    uint32_t shutter_delay : 13;
+    uint8_t row_bin : 2;
+    uint8_t col_bin : 2;
+    uint8_t horiz_blanking : 12;
+    uint8_t vert_blanking : 11;
+    uint8_t reserved : 2; // pad up to U64 (arg type)
+} __attribute__((packed));
+
+struct Command_Camera0_Crop_Arg_config {
+    uint32_t upperLeftX : 12;
+    uint32_t upperLeftY : 11;
+    uint32_t height : 12;
+    uint32_t width : 11;
+    uint32_t reserved : 18; // pad up to U64 (arg type)
+} __attribute__((packed));
+...
+```

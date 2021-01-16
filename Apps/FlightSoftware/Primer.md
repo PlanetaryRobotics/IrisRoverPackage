@@ -156,16 +156,58 @@ Each **component** which expects a bitfield as a command argument (eg. `Configur
 
 ### Requirements and Naming Conventions:
 - All bitfields for a component must be contained in a single file called `{ComponentName}_Bitfields.hpp` which contains only structs in the component's directory. Eg: `fprime/CubeRover/Camera/Camera_Bitfields.hpp` for the Camera component.
-- All structs should be packed.
 - All structs should be named `Command_{mnemonic}_Arg_{name}` where `mnemonic` is the command's mnemonic from the defining XML file and `name` is the argument's name from the XML file.
+- All structs should be packed.
 
 **Note:** The expected fields for all bitfield structs are listed in C&TL but the official source of truth shared by both FSW and GSW will be these bitfield definition files; so, name your struct fields reasonably since these will be the names that show up on the frontend (though reformatted to be human readable).
+
+### Important Notes on Bitfield Packing:
+
+#### Requirements:
+Below are the base requirements when writing a bitfield struct to ensure consistency between GSW and FSW. If you're looking for the rationale, see the next section for all platform-specific details of the handling of packed structs containing bitfields.
+- Declare the signing of each struct field (especially if signed). Don't just use **int**.
+- **No floats** or doubles inside bitfield structs.
+- **No 64b types** inside bitfield structs (no `long long` or `double`).
+- Ensure the total size of the struct is an **integer multiple of the size of a storage-unit** (4-bytes), eg. 32b, 64b, 96b, etc.
+- **Use padding bits at the end** of the struct to fill out the struct so that it contains the same number of bits as an integer multiple of the storage-unit (see above).
+- 
+
+The specifics for the layout of bitfield structures in memory is highly platform and compiler specific. As such, GSW will be sure to pack data in accordance with the FSW compiler. For Hercules, TI CCS uses the `TI ARM Optimizing C/C++ Compiler` and has the `--unaligned_access` flag on and supports the `__packed__` attribute. The implications of this are that for a packed structure:
+From **ARM Optimizing C/C++ Compiler
+v18.1.0.LTS User Guide (TI SPNU151R)**:
+- Additional bytes of padding usually added to preserve word-alignment are omitted (one byte sequence begins right after the previous). That is members are byte-aligned, not word-aligned.
+- Bitfields inside a packed structure are **bitaligned** and **there are no bits of padding between adjacent bitfields**. However, non-bitfield members will still start on the next byte.
+- Packed structures in an array are packed together without and trailing padding between them.
+
+- Bitfields can range from 1 to 32 bits.
+- Multiple bitfields can be stored within the same byte.
+- **BUT** Bitfields can **never span across a 4-byte storage-unit boundary**.
+- Storage unit counting starts at the beginning of a struct *unless* the struct is __packed__ and stored in an array of other __packed__ structs, in which case it's possible for a struct to not start at the beginning of a storage-unit if the previous struct in the array didn't end at the end of a storage unit boundary.
+
+- In little-endian mode (Hercules), bitfields are packed into registers from **LSBit to MSBit in the order they're defined**.
+- In little-endian mode (Hercules), bitfields are packed into memory from LSbyte to MSbyte.
+- **Always indicate signing**. In a bitfield just using `int` will be interpreted as `unsigned int` unless you explictly state `signed int`
+
+
+From **Arm Compiler armcc User Guide**:
+- Bits fill so that the first field occupies the lowest-addressed bits. Remember: Hercules is little-endian (lowest-addressed = least-significant).
+
+- Bitfields fill up word-sized containers and only fill inside the same container if there's enough space.
+- Bitfields will not span from one partially-filled word-sized container to another.
+- ... but bitfields may span from one partially-filled byte to another.
+
+- Bitfields are stored inside 'containers'.
+- A bitfield must be wholly stored inside its container and not span between containers.
+- A bitfield that does not fit in a container is placed in the next container **of the same type**.
+
+This information comes from the [ARM Optimizing C/C++ Compiler
+v18.1.0.LTS User Guide (TI SPNU151R)](https://www.ti.com/lit/ug/spnu151r/spnu151r.pdf) (Section **5.16.4 Type Attributes** and Section **6.2.2 Bit Fields**) and the [Arm Compiler armcc User Guide section on Structures, unions, enumerations, and bitfields in ARM C and C++](https://developer.arm.com/documentation/dui0472/m/c-and-c---implementation-details/structures--unions--enumerations--and-bitfields-in-arm-c-and-c--) to clear up any ambiguities (though, there's not a 100% guarantee that TI didn't change any of this in their implementation; so, check any of these assumptions).
 
 ### Example
 This example should clarify all bitfield requirements
 
 The modified and abbreviated `Camera` component shown below has two commands `Configure_Camera0` and `Camera0_Crop` which require bitfield arguments. Each of these commands has one bitfield argument called `config`, though `Configure_Camera0` has two arguments in total. This is all defined in the XML file `fprime/CubeRover/Camera/CameraComponentAi.xml` as follows.
-```
+```xml
 <component name="Camera" kind="passive" namespace="CubeRover">
     ...
     <commands>
@@ -207,21 +249,23 @@ The modified and abbreviated `Camera` component shown below has two commands `Co
 ```
 
 The two separate bitfield structs required for these two commands should then be defined in `fprime/CubeRover/Camera/Camera_Bitfields.hpp` and formatted as shown below.
-```
+```cpp
 ...
-# include guards, imports, etc.
-# but no non-struct Cpp code in this file
+// include guards, includes, etc.
+// but no non-struct Cpp code in this file
 ...
 struct Command_Configure_Camera0_Arg_config {
     uint8_t compression : 2;
+    uint8_t :6; // pad out the byte
     uint32_t shutter_width : 20;
+
     uint16_t shutter_delay : 13;
     uint8_t row_bin : 2;
     uint8_t col_bin : 2;
     uint16_t horiz_blanking : 12;
     uint16_t vert_blanking : 11;
     uint8_t reserved : 2; // pad up to U64 (arg type)
-} __attribute__((packed));
+} __attribute__((__packed__));
 
 struct Command_Camera0_Crop_Arg_config {
     uint32_t upperLeftX : 12;
@@ -229,6 +273,6 @@ struct Command_Camera0_Crop_Arg_config {
     uint32_t height : 12;
     uint32_t width : 11;
     uint32_t reserved : 18; // pad up to U64 (arg type)
-} __attribute__((packed));
+} __attribute__((__packed__));
 ...
 ```

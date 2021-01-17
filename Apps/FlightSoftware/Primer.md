@@ -333,10 +333,7 @@ struct Command_Camera0_Crop_Arg_config {
 
     unsigned height : 12;
     unsigned width : 11;
-    unsigned : 9; // pad out the rest of the storage-unit since the next field's 11b won't fit in it
-
-    unsigned reserved : 18; // pad up to U64 (arg type)
-    unsigned : 14; // pad out the rest of the storage-unit and bring pad up to char[12] (arg type)
+    unsigned : 9; // pad out the rest of the storage-unit and bring pad up to U64 (arg type)
 } __attribute__((__packed__));
 ...
 ```

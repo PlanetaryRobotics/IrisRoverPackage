@@ -72,4 +72,8 @@
 #define MOTOR_GEAR_BOX_REDUCTION				5.0f
 #define MAX_SPIN_DISTANCE								0x7FFFFFF
 
+#define NAV_MOVE_BUFFER_LIMIT           5
+#define NAV_LOW_RES_SIZE                5
+#define NAV_MED_RES_SIZE                10
+
 #endif /* INCLUDE_CUBEROVERCONFIG_HPP_ */

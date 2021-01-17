@@ -1,8 +1,8 @@
-<interface name="WatchdogReset" namespace="CubeRoverPorts">
+<interface name="WatchdogCommand" namespace="CubeRoverPorts">
     <comment>
-    Port to trigger a reset
+    Port to trigger a reset/power off/on
     </comment>
     <args>
-        <arg name="Reset_value" type="U8" />
+        <arg name="Command_value" type="U8" />
     </args>
 </interface>

@@ -18,6 +18,8 @@
             <item name="MC_Left" />
             <item name="MC_Right" />
             <item name="MC_Stop" />
+            <item name="MC_NONE" />
+            <item name="MC_INTERRUPTED" />
           </enum>
           <comment> Selector how movement should be interpreted </comment>
         </arg> 

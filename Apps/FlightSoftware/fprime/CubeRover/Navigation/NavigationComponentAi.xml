@@ -131,6 +131,14 @@
         <event id="4" name="MC_MSPNotReporting" severity="WARNING_HI" format_string="Motor controller not communicating requested data">
             <comment> A notification an MSP is not reporting data </comment>
         </event>
+
+        <event id="5" name="MC_moveInterrupted" severity="COMMAND" format_string="A move has been interrupted">
+            <comment> A notification a move has been interrupted </comment>
+        </event>
+
+        <event id="6" name="MC_moveQueueLimit" severity="WARNING_HI" format_string="The latest move would overwrite a move not completed">
+            <comment> A notification a move was not placed on the move queue </comment>
+        </event>
     </events>
 
     <!-- TELEMETRY -->

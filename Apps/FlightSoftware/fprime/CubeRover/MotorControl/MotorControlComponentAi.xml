@@ -49,7 +49,7 @@
     <port name="motorCommandIn" data_type="CubeRoverPorts::MotorCommand" kind="sync_input" max_number="1"></port>
 
     <!-- Watchdog Reset port -->
-    <port name="WatchdogResetOut" data_type="CubeRoverPorts::WatchdogReset" kind="output" max_number="1"></port>
+    <port name="WatchdogCommandOut" data_type="CubeRoverPorts::WatchdogCommand" kind="output" max_number="1"></port>
 
   </ports>
 

@@ -223,7 +223,7 @@ struct recommended_spacing_example {
     // Storage-unit 2:
     unsigned c : 12;
     unsigned d : 20;
-    unsigned : 0; // start a new storage unit (going to happen anyway here b/c the size is storage-unit is filled, but good practice to make it explicit)
+    unsigned : 0; // start a new storage unit (going to happen anyway here b/c the storage-unit is filled, but good practice to make it explicit)
 } __attribute__((__packed__));
 ```
 

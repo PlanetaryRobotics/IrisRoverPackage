@@ -400,14 +400,7 @@
     <source component = "watchDogInterface" port = "Log" type = "Log" num = "0" />
     <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
   </connection>
-
-<<<<<<< HEAD
-  <connection name = "watchDogInterface_to_aLogger">
-    <source component = "watchDogInterface" port = "Log" type = "Log" num = "0" />
-    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
-  </connection>
-
-=======
+  
   <connection name = "health_to_aLogger">
     <source component = "health" port = "Log" type = "Log" num = "0" />
     <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />

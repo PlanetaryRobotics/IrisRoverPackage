@@ -337,3 +337,17 @@ struct Command_Camera0_Crop_Arg_config {
 } __attribute__((__packed__));
 ...
 ```
+
+Test:
+```cpp
+struct size_test_16 {
+    uint16_t a : 16;
+    uint16_t b : 16;
+} st16 __attribute__((__packed__));
+assert(sizeof(st16)==4);
+struct size_test_32 {
+    uint32_t a : 16;
+    uint32_t b : 16;
+} st32 __attribute__((__packed__));
+assert(sizeof(st16)==4);
+```

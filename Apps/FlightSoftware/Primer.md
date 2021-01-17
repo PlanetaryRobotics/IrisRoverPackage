@@ -318,9 +318,9 @@ struct Command_Configure_Camera0_Arg_config {
     uint32_t shutter_width : 20;
     uint32_t : 6; // pad out the rest of the storage-unit since the next field's 13b won't fit in it
 
-    uint32_t shutter_delay : 13;
-    uint32_t horiz_blanking : 12;
-    uint32_t : 7; // pad out the rest of the storage-unit since the next field's 11b won't fit in it
+    uint16_t shutter_delay : 13;
+    uint16_t horiz_blanking : 12;
+    uint16_t : 7; // pad out the rest of the storage-unit since the next field's 11b won't fit in it
 
     uint32_t vert_blanking : 11;
     uint32_t : 21; // pad out the rest of the storage-unit and bring pad up to char[12] (arg type)

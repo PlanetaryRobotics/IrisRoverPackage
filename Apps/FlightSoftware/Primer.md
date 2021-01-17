@@ -163,16 +163,34 @@ Each **component** which expects a bitfield as a command argument (eg. `Configur
 
 ### Important Notes on Bitfield Packing:
 
+The specifics for the layout of bitfield structures in memory is highly platform and compiler specific. As such, GSW will be sure to pack data in accordance with the FSW compiler.
+
 #### Requirements:
-Below are the base requirements when writing a bitfield struct to ensure consistency between GSW and FSW. If you're looking for the rationale, see the next section for all platform-specific details of the handling of packed structs containing bitfields.
+Below are the base requirements when writing a bitfield struct to ensure consistency between GSW and FSW. If you're looking for the rationale, see the next section for all platform-specific details on the handling of packed structs containing bitfields.
 - Declare the signing of each struct field (especially if signed). Don't just use **int**.
 - **No floats** or doubles inside bitfield structs.
 - **No 64b types** inside bitfield structs (no `long long` or `double`).
 - Ensure the total size of the struct is an **integer multiple of the size of a storage-unit** (4-bytes), eg. 32b, 64b, 96b, etc.
 - **Use padding bits at the end** of the struct to fill out the struct so that it contains the same number of bits as an integer multiple of the storage-unit (see above).
-- 
+- **Explicitly pad out every storage-unit** For example, consider the following struct:
+```cpp
+struct padding_example {
+    uint32_t a : 10;
+    uint32_t b : 10;
+    uint32_t : 2; // pad out the storage-unit
+    uint32_t c : 8;
+    uint32_t : 24; // bring the size up from 40b to a storage-unit multiple (2*32b = 64b).
+} __attribute__((__packed__))
+```
+Members `a` and `b` in this struct fill 20 bytes of the first storage-unit. Since the next field `c` is 8b and can't fit into the remaining 2b of the first storage unit, the first storage unit must be padded off. Likewise, once the last member `c` is added, the struct is only 40b in size and must receive 24b of padding to bring it up to a storage-unit multiple (64b).
 
-The specifics for the layout of bitfield structures in memory is highly platform and compiler specific. As such, GSW will be sure to pack data in accordance with the FSW compiler. For Hercules, TI CCS uses the `TI ARM Optimizing C/C++ Compiler` and has the `--unaligned_access` flag on and supports the `__packed__` attribute. The implications of this are that for a packed structure:
+
+#### Rationale:
+Since the handling of packed structs containing bitfields is highly platform specific, the following information details the specifics of how the TI ARM C++ compiler handles them and comes from the [ARM Optimizing C/C++ Compiler
+v18.1.0.LTS User Guide (TI SPNU151R)](https://www.ti.com/lit/ug/spnu151r/spnu151r.pdf) (Section **5.16.4 Type Attributes** and Section **6.2.2 Bit Fields**) with some information also borrowed from the [Arm Compiler armcc User Guide section on Structures, unions, enumerations, and bitfields in ARM C and C++](https://developer.arm.com/documentation/dui0472/m/c-and-c---implementation-details/structures--unions--enumerations--and-bitfields-in-arm-c-and-c--) to clear up any ambiguities in the TI spec (though, there's not a 100% guarantee that TI didn't change any of this in their implementation; so, check any of the assumptions which come from `armcc`).
+
+For Hercules, TI CCS uses the `TI ARM Optimizing C/C++ Compiler` and has the `--unaligned_access` flag on and supports the `__packed__` attribute. The implications of this are that for a packed structure:
+
 From **ARM Optimizing C/C++ Compiler
 v18.1.0.LTS User Guide (TI SPNU151R)**:
 - Additional bytes of padding usually added to preserve word-alignment are omitted (one byte sequence begins right after the previous). That is members are byte-aligned, not word-aligned.
@@ -200,11 +218,8 @@ From **Arm Compiler armcc User Guide**:
 - A bitfield must be wholly stored inside its container and not span between containers.
 - A bitfield that does not fit in a container is placed in the next container **of the same type**.
 
-This information comes from the [ARM Optimizing C/C++ Compiler
-v18.1.0.LTS User Guide (TI SPNU151R)](https://www.ti.com/lit/ug/spnu151r/spnu151r.pdf) (Section **5.16.4 Type Attributes** and Section **6.2.2 Bit Fields**) and the [Arm Compiler armcc User Guide section on Structures, unions, enumerations, and bitfields in ARM C and C++](https://developer.arm.com/documentation/dui0472/m/c-and-c---implementation-details/structures--unions--enumerations--and-bitfields-in-arm-c-and-c--) to clear up any ambiguities (though, there's not a 100% guarantee that TI didn't change any of this in their implementation; so, check any of these assumptions).
-
 ### Example
-This example should clarify all bitfield requirements
+This example should clarify all bitfield requirements.
 
 The modified and abbreviated `Camera` component shown below has two commands `Configure_Camera0` and `Camera0_Crop` which require bitfield arguments. Each of these commands has one bitfield argument called `config`, though `Configure_Camera0` has two arguments in total. This is all defined in the XML file `fprime/CubeRover/Camera/CameraComponentAi.xml` as follows.
 ```xml
@@ -255,15 +270,16 @@ The two separate bitfield structs required for these two commands should then be
 // but no non-struct Cpp code in this file
 ...
 struct Command_Configure_Camera0_Arg_config {
-    uint8_t compression : 2;
-    uint8_t :6; // pad out the byte
+    uint32_t compression : 2;
     uint32_t shutter_width : 20;
+    uint32_t : 10; // pad out the rest of the storage unit since the next field's 13b won't fit in it
 
     uint16_t shutter_delay : 13;
-    uint8_t row_bin : 2;
-    uint8_t col_bin : 2;
-    uint16_t horiz_blanking : 12;
-    uint16_t vert_blanking : 11;
+    uint16_t row_bin : 2;
+    uint16_t : 1; // pad out the rest of this uint16_t container
+    uint32_t col_bin : 2;
+    uint32_t horiz_blanking : 12;
+    uint32_t vert_blanking : 11;
     uint8_t reserved : 2; // pad up to U64 (arg type)
 } __attribute__((__packed__));
 

@@ -18,11 +18,11 @@
     <!-- PORTS -->
     <ports>
         <!-- Command ports -->
-        <port name="cmdIn" data_type="Fw::Cmd" kind="async_input"  max_number="1" role="Cmd"></port>
+        <port name="CmdDisp" data_type="Fw::Cmd" kind="async_input"  max_number="1" role="Cmd"></port>
 
-        <port name="cmdRegOut" data_type="Fw::CmdReg" kind="output" max_number="1" role="CmdRegistration"></port>
+        <port name="CmdReg" data_type="Fw::CmdReg" kind="output" max_number="1" role="CmdRegistration"></port>
 
-        <port name="cmdResponseOut" data_type="Fw::CmdResponse" kind="output" max_number="1" role="CmdResponse"></port>
+        <port name="CmdStatus" data_type="Fw::CmdResponse" kind="output" max_number="1" role="CmdResponse"></port>
 
         <!-- Logging and telemetry ports -->
         <port name="log" data_type="Fw::Log" kind="output"  max_number="1" role="LogEvent"></port>
@@ -112,31 +112,11 @@
 
     <!-- EVENTS -->
     <events>
-        <event id="0" name="MC_moveStarted" severity="COMMAND" format_string="Move sequence has started">
-            <comment> A notification a move sequence has started </comment>
-        </event>
-
-        <event id="1" name="MC_moveComplete" severity="COMMAND" format_string="Move sequence has finished">
-            <comment> A notification a move sequence has finished </comment>
-        </event>
-
-        <event id="2" name="MC_MSPFaultDetected" severity="WARNING_HI" format_string="Motor controller has detected a fault">
-            <comment> A notification an MSP has thrown a fault </comment>
-        </event>
-
-        <event id="3" name="MC_MSPNotResponding" severity="WARNING_HI" format_string="Motor controller not responding">
-         <comment> A notification an MSP is not communicating </comment>
-        </event>
-
-        <event id="4" name="MC_MSPNotReporting" severity="WARNING_HI" format_string="Motor controller not communicating requested data">
-            <comment> A notification an MSP is not reporting data </comment>
-        </event>
-
-        <event id="5" name="MC_moveInterrupted" severity="COMMAND" format_string="A move has been interrupted">
+        <event id="0" name="Nav_moveInterrupted" severity="COMMAND" format_string="A move has been interrupted">
             <comment> A notification a move has been interrupted </comment>
         </event>
 
-        <event id="6" name="MC_moveQueueLimit" severity="WARNING_HI" format_string="The latest move would overwrite a move not completed">
+        <event id="1" name="Nav_moveQueueLimit" severity="WARNING_HI" format_string="The latest move would overwrite a move not completed">
             <comment> A notification a move was not placed on the move queue </comment>
         </event>
     </events>

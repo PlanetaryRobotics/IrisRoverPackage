@@ -38,10 +38,5 @@
 
 |Event Name|ID|Description|Arg Name|Arg Type|Arg Size|Description
 |---|---|---|---|---|---|---|
-|MC_moveStarted|0 (0x0)|A notification a move sequence has started| | | | |
-|MC_moveComplete|1 (0x1)|A notification a move sequence has finished| | | | |
-|MC_MSPFaultDetected|2 (0x2)|A notification an MSP has thrown a fault| | | | |
-|MC_MSPNotResponding|3 (0x3)|A notification an MSP is not communicating| | | | |
-|MC_MSPNotReporting|4 (0x4)|A notification an MSP is not reporting data| | | | |
-|MC_moveInterrupted|5 (0x5)|A notification a move has been interrupted| | | | |
-|MC_moveQueueLimit|6 (0x6)|A notification a move was not placed on the move queue| | | | |
+|Nav_moveInterrupted|0 (0x0)|A notification a move has been interrupted| | | | |
+|Nav_moveQueueLimit|1 (0x1)|A notification a move was not placed on the move queue| | | | |

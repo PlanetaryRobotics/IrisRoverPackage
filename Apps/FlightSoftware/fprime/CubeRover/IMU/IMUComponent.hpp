@@ -459,6 +459,16 @@ namespace CubeRover {
       void IMU_ReportData_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
                                      const U32 cmdSeq /*!< The command sequence number*/);
 
+      //! Implementation for IMU_TurnOn command handler
+      //! A command to turn on the hardware
+      void IMU_TurnOn_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
+                                 const U32 cmdSeq /*!< The command sequence number*/);
+
+      //! Implementation for IMU_TurnOff command handler
+      //! A command to turn off the hardware
+      void IMU_TurnOff_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
+                                  const U32 cmdSeq /*!< The command sequence number*/);
+
     private:
       bool m_setup;
       spiBASE_t *m_spi;

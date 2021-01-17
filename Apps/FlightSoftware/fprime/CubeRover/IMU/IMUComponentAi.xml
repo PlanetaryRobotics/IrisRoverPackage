@@ -17,11 +17,11 @@
   <ports>
     
       <!-- Command ports -->
-      <port name="cmdIn" data_type="Fw::Cmd" kind="guarded_input" max_number="1" role="Cmd"></port>
+      <port name="CmdDisp" data_type="Fw::Cmd" kind="guarded_input" max_number="1" role="Cmd"></port>
 
-      <port name="cmdRegOut" data_type="Fw::CmdReg" kind="output" max_number="1" role="CmdRegistration"></port>
+      <port name="CmdReg" data_type="Fw::CmdReg" kind="output" max_number="1" role="CmdRegistration"></port>
 
-      <port name="cmdResponseOut" data_type="Fw::CmdResponse" kind="output" max_number="1" role="CmdResponse"></port>
+      <port name="CmdStatus" data_type="Fw::CmdResponse" kind="output" max_number="1" role="CmdResponse"></port>
 
       <!-- Logging and telemetry ports -->
       <port name="log" data_type="Fw::Log" kind="output" max_number="1" role="LogEvent"></port>

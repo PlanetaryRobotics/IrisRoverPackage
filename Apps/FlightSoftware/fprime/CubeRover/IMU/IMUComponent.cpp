@@ -153,6 +153,32 @@ namespace CubeRover {
     // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
+
+  /**
+   * @brief      Command handler implementations
+   *
+   * @param[in]  opCode  The operation code
+   * @param[in]  cmdSeq  The command sequence
+   */
+  void IMUComponentImpl :: IMU_TurnOn_cmdHandler(const FwOpcodeType opCode,
+                                                 const U32 cmdSeq)
+  {
+    // TODO
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  /**
+   * @brief      Command handler implementations
+   *
+   * @param[in]  opCode  The operation code
+   * @param[in]  cmdSeq  The command sequence
+   */
+  void IMUComponentImpl :: IMU_TurnOff_cmdHandler(const FwOpcodeType opCode,
+                                                  const U32 cmdSeq)
+  {
+    // TODO
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
   
   /**
    * @brief      Calculates the pitch roll. See example of implementation in

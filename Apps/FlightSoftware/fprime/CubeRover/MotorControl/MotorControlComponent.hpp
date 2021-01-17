@@ -51,35 +51,6 @@ namespace CubeRover {
       MAX_NB_CMDS = 20,             // Not a command
       UNSET = 99                    // Not a command
 
-      // Previous implement
-      /*
-      I2C_ADDRESS = 0x00, // This was 1
-      I2C_RELATIVE_TARGET_POSITION,
-      I2C_DIRECTION, // DELETE
-      I2C_TARGET_SPEED,
-      I2C_CURRENT_POSITION,
-      // I2C_Current_Speed
-      I2C_MOTOR_CURRENT,
-      I2C_P_CURRENT,
-      I2C_I_CURRENT,
-      I2C_P_VELOCITY,
-      I2C_I_VELOCITY,
-      I2C_D_VELOCITY, // DELTETE
-      I2C_P_POSITION, // DELETE ALL
-      I2C_I_POSITION,
-      I2C_D_POSITION, // TO HERE
-      I2C_ACCELERATION,
-      I2C_DECELERATION,
-      I2C_EXECUTE_CMD,
-      I2C_CURRENT_VELOCITY,
-      I2C_ENABLE_DRIVER,
-      I2C_DISABLE_DRIVER,
-      I2C_RESET_CONTROLLER,
-      I2C_FAULT_REGISTER,
-      I2C_CLEAR_FAULT,
-      I2C_STATUS_REGISTER,
-      I2C_POSITION_SENSOR_CURRENT_COMBINATION,
-      I2C_MC_MAX_NUM_OF_ELEMENTS*/
     }I2cRegisterId;
 
     typedef uint8_t I2cSlaveAddress;
@@ -92,16 +63,6 @@ namespace CubeRover {
       MC_UNEXPECTED_ERROR
   }MCError;
 
-  typedef enum 
-  {
-    CRC8              = 0xD5,
-    CRC8_CCITT        = 0x07,
-    CRC8_DALLAS_MAXIM = 0x31,
-    CRC8_SAE_J1850    = 0x1D,
-    CRC_8_WCDMA       = 0x9B
-  }ChecksumType;
-
-  typedef uint8_t MotorControlChecksum;
   typedef int32_t Distance_cm;
   typedef int32_t Motor_tick;
   typedef uint8_t Speed_percent;
@@ -150,11 +111,6 @@ namespace CubeRover {
                                   CubeRoverPorts::MC_MovementType movement_type, /*!<  Selector how movement should be interpreted */
                                   U8 Distance, 
                                   U8 Speed);
-
-      //! Handler implementation for schedIn
-      //!
-      //void schedIn_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
-      //                     NATIVE_UINT_TYPE context /*!< The call order*/);
 
       // ----------------------------------------------------------------------
       // Command handler implementations
@@ -232,102 +188,60 @@ namespace CubeRover {
       void MC_UpdateTelemetry_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
                                          const U32 cmdSeq /*!< The command sequence number*/);
 
-
-
-      //! Implementation for MC_MotorConfiguration command handler
-      //! Configure motors command
-      void MC_MotorConfiguration_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                            const U32 cmdSeq, /*!< The command sequence number*/
-                                            U8 Motor_ID, /*!< The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors */
-                                            MP_CommandList MotorParameter, 
-                                            U32 Value);
-
-      //! Implementation for MC_DrivingConfiguration command handler
-      //! Configure movement command
-      void MC_DrivingConfiguration_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                              const U32 cmdSeq, /*!< The command sequence number*/
-                                              CC_CommandList CommandConfiguration, 
-                                              ParameterList Parameter, 
-                                              U8 Value);
-
-      //! Implementation for MC_ExecuteDriving command handler
-      //! Execute one configured command
-      void MC_ExecuteDriving_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                        const U32 cmdSeq, /*!< The command sequence number*/
-                                        DriveCommandList DrivingCommand);
-
-      //! Implementation for MC_StallDetection command handler
-      //! Enable / disable detection of motor stall
-      void MC_StallDetection_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                        const U32 cmdSeq, /*!< The command sequence number*/
-                                        motorStallEnableList motorStallEnable);
-
-      //! Implementation for MC_PositionCounterReset command handler
-      //! Reset position counter
-      void MC_PositionCounterReset_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                              const U32 cmdSeq, /*!< The command sequence number*/
-                                              U8 ResetPositionCounter);
-
       //! Implementation for MC_SelfTest command handler
       //! Runs through a routine to confirms the MSP are functioning properly
       void MC_SelfTest_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
                                   const U32 cmdSeq /*!< The command sequence number*/);
-
+      
     private:
       uint8_t txData[MC_BUFFER_MAX_SIZE];
       uint8_t rxData[MC_BUFFER_MAX_SIZE];
 
       MCError sendAllMotorsData(i2cBASE_t *i2c,
                                 const MotorControllerI2C::I2cRegisterId id,
-                                int8_t * data);
+                                uint8_t * data);
 
       MCError writeMotorControlRegister(i2cBASE_t *i2c,
                                         const MotorControllerI2C::I2cRegisterId id,
-                                        const MotorControllerI2C::I2cSlaveAddress address,
-                                        int8_t * data);
+                                        const MotorControllerI2C::I2cSlaveAddress add,
+                                        uint8_t * data);
 
       MCError i2cMasterTransmit(i2cBASE_t *i2c,
                                 const MotorControllerI2C::I2cSlaveAddress sadd,
                                 const uint32_t length,
-                                int8_t * data);
+                                uint8_t * data);
 
       MCError i2cMasterReceive(i2cBASE_t *i2c,
                                const MotorControllerI2C :: I2cSlaveAddress sadd,
                                const uint32_t length,
-                               int8_t * data);
+                               uint8_t * data);
 
       uint32_t getSizeData(const MotorControllerI2C::I2cRegisterId id);
+      uint8_t setIDBuffer(const MotorControllerI2C::I2cRegisterId id);
+      bool expectingReturnMessage(const MotorControllerI2C::I2cRegisterId id);
 
-      /*uint32_t getHeaderSize(); Not used
-
-      uint32_t getChecksumSize(); Not used
-
-      void generateChecksumTable(const ChecksumType polynomial); Not used
-
-      MCError computeChecksum8(uint8_t *data,
-                               const uint32_t bufferLength,
-                               MotorControlChecksum *checksum); Not used
-
-      MCError packTransmitBuffer(const MotorControllerI2C::I2cRegisterId id,
-                                 const uint32_t data,
-                                 const uint32_t dataLength); Not used*/ 
-
-      MCError moveAllMotorsStraight(uint8_t distance, uint8_t speed);
-      MCError rotateAllMotors(uint8_t angle, uint8_t speed);
+      MCError moveAllMotorsStraight(int32_t distance, int16_t speed);
+      MCError rotateAllMotors(int16_t angle, int16_t speed);
       MCError spinMotors(bool forward);
 
       MCError enableDrivers();
       MCError disableDrivers();
+      void resetMotorControllers();
 
-      Motor_tick groundCMToMotorTicks(int8_t dist);
-      Speed_percent groundSpeedToSpeedPrecent(uint8_t speed);
-      
+      Motor_tick groundCMToMotorTicks(int16_t dist);
+      Speed_percent groundSpeedToSpeedPrecent(int16_t speed);
+
+      bool updateTelemetry();
+      bool updateSpeed();
+      bool updateCurrent();
+      bool updateEncoder();
+
       void delayForI2C();
 
-      //Debug functions/items
+      // Member items
       uint32_t tick_count = 0;
 
-      uint8_t m_ticksToRotation;
+      uint16_t m_ticksToRotation;
 
       // Encoder Converting values
       float m_encoderTickToCMRatio;
@@ -341,6 +255,9 @@ namespace CubeRover {
       // Shortcut to rotate the wheels accordingly
       bool m_clockwise_is_positive = true;
 
+      bool m_Round_Robin_Telemetry;
+      uint8_t m_Robin_Number = 0;
+
       // Front left (FL), Front right (FR), Rear right (RR), Rear left (RL) tick counts
       // Internal tick counter
       int32_t m_FL_Encoder_Count;
@@ -349,10 +266,10 @@ namespace CubeRover {
       int32_t m_RL_Encoder_Count;
 
       // Offset for resetting tick count
-      int32_t m_FL_Encoder_Count_Offset:
       int32_t m_FR_Encoder_Count_Offset;
-      int32_t m_RR_Encoder_Count_Offset;
+      int32_t m_FL_Encoder_Count_Offset;
       int32_t m_RL_Encoder_Count_Offset;
+      int32_t m_RR_Encoder_Count_Offset;
 
       // Timeout for I2C communication
       uint16_t m_i2c_timeout_threshold = 1350;

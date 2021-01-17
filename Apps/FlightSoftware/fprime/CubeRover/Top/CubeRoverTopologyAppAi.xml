@@ -278,17 +278,36 @@
      ********************************************************************************************************* 
       -->
 
-   <!-- MC to Nav  -->
+  <!-- MC to Nav  -->
   <connection name="motorControl_to_navigation_motorData">
     <source component="motorControl" port="motorDataOut" type="motorData" num="0" />
     <target component="navigation" port="motorDataIn" type="motorData" num="0" />
   </connection>
 
+  <!-- Nav to MC  -->
+  <connection name="navigation_to_motorControl_motorCommand">
+    <source component="navigation" port="motorCommandOut" type="motorCommand" num="0" />
+    <target component="motorControl" port="motorCommandIn" type="motorCommand" num="0" />
+  </connection>
+
   <!-- IMU to Nav  -->
-  <connection name="IMU_to_Navigation_IMUData">
+  <connection name="IMU_to_navigation_IMUData">
     <source component="IMU" port="IMUDataOut" type="IMUData" num="0" />
     <target component="navigation" port="IMUDataIn" type="IMUData" num="0" />
   </connection>
+
+  <!-- Nav to Camera -->
+  <connection name="navigation_to_camera_cameraTakePicture">
+    <source component="navigation" port="cameraTakePictureOut" type="cameraTakePicture" num="0" />
+    <target component="camera" port="takePicture" type="cameraTakePicture" num="0" />
+  </connection>
+
+  <!-- MC to Watchdog -->
+  <!-- Once watchdog has this port -->
+  <!-- <connection name="motorControl_to_watchDogInterface_WatchdogCommand">
+    <source component="motorControl" port="WatchdogCommandOut" type="WatchdogCommand" num="0" />
+    <target component="watchDogInterface" port="????" type="WatchdogCommand" num="0" />
+  </connection> -->
 
 
 <!-- *********************************************************************************************************
@@ -395,6 +414,16 @@
     <source component = "navigation" port = "CmdReg" type = "CmdReg" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
   </connection>
+
+  <connection name = "IMUCmdReg_to_cmdDispatcher">
+    <source component = "IMU" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
+  </connection>
+
+  <connection name = "motorControlCmdReg_to_cmdDispatcher">
+    <source component = "motorControl" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
+  </connection>
   
   <!-- *********************************************************************************************************
         CONNECTION OF COMMAND DISPATCH PORTS
@@ -423,6 +452,16 @@
     <target component = "navigation" port = "CmdDisp" type = "Cmd" num = "0" />
   </connection>
 
+  <connection name = "cmdDispatcherSendCmd_to_IMUCmdDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
+    <target component = "IMU" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
+
+  <connection name = "cmdDispatcherSendCmd_to_motorControlCmdDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
+    <target component = "motorControl" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
+
   <!-- *********************************************************************************************************
         CONNECTION OF COMMAND RESPONSE PORTS
        ********************************************************************************************************* 
@@ -447,6 +486,16 @@
   
   <connection name = "navigationCmdStatus_to_cmdDispatcher_CmdStatus">
     <source component = "navigation" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+
+  <connection name = "IMUCmdStatus_to_cmdDispatcher_CmdStatus">
+    <source component = "IMU" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+
+  <connection name = "motorControlCmdStatus_to_cmdDispatcher_CmdStatus">
+    <source component = "motorControl" port = "CmdStatus" type = "CmdResponse" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
   </connection>
 

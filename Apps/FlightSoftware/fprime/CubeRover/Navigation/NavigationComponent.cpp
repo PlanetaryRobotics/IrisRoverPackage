@@ -267,7 +267,7 @@ namespace CubeRover {
     motorCommandOut_out(0, CubeRoverPorts::MC_DrivingConfiguration, CubeRoverPorts::MC_Stop,0,0);
     if(m_currMoving)
     {
-      log_COMMAND_MC_moveInterrupted();
+      log_COMMAND_Nav_moveInterrupted();
       motorCommandOut_out(0,
                           CubeRoverPorts::MC_DrivingConfiguration,
                           CubeRoverPorts::MC_Stop,
@@ -496,7 +496,7 @@ namespace CubeRover {
     // Need to ensure the lastest_move isn't about to overwrite any move
     if ((m_lastestMove + 1 == m_currMove) || (m_lastestMove >= (NAV_MOVE_BUFFER_LIMIT - 1) && m_currMove == 0))
     { 
-      log_WARNING_HI_MC_moveQueueLimit();
+      log_WARNING_HI_Nav_moveQueueLimit();
       return false;
     }
 

@@ -34,6 +34,9 @@
 | | | |New_Value|U32| The new value to be used in place |
 |MC_GetParameters|9 (0x9)|Returns all current parameters of the module| | |
 |MC_UpdateTelemetry|16 (0x10)|Forces a telemetry update from the motors| | |
+|MC_DriveTest|152 (0x98)|Allows the direct commanding of moves bypassing Nav if things are incorrect| | |
+| | | |Distance|I64||
+| | | |MoveType|I8||
 |MC_SelfTest|153 (0x99)|Runs through a routine to confirms the MSP are functioning properly| | |
 
 ## Telemetry Channel List

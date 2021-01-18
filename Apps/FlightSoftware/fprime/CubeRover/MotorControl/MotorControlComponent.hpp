@@ -188,6 +188,13 @@ namespace CubeRover {
       void MC_UpdateTelemetry_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
                                          const U32 cmdSeq /*!< The command sequence number*/);
 
+      //! Implementation for MC_DriveTest command handler
+      //! Allows the direct commanding of moves bypassing Nav if things are incorrect
+      void MC_DriveTest_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
+                                   const U32 cmdSeq, /*!< The command sequence number*/
+                                   I64 Distance, 
+                                   I8 MoveType);
+
       //! Implementation for MC_SelfTest command handler
       //! Runs through a routine to confirms the MSP are functioning properly
       void MC_SelfTest_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/

@@ -735,6 +735,61 @@ namespace CubeRover {
       this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
   }
 
+  /**
+   * @brief      Command handler implementation to force update telemetry
+   *
+   * @param[in]  opCode          The operation code
+   * @param[in]  cmdSeq          The command sequence
+   */
+  void MotorControlComponentImpl :: MC_DriveTest_cmdHandler(const FwOpcodeType opCode,
+                                                            const U32 cmdSeq,
+                                                            I64 Distance,
+                                                            I8 MoveType)
+  {
+    MCError err;
+
+    switch(MoveType)
+    {
+      // Forward or backwards
+      case 0:
+        err = moveAllMotorsStraight(Distance,0);
+        if (err != MC_NO_ERROR)
+        {
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+          return;
+        }
+        break;
+
+      // Rotating clockwise, or counter clockwise
+      case 1:
+        err = rotateAllMotors(Distance,0);
+        if (err != MC_NO_ERROR)
+        {
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+          return;
+        }
+
+      // Stop
+      case 2:
+        err = moveAllMotorsStraight(0,0);
+        if (err != MC_NO_ERROR)
+        {
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+          return;
+        }
+        break;
+    }
+
+    // All else succeeds, then I guess we did too.
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  /**
+   * @brief      Command handler implementation to force update telemetry
+   *
+   * @param[in]  opCode          The operation code
+   * @param[in]  cmdSeq          The command sequence
+   */
   void MotorControlComponentImpl :: MC_SelfTest_cmdHandler(const FwOpcodeType opCode,
                                                            const U32 cmdSeq)
   {

@@ -875,7 +875,7 @@ namespace CubeRover {
 
       // Calculate Parity for Message by summing each byte then Inversing it
       U32 parity = 0;
-      parity = !((frame&0x000000FF) + 
+      parity = ~((frame&0x000000FF) +
       		  ((frame&0x0000FF00) >> 8) + 
       		  ((frame&0x00FF0000) >> 16) +
       		  ((frame&0xFF000000) >> 24) + 
@@ -894,6 +894,7 @@ namespace CubeRover {
         this->log_WARNING_HI_WatchDogTimedOut();
         return false;
       }
+      //U64 test = frame;
       sciSend(scilinREG, sizeof(frame), (uint8_t *)&frame);
 
       // Check for Response from MSP430 Watchdog

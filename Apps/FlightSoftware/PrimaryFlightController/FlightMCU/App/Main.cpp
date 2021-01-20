@@ -36,14 +36,12 @@ void main(void)
 {
     /* USER CODE BEGIN (3) */
 
-    int waithere = 1;
-    while(waithere);     // Stop here and wait for debugger
     gioInit();
     i2cInit();
     sciInit();
     adcInit();
     spiInit();
-    linInit();
+    //linInit();
 
     constructApp();
 

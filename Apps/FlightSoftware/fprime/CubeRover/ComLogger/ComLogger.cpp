@@ -311,7 +311,7 @@ namespace CubeRover {
     // See here: http://linux.die.net/man/3/snprintf
     FW_ASSERT( bytesCopied < sizeof(this->fileName) );
 
-    Os::File::Status ret = file.open((char*) this->fileName, Os::File::OPEN_WRITE);
+    Os::File::Status ret = file.open((char*) this->fileName, Os::File::OPEN_CREATE);
     if( Os::File::OP_OK != ret ) {
       if( !openErrorOccured ) { // throttle this event, otherwise a positive 
                                 // feedback event loop can occur!

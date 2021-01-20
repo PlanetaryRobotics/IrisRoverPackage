@@ -10,8 +10,10 @@
     <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
     <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+    <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
     <import_dictionary>CubeRover/ComLogger/Commands.xml</import_dictionary>
     <import_dictionary>CubeRover/ComLogger/Events.xml</import_dictionary>
+
 
     <ports>
 

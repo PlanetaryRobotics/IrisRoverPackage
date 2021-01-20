@@ -51,19 +51,19 @@ namespace Os {
    */
   File::Status File::flashMemErrToStatus(const S25fl064l::S25fl064lError err){
     switch(err){
-    case S25fl064l::S25FL064L_NO_ERROR:
+    case S25fl064l::S25fl064l_NO_ERROR:
       return OP_OK;
-    case S25fl064l::S25FL064L_WRONG_DATA_SIZE:
+    case S25fl064l::S25fl064l_WRONG_DATA_SIZE:
       return BAD_SIZE;
-    case S25fl064l::S25FL064L_UNEXPECTED_ERROR:
-    case S25fl064l::S25FL064L_INCORRECT_FLASH_MEMORY:
-    case S25fl064l::S25FL064L_FAIL_ERASE_CHIP:
-    case S25fl064l::S25FL064L_FAIL_BLOCK_ERASE:
-    case S25fl064l::S25FL064L_FAIL_PAGE_PROGRAM:
-    case S25fl064l::S25FL064L_FAIL_SECTOR_ERASE:
-    case S25fl064l::S25FL064L_FAIL_MEM_ALLOCATION:
-    case S25fl064l::S25FL064L_FAIL_WRITE_DATA_FLASH:
-    case S25fl064l::S25FL064L_FAIL_HALF_BLOCK_ERASE:
+    case S25fl064l::S25fl064l_UNEXPECTED_ERROR:
+    case S25fl064l::S25fl064l_INCORRECT_FLASH_MEMORY:
+    case S25fl064l::S25fl064l_FAIL_ERASE_CHIP:
+    case S25fl064l::S25fl064l_FAIL_BLOCK_ERASE:
+    case S25fl064l::S25fl064l_FAIL_PAGE_PROGRAM:
+    case S25fl064l::S25fl064l_FAIL_SECTOR_ERASE:
+    case S25fl064l::S25fl064l_FAIL_MEM_ALLOCATION:
+    case S25fl064l::S25fl064l_FAIL_WRITE_DATA_FLASH:
+    case S25fl064l::S25fl064l_FAIL_HALF_BLOCK_ERASE:
     default:
       return OTHER_ERROR;
     }
@@ -132,17 +132,17 @@ namespace Os {
                    sizeof(FileName)); // write file name
 
             memcpy((void *)(writeBuffer + sizeof(FileName)),
-                   (void *)startAddress,
+                   (void *)&startAddress,
                    sizeof(StartAddress)); // write start address
 
             // initialize file pointer to start at start address for a new file
             memcpy((void *)(writeBuffer + sizeof(FileName) + sizeof(StartAddress)),
-                   (void *)startAddress,
+                   (void *)&startAddress,
                    sizeof(FilePointer));
 
             // preallocate memory space for the new file
             memcpy((void *)(writeBuffer + sizeof(FileName) + sizeof(StartAddress) + sizeof(FilePointer)),
-                   (void *)newFileDefaultSize,
+                   (void *)&newFileDefaultSize,
                    sizeof(FileSize));
 
             // Initialize properties 
@@ -158,7 +158,7 @@ namespace Os {
             // update system file look-up table
             err = m_flashMem.writeDataToFlash(&m_headerMemAlloc, /* start of reserved memory space */
                                               this->m_fileIndex*SYSTEM_FILE_ENTRY_SIZE, /* offset */
-                                              writeBuffer,  /* buffer */ 
+                                              writeBuffer,  /* buffer */
                                               sizeof(writeBuffer)); /* size of buffer */
 
             stat = flashMemErrToStatus(err);

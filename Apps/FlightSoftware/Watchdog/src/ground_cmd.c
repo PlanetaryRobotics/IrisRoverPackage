@@ -24,7 +24,8 @@ void handle_watchdog_reset_cmd(uint8_t cmd) {
         break;
     /* 0x01: Reset Hercules */
     case 0x01:
-        // TODO
+        setHerculesReset();
+        watchdog_flags |= WDFLAG_UNRESET_HERCULES;
         break;
     /* 0x02: Hercules Power On */
     case 0x02:

@@ -93,25 +93,41 @@ int main(void) {
             // temporarily disable uart0 interrupt
             UCA0IE &= ~UCRXIE;
             int i = 0, len = 0;
-            while (i + 4 <= uart0rx.idx) {
-                /* stroke rx'd */
-                if (uart0rx.buf[i] == 0x0 && uart0rx.buf[i + 1] == 0x0) {
-                    // no special commands
-                    // TODO: is this right? maybe want i + 3.
-                    handle_watchdog_reset_cmd(uart0rx.buf[i + 2]);
-                    // echo back watchdog command
-                    uart0_tx_nonblocking(uart0rx.idx, uart0rx.buf);
-                } else {
-                    len = (uart0rx.buf[i]) | (uart0rx.buf[i + 1] << 8);
-                    if (len + 4 > uart0rx.idx) {
-                        // need to wait for more bytes to come in
-                        break;
-                    } else {
-                        // TODO: actually parse udp instead of skipping it
-                        i += len;
+            // header is 8 bytes long
+            while (i + 8 <= uart0rx.idx) {
+                /* check input value */
+                if (uart0rx.buf[i] == 0x21 && uart0rx.buf[i + 1] == 0xB0 &&
+                        uart0rx.buf[i + 2] == 0x0B) {
+                    /* magic value rx'd! check parity */
+                    uint8_t parity = 0xDC; /* sum of 0x21, 0xB0, and 0x0B */
+                    /* skip parity byte (i + 3) in summation */
+                    parity += uart0rx.buf[i + 4] + uart0rx.buf[i + 5];
+                    parity += uart0rx.buf[i + 6] + uart0rx.buf[i + 7];
+
+                    if ((~parity) == uart0rx.buf[i + 3]) {
+                        /* parity bytes match! */
+                        len = (uart0rx.buf[i + 5]) | (uart0rx.buf[i + 6] << 8);
+                        if (len) {
+                            /* udp packet */
+                            if (len + 8 > uart0rx.idx) {
+                                // TODO: parse UDP
+                                i += len;
+                            } else {
+                                /* need to wait for more bytes to come in */
+                                break;
+                            }
+                        } else {
+                            /* handle watchdog reset command */
+                            handle_watchdog_reset_cmd(uart0rx.buf[i + 5]);
+                            /* skip past the width of a watchdog command */
+                            i += 8;
+                            /* echo back watchdog command */
+                            uart0_tx_nonblocking(uart0rx.idx, uart0rx.buf);
+                        }
+
                     }
                 }
-                i += 4;
+                i++;
             }
 
             // leftovers

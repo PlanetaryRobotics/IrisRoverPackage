@@ -1,1 +1,7 @@
-mypypython-pcapng
+mypy
+scapy
+python-pcapng
+numpy
+lxml
+pytest
+jsonpickle

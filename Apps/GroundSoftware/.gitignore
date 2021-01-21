@@ -1,0 +1,15 @@
+# Ignore Python Bytecode Caching:
+*.py[cod]
+__pycache__/
+
+# Ignore linter cache:
+.mypy_cache/
+
+# Ignore (unsupported) editor settings:
+.idea/
+
+# Ignore OS Files:
+.DS_Store
+
+# Testing Scripts:
+node_modules/

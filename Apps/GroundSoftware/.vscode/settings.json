@@ -1,0 +1,31 @@
+{
+    "python.testing.pytestPath": ".",
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "cSpell.words": [
+        "backendv",
+        "fprime",
+        "iris",
+        "iterator",
+        "iterator's",
+        "jsonpickle",
+        "misordered",
+        "mispaired",
+        "paren",
+        "pformat",
+        "pytest",
+        "serializable",
+        "struct",
+        "vals"
+    ],
+    "python.linting.pylintEnabled": false,
+    "python.linting.mypyEnabled": true,
+    "python.linting.enabled": true,
+    "cSpell.ignoreWords": [
+        "jsonpickled",
+        "jsonpickling",
+        "vformat"
+    ]
+}

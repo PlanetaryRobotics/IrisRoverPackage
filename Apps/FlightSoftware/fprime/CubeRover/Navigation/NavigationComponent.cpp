@@ -65,7 +65,7 @@ namespace CubeRover {
    * @param[in]  queueDepth  The queue depth
    * @param[in]  instance    The instance
    */
-  void NavigationComponentImpl :: init(const NATIVE_INT_TYPE queueDepth,const NATIVE_INT_TYPE instance)
+  void NavigationComponentImpl :: init(const NATIVE_INT_TYPE queueDepth, const NATIVE_INT_TYPE instance)
   {
     NavigationComponentBase::init(queueDepth, instance);
   }
@@ -153,20 +153,24 @@ namespace CubeRover {
   }
 
   /**
-   * @brief      Implementation for Motor Control to pass information back to Navigation
+   * @brief      Implementation for IMU to pass information back to Navigation
    *
-   * @param[in]  portNum  The port number
+   * @param[in]  portNum            The port number
+   * @param[in]  movement_finished  Flag for movement being finished
    */
   void NavigationComponentImpl :: IMUDataIn_handler(const NATIVE_INT_TYPE portNum,
-                                                     I16 x_acc,
-                                                     I16 y_acc,
-                                                     I16 z_acc,
-                                                     I16 x_gyro,
-                                                     I16 y_gyro,
-                                                     I16 z_gyro)
+                                                    I16 roll_ptr,
+                                                    I16 pitch_ptr,
+                                                    I16 yaw_ptr)
   {
-    // TODO
+    m_roll = roll_ptr;
+    m_pitch = pitch_ptr;
+    m_yaw = yaw_ptr;
   }
+
+  // ----------------------------------------------------------------------
+  // Command handler implementations
+  // ----------------------------------------------------------------------
 
   /**
    * @brief      Implementation for forward driving command
@@ -279,7 +283,7 @@ namespace CubeRover {
   }
 
   // ----------------------------------------------------------------------
-  // Handler implementations for user-defined functions
+  // Handler implementations for state related functions
   // ----------------------------------------------------------------------
 
   /**
@@ -387,20 +391,6 @@ namespace CubeRover {
   }
 
   /**
-   * @brief      Implementation for getting telemetry from IMU and MCI
-   *
-   * @param[in]  None
-   */
-  void NavigationComponentImpl :: Get_Telemetry()
-  {
-    // IMU Telemetry Read
-    // TODO
-    
-    // MCI Telemetry Call
-    motorCommandOut_out(0, CubeRoverPorts::MC_UpdateTelemetry, CubeRoverPorts::MC_NONE, 0, 0);
-  }
-
-  /**
    * @brief      Implementation for back driving
    *
    * @param[in]  None
@@ -481,6 +471,24 @@ namespace CubeRover {
   void NavigationComponentImpl :: Service_Task()
   {
     return;
+  }
+
+  // ----------------------------------------------------------------------
+  // Handler implementations for helper functions
+  // ----------------------------------------------------------------------
+
+  /**
+   * @brief      Implementation for getting telemetry from IMU and MCI
+   *
+   * @param[in]  None
+   */
+  void NavigationComponentImpl :: Get_Telemetry()
+  {
+    // IMU Telemetry Read
+    // TODO
+    
+    // MCI Telemetry Call
+    motorCommandOut_out(0, CubeRoverPorts::MC_UpdateTelemetry, CubeRoverPorts::MC_NONE, 0, 0);
   }
 
   /**

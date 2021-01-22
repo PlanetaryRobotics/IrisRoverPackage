@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
 
-<component name="IMU" kind="passive" namespace="CubeRover" modeler="true">
+<component name="IMU" kind="passive" namespace="CubeRover">
   <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
   <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
   <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
@@ -17,18 +17,22 @@
   <ports>
     
       <!-- Command ports -->
+      <!--
       <port name="CmdDisp" data_type="Fw::Cmd" kind="guarded_input" max_number="1" role="Cmd"></port>
 
       <port name="CmdReg" data_type="Fw::CmdReg" kind="output" max_number="1" role="CmdRegistration"></port>
 
       <port name="CmdStatus" data_type="Fw::CmdResponse" kind="output" max_number="1" role="CmdResponse"></port>
+      -->
 
       <!-- Logging and telemetry ports -->
+      <!--
       <port name="log" data_type="Fw::Log" kind="output" max_number="1" role="LogEvent"></port>
 
       <port name="tlmOut" data_type="Fw::Tlm" kind="output" role="Telemetry" max_number="1"></port>
 
       <port name="timeCaller" data_type="Fw::Time" kind="output" max_number="1" role="TimeGet"></port>
+      -->
 
       <!-- Scheduler port -->
       <port name="schedIn" data_type="Svc::Sched" kind="sync_input" max_number="1"></port>
@@ -85,27 +89,27 @@
   <!-- TELEMETRY -->
   <telemetry>
 
-    <channel id="0" name="X_Acc" data_type="I32">
+    <channel id="0" name="X_Acc" data_type="I16">
       <comment>Accelerometer X</comment>
     </channel>
 
-    <channel id="1" name="Y_Acc" data_type="I32">
+    <channel id="1" name="Y_Acc" data_type="I16">
       <comment>Accelerometer Y</comment>
     </channel>
 
-    <channel id="2" name="Z_Acc" data_type="I32">
+    <channel id="2" name="Z_Acc" data_type="I16">
       <comment>Accelerometer Z</comment>
     </channel>
 
-    <channel id="3" name="X_Ang" data_type="I32">
+    <channel id="3" name="X_Ang" data_type="U16">
       <comment>Gyrometer X</comment>
     </channel>
 
-    <channel id="4" name="Y_Ang" data_type="I32">
+    <channel id="4" name="Y_Ang" data_type="U16">
       <comment>Gyrometer Y</comment>
     </channel>
 
-    <channel id="5" name="Z_Ang" data_type="I32">
+    <channel id="5" name="Z_Ang" data_type="U16">
       <comment>Gyrometer Z</comment>
     </channel>
   </telemetry>

@@ -103,6 +103,7 @@ namespace CubeRover {
     float gyroZ = 0.0f;
     float roll = 0.0f;
     float pitch = 0.0f;
+    float yaw = 0.0f;
 
     if((readAccelerations(&accX, &accY, &accZ)) != IMU_NO_ERROR)
     {

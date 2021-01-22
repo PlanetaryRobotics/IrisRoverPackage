@@ -20,7 +20,6 @@ namespace CubeRover {
   
   typedef CubeRoverPorts::MC_MovementType NAVMovementType;
   
-
   typedef enum 
   {
     NAV_IDLE,
@@ -95,12 +94,9 @@ namespace CubeRover {
       //! Handler implementation for IMUDataOut
       //!
       void IMUDataIn_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
-                              I16 x_acc, 
-                              I16 y_acc, 
-                              I16 z_acc, 
-                              I16 x_gyro, 
-                              I16 y_gyro, 
-                              I16 z_gyro);
+                             I16 roll_ptr, 
+                             I16 pitch_ptr, 
+                             I16 yaw_ptr);
 
       // ----------------------------------------------------------------------
       // Command handler implementations
@@ -160,6 +156,9 @@ namespace CubeRover {
       uint16_t m_tlm_Left_Disp;
       uint16_t m_tlm_Right_Disp;
       uint16_t m_Image_Size;
+      uint16_t m_roll;
+      uint16_t m_pitch;
+      uint16_t m_yaw;
 
       // Member functions
       //! Change our state
@@ -170,9 +169,6 @@ namespace CubeRover {
 
       //! Take care of driving
       void Actively_Drive_Task();
-
-      //! Take care of updating telemetry
-      void Get_Telemetry();
 
       //! Take care of driving
       void Backtracking_Task();
@@ -186,6 +182,9 @@ namespace CubeRover {
       //! Adds a move unto the circular buffer
       bool Create_Move(U8 Distance, U8 Speed, U16 Callback_ID, NAVMovementType MoveType);
 
+       //! Take care of updating telemetry
+      void Get_Telemetry();
+      
       //! Adds distance dictated to telemetry listing
       void Add_Telem_Disp(NAVMovementType MoveType, U8 Distance);
 
@@ -194,9 +193,7 @@ namespace CubeRover {
 
       //! Converts the commanded distance into telemetry distance
       uint16_t Convert_Command_Angle_To_Telem(uint8_t Angle);
-
     };
-
 } // end namespace CubeRover
 
 #endif

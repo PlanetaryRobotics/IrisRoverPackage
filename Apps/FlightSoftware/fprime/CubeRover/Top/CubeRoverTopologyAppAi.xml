@@ -78,11 +78,13 @@
     <target component="rateGroupDriver" port="CycleIn" type="Cycle" num="0"/>
   </connection>
 
-<!-- Connect Rate Group driver to Rate Group "Low Frequency" (port 0) -->
-  <connection name="rgDriver_to_rgLowFreq">
+<!-- Connect Rate Group driver to Rate Group "High Frequency" (port 0) -->
+<!-- Highest frequency rate group first to save a few cycles when RateGroupDriver has to iterate over
+     clock divider array to find the matching RateGroup to call -->
+  <connection name="rgDriver_to_rgHiFreq">
     <source component="rateGroupDriver" port="CycleOut" type="Cycle" num="0"/>
-    <target component="rateGroupLowFreq" port="CycleIn" type="Cycle" num="0"/>
-  </connection>
+    <target component="rateGroupHiFreq" port="CycleIn" type="Cycle" num="0"/>
+  </connection>  
 
 <!-- Connect Rate Group driver to Rate Group "Medium Frequency" (port 1) -->
   <connection name="rgDriver_to_rgMedFreq">
@@ -90,11 +92,11 @@
     <target component="rateGroupMedFreq" port="CycleIn" type="Cycle" num="0"/>
   </connection>
 
-<!-- Connect Rate Group driver to Rate Group "High Frequency" (port 2-->
-  <connection name="rgDriver_to_rgHiFreq">
+<!-- Connect Rate Group driver to Rate Group "Low Frequency" (port 2) -->
+  <connection name="rgDriver_to_rgLowFreq">
     <source component="rateGroupDriver" port="CycleOut" type="Cycle" num="2"/>
-    <target component="rateGroupHiFreq" port="CycleIn" type="Cycle" num="0"/>
-  </connection>  
+    <target component="rateGroupLowFreq" port="CycleIn" type="Cycle" num="0"/>
+  </connection>
 
 <!-- *********************************************************************************************************
         CONNECTION BETWEEN LOW FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS

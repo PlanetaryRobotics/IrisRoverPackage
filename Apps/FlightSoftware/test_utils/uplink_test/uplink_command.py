@@ -22,7 +22,7 @@ magic = '00bada55'
 # Camera
 component = '11'    # Camera
 opcode = '01'       # Take picture
-camera_num = '00'   # Argument 1
+camera_num = '01'   # Argument 1
 callback_id = hton('0042')  # Argument 2
 command = seq + length + checksum + magic + component + opcode + camera_num + callback_id
 """

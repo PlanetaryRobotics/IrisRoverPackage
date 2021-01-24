@@ -184,17 +184,17 @@
   </connection>
 
   <connection name="imu_to_cubeRoverTime">
-    <source component="IMU" port="timeCaller" type="Time" num="0" />
+    <source component="IMU" port="Time" type="Time" num="0" />
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
   </connection>
 
   <connection name="navigation_to_cubeRoverTime">
-    <source component="navigation" port="timeCaller" type="Time" num="0" />
+    <source component="navigation" port="Time" type="Time" num="0" />
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
   </connection>
 
   <connection name="motorControl_to_cubeRoverTime">
-    <source component="motorControl" port="timeCaller" type="Time" num="0" />
+    <source component="motorControl" port="Time" type="Time" num="0" />
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
   </connection>
       
@@ -258,19 +258,19 @@
 
   <!-- Navigation to telemetry channel (port 6) -->
   <connection name="navigation_to_chanTlm">
-    <source component="navigation" port="tlmOut" type="Tlm" num="0" />
+    <source component="navigation" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
 
   <!-- Motor Control to telemetry channel (port 7) -->
   <connection name="motorControl_to_chanTlm">
-    <source component="motorControl" port="tlmOut" type="Tlm" num="0" />
+    <source component="motorControl" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
 
   <!-- IMU to telemetry channel (port 8) -->
   <connection name="imu_to_chanTlm">
-    <source component="IMU" port="tlmOut" type="Tlm" num="0" />
+    <source component="IMU" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
       

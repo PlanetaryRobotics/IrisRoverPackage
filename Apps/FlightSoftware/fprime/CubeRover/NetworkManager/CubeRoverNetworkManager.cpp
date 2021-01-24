@@ -238,7 +238,8 @@ ErrorCode CubeRoverNetworkManager :: SendUdpData(uint8_t * data,
   errorCode = SetTransmitSize(m_udpSendEndpoint,
                               byteToSend);
 
-  if(errorCode != NO_ERROR) return errorCode;
+  if(errorCode != NO_ERROR)
+      return errorCode;
 
   while((timer >0) && (m_commandTransmitSizeSet == false)){
     errorCode = ExecuteCallbacks();
@@ -262,11 +263,13 @@ ErrorCode CubeRoverNetworkManager :: SendUdpData(uint8_t * data,
 
     while((timer > 0) && (m_commandSendEndpointSet == false)){
       errorCode = ExecuteCallbacks();
-      if(errorCode != TRY_AGAIN && errorCode != NO_ERROR) return errorCode;
+      if(errorCode != TRY_AGAIN && errorCode != NO_ERROR)
+          return errorCode;
       timer--;
     }
 
-    if(!timer) return TIMEOUT;
+    if(!timer)
+        return TIMEOUT;
 
     timer = timeout;
 

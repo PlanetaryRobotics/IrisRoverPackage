@@ -218,7 +218,7 @@ void send_earth_heartbeat() {
     pbuf.buf[2] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
     pbuf.used += 3;
 
-    uart1_tx_nonblocking(pbuf.buf, pbuf.used);
+    uart1_tx_nonblocking(pbuf.used, pbuf.buf);
 }
 
 

@@ -1,4 +1,5 @@
 #include <msp430.h>
+#include <stdlib.h>
 
 #include "include/buffer.h"
 #include "include/uart.h"
@@ -92,12 +93,12 @@ int main(void) {
         if (loop_flags & FLAG_UART0_RX_PACKET) {
             // temporarily disable uart0 interrupt
             UCA0IE &= ~UCRXIE;
-            int i = 0, len = 0;
+            unsigned int i = 0, len = 0;
             // header is 8 bytes long
             while (i + 8 <= uart0rx.idx) {
                 /* check input value */
-                if (uart0rx.buf[i] == 0x21 && uart0rx.buf[i + 1] == 0xB0 &&
-                        uart0rx.buf[i + 2] == 0x0B) {
+                if (uart0rx.buf[i] == 0x0B && uart0rx.buf[i + 1] == 0xB0 &&
+                        uart0rx.buf[i + 2] == 0x21) {
                     /* magic value rx'd! check parity */
                     uint8_t parity = 0xDC; /* sum of 0x21, 0xB0, and 0x0B */
                     /* skip parity byte (i + 3) in summation */
@@ -131,7 +132,8 @@ int main(void) {
             }
 
             // leftovers
-            if (i < uart0rx.idx) {
+            if (i == 0) {
+            } else if (i < uart0rx.idx) {
                 // copy over leftovers to front of buffer
                 memcpy(uart0rx.buf, uart0rx.buf + i, uart0rx.idx - i);
                 uart0rx.idx = uart0rx.idx - i;

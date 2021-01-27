@@ -2,9 +2,9 @@
 #define INCLUDE_CUBEROVERCONFIG_HPP_
 
 // Definition of rate group dividers
-#define RATEGROUP_DIVIDER_LOW_FREQ  22000000 // 1Hz
-#define RATEGROUP_DIVIDER_MED_FREQ  220000   // 100Hz
-#define RATEGROUP_DIVIDER_HI_FREQ   22000    // 1kHz
+#define RATEGROUP_DIVIDER_LOW_FREQ  22000 // 1Hz
+#define RATEGROUP_DIVIDER_MED_FREQ  2200   // 100Hz
+#define RATEGROUP_DIVIDER_HI_FREQ   220    // 1kHz
 
 // Definition of component instance ID, Affinity and queue depth
 #define EVENT_LOGGER_ID             0

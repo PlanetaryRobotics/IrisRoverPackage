@@ -82,7 +82,7 @@ namespace CubeRover {
                 break;
             }
         }
-        if (no_transition_count > MAX_FSM_NO_TRANSITION_COUNT) {
+        if (no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
             log_FATAL_WF121InitializationFailed();
             // TODO: Watchdog reset WF121
         }

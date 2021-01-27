@@ -119,12 +119,12 @@
   </connection>
 
   <connection name="rgMedFreq_to_networkManager">
-    <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
+    <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="1" />
     <target component="networkManager" port="schedIn" type="sched" num="0"/>
   </connection>
   
   <connection name = "rgMedFreq_to_navigation_clk">
-    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "2" />
     <target component = "navigation" port = "schedIn" type = "Sched" num = "0"/>
   </connection>
 
@@ -137,14 +137,9 @@
     <source component = "rateGroupHighFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
     <target component = "health" port = "Run" type = "Sched" num = "0"/>
   </connection>
-
-<!-- *********************************************************************************************************
-        CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
-     *********************************************************************************************************
-     -->
       
   <connection name="rgHiFreq_to_IMU">
-    <source component="rateGroupHiFreq" port="RateGroupMemberOut" type="Sched" num="0" />
+    <source component="rateGroupHiFreq" port="RateGroupMemberOut" type="Sched" num="1" />
     <target component="IMU" port="schedIn" type="sched" num="0"/>
   </connection>
 

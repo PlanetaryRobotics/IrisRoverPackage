@@ -12,7 +12,6 @@ port = 8080
 
 # FSW Header
 seq = '01'              # Starts at 1, increment manually
-length = hton('000e')   # Update manually if there are more arguments
 checksum = hton('0000')
 
 # FSWCommand
@@ -20,6 +19,7 @@ magic = '00bada55'
 
 """
 # Camera
+length = hton('000e')   # Update manually if there are more arguments
 component = '11'    # Camera
 opcode = '01'       # Take picture
 camera_num = '01'   # Argument 1
@@ -28,6 +28,7 @@ command = seq + length + checksum + magic + component + opcode + camera_num + ca
 """
 
 # Navigation
+length = hton('000f')   # Update manually if there are more arguments
 component = '0d'
 opcode = '00'  # 0: Forward   1: Backward     2: Rotate Left (CCW)     3: Rotate Right (CW)
 distance = '05'

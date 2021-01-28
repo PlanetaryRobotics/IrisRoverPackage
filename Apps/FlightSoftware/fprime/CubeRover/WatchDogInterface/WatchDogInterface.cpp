@@ -878,10 +878,6 @@ namespace CubeRover {
       }
       sciSend(scilinREG, sizeof(frame), (uint8_t *)&frame);
 
-      while ((scilinREG->FLR & 256U) == 0U)
-      {
-      } /* Wait */
-
       // Check for Response from MSP430 Watchdog
       U32 frame_reponse;
       //Blocking until timeout or data available

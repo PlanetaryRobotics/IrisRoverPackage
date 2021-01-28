@@ -82,20 +82,18 @@ void i2cInit(void)
     i2cREG1->MDR = (uint32)((uint32)0U << 5U);
 
     /** - set i2c mode */
-    i2cREG1->MDR =   (uint32)((uint32)0U << 15U)        /* nack mode                         */
-                   | (uint32)((uint32)0U << 14U)        /* free running                      */
-                   | (uint32)((uint32)0U << 13U)        /* start condition - master only     */
-                                                        /* 12 is reserved                    */
-                   | (uint32)((uint32)1U <<11U)         /* stop condition                    */
-                   | (uint32)((uint32)1U <<10U)         /* Master/Slave mode                 */
-                   | (uint32)((uint32)I2C_TRANSMITTER)  /* Transmitter/receiver              */
-                   | (uint32)((uint32)I2C_7BIT_AMODE)   /* xpanded address                   */
-                   | (uint32)((uint32)0U << 7U)         /* repeat mode                       */
-                   | (uint32)((uint32)0U << 6U)         /* digital loop back                 */
-                                                        /* 5 is reset                        */
-                   | (uint32)((uint32)0U << 4U)         /* start byte - master only          */
-                   | (uint32)((uint32)0U << 3U)         /* free data format                  */
-                   | (uint32)(I2C_8_BIT);               /* bit count                         */
+    i2cREG1->MDR =   (uint32)((uint32)0U << 15U)     /* nack mode                         */
+                   | (uint32)((uint32)0U << 14U)     /* free running                      */
+                   | (uint32)(0U)              /* start condition - master only     */
+                   | (uint32)((uint32)1U <<11U)      /* stop condition                    */
+                   | (uint32)((uint32)1U <<10U)      /* Master/Slave mode                 */
+                   | (uint32)((uint32)I2C_TRANSMITTER)     /* Transmitter/receiver              */
+                   | (uint32)((uint32)I2C_7BIT_AMODE)      /* xpanded address                   */
+                   | (uint32)((uint32)0U << 7U)      /* repeat mode                       */
+                   | (uint32)((uint32)0U << 6U)     /* digital loop back                  */
+                   | (uint32)((uint32)0U << 4U)     /* start byte - master only          */
+                   | (uint32)((uint32)0U << 3U)           /* free data format                  */
+                   | (uint32)(I2C_8_BIT);   /* bit count                         */
 
 
     /** - set i2c Backward Compatibility mode */
@@ -105,40 +103,40 @@ void i2cInit(void)
     i2cREG1->DMACR = 0x00U;
 
     /** - set i2c data count */
-    i2cREG1->CNT = 8U; // 8 Data bits until stop condition
+    i2cREG1->CNT = 8U;
 
     /** - disable all interrupts */
     i2cREG1->IMR = 0x00U;
 
     /** - set prescale */
-    i2cREG1->PSC = 13U; // Results with a Module CLK Freq of 8 MHz (Underlying clock controlling I2C)
+    i2cREG1->PSC = 13U;
 
     /** - set clock rate */
-    i2cREG1->CKH = 5U; 
-    i2cREG1->CKL = 5U; // Configures Baud Rate to be 400KHz
+    i2cREG1->CKH = 5U;
+    i2cREG1->CKL = 5U;
 
     /** - set i2c pins functional mode */
-    i2cREG1->PFNC = (0U); // Selects I2C mode instead of general I/O pins
+    i2cREG1->PFNC = (0U);
 
     /** - set i2c pins default output value */
     i2cREG1->DOUT = (uint32)((uint32)0U << 1U)     /* sda pin */
-                  | (uint32)(0U);                  /* scl pin */
+                  | (uint32)(0U);     /* scl pin */
 
     /** - set i2c pins output direction */
     i2cREG1->DIR  = (uint32)((uint32)0U << 1U)     /* sda pin */
-                  | (uint32)(0U);                  /* scl pin */
+                  | (uint32)(0U);     /* scl pin */
 
     /** - set i2c pins open drain enable */
     i2cREG1->PDR  = (uint32)((uint32)0U << 1U)     /* sda pin */
-                  | (uint32)(0U);                  /* scl pin */
+                  | (uint32)(0U);     /* scl pin */
 
     /** - set i2c pins pullup/pulldown enable */
     i2cREG1->PDIS = (uint32)((uint32)0U << 1U)     /* sda pin */
-                  | (uint32)(0U);                  /* scl pin */
+                  | (uint32)(0U);     /* scl pin */
 
     /** - set i2c pins pullup/pulldown select */
     i2cREG1->PSEL = (uint32)((uint32)1U << 1U)     /* sda pin */
-                  | (uint32)(1U);                  /* scl pin */
+                  | (uint32)(1U);     /* scl pin */
 
     /** - set interrupt enable */
     i2cREG1->IMR  = (uint32)((uint32)0U << 6U)     /* Address as slave interrupt      */
@@ -147,7 +145,7 @@ void i2cInit(void)
                   | (uint32)((uint32)0U << 3U)     /* Receive data ready interrupt    */
                   | (uint32)((uint32)0U << 2U)     /* Register Access ready interrupt */
                   | (uint32)((uint32)0U << 1U)     /* No Acknowledgement interrupt    */
-                  | (uint32)((uint32)0U);          /* Arbitration Lost interrupt      */
+                  | (uint32)((uint32)0U);     /* Arbitration Lost interrupt      */
 
     /** - i2c Out of reset */
     i2cREG1->MDR |= (uint32)I2C_RESET_OUT;
@@ -547,6 +545,7 @@ uint8 i2cReceiveByte(i2cBASE_t *i2c)
 /* Requirements : HL_SR290 */
 void i2cReceive(i2cBASE_t *i2c, uint32 length, uint8 * data)
 {
+
 /* USER CODE BEGIN (26) */
 /* USER CODE END */
     if ((i2c->IMR & (uint32)I2C_RX_INT) != 0U)
@@ -564,8 +563,9 @@ void i2cReceive(i2cBASE_t *i2c, uint32 length, uint8 * data)
         while (length > 0U)
         {
             /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Potentially infinite loop found - Hardware Status check for execution sequence" */
-            while ((i2c->STR & (uint32)I2C_RX_INT) == 0U);
-
+            while ((i2c->STR & (uint32)I2C_RX_INT) == 0U)
+            {
+            } /* Wait */
             /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
             *data = ((uint8)i2c->DRR);
             /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */

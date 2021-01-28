@@ -254,6 +254,8 @@ void spiInit(void)
     /** - Finally start SPI1 */
     spiREG1->GCR1 = (spiREG1->GCR1 & 0xFEFFFFFFU) | 0x01000000U;
 
+
+
     /** @b initialize @b SPI3 */
 
     /** bring SPI out of reset */
@@ -265,7 +267,7 @@ void spiInit(void)
                   | 1U);  /* MASTER */
 
     /** SPI3 enable pin configuration */
-    spiREG3->INT0 = (spiREG3->INT0 & 0xFEFFFFFFU)| (uint32)((uint32)0U << 24U);  /* ENABLE HIGHZ */
+    spiREG3->INT0 = (spiREG3->INT0 & 0xFEFFFFFFU) | (uint32)((uint32)0U << 24U);  /* ENABLE HIGHZ */
 
     /** - Delays */
     spiREG3->DELAY = (uint32)((uint32)0U << 24U)  /* C2TDELAY */
@@ -352,10 +354,8 @@ void spiInit(void)
                     | (uint32)((uint32)1U << 5U)  /* SCS[5] */
                     | (uint32)((uint32)0U << 8U)  /* ENA */
                     | (uint32)((uint32)0U << 9U)  /* CLK */
-                    | (uint32)((uint32)0U << 10U)  /* SIMO[0] */
-                    | (uint32)((uint32)0U << 11U)  /* SOMI[0] */
-                    | (uint32)((uint32)0U << 17U)  /* SIMO[1] */
-                    | (uint32)((uint32)0U << 25U); /* SOMI[1] */
+                    | (uint32)((uint32)0U << 10U)  /* SIMO */
+                    | (uint32)((uint32)0U << 11U); /* SOMI */
 
     /** - SPI3 Port direction */
     spiREG3->PC1  =   (uint32)((uint32)1U << 0U)  /* SCS[0] */
@@ -366,10 +366,8 @@ void spiInit(void)
                     | (uint32)((uint32)1U << 5U)  /* SCS[5] */
                     | (uint32)((uint32)0U << 8U)  /* ENA */
                     | (uint32)((uint32)1U << 9U)  /* CLK */
-                    | (uint32)((uint32)1U << 10U)  /* SIMO[0] */
-                    | (uint32)((uint32)0U << 11U)  /* SOMI[0] */
-                    | (uint32)((uint32)0U << 17U)  /* SIMO[1] */
-                    | (uint32)((uint32)0U << 25U); /* SOMI[1] */
+                    | (uint32)((uint32)1U << 10U)  /* SIMO */
+                    | (uint32)((uint32)0U << 11U); /* SOMI */
 
     /** - SPI3 Port open drain enable */
     spiREG3->PC6  =   (uint32)((uint32)0U << 0U)  /* SCS[0] */
@@ -380,10 +378,8 @@ void spiInit(void)
                     | (uint32)((uint32)0U << 5U)  /* SCS[5] */
                     | (uint32)((uint32)0U << 8U)  /* ENA */
                     | (uint32)((uint32)0U << 9U)  /* CLK */
-                    | (uint32)((uint32)0U << 10U)  /* SIMO[0] */
-                    | (uint32)((uint32)0U << 11U)  /* SOMI[0] */
-                    | (uint32)((uint32)0U << 17U)  /* SIMO[1] */
-                    | (uint32)((uint32)0U << 25U); /* SOMI[1] */
+                    | (uint32)((uint32)0U << 10U)  /* SIMO */
+                    | (uint32)((uint32)0U << 11U); /* SOMI */
 
     /** - SPI3 Port pullup / pulldown selection */
     spiREG3->PC8  =   (uint32)((uint32)1U << 0U)  /* SCS[0] */
@@ -394,10 +390,8 @@ void spiInit(void)
                     | (uint32)((uint32)1U << 5U)  /* SCS[5] */
                     | (uint32)((uint32)1U << 8U)  /* ENA */
                     | (uint32)((uint32)1U << 9U)  /* CLK */
-                    | (uint32)((uint32)1U << 10U)  /* SIMO[0] */
-                    | (uint32)((uint32)1U << 11U)  /* SOMI[0] */
-                    | (uint32)((uint32)1U << 17U)  /* SIMO[1] */
-                    | (uint32)((uint32)1U << 25U); /* SOMI[1] */
+                    | (uint32)((uint32)1U << 10U)  /* SIMO */
+                    | (uint32)((uint32)1U << 11U); /* SOMI */
 
     /** - SPI3 Port pullup / pulldown enable*/
     spiREG3->PC7  =   (uint32)((uint32)0U << 0U)  /* SCS[0] */
@@ -408,10 +402,8 @@ void spiInit(void)
                     | (uint32)((uint32)0U << 5U)  /* SCS[5] */
                     | (uint32)((uint32)0U << 8U)  /* ENA */
                     | (uint32)((uint32)0U << 9U)  /* CLK */
-                    | (uint32)((uint32)0U << 10U)  /* SIMO[0] */
-                    | (uint32)((uint32)0U << 11U)  /* SOMI[0] */
-                    | (uint32)((uint32)0U << 17U)  /* SIMO[1] */
-                    | (uint32)((uint32)0U << 25U); /* SOMI[1] */
+                    | (uint32)((uint32)0U << 10U)  /* SIMO */
+                    | (uint32)((uint32)0U << 11U); /* SOMI */
 
     /* SPI3 set all pins to functional */
     spiREG3->PC0  =   (uint32)((uint32)0U << 0U)  /* SCS[0] */
@@ -422,20 +414,15 @@ void spiInit(void)
                     | (uint32)((uint32)0U << 5U)  /* SCS[5] */
                     | (uint32)((uint32)0U << 8U)  /* ENA */
                     | (uint32)((uint32)1U << 9U)  /* CLK */
-                    | (uint32)((uint32)1U << 10U)  /* SIMO[0] */
-                    | (uint32)((uint32)1U << 11U)  /* SOMI[0] */
-                    | (uint32)((uint32)1U << 17U)  /* SIMO[1] */
-                    | (uint32)((uint32)1U << 25U); /* SOMI[1] */
+                    | (uint32)((uint32)1U << 10U)  /* SIMO */
+                    | (uint32)((uint32)1U << 11U); /* SOMI */
 
     /** - Initialize TX and RX data buffer Status */
-    g_spiPacket_t[0U].tx_data_status  = SPI_READY;
-    g_spiPacket_t[0U].rx_data_status  = SPI_READY;
+    g_spiPacket_t[2U].tx_data_status  = SPI_READY;
+    g_spiPacket_t[2U].rx_data_status  = SPI_READY;
 
     /** - Finally start SPI3 */
     spiREG3->GCR1 = (spiREG3->GCR1 & 0xFEFFFFFFU) | 0x01000000U;
-
-
-
 
 
     /** @b initialize @b SPI4 */
@@ -1091,6 +1078,7 @@ void spi1GetConfigValue(spi_config_reg_t *config_reg, config_value_type_t type)
     }
 }
 
+
 /** @fn void spi3GetConfigValue(spi_config_reg_t *config_reg, config_value_type_t type)
 *   @brief Get the initial or current values of the configuration registers
 *
@@ -1106,26 +1094,26 @@ void spi1GetConfigValue(spi_config_reg_t *config_reg, config_value_type_t type)
 *   of the configuration registers to the struct pointed by config_reg
 *
 */
-/* SourceId : SPI_SourceId_015 */
+/* SourceId : SPI_SourceId_017 */
 /* DesignId : SPI_DesignId_015 */
 /* Requirements : HL_SR144 */
 void spi3GetConfigValue(spi_config_reg_t *config_reg, config_value_type_t type)
 {
     if (type == InitialValue)
     {
-        config_reg->CONFIG_GCR1  = SPI1_GCR1_CONFIGVALUE;
-        config_reg->CONFIG_INT0  = SPI1_INT0_CONFIGVALUE;
-        config_reg->CONFIG_LVL   = SPI1_LVL_CONFIGVALUE;
-        config_reg->CONFIG_PC0   = SPI1_PC0_CONFIGVALUE;
-        config_reg->CONFIG_PC1   = SPI1_PC1_CONFIGVALUE;
-        config_reg->CONFIG_PC6   = SPI1_PC6_CONFIGVALUE;
-        config_reg->CONFIG_PC7   = SPI1_PC7_CONFIGVALUE;
-        config_reg->CONFIG_PC8   = SPI1_PC8_CONFIGVALUE;
-        config_reg->CONFIG_DELAY = SPI1_DELAY_CONFIGVALUE;
-        config_reg->CONFIG_FMT0  = SPI1_FMT0_CONFIGVALUE;
-        config_reg->CONFIG_FMT1  = SPI1_FMT1_CONFIGVALUE;
-        config_reg->CONFIG_FMT2  = SPI1_FMT2_CONFIGVALUE;
-        config_reg->CONFIG_FMT3  = SPI1_FMT3_CONFIGVALUE;
+        config_reg->CONFIG_GCR1  = SPI3_GCR1_CONFIGVALUE;
+        config_reg->CONFIG_INT0  = SPI3_INT0_CONFIGVALUE;
+        config_reg->CONFIG_LVL   = SPI3_LVL_CONFIGVALUE;
+        config_reg->CONFIG_PC0   = SPI3_PC0_CONFIGVALUE;
+        config_reg->CONFIG_PC1   = SPI3_PC1_CONFIGVALUE;
+        config_reg->CONFIG_PC6   = SPI3_PC6_CONFIGVALUE;
+        config_reg->CONFIG_PC7   = SPI3_PC7_CONFIGVALUE;
+        config_reg->CONFIG_PC8   = SPI3_PC8_CONFIGVALUE;
+        config_reg->CONFIG_DELAY = SPI3_DELAY_CONFIGVALUE;
+        config_reg->CONFIG_FMT0  = SPI3_FMT0_CONFIGVALUE;
+        config_reg->CONFIG_FMT1  = SPI3_FMT1_CONFIGVALUE;
+        config_reg->CONFIG_FMT2  = SPI3_FMT2_CONFIGVALUE;
+        config_reg->CONFIG_FMT3  = SPI3_FMT3_CONFIGVALUE;
     }
     else
     {
@@ -1200,4 +1188,15 @@ void spi4GetConfigValue(spi_config_reg_t *config_reg, config_value_type_t type)
         config_reg->CONFIG_FMT3  = spiREG4->FMT3;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
 

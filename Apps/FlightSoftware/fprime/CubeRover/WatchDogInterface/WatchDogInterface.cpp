@@ -51,9 +51,8 @@ namespace CubeRover {
 
     Read_Temp();
 
-    // RESET THE WIFI CHIP ON STARTUP
-    Reset_Specific_Handler(0x04 /*RESET WIFI*/);
-    for (unsigned i = 200000000; i; --i);    // Watchdog resets WF121 for 10s, delay for ~15s to ensure it finishes resetting
+    Reset_Specific_initHandler(0x04);    // Reset WF121
+    for (unsigned i = 400000000; i; --i);
   }
 
   WatchDogInterfaceComponentImpl ::
@@ -87,25 +86,25 @@ namespace CubeRover {
     // Send stroke once Tx ready
     sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
 
-      U64 watchdog_return;
-      U32 watchdog_reponse;
-      //Blocking until timeout or data available
-      int32_t size_read = 0;
-      int tries = 10;
-      while(--tries && !sciIsRxReady(scilinREG));
-      if(tries == 0)
-      {
-        this->log_WARNING_HI_WatchDogTimedOut();
-        return false;
-      }
-      size_read = sciReceiveWithTimeout(scilinREG,
-                                   sizeof(watchdog_return),
-                                   (uint8_t *)&watchdog_return,
-                                   0x00002710); /*10 second timeout*/
+    U64 watchdog_return;
+    U32 watchdog_reponse;
+    //Blocking until timeout or data available
+    int32_t size_read = 0;
+    int tries = 100000000;
+    while(--tries && !sciIsRxReady(scilinREG));
+    if(tries == 0)
+    {
+      this->log_WARNING_HI_WatchDogTimedOut();
+      return false;
+    }
+    size_read = sciReceiveWithTimeout(scilinREG,
+                                 sizeof(watchdog_return),
+                                 (uint8_t *)&watchdog_return,
+                                 0x00002710); /*10 second timeout*/
 
-      U32 comm_error = sciRxError(scilinREG);
+    U32 comm_error = sciRxError(scilinREG);
 
-      memcpy(&watchdog_reponse, &(watchdog_return)+4, 4); // Copy last four bytes to get stroke values
+    memcpy(&watchdog_reponse, &(watchdog_return)+4, 4); // Copy last four bytes to get stroke values
 
     // Good read:
     if (size_read > 0)
@@ -126,7 +125,7 @@ namespace CubeRover {
                 Fw::Buffer buff;
                 int stat = 0;
                 uint16_t UDP_size = (U16)(watchdog_reponse);
-                tries = 10;
+                tries = 100000000;
                 while(--tries && !sciIsRxReady(scilinREG));
                 if(tries == 0)
 			    {
@@ -163,7 +162,7 @@ namespace CubeRover {
             //Blocking until timeout or data available
             U16 buff[6];
             int stat = 0;
-            tries = 10;
+            tries = 100000000;
             while(--tries && !sciIsRxReady(scilinREG));
             if(tries == 0)
 			{
@@ -242,7 +241,7 @@ namespace CubeRover {
       U32 watchdog_reponse;
       //Blocking until timeout or data available
       int32_t size_read = 0;
-      int tries = 10;
+      int tries = 100000000;
       while(--tries && !sciIsRxReady(scilinREG));
       if(tries == 0)
       {
@@ -273,7 +272,7 @@ namespace CubeRover {
         }
         else if(watchdog_reponse == watchdog_stroke)
         {
-            tries = 10;
+            tries = 100000000;
     		    while(--tries && !sciIsTxReady(scilinREG));
     		    if(tries == 0)
     		    {
@@ -361,7 +360,7 @@ namespace CubeRover {
       U32 watchdog_reponse;
       //Blocking until timeout or data available
       int32_t size_read = 0;
-      int tries = 10;
+      int tries = 100000000;
       while(--tries && !sciIsRxReady(scilinREG));
       if(tries == 0)
       {
@@ -397,7 +396,7 @@ namespace CubeRover {
 	                Fw::Buffer buff;
 	                int stat = 0;
 	                uint16_t UDP_size = (U16)(watchdog_reponse);
-	                tries = 10;
+	                tries = 100000000;
 	                while(--tries && !sciIsRxReady(scilinREG));
 	                if(tries == 0)
 				    {
@@ -435,7 +434,7 @@ namespace CubeRover {
 	            //Blocking until timeout or data available
 	            U16 buff[6];
 	            int stat = 0;
-	            tries = 10;
+	            tries = 100000000;
 	            while(--tries && !sciIsRxReady(scilinREG));
 	            if(tries == 0)
 				{
@@ -522,7 +521,7 @@ namespace CubeRover {
       U32 watchdog_reponse;
       //Blocking until timeout or data available
       int32_t size_read = 0;
-      int tries = 10;
+      int tries = 100000000;
       while(--tries && !sciIsRxReady(scilinREG));
       if(tries == 0)
       {
@@ -558,7 +557,7 @@ namespace CubeRover {
 	                Fw::Buffer buff;
 	                int stat = 0;
 	                uint16_t UDP_size = (U16)(watchdog_reponse);
-	                tries = 10;
+	                tries = 100000000;
 	                while(--tries && !sciIsRxReady(scilinREG));
 	                if(tries == 0)
 				    {
@@ -596,7 +595,7 @@ namespace CubeRover {
 	            //Blocking until timeout or data available
 	            U16 buff[6];
 	            int stat = 0;
-	            tries = 10;
+	            tries = 100000000;
 	            while(--tries && !sciIsRxReady(scilinREG));
 	            if(tries == 0)
 				{
@@ -699,7 +698,7 @@ namespace CubeRover {
       U32 watchdog_reponse;
       //Blocking until timeout or data available
       int32_t size_read = 0;
-      int tries = 10;
+      int tries = 10000000;
       while(--tries && !sciIsRxReady(scilinREG));
       if(tries == 0)
       {
@@ -734,7 +733,7 @@ namespace CubeRover {
                   Fw::Buffer buff;
                   int stat = 0;
                   uint16_t UDP_size = (U16)(watchdog_reponse);
-                  tries = 10;
+                  tries = 1000000000;
                   while(--tries && !sciIsRxReady(scilinREG));
                   if(tries == 0)
                   {
@@ -776,7 +775,7 @@ namespace CubeRover {
               //Blocking until timeout or data available
               U16 buff[6];
               int stat = 0;
-              tries = 10;
+              tries = 100000000;
               while(--tries && !sciIsRxReady(scilinREG));
               if(tries == 0)
               {
@@ -846,30 +845,21 @@ namespace CubeRover {
       U32 frame = 0x0021B00B;
 
       // Calculate Parity for Message by summing each byte then Inversing it
-      U32 parity = 0;
+      U8 parity = 0;
       parity = ~((frame&0x000000FF) +
-      		  ((frame&0x0000FF00) >> 8) + 
-      		  ((frame&0x00FF0000) >> 16) +
-      		  ((frame&0xFF000000) >> 24) + 
-      		  (stroke&0x000000FF) +
-      		  ((stroke&0x0000FF00) >> 8) +
-      		  ((stroke&0x00FF0000) >> 16) +
-      		  ((stroke&0xFF000000) >> 24));
+      			 ((frame&0x0000FF00) >> 8) + 
+      			 ((frame&0x00FF0000) >> 16) +
+      			 ((frame&0xFF000000) >> 24) + 
+      			 (stroke&0x000000FF) +
+      			 ((stroke&0x0000FF00) >> 8) +
+      			 ((stroke&0x00FF0000) >> 16) +
+      			 ((stroke&0xFF000000) >> 24));
 
       // Add Parity to frame
       frame = (parity << 24) | frame;
 
-      int tries = 10;
-      while(--tries && !sciIsTxReady(scilinREG));
-      if(tries == 0)
-      {
-        this->log_WARNING_HI_WatchDogTimedOut();
-        return false;
-      }
-
       sciSend(scilinREG, sizeof(frame), (uint8_t *)&frame);
 
-      // Return true by default
       return true;
   }
 

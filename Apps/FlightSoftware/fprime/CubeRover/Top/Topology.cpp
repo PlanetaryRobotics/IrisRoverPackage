@@ -150,7 +150,10 @@ CubeRover::WatchDogInterfaceComponentImpl watchDogInterface(
  * @brief      Run 1 cycle (debug)
  */
 void run1cycle(void) {
-  blockDriver.callIsr();
+  //blockDriver.callIsr();
+  Svc::TimerVal timer;
+  timer.take();
+  rateGroupDriver.get_CycleIn_InputPort(0)->invoke(timer);
 }
 
 /**

@@ -5,6 +5,9 @@
  *      Author: cedric
  */
 
+#include "sys_common.h"
+#include "system.h"
+
 #include <CubeRoverConfig.hpp>
 #include "FreeRTOS.h"
 #include "os_task.h"
@@ -15,17 +18,19 @@
 #include "i2c.h"
 #include "spi.h"
 #include "adc.h"
-#include "lin.h"
+#include "rti.h"
 
 extern "C" {
     void vApplicationIdleHook(void);
+    void vApplicationTickHook(void);
     void vApplicationStackOverflowHook(void *xTask, char *pcTaskName);
 }
 
 void vApplicationIdleHook(void) {
+}
+
+void vApplicationTickHook(void) {
     run1cycle();
-    //gioToggleBit(gioPORTB, 1);
-    //for(uint32_t i=0; i<2000000; i++) asm("  NOP");
 }
 
 void vApplicationStackOverflowHook(void *xTask, char *pcTaskName) {
@@ -41,13 +46,16 @@ void main(void)
     sciInit();
     adcInit();
     spiInit();
-    //linInit();            //linInit() changes the settings of watchdog interface port, please do not use
+    rtiInit();
 
+    
     constructApp();
+    
+    _enable_IRQ();                                      // Enable IRQ - Clear I flag in CPS register // @suppress("Function cannot be resolved")
 
     vTaskStartScheduler();
 
     //if it reaches that point, there is a problem with RTOS.
 
-/* USER CODE END */
+    /* USER CODE END */
 }

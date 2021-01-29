@@ -95,13 +95,13 @@
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION	1
 #define configUSE_FPU							1
 #define configUSE_IDLE_HOOK			  1
-#define configUSE_TICK_HOOK			  0
+#define configUSE_TICK_HOOK			  1
 #define configUSE_TRACE_FACILITY	  0
 #define configUSE_16_BIT_TICKS		  0
 #define configCPU_CLOCK_HZ			  ( ( unsigned portLONG ) 110000000 ) /* Timer clock. */
 #define configTICK_RATE_HZ			  ( ( TickType_t ) 1000 )
 #define configMAX_PRIORITIES		  ( 32 )
-#define configMINIMAL_STACK_SIZE	  ( ( unsigned portSHORT ) 1024 )    /* FIXME: Make this SMALLER ONCE WE MOVE TO PRE-EMPTIVE SCHEDULING */
+#define configMINIMAL_STACK_SIZE	  ( ( unsigned portSHORT ) 128 )
 #define configTOTAL_HEAP_SIZE		  ( ( size_t ) 65536 )
 #define configMAX_TASK_NAME_LEN		  ( 16 )
 #define configIDLE_SHOULD_YIELD		  1

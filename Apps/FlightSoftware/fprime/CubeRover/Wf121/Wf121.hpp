@@ -1571,9 +1571,9 @@ namespace Wf121{
     private:
 
       ErrorCode transmitCommand(BgApiHeader *header,
-                                uint8_t *payload = NULL);
+                                uint8_t *payload = (uint8_t *)NULL);
       ErrorCode receiveCommand(BgApiHeader *header,
-                               uint8_t *payload = NULL);
+                               uint8_t *payload = (uint8_t *)NULL);
       uint16_t getPayloadSizeFromHeader(BgApiHeader *header);
       ErrorCode getReplyHeader(BgApiHeader *header);
       ErrorCode getReplyPayload(uint8_t *payload,

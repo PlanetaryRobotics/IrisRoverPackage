@@ -57,6 +57,7 @@
 #include "sci.h"
 #include "spi.h"
 #include "het.h"
+#include "rti.h"
 #include "dcc.h"
 #include "i2c.h"
 #include "crc.h"
@@ -67,6 +68,7 @@
 #include "emac.h" 
 
 /* USER CODE BEGIN (0) */
+#include "App/ISR.hpp"
 /* USER CODE END */
 #pragma WEAK(esmGroup1Notification)
 void esmGroup1Notification(uint32 channel)
@@ -107,6 +109,16 @@ void memoryPort1TestFailNotification(uint32 groupSelect, uint32 dataSelect, uint
 }
 
 /* USER CODE BEGIN (8) */
+/* USER CODE END */
+#pragma WEAK(rtiNotification)
+void rtiNotification(uint32 notification)
+{
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (9) */
+/* USER CODE END */
+}
+
+/* USER CODE BEGIN (10) */
 /* USER CODE END */
 #pragma WEAK(adcNotification)
 void adcNotification(adcBASE_t *adc, uint32 group)

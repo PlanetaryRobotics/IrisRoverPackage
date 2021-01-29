@@ -55,9 +55,9 @@ MEMORY
     VECTORS (X)  : origin=0x00000000 length=0x00000020
     KERNEL  (RX) : origin=0x00000020 length=0x00008000 
     FLASH0  (RX) : origin=0x00008020 length=0x00137FE0
-    STACKS  (RW) : origin=0x08000000 length=0x00000d00
-    KRAM    (RW) : origin=0x08000d00 length=0x00000800
-    RAM     (RW) : origin=(0x08000d00+0x00000800) length=(0x0002f300 - 0x00000800)
+    STACKS  (RW) : origin=0x08000000 length=0x00001400
+    KRAM    (RW) : origin=0x08001400 length=0x00000800
+    RAM     (RW) : origin=(0x08001400+0x00000800) length=(0x0002ec00 - 0x00000800)
     
 /* USER CODE BEGIN (2) */
 /* USER CODE END */

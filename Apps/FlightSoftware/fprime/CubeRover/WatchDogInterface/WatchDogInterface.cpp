@@ -85,32 +85,27 @@ namespace CubeRover {
       return;
 
     // Send stroke once Tx ready
-    int tries = 10;
-    while(--tries && !sciIsTxReady(scilinREG));
-    if(tries == 0)
-    {
-    	this->log_WARNING_HI_WatchDogTimedOut();
-    	return;
-    }
     sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
 
-    // Check for Response from MSP430 Watchdog
-    U32 watchdog_reponse;
-    //Blocking until timeout or data available
-    int32_t size_read = 0;
-    tries = 10;
-    while(--tries && !sciIsRxReady(scilinREG));
-    if(tries == 0)
-    {
-    	this->log_WARNING_HI_WatchDogTimedOut();
-    	return;
-    }
-    size_read = sciReceiveWithTimeout(scilinREG,
-                                 sizeof(watchdog_reponse),
-                                 (uint8_t *)&watchdog_reponse,
-                                 0x00002710); /*10 second timeout*/
+      U64 watchdog_return;
+      U32 watchdog_reponse;
+      //Blocking until timeout or data available
+      int32_t size_read = 0;
+      int tries = 10;
+      while(--tries && !sciIsRxReady(scilinREG));
+      if(tries == 0)
+      {
+        this->log_WARNING_HI_WatchDogTimedOut();
+        return false;
+      }
+      size_read = sciReceiveWithTimeout(scilinREG,
+                                   sizeof(watchdog_return),
+                                   (uint8_t *)&watchdog_return,
+                                   0x00002710); /*10 second timeout*/
 
-    U32 comm_error = sciRxError(scilinREG);
+      U32 comm_error = sciRxError(scilinREG);
+
+      memcpy(&watchdog_reponse, &(watchdog_return)+4, 4); // Copy last four bytes to get stroke values
 
     // Good read:
     if (size_read > 0)
@@ -166,7 +161,7 @@ namespace CubeRover {
         {
             //Foward telemetry data
             //Blocking until timeout or data available
-            U16 buff[5];
+            U16 buff[6];
             int stat = 0;
             tries = 10;
             while(--tries && !sciIsRxReady(scilinREG));
@@ -241,32 +236,27 @@ namespace CubeRover {
       return;
 
     // Send stroke once Tx ready
-    int tries = 10;
-    while(--tries && !sciIsTxReady(scilinREG));
-    if(tries == 0)
-    {
-    	this->log_WARNING_HI_WatchDogTimedOut();
-    	return;
-    }
     sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
 
-    // Check for Response from MSP430 Watchdog
-    U32 watchdog_reponse;
-    //Blocking until timeout or data available
-    int32_t size_read = 0;
-    tries = 10;
-    while(--tries && !sciIsRxReady(scilinREG));
-    if(tries == 0)
-    {
-    	this->log_WARNING_HI_WatchDogTimedOut();
-    	return;
-    }
-    size_read = sciReceiveWithTimeout(scilinREG,
-                                 sizeof(watchdog_reponse),
-                                 (uint8_t *)&watchdog_reponse,
-                                 0x00002710); /*10 second timeout*/
+      U64 watchdog_return;
+      U32 watchdog_reponse;
+      //Blocking until timeout or data available
+      int32_t size_read = 0;
+      int tries = 10;
+      while(--tries && !sciIsRxReady(scilinREG));
+      if(tries == 0)
+      {
+        this->log_WARNING_HI_WatchDogTimedOut();
+        return false;
+      }
+      size_read = sciReceiveWithTimeout(scilinREG,
+                                   sizeof(watchdog_return),
+                                   (uint8_t *)&watchdog_return,
+                                   0x00002710); /*10 second timeout*/
 
-    U32 comm_error = sciRxError(scilinREG);
+      U32 comm_error = sciRxError(scilinREG);
+
+      memcpy(&watchdog_reponse, &(watchdog_return)+4, 4); // Copy last four bytes to get stroke values
 
     // Good read:
     if (size_read > 0)
@@ -365,34 +355,27 @@ namespace CubeRover {
         	return;
 	    
 	    // Send stroke once Tx ready
-	    int tries = 10;
-	    while(--tries && !sciIsTxReady(scilinREG));
-	    if(tries == 0)
-	    {
-	    	this->log_WARNING_HI_WatchDogTimedOut();
-	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
-	    	return;
-	    }
 	    sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
 
-	    // Check for Response from MSP430 Watchdog
-	    U32 watchdog_reponse;
-	    //Blocking until timeout or data available
-	    int32_t size_read = 0;
-	    tries = 10;
-	    while(--tries && !sciIsRxReady(scilinREG));
-	    if(tries == 0)
-	    {
-	    	this->log_WARNING_HI_WatchDogTimedOut();
-	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
-	    	return;
-	    }
-	    size_read = sciReceiveWithTimeout(scilinREG,
-	                                 sizeof(watchdog_reponse),
-	                                 (uint8_t *)&watchdog_reponse,
-	                                 0x00002710); /*10 second timeout*/
+      U64 watchdog_return;
+      U32 watchdog_reponse;
+      //Blocking until timeout or data available
+      int32_t size_read = 0;
+      int tries = 10;
+      while(--tries && !sciIsRxReady(scilinREG));
+      if(tries == 0)
+      {
+        this->log_WARNING_HI_WatchDogTimedOut();
+        return false;
+      }
+      size_read = sciReceiveWithTimeout(scilinREG,
+                                   sizeof(watchdog_return),
+                                   (uint8_t *)&watchdog_return,
+                                   0x00002710); /*10 second timeout*/
 
-	    U32 comm_error = sciRxError(scilinREG);
+      U32 comm_error = sciRxError(scilinREG);
+
+      memcpy(&watchdog_reponse, &(watchdog_return)+4, 4); // Copy last four bytes to get stroke values
 
 	    // Good read:
 	    if (size_read > 0)
@@ -450,7 +433,7 @@ namespace CubeRover {
 	        {
 	            //Foward telemetry data
 	            //Blocking until timeout or data available
-	            U16 buff[5];
+	            U16 buff[6];
 	            int stat = 0;
 	            tries = 10;
 	            while(--tries && !sciIsRxReady(scilinREG));
@@ -528,39 +511,32 @@ namespace CubeRover {
 
       	U32 watchdog_stroke = 0x00EE0000;
 
-      	// Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+      // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
 	    if(!Send_Frame(watchdog_stroke))
 	      return;
 	    
 	    // Send stroke once Tx ready
-	    int tries = 10;
-	    while(--tries && !sciIsTxReady(scilinREG));
-	    if(tries == 0)
-	    {
-	    	this->log_WARNING_HI_WatchDogTimedOut();
-	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
-	    	return;
-	    }
 	    sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
 
-	    // Check for Response from MSP430 Watchdog
-	    U32 watchdog_reponse;
-	    //Blocking until timeout or data available
-	    int32_t size_read = 0;
-	    tries = 10;
-	    while(--tries && !sciIsRxReady(scilinREG));
-	    if(tries == 0)
-	    {
-	    	this->log_WARNING_HI_WatchDogTimedOut();
-	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
-	    	return;
-	    }
-	    size_read = sciReceiveWithTimeout(scilinREG,
-	                                 sizeof(watchdog_reponse),
-	                                 (uint8_t *)&watchdog_reponse,
-	                                 0x00002710); /*10 second timeout*/
+      U64 watchdog_return;
+      U32 watchdog_reponse;
+      //Blocking until timeout or data available
+      int32_t size_read = 0;
+      int tries = 10;
+      while(--tries && !sciIsRxReady(scilinREG));
+      if(tries == 0)
+      {
+        this->log_WARNING_HI_WatchDogTimedOut();
+        return false;
+      }
+      size_read = sciReceiveWithTimeout(scilinREG,
+                                   sizeof(watchdog_return),
+                                   (uint8_t *)&watchdog_return,
+                                   0x00002710); /*10 second timeout*/
 
-	    U32 comm_error = sciRxError(scilinREG);
+      U32 comm_error = sciRxError(scilinREG);
+
+      memcpy(&watchdog_reponse, &(watchdog_return)+4, 4); // Copy last four bytes to get stroke values
 
 	    // Good read:
 	    if (size_read > 0)
@@ -618,7 +594,7 @@ namespace CubeRover {
 	        {
 	            //Foward telemetry data
 	            //Blocking until timeout or data available
-	            U16 buff[5];
+	            U16 buff[6];
 	            int stat = 0;
 	            tries = 10;
 	            while(--tries && !sciIsRxReady(scilinREG));
@@ -715,21 +691,15 @@ namespace CubeRover {
       if(!Send_Frame(watchdog_stroke))
         return false;
 
-      // Send stroke once Tx ready
-      int tries = 10;
-      while(--tries && !sciIsTxReady(scilinREG));
-      if(tries == 0)
-      {
-        this->log_WARNING_HI_WatchDogTimedOut();
-        return false;
-      }
+      // Send stroke
       sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
 
       // Check for Response from MSP430 Watchdog
+      U64 watchdog_return;
       U32 watchdog_reponse;
       //Blocking until timeout or data available
       int32_t size_read = 0;
-      tries = 10;
+      int tries = 10;
       while(--tries && !sciIsRxReady(scilinREG));
       if(tries == 0)
       {
@@ -737,11 +707,13 @@ namespace CubeRover {
         return false;
       }
       size_read = sciReceiveWithTimeout(scilinREG,
-                                   sizeof(watchdog_reponse),
-                                   (uint8_t *)&watchdog_reponse,
+                                   sizeof(watchdog_return),
+                                   (uint8_t *)&watchdog_return,
                                    0x00002710); /*10 second timeout*/
 
       U32 comm_error = sciRxError(scilinREG);
+
+      memcpy(&watchdog_reponse, &(watchdog_return)+4, 4); // Copy last four bytes to get stroke values
 
       // Good read:
       if (size_read > 0)
@@ -802,7 +774,7 @@ namespace CubeRover {
           {
               //Foward telemetry data
               //Blocking until timeout or data available
-              U16 buff[5];
+              U16 buff[6];
               int stat = 0;
               tries = 10;
               while(--tries && !sciIsRxReady(scilinREG));
@@ -894,53 +866,11 @@ namespace CubeRover {
         this->log_WARNING_HI_WatchDogTimedOut();
         return false;
       }
-      //U64 test = frame;
+
       sciSend(scilinREG, sizeof(frame), (uint8_t *)&frame);
 
-      // Check for Response from MSP430 Watchdog
-      U32 frame_reponse;
-      //Blocking until timeout or data available
-      int32_t size_read = 0;
-      tries = 10;
-      while(--tries && !sciIsRxReady(scilinREG));
-      if(tries == 0)
-      {
-        this->log_WARNING_HI_WatchDogTimedOut();
-        return false;
-      }
-      size_read = sciReceiveWithTimeout(scilinREG,
-                                   sizeof(frame_reponse),
-                                   (uint8_t *)&frame_reponse,
-                                   0x00002710); /*10 second timeout*/
-
-      U32 comm_error = sciRxError(scilinREG);
-
-      // Good read:
-      if (size_read > 0)
-      {
-        if((frame_reponse & 0x00FFFFFF) != 0x0021B00B)
-        {
-          this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-          return false;
-        }
-        else
-          return true;
-      }
-      // check for timeout
-      if (size_read == 0)
-      {
-          this->log_WARNING_HI_WatchDogTimedOut();
-          return false;
-      }
-      // quit if other error or data
-      else
-      {
-          this->log_WARNING_HI_WatchDogCommError(comm_error);
-          return false;
-      }
-
-      // Return false by default, should never get to this point
-      return false;
+      // Return true by default
+      return true;
   }
 
   bool WatchDogInterfaceComponentImpl :: Read_Temp()

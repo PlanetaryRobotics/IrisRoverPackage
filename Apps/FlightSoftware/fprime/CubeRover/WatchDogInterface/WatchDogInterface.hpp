@@ -26,18 +26,6 @@ namespace CubeRover {
 
     public:
 
-      // variable to store if DMA is busy or not
-      bool watchdog_dma_busy = false;
-
-      // frame struct
-      struct watchdog_frame
-      {
-        uint32_t magic_value : 24;
-        uint8_t parity;
-        uint16_t stroke_data_size;
-        uint16_t reset_val;
-      };
-
       // ----------------------------------------------------------------------
       // Construction, initialization, and destruction
       // ----------------------------------------------------------------------
@@ -134,15 +122,33 @@ namespace CubeRover {
           U32 stroke  // Type of frame we want to send
           );
 
-      //! Implementation for receiving data from MSP430
-      //! Return the size read from the MSP430 and puts the received value into the variable at the pointer
-      inline int32_t Receive_Frame(
-          U32* comm_error, 
-          watchdog_frame* frame
-      );
-
       //! Implementation for checking the tempurature senors from the ADC
       bool Read_Temp();
+
+      // frame struct
+      struct WatchdogFrameHeader {
+        uint32_t magic_value    :24;
+        uint8_t parity          :8;
+        uint16_t payload_length;
+        uint16_t reset_val;
+      } __attribute__((packed, aligned(8)));
+
+     struct WatchdogTelemetry {
+         int16_t voltage_2V5;
+         int16_t voltage_2V8;
+         int16_t voltage_24V;
+         int16_t voltage_28V;
+         int8_t battery_thermistor;
+         int8_t sys_status;
+         int16_t battery_level;
+     } __attribute__((packed, aligned(8)));
+
+      Receive_Frame(uint32_t *comm_error, WatchdogFrameHeader *header);
+
+    public:
+
+      // variable to store if DMA is busy or not
+      bool watchdog_dma_busy;
 
     };
 

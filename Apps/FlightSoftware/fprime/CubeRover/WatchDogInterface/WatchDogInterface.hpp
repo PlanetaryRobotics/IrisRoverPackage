@@ -136,7 +136,7 @@ namespace CubeRover {
 
       //! Implementation for receiving data from MSP430
       //! Return the size read from the MSP430 and puts the received value into the variable at the pointer
-      inline int32_t Receive_Watchdog_Frame(
+      inline int32_t Receive_Frame(
           U32* comm_error, 
           watchdog_frame* frame
       );

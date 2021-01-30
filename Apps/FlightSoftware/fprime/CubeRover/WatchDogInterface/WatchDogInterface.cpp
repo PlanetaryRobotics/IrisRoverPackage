@@ -88,7 +88,7 @@ namespace CubeRover {
     // Receive frame back from MSP430
     U32 comm_error;
     alignas(8) watchdog_frame frame;
-    int32_t size_read = Receive_Watchdog_Frame(&comm_error, &frame);
+    int32_t size_read =  Receive_Frame(&comm_error, &frame);
 
     // Good read:
     if (size_read > 0)
@@ -208,7 +208,7 @@ namespace CubeRover {
     // Receive frame back from MSP430
     U32 comm_error;
     alignas(8) watchdog_frame frame;
-    int32_t size_read = Receive_Watchdog_Frame(&comm_error, &frame);
+    int32_t size_read =  Receive_Frame(&comm_error, &frame);
 
     // Good read:
     if (size_read > 0)
@@ -311,7 +311,7 @@ namespace CubeRover {
       // Receive frame back from MSP430
       U32 comm_error;
       alignas(8) watchdog_frame frame;
-      int32_t size_read = Receive_Watchdog_Frame(&comm_error, &frame);
+      int32_t size_read =  Receive_Frame(&comm_error, &frame);
 
 	    // Good read:
 	    if (size_read > 0)
@@ -439,7 +439,7 @@ namespace CubeRover {
       // Receive frame back from MSP430
       U32 comm_error;
       alignas(8) watchdog_frame frame;
-      int32_t size_read = Receive_Watchdog_Frame(&comm_error, &frame);
+      int32_t size_read =  Receive_Frame(&comm_error, &frame);
 
 	    // Good read:
 	    if (size_read > 0)
@@ -582,7 +582,7 @@ namespace CubeRover {
       // Receive frame back from MSP430
       U32 comm_error;
       alignas(8) watchdog_frame frame;
-      int32_t size_read = Receive_Watchdog_Frame(&comm_error, &frame);
+      int32_t size_read =  Receive_Frame(&comm_error, &frame);
 
       // Good read:
       if (size_read > 0)
@@ -732,7 +732,7 @@ namespace CubeRover {
       return true;
   }
 
-  int32_t WatchDogInterfaceComponentImpl :: Receive_Watchdog_Frame(U32* comm_error, watchdog_frame* frame)
+  int32_t WatchDogInterfaceComponentImpl ::  Receive_Frame(U32* comm_error, watchdog_frame* frame)
   {
     uint64_t watchdog_return;
     int32_t size_read = 0;

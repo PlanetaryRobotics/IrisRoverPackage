@@ -78,15 +78,14 @@ namespace CubeRover {
     // Update Thermistor Telemetry
     Read_Temp();
 
-    // Sends U32 to the watchdog as defined in design document. Checks stroke value as to what to send watchdog
-    U32 watchdog_stroke = 0x00000000;
+    // Sends payload and reset value to MSP430
+    U16 payload_length = 0x0000;
+    U16 reset_value = 0x0000;
 
     // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-    if(!Send_Frame(watchdog_stroke))
+    if(!Send_Frame(payload_length, reset_value))
       return;
      
-    for(unsigned i = 100000000; i>0; --i); // Wait loop to make sure sci sends out all data
-
     // Receive frame back from MSP430
     U32 comm_error;
     WatchdogFrameHeader frame;
@@ -99,55 +98,33 @@ namespace CubeRover {
         Fw::Buffer &fwBuffer
     )
   {
-    uint16_t payloadSize = fwBuffer.getsize(); 
-    // Send header of reset 0x0000 and UDP data size
-    U32 watchdog_stroke = 0x0000FFFF & payloadSize;
+    // Sends payload and reset value to MSP430
+    U16 payload_length = fwBuffer.getsize();
+    U16 reset_value = 0x0000;
 
     // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-    if(!Send_Frame(watchdog_stroke))
+    if(!Send_Frame(payload_length, reset_value))
       return;
      
-    for(unsigned i = 100000000; i>0; --i); // Wait loop to make sure sci sends out all data
-
     // Receive frame back from MSP430
     U32 comm_error;
     WatchdogFrameHeader frame;
     int32_t size_read =  Receive_Frame(&comm_error, &frame);
 
     // Good read:
-    if (size_read > 0)
+    if (size_read >= 8)
     {
-        if(size_read < 8)
-        {
-            this->log_WARNING_HI_WatchDogIncorrectResp();
-            return;
-        }
-        // Check that response is the same as what was sent
-        else if(frame.payload_length != (uint16_t)watchdog_stroke)
-        {
-            this->log_WARNING_HI_WatchDogIncorrectResp();
-        }
-        else if(frame.payload_length == (uint16_t)watchdog_stroke && frame.reset_val == (uint16_t)*((&watchdog_stroke)+2))
+        if(frame.payload_length == payload_length && frame.reset_val == 0x0000)
         {
             int tries = 100000000;
-    		    while(--tries && !sciIsTxReady(scilinREG));
-    		    if(tries == 0)
-    		    {
-    		    	this->log_WARNING_HI_WatchDogTimedOut();
-    		    	return;
-    		    }
-    		    sciSend(scilinREG, payloadSize, reinterpret_cast<unsigned char*>(fwBuffer.getdata()));
+    		while(--tries && !sciIsTxReady(scilinREG));
+    		if(tries == 0)
+    		{
+    		    this->log_WARNING_HI_WatchDogTimedOut();
+    		    return;
+    		}
+    		sciSend(scilinREG, payload_length, reinterpret_cast<unsigned char*>(fwBuffer.getdata()));
         }
-    }
-    // check for timeout
-    if (size_read == 0)
-    {
-        this->log_WARNING_HI_WatchDogTimedOut();
-    }
-    // quit if other error or data
-    else
-    {
-        this->log_WARNING_HI_WatchDogCommError(comm_error);
     }
   }
   
@@ -175,8 +152,7 @@ namespace CubeRover {
   // Command handler implementations
   // ----------------------------------------------------------------------
 
-  void WatchDogInterfaceComponentImpl ::
-    Reset_Specific_cmdHandler(
+  void WatchDogInterfaceComponentImpl :: Reset_Specific_cmdHandler(
         const FwOpcodeType opCode,
         const U32 cmdSeq,
         U8 reset_value
@@ -203,23 +179,21 @@ namespace CubeRover {
     // If reset_value less than or equal to 0x1B, we are resetting hardware
     else
     {
-      	// Copy reset value and shift it left by 4 bytes to get 0x0000 as our first byte and reset_value as our second byte
-      	U32 watchdog_stroke = (static_cast<U32>(reset_value) << 16);
+      // Sends payload and reset value to MSP430
+      U16 payload_length = 0x0000;
+      U16 wd_reset_value = reset_value;
 
-      	// Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-      	if(!Send_Frame(watchdog_stroke))
-        	return;
+      // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+      if(!Send_Frame(payload_length, wd_reset_value))
+        return;
 	    
-      for(unsigned i = 100000000; i>0; --i); // Wait loop to make sure sci sends out all data
-
       // Receive frame back from MSP430
       U32 comm_error;
       WatchdogFrameHeader frame;
-      int32_t size_read =  Receive_Frame(&comm_error, &frame);
+      int32_t size_read = Receive_Frame(&comm_error, &frame);
 
       if(size_read < 8)
       {
-          this->log_WARNING_HI_WatchDogIncorrectResp();
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;
       }
@@ -233,25 +207,23 @@ namespace CubeRover {
         const U32 cmdSeq
     )
   {
-	  	// Send Activity Log/tlm to know watchdog recieved command
-	  	char command_type[24] = "Disengage From Rover";
-	  	Fw::LogStringArg command_type_log = command_type;
-	  	//Fw::TlmString command_type_tlm = command_type;
-	  	this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
-	  	//this->tlmWrite_LAST_COMMAND(command_type_tlm);
+	  // Send Activity Log/tlm to know watchdog recieved command
+	  char command_type[24] = "Disengage From Rover";
+	  Fw::LogStringArg command_type_log = command_type;
+	  this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
 
-      	U32 watchdog_stroke = 0x00EE0000;
+      // Sends payload and reset value to MSP430
+      U16 payload_length = 0x0000;
+      U16 reset_value = 0x00EE;
 
       // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-	    if(!Send_Frame(watchdog_stroke))
+	  if(!Send_Frame(payload_length, reset_value))
 	      return;
 	     
-      for(unsigned i = 100000000; i>0; --i); // Wait loop to make sure sci sends out all data
-
       // Receive frame back from MSP430
       U32 comm_error;
       WatchdogFrameHeader frame;
-      int32_t size_read =  Receive_Frame(&comm_error, &frame);
+      int32_t size_read = Receive_Frame(&comm_error, &frame);
 
       if(size_read < 8)
       {
@@ -273,9 +245,7 @@ namespace CubeRover {
     sprintf(reset_val_char, "%u", reset_value);
     strcat(command_type, reset_val_char);
     Fw::LogStringArg command_type_log = command_type;
-    //Fw::TlmString command_type_tlm = command_type;
     this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
-    //this->tlmWrite_LAST_COMMAND(command_type_tlm);
 
     // Sends a command to watchdog to reset specified devices. Can be hardware through watchdog or component
 
@@ -289,29 +259,33 @@ namespace CubeRover {
     // If reset_value less than or equal to 0x1B, we are resetting hardware
     else
     {
-      // Copy reset value and shift it left by 4 bytes to get 0x0000 as our first byte and reset_value as our second byte
-      U32 watchdog_stroke = (static_cast<U32>(reset_value) << 16);
+      // Sends payload and reset value to MSP430
+      U16 payload_length = 0x0000;
+      U16 wd_reset_value = reset_value;
       
       // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-      if(!Send_Frame(watchdog_stroke))
+      if(!Send_Frame(payload_length, wd_reset_value))
         return false;
 
       // Receive frame back from MSP430
       U32 comm_error;
       WatchdogFrameHeader frame;
-      int32_t size_read =  Receive_Frame(&comm_error, &frame);
+      int32_t size_read = Receive_Frame(&comm_error, &frame);
+
+      if(size_read < 8)
+          return false;
 
       return true;
     }
   }
 
-  bool WatchDogInterfaceComponentImpl :: Send_Frame(U32 stroke)
+  bool WatchDogInterfaceComponentImpl :: Send_Frame(U16 payload_length, U16 reset_value)
   {
       struct WatchdogFrameHeader frame;
       frame.magic_value = 0x21B00B;
       frame.parity = 0;
-      frame.payload_length = (uint16_t)stroke;
-      frame.reset_val = *(((uint16_t *)&stroke) + 1);
+      frame.payload_length = payload_length;
+      frame.reset_val = reset_value;
 
       uint64_t frame_bin = *((uint64_t *)&frame);
       frame.parity = ~(((frame_bin & 0x00000000000000FFL) >> 0)  +
@@ -329,7 +303,7 @@ namespace CubeRover {
       if(tries == 0)
       {
         this->log_WARNING_HI_WatchDogTimedOut();
-        return;
+        return false;
       }
       sciSend(scilinREG, sizeof(frame), (uint8_t *)&frame);
 
@@ -396,10 +370,8 @@ namespace CubeRover {
     int size_read = sciReceiveWithTimeout(scilinREG, sizeof(*header), (uint8_t *)header, 100000000);
     *comm_error = 0;
 
-
-    for(unsigned i = 100000000; i; --i); // Wait loop to make sure sci sends out all data
-
-    if (size_read == 0) {
+    if (size_read == 0)
+    {
         this->log_WARNING_HI_WatchDogTimedOut();
         return size_read;
     }
@@ -411,24 +383,43 @@ namespace CubeRover {
     }
     else if (size_read != sizeof(*header))
     {
-        this->log_WARNING_HI_WatchDogIncorrectResp();   // Probably should have a "reason"/error-code field (ie incorrect checksum, bad length, etc.)
+        this->log_WARNING_HI_WatchDogIncorrectResp(not_enough_bytes);
         return size_read;
     }
 
-    // TODO: Verify protocol: WD should always respond with a payload length of 0 b/c if we are sending UDP data, it
-    // wouldn't make sense for WD to echo back the header with a full length field which could be misinterpreted as having
-    // a payload
-    // Is there a different condition where telemetry is sent???
-    // I need help understanding this condition:
-    //
-    // frame.payload_length == (uint16_t)watchdog_stroke && frame.reset_val == (uint16_t)*((&watchdog_stroke)+2)
-    //
-    // where watchdog stroke is a uint32, incremented by 2 (8 bytes), you're reading past what you've sent?
+    // Check that a magic value, parity and reset_value of frame was sent back
+    if(header->magic_value != 0x21B00B)
+    {
+        this->log_WARNING_HI_WatchDogIncorrectResp(bad_magic_value);
+        return size_read;
+    }
+
+    uint64_t frame_bin = *((uint64_t *)header);
+    U8 test_parity = ~(((frame_bin & 0x00000000000000FFL) >> 0)  +
+                      ((frame_bin & 0x000000000000FF00L) >> 8)  +
+                      ((frame_bin & 0x0000000000FF0000L) >> 16) +
+                      ((frame_bin & 0x0000000000000000L) >> 24) +   // Don't use the parity in header as we calculate parity as if it was 0x00
+                      ((frame_bin & 0x000000FF00000000L) >> 32) +
+                      ((frame_bin & 0x0000FF0000000000L) >> 40) +
+                      ((frame_bin & 0x00FF000000000000L) >> 48) +
+                      ((frame_bin & 0xFF00000000000000L) >> 56));
+
+    if(header->parity != test_parity)
+    {
+        this->log_WARNING_HI_WatchDogIncorrectResp(bad_parity);
+        return size_read;
+    }
+
+    if(header->reset_val > 0x0020 && header->reset_val != 0x00EE)
+    {
+        this->log_WARNING_HI_WatchDogIncorrectResp(bad_reset_value);
+    }
+
     int payload_read = 0;
     if (header->payload_length == 0) // Received a WD echo
     {
         struct WatchdogTelemetry buff;
-        payload_read = sciReceiveWithTimeout(scilinREG, sizeof(buff), (uint8_t *)&buff, 10000);
+        payload_read = sciReceiveWithTimeout(scilinREG, sizeof(buff), (uint8_t *)&buff, 100000000);
         *comm_error = 0;
 
         if (payload_read == sizeof(buff))
@@ -440,15 +431,16 @@ namespace CubeRover {
           this->tlmWrite_BATTERY_THERMISTOR(buff.battery_thermistor);
           this->tlmWrite_SYSTEM_STATUS(buff.sys_status);
           this->tlmWrite_BATTERY_LEVEL(buff.battery_level);
+          size_read += payload_read;
         }
-        if(size_read < 0)
+        else if(payload_read < 0)
         {
-          *comm_error = ~payload_read;
-          this->log_WARNING_HI_WatchDogCommError(*comm_error);
+            *comm_error = ~payload_read;
+            this->log_WARNING_HI_WatchDogCommError(*comm_error);
         }
-        else {
+        else
+        {
             this->log_WARNING_HI_WatchDogTimedOut();
-            // TODO: Check if sciReceive can return negative value (previous implementation implied it was possible
         }
     }
     else if (0 < header->payload_length and header->payload_length < UDP_MAX_PAYLOAD)  // Received uplinked data
@@ -457,22 +449,28 @@ namespace CubeRover {
         // TODO: Verify that the MTU for wired connection is the same as Wifi
         Fw::Buffer uplinked_data;
         payload_read = sciReceiveWithTimeout(scilinREG, header->payload_length,
-                                                 reinterpret_cast<uint8_t *>(uplinked_data.getdata()), 10000);
-        *comm_error = sciRxError(scilinREG);
+                                                 reinterpret_cast<uint8_t *>(uplinked_data.getdata()), 100000000);
+        *comm_error = 0;
 
         if (payload_read == header->payload_length)
+        {
             uplink_out(0, uplinked_data);
+            size_read += payload_read;
+        }
+        else if(size_read < 0)
+        {
+            *comm_error = ~payload_read;
+            this->log_WARNING_HI_WatchDogCommError(*comm_error);
+        }
         else
             this->log_WARNING_HI_WatchDogTimedOut();
-            // TODO: Check if sciReceive can return negative value (previous implementation implied it was possible
     }
-    else {
-        this->log_WARNING_HI_WatchDogCommError(*comm_error);
+    else
+    {
+        this->log_WARNING_HI_WatchDogIncorrectResp(bad_size_received);
     }
 
-    size_read += payload_read;
     return size_read;
-
   }
 
 } // end namespace CubeRover

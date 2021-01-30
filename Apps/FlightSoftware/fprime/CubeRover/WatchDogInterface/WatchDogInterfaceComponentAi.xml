@@ -88,10 +88,15 @@
     </commands>
 
     <events>
-        <event id="0x0" name="WatchDogIncorrectResp" severity="WARNING_HI" format_string = "Watchdog Sent back Incorrect Response">
+        <event id="0x0" name="WatchDogIncorrectResp" severity="WARNING_HI" format_string = "Watchdog Sent back Incorrect Response: %u">
             <comment>
             Warning that the WatchDog MSP430 sent back a response different than what was sent to it
             </comment>
+            <args>
+                <arg name="error" type="U8">
+                    <comment>The watchdog error value (reference to documentation)</comment>
+                </arg>          
+            </args>
         </event>
 
         <event id="0x1" name="WatchDogTimedOut" severity="WARNING_HI" format_string = "WatchDog Timer has timed out" >

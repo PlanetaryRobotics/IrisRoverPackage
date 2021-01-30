@@ -119,7 +119,8 @@ namespace CubeRover {
       //! Implementation for sending frame and checking that frame was sent to watchdog
       //! Sends a Frame start everytime data is sent from cuberover to watchdog
       bool Send_Frame(
-          U32 stroke  // Type of frame we want to send
+          U16 payload_length,  // stroke if 0x0000 or UDP data size if larger than
+          U16 reset_value   // reset value for watchdog
           );
 
       //! Implementation for checking the tempurature senors from the ADC
@@ -143,12 +144,22 @@ namespace CubeRover {
          int16_t battery_level;
      } __attribute__((packed, aligned(8)));
 
-      Receive_Frame(uint32_t *comm_error, WatchdogFrameHeader *header);
+     // Incorrect Response Possible Values
+     enum resp_error : U8
+     {
+         bad_parity = 1,
+         bad_size_received = 2,
+         bad_reset_value = 3,
+         bad_magic_value = 4,
+         not_enough_bytes = 5
+     };
 
-    public:
+     int Receive_Frame(uint32_t *comm_error, WatchdogFrameHeader *header);
 
-      // variable to store if DMA is busy or not
-      bool watchdog_dma_busy;
+     public:
+
+     // variable to store if DMA is busy or not
+     bool watchdog_dma_busy;
 
     };
 

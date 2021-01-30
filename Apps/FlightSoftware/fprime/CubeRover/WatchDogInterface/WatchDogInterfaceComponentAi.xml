@@ -88,10 +88,15 @@
     </commands>
 
     <events>
-        <event id="0x0" name="WatchDogMSP430IncorrectResp" severity="WARNING_HI" format_string = "Watchdog MSP430 Sent back Incorrect Response">
+        <event id="0x0" name="WatchDogIncorrectResp" severity="WARNING_HI" format_string = "Watchdog Sent back Incorrect Response: %u">
             <comment>
             Warning that the WatchDog MSP430 sent back a response different than what was sent to it
             </comment>
+            <args>
+                <arg name="error" type="U8">
+                    <comment>The watchdog error value (reference to documentation)</comment>
+                </arg>          
+            </args>
         </event>
 
         <event id="0x1" name="WatchDogTimedOut" severity="WARNING_HI" format_string = "WatchDog Timer has timed out" >
@@ -167,32 +172,37 @@
                 Boolean for Heater On/Off from Watchdog
             </comment>
         </channel>
-        <channel id="24" name="THERM_0" data_type="U8">
+        <channel id="24" name="BATTERY_LEVEL" data_type="U16">
+            <comment>
+                Value of Charge in Battery
+            </comment>
+        </channel>
+        <channel id="25" name="THERM_0" data_type="U16">
             <comment>
                 12 bit Value for Thermistor value
             </comment>
         </channel>
-        <channel id="25" name="THERM_1" data_type="U8">
+        <channel id="26" name="THERM_1" data_type="U16">
             <comment>
                 12 bit Value for Thermistor value
             </comment>
         </channel>
-        <channel id="26" name="THERM_2" data_type="U8">
+        <channel id="27" name="THERM_2" data_type="U16">
             <comment>
                 12 bit Value for Thermistor value
             </comment>
         </channel>
-        <channel id="27" name="THERM_3" data_type="U8">
+        <channel id="28" name="THERM_3" data_type="U16">
             <comment>
                 12 bit Value for Thermistor value
             </comment>
         </channel>
-        <channel id="28" name="THERM_4" data_type="U8">
+        <channel id="29" name="THERM_4" data_type="U16">
             <comment>
                 12 bit Value for Thermistor value
             </comment>
         </channel>
-        <channel id="29" name="THERM_5" data_type="U8">
+        <channel id="30" name="THERM_5" data_type="U16">
             <comment>
                 12 bit Value for Thermistor value
             </comment>

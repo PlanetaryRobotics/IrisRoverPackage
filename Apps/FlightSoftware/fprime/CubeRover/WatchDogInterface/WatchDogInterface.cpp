@@ -17,8 +17,10 @@
 #include <stdio.h>
 #include <string.h>
 
-namespace CubeRover {
+#include "Include/FswPacket.hpp"
 
+namespace CubeRover {
+    
   // ----------------------------------------------------------------------
   // Construction, initialization, and destruction
   // ----------------------------------------------------------------------
@@ -33,7 +35,7 @@ namespace CubeRover {
     WatchDogInterfaceComponentImpl(void)
 #endif
   {
-
+      watchdog_dma_busy = false;
   }
 
   void WatchDogInterfaceComponentImpl ::
@@ -48,6 +50,11 @@ namespace CubeRover {
     sciEnterResetState(m_sci);
     sciSetBaudrate(m_sci, 9600);
     sciExitResetState(m_sci);
+
+    Read_Temp();
+
+    Reset_Specific_Handler(0x04);    // Reset WF121
+    for (unsigned i = 400000000; i; --i);
   }
 
   WatchDogInterfaceComponentImpl ::
@@ -71,150 +78,18 @@ namespace CubeRover {
     // Update Thermistor Telemetry
     Read_Temp();
 
-    // Sends U32 to the watchdog as defined in design document. Checks stroke value as to what to send watchdog
-    U32 watchdog_stroke = 0x00000000;
+    // Sends payload and reset value to MSP430
+    U16 payload_length = 0x0000;
+    U16 reset_value = 0x0000;
 
     // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-    if(!Send_Frame(watchdog_stroke))
+    if(!Send_Frame(payload_length, reset_value))
       return;
-
-    // Send stroke once Tx ready
-    int tries = 10;
-    while(--tries && !sciIsTxReady(scilinREG));
-    if(tries == 0)
-    {
-    	this->log_WARNING_HI_WatchDogTimedOut();
-    	return;
-    }
-    sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
-
-    // Check for Response from MSP430 Watchdog
-    U32 watchdog_reponse;
-    //Blocking until timeout or data available
-    int32_t size_read = 0;
-    tries = 10;
-    while(--tries && !sciIsRxReady(scilinREG));
-    if(tries == 0)
-    {
-    	this->log_WARNING_HI_WatchDogTimedOut();
-    	return;
-    }
-    size_read = sciReceiveWithTimeout(scilinREG,
-                                 sizeof(watchdog_reponse),
-                                 (uint8_t *)&watchdog_reponse,
-                                 0x00002710); /*10 second timeout*/
-
-    U32 comm_error = sciRxError(scilinREG);
-
-    // Good read:
-    if (size_read > 0)
-    {
-        if(size_read < 4)
-        {
-            this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-            return;
-        }
-        // Check that response is the same as what was sent
-        else if(watchdog_reponse != watchdog_stroke)
-        {
-            // Check if the watchdog response includes UDP data
-            if((uint16_t)(watchdog_reponse) != 0x0000)
-            {
-                // Forward all data after header and current data to ground interface
-                // Blocking until timeout or data available
-                Fw::Buffer buff;
-                int stat = 0;
-                uint16_t UDP_size = (U16)(watchdog_reponse);
-                tries = 10;
-                while(--tries && !sciIsRxReady(scilinREG));
-                if(tries == 0)
-			    {
-			    	this->log_WARNING_HI_WatchDogTimedOut();
-			    	return;
-			    }
-                stat = sciReceiveWithTimeout(scilinREG,
-                                             UDP_size,
-                                             reinterpret_cast<unsigned char*>(buff.getdata()),
-                                             0x00002710); /*10 second timeout*/
-                comm_error = sciRxError(scilinREG);
-                // Good read:
-                if (stat > 0)
-                {
-                   uplink_out(0, buff);
-                }
-                // check for timeout
-                if (stat == 0)
-                {
-                    this->log_WARNING_HI_WatchDogTimedOut();
-                }
-                // Return other Error
-                else
-                {
-                   this->log_WARNING_HI_WatchDogCommError(comm_error);
-                }
-            }
-            else
-                this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-        }
-        else if(watchdog_reponse == watchdog_stroke)
-        {
-            //Foward telemetry data
-            //Blocking until timeout or data available
-            U16 buff[5];
-            int stat = 0;
-            tries = 10;
-            while(--tries && !sciIsRxReady(scilinREG));
-            if(tries == 0)
-			{
-			    this->log_WARNING_HI_WatchDogTimedOut();
-			    return;
-			}
-            stat = sciReceiveWithTimeout(scilinREG,
-                                         10,	//10 bytes is how big total telemetry should be
-                                         (uint8_t *)&buff,
-                                         0x00002710); /*10 second timeout*/
-            comm_error = sciRxError(scilinREG);
-            // Good read:
-            if (stat >= 10)
-            {
-                int16_t voltage_tlm = 0;
-                memcpy(&voltage_tlm, &(buff), 2); // Copy two bytes for tlm value
-                this->tlmWrite_VOLTAGE_2_5V(voltage_tlm);
-                memcpy(&voltage_tlm, &(buff)+2, 2); // Copy two bytes for tlm value
-                this->tlmWrite_VOLTAGE_2_8V(voltage_tlm);
-                memcpy(&voltage_tlm, &(buff)+4, 2); // Copy two bytes for tlm value
-                this->tlmWrite_VOLTAGE_24V(voltage_tlm);
-                memcpy(&voltage_tlm, &(buff)+6, 2);    // Copy two bytes for tlm value
-                this->tlmWrite_VOLTAGE_28V(voltage_tlm);
-                U8 bat_therm = 0;
-                memcpy(&bat_therm, &(buff)+8, 1);    // Copy a byte for thermistor value
-                this->tlmWrite_BATTERY_THERMISTOR(bat_therm);
-                int8_t sys_stat = 0;
-                memcpy(&sys_stat, &(buff)+9, 1);    // Copy a byte for system status value
-                this->tlmWrite_SYSTEM_STATUS(sys_stat);
-             }
-             // check for timeout
-             if (stat == 0)
-             {
-                 this->log_WARNING_HI_WatchDogTimedOut();
-             }
-             // Return other Error
-             else
-             {
-                this->log_WARNING_HI_WatchDogCommError(comm_error);
-             }
-        }
-    }
-    // check for timeout
-    if (size_read == 0)
-    {
-        this->log_WARNING_HI_WatchDogTimedOut();
-    }
-    // quit if other error or data
-    else
-    {
-        this->log_WARNING_HI_WatchDogCommError(comm_error);
-    }
+     
+    // Receive frame back from MSP430
+    U32 comm_error;
+    WatchdogFrameHeader frame;
+    Receive_Frame(&comm_error, &frame);
   }
   
   void WatchDogInterfaceComponentImpl ::
@@ -223,76 +98,33 @@ namespace CubeRover {
         Fw::Buffer &fwBuffer
     )
   {
-    uint16_t payloadSize = fwBuffer.getsize(); 
-    // Send header of reset 0x0000 and UDP data size
-    U32 watchdog_stroke = 0x0000FFFF & payloadSize;
+    // Sends payload and reset value to MSP430
+    U16 payload_length = fwBuffer.getsize();
+    U16 reset_value = 0x0000;
 
     // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-    if(!Send_Frame(watchdog_stroke))
+    if(!Send_Frame(payload_length, reset_value))
       return;
-
-    // Send stroke once Tx ready
-    int tries = 10;
-    while(--tries && !sciIsTxReady(scilinREG));
-    if(tries == 0)
-    {
-    	this->log_WARNING_HI_WatchDogTimedOut();
-    	return;
-    }
-    sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
-
-    // Check for Response from MSP430 Watchdog
-    U32 watchdog_reponse;
-    //Blocking until timeout or data available
-    int32_t size_read = 0;
-    tries = 10;
-    while(--tries && !sciIsRxReady(scilinREG));
-    if(tries == 0)
-    {
-    	this->log_WARNING_HI_WatchDogTimedOut();
-    	return;
-    }
-    size_read = sciReceiveWithTimeout(scilinREG,
-                                 sizeof(watchdog_reponse),
-                                 (uint8_t *)&watchdog_reponse,
-                                 0x00002710); /*10 second timeout*/
-
-    U32 comm_error = sciRxError(scilinREG);
+     
+    // Receive frame back from MSP430
+    U32 comm_error;
+    WatchdogFrameHeader frame;
+    int32_t size_read =  Receive_Frame(&comm_error, &frame);
 
     // Good read:
-    if (size_read > 0)
+    if (size_read >= 8)
     {
-        if(size_read < 4)
+        if(frame.payload_length == payload_length && frame.reset_val == 0x0000)
         {
-            this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-            return;
+            int tries = 100000000;
+    		while(--tries && !sciIsTxReady(scilinREG));
+    		if(tries == 0)
+    		{
+    		    this->log_WARNING_HI_WatchDogTimedOut();
+    		    return;
+    		}
+    		sciSend(scilinREG, payload_length, reinterpret_cast<unsigned char*>(fwBuffer.getdata()));
         }
-        // Check that response is the same as what was sent
-        else if(watchdog_reponse != watchdog_stroke)
-        {
-            this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-        }
-        else if(watchdog_reponse == watchdog_stroke)
-        {
-            tries = 10;
-    		    while(--tries && !sciIsTxReady(scilinREG));
-    		    if(tries == 0)
-    		    {
-    		    	this->log_WARNING_HI_WatchDogTimedOut();
-    		    	return;
-    		    }
-    		    sciSend(scilinREG, payloadSize, reinterpret_cast<unsigned char*>(fwBuffer.getdata()));
-        }
-    }
-    // check for timeout
-    if (size_read == 0)
-    {
-        this->log_WARNING_HI_WatchDogTimedOut();
-    }
-    // quit if other error or data
-    else
-    {
-        this->log_WARNING_HI_WatchDogCommError(comm_error);
     }
   }
   
@@ -320,8 +152,7 @@ namespace CubeRover {
   // Command handler implementations
   // ----------------------------------------------------------------------
 
-  void WatchDogInterfaceComponentImpl ::
-    Reset_Specific_cmdHandler(
+  void WatchDogInterfaceComponentImpl :: Reset_Specific_cmdHandler(
         const FwOpcodeType opCode,
         const U32 cmdSeq,
         U8 reset_value
@@ -348,155 +179,24 @@ namespace CubeRover {
     // If reset_value less than or equal to 0x1B, we are resetting hardware
     else
     {
-      	// Copy reset value and shift it left by 4 bytes to get 0x0000 as our first byte and reset_value as our second byte
-      	U32 watchdog_stroke = (static_cast<U32>(reset_value) << 16);
+      // Sends payload and reset value to MSP430
+      U16 payload_length = 0x0000;
+      U16 wd_reset_value = reset_value;
 
-      	// Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-      	if(!Send_Frame(watchdog_stroke))
-        	return;
+      // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+      if(!Send_Frame(payload_length, wd_reset_value))
+        return;
 	    
-	    // Send stroke once Tx ready
-	    int tries = 10;
-	    while(--tries && !sciIsTxReady(scilinREG));
-	    if(tries == 0)
-	    {
-	    	this->log_WARNING_HI_WatchDogTimedOut();
-	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
-	    	return;
-	    }
-	    sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
+      // Receive frame back from MSP430
+      U32 comm_error;
+      WatchdogFrameHeader frame;
+      int32_t size_read = Receive_Frame(&comm_error, &frame);
 
-	    // Check for Response from MSP430 Watchdog
-	    U32 watchdog_reponse;
-	    //Blocking until timeout or data available
-	    int32_t size_read = 0;
-	    tries = 10;
-	    while(--tries && !sciIsRxReady(scilinREG));
-	    if(tries == 0)
-	    {
-	    	this->log_WARNING_HI_WatchDogTimedOut();
-	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
-	    	return;
-	    }
-	    size_read = sciReceiveWithTimeout(scilinREG,
-	                                 sizeof(watchdog_reponse),
-	                                 (uint8_t *)&watchdog_reponse,
-	                                 0x00002710); /*10 second timeout*/
-
-	    U32 comm_error = sciRxError(scilinREG);
-
-	    // Good read:
-	    if (size_read > 0)
-	    {
-	        if(size_read < 4)
-	        {
-	            this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-	            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
-	            return;
-	        }
-	        // Check that response is the same as what was sent
-	        else if(watchdog_reponse != watchdog_stroke)
-	        {
-	            // Check if the watchdog response includes UDP data
-	            if((uint16_t)(watchdog_reponse) != 0x0000)
-	            {
-	                // Forward all data after header and current data to ground interface
-	                // Blocking until timeout or data available
-	                Fw::Buffer buff;
-	                int stat = 0;
-	                uint16_t UDP_size = (U16)(watchdog_reponse);
-	                tries = 10;
-	                while(--tries && !sciIsRxReady(scilinREG));
-	                if(tries == 0)
-				    {
-				    	this->log_WARNING_HI_WatchDogTimedOut();
-				    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
-				    	return;
-				    }
-	                stat = sciReceiveWithTimeout(scilinREG,
-	                                             UDP_size,
-	                                             reinterpret_cast<unsigned char*>(buff.getdata()),
-	                                             0x00002710); /*10 second timeout*/
-	                comm_error = sciRxError(scilinREG);
-	                // Good read:
-	                if (stat > 0)
-	                {
-	                   uplink_out(0, buff);
-	                }
-	                // check for timeout
-	                if (stat == 0)
-	                {
-	                    this->log_WARNING_HI_WatchDogTimedOut();
-	                }
-	                // Return other Error
-	                else
-	                {
-	                   this->log_WARNING_HI_WatchDogCommError(comm_error);
-	                }
-	            }
-	            else
-	                this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-	        }
-	        else if(watchdog_reponse == watchdog_stroke)
-	        {
-	            //Foward telemetry data
-	            //Blocking until timeout or data available
-	            U16 buff[5];
-	            int stat = 0;
-	            tries = 10;
-	            while(--tries && !sciIsRxReady(scilinREG));
-	            if(tries == 0)
-				{
-				    this->log_WARNING_HI_WatchDogTimedOut();
-				    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
-				    return;
-				}
-	            stat = sciReceiveWithTimeout(scilinREG,
-	                                         10,	//10 bytes is how big total telemetry should be
-	                                         (uint8_t *)&buff,
-	                                         0x00002710); /*10 second timeout*/
-	            comm_error = sciRxError(scilinREG);
-	            // Good read:
-	            if (stat >= 10)
-	            {
-	                int16_t voltage_tlm = 0;
-	                memcpy(&voltage_tlm, &(buff), 2); // Copy two bytes for tlm value
-	                this->tlmWrite_VOLTAGE_2_5V(voltage_tlm);
-	                memcpy(&voltage_tlm, &(buff)+2, 2); // Copy two bytes for tlm value
-	                this->tlmWrite_VOLTAGE_2_8V(voltage_tlm);
-	                memcpy(&voltage_tlm, &(buff)+4, 2); // Copy two bytes for tlm value
-	                this->tlmWrite_VOLTAGE_24V(voltage_tlm);
-	                memcpy(&voltage_tlm, &(buff)+6, 2);    // Copy two bytes for tlm value
-	                this->tlmWrite_VOLTAGE_28V(voltage_tlm);
-	                U8 bat_therm = 0;
-	                memcpy(&bat_therm, &(buff)+8, 1);    // Copy a byte for thermistor value
-	                this->tlmWrite_BATTERY_THERMISTOR(bat_therm);
-	                int8_t sys_stat = 0;
-	                memcpy(&sys_stat, &(buff)+9, 1);    // Copy a byte for system status value
-	                this->tlmWrite_SYSTEM_STATUS(sys_stat);
-	             }
-	             // check for timeout
-	             if (stat == 0)
-	             {
-	                 this->log_WARNING_HI_WatchDogTimedOut();
-	             }
-	             // Return other Error
-	             else
-	             {
-	                this->log_WARNING_HI_WatchDogCommError(comm_error);
-	             }
-	        }
-	    }
-	    // check for timeout
-	    if (size_read == 0)
-	    {
-	        this->log_WARNING_HI_WatchDogTimedOut();
-	    }
-	    // quit if other error or data
-	    else
-	    {
-	        this->log_WARNING_HI_WatchDogCommError(comm_error);
-	    }
+      if(size_read < 8)
+      {
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+          return;
+      }
     }
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
@@ -507,167 +207,35 @@ namespace CubeRover {
         const U32 cmdSeq
     )
   {
-	  	// Send Activity Log/tlm to know watchdog recieved command
-	  	char command_type[24] = "Disengage From Rover";
-	  	Fw::LogStringArg command_type_log = command_type;
-	  	//Fw::TlmString command_type_tlm = command_type;
-	  	this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
-	  	//this->tlmWrite_LAST_COMMAND(command_type_tlm);
+	  // Send Activity Log/tlm to know watchdog recieved command
+	  char command_type[24] = "Disengage From Rover";
+	  Fw::LogStringArg command_type_log = command_type;
+	  this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
 
-      	U32 watchdog_stroke = 0x00EE0000;
+      // Sends payload and reset value to MSP430
+      U16 payload_length = 0x0000;
+      U16 reset_value = 0x00EE;
 
-      	// Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-	    if(!Send_Frame(watchdog_stroke))
+      // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+	  if(!Send_Frame(payload_length, reset_value))
 	      return;
-	    
-	    // Send stroke once Tx ready
-	    int tries = 10;
-	    while(--tries && !sciIsTxReady(scilinREG));
-	    if(tries == 0)
-	    {
-	    	this->log_WARNING_HI_WatchDogTimedOut();
-	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
-	    	return;
-	    }
-	    sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
+	     
+      // Receive frame back from MSP430
+      U32 comm_error;
+      WatchdogFrameHeader frame;
+      int32_t size_read = Receive_Frame(&comm_error, &frame);
 
-	    // Check for Response from MSP430 Watchdog
-	    U32 watchdog_reponse;
-	    //Blocking until timeout or data available
-	    int32_t size_read = 0;
-	    tries = 10;
-	    while(--tries && !sciIsRxReady(scilinREG));
-	    if(tries == 0)
-	    {
-	    	this->log_WARNING_HI_WatchDogTimedOut();
-	    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
-	    	return;
-	    }
-	    size_read = sciReceiveWithTimeout(scilinREG,
-	                                 sizeof(watchdog_reponse),
-	                                 (uint8_t *)&watchdog_reponse,
-	                                 0x00002710); /*10 second timeout*/
-
-	    U32 comm_error = sciRxError(scilinREG);
-
-	    // Good read:
-	    if (size_read > 0)
-	    {
-	        if(size_read < 4)
-	        {
-	            this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-	            this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
-	            return;
-	        }
-	        // Check that response is the same as what was sent
-	        else if(watchdog_reponse != watchdog_stroke)
-	        {
-	            // Check if the watchdog response includes UDP data
-	            if((uint16_t)(watchdog_reponse) != 0x0000)
-	            {
-	                // Forward all data after header and current data to ground interface
-	                // Blocking until timeout or data available
-	                Fw::Buffer buff;
-	                int stat = 0;
-	                uint16_t UDP_size = (U16)(watchdog_reponse);
-	                tries = 10;
-	                while(--tries && !sciIsRxReady(scilinREG));
-	                if(tries == 0)
-				    {
-				    	this->log_WARNING_HI_WatchDogTimedOut();
-				    	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
-				    	return;
-				    }
-	                stat = sciReceiveWithTimeout(scilinREG,
-	                                             UDP_size,
-	                                             reinterpret_cast<unsigned char*>(buff.getdata()),
-	                                             0x00002710); /*10 second timeout*/
-	                comm_error = sciRxError(scilinREG);
-	                // Good read:
-	                if (stat > 0)
-	                {
-	                   uplink_out(0, buff);
-	                }
-	                // check for timeout
-	                if (stat == 0)
-	                {
-	                    this->log_WARNING_HI_WatchDogTimedOut();
-	                }
-	                // Return other Error
-	                else
-	                {
-	                   this->log_WARNING_HI_WatchDogCommError(comm_error);
-	                }
-	            }
-	            else
-	                this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-	        }
-	        else if(watchdog_reponse == watchdog_stroke)
-	        {
-	            //Foward telemetry data
-	            //Blocking until timeout or data available
-	            U16 buff[5];
-	            int stat = 0;
-	            tries = 10;
-	            while(--tries && !sciIsRxReady(scilinREG));
-	            if(tries == 0)
-				{
-				    this->log_WARNING_HI_WatchDogTimedOut();
-				    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_BUSY);
-				    return;
-				}
-	            stat = sciReceiveWithTimeout(scilinREG,
-	                                         10,	//10 bytes is how big total telemetry should be
-	                                         (uint8_t *)&buff,
-	                                         0x00002710); /*10 second timeout*/
-	            comm_error = sciRxError(scilinREG);
-	            // Good read:
-	            if (stat >= 10)
-	            {
-	                int16_t voltage_tlm = 0;
-	                memcpy(&voltage_tlm, &(buff), 2); // Copy two bytes for tlm value
-	                this->tlmWrite_VOLTAGE_2_5V(voltage_tlm);
-	                memcpy(&voltage_tlm, &(buff)+2, 2); // Copy two bytes for tlm value
-	                this->tlmWrite_VOLTAGE_2_8V(voltage_tlm);
-	                memcpy(&voltage_tlm, &(buff)+4, 2); // Copy two bytes for tlm value
-	                this->tlmWrite_VOLTAGE_24V(voltage_tlm);
-	                memcpy(&voltage_tlm, &(buff)+6, 2);    // Copy two bytes for tlm value
-	                this->tlmWrite_VOLTAGE_28V(voltage_tlm);
-	                U8 bat_therm = 0;
-	                memcpy(&bat_therm, &(buff)+8, 1);    // Copy a byte for thermistor value
-	                this->tlmWrite_BATTERY_THERMISTOR(bat_therm);
-	                int8_t sys_stat = 0;
-	                memcpy(&sys_stat, &(buff)+9, 1);    // Copy a byte for system status value
-	                this->tlmWrite_SYSTEM_STATUS(sys_stat);
-	             }
-	             // check for timeout
-	             if (stat == 0)
-	             {
-	                 this->log_WARNING_HI_WatchDogTimedOut();
-	             }
-	             // Return other Error
-	             else
-	             {
-	                this->log_WARNING_HI_WatchDogCommError(comm_error);
-	             }
-	        }
-	    }
-	    // check for timeout
-	    if (size_read == 0)
-	    {
-	        this->log_WARNING_HI_WatchDogTimedOut();
-	    }
-	    // quit if other error or data
-	    else
-	    {
-	        this->log_WARNING_HI_WatchDogCommError(comm_error);
-	    }
+      if(size_read < 8)
+      {
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+          return;
+      }
 	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
 
   bool WatchDogInterfaceComponentImpl ::
-    Reset_Specific_initHandler(
+    Reset_Specific_Handler(
         U8 reset_value
     )
   {
@@ -677,9 +245,7 @@ namespace CubeRover {
     sprintf(reset_val_char, "%u", reset_value);
     strcat(command_type, reset_val_char);
     Fw::LogStringArg command_type_log = command_type;
-    //Fw::TlmString command_type_tlm = command_type;
     this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
-    //this->tlmWrite_LAST_COMMAND(command_type_tlm);
 
     // Sends a command to watchdog to reset specified devices. Can be hardware through watchdog or component
 
@@ -693,183 +259,46 @@ namespace CubeRover {
     // If reset_value less than or equal to 0x1B, we are resetting hardware
     else
     {
-      // Copy reset value and shift it left by 4 bytes to get 0x0000 as our first byte and reset_value as our second byte
-      U32 watchdog_stroke = (static_cast<U32>(reset_value) << 16);
+      // Sends payload and reset value to MSP430
+      U16 payload_length = 0x0000;
+      U16 wd_reset_value = reset_value;
       
       // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-      if(!Send_Frame(watchdog_stroke))
+      if(!Send_Frame(payload_length, wd_reset_value))
         return false;
 
-      // Send stroke once Tx ready
-      int tries = 10;
-      while(--tries && !sciIsTxReady(scilinREG));
-      if(tries == 0)
-      {
-        this->log_WARNING_HI_WatchDogTimedOut();
-        return false;
-      }
-      sciSend(scilinREG, sizeof(watchdog_stroke), (uint8_t *)&watchdog_stroke);
+      // Receive frame back from MSP430
+      U32 comm_error;
+      WatchdogFrameHeader frame;
+      int32_t size_read = Receive_Frame(&comm_error, &frame);
 
-      // Check for Response from MSP430 Watchdog
-      U32 watchdog_reponse;
-      //Blocking until timeout or data available
-      int32_t size_read = 0;
-      tries = 10;
-      while(--tries && !sciIsRxReady(scilinREG));
-      if(tries == 0)
-      {
-        this->log_WARNING_HI_WatchDogTimedOut();
-        return false;
-      }
-      size_read = sciReceiveWithTimeout(scilinREG,
-                                   sizeof(watchdog_reponse),
-                                   (uint8_t *)&watchdog_reponse,
-                                   0x00002710); /*10 second timeout*/
-
-      U32 comm_error = sciRxError(scilinREG);
-
-      // Good read:
-      if (size_read > 0)
-      {
-          if(size_read < 4)
-          {
-              this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-              return false;
-          }
-          // Check that response is the same as what was sent
-          else if(watchdog_reponse != watchdog_stroke)
-          {
-              // Check if the watchdog response includes UDP data
-              if((uint16_t)(watchdog_reponse) != 0x0000)
-              {
-                  // Forward all data after header and current data to ground interface
-                  // Blocking until timeout or data available
-                  Fw::Buffer buff;
-                  int stat = 0;
-                  uint16_t UDP_size = (U16)(watchdog_reponse);
-                  tries = 10;
-                  while(--tries && !sciIsRxReady(scilinREG));
-                  if(tries == 0)
-                  {
-                    this->log_WARNING_HI_WatchDogTimedOut();
-                    return false;
-                  }
-                  stat = sciReceiveWithTimeout(scilinREG,
-                                               UDP_size,
-                                               reinterpret_cast<unsigned char*>(buff.getdata()),
-                                               0x00002710); /*10 second timeout*/
-                  comm_error = sciRxError(scilinREG);
-                  // Good read:
-                  if (stat > 0)
-                  {
-                     uplink_out(0, buff);
-                  }
-                  // check for timeout
-                  if (stat == 0)
-                  {
-                      this->log_WARNING_HI_WatchDogTimedOut();
-                      return false;
-                  }
-                  // Return other Error
-                  else
-                  {
-                     this->log_WARNING_HI_WatchDogCommError(comm_error);
-                     return false;
-                  }
-              }
-              else
-              {
-                  this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-                  return false;
-              }
-          }
-          else if(watchdog_reponse == watchdog_stroke)
-          {
-              //Foward telemetry data
-              //Blocking until timeout or data available
-              U16 buff[5];
-              int stat = 0;
-              tries = 10;
-              while(--tries && !sciIsRxReady(scilinREG));
-              if(tries == 0)
-              {
-                  this->log_WARNING_HI_WatchDogTimedOut();
-                  return false;
-              }
-              stat = sciReceiveWithTimeout(scilinREG,
-                                           10,  //10 bytes is how big total telemetry should be
-                                           (uint8_t *)&buff,
-                                           0x00002710); /*10 second timeout*/
-              comm_error = sciRxError(scilinREG);
-              // Good read:
-              if (stat >= 10)
-              {
-                  int16_t voltage_tlm = 0;
-                  memcpy(&voltage_tlm, &(buff), 2); // Copy two bytes for tlm value
-                  this->tlmWrite_VOLTAGE_2_5V(voltage_tlm);
-                  memcpy(&voltage_tlm, &(buff)+2, 2); // Copy two bytes for tlm value
-                  this->tlmWrite_VOLTAGE_2_8V(voltage_tlm);
-                  memcpy(&voltage_tlm, &(buff)+4, 2); // Copy two bytes for tlm value
-                  this->tlmWrite_VOLTAGE_24V(voltage_tlm);
-                  memcpy(&voltage_tlm, &(buff)+6, 2);    // Copy two bytes for tlm value
-                  this->tlmWrite_VOLTAGE_28V(voltage_tlm);
-                  U8 bat_therm = 0;
-                  memcpy(&bat_therm, &(buff)+8, 1);    // Copy a byte for thermistor value
-                  this->tlmWrite_BATTERY_THERMISTOR(bat_therm);
-                  int8_t sys_stat = 0;
-                  memcpy(&sys_stat, &(buff)+9, 1);    // Copy a byte for system status value
-                  this->tlmWrite_SYSTEM_STATUS(sys_stat);
-               }
-               // check for timeout
-               if (stat == 0)
-               {
-                   this->log_WARNING_HI_WatchDogTimedOut();
-                   return false;
-               }
-               // Return other Error
-               else
-               {
-                  this->log_WARNING_HI_WatchDogCommError(comm_error);
-                  return false;
-               }
-          }
-      }
-      // check for timeout
-      if (size_read == 0)
-      {
-          this->log_WARNING_HI_WatchDogTimedOut();
+      if(size_read < 8)
           return false;
-      }
-      // quit if other error or data
-      else
-      {
-          this->log_WARNING_HI_WatchDogCommError(comm_error);
-          return false;
-      }
+
       return true;
     }
   }
 
-  bool WatchDogInterfaceComponentImpl :: Send_Frame(U32 stroke)
+  bool WatchDogInterfaceComponentImpl :: Send_Frame(U16 payload_length, U16 reset_value)
   {
-      // Create Value for frame
-      U32 frame = 0x0021B00B;
+      struct WatchdogFrameHeader frame;
+      frame.magic_value = 0x21B00B;
+      frame.parity = 0;
+      frame.payload_length = payload_length;
+      frame.reset_val = reset_value;
 
-      // Calculate Parity for Message by summing each byte then Inversing it
-      U32 parity = 0;
-      parity = !((frame&0x000000FF) + 
-      		  ((frame&0x0000FF00) >> 8) + 
-      		  ((frame&0x00FF0000) >> 16) +
-      		  ((frame&0xFF000000) >> 24) + 
-      		  (stroke&0x000000FF) +
-      		  ((stroke&0x0000FF00) >> 8) +
-      		  ((stroke&0x00FF0000) >> 16) +
-      		  ((stroke&0xFF000000) >> 24));
+      uint64_t frame_bin = *((uint64_t *)&frame);
+      frame.parity = ~(((frame_bin & 0x00000000000000FFL) >> 0)  +
+                       ((frame_bin & 0x000000000000FF00L) >> 8)  +
+                       ((frame_bin & 0x0000000000FF0000L) >> 16) +
+                       ((frame_bin & 0x00000000FF000000L) >> 24) +
+                       ((frame_bin & 0x000000FF00000000L) >> 32) +
+                       ((frame_bin & 0x0000FF0000000000L) >> 40) +
+                       ((frame_bin & 0x00FF000000000000L) >> 48) +
+                       ((frame_bin & 0xFF00000000000000L) >> 56));
 
-      // Add Parity to frame
-      frame = (parity << 24) | frame;
 
-      int tries = 10;
+      int tries = 100000000;
       while(--tries && !sciIsTxReady(scilinREG));
       if(tries == 0)
       {
@@ -878,50 +307,7 @@ namespace CubeRover {
       }
       sciSend(scilinREG, sizeof(frame), (uint8_t *)&frame);
 
-      // Check for Response from MSP430 Watchdog
-      U32 frame_reponse;
-      //Blocking until timeout or data available
-      int32_t size_read = 0;
-      tries = 10;
-      while(--tries && !sciIsRxReady(scilinREG));
-      if(tries == 0)
-      {
-        this->log_WARNING_HI_WatchDogTimedOut();
-        return false;
-      }
-      size_read = sciReceiveWithTimeout(scilinREG,
-                                   sizeof(frame_reponse),
-                                   (uint8_t *)&frame_reponse,
-                                   0x00002710); /*10 second timeout*/
-
-      U32 comm_error = sciRxError(scilinREG);
-
-      // Good read:
-      if (size_read > 0)
-      {
-        if((frame_reponse & 0x00FFFFFF) != 0x0021B00B)
-        {
-          this->log_WARNING_HI_WatchDogMSP430IncorrectResp();
-          return false;
-        }
-        else
-          return true;
-      }
-      // check for timeout
-      if (size_read == 0)
-      {
-          this->log_WARNING_HI_WatchDogTimedOut();
-          return false;
-      }
-      // quit if other error or data
-      else
-      {
-          this->log_WARNING_HI_WatchDogCommError(comm_error);
-          return false;
-      }
-
-      // Return false by default, should never get to this point
-      return false;
+      return true;
   }
 
   bool WatchDogInterfaceComponentImpl :: Read_Temp()
@@ -930,7 +316,7 @@ namespace CubeRover {
     adcStartConversion(adcREG1, adcGROUP1);
 
     // Check if all ADC Conversions are done
-    int tries = 10;
+    int tries = 50;
     while(--tries && !adcIsConversionComplete(adcREG1, adcGROUP1));
     if(tries == 0)
     {
@@ -945,10 +331,9 @@ namespace CubeRover {
       // Conversion SHOULD end automatically once all ADC values have been converted but this should end it otherwise
       adcStopConversion(adcREG1, adcGROUP1);
 
-      // Create char array of size 24 for all possible Thermistor Values. Size is 24 as 12-bit conversion, 12 bits -> 1.5 bytes, 16 thermistors * 1.5 bytes = 24 bytes. Char is 1 byte
-      char data[24];
-      adcData_t* data_ptr;
-      data_ptr = (adcData_t*)&data;
+      // Create adcData_t array of size 6 for all Thermistors
+      adcData_t data[6];
+      adcData_t* data_ptr = (adcData_t*)&data;
 
       // adcGetData returns how many conversions happened, saves data into data_ptr
       U32 num_conversions = adcGetData(adcREG1, adcGROUP1, data_ptr);
@@ -956,32 +341,19 @@ namespace CubeRover {
       if(num_conversions >= 6)
       {
         // Report tempurature as telemetry
-        U16 temp_data;    // Create temp var to hold 12 bit (must use 16 bits in this case) thermistor value
 
         // Send Thermistor 12 bit values to Telemetry
-        memcpy(&temp_data, &(data)+(12*0), 2);   // Copy two bytes for thermistor value
-        temp_data = temp_data & 0x0FFF;       // Remove last 4 bits as are from other thermistor value
-        this->tlmWrite_THERM_0(temp_data);
+        this->tlmWrite_THERM_0(data[0].value);
 
-        memcpy(&temp_data, &(data)+(12*1), 2);   // Copy two bytes for thermistor value
-        temp_data = temp_data & 0x0FFF;       // Remove last 4 bits as are from other thermistor value
-        this->tlmWrite_THERM_1(temp_data);
+        this->tlmWrite_THERM_1(data[1].value);
 
-        memcpy(&temp_data, &(data)+(12*2), 2);   // Copy two bytes for thermistor value
-        temp_data = temp_data & 0x0FFF;       // Remove last 4 bits as are from other thermistor value
-        this->tlmWrite_THERM_2(temp_data);
+        this->tlmWrite_THERM_2(data[2].value);
 
-        memcpy(&temp_data, &(data)+(12*3), 2);   // Copy two bytes for thermistor value
-        temp_data = temp_data & 0x0FFF;       // Remove last 4 bits as are from other thermistor value
-        this->tlmWrite_THERM_3(temp_data);
+        this->tlmWrite_THERM_3(data[3].value);
 
-        memcpy(&temp_data, &(data)+(12*4), 2);   // Copy two bytes for thermistor value
-        temp_data = temp_data & 0x0FFF;       // Remove last 4 bits as are from other thermistor value
-        this->tlmWrite_THERM_4(temp_data);
+        this->tlmWrite_THERM_4(data[4].value);
 
-        memcpy(&temp_data, &(data)+(12*5), 2);   // Copy two bytes for thermistor value
-        temp_data = temp_data & 0x0FFF;       // Remove last 4 bits as are from other thermistor value
-        this->tlmWrite_THERM_5(temp_data);
+        this->tlmWrite_THERM_5(data[5].value);
       }
       else
       {
@@ -992,4 +364,113 @@ namespace CubeRover {
     }
     return true;
   }
+
+  int WatchDogInterfaceComponentImpl::Receive_Frame(uint32_t *comm_error, struct WatchdogFrameHeader *header)
+  {
+    int size_read = sciReceiveWithTimeout(scilinREG, sizeof(*header), (uint8_t *)header, 100000000);
+    *comm_error = 0;
+
+    if (size_read == 0)
+    {
+        this->log_WARNING_HI_WatchDogTimedOut();
+        return size_read;
+    }
+    if(size_read < 0)
+    {
+        *comm_error = ~size_read;
+        this->log_WARNING_HI_WatchDogCommError(*comm_error);
+        return size_read;
+    }
+    else if (size_read != sizeof(*header))
+    {
+        this->log_WARNING_HI_WatchDogIncorrectResp(not_enough_bytes);
+        return size_read;
+    }
+
+    // Check that a magic value, parity and reset_value of frame was sent back
+    if(header->magic_value != 0x21B00B)
+    {
+        this->log_WARNING_HI_WatchDogIncorrectResp(bad_magic_value);
+        return size_read;
+    }
+
+    uint64_t frame_bin = *((uint64_t *)header);
+    U8 test_parity = ~(((frame_bin & 0x00000000000000FFL) >> 0)  +
+                      ((frame_bin & 0x000000000000FF00L) >> 8)  +
+                      ((frame_bin & 0x0000000000FF0000L) >> 16) +
+                      ((frame_bin & 0x0000000000000000L) >> 24) +   // Don't use the parity in header as we calculate parity as if it was 0x00
+                      ((frame_bin & 0x000000FF00000000L) >> 32) +
+                      ((frame_bin & 0x0000FF0000000000L) >> 40) +
+                      ((frame_bin & 0x00FF000000000000L) >> 48) +
+                      ((frame_bin & 0xFF00000000000000L) >> 56));
+
+    if(header->parity != test_parity)
+    {
+        this->log_WARNING_HI_WatchDogIncorrectResp(bad_parity);
+        return size_read;
+    }
+
+    if(header->reset_val > 0x0020 && header->reset_val != 0x00EE)
+    {
+        this->log_WARNING_HI_WatchDogIncorrectResp(bad_reset_value);
+    }
+
+    int payload_read = 0;
+    if (header->payload_length == 0) // Received a WD echo
+    {
+        struct WatchdogTelemetry buff;
+        payload_read = sciReceiveWithTimeout(scilinREG, sizeof(buff), (uint8_t *)&buff, 100000000);
+        *comm_error = 0;
+
+        if (payload_read == sizeof(buff))
+        {
+          this->tlmWrite_VOLTAGE_2_5V(buff.voltage_2V5);
+          this->tlmWrite_VOLTAGE_2_8V(buff.voltage_2V8);
+          this->tlmWrite_VOLTAGE_24V(buff.voltage_24V);
+          this->tlmWrite_VOLTAGE_28V(buff.voltage_28V);
+          this->tlmWrite_BATTERY_THERMISTOR(buff.battery_thermistor);
+          this->tlmWrite_SYSTEM_STATUS(buff.sys_status);
+          this->tlmWrite_BATTERY_LEVEL(buff.battery_level);
+          size_read += payload_read;
+        }
+        else if(payload_read < 0)
+        {
+            *comm_error = ~payload_read;
+            this->log_WARNING_HI_WatchDogCommError(*comm_error);
+        }
+        else
+        {
+            this->log_WARNING_HI_WatchDogTimedOut();
+        }
+    }
+    else if (0 < header->payload_length and header->payload_length < UDP_MAX_PAYLOAD)  // Received uplinked data
+    {
+        // UDP_MAX_PAYLOAD defined in FlightMCU/Include/FswPacket.hpp
+        // TODO: Verify that the MTU for wired connection is the same as Wifi
+        Fw::Buffer uplinked_data;
+        payload_read = sciReceiveWithTimeout(scilinREG, header->payload_length,
+                                                 reinterpret_cast<uint8_t *>(uplinked_data.getdata()), 100000000);
+        *comm_error = 0;
+
+        if (payload_read == header->payload_length)
+        {
+            uplink_out(0, uplinked_data);
+            size_read += payload_read;
+        }
+        else if(size_read < 0)
+        {
+            *comm_error = ~payload_read;
+            this->log_WARNING_HI_WatchDogCommError(*comm_error);
+        }
+        else
+            this->log_WARNING_HI_WatchDogTimedOut();
+    }
+    else
+    {
+        this->log_WARNING_HI_WatchDogIncorrectResp(bad_size_received);
+    }
+
+    return size_read;
+  }
+
 } // end namespace CubeRover

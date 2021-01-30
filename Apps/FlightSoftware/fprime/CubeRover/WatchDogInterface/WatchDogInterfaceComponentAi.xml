@@ -88,7 +88,7 @@
     </commands>
 
     <events>
-        <event id="0x0" name="WatchDogMSP430IncorrectResp" severity="WARNING_HI" format_string = "Watchdog MSP430 Sent back Incorrect Response">
+        <event id="0x0" name="WatchDogIncorrectResp" severity="WARNING_HI" format_string = "Watchdog Sent back Incorrect Response">
             <comment>
             Warning that the WatchDog MSP430 sent back a response different than what was sent to it
             </comment>

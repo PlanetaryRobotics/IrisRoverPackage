@@ -309,28 +309,21 @@ namespace CubeRover {
 
   bool WatchDogInterfaceComponentImpl :: Send_Frame(U32 stroke)
   {
-      // Create Value for frame
-      U32 test_frame = 0x0021B00B;
-
-      // Calculate Parity for Message by summing each byte then Inversing it
-      U8 parity = 0;
-      parity = ~((test_frame&0x000000FF) +
-      			 ((test_frame&0x0000FF00) >> 8) + 
-      			 ((test_frame&0x00FF0000) >> 16) +
-      			 ((test_frame&0xFF000000) >> 24) + 
-      			 (stroke&0x000000FF) +
-      			 ((stroke&0x0000FF00) >> 8) +
-      			 ((stroke&0x00FF0000) >> 16) +
-      			 ((stroke&0xFF000000) >> 24));
-
-      // Add Parity to frame
-      test_frame = (parity << 24) | test_frame;
-
-      WatchdogFrameHeader frame;
+      struct WatchdogFrameHeader frame;
       frame.magic_value = 0x21B00B;
-      frame.parity = parity;
+      frame.parity = 0;
       frame.payload_length = (uint16_t)stroke;
-      frame.reset_val = (uint16_t)*((&stroke)+2);
+      frame.reset_val = *(((uint16_t *)&stroke) + 1);
+
+      uint64_t frame_bin = *((uint64_t *)&frame);
+      frame.parity = ~(((frame_bin & 0x00000000000000FFL) >> 0)  +
+                       ((frame_bin & 0x000000000000FF00L) >> 8)  +
+                       ((frame_bin & 0x0000000000FF0000L) >> 16) +
+                       ((frame_bin & 0x00000000FF000000L) >> 24) +
+                       ((frame_bin & 0x000000FF00000000L) >> 32) +
+                       ((frame_bin & 0x0000FF0000000000L) >> 40) +
+                       ((frame_bin & 0x00FF000000000000L) >> 48) +
+                       ((frame_bin & 0xFF00000000000000L) >> 56));
 
 
       int tries = 100000000;

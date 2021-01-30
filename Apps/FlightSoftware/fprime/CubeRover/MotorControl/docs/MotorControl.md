@@ -6,21 +6,38 @@
 
 |Mnemonic|ID|Description|Arg Name|Arg Type|Comment
 |---|---|---|---|---|---|
-|MC_MotorConfiguration|0 (0x0)|| | |
+|MC_Current_PID|0 (0x0)|| | |
 | | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
-| | | |MotorParameter|MP_CommandList||
-| | | |Value|U32||
-|MC_DrivingConfiguration|1 (0x1)|Configure movement command| | |
-| | | |CommandConfiguration|CC_CommandList||
-| | | |Parameter|ParameterList||
-| | | |Value|U8||
-|MC_ExecuteDriving|2 (0x2)|Execute one configured command| | |
-| | | |DrivingCommand|DriveCommandList||
-|MC_StallDetection|3 (0x3)|Enable / disable detection of motor stall| | |
-| | | |motorStallEnable|motorStallEnableList||
-|MC_PositionCounterReset|4 (0x4)|Reset the position counter of specific motor(s)| | |
-| | | |ResetPositionCounter|U8||
-|MC_UpdateTelemetry|5 (0x5)|Requests an update from each of the motor controllers| | |
+| | | |PI_Values|U32||
+|MC_Speed_PID|1 (0x1)|| | |
+| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |PID_Values|U64||
+|MC_Position_PID|2 (0x2)|| | |
+| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |PID_Values|U64||
+|MC_Acceleration|3 (0x3)|| | |
+| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |Rate_Values|U32||
+|MC_StallDetection|4 (0x4)|| | |
+| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |Value|U8|0x00 is disabled, 0xFF is enabled |
+|MC_ResetPosition|5 (0x5)|| | |
+| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+|MC_Spin|6 (0x6)|| | |
+| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |Spin_Type|U8||
+|MC_PowerBoost|7 (0x7)|| | |
+| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |Value|U8|0x00 is On, 0xFF is Off |
+|MC_SetParameter|8 (0x8)|| | |
+| | | |ParamSelect|MC_ParameterSelection| Change internal parameters of the module |
+| | | |New_Value|U32| The new value to be used in place |
+|MC_GetParameters|9 (0x9)|Returns all current parameters of the module| | |
+|MC_UpdateTelemetry|16 (0x10)|Forces a telemetry update from the motors| | |
+|MC_DriveTest|152 (0x98)|Allows the direct commanding of moves bypassing Nav if things are incorrect| | |
+| | | |Distance|I64||
+| | | |MoveType|I8||
+|MC_SelfTest|153 (0x99)|Runs through a routine to confirms the MSP are functioning properly| | |
 
 ## Telemetry Channel List
 
@@ -48,3 +65,5 @@
 |MC_MSPFaultDetected|2 (0x2)|A notification an MSP has thrown a fault| | | | |
 |MC_MSPNotResponding|3 (0x3)|A notification an MSP is not communicating| | | | |
 |MC_MSPNotReporting|4 (0x4)|A notification an MSP is not reporting data| | | | |
+|MC_ParameterChanged|5 (0x5)|A notification that an MC parameter has been modified| | | | |
+|MC_EncoderReset|6 (0x6)|A notification that an MC parameter has been modified| | | | |

@@ -19,12 +19,17 @@
 
 extern "C" {
     void vApplicationIdleHook(void);
+    void vApplicationStackOverflowHook(void *xTask, char *pcTaskName);
 }
 
 void vApplicationIdleHook(void) {
     run1cycle();
     //gioToggleBit(gioPORTB, 1);
     //for(uint32_t i=0; i<2000000; i++) asm("  NOP");
+}
+
+void vApplicationStackOverflowHook(void *xTask, char *pcTaskName) {
+    // something really bad happened
 }
 
 void main(void)

@@ -218,6 +218,9 @@ void constructApp(void){
   
   // Register Camera Commands
   camera.regCommands();
+  
+  // Register Camera Commands
+  navigation.regCommands();
 
   // Set Health Ping Entries
   // **** THIS IS WHERE YOU CAN ADD ANY COMPONENTS THAT HAVE HEALTH PINGS ****

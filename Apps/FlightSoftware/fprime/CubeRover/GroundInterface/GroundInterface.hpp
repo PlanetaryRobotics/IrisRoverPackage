@@ -97,15 +97,14 @@ namespace CubeRover {
         void downlink(void *_data, uint16_t size);
         void updateTelemetry();
       
-        FswPacket::Seq_t  m_uplinkSeq, m_downlinkSeq;                // TLM0, TLM1
+        FswPacket::Seq_t  m_uplinkSeq, m_downlinkSeq;       // TLM0, TLM1
         uint32_t m_packetsRx, m_packetsTx,                  // TLM2, TLM3
                  m_tlmItemsReceived, m_tlmItemsDownlinked,  // TLM4, TLM5
                  m_logsReceived, m_logsDownlinked,          // TLM6, TLM7
                  m_cmdsUplinked, m_cmdsSent, m_cmdErrs,     // TLM8, TLM9, TLM10
                  m_appBytesReceived, m_appBytesDownlinked;  // TLM11, TLM 12
         
-        uint8_t m_downlinkBuffer[UDP_MAX_PAYLOAD];  // Entire datagram. UdpSender will complete Udp header
-        struct FswPacket::FswPacketHeader *m_downlinkPacket;   // Start of FswPacket in datagram
+        uint8_t m_downlinkBuffer[UDP_MAX_PAYLOAD];
         uint8_t *m_downlinkBufferPos;
         uint16_t m_downlinkBufferSpaceAvailable;
       

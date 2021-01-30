@@ -3,22 +3,13 @@
     Port to return the data from the IMU
     </comment>
     <args>
-        <arg name="x_acc" type="I16">
+        <arg name="roll_ptr" type="I16">
         </arg>
 
-        <arg name="y_acc" type="I16">
+        <arg name="pitch_ptr" type="I16">
         </arg>
 
-        <arg name="z_acc" type="I16">
-        </arg>
-
-        <arg name="x_gyro" type="I16">
-        </arg>
-
-        <arg name="y_gyro" type="I16">
-        </arg>
-
-        <arg name="z_gyro" type="I16">
+        <arg name="yaw_ptr" type="I16">
         </arg>
     </args>
 </interface>

@@ -22,50 +22,50 @@
   <import_component_type>CubeRover/Navigation/NavigationComponentAi.xml</import_component_type>
   <import_component_type>CubeRover/Camera/CameraComponentAi.xml</import_component_type>
 
-  <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="1" base_id_window="20" />
+  <instance namespace="Drv" name="blockDriver" type="BlockDriver" base_id="256" base_id_window="255" />
 
   <!-- Declaration of components handling synchronization of tasks -->
-  <instance namespace="Svc" name="rateGroupDriver" type="RateGroupDriver" base_id="21"  base_id_window="20" />
-  <instance namespace="Svc" name="rateGroupLowFreq" type="ActiveRateGroup" base_id="41" base_id_window="20" />
-  <instance namespace="Svc" name="rateGroupMedFreq" type="ActiveRateGroup" base_id="61" base_id_window="20" />
-  <instance namespace="Svc" name="rateGroupHiFreq" type="ActiveRateGroup" base_id="81" base_id_window="20" />
+  <instance namespace="Svc" name="rateGroupDriver" type="RateGroupDriver" base_id="512"  base_id_window="255" />
+  <instance namespace="Svc" name="rateGroupLowFreq" type="ActiveRateGroup" base_id="768" base_id_window="255" />
+  <instance namespace="Svc" name="rateGroupMedFreq" type="ActiveRateGroup" base_id="1024" base_id_window="255" />
+  <instance namespace="Svc" name="rateGroupHiFreq" type="ActiveRateGroup" base_id="1280" base_id_window="255" />
 
 <!-- Declaration of time component that will be used by other module to capture time stamp -->
-  <instance namespace="Svc" name="cubeRoverTime" type="CubeRoverTime" base_id="101"  base_id_window="20" />
+  <instance namespace="Svc" name="cubeRoverTime" type="CubeRoverTime" base_id="1536"  base_id_window="255" />
 
 <!-- Declaration of telemetry chan that gathers all telemetry parameters (synchronous, synchronized by rate group low freq) -->
-  <instance namespace="Svc" name="tlmChan" type="TlmChan" base_id="121"  base_id_window="20" />
+  <instance namespace="Svc" name="tlmChan" type="TlmChan" base_id="1792"  base_id_window="255" />
 
 <!-- Declaration of the command dispatcher -->
-  <instance namespace="Svc" name="cmdDispatcher" type="CommandDispatcher" base_id="141" base_id_window="20" />
+  <instance namespace="Svc" name="cmdDispatcher" type="CommandDispatcher" base_id="2048" base_id_window="255" />
 
 <!-- Declaration of the ground interface service -->
-  <instance namespace="CubeRover" name="groundInterface" type="GroundInterface" base_id="161" base_id_window="20" />
+  <instance namespace="CubeRover" name="groundInterface" type="GroundInterface" base_id="2304" base_id_window="255" />
 
 <!-- Declaration of the components that implement NetworkManager and Wifi Stack -->
-  <instance namespace="CubeRover" name="networkManager" type="NetworkManager" base_id="241" base_id_window="20" />
+  <instance namespace="CubeRover" name="networkManager" type="NetworkManager" base_id="2560" base_id_window="255" />
 
 <!-- Declaration of the passive text logger component that logs events in non-volatile memory -->
 <!-- For CubeRover - we use external FRAM memory to store data, i.e. a custom implementation of that component is necessary -->
-  <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="221" base_id_window="20" />
+  <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="2816" base_id_window="255" />
 
 <!-- Declaration of the health component -->
-      <instance namespace="Svc" name="health" type="Health" base_id="301" base_id_window="20" />
+      <instance namespace="Svc" name="health" type="Health" base_id="3072" base_id_window="255" />
 
   <!-- Declaration of the Navigation handling module -->
-  <instance namespace="CubeRover" name="navigation" type="Navigation" base_id="2221" base_id_window="20" />
+  <instance namespace="CubeRover" name="navigation" type="Navigation" base_id="3328" base_id_window="255" />
 
   <!-- Declaration of the Motor control interface module -->
-  <instance namespace="CubeRover" name="motorControl" type="MotorControl" base_id="2241" base_id_window="20" />
+  <instance namespace="CubeRover" name="motorControl" type="MotorControl" base_id="3584" base_id_window="255" />
 
   <!-- Declaration of the IMU interface module -->
-  <instance namespace="CubeRover" name="IMU" type="IMU" base_id="2261" base_id_window="20" />
+  <instance namespace="CubeRover" name="IMU" type="IMU" base_id="3840" base_id_window="255" />
 
 <!-- Declaration of the WatchDog Interface component -->
-  <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="62208" base_id_window="20" />
+  <instance namespace="CubeRover" name="watchDogInterface" type="WatchDogInterface" base_id="4096" base_id_window="255" />
       
 <!-- Declaration of the Camera component -->
-  <instance namespace="CubeRover" name="camera" type="Camera" base_id="62508" base_id_window="20" />
+  <instance namespace="CubeRover" name="camera" type="Camera" base_id="4352" base_id_window="255" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -78,11 +78,13 @@
     <target component="rateGroupDriver" port="CycleIn" type="Cycle" num="0"/>
   </connection>
 
-<!-- Connect Rate Group driver to Rate Group "Low Frequency" (port 0) -->
-  <connection name="rgDriver_to_rgLowFreq">
+<!-- Connect Rate Group driver to Rate Group "High Frequency" (port 0) -->
+<!-- Highest frequency rate group first to save a few cycles when RateGroupDriver has to iterate over
+     clock divider array to find the matching RateGroup to call -->
+  <connection name="rgDriver_to_rgHiFreq">
     <source component="rateGroupDriver" port="CycleOut" type="Cycle" num="0"/>
-    <target component="rateGroupLowFreq" port="CycleIn" type="Cycle" num="0"/>
-  </connection>
+    <target component="rateGroupHiFreq" port="CycleIn" type="Cycle" num="0"/>
+  </connection>  
 
 <!-- Connect Rate Group driver to Rate Group "Medium Frequency" (port 1) -->
   <connection name="rgDriver_to_rgMedFreq">
@@ -90,11 +92,11 @@
     <target component="rateGroupMedFreq" port="CycleIn" type="Cycle" num="0"/>
   </connection>
 
-<!-- Connect Rate Group driver to Rate Group "High Frequency" (port 2-->
-  <connection name="rgDriver_to_rgHiFreq">
+<!-- Connect Rate Group driver to Rate Group "Low Frequency" (port 2) -->
+  <connection name="rgDriver_to_rgLowFreq">
     <source component="rateGroupDriver" port="CycleOut" type="Cycle" num="2"/>
-    <target component="rateGroupHiFreq" port="CycleIn" type="Cycle" num="0"/>
-  </connection>  
+    <target component="rateGroupLowFreq" port="CycleIn" type="Cycle" num="0"/>
+  </connection>
 
 <!-- *********************************************************************************************************
         CONNECTION BETWEEN LOW FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
@@ -116,6 +118,16 @@
     <target component = "watchDogInterface" port = "Run" type = "Sched" num = "0"/>
   </connection>
 
+  <connection name="rgMedFreq_to_networkManager">
+    <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="1" />
+    <target component="networkManager" port="schedIn" type="sched" num="0"/>
+  </connection>
+  
+  <connection name = "rgMedFreq_to_navigation_clk">
+    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "2" />
+    <target component = "navigation" port = "schedIn" type = "Sched" num = "0"/>
+  </connection>
+
 <!-- *********************************************************************************************************
         CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
      *********************************************************************************************************
@@ -125,25 +137,9 @@
     <source component = "rateGroupHighFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
     <target component = "health" port = "Run" type = "Sched" num = "0"/>
   </connection>
-
-  <connection name="rgMedFreq_to_networkManager">
-    <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
-    <target component="networkManager" port="schedIn" type="sched" num="0"/>
-  </connection>
-
-<!-- Motor Control Testing
-  <connection name="rgMedFreq_to_motorControl">
-    <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
-    <target component="motorControl" port="schedIn" type="sched" num="0"/>
-  </connection> -->
-
-<!-- *********************************************************************************************************
-        CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
-     *********************************************************************************************************
-     -->
       
   <connection name="rgHiFreq_to_IMU">
-    <source component="rateGroupHiFreq" port="RateGroupMemberOut" type="Sched" num="0" />
+    <source component="rateGroupHiFreq" port="RateGroupMemberOut" type="Sched" num="1" />
     <target component="IMU" port="schedIn" type="sched" num="0"/>
   </connection>
 
@@ -183,17 +179,17 @@
   </connection>
 
   <connection name="imu_to_cubeRoverTime">
-    <source component="IMU" port="timeCaller" type="Time" num="0" />
+    <source component="IMU" port="Time" type="Time" num="0" />
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
   </connection>
 
   <connection name="navigation_to_cubeRoverTime">
-    <source component="navigation" port="timeCaller" type="Time" num="0" />
+    <source component="navigation" port="Time" type="Time" num="0" />
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
   </connection>
 
   <connection name="motorControl_to_cubeRoverTime">
-    <source component="motorControl" port="timeCaller" type="Time" num="0" />
+    <source component="motorControl" port="Time" type="Time" num="0" />
     <target component="cubeRoverTime" port="timeGetPort" type="Time" num="0"/>
   </connection>
       
@@ -257,39 +253,58 @@
 
   <!-- Navigation to telemetry channel (port 6) -->
   <connection name="navigation_to_chanTlm">
-    <source component="navigation" port="tlmOut" type="Tlm" num="0" />
+    <source component="navigation" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
 
   <!-- Motor Control to telemetry channel (port 7) -->
   <connection name="motorControl_to_chanTlm">
-    <source component="motorControl" port="tlmOut" type="Tlm" num="0" />
+    <source component="motorControl" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
 
   <!-- IMU to telemetry channel (port 8) -->
   <connection name="imu_to_chanTlm">
-    <source component="IMU" port="tlmOut" type="Tlm" num="0" />
+    <source component="IMU" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
       
 
 <!-- *********************************************************************************************************
-        CONNECTION OF INTERCONNECTED COMPONENTS
+        CONNECTION OF NAVIGATION RELATED COMPONENTS
      ********************************************************************************************************* 
       -->
 
-   <!-- MC to Nav  -->
+  <!-- MC to Nav  -->
   <connection name="motorControl_to_navigation_motorData">
     <source component="motorControl" port="motorDataOut" type="motorData" num="0" />
     <target component="navigation" port="motorDataIn" type="motorData" num="0" />
   </connection>
 
+  <!-- Nav to MC  -->
+  <connection name="navigation_to_motorControl_motorCommand">
+    <source component="navigation" port="motorCommandOut" type="motorCommand" num="0" />
+    <target component="motorControl" port="motorCommandIn" type="motorCommand" num="0" />
+  </connection>
+
   <!-- IMU to Nav  -->
-  <connection name="IMU_to_Navigation_IMUData">
+  <connection name="IMU_to_navigation_IMUData">
     <source component="IMU" port="IMUDataOut" type="IMUData" num="0" />
     <target component="navigation" port="IMUDataIn" type="IMUData" num="0" />
   </connection>
+
+  <!-- Nav to Camera -->
+  <connection name="navigation_to_camera_cameraTakePicture">
+    <source component="navigation" port="cameraTakePictureOut" type="cameraTakePicture" num="0" />
+    <target component="camera" port="takePicture" type="cameraTakePicture" num="0" />
+  </connection>
+
+  <!-- MC to Watchdog -->
+  <!-- Once watchdog has this port -->
+  <!-- <connection name="motorControl_to_watchDogInterface_WatchdogCommand">
+    <source component="motorControl" port="WatchdogCommandOut" type="WatchdogCommand" num="0" />
+    <target component="watchDogInterface" port="????" type="WatchdogCommand" num="0" />
+  </connection> -->
 
 
 <!-- *********************************************************************************************************
@@ -371,68 +386,87 @@
 
 
   <!-- *********************************************************************************************************
-        CONNECTION OF COMMAND REGISTRATION PORTS
+        CONNECTION OF COMMAND PORTS TO COMMANDED COMPONENTS
+        Port num must be unique on the command dispatch and are mapped to component opcodes by reg port num
+        Port numbers are unused on command response
        ********************************************************************************************************* 
       -->
 
-      <!-- Health -->
   <connection name = "HealthReg">
     <source component = "health" port = "CmdReg" type = "CmdReg" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
   </connection>
-
-      <!-- Watchdog -->
-  <connection name = "WatchdogReg">
-    <source component = "watchDogInterface" port = "CmdReg" type = "CmdReg" num = "0" />
-    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
-  </connection>
-  
-  <connection name = "cameraCmdReg_to_cmdDispatcher">
-    <source component = "camera" port = "CmdReg" type = "CmdReg" num = "0" />
-    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
-  </connection>
-  
-  <!-- *********************************************************************************************************
-        CONNECTION OF COMMAND DISPATCH PORTS
-       ********************************************************************************************************* 
-      -->
-
-      <!-- Health -->
   <connection name = "HealthDisp">
     <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
     <target component = "health" port = "CmdDisp" type = "Cmd" num = "0" />
   </connection>
-
-      <!-- Watchdog -->
-  <connection name = "WatchdogDisp">
-    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
-    <target component = "watchDogInterface" port = "CmdDisp" type = "Cmd" num = "0" />
-  </connection>
-  
-  <connection name = "cmdDispatcherSendCmd_to_cameraCmdDisp">
-    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
-    <target component = "camera" port = "CmdDisp" type = "Cmd" num = "0" />
-  </connection>
-
-  <!-- *********************************************************************************************************
-        CONNECTION OF COMMAND RESPONSE PORTS
-       ********************************************************************************************************* 
-      -->
-
-      <!-- Health -->
   <connection name = "HealthReg">
     <source component = "health" port = "CmdStatus" type = "CmdResponse" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
   </connection>
 
-      <!-- Watchdog -->
+  <connection name = "WatchdogReg">
+    <source component = "watchDogInterface" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "1" />
+  </connection>
+  <connection name = "WatchdogDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "1" />
+    <target component = "watchDogInterface" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
   <connection name = "WatchdogReg">
     <source component = "watchDogInterface" port = "CmdStatus" type = "CmdResponse" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
   </connection>
   
+  <connection name = "cameraCmdReg_to_cmdDispatcher">
+    <source component = "camera" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "2" />
+  </connection>
+  <connection name = "cmdDispatcherSendCmd_to_cameraCmdDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "2" />
+    <target component = "camera" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
   <connection name = "cameraCmdStatus_to_cmdDispatcher_CmdStatus">
     <source component = "camera" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+  
+  <connection name = "navigationCmdReg_to_cmdDispatcher">
+    <source component = "navigation" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "3" />
+  </connection>
+  <connection name = "cmdDispatcherSendCmd_to_navigationCmdDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "3" />
+    <target component = "navigation" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
+  <connection name = "navigationCmdStatus_to_cmdDispatcher_CmdStatus">
+    <source component = "navigation" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+
+  <connection name = "IMUCmdReg_to_cmdDispatcher">
+    <source component = "IMU" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "4" />
+  </connection>
+  <connection name = "cmdDispatcherSendCmd_to_IMUCmdDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "4" />
+    <target component = "IMU" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
+  <connection name = "IMUCmdStatus_to_cmdDispatcher_CmdStatus">
+    <source component = "IMU" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+
+  <connection name = "motorControlCmdReg_to_cmdDispatcher">
+    <source component = "motorControl" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "5" />
+  </connection>
+  <connection name = "cmdDispatcherSendCmd_to_motorControlCmdDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "5" />
+    <target component = "motorControl" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
+  <connection name = "motorControlCmdStatus_to_cmdDispatcher_CmdStatus">
+    <source component = "motorControl" port = "CmdStatus" type = "CmdResponse" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
   </connection>
 

@@ -238,7 +238,8 @@ ErrorCode CubeRoverNetworkManager :: SendUdpData(uint8_t * data,
   errorCode = SetTransmitSize(m_udpSendEndpoint,
                               byteToSend);
 
-  if(errorCode != NO_ERROR) return errorCode;
+  if(errorCode != NO_ERROR)
+      return errorCode;
 
   while((timer >0) && (m_commandTransmitSizeSet == false)){
     errorCode = ExecuteCallbacks();
@@ -262,11 +263,13 @@ ErrorCode CubeRoverNetworkManager :: SendUdpData(uint8_t * data,
 
     while((timer > 0) && (m_commandSendEndpointSet == false)){
       errorCode = ExecuteCallbacks();
-      if(errorCode != TRY_AGAIN && errorCode != NO_ERROR) return errorCode;
+      if(errorCode != TRY_AGAIN && errorCode != NO_ERROR)
+          return errorCode;
       timer--;
     }
 
-    if(!timer) return TIMEOUT;
+    if(!timer)
+        return TIMEOUT;
 
     timer = timeout;
 
@@ -288,8 +291,8 @@ ErrorCode CubeRoverNetworkManager :: SendUdpData(uint8_t * data,
  * @brief      Receives the UDP data
  *
  * @param      data      The data
- * @param[in]  dataSize  The data size, once read, the variable report the
- *                       number of bytes actually read
+ * @param[in]  dataSize  The number of bytes to read
+ * @param[out] dataRead  The number of bytes actually read
  * @param[in]  mode      The mode can be a combination of WAIT_UNTIL_READY,
  *                       NORMAL_READ, PEEK_READ flags
  * @param[in]  timeout   The timeout
@@ -1334,20 +1337,34 @@ ErrorCode CubeRoverNetworkManager :: cb_EventUdpData(const Endpoint endpoint,
 
     // Log the number of bytes received
     m_logNbOfBytesReceived += dataSize;
+    
+   const  uint8_t *_dataSize = reinterpret_cast<const uint8_t *>(&dataSize);
+    uint16_t originalHeadPointer = m_rxUdpFifoHeadPointer;
 
     // Implementation of a simple ring buffer
-    for(uint16_t i=0; i<dataSize; i++){
+    // Write the dataSize first, then the data
+    for(uint16_t i=0; i<sizeof(dataSize) + dataSize; i++){
       // Check if we can write new data to the ring buffer by looking
-      // where the read pointer is located
+      // where the read pointer is located. If a collision with the tail
+      // will occur, undo copying into the ring buffer by resetting the
+      // head pointer to its original location and resetting the number
+      // of bytes read into the buffer prior to this call.
       if((m_rxUdpFifoHeadPointer + 1 % RX_RING_BUFFER_SIZE) == m_rxUdpFifoTailPointer){
+        m_rxUdpFifoBytesCount -= i;
+        m_rxUdpFifoHeadPointer = originalHeadPointer;
         return TCP_IP_BUFFER_ERROR;
       }
 
       // Increment number of byte available for a read
       m_rxUdpFifoBytesCount++;
-      g_rxRingBuffer[m_rxUdpFifoHeadPointer] = *ptrData;
-      m_rxUdpFifoHeadPointer = (m_rxUdpFifoHeadPointer + 1) % RX_RING_BUFFER_SIZE;      // FIXME: Wtf cedric you can't do pointer arithmetic. Offset!?
-      ptrData++;
+      
+      if (i < sizeof(dataSize)) {
+        g_rxRingBuffer[m_rxUdpFifoHeadPointer] = _dataSize[i];
+      } else {
+        g_rxRingBuffer[m_rxUdpFifoHeadPointer] = *ptrData;
+        ptrData++;
+      }
+      m_rxUdpFifoHeadPointer = (m_rxUdpFifoHeadPointer + 1) % RX_RING_BUFFER_SIZE;
     }
   }
 

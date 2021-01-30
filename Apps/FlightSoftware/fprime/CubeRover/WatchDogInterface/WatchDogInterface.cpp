@@ -295,8 +295,6 @@ namespace CubeRover {
       // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
       if(!Send_Frame(watchdog_stroke))
         return false;
-       
-      for(unsigned i = 100000000; i>0; --i); // Wait loop to make sure sci sends out all data
 
       // Receive frame back from MSP430
       U32 comm_error;
@@ -393,13 +391,22 @@ namespace CubeRover {
     return true;
   }
 
-  int WatchDogInterfaceComponentImpl::Receive_Frame(uint32_t *comm_error, WatchdogFrameHeader *header)
+  int WatchDogInterfaceComponentImpl::Receive_Frame(uint32_t *comm_error, struct WatchdogFrameHeader *header)
   {
-    int size_read = sciReceiveWithTimeout(scilinREG, sizeof(*header), (uint8_t *)header, 10000);
-    *comm_error = sciRxError(scilinREG);
+    int size_read = sciReceiveWithTimeout(scilinREG, sizeof(*header), (uint8_t *)header, 100000000);
+    *comm_error = 0;
+
+
+    for(unsigned i = 100000000; i; --i); // Wait loop to make sure sci sends out all data
 
     if (size_read == 0) {
         this->log_WARNING_HI_WatchDogTimedOut();
+        return size_read;
+    }
+    if(size_read < 0)
+    {
+        *comm_error = ~size_read;
+        this->log_WARNING_HI_WatchDogCommError(*comm_error);
         return size_read;
     }
     else if (size_read != sizeof(*header))
@@ -422,7 +429,7 @@ namespace CubeRover {
     {
         struct WatchdogTelemetry buff;
         payload_read = sciReceiveWithTimeout(scilinREG, sizeof(buff), (uint8_t *)&buff, 10000);
-        *comm_error = sciRxError(scilinREG);
+        *comm_error = 0;
 
         if (payload_read == sizeof(buff))
         {
@@ -433,6 +440,11 @@ namespace CubeRover {
           this->tlmWrite_BATTERY_THERMISTOR(buff.battery_thermistor);
           this->tlmWrite_SYSTEM_STATUS(buff.sys_status);
           this->tlmWrite_BATTERY_LEVEL(buff.battery_level);
+        }
+        if(size_read < 0)
+        {
+          *comm_error = ~payload_read;
+          this->log_WARNING_HI_WatchDogCommError(*comm_error);
         }
         else {
             this->log_WARNING_HI_WatchDogTimedOut();

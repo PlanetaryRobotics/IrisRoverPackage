@@ -8,14 +8,12 @@
 
 #include "buffer.h"
 
-extern void (*i2c_rx_handler)(uint16_t len, struct buffer *buf);
-
 /**
  * @brief Initialize I2C hardware.
  * Sets up the interrupts and whatnot for I2C.
  */
 void i2c_init();
 
-void i2c_tx_blocking(uint16_t len, struct buffer *buf);
+void i2c_tx_blocking(uint16_t len, unsigned char *buf);
 
 #endif /* __I2C_INC */

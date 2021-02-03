@@ -7,6 +7,7 @@
     <import_port_type>Fw/Log/LogTextPortAi.xml</import_port_type>
     <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
     <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/WatchdogResetRequest/WatchdogResetRequestPortAi.xml</import_port_type>
     <ports>
 
         <!-- Input ports -->
@@ -24,6 +25,13 @@
         <port name="uplink" data_type="Fw::BufferSend" kind="output" max_number="1">
             <comment>NM sends received packets to GroundInterface</comment>
         </port>
+            
+        <port name="WatchdogResetRequest" data_type="CubeRoverPorts::WatchdogResetRequest" kind="output">
+            <comment>
+                This allows other components to request the Watchdog interface to reset some hardware
+            </comment>
+        </port>
+
 
         <!-- TODO: MODE -->
 

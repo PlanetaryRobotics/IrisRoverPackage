@@ -12,7 +12,7 @@
   <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
   <import_port_type>CubeRover/CubeRoverPorts/MotorData/MotorDataPortAi.xml</import_port_type>
   <import_port_type>CubeRover/CubeRoverPorts/MotorCommand/MotorCommandPortAi.xml</import_port_type>
-  <import_port_type>CubeRover/CubeRoverPorts/WatchdogReset/WatchdogResetPortAi.xml</import_port_type>
+  <import_port_type>CubeRover/CubeRoverPorts/WatchdogResetRequest/WatchdogResetRequestPortAi.xml</import_port_type>
 
   <!-- PORTS -->
   <ports>
@@ -50,7 +50,7 @@
     <port name="motorCommandIn" data_type="CubeRoverPorts::MotorCommand" kind="sync_input" max_number="1"></port>
 
     <!-- Watchdog Reset port -->
-    <port name="WatchdogCommandOut" data_type="CubeRoverPorts::WatchdogCommand" kind="output" max_number="1"></port>
+    <port name="WatchdogCommandOut" data_type="CubeRoverPorts::WatchdogResetRequest" kind="output" max_number="1"></port>
 
   </ports>
 

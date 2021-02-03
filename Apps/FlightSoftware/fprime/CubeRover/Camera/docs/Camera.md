@@ -11,6 +11,9 @@
 | | | |camera_num|U8|
                         0: Camera 0     1: Camera 1
                     |
+| | | |callback_id|U16|
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                    |
 |Error|2 (0x2)|Get camera status| | |
 | | | |action|U8|
                         0x00: Clear Error     0xff: Read Error  !! Not sure how this is being used
@@ -50,5 +53,5 @@
 |Cam_CommandImagesRequested|1 (0x1)|U32|Number of images commanded from the ground|
 |Cam_ImagesSent|2 (0x2)|U32|Number of images sent for downlink|
 |Cam_BytesSent|3 (0x3)|U32|Number of bytes sent for downlink|
-|Cam_PrevCallbackId|4 (0x4)|U16|The latest callback ID that triggerd an image to be taken|
+|Cam_LatestCallbackId|4 (0x4)|U16|The latest callback ID that triggerd an image to be taken|
 

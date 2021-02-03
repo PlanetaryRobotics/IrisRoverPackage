@@ -16,9 +16,9 @@
 #include "CubeRover/WatchDogInterface/WatchDogInterfaceComponentAc.hpp"
 
 #include "lin.h"
+#include "adc.h"
 
 namespace CubeRover {
-
 
   class WatchDogInterfaceComponentImpl :
     public WatchDogInterfaceComponentBase
@@ -50,6 +50,14 @@ namespace CubeRover {
       //! Destroy object WatchDogInterface
       //!
       ~WatchDogInterfaceComponentImpl(void);
+
+      //! Implementation for Reset Specific for init of cuberover
+      //! Only difference between this and Reset_Specific_cmdHandler is no cmd response
+      bool Reset_Specific_Handler(
+          U8 reset_value /*!< 
+                      U8 Value that represents which things need to be reset
+                    */
+      );
 
     PRIVATE:
 
@@ -107,6 +115,51 @@ namespace CubeRover {
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq /*!< The command sequence number*/
       );
+
+      //! Implementation for sending frame and checking that frame was sent to watchdog
+      //! Sends a Frame start everytime data is sent from cuberover to watchdog
+      bool Send_Frame(
+          U16 payload_length,  // stroke if 0x0000 or UDP data size if larger than
+          U16 reset_value   // reset value for watchdog
+          );
+
+      //! Implementation for checking the tempurature senors from the ADC
+      bool Read_Temp();
+
+      // frame struct
+      struct WatchdogFrameHeader {
+        uint32_t magic_value    :24;
+        uint8_t parity          :8;
+        uint16_t payload_length;
+        uint16_t reset_val;
+      } __attribute__((packed, aligned(8)));
+
+     struct WatchdogTelemetry {
+         int16_t voltage_2V5;
+         int16_t voltage_2V8;
+         int16_t voltage_24V;
+         int16_t voltage_28V;
+         int8_t battery_thermistor;
+         int8_t sys_status;
+         int16_t battery_level;
+     } __attribute__((packed, aligned(8)));
+
+     // Incorrect Response Possible Values
+     enum resp_error : U8
+     {
+         bad_parity = 1,
+         bad_size_received = 2,
+         bad_reset_value = 3,
+         bad_magic_value = 4,
+         not_enough_bytes = 5
+     };
+
+     int Receive_Frame(uint32_t *comm_error, WatchdogFrameHeader *header);
+
+     public:
+
+     // variable to store if DMA is busy or not
+     bool watchdog_dma_busy;
 
     };
 

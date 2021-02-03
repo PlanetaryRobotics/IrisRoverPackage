@@ -82,7 +82,7 @@ namespace CubeRover {
                 break;
             }
         }
-        if (no_transition_count > MAX_FSM_NO_TRANSITION_COUNT) {
+        if (no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
             log_FATAL_WF121InitializationFailed();
             // TODO: Watchdog reset WF121
         }
@@ -107,7 +107,7 @@ namespace CubeRover {
   {
     uint8_t *buffer = reinterpret_cast<uint8_t *>(fwBuffer.getdata());
     uint32_t payloadSize = fwBuffer.getsize();
-    m_crnm.SendUdpData(buffer, payloadSize, 1000);   // FIXME: What is an appropriate timeout 1s check units
+    Wf121::ErrorCode e = m_crnm.SendUdpData(buffer, payloadSize, 100000);   // FIXME: What is an appropriate timeout 1s check units
     update();
   }
 

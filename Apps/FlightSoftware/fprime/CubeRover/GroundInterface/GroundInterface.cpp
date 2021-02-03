@@ -258,7 +258,7 @@ namespace CubeRover {
      */
     void GroundInterfaceComponentImpl::downlink(void *_data, FswPacket::Length_t size) {
         FW_ASSERT(_data);
-        FW_ASSERT(size < UDP_MAX_PAYLOAD);
+        FW_ASSERT(size <= UDP_MAX_PAYLOAD);
         uint8_t *data = reinterpret_cast<uint8_t *>(_data);     // Start of the ddatagram
         struct FswPacket::FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacket::FswPacketHeader *>(data);
         FswPacket::Checksum_t checksum = 0x8008;   // TODO

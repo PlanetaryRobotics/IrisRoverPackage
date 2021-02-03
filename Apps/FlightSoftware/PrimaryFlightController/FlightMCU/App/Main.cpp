@@ -19,17 +19,17 @@
 
 extern "C" {
     void vApplicationIdleHook(void);
+    void vApplicationStackOverflowHook(void *xTask, char *pcTaskName);
 }
 
-extern CubeRover::CameraComponentImpl camera;
-
 void vApplicationIdleHook(void) {
-    static bool test_camera = 0;
-    if (test_camera)
-        camera.triggerImageCapture(53);
     run1cycle();
     //gioToggleBit(gioPORTB, 1);
     //for(uint32_t i=0; i<2000000; i++) asm("  NOP");
+}
+
+void vApplicationStackOverflowHook(void *xTask, char *pcTaskName) {
+    // something really bad happened
 }
 
 void main(void)
@@ -41,7 +41,7 @@ void main(void)
     sciInit();
     adcInit();
     spiInit();
-    //linInit();
+    //linInit();            //linInit() changes the settings of watchdog interface port, please do not use
 
     constructApp();
 

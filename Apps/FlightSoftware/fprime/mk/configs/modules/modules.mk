@@ -62,8 +62,8 @@ SVC_MODULES := \
 	Svc/PolyDb \
 	Svc/PrmDb \
 	Svc/Ping \
-	Svc/Health \
 	Svc/WatchDog \
+	Svc/Health \
 	Svc/FileUplink \
 	Svc/FileDownlink \
   Svc/AssertFatalAdapter \
@@ -199,8 +199,12 @@ acdev_MODULES := \
 	$(ACDEVTEST_MODULES)
 
 CubeRoverPorts_MODULES := \
+	CubeRover/CubeRoverPorts/CameraTakePicture \
+	CubeRover/CubeRoverPorts/FileDownlink \
 	CubeRover/CubeRoverPorts/IMUData \
-	CubeRover/CubeRoverPorts/MotorData
+	CubeRover/CubeRoverPorts/MotorData \
+	CubeRover/CubeRoverPorts/MotorCommand \
+	CubeRover/CubeRoverPorts/WatchdogReset
 	
 CubeRover_MODULES := \
 	CubeRover/Top \
@@ -216,6 +220,7 @@ CubeRover_MODULES := \
 	CubeRover/CubeRoverPorts/CameraSelect \
 	CubeRover/CubeRoverPorts/FileDownlink \
 	CubeRover/ComLogger \
+
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

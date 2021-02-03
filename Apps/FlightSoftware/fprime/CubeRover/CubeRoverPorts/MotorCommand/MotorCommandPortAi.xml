@@ -1,38 +1,31 @@
 <interface name="MotorCommand" namespace="CubeRoverPorts">
     <comment>
-    Port to return the necssary data from the motors
+    Port to trigger a move of the motor
     </comment>
     <args>
         <arg name="command_type" type="ENUM">
         	<enum name ="MC_CommandType">
-            <item name="MC_MotorConfiguration" />
             <item name="MC_DrivingConfiguration" />
-            <item name="MC_ExecuteDriving" />
-            <item name="MC_StallDetection" />
-            <item name="MC_PositionCounterReset" />
             <item name="MC_UpdateTelemetry" />
           </enum>
           <comment> Selector for which command should be called </comment>
         </arg> 
 
-        <arg name="Motor_ID" type="U8">
-          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
-        </arg> 
-
-        <arg name="Configuration_Selection" type="ENUM">
-          <enum name ="CC_CommandList">
-            <item name="FORWARD_CFG" />
-            <item name="REVERSE_CFG" />
-            <item name="LEFT_CFG" />
-            <item name="RIGHT_CFG" />
+        <arg name="movement_type" type="ENUM">
+          <enum name ="MC_MovementType">
+            <item name="MC_Forward" />
+            <item name="MC_Backward" />
+            <item name="MC_Left" />
+            <item name="MC_Right" />
+            <item name="MC_Stop" />
+            <item name="MC_NONE" />
+            <item name="MC_INTERRUPTED" />
           </enum>
-          <comment> This is relevant only for MC_DrivingConfiguration command </comment>
+          <comment> Selector how movement should be interpreted </comment>
         </arg> 
 
-        <arg name="Parameter_Selection" type="U8">
-          <comment> This will vary depending on which command type is chosen </comment>
-        </arg> 
+        <arg name="Distance" type="U8" />
 
-        <arg type="U32" name="Value" />
+        <arg name="Speed" type="U8" />
     </args>
 </interface>

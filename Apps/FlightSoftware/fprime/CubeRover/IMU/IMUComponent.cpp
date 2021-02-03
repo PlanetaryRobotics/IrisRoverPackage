@@ -339,12 +339,12 @@ namespace CubeRover {
     m_spi = spi;
     m_setup = true;
 
-    err = setupAccelerometer(spi);
+    err = setupGyroscope(spi);
 
     if(err != IMU_NO_ERROR)
       return err;
 
-    err = setupGyroscope(spi);
+    err = setupAccelerometer(spi);
     return err;
   }
 

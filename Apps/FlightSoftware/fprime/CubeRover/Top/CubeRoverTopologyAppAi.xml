@@ -125,7 +125,7 @@
   
   <connection name = "rgMedFreq_to_navigation_clk">
     <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "2" />
-    <target component = "navigation" port = "schedIn" type = "Sched" num = "0"/>
+    <target component = "navigation" port = "schedIn" type = "sched" num = "0"/>
   </connection>
 
 <!-- *********************************************************************************************************

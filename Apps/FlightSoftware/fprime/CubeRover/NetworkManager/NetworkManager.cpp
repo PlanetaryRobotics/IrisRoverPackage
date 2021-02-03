@@ -53,7 +53,7 @@ namespace CubeRover {
         }
     } while (not m_crnm.GetWifiModuleIdentified());
     */
-    
+    /*
     unsigned no_transition_count = 0;
     m_current_state = m_crnm.GetState();
     bool success = false;
@@ -86,7 +86,7 @@ namespace CubeRover {
             log_FATAL_WF121InitializationFailed();
             // TODO: Watchdog reset WF121
         }
-    }
+    }*/
   }
 
   NetworkManagerComponentImpl ::

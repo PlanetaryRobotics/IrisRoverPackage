@@ -51,8 +51,8 @@ void main(void)
     scidmaInit();
     //linsci2enableMBUFF();
     
-    // constructApp();
-    
+    constructApp();
+    /*
     _enable_IRQ();                                      // Enable IRQ - Clear I flag in CPS register // @suppress("Function cannot be resolved")
     sciEnterResetState(scilinREG);
     sciSetBaudrate(scilinREG, 9600);
@@ -60,7 +60,8 @@ void main(void)
     alignas(8) char test[] = "foo, bar. This is a test!";
     while (1) {
         scidmaSend(DMA_CH1, test, sizeof(test));
-    }
+    }*/
+
     vTaskStartScheduler();
 
     //if it reaches that point, there is a problem with RTOS.

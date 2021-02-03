@@ -33,29 +33,17 @@ namespace CubeRover {
       IMUComponentImpl(void)
 #endif
   {
-    // Single-byte Accelerometer data configuration
-    m_accDataSingleByteConfig.CS_HOLD = false;
-    m_accDataSingleByteConfig.DFSEL = SPI_FMT_0;
-    m_accDataSingleByteConfig.WDEL = false;
-    m_accDataSingleByteConfig.CSNR = 0;
+    // Gyrometer data configuration
+    m_gyroDataConfig.CS_HOLD = false;
+    m_gyroDataConfig.DFSEL = SPI_FMT_0;
+    m_gyroDataConfig.WDEL = false;
+    m_gyroDataConfig.CSNR = 0;
 
-    // Double-byte Accelerometer data configuration
-    m_accDataDoubleByteConfig.CS_HOLD = false;
-    m_accDataDoubleByteConfig.DFSEL = SPI_FMT_1;
-    m_accDataDoubleByteConfig.WDEL = false;
-    m_accDataDoubleByteConfig.CSNR = 0;
-
-    // Single-byte Gyrometer data configuration
-    m_gyroDataSingleByteConfig.CS_HOLD = false;
-    m_gyroDataSingleByteConfig.DFSEL = SPI_FMT_2;
-    m_gyroDataSingleByteConfig.WDEL = false;
-    m_gyroDataSingleByteConfig.CSNR = 0;
-
-    // Double-byte Gyrometer data configuration
-    m_gyroDataDoubleByteConfig.CS_HOLD = false;
-    m_gyroDataDoubleByteConfig.DFSEL = SPI_FMT_3;
-    m_gyroDataDoubleByteConfig.WDEL = false;
-    m_gyroDataDoubleByteConfig.CSNR = 0;
+    // Accelerometer data configuration
+    m_accDataConfig.CS_HOLD = true;
+    m_accDataConfig.DFSEL = SPI_FMT_0;
+    m_accDataConfig.WDEL = false;
+    m_accDataConfig.CSNR = 0;
       
     m_spi = NULL;
     m_setup = false;
@@ -372,8 +360,8 @@ namespace CubeRover {
         return IMU_WRONG_DATA_SIZE;
 
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_ADXL, 0);
-    spiTransmitData(m_spi, &m_accDataSingleByteConfig, 1, (uint16_t *)&m_spiTxBuff);
-    spiReceiveData(m_spi, &m_accDataSingleByteConfig, length, (uint16_t *)&m_spiRxBuff);
+    spiTransmitData(m_spi, &m_accDataConfig, 1, (uint16_t *)&m_spiTxBuff);
+    spiReceiveData(m_spi, &m_accDataConfig, length, (uint16_t *)&m_spiRxBuff);
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_ADXL, 1);
 
     memcpy(rxData, m_spiRxBuff, length);
@@ -405,7 +393,7 @@ namespace CubeRover {
     memcpy(m_spiTxBuff+1, txData, length);
 
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_ADXL, 0);
-    spiTransmitData(m_spi, &m_accDataSingleByteConfig, length+1, (uint16_t *)&m_spiTxBuff);
+    spiTransmitData(m_spi, &m_accDataConfig, length+1, (uint16_t *)&m_spiTxBuff);
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_ADXL, 1);
 
     return IMU_NO_ERROR;
@@ -468,8 +456,8 @@ namespace CubeRover {
         return IMU_WRONG_DATA_SIZE;
 
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_L3GD20H, 0);
-    spiTransmitData(m_spi, &m_gyroDataSingleByteConfig, 1, (uint16_t *)&m_spiTxBuff);
-    spiReceiveData(m_spi, &m_gyroDataSingleByteConfig, length, (uint16_t *)&m_spiRxBuff);
+    spiTransmitData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff);
+    spiReceiveData(m_spi, &m_gyroDataConfig, length, (uint16_t *)&m_spiRxBuff);
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_L3GD20H, 1);
 
     memcpy(rxData, m_spiRxBuff, length);
@@ -501,7 +489,7 @@ namespace CubeRover {
     memcpy(m_spiTxBuff+1, txData, length);
 
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_L3GD20H, 0);
-    spiTransmitData(m_spi, &m_gyroDataSingleByteConfig, length+1, (uint16_t *)&m_spiTxBuff);
+    spiTransmitData(m_spi, &m_gyroDataConfig, length+1, (uint16_t *)&m_spiTxBuff);
     gioSetBit(spiPORT3, CS_SPIPORT3_BIT_L3GD20H, 1);
 
     return IMU_NO_ERROR;

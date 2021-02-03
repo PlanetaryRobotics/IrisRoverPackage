@@ -474,10 +474,8 @@ namespace CubeRover {
       spiBASE_t *m_spi;
       uint16_t m_spiRxBuff[SPI_RX_BUFFER_SIZE];
       uint16_t m_spiTxBuff[SPI_TX_BUFFER_SIZE];
-      spiDAT1_t m_accDataSingleByteConfig;
-      spiDAT1_t m_accDataDoubleByteConfig;
-      spiDAT1_t m_gyroDataSingleByteConfig;
-      spiDAT1_t m_gyroDataDoubleByteConfig;
+      spiDAT1_t m_gyroDataConfig;
+      spiDAT1_t m_accDataConfig;
       float32 m_lpfAccX;
       float32 m_lpfAccY;
       float32 m_lpfAccZ;

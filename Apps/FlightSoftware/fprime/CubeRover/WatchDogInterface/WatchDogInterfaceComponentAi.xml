@@ -10,12 +10,19 @@
     <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
     <import_port_type>Fw/Buffer/BufferSendPortAi.xml</import_port_type>
     <import_port_type>Svc/WatchDog/WatchDogPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/WatchdogResetRequest/WatchdogResetRequestPortAi.xml</import_port_type>
 
     <ports>
         <!-- Rate Group Port -->
         <port name="Run" data_type="Svc::Sched" kind="guarded_input" max_number="1">
             <comment>
             Run port
+            </comment>
+        </port>
+        
+        <port name="CompResetRequest" data_type="CubeRoverPorts::WatchdogResetRequest" kind="sync_input">
+            <comment>
+                This allows other components to request the Watchdog interface to reset some hardware
             </comment>
         </port>
 

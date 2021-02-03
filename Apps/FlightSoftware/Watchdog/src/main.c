@@ -11,6 +11,7 @@
 
 /* define all of the buffers used in other files */
 __volatile struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx;
+__volatile struct small_buffer i2crx, i2ctx;
 __volatile uint16_t loop_flags;
 
 /**
@@ -28,7 +29,8 @@ void enterMode(enum rover_state newstate) {
     case RS_MISSION:
         /* bootup process - enable all rails */
         enable3V3PowerRail();
-        enable24VPowerRail();
+        //enable24VPowerRail();
+        enableBatteries();
 
         /* start monitoring only mission-relevant voltages */
         adc_setup_lander();
@@ -42,7 +44,7 @@ void enterMode(enum rover_state newstate) {
         releaseRadioReset();
         releaseFPGAReset();
         releaseMotorsReset();
-        /* TODO: do we want to do it this way? */
+        /* TODO: do we want to do it in this order? */
 
         break;
     case RS_FAULT:
@@ -64,6 +66,9 @@ int main(void) {
 
     /* set up uart */
     uart_init();
+
+    /* set up i2c */
+    i2c_init();
 
     /* set up watchdog */
     watchdog_init();
@@ -104,10 +109,12 @@ int main(void) {
                     /* skip parity byte (i + 3) in summation */
                     parity += uart0rx.buf[i + 4] + uart0rx.buf[i + 5];
                     parity += uart0rx.buf[i + 6] + uart0rx.buf[i + 7];
+                    /* bitwise NOT to compute parity */
+                    parity = ~parity;
 
-                    if ((~parity) == uart0rx.buf[i + 3]) {
+                    if (parity == uart0rx.buf[i + 3]) {
                         /* parity bytes match! */
-                        len = (uart0rx.buf[i + 5]) | (uart0rx.buf[i + 6] << 8);
+                        len = (uart0rx.buf[i + 4]) | (uart0rx.buf[i + 5] << 8);
                         if (len) {
                             /* udp packet */
                             if (len + 8 > uart0rx.idx) {
@@ -119,7 +126,7 @@ int main(void) {
                             }
                         } else {
                             /* handle watchdog reset command */
-                            handle_watchdog_reset_cmd(uart0rx.buf[i + 5]);
+                            handle_watchdog_reset_cmd(uart0rx.buf[i + 6]);
                             /* skip past the width of a watchdog command */
                             i += 8;
                             /* echo back watchdog command */
@@ -133,6 +140,7 @@ int main(void) {
 
             // leftovers
             if (i == 0) {
+                // skip the null memcpy
             } else if (i < uart0rx.idx) {
                 // copy over leftovers to front of buffer
                 memcpy(uart0rx.buf, uart0rx.buf + i, uart0rx.idx - i);

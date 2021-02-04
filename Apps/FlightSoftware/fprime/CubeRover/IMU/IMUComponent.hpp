@@ -18,6 +18,7 @@
 #include "CubeRover/IMU/IMUComponentAc.hpp"
 #include "spi.h"
 #include "gio.h"
+#include "reg_mibspi.h"
 
 namespace CubeRover {
 

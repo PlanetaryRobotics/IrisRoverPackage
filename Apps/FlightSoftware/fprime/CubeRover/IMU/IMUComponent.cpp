@@ -359,10 +359,10 @@ namespace CubeRover {
     if(length > SPI_RX_BUFFER_SIZE)
         return IMU_WRONG_DATA_SIZE;
 
-    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_ADXL, 0);
+    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_ADXL, 0);
     spiTransmitData(m_spi, &m_accDataConfig, 1, (uint16_t *)&m_spiTxBuff);
     spiReceiveData(m_spi, &m_accDataConfig, length, (uint16_t *)&m_spiRxBuff);
-    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_ADXL, 1);
+    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_ADXL, 1);
 
     memcpy(rxData, m_spiRxBuff, length);
 
@@ -392,9 +392,9 @@ namespace CubeRover {
 
     memcpy(m_spiTxBuff+1, txData, length);
 
-    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_ADXL, 0);
+    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_ADXL, 0);
     spiTransmitData(m_spi, &m_accDataConfig, length+1, (uint16_t *)&m_spiTxBuff);
-    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_ADXL, 1);
+    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_ADXL, 1);
 
     return IMU_NO_ERROR;
   }
@@ -455,10 +455,10 @@ namespace CubeRover {
     if(length > SPI_RX_BUFFER_SIZE)
         return IMU_WRONG_DATA_SIZE;
 
-    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_L3GD20H, 0);
+    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_L3GD20H, 0);
     spiTransmitData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff);
     spiReceiveData(m_spi, &m_gyroDataConfig, length, (uint16_t *)&m_spiRxBuff);
-    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_L3GD20H, 1);
+    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_L3GD20H, 1);
 
     memcpy(rxData, m_spiRxBuff, length);
 
@@ -488,9 +488,9 @@ namespace CubeRover {
 
     memcpy(m_spiTxBuff+1, txData, length);
 
-    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_L3GD20H, 0);
+    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_L3GD20H, 0);
     spiTransmitData(m_spi, &m_gyroDataConfig, length+1, (uint16_t *)&m_spiTxBuff);
-    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_L3GD20H, 1);
+    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_L3GD20H, 1);
 
     return IMU_NO_ERROR;
   }

@@ -299,14 +299,6 @@
     <target component="camera" port="takePicture" type="cameraTakePicture" num="0" />
   </connection>
 
-  <!-- MC to Watchdog -->
-  <!-- Once watchdog has this port -->
-  <!-- <connection name="motorControl_to_watchDogInterface_WatchdogCommand">
-    <source component="motorControl" port="WatchdogCommandOut" type="WatchdogCommand" num="0" />
-    <target component="watchDogInterface" port="????" type="WatchdogCommand" num="0" />
-  </connection> -->
-
-
 <!-- *********************************************************************************************************
         CONNECTION OF DOWNLINK COMPONENTS 
      ********************************************************************************************************* 
@@ -568,5 +560,21 @@
     <target component = "health" port = "PingReturn" type = "Ping" num = "9" />
   </connection>
   -->
+
+  <!-- *********************************************************************************************************
+        CONNECTION OF COMPONENTS TO WATCHDOG RESET REQUEST PORT
+       ********************************************************************************************************* 
+      -->
+      
+  <connection name="motorControl_to_watchDogInterface_WatchdogResetRequest">
+    <source component="motorControl" port="WatchdogCommandOut" type="CubeRoverPorts::WatchdogResetRequest" num="0" />
+    <target component="watchDogInterface" port="CompResetRequest" type="CubeRoverPorts::WatchdogResetRequest" num="0" />
+  </connection>
+
+  <connection name="networkManager_to_watchDogInterface_WatchdogResetRequest">
+    <source component="networkManager" port="WatchdogResetRequest" type="CubeRoverPorts::WatchdogResetRequest" num="0" />
+    <target component="watchDogInterface" port="CompResetRequest" type="CubeRoverPorts::WatchdogResetRequest" num="0" />
+  </connection>
+
 
 </assembly>

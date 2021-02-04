@@ -1,0 +1,35 @@
+<interface name="WatchdogResetRequest" namespace="CubeRoverPorts">
+    <comment>
+    Port to trigger a reset/power off/on
+    </comment>
+    <args>
+        <arg name="reset" type="ENUM">
+            <enum name="ResetValue">
+                <item name="noReset" value="0" comment="No reset"/>
+                <item name="herculesReset" value="1" comment="Reset Hercules"/>
+                <item name="herculesOn" value="2" comment="Power on the Hercules"/>
+                <item name="herculesOff" value="3" comment="Power off the Hercules"/>
+                <item name="radioReset" value="4" comment="Reset the WF121"/>
+                <item name="radioOn" value="5" comment="Power on the WF121"/>
+                <item name="radioOff" value="6" comment="Power off the WF121"/>
+                <item name="fpgaReset" value="7" comment="Reset the FPGA"/>
+                <item name="fpgaOn" value="8" comment="Power on the FPGA"/>
+                <item name="fpgaOff" value="9" comment="Power off the FPGA"/>
+                <item name="motor1Reset" value="10" comment="Reset motor 1 controller"/>
+                <item name="motor2Reset" value="11" comment="Reset motor 2 controller"/>
+                <item name="motor3Reset" value="12" comment="Reset motor 3 controller"/>
+                <item name="motor4Reset" value="13" comment="Reset motor 4 controller"/>
+                <item name="motorsReset" value="14" comment="Reset all motor controllers"/>
+                <item name="motorsOn" value="15" comment="Power on all motor controllers"/>
+                <item name="motorsOff" value="16" comment="Power off all motor controllers"/>
+                <item name="en3v3Reset" value="17" comment="Reset 3.3V rail"/>
+                <item name="en3v3On" value="18" comment="Power on 3.3V rail"/>
+                <item name="en3v3Off" value="19" comment="Power off 3.3V rail"/>
+                <item name="en24VReset" value="20" comment="Reset 24V rail"/>
+                <item name="en24VOn" value="21" comment="Power on 24V rail"/>
+                <item name="en24VOff" value="22" comment="Power off 24V rail"/>
+                <item name="camera0" value="25" comment="TBD"/>
+            </enum>
+        </arg>
+    </args>
+</interface>

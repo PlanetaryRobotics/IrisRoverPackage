@@ -4,7 +4,7 @@
 
 # derive module name from directory
 
-MODULE_DIR = CubeRover/CubeRoverPorts/WatchdogReset
+MODULE_DIR = CubeRover/CubeRoverPorts/WatchdogResetRequest
 MODULE = $(subst /,,$(MODULE_DIR))
 
 BUILD_ROOT ?= $(subst /$(MODULE_DIR),,$(CURDIR))

@@ -1261,7 +1261,7 @@ namespace CubeRover {
   */
   MCError MotorControlComponentImpl :: enableDrivers()
   {
-    WatchdogCommandOut_out(0,0x0F);
+    WatchdogCommandOut_out(0, CubeRoverPorts::motorsOn);
     return MC_NO_ERROR;
   }
 
@@ -1272,7 +1272,7 @@ namespace CubeRover {
   */
   MCError MotorControlComponentImpl :: disableDrivers()
   {
-    WatchdogCommandOut_out(0,0x10);
+    WatchdogCommandOut_out(0, CubeRoverPorts::motorsOff);
     return MC_NO_ERROR;
   }
 
@@ -1283,7 +1283,7 @@ namespace CubeRover {
   */
   void MotorControlComponentImpl :: resetMotorControllers()
   {
-    WatchdogCommandOut_out(0,0x0E);
+    WatchdogCommandOut_out(0, CubeRoverPorts::motorsReset);
   }
 
   /**

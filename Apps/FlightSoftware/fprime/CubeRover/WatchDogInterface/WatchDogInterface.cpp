@@ -93,6 +93,15 @@ namespace CubeRover {
   }
   
   void WatchDogInterfaceComponentImpl ::
+    CompResetRequest_handler(
+        const NATIVE_INT_TYPE portNum,
+        CubeRoverPorts::ResetValue reset
+    )
+  {
+    // TODO
+  }
+
+  void WatchDogInterfaceComponentImpl ::
     downlink_handler(
         const NATIVE_INT_TYPE portNum,
         Fw::Buffer &fwBuffer

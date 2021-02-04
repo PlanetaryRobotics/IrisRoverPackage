@@ -37,13 +37,13 @@ namespace CubeRover {
     m_gyroDataConfig.CS_HOLD = false;
     m_gyroDataConfig.DFSEL = SPI_FMT_0;
     m_gyroDataConfig.WDEL = false;
-    m_gyroDataConfig.CSNR = 0;
+    m_gyroDataConfig.CSNR = 0x01; // Selecting CS[0]
 
     // Accelerometer data configuration
     m_accDataConfig.CS_HOLD = true;
     m_accDataConfig.DFSEL = SPI_FMT_0;
     m_accDataConfig.WDEL = false;
-    m_accDataConfig.CSNR = 0;
+    m_accDataConfig.CSNR = 0x20; // Selecting CS[5]
       
     m_spi = NULL;
     m_setup = false;

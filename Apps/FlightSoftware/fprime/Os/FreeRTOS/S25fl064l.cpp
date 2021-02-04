@@ -1,4 +1,4 @@
-#include <S25fl064l.hpp>
+#include "S25fl064l.hpp"
 
 S25fl064l :: S25fl064l(){
   // External Flash SPI data configuration
@@ -18,9 +18,11 @@ S25fl064l :: S25fl064l(){
 
   m_memAllocPointer = 0;
   // default setting of the external memory
-  m_addressLengthFormat = S25fl064l::ADDRESS_LENGTH_3_BYTES;
+  m_addressLengthFormat = S25fl064l::ADDRESS_LENGTH_3_BYTES; 
 }
 
+// Destructor: DO NOT USE
+//S25fl064l :: ~S25fl064l(){}
 
 /**
  * @brief      The fucntion sets up the flash memory component
@@ -28,41 +30,31 @@ S25fl064l :: S25fl064l(){
  * @return     The device error code
  */
 S25fl064l::S25fl064lError S25fl064l :: setupDevice(){
-
   S25fl064lError err = S25fl064l_NO_ERROR;
-
-  m_addressLengthFormat = S25fl064l::ADDRESS_LENGTH_3_BYTES;
 
   m_flashSpi = SPI_REG_FLASH;
 
   // Check that the correct device is connected to the MCU
-  uint8_t id[2];
-  err = flashSpiReadData(S25fl064l::REMS, id, sizeof(id), 0);
+  uint8_t id[3];
+  err = flashSpiReadData(S25fl064l::RDID, id, sizeof(id));
 
   if(err != S25fl064l_NO_ERROR)
       return err;
 
   // Check that the device is connected and correct
   if(id[0] != FLASH_MANUFACTURER_ID ||
-     id[1] != FLASH_DEVICE_ID)
+     id[1] != FLASH_DEVICE_ID_MSB ||
+     id[2] != FLASH_DEVICE_ID_LSB)
       return S25fl064l_INCORRECT_FLASH_MEMORY;
 
-  // Check read latency cycles. Read latency cycles are required for some read
+  // Check read latency cycles. Read latency cycles are requried for some read
   // operation on the device.
-
-  ConfigurationRegister1 configRegister1;
-  err = flashSpiReadData(S25fl064l::RDCR1, &configRegister1.all, 1);
+  S25fl064l::ConfigurationRegister3 configRegister3;
+  err = flashSpiReadData(S25fl064l::RDCR3, &configRegister3.all, 1);
   if(err != S25fl064l_NO_ERROR){
     return err;
   }
-  m_readLatencyCycles = configRegister1.bit.lc;
-
-  // TODO investigate why 4 byte is buggy
-  // Set configuration register to write in 4-byte mode addressing.
-  //uint8_t brwr = 0x80; // enable 4-byte addressing for writing
-  //err = flashSpiWriteData(S25fl064l::BRWR, &brwr, sizeof(brwr));
-
-  //m_addressLengthFormat = ADDRESS_LENGTH_4_BYTES;
+  m_readLatencyCycles = configRegister3.bit.rl;
 
   return err;
 }
@@ -82,6 +74,8 @@ uint16_t S25fl064l :: getAddressLengthByte(const S25fl064l::FlashSpiCommands cmd
     case S25fl064l::RDSR1:   // Read Status Register 1
     case S25fl064l::RDSR2:   // Read Status Register 2
     case S25fl064l::RDCR1:   // Read Control Register 1
+    case S25fl064l::RDCR2:   // Read Control Register 2
+    case S25fl064l::RDCR3:   // Read Control Register 3
     case S25fl064l::WRR:     // Write Register (Status -1 and configuration -1,2,3)
     case S25fl064l::WRDI:   // Write Disable
     case S25fl064l::WREN:   // Write enable for non volatile data change
@@ -95,6 +89,7 @@ uint16_t S25fl064l :: getAddressLengthByte(const S25fl064l::FlashSpiCommands cmd
     case S25fl064l::DLPRD:   // Data learning pattern read
     case S25fl064l::PDLRNV:   // Program NV data learning register
     case S25fl064l::WDLRV:   // Write volatile data learning center
+    case S25fl064l::CE:   // Chip erase
     case S25fl064l::EPS:   // Erase / program suspend
     case S25fl064l::EPR:   // Erase / program resume
     case S25fl064l::GBL:   // Global IBL block
@@ -103,11 +98,10 @@ uint16_t S25fl064l :: getAddressLengthByte(const S25fl064l::FlashSpiCommands cmd
     case S25fl064l::RST:        // Software reset
     case S25fl064l::MBR:        // Mode bit reset
     case S25fl064l::DPD:        // Deep power down
-    case S25fl064l::RES:     //from deep power down / device idcase
-    case S25fl064l::BRWR:
+    case S25fl064l::RES:     //from deep power down / device idcase 
       return 0;
     case S25fl064l::RSFDP:   // Read JEDEC Serial Flash Discoverable parameters
-    case S25fl064l::RDAR:
+    case S25fl064l::RDAR: 
     case S25fl064l::WRAR:   // Write any register
     case S25fl064l::READ:   // Read
     case S25fl064l::FAST_READ:   // Fast read
@@ -119,6 +113,7 @@ uint16_t S25fl064l :: getAddressLengthByte(const S25fl064l::FlashSpiCommands cmd
     case S25fl064l::PP:   // Page program
     case S25fl064l::QPP:   // Quad page program
     case S25fl064l::SE:   // Sector erase
+    case S25fl064l::HBE:   // Half-block erase
     case S25fl064l::BE:   // Block erase
     case S25fl064l::SECRE:   // Security region erase
     case S25fl064l::SECRP:   // Security region program
@@ -127,7 +122,6 @@ uint16_t S25fl064l :: getAddressLengthByte(const S25fl064l::FlashSpiCommands cmd
     case S25fl064l::IBL:   // IBL lock
     case S25fl064l::IBUL:   // IBL unblock
     case S25fl064l::SPRP:   // Set pointer region protection
-    case S25fl064l::REMS:
       return m_addressLengthFormat;
     case S25fl064l::_4READ:   // Read
     case S25fl064l::_4FAST_READ:   // Read
@@ -139,6 +133,8 @@ uint16_t S25fl064l :: getAddressLengthByte(const S25fl064l::FlashSpiCommands cmd
     case S25fl064l::_4PP:   // Page program
     case S25fl064l::_4QPP:   // Quad page program
     case S25fl064l::_4SE:   // Sector erase
+    case S25fl064l::_4HBE:   // Half-block erase
+    case S25fl064l::_4BE:   // Block erase
     case S25fl064l::_4IBLRD:   // IBL read
     case S25fl064l::_4IBUL:   // IBL unblock
     case S25fl064l::_4IBL:   // IBL lock
@@ -159,12 +155,13 @@ uint16_t S25fl064l :: getAddressLengthByte(const S25fl064l::FlashSpiCommands cmd
 uint8_t S25fl064l :: getReadDummyCycles(const S25fl064l::FlashSpiCommands cmd){
   switch(cmd){
     case S25fl064l::RDID:   // Read ID
-    case S25fl064l::REMS:   // Read ID EMS
     case S25fl064l::RDQID:   // Read Quad ID
     case S25fl064l::RUID:   // Read Unique ID
     case S25fl064l::RDSR1:   // Read Status Register 1
     case S25fl064l::RDSR2:   // Read Status Register 2
     case S25fl064l::RDCR1:   // Read Control Register 1
+    case S25fl064l::RDCR2:   // Read Control Register 2
+    case S25fl064l::RDCR3:   // Read Control Register 3
     case S25fl064l::WRR:     // Write Register (Status -1 and configuration -1,2,3)
     case S25fl064l::WRDI:   // Write Disable
     case S25fl064l::WREN:   // Write enable for non volatile data change
@@ -177,6 +174,7 @@ uint8_t S25fl064l :: getReadDummyCycles(const S25fl064l::FlashSpiCommands cmd){
     case S25fl064l::QPIEX:   // Exit QPI
     case S25fl064l::PDLRNV:   // Program NV data learning register
     case S25fl064l::WDLRV:   // Write volatile data learning center
+    case S25fl064l::CE:   // Chip erase
     case S25fl064l::EPS:   // Erase / program suspend
     case S25fl064l::EPR:   // Erase / program resume
     case S25fl064l::GBL:   // Global IBL block
@@ -191,6 +189,7 @@ uint8_t S25fl064l :: getReadDummyCycles(const S25fl064l::FlashSpiCommands cmd){
     case S25fl064l::PP:   // Page program
     case S25fl064l::QPP:   // Quad page program
     case S25fl064l::SE:   // Sector erase
+    case S25fl064l::HBE:   // Half-block erase
     case S25fl064l::BE:   // Block erase
     case S25fl064l::SECRE:   // Security region erase
     case S25fl064l::SECRP:   // Security region program
@@ -202,6 +201,8 @@ uint8_t S25fl064l :: getReadDummyCycles(const S25fl064l::FlashSpiCommands cmd){
     case S25fl064l::_4PP:   // Page program
     case S25fl064l::_4QPP:   // Quad page program
     case S25fl064l::_4SE:   // Sector erase
+    case S25fl064l::_4HBE:   // Half-block erase
+    case S25fl064l::_4BE:   // Block erase
     case S25fl064l::_4IBLRD:   // IBL read
     case S25fl064l::_4IBUL:   // IBL unblock
     case S25fl064l::_4IBL:   // IBL lock
@@ -282,18 +283,18 @@ S25fl064l::S25fl064lError S25fl064l :: flashSpiReadData(const S25fl064l::FlashSp
 
    // copy address to Tx buffer
    for(i=0; i<addressLength; i++){
-       m_spiTxBuff[i+1] = address >> (addressLength-i-1)*8 & 0xff;
+       m_spiTxBuff[i+1] = address >> i*8 & 0xff;
    }
   }
 
   // Set CS low
-  gioSetBit(CS_SPI_PORT_FLASH, CS_SPI_BIT, 0);
+  gioSetBit(CS_SPI_PORT_FLASH, CS_SPI_BIT_FLASH, 0);
 
   // Send transmission data
   spiTransmitData(m_flashSpi, &m_flashDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
 
   while(totalBytesToRead > 0){
-      // min(totalBytesToRead, SPI_RX_BUFFER_MAX_LENGTH)
+      // min(totalBytesToRead, SPI_RX_BUFFER_MAX_LENGTH_FLASH)
       uint16_t bytesToRead = (totalBytesToRead < SPI_RX_BUFFER_MAX_LENGTH_FLASH) ? 
                               totalBytesToRead : SPI_RX_BUFFER_MAX_LENGTH_FLASH;
       spiReceiveData(m_flashSpi, &m_flashDataConfig, bytesToRead, (uint16_t *)m_spiRxBuff);
@@ -309,7 +310,7 @@ S25fl064l::S25fl064lError S25fl064l :: flashSpiReadData(const S25fl064l::FlashSp
   }
 
   // Set CS high
-  gioSetBit(CS_SPI_PORT_FLASH, CS_SPI_BIT, 1);
+  gioSetBit(CS_SPI_PORT_FLASH, CS_SPI_BIT_FLASH, 1);
 
   return S25fl064l_NO_ERROR;
 }
@@ -351,7 +352,7 @@ S25fl064l::S25fl064lError S25fl064l :: flashSpiWriteData(const S25fl064l::FlashS
 
     // copy address to Tx buffer
     for(i=0; i<addressLength; i++){
-        m_spiTxBuff[i+1] = address >> (addressLength-i-1)*8 & 0xff;
+        m_spiTxBuff[i+1] = address >> i*8 & 0xff;
     }
 
     if(txData != NULL && sizeOfTxData > 0){
@@ -365,12 +366,12 @@ S25fl064l::S25fl064lError S25fl064l :: flashSpiWriteData(const S25fl064l::FlashS
   }
 
   // Set CS low
-  gioSetBit(CS_SPI_PORT_FLASH, CS_SPI_BIT, 0);
+  gioSetBit(CS_SPI_PORT_FLASH, CS_SPI_BIT_FLASH, 0);
 
   spiTransmitData(m_flashSpi, &m_flashDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
 
   // Set CS high
-  gioSetBit(CS_SPI_PORT_FLASH, CS_SPI_BIT, 1);
+  gioSetBit(CS_SPI_PORT_FLASH, CS_SPI_BIT_FLASH, 1);
 
   return S25fl064l_NO_ERROR;
 }
@@ -465,6 +466,234 @@ S25fl064l::S25fl064lError S25fl064l :: resetDevice(){
 }
 
 /**
+ * @brief      Erase the chip memory
+ *
+ * @return     The device error
+ */
+S25fl064l::S25fl064lError S25fl064l :: chipErase(){
+  S25fl064l::StatusRegister1 status1;
+  S25fl064l::StatusRegister2 status2;
+  S25fl064lError err;
+  uint32_t tries = __INT_MAX;
+
+  // Enable writing to the device
+  err = flashSpiWriteData(S25fl064l::WREN);
+
+  if(err != S25fl064l_NO_ERROR){
+    return err;
+  }
+
+  // Send sector erase
+  // The flash spi write doesn't require to write any data, only address is required
+  err = flashSpiWriteData(S25fl064l::CE);
+
+  // Read status register to check that write is enabled
+  err = flashSpiReadData(S25fl064l::RDSR1, &status1.all, 1);
+  
+  if(err != S25fl064l_NO_ERROR){
+    return err;
+  }
+
+  // Write Enable Latch must be set at that point
+  if(status1.bit.wel == 0){
+    return S25fl064l_FAIL_ERASE_CHIP;
+  }
+
+  // Poll the device to check the "work in progress" flag from the status register 1
+  while(tries > 0){
+    err = flashSpiReadData(S25fl064l::RDSR1, &status1.all, 1);
+    if(err != S25fl064l_NO_ERROR){
+      return err;
+    }
+
+    if(status1.bit.wip == 1){
+      tries--;
+    }
+    else{
+      break;
+    }
+  }
+
+  if(tries == 0){
+    return S25fl064l_FAIL_ERASE_CHIP;
+  }
+
+  // Check if an error occured at completion of the programming
+  err = flashSpiReadData(S25fl064l::RDSR2, &status2.all, 1);
+
+  if(err != S25fl064l_NO_ERROR){
+    return err;
+  }
+
+  if(status2.bit.e_err){
+    return S25fl064l_FAIL_PAGE_PROGRAM;
+  }
+
+  // Disable writing to the device
+  err = flashSpiWriteData(S25fl064l::WRDI);
+
+  return err;
+}
+
+/**
+ * @brief      Erase memry block
+ *
+ * @param[in]  block  The block of memory to erase
+ *
+ * @return     The device error
+ */
+S25fl064l::S25fl064lError S25fl064l :: blockErase(const S25fl064l::Block block){
+  S25fl064l::Address address;
+  S25fl064l::StatusRegister1 status1;
+  S25fl064l::StatusRegister2 status2;
+  S25fl064lError err;
+  uint32_t tries = __INT_MAX;
+
+  if(block > MAX_BLOCK_RANGE){
+    return S25fl064l_UNEXPECTED_ERROR;
+  }
+
+  // Enable writing to the device
+  err = flashSpiWriteData(S25fl064l::WREN);
+
+  if(err != S25fl064l_NO_ERROR){
+    return err;
+  }
+
+  address = block * BLOCK_SIZE;
+
+  // Send sector erase
+  // The flash spi write doesn't require to write any data, only address is required
+  err = flashSpiWriteData(S25fl064l::BE, (uint8_t *)NULL, 0, address);
+
+  // Read status register to check that write is enabled
+  err = flashSpiReadData(S25fl064l::RDSR1, &status1.all, 1);
+  
+  if(err != S25fl064l_NO_ERROR){
+    return err;
+  }
+
+  // Write Enable Latch must be set at that point
+  if(status1.bit.wel == 0){
+    return S25fl064l_FAIL_SECTOR_ERASE;
+  }
+
+  // Poll the device to check the "work in progress" flag from the status register 1
+  while(tries > 0){
+    err = flashSpiReadData(S25fl064l::RDSR1, &status1.all, 1);
+    if(err != S25fl064l_NO_ERROR){
+      return err;
+    }
+
+    if(status1.bit.wip == 1){
+      tries--;
+    }
+    else{
+      break;
+    }
+  }
+
+  if(tries == 0){
+    return S25fl064l_FAIL_BLOCK_ERASE;
+  }
+
+  // Check if an error occured at completion of the programming
+  err = flashSpiReadData(S25fl064l::RDSR2, &status2.all, 1);
+
+  if(err != S25fl064l_NO_ERROR){
+    return err;
+  }
+
+  if(status2.bit.e_err){
+    return S25fl064l_FAIL_PAGE_PROGRAM;
+  }
+
+  // Disable writing to the device
+  err = flashSpiWriteData(S25fl064l::WRDI);
+
+  return err;
+}
+  
+/**
+ * @brief      Erase half-block of memory
+ *
+ * @param[in]  block  The block
+ *
+ * @return     The device error
+ */
+S25fl064l::S25fl064lError S25fl064l :: halfBlockErase(const S25fl064l::HalfBlock halfBlock){
+  S25fl064l::Address address;
+  S25fl064l::StatusRegister1 status1;
+  S25fl064l::StatusRegister2 status2;
+  S25fl064lError err;
+  uint32_t tries = __INT_MAX;
+
+  if(halfBlock > MAX_HALF_BLOCK_RANGE){
+    return S25fl064l_UNEXPECTED_ERROR;
+  }
+
+  // Enable writing to the device
+  err = flashSpiWriteData(S25fl064l::WREN);
+
+  if(err != S25fl064l_NO_ERROR){
+    return err;
+  }
+
+  address = halfBlock * HALF_BLOCK_SIZE;
+
+  // Send sector erase
+  // The flash spi write doesn't require to write any data, only address is required
+  err = flashSpiWriteData(S25fl064l::HBE, (uint8_t *)NULL, 0, address);
+
+  // Read status register to check that write is enabled
+  err = flashSpiReadData(S25fl064l::RDSR1, &status1.all, 1);
+  
+  if(err != S25fl064l_NO_ERROR){
+    return err;
+  }
+
+  // Write Enable Latch must be set at that point
+  if(status1.bit.wel == 0){
+    return S25fl064l_FAIL_HALF_BLOCK_ERASE;
+  }
+
+  // Poll the device to check the "work in progress" flag from the status register 1
+  while(tries > 0){
+    err = flashSpiReadData(S25fl064l::RDSR1, &status1.all, 1);
+    if(err != S25fl064l_NO_ERROR){
+      return err;
+    }
+
+    if(status1.bit.wip == 1){
+      tries--;
+    }
+    else{
+      break;
+    }
+  }
+
+  if(tries == 0){
+    return S25fl064l_FAIL_HALF_BLOCK_ERASE;
+  }
+
+  // Check if an error occured at completion of the erase
+  err = flashSpiReadData(S25fl064l::RDSR2, &status2.all, 1);
+
+  if(err != S25fl064l_NO_ERROR){
+    return err;
+  }
+
+  if(status2.bit.e_err){
+    return S25fl064l_FAIL_PAGE_PROGRAM;
+  }
+
+  // Disable writing to the device
+  err = flashSpiWriteData(S25fl064l::WRDI);
+
+  return err;
+}
+
+/**
  * @brief      Erase a sector
  *
  * @param[in]  sector  The sector
@@ -474,6 +703,7 @@ S25fl064l::S25fl064lError S25fl064l :: resetDevice(){
 S25fl064l::S25fl064lError S25fl064l :: sectorErase(const S25fl064l::Sector sector){
   S25fl064l::Address address;
   S25fl064l::StatusRegister1 status1;
+  S25fl064l::StatusRegister2 status2;
   S25fl064lError err;
   uint32_t tries = __INT_MAX;
 
@@ -503,7 +733,7 @@ S25fl064l::S25fl064lError S25fl064l :: sectorErase(const S25fl064l::Sector secto
   // Send sector erase
   // The flash spi write doesn't require to write any data, only address is required
   address = sector * SECTOR_SIZE_FLASH;
-  err = flashSpiWriteData(((m_addressLengthFormat == ADDRESS_LENGTH_4_BYTES) ? S25fl064l::_4SE :S25fl064l::SE), (uint8_t *)NULL, 0, address);
+  err = flashSpiWriteData(S25fl064l::SE, (uint8_t *)NULL, 0, address);
 
   if(err != S25fl064l_NO_ERROR){
     return err;
@@ -528,7 +758,14 @@ S25fl064l::S25fl064lError S25fl064l :: sectorErase(const S25fl064l::Sector secto
     return S25fl064l_FAIL_SECTOR_ERASE;
   }
 
-  if(status1.bit.e_err){
+  // Check if an error occured at completion of the erase
+  err = flashSpiReadData(S25fl064l::RDSR2, &status2.all, 1);
+
+  if(err != S25fl064l_NO_ERROR){
+    return err;
+  }
+
+  if(status2.bit.e_err){
     return S25fl064l_FAIL_PAGE_PROGRAM;
   }
 
@@ -559,7 +796,7 @@ S25fl064l::S25fl064lError S25fl064l :: allocateFlashMemory(S25fl064l::MemAlloc *
   // Reset reserved memory to zero
   alloc->reservedSize = 0;
 
-  // Calculate new address pointer by PAGE_SIZE increment
+  // Calculate new address pointer by PAGE_SIZE_FLASH increment
   tmp += (size / PAGE_SIZE_FLASH) * PAGE_SIZE_FLASH;
   tmp += (size % PAGE_SIZE_FLASH) ? PAGE_SIZE_FLASH : 0;
 
@@ -597,7 +834,8 @@ S25fl064l::S25fl064lError S25fl064l :: writeDataToFlash(S25fl064l::MemAlloc *all
                                                              uint8_t *data,
                                                              const uint16_t dataSize){
   S25fl064lError err;
-  S25fl064l::Address sectorNumber;
+  S25fl064l::Address sectorAddress;
+  uint16_t i;
   uint16_t sectorOverlaps = 0;
   uint16_t totalBytesToWrite = dataSize;
 
@@ -616,22 +854,56 @@ S25fl064l::S25fl064lError S25fl064l :: writeDataToFlash(S25fl064l::MemAlloc *all
     return S25fl064l_FAIL_WRITE_DATA_FLASH;
   }
 
-  uint16_t pageWriteCounter = 0;
   //loop here until there is data to write or an error occurs
   while(1){
+    // Calculate the block address that belong to data to write.
+    // Go to next sector if the data to write overlaps sectors
+    sectorAddress = (alloc->startAddress + offset) / SECTOR_SIZE_FLASH * (SECTOR_SIZE_FLASH + sectorOverlaps);
 
-     uint16_t bytesToCopy = (totalBytesToWrite > PAGE_SIZE_FLASH) ? PAGE_SIZE_FLASH : totalBytesToWrite;
-
-     for(int i=0; i< sizeof(m_writeScratchpad); i++){
-         m_writeScratchpad[i] = 0;
-     }
-
-     memcpy(m_writeScratchpad, data, bytesToCopy);
-
-    err = pageProgram(alloc->startAddress + pageWriteCounter*PAGE_SIZE_FLASH, m_writeScratchpad, PAGE_SIZE_FLASH);
+    // Back-up sector content to a back-up buffer
+    err = flashSpiReadData( S25fl064l::READ,
+                            m_sectorBackup,
+                            sizeof(m_sectorBackup),
+                            sectorAddress);
 
     if(err != S25fl064l_NO_ERROR){
-      return err;
+        return err;
+    }
+
+    // Erase sector address
+    err = sectorErase((S25fl064l::Sector) sectorAddress);
+
+    if(err != S25fl064l_NO_ERROR){
+        return err;
+    }
+
+    // Copy data to scratchpad
+    // Only copy a number of bytes to not overlap sectors
+    uint16_t bytesToCopy = (totalBytesToWrite <= sectorAddress + SECTOR_SIZE_FLASH - (alloc->startAddress + offset)) ?
+                            totalBytesToWrite : sectorAddress + SECTOR_SIZE_FLASH - (alloc->startAddress + offset);
+
+
+    // Overwrite data in the m_sectorBackup. Don't copy data that overlap
+    // sectors
+    // If data is NULL, then fill it with NULL character
+    if(data != NULL){
+      memcpy(m_sectorBackup + alloc->startAddress + offset + (sectorOverlaps*SECTOR_SIZE_FLASH) - sectorAddress,
+             data,
+             bytesToCopy);
+    }
+    else{
+      for(uint16_t i=0; i<bytesToCopy; i++){
+        m_sectorBackup[alloc->startAddress + offset + (sectorOverlaps*SECTOR_SIZE_FLASH) - sectorAddress + i] = '\0';
+      }
+    }
+
+    // Program the whole sector using page programming with updated data
+    // Programming is done aligned with page addresses
+    for(i=0; i< SECTOR_SIZE_FLASH / PAGE_SIZE_FLASH; i++){
+      err = pageProgram(alloc->startAddress+ i*PAGE_SIZE_FLASH, m_sectorBackup + i*PAGE_SIZE_FLASH, PAGE_SIZE_FLASH);
+      if(err != S25fl064l_NO_ERROR){
+        return err;
+      }
     }
 
     //Substract the number of byte programmed from the number of bytes
@@ -639,7 +911,7 @@ S25fl064l::S25fl064lError S25fl064l :: writeDataToFlash(S25fl064l::MemAlloc *all
 
     // if there is still some bytes to write, go to next memory sector
     if(totalBytesToWrite > 0){
-      pageWriteCounter++;
+      sectorOverlaps++;
     }
     else{
       break;  // write completed
@@ -673,7 +945,7 @@ S25fl064l::S25fl064lError S25fl064l :: readDataFromFlash(S25fl064l::MemAlloc *al
 
     // Read data from flash memory
     // Send the READ command
-    err = flashSpiReadData( ((m_addressLengthFormat == ADDRESS_LENGTH_4_BYTES) ? S25fl064l::_4READ : S25fl064l::READ),
+    err = flashSpiReadData( S25fl064l::READ,
                             data + PAGE_SIZE_FLASH * overflow,
                             bytesToRead,
                             alloc->startAddress + PAGE_SIZE_FLASH * overflow + offset);
@@ -698,6 +970,7 @@ S25fl064l::S25fl064lError S25fl064l :: pageProgram(S25fl064l::Address address,
                                                         uint8_t *txData,
                                                         const uint16_t size){
   S25fl064l::StatusRegister1 status1;
+  S25fl064l::StatusRegister2 status2;
   S25fl064lError err;
   uint32_t tries = __INT_MAX;
 
@@ -731,7 +1004,7 @@ S25fl064l::S25fl064lError S25fl064l :: pageProgram(S25fl064l::Address address,
   }
 
   // Send data to perform page programming
-  err = flashSpiWriteData(((m_addressLengthFormat == ADDRESS_LENGTH_4_BYTES) ? S25fl064l::_4PP : S25fl064l::PP) , txData, size, address);
+  err = flashSpiWriteData(S25fl064l::PP, txData, size, address);
   
   if(err != S25fl064l_NO_ERROR){
     return err;
@@ -753,7 +1026,14 @@ S25fl064l::S25fl064lError S25fl064l :: pageProgram(S25fl064l::Address address,
     }
   }
 
-  if(status1.bit.p_err){
+  // Check if an error occured at completion of the programming
+  err = flashSpiReadData(S25fl064l::RDSR2, &status2.all, 1);
+
+  if(err != S25fl064l_NO_ERROR){
+    return err;
+  }
+
+  if(status2.bit.p_err){
     return S25fl064l_FAIL_PAGE_PROGRAM;
   }
 

@@ -41,6 +41,7 @@ namespace CubeRover {
     else {
       FW_ASSERT(maxFileSize > sizeof(0), maxFileSize); // must be a positive integer
     }
+    /*
     FW_ASSERT((NATIVE_UINT_TYPE)strnlen(incomingFilePrefix, sizeof(this->filePrefix)) < sizeof(this->filePrefix), 
       (NATIVE_UINT_TYPE) strnlen(incomingFilePrefix, sizeof(this->filePrefix)), (NATIVE_UINT_TYPE) sizeof(this->filePrefix)); // ensure that file prefix is not too big
 
@@ -48,6 +49,7 @@ namespace CubeRover {
     memset(this->filePrefix, 0, sizeof(this->filePrefix)); // probably unnecesary, but I am paranoid.
     U8* dest = (U8*) strncpy((char*) this->filePrefix, incomingFilePrefix, sizeof(this->filePrefix));
     FW_ASSERT(dest == this->filePrefix, reinterpret_cast<U64>(dest), reinterpret_cast<U64>(this->filePrefix));
+    */
     this->file_start = 0;
     this->file_end = 0;
     this->bytes_read = 0;

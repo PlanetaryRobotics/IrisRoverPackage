@@ -105,7 +105,7 @@ namespace CubeRover {
       };
 
       // The filename data:
-      U8 filePrefix[MAX_FILENAME_SIZE + MAX_PATH_SIZE];
+      // U8 filePrefix[MAX_FILENAME_SIZE + MAX_PATH_SIZE];
       U32 maxFileSize = MAX_FILE_SIZE;
 
       // ----------------------------------------------------------------------

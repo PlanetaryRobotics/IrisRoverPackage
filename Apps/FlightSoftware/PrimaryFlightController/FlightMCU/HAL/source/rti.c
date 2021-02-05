@@ -371,9 +371,9 @@ uint32 rtiGetCurrentTick(uint32 compare)
 {
     uint32 tick;
     uint32 counter = ((rtiREG1->COMPCTRL & (uint32)((uint32)1U << (compare << 2U))) != 0U ) ? 1U : 0U;
-	uint32 RTI_CNT_FRCx = rtiREG1->CNT[counter].FRCx;
-	uint32 RTI_CMP_COMPx = rtiREG1->CMP[compare].COMPx;
-	uint32 RTI_CMP_UDCPx = rtiREG1->CMP[compare].UDCPx;
+    uint32 RTI_CNT_FRCx = rtiREG1->CNT[counter].FRCx;
+    uint32 RTI_CMP_COMPx = rtiREG1->CMP[compare].COMPx;
+    uint32 RTI_CMP_UDCPx = rtiREG1->CMP[compare].UDCPx;
 
 /* USER CODE BEGIN (27) */
 /* USER CODE END */
@@ -410,10 +410,10 @@ void dwdInit(uint16 dwdPreload)
 /* USER CODE END */
 
     /* Clear the violations if already present */
-	rtiREG1->WDSTATUS = 0xFFU;
-	
-	rtiREG1->DWDPRLD = dwdPreload;
-	
+    rtiREG1->WDSTATUS = 0xFFU;
+
+    rtiREG1->DWDPRLD = dwdPreload;
+
 /* USER CODE BEGIN (31) */
 /* USER CODE END */
 }
@@ -449,11 +449,11 @@ void dwwdInit(dwwdReaction_t Reaction, uint16 dwdPreload, dwwdWindowSize_t Windo
 /* USER CODE END */
 
     /* Clear the violations if already present */
-	rtiREG1->WDSTATUS = 0xFFU;
+    rtiREG1->WDSTATUS = 0xFFU;
 
     rtiREG1->WWDSIZECTRL = (uint32) Window_Size;
-	rtiREG1->DWDPRLD     = (uint32) dwdPreload;
-	rtiREG1->WWDRXNCTRL  = (uint32) Reaction;
+    rtiREG1->DWDPRLD     = (uint32) dwdPreload;
+    rtiREG1->WWDRXNCTRL  = (uint32) Reaction;
 
 /* USER CODE BEGIN (34) */
 /* USER CODE END */
@@ -500,8 +500,8 @@ void dwdCounterEnable(void)
 /* USER CODE BEGIN (39) */
 /* USER CODE END */
 
-	rtiREG1->DWDCTRL = 0xA98559DAU;
-	
+    rtiREG1->DWDCTRL = 0xA98559DAU;
+
 /* USER CODE BEGIN (40) */
 /* USER CODE END */
 }
@@ -531,7 +531,7 @@ void dwdSetPreload(uint16 dwdPreload)
 {
 /* USER CODE BEGIN (45) */
 /* USER CODE END */
-	rtiREG1->DWDPRLD = dwdPreload;
+    rtiREG1->DWDPRLD = dwdPreload;
 /* USER CODE BEGIN (46) */
 /* USER CODE END */
 }
@@ -552,8 +552,8 @@ void dwdReset(void)
 {
 /* USER CODE BEGIN (48) */
 /* USER CODE END */
-	rtiREG1->WDKEY = 0x0000E51AU;
-	rtiREG1->WDKEY = 0x0000A35CU;
+    rtiREG1->WDKEY = 0x0000E51AU;
+    rtiREG1->WDKEY = 0x0000A35CU;
 /* USER CODE BEGIN (49) */
 /* USER CODE END */
 }
@@ -571,8 +571,8 @@ void dwdGenerateSysReset(void)
 {
 /* USER CODE BEGIN (50) */
 /* USER CODE END */
-	rtiREG1->WDKEY = 0x0000E51AU;
-	rtiREG1->WDKEY = 0x00002345U;
+    rtiREG1->WDKEY = 0x0000E51AU;
+    rtiREG1->WDKEY = 0x00002345U;
 /* USER CODE BEGIN (51) */
 /* USER CODE END */
 }
@@ -594,24 +594,24 @@ void dwdGenerateSysReset(void)
 /* Requirements : HL_SR91 */
 boolean IsdwdKeySequenceCorrect(void)
 {
-	boolean Status;
+    boolean Status;
 
 /* USER CODE BEGIN (53) */
 /* USER CODE END */
 
-	if((rtiREG1->WDSTATUS & 0x4U) == 0x4U)
-	{
-		Status = FALSE;
-	}
-	else
-	{
-		Status = TRUE;
-	}
+    if((rtiREG1->WDSTATUS & 0x4U) == 0x4U)
+    {
+        Status = FALSE;
+    }
+    else
+    {
+        Status = TRUE;
+    }
 
 /* USER CODE BEGIN (54) */
 /* USER CODE END */
 
-	return Status;
+    return Status;
 }
 
 /* USER CODE BEGIN (55) */
@@ -633,19 +633,19 @@ dwdResetStatus_t dwdGetStatus(void)
 {
 /* USER CODE BEGIN (56) */
 /* USER CODE END */
-	dwdResetStatus_t Reset_Status;
-	if((rtiREG1->WDSTATUS & 0x2U) == 0x2U)
-	{
-		Reset_Status = Reset_Generated;
-	}
-	else
-	{
-		Reset_Status = No_Reset_Generated;
-	}
+    dwdResetStatus_t Reset_Status;
+    if((rtiREG1->WDSTATUS & 0x2U) == 0x2U)
+    {
+        Reset_Status = Reset_Generated;
+    }
+    else
+    {
+        Reset_Status = No_Reset_Generated;
+    }
 
 /* USER CODE BEGIN (57) */
 /* USER CODE END */
-	return Reset_Status;
+    return Reset_Status;
 }
 
 /* USER CODE BEGIN (58) */
@@ -665,7 +665,7 @@ void dwdClearFlag(void)
 /* USER CODE BEGIN (59) */
 /* USER CODE END */
 
-	rtiREG1->WDSTATUS = 0xFFU;
+    rtiREG1->WDSTATUS = 0xFFU;
 
 /* USER CODE BEGIN (60) */
 /* USER CODE END */
@@ -693,33 +693,33 @@ dwdViolation_t dwdGetViolationStatus(void)
 {
 /* USER CODE BEGIN (62) */
 /* USER CODE END */
-	dwdViolation_t Violation_Status;
+    dwdViolation_t Violation_Status;
 
-	if ((rtiREG1->WDSTATUS & 0x04U) == 0x04U)
-	{
-		Violation_Status = Key_Seq_Violation;
-	}	
-	else if((rtiREG1->WDSTATUS & 0x8U) == 0x8U)
-	{
-		Violation_Status = StartTime_Window_Violation;
-	}
-	else if ((rtiREG1->WDSTATUS & 0x10U) == 0x10U)
-	{
-		Violation_Status = EndTime_Window_Violation;
-	}
-	else if ((rtiREG1->WDSTATUS & 0x20U) == 0x20U)
-	{
-		Violation_Status = Time_Window_Violation;
-	}
-	else
-	{
-		Violation_Status = NoTime_Violation;
-	}
-	
+    if ((rtiREG1->WDSTATUS & 0x04U) == 0x04U)
+    {
+        Violation_Status = Key_Seq_Violation;
+    }
+    else if((rtiREG1->WDSTATUS & 0x8U) == 0x8U)
+    {
+        Violation_Status = StartTime_Window_Violation;
+    }
+    else if ((rtiREG1->WDSTATUS & 0x10U) == 0x10U)
+    {
+        Violation_Status = EndTime_Window_Violation;
+    }
+    else if ((rtiREG1->WDSTATUS & 0x20U) == 0x20U)
+    {
+        Violation_Status = Time_Window_Violation;
+    }
+    else
+    {
+        Violation_Status = NoTime_Violation;
+    }
+
 /* USER CODE BEGIN (63) */
 /* USER CODE END */
 
-	return Violation_Status;
+    return Violation_Status;
 }
 
 /* USER CODE BEGIN (64) */
@@ -805,10 +805,10 @@ void rtiDisableNotification(uint32 notification)
 /** @fn void rtiGetConfigValue(rti_config_reg_t *config_reg, config_value_type_t type)
 *   @brief Get the initial or current values of the configuration registers
 *
-*	@param[in] *config_reg: pointer to the struct to which the initial or current value of the configuration registers need to be stored
-*	@param[in] type: 	whether initial or current value of the configuration registers need to be stored
-*						- InitialValue: initial value of the configuration registers will be stored in the struct pointed by config_reg
-*						- CurrentValue: initial value of the configuration registers will be stored in the struct pointed by config_reg
+*   @param[in] *config_reg: pointer to the struct to which the initial or current value of the configuration registers need to be stored
+*   @param[in] type:    whether initial or current value of the configuration registers need to be stored
+*                       - InitialValue: initial value of the configuration registers will be stored in the struct pointed by config_reg
+*                       - CurrentValue: initial value of the configuration registers will be stored in the struct pointed by config_reg
 *
 *   This function will copy the initial or current value (depending on the parameter 'type') of the configuration 
 *   registers to the struct pointed by config_reg
@@ -819,29 +819,29 @@ void rtiDisableNotification(uint32 notification)
 /* Requirements : HL_SR97 */
 void rtiGetConfigValue(rti_config_reg_t *config_reg, config_value_type_t type)
 {
-	if (type == InitialValue)
-	{
-		config_reg->CONFIG_GCTRL = RTI_GCTRL_CONFIGVALUE;
-		config_reg->CONFIG_TBCTRL = RTI_TBCTRL_CONFIGVALUE;
-		config_reg->CONFIG_CAPCTRL = RTI_CAPCTRL_CONFIGVALUE;
-		config_reg->CONFIG_COMPCTRL = RTI_COMPCTRL_CONFIGVALUE;
-		config_reg->CONFIG_UDCP0 = RTI_UDCP0_CONFIGVALUE;
-		config_reg->CONFIG_UDCP1 = RTI_UDCP1_CONFIGVALUE;
-		config_reg->CONFIG_UDCP2 = RTI_UDCP2_CONFIGVALUE;
-		config_reg->CONFIG_UDCP3 = RTI_UDCP3_CONFIGVALUE;
-	}
-	else
-	{
-	/*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
-		config_reg->CONFIG_GCTRL = rtiREG1->GCTRL;
-		config_reg->CONFIG_TBCTRL = rtiREG1->TBCTRL;
-		config_reg->CONFIG_CAPCTRL = rtiREG1->CAPCTRL;
-		config_reg->CONFIG_COMPCTRL = rtiREG1->COMPCTRL;
-		config_reg->CONFIG_UDCP0 = rtiREG1->CMP[0U].UDCPx;
-		config_reg->CONFIG_UDCP1 = rtiREG1->CMP[1U].UDCPx;
-		config_reg->CONFIG_UDCP2 = rtiREG1->CMP[2U].UDCPx;
-		config_reg->CONFIG_UDCP3 = rtiREG1->CMP[3U].UDCPx;
-	}
+    if (type == InitialValue)
+    {
+        config_reg->CONFIG_GCTRL = RTI_GCTRL_CONFIGVALUE;
+        config_reg->CONFIG_TBCTRL = RTI_TBCTRL_CONFIGVALUE;
+        config_reg->CONFIG_CAPCTRL = RTI_CAPCTRL_CONFIGVALUE;
+        config_reg->CONFIG_COMPCTRL = RTI_COMPCTRL_CONFIGVALUE;
+        config_reg->CONFIG_UDCP0 = RTI_UDCP0_CONFIGVALUE;
+        config_reg->CONFIG_UDCP1 = RTI_UDCP1_CONFIGVALUE;
+        config_reg->CONFIG_UDCP2 = RTI_UDCP2_CONFIGVALUE;
+        config_reg->CONFIG_UDCP3 = RTI_UDCP3_CONFIGVALUE;
+    }
+    else
+    {
+    /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
+        config_reg->CONFIG_GCTRL = rtiREG1->GCTRL;
+        config_reg->CONFIG_TBCTRL = rtiREG1->TBCTRL;
+        config_reg->CONFIG_CAPCTRL = rtiREG1->CAPCTRL;
+        config_reg->CONFIG_COMPCTRL = rtiREG1->COMPCTRL;
+        config_reg->CONFIG_UDCP0 = rtiREG1->CMP[0U].UDCPx;
+        config_reg->CONFIG_UDCP1 = rtiREG1->CMP[1U].UDCPx;
+        config_reg->CONFIG_UDCP2 = rtiREG1->CMP[2U].UDCPx;
+        config_reg->CONFIG_UDCP3 = rtiREG1->CMP[3U].UDCPx;
+    }
 }
 
 /* USER CODE BEGIN (73) */
@@ -876,4 +876,4 @@ void vPortPreemptiveTick(void)
 
 
 
-
+#endif

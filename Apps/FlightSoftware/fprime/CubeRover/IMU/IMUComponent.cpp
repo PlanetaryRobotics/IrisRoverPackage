@@ -35,9 +35,9 @@ namespace CubeRover {
   {
     // Gyrometer data configuration
     m_gyroDataConfig.CS_HOLD = false;
-    m_gyroDataConfig.DFSEL = SPI_FMT_0;
+    m_gyroDataConfig.DFSEL = SPI_FMT_1;
     m_gyroDataConfig.WDEL = false;
-    m_gyroDataConfig.CSNR = 0x01; // Selecting CS[0]
+    m_gyroDataConfig.CSNR = 0x02; // Selecting CS[0]
 
     // Accelerometer data configuration
     m_accDataConfig.CS_HOLD = true;
@@ -264,7 +264,7 @@ namespace CubeRover {
   IMUError IMUComponentImpl :: setupGyroscope(spiBASE_t *spi)
   {
     IMUError err = IMU_NO_ERROR;
-    uint16_t deviceId;
+    uint16_t deviceId[1];
     L3gd20h::FifoCtlReg fifoReg;
     L3gd20h::Ctl1Reg ctl1Reg;
     L3gd20h::Ctl4Reg ctl4Reg;
@@ -274,11 +274,11 @@ namespace CubeRover {
     }
 
     // Check that the gyro is functioning by reading WHO_AM_I register
-    err = gyroReadData(L3gd20h::L3gd20hRegister::WHO_AM_I, (uint16_t *)&deviceId, 1);
+    err = gyroReadData(L3gd20h::L3gd20hRegister::WHO_AM_I, deviceId, 1);
     if(err != IMU_NO_ERROR)
         return err;
 
-    if(deviceId != L3GD20H_DEVICE_ID){
+    if(deviceId[0] != L3GD20H_DEVICE_ID){
         return IMU_UNEXPECTED_ERROR;
     }
 
@@ -326,6 +326,30 @@ namespace CubeRover {
 
     m_spi = spi;
     m_setup = true;
+    /* STRANGE TESTING!  */
+    m_spiTxBuff[0] = (uint8_t) 0x0F;
+    m_spiTxBuff[0] |= 0x80; // read
+
+
+    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
+    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
+    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
+
+    spiTransmitData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff);
+    spiTransmitData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff);
+    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
+    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
+    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
+
+    spiTransmitAndReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff, (uint16_t *)&m_spiRxBuff);
+    spiTransmitAndReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff, (uint16_t *)&m_spiRxBuff);
+    spiTransmitAndReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff, (uint16_t *)&m_spiRxBuff);
+
+    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
+    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
+    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
+
+
 
     err = setupGyroscope(spi);
 
@@ -359,10 +383,8 @@ namespace CubeRover {
     if(length > SPI_RX_BUFFER_SIZE)
         return IMU_WRONG_DATA_SIZE;
 
-    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_ADXL, 0);
     spiTransmitData(m_spi, &m_accDataConfig, 1, (uint16_t *)&m_spiTxBuff);
     spiReceiveData(m_spi, &m_accDataConfig, length, (uint16_t *)&m_spiRxBuff);
-    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_ADXL, 1);
 
     memcpy(rxData, m_spiRxBuff, length);
 
@@ -392,9 +414,7 @@ namespace CubeRover {
 
     memcpy(m_spiTxBuff+1, txData, length);
 
-    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_ADXL, 0);
     spiTransmitData(m_spi, &m_accDataConfig, length+1, (uint16_t *)&m_spiTxBuff);
-    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_ADXL, 1);
 
     return IMU_NO_ERROR;
   }
@@ -449,16 +469,16 @@ namespace CubeRover {
     }
 
     m_spiTxBuff[0] = (uint8_t) regStartAddr;
-    m_spiTxBuff[0] |= 0x40; // multi-bytes read
+    if (length > 1)
+        m_spiTxBuff[0] |= 0x40; // multi-bytes read
     m_spiTxBuff[0] |= 0x80; // read
 
     if(length > SPI_RX_BUFFER_SIZE)
         return IMU_WRONG_DATA_SIZE;
 
-    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_L3GD20H, 0);
+    //spiTransmitAndReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff, (uint16_t *)&m_spiRxBuff);
     spiTransmitData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff);
     spiReceiveData(m_spi, &m_gyroDataConfig, length, (uint16_t *)&m_spiRxBuff);
-    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_L3GD20H, 1);
 
     memcpy(rxData, m_spiRxBuff, length);
 
@@ -488,9 +508,7 @@ namespace CubeRover {
 
     memcpy(m_spiTxBuff+1, txData, length);
 
-    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_L3GD20H, 0);
     spiTransmitData(m_spi, &m_gyroDataConfig, length+1, (uint16_t *)&m_spiTxBuff);
-    gioSetBit(mibspiPORT3, CS_SPIPORT3_BIT_L3GD20H, 1);
 
     return IMU_NO_ERROR;
   }

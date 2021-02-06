@@ -16,7 +16,7 @@ void scidmaInit()
 {
 	dmaEnable();
 
-    dmaEnableInterrupt(DMA_CH0, BTC);	// DMA_CH0 is highest priority
+    dmaEnableInterrupt(DMA_CH0, FTC);	// DMA_CH0 is highest priority
     dmaReqAssign(DMA_CH0, 28);          // SCI2 (LIN) RX
     
     dmaEnableInterrupt(DMA_CH1, BTC);
@@ -168,10 +168,10 @@ void sciDMARecv(enum dmaCHANNEL channel, char *dest_address, unsigned size, dmaA
     /* Enable RX DMA */
     switch (channel) {
         case DMA_CH0:
-            scilinREG->SETINT |= (1 << 18) | (1 << 17) | (1 << 9);
+            scilinREG->SETINT |= (1 << 17);
             break;
         case DMA_CH2:
-            sciREG->SETINT |= (1 << 18) | (1 << 17) | (1 << 9);
+            sciREG->SETINT |= (1 << 17);
             break;
         default:
             return;     // Invalid DMA channel from mapping selected. Not assigned to SCI RX

@@ -17,6 +17,7 @@
 
 #include "lin.h"
 #include "adc.h"
+#include "sci.h"
 
 namespace CubeRover {
 
@@ -115,6 +116,8 @@ namespace CubeRover {
           const U32 cmdSeq /*!< The command sequence number*/
       );
 
+
+
       //! Implementation for sending frame and checking that frame was sent to watchdog
       //! Sends a Frame start everytime data is sent from cuberover to watchdog
       bool Send_Frame(
@@ -163,6 +166,7 @@ namespace CubeRover {
                     */
       );
 
+      sciBASE_t *m_sci;
 
      public:
 

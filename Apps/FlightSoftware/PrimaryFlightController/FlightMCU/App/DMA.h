@@ -6,17 +6,13 @@ extern "C" {
 #endif
 
 #include "sys_dma.h"
+#include "sci.h"
 
 void scidmaInit();
-void scidmaSend(enum dmaCHANNEL channel, char *source_address, unsigned size);
-void linsci2enableMBUFF();
-void linsci2disableMBUFF();
-
-
-g_dmaCTRL g_dmaCTRLPKT;
-
-/* Guard for DMA access. Set when beginning transfer, cleared via interrupt */
-uint32 DMA_Comp_Flag;
+void sciDMASend(enum dmaCHANNEL channel, char *source_address, unsigned size, dmaACCESS_t access, volatile bool *busy);
+void sciDMARecv(enum dmaCHANNEL channel, char *dest_address, unsigned size, dmaACCESS_t access, volatile bool *busy);
+void sciEnableMBUFF(sciBASE_t *sci, uint8_t bitsPerChar, uint8_t charPerFrame);
+void sciDisableMBUFF(sciBASE_t *sci, uint8_t bitsPerChar);
 
 #ifdef __cplusplus
 }    // extern "C"

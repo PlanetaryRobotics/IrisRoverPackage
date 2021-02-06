@@ -34,6 +34,7 @@ namespace CubeRover {
 #else
     WatchDogInterfaceComponentImpl(void)
 #endif
+    , m_sci(scilinREG)
   {
       watchdog_dma_busy = false;
   }
@@ -45,8 +46,6 @@ namespace CubeRover {
     )
   {
     WatchDogInterfaceComponentBase::init(queueDepth, instance);
-    // Setup scilinReg port
-    sciBASE_t * m_sci = scilinREG;
     sciEnterResetState(m_sci);
     sciSetBaudrate(m_sci, 9600);
     sciExitResetState(m_sci);
@@ -126,13 +125,13 @@ namespace CubeRover {
         if(frame.payload_length == payload_length && frame.reset_val == 0x0000)
         {
             int tries = 100000000;
-    		while(--tries && !sciIsTxReady(scilinREG));
+    		while(--tries && !sciIsTxReady(m_sci));
     		if(tries == 0)
     		{
     		    this->log_WARNING_HI_WatchDogTimedOut();
     		    return;
     		}
-    		sciSend(scilinREG, payload_length, reinterpret_cast<unsigned char*>(fwBuffer.getdata()));
+    		sciSend(m_sci, payload_length, reinterpret_cast<unsigned char*>(fwBuffer.getdata()));
         }
     }
   }
@@ -308,13 +307,13 @@ namespace CubeRover {
 
 
       int tries = 100000000;
-      while(--tries && !sciIsTxReady(scilinREG));
+      while(--tries && !sciIsTxReady(m_sci));
       if(tries == 0)
       {
         this->log_WARNING_HI_WatchDogTimedOut();
         return false;
       }
-      sciSend(scilinREG, sizeof(frame), (uint8_t *)&frame);
+      sciSend(m_sci, sizeof(frame), (uint8_t *)&frame);
 
       return true;
   }
@@ -376,7 +375,7 @@ namespace CubeRover {
 
   int WatchDogInterfaceComponentImpl::Receive_Frame(uint32_t *comm_error, struct WatchdogFrameHeader *header)
   {
-    int size_read = sciReceiveWithTimeout(scilinREG, sizeof(*header), (uint8_t *)header, 100000000);
+    int size_read = sciReceiveWithTimeout(m_sci, sizeof(*header), (uint8_t *)header, 100000000);
     *comm_error = 0;
 
     if (size_read == 0)
@@ -429,7 +428,7 @@ namespace CubeRover {
     if (header->payload_length == 0) // Received a WD echo
     {
         struct WatchdogTelemetry buff;
-        payload_read = sciReceiveWithTimeout(scilinREG, sizeof(buff), (uint8_t *)&buff, 100000000);
+        payload_read = sciReceiveWithTimeout(m_sci, sizeof(buff), (uint8_t *)&buff, 100000000);
         *comm_error = 0;
 
         if (payload_read == sizeof(buff))
@@ -458,7 +457,7 @@ namespace CubeRover {
         // UDP_MAX_PAYLOAD defined in FlightMCU/Include/FswPacket.hpp
         // TODO: Verify that the MTU for wired connection is the same as Wifi
         Fw::Buffer uplinked_data;
-        payload_read = sciReceiveWithTimeout(scilinREG, header->payload_length,
+        payload_read = sciReceiveWithTimeout(m_sci, header->payload_length,
                                              reinterpret_cast<uint8_t *>(uplinked_data.getdata()), 100000000);
         *comm_error = 0;
 

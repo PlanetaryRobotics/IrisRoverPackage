@@ -37,6 +37,19 @@ void vApplicationStackOverflowHook(void *xTask, char *pcTaskName) {
     // something really bad happened
 }
 
+
+volatile bool busy = false;
+volatile bool recv = false;
+
+extern "C" void dmaCh0_ISR(dmaInterrupt_t inttype) {
+    recv = false;
+}
+extern "C" void dmaCh1_ISR(dmaInterrupt_t inttype) {
+    busy = false;
+}
+extern "C" void dmaCh2_ISR(dmaInterrupt_t inttype) {}
+extern "C" void dmaCh3_ISR(dmaInterrupt_t inttype) {}
+
 void main(void)
 {
     /* USER CODE BEGIN (3) */
@@ -46,20 +59,25 @@ void main(void)
     sciInit();
     adcInit();
     spiInit();
-    rtiInit();
-
     scidmaInit();
-    //linsci2enableMBUFF();
-    
-    // constructApp();
     
     _enable_IRQ();                                      // Enable IRQ - Clear I flag in CPS register // @suppress("Function cannot be resolved")
+
+    // constructApp();
+
+    rtiInit();
+
     sciEnterResetState(scilinREG);
     sciSetBaudrate(scilinREG, 9600);
     sciExitResetState(scilinREG);
     alignas(8) char test[] = "foo, bar. This is a test!";
     while (1) {
-        scidmaSend(DMA_CH1, test, sizeof(test));
+        alignas(8) char buffer[256] = {0};
+        sciDMASend(DMA_CH1, test, sizeof(test), ACCESS_8_BIT, &busy);
+        sciDMARecv(DMA_CH0, buffer, sizeof(test), ACCESS_8_BIT, &recv);
+        while (recv);
+        //done!
+        asm ("  nop");
     }
     vTaskStartScheduler();
 

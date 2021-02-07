@@ -52,9 +52,9 @@ void main(void)
     //linsci2enableMBUFF();
     
     constructApp();
-    /*
+
     _enable_IRQ();                                      // Enable IRQ - Clear I flag in CPS register // @suppress("Function cannot be resolved")
-    sciEnterResetState(scilinREG);
+    /*sciEnterResetState(scilinREG);
     sciSetBaudrate(scilinREG, 9600);
     sciExitResetState(scilinREG);
     alignas(8) char test[] = "foo, bar. This is a test!";

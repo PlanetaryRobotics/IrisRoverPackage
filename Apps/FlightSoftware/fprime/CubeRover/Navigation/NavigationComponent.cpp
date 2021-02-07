@@ -103,7 +103,9 @@ namespace CubeRover {
   {
     // TODO
     // ASK MOM IF WE ARE STILL GOOD TO MOVE
+      motorCommandOut_out(0, CubeRoverPorts::MC_Debugging, CubeRoverPorts::MC_NONE,0,0);
 
+    /*
     switch(m_currState)
     {
       case NAV_IDLE:
@@ -131,7 +133,7 @@ namespace CubeRover {
         // We will just change to the idle state though.
         Change_State(NAV_IDLE);
         break;
-    }
+    }*/
   }
 
   /**

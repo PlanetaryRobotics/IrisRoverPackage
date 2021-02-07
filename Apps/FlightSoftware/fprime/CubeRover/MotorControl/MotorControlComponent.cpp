@@ -120,6 +120,10 @@ namespace CubeRover {
     MCError err;
     switch(command_type)
     {
+      case CubeRoverPorts::MC_Debugging:
+          // This is here for actively debugging
+          break;
+
       // We actively want to be moving
       case CubeRoverPorts::MC_DrivingConfiguration:
         switch(movement_type)

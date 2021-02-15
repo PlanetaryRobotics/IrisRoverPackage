@@ -41,12 +41,6 @@ void vApplicationStackOverflowHook(void *xTask, char *pcTaskName) {
 volatile bool busy = false;
 volatile bool recv = false;
 
-extern "C" void dmaCh0_ISR(dmaInterrupt_t inttype) {
-    recv = false;
-}
-extern "C" void dmaCh1_ISR(dmaInterrupt_t inttype) {
-    busy = false;
-}
 extern "C" void dmaCh2_ISR(dmaInterrupt_t inttype) {}
 extern "C" void dmaCh3_ISR(dmaInterrupt_t inttype) {}
 
@@ -63,10 +57,11 @@ void main(void)
     
     _enable_IRQ();                                      // Enable IRQ - Clear I flag in CPS register // @suppress("Function cannot be resolved")
 
-    // constructApp();
+    constructApp();
 
     rtiInit();
 
+#if 0
     sciEnterResetState(scilinREG);
     sciSetBaudrate(scilinREG, 9600);
     sciExitResetState(scilinREG);
@@ -79,6 +74,8 @@ void main(void)
         //done!
         asm ("  nop");
     }
+#endif
+
     vTaskStartScheduler();
 
     //if it reaches that point, there is a problem with RTOS.

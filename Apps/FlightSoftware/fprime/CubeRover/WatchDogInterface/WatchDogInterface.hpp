@@ -168,11 +168,6 @@ namespace CubeRover {
 
       sciBASE_t *m_sci;
 
-     public:
-
-     // variable to store if DMA is busy or not
-     bool watchdog_dma_busy;
-
     };
 
 } // end namespace CubeRover

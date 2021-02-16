@@ -40,10 +40,10 @@ namespace CubeRover {
     m_gyroDataConfig.CSNR = 0x02; // Selecting CS[0]
 
     // Accelerometer data configuration
-    m_accDataConfig.CS_HOLD = true;
+    m_accDataConfig.CS_HOLD = false;
     m_accDataConfig.DFSEL = SPI_FMT_0;
     m_accDataConfig.WDEL = false;
-    m_accDataConfig.CSNR = 0x20; // Selecting CS[5]
+    m_accDataConfig.CSNR = 0x1F;//0x20; // Selecting CS[5]
       
     m_spi = NULL;
     m_setup = false;
@@ -216,7 +216,7 @@ namespace CubeRover {
       return IMU_UNEXPECTED_ERROR; 
     }
 
-    err = accReadData(Adxl312::AdxlRegister::DEVICE_ID, &deviceId, 1);
+    err = accReadData(Adxl312::AdxlRegister::DEVICE_ID, &deviceId, 2);
 
     if(err != IMU_NO_ERROR)
         return err;
@@ -326,35 +326,6 @@ namespace CubeRover {
 
     m_spi = spi;
     m_setup = true;
-    /* STRANGE TESTING!  */
-    m_spiTxBuff[0] = (uint8_t) 0x0F;
-    m_spiTxBuff[0] |= 0x80; // read
-
-
-    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
-    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
-    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
-
-    spiTransmitData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff);
-    spiTransmitData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff);
-    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
-    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
-    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
-
-    spiTransmitAndReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff, (uint16_t *)&m_spiRxBuff);
-    spiTransmitAndReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff, (uint16_t *)&m_spiRxBuff);
-    spiTransmitAndReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff, (uint16_t *)&m_spiRxBuff);
-
-    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
-    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
-    spiReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiRxBuff);
-
-
-
-    err = setupGyroscope(spi);
-
-    if(err != IMU_NO_ERROR)
-      return err;
 
     err = setupAccelerometer(spi);
     return err;
@@ -377,16 +348,19 @@ namespace CubeRover {
     }
 
     m_spiTxBuff[0] = (uint8_t) regStartAddr;
-    m_spiTxBuff[0] |= 0x40; // multi-bytes read
+    if (length > 1)
+        m_spiTxBuff[0] |= 0x40; // multi-bytes read
     m_spiTxBuff[0] |= 0x80; // read
 
     if(length > SPI_RX_BUFFER_SIZE)
         return IMU_WRONG_DATA_SIZE;
-
-    spiTransmitData(m_spi, &m_accDataConfig, 1, (uint16_t *)&m_spiTxBuff);
-    spiReceiveData(m_spi, &m_accDataConfig, length, (uint16_t *)&m_spiRxBuff);
+    uint32 Flag_status = 0;
+    Flag_status = spiTransmitData(m_spi, &m_accDataConfig, 1, (uint16_t *)&m_spiTxBuff);
+    Flag_status = spiReceiveData(m_spi, &m_accDataConfig, length, (uint16_t *)&m_spiRxBuff);
 
     memcpy(rxData, m_spiRxBuff, length);
+
+    Flag_status = spiTransmitAndReceiveData(m_spi, &m_accDataConfig, length, (uint16_t *)&m_spiTxBuff, (uint16_t *)&m_spiRxBuff);
 
     return IMU_NO_ERROR;
   }

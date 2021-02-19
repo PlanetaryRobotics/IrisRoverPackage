@@ -18,6 +18,19 @@
 #include <string.h>
 
 #include "Include/FswPacket.hpp"
+#include "sys_dma.h"
+#include <App/DMA.h>
+
+static volatile bool dmaWriteBusy = false;
+static volatile bool dmaReadBusy = false;
+
+extern "C" void dmaCh0_ISR(dmaInterrupt_t inttype) {
+    dmaReadBusy = false;
+}
+
+extern "C" void dmaCh1_ISR(dmaInterrupt_t inttype) {
+    dmaWriteBusy = false;
+}
 
 namespace CubeRover {
     
@@ -34,8 +47,9 @@ namespace CubeRover {
 #else
     WatchDogInterfaceComponentImpl(void)
 #endif
+    , m_sci(scilinREG)
   {
-      watchdog_dma_busy = false;
+
   }
 
   void WatchDogInterfaceComponentImpl ::
@@ -45,8 +59,6 @@ namespace CubeRover {
     )
   {
     WatchDogInterfaceComponentBase::init(queueDepth, instance);
-    // Setup scilinReg port
-    sciBASE_t * m_sci = scilinREG;
     sciEnterResetState(m_sci);
     sciSetBaudrate(m_sci, 9600);
     sciExitResetState(m_sci);
@@ -125,14 +137,7 @@ namespace CubeRover {
     {
         if(frame.payload_length == payload_length && frame.reset_val == 0x0000)
         {
-            int tries = 100000000;
-    		while(--tries && !sciIsTxReady(scilinREG));
-    		if(tries == 0)
-    		{
-    		    this->log_WARNING_HI_WatchDogTimedOut();
-    		    return;
-    		}
-    		sciSend(scilinREG, payload_length, reinterpret_cast<unsigned char*>(fwBuffer.getdata()));
+    		sciDMASend(DMA_CH1, reinterpret_cast<char *>(fwBuffer.getdata()), payload_length, ACCESS_8_BIT, &dmaWriteBusy);
         }
     }
   }
@@ -278,7 +283,7 @@ namespace CubeRover {
 
       // Receive frame back from MSP430
       U32 comm_error;
-      WatchdogFrameHeader frame;
+      WatchdogFrameHeader frame = {0};
       int32_t size_read = Receive_Frame(&comm_error, &frame);
 
       if(size_read < 8)
@@ -306,15 +311,7 @@ namespace CubeRover {
                        ((frame_bin & 0x00FF000000000000L) >> 48) +
                        ((frame_bin & 0xFF00000000000000L) >> 56));
 
-
-      int tries = 100000000;
-      while(--tries && !sciIsTxReady(scilinREG));
-      if(tries == 0)
-      {
-        this->log_WARNING_HI_WatchDogTimedOut();
-        return false;
-      }
-      sciSend(scilinREG, sizeof(frame), (uint8_t *)&frame);
+      sciDMASend(DMA_CH1, reinterpret_cast<char *>(&frame), sizeof(frame), ACCESS_8_BIT, &dmaWriteBusy);
 
       return true;
   }
@@ -376,7 +373,10 @@ namespace CubeRover {
 
   int WatchDogInterfaceComponentImpl::Receive_Frame(uint32_t *comm_error, struct WatchdogFrameHeader *header)
   {
-    int size_read = sciReceiveWithTimeout(scilinREG, sizeof(*header), (uint8_t *)header, 100000000);
+    while ((m_sci->FLR & (uint32)SCI_RX_INT) == 0U);
+    sciDMARecv(DMA_CH0, reinterpret_cast<char *>(header), sizeof(*header), ACCESS_8_BIT, &dmaReadBusy);
+    while (dmaReadBusy);
+    int size_read = sizeof(*header);
     *comm_error = 0;
 
     if (size_read == 0)
@@ -426,10 +426,12 @@ namespace CubeRover {
     }
 
     int payload_read = 0;
-    if (header->payload_length == 0) // Received a WD echo
+    if (header->payload_length == 0) // Received a WD echo  // TODO: Are we expecting telemetry ALWAYS??
     {
         struct WatchdogTelemetry buff;
-        payload_read = sciReceiveWithTimeout(scilinREG, sizeof(buff), (uint8_t *)&buff, 100000000);
+        sciDMARecv(DMA_CH0, reinterpret_cast<char *>(&buff), sizeof(buff), ACCESS_8_BIT, &dmaReadBusy);
+        while (dmaReadBusy);
+        payload_read = sizeof(buff);
         *comm_error = 0;
 
         if (payload_read == sizeof(buff))
@@ -458,8 +460,9 @@ namespace CubeRover {
         // UDP_MAX_PAYLOAD defined in FlightMCU/Include/FswPacket.hpp
         // TODO: Verify that the MTU for wired connection is the same as Wifi
         Fw::Buffer uplinked_data;
-        payload_read = sciReceiveWithTimeout(scilinREG, header->payload_length,
-                                             reinterpret_cast<uint8_t *>(uplinked_data.getdata()), 100000000);
+        sciDMARecv(DMA_CH0, reinterpret_cast<char *>(uplinked_data.getdata()), header->payload_length, ACCESS_8_BIT, &dmaReadBusy);
+        while (dmaReadBusy);
+        payload_read = header->payload_length;
         *comm_error = 0;
 
         if (payload_read == header->payload_length)

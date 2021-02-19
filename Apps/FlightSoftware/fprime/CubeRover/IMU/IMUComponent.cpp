@@ -1,7 +1,6 @@
 // ======================================================================
 // \title  ImuComponentImpl.cpp
 // @author     cedric
-// @editted    michael
 // @brief      cpp file for Imu component implementation class
 //
 // @copyright  Copyright 2009-2015, by the California Institute of Technology.
@@ -33,24 +32,24 @@ namespace CubeRover {
       IMUComponentImpl(void)
 #endif
   {
-    // Gyrometer data configuration
-    m_gyroDataConfig.CS_HOLD = false;
-    m_gyroDataConfig.DFSEL = SPI_FMT_1;
-    m_gyroDataConfig.WDEL = false;
-    m_gyroDataConfig.CSNR = 0x02; // Selecting CS[0]
+      // Gyrometer data configuration
+      m_gyroDataConfig.CS_HOLD = false;
+      m_gyroDataConfig.DFSEL = SPI_FMT_0;
+      m_gyroDataConfig.WDEL = false;
+      m_gyroDataConfig.CSNR = 0;
 
-    // Accelerometer data configuration
-    m_accDataConfig.CS_HOLD = false;
-    m_accDataConfig.DFSEL = SPI_FMT_0;
-    m_accDataConfig.WDEL = false;
-    m_accDataConfig.CSNR = 0x1F;//0x20; // Selecting CS[5]
-      
-    m_spi = NULL;
-    m_setup = false;
+      // Accelerometer data configuration
+      m_accDataConfig.CS_HOLD = true;
+      m_accDataConfig.DFSEL = SPI_FMT_0;
+      m_accDataConfig.WDEL = false;
+      m_accDataConfig.CSNR = 0;
 
-    m_lpfAccX = 0.0;
-    m_lpfAccY = 0.0;
-    m_lpfAccZ = 0.0;
+      m_spi = NULL;
+      m_setup = false;
+
+      m_lpfAccX = 0.0;
+      m_lpfAccY = 0.0;
+      m_lpfAccZ = 0.0;
   }
 
 
@@ -60,7 +59,10 @@ namespace CubeRover {
    * @param[in]  queueDepth  The queue depth
    * @param[in]  instance    The instance
    */
-  void IMUComponentImpl :: init(const NATIVE_INT_TYPE instance)
+  void IMUComponentImpl ::
+    init(
+        const NATIVE_INT_TYPE instance
+    )
   {
     IMUComponentBase::init(instance);
   }
@@ -69,7 +71,8 @@ namespace CubeRover {
   /**
    * @brief      Destroys the object.
    */
-  IMUComponentImpl :: ~IMUComponentImpl(void)
+  IMUComponentImpl ::
+    ~IMUComponentImpl(void)
   {
 
   }
@@ -80,9 +83,8 @@ namespace CubeRover {
    * @param[in]  portNum  The port number
    * @param[in]  context  The context
    */
-  void IMUComponentImpl :: schedIn_handler(const NATIVE_INT_TYPE portNum, NATIVE_UINT_TYPE context)
-  {
-    // Danger floats!
+  void IMUComponentImpl :: schedIn_handler(const NATIVE_INT_TYPE portNum, NATIVE_UINT_TYPE context){
+
     float accX = 0.0f;
     float accY = 0.0f;
     float accZ = 0.0f;
@@ -91,83 +93,82 @@ namespace CubeRover {
     float gyroZ = 0.0f;
     float roll = 0.0f;
     float pitch = 0.0f;
-    float yaw = 0.0f;
 
-    if((readAccelerations(&accX, &accY, &accZ)) != IMU_NO_ERROR)
-    {
+    if((readAccelerations(&accX, &accY, &accZ)) != IMU_NO_ERROR){
+        // @todo       see how to pass argument to log events
         log_WARNING_HI_IMU_CommunicationFailure();
         return;
     }
 
-    if((readAngularRates(&gyroX, &gyroY, &gyroZ)) != IMU_NO_ERROR)
-    {
+    if((readAngularRates(&gyroX, &gyroY, &gyroZ)) != IMU_NO_ERROR){
         log_WARNING_HI_IMU_CommunicationFailure();
         return;
     }
 
-    tlmWrite_X_Acc(accX);
-    tlmWrite_Y_Acc(accY);
-    tlmWrite_Z_Acc(accZ);
-    tlmWrite_X_Ang(gyroX);
-    tlmWrite_Y_Ang(gyroY);
-    tlmWrite_Z_Ang(gyroZ);
+    /*tlmWrite_Acc_X(accX);
+    tlmWrite_Acc_Y(accY);
+    tlmWrite_Acc_Z(accZ);
+    tlmWrite_Gyro_X(gyroX);
+    tlmWrite_Gyro_Y(gyroY);
+    tlmWrite_Gyro_Z(gyroZ);*/
 
     computePitchRoll(&pitch, &roll, accX, accY, accZ);
 
-    if(fabs(pitch) > MAX_ROVER_PITCH_ANGLE || fabs(roll) > MAX_ROVER_ROLL_ANGLE)
-    {
+    //tlmWrite_Pitch(pitch);
+    //tlmWrite_Roll(roll);
+
+    if(fabs(pitch) > MAX_ROVER_PITCH_ANGLE || fabs(roll) > MAX_ROVER_ROLL_ANGLE){
       log_WARNING_HI_IMU_AngleWarning();
     }
   }
 
-  /**
-   * @brief      PingIn handler implementations
-   *
-   * @param[in]  portNum  The port number
-   * @param[in]  key      Value to return to pinger
-   */
-  void IMUComponentImpl :: PingIn_handler(const NATIVE_INT_TYPE portNum, U32 key)
+  void IMUComponentImpl ::
+    PingIn_handler(
+        const NATIVE_INT_TYPE portNum,
+        U32 key
+    )
   {
-    this->PingOut_out(portNum, key);
+    // TODO
   }
 
   /**
-   * @brief      Command handler implementations
-   *
-   * @param[in]  opCode  The operation code
-   * @param[in]  cmdSeq  The command sequence
-   */
-  void IMUComponentImpl :: IMU_ReportData_cmdHandler( const FwOpcodeType opCode, const U32 cmdSeq)
-  {
-    // TODO
-    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
-  }
+     * @brief      Command handler implementations
+     *
+     * @param[in]  opCode  The operation code
+     * @param[in]  cmdSeq  The command sequence
+     */
+    void IMUComponentImpl :: IMU_ReportData_cmdHandler( const FwOpcodeType opCode, const U32 cmdSeq)
+    {
+      // TODO
+      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+    }
 
-  /**
-   * @brief      Command handler implementations
-   *
-   * @param[in]  opCode  The operation code
-   * @param[in]  cmdSeq  The command sequence
-   */
-  void IMUComponentImpl :: IMU_TurnOn_cmdHandler(const FwOpcodeType opCode,
-                                                 const U32 cmdSeq)
-  {
-    // TODO
-    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
-  }
+    /**
+     * @brief      Command handler implementations
+     *
+     * @param[in]  opCode  The operation code
+     * @param[in]  cmdSeq  The command sequence
+     */
+    void IMUComponentImpl :: IMU_TurnOn_cmdHandler(const FwOpcodeType opCode,
+                                                   const U32 cmdSeq)
+    {
+      // TODO
+      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+    }
 
-  /**
-   * @brief      Command handler implementations
-   *
-   * @param[in]  opCode  The operation code
-   * @param[in]  cmdSeq  The command sequence
-   */
-  void IMUComponentImpl :: IMU_TurnOff_cmdHandler(const FwOpcodeType opCode,
-                                                  const U32 cmdSeq)
-  {
-    // TODO
-    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
-  }
+    /**
+     * @brief      Command handler implementations
+     *
+     * @param[in]  opCode  The operation code
+     * @param[in]  cmdSeq  The command sequence
+     */
+    void IMUComponentImpl :: IMU_TurnOff_cmdHandler(const FwOpcodeType opCode,
+                                                    const U32 cmdSeq)
+    {
+      // TODO
+      this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+    }
+
   
   /**
    * @brief      Calculates the pitch roll. See example of implementation in
@@ -183,8 +184,8 @@ namespace CubeRover {
                                             float32 *roll,
                                             const float32 accX,
                                             const float32 accY,
-                                            const float32 accZ)
-  {
+                                            const float32 accZ){
+
     // Low-pass filter
     m_lpfAccX = accX * IMU_LPF_COEFF +  m_lpfAccX * (1.0 - IMU_LPF_COEFF);
     m_lpfAccY = accY * IMU_LPF_COEFF +  m_lpfAccY * (1.0 - IMU_LPF_COEFF);
@@ -197,6 +198,7 @@ namespace CubeRover {
     *roll = atan2(-m_lpfAccX, m_lpfAccZ) * 180.0f * ONE_OVER_PI;
   }
 
+
   /**
    * @brief      Setup the accelerometer operating parameters
    *
@@ -204,8 +206,7 @@ namespace CubeRover {
    *
    * @return     error code specific to the IMU
    */
-  IMUError IMUComponentImpl :: setupAccelerometer(spiBASE_t *spi)
-  {
+  IMUError IMUComponentImpl :: setupAccelerometer(spiBASE_t *spi){
     uint16_t deviceId = 0;
     Adxl312::PowerCtlReg powerCtl;
     Adxl312::DataFormatReg format;
@@ -216,7 +217,8 @@ namespace CubeRover {
       return IMU_UNEXPECTED_ERROR; 
     }
 
-    err = accReadData(Adxl312::AdxlRegister::DEVICE_ID, &deviceId, 2);
+
+    err = accReadData(Adxl312::AdxlRegister::DEVICE_ID, &deviceId, 1);
 
     if(err != IMU_NO_ERROR)
         return err;
@@ -227,6 +229,16 @@ namespace CubeRover {
 
     // @TODO implement the rest of the configuration @TODO move that to command
     // handling to support turn on and off of the device
+
+    // Configure the Adxl312 accelerometer power control register Consult
+    // Adxl312 datasheet for further details.
+    powerCtl.all = 0;         // clear register
+    powerCtl.bit.measure = 1; // turn on measure mode
+
+    err = accWriteData(Adxl312::AdxlRegister::POWER_CTL, (uint16_t *)&powerCtl.all, 1);
+
+    if(err != IMU_NO_ERROR)
+      return err;
 
     // Configure the Adxl312 accelerometer data format register Consult Adxl312
     // datasheet for further details.
@@ -242,17 +254,10 @@ namespace CubeRover {
     fifoCtl.all = 0; // clear register
     fifoCtl.bit.fifo_mode = Adxl312::BYPASS; // configure FIFO buffer to be by-passed, only collect instant data
     err = accWriteData(Adxl312::AdxlRegister::FIFO_CTL, (uint16_t *)&fifoCtl.all, 1);
-    if(err != IMU_NO_ERROR)
-      return err;
 
-    // Configure the Adxl312 accelerometer power control register Consult
-    // Adxl312 datasheet for further details.
-    powerCtl.all = 0;         // clear register
-    powerCtl.bit.measure = 1; // turn on measure mode
-    err = accWriteData(Adxl312::AdxlRegister::POWER_CTL, (uint16_t *)&powerCtl.all, 1);
-  
     return err;
   }
+
 
   /**
    * @brief      Setup the gyroscope operating parameters
@@ -261,10 +266,9 @@ namespace CubeRover {
    *
    * @return     error code specific to the IMU
    */
-  IMUError IMUComponentImpl :: setupGyroscope(spiBASE_t *spi)
-  {
+  IMUError IMUComponentImpl :: setupGyroscope(spiBASE_t *spi){
     IMUError err = IMU_NO_ERROR;
-    uint16_t deviceId[1];
+    uint16_t deviceId;
     L3gd20h::FifoCtlReg fifoReg;
     L3gd20h::Ctl1Reg ctl1Reg;
     L3gd20h::Ctl4Reg ctl4Reg;
@@ -274,11 +278,11 @@ namespace CubeRover {
     }
 
     // Check that the gyro is functioning by reading WHO_AM_I register
-    err = gyroReadData(L3gd20h::L3gd20hRegister::WHO_AM_I, deviceId, 1);
+    err = gyroReadData(L3gd20h::L3gd20hRegister::WHO_AM_I, (uint16_t *)&deviceId, 1);
     if(err != IMU_NO_ERROR)
         return err;
 
-    if(deviceId[0] != L3GD20H_DEVICE_ID){
+    if(deviceId != L3GD20H_DEVICE_ID){
         return IMU_UNEXPECTED_ERROR;
     }
 
@@ -313,8 +317,7 @@ namespace CubeRover {
    *
    * @return     error code specific to the IMU
    */
-  IMUError IMUComponentImpl :: setup(spiBASE_t *spi)
-  {
+  IMUError IMUComponentImpl :: setup(spiBASE_t *spi){
     IMUError err = IMU_NO_ERROR;
 
     if(spi == NULL){
@@ -328,8 +331,14 @@ namespace CubeRover {
     m_setup = true;
 
     err = setupAccelerometer(spi);
+
+    if(err != IMU_NO_ERROR)
+      return err;
+
+    err = setupGyroscope(spi);
     return err;
   }
+
 
   /**
    * @brief      Read some data from the accelerometer register(s)
@@ -340,30 +349,30 @@ namespace CubeRover {
    *
    * @return     error code specific to the IMU
    */
-  IMUError IMUComponentImpl :: accReadData(const Adxl312::AdxlRegister regStartAddr, uint16_t *rxData, 
-                                           const uint8_t length)
-  {
+  IMUError IMUComponentImpl :: accReadData(const Adxl312::AdxlRegister regStartAddr, uint16_t *rxData,
+                                           const uint8_t length){
+
     if(rxData == NULL){
       return IMU_UNEXPECTED_ERROR;
     }
 
     m_spiTxBuff[0] = (uint8_t) regStartAddr;
-    if (length > 1)
-        m_spiTxBuff[0] |= 0x40; // multi-bytes read
+    m_spiTxBuff[0] |= 0x40; // multi-bytes read
     m_spiTxBuff[0] |= 0x80; // read
 
     if(length > SPI_RX_BUFFER_SIZE)
         return IMU_WRONG_DATA_SIZE;
-    uint32 Flag_status = 0;
-    Flag_status = spiTransmitData(m_spi, &m_accDataConfig, 1, (uint16_t *)&m_spiTxBuff);
-    Flag_status = spiReceiveData(m_spi, &m_accDataConfig, length, (uint16_t *)&m_spiRxBuff);
+
+    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_ADXL, 0);
+    spiTransmitData(m_spi, &m_accDataConfig, 1, (uint16_t *)&m_spiTxBuff);
+    spiReceiveData(m_spi, &m_accDataConfig, length, (uint16_t *)&m_spiRxBuff);
+    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_ADXL, 1);
 
     memcpy(rxData, m_spiRxBuff, length);
 
-    Flag_status = spiTransmitAndReceiveData(m_spi, &m_accDataConfig, length, (uint16_t *)&m_spiTxBuff, (uint16_t *)&m_spiRxBuff);
-
     return IMU_NO_ERROR;
   }
+
 
   /**
    * @brief      Write some data to the accelerometer register(s)
@@ -374,24 +383,28 @@ namespace CubeRover {
    *
    * @return     error code specific to the IMU
    */
-  IMUError IMUComponentImpl :: accWriteData(const Adxl312::AdxlRegister regStartAddr, uint16_t *txData, 
-                                            const uint8_t length)
-  {
-    if(txData == NULL)
+  IMUError IMUComponentImpl :: accWriteData(const Adxl312::AdxlRegister regStartAddr, uint16_t *txData,
+                                            const uint8_t length){
+
+    if(txData == NULL){
       return IMU_UNEXPECTED_ERROR;
+    }
 
     m_spiTxBuff[0] = (uint8_t) regStartAddr;
-    //m_spiTxBuff[0] |= 0x40; // multibyte write
+    m_spiTxBuff[0] |= 0x40; // multibyte write
 
     if(length+1 > SPI_TX_BUFFER_SIZE)
         return IMU_WRONG_DATA_SIZE;
 
     memcpy(m_spiTxBuff+1, txData, length);
 
+    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_ADXL, 0);
     spiTransmitData(m_spi, &m_accDataConfig, length+1, (uint16_t *)&m_spiTxBuff);
+    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_ADXL, 1);
 
     return IMU_NO_ERROR;
   }
+
 
   /**
    * @brief      Reads accelerations.
@@ -402,8 +415,8 @@ namespace CubeRover {
    *
    * @return     error code specific to the IMU
    */
-  IMUError IMUComponentImpl :: readAccelerations(float32 *accX, float32 *accY,  float32 *accZ)
-  {
+  IMUError IMUComponentImpl :: readAccelerations(float32 *accX, float32 *accY,  float32 *accZ){
+
     uint16_t rxBuffer[6]; // 3 x 2 bytes
     int16_t tmp;
     IMUError err = IMU_NO_ERROR;
@@ -435,24 +448,24 @@ namespace CubeRover {
    *
    * @return     error code specific to the IMU
    */
-  IMUError IMUComponentImpl :: gyroReadData(const L3gd20h::L3gd20hRegister regStartAddr, uint16_t *rxData, 
-                                            const uint8_t length)
-  {
+  IMUError IMUComponentImpl :: gyroReadData(const L3gd20h::L3gd20hRegister regStartAddr, uint16_t *rxData,
+                                            const uint8_t length){
+
     if(rxData == NULL){
       return IMU_UNEXPECTED_ERROR;
     }
 
     m_spiTxBuff[0] = (uint8_t) regStartAddr;
-    if (length > 1)
-        m_spiTxBuff[0] |= 0x40; // multi-bytes read
+    m_spiTxBuff[0] |= 0x40; // multi-bytes read
     m_spiTxBuff[0] |= 0x80; // read
 
     if(length > SPI_RX_BUFFER_SIZE)
         return IMU_WRONG_DATA_SIZE;
 
-    //spiTransmitAndReceiveData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff, (uint16_t *)&m_spiRxBuff);
+    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_L3GD20H, 0);
     spiTransmitData(m_spi, &m_gyroDataConfig, 1, (uint16_t *)&m_spiTxBuff);
     spiReceiveData(m_spi, &m_gyroDataConfig, length, (uint16_t *)&m_spiRxBuff);
+    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_L3GD20H, 1);
 
     memcpy(rxData, m_spiRxBuff, length);
 
@@ -468,21 +481,23 @@ namespace CubeRover {
    *
    * @return     error code specific to the IMU
    */
-  IMUError IMUComponentImpl :: gyroWriteData(const L3gd20h::L3gd20hRegister regStartAddr, uint16_t *txData, 
-                                             const uint8_t length)
-  {
-    if(txData == NULL)
+  IMUError IMUComponentImpl :: gyroWriteData(const L3gd20h::L3gd20hRegister regStartAddr, uint16_t *txData,
+                                             const uint8_t length){
+    if(txData == NULL){
       return IMU_UNEXPECTED_ERROR;
+    }
 
     m_spiTxBuff[0] = (uint8_t) regStartAddr;
-    //m_spiTxBuff[0] |= 0x40; // multibyte write
+    m_spiTxBuff[0] |= 0x40; // multibyte write
 
     if(length+1 > SPI_TX_BUFFER_SIZE)
         return IMU_WRONG_DATA_SIZE;
 
     memcpy(m_spiTxBuff+1, txData, length);
 
+    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_L3GD20H, 0);
     spiTransmitData(m_spi, &m_gyroDataConfig, length+1, (uint16_t *)&m_spiTxBuff);
+    gioSetBit(spiPORT3, CS_SPIPORT3_BIT_L3GD20H, 1);
 
     return IMU_NO_ERROR;
   }
@@ -497,8 +512,7 @@ namespace CubeRover {
    *
    * @return     error code specific to the IMU
    */
-  IMUError IMUComponentImpl :: readAngularRates(float32 *gyrX, float32 *gyrY,  float32 *gyrZ)
-  {
+  IMUError IMUComponentImpl :: readAngularRates(float32 *gyrX, float32 *gyrY,  float32 *gyrZ){
     uint16_t rxBuffer[6]; // 3 x 2 bytes
     int16_t tmp;
     IMUError err = IMU_NO_ERROR;
@@ -517,4 +531,6 @@ namespace CubeRover {
 
     return err;
   }
+
+
 } // end namespace CubeRover

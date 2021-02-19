@@ -1,8 +1,7 @@
 // ======================================================================
-// \title   ImuComponentImpl.hpp
-// \author  cedric
-// \editted michael
-// \brief   hpp file for Imu component implementation class
+// \title  ImuComponentImpl.hpp
+// \author cedric
+// \brief  hpp file for Imu component implementation class
 //
 // \copyright
 // Copyright 2009-2015, by the California Institute of Technology.
@@ -18,7 +17,6 @@
 #include "CubeRover/IMU/IMUComponentAc.hpp"
 #include "spi.h"
 #include "gio.h"
-#include "reg_mibspi.h"
 
 namespace CubeRover {
 
@@ -404,7 +402,7 @@ namespace CubeRover {
 
       //! Construct object Imu
       //!
-      IMUComponentImpl(
+        IMUComponentImpl(
 #if FW_OBJECT_NAMES == 1
           const char *const compName /*!< The component name*/
 #else
@@ -435,6 +433,7 @@ namespace CubeRover {
       IMUError gyroReadData(const L3gd20h::L3gd20hRegister regStartAddr, uint16_t *rxData, const uint8_t length);
       IMUError gyroWriteData(const L3gd20h::L3gd20hRegister regStartAddr, uint16_t *txData, const uint8_t length);
       IMUError readAngularRates(float32 *gyrX, float32 *gyrY,  float32 *gyrZ);
+    PRIVATE:
 
       // ----------------------------------------------------------------------
       // Handler implementations for user-defined typed input ports
@@ -442,33 +441,37 @@ namespace CubeRover {
 
       //! Handler implementation for schedIn
       //!
-      void schedIn_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
-                           NATIVE_UINT_TYPE context /*!< The call order*/);
+      void schedIn_handler(
+          const NATIVE_INT_TYPE portNum, /*!< The port number*/
+          NATIVE_UINT_TYPE context /*!< The call order*/
+      );
 
       //! Handler implementation for PingIn
       //!
-      void PingIn_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
-                          U32 key /*!< Value to return to pinger*/);
+      void PingIn_handler(
+          const NATIVE_INT_TYPE portNum, /*!< The port number*/
+          U32 key /*!< Value to return to pinger*/
+      );
 
+    // ----------------------------------------------------------------------
+       // Command handler implementations
+       // ----------------------------------------------------------------------
 
-      // ----------------------------------------------------------------------
-      // Command handler implementations
-      // ----------------------------------------------------------------------
+       //! Implementation for Imu_ReportData command handler
+       //! A command to force an IMU data.
+       void IMU_ReportData_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
+                                const U32 cmdSeq /*!< The command sequence number*/);
 
-      //! Implementation for Imu_ReportData command handler
-      //! A command to force an IMU data.
-      void IMU_ReportData_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                     const U32 cmdSeq /*!< The command sequence number*/);
+       //! Implementation for IMU_TurnOn command handler
+       //! A command to turn on the hardware
+       void IMU_TurnOn_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
+                            const U32 cmdSeq /*!< The command sequence number*/);
 
-      //! Implementation for IMU_TurnOn command handler
-      //! A command to turn on the hardware
-      void IMU_TurnOn_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                 const U32 cmdSeq /*!< The command sequence number*/);
+       //! Implementation for IMU_TurnOff command handler
+       //! A command to turn off the hardware
+       void IMU_TurnOff_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
+                             const U32 cmdSeq /*!< The command sequence number*/);
 
-      //! Implementation for IMU_TurnOff command handler
-      //! A command to turn off the hardware
-      void IMU_TurnOff_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                  const U32 cmdSeq /*!< The command sequence number*/);
 
     private:
       bool m_setup;

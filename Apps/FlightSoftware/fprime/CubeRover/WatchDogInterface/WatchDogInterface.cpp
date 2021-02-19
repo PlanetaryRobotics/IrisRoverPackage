@@ -93,6 +93,15 @@ namespace CubeRover {
   }
   
   void WatchDogInterfaceComponentImpl ::
+    CompResetRequest_handler(
+        const NATIVE_INT_TYPE portNum,
+        CubeRoverPorts::ResetValue reset
+    )
+  {
+    // TODO
+  }
+
+  void WatchDogInterfaceComponentImpl ::
     downlink_handler(
         const NATIVE_INT_TYPE portNum,
         Fw::Buffer &fwBuffer
@@ -375,7 +384,7 @@ namespace CubeRover {
         this->log_WARNING_HI_WatchDogTimedOut();
         return size_read;
     }
-    if(size_read < 0)
+    else if(size_read < 0)
     {
         *comm_error = ~size_read;
         this->log_WARNING_HI_WatchDogCommError(*comm_error);
@@ -395,16 +404,17 @@ namespace CubeRover {
     }
 
     uint64_t frame_bin = *((uint64_t *)header);
-    U8 test_parity = ~(((frame_bin & 0x00000000000000FFL) >> 0)  +
-                      ((frame_bin & 0x000000000000FF00L) >> 8)  +
-                      ((frame_bin & 0x0000000000FF0000L) >> 16) +
-                      ((frame_bin & 0x0000000000000000L) >> 24) +   // Don't use the parity in header as we calculate parity as if it was 0x00
-                      ((frame_bin & 0x000000FF00000000L) >> 32) +
-                      ((frame_bin & 0x0000FF0000000000L) >> 40) +
-                      ((frame_bin & 0x00FF000000000000L) >> 48) +
-                      ((frame_bin & 0xFF00000000000000L) >> 56));
+    // 0 if parity in packet is correct
+    uint8_t check_parity = ~(((frame_bin & 0x00000000000000FFL) >> 0)  +
+                             ((frame_bin & 0x000000000000FF00L) >> 8)  +
+                             ((frame_bin & 0x0000000000FF0000L) >> 16) +
+                             ((frame_bin & 0x00000000FF000000L) >> 24) +
+                             ((frame_bin & 0x000000FF00000000L) >> 32) +
+                             ((frame_bin & 0x0000FF0000000000L) >> 40) +
+                             ((frame_bin & 0x00FF000000000000L) >> 48) +
+                             ((frame_bin & 0xFF00000000000000L) >> 56));
 
-    if(header->parity != test_parity)
+    if(check_parity)
     {
         this->log_WARNING_HI_WatchDogIncorrectResp(bad_parity);
         return size_read;
@@ -449,7 +459,7 @@ namespace CubeRover {
         // TODO: Verify that the MTU for wired connection is the same as Wifi
         Fw::Buffer uplinked_data;
         payload_read = sciReceiveWithTimeout(scilinREG, header->payload_length,
-                                                 reinterpret_cast<uint8_t *>(uplinked_data.getdata()), 100000000);
+                                             reinterpret_cast<uint8_t *>(uplinked_data.getdata()), 100000000);
         *comm_error = 0;
 
         if (payload_read == header->payload_length)

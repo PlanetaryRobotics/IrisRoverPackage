@@ -51,14 +51,6 @@ namespace CubeRover {
       //!
       ~WatchDogInterfaceComponentImpl(void);
 
-      //! Implementation for Reset Specific for init of cuberover
-      //! Only difference between this and Reset_Specific_cmdHandler is no cmd response
-      bool Reset_Specific_Handler(
-          U8 reset_value /*!< 
-                      U8 Value that represents which things need to be reset
-                    */
-      );
-
     PRIVATE:
 
       // ----------------------------------------------------------------------
@@ -70,6 +62,13 @@ namespace CubeRover {
       void Run_handler(
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
           NATIVE_UINT_TYPE context /*!< The call order*/
+      );
+
+      //! Handler implementation for CompResetRequest
+      //!
+      void CompResetRequest_handler(
+          const NATIVE_INT_TYPE portNum, /*!< The port number*/
+          CubeRoverPorts::ResetValue reset 
       );
 
       //! Handler implementation for downlink
@@ -155,6 +154,15 @@ namespace CubeRover {
      };
 
      int Receive_Frame(uint32_t *comm_error, WatchdogFrameHeader *header);
+
+      //! Implementation for Reset Specific for init of cuberover
+      //! Only difference between this and Reset_Specific_cmdHandler is no cmd response
+      bool Reset_Specific_Handler(
+          U8 reset_value /*!< 
+                      U8 Value that represents which things need to be reset
+                    */
+      );
+
 
      public:
 

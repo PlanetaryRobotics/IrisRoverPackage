@@ -204,7 +204,7 @@ CubeRoverPorts_MODULES := \
 	CubeRover/CubeRoverPorts/IMUData \
 	CubeRover/CubeRoverPorts/MotorData \
 	CubeRover/CubeRoverPorts/MotorCommand \
-	CubeRover/CubeRoverPorts/WatchdogReset
+	CubeRover/CubeRoverPorts/WatchdogResetRequest
 	
 CubeRover_MODULES := \
 	CubeRover/Top \

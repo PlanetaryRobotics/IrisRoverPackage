@@ -5,11 +5,11 @@
  *      Author: cedric
  */
 
-#include <App/DMA.h>
 #include "sys_common.h"
+#include "sys_core.h"
 #include "system.h"
 
-#include <CubeRoverConfig.hpp>
+#include "CubeRoverConfig.hpp"
 #include "FreeRTOS.h"
 #include "os_task.h"
 #include "CubeRover/Top/Topology.hpp"
@@ -19,6 +19,13 @@
 #include "spi.h"
 #include "adc.h"
 #include "rti.h"
+#include "sys_dma.h"
+
+extern "C" {
+#include "sys_vim.h"    // WHY NO C++ LINKAGE :(
+}
+
+#include "App/DMA.h"
 
 extern "C" {
     void vApplicationIdleHook(void);
@@ -30,7 +37,8 @@ void vApplicationIdleHook(void) {
 }
 
 void vApplicationTickHook(void) {
-    run1cycle();
+    asm("  nop");
+    // run1cycle();
 }
 
 void vApplicationStackOverflowHook(void *xTask, char *pcTaskName) {
@@ -47,15 +55,19 @@ extern "C" void dmaCh3_ISR(dmaInterrupt_t inttype) {}
 void main(void)
 {
     /* USER CODE BEGIN (3) */
+    vimInit();
+
+    _enable_interrupt_();
 
     gioInit();
     i2cInit();
     sciInit();
     adcInit();
     spiInit();
+    dmaEnable();
     scidmaInit();
     
-    _enable_IRQ();                                      // Enable IRQ - Clear I flag in CPS register // @suppress("Function cannot be resolved")
+    // _enable_IRQ();                                      // Enable IRQ - Clear I flag in CPS register // @suppress("Function cannot be resolved")
 
     constructApp();
 
@@ -82,3 +94,4 @@ void main(void)
 
     /* USER CODE END */
 }
+

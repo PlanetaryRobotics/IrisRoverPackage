@@ -131,7 +131,7 @@ namespace CubeRover {
       // frame struct
       struct WatchdogFrameHeader {
         uint32_t magic_value    :24;
-        uint8_t parity          :8;
+        uint32_t parity         :8;
         uint16_t payload_length;
         uint16_t reset_val;
       } __attribute__((packed, aligned(8)));

@@ -373,8 +373,10 @@ namespace CubeRover {
 
   int WatchDogInterfaceComponentImpl::Receive_Frame(uint32_t *comm_error, struct WatchdogFrameHeader *header)
   {
-    while ((m_sci->FLR & (uint32)SCI_RX_INT) == 0U);
+    // while ((m_sci->FLR & (uint32)SCI_RX_INT) == 0U);
+    getDMAIntStatus(BTC);
     sciDMARecv(DMA_CH0, reinterpret_cast<char *>(header), sizeof(*header), ACCESS_8_BIT, &dmaReadBusy);
+    while (!((getDMAIntStatus(BTC) >> DMA_CH0) & 0x01U));
     while (dmaReadBusy);
     int size_read = sizeof(*header);
     *comm_error = 0;

@@ -5,29 +5,27 @@
 #include <stdio.h>
 #include <string.h>
 
+
+#define FTCA_INT 33
+#define BTCA_INT 40
+#define SCILIN_RX_DMA_CH   DMA_CH0   // DMA CH0 Highest Priority
+#define SCILIN_TX_DMA_CH   DMA_CH1
+#define SCI_RX_DMA_CH      DMA_CH2
+#define SCI_TX_DMA_CH      DMA_CH3
+
+
 g_dmaCTRL g_dmaCTRLPKT;
 
 
 /** @fn void scidmaInit()
 *   @brief Initialize the SCI and DMA to tranfer SCI data via DMA
-*   @note This function configures the SCI to trigger a DMA request when the SCI TX/RX is complete.
+*   @note This function configures the SCI to trigger a DMA request when the SCI TX/RX is complete. Does not explicitly
+*   enable DMA. Call dmaEnable prior to this.
 */
 void scidmaInit()
 {
-	dmaEnable();
+    // Make sure dmaEnable() has been called
 
-    dmaEnableInterrupt(DMA_CH0, BTC);	// DMA_CH0 is highest priority
-    dmaReqAssign(DMA_CH0, 28);          // SCI2 (LIN) RX
-    
-    dmaEnableInterrupt(DMA_CH1, BTC);
-    dmaReqAssign(DMA_CH1, 29);          // SCI2 (LIN) TX
-
-    dmaEnableInterrupt(DMA_CH2, BTC);
-    dmaReqAssign(DMA_CH2, 30);          // SCI RX
-
-    dmaEnableInterrupt(DMA_CH3, BTC);
-    dmaReqAssign(DMA_CH3, 31);          // SCI TX
-    
     // Define Default DMA control packet for each channel
 	g_dmaCTRLPKT.CHCTRL    = 0;                 /* channel control chain      */
 	g_dmaCTRLPKT.ELCNT     = 1;                 /* element count              */
@@ -39,39 +37,29 @@ void scidmaInit()
 	g_dmaCTRLPKT.TTYPE     = FRAME_TRANSFER ;   /* transfer type              */
     g_dmaCTRLPKT.AUTOINIT  = AUTOINIT_OFF;      /* autoinit                   */
 
-	vimChannelMap(33, 33, &dmaFTCAInterrupt);
-	vimChannelMap(40, 40, &dmaBTCAInterrupt);
+	// vimChannelMap(FTCA_INT, FTCA_INT, dmaFTCAInterrupt);
+	vimChannelMap(BTCA_INT, BTCA_INT, dmaBTCAInterrupt);
 
-	vimEnableInterrupt(33, SYS_IRQ);
-	vimEnableInterrupt(40, SYS_IRQ);
+	// vimEnableInterrupt(FTCA_INT, SYS_IRQ);
+	// vimEnableInterrupt(BTCA_INT, SYS_IRQ);
+
+	// See Hercules TRM (SPNU514C) Table 16-2 for DMA Request Line Connections
+    dmaEnableInterrupt(SCILIN_RX_DMA_CH, BTC);
+    dmaReqAssign(SCILIN_RX_DMA_CH, 28);
+    dmaSetPriority(SCILIN_RX_DMA_CH, HIGHPRIORITY);
+
+    dmaEnableInterrupt(SCILIN_TX_DMA_CH, BTC);
+    dmaReqAssign(SCILIN_TX_DMA_CH, 29);
+
+    dmaEnableInterrupt(SCI_RX_DMA_CH, BTC);
+    dmaReqAssign(SCI_RX_DMA_CH, 30);
+    dmaSetPriority(SCI_RX_DMA_CH, HIGHPRIORITY);
+
+    dmaEnableInterrupt(SCI_TX_DMA_CH, BTC);
+    dmaReqAssign(SCI_TX_DMA_CH, 31);
+
 
 } /* scidmaInit */
-
-
-/** @fn void betterdmaSetChEnable(uint32 channel,uint32 type)
-*   @brief Enable channel
-*   @param[in] channel DMA channel
-*   @param[in] type Type of triggering
-*                    - DMA_HW: Enables the selected DMA channel for hardware triggering
-*                    - DMA_SW: Enables the selected DMA channel for software triggering
-*
-*   This function enables the DMA channel for hardware or software triggering
-*/
-void betterdmaSetChEnable(uint32 channel,uint32 type)
-{
-    if(type == (uint32)DMA_HW)
-    {
-     dmaREG->HWCHENAS |= (uint32)1U << channel;
-    }
-    else if(type == (uint32)DMA_SW)
-    {
-     dmaREG->SWCHENAS |= (uint32)1U << channel;
-    }
-    else
-    {
-    /* Empty  */
-    }
-}
 
 
 /** @fn void sciDMASend(enum dmaCHANNEL channel, char *source_address, unsigned size, dmaACCESS_t access, volatile bool *busy)
@@ -96,10 +84,10 @@ void sciDMASend(enum dmaCHANNEL channel, char *source_address, unsigned size, dm
     g_dmaCTRLPKT.ADDMODEWR = ADDR_FIXED;                                /* address mode write (dest)  */
     g_dmaCTRLPKT.SADD   = (uint32)source_address;                       /* source address             */
     switch (channel) {
-        case DMA_CH1:
+        case SCILIN_TX_DMA_CH:
             g_dmaCTRLPKT.DADD   = (uint32)(&(scilinREG->TD));           /* Destination address        */
             break;
-        case DMA_CH3:
+        case SCI_TX_DMA_CH:
             g_dmaCTRLPKT.DADD   = (uint32)(&(sciREG->TD));              /* Destination address        */
             break;
         default:
@@ -114,11 +102,11 @@ void sciDMASend(enum dmaCHANNEL channel, char *source_address, unsigned size, dm
 
     /* Enable TX DMA */
     switch (channel) {
-        case DMA_CH1:
-            scilinREG->SETINT |= (1 << 16);
+        case SCILIN_TX_DMA_CH:
+            scilinREG->SETINT = (1 << 16);
             break;
-        case DMA_CH3:
-            sciREG->SETINT |= (1 << 16);
+        case SCI_TX_DMA_CH:
+            sciREG->SETINT = (1 << 16);
             break;
         default:
             return;     // Invalid DMA channel from mapping selected. Not assigned to SCI TX
@@ -149,14 +137,14 @@ void sciDMARecv(enum dmaCHANNEL channel, char *dest_address, unsigned size, dmaA
     g_dmaCTRLPKT.ADDMODEWR = ADDR_INC1;                                 /* address mode write (dest)  */
     g_dmaCTRLPKT.DADD   = (uint32)dest_address;                         /* destination address        */
     switch (channel) {
-        case DMA_CH0:
+        case SCILIN_RX_DMA_CH:
             g_dmaCTRLPKT.SADD   = (uint32)(&(scilinREG->RD));           /* Source address             */
             break;
-        case DMA_CH2:
+        case SCI_RX_DMA_CH:
             g_dmaCTRLPKT.SADD   = (uint32)(&(sciREG->RD));              /* Source address             */
             break;
         default:
-            return;     // Invalid DMA channel from mapping selected. Not assigned to SCI RX
+            return;     // Invalid DMA  int status =channel from mapping selected. Not assigned to SCI RX
     }
 
     /* - setting dma control packets for transmit */
@@ -167,17 +155,46 @@ void sciDMARecv(enum dmaCHANNEL channel, char *dest_address, unsigned size, dmaA
 
     /* Enable RX DMA */
     switch (channel) {
-        case DMA_CH0:
-            scilinREG->SETINT |= (1 << 18) | (1 << 17);
+        case SCILIN_RX_DMA_CH:
+            scilinREG->SETINT = (1 << 18) | (1 << 17);
             break;
-        case DMA_CH2:
-            sciREG->SETINT |= (1 << 18) | (1 << 17);
+        case SCI_RX_DMA_CH:
+            sciREG->SETINT = (1 << 18) | (1 << 17);
             break;
         default:
             return;     // Invalid DMA channel from mapping selected. Not assigned to SCI RX
     }
 
 } /* scidmaRecv */
+
+
+/** @fn int getDMAIntStatus( enum dmaInterrupt intType)
+ *  @brief Returns whether an interrupt is pending for the provided DMA channel and interrupt type.
+ *
+ *  Returns the offset corresponding to the interrupt status register. 0 means no interrupts pending.
+ *  First 15 bits corespond to channels that have interrupts pending.
+ *
+ *  Shift right with DMA_CHx AND 0x01U to get boolean whether channel x had an interrupt pending.
+ *
+ */
+unsigned getDMAIntStatus(enum dmaInterrupt intType) {
+    unsigned offset;
+    switch (intType) {
+        case FTC:
+            offset = dmaREG->FTCAOFFSET & 0x3fU;
+            break;
+        case LFS:
+            offset =  dmaREG->LFSAOFFSET & 0x3fU;
+            break;
+        case HBC:
+            offset = dmaREG->HBCAOFFSET & 0x3fU;
+            break;
+        case BTC:
+            offset = dmaREG->BTCAOFFSET & 0x3fU;
+            break;
+    }
+    return offset;
+}
 
 
 /** @fn void sciEnableMBUFF(sciBASE_t *sci, uint8_t bitsPerChar, uint8_t charPerFrame)

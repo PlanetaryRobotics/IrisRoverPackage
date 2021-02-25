@@ -217,17 +217,15 @@ CubeRover_MODULES := \
 	CubeRover/GroundInterface \
 	CubeRover/WatchDogInterface \
 	CubeRover/Camera \
-	CubeRover/CubeRoverPorts/CameraSelect \
-	CubeRover/CubeRoverPorts/FileDownlink \
 	CubeRover/ComLogger \
-
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \
 	$(CUBEROVER_DRV_MODULES) \
 	$(CubeRoverPorts_MODULES) \
 	$(UTILS_MODULES)
-	
+	#CubeRover/CubeRoverPorts/CameraSelect \
+	#CubeRover/CubeRoverPorts/FileDownlink \	
 # Other modules to build, but not to link with deployment binaries
 OTHER_MODULES := \
 	gtest \

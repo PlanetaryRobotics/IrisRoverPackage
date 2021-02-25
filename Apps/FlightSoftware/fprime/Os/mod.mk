@@ -30,7 +30,8 @@ HDR = 			Queue.hpp \
 				ValidateFile.hpp \
 				FileSystem.hpp \
 				LocklessQueue.hpp \
-				ValidatedFile.hpp
+				ValidatedFile.hpp \
+				FreeRTOS/FRAM_File.hpp
 
 SRC_LINUX=      Posix/IPCQueue.cpp \
                	Pthreads/Queue.cpp \
@@ -98,7 +99,9 @@ SRC_RASPIAN =   Pthreads/Queue.cpp \
 				FreeRTOS/IntervalTimer.cpp	\
 				FreeRTOS/InterruptLock.cpp	\
 				FreeRTOS/File.cpp \
-				FreeRTOS/S25fl064l.cpp
+				FreeRTOS/S25fl064l.cpp \
+				FreeRTOS/CY15B102Q.cpp \
+				FreeRTOS/FRAM_File.cpp
 				
 
 

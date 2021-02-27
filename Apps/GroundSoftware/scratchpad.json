@@ -24,6 +24,7 @@
             ]
           },
           "enum": [],
+          "bitfields": null,
           "metadata": {}
         }
       }
@@ -40,9 +41,8 @@
           "type": {
             "py/id": 4
           },
-          "enum": {
-            "py/id": 5
-          },
+          "enum": [],
+          "bitfields": null,
           "metadata": {}
         }
       }
@@ -68,9 +68,8 @@
               }
             ]
           },
-          "enum": {
-            "py/id": 5
-          },
+          "enum": [],
+          "bitfields": null,
           "metadata": {}
         }
       }

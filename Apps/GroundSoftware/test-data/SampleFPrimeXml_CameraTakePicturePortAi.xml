@@ -1,0 +1,22 @@
+<!--Throwing these extra specifiers up here as a test to make sure they're ignored correctly. -->
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Type_Schema.rnc" type="compact"?>
+<interface name="CameraTakePicture" namespace="CubeRover">
+
+    <comment>
+    Port to select camera to take an picture
+    </comment>
+
+    <args>
+        
+        <arg name="CameraNum" type="U8">
+            <comment>Camera Number</comment>
+        </arg>
+        
+        <arg name="CallbackId" type="U16">
+            <comment>Identifier downlinked with the image allowing us to map the command which triggered image capture to this image</comment>
+        </arg>
+
+    </args>
+
+</interface>

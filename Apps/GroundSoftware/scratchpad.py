@@ -1,3 +1,4 @@
+import re
 from lxml import etree
 import os.path
 import pickle
@@ -42,13 +43,41 @@ print(cmds2 == commands)
 test_file = './test-data/SampleFPrimeXml.xml'
 tree_topology = etree.parse(test_file)
 
-command_tree = tree_topology.xpath("/component/commands/command")
-command_src = command_tree[1]
-arg_tree = command_src.xpath("args/arg")
-arg_src = arg_tree[0]
-print(arg_src)
+# do it for any tag with 'import_*' in the name
+imports = tree_topology.xpath('//*[starts-with(local-name(), "import_dict")]')
+print([im.text for im in imports])
 
+imported_tree = etree.parse(imports[0].text)
+print(imported_tree)
 
+text = r"""
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Type_Schema.rnc" type="compact"?>
+<interface name="Com" namespace="Fw">
+    <include_header>Fw/Com/ComBuffer.hpp</include_header>
+    <comment>
+        Port for passing communication packet buffers
+    </comment>
+    <args>
+        <arg name="data" type="ComBuffer" pass_by="reference">
+            <comment>Buffer containing packet data</comment>
+        </arg>
+        <arg name="context" type="U32" pass_by="value">
+            <comment>Call context value; meaning chosen by user</comment>
+        </arg>
+    </args>
+</interface>"""
+
+# Remove all info tags from the file (eg.'<?xml ?>')
+# ... since two mismatching specs can't be merged anyway.
+text = re.sub(r'<\?.*\?>', '', text)
+
+port_import = etree.fromstring(text, parser=etree.XMLParser())
+
+imports[0].getparent().replace(imports[0], imported_tree.getroot())
+
+print('pause')
+"""
 #
 #
 #
@@ -110,3 +139,4 @@ events = tree.xpath(xpath_events)
 #
 ##
 #
+"""

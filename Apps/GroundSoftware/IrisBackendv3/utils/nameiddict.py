@@ -7,7 +7,7 @@ A dictionary where each value is keyed by both a string name and numeric id.
 Used for looking up modules, commands, etc. by either name or opcode/id.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 01/17/2021
+@last-updated: 01/23/2021
 """
 
 # Activate postponed annotations (for using classes as return type in their own methods):
@@ -25,10 +25,14 @@ class NameIdDict(MutableMapping[Tuple[int, str], VT]):
     """
     A dictionary where each value is keyed by *both* a string name and integer ID.
 
-    This is handled by a map from IDs to [VT] data (values) and a separate map
-    from names to corresponding IDs. As such, multiple names can map to the
-    same ID, though that should be done with some careful consideration since
-    the meaning of the map might become less useful in some contexts.
+    The internal principle of operation is that there is an inner dict
+    (`id_dict`) mapping IDs to [VT] values and an outer dict (`name_id_mapping`)
+    mapping one or more names to each ID.
+    As such, multiple names can map to the same ID, though that should be done
+    with some careful consideration since the meaning of the map might become
+    less useful in some contexts.
+    In addition, there are a lot of supporting checks to make sure this expected
+    structure stays intact.
     """
 
     # Standard indexing tuple of integer ID and string name. Used for adding new
@@ -51,17 +55,47 @@ class NameIdDict(MutableMapping[Tuple[int, str], VT]):
         sort_dicts=False
     )
 
+    class NamelessIDException(Exception):
+        """All names which used to map to an ID no longer map to that ID."""
+
+        def __init__(self, ID: int, info: str = "") -> None:
+            self.message = f"""
+                All names which used to map to ID {ID} now (or are about to) no 
+                longer map to this ID.
+                This may be okay given your application but suggests improper use
+                since `NameIdDict`s are typically used where each entry has a 
+                corresponding ID and at least one name.
+                {info}.
+                """
+            super().__init__(self.message)
+
+    def check_safe_to_remap(self, name: str, ID: int) -> None:
+        """
+        Check whether it's safe to remap the given name to the given ID.
+
+        Throws a relevant exception if there's a problem.
+        """
+        # Check if name already maps to some ID (and thus could be remapped):
+        if name in self.name_id_mapping:
+            old_id = self.name_id_mapping[name]
+            # Check if this name is being remapped to a new ID:
+            if old_id != ID:
+                # Ensure that after remapping the old ID will still have
+                # at least 1 name mapping to it:
+                if sum([i == old_id for i in self.name_id_mapping.values()]) <= 1:
+                    raise NameIdDict.NamelessIDException(ID=old_id)
+
     @staticmethod
     def is_valid_key_tuple(key: Any) -> bool:
-        """Check whether the given key is a valid key tuple (of type Tuple[int,str].)"""
+        """Check whether the given key is a valid key tuple(of type Tuple[int, str].)"""
         return isinstance(key, tuple) and len(key) == 2 and isinstance(key[0], int) and isinstance(key[1], str)
 
     @staticmethod
     def is_valid_key_enumerator(key: Any) -> bool:
         """
-        Check whether the given key is a valid enumerator of all names which map to a given ID (of type List|Tuple[List[str],int]).
+        Check whether the given key is a valid enumerator of all names which map to a given ID(of type List | Tuple[List[str], int]).
 
-        Key enumerators allow for completely caching and rebuilding a NameIdDict 
+        Key enumerators allow for completely caching and rebuilding a NameIdDict
         with the output of `collect()`.
         """
         return (
@@ -124,11 +158,11 @@ class NameIdDict(MutableMapping[Tuple[int, str], VT]):
 
         If the given index isn't already in the NameIdDict, both an integer ID and string name must be given.
 
-        *Notes for indexing with tuples:*
+        *Notes for indexing with tuples: *
         If the name already exists but a new or different ID is being used, the name will be remapped to the value associated with the given ID.
         (Each unique name can only map to one unique ID).
 
-        If an entry with this ID already exists, its [VT] data will be updated.
+        If an entry with this ID already exists, its[VT] data will be updated.
         The previous string which mapped to this ID will be preserved but it
         will now map to this new updated value.
         """
@@ -151,16 +185,28 @@ class NameIdDict(MutableMapping[Tuple[int, str], VT]):
             names, ID = key
             self.id_dict[ID] = value
             for name in names:
+                # Could do the following check more efficiently by first
+                # collecting all of the given names which map to a common ID
+                # (which could happen often) and then check that the number of
+                # total names mapping to each common ID is > the number of names
+                # being remapped.
+                # HOWEVER, this check is only (at most) moderately expensive
+                # when the NameIdDict contains a *lot* of name entries and is
+                # names are being remapped in batches (which suggests poor usage
+                # to begin with). For the current application, this considered
+                # unlikely enough to not warrant bifurcating this check function.
+                self.check_safe_to_remap(name, ID)
                 self.name_id_mapping[name] = ID
 
         elif self.is_valid_key_tuple(key):
             key = cast(NameIdDict.KeyTuple, key)
             self.id_dict[key[0]] = value
+            self.check_safe_to_remap(key[1], key[0])
             self.name_id_mapping[key[1]] = key[0]
 
         else:
             raise TypeError(
-                "NameIdDict should only have values set with a Tuple[int,str], List|Tuple[List[str],int], or the names or IDs of existing entries"
+                "NameIdDict should only have values set with a Tuple[int,str], List|Tuple[List[str],int], or the names or IDs of existing entries."
             )
 
     def __delitem__(self, key: Union[int, str, NameIdDict.KeyTuple, NameIdDict.KeyEnumerator]) -> None:
@@ -273,30 +319,30 @@ class NameIdDict(MutableMapping[Tuple[int, str], VT]):
 
     def __len__(self) -> int:
         """
-        Return number of pieces of mapped [VT] data with unique IDs.
+        Return number of pieces of mapped[VT] data with unique IDs.
 
         Note: there may be more names stored than this since multiple names can
-        map to the same ID *but*, in order to coincide with number of entries
+        map to the same ID * but*, in order to coincide with number of entries
         which are visited by `__iter__`, this only returns the number of pieces
-        of mapped data with unique IDs (since the iterator ensures each is only
+        of mapped data with unique IDs(since the iterator ensures each is only
         visited once).
         """
         return len(self.id_dict)
 
     def fast_items(self) -> Iterator[Tuple[NameIdDict.KeyTuple, VT]]:
         """
-        Create an iterator which will loop through each piece of stored data [VT] once.
+        Create an iterator which will loop through each piece of stored data[VT] once.
 
         Slightly faster than items itself since fewer checks need to be
-        done when getting items (we already know all keys are valid).
+        done when getting items(we already know all keys are valid).
 
-        Iterator's __next__ returns a tuple pairing an (id and a name) to a
+        Iterator's __next__ returns a tuple pairing an(id and a name) to a
         piece of data.
 
         Output will be sorted by ID, not in insertion order.
 
-        If multiple names map to the same ID, only one name (likely the
-        *latest* entry) will be visited to ensure that each piece of mapped
+        If multiple names map to the same ID, only one name(likely the
+        * latest * entry) will be visited to ensure that each piece of mapped
         data is only visited once.
 
         Use `collect()` if you want every name for each ID to be included in the output.
@@ -324,14 +370,14 @@ class NameIdDict(MutableMapping[Tuple[int, str], VT]):
 
     def __iter__(self) -> Iterator[NameIdDict.KeyTuple]:
         """
-        Create an iterator which will return keys that will map to each piece of stored data [VT] once.
+        Create an iterator which will return keys that will map to each piece of stored data[VT] once.
 
-        Iterator's __next__ returns an (ID, name) tuple for each unique *ID*.
+        Iterator's __next__ returns an(ID, name) tuple for each unique * ID*.
 
         Output will be sorted by ID, not in insertion order.
 
-        If multiple names map to the same ID, only one name (likely the
-        *latest* entry) will be visited to ensure that each piece of mapped
+        If multiple names map to the same ID, only one name(likely the
+        * latest * entry) will be visited to ensure that each piece of mapped
         data is only visited once if these are used to fetch data.
         """
         # Guards:
@@ -355,15 +401,15 @@ class NameIdDict(MutableMapping[Tuple[int, str], VT]):
 
     def update(self, other=(), /, **kwargs) -> None:
         """
-        Include all data from the given dataset (other NameIdDict, mapping, or iterable).
+        Include all data from the given dataset(other NameIdDict, mapping, or iterable).
 
-        Ignore `kwargs` since the keys will be strings not Tuple[int,str].
+        Ignore `kwargs` since the keys will be strings not Tuple[int, str].
         `kwargs` needs to stay in the signature to maintain compatability with
         MutableMapping.
         It's reasonable to consider that no user with an understanding of this
         class will try to feed in values via `kwargs` since string-keyed
         dictionaries are inherently incompatible with the fundamental idea of
-        this class (where each entry has *both* string and integer keys).
+        this class (where each entry has * both * string and integer keys).
         """
         if isinstance(other, NameIdDict):
             for ke, value in other.collect():
@@ -380,7 +426,7 @@ class NameIdDict(MutableMapping[Tuple[int, str], VT]):
 
     @property
     def names(self) -> List[str]:
-        """Return all the unique names as a list (even if multiple names map to the same ID)."""
+        """Return all the unique names as a list(even if multiple names map to the same ID)."""
         return list(self.name_id_mapping.keys())
 
     @property
@@ -390,7 +436,7 @@ class NameIdDict(MutableMapping[Tuple[int, str], VT]):
 
     @property
     def vals(self) -> List[VT]:
-        """Return all [VT] data values as a list. If multiple unique IDs have the same value, values will be duplicated."""
+        """Return all[VT] data values as a list. If multiple unique IDs have the same value, values will be duplicated."""
         return list(self.id_dict.values())
 
     @property
@@ -399,18 +445,18 @@ class NameIdDict(MutableMapping[Tuple[int, str], VT]):
         Somewhat inefficient but consistent way of getting all KeyEnumerators.
 
         Really just a shorthand.
-        Importantly, this method is guaranteed to be consistent with the 
-        ordering (sorted) of the output of `collect()` (since it just uses that 
+        Importantly, this method is guaranteed to be consistent with the
+        ordering(sorted) of the output of `collect()` (since it just uses that
         output).
         """
         return [ke for ke, _ in self.collect()]
 
     def collect(self) -> List[Tuple[KeyEnumeratorTuple, VT]]:
         """
-        Collect all names which map to each registed ID pair and return as Tuple list alongside each registered ID's corresponding [VT] data.
+        Collect all names which map to each registed ID pair and return as Tuple list alongside each registered ID's corresponding[VT] data.
 
-        This implicitly returns a list of tuples containing all KeyEnumerators 
-        and their matching values. This guarantee must be ensured for the sake 
+        This implicitly returns a list of tuples containing all KeyEnumerators
+        and their matching values. This guarantee must be ensured for the sake
         of using this as a possible serialization method.
 
         As a requirement, the returned list should be sorted by ID and each of the names lists should also be sorted using standard string comparison.
@@ -441,7 +487,11 @@ class NameIdDict(MutableMapping[Tuple[int, str], VT]):
                 id_names.append(n)
             elif len(id_names) == 0:
                 # If no names have matched this candidate ID including the current one, none will. This is wrong:
-                raise ValueError(f"No names map to ID {ids[ID_idx]}.")
+                raise ValueError(
+                    f"No names map to ID {ids[ID_idx]}. "
+                    "Did you remap all the names which used to map this ID to a different ID? "
+                    "Look for a `NamelessIDException` to confirm."
+                )
             elif ID_idx < len(ids)-1:
                 # Add all names which correspond with this candidate ID to the collection:
                 name_collections.append(sorted(id_names))
@@ -490,10 +540,10 @@ class NameIdDict(MutableMapping[Tuple[int, str], VT]):
         """
         Return serializable data for `pickle` (or `jsonpickle`).
 
-        Simply a dict containing the two core dicts `id_dict` and 
-        `name_id_mapping` could work but the output from `collect()` is used 
-        instead so that this data is more ordered and intelligible when it's 
-        loaded in another language which doesn't have these classes or read by a 
+        Simply a dict containing the two core dicts `id_dict` and
+        `name_id_mapping` could work but the output from `collect()` is used
+        instead so that this data is more ordered and intelligible when it's
+        loaded in another language which doesn't have these classes or read by a
         human.
         """
         data = self.collect()

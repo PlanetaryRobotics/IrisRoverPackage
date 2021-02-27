@@ -1,0 +1,20 @@
+<interface name="FileDownlink" namespace="CubeRover">
+    <import_serializable_type>Fw/Buffer/BufferSerializableAi.xml</import_serializable_type>
+
+    <comment>
+        Port to downlink a file and it's metadata
+    </comment>
+
+    <args>
+        <arg name="callbackId" type="U16">
+            <comment>Metadata Field: Unique Id to map this file to the command that generated it</comment>
+        </arg>
+        <arg name="createTime" type="U32">
+            <comment>Metadata Field: Time the file was created in ms epoch</comment>
+        </arg>
+        <arg name="fwBuffer" type="Fw::Buffer" pass_by="reference">
+            <comment>Buffer containing the data</comment>
+        </arg>
+    </args>
+
+</interface>

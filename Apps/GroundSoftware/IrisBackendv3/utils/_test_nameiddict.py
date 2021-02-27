@@ -6,7 +6,7 @@ It's important for these tests to be rigorous since this class forms the
 backbone of the Backend DataStandards.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 01/18/2021
+@last-updated: 01/23/2021
 """
 import pytest
 from typing import Any, List, Union, Tuple
@@ -371,10 +371,19 @@ class SetItemSuite(object):
         (Each unique name can only map to one unique ID).
 
         Note: for the purposes of this test, it's fine that `self.new_id` won't be new for all but the first test. In fact, this is desired since
-        we also get to test what happens when mapping to a different but already extant ID.
+        we also get to test what happens when mapping to a different but already extant ID. Really this only *needs* to be
+        performed for one name.
         """
         for (names, ID), _ in self.copy_commands.collect():
             for name in names:
+                # Ensure this name's current ID will have other names mapping to
+                # it (so we're not making it nameless):
+                old_id = self.copy_commands.name_id_mapping[name]
+                if sum([old_id == i for i in self.copy_commands.name_id_mapping.values()]) <= 1:
+                    new_name = "".join(self.copy_commands.names)
+                    self.copy_commands[old_id,
+                                       new_name] = self.copy_commands[name]
+
                 unique_val = self.new_val + name + str(ID)
                 self.copy_commands[self.new_id, name] = unique_val
                 # Should now be mapped to new val:
@@ -421,6 +430,47 @@ class SetItemSuite(object):
                 f"Didn't correctly set the value for the new index pairing (({ID},{newer_name})) to {unique_val}."
             assert self.copy_commands[newer_name] == unique_val, \
                 f"Didn't correctly set the value for the new index pairing (({ID},{newer_name})) to {unique_val}."
+
+    def test_making_id_nameless(self):
+        """Ensure that if a user accidentally makes an ID nameless, it's flagged."""
+        nid: NameIdDict[str] = NameIdDict()
+        # Mapping new names to new or existing IDs should be fine:
+        try:
+            nid[0x01, "Name A"] = 'value 1'
+            nid[0x02, "Name B"] = 'value 2'
+            nid[0x02, "Name C"] = nid[0x02]
+            nid[0x03, "Name D"] = 'value 3'
+            nid[0x03, "Name E"] = nid[0x03]
+            nid[0x03, "Name F"] = nid[0x03]
+        except Exception as e:
+            pytest.fail(
+                "Mapping new names to new or existing IDs shouldn't produce an error."
+                f"\nProduced exception: {e}"
+            )
+
+        # Shouldn't raise an error b/c there's still one name:
+        try:
+            nid[0x04, "Name B"] = 'value 4'
+        except Exception as e:
+            pytest.fail(
+                "Remapping `Name B` from ID 0x02 to ID 0x03 shouldn't have "
+                "produced an error since there is still another name mapping "
+                "to ID 0x02."
+                f"\nProduced exception: {e}"
+            )
+
+        # All methods of remapping the last name for an ID should produce an error:
+        # With a tuple:
+        with pytest.raises(NameIdDict.NamelessIDException):
+            nid[0x04, "Name A"] = nid[0x04]
+
+        # With a KeyEnumerator containing a single name:
+        with pytest.raises(NameIdDict.NamelessIDException):
+            nid[["Name C"], 0x04] = nid[0x04]
+
+        # Remapping all names using a KeyEnumerator:
+        with pytest.raises(NameIdDict.NamelessIDException):
+            nid[["Name D", "Name E", "Name F"], 0x04] = nid[0x04]
 
     def test_index_with_flipped_tuple(self):
         # For existing values:

@@ -4,6 +4,12 @@
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        "--verbose"
+    ],
+    "python.linting.pylintEnabled": false,
+    "python.linting.mypyEnabled": true,
+    "python.linting.enabled": true,
     "cSpell.words": [
         "backendv",
         "fprime",
@@ -11,19 +17,26 @@
         "iterator",
         "iterator's",
         "jsonpickle",
+        "mcu",
+        "mcu's",
         "misordered",
         "mispaired",
         "paren",
         "pformat",
         "pytest",
+        "queue",
+        "rssi",
         "serializable",
         "struct",
-        "vals"
+        "structs",
+        "tele",
+        "telem",
+        "vals",
+        "yamcs"
     ],
-    "python.linting.pylintEnabled": false,
-    "python.linting.mypyEnabled": true,
-    "python.linting.enabled": true,
     "cSpell.ignoreWords": [
+        "atatype",
+        "dd",
         "jsonpickled",
         "jsonpickling",
         "vformat"

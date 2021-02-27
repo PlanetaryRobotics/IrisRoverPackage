@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.8.5
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run
+.PHONY = help init update clean run cloc
 
 .DEFAULT_GOAL = help
 all: help
@@ -19,6 +19,8 @@ help:
 	@echo "	make clean: Teardown and Cleanup the Development Environment"
 	@echo " "
 	@echo "	make run: Run the application (in development mode)"
+	@echo " "
+	@echo "	make cloc: Count Lines Of Code (and comments) by language, excluding builds and libraries."
 	@echo "----------------------------------"
 
 
@@ -68,3 +70,9 @@ clean:
 ####
 run:
 	pyenv exec ${PYTHON} IrisBackendv3/main.py
+
+####
+# Count Lines of Code (for fun):
+####
+cloc:
+	cloc --exclude-dir=__pycache__,node_modules,.idea,.mypy_cache,.pytest_cache .

@@ -9,7 +9,8 @@ Created on Fri Nov 20 13:18:56 2020
 import pcapng as pcap  # type: ignore
 
 """
-standards = DataStandards()
+# parse CLI opts inputs
+standards = DataStandards() 
 database = MongoInterface()
 codec = IrisCodec() | ArtemisCodec()
 transceiver = YAMCSTransceiver()

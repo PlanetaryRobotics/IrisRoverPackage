@@ -1,6 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
+
 <component name="Camera" kind="passive" namespace="CubeRover">
-    <import_port_type>CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAi.xml</import_port_type>
-    <import_port_type>CubeRover/CubeRoverPorts/CameraTakePicture/CameraTakePicturePortAi.xml</import_port_type>
+    <import_port_type>SampleFPrimeXml_FileDownlinkPortAi.xml</import_port_type>
+    <import_port_type>SampleFPrimeXml_CameraTakePicturePortAi.xml</import_port_type>
+    <import_dictionary>test-data/SampleFPrimeXml_EventsDict.xml</import_dictionary>
 
     <comment>Manages the CubeRover cameras</comment>
     <ports>
@@ -15,79 +19,8 @@
             </comment>
         </port>
     </ports>
-            
-    <!-- Logs stolen from NetworkManager -->
-    <events>
-        <event id="0" name="StateChange" severity="ACTIVITY_HI" format_string="WF121 State Changed %d -> %d">
-            <comment>Emit event when ever a state transition occurs within the WF121</comment>
-            <args>
-                <arg name="from_state" type="ENUM">
-                    <enum name="networkmanager_state_from">
-                        <item name="from_UNINITIALIZED"/>
-                        <item name="from_INITIALIZEED"/>
-                        <item name="from_WIFI_TURNING_ON"/>
-                        <item name="from_WIFI_ON"/>
-                        <item name="from_SCANNING"/>
-                        <item name="from_SCANNED"/>
-                        <item name="from_CONNECTING"/>
-                        <item name="from_CONNECTED"/>
-                        <item name="from_UDP_CONNECTED"/>
-                    </enum>
-                </arg>
-                <arg name="to_state" type="ENUM">
-                    <enum name="networkmanager_state_to">
-                        <item name="to_UNINITIALIZED"/>
-                        <item name="to_INITIALIZEED"/>
-                        <item name="to_WIFI_TURNING_ON"/>
-                        <item name="to_WIFI_ON"/>
-                        <item name="to_SCANNING"/>
-                        <item name="to_SCANNED"/>
-                        <item name="to_CONNECTING"/>
-                        <item name="to_CONNECTED"/>
-                        <item name="to_UDP_CONNECTED"/>
-                    </enum>
-                </arg>
-            </args>
-        </event>
-        <event id="1" name="ExecuteCallbackError" severity="WARNING_HI" format_string="ExecuteCallBackError %d">
-            <comment>Emit event when there is an error executing a WF121 callback</comment>
-            <args>
-                <arg name="ErrorCode" type="U16"/>
-            </args>
-        </event>
-        <event id="2" name="WF121InitializationFailed" severity="FATAL" format_string="WF121 Failed to initialize">
-            <comment>Emit event when there is an error executing a WF121 callback</comment>
-        </event>
-    </events>
-    
-    <telemetry>
-        <channel id="0" name="Cam_ComponentImagesRequested" data_type="U32" update = "on_change">
-            <comment>
-                Number of images requested by other Fprime components
-            </comment>
-        </channel>
-        <channel id="1" name="Cam_CommandImagesRequested" data_type="U32" update = "on_change">
-            <comment>
-                Number of images commanded from the ground
-            </comment>
-        </channel>
-        <channel id="2" name="Cam_ImagesSent" data_type="U32" update = "on_change">
-            <comment>
-                Number of images sent for downlink
-            </comment>
-        </channel>
-        <channel id="3" name="Cam_BytesSent" data_type="U32" update = "on_change">
-            <comment>
-                Number of bytes sent for downlink
-            </comment>
-        </channel>
-        <channel id="4" name="Cam_LatestCallbackId" data_type="U16" update="on_change">
-            <comment>
-                The latest callback ID that triggerd an image to be taken
-            </comment>
-        </channel>
-        <!-- Error telemetry items? -->
-    </telemetry>
+
+    <import_dictionary>SampleFPrimeXml_TelemetryDict.xml</import_dictionary>
         
     <commands>
         <command kind="sync" opcode="0x0" mnemonic="Get_Status">
@@ -157,7 +90,7 @@
                                 "BEEP", 0xB009,
                                 "enum": {
                                     "CLEAR": 0,
-                                    "READ": 1
+                                    "READ": 255
                                 }
                             }}JSONEND}]]>
                     </comment>

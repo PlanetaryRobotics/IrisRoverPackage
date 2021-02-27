@@ -2,9 +2,23 @@
   <div class="segmentModal" id="segmentModal">
     <!-- HEADER -->
     <div class="header">
-      <div class="header__title bold">{{action.charAt(0) + action.substring(1).toLowerCase()}}</div> <!-- TODO: UPDATE THIS -->
-      <svg class="header__close" @click="closeModal()" width="12" height="13" viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M11.8866 0.822569C12.0329 0.674049 12.0329 0.43325 11.8866 0.28473C11.7402 0.13621 11.5029 0.13621 11.3566 0.28473L5.99999 5.72043L0.643436 0.284741C0.497078 0.136221 0.259785 0.136221 0.113427 0.284741C-0.0329308 0.433261 -0.0329308 0.67406 0.113427 0.82258L5.46999 6.25827L0.109768 11.6977C-0.0365894 11.8462 -0.0365896 12.087 0.109768 12.2355C0.256126 12.384 0.49342 12.384 0.639778 12.2355L5.99999 6.79611L11.3602 12.2355C11.5066 12.384 11.7439 12.384 11.8902 12.2355C12.0366 12.087 12.0366 11.8462 11.8902 11.6977L6.53 6.25827L11.8866 0.822569Z" fill="#FCFCFC"/>
+      <div class="header__title bold">
+        {{ action.charAt(0) + action.substring(1).toLowerCase() }}
+      </div>
+      <!-- TODO: UPDATE THIS -->
+      <svg
+        class="header__close"
+        @click="closeModal()"
+        width="12"
+        height="13"
+        viewBox="0 0 12 13"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M11.8866 0.822569C12.0329 0.674049 12.0329 0.43325 11.8866 0.28473C11.7402 0.13621 11.5029 0.13621 11.3566 0.28473L5.99999 5.72043L0.643436 0.284741C0.497078 0.136221 0.259785 0.136221 0.113427 0.284741C-0.0329308 0.433261 -0.0329308 0.67406 0.113427 0.82258L5.46999 6.25827L0.109768 11.6977C-0.0365894 11.8462 -0.0365896 12.087 0.109768 12.2355C0.256126 12.384 0.49342 12.384 0.639778 12.2355L5.99999 6.79611L11.3602 12.2355C11.5066 12.384 11.7439 12.384 11.8902 12.2355C12.0366 12.087 12.0366 11.8462 11.8902 11.6977L6.53 6.25827L11.8866 0.822569Z"
+          fill="#FCFCFC"
+        />
       </svg>
     </div>
 
@@ -12,35 +26,54 @@
     <div class="toggle">
       <div class="toggle__label formLabel">Type</div>
       <div class="toggle__container">
-        <div ref="segmentToggle" class="toggle__button--left" :class="{selected: show.segmentForm}" @click.capture="toggleType('segment')">
-          Segment
+        <div
+          ref="segmentToggle"
+          class="toggle__button--left"
+          :class="{ selected: show.segmentForm }"
+          @click.capture="toggleType('segment')"
+        >
+          Waypoint
         </div>
-        <div ref="circumnavToggle" class="toggle__button--right" :class="{selected: !show.segmentForm}" @click.capture="toggleType('circum')">
+        <div
+          ref="circumnavToggle"
+          class="toggle__button--right"
+          :class="{ selected: !show.segmentForm }"
+          @click.capture="toggleType('circum')"
+        >
           Circumnav.
         </div>
       </div>
     </div>
 
     <!-- DIVIDER -->
-    <div class="divider"/>
+    <div class="divider" />
 
     <!-- ADD SEGMENT FORM -->
     <div v-if="show.segmentForm">
-      <AddSegmentForm :route = "route" v-if="action === 'ADD'"/>
-      <EditSegmentForm :route = "route" :segment = "segment" :segmentIndex = "segmentIndex" v-else/>
+      <AddSegmentForm :route="route" v-if="action === 'ADD'" />
+      <EditSegmentForm
+        :route="route"
+        :segment="segment"
+        :segmentIndex="segmentIndex"
+        v-else
+      />
     </div>
 
     <!-- CIRCUMNAV FORM -->
     <div v-if="!show.segmentForm">
-      <AddCircumnavForm :route = "route" v-if="action === 'ADD'"/>
-      <EditCircumnavForm :route = "route" :circumnavigation = "segment" :segmentIndex = "segmentIndex" v-else />
+      <AddCircumnavForm :route="route" v-if="action === 'ADD'" />
+      <EditCircumnavForm
+        :route="route"
+        :circumnavigation="segment"
+        :segmentIndex="segmentIndex"
+        v-else
+      />
     </div>
-
   </div>
 </template>
 
 <script>
-import GridEventBus from '@/components/Map/GridEventBus.js';
+import GridEventBus from "@/components/Map/GridEventBus.js";
 import Route from "@/data_classes/Route.js";
 import AddSegmentForm from "@/components/Map/MapComponents/RouteManager/Forms/AddSegmentForm.vue";
 import EditSegmentForm from "@/components/Map/MapComponents/RouteManager/Forms/EditSegmentForm.vue";
@@ -55,49 +88,61 @@ export default {
     AddSegmentForm,
     EditSegmentForm,
     AddCircumnavForm,
-    EditCircumnavForm
+    EditCircumnavForm,
   },
   props: {
     route: Route,
     action: {
       validator: function (value) {
-        return ['ADD', 'EDIT'].indexOf(value) !== -1;
-      }
+        return ["ADD", "EDIT"].indexOf(value) !== -1;
+      },
     },
     segment: {
       validator: function (value) {
         // When it is an ADD modal
-        if (!value || value === "") { return true; }
+        if (!value || value === "") {
+          return true;
+        }
 
         // When it is an EDIT modal
-        if (value instanceof WaypointSegment || value instanceof Circumnavigation) {return true; }
+        if (
+          value instanceof WaypointSegment ||
+          value instanceof Circumnavigation
+        ) {
+          return true;
+        }
         return false;
-      }
+      },
     },
     segmentIndex: {
-      validator: function(value) {
-        if (!value || value === "") {return true;}
+      validator: function (value) {
+        if (!value || value === "") {
+          return true;
+        }
 
         if (typeof value === "number") {
           return true;
         }
 
         return false;
-      }
-    }
+      },
+    },
   },
   data() {
     return {
       windowHeight: null,
       windowWidth: null,
       show: {
-        segmentForm: true
+        segmentForm: true,
       },
-    }
+    };
   },
   created() {
     // When editing circumnav, force it to the right form
-    if (this.action === "EDIT" && this.segment.constructor.name === "Circumnavigation") {
+    if (
+      this.action === "EDIT" &&
+      this.segment.constructor.name === "Circumnavigation"
+    ) {
       this.show.segmentForm = false;
     }
   },
@@ -105,10 +150,10 @@ export default {
     this.setupModalPositioning();
   },
   methods: {
-    getSegmentName: function() {
+    getSegmentName: function () {
       if (this.action === "ADD") {
         let currLength = this.route.segmentList.length;
-        return "SEG-" + (currLength);
+        return "SEG-" + currLength;
       } else {
         return "SEG-" + this.segmentIndex;
       }
@@ -119,19 +164,23 @@ export default {
     closeModal() {
       if (this.action === "EDIT") {
         if (this.show.segmentForm) {
-          GridEventBus.$emit('RESET_EDITING_SEGMENT');
+          GridEventBus.$emit("RESET_EDITING_SEGMENT");
         } else {
-          GridEventBus.$emit('RESET_EDITING_CIRCUMNAV');
+          GridEventBus.$emit("RESET_EDITING_CIRCUMNAV");
         }
       }
-      GridEventBus.$emit('CLOSE_SEGMENT_MODAL');
+      GridEventBus.$emit("CLOSE_SEGMENT_MODAL");
     },
     toggleType(type) {
-      // Disable toggle if action is an edit 
-      if (this.action === "EDIT") {return; }
+      // Disable toggle if action is an edit
+      if (this.action === "EDIT") {
+        return;
+      }
 
-      if (type === 'segment' && !this.show.segmentForm ||
-          type === 'circum' && this.show.segmentForm) {
+      if (
+        (type === "segment" && !this.show.segmentForm) ||
+        (type === "circum" && this.show.segmentForm)
+      ) {
         this.show.segmentForm = !this.show.segmentForm;
       }
     },
@@ -139,10 +188,15 @@ export default {
       dragElement(document.querySelector(".segmentModal"));
 
       function dragElement(elmnt) {
-        var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        var pos1 = 0,
+          pos2 = 0,
+          pos3 = 0,
+          pos4 = 0;
         if (document.getElementById(elmnt.id + "header")) {
           /* if present, the header is where you move the DIV from:*/
-          document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+          document.getElementById(
+            elmnt.id + "header"
+          ).onmousedown = dragMouseDown;
         } else {
           /* otherwise, move the DIV from anywhere inside the DIV:*/
           elmnt.onmousedown = dragMouseDown;
@@ -169,18 +223,18 @@ export default {
           pos4 = e.clientY;
 
           // set the element's new position:
-          let posY = (elmnt.offsetTop - pos2);
-          let posX = (elmnt.offsetLeft - pos1);
+          let posY = elmnt.offsetTop - pos2;
+          let posX = elmnt.offsetLeft - pos1;
 
           if (posY < 0) {
             posY = 0;
-          } else if ( posY > window.innerHeight) {
+          } else if (posY > window.innerHeight) {
             posY = window.innerHeight;
           }
 
           if (posX < 0) {
             posX = 0;
-          } else if ( posX > window.innerWidth) {
+          } else if (posX > window.innerWidth) {
             posX = window.innerWidth;
           }
 
@@ -194,17 +248,15 @@ export default {
           document.onmousemove = null;
         }
       }
-    }
-  }
-}
-
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
-
-@import '@/styles/_colors.scss';
-@import '@/styles/_functional.scss';
-@import '@/styles/_mapTab.scss';
+@import "@/styles/_colors.scss";
+@import "@/styles/_functional.scss";
+@import "@/styles/_mapTab.scss";
 
 .formLabel {
   width: 5rem;
@@ -224,8 +276,8 @@ export default {
   z-index: 99;
   padding: 2rem;
   background-color: $color-background;
-  box-shadow: 3px 3px 3px rgba(0, 0, 0, .28);
-
+  box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.28);
+  color: $color-near-white;
   &:active {
     cursor: grab;
   }
@@ -269,7 +321,7 @@ export default {
     background-color: $color-grey-dark;
     width: 10.5rem;
     text-align: center;
-    
+
     &:hover {
       cursor: pointer;
     }
@@ -335,7 +387,7 @@ export default {
     border-radius: 4px;
     border: 1px solid $color-primary;
 
-    &:hover{ 
+    &:hover {
       cursor: pointer;
       background-color: $color-primary;
       border: none;
@@ -357,30 +409,29 @@ input {
   text-align: center;
 
   &::-webkit-input-placeholder {
-    color:$color-grey-light;
+    color: $color-grey-light;
   }
 
   &::-moz-placeholder {
-    color:$color-grey-light;
+    color: $color-grey-light;
   }
 
   &::-ms-placeholder {
-    color:$color-grey-light;
+    color: $color-grey-light;
   }
 
   &::placeholder {
-    color:$color-grey-light;
+    color: $color-grey-light;
   }
 
   &:focus {
     outline: none !important;
-    border:1px solid $color-primary;
-    box-shadow: 0 0 5px #719ECE;
+    border: 1px solid $color-primary;
+    box-shadow: 0 0 5px #719ece;
   }
 }
 
 .selected {
   background-color: $color-primary;
 }
-
 </style>

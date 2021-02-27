@@ -355,7 +355,9 @@ export default {
 
 @import '@/styles/_colors.scss';
 @import '@/styles/_pill.scss';
-
+.POIEdit{
+  color: $color-grey-light;
+}
 .header {
   display: flex;
   flex-direction: row;

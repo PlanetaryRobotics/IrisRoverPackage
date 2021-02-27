@@ -8,12 +8,12 @@
 
 <script>
 
-import { mapGetters } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 import * as d3 from "d3";
 
 export default {
   name: "TargetTrail",
-  props: ['origin', 'rover', 'gridSquare'],
+  props: ['origin', 'gridSquare'],
   data() {
     return {
       currTargetWaypointData: null
@@ -21,6 +21,9 @@ export default {
   },
   computed: {
     ...mapGetters(['commandData', 'localizedData']),
+    ...mapState({
+      rover: (state) => state.MAP.roverMetadata
+    })
   },
   watch: {
     commandData: {
@@ -120,8 +123,8 @@ export default {
 
       // Set line
       d3.select("#targetTrail line")
-        .attr("x1", this.rover.rover.xPosPx)
-        .attr("y1", this.rover.rover.yPosPx)
+        .attr("x1", this.rover.xPosPx)
+        .attr("y1", this.rover.yPosPx)
         .attr("x2", endX)
         .attr("y2", endY)
         .style("stroke", "url(#animate-gradient)") 

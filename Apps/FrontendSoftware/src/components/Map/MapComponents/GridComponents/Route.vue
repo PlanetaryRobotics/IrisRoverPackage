@@ -12,27 +12,65 @@ import { getCircumnavLastPoint } from '@/components/Map/Utility/CircumnavPlotter
 export default {
   name: "Route",
   props: ['route', 'origin', 'gridSquare'],
+
+
   computed: {
     routeName: function () {
       return this.route.routeName;
     },
   },
-  mounted() {
-    let comp = this;
 
-    if (this.origin.origin.xPosPx) { //Check that happens AFTER grid is ready
-      comp.drawSegments(comp.route);
-      if (comp.route.isVisible) {
-          d3.select("#" + comp.route.routeName + "-Group")
-            .style("display", "block")
-        } else {
-          d3.select("#" + comp.route.routeName + "-Group")
-            .style("display", "none")
+
+  mounted() {
+    this.update();
+  },
+
+
+  watch: {
+    origin: {
+      deep: true,
+      handler(){
+        this.update();
+      }
+    },
+    gridSquare: {
+      deep: true,
+      handler(){
+        this.update();
       }
     }
- 
   },
+
+
   methods: {
+    /**
+     * Update the Route Drawing.
+     */
+    update(){
+      if (this.origin.xPosPx != undefined) { //Check that happens AFTER grid is ready
+        let comp = this;
+
+        comp.drawSegments(comp.route);
+        if (comp.route.isVisible) {
+            d3.select("#" + comp.route.routeName + "-Group")
+              .style("display", "block")
+          } else {
+            d3.select("#" + comp.route.routeName + "-Group")
+              .style("display", "none")
+        }
+      }
+    },
+
+    /**
+     * Convert a {xCm, yCm} POSITION (incl. origin) to a Px position (incl. origin offset)
+     */
+    Cm2Px_Coordinate({xCm, yCm}){
+      return {
+        xPx: this.origin.xPosPx + xCm * this.gridSquare.gridUnitPx / this.gridSquare.gridUnitCm,
+        yPx: this.origin.yPosPx - yCm * this.gridSquare.gridUnitPx / this.gridSquare.gridUnitCm
+      };
+    },
+
     /**
      * Performs necessary computations to plot the line and point
      * for the route depending on the tab it is on.
@@ -67,8 +105,7 @@ export default {
 
     plotFirstSegment(route, segment) {
       // End coords is from segment itself
-      let endX = segment.xPxCoordinate;
-      let endY = segment.yPxCoordinate;
+      let {xPx: endX, yPx: endY} = this.Cm2Px_Coordinate({xCm: segment.xCmCoordinate, yCm: segment.yCmCoordinate});
 
       // Start coords is same as end for very first waypoint
       let startX = endX;
@@ -108,8 +145,7 @@ export default {
       let startY = Number(centre.y);
 
       // Set end coords
-      let endX = segment.xPxCoordinate;
-      let endY = segment.yPxCoordinate;
+      let {xPx: endX, yPx: endY} = this.Cm2Px_Coordinate({xCm: segment.xCmCoordinate, yCm: segment.yCmCoordinate});
       let angle = 0;
 
       let transform = d3.select("#"+route.routeName+"-Group")
@@ -138,8 +174,7 @@ export default {
         // For the first point
         if (i === 0) {
           // End coords is from segment itself
-          let endX = segment.xPxCoordinate;
-          let endY = segment.yPxCoordinate;
+          let {xPx: endX, yPx: endY} = this.Cm2Px_Coordinate({xCm: segment.xCmCoordinate, yCm: segment.yCmCoordinate});
 
           // Start coords is same as end for very first waypoint
           let startX = endX;
@@ -163,8 +198,7 @@ export default {
           let startY = Number(centre.y);
 
           // Set end coords
-          let endX = segment.xPxCoordinate;
-          let endY = segment.yPxCoordinate;
+          let {xPx: endX, yPx: endY} = this.Cm2Px_Coordinate({xCm: segment.xCmCoordinate, yCm: segment.yCmCoordinate});
           let angle = 0;
 
           plotNewSegment(group, route.routeName+"-CircumSegment", i, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
@@ -208,8 +242,7 @@ export default {
         let startY = Number(centre.y);
 
         // Set end coords
-        let endX = segment.xPxCoordinate;
-        let endY = segment.yPxCoordinate;
+        let {xPx: endX, yPx: endY} = this.Cm2Px_Coordinate({xCm: segment.xCmCoordinate, yCm: segment.yCmCoordinate});
         let angle = 0;
 
         plotNewSegment(group, route.routeName+"-CircumSegment", i, angle, startX, startY, endX, endY, false, segment.roverAngle, segment.state);
@@ -225,8 +258,8 @@ export default {
      * @return {object}         {xPx: xPx, yPx: yPx}
     */
     convertCmToPx(xCm, yCm) {
-      let yPx = (yCm / this.gridSquare.gridSquare.gridUnitCm) * this.gridSquare.gridSquare.gridUnitPx;
-      let xPx = (xCm / this.gridSquare.gridSquare.gridUnitCm) * this.gridSquare.gridSquare.gridUnitPx;
+      let yPx = (yCm / this.gridSquare.gridUnitCm) * this.gridSquare.gridUnitPx;
+      let xPx = (xCm / this.gridSquare.gridUnitCm) * this.gridSquare.gridUnitPx;
 
       // Invert sign since pos value means negative translation 
       // (moving up) from origin  

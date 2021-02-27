@@ -3,25 +3,24 @@ import States from './WaypointStates.js'
 
 export default class WaypointSegment{
   
-  constructor(){
-    this._xPxCoordinate = null;
-    this._yPxCoordinate = null;
+  constructor(gridSquareSize){
+    this.gridSquareSize = gridSquareSize; // Contains the size of a grid square in px and cm
 
     this._xCmCoordinate = null;
     this._yCmCoordinate = null;
 
     this._roverAngle = null;
     this._state = States.Waypoint.UNVISITED;
-  } 
+  }
 
   setPxCoordinates(xPx, yPx) {
-    this._xPxCoordinate = xPx;
-    this._yPxCoordinate = yPx;
+    this.xPxCoordinate = xPx;
+    this.yPxCoordinate = yPx;
   }
 
   setCmCoordinates(xCm, yCm) {
-    this._xCmCoordinate = xCm;
-    this._yCmCoordinate = yCm;
+    this.xCmCoordinate = xCm;
+    this.yCmCoordinate = yCm;
   }
 
   setAsVisited() {
@@ -41,19 +40,19 @@ export default class WaypointSegment{
   }
 
   get xPxCoordinate() {
-    return this._xPxCoordinate;
+    return this._xCmCoordinate * this.gridSquareSize.gridUnitPx / this.gridSquareSize.gridUnitCm;
   }
 
   set xPxCoordinate(newXCoord) {
-    this._xPxCoordinate = newXCoord;
+    this._xCmCoordinate = newXCoord * this.gridSquareSize.gridUnitCm / this.gridSquareSize.gridUnitPx;
   }
 
   get yPxCoordinate() {
-    return this._yPxCoordinate;
+    return -this._yCmCoordinate * this.gridSquareSize.gridUnitPx / this.gridSquareSize.gridUnitCm;
   }
 
   set yPxCoordinate(newYCoord) {
-    this._yPxCoordinate = newYCoord;
+    this._yCmCoordinate = -newYCoord * this.gridSquareSize.gridUnitCm / this.gridSquareSize.gridUnitPx;
   }
 
   get xCmCoordinate() {

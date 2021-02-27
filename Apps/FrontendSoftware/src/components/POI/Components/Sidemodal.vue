@@ -166,6 +166,7 @@ $smallModalWidth: 16rem;
   border-radius: 4px;
   box-shadow: 3px 3px 3px rgba(0, 0, 0, .28);
   padding: 1rem;
+  color: $color-grey-light;
 
   &__importance {
     @extend .sidemodal;

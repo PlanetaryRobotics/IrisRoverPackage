@@ -1,47 +1,65 @@
 <template>
-  <div id = "routeManager" class="scrollable" >
+  <div id="routeManager" class="scrollable">
     <!-- TAB -->
     <div class="mapTab">
-      <!-- HEADER --> 
+      <!-- HEADER -->
       <div class="mapTab__header" @click="toggleRoutes">
-        <svg width="14" height="7" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg" class="mapTab__icon" :class="{ open : show.routes }">
-        <path d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5" stroke-linecap="round"/>
+        <svg
+          width="14"
+          height="7"
+          viewBox="0 0 8 4"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          class="mapTab__icon"
+          :class="{ open: show.routes }"
+        >
+          <path
+            d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5"
+            stroke-linecap="round"
+          />
         </svg>
         <h2 class="text__main--bold mapTab__title">Routes</h2>
       </div>
 
-      <!-- ROUTE LIST --> 
-      <div class="mapTab__content" v-show = "show.routes">
+      <!-- ROUTE LIST -->
+      <div class="mapTab__content" v-show="show.routes">
         <div class="routeList" v-if="!routeListIsEmpty">
           <!-- ROUTE -->
-          <div class="routeList__item" v-for="(route, index) in routeList.routes" :key="index">
-            <RouteEntry :route="route"/>
+          <div
+            class="routeList__item"
+            v-for="(route, index) in routeList.routes"
+            :key="index"
+          >
+            <RouteEntry :route="route" />
           </div>
         </div>
       </div>
     </div>
     <!-- END TAB -->
-    <div class="buttonContainer">
-          <AtomicButton v-bind="buttons.addRoute" 
-                  @click.native="addEmptyRoute"
-                  v-show = "show.routes" />
+    <div v-show="show.routes">
+      <div class="emptyContainer">
+        <div>Start a route by adding waypoints or circumnavigations.</div>
+      </div>
+      <div class="buttonContainer">
+        <AtomicButton v-bind="buttons.addRoute" @click.native="addEmptyRoute" />
+      </div>
     </div>
-
     <div v-if="show.deleteModal">
-      <Deletemodal :rawHTML='deleteModal.text'
-                   :deleteCallback='deleteModal.deleteCallback'
-                   :cancelCallback='deleteModal.cancelCallback'
-                   @closeModal='toggleDeleteModal'/>
+      <Deletemodal
+        :rawHTML="deleteModal.text"
+        :deleteCallback="deleteModal.deleteCallback"
+        :cancelCallback="deleteModal.cancelCallback"
+        @closeModal="toggleDeleteModal"
+      />
     </div>
   </div>
 </template>
 
 <script>
-
-import GridEventBus from '@/components/Map/GridEventBus.js';
-import { mapGetters } from 'vuex';
+import GridEventBus from "@/components/Map/GridEventBus.js";
+import { mapGetters } from "vuex";
 import RouteEntry from "@/components/Map/MapComponents/RouteManager/RouteEntry.vue";
-import AtomicButton from '@/components/atomic/AtomicButton.vue';
+import AtomicButton from "@/components/atomic/AtomicButton.vue";
 import Deletemodal from "@/components/POI/Components/Deletemodal.vue";
 
 export default {
@@ -49,53 +67,57 @@ export default {
   components: {
     RouteEntry,
     Deletemodal,
-    AtomicButton
+    AtomicButton,
   },
   data() {
     return {
       deleteModal: {
-        text: '',
-        deleteCallback: '',
-        cancelCallback: '',
+        text: "",
+        deleteCallback: "",
+        cancelCallback: "",
       },
       show: {
-        routes: false,
-        deleteModal: false
+        routes: true,
+        deleteModal: false,
       },
       route: {
-        visible: true
+        visible: true,
       },
       buttons: {
         addRoute: {
-          id:'addRouteButton',
-          flavor:'primary',
-          text:'Add Route',
-          value: 'addRoute',
+          id: "addRouteButton",
+          flavor: "primary",
+          text: "Add Route",
+          value: "addRoute",
           enabled: true,
-          storeId: 'MAP'
-        }
-      }
-    }
+          storeId: "MAP",
+        },
+      },
+    };
   },
   computed: {
-    ...mapGetters(['routeList', 'routeListIsEmpty']),
+    ...mapGetters(["routeList", "routeListIsEmpty"]),
   },
   watch: {
     routeListIsEmpty() {
       this.setAddButtonPosition();
-    }
+    },
   },
   mounted() {
-    // Catching the event from RouteEntry to open modal, which has the payload 
-    GridEventBus.$on('TOGGLE_DELETE_MODAL', ({html, deleteCallback, cancelCallback}) => {
-      this.deleteModal.text = html
-      this.deleteModal.deleteCallback = deleteCallback;
-      this.deleteModal.cancelCallback = (cancelCallback === undefined ? ()=>{} : cancelCallback);
-      this.toggleDeleteModal();
-    });
+    // Catching the event from RouteEntry to open modal, which has the payload
+    GridEventBus.$on(
+      "TOGGLE_DELETE_MODAL",
+      ({ html, deleteCallback, cancelCallback }) => {
+        this.deleteModal.text = html;
+        this.deleteModal.deleteCallback = deleteCallback;
+        this.deleteModal.cancelCallback =
+          cancelCallback === undefined ? () => {} : cancelCallback;
+        this.toggleDeleteModal();
+      }
+    );
   },
   beforeDestroy() {
-    GridEventBus.$off('TOGGLE_DELETE_MODAL');
+    GridEventBus.$off("TOGGLE_DELETE_MODAL");
   },
   methods: {
     toggleDeleteModal() {
@@ -104,32 +126,37 @@ export default {
     toggleRoutes() {
       this.show.routes = !this.show.routes;
       if (this.show.routes) {
-        this.setAddButtonPosition()
+        this.setAddButtonPosition();
       }
     },
     setAddButtonPosition() {
       let button = document.getElementById("addRouteButton");
       let parent = document.getElementById("routeManager");
-      button.style.left = parent.clientWidth/2 - button.clientWidth/2 + "px";
+      button.style.left =
+        parent.clientWidth / 2 - button.clientWidth / 2 + "px";
     },
     addEmptyRoute() {
       this.$store.commit("createEmptyRoute");
     },
-  }
-}
-
+  },
+};
 </script>
 
 <style lang="scss" scoped>
-
-@import '@/styles/_colors.scss';
-@import '@/styles/_functional.scss';
-@import '@/styles/_mapTab.scss';
+@import "@/styles/_colors.scss";
+@import "@/styles/_functional.scss";
+@import "@/styles/_mapTab.scss";
 
 #routeManager {
   background-color: $color-near-black;
   display: flex;
   flex-direction: column;
+}
+
+.mapTab {
+  &__header {
+    color: $color-near-white;
+  }
 }
 
 .routeList {
@@ -166,7 +193,7 @@ export default {
 
 .routeIcon {
   stroke: $color-grey-dark;
-  transform: scale(.8);
+  transform: scale(0.8);
   cursor: pointer;
 
   &.selected {
@@ -178,10 +205,18 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  position: absolute;
-  bottom: 43vh;
+  padding-top: 10px;
   width: 100%;
-  pointer-events:none; 
+  pointer-events: none;
 }
-
+.emptyContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding-top: 14vh;
+  width: 100%;
+  pointer-events: none;
+  color: $color-grey;
+}
 </style>

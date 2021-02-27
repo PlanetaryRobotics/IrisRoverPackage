@@ -1,178 +1,159 @@
 <template>
-  <div  
-    id="app"
-    class="text__main"
-    tabindex="0 /*this allows the container to capture keyevents from anywhere inside it*/"
-    @keyup.ctrl.m="() => setFullScreen()"
-  >
-    <!-- Headless Components: -->
-    <SystemManager />
-
-    <!-- Renderer: -->
-    <router-view/>
+  <div style="margin-top: 10%; margin-left: 20%" id="big-container">
+    <div style="padding-top: 30px; padding-bottom: 100px">
+      <ErrorLogFilter :errorTags="errorTags" />
+    </div>
   </div>
 </template>
 
 <script>
-import { remote } from 'electron'
-import { reportReady } from 'electron-splashscreen'
-import DB from '@/DBInterface/DBInterface'
-
-import SystemManager from '@/system/SystemManager.vue'
+import ErrorLogFilter from "@/components/ErrorLog/ErrorLogFilter";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    SystemManager
+    ErrorLogFilter,
   },
-  data(){
+  data: function () {
     return {
-      fullScreenState: false, // Whether the application is currently fullscreen
-    }
+      errorTags: [
+        {
+          id: "A014",
+          priority: "Low",
+          sensors: [
+            "MotorSensor1",
+            "MotorSensor2",
+            "MotorSensor3",
+            "MotorSensor4",
+            "MotorSensor5",
+          ],
+          summary: "Motor Overheating(2)",
+          notes:
+            "temp sensor 2 shows overheating near motor 2. Second time this has happened in 1 hour.",
+          tags: ["#TempError"],
+          created: "AO 10-10-2020 20:05:00",
+          lastModified: "MO 10-10-2020 20:05:00",
+          start: "03:24:12",
+          end: "03:26:45",
+          category: "Motor",
+        },
+        {
+          id: "M001",
+          priority: "Low",
+          sensors: [
+            "MotorSensor1",
+            "MotorSensor2",
+            "MotorSensor3",
+            "MotorSensor4",
+            "MotorSensor5",
+          ],
+          summary: "Motor Overheating(2)",
+          notes:
+            "temp sensor 2 shows overheating near motor 2. Second time this has happened in 1 hour.",
+          tags: ["#TempError"],
+          created: "AO 10-10-2020 20:05:00",
+          lastModified: "MO 10-10-2020 20:05:00",
+          start: "03:24:12",
+          end: "03:26:45",
+          category: "Motor",
+        },
+        {
+          id: "M002",
+          priority: "Low",
+          sensors: [
+            "MotorSensor1",
+            "MotorSensor2",
+            "MotorSensor3",
+            "MotorSensor4",
+            "MotorSensor5",
+          ],
+          summary: "Motor Overheating(2)",
+          notes:
+            "temp sensor 2 shows overheating near motor 2. Second time this has happened in 1 hour.",
+          tags: ["#TempError"],
+          created: "AO 10-10-2020 20:05:00",
+          lastModified: "MO 10-10-2020 20:05:00",
+          start: "03:24:12",
+          end: "03:26:45",
+          category: "Acceleration",
+        },
+        {
+          id: "A015",
+          priority: "Medium",
+          sensors: [
+            "MotorSensor1",
+            "MotorSensor2",
+            "MotorSensor3",
+            "MotorSensor4",
+            "MotorSensor5",
+          ],
+          summary: "Motor Overheating(2)",
+          notes:
+            "temp sensor 2 shows overheating near motor 2. Second time this has happened in 1 hour.",
+          tags: ["#TempError"],
+          created: "AO 10-10-2020 20:05:00",
+          lastModified: "MO 10-10-2020 20:05:00",
+          start: "03:24:12",
+          end: "03:26:45",
+          category: "Power",
+        },
+        {
+          id: "M003",
+          priority: "Medium",
+          sensors: [
+            "MotorSensor1",
+            "MotorSensor2",
+            "MotorSensor3",
+            "MotorSensor4",
+            "MotorSensor5",
+          ],
+          summary: "Motor Overheating(2)",
+          notes:
+            "temp sensor 2 shows overheating near motor 2. Second time this has happened in 1 hour.",
+          tags: ["#TempError"],
+          created: "AO 10-10-2020 20:05:00",
+          lastModified: "MO 10-10-2020 20:05:00",
+          start: "03:24:12",
+          end: "03:26:45",
+          category: "Communication",
+        },
+        {
+          id: "M009",
+          priority: "High",
+          sensors: [
+            "MotorSensor1",
+            "MotorSensor2",
+            "MotorSensor3",
+            "MotorSensor4",
+            "MotorSensor5",
+          ],
+          summary: "Motor Overheating(2)",
+          notes:
+            "temp sensor 2 shows overheating near motor 2. Second time this has happened in 1 hour.",
+          tags: ["#TempError"],
+          created: "AO 10-10-2020 20:05:00",
+          lastModified: "MO 10-10-2020 20:05:00",
+          start: "03:24:12",
+          end: "03:26:45",
+          category: "Temperature",
+        },
+      ],
+    };
   },
-  created: function() {
-    // Add event listners to the global event hub:
-    this.$eventHub.$on('loginMounted', this.activateWindow);
-
-    this.processArgs();
-  },
-  beforeDestroy: function() { // Removes event listners from the global event hub
-    this.$eventHub.$off('loginMounted', this.activateWindow);
-  },
-  methods: {
-    // Sets the fullscreen state of the window to the given boolean. 
-    // If no state is given, the current state is toggled.
-    setFullScreen(state){
-      if(state){
-        this.fullScreenState = state;
-      } else{
-        this.fullScreenState = !this.fullScreenState;
-      }
-      console.warn(`SETTING FULLSCREEN STATUS ${this.fullScreenState}`);
-      remote.getCurrentWindow().setFullScreen(this.fullScreenState);
-    },
-
-    // Opens a new OS Window Containing a List of the App-Wide Shortcut Keys:
-    openHelpWindow(){
-      /*let child = new BrowserWindow({
-        parent: win,
-        modal: true,
-        frame: false,
-        show: false
-      });
-      child.loadURL(path.join(__static, '.'))*/
-    },
-
-    activateWindow: function(){
-      /* Wrapped in timeout to add semi-arbitrary delay (needs to be greater
-      than ~1500ms to avoid flashing white screen when opening to fullscreen.
-      Can't prevent this by listening for DOM load because Vue will still be
-      bringing in resources after first load).
-      That said, there almost certainly is a more robust implementation but
-      simply not worth the dev time or maintenance (would likely require
-      reporting from all components loaded in Login.vue and router). */
-      setTimeout(()=>{
-        reportReady(); // App is loaded, close the splash-screen
-        if(process.env.NODE_ENV == 'production'){
-          this.setFullScreen(true);
-        }
-        this.$eventHub.$emit('windowActivated');
-      }, 1500);
-    },
-
-    processArgs: async function(){
-      // Process command-line arguments:
-      let argv = JSON.parse(remote.process.env.npm_config_argv).remain; // grab unused arguments
-      let keys = argv.filter((v,i) => !(i % 2)); // grab keys
-      let vals = argv.filter((v,i) => i % 2); // grab values associated with keys
-
-      // Login to the DB (skipping UI login). MUST happen before any Vue routing
-      // to pages that require DB access.
-      let missionIdx = keys.indexOf("db-mission"); // Index of db-mission value
-      if(missionIdx != -1){
-        let mission = vals[missionIdx];
-        let codeIdx = keys.indexOf("db-pass");
-        let code = codeIdx > -1 ? vals[codeIdx] : "";
-
-        let connected = await DB.init(mission, code);
-        console.log("[IRIS-APP] DB Connection", connected ? "Successful" : "Failed");
-      }
-
-      // Handle the rest of the keys in any order:
-      for(let i in keys){
-        switch(keys[i]){
-
-          case "route-to": { //     - Route to a specific page in views.
-            this.$eventHub.$emit('loginMounted'); // skip Login
-            try{
-              console.log(`[IRIS-APP] Routing to ${vals[i]} . . .`);
-              this.$router.push(vals[i]);
-            } catch(e){
-              console.warn(e);
-              console.log(`[IRIS-APP] Page ${vals[i]} not registered in router.js`);
-            }
-          } break;
-
-        }
-      }
-    }
-  }
-}
+};
 </script>
 
 <style lang="scss">
-@import '/styles/_functional.scss';
-@font-face {
-  font-family: 'Barlow';
-  src: url('./styles/Barlow/Barlow-Regular.ttf')  format('truetype');
-  font-weight: normal;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'Barlow';
-  src: url('./styles/Barlow/Barlow-Medium.ttf')  format('truetype');
-  font-weight: medium;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'Barlow';
-  src: url('./styles/Barlow/Barlow-SemiBold.ttf')  format('truetype');
-  font-weight: bold;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'Barlow';
-  src: url('./styles/Barlow/Barlow-Italic.ttf')  format('truetype');
-  font-weight: normal;
-  font-style: italic;
-}
+@import "/styles/_functional.scss";
 
 body {
   background-color: $color-background;
-  margin: 0;
-  width: 100vw;
-  height: 100vh;
 }
 
-*,
-*::before,
-*::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: inherit;
-}
-
-html {
-  font-family: 'Barlow';
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: left;
-  color: $color-near-black;
-
-  box-sizing: border-box;
-  font-size: 62.5%;
-}
-
-#app {
+p,
+span {
+  font-family: "Barlow";
+  font-weight: 100;
+  color: white;
 }
 </style>

@@ -68,14 +68,14 @@ export default {
             adjustmentKeys: []
         };
     },
-    mounted: function() {
-        this.resetAdjustments();
-        this.adjustmentKeys = Object.keys(this.editData.adjustments);
-    },
     computed: {
         ...mapState({
             editData: state => state.IMG.adjustmentsEditorState
         })
+    },
+    mounted: function() {
+        this.resetAdjustments();
+        this.adjustmentKeys = Object.keys(this.editData.adjustments);
     },
     methods: {
         createPreset: function() { // Formats data for the filter class input

@@ -17,7 +17,7 @@ Last Update: 08/14/2020, Colombo
     <span 
       class="updatable tooltip"
       :style="`width: ${timeString.length+1}ch`"
-      :title="`Current ${this.clock.name} time (H:M:S)`"
+      :title="`Current ${clock.name} time (H:M:S)`"
     >
       {{ timeString }}
     </span>
@@ -109,6 +109,7 @@ export default {
         // To be used for syncing the clocks between multiple InfoBar instances (eg. if instances are inside a container that frequently gets v-if'd in and out of existence frequently and you don't want the clock flashing each time).
         syncedClock: {
             required: false,
+            type: Clock
         }
     },
     data(){
@@ -136,6 +137,60 @@ export default {
             connectedToRover: false, // Whether this display shows that the backend is connected to the rover
             roverStateHovered: false // Whether the Rover State indicator is currently hovered
         };
+    },
+    computed: {
+        ...mapState({
+            stateLogList: state => state.SYS.stateLogList
+        }),
+        ...mapGetters([
+            'currentSystemState' // Most recent SystemData entry on the Database from DBLazyList
+        ]),
+
+        // Pointer to the clock which should be used to update the time:
+        clock(){
+            return this.syncedClock || this.currentSystemState.time.moon || new Clock();
+        },
+
+        /** 
+             * Returns the String indiciating the current clock time.
+             */
+        timeString(){
+            return this.time;
+        },
+        /** 
+             * Returns the String indiciating the last time data was received from the rover.
+             */
+        lastRoverDataTimeString(){
+            return `Last Updated: ${this.lastRoverDataTime}`;
+        },
+
+        // Returns the Rover's Battery level as an integer from 0 to 100 (%).
+        // TODO: FIXME: Connect to real battery telemetry signal.
+        batteryLevel(){
+            return this.fake_battery_level;
+        },
+        // Computes the appropriate length of horizontal section of SVG for the current battery level.
+        batteryLevelSVGLength(){
+            return this.batteryMinLevelSVGLength + (this.batteryMaxLevelSVGLength - this.batteryMinLevelSVGLength) * this.batteryLevel/100;
+        },
+
+        // String of current rover state:
+        roverState(){
+            if(this.pollingConnection){
+                return this.roverStates.get('polling');
+            } else if(!this.connectedToDB){
+                return this.roverStates.get('noDB');
+            } else if(!this.connectedToRover){
+                return this.roverStates.get('noRover');
+            } else {
+                return this.roverStates.get('connected');
+            }
+        },
+
+        // Length of longest valid rover state string. Computed in `mounted`. Used for ensuring even spacing.
+        longestRoverStateLength(){
+            return [...this.roverStates.values()].reduce( (max, str) => str.length > max ? str.length : max, 0 );
+        },
     },
     watch: {
         currentSystemState(sys){
@@ -202,60 +257,6 @@ export default {
             this.connectedToDB = dbStatus;
             this.connectedToRover = this.currentSystemState.backend.connectedToRover; // TODO: Make sure this changes when the rover connection status flag changes on the DB
         }
-    },
-    computed: {
-        ...mapState({
-            stateLogList: state => state.SYS.stateLogList
-        }),
-        ...mapGetters([
-            'currentSystemState' // Most recent SystemData entry on the Database from DBLazyList
-        ]),
-
-        // Pointer to the clock which should be used to update the time:
-        clock(){
-            return this.syncedClock || this.currentSystemState.time.moon || new Clock();
-        },
-
-        /** 
-             * Returns the String indiciating the current clock time.
-             */
-        timeString(){
-            return this.time;
-        },
-        /** 
-             * Returns the String indiciating the last time data was received from the rover.
-             */
-        lastRoverDataTimeString(){
-            return `Last Updated: ${this.lastRoverDataTime}`;
-        },
-
-        // Returns the Rover's Battery level as an integer from 0 to 100 (%).
-        // TODO: FIXME: Connect to real battery telemetry signal.
-        batteryLevel(){
-            return this.fake_battery_level;
-        },
-        // Computes the appropriate length of horizontal section of SVG for the current battery level.
-        batteryLevelSVGLength(){
-            return this.batteryMinLevelSVGLength + (this.batteryMaxLevelSVGLength - this.batteryMinLevelSVGLength) * this.batteryLevel/100;
-        },
-
-        // String of current rover state:
-        roverState(){
-            if(this.pollingConnection){
-                return this.roverStates.get('polling');
-            } else if(!this.connectedToDB){
-                return this.roverStates.get('noDB');
-            } else if(!this.connectedToRover){
-                return this.roverStates.get('noRover');
-            } else {
-                return this.roverStates.get('connected');
-            }
-        },
-
-        // Length of longest valid rover state string. Computed in `mounted`. Used for ensuring even spacing.
-        longestRoverStateLength(){
-            return [...this.roverStates.values()].reduce( (max, str) => str.length > max ? str.length : max, 0 );
-        },
     }
 };
 </script>

@@ -30,7 +30,11 @@ Last Updated: 3/31/2019, Moosbrugger
 
 <script>
 export default {
-    props: ['sData'],
+    props: {
+        sData: {
+            type: Object
+        }
+    },
     data() {
         return {
             value: 100 //     - Default value for slider (range of 0 - 200)

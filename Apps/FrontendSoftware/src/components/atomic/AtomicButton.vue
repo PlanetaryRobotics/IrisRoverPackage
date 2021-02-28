@@ -50,9 +50,11 @@ export default {
         },
         text: {
             required: true,
+            type: String
         },
         value: {
             required: true,
+            type: Object
         },
         enabled: {
             required: true,

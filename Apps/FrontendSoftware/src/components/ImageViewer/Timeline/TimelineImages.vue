@@ -184,16 +184,6 @@ export default {
         };
     },
 
-    created: function() { // Adds event listners to the global event hub
-        this.$eventHub.$on('IV-keypress-left', this.scrollBack);
-        this.$eventHub.$on('IV-keypress-right', this.scrollForward);
-    },
-
-    beforeDestroy: function() { // Removes event listners from the global event hub
-        this.$eventHub.$off('IV-keypress-left', this.scrollBack);
-        this.$eventHub.$off('IV-keypress-right', this.scrollForward);
-    },
-
     computed: {
         ...mapGetters({
             searchedImages: 'searchedImages',
@@ -225,6 +215,15 @@ export default {
                 this.$store.state.IMG.scrollPos = -1;
             }
         }
+    },
+    
+    created: function() { // Adds event listners to the global event hub
+        this.$eventHub.$on('IV-keypress-left', this.scrollBack);
+        this.$eventHub.$on('IV-keypress-right', this.scrollForward);
+    },
+    beforeDestroy: function() { // Removes event listners from the global event hub
+        this.$eventHub.$off('IV-keypress-left', this.scrollBack);
+        this.$eventHub.$off('IV-keypress-right', this.scrollForward);
     },
 
     methods: {

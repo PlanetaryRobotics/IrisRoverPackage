@@ -34,7 +34,11 @@
 import { mapGetters } from 'vuex';
 
 export default {
-    props: ['addTagName'],
+    props: {
+        addTagName: {
+            type: String
+        }
+    },
     data: function() {
         return {
             errorMessage: '',

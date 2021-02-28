@@ -128,17 +128,6 @@ export default {
         return {
         };
     },
-    mounted(){
-        TooltipEquip(this.$el);
-    },
-    methods: {
-        toggleVisibility: function(presetName) {
-            this.$store.commit('TOGGLE_PRESET_VISIBILITY', {presetName: presetName, currentImage: this.currentImage});
-        },
-        toggleGlobal: function(presetName) {
-            this.$store.commit('TOGGLE_PRESET_GLOBAL', presetName);
-        }
-    },
     computed: {
         ...mapGetters({
             currentImageData: 'selectedImage',
@@ -168,6 +157,17 @@ export default {
             return this.currentImageData ? this.currentImageData.name() : '';
         },
     },
+    mounted(){
+        TooltipEquip(this.$el);
+    },
+    methods: {
+        toggleVisibility: function(presetName) {
+            this.$store.commit('TOGGLE_PRESET_VISIBILITY', {presetName: presetName, currentImage: this.currentImage});
+        },
+        toggleGlobal: function(presetName) {
+            this.$store.commit('TOGGLE_PRESET_GLOBAL', presetName);
+        }
+    }
 };
 </script>
 

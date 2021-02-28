@@ -60,7 +60,8 @@ export default {
             required: true,
         },
         value: {
-            required: true
+            required: true,
+            type: Object
         },
         svgName: {
             type: String,

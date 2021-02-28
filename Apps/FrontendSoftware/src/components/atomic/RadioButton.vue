@@ -4,7 +4,7 @@
     @mouseover="onMouseOver"
     @mouseleave="onMouseLeave"
   >
-    {{ this.label }}
+    {{ label }}
 
     <input
       v-if="initiallyChecked === null" 
@@ -53,10 +53,12 @@ export default {
             required: true,
         },
         label: {
-            required: true
+            required: true,
+            type: String
         },
         value: {
-            required: true
+            required: true,
+            type: Object
         },
         initiallyChecked: {
             required: true,

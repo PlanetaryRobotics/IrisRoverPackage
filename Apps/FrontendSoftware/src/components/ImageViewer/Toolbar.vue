@@ -35,18 +35,18 @@ export default {
             cartesianGridSVG: '', // Inline SVG HTML for the Cartesian Grid
         };
     },
+    computed: {
+        ...mapState({
+            radialGrid: state => state.IMG.radialGrid,
+            cartesianGrid: state => state.IMG.cartesianGrid
+        })
+    },
     mounted(){
         TooltipEquip(this.$el);
 
         // Load Icons as Inline SVG:
         this.radialGridSVG = fs.readFileSync(path.join(__static,'./icons/icon_radial_grid.svg'), 'utf8');
         this.cartesianGridSVG = fs.readFileSync(path.join(__static,'./icons/icon_cartesian_grid.svg'), 'utf8');
-    },
-    computed: {
-        ...mapState({
-            radialGrid: state => state.IMG.radialGrid,
-            cartesianGrid: state => state.IMG.cartesianGrid
-        })
     }
 };
 </script>

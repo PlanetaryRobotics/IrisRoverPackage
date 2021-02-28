@@ -9,7 +9,7 @@
       @mouseover="onMouseOver"
       @mouseleave="onMouseLeave"
     >
-      {{ this.text }}
+      {{ text }}
     </button>
   </div>
 </template>
@@ -34,10 +34,12 @@ export default {
             }
         },
         text: {
-            required: true
+            required: true,
+            type: String
         },
         value: {
-            required: true
+            required: true,
+            type: Object
         },
     },
     methods: {

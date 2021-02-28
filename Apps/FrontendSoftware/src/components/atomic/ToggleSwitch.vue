@@ -15,7 +15,7 @@
       </label>
 
       <div class="slider-label">
-        {{ this.label }}
+        {{ label }}
       </div>
     </div>
   </div>
@@ -34,14 +34,16 @@ export default {
             required: true,
         },
         label: {
-            required: true
+            required: true,
+            type: String
         },
         checked: {
             type: Boolean,
             required: true,
         },
         value: {
-            required: true
+            required: true,
+            type: Object
         },
     },
     methods: {

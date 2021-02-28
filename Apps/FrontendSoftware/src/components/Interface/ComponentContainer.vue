@@ -52,6 +52,7 @@
         @open="menuOpen = true"
         @close="menuOpen = false"
       >
+        <!-- eslint-disable-next-line vue/no-lone-template -->
         <template>
           <!-- ITERATE OVER OPTIONS -->
           <div

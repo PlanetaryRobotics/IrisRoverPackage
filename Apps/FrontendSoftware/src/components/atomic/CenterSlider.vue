@@ -61,7 +61,8 @@ export default {
             required: true,
         },
         title: {
-            required: true
+            required: true,
+            type: String
         },
         range: {
             type: Number,
@@ -135,34 +136,28 @@ export default {
                 return arrayByClassName(context, selector)[offset];
             }
 
+            /*
             function isHover(e) {
                 return (e.parentElement.querySelector(':hover') === e);
             }
+            */
 
             function detectIE() {
                 var ua = window.navigator.userAgent;
-                var version = null;
                 var response = false;
 
                 var msie = ua.indexOf('MSIE ');
                 if (msie > 0) {
-                // IE 10 or older => return version number
-                    version = parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
                     response = true;
                 }
 
                 var trident = ua.indexOf('Trident/');
                 if (trident > 0) {
-                // IE 11 => return version number
-                    var rv = ua.indexOf('rv:');
-                    version = parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
                     response = true;
                 }
 
                 var edge = ua.indexOf('Edge/');
                 if (edge > 0) {
-                // Edge (IE 12+) => return version number
-                    version = parseInt(ua.substring(edge + 5, ua.indexOf('.', edge)), 10);
                     response = true;
                 }
 

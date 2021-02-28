@@ -9,66 +9,87 @@ Last Updated: 08/14/2020, Colombo
   <div id="tritoggle">
     <input
       style="grid-area: F"
-      type="radio" name="tritoggle"
+      type="radio"
+      name="tritoggle"
       value="F"
+      class="tooltip"
+      title="Show Images from Front Camera"
       @click="buttonClicked($event, 'F')"
       @keydown.prevent="/*prevent radio button from changing selection on arrow keydown*/"
-      class="tooltip" title="Show Images from Front Camera"
-    />
+    >
     <label style="grid-area: F">F</label>
     <input
       checked
       style="grid-area: B"
-      type="radio" name="tritoggle"
+      type="radio"
+      name="tritoggle"
       value="B"
+      class="tooltip"
+      title="Show Images from Both Cameras"
       @click="buttonClicked($event, 'B')"
       @keydown.prevent="/*prevent radio button from changing selection on arrow keydown*/"
-      class="tooltip" title="Show Images from Both Cameras"
-    />
-    <svg style="grid-area: B" :class="{highlighted: selection=='B'}" class="selectable-vector icon__dualCamera" viewBox="0 0 16 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M15 1H1L5.03846 8.19231H8H10.9615L13.3846 3.94231L15 1Z" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M15 18H1L5.03846 10.8077H10.9615L15 18Z" stroke-linecap="round" stroke-linejoin="round"/>
+    >
+    <svg
+      style="grid-area: B"
+      :class="{highlighted: selection=='B'}"
+      class="selectable-vector icon__dualCamera"
+      viewBox="0 0 16 19"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M15 1H1L5.03846 8.19231H8H10.9615L13.3846 3.94231L15 1Z"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M15 18H1L5.03846 10.8077H10.9615L15 18Z"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
     </svg>
     <input
       style="grid-area: R"
-      type="radio" name="tritoggle"
+      type="radio"
+      name="tritoggle"
       value="R"
+      class="tooltip"
+      title="Show Images from Rear Camera"
       @click="buttonClicked($event, 'R')"
       @keydown.prevent="/*prevent radio button from changing selection on arrow keydown*/"
-      class="tooltip" title="Show Images from Rear Camera"
-    />
+    >
     <label style="grid-area: R">R</label>
     <!-- Indicator Nub: -->
-    <span></span>
+    <span />
   </div>
 </template>
 
 <script>
-import TooltipEquip from '@/styles/TooltipEquip.js'
+import TooltipEquip from '@/styles/TooltipEquip.js';
 
 export default {
-  name: "Tritoggle",
-  data: function(){
-    return {
-      selection: 'B' // default selection is both cameras
-    }
-  },
-  mounted(){
-    TooltipEquip(this.$el);
-  },
-  methods: {
+    name: 'Tritoggle',
+    data: function(){
+        return {
+            selection: 'B' // default selection is both cameras
+        };
+    },
+    mounted(){
+        TooltipEquip(this.$el);
+    },
+    methods: {
     // Select Camera based on Which Button was Clicked:
-    buttonClicked: function(event, camera){
-      let cameraNames = {
-        F: 'Front',
-        B: 'Both',
-        R: 'Rear'
-      }
-      this.selection = camera;
-      this.$store.state.IMG.cameraSelection = cameraNames[camera];
+        buttonClicked: function(event, camera){
+            let cameraNames = {
+                F: 'Front',
+                B: 'Both',
+                R: 'Rear'
+            };
+            this.selection = camera;
+            this.$store.state.IMG.cameraSelection = cameraNames[camera];
+        }
     }
-  }
-}
+};
 </script>
 
 <style lang="scss" scoped>

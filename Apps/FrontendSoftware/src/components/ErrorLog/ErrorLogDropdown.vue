@@ -12,23 +12,23 @@
     <div class="dropdown">
       <div class="dropdown-header-wrapper">
         <span class="dropdown-header">
-          <span class="medium"> Search </span> {{ this.currentCategory }}
+          <span class="medium"> Search </span> {{ currentCategory }}
         </span>
 
         <span
           class="drop-down-button unselectable"
           @mousedown="toggleDropdown()"
         >
-          {{ this.current_icon.valueOf() }}
+          {{ current_icon.valueOf() }}
         </span>
       </div>
       <!-- dropdown header wrapper -->
 
       <div class="dropdown-content">
         <div
-          class="dropdown-content-items-wrapper"
           v-for="(category, index) in searchCategories"
           :key="category"
+          class="dropdown-content-items-wrapper"
           @click="
             clickDropdownTerm(index);
             turnDropdownOff();
@@ -46,172 +46,172 @@
 </template>
 
 <script>
-import $ from "jquery";
-import colors from "@/styles/_colors.scss";
+import $ from 'jquery';
+import colors from '@/styles/_colors.scss';
 
 export default {
-  name: "ErrorLogDropdown",
+    name: 'ErrorLogDropdown',
 
-  data: function () {
-    return {
-      searchCategories: [
-        "Error Tag",
-        "Error ID",
-        "Sensor Name",
-        "Mission Time Frame (M+)",
-        "Created By",
-        "Date Created",
-        "Date Last Modified",
-        "Category",
-      ],
-      categoryIdx: 0,
-      dropdownIsOpen: false,
-      // icons might later switch to svgs
-      current_icon: "\u{02228}",
-      ui_icons: { closed: "\u{02228}", open: "\u{0002B}" },
-      suggestionIdx: -1,
-      currentCategory: "Options",
-    };
-  },
+    data: function () {
+        return {
+            searchCategories: [
+                'Error Tag',
+                'Error ID',
+                'Sensor Name',
+                'Mission Time Frame (M+)',
+                'Created By',
+                'Date Created',
+                'Date Last Modified',
+                'Category',
+            ],
+            categoryIdx: 0,
+            dropdownIsOpen: false,
+            // icons might later switch to svgs
+            current_icon: '\u{02228}',
+            ui_icons: { closed: '\u{02228}', open: '\u{0002B}' },
+            suggestionIdx: -1,
+            currentCategory: 'Options',
+        };
+    },
 
-  methods: {
+    methods: {
     // called when manually clicking the dropdown ui
-    toggleDropdown() {
-      if (this.dropdownIsOpen) {
-        this.turnDropdownOff();
-      } else {
-        this.turnDropdownOn();
-      }
-      //console.log("dropdown toggled");
-    },
+        toggleDropdown() {
+            if (this.dropdownIsOpen) {
+                this.turnDropdownOff();
+            } else {
+                this.turnDropdownOn();
+            }
+            //console.log("dropdown toggled");
+        },
 
-    // switch ui + turn on dropdown
-    turnDropdownOn() {
-      this.dropdownIsOpen = true;
-      this.current_icon = this.ui_icons.open;
-      $(".dropdown-content").addClass("sensor-is-on");
-    },
+        // switch ui + turn on dropdown
+        turnDropdownOn() {
+            this.dropdownIsOpen = true;
+            this.current_icon = this.ui_icons.open;
+            $('.dropdown-content').addClass('sensor-is-on');
+        },
 
-    // switch ui + turn off dropdown
-    turnDropdownOff() {
-      this.dropdownIsOpen = false;
-      this.current_icon = this.ui_icons.closed;
-      $(".dropdown-content").removeClass("sensor-is-on");
-      this.clearHighlight();
-      this.suggestionIdx = -1;
-    },
+        // switch ui + turn off dropdown
+        turnDropdownOff() {
+            this.dropdownIsOpen = false;
+            this.current_icon = this.ui_icons.closed;
+            $('.dropdown-content').removeClass('sensor-is-on');
+            this.clearHighlight();
+            this.suggestionIdx = -1;
+        },
 
-    mouseOver(index) {
-      this.clearHighlight();
-      let elements = document.getElementsByClassName(
-        "dropdown-content-items-wrapper"
-      );
-      this.suggestionIdx = index;
-      this.categoryIdx = index;
-      let curHighlighted = elements[index];
-      curHighlighted.style.background = colors.colorprimary;
-    },
+        mouseOver(index) {
+            this.clearHighlight();
+            let elements = document.getElementsByClassName(
+                'dropdown-content-items-wrapper'
+            );
+            this.suggestionIdx = index;
+            this.categoryIdx = index;
+            let curHighlighted = elements[index];
+            curHighlighted.style.background = colors.colorprimary;
+        },
 
-    clickDropdownTerm(index) {
-      this.index = index;
-      this.categoryIdx = index;
-      this.currentCategory = this.searchCategories[this.categoryIdx];
-      console.log(
-        "dropdown clicked! " +
-          "the category is: " +
+        clickDropdownTerm(index) {
+            this.index = index;
+            this.categoryIdx = index;
+            this.currentCategory = this.searchCategories[this.categoryIdx];
+            console.log(
+                'dropdown clicked! ' +
+          'the category is: ' +
           this.searchCategories[this.categoryIdx]
-      );
-      this.$emit(
-        "update:search-category",
-        this.searchCategories[this.categoryIdx]
-      );
+            );
+            this.$emit(
+                'update:search-category',
+                this.searchCategories[this.categoryIdx]
+            );
+        },
+
+        // loop through all dropdown and clear all highlights
+        clearHighlight() {
+            let elements = document.getElementsByClassName(
+                'dropdown-content-items-wrapper'
+            );
+            let elementsL = [...elements];
+            elementsL.map(function (element) {
+                element.style.background = colors.colorgrey3;
+            });
+        },
+
+        //dropdown highlight
+        toggleDropdownHighlight(direction) {
+            this.clearHighlight();
+            let elements = document.getElementsByClassName(
+                'dropdown-content-items-wrapper'
+            );
+            let currentIdx = this.suggestionIdx;
+
+            // avoid invalid index into elements
+            if (elements.length != 0) {
+                if (direction == 'Down' && currentIdx == -1) {
+                    let curHighlighted = elements[0];
+                    curHighlighted.style.background = colors.colorprimary;
+                    this.suggestionIdx = 0;
+                } else if (direction == 'Up' && currentIdx == -1) {
+                    console.log('Cannot up');
+                } else if (direction == 'Up') {
+                    let curHighlighted = elements[this.checkValidIndex(currentIdx)];
+                    let nextIdx = this.checkValidIndex(currentIdx - 1);
+                    let nextHighlighted = elements[nextIdx];
+
+                    // changing css to switch highlight
+                    curHighlighted.style.background = colors.colorgrey3;
+                    nextHighlighted.style.background = colors.colorprimary;
+
+                    // update suggestion index
+                    this.suggestionIdx = nextIdx;
+
+                    // scroll animation if needed
+                    if (nextIdx < 3) {
+                        this.scrollDropdown('Up');
+                    }
+                } else {
+                    let curHighlighted = elements[this.checkValidIndex(currentIdx)];
+                    let nextIdx = this.checkValidIndex(currentIdx + 1);
+                    let nextHighlighted = elements[nextIdx];
+
+                    // changing css to switch highlight
+                    this.clearHighlight();
+                    curHighlighted.style.background = colors.colorgrey3;
+                    nextHighlighted.style.background = colors.colorprimary;
+
+                    // update index
+                    this.suggestionIdx = nextIdx;
+
+                    // scroll animation if needed
+                    if (nextIdx >= 3) {
+                        this.scrollDropdown('Down');
+                    }
+                }
+            }
+        },
+
+        // dropdown automatic scroll up/down animation
+        scrollDropdown(direction) {
+            if (direction == 'Up') {
+                $('.dropdown-content').stop().animate(
+                    {
+                        scrollTop: 0,
+                    },
+                    800
+                );
+            } else {
+                $('.dropdown-content')
+                    .stop()
+                    .animate(
+                        {
+                            scrollTop: $('.dropdown-content')[0].scrollHeight,
+                        },
+                        800
+                    );
+            }
+        },
     },
-
-    // loop through all dropdown and clear all highlights
-    clearHighlight() {
-      let elements = document.getElementsByClassName(
-        "dropdown-content-items-wrapper"
-      );
-      let elementsL = [...elements];
-      elementsL.map(function (element) {
-        element.style.background = colors.colorgrey3;
-      });
-    },
-
-    //dropdown highlight
-    toggleDropdownHighlight(direction) {
-      this.clearHighlight();
-      let elements = document.getElementsByClassName(
-        "dropdown-content-items-wrapper"
-      );
-      let currentIdx = this.suggestionIdx;
-
-      // avoid invalid index into elements
-      if (elements.length != 0) {
-        if (direction == "Down" && currentIdx == -1) {
-          let curHighlighted = elements[0];
-          curHighlighted.style.background = colors.colorprimary;
-          this.suggestionIdx = 0;
-        } else if (direction == "Up" && currentIdx == -1) {
-          console.log("Cannot up");
-        } else if (direction == "Up") {
-          let curHighlighted = elements[this.checkValidIndex(currentIdx)];
-          let nextIdx = this.checkValidIndex(currentIdx - 1);
-          let nextHighlighted = elements[nextIdx];
-
-          // changing css to switch highlight
-          curHighlighted.style.background = colors.colorgrey3;
-          nextHighlighted.style.background = colors.colorprimary;
-
-          // update suggestion index
-          this.suggestionIdx = nextIdx;
-
-          // scroll animation if needed
-          if (nextIdx < 3) {
-            this.scrollDropdown("Up");
-          }
-        } else {
-          let curHighlighted = elements[this.checkValidIndex(currentIdx)];
-          let nextIdx = this.checkValidIndex(currentIdx + 1);
-          let nextHighlighted = elements[nextIdx];
-
-          // changing css to switch highlight
-          this.clearHighlight();
-          curHighlighted.style.background = colors.colorgrey3;
-          nextHighlighted.style.background = colors.colorprimary;
-
-          // update index
-          this.suggestionIdx = nextIdx;
-
-          // scroll animation if needed
-          if (nextIdx >= 3) {
-            this.scrollDropdown("Down");
-          }
-        }
-      }
-    },
-
-    // dropdown automatic scroll up/down animation
-    scrollDropdown(direction) {
-      if (direction == "Up") {
-        $(".dropdown-content").stop().animate(
-          {
-            scrollTop: 0,
-          },
-          800
-        );
-      } else {
-        $(".dropdown-content")
-          .stop()
-          .animate(
-            {
-              scrollTop: $(".dropdown-content")[0].scrollHeight,
-            },
-            800
-          );
-      }
-    },
-  },
 };
 </script>
 

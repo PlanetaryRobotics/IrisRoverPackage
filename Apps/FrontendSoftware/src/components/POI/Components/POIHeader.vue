@@ -1,7 +1,10 @@
 <template>
   <div class="POIHeaderContainer">
     <div class="POIHeader__importance">
-      <div v-for="index in importanceSize" :key="index">
+      <div
+        v-for="index in importanceSize"
+        :key="index"
+      >
         <svg
           width="2"
           height="16"
@@ -21,51 +24,54 @@
       </div>
     </div>
 
-    <div class="POIHeader__title text__smallCaps--bold" :style="titleColor">
+    <div
+      class="POIHeader__title text__smallCaps--bold"
+      :style="titleColor"
+    >
       {{ getTitle() + POIData.number }}
     </div>
   </div>
 </template>
 
 <script>
-import POICard from "@/data_classes/POICard.js";
+import POICard from '@/data_classes/POICard.js';
 
 export default {
-  name: "POIHeader",
-  props: {
-    POIData: Object,
-  },
-  computed: {
-    importanceColor: function () {
-      let category = this.POIData.category;
-      let ans = POICard.CATEGORY_COLORS[category];
-      return {
-        stroke: ans,
-      };
+    name: 'POIHeader',
+    props: {
+        POIData: Object,
     },
-    importanceSize: function () {
-      let size = this.POIData.importanceLevel;
-      return new Array(size);
+    computed: {
+        importanceColor: function () {
+            let category = this.POIData.category;
+            let ans = POICard.CATEGORY_COLORS[category];
+            return {
+                stroke: ans,
+            };
+        },
+        importanceSize: function () {
+            let size = this.POIData.importanceLevel;
+            return new Array(size);
+        },
+        titleColor: function () {
+            let category = this.POIData.category;
+            let ans = POICard.CATEGORY_COLORS[category];
+            return {
+                color: ans,
+            };
+        },
     },
-    titleColor: function () {
-      let category = this.POIData.category;
-      let ans = POICard.CATEGORY_COLORS[category];
-      return {
-        color: ans,
-      };
+    methods: {
+        getTitle() {
+            if (this.POIData.category === 'ATTRACTION') {
+                return 'ATTR-';
+            } else if (this.POIData.category === 'OBSTACLE') {
+                return 'OBST-';
+            } else {
+                return 'SHDW-';
+            }
+        },
     },
-  },
-  methods: {
-    getTitle() {
-      if (this.POIData.category === "ATTRACTION") {
-        return "ATTR-";
-      } else if (this.POIData.category === "OBSTACLE") {
-        return "OBST-";
-      } else {
-        return "SHDW-";
-      }
-    },
-  },
 };
 </script>
 

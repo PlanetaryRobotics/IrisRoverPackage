@@ -1,10 +1,13 @@
 <template>
-  <div class="POICard" v-show="show.card">
+  <div
+    v-show="show.card"
+    class="POICard"
+  >
     <!-- SIDE MODALS -->
     <div v-if="show.modalImages">
       <Sidemodal
         :key="0"
-        :POIListEl="POIListEl"
+        :p-o-i-list-el="POIListEl"
         :target="this.$refs.images"
         :data="POICard.getData().images"
         type="IMAGES"
@@ -15,7 +18,7 @@
     <div v-if="show.modalTags">
       <Sidemodal
         :key="1"
-        :POIListEl="POIListEl"
+        :p-o-i-list-el="POIListEl"
         :target="this.$refs.tags"
         :data="tagNames.slice(7)"
         type="TAGS"
@@ -26,18 +29,21 @@
 
     <!--HEADER -->
     <div class="POICard__header">
-      <POIHeader :POIData="POIData" class="POICard__headerObject" />
+      <POIHeader
+        :p-o-i-data="POIData"
+        class="POICard__headerObject"
+      />
 
       <div class="POICard__headerButtons">
         <!-- EDIT BUTTON -->
         <svg
           class="POICARD__edit"
-          @click="openEditWindow(POICard)"
           width="13"
           height="13"
           viewBox="0 0 9 9"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
+          @click="openEditWindow(POICard)"
         >
           <path
             fill-rule="evenodd"
@@ -50,12 +56,12 @@
         <svg
           class="POICard__showMore"
           :class="{ open: show.moreData }"
-          @click="toggleShowMore"
           width="10"
           height="7"
           viewBox="0 0 8 5"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
+          @click="toggleShowMore"
         >
           <path
             fill-rule="evenodd"
@@ -70,11 +76,14 @@
     <!-- MAIN BODY -->
     <div class="POICard__content">
       <!--TAGS-->
-      <div class="POICard__tags" ref="tags">
+      <div
+        ref="tags"
+        class="POICard__tags"
+      >
         <div
-          class="pill__tag"
           v-for="(name, index) of tagNames.slice(0, 7)"
           :key="index"
+          class="pill__tag"
         >
           <div v-html="searchQuery ? marked.tags[index] : name" />
           <!-- {{getShortName(name)}} -->
@@ -82,8 +91,8 @@
       </div>
 
       <div
-        class="POICard__tags__viewMore"
         v-if="viewMoreTagsNumber() > 0"
+        class="POICard__tags__viewMore"
         @click="toggleModal('modalTags')"
       >
         {{ "+" + viewMoreTagsNumber() + ">" }}
@@ -91,7 +100,7 @@
 
       <!--IMAGE AND WIDTH/HEIGHT -->
       <div class="POICard__imageRow">
-        <img :src="POIData.thumbnail.url" />
+        <img :src="POIData.thumbnail.url">
         <div class="POICard__imageDimensions">
           <div class="POICard__imageDimension">
             <div class="text__main--bold">
@@ -99,23 +108,32 @@
             </div>
             {{ " " + POIData.width + " " + POIData.sizeUnit }}
           </div>
-          <div class="POICard__imageDimensionSeparator">x</div>
+          <div class="POICard__imageDimensionSeparator">
+            x
+          </div>
           <div class="POICard__imageDimension">
             <div class="text__main--bold">
               {{ "Depth" }}
             </div>
             {{ " " + POIData.depth + " " + POIData.sizeUnit }}
           </div>
-          <div class="POICard__imageDimensionSeparator">x</div>
+          <div class="POICard__imageDimensionSeparator">
+            x
+          </div>
           <div class="POICard__imageDimension">
-            <div class="text__main--bold">{{ "Height" }} &nbsp;</div>
+            <div class="text__main--bold">
+              {{ "Height" }} &nbsp;
+            </div>
             {{ " " + POIData.height + " " + POIData.sizeUnit }}
           </div>
         </div>
       </div>
 
       <!--ADDITIONAL INFO-->
-      <div class="POICard__moreData" v-show="show.moreData">
+      <div
+        v-show="show.moreData"
+        class="POICard__moreData"
+      >
         <div class="POICard__divider" />
         <!-- HISTORY -->
         <div class="POICard__updateHistorySmall">
@@ -152,7 +170,12 @@
         />
         <!-- IMAGES -->
         <div class="POICard__imagesHeader">
-          <div class="text__main--bold" ref="images">Images</div>
+          <div
+            ref="images"
+            class="text__main--bold"
+          >
+            Images
+          </div>
           <div
             class="POICard__imagesViewMore"
             @click="toggleModal('modalImages')"
@@ -161,7 +184,11 @@
           </div>
         </div>
         <div class="POICard__tags">
-          <div class="pill" v-for="(image, index) of images" :key="index">
+          <div
+            v-for="(image, index) of images"
+            :key="index"
+            class="pill"
+          >
             {{ image.timeForTagFormatting }}
           </div>
         </div>
@@ -174,124 +201,124 @@
 </template>
 
 <script>
-import POIHeader from "@/components/POI/Components/POIHeader.vue";
-import Sidemodal from "@/components/POI/Components/Sidemodal.vue";
+import POIHeader from '@/components/POI/Components/POIHeader.vue';
+import Sidemodal from '@/components/POI/Components/Sidemodal.vue';
 
-import POICard from "@/data_classes/POICard.js";
-import POIEventBus from "@/components/POI//POIEventBus.js";
+import POICard from '@/data_classes/POICard.js';
+import POIEventBus from '@/components/POI//POIEventBus.js';
 
 export default {
-  name: "POICard",
-  components: {
-    POIHeader,
-    Sidemodal,
-  },
-  data() {
-    return {
-      show: {
-        card: true,
-        moreData: false,
-        modalImages: false,
-        modalTags: false,
-      },
-      marked: {
-        tags: [],
-        description: "",
-      },
-    };
-  },
-  props: {
-    POIData: Object,
-    searchQuery: String,
-    POICard: POICard,
-    POIListEl: HTMLDivElement,
-  },
-  mounted() {
-    this.handleShowCard(this.searchQuery);
-  },
-  watch: {
-    searchQuery(newVal) {
-      // watch it
-      this.handleShowCard(newVal);
+    name: 'POICard',
+    components: {
+        POIHeader,
+        Sidemodal,
     },
-  },
-  computed: {
-    tagNames: function () {
-      let tagList = this.POIData.tagList;
-      let nameList = [];
-      tagList.forEach((tag) => nameList.push(tag.getName()));
+    props: {
+        POIData: Object,
+        searchQuery: String,
+        POICard: POICard,
+        POIListEl: HTMLDivElement,
+    },
+    data() {
+        return {
+            show: {
+                card: true,
+                moreData: false,
+                modalImages: false,
+                modalTags: false,
+            },
+            marked: {
+                tags: [],
+                description: '',
+            },
+        };
+    },
+    computed: {
+        tagNames: function () {
+            let tagList = this.POIData.tagList;
+            let nameList = [];
+            tagList.forEach((tag) => nameList.push(tag.getName()));
 
-      return nameList;
+            return nameList;
+        },
+        images: function () {
+            let images = this.POIData.images;
+            if (images.length > 4) {
+                return images.slice(0, 4);
+            }
+            return images;
+        },
     },
-    images: function () {
-      let images = this.POIData.images;
-      if (images.length > 4) {
-        return images.slice(0, 4);
-      }
-      return images;
+    watch: {
+        searchQuery(newVal) {
+            // watch it
+            this.handleShowCard(newVal);
+        },
     },
-  },
-  methods: {
-    handleShowCard(query) {
-      // If there is a query
-      if (query || query !== null) {
-        if (this.cardHasSearchQuery(query)) {
-          this.show.card = true;
-          this.markText(query);
-        } else {
-          this.show.card = false;
-        }
-        // Else by default show the card
-      } else {
-        this.show.card = true;
-      }
+    mounted() {
+        this.handleShowCard(this.searchQuery);
     },
-    toggleModal(key) {
-      this.show[key] = !this.show[key];
-    },
-    cardHasSearchQuery(searchQuery) {
-      if (this.POIData.description.includes(searchQuery)) {
-        return true;
-      }
+    methods: {
+        handleShowCard(query) {
+            // If there is a query
+            if (query || query !== null) {
+                if (this.cardHasSearchQuery(query)) {
+                    this.show.card = true;
+                    this.markText(query);
+                } else {
+                    this.show.card = false;
+                }
+                // Else by default show the card
+            } else {
+                this.show.card = true;
+            }
+        },
+        toggleModal(key) {
+            this.show[key] = !this.show[key];
+        },
+        cardHasSearchQuery(searchQuery) {
+            if (this.POIData.description.includes(searchQuery)) {
+                return true;
+            }
 
-      for (let tagName of this.tagNames) {
-        if (tagName.includes(searchQuery)) {
-          return true;
-        }
-      }
+            for (let tagName of this.tagNames) {
+                if (tagName.includes(searchQuery)) {
+                    return true;
+                }
+            }
 
-      return false;
-    },
-    markText(query) {
-      let markedTags = [];
-      let regex = new RegExp(query, "g");
+            return false;
+        },
+        markText(query) {
+            let markedTags = [];
+            let regex = new RegExp(query, 'g');
 
-      for (let tag of this.tagNames) {
-        let markedTag = tag
-          .toLowerCase()
-          .replace(regex, "<mark>" + query + "</mark>");
-        markedTags.push(markedTag);
-      }
+            for (let tag of this.tagNames) {
+                let markedTag = tag
+                    .toLowerCase()
+                    .replace(regex, '<mark>' + query + '</mark>');
+                markedTags.push(markedTag);
+            }
 
-      this.marked.tags = markedTags;
-      this.marked.description = this.POIData.description.replace(
-        regex,
-        "<mark>" + query + "</mark>"
-      );
+            this.marked.tags = markedTags;
+            this.marked.description = this.POIData.description.replace(
+                regex,
+                '<mark>' + query + '</mark>'
+            );
+        },
+        toggleShowMore() {
+            this.show.moreData = !this.show.moreData;
+        },
+        viewMoreTagsNumber() {
+            if (this.POIData.tagList.length > 7) {
+                return this.POIData.tagList.length - 7;
+            }
+            return 0;
+        },
+        openEditWindow() {
+            POIEventBus.$emit('OPEN_EDIT_POI_WINDOW', this.POICard);
+        },
     },
-    toggleShowMore() {
-      this.show.moreData = !this.show.moreData;
-    },
-    viewMoreTagsNumber() {
-      if (this.POIData.tagList.length > 7) {
-        return this.POIData.tagList.length - 7;
-      }
-      return 0;
-    },
-    openEditWindow() {
-      POIEventBus.$emit("OPEN_EDIT_POI_WINDOW", this.POICard);
-    },
-  },
 };
 </script>
 

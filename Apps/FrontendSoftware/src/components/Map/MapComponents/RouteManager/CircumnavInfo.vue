@@ -24,13 +24,13 @@
 
       <!-- EDIT ICON -->
       <svg
-        @click.stop="openEditModal()"
         class="icon pencil"
         width="12"
         height="12"
         viewBox="0 0 12 12"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        @click.stop="openEditModal()"
       >
         <path
           fill-rule="evenodd"
@@ -42,13 +42,13 @@
 
       <!-- TRASH ICON -->
       <svg
-        @click.stop="openDeleteModal()"
         class="icon trash"
         width="15"
         height="19"
         viewBox="0 0 15 19"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        @click.stop="openDeleteModal()"
       >
         <rect
           x="0.5"
@@ -92,13 +92,13 @@
     <div class="circumnav__segments">
       <SegmentInfo
         v-for="(circumnavSeg, wpIndex) in circumnavigation.waypoints"
+        :key="wpIndex"
         :segment="circumnavSeg"
         :route="route"
         :index="wpIndex"
-        :POIName="circumnavigation.POICard.getName()"
-        :key="wpIndex"
+        :p-o-i-name="circumnavigation.POICard.getName()"
         :circumnavigation="circumnavigation"
-        :circumnavigationIndex="index"
+        :circumnavigation-index="index"
       />
     </div>
     <!-- CIRCUMNAV END ROW -->
@@ -125,63 +125,63 @@
 </template>
 
 <script>
-import GridEventBus from "@/components/Map/GridEventBus.js";
-import Route from "@/data_classes/Route.js";
-import Circumnavigation from "@/data_classes/Circumnavigation.js";
-import SegmentInfo from "@/components/Map/MapComponents/RouteManager/SegmentInfo.vue";
-import { highlightSegment } from "@/components/Map/Utility/SegmentColorer.js";
-import { mapMutations } from "vuex";
+import GridEventBus from '@/components/Map/GridEventBus.js';
+import Route from '@/data_classes/Route.js';
+import Circumnavigation from '@/data_classes/Circumnavigation.js';
+import SegmentInfo from '@/components/Map/MapComponents/RouteManager/SegmentInfo.vue';
+import { highlightSegment } from '@/components/Map/Utility/SegmentColorer.js';
+import { mapMutations } from 'vuex';
 
 export default {
-  name: "CircumnavInfo",
-  components: {
-    SegmentInfo,
-  },
-  props: {
-    route: Route,
-    circumnavigation: Circumnavigation,
-    index: Number,
-  },
-  data() {
-    return {
-      highlight: null,
-    };
-  },
-  methods: {
-    ...mapMutations(["deleteWaypoint"]),
-    openEditModal() {
-      GridEventBus.$emit("OPEN_SEGMENT_MODAL", {
-        route: this.route,
-        segment: this.circumnavigation,
-        segmentIndex: this.index,
-        action: "EDIT",
-      });
+    name: 'CircumnavInfo',
+    components: {
+        SegmentInfo,
     },
-    openDeleteModal() {
-      let html = `<div style='color:white'>Are you sure you want to delete circumnavigation `;
-      html += `<span class='text__main--bold' style='color:red'>${this.circumnavigation.POICard.getName()}</span>? This action cannot be undone.</div>`;
+    props: {
+        route: Route,
+        circumnavigation: Circumnavigation,
+        index: Number,
+    },
+    data() {
+        return {
+            highlight: null,
+        };
+    },
+    methods: {
+        ...mapMutations(['deleteWaypoint']),
+        openEditModal() {
+            GridEventBus.$emit('OPEN_SEGMENT_MODAL', {
+                route: this.route,
+                segment: this.circumnavigation,
+                segmentIndex: this.index,
+                action: 'EDIT',
+            });
+        },
+        openDeleteModal() {
+            let html = '<div style=\'color:white\'>Are you sure you want to delete circumnavigation ';
+            html += `<span class='text__main--bold' style='color:red'>${this.circumnavigation.POICard.getName()}</span>? This action cannot be undone.</div>`;
 
-      this.highlight = highlightSegment();
-      this.highlight.set(this.route, this.index);
+            this.highlight = highlightSegment();
+            this.highlight.set(this.route, this.index);
 
-      let payload = {
-        html: html,
-        deleteCallback: this.deleteCallback,
-        cancelCallback: this.cancelCallback,
-      };
+            let payload = {
+                html: html,
+                deleteCallback: this.deleteCallback,
+                cancelCallback: this.cancelCallback,
+            };
 
-      GridEventBus.$emit("TOGGLE_DELETE_MODAL", payload);
+            GridEventBus.$emit('TOGGLE_DELETE_MODAL', payload);
+        },
+        deleteCallback() {
+            this.deleteWaypoint({
+                route: this.route,
+                segment: this.circumnavigation,
+            });
+        },
+        cancelCallback() {
+            this.highlight.removeColor();
+        },
     },
-    deleteCallback() {
-      this.deleteWaypoint({
-        route: this.route,
-        segment: this.circumnavigation,
-      });
-    },
-    cancelCallback() {
-      this.highlight.removeColor();
-    },
-  },
 };
 </script>
 

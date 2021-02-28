@@ -5,10 +5,12 @@
 
       <div class="input-button-wrapper">
         <input
-          v-model="rawInput"
           ref="input"
+          v-model="rawInput"
           type="text"
           class="search__input text__main"
+          spellcheck="false"
+          placeholder="Search"
           @keydown="toggleDropdownOnKey()"
           @keydown.enter="enterKeyPressed()"
           @click="
@@ -22,9 +24,7 @@
           @keydown.down.prevent="toggleDropdownHighlight('Down')"
           @keydown.delete.prevent="deletePressed()"
           @keydown.esc.prevent="reset"
-          spellcheck="false"
-          placeholder="Search"
-        />
+        >
 
         <!-- manually open & close dropdown UI -->
 
@@ -39,11 +39,14 @@
 
       <!-- dropdown: showing only valid terms, user has entered something -->
 
-      <div class="dropdown-content" v-if="hasSuggestions()">
+      <div
+        v-if="hasSuggestions()"
+        class="dropdown-content"
+      >
         <div
-          class="dropdown-content-items-wrapper"
           v-for="(suggest, index) in allSuggestedText"
           :key="suggest"
+          class="dropdown-content-items-wrapper"
           @mouseover="mouseOver(index)"
           @click="clickDropdownTerm()"
         >
@@ -53,11 +56,14 @@
 
       <!-- dropdown: showing all possible valid terms, user has not entered anything -->
 
-      <div class="dropdown-content" v-else>
+      <div
+        v-else
+        class="dropdown-content"
+      >
         <div
-          class="dropdown-content-items-wrapper"
           v-for="(option, index) in validTerms"
           :key="option"
+          class="dropdown-content-items-wrapper"
           @mouseover="mouseOver(index)"
           @click="clickDropdownTerm()"
         >
@@ -71,9 +77,9 @@
 
     <p class="text-output text-area">
       <span
-        class="search__tags text__main"
         v-for="(term, index) in searchedTerms"
         :key="index"
+        class="search__tags text__main"
       >
         <div class="search_tags--item_wrapper">
           <p
@@ -92,324 +98,324 @@
 </template>
 
 <script>
-import TextInput from "../atomic/TextInput";
-import $ from "jquery";
-import colors from "@/styles/_colors.scss";
+import TextInput from '../atomic/TextInput';
+import $ from 'jquery';
+import colors from '@/styles/_colors.scss';
 export default {
-  name: "TagSearch",
+    name: 'TagSearch', //  - Free to use methods from the TextInput component
 
-  extends: TextInput, //  - Free to use methods from the TextInput component
-
-  components: {
+    components: {
     // TextInput,
-  },
-
-  props: {
-    validTerms: {
-      //   - Given list of possible options to be displayed under the text box.
-      type: Array,
-      default: () => [],
-      required: false,
     },
-  },
 
-  data: function () {
-    return {
-      dropdownIsOpen: false,
-      // icons might later switch to svgs
-      current_icon: "\u{02228}",
-      ui_icons: { closed: "\u{02228}", open: "\u{0002B}" },
-      suggestionIdx: -1,
-    };
-  },
+    extends: TextInput,
 
-  computed: {
+    props: {
+        validTerms: {
+            //   - Given list of possible options to be displayed under the text box.
+            type: Array,
+            default: () => [],
+            required: false,
+        },
+    },
+
+    data: function () {
+        return {
+            dropdownIsOpen: false,
+            // icons might later switch to svgs
+            current_icon: '\u{02228}',
+            ui_icons: { closed: '\u{02228}', open: '\u{0002B}' },
+            suggestionIdx: -1,
+        };
+    },
+
+    computed: {
     // Returns the Remainder of the Suggested Command (not currently input by
     // the user).
-    suggestedText() {
-      return this.fullSuggestedText;
+        suggestedText() {
+            return this.fullSuggestedText;
+        },
+
+        // Returns the Full Text of the Suggested Command.
+        fullSuggestedText() {
+            let sug = this.suggestion(this.rawInput, this.suggestionIdx);
+            return this.makeHTMLReadable(sug);
+        },
+
+        // Returns an Array of the Readable Full Text of all Suggested Commands.
+        allSuggestedText() {
+            return this.allSuggestions(this.rawInput).map((sug) =>
+                this.makeHTMLReadable(sug)
+            );
+        },
     },
 
-    // Returns the Full Text of the Suggested Command.
-    fullSuggestedText() {
-      let sug = this.suggestion(this.rawInput, this.suggestionIdx);
-      return this.makeHTMLReadable(sug);
-    },
-
-    // Returns an Array of the Readable Full Text of all Suggested Commands.
-    allSuggestedText() {
-      return this.allSuggestions(this.rawInput).map((sug) =>
-        this.makeHTMLReadable(sug)
-      );
-    },
-  },
-
-  methods: {
+    methods: {
     // Functionality functions for filtering through valid terms
     // Helper function that makes the given suggestion string readable (through HTML)
 
-    makeHTMLReadable(str) {
-      if (!this.hideText) {
-        // Replace Spaces with nbsp if they'll show up:
-        return str.replace(/ /g, "\u00a0");
-      } else {
-        return str;
-      }
-    },
+        makeHTMLReadable(str) {
+            if (!this.hideText) {
+                // Replace Spaces with nbsp if they'll show up:
+                return str.replace(/ /g, '\u00a0');
+            } else {
+                return str;
+            }
+        },
 
-    // Returns an Array of All Suggested Terms for the Given Input String:
+        // Returns an Array of All Suggested Terms for the Given Input String:
 
-    allSuggestions(str) {
-      if (str == "" || !this.validTerms.length) {
-        return [];
-      } else {
-        // Get All Commands which Match:
-        let suggestions = this.validTerms.filter((t) => {
-          if (this.caseSensitive) {
-            return t.startsWith(str);
-          } else {
-            return t.toLowerCase().startsWith(str.toLowerCase());
-          }
-        });
-        return suggestions;
-      }
-    },
+        allSuggestions(str) {
+            if (str == '' || !this.validTerms.length) {
+                return [];
+            } else {
+                // Get All Commands which Match:
+                let suggestions = this.validTerms.filter((t) => {
+                    if (this.caseSensitive) {
+                        return t.startsWith(str);
+                    } else {
+                        return t.toLowerCase().startsWith(str.toLowerCase());
+                    }
+                });
+                return suggestions;
+            }
+        },
 
-    // Returns the Nth Suggested Term for the Given Input String:
+        // Returns the Nth Suggested Term for the Given Input String:
 
-    suggestion(str, n) {
-      // If no valid terms given, suggest nothing.
-      // If field is empty and scrolling hasn't occurred, suggest nothing.
-      if ((str == "" && n == 0) || !this.validTerms.length) {
-        return "";
-      } else {
-        // Get All Commands which Match:
+        suggestion(str, n) {
+            // If no valid terms given, suggest nothing.
+            // If field is empty and scrolling hasn't occurred, suggest nothing.
+            if ((str == '' && n == 0) || !this.validTerms.length) {
+                return '';
+            } else {
+                // Get All Commands which Match:
 
-        let suggestions = this.allSuggestions(str);
-        if (suggestions.length) {
-          // If there's anything to suggest:
-          // Keep n +ve and in range:
-          n =
+                let suggestions = this.allSuggestions(str);
+                if (suggestions.length) {
+                    // If there's anything to suggest:
+                    // Keep n +ve and in range:
+                    n =
             ((n % suggestions.length) + suggestions.length) %
             suggestions.length;
-          return suggestions[n];
-        } else {
-          return "";
-        }
-      }
-    }, // #suggestion
+                    return suggestions[n];
+                } else {
+                    return '';
+                }
+            }
+        }, // #suggestion
 
-    // helper function that checks if the index is valid, returns the given index
-    // if valid, and returns the closest index in bound if not
+        // helper function that checks if the index is valid, returns the given index
+        // if valid, and returns the closest index in bound if not
 
-    checkValidIndex(Idx) {
-      // check if we are displaying ALL valid terms or only suggested terms
-      // this influences the upper bound of the index
+        checkValidIndex(Idx) {
+            // check if we are displaying ALL valid terms or only suggested terms
+            // this influences the upper bound of the index
 
-      let sugLen = this.allSuggestedText.length;
-      let currentLength = sugLen == 0 ? this.validTerms.length : sugLen;
+            let sugLen = this.allSuggestedText.length;
+            let currentLength = sugLen == 0 ? this.validTerms.length : sugLen;
 
-      // check if out of bounds
-      if (Idx == currentLength) {
-        return Idx - 1;
-      } else if (Idx < 0) {
-        return 0;
-      } else {
-        return Idx;
-      }
-    },
+            // check if out of bounds
+            if (Idx == currentLength) {
+                return Idx - 1;
+            } else if (Idx < 0) {
+                return 0;
+            } else {
+                return Idx;
+            }
+        },
 
-    ///////////////////////////////////
+        ///////////////////////////////////
 
-    // UI Function
+        // UI Function
 
-    // loop through all dropdown and clear all highlights
+        // loop through all dropdown and clear all highlights
 
-    clearHighlight() {
-      let elements = document.getElementsByClassName(
-        "dropdown-content-items-wrapper"
-      );
-      let elementsL = [...elements];
-      elementsL.map(function (element) {
-        element.style.background = colors.colorgrey3;
-      });
-    }, 
+        clearHighlight() {
+            let elements = document.getElementsByClassName(
+                'dropdown-content-items-wrapper'
+            );
+            let elementsL = [...elements];
+            elementsL.map(function (element) {
+                element.style.background = colors.colorgrey3;
+            });
+        }, 
 
-    mouseOver(index) {
-      this.clearHighlight();
-      let elements = document.getElementsByClassName(
-        "dropdown-content-items-wrapper"
-      );
-      this.suggestionIdx = index;
-      let curHighlighted = elements[index];
-      curHighlighted.style.background = colors.colorprimary;
-    },
+        mouseOver(index) {
+            this.clearHighlight();
+            let elements = document.getElementsByClassName(
+                'dropdown-content-items-wrapper'
+            );
+            this.suggestionIdx = index;
+            let curHighlighted = elements[index];
+            curHighlighted.style.background = colors.colorprimary;
+        },
 
-    deletePressed() {
-      this.backspacePressed();
+        deletePressed() {
+            this.backspacePressed();
 
-      // before deleting accepted terms
-      if (this.rawInput == "" && this.dropdownIsOpen) {
-        this.turnDropdownOff();
-      }
+            // before deleting accepted terms
+            if (this.rawInput == '' && this.dropdownIsOpen) {
+                this.turnDropdownOff();
+            }
 
-      // do not want to set suggestionIdx to 0, need -1 to highlight correctly
-      this.suggestionIdx = -1;
-      this.clearHighlight();
-    },
+            // do not want to set suggestionIdx to 0, need -1 to highlight correctly
+            this.suggestionIdx = -1;
+            this.clearHighlight();
+        },
 
-    //dropdown highlight
+        //dropdown highlight
 
-    toggleDropdownHighlight(direction) {
-      this.clearHighlight();
-      let elements = document.getElementsByClassName(
-        "dropdown-content-items-wrapper"
-      );
-      let currentIdx = this.suggestionIdx;
+        toggleDropdownHighlight(direction) {
+            this.clearHighlight();
+            let elements = document.getElementsByClassName(
+                'dropdown-content-items-wrapper'
+            );
+            let currentIdx = this.suggestionIdx;
 
-      // avoid invalid index into elements
+            // avoid invalid index into elements
 
-      if (elements.length != 0) {
-        if (direction == "Down" && currentIdx == -1) {
-          let curHighlighted = elements[0];
-          curHighlighted.style.background = colors.colorprimary;
-          this.suggestionIdx = 0;
-        } else if (direction == "Up" && currentIdx == -1) {
-          console.log("Cannot up");
-        } else if (direction == "Up") {
-          let curHighlighted = elements[this.checkValidIndex(currentIdx)];
-          let nextIdx = this.checkValidIndex(currentIdx - 1);
-          let nextHighlighted = elements[nextIdx];
-          // changing css to switch highlight
-          curHighlighted.style.background = colors.colorgrey3;
-          nextHighlighted.style.background = colors.colorprimary;
-          // update suggestion index
-          this.suggestionIdx = nextIdx;
-          // scroll animation if needed
+            if (elements.length != 0) {
+                if (direction == 'Down' && currentIdx == -1) {
+                    let curHighlighted = elements[0];
+                    curHighlighted.style.background = colors.colorprimary;
+                    this.suggestionIdx = 0;
+                } else if (direction == 'Up' && currentIdx == -1) {
+                    console.log('Cannot up');
+                } else if (direction == 'Up') {
+                    let curHighlighted = elements[this.checkValidIndex(currentIdx)];
+                    let nextIdx = this.checkValidIndex(currentIdx - 1);
+                    let nextHighlighted = elements[nextIdx];
+                    // changing css to switch highlight
+                    curHighlighted.style.background = colors.colorgrey3;
+                    nextHighlighted.style.background = colors.colorprimary;
+                    // update suggestion index
+                    this.suggestionIdx = nextIdx;
+                    // scroll animation if needed
 
-          if (nextIdx < 3) {
-            this.scrollDropdown("Up");
-          }
-        } else {
-          let curHighlighted = elements[this.checkValidIndex(currentIdx)];
-          let nextIdx = this.checkValidIndex(currentIdx + 1);
-          let nextHighlighted = elements[nextIdx];
-          // changing css to switch highlight
-          this.clearHighlight();
-          curHighlighted.style.background = colors.colorgrey3;
-          nextHighlighted.style.background = colors.colorprimary;
-          // update index
-          this.suggestionIdx = nextIdx;
-          // scroll animation if needed
-          if (nextIdx >= 3) {
-            this.scrollDropdown("Down");
-          }
-        }
-      }
-    },
+                    if (nextIdx < 3) {
+                        this.scrollDropdown('Up');
+                    }
+                } else {
+                    let curHighlighted = elements[this.checkValidIndex(currentIdx)];
+                    let nextIdx = this.checkValidIndex(currentIdx + 1);
+                    let nextHighlighted = elements[nextIdx];
+                    // changing css to switch highlight
+                    this.clearHighlight();
+                    curHighlighted.style.background = colors.colorgrey3;
+                    nextHighlighted.style.background = colors.colorprimary;
+                    // update index
+                    this.suggestionIdx = nextIdx;
+                    // scroll animation if needed
+                    if (nextIdx >= 3) {
+                        this.scrollDropdown('Down');
+                    }
+                }
+            }
+        },
 
-    // dropdown content switch
+        // dropdown content switch
 
-    hasSuggestions() {
-      if (this.rawInput == "") {
-        return false;
-      }
+        hasSuggestions() {
+            if (this.rawInput == '') {
+                return false;
+            }
 
-      // rawInput != "", user has entered
+            // rawInput != "", user has entered
 
-      return true;
-    },
+            return true;
+        },
 
-    // switch ui + turn on dropdown
+        // switch ui + turn on dropdown
 
-    turnDropdownOn() {
-      this.dropdownIsOpen = true;
-      this.current_icon = this.ui_icons.open;
-      $(".dropdown-content").addClass("is-on");
-    },
+        turnDropdownOn() {
+            this.dropdownIsOpen = true;
+            this.current_icon = this.ui_icons.open;
+            $('.dropdown-content').addClass('is-on');
+        },
 
-    // switch ui + turn off dropdown
+        // switch ui + turn off dropdown
 
-    turnDropdownOff() {
-      this.dropdownIsOpen = false;
-      this.current_icon = this.ui_icons.closed;
-      $(".dropdown-content").removeClass("is-on");
-      this.clearHighlight();
-      this.suggestionIdx = -1;
-    },
+        turnDropdownOff() {
+            this.dropdownIsOpen = false;
+            this.current_icon = this.ui_icons.closed;
+            $('.dropdown-content').removeClass('is-on');
+            this.clearHighlight();
+            this.suggestionIdx = -1;
+        },
 
-    // only turn it on, avoid glitching
+        // only turn it on, avoid glitching
 
-    toggleDropdownOnKey() {
-      if (this.dropdownIsOpen == false) {
-        this.turnDropdownOn();
-      }
-    },
+        toggleDropdownOnKey() {
+            if (this.dropdownIsOpen == false) {
+                this.turnDropdownOn();
+            }
+        },
 
-    // accept the term that is highlighted that is selected by toggling up down key or mouse click
+        // accept the term that is highlighted that is selected by toggling up down key or mouse click
 
-    acceptOnEnterWithKeyMouse() {
-      let tmp = this.rawInput;
+        acceptOnEnterWithKeyMouse() {
+            let tmp = this.rawInput;
 
-      // check if we are displaying validTerms or suggestions(sublist of validTerms) so we index correctly
+            // check if we are displaying validTerms or suggestions(sublist of validTerms) so we index correctly
 
-      this.rawInput =
+            this.rawInput =
         this.allSuggestedText.length == 0
-          ? this.validTerms[this.suggestionIdx]
-          : this.allSuggestedText[this.suggestionIdx];
+            ? this.validTerms[this.suggestionIdx]
+            : this.allSuggestedText[this.suggestionIdx];
 
-      this.searchTerm();
+            this.searchTerm();
 
-      this.rawInput = tmp;
+            this.rawInput = tmp;
+        },
+
+        // after 'enter' is pressed, call search term and turn the dropdown off
+
+        enterKeyPressed() {
+            this.acceptOnEnterWithKeyMouse();
+            this.searchTerm();
+            this.turnDropdownOff();
+        },
+
+        // user clicks on dropdown terms, accept and turn off the dropdown
+
+        clickDropdownTerm() {
+            this.acceptOnEnterWithKeyMouse();
+            this.turnDropdownOff();
+        },
+
+        // called when manually clicking the dropdown ui
+
+        toggleDropdown() {
+            if (this.dropdownIsOpen) {
+                this.turnDropdownOff();
+            } else {
+                this.turnDropdownOn();
+            }
+        },
+
+        // dropdown automatic scroll up/down animation
+
+        scrollDropdown(direction) {
+            if (direction == 'Up') {
+                $('.dropdown-content').stop().animate(
+                    {
+                        scrollTop: 0,
+                    },
+                    800
+                );
+            } else {
+                $('.dropdown-content')
+                    .stop()
+                    .animate(
+                        {
+                            scrollTop: $('.dropdown-content')[0].scrollHeight,
+                        },
+                        800
+                    );
+            }
+        },
     },
-
-    // after 'enter' is pressed, call search term and turn the dropdown off
-
-    enterKeyPressed() {
-      this.acceptOnEnterWithKeyMouse();
-      this.searchTerm();
-      this.turnDropdownOff();
-    },
-
-    // user clicks on dropdown terms, accept and turn off the dropdown
-
-    clickDropdownTerm() {
-      this.acceptOnEnterWithKeyMouse();
-      this.turnDropdownOff();
-    },
-
-    // called when manually clicking the dropdown ui
-
-    toggleDropdown() {
-      if (this.dropdownIsOpen) {
-        this.turnDropdownOff();
-      } else {
-        this.turnDropdownOn();
-      }
-    },
-
-    // dropdown automatic scroll up/down animation
-
-    scrollDropdown(direction) {
-      if (direction == "Up") {
-        $(".dropdown-content").stop().animate(
-          {
-            scrollTop: 0,
-          },
-          800
-        );
-      } else {
-        $(".dropdown-content")
-          .stop()
-          .animate(
-            {
-              scrollTop: $(".dropdown-content")[0].scrollHeight,
-            },
-            800
-          );
-      }
-    },
-  },
 };
 </script>
 

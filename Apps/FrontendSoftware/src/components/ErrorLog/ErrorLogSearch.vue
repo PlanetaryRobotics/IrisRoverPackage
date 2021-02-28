@@ -12,10 +12,12 @@
     <div class="dropdown">
       <div class="input-button-wrapper">
         <input
-          v-model="rawInput"
           ref="input"
+          v-model="rawInput"
           type="text"
           class="search__input text__main"
+          spellcheck="false"
+          placeholder="Search keyword"
           @keydown="toggleDropdownOnKey()"
           @keydown.enter="enterKeyPressed()"
           @click="
@@ -29,25 +31,25 @@
           @keydown.down.prevent="toggleDropdownHighlight('Down')"
           @keydown.delete.prevent="deletePressed()"
           @keydown.esc.prevent="reset"
-          spellcheck="false"
-          placeholder="Search keyword"
-        />
+        >
       </div>
       <!-- input button wrapper -->
 
       <!-- dropdown: showing only valid terms, user has entered something -->
       <div class="dropdown-content">
         <div
-          class="dropdown-content-items-wrapper"
           v-for="(suggest, index) in allSuggestedText"
           :key="suggest"
+          class="dropdown-content-items-wrapper"
           @mouseover="mouseOver(index)"
           @click="
             clickDropdownTerm();
             $emit('update:search-input', searchedTerms);
           "
         >
-          <p class="suggest_text">{{ protectText(suggest) }}</p>
+          <p class="suggest_text">
+            {{ protectText(suggest) }}
+          </p>
         </div>
       </div>
     </div>
@@ -56,9 +58,9 @@
     <!-- entered search terms -->
     <p class="text-output text-area">
       <span
-        class="search__tags text__main"
         v-for="(term, index) in searchedTerms"
         :key="index"
+        class="search__tags text__main"
       >
         <div class="search_tags--item_wrapper">
           <p
@@ -80,18 +82,18 @@
 </template>
 
 <script>
-import TagSearch from "./TagSearch";
+import TagSearch from './TagSearch';
 
 export default {
-  name: "ErrorLogSearch",
+    name: 'ErrorLogSearch',
 
-  extends: TagSearch,
-
-  methods: {},
-
-  components: {
+    components: {
     //TagSearch,
-  },
+    },
+
+    extends: TagSearch,
+
+    methods: {},
 };
 </script>
 

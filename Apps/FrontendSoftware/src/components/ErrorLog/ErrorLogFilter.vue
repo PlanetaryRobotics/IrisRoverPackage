@@ -3,26 +3,27 @@
     <div class="centered_content">
       <!--------------------- TOP SECTION ------------------------->
       <div class="header">
-        <p class="header_title">Errors Log</p>
+        <p class="header_title">
+          Errors Log
+        </p>
 
         <div class="header_icons">
           <div class="icon">
             <span
               class="sort_icon"
-              v-html="CosmosIconPack('sort')"
               @click="
                 let original = sortPopUpOpen;
                 sortPopUpOpen = !original;
               "
-            >
-            </span>
+              v-html="CosmosIconPack('sort')"
+            />
           </div>
 
           <div class="icon">
             <span
               class="new_window_icon"
               v-html="CosmosIconPack('newWindow')"
-            ></span>
+            />
           </div>
         </div>
       </div>
@@ -33,12 +34,15 @@
             - on top of search 
            **********************************
       -->
-      <div class="sort_popup popup" v-if="sortPopUpOpen">
+      <div
+        v-if="sortPopUpOpen"
+        class="sort_popup popup"
+      >
         <PopUpDropdown
           class="sort_popup_content"
           :options="sortOptions"
           :title="sortTitle"
-          v-on:update:sort:input="
+          @update:sort:input="
             sortCard($event);
             sortPopUpOpen = false;
           "
@@ -48,7 +52,7 @@
       <div class="relative__parent">
         <div class="top_bar fixed__Child">
           <ErrorLogDropdown
-            v-on:update:search-category="searchCategoryUpdate($event)"
+            @update:search-category="searchCategoryUpdate($event)"
           />
 
           <!-- **********************************
@@ -59,8 +63,8 @@
       -->
           <div>
             <ErrorLogSearch
-              :validTerms="validTerms"
-              v-on:update:search-input="filterCardBySearch($event)"
+              :valid-terms="validTerms"
+              @update:search-input="filterCardBySearch($event)"
             />
           </div>
         </div>
@@ -68,11 +72,16 @@
 
       <!---------------------  MAIN SCREEN ------------------------->
 
-      <div class="priority_accordion_container" v-if="State == 'Priority'">
+      <div
+        v-if="State == 'Priority'"
+        class="priority_accordion_container"
+      >
         <!-- Sort Priority from Low to High -->
-        <div v-if="this.sortBy == 'LowToHigh'">
+        <div v-if="sortBy == 'LowToHigh'">
           <div class="row">
-            <p class="sort_type_text">Sorted by: Low - High Priority</p>
+            <p class="sort_type_text">
+              Sorted by: Low - High Priority
+            </p>
 
             <!-- **********************************
                 TODO: Expand All
@@ -90,8 +99,11 @@
             </span>
           </div>
 
-          <div v-for="priority in this.priorities" v-bind:key="priority">
-            <hr class="accordion_lines" />
+          <div
+            v-for="priority in priorities"
+            :key="priority"
+          >
+            <hr class="accordion_lines">
             <AccordionWithHeader
               class="accordion_with_header"
               :header="priority"
@@ -107,12 +119,14 @@
 
         <!-- Sort Priority from High to Low -->
         <div v-else>
-          <p class="sort_type_text">Sorted by: High - Low Priority</p>
+          <p class="sort_type_text">
+            Sorted by: High - Low Priority
+          </p>
           <div
-            v-for="priority in this.priorities.reverse()"
-            v-bind:key="priority"
+            v-for="priority in priorities.reverse()"
+            :key="priority"
           >
-            <hr class="accordion_lines" />
+            <hr class="accordion_lines">
             <AccordionWithHeader
               class="accordion_with_header"
               :header="priority"
@@ -127,11 +141,14 @@
         </div>
 
         <!-- Last Line -->
-        <hr class="accordion_lines" />
+        <hr class="accordion_lines">
       </div>
 
       <!-----------* EMPTY STATE *--------------->
-      <div class="no_cards" v-if="errorTags.length == 0">
+      <div
+        v-if="errorTags.length == 0"
+        class="no_cards"
+      >
         <p class="no_cards_text">
           Error cards will be generated automatically by the system or can be
           marked by an operator.
@@ -139,12 +156,23 @@
       </div>
 
       <!-----------* NON-EMPTY STATES *--------------->
-      <div class="has_cards" v-else>
+      <div
+        v-else
+        class="has_cards"
+      >
         <!-----------* display by categories *--------------->
-        <div class="category_accordion_container" v-if="State == 'Category'">
-          <p class="sort_type_text">Sorted by: Category</p>
-          <div v-for="category in this.categories" v-bind:key="category">
-            <hr class="accordion_lines" />
+        <div
+          v-if="State == 'Category'"
+          class="category_accordion_container"
+        >
+          <p class="sort_type_text">
+            Sorted by: Category
+          </p>
+          <div
+            v-for="category in categories"
+            :key="category"
+          >
+            <hr class="accordion_lines">
             <AccordionWithHeader
               class="accordion_with_header"
               :header="category"
@@ -155,17 +183,23 @@
               "
             />
           </div>
-          <hr class="accordion_lines" />
+          <hr class="accordion_lines">
         </div>
 
         <!-----------* display by default *--------------->
-        <div class="cards" v-if="State == 'Default'">
+        <div
+          v-if="State == 'Default'"
+          class="cards"
+        >
           <div
-            class="errorTagsWrapper"
             v-for="errorTag in checkFilter(errorTags)"
-            v-bind:key="errorTag"
+            :key="errorTag"
+            class="errorTagsWrapper"
           >
-            <ErrorTag :errorTag="errorTag" class="indivErrorTag" />
+            <ErrorTag
+              :error-tag="errorTag"
+              class="indivErrorTag"
+            />
           </div>
         </div>
       </div>
@@ -175,160 +209,160 @@
 </template>
 
 <script>
-import ErrorLogDropdown from "./ErrorLogDropdown";
-import ErrorLogSearch from "./ErrorLogSearch";
-import ErrorTag from "./ErrorTagCosmos";
-import PopUpDropdown from "./PopUpDropdown";
-import AccordionWithHeader from "./ErrorTagAccordion";
-import $ from "jquery";
-import CosmosIconPack from "@/styles/CosmosIconPack.js";
+import ErrorLogDropdown from './ErrorLogDropdown';
+import ErrorLogSearch from './ErrorLogSearch';
+import ErrorTag from './ErrorTagCosmos';
+import PopUpDropdown from './PopUpDropdown';
+import AccordionWithHeader from './ErrorTagAccordion';
+import $ from 'jquery';
+import CosmosIconPack from '@/styles/CosmosIconPack.js';
 
 export default {
-  name: "ErrorLogFilter",
+    name: 'ErrorLogFilter',
 
-  components: {
-    ErrorLogDropdown,
-    ErrorLogSearch,
-    ErrorTag,
-    PopUpDropdown,
-    AccordionWithHeader,
-  },
+    components: {
+        ErrorLogDropdown,
+        ErrorLogSearch,
+        ErrorTag,
+        PopUpDropdown,
+        AccordionWithHeader,
+    },
 
-  props: {
-    errorTags: {
-      type: Array,
-      required: true,
+    props: {
+        errorTags: {
+            type: Array,
+            required: true,
+        },
     },
-  },
+    data() {
+        return {
+            validTerms: [],
+            sortPopUpOpen: false,
+            CosmosIconPack,
+            sortOptions: [
+                'Last Modified',
+                'Created(New - Old)',
+                'Created(Old - New)',
+                'Category',
+                'Priority(Low - High)',
+                'Priority(High - Low)',
+                'None',
+            ],
+            sortTitle: 'Sort By',
+            sortBy: 'LowToHigh',
+            categories: [
+                'Acceleration',
+                'Communication',
+                'Motor',
+                'Power',
+                'Temperature',
+            ],
+            searchCategory: 'Error Tag',
+            priorities: ['Low', 'Medium', 'High'],
+            fixed_header_priority: ' Priority',
+            filteredTags: [],
+            State: 'Priority',
+        };
+    },
 
-  methods: {
-    sortCard(sortBy) {
-      if (sortBy == "None") {
-        this.State = "Default";
-      } else if (sortBy == "Priority(Low - High)") {
-        this.State = "Priority";
-        this.sortBy = "LowToHigh";
-      } else if (sortBy == "Priority(High - Low)") {
-        this.State = "Priority";
-        this.sortBy = "HighToLow";
-      } else if (sortBy == "Last Modified") {
-        this.errorTags.sort((a, b) =>
-          a.lastModified < b.lastModified ? 1 : -1
-        );
-        this.State = "Default";
-      } else if (sortBy == "Category") {
-        this.State = "Category";
-      } else if (sortBy == "Created(New - Old)") {
-        this.errorTags.sort((a, b) => (a.created < b.created ? 1 : -1));
-        this.State = "Default";
-      } else if (sortBy == "Created(Old - New)") {
-        this.errorTags.sort((a, b) => (a.created >= b.created ? 1 : -1));
-        this.State = "Default";
-      }
-    },
-    searchCategoryUpdate(category) {
-      console.log("received search category update: " + category);
-      if (category == "Error Tag") {
-        this.searchCategory = "tags";
-      } else if (category == "Error ID") {
-        this.searchCategory = "id";
-      } else if (category == "Sensor Name") {
-        this.searchCategory = "sensors";
-      } else if (category == "Mission Time Frame (M+)") {
-        this.searchCategory = "timeframe";
-      } else if (category == "Date Created") {
-        this.searchCategory = "created";
-      } else if (category == "Date Last Modified") {
-        this.searchCategory = "lastModified";
-      } else if (category == "Category") {
-        this.searchCategory = "category";
-      }
-      this.updateValidTerms();
-    },
-    updateValidTerms() {
-      let s = this.searchCategory;
-      // string values
-      if (
-        s == "category" ||
-        s == "id" ||
-        s == "created" ||
-        s == "lastModified"
-      ) {
-        let arr = [];
-        this.errorTags.forEach((tag) => arr.push(tag[s]));
-        this.validTerms = [...new Set(arr)];
-      }
-      // arrays
-      else if (s == "tags" || s == "sensors") {
-        let arr = [];
-        this.errorTags.forEach((tag) => (arr = arr.concat(tag[s])));
-        this.validTerms = [...new Set(arr)];
-      }
-      // time interval
-      // *****************    TO-DO: Use clock   ******************
-      else if (s == "timeframe") {
-        console.log("sort by time frame");
-      }
-    },
-    filterCardBySearch(searchedTerms) {
-      console.log("updated searchedTerms: " + searchedTerms);
-      let sc = this.searchCategory;
-      console.log(sc);
-      if (
-        sc == "category" ||
-        sc == "id" ||
-        sc == "created" ||
-        sc == "lastModified"
-      ) {
-        let tmp = this.errorTags;
-        tmp = tmp.filter((tag) => searchedTerms.includes(tag[sc]));
-        this.filteredTags = tmp;
-      }
-    },
-    checkFilter(rawErrorTags) {
-      let tags =
+    methods: {
+        sortCard(sortBy) {
+            if (sortBy == 'None') {
+                this.State = 'Default';
+            } else if (sortBy == 'Priority(Low - High)') {
+                this.State = 'Priority';
+                this.sortBy = 'LowToHigh';
+            } else if (sortBy == 'Priority(High - Low)') {
+                this.State = 'Priority';
+                this.sortBy = 'HighToLow';
+            } else if (sortBy == 'Last Modified') {
+                this.errorTags.sort((a, b) =>
+                    a.lastModified < b.lastModified ? 1 : -1
+                );
+                this.State = 'Default';
+            } else if (sortBy == 'Category') {
+                this.State = 'Category';
+            } else if (sortBy == 'Created(New - Old)') {
+                this.errorTags.sort((a, b) => (a.created < b.created ? 1 : -1));
+                this.State = 'Default';
+            } else if (sortBy == 'Created(Old - New)') {
+                this.errorTags.sort((a, b) => (a.created >= b.created ? 1 : -1));
+                this.State = 'Default';
+            }
+        },
+        searchCategoryUpdate(category) {
+            console.log('received search category update: ' + category);
+            if (category == 'Error Tag') {
+                this.searchCategory = 'tags';
+            } else if (category == 'Error ID') {
+                this.searchCategory = 'id';
+            } else if (category == 'Sensor Name') {
+                this.searchCategory = 'sensors';
+            } else if (category == 'Mission Time Frame (M+)') {
+                this.searchCategory = 'timeframe';
+            } else if (category == 'Date Created') {
+                this.searchCategory = 'created';
+            } else if (category == 'Date Last Modified') {
+                this.searchCategory = 'lastModified';
+            } else if (category == 'Category') {
+                this.searchCategory = 'category';
+            }
+            this.updateValidTerms();
+        },
+        updateValidTerms() {
+            let s = this.searchCategory;
+            // string values
+            if (
+                s == 'category' ||
+        s == 'id' ||
+        s == 'created' ||
+        s == 'lastModified'
+            ) {
+                let arr = [];
+                this.errorTags.forEach((tag) => arr.push(tag[s]));
+                this.validTerms = [...new Set(arr)];
+            }
+            // arrays
+            else if (s == 'tags' || s == 'sensors') {
+                let arr = [];
+                this.errorTags.forEach((tag) => (arr = arr.concat(tag[s])));
+                this.validTerms = [...new Set(arr)];
+            }
+            // time interval
+            // *****************    TO-DO: Use clock   ******************
+            else if (s == 'timeframe') {
+                console.log('sort by time frame');
+            }
+        },
+        filterCardBySearch(searchedTerms) {
+            console.log('updated searchedTerms: ' + searchedTerms);
+            let sc = this.searchCategory;
+            console.log(sc);
+            if (
+                sc == 'category' ||
+        sc == 'id' ||
+        sc == 'created' ||
+        sc == 'lastModified'
+            ) {
+                let tmp = this.errorTags;
+                tmp = tmp.filter((tag) => searchedTerms.includes(tag[sc]));
+                this.filteredTags = tmp;
+            }
+        },
+        checkFilter(rawErrorTags) {
+            let tags =
         this.filteredTags.length != 0 ? this.filteredTags : rawErrorTags;
-      return tags;
-    },
-    expandAllAccordion() {
-      let accordions = $(".accordion_with_header");
-      // console.log(accordions);
-      [...accordions].forEach((el) => el.trigger("click"));
-      //  [...$(".accordion_with_header ")].forEach((el) => el.trigger("click"));
+            return tags;
+        },
+        expandAllAccordion() {
+            let accordions = $('.accordion_with_header');
+            // console.log(accordions);
+            [...accordions].forEach((el) => el.trigger('click'));
+            //  [...$(".accordion_with_header ")].forEach((el) => el.trigger("click"));
 
-      console.log("expand all accordion");
+            console.log('expand all accordion');
+        },
     },
-  },
-  data() {
-    return {
-      validTerms: [],
-      sortPopUpOpen: false,
-      CosmosIconPack,
-      sortOptions: [
-        "Last Modified",
-        "Created(New - Old)",
-        "Created(Old - New)",
-        "Category",
-        "Priority(Low - High)",
-        "Priority(High - Low)",
-        "None",
-      ],
-      sortTitle: "Sort By",
-      sortBy: "LowToHigh",
-      categories: [
-        "Acceleration",
-        "Communication",
-        "Motor",
-        "Power",
-        "Temperature",
-      ],
-      searchCategory: "Error Tag",
-      priorities: ["Low", "Medium", "High"],
-      fixed_header_priority: " Priority",
-      filteredTags: [],
-      State: "Priority",
-    };
-  },
 };
 </script>
 

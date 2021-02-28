@@ -2,146 +2,168 @@
 <template>
   <div class="componentContainer">
     <div
-      id="menuBar" ref="menuBar"
+      id="menuBar"
+      ref="menuBar"
       class="componentContainer__header text__compHeader"
       @contextmenu.prevent="openMenu($event)"
     >
       <p>{{ header.name }}</p>
       <div
-        v-html="collapseArrowSVG"
         :class="{highlighted: collapsed, flipped: !collapsed}"
         class="menu_button selectable-vector toolbar__icon tooltip"
         :title="'Collapse/Expand ' + capitalizeEachWord(header.name)"
         @click="collapsed=!collapsed"
-       />
-       <div
-         v-if="menuExists"
-         v-html="contextMenuSVG"
-         :class="{highlighted: menuOpen}"
-         class="menu_button selectable-vector toolbar__icon tooltip"
-         :title="capitalizeEachWord(header.name) + ' Options'"
-         @click.prevent.stop="openMenu($event)"
-       />
-       <div
-         v-if="fuzzyIndicator != undefined"
-         :class="fuzzyIndicatorClass()"
-         class="menu_button toolbar__icon tooltip"
-         :title="fuzzyIndicatorTip"
-       >
-         <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-           <circle cx="4" cy="4.5" r="3" />
-         </svg>
+        v-html="collapseArrowSVG"
+      />
+      <div
+        v-if="menuExists"
+        :class="{highlighted: menuOpen}"
+        class="menu_button selectable-vector toolbar__icon tooltip"
+        :title="capitalizeEachWord(header.name) + ' Options'"
+        @click.prevent.stop="openMenu($event)"
+        v-html="contextMenuSVG"
+      />
+      <div
+        v-if="fuzzyIndicator != undefined"
+        :class="fuzzyIndicatorClass()"
+        class="menu_button toolbar__icon tooltip"
+        :title="fuzzyIndicatorTip"
+      >
+        <svg
+          width="8"
+          height="8"
+          viewBox="0 0 8 8"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle
+            cx="4"
+            cy="4.5"
+            r="3"
+          />
+        </svg>
       </div>
       <!-- CONTEXT MENU -->
       <vue-context
         v-if="menuExists"
-        ref="menu" id="context"
+        id="context"
+        ref="menu"
         :close-on-click="true"
-        @open="menuOpen = true" @close="menuOpen = false"
+        @open="menuOpen = true"
+        @close="menuOpen = false"
       >
         <template>
           <!-- ITERATE OVER OPTIONS -->
-          <div v-for="(option, index) in menuData" :key="index">
-            <p class="context__option" @click="menuOpen = false; option.callback();">
+          <div
+            v-for="(option, index) in menuData"
+            :key="index"
+          >
+            <p
+              class="context__option"
+              @click="menuOpen = false; option.callback();"
+            >
               {{ option.text }}
             </p>
           </div>
         </template>
       </vue-context>
     </div>
-    <slot id="slot" v-if="!collapsed"></slot>
+    <slot
+      v-if="!collapsed"
+      id="slot"
+    />
   </div>
 </template>
 
 <script>
 /* global __static */ // <- keep eslint from complaining about the __static directory
-import path from 'path'
-import fs from 'fs'
-import { VueContext } from 'vue-context'
+import path from 'path';
+import fs from 'fs';
+import { VueContext } from 'vue-context';
 
-import TooltipEquip from '@/styles/TooltipEquip.js'
+import TooltipEquip from '@/styles/TooltipEquip.js';
 
 export default {
-  components: {
-    VueContext
-  },
-  props: {
-    header: {
-      type: Object,
-      required: true
+    components: {
+        VueContext
     },
-    menuData: { //          - Context Menu Data structured as an array of objects containing {text: "Text of Menu Option", callback: functionToCallWhenClicked}
-      type: Array,
-      default: () => [],
-      required: false
+    props: {
+        header: {
+            type: Object,
+            required: true
+        },
+        menuData: { //          - Context Menu Data structured as an array of objects containing {text: "Text of Menu Option", callback: functionToCallWhenClicked}
+            type: Array,
+            default: () => [],
+            required: false
+        },
+        fuzzyIndicator: { //    - Function which controls this window's fuzzy indicator. If ===0, indicator is $color-nominal; if ===1, indicator is $color-danger; else, indicator is $color-caution
+            type: Function,
+            default: undefined,
+            required: false
+        },
+        fuzzyIndicatorTip: { // - Tooltip text for the fuzzy indicator
+            type: String,
+            default: '',
+            required: false
+        }
     },
-    fuzzyIndicator: { //    - Function which controls this window's fuzzy indicator. If ===0, indicator is $color-nominal; if ===1, indicator is $color-danger; else, indicator is $color-caution
-      type: Function,
-      default: undefined,
-      required: false
+    data(){
+        return {
+            collapsed: false,
+            collapseArrowSVG: '', //  - Inline SVG HTML for the Collapse Arrow Icon
+            contextMenuSVG: '', //    - Inline SVG HTML for the Context Menu Icon
+            menuOpen: false //        - Whether the Context Menu is Currently Open
+        };
     },
-    fuzzyIndicatorTip: { // - Tooltip text for the fuzzy indicator
-      type: String,
-      default: "",
-      required: false
-    }
-  },
-  data(){
-    return {
-      collapsed: false,
-      collapseArrowSVG: "", //  - Inline SVG HTML for the Collapse Arrow Icon
-      contextMenuSVG: "", //    - Inline SVG HTML for the Context Menu Icon
-      menuOpen: false //        - Whether the Context Menu is Currently Open
-    };
-  },
-  mounted(){
-    console.warn(`
+    computed: {
+        menuExists(){ // Returns whether there is a menu to display
+            return this.menuData.length > 0;
+        }
+    },
+    mounted(){
+        console.warn(`
       The ComponentContainer component is part of a pre-Cosmos design system and has been officially deprecated on 08/02/2020.
       Please switch to using the CombinedScreens component.
     `);
     
-    TooltipEquip(this.$el);
+        TooltipEquip(this.$el);
 
-    // Load Icons as Inline SVG:
-    this.collapseArrowSVG = fs.readFileSync(path.join(__static,'./icons/icon_arrow.svg'), 'utf8');
-    this.contextMenuSVG = fs.readFileSync(path.join(__static,'./icons/icon_hamburger.svg'), 'utf8');
-  },
-  computed: {
-    menuExists(){ // Returns whether there is a menu to display
-      return this.menuData.length > 0;
-    }
-  },
-  methods: {
+        // Load Icons as Inline SVG:
+        this.collapseArrowSVG = fs.readFileSync(path.join(__static,'./icons/icon_arrow.svg'), 'utf8');
+        this.contextMenuSVG = fs.readFileSync(path.join(__static,'./icons/icon_hamburger.svg'), 'utf8');
+    },
+    methods: {
     // Opens the Context Menu Generated by the Given Event
-    openMenu: function(evnt){
-      if(this.menuExists){
-        this.$refs.menu.open(evnt);
-      }
-    },
-    // Capitalize the First Letter of Each Word:
-    capitalizeEachWord: function(str){
-      return str.toLowerCase()
-        .split(' ')
-        .map( s => s.charAt(0).toUpperCase() + s.substring(1) )
-        .join(' ');
-    },
+        openMenu: function(evnt){
+            if(this.menuExists){
+                this.$refs.menu.open(evnt);
+            }
+        },
+        // Capitalize the First Letter of Each Word:
+        capitalizeEachWord: function(str){
+            return str.toLowerCase()
+                .split(' ')
+                .map( s => s.charAt(0).toUpperCase() + s.substring(1) )
+                .join(' ');
+        },
 
-    // Return CSS Class for Fuzzy Indicator
-    fuzzyIndicatorClass(){
-      let style = "fuzzy-indicator";
+        // Return CSS Class for Fuzzy Indicator
+        fuzzyIndicatorClass(){
+            let style = 'fuzzy-indicator';
 
-      if(this.fuzzyIndicator() === 1){
-        style += "--good";
-      } else if(this.fuzzyIndicator() === 0){
-        style += "--bad'";
-      } else {
-        style += "--fuzzy";
-      }
+            if(this.fuzzyIndicator() === 1){
+                style += '--good';
+            } else if(this.fuzzyIndicator() === 0){
+                style += '--bad\'';
+            } else {
+                style += '--fuzzy';
+            }
 
-      return style;
+            return style;
+        }
     }
-  }
-}
+};
 </script>
 
 <style lang="scss" scoped>

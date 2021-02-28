@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 /*
  * A collection of small generally useful utility functions.
  *
@@ -7,13 +7,13 @@
  * Last Update: 08/30/2020, Colombo
  */
 
- import { lookup as mimeLookup } from 'mime-types'
- import FileType from 'file-type'
+import { lookup as mimeLookup } from 'mime-types';
+import FileType from 'file-type';
 
- const fs = require('fs');
- const nodeUtil = require('util');
+const fs = require('fs');
+const nodeUtil = require('util');
 
- export default {
+export default {
     /** 
      * Throws an error with the given name. When used a used as a default value for a 
      * parameter in destructuring, this has the effect of requiring the given parameter 
@@ -73,7 +73,7 @@
         if(mime && mime.split('/')[0] === 'image'){
             return `data:${mime};base64,${str}`;
         } else {
-            return "";
+            return '';
         }
     },
 
@@ -88,46 +88,46 @@
     */
     formatUnits(str){
     // Insert Special Unit Symbols:
-    str = str.replace("deg", "&deg;");
-    str = str.replace("ohm", "&Omega;");
-    // Separate Numerator and Denominator:
-    let ds = str.split('/'); // Slash Delimited Strings
-    let ufn = ds[0]; // UnFormatted Numerator
-    let ufd = ""; // UnFormatted Denominator
-    if(ds.length > 1){
-        for(let i=1; i<ds.length; i++){ // Support multiple slashes
-        ufd += ds[i];
+        str = str.replace('deg', '&deg;');
+        str = str.replace('ohm', '&Omega;');
+        // Separate Numerator and Denominator:
+        let ds = str.split('/'); // Slash Delimited Strings
+        let ufn = ds[0]; // UnFormatted Numerator
+        let ufd = ''; // UnFormatted Denominator
+        if(ds.length > 1){
+            for(let i=1; i<ds.length; i++){ // Support multiple slashes
+                ufd += ds[i];
+            }
         }
-    }
 
-    let num = "";
-    let denom = "";
+        let num = '';
+        let denom = '';
 
-    // Format Powers of Each Term in Numerator:
-    ufn.split(' ').forEach( term => { // Isolate each term (ex. "m" or "s^-2")
-        if(term !== ""){
-        let pcs = term.split('^'); // Split term into pieces
-        if( (pcs[1]||"").includes('-') ){ // This term should actually be in the denominator
-            pcs[1] = pcs[1].replace('-',"");
-            denom += `${pcs[0]}<sup>${pcs[1]||""}</sup>`;
-        } else{
-            num += `${pcs[0]}<sup>${pcs[1]||""}</sup>`;
-        }
-        }
-    });
-
-    // Format Powers of Each Term in Denominator (if there is a denominator):
-    if(ufd){
-        ufd.split(' ').forEach( term => { // Isolate each term (ex. "m" or "s^-2")
-        let pcs = term.split('^'); // Split term into pieces
-        denom += `${pcs[0]}<sup>${pcs[1]||""}</sup>`;
+        // Format Powers of Each Term in Numerator:
+        ufn.split(' ').forEach( term => { // Isolate each term (ex. "m" or "s^-2")
+            if(term !== ''){
+                let pcs = term.split('^'); // Split term into pieces
+                if( (pcs[1]||'').includes('-') ){ // This term should actually be in the denominator
+                    pcs[1] = pcs[1].replace('-','');
+                    denom += `${pcs[0]}<sup>${pcs[1]||''}</sup>`;
+                } else{
+                    num += `${pcs[0]}<sup>${pcs[1]||''}</sup>`;
+                }
+            }
         });
-    }
 
-    if(num == ""){
-        num = "&nbsp;<sup></sup>";
-    }
+        // Format Powers of Each Term in Denominator (if there is a denominator):
+        if(ufd){
+            ufd.split(' ').forEach( term => { // Isolate each term (ex. "m" or "s^-2")
+                let pcs = term.split('^'); // Split term into pieces
+                denom += `${pcs[0]}<sup>${pcs[1]||''}</sup>`;
+            });
+        }
 
-    return "&hairsp;" + (denom ? `<span style="font-size:0.75em;"><sup>${num}</sup>/<sub>${denom}</sub></span>` : `<span style="font-size:0.95em">${num}</span>`);
+        if(num == ''){
+            num = '&nbsp;<sup></sup>';
+        }
+
+        return '&hairsp;' + (denom ? `<span style="font-size:0.75em;"><sup>${num}</sup>/<sub>${denom}</sub></span>` : `<span style="font-size:0.95em">${num}</span>`);
     }
- };
+};

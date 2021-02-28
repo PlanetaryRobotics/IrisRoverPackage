@@ -8,13 +8,13 @@
  */
 
 export default class MotorData{
-  constructor({
-    displacement = 0,
-    current = 0,
-    speed = 0
-  } = {}){
-    this.displacement = displacement;
-    this.current = current;
-    this.speed = speed;
-  } // ctor
- } // class: MotorData
+    constructor({
+        displacement = 0,
+        current = 0,
+        speed = 0
+    } = {}){
+        this.displacement = displacement;
+        this.current = current;
+        this.speed = speed;
+    } // ctor
+} // class: MotorData

@@ -2,11 +2,13 @@
   <div class="routeEntry">
     <div class="routeTabContainer">
       <!-- ROUTETAB -->
-      <div ref="routeTab" class="routeTab">
+      <div
+        ref="routeTab"
+        class="routeTab"
+      >
         <!-- DOWN ARROW -->
         <div class="routeTab__header">
           <svg
-            @click="toggleSegmentList"
             width="14"
             height="7"
             viewBox="0 0 8 4"
@@ -17,6 +19,7 @@
               open: show.segmentList,
               hidden: !route.segmentList.length,
             }"
+            @click="toggleSegmentList"
           >
             <path
               d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5"
@@ -26,18 +29,21 @@
 
           <!-- ROUTE NAME -->
           <input
-            @focus="enableHighlight()"
-            @blur="saveName()"
-            :class="{ buffer: !route.segmentList.length }"
             ref="routeNameInput"
+            v-model="routeName"
+            :class="{ buffer: !route.segmentList.length }"
             type="text"
             class="route__item--name text__main"
-            v-model="routeName"
-          />
+            @focus="enableHighlight()"
+            @blur="saveName()"
+          >
         </div>
 
         <!-- PLUS ICON -->
-        <div class="route__item--plus" @click="openAddModal()">
+        <div
+          class="route__item--plus"
+          @click="openAddModal()"
+        >
           <svg
             width="17"
             height="17"
@@ -64,12 +70,20 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             />
-            <circle cx="8.5" cy="8.5" r="8" stroke="#333333" />
+            <circle
+              cx="8.5"
+              cy="8.5"
+              r="8"
+              stroke="#333333"
+            />
           </svg>
         </div>
 
         <!-- VISIBILITY ICON -->
-        <div class="route__item--visibility" @click="toggleVisibility(route)">
+        <div
+          class="route__item--visibility"
+          @click="toggleVisibility(route)"
+        >
           <svg
             width="19"
             height="14"
@@ -79,7 +93,11 @@
             class="routeIcon"
             :class="{ selected: route.isVisible }"
           >
-            <circle cx="9.50019" cy="6.88459" r="2.76923" />
+            <circle
+              cx="9.50019"
+              cy="6.88459"
+              r="2.76923"
+            />
             <path
               d="M9.5 1C4.92308 1 1 4.92308 1 6.88462C1 8.84615 4.92308 12.7692 9.5 12.7692C14.0769 12.7692 18 8.84615 18 6.88462C18 4.92308 14.0769 1 9.5 1Z"
             />
@@ -87,7 +105,10 @@
         </div>
 
         <!-- TRASH ICON -->
-        <div class="route__item--trash" @click="toggleDeleteModal()">
+        <div
+          class="route__item--trash"
+          @click="toggleDeleteModal()"
+        >
           <svg
             class="routeIcon"
             width="15"
@@ -138,13 +159,22 @@
       <!-- END ROUTETAB -->
 
       <!-- ERROR MSG FOR DUPE ROUTE NAME -->
-      <div ref="errorDupeRouteName" class="error">
+      <div
+        ref="errorDupeRouteName"
+        class="error"
+      >
         This route name already exists.
       </div>
-      <div ref="errorEmptyRouteName" class="error">
+      <div
+        ref="errorEmptyRouteName"
+        class="error"
+      >
         Route name cannot be empty.
       </div>
-      <div ref="invalidRouteName" class="error">
+      <div
+        ref="invalidRouteName"
+        class="error"
+      >
         Route name cannot start with number.
       </div>
     </div>
@@ -154,12 +184,15 @@
       <div class="line" />
 
       <!-- SEGMENT LIST -->
-      <div class="segmentList" v-show="canShowSegmentList()">
+      <div
+        v-show="canShowSegmentList()"
+        class="segmentList"
+      >
         <!-- FOR LOOP -->
         <div
-          class="segmentList__segment"
           v-for="(segment, index) in route.segmentList"
           :key="index"
+          class="segmentList__segment"
         >
           <!-- IF WAYPOINT -->
           <div v-if="segment.constructor.name === 'WaypointSegment'">
@@ -167,9 +200,9 @@
               :segment="segment"
               :route="route"
               :index="index"
-              :POIName="null"
+              :p-o-i-name="null"
               :circumnavigation="null"
-              :circumnavigationIndex="null"
+              :circumnavigation-index="null"
             />
           </div>
           <!-- IF CIRCUMNAV -->
@@ -191,161 +224,161 @@
 </template>
 
 <script>
-import GridEventBus from "@/components/Map/GridEventBus.js";
-import SegmentInfo from "@/components/Map/MapComponents/RouteManager/SegmentInfo.vue";
-import CircumnavInfo from "@/components/Map/MapComponents/RouteManager/CircumnavInfo.vue";
-import Route from "@/data_classes/Route.js";
-import { mapGetters } from "vuex";
+import GridEventBus from '@/components/Map/GridEventBus.js';
+import SegmentInfo from '@/components/Map/MapComponents/RouteManager/SegmentInfo.vue';
+import CircumnavInfo from '@/components/Map/MapComponents/RouteManager/CircumnavInfo.vue';
+import Route from '@/data_classes/Route.js';
+import { mapGetters } from 'vuex';
 
 export default {
-  name: "RouteEntry",
-  components: {
-    SegmentInfo,
-    CircumnavInfo,
-  },
-  props: {
-    route: Route,
-  },
-  data() {
-    return {
-      show: {
-        segmentList: false,
-        route: false,
-        deleteModal: false,
-      },
-      routeNameDisplay: "",
-      circumnavHighlight: null,
-    };
-  },
-  computed: {
-    ...mapGetters({
-      routeList: "routeList",
-    }),
-    routeName: {
-      get: function () {
-        return this.route.routeName; // Need to force it to get from model class so when deletes happen,
-        // right name is displayed. This means have to do manual CSS manip.
-        // for errors in validateName().
-      },
-      set: function (newValue) {
-        this.routeNameDisplay = newValue;
-        this.validateName();
-      },
+    name: 'RouteEntry',
+    components: {
+        SegmentInfo,
+        CircumnavInfo,
     },
-  },
-  methods: {
-    canShowSegmentList() {
-      return this.show.segmentList && this.route.segmentList.length;
+    props: {
+        route: Route,
     },
-    toggleSegmentList() {
-      this.show.segmentList = !this.show.segmentList;
+    data() {
+        return {
+            show: {
+                segmentList: false,
+                route: false,
+                deleteModal: false,
+            },
+            routeNameDisplay: '',
+            circumnavHighlight: null,
+        };
     },
-    toggleVisibility(route) {
-      route.isVisible = !route.isVisible;
-      route.setVisibility();
+    computed: {
+        ...mapGetters({
+            routeList: 'routeList',
+        }),
+        routeName: {
+            get: function () {
+                return this.route.routeName; // Need to force it to get from model class so when deletes happen,
+                // right name is displayed. This means have to do manual CSS manip.
+                // for errors in validateName().
+            },
+            set: function (newValue) {
+                this.routeNameDisplay = newValue;
+                this.validateName();
+            },
+        },
     },
-    toggleDeleteModal() {
-      let html = `<div style='color:white'>Are you sure you want to delete route `;
-      html += `<span class='text__main--bold' style='color:red'>${this.route.routeName}</span>? This action cannot be undone.</div>`;
+    methods: {
+        canShowSegmentList() {
+            return this.show.segmentList && this.route.segmentList.length;
+        },
+        toggleSegmentList() {
+            this.show.segmentList = !this.show.segmentList;
+        },
+        toggleVisibility(route) {
+            route.isVisible = !route.isVisible;
+            route.setVisibility();
+        },
+        toggleDeleteModal() {
+            let html = '<div style=\'color:white\'>Are you sure you want to delete route ';
+            html += `<span class='text__main--bold' style='color:red'>${this.route.routeName}</span>? This action cannot be undone.</div>`;
 
-      let payload = {
-        html: html,
-        deleteCallback: this.deleteRoute,
-      };
+            let payload = {
+                html: html,
+                deleteCallback: this.deleteRoute,
+            };
 
-      GridEventBus.$emit("TOGGLE_DELETE_MODAL", payload);
-    },
-    openAddModal() {
-      GridEventBus.$emit("OPEN_SEGMENT_MODAL", {
-        route: this.route,
-        action: "ADD",
-      });
-    },
-    enableHighlight() {
-      let container = this.$refs.routeNameInput;
-      let parent = this.$refs.routeTab;
+            GridEventBus.$emit('TOGGLE_DELETE_MODAL', payload);
+        },
+        openAddModal() {
+            GridEventBus.$emit('OPEN_SEGMENT_MODAL', {
+                route: this.route,
+                action: 'ADD',
+            });
+        },
+        enableHighlight() {
+            let container = this.$refs.routeNameInput;
+            let parent = this.$refs.routeTab;
 
-      parent.style.border = "1px solid #A56DFF";
-      container.classList.add("highlight");
-    },
-    disableHighlight() {
-      let container = this.$refs.routeNameInput;
-      let parent = this.$refs.routeTab;
+            parent.style.border = '1px solid #A56DFF';
+            container.classList.add('highlight');
+        },
+        disableHighlight() {
+            let container = this.$refs.routeNameInput;
+            let parent = this.$refs.routeTab;
 
-      parent.style.border = "none";
-      container.classList.remove("highlight");
-    },
-    enableError(type) {
-      if (type === "EMPTY_ROUTE_NAME") {
-        this.$refs.errorEmptyRouteName.style.display = "block";
-      } else if(type==="INVALID_ROUTE_NAME"){
-        this.$refs.invalidRouteName.style.display = "block";
-      }else {
-        this.$refs.errorDupeRouteName.style.display = "block";
-      }
-    },
-    disableError(type) {
-      if (type === "EMPTY_ROUTE_NAME") {
-        this.$refs.errorEmptyRouteName.style.display = "none";
-      }else if(type==="INVALID_ROUTE_NAME"){
-        this.$refs.invalidRouteName.style.display = "none";
-      }else {
-        this.$refs.errorDupeRouteName.style.display = "none";
-      }
-    },
-    validateName() {
-      // Need to do manual CSS manipulation to avoid Vue from "re-getting"
-      // the computed property (which will give model routeName, we just
-      // want the typed route at this point).
-      if (this.routeNameDisplay.length < 1) {
-        this.enableError("EMPTY_ROUTE_NAME");
-        return;
-      } else {
-        this.disableError("EMPTY_ROUTE_NAME");
-      }
-      // route name can't start with number
-      if(!isNaN(this.routeNameDisplay.charAt(0))){
-          this.enableError("INVALID_ROUTE_NAME")
-      }else{
-        this.disableError("INVALID_ROUTE_NAME")
-      }
+            parent.style.border = 'none';
+            container.classList.remove('highlight');
+        },
+        enableError(type) {
+            if (type === 'EMPTY_ROUTE_NAME') {
+                this.$refs.errorEmptyRouteName.style.display = 'block';
+            } else if(type==='INVALID_ROUTE_NAME'){
+                this.$refs.invalidRouteName.style.display = 'block';
+            }else {
+                this.$refs.errorDupeRouteName.style.display = 'block';
+            }
+        },
+        disableError(type) {
+            if (type === 'EMPTY_ROUTE_NAME') {
+                this.$refs.errorEmptyRouteName.style.display = 'none';
+            }else if(type==='INVALID_ROUTE_NAME'){
+                this.$refs.invalidRouteName.style.display = 'none';
+            }else {
+                this.$refs.errorDupeRouteName.style.display = 'none';
+            }
+        },
+        validateName() {
+            // Need to do manual CSS manipulation to avoid Vue from "re-getting"
+            // the computed property (which will give model routeName, we just
+            // want the typed route at this point).
+            if (this.routeNameDisplay.length < 1) {
+                this.enableError('EMPTY_ROUTE_NAME');
+                return;
+            } else {
+                this.disableError('EMPTY_ROUTE_NAME');
+            }
+            // route name can't start with number
+            if(!isNaN(this.routeNameDisplay.charAt(0))){
+                this.enableError('INVALID_ROUTE_NAME');
+            }else{
+                this.disableError('INVALID_ROUTE_NAME');
+            }
 
-      if (
-        this.routeNameDisplay !== this.route.routeName &&
+            if (
+                this.routeNameDisplay !== this.route.routeName &&
         this.routeList.hasRouteName(this.routeNameDisplay)
-      ) {
-        this.enableError("DUPE_ROUTE_NAME");
-      } else {
-        this.disableError("DUPE_ROUTE_NAME");
-      }
+            ) {
+                this.enableError('DUPE_ROUTE_NAME');
+            } else {
+                this.disableError('DUPE_ROUTE_NAME');
+            }
+        },
+        saveName() {
+            this.disableHighlight();
+            // If there are still errors, disable them, and reset the visible route name to model level's
+            if (
+                this.$refs.errorEmptyRouteName.style.display === 'block' ||
+        this.$refs.errorDupeRouteName.style.display === 'block'
+            ) {
+                this.disableError('EMPTY_ROUTE_NAME');
+                this.disableError('DUPE_ROUTE_NAME');
+                this.disableError('INVALID_ROUTE_NAME');
+                this.$refs.routeNameInput.value = this.route.routeName.replace(/\s/g,'');
+            } else {
+                // remove space in the route name before saving
+                this.route.routeName=this.route.routeName.replace(/\s/g,''),
+                this.route.routeNameDisplay=this.routeNameDisplay.replace(/\s/g,'');
+                this.$refs.routeNameInput.value = this.route.routeName.replace(/\s/g,'');
+                // Model level now updates with new route name
+                this.routeList.renameRouteName(
+                    this.route.routeName,
+                    this.routeNameDisplay.replace(/\s/g,'')
+                );
+            }
+        },
+        deleteRoute() {
+            this.routeList.delete(this.route);
+        },
     },
-    saveName() {
-      this.disableHighlight();
-      // If there are still errors, disable them, and reset the visible route name to model level's
-      if (
-        this.$refs.errorEmptyRouteName.style.display === "block" ||
-        this.$refs.errorDupeRouteName.style.display === "block"
-      ) {
-        this.disableError("EMPTY_ROUTE_NAME");
-        this.disableError("DUPE_ROUTE_NAME");
-        this.disableError("INVALID_ROUTE_NAME");
-        this.$refs.routeNameInput.value = this.route.routeName.replace(/\s/g,'');
-      } else {
-        // remove space in the route name before saving
-        this.route.routeName=this.route.routeName.replace(/\s/g,''),
-        this.route.routeNameDisplay=this.routeNameDisplay.replace(/\s/g,'')
-        this.$refs.routeNameInput.value = this.route.routeName.replace(/\s/g,'');
-        // Model level now updates with new route name
-        this.routeList.renameRouteName(
-          this.route.routeName,
-          this.routeNameDisplay.replace(/\s/g,'')
-        );
-      }
-    },
-    deleteRoute() {
-      this.routeList.delete(this.route);
-    },
-  },
 };
 </script>
 

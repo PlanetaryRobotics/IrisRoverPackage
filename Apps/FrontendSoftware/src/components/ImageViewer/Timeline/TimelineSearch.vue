@@ -9,17 +9,24 @@ Last Updated: 10/7/2019, Colombo
 <template>
   <div id="timelineSearch">
     <div class="search">
-      <div class="search__tags text__main" v-for="(tag, index) in searchedTags" :key="index">
-        <p class="search__tags--item" @click="unsearchTag(tag)">
+      <div
+        v-for="(tag, index) in searchedTags"
+        :key="index"
+        class="search__tags text__main"
+      >
+        <p
+          class="search__tags--item"
+          @click="unsearchTag(tag)"
+        >
           {{ tag }}
         </p>
       </div>
       <input 
+        v-model="searchText" 
         type="text" 
         placeholder="Filter by tags" 
         class="search__input text__main" 
         @keydown.enter="searchTag" 
-        v-model="searchText" 
         @keydown.space.prevent
         @keydown.stop
         @keyup.stop
@@ -30,36 +37,36 @@ Last Updated: 10/7/2019, Colombo
 </template>
 
 <script>
-import Tritoggle from "@/components/ImageViewer/Timeline/Tritoggle.vue"
+import Tritoggle from '@/components/ImageViewer/Timeline/Tritoggle.vue';
 import { mapState } from 'vuex';
 
 export default {
-  name: "TimelineSearch",
-  components: {
-    Tritoggle
-  },
-  data: function() {
-    return {
-      searchText: "",
-    }
-  },
-  computed: {
-    ...mapState({
-      searchedTags: state => state.IMG.searchedTags
-    })
-  },
-  methods: {
-    unsearchTag: function(tagName) {
-      this.$store.commit('UNSEARCH_TAG', tagName)
+    name: 'TimelineSearch',
+    components: {
+        Tritoggle
     },
-    searchTag: function() {
-      if (this.searchText != "") {
-        this.$store.commit('SEARCH_TAG', this.searchText)
-        this.searchText = ""
-      }
+    data: function() {
+        return {
+            searchText: '',
+        };
+    },
+    computed: {
+        ...mapState({
+            searchedTags: state => state.IMG.searchedTags
+        })
+    },
+    methods: {
+        unsearchTag: function(tagName) {
+            this.$store.commit('UNSEARCH_TAG', tagName);
+        },
+        searchTag: function() {
+            if (this.searchText != '') {
+                this.$store.commit('SEARCH_TAG', this.searchText);
+                this.searchText = '';
+            }
+        }
     }
-  }
-}
+};
 </script>
 
 <style lang="scss" scoped>

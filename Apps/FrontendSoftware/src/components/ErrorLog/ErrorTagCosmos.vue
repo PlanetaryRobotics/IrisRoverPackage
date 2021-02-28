@@ -1,10 +1,17 @@
 <template id="errorTag">
   <div class="errorTag">
-    <div class="row errorTag--title" @click="toggleDetail">
-      <svg width="12" height="16" class="">
+    <div
+      class="row errorTag--title"
+      @click="toggleDetail"
+    >
+      <svg
+        width="12"
+        height="16"
+        class=""
+      >
         <rect
           v-for="i in this.priorityValue"
-          v-bind:key="i"
+          :key="i"
           width="2"
           height="14"
           style="fill: #f00"
@@ -12,12 +19,17 @@
         />
       </svg>
 
-      <div class="tagName">{{ errorTag.id }}</div>
+      <div class="tagName">
+        {{ errorTag.id }}
+      </div>
 
-      <div class="col category row" :class="this.opened ? 'active' : ''">
+      <div
+        class="col category row"
+        :class="this.opened ? 'active' : ''"
+      >
         <span class="category_text"> Category: {{ errorTag.category }} </span>
 
-        <span class="arrow"></span>
+        <span class="arrow" />
       </div>
     </div>
 
@@ -25,47 +37,83 @@
       <p class="inline title_text">
         Sensor Name ({{ errorTag.sensors.length }}): &nbsp;
       </p>
-      <p v-for="sensor in errorTag.sensors" v-bind:key="sensor" class="inline">
+      <p
+        v-for="sensor in errorTag.sensors"
+        :key="sensor"
+        class="inline"
+      >
         {{ sensor }}
       </p>
     </div>
 
     <div class="row">
-      <p class="inline title_text">Time Frame (M+): &nbsp;</p>
-      <p class="inline">{{ errorTag.start }} - {{ errorTag.end }}</p>
+      <p class="inline title_text">
+        Time Frame (M+): &nbsp;
+      </p>
+      <p class="inline">
+        {{ errorTag.start }} - {{ errorTag.end }}
+      </p>
     </div>
 
-    <div class="details" :class="this.opened ? 'open' : 'collapse'">
+    <div
+      class="details"
+      :class="this.opened ? 'open' : 'collapse'"
+    >
       <div class="row">
-        <p class="inline title_text">Summary:&nbsp;</p>
-        <p class="inline">{{ errorTag.summary }}</p>
+        <p class="inline title_text">
+          Summary:&nbsp;
+        </p>
+        <p class="inline">
+          {{ errorTag.summary }}
+        </p>
       </div>
 
       <div class="row">
-        <p class="inline title_text">Notes:&nbsp;</p>
-        <p class="inline">{{ errorTag.notes }}</p>
+        <p class="inline title_text">
+          Notes:&nbsp;
+        </p>
+        <p class="inline">
+          {{ errorTag.notes }}
+        </p>
       </div>
 
       <div class="row">
-        <p class="inline title_text">Tags:&nbsp;</p>
+        <p class="inline title_text">
+          Tags:&nbsp;
+        </p>
 
-        <p v-for="tag in errorTag.tags" v-bind:key="tag" class="inline">
+        <p
+          v-for="tag in errorTag.tags"
+          :key="tag"
+          class="inline"
+        >
           {{ tag }}
         </p>
       </div>
 
       <div class="row">
-        <p class="inline title_text">Created:&nbsp;</p>
-        <p class="inline">{{ errorTag.created }}</p>
+        <p class="inline title_text">
+          Created:&nbsp;
+        </p>
+        <p class="inline">
+          {{ errorTag.created }}
+        </p>
       </div>
 
       <div class="row">
-        <p class="inline title_text">Last modified:&nbsp;</p>
-        <p class="inline">{{ errorTag.lastModified }}</p>
+        <p class="inline title_text">
+          Last modified:&nbsp;
+        </p>
+        <p class="inline">
+          {{ errorTag.lastModified }}
+        </p>
       </div>
     </div>
 
-    <div class="row viewButton" @click="viewAnalysis(errorTag)">
+    <div
+      class="row viewButton"
+      @click="viewAnalysis(errorTag)"
+    >
       <span class="viewButtonText">VIEW ANALYSIS</span>
     </div>
   </div>
@@ -75,43 +123,43 @@
 // change name to ErrorTagCosmos or sth
 
 export default {
-  name: "ErrorTag",
+    name: 'ErrorTag',
 
-  props: ["errorTag", "openAnalysis", "index"],
+    props: ['errorTag', 'openAnalysis', 'index'],
 
-  mounted() {
-    this.setPriority();
-  },
+    data() {
+        return {
+            priorityValue: 0,
 
-  methods: {
-    viewAnalysis(errorTag) {
-      console.log(errorTag); // so vue doesn't scream
-
-      this.$emit("pushTag");
+            opened: false,
+        };
     },
 
-    setPriority() {
-      if (this.errorTag.priority === "Low") {
-        this.priorityValue = 1;
-      } else if (this.errorTag.priority === "Mid") {
-        this.priorityValue = 2;
-      } else {
-        this.priorityValue = 3;
-      }
+    mounted() {
+        this.setPriority();
     },
 
-    toggleDetail() {
-      this.opened = !this.opened;
+    methods: {
+        viewAnalysis(errorTag) {
+            console.log(errorTag); // so vue doesn't scream
+
+            this.$emit('pushTag');
+        },
+
+        setPriority() {
+            if (this.errorTag.priority === 'Low') {
+                this.priorityValue = 1;
+            } else if (this.errorTag.priority === 'Mid') {
+                this.priorityValue = 2;
+            } else {
+                this.priorityValue = 3;
+            }
+        },
+
+        toggleDetail() {
+            this.opened = !this.opened;
+        },
     },
-  },
-
-  data() {
-    return {
-      priorityValue: 0,
-
-      opened: false,
-    };
-  },
 };
 </script>
 

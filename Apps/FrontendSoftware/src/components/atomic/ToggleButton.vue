@@ -1,80 +1,82 @@
 <template>
   <div id="button">
-    <button class="button"
-            :class="flavor"
-            :id="id"
-            :value="value"
-            @click="onClick"
-            @mouseover="onMouseOver"
-            @mouseleave="onMouseLeave">
-            {{ this.text }}
+    <button
+      :id="id"
+      class="button"
+      :class="flavor"
+      :value="value"
+      @click="onClick"
+      @mouseover="onMouseOver"
+      @mouseleave="onMouseLeave"
+    >
+      {{ this.text }}
     </button>
   </div>
 </template>
 
 <script>
 export default {
-  name: "ToggleButton",
-  props: {
-    id: {
-      type: String,
-      required: true
+    name: 'ToggleButton',
+    props: {
+        id: {
+            type: String,
+            required: true
+        },
+        storeId: {
+            type: String,
+            required: true,
+        },
+        flavor: {
+            type: String,
+            required: true,
+            validator: value => {
+                return ['primary', 'nominal', 'danger', 'caution'].indexOf(value) !== -1;
+            }
+        },
+        text: {
+            required: true
+        },
+        value: {
+            required: true
+        },
     },
-    storeId: {
-      type: String,
-      required: true,
-    },
-    flavor: {
-      type: String,
-      required: true,
-      validator: value => {
-        return ["primary", "nominal", "danger", "caution"].indexOf(value) !== -1;
-      }
-    },
-    text: {
-      required: true
-    },
-    value: {
-      required: true
-    },
-  },
-  methods: {
-    getPayload() {
-      this.validateStoreParams(); //Validating here as cannot access $store in props
-      return {id: this.id, store: this.$store.state[this.storeId]};
-    },
-    validateStoreParams() {
-      // Check store exists
-      if (this.$store.state[this.storeId] === undefined) {
-        throw new Error("StoreId " + this.storeId + " is not found in main store.");
-      }
+    methods: {
+        getPayload() {
+            this.validateStoreParams(); //Validating here as cannot access $store in props
+            return {id: this.id, store: this.$store.state[this.storeId]};
+        },
+        validateStoreParams() {
+            // Check store exists
+            if (this.$store.state[this.storeId] === undefined) {
+                throw new Error('StoreId ' + this.storeId + ' is not found in main store.');
+            }
 
-      // Check id exists in store
-      if (this.$store.state[this.storeId][this.id] === undefined) {
-        throw new Error("Atomic id " + this.id + " does not exist in store " + this.storeId);
-      }
-    },
-    onClick() {
-      let payload = this.getPayload();
-      let initValue = this.$store.state[this.storeId][this.id].clicked;
-      payload.value = !initValue;
+            // Check id exists in store
+            if (this.$store.state[this.storeId][this.id] === undefined) {
+                throw new Error('Atomic id ' + this.id + ' does not exist in store ' + this.storeId);
+            }
+        },
+        onClick() {
+            let payload = this.getPayload();
+            let initValue = this.$store.state[this.storeId][this.id].clicked;
+            payload.value = !initValue;
 
-      this.$store.commit('atomicClicked', payload);
-    },
-    onMouseOver() {
-      let payload = this.getPayload();
-      payload.value = true;
+            this.$store.commit('atomicClicked', payload);
+        },
+        onMouseOver() {
+            let payload = this.getPayload();
+            payload.value = true;
 
-      this.$store.commit("atomicHovered", payload);
-    },
-    onMouseLeave() {
-      let payload = this.getPayload();
-      payload.value = false; 
+            this.$store.commit('atomicHovered', payload);
+        },
+        onMouseLeave() {
+            let payload = this.getPayload();
+            payload.value = false; 
 
-      this.$store.commit("atomicHovered", payload);
-    },
-  }
-}
+            this.$store.commit('atomicHovered', payload);
+        },
+    }
+};
 </script>
 
 <style lang="scss" scoped>

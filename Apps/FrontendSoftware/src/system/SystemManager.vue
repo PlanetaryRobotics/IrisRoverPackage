@@ -14,37 +14,37 @@ Last Update: 08/14/2020, Colombo
 -->
 
 <template>
-    <div />
+  <div />
 </template>
 
 <script>
-    import { mapState, mapGetters } from 'vuex'
+import { mapState, mapGetters } from 'vuex';
 
-    let _instance_count = 0; // Total number of system managers components in existence (there should only be one)
+let _instance_count = 0; // Total number of system managers components in existence (there should only be one)
 
-    export default {
-        name: 'SystemManager',
-        data(){
-            return {
-                initialized: 0, // Whether the system has been initialized
-            };
-        },
-        computed: {
-            ...mapGetters({
-                log: 'systemStateLog', // Getter for the SystemData entries on the Database from DBLazyList
-                currentState: 'currentSystemState', // Most recent SystemData entry on the Database from DBLazyList
-            }),
-            ...mapState({
-                logLazyList: state => state.SYS.stateLogList // DBLazyList of recent SystemData states
-            })
-        },
-        mounted(){
-            _instance_count++;
-            if(_instance_count > 1){
-                console.error(`[IRIS-SYS] There should only be ONE SystemManager. Currently ${_instance_count} have been instantiated.`);
-            }
-        },
-        beforeDestroy(){
-        },
-    }
+export default {
+    name: 'SystemManager',
+    data(){
+        return {
+            initialized: 0, // Whether the system has been initialized
+        };
+    },
+    computed: {
+        ...mapGetters({
+            log: 'systemStateLog', // Getter for the SystemData entries on the Database from DBLazyList
+            currentState: 'currentSystemState', // Most recent SystemData entry on the Database from DBLazyList
+        }),
+        ...mapState({
+            logLazyList: state => state.SYS.stateLogList // DBLazyList of recent SystemData states
+        })
+    },
+    mounted(){
+        _instance_count++;
+        if(_instance_count > 1){
+            console.error(`[IRIS-SYS] There should only be ONE SystemManager. Currently ${_instance_count} have been instantiated.`);
+        }
+    },
+    beforeDestroy(){
+    },
+};
 </script>

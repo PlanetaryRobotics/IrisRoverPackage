@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <ComponentContainer v-bind:header="headers.POI" >
+    <ComponentContainer :header="headers.POI">
       <POIDashboard />
     </ComponentContainer>
   </div>
@@ -13,17 +13,17 @@ import ComponentContainer from '@/components/Interface/ComponentContainer.vue';
 import { mapState } from 'vuex';
 
 export default {
-  name: 'home',
-  components: {
-    POIDashboard,
-    ComponentContainer
-  },
-  computed: {
-    ...mapState({
-      headers: state => state.headers,
-    })
-  }
-}
+    name: 'Home',
+    components: {
+        POIDashboard,
+        ComponentContainer
+    },
+    computed: {
+        ...mapState({
+            headers: state => state.headers,
+        })
+    }
+};
 </script>
 
 <style scoped lang="scss">

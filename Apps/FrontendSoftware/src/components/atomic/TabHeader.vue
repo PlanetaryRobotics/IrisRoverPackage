@@ -6,21 +6,25 @@ Created: 07/12/2020
 Last Update: 08/07/2020, Colombo
 -->
 <template>
-    <div class="tab-header" :class="{ active }" @click="onClick">
-        <div class="name">
-            {{ name }}
-        </div>
-        <div
-            class="close-mark"
-            :class="{ 'close-mark--hide': !closeable, 'close-mark--hide-until-hover': showCloseOnlyOnHover && closeable }"
-            v-html="CosmosIconPack('close')" 
-            @click.stop="onClose"
-        />
+  <div
+    class="tab-header"
+    :class="{ active }"
+    @click="onClick"
+  >
+    <div class="name">
+      {{ name }}
     </div>
+    <div
+      class="close-mark"
+      :class="{ 'close-mark--hide': !closeable, 'close-mark--hide-until-hover': showCloseOnlyOnHover && closeable }"
+      @click.stop="onClose" 
+      v-html="CosmosIconPack('close')"
+    />
+  </div>
 </template>
 
 <script>
-import CosmosIconPack from '@/styles/CosmosIconPack.js'
+import CosmosIconPack from '@/styles/CosmosIconPack.js';
 
 export default {
     name: 'TabHeader',
@@ -60,7 +64,7 @@ export default {
             CosmosIconPack
         };
     },
-}
+};
 </script>
 
 <style lang="scss" scoped>

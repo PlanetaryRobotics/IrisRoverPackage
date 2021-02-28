@@ -1,15 +1,25 @@
 <template>
-  <div id="POIList" ref="POIList" class="POIList scrollable">
+  <div
+    id="POIList"
+    ref="POIList"
+    class="POIList scrollable"
+  >
     <!-- EDIT WINDOW -->
     <div v-if="show.editWindow">
-      <POIEdit :POICard="POICardToEdit.cardObject" :POIListEl="POIListEl" />
+      <POIEdit
+        :p-o-i-card="POICardToEdit.cardObject"
+        :p-o-i-list-el="POIListEl"
+      />
     </div>
 
     <!-- REGULAR VIEW -->
     <div v-else>
       <div class="mapTab dark">
         <!-- HEADER -->
-        <div class="mapTab__header" @click="togglePOIList">
+        <div
+          class="mapTab__header"
+          @click="togglePOIList"
+        >
           <svg
             width="14"
             height="7"
@@ -24,10 +34,15 @@
               stroke-linecap="round"
             />
           </svg>
-          <h2 class="text__main--bold mapTab__title">Point of Interests</h2>
+          <h2 class="text__main--bold mapTab__title">
+            Point of Interests
+          </h2>
         </div>
 
-        <div class="mapTab__body" v-show="show.POIList">
+        <div
+          v-show="show.POIList"
+          class="mapTab__body"
+        >
           <div v-if="POIListEl">
             <!-- FILTER -->
             <div class="POIFilter">
@@ -59,16 +74,20 @@
             <!-- SEARCH -->
             <div class="POISearch">
               <!-- SEARCH BAR -->
-              <input type="text" placeholder="Search" v-model="searchQuery" />
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Search"
+              >
               <!-- ORDER BY BUTTON -->
               <svg
-                @click="handleOrderClick"
                 class="POIOrderBy"
                 width="20"
                 height="20"
                 viewBox="0 0 14 14"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
+                @click="handleOrderClick"
               >
                 <path
                   d="M4.74998 2.25C4.74998 2.11193 4.63805 2 4.49998 2C4.3619 2 4.24998 2.11193 4.24998 2.25V11.0364L2.42678 9.21323C2.32915 9.11559 2.17086 9.11559 2.07322 9.21322C1.97559 9.31085 1.97559 9.46915 2.07322 9.56678L4.49997 11.9936L6.92675 9.56678C7.02438 9.46915 7.02438 9.31086 6.92675 9.21323C6.82912 9.11559 6.67083 9.11559 6.5732 9.21323L4.74998 11.0364V2.25Z"
@@ -82,8 +101,13 @@
             </div>
 
             <!-- IMAGE INFO -->
-            <div class="ImageInfo" v-if="selectedImage">
-              <div class="ImageInfo__header text__main--bold">Image</div>
+            <div
+              v-if="selectedImage"
+              class="ImageInfo"
+            >
+              <div class="ImageInfo__header text__main--bold">
+                Image
+              </div>
               <div class="ImageInfo__row">
                 <div class="text__main--bold ImageInfo__property">
                   Src Name:
@@ -105,7 +129,10 @@
             </div>
 
             <!-- TAG INFO -->
-            <div class="ImageInfo" v-if="selectedTag">
+            <div
+              v-if="selectedTag"
+              class="ImageInfo"
+            >
               <div class="ImageInfo__row">
                 <div class="pill__tag">
                   {{ selectedTag.getName() }}
@@ -146,15 +173,15 @@
             <!-- LIST -->
             <div class="POIList__list scrollable">
               <div
-                class="POIList__item"
                 v-for="POICard in POIList"
                 :key="POICard.uuid"
+                class="POIList__item"
               >
                 <POICard
-                  :POIData="POICard.getData()"
-                  :searchQuery="searchQuery"
-                  :POIListEl="POIListEl"
-                  :POICard="POICard"
+                  :p-o-i-data="POICard.getData()"
+                  :search-query="searchQuery"
+                  :p-o-i-list-el="POIListEl"
+                  :p-o-i-card="POICard"
                 />
               </div>
             </div>
@@ -180,131 +207,131 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters } from 'vuex';
 
-import POICard from "@/components/POI/POIList/POICard.vue";
-import POIEdit from "@/components/POI/POIList/POIEdit.vue";
-import AtomicButton from "@/components/atomic/AtomicButton.vue";
-import POIListDataClass from "@/data_classes/POIList.js";
-import arrowSVG from "@/assets/icons/icon_arrow_white.svg";
-import POIEventBus from "@/components/POI//POIEventBus.js";
+import POICard from '@/components/POI/POIList/POICard.vue';
+import POIEdit from '@/components/POI/POIList/POIEdit.vue';
+import AtomicButton from '@/components/atomic/AtomicButton.vue';
+import POIListDataClass from '@/data_classes/POIList.js';
+import arrowSVG from '@/assets/icons/icon_arrow_white.svg';
+import POIEventBus from '@/components/POI//POIEventBus.js';
 
 export default {
-  name: "POIList",
-  components: {
-    POICard,
-    POIEdit,
-    AtomicButton,
-  },
-  computed: {
-    ...mapGetters(["POIImageSelected", "TagSelected"]),
-    POIList() {
-      let POIList = this.$store.getters.POIList;
-      let list = POIListDataClass.filterBy(this.selectedFilter, POIList);
-
-      let order;
-      if (this.orderImportanceByMost) {
-        order = "IMPORTANCE-MOST-TO-LEAST";
-      } else {
-        order = "IMPORTANCE-LEAST-TO-MOST";
-      }
-
-      list = POIListDataClass.orderBy(order, list);
-
-      return list;
+    name: 'POIList',
+    components: {
+        POICard,
+        POIEdit,
+        AtomicButton,
     },
-  },
-  watch: {
-    POIImageSelected: {
-      deep: true,
-      handler(newObj) {
-        this.selectedImage = newObj.image;
-      },
-    },
-    TagSelected: {
-      deep: true,
-      handler(newObj) {
-        this.selectedTag = newObj.tag;
-      },
-    },
-  },
-  data() {
-    return {
-      show: {
-        POIList: true,
-        editWindow: false,
-      },
-      selectedFilter: null,
-      orderImportanceByMost: true,
-      searchQuery: null,
-      arrowSVG: arrowSVG,
-      POICardToEdit: {
-        cardObject: null,
-        JSON: null,
-      },
-      POIListEl: null,
-      selectedImage: null,
-      selectedTag: null,
-      buttons: {
-        start: {
-          id: "poiStart",
-          flavor: "primary",
-          text: "Start",
-          value: "start",
-          enabled: true,
-          storeId: "POI",
+    computed: {
+        ...mapGetters(['POIImageSelected', 'TagSelected']),
+        POIList() {
+            let POIList = this.$store.getters.POIList;
+            let list = POIListDataClass.filterBy(this.selectedFilter, POIList);
+
+            let order;
+            if (this.orderImportanceByMost) {
+                order = 'IMPORTANCE-MOST-TO-LEAST';
+            } else {
+                order = 'IMPORTANCE-LEAST-TO-MOST';
+            }
+
+            list = POIListDataClass.orderBy(order, list);
+
+            return list;
         },
-      },
-    };
-  },
-  mounted() {
-    this.POIListEl = this.$refs.POIList;
-  },
-  created() {
-    POIEventBus.$on("OPEN_EDIT_POI_WINDOW", (card) => {
-      this.POICardToEdit.cardObject = card;
-      this.POICardToEdit.JSON = JSON.stringify(card);
-
-      this.show.editWindow = true;
-    });
-
-    POIEventBus.$on("CLOSE_EDIT_POI_WINDOW", (card) => {
-      if (JSON.stringify(card) !== this.POICardToEdit.JSON) {
-        card.addToModificationHistory();
-      }
-
-      this.POICardToEdit = {
-        cardObject: null,
-        JSON: null,
-      };
-      this.show.editWindow = false;
-    });
-
-    POIEventBus.$on("DELETE_POI", (card) => {
-      this.$store.commit("deletePOI", card);
-      this.show.editWindow = false;
-    });
-  },
-  beforeDestroy() {
-    POIEventBus.$off("OPEN_EDIT_POI_WINDOW");
-    POIEventBus.$off("CLOSE_EDIT_POI_WINDOW");
-    POIEventBus.$off("DELETE_POI_WINDOW");
-  },
-  methods: {
-    togglePOIList() {
-      this.show.POIList = !this.show.POIList;
     },
-    filterBy(filter) {
-      if (this.selectedFilter === filter) {
-        this.selectedFilter = null;
-      } else {
-        this.selectedFilter = filter;
-      }
+    watch: {
+        POIImageSelected: {
+            deep: true,
+            handler(newObj) {
+                this.selectedImage = newObj.image;
+            },
+        },
+        TagSelected: {
+            deep: true,
+            handler(newObj) {
+                this.selectedTag = newObj.tag;
+            },
+        },
     },
-    handleOrderClick() {
-      this.orderImportanceByMost = !this.orderImportanceByMost;
+    data() {
+        return {
+            show: {
+                POIList: true,
+                editWindow: false,
+            },
+            selectedFilter: null,
+            orderImportanceByMost: true,
+            searchQuery: null,
+            arrowSVG: arrowSVG,
+            POICardToEdit: {
+                cardObject: null,
+                JSON: null,
+            },
+            POIListEl: null,
+            selectedImage: null,
+            selectedTag: null,
+            buttons: {
+                start: {
+                    id: 'poiStart',
+                    flavor: 'primary',
+                    text: 'Start',
+                    value: 'start',
+                    enabled: true,
+                    storeId: 'POI',
+                },
+            },
+        };
     },
-  },
+    mounted() {
+        this.POIListEl = this.$refs.POIList;
+    },
+    created() {
+        POIEventBus.$on('OPEN_EDIT_POI_WINDOW', (card) => {
+            this.POICardToEdit.cardObject = card;
+            this.POICardToEdit.JSON = JSON.stringify(card);
+
+            this.show.editWindow = true;
+        });
+
+        POIEventBus.$on('CLOSE_EDIT_POI_WINDOW', (card) => {
+            if (JSON.stringify(card) !== this.POICardToEdit.JSON) {
+                card.addToModificationHistory();
+            }
+
+            this.POICardToEdit = {
+                cardObject: null,
+                JSON: null,
+            };
+            this.show.editWindow = false;
+        });
+
+        POIEventBus.$on('DELETE_POI', (card) => {
+            this.$store.commit('deletePOI', card);
+            this.show.editWindow = false;
+        });
+    },
+    beforeDestroy() {
+        POIEventBus.$off('OPEN_EDIT_POI_WINDOW');
+        POIEventBus.$off('CLOSE_EDIT_POI_WINDOW');
+        POIEventBus.$off('DELETE_POI_WINDOW');
+    },
+    methods: {
+        togglePOIList() {
+            this.show.POIList = !this.show.POIList;
+        },
+        filterBy(filter) {
+            if (this.selectedFilter === filter) {
+                this.selectedFilter = null;
+            } else {
+                this.selectedFilter = filter;
+            }
+        },
+        handleOrderClick() {
+            this.orderImportanceByMost = !this.orderImportanceByMost;
+        },
+    },
 };
 </script>
 

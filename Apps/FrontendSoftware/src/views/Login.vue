@@ -2,169 +2,181 @@
   <div class="login">
     <div class="logo-overlay">
       <transition name="logo-intro-wipe">
-        <div v-if="logoLoaded" class="logo arc" v-html="logoSVGArc" />
+        <div
+          v-if="logoLoaded"
+          class="logo arc"
+          v-html="logoSVGArc"
+        />
       </transition>
       <transition name="logo-intro">
-        <div v-if="logoLoaded" class="logo" v-html="logoSVG" />
+        <div
+          v-if="logoLoaded"
+          class="logo"
+          v-html="logoSVG"
+        />
       </transition>
     </div>
     <div class="input-block">
-        <TextInput
-          tabOrder="1"
-          placeholder="Mission Name"
-          :callback="collectMissionName"
-          :formEvent="submitEvent"
-          :validTerms="missionIDs"
-          :validRegex="/^paper\d*$/i"
-          :searchLimit="0"
-          :clearOnEnter="false"
-          :caseSensitive="false"
-          :hideText="false"
-          :style="{opacity: openInputBlock ? 1.0 : 0.0}"
-          class="text-input mission tooltip" title="Up and down arrows scroll through options. Press right arrow to select, tab to advance."
-        />
-        <TextInput
-          tabOrder="2"
-          placeholder="Mission Passcode"
-          :callback="collectMissionCode"
-          :formEvent="submitEvent"
-          :errorEvent="errorEvent"
-          :searchLimit="0"
-          :clearOnEnter="false"
-          :hideText="true"
-          :style="{opacity: openInputBlock ? 1.0 : 0.0}"
-          class="text-input code"
-        />
-        <TextInput
-          tabOrder="3"
-          placeholder="Operations Role"
-          :callback="collectRole"
-          :formEvent="submitEvent"
-          :validTerms="['FLIGHT','INCO','CAPCOM','EECOM','GNC','TELMU']"
-          :searchLimit="0"
-          :clearOnEnter="false"
-          :caseSensitive="false"
-          :hideText="false"
-          :style="{opacity: openInputBlock ? 1.0 : 0.0}"
-          class="text-input role tooltip" title="Up and down arrows scroll through options. Press right arrow to select, tab to advance."
-        />
-        <button
-          tabindex="4"
-          :style="{opacity: openInputBlock ? 1.0 : 0.0}"
-          class="login-button button button__brand_mute addTag__buttons--input"
-          @click="$eventHub.$emit(submitEvent);"
-        > {{ connecting ? "・ ・ ・" : "CONNECT" }}</button>
+      <TextInput
+        tab-order="1"
+        placeholder="Mission Name"
+        :callback="collectMissionName"
+        :form-event="submitEvent"
+        :valid-terms="missionIDs"
+        :valid-regex="/^paper\d*$/i"
+        :search-limit="0"
+        :clear-on-enter="false"
+        :case-sensitive="false"
+        :hide-text="false"
+        :style="{opacity: openInputBlock ? 1.0 : 0.0}"
+        class="text-input mission tooltip"
+        title="Up and down arrows scroll through options. Press right arrow to select, tab to advance."
+      />
+      <TextInput
+        tab-order="2"
+        placeholder="Mission Passcode"
+        :callback="collectMissionCode"
+        :form-event="submitEvent"
+        :error-event="errorEvent"
+        :search-limit="0"
+        :clear-on-enter="false"
+        :hide-text="true"
+        :style="{opacity: openInputBlock ? 1.0 : 0.0}"
+        class="text-input code"
+      />
+      <TextInput
+        tab-order="3"
+        placeholder="Operations Role"
+        :callback="collectRole"
+        :form-event="submitEvent"
+        :valid-terms="['FLIGHT','INCO','CAPCOM','EECOM','GNC','TELMU']"
+        :search-limit="0"
+        :clear-on-enter="false"
+        :case-sensitive="false"
+        :hide-text="false"
+        :style="{opacity: openInputBlock ? 1.0 : 0.0}"
+        class="text-input role tooltip"
+        title="Up and down arrows scroll through options. Press right arrow to select, tab to advance."
+      />
+      <button
+        tabindex="4"
+        :style="{opacity: openInputBlock ? 1.0 : 0.0}"
+        class="login-button button button__brand_mute addTag__buttons--input"
+        @click="$eventHub.$emit(submitEvent);"
+      >
+        {{ connecting ? "・ ・ ・" : "CONNECT" }}
+      </button>
     </div>
   </div>
 </template>
 
 <script>
 /* global __static */ // <- keep eslint from complaining about the __static directory
-import path from 'path'
-import fs from 'fs'
+import path from 'path';
+import fs from 'fs';
 
-import TextInput from "@/components/atomic/TextInput.vue"
-import DB from '@/DBInterface/DBInterface'
+import TextInput from '@/components/atomic/TextInput.vue';
+import DB from '@/DBInterface/DBInterface';
 
 import TooltipEquip from '@/styles/TooltipEquip.js';
 
 export default {
-  name: 'login',
-  data(){
-    return {
-      submitEvent: "submit-login", // Name of Submission Event on the Global Event Bus
-      errorEvent: "error-login", // Name of Login Error Event on the Global Event Bus
-      logoSVG: "", // Inline SVG HTML for the Main Portion of the Logo
-      logoSVGArc: "", // Inline SVG HTML for the Arc of the Logo
-      logoLoaded: false,
-      openInputBlock: false, // Flag turns true when it's time to animate in the input block
-      missionName: "",
-      missionCode: "",
-      operationsRole: "",
-      codeError: false, // Whether an error was detected with the entered code.
-      connecting: false // Whether system is currently attemping to connect to the DB.
-    };
-  },
-  components: {
-    TextInput
-  },
-  mounted(){
-    TooltipEquip(this.$el);
-    
-    // Tell App.vue  Login is Mounted (so, it can activate the window now):
-    this.logoSVG = fs.readFileSync(path.join(__static,'./iris_logo_main.svg'), 'utf8');
-    this.logoSVGArc = fs.readFileSync(path.join(__static,'./iris_logo_arc.svg'), 'utf8');
+    name: 'Login',
+    components: {
+        TextInput
+    },
+    data(){
+        return {
+            submitEvent: 'submit-login', // Name of Submission Event on the Global Event Bus
+            errorEvent: 'error-login', // Name of Login Error Event on the Global Event Bus
+            logoSVG: '', // Inline SVG HTML for the Main Portion of the Logo
+            logoSVGArc: '', // Inline SVG HTML for the Arc of the Logo
+            logoLoaded: false,
+            openInputBlock: false, // Flag turns true when it's time to animate in the input block
+            missionName: '',
+            missionCode: '',
+            operationsRole: '',
+            codeError: false, // Whether an error was detected with the entered code.
+            connecting: false // Whether system is currently attemping to connect to the DB.
+        };
+    },
+    computed: {
+    // All Valid Mission IDs:
+        missionIDs(){
+            return DB.missionIDs;
+        },
 
-    this.$eventHub.$emit('loginMounted');
-  },
-  created: function() { // Adds event listeners to the global event hub
+        allDataCollected(){
+            return this.missionName && this.missionCode && this.operationsRole; // All have to be populated strings.
+        }
+    },
+    watch: {
+        allDataCollected: function(collected){
+            if(collected){
+                this.login();
+            }
+        }
+    },
+    mounted(){
+        TooltipEquip(this.$el);
+    
+        // Tell App.vue  Login is Mounted (so, it can activate the window now):
+        this.logoSVG = fs.readFileSync(path.join(__static,'./iris_logo_main.svg'), 'utf8');
+        this.logoSVGArc = fs.readFileSync(path.join(__static,'./iris_logo_arc.svg'), 'utf8');
+
+        this.$eventHub.$emit('loginMounted');
+    },
+    created: function() { // Adds event listeners to the global event hub
     // Wait for App.vue window to acknowledge that the window is activated and
     // visible before animating any content:
-    this.$eventHub.$on('windowActivated', this.transitionInUI);
-  },
-  beforeDestroy: function() { // Removes event listners from the global event hub
-    this.$eventHub.$off('windowActivated', this.transitionInUI);
-  },
-  methods: {
-    transitionInUI(){
-      // Cue logo:
-      setTimeout( () => {
-        this.logoLoaded = true;
-      }, 500);
-      // Cue Input Block:
-      setTimeout( () => {
-        this.openInputBlock = true;
-      }, 2100);
+        this.$eventHub.$on('windowActivated', this.transitionInUI);
     },
-
-    collectMissionName(x){
-      this.missionName = x[0];
+    beforeDestroy: function() { // Removes event listners from the global event hub
+        this.$eventHub.$off('windowActivated', this.transitionInUI);
     },
-    collectMissionCode(x){
-      this.missionCode = x[0];
-    },
-    collectRole(x){
-      this.operationsRole = x[0];
-    },
+    methods: {
+        transitionInUI(){
+            // Cue logo:
+            setTimeout( () => {
+                this.logoLoaded = true;
+            }, 500);
+            // Cue Input Block:
+            setTimeout( () => {
+                this.openInputBlock = true;
+            }, 2100);
+        },
 
-    async login(){
-      console.log("[IRIS-LOGIN] Mission: ", this.missionName);
-      console.log("[IRIS-LOGIN] Role: ", this.operationsRole);
+        collectMissionName(x){
+            this.missionName = x[0];
+        },
+        collectMissionCode(x){
+            this.missionCode = x[0];
+        },
+        collectRole(x){
+            this.operationsRole = x[0];
+        },
 
-      // Attempt to Connect to DB:
-      this.connecting = true;
-      let connected = await DB.init(this.missionName, this.missionCode);
-      console.log("[IRIS-LOGIN] DB Connection", connected ? "Successful" : "Failed");
+        async login(){
+            console.log('[IRIS-LOGIN] Mission: ', this.missionName);
+            console.log('[IRIS-LOGIN] Role: ', this.operationsRole);
 
-      if(connected){
-        this.$router.push('home');
-      } else {
-        this.$eventHub.$emit(this.errorEvent);
-      }
+            // Attempt to Connect to DB:
+            this.connecting = true;
+            let connected = await DB.init(this.missionName, this.missionCode);
+            console.log('[IRIS-LOGIN] DB Connection', connected ? 'Successful' : 'Failed');
 
-      // Reset Code Field:
-      this.missionCode = "";
-      this.connecting = false;
+            if(connected){
+                this.$router.push('home');
+            } else {
+                this.$eventHub.$emit(this.errorEvent);
+            }
+
+            // Reset Code Field:
+            this.missionCode = '';
+            this.connecting = false;
+        }
     }
-  },
-  computed: {
-    // All Valid Mission IDs:
-    missionIDs(){
-      return DB.missionIDs;
-    },
-
-    allDataCollected(){
-      return this.missionName && this.missionCode && this.operationsRole; // All have to be populated strings.
-    }
-  },
-  watch: {
-    allDataCollected: function(collected){
-      if(collected){
-        this.login();
-      }
-    }
-  }
-}
+};
 </script>
 
 <style scoped lang="scss">

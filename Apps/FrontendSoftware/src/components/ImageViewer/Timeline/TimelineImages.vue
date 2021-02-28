@@ -9,8 +9,17 @@ Last Updated: 08/14/2020, Colombo
 <template>
   <div>
     <!-- Iterates over list of images and creates TimelineImageCard components for each image.data. -->
-    <transition-group tag="div" id="timelineImages" name="tl_trans_list" class="scrollable smooth-scroll">
-      <div class="tl__cardCont" v-for="(image, index) in searchedImages" :key="image.DBID">
+    <transition-group
+      id="timelineImages"
+      tag="div"
+      name="tl_trans_list"
+      class="scrollable smooth-scroll"
+    >
+      <div
+        v-for="(image, index) in searchedImages"
+        :key="image.DBID"
+        class="tl__cardCont"
+      >
         <!-- UNSELECTED IMAGE CARD -->
         <div
           v-if="index != scrollPos"
@@ -18,8 +27,8 @@ Last Updated: 08/14/2020, Colombo
         >
           <TimelineImageCard
             class="tl_card unselected"
-            :image = "image"
-            :imgPos="index"
+            :image="image"
+            :img-pos="index"
           />
         </div>
         <div
@@ -29,47 +38,128 @@ Last Updated: 08/14/2020, Colombo
           <TimelineImageCard
             id="selectedTimelineCard"
             class="tl_card selected"
-            :image = "image"
-            :imgPos="index"
+            :image="image"
+            :img-pos="index"
             @onchange="scrollIntoView"
           />
         </div>
         <!-- MOVE INDICATOR PRECEEDING IMAGES -->
-        <div class="tl__contextCont" v-if="!index || searchedImages[index].data.commandLookupID != searchedImages[index-1].data.commandLookupID">
+        <div
+          v-if="!index || searchedImages[index].data.commandLookupID != searchedImages[index-1].data.commandLookupID"
+          class="tl__contextCont"
+        >
           <div class="tl__context">
-            <img src="https://www.freeiconspng.com/uploads/white-down-arrow-png-2.png" :class="commandDirectionClass(image)">
-            <span class="tl__context--text" v-html="commandStringFromImage(image)" />
+            <img
+              src="https://www.freeiconspng.com/uploads/white-down-arrow-png-2.png"
+              :class="commandDirectionClass(image)"
+            >
+            <span
+              class="tl__context--text"
+              v-html="commandStringFromImage(image)"
+            />
           </div>
         </div>
       </div>
     </transition-group>
     <!-- CONTEXT MENU -->
-    <vue-context ref="menu" id="context">
+    <vue-context
+      id="context"
+      ref="menu"
+    >
       <template slot-scope="child">
         <!-- ITERATE OVER TAGS -->
-        <div v-for="(tag, index) in tagList" :key="index">
-          <p class="context__option" @click="tagToggle(tag.tagName, child.data.imgName)">
+        <div
+          v-for="(tag, index) in tagList"
+          :key="index"
+        >
+          <p
+            class="context__option"
+            @click="tagToggle(tag.tagName, child.data.imgName)"
+          >
             {{ tag.tagName }}
-            <svg width="8" height="9" viewBox="0 0 8 9" fill="none" xmlns="http://www.w3.org/2000/svg" :class="{tagIndicator__applied: tag.isApplied}" class="tagIndicator">
-              <path d="M0.5 6C1.08582 6.39055 1.67164 6.93362 2.16811 7.45051C2.74454 8.05067 3.84824 7.83969 4.13193 7.05739C4.7956 5.22728 5.95744 2.54256 7.5 1" stroke-linecap="round"/>
+            <svg
+              width="8"
+              height="9"
+              viewBox="0 0 8 9"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              :class="{tagIndicator__applied: tag.isApplied}"
+              class="tagIndicator"
+            >
+              <path
+                d="M0.5 6C1.08582 6.39055 1.67164 6.93362 2.16811 7.45051C2.74454 8.05067 3.84824 7.83969 4.13193 7.05739C4.7956 5.22728 5.95744 2.54256 7.5 1"
+                stroke-linecap="round"
+              />
             </svg>
           </p>
         </div>
-        <hr class="context__divider" v-if="tagList.length > 0">
+        <hr
+          v-if="tagList.length > 0"
+          class="context__divider"
+        >
         <!-- PERMANENT MENU -->
-        <div class="context__option" @click="addTagsClicked(child.data.imgName)">
+        <div
+          class="context__option"
+          @click="addTagsClicked(child.data.imgName)"
+        >
           <p>Add New Tag</p>
-          <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg" class="context__option--icon">
-            <line x1="8.5" y1="4.5" x2="8.5" y2="12.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <line x1="4.5" y1="8.5" x2="12.5" y2="8.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="8.5" cy="8.5" r="8"/>
+          <svg
+            width="17"
+            height="17"
+            viewBox="0 0 17 17"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            class="context__option--icon"
+          >
+            <line
+              x1="8.5"
+              y1="4.5"
+              x2="8.5"
+              y2="12.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <line
+              x1="4.5"
+              y1="8.5"
+              x2="12.5"
+              y2="8.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <circle
+              cx="8.5"
+              cy="8.5"
+              r="8"
+            />
           </svg>
         </div>
-        <div class="context__option" @click="manageTagsClicked(child.data.imgName)">
+        <div
+          class="context__option"
+          @click="manageTagsClicked(child.data.imgName)"
+        >
           <p>Manage Tags</p>
-          <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg" class="context__option--icon">
-            <line x1="4.5" y1="8.5" x2="12.5" y2="8.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="8.5" cy="8.5" r="8"/>
+          <svg
+            width="17"
+            height="17"
+            viewBox="0 0 17 17"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            class="context__option--icon"
+          >
+            <line
+              x1="4.5"
+              y1="8.5"
+              x2="12.5"
+              y2="8.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <circle
+              cx="8.5"
+              cy="8.5"
+              r="8"
+            />
           </svg>
         </div>
       </template>
@@ -78,162 +168,162 @@ Last Updated: 08/14/2020, Colombo
 </template>
 
 <script>
-import TimelineImageCard from "@/components/ImageViewer/Timeline/TimelineImageCard.vue"
-import { mapState, mapGetters } from 'vuex'
-import { VueContext } from 'vue-context'
+import TimelineImageCard from '@/components/ImageViewer/Timeline/TimelineImageCard.vue';
+import { mapState, mapGetters } from 'vuex';
+import { VueContext } from 'vue-context';
 
 export default {
-  components: {
-    TimelineImageCard,
-    VueContext
-  },
+    components: {
+        TimelineImageCard,
+        VueContext
+    },
 
-  created: function() { // Adds event listners to the global event hub
-    this.$eventHub.$on('IV-keypress-left', this.scrollBack);
-    this.$eventHub.$on('IV-keypress-right', this.scrollForward);
-  },
+    data: function() {
+        return {
+            tagList: []
+        };
+    },
 
-  beforeDestroy: function() { // Removes event listners from the global event hub
-    this.$eventHub.$off('IV-keypress-left', this.scrollBack);
-    this.$eventHub.$off('IV-keypress-right', this.scrollForward);
-  },
+    created: function() { // Adds event listners to the global event hub
+        this.$eventHub.$on('IV-keypress-left', this.scrollBack);
+        this.$eventHub.$on('IV-keypress-right', this.scrollForward);
+    },
 
-  data: function() {
-    return {
-      tagList: []
-    }
-  },
+    beforeDestroy: function() { // Removes event listners from the global event hub
+        this.$eventHub.$off('IV-keypress-left', this.scrollBack);
+        this.$eventHub.$off('IV-keypress-right', this.scrollForward);
+    },
 
-  computed: {
-    ...mapGetters({
-      searchedImages: 'searchedImages',
-      images: 'images'
-    }),
-    ...mapState({
-      // LookupID of the Selected Image:
-      commandHistory: state => state.CLI.Log.list,
-      commandOptions: state => state.CLI.CommandOptions,
-      selectedLookupID: state => state.IMG.selectedImageLookupID,
-      scrollPos: state => state.IMG.scrollPos,
-      Tags: state => state.IMG.Tags
-    })
-  },
+    computed: {
+        ...mapGetters({
+            searchedImages: 'searchedImages',
+            images: 'images'
+        }),
+        ...mapState({
+            // LookupID of the Selected Image:
+            commandHistory: state => state.CLI.Log.list,
+            commandOptions: state => state.CLI.CommandOptions,
+            selectedLookupID: state => state.IMG.selectedImageLookupID,
+            scrollPos: state => state.IMG.scrollPos,
+            Tags: state => state.IMG.Tags
+        })
+    },
 
-  watch: {
+    watch: {
     // Check to See if Currently Displayed Image is in the New Search Selection
     // and Scroll to it if it is:
-    searchedImages: function(newVal){
-      let matched = false;
-      for(let i in newVal){
-        if(newVal[i].data.lookupID == this.selectedLookupID){
-          this.$store.state.IMG.scrollPos = Number(i);
-          matched = true;
-          break;
+        searchedImages: function(newVal){
+            let matched = false;
+            for(let i in newVal){
+                if(newVal[i].data.lookupID == this.selectedLookupID){
+                    this.$store.state.IMG.scrollPos = Number(i);
+                    matched = true;
+                    break;
+                }
+            }
+            if(!matched){
+                this.$store.state.IMG.scrollPos = -1;
+            }
         }
-      }
-      if(!matched){
-        this.$store.state.IMG.scrollPos = -1;
-      }
-    }
-  },
+    },
 
-  methods: {
+    methods: {
     // Brings the focused selection into the center of the timeline
-    scrollIntoView: function(){
-      let list = document.getElementById('timelineImages');
-      let item = document.getElementById('selectedTimelineCard');
-      if(item != undefined && list != undefined){
-        list.scrollLeft = list.scrollWidth - list.scrollWidth * (this.scrollPos + 1) / this.searchedImages.length - list.clientWidth / 2 + item.scrollWidth / 2;
-      }
-    },
-    // Scrolls timeline's selection, on event from arrow keys
-    scrollBack: function() {
-      if( this.scrollPos > 0 ){
-        this.$store.commit('SET_SCROLL', {pos: this.scrollPos-1, lookupID: this.searchedImages[this.scrollPos-1].data.lookupID});
-      }
-      this.$nextTick( () => { // Wait for DOM to update which image is highlighted,
-        this.scrollIntoView(); // then scroll it into view.
-      });
-    },
-    // Scrolls timeline's selection, on event from arrow keys
-    scrollForward: function() {
-      if( this.scrollPos < (this.searchedImages.length - 1) ){
-        this.$store.commit('SET_SCROLL', {pos: this.scrollPos+1, lookupID: this.searchedImages[this.scrollPos+1].data.lookupID});
-      }
-      this.$nextTick( () => { // Wait for DOM to update which image is highlighted,
-        this.scrollIntoView(); // then scroll it into view.
-      });
-    },
+        scrollIntoView: function(){
+            let list = document.getElementById('timelineImages');
+            let item = document.getElementById('selectedTimelineCard');
+            if(item != undefined && list != undefined){
+                list.scrollLeft = list.scrollWidth - list.scrollWidth * (this.scrollPos + 1) / this.searchedImages.length - list.clientWidth / 2 + item.scrollWidth / 2;
+            }
+        },
+        // Scrolls timeline's selection, on event from arrow keys
+        scrollBack: function() {
+            if( this.scrollPos > 0 ){
+                this.$store.commit('SET_SCROLL', {pos: this.scrollPos-1, lookupID: this.searchedImages[this.scrollPos-1].data.lookupID});
+            }
+            this.$nextTick( () => { // Wait for DOM to update which image is highlighted,
+                this.scrollIntoView(); // then scroll it into view.
+            });
+        },
+        // Scrolls timeline's selection, on event from arrow keys
+        scrollForward: function() {
+            if( this.scrollPos < (this.searchedImages.length - 1) ){
+                this.$store.commit('SET_SCROLL', {pos: this.scrollPos+1, lookupID: this.searchedImages[this.scrollPos+1].data.lookupID});
+            }
+            this.$nextTick( () => { // Wait for DOM to update which image is highlighted,
+                this.scrollIntoView(); // then scroll it into view.
+            });
+        },
 
-    tagToggle(tag, imgName) { // Output of context menu.
-      this.$store.commit('TOGGLE_TAG', {tagName: tag, imgName: imgName})
-    },
+        tagToggle(tag, imgName) { // Output of context menu.
+            this.$store.commit('TOGGLE_TAG', {tagName: tag, imgName: imgName});
+        },
 
-    addTagsClicked(imgName) { // Emits event when 'add tag' is clicked for AddTag window to appear
-      this.$eventHub.$emit('addTag', imgName)
-    },
+        addTagsClicked(imgName) { // Emits event when 'add tag' is clicked for AddTag window to appear
+            this.$eventHub.$emit('addTag', imgName);
+        },
 
-    manageTagsClicked(imgName) { // Emits event when 'manage tag' is clicked for ManageTags window to appear
-      alert('Open Manage Tags Menu', imgName)
-    },
+        manageTagsClicked(imgName) { // Emits event when 'manage tag' is clicked for ManageTags window to appear
+            alert('Open Manage Tags Menu', imgName);
+        },
 
-    contextOpened(clickedImage) {
-      let list = []
-      for (const tag of this.Tags) {
-        if (tag.getImages().includes(clickedImage)) {
-          list.push({tagName: tag.getName(), isApplied: true})
+        contextOpened(clickedImage) {
+            let list = [];
+            for (const tag of this.Tags) {
+                if (tag.getImages().includes(clickedImage)) {
+                    list.push({tagName: tag.getName(), isApplied: true});
+                }
+                else {
+                    list.push({tagName: tag.getName(), isApplied: false});
+                }
+            }
+            this.tagList = list;
+        },
+
+        // Returns a String with the Stylized Value of the First Argument (according
+        // to the CommandOption spec) of the Command which Produced the Given Image.
+        commandStringFromImage(img){
+            let str = ''; // default
+            if(img){
+                let cmd = this.commandHistory.filter(c => c.data.lookupID == img.data.commandLookupID)[0];
+                if(cmd){
+                    let commandOption = this.commandOptions.find( c => c.name == cmd.data.name );
+                    if(commandOption && commandOption.params.length){
+                        let paramIdx = Object.keys(cmd.data.args).indexOf(commandOption.params[0].name);
+                        str = Object.values(cmd.data.args)[paramIdx] + commandOption.formattedUnits[0];
+                    }
+                }
+            }
+            return str;
+        },
+        // Returns the Class to the Style the Direction Indicator based on the
+        // Command which Produced the Given Image.
+        commandDirectionClass(img){
+            let style = 'tl__context--icon'; // default
+            if(img){
+                let cmd = this.commandHistory.filter(c => c.data.lookupID == img.data.commandLookupID)[0];
+                if(cmd){
+                    switch(cmd.data.name){
+                    case 'MoveForward':
+                        style += '-forward';
+                        break;
+                    case 'MoveBackward':
+                        style += '-backward';
+                        break;
+                    case 'TurnLeft':
+                        style += '-left';
+                        break;
+                    case 'TurnRight':
+                        style += '-right';
+                        break;
+                    }
+                }
+            }
+
+            return style;
         }
-        else {
-          list.push({tagName: tag.getName(), isApplied: false})
-        }
-      }
-      this.tagList = list
-    },
-
-    // Returns a String with the Stylized Value of the First Argument (according
-    // to the CommandOption spec) of the Command which Produced the Given Image.
-    commandStringFromImage(img){
-      let str = ""; // default
-      if(img){
-        let cmd = this.commandHistory.filter(c => c.data.lookupID == img.data.commandLookupID)[0];
-        if(cmd){
-          let commandOption = this.commandOptions.find( c => c.name == cmd.data.name );
-          if(commandOption && commandOption.params.length){
-            let paramIdx = Object.keys(cmd.data.args).indexOf(commandOption.params[0].name);
-            str = Object.values(cmd.data.args)[paramIdx] + commandOption.formattedUnits[0];
-          }
-        }
-      }
-      return str;
-    },
-    // Returns the Class to the Style the Direction Indicator based on the
-    // Command which Produced the Given Image.
-    commandDirectionClass(img){
-      let style = "tl__context--icon"; // default
-      if(img){
-        let cmd = this.commandHistory.filter(c => c.data.lookupID == img.data.commandLookupID)[0];
-        if(cmd){
-          switch(cmd.data.name){
-            case "MoveForward":
-              style += "-forward";
-            break;
-            case "MoveBackward":
-              style += "-backward";
-            break;
-            case "TurnLeft":
-              style += "-left";
-            break;
-            case "TurnRight":
-              style += "-right";
-            break;
-          }
-        }
-      }
-
-      return style;
     }
-  }
-}
+};
 </script>
 
 

@@ -6,9 +6,7 @@
     <span
       class="done"
       v-if="instruction2Visible"
-      v-on:click="completeCaptureSelection"
-      >Done</span
-    >
+      v-on:click="completeCaptureSelection">Done</span>
   </div>
 </template>
 
@@ -49,6 +47,7 @@ export default {
     },
 
     completeCaptureSelection() {
+      console.log("capselecFired")
       this.$emit("captureSelectionSelected");
     },
   },

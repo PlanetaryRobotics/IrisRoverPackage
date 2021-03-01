@@ -157,7 +157,7 @@ export default {
       // Capture science pop up instruction box visibility
       capSciInstructionsOpen: true, //  saving var for when commandline command entered, will turn true and start false
       capSciInstructionsHidden: false, // to hide instructions modal when user dragging capture science box so user can see full image
-      POISelectionInstructions: false, // specifcally for preventing manual POI add events like selection box event from occuring
+      POISelectionInstructions: false, // specifically for preventing manual POI add events like selection box event from occuring
       capSciConfirmationModalOpen: false,
       // workaround for passing event array on click
       eventVarForCapSci: null,
@@ -829,15 +829,19 @@ export default {
       // let eventX = event.clientX
       // let eventY = event.clientY-47;
       // If moving while mouse down, for cap sci and selection box logic
+      // if (this.isMouseDown) {
+      //   if (!this.POISelectionInstructions && !this.capSciInstructionsOpen && !this.arePOIFullDetailsVisible) {
       if (this.isMouseDown) {
 
-        if (!this.POISelectionInstructions && !this.capSciInstructionsOpen && !this.arePOIFullDetailsVisible) {
+        let dragDist = Math.sqrt((event.offsetX - this.startCoord[0])**2 + (event.offsetY - this.startCoord[1])**2);
+
+        if (!this.POISelectionInstructions && !this.capSciInstructionsOpen && !this.arePOIFullDetailsVisible && dragDist > 19) {
           this.isDrag = true;
 
           this.endCoord = [event.offsetX, event.offsetY];
 
-          // this.setPOILayerDimensions();
-          // this.closePOIChoiceModal();
+          this.setPOILayerDimensions();
+          this.closePOIChoiceModal();
 
           // Ensures POI selection box constrained to POI image Layer
           if (!this.checkCursorInOrOutPOILayer(event)) {
@@ -884,11 +888,9 @@ export default {
           this.POISelectionInstructions &&
           this.capSciInstructionsOpen
         ) {
+          console.log("llll")
           // dragCapSciActivated
           this.dragCapSciBoxActivate = true;
-
-          // close Instructions while dragging so user can see full image
-          this.capSciInstructionsHidden = true;
 
           // On left side drag
           if (
@@ -897,6 +899,8 @@ export default {
             this.capSciExpandBoxStartCoords[0] + 3 >=
               this.greenBoxTopLeftCoords[0]
           ) {
+            // close Instructions while dragging so user can see full image
+            this.capSciInstructionsHidden = true;
             this.dragSide = "left";
             this.capSciExpandBoxEndCoords = [event.offsetX, event.offsetY];
             this.setUpCapSciSelection(event);
@@ -909,6 +913,8 @@ export default {
             this.capSciExpandBoxStartCoords[0] + 3 >=
               this.greenBoxTopLeftCoords[0] + this.baseXOffset
           ) {
+            // close Instructions while dragging so user can see full image
+            this.capSciInstructionsHidden = true;
             this.dragSide = "right";
             this.capSciExpandBoxEndCoords = [event.offsetX, event.offsetY];
             this.setUpCapSciSelection(event);
@@ -921,6 +927,8 @@ export default {
             this.capSciExpandBoxStartCoords[1] + 3 >=
               this.greenBoxTopLeftCoords[1] + this.baseYOffset
           ) {
+            // close Instructions while dragging so user can see full image
+            this.capSciInstructionsHidden = true;
             this.dragSide = "bottom";
             this.capSciExpandBoxEndCoords = [event.offsetX, event.offsetY];
             this.setUpCapSciSelection(event);
@@ -933,6 +941,8 @@ export default {
             this.capSciExpandBoxStartCoords[1] + 3 >=
               this.greenBoxTopLeftCoords[1]
           ) {
+            // close Instructions while dragging so user can see full image
+            this.capSciInstructionsHidden = true;
             this.dragSide = "top";
             this.capSciExpandBoxEndCoords = [event.offsetX, event.offsetY];
             this.setUpCapSciSelection(event);

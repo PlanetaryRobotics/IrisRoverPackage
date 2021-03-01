@@ -5,7 +5,6 @@
 #include <string.h>
 #include <gio.h>
 #include <math.h>
-#include <Os/FreeRTOS/FRAM_File.hpp>
 
 class CY15B102Q{
   #define SPI_RX_BUFFER_MAX_LENGTH_FRAM 261    // Worst case: 256 data payload bytes + 1 byte command + 4 bytes addressing
@@ -84,12 +83,6 @@ class CY15B102Q{
     CY15B102Q_INCORRECT_FLASH_MEMORY = -2,
     CY15B102Q_WRONG_DATA_SIZE = -3,
     CY15B102Q_FAIL_ERASE_CHIP = -4,
-    CY15B102Q_FAIL_BLOCK_ERASE = -5,
-    CY15B102Q_FAIL_PAGE_PROGRAM = -6,
-    CY15B102Q_FAIL_SECTOR_ERASE = -7,
-    CY15B102Q_FAIL_MEM_ALLOCATION = -8,
-    CY15B102Q_FAIL_WRITE_DATA_FLASH = -9,
-    CY15B102Q_FAIL_HALF_BLOCK_ERASE = -10
   }CY15B102QError;
 
   public:
@@ -119,12 +112,12 @@ class CY15B102Q{
     CY15B102QError framSpiReadData(const CY15B102Q::FRAMSpiCommands cmd,
                             uint8_t *rxData,
                             const uint16_t dataReadLength,
-                            FRAM_PTR address); 
+                            uint32_t address); 
 
     CY15B102QError framSpiWriteData(const CY15B102Q::FRAMSpiCommands cmd,
                                 uint8_t *txData,
                                 const uint16_t dataWriteLength,
-                                FRAM_PTR address); 
+                                uint32_t address); 
     
   private:
     spiDAT1_t m_framDataConfig;

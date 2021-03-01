@@ -4,7 +4,7 @@
 #include <Fw/Cfg/Config.hpp>
 #include <Fw/Types/BasicTypes.hpp>
 
-#include <Os/FreeRTOS/CY15B102Q.hpp>
+#include "CY15B102Q.hpp"
 
     #define FRAM_TABLE_PTR_START 0x00000
     #define FRAM_TABLE_PTR_END   0x13880
@@ -17,7 +17,7 @@
     };
 
     typedef union FRAM_PTR{
-        uint8_t all;
+        uint32_t all;
         FRAM_PTR_BITS bit;
     }FRAM_PTR;
 

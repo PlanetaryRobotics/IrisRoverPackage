@@ -1,5 +1,4 @@
 #include "CY15B102Q.hpp"
-#include <Os/FreeRTOS/FRAM_File.hpp>
 
 CY15B102Q :: CY15B102Q(){
   // External FRAM SPI data configuration
@@ -111,7 +110,7 @@ uint8_t CY15B102Q :: getReadDummyCycles(const CY15B102Q::FRAMSpiCommands cmd){
 CY15B102Q :: CY15B102QError CY15B102Q :: framSpiReadData(const CY15B102Q::FRAMSpiCommands cmd,
                                                           uint8_t *rxData,
                                                           const uint16_t sizeOfRxData,
-                                                          const FRAM_PTR address)
+                                                          const uint32_t address)
 {
   uint16_t addressLength;
   uint32_t totalBytesToTransmit;
@@ -133,7 +132,7 @@ CY15B102Q :: CY15B102QError CY15B102Q :: framSpiReadData(const CY15B102Q::FRAMSp
 
   // Address must be defined if addressLength greater than 0
   if(addressLength > 0){
-    if(address.bit.address == ADDRESS_NOT_DEFINED){
+    if(address == ADDRESS_NOT_DEFINED){
       return CY15B102Q_UNEXPECTED_ERROR;
     }
 
@@ -148,7 +147,7 @@ CY15B102Q :: CY15B102QError CY15B102Q :: framSpiReadData(const CY15B102Q::FRAMSp
 
    // copy address to Tx buffer
    for(i=0; i<addressLength; i++){
-       m_spiTxBuff[i+1] = address.bit.address >> i*8 & 0xff;
+       m_spiTxBuff[i+1] = address >> i*8 & 0xff;
    }
   }
 
@@ -193,7 +192,7 @@ CY15B102Q :: CY15B102QError CY15B102Q :: framSpiReadData(const CY15B102Q::FRAMSp
 CY15B102Q :: CY15B102QError CY15B102Q :: framSpiWriteData(const CY15B102Q::FRAMSpiCommands cmd,
                                                               uint8_t *txData,
                                                               const uint16_t sizeOfTxData,
-                                                              const FRAM_PTR address)
+                                                              const uint32_t address)
 {
   uint16_t addressLength;
   uint16_t totalBytesToTransmit; 
@@ -208,7 +207,7 @@ CY15B102Q :: CY15B102QError CY15B102Q :: framSpiWriteData(const CY15B102Q::FRAMS
   totalBytesToTransmit = sizeOfTxData + 1 /*command*/ + addressLength;
 
   if(addressLength > 0){
-    if(address.bit.address == ADDRESS_NOT_DEFINED){
+    if(address == ADDRESS_NOT_DEFINED){
       return CY15B102Q_UNEXPECTED_ERROR;
     }
 
@@ -218,7 +217,7 @@ CY15B102Q :: CY15B102QError CY15B102Q :: framSpiWriteData(const CY15B102Q::FRAMS
 
     // copy address to Tx buffer
     for(i=0; i<addressLength; i++){
-        m_spiTxBuff[i+1] = address.bit.address >> i*8 & 0xff;
+        m_spiTxBuff[i+1] = address >> i*8 & 0xff;
     }
 
     if(txData != NULL && sizeOfTxData > 0){

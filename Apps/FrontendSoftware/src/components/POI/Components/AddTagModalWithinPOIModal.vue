@@ -64,7 +64,7 @@ export default {
 
       throwNameError(){
         let nameSublabel = document.getElementById("add-tag-container").getElementsByClassName("sublabel")[0];
-        // if name error already exists and user clicks confirm again without fix/attempt to fix
+        // if name error already exists and user clicks confirm again without fix/attempt to fix, blink red error instructions
         if(this.nameError){
           nameSublabel.classList.add("blinking");
           document.querySelector('.blinking').addEventListener('animationend', () => {

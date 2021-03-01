@@ -5,9 +5,9 @@ editing via preset filters.
 Author: Connor Colombo, CMU
 Created: 3/05/2019
 Updated: 08/30/2020, Colombo
-Last Update: 12/16/2020, Gabbi LaBorwit
+Last Update: 1/22/2020, Gabbi LaBorwit
 
-// TODO: fix glitch when go past top of image (priority: 1), and when off-sides how box doesn't auto border sides
+// TODO: when off-sides how box doesn't auto border sides
 -->
 
 <template>
@@ -60,12 +60,11 @@ Last Update: 12/16/2020, Gabbi LaBorwit
           id="featurevp"
           class="port POIport"
           style="z-index: 1"
-          v-on:mouseover.stop="mouseOnPOICanvasLayer"
-          v-on:mouseout.stop="mouseOffPOICanvasLayer"
           v-bind:class="{
             crosshairMouse:
             isMouseDown && !POISelectionInstructions && !capSciInstructionsOpen,
           }"
+          v-on:mouseup.self="stopBubblingIfPOIModalClick"
         >
         </canvas>
 
@@ -75,6 +74,7 @@ Last Update: 12/16/2020, Gabbi LaBorwit
           v-on:POIChoiceSelected="onPOIChoiceSelected"
           :endCoordinates="endCoord"
         />
+        
         <POIModalFullDetails
           :parentData="initalPOIChoiceSelected"
           v-if="arePOIFullDetailsVisible"
@@ -140,7 +140,6 @@ export default {
       portContainer: {},
       canvas: {},
       poiLayer: {},
-      poiLayerCornerCoords: [],
       texture: {},
       textureInitialized: false,
       isMouseDown: false,
@@ -151,7 +150,6 @@ export default {
       fxvar: {},
 
       // Manual POI select vars
-      cursorOnPOICanvasLayer: false,
       isPOIChoiceListModalVisible: false,
       arePOIFullDetailsVisible: false,
       initalPOIChoiceSelected: null,
@@ -161,6 +159,8 @@ export default {
       capSciInstructionsHidden: false, // to hide instructions modal when user dragging capture science box so user can see full image
       POISelectionInstructions: false, // specifcally for preventing manual POI add events like selection box event from occuring
       capSciConfirmationModalOpen: false,
+      // workaround for passing event array on click
+      eventVarForCapSci: null,
       greenBoxTopLeftCoords: [209, 194],
       capSciExpandBoxStartCoords: [],
       capSciExpandBoxEndCoords: [],
@@ -263,13 +263,10 @@ export default {
       this.UPDATE_POICOORDS([newStart, newEnd])
     },
 
-
-    mouseOnPOICanvasLayer() {
-      this.cursorOnPOICanvasLayer = true;
-    },
-
-    mouseOffPOICanvasLayer() {
-      this.cursorOnPOICanvasLayer = false;
+    stopBubblingIfPOIModalClick(event){
+      if(this.isPOIChoiceListModalVisible){
+        event.stopPropagation()
+      }
     },
 
     onPOIChoiceSelected(val) {
@@ -286,6 +283,7 @@ export default {
     },
 
     onCloseCapSciModal() {
+      this.dragCapSciBoxActivate = false;
       this.capSciConfirmationModalOpen = false;
       this.POISelectionInstructions = false;
 
@@ -350,7 +348,7 @@ export default {
       }
     },
 
-    setUpCapSciSelection() {
+    setUpCapSciSelection(event) {
       // initialize topLeft, xOffset, and yOffset vars
       let topLeft = [];
       let topRight = [];
@@ -358,12 +356,24 @@ export default {
       let bottomLeft = [];
       let xOffset = this.baseXOffset;
       let yOffset = this.baseYOffset;
+      let evt = event;
+
+      if(!evt){
+        evt = this.eventVarForCapSci;
+      }
+
+      let poiRect = document.getElementById("imgvp").getBoundingClientRect();
+      let cursorInsideImageBoundary = this.checkCursorInOrOutPOILayer(evt);
+      // See which side(s) cursor is closest to out of bounds if cursor out of bounds
+      let sideOutOfBounds = this.checkCursorPosition(evt)
 
       if (this.dragCapSciBoxActivate) {
         // On left side drag
         // makes sure left side doesn't get dragged past right side, if not past right side:
         if (this.dragSide == "left" &&
-          (this.capSciExpandBoxEndCoords[0]+12) < (this.greenBoxTopLeftCoords[0] + xOffset)) {
+          (this.capSciExpandBoxEndCoords[0]+12) < (this.greenBoxTopLeftCoords[0] + xOffset) &&
+          cursorInsideImageBoundary
+          ) {
           topLeft = [
             this.capSciExpandBoxEndCoords[0],
             this.greenBoxTopLeftCoords[1],
@@ -382,7 +392,11 @@ export default {
           ];
         }
         // if left side past right side == illegal drag
-        else if (this.dragSide == "left") {
+        else if (this.dragSide == "left" && (
+          ((this.capSciExpandBoxEndCoords[0]+12) >= (this.greenBoxTopLeftCoords[0] + xOffset)) ||
+          sideOutOfBounds.right
+          )
+        ){
           topLeft = [
             this.greenBoxTopLeftCoords[0] + xOffset - 12,
             this.greenBoxTopLeftCoords[1],
@@ -402,11 +416,32 @@ export default {
           this.capSciExpandBoxEndCoords = topLeft;
         }
 
+        else if(this.dragSide == "left" && !cursorInsideImageBoundary && sideOutOfBounds.left){
+          topLeft = [
+            0,
+            this.greenBoxTopLeftCoords[1],
+          ];
+          topRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.greenBoxTopLeftCoords[1],
+          ];
+          bottomRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+          bottomLeft = [
+            0,
+            this.greenBoxTopLeftCoords[1] + yOffset,
+          ];
+        }
+
         // On right side drag
         // if legal drag (i.e. right side not past left side and not past image boundary)
+        // &&
+        //   ((this.capSciExpandBoxEndCoords[0] - this.greenBoxTopLeftCoords[0]) < (document.getElementById("imgvp").clientWidth-this.greenBoxTopLeftCoords[0]))
+
         else if (this.dragSide == "right" && 
-          (this.capSciExpandBoxEndCoords[0] > this.greenBoxTopLeftCoords[0]+12) &&
-          ((this.capSciExpandBoxEndCoords[0] - this.greenBoxTopLeftCoords[0]) < (document.getElementById("imgvp").clientWidth-this.greenBoxTopLeftCoords[0]))
+          (this.capSciExpandBoxEndCoords[0] > (this.greenBoxTopLeftCoords[0]+12)) && cursorInsideImageBoundary
         ) {
           topLeft = [
             this.greenBoxTopLeftCoords[0],
@@ -426,8 +461,10 @@ export default {
           ];
         }
         // illegal drag due to right side passing left side
-        else if (this.dragSide == "right" &&
-        (this.capSciExpandBoxEndCoords[0] < this.greenBoxTopLeftCoords[0]+12)
+        else if (this.dragSide == "right" && (
+            (this.capSciExpandBoxEndCoords[0] <= (this.greenBoxTopLeftCoords[0] + 12)) ||
+            sideOutOfBounds.left
+          )
         ){
           topLeft = [
             this.greenBoxTopLeftCoords[0],
@@ -448,7 +485,8 @@ export default {
           this.capSciExpandBoxEndCoords = topRight;
         }
         // illegal drag due to drag past image boundary
-        else if(this.dragSide == "right"){
+        else if(this.dragSide == "right" && !cursorInsideImageBoundary && sideOutOfBounds.right   
+        ){
           topLeft = [
             this.greenBoxTopLeftCoords[0],
             this.greenBoxTopLeftCoords[1],
@@ -471,7 +509,8 @@ export default {
         // On bottom side drag
         // if legal drag (i.e. bottom side not dragged past top side)
         else if(this.dragSide == "bottom" &&
-          this.capSciExpandBoxEndCoords[1] >= (this.greenBoxTopLeftCoords[1] + 12)
+          this.capSciExpandBoxEndCoords[1] >= (this.greenBoxTopLeftCoords[1] + 12) &&
+          cursorInsideImageBoundary
         ) {
           topLeft = [
             this.greenBoxTopLeftCoords[0],
@@ -490,8 +529,11 @@ export default {
             this.capSciExpandBoxEndCoords[1],
           ];
         }
-        // illegal drag
-        else if(this.dragSide == "bottom"){
+        // illegal drag due to bottom side being dragged past top side
+        else if(this.dragSide == "bottom" && (
+          (this.capSciExpandBoxEndCoords[1] < (this.greenBoxTopLeftCoords[1] + 12)) || sideOutOfBounds.top
+          )
+        ){
           topLeft = [
             this.greenBoxTopLeftCoords[0],
             this.greenBoxTopLeftCoords[1],
@@ -511,11 +553,33 @@ export default {
           this.capSciExpandBoxEndCoords = bottomRight;
         }
 
+        // illegal drag due to bottom side being dragged out of image bounds
+        else if(this.dragSide == "bottom" && !cursorInsideImageBoundary && sideOutOfBounds.bottom)
+        {
+          topLeft = [
+            this.greenBoxTopLeftCoords[0],
+            this.greenBoxTopLeftCoords[1]
+          ];
+          topRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            this.greenBoxTopLeftCoords[1]
+          ];
+          bottomRight = [
+            this.greenBoxTopLeftCoords[0] + xOffset,
+            poiRect.bottom - poiRect.top
+          ];
+          bottomLeft = [
+            this.greenBoxTopLeftCoords[0],
+            poiRect.bottom - poiRect.top
+          ];
+        }
+
+
         // On top side drag
         // if legal drag (i.e. top side not dragged past bottom side or top of image boundary)
         else if (this.dragSide == "top" &&
-          (Math.abs((this.greenBoxTopLeftCoords[1] + yOffset) - this.capSciExpandBoxEndCoords[1]) < (this.greenBoxTopLeftCoords[1] + yOffset - 1)) &&
-          this.capSciExpandBoxEndCoords[1] < (this.greenBoxTopLeftCoords[1] + yOffset - 12)
+          (this.capSciExpandBoxEndCoords[1] < (this.greenBoxTopLeftCoords[1] + yOffset - 12)) &&
+          cursorInsideImageBoundary
         ) {
           topLeft = [
             this.greenBoxTopLeftCoords[0],
@@ -534,9 +598,11 @@ export default {
             this.greenBoxTopLeftCoords[1] + yOffset,
           ];
         }
-        // illegal drag due to top dragged past bottom
-        else if(this.dragSide == "top" &&
-          this.capSciExpandBoxEndCoords[1] >= (this.greenBoxTopLeftCoords[1] + yOffset - 12)
+        // illegal drag due to top side dragged past bottom
+        else if(this.dragSide == "top" && (
+            (this.capSciExpandBoxEndCoords[1] >= (this.greenBoxTopLeftCoords[1] + yOffset - 12)) ||
+            sideOutOfBounds.bottom
+          )
         ){
           topLeft = [
             this.greenBoxTopLeftCoords[0],
@@ -557,7 +623,7 @@ export default {
           this.capSciExpandBoxEndCoords = topLeft;
         }
         // illegal drag due to top dragged past top image boundary
-        else if(this.dragSide == "top"){
+        else if(this.dragSide == "top" && !cursorInsideImageBoundary && sideOutOfBounds.top){
           topLeft = [
             this.greenBoxTopLeftCoords[0],
             0,
@@ -692,12 +758,45 @@ export default {
     // On click of page, close modals
     onIVPortClick() {
       // if not a drag-- just a click, clear canvas
-      if (!this.isDrag) {
+      if (!this.isDrag && !this.dragCapSciBoxActivate) {
         this.setPOILayerDimensions();
         this.closePOIChoiceModal();
+        console.log("\nonIVPortClick");
       } else {
+        console.log("\nonIVPortClick_ELSE")
         this.isDrag = false;
       }
+    },
+
+    checkCursorInOrOutPOILayer(e){
+      // Checks if mouse currently within or on POILayer
+
+      // Get coordinates of poi image layer
+      // getBoundingClientRect returns: bottom, height, left, right, top, width, *x, y*-> don't use x, y bc not compatible w/ IE
+      let domRect = document.getElementById("imgvp").getBoundingClientRect();
+
+      // If cursor inside or on POI Layer Rect, return true
+      if( (domRect.left <= e.clientX) && (e.clientX <= domRect.right)
+        && (domRect.top <= e.clientY) && (e.clientY <= domRect.bottom)
+      ){
+        return true;
+      }
+
+      // If cursor outside of POI Layer Rect, return false
+      return false;
+    },
+
+    checkCursorPosition(e){
+      // Checks position of cursor outside of POI Layer box in terms of side
+      let domRect = document.getElementById("imgvp").getBoundingClientRect();
+
+      // return bool array [isOutsideOfTop, Right, Bottom, Left]
+      return {
+        top: (e.clientY < domRect.top),
+        right: (domRect.right < e.clientX),
+        bottom: (domRect.bottom < e.clientY),
+        left: (e.clientX < domRect.left)
+      };
     },
 
     // On mouse down in image port, draw rectangle selector and get start coordinates
@@ -706,58 +805,19 @@ export default {
       if (event.button === 2) {
         return;
       }
-
-      // Get rect coordinates of POI Layer
-      let sideMargin =
-        Math.abs(
-          this.poiLayer.width -
-            document.getElementById("portContainer").clientWidth
-        ) / 2;
-      let topBottomMargin =
-        Math.abs(
-          this.poiLayer.height -
-            document.getElementById("portContainer").clientHeight
-        ) / 2;
-      // console.log("topBottomMargins: ", topBottomMargin)
-      // console.log("x,y coords: ", [event.x, event.y])
-      // console.log("client coords: ", [event.clientX, event.clientY])
-      this.poiLayerCornerCoords = [
-        // top left
-        [sideMargin, topBottomMargin],
-        // top right
-        [
-          document.getElementById("portContainer").clientWidth - sideMargin,
-          topBottomMargin,
-        ],
-        // bottom right
-        [
-          document.getElementById("portContainer").clientWidth - sideMargin,
-          document.getElementById("portContainer").clientHeight -
-            topBottomMargin,
-        ],
-        // bottom left
-        [
-          sideMargin,
-          document.getElementById("portContainer").clientHeight -
-            topBottomMargin,
-        ],
-      ];
-
-      // console.log(this.poiLayerCornerCoords)
-
+      
       // reset end coord if already exists
       if (this.endCoord.length > 0) {
         this.endCoord = [];
       }
-      if (this.cursorOnPOICanvasLayer) {
-        this.startCoord = [event.offsetX, event.offsetY];
-        this.isMouseDown = true;
-      }
 
       // false until proven truthy (aka don't know if drag or click until onMouseMove called or not called)
       this.isDrag = false;
-      if (this.cursorOnPOICanvasLayer){
-        this.closePOIChoiceModal();
+
+      // If cursor inside POI Layer, set start coordinate of selection box
+      if (this.checkCursorInOrOutPOILayer(event)) {
+        this.startCoord = [event.offsetX, event.offsetY];
+        this.isMouseDown = true;
       }
 
       if (this.POISelectionInstructions && this.capSciInstructionsOpen) {
@@ -768,58 +828,53 @@ export default {
     onMouseMove(event) {
       // let eventX = event.clientX
       // let eventY = event.clientY-47;
-      // If moving for Manual Add POI selection box
+      // If moving while mouse down, for cap sci and selection box logic
       if (this.isMouseDown) {
-        if (!this.POISelectionInstructions && !this.capSciInstructionsOpen) {
+
+        if (!this.POISelectionInstructions && !this.capSciInstructionsOpen && !this.arePOIFullDetailsVisible) {
           this.isDrag = true;
+
           this.endCoord = [event.offsetX, event.offsetY];
-          // console.log("POI Layer Height: ", this.poiLayer.height)
-          // console.log("no offset: ", event.y);
-          // console.log("offset: ", this.endCoord[1]);
-          // console.log("----------")
 
-          // Ensures selection box constrained to image
-          /* DEBUG:
-          right
-          this.endCoord[0] > this.poiLayer.width ||
-          
-          left but slightly
-          this.endCoord[0] < 0 ||
-          
-          bottom
-          this.endCoord[1] > this.poiLayer.height ||
-          
-          top
-          this.endCoord[1] < 0
-          */
-          if (!this.cursorOnPOICanvasLayer) {
-            // console.log(
-            // "this.endCoord[0] > this.poiLayer.width: ", this.endCoord[0] > this.poiLayer.width, "\n",
-            // "this.endCoord[0] < 0: ", this.endCoord[0] < 0, "\n",
-            // "this.endCoord[1] > this.poiLayer.height: ", this.endCoord[1] > this.poiLayer.height, "\n",
-            // "this.endCoord[1] < 0: ", this.endCoord[1] < 0
-            // )
-            // console.log("y: ", Math.abs(event.y-this.endCoord[1]))
-            // console.log("x: ", Math.abs(event.x-this.endCoord[0]))
+          // this.setPOILayerDimensions();
+          // this.closePOIChoiceModal();
 
-            // if cursor went past right boundary of image container
-            if (this.endCoord[0] > this.poiLayer.width) {
+          // Ensures POI selection box constrained to POI image Layer
+          if (!this.checkCursorInOrOutPOILayer(event)) {
+
+            // Get which sides of POI Layer rect cursor is closest to
+            let cursorSidePositions = this.checkCursorPosition(event);
+
+            // if cursor went past right boundary of POI image container
+            if (cursorSidePositions.right) {
               this.endCoord[0] = this.poiLayer.width;
             }
-            // if cursor went past top boundary of image container
-            else if (
-              this.endCoord[1] <= 0 ||
-              Math.abs(event.y - this.endCoord[1]) < 48
-            ) {
-              this.endCoord[1] = 0;
-              this.isMouseDown = false;
-            }
-            // if cursor went past left boundary of image container
-            else if (
-              this.endCoord[0] <= 0 ||
-              Math.abs(event.x - this.endCoord[0]) < 23
-            ) {
+
+            // if cursor went past left boundary of POI image container
+            if (cursorSidePositions.left) {
               this.endCoord[0] = 0;
+            }
+
+            // if cursor went past top boundary of POI image container
+            if (cursorSidePositions.top) {
+              // If cursor is not also outside of left or right side, set x coord to not offset
+              if(!cursorSidePositions.left && !cursorSidePositions.right){
+                // gets x coordinate relative to POI Layer
+                this.endCoord[0] = event.clientX - document.getElementById("imgvp").getBoundingClientRect().left;
+              }
+              this.endCoord[1] = 0;
+            }
+
+            // if cursor went past bottom boundary of POI image container
+            if (cursorSidePositions.bottom) {
+              // If cursor is not also outside of left or right side, set x coord to not offset
+              let poiRect = document.getElementById("imgvp").getBoundingClientRect();
+
+              if(!cursorSidePositions.left && !cursorSidePositions.right){
+                // gets x coordinate relative to POI Layer
+                this.endCoord[0] = event.clientX - poiRect.left;
+              }
+              this.endCoord[1] = poiRect.bottom - poiRect.top;
             }
           }
 
@@ -844,7 +899,7 @@ export default {
           ) {
             this.dragSide = "left";
             this.capSciExpandBoxEndCoords = [event.offsetX, event.offsetY];
-            this.setUpCapSciSelection();
+            this.setUpCapSciSelection(event);
           }
 
           // On right side drag
@@ -856,7 +911,7 @@ export default {
           ) {
             this.dragSide = "right";
             this.capSciExpandBoxEndCoords = [event.offsetX, event.offsetY];
-            this.setUpCapSciSelection();
+            this.setUpCapSciSelection(event);
           }
 
           // On bottom side drag
@@ -868,7 +923,7 @@ export default {
           ) {
             this.dragSide = "bottom";
             this.capSciExpandBoxEndCoords = [event.offsetX, event.offsetY];
-            this.setUpCapSciSelection();
+            this.setUpCapSciSelection(event);
           }
 
           // On top side drag
@@ -880,7 +935,7 @@ export default {
           ) {
             this.dragSide = "top";
             this.capSciExpandBoxEndCoords = [event.offsetX, event.offsetY];
-            this.setUpCapSciSelection();
+            this.setUpCapSciSelection(event);
           }
         }
       }
@@ -960,23 +1015,34 @@ export default {
       this.poiCanvasContext.closePath();
     },
 
-    onMouseUp() {
+    onMouseUp(event) {
       this.isMouseDown = false;
       // Checks if mouse down was just a click or if mouse moved at all (i.e. selection box was formed)
-      if (this.endCoord.length == 0) {
+      // if (this.endCoord.length == 0) {
+      console.log("above if 1");
+      if (!this.isDrag) {
         this.startCoord = [];
+        console.log("\nclickk, ", event.target);
 
-        //clears canvas of lines/boxes
+        //clears canvas of lines/boxes if single click on screen and not in POI Choices box
         if (!this.isPOIChoiceListModalVisible && !this.capSciInstructionsOpen && !this.capSciConfirmationModalOpen && !this.arePOIFullDetailsVisible) {
-          console.log("CLICK")
           this.setPOILayerDimensions();
         }
 
         // Checks to make sure manual POI selection box not up
         if (!this.isPOIChoiceListModalVisible && this.capSciInstructionsOpen) {
           this.POISelectionInstructions = true;
+          this.eventVarForCapSci = event;
         }
-      } else {
+
+        if(this.isPOIChoiceListModalVisible){
+          this.setPOILayerDimensions();
+          this.closePOIChoiceModal();
+        }
+
+      } else if(this.isDrag){
+        console.log("\nELSEEE, ", event.target, "\nisPOIChoiceListModalVisible: ", this.isPOIChoiceListModalVisible)
+
         // Update coords in store state
         this.updatethePOICoords();
         // Show POI modal list of POI types

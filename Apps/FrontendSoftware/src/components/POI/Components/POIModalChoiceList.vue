@@ -10,8 +10,6 @@
     </section>
 
     <section v-on:click.stop="selectPOIChoice('Shadow')" class="modal-body">
-      <!-- make an atomic modal
-           popping up, moving, closing, common to all modals -->
       <slot name="body"> <span class="dot-icon red"></span> Shadow </slot>
     </section>
   </div>
@@ -28,6 +26,7 @@ export default {
 
   methods: {
     selectPOIChoice(val) {
+      console.log("COL: ", val)
       this.$emit("POIChoiceSelected", val);
     },
   },

@@ -253,7 +253,7 @@ export default {
       }
     },
 
-    makeContextOutlines(numRows, numCols, sidePadding) {
+    makeContextOutlines(numRows, numCols, paddingTopOrLeft, paddingBottomOrRight) {
       let imgLayer = document.getElementById("imgCanvas");
 
       // Canvas Width and Height
@@ -264,7 +264,6 @@ export default {
 
       // Check if original image longer in terms of height or width (e.g. #rows vs #cols)
       let rowsHeavy = (numRows >= numCols);
-      console.log(rowsHeavy)
 
       let imgContextCanvasContext = imgLayer.getContext("2d");
 
@@ -276,22 +275,22 @@ export default {
       imgContextCanvasContext.globalAlpha = 0.5;
 
       // Start drawing selector box ("rect")
-
       if(!rowsHeavy){
+        // console.log("canvasWidth: ", canvasWidth, "\n canvasHeight: ", canvasHeight, "\nsidePadding: ", sidePadding);
         // top black context rectangle
-        imgContextCanvasContext.fillRect(0, 0, canvasWidth-0.7, sidePadding); // (top left: x,y; width, height)
+        imgContextCanvasContext.fillRect(0, 0, canvasWidth-0.7, paddingTopOrLeft); // (top left: x,y; width, height)
         imgContextCanvasContext.stroke();
 
         // bottom black context rectangle
-        imgContextCanvasContext.fillRect(0, canvasHeight-1.8-sidePadding, canvasWidth-0.7, sidePadding); // (top left: x,y; width, height)
+        imgContextCanvasContext.fillRect(0, canvasHeight-1.8-paddingBottomOrRight, canvasWidth-0.7, paddingBottomOrRight); // (x, y, width, height)
       }
       else if(rowsHeavy){
-        // top black context rectangle
-        imgContextCanvasContext.fillRect(0, 0, sidePadding, canvasHeight-1.8); // (top left: x,y; width, height)
+        // left black context rectangle
+        imgContextCanvasContext.fillRect(0, 0, paddingTopOrLeft, canvasHeight-1.8); // (top left: x,y; width, height)
         imgContextCanvasContext.stroke();
 
-        // bottom black context rectangle
-        imgContextCanvasContext.fillRect(canvasWidth-0.7-sidePadding, 0, sidePadding, canvasHeight-1.8); // (top left: x,y; width, height)
+        // right black context rectangle
+        imgContextCanvasContext.fillRect(canvasWidth-0.7-paddingBottomOrRight, 0, paddingBottomOrRight, canvasHeight-1.8); // (top left: x,y; width, height)
       }
 
       imgContextCanvasContext.closePath();
@@ -407,11 +406,22 @@ export default {
       let pixelsHeight = pixels.shape[1];
 
 
-      // "un"normailze coords
+      // "un"normalize coords
       let rowStart = normalizedRowStart * pixelsHeight;
       let rowEnd = normalizedRowEnd * pixelsHeight;
       let colStart = normalizedColStart * pixelsWidth;
       let colEnd = normalizedColEnd * pixelsWidth;
+
+      console.log("\nrowStart: ", normalizedRowStart, "\nrowEnd: ", normalizedRowEnd)
+      // "\ncolStart: ", colStart, "\ncolEnd: ", colEnd)
+
+      // Get space btwn bottom edge of outlined image selection and bottom of actual uncropped image
+      let spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm = Math.abs(1-normalizedRowEnd) * pixelsHeight;
+      // console.log("\nspaceBtwnBtmEdgeOfImgandOutlineSelectionBtm: ", spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm)
+
+      // Get space btwn top edge of outlined image selection and top of actual uncropped image
+      let pxDiffTopOfOutlineVsTopOfImg = rowStart;
+
 
       let numCols = Math.abs(colEnd - colStart);
       let numRows = Math.abs(rowEnd - rowStart);
@@ -421,11 +431,48 @@ export default {
       // Make black outlines on image for context
       // If col > row, add rows
       if (numCols > numRows) {
-        // After black outlines set
-        rowStart = rowStart - extraPadding;
-        rowEnd = rowEnd + extraPadding;
         proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numCols;
+
+        // If bottom edge case only, bottom would be cut off, add extra bottom that's leftover to top of cropped image
+        if(spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm < proportionalSidePadding){
+          console.log("bottom edge");
+          let leftoverRows = extraPadding - spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
+          
+          rowStart = rowStart - extraPadding - leftoverRows;
+          rowEnd = rowEnd + spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
+
+          let topSidePadding = proportionalSidePadding + (proportionalSidePadding - spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm);
+
+          let bottomSidePadding = spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
+
+          this.makeContextOutlines(numRows, numCols, topSidePadding, bottomSidePadding);
+        }
+
+        // If top edge case only, top of image would be cut off, add extra of top that's leftover to bottom of cropped image
+        else if(pxDiffTopOfOutlineVsTopOfImg < proportionalSidePadding){
+          console.log("top edge");
+          let leftoverRows = extraPadding - pxDiffTopOfOutlineVsTopOfImg;
+          
+          rowStart = 0;
+          // rowStart - extraPadding - leftoverRows;
+          rowEnd = rowEnd + extraPadding + leftoverRows;
+
+          let topSidePadding = pxDiffTopOfOutlineVsTopOfImg;
+
+          let bottomSidePadding = proportionalSidePadding + (proportionalSidePadding - pxDiffTopOfOutlineVsTopOfImg);
+
+          this.makeContextOutlines(numRows, numCols, topSidePadding, bottomSidePadding);
+        }
+
+        // normal case (not edge case)
+        else{
+          rowStart = rowStart - extraPadding;
+          rowEnd = rowEnd + extraPadding;
+          this.makeContextOutlines(numRows, numCols, proportionalSidePadding, proportionalSidePadding);
+        }
       }
+
+
       // If row > col, add cols
       else if (numRows > numCols) {
         colStart = colStart - extraPadding;
@@ -433,7 +480,7 @@ export default {
         proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numRows;
       }
 
-      this.makeContextOutlines(numRows, numCols, proportionalSidePadding);
+      // this.makeContextOutlines(numRows, numCols, proportionalSidePadding);
       // visa versa, and will hit errors when edge cases (literally)
       // Use https://github.com/scijs/ndarray-concat-cols and https://github.com/scijs/ndarray-concat-rows
       // ndarray zeros
@@ -477,7 +524,6 @@ export default {
       return await new Promise((resolve, reject) => {
         stream.pipe(
           streamConcat((buf) => {
-            console.log("yay");
             resolve("data:image/png;base64," + buf.toString("base64"));
           })
         );

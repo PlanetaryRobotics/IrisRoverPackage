@@ -32,24 +32,24 @@ namespace CubeRover {
       IMUComponentImpl(void)
 #endif
   {
-      // Gyrometer data configuration
-      m_gyroDataConfig.CS_HOLD = false;
-      m_gyroDataConfig.DFSEL = SPI_FMT_0;
-      m_gyroDataConfig.WDEL = false;
-      m_gyroDataConfig.CSNR = 0;
+    // Gyrometer data configuration
+    m_gyroDataConfig.CS_HOLD = false;
+    m_gyroDataConfig.DFSEL = SPI_FMT_0;
+    m_gyroDataConfig.WDEL = false;
+    m_gyroDataConfig.CSNR = 0x01; // Selecting CS[0]
 
-      // Accelerometer data configuration
-      m_accDataConfig.CS_HOLD = true;
-      m_accDataConfig.DFSEL = SPI_FMT_0;
-      m_accDataConfig.WDEL = false;
-      m_accDataConfig.CSNR = 0;
+    // Accelerometer data configuration
+    m_accDataConfig.CS_HOLD = true;
+    m_accDataConfig.DFSEL = SPI_FMT_0;
+    m_accDataConfig.WDEL = false;
+    m_accDataConfig.CSNR = 0x20; // Selecting CS[5]
+      
+    m_spi = NULL;
+    m_setup = false;
 
-      m_spi = NULL;
-      m_setup = false;
-
-      m_lpfAccX = 0.0;
-      m_lpfAccY = 0.0;
-      m_lpfAccZ = 0.0;
+    m_lpfAccX = 0.0;
+    m_lpfAccY = 0.0;
+    m_lpfAccZ = 0.0;
   }
 
 
@@ -332,8 +332,8 @@ namespace CubeRover {
 
     err = setupAccelerometer(spi);
 
-    if(err != IMU_NO_ERROR)
-      return err;
+    //if(err != IMU_NO_ERROR)
+    //  return err;
 
     err = setupGyroscope(spi);
     return err;

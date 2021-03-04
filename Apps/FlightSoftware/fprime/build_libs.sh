@@ -1,3 +1,4 @@
+#!/bin/bash
 # Rebuilds all FPrime static libraries `Libs/`. This is generally needed if a change to one of the 
 # static library changes, especially if switching between branches that has a change. Remember to
 # delete `Libs/` since install_libs.sh only copies over libraries it finds.

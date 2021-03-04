@@ -8,25 +8,28 @@ Last Update: 7/31/2020, Colombo
 <template>
   <div class="cli">
     <Log class="command-history" />
-    <CommandField class="command-field" ref="commandField" />
+    <CommandField
+      ref="commandField"
+      class="command-field"
+    />
     <queue />
   </div>
 </template>
 
 <script>
-import Log from './Log.vue'
-import Queue from './Queue.vue'
-import CommandField from './CommandField.vue'
+import Log from './Log.vue';
+import Queue from './Queue.vue';
+import CommandField from './CommandField.vue';
 
 export default {
-  name: 'CLI',
-  props: {},
-  components: {
-    Log,
-    Queue,
-    CommandField
-  }
-}
+    name: 'CLI',
+    components: {
+        Log,
+        Queue,
+        CommandField
+    },
+    props: {}
+};
 </script>
 
 <style lang="scss" scoped>

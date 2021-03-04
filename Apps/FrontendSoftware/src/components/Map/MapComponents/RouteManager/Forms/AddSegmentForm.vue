@@ -2,181 +2,197 @@
   <div>
     <!-- SEGMENT NAME -->
     <div class="segName">
-      <div class="segName__label formLabel">Name</div>
-      <div class="segName__name">{{segmentName}}</div>
+      <div class="segName__label formLabel">
+        Name
+      </div>
+      <div class="segName__name">
+        {{ segmentName }}
+      </div>
     </div>
     
     <!-- COORDINATES -->
     <div class="coordinates">
       <div class="coordinates__x">
         <label class="formLabel">X* </label>
-        <input type="text"
-                placeholder="Enter X"
-                v-model="formValues.XCOORD"
-                @input="validateInput('XCOORD', $event.target.value)"/>
+        <input
+          v-model="formValues.XCOORD"
+          type="text"
+          placeholder="Enter X"
+          @input="validateInput('XCOORD', $event.target.value)"
+        >
       </div>
       <div class="coordinates__y">
         <label class="formLabel">Y* </label>
-        <input type="text"
-                placeholder="Enter Y"
-                v-model="formValues.YCOORD"
-                @input="validateInput('YCOORD', $event.target.value)">
+        <input
+          v-model="formValues.YCOORD"
+          type="text"
+          placeholder="Enter Y"
+          @input="validateInput('YCOORD', $event.target.value)"
+        >
       </div>
     </div>
 
     <!-- ANGLE -->
     <div class="angle">
       <label class="formLabel">Angle </label>
-      <input class="angle__input" 
-              type="text"
-              placeholder="Enter angle to turn rover"
-              v-model="formValues.ANGLE"
-              @input="validateInput('ANGLE', $event.target.value)">
+      <input
+        v-model="formValues.ANGLE" 
+        class="angle__input"
+        type="text"
+        placeholder="Enter angle to turn rover"
+        @input="validateInput('ANGLE', $event.target.value)"
+      >
     </div>
 
     <div class="errorContainer">
-      <div class="error" v-for="(key, index) in Object.keys(errors)" :key="index">
-        {{errors[key]}}
+      <div
+        v-for="(key, index) in Object.keys(errors)"
+        :key="index"
+        class="error"
+      >
+        {{ errors[key] }}
       </div>
     </div>
     
     <!-- BUTTONS -->
     <div class="buttonContainer">
-      <AtomicButton v-bind="buttons.cancelButton" 
-                            @click.native="cancelSegment"/>
-      <AtomicButton v-bind="buttons.planButton" 
-                            @click.native="saveSegment"/>
-
-   </div>
-
+      <AtomicButton
+        v-bind="buttons.cancelButton" 
+        @click.native="cancelSegment"
+      />
+      <AtomicButton
+        v-bind="buttons.planButton" 
+        @click.native="saveSegment"
+      />
+    </div>
   </div>
 </template>
 
 <script>
 import GridEventBus from '@/components/Map/GridEventBus.js';
-import Route from "@/data_classes/Route.js";
+import Route from '@/data_classes/Route.js';
 import AtomicButton from '@/components/atomic/AtomicButton.vue';
 import { mapGetters } from 'vuex';
 
 export default {
-  name: "AddSegmentForm",
-  components: {
-    AtomicButton
-  },
-  props: {
-    route: Route
-  },
-  data() {
-    return {
-      formValues: { 
-        XCOORD: "",
-        YCOORD: "",
-        ANGLE: ""
-      },
-      errors: {
-        XCOORD: "",
-        YCOORD: "",
-        ANGLE: ""
-      },
-      buttons: {
-        cancelButton: {
-          id:'cancelSegmentButton',
-          flavor:'primary',
-          text:'CANCEL',
-          value: 'cancelSegment',
-          enabled: true,
-          storeId: 'MAP'
-        },
-        planButton: {
-          id:'planSegmentButton',
-          flavor:'primary',
-          text:'PLAN',
-          value: 'planSegment',
-          enabled: false,
-          storeId: 'MAP'
-        },
-      }
-    }
-  },
-  computed: {
-    ...mapGetters(['currWaypointSegment']),
-    segmentName: function() {
-      let currLength = this.route.segmentList.length;
-      return "SEG-" + (currLength);
-    }
-  },
-  watch: {
+    name: 'AddSegmentForm',
+    components: {
+        AtomicButton
+    },
+    props: {
+        route: Route
+    },
+    data() {
+        return {
+            formValues: { 
+                XCOORD: '',
+                YCOORD: '',
+                ANGLE: ''
+            },
+            errors: {
+                XCOORD: '',
+                YCOORD: '',
+                ANGLE: ''
+            },
+            buttons: {
+                cancelButton: {
+                    id:'cancelSegmentButton',
+                    flavor:'primary',
+                    text:'CANCEL',
+                    value: 'cancelSegment',
+                    enabled: true,
+                    storeId: 'MAP'
+                },
+                planButton: {
+                    id:'planSegmentButton',
+                    flavor:'primary',
+                    text:'PLAN',
+                    value: 'planSegment',
+                    enabled: false,
+                    storeId: 'MAP'
+                },
+            }
+        };
+    },
+    computed: {
+        ...mapGetters(['currWaypointSegment']),
+        segmentName: function() {
+            let currLength = this.route.segmentList.length;
+            return 'SEG-' + (currLength);
+        }
+    },
+    watch: {
     // Waypoint segment will be saved into store from grid
     // and grid ensures that segment has all coords before saving.
     // So whenever seg updates, it is ready to save.
-    currWaypointSegment(newVal) {
-      if (newVal !== null) {
-        this.buttons.planButton.enabled = true;
-      } else {
-        this.buttons.planButton.enabled = false;
-      }
+        currWaypointSegment(newVal) {
+            if (newVal !== null) {
+                this.buttons.planButton.enabled = true;
+            } else {
+                this.buttons.planButton.enabled = false;
+            }
+        }
+    },
+    beforeDestroy() {
+        GridEventBus.$off('WAYPOINT_GRID_UPDATE');
+    },
+    destroyed() {
+        this.$store.commit('setCurrWaypointSegment', null);
+        this.$store.commit('setIsListeningForNewWaypoint', false);
+        this.$store.commit('setEditingRoute', null);
+    },
+    mounted() {
+        this.$store.commit('setIsListeningForNewWaypoint', true);
+        this.$store.commit('setEditingRoute', this.route);
+
+        GridEventBus.$on('WAYPOINT_GRID_UPDATE', (data) => {
+            this.updateFormValues(data.xCm, data.yCm);
+        });
+    },
+    methods: {
+        updateFormValues(xCm, yCm) {
+            this.formValues.XCOORD = Math.round(xCm);
+            this.formValues.YCOORD = Math.round(yCm);
+        },
+        validateInput(key, value) {
+            // Validate is a number
+            if (value !== '' && !this.validateIsNumber(value)) {
+                this.errors[key] = key + ' is not a number.';
+                return;
+            } 
+
+            // Validate that angle is within normal bounds
+            if (key === 'ANGLE' && (Number(value) > 360 || Number(value) < -360)){
+                this.errors[key] = key + ' must be between -360 and 360 degrees.';
+                return;
+            }
+
+            this.errors[key] = '';
+
+            // Emit to form updates to grid
+            GridEventBus.$emit('ADD_SEG_FORM_UPDATE', {xCm: this.formValues.XCOORD, 
+                yCm: this.formValues.YCOORD,
+                angle: this.formValues.ANGLE});
+        },
+        validateIsNumber(value) {
+            return !isNaN(parseFloat(value)) && isFinite(value);
+        },
+        saveSegment() {
+            this.$store.commit('saveSegment', {route: this.route, segment: this.currWaypointSegment});
+            this.closeModal();
+        },
+        cancelSegment() {
+            this.$store.commit('setCurrWaypointSegment', null);
+            let keys = Object.keys(this.formValues);
+            for (let k of keys) {
+                this.formValues[k] = '';
+            }
+        },
+        closeModal() {
+            GridEventBus.$emit('CLOSE_SEGMENT_MODAL');
+        },
     }
-  },
-  beforeDestroy() {
-    GridEventBus.$off('WAYPOINT_GRID_UPDATE');
-  },
-  destroyed() {
-    this.$store.commit("setCurrWaypointSegment", null);
-    this.$store.commit("setIsListeningForNewWaypoint", false);
-    this.$store.commit("setEditingRoute", null);
-  },
-  mounted() {
-    this.$store.commit("setIsListeningForNewWaypoint", true);
-    this.$store.commit("setEditingRoute", this.route);
-
-    GridEventBus.$on('WAYPOINT_GRID_UPDATE', (data) => {
-      this.updateFormValues(data.xCm, data.yCm);
-    })
-  },
-  methods: {
-    updateFormValues(xCm, yCm) {
-      this.formValues.XCOORD = Math.round(xCm);
-      this.formValues.YCOORD = Math.round(yCm);
-    },
-    validateInput(key, value) {
-      // Validate is a number
-      if (value !== "" && !this.validateIsNumber(value)) {
-        this.errors[key] = key + " is not a number.";
-        return;
-      } 
-
-      // Validate that angle is within normal bounds
-      if (key === "ANGLE" && (Number(value) > 360 || Number(value) < -360)){
-        this.errors[key] = key + " must be between -360 and 360 degrees.";
-        return;
-      }
-
-      this.errors[key] = "";
-
-      // Emit to form updates to grid
-      GridEventBus.$emit('ADD_SEG_FORM_UPDATE', {xCm: this.formValues.XCOORD, 
-                                                  yCm: this.formValues.YCOORD,
-                                                  angle: this.formValues.ANGLE});
-    },
-    validateIsNumber(value) {
-      return !isNaN(parseFloat(value)) && isFinite(value);
-    },
-    saveSegment() {
-      this.$store.commit("saveSegment", {route: this.route, segment: this.currWaypointSegment});
-      this.closeModal();
-    },
-    cancelSegment() {
-      this.$store.commit("setCurrWaypointSegment", null);
-      let keys = Object.keys(this.formValues);
-      for (let k of keys) {
-        this.formValues[k] = "";
-      }
-    },
-    closeModal() {
-      GridEventBus.$emit('CLOSE_SEGMENT_MODAL');
-    },
-  }
-}
+};
 
 </script>
 

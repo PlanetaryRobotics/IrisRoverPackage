@@ -9,24 +9,24 @@ Last Updated: 10/6/2019, Colombo
 <template>
   <div id="timeline">
     <div class="timelineSearchCont">
-      <TimelineSearch class="timelineSearch"/>
+      <TimelineSearch class="timelineSearch" />
     </div>
     <div class="timelineImagesCont">
-      <TimelineImages class="timelineImages"/>
+      <TimelineImages class="timelineImages" />
     </div>
   </div>
 </template>
 
 <script>
-import TimelineImages from "@/components/ImageViewer/Timeline/TimelineImages.vue"
-import TimelineSearch from "@/components/ImageViewer/Timeline/TimelineSearch.vue"
+import TimelineImages from '@/components/ImageViewer/Timeline/TimelineImages.vue';
+import TimelineSearch from '@/components/ImageViewer/Timeline/TimelineSearch.vue';
 
 export default {
-  components: {
-    TimelineImages,
-    TimelineSearch
-  }
-}
+    components: {
+        TimelineImages,
+        TimelineSearch
+    }
+};
 </script>
 
 <style lang="scss" scoped>

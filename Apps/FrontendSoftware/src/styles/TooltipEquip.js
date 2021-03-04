@@ -43,8 +43,8 @@
  * Last Update: 08/14/2020
  */
 
-import $ from 'jquery'
-import 'tooltipster'
+import $ from 'jquery';
+import 'tooltipster';
 
 // Activate All Tooltips:
 const tooltipBaseProperties = {

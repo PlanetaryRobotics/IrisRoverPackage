@@ -1,49 +1,57 @@
 <template>
-  <div class="POIEdit" >
+  <div class="POIEdit">
     <!-- SIDE MODALS -->
 
     <!-- IMAGE MODAL -->
     <div v-if="show.modalImages">
-      <Sidemodal :key="0" 
-                 :POIListEl='POIListEl' 
-                 :POICard='POICard'
-                 :target='this.$refs.images' 
-                 :data='POICard.getData().images'
-                 type='IMAGES_EDITABLE'
-                 header="Images"
-                 @closeModal='toggleModal'/>
+      <Sidemodal
+        :key="0" 
+        :p-o-i-list-el="POIListEl" 
+        :p-o-i-card="POICard"
+        :target="this.$refs.images" 
+        :data="POICard.getData().images"
+        type="IMAGES_EDITABLE"
+        header="Images"
+        @closeModal="toggleModal"
+      />
     </div>
-     <!-- HISTORY MODAL -->
+    <!-- HISTORY MODAL -->
     <div v-if="show.modalHistory">
-      <Sidemodal :key="1" 
-                 :POIListEl='POIListEl' 
-                 :POICard='POICard'
-                 :target='this.$refs.history' 
-                 :data='POICard.getData().modificationHistory'
-                 type="HISTORY"
-                 header="Modification History"
-                 @closeModal='toggleModal'/>
+      <Sidemodal
+        :key="1" 
+        :p-o-i-list-el="POIListEl" 
+        :p-o-i-card="POICard"
+        :target="this.$refs.history" 
+        :data="POICard.getData().modificationHistory"
+        type="HISTORY"
+        header="Modification History"
+        @closeModal="toggleModal"
+      />
     </div>
     <!-- IMPORTANCE MODAL -->
     <div v-if="show.modalImportance">
-      <Sidemodal :key="2" 
-                 :POIListEl='POIListEl' 
-                 :POICard='POICard'
-                 :target='this.$refs.importance' 
-                 :data='[1,2,3]'
-                 type="IMPORTANCE"
-                 header="Importance"
-                 @closeModal='toggleModal'/>
+      <Sidemodal
+        :key="2" 
+        :p-o-i-list-el="POIListEl" 
+        :p-o-i-card="POICard"
+        :target="this.$refs.importance" 
+        :data="[1,2,3]"
+        type="IMPORTANCE"
+        header="Importance"
+        @closeModal="toggleModal"
+      />
     </div>
     <!-- END SIDE MODALS -->
 
     <!-- DELETE MODAL -->
     <div v-if="show.modalDelete">
-      <Deletemodal :key="3"
-                   :rawHTML='getDeleteModalHTML()'
-                   :deleteCallback='getDeleteCallback'
-                   :cancelCallback='()=>{}'
-                   @closeModal='toggleModal'/>
+      <Deletemodal
+        :key="3"
+        :raw-h-t-m-l="getDeleteModalHTML()"
+        :delete-callback="getDeleteCallback"
+        :cancel-callback="()=>{}"
+        @closeModal="toggleModal"
+      />
     </div>
 
     <!-- END DELETE MODAL -->
@@ -51,51 +59,131 @@
     <!-- HEADER -->
     <div class="header">
       <!-- RETURN BUTTON -->
-      <svg @click = "closeEdit" class="icon returnIcon" width="12" height="12" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff">
-        <path d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5" stroke-linecap="round"/>
+      <svg
+        class="icon returnIcon"
+        width="12"
+        height="12"
+        viewBox="0 0 8 4"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        stroke="#ffffff"
+        @click="closeEdit"
+      >
+        <path
+          d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5"
+          stroke-linecap="round"
+        />
       </svg>
 
-      <div class = "text__main--bold">
+      <div class="text__main--bold">
         Edit POI
       </div>
 
       <!-- TRASH BUTTON -->
-      <svg @click="toggleModal('modalDelete')" class="icon" width="15" height="19" viewBox="0 0 15 19" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff">
-        <rect x="0.5" y="2.69006" width="13.2813" height="15.6615" rx="1.5" stroke-linecap="round"/>
-        <line x1="3.77295" y1="5.07031" x2="3.77295" y2="15.9714" stroke-linecap="round"/>
-        <line x1="7.04541" y1="5.07031" x2="7.04541" y2="15.9714" stroke-linecap="round"/>
-        <line x1="1.68994" y1="0.5" x2="12.591" y2="0.5" stroke-linecap="round"/>
-        <line x1="10.3184" y1="5.07031" x2="10.3184" y2="15.9714" stroke-linecap="round"/>
+      <svg
+        class="icon"
+        width="15"
+        height="19"
+        viewBox="0 0 15 19"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        stroke="#ffffff"
+        @click="toggleModal('modalDelete')"
+      >
+        <rect
+          x="0.5"
+          y="2.69006"
+          width="13.2813"
+          height="15.6615"
+          rx="1.5"
+          stroke-linecap="round"
+        />
+        <line
+          x1="3.77295"
+          y1="5.07031"
+          x2="3.77295"
+          y2="15.9714"
+          stroke-linecap="round"
+        />
+        <line
+          x1="7.04541"
+          y1="5.07031"
+          x2="7.04541"
+          y2="15.9714"
+          stroke-linecap="round"
+        />
+        <line
+          x1="1.68994"
+          y1="0.5"
+          x2="12.591"
+          y2="0.5"
+          stroke-linecap="round"
+        />
+        <line
+          x1="10.3184"
+          y1="5.07031"
+          x2="10.3184"
+          y2="15.9714"
+          stroke-linecap="round"
+        />
       </svg>
     </div> <!-- END HEADER -->
 
     <!-- TITLE -->
-    <div class="title" ref="importance">
-
+    <div
+      ref="importance"
+      class="title"
+    >
       <!-- IMPORTANCE -->
-      <div class="importance" @click="toggleModal('modalImportance')">
-        <div v-for="index in importanceSizeArray" :key="index">
-            <svg width="2" height="16" viewBox="0 0 2 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="1" y1="-4.37114e-08" x2="1" y2="16" :style="importanceColor" stroke-width="2"/>
-            </svg>
+      <div
+        class="importance"
+        @click="toggleModal('modalImportance')"
+      >
+        <div
+          v-for="index in importanceSizeArray"
+          :key="index"
+        >
+          <svg
+            width="2"
+            height="16"
+            viewBox="0 0 2 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <line
+              x1="1"
+              y1="-4.37114e-08"
+              x2="1"
+              y2="16"
+              :style="importanceColor"
+              stroke-width="2"
+            />
+          </svg>
         </div>
       </div>
 
       <!-- CATEGORY DROPDOWN -->
       <div class="dropdown">
-        <select class="dropdown__select" 
-                v-model="selectedCategory"
-                :style="{ background: `url(${arrowSVG}) no-repeat 90% #585858`}">
-          <option v-for="(CATEGORY, index) in categories" 
-                  :value="CATEGORY"  
-                  :key="index">
-                  {{getCategoryShortForm(CATEGORY)}}
+        <select
+          v-model="selectedCategory" 
+          class="dropdown__select"
+          :style="{ background: `url(${arrowSVG}) no-repeat 90% #585858`}"
+        >
+          <option
+            v-for="(CATEGORY, index) in categories" 
+            :key="index"  
+            :value="CATEGORY"
+          >
+            {{ getCategoryShortForm(CATEGORY) }}
           </option>
         </select>
       </div>
 
-      <div class="POInumber" :style="{color: `${importanceColor}`}">
-        {{"- " + POICard.getData().number}}
+      <div
+        class="POInumber"
+        :style="{color: `${importanceColor}`}"
+      >
+        {{ "- " + POICard.getData().number }}
       </div>
     </div> <!-- END TITLE -->
 
@@ -106,11 +194,26 @@
 
     <!-- TAG LIST -->
     <div class="tags">
-      <div class="pill__tag--edit" v-for="(tag, index) of this.POICard.getData().tagList" :key="index" >
-        {{tag.getName()}}
+      <div
+        v-for="(tag, index) of this.POICard.getData().tagList"
+        :key="index"
+        class="pill__tag--edit"
+      >
+        {{ tag.getName() }}
 
-        <svg @click="POICard.removeTag(tag)" class="removeButton" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8.23048 1.98065C8.31184 1.89929 8.31184 1.76738 8.23048 1.68602C8.14912 1.60466 8.01721 1.60466 7.93585 1.68602L4.95818 4.66369L1.98051 1.68603C1.89916 1.60467 1.76725 1.60467 1.68589 1.68603C1.60453 1.76738 1.60453 1.89929 1.68589 1.98065L4.66355 4.95832L1.68385 7.93802C1.60249 8.01938 1.60249 8.15129 1.68385 8.23265C1.76521 8.31401 1.89712 8.31401 1.97848 8.23265L4.95818 5.25295L7.93789 8.23266C8.01925 8.31401 8.15116 8.31401 8.23252 8.23266C8.31388 8.1513 8.31388 8.01939 8.23252 7.93803L5.25281 4.95832L8.23048 1.98065Z" fill="#FCFCFC"/>
+        <svg
+          class="removeButton"
+          width="10"
+          height="10"
+          viewBox="0 0 10 10"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          @click="POICard.removeTag(tag)"
+        >
+          <path
+            d="M8.23048 1.98065C8.31184 1.89929 8.31184 1.76738 8.23048 1.68602C8.14912 1.60466 8.01721 1.60466 7.93585 1.68602L4.95818 4.66369L1.98051 1.68603C1.89916 1.60467 1.76725 1.60467 1.68589 1.68603C1.60453 1.76738 1.60453 1.89929 1.68589 1.98065L4.66355 4.95832L1.68385 7.93802C1.60249 8.01938 1.60249 8.15129 1.68385 8.23265C1.76521 8.31401 1.89712 8.31401 1.97848 8.23265L4.95818 5.25295L7.93789 8.23266C8.01925 8.31401 8.15116 8.31401 8.23252 8.23266C8.31388 8.1513 8.31388 8.01939 8.23252 7.93803L5.25281 4.95832L8.23048 1.98065Z"
+            fill="#FCFCFC"
+          />
         </svg>
       </div>
     </div>
@@ -119,40 +222,57 @@
     <div class="imageContainer">
       <img :src="POICard.getData().thumbnail.url">
       <div class="imageContainer__dimensions">
-
         <!-- WIDTH -->
         <div class="imageContainer__formRow">
-          <div class="imageContainer__formText text__main--bold">Width: </div>
-          <div class="imageContainer__input">
-            <input type="text" 
-                   v-model="width"/>
+          <div class="imageContainer__formText text__main--bold">
+            Width:
           </div>
-          <div class="text__main">cm</div>
+          <div class="imageContainer__input">
+            <input
+              v-model="width" 
+              type="text"
+            >
+          </div>
+          <div class="text__main">
+            cm
+          </div>
         </div>
 
         <!-- HEIGHT -->
         <div class="imageContainer__formRow">
-          <div class="imageContainer__formText text__main--bold">Height: </div>
-          <div class="imageContainer__input">
-            <input type="text" 
-                   v-model="height"/>
+          <div class="imageContainer__formText text__main--bold">
+            Height:
           </div>
-          <div class="text__main">cm</div>
+          <div class="imageContainer__input">
+            <input
+              v-model="height" 
+              type="text"
+            >
+          </div>
+          <div class="text__main">
+            cm
+          </div>
         </div>
 
         <!-- DEPTH -->
         <div class="imageContainer__formRow">
-          <div class="imageContainer__formText text__main--bold">Depth: </div>
-          <div class="imageContainer__input">
-            <input type="text" 
-                   v-model="depth"/>
+          <div class="imageContainer__formText text__main--bold">
+            Depth:
           </div>
-          <div class="text__main">cm</div>
+          <div class="imageContainer__input">
+            <input
+              v-model="depth" 
+              type="text"
+            >
+          </div>
+          <div class="text__main">
+            cm
+          </div>
         </div>
       </div>
     </div> <!-- END IMAGE FORM CONTAINER -->
 
-    <div class="divider"/>
+    <div class="divider" />
 
     <!-- DESCRIPTION TITLE -->
     <div class="descriptionTitle text__main--bold">
@@ -161,193 +281,225 @@
 
     <!-- DESCRIPTION INPUT -->
     <span class="description__span">
-      <div class="description__input" contenteditable="true">
-        {{description}}
+      <div
+        class="description__input"
+        contenteditable="true"
+      >
+        {{ description }}
       </div>
     </span>
 
     <!-- IMAGES HEADER -->
     <div class="imagesHeader">
-      <div class="imagesHeader__title text__main--bold" ref="images">
+      <div
+        ref="images"
+        class="imagesHeader__title text__main--bold"
+      >
         Images
       </div>
-      <div class="viewMore" @click="toggleModal('modalImages')">
-        {{"View All (" + this.POICard.getData().images.length + ")  >"}}
+      <div
+        class="viewMore"
+        @click="toggleModal('modalImages')"
+      >
+        {{ "View All (" + this.POICard.getData().images.length + ")  >" }}
       </div>
     </div>
 
     <!-- IMAGES PILLS -->
     <div class="images">
-      <div class="pill__image" v-for="(image, index) of images" :key="index" >
-          {{image.timeForTagFormatting}}
+      <div
+        v-for="(image, index) of images"
+        :key="index"
+        class="pill__image"
+      >
+        {{ image.timeForTagFormatting }}
 
-          <svg @click="POICard.removeImage(image)" class="removeButton" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8.23048 1.98065C8.31184 1.89929 8.31184 1.76738 8.23048 1.68602C8.14912 1.60466 8.01721 1.60466 7.93585 1.68602L4.95818 4.66369L1.98051 1.68603C1.89916 1.60467 1.76725 1.60467 1.68589 1.68603C1.60453 1.76738 1.60453 1.89929 1.68589 1.98065L4.66355 4.95832L1.68385 7.93802C1.60249 8.01938 1.60249 8.15129 1.68385 8.23265C1.76521 8.31401 1.89712 8.31401 1.97848 8.23265L4.95818 5.25295L7.93789 8.23266C8.01925 8.31401 8.15116 8.31401 8.23252 8.23266C8.31388 8.1513 8.31388 8.01939 8.23252 7.93803L5.25281 4.95832L8.23048 1.98065Z" fill="#FCFCFC"/>
-          </svg>
+        <svg
+          class="removeButton"
+          width="10"
+          height="10"
+          viewBox="0 0 10 10"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          @click="POICard.removeImage(image)"
+        >
+          <path
+            d="M8.23048 1.98065C8.31184 1.89929 8.31184 1.76738 8.23048 1.68602C8.14912 1.60466 8.01721 1.60466 7.93585 1.68602L4.95818 4.66369L1.98051 1.68603C1.89916 1.60467 1.76725 1.60467 1.68589 1.68603C1.60453 1.76738 1.60453 1.89929 1.68589 1.98065L4.66355 4.95832L1.68385 7.93802C1.60249 8.01938 1.60249 8.15129 1.68385 8.23265C1.76521 8.31401 1.89712 8.31401 1.97848 8.23265L4.95818 5.25295L7.93789 8.23266C8.01925 8.31401 8.15116 8.31401 8.23252 8.23266C8.31388 8.1513 8.31388 8.01939 8.23252 7.93803L5.25281 4.95832L8.23048 1.98065Z"
+            fill="#FCFCFC"
+          />
+        </svg>
       </div>
     </div>
 
     <!-- MODIFICATION HISTORY -->
     <div class="historyHeader">
-      <div class="historyHeader__title text__main--bold" ref="history">
+      <div
+        ref="history"
+        class="historyHeader__title text__main--bold"
+      >
         Modification History
       </div>
-      <div class="viewMore" @click="toggleModal('modalHistory')">
-        {{"View All (" + this.POICard.getData().modificationHistory.length + ")  >"}}
+      <div
+        class="viewMore"
+        @click="toggleModal('modalHistory')"
+      >
+        {{ "View All (" + this.POICard.getData().modificationHistory.length + ")  >" }}
       </div>
     </div>
 
     <div class="updateHistorySmall">
       <div class="updateHistorySmall--line text__small">
         <div>Created:</div> 
-        <div>{{POICard.getData().modificationHistory[0].user}}</div>
-        <div>{{POICard.getData().modificationHistory[0].time}}</div>
+        <div>{{ POICard.getData().modificationHistory[0].user }}</div>
+        <div>{{ POICard.getData().modificationHistory[0].time }}</div>
       </div>
-      <div v-if = "POICard.getData().modificationHistory.length > 1" class="updateHistorySmall--line text__small">
+      <div
+        v-if="POICard.getData().modificationHistory.length > 1"
+        class="updateHistorySmall--line text__small"
+      >
         <div>Modified:</div>
-        <div>{{POICard.getData().modificationHistory[POICard.getData().modificationHistory.length-1].user}}</div> 
-        <div>{{POICard.getData().modificationHistory[POICard.getData().modificationHistory.length-1].time}}</div>
+        <div>{{ POICard.getData().modificationHistory[POICard.getData().modificationHistory.length-1].user }}</div> 
+        <div>{{ POICard.getData().modificationHistory[POICard.getData().modificationHistory.length-1].time }}</div>
       </div>
     </div>
-
   </div>
 </template>
 
 <script>
 
-import POICard from "@/data_classes/POICard.js";
-import POIEventBus from "@/components/POI//POIEventBus.js";
-import Sidemodal from "@/components/POI/Components/Sidemodal.vue";
-import Deletemodal from "@/components/POI/Components/Deletemodal.vue";
-import arrowSVG from "@/assets/icons/icon_arrow_white.svg";
+import POICard from '@/data_classes/POICard.js';
+import POIEventBus from '@/components/POI//POIEventBus.js';
+import Sidemodal from '@/components/POI/Components/Sidemodal.vue';
+import Deletemodal from '@/components/POI/Components/Deletemodal.vue';
+import arrowSVG from '@/assets/icons/icon_arrow_white.svg';
 
 export default {
-  name: "POIEdit",
-  props: {
-    POICard: POICard,
-    POIListEl: HTMLDivElement
-  },
-  components: {
-    Sidemodal,
-    Deletemodal
-  },
-  data() {
-    return {
-      arrowSVG: arrowSVG,
-      show: {
-         modalImages: false,
-         modalHistory: false,
-         modalImportance: false,
-         modalDelete: false
-      }
+    name: 'POIEdit',
+    components: {
+        Sidemodal,
+        Deletemodal
+    },
+    props: {
+        POICard: POICard,
+        POIListEl: HTMLDivElement
+    },
+    data() {
+        return {
+            arrowSVG: arrowSVG,
+            show: {
+                modalImages: false,
+                modalHistory: false,
+                modalImportance: false,
+                modalDelete: false
+            }
+        };
+    },
+    computed: {
+        description: {
+            get() {
+                return this.POICard.getData().description;
+            },
+            set(newDescription) {
+                this.POICard.description = newDescription;
+            }
+        },
+        selectedCategory: {
+            get() {
+                return this.POICard.getData().category;
+            },
+            set(newCategory) {
+                this.$store.commit('updatePOICategory', {POI: this.POICard, newCategory: newCategory});
+            }
+        },
+        width: {
+            get() {
+                return this.POICard.getData().width;
+            },
+            set(newWidth) {
+                this.POICard.width = newWidth;
+            }
+        },
+        height: {
+            get() {
+                return this.POICard.getData().height;
+            },
+            set(newHeight) {
+                this.POICard.height = newHeight;
+            }
+        },
+        depth: {
+            get() {
+                return this.POICard.getData().depth;
+            },
+            set(newDepth) {
+                this.POICard.depth = newDepth;
+            }
+        },
+        categories: function() {
+            return Object.keys(POICard.CATEGORY_COLORS);
+        },
+        importanceColor: function() {
+            let category = this.POICard.getData().category;
+            let ans = POICard.CATEGORY_COLORS[category];
+            return {
+                stroke : ans,
+            };
+        },
+        importanceSizeArray: function() {
+            let size = this.POICard.getData().importanceLevel;
+            return new Array(size);
+        },
+        images: function() {
+            let images = this.POICard.getData().images;
+            if (images.length > 4) {
+                return images.slice(0, 4);
+            }
+            return images;
+        },
+    },
+    methods: {
+        toggleModal(key){
+            this.show[key] = !this.show[key];
+        },
+        closeEdit() {
+            POIEventBus.$emit('CLOSE_EDIT_POI_WINDOW', this.POICard);
+        },
+        getDeleteCallback() {
+            POIEventBus.$emit('DELETE_POI', this.POICard);
+        },
+        getDeleteModalHTML() {
+            let html = 'Are you sure you want to delete the POI card ';
+            let color = POICard.CATEGORY_COLORS[this.POICard.getData().category];
+            html += `<span class='text__main--bold' style='color:${color}'>${this.getName()}</span>? This action cannot be undone.`;
+            return html;
+        },
+        getName() {
+            let category = this.POICard.getData().category;
+            let shortname = this.getCategoryShortForm(category) + '-' + this.POICard.getData().number;
+            return shortname;
+        },
+        getCategoryShortForm(category) {
+            if (category === 'ATTRACTION') {
+                return 'ATTR';
+            }
+
+            if (category === 'SHADOW') {
+                return 'SHDW';
+            }
+
+            if (category === 'OBSTACLE') {
+                return 'OBST';
+            }
+        },
+        viewMoreTagsNumber() {
+            if (this.POICard.getData().tagList.length > 7) {
+                return this.POICard.getData().tagList.length - 7;
+            } 
+            return 0;
+        },
+
     }
-  },
-  computed: {
-    description: {
-      get() {
-        return this.POICard.getData().description;
-      },
-      set(newDescription) {
-        this.POICard.description = newDescription;
-      }
-    },
-    selectedCategory: {
-      get() {
-        return this.POICard.getData().category;
-      },
-      set(newCategory) {
-        this.$store.commit("updatePOICategory", {POI: this.POICard, newCategory: newCategory});
-      }
-    },
-    width: {
-      get() {
-        return this.POICard.getData().width;
-      },
-      set(newWidth) {
-        this.POICard.width = newWidth;
-      }
-    },
-    height: {
-      get() {
-        return this.POICard.getData().height;
-      },
-      set(newHeight) {
-        this.POICard.height = newHeight;
-      }
-    },
-    depth: {
-      get() {
-        return this.POICard.getData().depth;
-      },
-      set(newDepth) {
-        this.POICard.depth = newDepth;
-      }
-    },
-    categories: function() {
-      return Object.keys(POICard.CATEGORY_COLORS);
-    },
-    importanceColor: function() {
-      let category = this.POICard.getData().category;
-      let ans = POICard.CATEGORY_COLORS[category];
-      return {
-        stroke : ans,
-      };
-    },
-    importanceSizeArray: function() {
-      let size = this.POICard.getData().importanceLevel;
-      return new Array(size);
-    },
-    images: function() {
-      let images = this.POICard.getData().images;
-      if (images.length > 4) {
-        return images.slice(0, 4);
-      }
-      return images;
-    },
-  },
-  methods: {
-    toggleModal(key){
-      this.show[key] = !this.show[key];
-    },
-    closeEdit() {
-      POIEventBus.$emit('CLOSE_EDIT_POI_WINDOW', this.POICard);
-    },
-    getDeleteCallback() {
-      POIEventBus.$emit('DELETE_POI', this.POICard);
-    },
-    getDeleteModalHTML() {
-      let html = `Are you sure you want to delete the POI card `;
-      let color = POICard.CATEGORY_COLORS[this.POICard.getData().category];
-      html += `<span class='text__main--bold' style='color:${color}'>${this.getName()}</span>? This action cannot be undone.`;
-      return html;
-    },
-    getName() {
-      let category = this.POICard.getData().category;
-      let shortname = this.getCategoryShortForm(category) + "-" + this.POICard.getData().number;
-      return shortname;
-    },
-    getCategoryShortForm(category) {
-      if (category === "ATTRACTION") {
-        return "ATTR";
-      }
-
-      if (category === "SHADOW") {
-        return "SHDW";
-      }
-
-      if (category === "OBSTACLE") {
-        return "OBST";
-      }
-    },
-    viewMoreTagsNumber() {
-      if (this.POICard.getData().tagList.length > 7) {
-        return this.POICard.getData().tagList.length - 7;
-      } 
-      return 0;
-    },
-
-  }
-}
+};
 
 </script>
 
@@ -355,7 +507,9 @@ export default {
 
 @import '@/styles/_colors.scss';
 @import '@/styles/_pill.scss';
-
+.POIEdit{
+  color: $color-grey-light;
+}
 .header {
   display: flex;
   flex-direction: row;

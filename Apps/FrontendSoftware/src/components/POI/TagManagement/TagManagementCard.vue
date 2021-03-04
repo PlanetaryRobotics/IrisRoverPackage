@@ -1,75 +1,106 @@
 <template>
-    <div class = "TagManagementCard">
-      <div class = "header">
-        
-        <div :id = "tag.data.id" class="pill tag" @click="setSelectedTag()">{{tag.getName()}}</div>
-        <div class="buffer"/>
- 
-        <svg @click="toggleImages" :class="{ open : show.images }" class="header__toggle" width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M14.8898 10.8798C14.7459 11.0286 14.5085 11.0327 14.3596 10.889L8.42936 5.16832C8.18715 4.93466 7.80309 4.93466 7.56087 5.16832L1.63066 10.889C1.48171 11.0327 1.24431 11.0286 1.10041 10.8798C0.956516 10.7311 0.960617 10.494 1.10957 10.3503L7.03978 4.62967C7.57265 4.11563 8.41758 4.11563 8.95045 4.62967L14.8807 10.3503C15.0296 10.494 15.0337 10.7311 14.8898 10.8798Z" fill="#FCFCFC"/>
-        </svg>
+  <div class="TagManagementCard">
+    <div class="header">
+      <div
+        :id="tag.data.id"
+        class="pill tag"
+        @click="setSelectedTag()"
+      >
+        {{ tag.getName() }}
       </div>
+      <div class="buffer" />
+ 
+      <svg
+        :class="{ open : show.images }"
+        class="header__toggle"
+        width="20"
+        height="20"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        @click="toggleImages"
+      >
+        <path
+          fill-rule="evenodd"
+          clip-rule="evenodd"
+          d="M14.8898 10.8798C14.7459 11.0286 14.5085 11.0327 14.3596 10.889L8.42936 5.16832C8.18715 4.93466 7.80309 4.93466 7.56087 5.16832L1.63066 10.889C1.48171 11.0327 1.24431 11.0286 1.10041 10.8798C0.956516 10.7311 0.960617 10.494 1.10957 10.3503L7.03978 4.62967C7.57265 4.11563 8.41758 4.11563 8.95045 4.62967L14.8807 10.3503C15.0296 10.494 15.0337 10.7311 14.8898 10.8798Z"
+          fill="#FCFCFC"
+        />
+      </svg>
+    </div>
 
-      <div class = "images" v-show = "show.images">
-        <div class = "images__card" v-for="(card, index) of list" :key="index">
-          <img :src="card.getData().thumbnail.url"  >
-          <div class = "images__row">
-            <div class = "images__circle" :style="{'background-color': card.getColor()}"></div>
-            <div class="POIName" >{{card.getName()}}</div>
+    <div
+      v-show="show.images"
+      class="images"
+    >
+      <div
+        v-for="(card, index) of list"
+        :key="index"
+        class="images__card"
+      >
+        <img :src="card.getData().thumbnail.url">
+        <div class="images__row">
+          <div
+            class="images__circle"
+            :style="{'background-color': card.getColor()}"
+          />
+          <div class="POIName">
+            {{ card.getName() }}
           </div>
         </div>
       </div>
-    </div> 
+    </div>
+  </div> 
 </template>
 
 <script>
 
 import { mapGetters } from 'vuex';
-import Tag from "@/data_classes/Tag.js";
+import Tag from '@/data_classes/Tag.js';
 
 export default {
-  name: "TagManagement",
-  data() {
-    return {
-      show: {
-        images: true,
-      },
+    name: 'TagManagement',
+    props: {
+        tag: Tag,
+        list: Array
+    },
+    data() {
+        return {
+            show: {
+                images: true,
+            },
+        };
+    },
+    computed: {
+        ...mapGetters(['TagSelected']),
+    },
+    methods: {
+        toggleImages() {
+            this.show.images = !this.show.images;
+        },
+        setSelectedTag() {
+            if (!this.TagSelected.id) {
+                let elem = document.getElementById(this.tag.data.id);
+                elem.classList.add('selected');
+            }
+            else {
+                // Remove the old ver
+                let oldElem = document.getElementById(this.TagSelected.id);
+                oldElem.classList.remove('selected');
+
+                if (this.id !== this.TagSelected.id) {
+                    let elem = document.getElementById(this.tag.data.id);
+                    elem.classList.add('selected');
+
+                }
+            }
+
+            this.tag.data.id === this.TagSelected.id ? 
+                this.$store.commit('updateTagSelected', {tag: null, id: null}) : 
+                this.$store.commit('updateTagSelected', {tag: this.tag, id: this.tag.data.id});
+        },
     }
-  },
-  props: {
-    tag: Tag,
-    list: Array
-  },
-  computed: {
-    ...mapGetters(['TagSelected']),
-  },
-  methods: {
-    toggleImages() {
-      this.show.images = !this.show.images;
-    },
-    setSelectedTag() {
-      if (!this.TagSelected.id) {
-        let elem = document.getElementById(this.tag.data.id);
-        elem.classList.add("selected");
-      }
-      else {
-        // Remove the old ver
-        let oldElem = document.getElementById(this.TagSelected.id);
-        oldElem.classList.remove("selected");
-
-        if (this.id !== this.TagSelected.id) {
-          let elem = document.getElementById(this.tag.data.id);
-          elem.classList.add("selected");
-
-        }
-      }
-
-      this.tag.data.id === this.TagSelected.id ? 
-        this.$store.commit("updateTagSelected", {tag: null, id: null}) : 
-        this.$store.commit("updateTagSelected", {tag: this.tag, id: this.tag.data.id});
-    },
-  }
-}
+};
 
 </script>
 

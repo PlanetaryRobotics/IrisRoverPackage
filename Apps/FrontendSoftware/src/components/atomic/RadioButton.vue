@@ -1,137 +1,146 @@
 <template>
-  <label class="radioButton container" @mouseover = "onMouseOver" @mouseleave = "onMouseLeave">
-    {{ this.label }}
+  <label
+    class="radioButton container"
+    @mouseover="onMouseOver"
+    @mouseleave="onMouseLeave"
+  >
+    {{ label }}
 
-    <input v-if="initiallyChecked === null" 
-          type="radio" 
-          name="radio"
-          :id = "id"
-          :value = "value"
-          disabled>
+    <input
+      v-if="initiallyChecked === null" 
+      :id="id" 
+      type="radio"
+      name="radio"
+      :value="value"
+      disabled
+    >
 
-    <input v-if="initiallyChecked === false"
-          type="radio" 
-          name="radio"
-          :id = "id"
-          :value = "value"
-          @change = "onChange"
-          >
+    <input
+      v-if="initiallyChecked === false"
+      :id="id" 
+      type="radio"
+      name="radio"
+      :value="value"
+      @change="onChange"
+    >
 
-    <input v-if="initiallyChecked === true"
-          type="radio" 
-          name="radio"
-          :id = "id"
-          :value = "value"
-          @change = "onChange"
-          checked
-          >
+    <input
+      v-if="initiallyChecked === true"
+      :id="id" 
+      type="radio"
+      name="radio"
+      :value="value"
+      checked
+      @change="onChange"
+    >
 
-    <span class="checkmark"></span>
+    <span class="checkmark" />
   </label>
-
 </template>
 
 <script>
-import $ from 'jquery'
+import $ from 'jquery';
 
 export default {
-  name: "RadioButton",
-  props: {
-    id: {
-      type: String,
-      required: true
+    name: 'RadioButton',
+    props: {
+        id: {
+            type: String,
+            required: true
+        },
+        storeId: {
+            type: String,
+            required: true,
+        },
+        label: {
+            required: true,
+            type: String
+        },
+        value: {
+            required: true,
+            type: Object
+        },
+        initiallyChecked: {
+            required: true,
+            validator: value => {
+                // Null = disabled
+                // False = not selected
+                // True = selected
+                return [null, true, false].indexOf(value) !== -1;
+            }
+        }
     },
-    storeId: {
-      type: String,
-      required: true,
-    },
-    label: {
-      required: true
-    },
-    value: {
-      required: true
-    },
-    initiallyChecked: {
-      required: true,
-      validator: value => {
-        // Null = disabled
-        // False = not selected
-        // True = selected
-        return [null, true, false].indexOf(value) !== -1;
-      }
+    methods: {
+        toggleSVGColor(id, isChecked) {
+            let simpleSvg = $(`#${id}`).parent();
+
+            if (isChecked) {
+                simpleSvg.attr('class', 'svg-checked');
+            } else {
+                simpleSvg.attr('class', 'svg-unchecked');
+            }
+        },
+        getPayload() {
+            this.validateStoreParams(); //Validating here as cannot access $store in props
+            return {id: this.id, store: this.$store.state[this.storeId]};
+        },
+        validateStoreParams() {
+            // Check store exists
+            if (this.$store.state[this.storeId] === undefined) {
+                throw new Error('StoreId ' + this.storeId + ' is not found in main store.');
+            }
+
+            // Check id exists in store
+            if (this.$store.state[this.storeId][this.id] === undefined) {
+                throw new Error('Atomic id ' + this.id + ' does not exist in store ' + this.storeId);
+            }
+        },
+        onChange() {
+            let payload = this.getPayload();
+            let initValue = this.$store.state[this.storeId][this.id].clicked;
+            payload.value = !initValue;
+
+            this.updateDeselectedButtons();
+            this.$store.commit('atomicClicked', payload);
+        },
+        onMouseOver() {
+            let payload = this.getPayload();
+            payload.value = true;
+
+            this.$store.commit('atomicHovered', payload);
+        },
+        onMouseLeave() {
+            let payload = this.getPayload();
+            payload.value = false; 
+
+            this.$store.commit('atomicHovered', payload);
+        },
+        updateDeselectedButtons() {
+            // Get encapsulating div of all radios
+            let parent = $(`#${this.id}`).parent().parent();
+
+            let curr = this;
+            // Iterate over each child
+            parent.children().each(function(i, elm){
+                let elem = $( elm );
+                // If class is a radioButton and id is NOT same as current, update the store's value for
+                // that radioButton
+                if (elem.hasClass('radioButton') && elem.find(':input').attr('id') !== curr.id) {
+                    let deselectedId = elem.find(':input').attr('id');
+                    let deselectedPayload = {id: deselectedId, 
+                        store: curr.$store.state[curr.storeId],
+                        value: false};
+                    curr.$store.commit('atomicClicked', deselectedPayload);
+
+                    if (elem.find('.svg-checked').length > 0){
+                        let svgId = elem.find('.svg-checked svg').attr('id');
+                        curr.toggleSVGColor(svgId, false);
+                    }
+                } 
+            });
+        }
     }
-  },
-  methods: {
-    toggleSVGColor(id, isChecked) {
-      let simpleSvg = $(`#${id}`).parent();
-
-      if (isChecked) {
-        simpleSvg.attr("class", "svg-checked");
-      } else {
-        simpleSvg.attr("class", "svg-unchecked");
-      }
-    },
-    getPayload() {
-      this.validateStoreParams(); //Validating here as cannot access $store in props
-      return {id: this.id, store: this.$store.state[this.storeId]};
-    },
-    validateStoreParams() {
-      // Check store exists
-      if (this.$store.state[this.storeId] === undefined) {
-        throw new Error("StoreId " + this.storeId + " is not found in main store.");
-      }
-
-      // Check id exists in store
-      if (this.$store.state[this.storeId][this.id] === undefined) {
-        throw new Error("Atomic id " + this.id + " does not exist in store " + this.storeId);
-      }
-    },
-    onChange() {
-      let payload = this.getPayload();
-      let initValue = this.$store.state[this.storeId][this.id].clicked;
-      payload.value = !initValue;
-
-      this.updateDeselectedButtons();
-      this.$store.commit('atomicClicked', payload);
-    },
-    onMouseOver() {
-      let payload = this.getPayload();
-      payload.value = true;
-
-      this.$store.commit("atomicHovered", payload);
-    },
-    onMouseLeave() {
-      let payload = this.getPayload();
-      payload.value = false; 
-
-      this.$store.commit("atomicHovered", payload);
-    },
-    updateDeselectedButtons() {
-      // Get encapsulating div of all radios
-      let parent = $(`#${this.id}`).parent().parent();
-
-      let curr = this;
-      // Iterate over each child
-      parent.children().each(function(i, elm){
-        let elem = $( elm );
-        // If class is a radioButton and id is NOT same as current, update the store's value for
-        // that radioButton
-        if (elem.hasClass("radioButton") && elem.find(":input").attr("id") !== curr.id) {
-          let deselectedId = elem.find(":input").attr("id")
-          let deselectedPayload = {id: deselectedId, 
-                                   store: curr.$store.state[curr.storeId],
-                                   value: false};
-          curr.$store.commit('atomicClicked', deselectedPayload);
-
-          if (elem.find(".svg-checked").length > 0){
-            let svgId = elem.find(".svg-checked svg").attr("id")
-            curr.toggleSVGColor(svgId, false);
-          }
-        } 
-      });
-    }
-  }
-}
+};
 </script>
 
 <style lang="scss" scoped>

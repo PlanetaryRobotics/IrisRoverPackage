@@ -1,3 +1,5 @@
 <template>
-  <div id="functionalFeatures">Features</div>
+  <div id="functionalFeatures">
+    Features
+  </div>
 </template>

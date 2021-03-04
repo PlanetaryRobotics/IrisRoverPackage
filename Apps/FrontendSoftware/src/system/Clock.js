@@ -195,7 +195,7 @@ export default class Clock{
     // Loads Object from JSON.
     static fromJSON(data){
         if(data){
-            if(typeof data == "string"){
+            if(typeof data == 'string'){
                 data = JSON.parse(data);
             }
             data.zeroTime = luxonFromJSON(data.zeroTime);

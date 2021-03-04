@@ -8,12 +8,12 @@
  */
 
 export default class TelemetryField{
-  constructor({
-    name = console.error("Must give name for telemetry field"),
-    units = "",
+    constructor({
+        name = console.error('Must give name for telemetry field'),
+        units = '',
     
-  } = {}){
-    this.name = name;
-    this.units = units;
-  } // ctor
- } // class: MotorData
+    } = {}){
+        this.name = name;
+        this.units = units;
+    } // ctor
+} // class: MotorData

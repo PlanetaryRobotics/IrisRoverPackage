@@ -15,54 +15,54 @@
  */
 
 //import Enum from './Enum.js'
-import DBObject from './DBObject.js'
+import DBObject from './DBObject.js';
 
 export default class LocalizationData extends DBObject{
-  constructor(inputData){
-    super(inputData);
-  } // ctor
+    constructor(inputData){
+        super(inputData);
+    } // ctor
 
-  // Returns the Default Data this Object Should Contain
-  static defaultData(){
-    return { // data which gets saved to JSON
-      collectionTime: false, // Time the source data (image) was collected.
-      sendTime: false, // Time this packet was completed and pushed to DB.
+    // Returns the Default Data this Object Should Contain
+    static defaultData(){
+        return { // data which gets saved to JSON
+            collectionTime: false, // Time the source data (image) was collected.
+            sendTime: false, // Time this packet was completed and pushed to DB.
 
-      // Note: for positions x+ points to the right on the map and y+ points up.
-      position: [0,0,0], // Position estimate [x,y, heading]
-      uncertainty: [0,0,0], // Uncertainty in the measurement [+-x, +-y, +-angle]
+            // Note: for positions x+ points to the right on the map and y+ points up.
+            position: [0,0,0], // Position estimate [x,y, heading]
+            uncertainty: [0,0,0], // Uncertainty in the measurement [+-x, +-y, +-angle]
 
-      // These fields are only used if this packet corresponds to / is produced
-      // from an image. commandLookupID is 0 if this data did not come while any
-      // commands were being executed.
-      commandLookupID: -1, // ID of Command which put the rover in this state
+            // These fields are only used if this packet corresponds to / is produced
+            // from an image. commandLookupID is 0 if this data did not come while any
+            // commands were being executed.
+            commandLookupID: -1, // ID of Command which put the rover in this state
 
-      // Moves longer than frame.len will get broken up into multiple smaller
-      // moves for a breadcrumb image to be taken after each one.
-      // Note: n and tot count from 1. n is 0 if this data does not correspond
-      // with any image-bearing point (ie. end of a command or a breadcrumb frame)
-      frame: {
-        len: 10, // [cm] Length of segmenting
-        n: 0, // Frame number corresponding to this data point
-        tot: 0 // Total number of frames in this move
-      }
+            // Moves longer than frame.len will get broken up into multiple smaller
+            // moves for a breadcrumb image to be taken after each one.
+            // Note: n and tot count from 1. n is 0 if this data does not correspond
+            // with any image-bearing point (ie. end of a command or a breadcrumb frame)
+            frame: {
+                len: 10, // [cm] Length of segmenting
+                n: 0, // Frame number corresponding to this data point
+                tot: 0 // Total number of frames in this move
+            }
+        };
     }
-  }
 
-  // Loads Object from JSON.
-  static fromJSON(data){
-    if(typeof data == "string"){
-      data = JSON.parse(data);
-    }
-    // Validate Data Types:
-    data.collectionTime = data.collectionTime ? new Date(data.collectionTime) : false;
-    data.sendTime = data.sendTime ? new Date(data.sendTime) : false;
-    return new LocalizationData(data);
-   } // #fromJSON
+    // Loads Object from JSON.
+    static fromJSON(data){
+        if(typeof data == 'string'){
+            data = JSON.parse(data);
+        }
+        // Validate Data Types:
+        data.collectionTime = data.collectionTime ? new Date(data.collectionTime) : false;
+        data.sendTime = data.sendTime ? new Date(data.sendTime) : false;
+        return new LocalizationData(data);
+    } // #fromJSON
 
-   // Used by JSON.stringify
-   toJSON(){
-     let jsonObject = Object.assign({}, this.data); // make a copy
-     return JSON.stringify(jsonObject);
-   } // #toJSON
- } // class: CommandData
+    // Used by JSON.stringify
+    toJSON(){
+        let jsonObject = Object.assign({}, this.data); // make a copy
+        return JSON.stringify(jsonObject);
+    } // #toJSON
+} // class: CommandData

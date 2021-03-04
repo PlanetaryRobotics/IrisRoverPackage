@@ -1,3 +1,4 @@
+#!/bin/bash
 # This was my build step (mostly because my arm compiler won't link *.a without executable enabled??
 make clean
 make TIR4

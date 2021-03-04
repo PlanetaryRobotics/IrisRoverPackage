@@ -2,18 +2,32 @@
   <div>
     <!-- SEGMENT NAME -->
     <div class="segName">
-      <div class="segName__label formLabel">POI*</div>
-      <div class="segName__name">{{POIName}}</div>
+      <div class="segName__label formLabel">
+        POI*
+      </div>
+      <div class="segName__name">
+        {{ POIName }}
+      </div>
     </div>
     
     <!-- DIRECTION -->
     <div class="direction">
-      <div class="direction__label formLabel">Direction*</div>
+      <div class="direction__label formLabel">
+        Direction*
+      </div>
       <div class="direction__container">
-        <div class="direction__button--left" :class="{selected: formValues.ISCLOCKWISE}" @click.capture="toggleDirection('clockwise')">
+        <div
+          class="direction__button--left"
+          :class="{selected: formValues.ISCLOCKWISE}"
+          @click.capture="toggleDirection('clockwise')"
+        >
           Clockwise
         </div>
-        <div class="direction__button--right" :class="{selected: !formValues.ISCLOCKWISE}" @click.capture="toggleDirection('counter')">
+        <div
+          class="direction__button--right"
+          :class="{selected: !formValues.ISCLOCKWISE}"
+          @click.capture="toggleDirection('counter')"
+        >
           Counter
         </div>
       </div>
@@ -22,226 +36,240 @@
     <!-- RADIUS -->
     <div class="radius">
       <label class="formLabel">Radius* </label>
-      <input class="radius__input" 
-              type="text"
-              placeholder="Enter radius in cm"
-              v-model="formValues.RADIUS"
-              @input="validateInput('RADIUS', $event.target.value)">
+      <input
+        v-model="formValues.RADIUS" 
+        class="radius__input"
+        type="text"
+        placeholder="Enter radius in cm"
+        @input="validateInput('RADIUS', $event.target.value)"
+      >
     </div>
 
     <!-- ANGLES -->
     <div class="angles">
       <div class="angles__start">
         <label class="formLabel">Start* </label>
-        <input type="text"
-                placeholder="(o)"
-                v-model="formValues.STARTANG"
-                @input="validateInput('STARTANG', $event.target.value)"/>
+        <input
+          v-model="formValues.STARTANG"
+          type="text"
+          placeholder="(o)"
+          @input="validateInput('STARTANG', $event.target.value)"
+        >
       </div>
       <div class="angles__end">
         <label class="formLabel">End* </label>
-        <input type="text"
-                placeholder="(o)"
-                v-model="formValues.ENDANG"
-                @input="validateInput('ENDANG', $event.target.value)">
+        <input
+          v-model="formValues.ENDANG"
+          type="text"
+          placeholder="(o)"
+          @input="validateInput('ENDANG', $event.target.value)"
+        >
       </div>
     </div>
 
     <!-- PHOTOS -->
     <div class="photos">
       <label class="formLabel">Photos* </label>
-      <input class="photos__input" 
-              type="text"
-              placeholder="Enter number of photos"
-              v-model="formValues.PHOTOS"
-              @input="validateInput('PHOTOS', $event.target.value)">
+      <input
+        v-model="formValues.PHOTOS" 
+        class="photos__input"
+        type="text"
+        placeholder="Enter number of photos"
+        @input="validateInput('PHOTOS', $event.target.value)"
+      >
     </div>
 
     <div class="errorContainer">
-      <div class="error" v-for="(key, index) in Object.keys(errors)" :key="index">
-        {{errors[key]}}
+      <div
+        v-for="(key, index) in Object.keys(errors)"
+        :key="index"
+        class="error"
+      >
+        {{ errors[key] }}
       </div>
     </div>
     
     <!-- BUTTONS -->
     <div class="buttonContainer">
-      <AtomicButton v-bind="buttons.cancelButton" 
-                            @click.native="cancelCircumnav"/>
-      <AtomicButton v-bind="buttons.planButton" 
-                            @click.native="saveCircumnav"/>
-
-   </div>
-
+      <AtomicButton
+        v-bind="buttons.cancelButton" 
+        @click.native="cancelCircumnav"
+      />
+      <AtomicButton
+        v-bind="buttons.planButton" 
+        @click.native="saveCircumnav"
+      />
+    </div>
   </div>
 </template>
 
 <script>
 import GridEventBus from '@/components/Map/GridEventBus.js';
-import Route from "@/data_classes/Route.js";
+import Route from '@/data_classes/Route.js';
 import AtomicButton from '@/components/atomic/AtomicButton.vue';
 import { mapGetters } from 'vuex';
 
 export default {
-  name: "AddCircumnavForm",
-  components: {
-    AtomicButton
-  },
-  props: {
-    route: Route
-  },
-  data() {
-    return {
-      POIName: "Click POI on grid",
-      formValues: { 
-        STARTANG: "",
-        ENDANG: "",
-        PHOTOS: "",
-        RADIUS: "",
-        ISCLOCKWISE: true,
-        TARGETPOI: null,
-      },
-      errors: {
-        STARTANG: "",
-        ENDANG: "",
-        PHOTOS: "",
-        RADIUS: "",
-      },
-      buttons: {
-        cancelButton: {
-          id:'cancelSegmentButton',
-          flavor:'primary',
-          text:'CANCEL',
-          value: 'cancelSegment',
-          enabled: true,
-          storeId: 'MAP'
-        },
-        planButton: {
-          id:'planSegmentButton',
-          flavor:'primary',
-          text:'PLAN',
-          value: 'planSegment',
-          enabled: false,
-          storeId: 'MAP'
-        },
-      }
-    }
-  },
-  computed: {
-    ...mapGetters(['targetPOI', 'currCircumnav']),
-  },
-  watch: {
+    name: 'AddCircumnavForm',
+    components: {
+        AtomicButton
+    },
+    props: {
+        route: Route
+    },
+    data() {
+        return {
+            POIName: 'Click POI on grid',
+            formValues: { 
+                STARTANG: '',
+                ENDANG: '',
+                PHOTOS: '',
+                RADIUS: '',
+                ISCLOCKWISE: true,
+                TARGETPOI: null,
+            },
+            errors: {
+                STARTANG: '',
+                ENDANG: '',
+                PHOTOS: '',
+                RADIUS: '',
+            },
+            buttons: {
+                cancelButton: {
+                    id:'cancelSegmentButton',
+                    flavor:'primary',
+                    text:'CANCEL',
+                    value: 'cancelSegment',
+                    enabled: true,
+                    storeId: 'MAP'
+                },
+                planButton: {
+                    id:'planSegmentButton',
+                    flavor:'primary',
+                    text:'PLAN',
+                    value: 'planSegment',
+                    enabled: false,
+                    storeId: 'MAP'
+                },
+            }
+        };
+    },
+    computed: {
+        ...mapGetters(['targetPOI', 'currCircumnav']),
+    },
+    watch: {
     // Triggered when a POI is clicked on the grid
     // when this modal is open
-    targetPOI(data) {
-      if (data.POICard && data.positionPx) {
-        this.POIName = data.POICard.getName();
-        this.formValues.TARGETPOI = data;
+        targetPOI(data) {
+            if (data.POICard && data.positionPx) {
+                this.POIName = data.POICard.getName();
+                this.formValues.TARGETPOI = data;
 
-        this.activateGridPreview();
-      }
+                this.activateGridPreview();
+            }
+        },
+        currCircumnav(newVal) {
+            if (newVal !== null) {
+                this.buttons.planButton.enabled = true;
+            } else {
+                this.buttons.planButton.enabled = false;
+            }
+        }
     },
-    currCircumnav(newVal) {
-      if (newVal !== null) {
-        this.buttons.planButton.enabled = true;
-      } else {
-        this.buttons.planButton.enabled = false;
-      }
-    }
-  },
-  destroyed() {
+    destroyed() {
     // Remove circumnav from grid
-    this.$store.commit("setCurrCircumnav", null);
-    // Disabling POI click listening
-    this.$store.commit("setIsListeningForPOIClick", false);
-    // Reset the target POI
-    this.$store.commit("setTargetPOI", {POICard: null, positionPx: null});
-    // Reset editing route
-    this.$store.commit("setEditingRoute", null);
-  },
-  mounted() {
+        this.$store.commit('setCurrCircumnav', null);
+        // Disabling POI click listening
+        this.$store.commit('setIsListeningForPOIClick', false);
+        // Reset the target POI
+        this.$store.commit('setTargetPOI', {POICard: null, positionPx: null});
+        // Reset editing route
+        this.$store.commit('setEditingRoute', null);
+    },
+    mounted() {
     // Make POIs listen for clicks 
-    this.$store.commit("setIsListeningForPOIClick", true);
-    // Set editing route
-    this.$store.commit("setEditingRoute", this.route);
-  },
-  methods: {
+        this.$store.commit('setIsListeningForPOIClick', true);
+        // Set editing route
+        this.$store.commit('setEditingRoute', this.route);
+    },
+    methods: {
     /**
      * Sets the ISCLOCKWISE value in the form.
     */
-    toggleDirection(key) {
-      if (key === "clockwise") {
-        this.formValues.ISCLOCKWISE = true;
-      } else {
-        this.formValues.ISCLOCKWISE = false;
-      }
-      this.activateGridPreview();
-    },
-    /**
+        toggleDirection(key) {
+            if (key === 'clockwise') {
+                this.formValues.ISCLOCKWISE = true;
+            } else {
+                this.formValues.ISCLOCKWISE = false;
+            }
+            this.activateGridPreview();
+        },
+        /**
      * Validates the values from input divs. 
     */
-    validateInput(key, value) {
-      // Validate is a number
-      if (value !== "" && !this.validateIsNumber(value)) {
-        this.errors[key] = key + " is not a number.";
-        return;
-      } 
+        validateInput(key, value) {
+            // Validate is a number
+            if (value !== '' && !this.validateIsNumber(value)) {
+                this.errors[key] = key + ' is not a number.';
+                return;
+            } 
 
-      // Validate that angle is within normal bounds
-      if ((key === "STARTANG" || key === "ENDANG") && (Number(value) > 360 || Number(value) < 0)){
-        this.errors[key] = key + " must be between 0 and 360 degrees.";
-        return;
-      }
+            // Validate that angle is within normal bounds
+            if ((key === 'STARTANG' || key === 'ENDANG') && (Number(value) > 360 || Number(value) < 0)){
+                this.errors[key] = key + ' must be between 0 and 360 degrees.';
+                return;
+            }
 
-      this.errors[key] = "";
+            this.errors[key] = '';
 
-      this.activateGridPreview();
-    },
-    validateIsNumber(value) {
-      return !isNaN(parseFloat(value)) && isFinite(value);
-    },
-    /**
+            this.activateGridPreview();
+        },
+        validateIsNumber(value) {
+            return !isNaN(parseFloat(value)) && isFinite(value);
+        },
+        /**
      * Checks if the form is complete, and if so, emits the payload to the 
      * grid to preview the circumnavigation segments.
     */
-    activateGridPreview() {
-      if (this.formIsComplete()) {
-        //Emit to form updates to grid
-        GridEventBus.$emit('ADD_CIRCUM_FORM_UPDATE', this.formValues);
-      } 
-    },
-    /**
+        activateGridPreview() {
+            if (this.formIsComplete()) {
+                //Emit to form updates to grid
+                GridEventBus.$emit('ADD_CIRCUM_FORM_UPDATE', this.formValues);
+            } 
+        },
+        /**
      * Checks if the form is complete.
     */
-    formIsComplete() {
-      let keys = Object.keys(this.formValues);
-      for (let key of keys) {
-        if (this.formValues[key] === null || this.formValues[key] === "") {
-          return false;
-        }
-      }
-      return true;
-    },
-    saveCircumnav() {
-      this.$store.commit("saveCircumnav", this.route);
-      this.closeModal();
-    },
-    cancelCircumnav() {
-      this.$store.commit("setCurrCircumnav", null);
-      this.$store.commit("setTargetPOI", {POICard: null, positionPx: null});
-      this.POIName = "Click POI on grid";
+        formIsComplete() {
+            let keys = Object.keys(this.formValues);
+            for (let key of keys) {
+                if (this.formValues[key] === null || this.formValues[key] === '') {
+                    return false;
+                }
+            }
+            return true;
+        },
+        saveCircumnav() {
+            this.$store.commit('saveCircumnav', this.route);
+            this.closeModal();
+        },
+        cancelCircumnav() {
+            this.$store.commit('setCurrCircumnav', null);
+            this.$store.commit('setTargetPOI', {POICard: null, positionPx: null});
+            this.POIName = 'Click POI on grid';
 
-      let keys = Object.keys(this.formValues);
-      for (let k of keys) {
-        this.formValues[k] = "";
-      }
+            let keys = Object.keys(this.formValues);
+            for (let k of keys) {
+                this.formValues[k] = '';
+            }
 
-      this.formValues.ISCLOCKWISE = true;
-    },
-    closeModal() {
-      GridEventBus.$emit('CLOSE_SEGMENT_MODAL');
-    },
-  }
-}
+            this.formValues.ISCLOCKWISE = true;
+        },
+        closeModal() {
+            GridEventBus.$emit('CLOSE_SEGMENT_MODAL');
+        },
+    }
+};
 
 </script>
 

@@ -1,244 +1,331 @@
 <template>
-    <div class="POICard" v-show="show.card">
-      <!-- SIDE MODALS -->
-      <div v-if="show.modalImages">
-        <Sidemodal :key="0" 
-                   :POIListEl='POIListEl' 
-                   :target='this.$refs.images'
-                   :data='POICard.getData().images'
-                   type='IMAGES'
-                   header="Images"
-                   @closeModal='toggleModal'/>
+  <div
+    v-show="show.card"
+    class="POICard"
+  >
+    <!-- SIDE MODALS -->
+    <div v-if="show.modalImages">
+      <Sidemodal
+        :key="0"
+        :p-o-i-list-el="POIListEl"
+        :target="this.$refs.images"
+        :data="POICard.getData().images"
+        type="IMAGES"
+        header="Images"
+        @closeModal="toggleModal"
+      />
+    </div>
+    <div v-if="show.modalTags">
+      <Sidemodal
+        :key="1"
+        :p-o-i-list-el="POIListEl"
+        :target="this.$refs.tags"
+        :data="tagNames.slice(7)"
+        type="TAGS"
+        header="Tags"
+        @closeModal="toggleModal"
+      />
+    </div>
+
+    <!--HEADER -->
+    <div class="POICard__header">
+      <POIHeader
+        :p-o-i-data="POIData"
+        class="POICard__headerObject"
+      />
+
+      <div class="POICard__headerButtons">
+        <!-- EDIT BUTTON -->
+        <svg
+          class="POICARD__edit"
+          width="13"
+          height="13"
+          viewBox="0 0 9 9"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          @click="openEditWindow(POICard)"
+        >
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M6.84607 0.543934C6.78749 0.485355 6.69251 0.485355 6.63393 0.543934L5.82295 1.35492C5.76437 1.41349 5.76437 1.50847 5.82295 1.56705L6.43727 2.18136C6.69111 2.4352 6.69111 2.84676 6.43727 3.1006L1.60678 7.93109C1.55989 7.97798 1.4963 8.00431 1.43 8.00431H0V6.57431C0 6.50801 0.0263392 6.44442 0.0732233 6.39754L4.39989 2.07087C4.49752 1.97324 4.65581 1.97324 4.75344 2.07087C4.85107 2.1685 4.85107 2.32679 4.75344 2.42442L0.5 6.67787V7.50431H1.32645L6.08371 2.74705C6.14229 2.68847 6.14229 2.59349 6.08371 2.53491L5.4694 1.9206C5.21556 1.66676 5.21556 1.2552 5.4694 1.00136L6.28038 0.190381C6.53422 -0.0634599 6.94578 -0.0634605 7.19962 0.19038L7.81393 0.804695C8.06778 1.05854 8.06777 1.47009 7.81393 1.72393L7.50678 2.03109C7.40915 2.12872 7.25085 2.12872 7.15322 2.03109C7.05559 1.93346 7.05559 1.77517 7.15322 1.67754L7.46038 1.37038C7.51896 1.3118 7.51896 1.21683 7.46038 1.15825L6.84607 0.543934Z"
+            fill="#FCFCFC"
+          />
+        </svg>
+        <!-- SHOW MORE BUTTON -->
+        <svg
+          class="POICard__showMore"
+          :class="{ open: show.moreData }"
+          width="10"
+          height="7"
+          viewBox="0 0 8 5"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          @click="toggleShowMore"
+        >
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M7.92098 4.93238C7.82026 5.02682 7.66205 5.02171 7.56761 4.92098L4.54715 1.69916C4.25085 1.3831 3.74915 1.3831 3.45285 1.69916L0.432384 4.92098C0.337951 5.02171 0.179742 5.02682 0.0790138 4.93238C-0.0217142 4.83795 -0.0268173 4.67974 0.0676146 4.57901L3.08808 1.35719C3.58192 0.830422 4.41808 0.830422 4.91192 1.35719L7.93238 4.57901C8.02682 4.67974 8.02171 4.83795 7.92098 4.93238Z"
+            fill="#FCFCFC"
+          />
+        </svg>
       </div>
-      <div v-if="show.modalTags">
-        <Sidemodal :key="1" 
-                   :POIListEl='POIListEl' 
-                   :target='this.$refs.tags'
-                   :data='tagNames.slice(7)'
-                   type='TAGS'
-                   header='Tags'
-                   @closeModal='toggleModal'/>
-      </div>
+    </div>
 
-      <!--HEADER --> 
-      <div class="POICard__header">
-
-        <POIHeader :POIData="POIData" class="POICard__headerObject"/>
-
-        <div class="POICard__headerButtons">
-          <!-- EDIT BUTTON -->
-          <svg class = "POICARD__edit" @click="openEditWindow(POICard)" width="13" height="13" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M6.84607 0.543934C6.78749 0.485355 6.69251 0.485355 6.63393 0.543934L5.82295 1.35492C5.76437 1.41349 5.76437 1.50847 5.82295 1.56705L6.43727 2.18136C6.69111 2.4352 6.69111 2.84676 6.43727 3.1006L1.60678 7.93109C1.55989 7.97798 1.4963 8.00431 1.43 8.00431H0V6.57431C0 6.50801 0.0263392 6.44442 0.0732233 6.39754L4.39989 2.07087C4.49752 1.97324 4.65581 1.97324 4.75344 2.07087C4.85107 2.1685 4.85107 2.32679 4.75344 2.42442L0.5 6.67787V7.50431H1.32645L6.08371 2.74705C6.14229 2.68847 6.14229 2.59349 6.08371 2.53491L5.4694 1.9206C5.21556 1.66676 5.21556 1.2552 5.4694 1.00136L6.28038 0.190381C6.53422 -0.0634599 6.94578 -0.0634605 7.19962 0.19038L7.81393 0.804695C8.06778 1.05854 8.06777 1.47009 7.81393 1.72393L7.50678 2.03109C7.40915 2.12872 7.25085 2.12872 7.15322 2.03109C7.05559 1.93346 7.05559 1.77517 7.15322 1.67754L7.46038 1.37038C7.51896 1.3118 7.51896 1.21683 7.46038 1.15825L6.84607 0.543934Z" fill="#FCFCFC"/>
-          </svg>
-          <!-- SHOW MORE BUTTON --> 
-          <svg class = "POICard__showMore" :class="{ open : show.moreData }" @click="toggleShowMore" width="10" height="7" viewBox="0 0 8 5" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M7.92098 4.93238C7.82026 5.02682 7.66205 5.02171 7.56761 4.92098L4.54715 1.69916C4.25085 1.3831 3.74915 1.3831 3.45285 1.69916L0.432384 4.92098C0.337951 5.02171 0.179742 5.02682 0.0790138 4.93238C-0.0217142 4.83795 -0.0268173 4.67974 0.0676146 4.57901L3.08808 1.35719C3.58192 0.830422 4.41808 0.830422 4.91192 1.35719L7.93238 4.57901C8.02682 4.67974 8.02171 4.83795 7.92098 4.93238Z" fill="#FCFCFC"/>
-          </svg>
+    <!-- MAIN BODY -->
+    <div class="POICard__content">
+      <!--TAGS-->
+      <div
+        ref="tags"
+        class="POICard__tags"
+      >
+        <div
+          v-for="(name, index) of tagNames.slice(0, 7)"
+          :key="index"
+          class="pill__tag"
+        >
+          <div v-html="searchQuery ? marked.tags[index] : name" />
+          <!-- {{getShortName(name)}} -->
         </div>
       </div>
 
-      <!-- MAIN BODY -->
-      <div class="POICard__content">
+      <div
+        v-if="viewMoreTagsNumber() > 0"
+        class="POICard__tags__viewMore"
+        @click="toggleModal('modalTags')"
+      >
+        {{ "+" + viewMoreTagsNumber() + ">" }}
+      </div>
 
-        <!--TAGS-->
-        <div class="POICard__tags" ref="tags">
-            <div class="pill__tag" v-for="(name, index) of tagNames.slice(0, 7)" :key="index" >
-               <div v-html="searchQuery ? marked.tags[index] : name"/>
-               <!-- {{getShortName(name)}} -->
-            </div>  
-        </div>
-
-        <div class="POICard__tags__viewMore" v-if="viewMoreTagsNumber() > 0" @click="toggleModal('modalTags')">
-              {{"+" + viewMoreTagsNumber() + ">"}}
-        </div>
-
-        <!--IMAGE AND WIDTH/HEIGHT -->
-        <div class="POICard__imageRow">
-          <img :src="POIData.thumbnail.url">
-          <div class="POICard__imageDimensions">
-            <div class="POICard__imageDimension">
-              <div class="text__main--bold">
-                {{"Width"}} 
-              </div>
-              {{" " + POIData.width + " " + POIData.sizeUnit}}
+      <!--IMAGE AND WIDTH/HEIGHT -->
+      <div class="POICard__imageRow">
+        <img :src="POIData.thumbnail.url">
+        <div class="POICard__imageDimensions">
+          <div class="POICard__imageDimension">
+            <div class="text__main--bold">
+              {{ "Width" }}
             </div>
-            <div class="POICard__imageDimensionSeparator">x</div>
-            <div class="POICard__imageDimension">
-              <div class="text__main--bold">
-                {{"Depth"}} 
-              </div>
-              {{" " + POIData.depth + " " + POIData.sizeUnit}}
+            {{ " " + POIData.width + " " + POIData.sizeUnit }}
+          </div>
+          <div class="POICard__imageDimensionSeparator">
+            x
+          </div>
+          <div class="POICard__imageDimension">
+            <div class="text__main--bold">
+              {{ "Depth" }}
             </div>
-            <div class="POICard__imageDimensionSeparator">x</div>
-            <div class="POICard__imageDimension">
-              <div class="text__main--bold">
-                {{"Height"}} &nbsp;
-              </div>
-              {{" " + POIData.height + " " + POIData.sizeUnit}}
+            {{ " " + POIData.depth + " " + POIData.sizeUnit }}
+          </div>
+          <div class="POICard__imageDimensionSeparator">
+            x
+          </div>
+          <div class="POICard__imageDimension">
+            <div class="text__main--bold">
+              {{ "Height" }} &nbsp;
             </div>
+            {{ " " + POIData.height + " " + POIData.sizeUnit }}
           </div>
         </div>
+      </div>
 
-        <!--ADDITIONAL INFO-->
-        <div class="POICard__moreData" v-show = "show.moreData">
-          <div class="POICard__divider" />
-          <!-- HISTORY -->
-          <div class="POICard__updateHistorySmall">
-            <div class="POICard__updateHistorySmall--line text__small">
-              <div>Created:</div> 
-              <div>{{POIData.modificationHistory[0].user}}</div>
-              <div>{{POIData.modificationHistory[0].time}}</div>
+      <!--ADDITIONAL INFO-->
+      <div
+        v-show="show.moreData"
+        class="POICard__moreData"
+      >
+        <div class="POICard__divider" />
+        <!-- HISTORY -->
+        <div class="POICard__updateHistorySmall">
+          <div class="POICard__updateHistorySmall--line text__small">
+            <div>Created:</div>
+            <div>{{ POIData.modificationHistory[0].user }}</div>
+            <div>{{ POIData.modificationHistory[0].time }}</div>
+          </div>
+          <div
+            v-if="POIData.modificationHistory.length > 1"
+            class="POICard__updateHistorySmall--line text__small"
+          >
+            <div>Modified:</div>
+            <div>
+              {{
+                POIData.modificationHistory[
+                  POIData.modificationHistory.length - 1
+                ].user
+              }}
             </div>
-            <div v-if = "POIData.modificationHistory.length > 1" class="POICard__updateHistorySmall--line text__small">
-              <div>Modified:</div>
-              <div>{{POIData.modificationHistory[POIData.modificationHistory.length-1].user}}</div> 
-              <div>{{POIData.modificationHistory[POIData.modificationHistory.length-1].time}}</div>
+            <div>
+              {{
+                POIData.modificationHistory[
+                  POIData.modificationHistory.length - 1
+                ].time
+              }}
             </div>
           </div>
-          <!-- DESCRIPTION -->
-          <div class="POICard__description" v-html="searchQuery ? marked.description : POIData.description" />
-          <!-- IMAGES -->
-          <div class="POICard__imagesHeader">
-            <div class="text__main--bold" ref="images">
-              Images
-            </div>
-            <div class="POICard__imagesViewMore" @click="toggleModal('modalImages')">
-              {{"View All (" + this.POIData.images.length + ")"}}
-            </div>
+        </div>
+        <!-- DESCRIPTION -->
+        <div
+          class="POICard__description"
+          v-html="searchQuery ? marked.description : POIData.description"
+        />
+        <!-- IMAGES -->
+        <div class="POICard__imagesHeader">
+          <div
+            ref="images"
+            class="text__main--bold"
+          >
+            Images
           </div>
-          <div class="POICard__tags">
-            <div class="pill" v-for="(image, index) of images" :key="index">
-              {{image.timeForTagFormatting}}
-            </div>  
+          <div
+            class="POICard__imagesViewMore"
+            @click="toggleModal('modalImages')"
+          >
+            {{ "View All (" + this.POIData.images.length + ")" }}
           </div>
-        </div> <!-- END ADDITIONAL INFO --> 
-      </div> <!-- END POI CARD CONTENT --> 
-    </div> <!-- END POI CARD --> 
+        </div>
+        <div class="POICard__tags">
+          <div
+            v-for="(image, index) of images"
+            :key="index"
+            class="pill"
+          >
+            {{ image.timeForTagFormatting }}
+          </div>
+        </div>
+      </div>
+      <!-- END ADDITIONAL INFO -->
+    </div>
+    <!-- END POI CARD CONTENT -->
+  </div>
+  <!-- END POI CARD -->
 </template>
 
 <script>
+import POIHeader from '@/components/POI/Components/POIHeader.vue';
+import Sidemodal from '@/components/POI/Components/Sidemodal.vue';
 
-import POIHeader from "@/components/POI/Components/POIHeader.vue";
-import Sidemodal from "@/components/POI/Components/Sidemodal.vue";
-
-import POICard from "@/data_classes/POICard.js";
-import POIEventBus from "@/components/POI//POIEventBus.js";
+import POICard from '@/data_classes/POICard.js';
+import POIEventBus from '@/components/POI//POIEventBus.js';
 
 export default {
-  name: "POICard",
-  components: {
-    POIHeader, 
-    Sidemodal
-  },
-  data() {
-    return {
-      show: {
-        card: true,
-        moreData: false,
-        modalImages: false,
-        modalTags: false,
-      },
-      marked: {
-        tags: [],
-        description: ""
-      },
-    }
-  },
-  props: {
-    POIData: Object,
-    searchQuery: String,
-    POICard: POICard, 
-    POIListEl: HTMLDivElement
-  },
-  mounted() {
-    this.handleShowCard(this.searchQuery);
-  },
-  watch: { 
-    searchQuery(newVal) { // watch it
-      this.handleShowCard(newVal);
-    }
-  },
-  computed: {
-    tagNames: function() {
-      let tagList = this.POIData.tagList;
-      let nameList = [];
-      tagList.forEach(tag => nameList.push(tag.getName()));
+    name: 'POICard',
+    components: {
+        POIHeader,
+        Sidemodal,
+    },
+    props: {
+        POIData: Object,
+        searchQuery: String,
+        POICard: POICard,
+        POIListEl: HTMLDivElement,
+    },
+    data() {
+        return {
+            show: {
+                card: true,
+                moreData: false,
+                modalImages: false,
+                modalTags: false,
+            },
+            marked: {
+                tags: [],
+                description: '',
+            },
+        };
+    },
+    computed: {
+        tagNames: function () {
+            let tagList = this.POIData.tagList;
+            let nameList = [];
+            tagList.forEach((tag) => nameList.push(tag.getName()));
 
-      return nameList;
+            return nameList;
+        },
+        images: function () {
+            let images = this.POIData.images;
+            if (images.length > 4) {
+                return images.slice(0, 4);
+            }
+            return images;
+        },
     },
-    images: function() {
-      let images = this.POIData.images;
-      if (images.length > 4) {
-        return images.slice(0, 4);
-      }
-      return images;
+    watch: {
+        searchQuery(newVal) {
+            // watch it
+            this.handleShowCard(newVal);
+        },
     },
-  },
-  methods: {
-    handleShowCard(query) {
-      // If there is a query
-      if (query || query !== null) {
-        if (this.cardHasSearchQuery(query)) {
-          this.show.card = true;
-          this.markText(query);
-        } else {
-          this.show.card = false;
-        }
-      // Else by default show the card
-      } else {
-        this.show.card = true;
-      }
+    mounted() {
+        this.handleShowCard(this.searchQuery);
     },
-    toggleModal(key){
-      this.show[key] = !this.show[key];
-    },
-    cardHasSearchQuery(searchQuery) {
-      if (this.POIData.description.includes(searchQuery)) {
-        return true;
-      }
+    methods: {
+        handleShowCard(query) {
+            // If there is a query
+            if (query || query !== null) {
+                if (this.cardHasSearchQuery(query)) {
+                    this.show.card = true;
+                    this.markText(query);
+                } else {
+                    this.show.card = false;
+                }
+                // Else by default show the card
+            } else {
+                this.show.card = true;
+            }
+        },
+        toggleModal(key) {
+            this.show[key] = !this.show[key];
+        },
+        cardHasSearchQuery(searchQuery) {
+            if (this.POIData.description.includes(searchQuery)) {
+                return true;
+            }
 
-      for (let tagName of this.tagNames) {
-        if (tagName.includes(searchQuery)) {
-          return true;
-        }
-      }
+            for (let tagName of this.tagNames) {
+                if (tagName.includes(searchQuery)) {
+                    return true;
+                }
+            }
 
-      return false;
-    },
-    markText(query) {
-      let markedTags = [];
-      let regex = new RegExp(query, 'g');
+            return false;
+        },
+        markText(query) {
+            let markedTags = [];
+            let regex = new RegExp(query, 'g');
 
-      for (let tag of this.tagNames) {
-        let markedTag = tag.toLowerCase().replace(regex, '<mark>' + query + '</mark>');
-        markedTags.push(markedTag);
-      }
+            for (let tag of this.tagNames) {
+                let markedTag = tag
+                    .toLowerCase()
+                    .replace(regex, '<mark>' + query + '</mark>');
+                markedTags.push(markedTag);
+            }
 
-      this.marked.tags = markedTags;
-      this.marked.description = this.POIData.description.replace(regex, '<mark>' + query + '</mark>');
+            this.marked.tags = markedTags;
+            this.marked.description = this.POIData.description.replace(
+                regex,
+                '<mark>' + query + '</mark>'
+            );
+        },
+        toggleShowMore() {
+            this.show.moreData = !this.show.moreData;
+        },
+        viewMoreTagsNumber() {
+            if (this.POIData.tagList.length > 7) {
+                return this.POIData.tagList.length - 7;
+            }
+            return 0;
+        },
+        openEditWindow() {
+            POIEventBus.$emit('OPEN_EDIT_POI_WINDOW', this.POICard);
+        },
     },
-    toggleShowMore(){
-      this.show.moreData = !this.show.moreData;
-    },
-    viewMoreTagsNumber() {
-      if (this.POIData.tagList.length > 7) {
-        return this.POIData.tagList.length - 7;
-      } 
-      return 0;
-    },
-    openEditWindow() {
-      POIEventBus.$emit('OPEN_EDIT_POI_WINDOW', this.POICard);
-    },
-  }
-}
-
+};
 </script>
 
 <style lang="scss" scoped>
-
-@import '@/styles/_colors.scss';
-@import '@/styles/_typography.scss';
-@import '@/styles/_pill.scss';
+@import "@/styles/_colors.scss";
+@import "@/styles/_typography.scss";
+@import "@/styles/_pill.scss";
 
 .POICard /deep/ mark {
   background-color: $color-primary;
@@ -250,20 +337,23 @@ export default {
     padding-right: 1rem;
     display: flex;
     flex-direction: row;
+    color: $color-near-white;
   }
 
   &__headerObject {
     flex-grow: 1;
   }
 
-  &__imagesHeader, &__historyHeader {
+  &__imagesHeader,
+  &__historyHeader {
     padding-top: 1rem;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
   }
 
-  &__imagesViewMore, &__historyViewMore {
+  &__imagesViewMore,
+  &__historyViewMore {
     &:hover {
       color: $color-primary;
       cursor: pointer;
@@ -273,6 +363,7 @@ export default {
   &__content {
     padding-left: 1rem;
     padding-right: 1rem;
+    color: white;
   }
 
   &__description {
@@ -301,7 +392,7 @@ export default {
 
     > svg {
       &:hover {
-        stroke: $color-primary; 
+        stroke: $color-primary;
         cursor: pointer;
       }
     }
@@ -309,7 +400,7 @@ export default {
 
   &__showMore {
     margin-left: 1rem;
-    transition: .1s ease-in-out;
+    transition: 0.1s ease-in-out;
   }
 
   &__tags {
@@ -317,6 +408,7 @@ export default {
     flex-direction: row;
     flex-wrap: wrap;
     padding-top: 1rem;
+    color: $color-grey-light;
 
     &__viewMore {
       display: flex;
@@ -400,5 +492,4 @@ export default {
 .open {
   transform: rotate(180deg);
 }
-
 </style>

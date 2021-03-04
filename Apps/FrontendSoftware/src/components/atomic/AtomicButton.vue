@@ -1,112 +1,120 @@
 <template>
   <div :id="id">
-    <button v-if="enabled" 
-            class="button"
-            :class="flavor"
-            :id="id"
-            :value="value"
-            @mousedown="onMouseDown"
-            @mouseup="onMouseUp"
-            @mouseover="onMouseOver"
-            @mouseleave="onMouseLeave"
-            >
-            {{ text }}
+    <button
+      v-if="enabled"
+      :id="id"
+      class="button"
+      :class="flavor"
+      :value="value"
+      @mousedown="onMouseDown"
+      @mouseup="onMouseUp"
+      @mouseover="onMouseOver"
+      @mouseleave="onMouseLeave"
+    >
+      {{ text }}
     </button>
 
-    <button v-else
-            class="button"
-            :class="flavor"
-            :id="id"
-            :value="value"
-            disabled
-            >
-            {{ text }}
+    <button
+      v-else
+      :id="id"
+      class="button"
+      :class="flavor"
+      :value="value"
+      disabled
+    >
+      {{ text }}
     </button>
   </div>
 </template>
 
 <script>
-
 export default {
-  name: "AtomicButton",
-  props: {
-    id: {
-      type: String,
-      required: true
+    name: 'AtomicButton',
+    props: {
+        id: {
+            type: String,
+            required: true,
+        },
+        storeId: {
+            type: String,
+            required: true,
+        },
+        flavor: {
+            type: String,
+            required: true,
+            validator: (value) => {
+                return (
+                    ['primary', 'nominal', 'danger', 'caution'].indexOf(value) !== -1
+                );
+            },
+        },
+        text: {
+            required: true,
+            type: String
+        },
+        value: {
+            required: true,
+            type: Object
+        },
+        enabled: {
+            required: true,
+            validator: (value) => {
+                // True = enabled
+                // False = disabled
+                return [true, false].indexOf(value) !== -1;
+            },
+        },
     },
-    storeId: {
-      type: String,
-      required: true,
-    },
-    flavor: {
-      type: String,
-      required: true,
-      validator: value => {
-        return ["primary", "nominal", "danger", "caution"].indexOf(value) !== -1;
-      }
-    },
-    text: {
-      required: true
-    },
-    value: {
-      required: true
-    },
-    enabled: {
-      required: true,
-      validator: value => {
-        // True = enabled
-        // False = disabled
-        return [true, false].indexOf(value) !== -1;
-      }
-    }
-  },
-  methods: {
-    getPayload() {
-      this.validateStoreParams(); //Validating here as cannot access $store in props
-      return {id: this.id, store: this.$store.state[this.storeId]};
-    },
-    validateStoreParams() {
-      // Check store exists
-      if (this.$store.state[this.storeId] === undefined) {
-        throw new Error("StoreId " + this.storeId + " is not found in main store.");
-      }
+    methods: {
+        getPayload() {
+            this.validateStoreParams(); //Validating here as cannot access $store in props
+            return { id: this.id, store: this.$store.state[this.storeId] };
+        },
+        validateStoreParams() {
+            // Check store exists
+            if (this.$store.state[this.storeId] === undefined) {
+                throw new Error(
+                    'StoreId ' + this.storeId + ' is not found in main store.'
+                );
+            }
 
-      // Check id exists in store
-      if (this.$store.state[this.storeId][this.id] === undefined) {
-        throw new Error("Atomic id " + this.id + " does not exist in store " + this.storeId);
-      }
-    },
-    onMouseDown() {
-      let payload = this.getPayload() 
-      payload.value = true;
+            // Check id exists in store
+            if (this.$store.state[this.storeId][this.id] === undefined) {
+                throw new Error(
+                    'Atomic id ' + this.id + ' does not exist in store ' + this.storeId
+                );
+            }
+        },
+        onMouseDown() {
+            let payload = this.getPayload();
+            payload.value = true;
 
-      this.$store.commit('atomicClicked', payload);
-    },
-    onMouseUp() {
-      let payload = this.getPayload();
-      payload.value = false; 
+            this.$store.commit('atomicClicked', payload);
+        },
+        onMouseUp() {
+            let payload = this.getPayload();
+            payload.value = false;
 
-      this.$store.commit('atomicClicked', payload);
-    },
-    onMouseOver() {
-      let payload = this.getPayload();
-      payload.value = true;
+            this.$store.commit('atomicClicked', payload);
+        },
+        onMouseOver() {
+            let payload = this.getPayload();
+            payload.value = true;
 
-      this.$store.commit("atomicHovered", payload);
-    },
-    onMouseLeave() {
-      let payload = this.getPayload();
-      payload.value = false; 
+            this.$store.commit('atomicHovered', payload);
+        },
+        onMouseLeave() {
+            let payload = this.getPayload();
+            payload.value = false;
 
-      this.$store.commit("atomicHovered", payload);
+            this.$store.commit('atomicHovered', payload);
+        },
     },
-  }
-}
+};
 </script>
 
 <style lang="scss" scoped>
-
-@import '@/styles/_colors.scss';
+@import "@/styles/_colors.scss";
 
 .button {
   border: none;
@@ -118,7 +126,7 @@ export default {
   font-size: 1.5rem;
   border-radius: 4px;
   cursor: pointer;
-  pointer-events: all; 
+  pointer-events: all;
 }
 
 .button:disabled {
@@ -167,5 +175,4 @@ export default {
   color: black;
   background-color: $color-caution;
 }
-
 </style>

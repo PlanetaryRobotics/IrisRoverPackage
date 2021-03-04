@@ -73,36 +73,36 @@
  */
 
 /* global __static */ // <- keep eslint from complaining about the __static directory
- const fs = require('fs');
- const path = require('path');
+const fs = require('fs');
+const path = require('path');
 
- //
- // SETTINGS:
- //
- const dir = './icons/cosmos-icons/flex'; // Directory containing Cosmos icons relative to the public (__static) directory
- const ext = 'svg'; // File extension of the icons
- const missingName = 'missingIcon'; // Name of the placeholder icon used when the requested icon is invalid.
+//
+// SETTINGS:
+//
+const dir = './icons/cosmos-icons/flex'; // Directory containing Cosmos icons relative to the public (__static) directory
+const ext = 'svg'; // File extension of the icons
+const missingName = 'missingIcon'; // Name of the placeholder icon used when the requested icon is invalid.
 
 
- //
- // SETUP:
- //
- const dirpath = path.join(__static, dir);
+//
+// SETUP:
+//
+const dirpath = path.join(__static, dir);
  
- // Map of the properly formatted iconNames of all existing icons to their corresponding file addresses:
- const iconRegistry = new Map();
- // Icon Cache in the form of a Map from iconNames to inline SVG content for all existing icons which have been requested at least once:
- const iconCache = new Map();
+// Map of the properly formatted iconNames of all existing icons to their corresponding file addresses:
+const iconRegistry = new Map();
+// Icon Cache in the form of a Map from iconNames to inline SVG content for all existing icons which have been requested at least once:
+const iconCache = new Map();
 
 
- //
- // FUNCTIONALITY:
- //
- // Grab all files with ext in dir:
- const files = fs.readdirSync(dirpath).filter( f => f.match(new RegExp(`.${ext}$`)) );
+//
+// FUNCTIONALITY:
+//
+// Grab all files with ext in dir:
+const files = fs.readdirSync(dirpath).filter( f => f.match(new RegExp(`.${ext}$`)) );
 
- // Catalog All Existing Icons, Standardize their Names, and Store their Addresses:
- files.forEach( fn => {
+// Catalog All Existing Icons, Standardize their Names, and Store their Addresses:
+files.forEach( fn => {
     const name = formatName(fn);
     // Check for possible name collisions:
     if(iconRegistry.get(name)){
@@ -118,21 +118,21 @@
         // .. if none, register the icon.
         iconRegistry.set(name, fn);
     }
- });
+});
 
- /**
+/**
   * Creates a Properly Formatted camelCase Name from the Given Filename.
   * Splits on spaces, -, --, _, and allows for names that are already camel 
   * case or contain some camelCase.
   */ 
- function formatName(filename){
+function formatName(filename){
     let name = filename.replace(new RegExp(`(./|.${ext})`), '');
     let words = name.split(/[\s-_]+/);
     words = words.map( (word, i) => word.charAt(0)[i ? 'toUpperCase' : 'toLowerCase']() + word.slice(1) );
     return words.join('');
- }
+}
 
- /**
+/**
   * Checks to see if the requested icon is in the cache and, if it is, returns it.
   * If not, it loads it, caches it, and returns it.
   * 
@@ -144,7 +144,7 @@
   * icon uses proper caching and is not prohibitively expensive (so the interface 
   * doesn't grind to a halt if a dev names an icon incorrectly).
   */
- function cachedLoad(iconName) {
+function cachedLoad(iconName) {
     // Check to see if this icon has already been requested and cached:
     if(iconCache.has(iconName)){
         // ... if so, return it:
@@ -192,12 +192,12 @@
                     Missing icon failed to load. Check for file- or even 
                     directory-wide data corruption.
                 `);
-                icon = `<svg>MISSING ICON IS MISSING</svg>`;
+                icon = '<svg>MISSING ICON IS MISSING</svg>';
             }
         }
         return icon;
     }
- }
+}
 
 
- export default cachedLoad;
+export default cachedLoad;

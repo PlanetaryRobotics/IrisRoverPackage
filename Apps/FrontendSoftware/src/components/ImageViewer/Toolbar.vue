@@ -1,52 +1,54 @@
 <template>
   <div id="toolbar">
     <div
-      v-html="radialGridSVG"
-      v-on:click="$store.state.IMG.radialGrid = !radialGrid; $store.state.IMG.cartesianGrid = false;"
       :class="{highlighted: radialGrid}"
-      class="selectable-vector toolbar__icon tooltip" title="Polar Grid"
+      class="selectable-vector toolbar__icon tooltip"
+      title="Polar Grid"
+      @click="$store.state.IMG.radialGrid = !radialGrid; $store.state.IMG.cartesianGrid = false;"
+      v-html="radialGridSVG"
     />
     <div
-      v-html="cartesianGridSVG"
-      v-on:click="$store.state.IMG.cartesianGrid = !cartesianGrid; $store.state.IMG.radialGrid = false;"
       :class="{highlighted: cartesianGrid}"
-      class="selectable-vector toolbar__icon tooltip" title="Cartesian Grid"
-     />
+      class="selectable-vector toolbar__icon tooltip"
+      title="Cartesian Grid"
+      @click="$store.state.IMG.cartesianGrid = !cartesianGrid; $store.state.IMG.radialGrid = false;"
+      v-html="cartesianGridSVG"
+    />
   </div>
 </template>
 
 <script>
 /* global __static */ // <- keep eslint from complaining about the __static directory
-import path from 'path'
-import fs from 'fs'
-import { mapState } from 'vuex'
+import path from 'path';
+import fs from 'fs';
+import { mapState } from 'vuex';
 
-import TooltipEquip from '@/styles/TooltipEquip.js'
+import TooltipEquip from '@/styles/TooltipEquip.js';
 
 export default {
-  name: 'Toolbar',
-  props: {
-  },
-  data(){
-    return {
-      radialGridSVG: "", // Inline SVG HTML for the Radial Grid
-      cartesianGridSVG: "", // Inline SVG HTML for the Cartesian Grid
-    };
-  },
-  mounted(){
-    TooltipEquip(this.$el);
+    name: 'Toolbar',
+    props: {
+    },
+    data(){
+        return {
+            radialGridSVG: '', // Inline SVG HTML for the Radial Grid
+            cartesianGridSVG: '', // Inline SVG HTML for the Cartesian Grid
+        };
+    },
+    computed: {
+        ...mapState({
+            radialGrid: state => state.IMG.radialGrid,
+            cartesianGrid: state => state.IMG.cartesianGrid
+        })
+    },
+    mounted(){
+        TooltipEquip(this.$el);
 
-    // Load Icons as Inline SVG:
-    this.radialGridSVG = fs.readFileSync(path.join(__static,'./icons/icon_radial_grid.svg'), 'utf8');
-    this.cartesianGridSVG = fs.readFileSync(path.join(__static,'./icons/icon_cartesian_grid.svg'), 'utf8');
-  },
-  computed: {
-    ...mapState({
-      radialGrid: state => state.IMG.radialGrid,
-      cartesianGrid: state => state.IMG.cartesianGrid
-    })
-  }
-}
+        // Load Icons as Inline SVG:
+        this.radialGridSVG = fs.readFileSync(path.join(__static,'./icons/icon_radial_grid.svg'), 'utf8');
+        this.cartesianGridSVG = fs.readFileSync(path.join(__static,'./icons/icon_cartesian_grid.svg'), 'utf8');
+    }
+};
 </script>
 
 <style lang="scss" scoped>

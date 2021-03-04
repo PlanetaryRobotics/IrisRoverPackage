@@ -7,8 +7,8 @@
  *
  * Last Modified: 5/11/2019 by Connor Colombo, CMU
  */
- // Disable linting in this file:
- /* eslint-disable */
+// Disable linting in this file:
+/* eslint-disable */
 function q(a, d, c) {
     return Math.max(a, Math.min(d, c))
 }

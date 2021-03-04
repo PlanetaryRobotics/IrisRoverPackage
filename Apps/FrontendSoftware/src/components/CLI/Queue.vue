@@ -8,7 +8,5 @@ Author: Connor W. Colombo
 Last Update: 1/30/2019
 -->
 <template>
-  <div class="queue">
-
-  </div>
+  <div class="queue" />
 </template>

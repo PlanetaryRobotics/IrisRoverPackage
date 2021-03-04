@@ -21,37 +21,37 @@
   * Last Update: 08/29/2020, Colombo
  */
 
-import utils from '@/utils.js'
+import utils from '@/utils.js';
 
 export default class CommandOption{
-   /* Constructs a new CommandOption from the given data.
+    /* Constructs a new CommandOption from the given data.
    The format of params is an array of objects containing the elements:
    {name, defaultVal, units}.
    */
-   constructor(name, desc, type, params){
-     // Validate Format:
-     if(arguments.length < 5){
-       console.error("Too Few Arguments to CommandOption Constructor.");
-     }
-     for(let i in params){
-       if(!(
-         "name" in params[i]
-         && "defaultVal" in params[i]
-         && "units" in params[i]
-       )){
-         console.error("Invalid Format of The Following Parameter Given to CommandOption Constructor.");
-         console.log(params[i]);
-       }
-     }
+    constructor(name, desc, type, params){
+        // Validate Format:
+        if(arguments.length < 5){
+            console.error('Too Few Arguments to CommandOption Constructor.');
+        }
+        for(let i in params){
+            if(!(
+                'name' in params[i]
+         && 'defaultVal' in params[i]
+         && 'units' in params[i]
+            )){
+                console.error('Invalid Format of The Following Parameter Given to CommandOption Constructor.');
+                console.log(params[i]);
+            }
+        }
 
-     // Everything checks out (or errors have been served), set values:
-     this.name = name; //             - Command Name
-     this.desc = desc; //             - Description of Command
-     this.type = type; //             - Type of Command (ex. Movement, or Data Request)
-     this.params = params;  //        - Parameters (arguments) which Command Takes
-     this.useCount = 0; //            - Number of Times this Command Has Been Used
+        // Everything checks out (or errors have been served), set values:
+        this.name = name; //             - Command Name
+        this.desc = desc; //             - Description of Command
+        this.type = type; //             - Type of Command (ex. Movement, or Data Request)
+        this.params = params;  //        - Parameters (arguments) which Command Takes
+        this.useCount = 0; //            - Number of Times this Command Has Been Used
 
-     // Create Cosmetically Formatted Units:
-     this.formattedUnits = this.params.map( p => utils.formatUnits(p.units) );
-   } // ctor
- } // class: CommandObject
+        // Create Cosmetically Formatted Units:
+        this.formattedUnits = this.params.map( p => utils.formatUnits(p.units) );
+    } // ctor
+} // class: CommandObject

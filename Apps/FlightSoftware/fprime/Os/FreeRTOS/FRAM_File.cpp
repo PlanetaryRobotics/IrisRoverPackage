@@ -9,12 +9,14 @@
 #include <string.h>
 #include <stdio.h>
 
-
+#include "CY15B102Q.hpp"
 //#define DEBUG_PRINT(x,...) printf(x,##__VA_ARGS__); fflush(stdout)
 //#define DEBUG_PRINT(x,...)
   
 
 namespace Os {
+
+  CY15B102Q FRAM_chip;
 
   /**
    * @brief      Constructs a new instance.
@@ -24,7 +26,6 @@ namespace Os {
     table_start_ptr.all = FRAM_TABLE_PTR_START;
     table_end_ptr.all = FRAM_TABLE_PTR_START;
     first_write = true;
-
   }
 
 
@@ -57,6 +58,7 @@ namespace Os {
 
     FRAM_PTR current_table_tracker = table_start_ptr;
     FRAM_TABLE_ENTRY current_data_tracker = table_start_data;
+    CY15B102Q :: FRAMSpiCommands read_command = CY15B102Q :: FSRTD;
 
     // Find the first entry that we need to send back
     while(current_data_tracker.data_name < start_time)
@@ -67,10 +69,10 @@ namespace Os {
           current_table_tracker.all = FRAM_TABLE_PTR_START;
 
         // Update data tracker with new table entry
-        CY15B102Q :: CY15B102QError error_code = framSpiReadData(CY15B102Q::FRAMSpiCommands FSRTD,
-                                                      uint8_t *(&current_data_tracker),
+        CY15B102Q :: CY15B102QError error_code = FRAM_chip.framSpiReadData(read_command,
+                                                      (uint8_t *)&current_data_tracker,
                                                       FRAM_TABLE_ENTRY_SIZE,
-                                                      current_table_tracker);
+                                                      current_table_tracker.bit.address);
         // TODO: Deal with error code 
     }
 
@@ -81,24 +83,24 @@ namespace Os {
       if((current_data_tracker.data_location.all + current_data_tracker.data_size) > FRAM_DATA_PTR_END)
       {
         // Send Data at end of data section
-        CY15B102QError error_code1 = framSpiReadData(CY15B102Q::FRAMSpiCommands FSRTD,
-                                                      uint8_t *(buffer),
-                                                      FRAM_DATA_PTR_END - current_data_tracker.location.bit,
-                                                      current_data_tracker.location.bit);
+        CY15B102Q :: CY15B102QError error_code1 = FRAM_chip.framSpiReadData(read_command,
+                                                      (uint8_t *)buffer,
+                                                      FRAM_DATA_PTR_END - current_data_tracker.data_location.bit.address,
+                                                      current_data_tracker.data_location.bit.address);
         // Send Data at start of data section
-        CY15B102QError error_code2 = framSpiReadData(CY15B102Q::FRAMSpiCommands FSRTD,
-                                                      uint8_t *(buffer + (FRAM_DATA_PTR_END - current_data_tracker.location.bit)),
-                                                      (current_data_tracker.location.bit + current_data_tracker.data_size) - FRAM_DATA_PTR_END,
+        CY15B102Q :: CY15B102QError error_code2 = FRAM_chip.framSpiReadData(read_command,
+                                                      (uint8_t *)(static_cast<char*>(buffer) + (FRAM_DATA_PTR_END - current_data_tracker.data_location.bit.address)),
+                                                      (current_data_tracker.data_location.bit.address + current_data_tracker.data_size) - FRAM_DATA_PTR_END,
                                                       FRAM_DATA_PTR_START);
         // TODO: Deal with error codes
       }  
       else
       {
         // Send Data
-        CY15B102QError error_code = framSpiReadData(CY15B102Q::FRAMSpiCommands FSRTD,
-                                                      uint8_t *(buffer),
+        CY15B102Q :: CY15B102QError error_code = FRAM_chip.framSpiReadData(read_command,
+                                                      (uint8_t *)(buffer),
                                                       current_data_tracker.data_size,
-                                                      current_data_tracker.location.bit);
+                                                      current_data_tracker.data_location.bit.address);
         // TODO: Deal with error code
       } 
       // Check if we're at the end of our Table Data, if so we should return
@@ -111,10 +113,10 @@ namespace Os {
         current_table_tracker.all = FRAM_TABLE_PTR_START;
 
       // Update data tracker with new table entry
-      CY15B102QError error_code = framSpiReadData(CY15B102Q::FRAMSpiCommands FSRTD,
-                                                      uint8_t *(&current_data_tracker),
+      CY15B102Q :: CY15B102QError error_code = FRAM_chip.framSpiReadData(read_command,
+                                                      (uint8_t *)(&current_data_tracker),
                                                       FRAM_TABLE_ENTRY_SIZE,
-                                                      current_table_tracker);
+                                                      current_table_tracker.bit.address);
       // TODO: Deal with error code
 
     }
@@ -132,6 +134,8 @@ namespace Os {
  */
   File::Status File::write(const void * buffer, uint8_t buff_size, uint32_t buff_name) {
     Status stat = OP_OK;
+    CY15B102Q :: FRAMSpiCommands write_command = CY15B102Q :: WRSR;
+    CY15B102Q :: FRAMSpiCommands read_command = CY15B102Q :: FSRTD;
 
     // Check for invalid buffer or buffer size
     if(buffer == NULL)
@@ -154,16 +158,16 @@ namespace Os {
       table_end_data = table_start_data;
 
       // Write data to start location
-      CY15B102QError error_code_data = framSpiWriteData(CY15B102Q::FRAMSpiCommands WRSR,
+      CY15B102Q :: CY15B102QError error_code_data = FRAM_chip.framSpiWriteData(write_command,
       // May need to cast buffer to a uint8_t * as it's a void * right now
-                                                    buffer,
+                                                    (uint8_t *)buffer,
                                                     buff_size,
-                                                    table_start_data.data_location);
+                                                    table_start_data.data_location.bit.address);
       // Write table to start location
-      CY15B102QError error_code_table = framSpiWriteData(CY15B102Q::FRAMSpiCommands WRSR,
-                                                    uint8_t *(&table_start_data),
+      CY15B102Q :: CY15B102QError error_code_table = FRAM_chip.framSpiWriteData(write_command,
+                                                    (uint8_t *)(&table_start_data),
                                                     sizeof(table_start_data),
-                                                    table_start_ptr);  
+                                                    table_start_ptr.bit.address);  
       // TODO: Deal with error codes
 
       // Change Table Pointer Locations just in case even though we did it when init-ing File.cpp
@@ -190,12 +194,12 @@ namespace Os {
             && table_start_data.data_location.all > start_projected_data_size /*check to see if start of data is clear*/)
         {
           // Write end projected data size of buffer to the last bytes of the data FRAM
-          CY15B102QError error_code1 = framSpiWriteData(CY15B102Q::FRAMSpiCommands WRSR,
-                                                      buffer,
+          CY15B102Q :: CY15B102QError error_code1 = FRAM_chip.framSpiWriteData(write_command,
+                                                      (uint8_t *)buffer,
                                                       end_projected_data_size,
-                                                      table_end_data.data_location.bit + table_end_data.data_size);
+                                                      table_end_data.data_location.bit.address + table_end_data.data_size);
           // Write the rest of the project data size of buffer to the first bytes of the data FRAM
-          CY15B102QError error_code2 = framSpiWriteData(CY15B102Q::FRAMSpiCommands WRSR,
+          CY15B102Q :: CY15B102QError error_code2 = FRAM_chip.framSpiWriteData(write_command,
                                                       (uint8_t *)((uint32_t)buffer + end_projected_data_size),
                                                       start_projected_data_size,
                                                       FRAM_DATA_PTR_START);
@@ -210,10 +214,10 @@ namespace Os {
           table_end_data.data_name = buff_name;
           table_end_data.data_size = buff_size;
           // Write data to table end location
-          CY15B102QError error_code_table = framSpiWriteData(CY15B102Q::FRAMSpiCommands WRSR,
-                                                        uint8_t *(&table_end_data),
+          CY15B102Q :: CY15B102QError error_code_table = FRAM_chip.framSpiWriteData(write_command,
+                                                        (uint8_t *)(&table_end_data),
                                                         sizeof(table_end_data),
-                                                        table_end_ptr);
+                                                        table_end_ptr.bit.address);
         }
 
         // We need to remove table start data
@@ -240,10 +244,10 @@ namespace Os {
             if(temp != OP_OK)
               stat = temp;
             // Copy next Table entry into table start data
-            CY15B102QError error_code = framSpiReadData(CY15B102Q::FRAMSpiCommands FSRTD,
-                                                      uint8_t *(&table_start_data),
+            CY15B102Q :: CY15B102QError error_code = FRAM_chip.framSpiReadData(read_command,
+                                                      (uint8_t *)(&table_start_data),
                                                       FRAM_TABLE_ENTRY_SIZE,
-                                                      table_start_ptr);
+                                                      table_start_ptr.bit.address);
             // TODO: Deal with error code 
           }
           // Write data to new end location and change table end ptr tracker
@@ -253,12 +257,12 @@ namespace Os {
             stat = temp;
           // TODO: Deal with error code 
           // Write end projected data size of buffer to the last bytes of the data FRAM
-          CY15B102QError error_code1 = framSpiWriteData(CY15B102Q::FRAMSpiCommands WRSR,
-                                                      buffer,
+          CY15B102Q :: CY15B102QError error_code1 = FRAM_chip.framSpiWriteData(write_command,
+                                                      (uint8_t *)buffer,
                                                       end_projected_data_size,
-                                                      table_end_data.data_location.bit + table_end_data.data_size);
+                                                      table_end_data.data_location.bit.address + table_end_data.data_size);
           // Write the rest of the project data size of buffer to the first bytes of the data FRAM
-          CY15B102QError error_code2 = framSpiWriteData(CY15B102Q::FRAMSpiCommands WRSR,
+          CY15B102Q :: CY15B102QError error_code2 = FRAM_chip.framSpiWriteData(write_command,
                                                       (uint8_t *)((uint32_t)buffer + end_projected_data_size),
                                                       start_projected_data_size,
                                                       FRAM_DATA_PTR_START);
@@ -267,10 +271,10 @@ namespace Os {
           table_end_data.data_name = buff_name;
           table_end_data.data_size = buff_size;
           // Write data to table end location
-          CY15B102QError error_code = framSpiWriteData(CY15B102Q::FRAMSpiCommands WRSR,
-                                                        uint8_t *(&table_end_data),
+          CY15B102Q :: CY15B102QError error_code = FRAM_chip.framSpiWriteData(write_command,
+                                                        (uint8_t *)(&table_end_data),
                                                         sizeof(table_end_data),
-                                                        table_end_ptr);
+                                                        table_end_ptr.bit.address);
         }
       }
 
@@ -298,27 +302,27 @@ namespace Os {
             if(temp != OP_OK)
               stat = temp;
             // Copy next Table entry into table start data
-            CY15B102QError error_code = framSpiReadData(CY15B102Q::FRAMSpiCommands FSRTD,
-                                                      uint8_t *(&table_start_data),
+            CY15B102Q :: CY15B102QError error_code = FRAM_chip.framSpiReadData(read_command,
+                                                      (uint8_t *)(&table_start_data),
                                                       FRAM_TABLE_ENTRY_SIZE,
-                                                      table_start_ptr);
+                                                      table_start_ptr.bit.address);
             // TODO: Deal with error code 
           }
         }
         // Write data to end location
-        CY15B102QError error_code_data = framSpiWriteData(CY15B102Q::FRAMSpiCommands WRSR,
-                                                    buffer,
+        CY15B102Q :: CY15B102QError error_code_data = FRAM_chip.framSpiWriteData(write_command,
+                                                    (uint8_t *)buffer,
                                                     buff_size,
-                                                    table_end_data.data_location.bit + table_end_data.data_size);
+                                                    table_end_data.data_location.bit.address + table_end_data.data_size);
         // TODO: Deal with error code 
         table_end_data.data_location.all = table_end_data.data_location.all + table_end_data.data_size;
         table_end_data.data_name = buff_name;
         table_end_data.data_size = buff_size;
         // Write data to table end location
-        CY15B102QError error_code_table = framSpiWriteData(CY15B102Q::FRAMSpiCommands WRSR,
-                                                        uint8_t *(&table_end_data),
+        CY15B102Q :: CY15B102QError error_code_table = FRAM_chip.framSpiWriteData(write_command,
+                                                        (uint8_t *)(&table_end_data),
                                                         sizeof(table_end_data),
-                                                        table_end_ptr);
+                                                        table_end_ptr.bit.address);
         // TODO: Deal with error codes 
       }
     }
@@ -335,12 +339,13 @@ namespace Os {
         // If we're still using the first table address, we need to increment it
         if(table_start_ptr.all == FRAM_TABLE_PTR_START)
         {
+          CY15B102Q :: FRAMSpiCommands read_command = CY15B102Q :: FSRTD;
           table_start_ptr.all = FRAM_TABLE_PTR_START + FRAM_TABLE_ENTRY_SIZE;
           // Read new table start entry data into table start data from table_start_ptr
-          CY15B102QError error_code = framSpiReadData(CY15B102Q::FRAMSpiCommands FSRTD,
-                                                      uint8_t *(&table_start_data),
+          CY15B102Q :: CY15B102QError error_code = FRAM_chip.framSpiReadData(read_command,
+                                                      (uint8_t *)(&table_start_data),
                                                       FRAM_TABLE_ENTRY_SIZE,
-                                                      table_start_ptr);
+                                                      table_start_ptr.bit.address);
           // TODO: check error_code and assign stat code from that
         }
 

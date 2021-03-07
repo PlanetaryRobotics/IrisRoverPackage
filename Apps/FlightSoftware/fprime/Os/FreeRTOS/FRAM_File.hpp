@@ -4,8 +4,6 @@
 #include <Fw/Cfg/Config.hpp>
 #include <Fw/Types/BasicTypes.hpp>
 
-#include "CY15B102Q.hpp"
-
     #define FRAM_TABLE_PTR_START 0x00000
     #define FRAM_TABLE_PTR_END   0x13880
     #define FRAM_DATA_PTR_START  0x13881

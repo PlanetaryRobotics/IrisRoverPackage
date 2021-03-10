@@ -1,27 +1,79 @@
 <template>
   <div>
-    <div class="background"/>
+    <div class="background" />
     <div class="deletemodal">
       <!-- HEADER -->
       <div class="header">
-        <svg width="15" height="19" viewBox="0 0 15 19" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff">
-          <rect x="0.5" y="2.69006" width="13.2813" height="15.6615" rx="1.5" stroke-linecap="round"/>
-          <line x1="3.77295" y1="5.07031" x2="3.77295" y2="15.9714" stroke-linecap="round"/>
-          <line x1="7.04541" y1="5.07031" x2="7.04541" y2="15.9714" stroke-linecap="round"/>
-          <line x1="1.68994" y1="0.5" x2="12.591" y2="0.5" stroke-linecap="round"/>
-          <line x1="10.3184" y1="5.07031" x2="10.3184" y2="15.9714" stroke-linecap="round"/>
+        <svg
+          width="15"
+          height="19"
+          viewBox="0 0 15 19"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          stroke="#ffffff"
+        >
+          <rect
+            x="0.5"
+            y="2.69006"
+            width="13.2813"
+            height="15.6615"
+            rx="1.5"
+            stroke-linecap="round"
+          />
+          <line
+            x1="3.77295"
+            y1="5.07031"
+            x2="3.77295"
+            y2="15.9714"
+            stroke-linecap="round"
+          />
+          <line
+            x1="7.04541"
+            y1="5.07031"
+            x2="7.04541"
+            y2="15.9714"
+            stroke-linecap="round"
+          />
+          <line
+            x1="1.68994"
+            y1="0.5"
+            x2="12.591"
+            y2="0.5"
+            stroke-linecap="round"
+          />
+          <line
+            x1="10.3184"
+            y1="5.07031"
+            x2="10.3184"
+            y2="15.9714"
+            stroke-linecap="round"
+          />
         </svg>
-        <div class="header__text text__main--bold"> Delete Confirmation</div>
+        <div class="header__text text__main--bold">
+          Delete Confirmation
+        </div>
       </div>
 
       <!-- TEXT -->
-      <div class="content" v-html="rawHTML">
-      </div>
+      <div
+        class="content"
+        v-html="rawHTML"
+      />
 
       <!-- BUTTONS -->
       <div class="buttonContainer">
-        <button @click='executeCancel' class="button__cancel">CANCEL</button>
-        <button @click='executeDelete' class="button__delete">DELETE</button>
+        <button
+          class="button__cancel"
+          @click="executeCancel"
+        >
+          CANCEL
+        </button>
+        <button
+          class="button__delete"
+          @click="executeDelete"
+        >
+          DELETE
+        </button>
       </div>
     </div>
   </div>
@@ -30,26 +82,26 @@
 <script>
 
 export default {
-  name: "Deletemodal",
-  props: {
-    rawHTML: String,
-    deleteCallback: Function,
-    cancelCallback: Function
-  },
-  methods: {
-    executeCancel() {
-      this.cancelCallback();
-      this.closeModal();
+    name: 'Deletemodal',
+    props: {
+        rawHTML: String,
+        deleteCallback: Function,
+        cancelCallback: Function
     },
-    executeDelete() {
-      this.deleteCallback();
-      this.closeModal();
-    },
-    closeModal() {
-      this.$emit('closeModal', 'modalDelete');
-    },
-  }
-}
+    methods: {
+        executeCancel() {
+            this.cancelCallback();
+            this.closeModal();
+        },
+        executeDelete() {
+            this.deleteCallback();
+            this.closeModal();
+        },
+        closeModal() {
+            this.$emit('closeModal', 'modalDelete');
+        },
+    }
+};
 
 </script>
 

@@ -9,20 +9,20 @@
  * Last Update: 08/14/2020, Colombo
  */
 
-import DBObject from './DBObject.js'
+import DBObject from './DBObject.js';
 
-import sankeyDefault from '@/components/FTA/sankey_default.json'
+import sankeyDefault from '@/components/FTA/sankey_default.json';
 
 export default class FTAData extends DBObject{
-  constructor(inputData){
-    super(inputData);
-  } // ctor
+    constructor(inputData){
+        super(inputData);
+    } // ctor
 
-  // Returns the Default Data this Object Should Contain
-  static defaultData(){
-    return {
-      ...sankeyDefault
+    // Returns the Default Data this Object Should Contain
+    static defaultData(){
+        return {
+            ...sankeyDefault
+        };
     }
-  }
   
- } // class: FTAData
+} // class: FTAData

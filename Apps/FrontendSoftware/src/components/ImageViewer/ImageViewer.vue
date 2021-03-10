@@ -13,60 +13,64 @@ Last Updated: 08/13/2020, Colombo
     @keyup.right="$eventHub.$emit('IV-keypress-right')"
     @keyup.left="$eventHub.$emit('IV-keypress-left')"
   >
-    <Functional class="functional"/>
+    <Functional class="functional" />
     <ImageViewport class="viewer" />
-    <Toolbar class="tools"/>
-    <Timeline class="timeline"/>
+    <Toolbar class="tools" />
+    <Timeline class="timeline" />
     <!-- MODALS -->
-    <AddTag class="modal" v-if="isAddTag" v-bind:addTagName="addTagName"/>
+    <AddTag
+      v-if="isAddTag"
+      class="modal"
+      :add-tag-name="addTagName"
+    />
   </div>
 </template>
 
 <script>
-import ImageViewport from "@/components/ImageViewer/Viewport/ImageViewport.vue"
-import Timeline from "@/components/ImageViewer/Timeline/Timeline.vue"
-import Functional from "@/components/ImageViewer/functional/Functional.vue"
-import Toolbar from "@/components/ImageViewer/Toolbar.vue"
-import AddTag from "@/components/ImageViewer/modals/AddTag.vue"
+import ImageViewport from '@/components/ImageViewer/Viewport/ImageViewport.vue';
+import Timeline from '@/components/ImageViewer/Timeline/Timeline.vue';
+import Functional from '@/components/ImageViewer/functional/Functional.vue';
+import Toolbar from '@/components/ImageViewer/Toolbar.vue';
+import AddTag from '@/components/ImageViewer/modals/AddTag.vue';
 
 import { mapState } from 'vuex';
 
 export default {
-  components: {
-    Timeline,
-    Toolbar,
-    Functional,
-    ImageViewport,
-    AddTag
-  },
-  data: function() {
-    return {
-      addTagName: "",
-      console
+    components: {
+        Timeline,
+        Toolbar,
+        Functional,
+        ImageViewport,
+        AddTag
+    },
+    data: function() {
+        return {
+            addTagName: '',
+            console
+        };
+    },
+
+    methods: {
+        addTag: function(payload) { // Opens add tag modial and sets addTagName to image name
+            this.$store.commit('ADD_TAG');
+            this.addTagName = payload;
+        }
+    },
+
+    computed: {
+        ...mapState({
+            isAddTag: state => state.IMG.isAddTag
+        })
+    },
+
+    created: function() { // Adds event listners to the global event hub for adding/removing tags from an image
+        this.$eventHub.$on('addTag', this.addTag);
+    },
+
+    beforeDestroy: function() { // Removes event listners from the global event hub for adding/removing tags from an image
+        this.$eventHub.$off('addTag', this.addTag);
     }
-  },
-
-  methods: {
-    addTag: function(payload) { // Opens add tag modial and sets addTagName to image name
-      this.$store.commit('ADD_TAG')
-      this.addTagName = payload
-    }
-  },
-
-  computed: {
-    ...mapState({
-      isAddTag: state => state.IMG.isAddTag
-    })
-  },
-
-  created: function() { // Adds event listners to the global event hub for adding/removing tags from an image
-    this.$eventHub.$on('addTag', this.addTag);
-  },
-
-  beforeDestroy: function() { // Removes event listners from the global event hub for adding/removing tags from an image
-    this.$eventHub.$off('addTag', this.addTag);
-  }
-}
+};
 </script>
 
 <style lang="scss" scoped>

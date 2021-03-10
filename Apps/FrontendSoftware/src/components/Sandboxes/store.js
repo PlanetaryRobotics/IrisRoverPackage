@@ -8,14 +8,14 @@
  */
 
 export default {
-  state: {
-    testButton1: 0,
-    testButton2: 0,
-    testButton3: 0,
-    testButton4: 0
-  },
+    state: {
+        testButton1: 0,
+        testButton2: 0,
+        testButton3: 0,
+        testButton4: 0
+    },
 
-  mutations: {
+    mutations: {
 
-  }
-}
+    }
+};

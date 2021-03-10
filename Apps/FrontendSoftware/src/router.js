@@ -1,18 +1,18 @@
-import Vue from 'vue'
-import Router from 'vue-router'
+import Vue from 'vue';
+import Router from 'vue-router';
 
 // Real Views:
-import Login from './views/Login.vue'
-import Home from './views/Home.vue'
+import Login from './views/Login.vue';
+import Home from './views/Home.vue';
 
 // Sandboxes:
 // import AtomicTest from './views/sandboxes/AtomicTest.vue' // NB: just importing this breaks the app ...
-import MapTest from './views/sandboxes/MapTest.vue'
+import MapTest from './views/sandboxes/MapTest.vue';
 import POIDashboardTest from './views/sandboxes/POIDashboardTest';
 import ImageViewerTest from './views/sandboxes/ImageViewerTest';
 import HomeTestImgViewer from './views/sandboxes/HomeTestImgViewer.vue';
 
-import { remote } from 'electron'
+import { remote } from 'electron';
 
 Vue.use(Router);
 

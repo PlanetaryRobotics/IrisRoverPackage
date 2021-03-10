@@ -10,32 +10,32 @@
 import TelemetryData from './TelemetryData.js';
 
 export default class TelemetryData_IMU extends TelemetryData{
-  constructor(inputData){
-    super(inputData);
-  } // ctor
+    constructor(inputData){
+        super(inputData);
+    } // ctor
 
-  // Returns the Default Data this Object Should Contain
-  static defaultData(){
-    return { // data which gets saved to JSON
-      accel: {
-        x: 0,
-        y: 0,
-        z: 0
-      },
-      angle: {
-        x: 0,
-        y: 0,
-        z: 0
-      }
+    // Returns the Default Data this Object Should Contain
+    static defaultData(){
+        return { // data which gets saved to JSON
+            accel: {
+                x: 0,
+                y: 0,
+                z: 0
+            },
+            angle: {
+                x: 0,
+                y: 0,
+                z: 0
+            }
+        };
     }
-  }
 
-  // Loads Object from JSON.
-  static fromJSON(data){
+    // Loads Object from JSON.
+    static fromJSON(data){
     // Process all standard telemetry data first:
-    data = (new TelemetryData(data)).data;
+        data = (new TelemetryData(data)).data;
 
-    return new TelemetryData_IMU(data);
-  } // #fromJSON
+        return new TelemetryData_IMU(data);
+    } // #fromJSON
 
- } // class: TelemetryData_IMU
+} // class: TelemetryData_IMU

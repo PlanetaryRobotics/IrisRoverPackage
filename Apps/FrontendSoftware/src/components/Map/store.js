@@ -1,50 +1,70 @@
 import LocalizationTestList from '@/components/Map/Test/LocalizationTestList.js';
 import RouteList from '@/data_classes/RouteList.js';
-import {getReorganizedList} from "@/components/Map/Utility/LocalizationDataPostProcessor.js";
+import { getReorganizedList } from '@/components/Map/Utility/LocalizationDataPostProcessor.js';
 
 export default {
     state: {
+    // Metadata about the grid
+        gridMetadata: {
+            xPosPx: '',
+            yPosPx: '',
+            gridUnitPx: null,
+            gridUnitCm: 30,
+            width: '',
+            height: '',
+            numSquares: 10,
+        },
+        // Metadata about drawn rover:
+        roverMetadata: {
+            angle: 0,
+            xCmFromLander: 0,
+            yCmFromLander: 0,
+            xPosPx: '',
+            yPosPx: '',
+        },
+
+        // BUTTON STATES:
         addRouteButton: {
-          clicked: false,
-          hovered: false
+            clicked: false,
+            hovered: false
         },
 
         planSegmentButton: {
-          clicked: false,
-          hovered: false
+            clicked: false,
+            hovered: false
         },
 
         cancelSegmentButton: {
-          clicked: false,
-          hovered: false
+            clicked: false,
+            hovered: false
         },
 
         // POLAR PLOT BUTTON:
         PolarPlotSVG: {
-          clicked: true,
-          hovered: false,
-          enabled: false,
+            clicked: true,
+            hovered: false,
+            enabled: false,
         },
 
         // RIGHT NAV RADIO BUTTONS:
         RouteAndFeaturesRadioSVG: {
-          clicked: true,
-          hovered: false
+            clicked: true,
+            hovered: false
         },
         RouteManagerRadioSVG: {
-          clicked: false,
-          hovered: false
+            clicked: false,
+            hovered: false
         },
 
         // CANCEL & PLAN ROUTE BUTTONS
         // (in add/edit route tab)
         planRouteButton: {
-          clicked: false,
-          hovered: false
+            clicked: false,
+            hovered: false
         },
         cancelRouteButton: {
-          clicked: false,
-          hovered: false
+            clicked: false,
+            hovered: false
         },
 
         // CREATE FIRST SEG TO A ROUTE
@@ -56,15 +76,15 @@ export default {
         // EDITING A SEG
         isListeningForEditWaypoint: false,
         editingSegmentInfo: {
-          route: null,
-          segmentIdx: null,
+            route: null,
+            segmentIdx: null,
         },
 
         // CIRCUMNAV
         isListeningForPOIClick: false,
         targetPOI: {
-          POICard: null,
-          positionPx: null,
+            POICard: null,
+            positionPx: null,
         },
         currCircumnav: null, // Temp circumnav when adding
         editingCircumnav: null, // Temp cirumnav when editing
@@ -83,172 +103,185 @@ export default {
     },
 
     getters: {
-      // --- DB Sync
-      commandData: state => {
-        return state.commandData;
-      },
+    // get grid meta
+        getGridMetadata: state => {
+            return state.gridMetadata;
+        },
+        // --- DB Sync
+        commandData: state => {
+            return state.commandData;
+        },
 
-      localizationData: state => {
-        let newList = state.localizationData.getList();
+        localizationData: state => {
+            let newList = state.localizationData.getList();
 
-        // No list initialized yet
-        if (!state.oldList) {
-          state.oldList = [...newList];
-          return state.oldList;
-        }
+            // No list initialized yet
+            if (!state.oldList) {
+                state.oldList = [...newList];
+                return state.oldList;
+            }
 
-        // This happens when we get new data with SAME lookupID, so length of list is the same
-        if (state.oldList.length === newList.length) {
-          state.oldList = [...newList];
-          return state.oldList;
-        }
+            // This happens when we get new data with SAME lookupID, so length of list is the same
+            if (state.oldList.length === newList.length) {
+                state.oldList = [...newList];
+                return state.oldList;
+            }
 
-        // Check if the new obj is a frame, if so, add to framePoints
-        if (newList[newList.length - 1].data.frame.n > 0 && newList[newList.length - 1].data.frame.len > 0){
-          state.framePoints.push(newList[newList.length - 1]);
-        }
+            // Check if the new obj is a frame, if so, add to framePoints
+            if (newList[newList.length - 1].data.frame.n > 0 && newList[newList.length - 1].data.frame.len > 0) {
+                state.framePoints.push(newList[newList.length - 1]);
+            }
 
-        // Reorder the list
-        let adjustedList = getReorganizedList(state.oldList, newList);
+            // Reorder the list
+            let adjustedList = getReorganizedList(state.oldList, newList);
 
-        // Do a copy otherwise saving mem addr
-        state.oldList = [...adjustedList];
-        
-        return state.oldList;
-      },
+            // Do a copy otherwise saving mem addr
+            state.oldList = [...adjustedList];
 
-      framePoints: state => {
-        return state.framePoints;
-      },
+            return state.oldList;
+        },
 
-      // --- Polar plot
-      polarPlotEnabled: state => {
-        return state.PolarPlotSVG.enabled;
-      },
+        framePoints: state => {
+            return state.framePoints;
+        },
 
-      // --- Routelist
-      routeList: state => {
-        return state.routeList;
-      },
+        // --- Polar plot
+        polarPlotEnabled: state => {
+            return state.PolarPlotSVG.enabled;
+        },
 
-      routeListIsEmpty: state => {
-        return state.routeList.isListEmpty();
-      },
+        // --- Routelist
+        routeList: state => {
+            return state.routeList;
+        },
 
-      // --- Add Waypoint related
-      isListeningForNewWaypoint: state => {
-        return state.isListeningForNewWaypoint;
-      },
+        routeListIsEmpty: state => {
+            return state.routeList.isListEmpty();
+        },
 
-      currWaypointSegment: state => {
-        return state.currWaypointSegment;
-      },
+        // --- Add Waypoint related
+        isListeningForNewWaypoint: state => {
+            return state.isListeningForNewWaypoint;
+        },
 
-      removeCurrSegment: state => {
-        return state.removeCurrSegment;
-      },
+        currWaypointSegment: state => {
+            return state.currWaypointSegment;
+        },
 
-      editingRoute: state => {
-        return state.editingRoute;
-      },
+        removeCurrSegment: state => {
+            return state.removeCurrSegment;
+        },
 
-      // --- Edit Waypoint related
-      isListeningForEditWaypoint: state => {
-        return state.isListeningForEditWaypoint;
-      },
+        editingRoute: state => {
+            return state.editingRoute;
+        },
 
-      editingSegmentInfo: state => {
-        return state.editingSegmentInfo;
-      },
-    
-      // --- Add Circumnav related
-      isListeningForPOIClick: state => {
-        return state.isListeningForPOIClick;
-      },
+        // --- Edit Waypoint related
+        isListeningForEditWaypoint: state => {
+            return state.isListeningForEditWaypoint;
+        },
 
-      targetPOI: state => {
-        return state.targetPOI;
-      },
+        editingSegmentInfo: state => {
+            return state.editingSegmentInfo;
+        },
 
-      currCircumnav: state => {
-        return state.currCircumnav;
-      },
+        // --- Add Circumnav related
+        isListeningForPOIClick: state => {
+            return state.isListeningForPOIClick;
+        },
 
-      // --- Edit Circumnav related
-      editingCircumnav: state => {
-        return state.editingCircumnav;
-      },
+        targetPOI: state => {
+            return state.targetPOI;
+        },
+
+        currCircumnav: state => {
+            return state.currCircumnav;
+        },
+
+        // --- Edit Circumnav related
+        editingCircumnav: state => {
+            return state.editingCircumnav;
+        },
     },
     mutations: {
-      createEmptyRoute(state) {
-        state.routeList.addEmptyRoute();
-      },
+    // update functions for update grid meta data
+        updateGridMetadata(state, data) {
+            Object.assign(state.gridMetadata, data);
+        },
+        // update function for update rover meta data
+        updateRoverMetadata(state, data) {
+            Object.assign(state.roverMetadata, data);
+        },
 
-      saveSegment(state, {route, segment}) {
-        route.addToSegmentList(segment);
-        state.currWaypointSegment = null;
-      },
+        createEmptyRoute(state) {
+            state.routeList.addEmptyRoute();
+        },
 
-      saveCircumnav(state, route) {
-        route.addToSegmentList(state.currCircumnav);
-        state.currCircumnav = null;
-      },
+        saveSegment(state, { route, segment }) {
+            route.addToSegmentList(segment);
+            state.currWaypointSegment = null;
+        },
 
-      togglePolarPlotButton(state) {
-        state.PolarPlotSVG.enabled = !state.PolarPlotSVG.enabled;
-      },
+        saveCircumnav(state, route) {
+            route.addToSegmentList(state.currCircumnav);
+            state.currCircumnav = null;
+        },
 
-      // -- Adding waypoint
-      setIsListeningForNewWaypoint(state, isListening) {
-        state.isListeningForNewWaypoint = isListening;
-      },
+        togglePolarPlotButton(state) {
+            state.PolarPlotSVG.enabled = !state.PolarPlotSVG.enabled;
+        },
 
-      setCurrWaypointSegment(state, segment) {
-        state.currWaypointSegment = segment;
-      },
+        // -- Adding waypoint
+        setIsListeningForNewWaypoint(state, isListening) {
+            state.isListeningForNewWaypoint = isListening;
+        },
 
-      setEditingRoute(state, route) {
-        state.editingRoute = route;
-      },
+        setCurrWaypointSegment(state, segment) {
+            state.currWaypointSegment = segment;
+        },
 
-      // -- Editing waypoint
-      setIsListeningForEditWaypoint(state, isListening) {
-        state.isListeningForEditWaypoint = isListening;
-      },
+        setEditingRoute(state, route) {
+            state.editingRoute = route;
+        },
 
-      setEditingSegmentInfo(state, {route, segmentIdx}) {
-        state.editingSegmentInfo = {
-          route: route,
-          segmentIdx: segmentIdx
+        // -- Editing waypoint
+        setIsListeningForEditWaypoint(state, isListening) {
+            state.isListeningForEditWaypoint = isListening;
+        },
+
+        setEditingSegmentInfo(state, { route, segmentIdx }) {
+            state.editingSegmentInfo = {
+                route: route,
+                segmentIdx: segmentIdx
+            };
+        },
+
+        // -- Delete waypoint
+        deleteWaypoint(state, { route, segment }) {
+            route.deleteSegment(segment);
+        },
+
+        // -- Adding circumnav
+        setIsListeningForPOIClick(state, isListening) {
+            state.isListeningForPOIClick = isListening;
+        },
+
+        setTargetPOI(state, { POICard, positionPx }) {
+            state.targetPOI = Object.assign({}, { POICard: POICard, positionPx: positionPx });
+        },
+
+        setCurrCircumnav(state, circumnav) {
+            state.currCircumnav = circumnav;
+        },
+
+        // -- Editing circumnav
+        setEditingCircumnav(state, circumnav) {
+            state.editingCircumnav = circumnav;
+        },
+
+        // -- CLI testing (remove later)
+        addCommand(state, data) {
+            state.commandData.push(data);
         }
-      },
-
-      // -- Delete waypoint
-      deleteWaypoint(state, {route, segment}) {
-        route.deleteSegment(segment);
-      },
-
-      // -- Adding circumnav
-      setIsListeningForPOIClick(state, isListening) {
-        state.isListeningForPOIClick = isListening;
-      },
-
-      setTargetPOI(state, {POICard, positionPx}) {
-        state.targetPOI = Object.assign({}, {POICard: POICard, positionPx: positionPx});
-      },
-
-      setCurrCircumnav(state, circumnav) {
-        state.currCircumnav = circumnav;
-      },
-
-      // -- Editing circumnav
-      setEditingCircumnav(state, circumnav) {
-        state.editingCircumnav = circumnav;
-      },
-
-      // -- CLI testing (remove later)
-      addCommand(state, data) {
-        state.commandData.push(data);
-      }
     }
 };

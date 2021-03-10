@@ -10,32 +10,46 @@ Last Updated: 3/31/2019, Moosbrugger
   <div id="functionalSlider">
     <!-- HEADER -->
     <div class="functionalSlider__header">
-      <p class="functionalSlider__header--title text__small">{{sData.name}}</p>
-      <p class="functionalSlider__header--value text__small">{{ output }}</p>
+      <p class="functionalSlider__header--title text__small">
+        {{ sData.name }}
+      </p>
+      <p class="functionalSlider__header--value text__small">
+        {{ output }}
+      </p>
     </div>
     <!-- INPUT -->
-    <input type="range" min="0" max="200" v-model="value" class="slider"/>
+    <input
+      v-model="value"
+      type="range"
+      min="0"
+      max="200"
+      class="slider"
+    >
   </div>
 </template>
 
 <script>
 export default {
-  props: ['sData'],
-  data() {
-    return {
-      value: 100 //     - Default value for slider (range of 0 - 200)
+    props: {
+        sData: {
+            type: Object
+        }
+    },
+    data() {
+        return {
+            value: 100 //     - Default value for slider (range of 0 - 200)
+        };
+    },
+    computed: {
+        output() { // sets the output of the slider, some near 0 values are crushed for usability.
+            let output = (this.value - 100) / 100;
+            if (output >= -.01 && output <= .01) {
+                output = 0;
+            }
+            return output;
+        }
     }
-  },
-  computed: {
-    output() { // sets the output of the slider, some near 0 values are crushed for usability.
-      let output = (this.value - 100) / 100
-      if (output >= -.01 && output <= .01) {
-        output = 0;
-      }
-      return output
-    }
-  }
-}
+};
 </script>
 
 <style lang="scss" scoped>

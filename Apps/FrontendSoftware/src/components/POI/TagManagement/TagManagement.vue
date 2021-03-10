@@ -1,26 +1,33 @@
 <template>
-    <div class="TagManagement scrollable">
-        <div class="TagManagementHeader" v-for="(tag, index) in POITagList.keys()" :key="index">
-          <TagManagementCard :tag="tag" :list="POITagList.get(tag)"/>
-        </div>
-    </div> 
+  <div class="TagManagement scrollable">
+    <div
+      v-for="(tag, index) in POITagList.keys()"
+      :key="index"
+      class="TagManagementHeader"
+    >
+      <TagManagementCard
+        :tag="tag"
+        :list="POITagList.get(tag)"
+      />
+    </div>
+  </div> 
 </template>
 
 <script>
 
-import TagManagementCard from "@/components/POI/TagManagement/TagManagementCard.vue";
+import TagManagementCard from '@/components/POI/TagManagement/TagManagementCard.vue';
 
 export default {
-  name: "TagManagement",
-  components: {
-    TagManagementCard
-  },
-  computed: {
-    POITagList() {
-      return this.$store.getters.POIByTagList;
-    }
-  },
-}
+    name: 'TagManagement',
+    components: {
+        TagManagementCard
+    },
+    computed: {
+        POITagList() {
+            return this.$store.getters.POIByTagList;
+        }
+    },
+};
 
 </script>
 

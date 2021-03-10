@@ -74,7 +74,7 @@ Last Update: 1/22/2020, Gabbi LaBorwit
           v-on:POIChoiceSelected="onPOIChoiceSelected"
           :endCoordinates="endCoord"
         />
-        
+
         <POIModalFullDetails
           :parentData="initalPOIChoiceSelected"
           v-if="arePOIFullDetailsVisible"
@@ -309,7 +309,7 @@ export default {
       let bottomLeft = [];
       bottomLeft[0] = this.greenBoxTopLeftCoords[0]/POILayerDiv.clientWidth;
       bottomLeft[1] = (this.greenBoxTopLeftCoords[1] + this.baseYOffset)/POILayerDiv.clientHeight;
-      
+
       return [topLeft, topRight, bottomRight, bottomLeft];
     },
 
@@ -440,7 +440,7 @@ export default {
         // &&
         //   ((this.capSciExpandBoxEndCoords[0] - this.greenBoxTopLeftCoords[0]) < (document.getElementById("imgvp").clientWidth-this.greenBoxTopLeftCoords[0]))
 
-        else if (this.dragSide == "right" && 
+        else if (this.dragSide == "right" &&
           (this.capSciExpandBoxEndCoords[0] > (this.greenBoxTopLeftCoords[0]+12)) && cursorInsideImageBoundary
         ) {
           topLeft = [
@@ -485,7 +485,7 @@ export default {
           this.capSciExpandBoxEndCoords = topRight;
         }
         // illegal drag due to drag past image boundary
-        else if(this.dragSide == "right" && !cursorInsideImageBoundary && sideOutOfBounds.right   
+        else if(this.dragSide == "right" && !cursorInsideImageBoundary && sideOutOfBounds.right
         ){
           topLeft = [
             this.greenBoxTopLeftCoords[0],
@@ -803,7 +803,7 @@ export default {
       if (event.button === 2) {
         return;
       }
-      
+
       // reset end coord if already exists
       if (this.endCoord.length > 0) {
         this.endCoord = [];

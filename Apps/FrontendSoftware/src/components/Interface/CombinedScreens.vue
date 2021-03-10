@@ -58,20 +58,27 @@ Last Update: 08/07/2020, Colombo
 <template>
   <div class="combined-screens">
     <!-- DEFAULT HEADER (for when no tabs are selected): -->
-    <div class="scrollable-header-container" ref="CSHeader" id="CSHeader" v-show="orderedDisplayNodes.length===0"> <!-- Note: can't use v-if for the ref to remain persistent -->
+    <div
+      v-show="orderedDisplayNodes.length===0"
+      id="CSHeader"
+      ref="CSHeader"
+      class="scrollable-header-container"
+    >
+      <!-- Note: can't use v-if for the ref to remain persistent -->
       <div class="header">
         <div class="header--tab-container">
           <TabHeader
+            v-for="tabPacket in orderedNodePackets"
+            :key="tabPacket.id"
             class="tab"
-            v-for="tabPacket in orderedNodePackets" :key="tabPacket.id"
             :name="tabPacket.name"
             :active="Boolean(tabPacket.visible)"
             :closeable="tabPacket.visible"
-            :onClick="() => { tabPacket.visible = true; }"
-            :onClose="() => { tabPacket.visible = false; }"
+            :on-click="() => { tabPacket.visible = true; }"
+            :on-close="() => { tabPacket.visible = false; }"
             draggable="true"
-            @dragstart.native='startDrag($event, tabPacket)'
-            @dragend.native='endDrag($event, tabPacket)'
+            @dragstart.native="startDrag($event, tabPacket)"
+            @dragend.native="endDrag($event, tabPacket)"
           />
         </div>
         <InfoBar />
@@ -81,9 +88,10 @@ Last Update: 08/07/2020, Colombo
 
     <!-- MODAL CONTAINERS: -->
     <ModalComponentContainer
-      v-for="(node, idx) in $slots['modal-components']" :key="idx"
-      :headerText="node.data.attrs.ModalHeader"
-      :drawerIcon="node.data.attrs.ModalIcon"
+      v-for="(node, idx) in $slots['modal-components']"
+      :key="idx"
+      :header-text="node.data.attrs.ModalHeader"
+      :drawer-icon="node.data.attrs.ModalIcon"
     >
       <VNodeRenderer :node="node" />
     </ModalComponentContainer>
@@ -93,33 +101,44 @@ Last Update: 08/07/2020, Colombo
     <div class="grid-region">
       <div class="grid-row">
         <div 
+          v-for="(packet, columnIdx) in orderedDisplayNodes"
+          :key="packet.id"
           class="grid-column"
-          v-for="(packet, columnIdx) in orderedDisplayNodes" :key="packet.id"
         >
           <!-- CONTAINED HEADER: -->
-          <div class="scrollable-header-container" :id="`CSHeader${columnIdx}`">
+          <div
+            :id="`CSHeader${columnIdx}`"
+            class="scrollable-header-container"
+          >
             <div class="header">
               <div class="header--tab-container">
                 <TabHeader
+                  v-for="tabPacket in columnTabs(columnIdx)"
+                  :key="tabPacket.id"
                   class="tab"
-                  v-for="tabPacket in columnTabs(columnIdx)" :key="tabPacket.id"
                   :name="tabPacket.name" 
                   :active="Boolean(tabPacket.visible)"
                   :closeable="tabPacket.visible"
-                  :showCloseOnlyOnHover="columnIdx===0 && orderedDisplayNodes.length===1"
-                  :onClick="() => { packet.visible = false; tabPacket.visible = true; }"
-                  :onClose="() => { tabPacket.visible = false; }"
+                  :show-close-only-on-hover="columnIdx===0 && orderedDisplayNodes.length===1"
+                  :on-click="() => { packet.visible = false; tabPacket.visible = true; }"
+                  :on-close="() => { tabPacket.visible = false; }"
                   draggable="true"
-                  @dragstart.native='startDrag($event, tabPacket)'
-                  @dragend.native='endDrag($event, tabPacket)'
+                  @dragstart.native="startDrag($event, tabPacket)"
+                  @dragend.native="endDrag($event, tabPacket)"
                 />
               </div>
-              <InfoBar :syncedClock.sync="syncedClock" v-if="columnIdx===orderedDisplayNodes.length-1" />
+              <InfoBar
+                v-if="columnIdx===orderedDisplayNodes.length-1"
+                :synced-clock.sync="syncedClock"
+              />
             </div>
           </div>
 
           <!-- COLUMN HOVER REGIONS: -->
-          <div class="grid-hover-region--container" v-show="showHoverRegion">
+          <div
+            v-show="showHoverRegion"
+            class="grid-hover-region--container"
+          >
             <div class="grid-hover-region--indicator" />
             <div class="grid-hover-region">
               <div
@@ -142,294 +161,311 @@ Last Update: 08/07/2020, Colombo
       </div> <!--grid row-->
     </div> <!--grid region-->
 
-    <div class="egg-container" v-show="showEgg">
+    <div
+      v-show="showEgg"
+      class="egg-container"
+    >
       <transition name="egg-bg-intro">
-        <div v-if="showEgg" class="egg-space" />
+        <div
+          v-if="showEgg"
+          class="egg-space"
+        />
       </transition>
       <transition name="egg-shell-intro">
-        <div v-if="showEgg" class="egg-shell" v-html="eggShellSVG" />
+        <div
+          v-if="showEgg"
+          class="egg-shell"
+          v-html="eggShellSVG"
+        />
       </transition>
       <transition name="egg-albumen-intro">
-        <div v-if="showEgg" class="egg-albumen" v-html="eggAlbumenSVG" />
+        <div
+          v-if="showEgg"
+          class="egg-albumen"
+          v-html="eggAlbumenSVG"
+        />
       </transition>
       <transition name="egg-yolk-intro">
-        <div v-if="showEgg" class="egg-yolk" v-html="eggYolkSVG" />
+        <div
+          v-if="showEgg"
+          class="egg-yolk"
+          v-html="eggYolkSVG"
+        />
       </transition>
     </div>
-
   </div> <!--combined screen-->
 </template>
 
 <script>
 /* global __static */ // <- keep eslint from complaining about the __static directory
-import path from 'path'
-import fs from 'fs'
+import path from 'path';
+import fs from 'fs';
 
-import TabHeader from '@/components/atomic/TabHeader.vue'
-import InfoBar from '@/components/Interface/InfoBar.vue'
-import ModalComponentContainer from '@/components/Interface/ModalComponentContainer.vue'
+import TabHeader from '@/components/atomic/TabHeader.vue';
+import InfoBar from '@/components/Interface/InfoBar.vue';
+import ModalComponentContainer from '@/components/Interface/ModalComponentContainer.vue';
 
-import Clock from '@/system/Clock.js'
+import Clock from '@/system/Clock.js';
 
 export default {
-  name: 'CombinedScreens',
-  components: {
-    TabHeader,
-    InfoBar,
-    ModalComponentContainer,
-    VNodeRenderer: {
-        functional: true,
-        render: (h,ctx) => ctx.props.node
-    }
-  },
-  data(){
-    return {
-      nodePackets: [], // Array of packets containing the VNodes to be rendered as well as associated positioning metadata
-      showHoverRegion: false,
+    name: 'CombinedScreens',
+    components: {
+        TabHeader,
+        InfoBar,
+        ModalComponentContainer,
+        VNodeRenderer: {
+            functional: true,
+            render: (h,ctx) => ctx.props.node
+        }
+    },
+    data(){
+        return {
+            nodePackets: [], // Array of packets containing the VNodes to be rendered as well as associated positioning metadata
+            showHoverRegion: false,
 
-      // Clock synced between multiple InfoBar instances (one inside each header):
-      syncedClock: new Clock(),
+            // Clock synced between multiple InfoBar instances (one inside each header):
+            syncedClock: new Clock(),
 
-      eggShellSVG: "", // Inline SVG HTML for Egg Shell. Shown when no tabs are selected.
-      eggAlbumenSVG: "", // Inline SVG HTML for Egg Albumen. Shown when no tabs are selected.
-      eggYolkSVG: "" // Inline SVG HTML for Egg Yolk. Shown when no tabs are selected.
-    }
-  },
-  mounted() {
-    // Load Nodes from Default Slot and Create Node Packets:
-    this.nodePackets = this.$slots.default.map( (x,idx) => ({ 
-      id: idx, // Fixed unique identifier
-      node: x, // Core VNode representing the contained DOM object
-      name: x.data.attrs.TabName, // Name shown on the tab
-      position: idx, // Mutible (indicates ordered position of tab)
-      visible: idx===0 // Whether this packet should be rendered (make only first visible by default)
-    }));
-
-    this.eggShellSVG = fs.readFileSync(path.join(__static,'./egg/egg_shell.svg'), 'utf8');
-    this.eggAlbumenSVG = fs.readFileSync(path.join(__static,'./egg/egg_albumen.svg'), 'utf8');
-    this.eggYolkSVG = fs.readFileSync(path.join(__static,'./egg/egg_yolk.svg'), 'utf8');
-  },
-  computed: {
+            eggShellSVG: '', // Inline SVG HTML for Egg Shell. Shown when no tabs are selected.
+            eggAlbumenSVG: '', // Inline SVG HTML for Egg Albumen. Shown when no tabs are selected.
+            eggYolkSVG: '' // Inline SVG HTML for Egg Yolk. Shown when no tabs are selected.
+        };
+    },
+    computed: {
     // Array of Node Packets in the Appropriate Order (sorted by position property)
-    orderedNodePackets(){
-      return this.nodePackets.concat().sort( (a,b) => a.position - b.position );
-    },
-    // Ordered List of Nodes to be Displayed:
-    orderedDisplayNodes(){
-      return this.orderedNodePackets.filter( x => x.visible );
-    },
+        orderedNodePackets(){
+            return this.nodePackets.concat().sort( (a,b) => a.position - b.position );
+        },
+        // Ordered List of Nodes to be Displayed:
+        orderedDisplayNodes(){
+            return this.orderedNodePackets.filter( x => x.visible );
+        },
 
-    // Whether to Show the Egg (everything else is closed) - serves as a trigger for the transitions.
-    showEgg(){
-      return this.orderedDisplayNodes.length === 0;
-    }
-  },
-  methods: {
+        // Whether to Show the Egg (everything else is closed) - serves as a trigger for the transitions.
+        showEgg(){
+            return this.orderedDisplayNodes.length === 0;
+        }
+    },
+    mounted() {
+    // Load Nodes from Default Slot and Create Node Packets:
+        this.nodePackets = this.$slots.default.map( (x,idx) => ({ 
+            id: idx, // Fixed unique identifier
+            node: x, // Core VNode representing the contained DOM object
+            name: x.data.attrs.TabName, // Name shown on the tab
+            position: idx, // Mutible (indicates ordered position of tab)
+            visible: idx===0 // Whether this packet should be rendered (make only first visible by default)
+        }));
+
+        this.eggShellSVG = fs.readFileSync(path.join(__static,'./egg/egg_shell.svg'), 'utf8');
+        this.eggAlbumenSVG = fs.readFileSync(path.join(__static,'./egg/egg_albumen.svg'), 'utf8');
+        this.eggYolkSVG = fs.readFileSync(path.join(__static,'./egg/egg_yolk.svg'), 'utf8');
+    },
+    methods: {
     /** -- TAB FUNCTIONS --  **/
 
-    // Returns the list of tabs which should be displayed above the column with the given index.
-    // For the first column, it will be an array of all invisible tabs + the first visible tab; 
-    // for the Nth column, it will just be the Nth visible tab (inside an array).
-    columnTabs(colIdx){
-      if(colIdx === 0){
-        return this.orderedNodePackets.filter( p => !p.visible || p.id===this.orderedDisplayNodes[0].id );
-      } else {
-        return [this.orderedDisplayNodes[colIdx]];
-      }
-    },
+        // Returns the list of tabs which should be displayed above the column with the given index.
+        // For the first column, it will be an array of all invisible tabs + the first visible tab; 
+        // for the Nth column, it will just be the Nth visible tab (inside an array).
+        columnTabs(colIdx){
+            if(colIdx === 0){
+                return this.orderedNodePackets.filter( p => !p.visible || p.id===this.orderedDisplayNodes[0].id );
+            } else {
+                return [this.orderedDisplayNodes[colIdx]];
+            }
+        },
 
-    /** -- TAB DRAG FUNCTIONS --  **/
+        /** -- TAB DRAG FUNCTIONS --  **/
 
-    // When TabHeader is dragged, allow its data packet to be transferred through the move (into the drop zone)
-    startDrag(event, packet){
-      this.showHoverRegion = true;
-      event.dataTransfer.dropEfect = 'move';
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('packetId', packet.id);
-    },
-    // Cleanup when TabHeader drag ends:
-    endDrag(){
-      this.showHoverRegion = false;
-    },
+        // When TabHeader is dragged, allow its data packet to be transferred through the move (into the drop zone)
+        startDrag(event, packet){
+            this.showHoverRegion = true;
+            event.dataTransfer.dropEfect = 'move';
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('packetId', packet.id);
+        },
+        // Cleanup when TabHeader drag ends:
+        endDrag(){
+            this.showHoverRegion = false;
+        },
 
-    /**
+        /**
      * Determines the appropriate onDrop behaviours based on the given index of the drop trigger (1=left, 2=center, 3=right).
      * 
      * If the dropped columnIdx is 0, special behaviour will take place to ensure that all invisible packets come before the 
      * second visible packet.
      * columnIdx
      */
-    onDropHandler(event, zonePacket, idx, columnIdx){
-      // Special case for first column in a row:
-      if(columnIdx === 0){
-        // Get the highest position of all invisible packets:
-        let maxInvisiblePos = this.orderedNodePackets
-                                    .filter( p => !p.visible )
-                                    .reduce( (maxPos, p) => p.position > maxPos ? p.position : maxPos, -1 );
-        switch(idx){
-          case 1:
-            // Correctly position new packet:
-            this.onDropAddBefore(event, zonePacket.position);
-            // The reposition old packet (in drop zone) to after the invisibles:
-            //this.insertPacketBefore(zonePacket, maxInvisiblePos+1); // <- this breaks ordering when you try to move the last window before the penultimate window (can't create an edge case where it appears necessary but it seemed necessary at one point...)
-          break;
-          case 2:
-            this.onDropReplace(event, zonePacket);
-          break;
-          case 3:
-            // If new packet is supposed to come after this one, move it so that it comes after all invisible packets too.
-            this.onDropAddBefore(event, Math.max(maxInvisiblePos, zonePacket.position)+1);
-          break;
-        }
-      } 
-      // Standard Behaviour:
-      else{
-        switch(idx){
-          case 1:
-            this.onDropAddBefore(event, zonePacket.position);
-          break;
-          case 2:
-            this.onDropReplace(event, zonePacket);
-          break;
-          case 3:
-            this.onDropAddBefore(event, zonePacket.position+1);
-          break;
-        }
-      }
-    },
+        onDropHandler(event, zonePacket, idx, columnIdx){
+            // Special case for first column in a row:
+            if(columnIdx === 0){
+                // Get the highest position of all invisible packets:
+                let maxInvisiblePos = this.orderedNodePackets
+                    .filter( p => !p.visible )
+                    .reduce( (maxPos, p) => p.position > maxPos ? p.position : maxPos, -1 );
+                switch(idx){
+                case 1:
+                    // Correctly position new packet:
+                    this.onDropAddBefore(event, zonePacket.position);
+                    // The reposition old packet (in drop zone) to after the invisibles:
+                    //this.insertPacketBefore(zonePacket, maxInvisiblePos+1); // <- this breaks ordering when you try to move the last window before the penultimate window (can't create an edge case where it appears necessary but it seemed necessary at one point...)
+                    break;
+                case 2:
+                    this.onDropReplace(event, zonePacket);
+                    break;
+                case 3:
+                    // If new packet is supposed to come after this one, move it so that it comes after all invisible packets too.
+                    this.onDropAddBefore(event, Math.max(maxInvisiblePos, zonePacket.position)+1);
+                    break;
+                }
+            } 
+            // Standard Behaviour:
+            else{
+                switch(idx){
+                case 1:
+                    this.onDropAddBefore(event, zonePacket.position);
+                    break;
+                case 2:
+                    this.onDropReplace(event, zonePacket);
+                    break;
+                case 3:
+                    this.onDropAddBefore(event, zonePacket.position+1);
+                    break;
+                }
+            }
+        },
 
-    // Performs general maintenance procedures expected of all drop behaviours and Returns the packet and its id, extracted from the drop event dataTransfer.
-    onDropHelper(event){
-      const id = Number(event.dataTransfer.getData('packetId'));
-      const packet = this.nodePackets.find( x => x.id === id );
-      packet.visible = true;
-      this.setHoverIndicatorHighlight(event, 0);
-      return { packet, id };
-    },
+        // Performs general maintenance procedures expected of all drop behaviours and Returns the packet and its id, extracted from the drop event dataTransfer.
+        onDropHelper(event){
+            const id = Number(event.dataTransfer.getData('packetId'));
+            const packet = this.nodePackets.find( x => x.id === id );
+            packet.visible = true;
+            this.setHoverIndicatorHighlight(event, 0);
+            return { packet, id };
+        },
 
-    // When TabHeader is dropped on a drop zone, receive its associated data packet and replaces packet the position of the drop zone with the packet being dragged (referenced by id in drag event's dataTransfer).
-    onDropReplace(event, zonePacket){
-      const { packet } = this.onDropHelper(event);
-      this.replacePacketWith(zonePacket, packet);
-    },
-    // When TabHeader is dropped on a drop zone, receive its associated data packet and add the packet before the given position
-    onDropAddBefore(event, rightPosition){
-      const { packet } = this.onDropHelper(event);
-      this.insertPacketBefore(packet, rightPosition);
-    },
+        // When TabHeader is dropped on a drop zone, receive its associated data packet and replaces packet the position of the drop zone with the packet being dragged (referenced by id in drag event's dataTransfer).
+        onDropReplace(event, zonePacket){
+            const { packet } = this.onDropHelper(event);
+            this.replacePacketWith(zonePacket, packet);
+        },
+        // When TabHeader is dropped on a drop zone, receive its associated data packet and add the packet before the given position
+        onDropAddBefore(event, rightPosition){
+            const { packet } = this.onDropHelper(event);
+            this.insertPacketBefore(packet, rightPosition);
+        },
 
-    // Gets the Appropriate Hover Indicator for the hover region trigger which generated the given event.
-    getHoverRegion(event){
-      return event.target.closest('.grid-hover-region--container').querySelector('.grid-hover-region--indicator');
-    },
+        // Gets the Appropriate Hover Indicator for the hover region trigger which generated the given event.
+        getHoverRegion(event){
+            return event.target.closest('.grid-hover-region--container').querySelector('.grid-hover-region--indicator');
+        },
 
-    // Correctly Positions the Hover Indicator when a Drag Event enters a Grid Region Trigger based on the given index of that trigger.
-    onDragEnter(event, idx){
-      const indicator = this.getHoverRegion(event);
+        // Correctly Positions the Hover Indicator when a Drag Event enters a Grid Region Trigger based on the given index of that trigger.
+        onDragEnter(event, idx){
+            const indicator = this.getHoverRegion(event);
 
-      switch(idx){
-        case 1:
-          this.setObjectClass(indicator, 'left', 1);
-          this.setObjectClass(indicator, 'center', 0);
-          this.setObjectClass(indicator, 'right', 0);
-        break;
-        case 2:
-          this.setObjectClass(indicator, 'left', 0);
-          this.setObjectClass(indicator, 'center', 1);
-          this.setObjectClass(indicator, 'right', 0);
-        break;
-        case 3:
-          this.setObjectClass(indicator, 'left', 0);
-          this.setObjectClass(indicator, 'center', 0);
-          this.setObjectClass(indicator, 'right', 1);
-        break;
-      }
+            switch(idx){
+            case 1:
+                this.setObjectClass(indicator, 'left', 1);
+                this.setObjectClass(indicator, 'center', 0);
+                this.setObjectClass(indicator, 'right', 0);
+                break;
+            case 2:
+                this.setObjectClass(indicator, 'left', 0);
+                this.setObjectClass(indicator, 'center', 1);
+                this.setObjectClass(indicator, 'right', 0);
+                break;
+            case 3:
+                this.setObjectClass(indicator, 'left', 0);
+                this.setObjectClass(indicator, 'center', 0);
+                this.setObjectClass(indicator, 'right', 1);
+                break;
+            }
 
-      this.setObjectClass(indicator, 'hovered', 1);
-    },
+            this.setObjectClass(indicator, 'hovered', 1);
+        },
 
-    // Unhighlight indicator if drag is leaving the
-    onDragLeave(event){
-      // If not exiting to a sibling trigger, hide the original hover.
-      if(!event.target.parentNode.isSameNode(event.relatedTarget.parentNode)){
-        const indicator = this.getHoverRegion(event);
-        this.setObjectClass(indicator, 'hovered', 0);
-      }
-    },
+        // Unhighlight indicator if drag is leaving the
+        onDragLeave(event){
+            // If not exiting to a sibling trigger, hide the original hover.
+            if(!event.target.parentNode.isSameNode(event.relatedTarget.parentNode)){
+                const indicator = this.getHoverRegion(event);
+                this.setObjectClass(indicator, 'hovered', 0);
+            }
+        },
 
-    // Highlights/Unhighlights the Hover Indicator for the Grid Region which generated the given event. (used for drag enter/leave/drop behaviour)
-    // Given the event that generated the drag/drop event and the target hover state (0 or 1)
-    setHoverIndicatorHighlight(event, state) {
-      const indicator = this.getHoverRegion(event);
-      this.setObjectClass(indicator, 'hovered', state);
-    },
+        // Highlights/Unhighlights the Hover Indicator for the Grid Region which generated the given event. (used for drag enter/leave/drop behaviour)
+        // Given the event that generated the drag/drop event and the target hover state (0 or 1)
+        setHoverIndicatorHighlight(event, state) {
+            const indicator = this.getHoverRegion(event);
+            this.setObjectClass(indicator, 'hovered', state);
+        },
 
-    // Sets the State of the Given Class of the Target of the Given Event (state=1 -> add, state=0 -> remove)
-    setTargetClass(event, className, state){
-      this.setObjectClass(event.target, className, state);
-    },
-    // Sets the State of the Given Class of the Given DOM Object (state=1 -> add, state=0 -> remove)
-    setObjectClass(object, className, state){
-      if(state){
-        object.classList.add(className);
-      } else{
-        object.classList.remove(className);
-      }
-    },
+        // Sets the State of the Given Class of the Target of the Given Event (state=1 -> add, state=0 -> remove)
+        setTargetClass(event, className, state){
+            this.setObjectClass(event.target, className, state);
+        },
+        // Sets the State of the Given Class of the Given DOM Object (state=1 -> add, state=0 -> remove)
+        setObjectClass(object, className, state){
+            if(state){
+                object.classList.add(className);
+            } else{
+                object.classList.remove(className);
+            }
+        },
 
-    /**
+        /**
      * Effectively replaces `packetOut` with `packetIn` by inserting 
      * `packetIn` in the position of `packetOut` and making `packetOut`
      * invisible while making `packetIn` visible;
      */
-    replacePacketWith(packetOut, packetIn){
-      if(packetIn.id !== packetOut.id){ // Don't bother doing anything if packets are the same.
-        this.setPacketPosition(packetIn, packetOut.position);
-        packetIn.visible = true;
-        packetOut.visible = false;
-      }
-    },
+        replacePacketWith(packetOut, packetIn){
+            if(packetIn.id !== packetOut.id){ // Don't bother doing anything if packets are the same.
+                this.setPacketPosition(packetIn, packetOut.position);
+                packetIn.visible = true;
+                packetOut.visible = false;
+            }
+        },
 
-    /**
+        /**
      * Helper function to set the given packet's position to the given position while ensuring that:
      *  - No other packets occupy that position.
      *  - All packets continue to have continuous position numbers.
      *  - Every packet position in [0,Npackets) is occupied.
      *  - Only packet positions in [0,Npackets) are occupied.
      */
-    setPacketPosition(targPacket, newPos){
-      // Ensure new position satisfies traditional array boundaries:
-      if(newPos >= this.nodePackets.length){
-        newPos = this.nodePackets.length-1;
-      } else if(newPos < 0){
-        newPos = 0;
-      }
+        setPacketPosition(targPacket, newPos){
+            // Ensure new position satisfies traditional array boundaries:
+            if(newPos >= this.nodePackets.length){
+                newPos = this.nodePackets.length-1;
+            } else if(newPos < 0){
+                newPos = 0;
+            }
 
-      const original_packet_pos = targPacket.position;
+            const original_packet_pos = targPacket.position;
 
-      // Don't do anything if not moving packet somewhere new:
-      if(newPos === original_packet_pos){ return; }
+            // Don't do anything if not moving packet somewhere new:
+            if(newPos === original_packet_pos){ return; }
 
-      // Shift around other packets:
-      this.nodePackets.forEach( p => {
-        // If not the target packet:
-        if(p.id !== targPacket.id){
-          // If moving packet up list, shift items between old and new position down to fill void:
-          if(newPos > original_packet_pos && p.position > original_packet_pos && p.position <= newPos){
-            p.position--;
-          }
-          // If moving packet down list, shift items between old and new position up to fill void:
-          else if(newPos < original_packet_pos && p.position < original_packet_pos && p.position >= newPos){
-            p.position++;
-          }
-        }
-      });
+            // Shift around other packets:
+            this.nodePackets.forEach( p => {
+                // If not the target packet:
+                if(p.id !== targPacket.id){
+                    // If moving packet up list, shift items between old and new position down to fill void:
+                    if(newPos > original_packet_pos && p.position > original_packet_pos && p.position <= newPos){
+                        p.position--;
+                    }
+                    // If moving packet down list, shift items between old and new position up to fill void:
+                    else if(newPos < original_packet_pos && p.position < original_packet_pos && p.position >= newPos){
+                        p.position++;
+                    }
+                }
+            });
 
-      // Set packet pos to newPos:
-      targPacket.position = newPos;
-    },
+            // Set packet pos to newPos:
+            targPacket.position = newPos;
+        },
 
-    /**
+        /**
      * Helper function to set the given packet's position to the given 
      * position while preserving the intended order by ensuring that the
      * packet comes right before the given index.
@@ -439,46 +475,46 @@ export default {
      *  - Every packet position in [0,Npackets) is occupied.
      *  - Only packet positions in [0,Npackets) are occupied.
      */
-    insertPacketBefore(targPacket, rightPos){
-      // Ensure right position satisfies traditional array boundaries:
-      if(rightPos > this.nodePackets.length){
-        rightPos = this.nodePackets.length-1;
-      } else if(rightPos < 0){
-        rightPos = 0;
-      }
+        insertPacketBefore(targPacket, rightPos){
+            // Ensure right position satisfies traditional array boundaries:
+            if(rightPos > this.nodePackets.length){
+                rightPos = this.nodePackets.length-1;
+            } else if(rightPos < 0){
+                rightPos = 0;
+            }
 
-      const original_packet_pos = targPacket.position;
-      const leftPos = rightPos-1;
+            const original_packet_pos = targPacket.position;
+            const leftPos = rightPos-1;
 
-      // Don't do anything if not moving packet somewhere new:
-      if(rightPos - 1 === original_packet_pos){ return; }
+            // Don't do anything if not moving packet somewhere new:
+            if(rightPos - 1 === original_packet_pos){ return; }
 
-      this.nodePackets.forEach( p => {
-        // If not the target packet:
-        if(p.id !== targPacket.id){
-          // Shift up if targPacket is shifting down the list and this packet comes after rightPos and before the hole opened up by the component being moved.
-          if(rightPos < original_packet_pos && p.position >= rightPos && p.position < original_packet_pos) {
-            p.position++;
-          }
-          // Shift down if targPacket is shifting up the list and this packet comes before leftPos and after the hole opened up by the component being moved.
-          else if(original_packet_pos < leftPos && p.position <= leftPos && original_packet_pos < p.position){
-            p.position--;
-          }
+            this.nodePackets.forEach( p => {
+                // If not the target packet:
+                if(p.id !== targPacket.id){
+                    // Shift up if targPacket is shifting down the list and this packet comes after rightPos and before the hole opened up by the component being moved.
+                    if(rightPos < original_packet_pos && p.position >= rightPos && p.position < original_packet_pos) {
+                        p.position++;
+                    }
+                    // Shift down if targPacket is shifting up the list and this packet comes before leftPos and after the hole opened up by the component being moved.
+                    else if(original_packet_pos < leftPos && p.position <= leftPos && original_packet_pos < p.position){
+                        p.position--;
+                    }
+                }
+            });
+
+            // Set packet pos to new position:
+            // if coming down the list, take rightPos b/c the packet was there has been shifted out:
+            if(rightPos < original_packet_pos) {
+                targPacket.position = rightPos;
+            }
+            // if moving up the list, take leftPos b/c the packet was there has been shifted out:
+            else if(original_packet_pos < leftPos){
+                targPacket.position = leftPos;
+            }
         }
-      });
-
-      // Set packet pos to new position:
-      // if coming down the list, take rightPos b/c the packet was there has been shifted out:
-      if(rightPos < original_packet_pos) {
-        targPacket.position = rightPos;
-      }
-      // if moving up the list, take leftPos b/c the packet was there has been shifted out:
-      else if(original_packet_pos < leftPos){
-        targPacket.position = leftPos;
-      }
     }
-  }
-}
+};
 </script>
 
 <style scoped lang="scss">

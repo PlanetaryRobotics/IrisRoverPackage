@@ -761,9 +761,7 @@ export default {
       if (!this.isDrag && !this.dragCapSciBoxActivate) {
         this.setPOILayerDimensions();
         this.closePOIChoiceModal();
-        console.log("\nonIVPortClick");
       } else {
-        console.log("\nonIVPortClick_ELSE")
         this.isDrag = false;
       }
     },
@@ -888,7 +886,6 @@ export default {
           this.POISelectionInstructions &&
           this.capSciInstructionsOpen
         ) {
-          console.log("llll")
           // dragCapSciActivated
           this.dragCapSciBoxActivate = true;
 
@@ -1029,10 +1026,8 @@ export default {
       this.isMouseDown = false;
       // Checks if mouse down was just a click or if mouse moved at all (i.e. selection box was formed)
       // if (this.endCoord.length == 0) {
-      console.log("above if 1");
       if (!this.isDrag) {
         this.startCoord = [];
-        console.log("\nclickk, ", event.target);
 
         //clears canvas of lines/boxes if single click on screen and not in POI Choices box
         if (!this.isPOIChoiceListModalVisible && !this.capSciInstructionsOpen && !this.capSciConfirmationModalOpen && !this.arePOIFullDetailsVisible) {
@@ -1046,13 +1041,11 @@ export default {
         }
 
         if(this.isPOIChoiceListModalVisible){
-          this.setPOILayerDimensions();
+          // this.setPOILayerDimensions();
           this.closePOIChoiceModal();
         }
 
       } else if(this.isDrag){
-        console.log("\nELSEEE, ", event.target, "\nisPOIChoiceListModalVisible: ", this.isPOIChoiceListModalVisible)
-
         // Update coords in store state
         this.updatethePOICoords();
         // Show POI modal list of POI types

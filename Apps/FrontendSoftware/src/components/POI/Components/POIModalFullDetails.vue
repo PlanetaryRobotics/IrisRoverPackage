@@ -1,4 +1,15 @@
 <template>
+<!--
+  
+  1. Make canvas and img same size, with img matching canvas size for easiest fix (done)
+  Canvas must match img width and height automatically, not manually set (see 100% setting in Template)
+    - done in imageviewport or whereever image grids are
+  
+  2. in MakeContextOutlines() make sure canvas width and height are actively grabbed context
+
+
+-->
+
   <div class="modal-backdrop" v-on:click.self="closeModal">
     <div id="POIModalDetailsContainer">
       <h3 class="heading-poi">ADD NEW POI</h3>
@@ -135,7 +146,7 @@
         <div class="modal-col">
           <div class="label">Thumbnail Photo</div>
           <div class="canvas-wrapper">
-            <canvas id="imgCanvas" height="100%" width="100%" />
+            <canvas id="imgCanvas" height="245" width="245" />
             <img
               class="thumbnail"
               draggable="false"
@@ -253,13 +264,14 @@ export default {
       }
     },
 
-    makeContextOutlines(numRows, numCols, paddingTopOrLeft, paddingBottomOrRight) {
+    makeContextOutlines(numRows, numCols, paddingTopOrLeft, paddingBottomOrRight, originalImgWidth, originalImgHeight) {
+
       let imgLayer = document.getElementById("imgCanvas");
 
       // Canvas Width and Height
-      imgLayer.width="245";
-      imgLayer.height="246";
-      let canvasWidth = imgLayer.width;
+      // imgLayer.width="245";
+      // imgLayer.height="246"; // Don't do this manually!
+      let canvasWidth = imgLayer.width; // Move this lower
       let canvasHeight = imgLayer.height;
 
       // Check if original image longer in terms of height or width (e.g. #rows vs #cols)
@@ -267,33 +279,45 @@ export default {
 
       let imgContextCanvasContext = imgLayer.getContext("2d");
 
+      //  !!!!! Get the width here by context.canvas.width
+
       // Begin: drawing POI selector box on canvas
-      imgContextCanvasContext.beginPath();
+      // imgContextCanvasContext.beginPath();
+
+      let scalar = 0;
 
       // Style of selection box
-      imgContextCanvasContext.fillStyle = "#000000";
+      imgContextCanvasContext.fillStyle = "#00ffff";
       imgContextCanvasContext.globalAlpha = 0.5;
 
       // Start drawing selector box ("rect")
       if(!rowsHeavy){
         // console.log("canvasWidth: ", canvasWidth, "\n canvasHeight: ", canvasHeight, "\nsidePadding: ", sidePadding);
+
+        scalar = canvasHeight/originalImgHeight;
+
         // top black context rectangle
-        imgContextCanvasContext.fillRect(0, 0, canvasWidth-0.7, paddingTopOrLeft); // (top left: x,y; width, height)
-        imgContextCanvasContext.stroke();
+        imgContextCanvasContext.fillRect(0, 0, canvasWidth, (paddingTopOrLeft*scalar)); // (top left: x,y; width, height)
+        // imgContextCanvasContext.stroke();
 
         // bottom black context rectangle
-        imgContextCanvasContext.fillRect(0, canvasHeight-1.8-paddingBottomOrRight, canvasWidth-0.7, paddingBottomOrRight); // (x, y, width, height)
+        imgContextCanvasContext.fillStyle = "#ff0";
+        imgContextCanvasContext.fillRect(0, canvasHeight-(paddingBottomOrRight*scalar), canvasWidth, (paddingBottomOrRight*scalar)); // (x, y, width, height)
       }
+      
       else if(rowsHeavy){
+
+        scalar = canvasWidth/originalImgWidth;
+
         // left black context rectangle
-        imgContextCanvasContext.fillRect(0, 0, paddingTopOrLeft, canvasHeight-1.8); // (top left: x,y; width, height)
-        imgContextCanvasContext.stroke();
+        imgContextCanvasContext.fillRect(0, 0, (paddingTopOrLeft*scalar), canvasHeight); // (top left: x,y; width, height)
+        // imgContextCanvasContext.stroke();
 
         // right black context rectangle
-        imgContextCanvasContext.fillRect(canvasWidth-0.7-paddingBottomOrRight, 0, paddingBottomOrRight, canvasHeight-1.8); // (top left: x,y; width, height)
+        imgContextCanvasContext.fillRect(canvasWidth-(paddingBottomOrRight*scalar), 0, (paddingBottomOrRight*scalar), canvasHeight); // (top left: x,y; width, height)
       }
 
-      imgContextCanvasContext.closePath();
+      // imgContextCanvasContext.closePath();
     },
 
     populateAsFormOne() {
@@ -412,8 +436,12 @@ export default {
       let colStart = normalizedColStart * pixelsWidth;
       let colEnd = normalizedColEnd * pixelsWidth;
 
-      console.log("\nrowStart: ", normalizedRowStart, "\nrowEnd: ", normalizedRowEnd)
-      // "\ncolStart: ", colStart, "\ncolEnd: ", colEnd)
+
+      // console.log("\nrowStart: ", normalizedRowStart, "\nrowEnd: ", normalizedRowEnd, "\ncolStart: ", colStart, "\ncolEnd: ", colEnd)
+
+      console.log("\nNormalized Coords\n--------", "\nStart coords: ", normalizedColStart, normalizedRowStart, "\nEnd Coords: ", normalizedColEnd, normalizedRowEnd)
+
+      console.log("\nUnnormalized Coords\n--------", "\nStart coords: ", colStart, rowStart, "\nEnd Coords: ", colEnd, rowEnd)
 
       // Get space btwn bottom edge of outlined image selection and bottom of actual uncropped image
       let spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm = Math.abs(1-normalizedRowEnd) * pixelsHeight;
@@ -426,12 +454,13 @@ export default {
       let numCols = Math.abs(colEnd - colStart);
       let numRows = Math.abs(rowEnd - rowStart);
       let extraPadding = Math.abs(numRows - numCols) / 2;
-      let proportionalSidePadding = 0;
+      // let proportionalSidePadding = 0;
+      let proportionalSidePadding = extraPadding;
 
       // Make black outlines on image for context
       // If col > row, add rows
       if (numCols > numRows) {
-        proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numCols;
+        // proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numCols;
 
         // If bottom edge case only, bottom would be cut off, add extra bottom that's leftover to top of cropped image
         if(spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm < proportionalSidePadding){
@@ -445,7 +474,7 @@ export default {
 
           let bottomSidePadding = spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
 
-          this.makeContextOutlines(numRows, numCols, topSidePadding, bottomSidePadding);
+          this.makeContextOutlines(numRows, numCols, topSidePadding, bottomSidePadding, pixelsWidth, pixelsHeight);
         }
 
         // If top edge case only, top of image would be cut off, add extra of top that's leftover to bottom of cropped image
@@ -461,20 +490,22 @@ export default {
 
           let bottomSidePadding = proportionalSidePadding + (proportionalSidePadding - pxDiffTopOfOutlineVsTopOfImg);
 
-          this.makeContextOutlines(numRows, numCols, topSidePadding, bottomSidePadding);
+          this.makeContextOutlines(numRows, numCols, topSidePadding, bottomSidePadding, pixelsWidth, pixelsHeight);
         }
 
         // normal case (not edge case)
         else{
+          console.log("normal case")
           rowStart = rowStart - extraPadding;
           rowEnd = rowEnd + extraPadding;
-          this.makeContextOutlines(numRows, numCols, proportionalSidePadding, proportionalSidePadding);
+          this.makeContextOutlines(numRows, numCols, proportionalSidePadding, proportionalSidePadding, pixelsWidth, pixelsHeight);
         }
       }
 
 
       // If row > col, add cols
       else if (numRows > numCols) {
+        console.log("WRONG")
         colStart = colStart - extraPadding;
         colEnd = colEnd + extraPadding;
         proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numRows;

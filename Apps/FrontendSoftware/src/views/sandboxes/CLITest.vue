@@ -6,14 +6,14 @@
 </template>
 
 <script>
-import CLI from '@/components/CLI/CLI.vue'
+import CLI from '@/components/CLI/CLI.vue';
 
 export default {
-  name: 'home',
-  components: {
-    CLI
-  }
-}
+    name: 'Home',
+    components: {
+        CLI
+    }
+};
 </script>
 
 <style scoped>

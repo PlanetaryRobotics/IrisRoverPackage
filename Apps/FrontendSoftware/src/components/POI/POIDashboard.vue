@@ -1,24 +1,26 @@
 <template>
   <div class="POIDashboardContent noSelect">
-    
     <!-- SIDE SCROLLER FOR TAG MANAGEMENT -->
     <div class="POIDashboardContent__alphabetScroller">
-      <AlphabetScroller v-show="!show.POIManagement"/>
+      <AlphabetScroller v-show="!show.POIManagement" />
     </div>
 
     <!-- DASHBOARD BODY -->
     <div class="POIDashboardContent__leftColumn">
-
       <!-- HEADERS --> 
       <div class="POIDashboardContent__header">
-        <div class="text__large header POIHeader" 
-              v-bind:class="{'current': show.POIManagement}"
-              @click="toggleManager()">
+        <div
+          class="text__large header POIHeader" 
+          :class="{'current': show.POIManagement}"
+          @click="toggleManager()"
+        >
           POI Management
         </div>
-        <div class="text__large header"
-            v-bind:class="{'current': !show.POIManagement}"
-            @click="toggleManager()">
+        <div
+          class="text__large header"
+          :class="{'current': !show.POIManagement}"
+          @click="toggleManager()"
+        >
           Tag Management
         </div>
       </div>
@@ -26,70 +28,69 @@
 
       <!-- BODY -->
       <div class="POIDashboardContent__body scrollable">
-        <POIManagement v-show="show.POIManagement"/>
+        <POIManagement v-show="show.POIManagement" />
         <TagManagement v-show="!show.POIManagement" />
       </div>
     </div>
     
 
     <!-- RIGHT COLUMN -->
-    <POIList class="POIDashboardContent__rightColumn"/>
-
+    <POIList class="POIDashboardContent__rightColumn" />
   </div>
 </template>
 
 <script>
 
 import { mapGetters } from 'vuex';
-import POIList from "@/components/POI/POIList/POIList.vue";
-import POIManagement from "@/components/POI/POIManagement/POIManagement.vue";
-import TagManagement from "@/components/POI/TagManagement/TagManagement.vue";
-import AlphabetScroller from "@/components/POI/TagManagement/AlphabetScroller.vue";
+import POIList from '@/components/POI/POIList/POIList.vue';
+import POIManagement from '@/components/POI/POIManagement/POIManagement.vue';
+import TagManagement from '@/components/POI/TagManagement/TagManagement.vue';
+import AlphabetScroller from '@/components/POI/TagManagement/AlphabetScroller.vue';
 
 export default {
-  name: "POIDashboard",
-  components: {
-    POIList,
-    POIManagement,
-    TagManagement,
-    AlphabetScroller
-  },
-  data() {
-    return {
-      show: {
-        POIManagement: true
-      }
-    }
-  },
-  computed: {
-    ...mapGetters(['TagSelected', 'POIImageSelected']),
-  },
-  methods: {
-    toggleManager() {
-      this.show.POIManagement = !this.show.POIManagement;
+    name: 'POIDashboard',
+    components: {
+        POIList,
+        POIManagement,
+        TagManagement,
+        AlphabetScroller
+    },
+    data() {
+        return {
+            show: {
+                POIManagement: true
+            }
+        };
+    },
+    computed: {
+        ...mapGetters(['TagSelected', 'POIImageSelected']),
+    },
+    methods: {
+        toggleManager() {
+            this.show.POIManagement = !this.show.POIManagement;
 
-      let id = null;
-      // Remove the side tag/POI depending if management tab is toggled
-      if (this.show.POIManagement) {
-        if (this.TagSelected.id) {
-          id = this.TagSelected.id;
-        }
-        this.$store.commit("updateTagSelected", {tag: null, id: null});
-      } else {
-        if (this.POIImageSelected) {
-          id = this.POIImageSelected.id;
-        }
-        this.$store.commit("updatePOIImageSelectedId", {id: null, image: null});
-      }
+            let id = null;
+            // Remove the side tag/POI depending if management tab is toggled
+            if (this.show.POIManagement) {
+                if (this.TagSelected.id) {
+                    id = this.TagSelected.id;
+                }
+                this.$store.commit('updateTagSelected', {tag: null, id: null});
+            } else {
+                if (this.POIImageSelected) {
+                    id = this.POIImageSelected.id;
+                }
+                this.$store.commit('updatePOIImageSelectedId', {id: null, image: null});
+            }
 
-      // Remove selected class
-      if (id) {
-        let oldElem = document.getElementById(id);
-        oldElem.classList.remove("selected");
-      }
+            // Remove selected class
+            if (id) {
+                let oldElem = document.getElementById(id);
+                oldElem.classList.remove('selected');
+            }
+        }
     }
-  }
-}
+};
 
 </script>
 

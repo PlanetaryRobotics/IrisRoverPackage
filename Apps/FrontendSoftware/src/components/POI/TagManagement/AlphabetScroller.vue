@@ -1,59 +1,65 @@
 <template>
-    <div class="AlphabetScroller">
-      <div :id="getLetterId(obj)" class="letter" v-for="(obj, index) in alphabetList" :key="index" @click="handleScroll(obj)">
-          {{obj[0]}}
-      </div>
-    </div> 
+  <div class="AlphabetScroller">
+    <div
+      v-for="(obj, index) in alphabetList"
+      :id="getLetterId(obj)"
+      :key="index"
+      class="letter"
+      @click="handleScroll(obj)"
+    >
+      {{ obj[0] }}
+    </div>
+  </div> 
 </template>
 
 <script>
 
 export default {
-  name: "AlphabetScroller",
-  data() {
-    return {
-      selectedId: null
-    }
-  },
-  computed: {
-    alphabetList() {
-      let map = {};
-      Array.from(this.$store.getters.POIByTagList.keys())
-           .forEach(elem => {
-             let firstLetter = elem.getName()[0].toUpperCase();
-             // Only save first tag with a never before seen letter
-             if (!(firstLetter in map)) {
-               map[firstLetter] = elem.data.id;
-             }
-           });
-      
-      map = Object.keys(map).map((key) => [key, map[key]]);
-      return map;
-    }
-  },
-  methods: {
-    // Id for the sidebar letter
-    getLetterId(obj) {
-      return "letter" + obj[1];
+    name: 'AlphabetScroller',
+    data() {
+        return {
+            selectedId: null
+        };
     },
-    handleScroll(obj) {
-      let elem;
-
-      // Remove selected class if there was a prev. letter selected
-      if (this.selectedId){
-        elem = document.getElementById("letter"+this.selectedId);
-        elem.classList.remove("selected");
-      }
-
-      // Scroll to target tag 
-      this.selectedId = obj[1];
-      document.getElementById(obj[1]).scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
+    computed: {
+        alphabetList() {
+            let map = {};
+            Array.from(this.$store.getters.POIByTagList.keys())
+                .forEach(elem => {
+                    let firstLetter = elem.getName()[0].toUpperCase();
+                    // Only save first tag with a never before seen letter
+                    if (!(firstLetter in map)) {
+                        map[firstLetter] = elem.data.id;
+                    }
+                });
       
-      elem = document.getElementById("letter"+this.selectedId);
-      elem.classList.add("selected");
+            map = Object.keys(map).map((key) => [key, map[key]]);
+            return map;
+        }
+    },
+    methods: {
+    // Id for the sidebar letter
+        getLetterId(obj) {
+            return 'letter' + obj[1];
+        },
+        handleScroll(obj) {
+            let elem;
+
+            // Remove selected class if there was a prev. letter selected
+            if (this.selectedId){
+                elem = document.getElementById('letter'+this.selectedId);
+                elem.classList.remove('selected');
+            }
+
+            // Scroll to target tag 
+            this.selectedId = obj[1];
+            document.getElementById(obj[1]).scrollIntoView({behavior: 'smooth', block: 'start', inline: 'nearest'});
+      
+            elem = document.getElementById('letter'+this.selectedId);
+            elem.classList.add('selected');
+        }
     }
-  }
-}
+};
 
 </script>
 

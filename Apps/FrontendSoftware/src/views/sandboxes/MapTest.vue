@@ -1,29 +1,29 @@
 <template>
   <div class="home">
-    <ComponentContainer v-bind:header="headers.MAP" >
+    <ComponentContainer :header="headers.MAP">
       <Map />
     </ComponentContainer>
   </div>
 </template>
 
 <script>
-import Map from '@/components/Map/Map.vue'
-import ComponentContainer from '@/components/Interface/ComponentContainer.vue'
+import Map from '@/components/Map/Map.vue';
+import ComponentContainer from '@/components/Interface/ComponentContainer.vue';
 
 import { mapState } from 'vuex';
 
 export default {
-  name: 'home',
-  components: {
-    Map,
-    ComponentContainer
-  },
-  computed: {
-    ...mapState({
-      headers: state => state.headers,
-    })
-  }
-}
+    name: 'Home',
+    components: {
+        Map,
+        ComponentContainer
+    },
+    computed: {
+        ...mapState({
+            headers: state => state.headers,
+        })
+    }
+};
 </script>
 
 <style scoped lang="scss">

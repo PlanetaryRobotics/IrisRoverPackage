@@ -17,7 +17,12 @@ Last Updated: 10/7/2019, Colombo
       <p>{{ image.data.camera }}</p>
     </div>
     <!-- CARD IMAGE -->
-    <img :key="image.data.lookupID" :src="image.url" :alt="image.data.name" class="tl__img">
+    <img
+      :key="image.data.lookupID"
+      :src="image.url"
+      :alt="image.data.name"
+      class="tl__img"
+    >
     <!-- CARD BOTTOM -->
     <div class="tl__imgCont--bottom">
       <p>{{ image.time }}</p>
@@ -27,25 +32,25 @@ Last Updated: 10/7/2019, Colombo
 </template>
 
 <script>
-import ImageData from '@/data_classes/ImageData.js'
+import ImageData from '@/data_classes/ImageData.js';
 
 export default {
-  props: {
-    image: {
-      type: ImageData,
-      required: true
+    props: {
+        image: {
+            type: ImageData,
+            required: true
+        },
+        imgPos: { // - The index of the image in the list of images (constant for each image)
+            type: Number,
+            required: true
+        },
     },
-    imgPos: { // - The index of the image in the list of images (constant for each image)
-      type: Number,
-      required: true
-    },
-  },
-  methods: {
-    cardClicked: function() { // If an image is clicked set that image as the scroll position
-      this.$store.commit('SET_SCROLL', {pos: this.imgPos, lookupID: this.image.data.lookupID});
+    methods: {
+        cardClicked: function() { // If an image is clicked set that image as the scroll position
+            this.$store.commit('SET_SCROLL', {pos: this.imgPos, lookupID: this.image.data.lookupID});
+        }
     }
-  }
-}
+};
 </script>
 
 <style lang="scss" scoped>

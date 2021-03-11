@@ -7,75 +7,138 @@ Last Updated: 10/6/2019, Colombo
 -->
 
 <template>
-  <div id="functionalEdit" class="scrollable">
+  <div
+    id="functionalEdit"
+    class="scrollable"
+  >
     <!-- HISTOGRAM -->
     <div class="editTab">
-      <div class="editTab__header" @click="toggleHistogram">
-        <svg width="14" height="7" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg" class="editTab__icon" :class="{ open : show.histogram }">
-          <path d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5" stroke-linecap="round"/>
+      <div
+        class="editTab__header"
+        @click="toggleHistogram"
+      >
+        <svg
+          width="14"
+          height="7"
+          viewBox="0 0 8 4"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          class="editTab__icon"
+          :class="{ open : show.histogram }"
+        >
+          <path
+            d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5"
+            stroke-linecap="round"
+          />
         </svg>
-        <h2 class="text__main--bold editTab__title">Histogram</h2>
+        <h2 class="text__main--bold editTab__title">
+          Histogram
+        </h2>
       </div>
-      <div class="editTab__content" v-show="show.histogram">
-        <img class="histogram" src="~@/assets/histogrum.png" />
+      <div
+        v-show="show.histogram"
+        class="editTab__content"
+      >
+        <img
+          class="histogram"
+          src="~@/assets/histogrum.png"
+        >
         [Histogram goes here ;]
       </div>
     </div>
     <!-- ADJUSTMENTS -->
     <div class="editTab">
-      <div class="editTab__header" @click="toggleAdjustments">
-        <svg width="14" height="7" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg" class="editTab__icon" :class="{ open : show.adjustments }">
-          <path d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5" stroke-linecap="round"/>
+      <div
+        class="editTab__header"
+        @click="toggleAdjustments"
+      >
+        <svg
+          width="14"
+          height="7"
+          viewBox="0 0 8 4"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          class="editTab__icon"
+          :class="{ open : show.adjustments }"
+        >
+          <path
+            d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5"
+            stroke-linecap="round"
+          />
         </svg>
-        <h2 class="text__main--bold editTab__title">Adjustments</h2>
+        <h2 class="text__main--bold editTab__title">
+          Adjustments
+        </h2>
       </div>
-      <div class="editTab__content" v-show="show.adjustments">
-        <functional-adjustments/>
+      <div
+        v-show="show.adjustments"
+        class="editTab__content"
+      >
+        <functional-adjustments />
       </div>
     </div>
     <!-- PRESETS -->
     <div class="editTab">
-      <div class="editTab__header" @click="togglePresets">
-        <svg width="14" height="7" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg" class="editTab__icon" :class="{ open : show.presets }">
-          <path d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5" stroke-linecap="round"/>
+      <div
+        class="editTab__header"
+        @click="togglePresets"
+      >
+        <svg
+          width="14"
+          height="7"
+          viewBox="0 0 8 4"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          class="editTab__icon"
+          :class="{ open : show.presets }"
+        >
+          <path
+            d="M1 0.5L3.29289 2.79289C3.68342 3.18342 4.31658 3.18342 4.70711 2.79289L7 0.5"
+            stroke-linecap="round"
+          />
         </svg>
-        <h2 class="text__main--bold editTab__title">Preset Adjustments</h2>
+        <h2 class="text__main--bold editTab__title">
+          Preset Adjustments
+        </h2>
       </div>
-      <Presets class="editTab__content" v-show="show.presets" />
+      <Presets
+        v-show="show.presets"
+        class="editTab__content"
+      />
     </div>
   </div>
 </template>
 
 <script>
-import FunctionalAdjustments from "@/components/ImageViewer/functional/FunctionalAdjustments.vue"
-import Presets from "@/components/ImageViewer/functional/Presets.vue"
+import FunctionalAdjustments from '@/components/ImageViewer/functional/FunctionalAdjustments.vue';
+import Presets from '@/components/ImageViewer/functional/Presets.vue';
 
 export default {
-  components: {
-    FunctionalAdjustments,
-    Presets
-  },
-  data() {
-    return {
-      show: {
-        histogram: false, //    - Controls visibility of the histogram tab
-        adjustments: true, //   - Controls visibility of adjustments tab
-        presets: true //        - Controls visibility of presets tab
-      }
-    }
-  },
-  methods: {
-    toggleHistogram() { // Toggles visibility of the histogram tab
-      this.show.histogram = !this.show.histogram
+    components: {
+        FunctionalAdjustments,
+        Presets
     },
-    toggleAdjustments() { // Toggles the visibility of the adjustments tab
-      this.show.adjustments = !this.show.adjustments
+    data() {
+        return {
+            show: {
+                histogram: false, //    - Controls visibility of the histogram tab
+                adjustments: true, //   - Controls visibility of adjustments tab
+                presets: true //        - Controls visibility of presets tab
+            }
+        };
     },
-    togglePresets() { // Toggles the visibility of the presets tab
-      this.show.presets = !this.show.presets
+    methods: {
+        toggleHistogram() { // Toggles visibility of the histogram tab
+            this.show.histogram = !this.show.histogram;
+        },
+        toggleAdjustments() { // Toggles the visibility of the adjustments tab
+            this.show.adjustments = !this.show.adjustments;
+        },
+        togglePresets() { // Toggles the visibility of the presets tab
+            this.show.presets = !this.show.presets;
+        }
     }
-  }
-}
+};
 </script>
 
 <style lang="scss" scoped>

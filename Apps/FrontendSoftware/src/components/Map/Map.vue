@@ -1,26 +1,32 @@
 <template>
-    <div class="noSelect">
-      <SegmentModal :key="modalRerender" v-if="show.segmentModal" :route="this.modalRoute" :segment="this.modalSegment" :segmentIndex="this.modalSegmentIndex" :action="this.modalAction"/>
-      <div class="map-container">
-        <div class="map-body">
-          <!-- LEFT NAVIGATION --> 
-          <MapNavigationLeft />
+  <div class="noSelect">
+    <SegmentModal
+      v-if="show.segmentModal"
+      :key="modalRerender"
+      :route="this.modalRoute"
+      :segment="this.modalSegment"
+      :segment-index="this.modalSegmentIndex"
+      :action="this.modalAction"
+    />
+    <div class="map-container">
+      <div class="map-body">
+        <!-- LEFT NAVIGATION --> 
+        <MapNavigationLeft />
 
-          <!-- GRID --> 
-          <Grid />
+        <!-- GRID --> 
+        <Grid />
 
-          <!-- RIGHT PANEL --> 
-          <div class="right-panel">
-            <div class="right-panel__container">
-              <RouteManager />
-              <POIList />
-            </div>
+        <!-- RIGHT PANEL --> 
+        <div class="right-panel">
+          <div class="right-panel__container">
+            <RouteManager />
+            <POIList />
           </div>
         </div>
-
       </div>
-    <!-- END MAP CONTAINER --> 
     </div>
+    <!-- END MAP CONTAINER --> 
+  </div>
 </template>
 
 <script>
@@ -30,75 +36,75 @@ import MapNavigationLeft from '@/components/Map/MapComponents/MapNavigationLeft.
 import Grid from '@/components/Map/MapComponents/Grid.vue';
 import POIList from '@/components/POI/POIList/POIList.vue';
 import RouteManager from '@/components/Map/MapComponents/RouteManager/RouteManager.vue';
-import SegmentModal from "@/components/Map/MapComponents/RouteManager/SegmentModal.vue";
+import SegmentModal from '@/components/Map/MapComponents/RouteManager/SegmentModal.vue';
 import GridEventBus from '@/components/Map/GridEventBus.js';
 
 export default {
-  name: "Map",
-  components: {
-    MapNavigationLeft,
-    Grid,
-    RouteManager,
-    POIList,
-    SegmentModal
-  },
-  data() {
-    return {
-      show: {
-        routesAndFeatures: true,
-        routeManager: false,
-        segmentModal: false
-      },
-      modalRoute: null,
-      modalSegment: null,
-      modalSegmentIndex: null,
-      modalAction: null,
-      modalRerender: 0,
+    name: 'Map',
+    components: {
+        MapNavigationLeft,
+        Grid,
+        RouteManager,
+        POIList,
+        SegmentModal
+    },
+    data() {
+        return {
+            show: {
+                routesAndFeatures: true,
+                routeManager: false,
+                segmentModal: false
+            },
+            modalRoute: null,
+            modalSegment: null,
+            modalSegmentIndex: null,
+            modalAction: null,
+            modalRerender: 0,
+        };
+    },
+    computed: {
+        ...mapGetters(['POIDashboardOpen'])
+    },
+    mounted() {
+        GridEventBus.$on('CLOSE_SEGMENT_MODAL', () => {
+            this.show.segmentModal = false;
+            this.modalAction = null;
+            this.modalRoute = null;
+        });
+
+        GridEventBus.$on('OPEN_SEGMENT_MODAL', (data) => {
+            // Force modal to re-render if it is already open
+            // (updated data may change the type of form that is rendered, so 
+            // existing one has to be forcibly overriden)
+            if (this.show.segmentModal) {
+                this.modalRerender++;
+            }
+
+            let {route, segment, segmentIndex, action} = data;
+
+            this.modalRoute = route;
+            this.modalSegment = segment;
+            this.modalSegmentIndex = segmentIndex;
+            this.show.segmentModal = true;
+            this.modalAction = action;
+        });
+    },
+    beforeDestroy() {
+        GridEventBus.$off('CLOSE_SEGMENT_MODAL');
+        GridEventBus.$off('OPEN_SEGMENT_MODAL');
+    },
+    methods: {
+        switchRightPanelView(state) {
+            if (state === 'routeManager') {
+                this.show.routeManager = true;
+                this.show.routesAndFeatures = false;
+            } else {
+                this.show.routeManager = false;
+                this.show.routesAndFeatures = true;
+            }
+        }
     }
-  },
-  computed: {
-    ...mapGetters(['POIDashboardOpen'])
-  },
-  mounted() {
-    GridEventBus.$on('CLOSE_SEGMENT_MODAL', () => {
-      this.show.segmentModal = false;
-      this.modalAction = null;
-      this.modalRoute = null;
-    });
-
-    GridEventBus.$on('OPEN_SEGMENT_MODAL', (data) => {
-      // Force modal to re-render if it is already open
-      // (updated data may change the type of form that is rendered, so 
-      // existing one has to be forcibly overriden)
-      if (this.show.segmentModal) {
-        this.modalRerender++;
-      }
-
-      let {route, segment, segmentIndex, action} = data;
-
-      this.modalRoute = route;
-      this.modalSegment = segment;
-      this.modalSegmentIndex = segmentIndex;
-      this.show.segmentModal = true;
-      this.modalAction = action;
-    })
-  },
-  beforeDestroy() {
-    GridEventBus.$off('CLOSE_SEGMENT_MODAL');
-    GridEventBus.$off('OPEN_SEGMENT_MODAL');
-  },
-  methods: {
-    switchRightPanelView(state) {
-      if (state === "routeManager") {
-        this.show.routeManager = true;
-        this.show.routesAndFeatures = false;
-      } else {
-        this.show.routeManager = false;
-        this.show.routesAndFeatures = true;
-      }
-    }
-  }
-}
+};
 
 </script>
 

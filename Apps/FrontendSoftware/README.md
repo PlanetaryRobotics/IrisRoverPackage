@@ -15,6 +15,39 @@ npm run postinstall
 
 ## **Development**
 
+### **Supported Environment**
+The supported development environment is using `VSCode` with the `ESLint` extension (`dbaeumer.vscode-eslint`) installed and configured to "*check syntax, find problems, and enforce code style*" on save.
+
+To configure `VSCode` to automatically lint on save, follow these steps:
+1. Go to **Settings** in `VSCode` (⚙️ icon)
+2. Search for '**Code Actions on Save**', in that section, click on **Edit in settings.json**.
+3. Update / add the following section:
+```json
+"editor.codeActionsOnSave": {
+  "source.fixAll.eslint": true
+},
+"eslint.validate": ["javascript"]
+```
+4. Save and close `settings.json`. Restart `VSCode`.
+
+This prevents formatting clashes showing up as changes in git commits since everyone will be using the same style. In addition, `ESLint` and its `vue` plugin are configured to automatically re-structure code so that common elements appear in consistent places to reduce cognitive overhead when reading other devs' code (or even old code of your own). This will also catch common `Vue/x` usage issues and some antipatterns, improving your code quality for free.
+
+### **Linting before Commit**
+As mentioned above, frequent linting is critical to a consistent development process. As such, your editor should be configured to lint formatting after every save. 
+
+In addition, there are two other linting processes which should be performed at minimum **before every PR** and ideally before each commit. This includes catching any `Vue/x` use issues. If the editor is setup correctly, these should be highlighted in IDE but the following commands will collect them all together:
+
+1. **Checking for formatting issues**
+To use `ESLint` to check for linting issues across the entire codebase, including checking for any places where `Vue/x` is being used incorrectly or illogically (e.g. directly mutating a prop), run the command run:
+```
+npm run lint
+```
+2. **Automatically fixing all formatting errors** discovered using `lint` which can be fixed automatically, run:
+```
+npm run lint:fix
+```
+
+
 ### **Compile with hot-reloading for development**
 ```
 npm run electron:serve
@@ -60,11 +93,6 @@ npm run electron:serve db-mission Dev db-pass Passcode
 ----
 
 ## **Testing**
-
-### **Lint and fix files**
-```
-npm run lint
-```
 
 ### **Run tests**
 ```

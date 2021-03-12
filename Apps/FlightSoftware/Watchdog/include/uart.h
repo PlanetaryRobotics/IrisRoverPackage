@@ -9,14 +9,7 @@
 #ifndef __UART_INC
 #define __UART_INC
 
-/* baud rate configurations - be sure to use a uint32_t!! */
-#define UART0_BAUD 115200
-#define UART1_BAUD 115200
-
 #include "buffer.h"
-
-extern void (*uart0_rx_handler)(uint16_t len, struct buffer *buf);
-extern void (*uart1_rx_handler)(uint16_t len, struct buffer *buf);
 
 /**
  * @brief Initialize UART hardware.
@@ -24,6 +17,7 @@ extern void (*uart1_rx_handler)(uint16_t len, struct buffer *buf);
  */
 void uart_init();
 
+void uart0_tx_nonblocking(uint16_t length, unsigned char *buffer);
 void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer);
 
 #endif /* __UART_INC */

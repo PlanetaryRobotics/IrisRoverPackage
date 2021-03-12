@@ -9,6 +9,7 @@
 #include <msp430.h>
 #include "buffer.h"
 
+
 #define I2C_SLAVE_ADDR      0b1100100 //i2c address of LTC2944IDD#PBF fuel gauge
 
 // every piece of i2c data for fuel gauge is 2 bytes (some info is 4 bytes split into MSB and LSB though)
@@ -92,7 +93,7 @@ void initializeFuelGauge();
  */
 void i2c_init();
 
-void i2c_tx_blocking(uint16_t len, struct buffer *buf);
+void i2c_tx_blocking(uint16_t len, unsigned char *buf);
 
 
 #endif /* __I2C_INC */

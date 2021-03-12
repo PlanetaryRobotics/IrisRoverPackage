@@ -1,24 +1,27 @@
-#include <msp430.h>
-
 /**
  * This file contains the code that does most of the watching of
  * the rest of the subsystems
+ * <b>watchdog_monitor() should only ever be called in MISSION mode!</b>
+ * There is no real watchdogging to do in lander connected mode.
  *
  * The way this file is laid out is that there are a number of ISRs. Some ISRs are taking in
  * kicks and setting a flag, and the other ISR is connected to a timer, which will check if the flags
  * are set, and clear them if they are.
  */
 
+#include <msp430.h>
 #include <stdint.h>
 #include "include/flags.h"
 
 volatile uint16_t watchdog_flags;
 
+// BELOW heater_on_min, heater turns on. ABOVE heater_off_max, heater turns off.
+uint16_t heater_on_min = 0x600, heater_off_max = 0x900;
+
 /**
  * Set up the ISRs for the watchdog
  */
 int watchdog_init() {
-
     /* trigger on P1.0 Hi/lo edge */
     P1IE |= BIT0;                    // P1.0 interrupt enabled
     P1IES |= BIT0;                   // P1.0 Hi/lo edge
@@ -27,7 +30,7 @@ int watchdog_init() {
     /* timer setup */
     TA0CTL = TASSEL_1 | ID_0 | TAIE;           // ACLK/1, interrupt on overflow
     TA0EX0 = TAIDEX_0;                  // ??/1
-    TA0CCR0 =  10000;                           // 12.5 Hz (pretty sure its not)
+    TA0CCR0 =  1000;                           // 12.5 Hz (pretty sure its not)
     TA0CTL |= MC_2;                 // Start timer in continuous mode
 
     return 0;
@@ -35,6 +38,8 @@ int watchdog_init() {
 
 /**
  * Perform the watchdog monitoring steps here
+ *
+ * Function called every ~5s
  */
 int watchdog_monitor() {
     /* temporarily disable interrupts */
@@ -49,12 +54,22 @@ int watchdog_monitor() {
         // TODO: reset radio
     }
 
-    if (watchdog_flags & WDFLAG_FPGA_KICK) {
-        /* FPGA kick received, all ok! */
-        watchdog_flags ^= WDFLAG_FPGA_KICK;
-    } else {
-        /* MISSING FPGA kick! */
-        // TODO: reset FPGA
+    /* unreset wifi chip */
+    if (watchdog_flags & WDFLAG_UNRESET_RADIO2) {
+        releaseRadioReset();
+        watchdog_flags ^= WDFLAG_UNRESET_RADIO2;
+    }
+
+    /* unreset wifi chip */
+    if (watchdog_flags & WDFLAG_UNRESET_RADIO1) {
+        watchdog_flags |= WDFLAG_UNRESET_RADIO2;
+        watchdog_flags ^= WDFLAG_UNRESET_RADIO1;
+    }
+
+    /* check ADC values */
+    if (watchdog_flags & WDFLAG_ADC_READY) {
+        /* ensure ADC values are in spec */
+        watchdog_flags ^= WDFLAG_ADC_READY;
     }
 
     /* re-enable interrupts */
@@ -98,6 +113,8 @@ void __attribute__ ((interrupt(PORT1_VECTOR))) port1_isr_handler (void) {
     switch(__even_in_range(P1IV, P1IV__P1IFG7)) {
         case P1IV__P1IFG0: // P1.0: Radio Kick
             watchdog_flags |= WDFLAG_RADIO_KICK;
+            // exit LPM
+            __bic_SR_register(DEFAULT_LPM);
             break;
         default: // default: ignore
             break;
@@ -114,9 +131,6 @@ void __attribute__ ((interrupt(PORT3_VECTOR))) port3_isr_handler (void) {
 #error Compiler not supported!
 #endif
     switch(__even_in_range(P3IV, P3IV__P3IFG7)) {
-        case P3IV__P3IFG5: // P3.5: FPGA Kick
-            watchdog_flags |= WDFLAG_FPGA_KICK;
-            break;
         default: // default: ignore
             break;
     }
@@ -135,6 +149,8 @@ void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer0_A1_ISR (void) {
     switch (__even_in_range(TA0IV, TAIV__TAIFG)) {
         case TAIV__TAIFG: /* timer tick overflowed */
             loop_flags |= FLAG_TIMER_TICK;
+            // exit LPM
+            __bic_SR_register(DEFAULT_LPM);
             break;
         default: break;
     }

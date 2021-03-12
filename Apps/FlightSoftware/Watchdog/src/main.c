@@ -1,4 +1,5 @@
 #include <msp430.h>
+#include <stdlib.h>
 
 #include "include/buffer.h"
 #include "include/uart.h"
@@ -6,32 +7,47 @@
 #include "include/adc.h"
 #include "include/flags.h"
 #include "include/i2c.h"
+#include "include/ip_udp.h"
+#include "include/watchdog.h"
+
 
 /* define all of the buffers used in other files */
-__volatile struct buffer uart0rx, uart0tx, uart1rx, uart1tx, i2crx, i2ctx;
+__volatile struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx;
+__volatile struct small_buffer i2crx, i2ctx;
 __volatile uint16_t loop_flags;
 
 /**
  * main.c
  */
 
-enum rover_state {
-    RS_LANDER,
-    RS_MISSION,
-    RS_FAULT
-} rovstate;
+enum rover_state rovstate;
 
 void enterMode(enum rover_state newstate) {
     switch (newstate) {
     case RS_LANDER:
-        /* TODO: initial mode; enable timer, all comms lines, and temperature checks, but don't turn on power rails */
+        /* monitor only lander voltages */
+        adc_setup_lander();
         break;
     case RS_MISSION:
         /* bootup process - enable all rails */
         enable3V3PowerRail();
-        enable24VPowerRail();
+        //enable24VPowerRail();
+        enableBatteries();
 
-        /* TODO: mission mode; enable everything in lander, but also power on the 24V and 3V3 rails */
+        /* start monitoring only mission-relevant voltages */
+        adc_setup_lander();
+
+        /* power everything on and release resets */
+        powerOnHercules();
+        releaseHerculesReset();
+        powerOnFpga();
+        powerOnMotors();
+        powerOnRadio();
+        releaseRadioReset();
+        releaseFPGAReset();
+        releaseMotorsReset();
+        /* TODO: do we want to do it in this order? */
+
         break;
     case RS_FAULT:
         /* TODO: fault mode; enable everything in lander mode */
@@ -78,13 +94,17 @@ int main(void) {
     i2c_init();
 
     /* set up watchdog */
-    //watchdog_init();
+    watchdog_init();
 
     /* set up the ADC */
     adc_init();
 
-    /* debug setup */
-    DEBUG_SETUP();
+    /* enter the lander mode */
+    // TODO: do NOT enter mission mode right away...
+    enterMode(RS_MISSION);
+
+    // TODO: camera switch is for debugging only
+    fpgaCameraSelectHi();
 
     __bis_SR_register(GIE); // Enable all interrupts
 
@@ -98,19 +118,86 @@ int main(void) {
         /* check if anything happened */
         if (!loop_flags) { /* nothing did */
             /* go back to low power mode */
-            __bis_SR_register(GIE);//LPM0_bits + GIE);
+            __bis_SR_register(GIE);
             continue;
         }
 
         /* a cool thing happened! now time to check what it was */
         if (loop_flags & FLAG_UART0_RX_PACKET) {
-            /* TODO: handle event for packet from lander */
+            // temporarily disable uart0 interrupt
+            UCA0IE &= ~UCRXIE;
+            unsigned int i = 0, len = 0;
+            // header is 8 bytes long
+            while (i + 8 <= uart0rx.idx) {
+                /* check input value */
+                if (uart0rx.buf[i] == 0x0B && uart0rx.buf[i + 1] == 0xB0 &&
+                        uart0rx.buf[i + 2] == 0x21) {
+                    /* magic value rx'd! check parity */
+                    uint8_t parity = 0xDC; /* sum of 0x21, 0xB0, and 0x0B */
+                    /* skip parity byte (i + 3) in summation */
+                    parity += uart0rx.buf[i + 4] + uart0rx.buf[i + 5];
+                    parity += uart0rx.buf[i + 6] + uart0rx.buf[i + 7];
+                    /* bitwise NOT to compute parity */
+                    parity = ~parity;
+
+                    if (parity == uart0rx.buf[i + 3]) {
+                        /* parity bytes match! */
+                        len = (uart0rx.buf[i + 4]) | (uart0rx.buf[i + 5] << 8);
+                        if (len) {
+                            /* udp packet */
+                            if (len + 8 > uart0rx.idx) {
+                                // TODO: parse UDP
+                                i += len;
+                            } else {
+                                /* need to wait for more bytes to come in */
+                                break;
+                            }
+                        } else {
+                            /* handle watchdog reset command */
+                            handle_watchdog_reset_cmd(uart0rx.buf[i + 6]);
+                            /* skip past the width of a watchdog command */
+                            i += 8;
+                            /* echo back watchdog command */
+                            uart0_tx_nonblocking(uart0rx.idx, uart0rx.buf);
+                        }
+
+                    }
+                }
+                i++;
+            }
+
+            // leftovers
+            if (i == 0) {
+                // skip the null memcpy
+            } else if (i < uart0rx.idx) {
+                // copy over leftovers to front of buffer
+                memcpy(uart0rx.buf, uart0rx.buf + i, uart0rx.idx - i);
+                uart0rx.idx = uart0rx.idx - i;
+            } else {
+                // no leftovers
+                uart0rx.idx = 0;
+            }
+
+            // re-enable uart0 interrupt
+            UCA0IE |= UCRXIE;
+
             /* clear event when done */
             loop_flags ^= FLAG_UART0_RX_PACKET;
         }
         if (loop_flags & FLAG_UART1_RX_PACKET) {
-            /* TODO: handle event for packet from hercules */
-            P1OUT ^= BIT1;
+            // temporarily disable uart1 interrupt
+            UCA1IE &= ~UCRXIE;
+            /* copy over the bytes into a processing buffer */
+            pbuf.used = uart1rx.idx;
+            /* reset uart1rx */
+            uart1rx.idx = 0;
+            /* copy over uart1rx buffer into processing buffer */
+            memcpy(pbuf.buf, uart1rx.buf, pbuf.used);
+            pbuf.idx = 0;
+            // re-enable uart1 interrupt
+            UCA1IE |= UCRXIE;
+            /* parse the packet */
+            parse_ground_cmd(pbuf);
             /* clear event when done */
             loop_flags ^= FLAG_UART1_RX_PACKET;
         }
@@ -120,21 +207,22 @@ int main(void) {
             loop_flags ^= FLAG_I2C_RX_PACKET;
         }
         if (loop_flags & FLAG_TIMER_TICK) {
-            /* TODO: handle event for heartbeat & kicks */
+            /* handle event for heartbeat */
+            /* always sample the ADC for temperature and voltage levels */
+            adc_sample();
+
             switch (rovstate) {
             case RS_LANDER:
-                /* TODO: send heartbeat */
-                /* TODO: check temperatures */
+                /* send heartbeat with collected data */
+                send_earth_heartbeat();
+                /* TODO: heater checks */
                 break;
             case RS_MISSION:
-                /* TODO: send kicks to devices */
-                /* check power levels */
-                adc_sample();
-                /* act on any kicks/flags that were set for the watchdog */
+                /* check for kicks from devices and reset misbehaving things */
                 watchdog_monitor();
                 break;
             case RS_FAULT:
-                /* TODO: wait for boot-back-up message */
+                /* sad :( */
                 break;
             }
 
@@ -145,6 +233,7 @@ int main(void) {
             if (rovstate == RS_LANDER)
                 /* we can only really enable the heaters if we're connected to the lander */
                 enableHeater();
+
             /* clear event when done */
             loop_flags ^= FLAG_TEMP_LOW;
         }
@@ -152,6 +241,7 @@ int main(void) {
             if (rovstate == RS_LANDER)
                 /* it only makes sense to disable the heaters if we're connected to the lander */
                 disableHeater();
+
             /* clear event when done */
             loop_flags ^= FLAG_TEMP_HIGH;
         }

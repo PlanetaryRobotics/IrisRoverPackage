@@ -1,6 +1,8 @@
 #ifndef CUBEROVER_WATCHDOG_IPUDP_INC
 #define CUBEROVER_WATCHDOG_IPUDP_INC
 
+#include "include/buffer.h"
+
 #define iup_get_ver(pckt) (pckt->ver_hdrlen >> 4)
 #define iup_get_hdrlen(pckt) (pckt->ver_hdrlen & 0xF)
 #define iup_as_bytes(pckt) ((unsigned char *)pckt)
@@ -84,5 +86,8 @@ struct __attribute__((__packed__)) ip_udp_pckt {
     struct udp_hdr udp_hdr;
     /* -=-=-=-=-=-=-=-=[ data here ]=-=-=-=-=-=-=-=- */
 };
+
+void ipudp_send_packet(uint8_t *data, uint16_t data_len);
+uint8_t *ipudp_parse_packet(struct buffer *buf, uint16_t *pp_len);
 
 #endif /* CUBEROVER_WATCHDOG_IPUDP_INC */

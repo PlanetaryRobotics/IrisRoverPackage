@@ -1,5 +1,10 @@
 #include "include/bsp.h"
 
+#define PROGRAM_MOTOR_CONTROLLERS
+
+uint8_t heaterStatus;
+uint8_t hasDeployed;
+
 /**
  * @brief      Initializes the gpios.
  */
@@ -7,32 +12,37 @@ void initializeGpios(){
   // P1 configuration
   P1DIR &= 0x00;  // All bits as input
   P1OUT &= ~(BIT4 | BIT5); // Initially everything is off
-  //P1DIR |= BIT4;  // P1.4 output Motor control reset B
-  //P1DIR |= BIT5;  // P1.5 output Motor control reset C
+
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+  P1DIR |= BIT4;  // P1.4 output Motor control reset B
+  P1DIR |= BIT5;  // P1.5 output Motor control reset C
+#endif
 
   // UART configuration done in uart_init()
 
   // i2c configuration done in i2c_init()
 
-  /*TODO: It may be better coding conventions to use the respective
-   * on/off functions than to set P2OUT directly, in case things change */
   // P2 configuration
   P2DIR &= 0x00;
   P2OUT &= ~(BIT2 | BIT3 | BIT4); // Initially everything is off
   P2DIR |= BIT2;  // P2.2 output Heater
-  //P2DIR |= BIT3;  // P2.3 output Motor control reset A
+
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+  P2DIR |= BIT3;  // P2.3 output Motor control reset A
+#endif
+
   P2DIR |= BIT4;  // P2.4 output Radio ON
   P2DIR &= ~BIT7;  // P2.7 input Power good 1V2
 
   // P3 configuration
   P3DIR &= 0x00;
-  P3OUT &= ~(BIT1 | BIT2 | BIT3 | BIT4 | BIT6 | BIT7); // Initially everything is off
-  P3DIR &= ~BIT0;  // P3.0 input battery
+  P3OUT &= ~(BIT1 | BIT2 | BIT3 | BIT4 | BIT5 | BIT6 | BIT7); // Initially everything is off
+  P3DIR &= ~BIT0;  // P3.0 input battery thermistor
   P3DIR |= BIT1; // P3.1 output Hercules POR
   P3DIR |= BIT2; // P3.2 output Hercules Reset
   P3DIR |= BIT3; // P3.3 output Radio Reset
   P3DIR |= BIT4; // P3.4 output deployment
-  P3DIR |= BIT5; // P3.5 output camera select
+  P3DIR |= BIT5; // P3.5 output FPGA camera select
   P3DIR |= BIT6; // P3.6 output FPGA reset
   P3DIR |= BIT7; // P3.7 output 3V3 enable
 
@@ -52,20 +62,26 @@ void initializeGpios(){
   PJDIR |= BIT0; // PJ.0 output Hercules ON
   PJDIR |= BIT1; // PJ.1 output FPGA ON
   PJDIR |= BIT2; // PJ.2 output MOTORS ON
-  //PJDIR |= BIT4; // PJ.4 output Motor control reset D
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+  PJDIR |= BIT4; // PJ.4 output Motor control reset D
+#endif
   PJDIR |= BIT5; // PJ.5 output BATTERY
   PJDIR &= ~BIT3; // PJ.3 input CHRG
+
+  // Initial statuses
+  heaterStatus = 0;
+  hasDeployed = 0;
 }
 
 /**
  * @brief      Enables the heater. (HI = ON)
  */
-inline void enableHeater(){ P2OUT |= BIT2; }
+inline void enableHeater(){ P2OUT |= BIT2; heaterStatus = 1; }
 
 /**
  * @brief      Disables the heater. (LO = OFF)
  */
-inline void disableHeater(){ P2OUT &= ~BIT2; }
+inline void disableHeater(){ P2OUT &= ~BIT2; heaterStatus = 0; }
 
 /**
  * @brief      Enables the 3.3 v power rail. (HI = ON)
@@ -118,14 +134,32 @@ inline void releaseFPGAReset() { P3OUT |= BIT6; }
 inline void setFPGAReset() { P3OUT &= ~BIT6; }
 
 /**
+ * @brief      Select camera 1 in FPGA
+ */
+inline void fpgaCameraSelectHi() { P3OUT |= BIT5; }
+
+/**
+ * @brief      Select camera 0 in FPGA
+ */
+inline void fpgaCameraSelectLo() { P3OUT &= ~BIT5; }
+
+/**
  * @brief      Releases the motor resets. (HI = NORMAL)
  */
-inline void releaseMotorsReset() { P1OUT |= BIT4 | BIT5; P2OUT |= BIT3; PJOUT |= BIT4; }
+inline void releaseMotorsReset() {
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    P1OUT |= BIT4 | BIT5; P2OUT |= BIT3; PJOUT |= BIT4;
+#endif
+}
 
 /**
  * @brief      Sets the motors to reset. (LO = RESET)
  */
-inline void setMotorsReset() { P1OUT &= ~(BIT4 | BIT5); P2OUT &= ~BIT3; PJOUT &= ~BIT4; }
+inline void setMotorsReset() {
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    P1OUT &= ~(BIT4 | BIT5); P2OUT &= ~BIT3; PJOUT &= ~BIT4;
+#endif
+}
 
 /**
  * @brief      Power the hercules MCU (HI = ON)
@@ -176,4 +210,14 @@ inline void enableBatteries() { PJOUT |= BIT5; }
  * @brief      Disable the batteries (LO = OFF)
  */
 inline void disableBatteries() { PJOUT &= ~BIT5; }
+
+/**
+ * @brief      Deploy the rover from the lander
+ */
+inline void setDeploy() { hasDeployed = 1; P3OUT |= BIT4; }
+
+/**
+ * @brief      Un-set deploy from lander
+ */
+inline void unsetDeploy() { P3OUT &= ~BIT4; }
 

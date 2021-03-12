@@ -1,5 +1,6 @@
 #include <stdint.h>
-#include "include\ip_udp.h"
+#include "include/ip_udp.h"
+#include "include/buffer.h"
 
 /* note - msp430 is little endian; networks are big endian */
 
@@ -106,6 +107,50 @@ uint16_t ip_verify_packet(uint8_t *packet, uint16_t packet_len) {
     return (word_stor == 0xffff || word_stor == 0x0) ? 0 : word_stor;
 }
 
+/**
+ * Send a UDP datagram
+ */
+static uint8_t ipudp_tx_buf[BUFFER_SIZE];
+void ipudp_send_packet(uint8_t *data, uint16_t data_len) {
+    uint16_t out_len;
+    struct ip_hdr *ip_hdr = (struct ip_hdr *)ipudp_tx_buf;
+    struct udp_hdr *udp_hdr = (struct udp_hdr *)(ip_hdr + 1);
+
+    /* we can only take a maximum of data_len - sizeof(struct ip_hdr) - sizeof(struct udp_hdr) */
+
+    /* make the ip header first */
+    ip_hdr->ver_hdrlen = 0x45;
+
+    out_len = 1;
+
+    /* TODO: actually send the IP/UDP encapsulated data, lol */
+    uart1_tx_nonblocking(data_len, data);
+}
+
+/**
+ * Parse an input datagram into a buffer
+ *
+ * @param buf: Buffer to parse the packet from. idx should be 0.
+ * @param[OUT] pp_len: Pointer to the payload length
+ * @return Pointer to the start of the payload
+ */
+uint8_t *ipudp_parse_packet(struct buffer *buf, uint16_t *pp_len) {
+    uint16_t n;
+    if (!ip_verify_packet(buf->buf, buf->used)) {
+        /* TODO: for debugging purposes right now, we ignore erroneous cases where the checksum is wrong */
+    }
+
+    /* TODO: proper checking of stuff here ... */
+    n = sizeof(struct ip_udp_pckt);
+    if (buf->used < n) {
+        /* too small */
+        return (void *)0;
+    }
+
+    *pp_len = buf->used - n;
+    /* skip past the ip and udp headers, and we're left with the payload! */
+    return buf->buf + n;
+}
 
 /* to compile: gcc ip_udp.c -Wall -Wxtra -Werror -D__TEST_IP_UDP -o test_ip_udp */
 #ifdef __TEST_IP_UDP

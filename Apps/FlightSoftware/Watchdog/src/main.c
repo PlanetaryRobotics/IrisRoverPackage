@@ -5,6 +5,7 @@
 #include "include/bsp.h"
 #include "include/adc.h"
 #include "include/flags.h"
+#include "include/i2c.h"
 
 /* define all of the buffers used in other files */
 __volatile struct buffer uart0rx, uart0tx, uart1rx, uart1tx, i2crx, i2ctx;
@@ -40,16 +41,23 @@ void enterMode(enum rover_state newstate) {
 }
 
 void DEBUG_SETUP() {
-    enable24VPowerRail();
-    enable3V3PowerRail();
-    powerOnHercules();
-    releaseHerculesReset();
-    powerOnFpga();
-    powerOnMotors();
-    powerOnRadio();
-    releaseRadioReset();
-    releaseFPGAReset();
-    releaseMotorsReset();
+    enableBatteries();
+    enable3V3PowerRail(); // we added this
+    enable24VPowerRail(); // we added this
+    //disable24VPowerRail();
+    //enable3V3PowerRail();
+    powerOnHercules(); // we turned this on (uncommented)
+    //releaseHerculesReset();
+    //powerOnFpga();
+    powerOnMotors();// we turned this on (uncommented) (that's all ;)
+    // not really sure what version this is tbh
+    // this is an old version; can i swtich workspaces real quick?
+    //
+    //powerOffMotors();
+    //powerOnRadio();
+    //releaseRadioReset();
+    //releaseFPGAReset();
+    //releaseMotorsReset();
 }
 
 
@@ -66,6 +74,9 @@ int main(void) {
     /* set up uart */
     uart_init();
 
+    /* set up i2c */
+    i2c_init();
+
     /* set up watchdog */
     //watchdog_init();
 
@@ -79,6 +90,11 @@ int main(void) {
 
     // the core structure of this program is like an event loop
     while (1) {
+
+            // camera hack
+                 P3OUT |= BIT5; // P3.5 output camera select
+
+
         /* check if anything happened */
         if (!loop_flags) { /* nothing did */
             /* go back to low power mode */

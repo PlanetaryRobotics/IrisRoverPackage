@@ -14,6 +14,6 @@ void i2c_init() {
     
 }
 
-void i2c_tx_blocking(uint16_t len, struct buffer *buf) {
+void i2c_tx_blocking(uint16_t len, unsigned char *buf) {
     
 }

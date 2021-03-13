@@ -29,7 +29,8 @@ void enterMode(enum rover_state newstate) {
     case RS_MISSION:
         /* bootup process - enable all rails */
         enable3V3PowerRail();
-        //enable24VPowerRail();
+        // [DEBUG] CONNOR/WHOMEVER ELSE - THIS LINE RIGHT HERE, IF COMMENTED OUT, WILL KEEP THE MOTOR CONTROLLERS DISABLED
+        enable24VPowerRail();
         enableBatteries();
 
         /* start monitoring only mission-relevant voltages */
@@ -119,7 +120,14 @@ int main(void) {
                             /* udp packet */
                             if (len + 8 > uart0rx.idx) {
                                 // TODO: parse UDP
-                                i += len;
+                                /* copy over the bytes into a processing buffer */
+                                pbuf.used = len;
+                                /* copy over uart1rx buffer into processing buffer */
+                                memcpy(pbuf.buf, uart0rx.buf + 8, pbuf.used);
+                                pbuf.idx = 0;
+                                i += len + 8;
+                                /* echo back watchdog command */
+                                uart0_tx_nonblocking(uart0rx.idx, uart0rx.buf);
                             } else {
                                 /* need to wait for more bytes to come in */
                                 break;
@@ -127,10 +135,12 @@ int main(void) {
                         } else {
                             /* handle watchdog reset command */
                             handle_watchdog_reset_cmd(uart0rx.buf[i + 6]);
+                            /* echo back watchdog command */
+                            uart0_tx_nonblocking(8, uart0rx.buf + i);
                             /* skip past the width of a watchdog command */
                             i += 8;
-                            /* echo back watchdog command */
-                            uart0_tx_nonblocking(uart0rx.idx, uart0rx.buf);
+                            /* also send telemetry */
+                            //uart0_tx_nonblocking();
                         }
 
                     }

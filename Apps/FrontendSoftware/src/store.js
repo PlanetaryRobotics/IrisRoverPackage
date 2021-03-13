@@ -51,11 +51,11 @@ export default new Vuex.Store({
         },
         // List of FTAData Objects Held in the Log in the Database's Commands Collection (only load the most recent entry):
         FTALogList: new DBLazyList({
-          collection: Collections.FTA,
-          objClass: FTAData,
-          length: 1,
-          staleTime: Infinity,
-          autopopulate: true
+            collection: Collections.FTA,
+            objClass: FTAData,
+            length: 1,
+            staleTime: Infinity,
+            autopopulate: true
         }),
 
         savedStartCoord: {},
@@ -76,26 +76,26 @@ export default new Vuex.Store({
             }
         },
 
-      // Manual POI coord add
-      POIStartCoords: state => {
-        return state.savedStartCoord
-      },
+        // Manual POI coord add
+        POIStartCoords: state => {
+            return state.savedStartCoord;
+        },
 
-      POIEndCoords: state => {
-        return state.savedEndCoord
-      }
+        POIEndCoords: state => {
+            return state.savedEndCoord;
+        }
     },
 
-  mutations: {
-    UPDATE_POICOORDS: (state, arr) => {
-      state.savedStartCoord = arr[0];
-      state.savedEndCoord = arr[1];
+    mutations: {
+        UPDATE_POICOORDS: (state, arr) => {
+            state.savedStartCoord = arr[0];
+            state.savedEndCoord = arr[1];
+        },
     },
-  },
 
-  actions: {
-    updatePOICoords: (context, start, end) => {
-      context.commit("UPDATE_POICOORDS", start, end)
-    },
-  }
-})
+    actions: {
+        updatePOICoords: (context, start, end) => {
+            context.commit('UPDATE_POICOORDS', start, end);
+        },
+    }
+});

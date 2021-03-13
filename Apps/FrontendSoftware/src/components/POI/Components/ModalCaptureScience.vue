@@ -1,47 +1,54 @@
 <template>
   <div class="modal-container">
     <div class="flex-container flex-vertical-center">
-      <ScienceImageIcon></ScienceImageIcon> <span class="title thick">Capture
-      Science Image</span>
+      <ScienceImageIcon /> <span class="title thick">Capture
+        Science Image</span>
     </div>
     <p id="desc">
       You are capturing ATTR-005 as a high-resolution science image. This action
-      will take approximately <span class="thick">{{ time }}</span
-      >.
+      will take approximately <span class="thick">{{ time }}</span>.
     </p>
     <div class="flex-container button-container">
-      <button class="button modal-button" v-on:click="closeModal">
+      <button
+        class="button modal-button"
+        @click="closeModal"
+      >
         CANCEL
       </button>
-      <button class="button modal-button confirm" v-on:click="confirmImage">CONFIRM</button>
+      <button
+        class="button modal-button confirm"
+        @click="confirmImage"
+      >
+        CONFIRM
+      </button>
     </div>
   </div>
 </template>
 
 <script scoped>
-import ScienceImageIcon from "@/assets/imgviewer/SVGcomponents/ScienceImageIcon.vue";
+import ScienceImageIcon from '@/assets/imgviewer/SVGcomponents/ScienceImageIcon.vue';
 
 export default {
-  name: "ModalCaptureScience",
+    name: 'ModalCaptureScience',
 
-  components: {
-    ScienceImageIcon,
-  },
-
-  data() {
-    return {
-      time: "33 minutes",
-    };
-  },
-
-  methods: {
-    closeModal() {
-      this.$emit("closeCapSciModal");
+    components: {
+        ScienceImageIcon,
     },
-    confirmImage(){
-      this.$emit("confirmCapSciImage");
-    }
-  },
+
+    data() {
+        return {
+            time: '33 minutes',
+        };
+    },
+
+    methods: {
+        closeModal() {
+            this.$emit('closeCapSciModal');
+        },
+        confirmImage(){
+            this.$emit('confirmCapSciImage');
+        }
+    },
 };
 </script>
 

@@ -1,16 +1,34 @@
 <template>
   <!-- <div class="modal-backdrop"> -->
-  <div class="POIModalContainer" :style="positionModal">
-    <section v-on:click.stop="selectPOIChoice('Attraction')" class="modal-body">
-      <slot name="body"> <span class="dot-icon green"></span> Attraction </slot>
+  <div
+    class="POIModalContainer"
+    :style="positionModal"
+  >
+    <section
+      class="modal-body"
+      @click.stop="selectPOIChoice('Attraction')"
+    >
+      <slot name="body">
+        <span class="dot-icon green" /> Attraction
+      </slot>
     </section>
 
-    <section v-on:click.stop="selectPOIChoice('Obstacle')" class="modal-body">
-      <slot name="body"> <span class="dot-icon red"></span> Obstacle </slot>
+    <section
+      class="modal-body"
+      @click.stop="selectPOIChoice('Obstacle')"
+    >
+      <slot name="body">
+        <span class="dot-icon red" /> Obstacle
+      </slot>
     </section>
 
-    <section v-on:click.stop="selectPOIChoice('Shadow')" class="modal-body">
-      <slot name="body"> <span class="dot-icon red"></span> Shadow </slot>
+    <section
+      class="modal-body"
+      @click.stop="selectPOIChoice('Shadow')"
+    >
+      <slot name="body">
+        <span class="dot-icon red" /> Shadow
+      </slot>
     </section>
   </div>
   <!-- </div> -->
@@ -18,26 +36,26 @@
 
 <script>
 export default {
-  name: "POIModalChoiceList",
+    name: 'POIModalChoiceList',
 
-  props:{
-    endCoordinates: Array,
-  },
-
-  methods: {
-    selectPOIChoice(val) {
-      console.log("COL: ", val)
-      this.$emit("POIChoiceSelected", val);
+    props:{
+        endCoordinates: Array,
     },
-  },
 
-  computed:{
-    positionModal(){
-      let topPos = 'top: ' + ((this.endCoordinates[1]+67)/10) + 'rem;';
-      let leftPost = 'margin-left: ' + ((this.endCoordinates[0]+1)/10) + 'rem';
-      return topPos + leftPost
+    computed:{
+        positionModal(){
+            let topPos = 'top: ' + ((this.endCoordinates[1]+67)/10) + 'rem;';
+            let leftPost = 'margin-left: ' + ((this.endCoordinates[0]+1)/10) + 'rem';
+            return topPos + leftPost;
+        }
+    },
+
+    methods: {
+        selectPOIChoice(val) {
+            console.log('COL: ', val);
+            this.$emit('POIChoiceSelected', val);
+        },
     }
-  }
 };
 </script>
 

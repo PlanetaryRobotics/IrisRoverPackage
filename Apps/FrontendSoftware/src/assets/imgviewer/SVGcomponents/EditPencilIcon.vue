@@ -15,8 +15,8 @@
 
 <script>
 export default {
-  name: 'EditPencilIcon',
-}
+    name: 'EditPencilIcon',
+};
 </script>
 
 <style lang="css" scoped></style>

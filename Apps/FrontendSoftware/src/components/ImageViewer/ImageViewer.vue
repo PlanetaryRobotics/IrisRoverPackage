@@ -49,14 +49,7 @@ export default {
             console
         };
     },
-
-    methods: {
-        addTag: function(payload) { // Opens add tag modial and sets addTagName to image name
-            this.$store.commit('ADD_TAG');
-            this.addTagName = payload;
-        }
-    },
-
+    
     computed: {
         ...mapState({
             isAddTag: state => state.IMG.isAddTag
@@ -69,7 +62,14 @@ export default {
 
     beforeDestroy: function() { // Removes event listners from the global event hub for adding/removing tags from an image
         this.$eventHub.$off('addTag', this.addTag);
-    }
+    },
+
+    methods: {
+        addTag: function(payload) { // Opens add tag modial and sets addTagName to image name
+            this.$store.commit('ADD_TAG');
+            this.addTagName = payload;
+        }
+    },
 };
 </script>
 

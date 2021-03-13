@@ -1,56 +1,59 @@
 <template>
   <div id="top-instruction-box">
     <span id="instruction">{{ instruction1 }}</span>
-    <span v-if="instruction2Visible" class="obj-name">{{ name }}</span
-    ><span v-if="instruction2Visible">.</span>
     <span
-      class="done"
       v-if="instruction2Visible"
-      v-on:click="completeCaptureSelection">Done</span>
+      class="obj-name"
+    >{{ name }}</span><span v-if="instruction2Visible">.</span>
+    <span
+      v-if="instruction2Visible"
+      class="done"
+      @click="completeCaptureSelection"
+    >Done</span>
   </div>
 </template>
 
 <script>
 export default {
-  name: "CaptureScienceInstructionBox",
+    name: 'CaptureScienceInstructionBox',
 
-  props: {
-    onParentClick: Boolean,
-  },
-
-  data() {
-    return {
-      instruction2Visible: false,
-      instruction1: "Select POI in frame:",
-      instruction2: "Capture science image with ",
-      name: "ATTR-005",
-    };
-  },
-
-  watch: {
-    onParentClick: function () {
-      if (this.onParentClick == false){
-        document.getElementById("instruction").innerHTML = this.instruction1;
-        this.instruction2Visible = false;
-      }
-      else if (this.onParentClick == true) {
-        this.onSelectPOI();
-        this.$emit("instructionTwoActivated");
-      }
-    },
-  },
-
-  methods: {
-    onSelectPOI() {
-      document.getElementById("instruction").innerHTML = this.instruction2;
-      this.instruction2Visible = true;
+    props: {
+        onParentClick: Boolean,
     },
 
-    completeCaptureSelection() {
-      console.log("capselecFired")
-      this.$emit("captureSelectionSelected");
+    data() {
+        return {
+            instruction2Visible: false,
+            instruction1: 'Select POI in frame:',
+            instruction2: 'Capture science image with ',
+            name: 'ATTR-005',
+        };
     },
-  },
+
+    watch: {
+        onParentClick: function () {
+            if (this.onParentClick == false){
+                document.getElementById('instruction').innerHTML = this.instruction1;
+                this.instruction2Visible = false;
+            }
+            else if (this.onParentClick == true) {
+                this.onSelectPOI();
+                this.$emit('instructionTwoActivated');
+            }
+        },
+    },
+
+    methods: {
+        onSelectPOI() {
+            document.getElementById('instruction').innerHTML = this.instruction2;
+            this.instruction2Visible = true;
+        },
+
+        completeCaptureSelection() {
+            console.log('capselecFired');
+            this.$emit('captureSelectionSelected');
+        },
+    },
 };
 </script>
 

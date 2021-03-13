@@ -1,5 +1,5 @@
 <template>
-<!--
+  <!--
   
   1. Make canvas and img same size, with img matching canvas size for easiest fix (done)
   Canvas must match img width and height automatically, not manually set (see 100% setting in Template)
@@ -10,9 +10,14 @@
 
 -->
 
-  <div class="modal-backdrop" v-on:click.self="closeModal">
+  <div
+    class="modal-backdrop"
+    @click.self="closeModal"
+  >
     <div id="POIModalDetailsContainer">
-      <h3 class="heading-poi">ADD NEW POI</h3>
+      <h3 class="heading-poi">
+        ADD NEW POI
+      </h3>
 
       <div class="flex-container modal-content">
         <!-- First Column: form information -->
@@ -42,7 +47,11 @@
 
             <div class="modal-row">
               <div class="label">Name*</div>
-              <input type="text" readonly placeholder="OBST-005" />
+              <input
+                type="text"
+                readonly
+                placeholder="OBST-005"
+              >
               <div class="sublabel">* Automatically Populated.</div>
             </div>
             <div class="modal-row">
@@ -53,10 +62,10 @@
                   <div class="dimen">Width (cm)</div>
                   <input
                     type="text"
+                    placeholder="Width"
                     @keydown.space.prevent
                     @keypress="onlyNumber"
-                    placeholder="Width"
-                  />
+                  >
                 </div>
 
                 <svg
@@ -67,8 +76,14 @@
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <path d="M1 1L9 10" stroke="white" />
-                  <path d="M8.75555 1L1.24445 10" stroke="white" />
+                  <path
+                    d="M1 1L9 10"
+                    stroke="white"
+                  />
+                  <path
+                    d="M8.75555 1L1.24445 10"
+                    stroke="white"
+                  />
                 </svg>
 
                 <!-- HEIGHT -->
@@ -76,10 +91,10 @@
                   <div class="dimen">Height (cm)</div>
                   <input
                     type="text"
+                    placeholder="Height"
                     @keydown.space.prevent
                     @keypress="onlyNumber"
-                    placeholder="Height"
-                  />
+                  >
                 </div>
 
                 <svg
@@ -90,8 +105,14 @@
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <path d="M1 1L9 10" stroke="white" />
-                  <path d="M8.75555 1L1.24445 10" stroke="white" />
+                  <path
+                    d="M1 1L9 10"
+                    stroke="white"
+                  />
+                  <path
+                    d="M8.75555 1L1.24445 10"
+                    stroke="white"
+                  />
                 </svg>
 
                 <!-- DEPTH -->
@@ -99,17 +120,20 @@
                   <div class="dimen">Depth (cm)</div>
                   <input
                     type="text"
+                    placeholder="Depth"
                     @keydown.space.prevent
                     @keypress="onlyNumber"
-                    placeholder="Depth"
-                  />
+                  >
                 </div>
               </div>
             </div>
 
             <div class="modal-row">
               <div class="label">Details</div>
-              <textarea rows="6" placeholder="Fill out details here"></textarea>
+              <textarea
+                rows="6"
+                placeholder="Fill out details here"
+              />
             </div>
           </span>
 
@@ -122,14 +146,14 @@
               >
                 <input
                   class="add-tag-input"
-                  @keydown.space.prevent
                   type="text"
-                  v-on:input="tagUserInput = $event.target.value"
                   placeholder="Search"
-                />
+                  @keydown.space.prevent
+                  @input="tagUserInput = $event.target.value"
+                >
                 <div
                   class="addTagButton flex-container vertically-center"
-                  v-on:click="createNewTag"
+                  @click="createNewTag"
                 >
                   <WhiteAddIcon class="white-add-icon" />
                 </div>
@@ -137,22 +161,28 @@
             </div>
 
             <div class="modal-row">
-              <div id="tag-pill-container"></div>
+              <div id="tag-pill-container" />
             </div>
           </span>
         </div>
 
         <!-- Second Column: thumbnail image -->
         <div class="modal-col">
-          <div class="label">Thumbnail Photo</div>
+          <div class="label">
+            Thumbnail Photo
+          </div>
           <div class="canvas-wrapper">
-            <canvas id="imgCanvas" height="245" width="245" />
+            <canvas
+              id="imgCanvas"
+              height="245"
+              width="245"
+            />
             <img
               class="thumbnail"
               draggable="false"
               :src="imgData"
               alt="Selected area of image not loaded"
-            />
+            >
             <!-- <img
             class="thumbnail"
             draggable="false"
@@ -165,12 +195,15 @@
       <div id="btn-container">
         <!-- Form 1 Buttons -->
         <span v-if="formOneVisible">
-          <button class="button modal-button" v-on:click="closeModal">
+          <button
+            class="button modal-button"
+            @click="closeModal"
+          >
             CANCEL
           </button>
           <button
             class="button modal-button next purple"
-            v-on:click="populateAsFormTwo"
+            @click="populateAsFormTwo"
           >
             NEXT
           </button>
@@ -178,13 +211,16 @@
 
         <!-- Form 2 Buttons -->
         <span v-if="formTwoVisible">
-          <button class="button modal-button" v-on:click="closeModal">
+          <button
+            class="button modal-button"
+            @click="closeModal"
+          >
             CANCEL
           </button>
 
           <button
             class="button modal-button purple previous"
-            v-on:click="populateAsFormOne"
+            @click="populateAsFormOne"
           >
             PREVIOUS
           </button>
@@ -196,375 +232,375 @@
 
     <AddTagModalWithinPOIModal
       v-if="addTagModalVisible"
-      v-on:closeModal="closeAddTagModal"
-      v-on:newTag="pushNewTag"
-      v-bind:tagInput="tagUserInput"
+      :tag-input="tagUserInput"
+      @closeModal="closeAddTagModal"
+      @newTag="pushNewTag"
     />
   </div>
 </template>
 
 <script>
-import Dropdown from "@/components/POI/Components/Dropdown.vue";
-import WhiteAddIcon from "@/assets/imgviewer/SVGcomponents/WhiteAddIcon.vue";
-import AddTagModalWithinPOIModal from "@/components/POI/Components/AddTagModalWithinPOIModal.vue";
-import { mapGetters } from "vuex";
-import getPixels from "get-pixels";
-import util from "util";
-import savePixels from "save-pixels";
-import streamConcat from "concat-stream";
+import Dropdown from '@/components/POI/Components/Dropdown.vue';
+import WhiteAddIcon from '@/assets/imgviewer/SVGcomponents/WhiteAddIcon.vue';
+import AddTagModalWithinPOIModal from '@/components/POI/Components/AddTagModalWithinPOIModal.vue';
+import { mapGetters } from 'vuex';
+import getPixels from 'get-pixels';
+import util from 'util';
+import savePixels from 'save-pixels';
+import streamConcat from 'concat-stream';
 
 // Promisify function for image data getters in computed
 const getPromisedPixels = util.promisify(getPixels);
 
 export default {
-  name: "POIModalFullDetails",
+    name: 'POIModalFullDetails',
 
-  props: {
-    parentData: String,
-  },
-
-  components: {
-    Dropdown,
-    WhiteAddIcon,
-    AddTagModalWithinPOIModal,
-  },
-
-  data() {
-    return {
-      mouseDownThumbnail: false,
-      formOneVisible: true,
-      formTwoVisible: false,
-      tagUserInput: "",
-      chosenTagList: [{ details: "Details test", name: "testing" }],
-      addTagModalVisible: false,
-      imgContextCanvasContext: null,
-    };
-  },
-
-  methods: {
-    closeModal() {
-      this.$emit("closeTheModal");
+    components: {
+        Dropdown,
+        WhiteAddIcon,
+        AddTagModalWithinPOIModal,
     },
 
-    closeAddTagModal() {
-      this.addTagModalVisible = false;
+    props: {
+        parentData: String,
     },
 
-    // Push new tag from tag creation modal to chosen tag list
-    pushNewTag(tag) {
-      // Push new tag to array of chosen tags
-      this.chosenTagList.push(tag);
-    },
-
-    onlyNumber($event) {
-      let keyCode = $event.keyCode ? $event.keyCode : $event.which;
-      if ((keyCode < 48 || keyCode > 57) && keyCode !== 46) {
-        // 46 is dot
-        $event.preventDefault();
-      }
-    },
-
-    makeContextOutlines(numRows, numCols, paddingTopOrLeft, paddingBottomOrRight, originalImgWidth, originalImgHeight) {
-
-      let imgLayer = document.getElementById("imgCanvas");
-
-      // Canvas Width and Height
-      // imgLayer.width="245";
-      // imgLayer.height="246"; // Don't do this manually!
-      let canvasWidth = imgLayer.width; // Move this lower
-      let canvasHeight = imgLayer.height;
-
-      // Check if original image longer in terms of height or width (e.g. #rows vs #cols)
-      let rowsHeavy = (numRows >= numCols);
-
-      let imgContextCanvasContext = imgLayer.getContext("2d");
-
-      //  !!!!! Get the width here by context.canvas.width
-
-      // Begin: drawing POI selector box on canvas
-      // imgContextCanvasContext.beginPath();
-
-      let scalar = 0;
-
-      // Style of selection box
-      imgContextCanvasContext.fillStyle = "#00ffff";
-      imgContextCanvasContext.globalAlpha = 0.5;
-
-      // Start drawing selector box ("rect")
-      if(!rowsHeavy){
-        // console.log("canvasWidth: ", canvasWidth, "\n canvasHeight: ", canvasHeight, "\nsidePadding: ", sidePadding);
-
-        scalar = canvasHeight/originalImgHeight;
-
-        // top black context rectangle
-        imgContextCanvasContext.fillRect(0, 0, canvasWidth, (paddingTopOrLeft*scalar)); // (top left: x,y; width, height)
-        // imgContextCanvasContext.stroke();
-
-        // bottom black context rectangle
-        imgContextCanvasContext.fillStyle = "#ff0";
-        imgContextCanvasContext.fillRect(0, canvasHeight-(paddingBottomOrRight*scalar), canvasWidth, (paddingBottomOrRight*scalar)); // (x, y, width, height)
-      }
-      
-      else if(rowsHeavy){
-
-        scalar = canvasWidth/originalImgWidth;
-
-        // left black context rectangle
-        imgContextCanvasContext.fillRect(0, 0, (paddingTopOrLeft*scalar), canvasHeight); // (top left: x,y; width, height)
-        // imgContextCanvasContext.stroke();
-
-        // right black context rectangle
-        imgContextCanvasContext.fillRect(canvasWidth-(paddingBottomOrRight*scalar), 0, (paddingBottomOrRight*scalar), canvasHeight); // (top left: x,y; width, height)
-      }
-
-      // imgContextCanvasContext.closePath();
-    },
-
-    populateAsFormOne() {
-      // Show form 1
-      this.formOneVisible = true;
-
-      // Hide form 2
-      this.formTwoVisible = false;
-    },
-
-    populateAsFormTwo() {
-      // Hide form 1 divs in left column
-      this.formOneVisible = false;
-
-      // Show form 2 divs in left column
-      this.formTwoVisible = true;
-      // Auto populate tags visible if any already created (e.g. if back button pushed then next pushed again)
-      this.updateTagPills();
-    },
-
-    createNewTag() {
-      this.addTagModalVisible = true;
-    },
-
-    updateTagPills() {
-      // clear current tags
-      document.getElementById("tag-pill-container").innerHTML = "";
-
-      // for tag in this.chosenTagList: create new tag pill so updates when tags deleted and created
-      for (var i = 0; i < this.chosenTagList.length; i++) {
-        let arr = this.chosenTagList[i];
-
-        let tagDiv = document.createElement("div");
-        tagDiv.setAttribute("class", "tag-pill");
-        tagDiv.innerHTML = arr.name + " ";
-
-        // create cross image
-        var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute("width", "8");
-        svg.setAttribute("height", "8");
-        svg.setAttribute("fill", "none");
-        svg.setAttribute("viewbox", "0 0 8 8");
-        svg.setAttribute("class", "x-tag-pill");
-
-        var path1 = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "path"
-        );
-        path1.setAttribute(
-          "d",
-          "M7.23045 0.980647C7.31181 0.899288 7.31181 0.767379 7.23045 0.686019C7.14909 0.60466 7.01718 0.60466 6.93582 0.686019L3.95815 3.66369L0.980484 0.686025C0.899125 0.604666 0.767215 0.604666 0.685856 0.686025C0.604497 0.767385 0.604497 0.899294 0.685856 0.980653L3.66352 3.95832L0.683822 6.93802C0.602463 7.01938 0.602463 7.15129 0.683822 7.23265C0.765181 7.31401 0.897091 7.31401 0.97845 7.23265L3.95815 4.25295L6.93786 7.23266C7.01922 7.31401 7.15113 7.31401 7.23249 7.23266C7.31385 7.1513 7.31385 7.01939 7.23249 6.93803L4.25278 3.95832L7.23045 0.980647Z"
-        );
-        path1.setAttribute("fill", "#FCFCFC");
-
-        svg.appendChild(path1);
-
-        svg.setAttributeNS(
-          "http://www.w3.org/2000/xmlns/",
-          "xmlns:xlink",
-          "http://www.w3.org/1999/xlink"
-        );
-
-        svg.onclick = () => {
-          this.removeTag(arr);
+    data() {
+        return {
+            mouseDownThumbnail: false,
+            formOneVisible: true,
+            formTwoVisible: false,
+            tagUserInput: '',
+            chosenTagList: [{ details: 'Details test', name: 'testing' }],
+            addTagModalVisible: false,
+            imgContextCanvasContext: null,
         };
-
-        tagDiv.appendChild(svg);
-        document.getElementById("tag-pill-container").appendChild(tagDiv);
-      }
     },
 
-    removeTag(tagVal) {
-      for (var i = 0; i < this.chosenTagList.length; i++) {
-        if (this.chosenTagList[i] == tagVal) {
-          this.chosenTagList.splice(i, 1);
-          break;
-        }
-      }
-    },
-  },
-
-  watch: {
-    chosenTagList: function () {
-      this.updateTagPills();
-    },
-  },
-
-  computed: {
+    computed: {
     // Manual POI Pop Up
-    ...mapGetters({
-      selectedImage: "selectedImage",
-      POIStartCoords: "POIStartCoords",
-      POIEndCoords: "POIEndCoords",
-    }),
-  },
-
-  asyncComputed: {
-    async imgData() {
-      // let POILayerDiv = document.getElementById("featurevp");
-
-      let normalizedRowStart = Math.min(this.POIStartCoords[1], this.POIEndCoords[1]);
-      let normalizedRowEnd = Math.max(this.POIStartCoords[1], this.POIEndCoords[1]);
-
-      let normalizedColStart = Math.min(this.POIStartCoords[0], this.POIEndCoords[0]);
-      let normalizedColEnd = Math.max(this.POIStartCoords[0], this.POIEndCoords[0]);
-
-      let pixels = await getPromisedPixels(this.selectedImage.url);
-
-      let pixelsWidth = pixels.shape[0];
-      let pixelsHeight = pixels.shape[1];
-
-
-      // "un"normalize coords
-      let rowStart = normalizedRowStart * pixelsHeight;
-      let rowEnd = normalizedRowEnd * pixelsHeight;
-      let colStart = normalizedColStart * pixelsWidth;
-      let colEnd = normalizedColEnd * pixelsWidth;
-
-
-      // console.log("\nrowStart: ", normalizedRowStart, "\nrowEnd: ", normalizedRowEnd, "\ncolStart: ", colStart, "\ncolEnd: ", colEnd)
-
-      console.log("\nNormalized Coords\n--------", "\nStart coords: ", normalizedColStart, normalizedRowStart, "\nEnd Coords: ", normalizedColEnd, normalizedRowEnd)
-
-      console.log("\nUnnormalized Coords\n--------", "\nStart coords: ", colStart, rowStart, "\nEnd Coords: ", colEnd, rowEnd)
-
-      // Get space btwn bottom edge of outlined image selection and bottom of actual uncropped image
-      let spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm = Math.abs(1-normalizedRowEnd) * pixelsHeight;
-      // console.log("\nspaceBtwnBtmEdgeOfImgandOutlineSelectionBtm: ", spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm)
-
-      // Get space btwn top edge of outlined image selection and top of actual uncropped image
-      let pxDiffTopOfOutlineVsTopOfImg = rowStart;
-
-
-      let numCols = Math.abs(colEnd - colStart);
-      let numRows = Math.abs(rowEnd - rowStart);
-      let extraPadding = Math.abs(numRows - numCols) / 2;
-      // let proportionalSidePadding = 0;
-      let proportionalSidePadding = extraPadding;
-
-      // Make black outlines on image for context
-      // If col > row, add rows
-      if (numCols > numRows) {
-        // proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numCols;
-
-        // If bottom edge case only, bottom would be cut off, add extra bottom that's leftover to top of cropped image
-        if(spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm < proportionalSidePadding){
-          console.log("bottom edge");
-          let leftoverRows = extraPadding - spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
-          
-          rowStart = rowStart - extraPadding - leftoverRows;
-          rowEnd = rowEnd + spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
-
-          let topSidePadding = proportionalSidePadding + (proportionalSidePadding - spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm);
-
-          let bottomSidePadding = spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
-
-          this.makeContextOutlines(numRows, numCols, topSidePadding, bottomSidePadding, pixelsWidth, pixelsHeight);
-        }
-
-        // If top edge case only, top of image would be cut off, add extra of top that's leftover to bottom of cropped image
-        else if(pxDiffTopOfOutlineVsTopOfImg < proportionalSidePadding){
-          console.log("top edge");
-          let leftoverRows = extraPadding - pxDiffTopOfOutlineVsTopOfImg;
-          
-          rowStart = 0;
-          // rowStart - extraPadding - leftoverRows;
-          rowEnd = rowEnd + extraPadding + leftoverRows;
-
-          let topSidePadding = pxDiffTopOfOutlineVsTopOfImg;
-
-          let bottomSidePadding = proportionalSidePadding + (proportionalSidePadding - pxDiffTopOfOutlineVsTopOfImg);
-
-          this.makeContextOutlines(numRows, numCols, topSidePadding, bottomSidePadding, pixelsWidth, pixelsHeight);
-        }
-
-        // normal case (not edge case)
-        else{
-          console.log("normal case")
-          rowStart = rowStart - extraPadding;
-          rowEnd = rowEnd + extraPadding;
-          this.makeContextOutlines(numRows, numCols, proportionalSidePadding, proportionalSidePadding, pixelsWidth, pixelsHeight);
-        }
-      }
-
-
-      // If row > col, add cols
-      else if (numRows > numCols) {
-        console.log("WRONG")
-        colStart = colStart - extraPadding;
-        colEnd = colEnd + extraPadding;
-        proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numRows;
-      }
-
-      // this.makeContextOutlines(numRows, numCols, proportionalSidePadding);
-      // visa versa, and will hit errors when edge cases (literally)
-      // Use https://github.com/scijs/ndarray-concat-cols and https://github.com/scijs/ndarray-concat-rows
-      // ndarray zeros
-
-      // PSEUDO CODE
-      // after creating row start, end, etc.
-      // find selection width and height, if selWidth > height, make more rows to be square and visa versa
-      // (selection width-selection height)/2
-      // update col start and col end
-      // decrease col start (-) by (selection width-selection height)/2
-      // increase col end + (selection width-selection height)/2
-
-      // Edge cases
-      // If you go under:
-      // Is new col start < 0
-      // If true: make a topoverflow to make for extra cols needed on top
-      // top overflow should be equal to absolute val = (0-colStart)
-      // bottom overflow = colEnd - pixels.height
-
-      // *use concat rows in link above* (https://github.com/scijs/ndarray-concat-rows)
-      // will have a matrix that's some width and some height and add a couple rows on top and bottom (this is for rare case where someone selects almost or fully entire image)
-      // DO: concatrows with ndarray:
-      // concatRows([zeros([pixelWidth, topoverflowRows, 4]), selection, zeros([pixelWidth, bottom overflow rows, 4]))
-      // EXPLANATION: create something as wide as image and only as tall as overflow
-      // and visa versa then stack them and 4 as placeholder for RGBA
-      // selection is referring to image
-      // set colend to height-1
-      // set colstart to 0 if overflow on top
-      // From there create 0 arrays from 0 function sent above and concat to stack them
-      // Look into "pool".zero? https://github.com/scijs/ndarray-scratch#poolzerosshapedtype
-      // can multiple by shades of gray if want but if all black then just 0s
-
-      // all identical if switched for overflow on width just switch cols to rows and visa versa
-
-      // console.log("Row start: ", rowStart, "\nRow end: ", rowEnd, "\nCol start: ", colStart, "\nCol end: ", colEnd)
-
-      let croppedMatrix = pixels.hi(colEnd, rowEnd).lo(colStart, rowStart);
-
-      let stream = savePixels(croppedMatrix, "png");
-
-      return await new Promise((resolve, reject) => {
-        stream.pipe(
-          streamConcat((buf) => {
-            resolve("data:image/png;base64," + buf.toString("base64"));
-          })
-        );
-        stream.on("error", (err) => {
-          console.log("err");
-          reject(err);
-        });
-      });
+        ...mapGetters({
+            selectedImage: 'selectedImage',
+            POIStartCoords: 'POIStartCoords',
+            POIEndCoords: 'POIEndCoords',
+        }),
     },
-  },
+
+    watch: {
+        chosenTagList: function () {
+            this.updateTagPills();
+        },
+    },
+
+    methods: {
+        closeModal() {
+            this.$emit('closeTheModal');
+        },
+
+        closeAddTagModal() {
+            this.addTagModalVisible = false;
+        },
+
+        // Push new tag from tag creation modal to chosen tag list
+        pushNewTag(tag) {
+            // Push new tag to array of chosen tags
+            this.chosenTagList.push(tag);
+        },
+
+        onlyNumber($event) {
+            let keyCode = $event.keyCode ? $event.keyCode : $event.which;
+            if ((keyCode < 48 || keyCode > 57) && keyCode !== 46) {
+                // 46 is dot
+                $event.preventDefault();
+            }
+        },
+
+        makeContextOutlines(numRows, numCols, paddingTopOrLeft, paddingBottomOrRight, originalImgWidth, originalImgHeight) {
+
+            let imgLayer = document.getElementById('imgCanvas');
+
+            // Canvas Width and Height
+            // imgLayer.width="245";
+            // imgLayer.height="246"; // Don't do this manually!
+            let canvasWidth = imgLayer.width; // Move this lower
+            let canvasHeight = imgLayer.height;
+
+            // Check if original image longer in terms of height or width (e.g. #rows vs #cols)
+            let rowsHeavy = (numRows >= numCols);
+
+            let imgContextCanvasContext = imgLayer.getContext('2d');
+
+            //  !!!!! Get the width here by context.canvas.width
+
+            // Begin: drawing POI selector box on canvas
+            // imgContextCanvasContext.beginPath();
+
+            let scalar = 0;
+
+            // Style of selection box
+            imgContextCanvasContext.fillStyle = '#00ffff';
+            imgContextCanvasContext.globalAlpha = 0.5;
+
+            // Start drawing selector box ("rect")
+            if(!rowsHeavy){
+                // console.log("canvasWidth: ", canvasWidth, "\n canvasHeight: ", canvasHeight, "\nsidePadding: ", sidePadding);
+
+                scalar = canvasHeight/originalImgHeight;
+
+                // top black context rectangle
+                imgContextCanvasContext.fillRect(0, 0, canvasWidth, (paddingTopOrLeft*scalar)); // (top left: x,y; width, height)
+                // imgContextCanvasContext.stroke();
+
+                // bottom black context rectangle
+                imgContextCanvasContext.fillStyle = '#ff0';
+                imgContextCanvasContext.fillRect(0, canvasHeight-(paddingBottomOrRight*scalar), canvasWidth, (paddingBottomOrRight*scalar)); // (x, y, width, height)
+            }
+      
+            else if(rowsHeavy){
+
+                scalar = canvasWidth/originalImgWidth;
+
+                // left black context rectangle
+                imgContextCanvasContext.fillRect(0, 0, (paddingTopOrLeft*scalar), canvasHeight); // (top left: x,y; width, height)
+                // imgContextCanvasContext.stroke();
+
+                // right black context rectangle
+                imgContextCanvasContext.fillRect(canvasWidth-(paddingBottomOrRight*scalar), 0, (paddingBottomOrRight*scalar), canvasHeight); // (top left: x,y; width, height)
+            }
+
+            // imgContextCanvasContext.closePath();
+        },
+
+        populateAsFormOne() {
+            // Show form 1
+            this.formOneVisible = true;
+
+            // Hide form 2
+            this.formTwoVisible = false;
+        },
+
+        populateAsFormTwo() {
+            // Hide form 1 divs in left column
+            this.formOneVisible = false;
+
+            // Show form 2 divs in left column
+            this.formTwoVisible = true;
+            // Auto populate tags visible if any already created (e.g. if back button pushed then next pushed again)
+            this.updateTagPills();
+        },
+
+        createNewTag() {
+            this.addTagModalVisible = true;
+        },
+
+        updateTagPills() {
+            // clear current tags
+            document.getElementById('tag-pill-container').innerHTML = '';
+
+            // for tag in this.chosenTagList: create new tag pill so updates when tags deleted and created
+            for (var i = 0; i < this.chosenTagList.length; i++) {
+                let arr = this.chosenTagList[i];
+
+                let tagDiv = document.createElement('div');
+                tagDiv.setAttribute('class', 'tag-pill');
+                tagDiv.innerHTML = arr.name + ' ';
+
+                // create cross image
+                var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', '8');
+                svg.setAttribute('height', '8');
+                svg.setAttribute('fill', 'none');
+                svg.setAttribute('viewbox', '0 0 8 8');
+                svg.setAttribute('class', 'x-tag-pill');
+
+                var path1 = document.createElementNS(
+                    'http://www.w3.org/2000/svg',
+                    'path'
+                );
+                path1.setAttribute(
+                    'd',
+                    'M7.23045 0.980647C7.31181 0.899288 7.31181 0.767379 7.23045 0.686019C7.14909 0.60466 7.01718 0.60466 6.93582 0.686019L3.95815 3.66369L0.980484 0.686025C0.899125 0.604666 0.767215 0.604666 0.685856 0.686025C0.604497 0.767385 0.604497 0.899294 0.685856 0.980653L3.66352 3.95832L0.683822 6.93802C0.602463 7.01938 0.602463 7.15129 0.683822 7.23265C0.765181 7.31401 0.897091 7.31401 0.97845 7.23265L3.95815 4.25295L6.93786 7.23266C7.01922 7.31401 7.15113 7.31401 7.23249 7.23266C7.31385 7.1513 7.31385 7.01939 7.23249 6.93803L4.25278 3.95832L7.23045 0.980647Z'
+                );
+                path1.setAttribute('fill', '#FCFCFC');
+
+                svg.appendChild(path1);
+
+                svg.setAttributeNS(
+                    'http://www.w3.org/2000/xmlns/',
+                    'xmlns:xlink',
+                    'http://www.w3.org/1999/xlink'
+                );
+
+                svg.onclick = () => {
+                    this.removeTag(arr);
+                };
+
+                tagDiv.appendChild(svg);
+                document.getElementById('tag-pill-container').appendChild(tagDiv);
+            }
+        },
+
+        removeTag(tagVal) {
+            for (var i = 0; i < this.chosenTagList.length; i++) {
+                if (this.chosenTagList[i] == tagVal) {
+                    this.chosenTagList.splice(i, 1);
+                    break;
+                }
+            }
+        },
+    },
+
+    asyncComputed: {
+        async imgData() {
+            // let POILayerDiv = document.getElementById("featurevp");
+
+            let normalizedRowStart = Math.min(this.POIStartCoords[1], this.POIEndCoords[1]);
+            let normalizedRowEnd = Math.max(this.POIStartCoords[1], this.POIEndCoords[1]);
+
+            let normalizedColStart = Math.min(this.POIStartCoords[0], this.POIEndCoords[0]);
+            let normalizedColEnd = Math.max(this.POIStartCoords[0], this.POIEndCoords[0]);
+
+            let pixels = await getPromisedPixels(this.selectedImage.url);
+
+            let pixelsWidth = pixels.shape[0];
+            let pixelsHeight = pixels.shape[1];
+
+
+            // "un"normalize coords
+            let rowStart = normalizedRowStart * pixelsHeight;
+            let rowEnd = normalizedRowEnd * pixelsHeight;
+            let colStart = normalizedColStart * pixelsWidth;
+            let colEnd = normalizedColEnd * pixelsWidth;
+
+
+            // console.log("\nrowStart: ", normalizedRowStart, "\nrowEnd: ", normalizedRowEnd, "\ncolStart: ", colStart, "\ncolEnd: ", colEnd)
+
+            console.log('\nNormalized Coords\n--------', '\nStart coords: ', normalizedColStart, normalizedRowStart, '\nEnd Coords: ', normalizedColEnd, normalizedRowEnd);
+
+            console.log('\nUnnormalized Coords\n--------', '\nStart coords: ', colStart, rowStart, '\nEnd Coords: ', colEnd, rowEnd);
+
+            // Get space btwn bottom edge of outlined image selection and bottom of actual uncropped image
+            let spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm = Math.abs(1-normalizedRowEnd) * pixelsHeight;
+            // console.log("\nspaceBtwnBtmEdgeOfImgandOutlineSelectionBtm: ", spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm)
+
+            // Get space btwn top edge of outlined image selection and top of actual uncropped image
+            let pxDiffTopOfOutlineVsTopOfImg = rowStart;
+
+
+            let numCols = Math.abs(colEnd - colStart);
+            let numRows = Math.abs(rowEnd - rowStart);
+            let extraPadding = Math.abs(numRows - numCols) / 2;
+            // let proportionalSidePadding = 0;
+            let proportionalSidePadding = extraPadding;
+
+            // Make black outlines on image for context
+            // If col > row, add rows
+            if (numCols > numRows) {
+                // proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numCols;
+
+                // If bottom edge case only, bottom would be cut off, add extra bottom that's leftover to top of cropped image
+                if(spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm < proportionalSidePadding){
+                    console.log('bottom edge');
+                    let leftoverRows = extraPadding - spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
+          
+                    rowStart = rowStart - extraPadding - leftoverRows;
+                    rowEnd = rowEnd + spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
+
+                    let topSidePadding = proportionalSidePadding + (proportionalSidePadding - spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm);
+
+                    let bottomSidePadding = spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
+
+                    this.makeContextOutlines(numRows, numCols, topSidePadding, bottomSidePadding, pixelsWidth, pixelsHeight);
+                }
+
+                // If top edge case only, top of image would be cut off, add extra of top that's leftover to bottom of cropped image
+                else if(pxDiffTopOfOutlineVsTopOfImg < proportionalSidePadding){
+                    console.log('top edge');
+                    let leftoverRows = extraPadding - pxDiffTopOfOutlineVsTopOfImg;
+          
+                    rowStart = 0;
+                    // rowStart - extraPadding - leftoverRows;
+                    rowEnd = rowEnd + extraPadding + leftoverRows;
+
+                    let topSidePadding = pxDiffTopOfOutlineVsTopOfImg;
+
+                    let bottomSidePadding = proportionalSidePadding + (proportionalSidePadding - pxDiffTopOfOutlineVsTopOfImg);
+
+                    this.makeContextOutlines(numRows, numCols, topSidePadding, bottomSidePadding, pixelsWidth, pixelsHeight);
+                }
+
+                // normal case (not edge case)
+                else{
+                    console.log('normal case');
+                    rowStart = rowStart - extraPadding;
+                    rowEnd = rowEnd + extraPadding;
+                    this.makeContextOutlines(numRows, numCols, proportionalSidePadding, proportionalSidePadding, pixelsWidth, pixelsHeight);
+                }
+            }
+
+
+            // If row > col, add cols
+            else if (numRows > numCols) {
+                console.log('WRONG');
+                colStart = colStart - extraPadding;
+                colEnd = colEnd + extraPadding;
+                proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numRows;
+            }
+
+            // this.makeContextOutlines(numRows, numCols, proportionalSidePadding);
+            // visa versa, and will hit errors when edge cases (literally)
+            // Use https://github.com/scijs/ndarray-concat-cols and https://github.com/scijs/ndarray-concat-rows
+            // ndarray zeros
+
+            // PSEUDO CODE
+            // after creating row start, end, etc.
+            // find selection width and height, if selWidth > height, make more rows to be square and visa versa
+            // (selection width-selection height)/2
+            // update col start and col end
+            // decrease col start (-) by (selection width-selection height)/2
+            // increase col end + (selection width-selection height)/2
+
+            // Edge cases
+            // If you go under:
+            // Is new col start < 0
+            // If true: make a topoverflow to make for extra cols needed on top
+            // top overflow should be equal to absolute val = (0-colStart)
+            // bottom overflow = colEnd - pixels.height
+
+            // *use concat rows in link above* (https://github.com/scijs/ndarray-concat-rows)
+            // will have a matrix that's some width and some height and add a couple rows on top and bottom (this is for rare case where someone selects almost or fully entire image)
+            // DO: concatrows with ndarray:
+            // concatRows([zeros([pixelWidth, topoverflowRows, 4]), selection, zeros([pixelWidth, bottom overflow rows, 4]))
+            // EXPLANATION: create something as wide as image and only as tall as overflow
+            // and visa versa then stack them and 4 as placeholder for RGBA
+            // selection is referring to image
+            // set colend to height-1
+            // set colstart to 0 if overflow on top
+            // From there create 0 arrays from 0 function sent above and concat to stack them
+            // Look into "pool".zero? https://github.com/scijs/ndarray-scratch#poolzerosshapedtype
+            // can multiple by shades of gray if want but if all black then just 0s
+
+            // all identical if switched for overflow on width just switch cols to rows and visa versa
+
+            // console.log("Row start: ", rowStart, "\nRow end: ", rowEnd, "\nCol start: ", colStart, "\nCol end: ", colEnd)
+
+            let croppedMatrix = pixels.hi(colEnd, rowEnd).lo(colStart, rowStart);
+
+            let stream = savePixels(croppedMatrix, 'png');
+
+            return await new Promise((resolve, reject) => {
+                stream.pipe(
+                    streamConcat((buf) => {
+                        resolve('data:image/png;base64,' + buf.toString('base64'));
+                    })
+                );
+                stream.on('error', (err) => {
+                    console.log('err');
+                    reject(err);
+                });
+            });
+        },
+    },
 };
 
 // Make img tag set src = imgDatafromcomputed like in imgviewersandbox

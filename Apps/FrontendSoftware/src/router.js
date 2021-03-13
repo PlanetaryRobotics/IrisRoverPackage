@@ -17,38 +17,38 @@ import { remote } from 'electron';
 Vue.use(Router);
 
 export default new Router({
-  mode: 'hash', // history doesn't work consistently in production
-  base: remote.process.env.BASE_URL,
-  routes: [
-    {
-      path: '/',
-      name: 'login',
-      component: Login
-    },
-    {
-      path: '/home',
-      name: 'home',
-      component: Home
-    },
-    {
-      path: '/home_ImageViewerModsTest',
-      name: 'home_ImageViewerModsTest',
-      component: HomeTestImgViewer
-    },
-    {
-      path: '/sandbox_mapTest',
-      name: 'sandbox_mapTest',
-      component: MapTest
-    },
-    {
-      path: '/sandbox_POIDashboardTest',
-      name: 'sandbox_POIDashboardTest',
-      component: POIDashboardTest
-    },
-    {
-      path: '/sandbox_imageViewerTest',
-      name: 'sandbox_imageViewerTest',
-      component: ImageViewerTest
-    }
-  ]
+    mode: 'hash', // history doesn't work consistently in production
+    base: remote.process.env.BASE_URL,
+    routes: [
+        {
+            path: '/',
+            name: 'login',
+            component: Login
+        },
+        {
+            path: '/home',
+            name: 'home',
+            component: Home
+        },
+        {
+            path: '/home_ImageViewerModsTest',
+            name: 'home_ImageViewerModsTest',
+            component: HomeTestImgViewer
+        },
+        {
+            path: '/sandbox_mapTest',
+            name: 'sandbox_mapTest',
+            component: MapTest
+        },
+        {
+            path: '/sandbox_POIDashboardTest',
+            name: 'sandbox_POIDashboardTest',
+            component: POIDashboardTest
+        },
+        {
+            path: '/sandbox_imageViewerTest',
+            name: 'sandbox_imageViewerTest',
+            component: ImageViewerTest
+        }
+    ]
 });

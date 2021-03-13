@@ -144,7 +144,7 @@ export default {
         rehookDOM(){
             this.portContainer = document.getElementById('portContainer');
             this.featureLayer = document.getElementById('featurevp');
-            if(1||!this.canvas || !this.canvas.texture){
+            if(!this.canvas || !this.canvas.texture){
                 this.canvas = document.getElementById('imgvp');
                 fx.canvas(this.canvas); // Initialize canvas for glfx
             }

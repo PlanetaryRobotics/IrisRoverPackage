@@ -24,14 +24,19 @@
       stroke-linecap="round"
       stroke-linejoin="round"
     />
-    <circle cx="8.5" cy="8.5" r="8" stroke="#FCFCFC" />
+    <circle
+      cx="8.5"
+      cy="8.5"
+      r="8"
+      stroke="#FCFCFC"
+    />
   </svg>
 </template>
 
 <script>
-    export default {
-        name: "WhiteAddIcon",
-    };
+export default {
+    name: 'WhiteAddIcon',
+};
 </script>
 
 <style lang="css" scoped></style>

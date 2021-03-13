@@ -31,7 +31,7 @@
 
 <script>
 export default {
-  name: "EditPencilIcon",
+    name: 'EditPencilIcon',
 };
 </script>
 

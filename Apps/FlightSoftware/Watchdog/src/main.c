@@ -6,8 +6,10 @@
 #include "include/bsp.h"
 #include "include/adc.h"
 #include "include/flags.h"
+#include "include/i2c.h"
 #include "include/ip_udp.h"
 #include "include/watchdog.h"
+
 
 /* define all of the buffers used in other files */
 __volatile struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx;
@@ -55,6 +57,27 @@ void enterMode(enum rover_state newstate) {
     rovstate = newstate;
 }
 
+void DEBUG_SETUP() {
+    enableBatteries();
+    enable3V3PowerRail(); // we added this
+    enable24VPowerRail(); // we added this
+    //disable24VPowerRail();
+    //enable3V3PowerRail();
+    powerOnHercules(); // we turned this on (uncommented)
+    //releaseHerculesReset();
+    //powerOnFpga();
+    powerOnMotors();// we turned this on (uncommented) (that's all ;)
+    // not really sure what version this is tbh
+    // this is an old version; can i swtich workspaces real quick?
+    //
+    //powerOffMotors();
+    //powerOnRadio();
+    //releaseRadioReset();
+    //releaseFPGAReset();
+    //releaseMotorsReset();
+}
+
+
 int main(void) {
     /* stop watchdog timer */
 	WDTCTL = WDTPW | WDTHOLD;
@@ -88,6 +111,11 @@ int main(void) {
 
     // the core structure of this program is like an event loop
     while (1) {
+
+            // camera hack
+                 P3OUT |= BIT5; // P3.5 output camera select
+
+
         /* check if anything happened */
         if (!loop_flags) { /* nothing did */
             /* go back to low power mode */

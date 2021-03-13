@@ -12,6 +12,7 @@ void initializeGpios(){
   // P1 configuration
   P1DIR &= 0x00;  // All bits as input
   P1OUT &= ~(BIT4 | BIT5); // Initially everything is off
+
 #ifndef PROGRAM_MOTOR_CONTROLLERS
   P1DIR |= BIT4;  // P1.4 output Motor control reset B
   P1DIR |= BIT5;  // P1.5 output Motor control reset C
@@ -19,17 +20,17 @@ void initializeGpios(){
 
   // UART configuration done in uart_init()
 
-  // Configure i2c interface
-  P1SEL1 |= BIT6; // P1.6 SDA
-  P1SEL1 |= BIT7; // P1.7 SCL
+  // i2c configuration done in i2c_init()
 
   // P2 configuration
   P2DIR &= 0x00;
   P2OUT &= ~(BIT2 | BIT3 | BIT4); // Initially everything is off
   P2DIR |= BIT2;  // P2.2 output Heater
+
 #ifndef PROGRAM_MOTOR_CONTROLLERS
   P2DIR |= BIT3;  // P2.3 output Motor control reset A
 #endif
+
   P2DIR |= BIT4;  // P2.4 output Radio ON
   P2DIR &= ~BIT7;  // P2.7 input Power good 1V2
 

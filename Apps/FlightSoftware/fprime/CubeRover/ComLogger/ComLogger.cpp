@@ -21,7 +21,7 @@ namespace CubeRover {
   // Construction, initialization, and destruction 
   // ----------------------------------------------------------------------
 
-  Os::FRAM_File::FRAM_File file_system();
+  Os::FRAM_File::FRAM_File file_system;
 
   ComLogger ::
 #if FW_OBJECT_NAMES == 1

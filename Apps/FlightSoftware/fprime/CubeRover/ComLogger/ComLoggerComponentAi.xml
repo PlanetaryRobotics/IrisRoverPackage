@@ -14,7 +14,6 @@
     <import_dictionary>CubeRover/ComLogger/Commands.xml</import_dictionary>
     <import_dictionary>CubeRover/ComLogger/Events.xml</import_dictionary>
 
-
     <ports>
 
 

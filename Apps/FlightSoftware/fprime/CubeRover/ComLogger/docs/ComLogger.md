@@ -6,9 +6,7 @@
 
 |Mnemonic|ID|Description|Arg Name|Arg Type|Comment
 |---|---|---|---|---|---|
-|CloseFile|0 (0x0)|Forces a close of the currently opened file.| | |
-|SendAllLogs|1 (0x1)|Sends all logs from flash to Ground| | |
-|SendSetofLogs|2 (0x2)|Sends a set of logs from flash to Ground| | |
+|SendSetofLogs|0 (0x0)|Sends a set of logs from flash to Ground| | |
 | | | |start|U32|The start time (seconds) for a log|
 | | | |end|U32|The end time (seconds) for a log|
 

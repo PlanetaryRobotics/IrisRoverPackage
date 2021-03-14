@@ -8,7 +8,6 @@
 #define CubeRover_ComLogger_HPP
 
 #include "CubeRover/ComLogger/ComLoggerComponentAc.hpp"
-#include <Os/FreeRTOS/File.hpp>
 #include <Os/Mutex.hpp>
 #include <Fw/Types/Assert.hpp>
 //#include <Utils/Hash/Hash.hpp>
@@ -53,7 +52,7 @@ namespace CubeRover {
           NATIVE_INT_TYPE instance //!< The instance number
       );
 
-      ~ComLogger(void);
+      //~ComLogger(void);
 
       // ----------------------------------------------------------------------
       // Handler implementations
@@ -67,10 +66,11 @@ namespace CubeRover {
           U32 context
       );
 
-      void CloseFile_cmdHandler(
+      // TODO: WRITE CHECK TO RESET FILESYSTEM?
+      /*void CloseFile_cmdHandler(
           FwOpcodeType opCode,
           U32 cmdSeq
-      );
+      );*/
 
       //! Handler implementation for pingIn
       //!
@@ -78,13 +78,6 @@ namespace CubeRover {
           //const NATIVE_INT_TYPE portNum, /*!< The port number*/
           //U32 key /*!< Value to return to pinger*/
       //);
-
-      //! Implementation for SendAllLogs command handler
-      //! Sends all logs from flash to Ground
-      void SendAllLogs_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
-      );
 
       //! Implementation for SendSetofLogs command handler
       //! Sends a set of logs from flash to Ground
@@ -95,83 +88,15 @@ namespace CubeRover {
           U32 end /*!< The end time for a log*/
       );
 
-      // ----------------------------------------------------------------------
-      // Constants:
-      // ----------------------------------------------------------------------
-      // The maximum size of a filename
-      enum { 
-        MAX_FILENAME_SIZE = NAME_MAX, // as defined in limits.h
-        MAX_PATH_SIZE = PATH_MAX
-      };
-
-      // The filename data:
-      // U8 filePrefix[MAX_FILENAME_SIZE + MAX_PATH_SIZE];
-      U32 maxFileSize = MAX_FILE_SIZE;
-
-      // ----------------------------------------------------------------------
-      // Internal state:
-      // ----------------------------------------------------------------------
-      enum FileMode {
-          CLOSED = 0,
-          OPEN = 1
-      };
-
       // Total number of bytes read
       U32 bytes_read;
       // Total number of bytes written
       U32 bytes_written;
 
-      //keep track of earliest file
-      U32 file_start;
-      U32 file_start_add;
-      //keep track of most recent file
-      U32 file_end;
-      U32 file_end_add;
-
-      FileMode fileMode;
-      Os::File file;
-      U8 fileName[MAX_FILENAME_SIZE + MAX_PATH_SIZE];
-      //U8 hashFileName[MAX_FILENAME_SIZE + MAX_PATH_SIZE];
-      U32 byteCount;
       bool writeErrorOccured;
       bool readErrorOccured;
       bool openErrorOccured;
       bool storeBufferLength;
-      
-      // ----------------------------------------------------------------------
-      // File functions:
-      // ---------------------------------------------------------------------- 
-      void openFile(
-      );
-
-      void closeFile(
-      );
-
-      void writeComBufferToFile(
-        Fw::ComBuffer &data,
-        U16 size
-      );
-
-      // ----------------------------------------------------------------------
-      // Helper functions:
-      // ---------------------------------------------------------------------- 
-      bool writeToFile(
-        void* data, 
-        U16 length
-      );
-/*
-      void writeHashFile(
-      );
-*/
-      void readFiletoComBuffer(
-        Fw::ComBuffer &data,
-        U32 size
-      );
-
-      bool readFromFile(
-        void* buffer,
-        U32 length
-      );
   };
 };
 

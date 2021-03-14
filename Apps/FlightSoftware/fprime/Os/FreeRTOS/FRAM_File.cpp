@@ -21,7 +21,7 @@ namespace Os {
   /**
    * @brief      Constructs a new instance.
    */
-  File::File() {
+  FRAM_File::FRAM_File() {
 
     table_start_ptr.all = FRAM_TABLE_PTR_START;
     table_end_ptr.all = FRAM_TABLE_PTR_START;
@@ -47,7 +47,7 @@ namespace Os {
    *
    * @return     The file status
    */
-  File::Status File::read(void * buffer, U32 start_time, U32 end_time) {
+  FRAM_File::Status FRAM_File::read(void * buffer, U32 start_time, U32 end_time) {
     Status stat = OP_OK;
 
     // Check if start_time and end_time are between our know max and min times
@@ -132,7 +132,7 @@ namespace Os {
  *
  * @return     The file status
  */
-  File::Status File::write(const void * buffer, uint8_t buff_size, uint32_t buff_name) {
+  FRAM_File::Status FRAM_File::write(const void * buffer, uint8_t buff_size, uint32_t buff_name) {
     Status stat = OP_OK;
     CY15B102Q :: FRAMSpiCommands write_command = CY15B102Q :: WRSR;
     CY15B102Q :: FRAMSpiCommands read_command = CY15B102Q :: FSRTD;
@@ -331,7 +331,7 @@ namespace Os {
   }
 
   // Check if the new table_end_ptr is larger than the table
-  File::Status File::check_end_table_overrun()
+  FRAM_File::Status FRAM_File::check_end_table_overrun()
   {
       // Check if we've hit the end of our table allocation
       if(table_end_ptr.all > FRAM_TABLE_PTR_END)
@@ -355,7 +355,7 @@ namespace Os {
   }
 
   // Check if the new table_start_ptr is larger than the table
-  File::Status File::check_start_table_overrun()
+  FRAM_File::Status FRAM_File::check_start_table_overrun()
   {
       // Check if we've hit the end of our table allocation
       if(table_start_ptr.all > FRAM_TABLE_PTR_END)

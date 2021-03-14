@@ -21,7 +21,7 @@ namespace CubeRover {
   // Construction, initialization, and destruction 
   // ----------------------------------------------------------------------
 
-  Os::File::File file_system;
+  Os::FRAM_File::FRAM_File file_system();
 
   ComLogger ::
 #if FW_OBJECT_NAMES == 1
@@ -75,7 +75,7 @@ namespace CubeRover {
     Fw::Time timestamp = getTime();
 
     // Write value to FRAM
-    Os::File::Status Write_Error = file_system.write((void*)&data, size, timestamp.getSeconds());
+    Os::FRAM_File::Status Write_Error = file_system.write((void*)&data, size, timestamp.getSeconds());
 
     //TODO: CHECK ERROR
     //TODO: Update write telemetry
@@ -92,7 +92,7 @@ namespace CubeRover {
   // Create ComBuffer to store read data
     Fw::ComBuffer data;
 
-    Os::File::Status Read_Error = file_system.read((void *) &data, start, end);
+    Os::FRAM_File::Status Read_Error = file_system.read((void *) &data, start, end);
 
     //TODO: CHECK ERROR
 

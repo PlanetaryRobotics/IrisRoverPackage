@@ -34,7 +34,7 @@ namespace Os {
 
     // This class encapsulates a very simple file interface that has the most often-used features
 
-    class File {
+    class FRAM_File {
         public:
 
             typedef enum {
@@ -48,7 +48,7 @@ namespace Os {
                 OTHER_ERROR, //!<  A catch-all for other errors. Have to look in implementation-specific code
             } Status;
 
-            File(); //!<  Constructor
+            FRAM_File(); //!<  Constructor
             Status read(void * buffer, U32 start_time, U32 end_time);
             Status write(const void * buffer, uint8_t buff_size, uint32_t buff_name);
             Status check_end_table_overrun();

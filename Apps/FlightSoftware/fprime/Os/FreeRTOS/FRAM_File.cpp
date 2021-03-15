@@ -26,6 +26,9 @@ namespace Os {
     table_start_ptr.all = FRAM_TABLE_PTR_START;
     table_end_ptr.all = FRAM_TABLE_PTR_START;
     first_write = true;
+    //CY15B102Q :: CY15B102QError init_error = 
+    FRAM_chip.setupDevice();
+    // TODO: ADD IN ERROR CHECKING HERE
   }
 
 

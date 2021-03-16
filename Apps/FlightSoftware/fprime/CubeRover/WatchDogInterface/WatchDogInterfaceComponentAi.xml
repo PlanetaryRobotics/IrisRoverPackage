@@ -179,12 +179,12 @@
                 Boolean for Heater On/Off from Watchdog
             </comment>
         </channel>
-        <channel id="24" name="BATTERY_LEVEL" data_type="U16">
+        <channel id="23" name="BATTERY_LEVEL" data_type="U16">
             <comment>
                 Value of Charge in Battery
             </comment>
         </channel>
-        <channel id="26" name="BATTERY_CURRENT" data_type="U32">
+        <channel id="24" name="BATTERY_CURRENT" data_type="U32">
             <comment>
                 Value of Current Used in Battery
             </comment>

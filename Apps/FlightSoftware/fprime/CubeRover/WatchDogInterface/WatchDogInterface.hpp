@@ -144,6 +144,7 @@ namespace CubeRover {
          int8_t battery_thermistor;
          int8_t sys_status;
          int16_t battery_level;
+         int32_t battery_current;
      } __attribute__((packed, aligned(8)));
 
      // Incorrect Response Possible Values

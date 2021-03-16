@@ -174,7 +174,7 @@
                 Boolean for Battery Charging or not from Watchdog
             </comment>
         </channel>
-        <channel id="23" name="SYSTEM_STATUS" data_type="int8_t">
+        <channel id="22" name="SYSTEM_STATUS" data_type="int8_t">
             <comment>
                 Boolean for Heater On/Off from Watchdog
             </comment>
@@ -182,6 +182,11 @@
         <channel id="24" name="BATTERY_LEVEL" data_type="U16">
             <comment>
                 Value of Charge in Battery
+            </comment>
+        </channel>
+        <channel id="26" name="BATTERY_CURRENT" data_type="U32">
+            <comment>
+                Value of Current Used in Battery
             </comment>
         </channel>
         <channel id="25" name="THERM_0" data_type="U16">

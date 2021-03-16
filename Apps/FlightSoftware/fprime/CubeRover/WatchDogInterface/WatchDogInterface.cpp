@@ -65,8 +65,9 @@ namespace CubeRover {
 
     Read_Temp();
 
-    Reset_Specific_Handler(0x04);    // Reset WF121
-    for (unsigned i = 400000000; i; --i);
+    Reset_Specific_Handler(0x00);    // Send Stroke
+    //Reset_Specific_Handler(0x04);    // Reset WF121
+    //for (unsigned i = 400000000; i; --i);
   }
 
   WatchDogInterfaceComponentImpl ::
@@ -445,6 +446,7 @@ namespace CubeRover {
           this->tlmWrite_BATTERY_THERMISTOR(buff.battery_thermistor);
           this->tlmWrite_SYSTEM_STATUS(buff.sys_status);
           this->tlmWrite_BATTERY_LEVEL(buff.battery_level);
+          this->tlmWrite_BATTERY_CURRENT(buff.battery_current);
           size_read += payload_read;
         }
         else if(payload_read < 0)

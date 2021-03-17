@@ -1,4 +1,4 @@
-import {testPOIList} from '@/components/POI/testPOIData.js';
+import { testPOIList } from '@/components/POI/testPOIData.js';
 
 export default {
     state: {
@@ -34,11 +34,15 @@ export default {
             state.POIList.deletePOI(POI);
         },
 
-        updatePOICategory(state, {POI, newCategory}) {
+        updatePOICategory(state, { POI, newCategory }) {
             state.POIList.updatePOICategory(POI, newCategory);
-        },     
+        },
 
-        updatePOIImageSelectedId(state, {id, image}) {
+        updatePOIImportanceLevel(state, { POI, newImportance }) {
+            state.POIList.updatePOICategory(POI, newImportance);
+        },
+
+        updatePOIImageSelectedId(state, { id, image }) {
             let obj = {
                 image: image,
                 id: id
@@ -46,8 +50,8 @@ export default {
             state.POIImageSelected = obj;
         },
 
-        updateTagSelected(state, {tag, id}) {
-            state.TagSelected = {tag: tag, id: id};
+        updateTagSelected(state, { tag, id }) {
+            state.TagSelected = { tag: tag, id: id };
         }
     }
 };

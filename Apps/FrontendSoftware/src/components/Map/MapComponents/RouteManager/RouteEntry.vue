@@ -365,12 +365,10 @@ export default {
                 this.$refs.routeNameInput.value = this.route.routeName.replace(/\s/g,'');
             } else {
                 // remove space in the route name before saving
-                this.route.routeName=this.route.routeName.replace(/\s/g,''),
-                this.route.routeNameDisplay=this.routeNameDisplay.replace(/\s/g,'');
                 this.$refs.routeNameInput.value = this.route.routeName.replace(/\s/g,'');
                 // Model level now updates with new route name
                 this.routeList.renameRouteName(
-                    this.route.routeName,
+                    this.route.routeName.replace(/\s/g,''),
                     this.routeNameDisplay.replace(/\s/g,'')
                 );
             }

@@ -391,7 +391,8 @@ export default {
                 modalHistory: false,
                 modalImportance: false,
                 modalDelete: false
-            }
+            },
+            POICardInfo:POICard
         };
     },
     computed: {
@@ -400,7 +401,7 @@ export default {
                 return this.POICard.getData().description;
             },
             set(newDescription) {
-                this.POICard.description = newDescription;
+                this.POICardInfo.description = newDescription;
             }
         },
         selectedCategory: {
@@ -408,7 +409,7 @@ export default {
                 return this.POICard.getData().category;
             },
             set(newCategory) {
-                this.$store.commit('updatePOICategory', {POI: this.POICard, newCategory: newCategory});
+                this.$store.commit('updatePOICategory', {POI: this.POICardInfo, newCategory: newCategory});
             }
         },
         width: {
@@ -416,7 +417,7 @@ export default {
                 return this.POICard.getData().width;
             },
             set(newWidth) {
-                this.POICard.width = newWidth;
+                this.POICardInfo.width = newWidth;
             }
         },
         height: {
@@ -424,7 +425,7 @@ export default {
                 return this.POICard.getData().height;
             },
             set(newHeight) {
-                this.POICard.height = newHeight;
+                this.POICardInfo.height = newHeight;
             }
         },
         depth: {
@@ -432,7 +433,7 @@ export default {
                 return this.POICard.getData().depth;
             },
             set(newDepth) {
-                this.POICard.depth = newDepth;
+                this.POICardInfo.depth = newDepth;
             }
         },
         categories: function() {

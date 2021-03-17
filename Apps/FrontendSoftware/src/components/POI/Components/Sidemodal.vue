@@ -133,7 +133,7 @@ export default {
     props: {
         POIListEl: HTMLDivElement,
         target: HTMLDivElement,
-        header: String,
+        header: String, 
         POICard: POICard,
         type: {
             validator: function (value) {
@@ -154,7 +154,7 @@ export default {
                 return this.POICard.getData().importanceLevel;
             },
             set(newImportance) {
-                this.POICard.importanceLevel = newImportance;
+                this.$store.commit('updatePOIImportanceLevel', {POI: this.POICardInfo, newImportance: newImportance});
             }
         },
     },
@@ -178,7 +178,7 @@ export default {
             this.rightTranslation = this.POIListEl.getBoundingClientRect().width;
         },
         setTopTranslation() {
-            this.topTranslation = this.target.getBoundingClientRect().top;
+            this.topTranslation = this.target.getBoundingClientRect().top-200; // offset
         },
         setImportanceLevel(level) {
             this.importanceLevel = level;

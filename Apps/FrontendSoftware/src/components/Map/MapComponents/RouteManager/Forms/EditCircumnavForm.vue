@@ -186,6 +186,7 @@ export default {
         this.highlight.removeColor();
         // Reset the editing circumnav
         this.$store.commit('setEditingCircumnav', null);
+
     },
     mounted() {
     // Set the values to be displayed on form based on current circumnav
@@ -276,19 +277,8 @@ export default {
             return true;
         },
         saveCircumnav() {
-            // Get the new circum created from grid
-            let newCircum = this.editingCircumnav;
-
-            // Set the orignal circumnavigation obj with updated vals
-            this.circumnavigation.startAngle = newCircum.startAngle;
-            this.circumnavigation.endAngle = newCircum.endAngle;
-            this.circumnavigation.numPhotos = newCircum.numPhotos;
-            this.circumnavigation.radius = newCircum.radius;
-            this.circumnavigation.isClockwise = newCircum.isClockwise;
-            this.circumnavigation.POICard = newCircum.POICard;
-            this.circumnavigation.POIPosition = newCircum.POIPosition;
-            this.circumnavigation.waypoints = newCircum.waypoints;
-
+            // update store to save editing circumnav
+            this.$store.commit('setEditingCircumnav', this.editingCircumnav);
             this.closeModal();
         },
         cancelCircumnav() {

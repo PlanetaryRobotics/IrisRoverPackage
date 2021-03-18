@@ -4,12 +4,12 @@ extern float battery_charge;
 extern float battery_voltage;
 extern float battery_current;
 extern float fuel_gauge_temp;
-int32_t raw_battery_charge;
-int32_t raw_battery_voltage;
-int32_t raw_battery_current;
+int8_t raw_battery_charge[2];
+int8_t raw_battery_voltage[2];
+int8_t raw_battery_current[2];
 int32_t raw_fuel_gauge_temp;
 
-extern uint8_t fuel_gauge_status_reg;
+uint8_t fuel_gauge_status_reg;
 uint8_t control_reg;
 
 /*
@@ -39,21 +39,21 @@ void (*i2c_rx_handler)(uint16_t len, struct buffer *buf) = (void *)(0);
 /* init function */
 void i2c_init() {
     // Configure i2c interface
-    // TODO: are these correct?
     P1SEL1 |= BIT6; // P1.6 SDA
     P1SEL1 |= BIT7; // P1.7 SCL
 
-    // may want to try this for pins:
+    // pins for using eusci_b2 (only ones available on launchpad)
 //    P7SEL0 |= BIT0 | BIT1;
 //    P7SEL1 &= ~(BIT0 | BIT1);
 
-    UCB2CTLW0 = UCSWRST;                      // Enable SW reset
-    UCB2CTLW0 |= UCMODE_3 | UCMST | UCSSEL__SMCLK | UCSYNC; // I2C master mode, SMCLK
-    UCB2BRW = 160;                            // fSCL = SMCLK/160 = ~100kHz
-    UCB2I2CSA = I2C_SLAVE_ADDR;                   // Slave Address
-    UCB2CTLW0 &= ~UCSWRST;                    // Clear SW reset, resume operation
-    UCB2IE |= UCNACKIE;
+    UCB0CTLW0 = UCSWRST;                      // Enable SW reset
+    UCB0CTLW0 |= UCMODE_3 | UCMST | UCSSEL__SMCLK | UCSYNC; // I2C master mode, SMCLK
+    UCB0BRW = 160;                            // fSCL = SMCLK/160 = ~100kHz
+    UCB0I2CSA = I2C_SLAVE_ADDR;                   // Slave Address
+    UCB0CTLW0 &= ~UCSWRST;                    // Clear SW reset, resume operation
+    UCB0IE |= UCNACKIE;
 }
+
 
 
 /* For slave device with dev_addr, read the data specified in slaves reg_addr.
@@ -77,12 +77,12 @@ I2C_Mode I2C_Master_ReadReg(uint8_t dev_addr, uint8_t reg_addr, uint8_t count)
     TransmitIndex = 0;
 
     /* Initialize slave address and interrupts */
-    UCB2I2CSA = dev_addr;
-    UCB2IFG &= ~(UCTXIFG + UCRXIFG);       // Clear any pending interrupts
-    UCB2IE &= ~UCRXIE;                       // Disable RX interrupt
-    UCB2IE |= UCTXIE;                        // Enable TX interrupt
+    UCB0I2CSA = dev_addr;
+    UCB0IFG &= ~(UCTXIFG + UCRXIFG);       // Clear any pending interrupts
+    UCB0IE &= ~UCRXIE;                       // Disable RX interrupt
+    UCB0IE |= UCTXIE;                        // Enable TX interrupt
 
-    UCB2CTLW0 |= UCTR + UCTXSTT;             // I2C TX, start condition
+    UCB0CTLW0 |= UCTR + UCTXSTT;             // I2C TX, start condition
     __bis_SR_register(LPM0_bits + GIE);              // Enter LPM0 w/ interrupts
 
     return MasterMode;
@@ -115,12 +115,12 @@ I2C_Mode I2C_Master_WriteReg(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_da
     TransmitIndex = 0;
 
     /* Initialize slave address and interrupts */
-    UCB2I2CSA = dev_addr;
-    UCB2IFG &= ~(UCTXIFG + UCRXIFG);       // Clear any pending interrupts
-    UCB2IE &= ~UCRXIE;                       // Disable RX interrupt
-    UCB2IE |= UCTXIE;                        // Enable TX interrupt
+    UCB0I2CSA = dev_addr;
+    UCB0IFG &= ~(UCTXIFG + UCRXIFG);       // Clear any pending interrupts
+    UCB0IE &= ~UCRXIE;                       // Disable RX interrupt
+    UCB0IE |= UCTXIE;                        // Enable TX interrupt
 
-    UCB2CTLW0 |= UCTR + UCTXSTT;             // I2C TX, start condition
+    UCB0CTLW0 |= UCTR + UCTXSTT;             // I2C TX, start condition
     __bis_SR_register(LPM0_bits + GIE);              // Enter LPM0 w/ interrupts
 
     return MasterMode;
@@ -154,35 +154,36 @@ void fuelGaugeLowPower(){
 
 void readBatteryCharge(){
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_LSB, I2C_RX_BUFFER_MAX_SIZE);
-    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_charge, I2C_RX_BUFFER_MAX_SIZE);
-    raw_battery_charge = raw_battery_charge >> 16; //shift to make space for 2 MSB bytes
+    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_charge[1], I2C_RX_BUFFER_MAX_SIZE);
+//    raw_battery_charge = raw_battery_charge >> 16; //shift to make space for 2 MSB bytes
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_MSB, I2C_RX_BUFFER_MAX_SIZE);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_charge, I2C_RX_BUFFER_MAX_SIZE);
 
     // charge as a percent of maximum battery capacity
-    battery_charge = 100 * raw_battery_charge / 41177;
+//    battery_charge = 100 * raw_battery_charge / 41177;
 }
 
 void readBatteryVoltage(){
-    I2C_Master_ReadReg(I2C_SLAVE_ADDR, VOLTAGE_LSB, I2C_RX_BUFFER_MAX_SIZE);
-    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_voltage, I2C_RX_BUFFER_MAX_SIZE);
-    raw_battery_voltage = raw_battery_voltage >> 16; //shift to make space for 2 MSB bytes
-    I2C_Master_ReadReg(I2C_SLAVE_ADDR, VOLTAGE_MSB, I2C_RX_BUFFER_MAX_SIZE);
-    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_voltage, I2C_RX_BUFFER_MAX_SIZE);
+    I2C_Master_ReadReg(I2C_SLAVE_ADDR, VOLTAGE_LSB, 1);
+    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_voltage[1], 1);
+//    raw_battery_voltage = raw_battery_voltage >> 16; //shift to make space for 2 MSB bytes
+    I2C_Master_ReadReg(I2C_SLAVE_ADDR, VOLTAGE_MSB, 1);
+    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_voltage, 1);
 
     // convert raw reading to decimal in Volts
-    battery_voltage = 70.8 * (raw_battery_voltage >> 16); // shift instead of dividing by 65535;
+//    battery_voltage = 70.8 * (raw_battery_voltage >> 16); // shift instead of dividing by 65535;
 }
 
 void readBatteryCurrent(){
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, CURRENT_LSB, I2C_RX_BUFFER_MAX_SIZE);
-    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_current, I2C_RX_BUFFER_MAX_SIZE);
-    raw_battery_current = raw_battery_current >> 16; //shift to make space for 2 MSB bytes
+    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_current[1], I2C_RX_BUFFER_MAX_SIZE);
+//    raw_battery_current = raw_battery_current >> 16; //shift to make space for 2 MSB bytes
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, CURRENT_MSB, I2C_RX_BUFFER_MAX_SIZE);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_current, I2C_RX_BUFFER_MAX_SIZE);
 
+    // TODO: get rid of conversions; let ground do it
     // convert raw reading to decimal in milli-Amps
-    battery_current = 64 * (raw_battery_current - 32767) / 50 / 32767;
+//    battery_current = 64 * (raw_battery_current - 32767) / 50 / 32767;
 }
 
 void readGaugeTemp(){
@@ -196,34 +197,32 @@ void readGaugeTemp(){
     fuel_gauge_temp = 510 * raw_fuel_gauge_temp / 65535;
 }
 
-void readFuelGaugeControlRegister(){
+void readFuelGaugeStatusRegister(){
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, STATUS, 1);
     fuel_gauge_status_reg = ReceiveBuffer[0];
 }
 
 void initializeFuelGauge(){
     // voltage reading thresholds [0 -> 26 V]
-    uint8_t init_tx_buffer[I2C_TX_BUFFER_MAX_SIZE] = {0x5, 0xE}; //voltage upper lim MSB
-    I2C_Master_WriteReg(I2C_SLAVE_ADDR, VOLTAGE_THRESHOLD_HIGH_MSB, init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
-    init_tx_buffer[0] = 0x0; //voltage upper lim LSB
-    init_tx_buffer[1] = 0x2;
-    I2C_Master_WriteReg(I2C_SLAVE_ADDR, VOLTAGE_THRESHOLD_HIGH_LSB, init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
+//    uint8_t init_tx_buffer[I2C_TX_BUFFER_MAX_SIZE] = {0x5, 0xE}; //voltage upper lim MSB
+//    I2C_Master_WriteReg(I2C_SLAVE_ADDR, VOLTAGE_THRESHOLD_HIGH_MSB, init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
+//    init_tx_buffer[0] = 0x0; //voltage upper lim LSB
+//    init_tx_buffer[1] = 0x2;
+//    I2C_Master_WriteReg(I2C_SLAVE_ADDR, VOLTAGE_THRESHOLD_HIGH_LSB, init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
     // voltage lower limit defaults to 0 already; don't need to set
 
     // current thresholds default to being as big as possible, don't want to make them smaller
     //      range is about -1.28A to 1.28 A
 
     // initialize charge register with maximum battery capacity (see data sheet for conversion from mAh, M is 4096)
-    init_tx_buffer[0] = 0xA;
-    init_tx_buffer[1] = 0x0;
-    I2C_Master_WriteReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_MSB, init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
-    init_tx_buffer[0] = 0xD;
-    init_tx_buffer[1] = 0x9;
-    I2C_Master_WriteReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_LSB, init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
+    uint8_t init_tx_buffer = 0xA;
+    I2C_Master_WriteReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_MSB, &init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
+    init_tx_buffer = 0xD;
+    I2C_Master_WriteReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_LSB, &init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
 
 
     // set ADC to read voltage/curr/temp every 10 sec
-    control_reg = 0b01101001;
+    control_reg = 0b11101001;
     // set control_reg[7:6] to 01 do one conversion, 10 to convert every 10s,
     //      set to 00 to sleep, set to 11 to continuously convert
     // set control_reg[5:3] to 101 for M of 1024 for coulomb counter (see datasheet)
@@ -237,17 +236,17 @@ void initializeFuelGauge(){
 //******************************************************************************
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector = USCI_B2_VECTOR
-__interrupt void USCI_B2_ISR(void)
+#pragma vector = USCI_B0_VECTOR
+__interrupt void USCI_B0_ISR(void)
 #elif defined(__GNUC__)
-void __attribute__ ((interrupt(USCI_B2_VECTOR))) USCI_B2_ISR (void)
+void __attribute__ ((interrupt(USCI_B0_VECTOR))) USCI_B0_ISR (void)
 #else
 #error Compiler not supported!
 #endif
 {
-  //Must read from UCB2RXBUF
+  //Must read from UCB0RXBUF
   uint8_t rx_val = 0;
-  switch(__even_in_range(UCB2IV, USCI_I2C_UCBIT9IFG))
+  switch(__even_in_range(UCB0IV, USCI_I2C_UCBIT9IFG))
   {
     case USCI_NONE:          break;         // Vector 0: No interrupts
     case USCI_I2C_UCALIFG:   break;         // Vector 2: ALIFG
@@ -262,7 +261,7 @@ void __attribute__ ((interrupt(USCI_B2_VECTOR))) USCI_B2_ISR (void)
     case USCI_I2C_UCRXIFG1:  break;         // Vector 18: RXIFG1
     case USCI_I2C_UCTXIFG1:  break;         // Vector 20: TXIFG1
     case USCI_I2C_UCRXIFG0:                 // Vector 22: RXIFG0
-        rx_val = UCB2RXBUF;
+        rx_val = UCB0RXBUF;
         if (RXByteCtr)
         {
           ReceiveBuffer[ReceiveIndex++] = rx_val;
@@ -271,11 +270,11 @@ void __attribute__ ((interrupt(USCI_B2_VECTOR))) USCI_B2_ISR (void)
 
         if (RXByteCtr == 1)
         {
-          UCB2CTLW0 |= UCTXSTP;
+          UCB0CTLW0 |= UCTXSTP;
         }
         else if (RXByteCtr == 0)
         {
-          UCB2IE &= ~UCRXIE;
+          UCB0IE &= ~UCRXIE;
           MasterMode = IDLE_MODE;
           __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
         }
@@ -284,7 +283,7 @@ void __attribute__ ((interrupt(USCI_B2_VECTOR))) USCI_B2_ISR (void)
         switch (MasterMode)
         {
           case TX_REG_ADDRESS_MODE:
-              UCB2TXBUF = TransmitRegAddr;
+              UCB0TXBUF = TransmitRegAddr;
               if (RXByteCtr)
                   MasterMode = SWITCH_TO_RX_MODE;   // Need to start receiving now
               else
@@ -292,31 +291,31 @@ void __attribute__ ((interrupt(USCI_B2_VECTOR))) USCI_B2_ISR (void)
               break;
 
           case SWITCH_TO_RX_MODE:
-              UCB2IE |= UCRXIE;              // Enable RX interrupt
-              UCB2IE &= ~UCTXIE;             // Disable TX interrupt
-              UCB2CTLW0 &= ~UCTR;            // Switch to receiver
+              UCB0IE |= UCRXIE;              // Enable RX interrupt
+              UCB0IE &= ~UCTXIE;             // Disable TX interrupt
+              UCB0CTLW0 &= ~UCTR;            // Switch to receiver
               MasterMode = RX_DATA_MODE;    // State state is to receive data
-              UCB2CTLW0 |= UCTXSTT;          // Send repeated start
+              UCB0CTLW0 |= UCTXSTT;          // Send repeated start
               if (RXByteCtr == 1)
               {
                   //Must send stop since this is the N-1 byte
-                  while((UCB2CTLW0 & UCTXSTT));
-                  UCB2CTLW0 |= UCTXSTP;      // Send stop condition
+                  while((UCB0CTLW0 & UCTXSTT));
+                  UCB0CTLW0 |= UCTXSTP;      // Send stop condition
               }
               break;
 
           case TX_DATA_MODE:
               if (TXByteCtr)
               {
-                  UCB2TXBUF = TransmitBuffer[TransmitIndex++];
+                  UCB0TXBUF = TransmitBuffer[TransmitIndex++];
                   TXByteCtr--;
               }
               else
               {
                   //Done with transmission
-                  UCB2CTLW0 |= UCTXSTP;     // Send stop condition
+                  UCB0CTLW0 |= UCTXSTP;     // Send stop condition
                   MasterMode = IDLE_MODE;
-                  UCB2IE &= ~UCTXIE;                       // disable TX interrupt
+                  UCB0IE &= ~UCTXIE;                       // disable TX interrupt
                   __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
               }
               break;

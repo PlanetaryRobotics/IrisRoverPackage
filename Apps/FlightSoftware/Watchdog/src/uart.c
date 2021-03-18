@@ -215,7 +215,7 @@ void uart_init() {
 
 
 void uart0_tx_nonblocking(uint16_t length, unsigned char *buffer) {
-    uint16_t i;
+    uint16_t i=0;
     unsigned char b;
     uint16_t curr_idx = uart0tx.idx + uart0tx.used;
 
@@ -231,7 +231,7 @@ void uart0_tx_nonblocking(uint16_t length, unsigned char *buffer) {
 }
 
 void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer) {
-    uint16_t i;
+    uint16_t i=0;
     unsigned char b;
     uint16_t curr_idx = uart1tx.idx + uart1tx.used;
 

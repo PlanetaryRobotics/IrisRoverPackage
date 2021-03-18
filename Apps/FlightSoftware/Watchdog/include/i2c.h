@@ -10,13 +10,13 @@
 #include "buffer.h"
 
 
-#define I2C_SLAVE_ADDR      0b1100100 //i2c address of LTC2944IDD#PBF fuel gauge
+#define I2C_SLAVE_ADDR      100 //0b1100100 //i2c address of LTC2944IDD#PBF fuel gauge
 
 // every piece of i2c data for fuel gauge is 2 bytes (some info is 4 bytes split into MSB and LSB though)
-#define I2C_RX_BUFFER_MAX_SIZE      2
-#define I2C_TX_BUFFER_MAX_SIZE      2
+#define I2C_RX_BUFFER_MAX_SIZE      1
+#define I2C_TX_BUFFER_MAX_SIZE      1
 
-#define I2C_MAX_DATA_SIZE           2
+#define I2C_MAX_DATA_SIZE           1
 
 typedef enum I2cRegisterIds_Enum{
 
@@ -85,6 +85,7 @@ void readBatteryVoltage();
 void readBatteryCurrent();
 void readGaugeTemp();
 void initializeFuelGauge();
+void readFuelGaugeStatusRegister();
 
 
 /**

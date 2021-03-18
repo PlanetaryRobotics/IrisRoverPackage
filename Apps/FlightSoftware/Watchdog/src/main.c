@@ -15,6 +15,8 @@
 __volatile struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx;
 __volatile struct small_buffer i2crx, i2ctx;
 __volatile uint16_t loop_flags;
+// will change this data type to fit telemetry format -J
+
 
 /**
  * main.c
@@ -78,6 +80,7 @@ void DEBUG_SETUP() {
 }
 
 
+
 int main(void) {
     /* stop watchdog timer */
 	WDTCTL = WDTPW | WDTHOLD;
@@ -90,9 +93,6 @@ int main(void) {
 
     /* set up uart */
     uart_init();
-
-    /* set up i2c */
-    i2c_init();
 
     /* set up watchdog */
     watchdog_init();
@@ -108,6 +108,27 @@ int main(void) {
     fpgaCameraSelectHi();
 
     __bis_SR_register(GIE); // Enable all interrupts
+
+
+    /* set up i2c */
+    i2c_init();
+
+    /*
+     * Fuel Gauge Debug
+     */
+    __delay_cycles(1234567); //pause for ~1/16 sec
+    initializeFuelGauge();
+
+    __delay_cycles(12345670); //pause for ~1/16 sec to allow for fuel gauge ADC conversion
+
+    readBatteryVoltage();
+
+    readBatteryCurrent();
+
+
+    while(1){
+        readFuelGaugeStatusRegister();
+    }
 
     // the core structure of this program is like an event loop
     while (1) {
@@ -131,6 +152,7 @@ int main(void) {
             // header is 8 bytes long
             while (i + 8 <= uart0rx.idx) {
                 /* check input value */
+
                 if (uart0rx.buf[i] == 0x0B && uart0rx.buf[i + 1] == 0xB0 &&
                         uart0rx.buf[i + 2] == 0x21) {
                     /* magic value rx'd! check parity */

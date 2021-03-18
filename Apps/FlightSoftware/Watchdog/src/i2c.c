@@ -7,7 +7,7 @@ extern float fuel_gauge_temp;
 int8_t raw_battery_charge[2];
 int8_t raw_battery_voltage[2];
 int8_t raw_battery_current[2];
-int32_t raw_fuel_gauge_temp;
+int8_t raw_fuel_gauge_temp[2];
 
 uint8_t fuel_gauge_status_reg;
 uint8_t control_reg;
@@ -188,17 +188,17 @@ void readBatteryCurrent(){
 
 void readGaugeTemp(){
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, TEMPERATURE_LSB, I2C_RX_BUFFER_MAX_SIZE);
-    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_fuel_gauge_temp, I2C_RX_BUFFER_MAX_SIZE);
-    raw_fuel_gauge_temp = raw_fuel_gauge_temp >> 16; //shift to make space for 2 MSB bytes
+    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_fuel_gauge_temp[1], I2C_RX_BUFFER_MAX_SIZE);
+//    raw_fuel_gauge_temp = raw_fuel_gauge_temp >> 16; //shift to make space for 2 MSB bytes
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, TEMPERATURE_MSB, I2C_RX_BUFFER_MAX_SIZE);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_fuel_gauge_temp, I2C_RX_BUFFER_MAX_SIZE);
 
     // convert raw reading to decimal in Kelvin
-    fuel_gauge_temp = 510 * raw_fuel_gauge_temp / 65535;
+//    fuel_gauge_temp = 510 * raw_fuel_gauge_temp / 65535;
 }
 
 void readFuelGaugeStatusRegister(){
-    I2C_Master_ReadReg(I2C_SLAVE_ADDR, STATUS, 1);
+    I2C_Master_ReadReg(I2C_SLAVE_ADDR, CONTROL, 1); //[DEBUG] : changed STATUS to CONTROL
     fuel_gauge_status_reg = ReceiveBuffer[0];
 }
 
@@ -215,19 +215,19 @@ void initializeFuelGauge(){
     //      range is about -1.28A to 1.28 A
 
     // initialize charge register with maximum battery capacity (see data sheet for conversion from mAh, M is 4096)
-    uint8_t init_tx_buffer = 0xA;
+    uint8_t init_tx_buffer = 0xA0;
     I2C_Master_WriteReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_MSB, &init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
-    init_tx_buffer = 0xD;
+    init_tx_buffer = 0xD8;
     I2C_Master_WriteReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_LSB, &init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
 
 
     // set ADC to read voltage/curr/temp every 10 sec
-    control_reg = 0b11101001;
+    control_reg = 0b10101000;
     // set control_reg[7:6] to 01 do one conversion, 10 to convert every 10s,
     //      set to 00 to sleep, set to 11 to continuously convert
     // set control_reg[5:3] to 101 for M of 1024 for coulomb counter (see datasheet)
     // control_ref[2:1] not used on SBC (pin its related to is floating)
-    // set control_reg[0] to 0 to drastically reduce current consumption (no conversions though)
+    // must leave control_reg[0] to 0
     I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &control_reg, 1);
 }
 

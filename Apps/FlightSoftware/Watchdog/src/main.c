@@ -15,7 +15,6 @@
 __volatile struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx;
 __volatile struct small_buffer i2crx, i2ctx;
 __volatile uint16_t loop_flags;
-// will change this data type to fit telemetry format -J
 
 
 /**
@@ -112,23 +111,21 @@ int main(void) {
 
     /* set up i2c */
     i2c_init();
-
-    /*
-     * Fuel Gauge Debug
-     */
-    __delay_cycles(1234567); //pause for ~1/16 sec
+    __delay_cycles(1000000); //pause for ~1/8 sec for fuel gauge i2c to init
     initializeFuelGauge();
 
-    __delay_cycles(12345670); //pause for ~1/16 sec to allow for fuel gauge ADC conversion
+// [DEBUG] from fuel gauge, all set now but leaving until it's fully integrated -J
+//    __delay_cycles(1000000); //pause for ~1/8 sec before reading in any data from fuel gauge
+//    readBatteryVoltage();
 
-    readBatteryVoltage();
+//    while(1){
+//        readBatteryVoltage();
+//        readBatteryCurrent();
+//        readGaugeTemp();
+//        readBatteryCharge();
+//        __delay_cycles(1234567);
+//    }
 
-    readBatteryCurrent();
-
-
-    while(1){
-        readFuelGaugeStatusRegister();
-    }
 
     // the core structure of this program is like an event loop
     while (1) {

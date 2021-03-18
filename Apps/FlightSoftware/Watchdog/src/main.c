@@ -115,8 +115,7 @@ int main(void) {
     initializeFuelGauge();
 
 // [DEBUG] from fuel gauge, all set now but leaving until it's fully integrated -J
-//    __delay_cycles(1000000); //pause for ~1/8 sec before reading in any data from fuel gauge
-//    readBatteryVoltage();
+    //    readBatteryVoltage();
 
 //    while(1){
 //        readBatteryVoltage();

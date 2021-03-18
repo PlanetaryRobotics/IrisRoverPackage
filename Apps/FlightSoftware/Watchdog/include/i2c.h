@@ -85,7 +85,7 @@ void readBatteryVoltage();
 void readBatteryCurrent();
 void readGaugeTemp();
 void initializeFuelGauge();
-void readFuelGaugeStatusRegister();
+void readFuelGaugeControlRegister();
 
 
 /**

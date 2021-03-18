@@ -1,16 +1,12 @@
 #include "include/i2c.h"
 
-extern float battery_charge;
-extern float battery_voltage;
-extern float battery_current;
-extern float fuel_gauge_temp;
 int8_t raw_battery_charge[2];
 int8_t raw_battery_voltage[2];
 int8_t raw_battery_current[2];
 int8_t raw_fuel_gauge_temp[2];
 
-uint8_t fuel_gauge_status_reg;
-uint8_t control_reg;
+uint8_t fuel_gauge_write_control_reg;
+uint8_t fuel_gauge_read_control_reg;
 
 /*
  * File for interfacing with I2C protocol hardware module
@@ -136,83 +132,56 @@ void CopyArray(uint8_t *source, uint8_t *dest, uint8_t count)
 }
 
 void updateGaugeReadings(){
-    // set ADC to read voltage/curr/temp every 10 sec
-    control_reg = 0b01101001;
+    fuel_gauge_write_control_reg = 0b01101000;
     // set control_reg[7:6] to 01 do one conversion, 10 to convert every 10s,
     //      set to 00 to sleep, set to 11 to continuously convert
     // set control_reg[5:3] to 101 for M of 1024 for coulomb counter (see datasheet)
     // control_ref[2:1] not used on SBC (pin its related to is floating)
     // set control_reg[0] to 0 to drastically reduce current consumption (no conversions though)
-    I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &control_reg, 1);
+    I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &fuel_gauge_write_control_reg, 1);
 }
 
 void fuelGaugeLowPower(){
     // shut off all analog parts of fuel gauge circuit by setting LSB of control register to 0
-    control_reg = 0b00101000;
-    I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &control_reg, 1);
+    fuel_gauge_write_control_reg = 0b00101000;
+    I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &fuel_gauge_write_control_reg, 1);
 }
 
 void readBatteryCharge(){
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_LSB, I2C_RX_BUFFER_MAX_SIZE);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_charge[1], I2C_RX_BUFFER_MAX_SIZE);
-//    raw_battery_charge = raw_battery_charge >> 16; //shift to make space for 2 MSB bytes
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_MSB, I2C_RX_BUFFER_MAX_SIZE);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_charge, I2C_RX_BUFFER_MAX_SIZE);
-
-    // charge as a percent of maximum battery capacity
-//    battery_charge = 100 * raw_battery_charge / 41177;
 }
 
 void readBatteryVoltage(){
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, VOLTAGE_LSB, 1);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_voltage[1], 1);
-//    raw_battery_voltage = raw_battery_voltage >> 16; //shift to make space for 2 MSB bytes
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, VOLTAGE_MSB, 1);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_voltage, 1);
-
-    // convert raw reading to decimal in Volts
-//    battery_voltage = 70.8 * (raw_battery_voltage >> 16); // shift instead of dividing by 65535;
 }
 
 void readBatteryCurrent(){
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, CURRENT_LSB, I2C_RX_BUFFER_MAX_SIZE);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_current[1], I2C_RX_BUFFER_MAX_SIZE);
-//    raw_battery_current = raw_battery_current >> 16; //shift to make space for 2 MSB bytes
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, CURRENT_MSB, I2C_RX_BUFFER_MAX_SIZE);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_current, I2C_RX_BUFFER_MAX_SIZE);
 
-    // TODO: get rid of conversions; let ground do it
-    // convert raw reading to decimal in milli-Amps
-//    battery_current = 64 * (raw_battery_current - 32767) / 50 / 32767;
 }
 
 void readGaugeTemp(){
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, TEMPERATURE_LSB, I2C_RX_BUFFER_MAX_SIZE);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_fuel_gauge_temp[1], I2C_RX_BUFFER_MAX_SIZE);
-//    raw_fuel_gauge_temp = raw_fuel_gauge_temp >> 16; //shift to make space for 2 MSB bytes
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, TEMPERATURE_MSB, I2C_RX_BUFFER_MAX_SIZE);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_fuel_gauge_temp, I2C_RX_BUFFER_MAX_SIZE);
-
-    // convert raw reading to decimal in Kelvin
-//    fuel_gauge_temp = 510 * raw_fuel_gauge_temp / 65535;
 }
 
-void readFuelGaugeStatusRegister(){
-    I2C_Master_ReadReg(I2C_SLAVE_ADDR, CONTROL, 1); //[DEBUG] : changed STATUS to CONTROL
-    fuel_gauge_status_reg = ReceiveBuffer[0];
+void readFuelGaugeControlRegister(){
+    I2C_Master_ReadReg(I2C_SLAVE_ADDR, CONTROL, 1);
+    fuel_gauge_read_control_reg = ReceiveBuffer[0];
 }
 
 void initializeFuelGauge(){
-    // voltage reading thresholds [0 -> 26 V]
-//    uint8_t init_tx_buffer[I2C_TX_BUFFER_MAX_SIZE] = {0x5, 0xE}; //voltage upper lim MSB
-//    I2C_Master_WriteReg(I2C_SLAVE_ADDR, VOLTAGE_THRESHOLD_HIGH_MSB, init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
-//    init_tx_buffer[0] = 0x0; //voltage upper lim LSB
-//    init_tx_buffer[1] = 0x2;
-//    I2C_Master_WriteReg(I2C_SLAVE_ADDR, VOLTAGE_THRESHOLD_HIGH_LSB, init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
-    // voltage lower limit defaults to 0 already; don't need to set
-
-    // current thresholds default to being as big as possible, don't want to make them smaller
-    //      range is about -1.28A to 1.28 A
 
     // initialize charge register with maximum battery capacity (see data sheet for conversion from mAh, M is 4096)
     uint8_t init_tx_buffer = 0xA0;
@@ -222,13 +191,13 @@ void initializeFuelGauge(){
 
 
     // set ADC to read voltage/curr/temp every 10 sec
-    control_reg = 0b10101000;
+    fuel_gauge_write_control_reg = 0b10101000;
     // set control_reg[7:6] to 01 do one conversion, 10 to convert every 10s,
     //      set to 00 to sleep, set to 11 to continuously convert
     // set control_reg[5:3] to 101 for M of 1024 for coulomb counter (see datasheet)
     // control_ref[2:1] not used on SBC (pin its related to is floating)
     // must leave control_reg[0] to 0
-    I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &control_reg, 1);
+    I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &fuel_gauge_write_control_reg, 1);
 }
 
 //******************************************************************************

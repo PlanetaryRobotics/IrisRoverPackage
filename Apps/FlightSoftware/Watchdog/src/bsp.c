@@ -75,13 +75,14 @@ void initializeGpios(){
 
 /**
  * @brief      Enables the heater. (HI = ON)
+ *      TB0CCTL2 is register that toggles PWM output on heater pin
  */
-inline void enableHeater(){ P2OUT |= BIT2; heaterStatus = 1; }
+inline void enableHeater(){ P2OUT |= BIT2; TB0CCTL2 |= OUTMOD_7; heaterStatus = 1; }
 
 /**
  * @brief      Disables the heater. (LO = OFF)
  */
-inline void disableHeater(){ P2OUT &= ~BIT2; heaterStatus = 0; }
+inline void disableHeater(){ P2OUT &= ~BIT2; TB0CCTL2 &= ~OUTMOD_7; heaterStatus = 0; }
 
 /**
  * @brief      Enables the 3.3 v power rail. (HI = ON)

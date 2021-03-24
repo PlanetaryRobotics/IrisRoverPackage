@@ -114,6 +114,9 @@ int main(void) {
     __delay_cycles(1000000); //pause for ~1/8 sec for fuel gauge i2c to init
     initializeFuelGauge();
 
+    // [DEBUG] Heater Control Testing
+//     enableHeater();
+
 // [DEBUG] from fuel gauge, all set now but leaving until it's fully integrated -J
     //    readBatteryVoltage();
 

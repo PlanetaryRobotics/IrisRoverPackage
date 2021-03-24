@@ -25,6 +25,7 @@
  * 12-bit: LSB = 0.0008056640625V
  */
 
+
 void adc_init() {
     // Set the correct settings for various inputs
     P4SEL0 |= BIT0; // P4.0 Analog input 8 (VCC 2V5)
@@ -84,12 +85,13 @@ void adc_setup_mission() { // set up adc to read values for mission mode (voltag
     while (ADC12CTL1 & ADC12BUSY) { __no_operation(); }
 
     // enable interrupts only on last reading
-    ADC12IER0 = ADC12IE2;
+    ADC12IER0 = ADC12IE3; //TODO: is this right? (changed ADC12IE2 to ADC12IE3)
 
     // set up the ADC for the mission state
     ADC12MCTL0 = ADC12INCH_8 | ADC12VRSEL_1; // A8 = P4.0 stored in MEM0
     ADC12MCTL1 = ADC12INCH_9 | ADC12VRSEL_1; // A9 = P4.1 stored in MEM1
     ADC12MCTL2 = ADC12INCH_11 | ADC12VRSEL_1 | ADC12EOS; // A11 = P4.3 stored in MEM2
+    ADC12MCTL3 = ADC12INCH_12 | ADC12VRSEL_1; // | ADC12EOS; //A12 = P3.0 stored in MEM3
 
     // clear sample ready, if set
     watchdog_flags &= ~WDFLAG_ADC_READY;
@@ -106,7 +108,7 @@ inline void adc_sample() {
     ADC12CTL0 |= ADC12SC | ADC12ENC;
 }
 
-volatile unsigned short adc_values[3] = {0,0,0,0,0};
+volatile unsigned short adc_values[5] = {0,0,0,0,0};
 
 // Interrupt handler for when the ADC has completed a reading
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
@@ -122,6 +124,7 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
     case ADC12IV_ADC12IFG2: // ADC12IE2 interrupt
         adc_values[2] = ADC12MEM2; // Save MEM2
     case ADC12IV_ADC12IFG1: // ADC12IE1 interrupt
+        adc_values[3] = ADC12MEM3; // Save MEM3
         adc_values[1] = ADC12MEM1; // Save MEM1
         adc_values[0] = ADC12MEM0; // Save MEM0
         watchdog_flags |= WDFLAG_ADC_READY; // signal ready to main loop

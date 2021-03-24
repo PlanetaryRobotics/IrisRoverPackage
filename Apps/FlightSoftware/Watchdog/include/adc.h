@@ -9,7 +9,7 @@
 
 #include "buffer.h"
 
-extern volatile unsigned short adc_values[3];
+extern volatile unsigned short adc_values[5];
 
 /**
  * @brief Initialize ADC hardware.
@@ -30,5 +30,6 @@ void adc_sample();
 #define ADC_BATT_LEVEL_IDX 2
 #define ADC_LANDER_LEVEL_IDX 0
 #define ADC_TEMP_IDX 1
+
 
 #endif /* __ADC_INC */

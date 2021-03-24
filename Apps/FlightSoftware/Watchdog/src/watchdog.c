@@ -12,8 +12,10 @@
 #include <msp430.h>
 #include <stdint.h>
 #include "include/flags.h"
+#include "include/pi.h"
+#include "include/adc.h"
 
-volatile uint16_t watchdog_flags;
+volatile uint16_t watchdog_flags, battery_temp;
 
 // BELOW heater_on_min, heater turns on. ABOVE heater_off_max, heater turns off.
 uint16_t heater_on_min = 0x600, heater_off_max = 0x900;
@@ -32,6 +34,11 @@ int watchdog_init() {
     TA0EX0 = TAIDEX_0;                  // ??/1
     TA0CCR0 =  1000;                           // 12.5 Hz (pretty sure its not)
     TA0CTL |= MC_2;                 // Start timer in continuous mode
+
+    /* Set up interrupt routine for heater control */
+    TB0CCTL0 = CCIE;                        // TBCCR0 interrupt enabled
+    TB0CCR0 = 10000;                        // set timer B frequency also to ~120 Hz
+    TB0CTL = TBSSEL__SMCLK | MC__CONTINOUS; // SMCLK, continuous mode
 
     return 0;
 }
@@ -155,3 +162,66 @@ void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer0_A1_ISR (void) {
         default: break;
     }
 }
+
+
+// Timer0_B0 interrupt service routine
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector = TIMER0_B0_VECTOR
+__interrupt void Timer0_B0_ISR (void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(TIMER0_B0_VECTOR))) Timer0_B0_ISR (void)
+#else
+#error Compiler not supported!
+#endif
+{
+    // read thermistor value
+    adc_sample();
+//    while(watchdog_flags); //wait for conversion to complete
+
+    // voltage, where LSB = 0.0008056640625V
+    unsigned short therm_reading = adc_values[3];
+    // iterate until reference voltage values until one is hit that is lower than measurement
+    uint8_t i;
+    for( i = 0; i<thermistor_ref_len; i++){
+        if(therm_reading > thermistor_ref_voltages[i]){
+            if(i==0){
+                // temperature below readable range, set to lowest possible value
+                battery_temp = 0;
+                break;
+            } else {
+                // find change in temp [C] per step between two nearest ref voltages
+                uint16_t ref_gap_steps = (thermistor_ref_voltages[i-1] - thermistor_ref_voltages[i]) / 5;
+
+                // interpolate battery temperature from reference values
+                //    battery temp scales such that 0 = -40C, 65534 = 125C
+                battery_temp = i*2114 + ref_gap_steps * (thermistor_ref_voltages[i-1] - therm_reading);
+                break;
+            }
+        }
+
+        if(i == thermistor_ref_len-1){
+            // exceeded readable range, set to highest possible value
+            battery_temp = 65535;
+            break;
+        }
+
+    }
+
+    uint16_t PWM_cycle = 0;
+    // calculate P controller output
+    if(battery_temp > battery_target_temp){
+        // don't use heater if we are over desired battery temperature
+    } else{
+        PWM_cycle = Kp_heater * (battery_target_temp - battery_temp);
+    }
+
+    // cannot have duty cycle greater than clock
+    if(PWM_cycle > TB0CCR0){
+        PWM_cycle = TB0CCR0;
+    }
+
+    TB0CCR2 = PWM_cycle; // apply duty cycle
+
+}
+
+

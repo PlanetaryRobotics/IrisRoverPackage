@@ -34,6 +34,8 @@ void initializeGpios(){
   P2DIR |= BIT4;  // P2.4 output Radio ON
   P2DIR &= ~BIT7;  // P2.7 input Power good 1V2
 
+  P2SEL0 |= BIT2; // P2.2 heater output, PWM mdoe
+
   // P3 configuration
   P3DIR &= 0x00;
   P3OUT &= ~(BIT1 | BIT2 | BIT3 | BIT4 | BIT5 | BIT6 | BIT7); // Initially everything is off

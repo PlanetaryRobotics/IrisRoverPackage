@@ -36,9 +36,16 @@ int watchdog_init() {
     TA0CTL |= MC_2;                 // Start timer in continuous mode
 
     /* Set up interrupt routine for heater control */
-    TB0CCTL0 = CCIE;                        // TBCCR0 interrupt enabled
-    TB0CCR0 = 10000;                        // set timer B frequency also to ~120 Hz
-    TB0CTL = TBSSEL__SMCLK | MC__CONTINOUS; // SMCLK, continuous mode
+    TB0CCTL0 = CCIE;                        // TBCCR1 interrupt enabled
+//    TB1CCR0 = 10000;                         // set timer B frequency to ~120 Hz
+//    TB1CTL = TBSSEL__SMCLK | MC__CONT;
+
+    TB0CCR0 = 10000;                        // ticks per duty cycle of heater PWM
+    TB0CCTL2 = OUTMOD_7; //CCR2 reset/set
+    TB0CCR2 = 1000;
+    TB0CTL = TBSSEL__SMCLK | MC__UP | TBCLR; // SMCLK, continuous mode
+
+
 
     return 0;
 }
@@ -209,10 +216,17 @@ void __attribute__ ((interrupt(TIMER0_B0_VECTOR))) Timer0_B0_ISR (void)
 
     uint16_t PWM_cycle = 0;
     // calculate P controller output
-    if(battery_temp > battery_target_temp){
-        // don't use heater if we are over desired battery temperature
-    } else{
-        PWM_cycle = Kp_heater * (battery_target_temp - battery_temp);
+//    if(battery_temp > battery_target_temp){
+//        // don't use heater if we are over desired battery temperature
+//    } else{
+//        PWM_cycle = Kp_heater * (battery_target_temp - battery_temp);
+//    }
+
+    // hack-y way because reference voltage wasn't right
+    if(therm_reading > 2500){
+        PWM_cycle = 250 * (therm_reading - 2470);
+    } else {
+        PWM_cycle = 0;
     }
 
     // cannot have duty cycle greater than clock
@@ -221,7 +235,8 @@ void __attribute__ ((interrupt(TIMER0_B0_VECTOR))) Timer0_B0_ISR (void)
     }
 
 //    TB0CCR2 = PWM_cycle; // apply duty cycle
-    TB0CCR2 = 10;
+//    TB0CCTL2 = OUTMOD_7; //CCR2 reset/set
+    TB0CCR2 = PWM_cycle;
 
 }
 

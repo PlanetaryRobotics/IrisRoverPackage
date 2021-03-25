@@ -28,7 +28,7 @@ void enterMode(enum rover_state newstate) {
     case RS_LANDER:
         /* monitor only lander voltages */
         adc_setup_lander();
-//        enableHeater();
+        enableHeater();
         break;
     case RS_MISSION:
         /* bootup process - enable all rails */
@@ -112,12 +112,12 @@ int main(void) {
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();
 
+
     __bis_SR_register(GIE); // Enable all interrupts
 
     while(1){
         adc_sample();
-        __delay_cycles(1000000);
-//        continue;
+//        __delay_cycles(1000000);
     }
 
     /* set up i2c */

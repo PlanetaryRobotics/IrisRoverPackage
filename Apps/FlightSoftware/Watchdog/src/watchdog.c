@@ -179,7 +179,7 @@ void __attribute__ ((interrupt(TIMER0_B0_VECTOR))) Timer0_B0_ISR (void)
 //    while(watchdog_flags); //wait for conversion to complete
 
     // voltage, where LSB = 0.0008056640625V
-    unsigned short therm_reading = adc_values[3];
+    unsigned short therm_reading = adc_values[1];
     // iterate until reference voltage values until one is hit that is lower than measurement
     uint8_t i;
     for( i = 0; i<thermistor_ref_len; i++){
@@ -220,7 +220,8 @@ void __attribute__ ((interrupt(TIMER0_B0_VECTOR))) Timer0_B0_ISR (void)
         PWM_cycle = TB0CCR0;
     }
 
-    TB0CCR2 = PWM_cycle; // apply duty cycle
+//    TB0CCR2 = PWM_cycle; // apply duty cycle
+    TB0CCR2 = 10;
 
 }
 

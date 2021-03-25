@@ -28,6 +28,7 @@ void enterMode(enum rover_state newstate) {
     case RS_LANDER:
         /* monitor only lander voltages */
         adc_setup_lander();
+//        enableHeater();
         break;
     case RS_MISSION:
         /* bootup process - enable all rails */
@@ -99,23 +100,31 @@ int main(void) {
     /* set up the ADC */
     adc_init();
 
+    // [DEBUG] Heater Control Testing
+//     enableHeater();
+//     disableHeater();
+
     /* enter the lander mode */
+     enterMode(RS_LANDER);
     // TODO: do NOT enter mission mode right away...
-    enterMode(RS_MISSION);
+//    enterMode(RS_MISSION);
 
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();
 
     __bis_SR_register(GIE); // Enable all interrupts
 
+    while(1){
+        adc_sample();
+        __delay_cycles(1000000);
+//        continue;
+    }
 
     /* set up i2c */
     i2c_init();
     __delay_cycles(1000000); //pause for ~1/8 sec for fuel gauge i2c to init
     initializeFuelGauge();
 
-    // [DEBUG] Heater Control Testing
-//     enableHeater();
 
 // [DEBUG] from fuel gauge, all set now but leaving until it's fully integrated -J
     //    readBatteryVoltage();

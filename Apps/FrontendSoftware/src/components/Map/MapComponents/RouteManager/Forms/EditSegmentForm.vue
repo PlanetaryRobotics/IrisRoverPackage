@@ -193,12 +193,14 @@ export default {
         },
         saveSegment() {
             // Save the CM coordinates and angle into object
-            this.segment.xCmCoordinate = this.formValues.XCOORD;
-            this.segment.yCmCoordinate = this.formValues.YCOORD;
-            this.segment.roverAngle = this.formValues.ANGLE;
+            const segmentInfo = {
+                xCmCoordinate: this.formValues.XCOORD,
+                yCmCoordinate : this.formValues.YCOORD,
+                roverAngle :this.formValues.ANGLE
+            };
 
             // Make the PX version of coords are computed too
-            GridEventBus.$emit('COMPUTE_SEG_PX_COORDS', this.segment);
+            GridEventBus.$emit('COMPUTE_SEG_PX_COORDS', segmentInfo);
             this.closeModal();
         },
         cancelSegment() {

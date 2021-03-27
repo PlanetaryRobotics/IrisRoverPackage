@@ -147,7 +147,7 @@ uint8_t *ipudp_parse_packet(struct buffer *buf, uint16_t *pp_len) {
         return (void *)0;
     }
 
-    *pp_len = buf->used - n;
+    if (pp_len) *pp_len = buf->used - n;
     /* skip past the ip and udp headers, and we're left with the payload! */
     return buf->buf + n;
 }

@@ -7,6 +7,7 @@
 
 int watchdog_init();
 int watchdog_monitor();
+unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l);
 
 #endif /* __WATCHDOG_INC */
 

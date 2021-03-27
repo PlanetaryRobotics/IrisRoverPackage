@@ -14,6 +14,7 @@
 #include "include/flags.h"
 #include "include/pi.h"
 #include "include/adc.h"
+#include "include/uart.h"
 
 volatile uint16_t watchdog_flags, battery_temp;
 
@@ -37,8 +38,7 @@ int watchdog_init() {
 
     /* Set up interrupt routine for heater control */
     TB0CCTL0 = CCIE;                        // TBCCR1 interrupt enabled
-//    TB1CCR0 = 10000;                         // set timer B frequency to ~120 Hz
-//    TB1CTL = TBSSEL__SMCLK | MC__CONT;
+    // TODO: disbale timer interrupt when not in use
 
     TB0CCR0 = 10000;                        // ticks per duty cycle of heater PWM
     TB0CCTL2 = OUTMOD_7; //CCR2 reset/set
@@ -89,6 +89,63 @@ int watchdog_monitor() {
     /* re-enable interrupts */
     __bis_SR_register(GIE);
     return 0;
+}
+
+/**
+ * Function called whenever the watchdog needs to handle a byte from the hercules
+ *
+ * Assumes checksum valid.
+ * @param buf: Pointer to first byte of header/payload (8+len bytes total)
+ * @param max_l: Maximum length of bytes processes
+ *
+ * Returns number of bytes processed (includes header). 0 if more data bytes needed.
+ */
+unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
+    unsigned int len = (buf[4]) | (buf[5] << 8);
+    if (len != 0) {
+        /* udp packet attached */
+        if (len + 8 >= max_l) {
+            /* echo back watchdog command header only */
+            uart0_tx_nonblocking(8, buf);
+            /* add this packet to the IP/UDP stack send buffer */
+            ipudp_send_packet(buf, len);
+            /* all done */
+            return len + 8; // length + 8 = total bytes processed
+        } else {
+            /* need to wait for more bytes to come in */
+            return 0;
+        }
+    } else {
+        /* handle watchdog reset command */
+        handle_watchdog_reset_cmd(buf[6]);
+        /* check if we have UDP data to send back to hercules */
+        if (hercbuf.used > 0) {
+            /* write out our buffer */
+            /* update header length first */
+            buf[4] = hercbuf.used & 0xFF;
+            buf[5] = (hercbuf.used >> 8) & 0xFF;
+            /* recompute parity */
+            uint8_t parity = 0xDC; /* sum of 0x21, 0xB0, and 0x0B */
+            /* skip parity byte (i + 3) in summation */
+            parity += buf[4] + buf[5];
+            parity += buf[6] + buf[7];
+            /* bitwise NOT to compute parity */
+            parity = ~parity;
+            /* write out new parity byte */
+            buf[3] = parity;
+            /* echo back watchdog command header updated version */
+            uart0_tx_nonblocking(8, buf);
+            /* send the udp packet */
+            uart0_tx_nonblocking(hercbuf.used, hercbuf.buf);
+            /* clear hercules send buffer */
+            hercbuf.used = 0;
+        } else {
+            /* echo back watchdog command header */
+            uart0_tx_nonblocking(8, buf);
+        }
+        /* in this case, we always just processed 8 bytes header */
+        return 8;
+    }
 }
 
 // TODO: put ISR for things here

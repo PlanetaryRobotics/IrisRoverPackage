@@ -7,7 +7,8 @@
 
 #include <stdint.h>
 
-#define BUFFER_SIZE 600
+// TODO: running out of memory again :/ need to optimize buffers
+#define BUFFER_SIZE 512
 #define SMALL_BUFFER_SIZE 16
 
 struct buffer {
@@ -33,7 +34,7 @@ struct small_buffer {
 };
 
 /* all of the buffers that exist; total = 3KiB used for tx/rx buffers */
-__volatile extern struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx;
+__volatile extern struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx, hercbuf;
 __volatile extern struct small_buffer i2crx, i2ctx;
 
 /**

@@ -12,7 +12,7 @@
 
 
 /* define all of the buffers used in other files */
-__volatile struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx;
+__volatile struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx, hercbuf;
 __volatile struct small_buffer i2crx, i2ctx;
 __volatile uint16_t loop_flags;
 
@@ -28,7 +28,7 @@ void enterMode(enum rover_state newstate) {
     case RS_LANDER:
         /* monitor only lander voltages */
         adc_setup_lander();
-        enableHeater();
+//        enableHeater();
         break;
     case RS_MISSION:
         /* bootup process - enable all rails */
@@ -100,25 +100,16 @@ int main(void) {
     /* set up the ADC */
     adc_init();
 
-    // [DEBUG] Heater Control Testing
-//     enableHeater();
-//     disableHeater();
-
     /* enter the lander mode */
-     enterMode(RS_LANDER);
+//     enterMode(RS_LANDER);
     // TODO: do NOT enter mission mode right away...
-//    enterMode(RS_MISSION);
+    enterMode(RS_MISSION);
 
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();
 
 
     __bis_SR_register(GIE); // Enable all interrupts
-
-    while(1){
-        adc_sample();
-//        __delay_cycles(1000000);
-    }
 
     /* set up i2c */
     i2c_init();
@@ -156,7 +147,7 @@ int main(void) {
         if (loop_flags & FLAG_UART0_RX_PACKET) {
             // temporarily disable uart0 interrupt
             UCA0IE &= ~UCRXIE;
-            unsigned int i = 0, len = 0;
+            unsigned int i = 0, process_len = 0;
             // header is 8 bytes long
             while (i + 8 <= uart0rx.idx) {
                 /* check input value */
@@ -173,34 +164,15 @@ int main(void) {
 
                     if (parity == uart0rx.buf[i + 3]) {
                         /* parity bytes match! */
-                        len = (uart0rx.buf[i + 4]) | (uart0rx.buf[i + 5] << 8);
-                        if (len) {
-                            /* udp packet */
-                            if (len + 8 > uart0rx.idx) {
-                                // TODO: parse UDP
-                                /* copy over the bytes into a processing buffer */
-                                pbuf.used = len;
-                                /* copy over uart1rx buffer into processing buffer */
-                                memcpy(pbuf.buf, uart0rx.buf + 8, pbuf.used);
-                                pbuf.idx = 0;
-                                i += len + 8;
-                                /* echo back watchdog command */
-                                uart0_tx_nonblocking(uart0rx.idx, uart0rx.buf);
-                            } else {
-                                /* need to wait for more bytes to come in */
-                                break;
-                            }
+                        process_len = watchdog_handle_hercules(uart0rx.buf, uart0rx.idx - i);
+                        if (process_len == 0) {
+                            //need more data
+                            break;
                         } else {
-                            /* handle watchdog reset command */
-                            handle_watchdog_reset_cmd(uart0rx.buf[i + 6]);
-                            /* echo back watchdog command */
-                            uart0_tx_nonblocking(8, uart0rx.buf + i);
-                            /* skip past the width of a watchdog command */
-                            i += 8;
-                            /* also send telemetry */
-                            //uart0_tx_nonblocking();
+                            // successfully handled a packet, now process the next one
+                            i += process_len;
+                            continue;
                         }
-
                     }
                 }
                 i++;

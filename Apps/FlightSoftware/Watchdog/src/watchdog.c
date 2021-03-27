@@ -12,14 +12,14 @@
 #include <msp430.h>
 #include <stdint.h>
 #include "include/flags.h"
-#include "include/pi.h"
 #include "include/adc.h"
 #include "include/uart.h"
 
-volatile uint16_t watchdog_flags, battery_temp;
+volatile uint16_t watchdog_flags;
 
-// BELOW heater_on_min, heater turns on. ABOVE heater_off_max, heater turns off.
-uint16_t heater_on_min = 0x600, heater_off_max = 0x900;
+// for heater control
+uint16_t Kp_heater = 500, PWM_limit = 0;
+uint8_t heating = 0;
 
 /**
  * Set up the ISRs for the watchdog
@@ -41,8 +41,8 @@ int watchdog_init() {
     // TODO: disbale timer interrupt when not in use
 
     TB0CCR0 = 10000;                        // ticks per duty cycle of heater PWM
+    PWM_limit = 8500;                       // make sure PWM does not exceed ~90% to keep power use low
     TB0CCTL2 = OUTMOD_7; //CCR2 reset/set
-    TB0CCR2 = 1000;
     TB0CTL = TBSSEL__SMCLK | MC__UP | TBCLR; // SMCLK, continuous mode
 
 
@@ -245,50 +245,26 @@ void __attribute__ ((interrupt(TIMER0_B0_VECTOR))) Timer0_B0_ISR (void)
     // voltage, where LSB = 0.0008056640625V
     unsigned short therm_reading = adc_values[1];
     // iterate until reference voltage values until one is hit that is lower than measurement
-    uint8_t i;
-    for( i = 0; i<thermistor_ref_len; i++){
-        if(therm_reading > thermistor_ref_voltages[i]){
-            if(i==0){
-                // temperature below readable range, set to lowest possible value
-                battery_temp = 0;
-                break;
-            } else {
-                // find change in temp [C] per step between two nearest ref voltages
-                uint16_t ref_gap_steps = (thermistor_ref_voltages[i-1] - thermistor_ref_voltages[i]) / 5;
 
-                // interpolate battery temperature from reference values
-                //    battery temp scales such that 0 = -40C, 65534 = 125C
-                battery_temp = i*2114 + ref_gap_steps * (thermistor_ref_voltages[i-1] - therm_reading);
-                break;
-            }
-        }
-
-        if(i == thermistor_ref_len-1){
-            // exceeded readable range, set to highest possible value
-            battery_temp = 65535;
-            break;
-        }
-
+    if(therm_reading > 3670){
+        //   start heating when temperature drops below -5 C
+        heating = 1;
+    } else if(heating && therm_reading < 3352){
+        //   stop heating when temperature reaches 0 C
+        heating = 0;
     }
 
     uint16_t PWM_cycle = 0;
-    // calculate P controller output
-//    if(battery_temp > battery_target_temp){
-//        // don't use heater if we are over desired battery temperature
-//    } else{
-//        PWM_cycle = Kp_heater * (battery_target_temp - battery_temp);
-//    }
-
-    // hack-y way because reference voltage wasn't right
-    if(therm_reading > 2500){
-        PWM_cycle = 250 * (therm_reading - 2470);
-    } else {
-        PWM_cycle = 0;
+    // P controller output
+    // setpoint is slightly above desired temp because otherwise it will get stuck slightly below it
+    if(heating){
+        PWM_cycle = Kp_heater * (therm_reading - 3330);
     }
 
+
     // cannot have duty cycle greater than clock
-    if(PWM_cycle > TB0CCR0){
-        PWM_cycle = TB0CCR0;
+    if(PWM_cycle > PWM_limit){
+        PWM_cycle = PWM_limit;
     }
 
 //    TB0CCR2 = PWM_cycle; // apply duty cycle

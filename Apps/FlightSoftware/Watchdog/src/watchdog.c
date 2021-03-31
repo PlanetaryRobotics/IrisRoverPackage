@@ -141,7 +141,12 @@ unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
             hercbuf.used = 0;
         } else {
             /* echo back watchdog command header */
+//            buf[8] = 0xaa;
             uart0_tx_nonblocking(8, buf);
+            /* also attach telemetry values */
+            // TODO: telemetry send
+            unsigned char telbuf[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+            uart0_tx_nonblocking(16, telbuf);
         }
         /* in this case, we always just processed 8 bytes header */
         return 8;
@@ -258,7 +263,7 @@ void __attribute__ ((interrupt(TIMER0_B0_VECTOR))) Timer0_B0_ISR (void)
     // P controller output
     // setpoint is slightly above desired temp because otherwise it will get stuck slightly below it
     if(heating){
-        PWM_cycle = Kp_heater * (therm_reading - 3330);
+        PWM_cycle = Kp_heater * (therm_reading - 3325);
     }
 
 
@@ -267,9 +272,8 @@ void __attribute__ ((interrupt(TIMER0_B0_VECTOR))) Timer0_B0_ISR (void)
         PWM_cycle = PWM_limit;
     }
 
-//    TB0CCR2 = PWM_cycle; // apply duty cycle
-//    TB0CCTL2 = OUTMOD_7; //CCR2 reset/set
     TB0CCR2 = PWM_cycle;
+//    TB0CCR2=0;
 
 }
 

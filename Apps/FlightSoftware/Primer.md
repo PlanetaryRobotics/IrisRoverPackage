@@ -242,3 +242,9 @@ struct Command_Camera0_Crop_Arg_config {
 } __attribute__((packed));
 ...
 ```
+
+## Component Initializations and Interrupts on FreeRTOS
+
+When writing constructors and initializers for FPrime components, these methods cannot rely on interrupts when
+running in the context of prior to the scheduler running.
+See [FreeRTOS FAQ (#4)](https://www.freertos.org/FAQHelp.html), "If a FreeRTOS API function is called before the scheduler has been started then interrupts will deliberately be left disabled, and not re-enable again until the first task starts to execute. This is done to protect the system from crashes caused by interrupts attempting to use FreeRTOS API functions during system initialisation, before the scheduler has been started, and while the scheduler may be in an inconsistent state."

@@ -37,11 +37,11 @@ void vApplicationIdleHook(void) {
 }
 
 void vApplicationTickHook(void) {
-    asm("  nop");
-    // run1cycle();
+    run1cycle();
 }
 
 void vApplicationStackOverflowHook(void *xTask, char *pcTaskName) {
+    // while (true);
     // something really bad happened
 }
 
@@ -49,15 +49,13 @@ void vApplicationStackOverflowHook(void *xTask, char *pcTaskName) {
 volatile bool busy = false;
 volatile bool recv = false;
 
+
 extern "C" void dmaCh2_ISR(dmaInterrupt_t inttype) {}
 extern "C" void dmaCh3_ISR(dmaInterrupt_t inttype) {}
 
 void main(void)
 {
     /* USER CODE BEGIN (3) */
-    vimInit();
-
-    _enable_interrupt_();
 
     gioInit();
     i2cInit();
@@ -66,29 +64,11 @@ void main(void)
     spiInit();
     dmaEnable();
     scidmaInit();
-    
-    // _enable_IRQ();                                      // Enable IRQ - Clear I flag in CPS register // @suppress("Function cannot be resolved")
+    rtiInit();
 
     constructApp();
 
-    rtiInit();
-
-#if 0
-    sciEnterResetState(scilinREG);
-    sciSetBaudrate(scilinREG, 9600);
-    sciExitResetState(scilinREG);
-    alignas(8) char test[] = "foo, bar. This is a test!";
-    while (1) {
-        alignas(8) char buffer[256] = {0};
-        sciDMASend(DMA_CH1, test, sizeof(test), ACCESS_8_BIT, &busy);
-        sciDMARecv(DMA_CH0, buffer, sizeof(test), ACCESS_8_BIT, &recv);
-        while (recv);
-        //done!
-        asm ("  nop");
-    }
-#endif
-
-    vTaskStartScheduler();
+    vTaskStartScheduler();      // Automatically enables IRQs
 
     //if it reaches that point, there is a problem with RTOS.
 

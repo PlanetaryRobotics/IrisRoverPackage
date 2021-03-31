@@ -41,7 +41,7 @@ void scidmaInit()
 	vimChannelMap(BTCA_INT, BTCA_INT, dmaBTCAInterrupt);
 
 	// vimEnableInterrupt(FTCA_INT, SYS_IRQ);
-	// vimEnableInterrupt(BTCA_INT, SYS_IRQ);
+	vimEnableInterrupt(BTCA_INT, SYS_IRQ);
 
 	// See Hercules TRM (SPNU514C) Table 16-2 for DMA Request Line Connections
     dmaEnableInterrupt(SCILIN_RX_DMA_CH, BTC);
@@ -175,6 +175,8 @@ void sciDMARecv(enum dmaCHANNEL channel, char *dest_address, unsigned size, dmaA
  *  First 15 bits corespond to channels that have interrupts pending.
  *
  *  Shift right with DMA_CHx AND 0x01U to get boolean whether channel x had an interrupt pending.
+ *
+ *  This method clears the DMA interrupt pending flag (FTC/LFS/HBC/BTC) flag for the specified intType.
  *
  */
 unsigned getDMAIntStatus(enum dmaInterrupt intType) {

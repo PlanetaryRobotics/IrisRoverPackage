@@ -47,7 +47,7 @@ namespace CubeRover {
 #else
     WatchDogInterfaceComponentImpl(void)
 #endif
-    , m_sci(scilinREG)
+    , m_sci(scilinREG), m_finished_initializing(false)
   {
 
   }
@@ -65,8 +65,9 @@ namespace CubeRover {
 
     Read_Temp();
 
-    Reset_Specific_Handler(0x04);    // Reset WF121
-    for (unsigned i = 400000000; i; --i);
+    Reset_Specific_Handler(0x04);           // Reset WF121
+    for (unsigned i = 400000000; i; --i);   // Wait for WF121 to finish resetting
+    m_finished_initializing = true;
   }
 
   WatchDogInterfaceComponentImpl ::
@@ -137,7 +138,7 @@ namespace CubeRover {
     {
         if(frame.payload_length == payload_length && frame.reset_val == 0x0000)
         {
-    		sciDMASend(DMA_CH1, reinterpret_cast<char *>(fwBuffer.getdata()), payload_length, ACCESS_8_BIT, &dmaWriteBusy);
+    		dmaSend(reinterpret_cast<void *>(fwBuffer.getdata()), payload_length);
         }
     }
   }
@@ -310,8 +311,7 @@ namespace CubeRover {
                        ((frame_bin & 0x0000FF0000000000L) >> 40) +
                        ((frame_bin & 0x00FF000000000000L) >> 48) +
                        ((frame_bin & 0xFF00000000000000L) >> 56));
-
-      sciDMASend(DMA_CH1, reinterpret_cast<char *>(&frame), sizeof(frame), ACCESS_8_BIT, &dmaWriteBusy);
+      dmaSend(&frame, sizeof(frame));
 
       return true;
   }
@@ -373,11 +373,8 @@ namespace CubeRover {
 
   int WatchDogInterfaceComponentImpl::Receive_Frame(uint32_t *comm_error, struct WatchdogFrameHeader *header)
   {
-    // while ((m_sci->FLR & (uint32)SCI_RX_INT) == 0U);
-    getDMAIntStatus(BTC);
-    sciDMARecv(DMA_CH0, reinterpret_cast<char *>(header), sizeof(*header), ACCESS_8_BIT, &dmaReadBusy);
-    while (!((getDMAIntStatus(BTC) >> DMA_CH0) & 0x01U));
-    while (dmaReadBusy);
+    dmaReceive(header, sizeof(*header));
+
     int size_read = sizeof(*header);
     *comm_error = 0;
 
@@ -431,8 +428,8 @@ namespace CubeRover {
     if (header->payload_length == 0) // Received a WD echo  // TODO: Are we expecting telemetry ALWAYS??
     {
         struct WatchdogTelemetry buff;
-        sciDMARecv(DMA_CH0, reinterpret_cast<char *>(&buff), sizeof(buff), ACCESS_8_BIT, &dmaReadBusy);
-        while (dmaReadBusy);
+        dmaReceive(&buff, sizeof(buff));
+
         payload_read = sizeof(buff);
         *comm_error = 0;
 
@@ -462,8 +459,7 @@ namespace CubeRover {
         // UDP_MAX_PAYLOAD defined in FlightMCU/Include/FswPacket.hpp
         // TODO: Verify that the MTU for wired connection is the same as Wifi
         Fw::Buffer uplinked_data;
-        sciDMARecv(DMA_CH0, reinterpret_cast<char *>(uplinked_data.getdata()), header->payload_length, ACCESS_8_BIT, &dmaReadBusy);
-        while (dmaReadBusy);
+        dmaReceive(reinterpret_cast<void *>(uplinked_data.getdata()), header->payload_length);
         payload_read = header->payload_length;
         *comm_error = 0;
 
@@ -486,6 +482,34 @@ namespace CubeRover {
     }
 
     return size_read;
+  }
+
+  void WatchDogInterfaceComponentImpl::pollDMAReceiveFinished() {
+      if (!m_finished_initializing) {
+          while (!((getDMAIntStatus(BTC) >> DMA_CH0) & 0x01U));
+          dmaReadBusy = false;
+      }
+      while (dmaReadBusy);      // TODO: Mutex to allow multiprogramming & TIMEOOUT
+  }
+
+  void WatchDogInterfaceComponentImpl::dmaReceive(void *buffer, int size, bool blocking) {
+      sciDMARecv(DMA_CH0, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaReadBusy);
+      if (blocking)
+          pollDMAReceiveFinished();
+  }
+
+  void WatchDogInterfaceComponentImpl::pollDMASendFinished() {
+      if (!m_finished_initializing) {
+          while (!((getDMAIntStatus(BTC) >> DMA_CH1) & 0x01U));
+          dmaWriteBusy = false;
+      }
+      while (dmaWriteBusy);    // TODO: Mutex to allow multiprogramming & TIMEOOUT
+  }
+
+  void WatchDogInterfaceComponentImpl::dmaSend(void *buffer, int size, bool blocking) {
+      sciDMASend(DMA_CH1, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaWriteBusy);
+      if (blocking)
+          pollDMASendFinished();
   }
 
 } // end namespace CubeRover

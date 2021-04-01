@@ -1,7 +1,8 @@
 #include "hal_stdtypes.h"
-
 #include "reg_sci.h"
 #include "sys_dma.h"
+
+#include "DMA.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,19 +19,19 @@ inline void rtiISR(uint32_t notification) {}
 inline void Update_DMA_Comp_Flag(dmaInterrupt_t inttype, enum dmaCHANNEL channel) {
     switch (channel) {
         case DMA_CH0:
-            scilinREG->CLEARINT = (1 << 18) | (1 << 17);        /* Disable RX DMA Interrupt */
+            sciDMARecvCleanup(channel);
             dmaCh0_ISR(inttype);
             break;
         case DMA_CH1:
-            scilinREG->CLEARINT = (1 << 16);                    /* Disable TX DMA Interrupt */
+            sciDMASendCleanup(channel);
             dmaCh1_ISR(inttype);
             break;
         case DMA_CH2:
-            sciREG->CLEARINT = (1 << 18) | (1 << 17);           /* Disable RX DMA Interrupt */
+            sciDMARecvCleanup(channel);
             dmaCh2_ISR(inttype);
             break;
         case DMA_CH3:
-            sciREG->CLEARINT = (1 << 16);                       /* Disable RX DMA Interrupt */
+            sciDMARecvCleanup(channel);
             dmaCh3_ISR(inttype);
             break;
         default:

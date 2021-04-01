@@ -89,7 +89,7 @@
  *----------------------------------------------------------*/
 
 /* USER CODE BEGIN (0) */
-#include "CubeRoverFreeRTOSConfig.h"
+#include "Include/CubeRoverFreeRTOSConfig.h"
 /* USER CODE END */
 #define configUSE_PREEMPTION		  1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION	1

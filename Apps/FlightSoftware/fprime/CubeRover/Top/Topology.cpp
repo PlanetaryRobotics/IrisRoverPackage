@@ -254,31 +254,31 @@ void constructApp(void){
 
   rateGroupLowFreq.start(0, /* identifier */
                        RG_LOW_FREQ_AFF, /* Thread affinity */
-                       RG_LOW_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+                       RG_LOW_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
 
   rateGroupMedFreq.start(0, /* identifier */
                          RG_MED_FREQ_AFF, /* Thread affinity */
-                         RG_MED_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+                         RG_MED_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
 
   rateGroupHiFreq.start(0, /* identifier */
                          RG_HI_FREQ_AFF, /* Thread affinity */
-                         RG_HI_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+                         RG_HI_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
 
   blockDriver.start(0, /* identifier */
                    BLK_DRV_AFF, /* Thread affinity */
-                   BLK_DRV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+                   BLK_DRV_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
 
   tlmChan.start(0, /* identifier */
                 TLM_CHAN_AFF, /* thread affinity */
-                TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+                TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
   
   cmdDispatcher.start(0,
                       CMD_DISP_AFF, 
-                      CMD_DISP_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
+                      CMD_DISP_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS);
 
   navigation.start(0,
                    NAV_AFF,
-                   NAV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
+                   NAV_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS);
 
   // setup communication with IMU over SPI
   IMU.setup(IMU_SPI_REG);

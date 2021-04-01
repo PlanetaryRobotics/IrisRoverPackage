@@ -157,8 +157,8 @@ namespace CubeRover {
 
      void pollDMAReceiveFinished();
      void pollDMASendFinished();
-     void dmaReceive(void *buffer, int size, bool blocking=true);
-     void dmaSend(void *buffer, int size, bool blocking=true);
+     bool dmaReceive(void *buffer, int size, bool blocking=true);
+     bool dmaSend(void *buffer, int size, bool blocking=true);
 
       // Usage during FSW initialization
       // Only difference between this is lack of cmd response

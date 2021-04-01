@@ -50,7 +50,7 @@
   <instance namespace="Svc" name="activeLogger" type="ActiveLogger" base_id="2816" base_id_window="255" />
 
 <!-- Declaration of the health component -->
-      <instance namespace="Svc" name="health" type="Health" base_id="3072" base_id_window="255" />
+  <!--<instance namespace="Svc" name="health" type="Health" base_id="3072" base_id_window="255" />-->
 
   <!-- Declaration of the Navigation handling module -->
   <instance namespace="CubeRover" name="navigation" type="Navigation" base_id="3328" base_id_window="255" />
@@ -133,10 +133,11 @@
      *********************************************************************************************************
      -->
   <!-- Connect output of health to ping all components (port 0) --> 
+  <!--
   <connection name = "rgHighFreq_to_health_clk">
     <source component = "rateGroupHighFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
     <target component = "health" port = "Run" type = "Sched" num = "0"/>
-  </connection>
+  </connection>-->
       
   <connection name="rgHiFreq_to_IMU">
     <source component="rateGroupHiFreq" port="RateGroupMemberOut" type="Sched" num="1" />
@@ -199,10 +200,11 @@
     <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
   </connection>
 
+  <!--
   <connection name = "health_to_cubeRoverTime">
     <source component = "health" port = "Time" type = "Time" num = "0" />
     <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
-  </connection>
+  </connection>-->
 
 <!-- *********************************************************************************************************
         CONNECTION OF MONITORED COMPONENTS TO TELEMETRY CHAN COMPONENT
@@ -384,6 +386,7 @@
        ********************************************************************************************************* 
       -->
 
+<!--
   <connection name = "HealthReg">
     <source component = "health" port = "CmdReg" type = "CmdReg" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
@@ -396,6 +399,7 @@
     <source component = "health" port = "CmdStatus" type = "CmdResponse" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
   </connection>
+-->
 
   <connection name = "WatchdogReg">
     <source component = "watchDogInterface" port = "CmdReg" type = "CmdReg" num = "0" />
@@ -467,6 +471,7 @@
        ********************************************************************************************************* 
       -->
   
+<!--
   <connection name = "rateGroupLowFreqPingIn">
     <source component = "health" port = "PingSend" type = "Ping" num = "0" />
     <target component = "rateGroupLowFreq" port = "PingIn" type = "Ping" num = "0" />
@@ -529,6 +534,7 @@
     <source component = "blockDriver" port = "PingOut" type = "Ping" num = "0" />
     <target component = "health" port = "PingReturn" type = "Ping" num = "6" />
   </connection>
+-->
 
   <!--	NO HEALH PORTS IN .xml FILE
   <connection name = "tlmChanPingIn">

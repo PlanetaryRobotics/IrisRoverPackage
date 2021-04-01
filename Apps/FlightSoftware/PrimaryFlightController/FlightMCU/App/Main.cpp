@@ -20,10 +20,7 @@
 #include "adc.h"
 #include "rti.h"
 #include "sys_dma.h"
-
-extern "C" {
-#include "sys_vim.h"    // WHY NO C++ LINKAGE :(
-}
+#include "sys_mpu.h"
 
 #include "App/DMA.h"
 
@@ -34,10 +31,11 @@ extern "C" {
 }
 
 void vApplicationIdleHook(void) {
+    run1cycle();
 }
 
 void vApplicationTickHook(void) {
-    run1cycle();
+    // run1cycle();
 }
 
 void vApplicationStackOverflowHook(void *xTask, char *pcTaskName) {
@@ -45,17 +43,15 @@ void vApplicationStackOverflowHook(void *xTask, char *pcTaskName) {
     // something really bad happened
 }
 
-
-volatile bool busy = false;
-volatile bool recv = false;
-
-
 extern "C" void dmaCh2_ISR(dmaInterrupt_t inttype) {}
 extern "C" void dmaCh3_ISR(dmaInterrupt_t inttype) {}
 
 void main(void)
 {
     /* USER CODE BEGIN (3) */
+    _disable_interrupt_();      // Disable all interrupts during initialization (esp. important when we initialize RTI)
+
+    _mpuInit_();
 
     gioInit();
     i2cInit();
@@ -64,13 +60,14 @@ void main(void)
     spiInit();
     dmaEnable();
     scidmaInit();
-    rtiInit();
 
     constructApp();
 
+    rtiInit();                  // Initialize RTI for RTOS Tick last
+
     vTaskStartScheduler();      // Automatically enables IRQs
 
-    //if it reaches that point, there is a problem with RTOS.
+    //Something went very wrong with the RTOS if we end up here
 
     /* USER CODE END */
 }

@@ -138,7 +138,7 @@ namespace CubeRover {
     {
         if(frame.payload_length == payload_length && frame.reset_val == 0x0000)
         {
-    		dmaSend(reinterpret_cast<void *>(fwBuffer.getdata()), payload_length);
+    		dmaSend(reinterpret_cast<void *>(fwBuffer.getdata()), payload_length);  // FIXME: What is DMA send failed? *TUrn blocking off when we use Mutexes **DO the same for other DMA sends and receives
         }
     }
   }
@@ -484,32 +484,48 @@ namespace CubeRover {
     return size_read;
   }
 
+  // FIXME: Add timeout to escape polling loop
   void WatchDogInterfaceComponentImpl::pollDMAReceiveFinished() {
       if (!m_finished_initializing) {
-          while (!((getDMAIntStatus(BTC) >> DMA_CH0) & 0x01U));
+          while (!((getDMAIntStatus(BTC) >> SCILIN_RX_DMA_CH) & 0x01U));
           dmaReadBusy = false;
+          sciDMARecvCleanup(SCILIN_RX_DMA_CH);
       }
       while (dmaReadBusy);      // TODO: Mutex to allow multiprogramming & TIMEOOUT
   }
 
-  void WatchDogInterfaceComponentImpl::dmaReceive(void *buffer, int size, bool blocking) {
-      sciDMARecv(DMA_CH0, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaReadBusy);
+  // Returns negative on error
+  bool WatchDogInterfaceComponentImpl::dmaReceive(void *buffer, int size, bool blocking) {
+      if (blocking)
+          while (dmaReadBusy);
+      else if (dmaReadBusy)
+          return false;
+      sciDMARecv(SCILIN_RX_DMA_CH, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaReadBusy);
       if (blocking)
           pollDMAReceiveFinished();
+      return true;
   }
 
+  // FIXME: Add timeout to escape polling loop
   void WatchDogInterfaceComponentImpl::pollDMASendFinished() {
       if (!m_finished_initializing) {
-          while (!((getDMAIntStatus(BTC) >> DMA_CH1) & 0x01U));
+          while (!((getDMAIntStatus(BTC) >> SCILIN_TX_DMA_CH) & 0x01U));
           dmaWriteBusy = false;
+          sciDMASendCleanup(SCILIN_TX_DMA_CH);
       }
       while (dmaWriteBusy);    // TODO: Mutex to allow multiprogramming & TIMEOOUT
   }
 
-  void WatchDogInterfaceComponentImpl::dmaSend(void *buffer, int size, bool blocking) {
-      sciDMASend(DMA_CH1, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaWriteBusy);
+  // Returns negative on error
+  bool WatchDogInterfaceComponentImpl::dmaSend(void *buffer, int size, bool blocking) {
+      if (blocking)
+          while (dmaWriteBusy);
+      else if (dmaWriteBusy)
+          return false;
+      sciDMASend(SCILIN_TX_DMA_CH, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaWriteBusy);
       if (blocking)
           pollDMASendFinished();
+      return true;
   }
 
 } // end namespace CubeRover

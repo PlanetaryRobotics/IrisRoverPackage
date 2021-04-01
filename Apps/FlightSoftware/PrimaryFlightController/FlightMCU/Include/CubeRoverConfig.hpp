@@ -55,7 +55,7 @@
 // Hercules SPI register that handles IMU interface
 #define IMU_SPI_REG                	spiREG3
 
-#define MIN_STACK_SIZE_BYTES        1024
+#define MIN_STACK_SIZE_WORDS        1024
 
 // Configuration of I2C interfaces address and ports
 // For the motor controllers

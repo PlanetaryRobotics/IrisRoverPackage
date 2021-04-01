@@ -1,9 +1,13 @@
+import sys
 import dpkt
 import numpy as np
 import matplotlib.pyplot as plt
 
+image_width = 2592
+image_height = 1944
+
 image = []
-with open('12-23_dataonly.pcap', 'rb') as f:
+with open(sys.argv[1], 'rb') as f:
     for ts, pkt in dpkt.pcap.Reader(f):
         frame = dpkt.ethernet.Ethernet(pkt)
         ip_dg = frame.data
@@ -11,8 +15,10 @@ with open('12-23_dataonly.pcap', 'rb') as f:
         image_block = udp_dg.data
         image_block = np.frombuffer(image_block, dtype=np.uint8)[5+9+3:]
         image.append(image_block)
-image = np.array(image)
-image = image.reshape((1944, 2592))
+image_buf = np.zeros(image_height * image_width)
+image_data = np.array(image).flatten()
+image_buf[:image_data.shape[0]] = image_data
+image = image_buf.reshape((image_height, image_width))
 plt.imshow(image, cmap='gray')
 plt.show()
 

@@ -116,18 +116,6 @@ namespace CubeRover {
           const U32 cmdSeq /*!< The command sequence number*/
       );
 
-
-
-      //! Implementation for sending frame and checking that frame was sent to watchdog
-      //! Sends a Frame start everytime data is sent from cuberover to watchdog
-      bool Send_Frame(
-          U16 payload_length,  // stroke if 0x0000 or UDP data size if larger than
-          U16 reset_value   // reset value for watchdog
-          );
-
-      //! Implementation for checking the tempurature senors from the ADC
-      bool Read_Temp();
-
       // frame struct
       struct WatchdogFrameHeader {
         uint32_t magic_value    :24;
@@ -157,17 +145,29 @@ namespace CubeRover {
          not_enough_bytes = 5
      };
 
+
      int Receive_Frame(uint32_t *comm_error, WatchdogFrameHeader *header);
 
-      //! Implementation for Reset Specific for init of cuberover
-      //! Only difference between this and Reset_Specific_cmdHandler is no cmd response
-      bool Reset_Specific_Handler(
-          U8 reset_value /*!< 
-                      U8 Value that represents which things need to be reset
-                    */
-      );
+     // Sends a Frame start everytime data is sent from cuberover to watchdog
+     bool Send_Frame(
+         U16 payload_length,    // stroke if 0x0000 or UDP data size if larger than
+         U16 reset_value        // reset value for watchdog
+         );
+
+     bool Read_Temp();          // Checking the temperature sensors from the ADC
+
+     void pollDMAReceiveFinished();
+     void pollDMASendFinished();
+     bool dmaReceive(void *buffer, int size, bool blocking=true);
+     bool dmaSend(void *buffer, int size, bool blocking=true);
+
+      // Usage during FSW initialization
+      // Only difference between this is lack of cmd response
+      bool Reset_Specific_Handler(U8 reset_value);
+
 
       sciBASE_t *m_sci;
+      bool m_finished_initializing;     // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
 
     };
 

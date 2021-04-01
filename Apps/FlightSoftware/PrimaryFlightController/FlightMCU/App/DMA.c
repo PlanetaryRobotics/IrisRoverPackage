@@ -2,17 +2,13 @@
 #include "sys_common.h"
 
 #include "sys_vim.h"
+#include "os_portmacro.h"
 #include <stdio.h>
 #include <string.h>
 
-
-#define FTCA_INT 33
-#define BTCA_INT 40
-#define SCILIN_RX_DMA_CH   DMA_CH0   // DMA CH0 Highest Priority
-#define SCILIN_TX_DMA_CH   DMA_CH1
-#define SCI_RX_DMA_CH      DMA_CH2
-#define SCI_TX_DMA_CH      DMA_CH3
-
+#pragma SWI_ALIAS(prvRaisePrivilege, 1);
+extern BaseType_t prvRaisePrivilege( void );
+#define portRESET_PRIVILEGE( xRunningPrivileged ) if( xRunningPrivileged == 0 ) portSWITCH_TO_USER_MODE()
 
 g_dmaCTRL g_dmaCTRLPKT;
 
@@ -24,6 +20,7 @@ g_dmaCTRL g_dmaCTRLPKT;
 */
 void scidmaInit()
 {
+    // DMA and VIM are only accessible in privileged mode!
     // Make sure dmaEnable() has been called
 
     // Define Default DMA control packet for each channel
@@ -37,25 +34,29 @@ void scidmaInit()
 	g_dmaCTRLPKT.TTYPE     = FRAME_TRANSFER ;   /* transfer type              */
     g_dmaCTRLPKT.AUTOINIT  = AUTOINIT_OFF;      /* autoinit                   */
 
-	// vimChannelMap(FTCA_INT, FTCA_INT, dmaFTCAInterrupt);
 	vimChannelMap(BTCA_INT, BTCA_INT, dmaBTCAInterrupt);
+	// vimChannelMap(FTCA_INT, FTCA_INT, dmaFTCAInterrupt);
 
-	// vimEnableInterrupt(FTCA_INT, SYS_IRQ);
-	// vimEnableInterrupt(BTCA_INT, SYS_IRQ);
+	vimEnableInterrupt(BTCA_INT, SYS_IRQ);
+	vimEnableInterrupt(FTCA_INT, SYS_IRQ);
 
 	// See Hercules TRM (SPNU514C) Table 16-2 for DMA Request Line Connections
     dmaEnableInterrupt(SCILIN_RX_DMA_CH, BTC);
+    // dmaEnableInterrupt(SCILIN_RX_DMA_CH, FTC);
     dmaReqAssign(SCILIN_RX_DMA_CH, 28);
     dmaSetPriority(SCILIN_RX_DMA_CH, HIGHPRIORITY);
 
     dmaEnableInterrupt(SCILIN_TX_DMA_CH, BTC);
+    // dmaEnableInterrupt(SCILIN_TX_DMA_CH, FTC);
     dmaReqAssign(SCILIN_TX_DMA_CH, 29);
 
     dmaEnableInterrupt(SCI_RX_DMA_CH, BTC);
+    // dmaEnableInterrupt(SCI_RX_DMA_CH, FTC);
     dmaReqAssign(SCI_RX_DMA_CH, 30);
     dmaSetPriority(SCI_RX_DMA_CH, HIGHPRIORITY);
 
     dmaEnableInterrupt(SCI_TX_DMA_CH, BTC);
+    // dmaEnableInterrupt(SCI_TX_DMA_CH, FTC);
     dmaReqAssign(SCI_TX_DMA_CH, 31);
 
 
@@ -94,11 +95,12 @@ void sciDMASend(enum dmaCHANNEL channel, char *source_address, unsigned size, dm
             return;     // Invalid DMA channel from mapping selected. Not assigned to SCI TX
     }
 
-    /* - setting dma control packets for transmit */
+    BaseType_t privilege = prvRaisePrivilege();
+    /* - setting dma control packets for transmit *//* - setting dma control packets for transmit */
     dmaSetCtrlPacket(channel, g_dmaCTRLPKT);
-
     /* - setting the dma channel to trigger on h/w request */
     dmaSetChEnable(channel, DMA_HW);
+    portRESET_PRIVILEGE(privilege);
 
     /* Enable TX DMA */
     switch (channel) {
@@ -114,6 +116,22 @@ void sciDMASend(enum dmaCHANNEL channel, char *source_address, unsigned size, dm
 
 } /* scidmaSend */
 
+/** @fn void sciDMASendCleanup(enum dmaCHANNEL channel)
+*   @brief Cleanup the SCI and DMA after transfer is complete
+*   @note This function disables SCI DMA interrupt and may perform other clean up.
+*/
+void sciDMASendCleanup(enum dmaCHANNEL channel) {
+    switch (channel) {
+        case SCILIN_TX_DMA_CH:
+            scilinREG->CLEARINT = (1 << 16);
+            break;
+        case SCI_TX_DMA_CH:
+            sciREG->CLEARINT = (1 << 16);
+            break;
+        default:
+            return;     // Invalid DMA channel from mapping selected. Not assigned to SCI RX
+    }
+}
 
 /** @fn void sciDMARecv(enum dmaCHANNEL channel, char *dest_address, unsigned size, dmaACCESS_t access, volatile bool *busy)
 *   @brief Initialize the SCI and DMA to receive SCI data via DMA
@@ -147,11 +165,12 @@ void sciDMARecv(enum dmaCHANNEL channel, char *dest_address, unsigned size, dmaA
             return;     // Invalid DMA  int status =channel from mapping selected. Not assigned to SCI RX
     }
 
+    BaseType_t privilege = prvRaisePrivilege();
     /* - setting dma control packets for transmit */
     dmaSetCtrlPacket(channel, g_dmaCTRLPKT);
-
     /* - setting the dma channel to trigger on h/w request */
     dmaSetChEnable(channel, DMA_HW);
+    portRESET_PRIVILEGE(privilege);
 
     /* Enable RX DMA */
     switch (channel) {
@@ -167,6 +186,22 @@ void sciDMARecv(enum dmaCHANNEL channel, char *dest_address, unsigned size, dmaA
 
 } /* scidmaRecv */
 
+/** @fn void sciDMARecvCleanup(enum dmaCHANNEL channel)
+*   @brief Cleanup the SCI and DMA after transfer is complete
+*   @note This function disables SCI DMA interrupt and may perform other clean up.
+*/
+void sciDMARecvCleanup(enum dmaCHANNEL channel) {
+    switch (channel) {
+        case SCILIN_RX_DMA_CH:
+            scilinREG->CLEARINT = (1 << 18) | (1 << 17);
+            break;
+        case SCI_RX_DMA_CH:
+            sciREG->CLEARINT = (1 << 18) | (1 << 17);
+            break;
+        default:
+            return;     // Invalid DMA channel from mapping selected. Not assigned to SCI RX
+    }
+}
 
 /** @fn int getDMAIntStatus( enum dmaInterrupt intType)
  *  @brief Returns whether an interrupt is pending for the provided DMA channel and interrupt type.
@@ -176,9 +211,12 @@ void sciDMARecv(enum dmaCHANNEL channel, char *dest_address, unsigned size, dmaA
  *
  *  Shift right with DMA_CHx AND 0x01U to get boolean whether channel x had an interrupt pending.
  *
+ *  This method clears the DMA interrupt pending flag (FTC/LFS/HBC/BTC) flag for the specified intType.
+ *
  */
 unsigned getDMAIntStatus(enum dmaInterrupt intType) {
     unsigned offset;
+    // BaseType_t privilege = prvRaisePrivilege();
     switch (intType) {
         case FTC:
             offset = dmaREG->FTCAOFFSET & 0x3fU;
@@ -193,6 +231,7 @@ unsigned getDMAIntStatus(enum dmaInterrupt intType) {
             offset = dmaREG->BTCAOFFSET & 0x3fU;
             break;
     }
+    // portRESET_PRIVILEGE(privilege);
     return offset;
 }
 

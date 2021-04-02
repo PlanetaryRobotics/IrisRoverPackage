@@ -98,18 +98,18 @@ namespace CubeRover {
         return;
     }
 
-    if((readAngularRates(&gyroX, &gyroY, &gyroZ)) != IMU_NO_ERROR)
+    /*if((readAngularRates(&gyroX, &gyroY, &gyroZ)) != IMU_NO_ERROR)
     {
         log_WARNING_HI_IMU_CommunicationFailure();
         return;
-    }
+    }*/
 
     tlmWrite_X_Acc(m_acc.raw[0]);
     tlmWrite_Y_Acc(m_acc.raw[1]);
     tlmWrite_Z_Acc(m_acc.raw[2]);
-    tlmWrite_X_Ang(gyroX);
+    /*tlmWrite_X_Ang(gyroX);
     tlmWrite_Y_Ang(gyroY);
-    tlmWrite_Z_Ang(gyroZ);
+    tlmWrite_Z_Ang(gyroZ);*/
 
     computePitchRoll(&pitch, &roll);
 

@@ -442,6 +442,7 @@ namespace CubeRover {
           this->tlmWrite_BATTERY_THERMISTOR(buff.battery_thermistor);
           this->tlmWrite_SYSTEM_STATUS(buff.sys_status);
           this->tlmWrite_BATTERY_LEVEL(buff.battery_level);
+          this->tlmWrite_BATTERY_CURRENT(buff.battery_current);
           size_read += payload_read;
         }
         else if(payload_read < 0)

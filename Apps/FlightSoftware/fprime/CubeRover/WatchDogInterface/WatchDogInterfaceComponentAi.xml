@@ -184,32 +184,37 @@
                 Value of Charge in Battery
             </comment>
         </channel>
-        <channel id="25" name="THERM_0" data_type="U16">
+        <channel id="25" name="BATTERY_CURRENT" data_type="U32">
+            <comment>
+                Value of Current Used in Battery
+            </comment>
+        </channel>
+        <channel id="26" name="THERM_0" data_type="U16">
             <comment>
                 12 bit Value for Thermistor value
             </comment>
         </channel>
-        <channel id="26" name="THERM_1" data_type="U16">
+        <channel id="27" name="THERM_1" data_type="U16">
             <comment>
                 12 bit Value for Thermistor value
             </comment>
         </channel>
-        <channel id="27" name="THERM_2" data_type="U16">
+        <channel id="28" name="THERM_2" data_type="U16">
             <comment>
                 12 bit Value for Thermistor value
             </comment>
         </channel>
-        <channel id="28" name="THERM_3" data_type="U16">
+        <channel id="29" name="THERM_3" data_type="U16">
             <comment>
                 12 bit Value for Thermistor value
             </comment>
         </channel>
-        <channel id="29" name="THERM_4" data_type="U16">
+        <channel id="30" name="THERM_4" data_type="U16">
             <comment>
                 12 bit Value for Thermistor value
             </comment>
         </channel>
-        <channel id="30" name="THERM_5" data_type="U16">
+        <channel id="31" name="THERM_5" data_type="U16">
             <comment>
                 12 bit Value for Thermistor value
             </comment>

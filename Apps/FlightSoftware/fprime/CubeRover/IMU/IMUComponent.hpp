@@ -19,6 +19,8 @@
 #include "spi.h"
 #include "gio.h"
 
+#include "adxl312.h"
+
 namespace CubeRover {
 
     typedef enum{
@@ -29,17 +31,9 @@ namespace CubeRover {
     }IMUError;
 
     typedef uint8_t IMUI2cSlaveAddress;
-    #define SET_ADXL_SPI_WRITE_BIT(x)     (x & ~(0x01 << 7))
-    #define SET_ADXL_SPI_READ_BIT(x)      (x | (0x01 << 7))
-    #define SET_ADXL_SPI_SINGLETRANS(x)   (x & ~(0x01 << 6))
-    #define SET_ADXL_SPI_MULTITRANS(x)    (x | (0x01 << 6))
-
-    #define ADXL_DEVICE_ID                0xE5
-
 
     #define L3GD20H_DEVICE_ID             0xD7
 
-    #define CS_SPIPORT3_BIT_ADXL          1
     #define CS_SPIPORT3_BIT_L3GD20H       1
 
     #define ACCELEROMETER_RANGE           3   // g
@@ -79,158 +73,6 @@ namespace CubeRover {
         SPI_RX_BUFFER_SIZE=16,
         SPI_TX_BUFFER_SIZE=16
     };
-
-    namespace Adxl312{
-         // ADXL312 register definitions
-        enum AdxlRegister{
-            DEVICE_ID       = 0x00,
-            OFFSET_X        = 0x1E,
-            OFFSET_Y        = 0x1F,
-            OFFSET_Z        = 0x20,
-            THRESH_ACT      = 0x24,
-            THRESH_INACT    = 0x25,
-            TIME_INACT      = 0x26,
-            ACT_INACT_CTL   = 0x27,
-            BW_RATE         = 0x2C,
-            POWER_CTL       = 0x2D,
-            INT_ENABLE      = 0x2E,
-            INT_MAP         = 0x2F,
-            INT_SOURCE      = 0x30,
-            DATA_FORMAT     = 0x31,
-            DATAX0          = 0x32,
-            DATAX1          = 0x33,
-            DATAY0          = 0x34,
-            DATAY1          = 0x35,
-            DATAZ0          = 0x36,
-            DATAZ1          = 0x37,
-            FIFO_CTL        = 0x38,
-            FIFO_STATUS     = 0x39
-        };
-
-        struct ActInactCtlBits{
-            uint8_t INACT_Z_enable:1;
-            uint8_t INACT_Y_enable:1;
-            uint8_t INACT_X_enable:1;
-            uint8_t INACT_ac_dc:1;
-            uint8_t ACT_Z_enable:1;
-            uint8_t ACT_Y_enable:1;
-            uint8_t ACT_X_enable:1;
-            uint8_t ACT_ac_dc:1;
-        };
-
-        union ActInactCtlReg{
-            uint8_t all;
-            ActInactCtlBits bit;
-        };
-
-        struct BwRateBits{
-            uint8_t rate:4;
-            uint8_t low_power:1;
-            uint8_t rsv:3;
-        };
-
-        union BwRateReg{
-            uint8_t all;
-            BwRateBits bit;
-        };
-
-        typedef enum WakeupBits{
-            WAKE_UP_8HZ=0,
-            WAKE_UP_4HZ=1,
-            WAKE_UP_2HZ=2,
-            WAKE_UP_1HZ=3,
-        }WakeupBits;
-
-        struct PowerCtlBits{
-            uint8_t wakeup:2;
-            uint8_t sleep:1;
-            uint8_t measure:1;
-            uint8_t auto_sleep:1;
-            uint8_t link:1;
-            uint8_t rsv:2;
-        };
-
-        union PowerCtlReg{
-            uint8_t all;
-            PowerCtlBits bit;
-        };
-
-        struct IntRegBits{
-            uint8_t overrun:1;
-            uint8_t watermark:1;
-            uint8_t rsv:1;
-            uint8_t inactivity:1;
-            uint8_t activity:1;
-            uint8_t rsv2:1;
-            uint8_t data_ready:1;
-        };
-
-        union IntReg{
-            uint8_t all;
-            IntRegBits bit;
-        };
-
-        union IntMapReg{
-            uint8_t all;
-            IntRegBits bit;
-        };
-
-        union IntSrcReg{
-            uint8_t all;
-            IntRegBits bit;
-        };
-
-        typedef enum DataFormatRange{
-            RANGE_1_5G = 0b00,
-            RANGE_3G = 0b01,
-            RANGE_6G = 0b10,
-            RANGE_12G = 0b11
-        }DataFormatRange;
-
-        struct DataFormatBits{
-            uint8_t range:2;
-            uint8_t justify:1;
-            uint8_t fullRes:1;
-            uint8_t rsv:1;
-            uint8_t int_invert:1;
-            uint8_t spi:1;
-            uint8_t self_test:1;
-        };
-
-        union DataFormatReg{
-            uint8_t all;
-            DataFormatBits bit;
-        };
-
-        typedef enum FifoMode{
-            BYPASS=0,
-            FIFO=1,
-            STREAM=2,
-            TRIGGER=3
-        }FifoMode;
-
-        struct FifoCtlBits{
-            uint8_t samples:5;
-            uint8_t trigger:1;
-            uint8_t fifo_mode:2;
-        };
-
-        union FifoCtlReg{
-            uint8_t all;
-            FifoCtlBits bit;
-        };
-
-        struct FifoStsBits{
-            uint8_t entries:6;
-            uint8_t rsv:1;
-            uint8_t fifo_trig:1;
-        };
-
-        union FIFO_STS{
-            uint8_t all;
-            FifoStsBits bit;
-        };
-    } // end of namespace adxl312
 
     namespace L3gd20h{
         //L3GD20H register definition
@@ -421,15 +263,9 @@ namespace CubeRover {
       //!
       ~IMUComponentImpl(void);
 
-      IMUError setup(spiBASE_t *spi);
-      IMUError setupAccelerometer(spiBASE_t *spi);
       IMUError setupGyroscope(spiBASE_t *spi);
 
-      void computePitchRoll(float32 *pitch, float32 *roll, const float32 accX, const float32 accY, const float32 accZ);
-
-      IMUError readAccelerations(float32 *accX, float32 *accY,  float32 *accZ);
-      IMUError accWriteData(const Adxl312::AdxlRegister regStartAddr, uint16_t *txData, const uint8_t length);
-      IMUError accReadData(const Adxl312::AdxlRegister regStartAddr, uint16_t *rxData, const uint8_t length);
+      void computePitchRoll(float32 *pitch, float32 *roll);
 
       IMUError gyroReadData(const L3gd20h::L3gd20hRegister regStartAddr, uint16_t *rxData, const uint8_t length);
       IMUError gyroWriteData(const L3gd20h::L3gd20hRegister regStartAddr, uint16_t *txData, const uint8_t length);
@@ -470,12 +306,10 @@ namespace CubeRover {
                                   const U32 cmdSeq /*!< The command sequence number*/);
 
     private:
-      bool m_setup;
-      spiBASE_t *m_spi;
+      spiBASE_t *m_spi;     // Depracate and DELETE this
+      struct AccVector m_acc;
       uint16_t m_spiRxBuff[SPI_RX_BUFFER_SIZE];
       uint16_t m_spiTxBuff[SPI_TX_BUFFER_SIZE];
-      spiDAT1_t m_accDataSingleByteConfig;
-      spiDAT1_t m_accDataDoubleByteConfig;
       spiDAT1_t m_gyroDataSingleByteConfig;
       spiDAT1_t m_gyroDataDoubleByteConfig;
       float32 m_lpfAccX;

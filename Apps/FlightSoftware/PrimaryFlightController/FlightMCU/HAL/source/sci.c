@@ -826,10 +826,8 @@ int32_t sciReceiveWithTimeout(sciBASE_t *sci, uint32 length, uint8 * data, uint3
             length--;
             bytesRead++;
 
-            // Returns negative value on error. Bit 31 on FLR is BE which can only be set if using LIN
-            uint32_t error_val = sciRxError(sci);
-            if(error_val){
-                return ~(int32_t)error_val; // error
+            if(sciRxError(sci)){
+                return -1; // error
             }
         }
     }

@@ -104,7 +104,7 @@ unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
     unsigned int len = (buf[4]) | (buf[5] << 8);
     if (len != 0) {
         /* udp packet attached */
-        if (len + 8 >= max_l) {
+        if (len + 8 <= max_l) {
             /* echo back watchdog command header only */
             uart0_tx_nonblocking(8, buf);
             /* add this packet to the IP/UDP stack send buffer */
@@ -139,6 +139,7 @@ unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
             uart0_tx_nonblocking(hercbuf.used, hercbuf.buf);
             /* clear hercules send buffer */
             hercbuf.used = 0;
+            hercbuf.idx = 0;
         } else {
             /* echo back watchdog command header */
 //            buf[8] = 0xaa;
@@ -272,8 +273,12 @@ void __attribute__ ((interrupt(TIMER0_B0_VECTOR))) Timer0_B0_ISR (void)
         PWM_cycle = PWM_limit;
     }
 
-    TB0CCR2 = PWM_cycle;
-//    TB0CCR2=0;
+    if(rovstate == RS_LANDER){
+        TB0CCR2 = PWM_cycle;
+    } else {
+        // don't run heaters when not on lander
+        TB0CCR2=0;
+    }
 
 }
 

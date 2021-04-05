@@ -26,10 +26,27 @@ enum rover_state rovstate;
 void enterMode(enum rover_state newstate) {
     switch (newstate) {
     case RS_LANDER:
+        /* power everything off and set resets */
+        setRadioReset();
+        setFPGAReset();
+        setMotorsReset();
+        setHerculesReset();
+        powerOffFpga();
+        powerOffMotors();
+        powerOffRadio();
+        powerOffHercules();
+        /* TODO: do we want to do it in this order? */
+
+        /* turn off voltage rails */
+        disable3V3PowerRail();
+        disable24VPowerRail();
+        disableBatteries();
         /* monitor only lander voltages */
         adc_setup_lander();
         enableHeater();
         break;
+    case RS_SERVICE:
+        /* service mode is basically like mission mode - power everything on */
     case RS_MISSION:
         /* bootup process - enable all rails */
         enable3V3PowerRail();
@@ -59,34 +76,16 @@ void enterMode(enum rover_state newstate) {
     rovstate = newstate;
 }
 
-void DEBUG_SETUP() {
-    enableBatteries();
-    enable3V3PowerRail(); // we added this
-    enable24VPowerRail(); // we added this
-    //disable24VPowerRail();
-    //enable3V3PowerRail();
-    powerOnHercules(); // we turned this on (uncommented)
-    //releaseHerculesReset();
-    //powerOnFpga();
-    powerOnMotors();// we turned this on (uncommented) (that's all ;)
-    // not really sure what version this is tbh
-    // this is an old version; can i swtich workspaces real quick?
-    //
-    //powerOffMotors();
-    //powerOnRadio();
-    //releaseRadioReset();
-    //releaseFPGAReset();
-    //releaseMotorsReset();
-}
-
-
-
 int main(void) {
     /* stop watchdog timer */
 	WDTCTL = WDTPW | WDTHOLD;
 
 	/* unlock changes to registers/ports, etc. */
 	PM5CTL0 &= ~LOCKLPM5;
+
+	// initialize buffers
+	hercbuf.idx = 0;
+	hercbuf.used = 0;
 
 	/* initialize the board */
     initializeGpios();
@@ -100,10 +99,8 @@ int main(void) {
     /* set up the ADC */
     adc_init();
 
-    /* enter the lander mode */
-     enterMode(RS_LANDER);
-    // TODO: do NOT enter mission mode right away...
-//    enterMode(RS_MISSION);
+    /* enter service mode */
+    enterMode(RS_SERVICE);
 
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();
@@ -115,19 +112,7 @@ int main(void) {
     i2c_init();
     __delay_cycles(1000000); //pause for ~1/8 sec for fuel gauge i2c to init
 //    initializeFuelGauge();
-
-
-// [DEBUG] from fuel gauge, all set now but leaving until it's fully integrated -J
-    //    readBatteryVoltage();
-
-//    while(1){
-//        readBatteryVoltage();
-//        readBatteryCurrent();
-//        readGaugeTemp();
-//        readBatteryCharge();
-//        __delay_cycles(1234567);
-//    }
-
+    uart1_tx_nonblocking(13, "hello world\r\n");
 
     // the core structure of this program is like an event loop
     while (1) {
@@ -148,8 +133,10 @@ int main(void) {
             // temporarily disable uart0 interrupt
             UCA0IE &= ~UCRXIE;
             unsigned int i = 0, process_len = 0;
+            i = 0;
             // header is 8 bytes long
             while (i + 8 <= uart0rx.idx) {
+
                 /* check input value */
 
                 if (uart0rx.buf[i] == 0x0B && uart0rx.buf[i + 1] == 0xB0 &&
@@ -197,6 +184,7 @@ int main(void) {
             loop_flags ^= FLAG_UART0_RX_PACKET;
         }
         if (loop_flags & FLAG_UART1_RX_PACKET) {
+
             // temporarily disable uart1 interrupt
             UCA1IE &= ~UCRXIE;
             /* copy over the bytes into a processing buffer */
@@ -208,8 +196,11 @@ int main(void) {
             pbuf.idx = 0;
             // re-enable uart1 interrupt
             UCA1IE |= UCRXIE;
+            // copy the buffer into the hercules buffer
+            memcpy(hercbuf.buf + hercbuf.idx, pbuf.buf, pbuf.used);
+            hercbuf.idx += pbuf.used;
             /* parse the packet */
-            parse_ground_cmd(pbuf);
+            //parse_ground_cmd(pbuf);
             /* clear event when done */
             loop_flags ^= FLAG_UART1_RX_PACKET;
         }
@@ -224,6 +215,10 @@ int main(void) {
             adc_sample();
 
             switch (rovstate) {
+            case RS_SERVICE:
+                send_earth_heartbeat();
+                watchdog_monitor();
+                break;
             case RS_LANDER:
                 /* send heartbeat with collected data */
                 send_earth_heartbeat();

@@ -33,6 +33,7 @@ __volatile extern uint16_t loop_flags;
 __volatile extern uint16_t watchdog_flags;
 
 enum rover_state {
+    RS_SERVICE, // service mode. perform tests, etc.
     RS_LANDER, // connected to the lander 28V
     RS_MISSION, // disconnected from lander 28V. we're on our own now ...
     RS_FAULT // oops

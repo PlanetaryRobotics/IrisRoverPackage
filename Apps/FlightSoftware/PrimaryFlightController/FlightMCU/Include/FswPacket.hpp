@@ -17,7 +17,7 @@
 
 // Packet sizes
 #define IPV4_MTU                1006    // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 791 **FRAGMENTATION *NOT* SUPPORTED**
-#define UDP_MAX_PAYLOAD         978     // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 768
+#define UDP_MAX_PAYLOAD         (IPV4_MTU-20-8)     // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 768
 // 1006byte - 20byte IPv4 header - 8byte UDP header = 978byte payload
 
 // FSW Packet Magic (32bit)

@@ -1,8 +1,23 @@
 #ifndef _FSW_PACKET_H_
 #define _FSW_PACKET_H_
 
-#define IPV4_MTU            1006    // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 791 **FRAGMENTATION *NOT* SUPPORTED**
-#define UDP_MAX_PAYLOAD     978     // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 768
+// Wifi Connection Parameters
+#define ROVER_IP_ADDRESS        {192, 168, 1, 2}
+#define ROVER_MASK_ADDRESS      {255, 255, 255, 0}
+#define ROVER_GATEWAY_ADDRESS   {192, 168, 1, 120}
+#define GATEWAY_PORT            8080
+#define ROVER_UDP_PORT          8080 
+
+#define LANDER_SSID             "Houston"
+#define LANDER_NETWORK_PASSWORD "redr0ver"
+
+// Wired (RS422 via WatchDog) Connection Parameters
+#define WIRED_UDP_PORT_ROVER    8080
+#define WIRED_UDP_PORT_LANDER   8080
+
+// Packet sizes
+#define IPV4_MTU                1006    // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 791 **FRAGMENTATION *NOT* SUPPORTED**
+#define UDP_MAX_PAYLOAD         978     // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 768
 // 1006byte - 20byte IPv4 header - 8byte UDP header = 978byte payload
 
 // FSW Packet Magic (32bit)
@@ -42,19 +57,33 @@ struct FswCommandResponse { // This is downlinked via the file (app downlink por
     uint16_t errorinfo;
 } __attribute__((packed));
 
-struct FswFile {
+struct FswFileHeader {
     Magic_t magic;
+    uint16_t hashedId;          // Used to differentiate between file blocks if multiple files are being downlinked at once
     uint8_t totalBlocks;
-    uint8_t blockNumber;    // This is 1-indexed
+    uint8_t blockNumber;        // This is 1-indexed, 0-index is optional and contains file-specific metadata
     FileLength_t length;        // This is the size of the following data **not including this header**
-    uint8_t byte0;
+};
+
+struct FswFileMetadata {        // Block 0 of files
+    uint16_t callbackId;
+    uint32_t timestamp;
+};
+
+struct FswFile {
+    struct FswFileHeader header;
+    union {
+        uint8_t byte0;
+        struct FswFileMetadata metadata;
+    } file;
 } __attribute__((packed));
-    
+
 struct FswPacket {
     struct FswPacketHeader header;
     union {
        uint8_t startByte;
        Magic_t magic0;     // Magic of first packet
+       // FSWPacket Object headers
        struct FswCommand command;
        struct FswCommandResponse cmdResp;
        struct FswFile file;

@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
+
+<component name="MotorControl" kind="passive" namespace="CubeRover">
+  <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
+  <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
+  <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
+  <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
+  <import_port_type>Fw/Tlm/TlmPortAi.xml</import_port_type>	
+  <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
+  <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+  <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
+  <import_port_type>CubeRover/CubeRoverPorts/MotorData/MotorDataPortAi.xml</import_port_type>
+  <import_port_type>CubeRover/CubeRoverPorts/MotorCommand/MotorCommandPortAi.xml</import_port_type>
+  <import_port_type>CubeRover/CubeRoverPorts/WatchdogReset/WatchdogResetPortAi.xml</import_port_type>
+
+  <!-- PORTS -->
+  <ports>
+  	<!-- Command ports -->
+    <!--
+    <port name="CmdDisp" data_type="Fw::Cmd" kind="guarded_input"  max_number="1" role="Cmd"></port>
+
+    <port name="CmdReg" data_type="Fw::CmdReg" kind="output" max_number="1" role="CmdRegistration"></port>
+
+    <port name="CmdStatus" data_type="Fw::CmdResponse" kind="output" max_number="1" role="CmdResponse"></port>
+    -->
+
+    <!-- Logging and telemetry ports -->
+    <!--
+    <port name="log" data_type="Fw::Log" kind="output"  max_number="1" role="LogEvent"></port>
+
+    <port name="tlmOut" data_type="Fw::Tlm" kind="output" role="Telemetry" max_number="1"></port>
+
+    <port name="timeCaller" data_type="Fw::Time" kind="output" max_number="1" role="TimeGet"></port>
+    -->
+
+    <!-- Ping ports -->
+    <port name="PingIn" data_type="Svc::Ping" kind="sync_input" max_number="1"></port>
+
+    <port name="PingOut" data_type="Svc::Ping" kind="output" max_number="1"></port>
+
+    <!-- TODO -->
+    <!-- Still need Mode manager port(s)! -->
+    <!-- Or does Motor Control assume Navigation took care of it?-->
+
+    <!-- Motor Data port -->
+    <port name="motorDataOut" data_type="CubeRoverPorts::MotorData" kind="output" max_number="1"></port>
+
+    <!-- Motor Command port -->
+    <port name="motorCommandIn" data_type="CubeRoverPorts::MotorCommand" kind="sync_input" max_number="1"></port>
+
+    <!-- Watchdog Reset port -->
+    <port name="WatchdogCommandOut" data_type="CubeRoverPorts::WatchdogCommand" kind="output" max_number="1"></port>
+
+  </ports>
+
+  <!-- COMMANDS -->
+  <commands>
+    <command kind="guarded" opcode="0x00" mnemonic="MC_Current_PID">
+      <args>
+        <arg name="Motor_ID" type="U8">
+          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+        </arg>
+        <arg name="PI_Values" type="U32"/>
+      </args>
+    </command>
+
+    <command kind="guarded" opcode="0x01" mnemonic="MC_Speed_PID">
+      <args>
+        <arg name="Motor_ID" type="U8">
+          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+        </arg>
+        <arg name="PID_Values" type="U64"/>
+      </args>
+    </command>
+
+    <command kind="guarded" opcode="0x02" mnemonic="MC_Position_PID">
+      <args>
+        <arg name="Motor_ID" type="U8">
+          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+        </arg>
+        <arg name="PID_Values" type="U64"/>
+      </args>
+    </command>
+
+    <command kind="guarded" opcode="0x03" mnemonic="MC_Acceleration">
+      <args>
+        <arg name="Motor_ID" type="U8">
+          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+        </arg>
+        <arg name="Rate_Values" type="U32"/>
+      </args>
+    </command>
+
+    <command kind="guarded" opcode="0x04" mnemonic="MC_StallDetection">
+      <args>
+        <arg name="Motor_ID" type="U8">
+          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+        </arg>
+        <arg name="Value" type="U8">
+        	<comment>0x00 is disabled, 0xFF is enabled </comment>
+        </arg>
+      </args>
+    </command>
+
+    <command kind="guarded" opcode="0x05" mnemonic="MC_ResetPosition">
+      <args>
+        <arg name="Motor_ID" type="U8">
+          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+        </arg>
+      </args>
+    </command>
+
+    <command kind="guarded" opcode="0x06" mnemonic="MC_Spin">
+      <args>
+        <arg name="Motor_ID" type="U8">
+          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+        </arg>
+        <arg name="Spin_Type" type="U8"/>
+      </args>
+    </command>
+
+    <command kind="guarded" opcode="0x07" mnemonic="MC_PowerBoost">
+      <args>
+        <arg name="Motor_ID" type="U8">
+          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+        </arg>
+        <arg name="Value" type="U8">
+        	<comment>0x00 is On, 0xFF is Off </comment>
+        </arg>
+      </args>
+    </command>
+
+    <command kind="guarded" opcode="0x08" mnemonic="MC_SetParameter">
+      <args>
+        <arg name="ParamSelect" type="ENUM">
+          <enum name ="MC_ParameterSelection">
+            <item name="MC_Param1" />
+            <item name="MC_Param2" />
+          </enum>
+        	<comment> Change internal parameters of the module </comment>
+        </arg>
+        <arg name="New_Value" type="U32">
+        	<comment> The new value to be used in place </comment>
+        </arg>
+      </args>
+    </command>
+
+    <command kind="guarded" opcode="0x09" mnemonic="MC_GetParameters">
+       <comment> Returns all current parameters of the module </comment>
+    </command>
+
+    <command kind="guarded" opcode="0x10" mnemonic="MC_UpdateTelemetry">
+       <comment> Forces a telemetry update from the motors </comment>
+    </command>
+
+    <command kind="guarded" opcode="0x98" mnemonic="MC_DriveTest">
+       <comment> Allows the direct commanding of moves bypassing Nav if things are incorrect </comment>
+       <args>
+	       <arg name="Distance" type="I64" />
+	       <arg name="MoveType" type="I8" />
+	     </args>
+    </command>
+
+    <command kind="guarded" opcode="0x99" mnemonic="MC_SelfTest">
+       <comment> Runs through a routine to confirms the MSP are functioning properly </comment>
+    </command>
+
+  </commands> 
+
+  <!-- EVENTS -->
+  <events>
+    <event id="0" name="MC_moveStarted" severity="COMMAND" format_string="Move step has started">
+          <comment> A notification a move sequence has started </comment>
+    </event>
+
+    <event id="1" name="MC_moveComplete" severity="COMMAND" format_string="Move step has finished">
+          <comment> A notification a move sequence has finished </comment>
+    </event>
+
+    <event id="2" name="MC_MSPFaultDetected" severity="WARNING_HI" format_string="Motor controller has detected a fault">
+          <comment> A notification an MSP has thrown a fault </comment>
+    </event>
+
+    <event id="3" name="MC_MSPNotResponding" severity="WARNING_HI" format_string="Motor controller not responding">
+          <comment> A notification an MSP is not communicating </comment>
+    </event>
+
+    <event id="4" name="MC_MSPNotReporting" severity="WARNING_HI" format_string="Motor controller not communicating requested data">
+          <comment> A notification an MSP is not reporting data </comment>
+    </event>
+
+    <event id="5" name="MC_ParameterChanged" severity="COMMAND" format_string="A Motor controller parameter has been changed">
+          <comment> A notification that an MC parameter has been modified </comment>
+    </event>
+
+    <event id="6" name="MC_EncoderReset" severity="COMMAND" format_string="A Motor encoder count has been reset">
+          <comment> A notification that an MC parameter has been modified </comment>
+    </event>
+  </events>
+
+  <!-- TELEMETRY -->
+  <telemetry>
+    <!-- Motor 0 | Front left motor -->
+    <channel id="0" name="MC_FL_Encoder_Dist" data_type="I32" update = "on_change">
+      <comment>Front Left motor encoder displacement in encoder ticks</comment>
+    </channel>
+
+    <channel id="1" name="MC_FL_Current" data_type="U16" update = "on_change">
+      <comment>Front Left motor current in milliAmps</comment>
+    </channel>
+
+    <channel id="2" name="MC_FL_Speed" data_type="I16" update = "on_change">
+      <comment>Front Left motor speed in centimeters per second (positive rotation is counter clockwise</comment>
+    </channel>
+
+    <!-- Motor 1 | Front right motor -->
+    <channel id="3" name="MC_FR_Encoder_Dist" data_type="I32" update = "on_change">
+      <comment>Front Right motor encoder displacement in encoder ticks</comment>
+    </channel>
+
+    <channel id="4" name="MC_FR_Current" data_type="U16" update = "on_change">
+      <comment>Front Right motor current in milliAmps</comment>
+    </channel>
+
+    <channel id="5" name="MC_FR_Speed" data_type="I16" update = "on_change">
+      <comment>Front Right motor speed in centimeters per second</comment>
+    </channel>
+
+    <!-- Motor 2 | Rear right motor -->
+    <channel id="6" name="MC_RR_Encoder_Dist" data_type="I32" update = "on_change">
+      <comment>Rear Right motor encoder displacement in encoder ticks</comment>
+    </channel>
+
+    <channel id="7" name="MC_RR_Current" data_type="U16" update = "on_change">
+      <comment>Rear Right motor current in milliAmps</comment>
+    </channel>
+
+    <channel id="8" name="MC_RR_Speed" data_type="I16" update = "on_change">
+      <comment>Rear Right motor speed in centimeters per second</comment>
+    </channel>
+
+    <!-- Motor 3 | Read right motor -->
+    <channel id="9" name="MC_RL_Encoder_Dist" data_type="I32" update = "on_change">
+      <comment>Rear Left motor encoder displacement in encoder ticks</comment>
+    </channel>
+
+    <channel id="10" name="MC_RL_Current" data_type="U16" update = "on_change">
+      <comment>Rear Left motor current in milliAmps</comment>
+    </channel>
+
+    <channel id="11" name="MC_RL_Speed" data_type="I16" update = "on_change">
+      <comment>Rear Left motor speed in centimeters per second</comment>
+    </channel>
+  </telemetry>
+
+</component>

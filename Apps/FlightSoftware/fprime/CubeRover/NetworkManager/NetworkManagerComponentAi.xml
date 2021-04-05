@@ -6,7 +6,6 @@
     <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
     <import_port_type>Fw/Log/LogTextPortAi.xml</import_port_type>
     <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
-    <import_port_type>Fw/Buffer/BufferGetPortAi.xml</import_port_type>
     <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
     <ports>
 
@@ -23,7 +22,7 @@
 
         <!-- Output ports -->
         <port name="uplink" data_type="Fw::BufferSend" kind="output" max_number="1">
-            <comment>NM sends received packets to UDPReceiver and GroundInterface</comment>
+            <comment>NM sends received packets to GroundInterface</comment>
         </port>
 
         <!-- TODO: MODE -->

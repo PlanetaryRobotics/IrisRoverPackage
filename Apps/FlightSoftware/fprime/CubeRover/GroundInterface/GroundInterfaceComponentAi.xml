@@ -9,6 +9,7 @@
     <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
     <import_port_type>Fw/Buffer/BufferGetPortAi.xml</import_port_type>
     <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAi.xml</import_port_type>
         
     <comment>
         Validates inbound/outbound FSW packets and routes them to the correct endpoint. For uplinked
@@ -36,31 +37,31 @@
             </comment>
         </port>
             
-        <port name="appDownlink" data_type="Fw::BufferSend"  kind="guarded_input"    max_number="2">
+        <port name="appDownlink" data_type="CubeRover::FileDownlink"  kind="guarded_input"    max_number="2">
             <comment>
                 Other application components request a buffer to hand off a downlinked packet to be downlinked.
                 0: Camera   1: UWB
             </comment>
         </port>
             
-        <port name="cmdUplink" data_type="Fw::BufferSend"  kind="sync_input"    max_number="1">
+        <port name="cmdUplink" data_type="Fw::BufferSend"  kind="sync_input"    max_number="2">
             <comment>
                 GroundInterface validates and forwards deserialized a uplinked command to CmdDispatcher.
+                0: Lander Serial (WatchDog RS422)  1: WF121 (NetworkManager)
             </comment>
         </port>
             
         <!-- Output ports -->
-        <port name="cmdDispatch" data_type="Fw::Com"  kind="output"    max_number="2">
+        <port name="cmdDispatch" data_type="Fw::Com"  kind="output"    max_number="1">
             <comment>
                 GroundInterface forwards a validated uplinked command to CmdDispatcher. Commands are buffered by the CommandDispatcher's message queue.
-                0: WatchDog Serial  1: WF121
             </comment>
         </port>
             
         <port name="downlinkBufferSend" data_type="Fw::BufferSend"  kind="output"    max_number="2">
             <comment>
                 GroundInterface sends buffer of data to be downlinked to UDP sender for framing, MTU fragmentation, and transport.
-                0: WatchDog Serial  1: WF121
+                0: Lander Serial (WatchDog RS422)  1: WF121 (NetworkManager)
             </comment>
         </port>
 

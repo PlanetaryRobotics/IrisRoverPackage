@@ -8,21 +8,15 @@
 #define PRESCALE_CHECK_SIGNAL     0         // Used to throttle how often wifi signal quality need to checked
                                             // 0: for no prescaling
 
-#define ROVER_IP_ADDRESS        {192, 168, 1, 2}
-#define ROVER_MASK_ADDRESS      {255, 255, 255, 0}
-#define ROVER_GATEWAY_ADDRESS   {192, 168, 1, 1}
-#define GATEWAY_PORT            8080
-#define ROVER_UDP_PORT          8080 
-
-#define LANDER_SSID                     "Houston"
-#define LANDER_NETWORK_PASSWORD         "redr0ver"
 #define MAX_SIZE_SSID_NAME              32
 #define MAX_NUMBER_CHANNEL_PER_NETWORK  11
 #define MAX_SORTING_LIST_SIZE           5
 
-#define RX_RING_BUFFER_SIZE              MAX_SIZE_PAYLOAD
+#define RX_RING_BUFFER_SIZE             UDP_MAX_PAYLOAD + sizeof(Wf121::DataSize16)
 
-#define MAX_FSM_NO_TRANSITION_COUNT 1024000000            // TODO: TUNE ME
+// On average it takes 50000 - 160000 Wf121-Hercules "no-op cycles in the state machine to conenct to the accesspoint
+// we provide 3x (and some extra) the time to connect before resetting the WF121 and trying to connect
+#define MAX_FSM_NO_TRANSITION_COUNT     750000
 
 namespace CubeRoverNetworkManager {
 
@@ -69,6 +63,9 @@ typedef enum CubeRoverSignalLevels{
 
 typedef void(*NetworkManagerUserCbFunctionPtr)(void);
 
+// Circular buffer for received UDP data
+// As UDP datagrams are received thir data is written to the ring buffer with a DataSize16 size first
+// followed by the the datagram payload
 uint8_t g_rxRingBuffer[RX_RING_BUFFER_SIZE];
 
 class CubeRoverNetworkManager : public Wf121::Wf121Driver{
@@ -76,6 +73,7 @@ public:
   CubeRoverNetworkManager();
   Wf121::ErrorCode UpdateNetworkManager();
   CubeRoverNetworkStateMachine GetState();
+  bool GetWifiModuleIdentified();
   int8_t GetSignalRssi();
   int8_t GetSignalNoiseRatio();
   uint32_t GetNbOfBytesReceived();

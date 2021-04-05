@@ -76,7 +76,9 @@ namespace CubeRover {
       //!
       void appDownlink_handler(
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
-          Fw::Buffer &fwBuffer 
+          U16 callbackId, /*!< Metadata Field: Unique Id to map this file to the command that generated it*/
+          U32 createTime, /*!< Metadata Field: Time the file was created in ms epoch*/
+          Fw::Buffer &fwBuffer /*!< Buffer containing the data*/
       );
 
       //! Handler implementation for cmdUplink
@@ -88,20 +90,21 @@ namespace CubeRover {
       
         // User defined methods, members, and structs
             
+        void downlinkFileMetadata(uint16_t hashedId, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms);
+        uint16_t hashTime(uint32_t time);   // Used for files to get unique Id for parallel downlinks
         void downlinkBufferWrite(void *_data, uint16_t size, downlinkPacketType from);
         void flushDownlinkBuffer();
         void downlink(void *_data, uint16_t size);
         void updateTelemetry();
       
-        FswPacket::Seq_t  m_uplinkSeq, m_downlinkSeq;                // TLM0, TLM1
+        FswPacket::Seq_t  m_uplinkSeq, m_downlinkSeq;       // TLM0, TLM1
         uint32_t m_packetsRx, m_packetsTx,                  // TLM2, TLM3
                  m_tlmItemsReceived, m_tlmItemsDownlinked,  // TLM4, TLM5
                  m_logsReceived, m_logsDownlinked,          // TLM6, TLM7
                  m_cmdsUplinked, m_cmdsSent, m_cmdErrs,     // TLM8, TLM9, TLM10
                  m_appBytesReceived, m_appBytesDownlinked;  // TLM11, TLM 12
         
-        uint8_t m_downlinkBuffer[UDP_MAX_PAYLOAD];  // Entire datagram. UdpSender will complete Udp header
-        struct FswPacket::FswPacketHeader *m_downlinkPacket;   // Start of FswPacket in datagram
+        uint8_t m_downlinkBuffer[UDP_MAX_PAYLOAD];
         uint8_t *m_downlinkBufferPos;
         uint16_t m_downlinkBufferSpaceAvailable;
       

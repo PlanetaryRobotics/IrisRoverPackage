@@ -42,12 +42,12 @@
 namespace {
 
     enum {
-        TLMCHAN_NUM_TLM_HASH_SLOTS = 15, // !< Number of slots in the hash table.
+        TLMCHAN_NUM_TLM_HASH_SLOTS = 30, // !< Number of slots in the hash table.
                                         // Works best when set to about twice the number of components producing telemetry
-        TLMCHAN_HASH_MOD_VALUE = 99,    // !< The modulo value of the hashing function.
+        TLMCHAN_HASH_MOD_VALUE = 250,    // !< The modulo value of the hashing function.
                                         // Should be set to a little below the ID gaps to spread the entries around
 
-        TLMCHAN_HASH_BUCKETS = 50       // !< Buckets assignable to a hash slot.
+        TLMCHAN_HASH_BUCKETS = 100       // !< Buckets assignable to a hash slot.
                                         // Buckets must be >= number of telemetry channels in system
     };
 

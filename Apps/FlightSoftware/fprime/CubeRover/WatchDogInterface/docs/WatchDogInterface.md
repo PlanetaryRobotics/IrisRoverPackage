@@ -23,12 +23,13 @@
 |BATTERY_THERMISTOR|16 (0x10)|U8|Boolean for Battery Charging or not from Watchdog|
 |SYSTEM_STATUS|23 (0x17)|int8_t|Boolean for Heater On/Off from Watchdog|
 |BATTERY_LEVEL|24 (0x18)|U16|Value of Charge in Battery|
-|THERM_0|25 (0x19)|U16|12 bit Value for Thermistor value|
-|THERM_1|26 (0x1a)|U16|12 bit Value for Thermistor value|
-|THERM_2|27 (0x1b)|U16|12 bit Value for Thermistor value|
-|THERM_3|28 (0x1c)|U16|12 bit Value for Thermistor value|
-|THERM_4|29 (0x1d)|U16|12 bit Value for Thermistor value|
-|THERM_5|30 (0x1e)|U16|12 bit Value for Thermistor value|
+|BATTERY_CURRENT|25 (0x19)|U32|Value of Current Used in Battery|
+|THERM_0|26 (0x1a)|U16|12 bit Value for Thermistor value|
+|THERM_1|27 (0x1b)|U16|12 bit Value for Thermistor value|
+|THERM_2|28 (0x1c)|U16|12 bit Value for Thermistor value|
+|THERM_3|29 (0x1d)|U16|12 bit Value for Thermistor value|
+|THERM_4|30 (0x1e)|U16|12 bit Value for Thermistor value|
+|THERM_5|31 (0x1f)|U16|12 bit Value for Thermistor value|
 
 ## Event List
 

@@ -13,3 +13,7 @@ then
     echo "Patching $rti_c_path"
     echo "#endif" >> $rti_c_path
 fi
+
+
+### Patch HAL's adc.c with a byte in the adcSelect which allows our thermistors to work
+patch --quiet $FlightMCU_path/HAL/source/adc.c $FlightMCU_path/patches/adc.c.patch

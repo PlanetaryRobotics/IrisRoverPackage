@@ -167,6 +167,7 @@ namespace CubeRover {
 
 
       sciBASE_t *m_sci;
+      adcData_t m_thermistor_buffer[6];
       bool m_finished_initializing;     // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
 
     };

@@ -309,6 +309,7 @@ namespace CubeRover {
     adcStartConversion(adcREG1, adcGROUP1);
 
     // Check if all ADC Conversions are done
+    // From testing tries ALMOST ALWAYS ~= 10 - 12  ==>  38 - 40 cycles to convert data.. OK to poll
     int tries = 50;
     while(--tries && !adcIsConversionComplete(adcREG1, adcGROUP1));
     if(tries == 0)
@@ -323,34 +324,18 @@ namespace CubeRover {
     {
       // Conversion SHOULD end automatically once all ADC values have been converted but this should end it otherwise
       adcStopConversion(adcREG1, adcGROUP1);
-
-      // Create adcData_t array of size 6 for all Thermistors
-      adcData_t data[6];
-      adcData_t* data_ptr = (adcData_t*)&data;
-
-      // adcGetData returns how many conversions happened, saves data into data_ptr
-      U32 num_conversions = adcGetData(adcREG1, adcGROUP1, data_ptr);
-
+      U32 num_conversions = adcGetData(adcREG1, adcGROUP1, m_thermistor_buffer);
       if(num_conversions >= 6)
       {
-        // Report tempurature as telemetry
-
-        // Send Thermistor 12 bit values to Telemetry
-        this->tlmWrite_THERM_0(data[0].value);
-
-        this->tlmWrite_THERM_1(data[1].value);
-
-        this->tlmWrite_THERM_2(data[2].value);
-
-        this->tlmWrite_THERM_3(data[3].value);
-
-        this->tlmWrite_THERM_4(data[4].value);
-
-        this->tlmWrite_THERM_5(data[5].value);
+        this->tlmWrite_THERM_0(m_thermistor_buffer[0].value);
+        this->tlmWrite_THERM_1(m_thermistor_buffer[1].value);
+        this->tlmWrite_THERM_2(m_thermistor_buffer[2].value);
+        this->tlmWrite_THERM_3(m_thermistor_buffer[3].value);
+        this->tlmWrite_THERM_4(m_thermistor_buffer[4].value);
+        this->tlmWrite_THERM_5(m_thermistor_buffer[5].value);
       }
       else
       {
-        // Log Error in conversion from ADC
         this->log_WARNING_HI_ADCThermistorError();
         return false;
       }

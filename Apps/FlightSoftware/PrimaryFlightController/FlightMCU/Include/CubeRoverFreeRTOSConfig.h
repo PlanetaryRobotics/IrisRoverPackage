@@ -9,6 +9,7 @@
     fflush(stderr);                                 \
 }
 
+/*
 #define traceTASK_SWITCHED_OUT() DEBUG("RTOS: Task switch out\n");
 
 #define traceTASK_SWITCHED_IN() DEBUG("RTOS: Task switch in\n");
@@ -35,7 +36,7 @@
     DEBUG("RTOS: Task resumed (from ISR): ");       \
     DEBUG(xTask->pcTaskName);                       \
     DEBUG("\n");                                    \
-}
+}*/
 
 /*#define traceQUEUE_CREATE(pxNewQueue) {             \
     DEBUG("RTOS: Queue created: head ");            \

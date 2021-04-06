@@ -274,6 +274,7 @@ namespace CubeRover {
     }
   
     void GroundInterfaceComponentImpl::updateTelemetry() {
+        /* TODO: THESE SHOULD ONLY UPDATE ONCE PER TELEMETRY DOWNLINK NOT ON THE RATE GROUP ITS TOO MUCH
         tlmWrite_GI_UplinkSeqNum(m_uplinkSeq);
         tlmWrite_GI_DownlinkSeqNum(m_downlinkSeq);
         tlmWrite_GI_PacketsReceived(m_packetsRx);
@@ -287,6 +288,7 @@ namespace CubeRover {
         tlmWrite_GI_UplinkPktErrs(m_cmdErrs);
         tlmWrite_GI_AppBytesReceived(m_appBytesReceived);
         tlmWrite_GI_AppBytesDownlinked(m_appBytesDownlinked);
+        */
     }
     
     /*

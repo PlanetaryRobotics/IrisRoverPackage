@@ -184,8 +184,8 @@ void constructApp(void){
   // TODO: This hasn't been started yet
   activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
 
-  // Initialize the watchdog interface component (queued)
-  watchDogInterface.init(10,          /*Queue Depth*/
+  // Initialize the watchdog interface component (active)
+  watchDogInterface.init(1,          /*Queue Depth*/
                          0);         /*Instance Number*/
 
   // Initialize the health component (queued)
@@ -280,6 +280,7 @@ void constructApp(void){
                    NAV_AFF,
                    NAV_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS);
 
-  // setup communication with IMU over SPI
-  IMU.setup(IMU_SPI_REG);
+  watchDogInterface.start(0,
+                          WATCHDOG_AFF,
+                          WATCHDOG_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS);
 }

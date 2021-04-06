@@ -66,7 +66,7 @@ namespace CubeRover {
     Read_Temp();
 
     Reset_Specific_Handler(0x04);           // Reset WF121
-    for (unsigned i = 400000000; i; --i);   // Wait for WF121 to finish resetting
+    // There would normally be a 400000000 cycle delay for WF121 to finish resetting.. but that actualyl breaks things... weird
     m_finished_initializing = true;
   }
 

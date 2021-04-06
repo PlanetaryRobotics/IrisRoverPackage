@@ -107,24 +107,29 @@
     <source component="rateGroupLowFreq" port="RateGroupMemberOut" type="Sched" num="0" />
     <target component="tlmChan" port="Run" type="Sched" num="0"/>
   </connection>
+  
+  <connection name = "rgLowFreq_to_watchDogInterface_clk">
+    <source component = "rateGroupLowFreq" port = "RateGroupMemberOut" type = "Sched" num = "1" />
+    <target component = "watchDogInterface" port = "Run" type = "Sched" num = "0"/>
+  </connection>
+  
+  <!--
+  <connection name = "rgHighFreq_to_health_clk">
+    <source component = "rateGroupHighFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <target component = "health" port = "Run" type = "Sched" num = "0"/>
+  </connection>-->
 
 <!-- *********************************************************************************************************
         CONNECTION BETWEEN MEDIUM FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
      *********************************************************************************************************
      -->
-  <!-- Connect output of WatchDogInterface to stroke watchdog MSP430 (port 0) --> 
-  <connection name = "rgMedFreq_to_watchDogInterface_clk">
-    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
-    <target component = "watchDogInterface" port = "Run" type = "Sched" num = "0"/>
-  </connection>
-
   <connection name="rgMedFreq_to_networkManager">
-    <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="1" />
+    <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
     <target component="networkManager" port="schedIn" type="sched" num="0"/>
   </connection>
   
   <connection name = "rgMedFreq_to_navigation_clk">
-    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "2" />
+    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "1" />
     <target component = "navigation" port = "schedIn" type = "Sched" num = "0"/>
   </connection>
 
@@ -132,13 +137,6 @@
         CONNECTION BETWEEN HIGH FREQ RATE GROUP OUTPUT AND ALL DEPENDING COMPONENTS
      *********************************************************************************************************
      -->
-  <!-- Connect output of health to ping all components (port 0) --> 
-  <!--
-  <connection name = "rgHighFreq_to_health_clk">
-    <source component = "rateGroupHighFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
-    <target component = "health" port = "Run" type = "Sched" num = "0"/>
-  </connection>-->
-      
   <connection name="rgHiFreq_to_IMU">
     <source component="rateGroupHiFreq" port="RateGroupMemberOut" type="Sched" num="1" />
     <target component="IMU" port="schedIn" type="sched" num="0"/>
@@ -206,6 +204,11 @@
     <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
   </connection>-->
 
+  <connection name = "watchdogInterface_to_cubeRoverTime">
+    <source component = "watchDogInterface" port = "Time" type = "Time" num = "0" />
+    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
+  </connection>
+
 <!-- *********************************************************************************************************
         CONNECTION OF MONITORED COMPONENTS TO TELEMETRY CHAN COMPONENT
      ********************************************************************************************************* 
@@ -268,6 +271,11 @@
   <!-- IMU to telemetry channel (port 8) -->
   <connection name="imu_to_chanTlm">
     <source component="IMU" port="Tlm" type="Tlm" num="0" />
+    <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
+  </connection>
+  
+  <connection name="watchdog_to_chanTlm">
+    <source component="watchdogInterface" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
       

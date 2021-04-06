@@ -52,8 +52,9 @@
 #define NAV_AFF                     25
 #define NAV_QUEUE_DEPTH             1
 
-// Hercules SPI register that handles IMU interface
-#define IMU_SPI_REG                	spiREG3
+#define WATCHDOG_ID                 0
+#define WATCHDOG_AFF                26    // TODO: Good value for this
+#define WATCHDOG_QUEUE_DEPTH        1
 
 #define MIN_STACK_SIZE_WORDS        1024
 

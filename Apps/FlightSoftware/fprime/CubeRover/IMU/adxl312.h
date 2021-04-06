@@ -83,14 +83,11 @@ struct AccVector {
     // Arrays in X, Y, Z order
     int16_t raw[3];
     float32 acc[3];
-    uint64 timestamp;
 };
 
 accel_status_t accel_init();
+accel_status_t accel_set_range(accel_range_t sampleRange);
 accel_status_t accel_get_data(struct AccVector *data);
-void write_register(uint8_t addr, uint8_t value);
-uint8_t read_register(uint8_t addr);
-void read_multibyte(uint8_t startAddr, uint8_t count, uint8_t *buf);
 
 #ifdef __cplusplus
 }

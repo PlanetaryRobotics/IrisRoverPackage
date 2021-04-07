@@ -1,2 +1,0 @@
-SRC = MotorCommandPortAi.xml 
-HDR = 

@@ -19,6 +19,17 @@ sequence_number = 10
 
 standards = DataStandards.build_standards()
 
-standards.print_overview()
+# standards.print_overview()
 
-standards.cache(cache_dir="", filename_base="scratchpad", ext="json", indent=2)
+standards.cache(
+    cache_dir="./sandbox-cache",
+    filename_base="sandbox", ext="json",
+    indent=2
+)
+
+uncached_standands = DataStandards.load_cache(
+    cache_dir="./sandbox-cache",
+    filename_base="sandbox", ext="json"
+)
+
+print(f"Standards match: {uncached_standands == standards}")

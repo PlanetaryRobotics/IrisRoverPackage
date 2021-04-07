@@ -20,13 +20,13 @@
             "py/state": [
               {
                 "names": [
-                  "BDCycles"
+                  "BdCycles"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "BDCycles",
+                    "name": "BdCycles",
                     "ID": 0,
                     "type": {
                       "py/reduce": [
@@ -257,13 +257,13 @@
             "py/state": [
               {
                 "names": [
-                  "CommandDispatcher_CMDNOOP"
+                  "CommandDispatcher_Cmdnoop"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "CommandDispatcher_CMDNOOP",
+                    "name": "CommandDispatcher_Cmdnoop",
                     "mnemonic": "CMD_NO_OP",
                     "ID": 0,
                     "args": [],
@@ -273,13 +273,13 @@
               },
               {
                 "names": [
-                  "CommandDispatcher_CMDNOOPSTRING"
+                  "CommandDispatcher_Cmdnoopstring"
                 ],
                 "ID": 1,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "CommandDispatcher_CMDNOOPSTRING",
+                    "name": "CommandDispatcher_Cmdnoopstring",
                     "mnemonic": "CMD_NO_OP_STRING",
                     "ID": 1,
                     "args": [
@@ -311,13 +311,13 @@
               },
               {
                 "names": [
-                  "CommandDispatcher_CMDTESTCMD1"
+                  "CommandDispatcher_Cmdtestcmd1"
                 ],
                 "ID": 2,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "CommandDispatcher_CMDTESTCMD1",
+                    "name": "CommandDispatcher_Cmdtestcmd1",
                     "mnemonic": "CMD_TEST_CMD_1",
                     "ID": 2,
                     "args": [
@@ -391,13 +391,13 @@
               },
               {
                 "names": [
-                  "CommandDispatcher_CMDCLEARTRACKING"
+                  "CommandDispatcher_Cmdcleartracking"
                 ],
                 "ID": 3,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "CommandDispatcher_CMDCLEARTRACKING",
+                    "name": "CommandDispatcher_Cmdcleartracking",
                     "mnemonic": "CMD_CLEAR_TRACKING",
                     "ID": 3,
                     "args": [],
@@ -935,13 +935,13 @@
             "py/state": [
               {
                 "names": [
-                  "GIUplinkSeqNum"
+                  "GiUplinkSeqNum"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "GIUplinkSeqNum",
+                    "name": "GiUplinkSeqNum",
                     "ID": 0,
                     "type": {
                       "py/id": 127
@@ -954,13 +954,13 @@
               },
               {
                 "names": [
-                  "GIDownlinkSeqNum"
+                  "GiDownlinkSeqNum"
                 ],
                 "ID": 1,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "GIDownlinkSeqNum",
+                    "name": "GiDownlinkSeqNum",
                     "ID": 1,
                     "type": {
                       "py/id": 127
@@ -973,13 +973,13 @@
               },
               {
                 "names": [
-                  "GIPacketsReceived"
+                  "GiPacketsReceived"
                 ],
                 "ID": 2,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "GIPacketsReceived",
+                    "name": "GiPacketsReceived",
                     "ID": 2,
                     "type": {
                       "py/id": 14
@@ -992,13 +992,13 @@
               },
               {
                 "names": [
-                  "GIPacketsTransmitted"
+                  "GiPacketsTransmitted"
                 ],
                 "ID": 3,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "GIPacketsTransmitted",
+                    "name": "GiPacketsTransmitted",
                     "ID": 3,
                     "type": {
                       "py/id": 14
@@ -1011,13 +1011,13 @@
               },
               {
                 "names": [
-                  "GITlmItemsReceived"
+                  "GiTlmItemsReceived"
                 ],
                 "ID": 4,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "GITlmItemsReceived",
+                    "name": "GiTlmItemsReceived",
                     "ID": 4,
                     "type": {
                       "py/id": 14
@@ -1030,13 +1030,13 @@
               },
               {
                 "names": [
-                  "GITlmItemsDownlinked"
+                  "GiTlmItemsDownlinked"
                 ],
                 "ID": 5,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "GITlmItemsDownlinked",
+                    "name": "GiTlmItemsDownlinked",
                     "ID": 5,
                     "type": {
                       "py/id": 14
@@ -1049,13 +1049,13 @@
               },
               {
                 "names": [
-                  "GILogsReceived"
+                  "GiLogsReceived"
                 ],
                 "ID": 6,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "GILogsReceived",
+                    "name": "GiLogsReceived",
                     "ID": 6,
                     "type": {
                       "py/id": 14
@@ -1068,13 +1068,13 @@
               },
               {
                 "names": [
-                  "GILogsDownlinked"
+                  "GiLogsDownlinked"
                 ],
                 "ID": 7,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "GILogsDownlinked",
+                    "name": "GiLogsDownlinked",
                     "ID": 7,
                     "type": {
                       "py/id": 14
@@ -1087,13 +1087,13 @@
               },
               {
                 "names": [
-                  "GICmdsUplinked"
+                  "GiCmdsUplinked"
                 ],
                 "ID": 8,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "GICmdsUplinked",
+                    "name": "GiCmdsUplinked",
                     "ID": 8,
                     "type": {
                       "py/id": 14
@@ -1106,13 +1106,13 @@
               },
               {
                 "names": [
-                  "GICmdsSent"
+                  "GiCmdsSent"
                 ],
                 "ID": 9,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "GICmdsSent",
+                    "name": "GiCmdsSent",
                     "ID": 9,
                     "type": {
                       "py/id": 14
@@ -1125,13 +1125,13 @@
               },
               {
                 "names": [
-                  "GIUplinkPktErrs"
+                  "GiUplinkPktErrs"
                 ],
                 "ID": 10,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "GIUplinkPktErrs",
+                    "name": "GiUplinkPktErrs",
                     "ID": 10,
                     "type": {
                       "py/id": 14
@@ -1144,13 +1144,13 @@
               },
               {
                 "names": [
-                  "GIAppBytesReceived"
+                  "GiAppBytesReceived"
                 ],
                 "ID": 11,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "GIAppBytesReceived",
+                    "name": "GiAppBytesReceived",
                     "ID": 11,
                     "type": {
                       "py/id": 14
@@ -1163,13 +1163,13 @@
               },
               {
                 "names": [
-                  "GIAppBytesDownlinked"
+                  "GiAppBytesDownlinked"
                 ],
                 "ID": 12,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "GIAppBytesDownlinked",
+                    "name": "GiAppBytesDownlinked",
                     "ID": 12,
                     "type": {
                       "py/id": 14
@@ -1187,13 +1187,13 @@
             "py/state": [
               {
                 "names": [
-                  "GIUplinkedPacketError"
+                  "GiUplinkedPacketError"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "GIUplinkedPacketError",
+                    "name": "GiUplinkedPacketError",
                     "ID": 0,
                     "severity": "WARNING_HI",
                     "format_string": "Error with uplinked packet %d %d %d",
@@ -1275,13 +1275,13 @@
               },
               {
                 "names": [
-                  "GICommandReceived"
+                  "GiCommandReceived"
                 ],
                 "ID": 1,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "GICommandReceived",
+                    "name": "GiCommandReceived",
                     "ID": 1,
                     "severity": "ACTIVITY_HI",
                     "format_string": "Command Received %d %d",
@@ -1317,13 +1317,13 @@
               },
               {
                 "names": [
-                  "GIDownlinkedPacket"
+                  "GiDownlinkedPacket"
                 ],
                 "ID": 2,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "GIDownlinkedPacket",
+                    "name": "GiDownlinkedPacket",
                     "ID": 2,
                     "severity": "ACTIVITY_LO",
                     "format_string": "Packet Downlinked %d %d %d",
@@ -1371,13 +1371,13 @@
               },
               {
                 "names": [
-                  "GIDownlinkedItem"
+                  "GiDownlinkedItem"
                 ],
                 "ID": 3,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "GIDownlinkedItem",
+                    "name": "GiDownlinkedItem",
                     "ID": 3,
                     "severity": "DIAGNOSTIC",
                     "format_string": "Item Fownlinked %d %d",
@@ -1460,13 +1460,13 @@
             "py/state": [
               {
                 "names": [
-                  "RSSI"
+                  "Rssi"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "RSSI",
+                    "name": "Rssi",
                     "ID": 0,
                     "type": {
                       "py/reduce": [
@@ -1488,13 +1488,13 @@
               },
               {
                 "names": [
-                  "SNR"
+                  "Snr"
                 ],
                 "ID": 1,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "SNR",
+                    "name": "Snr",
                     "ID": 1,
                     "type": {
                       "py/id": 473
@@ -1768,13 +1768,13 @@
               },
               {
                 "names": [
-                  "WF121InitializationFailed"
+                  "Wf121InitializationFailed"
                 ],
                 "ID": 2,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "WF121InitializationFailed",
+                    "name": "Wf121InitializationFailed",
                     "ID": 2,
                     "severity": "FATAL",
                     "format_string": "WF121 Failed to initialize",
@@ -1803,13 +1803,13 @@
             "py/state": [
               {
                 "names": [
-                  "ActiveLogger_ALOGSETEVENTREPORTFILTER"
+                  "ActiveLogger_Alogseteventreportfilter"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "ActiveLogger_ALOGSETEVENTREPORTFILTER",
+                    "name": "ActiveLogger_Alogseteventreportfilter",
                     "mnemonic": "ALOG_SET_EVENT_REPORT_FILTER",
                     "ID": 0,
                     "args": [
@@ -1910,13 +1910,13 @@
               },
               {
                 "names": [
-                  "ActiveLogger_ALOGSETEVENTSENDFILTER"
+                  "ActiveLogger_Alogseteventsendfilter"
                 ],
                 "ID": 1,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "ActiveLogger_ALOGSETEVENTSENDFILTER",
+                    "name": "ActiveLogger_Alogseteventsendfilter",
                     "mnemonic": "ALOG_SET_EVENT_SEND_FILTER",
                     "ID": 1,
                     "args": [
@@ -2017,13 +2017,13 @@
               },
               {
                 "names": [
-                  "ActiveLogger_ALOGDUMPEVENTLOG"
+                  "ActiveLogger_Alogdumpeventlog"
                 ],
                 "ID": 2,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "ActiveLogger_ALOGDUMPEVENTLOG",
+                    "name": "ActiveLogger_Alogdumpeventlog",
                     "mnemonic": "ALOG_DUMP_EVENT_LOG",
                     "ID": 2,
                     "args": [
@@ -2046,13 +2046,13 @@
               },
               {
                 "names": [
-                  "ActiveLogger_ALOGSETIDFILTER"
+                  "ActiveLogger_Alogsetidfilter"
                 ],
                 "ID": 3,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "ActiveLogger_ALOGSETIDFILTER",
+                    "name": "ActiveLogger_Alogsetidfilter",
                     "mnemonic": "ALOG_SET_ID_FILTER",
                     "ID": 3,
                     "args": [
@@ -2104,13 +2104,13 @@
               },
               {
                 "names": [
-                  "ActiveLogger_ALOGDUMPFILTERSTATE"
+                  "ActiveLogger_Alogdumpfilterstate"
                 ],
                 "ID": 4,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "ActiveLogger_ALOGDUMPFILTERSTATE",
+                    "name": "ActiveLogger_Alogdumpfilterstate",
                     "mnemonic": "ALOG_DUMP_FILTER_STATE",
                     "ID": 4,
                     "args": [],
@@ -2129,13 +2129,13 @@
             "py/state": [
               {
                 "names": [
-                  "ALOGFILEWRITEERR"
+                  "Alogfilewriteerr"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "ALOGFILEWRITEERR",
+                    "name": "Alogfilewriteerr",
                     "ID": 0,
                     "severity": "WARNING_HI",
                     "format_string": "Event buffer write failed in stage %d with error %d",
@@ -2292,13 +2292,13 @@
               },
               {
                 "names": [
-                  "ALOGFILEWRITECOMPLETE"
+                  "Alogfilewritecomplete"
                 ],
                 "ID": 1,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "ALOGFILEWRITECOMPLETE",
+                    "name": "Alogfilewritecomplete",
                     "ID": 1,
                     "severity": "ACTIVITY_HI",
                     "format_string": "Event buffer write complete. Wrote %d records.",
@@ -2322,13 +2322,13 @@
               },
               {
                 "names": [
-                  "ALOGSEVERITYFILTERSTATE"
+                  "Alogseverityfilterstate"
                 ],
                 "ID": 2,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "ALOGSEVERITYFILTERSTATE",
+                    "name": "Alogseverityfilterstate",
                     "ID": 2,
                     "severity": "ACTIVITY_LO",
                     "format_string": "%d filter state. Recv: %d Send: %d",
@@ -2434,13 +2434,13 @@
               },
               {
                 "names": [
-                  "ALOGIDFILTERENABLED"
+                  "Alogidfilterenabled"
                 ],
                 "ID": 3,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "ALOGIDFILTERENABLED",
+                    "name": "Alogidfilterenabled",
                     "ID": 3,
                     "severity": "ACTIVITY_HI",
                     "format_string": "ID %d is filtered.",
@@ -2464,13 +2464,13 @@
               },
               {
                 "names": [
-                  "ALOGIDFILTERLISTFULL"
+                  "Alogidfilterlistfull"
                 ],
                 "ID": 4,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "ALOGIDFILTERLISTFULL",
+                    "name": "Alogidfilterlistfull",
                     "ID": 4,
                     "severity": "WARNING_LO",
                     "format_string": "ID filter list is full. Cannot filter %d .",
@@ -2494,13 +2494,13 @@
               },
               {
                 "names": [
-                  "ALOGIDFILTERREMOVED"
+                  "Alogidfilterremoved"
                 ],
                 "ID": 5,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "ALOGIDFILTERREMOVED",
+                    "name": "Alogidfilterremoved",
                     "ID": 5,
                     "severity": "ACTIVITY_HI",
                     "format_string": "ID filter ID %d removed.",
@@ -2524,13 +2524,13 @@
               },
               {
                 "names": [
-                  "ALOGIDFILTERNOTFOUND"
+                  "Alogidfilternotfound"
                 ],
                 "ID": 6,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "ALOGIDFILTERNOTFOUND",
+                    "name": "Alogidfilternotfound",
                     "ID": 6,
                     "severity": "WARNING_LO",
                     "format_string": "ID filter ID %d not found.",
@@ -2572,13 +2572,13 @@
             "py/state": [
               {
                 "names": [
-                  "Health_HLTHENABLE"
+                  "Health_Hlthenable"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "Health_HLTHENABLE",
+                    "name": "Health_Hlthenable",
                     "mnemonic": "HLTH_ENABLE",
                     "ID": 0,
                     "args": [
@@ -2618,13 +2618,13 @@
               },
               {
                 "names": [
-                  "Health_HLTHPINGENABLE"
+                  "Health_Hlthpingenable"
                 ],
                 "ID": 1,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "Health_HLTHPINGENABLE",
+                    "name": "Health_Hlthpingenable",
                     "mnemonic": "HLTH_PING_ENABLE",
                     "ID": 1,
                     "args": [
@@ -2676,13 +2676,13 @@
               },
               {
                 "names": [
-                  "Health_HLTHCHNGPING"
+                  "Health_Hlthchngping"
                 ],
                 "ID": 2,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "Health_HLTHCHNGPING",
+                    "name": "Health_Hlthchngping",
                     "mnemonic": "HLTH_CHNG_PING",
                     "ID": 2,
                     "args": [
@@ -2758,13 +2758,13 @@
             "py/state": [
               {
                 "names": [
-                  "HLTHPINGWARN"
+                  "Hlthpingwarn"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "HLTHPINGWARN",
+                    "name": "Hlthpingwarn",
                     "ID": 0,
                     "severity": "WARNING_HI",
                     "format_string": "Ping entry %s late warning",
@@ -2788,13 +2788,13 @@
               },
               {
                 "names": [
-                  "HLTHPINGLATE"
+                  "Hlthpinglate"
                 ],
                 "ID": 1,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "HLTHPINGLATE",
+                    "name": "Hlthpinglate",
                     "ID": 1,
                     "severity": "FATAL",
                     "format_string": "Ping entry %s did not respond",
@@ -2818,13 +2818,13 @@
               },
               {
                 "names": [
-                  "HLTHPINGWRONGKEY"
+                  "Hlthpingwrongkey"
                 ],
                 "ID": 2,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "HLTHPINGWRONGKEY",
+                    "name": "Hlthpingwrongkey",
                     "ID": 2,
                     "severity": "FATAL",
                     "format_string": "Ping entry %s responded with wrong key 0x%08X",
@@ -2860,13 +2860,13 @@
               },
               {
                 "names": [
-                  "HLTHCHECKENABLE"
+                  "Hlthcheckenable"
                 ],
                 "ID": 3,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "HLTHCHECKENABLE",
+                    "name": "Hlthcheckenable",
                     "ID": 3,
                     "severity": "ACTIVITY_HI",
                     "format_string": "Health checking set to %d",
@@ -2907,13 +2907,13 @@
               },
               {
                 "names": [
-                  "HLTHCHECKPING"
+                  "Hlthcheckping"
                 ],
                 "ID": 4,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "HLTHCHECKPING",
+                    "name": "Hlthcheckping",
                     "ID": 4,
                     "severity": "ACTIVITY_HI",
                     "format_string": "Health checking set to %d for %s",
@@ -2966,13 +2966,13 @@
               },
               {
                 "names": [
-                  "HLTHCHECKLOOKUPERROR"
+                  "Hlthchecklookuperror"
                 ],
                 "ID": 5,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "HLTHCHECKLOOKUPERROR",
+                    "name": "Hlthchecklookuperror",
                     "ID": 5,
                     "severity": "WARNING_LO",
                     "format_string": "Couldn't find entry %s",
@@ -2996,13 +2996,13 @@
               },
               {
                 "names": [
-                  "HLTHPINGUPDATED"
+                  "Hlthpingupdated"
                 ],
                 "ID": 6,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "HLTHPINGUPDATED",
+                    "name": "Hlthpingupdated",
                     "ID": 6,
                     "severity": "ACTIVITY_HI",
                     "format_string": "Health ping for %s changed to WARN %d FATAL %d",
@@ -3050,13 +3050,13 @@
               },
               {
                 "names": [
-                  "HLTHPINGINVALIDVALUES"
+                  "Hlthpinginvalidvalues"
                 ],
                 "ID": 7,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "HLTHPINGINVALIDVALUES",
+                    "name": "Hlthpinginvalidvalues",
                     "ID": 7,
                     "severity": "WARNING_HI",
                     "format_string": "Health ping for %s invalid values: WARN %d FATAL %d",
@@ -3507,13 +3507,13 @@
             "py/state": [
               {
                 "names": [
-                  "MotorControl_MCCurrentPID"
+                  "MotorControl_McCurrentPid"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "MotorControl_MCCurrentPID",
+                    "name": "MotorControl_McCurrentPid",
                     "mnemonic": "MC_Current_PID",
                     "ID": 0,
                     "args": [
@@ -3548,13 +3548,13 @@
               },
               {
                 "names": [
-                  "MotorControl_MCSpeedPID"
+                  "MotorControl_McSpeedPid"
                 ],
                 "ID": 1,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "MotorControl_MCSpeedPID",
+                    "name": "MotorControl_McSpeedPid",
                     "mnemonic": "MC_Speed_PID",
                     "ID": 1,
                     "args": [
@@ -3598,13 +3598,13 @@
               },
               {
                 "names": [
-                  "MotorControl_MCPositionPID"
+                  "MotorControl_McPositionPid"
                 ],
                 "ID": 2,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "MotorControl_MCPositionPID",
+                    "name": "MotorControl_McPositionPid",
                     "mnemonic": "MC_Position_PID",
                     "ID": 2,
                     "args": [
@@ -3639,13 +3639,13 @@
               },
               {
                 "names": [
-                  "MotorControl_MCAcceleration"
+                  "MotorControl_McAcceleration"
                 ],
                 "ID": 3,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "MotorControl_MCAcceleration",
+                    "name": "MotorControl_McAcceleration",
                     "mnemonic": "MC_Acceleration",
                     "ID": 3,
                     "args": [
@@ -3680,13 +3680,13 @@
               },
               {
                 "names": [
-                  "MotorControl_MCStallDetection"
+                  "MotorControl_McStallDetection"
                 ],
                 "ID": 4,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "MotorControl_MCStallDetection",
+                    "name": "MotorControl_McStallDetection",
                     "mnemonic": "MC_StallDetection",
                     "ID": 4,
                     "args": [
@@ -3721,13 +3721,13 @@
               },
               {
                 "names": [
-                  "MotorControl_MCResetPosition"
+                  "MotorControl_McResetPosition"
                 ],
                 "ID": 5,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "MotorControl_MCResetPosition",
+                    "name": "MotorControl_McResetPosition",
                     "mnemonic": "MC_ResetPosition",
                     "ID": 5,
                     "args": [
@@ -3750,13 +3750,13 @@
               },
               {
                 "names": [
-                  "MotorControl_MCSpin"
+                  "MotorControl_McSpin"
                 ],
                 "ID": 6,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "MotorControl_MCSpin",
+                    "name": "MotorControl_McSpin",
                     "mnemonic": "MC_Spin",
                     "ID": 6,
                     "args": [
@@ -3791,13 +3791,13 @@
               },
               {
                 "names": [
-                  "MotorControl_MCPowerBoost"
+                  "MotorControl_McPowerBoost"
                 ],
                 "ID": 7,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "MotorControl_MCPowerBoost",
+                    "name": "MotorControl_McPowerBoost",
                     "mnemonic": "MC_PowerBoost",
                     "ID": 7,
                     "args": [
@@ -3832,13 +3832,13 @@
               },
               {
                 "names": [
-                  "MotorControl_MCSetParameter"
+                  "MotorControl_McSetParameter"
                 ],
                 "ID": 8,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "MotorControl_MCSetParameter",
+                    "name": "MotorControl_McSetParameter",
                     "mnemonic": "MC_SetParameter",
                     "ID": 8,
                     "args": [
@@ -3890,13 +3890,13 @@
               },
               {
                 "names": [
-                  "MotorControl_MCGetParameters"
+                  "MotorControl_McGetParameters"
                 ],
                 "ID": 9,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "MotorControl_MCGetParameters",
+                    "name": "MotorControl_McGetParameters",
                     "mnemonic": "MC_GetParameters",
                     "ID": 9,
                     "args": [],
@@ -3906,13 +3906,13 @@
               },
               {
                 "names": [
-                  "MotorControl_MCUpdateTelemetry"
+                  "MotorControl_McUpdateTelemetry"
                 ],
                 "ID": 16,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "MotorControl_MCUpdateTelemetry",
+                    "name": "MotorControl_McUpdateTelemetry",
                     "mnemonic": "MC_UpdateTelemetry",
                     "ID": 16,
                     "args": [],
@@ -3922,13 +3922,13 @@
               },
               {
                 "names": [
-                  "MotorControl_MCDriveTest"
+                  "MotorControl_McDriveTest"
                 ],
                 "ID": 152,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "MotorControl_MCDriveTest",
+                    "name": "MotorControl_McDriveTest",
                     "mnemonic": "MC_DriveTest",
                     "ID": 152,
                     "args": [
@@ -3972,13 +3972,13 @@
               },
               {
                 "names": [
-                  "MotorControl_MCSelfTest"
+                  "MotorControl_McSelfTest"
                 ],
                 "ID": 153,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "MotorControl_MCSelfTest",
+                    "name": "MotorControl_McSelfTest",
                     "mnemonic": "MC_SelfTest",
                     "ID": 153,
                     "args": [],
@@ -3993,13 +3993,13 @@
             "py/state": [
               {
                 "names": [
-                  "MCFLEncoderDist"
+                  "McflEncoderDist"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "MCFLEncoderDist",
+                    "name": "McflEncoderDist",
                     "ID": 0,
                     "type": {
                       "py/id": 117
@@ -4012,13 +4012,13 @@
               },
               {
                 "names": [
-                  "MCFLCurrent"
+                  "McflCurrent"
                 ],
                 "ID": 1,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "MCFLCurrent",
+                    "name": "McflCurrent",
                     "ID": 1,
                     "type": {
                       "py/id": 401
@@ -4031,13 +4031,13 @@
               },
               {
                 "names": [
-                  "MCFLSpeed"
+                  "McflSpeed"
                 ],
                 "ID": 2,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "MCFLSpeed",
+                    "name": "McflSpeed",
                     "ID": 2,
                     "type": {
                       "py/reduce": [
@@ -4059,13 +4059,13 @@
               },
               {
                 "names": [
-                  "MCFREncoderDist"
+                  "McfrEncoderDist"
                 ],
                 "ID": 3,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "MCFREncoderDist",
+                    "name": "McfrEncoderDist",
                     "ID": 3,
                     "type": {
                       "py/id": 117
@@ -4078,13 +4078,13 @@
               },
               {
                 "names": [
-                  "MCFRCurrent"
+                  "McfrCurrent"
                 ],
                 "ID": 4,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "MCFRCurrent",
+                    "name": "McfrCurrent",
                     "ID": 4,
                     "type": {
                       "py/id": 401
@@ -4097,13 +4097,13 @@
               },
               {
                 "names": [
-                  "MCFRSpeed"
+                  "McfrSpeed"
                 ],
                 "ID": 5,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "MCFRSpeed",
+                    "name": "McfrSpeed",
                     "ID": 5,
                     "type": {
                       "py/id": 1283
@@ -4116,13 +4116,13 @@
               },
               {
                 "names": [
-                  "MCRREncoderDist"
+                  "McrrEncoderDist"
                 ],
                 "ID": 6,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "MCRREncoderDist",
+                    "name": "McrrEncoderDist",
                     "ID": 6,
                     "type": {
                       "py/id": 117
@@ -4135,13 +4135,13 @@
               },
               {
                 "names": [
-                  "MCRRCurrent"
+                  "McrrCurrent"
                 ],
                 "ID": 7,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "MCRRCurrent",
+                    "name": "McrrCurrent",
                     "ID": 7,
                     "type": {
                       "py/id": 401
@@ -4154,13 +4154,13 @@
               },
               {
                 "names": [
-                  "MCRRSpeed"
+                  "McrrSpeed"
                 ],
                 "ID": 8,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "MCRRSpeed",
+                    "name": "McrrSpeed",
                     "ID": 8,
                     "type": {
                       "py/id": 1283
@@ -4173,13 +4173,13 @@
               },
               {
                 "names": [
-                  "MCRLEncoderDist"
+                  "McrlEncoderDist"
                 ],
                 "ID": 9,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "MCRLEncoderDist",
+                    "name": "McrlEncoderDist",
                     "ID": 9,
                     "type": {
                       "py/id": 117
@@ -4192,13 +4192,13 @@
               },
               {
                 "names": [
-                  "MCRLCurrent"
+                  "McrlCurrent"
                 ],
                 "ID": 10,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "MCRLCurrent",
+                    "name": "McrlCurrent",
                     "ID": 10,
                     "type": {
                       "py/id": 401
@@ -4211,13 +4211,13 @@
               },
               {
                 "names": [
-                  "MCRLSpeed"
+                  "McrlSpeed"
                 ],
                 "ID": 11,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "MCRLSpeed",
+                    "name": "McrlSpeed",
                     "ID": 11,
                     "type": {
                       "py/id": 1283
@@ -4235,13 +4235,13 @@
             "py/state": [
               {
                 "names": [
-                  "MCMoveStarted"
+                  "McMoveStarted"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "MCMoveStarted",
+                    "name": "McMoveStarted",
                     "ID": 0,
                     "severity": "COMMAND",
                     "format_string": "Move step has started",
@@ -4252,13 +4252,13 @@
               },
               {
                 "names": [
-                  "MCMoveComplete"
+                  "McMoveComplete"
                 ],
                 "ID": 1,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "MCMoveComplete",
+                    "name": "McMoveComplete",
                     "ID": 1,
                     "severity": "COMMAND",
                     "format_string": "Move step has finished",
@@ -4269,13 +4269,13 @@
               },
               {
                 "names": [
-                  "MCMSPFaultDetected"
+                  "McmspFaultDetected"
                 ],
                 "ID": 2,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "MCMSPFaultDetected",
+                    "name": "McmspFaultDetected",
                     "ID": 2,
                     "severity": "WARNING_HI",
                     "format_string": "Motor controller has detected a fault",
@@ -4286,13 +4286,13 @@
               },
               {
                 "names": [
-                  "MCMSPNotResponding"
+                  "McmspNotResponding"
                 ],
                 "ID": 3,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "MCMSPNotResponding",
+                    "name": "McmspNotResponding",
                     "ID": 3,
                     "severity": "WARNING_HI",
                     "format_string": "Motor controller not responding",
@@ -4303,13 +4303,13 @@
               },
               {
                 "names": [
-                  "MCMSPNotReporting"
+                  "McmspNotReporting"
                 ],
                 "ID": 4,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "MCMSPNotReporting",
+                    "name": "McmspNotReporting",
                     "ID": 4,
                     "severity": "WARNING_HI",
                     "format_string": "Motor controller not communicating requested data",
@@ -4320,13 +4320,13 @@
               },
               {
                 "names": [
-                  "MCParameterChanged"
+                  "McParameterChanged"
                 ],
                 "ID": 5,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "MCParameterChanged",
+                    "name": "McParameterChanged",
                     "ID": 5,
                     "severity": "COMMAND",
                     "format_string": "A Motor controller parameter has been changed",
@@ -4337,13 +4337,13 @@
               },
               {
                 "names": [
-                  "MCEncoderReset"
+                  "McEncoderReset"
                 ],
                 "ID": 6,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "MCEncoderReset",
+                    "name": "McEncoderReset",
                     "ID": 6,
                     "severity": "COMMAND",
                     "format_string": "A Motor encoder count has been reset",
@@ -4359,26 +4359,26 @@
     },
     {
       "names": [
-        "IMU"
+        "Imu"
       ],
       "ID": 3840,
       "val": {
         "py/object": "IrisBackendv3.data_standards.module.Module",
         "py/state": {
-          "name": "IMU",
+          "name": "Imu",
           "ID": 3840,
           "commands": {
             "py/object": "IrisBackendv3.utils.nameiddict.NameIdDict",
             "py/state": [
               {
                 "names": [
-                  "IMU_IMUReportData"
+                  "Imu_ImuReportData"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "IMU_IMUReportData",
+                    "name": "Imu_ImuReportData",
                     "mnemonic": "IMU_ReportData",
                     "ID": 0,
                     "args": [],
@@ -4388,13 +4388,13 @@
               },
               {
                 "names": [
-                  "IMU_IMUTurnOn"
+                  "Imu_ImuTurnOn"
                 ],
                 "ID": 1,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "IMU_IMUTurnOn",
+                    "name": "Imu_ImuTurnOn",
                     "mnemonic": "IMU_TurnOn",
                     "ID": 1,
                     "args": [],
@@ -4404,13 +4404,13 @@
               },
               {
                 "names": [
-                  "IMU_IMUTurnOff"
+                  "Imu_ImuTurnOff"
                 ],
                 "ID": 2,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Command",
                   "py/state": {
-                    "name": "IMU_IMUTurnOff",
+                    "name": "Imu_ImuTurnOff",
                     "mnemonic": "IMU_TurnOff",
                     "ID": 2,
                     "args": [],
@@ -4544,13 +4544,13 @@
             "py/state": [
               {
                 "names": [
-                  "IMUAngleWarning"
+                  "ImuAngleWarning"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "IMUAngleWarning",
+                    "name": "ImuAngleWarning",
                     "ID": 0,
                     "severity": "WARNING_HI",
                     "format_string": "High roll/tilt angle",
@@ -4561,13 +4561,13 @@
               },
               {
                 "names": [
-                  "IMUCommunicationFailure"
+                  "ImuCommunicationFailure"
                 ],
                 "ID": 1,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "IMUCommunicationFailure",
+                    "name": "ImuCommunicationFailure",
                     "ID": 1,
                     "severity": "WARNING_HI",
                     "format_string": "Communication failure with IMU",
@@ -4578,13 +4578,13 @@
               },
               {
                 "names": [
-                  "IMUPoweredON"
+                  "ImuPoweredOn"
                 ],
                 "ID": 2,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "IMUPoweredON",
+                    "name": "ImuPoweredOn",
                     "ID": 2,
                     "severity": "COMMAND",
                     "format_string": "IMU module turned on",
@@ -4595,13 +4595,13 @@
               },
               {
                 "names": [
-                  "IMUPoweredOFF"
+                  "ImuPoweredOff"
                 ],
                 "ID": 3,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "IMUPoweredOFF",
+                    "name": "ImuPoweredOff",
                     "ID": 3,
                     "severity": "COMMAND",
                     "format_string": "IMU module turned off",
@@ -4680,13 +4680,13 @@
             "py/state": [
               {
                 "names": [
-                  "VOLTAGE2.5V"
+                  "Voltage2.5V"
                 ],
                 "ID": 2,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "VOLTAGE2.5V",
+                    "name": "Voltage2.5V",
                     "ID": 2,
                     "type": {
                       "py/id": 1283
@@ -4699,13 +4699,13 @@
               },
               {
                 "names": [
-                  "VOLTAGE2.8V"
+                  "Voltage2.8V"
                 ],
                 "ID": 3,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "VOLTAGE2.8V",
+                    "name": "Voltage2.8V",
                     "ID": 3,
                     "type": {
                       "py/id": 1283
@@ -4718,13 +4718,13 @@
               },
               {
                 "names": [
-                  "VOLTAGE24V"
+                  "Voltage24V"
                 ],
                 "ID": 4,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "VOLTAGE24V",
+                    "name": "Voltage24V",
                     "ID": 4,
                     "type": {
                       "py/id": 1283
@@ -4737,13 +4737,13 @@
               },
               {
                 "names": [
-                  "VOLTAGE28V"
+                  "Voltage28V"
                 ],
                 "ID": 5,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "VOLTAGE28V",
+                    "name": "Voltage28V",
                     "ID": 5,
                     "type": {
                       "py/id": 1283
@@ -4756,13 +4756,13 @@
               },
               {
                 "names": [
-                  "BATTERYTHERMISTOR"
+                  "Batterythermistor"
                 ],
                 "ID": 16,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "BATTERYTHERMISTOR",
+                    "name": "Batterythermistor",
                     "ID": 16,
                     "type": {
                       "py/id": 127
@@ -4775,13 +4775,13 @@
               },
               {
                 "names": [
-                  "SYSTEMSTATUS"
+                  "Systemstatus"
                 ],
                 "ID": 23,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "SYSTEMSTATUS",
+                    "name": "Systemstatus",
                     "ID": 23,
                     "type": {
                       "py/id": 473
@@ -4794,13 +4794,13 @@
               },
               {
                 "names": [
-                  "THERM0"
+                  "Therm0"
                 ],
                 "ID": 24,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "THERM0",
+                    "name": "Therm0",
                     "ID": 24,
                     "type": {
                       "py/id": 127
@@ -4813,13 +4813,13 @@
               },
               {
                 "names": [
-                  "THERM1"
+                  "Therm1"
                 ],
                 "ID": 25,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "THERM1",
+                    "name": "Therm1",
                     "ID": 25,
                     "type": {
                       "py/id": 127
@@ -4832,13 +4832,13 @@
               },
               {
                 "names": [
-                  "THERM2"
+                  "Therm2"
                 ],
                 "ID": 26,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "THERM2",
+                    "name": "Therm2",
                     "ID": 26,
                     "type": {
                       "py/id": 127
@@ -4851,13 +4851,13 @@
               },
               {
                 "names": [
-                  "THERM3"
+                  "Therm3"
                 ],
                 "ID": 27,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "THERM3",
+                    "name": "Therm3",
                     "ID": 27,
                     "type": {
                       "py/id": 127
@@ -4870,13 +4870,13 @@
               },
               {
                 "names": [
-                  "THERM4"
+                  "Therm4"
                 ],
                 "ID": 28,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "THERM4",
+                    "name": "Therm4",
                     "ID": 28,
                     "type": {
                       "py/id": 127
@@ -4889,13 +4889,13 @@
               },
               {
                 "names": [
-                  "THERM5"
+                  "Therm5"
                 ],
                 "ID": 29,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.TelemetryChannel",
                   "py/state": {
-                    "name": "THERM5",
+                    "name": "Therm5",
                     "ID": 29,
                     "type": {
                       "py/id": 127
@@ -4913,13 +4913,13 @@
             "py/state": [
               {
                 "names": [
-                  "WatchDogMSP430IncorrectResp"
+                  "WatchDogMsp430IncorrectResp"
                 ],
                 "ID": 0,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "WatchDogMSP430IncorrectResp",
+                    "name": "WatchDogMsp430IncorrectResp",
                     "ID": 0,
                     "severity": "WARNING_HI",
                     "format_string": "Watchdog MSP430 Sent back Incorrect Response",
@@ -5016,13 +5016,13 @@
               },
               {
                 "names": [
-                  "ADCThermistorError"
+                  "AdcThermistorError"
                 ],
                 "ID": 4,
                 "val": {
                   "py/object": "IrisBackendv3.data_standards.module.Event",
                   "py/state": {
-                    "name": "ADCThermistorError",
+                    "name": "AdcThermistorError",
                     "ID": 4,
                     "severity": "WARNING_HI",
                     "format_string": "ADC Thermistor Conversion Error",

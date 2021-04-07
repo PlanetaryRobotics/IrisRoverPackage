@@ -36,7 +36,7 @@ import os.path
 from lxml import etree
 import re
 import jsonpickle
-import uuid
+import ulid
 
 from termcolor import cprint
 
@@ -580,23 +580,11 @@ class DataStandards(object):
         # ... shouldn't need to except for commands. Otherwise just index by module then ID.
         pass
 
-    def cache(self,
-              cache_dir: str = _CACHE_DIR,
-              filename_base: str = "IBv3_DScache",
-              ext: str = "jkl",
-              indent=0
-              ) -> str:
-        """
-        Cache this DataStandards instance in a unique file in `cache_dir`.
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, DataStandards):
+            return False
 
-        Returns the unique filename.
-        """
-        json = jsonpickle.encode(self.modules, keys=True, indent=indent)
-        filename = f'{filename_base}_{uuid.uuid4()}.{ext}'
-        with open(filename, 'w', encoding='utf-8') as file:
-            print(json, file=file)
-
-        return filename
+        return self.modules == other.modules
 
     def overview(self) -> str:
         """Returns a string which provides an overview of the standards."""
@@ -640,24 +628,116 @@ class DataStandards(object):
                 event(i, e)
         print('\n]')
 
+    def __str__(self) -> str:
+        return (
+            f"{len(self.modules)} Modules"
+        )
+
+    def cache(self,
+              cache_dir: str = _CACHE_DIR,
+              filename_base: str = "IBv3_DScache",
+              ext: str = "jkl",
+              indent=0
+              ) -> str:
+        """
+        Cache this DataStandards instance in a unique file in `cache_dir`.
+
+        Returns the unique filename.
+        """
+        # Make sure directory exists:
+        if not os.path.exists(cache_dir):
+            os.makedirs(cache_dir)
+        # Encode data:
+        json = jsonpickle.encode(self.modules, keys=True, indent=indent)
+        # Save:
+        filename = f'{filename_base}_{ulid.new()}.{ext}'
+        with open(os.path.join(cache_dir, filename), 'w', encoding='utf-8') as file:
+            print(json, file=file)
+
+        return filename
+
     @classmethod
     def load_cache(cls,
-                   cache_dir: str = './DataStandardsCache',
-                   cache_name: Optional[str] = None
+                   cache_dir: str = _CACHE_DIR,
+                   filename_base: str = "IBv3_DScache",
+                   ext: str = "jkl",
+                   cache_filename: Optional[str] = None,
                    ) -> DataStandards:
         """
         Create a new DataStandards instance by loading a cached file from `cache_dir`.
 
         The loaded file will be the latest cache in `cache_dir` unless the
-        name of specific cache file is supplied with `cache_name`.
+        name of specific cache file is supplied with `cache_filename`.
+
+        Any file in the given `cache_dir` whose name starts with the given 
+        `filename_base` and has the given `ext` will considered a candidate 
+        cache file. The candidate cache file with the most recent creation date 
+        will be selected.
         """
-        # TODO
-        pass
+        # Find the latest file if a specific file isn't requested:
+        if cache_filename is None:
+            # Grab all files in dir with extension:
+            files = os.listdir(cache_dir)
+            files = [f for f in files if f.endswith('.'+ext)]
+            if len(files) == 0:
+                raise FileNotFoundError(
+                    f"No DataStandards files with given extension {ext} found "
+                    f"in given directory {cache_dir}."
+                )
+            # Filter for those with desired prefix:
+            files = [f for f in files if f.startswith(filename_base)]
+            if len(files) == 0:
+                raise FileNotFoundError(
+                    f"No DataStandards files with given extension {ext} which "
+                    f"start with the given `filename_base` '{filename_base}' found "
+                    f"in given directory {cache_dir}."
+                )
+
+            # Grab file with the latest ulid:
+            latest_file: Tuple[str, ulid.ULID]  # name, ulid
+            for i, f in enumerate(files):
+                # Extract the ulid:
+                ulid_str = f.replace('.'+ext, '').split('_')[-1]
+                try:
+                    u = ulid.from_str(ulid_str)
+                except ValueError as e:
+                    raise ValueError(
+                        f"Unable to rebuild the ULID for DataStandards cache "
+                        f"file '{f}'. Extracted ULID string was '{ulid_str}' "
+                        f"but appears to be an invalid ulid. Is this really a "
+                        f"DS cache file? Is it from an old version? Has the file "
+                        f"been renamed?"
+                        f"\n Original ValueError from `ulid-py`: {e}"
+                    )
+
+                # Store this as the latest file if it's the first file or its
+                # ulid is chronologically more recent that the previous `latest_file`:
+                if i == 0:
+                    latest_file = f, u
+                elif u > latest_file[1]:
+                    latest_file = f, u
+
+            cache_filename = latest_file[0]
+
+        # Open the file:
+        with open(os.path.join(cache_dir, cache_filename), 'r', encoding='utf-8') as file:
+            data = file.read()
+
+        # Decode the file:
+        modules = jsonpickle.decode(data)
+
+        # Build the DataStandards Object:
+        DS = cls(modules)
+
+        logger.info(
+            f"Successfully Loaded {DS} from {os.path.join(cache_dir, cache_filename)}."
+        )
+
+        return cls(modules)
 
     @classmethod
     def build_standards(cls,
                         search_dir: str = _SEARCH_DIR,
-                        cache_dir: str = _CACHE_DIR,
                         uri_topology: str = _URI_TOPOLOGY
                         ) -> DataStandards:
         """
@@ -682,9 +762,8 @@ class DataStandards(object):
 
         # TODO: Add way of parsing Watchdog Module (since it's NOT an FPrime component)
         # ... make it a local FPrime XML? ... it is an FPrime component
+        # ... not necessary? (Watchdog Component in FPrime should mirror commands?...)
         # ... and Heartbeat Telemetry (maybe just hardcode heartbeat since it's so small...)
-
-        #! TODO: Clean up and finish this section then unit test module building
 
         # Build a `Module` from imported XML component file:
         for uri in topology_imports:
@@ -721,8 +800,15 @@ class DataStandards(object):
 
             module = build_module(found_components[0], tree_topology)
             modules[module.ID, module.name] = module
-            logger.debug(
-                f"Successfully Built Module #{len(modules)}: {module}")
+            logger.verbose(  # type: ignore # mypy doesn't recognize the `verboselogs` levels
+                f"Successfully Built Module #{len(modules)-1}: {module}"
+            )
 
-        # Build and Return the DataStandards Object:
-        return cls(modules)
+        # Build the DataStandards Object:
+        DS = cls(modules)
+
+        logger.info(
+            f"Successfully Built {DS} from {os.path.join(search_dir, uri_topology)}."
+        )
+
+        return DS

@@ -9,3 +9,4 @@ termcolor
 colorama
 verboselogs
 coloredlogs
+ulid-py

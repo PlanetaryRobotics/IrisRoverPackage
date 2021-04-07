@@ -699,13 +699,6 @@ class DataStandards(object):
                 "of the two."
             )
 
-    def __getitem__(self, key):
-        # TODO: Get from any module (collection,indexer)
-        # ... or just getCommand(), getTelem(), getEvent()
-        # use collections.ChainMap?
-        # ... shouldn't need to except for commands. Otherwise just index by module then ID.
-        pass
-
     def __eq__(self, other) -> bool:
         if not isinstance(other, DataStandards):
             return False

@@ -34,7 +34,7 @@ class ExtractionSuite(object):
     def _setup(self):
         """Common setup. Performed once per test."""
         self.sample_module_name = "SampleModule"
-        self.sample_module_ID = '0xbe'
+        self.sample_module_ID = 0xbe00
 
         self.sample_enum = r"""
                     <enum name="enum_one">
@@ -152,9 +152,9 @@ class ExtractionSuite(object):
             <import_component_type>Not/A/Real/Address/{self.sample_module_name}/{self.sample_module_name}ComponentAi.xml</import_component_type>
             <import_component_type>Not/A/Real/Address/YetAnother/YetAnotherComponentAi.xml</import_component_type>
             
-            <instance namespace="CubeRover" name="some_other_component" type="SomeOtherComponent" base_id="0xc0" base_id_window="255" />
+            <instance namespace="CubeRover" name="some_other_component" type="SomeOtherComponent" base_id="0xc000" base_id_window="255" />
             <instance namespace="CubeRover" name="{'_'.join(name_split_and_format(self.sample_module_name)).lower()}" type="{self.sample_module_name}" base_id="{self.sample_module_ID}" base_id_window="255" />
-            <instance namespace="CubeRover" name="yet_another_component" type="YetAnotherComponent" base_id="0x01" base_id_window="255" />
+            <instance namespace="CubeRover" name="yet_another_component" type="YetAnotherComponent" base_id="0x0100" base_id_window="255" />
         </assembly>
         """
 

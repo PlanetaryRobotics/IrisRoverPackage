@@ -1,0 +1,5 @@
+<assembly name="CubeRover">
+    <import_component_type>SampleFPrimeXml.xml</import_component_type>
+
+    <instance namespace="CubeRover" name="camera" type="Camera" base_id="0xca" base_id_window="255" />
+</assembly>

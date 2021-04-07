@@ -22,7 +22,7 @@ If a component directory doesn't contain a Bitfields file, it is assumed
 to not have a bitfield.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 02/01/2021
+@last-updated: 04/07/2021
 """
 
 # Activate postponed annotations (for using classes as return type in their own methods)
@@ -35,7 +35,12 @@ import warnings
 import os.path
 from lxml import etree
 import re
+import jsonpickle
+import uuid
 
+from termcolor import cprint
+
+from .logging import logger
 from .exceptions import StandardsFormattingException
 
 from IrisBackendv3.utils import NameIdDict
@@ -47,7 +52,7 @@ from . import gsw_metadata_tools as GswMetadataTools
 
 # Settings:
 # Default directory to search for files in:
-_SEARCH_DIR: str = '../../../FlightSoftware/fprime'
+_SEARCH_DIR: str = '../FlightSoftware/fprime'
 # Default directory to store cached files in:
 _CACHE_DIR: str = './DataStandardsCache'
 # Relative Locations of FPrime XML Topology File w.r.t. `_SEARCH_DIR`:
@@ -77,7 +82,24 @@ def standardize_name(original_name: str) -> str:
     constants/enums), one example being all highlevel struct-like containers
     (Module, Command, Event, TelemetryChannel).
     """
-    return "".join(name_split_and_format(original_name))
+    pieces = name_split_and_format_by_term(original_name)
+    # Build the name with no joiner between pieces.
+    # *but* Make sure to preserve boundaries between adjacent digits.
+    # Since digits can't be capitalized and thus the boundaries will be erased.
+    name = ""
+    for i in range(len(pieces)-1):
+        first, *rest = list(pieces[i])
+        name += first.upper() + "".join(rest).lower()
+        if pieces[i][-1].isdigit() and pieces[i+1][0].isdigit():
+            # If this piece ends w/a digit and next one starts with one,
+            # add a boundary to preserve the boundary that was once there (so it
+            # doesn't just look like one big number):
+            name += '.'
+
+    first, *rest = list(pieces[-1])
+    name += first.upper() + "".join(rest).lower()
+
+    return name
 
 
 def standardize_field_name(original_name: str) -> str:
@@ -114,23 +136,42 @@ def extract_type(node: etree.Element, attr_name: str) -> FswDataType:
     Throws relevant error if attribute not found or invalid.
     """
     try:
-        datatype = FswDataType[node.attrib[attr_name]]
-    except KeyError:
-        # Note: both unknown enum name and unknown attribute -> KeyError
+        type_name: str = node.attrib[attr_name]
+    except KeyError as e:
+        raise StandardsFormattingException(
+            node.base,
+            f"[KeyError]: At sourceline {node.sourceline}, given attribute name "
+            f"'{attr_name}' cannot be found."
+            f"\n Original KeyError: {e}"
+        )
+
+    if type_name.lower() == 'string':
         try:
-            raise StandardsFormattingException(
-                node.base,
-                f"[TypeError]: At sourceline {node.sourceline}, given type in attribute "
-                f"'{attr_name}' with value `{node.attrib[attr_name]}` is not "
-                "a known `FSWDataType`."
-            )
+            # Extract the string size:
+            type_size: int = parse_int(node.attrib['size'])
+            # Craft the appropriate fixed-size type name used in FswDataType:
+            type_name = 'STRING' + str(type_size)
         except KeyError as e:
             raise StandardsFormattingException(
                 node.base,
                 f"[KeyError]: At sourceline {node.sourceline}, given attribute name "
-                f"'{attr_name}' cannot be found."
+                f"'{attr_name}' has value {type_name}. As such, it needs a `size` "
+                f"attribute to work as a fixed-size type but a `size` attribute "
+                f"cannot be found."
                 f"\n Original KeyError: {e}"
             )
+
+    try:
+        datatype = FswDataType.get(type_name)
+    except KeyError:
+        # Note: both unknown enum name and unknown attribute -> KeyError
+        logger.error(
+            f"[FSWTypeError] in {node.base} at sourceline {node.sourceline}: "
+            f"given type in attribute '{attr_name}' with value "
+            f"`{type_name}` is not a known or supported "
+            f"`FSWDataType`. So, this field is being given type `INVALID`."
+        )
+        return FswDataType.INVALID
 
     return datatype
 
@@ -235,14 +276,21 @@ def extract_commands(node: etree.Element, module_name: str) -> NameIdDict[Comman
         # Store Command:
         if command.ID in commands.ids:
             # If command with same ID is already stored, flag it.
-            warnings.warn(
+            logger.warning(
                 f"On line {node.sourceline} in {node.base}, "
                 f"DUPLICATE of existing command ID {command.ID} "
                 f"with {'the same' if command == commands[command.ID] else 'DIFFERENT'} content "
                 f"for NameIdDict index [{command.ID, command.name}]."
             )
 
-        commands[command.ID, command.name] = command
+        # If command contains an argument with an invalid type, toss it:
+        if FswDataType.INVALID in [a.datatype for a in command.args]:
+            logger.error(
+                f"Command {command} is being ignored since it contains an "
+                f"argument with an `INVALID` `FswDataType`."
+            )
+        else:
+            commands[command.ID, command.name] = command
 
     return commands
 
@@ -268,10 +316,19 @@ def extract_telemetry(node: etree.Element) -> NameIdDict[TelemetryChannel]:
             metadata_json_str=GswMetadataTools.extract_from_xml(channel_src)
         )
 
+        # If channel has invalid type, we won't be able to read it:
+        if channel.datatype == FswDataType.INVALID:
+            raise StandardsFormattingException(
+                channel_src.base,
+                f"Telemetry channel {channel} has `FswDataType.INVALID` type. "
+                f"As a result, this telemetry channel will be unintelligible. "
+                f"Please fix the type."
+            )
+
         # Store Channel:
         if (channel.ID, channel.name) in channels:
             # If channel with same index is already stored, flag it.
-            warnings.warn(
+            logger.warning(
                 f"On line {node.sourceline} in {node.base}, "
                 f"DUPLICATE of existing telemetry channel ID {channel.ID} "
                 f"with {'the same' if channel == channels[channel.ID] else 'DIFFERENT'} content "
@@ -304,10 +361,19 @@ def extract_events(node: etree.Element) -> NameIdDict[Event]:
             args=extract_arguments(event_src)
         )
 
+        # If event has an arg with invalid type, we won't be able to read it:
+        if FswDataType.INVALID in [a.datatype for a in event.args]:
+            raise StandardsFormattingException(
+                event_src.base,
+                f"Event {event} has an argument with `FswDataType.INVALID` type. "
+                f"As a result, this event will be unintelligible. "
+                f"Please fix the type."
+            )
+
         # Store Event:
         if (event.ID, event.name) in events:
             # If event with same index is already stored, flag it.
-            warnings.warn(
+            logger.warning(
                 f"On line {node.sourceline} in {node.base}, "
                 f"DUPLICATE of existing event ID {event.ID} "
                 f"with {'the same' if event == events[event.ID] else 'DIFFERENT'} content "
@@ -342,19 +408,20 @@ def build_module(node: etree.Element, tree_topology: etree.ElementTree) -> Modul
             )
         )
 
-    name = standardize_name(node.attrib['name'])
+    src_name = node.attrib['name']
+    name = standardize_name(src_name)
 
     ####
     # Grab corresponding ID from topology tree:
     ####
     # Select all instances of the Module's <component>:
     try:
-        instance_selector = f"/assembly/instance[@type='{name}']"
+        instance_selector = f"/assembly/instance[@type='{src_name}']"
         instances = tree_topology.xpath(instance_selector)
     except IndexError:
         raise StandardsFormattingException(
             node.base,
-            f"Failed to find any <instance>s in FPrime Topology for the module named {name}."
+            f"Failed to find any <instance>s in FPrime Topology for the module named {src_name}."
         )
 
     # Make sure there's only one instance of the Module's <component>:
@@ -362,42 +429,66 @@ def build_module(node: etree.Element, tree_topology: etree.ElementTree) -> Modul
         raise StandardsFormattingException(
             node.base,
             (
-                f"No <instance> of <component> {name} found in FPrime "
+                f"No <instance> of <component> {src_name} found in FPrime "
                 f"Topology for module defined at {node.sourceline}."
             )
         )
     elif len(instances) > 1:
-        raise StandardsFormattingException(
-            node.base,
-            (
-                f"Multiple <instance>s of <component> {name} found in FPrime "
-                f"Topology for module defined at {node.sourceline}. "
-                "Instances were found at lines "
-                f"{[i.sourceline for i in instances]} in Topology file "
-                f"{tree_topology.base}"
-            )
-        )
+        num_instances: int = len(instances)
+        if len({i.attrib['name'] for i in instances}) == num_instances \
+                and len({parse_int(i.attrib['base_id']) for i in instances}) == num_instances:
 
-    ID = parse_int(instances[0].attrib['base_id'])
+            # If they all have unique IDs and unique names, then make new names
+            # for each instance.
+            logger.notice(  # type: ignore # mypy complains that `logger` doesn't have a member `notice` but it does
+                f"Multiple <instance>s of <component> {src_name} found in FPrime "
+                f"Topology for module defined at {node.sourceline}. "
+                f"Since all instance names and base_ids are unique, new "
+                f"standards objects will be created for each instance. "
+                f"Instances were found at lines "
+                f"{[i.sourceline for i in instances]} in Topology file "
+                f"{tree_topology.getroot().base}"
+            )
+            IDs = [parse_int(i.attrib['base_id']) for i in instances]
+            instance_names = [
+                name + "-" + standardize_name(i.attrib['name']) for i in instances
+            ]
+
+        else:
+            # If not, this is a mistake and should be flagged
+            raise StandardsFormattingException(
+                node.base,
+                (
+                    f"Multiple <instance>s of <component> {src_name} with non-unique "
+                    f"names and IDs were found in FPrime Topology for module "
+                    f"defined at {node.sourceline}. Instances were found at lines "
+                    f"{[i.sourceline for i in instances]} in Topology file "
+                    f"{tree_topology.getroot().base}"
+                )
+            )
+    else:
+        IDs = [parse_int(instances[0].attrib['base_id'])]
+        instance_names = [name]
 
     ####
     # Extract Data:
     ###
-    commands = extract_commands(node, name)
+    #! TODO: Create one unique module for each (ID, instance_name) pair:
+    commands = extract_commands(node, instance_names[0])
     telemetry = extract_telemetry(node)
     events = extract_events(node)
 
-    if len(commands) > 0 or len(telemetry) > 0 or len(events) > 0:
-        warnings.warn(
-            f"Module {name} (ID = {ID}) has no commands, telemetry, or events."
+    if len(commands) == 0 and len(telemetry) == 0 and len(events) == 0:
+        logger.info(
+            f"Module {src_name} (ID = {IDs}) has no commands, telemetry, or events."
         )
 
     return Module(
-        name=name,
-        ID=ID,
-        commands=extract_commands(node, name),
-        events=extract_events(node),
-        telemetry=extract_telemetry(node)
+        name=instance_names[0],
+        ID=IDs[0],
+        commands=commands,
+        events=events,
+        telemetry=telemetry
     )
 
 
@@ -450,19 +541,17 @@ def import_all_fprime_xml(
             # (since we should be reading XML with specs of base tree)
             text = re.sub(r'<\?.*\?>', '', text)
             # Load text as XML:
-            imported_xml = etree.XML(path)
-            # Extract root (on separate line so that `XMLSyntaxError`s can be pinpointed):
-            imported_root = imported_xml.getroot()
+            imported_xml = etree.XML(text)
 
             # Replace the import_* element:
             parent = im.getparent()
-            parent.replace(im, imported_root)
+            parent.replace(im, imported_xml)
 
             # Add a breadcrumb comment before the node in question:
             breadcrumb = etree.XML(
                 f"""<comment> <![CDATA[[Next node imported via {im.tag} from: {path}]]]> </comment>"""
             )
-            parent.insert(parent.index(imported_root), breadcrumb)
+            parent.insert(parent.index(imported_xml), breadcrumb)
 
         # Recurse (in case imports imported more import elements):
         return import_all_fprime_xml(node, search_dir, max_depth=max_depth-1)
@@ -492,17 +581,66 @@ class DataStandards(object):
         pass
 
     def cache(self,
-              cache_dir: str = './DataStandardsCache'
+              cache_dir: str = _CACHE_DIR,
+              filename_base: str = "IBv3_DScache",
+              ext: str = "jkl",
+              indent=0
               ) -> str:
         """
         Cache this DataStandards instance in a unique file in `cache_dir`.
 
         Returns the unique filename.
         """
-        # TODO
-        pass
+        json = jsonpickle.encode(self.modules, keys=True, indent=indent)
+        filename = f'{filename_base}_{uuid.uuid4()}.{ext}'
+        with open(filename, 'w', encoding='utf-8') as file:
+            print(json, file=file)
 
-    @ classmethod
+        return filename
+
+    def overview(self) -> str:
+        """Returns a string which provides an overview of the standards."""
+        overview = "["
+        for m in self.modules.vals:
+            overview += f'\n\t{m}'
+            overview += '\n\t\t Commands:'
+            for i, c in enumerate(m.commands.vals):
+                overview += f'\n\t\t\t{i}.\t{c}'
+            overview += '\n\t\t Telemetry:'
+            for i, t in enumerate(m.telemetry.vals):
+                overview += f'\n\t\t\t{i}.\t{t}'
+            overview += '\n\t\t Events:'
+            for i, e in enumerate(m.events.vals):
+                overview += f'\n\t\t\t{i}.\t{e}'
+        overview += '\n]'
+
+        return overview
+
+    def print_overview(self) -> None:
+        """Prints a colored overview of the standards."""
+        def module(x):
+            return cprint(f"\n\t{x}", 'magenta', 'on_grey', attrs=['bold'])
+
+        def header(x): return cprint(f"\n\t\t{x}", 'grey', 'on_white')
+        def command(i, x): return cprint(f"\n\t\t\t{i}.\t{x}", 'green')
+        def telemetry(i, x): return cprint(f"\n\t\t\t{i}.\t{x}", 'red')
+        def event(i, x): return cprint(f"\n\t\t\t{i}.\t{x}", 'blue')
+
+        print("Data Standards Overview: [")
+        for m in self.modules.vals:
+            module(m)
+            header('Commands:')
+            for i, c in enumerate(m.commands.vals):
+                command(i, c)
+            header('Telemetry:')
+            for i, t in enumerate(m.telemetry.vals):
+                telemetry(i, t)
+            header('Events:')
+            for i, e in enumerate(m.events.vals):
+                event(i, e)
+        print('\n]')
+
+    @classmethod
     def load_cache(cls,
                    cache_dir: str = './DataStandardsCache',
                    cache_name: Optional[str] = None
@@ -516,7 +654,7 @@ class DataStandards(object):
         # TODO
         pass
 
-    @ classmethod
+    @classmethod
     def build_standards(cls,
                         search_dir: str = _SEARCH_DIR,
                         cache_dir: str = _CACHE_DIR,
@@ -534,13 +672,13 @@ class DataStandards(object):
         # Grab Topology File:
         tree_topology = etree.parse(os.path.join(search_dir, uri_topology))
 
-        # Create empty modules container:
-        modules: NameIdDict[Module] = NameIdDict()
-
         # Grab all XML files referenced in Topology:
         topology_imports = tree_topology.xpath(
             "/assembly/import_component_type/text()"
         )
+
+        # Create empty modules container:
+        modules: NameIdDict[Module] = NameIdDict()
 
         # TODO: Add way of parsing Watchdog Module (since it's NOT an FPrime component)
         # ... make it a local FPrime XML? ... it is an FPrime component
@@ -561,22 +699,30 @@ class DataStandards(object):
                     )
                 )
 
+            expanded_tree = import_all_fprime_xml(
+                node=tree,
+                search_dir=search_dir
+            )
+
             # Grab all <component>s:
-            found_components = tree.xpath('//component')
+            found_components = expanded_tree.xpath('//component')
 
             # Make sure exactly one component was found (one component per definition file):
             if len(found_components) == 0:
                 raise StandardsFormattingException(
                     uri,
-                    f"No <component> found for module at {tree.sourceline}."
+                    f"No <component> found for module at {expanded_tree.sourceline}."
                 )
             elif len(found_components) > 1:
                 raise StandardsFormattingException(
                     uri,
-                    f"Somehow found multiple components ({found_components}) for module at {tree.sourceline}."
+                    f"Somehow found multiple components ({found_components}) for module at {expanded_tree.sourceline}."
                 )
 
             module = build_module(found_components[0], tree_topology)
+            modules[module.ID, module.name] = module
+            logger.debug(
+                f"Successfully Built Module #{len(modules)}: {module}")
 
         # Build and Return the DataStandards Object:
         return cls(modules)

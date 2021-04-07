@@ -5,7 +5,8 @@
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.testing.pytestArgs": [
-        "--verbose"
+        "--verbose",
+        "-vv"
     ],
     "python.linting.pylintEnabled": false,
     "python.linting.mypyEnabled": true,
@@ -40,5 +41,28 @@
         "jsonpickled",
         "jsonpickling",
         "vformat"
-    ]
+    ],
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": "googletest.failed",
+                "settings": {
+                    "foreground": "#f00"
+                }
+            },
+            {
+                "scope": "googletest.passed",
+                "settings": {
+                    "foreground": "#0f0"
+                }
+            },
+            {
+                "scope": "googletest.run",
+                "settings": {
+                    "foreground": "#0f0"
+                }
+            }
+        ]
+    },
+    "python.pythonPath": "/Users/connorcolombo/.pyenv/versions/3.8.5/envs/py_irisbackendv3/bin/python"
 }

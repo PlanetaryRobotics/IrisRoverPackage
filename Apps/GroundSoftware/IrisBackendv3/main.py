@@ -7,6 +7,7 @@ Created on Fri Nov 20 13:18:56 2020
 """
 
 import pcapng as pcap  # type: ignore
+from IrisBackendv3.data_standards import DataStandards
 
 """
 # parse CLI opts inputs
@@ -17,6 +18,7 @@ transceiver = YAMCSTransceiver()
 storage = LocalArchive()
 """
 
+# standards = DataStandards.build_standards()
 
 with open('../test-data/Iris_Telemetry_201118.pcap', 'rb') as fp:
     raw_data = pcap.structs.read_bytes(stream=fp, size=100)

@@ -1,5 +1,5 @@
 <interface name="FileDownlink" namespace="CubeRover">
-    <import_serializable_type>Fw/Buffer/BufferSerializableAi.xml</import_serializable_type>
+    <import_serializable_type>SampleFPrimeXml_BufferSerializableAi.xml</import_serializable_type>
 
     <comment>
         Port to downlink a file and it's metadata

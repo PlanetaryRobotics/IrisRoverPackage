@@ -39,7 +39,7 @@
         "py/state": {
           "name": "speed",
           "type": {
-            "py/id": 4
+            "py/id": 6
           },
           "enum": [],
           "bitfields": null,

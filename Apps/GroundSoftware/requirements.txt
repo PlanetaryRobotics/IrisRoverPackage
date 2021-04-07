@@ -5,3 +5,7 @@ numpy
 lxml
 pytest
 jsonpickle
+termcolor
+colorama
+verboselogs
+coloredlogs

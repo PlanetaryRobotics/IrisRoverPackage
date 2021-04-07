@@ -177,6 +177,14 @@ def name_split_and_format(name: str) -> List[str]:
     >>> name_split_and_format('hello55World99')
     ['Hello55', 'World99']
 
+    # With other adjacent digits:
+    >>> name_split_and_format('hello55World99-2')
+    ['Hello55', 'World99', '2']
+
+    # With other adjacent digits and decimals:
+    >>> name_split_and_format('hello55World99-2.0')
+    ['Hello55', 'World99', '2.0']
+
     # With numbers in the middle:
     >>> name_split_and_format('hello55world')
     ['Hello55', 'World']
@@ -246,6 +254,10 @@ def name_split_and_format_by_term(name: str) -> List[str]:
     >>> name_split_and_format_by_term('FSW::Says_Hello55')
     ['FSW', 'Says', 'Hello', '55']
 
+    # Slightly challenging w/adjacent digits:
+    >>> name_split_and_format_by_term('FSW::Says_Hello56_5')
+    ['FSW', 'Says', 'Hello', '56', '5']
+
     # Moderately challenging:
     >>> name_split_and_format_by_term('send(FSW::Says_Hello55)')
     ['Send', '(', 'FSW', 'Says', 'Hello', '55', ')']
@@ -256,13 +268,27 @@ def name_split_and_format_by_term(name: str) -> List[str]:
 
     """
     # Format into basic PascalCase to start with standard boundaries:
-    pascal = "".join(name_split_and_format(name))
+
+    # Build the name with no joiner between pieces.
+    # *but* Make sure to preserve boundaries between adjacent digits.
+    # Since digits can't be capitalized and thus the boundaries will be erased.
+    pieces = name_split_and_format(name)
+    pascal = ""
+    for i in range(len(pieces)-1):
+        pascal += pieces[i]
+        if pieces[i][-1].isdigit() and pieces[i+1][0].isdigit():
+            # If this piece ends w/a digit and next one starts with one,
+            # add a boundary to preserve the boundary that was once there (so it
+            # doesn't just look like one big number):
+            pascal += '_'  # this will be filtered out as a separator later
+    pascal += pieces[-1]
+
     # Split and Return:
     return re.findall(
         # Any:
         # Sequences of symbols:
         r"[^A-z0-9]+"  # not alphanumeric
-        # OR initialisms:
+        # OR initialisms:exi
         r"|[A-Z]+"  # A sequence of all capital letters
         r"(?=[^a-z]{1}|$)"  # then non-capital (not captured) or end of string:
         # OR word (already in PascalCase):

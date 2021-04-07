@@ -5,7 +5,7 @@ This module contains tools which serve as the standard bearer for how
 GSW-specific metadata is embedded in the FPrime XML.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 01/18/2021
+@last-updated: 04/05/2021
 """
 
 from lxml import etree
@@ -18,24 +18,31 @@ def extract_from_xml(node: etree.Element) -> str:
     """
     Extract the GSW-specific metadata from the given XML node (eg. `<command>` or `<arg>`).
     """
+
+    #! TODO: Handle the case where field contains imported comment (and thus a breadcrumb comment)
+    # ? TODO: Consider only warning on the "no comment" case.
+
     comment_src = node.xpath("./comment")
     if len(comment_src) == 0:
-        raise StandardsFormattingException(
-            node.base,
-            f"At sourceline {node.sourceline}, node doesn't have a comment."
-        )
+        comment_str = ""
+        # raise StandardsFormattingException(
+        #     node.base,
+        #     f"At sourceline {node.sourceline}, node doesn't have a comment."
+        # )
     elif len(comment_src) > 1:
-        raise StandardsFormattingException(
-            node.base,
-            (
-                f"At sourceline {node.sourceline}, node somehow has multiple "
-                "comments which are direct descendants. Consider merging. "
-                "Only the first will be used."
-            )
-        )
+        comment_str = '\n'.join([comment.text for comment in comment_src])
+        # raise StandardsFormattingException(
+        #     node.base,
+        #     (
+        #         f"At sourceline {node.sourceline}, node somehow has multiple "
+        #         "comments which are direct descendants. Consider merging. "
+        #         "Only the first will be used."
+        #     )
+        # )
     else:
-        comment = comment_src[0].text
-        return extract_from_str(comment)
+        comment_str = comment_src[0].text
+
+    return extract_from_str(comment_str)
 
 
 def extract_from_str(comment: str) -> str:

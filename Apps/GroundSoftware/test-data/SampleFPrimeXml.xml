@@ -4,7 +4,7 @@
 <component name="Camera" kind="passive" namespace="CubeRover">
     <import_port_type>SampleFPrimeXml_FileDownlinkPortAi.xml</import_port_type>
     <import_port_type>SampleFPrimeXml_CameraTakePicturePortAi.xml</import_port_type>
-    <import_dictionary>test-data/SampleFPrimeXml_EventsDict.xml</import_dictionary>
+    <import_dictionary>SampleFPrimeXml_EventsDict.xml</import_dictionary>
 
     <comment>Manages the CubeRover cameras</comment>
     <ports>
@@ -48,7 +48,7 @@
                         <![CDATA[{JSONSTART{{
                                 "hello": "sir",
                                 "i_am": "Test Data",
-                                "BEEP", 0xB009,
+                                "BEEP": "0xB009",
                                 "enum": {
                                     "FRONT": 0,
                                     "REAR": 1
@@ -62,7 +62,7 @@
                         <![CDATA[{JSONSTART{{
                                 "hello": "sir",
                                 "i_am": "Test Data",
-                                "BEEP", 0xB009,
+                                "BEEP": "0xB009",
                                 "enum": {
                                     "FRONT": 0,
                                     "REAR": 1
@@ -87,7 +87,7 @@
                         <![CDATA[{JSONSTART{{
                                 "hello": "sir",
                                 "i_am": "Test Data",
-                                "BEEP", 0xB009,
+                                "BEEP": "0xB009",
                                 "enum": {
                                     "CLEAR": 0,
                                     "READ": 255
@@ -112,7 +112,7 @@
                         <![CDATA[{JSONSTART{{
                                 "hello": "sir",
                                 "i_am": "Test Data",
-                                "BEEP", 0xB009,
+                                "BEEP": "0xB009",
                                 "enum": {
                                     "FRONT": 0,
                                     "REAR": 1
@@ -137,7 +137,7 @@
                         <![CDATA[{JSONSTART{{
                                 "hello": "sir",
                                 "i_am": "Test Data",
-                                "BEEP", 0xB009,
+                                "BEEP": "0xB009",
                                 "enum": {
                                     "FRONT": 0,
                                     "REAR": 1
@@ -162,7 +162,7 @@
                         <![CDATA[{JSONSTART{{
                                 "hello": "sir",
                                 "i_am": "Test Data",
-                                "BEEP", 0xB009,
+                                "BEEP": "0xB009",
                                 "enum": {
                                     "FRONT": 0,
                                     "REAR": 1
@@ -187,7 +187,7 @@
                         <![CDATA[{JSONSTART{{
                                 "hello": "sir",
                                 "i_am": "Test Data",
-                                "BEEP", 0xB009,
+                                "BEEP": "0xB009",
                                 "enum": {
                                     "FRONT": 0,
                                     "REAR": 1
@@ -212,7 +212,7 @@
                         <![CDATA[{JSONSTART{{
                                 "hello": "sir",
                                 "i_am": "Test Data",
-                                "BEEP", 0xB009,
+                                "BEEP": "0xB009",
                                 "enum": {
                                     "FRONT": 0,
                                     "REAR": 1
@@ -246,7 +246,7 @@
                         <![CDATA[{JSONSTART{{
                                 "hello": "sir",
                                 "i_am": "Test Data",
-                                "BEEP", 0xB009,
+                                "BEEP": "0xB009",
                                 "enum": {
                                     "FRONT": 0,
                                     "REAR": 1

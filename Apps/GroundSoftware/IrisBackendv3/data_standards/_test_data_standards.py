@@ -3,7 +3,7 @@
 Test all the structural functions of the `data_standards` module.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 02/01/2021
+@last-updated: 04/05/2021
 """
 import pytest
 from typing import Any, List, Union, Tuple
@@ -23,6 +23,8 @@ def suite_setup(request):
     # Load Test Data:
     request.cls.xml_uri = "../../test-data/SampleFPrimeXml.xml"
 
+
+#! TODO: Add tests for `FswDataType.INVALID` arguments and the removal of commands / error of events/telemetry with that type.
 
 @pytest.mark.usefixtures('suite_setup')
 class ExtractionSuite(object):
@@ -305,10 +307,19 @@ class ExtractionSuite(object):
 class ImportSuite(object):
     """Verify all file finding and importing functions work as expected."""
 
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        # Default directory to search for files in:
+        self._SEARCH_DIR: str = './test-data'
+        # Relative Location of FPrime XML Topology File w.r.t. `_SEARCH_DIR`:
+        self._URI_TOPOLOGY: str = './SampleFPrimeXmlTopology.xml'
+        # Relative Location of FPrime XML Sample Component File w.r.t. `_SEARCH_DIR`:
+        self._URI_COMPONENT: str = './SampleFPrimeXml.xml'
+
     def test_import_all_fprime_xml(self):
         # TODO: Build out Sample Test files, using imports (make sure using right names)... also, throw in some imports with <?xml?> and .hpp
 
-        commands: NameIdDict[Command] = NameIdDict({
+        expected_commands: NameIdDict[Command] = NameIdDict({
             (0x00, "Camera_GetStatus"): Command(
                 name='Camera_GetStatus',
                 mnemonic='Get_Status',
@@ -323,7 +334,7 @@ class ImportSuite(object):
                 mnemonic='Take_Image',
                 ID=0x01,
                 metadata_json_str="""{
-                    "description": "Get camera status.",
+                    "description": "I am a command.",
                     "YAMCS_queue": "much_danger"
                 }""",
                 args=[
@@ -333,7 +344,7 @@ class ImportSuite(object):
                         metadata_json_str="""{
                             "hello": "sir",
                             "i_am": "Test Data",
-                            "BEEP", 0xB009,
+                            "BEEP": "0xB009",
                             "enum": {
                                 "FRONT": 0,
                                 "REAR": 1
@@ -346,7 +357,7 @@ class ImportSuite(object):
                         metadata_json_str="""{
                             "hello": "sir",
                             "i_am": "Test Data",
-                            "BEEP", 0xB009,
+                            "BEEP": "0xB009",
                             "enum": {
                                 "FRONT": 0,
                                 "REAR": 1
@@ -370,7 +381,7 @@ class ImportSuite(object):
                         metadata_json_str="""{
                             "hello": "sir",
                             "i_am": "Test Data",
-                            "BEEP", 0xB009,
+                            "BEEP": "0xB009",
                             "enum": {
                                 "CLEAR": 0,
                                 "READ": 255
@@ -394,7 +405,7 @@ class ImportSuite(object):
                         metadata_json_str="""{
                             "hello": "sir",
                             "i_am": "Test Data",
-                            "BEEP", 0xB009,
+                            "BEEP": "0xB009",
                             "enum": {
                                 "FRONT": 0,
                                 "REAR": 1
@@ -403,9 +414,9 @@ class ImportSuite(object):
                     )
                 ]
             ),
-            (0x04, "Camera_Configure0Crop"): Command(
-                name='Camera_Configure0Crop',
-                mnemonic='Configure0_Crop',
+            (0x04, "Camera_Camera0Crop"): Command(
+                name='Camera_Camera0Crop',
+                mnemonic='Camera0_Crop',
                 ID=0x04,
                 metadata_json_str="""{
                     "description": "I am a command.",
@@ -418,7 +429,7 @@ class ImportSuite(object):
                         metadata_json_str="""{
                             "hello": "sir",
                             "i_am": "Test Data",
-                            "BEEP", 0xB009,
+                            "BEEP": "0xB009",
                             "enum": {
                                 "FRONT": 0,
                                 "REAR": 1
@@ -442,7 +453,7 @@ class ImportSuite(object):
                         metadata_json_str="""{
                             "hello": "sir",
                             "i_am": "Test Data",
-                            "BEEP", 0xB009,
+                            "BEEP": "0xB009",
                             "enum": {
                                 "FRONT": 0,
                                 "REAR": 1
@@ -451,9 +462,9 @@ class ImportSuite(object):
                     )
                 ]
             ),
-            (0x06, "Camera_Configure1Crop"): Command(
-                name='Camera_Configure1Crop',
-                mnemonic='Configure1_Crop',
+            (0x06, "Camera_Camera1Crop"): Command(
+                name='Camera_Camera1Crop',
+                mnemonic='Camera1_Crop',
                 ID=0x06,
                 metadata_json_str="""{
                     "description": "I am a command.",
@@ -466,7 +477,7 @@ class ImportSuite(object):
                         metadata_json_str="""{
                             "hello": "sir",
                             "i_am": "Test Data",
-                            "BEEP", 0xB009,
+                            "BEEP": "0xB009",
                             "enum": {
                                 "FRONT": 0,
                                 "REAR": 1
@@ -485,12 +496,12 @@ class ImportSuite(object):
                 }""",
                 args=[
                     Argument(
-                        name='config',
-                        datatype=FDT.U64,
+                        name='callback_id',
+                        datatype=FDT.U16,
                         metadata_json_str="""{
                             "hello": "sir",
                             "i_am": "Test Data",
-                            "BEEP", 0xB009,
+                            "BEEP": "0xB009",
                             "enum": {
                                 "FRONT": 0,
                                 "REAR": 1
@@ -499,6 +510,76 @@ class ImportSuite(object):
                     )
                 ]
             ),
+            (0x08, "Camera_EraseImage"): Command(
+                name='Camera_EraseImage',
+                mnemonic='Erase_Image',
+                ID=0x08,
+                metadata_json_str="""{
+                    "description": "I am a command.",
+                    "YAMCS_queue": "much_danger"
+                }"""
+            ),
+            (0x09, "Camera_SoftCameraReset"): Command(
+                name='Camera_SoftCameraReset',
+                mnemonic='Soft_Camera_Reset',
+                ID=0x09,
+                metadata_json_str="""{
+                    "description": "I am a command.",
+                    "YAMCS_queue": "much_danger"
+                }""",
+                args=[
+                    Argument(
+                        name='camera_num',
+                        datatype=FDT.U8,
+                        metadata_json_str="""{
+                            "hello": "sir",
+                            "i_am": "Test Data",
+                            "BEEP": "0xB009",
+                            "enum": {
+                                "FRONT": 0,
+                                "REAR": 1
+                            }
+                        }"""
+                    )
+                ]
+            ),
+            (0x0A, "Camera_ImageDump"): Command(
+                name='Camera_ImageDump',
+                mnemonic='Image_Dump',
+                ID=0x0A,
+                metadata_json_str="""{
+                    "description": "I am a command.",
+                    "YAMCS_queue": "much_danger"
+                }"""
+            )
         })
 
-        raise NotImplementedError()
+        # Grab Topology File:
+        tree_topology = etree.parse(os.path.join(
+            self._SEARCH_DIR, self._URI_TOPOLOGY))
+
+        # Grab all XML files referenced in Topology:
+        topology_imports = tree_topology.xpath(
+            "/assembly/import_component_type/text()"
+        )
+
+        tree_root: etree.ElementTree = etree.parse(
+            os.path.join(self._SEARCH_DIR, self._URI_COMPONENT))
+
+        expanded_tree = import_all_fprime_xml(
+            node=tree_root,
+            search_dir=self._SEARCH_DIR
+        )
+
+        built_module = build_module(
+            expanded_tree.xpath('//component')[0], tree_topology)
+
+        assert built_module.commands == expected_commands, f"""
+            The commands of the module built with imported XML don't match expected module's commands.
+            \nExpected: {expected_commands}
+            \Built: {built_module.commands}
+        """
+
+        #! TODO: Actually checkout the rest of the module (not just commands)
+
+        #! TODO: Add more import checks (namely, the loop through components from topo part)

@@ -920,11 +920,19 @@ class DataStandards(object):
                     f"Somehow found multiple components ({found_components}) for module at {expanded_tree.sourceline}."
                 )
 
-            module = build_module(found_components[0], tree_topology)
-            modules[module.ID, module.name] = module
-            logger.verbose(  # type: ignore # mypy doesn't recognize the `verboselogs` levels
-                f"Successfully Built Module #{len(modules)-1}: {module}"
-            )
+            try:
+                module = build_module(found_components[0], tree_topology)
+                modules[module.ID, module.name] = module
+                logger.verbose(  # type: ignore # mypy doesn't recognize the `verboselogs` levels
+                    f"Successfully Built Module #{len(modules)-1}: {module}"
+                )
+            except StandardsFormattingException as e:
+                logger.error(
+                    f"Standards Formatting Exception while compiling component "
+                    f"at '{found_components[0].base}'."
+                    f"\n This module is being skipped and will not be in GSW."
+                    f"\n Original `StandardsFormattingException`: {e}"
+                )
 
         # Build the DataStandards Object:
         DS = cls(modules)

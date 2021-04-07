@@ -127,20 +127,8 @@ namespace CubeRover {
     // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
     if(!Send_Frame(payload_length, reset_value))
       return;
-     
-    // Receive frame back from MSP430
-    U32 comm_error;
-    WatchdogFrameHeader frame;
-    int32_t size_read =  Receive_Frame(&comm_error, &frame);
 
-    // Good read:
-    if (size_read >= 8)
-    {
-        if(frame.payload_length == payload_length && frame.reset_val == 0x0000)
-        {
-    		dmaSend(reinterpret_cast<void *>(fwBuffer.getdata()), payload_length);  // FIXME: What is DMA send failed? *TUrn blocking off when we use Mutexes **DO the same for other DMA sends and receives
-        }
-    }
+    dmaSend(reinterpret_cast<void *>(fwBuffer.getdata()), payload_length);  // FIXME: What is DMA send failed? *TUrn blocking off when we use Mutexes **DO the same for other DMA sends and receives
   }
   
   void WatchDogInterfaceComponentImpl ::

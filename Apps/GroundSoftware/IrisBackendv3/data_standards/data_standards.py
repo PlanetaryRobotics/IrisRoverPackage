@@ -265,6 +265,21 @@ def extract_commands(node: etree.Element, module_name: str) -> NameIdDict[Comman
         # Grab ID ("opcode" in FPrime):
         command.ID = parse_int(command_src.attrib['opcode'])
 
+        # Make sure command ID has appropriate formatting:
+        # (1B or less):
+        if (command.ID >> 8) != 0:
+            raise StandardsFormattingException(
+                node.base,
+                (
+                    f"Command {command.name} defined at {command_src.sourceline} "
+                    f"in {command_src.base} has an invalid ID."
+                    f"\nFound ID {command.ID} = {hex(command.ID)}."
+                    f"\nCommand IDs should have the format 0xXX, at most 1B. "
+                    f"This can be expressed in any radix but the binary must "
+                    f"conform to this spec regardless."
+                )
+            )
+
         # Grab Metadata:
         command.metadata_json_str = GswMetadataTools.extract_from_xml(
             command_src
@@ -316,6 +331,22 @@ def extract_telemetry(node: etree.Element) -> NameIdDict[TelemetryChannel]:
             metadata_json_str=GswMetadataTools.extract_from_xml(channel_src)
         )
 
+        # Make sure channel ID has appropriate formatting:
+        # (1B or less):
+        if (channel.ID >> 8) != 0:
+            raise StandardsFormattingException(
+                node.base,
+                (
+                    f"Telemetry Channel {channel} defined at "
+                    f"{channel_src.sourceline} in {channel_src.base} has an "
+                    f"invalid ID."
+                    f"\nFound ID {channel.ID} = {hex(channel.ID)}."
+                    f"\nChannel IDs should have the format 0xXX, at most 1B. "
+                    f"This can be expressed in any radix but the binary must "
+                    f"conform to this spec regardless."
+                )
+            )
+
         # If channel has invalid type, we won't be able to read it:
         if channel.datatype == FswDataType.INVALID:
             raise StandardsFormattingException(
@@ -360,6 +391,22 @@ def extract_events(node: etree.Element) -> NameIdDict[Event]:
             metadata_json_str=GswMetadataTools.extract_from_xml(event_src),
             args=extract_arguments(event_src)
         )
+
+        # Make sure event ID has appropriate formatting:
+        # (1B or less):
+        if (event.ID >> 8) != 0:
+            raise StandardsFormattingException(
+                node.base,
+                (
+                    f"Event {event} defined at "
+                    f"{event_src.sourceline} in {event_src.base} has an "
+                    f"invalid ID."
+                    f"\nFound ID {event.ID} = {hex(event.ID)}."
+                    f"\nEvent IDs should have the format 0xXX, at most 1B. "
+                    f"This can be expressed in any radix but the binary must "
+                    f"conform to this spec regardless."
+                )
+            )
 
         # If event has an arg with invalid type, we won't be able to read it:
         if FswDataType.INVALID in [a.datatype for a in event.args]:
@@ -481,6 +528,22 @@ def build_module(node: etree.Element, tree_topology: etree.ElementTree) -> Modul
     if len(commands) == 0 and len(telemetry) == 0 and len(events) == 0:
         logger.info(
             f"Module {src_name} (ID = {IDs}) has no commands, telemetry, or events."
+        )
+
+    # Make sure module ID has appropriate formatting:
+    # 1B elevated by 1B 0xXX00:
+    if (IDs[0] & 0x00FF) != 0x0000:
+        raise StandardsFormattingException(
+            node.base,
+            (
+                f"Module {instance_names[0]} from <component> {src_name} "
+                f"defined at {node.sourceline} in Topology file "
+                f"{tree_topology.getroot().base} has an invalid ID ."
+                f"\nFound ID {IDs[0]} = {hex(IDs[0])}."
+                f"\nModule IDs should have the format 0xXX00, just 1B followed "
+                f"by 0x00. This can be expressed in any radix but the binary must "
+                f"conform to this spec regardless."
+            )
         )
 
     return Module(

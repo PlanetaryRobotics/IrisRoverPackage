@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>watchDogInterface:WatchDogInterface Component Dictionary</title>
+</head>
+<body>
+
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+}
+th {
+    text-align: left;
+}
+html {
+    font-family: Arial, sans-serif ;
+    font-size: 90% ;
+}
+</style>
+
+<h1><b>Events: watchDogInterface:WatchDogInterface</b></h1>
+
+<table>
+	<thead>
+		<tr style = "border-right: 2px solid black; border-left: 2px solid black; border-top: 2px solid black;">
+			<th rowspan = "2">Event Name</th>
+			<th rowspan = "2">ID</th>
+			<th rowspan = "2">Description</th>
+			<th rowspan = "1" colspan = "4">Arguments</th>
+		</tr>
+		<tr style = "border-right: 2px solid black; ">
+			<th>Argument</th>
+			<th>Type</th>
+			<th>Size</th>
+			<th>Description</th>
+		<tr>
+	</thead>
+	<tbody>
+
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">WatchDogIncorrectResp</td>
+			<td rowspan="2">4096 (0x1000)</td>
+			<td rowspan="2">Warning that the WatchDog MSP430 sent back a response different than what was sent to it</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>error</td>
+						<td>U8</td>
+						<td></td>
+						<td>The watchdog error value (reference to documentation)</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">WatchDogTimedOut</td>
+			<td rowspan="1">4097 (0x1001)</td>
+			<td rowspan="1">Warning that a WatchDog MSP430 watchdog timer went off</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">WatchDogCmdReceived</td>
+			<td rowspan="2">4098 (0x1002)</td>
+			<td rowspan="2">Notification that watchdog interface recieved a command from Cmd_Dispatcher</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>Cmd</td>
+						<td>Fw::LogStringArg&</td>
+						<td>50</td>
+						<td>The cmd that watchdog interface processed</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">WatchDogCommError</td>
+			<td rowspan="2">4099 (0x1003)</td>
+			<td rowspan="2">Warning that a WatchDog MSP430 error has occured.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>error</td>
+						<td>U32</td>
+						<td></td>
+						<td>The watchdog error value (reference to documentation)</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">ADCThermistorError</td>
+			<td rowspan="1">4100 (0x1004)</td>
+			<td rowspan="1">Warning that less than 16 thermistors had conversions or conversion never completed meaning no new tempurature values are being generated</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+	</tbody>
+</table>
+
+</body>
+</html>

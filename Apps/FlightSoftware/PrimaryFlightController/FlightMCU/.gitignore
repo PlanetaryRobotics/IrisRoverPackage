@@ -1,0 +1,6 @@
+Debug/
+.settings
+.launches
+/Release/
+*.orig
+*.rej

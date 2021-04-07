@@ -501,26 +501,26 @@ def import_all_fprime_xml(
     Recursively import all XML files listed in fprime-style <import_*> elements.
 
     # Basic Notes:
-    - All file paths listed inside each <include_*> element are processed relative 
+    - All file paths listed inside each <include_*> element are processed relative
     to the given `search_dir`.
 
-    - Each <import_*> element is replaced by the root node of the xml tree found 
-    at the specified file location as well as a <comment> indicating what was 
+    - Each <import_*> element is replaced by the root node of the xml tree found
+    at the specified file location as well as a <comment> indicating what was
     processed.
 
-    - If the file imported includes more import statements, those will be imported 
+    - If the file imported includes more import statements, those will be imported
     recursively up to `max_depth`.
 
     # Key Notes and Exceptions:
     - If the imported file does not end in `*.xml`, it will be ignored.
     - If the XML file is invalid XML, an `XMLSyntaxError` will be raised.
 
-    - If the file contains <?xml ?> tags or any other <? ?> tags, they will be 
-    ignored. The document will be processed with same standards as the base 
+    - If the file contains <?xml ?> tags or any other <? ?> tags, they will be
+    ignored. The document will be processed with same standards as the base
     tree (the XML file into which this file is being imported).
 
-    - If the file imported does not contain a solitary root node (eg. 
-    `<event /><event />` instead of `<events><event /><event /></events>`), an 
+    - If the file imported does not contain a solitary root node (eg.
+    `<event /><event />` instead of `<events><event /><event /></events>`), an
     `XMLSyntaxError` will be raised.
     """
     # Grab all elements starting with Fprime `import_*` identifier:
@@ -571,6 +571,14 @@ class DataStandards(object):
                  modules: NameIdDict[Module]
                  ) -> None:
         self.modules = modules
+        pass
+
+    def global_command_lookup(self, key: Union[str, NameIdDict.KeyTuple]) -> Command:
+        """
+        Finds a command from any module which has the given name string `key`
+        (standardized and includes the module name) or KeyTuple `key` which
+        includes the name alongside its corresponding module ID.
+        """
         pass
 
     def __getitem__(self, key):
@@ -629,8 +637,11 @@ class DataStandards(object):
         print('\n]')
 
     def __str__(self) -> str:
+        n_cmd = sum(len(m.commands) for m in self.modules.vals)
+        n_telem = sum(len(m.telemetry) for m in self.modules.vals)
+        n_event = sum(len(m.events) for m in self.modules.vals)
         return (
-            f"{len(self.modules)} Modules"
+            f"{len(self.modules)} Modules with {n_cmd} Commands, {n_telem} Channels, and {n_event} Events"
         )
 
     def cache(self,
@@ -656,7 +667,7 @@ class DataStandards(object):
 
         return filename
 
-    @classmethod
+    @ classmethod
     def load_cache(cls,
                    cache_dir: str = _CACHE_DIR,
                    filename_base: str = "IBv3_DScache",
@@ -669,9 +680,9 @@ class DataStandards(object):
         The loaded file will be the latest cache in `cache_dir` unless the
         name of specific cache file is supplied with `cache_filename`.
 
-        Any file in the given `cache_dir` whose name starts with the given 
-        `filename_base` and has the given `ext` will considered a candidate 
-        cache file. The candidate cache file with the most recent creation date 
+        Any file in the given `cache_dir` whose name starts with the given
+        `filename_base` and has the given `ext` will considered a candidate
+        cache file. The candidate cache file with the most recent creation date
         will be selected.
         """
         # Find the latest file if a specific file isn't requested:
@@ -730,7 +741,7 @@ class DataStandards(object):
         DS = cls(modules)
 
         logger.info(
-            f"Successfully Loaded {DS} from {os.path.join(cache_dir, cache_filename)}."
+            f"Successfully Loaded {DS} from {os.path.join(cache_dir, cache_filename)} ."
         )
 
         return cls(modules)
@@ -744,7 +755,7 @@ class DataStandards(object):
         Create a new DataStandards instance by indexing the relevant standard definitions.
 
         Standard definition files are held in `search_dir` (should point to the
-        FSW's `fprime/` directory).
+        FSW's `fprime /` directory).
 
         Once built, the finalized DataStandards instance is cached in `cache_dir` without overriding previous caches.
         """
@@ -808,7 +819,7 @@ class DataStandards(object):
         DS = cls(modules)
 
         logger.info(
-            f"Successfully Built {DS} from {os.path.join(search_dir, uri_topology)}."
+            f"Successfully Built {DS} from {os.path.join(search_dir, uri_topology)} ."
         )
 
         return DS

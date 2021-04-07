@@ -28,8 +28,8 @@ to not have a bitfield.
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
 
-from typing import List, Optional, Dict, Any, TypeVar, Generic, Union, Tuple, Mapping, MutableMapping, Iterator
-from collections import abc
+from typing import List, Optional, Dict, Any, TypeVar, Generic, Union, Tuple, Mapping, MutableMapping, Iterator, cast
+from collections import ChainMap
 import warnings
 
 import os.path
@@ -626,15 +626,56 @@ class DataStandards(object):
     """Loads and Stores the Standard Definitions for All Uplinked and Downlinked Data."""
 
     __slots__: List[str] = [
-        # Modules, indexed by opcode (highest 1B)
-        'modules'
+        # Modules, indexed by component ID (highest 1B of Iris Common Packet (ICP) opcode)
+        '_modules',
+        # (updatable) ChainMap of All Commands by ICP opcode (module ID | command ID):
+        'commands_chainmap_opcode',
+        # (updatable) ChainMap of All Commands by Command Name:
+        'commands_chainmap_name'
     ]
+
+    _modules: NameIdDict[Module]
+    commands_chainmap_opcode: ChainMap[int, Command]
+    commands_chainmap_name: ChainMap[str, Command]
 
     def __init__(self,  # DataStandards
                  modules: NameIdDict[Module]
                  ) -> None:
+        self.commands_chainmap_opcode = ChainMap()
+        self.commands_chainmap_name = ChainMap()
         self.modules = modules
-        pass
+
+    @property
+    def modules(self) -> NameIdDict[Module]:
+        return self._modules
+
+    @modules.setter
+    def modules(self, new_val) -> None:
+        # !TODO: Unit test ChainMap updates and linking.
+        # Update Value:
+        self._modules = new_val
+        # Rebuild ChainMap:
+        self.commands_chainmap_opcode = ChainMap()
+        self.commands_chainmap_name = ChainMap()
+        # NB: ChainMap will update if module's contents update but not if it's replaced entirely
+        for m in self._modules.vals:
+            cs = m.commands.collect()
+            # Dict of opcode -> Command:
+            opcode_dict = dict(((m.ID | id), cmd) for ((names, id), cmd) in cs)
+            # List of (names, Command):
+            names_list = [(names, cmd) for ((names, id), cmd) in cs]
+            # Flatten list of names into dict where each name has its own mapping to a command:
+            names_dict = dict()
+            for names, cmd in names_list:
+                for name in names:
+                    names_dict[name] = cmd
+            # Update ChainMaps with links to this Module:
+            self.commands_chainmap_opcode = self.commands_chainmap_opcode.new_child(
+                opcode_dict
+            )
+            self.commands_chainmap_name = self.commands_chainmap_name.new_child(
+                names_dict
+            )
 
     def global_command_lookup(self, key: Union[str, NameIdDict.KeyTuple]) -> Command:
         """
@@ -642,7 +683,21 @@ class DataStandards(object):
         (standardized and includes the module name) or KeyTuple `key` which
         includes the name alongside its corresponding module ID.
         """
-        pass
+        # TODO: Unit test ChainMap lookup and linking.
+        if isinstance(key, str):
+            return self.commands_chainmap_name[key]
+        if isinstance(key, int):
+            return self.commands_chainmap_opcode[key]
+        if NameIdDict.is_valid_key_tuple(key):
+            key = cast(NameIdDict.KeyTuple, key)
+            return self.commands_chainmap_opcode[key[0]]
+        else:
+            raise TypeError(
+                "Argument to `global_command_lookup` of `DataStandards` must be "
+                "a string name (not FPrime mnemonic), or an int Iris Common "
+                "Packet (ICP) opcode (not FPrime opcode), or a Tuple[int,str] "
+                "of the two."
+            )
 
     def __getitem__(self, key):
         # TODO: Get from any module (collection,indexer)

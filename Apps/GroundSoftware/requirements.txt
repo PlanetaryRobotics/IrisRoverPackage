@@ -1,0 +1,12 @@
+mypy
+scapy
+python-pcapng
+numpy
+lxml
+pytest
+jsonpickle
+termcolor
+colorama
+verboselogs
+coloredlogs
+ulid-py

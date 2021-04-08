@@ -923,7 +923,7 @@ namespace CubeRover {
 
       // Send the speed to all the motors
       err = sendAllMotorsData(MOTOR_CONTROL_I2CREG, 
-                              MotorControllerI2C::CURRENT_SPEED,
+                              MotorControllerI2C::TARGET_SPEED,
                               (uint8_t*) &motor_speed);
       if(err != MC_NO_ERROR)
         return err;
@@ -946,28 +946,28 @@ namespace CubeRover {
     }    
 
     err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::CURRENT_POSITION, 
+                                    MotorControllerI2C::RELATIVE_TARGET_POSITION,
                                     FRONT_LEFT_MC_I2C_ADDR,
                                     (uint8_t*) &Left_Wheels_Relative_ticks);
     if(err != MC_NO_ERROR)
       return err;  
 
     err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::CURRENT_POSITION, 
+                                    MotorControllerI2C::RELATIVE_TARGET_POSITION,
                                     FRONT_RIGHT_MC_I2C_ADDR,
                                     (uint8_t*) &Right_Wheels_Relative_ticks);
     if(err != MC_NO_ERROR)
       return err;  
 
     err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::CURRENT_POSITION, 
+                                    MotorControllerI2C::RELATIVE_TARGET_POSITION,
                                     REAR_RIGHT_MC_I2C_ADDR,
                                     (uint8_t*) &Right_Wheels_Relative_ticks);
     if(err != MC_NO_ERROR)
       return err;  
 
     err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::CURRENT_POSITION, 
+                                    MotorControllerI2C::RELATIVE_TARGET_POSITION,
                                     REAR_LEFT_MC_I2C_ADDR,
                                     (uint8_t*) &Left_Wheels_Relative_ticks);
     return err;  
@@ -1295,6 +1295,7 @@ namespace CubeRover {
   */
   Motor_tick MotorControlComponentImpl :: groundCMToMotorTicks(int16_t dist)
   {
+      // FIXME: Jonathan to develop this function
     return 0;
   }
 
@@ -1308,6 +1309,7 @@ namespace CubeRover {
   */
   Speed_percent MotorControlComponentImpl :: groundSpeedToSpeedPrecent(int16_t speed)
   {
+      // FIXME: Jonathan to develop this function
     return 0;
   }
 

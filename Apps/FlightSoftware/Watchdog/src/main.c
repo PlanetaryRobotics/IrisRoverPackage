@@ -13,7 +13,6 @@
 
 /* define all of the buffers used in other files */
 __volatile struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx, hercbuf;
-__volatile struct small_buffer i2crx, i2ctx;
 __volatile uint16_t loop_flags;
 
 
@@ -100,7 +99,9 @@ int main(void) {
     adc_init();
 
     /* enter service mode */
-    enterMode(RS_SERVICE);
+//    enterMode(RS_SERVICE);
+    // enter lander mode for tVac testing
+    enterMode(RS_LANDER);
 
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();
@@ -112,15 +113,13 @@ int main(void) {
     i2c_init();
     __delay_cycles(1000000); //pause for ~1/8 sec for fuel gauge i2c to init
 //    initializeFuelGauge();
-    uart1_tx_nonblocking(13, "hello world\r\n");
+    ipudp_send_packet("hello, world!\r\n", 15);
+
+    // TODO: camera hack
+    P3OUT |= BIT5; // P3.5 output camera select
 
     // the core structure of this program is like an event loop
     while (1) {
-
-            // camera hack
-                 P3OUT |= BIT5; // P3.5 output camera select
-
-
         /* check if anything happened */
         if (!loop_flags) { /* nothing did */
             /* go back to low power mode */
@@ -213,6 +212,7 @@ int main(void) {
             /* handle event for heartbeat */
             /* always sample the ADC for temperature and voltage levels */
             adc_sample();
+
 
             switch (rovstate) {
             case RS_SERVICE:

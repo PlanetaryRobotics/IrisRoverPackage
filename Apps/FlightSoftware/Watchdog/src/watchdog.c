@@ -245,11 +245,11 @@ void __attribute__ ((interrupt(TIMER0_B0_VECTOR))) Timer0_B0_ISR (void)
 #endif
 {
     // read thermistor value
-    adc_sample();
+//    adc_sample();
 //    while(watchdog_flags); //wait for conversion to complete
 
     // voltage, where LSB = 0.0008056640625V
-    unsigned short therm_reading = adc_values[1];
+    unsigned short therm_reading = adc_values[ADC_TEMP_IDX];
     // iterate until reference voltage values until one is hit that is lower than measurement
 
     if(therm_reading > 3670){

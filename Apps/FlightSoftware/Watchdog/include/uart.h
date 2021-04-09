@@ -17,7 +17,10 @@
  */
 void uart_init();
 
+#define UA1_NO_WRAPS 0
+#define UA1_ADD_PKT_START 1
+#define UA1_ADD_PKT_END 2
 void uart0_tx_nonblocking(uint16_t length, unsigned char *buffer);
-void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer);
+void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer, uint8_t opts);
 
 #endif /* __UART_INC */

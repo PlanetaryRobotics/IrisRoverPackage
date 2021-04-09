@@ -230,13 +230,17 @@ void uart0_tx_nonblocking(uint16_t length, unsigned char *buffer) {
     UCA0IE |= UCTXIE;
 }
 
-void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer) {
+void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer, uint8_t opts) {
     uint16_t i=0;
     unsigned char b;
     uint16_t curr_idx = uart1tx.idx + uart1tx.used;
 
-    uart1tx.buf[curr_idx++] = SLIP_END;
-    uart1tx.used += 1;
+    // TODO: disable interrupt?
+
+    if (opts & UA1_ADD_PKT_START) {
+        uart1tx.buf[curr_idx++] = SLIP_END;
+        uart1tx.used += 1;
+    }
 
     for (i = 0; i < length; i++) {
         b = buffer[i];
@@ -266,8 +270,11 @@ void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer) {
             break;
         }
     }
-    uart1tx.buf[curr_idx++] = SLIP_END;
-    uart1tx.used += 1;
+
+    if (opts & UA1_ADD_PKT_END) {
+        uart1tx.buf[curr_idx++] = SLIP_END;
+        uart1tx.used += 1;
+    }
 
     /* start interrupts for sending async */
     UCA1IE |= UCTXIE;

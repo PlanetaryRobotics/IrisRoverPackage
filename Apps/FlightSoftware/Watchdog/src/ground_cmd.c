@@ -137,7 +137,7 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
         /* TODO: this is malformed packet */
         return;
     }
-    if (buf[0] != 0xF3) {
+    if (buf[0] != 0x10) {
         /* TODO: this is malformed packet */
         return;
     }
@@ -212,13 +212,17 @@ void send_earth_heartbeat() {
 
     // build the packet
     pbuf.buf[0] = 0xFF;
-    pbuf.buf[1] = (uint8_t)(adc_values[ADC_BATT_LEVEL_IDX] >> 5);
+    // send the battery voltage
+    pbuf.buf[1] = 0xFF; // TODO: remove once below line fixed
+//    pbuf.buf[1] = (uint8_t)(raw_battery_voltage[0] >> 1); //TODO: fix this
     pbuf.buf[1] = pbuf.buf[1] << 1;
     pbuf.buf[1] |= heaterStatus & 0x1;
+    // send the thermistor temperature
     pbuf.buf[2] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
     pbuf.used += 3;
 
-    uart1_tx_nonblocking(pbuf.used, pbuf.buf);
+    // TODO: use IP/UDP send func
+    ipudp_send_packet(pbuf.buf, pbuf.used);
 }
 
 

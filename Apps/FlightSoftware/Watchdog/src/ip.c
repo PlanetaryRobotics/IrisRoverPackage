@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "include/ip_udp.h"
 #include "include/buffer.h"
+#include "include/uart.h"
 
 /* note - msp430 is little endian; networks are big endian */
 
@@ -110,9 +111,11 @@ uint16_t ip_verify_packet(uint8_t *packet, uint16_t packet_len) {
 /**
  * Send a UDP datagram
  */
-static uint8_t ipudp_tx_buf[BUFFER_SIZE];
+static uint8_t ipudp_tx_buf[sizeof(struct ip_hdr) + sizeof(struct udp_hdr)];
 void ipudp_send_packet(uint8_t *data, uint16_t data_len) {
     uint16_t out_len;
+    static uint16_t packet_nbr = 0;
+    uint16_t chksm;
     struct ip_hdr *ip_hdr = (struct ip_hdr *)ipudp_tx_buf;
     struct udp_hdr *udp_hdr = (struct udp_hdr *)(ip_hdr + 1);
 
@@ -120,11 +123,41 @@ void ipudp_send_packet(uint8_t *data, uint16_t data_len) {
 
     /* make the ip header first */
     ip_hdr->ver_hdrlen = 0x45;
+    ip_hdr->tos = 0;
+    ip_hdr->pckt_len = htons(data_len + sizeof(struct ip_hdr) + sizeof(struct udp_hdr));
+    ip_hdr->id = packet_nbr++;
+    ip_hdr->id = htons(ip_hdr->id);
+    ip_hdr->flgs = 0;
+    // don't really care
+    ip_hdr->ttl = 0xff;
+    // udp = 0x11
+    ip_hdr->proto = 0x11;
+    // checksum is 0 for now
+    ip_hdr->iphdr_checksum = 0;
+    // SLIP configuration payload address
+    // 192.168.103.2 => 0xC0A86702 => big endian'd
+    ip_hdr->source = 0x0267A8C0;
+    // SLIP configuration spacecraft address
+    // 192.168.103.1 => 0xC0A86701 => big endian'd
+    ip_hdr->dest = 0x0167A8C0;
+    // compute checksum
+    chksm = ip_checksum(ipudp_tx_buf, sizeof(struct ip_hdr));
+    ip_hdr->iphdr_checksum = htons(chksm);
 
-    out_len = 1;
+    /* next, make the udp header */
+    // SLIP configuration port 42000 on both sides
+    udp_hdr->source_port = htons(42000);
+    udp_hdr->dest_port = htons(42000);
+    // length
+    udp_hdr->len = htons(data_len + sizeof(struct udp_hdr));
+    // checksum - TODO
+    udp_hdr->checksum = 0;
 
-    /* TODO: actually send the IP/UDP encapsulated data, lol */
-    uart1_tx_nonblocking(data_len, data);
+    // queue up the data to send
+    uart1_tx_nonblocking(sizeof(struct ip_hdr) + sizeof(struct udp_hdr), ipudp_tx_buf, UA1_ADD_PKT_START);
+
+    /* send the datagram itself */
+    uart1_tx_nonblocking(data_len, data, UA1_ADD_PKT_END);
 }
 
 /**

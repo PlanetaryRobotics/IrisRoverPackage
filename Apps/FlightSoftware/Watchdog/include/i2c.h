@@ -9,6 +9,10 @@
 #include <msp430.h>
 #include "buffer.h"
 
+extern int8_t raw_battery_charge[2];
+extern int8_t raw_battery_voltage[2];
+extern int8_t raw_battery_current[2];
+extern int8_t raw_fuel_gauge_temp[2];
 
 #define I2C_SLAVE_ADDR      100 //0b1100100 //i2c address of LTC2944IDD#PBF fuel gauge
 

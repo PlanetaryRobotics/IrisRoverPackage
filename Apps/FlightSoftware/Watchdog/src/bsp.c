@@ -1,6 +1,6 @@
 #include "include/bsp.h"
 
-//#define PROGRAM_MOTOR_CONTROLLERS
+#define PROGRAM_MOTOR_CONTROLLERS
 
 uint8_t heaterStatus;
 uint8_t hasDeployed;

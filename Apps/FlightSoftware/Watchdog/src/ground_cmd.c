@@ -193,7 +193,7 @@ void reply_ground_cmd(uint8_t cmdid, uint8_t error_no) {
  * @param buf_len: Length of the buffer
  */
 void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
-    if (buf_len <= 3) {
+    if (buf_len < 3) {
         /* invalid packet length */
         reply_ground_cmd(0, GNDRESP_EPACKETLEN);
         return;
@@ -332,7 +332,7 @@ void parse_ground_cmd(struct buffer *pp) {
     (void)(buf[3]);
 
     /* get the type (should be 000BADA55 for hercules) */
-    if (buf[4] == 0x55 && buf[5] == 0xDA && buf[6] == 0xBA && buf[7] == 0x00) {
+    if (buf[4] == 0xEE && buf[5] == 0xFF && buf[6] == 0x00 && buf[7] == 0xC0) {
         /* command */
         handle_ground_cmd(buf + 8, pp_len - 8);
     } else {

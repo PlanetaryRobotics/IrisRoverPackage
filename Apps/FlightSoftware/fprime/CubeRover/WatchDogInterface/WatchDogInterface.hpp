@@ -116,6 +116,108 @@ namespace CubeRover {
           const U32 cmdSeq /*!< The command sequence number*/
       );
 
+      /* Commands that Only Watchdog Processes */
+
+      //! Implementation for Prepare_For_Deployment command handler
+      //! Command to send signal to MSP430 to prepare for deploying (may not be needed)
+      void Prepare_For_Deployment_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      //! Implementation for Switch_Connection_Mode command handler
+      //! Command to send signal to MSP430 that we switch the current connection mode
+      void Switch_Connection_Mode_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      //! Implementation for Set_Kp_Most command handler
+      //! Command to send signal to MSP430 that it should set Kp to most significant parameter
+      void Set_Kp_Most_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      //! Implementation for Set_Kp_Least command handler
+      //! Command to send signal to MSP430 that it should set Kp to least significant parameter
+      void Set_Kp_Least_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      //! Implementation for Set_Kp_Specific command handler
+      //! Command to send signal to MSP430 that it should set Kp to a specific value
+      void Set_Kp_Specific_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      //! Implementation for Set_Ki_Most command handler
+      //! Command to send signal to MSP430 that it should set Ki to most significant parameter
+      void Set_Ki_Most_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      //! Implementation for Set_Ki_Least command handler
+      //! Command to send signal to MSP430 that it should set Ki to least significant parameter
+      void Set_Ki_Least_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      //! Implementation for Set_Ki_Specific command handler
+      //! Command to send signal to MSP430 that it should set Ki to a specific value
+      void Set_Ki_Specific_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      //! Implementation for Set_Kd_Most command handler
+      //! Command to send signal to MSP430 that it should set Kd to most significant parameter
+      void Set_Kd_Most_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      //! Implementation for Set_Kd_Least command handler
+      //! Command to send signal to MSP430 that it should set Kd to least significant parameter
+      void Set_Kd_Least_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      //! Implementation for Set_V_Setpoint command handler
+      //! Command to send signal to MSP430 that it should set V to a specific value
+      void Set_V_Setpoint_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      //! Implementation for Switch_to_Sleep_Mode command handler
+      //! Command to send signal to MSP430 that it should go into Sleep Mode
+      void Switch_to_Sleep_Mode_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      //! Implementation for Switch_to_Keep_Alive_Mode command handler
+      //! Command to send signal to MSP430 that it should go into Keep Alive Mode
+      void Switch_to_Keep_Alive_Mode_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      //! Implementation for Switch_to_Service_Mode command handler
+      //! Command to send signal to MSP430 that it should go into Service Mode
+      void Switch_to_Service_Mode_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      /* End of Commands that Only Watchdog Processes*/
+
       // frame struct
       struct WatchdogFrameHeader {
         uint32_t magic_value    :24;
@@ -162,7 +264,7 @@ namespace CubeRover {
      bool dmaSend(void *buffer, int size, bool blocking=true);
 
       // Usage during FSW initialization
-      // Only difference between this is lack of cmd response
+      // Only difference between this is function and Reset_Specific_cmdHandler is lack of cmd response
       bool Reset_Specific_Handler(U8 reset_value);
 
 

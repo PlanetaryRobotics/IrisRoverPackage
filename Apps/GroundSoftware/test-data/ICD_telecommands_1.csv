@@ -1,0 +1,62 @@
+This sheet contains the latest release of the Telecommand List to Astrobotic (via the ICD). Only update when a new release is being prepared for Astrobotic.,,,
+Hazard Category,YAMCS Command Name,Description,Usage
+,,,
+Dependent,Navigation_MoveForward,Move the rover forward a specified distance at a specified speed.,Following deployment from the SPACECRAFT.
+Dependent,Navigation_MoveBackward,Move the rover backward a specified distance at a specified speed.,Following deployment from the SPACECRAFT.
+Dependent,Navigation_TurnRight,Turn the turns the rover right (clockwise) a specified amount at a specified roational speed.,Following deployment from the SPACECRAFT.
+Dependent,Navigation_TurnLeft,Turn the turns the rover left (counterclockwise) a specified amount at a specified roational speed.,Following deployment from the SPACECRAFT.
+Independent,Navigation_Stop,Stop all rover motion immediately.,Following deployment from the SPACECRAFT.
+,,,
+Independent,Camera_GetStatus,Report status of cameras.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,Camera_TakeImage,Take an image from specified camera with latest configuration.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,Camera_Error,Return the camera error register to ground or reset it.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,Camera_ConfigureCamera0,Update the camera 0 configuration register.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,Camera_Camera0Crop,Update the camera 0 cropping settings.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,Camera_ConfigureCamera1,Update the camera 1 configuration register.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,Camera_Camera1Crop,Update the camera 1 cropping settings.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,Camera_ReadImage,Read the image with the specified index from the onboard flash storage.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,Camera_EraseImage,Erase the image with the specified index from the onboard flash storage.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,Camera_SoftCameraReset,Soft reset the camera and reinitialize FPGA.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,Camera_ImageDump,Start or stop sending all images stored in onboard flash storage.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+,,,
+Independent,MotorControl_CurrentPID,Set the control constants for the electrical current controller of the specified motor.,Following deployment from the SPACECRAFT.
+Independent,MotorControl_SpeedPID,Set the control constants for the speed controller of the specified motor.,Following deployment from the SPACECRAFT.
+Independent,MotorControl_Acceleration,Set the acceleration and deceleration windows for the controller of the specified motor.,Following deployment from the SPACECRAFT.
+Independent,MotorControl_StallDetection,Enables or disables stall detection for the specified motor.,Following deployment from the SPACECRAFT.
+Independent,MotorControl_ResetPosition,Reset the position reading to 0 for encoder of the specified motor.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Dependent,MotorControl_Spin,Start or stops a spin test on the specified motor.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Dependent,MotorControl_PowerBoost,"Enable or disables a power boost for the specified motor which, when enabled, sets the max power threshold to maximum.",Following deployment from the SPACECRAFT.
+,,,
+Dependent,ModeManager_Service,Put the Primary MCU into SERVICE mode (default power-on mode for Primary MCU). Service mode is intended for performing status checks and debugging errors. Primary MCU only accepts changes to critical settings (eg. PID) when in this mode.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Hazardous,ModeManager_LanderRelease,Put the Primary MCU into a mode to ready the rover for deployment and then causes the Primary MCU to issue it's interlock signal for deployment. Note: the rover won't deploy unless both the Primary MCU and Watchdog independently issue this signal.,After surface checkout phase.
+Independent,ModeManager_StandBy,Put the Primary MCU into stand-by mode.,Following deployment from the SPACECRAFT.
+Independent,ModeManager_Operation,Put the Primary MCU into operation mode.,Following deployment from the SPACECRAFT.
+,,,
+,,,
+Independent,FaultMasking_FaultStatus,Return the present fault list.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,FaultMasking_ClearFault,Clear the fault list.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,FaultMasking_MaskFault,Apply a mask to the fault list.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+,,,
+Dependent,Watchdog_ResetSpecific,Set power status for the specified hardware or software component to ON or OFF. All software and power ON commands are rejected unless in SERVICE mode.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Hazardous,Watchdog_PrepareForDeployment,"Prepare for deployment by powering on all systems (Hercules, Camera, etc.)",After surface checkout phase on the SPACECRAFT and before deployment from the SPACECRAFT.
+Hazardous,Watchdog_Deploy,Tell the Watchdog to issue it's interlock signal for deployment. Note: the rover won't deploy unless both the Primary MCU and Watchdog independently issue this signal.,After surface checkout phase on the SPACECRAFT to initiate deployment from the SPACECRAFT.
+Hazardous,Watchdog_SwitchConnectionMode,Set the Watchdog connection mode to either wired (RS-422) wherein the Watchdog gets data and forwards it to the Primary MCU or wireless (WiFi) where the primary MCU gets data and forwards it to the Watchdog.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Dependent,Watchdog_SetKpUpper,Set the upper 1B of Kp constant for the heater controller to the specified value. Only valid if the command to set the lower 1B is included in the same packet.,During transit on the SPACECRAFT.
+Dependent,Watchdog_SetKpLower,Set the lower 1B of Kp constant for the heater controller to the specified value. Only valid if the command to set the upper 1B is included in the same packet.,During transit on the SPACECRAFT.
+Dependent,Watchdog_SetKiUpper,Set the upper 1B of Ki constant for the heater controller to the specified value. Only valid if the command to set the lower 1B is included in the same packet.,During transit on the SPACECRAFT.
+Dependent,Watchdog_SetKiLower,Set the lower 1B of Ki constant for the heater controller to the specified value. Only valid if the command to set the upper 1B is included in the same packet.,During transit on the SPACECRAFT.
+Dependent,Watchdog_SetKdUpper,Set the upper 1B of Kd constant for the heater controller to the specified value. Only valid if the command to set the lower 1B is included in the same packet.,During transit on the SPACECRAFT.
+Dependent,Watchdog_SetKdLower,Set the lower 1B of Kd constant for the heater controller to the specified value. Only valid if the command to set the upper 1B is included in the same packet.,During transit on the SPACECRAFT.
+Dependent,Watchdog_SetVSetpoint,Set the voltage setpoint of the heater controller in raw ADC units.,During transit on the SPACECRAFT.
+Independent,Watchdog_SleepMode,Set Watchdog mode to Sleep. Turn everything off and prepare for removal of power. [Can only be entered from KEEPALIVE],Never in nominal operation.
+Independent,Watchdog_KeepAliveMode,Set Watchdog mode to Keep Alive during which it sends heartbeats and ensures everything else is powered everything off. All commands to power something on are rejected. [Can be entered from SLEEP or SERVICE],During transit on the SPACECRAFT. 
+Dependent,Watchdog_ServiceMode,Enter Service Mode. All Watchdog functionality is active. Able to power on subsystems. [only enter if in KEEPALIVE],During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+,,,
+Independent,ActiveLogger_CloseFile,Tell the Active Logger on the Primary MCU to close the current file.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,ActiveLogger_SendAllLogs,Tell the Active Logger on the Primary MCU to start sending all log files.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,ActiveLogger_SendLogRange,Tell the Active Logger on the Primary MCU to send all log files from the specified time range.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+,,,
+Independent,NetworkManager_SoftResetWF121,Tell the Primary MCU to perform a soft reset of the WF121 WiFi chip.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+,,,
+Independent,UWB_RateChange,Set the time interval for data sampling of the Primary MCU's UWB module to the specified value.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+Independent,UWB_ModeChange,"Set the mode of the UWB module to the specified value: Off, Continuous (constantly sampling data at a fixed rate), or Triggered (only sample data on request).",During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.

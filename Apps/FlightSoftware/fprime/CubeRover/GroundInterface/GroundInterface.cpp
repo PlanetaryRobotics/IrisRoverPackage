@@ -281,7 +281,6 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         m_downlinkBufferPos = m_downlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
         m_downlinkBufferSpaceAvailable = DOWNLINK_OBJECTS_SIZE;
     }
-
     /*
      * @brief Downlink
      * 

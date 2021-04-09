@@ -1,0 +1,28 @@
+    <telemetry>
+        <channel id="0" name="Cam_ComponentImagesRequested" data_type="U32" update = "on_change">
+            <comment>
+                Number of images requested by other Fprime components
+            </comment>
+        </channel>
+        <channel id="1" name="Cam_CommandImagesRequested" data_type="U32" update = "on_change">
+            <comment>
+                Number of images commanded from the ground
+            </comment>
+        </channel>
+        <channel id="2" name="Cam_ImagesSent" data_type="U32" update = "on_change">
+            <comment>
+                Number of images sent for downlink
+            </comment>
+        </channel>
+        <channel id="3" name="Cam_BytesSent" data_type="U32" update = "on_change">
+            <comment>
+                Number of bytes sent for downlink
+            </comment>
+        </channel>
+        <channel id="4" name="Cam_LatestCallbackId" data_type="U16" update="on_change">
+            <comment>
+                The latest callback ID that triggerd an image to be taken
+            </comment>
+        </channel>
+        <!-- Error telemetry items? -->
+    </telemetry>

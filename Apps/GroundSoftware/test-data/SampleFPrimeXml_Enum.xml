@@ -1,0 +1,11 @@
+<enum name="networkmanager_state">
+    <item name="to_UNINITIALIZED"/>
+    <item name="to_INITIALIZEED"/>
+    <item name="to_WIFI_TURNING_ON"/>
+    <item name="to_WIFI_ON"/>
+    <item name="to_SCANNING"/>
+    <item name="to_SCANNED"/>
+    <item name="to_CONNECTING"/>
+    <item name="to_CONNECTED"/>
+    <item name="to_UDP_CONNECTED"/>
+</enum>

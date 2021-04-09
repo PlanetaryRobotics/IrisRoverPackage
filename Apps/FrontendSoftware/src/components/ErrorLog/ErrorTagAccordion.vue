@@ -2,24 +2,30 @@
   <div class="accordion">
     <div
       class="accordion-header"
-      :class="this.opened ? 'active' : ''"
+      :class="opened ? 'active' : ''"
       @click="toggleAccordion"
-      v-on:expandall:fromparent="toggleAccordion"
+      @expandall:fromparent="toggleAccordion"
     >
       <!----- TODO: not aligned ---->
       <p class="header-text inline">
-        {{ this.header }} {{ this.fixed_header }}
+        {{ header }} {{ fixedHeader }}
       </p>
-      <p class="arrow inline align-right"></p>
+      <p class="arrow inline align-right" />
     </div>
 
-    <div class="accordion-body" :class="this.opened ? 'open' : 'collapse'">
+    <div
+      class="accordion-body"
+      :class="opened ? 'open' : 'collapse'"
+    >
       <div
+        v-for="errorTag in contents"
+        :key="errorTag.priority"
         class="errorTagsWrapper"
-        v-for="errorTag in this.contents"
-        v-bind:key="errorTag.priority"
       >
-        <ErrorTag :errorTag="errorTag" class="indivErrorTag" />
+        <ErrorTag
+          :error-tag="errorTag"
+          class="indivErrorTag"
+        />
       </div>
     </div>
   </div>
@@ -27,40 +33,39 @@
 </template>
 
 <script>
-import ErrorTag from "./ErrorTagCosmos";
+import ErrorTag from './ErrorTagCosmos';
 
 export default {
-  name: "AccordionWithHeader",
-  components: {
-    ErrorTag,
-  },
-  props: {
-    header: {
-      type: String,
-      required: true,
-      default: "",
+    name: 'AccordionWithHeader',
+    components: {
+        ErrorTag,
     },
-    contents: {
-      type: Array,
-      required: true,
+    props: {
+        header: {
+            type: String,
+            required: true,
+            default: '',
+        },
+        contents: {
+            type: Array,
+            required: true,
+        },
+        fixedHeader: {
+            type: String,
+            required: false,
+            default: '',
+        },
     },
-    fixed_header: {
-      type: String,
-      required: false,
-      default: "",
+    data() {
+        return {
+            opened: false,
+        };
     },
-  },
-  data() {
-    return {
-      opened: false,
-    };
-  },
-  methods: {
-    toggleAccordion() {
-      console.log("here");
-      this.opened = !this.opened;
+    methods: {
+        toggleAccordion() {
+            this.opened = !this.opened;
+        },
     },
-  },
 };
 </script>
 

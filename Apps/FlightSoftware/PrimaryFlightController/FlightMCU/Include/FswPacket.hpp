@@ -2,13 +2,14 @@
 #define _FSW_PACKET_H_
 
 // Wifi Connection Parameters
-#define ROVER_IP_ADDRESS        {192, 168, 150, 3}
-#define ROVER_MASK_ADDRESS      {255, 255, 255, 0}
-#define ROVER_GATEWAY_ADDRESS   {192, 168, 10, 105}
-#define GATEWAY_PORT            43531
+#define ROVER_ADDRESS           {192, 168, 150, 3}
+#define SPACECRAFT_ADDRESS      {192, 168, 10, 105}
+#define SUBNET_MASK             {255, 255, 255, 0}
+#define GATEWAY_ADDRESS         {192, 168, 150, 254}
+#define SPACECRAFT_UDP_PORT     43531
 #define ROVER_UDP_PORT          42000
 
-#define LANDER_SSID             "pm1"
+#define LANDER_SSID             "PM1"
 #define LANDER_NETWORK_PASSWORD ""
 
 // Wired (RS422 via WatchDog) Connection Parameters

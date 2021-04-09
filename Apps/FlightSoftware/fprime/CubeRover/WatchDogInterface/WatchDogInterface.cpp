@@ -281,6 +281,149 @@ namespace CubeRover {
     }
   }
 
+  /* Commands that Only Watchdog Processes */
+  void WatchDogInterfaceComponentImpl ::
+    Prepare_For_Deployment_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Switch_Connection_Mode_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Kp_Most_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Kp_Least_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Kp_Specific_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Ki_Most_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Ki_Least_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Ki_Specific_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Kd_Most_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Kd_Least_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_V_Setpoint_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Switch_to_Sleep_Mode_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Switch_to_Keep_Alive_Mode_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Switch_to_Service_Mode_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  /* End of Commands that Only Watchdog Processes*/
+
   bool WatchDogInterfaceComponentImpl :: Send_Frame(U16 payload_length, U16 reset_value)
   {
       struct WatchdogFrameHeader frame;

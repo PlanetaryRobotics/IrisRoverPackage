@@ -164,5 +164,21 @@
             </args>
         </event>
     </events>
+    
+    <commands>
+        <command kind="sync" opcode="0x0" mnemonic="Set_Primary_Interface">
+            <comment>
+                Sets the primary interface. 
+            </comment>
+            <args>
+                <arg name="primary_interface" type="ENUM">
+                    <enum name="PrimaryInterface">
+                        <item name="WATCHDOG" comment="Watchdog wired interface (RS422). Matches WatchdogInterface component attached to port 0." />
+                        <item name="WF121" comment="WF121 wireless interface (WiFi). Matches NetworkManager component attached to port 1." />
+                    </enum>
+                </arg>
+            </args>
+        </command>
+    </commands>
             
 </component>

@@ -52,6 +52,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
       m_appBytesReceived = 0; m_appBytesDownlinked = 0;
       m_downlinkBufferPos = m_downlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
       m_downlinkBufferSpaceAvailable = DOWNLINK_OBJECTS_SIZE;
+      m_interface_port_num = INITIAL_PRIMARY_NETWORK_INTERFACE;
   }
 
   void GroundInterfaceComponentImpl ::
@@ -167,6 +168,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     updateTelemetry();
   }
 
+  // ASSUME ONE COMMAND PER UPLINK PACKET
   void GroundInterfaceComponentImpl ::
     cmdUplink_handler(
         const NATIVE_INT_TYPE portNum,
@@ -183,25 +185,28 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         m_cmdErrs++;
         log_WARNING_HI_GI_UplinkedPacketError(MISMATCHED_LENGTH, packet->header.length,
                 static_cast<U16>(buffer_size));
-    }
-    
-    if (!computeChecksum(packet, packet->header.length + sizeof(struct FswPacket::FswPacketHeader))) {
-        // Checksum incorrect! Drop!
-        log_WARNING_HI_GI_UplinkedPacketError(BAD_CHECKSUM, 0, static_cast<U16>(packet->header.checksum));
-    }
-    
-    // ASSUME ONE COMMAND PER PACKET
-    if (packet->payload0.command.magic != COMMAND_MAGIC) {
-        // Uplinked packet not a recognized command! Drop!
-        log_WARNING_HI_GI_UplinkedPacketError(BAD_CHECKSUM,
-                                              static_cast<U16>(((U16 *)&packet->payload0.command.magic)[0]),
-                                              static_cast<U16>(((U16 *)&packet->payload0.command.magic)[1]));
+        return;
     }
     
     if (packet->header.seq != m_uplinkSeq + 1) {
         m_cmdErrs++;
         return;
     }
+    
+    if (packet->payload0.command.magic != COMMAND_MAGIC) {
+        m_cmdErrs++;
+        log_WARNING_HI_GI_UplinkedPacketError(BAD_CHECKSUM,
+                                              static_cast<U16>(((U16 *)&packet->payload0.command.magic)[0]),
+                                              static_cast<U16>(((U16 *)&packet->payload0.command.magic)[1]));
+        return;
+    }
+    
+    if (!computeChecksum(packet, packet->header.length + sizeof(struct FswPacket::FswPacketHeader))) {
+        m_cmdErrs++;
+        log_WARNING_HI_GI_UplinkedPacketError(BAD_CHECKSUM, 0, static_cast<U16>(packet->header.checksum));
+        return;
+    }
+
     m_uplinkSeq = packet->header.seq;
 
     m_cmdsUplinked++;
@@ -209,12 +214,26 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     Fw::ComBuffer command(reinterpret_cast<uint8_t *>(&packet->payload0.command), packet->header.length);
     m_cmdsSent++;
     
-    // TODO: Any parsing or decoding required?
     cmdDispatch_out(0, command, 0);        // TODO: Arg 3 Context?
     
     updateTelemetry();
   }
   
+  // ----------------------------------------------------------------------
+  // Command handler implementations
+  // ----------------------------------------------------------------------
+
+  void GroundInterfaceComponentImpl ::
+    Set_Primary_Interface_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq,
+        PrimaryInterface primary_interface
+    )
+  {
+    m_interface_port_num = primary_interface;
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
   
     /*
      * @brief Write a packet to the downlink buffer.
@@ -282,10 +301,9 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         packetHeader->length = size - sizeof(struct FswPacket::FswPacketHeader);
         packetHeader->checksum = 0;
         packetHeader->checksum = computeChecksum(_data, size);
-        int port = 1;  // 0: Lander Serial via WD   1: WF121
         Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data), size);
         log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, packetHeader->checksum, size);
-        downlinkBufferSend_out(port, buffer);
+        downlinkBufferSend_out((int)m_interface_port_num, buffer);
         m_downlinkSeq++;
         m_packetsTx++;
     }

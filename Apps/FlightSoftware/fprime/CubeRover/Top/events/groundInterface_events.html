@@ -44,7 +44,7 @@ html {
 		<tr style = "border: 2px solid black;">
 			<td rowspan="4">GI_UplinkedPacketError</td>
 			<td rowspan="4">2304 (0x900)</td>
-			<td rowspan="4">Error validating uplinked packet</td>
+			<td rowspan="4">Error validating uplinked packet. Expected field is only logged for MISMATCHED_LENGTH and OUT_OF_SEQUENCE. For INCORRECT_TYPE, the magic value s a U32 so the upper short is stored in expected and lower short is stored in got.</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
 						<td>errorType</td>
 						<td>uplinkedPacketError</td>

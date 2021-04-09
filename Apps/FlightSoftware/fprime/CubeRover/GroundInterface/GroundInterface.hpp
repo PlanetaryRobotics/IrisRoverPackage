@@ -88,6 +88,20 @@ namespace CubeRover {
           Fw::Buffer &fwBuffer 
       );
       
+    PRIVATE:
+
+      // ----------------------------------------------------------------------
+      // Command handler implementations
+      // ----------------------------------------------------------------------
+
+      //! Implementation for Set_Primary_Interface command handler
+      //! Sets the primary interface.
+      void Set_Primary_Interface_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          PrimaryInterface primary_interface 
+      );
+
         // User defined methods, members, and structs
             
         void downlinkFileMetadata(uint16_t hashedId, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms);
@@ -107,6 +121,7 @@ namespace CubeRover {
         uint8_t m_downlinkBuffer[UDP_MAX_PAYLOAD];
         uint8_t *m_downlinkBufferPos;
         uint16_t m_downlinkBufferSpaceAvailable;
+        PrimaryInterface m_interface_port_num;
       
 
     };

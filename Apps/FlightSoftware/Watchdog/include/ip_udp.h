@@ -49,12 +49,8 @@ struct __attribute__((__packed__)) ip_pseudohdr {
     uint8_t zero;
     /* protocol (expected to be 0x11 for UDP) */
     uint8_t proto;
-    
-    uint16_t dest_port;
     /* length */
     uint16_t udp_len;
-    /* checksum */
-    uint16_t udp_checksum;
 };
 
 struct __attribute__((__packed__)) udp_hdr {

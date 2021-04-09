@@ -24,7 +24,14 @@ enum rover_state rovstate;
 
 void enterMode(enum rover_state newstate) {
     switch (newstate) {
-    case RS_LANDER:
+    case RS_SLEEP:
+        /* fallthrough to keepalive */
+    case RS_SERVICE:
+        /* service is same as keep alive */
+        // TODO: what even is enableBatteries
+        enableBatteries();
+        /* service mode is a temporary step transition to mission mode */
+    case RS_KEEPALIVE:
         /* power everything off and set resets */
         setRadioReset();
         setFPGAReset();
@@ -44,12 +51,9 @@ void enterMode(enum rover_state newstate) {
         adc_setup_lander();
         enableHeater();
         break;
-    case RS_SERVICE:
-        /* service mode is basically like mission mode - power everything on */
     case RS_MISSION:
         /* bootup process - enable all rails */
         enable3V3PowerRail();
-        // [DEBUG] CONNOR/WHOMEVER ELSE - THIS LINE RIGHT HERE, IF COMMENTED OUT, WILL KEEP THE MOTOR CONTROLLERS DISABLED
         enable24VPowerRail();
         enableBatteries();
 
@@ -101,7 +105,7 @@ int main(void) {
     /* enter service mode */
 //    enterMode(RS_SERVICE);
     // enter lander mode for tVac testing
-    enterMode(RS_LANDER);
+    enterMode(RS_KEEPALIVE);
 
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();
@@ -114,9 +118,6 @@ int main(void) {
     __delay_cycles(1000000); //pause for ~1/8 sec for fuel gauge i2c to init
 //    initializeFuelGauge();
     ipudp_send_packet("hello, world!\r\n", 15);
-
-    // TODO: camera hack
-    P3OUT |= BIT5; // P3.5 output camera select
 
     // the core structure of this program is like an event loop
     while (1) {
@@ -183,7 +184,6 @@ int main(void) {
             loop_flags ^= FLAG_UART0_RX_PACKET;
         }
         if (loop_flags & FLAG_UART1_RX_PACKET) {
-
             // temporarily disable uart1 interrupt
             UCA1IE &= ~UCRXIE;
             /* copy over the bytes into a processing buffer */
@@ -193,15 +193,12 @@ int main(void) {
             /* copy over uart1rx buffer into processing buffer */
             memcpy(pbuf.buf, uart1rx.buf, pbuf.used);
             pbuf.idx = 0;
+            /* clear event */
+            loop_flags ^= FLAG_UART1_RX_PACKET;
             // re-enable uart1 interrupt
             UCA1IE |= UCRXIE;
-            // copy the buffer into the hercules buffer
-            memcpy(hercbuf.buf + hercbuf.idx, pbuf.buf, pbuf.used);
-            hercbuf.idx += pbuf.used;
             /* parse the packet */
-            //parse_ground_cmd(pbuf);
-            /* clear event when done */
-            loop_flags ^= FLAG_UART1_RX_PACKET;
+            parse_ground_cmd(pbuf);
         }
         if (loop_flags & FLAG_I2C_RX_PACKET) {
             /* TODO: handle event for power system message */
@@ -213,13 +210,12 @@ int main(void) {
             /* always sample the ADC for temperature and voltage levels */
             adc_sample();
 
-
             switch (rovstate) {
             case RS_SERVICE:
                 send_earth_heartbeat();
                 watchdog_monitor();
                 break;
-            case RS_LANDER:
+            case RS_KEEPALIVE:
                 /* send heartbeat with collected data */
                 send_earth_heartbeat();
                 /* TODO: heater checks */
@@ -237,7 +233,7 @@ int main(void) {
             loop_flags ^= FLAG_TIMER_TICK;
         }
         if (loop_flags & FLAG_TEMP_LOW) {
-            if (rovstate == RS_LANDER)
+            if (rovstate == RS_KEEPALIVE)
                 /* we can only really enable the heaters if we're connected to the lander */
                 enableHeater();
 
@@ -245,7 +241,7 @@ int main(void) {
             loop_flags ^= FLAG_TEMP_LOW;
         }
         if (loop_flags & FLAG_TEMP_HIGH) {
-            if (rovstate == RS_LANDER)
+            if (rovstate == RS_KEEPALIVE)
                 /* it only makes sense to disable the heaters if we're connected to the lander */
                 disableHeater();
 

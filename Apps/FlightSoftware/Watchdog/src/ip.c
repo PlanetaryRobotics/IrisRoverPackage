@@ -109,6 +109,38 @@ uint16_t ip_verify_packet(uint8_t *packet, uint16_t packet_len) {
 }
 
 /**
+ * calculate UDP checksum
+ *
+ * @param udp_header: udp header *only* (no ip header part)
+ * @param data_buf: udp data buffer
+ * @param udp_packet_len: length of udp header + data part
+ * @param ip_src: source ip address
+ * @param ip_dest: destination ip address
+ */
+uint16_t udp_checksum(uint8_t *udp_header, uint8_t *data_buf, uint16_t udp_packet_len, uint32_t ip_src, uint32_t ip_dest) {
+    static uint8_t buf[BUFFER_SIZE];
+
+    // TODO: hacky, slow, way for now. do this better
+    struct ip_pseudohdr ph;
+
+    ph.source = ip_src;
+    ph.dest = ip_dest;
+    ph.zero = 0;
+    ph.proto = 0x11;
+    ph.udp_len = udp_packet_len;
+
+    udp_packet_len = htons(udp_packet_len);
+    udp_packet_len -= sizeof(struct udp_hdr);
+
+    memcpy(buf, (uint8_t *)(&ph), sizeof(struct ip_pseudohdr));
+    memcpy(buf + sizeof(struct ip_pseudohdr), udp_header, sizeof(struct udp_hdr));
+    memcpy(buf + sizeof(struct ip_pseudohdr) + sizeof(struct udp_hdr), data_buf, udp_packet_len);
+
+    // return one's complement of sum
+    return ip_checksum(buf, sizeof(struct ip_pseudohdr) + sizeof(struct udp_hdr) + udp_packet_len);
+}
+
+/**
  * Send a UDP datagram
  */
 static uint8_t ipudp_tx_buf[sizeof(struct ip_hdr) + sizeof(struct udp_hdr)];
@@ -149,9 +181,12 @@ void ipudp_send_packet(uint8_t *data, uint16_t data_len) {
     udp_hdr->source_port = htons(42000);
     udp_hdr->dest_port = htons(42000);
     // length
-    udp_hdr->len = htons(data_len + sizeof(struct udp_hdr));
-    // checksum - TODO
+    udp_hdr->len = data_len + sizeof(struct udp_hdr);
+    udp_hdr->len = htons(udp_hdr->len);
     udp_hdr->checksum = 0;
+    // UDP checksum
+    chksm = udp_checksum(udp_hdr, data, udp_hdr->len, ip_hdr->source, ip_hdr->dest);
+    udp_hdr->checksum = htons(chksm);
 
     // queue up the data to send
     uart1_tx_nonblocking(sizeof(struct ip_hdr) + sizeof(struct udp_hdr), ipudp_tx_buf, UA1_ADD_PKT_START);
@@ -174,13 +209,16 @@ uint8_t *ipudp_parse_packet(struct buffer *buf, uint16_t *pp_len) {
     }
 
     /* TODO: proper checking of stuff here ... */
-    n = sizeof(struct ip_udp_pckt);
+    n = sizeof(struct ip_hdr) + sizeof(struct udp_hdr);
     if (buf->used < n) {
         /* too small */
         return (void *)0;
     }
 
     if (pp_len) *pp_len = buf->used - n;
+    // TODO: check that pp_len is equal to the reported packet length in IP/UDP
+    // TODO: this will currently die if we get more than one packet from SLIP. oops.
+
     /* skip past the ip and udp headers, and we're left with the payload! */
     return buf->buf + n;
 }

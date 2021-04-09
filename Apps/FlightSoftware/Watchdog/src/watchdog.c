@@ -14,6 +14,10 @@
 #include "include/flags.h"
 #include "include/adc.h"
 #include "include/uart.h"
+#include "include/bsp.h"
+#include "include/ip_udp.h"
+
+uint8_t handle_watchdog_reset_cmd(uint8_t cmd);
 
 volatile uint16_t watchdog_flags;
 
@@ -44,8 +48,6 @@ int watchdog_init() {
     PWM_limit = 8500;                       // make sure PWM does not exceed ~90% to keep power use low
     TB0CCTL2 = OUTMOD_7; //CCR2 reset/set
     TB0CTL = TBSSEL__SMCLK | MC__UP | TBCLR; // SMCLK, continuous mode
-
-
 
     return 0;
 }
@@ -78,6 +80,54 @@ int watchdog_monitor() {
     if (watchdog_flags & WDFLAG_UNRESET_RADIO1) {
         watchdog_flags |= WDFLAG_UNRESET_RADIO2;
         watchdog_flags ^= WDFLAG_UNRESET_RADIO1;
+    }
+
+    /* unreset hercules */
+    if (watchdog_flags & WDFLAG_UNRESET_HERCULES) {
+        releaseHerculesReset();
+        watchdog_flags ^= WDFLAG_UNRESET_HERCULES;
+    }
+
+    /* unreset motor 1 */
+    if (watchdog_flags & WDFLAG_UNRESET_MOTOR1) {
+        releaseMotor1Reset();
+        watchdog_flags ^= WDFLAG_UNRESET_MOTOR1;
+    }
+
+    /* unreset motor 2 */
+    if (watchdog_flags & WDFLAG_UNRESET_MOTOR2) {
+        releaseMotor2Reset();
+        watchdog_flags ^= WDFLAG_UNRESET_MOTOR2;
+    }
+
+    /* unreset motor 3 */
+    if (watchdog_flags & WDFLAG_UNRESET_MOTOR3) {
+        releaseMotor3Reset();
+        watchdog_flags ^= WDFLAG_UNRESET_MOTOR3;
+    }
+
+    /* unreset motor 4 */
+    if (watchdog_flags & WDFLAG_UNRESET_MOTOR4) {
+        releaseMotor4Reset();
+        watchdog_flags ^= WDFLAG_UNRESET_MOTOR4;
+    }
+
+    /* unreset FPGA */
+    if (watchdog_flags & WDFLAG_UNRESET_FPGA) {
+        releaseFPGAReset();
+        watchdog_flags ^= WDFLAG_UNRESET_FPGA;
+    }
+
+    /* bring 3V3 on again */
+    if (watchdog_flags & WDFLAG_UNRESET_3V3) {
+        enable3V3PowerRail();
+        watchdog_flags ^= WDFLAG_UNRESET_3V3;
+    }
+
+    /* turn 24V on again */
+    if (watchdog_flags & WDFLAG_UNRESET_24V) {
+        enable24VPowerRail();
+        watchdog_flags ^= WDFLAG_UNRESET_24V;
     }
 
     /* check ADC values */
@@ -142,13 +192,13 @@ unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
             hercbuf.idx = 0;
         } else {
             /* echo back watchdog command header */
-//            buf[8] = 0xaa;
             uart0_tx_nonblocking(8, buf);
             /* also attach telemetry values */
             // TODO: telemetry send
             unsigned char telbuf[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
             uart0_tx_nonblocking(16, telbuf);
         }
+
         /* in this case, we always just processed 8 bytes header */
         return 8;
     }
@@ -273,7 +323,7 @@ void __attribute__ ((interrupt(TIMER0_B0_VECTOR))) Timer0_B0_ISR (void)
         PWM_cycle = PWM_limit;
     }
 
-    if(rovstate == RS_LANDER){
+    if(rovstate == RS_KEEPALIVE){
         TB0CCR2 = PWM_cycle;
     } else {
         // don't run heaters when not on lander

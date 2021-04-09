@@ -1,6 +1,7 @@
 #include "include/bsp.h"
 
-#define PROGRAM_MOTOR_CONTROLLERS
+//TODO: uncomment to program MC
+//#define PROGRAM_MOTOR_CONTROLLERS
 
 uint8_t heaterStatus;
 uint8_t hasDeployed;
@@ -149,6 +150,26 @@ inline void fpgaCameraSelectLo() { P3OUT &= ~BIT5; }
 /**
  * @brief      Releases the motor resets. (HI = NORMAL)
  */
+inline void releaseMotor1Reset() {
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    P2OUT |= BIT3;
+#endif
+}
+inline void releaseMotor2Reset() {
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    P1OUT |= BIT4;
+#endif
+}
+inline void releaseMotor3Reset() {
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    P1OUT |= BIT5;
+#endif
+}
+inline void releaseMotor4Reset() {
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    PJOUT |= BIT4;
+#endif
+}
 inline void releaseMotorsReset() {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
     P1OUT |= BIT4 | BIT5; P2OUT |= BIT3; PJOUT |= BIT4;
@@ -158,12 +179,31 @@ inline void releaseMotorsReset() {
 /**
  * @brief      Sets the motors to reset. (LO = RESET)
  */
+inline void setMotor1Reset() {
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    P2OUT &= ~BIT3;
+#endif
+}
+inline void setMotor2Reset() {
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    P1OUT &= ~BIT4;
+#endif
+}
+inline void setMotor3Reset() {
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    P1OUT &= ~BIT5;
+#endif
+}
+inline void setMotor4Reset() {
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    PJOUT &= ~BIT4;
+#endif
+}
 inline void setMotorsReset() {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
     P1OUT &= ~(BIT4 | BIT5); P2OUT &= ~BIT3; PJOUT &= ~BIT4;
 #endif
 }
-
 /**
  * @brief      Power the hercules MCU (HI = ON)
  */

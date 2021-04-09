@@ -26,6 +26,9 @@ __volatile extern uint16_t loop_flags;
 #define WDFLAG_UNRESET_MOTOR2 0x40
 #define WDFLAG_UNRESET_MOTOR3 0x80
 #define WDFLAG_UNRESET_MOTOR4 0x100
+#define WDFLAG_UNRESET_FPGA   0x200
+#define WDFLAG_UNRESET_3V3    0x400
+#define WDFLAG_UNRESET_24V    0x800
 
 
 #define DEFAULT_LPM LPM2_bits
@@ -33,9 +36,10 @@ __volatile extern uint16_t loop_flags;
 __volatile extern uint16_t watchdog_flags;
 
 enum rover_state {
-    RS_SERVICE, // service mode. perform tests, etc.
-    RS_LANDER, // connected to the lander 28V
-    RS_MISSION, // disconnected from lander 28V. we're on our own now ...
+    RS_SLEEP, // about to lose power
+    RS_KEEPALIVE, // connected to the lander 28V, send heartbeats
+    RS_SERVICE, // temporary state to act as a buffer between mission and service
+    RS_MISSION, // power everything up. woot!
     RS_FAULT // oops
 };
 extern enum rover_state rovstate;

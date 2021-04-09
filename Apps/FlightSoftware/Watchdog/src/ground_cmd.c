@@ -13,11 +13,14 @@
 #include "include/uart.h"
 #include "include/adc.h"
 #include "include/flags.h"
+#include "include/i2c.h"
+
+void enterMode(enum rover_state newstate);
 
 /**
  * Handle watchdog reset-specific hardware commands
  */
-void handle_watchdog_reset_cmd(uint8_t cmd) {
+uint8_t handle_watchdog_reset_cmd(uint8_t cmd) {
     switch(cmd) {
     /* 0x00: No Reset */
     case 0x00:
@@ -25,6 +28,7 @@ void handle_watchdog_reset_cmd(uint8_t cmd) {
     /* 0x01: Reset Hercules */
     case 0x01:
         setHerculesReset();
+        // queue up hercules unreset
         watchdog_flags |= WDFLAG_UNRESET_HERCULES;
         break;
     /* 0x02: Hercules Power On */
@@ -51,8 +55,9 @@ void handle_watchdog_reset_cmd(uint8_t cmd) {
         break;
     /* 0x07: Reset Camera FPGA */
     case 0x07:
-        // TODO is delay cycles really the best way to do things?
-        __delay_cycles(1000);
+        setFPGAReset();
+        // queue up the fpga unreset
+        watchdog_flags |= WDFLAG_UNRESET_FPGA;
         break;
     /* 0x08: Camera FPGA Power On */
     case 0x08:
@@ -64,23 +69,34 @@ void handle_watchdog_reset_cmd(uint8_t cmd) {
         break;
     /* 0x0A: Reset Motor 1 */
     case 0x0A:
-        // TODO
+        setMotor1Reset();
+        // queue up the motor 1 unreset
+        watchdog_flags |= WDFLAG_UNRESET_MOTOR1;
         break;
     /* 0x0B: Reset Motor 2 */
     case 0x0B:
-        // TODO
+        setMotor2Reset();
+        // queue up the motor 2 unreset
+        watchdog_flags |= WDFLAG_UNRESET_MOTOR2;
         break;
     /* 0x0C: Reset Motor 3 */
     case 0x0C:
-        // TODO
+        setMotor3Reset();
+        // queue up the motor 3 unreset
+        watchdog_flags |= WDFLAG_UNRESET_MOTOR3;
         break;
     /* 0x0D: Reset Motor 4 */
     case 0x0D:
-        // TODO
+        setMotor4Reset();
+        // queue up the motor 4 unreset
+        watchdog_flags |= WDFLAG_UNRESET_MOTOR4;
         break;
     /* 0x0E: Reset All Motors */
     case 0x0E:
-        // TODO
+        setMotorsReset();
+        // queue up all the motor unresets
+        watchdog_flags |= WDFLAG_UNRESET_MOTOR1 | WDFLAG_UNRESET_MOTOR2 |
+                          WDFLAG_UNRESET_MOTOR3 | WDFLAG_UNRESET_MOTOR4;
         break;
     /* 0x0F: All Motors Power On */
     case 0x0F:
@@ -92,7 +108,9 @@ void handle_watchdog_reset_cmd(uint8_t cmd) {
         break;
     /* 0x11: Reset 3.3 EN */
     case 0x11:
-        // TODO
+        disable3V3PowerRail();
+        // queue up 3V3 rail on again
+        watchdog_flags |= WDFLAG_UNRESET_3V3;
         break;
     /* 0x12: 3.3 EN On */
     case 0x12:
@@ -104,7 +122,9 @@ void handle_watchdog_reset_cmd(uint8_t cmd) {
         break;
     /* 0x14: Reset 24 EN */
     case 0x14:
-        // TODO
+        disable24VPowerRail();
+        // queue up 24V rail on again
+        watchdog_flags |= WDFLAG_UNRESET_24V;
         break;
     /* 0x15: 24 EN On */
     case 0x15:
@@ -114,17 +134,57 @@ void handle_watchdog_reset_cmd(uint8_t cmd) {
     case 0x16:
         disable24VPowerRail();
         break;
-    /* 0x17: Deploy */
-    case 0x17:
-        // only allow this deploy mode if we are not currently attached to the lander
-        // TODO: don't use
-        if (hasDeployed) setDeploy();
+    /* 0xEE: Deploy */
+    case 0xEE:
+        /* WOOT WOOT! WE ARE ON TO THE MOON, FOLKS */
+        /* ref: https://docs.google.com/document/d/1dKLlBcIIVo8t1bGu3jNiHobGMavA3I2al0cncj3ZAhE/edit */
+        setDeploy();
         break;
     /* 0x18: Unset deploy */
     case 0x18:
-        // TODO
+        unsetDeploy();
         break;
+    /* 0x19: FPGA camera select #0 */
+    case 0x19:
+        fpgaCameraSelectLo();
+        break;
+    /* 0x20: FPGA camera select #1 */
+    case 0x20:
+        fpgaCameraSelectHi();
+        break;
+    default:
+        /* invalid command */
+        return 0xff;
     }
+    /* all ok */
+    return 0;
+}
+
+
+#define GNDRESP_ENONE        0
+#define GNDRESP_EPACKETLEN   1
+#define GNDRESP_ECHKSM       2
+#define GNDRESP_EMODID       3
+#define GNDRESP_ECMDID       4
+#define GNDRESP_ECMDPARAM    5
+#define GNDRESP_ECMDSEQ      6
+
+/**
+ * Reply to a ground command
+ *
+ * @param cmdid: Command ID replying to (may be 0 if entire packet invalid)
+ * @param error_no: Error GNDRESP_E*
+ */
+void reply_ground_cmd(uint8_t cmdid, uint8_t error_no) {
+    uint8_t send_buf[3];
+
+    // fill the buffer
+    send_buf[0] = 0x0A;
+    send_buf[1] = cmdid;
+    send_buf[2] = error_no;
+
+    // send the bytes
+    ipudp_send_packet(send_buf, 3);
 }
 
 /**
@@ -133,30 +193,100 @@ void handle_watchdog_reset_cmd(uint8_t cmd) {
  * @param buf_len: Length of the buffer
  */
 void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
-    if (buf_len != 3) {
-        /* TODO: this is malformed packet */
+    if (buf_len <= 3) {
+        /* invalid packet length */
+        reply_ground_cmd(0, GNDRESP_EPACKETLEN);
         return;
     }
-    if (buf[0] != 0x10) {
-        /* TODO: this is malformed packet */
+    if (buf[1] != 0x10) {
+        /* module ID invalid */
+        reply_ground_cmd(0, GNDRESP_EMODID);
         return;
     }
-    if (buf[1] == 0x00) {
+    switch (buf[0]) {
+    case 0x00:
         /* watchdog system reset commands */
-        handle_watchdog_reset_cmd(buf[2]);
-    } else if (buf[1] == 0x01) {
-        /* power on all systems */
-        enterMode(RS_MISSION);
-    } else if (buf[1] == 0x02) {
-        /* deploy! */
-        if (buf[2] == 0x60 && rovstate == RS_MISSION) {
-            setDeploy();
-        } else {
-            // wrong mode, need to be in
-            // TODO: alert end user?
+        if (handle_watchdog_reset_cmd(buf[2])) {
+            /* invalid argument */
+            reply_ground_cmd(0, GNDRESP_ECMDPARAM);
         }
-    } else {
-        /* TODO: this is malformed packet */
+        break;
+    case 0x01:
+        /* power on all systems */
+        if (buf[2] != 0x60) {
+            /* magic bad */
+            reply_ground_cmd(0, GNDRESP_ECMDPARAM);
+            return;
+        } else if (rovstate != RS_SERVICE) {
+            /* not in the right state to transition to mission mode */
+            reply_ground_cmd(0, GNDRESP_ECMDSEQ);
+            return;
+        }
+        /* all checks pass, enter mission mode */
+        enterMode(RS_MISSION);
+        break;
+    case 0x02:
+    case 0x04:
+        /* TODO: not actually used */
+        break;
+    case 0xAC:
+        /* TODO: set thermistor Kp */
+        break;
+    case 0xBC:
+        /* TODO: set thermistor Ki */
+        break;
+    case 0xCC:
+        /* TODO: set thermistor Kd */
+        break;
+    case 0xDA:
+        /* TODO: set thermistor V setpoint */
+        break;
+    case 0xEA:
+        /* Enter sleep mode */
+        if (buf[2] != 0x77) {
+            /* magic bad */
+            reply_ground_cmd(0, GNDRESP_ECMDPARAM);
+            return;
+        } else if (rovstate != RS_KEEPALIVE) {
+            /* not in the right state to transition to mission mode */
+            reply_ground_cmd(0, GNDRESP_ECMDSEQ);
+            return;
+        }
+        /* all checks pass, enter sleep mode */
+        enterMode(RS_SLEEP);
+        break;
+    case 0xEB:
+        /* Enter keepalive mode */
+        if (buf[2] != 0x77) {
+            /* magic bad */
+            reply_ground_cmd(0, GNDRESP_ECMDPARAM);
+            return;
+        } else if (rovstate != RS_SLEEP || rovstate != RS_SERVICE) {
+            /* not in the right state to transition to keepalive mode */
+            reply_ground_cmd(0, GNDRESP_ECMDSEQ);
+            return;
+        }
+        /* all checks pass, enter keepalive mode */
+        enterMode(RS_KEEPALIVE);
+        break;
+    case 0xEC:
+        /* Enter service mode */
+        if (buf[2] != 0x77) {
+            /* magic bad */
+            reply_ground_cmd(0, GNDRESP_ECMDPARAM);
+            return;
+        } else if (rovstate != RS_KEEPALIVE) {
+            /* not in the right state to transition to service mode */
+            reply_ground_cmd(0, GNDRESP_ECMDSEQ);
+            return;
+        }
+        /* all checks pass, enter mission mode */
+        enterMode(RS_SERVICE);
+        break;
+    default:
+        /* invalid command */
+        reply_ground_cmd(0, GNDRESP_ECMDID);
+        break;
     }
 }
 
@@ -176,52 +306,80 @@ void parse_ground_cmd(struct buffer *pp) {
     buf = ipudp_parse_packet(pp, &pp_len);
     if (!buf) {
         /* malformed packet */
+        reply_ground_cmd(0, GNDRESP_EPACKETLEN);
         return;
     }
 
     /* check that the length is greater than the base sane amount */
-    if (pp_len < 9) {
-        /* TODO: return some sort of malformed packet warning? */
+    if (pp_len < 11) {
+        /* malformed packet length */
+        reply_ground_cmd(0, GNDRESP_EPACKETLEN);
         return;
     }
 
     /* first is sequence number */
     /* TODO: sequence number */
-    /* next is two bytes, big endian, representing length of the packet */
-    packet_len = buf[1] << 8 | buf[2];
+    /* next is two bytes, little endian, representing length of the packet */
+    packet_len = buf[2] << 8 | buf[1];
     /* check that the length is right */
-    if (packet_len != pp_len) {
-        /* TODO: what is the packet_len field actually representing? */
+    if ((packet_len + 4) != pp_len) {
+        /* malformed packet length */
+        reply_ground_cmd(0, GNDRESP_EPACKETLEN);
+        return;
     }
 
     /* TODO: check the checksum */
-    /* get the type */
-    if (buf[5] == 0x00 && buf[6] == 0xBA && buf[7] == 0xDA && buf[8] == 0x55) {
+    (void)(buf[3]);
+
+    /* get the type (should be 000BADA55 for hercules) */
+    if (buf[4] == 0x55 && buf[5] == 0xDA && buf[6] == 0xBA && buf[7] == 0x00) {
         /* command */
-        handle_ground_cmd(buf + 9, pp_len - 9);
+        handle_ground_cmd(buf + 8, pp_len - 8);
+    } else {
+        /* forward it on to hercules */
+        // copy the buffer into the hercules buffer
+        memcpy(hercbuf.buf + hercbuf.idx, pp->buf, pp->used);
+        hercbuf.idx += pp->used;
     }
+
+    /* done parsing */
+    // TODO: multiple packets? handle.
+    pp->used = 0;
+    pp->idx = 0;
 }
 
 /**
  * Send the earth heartbeat
  */
 void send_earth_heartbeat() {
-    // TODO: UDP/IP headers
+    static uint8_t counter = 0;
+    if (counter % 3 != 2) {
+        // send every 2 seconds
+        counter++;
+        return;
+    }
+    counter = 0;
+
     pbuf.used = 0;
     pbuf.idx = 0;
 
     // build the packet
     pbuf.buf[0] = 0xFF;
     // send the battery voltage
-    pbuf.buf[1] = 0xFF; // TODO: remove once below line fixed
-//    pbuf.buf[1] = (uint8_t)(raw_battery_voltage[0] >> 1); //TODO: fix this
+    pbuf.buf[1] = (uint8_t)(raw_battery_voltage[0] >> 1); //TODO: fix this
     pbuf.buf[1] = pbuf.buf[1] << 1;
+    // send heater on status
     pbuf.buf[1] |= heaterStatus & 0x1;
-    // send the thermistor temperature
-    pbuf.buf[2] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
-    pbuf.used += 3;
+    // battery current
+    pbuf.buf[2] = (uint8_t)(raw_battery_current[0] >> 1); //TODO: fix this
+    // send voltage nominal status
+    pbuf.buf[2] |= 0x1; // TODO: fix this
 
-    // TODO: use IP/UDP send func
+    // send the thermistor temperature (12 bits to 8 bits)
+    pbuf.buf[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
+    pbuf.used += 4;
+
+    // send the packet!
     ipudp_send_packet(pbuf.buf, pbuf.used);
 }
 

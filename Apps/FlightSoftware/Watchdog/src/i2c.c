@@ -1,5 +1,7 @@
 #include "include/i2c.h"
 
+// TODO: integrate this code with the rest of the system
+
 int8_t raw_battery_charge[2];
 int8_t raw_battery_voltage[2];
 int8_t raw_battery_current[2];

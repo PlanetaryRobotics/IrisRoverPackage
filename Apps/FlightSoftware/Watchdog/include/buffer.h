@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 // TODO: running out of memory again :/ need to optimize buffers
-#define BUFFER_SIZE 512
+#define BUFFER_SIZE 500
 
 struct buffer {
     /* the actual array of characters */

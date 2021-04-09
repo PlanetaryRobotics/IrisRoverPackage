@@ -189,9 +189,12 @@ private:
   bool m_commandSendEndpointSet;
   bool m_commandTransmitSizeSet;
 
-  Wf121::IpAddress m_roverIpAddress = ROVER_IP_ADDRESS;
-  Wf121::Netmask m_roverMaskAddress = ROVER_MASK_ADDRESS;
-  Wf121::Gateway m_udpGatewayAddress = ROVER_GATEWAY_ADDRESS;
+  Wf121::IpAddress m_roverIpAddress = ROVER_ADDRESS;
+  Wf121::IpAddress m_spacecraftIpAddress = SPACECRAFT_ADDRESS;
+  Wf121::Netmask m_subnetMask = SUBNET_MASK;
+  Wf121::Gateway m_gatewayAddress = GATEWAY_ADDRESS;
+  uint16_t m_roverUDPPort = ROVER_UDP_PORT;
+  uint16_t m_spacecraftUDPPort = SPACECRAFT_UDP_PORT;
   WifiNetwork m_landerWifi;
   uint8_t m_scanIndex;
   uint8_t m_connectIndex;

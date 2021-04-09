@@ -2,11 +2,12 @@
 #define _FSW_PACKET_H_
 
 // Wifi Connection Parameters
-#define ROVER_IP_ADDRESS        {192, 168, 1, 2}
-#define ROVER_MASK_ADDRESS      {255, 255, 255, 0}
-#define ROVER_GATEWAY_ADDRESS   {192, 168, 1, 120}
-#define GATEWAY_PORT            8080
-#define ROVER_UDP_PORT          8080 
+#define ROVER_ADDRESS           {192, 168, 1, 2}
+#define SPACECRAFT_ADDRESS      {192, 168, 1, 120}
+#define SUBNET_MASK             {255, 255, 255, 0}
+#define GATEWAY_ADDRESS         {192, 168, 1, 120}
+#define SPACECRAFT_UDP_PORT     8080 
+#define ROVER_UDP_PORT          8080
 
 #define LANDER_SSID             "Houston"
 #define LANDER_NETWORK_PASSWORD "redr0ver"

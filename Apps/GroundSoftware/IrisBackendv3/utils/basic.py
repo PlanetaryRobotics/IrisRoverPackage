@@ -3,7 +3,7 @@
 A Collection of Basic Utility Functions.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 01/27/2021
+@last-updated: 04/08/2021
 """
 
 import re
@@ -11,8 +11,12 @@ import string
 from typing import Dict, List, Any, Union
 
 
-def print_bytearray_hex(ba):
-    print(" ".join(["{:02x}".format(x) for x in ba]))
+def bytearray_to_spaced_hex(ba) -> str:
+    return " ".join(["{:02x}".format(x) for x in ba])
+
+
+def print_bytearray_hex(ba) -> None:
+    print(bytearray_to_spaced_hex(ba))
 
 
 def dict_field_type_check(data: Dict, field: str, desired_type: Union[type, List[type]], name: str = None) -> None:

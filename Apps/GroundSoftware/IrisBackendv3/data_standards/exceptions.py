@@ -7,6 +7,7 @@ Various exceptions used throughout this package.
 @last-updated: 04/05/2021
 """
 
+
 class StandardsFormattingException(Exception):
     """Formatting of Some Standards File doesn't Conform to Expectations."""
 
@@ -19,5 +20,5 @@ class StandardsFormattingException(Exception):
         """
         self.file_uri = file_uri
         self.info = info
-        self.message = f"Formatting of standards file '{file_uri}' (or its expanded state) does not conform to expectations: {info}."
+        self.message = f"Formatting of standards file '{file_uri}' (or its expanded state) does not conform to expectations: {info}"
         super().__init__(self.message)

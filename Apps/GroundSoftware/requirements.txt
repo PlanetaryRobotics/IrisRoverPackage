@@ -1,7 +1,12 @@
 mypy
+ipykernel
 scapy
 python-pcapng
 numpy
+matplotlib
+pandas
+plotly
+dash
 lxml
 pytest
 jsonpickle

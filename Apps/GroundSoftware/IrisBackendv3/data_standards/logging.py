@@ -1,6 +1,7 @@
-# Package-wide logging format standards.
+# DataStandards Package-wide logging format standards.
 import logging
-import verboselogs, coloredlogs
+import verboselogs
+import coloredlogs
 
 verboselogs.install()
 logger = logging.getLogger(__name__)

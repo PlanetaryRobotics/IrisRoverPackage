@@ -19,7 +19,7 @@ sequence_number = 10
 
 standards = DataStandards.build_standards()
 
-# standards.print_overview()
+standards.print_overview()
 
 standards.cache(
     cache_dir="./sandbox-cache",

@@ -13,7 +13,7 @@ with open(sys.argv[1], 'rb') as f:
         ip_dg = frame.data
         udp_dg = ip_dg.data
         image_block = udp_dg.data
-        image_block = np.frombuffer(image_block, dtype=np.uint8)[5+9+3:]
+        image_block = np.frombuffer(image_block, dtype=np.uint8)[4+9+3:]
         image.append(image_block)
 image_buf = np.zeros(image_height * image_width)
 image_data = np.array(image).flatten()

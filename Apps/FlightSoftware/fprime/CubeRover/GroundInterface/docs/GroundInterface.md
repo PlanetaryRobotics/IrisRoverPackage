@@ -2,6 +2,13 @@
 # GroundInterface Component Dictionary
 
 
+## Command List
+
+|Mnemonic|ID|Description|Arg Name|Arg Type|Comment
+|---|---|---|---|---|---|
+|Set_Primary_Interface|0 (0x0)|Sets the primary interface.| | |
+| | | |primary_interface|PrimaryInterface||
+
 ## Telemetry Channel List
 
 |Channel Name|ID|Type|Description|
@@ -24,7 +31,7 @@
 
 |Event Name|ID|Description|Arg Name|Arg Type|Arg Size|Description
 |---|---|---|---|---|---|---|
-|GI_UplinkedPacketError|0 (0x0)|Error validating uplinked packet| | | | |
+|GI_UplinkedPacketError|0 (0x0)|Error validating uplinked packet. Expected field is only logged for MISMATCHED_LENGTH and OUT_OF_SEQUENCE. For INCORRECT_TYPE, the magic value s a U32 so the upper short is stored in expected and lower short is stored in got.| | | | |
 | | | |errorType|uplinkedPacketError|||
 | | | |expected|U16|||
 | | | |got|U16|||

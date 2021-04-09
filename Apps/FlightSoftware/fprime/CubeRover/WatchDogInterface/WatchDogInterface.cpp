@@ -20,6 +20,8 @@
 #include "Include/FswPacket.hpp"
 #include "sys_dma.h"
 #include <App/DMA.h>
+#include "gio.h"
+#include "reg_spi.h"
 
 static volatile bool dmaWriteBusy = false;
 static volatile bool dmaReadBusy = false;
@@ -232,6 +234,12 @@ namespace CubeRover {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;
       }
+
+      // Set Deployment Bit High
+      // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
+      // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port 
+      gioSetBit(spiPORT3, 5, 1);
+
 	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 

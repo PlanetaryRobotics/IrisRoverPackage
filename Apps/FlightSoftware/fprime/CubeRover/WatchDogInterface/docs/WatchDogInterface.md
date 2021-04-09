@@ -10,7 +10,21 @@
 | | | |reset_value|U8|
                     	U8 Value that specifies which components or hardware need to be reset
                     |
-|Disengage_From_Lander|1 (0x1)|Command to send signal to MSP430 that it should send a signal to lander to disengage| | |
+|Prepare_For_Deployment|1 (0x1)|Command to send signal to MSP430 to prepare for deploying (may not be needed)| | |
+|Disengage_From_Lander|2 (0x2)|Command to send signal to MSP430 that it should send a signal to lander to disengage| | |
+|Switch_Connection_Mode|3 (0x3)|Command to send signal to MSP430 that we switch the current connection mode| | |
+|Set_Kp_Most|170 (0xaa)|Command to send signal to MSP430 that it should set Kp to most significant parameter| | |
+|Set_Kp_Least|171 (0xab)|Command to send signal to MSP430 that it should set Kp to least significant parameter| | |
+|Set_Kp_Specific|172 (0xac)|Command to send signal to MSP430 that it should set Kp to a specific value| | |
+|Set_Ki_Most|186 (0xba)|Command to send signal to MSP430 that it should set Ki to most significant parameter| | |
+|Set_Ki_Least|187 (0xbb)|Command to send signal to MSP430 that it should set Ki to least significant parameter| | |
+|Set_Ki_Specific|188 (0xbc)|Command to send signal to MSP430 that it should set Ki to a specific value| | |
+|Set_Kd_Most|202 (0xca)|Command to send signal to MSP430 that it should set Kd to most significant parameter| | |
+|Set_Kd_Least|203 (0xcb)|Command to send signal to MSP430 that it should set Kd to least significant parameter| | |
+|Set_V_Setpoint|218 (0xda)|Command to send signal to MSP430 that it should set V to a specific value| | |
+|Switch_to_Sleep_Mode|234 (0xea)|Command to send signal to MSP430 that it should go into Sleep Mode| | |
+|Switch_to_Keep_Alive_Mode|235 (0xeb)|Command to send signal to MSP430 that it should go into Keep Alive Mode| | |
+|Switch_to_Service_Mode|236 (0xec)|Command to send signal to MSP430 that it should go into Service Mode| | |
 
 ## Telemetry Channel List
 

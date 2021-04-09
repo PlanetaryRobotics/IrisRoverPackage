@@ -2,23 +2,23 @@
   <div class="accordion">
     <div
       class="accordion-header"
-      :class="this.opened ? 'active' : ''"
+      :class="opened ? 'active' : ''"
       @click="toggleAccordion"
       @expandall:fromparent="toggleAccordion"
     >
       <!----- TODO: not aligned ---->
       <p class="header-text inline">
-        {{ this.header }} {{ this.fixed_header }}
+        {{ header }} {{ fixedHeader }}
       </p>
       <p class="arrow inline align-right" />
     </div>
 
     <div
       class="accordion-body"
-      :class="this.opened ? 'open' : 'collapse'"
+      :class="opened ? 'open' : 'collapse'"
     >
       <div
-        v-for="errorTag in this.contents"
+        v-for="errorTag in contents"
         :key="errorTag.priority"
         class="errorTagsWrapper"
       >
@@ -50,7 +50,7 @@ export default {
             type: Array,
             required: true,
         },
-        fixed_header: {
+        fixedHeader: {
             type: String,
             required: false,
             default: '',
@@ -63,7 +63,6 @@ export default {
     },
     methods: {
         toggleAccordion() {
-            console.log('here');
             this.opened = !this.opened;
         },
     },

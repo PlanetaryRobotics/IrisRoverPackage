@@ -42,29 +42,23 @@ export default {
     props: {
         options: {
             type: Array,
-
             required: true,
         },
 
         default: {
             type: String,
-
             required: false,
-
             default: null,
         },
 
         tabindex: {
             type: Number,
-
             required: false,
-
             default: 0,
         },
 
         title: {
             type: String,
-
             required: false,
         },
     },

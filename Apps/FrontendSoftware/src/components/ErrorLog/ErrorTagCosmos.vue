@@ -10,7 +10,7 @@
         class=""
       >
         <rect
-          v-for="i in this.priorityValue"
+          v-for="i in priorityValue"
           :key="i"
           width="2"
           height="14"
@@ -25,7 +25,7 @@
 
       <div
         class="col category row"
-        :class="this.opened ? 'active' : ''"
+        :class="opened ? 'active' : ''"
       >
         <span class="category_text"> Category: {{ errorTag.category }} </span>
 
@@ -57,7 +57,7 @@
 
     <div
       class="details"
-      :class="this.opened ? 'open' : 'collapse'"
+      :class="opened ? 'open' : 'collapse'"
     >
       <div class="row">
         <p class="inline title_text">
@@ -124,8 +124,13 @@
 
 export default {
     name: 'ErrorTag',
-
-    props: ['errorTag', 'openAnalysis', 'index'],
+    
+    props: {  
+        errorTag: {  
+            type: Object,
+            required: true,
+        },
+    },
 
     data() {
         return {

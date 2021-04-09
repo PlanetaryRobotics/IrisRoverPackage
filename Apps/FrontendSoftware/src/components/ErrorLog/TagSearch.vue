@@ -32,7 +32,7 @@
           class="drop-down-button unselectable"
           @mousedown="toggleDropdown()"
         >
-          {{ this.current_icon.valueOf() }}
+          {{ current_icon.valueOf() }}
         </span>
       </div>
       <!-- input (input field + button) wrapper -->

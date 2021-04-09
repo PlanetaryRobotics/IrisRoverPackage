@@ -27,13 +27,6 @@
           </div>
         </div>
       </div>
-
-      <!-- **********************************
-            TODO:  Sort PopUp Window 
-            - Anchored by the UI sort symbol 
-            - on top of search 
-           **********************************
-      -->
       <div
         v-if="sortPopUpOpen"
         class="sort_popup popup"
@@ -276,6 +269,7 @@ export default {
                 this.State = 'Priority';
                 this.sortBy = 'HighToLow';
             } else if (sortBy == 'Last Modified') {
+                // eslint-disable-next-line vue/no-mutating-props
                 this.errorTags.sort((a, b) =>
                     a.lastModified < b.lastModified ? 1 : -1
                 );
@@ -283,12 +277,15 @@ export default {
             } else if (sortBy == 'Category') {
                 this.State = 'Category';
             } else if (sortBy == 'Created(New - Old)') {
+                // eslint-disable-next-line vue/no-mutating-props
                 this.errorTags.sort((a, b) => (a.created < b.created ? 1 : -1));
                 this.State = 'Default';
             } else if (sortBy == 'Created(Old - New)') {
+                // eslint-disable-next-line vue/no-mutating-props
                 this.errorTags.sort((a, b) => (a.created >= b.created ? 1 : -1));
                 this.State = 'Default';
             }
+            console.log(sortBy);
         },
         searchCategoryUpdate(category) {
             console.log('received search category update: ' + category);
@@ -314,9 +311,9 @@ export default {
             // string values
             if (
                 s == 'category' ||
-        s == 'id' ||
-        s == 'created' ||
-        s == 'lastModified'
+                s == 'id' ||
+                s == 'created' ||
+                s == 'lastModified'
             ) {
                 let arr = [];
                 this.errorTags.forEach((tag) => arr.push(tag[s]));
@@ -329,7 +326,7 @@ export default {
                 this.validTerms = [...new Set(arr)];
             }
             // time interval
-            // *****************    TO-DO: Use clock   ******************
+            // *****************    Debugging clock  ******************
             else if (s == 'timeframe') {
                 console.log('sort by time frame');
             }
@@ -340,9 +337,9 @@ export default {
             console.log(sc);
             if (
                 sc == 'category' ||
-        sc == 'id' ||
-        sc == 'created' ||
-        sc == 'lastModified'
+                sc == 'id' ||
+                sc == 'created' ||
+                sc == 'lastModified'
             ) {
                 let tmp = this.errorTags;
                 tmp = tmp.filter((tag) => searchedTerms.includes(tag[sc]));
@@ -351,15 +348,12 @@ export default {
         },
         checkFilter(rawErrorTags) {
             let tags =
-        this.filteredTags.length != 0 ? this.filteredTags : rawErrorTags;
+            this.filteredTags.length != 0 ? this.filteredTags : rawErrorTags;
             return tags;
         },
         expandAllAccordion() {
             let accordions = $('.accordion_with_header');
-            // console.log(accordions);
             [...accordions].forEach((el) => el.trigger('click'));
-            //  [...$(".accordion_with_header ")].forEach((el) => el.trigger("click"));
-
             console.log('expand all accordion');
         },
     },

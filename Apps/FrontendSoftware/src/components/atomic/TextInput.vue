@@ -80,10 +80,10 @@ Last Updated: 08/30/2020, Colombo
               />
         <span
           class="input-text"
-          :class="{ placeholder: !rawInput && !suggestionIdx }"
+          :class="{ placeholder: !rawInput && !this.suggestionIdx }"
         >
           {{
-            rawInput || suggestionIdx
+            rawInput || this.suggestionIdx
               ? protectText(displayInput)
               : placeholder
           }}

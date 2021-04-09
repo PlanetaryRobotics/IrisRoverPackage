@@ -72,10 +72,7 @@
             "
           >
             {{ protectText(term) }}
-            <span class="cross_wrapper"> &#10005; </span>
-          </p>
-        </div>
-      </span>
+            <span class="cross_wrapper"> &#10005; </span></p></div></span>
     </p>
   </div>
   <!-- big div -->

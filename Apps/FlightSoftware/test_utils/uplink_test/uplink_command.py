@@ -1,32 +1,43 @@
 import socket
+import numpy as np
+import struct
 
-def hton(s):
-    s_network = ''
-    for i in range(len(s) // 2 - 1, -1, -1):
-        s_network += s[i*2:i*2+2]
-    return s_network
+def compute_checksum(b):
+    return ~np.uint8(sum(bytearray(b)) % 256)
         
 
 ip = "192.168.1.2"
 port = 8080
 
 # FSW Header
-seq = '01'              # Starts at 1, increment manually
-checksum = hton('0000')
+seq = 4              # Starts at 1, increment manually
 
 # FSWCommand
-magic = '00bada55'
+magic = 0x00bada55
 
-"""
 # Camera
-length = hton('000e')   # Update manually if there are more arguments
-component = '11'    # Camera
-opcode = '01'       # Take picture
-camera_num = '01'   # Argument 1
-callback_id = hton('0042')  # Argument 2
-command = seq + length + checksum + magic + component + opcode + camera_num + callback_id
-"""
+length = 0x000e     # Update manually if there are more arguments
+component = 0x11    # Camera
+opcode = 0x01       # Take picture
+the_id = component << 8 | opcode
+camera_num = 0x01   # Argument 1
+callback_id = 0x0042  # Argument 2
 
+fsw_header_fmt = 'B H B'
+cam_fmt = 'I H B H'
+fmt = '<' + fsw_header_fmt + cam_fmt
+length = struct.calcsize('<' + cam_fmt)
+cam_cmd = struct.pack(fmt,
+                      seq, length, 0,        # FSW Packet Header
+                      magic, the_id, camera_num, callback_id)
+checksum = compute_checksum(cam_cmd)
+cam_cmd = struct.pack(fmt,
+                      seq, length, checksum,
+                      magic, the_id, camera_num, callback_id)
+assert not compute_checksum(cam_cmd)
+
+
+"""
 # Navigation
 length = hton('000f')   # Update manually if there are more arguments
 component = '0d'
@@ -35,13 +46,13 @@ distance = '05'
 speed = '05'
 callback_id = hton('0042')
 command = seq + length + checksum + magic + component + opcode + distance + speed + callback_id
+"""
 
-print("Message: 0x" + command)
-command = bytearray.fromhex(command)
+print("Message:", cam_cmd)
 
 print("UDP target IP:", ip)
 print("UDP target port:", port)
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.sendto(command, (ip, port))
+sock.sendto(cam_cmd, (ip, port))
 

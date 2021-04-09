@@ -24,7 +24,7 @@
 
 |Event Name|ID|Description|Arg Name|Arg Type|Arg Size|Description
 |---|---|---|---|---|---|---|
-|GI_UplinkedPacketError|0 (0x0)|Error validating uplinked packet| | | | |
+|GI_UplinkedPacketError|0 (0x0)|Error validating uplinked packet. Expected field is only logged for MISMATCHED_LENGTH and OUT_OF_SEQUENCE.| | | | |
 | | | |errorType|uplinkedPacketError|||
 | | | |expected|U16|||
 | | | |got|U16|||

@@ -31,7 +31,7 @@ namespace FswPacket {
 
 typedef uint8_t Seq_t;
 typedef uint16_t Length_t;
-typedef uint16_t Checksum_t;
+typedef uint8_t Checksum_t;
 typedef uint32_t Magic_t;
 typedef uint8_t Component_t;
 typedef Length_t FileLength_t;
@@ -44,15 +44,15 @@ struct FswPacketHeader {
 
 struct FswCommand {
     Magic_t magic;
-    Component_t component;      // This field along with command make up the
     uint8_t opcode;         // id when concatenated resulting in a U16
+    Component_t component;      // This field along with command make up the
     uint8_t byte0;
 } __attribute__((packed));
 
 struct FswCommandResponse { // This is downlinked via the file (app downlink port)
     Magic_t magic;
-    Component_t component;      // Same as command
     uint8_t opcode;         // Same as command
+    Component_t component;      // Same as command
     uint8_t errorcode;
     uint16_t errorinfo;
 } __attribute__((packed));

@@ -117,13 +117,16 @@
 
     <events>
         <event id="0" name="GI_UplinkedPacketError" severity="WARNING_HI" format_string="Error with uplinked packet %d %d %d">
-            <comment>Error validating uplinked packet</comment>
+            <comment>
+                Error validating uplinked packet. Expected field is only logged for MISMATCHED_LENGTH and OUT_OF_SEQUENCE. For INCORRECT_TYPE, the magic value s a U32 so the upper short is stored in expected and lower short is stored in got.
+            </comment>
             <args>
                 <arg name="errorType" type="ENUM">
                     <enum name="uplinkedPacketError">
                         <item name="MISMATCHED_LENGTH" />
                         <item name="OUT_OF_SEQUENCE" />
                         <item name="BAD_CHECKSUM" />
+                        <item name="INCORRECT_TYPE" />
                     </enum>
                 </arg>
                 <arg name="expected" type="U16">

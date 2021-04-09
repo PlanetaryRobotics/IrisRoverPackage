@@ -571,8 +571,8 @@ ErrorCode CubeRoverNetworkManager :: initializeNetworkManager(){
   if(!tries) return TIMEOUT;
 
   // Set the network password
-  errorCode = SetPassword(password,
-                          sizeof(password)-1 /* remove end character */);
+  if (sizeof(LANDER_NETWORK_PASSWORD) > 1)
+      errorCode = SetPassword(password, sizeof(password)-1 /* remove end character */);
 
    // Block until it timeouts or generate an error
   tries = TRIES_EXECUTE_CALLBACK;

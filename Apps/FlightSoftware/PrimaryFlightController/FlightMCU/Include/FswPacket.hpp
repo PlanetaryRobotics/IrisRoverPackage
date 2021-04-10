@@ -15,6 +15,8 @@
 #define WIRED_UDP_PORT_ROVER    8080
 #define WIRED_UDP_PORT_LANDER   8080
 
+#define INITIAL_PRIMARY_NETWORK_INTERFACE  WF121    // Must be of type PrimaryInterface (see GroundInterfaceComponentAi.xml or GroundInterfaceComponentAc.hpp)
+
 // Packet sizes
 #define IPV4_MTU                1006    // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 791 **FRAGMENTATION *NOT* SUPPORTED**
 #define UDP_MAX_PAYLOAD         (IPV4_MTU-20-8)     // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 768
@@ -31,7 +33,7 @@ namespace FswPacket {
 
 typedef uint8_t Seq_t;
 typedef uint16_t Length_t;
-typedef uint16_t Checksum_t;
+typedef uint8_t Checksum_t;
 typedef uint32_t Magic_t;
 typedef uint8_t Component_t;
 typedef Length_t FileLength_t;
@@ -44,15 +46,15 @@ struct FswPacketHeader {
 
 struct FswCommand {
     Magic_t magic;
-    Component_t component;      // This field along with command make up the
     uint8_t opcode;         // id when concatenated resulting in a U16
+    Component_t component;      // This field along with command make up the
     uint8_t byte0;
 } __attribute__((packed));
 
 struct FswCommandResponse { // This is downlinked via the file (app downlink port)
     Magic_t magic;
-    Component_t component;      // Same as command
     uint8_t opcode;         // Same as command
+    Component_t component;      // Same as command
     uint8_t errorcode;
     uint16_t errorinfo;
 } __attribute__((packed));

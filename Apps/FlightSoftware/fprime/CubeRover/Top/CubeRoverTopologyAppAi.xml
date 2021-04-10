@@ -474,6 +474,19 @@
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
   </connection>
 
+  <connection name = "groundInterfaceCmdReg_to_cmdDispatcher">
+    <source component = "groundInterface" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "5" />
+  </connection>
+  <connection name = "cmdDispatcherSendCmd_to_groundInterfaceCmdDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "5" />
+    <target component = "groundInterface" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
+  <connection name = "groundInterfaceCmdStatus_to_cmdDispatcher_CmdStatus">
+    <source component = "groundInterface" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+
   <!-- *********************************************************************************************************
         CONNECTION OF Health PORTS
        ********************************************************************************************************* 

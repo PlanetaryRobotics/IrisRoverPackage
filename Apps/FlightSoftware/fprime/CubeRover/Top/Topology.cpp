@@ -225,6 +225,8 @@ void constructApp(void){
   // Register Camera Commands
   navigation.regCommands();
 
+  groundInterface.regCommands();
+
   // Set Health Ping Entries
   // **** THIS IS WHERE YOU CAN ADD ANY COMPONENTS THAT HAVE HEALTH PINGS ****
   //Svc::HealthImpl::PingEntry pingEntries[] = {

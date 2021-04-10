@@ -13,6 +13,7 @@
 #define I2C_PACKET_HEADER               0xAA
 
 typedef enum I2cRegisterIds{
+
     I2C_ADDRESS = 0,
     RELATIVE_TARGET_POSITION = 1,
     TARGET_SPEED = 2,
@@ -28,6 +29,7 @@ typedef enum I2cRegisterIds{
     CONTROL_REGISTER = 12,
     STATUS_REGISTER = 13,
     FAULT_REGISTER = 14,
+    CLEAR_FAULT_REGISTER = 15,
     MAX_NB_CMDS = 15
 }I2cRegisterIds;
 

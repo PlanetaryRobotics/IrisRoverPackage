@@ -1,5 +1,6 @@
 #ifndef MAIN_H_
 #define MAIN_H_
+//#define IRIS_SPIN_HALF_SPEED
 
 /* Include the IQmath header file. */
 #define GLOBAL_IQ                   15
@@ -17,10 +18,11 @@
 #define PWM_HALF_PERIOD_TICKS       256
 #define PI_SPD_CONTROL_PRESCALER    1000    // 15.6 Hz, speed control
 
-#define KP_SPD                  0.3
-#define KI_SPD                  0.001
+
+#define KP_SPD                  1.0
+#define KI_SPD                  0.0009
 #define KP_CUR                  0.95
-#define KI_CUR                  0.001
+#define KI_CUR                  0.002
 
 #define OPEN_LOOP_TORQUE        0.1       // Normalized to 1.0, 1.0 being maximum current system can produce
 #define PERIOD_IMPULSE          150
@@ -28,10 +30,22 @@
 
 #define ONE_OVER_4096           0.0002441
 
-#define MAX_TARGET_SPEED                   100
+#ifdef IRIS_OVERRIDE_SPEED_TO_5cm_s
+    #define MAX_TARGET_SPEED                   345
+#endif
+#ifdef IRIS_SPIN_HALF_SPEED
+    #define MAX_TARGET_SPEED                   50
+#else
+    #define MAX_TARGET_SPEED                   100
+#endif
+
 #define MIN_TARGET_SPEED                  -MAX_TARGET_SPEED
 
 inline _iq _IQ15mpy_inline(_iq,_iq);
+
+inline bool read_driver_fault();
+inline void clear_driver_fault();
+void updateStateMachine();
 
 typedef struct HallSensor{
     uint8_t Pattern;
@@ -43,8 +57,7 @@ typedef struct HallSensor{
 typedef enum StateMachine{
     UNINITIALIZED,
     IDLE,
-    RUNNING,
-    STOPPED
+    RUNNING
 }StateMachine;
 
 typedef enum CmdState{

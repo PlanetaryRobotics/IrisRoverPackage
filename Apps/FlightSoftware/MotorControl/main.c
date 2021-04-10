@@ -1,3 +1,14 @@
+// [DEBUG] Switches
+//#define IRIS_ALL_OFF
+#define IRIS_CLEAR_FAULT
+//#define IRIS_SPIN_MOTOR
+//#define IRIS_SPIN_MOTOR_REVERSE
+//#define IRIS_SPIN_MOTOR_INDEF
+
+//#define IRIS_OVERRIDE_SPEED_TO_5cm_s
+//#define IRIS_OVERRIDE_CURRENT_MAX
+//#define IRIS_OVERRIDE_CURRENT_MAX_MULTIPLIER 4.00
+
 #include "main.h"
 
 _iq g_currentPhaseA;
@@ -37,7 +48,7 @@ volatile MOD6CNT g_mod6cnt;
 
 volatile bool g_closedLoop;
 volatile bool g_targetReached;
-volatile int16_t g_maxSpeed;
+volatile uint8_t g_maxSpeed;
 
 volatile StateMachine g_state;
 volatile CmdState g_cmdState;
@@ -48,6 +59,9 @@ volatile int8_t g_oldTargetDirection;
 uint8_t g_statusRegister;
 uint8_t g_controlRegister;
 uint8_t g_faultRegister;
+
+// backup plan for if we cannot get encoder readings
+volatile bool driveOpenLoop = false;
 
 
 /**
@@ -218,9 +232,10 @@ inline void disableGateDriver(){
  * @return     The speed.
  */
 inline _iq getSpeed(){
-  // Normalize speed to -128 ticks < diff < 128 to -1.0 < diff < +1.0
+  // Normalize speed to -128 ticks < diff < 127 to -1.0 < diff < +1.0
   // 255 ticks per (PI_SPD_CONTROL_PRESCALER * PWM_PERIOD_TICKS) represents 9.600 eRPM
-  g_currentSpeed = (g_currentPosition - g_oldPosition) << 8;
+  int32_t deltaPos = _IQsat(g_currentPosition - g_oldPosition, 256, -256);
+  g_currentSpeed = deltaPos << 7;
   g_oldPosition = g_currentPosition;
   return g_currentSpeed;
 }
@@ -464,10 +479,9 @@ inline void disable(){
  */
 inline void run(){
   if(g_state == RUNNING) return; // already in RUNNING, nothing to do
-
   __disable_interrupt();
   enableGateDriver();
-  //g_targetPosition = i2c;
+//  g_targetPosition = 20000; // [DEBUG]
   g_targetDirection = (g_targetPosition -  g_currentPosition>= 0) ? 1 : -1;
   g_currentPosition = 0;
   g_targetReached = false;
@@ -475,27 +489,14 @@ inline void run(){
   __enable_interrupt();
 }
 
-/**
- * @brief       Enter stop state
- */
-inline void stop(){
-  if(g_state == STOPPED) return; // already in STOPPED, nothing to do
-
-  __disable_interrupt();
-  g_targetPosition = g_targetPosition - g_currentPosition;
-  g_state = STOPPED;
-  __enable_interrupt();
-}
-
 
 /**
  * @brief      Update the drive state machine
  */
-inline void updateStateMachine(){
+void updateStateMachine(){
   switch(g_cmdState){
     case RUN:
       switch(g_state){
-          case STOPPED:
           case IDLE:
             run();
             break;
@@ -505,22 +506,9 @@ inline void updateStateMachine(){
           break;
       }
      break;
-     case STOP:
-       switch(g_state){
-         case RUNNING:
-           stop();
-           break;
-         case UNINITIALIZED:
-         case IDLE:
-         case STOPPED:
-         default:
-         break;
-       }
-       break;
      case DISABLE:
        switch(g_state){
          case RUNNING:
-         case STOPPED:
            disable();
            break;
          case UNINITIALIZED:
@@ -536,6 +524,35 @@ inline void updateStateMachine(){
   g_cmdState = NO_CMD;
 }
 
+/**
+ * @brief      Clears the DRV8304 Driver Fault Register.
+ */
+inline void clear_driver_fault_register(){
+    // Pull high first so you can then pull it low:
+    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    __delay_cycles(1600000);    // 100 ms
+    // Reset Fault Register by pulsing ENABLE for 5-32us (18.5us):
+    GPIO_setOutputLowOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    __delay_cycles(296);    // 18.5 us
+    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+}
+
+inline void clear_driver_fault(){
+    // Pull high first so you can then pull it low:
+    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    __delay_cycles(1600000);    // 100 ms
+    // Reset Fault Register by pulsing ENABLE for 5-32us (18.5us):
+    GPIO_setOutputLowOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    __delay_cycles(296);    // 18.5 us
+    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+}
+/**
+ * @brief      Reads the whether the DRV8304 driver is in a "fault condition" (and should be cleared). Active low.
+ */
+inline bool read_driver_fault(){
+    return !(PJIN & 0x02);
+}
+
 
 /**
  * @brief      main function
@@ -546,6 +563,13 @@ void main(void){
   WDT_A_hold(WDT_A_BASE);
 
   initializeGpios();
+
+  // [DEBUG]
+#ifdef IRIS_CLEAR_FAULT
+  clear_driver_fault_register();
+#endif
+
+#ifndef IRIS_ALL_OFF
 
   //Set DCO frequency to 16MHz
   CS_setDCOFreq(CS_DCORSEL_1, CS_DCOFSEL_4);
@@ -563,13 +587,21 @@ void main(void){
   g_currentPosition = 0;
   g_oldPosition = g_currentPosition;
   g_targetPosition = 0;
+#ifdef IRIS_SPIN_MOTOR
+  g_targetPosition = 8500;//9750; // [DEBUG]
+#endif
+#ifdef IRIS_SPIN_MOTOR_REVERSE
+  g_targetPosition = -9750;
+#endif
+#ifdef IRIS_SPIN_MOTOR_INDEF
+  g_targetPosition = 1000000; //approx 100 revolutions
+#endif
   g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
   g_closedLoop = false;
-  g_state = UNINITIALIZED;
-  g_currentRefTest = _IQ(0.05);
-  g_speedRefTest = _IQ(0.0);
+  g_state = RUNNING;
+  g_cmdState = NO_CMD; //eventually should be initialized to: NO_CMD
+//  updateStateMachine(); // [DEBUG]
 
-  g_feedforwardFW = _IQ(0.07);
 
   g_maxSpeed = MAX_TARGET_SPEED;
 
@@ -585,8 +617,17 @@ void main(void){
   g_piCur.Kp = _IQ(KP_CUR);
   g_piCur.Ki = _IQ(KI_CUR);
 
-  //g_piSpd.Ref = _IQ(0.1);
+#ifdef IRIS_OVERRIDE_CURRENT_MAX
+  // [DEBUG]
+  g_piCur.Umax = _IQ(IRIS_OVERRIDE_CURRENT_MAX_MULTIPLIER);
+  g_piCur.Umin = _IQ(IRIS_OVERRIDE_CURRENT_MAX_MULTIPLIER);
+  g_piSpd.Umax = _IQ(IRIS_OVERRIDE_CURRENT_MAX_MULTIPLIER);
+  g_piSpd.Umin = _IQ(IRIS_OVERRIDE_CURRENT_MAX_MULTIPLIER);
+#endif
+
+
   g_closeLoopThreshold = _IQ(CLOSE_LOOP_THRESHOLD);
+  g_closedLoop = false;
 
   initializeI2cModule();
   initializePwmModules();
@@ -599,8 +640,20 @@ void main(void){
 
   enableGateDriver(); // TODO <<<< remove this line
 
+#else
+//    // [DEBUG]
+//    initializeGpios();
+//    long x = PJIN & 0x02;
+
+    disableGateDriver();
+    asm("  NOP");
+#endif
+
+
   while(1){
-   g_closedLoop = (_IQabs(g_currentSpeed) > g_closeLoopThreshold && !g_targetReached) ? true : false;
+#ifndef IRIS_ALL_OFF
+   asm("  NOP");
+  g_closedLoop = (_IQabs(g_currentSpeed) > g_closeLoopThreshold && !g_targetReached) ? true : false;
 
    if(g_piSpd.w1){
        __disable_interrupt();
@@ -619,6 +672,7 @@ void main(void){
    }
 
    //updateStateMachine();
+#endif
   }
 }
 
@@ -626,10 +680,12 @@ void main(void){
 /**
  * @brief      Main control loop
  */
+#ifndef IRIS_ALL_OFF
+
 #pragma CODE_SECTION(TIMER0_B0_ISR, ".TI.ramfunc")
 #pragma vector=TIMER0_B0_VECTOR
 __interrupt void TIMER0_B0_ISR (void){
-  // Prepare ADC conversion for next round
+    // Prepare ADC conversion for next round
   HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) &= ~(ADC12ENC);
   HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) |= ADC12ENC + ADC12SC;
 
@@ -642,83 +698,124 @@ __interrupt void TIMER0_B0_ISR (void){
 
   if(!g_calibrationDone) return;
 
-  readHallSensor();
-  //if(g_hallSensor.error) return;
+//  if(!driveOpenLoop){
+      // Driving in close loop
 
-  // Execute macro to generate ramp up
-  if(g_closedLoop == false && g_targetReached == false){
-    IMPULSE_MACRO(g_impulse);
-    if(g_impulse.Out){
-      MOD6CNT_MACRO(g_mod6cnt);
-      g_commState = (g_targetDirection > 0) ? g_mod6cnt.Counter : 5 - g_mod6cnt.Counter;
-    }
-  }
-  else{
-    g_commState = g_hallMap[g_hallSensor.Pattern];
-  }
+      readHallSensor();
 
-  if(g_hallSensor.Event){
-    if(g_hallMap[g_hallSensor.Pattern] == 5 && g_oldCommState == 0){
-      g_currentPosition--;
-    }
-    else if(g_hallMap[g_hallSensor.Pattern] == 0 && g_oldCommState == 5){
-      g_currentPosition++;
-    }
-    else if(g_hallMap[g_hallSensor.Pattern] > g_oldCommState){
-      g_currentPosition++;
-    }
-    else{
-      g_currentPosition--;
-    }
-    g_oldCommState = g_hallMap[g_hallSensor.Pattern];
-  }
+      // Execute macro to generate ramp up
+      if(g_closedLoop == false && g_targetReached == false){
+        IMPULSE_MACRO(g_impulse);
+        if(g_impulse.Out){
+          MOD6CNT_MACRO(g_mod6cnt);
+          g_commState = (g_targetDirection > 0) ? g_mod6cnt.Counter : 5 - g_mod6cnt.Counter;
+        }
+      }
+      else{
+        g_commState = g_hallMap[g_hallSensor.Pattern];
+      }
 
-  if(g_controlPrescaler == 0){
-    g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
+      if(g_hallSensor.Event){
+        if(g_hallMap[g_hallSensor.Pattern] == 5 && g_oldCommState == 0){
+          g_currentPosition--;
+        }
+        else if(g_hallMap[g_hallSensor.Pattern] == 0 && g_oldCommState == 5){
+          g_currentPosition++;
+        }
+        else if(g_hallMap[g_hallSensor.Pattern] > g_oldCommState){
+          g_currentPosition++;
+        }
+        else{
+          g_currentPosition--;
+        }
+        g_oldCommState = g_hallMap[g_hallSensor.Pattern];
+      }
 
-    // Normalize from -255 ~ + 255 to -1.0 ~ 1.0
-    g_targetReached =  (_IQabs(g_targetPosition - g_currentPosition) < 5) ? true : false;
-    if(g_targetReached == false){
-        g_piSpd.Ref = (_IQsat(g_targetPosition - g_currentPosition, g_maxSpeed, -g_maxSpeed)) << 8;
-    }
-    else{
-        g_piSpd.Ref = 0;
-    }
 
-    g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
+      if(g_controlPrescaler == 0){
+        g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
 
-    g_piSpd.Fbk = getSpeed();
+        // Normalize from -255 ~ + 255 to -1.0 ~ 1.0
+        g_targetReached =  (_IQabs(g_targetPosition - g_currentPosition) < 100) ? true : false;
+        g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
 
-    PI_MACRO(g_piSpd);
-  }
+        if(g_targetDirection > 0) g_piSpd.Ref = g_maxSpeed << 8;
+        else g_piSpd.Ref = -g_maxSpeed << 8;
 
-  g_controlPrescaler = g_controlPrescaler -1;
+        g_piSpd.Fbk = getSpeed();
 
-  // Remove offset
-  g_currentPhaseA = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_0)) - g_currentOffsetPhaseA;
-  g_currentPhaseB = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_1)) - g_currentOffsetPhaseB;
-  g_currentPhaseC = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_2)) - g_currentOffsetPhaseC;
+        PI_MACRO(g_piSpd);
+      }
 
-  // Normalize current values from  -2047 < adc < +2048 to iq15 --> -1.0 < adc < 1.0 and convert to iq format
-  g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 4;
+      g_controlPrescaler = g_controlPrescaler -1;
 
-  // Compense motor direction.
-  if(g_targetDirection < 0){
-      g_piCur.Ref = g_piSpd.Out - _IQ15mpy_inline(g_feedforwardFW, g_piSpd.Fbk);
-  }
-  else{
+      // Remove offset
+      g_currentPhaseA = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_0)) - g_currentOffsetPhaseA;
+      g_currentPhaseB = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_1)) - g_currentOffsetPhaseB;
+      g_currentPhaseC = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_2)) - g_currentOffsetPhaseC;
+
+      // Normalize current values from  -2047 < adc < +2048 to iq15 --> -1.0 < adc < 1.0 and convert to iq format
+      g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 4;
       g_piCur.Ref = g_piSpd.Out;
-  }
-  PI_MACRO(g_piCur);
 
-  if(g_closedLoop == false){
-    g_piCur.i1 = 0;
-    g_piCur.ui = 0;
-    g_piSpd.i1 = 0;
-    g_piSpd.ui = 0;
-    g_piCur.Out = g_openLoopTorque;
-  }
+      PI_MACRO(g_piCur);
 
-  // If target is reached no need to move
+      if(g_closedLoop == false && g_targetReached == false){
+        g_piCur.i1 = 0;
+        g_piCur.ui = 0;
+        g_piSpd.i1 = 0;
+        g_piSpd.ui = 0;
+        g_piCur.Out = g_openLoopTorque;
+        if(_IQabs(g_currentSpeed) > g_closeLoopThreshold){
+            g_closedLoop = true;
+        }
+      }
+
+      if(g_targetReached == true){
+          g_piCur.i1 = 0;
+          g_piCur.ui = 0;
+          g_piSpd.i1 = 0;
+          g_piSpd.ui = 0;
+          g_piCur.Out = 0;
+          g_closedLoop = false;
+      }
+
+//  }  else {
+//      //driving open loop
+//
+//      // target position sets direction motor drives in (will NOT converge though)
+//      g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
+//
+//      // Execute macro to generate ramp up if needed
+//        IMPULSE_MACRO(g_impulse);
+//        if(g_impulse.Out){
+//          MOD6CNT_MACRO(g_mod6cnt);
+//          g_commState = (g_targetDirection > 0) ? g_mod6cnt.Counter : 5 - g_mod6cnt.Counter;
+//        }
+//
+//
+//      _iq output = _IQ(0.2);
+//      if(g_controlPrescaler == 0){
+//          g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
+//      }
+//
+////      if(g_controlPrescaler % 25 == 0){
+////          output = _IQ(0.8);
+////      } else if(g_controlPrescaler % 3 == 0){
+////          output = _IQ(0.3);
+////      }
+//
+//
+//      if(g_targetDirection > 0) {
+//          g_piCur.Out = output;
+//      } else{
+//          g_piCur.Out = -output;
+//      }
+//
+//      g_controlPrescaler = g_controlPrescaler -1;
+//  }
+
   pwmGenerator(g_commState, g_piCur.Out);
 }
+
+#endif

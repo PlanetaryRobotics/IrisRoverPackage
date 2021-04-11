@@ -14,12 +14,18 @@
 #include "mod6_cnt.h"
 #include "impulse.h"
 
-#define PWM_PERIOD_TICKS            512     // 15.6 KHz @ 16MHz ... may be 7.8 KHz @ 8 MHz
+#define PWM_PERIOD_TICKS            512     // 15.6 KHz @ 16MHz
 #define PWM_HALF_PERIOD_TICKS       256
 #define PI_SPD_CONTROL_PRESCALER    1000    // 15.6 Hz, speed control
 
 // bits of control register
 #define DRIVE_OPEN_LOOP         1           // first bit of control reg; drive only in open loop if set to 1
+#define CLEAR_DRIVER_FAULT      2           // second bit indicates request to try to clear fault in motor driver
+#define STATE_MACHINE_DISABLE   4
+#define STATE_MACHINE_RUN       8
+
+// bits of status register (shares 1,2,4 with control register)
+#define POSITION_CONVERGED      8
 
 
 #define KP_SPD                  1.0

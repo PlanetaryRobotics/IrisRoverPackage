@@ -763,7 +763,14 @@ __interrupt void TIMER0_B0_ISR (void){
         g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
 
         // Normalize from -255 ~ + 255 to -1.0 ~ 1.0
-        g_targetReached =  (_IQabs(g_targetPosition - g_currentPosition) < 100) ? true : false;
+        if  (_IQabs(g_targetPosition - g_currentPosition) < 100) {
+            g_targetReached = true;
+            g_statusRegister |= POSITION_CONVERGED;
+        } else {
+            g_targetReached = false;
+            g_statusRegister &= ~POSITION_CONVERGED;
+        }
+
         g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
 
         if(g_targetDirection > 0) g_piSpd.Ref = g_maxSpeed << 8;

@@ -217,22 +217,27 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
                   (uint8_t*)&g_controlRegister,
                    sizeof(g_controlRegister));
 
-        // clear motor fault if requested
-//        if(g_controlRegister == 0x01){
-//            clear_driver_fault();
-//        }
+        // update status register if told to drive in open loop
+        if(g_controlRegister & DRIVE_OPEN_LOOP){
+            g_statusRegister |= DRIVE_OPEN_LOOP;
+        }
+
+        if(g_controlRegister & CLEAR_DRIVER_FAULT){
+            clear_driver_fault();
+            g_statusRegister |= CLEAR_DRIVER_FAULT; // indicates an attempt to clear fault was made
+        }
         // update state machine if requested
-        if(g_controlRegister == 4){
+        if(g_controlRegister & STATE_MACHINE_DISABLE){
             g_cmdState = DISABLE;
             updateStateMachine();
-        } else if (g_controlRegister == 5){
+            g_statusRegister |= STATE_MACHINE_DISABLE; // status reg bit 3 - 1 if in disable state, 0 if not
+        } else if (g_controlRegister & STATE_MACHINE_RUN){
             g_cmdState = RUN;
             updateStateMachine();
-        } else if(g_controlRegister == 7){
-            driveOpenLoop = true;
-        } else if(g_controlRegister == 8){
-            driveOpenLoop = false;
+            g_statusRegister &= ~STATE_MACHINE_DISABLE;
         }
+
+        break;
 
 
         break;     

@@ -215,7 +215,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_P_CURRENT,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -224,7 +224,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_I_CURRENT,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -237,7 +237,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_P_CURRENT,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -246,7 +246,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_I_CURRENT,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -259,7 +259,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_P_CURRENT,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -268,7 +268,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_I_CURRENT,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -281,7 +281,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_P_CURRENT,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -290,7 +290,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_I_CURRENT,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -301,7 +301,7 @@ namespace CubeRover {
         // TODO again, need to find out how to pass int8*
         err = sendAllMotorsData(REG_P_CURRENT,
                                 (uint8_t*) &P_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -309,7 +309,7 @@ namespace CubeRover {
 
         err = sendAllMotorsData(REG_I_CURRENT,
                                 (uint8_t*) &I_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -353,7 +353,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_P_SPEED,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -362,7 +362,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_I_SPEED,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -375,7 +375,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_P_SPEED,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -384,7 +384,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_I_SPEED,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -397,7 +397,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_P_SPEED,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -406,7 +406,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_I_SPEED,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -419,7 +419,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_P_SPEED,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -428,7 +428,7 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_I_SPEED,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -439,7 +439,7 @@ namespace CubeRover {
         // TODO again, need to find out how to pass int8*
         err = sendAllMotorsData(REG_P_SPEED,
                                 (uint8_t*) &P_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -447,7 +447,7 @@ namespace CubeRover {
 
         err = sendAllMotorsData(REG_I_SPEED,
                                 (uint8_t*) &I_Value);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;          
@@ -521,9 +521,9 @@ namespace CubeRover {
 
     if (Value == 4)
     {
-      for(int i = 0; i < 4; i++)
+      for (int i = 0; i < 4; i++)
       {
-        if(Value == 0xFF)
+        if (Value == 0xFF)
           m_stallDetectectionEnabled[i] = true;
         else
           m_stallDetectectionEnabled[i] = false;
@@ -532,7 +532,7 @@ namespace CubeRover {
 
     else
     {
-      if(Value == 0xFF)
+      if (Value == 0xFF)
         m_stallDetectectionEnabled[Motor_ID] = true;
       else
         m_stallDetectectionEnabled[Motor_ID] = false;
@@ -612,7 +612,7 @@ namespace CubeRover {
       // Forward Spin
       case 0:
         err = moveAllMotorsStraight(MAX_SPIN_DISTANCE, 0);
-        if(err != MC_NO_ERROR) 
+        if (err != MC_NO_ERROR) 
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;
@@ -622,7 +622,7 @@ namespace CubeRover {
       // Backwards Spin
       case 1:
         err = moveAllMotorsStraight(-1*MAX_SPIN_DISTANCE, 0);
-        if(err != MC_NO_ERROR) 
+        if (err != MC_NO_ERROR) 
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;
@@ -632,7 +632,7 @@ namespace CubeRover {
       // Stop
       case 2:
         err = moveAllMotorsStraight(0, 0);
-        if(err != MC_NO_ERROR) 
+        if (err != MC_NO_ERROR) 
         {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;
@@ -706,7 +706,7 @@ namespace CubeRover {
   void MotorControlComponentImpl :: MC_UpdateTelemetry_cmdHandler(const FwOpcodeType opCode,
                                                                   const U32 cmdSeq)
   {
-    if(updateTelemetry())
+    if (updateTelemetry())
       this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
 
     else
@@ -830,25 +830,25 @@ namespace CubeRover {
         err = writeMotorControlRegister(reg,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         data);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
           return err;          
        
         err = writeMotorControlRegister(reg,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         data);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
           return err;          
        
         err = writeMotorControlRegister(reg,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         data);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
           return err;          
        
         err = writeMotorControlRegister(reg,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         data);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
           return err;          
        
         return MC_NO_ERROR;  
@@ -877,7 +877,7 @@ namespace CubeRover {
           // Required to send this before the setpoint (or else the MC will start spinning before speed was set)
           err = sendAllMotorsData(REG_TARGET_SPEED,
                                   (uint8_t*) &motor_speed);
-          if(err != MC_NO_ERROR)
+          if (err != MC_NO_ERROR)
             return err;
         }      
        
@@ -902,19 +902,19 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_RELATIVE_TARGET_POSITION,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &Left_Wheels_Relative_ticks);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
           return err;  
        
         err = writeMotorControlRegister(REG_RELATIVE_TARGET_POSITION,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &Right_Wheels_Relative_ticks);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
           return err;  
        
         err = writeMotorControlRegister(REG_RELATIVE_TARGET_POSITION,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &Right_Wheels_Relative_ticks);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
           return err;  
        
         err = writeMotorControlRegister(REG_RELATIVE_TARGET_POSITION,
@@ -947,7 +947,7 @@ namespace CubeRover {
           // Send the speed to all the motors
           err = sendAllMotorsData(REG_CURRENT_SPEED,
                                   (uint8_t*) &motor_speed);
-          if(err != MC_NO_ERROR)
+          if (err != MC_NO_ERROR)
             return err;  
         }
        
@@ -957,19 +957,19 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_CURRENT_POSITION, 
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &Relative_ticks);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
           return err;  
        
         err = writeMotorControlRegister(REG_CURRENT_POSITION, 
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &Relative_ticks);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
           return err;  
        
         err = writeMotorControlRegister(REG_CURRENT_POSITION, 
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &Relative_ticks);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
           return err;  
        
         err = writeMotorControlRegister(REG_CURRENT_POSITION, 
@@ -1004,19 +1004,19 @@ namespace CubeRover {
         err = writeMotorControlRegister(REG_CURRENT_POSITION, 
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &Left_Wheels_Relative_ticks);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
           return err;  
        
         err = writeMotorControlRegister(REG_CURRENT_POSITION, 
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &Right_Wheels_Relative_ticks);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
           return err;  
        
         err = writeMotorControlRegister(REG_CURRENT_POSITION, 
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &Right_Wheels_Relative_ticks);
-        if(err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)
           return err;  
        
         err = writeMotorControlRegister(REG_CURRENT_POSITION, 
@@ -1046,7 +1046,7 @@ namespace CubeRover {
         uint8_t reg_buffer[1];
         reg_buffer[0] = (uint8_t)reg;
  
-        if(dataLength <= 0) 
+        if (dataLength <= 0) 
           return MC_UNEXPECTED_ERROR;
  
         // Inform the MSP of the desired register
@@ -1054,7 +1054,7 @@ namespace CubeRover {
         // TODO: If error on above (currently returns void) return
  
         // If we want something, receive
-        if(expectingReturnMessage(reg))
+        if (expectingReturnMessage(reg))
           i2cMasterReceive(m_i2c, addr, dataLength, data);
  
         // Else, tell the data you have
@@ -1160,11 +1160,11 @@ namespace CubeRover {
         // Update all of them
         else
         {
-          if(!updateSpeed())
+          if (!updateSpeed())
             return false;
-          if(!updateCurrent()) 
+          if (!updateCurrent()) 
             return false;
-          if(updateEncoder())
+          if (updateEncoder())
             return false;
         }
        

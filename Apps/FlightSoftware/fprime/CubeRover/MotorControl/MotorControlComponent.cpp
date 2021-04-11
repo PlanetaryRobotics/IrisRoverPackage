@@ -16,7 +16,6 @@
 #include <string.h>
 
 #include "Fw/Types/BasicTypes.hpp"
-#include "i2c.h"
 #include "Include/CubeRoverConfig.hpp"
 
 namespace CubeRover {
@@ -40,6 +39,7 @@ namespace CubeRover {
     MotorControlComponentImpl(void)
 #endif
   {
+    m_i2c = i2cREG1;
     m_stallDetectectionEnabled[0] = true;
     m_stallDetectectionEnabled[1] = true;
     m_stallDetectectionEnabled[2] = true;
@@ -68,8 +68,6 @@ namespace CubeRover {
 
     // Initialize the encoder tick to cm ratio
     m_encoderTickToCMRatio = m_ticksToRotation / ( PI * CUBEROVER_WHEEL_DIAMETER_CM); //(PI * CUBEROVER_WHEEL_DIAMETER_CM) / (MOTOR_NB_PAIR_POLES * MOTOR_GEAR_BOX_REDUCTION * 6.0);
-
-    m_i2c_timeout_threshold = 1350; 
 
     // Initalize the converting values
     m_angularToLinear = CUBEROVER_COM_TO_WHEEL_CIRC_CM/360; 
@@ -214,8 +212,7 @@ namespace CubeRover {
       // FL Motor
       case 0:
         // TODO again, need to find out how to pass int8*
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_P_CURRENT,
+        err = writeMotorControlRegister(REG_P_CURRENT,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -224,8 +221,7 @@ namespace CubeRover {
           return;          
         }
 
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_I_CURRENT,
+        err = writeMotorControlRegister(REG_I_CURRENT,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -238,8 +234,7 @@ namespace CubeRover {
       // FR Motor
       case 1:
         // TODO again, need to find out how to pass int8*
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_P_CURRENT,
+        err = writeMotorControlRegister(REG_P_CURRENT,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -248,8 +243,7 @@ namespace CubeRover {
           return;          
         }
 
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_I_CURRENT,
+        err = writeMotorControlRegister(REG_I_CURRENT,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -262,8 +256,7 @@ namespace CubeRover {
       // RR Motor
       case 2:
         // TODO again, need to find out how to pass int8*
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_P_CURRENT,
+        err = writeMotorControlRegister(REG_P_CURRENT,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -272,8 +265,7 @@ namespace CubeRover {
           return;          
         }
 
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_I_CURRENT,
+        err = writeMotorControlRegister(REG_I_CURRENT,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -286,8 +278,7 @@ namespace CubeRover {
       // RL Motor
       case 3:
         // TODO again, need to find out how to pass int8*
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_P_CURRENT,
+        err = writeMotorControlRegister(REG_P_CURRENT,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -296,8 +287,7 @@ namespace CubeRover {
           return;          
         }
 
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_I_CURRENT,
+        err = writeMotorControlRegister(REG_I_CURRENT,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -309,8 +299,7 @@ namespace CubeRover {
 
       case 4:
         // TODO again, need to find out how to pass int8*
-        err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
-                                REG_P_CURRENT,
+        err = sendAllMotorsData(REG_P_CURRENT,
                                 (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
         {
@@ -318,8 +307,7 @@ namespace CubeRover {
           return;          
         }
 
-        err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
-                                REG_I_CURRENT,
+        err = sendAllMotorsData(REG_I_CURRENT,
                                 (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
         {
@@ -362,8 +350,7 @@ namespace CubeRover {
       // FL Motor
       case 0:
         // TODO again, need to find out how to pass int8*
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_P_SPEED,
+        err = writeMotorControlRegister(REG_P_SPEED,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -372,8 +359,7 @@ namespace CubeRover {
           return;          
         }
 
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_I_SPEED,
+        err = writeMotorControlRegister(REG_I_SPEED,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -386,8 +372,7 @@ namespace CubeRover {
       // FR Motor
       case 1:
         // TODO again, need to find out how to pass int8*
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_P_SPEED,
+        err = writeMotorControlRegister(REG_P_SPEED,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -396,8 +381,7 @@ namespace CubeRover {
           return;          
         }
 
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_I_SPEED,
+        err = writeMotorControlRegister(REG_I_SPEED,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -410,8 +394,7 @@ namespace CubeRover {
       // RR Motor
       case 2:
         // TODO again, need to find out how to pass int8*
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_P_SPEED,
+        err = writeMotorControlRegister(REG_P_SPEED,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -420,8 +403,7 @@ namespace CubeRover {
           return;          
         }
 
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_I_SPEED,
+        err = writeMotorControlRegister(REG_I_SPEED,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -434,8 +416,7 @@ namespace CubeRover {
       // RL Motor
       case 3:
         // TODO again, need to find out how to pass int8*
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_P_SPEED,
+        err = writeMotorControlRegister(REG_P_SPEED,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -444,8 +425,7 @@ namespace CubeRover {
           return;          
         }
 
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_I_SPEED,
+        err = writeMotorControlRegister(REG_I_SPEED,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -457,8 +437,7 @@ namespace CubeRover {
 
       case 4:
         // TODO again, need to find out how to pass int8*
-        err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
-                                REG_P_SPEED,
+        err = sendAllMotorsData(REG_P_SPEED,
                                 (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
         {
@@ -466,8 +445,7 @@ namespace CubeRover {
           return;          
         }
 
-        err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
-                                REG_I_SPEED,
+        err = sendAllMotorsData(REG_I_SPEED,
                                 (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
         {
@@ -839,41 +817,35 @@ namespace CubeRover {
      * @brief      Sends the same data to every motor register, returning any errors found
      *
      * @param      i2c   I 2 c
-     * @param[in]  id    The identifier
+     * @param[in]  reg    The slave register to write to
      * @param[in]  data  The data
      *
      * @return     Motor Controller error
      */
     MotorControlComponentImpl::MCError_t
-    MotorControlComponentImpl::sendAllMotorsData(i2cBASE_t *i2c,
-                                                   const RegisterAddress_t id,
-                                                   uint8_t* data)
+    MotorControlComponentImpl::sendAllMotorsData(const RegisterAddress_t reg, uint8_t* data)
     {
         MCError_t err = MC_NO_ERROR;
         // Send command to all motor controllers
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        id,
+        err = writeMotorControlRegister(reg,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         data);
         if(err != MC_NO_ERROR)
           return err;          
        
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        id,
+        err = writeMotorControlRegister(reg,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         data);
         if(err != MC_NO_ERROR)
           return err;          
        
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        id,
+        err = writeMotorControlRegister(reg,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         data);
         if(err != MC_NO_ERROR)
           return err;          
        
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        id,
+        err = writeMotorControlRegister(reg,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         data);
         if(err != MC_NO_ERROR)
@@ -903,8 +875,7 @@ namespace CubeRover {
        
           // Send the speed to all the motors
           // Required to send this before the setpoint (or else the MC will start spinning before speed was set)
-          err = sendAllMotorsData(MOTOR_CONTROL_I2CREG, 
-                                  REG_TARGET_SPEED,
+          err = sendAllMotorsData(REG_TARGET_SPEED,
                                   (uint8_t*) &motor_speed);
           if(err != MC_NO_ERROR)
             return err;
@@ -928,29 +899,25 @@ namespace CubeRover {
        
         // FIXME: XXX: CRITICAL SECTION REQUIRED
         
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                        REG_RELATIVE_TARGET_POSITION,
+        err = writeMotorControlRegister(REG_RELATIVE_TARGET_POSITION,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &Left_Wheels_Relative_ticks);
         if(err != MC_NO_ERROR)
           return err;  
        
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                        REG_RELATIVE_TARGET_POSITION,
+        err = writeMotorControlRegister(REG_RELATIVE_TARGET_POSITION,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &Right_Wheels_Relative_ticks);
         if(err != MC_NO_ERROR)
           return err;  
        
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                        REG_RELATIVE_TARGET_POSITION,
+        err = writeMotorControlRegister(REG_RELATIVE_TARGET_POSITION,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &Right_Wheels_Relative_ticks);
         if(err != MC_NO_ERROR)
           return err;  
        
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                        REG_RELATIVE_TARGET_POSITION,
+        err = writeMotorControlRegister(REG_RELATIVE_TARGET_POSITION,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &Left_Wheels_Relative_ticks);
         
@@ -978,8 +945,7 @@ namespace CubeRover {
        
         // // FIXME: These need to be updated to use the correct register (TARGET)
           // Send the speed to all the motors
-          err = sendAllMotorsData(MOTOR_CONTROL_I2CREG, 
-                                  REG_CURRENT_SPEED,
+          err = sendAllMotorsData(REG_CURRENT_SPEED,
                                   (uint8_t*) &motor_speed);
           if(err != MC_NO_ERROR)
             return err;  
@@ -988,29 +954,25 @@ namespace CubeRover {
         MotorTick_t Relative_ticks = m_angularToLinear*groundCMToMotorTicks(distance);
        
         // TODO: Need to correct the container to pass an int8_t
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                        REG_CURRENT_POSITION, 
+        err = writeMotorControlRegister(REG_CURRENT_POSITION, 
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &Relative_ticks);
         if(err != MC_NO_ERROR)
           return err;  
        
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                        REG_CURRENT_POSITION, 
+        err = writeMotorControlRegister(REG_CURRENT_POSITION, 
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &Relative_ticks);
         if(err != MC_NO_ERROR)
           return err;  
        
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                        REG_CURRENT_POSITION, 
+        err = writeMotorControlRegister(REG_CURRENT_POSITION, 
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &Relative_ticks);
         if(err != MC_NO_ERROR)
           return err;  
        
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                        REG_CURRENT_POSITION, 
+        err = writeMotorControlRegister(REG_CURRENT_POSITION, 
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &Relative_ticks);
         return err;
@@ -1039,29 +1001,25 @@ namespace CubeRover {
           Left_Wheels_Relative_ticks = Relative_ticks;
         } 
        
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                        REG_CURRENT_POSITION, 
+        err = writeMotorControlRegister(REG_CURRENT_POSITION, 
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &Left_Wheels_Relative_ticks);
         if(err != MC_NO_ERROR)
           return err;  
        
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                        REG_CURRENT_POSITION, 
+        err = writeMotorControlRegister(REG_CURRENT_POSITION, 
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &Right_Wheels_Relative_ticks);
         if(err != MC_NO_ERROR)
           return err;  
        
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                        REG_CURRENT_POSITION, 
+        err = writeMotorControlRegister(REG_CURRENT_POSITION, 
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &Right_Wheels_Relative_ticks);
         if(err != MC_NO_ERROR)
           return err;  
        
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                        REG_CURRENT_POSITION, 
+        err = writeMotorControlRegister(REG_CURRENT_POSITION, 
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &Left_Wheels_Relative_ticks);
         return err;
@@ -1078,11 +1036,11 @@ namespace CubeRover {
      * @return     Motor Controller error
      */
     MotorControlComponentImpl::MCError_t
-    MotorControlComponentImpl::writeMotorControlRegister(i2cBASE_t *i2c,
-                                                         const RegisterAddress_t reg,
+    MotorControlComponentImpl::writeMotorControlRegister(const RegisterAddress_t reg,
                                                          const I2cSlaveAddress_t addr,
                                                          uint8_t * data)
     {
+        // TODO: Cleanup ret, what are we going to return from I2C functions
         MCError_t ret = MC_NO_ERROR;
         uint32_t dataLength = getSizeData(reg);
         uint8_t reg_buffer[1];
@@ -1091,159 +1049,19 @@ namespace CubeRover {
         if(dataLength <= 0) 
           return MC_UNEXPECTED_ERROR;
  
-        if(i2c == NULL)
-          return MC_UNEXPECTED_ERROR;
- 
         // Inform the MSP of the desired register
-        if((ret = i2cMasterTransmit(i2c, addr, 1, reg_buffer)) != MC_NO_ERROR)
-          return ret;
+        i2cMasterTransmit(m_i2c, addr, 1, reg_buffer);
+        // TODO: If error on above (currently returns void) return
  
         // If we want something, receive
         if(expectingReturnMessage(reg))
-          ret = i2cMasterReceive(i2c, addr, dataLength, data);
+          i2cMasterReceive(m_i2c, addr, dataLength, data);
  
         // Else, tell the data you have
         else
-          ret = i2cMasterTransmit(i2c, addr, dataLength, data);
+          i2cMasterTransmit(m_i2c, addr, dataLength, data);
  
         return ret;
-    }
- 
-    /**
-     * @brief      I2c master transmit
-     *
-     * @param      i2c     I 2 c
-     * @param[in]  sadd    The slave address
-     * @param[in]  length  The length
-     * @param[in]  data    The data
-     *
-     * @return     Motor Controller error
-     */
-    MotorControlComponentImpl::MCError_t
-    MotorControlComponentImpl::i2cMasterTransmit(i2cBASE_t *i2c,
-                                                 const I2cSlaveAddress_t sadd,
-                                                 const uint32_t length,
-                                                 uint8_t * data)
-    {
-        if(i2c == NULL)
-          return MC_UNEXPECTED_ERROR;
-       
-        if(data == NULL)
-          return MC_UNEXPECTED_ERROR;
-       
-        /* Configure address of Slave to talk to */
-        i2cSetSlaveAdd(i2c, sadd);
-       
-        /* Set direction to Transmitter */
-        i2cSetDirection(i2c, I2C_TRANSMITTER);
-       
-        /* Configure Data count */
-        i2cSetCount(i2c, length);
-       
-        /* Set mode as Master */
-        i2cSetMode(i2c, I2C_MASTER);
-       
-        /* Set Stop after programmed Count */
-        i2cSetStop(i2c);
-       
-        /* Transmit Start Condition */
-        i2cSetStart(i2c);
-       
-        /* Transmit DATA_COUNT number of data in Polling mode */
-        i2cSend(i2c, length, data);
-       
-        /* Wait until Bus Busy is cleared */
-        uint16_t timeouter = 0;
-        while(i2cIsBusBusy(i2c) == true)
-        {
-          if(++timeouter > m_i2c_timeout_threshold)
-            return MC_I2C_TIMEOUT_ERROR;
-        }   
-       
-        /* Wait until Stop is detected */
-        timeouter = 0;
-        while(i2cIsStopDetected(i2c) == 0)
-        {
-          if(++timeouter > m_i2c_timeout_threshold)
-            return MC_I2C_TIMEOUT_ERROR;
-        }   
-       
-        /* Clear the Stop condition */
-        i2cClearSCD(i2c);
-       
-        /* Delay long enough for the slave to be ready */
-        delayForI2C();
-       
-        return MC_NO_ERROR;
-    }
- 
- 
-    /**
-     * @brief      I2C master receive
-     *
-     * @param      i2c     I 2 c
-     * @param[in]  sadd    The slave address
-     * @param[in]  length  The length
-     * @param[in]  data    The data
-     *
-     * @return     Motor controller error
-     */
-    MotorControlComponentImpl::MCError_t
-    MotorControlComponentImpl::i2cMasterReceive(i2cBASE_t *i2c,
-                                                const I2cSlaveAddress_t sadd,
-                                                const uint32_t length,
-                                                uint8_t * data)
-    {
-        if(i2c == NULL)
-          return MC_UNEXPECTED_ERROR;
-       
-        if(data == NULL)
-          return MC_UNEXPECTED_ERROR;
-       
-        /* Configure address of Slave to talk to */
-        i2cSetSlaveAdd(i2c, sadd);
-       
-        /* Set direction to receiver */
-        i2cSetDirection(i2c, I2C_RECEIVER);
-       
-        /* Configure Data count */
-        i2cSetCount(i2c, length);
-       
-        /* Set mode as Master */
-        i2cSetMode(i2c, I2C_MASTER);
-       
-        /* Set Stop after programmed Count */
-        i2cSetStop(i2c);
-       
-        /* Transmit Start Condition */
-        i2cSetStart(i2c);
-       
-        /* Transmit DATA_COUNT number of data in Polling mode */
-        i2cReceive(i2c, length, data);
-       
-        /* Wait until Bus Busy is cleared */
-        uint16_t timeouter = 0;
-        while(i2cIsBusBusy(i2c) == true)
-        {
-          if(++timeouter > m_i2c_timeout_threshold)
-            return MC_I2C_TIMEOUT_ERROR;
-        }   
-       
-        /* Wait until Stop is detected */
-        timeouter = 0;
-        while(i2cIsStopDetected(i2c) == 0)
-        {
-          if(++timeouter > m_i2c_timeout_threshold)
-            return MC_I2C_TIMEOUT_ERROR;
-        }
-       
-        /* Clear the Stop condition */
-        i2cClearSCD(i2c);
-       
-        /* Delay long enough for the slave to be ready */
-        delayForI2C();
-       
-        return MC_NO_ERROR;
     }
  
     /**
@@ -1366,8 +1184,7 @@ namespace CubeRover {
         uint8_t Speed_buffer[MC_BUFFER_MAX_SIZE];
        
         // Get FL Current Speed
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_CURRENT_SPEED,
+        err = writeMotorControlRegister(REG_CURRENT_SPEED,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         &Speed_buffer[0]);
        
@@ -1380,8 +1197,7 @@ namespace CubeRover {
         }
        
         // Get FR Current Speed
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_CURRENT_SPEED,
+        err = writeMotorControlRegister(REG_CURRENT_SPEED,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         &Speed_buffer[4]);
        
@@ -1394,8 +1210,7 @@ namespace CubeRover {
         }
        
         // Get RR Current Speed
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_CURRENT_SPEED,
+        err = writeMotorControlRegister(REG_CURRENT_SPEED,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         &Speed_buffer[8]);
        
@@ -1408,8 +1223,7 @@ namespace CubeRover {
         }
        
         // Get RL Current Speed
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_CURRENT_SPEED,
+        err = writeMotorControlRegister(REG_CURRENT_SPEED,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         &Speed_buffer[12]);
        
@@ -1439,8 +1253,7 @@ namespace CubeRover {
         uint8_t Current_buffer[MC_BUFFER_MAX_SIZE];
        
         // Get FL Current 
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_MOTOR_CURRENT,
+        err = writeMotorControlRegister(REG_MOTOR_CURRENT,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         &Current_buffer[0]);
        
@@ -1453,8 +1266,7 @@ namespace CubeRover {
         }
        
         // Get FR Current 
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_MOTOR_CURRENT,
+        err = writeMotorControlRegister(REG_MOTOR_CURRENT,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         &Current_buffer[4]);
        
@@ -1467,8 +1279,7 @@ namespace CubeRover {
         }
        
         // Get RR Current 
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_MOTOR_CURRENT,
+        err = writeMotorControlRegister(REG_MOTOR_CURRENT,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         &Current_buffer[8]);
        
@@ -1481,8 +1292,7 @@ namespace CubeRover {
         }
        
         // Get RL Current
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_MOTOR_CURRENT,
+        err = writeMotorControlRegister(REG_MOTOR_CURRENT,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         &Current_buffer[12]);
        
@@ -1512,8 +1322,7 @@ namespace CubeRover {
         uint8_t Encoder_buffer[MC_BUFFER_MAX_SIZE];
        
         // Get FL Current 
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_MOTOR_CURRENT,
+        err = writeMotorControlRegister(REG_MOTOR_CURRENT,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         &Encoder_buffer[0]);
        
@@ -1526,8 +1335,7 @@ namespace CubeRover {
         }
        
         // Get FR Current 
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_MOTOR_CURRENT,
+        err = writeMotorControlRegister(REG_MOTOR_CURRENT,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         &Encoder_buffer[4]);
        
@@ -1540,8 +1348,7 @@ namespace CubeRover {
         }
        
         // Get RR Current 
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_MOTOR_CURRENT,
+        err = writeMotorControlRegister(REG_MOTOR_CURRENT,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         &Encoder_buffer[8]);
        
@@ -1554,8 +1361,7 @@ namespace CubeRover {
         }
        
         // Get RL Current Encoder value
-        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        REG_MOTOR_CURRENT,
+        err = writeMotorControlRegister(REG_MOTOR_CURRENT,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         &Encoder_buffer[12]);
        
@@ -1577,17 +1383,6 @@ namespace CubeRover {
         tlmWrite_MC_RR_Encoder_Dist(m_RR_Encoder_Count + m_RL_Encoder_Count_Offset);
         tlmWrite_MC_RL_Encoder_Dist(m_RL_Encoder_Count + m_RR_Encoder_Count_Offset);
         return true;
-    }
- 
-    /**
-    * @brief      Delays for 1050 ticks slow enough for slave sides
-    *
-    */
-    void MotorControlComponentImpl::delayForI2C()
-    {
-        // FIXME: DONT USE POLLING LOOP FOR DELAY
-        // for (unsigned i = 180000000; i; --i); ~= 13.5s
-        for (unsigned i = 900; i; --i);
     }
  
     /**

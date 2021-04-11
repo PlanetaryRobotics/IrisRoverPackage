@@ -15,13 +15,14 @@
 #define MotorControl_HPP
 
 #include "CubeRover/MotorControl/MotorControlComponentAc.hpp"
-#include "i2c.h"
+#include "MotorController_i2c.h"
+
+
+#define MC_BUFFER_MAX_SIZE      16 // Maximum size of I2C buffer
+#define PI                      3.14159265
+
 
 namespace CubeRover {
-
-  #define MC_BUFFER_MAX_SIZE      16 // Maximum size of I2C buffer
-  #define PI                      3.14159265
-
 
   class MotorControlComponentImpl :
     public MotorControlComponentBase
@@ -191,35 +192,23 @@ namespace CubeRover {
             MC_UNEXPECTED_ERROR
         } MCError_t;
         
-        typedef uint8_t I2cSlaveAddress_t;
         typedef int32_t Distance_cm_t;
         typedef int32_t MotorTick_t;
         typedef uint8_t Throttle_t;
       
         uint8_t txData[MC_BUFFER_MAX_SIZE];
         uint8_t rxData[MC_BUFFER_MAX_SIZE];
+        
+        i2cBASE_t *m_i2c;
 
-        MCError_t sendAllMotorsData(i2cBASE_t *i2c,
-                                  const RegisterAddress_t id,
-                                  uint8_t * data);
+        MCError_t sendAllMotorsData(const RegisterAddress_t id, uint8_t * data);
 
-        MCError_t writeMotorControlRegister(i2cBASE_t *i2c,
-                                          const RegisterAddress_t id,
-                                          const I2cSlaveAddress_t add,
-                                          uint8_t * data);
+        MCError_t writeMotorControlRegister(const RegisterAddress_t id,
+                                            const I2cSlaveAddress_t add,
+                                            uint8_t * data);
 
-        MCError_t i2cMasterTransmit(i2cBASE_t *i2c,
-                                  const I2cSlaveAddress_t sadd,
-                                  const uint32_t length,
-                                  uint8_t * data);
-
-        MCError_t i2cMasterReceive(i2cBASE_t *i2c,
-                                 const  I2cSlaveAddress_t sadd,
-                                 const uint32_t length,
-                                 uint8_t * data);
-
-        uint32_t getSizeData(const RegisterAddress_t id);
-        bool expectingReturnMessage(const RegisterAddress_t id);
+        uint32_t getSizeData(const RegisterAddress_t reg);
+        bool expectingReturnMessage(const RegisterAddress_t reg);
 
         MCError_t moveAllMotorsStraight(int32_t distance, int16_t speed);
         MCError_t rotateAllMotors(int16_t angle, int16_t speed);
@@ -236,8 +225,6 @@ namespace CubeRover {
         bool updateSpeed();
         bool updateCurrent();
         bool updateEncoder();
-
-        void delayForI2C();
 
         // Member items
         uint32_t tick_count = 0;
@@ -272,9 +259,6 @@ namespace CubeRover {
         int32_t m_FL_Encoder_Count_Offset;
         int32_t m_RL_Encoder_Count_Offset;
         int32_t m_RR_Encoder_Count_Offset;
-
-        // Timeout for I2C communication
-        uint16_t m_i2c_timeout_threshold = 1350;
     };
 
 } // end namespace CubeRover

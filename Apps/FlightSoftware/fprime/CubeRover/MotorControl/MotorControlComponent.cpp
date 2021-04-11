@@ -117,7 +117,7 @@ namespace CubeRover {
                                                            U8 Distance,
                                                            U8 Speed)
   {
-    MCError err;
+    MCError_t err;
     switch(command_type)
     {
       // We actively want to be moving
@@ -203,11 +203,11 @@ namespace CubeRover {
                                                               U8 Motor_ID,
                                                               U32 PI_Values)
   {
-    MCError err;
+    MCError_t err;
     uint16_t P_Value, I_Value;
     // TODO TEST THIS!
     P_Value = (uint16_t) PI_Values;
-    I_Value = (uint16_t) (PI_Values << 16);
+    I_Value = (uint16_t) (PI_Values << 16);         // FIXME: Justin: highly doubt this si correct
 
     switch(Motor_ID)
     {
@@ -215,7 +215,7 @@ namespace CubeRover {
       case 0:
         // TODO again, need to find out how to pass int8*
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::P_CURRENT,
+                                        REG_P_CURRENT,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -225,7 +225,7 @@ namespace CubeRover {
         }
 
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I_CURRENT,
+                                        REG_I_CURRENT,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -239,7 +239,7 @@ namespace CubeRover {
       case 1:
         // TODO again, need to find out how to pass int8*
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::P_CURRENT,
+                                        REG_P_CURRENT,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -249,7 +249,7 @@ namespace CubeRover {
         }
 
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I_CURRENT,
+                                        REG_I_CURRENT,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -263,7 +263,7 @@ namespace CubeRover {
       case 2:
         // TODO again, need to find out how to pass int8*
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::P_CURRENT,
+                                        REG_P_CURRENT,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -273,7 +273,7 @@ namespace CubeRover {
         }
 
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I_CURRENT,
+                                        REG_I_CURRENT,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -287,7 +287,7 @@ namespace CubeRover {
       case 3:
         // TODO again, need to find out how to pass int8*
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::P_CURRENT,
+                                        REG_P_CURRENT,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -297,7 +297,7 @@ namespace CubeRover {
         }
 
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I_CURRENT,
+                                        REG_I_CURRENT,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -310,7 +310,7 @@ namespace CubeRover {
       case 4:
         // TODO again, need to find out how to pass int8*
         err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
-                                MotorControllerI2C::P_CURRENT,
+                                REG_P_CURRENT,
                                 (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
         {
@@ -319,7 +319,7 @@ namespace CubeRover {
         }
 
         err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
-                                MotorControllerI2C::I_CURRENT,
+                                REG_I_CURRENT,
                                 (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
         {
@@ -350,7 +350,7 @@ namespace CubeRover {
                                                             U8 Motor_ID,
                                                             U64 PID_Values)
   {
-    MCError err;
+    MCError_t err;
     uint16_t P_Value, I_Value;
     // TODO TEST THIS!
     P_Value = (uint16_t) PID_Values;
@@ -363,7 +363,7 @@ namespace CubeRover {
       case 0:
         // TODO again, need to find out how to pass int8*
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::P_SPEED,
+                                        REG_P_SPEED,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -373,7 +373,7 @@ namespace CubeRover {
         }
 
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I_SPEED,
+                                        REG_I_SPEED,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -387,7 +387,7 @@ namespace CubeRover {
       case 1:
         // TODO again, need to find out how to pass int8*
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::P_SPEED,
+                                        REG_P_SPEED,
                                         FRONT_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -397,7 +397,7 @@ namespace CubeRover {
         }
 
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I_SPEED,
+                                        REG_I_SPEED,
                                         FRONT_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -411,7 +411,7 @@ namespace CubeRover {
       case 2:
         // TODO again, need to find out how to pass int8*
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::P_SPEED,
+                                        REG_P_SPEED,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -421,7 +421,7 @@ namespace CubeRover {
         }
 
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I_SPEED,
+                                        REG_I_SPEED,
                                         REAR_RIGHT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -435,7 +435,7 @@ namespace CubeRover {
       case 3:
         // TODO again, need to find out how to pass int8*
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::P_SPEED,
+                                        REG_P_SPEED,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
@@ -445,7 +445,7 @@ namespace CubeRover {
         }
 
         err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                        MotorControllerI2C::I_SPEED,
+                                        REG_I_SPEED,
                                         REAR_LEFT_MC_I2C_ADDR,
                                         (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
@@ -458,7 +458,7 @@ namespace CubeRover {
       case 4:
         // TODO again, need to find out how to pass int8*
         err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
-                                MotorControllerI2C::P_SPEED,
+                                REG_P_SPEED,
                                 (uint8_t*) &P_Value);
         if(err != MC_NO_ERROR)
         {
@@ -467,7 +467,7 @@ namespace CubeRover {
         }
 
         err = sendAllMotorsData(MOTOR_CONTROL_I2CREG,
-                                MotorControllerI2C::I_SPEED,
+                                REG_I_SPEED,
                                 (uint8_t*) &I_Value);
         if(err != MC_NO_ERROR)
         {
@@ -628,7 +628,7 @@ namespace CubeRover {
                                                        U8 Motor_ID,
                                                        U8 Spin_Type)
   {
-    MCError err;
+    MCError_t err;
     switch(Spin_Type)
     {
       // Forward Spin
@@ -746,7 +746,7 @@ namespace CubeRover {
                                                             I64 Distance,
                                                             I8 MoveType)
   {
-    MCError err;
+    MCError_t err;
 
     switch(MoveType)
     {
@@ -797,822 +797,820 @@ namespace CubeRover {
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
-/**
-   * @brief      Gets the size data.
-   *
-   * @param[in]  id    The identifier
-   *
-   * @return     The size data.
-   */
-  uint32_t MotorControlComponentImpl :: getSizeData(const MotorControllerI2C::I2cRegisterId id)
-  {
-    switch(id)
+    /**
+     * @brief      Gets the size data.
+     *
+     * @param[in]  id    The identifier
+     *
+     * @return     The size data.
+     */
+    uint32_t MotorControlComponentImpl::getSizeData(const RegisterAddress_t id)
     {
-        case MotorControllerI2C::I2C_ADDRESS:
-        case MotorControllerI2C::ENABLE_DRIVER:
-        case MotorControllerI2C::DISABLE_DRIVER:
-        case MotorControllerI2C::RESET_CONTROLLER:
-        case MotorControllerI2C::FAULT_REGISTER:
-        case MotorControllerI2C::CLEAR_FAULT:
-        case MotorControllerI2C::STATUS_REGISTER:
-          return 1;
-        case MotorControllerI2C::MOTOR_CURRENT:
-        case MotorControllerI2C::P_CURRENT:
-        case MotorControllerI2C::I_CURRENT:
-        case MotorControllerI2C::P_SPEED:
-        case MotorControllerI2C::I_SPEED:
-        case MotorControllerI2C::ACC_RATE:
-        case MotorControllerI2C::DEC_RATE:
-        case MotorControllerI2C::CURRENT_POSITION:
-        case MotorControllerI2C::TARGET_SPEED:
-          return 2;
-        case MotorControllerI2C::RELATIVE_TARGET_POSITION:
-        case MotorControllerI2C::CURRENT_SPEED:
-          return 4;
-        case MotorControllerI2C::MAX_NB_CMDS:
-        default:
-          return 0;
-      }   
-  }
-
-  /**
-   * @brief      Sends the same data to every motor register, returning any errors found
-   *
-   * @param      i2c   I 2 c
-   * @param[in]  id    The identifier
-   * @param[in]  data  The data
-   *
-   * @return     Motor Controller error
-   */
-  uint8_t MotorControlComponentImpl :: setIDBuffer(const MotorControllerI2C::I2cRegisterId id)
-  {
-    return (uint8_t) id;
-  }
-
-  /**
-   * @brief      Sends the same data to every motor register, returning any errors found
-   *
-   * @param      i2c   I 2 c
-   * @param[in]  id    The identifier
-   * @param[in]  data  The data
-   *
-   * @return     Motor Controller error
-   */
-  MCError MotorControlComponentImpl :: sendAllMotorsData(i2cBASE_t *i2c,
-                                                         const MotorControllerI2C::I2cRegisterId id,
-                                                         uint8_t* data)
-  {
-    MCError err = MC_NO_ERROR;
-    // Send command to all motor controllers
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    id,
-                                    FRONT_LEFT_MC_I2C_ADDR,
-                                    data);
-    if(err != MC_NO_ERROR)
-    {
-      return err;          
+      switch(id)
+      {
+          case REG_I2C_ADDRESS:
+          case DEPRACATE_ENABLE_DRIVER:
+          case DEPRACATE_DISABLE_DRIVER:
+          case DEPRACATE_RESET_CONTROLLER:
+          case REG_FAULT:
+          case REG_CLR_FAULT:
+          case REG_STATUS:
+            return 1;
+          case REG_MOTOR_CURRENT:
+          case REG_P_CURRENT:
+          case REG_I_CURRENT:
+          case REG_P_SPEED:
+          case REG_I_SPEED:
+          case REG_ACC_RATE:
+          case REG_DEC_RATE:
+          case REG_CURRENT_POSITION:
+          case REG_TARGET_SPEED:
+            return 2;
+          case REG_RELATIVE_TARGET_POSITION:
+          case REG_CURRENT_SPEED:
+            return 4;
+          case NUM_REGS:
+          default:
+            return 0;
+        }   
     }
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    id,
-                                    FRONT_RIGHT_MC_I2C_ADDR,
-                                    data);
-    if(err != MC_NO_ERROR)
+ 
+    /**
+     * @brief      Sends the same data to every motor register, returning any errors found
+     *
+     * @param      i2c   I 2 c
+     * @param[in]  id    The identifier
+     * @param[in]  data  The data
+     *
+     * @return     Motor Controller error
+     */
+    MotorControlComponentImpl::MCError_t
+    MotorControlComponentImpl::sendAllMotorsData(i2cBASE_t *i2c,
+                                                   const RegisterAddress_t id,
+                                                   uint8_t* data)
     {
-      return err;          
-    }  
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    id,
-                                    REAR_LEFT_MC_I2C_ADDR,
-                                    data);
-    if(err != MC_NO_ERROR)
-    {
-      return err;          
-    }  
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    id,
-                                    REAR_RIGHT_MC_I2C_ADDR,
-                                    data);
-    if(err != MC_NO_ERROR)
-    {
-      return err;          
+        MCError_t err = MC_NO_ERROR;
+        // Send command to all motor controllers
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        id,
+                                        FRONT_LEFT_MC_I2C_ADDR,
+                                        data);
+        if(err != MC_NO_ERROR)
+          return err;          
+       
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        id,
+                                        FRONT_RIGHT_MC_I2C_ADDR,
+                                        data);
+        if(err != MC_NO_ERROR)
+          return err;          
+       
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        id,
+                                        REAR_LEFT_MC_I2C_ADDR,
+                                        data);
+        if(err != MC_NO_ERROR)
+          return err;          
+       
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        id,
+                                        REAR_RIGHT_MC_I2C_ADDR,
+                                        data);
+        if(err != MC_NO_ERROR)
+          return err;          
+       
+        return MC_NO_ERROR;  
     }
-
-    return MC_NO_ERROR;  
-  }
-
-  /**
-   * @brief      Helper function to move all motors simultaneously
-   *
-   * @param[in]  Distance       The distance to travel in motor ticks
-   * @param[in]  Speed          The speed to travel in normalized speed
-   */
-  MCError MotorControlComponentImpl :: moveAllMotorsStraight(int32_t distance, int16_t speed)
-  {
-    Motor_tick Right_Wheels_Relative_ticks, Left_Wheels_Relative_ticks, Relative_ticks;
-    // Error preset
-    MCError err;
-
-    Speed_percent motor_speed;
-
-    if (speed > 0)
+ 
+    /**
+     * @brief      Helper function to move all motors simultaneously
+     *
+     * @param[in]  Distance       The distance to travel in motor ticks
+     * @param[in]  Speed          The speed to travel in normalized speed
+     */
+    MotorControlComponentImpl::MCError_t
+    MotorControlComponentImpl::moveAllMotorsStraight(int32_t distance, int16_t speed)
     {
-      motor_speed = groundSpeedToSpeedPrecent(speed);
-
-      // Send the speed to all the motors
-      err = sendAllMotorsData(MOTOR_CONTROL_I2CREG, 
-                              MotorControllerI2C::TARGET_SPEED,
-                              (uint8_t*) &motor_speed);
-      if(err != MC_NO_ERROR)
-        return err;
-    }      
-
-    // Convert from cm to motor ticks
-    Relative_ticks = groundCMToMotorTicks(distance);
-
-    // Ensure the sides are traveling the right direction
-    if (m_clockwise_is_positive)
-    {
-      Right_Wheels_Relative_ticks = Relative_ticks;
-      Left_Wheels_Relative_ticks = -1*Relative_ticks;
-    }
-
-    else
-    {
-      Right_Wheels_Relative_ticks = -1*Relative_ticks;
-      Left_Wheels_Relative_ticks = Relative_ticks;
-    }    
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::RELATIVE_TARGET_POSITION,
-                                    FRONT_LEFT_MC_I2C_ADDR,
-                                    (uint8_t*) &Left_Wheels_Relative_ticks);
-    if(err != MC_NO_ERROR)
-      return err;  
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::RELATIVE_TARGET_POSITION,
-                                    FRONT_RIGHT_MC_I2C_ADDR,
-                                    (uint8_t*) &Right_Wheels_Relative_ticks);
-    if(err != MC_NO_ERROR)
-      return err;  
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::RELATIVE_TARGET_POSITION,
-                                    REAR_RIGHT_MC_I2C_ADDR,
-                                    (uint8_t*) &Right_Wheels_Relative_ticks);
-    if(err != MC_NO_ERROR)
-      return err;  
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::RELATIVE_TARGET_POSITION,
-                                    REAR_LEFT_MC_I2C_ADDR,
-                                    (uint8_t*) &Left_Wheels_Relative_ticks);
-    return err;  
-  }
-
-  /**
-  * @brief      Helper function to rotate all motors simultaneously
-  *
-  * @param[in]  Distance       ???
-  * @param[in]  Speed          ???
-  */
-  MCError MotorControlComponentImpl :: rotateAllMotors(int16_t distance, int16_t speed)
-  {
-    // Error preset
-    MCError err;
-
-    if (speed > 0)
-    {
-      // TODO: Need to correct the container to pass an int8_t
-      Speed_percent motor_speed = m_angularToLinear*groundSpeedToSpeedPrecent(speed);
-
-      // Send the speed to all the motors
-      err = sendAllMotorsData(MOTOR_CONTROL_I2CREG, 
-                              MotorControllerI2C::CURRENT_SPEED,
-                              (uint8_t*) &motor_speed);
-      if(err != MC_NO_ERROR)
+        MotorTick_t Right_Wheels_Relative_ticks, Left_Wheels_Relative_ticks, Relative_ticks;
+        // Error preset
+        MCError_t err;
+       
+        Throttle_t motor_speed;
+       
+        if (speed > 0)
+        {
+          motor_speed = groundSpeedToSpeedPrecent(speed);
+       
+          // Send the speed to all the motors
+          // Required to send this before the setpoint (or else the MC will start spinning before speed was set)
+          err = sendAllMotorsData(MOTOR_CONTROL_I2CREG, 
+                                  REG_TARGET_SPEED,
+                                  (uint8_t*) &motor_speed);
+          if(err != MC_NO_ERROR)
+            return err;
+        }      
+       
+        // Convert from cm to motor ticks
+        Relative_ticks = groundCMToMotorTicks(distance);
+       
+        // Ensure the sides are traveling the right direction
+        if (m_forward_is_positive)
+        {
+          Right_Wheels_Relative_ticks = Relative_ticks;
+          Left_Wheels_Relative_ticks = -1*Relative_ticks;
+        }
+       
+        else
+        {
+          Right_Wheels_Relative_ticks = -1*Relative_ticks;
+          Left_Wheels_Relative_ticks = Relative_ticks;
+        }    
+       
+        // FIXME: XXX: CRITICAL SECTION REQUIRED
+        
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                        REG_RELATIVE_TARGET_POSITION,
+                                        FRONT_LEFT_MC_I2C_ADDR,
+                                        (uint8_t*) &Left_Wheels_Relative_ticks);
+        if(err != MC_NO_ERROR)
+          return err;  
+       
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                        REG_RELATIVE_TARGET_POSITION,
+                                        FRONT_RIGHT_MC_I2C_ADDR,
+                                        (uint8_t*) &Right_Wheels_Relative_ticks);
+        if(err != MC_NO_ERROR)
+          return err;  
+       
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                        REG_RELATIVE_TARGET_POSITION,
+                                        REAR_RIGHT_MC_I2C_ADDR,
+                                        (uint8_t*) &Right_Wheels_Relative_ticks);
+        if(err != MC_NO_ERROR)
+          return err;  
+       
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                        REG_RELATIVE_TARGET_POSITION,
+                                        REAR_LEFT_MC_I2C_ADDR,
+                                        (uint8_t*) &Left_Wheels_Relative_ticks);
+        
+        // FIXME: XXX: CRITICAL SECTION REQUIRED
+        
         return err;  
     }
-
-    Motor_tick Relative_ticks = m_angularToLinear*groundCMToMotorTicks(distance);
-
-    // TODO: Need to correct the container to pass an int8_t
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::CURRENT_POSITION, 
-                                    FRONT_LEFT_MC_I2C_ADDR,
-                                    (uint8_t*) &Relative_ticks);
-    if(err != MC_NO_ERROR)
-      return err;  
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::CURRENT_POSITION, 
-                                    FRONT_RIGHT_MC_I2C_ADDR,
-                                    (uint8_t*) &Relative_ticks);
-    if(err != MC_NO_ERROR)
-      return err;  
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::CURRENT_POSITION, 
-                                    REAR_RIGHT_MC_I2C_ADDR,
-                                    (uint8_t*) &Relative_ticks);
-    if(err != MC_NO_ERROR)
-      return err;  
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::CURRENT_POSITION, 
-                                    REAR_LEFT_MC_I2C_ADDR,
-                                    (uint8_t*) &Relative_ticks);
-    return err;
-  }
-
-  MCError MotorControlComponentImpl :: spinMotors(bool forward)
-  {
-    Motor_tick Right_Wheels_Relative_ticks, Left_Wheels_Relative_ticks, Relative_ticks;
-    // Error preset
-    MCError err;
-
-    // Convert from cm to motor ticks
-    Relative_ticks = MAX_SPIN_DISTANCE;
-
-    // Ensure the sides are traveling the right direction
-    if (m_clockwise_is_positive)
+ 
+    /**
+    * @brief      Helper function to rotate all motors simultaneously
+    *
+    * @param[in]  Distance       ???
+    * @param[in]  Speed          ???
+    */
+    MotorControlComponentImpl::MCError_t
+    MotorControlComponentImpl::rotateAllMotors(int16_t distance, int16_t speed)
     {
-      Right_Wheels_Relative_ticks = Relative_ticks;
-      Left_Wheels_Relative_ticks = -1*Relative_ticks;
+        // Error preset
+        MCError_t err;
+       
+        if (speed > 0)
+        {
+          // TODO: Need to correct the container to pass an int8_t
+          Throttle_t motor_speed = m_angularToLinear*groundSpeedToSpeedPrecent(speed);
+       
+        // // FIXME: These need to be updated to use the correct register (TARGET)
+          // Send the speed to all the motors
+          err = sendAllMotorsData(MOTOR_CONTROL_I2CREG, 
+                                  REG_CURRENT_SPEED,
+                                  (uint8_t*) &motor_speed);
+          if(err != MC_NO_ERROR)
+            return err;  
+        }
+       
+        MotorTick_t Relative_ticks = m_angularToLinear*groundCMToMotorTicks(distance);
+       
+        // TODO: Need to correct the container to pass an int8_t
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                        REG_CURRENT_POSITION, 
+                                        FRONT_LEFT_MC_I2C_ADDR,
+                                        (uint8_t*) &Relative_ticks);
+        if(err != MC_NO_ERROR)
+          return err;  
+       
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                        REG_CURRENT_POSITION, 
+                                        FRONT_RIGHT_MC_I2C_ADDR,
+                                        (uint8_t*) &Relative_ticks);
+        if(err != MC_NO_ERROR)
+          return err;  
+       
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                        REG_CURRENT_POSITION, 
+                                        REAR_RIGHT_MC_I2C_ADDR,
+                                        (uint8_t*) &Relative_ticks);
+        if(err != MC_NO_ERROR)
+          return err;  
+       
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                        REG_CURRENT_POSITION, 
+                                        REAR_LEFT_MC_I2C_ADDR,
+                                        (uint8_t*) &Relative_ticks);
+        return err;
     }
-
-    else
+ 
+    MotorControlComponentImpl::MCError_t
+    MotorControlComponentImpl::spinMotors(bool forward)
     {
-      Right_Wheels_Relative_ticks = -1*Relative_ticks;
-      Left_Wheels_Relative_ticks = Relative_ticks;
-    } 
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::CURRENT_POSITION, 
-                                    FRONT_LEFT_MC_I2C_ADDR,
-                                    (uint8_t*) &Left_Wheels_Relative_ticks);
-    if(err != MC_NO_ERROR)
-      return err;  
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::CURRENT_POSITION, 
-                                    FRONT_RIGHT_MC_I2C_ADDR,
-                                    (uint8_t*) &Right_Wheels_Relative_ticks);
-    if(err != MC_NO_ERROR)
-      return err;  
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::CURRENT_POSITION, 
-                                    REAR_RIGHT_MC_I2C_ADDR,
-                                    (uint8_t*) &Right_Wheels_Relative_ticks);
-    if(err != MC_NO_ERROR)
-      return err;  
-
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
-                                    MotorControllerI2C::CURRENT_POSITION, 
-                                    REAR_LEFT_MC_I2C_ADDR,
-                                    (uint8_t*) &Left_Wheels_Relative_ticks);
-    return err;
-  }
-
-  /**
-   * @brief      Writes a register.
-   *
-   * @param      i2c   I 2 c
-   * @param[in]  id    The identifier
-   * @param[in]  add   The add
-   * @param[in]  data  The data
-   *
-   * @return     Motor Controller error
-   */
-  MCError MotorControlComponentImpl :: writeMotorControlRegister(i2cBASE_t *i2c,
-                                                                 const MotorControllerI2C::I2cRegisterId id,
-                                                                 const MotorControllerI2C::I2cSlaveAddress add,
-                                                                 uint8_t * data)
-  {
-      MCError ret = MC_NO_ERROR;
-      uint32_t dataLength = getSizeData(id);
-      uint8_t id_buffer[1];
-      id_buffer[0] = setIDBuffer(id);
-
-      if(dataLength <= 0) 
-        return MC_UNEXPECTED_ERROR;
-
-      if(i2c == NULL)
-        return MC_UNEXPECTED_ERROR;
-
-      // Inform the MSP of the desired register
-      if((ret = i2cMasterTransmit(i2c, add, 1, id_buffer)) != MC_NO_ERROR)
-        return ret;
-
-      // If we want something, receive
-      if(expectingReturnMessage(id))
-        ret = i2cMasterReceive(i2c, add, dataLength, data);
-
-      // Else, tell the data you have
-      else
-        ret = i2cMasterTransmit(i2c, add, dataLength, data);
-
-      return ret;
-  }
-
-  /**
-   * @brief      I2c master transmit
-   *
-   * @param      i2c     I 2 c
-   * @param[in]  sadd    The slave address
-   * @param[in]  length  The length
-   * @param[in]  data    The data
-   *
-   * @return     Motor Controller error
-   */
-  MCError MotorControlComponentImpl :: i2cMasterTransmit(i2cBASE_t *i2c,
-                                                         const MotorControllerI2C::I2cSlaveAddress sadd,
-                                                         const uint32_t length,
+        MotorTick_t Right_Wheels_Relative_ticks, Left_Wheels_Relative_ticks, Relative_ticks;
+        // Error preset
+        MCError_t err;
+       
+        // Convert from cm to motor ticks
+        Relative_ticks = MAX_SPIN_DISTANCE;
+       
+        // Ensure the sides are traveling the right direction
+        if (m_forward_is_positive)
+        {
+          Right_Wheels_Relative_ticks = Relative_ticks;
+          Left_Wheels_Relative_ticks = -1*Relative_ticks;
+        }
+       
+        else
+        {
+          Right_Wheels_Relative_ticks = -1*Relative_ticks;
+          Left_Wheels_Relative_ticks = Relative_ticks;
+        } 
+       
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                        REG_CURRENT_POSITION, 
+                                        FRONT_LEFT_MC_I2C_ADDR,
+                                        (uint8_t*) &Left_Wheels_Relative_ticks);
+        if(err != MC_NO_ERROR)
+          return err;  
+       
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                        REG_CURRENT_POSITION, 
+                                        FRONT_RIGHT_MC_I2C_ADDR,
+                                        (uint8_t*) &Right_Wheels_Relative_ticks);
+        if(err != MC_NO_ERROR)
+          return err;  
+       
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                        REG_CURRENT_POSITION, 
+                                        REAR_RIGHT_MC_I2C_ADDR,
+                                        (uint8_t*) &Right_Wheels_Relative_ticks);
+        if(err != MC_NO_ERROR)
+          return err;  
+       
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG, 
+                                        REG_CURRENT_POSITION, 
+                                        REAR_LEFT_MC_I2C_ADDR,
+                                        (uint8_t*) &Left_Wheels_Relative_ticks);
+        return err;
+    }
+ 
+    /**
+     * @brief      Writes a register.
+     *
+     * @param      i2c   I 2 c
+     * @param[in]  addr  Register address
+     * @param[in]  addr   Device address
+     * @param[in]  data  The data
+     *
+     * @return     Motor Controller error
+     */
+    MotorControlComponentImpl::MCError_t
+    MotorControlComponentImpl::writeMotorControlRegister(i2cBASE_t *i2c,
+                                                         const RegisterAddress_t reg,
+                                                         const I2cSlaveAddress_t addr,
                                                          uint8_t * data)
-  {
-    if(i2c == NULL)
-      return MC_UNEXPECTED_ERROR;
-
-    if(data == NULL)
-      return MC_UNEXPECTED_ERROR;
-
-    /* Configure address of Slave to talk to */
-    i2cSetSlaveAdd(i2c, sadd);
-
-    /* Set direction to Transmitter */
-    i2cSetDirection(i2c, I2C_TRANSMITTER);
-
-    /* Configure Data count */
-    i2cSetCount(i2c, length);
-
-    /* Set mode as Master */
-    i2cSetMode(i2c, I2C_MASTER);
-
-    /* Set Stop after programmed Count */
-    i2cSetStop(i2c);
-
-    /* Transmit Start Condition */
-    i2cSetStart(i2c);
-
-    /* Transmit DATA_COUNT number of data in Polling mode */
-    i2cSend(i2c, length, data);
-
-    /* Wait until Bus Busy is cleared */
-    uint16_t timeouter = 0;
-    while(i2cIsBusBusy(i2c) == true)
     {
-      if(++timeouter > m_i2c_timeout_threshold)
-        return MC_I2C_TIMEOUT_ERROR;
-    }   
-
-    /* Wait until Stop is detected */
-    timeouter = 0;
-    while(i2cIsStopDetected(i2c) == 0)
-    {
-      if(++timeouter > m_i2c_timeout_threshold)
-        return MC_I2C_TIMEOUT_ERROR;
-    }   
-
-    /* Clear the Stop condition */
-    i2cClearSCD(i2c);
-
-    /* Delay long enough for the slave to be ready */
-    delayForI2C();
-
-    return MC_NO_ERROR;
-  }
-
-
-  /**
-   * @brief      I2C master receive
-   *
-   * @param      i2c     I 2 c
-   * @param[in]  sadd    The slave address
-   * @param[in]  length  The length
-   * @param[in]  data    The data
-   *
-   * @return     Motor controller error
-   */
-  MCError MotorControlComponentImpl :: i2cMasterReceive(i2cBASE_t *i2c,
-                                                        const MotorControllerI2C::I2cSlaveAddress sadd,
-                                                        const uint32_t length,
-                                                        uint8_t * data)
-  {
-    if(i2c == NULL)
-      return MC_UNEXPECTED_ERROR;
-
-    if(data == NULL)
-      return MC_UNEXPECTED_ERROR;
-
-    /* Configure address of Slave to talk to */
-    i2cSetSlaveAdd(i2c, sadd);
-
-    /* Set direction to receiver */
-    i2cSetDirection(i2c, I2C_RECEIVER);
-
-    /* Configure Data count */
-    i2cSetCount(i2c, length);
-
-    /* Set mode as Master */
-    i2cSetMode(i2c, I2C_MASTER);
-
-    /* Set Stop after programmed Count */
-    i2cSetStop(i2c);
-
-    /* Transmit Start Condition */
-    i2cSetStart(i2c);
-
-    /* Transmit DATA_COUNT number of data in Polling mode */
-    i2cReceive(i2c, length, data);
-
-    /* Wait until Bus Busy is cleared */
-    uint16_t timeouter = 0;
-    while(i2cIsBusBusy(i2c) == true)
-    {
-      if(++timeouter > m_i2c_timeout_threshold)
-        return MC_I2C_TIMEOUT_ERROR;
-    }   
-
-    /* Wait until Stop is detected */
-    timeouter = 0;
-    while(i2cIsStopDetected(i2c) == 0)
-    {
-      if(++timeouter > m_i2c_timeout_threshold)
-        return MC_I2C_TIMEOUT_ERROR;
+        MCError_t ret = MC_NO_ERROR;
+        uint32_t dataLength = getSizeData(reg);
+        uint8_t reg_buffer[1];
+        reg_buffer[0] = (uint8_t)reg;
+ 
+        if(dataLength <= 0) 
+          return MC_UNEXPECTED_ERROR;
+ 
+        if(i2c == NULL)
+          return MC_UNEXPECTED_ERROR;
+ 
+        // Inform the MSP of the desired register
+        if((ret = i2cMasterTransmit(i2c, addr, 1, reg_buffer)) != MC_NO_ERROR)
+          return ret;
+ 
+        // If we want something, receive
+        if(expectingReturnMessage(reg))
+          ret = i2cMasterReceive(i2c, addr, dataLength, data);
+ 
+        // Else, tell the data you have
+        else
+          ret = i2cMasterTransmit(i2c, addr, dataLength, data);
+ 
+        return ret;
     }
-
-    /* Clear the Stop condition */
-    i2cClearSCD(i2c);
-
-    /* Delay long enough for the slave to be ready */
-    delayForI2C();
-
-    return MC_NO_ERROR;
-  }
-
-  /**
-  * @brief      Enables all motors
-  *
-  * @return     Motor controller error
-  */
-  MCError MotorControlComponentImpl :: enableDrivers()
-  {
-    WatchdogCommandOut_out(0, CubeRoverPorts::motorsOn);
-    return MC_NO_ERROR;
-  }
-
-  /**
-  * @brief      Disable all motors
-  *
-  * @return     Motor controller error
-  */
-  MCError MotorControlComponentImpl :: disableDrivers()
-  {
-    WatchdogCommandOut_out(0, CubeRoverPorts::motorsOff);
-    return MC_NO_ERROR;
-  }
-
-  /**
-  * @brief      Resets all motors
-  *
-  * @return     None
-  */
-  void MotorControlComponentImpl :: resetMotorControllers()
-  {
-    WatchdogCommandOut_out(0, CubeRoverPorts::motorsReset);
-  }
-
-  /**
-  * @brief      Converts cm to motor ticks
-  *
-  * @param[in]  Distance the system wants to travel in cm    
-  *
-  * @return     Motor ticks to rotate
-  */
-  Motor_tick MotorControlComponentImpl :: groundCMToMotorTicks(int16_t dist)
-  {
-      // FIXME: Jonathan to develop this function
-    return 0;
-  }
-
-  /**
-  * @brief      Converts from ground speed to motor normalized speed
-  *
-  * @param[in]  The speed in ground version of cm/s (scaled from 0x00 - 0x0A)
-  *              meaning 0-10cm/s
-  *
-  * @return     Precentage of the speed in motor control terms
-  */
-  Speed_percent MotorControlComponentImpl :: groundSpeedToSpeedPrecent(int16_t speed)
-  {
-      // FIXME: Jonathan to develop this function
-    return 0;
-  }
-
-  /**
-  * @brief      Delays for 1050 ticks slow enough for slave sides
-  *
-  */
-  bool MotorControlComponentImpl :: updateTelemetry()
-  {
-    bool Update_Success = true;
-
-    // Update only a single type of data at a time
-    if (m_Round_Robin_Telemetry)
+ 
+    /**
+     * @brief      I2c master transmit
+     *
+     * @param      i2c     I 2 c
+     * @param[in]  sadd    The slave address
+     * @param[in]  length  The length
+     * @param[in]  data    The data
+     *
+     * @return     Motor Controller error
+     */
+    MotorControlComponentImpl::MCError_t
+    MotorControlComponentImpl::i2cMasterTransmit(i2cBASE_t *i2c,
+                                                 const I2cSlaveAddress_t sadd,
+                                                 const uint32_t length,
+                                                 uint8_t * data)
     {
-      switch(++m_Robin_Number)
-      {
-        case 0:
-          Update_Success = updateSpeed();
-          break;
-
-        case 1:
-          Update_Success = updateCurrent();
-          break;
-
-        case 2:
-          Update_Success = updateEncoder();
-          m_Robin_Number = 0;
-          break;
-
-        default:
-          m_Robin_Number = 0;
-          break;
-      }
+        if(i2c == NULL)
+          return MC_UNEXPECTED_ERROR;
+       
+        if(data == NULL)
+          return MC_UNEXPECTED_ERROR;
+       
+        /* Configure address of Slave to talk to */
+        i2cSetSlaveAdd(i2c, sadd);
+       
+        /* Set direction to Transmitter */
+        i2cSetDirection(i2c, I2C_TRANSMITTER);
+       
+        /* Configure Data count */
+        i2cSetCount(i2c, length);
+       
+        /* Set mode as Master */
+        i2cSetMode(i2c, I2C_MASTER);
+       
+        /* Set Stop after programmed Count */
+        i2cSetStop(i2c);
+       
+        /* Transmit Start Condition */
+        i2cSetStart(i2c);
+       
+        /* Transmit DATA_COUNT number of data in Polling mode */
+        i2cSend(i2c, length, data);
+       
+        /* Wait until Bus Busy is cleared */
+        uint16_t timeouter = 0;
+        while(i2cIsBusBusy(i2c) == true)
+        {
+          if(++timeouter > m_i2c_timeout_threshold)
+            return MC_I2C_TIMEOUT_ERROR;
+        }   
+       
+        /* Wait until Stop is detected */
+        timeouter = 0;
+        while(i2cIsStopDetected(i2c) == 0)
+        {
+          if(++timeouter > m_i2c_timeout_threshold)
+            return MC_I2C_TIMEOUT_ERROR;
+        }   
+       
+        /* Clear the Stop condition */
+        i2cClearSCD(i2c);
+       
+        /* Delay long enough for the slave to be ready */
+        delayForI2C();
+       
+        return MC_NO_ERROR;
     }
-
-    // Update all of them
-    else
+ 
+ 
+    /**
+     * @brief      I2C master receive
+     *
+     * @param      i2c     I 2 c
+     * @param[in]  sadd    The slave address
+     * @param[in]  length  The length
+     * @param[in]  data    The data
+     *
+     * @return     Motor controller error
+     */
+    MotorControlComponentImpl::MCError_t
+    MotorControlComponentImpl::i2cMasterReceive(i2cBASE_t *i2c,
+                                                const I2cSlaveAddress_t sadd,
+                                                const uint32_t length,
+                                                uint8_t * data)
     {
-      if(!updateSpeed())
-        return false;
-      if(!updateCurrent()) 
-        return false;
-      if(updateEncoder())
-        return false;
+        if(i2c == NULL)
+          return MC_UNEXPECTED_ERROR;
+       
+        if(data == NULL)
+          return MC_UNEXPECTED_ERROR;
+       
+        /* Configure address of Slave to talk to */
+        i2cSetSlaveAdd(i2c, sadd);
+       
+        /* Set direction to receiver */
+        i2cSetDirection(i2c, I2C_RECEIVER);
+       
+        /* Configure Data count */
+        i2cSetCount(i2c, length);
+       
+        /* Set mode as Master */
+        i2cSetMode(i2c, I2C_MASTER);
+       
+        /* Set Stop after programmed Count */
+        i2cSetStop(i2c);
+       
+        /* Transmit Start Condition */
+        i2cSetStart(i2c);
+       
+        /* Transmit DATA_COUNT number of data in Polling mode */
+        i2cReceive(i2c, length, data);
+       
+        /* Wait until Bus Busy is cleared */
+        uint16_t timeouter = 0;
+        while(i2cIsBusBusy(i2c) == true)
+        {
+          if(++timeouter > m_i2c_timeout_threshold)
+            return MC_I2C_TIMEOUT_ERROR;
+        }   
+       
+        /* Wait until Stop is detected */
+        timeouter = 0;
+        while(i2cIsStopDetected(i2c) == 0)
+        {
+          if(++timeouter > m_i2c_timeout_threshold)
+            return MC_I2C_TIMEOUT_ERROR;
+        }
+       
+        /* Clear the Stop condition */
+        i2cClearSCD(i2c);
+       
+        /* Delay long enough for the slave to be ready */
+        delayForI2C();
+       
+        return MC_NO_ERROR;
     }
-
-    return Update_Success;
-  }
-
-  /**
-  * @brief      Delays for 1050 ticks slow enough for slave sides
-  *
-  */
-  bool MotorControlComponentImpl :: updateSpeed()
-  {
-    MCError err = MC_NO_ERROR;
-    uint8_t Speed_buffer[MC_BUFFER_MAX_SIZE];
-
-    // Get FL Current Speed
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::CURRENT_SPEED,
-                                    FRONT_LEFT_MC_I2C_ADDR,
-                                    &Speed_buffer[0]);
-
-    // Make sure everything is going well
-    if (err != MC_NO_ERROR)
+ 
+    /**
+    * @brief      Enables all motors
+    *
+    * @return     Motor controller error
+    */
+    MotorControlComponentImpl::MCError_t MotorControlComponentImpl::enableDrivers()
     {
-      resetMotorControllers();
-      log_WARNING_HI_MC_MSPNotResponding();
-      return false;
+        WatchdogCommandOut_out(0, CubeRoverPorts::motorsOn);
+        return MC_NO_ERROR;
     }
-
-    // Get FR Current Speed
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::CURRENT_SPEED,
-                                    FRONT_RIGHT_MC_I2C_ADDR,
-                                    &Speed_buffer[4]);
-
-    // Make sure everything is going well
-    if (err != MC_NO_ERROR)
+ 
+    /**
+    * @brief      Disable all motors
+    *
+    * @return     Motor controller error
+    */
+    MotorControlComponentImpl::MCError_t MotorControlComponentImpl::disableDrivers()
     {
-      resetMotorControllers();
-      log_WARNING_HI_MC_MSPNotResponding();
-      return false;
+        WatchdogCommandOut_out(0, CubeRoverPorts::motorsOff);
+        return MC_NO_ERROR;
     }
-
-    // Get RR Current Speed
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::CURRENT_SPEED,
-                                    REAR_RIGHT_MC_I2C_ADDR,
-                                    &Speed_buffer[8]);
-
-    // Make sure everything is going well
-    if (err != MC_NO_ERROR)
+ 
+    /**
+    * @brief      Resets all motors
+    *
+    * @return     None
+    */
+    void MotorControlComponentImpl::resetMotorControllers()
     {
-      resetMotorControllers();
-      log_WARNING_HI_MC_MSPNotResponding();
-      return false;
+      WatchdogCommandOut_out(0, CubeRoverPorts::motorsReset);
     }
-
-    // Get RL Current Speed
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::CURRENT_SPEED,
-                                    REAR_LEFT_MC_I2C_ADDR,
-                                    &Speed_buffer[12]);
-
-    // Make sure everything is going well
-    if (err != MC_NO_ERROR)
+ 
+    /**
+    * @brief      Converts cm to motor ticks
+    *
+    * @param[in]  Distance the system wants to travel in cm    
+    *
+    * @return     Motor ticks to rotate
+    */
+    MotorControlComponentImpl::MotorTick_t
+    MotorControlComponentImpl::groundCMToMotorTicks(int16_t dist)
     {
-      resetMotorControllers();
-      log_WARNING_HI_MC_MSPNotResponding();
-      return false;
+        // FIXME: Jonathan to develop this function
+        return 0;
     }
-
-    // If we got all the values we need, then we can update telemetry
-    tlmWrite_MC_FL_Speed((uint32_t) Speed_buffer[0]);
-    tlmWrite_MC_FR_Speed((uint32_t) Speed_buffer[4]);
-    tlmWrite_MC_RR_Speed((uint32_t) Speed_buffer[8]);
-    tlmWrite_MC_RL_Speed((uint32_t) Speed_buffer[12]);
-    return true;
-  }
-
-  /**
-  * @brief      Delays for 1050 ticks slow enough for slave sides
-  *
-  */
-  bool MotorControlComponentImpl :: updateCurrent()
-  {
-    MCError err = MC_NO_ERROR;
-    uint8_t Current_buffer[MC_BUFFER_MAX_SIZE];
-
-    // Get FL Current 
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::MOTOR_CURRENT,
-                                    FRONT_LEFT_MC_I2C_ADDR,
-                                    &Current_buffer[0]);
-
-    // Make sure everything is going well
-    if (err != MC_NO_ERROR)
+ 
+    /**
+    * @brief      Converts from ground speed to motor normalized speed
+    *
+    * @param[in]  The speed in ground version of cm/s (scaled from 0x00 - 0x0A)
+    *              meaning 0-10cm/s
+    *
+    * @return     Precentage of the speed in motor control terms
+    */
+    MotorControlComponentImpl::Throttle_t
+    MotorControlComponentImpl::groundSpeedToSpeedPrecent(int16_t speed)
     {
-      resetMotorControllers();
-      log_WARNING_HI_MC_MSPNotResponding();
-      return false;
+        // FIXME: Jonathan to develop this function
+        return 0;
     }
-
-    // Get FR Current 
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::MOTOR_CURRENT,
-                                    FRONT_RIGHT_MC_I2C_ADDR,
-                                    &Current_buffer[4]);
-
-    // Make sure everything is going well
-    if (err != MC_NO_ERROR)
+ 
+    /**
+    * @brief      Delays for 1050 ticks slow enough for slave sides
+    *
+    */
+    bool MotorControlComponentImpl :: updateTelemetry()
     {
-      resetMotorControllers();
-      log_WARNING_HI_MC_MSPNotResponding();
-      return false;
+        bool Update_Success = true;
+       
+        // Update only a single type of data at a time
+        if (m_Round_Robin_Telemetry)
+        {
+          switch(++m_Robin_Number)
+          {
+            case 0:
+              Update_Success = updateSpeed();
+              break;
+       
+            case 1:
+              Update_Success = updateCurrent();
+              break;
+       
+            case 2:
+              Update_Success = updateEncoder();
+              m_Robin_Number = 0;
+              break;
+       
+            default:
+              m_Robin_Number = 0;
+              break;
+          }
+        }
+       
+        // Update all of them
+        else
+        {
+          if(!updateSpeed())
+            return false;
+          if(!updateCurrent()) 
+            return false;
+          if(updateEncoder())
+            return false;
+        }
+       
+        return Update_Success;
     }
-
-    // Get RR Current 
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::MOTOR_CURRENT,
-                                    REAR_RIGHT_MC_I2C_ADDR,
-                                    &Current_buffer[8]);
-
-    // Make sure everything is going well
-    if (err != MC_NO_ERROR)
+ 
+    /**
+    * @brief      Delays for 1050 ticks slow enough for slave sides
+    *
+    */
+    bool MotorControlComponentImpl::updateSpeed()
     {
-      resetMotorControllers();
-      log_WARNING_HI_MC_MSPNotResponding();
-      return false;
-    }
-
-    // Get RL Current
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::MOTOR_CURRENT,
-                                    REAR_LEFT_MC_I2C_ADDR,
-                                    &Current_buffer[12]);
-
-    // Make sure everything is going well
-    if (err != MC_NO_ERROR)
-    {
-      resetMotorControllers();
-      log_WARNING_HI_MC_MSPNotResponding();
-      return false;
-    }
-
-    // If we got all the values we need, then we can update telemetry
-    tlmWrite_MC_FL_Current((uint32_t) Current_buffer[0]);
-    tlmWrite_MC_FR_Current((uint32_t) Current_buffer[4]);
-    tlmWrite_MC_RR_Current((uint32_t) Current_buffer[8]);
-    tlmWrite_MC_RL_Current((uint32_t) Current_buffer[12]);
-    return true;
-  }
-
-  /**
-  * @brief      Delays for 1050 ticks slow enough for slave sides
-  *
-  */
-  bool MotorControlComponentImpl :: updateEncoder()
-  {
-    MCError err = MC_NO_ERROR;
-    uint8_t Encoder_buffer[MC_BUFFER_MAX_SIZE];
-
-    // Get FL Current 
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::MOTOR_CURRENT,
-                                    FRONT_LEFT_MC_I2C_ADDR,
-                                    &Encoder_buffer[0]);
-
-    // Make sure everything is going well
-    if (err != MC_NO_ERROR)
-    {
-      resetMotorControllers();
-      log_WARNING_HI_MC_MSPNotResponding();
-      return false;
-    }
-
-    // Get FR Current 
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::MOTOR_CURRENT,
-                                    FRONT_RIGHT_MC_I2C_ADDR,
-                                    &Encoder_buffer[4]);
-
-    // Make sure everything is going well
-    if (err != MC_NO_ERROR)
-    {
-      resetMotorControllers();
-      log_WARNING_HI_MC_MSPNotResponding();
-      return false;
-    }
-
-    // Get RR Current 
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::MOTOR_CURRENT,
-                                    REAR_RIGHT_MC_I2C_ADDR,
-                                    &Encoder_buffer[8]);
-
-    // Make sure everything is going well
-    if (err != MC_NO_ERROR)
-    {
-      resetMotorControllers();
-      log_WARNING_HI_MC_MSPNotResponding();
-      return false;
-    }
-
-    // Get RL Current Encoder value
-    err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
-                                    MotorControllerI2C::MOTOR_CURRENT,
-                                    REAR_LEFT_MC_I2C_ADDR,
-                                    &Encoder_buffer[12]);
-
-    // Make sure everything is going well
-    if (err != MC_NO_ERROR)
-    {
-      resetMotorControllers();
-      log_WARNING_HI_MC_MSPNotResponding();
-      return false;
-    }
-
-    // If we got all the values we need, then we can update telemetry
-    m_FL_Encoder_Count += (uint16_t) Encoder_buffer[0];
-    m_FR_Encoder_Count += (uint16_t) Encoder_buffer[4];
-    m_RR_Encoder_Count += (uint16_t) Encoder_buffer[8];
-    m_RL_Encoder_Count += (uint16_t) Encoder_buffer[12];
-    tlmWrite_MC_FL_Encoder_Dist(m_FL_Encoder_Count + m_FR_Encoder_Count_Offset);
-    tlmWrite_MC_FR_Encoder_Dist(m_FR_Encoder_Count + m_FL_Encoder_Count_Offset);
-    tlmWrite_MC_RR_Encoder_Dist(m_RR_Encoder_Count + m_RL_Encoder_Count_Offset);
-    tlmWrite_MC_RL_Encoder_Dist(m_RL_Encoder_Count + m_RR_Encoder_Count_Offset);
-    return true;
-  }
-
-  /**
-  * @brief      Delays for 1050 ticks slow enough for slave sides
-  *
-  */
-  void MotorControlComponentImpl :: delayForI2C()
-  {
-    // for (unsigned i = 180000000; i; --i); ~= 13.5s
-    for (unsigned i = 900; i; --i);
-  }
-
-  /**
-  * @brief      Converts from ground speed to motor normalized speed
-  *
-  * @param[in]  The speed in ground version of cm/s (scaled from 0x00 - 0x0A)
-  *              meaning 0-10cm/s
-  *
-  * @return     Precentage of the speed in motor control terms
-  */
-  bool MotorControlComponentImpl :: expectingReturnMessage(const MotorControllerI2C::I2cRegisterId id)
-  {
-    switch(id)
-    {
-      case MotorControllerI2C::I2C_ADDRESS:
-      case MotorControllerI2C::CURRENT_POSITION:
-      case MotorControllerI2C::CURRENT_SPEED:
-      case MotorControllerI2C::MOTOR_CURRENT:
+        // FIXME: REG_CURRENT_SPEED reads (#ticks / #seconds) -> Fixed-point 17MSB . 15LSB 
+        // BUT JONATHAN WILL UPDATE 
+        
+        MCError_t err = MC_NO_ERROR;
+        uint8_t Speed_buffer[MC_BUFFER_MAX_SIZE];
+       
+        // Get FL Current Speed
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        REG_CURRENT_SPEED,
+                                        FRONT_LEFT_MC_I2C_ADDR,
+                                        &Speed_buffer[0]);
+       
+        // Make sure everything is going well
+        if (err != MC_NO_ERROR)
+        {
+          resetMotorControllers();
+          log_WARNING_HI_MC_MSPNotResponding();
+          return false;
+        }
+       
+        // Get FR Current Speed
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        REG_CURRENT_SPEED,
+                                        FRONT_RIGHT_MC_I2C_ADDR,
+                                        &Speed_buffer[4]);
+       
+        // Make sure everything is going well
+        if (err != MC_NO_ERROR)
+        {
+          resetMotorControllers();
+          log_WARNING_HI_MC_MSPNotResponding();
+          return false;
+        }
+       
+        // Get RR Current Speed
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        REG_CURRENT_SPEED,
+                                        REAR_RIGHT_MC_I2C_ADDR,
+                                        &Speed_buffer[8]);
+       
+        // Make sure everything is going well
+        if (err != MC_NO_ERROR)
+        {
+          resetMotorControllers();
+          log_WARNING_HI_MC_MSPNotResponding();
+          return false;
+        }
+       
+        // Get RL Current Speed
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        REG_CURRENT_SPEED,
+                                        REAR_LEFT_MC_I2C_ADDR,
+                                        &Speed_buffer[12]);
+       
+        // Make sure everything is going well
+        if (err != MC_NO_ERROR)
+        {
+          resetMotorControllers();
+          log_WARNING_HI_MC_MSPNotResponding();
+          return false;
+        }
+       
+        // If we got all the values we need, then we can update telemetry
+        tlmWrite_MC_FL_Speed((uint32_t) Speed_buffer[0]);
+        tlmWrite_MC_FR_Speed((uint32_t) Speed_buffer[4]);
+        tlmWrite_MC_RR_Speed((uint32_t) Speed_buffer[8]);
+        tlmWrite_MC_RL_Speed((uint32_t) Speed_buffer[12]);
         return true;
-
-      default:
-        return false;
-    } 
-  }
+    }
+ 
+    /**
+    * @brief      Delays for 1050 ticks slow enough for slave sides
+    *
+    */
+    bool MotorControlComponentImpl::updateCurrent()
+    {
+        MCError_t err = MC_NO_ERROR;
+        uint8_t Current_buffer[MC_BUFFER_MAX_SIZE];
+       
+        // Get FL Current 
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        REG_MOTOR_CURRENT,
+                                        FRONT_LEFT_MC_I2C_ADDR,
+                                        &Current_buffer[0]);
+       
+        // Make sure everything is going well
+        if (err != MC_NO_ERROR)
+        {
+          resetMotorControllers();
+          log_WARNING_HI_MC_MSPNotResponding();
+          return false;
+        }
+       
+        // Get FR Current 
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        REG_MOTOR_CURRENT,
+                                        FRONT_RIGHT_MC_I2C_ADDR,
+                                        &Current_buffer[4]);
+       
+        // Make sure everything is going well
+        if (err != MC_NO_ERROR)
+        {
+          resetMotorControllers();
+          log_WARNING_HI_MC_MSPNotResponding();
+          return false;
+        }
+       
+        // Get RR Current 
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        REG_MOTOR_CURRENT,
+                                        REAR_RIGHT_MC_I2C_ADDR,
+                                        &Current_buffer[8]);
+       
+        // Make sure everything is going well
+        if (err != MC_NO_ERROR)
+        {
+          resetMotorControllers();
+          log_WARNING_HI_MC_MSPNotResponding();
+          return false;
+        }
+       
+        // Get RL Current
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        REG_MOTOR_CURRENT,
+                                        REAR_LEFT_MC_I2C_ADDR,
+                                        &Current_buffer[12]);
+       
+        // Make sure everything is going well
+        if (err != MC_NO_ERROR)
+        {
+          resetMotorControllers();
+          log_WARNING_HI_MC_MSPNotResponding();
+          return false;
+        }
+       
+        // If we got all the values we need, then we can update telemetry
+        tlmWrite_MC_FL_Current((uint32_t) Current_buffer[0]);
+        tlmWrite_MC_FR_Current((uint32_t) Current_buffer[4]);
+        tlmWrite_MC_RR_Current((uint32_t) Current_buffer[8]);
+        tlmWrite_MC_RL_Current((uint32_t) Current_buffer[12]);
+        return true;
+    }
+ 
+    /**
+    * @brief      Delays for 1050 ticks slow enough for slave sides
+    *
+    */
+    bool MotorControlComponentImpl::updateEncoder()
+    {
+        MCError_t err = MC_NO_ERROR;
+        uint8_t Encoder_buffer[MC_BUFFER_MAX_SIZE];
+       
+        // Get FL Current 
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        REG_MOTOR_CURRENT,
+                                        FRONT_LEFT_MC_I2C_ADDR,
+                                        &Encoder_buffer[0]);
+       
+        // Make sure everything is going well
+        if (err != MC_NO_ERROR)
+        {
+          resetMotorControllers();
+          log_WARNING_HI_MC_MSPNotResponding();
+          return false;
+        }
+       
+        // Get FR Current 
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        REG_MOTOR_CURRENT,
+                                        FRONT_RIGHT_MC_I2C_ADDR,
+                                        &Encoder_buffer[4]);
+       
+        // Make sure everything is going well
+        if (err != MC_NO_ERROR)
+        {
+          resetMotorControllers();
+          log_WARNING_HI_MC_MSPNotResponding();
+          return false;
+        }
+       
+        // Get RR Current 
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        REG_MOTOR_CURRENT,
+                                        REAR_RIGHT_MC_I2C_ADDR,
+                                        &Encoder_buffer[8]);
+       
+        // Make sure everything is going well
+        if (err != MC_NO_ERROR)
+        {
+          resetMotorControllers();
+          log_WARNING_HI_MC_MSPNotResponding();
+          return false;
+        }
+       
+        // Get RL Current Encoder value
+        err = writeMotorControlRegister(MOTOR_CONTROL_I2CREG,
+                                        REG_MOTOR_CURRENT,
+                                        REAR_LEFT_MC_I2C_ADDR,
+                                        &Encoder_buffer[12]);
+       
+        // Make sure everything is going well
+        if (err != MC_NO_ERROR)
+        {
+          resetMotorControllers();
+          log_WARNING_HI_MC_MSPNotResponding();
+          return false;
+        }
+       
+        // If we got all the values we need, then we can update telemetry
+        m_FL_Encoder_Count += (uint16_t) Encoder_buffer[0];
+        m_FR_Encoder_Count += (uint16_t) Encoder_buffer[4];
+        m_RR_Encoder_Count += (uint16_t) Encoder_buffer[8];
+        m_RL_Encoder_Count += (uint16_t) Encoder_buffer[12];
+        tlmWrite_MC_FL_Encoder_Dist(m_FL_Encoder_Count + m_FR_Encoder_Count_Offset);
+        tlmWrite_MC_FR_Encoder_Dist(m_FR_Encoder_Count + m_FL_Encoder_Count_Offset);
+        tlmWrite_MC_RR_Encoder_Dist(m_RR_Encoder_Count + m_RL_Encoder_Count_Offset);
+        tlmWrite_MC_RL_Encoder_Dist(m_RL_Encoder_Count + m_RR_Encoder_Count_Offset);
+        return true;
+    }
+ 
+    /**
+    * @brief      Delays for 1050 ticks slow enough for slave sides
+    *
+    */
+    void MotorControlComponentImpl::delayForI2C()
+    {
+        // FIXME: DONT USE POLLING LOOP FOR DELAY
+        // for (unsigned i = 180000000; i; --i); ~= 13.5s
+        for (unsigned i = 900; i; --i);
+    }
+ 
+    /**
+    * @brief      Converts from ground speed to motor normalized speed
+    *
+    * @param[in]  The speed in ground version of cm/s (scaled from 0x00 - 0x0A)
+    *              meaning 0-10cm/s
+    *
+    * @return     Precentage of the speed in motor control terms
+    */
+    bool MotorControlComponentImpl::expectingReturnMessage(const RegisterAddress_t id)
+    {
+        switch(id)
+        {
+          case REG_I2C_ADDRESS:
+          case REG_CURRENT_POSITION:
+          case REG_CURRENT_SPEED:
+          case REG_MOTOR_CURRENT:
+            return true;
+       
+          default:
+            return false;
+        } 
+    }
 
 } // end namespace CubeRover

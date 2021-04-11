@@ -22,50 +22,6 @@ namespace CubeRover {
   #define MC_BUFFER_MAX_SIZE      16 // Maximum size of I2C buffer
   #define PI                      3.14159265
 
-  namespace MotorControllerI2C
-  {
-    typedef uint8_t MotorControlI2cRegId_t;
-
-    typedef enum 
-    {
-      I2C_ADDRESS = 0,              // TESTED // Back address  / 1 Byte
-      RELATIVE_TARGET_POSITION = 1, // TESTED // In Motor Ticks (9750 ticks per rotation) / 4 Bytes
-      TARGET_SPEED = 2,             // TESTED // In Normalized speed of? // 2 Bytes
-      CURRENT_POSITION = 3,         // TESTED // In Motor Ticks (9750 ticks per rotation) // 2 Bytes
-      CURRENT_SPEED = 4,            // TESTED // Weird values. Normalized version of tick rate. See Spreadsheet labeled "Motor tests" // 4 Bytes
-      MOTOR_CURRENT = 5,            // TESTED // Returns Milliamps in IQ format // 4 Bytes
-      P_CURRENT = 6,                // TESTED Nominally 0.95 // 4 Bytes
-      I_CURRENT = 7,                // ASSUMED WORKING // By testing P_Current // 4 Bytes (Really 2 lower bytes)
-      P_SPEED = 8,                  // TESTED Nominally 1 // 4 Bytes
-      I_SPEED = 9,                  // ASSUMED WORKING // By testing P_Current // 4 Bytes (Really 2 lower bytes)
-      ACC_RATE = 10,                // WILL NOT WORK
-      DEC_RATE = 11,                // WILL NOT WORK
-      CONTROL_REGISTER = 12,        // NOT MEANINGFUL
-      STATUS_REGISTER = 13,         // NOT MEANINGFUL
-      FAULT_REGISTER = 14,          // NOT MEANINGFUL
-      EXECUTE_CMD = 15,             // NOT A THING
-      ENABLE_DRIVER = 16,           // NOT A THING
-      DISABLE_DRIVER = 17,          // NOT A THING
-      RESET_CONTROLLER = 18,        // NOT A THING
-      CLEAR_FAULT = 19,             // WILL NOT WORK
-      MAX_NB_CMDS = 20,             // Not a command
-      UNSET = 99                    // Not a command
-
-    }I2cRegisterId;
-
-    typedef uint8_t I2cSlaveAddress;
-  } // end of MotorControllerI2C namespace
-
-  typedef enum 
-  {
-      MC_NO_ERROR,
-      MC_I2C_TIMEOUT_ERROR,
-      MC_UNEXPECTED_ERROR
-  }MCError;
-
-  typedef int32_t Distance_cm;
-  typedef int32_t Motor_tick;
-  typedef uint8_t Speed_percent;
 
   class MotorControlComponentImpl :
     public MotorControlComponentBase
@@ -200,86 +156,125 @@ namespace CubeRover {
       void MC_SelfTest_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
                                   const U32 cmdSeq /*!< The command sequence number*/);
       
+      
+    /* Implementation specific declarations */
     private:
-      uint8_t txData[MC_BUFFER_MAX_SIZE];
-      uint8_t rxData[MC_BUFFER_MAX_SIZE];
+        typedef enum  {
+            REG_I2C_ADDRESS = 0,              // DEVELOPMENT ONLY // READ-ONLY
+            REG_RELATIVE_TARGET_POSITION = 1, // Write-only
+            REG_TARGET_SPEED = 2,             // Write-only
+            REG_CURRENT_POSITION = 3,         // Read-only
+            REG_CURRENT_SPEED = 4,            // Read-only  TODO: Micheal's original comment, look into this "Weird values. Normalized version of tick rate. See Spreadsheet labeled "Motor tests""
+            REG_MOTOR_CURRENT = 5,            // Read-only
+            REG_P_CURRENT = 6,                // Write-only
+            REG_I_CURRENT = 7,                // Write-only
+            REG_P_SPEED = 8,                  // Write-only
+            REG_I_SPEED = 9,                  // Write-only
+            REG_ACC_RATE = 10,                // Write-only
+            REG_DEC_RATE = 11,                // Write-only
+            REG_CTRL = 12,                    // Write-only TODO: Check
+            REG_STATUS = 13,                  // Read-only  TODO: Check
+            REG_FAULT = 14,                   // Read-only
+            REG_CLR_FAULT = 15,               // Write-only  TODO:: Jonathan to hold over this test option to flight
+            NUM_REGS = 16,
+            // TODO: Everything past here is depracated
+            // EXECUTE_CMD = 16,             // NOT A THING
+            DEPRACATE_ENABLE_DRIVER = 17,           // NOT A THING  TODO: Watchdog???
+            DEPRACATE_DISABLE_DRIVER = 18,          // NOT A THING  TODO: Watchdog???
+            DEPRACATE_RESET_CONTROLLER = 19,        // NOT A THING  TODO: Watchdog to handle this???
+            // UNSET = 99                    // Not a command
+        } RegisterAddress_t;
 
-      MCError sendAllMotorsData(i2cBASE_t *i2c,
-                                const MotorControllerI2C::I2cRegisterId id,
-                                uint8_t * data);
+        typedef enum {
+            MC_NO_ERROR,
+            MC_I2C_TIMEOUT_ERROR,
+            MC_UNEXPECTED_ERROR
+        } MCError_t;
+        
+        typedef uint8_t I2cSlaveAddress_t;
+        typedef int32_t Distance_cm_t;
+        typedef int32_t MotorTick_t;
+        typedef uint8_t Throttle_t;
+      
+        uint8_t txData[MC_BUFFER_MAX_SIZE];
+        uint8_t rxData[MC_BUFFER_MAX_SIZE];
 
-      MCError writeMotorControlRegister(i2cBASE_t *i2c,
-                                        const MotorControllerI2C::I2cRegisterId id,
-                                        const MotorControllerI2C::I2cSlaveAddress add,
-                                        uint8_t * data);
+        MCError_t sendAllMotorsData(i2cBASE_t *i2c,
+                                  const RegisterAddress_t id,
+                                  uint8_t * data);
 
-      MCError i2cMasterTransmit(i2cBASE_t *i2c,
-                                const MotorControllerI2C::I2cSlaveAddress sadd,
-                                const uint32_t length,
-                                uint8_t * data);
+        MCError_t writeMotorControlRegister(i2cBASE_t *i2c,
+                                          const RegisterAddress_t id,
+                                          const I2cSlaveAddress_t add,
+                                          uint8_t * data);
 
-      MCError i2cMasterReceive(i2cBASE_t *i2c,
-                               const MotorControllerI2C :: I2cSlaveAddress sadd,
-                               const uint32_t length,
-                               uint8_t * data);
+        MCError_t i2cMasterTransmit(i2cBASE_t *i2c,
+                                  const I2cSlaveAddress_t sadd,
+                                  const uint32_t length,
+                                  uint8_t * data);
 
-      uint32_t getSizeData(const MotorControllerI2C::I2cRegisterId id);
-      uint8_t setIDBuffer(const MotorControllerI2C::I2cRegisterId id);
-      bool expectingReturnMessage(const MotorControllerI2C::I2cRegisterId id);
+        MCError_t i2cMasterReceive(i2cBASE_t *i2c,
+                                 const  I2cSlaveAddress_t sadd,
+                                 const uint32_t length,
+                                 uint8_t * data);
 
-      MCError moveAllMotorsStraight(int32_t distance, int16_t speed);
-      MCError rotateAllMotors(int16_t angle, int16_t speed);
-      MCError spinMotors(bool forward);
+        uint32_t getSizeData(const RegisterAddress_t id);
+        bool expectingReturnMessage(const RegisterAddress_t id);
 
-      MCError enableDrivers();
-      MCError disableDrivers();
-      void resetMotorControllers();
+        MCError_t moveAllMotorsStraight(int32_t distance, int16_t speed);
+        MCError_t rotateAllMotors(int16_t angle, int16_t speed);
+        MCError_t spinMotors(bool forward);
 
-      Motor_tick groundCMToMotorTicks(int16_t dist);
-      Speed_percent groundSpeedToSpeedPrecent(int16_t speed);
+        MCError_t enableDrivers();
+        MCError_t disableDrivers();
+        void resetMotorControllers();
 
-      bool updateTelemetry();
-      bool updateSpeed();
-      bool updateCurrent();
-      bool updateEncoder();
+        MotorTick_t groundCMToMotorTicks(int16_t dist);
+        Throttle_t groundSpeedToSpeedPrecent(int16_t speed);
 
-      void delayForI2C();
+        bool updateTelemetry();
+        bool updateSpeed();
+        bool updateCurrent();
+        bool updateEncoder();
 
-      // Member items
-      uint32_t tick_count = 0;
+        void delayForI2C();
 
-      uint16_t m_ticksToRotation;
+        // Member items
+        uint32_t tick_count = 0;
 
-      // Encoder Converting values
-      float m_encoderTickToCMRatio;
+        uint16_t m_ticksToRotation;
 
-      // Angular distance converting value
-      float m_angularToLinear;
+        // Encoder Converting values
+        float m_encoderTickToCMRatio;
 
-      // Stall detection
-      bool m_stallDetectectionEnabled[4];
+        // Angular distance converting value
+        float m_angularToLinear;
 
-      // Shortcut to rotate the wheels accordingly
-      bool m_clockwise_is_positive = true;
+        // Stall detection
+        bool m_stallDetectectionEnabled[4];
 
-      bool m_Round_Robin_Telemetry;
-      uint8_t m_Robin_Number = 0;
+        // Does a positive setpoint drive the rover forward or backwards
+        // Set this flag to rotate the wheels accordingly
+        bool m_forward_is_positive = true;
 
-      // Front left (FL), Front right (FR), Rear right (RR), Rear left (RL) tick counts
-      // Internal tick counter
-      int32_t m_FL_Encoder_Count;
-      int32_t m_FR_Encoder_Count;
-      int32_t m_RR_Encoder_Count;
-      int32_t m_RL_Encoder_Count;
+        bool m_Round_Robin_Telemetry;
+        uint8_t m_Robin_Number = 0;
 
-      // Offset for resetting tick count
-      int32_t m_FR_Encoder_Count_Offset;
-      int32_t m_FL_Encoder_Count_Offset;
-      int32_t m_RL_Encoder_Count_Offset;
-      int32_t m_RR_Encoder_Count_Offset;
+        // Front left (FL), Front right (FR), Rear right (RR), Rear left (RL) tick counts
+        // Internal tick counter
+        int32_t m_FL_Encoder_Count;
+        int32_t m_FR_Encoder_Count;
+        int32_t m_RR_Encoder_Count;
+        int32_t m_RL_Encoder_Count;
 
-      // Timeout for I2C communication
-      uint16_t m_i2c_timeout_threshold = 1350;
+        // Offset for resetting tick count
+        int32_t m_FR_Encoder_Count_Offset;
+        int32_t m_FL_Encoder_Count_Offset;
+        int32_t m_RL_Encoder_Count_Offset;
+        int32_t m_RR_Encoder_Count_Offset;
+
+        // Timeout for I2C communication
+        uint16_t m_i2c_timeout_threshold = 1350;
     };
 
 } // end namespace CubeRover

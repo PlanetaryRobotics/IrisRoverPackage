@@ -110,8 +110,9 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
       case CURRENT_SPEED:
         g_slaveMode = TX_DATA_MODE;
         g_txByteCtr = g_i2cCmdLength[cmd];
+        int16_t speed_info = (int16_t)(g_currentSpeed >> 7); // 7 LSBs are 0s, 16 MSBs are too
         //Fill out the TransmitBuffer
-        copyArray((uint8_t*)&g_currentSpeed, (uint8_t*)g_txBuffer, g_txByteCtr);
+        copyArray((uint8_t*)&speed_info, (uint8_t*)g_txBuffer, g_txByteCtr);
         disableI2cRxInterrupt();
         enableI2cTxInterrupt();
         break;
@@ -119,7 +120,8 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
         g_slaveMode = TX_DATA_MODE;
         g_txByteCtr = g_i2cCmdLength[cmd];
         //Fill out the TransmitBuffer
-        copyArray((uint8_t*)&g_piCur.Fbk, (uint8_t*)g_txBuffer, g_txByteCtr);
+        int16_t current_info = (int16_t)g_piCur.Fbk; // top 16 MSBs empty
+        copyArray((uint8_t*)&current_info, (uint8_t*)g_txBuffer, g_txByteCtr);
         disableI2cRxInterrupt();
         enableI2cTxInterrupt();
         break;       
@@ -256,9 +258,9 @@ void initializeCmdLength(){
   g_i2cCmdLength[I2C_ADDRESS] = 1;
   g_i2cCmdLength[RELATIVE_TARGET_POSITION] = 4;
   g_i2cCmdLength[TARGET_SPEED] = 1;
-  g_i2cCmdLength[CURRENT_POSITION] = 2;
-  g_i2cCmdLength[CURRENT_SPEED] = 4;
-  g_i2cCmdLength[MOTOR_CURRENT] = 4;
+  g_i2cCmdLength[CURRENT_POSITION] = 4;
+  g_i2cCmdLength[CURRENT_SPEED] = 2;
+  g_i2cCmdLength[MOTOR_CURRENT] = 2;
   g_i2cCmdLength[P_CURRENT] = 4;
   g_i2cCmdLength[I_CURRENT] = 2;
   g_i2cCmdLength[P_SPEED] = 4;

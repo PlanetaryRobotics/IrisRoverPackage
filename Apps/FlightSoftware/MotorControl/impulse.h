@@ -21,4 +21,15 @@ typedef struct { uint16_t  Period;		// Input: Period of output impulse in a numb
      v.Counter = 0;        /* Reset counter*/					\
   } 
 
+#define OPEN_LOOP_IMPULSE_MACRO(v)                                        \
+                                                                \
+  v.Out = 0x00;      /* Always clear impulse output at entry*/ \
+  v.Counter+=2;    /* Increment the skip counter*/               \
+                                                                \
+  if (v.Counter >= v.Period)                                    \
+  {                                                             \
+     v.Out = 0xff;                                              \
+     v.Counter = 0;        /* Reset counter*/                   \
+  }
+
 #endif // __IMPULSE_H__

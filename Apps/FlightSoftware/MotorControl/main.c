@@ -1,7 +1,7 @@
 // [DEBUG] Switches
 //#define IRIS_ALL_OFF
 #define IRIS_CLEAR_FAULT
-//#define IRIS_SPIN_MOTOR
+#define IRIS_SPIN_MOTOR
 //#define IRIS_SPIN_MOTOR_REVERSE
 //#define IRIS_SPIN_MOTOR_INDEF
 
@@ -57,7 +57,7 @@ volatile int8_t g_targetDirection;
 volatile int8_t g_oldTargetDirection;
 
 uint8_t g_statusRegister;
-uint8_t g_controlRegister;
+volatile uint8_t g_controlRegister;
 uint8_t g_faultRegister;
 
 // backup plan for if we cannot get encoder readings
@@ -70,7 +70,7 @@ volatile bool driveOpenLoop = false;
 void initializePwmModules(){
   //Start Timer
   Timer_B_initUpDownModeParam initUpDownParam = {0};
-  initUpDownParam.clockSource = TIMER_B_CLOCKSOURCE_SMCLK; // 16 MHz
+  initUpDownParam.clockSource = TIMER_B_CLOCKSOURCE_SMCLK; // 16 MHz, or maybe 8..
   initUpDownParam.clockSourceDivider = TIMER_B_CLOCKSOURCE_DIVIDER_1;
   initUpDownParam.timerPeriod = PWM_PERIOD_TICKS;
   initUpDownParam.timerInterruptEnable_TBIE = TIMER_B_TBIE_INTERRUPT_DISABLE;
@@ -599,8 +599,7 @@ void main(void){
   g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
   g_closedLoop = false;
   g_state = RUNNING;
-  g_cmdState = NO_CMD; //eventually should be initialized to: NO_CMD
-//  updateStateMachine(); // [DEBUG]
+  g_cmdState = NO_CMD;
 
 
   g_maxSpeed = MAX_TARGET_SPEED;
@@ -628,6 +627,7 @@ void main(void){
 
   g_closeLoopThreshold = _IQ(CLOSE_LOOP_THRESHOLD);
   g_closedLoop = false;
+  g_controlRegister = 0;
 
   initializeI2cModule();
   initializePwmModules();
@@ -698,7 +698,34 @@ __interrupt void TIMER0_B0_ISR (void){
 
   if(!g_calibrationDone) return;
 
-//  if(!driveOpenLoop){
+  if (g_controlRegister & DRIVE_OPEN_LOOP) {
+      //driving open loop
+
+      // target position sets direction motor drives in (will NOT converge though)
+      g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
+
+      // Execute macro to generate ramp up if needed
+        OPEN_LOOP_IMPULSE_MACRO(g_impulse);
+        if(g_impulse.Out){
+          MOD6CNT_MACRO(g_mod6cnt);
+          g_commState = (g_targetDirection > 0) ? g_mod6cnt.Counter : 5 - g_mod6cnt.Counter;
+        }
+
+
+      _iq output = _IQ(0.25);
+      if(g_controlPrescaler == 0){
+          g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
+      }
+
+
+      if(g_targetDirection > 0) {
+          g_piCur.Out = output;
+      } else{
+          g_piCur.Out = -output;
+      }
+
+      g_controlPrescaler = g_controlPrescaler -1;
+  } else {
       // Driving in close loop
 
       readHallSensor();
@@ -780,40 +807,7 @@ __interrupt void TIMER0_B0_ISR (void){
           g_closedLoop = false;
       }
 
-//  }  else {
-//      //driving open loop
-//
-//      // target position sets direction motor drives in (will NOT converge though)
-//      g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
-//
-//      // Execute macro to generate ramp up if needed
-//        IMPULSE_MACRO(g_impulse);
-//        if(g_impulse.Out){
-//          MOD6CNT_MACRO(g_mod6cnt);
-//          g_commState = (g_targetDirection > 0) ? g_mod6cnt.Counter : 5 - g_mod6cnt.Counter;
-//        }
-//
-//
-//      _iq output = _IQ(0.2);
-//      if(g_controlPrescaler == 0){
-//          g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
-//      }
-//
-////      if(g_controlPrescaler % 25 == 0){
-////          output = _IQ(0.8);
-////      } else if(g_controlPrescaler % 3 == 0){
-////          output = _IQ(0.3);
-////      }
-//
-//
-//      if(g_targetDirection > 0) {
-//          g_piCur.Out = output;
-//      } else{
-//          g_piCur.Out = -output;
-//      }
-//
-//      g_controlPrescaler = g_controlPrescaler -1;
-//  }
+  }
 
   pwmGenerator(g_commState, g_piCur.Out);
 }

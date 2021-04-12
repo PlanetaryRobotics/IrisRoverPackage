@@ -23,7 +23,7 @@ uint8_t handle_watchdog_reset_cmd(uint8_t cmd);
 volatile uint16_t watchdog_flags;
 
 // for heater control
-uint16_t Kp_heater = 500, PWM_limit = 0;
+uint16_t Kp_heater = 500, PWM_limit = 0, testeroni=0;
 uint8_t heating = 0;
 
 /**
@@ -207,7 +207,7 @@ unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
 }
 
 void heaterControl(){
-
+    testeroni++;
     // voltage, where LSB = 0.0008056640625V
     unsigned short therm_reading = adc_values[ADC_TEMP_IDX];
 

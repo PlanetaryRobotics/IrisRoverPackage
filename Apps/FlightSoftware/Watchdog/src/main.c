@@ -110,6 +110,7 @@ int main(void) {
 //    enterMode(RS_SERVICE);
     // enter mission mode for justin debug
     enterMode(RS_MISSION);
+//    enterMode(RS_KEEPALIVE);
 
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();
@@ -117,10 +118,11 @@ int main(void) {
 
     __bis_SR_register(GIE); // Enable all interrupts
 
-    __delay_cycles(1000000); //pause for ~1/8 sec for fuel gauge i2c to init, TODO: may be able to remove this now
-    initializeFuelGauge();
+//    ipudp_send_packet("hello, world!\r\n", 15);
 
-    ipudp_send_packet("hello, world!\r\n", 15);
+//    __delay_cycles(1000000); //pause for ~1/8 sec for fuel gauge i2c to init, TODO: may be able to remove this now
+    __delay_cycles(1234567);
+    initializeFuelGauge();
 
     // the core structure of this program is like an event loop
     while (1) {
@@ -229,6 +231,7 @@ int main(void) {
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */
                 watchdog_monitor();
+                send_earth_heartbeat();
                 break;
             case RS_FAULT:
                 /* sad :( */

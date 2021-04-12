@@ -41,7 +41,7 @@ void enterMode(enum rover_state newstate) {
         powerOffMotors();
         powerOffRadio();
         powerOffHercules();
-        fuelGaugeLowPower();
+//        fuelGaugeLowPower();
         /* TODO: do we want to do it in this order? */
 
         /* turn off voltage rails */
@@ -121,8 +121,8 @@ int main(void) {
 //    ipudp_send_packet("hello, world!\r\n", 15);
 
 //    __delay_cycles(1000000); //pause for ~1/8 sec for fuel gauge i2c to init, TODO: may be able to remove this now
-    __delay_cycles(1234567);
-    initializeFuelGauge();
+//    __delay_cycles(1234567);
+//    initializeFuelGauge();
 
     // the core structure of this program is like an event loop
     while (1) {
@@ -215,7 +215,7 @@ int main(void) {
             /* handle event for heartbeat */
             /* always sample the ADC for temperature and voltage levels */
             adc_sample();
-            updateGaugeReadings(); // reads current measurements and tells fuel gauge to update them
+//            updateGaugeReadings(); // reads current measurements and tells fuel gauge to update them
 
             switch (rovstate) {
             case RS_SERVICE:

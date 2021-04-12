@@ -107,7 +107,7 @@ namespace CubeRover {
         void downlinkFileMetadata(uint16_t hashedId, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms);
         uint16_t hashTime(uint32_t time);   // Used for files to get unique Id for parallel downlinks
         void downlinkBufferWrite(void *_data, uint16_t size, downlinkPacketType from);
-        void flushDownlinkBuffer();
+        void flushTlmDownlinkBuffer();
         void downlink(void *_data, uint16_t size);
         void updateTelemetry();
       

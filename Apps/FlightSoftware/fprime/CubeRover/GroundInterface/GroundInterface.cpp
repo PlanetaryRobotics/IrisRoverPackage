@@ -235,6 +235,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     )
   {
     flushDownlinkBuffer();
+    // TODO: Should probably flush file downlink buffers too
     switch (primary_interface) {
         case WF121:
             m_downlink_objects_size = WF121_UDP_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader);
@@ -288,7 +289,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
      * @brief Downlink contents of the downlink buffer
      * 
      */
-    void GroundInterfaceComponentImpl::flushDownlinkBuffer() {
+    void GroundInterfaceComponentImpl::flushTlmDownlinkBuffer() {
         // TODO: Check on mode manager wired MTU is 255B
         FswPacket::Length_t length = static_cast<FswPacket::Length_t>(m_tlmDownlinkBufferPos - m_tlmDownlinkBuffer);
         downlink(m_tlmDownlinkBuffer, length);

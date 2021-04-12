@@ -144,6 +144,12 @@ void updateGaugeReadings(){
     // control_ref[2:1] not used on SBC (pin its related to is floating)
     // set control_reg[0] to 0 to drastically reduce current consumption (no conversions though)
     I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &fuel_gauge_write_control_reg, 1);
+
+    // record new measurements in fuel gauge
+    readBatteryCharge();
+    readBatteryVoltage();
+    readBatteryCurrent();
+    readGaugeTemp(); //TODO: probably don't need this one
 }
 
 void fuelGaugeLowPower(){

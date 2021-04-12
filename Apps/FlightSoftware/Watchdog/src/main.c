@@ -213,6 +213,7 @@ int main(void) {
             /* handle event for heartbeat */
             /* always sample the ADC for temperature and voltage levels */
             adc_sample();
+            updateGaugeReadings(); // reads current measurements and tells fuel gauge to update them
 
             switch (rovstate) {
             case RS_SERVICE:
@@ -223,6 +224,7 @@ int main(void) {
                 /* send heartbeat with collected data */
                 send_earth_heartbeat();
                 /* TODO: heater checks */
+                heaterControl(); // calculate PWM duty cycle (if any) to apply to heater
                 break;
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */

@@ -42,7 +42,7 @@ int watchdog_init() {
     TA0CTL |= MC_2;                 // Start timer in continuous mode
 
     /* Set up interrupt routine for heater control */
-    TB0CCTL0 = CCIE;                        // TBCCR1 interrupt enabled
+    TB0CCTL0 = CCIE;                        // TBCCR0 interrupt enabled
     // TODO: disbale timer interrupt when not in use
 
     TB0CCR0 = 10000;                        // ticks per duty cycle of heater PWM
@@ -61,11 +61,6 @@ int watchdog_init() {
 int watchdog_monitor() {
     /* temporarily disable interrupts */
     __bic_SR_register(GIE);
-
-    // tell fuel gauge to update measurements
-    updateGaugeReadings();
-    __delay_cycles(400000); // wait 50 ms for readings to update TODO: do other things instead of delay
-
 
 
     /* check that kicks have been received */
@@ -143,12 +138,6 @@ int watchdog_monitor() {
         watchdog_flags ^= WDFLAG_ADC_READY;
     }
 
-    // record new measurements in fuel gauge
-    readBatteryCharge();
-    readBatteryVoltage();
-    readBatteryCurrent();
-    readGaugeTemp(); //TODO: probably don't need this one
-
     /* re-enable interrupts */
     __bis_SR_register(GIE);
     return 0;
@@ -216,6 +205,42 @@ unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
         return 8;
     }
 }
+
+void heaterControl(){
+
+    // voltage, where LSB = 0.0008056640625V
+    unsigned short therm_reading = adc_values[ADC_TEMP_IDX];
+
+    if(therm_reading > 3670){
+        //   start heating when temperature drops below -5 C
+        loop_flags |= FLAG_TEMP_LOW;
+    } else if(therm_reading < 3352){
+        //   stop heating when temperature reaches 0 C
+        loop_flags |= FLAG_TEMP_HIGH;
+    }
+
+    uint16_t PWM_cycle = 0;
+    // P controller output
+    // setpoint is slightly above desired temp because otherwise it will get stuck slightly below it
+    if(loop_flags & FLAG_TEMP_LOW){
+        PWM_cycle = Kp_heater * (therm_reading - 3325);
+    }
+
+
+    // cannot have duty cycle greater than clock
+    if(PWM_cycle > PWM_limit){
+        PWM_cycle = PWM_limit;
+    }
+
+    if(rovstate == RS_KEEPALIVE){
+        TB0CCR2 = PWM_cycle;
+    } else {
+        // don't run heaters when not on lander
+        TB0CCR2=0;
+    }
+
+}
+
 
 // TODO: put ISR for things here
 /*
@@ -296,53 +321,5 @@ void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer0_A1_ISR (void) {
     }
 }
 
-
-// Timer0_B0 interrupt service routine
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector = TIMER0_B0_VECTOR
-__interrupt void Timer0_B0_ISR (void)
-#elif defined(__GNUC__)
-void __attribute__ ((interrupt(TIMER0_B0_VECTOR))) Timer0_B0_ISR (void)
-#else
-#error Compiler not supported!
-#endif
-{
-    // read thermistor value
-//    adc_sample();
-//    while(watchdog_flags); //wait for conversion to complete
-
-    // voltage, where LSB = 0.0008056640625V
-    unsigned short therm_reading = adc_values[ADC_TEMP_IDX];
-    // iterate until reference voltage values until one is hit that is lower than measurement
-
-    if(therm_reading > 3670){
-        //   start heating when temperature drops below -5 C
-        heating = 1;
-    } else if(heating && therm_reading < 3352){
-        //   stop heating when temperature reaches 0 C
-        heating = 0;
-    }
-
-    uint16_t PWM_cycle = 0;
-    // P controller output
-    // setpoint is slightly above desired temp because otherwise it will get stuck slightly below it
-    if(heating){
-        PWM_cycle = Kp_heater * (therm_reading - 3325);
-    }
-
-
-    // cannot have duty cycle greater than clock
-    if(PWM_cycle > PWM_limit){
-        PWM_cycle = PWM_limit;
-    }
-
-    if(rovstate == RS_KEEPALIVE){
-        TB0CCR2 = PWM_cycle;
-    } else {
-        // don't run heaters when not on lander
-        TB0CCR2=0;
-    }
-
-}
 
 

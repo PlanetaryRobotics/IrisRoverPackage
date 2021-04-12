@@ -7,6 +7,9 @@ int8_t raw_battery_voltage[2];
 int8_t raw_battery_current[2];
 int8_t raw_fuel_gauge_temp[2];
 
+uint8_t batt_charge_telem;
+uint8_t batt_curr_telem;
+
 uint8_t fuel_gauge_write_control_reg;
 uint8_t fuel_gauge_read_control_reg;
 
@@ -155,6 +158,10 @@ void readBatteryCharge(){
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_charge[1], I2C_RX_BUFFER_MAX_SIZE);
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_MSB, I2C_RX_BUFFER_MAX_SIZE);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_charge, I2C_RX_BUFFER_MAX_SIZE);
+
+    // scale battery charge to fill most of 7 bit range available for telemetry
+    batt_charge_telem = (uint8_t)( (uint16_t)(raw_battery_charge[1] + (raw_battery_charge[0] << 8)) >> 10) * 3;
+
 }
 
 void readBatteryVoltage(){
@@ -170,7 +177,16 @@ void readBatteryCurrent(){
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, CURRENT_MSB, I2C_RX_BUFFER_MAX_SIZE);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_current, I2C_RX_BUFFER_MAX_SIZE);
 
+    // scale current reading to maximize 7 bits allocated for current telemetry
+    uint16_t BCurr_tmp = (uint16_t)(32767 - raw_battery_current[1] - (raw_battery_current[0] << 8));
+    if(BCurr_tmp > 17407) {
+        //exceeds maximum value of 0.6 A
+        batt_curr_telem = 255;
+    } else {
+        batt_curr_telem = (uint8_t)( BCurr_tmp >> 7 );
+    }
 }
+
 
 void readGaugeTemp(){
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, TEMPERATURE_LSB, I2C_RX_BUFFER_MAX_SIZE);

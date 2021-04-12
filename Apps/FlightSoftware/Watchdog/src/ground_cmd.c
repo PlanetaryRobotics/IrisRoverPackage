@@ -365,17 +365,18 @@ void send_earth_heartbeat() {
 
     // build the packet
     pbuf.buf[0] = 0xFF;
-    // send the battery voltage
-    pbuf.buf[1] = (uint8_t)(raw_battery_voltage[0] >> 1); //TODO: fix this
+    // send the battery charge
+    pbuf.buf[1] = batt_charge_telem << 1; // shift to make space for heater status
     pbuf.buf[1] = pbuf.buf[1] << 1;
     // send heater on status
     pbuf.buf[1] |= heaterStatus & 0x1;
     // battery current
-    pbuf.buf[2] = (uint8_t)(raw_battery_current[0] >> 1); //TODO: fix this
+    pbuf.buf[2] = batt_curr_telem << 1;
     // send voltage nominal status
     pbuf.buf[2] |= 0x1; // TODO: fix this
 
     // send the thermistor temperature (12 bits to 8 bits)
+    uint8_t batt_temp_telem = (uint8_t)( (adc_values[ADC_TEMP_IDX] - 372) >> 4);
     pbuf.buf[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
     pbuf.used += 4;
 

@@ -143,6 +143,12 @@ int watchdog_monitor() {
         watchdog_flags ^= WDFLAG_ADC_READY;
     }
 
+    // record new measurements in fuel gauge
+    readBatteryCharge();
+    readBatteryVoltage();
+    readBatteryCurrent();
+    readGaugeTemp(); //TODO: probably don't need this one
+
     /* re-enable interrupts */
     __bis_SR_register(GIE);
     return 0;

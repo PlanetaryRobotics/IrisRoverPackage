@@ -70,7 +70,6 @@ void enterMode(enum rover_state newstate) {
         releaseRadioReset();
         releaseFPGAReset();
         releaseMotorsReset();
-        initializeFuelGauge();
         /* TODO: do we want to do it in this order? */
 
         break;
@@ -106,7 +105,6 @@ int main(void) {
 
     /* set up i2c */
     i2c_init();
-    __delay_cycles(1000000); //pause for ~1/8 sec for fuel gauge i2c to init, TODO: may be able to remove this now
 
     /* enter service mode */
 //    enterMode(RS_SERVICE);
@@ -119,6 +117,8 @@ int main(void) {
 
     __bis_SR_register(GIE); // Enable all interrupts
 
+    __delay_cycles(1000000); //pause for ~1/8 sec for fuel gauge i2c to init, TODO: may be able to remove this now
+    initializeFuelGauge();
 
     ipudp_send_packet("hello, world!\r\n", 15);
 
@@ -130,6 +130,7 @@ int main(void) {
             __bis_SR_register(GIE);
             continue;
         }
+
 
         /* a cool thing happened! now time to check what it was */
         if (loop_flags & FLAG_UART0_RX_PACKET) {

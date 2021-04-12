@@ -59,6 +59,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
       }
       m_tlmDownlinkBufferSpaceAvailable = m_downlink_objects_size;
       m_interface_port_num = INITIAL_PRIMARY_NETWORK_INTERFACE;
+      m_telemetry_level = CRITICAL;
   }
 
   void GroundInterfaceComponentImpl ::
@@ -135,12 +136,12 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         downlinkBufferWrite(downlinkBuffer, static_cast<FswPacket::Length_t>(singleFileObjectSize), DownlinkFile);
         m_appBytesDownlinked += singleFileObjectSize;
     } else {    // Send file fragments
-        // TESTING don't intersperse telemetry or logs with file!!! flushDownlinkBuffer();  // Flush first to get new seq
+        // TESTING don't intersperse telemetry or logs with file!!! flushTlmDownlinkBuffer();  // Flush first to get new seq
         int numBlocks = static_cast<int>(dataSize) / (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader));
         if (static_cast<int>(dataSize) % (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader)) > 0)
             numBlocks++;
         downlinkFileMetadata(hashedId, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(createTime));
-        flushDownlinkBuffer();   // TESTING!! DOWNLINK METADATA PRIOR TO FILE DOWNLINK
+        flushTlmDownlinkBuffer();   // TESTING!! DOWNLINK METADATA PRIOR TO FILE DOWNLINK
         int readStride = static_cast<int>(dataSize) / numBlocks;
         struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket*>(downlinkBuffer);
         for (int blockNum = 1; blockNum <= numBlocks; ++blockNum) {
@@ -164,7 +165,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
                 packet->payload0.file.header.length = blockLength;
                 memcpy(&packet->payload0.file.file.byte0, data, blockLength);
                 downlinkBufferWrite(&packet->payload0.file, sizeof(struct FswPacket::FswFileHeader) + blockLength, DownlinkFile);
-                flushDownlinkBuffer();   // TESTING!! DOWNLINK FINAL BLOCK WITHOUT INTERRUPTION
+                flushTlmDownlinkBuffer();   // TESTING!! DOWNLINK FINAL BLOCK WITHOUT INTERRUPTION
             }
             m_appBytesDownlinked += blockLength;
         }
@@ -212,13 +213,12 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     }
 
     m_uplinkSeq = packet->header.seq;
-
     m_cmdsUplinked++;
     log_ACTIVITY_HI_GI_CommandReceived(packet->header.seq, packet->header.length);
     Fw::ComBuffer command(reinterpret_cast<uint8_t *>(&packet->payload0.command), packet->header.length);
-    m_cmdsSent++;
     
     cmdDispatch_out(0, command, 0);        // TODO: Arg 3 Context?
+    m_cmdsSent++;
     
     updateTelemetry();
   }
@@ -234,7 +234,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         PrimaryInterface primary_interface
     )
   {
-    flushDownlinkBuffer();
+    flushTlmDownlinkBuffer();
     // TODO: Should probably flush file downlink buffers too
     switch (primary_interface) {
         case WF121:
@@ -248,6 +248,18 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     m_interface_port_num = primary_interface;
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
+
+  void GroundInterfaceComponentImpl ::
+    Set_GroundInterface_Telemetry_Level_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq,
+        TelemetryLevel telemetry_level
+    )
+  {
+    m_telemetry_level = telemetry_level;
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
 
   
     /*
@@ -269,7 +281,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         uint8_t *data = reinterpret_cast<uint8_t *>(_data);
         bool flushOnWrite = false;
         if (size > m_tlmDownlinkBufferSpaceAvailable) {
-            flushDownlinkBuffer();
+            flushTlmDownlinkBuffer();
         } else if (size == m_tlmDownlinkBufferSpaceAvailable) {
             flushOnWrite = true;
         }
@@ -281,7 +293,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, from);
         
         if (flushOnWrite)
-            flushDownlinkBuffer();
+            flushTlmDownlinkBuffer();
         
     }
     
@@ -324,21 +336,26 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     }
   
     void GroundInterfaceComponentImpl::updateTelemetry() {
-        /* TODO: THESE SHOULD ONLY UPDATE ONCE PER TELEMETRY DOWNLINK NOT ON THE RATE GROUP ITS TOO MUCH
-        tlmWrite_GI_UplinkSeqNum(m_uplinkSeq);
-        tlmWrite_GI_DownlinkSeqNum(m_downlinkSeq);
-        tlmWrite_GI_PacketsReceived(m_packetsRx);
-        tlmWrite_GI_PacketsTransmitted(m_packetsTx);
-        tlmWrite_GI_TlmItemsReceived(m_tlmItemsReceived);
-        tlmWrite_GI_TlmItemsDownlinked(m_tlmItemsDownlinked);
-        tlmWrite_GI_LogsReceived(m_logsReceived);
-        tlmWrite_GI_LogsDownlinked(m_logsDownlinked);
-        tlmWrite_GI_CmdsUplinked(m_cmdsUplinked);
-        tlmWrite_GI_CmdsSent(m_cmdsSent);
-        tlmWrite_GI_UplinkPktErrs(m_cmdErrs);
-        tlmWrite_GI_AppBytesReceived(m_appBytesReceived);
-        tlmWrite_GI_AppBytesDownlinked(m_appBytesDownlinked);
-        */
+        switch (m_telemetry_level) {
+            case ALL:
+                /* TODO: THESE SHOULD ONLY UPDATE ONCE PER TELEMETRY DOWNLINK NOT ON THE RATE GROUP ITS TOO MUCH */
+                tlmWrite_GI_DownlinkSeqNum(m_downlinkSeq);
+                tlmWrite_GI_TlmItemsDownlinked(m_tlmItemsDownlinked);
+                tlmWrite_GI_LogsDownlinked(m_logsDownlinked);
+                tlmWrite_GI_AppBytesDownlinked(m_appBytesDownlinked);
+                tlmWrite_GI_CmdsUplinked(m_cmdsUplinked);
+                tlmWrite_GI_UplinkPktErrs(m_cmdErrs);
+            case IMPORTANT:
+                tlmWrite_GI_TlmItemsReceived(m_tlmItemsReceived);
+                tlmWrite_GI_LogsReceived(m_logsReceived);
+                tlmWrite_GI_AppBytesReceived(m_appBytesReceived);
+                tlmWrite_GI_CmdsSent(m_cmdsSent);
+            case CRITICAL:
+            default:
+                tlmWrite_GI_UplinkSeqNum(m_uplinkSeq);
+                tlmWrite_GI_PacketsReceived(m_packetsRx);
+                tlmWrite_GI_PacketsTransmitted(m_packetsTx);
+        }
     }
     
     /*

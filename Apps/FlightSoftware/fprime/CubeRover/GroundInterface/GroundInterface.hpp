@@ -102,6 +102,15 @@ namespace CubeRover {
           PrimaryInterface primary_interface 
       );
 
+      //! Implementation for Set_GroundInterface_Telemetry_Level command handler
+      //! Sets the telemetry level to emit for this component.
+      void Set_GroundInterface_Telemetry_Level_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          TelemetryLevel telemetry_level 
+      );
+
+
         // User defined methods, members, and structs
             
         void downlinkFileMetadata(uint16_t hashedId, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms);
@@ -124,7 +133,7 @@ namespace CubeRover {
         uint16_t m_downlink_objects_size;           // Maximum usable buffer space for the current network interface
         uint16_t m_tlmDownlinkBufferSpaceAvailable;
         PrimaryInterface m_interface_port_num;
-      
+        TelemetryLevel m_telemetry_level;
 
     };
 

@@ -1,7 +1,7 @@
 // [DEBUG] Switches
 //#define IRIS_ALL_OFF
 #define IRIS_CLEAR_FAULT
-//#define IRIS_SPIN_MOTOR
+#define IRIS_SPIN_MOTOR
 //#define IRIS_SPIN_MOTOR_REVERSE
 //#define IRIS_SPIN_MOTOR_INDEF
 
@@ -58,7 +58,9 @@ volatile int8_t g_oldTargetDirection;
 
 uint8_t g_statusRegister;
 volatile uint8_t g_controlRegister;
-uint8_t g_faultRegister;
+volatile uint8_t g_faultRegister;
+uint8_t g_errorCounter= 0; // incremented every time inner control loop is reached and motor is acting strange
+                           // if it exceeds ERROR_ITERATION_THRESHOLD then motor is stopped
 
 // backup plan for if we cannot get encoder readings
 volatile bool driveOpenLoop = false;
@@ -775,6 +777,25 @@ __interrupt void TIMER0_B0_ISR (void){
 
         if(g_targetDirection > 0) g_piSpd.Ref = g_maxSpeed << 8;
         else g_piSpd.Ref = -g_maxSpeed << 8;
+
+        // check for errors in controller operation
+        if (g_currentPosition == g_oldPosition && ~g_targetReached){
+            // position isn't updating; hall sensors likely not powered or broken
+            g_errorCounter++;
+        } else if ( (g_currentPosition - g_oldPosition)*g_targetDirection < 0 && ~g_targetReached){
+            // moving in wrong direction
+            g_errorCounter++;
+        } else {
+            // operating normally; no error
+            g_statusRegister &= ~CONTROLLER_ERROR;
+            g_errorCounter = 0; // reset error counter
+        }
+
+        // errors on last ERROR_ITERATION_THRESHOLD time steps; time to stop trying to drive motor
+        if(g_errorCounter >= ERROR_ITERATION_THRESHOLD){
+            g_targetPosition = g_currentPosition = 0; //stop controller
+            g_statusRegister |= CONTROLLER_ERROR; // add flag to status register
+        }
 
         g_piSpd.Fbk = getSpeed();
 

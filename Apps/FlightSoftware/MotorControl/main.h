@@ -26,7 +26,9 @@
 
 // bits of status register (shares 1,2,4 with control register)
 #define POSITION_CONVERGED      8
+#define CONTROLLER_ERROR        16          // indicates something has gone awry with position controller; will not converge
 
+#define ERROR_ITERATION_THRESHOLD   10      // how many iterations motor performance must be funky before driving is stopped
 
 #define KP_SPD                  1.0
 #define KI_SPD                  0.0009

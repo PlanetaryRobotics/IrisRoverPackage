@@ -12,7 +12,7 @@
 #define MAX_NUMBER_CHANNEL_PER_NETWORK  11
 #define MAX_SORTING_LIST_SIZE           5
 
-#define RX_RING_BUFFER_SIZE             UDP_MAX_PAYLOAD + sizeof(Wf121::DataSize16)
+#define RX_RING_BUFFER_SIZE             WF121_UDP_MAX_PAYLOAD + sizeof(Wf121::DataSize16)
 
 // On average it takes 50000 - 160000 Wf121-Hercules "no-op cycles in the state machine to conenct to the accesspoint
 // we provide 3x (and some extra) the time to connect before resetting the WF121 and trying to connect

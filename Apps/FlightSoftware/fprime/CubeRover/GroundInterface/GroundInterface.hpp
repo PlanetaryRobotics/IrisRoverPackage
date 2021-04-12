@@ -118,9 +118,11 @@ namespace CubeRover {
                  m_cmdsUplinked, m_cmdsSent, m_cmdErrs,     // TLM8, TLM9, TLM10
                  m_appBytesReceived, m_appBytesDownlinked;  // TLM11, TLM 12
         
-        uint8_t m_downlinkBuffer[UDP_MAX_PAYLOAD];
-        uint8_t *m_downlinkBufferPos;
-        uint16_t m_downlinkBufferSpaceAvailable;
+        uint8_t m_tlmDownlinkBuffer[WF121_UDP_MAX_PAYLOAD];
+        uint8_t m_fileDownlinkBuffer[NUM_APPS_USE_FILE_DOWNLINK][WF121_UDP_MAX_PAYLOAD];
+        uint8_t *m_tlmDownlinkBufferPos;
+        uint16_t m_downlink_objects_size;           // Maximum usable buffer space for the current network interface
+        uint16_t m_tlmDownlinkBufferSpaceAvailable;
         PrimaryInterface m_interface_port_num;
       
 

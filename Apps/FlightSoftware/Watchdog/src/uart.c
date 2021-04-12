@@ -51,6 +51,7 @@ void __attribute__ ((interrupt(EUSCI_A0_VECTOR))) USCI_A0_ISR (void) {
         rcv = UCA0RXBUF;
 
         /* regular byte */
+
         uart0rx.buf[uart0rx.idx++] = rcv;
 
         /* note that we received a byte in main loop */

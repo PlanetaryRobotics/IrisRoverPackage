@@ -105,7 +105,8 @@ int main(void) {
     /* enter service mode */
 //    enterMode(RS_SERVICE);
     // enter lander mode for tVac testing
-    enterMode(RS_KEEPALIVE);
+    enterMode(RS_MISSION);
+//    enterMode(RS_KEEPALIVE);
 
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();

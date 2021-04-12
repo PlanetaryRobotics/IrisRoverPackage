@@ -793,7 +793,8 @@ __interrupt void TIMER0_B0_ISR (void){
 
         // errors on last ERROR_ITERATION_THRESHOLD time steps; time to stop trying to drive motor
         if(g_errorCounter >= ERROR_ITERATION_THRESHOLD){
-            g_targetPosition = g_currentPosition = 0; //stop controller
+            if (g_controlRegister & OVERRIDE_FAULT_DETECTION == 0x00) //check if we should stop controller given fault
+                g_targetPosition = g_currentPosition = 0; //stop controller
             g_statusRegister |= CONTROLLER_ERROR; // add flag to status register
         }
 

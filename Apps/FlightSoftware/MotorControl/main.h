@@ -19,10 +19,11 @@
 #define PI_SPD_CONTROL_PRESCALER    1000    // 15.6 Hz, speed control
 
 // bits of control register
-#define DRIVE_OPEN_LOOP         1           // first bit of control reg; drive only in open loop if set to 1
-#define CLEAR_DRIVER_FAULT      2           // second bit indicates request to try to clear fault in motor driver
-#define STATE_MACHINE_DISABLE   4
-#define STATE_MACHINE_RUN       8
+#define DRIVE_OPEN_LOOP             1       // first bit of control reg; drive only in open loop if set to 1
+#define CLEAR_DRIVER_FAULT          2       // second bit indicates request to try to clear fault in motor driver
+#define STATE_MACHINE_DISABLE       4
+#define STATE_MACHINE_RUN           8
+#define OVERRIDE_FAULT_DETECTION   16       // don't reset current & desired position if abnormal behavior detected
 
 // bits of status register (shares 1,2,4 with control register)
 #define POSITION_CONVERGED      8

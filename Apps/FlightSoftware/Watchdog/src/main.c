@@ -41,6 +41,7 @@ void enterMode(enum rover_state newstate) {
         powerOffMotors();
         powerOffRadio();
         powerOffHercules();
+        fuelGaugeLowPower();
         /* TODO: do we want to do it in this order? */
 
         /* turn off voltage rails */
@@ -69,6 +70,7 @@ void enterMode(enum rover_state newstate) {
         releaseRadioReset();
         releaseFPGAReset();
         releaseMotorsReset();
+        initializeFuelGauge();
         /* TODO: do we want to do it in this order? */
 
         break;
@@ -102,10 +104,14 @@ int main(void) {
     /* set up the ADC */
     adc_init();
 
+    /* set up i2c */
+    i2c_init();
+    __delay_cycles(1000000); //pause for ~1/8 sec for fuel gauge i2c to init, TODO: may be able to remove this now
+
     /* enter service mode */
 //    enterMode(RS_SERVICE);
-    // enter lander mode for tVac testing
-    enterMode(RS_KEEPALIVE);
+    // enter mission mode for justin debug
+    enterMode(RS_MISSION);
 
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();
@@ -113,10 +119,7 @@ int main(void) {
 
     __bis_SR_register(GIE); // Enable all interrupts
 
-    /* set up i2c */
-    i2c_init();
-    __delay_cycles(1000000); //pause for ~1/8 sec for fuel gauge i2c to init
-//    initializeFuelGauge();
+
     ipudp_send_packet("hello, world!\r\n", 15);
 
     // the core structure of this program is like an event loop

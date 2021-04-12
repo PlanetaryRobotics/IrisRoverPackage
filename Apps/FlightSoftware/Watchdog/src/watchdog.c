@@ -16,6 +16,7 @@
 #include "include/uart.h"
 #include "include/bsp.h"
 #include "include/ip_udp.h"
+#include "include/i2c.h"
 
 uint8_t handle_watchdog_reset_cmd(uint8_t cmd);
 
@@ -60,6 +61,12 @@ int watchdog_init() {
 int watchdog_monitor() {
     /* temporarily disable interrupts */
     __bic_SR_register(GIE);
+
+    // tell fuel gauge to update measurements
+    updateGaugeReadings();
+    __delay_cycles(400000); // wait 50 ms for readings to update TODO: do other things instead of delay
+
+
 
     /* check that kicks have been received */
     if (watchdog_flags & WDFLAG_RADIO_KICK) {

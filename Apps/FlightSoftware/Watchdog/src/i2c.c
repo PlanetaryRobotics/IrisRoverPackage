@@ -144,8 +144,9 @@ void updateGaugeReadings(){
 }
 
 void fuelGaugeLowPower(){
-    // shut off all analog parts of fuel gauge circuit by setting LSB of control register to 0
-    fuel_gauge_write_control_reg = 0b00101000;
+    // shut off all analog parts of fuel gauge circuit by setting LSB of control register to 1
+    // set 2 MSB to 00 to put in sleep mode
+    fuel_gauge_write_control_reg = 0b00101001;
     I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &fuel_gauge_write_control_reg, 1);
 }
 
@@ -192,8 +193,8 @@ void initializeFuelGauge(){
     I2C_Master_WriteReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_LSB, &init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
 
 
-    // set ADC to read voltage/curr/temp every 10 sec
-    fuel_gauge_write_control_reg = 0b10101000;
+    // set ADC to read voltage/curr/temp once and then wait for next measurement request
+    fuel_gauge_write_control_reg = 0b01101000;
     // set control_reg[7:6] to 01 do one conversion, 10 to convert every 10s,
     //      set to 00 to sleep, set to 11 to continuously convert
     // set control_reg[5:3] to 101 for M of 1024 for coulomb counter (see datasheet)

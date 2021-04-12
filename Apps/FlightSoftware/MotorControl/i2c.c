@@ -137,7 +137,10 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
         g_slaveMode = TX_DATA_MODE;
         g_txByteCtr = g_i2cCmdLength[cmd];
         //update g_faultRegister
-        g_faultRegister = read_driver_fault();
+        if(read_driver_fault())
+            g_faultRegister |= DRIVER_FAULT;
+        else
+            g_faultRegister &= ~DRIVER_FAULT;
 
         //Fill out the TransmitBuffer
         copyArray((uint8_t*)&g_faultRegister, (uint8_t*)g_txBuffer, g_txByteCtr);
@@ -232,7 +235,7 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
         if(g_controlRegister & STATE_MACHINE_DISABLE){
             g_cmdState = DISABLE;
             updateStateMachine();
-            g_statusRegister |= STATE_MACHINE_DISABLE; // status reg bit 3 - 1 if in disable state, 0 if not
+            g_statusRegister |= STATE_MACHINE_DISABLE; // status reg bit 3: 1 if in disable state, 0 if not
         } else if (g_controlRegister & STATE_MACHINE_RUN){
             g_cmdState = RUN;
             updateStateMachine();

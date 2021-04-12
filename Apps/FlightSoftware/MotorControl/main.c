@@ -600,7 +600,7 @@ void main(void){
 #endif
   g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
   g_closedLoop = false;
-  g_state = RUNNING;
+  g_state = RUNNING; // g_statusRegister bit 3 is 0 to reflect this state
   g_cmdState = NO_CMD;
 
 
@@ -782,13 +782,16 @@ __interrupt void TIMER0_B0_ISR (void){
         if (g_currentPosition == g_oldPosition && ~g_targetReached){
             // position isn't updating; hall sensors likely not powered or broken
             g_errorCounter++;
+            g_faultRegister |= POSITION_NO_CHANGE;
         } else if ( (g_currentPosition - g_oldPosition)*g_targetDirection < 0 && ~g_targetReached){
             // moving in wrong direction
             g_errorCounter++;
+            g_faultRegister |= DRIVING_WRONG_DIRECTION;
         } else {
             // operating normally; no error
             g_statusRegister &= ~CONTROLLER_ERROR;
             g_errorCounter = 0; // reset error counter
+            g_faultRegister &= ~(POSITION_NO_CHANGE & DRIVING_WRONG_DIRECTION); //clear faults in register
         }
 
         // errors on last ERROR_ITERATION_THRESHOLD time steps; time to stop trying to drive motor

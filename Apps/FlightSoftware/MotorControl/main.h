@@ -29,6 +29,11 @@
 #define POSITION_CONVERGED      8
 #define CONTROLLER_ERROR        16          // indicates something has gone awry with position controller; will not converge
 
+// bits of fault register
+#define DRIVER_FAULT                1           // for if there is a fault in the DRV8304 motor drivers
+#define POSITION_NO_CHANGE          2           // for if position is not changing at all; could be dead hall sensors
+#define DRIVING_WRONG_DIRECTION     4           // for if motor is driving in wrong direction
+
 #define ERROR_ITERATION_THRESHOLD   10      // how many iterations motor performance must be funky before driving is stopped
 
 #define KP_SPD                  1.0

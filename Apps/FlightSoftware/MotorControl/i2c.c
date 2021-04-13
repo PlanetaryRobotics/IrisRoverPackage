@@ -120,7 +120,7 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
         g_slaveMode = TX_DATA_MODE;
         g_txByteCtr = g_i2cCmdLength[cmd];
         //Fill out the TransmitBuffer
-        int16_t current_info = (int16_t)g_piCur.Fbk; // top 16 MSBs empty
+//        int16_t current_info = (int16_t)g_piCur.Fbk; // top 16 MSBs empty
         copyArray((uint8_t*)&current_info, (uint8_t*)g_txBuffer, g_txByteCtr);
         disableI2cRxInterrupt();
         enableI2cTxInterrupt();
@@ -136,7 +136,8 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
       case FAULT_REGISTER:
         g_slaveMode = TX_DATA_MODE;
         g_txByteCtr = g_i2cCmdLength[cmd];
-        //update g_faultRegister
+
+        //update g_faultRegister with if there is fault in motor driver
         if(read_driver_fault())
             g_faultRegister |= DRIVER_FAULT;
         else
@@ -150,7 +151,7 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
       //-----------------------------------------------------------------
       // Commands requesting to process some more data from master
       //-----------------------------------------------------------------
-      case RELATIVE_TARGET_POSITION:
+      case TARGET_POSITION:
       case TARGET_SPEED:
       case P_CURRENT:
       case I_CURRENT:
@@ -185,12 +186,15 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
       case STATUS_REGISTER:
       case FAULT_REGISTER:
         break;
-      case RELATIVE_TARGET_POSITION:
+      case TARGET_POSITION:
+      {
+        int32_t additional_target_pos;
         copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&g_targetPosition,
-                  sizeof(g_targetPosition));
-        g_currentPosition = 0; // reset current position
+                  (uint8_t*)&additional_target_pos,
+                  sizeof(additional_target_pos));
+        g_targetPosition += additional_target_pos;
         break;
+      }
       case TARGET_SPEED:
         copyArray((uint8_t*)g_rxBuffer,
                   (uint8_t*)&g_maxSpeed,
@@ -242,9 +246,6 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
             g_statusRegister &= ~STATE_MACHINE_DISABLE;
         }
 
-        break;
-
-
         break;     
       case ACC_RATE:
       case DEC_RATE:
@@ -259,11 +260,11 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
  */
 void initializeCmdLength(){
   g_i2cCmdLength[I2C_ADDRESS] = 1;
-  g_i2cCmdLength[RELATIVE_TARGET_POSITION] = 4;
+  g_i2cCmdLength[TARGET_POSITION] = 4;
   g_i2cCmdLength[TARGET_SPEED] = 1;
   g_i2cCmdLength[CURRENT_POSITION] = 4;
   g_i2cCmdLength[CURRENT_SPEED] = 2;
-  g_i2cCmdLength[MOTOR_CURRENT] = 2;
+  g_i2cCmdLength[MOTOR_CURRENT] = 4;
   g_i2cCmdLength[P_CURRENT] = 4;
   g_i2cCmdLength[I_CURRENT] = 2;
   g_i2cCmdLength[P_SPEED] = 4;

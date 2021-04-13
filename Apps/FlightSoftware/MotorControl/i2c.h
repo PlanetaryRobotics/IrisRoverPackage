@@ -15,7 +15,7 @@
 typedef enum I2cRegisterIds{
 
     I2C_ADDRESS = 0,
-    RELATIVE_TARGET_POSITION = 1,
+    TARGET_POSITION = 1,
     TARGET_SPEED = 2,
     CURRENT_POSITION = 3,
     CURRENT_SPEED = 4,

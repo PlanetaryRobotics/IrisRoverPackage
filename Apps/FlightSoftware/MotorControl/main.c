@@ -1,7 +1,7 @@
 // [DEBUG] Switches
 //#define IRIS_ALL_OFF
 #define IRIS_CLEAR_FAULT
-#define IRIS_SPIN_MOTOR
+//#define IRIS_SPIN_MOTOR
 //#define IRIS_SPIN_MOTOR_REVERSE
 //#define IRIS_SPIN_MOTOR_INDEF
 

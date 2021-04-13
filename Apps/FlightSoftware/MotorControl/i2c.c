@@ -121,7 +121,7 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
         g_txByteCtr = g_i2cCmdLength[cmd];
         //Fill out the TransmitBuffer
 //        int16_t current_info = (int16_t)g_piCur.Fbk; // top 16 MSBs empty
-        copyArray((uint8_t*)&current_info, (uint8_t*)g_txBuffer, g_txByteCtr);
+        copyArray((uint8_t*)&g_piCur.Fbk, (uint8_t*)g_txBuffer, g_txByteCtr);
         disableI2cRxInterrupt();
         enableI2cTxInterrupt();
         break;       

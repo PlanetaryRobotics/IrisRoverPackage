@@ -247,6 +247,36 @@ namespace CubeRover {
          not_enough_bytes = 5
      };
 
+     enum send_values : U16
+     {
+        No_Reset = 0x00,
+        Reset_Hercules = 0x01,
+        Hercules_Power_On = 0x02,
+        Hercules_Power_Off = 0x03,
+        Reset_Radio = 0x04,
+        Radio_Power_On = 0x05,
+        Radio_Power_Off = 0x06,
+        Reset_FPGA = 0x07,
+        FPGA_Power_On = 0x08,
+        FPGA_Power_Off = 0x09,
+        Reset_Motor1 = 0x0A,
+        Reset_Motor2 = 0x0B,
+        Reset_Motor3 = 0x0C,
+        Reset_Motor4 = 0x0D,
+        Reset_All_Motors = 0x0E,
+        All_Motors_On = 0x0F,
+        All_Motors_Off = 0x10,
+        Reset_EN_3_3 = 0x11,
+        EN_3_3_Power_On = 0x12,
+        EN_3_3_Power_Off = 0x13,
+        Reset_24_EN = 0x14,
+        EN_24_On = 0x15,
+        EN_24_Off = 0x16,
+        HDRM_On = 0x17,
+        HDRM_Off = 0x18,
+        FPGA_Cam_1 = 0x19,
+        FPGA_Cam_2 = 0x20,
+     };
 
      int Receive_Frame(uint32_t *comm_error, WatchdogFrameHeader *header);
 

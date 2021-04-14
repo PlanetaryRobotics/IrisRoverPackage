@@ -94,10 +94,9 @@ namespace CubeRover {
 
     // Sends payload and reset value to MSP430
     U16 payload_length = 0x0000;
-    U16 reset_value = 0x0000;
 
     // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-    if(!Send_Frame(payload_length, reset_value))
+    if(!Send_Frame(payload_length, No_Reset))
       return;
      
     // Receive frame back from MSP430
@@ -112,7 +111,13 @@ namespace CubeRover {
         CubeRoverPorts::ResetValue reset
     )
   {
-    // TODO
+    if(Reset_Specific_Handler(reset))
+    	return;
+    else
+    {
+    	// TODO: report error
+    	return;
+    }
   }
 
   void WatchDogInterfaceComponentImpl ::
@@ -123,10 +128,9 @@ namespace CubeRover {
   {
     // Sends payload and reset value to MSP430
     U16 payload_length = fwBuffer.getsize();
-    U16 reset_value = 0x0000;
 
     // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-    if(!Send_Frame(payload_length, reset_value))
+    if(!Send_Frame(payload_length, No_Reset))
       return;
      
     dmaSend(reinterpret_cast<void *>(fwBuffer.getdata()), payload_length);  // FIXME: What is DMA send failed? *TUrn blocking off when we use Mutexes **DO the same for other DMA sends and receives
@@ -175,10 +179,11 @@ namespace CubeRover {
     // Sends a command to watchdog to reset specified devices. Can be hardware through watchdog or component
 
     // If reset_value is greater than 0x1B, we are resetting a software component
-    if(reset_value > 0x1B)
+    if(reset_value <= No_Reset && reset_value >= FPGA_Cam_2)
     {
-      // Reset Components in software
+      // return error
       // TODO
+      return;
     }
     // If reset_value less than or equal to 0x1B, we are resetting hardware
     else
@@ -260,11 +265,11 @@ namespace CubeRover {
     // Sends a command to watchdog to reset specified devices. Can be hardware through watchdog or component
 
     // If reset_value is greater than 0x1B, we are resetting a software component
-    if(reset_value > 0x1B)
+    if(reset_value <= No_Reset && reset_value >= FPGA_Cam_2)
     {
-      // Reset Components in software
+      // report error
       // TODO
-      return true;
+      return false;
     }
     // If reset_value less than or equal to 0x1B, we are resetting hardware
     else
@@ -548,7 +553,7 @@ namespace CubeRover {
     }
 
     int payload_read = 0;
-    if (header->payload_length == 0) // Received a WD echo  // TODO: Are we expecting telemetry ALWAYS??
+    if (header->payload_length == 0) // Received a WD echo, always expect telemtry
     {
         struct WatchdogTelemetry buff;
         dmaReceive(&buff, sizeof(buff));

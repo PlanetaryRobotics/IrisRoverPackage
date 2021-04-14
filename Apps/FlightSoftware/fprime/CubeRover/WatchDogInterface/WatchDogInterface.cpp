@@ -18,6 +18,21 @@
 #include <string.h>
 
 #include "Include/FswPacket.hpp"
+#include "sys_dma.h"
+#include <App/DMA.h>
+#include "gio.h"
+#include "reg_spi.h"
+
+static volatile bool dmaWriteBusy = false;
+static volatile bool dmaReadBusy = false;
+
+extern "C" void dmaCh0_ISR(dmaInterrupt_t inttype) {
+    dmaReadBusy = false;
+}
+
+extern "C" void dmaCh1_ISR(dmaInterrupt_t inttype) {
+    dmaWriteBusy = false;
+}
 
 namespace CubeRover {
     
@@ -34,8 +49,9 @@ namespace CubeRover {
 #else
     WatchDogInterfaceComponentImpl(void)
 #endif
+    , m_sci(scilinREG), m_finished_initializing(false)
   {
-      watchdog_dma_busy = false;
+
   }
 
   void WatchDogInterfaceComponentImpl ::
@@ -45,16 +61,15 @@ namespace CubeRover {
     )
   {
     WatchDogInterfaceComponentBase::init(queueDepth, instance);
-    // Setup scilinReg port
-    sciBASE_t * m_sci = scilinREG;
     sciEnterResetState(m_sci);
     sciSetBaudrate(m_sci, 9600);
     sciExitResetState(m_sci);
 
     Read_Temp();
 
-    Reset_Specific_Handler(0x04);    // Reset WF121
-    for (unsigned i = 400000000; i; --i);
+    Reset_Specific_Handler(0x04);           // Reset WF121
+    // There would normally be a 400000000 cycle delay for WF121 to finish resetting.. but that actualyl breaks things... weird
+    m_finished_initializing = true;
   }
 
   WatchDogInterfaceComponentImpl ::
@@ -73,7 +88,6 @@ namespace CubeRover {
         NATIVE_UINT_TYPE context
     )
   {
-    // This run handler happens every 1-100 hz (overview says 100 hz, specific says 1 hz)
 
     // Update Thermistor Telemetry
     Read_Temp();
@@ -115,26 +129,7 @@ namespace CubeRover {
     if(!Send_Frame(payload_length, reset_value))
       return;
      
-    // Receive frame back from MSP430
-    U32 comm_error;
-    WatchdogFrameHeader frame;
-    int32_t size_read =  Receive_Frame(&comm_error, &frame);
-
-    // Good read:
-    if (size_read >= 8)
-    {
-        if(frame.payload_length == payload_length && frame.reset_val == 0x0000)
-        {
-            int tries = 100000000;
-    		while(--tries && !sciIsTxReady(scilinREG));
-    		if(tries == 0)
-    		{
-    		    this->log_WARNING_HI_WatchDogTimedOut();
-    		    return;
-    		}
-    		sciSend(scilinREG, payload_length, reinterpret_cast<unsigned char*>(fwBuffer.getdata()));
-        }
-    }
+    dmaSend(reinterpret_cast<void *>(fwBuffer.getdata()), payload_length);  // FIXME: What is DMA send failed? *TUrn blocking off when we use Mutexes **DO the same for other DMA sends and receives
   }
   
   void WatchDogInterfaceComponentImpl ::
@@ -239,6 +234,12 @@ namespace CubeRover {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;
       }
+
+      // Set Deployment Bit High
+      // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
+      // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port 
+      gioSetBit(spiPORT3, 5, 1);
+
 	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
@@ -278,7 +279,7 @@ namespace CubeRover {
 
       // Receive frame back from MSP430
       U32 comm_error;
-      WatchdogFrameHeader frame;
+      WatchdogFrameHeader frame = {0};
       int32_t size_read = Receive_Frame(&comm_error, &frame);
 
       if(size_read < 8)
@@ -287,6 +288,149 @@ namespace CubeRover {
       return true;
     }
   }
+
+  /* Commands that Only Watchdog Processes */
+  void WatchDogInterfaceComponentImpl ::
+    Prepare_For_Deployment_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Switch_Connection_Mode_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Kp_Most_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Kp_Least_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Kp_Specific_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Ki_Most_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Ki_Least_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Ki_Specific_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Kd_Most_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Kd_Least_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_V_Setpoint_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Switch_to_Sleep_Mode_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Switch_to_Keep_Alive_Mode_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Switch_to_Service_Mode_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+    Reset_Specific_Handler(0x00);
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  /* End of Commands that Only Watchdog Processes*/
 
   bool WatchDogInterfaceComponentImpl :: Send_Frame(U16 payload_length, U16 reset_value)
   {
@@ -305,16 +449,7 @@ namespace CubeRover {
                        ((frame_bin & 0x0000FF0000000000L) >> 40) +
                        ((frame_bin & 0x00FF000000000000L) >> 48) +
                        ((frame_bin & 0xFF00000000000000L) >> 56));
-
-
-      int tries = 100000000;
-      while(--tries && !sciIsTxReady(scilinREG));
-      if(tries == 0)
-      {
-        this->log_WARNING_HI_WatchDogTimedOut();
-        return false;
-      }
-      sciSend(scilinREG, sizeof(frame), (uint8_t *)&frame);
+      dmaSend(&frame, sizeof(frame));
 
       return true;
   }
@@ -325,6 +460,7 @@ namespace CubeRover {
     adcStartConversion(adcREG1, adcGROUP1);
 
     // Check if all ADC Conversions are done
+    // From testing tries ALMOST ALWAYS ~= 10 - 12  ==>  38 - 40 cycles to convert data.. OK to poll
     int tries = 50;
     while(--tries && !adcIsConversionComplete(adcREG1, adcGROUP1));
     if(tries == 0)
@@ -339,34 +475,18 @@ namespace CubeRover {
     {
       // Conversion SHOULD end automatically once all ADC values have been converted but this should end it otherwise
       adcStopConversion(adcREG1, adcGROUP1);
-
-      // Create adcData_t array of size 6 for all Thermistors
-      adcData_t data[6];
-      adcData_t* data_ptr = (adcData_t*)&data;
-
-      // adcGetData returns how many conversions happened, saves data into data_ptr
-      U32 num_conversions = adcGetData(adcREG1, adcGROUP1, data_ptr);
-
+      U32 num_conversions = adcGetData(adcREG1, adcGROUP1, m_thermistor_buffer);
       if(num_conversions >= 6)
       {
-        // Report tempurature as telemetry
-
-        // Send Thermistor 12 bit values to Telemetry
-        this->tlmWrite_THERM_0(data[0].value);
-
-        this->tlmWrite_THERM_1(data[1].value);
-
-        this->tlmWrite_THERM_2(data[2].value);
-
-        this->tlmWrite_THERM_3(data[3].value);
-
-        this->tlmWrite_THERM_4(data[4].value);
-
-        this->tlmWrite_THERM_5(data[5].value);
+        this->tlmWrite_THERM_0(m_thermistor_buffer[0].value);
+        this->tlmWrite_THERM_1(m_thermistor_buffer[1].value);
+        this->tlmWrite_THERM_2(m_thermistor_buffer[2].value);
+        this->tlmWrite_THERM_3(m_thermistor_buffer[3].value);
+        this->tlmWrite_THERM_4(m_thermistor_buffer[4].value);
+        this->tlmWrite_THERM_5(m_thermistor_buffer[5].value);
       }
       else
       {
-        // Log Error in conversion from ADC
         this->log_WARNING_HI_ADCThermistorError();
         return false;
       }
@@ -376,7 +496,9 @@ namespace CubeRover {
 
   int WatchDogInterfaceComponentImpl::Receive_Frame(uint32_t *comm_error, struct WatchdogFrameHeader *header)
   {
-    int size_read = sciReceiveWithTimeout(scilinREG, sizeof(*header), (uint8_t *)header, 100000000);
+    dmaReceive(header, sizeof(*header));
+
+    int size_read = sizeof(*header);
     *comm_error = 0;
 
     if (size_read == 0)
@@ -426,10 +548,12 @@ namespace CubeRover {
     }
 
     int payload_read = 0;
-    if (header->payload_length == 0) // Received a WD echo
+    if (header->payload_length == 0) // Received a WD echo  // TODO: Are we expecting telemetry ALWAYS??
     {
         struct WatchdogTelemetry buff;
-        payload_read = sciReceiveWithTimeout(scilinREG, sizeof(buff), (uint8_t *)&buff, 100000000);
+        dmaReceive(&buff, sizeof(buff));
+
+        payload_read = sizeof(buff);
         *comm_error = 0;
 
         if (payload_read == sizeof(buff))
@@ -441,6 +565,7 @@ namespace CubeRover {
           this->tlmWrite_BATTERY_THERMISTOR(buff.battery_thermistor);
           this->tlmWrite_SYSTEM_STATUS(buff.sys_status);
           this->tlmWrite_BATTERY_LEVEL(buff.battery_level);
+          this->tlmWrite_BATTERY_CURRENT(buff.battery_current);
           size_read += payload_read;
         }
         else if(payload_read < 0)
@@ -458,8 +583,8 @@ namespace CubeRover {
         // UDP_MAX_PAYLOAD defined in FlightMCU/Include/FswPacket.hpp
         // TODO: Verify that the MTU for wired connection is the same as Wifi
         Fw::Buffer uplinked_data;
-        payload_read = sciReceiveWithTimeout(scilinREG, header->payload_length,
-                                             reinterpret_cast<uint8_t *>(uplinked_data.getdata()), 100000000);
+        dmaReceive(reinterpret_cast<void *>(uplinked_data.getdata()), header->payload_length);
+        payload_read = header->payload_length;
         *comm_error = 0;
 
         if (payload_read == header->payload_length)
@@ -481,6 +606,50 @@ namespace CubeRover {
     }
 
     return size_read;
+  }
+
+  // FIXME: Add timeout to escape polling loop
+  void WatchDogInterfaceComponentImpl::pollDMAReceiveFinished() {
+      if (!m_finished_initializing) {
+          while (!((getDMAIntStatus(BTC) >> SCILIN_RX_DMA_CH) & 0x01U));
+          dmaReadBusy = false;
+          sciDMARecvCleanup(SCILIN_RX_DMA_CH);
+      }
+      while (dmaReadBusy);      // TODO: Mutex to allow multiprogramming & TIMEOOUT
+  }
+
+  // Returns negative on error
+  bool WatchDogInterfaceComponentImpl::dmaReceive(void *buffer, int size, bool blocking) {
+      if (blocking)
+          while (dmaReadBusy);
+      else if (dmaReadBusy)
+          return false;
+      sciDMARecv(SCILIN_RX_DMA_CH, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaReadBusy);
+      if (blocking)
+          pollDMAReceiveFinished();
+      return true;
+  }
+
+  // FIXME: Add timeout to escape polling loop
+  void WatchDogInterfaceComponentImpl::pollDMASendFinished() {
+      if (!m_finished_initializing) {
+          while (!((getDMAIntStatus(BTC) >> SCILIN_TX_DMA_CH) & 0x01U));
+          dmaWriteBusy = false;
+          sciDMASendCleanup(SCILIN_TX_DMA_CH);
+      }
+      while (dmaWriteBusy);    // TODO: Mutex to allow multiprogramming & TIMEOOUT
+  }
+
+  // Returns negative on error
+  bool WatchDogInterfaceComponentImpl::dmaSend(void *buffer, int size, bool blocking) {
+      if (blocking)
+          while (dmaWriteBusy);
+      else if (dmaWriteBusy)
+          return false;
+      sciDMASend(SCILIN_TX_DMA_CH, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaWriteBusy);
+      if (blocking)
+          pollDMASendFinished();
+      return true;
   }
 
 } // end namespace CubeRover

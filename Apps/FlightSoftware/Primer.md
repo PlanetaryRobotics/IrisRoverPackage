@@ -1,6 +1,12 @@
 # F-Prime Primer
 
-Notes about F-Prime by Justin N. **Read the F-Prime user guide and source for more information!**
+Notes about F-Prime (and some FreeRTOS, TI Hercules SoC, and ARM) by Justin N. 
+
+## Generally Helpful Resources
+
+F-Prime user guide and source
+
+Eacch section may also reference helpful documents and readings.
 
 ## Differentiating Telemetry and Logs 
 
@@ -242,3 +248,71 @@ struct Command_Camera0_Crop_Arg_config {
 } __attribute__((packed));
 ...
 ```
+
+## Component Initializations and Interrupts on FreeRTOS
+
+When writing constructors and initializers for FPrime components, these methods cannot rely on interrupts when
+running in the context of prior to the scheduler running.
+See [FreeRTOS FAQ (#4)](https://www.freertos.org/FAQHelp.html), "If a FreeRTOS API function is called before the scheduler has been started then interrupts will deliberately be left disabled, and not re-enable again until the first task starts to execute. This is done to protect the system from crashes caused by interrupts attempting to use FreeRTOS API functions during system initialisation, before the scheduler has been started, and while the scheduler may be in an inconsistent state."
+
+## ARM MPU
+
+TI Hercules RM46x TRM (SPNUC514C)
+[TI Hercules Docs (has a really good FAQ)](https://software-dl.ti.com/hercules/hercules_docs/latest/hercules/index.html)
+TI Hercules ARM MPU Subregion Usage Application Report (SPNA120)
+
+ARM implements Memory Protection Unit (MPU) which works with the L1 memory controller to enforce access to and from L1 and external memory.
+Access is granted based on current operating mode (CPSR reg: see Cortex R4 TRM Table 3-3)
+
+There are 12 regions implemented on RM46 of increasing priority, where Region 1 is typically used for the Background region
+
+
+Region 1: Background
+0x00000000 - 0xffffffff (4GB)   Subregions 0 - 7 disabled
+Normal Cacched Unshared
+No Priviledge or user access no execution
+
+Region 2: Flash
+0x00000000 - 0x003fffff (4M) 
+Normal cached and unshared
+READ ONLY and excute
+
+Region 3: RAM
+0x08000000 - 0x0803ffff (256K)
+normal chaced and unshared
+read/write and execute
+
+Region 4: ECC RAM
+0x08000000 - 0x0803ffff (256K)
+normal cached and unshared
+read/write and execute
+
+Region 5: CS2 
+0x60000000 - 0x63ffffff (64MB)  Subregions 6 - 7 disabled
+strongly ordered shareable
+read/write execute
+
+Region 6: SDRAM EMIF 64MB (CS0)
+0x80000000 - 0x87ffffff (128MB)
+strongly ordered shareable
+read/write execute
+
+Region 7:  Flash Wrapper Bus 2 (Flash ECC, OTP, and EEPROM)
+0xf0000000 - 0xf07fffff (8MB)
+Normal cached unshared
+Priviledge rwad-write user read only no exec
+
+Region 8: Peripherals frame - 2
+0xfc000000 - 0xfcffffff (16MB)
+Device unshared
+Read/write no execute
+
+Region 9: CRC (but only a small chunk??)
+0xfe000000 - 0xfe0001ff (512B)
+device unshared
+read/write no exec
+
+Region 10: Peripherals - Frame 1 & SYSTEM Modules
+0xff000000 - 0xffffffff (16MB)
+device unshared
+read/write no execute

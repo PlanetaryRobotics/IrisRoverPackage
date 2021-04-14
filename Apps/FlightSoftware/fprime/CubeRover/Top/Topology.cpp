@@ -158,7 +158,10 @@ CubeRover::ComLogger comLogger(
  * @brief      Run 1 cycle (debug)
  */
 void run1cycle(void) {
-  blockDriver.callIsr();
+  //blockDriver.callIsr();
+  Svc::TimerVal timer;
+  timer.take();
+  rateGroupDriver.get_CycleIn_InputPort(0)->invoke(timer);
 }
 
 /**
@@ -191,8 +194,8 @@ void constructApp(void){
 
   comLogger.init(0);
 
-  // Initialize the watchdog interface component (queued)
-  watchDogInterface.init(10,          /*Queue Depth*/
+  // Initialize the watchdog interface component (active)
+  watchDogInterface.init(1,          /*Queue Depth*/
                          0);         /*Instance Number*/
 
   // Initialize the health component (queued)
@@ -232,6 +235,8 @@ void constructApp(void){
   // Register Camera Commands
   navigation.regCommands();
 
+  groundInterface.regCommands();
+
   // Set Health Ping Entries
   // **** THIS IS WHERE YOU CAN ADD ANY COMPONENTS THAT HAVE HEALTH PINGS ****
   //Svc::HealthImpl::PingEntry pingEntries[] = {
@@ -261,34 +266,31 @@ void constructApp(void){
 
   rateGroupLowFreq.start(0, /* identifier */
                        RG_LOW_FREQ_AFF, /* Thread affinity */
-                       RG_LOW_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+                       RG_LOW_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
 
   rateGroupMedFreq.start(0, /* identifier */
                          RG_MED_FREQ_AFF, /* Thread affinity */
-                         RG_MED_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+                         RG_MED_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
 
   rateGroupHiFreq.start(0, /* identifier */
                          RG_HI_FREQ_AFF, /* Thread affinity */
-                         RG_HI_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+                         RG_HI_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
 
   blockDriver.start(0, /* identifier */
                    BLK_DRV_AFF, /* Thread affinity */
-                   BLK_DRV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+                   BLK_DRV_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
 
   tlmChan.start(0, /* identifier */
                 TLM_CHAN_AFF, /* thread affinity */
-                TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
+                TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
   
   cmdDispatcher.start(0,
                       CMD_DISP_AFF, 
-                      CMD_DISP_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
+                      CMD_DISP_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS);
 
   navigation.start(0,
                    NAV_AFF,
-                   NAV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
-
-  // setup communication with IMU over SPI
-  IMU.setup(IMU_SPI_REG);
+                   NAV_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS);
 
   activeLogger.start(ACTIVE_LOGGER_ID, 
                      ACTIVE_LOGGER_AFF, 
@@ -331,4 +333,7 @@ void constructApp(void){
 
   // Register ping table
   // shealth.setPingEntries(pingEntries,FW_NUM_ARRAY_ELEMENTS(pingEntries),0x123);
+  watchDogInterface.start(0,
+                          WATCHDOG_AFF,
+                          WATCHDOG_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS);
 }

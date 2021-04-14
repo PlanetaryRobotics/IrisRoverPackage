@@ -117,13 +117,16 @@
 
     <events>
         <event id="0" name="GI_UplinkedPacketError" severity="WARNING_HI" format_string="Error with uplinked packet %d %d %d">
-            <comment>Error validating uplinked packet</comment>
+            <comment>
+                Error validating uplinked packet. Expected field is only logged for MISMATCHED_LENGTH and OUT_OF_SEQUENCE. For INCORRECT_TYPE, the magic value s a U32 so the upper short is stored in expected and lower short is stored in got.
+            </comment>
             <args>
                 <arg name="errorType" type="ENUM">
                     <enum name="uplinkedPacketError">
                         <item name="MISMATCHED_LENGTH" />
                         <item name="OUT_OF_SEQUENCE" />
                         <item name="BAD_CHECKSUM" />
+                        <item name="INCORRECT_TYPE" />
                     </enum>
                 </arg>
                 <arg name="expected" type="U16">
@@ -161,5 +164,21 @@
             </args>
         </event>
     </events>
+    
+    <commands>
+        <command kind="sync" opcode="0x0" mnemonic="Set_Primary_Interface">
+            <comment>
+                Sets the primary interface. 
+            </comment>
+            <args>
+                <arg name="primary_interface" type="ENUM">
+                    <enum name="PrimaryInterface">
+                        <item name="WATCHDOG" comment="Watchdog wired interface (RS422). Matches WatchdogInterface component attached to port 0." />
+                        <item name="WF121" comment="WF121 wireless interface (WiFi). Matches NetworkManager component attached to port 1." />
+                    </enum>
+                </arg>
+            </args>
+        </command>
+    </commands>
             
 </component>

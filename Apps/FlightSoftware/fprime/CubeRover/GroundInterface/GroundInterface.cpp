@@ -19,6 +19,17 @@
 
 namespace CubeRover {
 
+
+static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket::Length_t length) {
+    const uint8_t *data = static_cast<const uint8_t *>(_data);
+    FswPacket::Checksum_t checksum = 0;
+    for (; length; length--) {
+        checksum += *data;
+        data++;
+    }
+    return ~checksum;
+}
+
   // ----------------------------------------------------------------------
   // Construction, initialization, and destruction
   // ----------------------------------------------------------------------
@@ -41,6 +52,7 @@ namespace CubeRover {
       m_appBytesReceived = 0; m_appBytesDownlinked = 0;
       m_downlinkBufferPos = m_downlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
       m_downlinkBufferSpaceAvailable = DOWNLINK_OBJECTS_SIZE;
+      m_interface_port_num = INITIAL_PRIMARY_NETWORK_INTERFACE;
   }
 
   void GroundInterfaceComponentImpl ::
@@ -156,6 +168,7 @@ namespace CubeRover {
     updateTelemetry();
   }
 
+  // ASSUME ONE COMMAND PER UPLINK PACKET
   void GroundInterfaceComponentImpl ::
     cmdUplink_handler(
         const NATIVE_INT_TYPE portNum,
@@ -168,36 +181,59 @@ namespace CubeRover {
 
     struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket *>(fwBuffer.getdata());
     U32 buffer_size = fwBuffer.getsize();
-    if (buffer_size != packet->header.length) {
+    if (buffer_size != packet->header.length + sizeof(struct FswPacket::FswPacketHeader)) {
         m_cmdErrs++;
         log_WARNING_HI_GI_UplinkedPacketError(MISMATCHED_LENGTH, packet->header.length,
                 static_cast<U16>(buffer_size));
+        return;
     }
     
     if (packet->header.seq != m_uplinkSeq + 1) {
         m_cmdErrs++;
         return;
     }
-    m_uplinkSeq = packet->header.seq;
     
-    // TODO: Compute checksum
-    
-    // ASSUME ONE COMMAND PER PACKET
     if (packet->payload0.command.magic != COMMAND_MAGIC) {
-        // Uplinked packet not a recognized command! Drop!
+        m_cmdErrs++;
+        log_WARNING_HI_GI_UplinkedPacketError(BAD_CHECKSUM,
+                                              static_cast<U16>(((U16 *)&packet->payload0.command.magic)[0]),
+                                              static_cast<U16>(((U16 *)&packet->payload0.command.magic)[1]));
+        return;
     }
     
+    if (!computeChecksum(packet, packet->header.length + sizeof(struct FswPacket::FswPacketHeader))) {
+        m_cmdErrs++;
+        log_WARNING_HI_GI_UplinkedPacketError(BAD_CHECKSUM, 0, static_cast<U16>(packet->header.checksum));
+        return;
+    }
+
+    m_uplinkSeq = packet->header.seq;
+
     m_cmdsUplinked++;
     log_ACTIVITY_HI_GI_CommandReceived(packet->header.seq, packet->header.length);
-    Fw::ComBuffer command(reinterpret_cast<uint8_t *>(&packet->payload0.command), packet->header.length - sizeof(FswPacket::FswPacketHeader));
+    Fw::ComBuffer command(reinterpret_cast<uint8_t *>(&packet->payload0.command), packet->header.length);
     m_cmdsSent++;
     
-    // TODO: Any parsing or decoding required?
     cmdDispatch_out(0, command, 0);        // TODO: Arg 3 Context?
     
     updateTelemetry();
   }
   
+  // ----------------------------------------------------------------------
+  // Command handler implementations
+  // ----------------------------------------------------------------------
+
+  void GroundInterfaceComponentImpl ::
+    Set_Primary_Interface_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq,
+        PrimaryInterface primary_interface
+    )
+  {
+    m_interface_port_num = primary_interface;
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
   
     /*
      * @brief Write a packet to the downlink buffer.
@@ -245,7 +281,7 @@ namespace CubeRover {
         m_downlinkBufferPos = m_downlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
         m_downlinkBufferSpaceAvailable = DOWNLINK_OBJECTS_SIZE;
     }
-    
+
     /*
      * @brief Downlink
      * 
@@ -261,19 +297,19 @@ namespace CubeRover {
         FW_ASSERT(size <= UDP_MAX_PAYLOAD);
         uint8_t *data = reinterpret_cast<uint8_t *>(_data);     // Start of the ddatagram
         struct FswPacket::FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacket::FswPacketHeader *>(data);
-        FswPacket::Checksum_t checksum = 0x8008;   // TODO
         packetHeader->seq = m_downlinkSeq;
-        packetHeader->checksum = checksum;
         packetHeader->length = size - sizeof(struct FswPacket::FswPacketHeader);
-        int port = 1;  // 0: Lander Serial via WD   1: WF121
+        packetHeader->checksum = 0;
+        packetHeader->checksum = computeChecksum(_data, size);
         Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data), size);
-        log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, checksum, size);
-        downlinkBufferSend_out(port, buffer);
+        log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, packetHeader->checksum, size);
+        downlinkBufferSend_out((int)m_interface_port_num, buffer);
         m_downlinkSeq++;
         m_packetsTx++;
     }
   
     void GroundInterfaceComponentImpl::updateTelemetry() {
+        /* TODO: THESE SHOULD ONLY UPDATE ONCE PER TELEMETRY DOWNLINK NOT ON THE RATE GROUP ITS TOO MUCH
         tlmWrite_GI_UplinkSeqNum(m_uplinkSeq);
         tlmWrite_GI_DownlinkSeqNum(m_downlinkSeq);
         tlmWrite_GI_PacketsReceived(m_packetsRx);
@@ -287,6 +323,7 @@ namespace CubeRover {
         tlmWrite_GI_UplinkPktErrs(m_cmdErrs);
         tlmWrite_GI_AppBytesReceived(m_appBytesReceived);
         tlmWrite_GI_AppBytesDownlinked(m_appBytesDownlinked);
+        */
     }
     
     /*

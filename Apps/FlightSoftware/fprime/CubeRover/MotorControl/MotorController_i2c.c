@@ -133,7 +133,8 @@ void delayForI2C()
 {
     // FIXME: DONT USE POLLING LOOP FOR DELAY
     // for (unsigned i = 180000000; i; --i); ~= 13.5s
-    for (unsigned i = 900; i; --i);
+    unsigned i;
+    for (i = 900; i; --i);
 }
 
 

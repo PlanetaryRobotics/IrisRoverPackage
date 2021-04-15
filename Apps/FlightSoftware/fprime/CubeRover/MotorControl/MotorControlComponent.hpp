@@ -165,7 +165,7 @@ namespace CubeRover {
             REG_RELATIVE_TARGET_POSITION = 1, // Write-only
             REG_TARGET_SPEED = 2,             // Write-only
             REG_CURRENT_POSITION = 3,         // Read-only
-            REG_CURRENT_SPEED = 4,            // Read-only  TODO: Micheal's original comment, look into this "Weird values. Normalized version of tick rate. See Spreadsheet labeled "Motor tests""
+            // REG_CURRENT_SPEED = 4,            // Read-only  TODO: Micheal's original comment, look into this "Weird values. Normalized version of tick rate. See Spreadsheet labeled "Motor tests""
             REG_MOTOR_CURRENT = 5,            // Read-only
             REG_P_CURRENT = 6,                // Write-only
             REG_I_CURRENT = 7,                // Write-only
@@ -173,10 +173,9 @@ namespace CubeRover {
             REG_I_SPEED = 9,                  // Write-only
             REG_ACC_RATE = 10,                // Write-only
             REG_DEC_RATE = 11,                // Write-only
-            REG_CTRL = 12,                    // Write-only TODO: Check
-            REG_STATUS = 13,                  // Read-only  TODO: Check
+            REG_CTRL = 12,                    // Write-only
+            e_REG_STATUS = 13,                // Read-only
             REG_FAULT = 14,                   // Read-only
-            REG_CLR_FAULT = 15,               // Write-only  TODO:: Jonathan to hold over this test option to flight
             NUM_REGS = 16,
             // TODO: Everything past here is depracated
             // EXECUTE_CMD = 16,             // NOT A THING
@@ -185,6 +184,41 @@ namespace CubeRover {
             DEPRACATE_RESET_CONTROLLER = 19,        // NOT A THING  TODO: Watchdog to handle this???
             // UNSET = 99                    // Not a command
         } RegisterAddress_t;
+        
+        /* Motor Control Interface w.r.t. PR #51 & PR#52 */
+        typedef union {
+            uint8_t value;
+            struct {
+                uint8_t open_loop   : 1;
+                uint8_t clear_fault : 1;
+                uint8_t fsm_disable : 1;
+                uint8_t fsm_run     : 1;
+                uint8_t override_fault_detection : 1;
+                uint8_t unused      : 3;
+            } bits;
+        } ControlRegister_t;
+        
+        typedef union {
+            uint8_t value;
+            struct {
+                uint8_t open_loop   : 1;
+                uint8_t clear_fault : 1;
+                uint8_t fsm_disable : 1;
+                uint8_t position_converged : 1;
+                uint8_t controller_error   : 1;
+                uint8_t unused             : 3;
+            } bits;
+        } StatusRegister_t;
+        
+        typedef union {
+            uint8_t value;
+            struct {
+                uint8_t driver_fault        : 1;
+                uint8_t position_no_change  : 1;
+                uint8_t driving_wrong_direction : 1;
+                uint8_t unused              : 5;
+            } bits;
+        } FaultRegister_t;
 
         typedef enum {
             MC_NO_ERROR,

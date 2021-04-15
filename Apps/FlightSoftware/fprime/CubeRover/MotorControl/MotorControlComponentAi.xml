@@ -202,7 +202,7 @@
   <!-- TELEMETRY -->
   <telemetry>
     <!-- Motor 0 | Front left motor -->
-    <channel id="0" name="MC_FL_Encoder_Dist" data_type="I32" update = "on_change">
+    <channel id="0" name="MC_FL_Encoder_Ticks" data_type="I32" update = "on_change">
       <comment>Front Left motor encoder displacement in encoder ticks</comment>
     </channel>
 
@@ -210,12 +210,12 @@
       <comment>Front Left motor current in milliAmps</comment>
     </channel>
 
-    <channel id="2" name="MC_FL_Speed" data_type="I16" update = "on_change">
+    <!--<channel id="2" name="MC_FL_Speed" data_type="I16" update = "on_change">
       <comment>Front Left motor speed in centimeters per second (positive rotation is counter clockwise</comment>
-    </channel>
+    </channel>-->
 
     <!-- Motor 1 | Front right motor -->
-    <channel id="3" name="MC_FR_Encoder_Dist" data_type="I32" update = "on_change">
+    <channel id="3" name="MC_FR_Encoder_Ticks" data_type="I32" update = "on_change">
       <comment>Front Right motor encoder displacement in encoder ticks</comment>
     </channel>
 
@@ -223,12 +223,12 @@
       <comment>Front Right motor current in milliAmps</comment>
     </channel>
 
-    <channel id="5" name="MC_FR_Speed" data_type="I16" update = "on_change">
+    <!--<channel id="5" name="MC_FR_Speed" data_type="I16" update = "on_change">
       <comment>Front Right motor speed in centimeters per second</comment>
-    </channel>
+    </channel>-->
 
     <!-- Motor 2 | Rear right motor -->
-    <channel id="6" name="MC_RR_Encoder_Dist" data_type="I32" update = "on_change">
+    <channel id="6" name="MC_RR_Encoder_Ticks" data_type="I32" update = "on_change">
       <comment>Rear Right motor encoder displacement in encoder ticks</comment>
     </channel>
 
@@ -236,12 +236,12 @@
       <comment>Rear Right motor current in milliAmps</comment>
     </channel>
 
-    <channel id="8" name="MC_RR_Speed" data_type="I16" update = "on_change">
+    <!--<channel id="8" name="MC_RR_Speed" data_type="I16" update = "on_change">
       <comment>Rear Right motor speed in centimeters per second</comment>
-    </channel>
+    </channel>-->
 
     <!-- Motor 3 | Read right motor -->
-    <channel id="9" name="MC_RL_Encoder_Dist" data_type="I32" update = "on_change">
+    <channel id="9" name="MC_RL_Encoder_Ticks" data_type="I32" update = "on_change">
       <comment>Rear Left motor encoder displacement in encoder ticks</comment>
     </channel>
 
@@ -249,9 +249,9 @@
       <comment>Rear Left motor current in milliAmps</comment>
     </channel>
 
-    <channel id="11" name="MC_RL_Speed" data_type="I16" update = "on_change">
+    <!--<channel id="11" name="MC_RL_Speed" data_type="I16" update = "on_change">
       <comment>Rear Left motor speed in centimeters per second</comment>
-    </channel>
+    </channel>-->
   </telemetry>
 
 </component>

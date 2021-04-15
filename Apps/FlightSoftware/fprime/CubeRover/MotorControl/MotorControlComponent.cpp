@@ -104,10 +104,10 @@ namespace CubeRover {
    * @brief      Handler implementation for motorCommand port (move command from Nav)
    *
    * @param[in]  portNum        The port number
-   * @param[in]  command_type   ???
-   * @param[in]  movement_type  The port number
-   * @param[in]  Distance       ???
-   * @param[in]  Speed          ???
+   * @param[in]  command_type   Movement or telemetry
+   * @param[in]  movement_type  Type of movement
+   * @param[in]  Distance       Distance
+   * @param[in]  Speed          Speed
    */
   void MotorControlComponentImpl :: motorCommandIn_handler(const NATIVE_INT_TYPE portNum,
                                                            CubeRoverPorts::MC_CommandType command_type,
@@ -791,8 +791,7 @@ namespace CubeRover {
           case DEPRACATE_DISABLE_DRIVER:
           case DEPRACATE_RESET_CONTROLLER:
           case REG_FAULT:
-          case REG_CLR_FAULT:
-          case REG_STATUS:
+          case e_REG_STATUS:
             return 1;
           case REG_MOTOR_CURRENT:
           case REG_P_CURRENT:
@@ -802,11 +801,13 @@ namespace CubeRover {
           case REG_ACC_RATE:
           case REG_DEC_RATE:
           case REG_CURRENT_POSITION:
+              return 2;
           case REG_TARGET_SPEED:
-            return 2;
+            return 1;
           case REG_RELATIVE_TARGET_POSITION:
-          case REG_CURRENT_SPEED:
-            return 4;
+              return 4;
+          /*case REG_CURRENT_SPEED:
+            return 4;*/
           case NUM_REGS:
           default:
             return 0;
@@ -943,9 +944,8 @@ namespace CubeRover {
           // TODO: Need to correct the container to pass an int8_t
           Throttle_t motor_speed = m_angularToLinear*groundSpeedToSpeedPrecent(speed);
        
-        // // FIXME: These need to be updated to use the correct register (TARGET)
           // Send the speed to all the motors
-          err = sendAllMotorsData(REG_CURRENT_SPEED,
+          err = sendAllMotorsData(REG_TARGET_SPEED,
                                   (uint8_t*) &motor_speed);
           if (err != MC_NO_ERROR)
             return err;  
@@ -1106,15 +1106,15 @@ namespace CubeRover {
     MotorControlComponentImpl::MotorTick_t
     MotorControlComponentImpl::groundCMToMotorTicks(int16_t dist)
     {
-        // FIXME: Jonathan to develop this function
-        return 0;
+        // TODO: Make this constant editable
+        return (int)(158.343f * (float(dist)));
     }
  
     /**
     * @brief      Converts from ground speed to motor normalized speed
     *
-    * @param[in]  The speed in ground version of cm/s (scaled from 0x00 - 0x0A)
-    *              meaning 0-10cm/s
+    * @param[in]  The speed in ground version of cm/s (scaled from 0x00 - 0x7f)
+    *              meaning 0-12.61cm/s (1996tick/s)
     *
     * @return     Precentage of the speed in motor control terms
     */
@@ -1122,7 +1122,7 @@ namespace CubeRover {
     MotorControlComponentImpl::groundSpeedToSpeedPrecent(int16_t speed)
     {
         // FIXME: Jonathan to develop this function
-        return 0;
+        return speed;
     }
  
     /**
@@ -1139,7 +1139,7 @@ namespace CubeRover {
           switch(++m_Robin_Number)
           {
             case 0:
-              Update_Success = updateSpeed();
+              // Update_Success = updateSpeed();  // JUSTIN: READING SPEED DEPRACATED IN FAVOR OF DOWNLIKMING RAW ENCODER READINGS
               break;
        
             case 1:
@@ -1160,8 +1160,8 @@ namespace CubeRover {
         // Update all of them
         else
         {
-          if (!updateSpeed())
-            return false;
+          //if (!updateSpeed())
+          //  return false;
           if (!updateCurrent()) 
             return false;
           if (updateEncoder())
@@ -1169,78 +1169,6 @@ namespace CubeRover {
         }
        
         return Update_Success;
-    }
- 
-    /**
-    * @brief      Delays for 1050 ticks slow enough for slave sides
-    *
-    */
-    bool MotorControlComponentImpl::updateSpeed()
-    {
-        // FIXME: REG_CURRENT_SPEED reads (#ticks / #seconds) -> Fixed-point 17MSB . 15LSB 
-        // BUT JONATHAN WILL UPDATE 
-        
-        MCError_t err = MC_NO_ERROR;
-        uint8_t Speed_buffer[MC_BUFFER_MAX_SIZE];
-       
-        // Get FL Current Speed
-        err = writeMotorControlRegister(REG_CURRENT_SPEED,
-                                        FRONT_LEFT_MC_I2C_ADDR,
-                                        &Speed_buffer[0]);
-       
-        // Make sure everything is going well
-        if (err != MC_NO_ERROR)
-        {
-          resetMotorControllers();
-          log_WARNING_HI_MC_MSPNotResponding();
-          return false;
-        }
-       
-        // Get FR Current Speed
-        err = writeMotorControlRegister(REG_CURRENT_SPEED,
-                                        FRONT_RIGHT_MC_I2C_ADDR,
-                                        &Speed_buffer[4]);
-       
-        // Make sure everything is going well
-        if (err != MC_NO_ERROR)
-        {
-          resetMotorControllers();
-          log_WARNING_HI_MC_MSPNotResponding();
-          return false;
-        }
-       
-        // Get RR Current Speed
-        err = writeMotorControlRegister(REG_CURRENT_SPEED,
-                                        REAR_RIGHT_MC_I2C_ADDR,
-                                        &Speed_buffer[8]);
-       
-        // Make sure everything is going well
-        if (err != MC_NO_ERROR)
-        {
-          resetMotorControllers();
-          log_WARNING_HI_MC_MSPNotResponding();
-          return false;
-        }
-       
-        // Get RL Current Speed
-        err = writeMotorControlRegister(REG_CURRENT_SPEED,
-                                        REAR_LEFT_MC_I2C_ADDR,
-                                        &Speed_buffer[12]);
-       
-        // Make sure everything is going well
-        if (err != MC_NO_ERROR)
-        {
-          resetMotorControllers();
-          log_WARNING_HI_MC_MSPNotResponding();
-          return false;
-        }
-       
-        // If we got all the values we need, then we can update telemetry
-        tlmWrite_MC_FL_Speed((uint32_t) Speed_buffer[0]);
-        tlmWrite_MC_FR_Speed((uint32_t) Speed_buffer[4]);
-        tlmWrite_MC_RR_Speed((uint32_t) Speed_buffer[8]);
-        tlmWrite_MC_RL_Speed((uint32_t) Speed_buffer[12]);
-        return true;
     }
  
     /**
@@ -1378,10 +1306,10 @@ namespace CubeRover {
         m_FR_Encoder_Count += (uint16_t) Encoder_buffer[4];
         m_RR_Encoder_Count += (uint16_t) Encoder_buffer[8];
         m_RL_Encoder_Count += (uint16_t) Encoder_buffer[12];
-        tlmWrite_MC_FL_Encoder_Dist(m_FL_Encoder_Count + m_FR_Encoder_Count_Offset);
-        tlmWrite_MC_FR_Encoder_Dist(m_FR_Encoder_Count + m_FL_Encoder_Count_Offset);
-        tlmWrite_MC_RR_Encoder_Dist(m_RR_Encoder_Count + m_RL_Encoder_Count_Offset);
-        tlmWrite_MC_RL_Encoder_Dist(m_RL_Encoder_Count + m_RR_Encoder_Count_Offset);
+        tlmWrite_MC_FL_Encoder_Ticks(m_FL_Encoder_Count + m_FR_Encoder_Count_Offset);
+        tlmWrite_MC_FR_Encoder_Ticks(m_FR_Encoder_Count + m_FL_Encoder_Count_Offset);
+        tlmWrite_MC_RR_Encoder_Ticks(m_RR_Encoder_Count + m_RL_Encoder_Count_Offset);
+        tlmWrite_MC_RL_Encoder_Ticks(m_RL_Encoder_Count + m_RR_Encoder_Count_Offset);
         return true;
     }
  
@@ -1399,7 +1327,6 @@ namespace CubeRover {
         {
           case REG_I2C_ADDRESS:
           case REG_CURRENT_POSITION:
-          case REG_CURRENT_SPEED:
           case REG_MOTOR_CURRENT:
             return true;
        

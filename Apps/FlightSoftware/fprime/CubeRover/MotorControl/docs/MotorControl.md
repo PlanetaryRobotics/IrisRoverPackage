@@ -7,37 +7,29 @@
 |Mnemonic|ID|Description|Arg Name|Arg Type|Comment
 |---|---|---|---|---|---|
 |MC_Current_PID|0 (0x0)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
 | | | |PI_Values|U32||
 |MC_Speed_PID|1 (0x1)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
-| | | |PID_Values|U64||
-|MC_Position_PID|2 (0x2)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
-| | | |PID_Values|U64||
+| | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
+| | | |PID_Values|U32||
 |MC_Acceleration|3 (0x3)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
 | | | |Rate_Values|U32||
 |MC_StallDetection|4 (0x4)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
 | | | |Value|U8|0x00 is disabled, 0xFF is enabled |
 |MC_ResetPosition|5 (0x5)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
 |MC_Spin|6 (0x6)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
-| | | |Spin_Type|U8||
+| | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
+| | | |Raw_Ticks|U32||
 |MC_PowerBoost|7 (0x7)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
 | | | |Value|U8|0x00 is On, 0xFF is Off |
 |MC_SetParameter|8 (0x8)|| | |
 | | | |ParamSelect|MC_ParameterSelection| Change internal parameters of the module |
 | | | |New_Value|U32| The new value to be used in place |
-|MC_GetParameters|9 (0x9)|Returns all current parameters of the module| | |
 |MC_UpdateTelemetry|16 (0x10)|Forces a telemetry update from the motors| | |
-|MC_DriveTest|152 (0x98)|Allows the direct commanding of moves bypassing Nav if things are incorrect| | |
-| | | |Distance|I64||
-| | | |MoveType|I8||
-|MC_SelfTest|153 (0x99)|Runs through a routine to confirms the MSP are functioning properly| | |
 
 ## Telemetry Channel List
 

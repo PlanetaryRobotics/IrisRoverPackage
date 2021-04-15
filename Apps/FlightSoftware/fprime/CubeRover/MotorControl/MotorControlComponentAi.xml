@@ -50,7 +50,7 @@
     <port name="motorCommandIn" data_type="CubeRoverPorts::MotorCommand" kind="sync_input" max_number="1"></port>
 
     <!-- Watchdog Reset port -->
-    <port name="WatchdogCommandOut" data_type="CubeRoverPorts::WatchdogResetRequest" kind="output" max_number="1"></port>
+    <!--<port name="WatchdogCommandOut" data_type="CubeRoverPorts::WatchdogResetRequest" kind="output" max_number="1"></port>-->
 
   </ports>
 
@@ -59,7 +59,7 @@
     <command kind="guarded" opcode="0x00" mnemonic="MC_Current_PID">
       <args>
         <arg name="Motor_ID" type="U8">
-          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+          <comment>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </comment>
         </arg>
         <arg name="PI_Values" type="U32"/>
       </args>
@@ -68,25 +68,25 @@
     <command kind="guarded" opcode="0x01" mnemonic="MC_Speed_PID">
       <args>
         <arg name="Motor_ID" type="U8">
-          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+          <comment>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </comment>
         </arg>
-        <arg name="PID_Values" type="U64"/>
+        <arg name="PID_Values" type="U32"/>
       </args>
     </command>
 
-    <command kind="guarded" opcode="0x02" mnemonic="MC_Position_PID">
+    <!--<command kind="guarded" opcode="0x02" mnemonic="MC_Position_PID">
       <args>
         <arg name="Motor_ID" type="U8">
-          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+          <comment>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </comment>
         </arg>
-        <arg name="PID_Values" type="U64"/>
+        <arg name="PID_Values" type="U32"/>
       </args>
-    </command>
+    </command>-->
 
     <command kind="guarded" opcode="0x03" mnemonic="MC_Acceleration">
       <args>
         <arg name="Motor_ID" type="U8">
-          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+          <comment>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </comment>
         </arg>
         <arg name="Rate_Values" type="U32"/>
       </args>
@@ -95,7 +95,7 @@
     <command kind="guarded" opcode="0x04" mnemonic="MC_StallDetection">
       <args>
         <arg name="Motor_ID" type="U8">
-          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+          <comment>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </comment>
         </arg>
         <arg name="Value" type="U8">
         	<comment>0x00 is disabled, 0xFF is enabled </comment>
@@ -106,7 +106,7 @@
     <command kind="guarded" opcode="0x05" mnemonic="MC_ResetPosition">
       <args>
         <arg name="Motor_ID" type="U8">
-          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+          <comment>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </comment>
         </arg>
       </args>
     </command>
@@ -114,16 +114,16 @@
     <command kind="guarded" opcode="0x06" mnemonic="MC_Spin">
       <args>
         <arg name="Motor_ID" type="U8">
-          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+          <comment>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </comment>
         </arg>
-        <arg name="Spin_Type" type="U8"/>
+        <arg name="Raw_Ticks" type="U32"/>
       </args>
     </command>
 
     <command kind="guarded" opcode="0x07" mnemonic="MC_PowerBoost">
       <args>
         <arg name="Motor_ID" type="U8">
-          <comment>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </comment>
+          <comment>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </comment>
         </arg>
         <arg name="Value" type="U8">
         	<comment>0x00 is On, 0xFF is Off </comment>
@@ -146,24 +146,8 @@
       </args>
     </command>
 
-    <command kind="guarded" opcode="0x09" mnemonic="MC_GetParameters">
-       <comment> Returns all current parameters of the module </comment>
-    </command>
-
     <command kind="guarded" opcode="0x10" mnemonic="MC_UpdateTelemetry">
        <comment> Forces a telemetry update from the motors </comment>
-    </command>
-
-    <command kind="guarded" opcode="0x98" mnemonic="MC_DriveTest">
-       <comment> Allows the direct commanding of moves bypassing Nav if things are incorrect </comment>
-       <args>
-	       <arg name="Distance" type="I64" />
-	       <arg name="MoveType" type="I8" />
-	     </args>
-    </command>
-
-    <command kind="guarded" opcode="0x99" mnemonic="MC_SelfTest">
-       <comment> Runs through a routine to confirms the MSP are functioning properly </comment>
     </command>
 
   </commands> 

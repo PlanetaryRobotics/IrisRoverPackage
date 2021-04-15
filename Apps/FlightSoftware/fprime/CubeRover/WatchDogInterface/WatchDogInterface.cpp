@@ -578,9 +578,8 @@ namespace CubeRover {
             this->log_WARNING_HI_WatchDogTimedOut();
         }
     }
-    else if (0 < header->payload_length and header->payload_length < UDP_MAX_PAYLOAD)  // Received uplinked data
+    else if (0 < header->payload_length and header->payload_length < WATCHDOG_MAX_PAYLOAD)  // Received uplinked data
     {
-        // UDP_MAX_PAYLOAD defined in FlightMCU/Include/FswPacket.hpp
         // TODO: Verify that the MTU for wired connection is the same as Wifi
         Fw::Buffer uplinked_data;
         dmaReceive(reinterpret_cast<void *>(uplinked_data.getdata()), header->payload_length);

@@ -53,7 +53,7 @@
 #ifdef IRIS_SPIN_HALF_SPEED
     #define MAX_TARGET_SPEED                   50
 #else
-    #define MAX_TARGET_SPEED                   100
+    #define MAX_TARGET_SPEED                   100U
 #endif
 
 #define MIN_TARGET_SPEED                  -MAX_TARGET_SPEED

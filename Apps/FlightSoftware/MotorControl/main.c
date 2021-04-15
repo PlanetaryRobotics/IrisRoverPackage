@@ -1,6 +1,6 @@
 // [DEBUG] Switches
 //#define IRIS_ALL_OFF
-#define IRIS_CLEAR_FAULT
+//#define IRIS_CLEAR_FAULT
 //#define IRIS_SPIN_MOTOR
 //#define IRIS_SPIN_MOTOR_REVERSE
 //#define IRIS_SPIN_MOTOR_INDEF
@@ -64,6 +64,9 @@ uint8_t g_errorCounter= 0; // incremented every time inner control loop is reach
 
 // backup plan for if we cannot get encoder readings
 volatile bool driveOpenLoop = false;
+
+int g_testeroni = 0;
+volatile uint8_t g_rxBuffer_tmp[I2C_RX_BUFFER_MAX_SIZE];
 
 
 /**
@@ -564,9 +567,12 @@ void main(void){
   // Turn off the watchdog
   WDT_A_hold(WDT_A_BASE);
 
+
   initializeGpios();
 
   // [DEBUG]
+  g_rxBuffer_tmp[0] = 75;
+
 #ifdef IRIS_CLEAR_FAULT
   clear_driver_fault_register();
 #endif
@@ -603,6 +609,7 @@ void main(void){
   g_state = RUNNING; // g_statusRegister bit 3 is 0 to reflect this state
   g_cmdState = NO_CMD;
 
+//  copyArray((uint8_t*)g_rxBuffer_tmp, (uint8_t*)&g_maxSpeed,sizeof(g_maxSpeed));
 
   g_maxSpeed = MAX_TARGET_SPEED;
 
@@ -638,6 +645,9 @@ void main(void){
 
   __bis_SR_register(GIE);
 
+
+
+
   currentOffsetCalibration();
 
   enableGateDriver(); // TODO <<<< remove this line
@@ -672,6 +682,10 @@ void main(void){
        g_piCur.v1 = 0;
        __enable_interrupt();
    }
+
+//   copyArray((uint8_t*)g_rxBuffer_tmp,
+//                     (uint8_t*)&g_maxSpeed,
+//                     sizeof(g_maxSpeed));
 
    //updateStateMachine();
 #endif

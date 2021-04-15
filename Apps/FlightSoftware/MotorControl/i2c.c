@@ -68,8 +68,8 @@ inline void enableI2cTxInterrupt(void){
  * @param      dest    The destination
  * @param[in]  size    The size
  */
-inline void copyArray(uint8_t *source, uint8_t *dest, uint8_t size){
-    uint8_t copyIndex = 0;
+void copyArray(uint8_t *source, uint8_t *dest, int size){
+    volatile int copyIndex = 0;
     for (copyIndex = 0; copyIndex < size; copyIndex++){
         dest[copyIndex] = source[copyIndex];
     }
@@ -196,11 +196,15 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
         break;
       }
       case TARGET_SPEED:
+      {
         copyArray((uint8_t*)g_rxBuffer,
                   (uint8_t*)&g_maxSpeed,
                   sizeof(g_maxSpeed));
-        if(g_maxSpeed > MAX_TARGET_SPEED) g_maxSpeed = MAX_TARGET_SPEED;
+//        if(g_maxSpeed > MAX_TARGET_SPEED){
+//            g_maxSpeed = MAX_TARGET_SPEED;
+//        }
         break;
+      }
       case P_CURRENT:
         copyArray((uint8_t*)g_rxBuffer,
                   (uint8_t*)&g_piCur.Kp,

@@ -105,7 +105,7 @@ int main(void) {
     /* enter service mode */
 //    enterMode(RS_SERVICE);
     // enter lander mode for tVac testing
-    enterMode(RS_MISSION);
+    enterMode(RS_KEEPALIVE);
 //    enterMode(RS_KEEPALIVE);
 
     // TODO: camera switch is for debugging only
@@ -224,6 +224,7 @@ int main(void) {
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */
                 watchdog_monitor();
+                send_earth_heartbeat();
                 break;
             case RS_FAULT:
                 /* sad :( */

@@ -148,9 +148,17 @@ uint8_t handle_watchdog_reset_cmd(uint8_t cmd) {
     case 0x19:
         fpgaCameraSelectLo();
         break;
-    /* 0x20: FPGA camera select #1 */
-    case 0x20:
+    /* 0x1A: FPGA camera select #1 */
+    case 0x1A:
         fpgaCameraSelectHi();
+        break;
+    /* 0x1F: heater control off */
+    case 0x1F:
+        //();
+        break;
+    /* 0x20: heater control on */
+    case 0x20:
+        //();
         break;
     default:
         /* invalid command */
@@ -365,6 +373,11 @@ void send_earth_heartbeat() {
 
     // build the packet
     pbuf.buf[0] = 0xFF;
+    // TODO: tvac changes
+    pbuf.buf[1] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 8);
+    pbuf.buf[2] = (uint8_t)(adc_values[ADC_TEMP_IDX]);
+
+    /*
     // send the battery voltage
     pbuf.buf[1] = (uint8_t)(raw_battery_voltage[0] >> 1); //TODO: fix this
     pbuf.buf[1] = pbuf.buf[1] << 1;
@@ -377,7 +390,7 @@ void send_earth_heartbeat() {
 
     // send the thermistor temperature (12 bits to 8 bits)
     pbuf.buf[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
-    pbuf.used += 4;
+    pbuf.used += 4;*/
 
     // send the packet!
     ipudp_send_packet(pbuf.buf, pbuf.used);

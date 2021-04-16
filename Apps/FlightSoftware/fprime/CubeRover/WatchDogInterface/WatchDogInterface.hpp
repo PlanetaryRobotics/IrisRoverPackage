@@ -8,6 +8,7 @@
 // ALL RIGHTS RESERVED.  United States Government Sponsorship
 // acknowledged.
 //
+// This file outlines all functions implemented in WatchDogInterface
 // ======================================================================
 
 #ifndef WatchDogInterface_HPP
@@ -19,12 +20,17 @@
 #include "adc.h"
 #include "sci.h"
 
+// The pin number for the deploment pin 2
 const U8 deploy_bit = 5;
+// The number of thermistors on the SBC
 const U8 number_thermistors = 6;
-
+// Default size of zero sent to watchdog
 const U16 zero_size = 0x0000;
+// Minimum size that should be received back from watchdog when receiving
 const U8 min_receive_size = 8;
-
+// Magic Value first sent in the header between watchdog and hercules communication
+const U32 header_magic = 0x21B00B;
+// The maximum enumerated value possible in the reset_value enumeration
 #define max_reset_value Disable_Heater_Control
 
 namespace CubeRover {
@@ -212,12 +218,12 @@ namespace CubeRover {
 
       /* End of Commands that Only Watchdog Processes*/
 
-      // frame struct
+      // The Header Frame structure sent and received between Hercules and Watchdog
       struct WatchdogFrameHeader {
-        uint32_t magic_value    :24;
-        uint32_t parity         :8;
-        uint16_t payload_length;
-        uint16_t reset_val;
+        uint32_t magic_value    :24;  // 24 bit magic value that is constant and sent at the begining of every send
+        uint32_t parity         :8;   // 8 bit partity of whole header, initially calculated with parity equal to 0
+        uint16_t payload_length;      // The length of the payload being sent
+        uint16_t reset_val;           // The reset value being sent to watchdog
       } __attribute__((packed, aligned(8)));
 
      struct WatchdogTelemetry {

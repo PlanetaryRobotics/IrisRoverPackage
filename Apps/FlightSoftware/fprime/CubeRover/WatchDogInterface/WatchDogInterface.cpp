@@ -415,7 +415,7 @@ namespace CubeRover {
   bool WatchDogInterfaceComponentImpl :: Send_Frame(U16 payload_length, U16 reset_value)
   {
       struct WatchdogFrameHeader frame;
-      frame.magic_value = 0x21B00B;
+      frame.magic_value = 0x0021B00B;
       frame.parity = 0;
       frame.payload_length = static_cast<U16>(payload_length);
       frame.reset_val = static_cast<U16>(reset_value);
@@ -430,7 +430,7 @@ namespace CubeRover {
                        ((frame_bin & 0x00FF000000000000L) >> 48) +
                        ((frame_bin & 0xFF00000000000000L) >> 56));
       dmaSend(&frame, sizeof(frame));
-      
+
       return true;
   }
 
@@ -499,7 +499,7 @@ namespace CubeRover {
     }
 
     // Check that a magic value, parity and reset_value of frame was sent back
-    if(header->magic_value != 0x21B00B)
+    if(header->magic_value != header_magic)
     {
         this->log_WARNING_HI_WatchDogIncorrectResp(bad_magic_value);
         return size_read;

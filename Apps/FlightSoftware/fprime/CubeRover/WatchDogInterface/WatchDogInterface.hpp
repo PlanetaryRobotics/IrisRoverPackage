@@ -19,6 +19,14 @@
 #include "adc.h"
 #include "sci.h"
 
+const U8 deploy_bit = 5;
+const U8 number_thermistors = 6;
+
+const U16 zero_size = 0x0000;
+const U8 min_receive_size = 8;
+
+#define max_reset_value Disable_Heater_Control
+
 namespace CubeRover {
 
   class WatchDogInterfaceComponentImpl :
@@ -104,14 +112,21 @@ namespace CubeRover {
       void Reset_Specific_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq, /*!< The command sequence number*/
-          U8 reset_value /*!< 
-                    	U8 Value that represents which things need to be reset
+          reset_values_possible reset_value /*!< 
+                    	Value that represents which things need to be reset
                     */
       );
 
       //! Implementation for Disengage_From_Lander command handler
       //! Command to send signal to MSP430 that it should send a signal to lander to disengage
       void Disengage_From_Lander_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      //! Implementation for Engage_From_Lander command handler
+      //! Command to send signal to MSP430 that it should send a signal to lander to engage, sets disengage pin low
+      void Engage_From_Lander_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq /*!< The command sequence number*/
       );
@@ -132,20 +147,6 @@ namespace CubeRover {
           const U32 cmdSeq /*!< The command sequence number*/
       );
 
-      //! Implementation for Set_Kp_Most command handler
-      //! Command to send signal to MSP430 that it should set Kp to most significant parameter
-      void Set_Kp_Most_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
-      );
-
-      //! Implementation for Set_Kp_Least command handler
-      //! Command to send signal to MSP430 that it should set Kp to least significant parameter
-      void Set_Kp_Least_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
-      );
-
       //! Implementation for Set_Kp_Specific command handler
       //! Command to send signal to MSP430 that it should set Kp to a specific value
       void Set_Kp_Specific_cmdHandler(
@@ -153,37 +154,30 @@ namespace CubeRover {
           const U32 cmdSeq /*!< The command sequence number*/
       );
 
-      //! Implementation for Set_Ki_Most command handler
-      //! Command to send signal to MSP430 that it should set Ki to most significant parameter
-      void Set_Ki_Most_cmdHandler(
+      //! Implementation for Set_Heater_On_value command handler
+      //! Command to send signal to MSP430 that it should set the value which the heater automatically turns on
+      void Set_Heater_On_value_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq /*!< The command sequence number*/
       );
 
-      //! Implementation for Set_Ki_Least command handler
-      //! Command to send signal to MSP430 that it should set Ki to least significant parameter
-      void Set_Ki_Least_cmdHandler(
+      //! Implementation for Set_Heater_Off_value command handler
+      //! Command to send signal to MSP430 that it should set the value which the heater automatically turns off
+      void Set_Heater_Off_value_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq /*!< The command sequence number*/
       );
 
-      //! Implementation for Set_Ki_Specific command handler
-      //! Command to send signal to MSP430 that it should set Ki to a specific value
-      void Set_Ki_Specific_cmdHandler(
+      //! Implementation for Set_Heater_Duty_Cycle_Max command handler
+      //! Command to send signal to MSP430 that it should set the max possible Duty Cycle value for the heater
+      void Set_Heater_Duty_Cycle_Max_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq /*!< The command sequence number*/
       );
 
-      //! Implementation for Set_Kd_Most command handler
-      //! Command to send signal to MSP430 that it should set Kd to most significant parameter
-      void Set_Kd_Most_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
-      );
-
-      //! Implementation for Set_Kd_Least command handler
-      //! Command to send signal to MSP430 that it should set Kd to least significant parameter
-      void Set_Kd_Least_cmdHandler(
+      //! Implementation for Set_Heater_Duty_Cycle_Period command handler
+      //! Command to send signal to MSP430 that it should set the period the Duty Cycle for the heater is at
+      void Set_Heater_Duty_Cycle_Period_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq /*!< The command sequence number*/
       );
@@ -247,40 +241,17 @@ namespace CubeRover {
          not_enough_bytes = 5
      };
 
-     enum send_values : U16
+     enum disengage_command : U16
      {
-        No_Reset = 0x00,
-        Reset_Hercules = 0x01,
-        Hercules_Power_On = 0x02,
-        Hercules_Power_Off = 0x03,
-        Reset_Radio = 0x04,
-        Radio_Power_On = 0x05,
-        Radio_Power_Off = 0x06,
-        Reset_FPGA = 0x07,
-        FPGA_Power_On = 0x08,
-        FPGA_Power_Off = 0x09,
-        Reset_Motor1 = 0x0A,
-        Reset_Motor2 = 0x0B,
-        Reset_Motor3 = 0x0C,
-        Reset_Motor4 = 0x0D,
-        Reset_All_Motors = 0x0E,
-        All_Motors_On = 0x0F,
-        All_Motors_Off = 0x10,
-        Reset_EN_3_3 = 0x11,
-        EN_3_3_Power_On = 0x12,
-        EN_3_3_Power_Off = 0x13,
-        Reset_24_EN = 0x14,
-        EN_24_On = 0x15,
-        EN_24_Off = 0x16,
-        HDRM_On = 0x17,
-        HDRM_Off = 0x18,
-        FPGA_Cam_1 = 0x19,
-        FPGA_Cam_2 = 0x20,
+        Disengage = 0x00EE
      };
 
-     int Receive_Frame(uint32_t *comm_error, WatchdogFrameHeader *header);
+     // Receives a Frame start everytime data is sent from watchdog to hercules
+     int Receive_Frame(uint32_t *comm_error, // Error returned from receiving frame
+                      WatchdogFrameHeader *header  // Location to save data into
+                      );
 
-     // Sends a Frame start everytime data is sent from cuberover to watchdog
+     // Sends a Frame start everytime data is sent from hercules to watchdog
      bool Send_Frame(
          U16 payload_length,    // stroke if 0x0000 or UDP data size if larger than
          U16 reset_value        // reset value for watchdog
@@ -295,11 +266,11 @@ namespace CubeRover {
 
       // Usage during FSW initialization
       // Only difference between this is function and Reset_Specific_cmdHandler is lack of cmd response
-      bool Reset_Specific_Handler(U8 reset_value);
+      bool Reset_Specific_Handler(reset_values_possible reset_value);
 
 
       sciBASE_t *m_sci;
-      adcData_t m_thermistor_buffer[6];
+      adcData_t m_thermistor_buffer[number_thermistors];  // Location to store current data for thermistors
       bool m_finished_initializing;     // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
 
     };

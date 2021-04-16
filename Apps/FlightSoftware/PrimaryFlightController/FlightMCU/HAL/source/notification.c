@@ -51,22 +51,16 @@
 #include "esm.h"
 #include "sys_selftest.h"
 #include "adc.h"
-#include "can.h"
 #include "gio.h"
 #include "mibspi.h"
 #include "sci.h"
 #include "spi.h"
-#include "het.h"
-#include "dcc.h"
+#include "rti.h"
 #include "i2c.h"
-#include "crc.h"
-#include "etpwm.h"
-#include "eqep.h"
-#include "ecap.h"
 #include "sys_dma.h"
-#include "emac.h" 
 
 /* USER CODE BEGIN (0) */
+#include "App/ISR.hpp"
 /* USER CODE END */
 #pragma WEAK(esmGroup1Notification)
 void esmGroup1Notification(uint32 channel)
@@ -108,6 +102,16 @@ void memoryPort1TestFailNotification(uint32 groupSelect, uint32 dataSelect, uint
 
 /* USER CODE BEGIN (8) */
 /* USER CODE END */
+#pragma WEAK(rtiNotification)
+void rtiNotification(uint32 notification)
+{
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (9) */
+/* USER CODE END */
+}
+
+/* USER CODE BEGIN (10) */
+/* USER CODE END */
 #pragma WEAK(adcNotification)
 void adcNotification(adcBASE_t *adc, uint32 group)
 {
@@ -117,42 +121,6 @@ void adcNotification(adcBASE_t *adc, uint32 group)
 }
 
 /* USER CODE BEGIN (12) */
-/* USER CODE END */
-#pragma WEAK(canErrorNotification)
-void canErrorNotification(canBASE_t *node, uint32 notification)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (13) */
-/* USER CODE END */
-}
-
-#pragma WEAK(canStatusChangeNotification)
-void canStatusChangeNotification(canBASE_t *node, uint32 notification)  
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (14) */
-/* USER CODE END */
-}
-
-#pragma WEAK(canMessageNotification)
-void canMessageNotification(canBASE_t *node, uint32 messageBox)  
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (15) */
-/* USER CODE END */
-}
-
-/* USER CODE BEGIN (16) */
-/* USER CODE END */
-#pragma WEAK(dccNotification)
-void dccNotification(dccBASE_t  *dcc,uint32 flags)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (17) */
-/* USER CODE END */
-}
-
-/* USER CODE BEGIN (18) */
 /* USER CODE END */
 #pragma WEAK(gioNotification)
 void gioNotification(gioPORT_t *port, uint32 bit)
@@ -225,93 +193,19 @@ void spiEndNotification(spiBASE_t *spi)
 /* USER CODE BEGIN (34) */
 /* USER CODE END */
 
-#pragma WEAK(pwmNotification)
-void pwmNotification(hetBASE_t * hetREG,uint32 pwm, uint32 notification)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (35) */
-/* USER CODE END */
-}
 
-/* USER CODE BEGIN (36) */
-/* USER CODE END */
-#pragma WEAK(edgeNotification)
-void edgeNotification(hetBASE_t * hetREG,uint32 edge)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (37) */
-/* USER CODE END */
-}
-
-/* USER CODE BEGIN (38) */
-/* USER CODE END */
-#pragma WEAK(hetNotification)
-void hetNotification(hetBASE_t *het, uint32 offset)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (39) */
-/* USER CODE END */
-}
-
-/* USER CODE BEGIN (40) */
-/* USER CODE END */
-
-#pragma WEAK(crcNotification)
-void crcNotification(crcBASE_t *crc, uint32 flags)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (41) */
-/* USER CODE END */
-}
-/* USER CODE BEGIN (42) */
-/* USER CODE END */
 
 /* USER CODE BEGIN (43) */
 /* USER CODE END */
 
-#pragma WEAK(etpwmNotification)
-void etpwmNotification(etpwmBASE_t *node)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (44) */
-/* USER CODE END */
-}
-#pragma WEAK(etpwmTripNotification)
-void etpwmTripNotification(etpwmBASE_t *node,uint16 flags)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (45) */
-/* USER CODE END */
-}
-
-/* USER CODE BEGIN (46) */
-/* USER CODE END */
 
 /* USER CODE BEGIN (47) */
 /* USER CODE END */
 
-#pragma WEAK(eqepNotification)
-void eqepNotification(eqepBASE_t *eqep,uint16 flags)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (48) */
-/* USER CODE END */
-}
-/* USER CODE BEGIN (49) */
-/* USER CODE END */
 
 /* USER CODE BEGIN (50) */
 /* USER CODE END */
 
-#pragma WEAK(ecapNotification)
-void ecapNotification(ecapBASE_t *ecap,uint16 flags)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (51) */
-/* USER CODE END */
-}
-/* USER CODE BEGIN (52) */
-/* USER CODE END */
 
 /* USER CODE BEGIN (53) */
 /* USER CODE END */
@@ -321,6 +215,7 @@ void dmaGroupANotification(dmaInterrupt_t inttype, uint32 channel)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
 /* USER CODE BEGIN (54) */
+    Update_DMA_Comp_Flag(inttype, (enum dmaCHANNEL)channel);
 /* USER CODE END */
 }
 /* USER CODE BEGIN (55) */
@@ -328,23 +223,9 @@ void dmaGroupANotification(dmaInterrupt_t inttype, uint32 channel)
 
 /* USER CODE BEGIN (56) */
 /* USER CODE END */
-#pragma WEAK(emacTxNotification)
-void emacTxNotification(hdkif_t *hdkif)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (57) */
-/* USER CODE END */
-}
 
 /* USER CODE BEGIN (58) */
 /* USER CODE END */
-#pragma WEAK(emacRxNotification)
-void emacRxNotification(hdkif_t *hdkif)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (59) */
-/* USER CODE END */
-}
 
 /* USER CODE BEGIN (60) */
 /* USER CODE END */

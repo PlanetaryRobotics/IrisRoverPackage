@@ -555,8 +555,8 @@ ErrorCode CubeRoverNetworkManager :: initializeNetworkManager(){
 
   // Configure the TCP/IP address
   errorCode = ConfigureTcpIp(m_roverIpAddress,
-                             m_roverMaskAddress,
-                             m_udpGatewayAddress,
+                             m_subnetMask,
+                             m_gatewayAddress,
                              false /* do not use dhcp */);
 
   // Block until it timeouts or generate an error
@@ -752,8 +752,8 @@ ErrorCode CubeRoverNetworkManager :: startUdpServer(){
   m_udpServerStarted = false;
 
   // Connect to UDP to support outcoming data
-  errorCode = UdpConnect(&m_udpGatewayAddress,
-                         GATEWAY_PORT,
+  errorCode = UdpConnect(&m_spacecraftIpAddress,
+                         m_spacecraftUDPPort,
                          -1);
 
   if(errorCode != NO_ERROR){
@@ -769,7 +769,7 @@ ErrorCode CubeRoverNetworkManager :: startUdpServer(){
   }
   
   errorCode = UdpBind(m_udpSendEndpoint,
-                      ROVER_UDP_PORT);
+                      m_roverUDPPort);
 
   if(errorCode != NO_ERROR){
     return errorCode;
@@ -785,7 +785,7 @@ ErrorCode CubeRoverNetworkManager :: startUdpServer(){
   }
 
   // Create a UDP server to support incoming data
-  errorCode = StartUdpServer(ROVER_UDP_PORT,
+  errorCode = StartUdpServer(m_roverUDPPort,
                              -1);
 
   if(errorCode != NO_ERROR){
@@ -1333,7 +1333,7 @@ ErrorCode CubeRoverNetworkManager :: cb_EventUdpData(const Endpoint endpoint,
                                                      const DataSize16 dataSize){
   uint8_t *ptrData = data;
 
-  if(ipAddressesMatch(srcAddress, m_udpGatewayAddress)){
+  if(ipAddressesMatch(srcAddress, m_spacecraftIpAddress)){
 
     // Log the number of bytes received
     m_logNbOfBytesReceived += dataSize;
@@ -1390,7 +1390,7 @@ ErrorCode CubeRoverNetworkManager :: cb_EventTcpIpEndpointStatus( const uint8_t 
                                                                   const uint16_t remotePort){
   ErrorCode errorCode = NO_ERROR;
 
-  if(localPort != ROVER_UDP_PORT){
+  if(localPort != m_roverUDPPort){
     m_udpConnectSet = true;
     m_udpSendEndpoint = endpoint;
   }

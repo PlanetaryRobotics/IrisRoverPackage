@@ -2,9 +2,10 @@
 #define INCLUDE_CUBEROVERCONFIG_HPP_
 
 // Definition of rate group dividers
-#define RATEGROUP_DIVIDER_LOW_FREQ  22000 // 1Hz
-#define RATEGROUP_DIVIDER_MED_FREQ  2200   // 100Hz
-#define RATEGROUP_DIVIDER_HI_FREQ   220    // 1kHz
+// Tick Interrupt @ 1kHz
+#define RATEGROUP_DIVIDER_LOW_FREQ  1000 // 1Hz
+#define RATEGROUP_DIVIDER_MED_FREQ  100  // 100Hz
+#define RATEGROUP_DIVIDER_HI_FREQ   1    // 1kHz
 
 // Definition of component instance ID, Affinity and queue depth
 #define EVENT_LOGGER_ID             0
@@ -51,10 +52,11 @@
 #define NAV_AFF                     25
 #define NAV_QUEUE_DEPTH             1
 
-// Hercules SPI register that handles IMU interface
-#define IMU_SPI_REG                	spiREG3
+#define WATCHDOG_ID                 0
+#define WATCHDOG_AFF                26    // TODO: Good value for this
+#define WATCHDOG_QUEUE_DEPTH        1
 
-#define MIN_STACK_SIZE_BYTES        1024
+#define MIN_STACK_SIZE_WORDS        1024
 
 // Configuration of I2C interfaces address and ports
 // For the motor controllers

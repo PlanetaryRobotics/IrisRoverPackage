@@ -1,6 +1,6 @@
---- CubeRoverTopologyAppAc.hpp.orig	2020-12-20 11:34:17.490796390 -0800
-+++ CubeRoverTopologyAppAc.hpp	2020-12-20 11:42:26.840069860 -0800
-@@ -25,24 +25,24 @@
+--- CubeRoverTopologyAppAc.hpp.orig	2021-03-31 17:04:19.366005238 -0400
++++ CubeRoverTopologyAppAc.hpp	2021-03-31 17:05:06.586443746 -0400
+@@ -24,22 +24,22 @@
  extern Fw::SimpleObjRegistry simpleReg;
  
  // Component declarations
@@ -15,7 +15,6 @@
 -extern CubeRover::GroundInterfaceImpl groundInterface("groundInterface");
 -extern CubeRover::NetworkManagerImpl networkManager("networkManager");
 -extern Svc::ActiveLoggerImpl activeLogger("activeLogger");
--extern Svc::HealthImpl health("health");
 -extern CubeRover::NavigationImpl navigation("navigation");
 -extern CubeRover::MotorControlImpl motorControl("motorControl");
 -extern CubeRover::IMUImpl IMU("IMU");
@@ -33,7 +32,6 @@
 +extern CubeRover::GroundInterfaceComponentImpl groundInterface;
 +extern CubeRover::NetworkManagerComponentImpl networkManager;
 +extern Svc::ActiveLoggerImpl activeLogger;
-+extern Svc::HealthImpl health;
 +extern CubeRover::NavigationComponentImpl navigation;
 +extern CubeRover::MotorControlComponentImpl motorControl;
 +extern CubeRover::IMUComponentImpl IMU;

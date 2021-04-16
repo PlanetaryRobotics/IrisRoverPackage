@@ -524,7 +524,6 @@ uint32 sciReceiveByte(sciBASE_t *sci)
 /* Requirements : HL_SR240 */
 void sciReceive(sciBASE_t *sci, uint32 length, uint8 * data)
 {
-    uint32_t tries = 50000;
 /* USER CODE BEGIN (17) */
 /* USER CODE END */
 
@@ -545,14 +544,9 @@ void sciReceive(sciBASE_t *sci, uint32 length, uint8 * data)
         while (length > 0U)
         {
 	        /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Potentially infinite loop found - Hardware Status check for execution sequence" */
-            while (((sci->FLR & (uint32)SCI_RX_INT) == 0U) && tries > 0)
+            while ((sci->FLR & (uint32)SCI_RX_INT) == 0U) 
             { 
-                tries--;
             } /* Wait */
-
-            if(!tries){
-                asm(" NOP");
-            }
 			/*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
             *data = (uint8)(sci->RD & 0x000000FFU);
 			/*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
@@ -832,10 +826,8 @@ int32_t sciReceiveWithTimeout(sciBASE_t *sci, uint32 length, uint8 * data, uint3
             length--;
             bytesRead++;
 
-            // Returns negative value on error. Bit 31 on FLR is BE which can only be set if using LIN
-            uint32_t error_val = sciRxError(sci);
-            if(error_val){
-                return ~(int32_t)error_val; // error
+            if(sciRxError(sci)){
+                return -1; // error
             }
         }
     }

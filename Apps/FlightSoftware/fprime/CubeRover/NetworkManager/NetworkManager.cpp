@@ -117,10 +117,12 @@ namespace CubeRover {
             // TODO: TRIGGER MODEMANAGER ON LOS
         }
         m_current_state = updated_state;
+        /* TODO: UPDATE TEHSE ONCE PER TELEM DOWNLINK. DOING IT ON THE RATE GROUP IS TOO OFTEN
         tlmWrite_RSSI(m_crnm.GetSignalRssi());
         tlmWrite_SNR(m_crnm.GetSignalNoiseRatio());
         tlmWrite_PktRecv(m_crnm.GetNbOfBytesReceived());
         tlmWrite_PktSent(m_crnm.GetNbOfBytesSent());
+        */
     }
   
     void NetworkManagerComponentImpl::getUplinkDatagram() {

@@ -28,12 +28,15 @@ volatile uint8_t g_i2cCmdLength[MAX_NB_CMDS];
 extern CmdState g_cmdState;
 extern bool driveOpenLoop;
 
+extern bool g_i2cSend;
+
 
 /**
  * @brief      Disables i 2 c receive interrupt.
  */
 inline void disableI2cRxInterrupt(void){
   UCB0IE &= ~UCRXIE;
+//    return;
 }
 
 
@@ -50,6 +53,7 @@ inline void enableI2cRxInterrupt(void){
  */
 inline void disableI2cTxInterrupt(void){
   UCB0IE &= ~UCTXIE;
+//    return;
 }
 
 
@@ -178,7 +182,7 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
  *
  * @param[in]  cmd   The command
  */
-inline void i2cSlaveTransactionDone(const uint8_t cmd){
+void i2cSlaveTransactionDone(const uint8_t cmd){
     switch(cmd){
       case I2C_ADDRESS:
       case CURRENT_POSITION:
@@ -187,14 +191,11 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
       case FAULT_REGISTER:
         break;
       case TARGET_POSITION:
-      {
-        int32_t additional_target_pos;
         copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&additional_target_pos,
-                  sizeof(additional_target_pos));
-        g_targetPosition += additional_target_pos;
+                  (uint8_t*)&g_targetPosition,
+                  sizeof(g_targetPosition));
+        g_currentPosition = 0;
         break;
-      }
       case TARGET_SPEED:
       {
         copyArray((uint8_t*)g_rxBuffer,
@@ -338,6 +339,7 @@ __interrupt void USCI_B0_ISR(void){
     case USCI_I2C_UCRXIFG1:  break;         // Vector 18: RXIFG1
     case USCI_I2C_UCTXIFG1:  break;         // Vector 20: TXIFG1
     case USCI_I2C_UCRXIFG0:                 // Vector 22: RXIFG0
+    {
       rxBuf = UCB0RXBUF;
       switch(g_slaveMode){
         case RX_REG_ADDRESS_MODE:
@@ -359,7 +361,9 @@ __interrupt void USCI_B0_ISR(void){
           break;
       }
       break;  
+    }
     case USCI_I2C_UCTXIFG0:                 // Vector 24: TXIFG0
+        g_i2cSend = 1;
       switch(g_slaveMode){
         case TX_DATA_MODE:
           UCB0TXBUF = g_txBuffer[g_txBufferIdx++];

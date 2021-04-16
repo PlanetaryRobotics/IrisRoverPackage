@@ -1,4 +1,5 @@
 #include "CY15B102Q.hpp"
+#include "App/SPI.h"
 
 CY15B102Q :: CY15B102Q(){
   // External FRAM SPI data configuration
@@ -6,7 +7,12 @@ CY15B102Q :: CY15B102Q(){
   // Refer to datasheet, default number of dummy cycles between a SDI and SDO
   // is set by default to 8 clock cycles
   m_readLatencyCycles = DEFAULT_DUMMY_CYCLES;
-
+  m_framSpi = SPI_REG_FRAM;
+  m_framDataConfig.CS_HOLD = 0;
+  m_framDataConfig.WDEL = 0;
+  m_framDataConfig.DFSEL = SPI_FMT_0;
+  m_framDataConfig.CSNR = 0b11011111;  // Each index corresponds to CS[i]. Value represents the CS level when a transaction is occurring (1: hign, 0: low). SPIDEF sets the non-transaction CS level.
+                               // Note that SPI3 only has 6 CS pins, the upper 2 bits are don't care.
 }
 
 // Destructor: DO NOT USE
@@ -30,29 +36,8 @@ CY15B102Q :: CY15B102QError CY15B102Q :: setupDevice()
   FRAMSpiCommands id_opcode = RDID;
   m_spiTxBuff[0] = id_opcode & 0xff;
 
-  // Set CS low
-  gioSetBit(CS_SPI_PORT_FRAM, CS_SPI_BIT_FRAM, 0);
 
-  spiTransmitData(m_framSpi, &m_framDataConfig, 1 /*One byte opcode*/, (uint16_t *)&m_spiTxBuff);
-
-  while(totalBytesToRead > 0)
-  {
-      // min(totalBytesToRead, SPI_RX_BUFFER_MAX_LENGTH_FLASH)
-      uint16_t bytesToRead = (totalBytesToRead < SPI_RX_BUFFER_MAX_LENGTH_FRAM) ? 
-                              totalBytesToRead : SPI_RX_BUFFER_MAX_LENGTH_FRAM;
-      spiReceiveData(m_framSpi, &m_framDataConfig, bytesToRead, (uint16_t *)m_spiRxBuff);
-
-      // remove bytes to read
-      totalBytesToRead -= bytesToRead;
-
-      // copy bytes from rx buffer to destination buffer
-      for(int i=0; i<bytesToRead; i++){
-          id[i] = m_spiRxBuff[i] & 0xff;
-      }
-  }
-
-  // Set CS high
-  gioSetBit(CS_SPI_PORT_FRAM, CS_SPI_BIT_FRAM, 1);
+  framSpiReadData(id_opcode, (uint8_t *)id, 1 /*One byte opcode*/,0 /*no address needed*/);
 
   // Check that the device is connected and correct
   uint8_t id_cmp[9];
@@ -127,7 +112,10 @@ CY15B102Q :: CY15B102QError CY15B102Q :: framSpiReadData(const CY15B102Q::FRAMSp
   totalBytesToTransmit = 1;
   m_spiTxBuff[0] = (uint8_t) cmd;
 
-  addressLength = AddressLengthByte;
+  if(cmd == RDID)
+  	addressLength = 0;
+  else
+  	addressLength = AddressLengthByte;
   totalBytesToTransmit += addressLength;
 
   // Address must be defined if addressLength greater than 0
@@ -140,8 +128,9 @@ CY15B102Q :: CY15B102QError CY15B102Q :: framSpiReadData(const CY15B102Q::FRAMSp
   // Convert dummy cycles to number of bytes
   // HERCULES SPI ONLY GENERATE NUMBER OF DUMMY CYCLES MULTIPLE OF 8
   // Default value set by S25FL064 is 8
-  totalBytesToTransmit += getReadDummyCycles(cmd) >> 3;
+  //totalBytesToTransmit += getReadDummyCycles(cmd) >> 3;
 
+  // Likely don't need this check
   if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH_FRAM)
       return CY15B102Q_WRONG_DATA_SIZE;
 
@@ -152,30 +141,24 @@ CY15B102Q :: CY15B102QError CY15B102Q :: framSpiReadData(const CY15B102Q::FRAMSp
   }
 
   // Set CS low
-  gioSetBit(CS_SPI_PORT_FRAM, CS_SPI_BIT_FRAM, 0);
-
+  m_framDataConfig.CS_HOLD = 1;
   // Send transmission data
-  spiTransmitData(m_framSpi, &m_framDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
 
-  while(totalBytesToRead > 0)
-  {
-      // min(totalBytesToRead, SPI_RX_BUFFER_MAX_LENGTH_FLASH)
-      uint16_t bytesToRead = (totalBytesToRead < SPI_RX_BUFFER_MAX_LENGTH_FRAM) ? 
-                              totalBytesToRead : SPI_RX_BUFFER_MAX_LENGTH_FRAM;
-      spiReceiveData(m_framSpi, &m_framDataConfig, bytesToRead, (uint16_t *)m_spiRxBuff);
-
-      // remove bytes to read
-      totalBytesToRead -= bytesToRead;
-
-      // copy bytes from rx buffer to destination buffer
-      for(i=0; i<bytesToRead; i++){
-          *rxData = m_spiRxBuff[i] & 0xff;
-          rxData++;
-      }
-  }
+  // Special Command for Single Byte Transfer
+  if (totalBytesToTransmit <= 8)
+      spiTransmitOneByte(m_framSpi, &m_framDataConfig, (uint16_t *)&m_spiTxBuff);
+  // Normal Command
+  else
+      spiTransmitData(m_framSpi, &m_framDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
 
   // Set CS high
-  gioSetBit(CS_SPI_PORT_FRAM, CS_SPI_BIT_FRAM, 1);
+  m_framDataConfig.CS_HOLD = 0;
+
+  if (totalBytesToTransmit <= 8)
+      spiReceiveOneByte(m_framSpi, &m_framDataConfig, (uint16_t *)&rxData);
+    // Normal Command
+  else
+      spiReceiveData(m_framSpi, &m_framDataConfig, totalBytesToRead, (uint16_t *)rxData);
 
   return CY15B102Q_NO_ERROR;
 }
@@ -211,6 +194,7 @@ CY15B102Q :: CY15B102QError CY15B102Q :: framSpiWriteData(const CY15B102Q::FRAMS
       return CY15B102Q_UNEXPECTED_ERROR;
     }
 
+    // Likely Don't need this check
     if(totalBytesToTransmit > SPI_TX_BUFFER_MAX_LENGTH_FRAM){
       return CY15B102Q_WRONG_DATA_SIZE;
     }
@@ -231,12 +215,18 @@ CY15B102Q :: CY15B102QError CY15B102Q :: framSpiWriteData(const CY15B102Q::FRAMS
   }
 
   // Set CS low
-  gioSetBit(CS_SPI_PORT_FRAM, CS_SPI_BIT_FRAM, 0);
+  m_framDataConfig.CS_HOLD = 1;
+  // Send transmission data
 
-  spiTransmitData(m_framSpi, &m_framDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
+  // Special Command for Single Byte Transfer
+  if (totalBytesToTransmit <= 8)
+      spiTransmitOneByte(m_framSpi, &m_framDataConfig, (uint16_t *)&m_spiTxBuff);
+  // Normal Command
+  else
+      spiTransmitData(m_framSpi, &m_framDataConfig, totalBytesToTransmit, (uint16_t *)&m_spiTxBuff);
 
   // Set CS high
-  gioSetBit(CS_SPI_PORT_FRAM, CS_SPI_BIT_FRAM, 1);
+  m_framDataConfig.CS_HOLD = 0;
 
   return CY15B102Q_NO_ERROR;
 }

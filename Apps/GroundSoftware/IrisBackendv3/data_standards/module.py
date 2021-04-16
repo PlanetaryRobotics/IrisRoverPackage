@@ -294,6 +294,7 @@ class DataUnit(GswMetadataContainer):
                 f"Datatype is given as {self.datatype} but an enum list is also provided. "
                 f"An Argument must have type {FswDataType.ENUM} to have an enum list."
             )
+            #! TODO: Check if multiple EnumItems have the same name, value, or both
 
         if self.bitfields is not None and self.bitfields.total_bits != self.datatype.num_bits:
             raise ValueError(

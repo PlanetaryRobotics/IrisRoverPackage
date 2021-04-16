@@ -22,12 +22,13 @@ If a component directory doesn't contain a Bitfields file, it is assumed
 to not have a bitfield.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/07/2021
+@last-updated: 04/12/2021
 """
 
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
 
+import typing
 from typing import List, Optional, Dict, Any, TypeVar, Generic, Union, Tuple, Mapping, MutableMapping, Iterator, cast
 from collections import ChainMap
 import warnings
@@ -625,6 +626,8 @@ def import_all_fprime_xml(
 class DataStandards(object):
     """Loads and Stores the Standard Definitions for All Uplinked and Downlinked Data."""
 
+    EMPTY: Union[DataStandards, None] = None
+
     __slots__: List[str] = [
         # Modules, indexed by component ID (highest 1B of Iris Common Packet (ICP) opcode)
         '_modules',
@@ -635,8 +638,12 @@ class DataStandards(object):
     ]
 
     _modules: NameIdDict[Module]
-    commands_chainmap_opcode: ChainMap[int, Command]
-    commands_chainmap_name: ChainMap[str, Command]
+
+    # Chain Maps for globally looking up commands by name.
+    # Maps command opcodes or full_names to a tuple containing the ID of the
+    # command's module and the command itself.
+    commands_chainmap_opcode: typing.ChainMap[int, Tuple[int, Command]]
+    commands_chainmap_name: typing.ChainMap[str, Tuple[int, Command]]
 
     def __init__(self,  # DataStandards
                  modules: NameIdDict[Module]
@@ -661,14 +668,17 @@ class DataStandards(object):
         for m in self._modules.vals:
             cs = m.commands.collect()
             # Dict of opcode -> Command:
-            opcode_dict = dict(((m.ID | id), cmd) for ((names, id), cmd) in cs)
+            opcode_dict = dict(
+                ((m.ID | id), (m.ID, cmd))
+                for ((names, id), cmd) in cs
+            )
             # List of (names, Command):
-            names_list = [(names, cmd) for ((names, id), cmd) in cs]
+            names_list = [(names, (m.ID, cmd)) for ((names, id), cmd) in cs]
             # Flatten list of names into dict where each name has its own mapping to a command:
             names_dict = dict()
-            for names, cmd in names_list:
+            for names, data in names_list:
                 for name in names:
-                    names_dict[name] = cmd
+                    names_dict[name] = data
             # Update ChainMaps with links to this Module:
             self.commands_chainmap_opcode = self.commands_chainmap_opcode.new_child(
                 opcode_dict
@@ -677,20 +687,25 @@ class DataStandards(object):
                 names_dict
             )
 
-    def global_command_lookup(self, key: Union[str, NameIdDict.KeyTuple]) -> Command:
+    def global_command_lookup(self, key: Union[str, NameIdDict.KeyTuple]) -> Tuple[Module, Command]:
         """
         Finds a command from any module which has the given name string `key`
         (standardized and includes the module name) or KeyTuple `key` which
         includes the name alongside its corresponding module ID.
+
+        Returns a tuple of the command's parent module and the command itself.
         """
         # TODO: Unit test ChainMap lookup and linking.
         if isinstance(key, str):
-            return self.commands_chainmap_name[key]
+            mID, command = self.commands_chainmap_name[key]
+            return self.modules[mID], command
         if isinstance(key, int):
-            return self.commands_chainmap_opcode[key]
+            mID, command = self.commands_chainmap_opcode[key]
+            return self.modules[mID], command
         if NameIdDict.is_valid_key_tuple(key):
             key = cast(NameIdDict.KeyTuple, key)
-            return self.commands_chainmap_opcode[key[0]]
+            mID, command = self.commands_chainmap_opcode[key[0]]
+            return self.modules[mID], command
         else:
             raise TypeError(
                 "Argument to `global_command_lookup` of `DataStandards` must be "
@@ -942,3 +957,8 @@ class DataStandards(object):
         )
 
         return DS
+
+
+# Empty DataStandards Object used as a Placeholder:
+EMPTY_DATASTANDARD = DataStandards(NameIdDict[Module]())
+DataStandards.EMPTY = EMPTY_DATASTANDARD

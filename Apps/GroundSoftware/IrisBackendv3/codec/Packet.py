@@ -6,7 +6,7 @@ Defines Common Data Required for Packets. Support for Building and Parsing
 Packets.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/08/2020
+@last-updated: 04/09/2020
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -18,13 +18,14 @@ import struct
 from math import ceil
 
 from .magic import Magic, MAGIC_SIZE
+from .metadata import DataPathway, DataSource
+from .container import ContainerCodec
 
+from .settings import ENDIANNESS_CODE
 from .logging import logger
 from .exceptions import PacketDecodingException
 
-ENDIANNESS_CODE = "<"  # little-endian by default
 CPH_SIZE = 4
-# *TODO: Make all these^ settable via cli args (opts?)
 
 CT = TypeVar('CT')
 
@@ -33,85 +34,13 @@ CT = TypeVar('CT')
 # TODO: Add `__str__` / `__repr__`s
 
 
-class ContainerCodec(Generic[CT], ABC):
-    """
-    Core interface definition for all container classes whose data should be
-    encoded/decoded to be passed in/out of the Transceiver layer.
-
-    Also serializable (pickleable) as raw data.
-
-    Note: often [CT] is the implementing subclass.
-    """
-
-    __slots__: List[str] = [
-        # Python Struct Endianness Code (used for en/decoding):
-        '_endianness_code',
-        # Raw bytes from the Transceiver which were parsed:
-        # Kept for forensics in case something goes wrong.
-        # `None` if this Container is constructed and hasn't yet been encoded.
-        # Also used for efficient serialization since all the data in this
-        # object should be able to be reconstructed by just knowing the raw data
-        # and the endianness.
-        '_raw'
-    ]
-
-    _endianness_code: str
-    _raw: Optional[bytes]
-
-    def __init__(self,
-                 raw: Optional[bytes] = None,
-                 endianness_code: str = ENDIANNESS_CODE
-                 ) -> None:
-        self._raw = raw
-        self._endianness_code = endianness_code
-
-    # Make public get, private set to signal that you can freely use these values
-    # but modifying them directly can yield undefined behavior (specifically
-    # `raw` not syncing up with whatever other data is in the container)
-    @property
-    def endianness_code(self) -> str: return self._endianness_code
-    @property
-    def raw(self) -> Optional[bytes]: return self.raw
-
-    @classmethod
-    @abstractmethod
-    def decode(self, data: bytes, endianness_code=ENDIANNESS_CODE) -> CT:
-        """
-        Decodes the given bytes buffer.
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def encode(self, **kwargs: Any) -> bytes:
-        """
-        Encodes the data contained in this instance using this class' formatting.
-        (normally should just use instance's contained data and not require any
-        kwargs). Just make sure all overriding methods still work if kwargs
-        aren't supplied.
-        """
-        raise NotImplementedError()
-
-    def __reduce__(self) -> Tuple[Callable, Tuple[bytes, str], ]:
-        # *Don't* automatically re-encode to update fields in case some part of
-        # algorithm is broken and received raw data is lost.
-        # (The first point of storing the raw is to be able to forensically
-        # reconstruct what was seen during mission, so use same inputs to get
-        # the same outputs).
-        # This also allows for easy re-evaluation of all telemetry by simply
-        # adjusting the decode / parsers and deserializing again.
-        if self._raw is None:
-            self._raw = self.encode()
-
-        # "Callable object" returned will be the decoding function:
-        # If a subclassed object is reduced, it will call that subclass' `decode`
-        # function (assuming it's been implemented).
-        return (self.__class__.decode, (self._raw, self._endianness_code))
-
-
 class Packet(ContainerCodec[CT], ABC):
     # Mainly an aliasing class for now (allows for creating List[Packet])
 
-    __slots__: List[str] = []  # empty but lets the slots from parent continue
+    __slots__: List[str] = [
+        'pathway',  # DataPathway through which this data was received or should be sent
+        'source'  # DataSource of this data (how it entered the GSW)
+    ]  # empty but lets the slots from parent continue
 
     def __init__(self,
                  raw: Optional[bytes] = None,
@@ -119,9 +48,9 @@ class Packet(ContainerCodec[CT], ABC):
                  ) -> None:
         super().__init__(raw=raw, endianness_code=endianness_code)  # passthru
 
-    @staticmethod
+    @classmethod
     @abstractmethod
-    def is_valid(data: bytes, endianness_code=ENDIANNESS_CODE):
+    def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
         """
         Determines whether the given bytes constitute a valid packet of this type.
         """
@@ -182,22 +111,21 @@ class WatchdogHeartbeatPacket(Packet[WatchdogHeartbeatPacket]):
         self._batt_temp = batt_temp
         super().__init__(raw=raw, endianness_code=endianness_code)
 
-    @abstractmethod
-    def decode(self, data: bytes, endianness_code=ENDIANNESS_CODE) -> CT:
+    @classmethod
+    def decode(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> CT:
         #! TODO
         raise NotImplementedError()
 
-    @abstractmethod
     def encode(self, **kwargs: Any) -> bytes:
         #! TODO
         raise NotImplementedError()
 
-    @staticmethod
-    def is_valid(data: bytes, endianness_code=ENDIANNESS_CODE):
+    @classmethod
+    def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
         """
         Determines whether the given bytes constitute a valid packet of this type.
         """
-        right_start = len(data) > 0 and data[0] == self.START_FLAG
+        right_start = len(data) > 0 and data[0] == cls.START_FLAG
         right_length = len(data) == ceil((8 + 7 + 1 + 7 + 1 + 8) / 8)  # Bytes
 
         return right_start and right_length
@@ -249,19 +177,18 @@ class WatchdogCommandResponsePacket(Packet[WatchdogCommandResponsePacket]):
         self._error_flag = error_flag
         super().__init__(raw=raw, endianness_code=endianness_code)
 
-    @abstractmethod
-    def decode(self, data: bytes, endianness_code=ENDIANNESS_CODE) -> CT:
+    @classmethod
+    def decode(self, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> CT:
         #! TODO
         raise NotImplementedError()
 
-    @abstractmethod
     def encode(self, **kwargs: Any) -> bytes:
         #! TODO
         raise NotImplementedError()
 
-    @staticmethod
-    def is_valid(data: bytes, endianness_code=ENDIANNESS_CODE):
-        right_start = len(data) > 0 and data[0] == self.START_FLAG
+    @classmethod
+    def is_valid(cls, data: bytes, endianness_code=ENDIANNESS_CODE) -> bool:
+        right_start = len(data) > 0 and data[0] == cls.START_FLAG
         right_length = len(data) == ceil((8 + 8 + 8) / 8)  # Bytes
 
         return right_start and right_length
@@ -332,7 +259,7 @@ class IrisCommonPacket(Packet[IrisCommonPacket]):
         @classmethod
         def decode(cls,
                    data: bytes,
-                   endianness_code=ENDIANNESS_CODE
+                   endianness_code: str = ENDIANNESS_CODE
                    ) -> IrisPacket.CommonPacketHeader:
             """Extract all data in the given raw common packet header."""
             cph_head, checksum = data[:-1], data[-1:]
@@ -354,9 +281,9 @@ class IrisCommonPacket(Packet[IrisCommonPacket]):
                 self.seq_num, self.vlp_len
             )
 
-            self.raw = cph_head + self.checksum
+            self._raw = cph_head + self.checksum
 
-            return self.raw
+            return self._raw
 
     __slots__: List[str] = [
         # CommonPacketHeader Data:
@@ -408,7 +335,7 @@ class IrisCommonPacket(Packet[IrisCommonPacket]):
     @classmethod
     def decode(cls,
                data: bytes,
-               endianness_code=ENDIANNESS_CODE
+               endianness_code: str = ENDIANNESS_CODE
                ) -> IrisPacket.CommonPacketHeader:
         """Construct a Iris Packet Object from Bytes."""
 
@@ -445,8 +372,8 @@ class IrisCommonPacket(Packet[IrisCommonPacket]):
 
         pass
 
-    @staticmethod
-    def is_valid(data: bytes, endianness_code=ENDIANNESS_CODE):
+    @classmethod
+    def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
         """
         Determines whether the given bytes constitute a valid packet of this type.
         """

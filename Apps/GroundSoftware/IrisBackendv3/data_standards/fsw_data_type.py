@@ -4,11 +4,11 @@
 Enum for Respresenting FPrime Datatypes as Python Struct Strings.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/07/2021
+@last-updated: 04/16/2021
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
-from typing import Optional
+from typing import Optional, Tuple, Union
 from enum import Enum
 import struct
 
@@ -32,7 +32,7 @@ class FswDataType(Enum):
     """
     Enum for Respresenting Native FPrime Datatypes.
 
-    Each instance contains three explicit auxiliary data fields: `struct_sym`,
+    Each instance contains four explicit auxiliary data fields: `struct_sym`,
     `type_str`, and `category`.
     - `struct_sym` is the symbol used for representing this datatype when using
     `struct.pack`
@@ -40,6 +40,9 @@ class FswDataType(Enum):
     data type (sans the `_t` at the end).
     - `category` is the FSW serialization category which is used to determine
     how to en/decode a value with this type.
+    -  `python_type` is the corresponding type or tuple of types in python (eg. 
+    `str`, `(int,str)`) which a value must have in order to be able to be 
+    accurately encoded as this FswDataType.
 
     `type_str` is used as the default `_value_` for each instance. Thus,
     `FswDataType('uint8') == FswDataType['U8']`. This makes fetching the right
@@ -55,49 +58,52 @@ class FswDataType(Enum):
 
     # NOTE: As a standard, all member names should be UPPERCASE.
     # NOTE: As a standard, C-style type strings should omit any '_t'
-    BOOL = '?', 'bool', Category.BOOLEAN
-    BOOLEAN = '?', 'bool', Category.BOOLEAN  # alias
-    I8 = 'b', 'int8', Category.NUMBER
-    I16 = 'h', 'int16', Category.NUMBER
-    I32 = 'l', 'int32', Category.NUMBER
-    I64 = 'q', 'int64', Category.NUMBER
-    U8 = 'B', 'uint8', Category.NUMBER
-    U16 = 'H', 'uint16', Category.NUMBER
-    U32 = 'L', 'uint32', Category.NUMBER
-    U64 = 'Q', 'uint64', Category.NUMBER
-    F32 = 'f', 'float', Category.NUMBER  # IEEE 754 binary32 float
-    F64 = 'd', 'double', Category.NUMBER  # IEEE 754 binary64 double
+    # packed as 0xFF = True, 0x00 = False
+    BOOL = 'B', 'bool', Category.BOOLEAN, bool
+    BOOLEAN = 'B', 'bool', Category.BOOLEAN, bool  # alias
+    I8 = 'b', 'int8', Category.NUMBER, int
+    I16 = 'h', 'int16', Category.NUMBER, int
+    I32 = 'l', 'int32', Category.NUMBER, int
+    I64 = 'q', 'int64', Category.NUMBER, int
+    U8 = 'B', 'uint8', Category.NUMBER, int
+    U16 = 'H', 'uint16', Category.NUMBER, int
+    U32 = 'L', 'uint32', Category.NUMBER, int
+    U64 = 'Q', 'uint64', Category.NUMBER, int
+    F32 = 'f', 'float', Category.NUMBER, float  # IEEE 754 binary32 float
+    F64 = 'd', 'double', Category.NUMBER, float  # IEEE 754 binary64 double
     # FPrime enums all map to an int (default `int` type is `int32_t`):
-    ENUM = 'l', 'enum/*int32*/', Category.ENUM
+    ENUM = 'l', 'enum/*int32*/', Category.ENUM, (str, int)
     # Fixed Length Strings (only expected / pre-approved sizes allowed):
     # This is a halfword (2B, as ">H") indicating length followed by a (utf-8) encoded char[]
     # Per [FPrime docs](https://nasa.github.io/fprime/UsersGuide/api/python/fprime/html/modules/fprime/common/models/serialize/string_type.html)
-    STRING10 = 'H10s', 'char[10]', Category.STRING
-    STRING15 = 'H15s', 'char[15]', Category.STRING
-    STRING24 = 'H24s', 'char[24]', Category.STRING
-    STRING40 = 'H40s', 'char[40]', Category.STRING
-    STRING50 = 'H50s', 'char[50]', Category.STRING
-    STRING240 = 'H240s', 'char[240]', Category.STRING
+    STRING10 = 'H10s', 'char[10]', Category.STRING, str
+    STRING15 = 'H15s', 'char[15]', Category.STRING, str
+    STRING24 = 'H24s', 'char[24]', Category.STRING, str
+    STRING40 = 'H40s', 'char[40]', Category.STRING, str
+    STRING50 = 'H50s', 'char[50]', Category.STRING, str
+    STRING240 = 'H240s', 'char[240]', Category.STRING, str
     # Invalid / Unsupported Type:
-    INVALID = '', 'invalid', Category.EMPTY, 0
+    INVALID = '', 'invalid', Category.EMPTY, type(None), 0
 
     # Instance attributes for type-checker:
     struct_sym: str
     type_str: str
     category: Category
     num_octets: int
+    python_type: Union[type, Tuple[type]]
 
     @property
     def num_bits(self) -> int:
         """Number of bits in the datatype."""
         return self.num_octets * 8
 
-    def __new__(cls, struct_sym: str, type_str: str, cat: Category, num_octets: Optional[int] = None):
+    def __new__(cls, struct_sym: str, type_str: str, cat: Category, python_type: type, num_octets: Optional[int] = None):
         """Constructs a new instance of the Enum."""
         obj = object.__new__(cls)
         obj._value_ = type_str
         obj.type_str = type_str
         obj.category = cat
+        obj.python_type = python_type
 
         # Make sure struct_sym doesn't contain any byte-order characters:
         byte_order_chars = ['@', '=', '<', '>', '!']
@@ -130,7 +136,7 @@ class FswDataType(Enum):
     def is_valid_FPrime_name(cls, name: str) -> bool:
         """
         Tests if the given name is a valid FswDataType name(FPrime type name).
-        If it is , you can get the associated enum instance with `FswDataType[name]`.
+        If it is, you can get the associated enum instance with `FswDataType[name]`.
         """
         return name in {t.name for t in FswDataType}
 
@@ -138,7 +144,7 @@ class FswDataType(Enum):
     def is_valid_C_name(cls, name: str) -> bool:
         """
         Tests if the given name is a valid FswDataType value(C-style type name).
-        If it is , you can get the associated enum instance with `FswDataType(name)`.
+        If it is, you can get the associated enum instance with `FswDataType(name)`.
         """
         return name in {t.value for t in FswDataType}
 

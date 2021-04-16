@@ -17,6 +17,8 @@ from __future__ import annotations
 from typing import cast
 from enum import Enum
 
+from .settings import ENDIANNESS_CODE
+
 from .logging import logger
 from .exceptions import PacketDecodingException
 
@@ -24,7 +26,7 @@ import struct
 
 # Number of Bytes in each Magic (as a `struct` sym):
 SIZE_SYM = 'L'  # 4B unsigned
-MAGIC_SIZE = struct.calcsize(SIZE_SYM)
+MAGIC_SIZE = struct.calcsize(ENDIANNESS_CODE+SIZE_SYM)
 
 
 class Magic(Enum):
@@ -34,6 +36,7 @@ class Magic(Enum):
     """
 
     # *No Palindromes!*
+    MISSING = 0x00000000, 'Missing', True
     COMMAND = 0x00BADA55, 'Commands', False
     WATCHDOG_COMMAND = 0xC000FFEE, 'Commands Destined for Watchdog Hardware', False
     TELEMETRY = 0xC00010FF, 'Telemetry', False
@@ -58,6 +61,11 @@ class Magic(Enum):
         Returns an encoded interpretation of this Magic, using the supplied 
         `byte_order` symbol if given or `!` (network order) if not.
         """
+        if self.deprecated:
+            logger.warning(
+                f"Encoding data using a deprecated Common Packet Header Magic: "
+                f"{self.name} = `0x{self._value_:08X}`."
+            )
         return struct.pack(byte_order+SIZE_SYM, self.value)
 
     @classmethod
@@ -95,6 +103,12 @@ class Magic(Enum):
                     f"Magics in the C&TL or `magic.py`. Are the bytes backwards "
                     f"/ using the wrong endianness?"
                 )
+            )
+
+        if magic.deprecated:
+            logger.warning(
+                f"Decoded data and found a deprecated Common Packet Header Magic: "
+                f"{magic.name} = `0x{magic._value_:08X}`."
             )
 
         return magic

@@ -9,6 +9,8 @@
 // acknowledged.
 //
 // This file outlines all functions implemented in WatchDogInterface
+// Contains all functions that send and receive data between WatchdogInterface and Watchdog
+// Contains functions that only watchdog receives, functions are marked as such. Such functions only send a stroke to the Watchdog if ever received.
 // ======================================================================
 
 #ifndef WatchDogInterface_HPP
@@ -227,29 +229,29 @@ namespace CubeRover {
       } __attribute__((packed, aligned(8)));
 
      struct WatchdogTelemetry {
-         int16_t voltage_2V5;
-         int16_t voltage_2V8;
-         int16_t voltage_24V;
-         int16_t voltage_28V;
-         int8_t battery_thermistor;
-         int8_t sys_status;
-         int16_t battery_level;
-         int32_t battery_current;
+         int16_t voltage_2V5;   // Current measured voltage of the 2.5V line as read from the Watchdog
+         int16_t voltage_2V8;   // Current measured voltage of the 2.8V line as read from the Watchdog
+         int16_t voltage_24V;   // Current measured voltage of the 24V line as read from the Watchdog
+         int16_t voltage_28V;   // Current measured voltage of the 28V line as read from the Watchdog
+         int8_t battery_thermistor;   // Current measured voltage of the watchdog battery thermistor as read from the Watchdog
+         int8_t sys_status;   // 8 bit systems status where each bit represents a watchdog status
+         int16_t battery_level;   // Current measured battery voltage as read from the Watchdog
+         int32_t battery_current;   // Current measured battery current as read from the Watchdog
      } __attribute__((packed, aligned(8)));
 
      // Incorrect Response Possible Values
      enum resp_error : U8
      {
-         bad_parity = 1,
-         bad_size_received = 2,
-         bad_reset_value = 3,
-         bad_magic_value = 4,
-         not_enough_bytes = 5
+         bad_parity = 1,    // Error code for response having bad parity value
+         bad_size_received = 2,   // Error code for response having bad data size received
+         bad_reset_value = 3,   // Error code for response having a bad reset value
+         bad_magic_value = 4,   // Error code for response having a bad magic value
+         not_enough_bytes = 5   // Error code for response not having enough bytes (must be over min_receive_size)
      };
 
      enum disengage_command : U16
      {
-        Disengage = 0x00EE
+        Disengage = 0x00EE    // Reset value for the disengagement command sent to Watchdog
      };
 
      // Receives a Frame start everytime data is sent from watchdog to hercules
@@ -265,17 +267,23 @@ namespace CubeRover {
 
      bool Read_Temp();          // Checking the temperature sensors from the ADC
 
-     void pollDMAReceiveFinished();
-     void pollDMASendFinished();
-     bool dmaReceive(void *buffer, int size, bool blocking=true);
-     bool dmaSend(void *buffer, int size, bool blocking=true);
+     void pollDMAReceiveFinished();   // Polls DMA recieve finish to see if we've finished our DMA receiving
+     void pollDMASendFinished();      // Polls DMA send finish to see if we've finished our DMA sending
+     // Perform a DMA receive function
+     bool dmaReceive(void *buffer,          // The buffer to put all received data into
+                      int size,             // The size that is received from watchdog
+                      bool blocking=true);  // Check variable to see if we need to block other DMA requests
+     // Perform a DMA send function
+     bool dmaSend(void *buffer,           // The buffer of data to send to watchdog
+                  int size,               // The size of the data to send to watchdog
+                  bool blocking=true);    // Check variable to see if we need to block other DMA requests
 
       // Usage during FSW initialization
       // Only difference between this is function and Reset_Specific_cmdHandler is lack of cmd response
       bool Reset_Specific_Handler(reset_values_possible reset_value);
 
 
-      sciBASE_t *m_sci;
+      sciBASE_t *m_sci;   // The sci base used to initialize the watchdog interface connection 
       adcData_t m_thermistor_buffer[number_thermistors];  // Location to store current data for thermistors
       bool m_finished_initializing;     // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
 

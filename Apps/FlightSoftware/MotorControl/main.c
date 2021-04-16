@@ -1,7 +1,7 @@
 // [DEBUG] Switches
 //#define IRIS_ALL_OFF
 //#define IRIS_CLEAR_FAULT
-#define IRIS_SPIN_MOTOR
+//#define IRIS_SPIN_MOTOR
 //#define IRIS_SPIN_MOTOR_REVERSE
 //#define IRIS_SPIN_MOTOR_INDEF
 
@@ -671,7 +671,6 @@ void main(void){
 
 
   while(1){
-
       // check if driving in open or closed loop, act accordingly
       if (g_controlRegister & DRIVE_OPEN_LOOP) {
             //driving open loop
@@ -743,39 +742,36 @@ void main(void){
         }
 
           // inner control loop (current), apply output as PWM duty cycle
-          if(g_controlPrescaler % 1 == 0){
-              // Normalize current values from  -2047 < adc < +2048 to iq15 --> -1.0 < adc < 1.0 and convert to iq format
-              g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 4;
-              g_piCur.Ref = g_piSpd.Out;
+          // Normalize current values from  -2047 < adc < +2048 to iq15 --> -1.0 < adc < 1.0 and convert to iq format
+          g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 4;
+          g_piCur.Ref = g_piSpd.Out;
 
-              PI_MACRO(g_piCur);
+          PI_MACRO(g_piCur);
 
-              if(g_closedLoop == false && g_targetReached == false){
-                g_piCur.i1 = 0;
-                g_piCur.ui = 0;
-                g_piSpd.i1 = 0;
-                g_piSpd.ui = 0;
-                g_piCur.Out = g_openLoopTorque;
-                if(_IQabs(g_currentSpeed) > g_closeLoopThreshold){
-                    g_closedLoop = true;
-                }
-              }
-
-              if(g_targetReached == true){
-                  g_piCur.i1 = 0;
-                  g_piCur.ui = 0;
-                  g_piSpd.i1 = 0;
-                  g_piSpd.ui = 0;
-                  g_piCur.Out = 0;
-                  g_closedLoop = false;
-              }
-
-              pwmGenerator(g_commState, g_piCur.Out);
+          if(g_closedLoop == false && g_targetReached == false){
+            g_piCur.i1 = 0;
+            g_piCur.ui = 0;
+            g_piSpd.i1 = 0;
+            g_piSpd.ui = 0;
+            g_piCur.Out = g_openLoopTorque;
+            if(_IQabs(g_currentSpeed) > g_closeLoopThreshold){
+                g_closedLoop = true;
+            }
           }
+
+          if(g_targetReached == true){
+              g_piCur.i1 = 0;
+              g_piCur.ui = 0;
+              g_piSpd.i1 = 0;
+              g_piSpd.ui = 0;
+              g_piCur.Out = 0;
+              g_closedLoop = false;
+          }
+
+          pwmGenerator(g_commState, g_piCur.Out);
 
           // outer control loop (speed)
           if(g_controlPrescaler <= 0){
-
               // Normalize from -255 ~ + 255 to -1.0 ~ 1.0
               if  (_IQabs(g_targetPosition - g_currentPosition) < 100) {
                   g_targetReached = true;
@@ -791,11 +787,11 @@ void main(void){
               else g_piSpd.Ref = -g_maxSpeed << 8;
 
               // check for errors in controller operation
-              if (g_currentPosition == g_oldPosition && ~g_targetReached){
+              if (g_currentPosition == g_oldPosition && !g_targetReached){
                   // position isn't updating; hall sensors likely not powered or broken
                   g_errorCounter++;
                   g_faultRegister |= POSITION_NO_CHANGE;
-              } else if ( (g_currentPosition - g_oldPosition)*g_targetDirection < 0 && ~g_targetReached){
+              } else if ( (g_currentPosition - g_oldPosition)*g_targetDirection < 0 && !g_targetReached){
                   // moving in wrong direction
                   g_errorCounter++;
                   g_faultRegister |= DRIVING_WRONG_DIRECTION;
@@ -867,22 +863,11 @@ __interrupt void TIMER0_B0_ISR (void){
       g_calibrationDone = true;
     }
 
-  if(!g_calibrationDone) return;
+    if(!g_calibrationDone) return;
 
     g_updateReadings=true; //TODO: rename g_readSensors
 
-  // transmit i2c data if asked to & ready
-//  if(g_i2cSend && g_slaveMode == TX_DATA_MODE){
-//        UCB0TXBUF = g_txBuffer[g_txBufferIdx++];
-//        g_txByteCtr--;
-//        if(g_txByteCtr == 0){
-//          g_slaveMode = RX_REG_ADDRESS_MODE;
-//          UCB0IE &= ~UCTXIE;
-//          UCB0IE |= UCRXIE;
-//          i2cSlaveTransactionDone(g_readRegAddr);
-//          g_i2cSend = 0;
-//        }
-//  }
+    // without conditional can get huge and negative
    if(g_controlPrescaler>0)
        g_controlPrescaler = g_controlPrescaler -1;
 

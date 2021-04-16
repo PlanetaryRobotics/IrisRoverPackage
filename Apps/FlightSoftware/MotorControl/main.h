@@ -24,6 +24,7 @@
 #define STATE_MACHINE_DISABLE       4
 #define STATE_MACHINE_RUN           8
 #define OVERRIDE_FAULT_DETECTION   16       // don't reset current & desired position if abnormal behavior detected
+#define EXECUTE_COMMAND            32       // actually drive to command
 
 // bits of status register (shares 1,2,4 with control register)
 #define POSITION_CONVERGED      8

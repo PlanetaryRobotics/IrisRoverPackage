@@ -58,6 +58,6 @@ bool readI2cData(I2cPacket *pckt);
 void initializeI2cModule();
 //void disableI2cTxInterrupt();
 //void enableI2cRxInterrupt();
-void i2cSlaveTransactionDone(const uint8_t cmd);
+//void i2cSlaveTransactionDone(const uint8_t cmd);
 
 #endif /* I2C_H_ */

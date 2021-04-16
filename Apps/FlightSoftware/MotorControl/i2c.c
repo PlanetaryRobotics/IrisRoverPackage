@@ -182,7 +182,7 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
  *
  * @param[in]  cmd   The command
  */
-void i2cSlaveTransactionDone(const uint8_t cmd){
+inline void i2cSlaveTransactionDone(const uint8_t cmd){
     switch(cmd){
       case I2C_ADDRESS:
       case CURRENT_POSITION:
@@ -343,6 +343,7 @@ __interrupt void USCI_B0_ISR(void){
       rxBuf = UCB0RXBUF;
       switch(g_slaveMode){
         case RX_REG_ADDRESS_MODE:
+          TB0CCTL0 = 0x0000; // Turn off timer interrupt
           g_readRegAddr = rxBuf;
           i2cSlaveProcessCmd(g_readRegAddr);
           break;
@@ -355,6 +356,7 @@ __interrupt void USCI_B0_ISR(void){
             disableI2cTxInterrupt();
             enableI2cRxInterrupt();
             i2cSlaveTransactionDone(g_readRegAddr);
+            TB0CCTL0 = CCIE; // turn timer interrupt back on
           }
           break;
       default:
@@ -363,7 +365,6 @@ __interrupt void USCI_B0_ISR(void){
       break;  
     }
     case USCI_I2C_UCTXIFG0:                 // Vector 24: TXIFG0
-        g_i2cSend = 1;
       switch(g_slaveMode){
         case TX_DATA_MODE:
           UCB0TXBUF = g_txBuffer[g_txBufferIdx++];
@@ -373,12 +374,14 @@ __interrupt void USCI_B0_ISR(void){
             disableI2cTxInterrupt();
             enableI2cRxInterrupt();
             i2cSlaveTransactionDone(g_readRegAddr);
+            TB0CCTL0 = CCIE; // turn timer interrupt back on
           }
           break;
         default:
           break;
       }
       break;         
-    default: break;
+    default:
+        break;
   }
 }

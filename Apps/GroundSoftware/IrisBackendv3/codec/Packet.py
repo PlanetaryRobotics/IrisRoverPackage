@@ -10,7 +10,7 @@ Packets.
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
-from typing import List, Tuple, Any, Optional, Callable, Generic, TypeVar
+from typing import List, Tuple, Any, Optional, Callable, Generic, TypeVar, cast
 from abc import ABC, abstractmethod
 from enum import Enum
 import struct
@@ -159,7 +159,11 @@ class WatchdogTvacHeartbeatPacketInterface(Packet[CT]):
 
         @property
         def HeaterWindowKelvin(self) -> float:
-            return float(np.interp(self._HeaterWindow, self.THERMISTOR_LOOKUP_TABLE['Vadc'][::-1], self.THERMISTOR_LOOKUP_TABLE['degC'][::-1]) + 273.15)
+            upper = float(np.interp(self._HeaterSetpoint-self._HeaterWindow,
+                          self.THERMISTOR_LOOKUP_TABLE['Vadc'][::-1], self.THERMISTOR_LOOKUP_TABLE['degC'][::-1]))
+            lower = float(np.interp(self._HeaterSetpoint+self._HeaterWindow,
+                          self.THERMISTOR_LOOKUP_TABLE['Vadc'][::-1], self.THERMISTOR_LOOKUP_TABLE['degC'][::-1]))
+            return abs(upper-lower)/2
 
         # Make public get, private set to signal that you can freely use these values
         # but modifying them directly can yield undefined behavior (specifically
@@ -188,8 +192,8 @@ class WatchdogTvacHeartbeatPacketInterface(Packet[CT]):
         def HeaterStatus(self) -> int: return self._HeaterStatus
 
         @property
-        def HeatingControlEnabled(
-            self) -> int: return self._HeatingControlEnabled
+        def HeatingControlEnabled(self) -> int:
+            return self._HeatingControlEnabled
 
         @property
         def HeaterPwmDutyCycle(self) -> int: return self._HeaterPwmDutyCycle
@@ -222,6 +226,15 @@ class WatchdogTvacHeartbeatPacketInterface(Packet[CT]):
             self._HeaterStatus = HeaterStatus
             self._HeatingControlEnabled = HeatingControlEnabled
             self._HeaterPwmDutyCycle = HeaterPwmDutyCycle
+
+        def __repr__(self) -> str:
+            return (
+                f"{self.WatchdogMode}:\t"
+                f"[Heat: {'ON' if self.HeaterStatus else 'OFF'}, Ctrl: {'ON' if self.HeatingControlEnabled else 'OFF'}] \t"
+                f"{self.AdcTempKelvin:.1f}°K -> "
+                f"{self.HeaterSetpointKelvin:.1f}°K +- {self.HeaterWindowKelvin:.2f}K° \t"
+                f"Kp = {self.KpHeater} @ Duty Cycle: {self.HeaterPwmDutyCycle}/{0xFFFF}"
+            )
 
     __slots__: List[str] = [
         'custom_payload'
@@ -279,6 +292,9 @@ class WatchdogTvacHeartbeatPacket(WatchdogTvacHeartbeatPacketInterface[WatchdogT
         super().__init__(payloads=payloads, pathway=pathway, source=source,
                          raw=raw, endianness_code=endianness_code)
 
+    def __repr__(self) -> str:
+        return self.custom_payload.__repr__()
+
     @ classmethod
     def decode(cls,
                data: bytes,
@@ -296,6 +312,11 @@ class WatchdogTvacHeartbeatPacket(WatchdogTvacHeartbeatPacketInterface[WatchdogT
         custom_payload = WatchdogTvacHeartbeatPacket.CustomPayload(
             *struct.unpack(endianness_code + '9H 3B H', core_data)
         )
+        # Fix the Watchdog Mode:
+        module = settings['STANDARDS'].modules['WatchdogHeartbeatTvac']
+        custom_payload._WatchdogMode = cast(str, module.telemetry['WatchdogMode'].get_enum_name(
+            cast(int, custom_payload.WatchdogMode)  # it comes in as an int
+        ))
         return WatchdogTvacHeartbeatPacket(
             custom_payload=custom_payload,
             pathway=pathway,

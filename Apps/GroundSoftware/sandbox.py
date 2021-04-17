@@ -22,6 +22,8 @@ from IrisBackendv3.codec.settings import set_codec_standards
 from IrisBackendv3.utils.basic import print_bytearray_hex as printraw
 from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket
 
+from tvac_tools import telemetry_streams, update_telemetry_streams, load_cache
+
 # Commands and Telemetry: Fp XML Comments
 # Logs and Events: Fp XML (parse string formatter)
 # Files: structs in FswPacket.hpp
@@ -106,6 +108,8 @@ for packet in packets:
                 pathway=DataPathway.WIRELESS,
                 source=DataSource.PCAP
             )
+            update_telemetry_streams(packet)
+            print(packet)
             for i in range(len(packet.payloads)):
                 all_payloads[i].extend(packet.payloads[i])  # type: ignore
 

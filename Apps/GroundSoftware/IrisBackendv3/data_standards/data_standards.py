@@ -34,9 +34,9 @@ from collections import ChainMap
 import warnings
 
 import os.path
-from lxml import etree
+from lxml import etree  # type: ignore # doesn't have type hints
 import re
-import jsonpickle
+import jsonpickle  # type: ignore # doesn't have type hints
 import ulid
 
 from termcolor import cprint
@@ -178,7 +178,7 @@ def extract_type(node: etree.Element, attr_name: str) -> FswDataType:
 
 
 def build_bitfield_structs(path: str, nid: NameIdDict) -> None:
-    # TODO: Load bitfield structs from file, parse file, build Bitfield Structs and load into appropriate arg/channel
+    #! TODO: Load bitfield structs from file, parse file, build Bitfield Structs and load into appropriate arg/channel
     # TODO: More advanced bitfield checks (than in `BitfieldStruct` ctor)
     # TODO: Raise flag if any bitfield structs are unmatched?
     # Check for spanning across storage-units
@@ -800,7 +800,7 @@ class DataStandards(object):
 
         return filename
 
-    @ classmethod
+    @classmethod
     def load_cache(cls,
                    cache_dir: str = _CACHE_DIR,
                    filename_base: str = "IBv3_DScache",
@@ -944,7 +944,7 @@ class DataStandards(object):
 
             try:
                 component_modules = build_modules_from_component(
-                    found_components[0], 
+                    found_components[0],
                     tree_topology
                 )
                 for module in component_modules:

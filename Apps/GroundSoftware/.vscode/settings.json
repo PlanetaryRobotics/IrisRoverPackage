@@ -43,6 +43,7 @@
         "pcap",
         "pformat",
         "pmcc",
+        "pyplot",
         "pytest",
         "queue",
         "rdpcap",
@@ -66,10 +67,14 @@
     ],
     "cSpell.ignoreWords": [
         "atatype",
+        "autofmt",
         "dd",
         "jsonpickled",
         "jsonpickling",
-        "vformat"
+        "vformat",
+        "xdate",
+        "xlabel",
+        "ylabel"
     ],
     "editor.tokenColorCustomizations": {
         "textMateRules": [

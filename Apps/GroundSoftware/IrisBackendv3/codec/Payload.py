@@ -756,6 +756,10 @@ class TelemetryPayloadInterface(DownlinkedPayload[PT], ABC):
     def channel(self) -> TelemetryChannel:
         return self.module.telemetry[self.channel_id]
 
+    @property
+    def opcode(self) -> int:
+        return self.module_id | self.channel_id
+
 
 class TelemetryPayload(TelemetryPayloadInterface[TelemetryPayloadInterface]):
     """Implementation of Payload Interface for IRIS Telemetry Payloads."""

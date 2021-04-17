@@ -15,7 +15,7 @@
 #include "include/flags.h"
 #include "include/i2c.h"
 
-extern uint8_t heating, heatingControlEnabled;
+extern uint8_t heating, heatingControlEnabled, heaterStatus;
 extern uint16_t Kp_heater, heater_setpoint, heater_window, PWM_limit;
 
 void enterMode(enum rover_state newstate);
@@ -384,7 +384,7 @@ void send_earth_heartbeat() {
     if (counter % 3 != 2) {
         // send every 2 seconds
         counter++;
-        return;
+        //return;
     }
     counter = 0;
 
@@ -395,8 +395,8 @@ void send_earth_heartbeat() {
     pbuf.buf[0] = 0xFF;
     // TODO: tvac changes
     // send adc value temperature
-    pbuf.buf[1] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 8);
-    pbuf.buf[2] = (uint8_t)(adc_values[ADC_TEMP_IDX]);
+    pbuf.buf[1] = (uint8_t)(adc_values[ADC_TEMP_IDX]);
+    pbuf.buf[2] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 8);
 
     // send adc value temperature
     pbuf.buf[3] = (uint8_t)(raw_battery_charge[0]);
@@ -414,10 +414,52 @@ void send_earth_heartbeat() {
     pbuf.buf[9] = (uint8_t)(raw_fuel_gauge_temp[0]);
     pbuf.buf[10] = (uint8_t)(raw_fuel_gauge_temp[1]);
 
-    // send the current heating status
-    pbuf.buf[11] = heating;
+    // send ASDF
+    pbuf.buf[11] = (uint8_t)(Kp_heater);
+    pbuf.buf[12] = (uint8_t)(Kp_heater >> 8);
 
-    pbuf.used += 12;
+    // send ASDF
+    pbuf.buf[13] = (uint8_t)(heater_setpoint);
+    pbuf.buf[14] = (uint8_t)(heater_setpoint >> 8);
+
+    // send ASDF
+    pbuf.buf[15] = (uint8_t)(heater_window);
+    pbuf.buf[16] = (uint8_t)(heater_window >> 8);
+
+    // send ASDF
+    pbuf.buf[17] = (uint8_t)(PWM_limit);
+    pbuf.buf[18] = (uint8_t)(PWM_limit >> 8);
+
+    // send ASDF
+
+    // send the current heating status
+    pbuf.buf[19] = 0;
+    pbuf.buf[20] = heaterStatus;
+    pbuf.buf[21] = heatingControlEnabled;
+    switch (rovstate) {
+    case RS_SLEEP:
+        pbuf.buf[19] |= 0x02;
+        break;
+    case RS_SERVICE:
+        pbuf.buf[19] |= 0x04;
+        break;
+    case RS_KEEPALIVE:
+        pbuf.buf[19] |= 0x08;
+        break;
+    case RS_MISSION:
+        pbuf.buf[19] |= 0x10;
+        break;
+    case RS_FAULT:
+        pbuf.buf[19] |= 0x20;
+        break;
+    }
+
+
+    // send ASDF
+    pbuf.buf[22] = (uint8_t)(TB0CCR2);
+    pbuf.buf[23] = (uint8_t)(TB0CCR2 >> 8);
+
+    pbuf.used += 24;
 
     /*
     // send the battery voltage

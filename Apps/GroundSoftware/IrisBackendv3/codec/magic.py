@@ -36,7 +36,7 @@ class Magic(Enum):
     """
 
     # *No Palindromes!*
-    MISSING = 0x00000000, 'Missing', True
+    MISSING = 0xBEEFEEEE, 'Missing', True
     COMMAND = 0x00BADA55, 'Commands', False
     WATCHDOG_COMMAND = 0xC000FFEE, 'Commands Destined for Watchdog Hardware', False
     TELEMETRY = 0xC00010FF, 'Telemetry', False

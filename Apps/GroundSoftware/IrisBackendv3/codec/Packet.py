@@ -28,6 +28,8 @@ from .settings import ENDIANNESS_CODE, settings
 from .logging import logger
 from .exceptions import PacketDecodingException
 
+from IrisBackendv3.utils.basic import print_bytearray_hex as printraw
+
 CPH_SIZE = 4
 
 CT = TypeVar('CT')
@@ -311,7 +313,7 @@ class WatchdogTvacHeartbeatPacket(WatchdogTvacHeartbeatPacketInterface[WatchdogT
         """
         Determines whether the given bytes constitute a valid packet of this type.
         """
-        right_start = len(data) > 0 and data[0] == cls.START_FLAG
+        right_start = len(data) > 0 and data[:1] == cls.START_FLAG
         right_length = len(data) == 24  # Bytes
 
         return right_start and right_length
@@ -638,11 +640,11 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         # CPH + 4B Magic + 1B data:
         min_length = len(data) > (CPH_SIZE + MAGIC_SIZE + 1)
         try:
-            Magic.decode(
+            magic = Magic.decode(
                 data[CPH_SIZE:CPH_SIZE+MAGIC_SIZE],
                 byte_order=ENDIANNESS_CODE
             )
-            contains_magic = True
+            contains_magic = magic != Magic.MISSING
         except (PacketDecodingException, IndexError):
             contains_magic = False
 

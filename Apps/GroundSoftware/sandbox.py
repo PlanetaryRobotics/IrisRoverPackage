@@ -13,6 +13,7 @@ import struct
 from typing import List, Type
 
 from IrisBackendv3.data_standards import DataStandards
+from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac
 from IrisBackendv3.codec.payload import Payload, PayloadCollection, extract_downlinked_payloads
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.magic import Magic
@@ -49,18 +50,22 @@ uncached_standands = DataStandards.load_cache(
 print(f"Standards match: {uncached_standands == standards}")
 
 # Extract Payloads from a sample pcap:
+add_to_standards(standards, watchdog_heartbeat_tvac)
 set_codec_standards(standards)
 # Data Transport:
-file = './test-data/Iris_FSWv1.0.0_210409_Telemetry.pcapng'  # PCAP logs
+# Iris_FSWv1.0.0_210409_Telemetry.pcapng'  # PCAP logs
+file = './test-data/Iris_WdTvac_210417_Heartbeat.pcap'
 protocol = scp.UDP  # Protocol FSW is using to send data
-port = 8080  # Port on the spacecraft FSW is sending data to
+port = 42000  # 8080  # Port on the spacecraft FSW is sending data to
 
 # Data Formatting Settings:
 packetgap = 0  # number of packets to ignore at beginning of pcap
 deadspace = 0  # number of bytes of deadspace at the beginning of the
 endianness_code = "<"  # < = little, > = big, ! = network
 pcap = scp.rdpcap(file)
-packets = list(filter(lambda x: x.dport == port, pcap[protocol][packetgap:]))
+packets = list(
+    filter(lambda x: x.dport == port, pcap[protocol][packetgap:])
+)
 
 all_payloads: PayloadCollection = PayloadCollection(
     CommandPayload=[],
@@ -95,11 +100,14 @@ for packet in packets:
 
     # Parse VLP:
     try:
-        packet = supported[0].decode(packet_bytes)
-        packet.pathway = DataPathway.WIRELESS
-        packet.source = DataSource.PCAP
-        for i in range(len(packet.payloads)):
-            all_payloads[i].extend(packet.payloads[i])  # type: ignore
+        if len(supported) > 0:
+            packet = supported[0].decode(
+                packet_bytes,
+                pathway=DataPathway.WIRELESS,
+                source=DataSource.PCAP
+            )
+            for i in range(len(packet.payloads)):
+                all_payloads[i].extend(packet.payloads[i])  # type: ignore
 
     except Exception as e:
         trace = e  # traceback.format_exc()

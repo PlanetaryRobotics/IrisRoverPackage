@@ -78,4 +78,7 @@
 #define NAV_LOW_RES_SIZE                5
 #define NAV_MED_RES_SIZE                10
 
+// Active Logger Min Bytes
+#define MIN_STACK_SIZE_BYTES        1024
+
 #endif /* INCLUDE_CUBEROVERCONFIG_HPP_ */

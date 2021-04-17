@@ -6,7 +6,7 @@ Defines Common Data Required for Payloads. Support for Building and Parsing
 Payloads as part of a Variable Length Payload.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/16/2020
+@last-updated: 04/17/2020
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -24,9 +24,11 @@ from .container import ContainerCodec
 from .fsw_data_codec import encode as fsw_data_encode
 from .fsw_data_codec import decode as fsw_data_decode
 
-from .settings import ENDIANNESS_CODE
+from .logging import logger
 
-from IrisBackendv3.data_standards import DataStandards, EMPTY_DATASTANDARD
+from .settings import ENDIANNESS_CODE, settings
+
+from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.module import Module, Command, TelemetryChannel, Event
 from IrisBackendv3.data_standards import FswDataType
 from IrisBackendv3.utils.basic import full_dict_spec_check
@@ -55,7 +57,7 @@ def extract_downlinked_payloads(
         VLP: bytes,
         pathway: DataPathway,
         source: DataSource,
-        downlink_times: DownlinkTimes,
+        downlink_times: Optional[DownlinkTimes] = None,
         endianness_code: str = ENDIANNESS_CODE
 ) -> PayloadCollection:
     """Extract all Payloads from a Variable Length Payload. Should only be used
@@ -79,7 +81,7 @@ def extract_downlinked_payloads(
     # Dispatch table to map extracted magics to the corresponding payloads classes:
     payload_magic_dispatch_table: Dict[Magic, Type[Payload]] = {
         Magic.COMMAND: CommandPayload,
-        Magic.WATCHDOG_COMMAND: CommandPayload,
+        Magic.WATCHDOG_COMMAND: WatchdogCommandPayload,
         Magic.TELEMETRY: TelemetryPayload,
         Magic.EVENT: EventPayload,
         Magic.FILE: FileBlockPayload
@@ -133,16 +135,56 @@ def extract_downlinked_payloads(
         payload.source = source
         payload.downlink_times = downlink_times
 
+        # Note: mypy complains that `logger` doesn't have a member `spam` but it does:
+        logger.spam(f"Successfully extracted {payload}")  # type: ignore
+
         # Add payload to collection:
-        getattr(payloads, payload.__name__).append(payload)
+        getattr(payloads, payload.__class__.__name__).append(payload)
 
     return payloads
 
 
-PT = TypeVar('PT', bound=Payload)
+PIT = TypeVar('PIT')
 
 
-class Payload(ContainerCodec[PT], ABC):
+class PayloadInterface(ContainerCodec[PIT], ABC):
+    """
+    Generic Payload Interface/Wrapper class to enable binding the Payload's
+    generic type to something that lists all the right interfaces.
+    """
+    __slots__: List[str] = [
+        # Magic indicating how this payload should be transmitted / where it came from:
+        'magic',
+        # Flag indicating how this payload should go to the rover / came from the rover:
+        'pathway',
+        # DataSource of this data (how it entered the GSW):
+        'source'
+    ]
+
+    magic: Magic
+    pathway: DataPathway
+    source: DataSource
+
+    @classmethod
+    @abstractmethod
+    def process(cls,
+                VLP: bytes, endianness_code: str = ENDIANNESS_CODE
+                ) -> Tuple[PIT, bytes]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __getstate__(self) -> Dict[str, Any]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __setstate__(self, data: Dict[str, Any]) -> None:
+        raise NotImplementedError()
+
+
+PT = TypeVar('PT', bound=PayloadInterface)
+
+
+class Payload(PayloadInterface[PT], ABC):
     """
     Generic Interface for Handling and Processing Payloads.
 
@@ -163,27 +205,8 @@ class Payload(ContainerCodec[PT], ABC):
     alongside the `raw` bytes.
     """
 
-    standards: DataStandards = EMPTY_DATASTANDARD
-
-    @classmethod
-    def use_standards(cls, standards: DataStandards):
-        """
-        Sets the DataStandards to use for all Payload encoding / decoding.
-        """
-        cls.standards = standards
-
-    __slots__: List[str] = [
-        # Magic indicating how this payload should be transmitted / where it came from:
-        'magic',
-        # Flag indicating how this payload should go to the rover / came from the rover:
-        'pathway',
-        # DataSource of this data (how it entered the GSW):
-        'source'
-    ]
-
-    magic: Magic
-    pathway: DataPathway
-    source: DataSource
+    # Empty __slots__ allows keeping __slots__ (and not switching to __dict__):
+    __slots__: List[str] = []
 
     def __init__(self,
                  magic: Magic = Magic.MISSING,
@@ -312,9 +335,21 @@ class UplinkedPayload(Payload[PT]):
         self.uplink_times = data['uplink_times']
 
 
-class CommandPayload(UplinkedPayload[CommandPayload]):
-    """Implementation of Payload Interface for IRIS Telemetry Payloads."""
+class CommandPayloadInterface(UplinkedPayload[PT], ABC):
+    """
+    Generic interface which defines all I/O for CommandPayload allowing it to be 
+    used as the Type Generic for CommandPayload, which in turn allows many of 
+    inherited functions to return CommandPayloads.
 
+    In essence, this defines any variables, properties, and methods which are 
+    unique to CommandPayload (and not inherited from its superclasses). 
+    In addition, properties and not just their interfaces are defined here for 
+    convenience sake (to reduce code bulk).
+
+    Note: this is basically required because you can't directly reference a 
+    class as its own generic fill, e.g.:
+    `class CommandPayload(UplinkedPayload[CommandPayload])`
+    """
     __slots__: List[str] = [
         # ID for the Definition for Module this Belongs:
         '_module_id',
@@ -339,7 +374,7 @@ class CommandPayload(UplinkedPayload[CommandPayload]):
 
     @property
     def module(self) -> Module:
-        return Payload.standards.modules[self.module_id]
+        return settings['STANDARDS'].modules[self.module_id]
 
     @property
     def command(self) -> Command:
@@ -348,6 +383,17 @@ class CommandPayload(UplinkedPayload[CommandPayload]):
     @property
     def opcode(self) -> int:
         return self.module_id | self._command_id
+
+    @abstractmethod
+    def check_args(self) -> None:
+        raise NotImplementedError()
+
+
+class CommandPayload(CommandPayloadInterface[CommandPayloadInterface]):
+    """Implementation of Payload Interface for IRIS Telemetry Payloads."""
+
+    # Empty __slots__ allows keeping __slots__ (and not switching to __dict__):
+    __slots__: List[str] = []
 
     def check_args(self) -> None:
         """Checks whether this command's args exactly meet the command's spec."""
@@ -390,7 +436,7 @@ class CommandPayload(UplinkedPayload[CommandPayload]):
                         f"Valid EnumItems are `{arg.enum}` ."
                     )
 
-                if len(matches) > 1:
+                if sum(matches) > 1:
                     raise ValueError(
                         f"Argument `{arg}` is an Enum of command `{self.command}` "
                         f"and somehow multiple EnumItems were found whose "
@@ -431,7 +477,7 @@ class CommandPayload(UplinkedPayload[CommandPayload]):
         module_id = opcode & 0xFF00
         command_id = opcode & 0xFF
 
-        module = Payload.standards.modules[module_id]
+        module = settings['STANDARDS'].modules[module_id]
         command = module.commands[command_id]
 
         args: Dict[str, Any] = {}
@@ -509,6 +555,100 @@ class CommandPayload(UplinkedPayload[CommandPayload]):
         return data
 
 
+class WatchdogCommandPayload(CommandPayload):
+    """Same as CommandPayload but with a special U8 Enum implementation."""
+    @classmethod
+    def decode(cls,
+               data: bytes,
+               endianness_code: str = ENDIANNESS_CODE
+               ) -> WatchdogCommandPayload:
+        opcode_bytes, remaining = data[:2], data[2:]
+        opcode: int = struct.unpack(endianness_code+'H', opcode_bytes)[0]
+        module_id = opcode & 0xFF00
+        command_id = opcode & 0xFF
+
+        module = settings['STANDARDS'].modules[module_id]
+        command = module.commands[command_id]
+
+        args: Dict[str, Any] = {}
+        total_arg_len = 0
+        for arg in command.args:
+            #! TODO: Maybe move this checker into the appropriate Module class?
+            arg_len = arg.datatype.num_octets
+            total_arg_len += arg_len
+            arg_bytes = remaining[:arg_len]
+            # Watchdog takes U8 Enums instead of U32:
+            eff_datatype = arg.datatype if arg.datatype != FswDataType.ENUM else FswDataType.U8
+            args[arg.name] = fsw_data_decode(
+                eff_datatype, arg_bytes
+            )
+            remaining = remaining[arg_len:]
+
+            # Convert to enum name string if type is enum:
+            if arg.datatype == FswDataType.ENUM:
+                # Grab names of all EnumItems whose value matches the extracted value:
+                # (there should be one)
+                matches = [
+                    e.name for e in arg.enum if args[arg.name] == e.value
+                ]
+                if len(matches) == 0:
+                    raise PacketDecodingException(
+                        arg_bytes,
+                        f"No EnumItems found in argument `{arg}` of command "
+                        f"`{command}` whose value matches the value "
+                        f"`{args[arg.name]}` extracted from the given data. "
+                        f"Valid EnumItems are `{arg.enum}` ."
+                    )
+
+                if len(matches) > 1:
+                    raise PacketDecodingException(
+                        arg_bytes,
+                        f"Somehow multiple EnumItems found in argument `{arg}` "
+                        f"of command `{command}` whose value matches the value "
+                        f"`{args[arg.name]}` extracted from the given data. "
+                        f"Valid EnumItems are `{arg.enum}` ."
+                        "This is likely an issue with the DataStandards spec "
+                        "which should have been caught when it was built."
+                    )
+
+                args[arg.name] = matches[0]
+
+        data_used = data[:(2+total_arg_len)]
+
+        #! TODO: Handle bitfields
+
+        return cls(
+            module_id=module.ID,
+            command_id=command.ID,
+            args=args,
+            raw=data_used,
+            endianness_code=endianness_code
+        )
+
+    def encode(self, **kwargs: Any) -> bytes:
+        # Check all args meet spec:
+        self.check_args()
+
+        opcode = self.module_id | self.command_id
+        header = struct.pack(self.endianness_code+'H', opcode)
+        data = header
+
+        # Successively encode and append all arguments:
+        for arg in self.command.args:
+            # Grab argument value:
+            arg_val = self.args[arg.name]
+            # If it's an enum and the name of an EnumItem was supplied (not
+            # its value), convert it to its value.
+            if arg.datatype == FswDataType.ENUM and isinstance(arg_val, str):
+                arg_val = [e.value for e in arg.enum if e.name == arg_val][0]
+            # Encode and append arg bytes:
+            # Watchdog takes U8 Enums instead of U32:
+            eff_datatype = arg.datatype if arg.datatype != FswDataType.ENUM else FswDataType.U8
+            data = data + fsw_data_encode(eff_datatype, arg_val)
+
+        return data
+
+
 class DownlinkedPayload(Payload[PT]):
     """
     Generic superclass for all payloads which are downlinked.
@@ -565,8 +705,21 @@ class DownlinkedPayload(Payload[PT]):
         self.downlink_times = data['downlink_times']
 
 
-class TelemetryPayload(DownlinkedPayload[TelemetryPayload]):
-    """Implementation of Payload Interface for IRIS Telemetry Payloads."""
+class TelemetryPayloadInterface(DownlinkedPayload[PT], ABC):
+    """
+    Generic interface which defines all I/O for TelemetryPayload allowing it to be 
+    used as the Type Generic for TelemetryPayload, which in turn allows many of 
+    inherited functions to return TelemetryPayload.
+
+    In essence, this defines any variables, properties, and methods which are 
+    unique to TelemetryPayload (and not inherited from its superclasses). 
+    In addition, properties and not just their interfaces are defined here for 
+    convenience sake (to reduce code bulk).
+
+    Note: this is basically required because you can't directly reference a 
+    class as its own generic fill, e.g.:
+    `class TelemetryPayload(DownlinkedPayload[TelemetryPayload])`
+    """
 
     __slots__: List[str] = [
         # ID for the Definition for Module this Belongs:
@@ -597,11 +750,18 @@ class TelemetryPayload(DownlinkedPayload[TelemetryPayload]):
 
     @property
     def module(self) -> Module:
-        return Payload.standards.modules[self.module_id]
+        return settings['STANDARDS'].modules[self.module_id]
 
     @property
     def channel(self) -> TelemetryChannel:
         return self.module.telemetry[self.channel_id]
+
+
+class TelemetryPayload(TelemetryPayloadInterface[TelemetryPayloadInterface]):
+    """Implementation of Payload Interface for IRIS Telemetry Payloads."""
+
+    # Empty __slots__ allows keeping __slots__ (and not switching to __dict__):
+    __slots__: List[str] = []
 
     def __init__(self,
                  module_id: int,
@@ -623,6 +783,9 @@ class TelemetryPayload(DownlinkedPayload[TelemetryPayload]):
             raw=raw, endianness_code=endianness_code
         )
 
+    def __repr__(self) -> str:
+        return f"@{self.timestamp}: {self.module}{{{self.channel}}} = {self.data}"
+
     @classmethod
     def decode(cls,
                data: bytes,
@@ -634,7 +797,7 @@ class TelemetryPayload(DownlinkedPayload[TelemetryPayload]):
         module_id = opcode & 0xFF00
         channel_id = opcode & 0xFF
 
-        module = Payload.standards.modules[module_id]
+        module = settings['STANDARDS'].modules[module_id]
         channel = module.telemetry[channel_id]
 
         core_data_len = channel.datatype.num_octets
@@ -661,9 +824,21 @@ class TelemetryPayload(DownlinkedPayload[TelemetryPayload]):
         return header + payload
 
 
-class EventPayload(DownlinkedPayload[EventPayload]):
-    """Implementation of Payload Interface for IRIS Event Payloads."""
+class EventPayloadInterface(DownlinkedPayload[PT], ABC):
+    """
+    Generic interface which defines all I/O for EventPayload allowing it to be 
+    used as the Type Generic for EventPayload, which in turn allows many of 
+    inherited functions to return EventPayload.
 
+    In essence, this defines any variables, properties, and methods which are 
+    unique to EventPayload (and not inherited from its superclasses). 
+    In addition, properties and not just their interfaces are defined here for 
+    convenience sake (to reduce code bulk).
+
+    Note: this is basically required because you can't directly reference a 
+    class as its own generic fill, e.g.:
+    `class EventPayload(DownlinkedPayload[EventPayload])`
+    """
     __slots__: List[str] = [
         # ID for the Definition for Module this Belongs
         '_module_id',
@@ -693,7 +868,7 @@ class EventPayload(DownlinkedPayload[EventPayload]):
 
     @property
     def module(self) -> Module:
-        return Payload.standards.modules[self.module_id]
+        return settings['STANDARDS'].modules[self.module_id]
 
     @property
     def event(self) -> Event:
@@ -703,6 +878,13 @@ class EventPayload(DownlinkedPayload[EventPayload]):
     def formatted_string(self) -> str:
         """Use the parsed args to populate the Event's format string."""
         raise NotImplementedError()
+
+
+class EventPayload(EventPayloadInterface[EventPayloadInterface]):
+    """Implementation of Payload Interface for IRIS Event Payloads."""
+
+    # Empty __slots__ allows keeping __slots__ (and not switching to __dict__):
+    __slots__: List[str] = []
 
     def __str__(self) -> str:
         return self.formatted_string
@@ -741,8 +923,25 @@ class EventPayload(DownlinkedPayload[EventPayload]):
         raise NotImplementedError()
 
 
-class FileMetadata(ContainerCodec[FileMetadata]):
-    """Metadata about the file contained inside Block 0 of a `FileBlockPayload`."""
+FMIT = TypeVar('FMIT')
+
+
+class FileMetadataInterface(ContainerCodec[FMIT], ABC):
+    """
+    Generic interface which defines all I/O for FileMetadata allowing it to be 
+    used as the Type Generic for FileMetadata, which in turn allows many of 
+    inherited functions to return FileMetadata.
+
+    In essence, this defines any variables, properties, and methods which are 
+    unique to FileMetadata (and not inherited from its superclasses). 
+    In addition, properties and not just their interfaces are defined here for 
+    convenience sake (to reduce code bulk).
+
+    Note: this is basically required because you can't directly reference a 
+    class as its own generic fill, e.g.:
+    `class FileMetadata(ContainerCodec[FileMetadata])`
+    """
+
     class FileTypeMagic(Enum):
         """
         Enumeration of all file types which could be downlinked.
@@ -767,7 +966,7 @@ class FileMetadata(ContainerCodec[FileMetadata]):
     ]
     _callback_id: int
     _timestamp: int
-    _file_type_magic: FileMetadata.FileTypeMagic
+    _file_type_magic: FileTypeMagic
 
     # Make public get, private set to signal that you can freely use these values
     # but modifying them directly can yield undefined behavior (specifically
@@ -776,10 +975,15 @@ class FileMetadata(ContainerCodec[FileMetadata]):
     def callback_id(self) -> int: return self._callback_id
     @property
     def timestamp(self) -> int: return self._timestamp
-
     @property
-    def file_type_magic(self) -> FileMetadata.FileTypeMagic:
-        return self._file_type_magic
+    def file_type_magic(self) -> FileTypeMagic: return self._file_type_magic
+
+
+class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
+    """Metadata about the file contained inside Block 0 of a `FileBlockPayload`."""
+
+    # Empty __slots__ allows keeping __slots__ (and not switching to __dict__):
+    __slots__: List[str] = []
 
     def __init__(self,
                  callback_id: int,
@@ -804,8 +1008,21 @@ class FileMetadata(ContainerCodec[FileMetadata]):
         raise NotImplementedError()
 
 
-class FileBlockPayload(DownlinkedPayload[EventPayload]):
-    """Implementation of Payload Interface for IRIS File Blocks."""
+class FileBlockPayloadInterface(DownlinkedPayload[PT], ABC):
+    """
+    Generic interface which defines all I/O for FileBlockPayload allowing it to be 
+    used as the Type Generic for FileBlockPayload, which in turn allows many of 
+    inherited functions to return FileBlockPayload.
+
+    In essence, this defines any variables, properties, and methods which are 
+    unique to FileBlockPayload (and not inherited from its superclasses). 
+    In addition, properties and not just their interfaces are defined here for 
+    convenience sake (to reduce code bulk).
+
+    Note: this is basically required because you can't directly reference a 
+    class as its own generic fill, e.g.:
+    `class FileBlockPayload(DownlinkedPayload[EventPayload])`
+    """
 
     __slots__: List[str] = [
         # A hash of the timestamp when file transmission started. Used to
@@ -851,6 +1068,13 @@ class FileBlockPayload(DownlinkedPayload[EventPayload]):
     def file_metadata(self) -> Optional[FileMetadata]:
         return self._file_metadata
 
+
+class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
+    """Implementation of Payload Interface for IRIS File Blocks."""
+
+    # Empty __slots__ allows keeping __slots__ (and not switching to __dict__):
+    __slots__: List[str] = []
+
     def __init__(self,
                  hashed_id: bytes,
                  total_blocks: int,
@@ -879,7 +1103,7 @@ class FileBlockPayload(DownlinkedPayload[EventPayload]):
     def decode(cls,
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE
-               ) -> EventPayload:
+               ) -> FileBlockPayload:
         raise NotImplementedError()
 
     def encode(self, **kwargs: Any) -> bytes:

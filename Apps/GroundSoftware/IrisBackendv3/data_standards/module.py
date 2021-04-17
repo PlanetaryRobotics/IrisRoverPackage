@@ -6,7 +6,7 @@ Containers for Flight Software Modules/Components and their Relevant Fields
 (where applicable).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 01/31/2021
+@last-updated: 04/17/2021
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -302,6 +302,59 @@ class DataUnit(GswMetadataContainer):
                 "needs to match the total number of bits in the Argument's "
                 f"datatype ({self.datatype.num_octets}B = {self.datatype.num_bits}b)."
             )
+
+    #! TODO: Unit test these fetchers (`get_enum_xxx`):
+    def get_enum_value(self, name: str) -> Optional[int]:
+        """Returns the value that matches the given name in the enum (if there is one)."""
+        if len(self.enum) == 0 or self.datatype != FswDataType.ENUM:
+            return None
+
+        matches = [
+            e.value for e in self.enum if name == e.name
+        ]
+        if len(matches) == 0:
+            raise ValueError(
+                f"No EnumItems were found in `{self}` whose name matches "
+                f"the supplied argument value `{name}` were found."
+                f"Valid EnumItems are `{self.enum}` ."
+            )
+
+        if len(matches) > 1:
+            raise ValueError(
+                f"Somehow multiple EnumItems in `{self}` were found whose "
+                "name matches the supplied argument value "
+                f"`{name}`. Valid EnumItems are `{self.enum}` ."
+                "This is likely an issue with the DataStandards spec "
+                "which should have been caught when it was built."
+            )
+
+        return matches[0]
+
+    def get_enum_name(self, val: int) -> Optional[str]:
+        """Returns the name that matches the given value in the enum (if there is one)."""
+        if len(self.enum) == 0 or self.datatype != FswDataType.ENUM:
+            return None
+
+        matches = [
+            e.name for e in self.enum if val == e.value
+        ]
+        if len(matches) == 0:
+            raise ValueError(
+                f"No EnumItems were found in `{self}` whose value matches "
+                f"the supplied argument value `{val}` were found."
+                f"Valid EnumItems are `{self.enum}` ."
+            )
+
+        if len(matches) > 1:
+            raise ValueError(
+                f"Somehow multiple EnumItems in `{self}` were found whose "
+                "value matches the supplied argument value "
+                f"`{val}`. Valid EnumItems are `{self.enum}` ."
+                "This is likely an issue with the DataStandards spec "
+                "which should have been caught when it was built."
+            )
+
+        return matches[0]
 
 
 class EnumItem(object):

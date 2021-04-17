@@ -14,14 +14,17 @@ from typing import List, Tuple, Any, Optional, Callable, Generic, TypeVar
 from abc import ABC, abstractmethod
 from enum import Enum
 import struct
+import numpy as np
+import time
 
 from math import ceil
 
 from .magic import Magic, MAGIC_SIZE
 from .metadata import DataPathway, DataSource
 from .container import ContainerCodec
+from .payload import PayloadCollection, TelemetryPayload, extract_downlinked_payloads
 
-from .settings import ENDIANNESS_CODE
+from .settings import ENDIANNESS_CODE, settings
 from .logging import logger
 from .exceptions import PacketDecodingException
 
@@ -33,20 +36,43 @@ CT = TypeVar('CT')
 
 # TODO: Add `__str__` / `__repr__`s
 
+#! TODO: Handle serialization (must replace container scheme, augment by storing payloads with their metadata)
+
 
 class Packet(ContainerCodec[CT], ABC):
     # Mainly an aliasing class for now (allows for creating List[Packet])
 
     __slots__: List[str] = [
         'pathway',  # DataPathway through which this data was received or should be sent
-        'source'  # DataSource of this data (how it entered the GSW)
+        'source',  # DataSource of this data (how it entered the GSW)
+        'payloads'  # PayloadCollection of all Payloads, separated by type
     ]  # empty but lets the slots from parent continue
 
+    pathway: DataPathway
+    source: DataSource
+    payloads: PayloadCollection
+
     def __init__(self,
+                 payloads: PayloadCollection,
+                 pathway: DataPathway = DataPathway.NONE,
+                 source: DataSource = DataSource.NONE,
                  raw: Optional[bytes] = None,
                  endianness_code: str = ENDIANNESS_CODE
                  ) -> None:
+        self.payloads = payloads
+        self.pathway = pathway
+        self.source = source
         super().__init__(raw=raw, endianness_code=endianness_code)  # passthru
+
+    @classmethod
+    @abstractmethod
+    def decode(cls,
+               data: bytes,
+               endianness_code: str = ENDIANNESS_CODE,
+               pathway: DataPathway = DataPathway.NONE,
+               source: DataSource = DataSource.NONE
+               ) -> CT:
+        raise NotImplementedError()
 
     @classmethod
     @abstractmethod
@@ -57,64 +83,224 @@ class Packet(ContainerCodec[CT], ABC):
         raise NotImplementedError()
 
 
-class WatchdogHeartbeatPacket(Packet[WatchdogHeartbeatPacket]):
-    # Properties (r-only class variables):
-    START_FLAG: bytes = b'\xFF'  # Required start flag
-    # Battery charge value in mAh when telemetry value is (0x00, 0xFF):
-    BATT_CHARGE_RANGE: Tuple[float, float] = (0, 3500)
-    # Battery draw current value in mA when telemetry value is (0x00, 0xFF):
-    BATT_CURRENT_RANGE: Tuple[float, float] = (0, 500)
-    # Battery temperature value in degC when telemetry value is (0x00, 0xFF):
-    BATT_TEMP_RANGE: Tuple[float, float] = (75, -12.31)
+class WatchdogTvacHeartbeatPacketInterface(Packet[CT]):
+
+    class CustomPayload():
+        """
+        Core custom WatchdogTvacHeartbeat payload.
+        Members must have same names as corresponding telemetry channels in the 
+        `WatchdogHeartbeatTvac` prebuilt module.
+
+        *NOTE:* For this to work effectively, all fields, including computed 
+        properties, must match their names from the prebuilt module
+        AND the order of the args in `__init__` must match the order of the 
+        bytes in the packet.
+        """
+        THERMISTOR_LOOKUP_TABLE = {  # for 5k thermistor: https://www.tdk-electronics.tdk.com/inf/50/db/ntc/NTC_Mini_sensors_S863.pdf
+            'degC': np.asarray([-15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155]),
+            'Vadc': np.asarray([4242, 3970, 3670, 3352, 3023, 2695, 2378, 2077, 1801, 1552, 1330, 1137, 969, 825, 702, 598, 510, 435, 372, 319, 274, 237, 204, 177, 154, 134, 117, 103, 90, 79, 70, 62, 55, 49, 44])
+        }
+
+        __slots__: List[str] = [
+            '_AdcTempRaw',
+            '_ChargeRaw',
+            '_VoltageRaw',
+            '_CurrentRaw',
+            '_FuelTempRaw',
+            '_KpHeater',
+            '_HeaterSetpoint',
+            '_HeaterWindow',
+            '_HeaterPwmLimit',
+            '_WatchdogMode',
+            '_HeaterStatus',
+            '_HeatingControlEnabled',
+            '_HeaterPwmDutyCycle'
+        ]
+
+        _AdcTempRaw: int
+        _ChargeRaw: int
+        _VoltageRaw: int
+        _CurrentRaw: int
+        _FuelTempRaw: int
+        _KpHeater: int
+        _HeaterSetpoint: int
+        _HeaterWindow: int
+        _HeaterPwmLimit: int
+        _WatchdogMode: str
+        _HeaterStatus: int
+        _HeatingControlEnabled: int
+        _HeaterPwmDutyCycle: int
+
+        @property
+        def AdcTempKelvin(self) -> float:
+            return float(np.interp(self._AdcTempRaw, self.THERMISTOR_LOOKUP_TABLE['Vadc'][::-1], self.THERMISTOR_LOOKUP_TABLE['degC'][::-1]) + 273.15)
+
+        @property
+        def ChargeMah(self) -> float:
+            return 0  # ! TODO: Get the conversion
+
+        @property
+        def Voltage(self) -> float:
+            return self._VoltageRaw * 0.00108033875
+
+        @property
+        def CurrentAmps(self) -> float:
+            return 0.0000390636921 * (self._CurrentRaw - 32767)
+
+        @property
+        def FuelTempKelvin(self) -> float:
+            return 0  # ! TODO: Get the conversion
+
+        @property
+        def HeaterSetpointKelvin(self) -> float:
+            return float(np.interp(self._HeaterSetpoint, self.THERMISTOR_LOOKUP_TABLE['Vadc'][::-1], self.THERMISTOR_LOOKUP_TABLE['degC'][::-1]) + 273.15)
+
+        @property
+        def HeaterWindowKelvin(self) -> float:
+            return float(np.interp(self._HeaterWindow, self.THERMISTOR_LOOKUP_TABLE['Vadc'][::-1], self.THERMISTOR_LOOKUP_TABLE['degC'][::-1]) + 273.15)
+
+        # Make public get, private set to signal that you can freely use these values
+        # but modifying them directly can yield undefined behavior (specifically
+        # `raw` not syncing up with whatever other data is in the container)
+        @property
+        def AdcTempRaw(self) -> int: return self._AdcTempRaw
+        @property
+        def ChargeRaw(self) -> int: return self._ChargeRaw
+        @property
+        def VoltageRaw(self) -> int: return self._VoltageRaw
+        @property
+        def CurrentRaw(self) -> int: return self._CurrentRaw
+        @property
+        def FuelTempRaw(self) -> int: return self._FuelTempRaw
+        @property
+        def KpHeater(self) -> int: return self._KpHeater
+        @property
+        def HeaterSetpoint(self) -> int: return self._HeaterSetpoint
+        @property
+        def HeaterWindow(self) -> int: return self._HeaterWindow
+        @property
+        def HeaterPwmLimit(self) -> int: return self._HeaterPwmLimit
+        @property
+        def WatchdogMode(self) -> str: return self._WatchdogMode
+        @property
+        def HeaterStatus(self) -> int: return self._HeaterStatus
+
+        @property
+        def HeatingControlEnabled(
+            self) -> int: return self._HeatingControlEnabled
+
+        @property
+        def HeaterPwmDutyCycle(self) -> int: return self._HeaterPwmDutyCycle
+
+        def __init__(self,
+                     AdcTempRaw: int,
+                     ChargeRaw: int,
+                     VoltageRaw: int,
+                     CurrentRaw: int,
+                     FuelTempRaw: int,
+                     KpHeater: int,
+                     HeaterSetpoint: int,
+                     HeaterWindow: int,
+                     HeaterPwmLimit: int,
+                     WatchdogMode: str,
+                     HeaterStatus: int,
+                     HeatingControlEnabled: int,
+                     HeaterPwmDutyCycle: int
+                     ) -> None:
+            self._AdcTempRaw = AdcTempRaw
+            self._ChargeRaw = ChargeRaw
+            self._VoltageRaw = VoltageRaw
+            self._CurrentRaw = CurrentRaw
+            self._FuelTempRaw = FuelTempRaw
+            self._KpHeater = KpHeater
+            self._HeaterSetpoint = HeaterSetpoint
+            self._HeaterWindow = HeaterWindow
+            self._HeaterPwmLimit = HeaterPwmLimit
+            self._WatchdogMode = WatchdogMode
+            self._HeaterStatus = HeaterStatus
+            self._HeatingControlEnabled = HeatingControlEnabled
+            self._HeaterPwmDutyCycle = HeaterPwmDutyCycle
 
     __slots__: List[str] = [
-        '_batt_charge',  # - Battery charge level [mAh]
-        '_heater_on',  # - Is heater on?
-        '_batt_current',  # - Battery current draw [mA]
-        '_battery_voltage_ok',  # - Is battery voltage in a safe range?
-        '_batt_temp'  # - Battery temperature reading [degC]
+        'custom_payload'
     ]
+    custom_payload: CustomPayload
 
-    _batt_charge: float
-    _heater_on: bool
-    _batt_current: float
-    _battery_voltage_ok: bool
-    _batt_temp: float
 
-    # Make public get, private set to signal that you can freely use these values
-    # but modifying them directly can yield undefined behavior (specifically
-    # `raw` not syncing up with whatever other data is in the container)
-    @property
-    def batt_charge(self) -> float: return self._batt_charge
-    @property
-    def heater_on(self) -> bool: return self._heater_on
-    @property
-    def batt_current(self) -> float: return self._batt_current
-    @property
-    def battery_voltage_ok(self) -> bool: return self._battery_voltage_ok
-    @property
-    def batt_temp(self) -> float: return self._batt_temp
+class WatchdogTvacHeartbeatPacket(WatchdogTvacHeartbeatPacketInterface[WatchdogTvacHeartbeatPacketInterface]):
+    # ADC temp:
+    # Charge:
+    # Raw Voltage: (U16) * [voltage int reading] * 0.00108033875 = voltage [V]
+    # 0.0000390636921 * ( [current int reading] - 32767 ) = current [A]
+    # 0.00778210117 * [fuel gauge temp int reading] = temperature [K]
+    # Properties (r-only class variables):
+    START_FLAG: bytes = b'\xFF'  # Required start flag
 
     def __init__(self,
-                 batt_charge: float,
-                 heater_on: bool,
-                 batt_current: float,
-                 battery_voltage_ok: bool,
-                 batt_temp: float,
+                 custom_payload: WatchdogTvacHeartbeatPacket.CustomPayload,
+                 pathway: DataPathway = DataPathway.NONE,
+                 source: DataSource = DataSource.NONE,
                  raw: Optional[bytes] = None,
                  endianness_code: str = ENDIANNESS_CODE
                  ) -> None:
-        self._batt_charge = batt_charge
-        self._heater_on = heater_on
-        self._batt_current = batt_current
-        self._battery_voltage_ok = battery_voltage_ok
-        self._batt_temp = batt_temp
-        super().__init__(raw=raw, endianness_code=endianness_code)
 
-    @classmethod
-    def decode(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> CT:
-        #! TODO
-        raise NotImplementedError()
+        self.custom_payload = custom_payload
+
+        # Autopopulate payloads based on name:
+        payloads: PayloadCollection = PayloadCollection(
+            CommandPayload=[],
+            TelemetryPayload=[],
+            EventPayload=[],
+            FileBlockPayload=[]
+        )
+
+        try:
+            module = settings['STANDARDS'].modules['WatchdogHeartbeatTvac']
+        except KeyError:
+            raise TypeError(
+                "Attempted to parse a `WatchdogTvacHeartbeatPacket` which "
+                "requires the `WatchdogHeartbeatTvac` special `prebuilt` "
+                "module to be loaded into the standards but it can't be found."
+            )
+        for channel in module.telemetry.vals:
+            payloads.TelemetryPayload.append(TelemetryPayload(
+                module_id=module.ID,
+                channel_id=channel.ID,
+                data=getattr(custom_payload, channel.name),
+                timestamp=int(time.time()),
+                magic=Magic.TELEMETRY,
+                pathway=pathway,
+                source=source,
+                endianness_code=endianness_code
+            ))
+
+        super().__init__(payloads=payloads, pathway=pathway, source=source,
+                         raw=raw, endianness_code=endianness_code)
+
+    @ classmethod
+    def decode(cls,
+               data: bytes,
+               endianness_code: str = ENDIANNESS_CODE,
+               pathway: DataPathway = DataPathway.NONE,
+               source: DataSource = DataSource.NONE,
+               ) -> WatchdogTvacHeartbeatPacket:
+        flag, core_data = data[:1], data[1:]
+        if cls.START_FLAG != flag:
+            raise PacketDecodingException(
+                data,
+                "Start flag for `WatchdogTvacHeartbeatPacket` was invalid. "  # type: ignore
+                f"Expected {cls.START_FLAG}, Got: {flag} ."
+            )
+        custom_payload = WatchdogTvacHeartbeatPacket.CustomPayload(
+            *struct.unpack(endianness_code + '9H 3B H', core_data)
+        )
+        return WatchdogTvacHeartbeatPacket(
+            custom_payload=custom_payload,
+            pathway=pathway,
+            source=source,
+            raw=data,
+            endianness_code=endianness_code
+        )
 
     def encode(self, **kwargs: Any) -> bytes:
         #! TODO
@@ -126,76 +312,154 @@ class WatchdogHeartbeatPacket(Packet[WatchdogHeartbeatPacket]):
         Determines whether the given bytes constitute a valid packet of this type.
         """
         right_start = len(data) > 0 and data[0] == cls.START_FLAG
-        right_length = len(data) == ceil((8 + 7 + 1 + 7 + 1 + 8) / 8)  # Bytes
+        right_length = len(data) == 24  # Bytes
 
         return right_start and right_length
 
 
-class WatchdogCommandResponsePacket(Packet[WatchdogCommandResponsePacket]):
-    # Properties (r-only class variables):
-    START_FLAG: bytes = b'\x0A'  # Required start flag
+# class WatchdogHeartbeatPacket(Packet[WatchdogHeartbeatPacket]):
+#     # Properties (r-only class variables):
+#     START_FLAG: bytes = b'\xFF'  # Required start flag
+#     # Battery charge value in mAh when telemetry value is (0x00, 0xFF):
+#     BATT_CHARGE_RANGE: Tuple[float, float] = (0, 3500)
+#     # Battery draw current value in mA when telemetry value is (0x00, 0xFF):
+#     BATT_CURRENT_RANGE: Tuple[float, float] = (0, 500)
+#     # Battery temperature value in degC when telemetry value is (0x00, 0xFF):
+#     BATT_TEMP_RANGE: Tuple[float, float] = (75, -12.31)
 
-    #! TODO: Create an `install` function which adds WatchdogCommandResponsePacket events to standards
+#     __slots__: List[str] = [
+#         '_batt_charge',  # - Battery charge level [mAh]
+#         '_heater_on',  # - Is heater on?
+#         '_batt_current',  # - Battery current draw [mA]
+#         '_battery_voltage_ok',  # - Is battery voltage in a safe range?
+#         '_batt_temp'  # - Battery temperature reading [degC]
+#     ]
 
-    class ErrorFlag(Enum):
-        """
-        Known WatchdogCommandResponse Error Flags:
-        """
-        NO_ERROR = b'\x00'  # all okay
-        BAD_PACKET_LEN = b'\x01'
-        CHECKSUM_FAILED = b'\x02'
-        BAD_MODULE_ID = b'\x03'
-        BAD_COMMAND_ID = b'\x04'
-        BAD_COMMAND_PARAMETER = b'\x05'
-        BAD_COMMAND_ORDER = b'\x06'  # example deploy before prep for deploy
+#     _batt_charge: float
+#     _heater_on: bool
+#     _batt_current: float
+#     _battery_voltage_ok: bool
+#     _batt_temp: float
 
-    __slots__: List[str] = [
-        '_command_id',  # - ID of command being responded to
-        '_error_flag',  # - Error status after watchdog processed command
-    ]
+#     # Make public get, private set to signal that you can freely use these values
+#     # but modifying them directly can yield undefined behavior (specifically
+#     # `raw` not syncing up with whatever other data is in the container)
+#     @property
+#     def batt_charge(self) -> float: return self._batt_charge
+#     @property
+#     def heater_on(self) -> bool: return self._heater_on
+#     @property
+#     def batt_current(self) -> float: return self._batt_current
+#     @property
+#     def battery_voltage_ok(self) -> bool: return self._battery_voltage_ok
+#     @property
+#     def batt_temp(self) -> float: return self._batt_temp
 
-    _command_id: bytes
-    _error_flag: WatchdogCommandResponsePacket.ErrorFlag
+#     def __init__(self,
+#                  batt_charge: float,
+#                  heater_on: bool,
+#                  batt_current: float,
+#                  battery_voltage_ok: bool,
+#                  batt_temp: float,
+#                  raw: Optional[bytes] = None,
+#                  endianness_code: str = ENDIANNESS_CODE
+#                  ) -> None:
+#         self._batt_charge = batt_charge
+#         self._heater_on = heater_on
+#         self._batt_current = batt_current
+#         self._battery_voltage_ok = battery_voltage_ok
+#         self._batt_temp = batt_temp
+#         super().__init__(raw=raw, endianness_code=endianness_code)
 
-    # Make public get, private set to signal that you can freely use these values
-    # but modifying them directly can yield undefined behavior (specifically
-    # `raw` not syncing up with whatever other data is in the container)
-    @property
-    def command_id(self) -> bytes: return self._command_id
+#     @classmethod
+#     def decode(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> CT:
+#         #! TODO
+#         raise NotImplementedError()
 
-    @property
-    def error_flag(self) -> WatchdogCommandResponsePacket.ErrorFlag:
-        return self._error_flag
+#     def encode(self, **kwargs: Any) -> bytes:
+#         #! TODO
+#         raise NotImplementedError()
 
-    def __init__(self,
-                 command_id: bytes,
-                 error_flag: WatchdogCommandResponsePacket.ErrorFlag,
-                 raw: Optional[bytes] = None,
-                 endianness_code: str = ENDIANNESS_CODE
-                 ) -> None:
-        self._command_id = command_id
-        self._error_flag = error_flag
-        super().__init__(raw=raw, endianness_code=endianness_code)
+#     @classmethod
+#     def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
+#         """
+#         Determines whether the given bytes constitute a valid packet of this type.
+#         """
+#         right_start = len(data) > 0 and data[0] == cls.START_FLAG
+#         right_length = len(data) == ceil((8 + 7 + 1 + 7 + 1 + 8) / 8)  # Bytes
 
-    @classmethod
-    def decode(self, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> CT:
-        #! TODO
-        raise NotImplementedError()
-
-    def encode(self, **kwargs: Any) -> bytes:
-        #! TODO
-        raise NotImplementedError()
-
-    @classmethod
-    def is_valid(cls, data: bytes, endianness_code=ENDIANNESS_CODE) -> bool:
-        right_start = len(data) > 0 and data[0] == cls.START_FLAG
-        right_length = len(data) == ceil((8 + 8 + 8) / 8)  # Bytes
-
-        return right_start and right_length
-        raise NotImplementedError()
+#         return right_start and right_length
 
 
-class IrisCommonPacket(Packet[IrisCommonPacket]):
+# class WatchdogCommandResponsePacket(Packet[WatchdogCommandResponsePacket]):
+#     # Properties (r-only class variables):
+#     START_FLAG: bytes = b'\x0A'  # Required start flag
+
+#     #! TODO: Create an `install` function which adds WatchdogCommandResponsePacket events to standards
+
+#     class ErrorFlag(Enum):
+#         """
+#         Known WatchdogCommandResponse Error Flags:
+#         """
+#         NO_ERROR = b'\x00'  # all okay
+#         BAD_PACKET_LEN = b'\x01'
+#         CHECKSUM_FAILED = b'\x02'
+#         BAD_MODULE_ID = b'\x03'
+#         BAD_COMMAND_ID = b'\x04'
+#         BAD_COMMAND_PARAMETER = b'\x05'
+#         BAD_COMMAND_ORDER = b'\x06'  # example deploy before prep for deploy
+
+#     __slots__: List[str] = [
+#         '_command_id',  # - ID of command being responded to
+#         '_error_flag',  # - Error status after watchdog processed command
+#     ]
+
+#     _command_id: bytes
+#     _error_flag: WatchdogCommandResponsePacket.ErrorFlag
+
+#     # Make public get, private set to signal that you can freely use these values
+#     # but modifying them directly can yield undefined behavior (specifically
+#     # `raw` not syncing up with whatever other data is in the container)
+#     @property
+#     def command_id(self) -> bytes: return self._command_id
+
+#     @property
+#     def error_flag(self) -> WatchdogCommandResponsePacket.ErrorFlag:
+#         return self._error_flag
+
+#     def __init__(self,
+#                  command_id: bytes,
+#                  error_flag: WatchdogCommandResponsePacket.ErrorFlag,
+#                  raw: Optional[bytes] = None,
+#                  endianness_code: str = ENDIANNESS_CODE
+#                  ) -> None:
+#         self._command_id = command_id
+#         self._error_flag = error_flag
+#         super().__init__(raw=raw, endianness_code=endianness_code)
+
+#     @classmethod
+#     def decode(self, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> CT:
+#         #! TODO
+#         raise NotImplementedError()
+
+#     def encode(self, **kwargs: Any) -> bytes:
+#         #! TODO
+#         raise NotImplementedError()
+
+#     @classmethod
+#     def is_valid(cls, data: bytes, endianness_code=ENDIANNESS_CODE) -> bool:
+#         right_start = len(data) > 0 and data[0] == cls.START_FLAG
+#         right_length = len(data) == ceil((8 + 8 + 8) / 8)  # Bytes
+
+#         return right_start and right_length
+#         raise NotImplementedError()
+
+
+class IrisCommonPacketInterface(Packet[CT]):
+    pass
+
+
+class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
     """
     Defines Common Data Required for All Packets.
 
@@ -213,7 +477,10 @@ class IrisCommonPacket(Packet[IrisCommonPacket]):
     # [Bytes] - Maximum Transmission Units for Packets thru Hercules:
     MTU_HERCULES: int = 1006
 
-    class CommonPacketHeader(ContainerCodec[IrisCommonPacket.CommonPacketHeader]):
+    class CommonPacketHeaderInterface(ContainerCodec[CT]):
+        pass
+
+    class CommonPacketHeader(CommonPacketHeaderInterface[CommonPacketHeaderInterface]):
         """
         Container for Handling and Processing CommonPacketHeaders.
 
@@ -260,11 +527,10 @@ class IrisCommonPacket(Packet[IrisCommonPacket]):
         def decode(cls,
                    data: bytes,
                    endianness_code: str = ENDIANNESS_CODE
-                   ) -> IrisPacket.CommonPacketHeader:
+                   ) -> IrisCommonPacket.CommonPacketHeader:
             """Extract all data in the given raw common packet header."""
             cph_head, checksum = data[:-1], data[-1:]
             seq_num, vlp_len = struct.unpack(endianness_code+' B H', cph_head)
-            print(seq_num, vlp_len, checksum)
 
             return cls(
                 endianness_code=endianness_code,
@@ -287,17 +553,10 @@ class IrisCommonPacket(Packet[IrisCommonPacket]):
 
     __slots__: List[str] = [
         # CommonPacketHeader Data:
-        '_common_packet_header',
-        # Collections of Payloads (Extracted or to be sent):
-        '_command_payloads',
-        '_telemetry_payloads',
-        '_event_payloads'
+        '_common_packet_header'
     ]
 
     _common_packet_header: IrisCommonPacket.CommonPacketHeader
-    _command_payloads: List[Payload]
-    _telemetry_payloads: List[Payload]
-    _event_payloads: List[Payload]
 
     # Make public get, private set to signal that you can freely use these values
     # but modifying them directly can yield undefined behavior (specifically
@@ -306,43 +565,31 @@ class IrisCommonPacket(Packet[IrisCommonPacket]):
     def common_packet_header(self) -> IrisCommonPacket.CommonPacketHeader:
         return self._common_packet_header
 
-    @property
-    def command_payloads(self) -> List[Payload]:
-        return self._command_payloads
-
-    @property
-    def telemetry_payloads(self) -> List[Payload]:
-        return self._telemetry_payloads
-
-    @property
-    def event_payloads(self) -> List[Payload]:
-        return self._event_payloads
-
     def __init__(self,
                  common_packet_header: CommonPacketHeader,
-                 command_payloads: List[Payload],
-                 telemetry_payloads: List[Payload],
-                 event_payloads: List[Payload],
+                 payloads: PayloadCollection,
+                 pathway: DataPathway = DataPathway.NONE,
+                 source: DataSource = DataSource.NONE,
                  raw: Optional[bytes] = None,
                  endianness_code: str = ENDIANNESS_CODE
                  ) -> None:
         self._common_packet_header = common_packet_header
-        self._command_payloads = command_payloads
-        self._telemetry_payloads = telemetry_payloads
-        self._event_payloads = event_payloads
-        super().__init__(raw=raw, endianness_code=endianness_code)
+        super().__init__(payloads=payloads, pathway=pathway,
+                         source=source, raw=raw, endianness_code=endianness_code)
 
     @classmethod
     def decode(cls,
                data: bytes,
-               endianness_code: str = ENDIANNESS_CODE
-               ) -> IrisPacket.CommonPacketHeader:
+               endianness_code: str = ENDIANNESS_CODE,
+               pathway: DataPathway = DataPathway.NONE,
+               source: DataSource = DataSource.NONE
+               ) -> IrisCommonPacket:
         """Construct a Iris Packet Object from Bytes."""
 
-        cph_data = packet_bytes[:CPH_SIZE]
-        CPH = IrisPacket.CommonPacketHeader.decode(cph_data)
+        cph_data = data[:CPH_SIZE]
+        CPH = IrisCommonPacket.CommonPacketHeader.decode(cph_data)
         #! TODO: Perform checksum check. (not impl. in FSW atm)
-        actual_vlp_len = len(packet_bytes) - CPH_SIZE
+        actual_vlp_len = len(data) - CPH_SIZE
         if CPH.vlp_len != actual_vlp_len:
             raise PacketDecodingException(
                 cph_data,
@@ -352,25 +599,36 @@ class IrisCommonPacket(Packet[IrisCommonPacket]):
                     f"actual VLP length ({actual_vlp_len}B)."
                 )
             )
+        # Extract the Variable Length Payload
+        VLP = data[CPH_SIZE:]
 
-        # Unpack Variable Length Payload:
-        while len(VLP) > 0:
-            # vlp_data = [:] # (?) why
-            # Strip off the magic:
-            magic_bytes, VLP = VLP[:MAGIC_SIZE], VLP[MAGIC_SIZE:]
-            magic = Magic.decode(magic_bytes, byte_order=ENDIANNESS_CODE)
-            if magic == Magic.COMMAND or magic == Magic.WATCHDOG_COMMAND:
-                pass
-            elif magic == Magic.TELEMETRY:
-                pass
-            elif magic == Magic.EVENT:
-                pass
-            elif magic == Magic.FILE:
-                pass
-            # build payload from vlp
-            # next...
+        # Parse VLP:
+        try:
+            #! TODO: handle uplink packets as well.
+            #! TODO: Handle UplinkTimes/DownlinkTimes objects
+            payloads = extract_downlinked_payloads(
+                VLP=VLP,
+                pathway=pathway,
+                source=source
+            )
 
-        pass
+        except Exception as e:
+            trace = e  # traceback.format_exc()
+            logger.warning(
+                f"Had to abort packet parsing due to the following exception: {trace}"
+            )
+
+        return IrisCommonPacket(
+            common_packet_header=CPH,
+            payloads=payloads,
+            pathway=pathway,
+            source=source,
+            raw=data,
+            endianness_code=endianness_code
+        )
+
+    def encode(self, **kwargs: Any) -> bytes:
+        raise NotImplementedError()
 
     @classmethod
     def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
@@ -391,7 +649,7 @@ class IrisCommonPacket(Packet[IrisCommonPacket]):
         return min_length and contains_magic
 
 
-class IrisDownlinkPacket(IrisPacket):
+class IrisDownlinkPacket(IrisCommonPacket):
     """
     Defines Common Data Required for All Downlinked Packets (Moon to Earth).
 
@@ -403,8 +661,8 @@ class IrisDownlinkPacket(IrisPacket):
     """
 
     __slots__: List[str] = [
-        'time-received',
-        'time-sent'
+        'time_received',
+        'time_sent'
     ]
 
     def __init__(self) -> None:
@@ -420,12 +678,12 @@ class IrisUplinkPacket(Packet):
     """
 
     __slots__: List[str] = [
-        'time-issued',
-        'time-logged',
-        'time-processed',
-        'time-sent',
-        'time-confirmed',
-        'time-received'
+        'time_issued',
+        'time_logged',
+        'time_processed',
+        'time_sent',
+        'time_confirmed',
+        'time_received'
     ]
 
     def __init__(self) -> None:

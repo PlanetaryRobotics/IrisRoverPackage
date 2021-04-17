@@ -56,7 +56,7 @@ class ContainerCodec(Generic[CT], ABC):
     @property
     def endianness_code(self) -> str: return self._endianness_code
     @property
-    def raw(self) -> Optional[bytes]: return self.raw
+    def raw(self) -> Optional[bytes]: return self._raw
 
     @classmethod
     @abstractmethod

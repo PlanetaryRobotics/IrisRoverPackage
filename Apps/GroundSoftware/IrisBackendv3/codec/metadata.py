@@ -2,7 +2,7 @@
 Various Classes defining Metadata for Packets and Payloads.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/15/2021
+@last-updated: 04/16/2021
 """
 
 from typing import List
@@ -44,8 +44,9 @@ class DataSource(Enum):
     NONE = -1  # Invalid (No source given)
     YAMCS = 0x00  # Any YAMCS Connection
     UDP_SERIAL_DIRECT = 0x01  # Direct UDP Serial Connection
-    GENERATED = 0x10  # Data Generated within the GSW (eg. in a metachannel)
-    MONGO = 0x20  # Data received (likely from Frontend) via MongoDB
+    PCAP = 0x10  # Loaded from a Packet Capture (pcap)
+    GENERATED = 0x20  # Data Generated within the GSW (eg. in a metachannel)
+    MONGO = 0x30  # Data received (likely from Frontend) via MongoDB
 
 
 class DownlinkTimes():

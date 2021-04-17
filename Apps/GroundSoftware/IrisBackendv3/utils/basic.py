@@ -3,12 +3,13 @@
 A Collection of Basic Utility Functions.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/08/2021
+@last-updated: 04/17/2021
 """
 
 import re
 import string
 from typing import Dict, List, Any, Union
+import inspect
 
 
 def bytearray_to_spaced_hex(ba) -> str:
@@ -268,7 +269,8 @@ def name_split_and_format_by_term(name: str) -> List[str]:
 
     # Involves all challenge cases:
     >>> name_split_and_format_by_term('A1::ABC2::FSW((say_phrase)): AHelloWorld--1Time_in55seconds_ToGSW')
-    ['A', '1', 'ABC', '2', 'FSW', '((', 'Say', 'Phrase', '))', 'A', 'Hello', 'World', '1', 'Time', 'In', '55', 'Seconds', 'To', 'GSW']
+    ['A', '1', 'ABC', '2', 'FSW', '((', 'Say', 'Phrase', '))', 'A',
+                                    'Hello', 'World', '1', 'Time', 'In', '55', 'Seconds', 'To', 'GSW']
 
     """
     # Format into basic PascalCase to start with standard boundaries:

@@ -295,7 +295,9 @@ class ExtractionSuite(object):
     def test_build_module(self):
         topology_tree = etree.fromstring(self.sample_topology)
         module_node = etree.fromstring(self.sample_module)
-        built_module = build_module(module_node, topology_tree)
+        built_module = build_modules_from_component(
+            module_node, topology_tree
+        )[0]
         assert built_module == self.expected_module, f"""
             Built module doesn't match expected module.
             \nExpected: {self.expected_module}
@@ -571,8 +573,9 @@ class ImportSuite(object):
             search_dir=self._SEARCH_DIR
         )
 
-        built_module = build_module(
-            expanded_tree.xpath('//component')[0], tree_topology)
+        built_module = build_modules_from_component(
+            expanded_tree.xpath('//component')[0], tree_topology
+        )[0]
 
         assert built_module.commands == expected_commands, f"""
             The commands of the module built with imported XML don't match expected module's commands.

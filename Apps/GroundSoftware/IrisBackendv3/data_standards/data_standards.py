@@ -433,7 +433,7 @@ def extract_events(node: etree.Element) -> NameIdDict[Event]:
     return events
 
 
-def build_module(node: etree.Element, tree_topology: etree.ElementTree) -> Module:
+def build_modules_from_component(node: etree.Element, tree_topology: etree.ElementTree) -> List[Module]:
     """
     Build `Module` from the given XML node which should be a <component> Element.
 
@@ -519,41 +519,48 @@ def build_module(node: etree.Element, tree_topology: etree.ElementTree) -> Modul
         instance_names = [name]
 
     ####
-    # Extract Data:
+    # Extract Data per Module:
     ###
-    #! TODO: Create one unique module for each (ID, instance_name) pair:
-    commands = extract_commands(node, instance_names[0])
-    telemetry = extract_telemetry(node)
-    events = extract_events(node)
+    modules: List[Module] = []
+    for instance_name, ID in zip(instance_names, IDs):
+        # Note: Commands depend on module name:
+        commands = extract_commands(node, instance_name)
+        # Note: Even though Telemetry and Events can be extracted independently
+        # from the module name, redoing it on each iteration ensure unique
+        # objects for each module:
+        telemetry = extract_telemetry(node)
+        events = extract_events(node)
 
-    if len(commands) == 0 and len(telemetry) == 0 and len(events) == 0:
-        logger.info(
-            f"Module {src_name} (ID = {IDs}) has no commands, telemetry, or events."
-        )
-
-    # Make sure module ID has appropriate formatting:
-    # 1B elevated by 1B 0xXX00:
-    if (IDs[0] & 0x00FF) != 0x0000:
-        raise StandardsFormattingException(
-            node.base,
-            (
-                f"Module {instance_names[0]} from <component> {src_name} "
-                f"defined at {node.sourceline} in Topology file "
-                f"{tree_topology.getroot().base} has an invalid ID ."
-                f"\nFound ID {IDs[0]} = {hex(IDs[0])}."
-                f"\nModule IDs should have the format 0xXX00, just 1B followed "
-                f"by 0x00. This can be expressed in any radix but the binary must "
-                f"conform to this spec regardless."
+        if len(commands) == 0 and len(telemetry) == 0 and len(events) == 0:
+            logger.info(
+                f"Module {src_name} (ID = {ID}) has no commands, telemetry, or events."
             )
-        )
 
-    return Module(
-        name=instance_names[0],
-        ID=IDs[0],
-        commands=commands,
-        events=events,
-        telemetry=telemetry
-    )
+        # Make sure module ID has appropriate formatting:
+        # 1B elevated by 1B 0xXX00:
+        if (ID & 0x00FF) != 0x0000:
+            raise StandardsFormattingException(
+                node.base,
+                (
+                    f"Module {instance_name} from <component> {src_name} "
+                    f"defined at {node.sourceline} in Topology file "
+                    f"{tree_topology.getroot().base} has an invalid ID ."
+                    f"\nFound ID {ID} = {hex(ID)}."
+                    f"\nModule IDs should have the format 0xXX00, just 1B followed "
+                    f"by 0x00. This can be expressed in any radix but the binary must "
+                    f"conform to this spec regardless."
+                )
+            )
+
+        modules.append(Module(
+            name=instance_name,
+            ID=ID,
+            commands=commands,
+            events=events,
+            telemetry=telemetry
+        ))
+
+    return modules
 
 
 def import_all_fprime_xml(
@@ -936,11 +943,15 @@ class DataStandards(object):
                 )
 
             try:
-                module = build_module(found_components[0], tree_topology)
-                modules[module.ID, module.name] = module
-                logger.verbose(  # type: ignore # mypy doesn't recognize the `verboselogs` levels
-                    f"Successfully Built Module #{len(modules)-1}: {module}"
+                component_modules = build_modules_from_component(
+                    found_components[0], 
+                    tree_topology
                 )
+                for module in component_modules:
+                    modules[module.ID, module.name] = module
+                    logger.verbose(  # type: ignore # mypy doesn't recognize the `verboselogs` levels
+                        f"Successfully Built Module #{len(modules)-1}: {module}"
+                    )
             except StandardsFormattingException as e:
                 logger.error(
                     f"Standards Formatting Exception while compiling component "

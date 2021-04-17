@@ -37,7 +37,7 @@ def category_to_codec(datatype: FswDataType) -> Codec:
     })[datatype.category]
 
 
-def fstr(datatype: FswDataType) -> str:
+def format_string(datatype: FswDataType) -> str:
     """
     Creates the appropriate format string for the given `FswDataType`.
     """
@@ -54,7 +54,7 @@ def encode(datatype: FswDataType, data: Any) -> bytes:
     (A simple external access method.)
     """
     codec = category_to_codec(datatype)
-    fstr = fstr(datatype)
+    fstr = format_string(datatype)
     if not codec.check(fstr, data):
         raise PacketEncodingException(
             data,
@@ -76,9 +76,15 @@ def decode(datatype: FswDataType, buffer: bytes) -> Any:
     """
     codec = category_to_codec(datatype)
     if codec == StringPacker:
-        dec = codec.decode(format_string=fstr(datatype), buffer=buffer)[1]
+        dec = codec.decode(
+            format_string=format_string(datatype),
+            buffer=buffer
+        )[1]
     else:
-        dec = codec.decode(format_string=fstr(datatype), buffer=buffer)
+        dec = codec.decode(
+            format_string=format_string(datatype),
+            buffer=buffer
+        )
     return dec
 
 

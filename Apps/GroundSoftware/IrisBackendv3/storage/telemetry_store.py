@@ -12,7 +12,7 @@ meta_stream: NameIdDict[List[Any]]()
 subscribers: NameIdDict[List[Metachannel]]()
 
 
-def update_channel(id: Union[int, str], new_payload: TelemetryPayload):
+def update_channel(id: int, new_payload: TelemetryPayload):
     if isinstance(new_payload, Metachannel):
         meta_storage[id].push(new_payload)
         meta_stream[id].push(new_payload.value)

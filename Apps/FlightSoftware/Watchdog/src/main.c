@@ -14,6 +14,9 @@
 /* define all of the buffers used in other files */
 __volatile struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx, hercbuf;
 __volatile uint16_t loop_flags;
+extern uint8_t heating;
+uint8_t lastHeater = 0;
+uint8_t heatingControlEnabled = 1;
 
 
 /**
@@ -41,6 +44,7 @@ void enterMode(enum rover_state newstate) {
         powerOffMotors();
         powerOffRadio();
         powerOffHercules();
+        initializeFuelGauge();
         /* TODO: do we want to do it in this order? */
 
         /* turn off voltage rails */
@@ -69,6 +73,7 @@ void enterMode(enum rover_state newstate) {
         releaseRadioReset();
         releaseFPGAReset();
         releaseMotorsReset();
+        initializeFuelGauge();
         /* TODO: do we want to do it in this order? */
 
         break;
@@ -116,8 +121,7 @@ int main(void) {
 
     /* set up i2c */
     i2c_init();
-    __delay_cycles(1000000); //pause for ~1/8 sec for fuel gauge i2c to init
-//    initializeFuelGauge();
+
     ipudp_send_packet("hello, world!\r\n", 15);
 
     // the core structure of this program is like an event loop
@@ -210,21 +214,24 @@ int main(void) {
             /* handle event for heartbeat */
             /* always sample the ADC for temperature and voltage levels */
             adc_sample();
+            /* always update fuel gauge things */
+            updateGaugeReadings();
 
             switch (rovstate) {
             case RS_SERVICE:
                 send_earth_heartbeat();
+                if (heatingControlEnabled) heaterControl();
                 watchdog_monitor();
                 break;
             case RS_KEEPALIVE:
                 /* send heartbeat with collected data */
                 send_earth_heartbeat();
-                /* TODO: heater checks */
+                if (heatingControlEnabled) heaterControl();
                 break;
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */
-                watchdog_monitor();
                 send_earth_heartbeat();
+                watchdog_monitor();
                 break;
             case RS_FAULT:
                 /* sad :( */
@@ -234,14 +241,14 @@ int main(void) {
             /* clear event when done */
             loop_flags ^= FLAG_TIMER_TICK;
         }
-        if (loop_flags & FLAG_TEMP_LOW) {
-            if (rovstate == RS_KEEPALIVE)
-                /* we can only really enable the heaters if we're connected to the lander */
+        if (lastHeater ^ heating) {
+            if (heating) {
                 enableHeater();
-
-            /* clear event when done */
-            loop_flags ^= FLAG_TEMP_LOW;
+            } else {
+                disableHeater();
+            }
         }
+        lastHeater = heating;
         if (loop_flags & FLAG_TEMP_HIGH) {
             if (rovstate == RS_KEEPALIVE)
                 /* it only makes sense to disable the heaters if we're connected to the lander */

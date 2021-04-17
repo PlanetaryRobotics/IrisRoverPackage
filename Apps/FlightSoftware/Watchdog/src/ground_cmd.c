@@ -15,6 +15,9 @@
 #include "include/flags.h"
 #include "include/i2c.h"
 
+extern uint8_t heating, heatingControlEnabled;
+extern uint16_t Kp_heater, heater_setpoint, heater_window, PWM_limit;
+
 void enterMode(enum rover_state newstate);
 
 /**
@@ -154,11 +157,12 @@ uint8_t handle_watchdog_reset_cmd(uint8_t cmd) {
         break;
     /* 0x1F: heater control off */
     case 0x1F:
-        //();
+        heatingControlEnabled = 1;
         break;
     /* 0x20: heater control on */
     case 0x20:
-        //();
+        heatingControlEnabled = 0;
+        TB0CCR2 = 0;
         break;
     default:
         /* invalid command */
@@ -237,17 +241,33 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
     case 0x04:
         /* TODO: not actually used */
         break;
+    case 0xAA:
+        /* set thermistor Kp (little endian) */
+        Kp_heater = buf[3] << 8 | buf[2];
+        break;
+    case 0xAB:
+        /* Set Automatic Heater On Value */
+        // DEPRECATED
+        break;
     case 0xAC:
-        /* TODO: set thermistor Kp */
+        /* Set Automatic Heater Off Value */
+        // DEPRECATED
         break;
-    case 0xBC:
-        /* TODO: set thermistor Ki */
+    case 0xAD:
+        /* Set Heater Duty Cycle Max */
+        PWM_limit = buf[3] << 8 | buf[2];
         break;
-    case 0xCC:
-        /* TODO: set thermistor Kd */
+    case 0xAE:
+        /* Set Heater Duty Cycle Period */
+        TB0CCR0 = buf[3] << 8 | buf[2];
+        break;
+    case 0xAF:
+        /* set heater window */
+        heater_window = buf[3] << 8 | buf[2];
         break;
     case 0xDA:
-        /* TODO: set thermistor V setpoint */
+        /* set thermistor V setpoint */
+        heater_setpoint = buf[3] << 8 | buf[2];
         break;
     case 0xEA:
         /* Enter sleep mode */
@@ -374,8 +394,30 @@ void send_earth_heartbeat() {
     // build the packet
     pbuf.buf[0] = 0xFF;
     // TODO: tvac changes
+    // send adc value temperature
     pbuf.buf[1] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 8);
     pbuf.buf[2] = (uint8_t)(adc_values[ADC_TEMP_IDX]);
+
+    // send adc value temperature
+    pbuf.buf[3] = (uint8_t)(raw_battery_charge[0]);
+    pbuf.buf[4] = (uint8_t)(raw_battery_charge[1]);
+
+    // send adc value temperature
+    pbuf.buf[5] = (uint8_t)(raw_battery_voltage[0]);
+    pbuf.buf[6] = (uint8_t)(raw_battery_voltage[1]);
+
+    // send adc value temperature
+    pbuf.buf[7] = (uint8_t)(raw_battery_current[0]);
+    pbuf.buf[8] = (uint8_t)(raw_battery_current[1]);
+
+    // send adc value temperature
+    pbuf.buf[9] = (uint8_t)(raw_fuel_gauge_temp[0]);
+    pbuf.buf[10] = (uint8_t)(raw_fuel_gauge_temp[1]);
+
+    // send the current heating status
+    pbuf.buf[11] = heating;
+
+    pbuf.used += 12;
 
     /*
     // send the battery voltage

@@ -31,8 +31,6 @@ void enterMode(enum rover_state newstate) {
         /* fallthrough to keepalive */
     case RS_SERVICE:
         /* service is same as keep alive */
-        // TODO: what even is enableBatteries
-        enableBatteries();
         /* service mode is a temporary step transition to mission mode */
     case RS_KEEPALIVE:
         /* power everything off and set resets */
@@ -44,15 +42,15 @@ void enterMode(enum rover_state newstate) {
         powerOffMotors();
         powerOffRadio();
         powerOffHercules();
-        initializeFuelGauge();
         /* TODO: do we want to do it in this order? */
 
         /* turn off voltage rails */
         disable3V3PowerRail();
         disable24VPowerRail();
-        disableBatteries();
+//        disableBatteries();
         /* monitor only lander voltages */
         adc_setup_lander();
+        enableBatteries();      // need enable batteries to read from fuel gauge
         enableHeater();
         break;
     case RS_MISSION:
@@ -68,12 +66,11 @@ void enterMode(enum rover_state newstate) {
         powerOnHercules();
         releaseHerculesReset();
         powerOnFpga();
-        powerOnMotors();
+//        powerOnMotors();
         powerOnRadio();
         releaseRadioReset();
         releaseFPGAReset();
-        releaseMotorsReset();
-        initializeFuelGauge();
+//        releaseMotorsReset();
         /* TODO: do we want to do it in this order? */
 
         break;
@@ -110,8 +107,8 @@ int main(void) {
     /* enter service mode */
 //    enterMode(RS_SERVICE);
     // enter lander mode for tVac testing
+//    enterMode(RS_MISSION);
     enterMode(RS_KEEPALIVE);
-//    enterMode(RS_KEEPALIVE);
 
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();
@@ -121,6 +118,8 @@ int main(void) {
 
     /* set up i2c */
     i2c_init();
+    __delay_cycles(1000000); // give fuel gauge ~75ms to start up
+    initializeFuelGauge();
 
     ipudp_send_packet("hello, world!\r\n", 15);
 

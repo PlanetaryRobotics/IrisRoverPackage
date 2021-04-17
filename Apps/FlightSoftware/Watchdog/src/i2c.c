@@ -82,6 +82,8 @@ I2C_Mode I2C_Master_ReadReg(uint8_t dev_addr, uint8_t reg_addr, uint8_t count)
 
     UCB0CTLW0 |= UCTR + UCTXSTT;             // I2C TX, start condition
 
+    __bis_SR_register(LPM0_bits + GIE);              // Enter LPM0 w/ interrupts
+
     return MasterMode;
 
 }
@@ -118,6 +120,8 @@ I2C_Mode I2C_Master_WriteReg(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_da
     UCB0IE |= UCTXIE;                        // Enable TX interrupt
 
     UCB0CTLW0 |= UCTR + UCTXSTT;             // I2C TX, start condition
+
+    __bis_SR_register(LPM0_bits + GIE);              // Enter LPM0 w/ interrupts
 
     return MasterMode;
 }
@@ -251,6 +255,7 @@ void __attribute__ ((interrupt(USCI_B0_VECTOR))) USCI_B0_ISR (void)
         {
           UCB0IE &= ~UCRXIE;
           MasterMode = IDLE_MODE;
+          __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
         }
         break;
     case USCI_I2C_UCTXIFG0:                 // Vector 24: TXIFG0
@@ -290,6 +295,7 @@ void __attribute__ ((interrupt(USCI_B0_VECTOR))) USCI_B0_ISR (void)
                   UCB0CTLW0 |= UCTXSTP;     // Send stop condition
                   MasterMode = IDLE_MODE;
                   UCB0IE &= ~UCTXIE;                       // disable TX interrupt
+                  __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
               }
               break;
 

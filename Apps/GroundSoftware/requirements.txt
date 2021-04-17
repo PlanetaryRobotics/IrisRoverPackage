@@ -16,3 +16,4 @@ verboselogs
 coloredlogs
 ulid-py
 pyserial
+ipykernel

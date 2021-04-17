@@ -11,7 +11,7 @@ special `WatchdogTvacHeartbeatPackets` and normal commands.
 """
 
 import traceback
-from typing import Any, List, Type, cast, Union, Dict, Tuple
+from typing import Any, List, Type, cast, Union, Dict, Tuple, Optional
 
 import struct
 import os
@@ -64,7 +64,7 @@ all_payloads: PayloadCollection = PayloadCollection(
 telemetry_streams: NameIdDict[List[Tuple[datetime, Any]]] = NameIdDict()
 
 
-def parse_packet(packet_bytes: bytes) -> Packet:
+def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
     # All available packet codecs (in order of use preference):
     codecs: List[Type[Packet]] = [
         WatchdogTvacHeartbeatPacket,  # Only support watchdog heartbeat here
@@ -89,15 +89,17 @@ def parse_packet(packet_bytes: bytes) -> Packet:
         )
 
     # Parse Packet:
+    packet: Optional[Packet] = None  # default
     try:
         if len(supported) > 0:
             # Parse:
-            packet: Packet = supported[0].decode(
+            packet = supported[0].decode(
                 packet_bytes,
                 pathway=DataPathway.WIRELESS,
                 source=DataSource.PCAP
             )
             # Store:
+            packet = cast(Packet, packet)
             for i in range(len(packet.payloads)):
                 all_payloads[i].extend(packet.payloads[i])  # type: ignore
 
@@ -422,14 +424,15 @@ def stream_data() -> None:
                 if len(data_bytes) >= 1:  # packet baked:
                     # Process it:
                     packet = parse_packet(data_bytes)
-                    # Log the data:
-                    for i in range(len(packet.payloads)):
-                        all_payloads[i].extend(
-                            packet.payloads[i]  # type: ignore
-                        )
-                        print(packet)
-                    # Feed the streams:
-                    update_telemetry_streams(packet)
+                    if packet is not None:
+                        # Log the data:
+                        for i in range(len(packet.payloads)):
+                            all_payloads[i].extend(
+                                packet.payloads[i]  # type: ignore
+                            )
+                            print(packet)
+                        # Feed the streams:
+                        update_telemetry_streams(packet)
                     # Move on:
                     data_bytes = bytearray(b'')
                 pass

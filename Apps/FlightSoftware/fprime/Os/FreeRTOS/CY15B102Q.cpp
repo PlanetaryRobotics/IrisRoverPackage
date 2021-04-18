@@ -11,7 +11,7 @@ CY15B102Q :: CY15B102Q(){
   m_framDataConfig.CS_HOLD = 0;
   m_framDataConfig.WDEL = 0;
   m_framDataConfig.DFSEL = SPI_FMT_0;
-  m_framDataConfig.CSNR = 0b11011111;  // Each index corresponds to CS[i]. Value represents the CS level when a transaction is occurring (1: hign, 0: low). SPIDEF sets the non-transaction CS level.
+  m_framDataConfig.CSNR = 0b11111110;  // Each index corresponds to CS[i]. Value represents the CS level when a transaction is occurring (1: hign, 0: low). SPIDEF sets the non-transaction CS level.
                                // Note that SPI3 only has 6 CS pins, the upper 2 bits are don't care.
 }
 
@@ -37,7 +37,7 @@ CY15B102Q :: CY15B102QError CY15B102Q :: setupDevice()
   m_spiTxBuff[0] = id_opcode & 0xff;
 
 
-  framSpiReadData(id_opcode, (uint8_t *)id, 1 /*One byte opcode*/,0 /*no address needed*/);
+  framSpiReadData(id_opcode, (uint8_t *)id, totalBytesToRead, 0 /*no address needed*/);
 
   // Check that the device is connected and correct
   uint8_t id_cmp[9];
@@ -144,8 +144,8 @@ CY15B102Q :: CY15B102QError CY15B102Q :: framSpiReadData(const CY15B102Q::FRAMSp
   m_framDataConfig.CS_HOLD = 1;
   // Send transmission data
 
-  // Special Command for Single Byte Transfer
-  if (totalBytesToTransmit <= 8)
+  // Special Command for Single Byte Send
+  if (totalBytesToTransmit <= 1)
       spiTransmitOneByte(m_framSpi, &m_framDataConfig, (uint16_t *)&m_spiTxBuff);
   // Normal Command
   else
@@ -154,9 +154,10 @@ CY15B102Q :: CY15B102QError CY15B102Q :: framSpiReadData(const CY15B102Q::FRAMSp
   // Set CS high
   m_framDataConfig.CS_HOLD = 0;
 
-  if (totalBytesToTransmit <= 8)
+  // Special Command for Single Byte Receive
+  if (totalBytesToRead <= 1)
       spiReceiveOneByte(m_framSpi, &m_framDataConfig, (uint16_t *)&rxData);
-    // Normal Command
+  // Normal Command
   else
       spiReceiveData(m_framSpi, &m_framDataConfig, totalBytesToRead, (uint16_t *)rxData);
 

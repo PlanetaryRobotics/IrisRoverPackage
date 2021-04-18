@@ -64,6 +64,16 @@ all_payloads: PayloadCollection = PayloadCollection(
 telemetry_streams: NameIdDict[List[Tuple[datetime, Any]]] = NameIdDict()
 
 
+def parse_ip_udp_packet(packet_bytes: bytes) -> Optional[Packet]:
+    """Parses an IP/UDP packet and extracts the meaningful payload."""
+    # Convert into a full packet:
+    full_packet = scp.IP(packet_bytes)
+    # Scrape off the IP/UDP and keep the Raw:
+    core_data = scp.raw(full_packet.getlayer(scp.Raw))
+    # Parse like payload:
+    return parse_packet(core_data)
+
+
 def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
     # All available packet codecs (in order of use preference):
     codecs: List[Type[Packet]] = [
@@ -266,31 +276,38 @@ def update_telemetry_streams(packet: Packet) -> None:
 
 
 def plot_stream(channel_name: str) -> None:
-    try:
-        stream = telemetry_streams[channel_name]
-        ts = [t for t, _ in stream]
-        vs = [v for _, v in stream]
-        plt.plot(ts, vs)
-        plt.gcf().autofmt_xdate()
-        plt.xlabel('Time')
-        plt.ylabel(channel_name)
-        plt.title('Iris Lunar Rover TVAC')
-        plt.show()
-    except KeyError:
+    if len(telemetry_streams) == 0:
         cprint(
-            f"Given channel name `{channel_name}` is invalid. Valid channel "
-            f"names are: {telemetry_streams.names} .", 'yellow')
+            f"There is no logged data matching this file pattern to plot: "
+            f"`prefix`: '{settings['SAVE_FILE_PREFIX']}', `extension`: "
+            f"'{settings['SAVE_FILE_EXT']}' in `directory`: '{settings['SAVE_DIR']}' .",
+            'yellow')
+    else:
+        try:
+            stream = telemetry_streams[channel_name]
+            ts = [t for t, _ in stream]
+            vs = [v for _, v in stream]
+            plt.plot(ts, vs)
+            plt.gcf().autofmt_xdate()
+            plt.xlabel('Time')
+            plt.ylabel(channel_name)
+            plt.title('Iris Lunar Rover TVAC')
+            plt.show()
+        except KeyError:
+            cprint(
+                f"Given channel name `{channel_name}` is invalid. Valid channel "
+                f"names are: {telemetry_streams.names} .", 'yellow'
+            )
 
 
-def get_latest_cache_file(
-    cache_dir: str = str(settings['SAVE_DIR']),
-    filename_base: str = str(settings['SAVE_FILE_PREFIX']),
-    ext: str = str(settings['SAVE_FILE_EXT'])
-) -> Tuple[str, ulid.ulid.ULID]:
+def get_latest_cache_file() -> Tuple[str, ulid.ulid.ULID]:
     """
     Returns the path to the most recent cache_file which meets the specs in
     settings, along with the ULID of that latest file.
     """
+    cache_dir = str(settings['SAVE_DIR'])
+    filename_base = str(settings['SAVE_FILE_PREFIX'])
+    ext = str(settings['SAVE_FILE_EXT'])
     # Grab all files in dir with extension:
     files = os.listdir(cache_dir)
     files = [f for f in files if f.endswith('.'+ext)]
@@ -338,16 +355,15 @@ def get_latest_cache_file(
     return os.path.join(cache_dir, cache_filename), latest_file[1]
 
 
-def cache(
-    cache_dir: str = str(settings['SAVE_DIR']),
-    filename_base: str = str(settings['SAVE_FILE_PREFIX']),
-    ext: str = str(settings['SAVE_FILE_EXT'])
-) -> None:
+def cache() -> None:
     """
     Cache this DataStandards instance in a unique file in `cache_dir`.
 
     Returns the unique filename.
     """
+    cache_dir = str(settings['SAVE_DIR'])
+    filename_base = str(settings['SAVE_FILE_PREFIX'])
+    ext = str(settings['SAVE_FILE_EXT'])
     # Make sure directory exists:
     if not os.path.exists(cache_dir):
         os.makedirs(cache_dir)
@@ -355,7 +371,7 @@ def cache(
     # Grab the most recent save file to compare times:
     u_new = ulid.from_timestamp(datetime.now())
     try:
-        path0, u0 = get_latest_cache_file(cache_dir, filename_base, ext)
+        path0, u0 = get_latest_cache_file()
 
         if u_new.timestamp().datetime < (u0.timestamp().datetime + timedelta(minutes=float(settings['NEW_SAVE_PERIOD']))):
             # If the new-save period hasn't passed yet, keep the old file name and override it:
@@ -372,17 +388,16 @@ def cache(
         pickle.dump(telemetry_streams, file)
 
 
-def load_cache(
-    cache_dir: str = str(settings['SAVE_DIR']),
-    filename_base: str = str(settings['SAVE_FILE_PREFIX']),
-    ext: str = str(settings['SAVE_FILE_EXT'])
-) -> None:
+def load_cache() -> None:
     """
     **Overrides** the contents of the current `telemetry_stream` with one loaded
     from the latest cache file. Consider saving first.
     """
+    cache_dir = str(settings['SAVE_DIR'])
+    filename_base = str(settings['SAVE_FILE_PREFIX'])
+    ext = str(settings['SAVE_FILE_EXT'])
     try:
-        path, _ = get_latest_cache_file(cache_dir, filename_base, ext)
+        path, _ = get_latest_cache_file()
 
         # Open the file:
         with open(path, 'rb') as file:
@@ -423,7 +438,7 @@ def stream_data() -> None:
             if b == 0xC0:
                 if len(data_bytes) >= 1:  # packet baked:
                     # Process it:
-                    packet = parse_packet(data_bytes)
+                    packet = parse_ip_udp_packet(data_bytes)
                     if packet is not None:
                         # Log the data:
                         for i in range(len(packet.payloads)):
@@ -443,9 +458,9 @@ def stream_data() -> None:
                 # data_bytes.append(bytes(b.hex(), 'utf-8'))
 
         # print stuff
-        # print('%02x ' % b, end='', flush=True)
-        # nrx += 1
-        # if (nrx % 16) == 0:
-        #     print('')
-        #     #print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
-        #     line = b''
+        print('%02x ' % b, end='', flush=True)
+        nrx += 1
+        if (nrx % 16) == 0:
+            print('')
+            #print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
+            line = b''

@@ -197,7 +197,8 @@ namespace CubeRover {
   void WatchDogInterfaceComponentImpl ::
     Disengage_From_Lander_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        confirm_disengage confirm
     )
   {
 	  // Send Activity Log/tlm to know watchdog recieved command
@@ -303,10 +304,11 @@ namespace CubeRover {
   void WatchDogInterfaceComponentImpl ::
     Prepare_For_Deployment_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        confirm_prepare_for_deploy confirm
     )
   {
-    Reset_Specific_Handler(No_Reset);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
@@ -316,37 +318,18 @@ namespace CubeRover {
         const U32 cmdSeq
     )
   {
-    Reset_Specific_Handler(No_Reset);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
     Set_Kp_Specific_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        U16 value
     )
   {
-    Reset_Specific_Handler(No_Reset);
-    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
-  }
-
-  void WatchDogInterfaceComponentImpl ::
-    Set_Heater_On_value_cmdHandler(
-        const FwOpcodeType opCode,
-        const U32 cmdSeq
-    )
-  {
-    Reset_Specific_Handler(No_Reset);
-    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
-  }
-
-  void WatchDogInterfaceComponentImpl ::
-    Set_Heater_Off_value_cmdHandler(
-        const FwOpcodeType opCode,
-        const U32 cmdSeq
-    )
-  {
-    Reset_Specific_Handler(No_Reset);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
@@ -356,57 +339,73 @@ namespace CubeRover {
         const U32 cmdSeq
     )
   {
-    Reset_Specific_Handler(No_Reset);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
     Set_Heater_Duty_Cycle_Period_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        U16 period
     )
   {
-    Reset_Specific_Handler(No_Reset);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
-    Set_V_Setpoint_cmdHandler(
+    Set_Heater_Window_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        U16 adc_half_width
     )
   {
-    Reset_Specific_Handler(No_Reset);
+    // TODO
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
+  void WatchDogInterfaceComponentImpl ::
+    Set_Heater_Setpoint_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq,
+        U16 adc_setpoint
+    )
+  {
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
     Switch_to_Sleep_Mode_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        confirm_sleep_mode confirm
     )
   {
-    Reset_Specific_Handler(No_Reset);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
     Switch_to_Keep_Alive_Mode_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        confirm_alive_mode confirm
     )
   {
-    Reset_Specific_Handler(No_Reset);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
     Switch_to_Service_Mode_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        confirm_service_mode confirm
     )
   {
-    Reset_Specific_Handler(No_Reset);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 

@@ -121,15 +121,16 @@ namespace CubeRover {
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq, /*!< The command sequence number*/
           reset_values_possible reset_value /*!< 
-                    	Value that represents which things need to be reset
+                    	ENUM Value that specifies which components or hardware need to be reset
                     */
       );
 
       //! Implementation for Disengage_From_Lander command handler
-      //! Command to send signal to MSP430 that it should send a signal to lander to disengage
+      //! Command to send signal to MSP430 that it should send a signal to lander to disengage, sets disengage pin high
       void Disengage_From_Lander_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          confirm_disengage confirm 
       );
 
       //! Implementation for Engage_From_Lander command handler
@@ -145,7 +146,8 @@ namespace CubeRover {
       //! Command to send signal to MSP430 to prepare for deploying (may not be needed)
       void Prepare_For_Deployment_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          confirm_prepare_for_deploy confirm 
       );
 
       //! Implementation for Switch_Connection_Mode command handler
@@ -159,21 +161,8 @@ namespace CubeRover {
       //! Command to send signal to MSP430 that it should set Kp to a specific value
       void Set_Kp_Specific_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
-      );
-
-      //! Implementation for Set_Heater_On_value command handler
-      //! Command to send signal to MSP430 that it should set the value which the heater automatically turns on
-      void Set_Heater_On_value_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
-      );
-
-      //! Implementation for Set_Heater_Off_value command handler
-      //! Command to send signal to MSP430 that it should set the value which the heater automatically turns off
-      void Set_Heater_Off_value_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          U16 value 
       );
 
       //! Implementation for Set_Heater_Duty_Cycle_Max command handler
@@ -187,35 +176,48 @@ namespace CubeRover {
       //! Command to send signal to MSP430 that it should set the period the Duty Cycle for the heater is at
       void Set_Heater_Duty_Cycle_Period_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          U16 period 
       );
 
-      //! Implementation for Set_V_Setpoint command handler
-      //! Command to send signal to MSP430 that it should set V to a specific value
-      void Set_V_Setpoint_cmdHandler(
+      //! Implementation for Set_Heater_Window command handler
+      //! Set the Half-Width of the heater on/off deadband window around the setpoint (in thermistor ADC values). Between setpoint - half_width and setpoint + half_width, heater is off.
+      void Set_Heater_Window_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          U16 adc_half_width 
+      );
+
+      //! Implementation for Set_Heater_Setpoint command handler
+      //! Command to send signal to MSP430 that it should set V to a specific value
+      void Set_Heater_Setpoint_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          U16 adc_setpoint 
       );
 
       //! Implementation for Switch_to_Sleep_Mode command handler
       //! Command to send signal to MSP430 that it should go into Sleep Mode
       void Switch_to_Sleep_Mode_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          confirm_sleep_mode confirm 
       );
 
       //! Implementation for Switch_to_Keep_Alive_Mode command handler
       //! Command to send signal to MSP430 that it should go into Keep Alive Mode
       void Switch_to_Keep_Alive_Mode_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          confirm_alive_mode confirm 
       );
 
       //! Implementation for Switch_to_Service_Mode command handler
       //! Command to send signal to MSP430 that it should go into Service Mode
       void Switch_to_Service_Mode_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          confirm_service_mode confirm 
       );
 
       /* End of Commands that Only Watchdog Processes*/

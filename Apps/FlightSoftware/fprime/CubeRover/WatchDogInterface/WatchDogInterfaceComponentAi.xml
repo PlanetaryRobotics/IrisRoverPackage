@@ -125,11 +125,25 @@
             <comment>
             Command to send signal to MSP430 to prepare for deploying (may not be needed)
             </comment>
+            <args>
+                <arg name="confirm" type="ENUM">
+                    <enum name="confirm_prepare_for_deploy">
+                        <item name="Confirm_Prep" value = "96" />
+                    </enum>
+                </arg>
+            </args>
         </command>
         <command kind="async" opcode="0x02" mnemonic="Disengage_From_Lander">
             <comment>
             Command to send signal to MSP430 that it should send a signal to lander to disengage, sets disengage pin high
             </comment>
+            <args>
+                <arg name="confirm" type="ENUM">
+                    <enum name="confirm_disengage">
+                        <item name="Confirm_Deploy" value = "96" />
+                    </enum>
+                </arg>
+            </args>
         </command>
         <command kind="async" opcode="0x03" mnemonic="Switch_Connection_Mode">
             <comment>
@@ -145,8 +159,11 @@
             <comment>
             Command to send signal to MSP430 that it should set Kp to a specific value
             </comment>
+            <args>
+                <arg name="value" type="U16" />
+            </args>
         </command>
-        <command kind="async" opcode="0xAB" mnemonic="Set_Heater_On_value">
+        <!-- <command kind="async" opcode="0xAB" mnemonic="Set_Heater_On_value">
             <comment>
             Command to send signal to MSP430 that it should set the value which the heater automatically turns on
             </comment>
@@ -155,7 +172,7 @@
             <comment>
             Command to send signal to MSP430 that it should set the value which the heater automatically turns off
             </comment>
-        </command>
+        </command> -->
         <command kind="async" opcode="0xAD" mnemonic="Set_Heater_Duty_Cycle_Max">
             <comment>
             Command to send signal to MSP430 that it should set the max possible Duty Cycle value for the heater
@@ -165,26 +182,61 @@
             <comment>
             Command to send signal to MSP430 that it should set the period the Duty Cycle for the heater is at
             </comment>
+            <args>
+                <arg name="period" type="U16" />
+            </args>
         </command>
-        <command kind="async" opcode="0xDA" mnemonic="Set_V_Setpoint">
+        <command kind="async" opcode="0xAF" mnemonic="Set_Heater_Window">
+            <comment>
+            Set the Half-Width of the heater on/off deadband window around the setpoint (in thermistor ADC values). Between setpoint - half_width and setpoint + half_width, heater is off.
+            </comment>
+            <args>
+                <arg name="adc_half_width" type="U16" />
+            </args>
+        </command>
+        <command kind="async" opcode="0xDA" mnemonic="Set_Heater_Setpoint">
             <comment>
             Command to send signal to MSP430 that it should set V to a specific value
             </comment>
+            <args>
+                <arg name="adc_setpoint" type="U16" />
+            </args>
         </command>
         <command kind="async" opcode="0xEA" mnemonic="Switch_to_Sleep_Mode">
             <comment>
             Command to send signal to MSP430 that it should go into Sleep Mode
             </comment>
+            <args>
+                <arg name="confirm" type="ENUM">
+                    <enum name="confirm_sleep_mode">
+                        <item name="Confirm_Sleep" value = "119" />
+                    </enum>
+                </arg>
+            </args>
         </command>
         <command kind="async" opcode="0xEB" mnemonic="Switch_to_Keep_Alive_Mode">
             <comment>
             Command to send signal to MSP430 that it should go into Keep Alive Mode
             </comment>
+            <args>
+                <arg name="confirm" type="ENUM">
+                    <enum name="confirm_alive_mode">
+                        <item name="Confirm_Alive" value = "119" />
+                    </enum>
+                </arg>
+            </args>
         </command>
         <command kind="async" opcode="0xEC" mnemonic="Switch_to_Service_Mode">
             <comment>
             Command to send signal to MSP430 that it should go into Service Mode
             </comment>
+            <args>
+                <arg name="confirm" type="ENUM">
+                    <enum name="confirm_service_mode">
+                        <item name="Confirm_Service" value = "119" />
+                    </enum>
+                </arg>
+            </args>
         </command>
     </commands>
 
@@ -321,4 +373,3 @@
         </channel>
     </telemetry>
 </component>
-

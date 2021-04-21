@@ -76,7 +76,7 @@ namespace CubeRover {
 
     // Initalize the converting values
     m_angularToLinear = CUBEROVER_COM_TO_WHEEL_CIRC_CM/360; 
-           // This should be the circumference from the COM of the rover to the wheel.
+    // This should be the circumference from the COM of the rover to the wheel.
   }
 
   /**
@@ -142,8 +142,9 @@ namespace CubeRover {
           default:
               return;
         }
-        if (err != MC_NO_ERROR)
+        if (err != MC_NO_ERROR)  // TODO: Should stop right?
             log_WARNING_HI_MC_MSPNotResponding();
+        pollStatus();
     }
     else if (command_type == CubeRoverPorts::MC_UpdateTelemetry) {
         updateTelemetry();
@@ -494,9 +495,10 @@ namespace CubeRover {
 uint32_t MotorControlComponentImpl::regSizeMap(RegisterAddress_t reg) {
     switch (reg) {
         case REG_I2C_ADDRESS:
+        case REG_TARGET_SPEED:
+        case REG_CTRL:
         case REG_FAULT:
         case e_REG_STATUS:
-        case REG_TARGET_SPEED:
             return 1;
         case REG_P_CURRENT:
         case REG_I_CURRENT:
@@ -504,10 +506,10 @@ uint32_t MotorControlComponentImpl::regSizeMap(RegisterAddress_t reg) {
         case REG_I_SPEED:
         case REG_ACC_RATE:
         case REG_DEC_RATE:
-        case REG_CURRENT_POSITION:
             return 2;
-        case REG_MOTOR_CURRENT:  // TODO: CHeck if this retuns 2 byts or 4!? 2 from thismethod 4 from micheal's update current tlm code
         case REG_RELATIVE_TARGET_POSITION:
+        case REG_CURRENT_POSITION:
+        case REG_MOTOR_CURRENT:  // TODO: CHeck if this retuns 2 byts or 4!? 2 from thismethod 4 from micheal's update current tlm code
             return 4;
         default:
             return 0;
@@ -517,18 +519,39 @@ uint32_t MotorControlComponentImpl::regSizeMap(RegisterAddress_t reg) {
 MotorControlComponentImpl::MCError_t
 MotorControlComponentImpl::sendAllMotorsData(const RegisterAddress_t reg, void *_data) {
     uint8_t *data = static_cast<uint8_t *>(_data);
-    MCError_t err = MC_NO_ERROR;
     
-    //TODO: This sends command to motors round robin. What if one fails???
-    // Talked to Connor. STOP and go to service mode
-    
-    for (int i = 0; i < NUM_MOTORS; ++i) { 
-        // TODO: MotorControlTransfer kind of dangerous since data isnt garunteed const
-        err = motorControlTransfer(motorIdAddressMap[i], reg, data);
+    for (int i = 0; i < NUM_MOTORS; ++i) {
+        MCError_t err = motorControlTransfer(motorIdAddressMap[i], reg, data);
         if (err != MC_NO_ERROR)
-            return err;          
+            return err;
     }
+    // TODO: What if one latched up? Should we check status here and issue STOP?
+
     return MC_NO_ERROR;  
+}
+
+bool MotorControlComponentImpl::checkMotorsStatus() {
+    MCError_t err;
+    for (int i = 0; i < NUM_MOTORS; ++i) {
+        err = motorControlTransfer(motorIdAddressMap[i], e_REG_STATUS, &m_currStatus[i].value);
+        if (err != MC_NO_ERROR) {
+            // I2C Communication Error
+            watchdogResetRequest_out(0, CubeRoverPorts::motorsReset);
+            // TODO: Reset our I2C too
+            return false;
+        } else if (m_currStatus[i].bits.controller_error) {
+            // TODO: Send STOP general call
+            // TODO: Need to check mappping between resetting one motor and which one is connected to watchdog
+            // TODO: Check status again after reset
+            return false;
+            watchdogResetRequest_out(0, CubeRoverPorts::motorsReset);
+            // XXX: Do we need to update our tlm counter?
+        } else if (!m_currStatus[i].bits.position_converged) {
+            // TODO: Do we... wait?
+            return false;
+        }
+    }
+    return true;
 }
 
 /**
@@ -539,11 +562,11 @@ MotorControlComponentImpl::sendAllMotorsData(const RegisterAddress_t reg, void *
  */
 MotorControlComponentImpl::MCError_t
 MotorControlComponentImpl::moveAllMotorsStraight(int32_t distance, int16_t speed) {
-    MotorTick_t Right_Wheels_Relative_ticks, Left_Wheels_Relative_ticks, Relative_ticks;
     MCError_t err;
+
+    checkMotorsStatus();
    
     Throttle_t motor_speed;
-   
     // Enforce speed always positive. Direction set by distance
     if (speed > 0) {
         motor_speed = groundSpeedToSpeedPrecent(speed);
@@ -553,10 +576,12 @@ MotorControlComponentImpl::moveAllMotorsStraight(int32_t distance, int16_t speed
         err = sendAllMotorsData(REG_TARGET_SPEED, &motor_speed);
         if (err != MC_NO_ERROR)
             return err;
+    } else {
+        return err;     // Initialize???
     }
    
+    MotorTick_t Right_Wheels_Relative_ticks, Left_Wheels_Relative_ticks, Relative_ticks;
     Relative_ticks = groundCMToMotorTicks(distance);
-   
     // Ensure the sides are traveling the right direction
     if (m_forward_is_positive) {
         Right_Wheels_Relative_ticks = Relative_ticks;
@@ -596,6 +621,8 @@ MotorControlComponentImpl::moveAllMotorsStraight(int32_t distance, int16_t speed
 MotorControlComponentImpl::MCError_t
 MotorControlComponentImpl::rotateAllMotors(int16_t distance, int16_t speed) {
     MCError_t err;
+
+    checkMotorsStatus();
    
     // Enforce speed always positive. Direction set by distance
     if (speed > 0) {
@@ -606,11 +633,18 @@ MotorControlComponentImpl::rotateAllMotors(int16_t distance, int16_t speed) {
         err = sendAllMotorsData(REG_TARGET_SPEED, &motor_speed);
         if (err != MC_NO_ERROR)
             return err;  
+    } else {
+        return err;
     }
    
     MotorTick_t Relative_ticks = m_angularToLinear*groundCMToMotorTicks(distance);
     
     // FIXME: XXX: CRITICAL SECTION REQUIRED
+    StatusRegister_t status;
+    err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, e_REG_STATUS, &status.value);
+    err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, e_REG_STATUS, &status.value);
+    err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, e_REG_STATUS, &status.value);
+    err = motorControlTransfer(REAR_RIGHT_MC_I2C_ADDR, e_REG_STATUS, &status.value);
    
     err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Relative_ticks);
     if (err != MC_NO_ERROR)
@@ -637,28 +671,33 @@ MotorControlComponentImpl::motorControlTransfer(I2cSlaveAddress_t addr,
                                                      void *_data)
 {
     uint8_t *data = static_cast<uint8_t *>(_data);
-    // TODO: Cleanup ret, what are we going to return from I2C functions
-    MCError_t ret = MC_NO_ERROR;
     uint32_t dataLength = regSizeMap(reg);
 
     if (dataLength <= 0) 
       return MC_UNEXPECTED_ERROR;
 
     uint8_t reg_buffer = static_cast<uint8_t>(reg);
-    i2cMasterTransmit(m_i2c, addr, 1, &reg_buffer);
-    // TODO: If error on above (currently returns void) return
+    if (!i2cMasterTransmit(m_i2c, addr, 1, &reg_buffer)) {
+        // TODO: Check response below ERROR OCCURRED
+        return MC_I2C_TIMEOUT_ERROR;
+    }
 
     if (reg == REG_I2C_ADDRESS      ||
         reg == REG_CURRENT_POSITION ||
         reg == REG_CURRENT_POSITION ||
         reg == REG_MOTOR_CURRENT    ||
         reg == e_REG_STATUS         ||
-        reg == REG_FAULT)
-            i2cMasterReceive(m_i2c, addr, dataLength, data);
-    else
-            i2cMasterTransmit(m_i2c, addr, dataLength, data);
-
-    return ret;
+        reg == REG_FAULT) {
+            if (i2cMasterReceive(m_i2c, addr, dataLength, data))
+                return MC_NO_ERROR;
+            else
+                return MC_I2C_TIMEOUT_ERROR;
+    } else {
+            if (i2cMasterTransmit(m_i2c, addr, dataLength, data))
+                return MC_NO_ERROR;
+            else
+                return MC_I2C_TIMEOUT_ERROR;
+    }
 }
 
 // Convert ground units to motor control native units
@@ -676,7 +715,7 @@ MotorControlComponentImpl::groundSpeedToSpeedPrecent(int16_t speed) {
     return speed;
 }
 
-bool MotorControlComponentImpl :: updateTelemetry() {
+bool MotorControlComponentImpl::updateTelemetry() {
     MCError_t err = MC_NO_ERROR;
     uint32_t buffer[NUM_MOTORS];
    
@@ -723,4 +762,26 @@ bool MotorControlComponentImpl :: updateTelemetry() {
     
     return true;
 }
+
+bool MotorControlComponentImpl::pollStatus() {
+    StatusRegister_t status;
+    status.value = 0xff;
+    do {
+        unsigned delay = 500000;
+        while (delay)    // Delay 0.5s to give the motors a chance to converge. 0.5 / (1/ 110e6)
+            delay--;
+
+        uint8_t reg = e_REG_STATUS;
+        for (int i = 0; i < 4; ++i) {
+            i2cMasterTransmit(m_i2c, FRONT_LEFT_MC_I2C_ADDR+i, 1, &reg);
+            StatusRegister_t this_status;
+            i2cMasterReceive(m_i2c, FRONT_LEFT_MC_I2C_ADDR+i, 1, &this_status.value);
+            status.value &= this_status.value;
+        }
+    } while (!(status.bits.position_converged));        // FIXME: Potential infinite loop
+
+    return true;
+}
+
+
 } // end namespace CubeRover

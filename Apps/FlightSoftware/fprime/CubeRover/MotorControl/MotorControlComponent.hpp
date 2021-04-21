@@ -154,22 +154,23 @@ namespace CubeRover {
 
       
     /* Implementation specific declarations */
-    private:
+    public:
         typedef enum  {
-            REG_I2C_ADDRESS = 0,              // DEVELOPMENT ONLY // READ-ONLY
-            REG_RELATIVE_TARGET_POSITION = 1, // Write-only
-            REG_TARGET_SPEED = 2,             // Write-only
-            REG_CURRENT_POSITION = 3,         // Read-only
-            REG_MOTOR_CURRENT = 5,            // Read-only
-            REG_P_CURRENT = 6,                // Write-only
-            REG_I_CURRENT = 7,                // Write-only
-            REG_P_SPEED = 8,                  // Write-only
-            REG_I_SPEED = 9,                  // Write-only
-            REG_ACC_RATE = 10,                // Write-only
-            REG_DEC_RATE = 11,                // Write-only
-            REG_CTRL = 12,                    // Write-only
-            e_REG_STATUS = 13,                // Read-only
-            REG_FAULT = 14,                   // Read-only
+            REG_I2C_ADDRESS = 0,              // Read-only  - 1Byte
+            REG_RELATIVE_TARGET_POSITION = 1, // Write-only - 4Bytes
+            REG_TARGET_SPEED = 2,             // Write-only - 1Byte
+            REG_CURRENT_POSITION = 3,         // Read-only  - 4Bytes
+            // REG_CURRENT_SPEED = 4,         // Deprecated
+            REG_MOTOR_CURRENT = 5,            // Read-only  - 4Bytes
+            REG_P_CURRENT = 6,                // Write-only - 2Bytes
+            REG_I_CURRENT = 7,                // Write-only - 2Bytes
+            REG_P_SPEED = 8,                  // Write-only - 2Bytes
+            REG_I_SPEED = 9,                  // Write-only - 2Bytes
+            REG_ACC_RATE = 10,                // Write-only - 2Bytes
+            REG_DEC_RATE = 11,                // Write-only - 2Bytes
+            REG_CTRL = 12,                    // Write-only - 1Byte
+            e_REG_STATUS = 13,                // Read-only  - 1Byte
+            REG_FAULT = 14,                   // Read-only  - 1Byte
             NUM_REGS = 16,
         } RegisterAddress_t;
         
@@ -231,6 +232,7 @@ namespace CubeRover {
 
         uint32_t regSizeMap(RegisterAddress_t reg);
 
+        bool checkMotorsStatus();
         MCError_t moveAllMotorsStraight(int32_t distance, int16_t speed);
         MCError_t rotateAllMotors(int16_t angle, int16_t speed);
         MCError_t spinMotors(bool forward);
@@ -239,6 +241,8 @@ namespace CubeRover {
         Throttle_t groundSpeedToSpeedPrecent(int16_t speed);
 
         bool updateTelemetry();
+
+        bool pollStatus();
 
         // Member items
         uint32_t tick_count = 0;
@@ -253,6 +257,8 @@ namespace CubeRover {
 
         // Stall detection
         bool m_stallDetectectionEnabled[4];
+
+        StatusRegister_t m_currStatus[NUM_MOTORS];
 
         // Does a positive setpoint drive the rover forward or backwards
         // Set this flag to rotate the wheels accordingly

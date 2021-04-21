@@ -50,7 +50,7 @@
     <port name="motorCommandIn" data_type="CubeRoverPorts::MotorCommand" kind="sync_input" max_number="1"></port>
 
     <!-- Watchdog Reset port -->
-    <!--<port name="WatchdogCommandOut" data_type="CubeRoverPorts::WatchdogResetRequest" kind="output" max_number="1"></port>-->
+    <port name="watchdogResetRequest" data_type="CubeRoverPorts::WatchdogResetRequest" kind="output" max_number="1"></port>
 
   </ports>
 
@@ -236,6 +236,22 @@
     <!--<channel id="11" name="MC_RL_Speed" data_type="I16" update = "on_change">
       <comment>Rear Left motor speed in centimeters per second</comment>
     </channel>-->
+
+    <channel id="11" name="MC_FL_Status" data_type="U8" update = "on_change">
+      <comment>Front left status</comment>
+    </channel>
+
+    <channel id="12" name="MC_FR_Status" data_type="U8" update = "on_change">
+      <comment>Front right status</comment>
+    </channel>
+
+    <channel id="13" name="MC_RR_Status" data_type="U8" update = "on_change">
+    <comment>Rear right status</comment>
+    </channel>
+
+    <channel id="14" name="MC_RL_Status" data_type="U8" update = "on_change">
+      <comment>Rear left status</comment>
+    </channel>
   </telemetry>
 
 </component>

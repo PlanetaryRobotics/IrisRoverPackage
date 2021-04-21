@@ -43,6 +43,10 @@
 |MC_RR_Current|7 (0x7)|U16|Rear Right motor current in milliAmps|
 |MC_RL_Encoder_Ticks|9 (0x9)|I32|Rear Left motor encoder displacement in encoder ticks|
 |MC_RL_Current|10 (0xa)|U16|Rear Left motor current in milliAmps|
+|MC_FL_Status|11 (0xb)|U8|Front left status|
+|MC_FR_Status|12 (0xc)|U8|Front right status|
+|MC_RR_Status|13 (0xd)|U8|Rear right status|
+|MC_RL_Status|14 (0xe)|U8|Rear left status|
 
 ## Event List
 

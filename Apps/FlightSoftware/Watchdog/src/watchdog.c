@@ -16,6 +16,7 @@
 #include "include/uart.h"
 #include "include/bsp.h"
 #include "include/ip_udp.h"
+#include "include/i2c.h"
 
 uint8_t handle_watchdog_reset_cmd(uint8_t cmd);
 
@@ -44,7 +45,6 @@ int watchdog_init() {
     TB0CCR0 = 10000;
     TB0CCTL2 = OUTMOD_7;
     TB0CTL = TBSSEL__SMCLK | MC__UP | TBCLR;
-    /* Set up interrupt routine for heater control */
     PWM_limit = 8500;                       // make sure PWM does not exceed ~90% to keep power use low
 
     return 0;
@@ -58,6 +58,7 @@ int watchdog_init() {
 int watchdog_monitor() {
     /* temporarily disable interrupts */
     __bic_SR_register(GIE);
+
 
     /* check that kicks have been received */
     if (watchdog_flags & WDFLAG_RADIO_KICK) {
@@ -202,6 +203,42 @@ unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
     }
 }
 
+void heaterControl(){
+    testeroni++;
+    // voltage, where LSB = 0.0008056640625V
+    unsigned short therm_reading = adc_values[ADC_TEMP_IDX];
+
+    if(therm_reading > 3670){
+        //   start heating when temperature drops below -5 C
+        loop_flags |= FLAG_TEMP_LOW;
+    } else if(therm_reading < 3352){
+        //   stop heating when temperature reaches 0 C
+        loop_flags |= FLAG_TEMP_HIGH;
+    }
+
+    uint16_t PWM_cycle = 0;
+    // P controller output
+    // setpoint is slightly above desired temp because otherwise it will get stuck slightly below it
+    if(loop_flags & FLAG_TEMP_LOW){
+        PWM_cycle = Kp_heater * (therm_reading - 3325);
+    }
+
+
+    // cannot have duty cycle greater than clock
+    if(PWM_cycle > PWM_limit){
+        PWM_cycle = PWM_limit;
+    }
+
+    if(rovstate == RS_KEEPALIVE){
+        TB0CCR2 = PWM_cycle;
+    } else {
+        // don't run heaters when not on lander
+        TB0CCR2=0;
+    }
+
+}
+
+
 // TODO: put ISR for things here
 /*
  * Pins that need an ISR:
@@ -315,5 +352,3 @@ void heaterControl() {
         TB0CCR2 = 0;
     }
 }
-
-

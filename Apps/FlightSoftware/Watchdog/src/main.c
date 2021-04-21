@@ -42,6 +42,7 @@ void enterMode(enum rover_state newstate) {
         powerOffMotors();
         powerOffRadio();
         powerOffHercules();
+//        fuelGaugeLowPower();
         /* TODO: do we want to do it in this order? */
 
         /* turn off voltage rails */
@@ -104,23 +105,18 @@ int main(void) {
     /* set up the ADC */
     adc_init();
 
-    /* enter service mode */
-//    enterMode(RS_SERVICE);
-    // enter lander mode for tVac testing
-//    enterMode(RS_MISSION);
+    /* set up i2c */
+    i2c_init();
+
+    /* enter keepalive mode */
     enterMode(RS_KEEPALIVE);
 
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();
 
-
     __bis_SR_register(GIE); // Enable all interrupts
 
-    /* set up i2c */
-    i2c_init();
-    __delay_cycles(1000000); // give fuel gauge ~75ms to start up
-    initializeFuelGauge();
-
+    // TODO: debug
     ipudp_send_packet("hello, world!\r\n", 15);
 
     // the core structure of this program is like an event loop
@@ -131,6 +127,7 @@ int main(void) {
             __bis_SR_register(GIE);
             continue;
         }
+
 
         /* a cool thing happened! now time to check what it was */
         if (loop_flags & FLAG_UART0_RX_PACKET) {
@@ -213,8 +210,6 @@ int main(void) {
             /* handle event for heartbeat */
             /* always sample the ADC for temperature and voltage levels */
             adc_sample();
-            /* always update fuel gauge things */
-            updateGaugeReadings();
 
             switch (rovstate) {
             case RS_SERVICE:
@@ -225,12 +220,13 @@ int main(void) {
             case RS_KEEPALIVE:
                 /* send heartbeat with collected data */
                 send_earth_heartbeat();
-                if (heatingControlEnabled) heaterControl();
+                if (heatingControlEnabled) heaterControl(); // calculate PWM duty cycle (if any) to apply to heater
                 break;
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */
                 send_earth_heartbeat();
                 watchdog_monitor();
+                send_earth_heartbeat();
                 break;
             case RS_FAULT:
                 /* sad :( */

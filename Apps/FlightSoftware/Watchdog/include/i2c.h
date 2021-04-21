@@ -14,6 +14,9 @@ extern int8_t raw_battery_voltage[2];
 extern int8_t raw_battery_current[2];
 extern int8_t raw_fuel_gauge_temp[2];
 
+extern uint8_t batt_charge_telem;
+extern uint8_t batt_curr_telem;
+
 #define I2C_SLAVE_ADDR      100 //0b1100100 //i2c address of LTC2944IDD#PBF fuel gauge
 
 // every piece of i2c data for fuel gauge is 2 bytes (some info is 4 bytes split into MSB and LSB though)

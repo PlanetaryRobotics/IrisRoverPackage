@@ -221,6 +221,7 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
         if (handle_watchdog_reset_cmd(buf[2])) {
             /* invalid argument */
             reply_ground_cmd(0, GNDRESP_ECMDPARAM);
+            return;
         }
         break;
     case 0x01:
@@ -313,9 +314,11 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
         break;
     default:
         /* invalid command */
-        reply_ground_cmd(0, GNDRESP_ECMDID);
-        break;
+        reply_ground_cmd(buf[0], GNDRESP_ECMDID);
+        return;
     }
+    // command successful
+    reply_ground_cmd(buf[0], GNDRESP_ENONE);
 }
 
 /**

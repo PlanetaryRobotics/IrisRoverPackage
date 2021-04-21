@@ -129,7 +129,7 @@ namespace CubeRover {
         U16 bytesRead;
         Wf121::DataSize16 payloadSize;
 
-        memset(m_fileUplinkBuffer, 0, UDP_MAX_PAYLOAD);
+        memset(m_fileUplinkBuffer, 0, WF121_UDP_MAX_PAYLOAD);
 
         m_crnm.ReceiveUdpData(reinterpret_cast<uint8_t *>(&payloadSize), sizeof(Wf121::DataSize16), &bytesRead, CubeRoverNetworkManager::UdpReadMode::PEEK_READ, 10);        // Read size of UDP payload
         if (bytesRead == 0)

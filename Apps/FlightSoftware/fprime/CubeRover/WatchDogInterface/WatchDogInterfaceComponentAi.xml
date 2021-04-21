@@ -80,43 +80,9 @@
             Command to reset the specific parts of rover
             </comment>
             <args>
-                <arg name="reset_value" type="ENUM">
-                    <enum name="reset_values_possible">
-                        <item name="No_Reset" value = "0"/>
-					    <item name="Reset_Hercules" value = "1"/>
-					    <item name="Hercules_Power_On" value = "2"/>
-					    <item name="Hercules_Power_Off" value = "3"/>
-					    <item name="Reset_Radio" value = "4"/>
-					    <item name="Radio_Power_On" value = "5"/>
-					    <item name="Radio_Power_Off" value = "6"/>
-					    <item name="Reset_FPGA" value = "7"/>
-					    <item name="FPGA_Power_On" value = "8"/>
-					    <item name="FPGA_Power_Off" value = "9"/>
-					    <item name="Reset_Motor1" value = "10"/>
-					    <item name="Reset_Motor2" value = "11"/>
-					    <item name="Reset_Motor3" value = "12"/>
-					    <item name="Reset_Motor4" value = "13"/>
-					    <item name="Reset_All_Motors" value = "14"/>
-					    <item name="All_Motors_On" value = "15"/>
-					    <item name="All_Motors_Off" value = "16"/>
-					    <item name="Reset_EN_3_3" value = "17"/>
-					    <item name="EN_3_3_Power_On" value = "18"/>
-					    <item name="EN_3_3_Power_Off" value = "19"/>
-					    <item name="Reset_24_EN" value = "20"/>
-					    <item name="EN_24_On" value = "21"/>
-					    <item name="EN_24_Off" value = "22"/>
-					    <item name="HDRM_Off" value = "24"/>
-					    <item name="FPGA_Cam_0" value = "25"/>
-					    <item name="FPGA_Cam_1" value = "26"/>
-					    <item name="Battery_Start_Charge" value = "27"/>
-					    <item name="Battery_Stop_Charge" value = "28"/>
-					    <item name="Enable_RS422_UART" value = "29"/>
-					    <item name="Disable_RS422_UART" value = "30"/>
-					    <item name="Enable_Heater_Control" value = "31"/>
-					    <item name="Disable_Heater_Control" value = "32"/>
-					</enum>
-					<comment>
-                    	ENUM Value that specifies which components or hardware need to be reset
+                <arg name="reset_value" type="U8">
+                    <comment>
+                    	U8 Value that specifies which components or hardware need to be reset
                     </comment>
                 </arg>
              </args>
@@ -125,119 +91,76 @@
             <comment>
             Command to send signal to MSP430 to prepare for deploying (may not be needed)
             </comment>
-            <args>
-                <arg name="confirm" type="ENUM">
-                    <enum name="confirm_prepare_for_deploy">
-                        <item name="Yes" value = "0x60" />
-                    </enum>
-                </arg>
-            </args>
         </command>
         <command kind="async" opcode="0x02" mnemonic="Disengage_From_Lander">
             <comment>
-            Command to send signal to MSP430 that it should send a signal to lander to disengage, sets disengage pin high
+            Command to send signal to MSP430 that it should send a signal to lander to disengage
             </comment>
-            <args>
-                <arg name="confirm" type="ENUM">
-                    <enum name="confirm_disengage">
-                        <item name="Yes" value = "0x60" />
-                    </enum>
-                </arg>
-            </args>
         </command>
         <command kind="async" opcode="0x03" mnemonic="Switch_Connection_Mode">
             <comment>
             Command to send signal to MSP430 that we switch the current connection mode
             </comment>
         </command>
-        <command kind="async" opcode="0x04" mnemonic="Engage_From_Lander">
+        <command kind="async" opcode="0xAA" mnemonic="Set_Kp_Most">
             <comment>
-            Command to send signal to MSP430 that it should send a signal to lander to engage, sets disengage pin low
+            Command to send signal to MSP430 that it should set Kp to most significant parameter
             </comment>
         </command>
-        <command kind="async" opcode="0xAA" mnemonic="Set_Kp_Specific">
+        <command kind="async" opcode="0xAB" mnemonic="Set_Kp_Least">
+            <comment>
+            Command to send signal to MSP430 that it should set Kp to least significant parameter
+            </comment>
+        </command>
+        <command kind="async" opcode="0xAC" mnemonic="Set_Kp_Specific">
             <comment>
             Command to send signal to MSP430 that it should set Kp to a specific value
             </comment>
-            <args>
-                <arg name="value" type="U16" />
-            </args>
         </command>
-        <!-- <command kind="async" opcode="0xAB" mnemonic="Set_Heater_On_value">
+        <command kind="async" opcode="0xBA" mnemonic="Set_Ki_Most">
             <comment>
-            Command to send signal to MSP430 that it should set the value which the heater automatically turns on
+            Command to send signal to MSP430 that it should set Ki to most significant parameter
             </comment>
         </command>
-        <command kind="async" opcode="0xAC" mnemonic="Set_Heater_Off_value">
+        <command kind="async" opcode="0xBB" mnemonic="Set_Ki_Least">
             <comment>
-            Command to send signal to MSP430 that it should set the value which the heater automatically turns off
-            </comment>
-        </command> -->
-        <command kind="async" opcode="0xAD" mnemonic="Set_Heater_Duty_Cycle_Max">
-            <comment>
-            Command to send signal to MSP430 that it should set the max possible Duty Cycle value for the heater
+            Command to send signal to MSP430 that it should set Ki to least significant parameter
             </comment>
         </command>
-        <command kind="async" opcode="0xAE" mnemonic="Set_Heater_Duty_Cycle_Period">
+        <command kind="async" opcode="0xBC" mnemonic="Set_Ki_Specific">
             <comment>
-            Command to send signal to MSP430 that it should set the period the Duty Cycle for the heater is at
+            Command to send signal to MSP430 that it should set Ki to a specific value
             </comment>
-            <args>
-                <arg name="period" type="U16" />
-            </args>
         </command>
-        <command kind="async" opcode="0xAF" mnemonic="Set_Heater_Window">
+        <command kind="async" opcode="0xCA" mnemonic="Set_Kd_Most">
             <comment>
-            Set the Half-Width of the heater on/off deadband window around the setpoint (in thermistor ADC values).
-            Between setpoint - half_width and setpoint + half_width, heater is off.
+            Command to send signal to MSP430 that it should set Kd to most significant parameter
             </comment>
-            <args>
-                <arg name="adc_half_width" type="U16" />
-            </args>
         </command>
-        <command kind="async" opcode="0xDA" mnemonic="Set_Heater_Setpoint">
+        <command kind="async" opcode="0xCB" mnemonic="Set_Kd_Least">
+            <comment>
+            Command to send signal to MSP430 that it should set Kd to least significant parameter
+            </comment>
+        </command>
+        <command kind="async" opcode="0xDA" mnemonic="Set_V_Setpoint">
             <comment>
             Command to send signal to MSP430 that it should set V to a specific value
             </comment>
-            <args>
-                <arg name="adc_setpoint" type="U16" />
-            </args>
         </command>
         <command kind="async" opcode="0xEA" mnemonic="Switch_to_Sleep_Mode">
             <comment>
             Command to send signal to MSP430 that it should go into Sleep Mode
             </comment>
-            <args>
-                <arg name="confirm" type="ENUM">
-                    <enum name="confirm_sleep_mode">
-                        <item name="Yes" value = "0x77" />
-                    </enum>
-                </arg>
-            </args>
         </command>
         <command kind="async" opcode="0xEB" mnemonic="Switch_to_Keep_Alive_Mode">
             <comment>
             Command to send signal to MSP430 that it should go into Keep Alive Mode
             </comment>
-            <args>
-                <arg name="confirm" type="ENUM">
-                    <enum name="confirm_alive_mode">
-                        <item name="Yes" value = "0x77" />
-                    </enum>
-                </arg>
-            </args>
         </command>
         <command kind="async" opcode="0xEC" mnemonic="Switch_to_Service_Mode">
             <comment>
             Command to send signal to MSP430 that it should go into Service Mode
             </comment>
-            <args>
-                <arg name="confirm" type="ENUM">
-                    <enum name="confirm_service_mode">
-                        <item name="Yes" value = "0x77" />
-                    </enum>
-                </arg>
-            </args>
         </command>
     </commands>
 
@@ -284,12 +207,6 @@
         <event id="0x4" name="ADCThermistorError" severity="WARNING_HI" format_string = "ADC Thermistor Conversion Error" >
             <comment>
             Warning that less than 16 thermistors had conversions or conversion never completed meaning no new tempurature values are being generated
-            </comment>
-        </event>
-
-        <event id="0x5" name="WatchDogIncorrectResetValue" severity="WARNING_LO" format_string = "Incorrect Reset Value Sent" >
-            <comment>
-            Warning that an incorrect reset value has been sent from ground
             </comment>
         </event>
     </events>
@@ -374,3 +291,4 @@
         </channel>
     </telemetry>
 </component>
+

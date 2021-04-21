@@ -422,10 +422,6 @@ def load_cache() -> None:
         pass  # Do nothing. This is the first go, there's just nothing to load.
 
 
-def stream_data_ip_udp_wifi() -> None:
-    pass
-
-
 def stream_data_ip_udp_serial() -> None:
     escape = False
     keep_running = True

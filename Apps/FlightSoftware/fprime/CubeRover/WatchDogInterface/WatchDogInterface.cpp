@@ -170,7 +170,7 @@ namespace CubeRover {
     // Sends a command to watchdog to reset specified devices
 
       // Check that reset_value is correct
-      if(reset_value >= No_Reset && reset_value <= max_reset_value)
+      if(reset_value < No_Reset && reset_value >= reset_values_possible_MAX)
       {
         this->log_WARNING_LO_WatchDogIncorrectResetValue();
         return;
@@ -279,7 +279,7 @@ namespace CubeRover {
     // Sends a command to watchdog to reset specified devices
 
       // Check that reset_value is correct
-      if(reset_value >= No_Reset && reset_value <= max_reset_value)
+      if(reset_value < No_Reset && reset_value >= reset_values_possible_MAX)
       {
         this->log_WARNING_LO_WatchDogIncorrectResetValue();
         return;

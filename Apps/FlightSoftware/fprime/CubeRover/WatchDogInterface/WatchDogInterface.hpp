@@ -32,8 +32,6 @@ const U16 zero_size = 0x0000;
 const U8 min_receive_size = 8;
 // Magic Value first sent in the header between watchdog and hercules communication
 const U32 header_magic = 0x21B00B;
-// The maximum enumerated value possible in the reset_value enumeration
-#define max_reset_value Disable_Heater_Control
 
 namespace CubeRover {
 

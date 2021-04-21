@@ -7,7 +7,7 @@ Created on Fri Nov 27 15:02:00 2020
 """
 import traceback
 
-import scapy.all as scp
+import scapy.all as scp  # type: ignore
 import struct
 
 from typing import List, Type
@@ -22,7 +22,8 @@ from IrisBackendv3.codec.settings import set_codec_standards
 from IrisBackendv3.utils.basic import print_bytearray_hex as printraw
 from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket
 
-from tvac_tools import telemetry_streams, update_telemetry_streams, load_cache
+from tvac_tools import telemetry_streams, update_telemetry_streams, load_cache, plot_stream
+from tvac_tools import settings as tvac_settings
 
 # Commands and Telemetry: Fp XML Comments
 # Logs and Events: Fp XML (parse string formatter)
@@ -56,9 +57,9 @@ add_to_standards(standards, watchdog_heartbeat_tvac)
 set_codec_standards(standards)
 # Data Transport:
 # Iris_FSWv1.0.0_210409_Telemetry.pcapng'  # PCAP logs
-file = './test-data/Iris_WdTvac_210417_Heartbeat.pcap'
+file = './test-data/Iris_FSWv1.0.0_210409_Telemetry.pcapng'
 protocol = scp.UDP  # Protocol FSW is using to send data
-port = 42000  # 8080  # Port on the spacecraft FSW is sending data to
+port = 8080  # Port on the spacecraft FSW is sending data to
 
 # Data Formatting Settings:
 packetgap = 0  # number of packets to ignore at beginning of pcap
@@ -76,6 +77,17 @@ all_payloads: PayloadCollection = PayloadCollection(
     FileBlockPayload=[]
 )
 
+tvac_settings['SAVE_FILE_PREFIX'] = 'iris_hercules_tset_2021040907'
+load_cache()
+plot_stream('Imu_XAcc')
+plot_stream('Imu_YAcc')
+plot_stream('Imu_ZAcc')
+plot_stream('Imu_XAng')
+plot_stream('Imu_YAng')
+plot_stream('Imu_ZAng')
+plot_stream('ActiveRateGroup-RateGroupHiFreq_RgMaxTime')
+plot_stream('ActiveRateGroup-RateGroupMedFreq_RgMaxTime')
+plot_stream('ActiveRateGroup-RateGroupLowFreq_RgMaxTime')
 for packet in packets:
     packet_bytes = scp.raw(packet.getlayer(scp.Raw))[deadspace:]
 

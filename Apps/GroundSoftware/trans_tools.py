@@ -18,6 +18,7 @@ import os
 import pickle
 from datetime import datetime, timedelta
 
+import socket
 import serial  # type: ignore # no type hints
 import scapy.all as scp  # type: ignore # no type hints
 import numpy as np
@@ -203,6 +204,11 @@ def connect_serial(device: str = '/dev/ttyUSB0', baud: int = 9600) -> None:
             'red')
 
 
+def send_wifi(data: bytes, ip="192.168.1.2", port=8080) -> None:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.sendto(data, (ip, port))
+
+
 def send_slip(dat: bytes) -> None:
     """
     Wraps the given data in SLIP and sends it over RS422.
@@ -230,7 +236,7 @@ def send_slip(dat: bytes) -> None:
             'red')
 
 
-def send_command(command_name: str, **kwargs) -> str:
+def send_command_wd_serial(command_name: str, **kwargs) -> str:
     data = pack_watchdog_command(command_name, **kwargs)
     try:
         send_slip(data)
@@ -416,7 +422,11 @@ def load_cache() -> None:
         pass  # Do nothing. This is the first go, there's just nothing to load.
 
 
-def stream_data() -> None:
+def stream_data_ip_udp_wifi() -> None:
+    pass
+
+
+def stream_data_ip_udp_serial() -> None:
     escape = False
     keep_running = True
     nrx = 0

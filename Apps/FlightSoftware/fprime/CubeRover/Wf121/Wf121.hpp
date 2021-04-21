@@ -367,7 +367,7 @@ namespace Wf121{
 
   typedef uint8_t Endpoint;
 
-  static uint8_t g_payloadBuffer[UDP_MAX_PAYLOAD];
+  static uint8_t g_payloadBuffer[WF121_UDP_MAX_PAYLOAD];
 
   class Wf121Driver{
     public:

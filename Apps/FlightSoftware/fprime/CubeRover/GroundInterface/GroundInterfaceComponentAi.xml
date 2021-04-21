@@ -179,6 +179,20 @@
                 </arg>
             </args>
         </command>
+        <command kind="sync" opcode="0x1" mnemonic="Set_GroundInterface_Telemetry_Level">
+            <comment>
+                Sets the telemetry level of this component
+            </comment>
+            <args>
+                <arg name="telemetry_level" type="ENUM">
+                    <enum name="TelemetryLevel">
+                        <item name="CRITICAL" comment="Emit critical telemetry items only." />
+                        <item name="IMPORTANT" comment="Emit CRITICAL and important telemetry items only." />
+                        <item name="ALL" comment="Emit all telemetry items." />
+                    </enum>
+                </arg>
+            </args>
+        </command>
     </commands>
             
 </component>

@@ -2,10 +2,9 @@ import socket
 import numpy as np
 import struct
 
-
 def compute_checksum(b):
     return ~np.uint8(sum(bytearray(b)) % 256)
-
+        
 
 ip = "192.168.1.2"
 port = 8080
@@ -19,7 +18,7 @@ CMD_MAGIC = 0x00bada55   # FSWCommand
 
 def generate_command(component, opcode, struct_fmt, *args):
     """ Generate the binary string for a command.
-
+    
     :param component: Component ID
     :param opcode: Command opcode
     :param struct_fmt: Format string for the command arguments to be fed into struct.pack
@@ -39,7 +38,7 @@ def generate_command(component, opcode, struct_fmt, *args):
     assert not compute_checksum(cmd)
     return cmd
 
-
+    
 cam_fmt = 'B H'
 command = 0x01      # Take picture
 camera_num = 1      # 0 or 1
@@ -48,13 +47,11 @@ cam_cmd = generate_command(0x11, command, cam_fmt, camera_num, callback_id)
 
 
 nav_fmt = 'B B H'
-# 0: Forward   1: Backward     2: Rotate Left (CCW)     3: Rotate Right (CW)
-command = 0x00
+command = 0x00      # 0: Forward   1: Backward     2: Rotate Left (CCW)     3: Rotate Right (CW)
 distance = 5
 speed = 5
 callback_id = 42
-nav_cmd = generate_command(0x0d, command, nav_fmt,
-                           distance, speed, callback_id)
+nav_cmd = generate_command(0x0d, command, nav_fmt, distance, speed, callback_id)
 
 
 gi_fmt = 'I'
@@ -69,3 +66,4 @@ print("UDP target IP:", ip)
 print("UDP target port:", port)
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.sendto(the_cmd, (ip, port))
+

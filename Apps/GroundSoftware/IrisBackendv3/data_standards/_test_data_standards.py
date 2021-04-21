@@ -8,7 +8,7 @@ Test all the structural functions of the `data_standards` module.
 import pytest
 from typing import Any, List, Union, Tuple
 
-from lxml import etree
+from lxml import etree  # type: ignore # mypy doesn't see type hints
 from string import Template
 
 from .data_standards import *

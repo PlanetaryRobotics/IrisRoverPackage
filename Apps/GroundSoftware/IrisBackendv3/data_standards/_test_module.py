@@ -11,7 +11,7 @@ import inspect
 from copy import deepcopy
 
 from collections import OrderedDict
-import jsonpickle
+import jsonpickle  # type: ignore # mypy doesn't see type hints
 
 from .module import *
 from .fsw_data_type import FswDataType as FDT

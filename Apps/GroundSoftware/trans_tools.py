@@ -123,7 +123,7 @@ def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
     return packet
 
 
-def list_commands() -> None:
+def list_commands_wd() -> None:
     """
     List all available Watchdog commands for TVAC testing.
     """
@@ -146,7 +146,7 @@ def list_commands() -> None:
                     p_enum(e)
 
 
-def list_channels() -> None:
+def list_channels_wd() -> None:
     """
     List all available Watchdog channels for TVAC testing.
     """

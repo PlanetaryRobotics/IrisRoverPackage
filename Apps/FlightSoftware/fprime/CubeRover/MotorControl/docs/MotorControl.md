@@ -7,54 +7,46 @@
 |Mnemonic|ID|Description|Arg Name|Arg Type|Comment
 |---|---|---|---|---|---|
 |MC_Current_PID|0 (0x0)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
 | | | |PI_Values|U32||
 |MC_Speed_PID|1 (0x1)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
-| | | |PID_Values|U64||
-|MC_Position_PID|2 (0x2)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
-| | | |PID_Values|U64||
+| | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
+| | | |PID_Values|U32||
 |MC_Acceleration|3 (0x3)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
 | | | |Rate_Values|U32||
 |MC_StallDetection|4 (0x4)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
 | | | |Value|U8|0x00 is disabled, 0xFF is enabled |
 |MC_ResetPosition|5 (0x5)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
 |MC_Spin|6 (0x6)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
-| | | |Spin_Type|U8||
+| | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
+| | | |Raw_Ticks|U32||
 |MC_PowerBoost|7 (0x7)|| | |
-| | | |Motor_ID|U8|The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors |
+| | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
 | | | |Value|U8|0x00 is On, 0xFF is Off |
 |MC_SetParameter|8 (0x8)|| | |
 | | | |ParamSelect|MC_ParameterSelection| Change internal parameters of the module |
 | | | |New_Value|U32| The new value to be used in place |
-|MC_GetParameters|9 (0x9)|Returns all current parameters of the module| | |
 |MC_UpdateTelemetry|16 (0x10)|Forces a telemetry update from the motors| | |
-|MC_DriveTest|152 (0x98)|Allows the direct commanding of moves bypassing Nav if things are incorrect| | |
-| | | |Distance|I64||
-| | | |MoveType|I8||
-|MC_SelfTest|153 (0x99)|Runs through a routine to confirms the MSP are functioning properly| | |
 
 ## Telemetry Channel List
 
 |Channel Name|ID|Type|Description|
 |---|---|---|---|
-|MC_FL_Encoder_Dist|0 (0x0)|I32|Front Left motor encoder displacement in encoder ticks|
+|MC_FL_Encoder_Ticks|0 (0x0)|I32|Front Left motor encoder displacement in encoder ticks|
 |MC_FL_Current|1 (0x1)|U16|Front Left motor current in milliAmps|
-|MC_FL_Speed|2 (0x2)|I16|Front Left motor speed in centimeters per second (positive rotation is counter clockwise|
-|MC_FR_Encoder_Dist|3 (0x3)|I32|Front Right motor encoder displacement in encoder ticks|
+|MC_FR_Encoder_Ticks|3 (0x3)|I32|Front Right motor encoder displacement in encoder ticks|
 |MC_FR_Current|4 (0x4)|U16|Front Right motor current in milliAmps|
-|MC_FR_Speed|5 (0x5)|I16|Front Right motor speed in centimeters per second|
-|MC_RR_Encoder_Dist|6 (0x6)|I32|Rear Right motor encoder displacement in encoder ticks|
+|MC_RR_Encoder_Ticks|6 (0x6)|I32|Rear Right motor encoder displacement in encoder ticks|
 |MC_RR_Current|7 (0x7)|U16|Rear Right motor current in milliAmps|
-|MC_RR_Speed|8 (0x8)|I16|Rear Right motor speed in centimeters per second|
-|MC_RL_Encoder_Dist|9 (0x9)|I32|Rear Left motor encoder displacement in encoder ticks|
+|MC_RL_Encoder_Ticks|9 (0x9)|I32|Rear Left motor encoder displacement in encoder ticks|
 |MC_RL_Current|10 (0xa)|U16|Rear Left motor current in milliAmps|
-|MC_RL_Speed|11 (0xb)|I16|Rear Left motor speed in centimeters per second|
+|MC_FL_Status|11 (0xb)|U8|Front left status|
+|MC_FR_Status|12 (0xc)|U8|Front right status|
+|MC_RR_Status|13 (0xd)|U8|Rear right status|
+|MC_RL_Status|14 (0xe)|U8|Rear left status|
 
 ## Event List
 

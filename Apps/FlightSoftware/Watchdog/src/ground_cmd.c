@@ -15,6 +15,9 @@
 #include "include/flags.h"
 #include "include/i2c.h"
 
+extern uint8_t heating, heatingControlEnabled, heaterStatus;
+extern uint16_t Kp_heater, heater_setpoint, heater_window, PWM_limit;
+
 void enterMode(enum rover_state newstate);
 
 /**
@@ -148,9 +151,18 @@ uint8_t handle_watchdog_reset_cmd(uint8_t cmd) {
     case 0x19:
         fpgaCameraSelectLo();
         break;
-    /* 0x20: FPGA camera select #1 */
-    case 0x20:
+    /* 0x1A: FPGA camera select #1 */
+    case 0x1A:
         fpgaCameraSelectHi();
+        break;
+    /* 0x1F: heater control off */
+    case 0x1F:
+        heatingControlEnabled = 1;
+        break;
+    /* 0x20: heater control on */
+    case 0x20:
+        heatingControlEnabled = 0;
+        TB0CCR2 = 0;
         break;
     default:
         /* invalid command */
@@ -229,17 +241,33 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
     case 0x04:
         /* TODO: not actually used */
         break;
+    case 0xAA:
+        /* set thermistor Kp (little endian) */
+        Kp_heater = buf[3] << 8 | buf[2];
+        break;
+    case 0xAB:
+        /* Set Automatic Heater On Value */
+        // DEPRECATED
+        break;
     case 0xAC:
-        /* TODO: set thermistor Kp */
+        /* Set Automatic Heater Off Value */
+        // DEPRECATED
         break;
-    case 0xBC:
-        /* TODO: set thermistor Ki */
+    case 0xAD:
+        /* Set Heater Duty Cycle Max */
+        PWM_limit = buf[3] << 8 | buf[2];
         break;
-    case 0xCC:
-        /* TODO: set thermistor Kd */
+    case 0xAE:
+        /* Set Heater Duty Cycle Period */
+        TB0CCR0 = buf[3] << 8 | buf[2];
+        break;
+    case 0xAF:
+        /* set heater window */
+        heater_window = buf[3] << 8 | buf[2];
         break;
     case 0xDA:
-        /* TODO: set thermistor V setpoint */
+        /* set thermistor V setpoint */
+        heater_setpoint = buf[3] << 8 | buf[2];
         break;
     case 0xEA:
         /* Enter sleep mode */
@@ -356,7 +384,7 @@ void send_earth_heartbeat() {
     if (counter % 3 != 2) {
         // send every 2 seconds
         counter++;
-        return;
+        //return;
     }
     counter = 0;
 
@@ -365,9 +393,9 @@ void send_earth_heartbeat() {
 
     // build the packet
     pbuf.buf[0] = 0xFF;
+
     // send the battery charge
     pbuf.buf[1] = batt_charge_telem << 1; // shift to make space for heater status
-    pbuf.buf[1] = pbuf.buf[1] << 1;
     // send heater on status
     pbuf.buf[1] |= heaterStatus & 0x1;
     // battery current

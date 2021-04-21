@@ -84,6 +84,7 @@ I2C_Mode I2C_Master_ReadReg(uint8_t dev_addr, uint8_t reg_addr, uint8_t count)
     UCB0IE |= UCTXIE;                        // Enable TX interrupt
 
     UCB0CTLW0 |= UCTR + UCTXSTT;             // I2C TX, start condition
+
     __bis_SR_register(LPM0_bits + GIE);              // Enter LPM0 w/ interrupts
 
     return MasterMode;
@@ -122,6 +123,7 @@ I2C_Mode I2C_Master_WriteReg(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_da
     UCB0IE |= UCTXIE;                        // Enable TX interrupt
 
     UCB0CTLW0 |= UCTR + UCTXSTT;             // I2C TX, start condition
+
     __bis_SR_register(LPM0_bits + GIE);              // Enter LPM0 w/ interrupts
 
     return MasterMode;

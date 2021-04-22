@@ -42,8 +42,11 @@ from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
 from IrisBackendv3.codec.logging import logger as CodecLogger
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, set_codec_standards
 
+import seaborn as sns
+sns.set()
+
 settings: Dict[str, Union[str, int]] = {
-    'SAVE_DIR': './tvac_logs/',
+    'SAVE_DIR': './tvac_logs/test_results',
     'SAVE_FILE_PREFIX': 'iris_logs',
     'SAVE_FILE_EXT': 'tvac',
     # number of minutes after which the old save file won't be overwritten and a new one will be made:
@@ -357,11 +360,19 @@ def get_latest_cache_file(prefix: Optional[str] = None) -> Tuple[str, ulid.ulid.
                 f"\n Original ValueError from `ulid-py`: {e}"
             )
 
+        # Attempt to open the file to see if it's valid:
+        try:
+            open_cache(os.path.join(cache_dir, f))
+            corrupt = False
+        except EOFError:
+            # File is corrupted, ignore this version.
+            corrupt = True
+
         # Store this as the latest file if it's the first file or its
         # ulid is chronologically more recent that the previous `latest_file`:
         if i == 0:
             latest_file = f, u
-        elif u > latest_file[1]:
+        elif not corrupt and u > latest_file[1]:
             latest_file = f, u
 
     cache_filename = latest_file[0]
@@ -397,100 +408,154 @@ def grab_latest_of_every_cache() -> List[Tuple[str, ulid.ulid.ULID]]:
     return [get_latest_cache_file(p) for p in unique_prefixes]
 
 
-def stitch_and_export_all_data(folder: str, start_time: Optional[datetime], end_time: Optional[datetime]) -> None:
+def stitch_and_export_all_data(out_folder: str, start_time: Optional[datetime] = None, end_time: Optional[datetime] = None) -> None:
     """
     Stich together all the data streams from the latest file for every 
     `SAVE_FILE_PREFIX` in the current `SAVE_DIR` with the current `SAVE_FILE_EXT`,
     then export the data to csv and create and save plots of all streams.
-    Places outputs in the given `folder`.
+    Places outputs in the given `out_folder`.
 
     If `start_time` is given, data is only kept if it's from after `start_time`.
     If `end_time` is given, data is only kept if it's from before `end_time`.
     """
     # Make sure output directory exists:
-    if not os.path.exists(folder):
-        os.makedirs(folder)
+    if not os.path.exists(out_folder):
+        cprint(
+            f"Directory `{out_folder}` doesn't exist. Making it . . .", 'yellow')
+        os.makedirs(out_folder)
 
     # Grab all data filenames:
+    cprint('Collecting all data files . . .', 'blue')
     all_data_files = grab_latest_of_every_cache()
 
     # Open all cache files and stitch all data together
-    all_data: NameIdDict[List[Tuple[datetime, Any]]] = NameIdDict()
+    cprint('Loading all data & stitching it . . .', 'blue')
+    all_data: NameIdDict[List[Tuple[str, datetime, Any]]] = NameIdDict()
     for path, _ in all_data_files:
         try:
             data = open_cache(path)
             data = cast(NameIdDict[List[Tuple[datetime, Any]]], data)
             for ke, vals in data.collect():
+                vals = [(path, t, v) for t, v in vals]  # add file to vals
                 if ke not in all_data:
                     # First we're seeing this stream's KeyEnumerator, so add it:
                     all_data[ke] = vals
                 else:
                     # There's already data for this stream; so, add just append it:
                     all_data[ke].extend(vals)
-        except (FileNotFoundError, EOFError):
+        except EOFError:
+            CodecLogger.error(
+                f"Failed to load existing file at `{path}` while performing stitch "
+                "and export for cached logs. File appears to be corrupted."
+            )
+        except FileNotFoundError:
             CodecLogger.warning(
                 f"Failed to load existing file at `{path}` while performing stitch "
                 "and export for cached logs."
             )
 
     # Process data by time:
+    cprint('Temporal processing . . .', 'blue')
     earliest_time: datetime = datetime.now()  # earliest time observed
     for ke, _ in all_data.collect():
         # Sort all data by time:
-        all_data[ke].sort(key=lambda x: x[0])  # sort by timestamp
+        all_data[ke].sort(key=lambda x: x[1])  # sort by timestamp
 
         # Remove all out of bounds entries:
         if start_time is not None:
-            all_data[ke] = [(t, v) for t, v in all_data[ke] if t >= start_time]
+            all_data[ke] = [(f, t, v)
+                            for f, t, v in all_data[ke] if t >= start_time]
         if end_time is not None:
-            all_data[ke] = [(t, v) for t, v in all_data[ke] if t <= end_time]
+            all_data[ke] = [(f, t, v)
+                            for f, t, v in all_data[ke] if t <= end_time]
 
         # Find the earliest time observed (for epoch calculation):
-        if all_data[ke][0][0] < earliest_time:
-            earliest_time = all_data[ke][0][0]
+        if all_data[ke][0][1] < earliest_time:
+            earliest_time = all_data[ke][0][1]
 
     # Export all data:
     export_name = f"tvac_export_{ulid.new()}"
     inner_ext = str(settings['SAVE_FILE_EXT'])
     data_table: List[List[Any]] = []
-    for ke, _ in all_data.collect():
+    for i, (ke, vals) in enumerate(all_data.collect()):
         # Extract data:
-        ts = [t for t, _ in all_data[ke]]
+        fs = [os.path.basename(f) for f, _, _ in vals]
+        ts = [t for _, t, _ in vals]
         s = [(t - earliest_time).total_seconds() for t in ts]
-        vs = [v for _, v in all_data[ke]]
+        vs = [v for _, _, v in vals]
 
         # Add to data table:
         [stream_name, *_], _ = ke
+        data_table.append([stream_name+'_test', *fs])
         data_table.append([stream_name+'_times', *ts])
         data_table.append([stream_name+'_seconds', *s])
         data_table.append([stream_name+'_values', *vs])
+        data_table.append([])  # spacer between columns
 
         # Plot data:
-        plt.plot(ts, vs,
-                 color='lightskyblue',
-                 marker='o',
-                 markeredgecolor='steelblue',
-                 markerfacecolor='ghostwhite',
-                 linestyle='-',
-                 linewidth=2,
-                 markersize=3
-                 )
-        plt.gcf().autofmt_xdate()
-        plt.xlabel('Time')
-        plt.ylabel(stream_name)
-        plt.title('Iris Lunar Rover TVAC')
-        figpath = os.path.join(
-            folder, f'{export_name}_{stream_name}.{inner_ext}.png'
-        )
-        plt.savefig(figpath)
+        cprint(f'Plotting {i+1}/{len(all_data)}: {stream_name} . . .', 'blue')
+        # Only actually plot if *any* value is non-zero (ignore for unimplemented streams):
+        is_zero = [v == 0 for v in vs]
+        if all(is_zero):
+            cprint(f'\t > Skipping. All values are zero.', 'yellow')
+        else:
+            plt.figure()
+            plt.plot(ts, vs,
+                     color='lightskyblue',
+                     marker='o',
+                     markeredgecolor='steelblue',
+                     markerfacecolor='ghostwhite',
+                     linestyle='-',
+                     linewidth=2,
+                     markersize=3
+                     )
+            plt.gcf().autofmt_xdate()
+            plt.xlabel('Time')
+            plt.ylabel(stream_name)
+            plt.title('Iris Lunar Rover TVAC')
+            plt.tight_layout()
+            figpath = os.path.join(
+                out_folder, f'{export_name}_{stream_name}.{inner_ext}.png'
+            )
+            plt.savefig(figpath, dpi=1200)
 
-    # Transpose data:
+    # Plot test name over time (nominally):
+    cprint(f'Plotting Test Sequence . . .', 'blue')
+    fs = data_table[0][1:]
+    fs = ['_'.join(f.split('_')[:-1]) for f in fs]  # remove ulid and extension
+    ts = data_table[1][1:]
+    plt.figure()
+    plt.plot(ts, fs,
+             color='lightskyblue',
+             marker='o',
+             markeredgecolor='steelblue',
+             markerfacecolor='ghostwhite',
+             linestyle='-',
+             linewidth=2,
+             markersize=3
+             )
+    plt.gcf().autofmt_xdate()
+    plt.xlabel('Time')
+    plt.ylabel('Name of Active Test')
+    plt.title('Iris Lunar Rover TVAC')
+    plt.tight_layout()
+    figpath = os.path.join(
+        out_folder, f'{export_name}__test_timing.{inner_ext}.png'
+    )
+    plt.savefig(figpath, dpi=1200)
+
+    # Transpose data (so each subarray is a column):
+    cprint(f'Transposing Data . . .', 'blue')
     output_table = [*zip_longest(*data_table)]
     # Export datatable:
-    csvpath = os.path.join(folder, f'{export_name}_all_data.{inner_ext}.csv')
+    cprint(f'Saving Data . . .', 'blue')
+    csvpath = os.path.join(
+        out_folder, f'{export_name}_all_data.{inner_ext}.csv')
     with open(csvpath, 'w', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile, delimiter=',', quotechar='"')
         writer.writerows(output_table)
+
+    cprint(f'Done! TVAC data successfully saved to `{out_folder}`', 'green')
 
 
 def cache() -> None:
@@ -564,7 +629,7 @@ def stream_data() -> None:
                'red')
 
     while keep_running and ready:
-        try: # safety exception catch to keep things running
+        try:  # safety exception catch to keep things running
             b: Any = ser.read(1)
             line += b
             b = int.from_bytes(b, 'big')
@@ -605,4 +670,5 @@ def stream_data() -> None:
             #     #print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
             #     line = b''
         except Exception as e:
-            cprint(f"An otherwise unresolved error occured during packet streaming: {e}", 'red')
+            cprint(
+                f"An otherwise unresolved error occured during packet streaming: {e}", 'red')

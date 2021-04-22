@@ -26,6 +26,14 @@ from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHea
 from tvac_tools import telemetry_streams, update_telemetry_streams, load_cache, plot_stream
 from tvac_tools import settings as tvac_settings
 
+from tvac_tools import stitch_and_export_all_data
+from datetime import datetime
+stitch_and_export_all_data(
+    out_folder='./tvac_export/'
+)
+
+"""
+
 # Commands and Telemetry: Fp XML Comments
 # Logs and Events: Fp XML (parse string formatter)
 # Files: structs in FswPacket.hpp
@@ -134,3 +142,5 @@ plot_stream('Imu_ZAng')
 plot_stream('ActiveRateGroup-RateGroupHiFreq_RgMaxTime')
 plot_stream('ActiveRateGroup-RateGroupMedFreq_RgMaxTime')
 plot_stream('ActiveRateGroup-RateGroupLowFreq_RgMaxTime')
+
+"""

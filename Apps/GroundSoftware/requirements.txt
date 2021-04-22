@@ -4,6 +4,7 @@ scapy
 python-pcapng
 numpy
 matplotlib
+seaborn
 pandas
 plotly
 dash

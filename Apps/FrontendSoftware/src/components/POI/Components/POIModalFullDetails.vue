@@ -212,9 +212,7 @@ import getPixels from "get-pixels";
 import util from "util";
 import savePixels from "save-pixels";
 import streamConcat from "concat-stream";
-
-// Promisify function for image data getters in computed
-const getPromisedPixels = util.promisify(getPixels);
+import numjs from "numjs";
 
 export default {
   name: "POIModalFullDetails",
@@ -415,6 +413,18 @@ export default {
   },
 
   asyncComputed: {
+    async loadImgFromDataURL(data_url){
+        return await new Promise((resolve, reject) => {
+          let $image = new Image();
+          $image.crossOrigin = 'Anonymous';
+          $image.onload = function() {
+            let img = nj.images.read($image);
+            resolve(img);
+          };
+          $image.src = data_url;
+        });
+    },
+    
     async imgData() {
       // let POILayerDiv = document.getElementById("featurevp");
 
@@ -424,7 +434,7 @@ export default {
       let normalizedColStart = Math.min(this.POIStartCoords[0], this.POIEndCoords[0]);
       let normalizedColEnd = Math.max(this.POIStartCoords[0], this.POIEndCoords[0]);
 
-      let pixels = await getPromisedPixels(this.selectedImage.url);
+      let pixels = await loadImgFromDataURL(this.selectedImage.url);
 
       let pixelsWidth = pixels.shape[0];
       let pixelsHeight = pixels.shape[1];

@@ -16,7 +16,7 @@
 #include "include/i2c.h"
 
 extern uint8_t heating, heatingControlEnabled, heaterStatus;
-extern uint16_t Kp_heater, heater_setpoint, heater_window, PWM_limit;
+extern uint16_t Kp_heater, heater_setpoint, heater_window, PWM_limit, heater_on_val, heater_off_val;
 
 void enterMode(enum rover_state newstate);
 
@@ -247,12 +247,12 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
         Kp_heater = buf[3] << 8 | buf[2];
         break;
     case 0xAB:
-        /* Set Automatic Heater On Value */
-        // DEPRECATED
+        /* Set Automatic Heater On Value; turn on heater when temp is below this */
+        heater_on_val = buf[3] << 8 | buf[2];
         break;
     case 0xAC:
-        /* Set Automatic Heater Off Value */
-        // DEPRECATED
+        /* Set Automatic Heater Off Value; turn off heater when temp is above this */
+        heater_off_val = buf[3] << 8 | buf[2];
         break;
     case 0xAD:
         /* Set Heater Duty Cycle Max */
@@ -264,7 +264,8 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
         break;
     case 0xAF:
         /* set heater window */
-        heater_window = buf[3] << 8 | buf[2];
+        // [DEPCRECATED]
+//        heater_window = buf[3] << 8 | buf[2];
         break;
     case 0xDA:
         /* set thermistor V setpoint */

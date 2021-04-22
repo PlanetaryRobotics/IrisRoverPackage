@@ -147,6 +147,7 @@ void updateGaugeReadings(){
     // set control_reg[0] to 0 to drastically reduce current consumption (no conversions though)
     I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &fuel_gauge_write_control_reg, 1);
 
+    __delay_cycles(1000000); //give fuel gauge ~50ms to update
     // record new measurements in fuel gauge
     readBatteryCharge();
     readBatteryVoltage();

@@ -109,7 +109,7 @@ int main(void) {
     i2c_init();
 
     /* enter keepalive mode */
-    enterMode(RS_KEEPALIVE);
+    enterMode(RS_MISSION);
 
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();
@@ -224,6 +224,7 @@ int main(void) {
                 break;
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */
+                updateGaugeReadings();
                 send_earth_heartbeat();
                 watchdog_monitor();
                 send_earth_heartbeat();

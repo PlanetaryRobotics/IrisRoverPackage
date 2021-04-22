@@ -24,6 +24,8 @@ volatile uint16_t watchdog_flags;
 
 // for heater control
 uint16_t Kp_heater = 500, PWM_limit = 0, heater_setpoint = 3325, heater_window = 60, PWM_limit;
+uint16_t heater_on_val = 3670;  // -5 C thermistor voltage ADC reading
+uint16_t heater_off_val = 3352; // 0 C thermistor voltage ADC reading
 uint8_t heating = 0;
 
 /**
@@ -204,14 +206,13 @@ unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
 }
 
 void heaterControl(){
-    testeroni++;
     // voltage, where LSB = 0.0008056640625V
     unsigned short therm_reading = adc_values[ADC_TEMP_IDX];
 
-    if(therm_reading > 3670){
+    if(therm_reading > heater_on_val){
         //   start heating when temperature drops below -5 C
         loop_flags |= FLAG_TEMP_LOW;
-    } else if(therm_reading < 3352){
+    } else if(therm_reading < heater_off_val){
         //   stop heating when temperature reaches 0 C
         loop_flags |= FLAG_TEMP_HIGH;
     }
@@ -220,7 +221,7 @@ void heaterControl(){
     // P controller output
     // setpoint is slightly above desired temp because otherwise it will get stuck slightly below it
     if(loop_flags & FLAG_TEMP_LOW){
-        PWM_cycle = Kp_heater * (therm_reading - 3325);
+        PWM_cycle = Kp_heater * (therm_reading - heater_setpoint);
     }
 
 
@@ -318,37 +319,3 @@ void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer0_A1_ISR (void) {
     }
 }
 
-
-// heater control
-void heaterControl() {
-    // voltage, where LSB = 0.0008056640625V
-    unsigned short therm_reading = adc_values[ADC_TEMP_IDX];
-    // iterate until reference voltage values until one is hit that is lower than measurement
-
-    if(therm_reading > (heater_setpoint + heater_window)){
-        //   start heating when temperature drops below -5 C
-        heating = 1;
-    } else if(heating && therm_reading < (heater_setpoint - heater_window) ){
-        //   stop heating when temperature reaches 0 C
-        heating = 0;
-    }
-
-    uint16_t PWM_cycle = 0;
-    // P controller output
-    // setpoint is slightly above desired temp because otherwise it will get stuck slightly below it
-    if (heating){
-        PWM_cycle = Kp_heater * (therm_reading - heater_setpoint);
-    }
-
-    // cannot have duty cycle greater than clock
-    if(PWM_cycle > PWM_limit){
-        PWM_cycle = PWM_limit;
-    }
-
-    if(rovstate == RS_KEEPALIVE){
-        TB0CCR2 = PWM_cycle;
-    } else {
-        // don't run heater when not in keep alive mode
-        TB0CCR2 = 0;
-    }
-}

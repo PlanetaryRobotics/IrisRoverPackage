@@ -9,6 +9,7 @@ import traceback
 
 import scapy.all as scp  # type: ignore
 import struct
+import ulid
 
 from typing import List, Type
 
@@ -57,7 +58,7 @@ add_to_standards(standards, watchdog_heartbeat_tvac)
 set_codec_standards(standards)
 # Data Transport:
 # Iris_FSWv1.0.0_210409_Telemetry.pcapng'  # PCAP logs
-file = './test-data/Iris_FSWv1.0.0_210409_Telemetry.pcapng'
+file = './test-data/Iris_FSWv1.0.0_210420_Telemetry.pcapng'
 protocol = scp.UDP  # Protocol FSW is using to send data
 port = 8080  # Port on the spacecraft FSW is sending data to
 
@@ -77,17 +78,8 @@ all_payloads: PayloadCollection = PayloadCollection(
     FileBlockPayload=[]
 )
 
-tvac_settings['SAVE_FILE_PREFIX'] = 'iris_hercules_tset_2021040907'
+tvac_settings['SAVE_FILE_PREFIX'] = f'iris_pims3_prep_{ulid.new()}'
 load_cache()
-plot_stream('Imu_XAcc')
-plot_stream('Imu_YAcc')
-plot_stream('Imu_ZAcc')
-plot_stream('Imu_XAng')
-plot_stream('Imu_YAng')
-plot_stream('Imu_ZAng')
-plot_stream('ActiveRateGroup-RateGroupHiFreq_RgMaxTime')
-plot_stream('ActiveRateGroup-RateGroupMedFreq_RgMaxTime')
-plot_stream('ActiveRateGroup-RateGroupLowFreq_RgMaxTime')
 for packet in packets:
     packet_bytes = scp.raw(packet.getlayer(scp.Raw))[deadspace:]
 
@@ -132,3 +124,13 @@ for packet in packets:
         )
 
 print(f"Loaded {len(all_payloads.TelemetryPayload)} telemetry payloads.")
+
+plot_stream('Imu_XAcc')
+plot_stream('Imu_YAcc')
+plot_stream('Imu_ZAcc')
+plot_stream('Imu_XAng')
+plot_stream('Imu_YAng')
+plot_stream('Imu_ZAng')
+plot_stream('ActiveRateGroup-RateGroupHiFreq_RgMaxTime')
+plot_stream('ActiveRateGroup-RateGroupMedFreq_RgMaxTime')
+plot_stream('ActiveRateGroup-RateGroupLowFreq_RgMaxTime')

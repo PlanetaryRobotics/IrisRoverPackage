@@ -90,12 +90,12 @@ class WatchdogTvacHeartbeatPacketInterface(Packet[CT]):
     class CustomPayload():
         """
         Core custom WatchdogTvacHeartbeat payload.
-        Members must have same names as corresponding telemetry channels in the 
+        Members must have same names as corresponding telemetry channels in the
         `WatchdogHeartbeatTvac` prebuilt module.
 
-        *NOTE:* For this to work effectively, all fields, including computed 
+        *NOTE:* For this to work effectively, all fields, including computed
         properties, must match their names from the prebuilt module
-        AND the order of the args in `__init__` must match the order of the 
+        AND the order of the args in `__init__` must match the order of the
         bytes in the packet.
         """
         THERMISTOR_LOOKUP_TABLE = {  # for 5k thermistor: https://www.tdk-electronics.tdk.com/inf/50/db/ntc/NTC_Mini_sensors_S863.pdf
@@ -511,6 +511,11 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         often be handled and transformed and only packed into bytes when needed.
         """
 
+        SEQ_NUM_SYM: str = 'B'  # struct symbol string for en/decoding seq_num
+        VLP_LEN_SYM: str = 'H'  # struct symbol string for en/decoding vlp_len
+        # struct symbol string for encoding checksum (externally from int):
+        CHECKSUM_SYM: str = 'B'
+
         __slots__: List[str] = [
             '_seq_num',  # - Sequence Number
             '_vlp_len',  # - Variable Length Payload (VLP) Length
@@ -534,13 +539,20 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         def __init__(self,
                      seq_num: int,
                      vlp_len: int,
-                     checksum: bytes,
+                     checksum: Optional[bytes] = None,
                      raw: Optional[bytes] = None,
                      endianness_code: str = ENDIANNESS_CODE
                      ) -> None:
             self._seq_num = seq_num
             self._vlp_len = vlp_len
-            self._checksum = checksum
+
+            if checksum is None:
+                # init as all zeros (before it's computed later):
+                self._checksum = struct.pack(
+                    endianness_code + IrisCommonPacket.CommonPacketHeader.CHECKSUM_SYM, 0x00)
+            else:
+                self._checksum = checksum
+
             super().__init__(raw=raw, endianness_code=endianness_code)
 
         def __str__(self) -> str:
@@ -553,7 +565,11 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
                    ) -> IrisCommonPacket.CommonPacketHeader:
             """Extract all data in the given raw common packet header."""
             cph_head, checksum = data[:-1], data[-1:]
-            seq_num, vlp_len = struct.unpack(endianness_code+' B H', cph_head)
+
+            sns = IrisCommonPacket.CommonPacketHeader.SEQ_NUM_SYM
+            vls = IrisCommonPacket.CommonPacketHeader.VLP_LEN_SYM
+            struct_str = endianness_code + ' ' + sns + '' + vls
+            seq_num, vlp_len = struct.unpack(struct_str, cph_head)
 
             return cls(
                 endianness_code=endianness_code,
@@ -565,10 +581,11 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
 
         def encode(self, **kwargs: Any) -> bytes:
             """Pack data into a bytes object."""
-            cph_head = struct.pack(
-                self.endianness_code+' B H',
-                self.seq_num, self.vlp_len
-            )
+
+            sns = IrisCommonPacket.CommonPacketHeader.SEQ_NUM_SYM
+            vls = IrisCommonPacket.CommonPacketHeader.VLP_LEN_SYM
+            struct_str = self.endianness_code + ' ' + sns + '' + vls
+            cph_head = struct.pack(struct_str, self.seq_num, self.vlp_len)
 
             self._raw = cph_head + self.checksum
 
@@ -588,15 +605,39 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
     def common_packet_header(self) -> IrisCommonPacket.CommonPacketHeader:
         return self._common_packet_header
 
+    @staticmethod
+    def _count_vlp_len(payloads: PayloadCollection) -> int:
+        """
+        Calculates the VLP length necessary to send the given PayloadsCollection.
+        Sum of all Payload sizes + MAGIC_SIZE * num_payloads
+        """
+        total_size = 0
+        num_payloads = 0
+        for c in payloads:
+            c = cast(List, c)  # mypy doesn't get this by itself
+            for p in c:
+                total_size += len(p.encode())
+                num_payloads += 1
+        total_size += num_payloads * MAGIC_SIZE  # Each will require a magic
+        return total_size
+
     def __init__(self,
-                 common_packet_header: CommonPacketHeader,
                  payloads: PayloadCollection,
+                 seq_num: int = 0,
+                 common_packet_header: Optional[CommonPacketHeader] = None,
                  pathway: DataPathway = DataPathway.NONE,
                  source: DataSource = DataSource.NONE,
                  raw: Optional[bytes] = None,
                  endianness_code: str = ENDIANNESS_CODE
                  ) -> None:
-        self._common_packet_header = common_packet_header
+
+        if common_packet_header is None:
+            self._common_packet_header = IrisCommonPacket.CommonPacketHeader(
+                seq_num=seq_num,
+                vlp_len=IrisCommonPacket._count_vlp_len(payloads)
+            )
+        else:
+            self._common_packet_header = common_packet_header
         super().__init__(payloads=payloads, pathway=pathway,
                          source=source, raw=raw, endianness_code=endianness_code)
 
@@ -651,9 +692,41 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         )
 
     def encode(self, **kwargs: Any) -> bytes:
-        raise NotImplementedError()
+        # Lookup table that lists all payload types which should be encoded and
+        # which Magics to use for them:
+        encoded_payload_magics_lookup = {
+            'CommandPayload': Magic.COMMAND.encode(),
+            'TelemetryPayload': Magic.TELEMETRY.encode(),
+            'EventPayload': Magic.EVENT.encode(),
+            'FileBlockPayload': Magic.FILE.encode()
+        }
 
-    @classmethod
+        # Compile all payloads:
+        VLP = b''
+        for payload_type in encoded_payload_magics_lookup.keys():
+            for cp in getattr(self.payloads, payload_type):
+                VLP += encoded_payload_magics_lookup[payload_type] + cp.encode()
+
+        CPH = self.common_packet_header.encode()
+        assert self.common_packet_header.vlp_len == len(VLP)
+
+        packet = CPH + VLP
+
+        # Compute Checksum over entire packet (with checksum defaulted to 0):
+        self.common_packet_header._checksum = struct.pack(
+            self.endianness_code + IrisCommonPacket.CommonPacketHeader.CHECKSUM_SYM,
+            ~np.uint8(sum(bytearray(packet)) % 256)
+        )
+
+        # Rebuild CPH with checksum:
+        CPH = self.common_packet_header.encode()
+
+        # Rebuild Packet with checksum:
+        packet = CPH + VLP
+
+        return packet
+
+    @ classmethod
     def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
         """
         Determines whether the given bytes constitute a valid packet of this type.
@@ -676,8 +749,8 @@ class IrisDownlinkPacket(IrisCommonPacket):
     """
     Defines Common Data Required for All Downlinked Packets (Moon to Earth).
 
-    All the same core data as any other IrisPacket but with special additional 
-    metadata coming from 
+    All the same core data as any other IrisPacket but with special additional
+    metadata coming from
 
     @author: Connor W. Colombo (CMU)
     @last-updated: 12/25/2020

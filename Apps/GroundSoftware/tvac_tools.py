@@ -7,7 +7,7 @@ Designed to interface solely with Watchdog using IP/UDP-SLIP via RS-422 with
 special `WatchdogTvacHeartbeatPackets` and normal commands.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/17/2021
+@last-updated: 04/21/2021
 """
 
 import traceback
@@ -17,6 +17,8 @@ import struct
 import os
 import pickle
 from datetime import datetime, timedelta
+import csv
+from itertools import zip_longest
 
 import serial  # type: ignore # no type hints
 import scapy.all as scp  # type: ignore # no type hints
@@ -265,7 +267,7 @@ def update_telemetry_streams(packet: Packet) -> None:
     for t in packet.payloads.TelemetryPayload:
         # If this payload's channel is new (previously un-logged), add it:
         if t.opcode not in telemetry_streams:
-            telemetry_streams[t.opcode, t.channel.name] = [
+            telemetry_streams[t.opcode, t.module.name+'_'+t.channel.name] = [
                 (datetime.now(), t.data)
             ]
         else:  # otherwise, update:
@@ -287,7 +289,15 @@ def plot_stream(channel_name: str) -> None:
             stream = telemetry_streams[channel_name]
             ts = [t for t, _ in stream]
             vs = [v for _, v in stream]
-            plt.plot(ts, vs)
+            plt.plot(ts, vs,
+                     color='lightskyblue',
+                     marker='o',
+                     markeredgecolor='steelblue',
+                     markerfacecolor='ghostwhite',
+                     linestyle='-',
+                     linewidth=2,
+                     markersize=3
+                     )
             plt.gcf().autofmt_xdate()
             plt.xlabel('Time')
             plt.ylabel(channel_name)
@@ -300,7 +310,7 @@ def plot_stream(channel_name: str) -> None:
             )
 
 
-def get_latest_cache_file() -> Tuple[str, ulid.ulid.ULID]:
+def get_latest_cache_file(prefix: Optional[str] = None) -> Tuple[str, ulid.ulid.ULID]:
     """
     Returns the path to the most recent cache_file which meets the specs in
     settings, along with the ULID of that latest file.
@@ -308,6 +318,11 @@ def get_latest_cache_file() -> Tuple[str, ulid.ulid.ULID]:
     cache_dir = str(settings['SAVE_DIR'])
     filename_base = str(settings['SAVE_FILE_PREFIX'])
     ext = str(settings['SAVE_FILE_EXT'])
+    if prefix is None:
+        filename_base = str(settings['SAVE_FILE_PREFIX'])
+    else:
+        filename_base = prefix
+
     # Grab all files in dir with extension:
     files = os.listdir(cache_dir)
     files = [f for f in files if f.endswith('.'+ext)]
@@ -355,6 +370,129 @@ def get_latest_cache_file() -> Tuple[str, ulid.ulid.ULID]:
     return os.path.join(cache_dir, cache_filename), latest_file[1]
 
 
+def grab_latest_of_every_cache() -> List[Tuple[str, ulid.ulid.ULID]]:
+    """
+    Make a list of the latest file for every `SAVE_FILE_PREFIX` in the 
+    current `SAVE_DIR` with the current `SAVE_FILE_EXT`.
+    """
+    cache_dir = str(settings['SAVE_DIR'])
+    filename_base = str(settings['SAVE_FILE_PREFIX'])
+    ext = str(settings['SAVE_FILE_EXT'])
+    # Grab all files in dir with extension:
+    files = os.listdir(cache_dir)
+    files = [f for f in files if f.endswith('.'+ext)]
+    if len(files) == 0:
+        raise FileNotFoundError(
+            f"No save files with given extension {ext} found "
+            f"in given directory {cache_dir}."
+        )
+    # Grab all unique prefixes:
+    unique_prefixes = {
+        # separate by ulid delimiter and remove ulid + ext section:
+        '_'.join(f.split('_')[:-1])
+        for f in files
+    }
+
+    # For each unique prefix, grab the latest file with that ulid. Return list:
+    return [get_latest_cache_file(p) for p in unique_prefixes]
+
+
+def stitch_and_export_all_data(folder: str, start_time: Optional[datetime], end_time: Optional[datetime]) -> None:
+    """
+    Stich together all the data streams from the latest file for every 
+    `SAVE_FILE_PREFIX` in the current `SAVE_DIR` with the current `SAVE_FILE_EXT`,
+    then export the data to csv and create and save plots of all streams.
+    Places outputs in the given `folder`.
+
+    If `start_time` is given, data is only kept if it's from after `start_time`.
+    If `end_time` is given, data is only kept if it's from before `end_time`.
+    """
+    # Make sure output directory exists:
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    # Grab all data filenames:
+    all_data_files = grab_latest_of_every_cache()
+
+    # Open all cache files and stitch all data together
+    all_data: NameIdDict[List[Tuple[datetime, Any]]] = NameIdDict()
+    for path, _ in all_data_files:
+        try:
+            data = open_cache(path)
+            data = cast(NameIdDict[List[Tuple[datetime, Any]]], data)
+            for ke, vals in data.collect():
+                if ke not in all_data:
+                    # First we're seeing this stream's KeyEnumerator, so add it:
+                    all_data[ke] = vals
+                else:
+                    # There's already data for this stream; so, add just append it:
+                    all_data[ke].extend(vals)
+        except (FileNotFoundError, EOFError):
+            CodecLogger.warning(
+                f"Failed to load existing file at `{path}` while performing stitch "
+                "and export for cached logs."
+            )
+
+    # Process data by time:
+    earliest_time: datetime = datetime.now()  # earliest time observed
+    for ke, _ in all_data.collect():
+        # Sort all data by time:
+        all_data[ke].sort(key=lambda x: x[0])  # sort by timestamp
+
+        # Remove all out of bounds entries:
+        if start_time is not None:
+            all_data[ke] = [(t, v) for t, v in all_data[ke] if t >= start_time]
+        if end_time is not None:
+            all_data[ke] = [(t, v) for t, v in all_data[ke] if t <= end_time]
+
+        # Find the earliest time observed (for epoch calculation):
+        if all_data[ke][0][0] < earliest_time:
+            earliest_time = all_data[ke][0][0]
+
+    # Export all data:
+    export_name = f"tvac_export_{ulid.new()}"
+    inner_ext = str(settings['SAVE_FILE_EXT'])
+    data_table: List[List[Any]] = []
+    for ke, _ in all_data.collect():
+        # Extract data:
+        ts = [t for t, _ in all_data[ke]]
+        s = [(t - earliest_time).total_seconds() for t in ts]
+        vs = [v for _, v in all_data[ke]]
+
+        # Add to data table:
+        [stream_name, *_], _ = ke
+        data_table.append([stream_name+'_times', *ts])
+        data_table.append([stream_name+'_seconds', *s])
+        data_table.append([stream_name+'_values', *vs])
+
+        # Plot data:
+        plt.plot(ts, vs,
+                 color='lightskyblue',
+                 marker='o',
+                 markeredgecolor='steelblue',
+                 markerfacecolor='ghostwhite',
+                 linestyle='-',
+                 linewidth=2,
+                 markersize=3
+                 )
+        plt.gcf().autofmt_xdate()
+        plt.xlabel('Time')
+        plt.ylabel(stream_name)
+        plt.title('Iris Lunar Rover TVAC')
+        figpath = os.path.join(
+            folder, f'{export_name}_{stream_name}.{inner_ext}.png'
+        )
+        plt.savefig(figpath)
+
+    # Transpose data:
+    output_table = [*zip_longest(*data_table)]
+    # Export datatable:
+    csvpath = os.path.join(folder, f'{export_name}_all_data.{inner_ext}.csv')
+    with open(csvpath, 'w', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',', quotechar='"')
+        writer.writerows(output_table)
+
+
 def cache() -> None:
     """
     Cache this DataStandards instance in a unique file in `cache_dir`.
@@ -388,21 +526,22 @@ def cache() -> None:
         pickle.dump(telemetry_streams, file)
 
 
+def open_cache(path: str) -> Any:
+    """ Loads data from cache file at given path and returns NameIdDict of it. """
+    # Open the file:
+    with open(path, 'rb') as file:
+        data = pickle.load(file)
+    return data
+
+
 def load_cache() -> None:
     """
     **Overrides** the contents of the current `telemetry_stream` with one loaded
     from the latest cache file. Consider saving first.
     """
-    cache_dir = str(settings['SAVE_DIR'])
-    filename_base = str(settings['SAVE_FILE_PREFIX'])
-    ext = str(settings['SAVE_FILE_EXT'])
     try:
         path, _ = get_latest_cache_file()
-
-        # Open the file:
-        with open(path, 'rb') as file:
-            data = pickle.load(file)
-
+        data = open_cache(path)
         telemetry_streams.update(data)
     except FileNotFoundError:
         pass  # Do nothing. This is the first go, there's just nothing to load.

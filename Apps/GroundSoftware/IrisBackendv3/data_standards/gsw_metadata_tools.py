@@ -8,7 +8,7 @@ GSW-specific metadata is embedded in the FPrime XML.
 @last-updated: 04/05/2021
 """
 
-from lxml import etree
+from lxml import etree  # type: ignore # mypy doesn't see type hints
 import re
 
 from .exceptions import StandardsFormattingException

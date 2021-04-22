@@ -128,7 +128,7 @@
             <args>
                 <arg name="confirm" type="ENUM">
                     <enum name="confirm_prepare_for_deploy">
-                        <item name="Yes" value = "0x60" />
+                        <item name="Confirm_Prep" value = "96" />
                     </enum>
                 </arg>
             </args>
@@ -140,7 +140,7 @@
             <args>
                 <arg name="confirm" type="ENUM">
                     <enum name="confirm_disengage">
-                        <item name="Yes" value = "0x60" />
+                        <item name="Confirm_Deploy" value = "96" />
                     </enum>
                 </arg>
             </args>
@@ -191,8 +191,7 @@
         </command>
         <command kind="async" opcode="0xAF" mnemonic="Set_Heater_Window">
             <comment>
-            Set the Half-Width of the heater on/off deadband window around the setpoint (in thermistor ADC values).
-            Between setpoint - half_width and setpoint + half_width, heater is off.
+            Set the Half-Width of the heater on/off deadband window around the setpoint (in thermistor ADC values). Between setpoint - half_width and setpoint + half_width, heater is off.
             </comment>
             <args>
                 <arg name="adc_half_width" type="U16" />
@@ -213,7 +212,7 @@
             <args>
                 <arg name="confirm" type="ENUM">
                     <enum name="confirm_sleep_mode">
-                        <item name="Yes" value = "0x77" />
+                        <item name="Confirm_Sleep" value = "119" />
                     </enum>
                 </arg>
             </args>
@@ -225,7 +224,7 @@
             <args>
                 <arg name="confirm" type="ENUM">
                     <enum name="confirm_alive_mode">
-                        <item name="Yes" value = "0x77" />
+                        <item name="Confirm_Alive" value = "119" />
                     </enum>
                 </arg>
             </args>
@@ -237,7 +236,7 @@
             <args>
                 <arg name="confirm" type="ENUM">
                     <enum name="confirm_service_mode">
-                        <item name="Yes" value = "0x77" />
+                        <item name="Confirm_Service" value = "119" />
                     </enum>
                 </arg>
             </args>

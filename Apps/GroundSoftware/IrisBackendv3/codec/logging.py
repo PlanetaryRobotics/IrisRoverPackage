@@ -1,7 +1,7 @@
 # Codec Package-wide logging format standards.
 import logging
-import verboselogs
-import coloredlogs
+import verboselogs  # type: ignore # mypy doesn't see type hints
+import coloredlogs  # type: ignore # mypy doesn't see type hints
 
 verboselogs.install()
 logger = logging.getLogger(__name__)

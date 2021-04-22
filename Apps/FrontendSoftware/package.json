@@ -20,6 +20,7 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
+    "@aas395/numjs": "^0.16.3",
     "@vue/cli-plugin-babel": "^3.12.1",
     "@vue/cli-plugin-eslint": "^3.12.1",
     "@vue/cli-service": "^4.2.2",
@@ -27,6 +28,7 @@
     "ajv": "^6.11.0",
     "babel-eslint": "^10.0.3",
     "base64-stream": "^1.0.0",
+    "caniuse-lite": "^1.0.30001214",
     "concat-stream": "^2.0.0",
     "d3": "^5.16.0",
     "d3-sankey": "^0.12.3",
@@ -52,6 +54,7 @@
     "saslprep": "^1.0.3",
     "sass-loader": "^7.3.1",
     "save-pixels": "^2.3.4",
+    "sharp": "^0.28.1",
     "smart-timeout": "^2.0.5",
     "style-loader": "^0.23.1",
     "tooltipster": "^4.2.7",

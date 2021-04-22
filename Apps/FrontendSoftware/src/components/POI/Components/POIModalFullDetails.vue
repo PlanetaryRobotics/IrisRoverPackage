@@ -146,13 +146,13 @@
         <div class="modal-col">
           <div class="label">Thumbnail Photo</div>
           <div class="canvas-wrapper">
-            <canvas id="imgCanvas" height="245" width="245" />
-            <img
+            <canvas id="imgCanvas" ref="imgCanvas" height="245" width="245" />
+            <!-- <img
               class="thumbnail"
               draggable="false"
               :src="imgData"
               alt="Selected area of image not loaded"
-            />
+            /> -->
             <!-- <img
             class="thumbnail"
             draggable="false"
@@ -208,11 +208,11 @@ import Dropdown from "@/components/POI/Components/Dropdown.vue";
 import WhiteAddIcon from "@/assets/imgviewer/SVGcomponents/WhiteAddIcon.vue";
 import AddTagModalWithinPOIModal from "@/components/POI/Components/AddTagModalWithinPOIModal.vue";
 import { mapGetters } from "vuex";
-import getPixels from "get-pixels";
-import util from "util";
-import savePixels from "save-pixels";
-import streamConcat from "concat-stream";
-import numjs from "numjs";
+// import getPixels from "get-pixels";
+// import util from "util";
+// import savePixels from "save-pixels";
+// import streamConcat from "concat-stream";
+import nj from "@aas395/numjs";
 
 export default {
   name: "POIModalFullDetails",
@@ -239,7 +239,118 @@ export default {
     };
   },
 
+  async mounted(){
+    let normalizedRowStart = Math.min(this.POIStartCoords[1], this.POIEndCoords[1]);
+      let normalizedRowEnd = Math.max(this.POIStartCoords[1], this.POIEndCoords[1]);
+
+      let normalizedColStart = Math.min(this.POIStartCoords[0], this.POIEndCoords[0]);
+      let normalizedColEnd = Math.max(this.POIStartCoords[0], this.POIEndCoords[0]);
+
+      let pixels = await this.loadImgFromDataURL(this.selectedImage.url);
+
+      let pixelsWidth = pixels.shape[0];
+      let pixelsHeight = pixels.shape[1];
+
+
+      // "un"normalize coords
+      let rowStart = normalizedRowStart * pixelsHeight;
+      let rowEnd = normalizedRowEnd * pixelsHeight;
+      let colStart = normalizedColStart * pixelsWidth;
+      let colEnd = normalizedColEnd * pixelsWidth;
+
+
+      // console.log("\nrowStart: ", normalizedRowStart, "\nrowEnd: ", normalizedRowEnd, "\ncolStart: ", colStart, "\ncolEnd: ", colEnd)
+
+      console.log("\nNormalized Coords\n--------", "\nStart coords: ", normalizedColStart, normalizedRowStart, "\nEnd Coords: ", normalizedColEnd, normalizedRowEnd)
+
+      console.log("\nUnnormalized Coords\n--------", "\nStart coords: ", colStart, rowStart, "\nEnd Coords: ", colEnd, rowEnd)
+
+      // Get space btwn bottom edge of outlined image selection and bottom of actual uncropped image
+      let spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm = Math.abs(1-normalizedRowEnd) * pixelsHeight;
+      // console.log("\nspaceBtwnBtmEdgeOfImgandOutlineSelectionBtm: ", spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm)
+
+      // Get space btwn top edge of outlined image selection and top of actual uncropped image
+      let pxDiffTopOfOutlineVsTopOfImg = rowStart;
+
+
+      let numCols = Math.abs(colEnd - colStart);
+      let numRows = Math.abs(rowEnd - rowStart);
+      let extraPadding = Math.abs(numRows - numCols) / 2;
+      // let proportionalSidePadding = 0;
+      let proportionalSidePadding = extraPadding;
+
+      // Make black outlines on image for context
+      // If col > row, add rows
+      if (numCols > numRows) {
+        // proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numCols;
+
+        // If bottom edge case only, bottom would be cut off, add extra bottom that's leftover to top of cropped image
+        if(spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm < proportionalSidePadding){
+          console.log("bottom edge");
+          let leftoverRows = extraPadding - spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
+          
+          rowStart = rowStart - extraPadding - leftoverRows;
+          rowEnd = rowEnd + spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
+
+          let topSidePadding = proportionalSidePadding + (proportionalSidePadding - spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm);
+
+          let bottomSidePadding = spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
+
+          this.makeContextOutlines(numRows, numCols, topSidePadding, bottomSidePadding, pixelsWidth, pixelsHeight);
+        }
+
+        // If top edge case only, top of image would be cut off, add extra of top that's leftover to bottom of cropped image
+        else if(pxDiffTopOfOutlineVsTopOfImg < proportionalSidePadding){
+          console.log("top edge");
+          let leftoverRows = extraPadding - pxDiffTopOfOutlineVsTopOfImg;
+          
+          rowStart = 0;
+          // rowStart - extraPadding - leftoverRows;
+          rowEnd = rowEnd + extraPadding + leftoverRows;
+
+          let topSidePadding = pxDiffTopOfOutlineVsTopOfImg;
+
+          let bottomSidePadding = proportionalSidePadding + (proportionalSidePadding - pxDiffTopOfOutlineVsTopOfImg);
+
+          this.makeContextOutlines(numRows, numCols, topSidePadding, bottomSidePadding, pixelsWidth, pixelsHeight);
+        }
+
+        // normal case (not edge case)
+        else{
+          console.log("normal case")
+          rowStart = rowStart - extraPadding;
+          rowEnd = rowEnd + extraPadding;
+          this.makeContextOutlines(numRows, numCols, proportionalSidePadding, proportionalSidePadding, pixelsWidth, pixelsHeight);
+        }
+      }
+
+
+      // If row > col, add cols
+      else if (numRows > numCols) {
+        console.log("WRONG")
+        colStart = colStart - extraPadding;
+        colEnd = colEnd + extraPadding;
+        proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numRows;
+      }
+
+      let croppedMatrix = pixels.slice([rowStart, rowEnd], [colStart, colEnd]);
+
+      nj.images.save(croppedMatrix, this.$refs["imgCanvas"]);
+  },
+
   methods: {
+    async loadImgFromDataURL(data_url){
+        return await new Promise((resolve) => {
+          let $image = new Image();
+          $image.crossOrigin = 'Anonymous';
+          $image.onload = function() {
+            let img = nj.images.read($image);
+            resolve(img);
+          };
+          $image.src = data_url;
+        });
+    },
+    
     closeModal() {
       this.$emit("closeTheModal");
     },
@@ -410,174 +521,9 @@ export default {
       POIStartCoords: "POIStartCoords",
       POIEndCoords: "POIEndCoords",
     }),
-  },
-
-  asyncComputed: {
-    async loadImgFromDataURL(data_url){
-        return await new Promise((resolve, reject) => {
-          let $image = new Image();
-          $image.crossOrigin = 'Anonymous';
-          $image.onload = function() {
-            let img = nj.images.read($image);
-            resolve(img);
-          };
-          $image.src = data_url;
-        });
-    },
-    
-    async imgData() {
-      // let POILayerDiv = document.getElementById("featurevp");
-
-      let normalizedRowStart = Math.min(this.POIStartCoords[1], this.POIEndCoords[1]);
-      let normalizedRowEnd = Math.max(this.POIStartCoords[1], this.POIEndCoords[1]);
-
-      let normalizedColStart = Math.min(this.POIStartCoords[0], this.POIEndCoords[0]);
-      let normalizedColEnd = Math.max(this.POIStartCoords[0], this.POIEndCoords[0]);
-
-      let pixels = await loadImgFromDataURL(this.selectedImage.url);
-
-      let pixelsWidth = pixels.shape[0];
-      let pixelsHeight = pixels.shape[1];
-
-
-      // "un"normalize coords
-      let rowStart = normalizedRowStart * pixelsHeight;
-      let rowEnd = normalizedRowEnd * pixelsHeight;
-      let colStart = normalizedColStart * pixelsWidth;
-      let colEnd = normalizedColEnd * pixelsWidth;
-
-
-      // console.log("\nrowStart: ", normalizedRowStart, "\nrowEnd: ", normalizedRowEnd, "\ncolStart: ", colStart, "\ncolEnd: ", colEnd)
-
-      console.log("\nNormalized Coords\n--------", "\nStart coords: ", normalizedColStart, normalizedRowStart, "\nEnd Coords: ", normalizedColEnd, normalizedRowEnd)
-
-      console.log("\nUnnormalized Coords\n--------", "\nStart coords: ", colStart, rowStart, "\nEnd Coords: ", colEnd, rowEnd)
-
-      // Get space btwn bottom edge of outlined image selection and bottom of actual uncropped image
-      let spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm = Math.abs(1-normalizedRowEnd) * pixelsHeight;
-      // console.log("\nspaceBtwnBtmEdgeOfImgandOutlineSelectionBtm: ", spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm)
-
-      // Get space btwn top edge of outlined image selection and top of actual uncropped image
-      let pxDiffTopOfOutlineVsTopOfImg = rowStart;
-
-
-      let numCols = Math.abs(colEnd - colStart);
-      let numRows = Math.abs(rowEnd - rowStart);
-      let extraPadding = Math.abs(numRows - numCols) / 2;
-      // let proportionalSidePadding = 0;
-      let proportionalSidePadding = extraPadding;
-
-      // Make black outlines on image for context
-      // If col > row, add rows
-      if (numCols > numRows) {
-        // proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numCols;
-
-        // If bottom edge case only, bottom would be cut off, add extra bottom that's leftover to top of cropped image
-        if(spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm < proportionalSidePadding){
-          console.log("bottom edge");
-          let leftoverRows = extraPadding - spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
-          
-          rowStart = rowStart - extraPadding - leftoverRows;
-          rowEnd = rowEnd + spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
-
-          let topSidePadding = proportionalSidePadding + (proportionalSidePadding - spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm);
-
-          let bottomSidePadding = spaceBtwnBtmEdgeOfImgandOutlineSelectionBtm;
-
-          this.makeContextOutlines(numRows, numCols, topSidePadding, bottomSidePadding, pixelsWidth, pixelsHeight);
-        }
-
-        // If top edge case only, top of image would be cut off, add extra of top that's leftover to bottom of cropped image
-        else if(pxDiffTopOfOutlineVsTopOfImg < proportionalSidePadding){
-          console.log("top edge");
-          let leftoverRows = extraPadding - pxDiffTopOfOutlineVsTopOfImg;
-          
-          rowStart = 0;
-          // rowStart - extraPadding - leftoverRows;
-          rowEnd = rowEnd + extraPadding + leftoverRows;
-
-          let topSidePadding = pxDiffTopOfOutlineVsTopOfImg;
-
-          let bottomSidePadding = proportionalSidePadding + (proportionalSidePadding - pxDiffTopOfOutlineVsTopOfImg);
-
-          this.makeContextOutlines(numRows, numCols, topSidePadding, bottomSidePadding, pixelsWidth, pixelsHeight);
-        }
-
-        // normal case (not edge case)
-        else{
-          console.log("normal case")
-          rowStart = rowStart - extraPadding;
-          rowEnd = rowEnd + extraPadding;
-          this.makeContextOutlines(numRows, numCols, proportionalSidePadding, proportionalSidePadding, pixelsWidth, pixelsHeight);
-        }
-      }
-
-
-      // If row > col, add cols
-      else if (numRows > numCols) {
-        console.log("WRONG")
-        colStart = colStart - extraPadding;
-        colEnd = colEnd + extraPadding;
-        proportionalSidePadding = ((245)*(Math.abs(numCols-numRows)/2))/numRows;
-      }
-
-      // this.makeContextOutlines(numRows, numCols, proportionalSidePadding);
-      // visa versa, and will hit errors when edge cases (literally)
-      // Use https://github.com/scijs/ndarray-concat-cols and https://github.com/scijs/ndarray-concat-rows
-      // ndarray zeros
-
-      // PSEUDO CODE
-      // after creating row start, end, etc.
-      // find selection width and height, if selWidth > height, make more rows to be square and visa versa
-      // (selection width-selection height)/2
-      // update col start and col end
-      // decrease col start (-) by (selection width-selection height)/2
-      // increase col end + (selection width-selection height)/2
-
-      // Edge cases
-      // If you go under:
-      // Is new col start < 0
-      // If true: make a topoverflow to make for extra cols needed on top
-      // top overflow should be equal to absolute val = (0-colStart)
-      // bottom overflow = colEnd - pixels.height
-
-      // *use concat rows in link above* (https://github.com/scijs/ndarray-concat-rows)
-      // will have a matrix that's some width and some height and add a couple rows on top and bottom (this is for rare case where someone selects almost or fully entire image)
-      // DO: concatrows with ndarray:
-      // concatRows([zeros([pixelWidth, topoverflowRows, 4]), selection, zeros([pixelWidth, bottom overflow rows, 4]))
-      // EXPLANATION: create something as wide as image and only as tall as overflow
-      // and visa versa then stack them and 4 as placeholder for RGBA
-      // selection is referring to image
-      // set colend to height-1
-      // set colstart to 0 if overflow on top
-      // From there create 0 arrays from 0 function sent above and concat to stack them
-      // Look into "pool".zero? https://github.com/scijs/ndarray-scratch#poolzerosshapedtype
-      // can multiple by shades of gray if want but if all black then just 0s
-
-      // all identical if switched for overflow on width just switch cols to rows and visa versa
-
-      // console.log("Row start: ", rowStart, "\nRow end: ", rowEnd, "\nCol start: ", colStart, "\nCol end: ", colEnd)
-
-      let croppedMatrix = pixels.hi(colEnd, rowEnd).lo(colStart, rowStart);
-
-      let stream = savePixels(croppedMatrix, "png");
-
-      return await new Promise((resolve, reject) => {
-        stream.pipe(
-          streamConcat((buf) => {
-            resolve("data:image/png;base64," + buf.toString("base64"));
-          })
-        );
-        stream.on("error", (err) => {
-          console.log("err");
-          reject(err);
-        });
-      });
-    },
-  },
+  }
 };
 
-// Make img tag set src = imgDatafromcomputed like in imgviewersandbox
 </script>
 
 <style lang="scss" scoped>

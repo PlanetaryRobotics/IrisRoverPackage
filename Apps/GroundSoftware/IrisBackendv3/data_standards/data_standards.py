@@ -895,6 +895,7 @@ class DataStandards(object):
 
         # Grab Topology File:
         tree_topology = etree.parse(os.path.join(search_dir, uri_topology))
+        print('search here:', os.path.join(search_dir, uri_topology))
 
         # Grab all XML files referenced in Topology:
         topology_imports = tree_topology.xpath(

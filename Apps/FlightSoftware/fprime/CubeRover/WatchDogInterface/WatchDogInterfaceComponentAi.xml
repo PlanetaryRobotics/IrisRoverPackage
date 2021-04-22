@@ -177,6 +177,9 @@
             <comment>
             Command to send signal to MSP430 that it should set the max possible Duty Cycle value for the heater
             </comment>
+            <args>
+                <arg name="limit" type="U16" />
+            </args>
         </command>
         <command kind="async" opcode="0xAE" mnemonic="Set_Heater_Duty_Cycle_Period">
             <comment>

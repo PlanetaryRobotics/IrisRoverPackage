@@ -5,7 +5,7 @@ import struct
 import math
 
 keep_running = True
-ser = serial.Serial('/dev/ttyUSB0', 9600)  # open serial port
+ser = serial.Serial('/dev/ttyUSB1', 9600)  # open serial port
 
 nrx = 0
 line = b''

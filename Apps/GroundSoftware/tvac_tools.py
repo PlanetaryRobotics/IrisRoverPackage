@@ -45,7 +45,7 @@ settings: Dict[str, Union[str, int]] = {
     'SAVE_FILE_PREFIX': 'iris_logs',
     'SAVE_FILE_EXT': 'tvac',
     # number of minutes after which the old save file won't be overwritten and a new one will be made:
-    'NEW_SAVE_PERIOD': 30
+    'NEW_SAVE_PERIOD': 15
 }
 
 ser: Any = None
@@ -425,42 +425,45 @@ def stream_data() -> None:
                'red')
 
     while keep_running and ready:
-        b: Any = ser.read(1)
-        line += b
-        b = int.from_bytes(b, 'big')
-        if escape:
-            if b == 0xDC:
-                data_bytes.append(0xC0)
-            elif b == 0xDD:
-                data_bytes.append(0xDB)
-            escape = False
-        else:
-            if b == 0xC0:
-                if len(data_bytes) >= 1:  # packet baked:
-                    # Process it:
-                    packet = parse_ip_udp_packet(data_bytes)
-                    if packet is not None:
-                        # Log the data:
-                        for i in range(len(packet.payloads)):
-                            all_payloads[i].extend(
-                                packet.payloads[i]  # type: ignore
-                            )
-                            print(packet)
-                        # Feed the streams:
-                        update_telemetry_streams(packet)
-                    # Move on:
-                    data_bytes = bytearray(b'')
-                pass
-            elif b == 0xDB:
-                escape = True
+        try: # safety exception catch to keep things running
+            b: Any = ser.read(1)
+            line += b
+            b = int.from_bytes(b, 'big')
+            if escape:
+                if b == 0xDC:
+                    data_bytes.append(0xC0)
+                elif b == 0xDD:
+                    data_bytes.append(0xDB)
+                escape = False
             else:
-                data_bytes.append(b)
-                # data_bytes.append(bytes(b.hex(), 'utf-8'))
+                if b == 0xC0:
+                    if len(data_bytes) >= 1:  # packet baked:
+                        # Process it:
+                        packet = parse_ip_udp_packet(data_bytes)
+                        if packet is not None:
+                            # Log the data:
+                            for i in range(len(packet.payloads)):
+                                all_payloads[i].extend(
+                                    packet.payloads[i]  # type: ignore
+                                )
+                                print(packet)
+                            # Feed the streams:
+                            update_telemetry_streams(packet)
+                        # Move on:
+                        data_bytes = bytearray(b'')
+                    pass
+                elif b == 0xDB:
+                    escape = True
+                else:
+                    data_bytes.append(b)
+                    # data_bytes.append(bytes(b.hex(), 'utf-8'))
 
-        # print stuff
-        print('%02x ' % b, end='', flush=True)
-        nrx += 1
-        if (nrx % 16) == 0:
-            print('')
-            #print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
-            line = b''
+            # print stuff
+            # print('%02x ' % b, end='', flush=True)
+            # nrx += 1
+            # if (nrx % 16) == 0:
+            #     print('')
+            #     #print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
+            #     line = b''
+        except Exception as e:
+            cprint(f"An otherwise unresolved error occured during packet streaming: {e}", 'red')

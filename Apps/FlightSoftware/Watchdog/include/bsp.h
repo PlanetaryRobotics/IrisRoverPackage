@@ -45,5 +45,7 @@ inline void enableBatteries();
 inline void disableBatteries();
 inline void setDeploy();
 inline void unsetDeploy();
+inline void startChargingBatteries();
+inline void stopChargingBatteries();
 #endif // __BSP_H__
 

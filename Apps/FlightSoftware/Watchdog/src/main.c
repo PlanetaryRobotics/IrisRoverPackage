@@ -224,7 +224,7 @@ int main(void) {
                 break;
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */
-                updateGaugeReadings();
+//                updateGaugeReadings();
                 send_earth_heartbeat();
                 watchdog_monitor();
                 send_earth_heartbeat();

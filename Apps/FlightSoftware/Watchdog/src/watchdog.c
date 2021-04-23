@@ -217,7 +217,7 @@ void heaterControl(){
         loop_flags |= FLAG_TEMP_HIGH;
     }
 
-    uint16_t PWM_cycle = 0;
+    uint32_t PWM_cycle = 0;
     // P controller output
     // setpoint is slightly above desired temp because otherwise it will get stuck slightly below it
     if(loop_flags & FLAG_TEMP_LOW){

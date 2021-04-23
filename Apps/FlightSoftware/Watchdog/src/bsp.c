@@ -1,7 +1,7 @@
 #include "include/bsp.h"
 
 //TODO: uncomment to program MC
-#define PROGRAM_MOTOR_CONTROLLERS
+//#define PROGRAM_MOTOR_CONTROLLERS
 
 uint8_t heaterStatus;
 uint8_t hasDeployed;
@@ -69,7 +69,8 @@ void initializeGpios(){
   PJDIR |= BIT4; // PJ.4 output Motor control reset D
 #endif
   PJDIR |= BIT5; // PJ.5 output BATTERY
-  PJDIR &= ~BIT3; // PJ.3 input CHRG
+//  PJDIR &= ~BIT3; // PJ.3 input CHRG  //TODO: Is this really an input?
+  PJDIR |= BIT3; // PJ.3 output CHRG
 
   // Initial statuses
   heaterStatus = 0;
@@ -264,3 +265,12 @@ inline void setDeploy() { hasDeployed = 1; P3OUT |= BIT4; }
  */
 inline void unsetDeploy() { P3OUT &= ~BIT4; }
 
+/**
+ * @brief      Start charging batteries from lander power
+ */
+inline void startChargingBatteries() { PJOUT |= BIT3; }
+
+/**
+ * @brief      Stop charging batteries
+ */
+inline void stopChargingBatteries() { PJOUT &= ~BIT3; }

@@ -155,6 +155,13 @@ uint8_t handle_watchdog_reset_cmd(uint8_t cmd) {
     case 0x1A:
         fpgaCameraSelectHi();
         break;
+    /* 0x1B: Start battery charging */
+    case 0x1B:
+        startChargingBatteries();
+        break;
+    case 0x1C:
+        stopChargingBatteries();
+        break;
     /* 0x1F: heater control off */
     case 0x1F:
         heatingControlEnabled = 1;

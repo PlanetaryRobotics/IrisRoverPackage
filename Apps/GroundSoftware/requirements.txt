@@ -10,6 +10,7 @@ plotly
 dash
 lxml
 pytest
+requests
 jsonpickle
 termcolor
 colorama

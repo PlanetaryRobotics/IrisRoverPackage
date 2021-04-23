@@ -42,7 +42,7 @@ from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
 from IrisBackendv3.codec.logging import logger as CodecLogger
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, set_codec_standards
 
-import seaborn as sns
+import seaborn as sns  # type: ignore
 sns.set()
 
 settings: Dict[str, Union[str, int]] = {

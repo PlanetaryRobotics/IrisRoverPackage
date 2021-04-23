@@ -11,7 +11,7 @@ dash
 lxml
 pytest
 requests
-yamcs-client
+yamcs-client<=1.4.6
 jsonpickle
 termcolor
 colorama

@@ -14,9 +14,9 @@
 #include "mod6_cnt.h"
 #include "impulse.h"
 
-#define PWM_PERIOD_TICKS            512 //2048 //512     // 15.6 KHz @ 16MHz
-#define PWM_HALF_PERIOD_TICKS       256 //1024 //256
-#define PI_SPD_CONTROL_PRESCALER    1000 //250    // 15.6 Hz, speed control
+#define PWM_PERIOD_TICKS            512 // 15.6 KHz @ 16MHz
+#define PWM_HALF_PERIOD_TICKS       256
+#define PI_SPD_CONTROL_PRESCALER    1000 // 15.6 Hz, speed control
 
 // bits of control register
 #define DRIVE_OPEN_LOOP             1       // first bit of control reg; drive only in open loop if set to 1
@@ -45,6 +45,8 @@
 #define OPEN_LOOP_TORQUE        0.1       // Normalized to 1.0, 1.0 being maximum current system can produce
 #define PERIOD_IMPULSE          150
 #define CLOSE_LOOP_THRESHOLD    0.01      // Close loop threshold from open to close loop
+
+#define OPEN_LOOP_TICKS         10       // distance in hall sensor ticks motor covers in open loop mode per 1/15.6 sec
 
 #define ONE_OVER_4096           0.0002441
 

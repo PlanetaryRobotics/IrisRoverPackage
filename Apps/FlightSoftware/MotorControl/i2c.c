@@ -21,6 +21,8 @@ extern uint8_t g_statusRegister;
 extern uint8_t g_controlRegister;
 extern uint8_t g_faultRegister;
 
+extern uint16_t g_accelRate, g_decelRate;
+
 int16_t g_transmitCurrentPosition;
 
 volatile uint8_t g_i2cCmdLength[MAX_NB_CMDS];
@@ -106,8 +108,7 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
         g_slaveMode = TX_DATA_MODE;
         g_txByteCtr = g_i2cCmdLength[cmd];
         //Fill out the TransmitBuffer
-        g_transmitCurrentPosition = (int16_t) g_currentPosition;
-        copyArray((uint8_t*)&g_transmitCurrentPosition, (uint8_t*)g_txBuffer, g_txByteCtr);
+        copyArray((uint8_t*)&g_currentPosition, (uint8_t*)g_txBuffer, g_txByteCtr);
         disableI2cRxInterrupt();
         enableI2cTxInterrupt();
         break;
@@ -195,37 +196,58 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
                   (uint8_t*)&g_targetPosition,
                   sizeof(g_targetPosition));
         g_currentPosition = 0;
+        g_statusRegister &= ~POSITION_CONVERGED;
         break;
       case TARGET_SPEED:
       {
         copyArray((uint8_t*)g_rxBuffer,
                   (uint8_t*)&g_maxSpeed,
                   sizeof(g_maxSpeed));
-//        if(g_maxSpeed > MAX_TARGET_SPEED){
-//            g_maxSpeed = MAX_TARGET_SPEED;
-//        }
+        if(g_maxSpeed > MAX_TARGET_SPEED){
+            g_maxSpeed = MAX_TARGET_SPEED;
+        }
         break;
       }
       case P_CURRENT:
+      {
+        uint16_t input_as_uint = 0;
         copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&g_piCur.Kp,
-                  sizeof(g_piCur.Kp));
+                  (uint8_t*)&input_as_uint,
+                  sizeof(input_as_uint));
+        float input_as_float = (float)(*(int16_t *)input_as_uint);
+        g_piCur.Kp = _IQ(input_as_float);
         break;
+      }
       case I_CURRENT:
-        copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&g_piCur.Ki,
-                  sizeof(g_piCur.Ki));
-        break;
+      {
+          uint16_t input_as_uint = 0;
+          copyArray((uint8_t*)g_rxBuffer,
+                    (uint8_t*)&input_as_uint,
+                    sizeof(input_as_uint));
+          float input_as_float = (float)(*(int16_t *)input_as_uint);
+          g_piCur.Ki = _IQ(input_as_float);
+          break;
+      }
       case P_SPEED:
+      {
+        uint16_t input_as_uint = 0;
         copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&g_piSpd.Kp,
-                  sizeof(g_piSpd.Kp));
+                  (uint8_t*)&input_as_uint,
+                  sizeof(input_as_uint));
+        float input_as_float = (float)(*(int16_t *)input_as_uint);
+        g_piSpd.Kp = _IQ(input_as_float);
         break;
+      }
       case I_SPEED:
-        copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&g_piSpd.Ki,
-                  sizeof(g_piSpd.Ki));
-        break;
+      {
+          uint16_t input_as_uint = 0;
+          copyArray((uint8_t*)g_rxBuffer,
+                    (uint8_t*)&input_as_uint,
+                    sizeof(input_as_uint));
+          float input_as_float = (float)(*(int16_t *)input_as_uint);
+          g_piSpd.Kp = _IQ(input_as_float);
+          break;
+      }
       case CONTROL_REGISTER:
         copyArray((uint8_t*)g_rxBuffer,
                   (uint8_t*)&g_controlRegister,
@@ -252,8 +274,16 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
         }
 
         break;     
-      case ACC_RATE:
+      case ACC_RATE: //TODO: flesh these out
+          copyArray((uint8_t*)g_rxBuffer,
+                            (uint8_t*)&g_accelRate,
+                            sizeof(g_accelRate));
+          break;
       case DEC_RATE:
+          copyArray((uint8_t*)g_rxBuffer,
+                          (uint8_t*)&g_decelRate,
+                          sizeof(g_decelRate));
+            break;
       default:
         break;  
     }
@@ -270,9 +300,9 @@ void initializeCmdLength(){
   g_i2cCmdLength[CURRENT_POSITION] = 4;
   g_i2cCmdLength[CURRENT_SPEED] = 2;
   g_i2cCmdLength[MOTOR_CURRENT] = 4;
-  g_i2cCmdLength[P_CURRENT] = 4;
+  g_i2cCmdLength[P_CURRENT] = 2;
   g_i2cCmdLength[I_CURRENT] = 2;
-  g_i2cCmdLength[P_SPEED] = 4;
+  g_i2cCmdLength[P_SPEED] = 2;
   g_i2cCmdLength[I_SPEED] = 2;
   g_i2cCmdLength[ACC_RATE] = 2;
   g_i2cCmdLength[DEC_RATE] = 2;

@@ -705,7 +705,7 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         VLP = b''
         for payload_type in encoded_payload_magics_lookup.keys():
             for cp in getattr(self.payloads, payload_type):
-                VLP += encoded_payload_magics_lookup[payload_type] + cp.encode()
+                VLP += cp.magic.encode() + cp.encode()
 
         CPH = self.common_packet_header.encode()
         assert self.common_packet_header.vlp_len == len(VLP)

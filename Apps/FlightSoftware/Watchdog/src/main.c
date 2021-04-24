@@ -1,5 +1,6 @@
 #include <msp430.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "include/buffer.h"
 #include "include/uart.h"
@@ -18,6 +19,11 @@ extern uint8_t heating;
 uint8_t lastHeater = 0;
 uint8_t heatingControlEnabled = 1;
 
+// @suppress("Invalid arguments")
+
+/* function definitions in ground_cmd.c */
+void parse_ground_cmd(struct buffer *pp);
+void send_earth_heartbeat();
 
 /**
  * main.c
@@ -67,11 +73,14 @@ void enterMode(enum rover_state newstate) {
         powerOnHercules();
         releaseHerculesReset();
         powerOnFpga();
-//        powerOnMotors();
+        powerOnMotors();
         powerOnRadio();
         releaseRadioReset();
         releaseFPGAReset();
-//        releaseMotorsReset();
+        __delay_cycles(1234567); //give fuel gauge time to start up
+
+        initializeFuelGauge();
+        releaseMotorsReset();
         /* TODO: do we want to do it in this order? */
 
         break;
@@ -117,7 +126,7 @@ int main(void) {
     __bis_SR_register(GIE); // Enable all interrupts
 
     // TODO: debug
-    ipudp_send_packet("hello, world!\r\n", 15);
+    ipudp_send_packet("hello, world!\r\n", 15); // @suppress("Invalid arguments")
 
     // the core structure of this program is like an event loop
     while (1) {
@@ -152,7 +161,7 @@ int main(void) {
 
                     if (parity == uart0rx.buf[i + 3]) {
                         /* parity bytes match! */
-                        process_len = watchdog_handle_hercules(uart0rx.buf, uart0rx.idx - i);
+                        process_len = watchdog_handle_hercules(uart0rx.buf, uart0rx.idx - i);  // @suppress("Invalid arguments")
                         if (process_len == 0) {
                             //need more data
                             break;
@@ -171,7 +180,7 @@ int main(void) {
                 // skip the null memcpy
             } else if (i < uart0rx.idx) {
                 // copy over leftovers to front of buffer
-                memcpy(uart0rx.buf, uart0rx.buf + i, uart0rx.idx - i);
+                memcpy(uart0rx.buf, uart0rx.buf + i, uart0rx.idx - i);  // @suppress("Invalid arguments")
                 uart0rx.idx = uart0rx.idx - i;
             } else {
                 // no leftovers
@@ -192,14 +201,14 @@ int main(void) {
             /* reset uart1rx */
             uart1rx.idx = 0;
             /* copy over uart1rx buffer into processing buffer */
-            memcpy(pbuf.buf, uart1rx.buf, pbuf.used);
+            memcpy(pbuf.buf, uart1rx.buf, pbuf.used);  // @suppress("Invalid arguments")
             pbuf.idx = 0;
             /* clear event */
             loop_flags ^= FLAG_UART1_RX_PACKET;
             // re-enable uart1 interrupt
             UCA1IE |= UCRXIE;
             /* parse the packet */
-            parse_ground_cmd(pbuf);
+            parse_ground_cmd(&pbuf); // @suppress("Invalid arguments")
         }
         if (loop_flags & FLAG_I2C_RX_PACKET) {
             /* TODO: handle event for power system message */
@@ -224,8 +233,7 @@ int main(void) {
                 break;
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */
-//                updateGaugeReadings();
-                send_earth_heartbeat();
+                updateGaugeReadings();
                 watchdog_monitor();
                 send_earth_heartbeat();
                 break;

@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <string.h>
 #include "include/ip_udp.h"
 #include "include/buffer.h"
 #include "include/uart.h"
@@ -185,7 +186,7 @@ void ipudp_send_packet(uint8_t *data, uint16_t data_len) {
     udp_hdr->len = htons(udp_hdr->len);
     udp_hdr->checksum = 0;
     // UDP checksum
-    chksm = udp_checksum(udp_hdr, data, udp_hdr->len, ip_hdr->source, ip_hdr->dest);
+    chksm = udp_checksum(udp_hdr, data, udp_hdr->len, ip_hdr->source, ip_hdr->dest); // @suppress("Invalid arguments")
     udp_hdr->checksum = htons(chksm);
 
     // queue up the data to send

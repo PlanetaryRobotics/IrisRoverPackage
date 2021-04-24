@@ -377,7 +377,7 @@ void parse_ground_cmd(struct buffer *pp) {
     } else {
         /* forward it on to hercules */
         // copy the buffer into the hercules buffer
-        memcpy(hercbuf.buf + hercbuf.idx, pp->buf, pp->used);
+        memcpy(hercbuf.buf + hercbuf.idx, pp->buf, pp->used); // @suppress("Invalid arguments")
         hercbuf.idx += pp->used;
     }
 
@@ -420,7 +420,7 @@ void send_earth_heartbeat() {
     pbuf.used += 4;
 
     // send the packet!
-    ipudp_send_packet(pbuf.buf, pbuf.used);
+    ipudp_send_packet(pbuf.buf, pbuf.used); // @suppress("Invalid arguments")
 }
 
 

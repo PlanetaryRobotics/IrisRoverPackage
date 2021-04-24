@@ -8,6 +8,7 @@
 int watchdog_init();
 int watchdog_monitor();
 unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l);
+void heaterControl();
 
 #endif /* __WATCHDOG_INC */
 

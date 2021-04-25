@@ -82,6 +82,7 @@ namespace CubeRover {
       );
 
       U32 m_bytesSent;
+      U32 m_callbackId;
 
     };
 

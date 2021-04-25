@@ -11,7 +11,7 @@
 // ======================================================================
 
 
-#include <CubeRover/UWB/UWBComponentImpl.hpp>
+#include <CubeRover/UWB/UWB.hpp>
 #include "Fw/Types/BasicTypes.hpp"
 
 namespace CubeRover {
@@ -74,9 +74,9 @@ namespace CubeRover {
     )
   {
     char times[4*4]; /*4, 4 byte sized U32's for time stamps*/
-    Fw::Buffer fwBuffer(0, 0, reinterpret_cast<U64>(*times), sizeof(times));
+    Fw::Buffer fwBuffer(0, 0, reinterpret_cast<U64>(&times), sizeof(times));
     uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
-    downlinkImage_out(0, m_callbackId, createTime, fwBuffer);
+    UWBSend_out(0, m_callbackId, createTime, fwBuffer);
     m_bytesSent += static_cast<U32>(sizeof(times));
     tlmWrite_UWBBytesSent(m_bytesSent);
     m_callbackId++;
@@ -90,9 +90,9 @@ namespace CubeRover {
     )
   {
     char times[4000+4*4]; /*4, 4 byte sized U32's for time stamps and 4k bytes of data*/
-    Fw::Buffer fwBuffer(0, 0, reinterpret_cast<U64>(*times), sizeof(times));
+    Fw::Buffer fwBuffer(0, 0, reinterpret_cast<U64>(&times), sizeof(times));
     uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
-    downlinkImage_out(0, m_callbackId, createTime, fwBuffer);
+    UWBSend_out(0, m_callbackId, createTime, fwBuffer);
     m_bytesSent += static_cast<U32>(sizeof(times));
     tlmWrite_UWBBytesSent(m_bytesSent);
     m_callbackId++;

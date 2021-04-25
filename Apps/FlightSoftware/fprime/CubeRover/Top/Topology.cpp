@@ -294,7 +294,7 @@ void constructApp(void){
 
   activeLogger.start(ACTIVE_LOGGER_ID, 
                      ACTIVE_LOGGER_AFF, 
-                     ACTIVE_LOGGER_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
+                     ACTIVE_LOGGER_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS);
 
   // Set Health Ping Entries
   // **** THIS IS WHERE YOU CAN ADD ANY COMPONENTS THAT HAVE HEALTH PINGS ****

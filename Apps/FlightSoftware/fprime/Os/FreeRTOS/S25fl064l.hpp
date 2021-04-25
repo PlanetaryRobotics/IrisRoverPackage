@@ -321,6 +321,7 @@ class S25fl064l{
     uint16_t m_spiTxBuff[SPI_TX_BUFFER_MAX_LENGTH_FLASH];
     uint8_t m_writeScratchpad[PAGE_SIZE_FLASH];
     uint8_t m_dummyBuffer[MAX_DUMMY_CYCLES];
+    uint8_t m_sectorBackup[SPI_RX_BUFFER_MAX_LENGTH_FLASH];
 }; // end of class
 
 #endif //__S25FL064L_HPP__

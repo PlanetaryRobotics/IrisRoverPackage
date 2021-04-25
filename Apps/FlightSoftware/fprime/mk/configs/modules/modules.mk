@@ -66,8 +66,8 @@ SVC_MODULES := \
 	Svc/Health \
 	Svc/FileUplink \
 	Svc/FileDownlink \
-  Svc/AssertFatalAdapter \
-  Svc/FatalHandler \
+  	Svc/AssertFatalAdapter \
+  	Svc/FatalHandler \
 	Svc/FileManager
 	
 DEMO_DRV_MODULES := \
@@ -217,10 +217,7 @@ CubeRover_MODULES := \
 	CubeRover/GroundInterface \
 	CubeRover/WatchDogInterface \
 	CubeRover/Camera \
-	CubeRover/CubeRoverPorts/CameraSelect \
-	CubeRover/CubeRoverPorts/FileDownlink \
 	CubeRover/ComLogger \
-
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \

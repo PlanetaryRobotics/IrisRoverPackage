@@ -48,20 +48,11 @@ namespace CubeRover {
       //!
       ~UWBComponentImpl(void);
 
-      U8 UWB_cycles = 10;
-
     PRIVATE:
 
       // ----------------------------------------------------------------------
       // Handler implementations for user-defined typed input ports
       // ----------------------------------------------------------------------
-
-      //! Handler implementation for Run
-      //!
-      void Run_handler(
-          const NATIVE_INT_TYPE portNum, /*!< The port number*/
-          NATIVE_UINT_TYPE context /*!< The call order*/
-      );
 
       //! Handler implementation for PingIn
       //!
@@ -76,16 +67,21 @@ namespace CubeRover {
       // Command handler implementations
       // ----------------------------------------------------------------------
 
-      //! Implementation for Change_Rate command handler
-      //! Command to change the rate the UWB takes measurements
-      void Change_Rate_cmdHandler(
+      //! Implementation for Get_Time command handler
+      //! Command to get the time recordings from the UWB module
+      void Get_Time_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq, /*!< The command sequence number*/
-          U8 cycles /*!< 
-                    	U8 Value that represents how many cycles the UWB module waits to execute
-                    */
+          const U32 cmdSeq /*!< The command sequence number*/
       );
 
+      //! Implementation for Get_Data command handler
+      //! Command to get the full time and data recordings from the UWB module
+      void Get_Data_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq /*!< The command sequence number*/
+      );
+
+      U32 m_bytesSent;
 
     };
 

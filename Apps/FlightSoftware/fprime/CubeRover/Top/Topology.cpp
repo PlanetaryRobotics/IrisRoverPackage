@@ -198,8 +198,8 @@ void constructApp(void){
   //            0);                   /*Instance Number*/
 
   // Initialize the UWB component
-  UWB.init(10,          /*Queue Depth*/
-            0);         /*Instance Number*/
+  UWB.init(1,          /*Queue Depth*/
+           0);         /*Instance Number*/
 
   // Initialize the ground interface (passive)
   groundInterface.init();

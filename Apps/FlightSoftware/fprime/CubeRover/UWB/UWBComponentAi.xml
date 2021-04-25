@@ -8,14 +8,9 @@
     <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
     <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
     <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAi.xml</import_port_type>
 
     <ports>
-        <!-- Rate Group Port -->
-        <port name="Run" data_type="Svc::Sched" kind="guarded_input" max_number="1">
-            <comment>
-            Run port (RateGroupHiFreq [1 kHz])
-            </comment>
-        </port>
 		
         <!-- Command Ports -->
         <port name="CmdReg" data_type="Fw::CmdReg" kind="output" role="CmdRegistration" max_number="1">
@@ -49,81 +44,45 @@
             </comment>
         </port>
 
-        <!-- Output Port 
-        <port name="GndOut" data_type="Fw::Com" kind="output" max_number="1">
+        <!-- Output Port -->
+        <port name="UWBSend" data_type="CubeRover::FileDownlink" kind="output" max_number="1">
             <comment>
-            Log out (buffered) port to ground
+            Buffered port to ground
             </comment>
         </port>
-		-->
+
     </ports>
 
     <commands>
-        <command kind="async" opcode="0x00" mnemonic="Change_Rate">
+        <command kind="async" opcode="0x00" mnemonic="Get_Time">
             <comment>
-            Command to change the rate the UWB takes measurements
+            Command to get the time recordings from the UWB module
             </comment>
-            <args>
-                <arg name="cycles" type="U8">
-                    <comment>
-                    	U8 Value that represents how many cycles the UWB module waits to execute
-                    </comment>
-                </arg>
-             </args>
+        </command>
+        <command kind="async" opcode="0x01" mnemonic="Get_Data">
+            <comment>
+            Command to get the full time and data recordings from the UWB module
+            </comment>
         </command>
     </commands>
 
     <events>
-        <event id="0x0" name="FirstResponseTimeout" severity="WARNING_LO" format_string = "UWB First Response Timed Out, Error Code: %d">
+        <event id="0x0" name="ResponseTimeout" severity="WARNING_LO" format_string = "UWB Response Timed Out, Error Code: %d">
             <comment>
-            Warning that the UWB Module first response timed out
+            Warning that the UWB Module response timed out
             </comment>
-            <args>
-                <arg name="error_code" type="U32">
-                    <comment>
-                    	U32 value that represents the Error Code for UWB Module
-                    </comment>
-                </arg>
-             </args>
-        </event>
-        <event id="0x1" name="SecondResponseTimeout" severity="WARNING_LO" format_string = "UWB Second Response Timed Out, Error Code: %d">
-            <comment>
-            Warning that the UWB Module second response timed out
-            </comment>
-            <args>
-                <arg name="error_code" type="U32">
-                    <comment>
-                    	U32 value that represents the Error Code for UWB Module
-                    </comment>
-                </arg>
-             </args>
         </event>
     </events>
 
     <telemetry>
-        <channel id="1" name="TimeStamp1" data_type="U32">
-            <comment>
-                Timestamp 1 Array from UWB
-            </comment>
-        </channel>
-        <channel id="2" name="TimeStamp2" data_type="U32">
-            <comment>
-                Timestamp 2 Array from UWB
-            </comment>
-        </channel>
-        <channel id="3" name="TimeStamp3" data_type="U32">
-            <comment>
-                Timestamp 3 Array from UWB
-            </comment>
-        </channel>
-        <channel id="4" name="TimeStamp4" data_type="U32">
-            <comment>
-                Timestamp 4 Array from UWB
-            </comment>
-        </channel>
-        <channel id="5" name="UWBPower" data_type="U32">
+        <channel id="1" name="UWBPower" data_type="U32">
             <comment>
                	U32 representing the power from the UWB
+            </comment>
+        </channel>
+        <channel id="2" name="UWBBytesSent" data_type="U32">
+            <comment>
+               	U32 representing the number of bytes sent from UWB
             </comment>
         </channel>
     </telemetry>

@@ -69,7 +69,7 @@
   <instance namespace="CubeRover" name="camera" type="Camera" base_id="4352" base_id_window="255" />
 
   <!-- Declaration of the UWB component -->
-  <instance namespace="CubeRover" name="UWB" type="UWB" base_id="62530" base_id_window="20" />
+  <instance namespace="CubeRover" name="UWB" type="UWB" base_id="4608" base_id_window="255" />
 
 <!-- *********************************************************************************************************
         CONNECTION OF CYCLE PORTS BETWEEN COMPONENTS BLOCK DRIVER AND RATE GROUP COMPONENTS
@@ -144,11 +144,6 @@
   <connection name="rgHiFreq_to_IMU">
     <source component="rateGroupHiFreq" port="RateGroupMemberOut" type="Sched" num="1" />
     <target component="IMU" port="schedIn" type="sched" num="0"/>
-  </connection>
-
-  <connection name="rgHiFreq_to_UWB">
-    <source component="rateGroupHiFreq" port="RateGroupMemberOut" type="Sched" num="0" />
-    <target component="UWB" port="Run" type="sched" num="0"/>
   </connection>
 
 <!-- *********************************************************************************************************
@@ -287,6 +282,11 @@
     <source component="watchdogInterface" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
+
+  <connection name="UWB_to_chanTlm">
+    <source component="UWB" port="Tlm" type="Tlm" num="0" />
+    <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
+  </connection>
       
 
 <!-- *********************************************************************************************************
@@ -331,6 +331,11 @@
   <connection name="chanTlm_to_groundInterface">
     <source component="tlmChan" port="PktSend" type="Com" num="0" />
     <target component="groundInterface" port="tlmDownlink" type="Com" num="0" />
+  </connection>
+   
+  <connection name="UWB_to_groundInterface">
+    <source component="UWB" port="UWBSend" type="CubeRover::FileDownlink" num="0" />
+    <target component="groundInterface" port="appDownlink" type="CubeRover::FileDownlink" num="0"/>
   </connection>
     
   <!-- TODO: Connect Logs to goundInterface HERE -->
@@ -491,6 +496,19 @@
   </connection>
   <connection name = "groundInterfaceCmdStatus_to_cmdDispatcher_CmdStatus">
     <source component = "groundInterface" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+
+  <connection name = "UWBCmdReg_to_cmdDispatcher">
+    <source component = "UWB" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
+  </connection>
+  <connection name = "cmdDispatcherSendCmd_to_UWBCmdDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
+    <target component = "UWB" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
+  <connection name = "UWBCmdStatus_to_cmdDispatcher_CmdStatus">
+    <source component = "UWB" port = "CmdStatus" type = "CmdResponse" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
   </connection>
 

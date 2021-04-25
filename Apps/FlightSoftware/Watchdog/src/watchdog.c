@@ -187,7 +187,7 @@ unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
             /* echo back watchdog command header updated version */
             uart0_tx_nonblocking(8, buf);
             /* send the udp packet */
-            uart0_tx_nonblocking(hercbuf.used, hercbuf.buf);
+            uart0_tx_nonblocking(hercbuf.used, hercbuf.buf); // @suppress("Invalid arguments")
             /* clear hercules send buffer */
             hercbuf.used = 0;
             hercbuf.idx = 0;

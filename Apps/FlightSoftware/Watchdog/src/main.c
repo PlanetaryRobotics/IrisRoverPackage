@@ -105,8 +105,11 @@ int main(void) {
 	/* initialize the board */
     initializeGpios();
 
+    /* set up uart clock */
+    clock_init();
     /* set up uart */
-    uart_init();
+    uart0_init();
+    uart1_init();
 
     /* set up watchdog */
     watchdog_init();
@@ -118,7 +121,7 @@ int main(void) {
     i2c_init();
 
     /* enter keepalive mode */
-    enterMode(RS_MISSION);
+    enterMode(RS_KEEPALIVE);
 
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();
@@ -235,7 +238,6 @@ int main(void) {
                 /* check for kicks from devices and reset misbehaving things */
                 updateGaugeReadings();
                 watchdog_monitor();
-                send_earth_heartbeat();
                 break;
             case RS_FAULT:
                 /* sad :( */

@@ -15,7 +15,9 @@
  * @brief Initialize UART hardware.
  * Sets up the interrupts and whatnot for UART.
  */
-void uart_init();
+void clock_init();
+void uart0_init();
+void uart1_init();
 
 #define UA1_NO_WRAPS 0
 #define UA1_ADD_PKT_START 1

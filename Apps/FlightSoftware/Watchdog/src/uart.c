@@ -160,44 +160,50 @@ void __attribute__ ((interrupt(EUSCI_A1_VECTOR))) USCI_A1_ISR (void) {
 
 /* =============================== main code ================================ */
 
-/* init function */
-void uart_init() {
+/**
+ * Initialize clocks for UART. necessary and should only be called once, at boot.
+ */
+void clock_init() {
+    CSCTL0_H = CSKEY_H;                     // Unlock CS registers
+    CSCTL1 = DCOFSEL_3 | DCORSEL;           // Set DCO to 8MHz
+    CSCTL2 = SELA__VLOCLK | SELS__DCOCLK | SELM__DCOCLK;
+    CSCTL3 = DIVA__1 | DIVS__1 | DIVM__1;   // Set all dividers
+    CSCTL0_H = 0;                           // Lock CS registers
+}
+
+/**
+ * Power-saving measure: disable UART0 and set pins to high impedance input
+ */
+void uart0_disable() {
+    UCA0CTLW0 = UCSWRST;                    // Put eUSCI_A0 in reset
+
+
+}
+
+/**
+ * Initialize UART0 (Hercules <-> watchdog)
+ */
+void uart0_init() {
     /* initally all buffers are empty */
     uart0tx.idx = 0;
     uart0tx.used = 0;
     uart0rx.idx = 0;
     uart0rx.used = 0;
-    uart1tx.idx = 0;
-    uart1tx.used = 0;
-    uart1rx.idx = 0;
-    uart1rx.used = 0;
 
     UCA0CTLW0 = UCSWRST;                    // Put eUSCI_A0 in reset
-    UCA1CTLW0 = UCSWRST;                    // Put eUSCI_A1 in reset
 
     /* Setup for eUSCI_A0 and eUSCI_A1 */
     /* On the MSP430FR5994, pin P2.0 is used for TX and pin P2.1 is used for RX
      * (ref: pg 92 of datasheet) */
     /* P2.0 TX: x = 0; P2SEL1.x = 1, P2SEL0.x = 0 */
     /* P2.1 RX: x = 1; P2SEL1.x = 1, P2SEL0.x = 0 */
-    /* On the MSP430FR5994, pin P2.5 is used for TX and pin P2.6 is used for RX
-     * (ref: pg 95 of datasheet) */
-    /* P2.5 TX: x = 5; P2SEL1.x = 1, P2SEL0.x = 0 */
-    /* P2.6 RX: x = 6; P2SEL1.x = 1, P2SEL0.x = 0 */
 
-    /* set P2SEL0.5, P2SEL0.6, P2SEL0.1, and P2SEL0.0 to 0 */
-    P2SEL0 &= ~(BIT0 | BIT1 | BIT5 | BIT6);
-    /* set P2SEL1.5, P2SEL1.6, P2SEL1.1, and P2SEL1.0 to 1 */
-    P2SEL1 |= (BIT0 | BIT1 | BIT5 | BIT6);
-
-    CSCTL0_H = CSKEY_H;                     // Unlock CS registers
-    CSCTL1 = DCOFSEL_3 | DCORSEL;           // Set DCO to 8MHz
-    CSCTL2 = SELA__VLOCLK | SELS__DCOCLK | SELM__DCOCLK;
-    CSCTL3 = DIVA__1 | DIVS__1 | DIVM__1;   // Set all dividers
-    CSCTL0_H = 0;                           // Lock CS registers
+    /* set P2SEL0.1, and P2SEL0.0 to 0 */
+    P2SEL0 &= ~(BIT0 | BIT1);
+    /* set P2SEL1.1, and P2SEL1.0 to 1 */
+    P2SEL1 |= (BIT0 | BIT1);
 
     UCA0CTLW0 |= UCSSEL__SMCLK;             // CLK = SMCLK
-    UCA1CTLW0 |= UCSSEL__SMCLK;             // CLK = SMCLK
     // Baud Rate calculation
     // 8000000/(16*9600) = 52.083
     // Fractional portion = 0.083
@@ -207,7 +213,36 @@ void uart_init() {
     UCA0MCTLW |= UCOS16 | UCBRF_1 | 0x4900; // ???
     UCA0CTLW0 &= ~UCSWRST;                  // Release eUSCI_A0 reset
     UCA0IE |= UCRXIE;                       // Enable USCI_A0 RX interrupt
+}
 
+/**
+ * Initialize UART1 (Lander <-> watchdog)
+ */
+void uart1_init() {
+    uart1tx.idx = 0;
+    uart1tx.used = 0;
+    uart1rx.idx = 0;
+    uart1rx.used = 0;
+
+    UCA1CTLW0 = UCSWRST;                    // Put eUSCI_A1 in reset
+
+    /* Setup for eUSCI_A1 */
+    /* On the MSP430FR5994, pin P2.5 is used for TX and pin P2.6 is used for RX
+     * (ref: pg 95 of datasheet) */
+    /* P2.5 TX: x = 5; P2SEL1.x = 1, P2SEL0.x = 0 */
+    /* P2.6 RX: x = 6; P2SEL1.x = 1, P2SEL0.x = 0 */
+
+    /* set P2SEL0.5, P2SEL0.6 to 0 */
+    P2SEL0 &= ~(BIT5 | BIT6);
+    /* set P2SEL1.5, P2SEL1.6 to 1 */
+    P2SEL1 |= (BIT5 | BIT6);
+
+    UCA1CTLW0 |= UCSSEL__SMCLK;             // CLK = SMCLK
+    // Baud Rate calculation
+    // 8000000/(16*9600) = 52.083
+    // Fractional portion = 0.083
+    // User's Guide Table 21-4: UCBRSx = 0x04
+    // UCBRFx = int ( (52.083-52)*16) = 1
     UCA1BRW = 52;                           // 8000000/16/9600
     UCA1MCTLW |= UCOS16 | UCBRF_1 | 0x4900; // ???
     UCA1CTLW0 &= ~UCSWRST;                  // Release eUSCI_A1 reset

@@ -117,13 +117,6 @@ Svc::ActiveLoggerImpl activeLogger(
 );
 
 // --------------------------------------------------------------------------
-CubeRover::UdpInterfaceComponentImpl udpInterface(
-#if FW_OBJECT_NAMES == 1
-        "UdpInterface"
-#endif
-);
-
-// --------------------------------------------------------------------------
 CubeRover::NetworkManagerComponentImpl networkManager(
 #if FW_OBJECT_NAMES == 1
         "NetworkManager"
@@ -162,7 +155,10 @@ CubeRover::UWBComponentImpl UWB(
  * @brief      Run 1 cycle (debug)
  */
 void run1cycle(void) {
-  blockDriver.callIsr();
+  //blockDriver.callIsr();
+  Svc::TimerVal timer;
+  timer.take();
+  rateGroupDriver.get_CycleIn_InputPort(0)->invoke(timer);
 }
 
 /**
@@ -180,6 +176,12 @@ void constructApp(void){
   rateGroupMedFreq.init(RG_MED_FREQ_QUEUE_DEPTH, RG_MED_FREQ_ID);
   rateGroupHiFreq.init(RG_HI_FREQ_QUEUE_DEPTH, RG_HI_FREQ_ID);
 
+  // Initialize the telemetry channel component (active)
+  tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
+
+  // Initialize the CommandDispatcher component (active)
+  cmdDispatcher.init(CMD_DISP_QUEUE_DEPTH, CMD_DISP_ID);
+
   // Initialize cubeRover time component (passive)
   cubeRoverTime.init(0);
 
@@ -187,9 +189,9 @@ void constructApp(void){
   // TODO: This hasn't been started yet
   activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
 
-  // Initialize the watchdog interface component (queued)
-  //watchDogInterface.init(10,          /*Queue Depth*/
-  //                       0);         /*Instance Number*/
+  // Initialize the watchdog interface component (active)
+  watchDogInterface.init(1,          /*Queue Depth*/
+                         0);         /*Instance Number*/
 
   // Initialize the health component (queued)
   //health.init(25,                   /*Queue Depth*/
@@ -199,17 +201,8 @@ void constructApp(void){
   UWB.init(10,          /*Queue Depth*/
             0);         /*Instance Number*/
 
-  // Initialize the telemetry channel component (active)
-  tlmChan.init(TLM_CHAN_QUEUE_DEPTH, TLM_CHAN_ID);
-
-  // Initialize the CommandDispatcher component (active)
-  cmdDispatcher.init(CMD_DISP_QUEUE_DEPTH, CMD_DISP_ID);
-
   // Initialize the ground interface (passive)
   groundInterface.init();
-
-  // Initialize the ground interface (passive)
-  udpInterface.init();
 
   // Initialize the IMU interface (passive)
   IMU.init();
@@ -230,45 +223,18 @@ void constructApp(void){
   constructCubeRoverArchitecture();
 
   // Register Health Commands
-  //health.regCommands();
+  // health.regCommands();
 
   // Register WatchDog Interface Commands
-  //watchDogInterface.regCommands();
+  watchDogInterface.regCommands();
   
   // Register Camera Commands
   camera.regCommands();
-
-  rateGroupLowFreq.start(0, /* identifier */
-                       RG_LOW_FREQ_AFF, /* Thread affinity */
-                       RG_LOW_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
-
-  rateGroupMedFreq.start(0, /* identifier */
-                         RG_MED_FREQ_AFF, /* Thread affinity */
-                         RG_MED_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
-
-  rateGroupHiFreq.start(0, /* identifier */
-                         RG_HI_FREQ_AFF, /* Thread affinity */
-                         RG_HI_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
-
-  blockDriver.start(0, /* identifier */
-                   BLK_DRV_AFF, /* Thread affinity */
-                   BLK_DRV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
-
-  tlmChan.start(0, /* identifier */
-                TLM_CHAN_AFF, /* thread affinity */
-                TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES); /* stack size */
   
-  cmdDispatcher.start(0,
-                      CMD_DISP_AFF, 
-                      CMD_DISP_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
+  // Register Camera Commands
+  navigation.regCommands();
 
-  navigation.start(0,
-                   NAV_AFF,
-                   NAV_QUEUE_DEPTH*MIN_STACK_SIZE_BYTES);
-
-  // setup communication with IMU over SPI
-  IMU.setup(IMU_SPI_REG);
-
+  groundInterface.regCommands();
 
   // Set Health Ping Entries
   // **** THIS IS WHERE YOU CAN ADD ANY COMPONENTS THAT HAVE HEALTH PINGS ****
@@ -281,30 +247,51 @@ void constructApp(void){
     /*    Start of Ping Entry List (Please let Alec know if changed/added to)
         
         {3, 5, watchDogInterface.getObjName()},    //0
-        {3, 5, ****IMU****.getObjName()},    //1  *MUST CHANGE TO IMU COMPONENT NAME*
-        {3, 5, ****MOTORCONTROLLER****.getObjName()},    //2  *MUST CHANGE TO MOTOR CONTROLLER COMPONENT NAME*
-        {3, 5, ****CAMERA****.getObjName()},    //3  *MUST CHANGE TO CAMERA COMPONENT NAME*
-        {3, 5, ****UWB****.getObjName()},    //4  *MUST CHANGE TO UWB COMPONENT NAME*
-        {3, 5, ****FLASH****.getObjName()},    //5  *MUST CHANGE TO FLASH COMPONENT NAME (NOT SURE CAN DO)*
-        {3, 5, networkManager.getObjName()},    //6
-        {3, 5, ****WIFI****.getObjName()},    //7  *MUST CHANGE TO WIFI COMPONENT NAME (NOT SURE CAN DO)*
-        {3, 5, ****NAVIGATION****.getObjName()},    //8  *MUST CHANGE TO NAVIGATION COMPONENT NAME*
-        {3, 5, tlmChan.getObjName()},    //9
-        {3, 5, activeLogger.getObjName()},    //10
-        {3, 5, ****COMMLOGGER****.getObjName()},    //11  *MUST CHANGE TO COMMLOGGER COMPONENT NAME*
-        {3, 5, groundInterface.getObjName()},    //12
-        {3, 5, cmdDispatcher.getObjName()},    //13
-        {3, 5, ****MODE MANAGER****.getObjName()},    //14  *MUST CHANGE TO MODE MANAGER* COMPONENT NAME*
-        {3, 5, cubeRoverTime.getObjName()},    //15
-        {3, 5, rateGroupHiFreq.getObjName()},    //16
-        {3, 5, rateGroupMedFreq.getObjName()},    //17
-        {3, 5, rateGroupLowFreq.getObjName()},    //18
-        {3, 5, rateGroupDriver.getObjName()},    //19
-        {3, 5, blockDriver.getObjName()},    //20
+        {3, 5, navigation.getObjName()},    //1
+        {3, 5, tlmChan.getObjName()},    //2
+        {3, 5, activeLogger.getObjName()},    //3
+        {3, 5, comLogger.getObjName()},    //4
+        {3, 5, cmdDispatcher.getObjName()},    //5
+        {3, 5, rateGroupHiFreq.getObjName()},    //6
+        {3, 5, rateGroupMedFreq.getObjName()},    //7
+        {3, 5, rateGroupLowFreq.getObjName()},    //8
+        {3, 5, blockDriver.getObjName()},    //9
 
     */
   //};
 
   // Register ping table
-  // shealth.setPingEntries(pingEntries,FW_NUM_ARRAY_ELEMENTS(pingEntries),0x123);
+  // health.setPingEntries(pingEntries,FW_NUM_ARRAY_ELEMENTS(pingEntries),0x123);
+
+  rateGroupLowFreq.start(0, /* identifier */
+                       RG_LOW_FREQ_AFF, /* Thread affinity */
+                       RG_LOW_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
+
+  rateGroupMedFreq.start(0, /* identifier */
+                         RG_MED_FREQ_AFF, /* Thread affinity */
+                         RG_MED_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
+
+  rateGroupHiFreq.start(0, /* identifier */
+                         RG_HI_FREQ_AFF, /* Thread affinity */
+                         RG_HI_FREQ_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
+
+  blockDriver.start(0, /* identifier */
+                   BLK_DRV_AFF, /* Thread affinity */
+                   BLK_DRV_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
+
+  tlmChan.start(0, /* identifier */
+                TLM_CHAN_AFF, /* thread affinity */
+                TLM_CHAN_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS); /* stack size */
+  
+  cmdDispatcher.start(0,
+                      CMD_DISP_AFF, 
+                      CMD_DISP_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS);
+
+  navigation.start(0,
+                   NAV_AFF,
+                   NAV_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS);
+
+  watchDogInterface.start(0,
+                          WATCHDOG_AFF,
+                          WATCHDOG_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS);
 }

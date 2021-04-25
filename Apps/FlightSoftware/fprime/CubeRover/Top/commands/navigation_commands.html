@@ -44,24 +44,92 @@ html {
 	<tbody>
 
 		<tr style = "border: 2px solid black;">
-			<td rowspan="4">Nav_DriveCommand</td>
-			<td rowspan="4">2221 (0x8ad)</td>
-			<td rowspan="4">Movement command</td>
+			<td rowspan="4">Nav_DriveForward</td>
+			<td rowspan="4">3328 (0xd00)</td>
+			<td rowspan="4">Forward movement command</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>Command</td>
-						<td>NAV_COMMANDLIST</td>
-						<td></td>
-					</tr>
-					<tr style = "border-right: 2px solid black;">
 						<td>Distance</td>
 						<td>U8</td>
-						<td></td>
+						<td>0x00 - 0x5A meaning 0-30 cm</td>
 					</tr>
-					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+					<tr style = "border-right: 2px solid black;">
 						<td>Speed</td>
 						<td>U8</td>
+						<td>0x00 - 0x0A meaning 0-10 cm/s</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>Callback_ID</td>
+						<td>U16</td>
 						<td></td>
 					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">Nav_DriveBackwards</td>
+			<td rowspan="4">3329 (0xd01)</td>
+			<td rowspan="4">Backward movement command</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>Distance</td>
+						<td>U8</td>
+						<td>0x00 - 0x5A meaning 0-30 cm</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>Speed</td>
+						<td>U8</td>
+						<td>0x00 - 0x0A meaning 0-10 cm/s</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>Callback_ID</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">Nav_RotateRight</td>
+			<td rowspan="4">3330 (0xd02)</td>
+			<td rowspan="4">Clockwise rotation command</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>Distance</td>
+						<td>U8</td>
+						<td>0x00 - 0x5A meaning 0-90 deg</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>Speed</td>
+						<td>U8</td>
+						<td>0x00 - 0x0A meaning 0-10 deg/s</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>Callback_ID</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">Nav_RotateLeft</td>
+			<td rowspan="4">3331 (0xd03)</td>
+			<td rowspan="4">Counter-clockwise rotation command</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>Distance</td>
+						<td>U8</td>
+						<td>0x00 - 0x5A meaning 0-90 deg</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>Speed</td>
+						<td>U8</td>
+						<td>0x00 - 0x0A meaning 0-10 deg/s</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>Callback_ID</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">Nav_StopMovement</td>
+			<td rowspan="1">3332 (0xd04)</td>
+			<td rowspan="1">Stops all movement</td>
+				<td></td>
+				<td></td>
+				<td></td>
 		</tr>
 	</tbody>
 </table>

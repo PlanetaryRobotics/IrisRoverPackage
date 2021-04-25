@@ -238,14 +238,15 @@ namespace CubeRover {
         while(gioGetBit(gioPORTB, 1));  // Wait until image capture complete FIXME: This could loop forever :(
         uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
             
-        for(int i = 0; i < IMAGE_HEIGHT; i++) {
+        // TODO: Operator should be able to specify DOWNSAMPLING (but for testing smaller images are faster
+        for(int i = 0; i < IMAGE_HEIGHT; i+=DOWNSAMPLING) {
 #ifdef __USE_DUMMY_IMAGE__
             getLineDummyImage(i, m_imageLineBuffer);
 #else
             m_fpgaFlash.readDataFromFlash(&alloc, 0, m_imageLineBuffer, sizeof(m_imageLineBuffer));
             alloc.startAddress = 6 * PAGE_SIZE * i; // jump to next available block
 #endif
-            // downsampleLine();
+            downsampleLine();
             downlinkImage(m_imageLineBuffer, sizeof(m_imageLineBuffer), callbackId, createTime);
         }
         m_imagesSent++;

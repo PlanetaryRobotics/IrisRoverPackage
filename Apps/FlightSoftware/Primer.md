@@ -1,6 +1,12 @@
 # F-Prime Primer
 
-Notes about F-Prime by Justin N. **Read the F-Prime user guide and source for more information!**
+Notes about F-Prime (and some FreeRTOS, TI Hercules SoC, and ARM) by Justin N. 
+
+## Generally Helpful Resources
+
+F-Prime user guide and source
+
+Eacch section may also reference helpful documents and readings.
 
 ## Differentiating Telemetry and Logs 
 
@@ -147,3 +153,166 @@ Note that time base and time context are only serialized if `FW_USE_TIME_BASE` o
 - The component is connected to CmdDispatcher `compCmdStat` port of type `CmdResponse`
 - TODO: Log connections
 
+## Command Uplink Format
+
+Commands are treated as binary data (ComPacket) until they are received by the Command Dispatcher.
+Command Packet deserializes the command from the ComPacket following this struct:
+
+struct command {
+    FwPacketDescriptorType magic;
+    FwOpcodeType opcode;
+    variable_length argument;
+} __attribute__ ((packed));
+
+## Bitfield Standards
+An aside on how Ground Software expects the standards for bitfields to be defined. Reach out to Connor Colombo (`colombo@cmu.edu`, `@connor_colombo`) with any questions.
+
+### Specifics
+Each **component** which expects a bitfield as a command argument (eg. `Configure_Camera0` command) or telemetry which returns a bitfield must include the structs which define how those bitfields are structured in a file in the component's directory (eg. in `fprime/CubeRover/Camera` for the Camera component). If not such file is present, all it will be assumed no bitfields are required and all command arguments will be populated using their raw types (eg. `U64`).
+
+### Requirements and Naming Conventions:
+- All bitfields for a component must be contained in a single file called `{ComponentName}_Bitfields.hpp` which contains only structs in the component's directory. Eg: `fprime/CubeRover/Camera/Camera_Bitfields.hpp` for the Camera component.
+- All structs should be packed.
+- All structs should be named `Command_{mnemonic}_Arg_{name}` where `mnemonic` is the command's mnemonic from the defining XML file and `name` is the argument's name from the XML file.
+
+**Note:** The expected fields for all bitfield structs are listed in C&TL but the official source of truth shared by both FSW and GSW will be these bitfield definition files; so, name your struct fields reasonably since these will be the names that show up on the frontend (though reformatted to be human readable).
+
+### Example
+This example should clarify all bitfield requirements
+
+The modified and abbreviated `Camera` component shown below has two commands `Configure_Camera0` and `Camera0_Crop` which require bitfield arguments. Each of these commands has one bitfield argument called `config`, though `Configure_Camera0` has two arguments in total. This is all defined in the XML file `fprime/CubeRover/Camera/CameraComponentAi.xml` as follows.
+```
+<component name="Camera" kind="passive" namespace="CubeRover">
+    ...
+    <commands>
+        ...
+        <command kind="sync" opcode="0x3" mnemonic="Configure_Camera0">
+            <comment>
+                Configure camera 0
+            </comment>
+            <args>
+                <arg name="somethingElse" type="U8">
+                    <comment>
+                        Some other normal non-bitfield U8 argument. This is here to illustrate why the arg must
+                    </comment>
+                </arg>
+                <arg name="config" type="U64">
+                    <comment>
+                        Packed bitfield containing camera configurations. Defined in Camera bitfield definition file.
+                    </comment>
+                </arg>
+            </args>
+        </command>
+        <command kind="sync" opcode="0x4" mnemonic="Camera0_Crop">
+            <comment>
+                Defines the crop for camera 0
+            </comment>
+            <args>
+                <arg name="config" type="U64">
+                    <comment>
+                        Packed bitfield containing crop locations. Defined in Camera bitfield definition file.
+                    </comment>
+                </arg>
+            </args>
+        </command>
+        ...
+    </commands>
+    ...
+</component>
+
+```
+
+The two separate bitfield structs required for these two commands should then be defined in `fprime/CubeRover/Camera/Camera_Bitfields.hpp` and formatted as shown below.
+```
+...
+# include guards, imports, etc.
+# but no non-struct Cpp code in this file
+...
+struct Command_Configure_Camera0_Arg_config {
+    uint8_t compression : 2;
+    uint32_t shutter_width : 20;
+    uint16_t shutter_delay : 13;
+    uint8_t row_bin : 2;
+    uint8_t col_bin : 2;
+    uint16_t horiz_blanking : 12;
+    uint16_t vert_blanking : 11;
+    uint8_t reserved : 2; // pad up to U64 (arg type)
+} __attribute__((packed));
+
+struct Command_Camera0_Crop_Arg_config {
+    uint32_t upperLeftX : 12;
+    uint32_t upperLeftY : 11;
+    uint32_t height : 12;
+    uint32_t width : 11;
+    uint32_t reserved : 18; // pad up to U64 (arg type)
+} __attribute__((packed));
+...
+```
+
+## Component Initializations and Interrupts on FreeRTOS
+
+When writing constructors and initializers for FPrime components, these methods cannot rely on interrupts when
+running in the context of prior to the scheduler running.
+See [FreeRTOS FAQ (#4)](https://www.freertos.org/FAQHelp.html), "If a FreeRTOS API function is called before the scheduler has been started then interrupts will deliberately be left disabled, and not re-enable again until the first task starts to execute. This is done to protect the system from crashes caused by interrupts attempting to use FreeRTOS API functions during system initialisation, before the scheduler has been started, and while the scheduler may be in an inconsistent state."
+
+## ARM MPU
+
+TI Hercules RM46x TRM (SPNUC514C)
+[TI Hercules Docs (has a really good FAQ)](https://software-dl.ti.com/hercules/hercules_docs/latest/hercules/index.html)
+TI Hercules ARM MPU Subregion Usage Application Report (SPNA120)
+
+ARM implements Memory Protection Unit (MPU) which works with the L1 memory controller to enforce access to and from L1 and external memory.
+Access is granted based on current operating mode (CPSR reg: see Cortex R4 TRM Table 3-3)
+
+There are 12 regions implemented on RM46 of increasing priority, where Region 1 is typically used for the Background region
+
+
+Region 1: Background
+0x00000000 - 0xffffffff (4GB)   Subregions 0 - 7 disabled
+Normal Cacched Unshared
+No Priviledge or user access no execution
+
+Region 2: Flash
+0x00000000 - 0x003fffff (4M) 
+Normal cached and unshared
+READ ONLY and excute
+
+Region 3: RAM
+0x08000000 - 0x0803ffff (256K)
+normal chaced and unshared
+read/write and execute
+
+Region 4: ECC RAM
+0x08000000 - 0x0803ffff (256K)
+normal cached and unshared
+read/write and execute
+
+Region 5: CS2 
+0x60000000 - 0x63ffffff (64MB)  Subregions 6 - 7 disabled
+strongly ordered shareable
+read/write execute
+
+Region 6: SDRAM EMIF 64MB (CS0)
+0x80000000 - 0x87ffffff (128MB)
+strongly ordered shareable
+read/write execute
+
+Region 7:  Flash Wrapper Bus 2 (Flash ECC, OTP, and EEPROM)
+0xf0000000 - 0xf07fffff (8MB)
+Normal cached unshared
+Priviledge rwad-write user read only no exec
+
+Region 8: Peripherals frame - 2
+0xfc000000 - 0xfcffffff (16MB)
+Device unshared
+Read/write no execute
+
+Region 9: CRC (but only a small chunk??)
+0xfe000000 - 0xfe0001ff (512B)
+device unshared
+read/write no exec
+
+Region 10: Peripherals - Frame 1 & SYSTEM Modules
+0xff000000 - 0xffffffff (16MB)
+device unshared
+read/write no execute

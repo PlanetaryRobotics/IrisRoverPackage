@@ -2,11 +2,12 @@
 #define _FSW_PACKET_H_
 
 // Wifi Connection Parameters
-#define ROVER_IP_ADDRESS        {192, 168, 1, 2}
-#define ROVER_MASK_ADDRESS      {255, 255, 255, 0}
-#define ROVER_GATEWAY_ADDRESS   {192, 168, 1, 37}
-#define GATEWAY_PORT            8080
-#define ROVER_UDP_PORT          8080 
+#define ROVER_ADDRESS           {192, 168, 1, 2}
+#define SPACECRAFT_ADDRESS      {192, 168, 1, 120}
+#define SUBNET_MASK             {255, 255, 255, 0}
+#define GATEWAY_ADDRESS         {192, 168, 1, 120}
+#define SPACECRAFT_UDP_PORT     8080 
+#define ROVER_UDP_PORT          8080
 
 #define LANDER_SSID             "Houston"
 #define LANDER_NETWORK_PASSWORD "redr0ver"
@@ -15,9 +16,11 @@
 #define WIRED_UDP_PORT_ROVER    8080
 #define WIRED_UDP_PORT_LANDER   8080
 
+#define INITIAL_PRIMARY_NETWORK_INTERFACE  WF121    // Must be of type PrimaryInterface (see GroundInterfaceComponentAi.xml or GroundInterfaceComponentAc.hpp)
+
 // Packet sizes
 #define IPV4_MTU                1006    // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 791 **FRAGMENTATION *NOT* SUPPORTED**
-#define UDP_MAX_PAYLOAD         978     // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 768
+#define UDP_MAX_PAYLOAD         (IPV4_MTU-20-8)     // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 768
 // 1006byte - 20byte IPv4 header - 8byte UDP header = 978byte payload
 
 // FSW Packet Magic (32bit)
@@ -31,7 +34,7 @@ namespace FswPacket {
 
 typedef uint8_t Seq_t;
 typedef uint16_t Length_t;
-typedef uint16_t Checksum_t;
+typedef uint8_t Checksum_t;
 typedef uint32_t Magic_t;
 typedef uint8_t Component_t;
 typedef Length_t FileLength_t;
@@ -44,15 +47,15 @@ struct FswPacketHeader {
 
 struct FswCommand {
     Magic_t magic;
-    Component_t component;      // This field along with command make up the
     uint8_t opcode;         // id when concatenated resulting in a U16
+    Component_t component;      // This field along with command make up the
     uint8_t byte0;
 } __attribute__((packed));
 
 struct FswCommandResponse { // This is downlinked via the file (app downlink port)
     Magic_t magic;
-    Component_t component;      // Same as command
     uint8_t opcode;         // Same as command
+    Component_t component;      // Same as command
     uint8_t errorcode;
     uint16_t errorinfo;
 } __attribute__((packed));

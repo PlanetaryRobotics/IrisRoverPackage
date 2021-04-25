@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
 
-<component name="WatchDogInterface" kind="queued" namespace="CubeRover">
+<component name="WatchDogInterface" kind="active" namespace="CubeRover">
     <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
     <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
@@ -10,12 +10,19 @@
     <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
     <import_port_type>Fw/Buffer/BufferSendPortAi.xml</import_port_type>
     <import_port_type>Svc/WatchDog/WatchDogPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/WatchdogResetRequest/WatchdogResetRequestPortAi.xml</import_port_type>
 
     <ports>
         <!-- Rate Group Port -->
         <port name="Run" data_type="Svc::Sched" kind="guarded_input" max_number="1">
             <comment>
             Run port
+            </comment>
+        </port>
+        
+        <port name="CompResetRequest" data_type="CubeRoverPorts::WatchdogResetRequest" kind="sync_input">
+            <comment>
+                This allows other components to request the Watchdog interface to reset some hardware
             </comment>
         </port>
 
@@ -80,18 +87,93 @@
                 </arg>
              </args>
         </command>
-        <command kind="async" opcode="0x01" mnemonic="Disengage_From_Lander">
+        <command kind="async" opcode="0x01" mnemonic="Prepare_For_Deployment">
+            <comment>
+            Command to send signal to MSP430 to prepare for deploying (may not be needed)
+            </comment>
+        </command>
+        <command kind="async" opcode="0x02" mnemonic="Disengage_From_Lander">
             <comment>
             Command to send signal to MSP430 that it should send a signal to lander to disengage
+            </comment>
+        </command>
+        <command kind="async" opcode="0x03" mnemonic="Switch_Connection_Mode">
+            <comment>
+            Command to send signal to MSP430 that we switch the current connection mode
+            </comment>
+        </command>
+        <command kind="async" opcode="0xAA" mnemonic="Set_Kp_Most">
+            <comment>
+            Command to send signal to MSP430 that it should set Kp to most significant parameter
+            </comment>
+        </command>
+        <command kind="async" opcode="0xAB" mnemonic="Set_Kp_Least">
+            <comment>
+            Command to send signal to MSP430 that it should set Kp to least significant parameter
+            </comment>
+        </command>
+        <command kind="async" opcode="0xAC" mnemonic="Set_Kp_Specific">
+            <comment>
+            Command to send signal to MSP430 that it should set Kp to a specific value
+            </comment>
+        </command>
+        <command kind="async" opcode="0xBA" mnemonic="Set_Ki_Most">
+            <comment>
+            Command to send signal to MSP430 that it should set Ki to most significant parameter
+            </comment>
+        </command>
+        <command kind="async" opcode="0xBB" mnemonic="Set_Ki_Least">
+            <comment>
+            Command to send signal to MSP430 that it should set Ki to least significant parameter
+            </comment>
+        </command>
+        <command kind="async" opcode="0xBC" mnemonic="Set_Ki_Specific">
+            <comment>
+            Command to send signal to MSP430 that it should set Ki to a specific value
+            </comment>
+        </command>
+        <command kind="async" opcode="0xCA" mnemonic="Set_Kd_Most">
+            <comment>
+            Command to send signal to MSP430 that it should set Kd to most significant parameter
+            </comment>
+        </command>
+        <command kind="async" opcode="0xCB" mnemonic="Set_Kd_Least">
+            <comment>
+            Command to send signal to MSP430 that it should set Kd to least significant parameter
+            </comment>
+        </command>
+        <command kind="async" opcode="0xDA" mnemonic="Set_V_Setpoint">
+            <comment>
+            Command to send signal to MSP430 that it should set V to a specific value
+            </comment>
+        </command>
+        <command kind="async" opcode="0xEA" mnemonic="Switch_to_Sleep_Mode">
+            <comment>
+            Command to send signal to MSP430 that it should go into Sleep Mode
+            </comment>
+        </command>
+        <command kind="async" opcode="0xEB" mnemonic="Switch_to_Keep_Alive_Mode">
+            <comment>
+            Command to send signal to MSP430 that it should go into Keep Alive Mode
+            </comment>
+        </command>
+        <command kind="async" opcode="0xEC" mnemonic="Switch_to_Service_Mode">
+            <comment>
+            Command to send signal to MSP430 that it should go into Service Mode
             </comment>
         </command>
     </commands>
 
     <events>
-        <event id="0x0" name="WatchDogMSP430IncorrectResp" severity="WARNING_HI" format_string = "Watchdog MSP430 Sent back Incorrect Response">
+        <event id="0x0" name="WatchDogIncorrectResp" severity="WARNING_HI" format_string = "Watchdog Sent back Incorrect Response: %u">
             <comment>
             Warning that the WatchDog MSP430 sent back a response different than what was sent to it
             </comment>
+            <args>
+                <arg name="error" type="U8">
+                    <comment>The watchdog error value (reference to documentation)</comment>
+                </arg>          
+            </args>
         </event>
 
         <event id="0x1" name="WatchDogTimedOut" severity="WARNING_HI" format_string = "WatchDog Timer has timed out" >
@@ -120,6 +202,12 @@
                     <comment>The watchdog error value (reference to documentation)</comment>
                 </arg>          
             </args>
+        </event>
+
+        <event id="0x4" name="ADCThermistorError" severity="WARNING_HI" format_string = "ADC Thermistor Conversion Error" >
+            <comment>
+            Warning that less than 16 thermistors had conversions or conversion never completed meaning no new tempurature values are being generated
+            </comment>
         </event>
     </events>
 
@@ -159,6 +247,46 @@
         <channel id="23" name="SYSTEM_STATUS" data_type="int8_t">
             <comment>
                 Boolean for Heater On/Off from Watchdog
+            </comment>
+        </channel>
+        <channel id="24" name="BATTERY_LEVEL" data_type="U16">
+            <comment>
+                Value of Charge in Battery
+            </comment>
+        </channel>
+        <channel id="25" name="BATTERY_CURRENT" data_type="U32">
+            <comment>
+                Value of Current Used in Battery
+            </comment>
+        </channel>
+        <channel id="26" name="THERM_0" data_type="U16">
+            <comment>
+                12 bit Value for Thermistor value
+            </comment>
+        </channel>
+        <channel id="27" name="THERM_1" data_type="U16">
+            <comment>
+                12 bit Value for Thermistor value
+            </comment>
+        </channel>
+        <channel id="28" name="THERM_2" data_type="U16">
+            <comment>
+                12 bit Value for Thermistor value
+            </comment>
+        </channel>
+        <channel id="29" name="THERM_3" data_type="U16">
+            <comment>
+                12 bit Value for Thermistor value
+            </comment>
+        </channel>
+        <channel id="30" name="THERM_4" data_type="U16">
+            <comment>
+                12 bit Value for Thermistor value
+            </comment>
+        </channel>
+        <channel id="31" name="THERM_5" data_type="U16">
+            <comment>
+                12 bit Value for Thermistor value
             </comment>
         </channel>
     </telemetry>

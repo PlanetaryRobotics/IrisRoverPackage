@@ -17,7 +17,6 @@
 #include "gio.h"
 #include "Include/FswPacket.hpp"      // PrimaryFlightController/FlightMCU/Include
 
-#define MAX_SIZE_PAYLOAD    UDP_MAX_PAYLOAD    // in byte
 #define SCI_REG             sciREG
 #define BLOCKING_TIMEOUT_US 1000    // in us
 
@@ -368,7 +367,7 @@ namespace Wf121{
 
   typedef uint8_t Endpoint;
 
-  static uint8_t g_payloadBuffer[MAX_SIZE_PAYLOAD];
+  static uint8_t g_payloadBuffer[UDP_MAX_PAYLOAD];
 
   class Wf121Driver{
     public:
@@ -1572,9 +1571,9 @@ namespace Wf121{
     private:
 
       ErrorCode transmitCommand(BgApiHeader *header,
-                                uint8_t *payload = NULL);
+                                uint8_t *payload = (uint8_t *)NULL);
       ErrorCode receiveCommand(BgApiHeader *header,
-                               uint8_t *payload = NULL);
+                               uint8_t *payload = (uint8_t *)NULL);
       uint16_t getPayloadSizeFromHeader(BgApiHeader *header);
       ErrorCode getReplyHeader(BgApiHeader *header);
       ErrorCode getReplyPayload(uint8_t *payload,

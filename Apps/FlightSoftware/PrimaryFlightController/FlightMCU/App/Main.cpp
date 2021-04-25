@@ -5,46 +5,70 @@
  *      Author: cedric
  */
 
-#include <CubeRoverConfig.hpp>
+#include "sys_common.h"
+#include "sys_core.h"
+#include "system.h"
+
+#include "CubeRoverConfig.hpp"
 #include "FreeRTOS.h"
 #include "os_task.h"
 #include "CubeRover/Top/Topology.hpp"
-
 #include "adc.h"
 #include "gio.h"
 #include "i2c.h"
 #include "spi.h"
 #include "adc.h"
-#include "lin.h"
+#include "rti.h"
+#include "sys_dma.h"
+#include "sys_mpu.h"
+
+#include "App/DMA.h"
 
 extern "C" {
     void vApplicationIdleHook(void);
+    void vApplicationTickHook(void);
+    void vApplicationStackOverflowHook(void *xTask, char *pcTaskName);
 }
 
 void vApplicationIdleHook(void) {
     run1cycle();
-    //gioToggleBit(gioPORTB, 1);
-    //for(uint32_t i=0; i<2000000; i++) asm("  NOP");
 }
+
+void vApplicationTickHook(void) {
+    // run1cycle();
+}
+
+void vApplicationStackOverflowHook(void *xTask, char *pcTaskName) {
+    // while (true);
+    // something really bad happened
+}
+
+extern "C" void dmaCh2_ISR(dmaInterrupt_t inttype) {}
+extern "C" void dmaCh3_ISR(dmaInterrupt_t inttype) {}
 
 void main(void)
 {
     /* USER CODE BEGIN (3) */
+    _disable_interrupt_();      // Disable all interrupts during initialization (esp. important when we initialize RTI)
 
-    int waithere = 1;    // Used for pausing prior to netowrk connect
-    while(waithere);     // Stop here and wait for debugger
+    _mpuInit_();
+
     gioInit();
     i2cInit();
     sciInit();
     adcInit();
     spiInit();
-    linInit();
+    dmaEnable();
+    scidmaInit();
 
     constructApp();
 
-    vTaskStartScheduler();
+    rtiInit();                  // Initialize RTI for RTOS Tick last
 
-    //if it reaches that point, there is a problem with RTOS.
+    vTaskStartScheduler();      // Automatically enables IRQs
 
-/* USER CODE END */
+    //Something went very wrong with the RTOS if we end up here
+
+    /* USER CODE END */
 }
+

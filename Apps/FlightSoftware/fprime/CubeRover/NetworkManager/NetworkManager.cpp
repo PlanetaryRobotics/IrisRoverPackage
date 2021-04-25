@@ -41,18 +41,6 @@ namespace CubeRover {
     )
   {
     NetworkManagerComponentBase::init(instance);
-
-    /*  Not currently working
-    do {    // Reset WF121 on component initialization
-        m_crnm.ResetSystemWifi(Wf121::SYSTEM_BOOT);
-        for (int i = 0; i < 10; ++i) {          // Max number of times to check for callbacks
-            for (int i = 100000; i > 0; --i);   // A delay
-            m_crnm.ExecuteCallbacks();
-            if (m_crnm.GetWifiModuleIdentified())
-                break;
-        }
-    } while (not m_crnm.GetWifiModuleIdentified());
-    */
     
     unsigned no_transition_count = 0;
     m_current_state = m_crnm.GetState();
@@ -82,7 +70,7 @@ namespace CubeRover {
                 break;
             }
         }
-        if (no_transition_count > MAX_FSM_NO_TRANSITION_COUNT) {
+        if (no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
             log_FATAL_WF121InitializationFailed();
             // TODO: Watchdog reset WF121
         }
@@ -105,9 +93,9 @@ namespace CubeRover {
         Fw::Buffer &fwBuffer
     )
   {
-    uint8_t *buffer = reinterpret_cast<U8 *>(fwBuffer.getdata());
+    uint8_t *buffer = reinterpret_cast<uint8_t *>(fwBuffer.getdata());
     uint32_t payloadSize = fwBuffer.getsize();
-    m_crnm.SendUdpData(buffer, payloadSize, 1000);   // FIXME: What is an appropriate timeout 1s check units
+    Wf121::ErrorCode e = m_crnm.SendUdpData(buffer, payloadSize, 100000);   // FIXME: What is an appropriate timeout 1s check units
     update();
   }
 
@@ -122,43 +110,39 @@ namespace CubeRover {
   }
 
     void NetworkManagerComponentImpl::update() {
-        Wf121::ErrorCode errorCode = m_crnm.ExecuteCallbacks();   // TODO: Check error
+        Wf121::ErrorCode errorCode = m_crnm.UpdateNetworkManager();   // TODO: Check error
         CubeRoverNetworkManager::CubeRoverNetworkStateMachine updated_state = m_crnm.GetState();
         if (updated_state != m_current_state) {
             log_ACTIVITY_HI_StateChange(m_current_state, updated_state);
             // TODO: TRIGGER MODEMANAGER ON LOS
         }
         m_current_state = updated_state;
+        /* TODO: UPDATE TEHSE ONCE PER TELEM DOWNLINK. DOING IT ON THE RATE GROUP IS TOO OFTEN
         tlmWrite_RSSI(m_crnm.GetSignalRssi());
         tlmWrite_SNR(m_crnm.GetSignalNoiseRatio());
         tlmWrite_PktRecv(m_crnm.GetNbOfBytesReceived());
         tlmWrite_PktSent(m_crnm.GetNbOfBytesSent());
+        */
     }
   
     void NetworkManagerComponentImpl::getUplinkDatagram() {
-        // - MAX_SIZE_PAYLOAD 978: Maximum expected UDP payload size see CubeRoverConfig for 
-        // calculation to arrive at this value
-        // - payloadSize: Actual size of the payload in UDP header
         U16 bytesRead;
-        U16 headerSize = 8;
-        U32 payloadSize;
-        U64 data_ptr = reinterpret_cast<U64>(m_fileUplinkBuffer);
+        Wf121::DataSize16 payloadSize;
 
-        memset(m_fileUplinkBuffer, 0, MAX_SIZE_PAYLOAD);  // Clear one datagram buffer
-        // XXX: UDP cehcksum optional for IPv4. Check with Astrobotic if they are providing this
+        memset(m_fileUplinkBuffer, 0, UDP_MAX_PAYLOAD);
 
-        m_crnm.ReceiveUdpData(m_fileUplinkBuffer, headerSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::PEEK_READ, 10);     // Read UDP header to get payload size
+        m_crnm.ReceiveUdpData(reinterpret_cast<uint8_t *>(&payloadSize), sizeof(Wf121::DataSize16), &bytesRead, CubeRoverNetworkManager::UdpReadMode::PEEK_READ, 10);        // Read size of UDP payload
         if (bytesRead == 0)
             return;     // No data to read
 
-        if (bytesRead == headerSize) {  // check how big the packet actually is, then consume the bytes from the ring buffer
-            memcpy(&payloadSize, m_fileUplinkBuffer+4, sizeof(payloadSize));  // byte 4 of UDP header
+        if (bytesRead == sizeof(Wf121::DataSize16)) {
+            m_crnm.ReceiveUdpData(reinterpret_cast<uint8_t *>(&payloadSize), sizeof(Wf121::DataSize16), &bytesRead, CubeRoverNetworkManager::UdpReadMode::NORMAL_READ, 10);  // Flush the size, we read it in already
             m_crnm.ReceiveUdpData(m_fileUplinkBuffer, payloadSize, &bytesRead, CubeRoverNetworkManager::UdpReadMode::NORMAL_READ, 10);
 
             if (bytesRead != payloadSize) {} // FIXME: Error, bytes read didnt match payload size
         }
 
-        Fw::Buffer buffer(this->getInstance(), 0, data_ptr, payloadSize);    // Only one buffer->buferID = 0 this buffermanager id should be 0 to probs
+        Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(m_fileUplinkBuffer), payloadSize);
         uplink_out(0, buffer);
         update();
     }

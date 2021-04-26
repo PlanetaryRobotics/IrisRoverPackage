@@ -5,10 +5,10 @@ S25fl064l :: S25fl064l(){
   // Clock configuration need to be:
   // Clock polarity unchecked
   // Clock phase checked
-  m_flashDataConfig.CS_HOLD = false;
-  m_flashDataConfig.DFSEL = SPI_FMT_0;
-  m_flashDataConfig.WDEL = false;
-  m_flashDataConfig.CSNR = 0;
+  m_flashDataConfig.CS_HOLD = 0;
+  m_flashDataConfig.DFSEL = SPI_FMT_2;
+  m_flashDataConfig.WDEL = 0;
+  m_flashDataConfig.CSNR = 0b11111101;
 
   // Refer to datasheet, default number of dummy cycles between a SDI and SDO
   // is set by default to 8 clock cycles

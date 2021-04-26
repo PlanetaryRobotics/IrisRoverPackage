@@ -31,6 +31,9 @@ void send_earth_heartbeat();
 
 enum rover_state rovstate;
 
+void uart1_disable();
+void uart0_init();
+
 void enterMode(enum rover_state newstate) {
     switch (newstate) {
     case RS_SLEEP:
@@ -66,6 +69,10 @@ void enterMode(enum rover_state newstate) {
         enable24VPowerRail();
         enableBatteries();
 
+        /* swap uart's */
+//        uart1_disable(); // enabled: 0.0467
+        uart0_init();
+
         /* start monitoring only mission-relevant voltages */
         adc_setup_lander();
 
@@ -77,9 +84,9 @@ void enterMode(enum rover_state newstate) {
         powerOnRadio();
         releaseRadioReset();
         releaseFPGAReset();
-        __delay_cycles(1234567); //give fuel gauge time to start up
 
-        initializeFuelGauge();
+//        __delay_cycles(1234567); //give fuel gauge time to start up
+//        initializeFuelGauge();
         releaseMotorsReset();
         /* TODO: do we want to do it in this order? */
 
@@ -91,6 +98,8 @@ void enterMode(enum rover_state newstate) {
     rovstate = newstate;
 }
 
+uint16_t ticks;
+
 int main(void) {
     /* stop watchdog timer */
 	WDTCTL = WDTPW | WDTHOLD;
@@ -101,14 +110,16 @@ int main(void) {
 	// initialize buffers
 	hercbuf.idx = 0;
 	hercbuf.used = 0;
+	ticks = 0;
 
 	/* initialize the board */
     initializeGpios();
 
     /* set up uart clock */
     clock_init();
+
     /* set up uart */
-    uart0_init();
+    //uart0_init();
     uart1_init();
 
     /* set up watchdog */
@@ -133,6 +144,7 @@ int main(void) {
 
     // the core structure of this program is like an event loop
     while (1) {
+        ticks++;
         /* check if anything happened */
         if (!loop_flags) { /* nothing did */
             /* go back to low power mode */
@@ -236,7 +248,8 @@ int main(void) {
                 break;
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */
-                updateGaugeReadings();
+//                updateGaugeReadings();
+                send_earth_heartbeat();
                 watchdog_monitor();
                 break;
             case RS_FAULT:

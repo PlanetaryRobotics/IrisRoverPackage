@@ -158,8 +158,16 @@ unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
         if (len + 8 <= max_l) {
             /* echo back watchdog command header only */
             uart0_tx_nonblocking(8, buf);
+
+            // send garbage to satisfy Hercules
+            // TODO [actually send back telemetry to Alec]
+            unsigned char telbuf[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+            uart0_tx_nonblocking(16, telbuf);
+
             /* add this packet to the IP/UDP stack send buffer */
-            ipudp_send_packet(buf, len);
+            // TEMP TODO: hercules is sending us the ip/udp headers // <- actually not...
+            ipudp_send_packet(buf+8, len);
+//            uart1_tx_nonblocking(len, buf + 8, UA1_ADD_PKT_START | UA1_ADD_PKT_END);
             /* all done */
             return len + 8; // length + 8 = total bytes processed
         } else {

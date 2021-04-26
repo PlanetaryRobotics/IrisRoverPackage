@@ -216,6 +216,21 @@ void uart0_init() {
 }
 
 /**
+ * disable uart 1
+ */
+void uart1_disable() {
+    UCA1CTLW0 = UCSWRST;                    // Put eUSCI_A1 in reset
+
+    /* set P2SEL0.5, P2SEL0.6 to 0 */
+    P2SEL0 &= ~(BIT5 | BIT6);
+    /* set P2SEL1.5, P2SEL1.6 to 0 */
+    P2SEL0 &= ~(BIT5 | BIT6);
+
+    UCA1IE = 0;
+    UCA1CTLW0 = 0; // clear setup
+}
+
+/**
  * Initialize UART1 (Lander <-> watchdog)
  */
 void uart1_init() {

@@ -14,6 +14,7 @@ import traceback
 from typing import Any, List, Type, cast, Union, Dict, Tuple, Optional
 
 import struct
+import math
 import os
 import pickle
 from datetime import datetime, timedelta
@@ -81,8 +82,8 @@ def parse_ip_udp_packet(packet_bytes: bytes) -> Optional[Packet]:
 def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
     # All available packet codecs (in order of use preference):
     codecs: List[Type[Packet]] = [
-        WatchdogTvacHeartbeatPacket,  # Only support watchdog heartbeat here
-        # IrisCommonPacket
+        WatchdogTvacHeartbeatPacket,
+        IrisCommonPacket
     ]
     # Codecs which support this packet:
     supported = [c for c in codecs if c.is_valid(packet_bytes)]
@@ -425,6 +426,111 @@ def load_cache() -> None:
         pass  # Do nothing. This is the first go, there's just nothing to load.
 
 
+def save_pcap(full_packets):
+    pcap_fp = open('data.pcapng', 'wb')
+
+    # build the header block
+    # 28 bytes since no options
+    sh_block = struct.pack('=LLLHHQL', 0x0A0D0D0A, 28, 0x1A2B3C4D, 1, 0,
+                           0xFFFFFFFFFFFFFFFF, 28)
+    pcap_fp.write(sh_block)  # must be 1st block
+
+    # write IDB
+    # 20 bytes since no options
+    idb_block = struct.pack('=LLHHLL', 0x00000001, 20, 228, 0, 0, 20)
+    pcap_fp.write(idb_block)
+
+    # loop through all the bytes and write them out
+    for packet in full_packets:
+        packet_len = len(packet)
+        packet_len_pad = math.ceil(packet_len/4)*4
+        # write out the header
+        packet_block_hdr = struct.pack('=LLL', 0x00000003, 16 + packet_len_pad,
+                                       packet_len)
+        pcap_fp.write(packet_block_hdr)
+
+        # write the packet itself
+        pcap_fp.write(packet)
+
+        # pad
+        pad = (b'\0') * (packet_len_pad - packet_len)
+        if len(pad) > 0:
+            pcap_fp.write(pad)
+
+        # footer
+        packet_block_ftr = struct.pack('=L', 16 + packet_len_pad)
+        pcap_fp.write(packet_block_ftr)
+
+    pcap_fp.close()
+
+
+def stream_data_ip_udp_serial() -> None:
+    escape = False
+    keep_running = True
+    nrx = 0
+    line = b''
+    bin_file = 'file.bin'
+    data_bytes = bytearray(b'')
+    full_packets: List[bytes] = []
+
+    if ser is not None:
+        ready = True
+    else:
+        ready = False
+        cprint("Can't read data, serial connection not started. Try `connect_serial()`.",
+               'red')
+
+    while keep_running and ready:
+        try:  # safety exception catch to keep things running
+            b: Any = ser.read(1)
+            line += b
+            b = int.from_bytes(b, 'big')
+            if escape:
+                if b == 0xDC:
+                    data_bytes.append(0xC0)
+                elif b == 0xDD:
+                    data_bytes.append(0xDB)
+                escape = False
+            else:
+                if b == 0xC0:
+                    if len(data_bytes) >= 1:  # packet baked:
+                        full_packets.append(data_bytes)
+                        # Process it:
+                        packet = parse_ip_udp_packet(data_bytes)
+                        if packet is not None:
+                            # Log the data:
+                            for i in range(len(packet.payloads)):
+                                all_payloads[i].extend(
+                                    packet.payloads[i]  # type: ignore
+                                )
+                                print('')
+                                print(packet)
+                            # Feed the streams:
+                            update_telemetry_streams(packet)
+                        # Move on:
+                        data_bytes = bytearray(b'')
+                    pass
+                elif b == 0xDB:
+                    escape = True
+                else:
+                    data_bytes.append(b)
+                    # data_bytes.append(bytes(b.hex(), 'utf-8'))
+
+            # print stuff
+            # print('%02x ' % b, end='', flush=True)
+            # nrx += 1
+            # if (nrx % 16) == 0:
+            #     print('')
+            #     #print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
+            #     line = b''
+        except KeyboardInterrupt:
+            save_pcap(full_packets)
+        except Exception as e:
+            cprint(
+                f"An otherwise unresolved error occurred during packet streaming: {e}", 'red')
+
+
+"""
 def stream_data_ip_udp_serial() -> None:
     escape = False
     keep_running = True
@@ -456,7 +562,9 @@ def stream_data_ip_udp_serial() -> None:
                 if len(data_bytes) >= 1:  # packet baked:
                     # Process it:
                     packet = parse_ip_udp_packet(data_bytes)
-                    if packet is not None:
+                    if packet is None:
+                        print("\> Empty packet received.")
+                    else:
                         # Log the data:
                         for i in range(len(packet.payloads)):
                             all_payloads[i].extend(
@@ -481,3 +589,4 @@ def stream_data_ip_udp_serial() -> None:
             print('')
             #print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
             line = b''
+"""

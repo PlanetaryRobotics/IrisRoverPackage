@@ -621,6 +621,17 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         total_size += num_payloads * MAGIC_SIZE  # Each will require a magic
         return total_size
 
+    def __repr__(self) -> str:
+        return (
+            f"ICP["
+            f"#{self.common_packet_header.seq_num}::"
+            f"{self.common_packet_header.vlp_len}]: "
+            f"\t{len(self.payloads.TelemetryPayload)} T"  # Telemetry
+            f"\t- {len(self.payloads.EventPayload)} E"
+            f"\t- {len(self.payloads.FileBlockPayload)} B"  # File Blocks
+            f"\t- {len(self.payloads.CommandPayload)} C"
+        )
+
     def __init__(self,
                  payloads: PayloadCollection,
                  seq_num: int = 0,

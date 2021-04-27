@@ -17,6 +17,7 @@
 #define PWM_PERIOD_TICKS            512 // 15.6 KHz @ 16MHz
 #define PWM_HALF_PERIOD_TICKS       256
 #define PI_SPD_CONTROL_PRESCALER    1000 // 15.6 Hz, speed control
+#define OPEN_LOOP_SPEED             25   // estimate of rotational distance (in hall sensor ticks) covered in 1/15.6 [sec] by motor when in open loop
 
 // bits of control register
 #define DRIVE_OPEN_LOOP             1       // first bit of control reg; drive only in open loop if set to 1

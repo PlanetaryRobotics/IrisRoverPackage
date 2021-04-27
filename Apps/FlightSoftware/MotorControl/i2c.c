@@ -20,6 +20,7 @@ extern volatile uint16_t g_maxSpeed;
 extern uint8_t g_statusRegister;
 extern uint8_t g_controlRegister;
 extern uint8_t g_faultRegister;
+extern uint32_t g_drivingTimeoutCtr;
 
 extern uint16_t g_accelRate, g_decelRate;
 
@@ -196,7 +197,9 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
                   (uint8_t*)&g_targetPosition,
                   sizeof(g_targetPosition));
         g_currentPosition = 0;
-        g_statusRegister &= ~POSITION_CONVERGED;
+        g_statusRegister &= ~POSITION_CONVERGED; // likely no longer converged (if still converged, control loop will correct for that)
+        g_drivingTimeoutCtr = 0; //reset timeout counter
+        g_faultRegister = 0; // reset fault register
         break;
       case TARGET_SPEED:
       {

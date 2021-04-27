@@ -17,7 +17,8 @@
 #define PWM_PERIOD_TICKS            512 // 15.6 KHz @ 16MHz
 #define PWM_HALF_PERIOD_TICKS       256
 #define PI_SPD_CONTROL_PRESCALER    1000 // 15.6 Hz, speed control
-#define OPEN_LOOP_SPEED             25   // estimate of rotational distance (in hall sensor ticks) covered in 1/15.6 [sec] by motor when in open loop
+#define OPEN_LOOP_SPEED             3   // estimate of rotational distance (in hall sensor ticks) covered in 1/15.6 [sec] by motor when in open loop
+#define DRIVING_TIMEOUT_THRESHOLD   2000 // how much time in 1/15.6 [sec] before stopping driving (2000 = ~128 seconds)
 
 // bits of control register
 #define DRIVE_OPEN_LOOP             1       // first bit of control reg; drive only in open loop if set to 1
@@ -26,6 +27,7 @@
 #define STATE_MACHINE_RUN           8
 #define OVERRIDE_FAULT_DETECTION   16       // don't reset current & desired position if abnormal behavior detected
 #define EXECUTE_COMMAND            32       // actually drive to command
+#define OPEN_LOOP_TORQUE_OVERRIDE  64
 
 // bits of status register (shares 1,2,4 with control register)
 #define POSITION_CONVERGED      8
@@ -35,6 +37,7 @@
 #define DRIVER_FAULT                1           // for if there is a fault in the DRV8304 motor drivers
 #define POSITION_NO_CHANGE          2           // for if position is not changing at all; could be dead hall sensors
 #define DRIVING_WRONG_DIRECTION     4           // for if motor is driving in wrong direction
+#define DRIVING_TIMEOUT             8           // for if motor does not converge in time defined by DRIVING_TIMEOUT_THRESHOLD
 
 #define ERROR_ITERATION_THRESHOLD   10      // how many iterations motor performance must be funky before driving is stopped
 

@@ -62,6 +62,7 @@ volatile int8_t g_oldTargetDirection;
 uint8_t g_statusRegister;
 volatile uint8_t g_controlRegister;
 volatile uint8_t g_faultRegister;
+volatile uint32_t g_drivingTimeoutCtr;
 uint8_t g_errorCounter= 0; // incremented every time inner control loop is reached and motor is acting strange
                            // if it exceeds ERROR_ITERATION_THRESHOLD then motor is stopped
 
@@ -71,17 +72,8 @@ volatile bool driveOpenLoop = false;
 int g_testeroni = 0;
 volatile uint8_t g_rxBuffer_tmp[I2C_RX_BUFFER_MAX_SIZE];
 
-// i2c debugging
-volatile bool g_i2cSend = 0;
-extern uint8_t g_readRegAddr;
-extern I2cMode g_slaveMode;
-extern uint8_t g_txBuffer[I2C_TX_BUFFER_MAX_SIZE];
-extern uint8_t g_txBufferIdx;
-extern uint8_t g_txByteCtr;
-
 // timing debug
-bool g_updateReadings = false;
-int g_timerTicks = 0;
+bool g_readSensors = false;
 
 
 /**
@@ -609,6 +601,7 @@ void main(void){
   g_currentPosition = 0;
   g_oldPosition = g_currentPosition;
   g_targetPosition = 0;
+  g_drivingTimeoutCtr = 0;
 #ifdef IRIS_SPIN_MOTOR
   g_targetPosition = 8500;//9750; // [DEBUG]
 #endif
@@ -675,7 +668,7 @@ void main(void){
 
   while(1){
       // check if driving in open or closed loop, act accordingly
-      if (g_controlRegister & DRIVE_OPEN_LOOP) {
+      if (g_controlRegister & DRIVE_OPEN_LOOP && g_controlRegister & EXECUTE_COMMAND) {
             //driving open loop
 
             // target position sets direction motor drives in (will NOT converge though)
@@ -690,7 +683,11 @@ void main(void){
                   }
 
                 // apply constant output
-                _iq output = _IQ(0.3);
+                _iq output;
+                if(g_controlRegister & OPEN_LOOP_TORQUE_OVERRIDE)
+                    output = _IQ(g_maxSpeed / MAX_TARGET_SPEED);
+                else
+                    output = _IQ(0.3);
 
                 // apply output as PWM
                 if(g_targetDirection > 0) {
@@ -704,13 +701,16 @@ void main(void){
             if (g_controlPrescaler<=0){
                 g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
                 g_currentPosition += g_targetDirection * OPEN_LOOP_SPEED;
+
+                if(!g_targetReached)
+                    g_drivingTimeoutCtr++;
             }
 
-        } else {
+        } else if (g_controlRegister & EXECUTE_COMMAND){
             // driving closed loop
         // update sensor (Hall & current) readings
-        if(g_updateReadings){
-            g_updateReadings = false;
+        if(g_readSensors){
+            g_readSensors = false;
 
             // measure hall sensors
             readHallSensor();
@@ -819,6 +819,8 @@ void main(void){
               PI_MACRO(g_piSpd);
 
               g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
+              if(!g_targetReached)
+                  g_drivingTimeoutCtr++;
             }
         }
 
@@ -870,7 +872,7 @@ __interrupt void TIMER0_B0_ISR (void){
 
     if(!g_calibrationDone) return;
 
-    g_updateReadings=true; //TODO: rename g_readSensors
+    g_readSensors=true; //TODO: rename g_readSensors
 
     // without conditional can get huge and negative
    if(g_controlPrescaler>0)
@@ -890,6 +892,12 @@ __interrupt void TIMER0_B0_ISR (void){
        } else {
            g_targetReached = false;
            g_statusRegister &= ~POSITION_CONVERGED;
+       }
+
+       if(g_drivingTimeoutCtr > DRIVING_TIMEOUT_THRESHOLD){
+           g_faultRegister |= DRIVING_TIMEOUT;
+           g_targetPosition = g_currentPosition;
+           g_targetReached = true;
        }
    }
 

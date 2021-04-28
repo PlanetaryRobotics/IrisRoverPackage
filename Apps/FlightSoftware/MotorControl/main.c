@@ -1,13 +1,9 @@
 // [DEBUG] Switches
 //#define IRIS_ALL_OFF
 //#define IRIS_CLEAR_FAULT
-#define IRIS_SPIN_MOTOR
+//#define IRIS_SPIN_MOTOR
 //#define IRIS_SPIN_MOTOR_REVERSE
 //#define IRIS_SPIN_MOTOR_INDEF
-
-//#define IRIS_OVERRIDE_SPEED_TO_5cm_s
-//#define IRIS_OVERRIDE_CURRENT_MAX
-//#define IRIS_OVERRIDE_CURRENT_MAX_MULTIPLIER 4.00
 
 #include "main.h"
 
@@ -632,35 +628,22 @@ void main(void){
   g_piCur.Kp = _IQ(KP_CUR);
   g_piCur.Ki = _IQ(KI_CUR);
 
-#ifdef IRIS_OVERRIDE_CURRENT_MAX
-  // [DEBUG]
-  g_piCur.Umax = _IQ(IRIS_OVERRIDE_CURRENT_MAX_MULTIPLIER);
-  g_piCur.Umin = _IQ(IRIS_OVERRIDE_CURRENT_MAX_MULTIPLIER);
-  g_piSpd.Umax = _IQ(IRIS_OVERRIDE_CURRENT_MAX_MULTIPLIER);
-  g_piSpd.Umin = _IQ(IRIS_OVERRIDE_CURRENT_MAX_MULTIPLIER);
-#endif
-
-
   g_closeLoopThreshold = _IQ(CLOSE_LOOP_THRESHOLD);
   g_closedLoop = false;
-  g_controlRegister = 1; //driving open loop //0;
+  g_controlRegister = 0; // 33 = (1 for driving open loop, 32 for execute command)
 
   initializeI2cModule();
   initializePwmModules();
   initializeAdcModule();
   initializeHallInterface();
 
-  __bis_SR_register(GIE);
+  __bis_SR_register(GIE); // enable interrupts (timer & i2c)
 
   currentOffsetCalibration();
 
   enableGateDriver(); // TODO <<<< remove this line
 
 #else
-//    // [DEBUG]
-//    initializeGpios();
-//    long x = PJIN & 0x02;
-
     disableGateDriver();
     asm("  NOP");
 #endif
@@ -872,7 +855,7 @@ __interrupt void TIMER0_B0_ISR (void){
 
     if(!g_calibrationDone) return;
 
-    g_readSensors=true; //TODO: rename g_readSensors
+    g_readSensors=true;
 
     // without conditional can get huge and negative
    if(g_controlPrescaler>0)
@@ -884,20 +867,21 @@ __interrupt void TIMER0_B0_ISR (void){
            g_statusRegister |= POSITION_CONVERGED;
            // turn off output
            _iq output = _IQ(0.0);
-           if(g_targetDirection > 0) {
-               pwmGenerator(g_commState, output);
-           } else{
-               pwmGenerator(g_commState, -output);
-           }
+           pwmGenerator(g_commState, output);
        } else {
+           // target not reached yet
            g_targetReached = false;
            g_statusRegister &= ~POSITION_CONVERGED;
        }
 
+       // check for timeout on conversion toward position goal
        if(g_drivingTimeoutCtr > DRIVING_TIMEOUT_THRESHOLD){
            g_faultRegister |= DRIVING_TIMEOUT;
            g_targetPosition = g_currentPosition;
            g_targetReached = true;
+           // turn off output
+          _iq output = _IQ(0.0);
+          pwmGenerator(g_commState, output);
        }
    }
 

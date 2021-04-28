@@ -1,6 +1,5 @@
 #ifndef MAIN_H_
 #define MAIN_H_
-//#define IRIS_SPIN_HALF_SPEED
 
 /* Include the IQmath header file. */
 #define GLOBAL_IQ                   15
@@ -54,16 +53,7 @@
 
 #define ONE_OVER_4096           0.0002441
 
-#ifdef IRIS_OVERRIDE_SPEED_TO_5cm_s
-    #define MAX_TARGET_SPEED                   345
-#endif
-#ifdef IRIS_SPIN_HALF_SPEED
-    #define MAX_TARGET_SPEED                   50
-#else
-    #define MAX_TARGET_SPEED                   100U
-#endif
-
-#define MIN_TARGET_SPEED                  -MAX_TARGET_SPEED
+#define MAX_TARGET_SPEED                   100U
 
 inline _iq _IQ15mpy_inline(_iq,_iq);
 

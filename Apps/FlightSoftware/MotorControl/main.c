@@ -630,7 +630,7 @@ void main(void){
 
   g_closeLoopThreshold = _IQ(CLOSE_LOOP_THRESHOLD);
   g_closedLoop = false;
-  g_controlRegister = 0; // 33 = (1 for driving open loop, 32 for execute command)
+  g_controlRegister = 32; // 33 = (1 for driving open loop, 32 for execute command)
 
   initializeI2cModule();
   initializePwmModules();
@@ -650,6 +650,19 @@ void main(void){
 
 
   while(1){
+      // check if target reached
+      if  (_IQabs(g_targetPosition - g_currentPosition) < 100) {
+            g_targetReached = true;
+            g_statusRegister |= POSITION_CONVERGED;
+            // turn off output
+            _iq output = _IQ(0.0);
+            pwmGenerator(g_commState, output);
+        } else {
+            // target not reached yet
+            g_targetReached = false;
+            g_statusRegister &= ~POSITION_CONVERGED;
+        }
+
       // check if driving in open or closed loop, act accordingly
       if (g_controlRegister & DRIVE_OPEN_LOOP && g_controlRegister & EXECUTE_COMMAND) {
             //driving open loop
@@ -860,30 +873,7 @@ __interrupt void TIMER0_B0_ISR (void){
     // without conditional can get huge and negative
    if(g_controlPrescaler>0)
        g_controlPrescaler = g_controlPrescaler -1;
-   else{
-       // check if target reached
-       if  (_IQabs(g_targetPosition - g_currentPosition) < 100) {
-           g_targetReached = true;
-           g_statusRegister |= POSITION_CONVERGED;
-           // turn off output
-           _iq output = _IQ(0.0);
-           pwmGenerator(g_commState, output);
-       } else {
-           // target not reached yet
-           g_targetReached = false;
-           g_statusRegister &= ~POSITION_CONVERGED;
-       }
 
-       // check for timeout on conversion toward position goal
-       if(g_drivingTimeoutCtr > DRIVING_TIMEOUT_THRESHOLD){
-           g_faultRegister |= DRIVING_TIMEOUT;
-           g_targetPosition = g_currentPosition;
-           g_targetReached = true;
-           // turn off output
-          _iq output = _IQ(0.0);
-          pwmGenerator(g_commState, output);
-       }
-   }
 
   return;
 

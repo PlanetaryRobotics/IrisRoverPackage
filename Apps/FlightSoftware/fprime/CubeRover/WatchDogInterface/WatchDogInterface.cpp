@@ -282,7 +282,7 @@ namespace CubeRover {
       if(reset_value < No_Reset && reset_value >= reset_values_possible_MAX)
       {
         this->log_WARNING_LO_WatchDogIncorrectResetValue();
-        return;
+        return false;
       }
       
       // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()

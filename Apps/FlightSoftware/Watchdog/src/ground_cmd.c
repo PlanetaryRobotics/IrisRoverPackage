@@ -15,7 +15,7 @@
 #include "include/flags.h"
 #include "include/i2c.h"
 
-extern uint8_t heating, heatingControlEnabled, heaterStatus;
+extern uint8_t heatingControlEnabled, heaterStatus;
 extern uint16_t Kp_heater, heater_setpoint, heater_window, PWM_limit, heater_on_val, heater_off_val;
 
 void enterMode(enum rover_state newstate);

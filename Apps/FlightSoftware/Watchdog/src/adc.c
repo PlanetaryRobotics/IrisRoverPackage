@@ -8,14 +8,18 @@
  * ADC pins are as follows:
  * P4.0, P4.1, P4.2, P4.3, P3.0 are all analog inputs
  *
+ * Vref = 2.5 V (originally thought it would be 3.3V)
+ *
  * Port | Expected voltage             | Expected reading (12-bit) |
  * -----|------------------------------|---------------------------|
- * P4.0 | 2.50V                        | 3103                      |
- * P4.1 | 2.80V                        | 3475                      |
- * P4.2 | 2.55V (1:11 divider of 28V)  | 3165                      |
- * P4.3 | 2.99V (~1:8 divider of 24V)  | 3711                      |
- * P3.0 | ???                          | Manually calibrated       |
+ * P4.0 | 2.50V                        | 4095                      |
+ * P4.1 | 2.80V                        | 4095                      |
+ * P4.2 | 2.55V (1:11 divider of 28V)  | 4095                      |
+ * P4.3 | 2.99V (~1:8 divider of 24V)  | 4095                      |
+ * P3.0 | see document below           | Manually calibrated       |
  *
+ * Thermistor (P3.0) expected voltages given temp:
+ *          https://drive.google.com/file/d/1rxdHpPYH3jQ4o-HlOHyc0wqWvTNbUub2/view?usp=sharing
  * "The ADC12_B supports 8-bit, 10-bit, and 12-bit resolution modes,
  * and the ADC12RES bits select the current mode. The analog-to-digital
  * conversion requires 10, 12, and 14 ADC12CLK cycles, respectively."
@@ -25,6 +29,8 @@
  * 12-bit: LSB = 0.0008056640625V
  */
 
+/* function definitions in ground_cmd.c */
+void reply_ground_cmd(uint8_t cmdid, uint8_t error_no);
 
 void adc_init() {
     // Set the correct settings for various inputs
@@ -95,14 +101,13 @@ void adc_setup_mission() { // set up adc to read values for mission mode (voltag
     ADC12IER0 = ADC12IE2;
 
     // set up the ADC for the mission state
-    ADC12MCTL0 = ADC12INCH_8 | ADC12VRSEL_1; // A8 = P4.0 stored in MEM0
-    ADC12MCTL1 = ADC12INCH_9 | ADC12VRSEL_1; // A9 = P4.1 stored in MEM1
-    ADC12MCTL2 = ADC12INCH_11 | ADC12VRSEL_1 | ADC12EOS; // A11 = P4.3 stored in MEM2
+    ADC12MCTL0 = ADC12INCH_8 | ADC12VRSEL_1; // A8 = P4.0 stored in MEM0 (Vcc 2.5V)
+    ADC12MCTL1 = ADC12INCH_9 | ADC12VRSEL_1; // A9 = P4.1 stored in MEM1 (Vcc 2.8V)
+    ADC12MCTL2 = ADC12INCH_11 | ADC12VRSEL_1 | ADC12EOS; // A11 = P4.3 stored in MEM2 (Vcc 24V divided down)
 
     // clear sample ready, if set
     watchdog_flags &= ~WDFLAG_ADC_READY;
 }
-
 
 /**
  * @brief take one sample of the ADC
@@ -129,7 +134,12 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
 {
     switch (__even_in_range(ADC12IV, ADC12IV_ADC12RDYIFG)) {
     case ADC12IV_ADC12IFG2: // ADC12IE2 interrupt
+//        adc_values[2] = ADC12MEM2; // Save MEM2
         adc_values[2] = ADC12MEM2; // Save MEM2
+        adc_values[1] = ADC12MEM1; // Save MEM1
+        adc_values[0] = ADC12MEM0; // Save MEM0
+        watchdog_flags |= WDFLAG_ADC_READY; // signal ready to main loop
+        break;
     case ADC12IV_ADC12IFG1: // ADC12IE1 interrupt
         adc_values[1] = ADC12MEM1; // Save MEM1
         adc_values[0] = ADC12MEM0; // Save MEM0

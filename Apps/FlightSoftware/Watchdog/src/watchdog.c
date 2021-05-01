@@ -23,7 +23,7 @@ uint8_t handle_watchdog_reset_cmd(uint8_t cmd);
 volatile uint16_t watchdog_flags;
 
 // for heater control
-uint16_t Kp_heater = 500, PWM_limit = 0, heater_setpoint = 3325, heater_window = 60, PWM_limit;
+uint16_t Kp_heater = 500, PWM_limit = 0, heater_setpoint = 3325, heater_window = 60;
 uint16_t heater_on_val = 3670;  // -5 C thermistor voltage ADC reading
 uint16_t heater_off_val = 3352; // 0 C thermistor voltage ADC reading
 uint8_t heating = 0;
@@ -161,7 +161,14 @@ unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
 
             // send garbage to satisfy Hercules
             // TODO [actually send back telemetry to Alec]
-            unsigned char telbuf[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+            unsigned char telbuf[16];
+            telbuf[0] = (uint8_t)(adc_values[ADC_2V5_LEVEL_IDX]);
+            telbuf[1] = (uint8_t)(adc_values[ADC_2V5_LEVEL_IDX] >> 8);
+            telbuf[2] = (uint8_t)(adc_values[ADC_2V8_LEVEL_IDX]);
+            telbuf[3] = (uint8_t)(adc_values[ADC_2V8_LEVEL_IDX] >> 8);
+
+            telbuf[9] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
+//            = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
             uart0_tx_nonblocking(16, telbuf);
 
             /* add this packet to the IP/UDP stack send buffer */

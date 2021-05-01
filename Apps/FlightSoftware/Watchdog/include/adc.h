@@ -19,6 +19,7 @@ void adc_init();
 
 void adc_setup_lander();
 void adc_setup_mission();
+void adc_check_voltage_levels();
 
 /**
  * @brief Take one ADC sample

@@ -62,6 +62,7 @@ void enterMode(enum rover_state newstate) {
         adc_setup_lander();
         enableBatteries();      // need enable batteries to read from fuel gauge
         enableHeater();
+        startChargingBatteries();
         break;
     case RS_MISSION:
         /* bootup process - enable all rails */
@@ -74,7 +75,7 @@ void enterMode(enum rover_state newstate) {
         uart0_init();
 
         /* start monitoring only mission-relevant voltages */
-        adc_setup_lander();
+        adc_setup_mission();
 
         /* power everything on and release resets */
         powerOnHercules();
@@ -84,9 +85,10 @@ void enterMode(enum rover_state newstate) {
         powerOnRadio();
         releaseRadioReset();
         releaseFPGAReset();
+        stopChargingBatteries();
 
-//        __delay_cycles(1234567); //give fuel gauge time to start up
-//        initializeFuelGauge();
+        __delay_cycles(1234567); //give fuel gauge time to start up
+        initializeFuelGauge();
         releaseMotorsReset();
         /* TODO: do we want to do it in this order? */
 
@@ -132,7 +134,7 @@ int main(void) {
     i2c_init();
 
     /* enter keepalive mode */
-    enterMode(RS_KEEPALIVE);
+    enterMode(RS_MISSION);
 
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();
@@ -151,7 +153,7 @@ int main(void) {
             __bis_SR_register(GIE);
             continue;
         }
-
+        ipudp_send_packet("deal with stuff now!", 20); // @suppress("Invalid arguments")
 
         /* a cool thing happened! now time to check what it was */
         if (loop_flags & FLAG_UART0_RX_PACKET) {
@@ -168,7 +170,6 @@ int main(void) {
                         uart0rx.buf[i + 2] == 0x21) {
                     /* magic value rx'd! check parity */
                     uint8_t parity = 0xDC; /* sum of 0x21, 0xB0, and 0x0B */
-                    /* skip parity byte (i + 3) in summation */
                     parity += uart0rx.buf[i + 4] + uart0rx.buf[i + 5];
                     parity += uart0rx.buf[i + 6] + uart0rx.buf[i + 7];
                     /* bitwise NOT to compute parity */
@@ -248,7 +249,7 @@ int main(void) {
                 break;
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */
-//                updateGaugeReadings();
+                updateGaugeReadings();
                 send_earth_heartbeat();
                 watchdog_monitor();
                 break;

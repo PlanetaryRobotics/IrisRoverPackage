@@ -175,8 +175,8 @@ namespace CubeRover {
                                                               U32 PI_Values)
   {
     MCError_t err;
-    uint16_t P_Value = (uint16_t)((PI_Values & (uint32_t)0x00ff) >> 0 );
-    uint16_t I_Value = (uint16_t)((PI_Values & (uint32_t)0xff00) >> 16);
+    uint16_t P_Value = (uint16_t)((PI_Values & (uint32_t)0x0000ffff) >> 0 );
+    uint16_t I_Value = (uint16_t)((PI_Values & (uint32_t)0xffff0000) >> 16);
 
     if (Motor_ID == ALL_MOTOR_ID) {
         err = sendAllMotorsData(REG_P_CURRENT, &P_Value);
@@ -221,8 +221,8 @@ namespace CubeRover {
                                                             U32 PID_Values)
   {
     MCError_t err;
-    uint16_t P_Value = (uint16_t)((PID_Values & (uint32_t)0x00ff) >> 0 );
-    uint16_t I_Value = (uint16_t)((PID_Values & (uint32_t)0xff00) >> 16);
+    uint16_t P_Value = (uint16_t)((PID_Values & (uint32_t)0x0000ffff) >> 0 );
+    uint16_t I_Value = (uint16_t)((PID_Values & (uint32_t)0xffff0000) >> 16);
     
     if (Motor_ID == ALL_MOTOR_ID) {
         err = sendAllMotorsData(REG_P_SPEED, &P_Value);

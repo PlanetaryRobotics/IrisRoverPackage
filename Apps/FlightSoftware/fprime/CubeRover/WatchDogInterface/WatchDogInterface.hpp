@@ -235,8 +235,9 @@ namespace CubeRover {
          int16_t voltage_28V;   // Current measured voltage of the 28V line as read from the Watchdog
          int8_t battery_thermistor;   // Current measured voltage of the watchdog battery thermistor as read from the Watchdog
          int8_t sys_status;   // 8 bit systems status where each bit represents a watchdog status
-         int16_t battery_level;   // Current measured battery voltage as read from the Watchdog
-         int32_t battery_current;   // Current measured battery current as read from the Watchdog
+         int16_t battery_level;   // Current measured battery mAH as read from the Watchdog
+         int16_t battery_current;   // Current measured battery current as read from the Watchdog
+         int16_t battery_voltage;   // Voltage measured battery current as read from the Watchdog
      } __attribute__((packed, aligned(8)));
 
      // Incorrect Response Possible Values

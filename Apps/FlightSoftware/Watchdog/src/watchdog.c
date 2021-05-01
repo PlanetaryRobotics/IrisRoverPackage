@@ -159,16 +159,9 @@ unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
             /* echo back watchdog command header only */
             uart0_tx_nonblocking(8, buf);
 
-            // send garbage to satisfy Hercules
-            // TODO [actually send back telemetry to Alec]
-            unsigned char telbuf[16];
-            telbuf[0] = (uint8_t)(adc_values[ADC_2V5_LEVEL_IDX]);
-            telbuf[1] = (uint8_t)(adc_values[ADC_2V5_LEVEL_IDX] >> 8);
-            telbuf[2] = (uint8_t)(adc_values[ADC_2V8_LEVEL_IDX]);
-            telbuf[3] = (uint8_t)(adc_values[ADC_2V8_LEVEL_IDX] >> 8);
-
-            telbuf[9] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
-//            = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+            // Build telemetry packet for Hercules
+            // TODO: shouldn't need to send bytes here, but Herc gets upset if we don't
+            unsigned char telbuf[16] = {0};
             uart0_tx_nonblocking(16, telbuf);
 
             /* add this packet to the IP/UDP stack send buffer */
@@ -210,8 +203,32 @@ unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
             /* echo back watchdog command header */
             uart0_tx_nonblocking(8, buf);
             /* also attach telemetry values */
-            // TODO: telemetry send
-            unsigned char telbuf[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+            // Build telemetry packet for Hercules
+            unsigned char telbuf[16] = {0};
+            if(rovstate == RS_KEEPALIVE || rovstate == RS_SERVICE){
+                // no power on 2V5, 2V8, battery
+                telbuf[6] = (uint8_t)(adc_values[ADC_LANDER_LEVEL_IDX]);
+                telbuf[7] = (uint8_t)(adc_values[ADC_LANDER_LEVEL_IDX] >> 8);
+                telbuf[8] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
+                //telbuf[9] = (unit8_t)( sys_status (??) )
+            } else if (rovstate == RS_MISSION){
+                telbuf[0] = (uint8_t)(adc_values[ADC_2V5_LEVEL_IDX]);
+                telbuf[1] = (uint8_t)(adc_values[ADC_2V5_LEVEL_IDX] >> 8);
+                telbuf[2] = (uint8_t)(adc_values[ADC_2V8_LEVEL_IDX]);
+                telbuf[3] = (uint8_t)(adc_values[ADC_2V8_LEVEL_IDX] >> 8);
+                telbuf[4] = (uint8_t)(adc_values[ADC_BATT_LEVEL_IDX]);
+                telbuf[5] = (uint8_t)(adc_values[ADC_BATT_LEVEL_IDX] >> 8);
+                // [6,7] won't be able to read lander power in mission mode
+                // [8] currently don't read battery temp in mission mode
+                //telbuf[9] = (unit8_t)( sys_status (??) )
+                telbuf[10] = (uint8_t)(raw_battery_charge[0]);
+                telbuf[11] = (uint8_t)(raw_battery_charge[1]);
+                telbuf[12] = (uint8_t)(raw_battery_current[0]);
+                telbuf[13] = (uint8_t)(raw_battery_current[1]);
+                telbuf[14] = (uint8_t)(raw_battery_voltage[0]);
+                telbuf[15] = (uint8_t)(raw_battery_voltage[1]);
+//                telbuf[9] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
+            }
             uart0_tx_nonblocking(16, telbuf);
         }
 

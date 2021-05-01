@@ -332,14 +332,18 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
 /**
  * Parse a ground command
  *
- * Will
- *
  * @param pp: Buffer containing the parsed packet. idx = index to start parsing at
  * and used = maximum value of idx
  */
 void parse_ground_cmd(struct buffer *pp) {
     unsigned char *buf;
     uint16_t pp_len, packet_len;
+
+    /* temporary: echo back everything */
+    // TODO: debug test
+    if (pp->used >= 2 && pp->buf[0] == 0xDE && pp->buf[1] == 0xAD) {
+        __delay_cycles(10000);
+    }
 
     /* parse the ip and udp headers */
     buf = ipudp_parse_packet(pp, &pp_len);
@@ -350,6 +354,7 @@ void parse_ground_cmd(struct buffer *pp) {
     }
 
     /* check that the length is greater than the base sane amount */
+    // TODO: pp->used < pp_len ||  check ?
     if (pp_len < 11) {
         /* malformed packet length */
         reply_ground_cmd(0, GNDRESP_EPACKETLEN);
@@ -377,8 +382,13 @@ void parse_ground_cmd(struct buffer *pp) {
     } else {
         /* forward it on to hercules */
         // copy the buffer into the hercules buffer
-        memcpy(hercbuf.buf + hercbuf.idx, pp->buf, pp->used); // @suppress("Invalid arguments")
-        hercbuf.idx += pp->used;
+        memcpy(hercbuf.buf + hercbuf.used, pp->buf, pp->used); // @suppress("Invalid arguments")
+        hercbuf.used += pp->used;
+        if (hercbuf.used > BUFFER_SIZE) {
+            // TODO: better logic here. should overwrite old like a ring buffer, not just
+            // reset from 0
+            hercbuf.used = 0;
+        }
     }
 
     /* done parsing */
@@ -392,6 +402,7 @@ void parse_ground_cmd(struct buffer *pp) {
  */
 void send_earth_heartbeat() {
     static uint8_t counter = 0;
+    uint8_t send_buf[32];
     if (counter % 3 != 2) {
         // send every 2 seconds
         counter++;
@@ -399,94 +410,89 @@ void send_earth_heartbeat() {
     }
     counter = 0;
 
-    pbuf.used = 0;
-    pbuf.idx = 0;
-
     // build the packet
-    pbuf.buf[0] = 0xFF;
+    send_buf[0] = 0xFF;
     // TODO: tvac changes
     // send adc value temperature
-    pbuf.buf[1] = (uint8_t)(adc_values[ADC_TEMP_IDX]);
-    pbuf.buf[2] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 8);
+    send_buf[1] = (uint8_t)(adc_values[ADC_TEMP_IDX]);
+    send_buf[2] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 8);
 
     // send adc value temperature
-    pbuf.buf[3] = (uint8_t)(raw_battery_charge[0]);
-    pbuf.buf[4] = (uint8_t)(raw_battery_charge[1]);
+    send_buf[3] = (uint8_t)(raw_battery_charge[0]);
+    send_buf[4] = (uint8_t)(raw_battery_charge[1]);
 
     // send adc value temperature
-    pbuf.buf[5] = (uint8_t)(raw_battery_voltage[0]);
-    pbuf.buf[6] = (uint8_t)(raw_battery_voltage[1]);
+    send_buf[5] = (uint8_t)(raw_battery_voltage[0]);
+    send_buf[6] = (uint8_t)(raw_battery_voltage[1]);
 
     // send adc value temperature
-    pbuf.buf[7] = (uint8_t)(raw_battery_current[0]);
-    pbuf.buf[8] = (uint8_t)(raw_battery_current[1]);
+    send_buf[7] = (uint8_t)(raw_battery_current[0]);
+    send_buf[8] = (uint8_t)(raw_battery_current[1]);
 
     // send adc value temperature
-    pbuf.buf[9] = (uint8_t)(raw_fuel_gauge_temp[0]);
-    pbuf.buf[10] = (uint8_t)(raw_fuel_gauge_temp[1]);
+    send_buf[9] = (uint8_t)(raw_fuel_gauge_temp[0]);
+    send_buf[10] = (uint8_t)(raw_fuel_gauge_temp[1]);
 
     // send ASDF
-    pbuf.buf[11] = (uint8_t)(Kp_heater);
-    pbuf.buf[12] = (uint8_t)(Kp_heater >> 8);
+    send_buf[11] = (uint8_t)(Kp_heater);
+    send_buf[12] = (uint8_t)(Kp_heater >> 8);
 
     // send ASDF
-    pbuf.buf[13] = (uint8_t)(heater_setpoint);
-    pbuf.buf[14] = (uint8_t)(heater_setpoint >> 8);
+    send_buf[13] = (uint8_t)(heater_setpoint);
+    send_buf[14] = (uint8_t)(heater_setpoint >> 8);
 
     // send ASDF
-    pbuf.buf[15] = (uint8_t)(heater_window);
-    pbuf.buf[16] = (uint8_t)(heater_window >> 8);
+    send_buf[15] = (uint8_t)(heater_window);
+    send_buf[16] = (uint8_t)(heater_window >> 8);
 
     // send ASDF
-    pbuf.buf[17] = (uint8_t)(PWM_limit);
-    pbuf.buf[18] = (uint8_t)(PWM_limit >> 8);
+    send_buf[17] = (uint8_t)(PWM_limit);
+    send_buf[18] = (uint8_t)(PWM_limit >> 8);
 
     // send ASDF
 
     // send the current heating status
-    pbuf.buf[19] = 0;
-    pbuf.buf[20] = heaterStatus;
-    pbuf.buf[21] = heatingControlEnabled;
+    send_buf[19] = 0;
+    send_buf[20] = heaterStatus;
+    send_buf[21] = heatingControlEnabled;
     switch (rovstate) {
     case RS_SLEEP:
-        pbuf.buf[19] |= 0x02;
+        send_buf[19] |= 0x02;
         break;
     case RS_SERVICE:
-        pbuf.buf[19] |= 0x04;
+        send_buf[19] |= 0x04;
         break;
     case RS_KEEPALIVE:
-        pbuf.buf[19] |= 0x08;
+        send_buf[19] |= 0x08;
         break;
     case RS_MISSION:
-        pbuf.buf[19] |= 0x10;
+        send_buf[19] |= 0x10;
         break;
     case RS_FAULT:
-        pbuf.buf[19] |= 0x20;
+        send_buf[19] |= 0x20;
         break;
     }
 
     // send ASDF
-    pbuf.buf[22] = (uint8_t)(TB0CCR2);
-    pbuf.buf[23] = (uint8_t)(TB0CCR2 >> 8);
-
-    pbuf.used += 24;
+    send_buf[22] = (uint8_t)(TB0CCR2);
+    send_buf[23] = (uint8_t)(TB0CCR2 >> 8);
 
     /*
     // send the battery voltage
-    pbuf.buf[1] = (uint8_t)(raw_battery_voltage[0] >> 1); //TODO: fix this
-    pbuf.buf[1] = pbuf.buf[1] << 1;
+    send_buf[1] = (uint8_t)(raw_battery_voltage[0] >> 1); //TODO: fix this
+    send_buf[1] = send_buf[1] << 1;
     // send heater on status
-    pbuf.buf[1] |= heaterStatus & 0x1;
+    send_buf[1] |= heaterStatus & 0x1;
     // battery current
-    pbuf.buf[2] = (uint8_t)(raw_battery_current[0] >> 1); //TODO: fix this
+    send_buf[2] = (uint8_t)(raw_battery_current[0] >> 1); //TODO: fix this
     // send voltage nominal status
-    pbuf.buf[2] |= 0x1; // TODO: fix this
+    send_buf[2] |= 0x1; // TODO: fix this
     // send the thermistor temperature (12 bits to 8 bits)
-    pbuf.buf[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
+    send_buf[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
     pbuf.used += 4;*/
 
     // send the packet!
-    ipudp_send_packet(pbuf.buf, pbuf.used); // @suppress("Invalid arguments")
+    ipudp_send_packet(send_buf, 24); // @suppress("Invalid arguments")
 }
 
 

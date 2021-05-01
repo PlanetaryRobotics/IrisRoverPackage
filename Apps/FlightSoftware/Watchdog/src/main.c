@@ -13,7 +13,7 @@
 
 
 /* define all of the buffers used in other files */
-__volatile struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx, hercbuf;
+__volatile struct buffer uart0rx, uart0tx, uart1rx, uart1tx, hercbuf;
 __volatile uint16_t loop_flags;
 extern uint8_t heating;
 uint8_t lastHeater = 0;
@@ -153,19 +153,18 @@ int main(void) {
             __bis_SR_register(GIE);
             continue;
         }
-        ipudp_send_packet("deal with stuff now!", 20); // @suppress("Invalid arguments")
 
         /* a cool thing happened! now time to check what it was */
         if (loop_flags & FLAG_UART0_RX_PACKET) {
             // temporarily disable uart0 interrupt
             UCA0IE &= ~UCRXIE;
+            __bic_SR_register(GIE);
             unsigned int i = 0, process_len = 0;
             i = 0;
             // header is 8 bytes long
             while (i + 8 <= uart0rx.idx) {
 
                 /* check input value */
-
                 if (uart0rx.buf[i] == 0x0B && uart0rx.buf[i + 1] == 0xB0 &&
                         uart0rx.buf[i + 2] == 0x21) {
                     /* magic value rx'd! check parity */
@@ -204,27 +203,22 @@ int main(void) {
             }
 
             // re-enable uart0 interrupt
+            __bis_SR_register(GIE);
             UCA0IE |= UCRXIE;
 
             /* clear event when done */
             loop_flags ^= FLAG_UART0_RX_PACKET;
         }
         if (loop_flags & FLAG_UART1_RX_PACKET) {
-            // temporarily disable uart1 interrupt
+            // temporarily disable uart1 rx interrupt
             UCA1IE &= ~UCRXIE;
-            /* copy over the bytes into a processing buffer */
-            pbuf.used = uart1rx.idx;
-            /* reset uart1rx */
+            uart1rx.used = uart1rx.idx;
             uart1rx.idx = 0;
-            /* copy over uart1rx buffer into processing buffer */
-            memcpy(pbuf.buf, uart1rx.buf, pbuf.used);  // @suppress("Invalid arguments")
-            pbuf.idx = 0;
-            /* clear event */
+            parse_ground_cmd(&uart1rx); // @suppress("Invalid arguments")
             loop_flags ^= FLAG_UART1_RX_PACKET;
             // re-enable uart1 interrupt
             UCA1IE |= UCRXIE;
             /* parse the packet */
-            parse_ground_cmd(&pbuf); // @suppress("Invalid arguments")
         }
         if (loop_flags & FLAG_I2C_RX_PACKET) {
             /* TODO: handle event for power system message */

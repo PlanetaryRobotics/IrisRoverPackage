@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 // TODO: running out of memory again :/ need to optimize buffers
-#define BUFFER_SIZE 500
+#define BUFFER_SIZE 750
 
 struct buffer {
     /* the actual array of characters */
@@ -19,10 +19,13 @@ struct buffer {
 
     /* number of bytes used in the buffer */
     uint16_t used;
+
+    /* whether this buffer is locked */
+    volatile uint8_t locked;
 };
 
 /* all of the buffers that exist; total = 3KiB used for tx/rx buffers */
-__volatile extern struct buffer pbuf, uart0rx, uart0tx, uart1rx, uart1tx, hercbuf;
+__volatile extern struct buffer uart0rx, uart0tx, uart1rx, uart1tx, hercbuf;
 
 /**
  * Allocate n bytes in the buffer x.

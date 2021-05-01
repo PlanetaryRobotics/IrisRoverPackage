@@ -93,6 +93,8 @@ void __attribute__ ((interrupt(EUSCI_A1_VECTOR))) USCI_A1_ISR (void) {
         if (uart1tx.used == 0) {
             /* done sending after this byte; clear IFG */
             UCA1IE &= ~UCTXIE;
+            /* unlock the buffer */
+            uart1tx.locked = 0;
         }
 
         /* send the next byte */
@@ -235,6 +237,7 @@ void uart1_disable() {
 void uart1_init() {
     uart1tx.idx = 0;
     uart1tx.used = 0;
+    uart1tx.locked = 0;
     uart1rx.idx = 0;
     uart1rx.used = 0;
 
@@ -283,12 +286,18 @@ void uart0_tx_nonblocking(uint16_t length, unsigned char *buffer) {
 void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer, uint8_t opts) {
     uint16_t i=0;
     unsigned char b;
-    uint16_t curr_idx = uart1tx.idx + uart1tx.used;
+    uint16_t curr_idx;
+
+    // wait for the buffer to be unlocked
+    while (uart1tx.locked) __delay_cycles(100);
 
     // disable interrupts to prevent race conditions
     UCA1IE &= ~UCTXIE;
     // disable interrupts
     __bic_SR_register(GIE);
+
+    // get the current base index
+    curr_idx = uart1tx.idx + uart1tx.used;
 
     // TODO: maybe we should do SLIP encoding in the interrupt handler instead,
     // so that we can have a deterministic MTU
@@ -335,6 +344,7 @@ void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer, uint8_t opts) 
     }
 
     /* start interrupts for sending async */
+    uart1tx.locked = 1;
     __bis_SR_register(GIE);
     UCA1IE |= UCTXIE;
 }

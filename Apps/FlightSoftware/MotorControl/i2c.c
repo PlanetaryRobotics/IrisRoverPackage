@@ -1,5 +1,6 @@
 #include "i2c.h"
 
+// variables for i2c fucntionality
 volatile uint8_t g_rxBuffer[I2C_RX_BUFFER_MAX_SIZE];
 volatile uint8_t g_txBuffer[I2C_TX_BUFFER_MAX_SIZE];
 volatile uint8_t g_rxBufferIdx;
@@ -9,8 +10,9 @@ volatile uint8_t g_txByteCtr;
 volatile I2cMode g_slaveMode;
 volatile uint8_t g_i2cSlaveAddress;
 volatile uint8_t g_readRegAddr;
+volatile uint8_t g_i2cCmdLength[MAX_NB_CMDS];
 
-
+// external variables that are written and read to
 extern volatile _iq g_currentSpeed;
 extern volatile int32_t g_currentPosition;
 extern volatile int32_t g_targetPosition;
@@ -21,17 +23,8 @@ extern uint8_t g_statusRegister;
 extern uint8_t g_controlRegister;
 extern uint8_t g_faultRegister;
 extern uint32_t g_drivingTimeoutCtr;
-
 extern uint16_t g_accelRate, g_decelRate;
-
-int16_t g_transmitCurrentPosition;
-
-volatile uint8_t g_i2cCmdLength[MAX_NB_CMDS];
-
 extern CmdState g_cmdState;
-extern bool driveOpenLoop;
-
-extern bool g_i2cSend;
 
 
 /**
@@ -126,7 +119,6 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
         g_slaveMode = TX_DATA_MODE;
         g_txByteCtr = g_i2cCmdLength[cmd];
         //Fill out the TransmitBuffer
-//        int16_t current_info = (int16_t)g_piCur.Fbk; // top 16 MSBs empty
         copyArray((uint8_t*)&g_piCur.Fbk, (uint8_t*)g_txBuffer, g_txByteCtr);
         disableI2cRxInterrupt();
         enableI2cTxInterrupt();
@@ -196,7 +188,7 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
         copyArray((uint8_t*)g_rxBuffer,
                   (uint8_t*)&g_targetPosition,
                   sizeof(g_targetPosition));
-        g_currentPosition = 0;
+        g_currentPosition = 0; // reset because target pos is relative
         g_statusRegister &= ~POSITION_CONVERGED; // likely no longer converged (if still converged, control loop will correct for that)
         g_drivingTimeoutCtr = 0; //reset timeout counter
         g_faultRegister = 0; // reset fault register
@@ -206,9 +198,6 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
         copyArray((uint8_t*)g_rxBuffer,
                   (uint8_t*)&g_maxSpeed,
                   sizeof(g_maxSpeed));
-//        if(g_maxSpeed > MAX_TARGET_SPEED){
-//            g_maxSpeed = MAX_TARGET_SPEED;
-//        }
         break;
       }
       case P_CURRENT:
@@ -283,7 +272,8 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
 
 
 /**
- * @brief      Initializes the command length.
+ * @brief      Initializes the command length
+ *              (expected # of bytes to read/write for each register)
  */
 void initializeCmdLength(){
   g_i2cCmdLength[I2C_ADDRESS] = 1;
@@ -365,11 +355,13 @@ __interrupt void USCI_B0_ISR(void){
       rxBuf = UCB0RXBUF;
       switch(g_slaveMode){
         case RX_REG_ADDRESS_MODE:
+            // switch state based on which register master wants to interact with (all read only OR write only)
           TB0CCTL0 = 0x0000; // Turn off timer interrupt
           g_readRegAddr = rxBuf;
           i2cSlaveProcessCmd(g_readRegAddr);
           break;
         case RX_DATA_MODE:
+            // master is writing bytes to us
           g_rxBuffer[g_rxBufferIdx++] = rxBuf;
           g_rxByteCtr--;
           if(g_rxByteCtr == 0){
@@ -389,6 +381,7 @@ __interrupt void USCI_B0_ISR(void){
     case USCI_I2C_UCTXIFG0:                 // Vector 24: TXIFG0
       switch(g_slaveMode){
         case TX_DATA_MODE:
+            // master is reading bytes from us
           UCB0TXBUF = g_txBuffer[g_txBufferIdx++];
           g_txByteCtr--;
           if(g_txByteCtr == 0){

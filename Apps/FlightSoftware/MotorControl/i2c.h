@@ -45,19 +45,6 @@ typedef enum I2cMode{
     TIMEOUT_MODE
 }I2cMode;
 
-
-typedef struct I2cPacket{
-    uint8_t header;
-    uint8_t dataSize;
-    uint8_t regId;
-    uint8_t data[I2C_MAX_DATA_SIZE];
-
-}I2cPacket;
-
-bool readI2cData(I2cPacket *pckt);
 void initializeI2cModule();
-//void disableI2cTxInterrupt();
-//void enableI2cRxInterrupt();
-//void i2cSlaveTransactionDone(const uint8_t cmd);
 
 #endif /* I2C_H_ */

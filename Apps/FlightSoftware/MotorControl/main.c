@@ -62,12 +62,6 @@ volatile uint32_t g_drivingTimeoutCtr;
 uint8_t g_errorCounter= 0; // incremented every time inner control loop is reached and motor is acting strange
                            // if it exceeds ERROR_ITERATION_THRESHOLD then motor is stopped
 
-// backup plan for if we cannot get encoder readings
-volatile bool driveOpenLoop = false;
-
-int g_testeroni = 0;
-volatile uint8_t g_rxBuffer_tmp[I2C_RX_BUFFER_MAX_SIZE];
-
 // timing debug
 bool g_readSensors = false;
 
@@ -572,9 +566,6 @@ void main(void){
 
   initializeGpios();
 
-  // [DEBUG]
-//  g_rxBuffer_tmp[0] = 75;
-
 #ifdef IRIS_CLEAR_FAULT
   clear_driver_fault_register();
 #endif
@@ -587,7 +578,10 @@ void main(void){
   CS_initClockSignal(CS_SMCLK,CS_DCOCLK_SELECT,CS_CLOCK_DIVIDER_1);
   CS_initClockSignal(CS_MCLK,CS_DCOCLK_SELECT,CS_CLOCK_DIVIDER_1);
 
-  // Initialize global variables
+  // ==========================================
+  //    Initialize global variables
+  // ==========================================
+  // sensor-related variables (current & hall/encoder)
   g_currentOffsetPhaseA = 0;
   g_currentOffsetPhaseB = 0;
   g_currentOffsetPhaseC = 0;
@@ -607,13 +601,15 @@ void main(void){
 #ifdef IRIS_SPIN_MOTOR_INDEF
   g_targetPosition = 1000000; //approx 100 revolutions
 #endif
+
+  // software control related variables (rate groups, internal state machine)
   g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
   g_closedLoop = false;
-  g_state = RUNNING; // g_statusRegister bit 3 is 0 to reflect this state
+  g_state = RUNNING;
   g_cmdState = NO_CMD;
+  g_controlRegister = 0; // see main.h for bits
 
-//  copyArray((uint8_t*)g_rxBuffer_tmp, (uint8_t*)&g_maxSpeed,sizeof(g_maxSpeed));
-
+  // motor controller related variables (PI contorllers for speed and current)
   g_maxSpeed = MAX_TARGET_SPEED;
 
   g_openLoopTorque = _IQ(OPEN_LOOP_TORQUE);
@@ -630,8 +626,9 @@ void main(void){
 
   g_closeLoopThreshold = _IQ(CLOSE_LOOP_THRESHOLD);
   g_closedLoop = false;
-  g_controlRegister = 0; // 33 = (1 for driving open loop, 32 for execute command)
 
+
+  // initialize hardware components
   initializeI2cModule();
   initializePwmModules();
   initializeAdcModule();
@@ -641,7 +638,8 @@ void main(void){
 
   currentOffsetCalibration();
 
-  enableGateDriver(); // TODO <<<< remove this line
+  enableGateDriver(); // get ready to move
+
 
 #else
     disableGateDriver();
@@ -652,38 +650,39 @@ void main(void){
   while(1){
       // check if target reached
       if  (_IQabs(g_targetPosition - g_currentPosition) < 100) {
-            g_targetReached = true;
-            g_statusRegister |= POSITION_CONVERGED;
-            // turn off output
-            _iq output = _IQ(0.0);
-            pwmGenerator(g_commState, output);
-        } else {
-            // target not reached yet
-            g_targetReached = false;
-            g_statusRegister &= ~POSITION_CONVERGED;
-        }
+          // target has been reached
+          g_targetReached = true;
+          g_statusRegister |= POSITION_CONVERGED;
+          // turn off output
+          _iq output = _IQ(0.0);
+          pwmGenerator(g_commState, output);
+      } else {
+          // target not reached yet
+          g_targetReached = false;
+          g_statusRegister &= ~POSITION_CONVERGED;
+      }
 
       // check if driving in open or closed loop, act accordingly
       if (g_controlRegister & DRIVE_OPEN_LOOP && g_controlRegister & EXECUTE_COMMAND) {
             //driving open loop
 
-            // target position sets direction motor drives in (will NOT converge though)
+            // target position sets direction motor drives in
             g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
 
             if(!g_targetReached){
-                // Execute macro to generate ramp up if needed
+                // Iterate through commutations & apply impulse to desired motor windings
                   OPEN_LOOP_IMPULSE_MACRO(g_impulse);
                   if(g_impulse.Out){
                     MOD6CNT_MACRO(g_mod6cnt);
                     g_commState = (g_targetDirection > 0) ? g_mod6cnt.Counter : 5 - g_mod6cnt.Counter;
                   }
 
-                // apply constant output
+
                 _iq output;
                 if(g_controlRegister & OPEN_LOOP_TORQUE_OVERRIDE)
-                    output = _IQ(g_maxSpeed / MAX_TARGET_SPEED);
+                    output = _IQ(g_maxSpeed / MAX_TARGET_SPEED); // apply user specified output
                 else
-                    output = _IQ(0.3);
+                    output = _IQ(0.3); // apply constant output
 
                 // apply output as PWM
                 if(g_targetDirection > 0) {
@@ -694,6 +693,7 @@ void main(void){
 
             }
 
+            // control loop - updates current position with speed estimate & ticks timeout counter
             if (g_controlPrescaler<=0){
                 g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
                 g_currentPosition += g_targetDirection * OPEN_LOOP_SPEED;
@@ -703,9 +703,10 @@ void main(void){
             }
 
         } else if (g_controlRegister & EXECUTE_COMMAND){
-            // driving closed loop
-        // update sensor (Hall & current) readings
+        // driving closed loop
+
         if(g_readSensors){
+            // update sensor (Hall & current) readings
             g_readSensors = false;
 
             // measure hall sensors
@@ -757,6 +758,10 @@ void main(void){
 
           PI_MACRO(g_piCur);
 
+          // check if we can pivot to closed loop control
+          g_closedLoop = (_IQabs(g_currentSpeed) > g_closeLoopThreshold && !g_targetReached) ? true : false;
+
+          // apply constant torque if still in open loop
           if(g_closedLoop == false && g_targetReached == false){
             g_piCur.i1 = 0;
             g_piCur.ui = 0;
@@ -767,7 +772,7 @@ void main(void){
                 g_closedLoop = true;
             }
           }
-
+          // set integrator and output to 0 if target is reached
           if(g_targetReached == true){
               g_piCur.i1 = 0;
               g_piCur.ui = 0;
@@ -776,7 +781,23 @@ void main(void){
               g_piCur.Out = 0;
               g_closedLoop = false;
           }
+//           if controllers are saturated, reset its integrator & output
+          if(g_piSpd.w1){
+              __disable_interrupt();
+             g_piSpd.i1 = 0; // full wipe of integrator causes jumpy stop-start behavior
+             g_piSpd.ui = 0;
+             g_piSpd.v1 = 0;
+             __enable_interrupt();
+          }
+          if(g_piCur.w1){
+              __disable_interrupt();
+              g_piCur.i1 = _IQ(0.5); // full wipe of integrator causes jumpy stop-start behavior
+              g_piCur.ui = 0;
+              g_piCur.v1 = 0;
+              __enable_interrupt();
+          }
 
+          // apply duty cycle based on current PI controller's output
           pwmGenerator(g_commState, g_piCur.Out);
 
           // outer control loop (speed)
@@ -811,36 +832,13 @@ void main(void){
               }
 
               g_piSpd.Fbk = getSpeed();
-
               PI_MACRO(g_piSpd);
 
+              // rest control prescaler & tick timeout counter
               g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
               if(!g_targetReached)
                   g_drivingTimeoutCtr++;
             }
-          // reset controller internals if needed
-        #ifndef IRIS_ALL_OFF
-           asm("  NOP");
-          g_closedLoop = (_IQabs(g_currentSpeed) > g_closeLoopThreshold && !g_targetReached) ? true : false;
-
-           // if controllers are saturated, reset its integrator & output
-           if(g_piSpd.w1){
-               __disable_interrupt();
-              g_piSpd.i1 = 0;
-              g_piSpd.ui = 0;
-              g_piSpd.v1 = 0;
-              __enable_interrupt();
-           }
-
-           if(g_piCur.w1){
-               __disable_interrupt();
-               g_piCur.i1 = 0;
-               g_piCur.ui = 0;
-               g_piCur.v1 = 0;
-               __enable_interrupt();
-           }
-
-        #endif
         }
 
       // check if motor has taken too long to converge, act accordingly if so
@@ -856,7 +854,7 @@ void main(void){
 
 
 /**
- * @brief      Main control loop
+ * @brief      Timer interrupt that sets rate for controller and indicates when to read sensors again
  */
 #ifndef IRIS_ALL_OFF
 
@@ -864,6 +862,7 @@ void main(void){
 #pragma vector=TIMER0_B0_VECTOR
 __interrupt void TIMER0_B0_ISR (void){
 
+    // calibrate ADC for current readings
     if(g_calibrating){
       // Prepare ADC conversion for next round
       HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) &= ~(ADC12ENC);
@@ -875,9 +874,9 @@ __interrupt void TIMER0_B0_ISR (void){
       g_calibrationDone = true;
     }
 
-    if(!g_calibrationDone) return;
+    if(!g_calibrationDone) return; // wait for calibration to finish
 
-    g_readSensors=true;
+    g_readSensors=true; // read sensors (hall/encoders & current) again every time this interrupts fires
 
     // without conditional can get huge and negative
    if(g_controlPrescaler>0)

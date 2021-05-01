@@ -630,7 +630,7 @@ void main(void){
 
   g_closeLoopThreshold = _IQ(CLOSE_LOOP_THRESHOLD);
   g_closedLoop = false;
-  g_controlRegister = 32; // 33 = (1 for driving open loop, 32 for execute command)
+  g_controlRegister = 0; // 33 = (1 for driving open loop, 32 for execute command)
 
   initializeI2cModule();
   initializePwmModules();

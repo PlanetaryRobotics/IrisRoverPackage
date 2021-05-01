@@ -26,7 +26,7 @@
 #define STATE_MACHINE_RUN           8
 #define OVERRIDE_FAULT_DETECTION   16       // don't reset current & desired position if abnormal behavior detected
 #define EXECUTE_COMMAND            32       // actually drive to command
-#define OPEN_LOOP_TORQUE_OVERRIDE  64
+#define OPEN_LOOP_TORQUE_OVERRIDE  64       // use g_maxSpeed/MAX_TARGET_SPEED to calculate open loop PWM cycle (instead of constant at 0.3)
 
 // bits of status register (shares 1,2,4 with control register)
 #define POSITION_CONVERGED      8

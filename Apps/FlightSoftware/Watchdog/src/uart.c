@@ -169,6 +169,7 @@ void clock_init() {
     CSCTL2 = SELA__VLOCLK | SELS__DCOCLK | SELM__DCOCLK;
     CSCTL3 = DIVA__1 | DIVS__1 | DIVM__1;   // Set all dividers
     CSCTL0_H = 0;                           // Lock CS registers
+}
 
 /**
  * Power-saving measure: disable UART0 and set pins to high impedance input

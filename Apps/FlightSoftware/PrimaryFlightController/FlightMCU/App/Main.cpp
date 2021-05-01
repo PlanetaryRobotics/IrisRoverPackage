@@ -30,8 +30,39 @@ extern "C" {
     void vApplicationStackOverflowHook(void *xTask, char *pcTaskName);
 }
 
+extern CubeRover::MotorControlComponentImpl motorControl;
+bool test = false;
+int dist = 5;
+int angle = 45;
 void vApplicationIdleHook(void) {
     run1cycle();
+    if (test) {
+        for (int i = 80; i; i--) {
+            motorControl.moveAllMotorsStraight(-1*dist, i);
+            motorControl.pollStatus();
+        }
+
+        for (int i = 20; i; i--) {
+            motorControl.moveAllMotorsStraight(dist, 100);
+            motorControl.pollStatus();
+        }
+
+        for (int i = 100000; i; i--);
+
+        for (int i = 40; i; i--) {
+            motorControl.rotateAllMotors(angle, 100);
+            motorControl.pollStatus();
+            motorControl.rotateAllMotors(angle, 100);
+            motorControl.pollStatus();
+            for (int i = 10000; i; i--);
+            motorControl.rotateAllMotors(-1*angle, 100);
+            motorControl.pollStatus();
+            motorControl.rotateAllMotors(-1*angle, 100);
+            motorControl.pollStatus();
+        }
+
+        for (int i = 100000; i; i--);
+    }
 }
 
 void vApplicationTickHook(void) {

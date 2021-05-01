@@ -16,7 +16,7 @@ static bool i2cSendWithTimeout(i2cBASE_t *i2c, uint32 length, uint8 * data, unsi
         while ((i2c->STR & (uint32)I2C_TX_INT) == 0U)
         {
             if (!timeout)
-                // return false;
+                return false;
             timeout--;
         } /* Wait */
         /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
@@ -40,7 +40,7 @@ static bool i2cReceiveWithTimeout(i2cBASE_t *i2c, uint32 length, uint8 * data, u
         while ((i2c->STR & (uint32)I2C_RX_INT) == 0U)
         {
             if (!timeout)
-                // return false;
+                return false;
             timeout--;
         } /* Wait */
         /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
@@ -66,20 +66,20 @@ bool i2cMasterTransmit(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint32_t length, 
 
     // TODO: configCPU_CLOCK_HZ use this to compute optimal timeout
     // (20 lines of code * 4 instr/line) / (16e6 Hz) * 110e6Hz => 550 cycles <= number of Hercules cycles for MSP to be ready
-//    int maxReceiveAttempts = 4;
-//    while (maxReceiveAttempts) {
-//        if (i2cSendWithTimeout(i2c, length, data, 600))
-//            break;
-//        maxReceiveAttempts--;
-//    }
-//    if (!maxReceiveAttempts)
-//        return false;
-    i2cSend(i2c, length, data);
+    int maxReceiveAttempts = 5;
+    while (maxReceiveAttempts) {
+        if (i2cSendWithTimeout(i2c, length, data, 1000))
+            break;
+        maxReceiveAttempts--;
+    }
+    if (!maxReceiveAttempts)
+        return false;
+//    i2cSend(i2c, length, data);
    
     int timeout = 0;
     while (i2cIsBusBusy(i2c)) {
-//      if (++timeout > i2c_timeout)
-//        return false;
+      if (++timeout > i2c_timeout)
+        return false;
     }
 
     timeout = 0;
@@ -90,8 +90,8 @@ bool i2cMasterTransmit(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint32_t length, 
 
     timeout = 0;
     while (i2cIsMasterReady(i2c)) {
-//      if (++timeout > i2c_timeout)
-//        return false;
+      if (++timeout > i2c_timeout)
+        return false;
     }
    
     i2cClearSCD(i2c);   // Clear the Stop condition
@@ -115,20 +115,20 @@ bool i2cMasterReceive(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint32_t length, u
     
     // TODO: configCPU_CLOCK_HZ use this to compute optimal timeout
     // (20 lines of code * 4 instr/line) / (16e6 Hz) * 110e6Hz => 550 cycles <= number of Hercules cycles for MSP to be ready
-//    int maxReceiveAttempts = 4;
-//    while (maxReceiveAttempts) {
-//        if (i2cReceiveWithTimeout(i2c, length, data, 600))
-//            break;
-//        maxReceiveAttempts--;
-//    }
-//    if (!maxReceiveAttempts)
-//        return false;
-    i2cReceive(i2c, length, data);
+    int maxReceiveAttempts = 4;
+    while (maxReceiveAttempts) {
+        if (i2cReceiveWithTimeout(i2c, length, data, 600))
+            break;
+        maxReceiveAttempts--;
+    }
+    if (!maxReceiveAttempts)
+        return false;
+    //i2cReceive(i2c, length, data);
 
     int timeout = 0;
     while (i2cIsBusBusy(i2c)) {
-//      if (++timeout > i2c_timeout)
-//        return false;
+      if (++timeout > i2c_timeout)
+        return false;
     }
 
     timeout = 0;
@@ -139,8 +139,8 @@ bool i2cMasterReceive(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint32_t length, u
 
     timeout = 0;
     while (i2cIsMasterReady(i2c)) {
-//      if (++timeout > i2c_timeout)
-//        return false;
+      if (++timeout > i2c_timeout)
+        return false;
     }
    
     i2cClearSCD(i2c);  // Clear the Stop condition

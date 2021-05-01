@@ -183,7 +183,9 @@ namespace CubeRover {
                 uint8_t fsm_disable : 1;
                 uint8_t fsm_run     : 1;
                 uint8_t override_fault_detection : 1;
-                uint8_t unused      : 3;
+                uint8_t execute_command          : 1;
+                uint8_t override_openloop_torque : 1;
+                uint8_t unused      : 1;
             } bits;
         } ControlRegister_t;
         
@@ -205,7 +207,8 @@ namespace CubeRover {
                 uint8_t driver_fault        : 1;
                 uint8_t position_no_change  : 1;
                 uint8_t driving_wrong_direction : 1;
-                uint8_t unused              : 5;
+                uint8_t timeout             : 1;    // TODO: Implement checking this on our side!
+                uint8_t unused              : 4;
             } bits;
         } FaultRegister_t;
 
@@ -233,6 +236,7 @@ namespace CubeRover {
         uint32_t regSizeMap(RegisterAddress_t reg);
 
         bool checkMotorsStatus();
+    public:
         MCError_t moveAllMotorsStraight(int32_t distance, int16_t speed);
         MCError_t rotateAllMotors(int16_t angle, int16_t speed);
         MCError_t spinMotors(bool forward);
@@ -256,7 +260,9 @@ namespace CubeRover {
         float m_angularToLinear;
 
         // Stall detection
-        bool m_stallDetectectionEnabled[4];
+        bool m_stallDetectectionEnabled[NUM_MOTORS];
+
+        bool m_openloop_mode;
 
         StatusRegister_t m_currStatus[NUM_MOTORS];
 

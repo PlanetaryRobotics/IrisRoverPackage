@@ -57,6 +57,7 @@ namespace CubeRover {
     m_FR_Encoder_Count = 0;
     m_RR_Encoder_Count = 0;
     m_RL_Encoder_Count = 0;
+    m_openloop_mode = false;
   }
 
   /**
@@ -142,9 +143,14 @@ namespace CubeRover {
           default:
               return;
         }
-        if (err != MC_NO_ERROR)  // TODO: Should stop right?
+        if (err != MC_NO_ERROR) {
+            // TODO: Should stop right?
             log_WARNING_HI_MC_MSPNotResponding();
-        pollStatus();
+        } else {
+            // Only Poll for status if the movement was successful
+            // TODO: PollStatus or checkMotorStatus in a Loop?? The latter is preferred
+            pollStatus();
+        }
     }
     else if (command_type == CubeRoverPorts::MC_UpdateTelemetry) {
         updateTelemetry();
@@ -568,7 +574,7 @@ MotorControlComponentImpl::moveAllMotorsStraight(int32_t distance, int16_t speed
    
     Throttle_t motor_speed;
     // Enforce speed always positive. Direction set by distance
-    if (speed > 0) {
+    if (speed >= 0) {
         motor_speed = groundSpeedToSpeedPrecent(speed);
        
         // Send the speed to all the motors
@@ -577,7 +583,7 @@ MotorControlComponentImpl::moveAllMotorsStraight(int32_t distance, int16_t speed
         if (err != MC_NO_ERROR)
             return err;
     } else {
-        return err;     // Initialize???
+        return MC_UNEXPECTED_ERROR;     // Initialize???
     }
    
     MotorTick_t Right_Wheels_Relative_ticks, Left_Wheels_Relative_ticks, Relative_ticks;
@@ -590,8 +596,6 @@ MotorControlComponentImpl::moveAllMotorsStraight(int32_t distance, int16_t speed
         Right_Wheels_Relative_ticks = -1*Relative_ticks;
         Left_Wheels_Relative_ticks = Relative_ticks;
     }    
-   
-    // FIXME: XXX: CRITICAL SECTION REQUIRED
     
     err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Left_Wheels_Relative_ticks);
     if (err != MC_NO_ERROR)
@@ -606,7 +610,15 @@ MotorControlComponentImpl::moveAllMotorsStraight(int32_t distance, int16_t speed
         return err;  
    
     err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Left_Wheels_Relative_ticks);
-    
+    if (err != MC_NO_ERROR)
+        return err;
+
+    // FIXME: XXX: CRITICAL SECTION REQUIRED
+    uint8_t execute_cmd = (1 << 5);
+    if (m_openloop_mode)
+        execute_cmd |= (1 << 0);
+    err = sendAllMotorsData(REG_CTRL, &execute_cmd);
+
     // FIXME: XXX: CRITICAL SECTION REQUIRED
     
     return err;  
@@ -626,7 +638,7 @@ MotorControlComponentImpl::rotateAllMotors(int16_t distance, int16_t speed) {
    
     // Enforce speed always positive. Direction set by distance
     if (speed > 0) {
-        Throttle_t motor_speed = m_angularToLinear*groundSpeedToSpeedPrecent(speed);
+        Throttle_t motor_speed = groundSpeedToSpeedPrecent(speed);
        
         // Send the speed to all the motors
         // Required to send this before the setpoint (or else the MC will start spinning before speed was set)
@@ -639,7 +651,6 @@ MotorControlComponentImpl::rotateAllMotors(int16_t distance, int16_t speed) {
    
     MotorTick_t Relative_ticks = m_angularToLinear*groundCMToMotorTicks(distance);
     
-    // FIXME: XXX: CRITICAL SECTION REQUIRED
     StatusRegister_t status;
     err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, e_REG_STATUS, &status.value);
     err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, e_REG_STATUS, &status.value);
@@ -659,7 +670,14 @@ MotorControlComponentImpl::rotateAllMotors(int16_t distance, int16_t speed) {
         return err;  
    
     err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Relative_ticks);
+    if (err != MC_NO_ERROR)
+        return err;
 
+    // FIXME: XXX: CRITICAL SECTION REQUIRED
+    uint8_t execute_cmd = (1 << 5);
+    if (m_openloop_mode)
+        execute_cmd |= (1 << 0);
+    err = sendAllMotorsData(REG_CTRL, &execute_cmd);
     // FIXME: XXX: CRITICAL SECTION REQUIRED
     
     return err;
@@ -764,8 +782,7 @@ bool MotorControlComponentImpl::updateTelemetry() {
 }
 
 bool MotorControlComponentImpl::pollStatus() {
-    StatusRegister_t status;
-    status.value = 0xff;
+    StatusRegister_t status[NUM_MOTORS];
     do {
         unsigned delay = 500000;
         while (delay)    // Delay 0.5s to give the motors a chance to converge. 0.5 / (1/ 110e6)
@@ -773,12 +790,15 @@ bool MotorControlComponentImpl::pollStatus() {
 
         uint8_t reg = e_REG_STATUS;
         for (int i = 0; i < 4; ++i) {
+            for (int j = 10000; j; j--);
             i2cMasterTransmit(m_i2c, FRONT_LEFT_MC_I2C_ADDR+i, 1, &reg);
-            StatusRegister_t this_status;
-            i2cMasterReceive(m_i2c, FRONT_LEFT_MC_I2C_ADDR+i, 1, &this_status.value);
-            status.value &= this_status.value;
+            for (int j = 10000; j; j--);
+            i2cMasterReceive(m_i2c, FRONT_LEFT_MC_I2C_ADDR+i, 1, &(status[i].value));
         }
-    } while (!(status.bits.position_converged));        // FIXME: Potential infinite loop
+    } while (!(status[0].bits.position_converged &&
+               status[1].bits.position_converged &&
+               status[2].bits.position_converged &&
+               status[3].bits.position_converged));        // FIXME: Potential infinite loop (Should reset after 2.5 min)
 
     return true;
 }

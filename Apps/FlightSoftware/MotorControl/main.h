@@ -17,7 +17,7 @@
 #define PWM_HALF_PERIOD_TICKS       256
 #define PI_SPD_CONTROL_PRESCALER    1000 // 15.6 Hz, speed control
 #define OPEN_LOOP_SPEED             3   // estimate of rotational distance (in hall sensor ticks) covered in 1/15.6 [sec] by motor when in open loop
-#define DRIVING_TIMEOUT_THRESHOLD   2000 // how much time in 1/15.6 [sec] before stopping driving (2000 = ~128 seconds)
+#define DRIVING_TIMEOUT_THRESHOLD   1872 // how much time in 1/15.6 [sec] before stopping driving (1872 = ~120 seconds)
 
 // bits of control register
 #define DRIVE_OPEN_LOOP             1       // first bit of control reg; drive only in open loop if set to 1

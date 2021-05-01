@@ -213,42 +213,31 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
       }
       case P_CURRENT:
       {
-        uint16_t input_as_uint = 0;
-        copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&input_as_uint,
-                  sizeof(input_as_uint));
-        float input_as_float = (float)(*(int16_t *)input_as_uint);
-        g_piCur.Kp = _IQ(input_as_float);
+         // This conversion has been verified to be working as of 5-1-2021
+      copyArray((uint8_t*)g_rxBuffer,
+                        (uint8_t*)&g_piCur.Kp,
+                        sizeof(g_piCur.Kp));
         break;
       }
       case I_CURRENT:
       {
-          uint16_t input_as_uint = 0;
           copyArray((uint8_t*)g_rxBuffer,
-                    (uint8_t*)&input_as_uint,
-                    sizeof(input_as_uint));
-          float input_as_float = (float)(*(int16_t *)input_as_uint);
-          g_piCur.Ki = _IQ(input_as_float);
+                      (uint8_t*)&g_piCur.Ki,
+                      sizeof(g_piCur.Ki ));
           break;
       }
       case P_SPEED:
       {
-        uint16_t input_as_uint = 0;
-        copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&input_as_uint,
-                  sizeof(input_as_uint));
-        float input_as_float = (float)(*(int16_t *)input_as_uint);
-        g_piSpd.Kp = _IQ(input_as_float);
+          copyArray((uint8_t*)g_rxBuffer,
+                (uint8_t*)&g_piSpd.Kp,
+                sizeof(g_piSpd.Kp ));
         break;
       }
       case I_SPEED:
       {
-          uint16_t input_as_uint = 0;
           copyArray((uint8_t*)g_rxBuffer,
-                    (uint8_t*)&input_as_uint,
-                    sizeof(input_as_uint));
-          float input_as_float = (float)(*(int16_t *)input_as_uint);
-          g_piSpd.Kp = _IQ(input_as_float);
+                    (uint8_t*)&g_piSpd.Ki,
+                    sizeof(g_piSpd.Ki ));
           break;
       }
       case CONTROL_REGISTER:

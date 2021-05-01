@@ -818,30 +818,39 @@ void main(void){
               if(!g_targetReached)
                   g_drivingTimeoutCtr++;
             }
+          // reset controller internals if needed
+        #ifndef IRIS_ALL_OFF
+           asm("  NOP");
+          g_closedLoop = (_IQabs(g_currentSpeed) > g_closeLoopThreshold && !g_targetReached) ? true : false;
+
+           // if controllers are saturated, reset its integrator & output
+           if(g_piSpd.w1){
+               __disable_interrupt();
+              g_piSpd.i1 = 0;
+              g_piSpd.ui = 0;
+              g_piSpd.v1 = 0;
+              __enable_interrupt();
+           }
+
+           if(g_piCur.w1){
+               __disable_interrupt();
+               g_piCur.i1 = 0;
+               g_piCur.ui = 0;
+               g_piCur.v1 = 0;
+               __enable_interrupt();
+           }
+
+        #endif
         }
 
-#ifndef IRIS_ALL_OFF
-   asm("  NOP");
-  g_closedLoop = (_IQabs(g_currentSpeed) > g_closeLoopThreshold && !g_targetReached) ? true : false;
-
-   // if controllers are saturated, reset its integrator & output
-   if(g_piSpd.w1){
-       __disable_interrupt();
-      g_piSpd.i1 = 0;
-      g_piSpd.ui = 0;
-      g_piSpd.v1 = 0;
-      __enable_interrupt();
-   }
-
-   if(g_piCur.w1){
-       __disable_interrupt();
-       g_piCur.i1 = 0;
-       g_piCur.ui = 0;
-       g_piCur.v1 = 0;
-       __enable_interrupt();
-   }
-
-#endif
+      // check if motor has taken too long to converge, act accordingly if so
+      if(g_drivingTimeoutCtr > DRIVING_TIMEOUT_THRESHOLD){
+          g_targetReached = true;
+          g_targetPosition = g_currentPosition; // so motor won't flip g_targetReached again
+          g_faultRegister |= DRIVING_TIMEOUT;
+          g_statusRegister |= (POSITION_CONVERGED | CONTROLLER_ERROR);
+          g_drivingTimeoutCtr = 0;
+      }
   }
 }
 

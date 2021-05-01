@@ -119,10 +119,9 @@ uint16_t ip_verify_packet(uint8_t *packet, uint16_t packet_len) {
  * @param ip_dest: destination ip address
  */
 uint16_t udp_checksum(uint8_t *udp_header, uint8_t *data_buf, uint16_t udp_packet_len, uint32_t ip_src, uint32_t ip_dest) {
-    static uint8_t buf[BUFFER_SIZE];
-
-    // TODO: hacky, slow, way for now. do this better
     struct ip_pseudohdr ph;
+    uint32_t running_chksum;
+    uint16_t chk_ret;
 
     ph.source = ip_src;
     ph.dest = ip_dest;
@@ -133,12 +132,32 @@ uint16_t udp_checksum(uint8_t *udp_header, uint8_t *data_buf, uint16_t udp_packe
     udp_packet_len = htons(udp_packet_len);
     udp_packet_len -= sizeof(struct udp_hdr);
 
-    memcpy(buf, (uint8_t *)(&ph), sizeof(struct ip_pseudohdr));
-    memcpy(buf + sizeof(struct ip_pseudohdr), udp_header, sizeof(struct udp_hdr));
-    memcpy(buf + sizeof(struct ip_pseudohdr) + sizeof(struct udp_hdr), data_buf, udp_packet_len);
+    // hash the pseudoheader first
+    chk_ret = ip_checksum((uint8_t *)(&ph), sizeof(struct ip_pseudohdr));
+    running_chksum = ~chk_ret;
 
-    // return one's complement of sum
-    return ip_checksum(buf, sizeof(struct ip_pseudohdr) + sizeof(struct udp_hdr) + udp_packet_len);
+    // then hash the udp header
+    chk_ret = ip_checksum(udp_header, sizeof(struct udp_hdr));
+    running_chksum += ~chk_ret;
+
+    /* check if there has been an overflow */
+    if (running_chksum >= 0xffff) {
+        /* wrap around if carry */
+        running_chksum -= 0xffff;
+    }
+
+    // finally, hash the data
+    chk_ret = ip_checksum(data_buf, udp_packet_len);
+    running_chksum += ~chk_ret;
+
+    /* check if there has been an overflow */
+    if (running_chksum >= 0xffff) {
+        /* wrap around if carry */
+        running_chksum -= 0xffff;
+    }
+
+    // return the final checksum
+    return ~running_chksum;
 }
 
 /**

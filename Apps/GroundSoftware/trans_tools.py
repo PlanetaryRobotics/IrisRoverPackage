@@ -239,15 +239,17 @@ def send_slip(dat: bytes) -> None:
             "Can't send data, serial connection not started. Try `connect_serial()`.",
             'red')
 
-
-def send_command_wd_serial(command_name: str, **kwargs) -> str:
-    data = pack_watchdog_command(command_name, **kwargs)
+def send_data_wd_serial(data: bytes) -> str:
     try:
         send_slip(data)
     except serial.SerialTimeoutException:
         cprint("Failed to send due to serial timeout. Check the connection?", 'red')
     finally:
         return f"Data: {hexstr(data)}."
+
+def send_command_wd_serial(command_name: str, **kwargs) -> str:
+    data = pack_watchdog_command(command_name, **kwargs)
+    send_data_wd_serial(data)
 
 
 def adc_to_degC(adc: int) -> float:

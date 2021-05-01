@@ -754,6 +754,12 @@ class DataStandards(object):
         def command(i, x): return cprint(f"\n\t\t\t{i}.\t{x}", 'green')
         def telemetry(i, x): return cprint(f"\n\t\t\t{i}.\t{x}", 'red')
         def event(i, x): return cprint(f"\n\t\t\t{i}.\t{x}", 'blue')
+        def p_arg(a): return cprint(
+            f"\n\t\t\t\t\tAvailable values for `{a.name}`:", 'cyan'
+        )
+        def p_enum(x): return cprint(
+            f"\n\t\t\t\t\t\t'{x.name}' or {x.value} or {hex(x.value)}", 'magenta'
+        )
 
         print("Data Standards Overview: [")
         for m in self.modules.vals:
@@ -761,6 +767,11 @@ class DataStandards(object):
             header('Commands:')
             for i, c in enumerate(m.commands.vals):
                 command(i, c)
+                for arg in c.args:
+                    if len(arg.enum) > 0:
+                        p_arg(arg)
+                        for e in arg.enum:
+                            p_enum(e)
             header('Telemetry:')
             for i, t in enumerate(m.telemetry.vals):
                 telemetry(i, t)

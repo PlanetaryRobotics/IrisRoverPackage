@@ -30,8 +30,59 @@ extern "C" {
     void vApplicationStackOverflowHook(void *xTask, char *pcTaskName);
 }
 
+extern CubeRover::MotorControlComponentImpl motorControl;
+bool test_movement = false;
+bool test_set_gains = false;
+bool test_openloop = false;
+int dist = 5;
+int angle = 45;
 void vApplicationIdleHook(void) {
     run1cycle();
+    if (test_set_gains) {
+        motorControl.MC_Current_PID_cmdHandler(0x00, 0, 0, 0x001e7530);
+        motorControl.MC_Speed_PID_cmdHandler(0x00, 0, 0, 0x001e7530);
+    }
+    if (test_openloop) {
+        motorControl.m_openloop_mode = true;
+
+        motorControl.moveAllMotorsStraight(2, 42);   // Speed is ignored when openloop torque override is set
+        motorControl.pollStatus();
+
+        for (int i = 100000; i; i--);
+
+        motorControl.moveAllMotorsStraight(100, 42);  // Test timeout of position converged flag
+        motorControl.pollStatus();
+
+        motorControl.m_openloop_mode = false;
+    }
+    if (test_movement) {
+        for (int i = 80; i; i--) {      // Test ramping speed
+            motorControl.moveAllMotorsStraight(dist, i);
+            motorControl.pollStatus();
+        }
+
+        for (int i = 20; i; i--) {      // Test full speed opposite direction
+            motorControl.moveAllMotorsStraight(-1*dist, 100);
+            motorControl.pollStatus();
+        }
+
+        for (int i = 100000; i; i--);
+
+        // Test turning
+        for (int i = 40; i; i--) {
+            motorControl.rotateAllMotors(angle, 100);
+            motorControl.pollStatus();
+            motorControl.rotateAllMotors(angle, 100);
+            motorControl.pollStatus();
+            for (int i = 10000; i; i--);
+            motorControl.rotateAllMotors(-1*angle, 100);
+            motorControl.pollStatus();
+            motorControl.rotateAllMotors(-1*angle, 100);
+            motorControl.pollStatus();
+        }
+
+        for (int i = 100000; i; i--);
+    }
 }
 
 void vApplicationTickHook(void) {

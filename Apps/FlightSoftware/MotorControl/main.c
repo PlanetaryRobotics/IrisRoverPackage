@@ -1,3 +1,10 @@
+// [DEBUG] Switches
+//#define IRIS_ALL_OFF
+//#define IRIS_CLEAR_FAULT
+//#define IRIS_SPIN_MOTOR
+//#define IRIS_SPIN_MOTOR_REVERSE
+//#define IRIS_SPIN_MOTOR_INDEF
+
 #include "main.h"
 
 _iq g_currentPhaseA;
@@ -37,17 +44,26 @@ volatile MOD6CNT g_mod6cnt;
 
 volatile bool g_closedLoop;
 volatile bool g_targetReached;
-volatile int16_t g_maxSpeed;
+volatile uint8_t g_maxSpeed;
 
 volatile StateMachine g_state;
 volatile CmdState g_cmdState;
+
+volatile uint16_t g_accelRate;
+volatile uint16_t g_decelRate;
 
 volatile int8_t g_targetDirection;
 volatile int8_t g_oldTargetDirection;
 
 uint8_t g_statusRegister;
-uint8_t g_controlRegister;
-uint8_t g_faultRegister;
+volatile uint8_t g_controlRegister;
+volatile uint8_t g_faultRegister;
+volatile uint32_t g_drivingTimeoutCtr;
+uint8_t g_errorCounter= 0; // incremented every time inner control loop is reached and motor is acting strange
+                           // if it exceeds ERROR_ITERATION_THRESHOLD then motor is stopped
+
+// timing debug
+bool g_readSensors = false;
 
 
 /**
@@ -56,7 +72,7 @@ uint8_t g_faultRegister;
 void initializePwmModules(){
   //Start Timer
   Timer_B_initUpDownModeParam initUpDownParam = {0};
-  initUpDownParam.clockSource = TIMER_B_CLOCKSOURCE_SMCLK; // 16 MHz
+  initUpDownParam.clockSource = TIMER_B_CLOCKSOURCE_SMCLK; // 16 MHz, or maybe 8..
   initUpDownParam.clockSourceDivider = TIMER_B_CLOCKSOURCE_DIVIDER_1;
   initUpDownParam.timerPeriod = PWM_PERIOD_TICKS;
   initUpDownParam.timerInterruptEnable_TBIE = TIMER_B_TBIE_INTERRUPT_DISABLE;
@@ -218,9 +234,10 @@ inline void disableGateDriver(){
  * @return     The speed.
  */
 inline _iq getSpeed(){
-  // Normalize speed to -128 ticks < diff < 128 to -1.0 < diff < +1.0
+  // Normalize speed to -128 ticks < diff < 127 to -1.0 < diff < +1.0
   // 255 ticks per (PI_SPD_CONTROL_PRESCALER * PWM_PERIOD_TICKS) represents 9.600 eRPM
-  g_currentSpeed = (g_currentPosition - g_oldPosition) << 8;
+  int32_t deltaPos = _IQsat(g_currentPosition - g_oldPosition, 256, -256);
+  g_currentSpeed = deltaPos << 7;
   g_oldPosition = g_currentPosition;
   return g_currentSpeed;
 }
@@ -302,7 +319,7 @@ void currentOffsetCalibration(){
  * @param[in]  commutation  The commutation
  * @param[in]  dutyCycle    The duty cycle
  */
-inline void pwmGenerator(const uint8_t commutation, _iq dutyCycle){
+void pwmGenerator(const uint8_t commutation, _iq dutyCycle){
   uint16_t dc; //duty cycle
   uint16_t dcCmpl; //complement
 
@@ -464,10 +481,9 @@ inline void disable(){
  */
 inline void run(){
   if(g_state == RUNNING) return; // already in RUNNING, nothing to do
-
   __disable_interrupt();
   enableGateDriver();
-  //g_targetPosition = i2c;
+//  g_targetPosition = 20000; // [DEBUG]
   g_targetDirection = (g_targetPosition -  g_currentPosition>= 0) ? 1 : -1;
   g_currentPosition = 0;
   g_targetReached = false;
@@ -475,27 +491,14 @@ inline void run(){
   __enable_interrupt();
 }
 
-/**
- * @brief       Enter stop state
- */
-inline void stop(){
-  if(g_state == STOPPED) return; // already in STOPPED, nothing to do
-
-  __disable_interrupt();
-  g_targetPosition = g_targetPosition - g_currentPosition;
-  g_state = STOPPED;
-  __enable_interrupt();
-}
-
 
 /**
  * @brief      Update the drive state machine
  */
-inline void updateStateMachine(){
+void updateStateMachine(){
   switch(g_cmdState){
     case RUN:
       switch(g_state){
-          case STOPPED:
           case IDLE:
             run();
             break;
@@ -505,22 +508,9 @@ inline void updateStateMachine(){
           break;
       }
      break;
-     case STOP:
-       switch(g_state){
-         case RUNNING:
-           stop();
-           break;
-         case UNINITIALIZED:
-         case IDLE:
-         case STOPPED:
-         default:
-         break;
-       }
-       break;
      case DISABLE:
        switch(g_state){
          case RUNNING:
-         case STOPPED:
            disable();
            break;
          case UNINITIALIZED:
@@ -536,6 +526,35 @@ inline void updateStateMachine(){
   g_cmdState = NO_CMD;
 }
 
+/**
+ * @brief      Clears the DRV8304 Driver Fault Register.
+ */
+inline void clear_driver_fault_register(){
+    // Pull high first so you can then pull it low:
+    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    __delay_cycles(1600000);    // 100 ms
+    // Reset Fault Register by pulsing ENABLE for 5-32us (18.5us):
+    GPIO_setOutputLowOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    __delay_cycles(296);    // 18.5 us
+    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+}
+
+inline void clear_driver_fault(){
+    // Pull high first so you can then pull it low:
+    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    __delay_cycles(1600000);    // 100 ms
+    // Reset Fault Register by pulsing ENABLE for 5-32us (18.5us):
+    GPIO_setOutputLowOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    __delay_cycles(296);    // 18.5 us
+    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+}
+/**
+ * @brief      Reads the whether the DRV8304 driver is in a "fault condition" (and should be cleared). Active low.
+ */
+inline bool read_driver_fault(){
+    return !(PJIN & 0x02);
+}
+
 
 /**
  * @brief      main function
@@ -547,13 +566,22 @@ void main(void){
 
   initializeGpios();
 
+#ifdef IRIS_CLEAR_FAULT
+  clear_driver_fault_register();
+#endif
+
+#ifndef IRIS_ALL_OFF
+
   //Set DCO frequency to 16MHz
   CS_setDCOFreq(CS_DCORSEL_1, CS_DCOFSEL_4);
 
   CS_initClockSignal(CS_SMCLK,CS_DCOCLK_SELECT,CS_CLOCK_DIVIDER_1);
   CS_initClockSignal(CS_MCLK,CS_DCOCLK_SELECT,CS_CLOCK_DIVIDER_1);
 
-  // Initialize global variables
+  // ==========================================
+  //    Initialize global variables
+  // ==========================================
+  // sensor-related variables (current & hall/encoder)
   g_currentOffsetPhaseA = 0;
   g_currentOffsetPhaseB = 0;
   g_currentOffsetPhaseC = 0;
@@ -563,14 +591,25 @@ void main(void){
   g_currentPosition = 0;
   g_oldPosition = g_currentPosition;
   g_targetPosition = 0;
+  g_drivingTimeoutCtr = 0;
+#ifdef IRIS_SPIN_MOTOR
+  g_targetPosition = 8500;//9750; // [DEBUG]
+#endif
+#ifdef IRIS_SPIN_MOTOR_REVERSE
+  g_targetPosition = -9750;
+#endif
+#ifdef IRIS_SPIN_MOTOR_INDEF
+  g_targetPosition = 1000000; //approx 100 revolutions
+#endif
+
+  // software control related variables (rate groups, internal state machine)
   g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
   g_closedLoop = false;
-  g_state = UNINITIALIZED;
-  g_currentRefTest = _IQ(0.05);
-  g_speedRefTest = _IQ(0.0);
+  g_state = RUNNING;
+  g_cmdState = NO_CMD;
+  g_controlRegister = 0; // see main.h for bits
 
-  g_feedforwardFW = _IQ(0.07);
-
+  // motor controller related variables (PI contorllers for speed and current)
   g_maxSpeed = MAX_TARGET_SPEED;
 
   g_openLoopTorque = _IQ(OPEN_LOOP_TORQUE);
@@ -585,140 +624,267 @@ void main(void){
   g_piCur.Kp = _IQ(KP_CUR);
   g_piCur.Ki = _IQ(KI_CUR);
 
-  //g_piSpd.Ref = _IQ(0.1);
   g_closeLoopThreshold = _IQ(CLOSE_LOOP_THRESHOLD);
+  g_closedLoop = false;
 
+
+  // initialize hardware components
   initializeI2cModule();
   initializePwmModules();
   initializeAdcModule();
   initializeHallInterface();
 
-  __bis_SR_register(GIE);
+  __bis_SR_register(GIE); // enable interrupts (timer & i2c)
 
   currentOffsetCalibration();
 
-  enableGateDriver(); // TODO <<<< remove this line
+  enableGateDriver(); // get ready to move
+
+
+#else
+    disableGateDriver();
+    asm("  NOP");
+#endif
+
 
   while(1){
-   g_closedLoop = (_IQabs(g_currentSpeed) > g_closeLoopThreshold && !g_targetReached) ? true : false;
+      // check if target reached
+      if  (_IQabs(g_targetPosition - g_currentPosition) < 100) {
+          // target has been reached
+          g_targetReached = true;
+          g_statusRegister |= POSITION_CONVERGED;
+          // turn off output
+          _iq output = _IQ(0.0);
+          pwmGenerator(g_commState, output);
+      } else {
+          // target not reached yet
+          g_targetReached = false;
+          g_statusRegister &= ~POSITION_CONVERGED;
+      }
 
-   if(g_piSpd.w1){
-       __disable_interrupt();
-      g_piSpd.i1 = 0;
-      g_piSpd.ui = 0;
-      g_piSpd.v1 = 0;
-      __enable_interrupt();
-   }
+      // check if driving in open or closed loop, act accordingly
+      if (g_controlRegister & DRIVE_OPEN_LOOP && g_controlRegister & EXECUTE_COMMAND) {
+            //driving open loop
 
-   if(g_piCur.w1){
-       __disable_interrupt();
-       g_piCur.i1 = 0;
-       g_piCur.ui = 0;
-       g_piCur.v1 = 0;
-       __enable_interrupt();
-   }
+            // target position sets direction motor drives in
+            g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
 
-   //updateStateMachine();
+            if(!g_targetReached){
+                // Iterate through commutations & apply impulse to desired motor windings
+                  OPEN_LOOP_IMPULSE_MACRO(g_impulse);
+                  if(g_impulse.Out){
+                    MOD6CNT_MACRO(g_mod6cnt);
+                    g_commState = (g_targetDirection > 0) ? g_mod6cnt.Counter : 5 - g_mod6cnt.Counter;
+                  }
+
+
+                _iq output;
+                if(g_controlRegister & OPEN_LOOP_TORQUE_OVERRIDE)
+                    output = _IQ(g_maxSpeed / MAX_TARGET_SPEED); // apply user specified output
+                else
+                    output = _IQ(0.3); // apply constant output
+
+                // apply output as PWM
+                if(g_targetDirection > 0) {
+                    pwmGenerator(g_commState, output);
+                } else{
+                    pwmGenerator(g_commState, -output);
+                }
+
+            }
+
+            // control loop - updates current position with speed estimate & ticks timeout counter
+            if (g_controlPrescaler<=0){
+                g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
+                g_currentPosition += g_targetDirection * OPEN_LOOP_SPEED;
+
+                if(!g_targetReached)
+                    g_drivingTimeoutCtr++;
+            }
+
+        } else if (g_controlRegister & EXECUTE_COMMAND){
+        // driving closed loop
+
+        if(g_readSensors){
+            // update sensor (Hall & current) readings
+            g_readSensors = false;
+
+            // measure hall sensors
+            readHallSensor();
+
+            // Execute macro to generate ramp up
+            if(g_closedLoop == false && g_targetReached == false){
+                IMPULSE_MACRO(g_impulse);
+                if(g_impulse.Out){
+                    MOD6CNT_MACRO(g_mod6cnt);
+                    g_commState = (g_targetDirection > 0) ? g_mod6cnt.Counter : 5 - g_mod6cnt.Counter;
+                }
+            }
+            else{
+                g_commState = g_hallMap[g_hallSensor.Pattern];
+            }
+
+            // update current position based on hall sensor readings
+            if(g_hallSensor.Event){
+                if(g_hallMap[g_hallSensor.Pattern] == 5 && g_oldCommState == 0){
+                    g_currentPosition--;
+                }
+                else if(g_hallMap[g_hallSensor.Pattern] == 0 && g_oldCommState == 5){
+                    g_currentPosition++;
+                }
+                else if(g_hallMap[g_hallSensor.Pattern] > g_oldCommState){
+                    g_currentPosition++;
+                }
+                else{
+                    g_currentPosition--;
+                }
+                g_oldCommState = g_hallMap[g_hallSensor.Pattern];
+            }
+
+            // update current readings
+            // Prepare ADC conversion for next round
+            HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) &= ~(ADC12ENC);
+            HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) |= ADC12ENC + ADC12SC;
+            // Remove offset
+            g_currentPhaseA = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_0)) - g_currentOffsetPhaseA;
+            g_currentPhaseB = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_1)) - g_currentOffsetPhaseB;
+            g_currentPhaseC = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_2)) - g_currentOffsetPhaseC;
+        }
+
+          // inner control loop (current), apply output as PWM duty cycle
+          // Normalize current values from  -2047 < adc < +2048 to iq15 --> -1.0 < adc < 1.0 and convert to iq format
+          g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 4;
+          g_piCur.Ref = g_piSpd.Out;
+
+          PI_MACRO(g_piCur);
+
+          // check if we can pivot to closed loop control
+          g_closedLoop = (_IQabs(g_currentSpeed) > g_closeLoopThreshold && !g_targetReached) ? true : false;
+
+          // apply constant torque if still in open loop
+          if(g_closedLoop == false && g_targetReached == false){
+            g_piCur.i1 = 0;
+            g_piCur.ui = 0;
+            g_piSpd.i1 = 0;
+            g_piSpd.ui = 0;
+            g_piCur.Out = g_openLoopTorque;
+            if(_IQabs(g_currentSpeed) > g_closeLoopThreshold){
+                g_closedLoop = true;
+            }
+          }
+          // set integrator and output to 0 if target is reached
+          if(g_targetReached == true){
+              g_piCur.i1 = 0;
+              g_piCur.ui = 0;
+              g_piSpd.i1 = 0;
+              g_piSpd.ui = 0;
+              g_piCur.Out = 0;
+              g_closedLoop = false;
+          }
+//           if controllers are saturated, reset its integrator & output
+          if(g_piSpd.w1){
+              __disable_interrupt();
+             g_piSpd.i1 = 0; // full wipe of integrator causes jumpy stop-start behavior
+             g_piSpd.ui = 0;
+             g_piSpd.v1 = 0;
+             __enable_interrupt();
+          }
+          if(g_piCur.w1){
+              __disable_interrupt();
+              g_piCur.i1 = _IQ(0.5); // full wipe of integrator causes jumpy stop-start behavior
+              g_piCur.ui = 0;
+              g_piCur.v1 = 0;
+              __enable_interrupt();
+          }
+
+          // apply duty cycle based on current PI controller's output
+          pwmGenerator(g_commState, g_piCur.Out);
+
+          // outer control loop (speed)
+          if(g_controlPrescaler <= 0){
+
+              g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
+
+              if(g_targetDirection > 0) g_piSpd.Ref = g_maxSpeed << 8;
+              else g_piSpd.Ref = -g_maxSpeed << 8;
+
+              // check for errors in controller operation
+              if (g_currentPosition == g_oldPosition && !g_targetReached){
+                  // position isn't updating; hall sensors likely not powered or broken
+                  g_errorCounter++;
+                  g_faultRegister |= POSITION_NO_CHANGE;
+              } else if ( (g_currentPosition - g_oldPosition)*g_targetDirection < 0 && !g_targetReached){
+                  // moving in wrong direction
+                  g_errorCounter++;
+                  g_faultRegister |= DRIVING_WRONG_DIRECTION;
+              } else {
+                  // operating normally; no error
+                  g_statusRegister &= ~CONTROLLER_ERROR;
+                  g_errorCounter = 0; // reset error counter
+                  g_faultRegister &= ~(POSITION_NO_CHANGE & DRIVING_WRONG_DIRECTION); //clear faults in register
+              }
+
+              // errors on last ERROR_ITERATION_THRESHOLD time steps; time to stop trying to drive motor
+              if(g_errorCounter >= ERROR_ITERATION_THRESHOLD){
+                  if (g_controlRegister & OVERRIDE_FAULT_DETECTION == 0x00) //check if we should stop controller given fault
+                      g_targetPosition = g_currentPosition = 0; //stop controller
+                  g_statusRegister |= CONTROLLER_ERROR; // add flag to status register
+              }
+
+              g_piSpd.Fbk = getSpeed();
+              PI_MACRO(g_piSpd);
+
+              // rest control prescaler & tick timeout counter
+              g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
+              if(!g_targetReached)
+                  g_drivingTimeoutCtr++;
+            }
+        }
+
+      // check if motor has taken too long to converge, act accordingly if so
+      if(g_drivingTimeoutCtr > DRIVING_TIMEOUT_THRESHOLD){
+          g_targetReached = true;
+          g_targetPosition = g_currentPosition; // so motor won't flip g_targetReached again
+          g_faultRegister |= DRIVING_TIMEOUT;
+          g_statusRegister |= (POSITION_CONVERGED | CONTROLLER_ERROR);
+          g_drivingTimeoutCtr = 0;
+      }
   }
 }
 
 
 /**
- * @brief      Main control loop
+ * @brief      Timer interrupt that sets rate for controller and indicates when to read sensors again
  */
+#ifndef IRIS_ALL_OFF
+
 #pragma CODE_SECTION(TIMER0_B0_ISR, ".TI.ramfunc")
 #pragma vector=TIMER0_B0_VECTOR
 __interrupt void TIMER0_B0_ISR (void){
-  // Prepare ADC conversion for next round
-  HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) &= ~(ADC12ENC);
-  HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) |= ADC12ENC + ADC12SC;
 
-  if(g_calibrating){
-    g_currentOffsetPhaseA = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_0));
-    g_currentOffsetPhaseB = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_1));
-    g_currentOffsetPhaseC = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_2));
-    g_calibrationDone = true;
-  }
+    // calibrate ADC for current readings
+    if(g_calibrating){
+      // Prepare ADC conversion for next round
+      HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) &= ~(ADC12ENC);
+      HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) |= ADC12ENC + ADC12SC;
 
-  if(!g_calibrationDone) return;
-
-  readHallSensor();
-  //if(g_hallSensor.error) return;
-
-  // Execute macro to generate ramp up
-  if(g_closedLoop == false && g_targetReached == false){
-    IMPULSE_MACRO(g_impulse);
-    if(g_impulse.Out){
-      MOD6CNT_MACRO(g_mod6cnt);
-      g_commState = (g_targetDirection > 0) ? g_mod6cnt.Counter : 5 - g_mod6cnt.Counter;
-    }
-  }
-  else{
-    g_commState = g_hallMap[g_hallSensor.Pattern];
-  }
-
-  if(g_hallSensor.Event){
-    if(g_hallMap[g_hallSensor.Pattern] == 5 && g_oldCommState == 0){
-      g_currentPosition--;
-    }
-    else if(g_hallMap[g_hallSensor.Pattern] == 0 && g_oldCommState == 5){
-      g_currentPosition++;
-    }
-    else if(g_hallMap[g_hallSensor.Pattern] > g_oldCommState){
-      g_currentPosition++;
-    }
-    else{
-      g_currentPosition--;
-    }
-    g_oldCommState = g_hallMap[g_hallSensor.Pattern];
-  }
-
-  if(g_controlPrescaler == 0){
-    g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
-
-    // Normalize from -255 ~ + 255 to -1.0 ~ 1.0
-    g_targetReached =  (_IQabs(g_targetPosition - g_currentPosition) < 5) ? true : false;
-    if(g_targetReached == false){
-        g_piSpd.Ref = (_IQsat(g_targetPosition - g_currentPosition, g_maxSpeed, -g_maxSpeed)) << 8;
-    }
-    else{
-        g_piSpd.Ref = 0;
+      g_currentOffsetPhaseA = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_0));
+      g_currentOffsetPhaseB = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_1));
+      g_currentOffsetPhaseC = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_2));
+      g_calibrationDone = true;
     }
 
-    g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
+    if(!g_calibrationDone) return; // wait for calibration to finish
 
-    g_piSpd.Fbk = getSpeed();
+    g_readSensors=true; // read sensors (hall/encoders & current) again every time this interrupts fires
 
-    PI_MACRO(g_piSpd);
-  }
+    // without conditional can get huge and negative
+   if(g_controlPrescaler>0)
+       g_controlPrescaler = g_controlPrescaler -1;
 
-  g_controlPrescaler = g_controlPrescaler -1;
 
-  // Remove offset
-  g_currentPhaseA = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_0)) - g_currentOffsetPhaseA;
-  g_currentPhaseB = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_1)) - g_currentOffsetPhaseB;
-  g_currentPhaseC = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_2)) - g_currentOffsetPhaseC;
+  return;
 
-  // Normalize current values from  -2047 < adc < +2048 to iq15 --> -1.0 < adc < 1.0 and convert to iq format
-  g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 4;
-
-  // Compense motor direction.
-  if(g_targetDirection < 0){
-      g_piCur.Ref = g_piSpd.Out - _IQ15mpy_inline(g_feedforwardFW, g_piSpd.Fbk);
-  }
-  else{
-      g_piCur.Ref = g_piSpd.Out;
-  }
-  PI_MACRO(g_piCur);
-
-  if(g_closedLoop == false){
-    g_piCur.i1 = 0;
-    g_piCur.ui = 0;
-    g_piSpd.i1 = 0;
-    g_piSpd.ui = 0;
-    g_piCur.Out = g_openLoopTorque;
-  }
-
-  // If target is reached no need to move
-  pwmGenerator(g_commState, g_piCur.Out);
 }
+
+#endif

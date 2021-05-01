@@ -13,8 +13,9 @@
 #define I2C_PACKET_HEADER               0xAA
 
 typedef enum I2cRegisterIds{
+
     I2C_ADDRESS = 0,
-    RELATIVE_TARGET_POSITION = 1,
+    TARGET_POSITION = 1,
     TARGET_SPEED = 2,
     CURRENT_POSITION = 3,
     CURRENT_SPEED = 4,
@@ -28,6 +29,7 @@ typedef enum I2cRegisterIds{
     CONTROL_REGISTER = 12,
     STATUS_REGISTER = 13,
     FAULT_REGISTER = 14,
+    CLEAR_FAULT_REGISTER = 15,
     MAX_NB_CMDS = 15
 }I2cRegisterIds;
 
@@ -43,16 +45,6 @@ typedef enum I2cMode{
     TIMEOUT_MODE
 }I2cMode;
 
-
-typedef struct I2cPacket{
-    uint8_t header;
-    uint8_t dataSize;
-    uint8_t regId;
-    uint8_t data[I2C_MAX_DATA_SIZE];
-
-}I2cPacket;
-
-bool readI2cData(I2cPacket *pckt);
 void initializeI2cModule();
 
 #endif /* I2C_H_ */

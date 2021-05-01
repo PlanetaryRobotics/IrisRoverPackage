@@ -8,6 +8,9 @@
 // ALL RIGHTS RESERVED.  United States Government Sponsorship
 // acknowledged.
 //
+// This file outlines all functions implemented in WatchDogInterface
+// Contains all functions that send and receive data between WatchdogInterface and Watchdog
+// Contains functions that only watchdog receives, functions are marked as such. Such functions only send a stroke to the Watchdog if ever received.
 // ======================================================================
 
 #ifndef WatchDogInterface_HPP
@@ -18,6 +21,17 @@
 #include "lin.h"
 #include "adc.h"
 #include "sci.h"
+
+// The pin number for the deploment pin 2
+const U8 deploy_bit = 5;
+// The number of thermistors on the SBC
+const U8 number_thermistors = 6;
+// Default size of zero sent to watchdog
+const U16 zero_size = 0x0000;
+// Minimum size that should be received back from watchdog when receiving
+const U8 min_receive_size = 8;
+// Magic Value first sent in the header between watchdog and hercules communication
+const U32 header_magic = 0x21B00B;
 
 namespace CubeRover {
 
@@ -104,14 +118,22 @@ namespace CubeRover {
       void Reset_Specific_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq, /*!< The command sequence number*/
-          U8 reset_value /*!< 
-                    	U8 Value that represents which things need to be reset
+          reset_values_possible reset_value /*!< 
+                    	ENUM Value that specifies which components or hardware need to be reset
                     */
       );
 
       //! Implementation for Disengage_From_Lander command handler
-      //! Command to send signal to MSP430 that it should send a signal to lander to disengage
+      //! Command to send signal to MSP430 that it should send a signal to lander to disengage, sets disengage pin high
       void Disengage_From_Lander_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          confirm_disengage confirm 
+      );
+
+      //! Implementation for Engage_From_Lander command handler
+      //! Command to send signal to MSP430 that it should send a signal to lander to engage, sets disengage pin low
+      void Engage_From_Lander_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq /*!< The command sequence number*/
       );
@@ -122,7 +144,8 @@ namespace CubeRover {
       //! Command to send signal to MSP430 to prepare for deploying (may not be needed)
       void Prepare_For_Deployment_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          confirm_prepare_for_deploy confirm 
       );
 
       //! Implementation for Switch_Connection_Mode command handler
@@ -132,125 +155,111 @@ namespace CubeRover {
           const U32 cmdSeq /*!< The command sequence number*/
       );
 
-      //! Implementation for Set_Kp_Most command handler
-      //! Command to send signal to MSP430 that it should set Kp to most significant parameter
-      void Set_Kp_Most_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
-      );
-
-      //! Implementation for Set_Kp_Least command handler
-      //! Command to send signal to MSP430 that it should set Kp to least significant parameter
-      void Set_Kp_Least_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
-      );
-
       //! Implementation for Set_Kp_Specific command handler
       //! Command to send signal to MSP430 that it should set Kp to a specific value
       void Set_Kp_Specific_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          U16 value 
       );
 
-      //! Implementation for Set_Ki_Most command handler
-      //! Command to send signal to MSP430 that it should set Ki to most significant parameter
-      void Set_Ki_Most_cmdHandler(
+      //! Implementation for Set_Heater_Duty_Cycle_Max command handler
+      //! Command to send signal to MSP430 that it should set the max possible Duty Cycle value for the heater
+      void Set_Heater_Duty_Cycle_Max_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq /*!< The command sequence number*/
       );
 
-      //! Implementation for Set_Ki_Least command handler
-      //! Command to send signal to MSP430 that it should set Ki to least significant parameter
-      void Set_Ki_Least_cmdHandler(
+      //! Implementation for Set_Heater_Duty_Cycle_Period command handler
+      //! Command to send signal to MSP430 that it should set the period the Duty Cycle for the heater is at
+      void Set_Heater_Duty_Cycle_Period_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          U16 period 
       );
 
-      //! Implementation for Set_Ki_Specific command handler
-      //! Command to send signal to MSP430 that it should set Ki to a specific value
-      void Set_Ki_Specific_cmdHandler(
+      //! Implementation for Set_Heater_Window command handler
+      //! Set the Half-Width of the heater on/off deadband window around the setpoint (in thermistor ADC values). Between setpoint - half_width and setpoint + half_width, heater is off.
+      void Set_Heater_Window_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          U16 adc_half_width 
       );
 
-      //! Implementation for Set_Kd_Most command handler
-      //! Command to send signal to MSP430 that it should set Kd to most significant parameter
-      void Set_Kd_Most_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
-      );
-
-      //! Implementation for Set_Kd_Least command handler
-      //! Command to send signal to MSP430 that it should set Kd to least significant parameter
-      void Set_Kd_Least_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
-      );
-
-      //! Implementation for Set_V_Setpoint command handler
+      //! Implementation for Set_Heater_Setpoint command handler
       //! Command to send signal to MSP430 that it should set V to a specific value
-      void Set_V_Setpoint_cmdHandler(
+      void Set_Heater_Setpoint_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          U16 adc_setpoint 
       );
 
       //! Implementation for Switch_to_Sleep_Mode command handler
       //! Command to send signal to MSP430 that it should go into Sleep Mode
       void Switch_to_Sleep_Mode_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          confirm_sleep_mode confirm 
       );
 
       //! Implementation for Switch_to_Keep_Alive_Mode command handler
       //! Command to send signal to MSP430 that it should go into Keep Alive Mode
       void Switch_to_Keep_Alive_Mode_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          confirm_alive_mode confirm 
       );
 
       //! Implementation for Switch_to_Service_Mode command handler
       //! Command to send signal to MSP430 that it should go into Service Mode
       void Switch_to_Service_Mode_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          confirm_service_mode confirm 
       );
 
       /* End of Commands that Only Watchdog Processes*/
 
-      // frame struct
+      // The Header Frame structure sent and received between Hercules and Watchdog
       struct WatchdogFrameHeader {
-        uint32_t magic_value    :24;
-        uint32_t parity         :8;
-        uint16_t payload_length;
-        uint16_t reset_val;
+        uint32_t magic_value    :24;  // 24 bit magic value that is constant and sent at the begining of every send
+        uint32_t parity         :8;   // 8 bit partity of whole header, initially calculated with parity equal to 0
+        uint16_t payload_length;      // The length of the payload being sent
+        uint16_t reset_val;           // The reset value being sent to watchdog
       } __attribute__((packed, aligned(8)));
 
      struct WatchdogTelemetry {
-         int16_t voltage_2V5;
-         int16_t voltage_2V8;
-         int16_t voltage_24V;
-         int16_t voltage_28V;
-         int8_t battery_thermistor;
-         int8_t sys_status;
-         int16_t battery_level;
-         int32_t battery_current;
+         int16_t voltage_2V5;   // Current measured voltage of the 2.5V line as read from the Watchdog
+         int16_t voltage_2V8;   // Current measured voltage of the 2.8V line as read from the Watchdog
+         int16_t voltage_24V;   // Current measured voltage of the 24V line as read from the Watchdog
+         int16_t voltage_28V;   // Current measured voltage of the 28V line as read from the Watchdog
+         int8_t battery_thermistor;   // Current measured voltage of the watchdog battery thermistor as read from the Watchdog
+         int8_t sys_status;   // 8 bit systems status where each bit represents a watchdog status
+         int16_t battery_level;   // Current measured battery voltage as read from the Watchdog
+         int32_t battery_current;   // Current measured battery current as read from the Watchdog
      } __attribute__((packed, aligned(8)));
 
      // Incorrect Response Possible Values
      enum resp_error : U8
      {
-         bad_parity = 1,
-         bad_size_received = 2,
-         bad_reset_value = 3,
-         bad_magic_value = 4,
-         not_enough_bytes = 5
+         bad_parity = 1,    // Error code for response having bad parity value
+         bad_size_received = 2,   // Error code for response having bad data size received
+         bad_reset_value = 3,   // Error code for response having a bad reset value
+         bad_magic_value = 4,   // Error code for response having a bad magic value
+         not_enough_bytes = 5   // Error code for response not having enough bytes (must be over min_receive_size)
      };
 
+     enum disengage_command : U16
+     {
+        Disengage = 0x00EE    // Reset value for the disengagement command sent to Watchdog
+     };
 
-     int Receive_Frame(uint32_t *comm_error, WatchdogFrameHeader *header);
+     // Receives a Frame start everytime data is sent from watchdog to hercules
+     int Receive_Frame(uint32_t *comm_error, // Error returned from receiving frame
+                      WatchdogFrameHeader *header  // Location to save data into
+                      );
 
-     // Sends a Frame start everytime data is sent from cuberover to watchdog
+     // Sends a Frame start everytime data is sent from hercules to watchdog
      bool Send_Frame(
          U16 payload_length,    // stroke if 0x0000 or UDP data size if larger than
          U16 reset_value        // reset value for watchdog
@@ -258,18 +267,24 @@ namespace CubeRover {
 
      bool Read_Temp();          // Checking the temperature sensors from the ADC
 
-     void pollDMAReceiveFinished();
-     void pollDMASendFinished();
-     bool dmaReceive(void *buffer, int size, bool blocking=true);
-     bool dmaSend(void *buffer, int size, bool blocking=true);
+     void pollDMAReceiveFinished();   // Polls DMA recieve finish to see if we've finished our DMA receiving
+     void pollDMASendFinished();      // Polls DMA send finish to see if we've finished our DMA sending
+     // Perform a DMA receive function
+     bool dmaReceive(void *buffer,          // The buffer to put all received data into
+                      int size,             // The size that is received from watchdog
+                      bool blocking=true);  // Check variable to see if we need to block other DMA requests
+     // Perform a DMA send function
+     bool dmaSend(void *buffer,           // The buffer of data to send to watchdog
+                  int size,               // The size of the data to send to watchdog
+                  bool blocking=true);    // Check variable to see if we need to block other DMA requests
 
       // Usage during FSW initialization
       // Only difference between this is function and Reset_Specific_cmdHandler is lack of cmd response
-      bool Reset_Specific_Handler(U8 reset_value);
+      bool Reset_Specific_Handler(reset_values_possible reset_value);
 
 
-      sciBASE_t *m_sci;
-      adcData_t m_thermistor_buffer[6];
+      sciBASE_t *m_sci;   // The sci base used to initialize the watchdog interface connection 
+      adcData_t m_thermistor_buffer[number_thermistors];  // Location to store current data for thermistors
       bool m_finished_initializing;     // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
 
     };

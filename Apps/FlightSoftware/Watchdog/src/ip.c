@@ -17,7 +17,7 @@ uint16_t ip_checksum(uint8_t *packet, uint16_t packet_len) {
     
     /* store the original packet length before we modify it */
     packet_len_orig = packet_len;
-    if (packet_len % 1) {
+    if (packet_len % 2) {
         /* ignore the last byte for now since we have to pad it later */
         packet_len -= 1;
     }
@@ -44,7 +44,7 @@ uint16_t ip_checksum(uint8_t *packet, uint16_t packet_len) {
          * just 0
          */
         /* note that this implicitly does the byte order swapping necessary */
-        tmp = (packet[packet_len]);
+        tmp = (packet[packet_len] << 8);
 
         /* add the value to the accumulator */
         accum += tmp;

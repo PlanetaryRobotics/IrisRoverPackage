@@ -28,8 +28,8 @@ void send_earth_heartbeat();
 /**
  * main.c
  */
-
-enum rover_state rovstate;
+#pragma PERSISTENT(rovstate)
+enum rover_state rovstate = RS_KEEPALIVE;
 
 void uart1_disable();
 void uart0_init();
@@ -64,6 +64,7 @@ void enterMode(enum rover_state newstate) {
         enableHeater();
         startChargingBatteries();
         break;
+    default:
     case RS_MISSION:
         /* bootup process - enable all rails */
         enable3V3PowerRail();
@@ -134,7 +135,7 @@ int main(void) {
     i2c_init();
 
     /* enter keepalive mode */
-    enterMode(RS_MISSION);
+    enterMode(rovstate);
 
     // TODO: camera switch is for debugging only
     fpgaCameraSelectHi();
@@ -147,6 +148,10 @@ int main(void) {
     // the core structure of this program is like an event loop
     while (1) {
         ticks++;
+        /* watchdog timer setup - need to stroke every ~1s */
+        /* basically, we limit the execution of each loop to ~1s or else reset */
+        WDTCTL = WDT_ARST_1000;
+
         /* check if anything happened */
         if (!loop_flags) { /* nothing did */
             /* go back to low power mode */

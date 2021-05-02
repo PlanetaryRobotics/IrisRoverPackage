@@ -7,7 +7,7 @@ Designed to interface solely with Watchdog using IP/UDP-SLIP via RS-422 with
 special `WatchdogTvacHeartbeatPackets` and normal commands.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/17/2021
+@last-updated: 05/01/2021
 """
 
 import traceback
@@ -34,7 +34,7 @@ from IrisBackendv3.utils.nameiddict import NameIdDict
 
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.logging import logger as DsLogger
-from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac
+from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response
 from IrisBackendv3.codec.payload import Payload, PayloadCollection, CommandPayload, WatchdogCommandPayload, extract_downlinked_payloads
 from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
@@ -57,7 +57,11 @@ ser: Any = None
 
 DsLogger.setLevel('CRITICAL')
 standards = DataStandards.build_standards()
-add_to_standards(standards, watchdog_heartbeat_tvac)
+add_to_standards(standards, [
+    watchdog_heartbeat_tvac,
+    watchdog_heartbeat,
+    watchdog_command_response
+])
 set_codec_standards(standards)
 
 all_payloads: PayloadCollection = PayloadCollection(
@@ -164,7 +168,7 @@ def list_channels_wd() -> None:
 
 def pack_watchdog_command(command_name: str, **kwargs) -> bytes:
     """
-    Pack up a Watchdog command into bytes to send.
+    Manually pack up a Watchdog command into bytes to send.
     """
     module, command = standards.global_command_lookup(command_name)
     payload = WatchdogCommandPayload(
@@ -184,14 +188,7 @@ def pack_watchdog_command(command_name: str, **kwargs) -> bytes:
     seq_num = 0  # watchdog doesn't care
     CPH = struct.pack(ENDIANNESS_CODE + 'B H B', seq_num, vlp_len, checksum)
     packet = CPH + VLP
-
-    # Arbitrary IPs:
-    full_packet = scp.IP(dst='127.0.0.1', src='222.173.190.239') / \
-        scp.UDP(dport=8080)/scp.Raw(load=packet)
-    # printraw(scp.raw(scp.IP(scp.raw(full_packet))))
-    # printraw(scp.raw(full_packet))
-    # scp.raw(full_packet)
-    return cast(bytes, scp.raw(full_packet))
+    return packet
 
 
 def connect_serial(device: str = '/dev/ttyUSB0', baud: int = 9600) -> None:
@@ -239,17 +236,30 @@ def send_slip(dat: bytes) -> None:
             "Can't send data, serial connection not started. Try `connect_serial()`.",
             'red')
 
-def send_data_wd_serial(data: bytes) -> str:
+
+def send_data_wd_serial(
+    iris_packet: bytes,
+    ip_dest: str = '127.0.0.1',  # arbitrary (WD doesn't care)
+    ip_src: str = '222.173.190.239',  # arbitrary (WD doesn't care)
+    port: int = 8080  # arbitrary (WD doesn't care)
+) -> str:
     try:
+        # Build packet
+        full_packet = scp.IP(dst=ip_dest, src=ip_src) / \
+            scp.UDP(dport=port)/scp.Raw(load=iris_packet)
+        # printraw(scp.raw(scp.IP(scp.raw(full_packet))))
+        # printraw(scp.raw(full_packet))
+        data = cast(bytes, scp.raw(full_packet))
         send_slip(data)
     except serial.SerialTimeoutException:
         cprint("Failed to send due to serial timeout. Check the connection?", 'red')
     finally:
         return f"Data: {hexstr(data)}."
 
+
 def send_command_wd_serial(command_name: str, **kwargs) -> str:
     data = pack_watchdog_command(command_name, **kwargs)
-    send_data_wd_serial(data)
+    return send_data_wd_serial(data)
 
 
 def adc_to_degC(adc: int) -> float:

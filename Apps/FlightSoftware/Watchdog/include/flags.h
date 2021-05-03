@@ -29,6 +29,7 @@ __volatile extern uint16_t loop_flags;
 #define WDFLAG_UNRESET_FPGA   0x200
 #define WDFLAG_UNRESET_3V3    0x400
 #define WDFLAG_UNRESET_24V    0x800
+#define WDFLAG_HERCULES_KICK  0x1000
 
 
 #define DEFAULT_LPM LPM2_bits

@@ -301,8 +301,6 @@ void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer, uint8_t opts) 
 
     // TODO: maybe we should do SLIP encoding in the interrupt handler instead,
     // so that we can have a deterministic MTU
-    // ah wait, may not be possible, as we need to indicate packet boundaries
-    // somehow, and this is how
 
     if (opts & UA1_ADD_PKT_START) {
         uart1tx.buf[curr_idx++] = SLIP_END;

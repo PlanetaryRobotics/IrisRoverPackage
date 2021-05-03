@@ -164,11 +164,12 @@ int main(void) {
             // temporarily disable uart0 interrupt
             UCA0IE &= ~UCRXIE;
             __bic_SR_register(GIE);
-            unsigned int i = 0, process_len = 0;
+            unsigned int bread = 0, i = 0, process_len = 0;
             i = 0;
+            // get bytes read
+            bread = uart0rx.idx;
             // header is 8 bytes long
-            while (i + 8 <= uart0rx.idx) {
-
+            while (i + 8 <= bread) {
                 /* check input value */
                 if (uart0rx.buf[i] == 0x0B && uart0rx.buf[i + 1] == 0xB0 &&
                         uart0rx.buf[i + 2] == 0x21) {
@@ -181,7 +182,7 @@ int main(void) {
 
                     if (parity == uart0rx.buf[i + 3]) {
                         /* parity bytes match! */
-                        process_len = watchdog_handle_hercules(uart0rx.buf, uart0rx.idx - i);  // @suppress("Invalid arguments")
+                        process_len = watchdog_handle_hercules(uart0rx.buf, bread - i);  // @suppress("Invalid arguments")
                         if (process_len == 0) {
                             //need more data
                             break;
@@ -200,8 +201,8 @@ int main(void) {
                 // skip the null memcpy
             } else if (i < uart0rx.idx) {
                 // copy over leftovers to front of buffer
-                memcpy(uart0rx.buf, uart0rx.buf + i, uart0rx.idx - i);  // @suppress("Invalid arguments")
-                uart0rx.idx = uart0rx.idx - i;
+                memcpy(uart0rx.buf, uart0rx.buf + i, bread - i);  // @suppress("Invalid arguments")
+                uart0rx.idx = bread - i;
             } else {
                 // no leftovers
                 uart0rx.idx = 0;

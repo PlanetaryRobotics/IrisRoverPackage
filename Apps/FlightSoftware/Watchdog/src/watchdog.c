@@ -137,6 +137,14 @@ int watchdog_monitor() {
         watchdog_flags ^= WDFLAG_ADC_READY;
     }
 
+    /* check if hercules has given a valid kick */
+    if (watchdog_flags & WDFLAG_HERCULES_KICK) {
+        watchdog_flags ^= WDFLAG_HERCULES_KICK;
+    } else {
+        //
+        __delay_cycles(100);
+    }
+
     /* re-enable interrupts */
     __bis_SR_register(GIE);
     return 0;
@@ -184,6 +192,9 @@ void watchdog_send_hercules_telem() {
  */
 unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
     unsigned int len = (buf[4]) | (buf[5] << 8);
+    // valid hercules message received
+    watchdog_flags |= WDFLAG_HERCULES_KICK;
+
     if (len != 0) {
         /* udp packet attached */
         if (len + 8 <= max_l) {

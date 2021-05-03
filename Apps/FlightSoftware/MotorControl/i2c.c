@@ -1,6 +1,6 @@
 #include "i2c.h"
 
-// variables for i2c fucntionality
+// variables for i2c functionality
 volatile uint8_t g_rxBuffer[I2C_RX_BUFFER_MAX_SIZE];
 volatile uint8_t g_txBuffer[I2C_TX_BUFFER_MAX_SIZE];
 volatile uint8_t g_rxBufferIdx;

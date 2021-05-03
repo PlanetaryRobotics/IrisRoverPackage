@@ -64,7 +64,6 @@
  *        Function/struct/enum definitions
  * ============================================
  */
-inline _iq _IQ15mpy_inline(_iq,_iq);
 
 inline bool read_driver_fault();
 inline void clear_driver_fault();

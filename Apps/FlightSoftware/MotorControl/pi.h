@@ -26,11 +26,11 @@ typedef struct {  _iq  Ref;   			// Input: reference set-point
 	v.up = v.Ref - v.Fbk;						\
 																\
 	/* integral term */ 										\
-	v.ui = (v.Out == v.v1)?(_IQ15mpy_inline(v.Ki, v.up)+ v.i1) : v.i1;	\
+	v.ui = (v.Out == v.v1)?(_IQ15mpy(v.Ki, v.up)+ v.i1) : v.i1;	\
 	v.i1 = v.ui;												\
 																\
 	/* control output */ 										\
-	v.v1 = _IQ15mpy_inline(v.Kp, v.up) + v.ui;					\
+	v.v1 = _IQ15mpy(v.Kp, v.up) + v.ui;					\
     v.Out = _IQsat(v.v1, v.Umax, v.Umin);                       \
     v.w1 = (v.v1 != v.Out) ? 1 : 0;
 

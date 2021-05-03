@@ -6,41 +6,39 @@
  */
 #include "main.h"
 
+// TODO: re-organize all these variable defs
 _iq g_currentPhaseA;
 _iq g_currentPhaseB;
 _iq g_currentPhaseC;
 _iq g_feedforwardFW;
 
 // Used for calibration
-volatile _iq g_currentOffsetPhaseA;
-volatile _iq g_currentOffsetPhaseB;
-volatile _iq g_currentOffsetPhaseC;
-volatile _iq g_currentSpeed;
-volatile _iq g_openLoopTorque;
+_iq g_currentOffsetPhaseA;
+_iq g_currentOffsetPhaseB;
+_iq g_currentOffsetPhaseC;
+_iq g_currentSpeed;
+_iq g_openLoopTorque;
 
-volatile _iq g_currentRefTest;
-volatile _iq g_speedRefTest;
+_iq g_closeLoopThreshold;
 
-volatile _iq g_closeLoopThreshold;
-
-volatile uint8_t g_commState;
-volatile uint8_t g_oldCommState;
+uint8_t g_commState;
+uint8_t g_oldCommState;
 HallSensor g_hallSensor;
+uint8_t g_hallMap[8];
 
 volatile int32_t g_currentPosition;
-volatile int32_t g_oldPosition;
 volatile int32_t g_targetPosition;
+int32_t g_oldPosition;
 
-volatile uint16_t g_controlPrescaler;
-uint8_t g_hallMap[8];
+uint16_t g_controlPrescaler;
 
 volatile PI_CONTROLLER g_piSpd;
 volatile PI_CONTROLLER g_piCur;
 volatile IMPULSE g_impulse;
 volatile MOD6CNT g_mod6cnt;
 
-volatile bool g_closedLoop;
-volatile bool g_targetReached;
+bool g_closedLoop;
+bool g_targetReached;
 volatile uint8_t g_maxSpeed;
 
 volatile StateMachine g_state;
@@ -49,8 +47,7 @@ volatile CmdState g_cmdState;
 volatile uint16_t g_accelRate;
 volatile uint16_t g_decelRate;
 
-volatile int8_t g_targetDirection;
-volatile int8_t g_oldTargetDirection;
+int8_t g_targetDirection;
 
 uint8_t g_statusRegister;
 volatile uint8_t g_controlRegister;
@@ -59,7 +56,6 @@ volatile uint32_t g_drivingTimeoutCtr;
 uint8_t g_errorCounter= 0; // incremented every time inner control loop is reached and motor is acting strange
                            // if it exceeds ERROR_ITERATION_THRESHOLD then motor is stopped
 
-// timing debug
 bool g_readSensors = false;
 
 
@@ -425,40 +421,6 @@ void resetPiController(volatile PI_CONTROLLER *pi){
 
 
 /**
- * @brief      Do a multiplication using the hardware multiplier of the MSP430.
- *             This works only for IQ15 fixed point format.
- *
- * @param[in]  iq31Arg1  The iq 31 argument 1
- * @param[in]  iq31Arg2  The iq 31 argument 2
- *
- * @return     { description_of_the_return_value }
- */
-inline _iq _IQ15mpy_inline(_iq iq31Arg1, _iq iq31Arg2){
-  uint32_t ui31Result;
-  uint16_t *ptr = (uint16_t *)&ui31Result + 1;
-  uint16_t *ptrArg1 = (uint16_t *)&iq31Arg1 + 1;
-  uint16_t *ptrArg2 = (uint16_t *)&iq31Arg2 + 1;
-
-  /* Set the multiplier to fractional mode. */
-  MPY32CTL0 = MPYFRAC;
-  /* Perform multiplication and save result. */
-  MPYS32L = iq31Arg1;
-  MPYS32H = *ptrArg1;
-  OP2L = iq31Arg2;
-  OP2H = *ptrArg2;
-  asm(" NOP");
-  asm(" NOP");
-  asm(" NOP");
-  asm(" NOP");
-  asm(" NOP");
-  ui31Result = RES1;
-  *ptr = RES2;
-
-  return (_iq)ui31Result;
-}
-
-
-/**
  * @brief      Disable the drive
  */
 inline void disable(){
@@ -492,6 +454,7 @@ inline void run(){
  * @brief      Update the drive state machine
  */
 void updateStateMachine(){
+    // TODO: no nested case statements
   switch(g_cmdState){
     case RUN:
       switch(g_state){
@@ -525,16 +488,6 @@ void updateStateMachine(){
 /**
  * @brief      Clears the DRV8304 Driver Fault Register.
  */
-inline void clear_driver_fault_register(){
-    // Pull high first so you can then pull it low:
-    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
-    __delay_cycles(1600000);    // 100 ms
-    // Reset Fault Register by pulsing ENABLE for 5-32us (18.5us):
-    GPIO_setOutputLowOnPin(GPIO_PORT_PJ, GPIO_PIN0);
-    __delay_cycles(296);    // 18.5 us
-    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
-}
-
 inline void clear_driver_fault(){
     // Pull high first so you can then pull it low:
     GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
@@ -579,8 +532,10 @@ void initializeSoftwareControlVariables(void){
     g_controlRegister = 0; // see main.h for bits
 }
 
+/*
+ * @breif   initialize motor controller related variables (PI controllers for speed and current)
+ */
 void initializeControllerVariables(void){
-    // motor controller related variables (PI controllers for speed and current)
     g_maxSpeed = MAX_TARGET_SPEED;
 
     g_openLoopTorque = _IQ(OPEN_LOOP_TORQUE);
@@ -600,7 +555,35 @@ void initializeControllerVariables(void){
 }
 
 /*
- * Brief:  update sensor (Hall & current) readings for when driving in closed loop
+ * @brief   Do everything necessary to init MSP and begin driving
+ */
+void initController(void){
+    initializeGpios();
+
+    //Set DCO frequency to 16MHz
+    CS_setDCOFreq(CS_DCORSEL_1, CS_DCOFSEL_4);
+
+    CS_initClockSignal(CS_SMCLK,CS_DCOCLK_SELECT,CS_CLOCK_DIVIDER_1);
+    CS_initClockSignal(CS_MCLK,CS_DCOCLK_SELECT,CS_CLOCK_DIVIDER_1);
+
+    // Initialize variables
+    initializeSensorVariables();
+    initializeSoftwareControlVariables();
+    initializeControllerVariables();
+
+    // initialize hardware components
+    initializeI2cModule();
+    initializePwmModules();
+    initializeAdcModule();
+    initializeHallInterface();
+
+    currentOffsetCalibration(); // get initial estimate of current offsets
+    __bis_SR_register(GIE); // enable interrupts (timer & i2c)
+    enableGateDriver(); // get ready to move
+}
+
+/*
+ * @brief  update sensor (Hall & current) readings for when driving in closed loop
  */
 void readSensors(){
 
@@ -827,31 +810,7 @@ void main(void){
   // Turn off the watchdog
   WDT_A_hold(WDT_A_BASE);
 
-  initializeGpios();
-
-  //Set DCO frequency to 16MHz
-  CS_setDCOFreq(CS_DCORSEL_1, CS_DCOFSEL_4);
-
-  CS_initClockSignal(CS_SMCLK,CS_DCOCLK_SELECT,CS_CLOCK_DIVIDER_1);
-  CS_initClockSignal(CS_MCLK,CS_DCOCLK_SELECT,CS_CLOCK_DIVIDER_1);
-
-  // Initialize variables
-  initializeSensorVariables();
-  initializeSoftwareControlVariables();
-  initializeControllerVariables();
-
-
-  // initialize hardware components
-  initializeI2cModule();
-  initializePwmModules();
-  initializeAdcModule();
-  initializeHallInterface();
-
-  currentOffsetCalibration(); // get initial estimate of current offsets
-
-  __bis_SR_register(GIE); // enable interrupts (timer & i2c)
-
-  enableGateDriver(); // get ready to move
+  initController(); //init all variables and functionality needed to drive
 
   while(1){
       checkTargetReached();

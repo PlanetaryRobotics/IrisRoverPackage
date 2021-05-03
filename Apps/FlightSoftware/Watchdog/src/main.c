@@ -161,56 +161,7 @@ int main(void) {
 
         /* a cool thing happened! now time to check what it was */
         if (loop_flags & FLAG_UART0_RX_PACKET) {
-            // temporarily disable uart0 interrupt
-            UCA0IE &= ~UCRXIE;
-            __bic_SR_register(GIE);
-            unsigned int bread = 0, i = 0, process_len = 0;
-            i = 0;
-            // get bytes read
-            bread = uart0rx.idx;
-            // header is 8 bytes long
-            while (i + 8 <= bread) {
-                /* check input value */
-                if (uart0rx.buf[i] == 0x0B && uart0rx.buf[i + 1] == 0xB0 &&
-                        uart0rx.buf[i + 2] == 0x21) {
-                    /* magic value rx'd! check parity */
-                    uint8_t parity = 0xDC; /* sum of 0x21, 0xB0, and 0x0B */
-                    parity += uart0rx.buf[i + 4] + uart0rx.buf[i + 5];
-                    parity += uart0rx.buf[i + 6] + uart0rx.buf[i + 7];
-                    /* bitwise NOT to compute parity */
-                    parity = ~parity;
-
-                    if (parity == uart0rx.buf[i + 3]) {
-                        /* parity bytes match! */
-                        process_len = watchdog_handle_hercules(uart0rx.buf, bread - i);  // @suppress("Invalid arguments")
-                        if (process_len == 0) {
-                            //need more data
-                            break;
-                        } else {
-                            // successfully handled a packet, now process the next one
-                            i += process_len;
-                            continue;
-                        }
-                    }
-                }
-                i++;
-            }
-
-            // leftovers
-            if (i == 0) {
-                // skip the null memcpy
-            } else if (i < uart0rx.idx) {
-                // copy over leftovers to front of buffer
-                memcpy(uart0rx.buf, uart0rx.buf + i, bread - i);  // @suppress("Invalid arguments")
-                uart0rx.idx = bread - i;
-            } else {
-                // no leftovers
-                uart0rx.idx = 0;
-            }
-
-            // re-enable uart0 interrupt
-            __bis_SR_register(GIE);
-            UCA0IE |= UCRXIE;
+            watchdog_handle_hercules(); // @suppress("Invalid arguments")
 
             /* clear event when done */
             loop_flags ^= FLAG_UART0_RX_PACKET;

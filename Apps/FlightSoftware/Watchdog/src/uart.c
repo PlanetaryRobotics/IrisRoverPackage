@@ -21,6 +21,9 @@
 /* ========================== interrupt handlers =========================== */
 
 /* uart0 rx interrupt handler (Hercules) */
+volatile uint8_t uart0_rx_mode = UA0_RX_HEADER;
+volatile uint8_t uart0_rx_header[8] = {0};
+volatile uint16_t uart0_rx_len = 0;
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=EUSCI_A0_VECTOR
 __interrupt void USCI_A0_ISR(void) {
@@ -50,17 +53,57 @@ void __attribute__ ((interrupt(EUSCI_A0_VECTOR))) USCI_A0_ISR (void) {
         /* get the received character */
         rcv = UCA0RXBUF;
 
-        /* regular byte */
+        /* check what mode we're in */
+        // TODO: need a check to ensure we don't get stuck in UA0_RX_PROCESS_UDP forever
+        if (uart0_rx_mode == UA0_RX_HEADER) {
+            uart0_rx_header[7] = rcv;
+            /* verify valid header w/ magic value and parity */
+            uint8_t parity = 0xDC; /* sum of 0x21, 0xB0, and 0x0B */
+            parity += uart0_rx_header[4] + uart0_rx_header[5];
+            parity += uart0_rx_header[6] + uart0_rx_header[7];
+            /* bitwise NOT to compute parity */
+            parity = ~parity;
+            if (uart0_rx_header[0] == 0x0B && uart0_rx_header[1] == 0xB0 && uart0_rx_header[2] == 0x21
+                    && parity == uart0_rx_header[3]) {
+                /* get the received packet length */
+                uart0_rx_len = (uart0_rx_header[4]) | (uart0_rx_header[5] << 8);
+                /* next byte to process is UDP data */
+                uart0_rx_mode = UA0_RX_UDP;
+                /* clear the rx buffer */
+                uart0rx.idx = 0;
+                uart0rx.used = 0;
+                /* note if uart0_rx_len = 0, we will change to UA0_RX_PROCESS_UDP below */
+            } else {
+                /* no match, shuffle the bytes around and keep going */
+                uart0_rx_header[0] = uart0_rx_header[1];
+                uart0_rx_header[1] = uart0_rx_header[2];
+                uart0_rx_header[2] = uart0_rx_header[3];
+                uart0_rx_header[3] = uart0_rx_header[4];
+                uart0_rx_header[4] = uart0_rx_header[5];
+                uart0_rx_header[5] = uart0_rx_header[6];
+                uart0_rx_header[6] = uart0_rx_header[7];
+            }
+        } else if (uart0_rx_mode == UA0_RX_UDP) {
+            uart0rx.buf[uart0rx.idx++] = rcv;
+            uart0rx.used++;
 
-        uart0rx.buf[uart0rx.idx++] = rcv;
+            if (uart0rx.idx >= BUFFER_SIZE) uart0rx.idx -= BUFFER_SIZE;
+        } else {
+            // TODO: need a check to ensure we don't get stuck in UA0_RX_PROCESS_UDP forever
+            /* drop the byte */
+        }
 
-        /* note that we received a byte in main loop */
-        loop_flags |= FLAG_UART0_RX_PACKET;
+        /* check if we are done reading */
+        if ((uart0_rx_mode == UA0_RX_UDP) && (uart0rx.used >= uart0_rx_len)) {
+            /* note that we received a packet in main loop */
+            loop_flags |= FLAG_UART0_RX_PACKET;
+            /* also stop writing to buffer */
+            uart0_rx_mode = UA0_RX_PROCESS_UDP;
+        }
 
         /* clear UART_A0 receive flag */
         /* we are done here */
         UCA0IFG &= ~UCRXIFG;
-        if (uart0rx.idx >= BUFFER_SIZE) uart0rx.idx -= BUFFER_SIZE;
         break;
     default: /* some other possibilities */
         break;

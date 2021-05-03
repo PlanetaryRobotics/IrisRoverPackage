@@ -185,54 +185,42 @@ void watchdog_send_hercules_telem() {
  * Function called whenever the watchdog needs to handle a byte from the hercules
  *
  * Assumes checksum valid.
- * @param buf: Pointer to first byte of header/payload (8+len bytes total)
- * @param max_l: Maximum length of bytes processes
- *
- * Returns number of bytes processed (includes header). 0 if more data bytes needed.
  */
-unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
-    unsigned int len = (buf[4]) | (buf[5] << 8);
+void watchdog_handle_hercules() {
     // valid hercules message received
     watchdog_flags |= WDFLAG_HERCULES_KICK;
 
-    if (len != 0) {
+    if (uart0_rx_len != 0) {
         /* udp packet attached */
-        if (len + 8 <= max_l) {
-            /* echo back watchdog command header only */
-            uart0_tx_nonblocking(8, buf);
 
-            // Send telemetry data back to Hercules
-            watchdog_send_hercules_telem();
+        /* echo back watchdog command header only */
+        uart0_tx_nonblocking(8, uart0_rx_header); // @suppress("Invalid arguments")
 
-            /* add this packet to the IP/UDP stack send buffer */
-            ipudp_send_packet(buf+8, len);
+        // Send telemetry data back to Hercules
+        watchdog_send_hercules_telem();
 
-            /* all done */
-            return len + 8; // data length + 8 = total bytes processed
-        } else {
-            /* need to wait for more bytes to come in */
-            return 0;
-        }
+        /* add this packet to the IP/UDP stack send buffer */
+        ipudp_send_packet(uart0rx.buf, uart0_rx_len); // @suppress("Invalid arguments")
     } else {
         /* handle watchdog reset command */
-        handle_watchdog_reset_cmd(buf[6]);
+        handle_watchdog_reset_cmd(uart0_rx_header[6]);
         /* check if we have UDP data to send back to hercules */
         if (hercbuf.used > 0) {
             /* write out our buffer */
             /* update header length first */
-            buf[4] = hercbuf.used & 0xFF;
-            buf[5] = (hercbuf.used >> 8) & 0xFF;
+            uart0_rx_header[4] = hercbuf.used & 0xFF;
+            uart0_rx_header[5] = (hercbuf.used >> 8) & 0xFF;
             /* recompute parity */
             uint8_t parity = 0xDC; /* sum of 0x21, 0xB0, and 0x0B */
             /* skip parity byte (i + 3) in summation */
-            parity += buf[4] + buf[5];
-            parity += buf[6] + buf[7];
+            parity += uart0_rx_header[4] + uart0_rx_header[5];
+            parity += uart0_rx_header[6] + uart0_rx_header[7];
             /* bitwise NOT to compute parity */
             parity = ~parity;
             /* write out new parity byte */
-            buf[3] = parity;
+            uart0_rx_header[3] = parity;
             /* echo back watchdog command header updated version */
-            uart0_tx_nonblocking(8, buf);
+            uart0_tx_nonblocking(8, uart0_rx_header); // @suppress("Invalid arguments")
             /* note we skip sending back the telemetry here */
             /* send the udp packet */
             uart0_tx_nonblocking(hercbuf.used, hercbuf.buf); // @suppress("Invalid arguments")
@@ -241,14 +229,14 @@ unsigned int watchdog_handle_hercules(unsigned char *buf, uint16_t max_l) {
             hercbuf.idx = 0;
         } else {
             /* echo back watchdog command header */
-            uart0_tx_nonblocking(8, buf);
+            uart0_tx_nonblocking(8, uart0_rx_header); // @suppress("Invalid arguments")
             /* also attach telemetry values */
             watchdog_send_hercules_telem();
         }
-
-        /* in this case, we always just processed 8 bytes header */
-        return 8;
     }
+
+    /* tell the interrupt handler to start processing bytes again */
+    uart0_rx_mode = UA0_RX_HEADER;
 }
 
 void heaterControl(){

@@ -339,12 +339,6 @@ void parse_ground_cmd(struct buffer *pp) {
     unsigned char *buf;
     uint16_t pp_len, packet_len;
 
-    /* temporary: echo back everything */
-    // TODO: debug test
-    if (pp->used >= 2 && pp->buf[0] == 0xDE && pp->buf[1] == 0xAD) {
-        __delay_cycles(10000);
-    }
-
     /* parse the ip and udp headers */
     buf = ipudp_parse_packet(pp, &pp_len);
     if (!buf) {

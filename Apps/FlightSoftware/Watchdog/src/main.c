@@ -43,14 +43,14 @@ void enterMode(enum rover_state newstate) {
         /* service mode is a temporary step transition to mission mode */
     case RS_KEEPALIVE:
         /* power everything off and set resets */
-        setRadioReset();
-        setFPGAReset();
-        setMotorsReset();
-        setHerculesReset();
         powerOffFpga();
         powerOffMotors();
         powerOffRadio();
         powerOffHercules();
+        setRadioReset();
+        setFPGAReset();
+        setMotorsReset();
+        setHerculesReset();
 //        fuelGaugeLowPower();
         /* TODO: do we want to do it in this order? */
 
@@ -79,8 +79,8 @@ void enterMode(enum rover_state newstate) {
         adc_setup_mission();
 
         /* power everything on and release resets */
-        powerOnHercules();
         releaseHerculesReset();
+        powerOnHercules();
         powerOnFpga();
         powerOnMotors();
         powerOnRadio();
@@ -166,6 +166,7 @@ int main(void) {
             /* clear event when done */
             loop_flags ^= FLAG_UART0_RX_PACKET;
         }
+
         if (loop_flags & FLAG_UART1_RX_PACKET) {
             // temporarily disable uart1 rx interrupt
             UCA1IE &= ~UCRXIE;

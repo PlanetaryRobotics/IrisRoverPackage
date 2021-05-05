@@ -407,7 +407,7 @@ void spiInit(void)
 
     /* SPI3 set all pins to functional */
     spiREG3->PC0  =   (uint32)((uint32)1U << 0U)  /* SCS[0] */
-                    | (uint32)((uint32)1U << 1U)  /* SCS[1] */
+                    | (uint32)((uint32)0U << 1U)  /* SCS[1] */
                     | (uint32)((uint32)1U << 2U)  /* SCS[2] */
                     | (uint32)((uint32)1U << 3U)  /* SCS[3] */
                     | (uint32)((uint32)0U << 4U)  /* SCS[4] */

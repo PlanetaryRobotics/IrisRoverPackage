@@ -1,19 +1,27 @@
+// ======================================================================
+// \title  i2c.h
+// \author cedric
+// \edited by Jonathan
+// \brief  header file for i2c interface between MSP430 motor controller
+//         (this device) and the Hercules microcontroller
+//
+// ======================================================================
+
 #ifndef I2C_H_
 #define I2C_H_
+
+// variables for i2c functionality
+#define I2C_RX_BUFFER_MAX_SIZE      8
+#define I2C_TX_BUFFER_MAX_SIZE      8
+#define I2C_MAX_DATA_SIZE           4
+#define I2C_SLAVE_ADDRESS           0x48
+#define I2C_PACKET_HEADER           0xAA
 
 #include "driverlib.h"
 #include "main.h"
 
-#define I2C_RX_BUFFER_MAX_SIZE      8
-#define I2C_TX_BUFFER_MAX_SIZE      8
-
-#define I2C_MAX_DATA_SIZE           4
-
-#define I2C_SLAVE_ADDRESS               0x48
-#define I2C_PACKET_HEADER               0xAA
-
+// Register ids for i2c communication with Hercules
 typedef enum I2cRegisterIds{
-
     I2C_ADDRESS = 0,
     TARGET_POSITION = 1,
     TARGET_SPEED = 2,
@@ -33,16 +41,13 @@ typedef enum I2cRegisterIds{
     MAX_NB_CMDS = 15
 }I2cRegisterIds;
 
+// Different modes for i2c functionality
+//  _REG_ADDRESS_MODE -> receiving register id from Hercules that it wants to interact with
+//  _DATA_MODE        -> ready to write or read bytes of data to/from Herules
 typedef enum I2cMode{
-    IDLE_MODE,
-    NACK_MODE,
-    TX_REG_ADDRESS_MODE,
-    RX_REG_ADDRESS_MODE,
-    TX_DATA_MODE,
-    RX_DATA_MODE,
-    SWITCH_TO_RX_MODE,
-    SWITCH_TO_TX_MODE,
-    TIMEOUT_MODE
+    RX_REG_ADDRESS_MODE = 0,
+    TX_DATA_MODE = 1,
+    RX_DATA_MODE = 2
 }I2cMode;
 
 void initializeI2cModule();

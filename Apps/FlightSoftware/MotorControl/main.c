@@ -1,9 +1,13 @@
-/*
- *
- *  TODO: populate this
- *
- *
- */
+// ======================================================================
+// \title  main.c
+// \author cedric
+// \edited by Jonathan
+// \brief  Runs control loop to drive motors, as well as initializing
+//         everything needed for the rest of the code. Also reads from
+//         current sensors on motor driver and hall sensors on motor
+//
+// ======================================================================
+
 #include "main.h"
 
 // TODO: re-organize all these variable defs
@@ -58,178 +62,17 @@ uint8_t g_errorCounter= 0; // incremented every time inner control loop is reach
 
 bool g_readSensors = false;
 
-
-/**
- * @brief      Initializes the pwm modules.
- */
-void initializePwmModules(){
-  //Start Timer
-  Timer_B_initUpDownModeParam initUpDownParam = {0};
-  initUpDownParam.clockSource = TIMER_B_CLOCKSOURCE_SMCLK; // 16 MHz
-  initUpDownParam.clockSourceDivider = TIMER_B_CLOCKSOURCE_DIVIDER_1;
-  initUpDownParam.timerPeriod = PWM_PERIOD_TICKS;
-  initUpDownParam.timerInterruptEnable_TBIE = TIMER_B_TBIE_INTERRUPT_DISABLE;
-  initUpDownParam.captureCompareInterruptEnable_CCR0_CCIE = TIMER_B_CCIE_CCR0_INTERRUPT_ENABLE;
-  initUpDownParam.timerClear = TIMER_B_DO_CLEAR;
-  initUpDownParam.startTimer = true;
-  Timer_B_initUpDownMode(TIMER_B0_BASE, &initUpDownParam);
-
-  Timer_B_clearCaptureCompareInterrupt(TIMER_B0_BASE,
-                                       TIMER_B_CAPTURECOMPARE_REGISTER_0);
-
-  //Initialize compare registers to generate PWMA_H
-  Timer_B_initCompareModeParam initComp1Param = {0};
-  initComp1Param.compareRegister = PWMA_H_CCR_REGISTER;
-  initComp1Param.compareInterruptEnable = TIMER_B_CAPTURECOMPARE_INTERRUPT_DISABLE;
-  initComp1Param.compareOutputMode = TIMER_B_OUTPUTMODE_TOGGLE_SET;
-  initComp1Param.compareValue = 0; // 0% duty cycle
-  Timer_B_initCompareMode(TIMER_B0_BASE, &initComp1Param);
-
-  //Initialize compare registers to generate PWMB_H
-  Timer_B_initCompareModeParam initComp2Param = {0};
-  initComp2Param.compareRegister = PWMB_H_CCR_REGISTER;
-  initComp2Param.compareInterruptEnable = TIMER_B_CAPTURECOMPARE_INTERRUPT_DISABLE;
-  initComp2Param.compareOutputMode = TIMER_B_OUTPUTMODE_TOGGLE_SET;
-  initComp2Param.compareValue = 0; // 0% duty cycle
-  Timer_B_initCompareMode(TIMER_B0_BASE, &initComp2Param);
-
-  //Initialize compare registers to generate PWMC_H
-  Timer_B_initCompareModeParam initComp3Param = {0};
-  initComp3Param.compareRegister = PWMC_H_CCR_REGISTER;
-  initComp3Param.compareInterruptEnable = TIMER_B_CAPTURECOMPARE_INTERRUPT_DISABLE;
-  initComp3Param.compareOutputMode = TIMER_B_OUTPUTMODE_TOGGLE_SET;
-  initComp3Param.compareValue = 0; // 0% duty cycle
-  Timer_B_initCompareMode(TIMER_B0_BASE, &initComp3Param);
-
-  // Initialize CCR1 for ADC acquisition
-  Timer_B_initCompareModeParam initComp4Param = {0};
-  initComp4Param.compareRegister = ADC_CCR_REGISTER;
-  initComp4Param.compareInterruptEnable = TIMER_B_CAPTURECOMPARE_INTERRUPT_DISABLE;
-  initComp4Param.compareOutputMode = TIMER_B_OUTPUTMODE_TOGGLE_RESET;
-  initComp4Param.compareValue = PWM_PERIOD_TICKS - 1;
-  Timer_B_initCompareMode(TIMER_B0_BASE, &initComp4Param);
-}
-
-
-/**
- * @brief      Sets the pwm a period.
- *
- * @param[in]  period  The period
- */
-inline void setPwmAPeriod(uint16_t period){
-  HWREG16(TIMER_B0_BASE + PWMA_H_CCR_REGISTER + OFS_TBxR) = PWM_PERIOD_TICKS - period;
-}
-
-
-/**
- * @brief      Sets the pwm b period.
- *
- * @param[in]  period  The period
- */
-inline void setPwmBPeriod(uint16_t period){
-  HWREG16(TIMER_B0_BASE + PWMB_H_CCR_REGISTER + OFS_TBxR) = PWM_PERIOD_TICKS - period;
-}
-
-inline void setPwmCPeriod(uint16_t period){
-  HWREG16(TIMER_B0_BASE + PWMC_H_CCR_REGISTER + OFS_TBxR) = PWM_PERIOD_TICKS - period;
-}
-
-
-/**
- * @brief      Enables the half bridge a.
- */
-inline void enableHalfBridgeA() {
-  P3OUT |= GPIO_PIN6;
-}
-
-
-/**
- * @brief      Disables the half bridge a.
- */
-inline void disableHalfBridgeA() {
-  P3OUT &= ~GPIO_PIN6;
-}
-
-
-/**
- * @brief      Enables the half bridge b.
- */
-inline void enableHalfBridgeB() {
-  P3OUT |= GPIO_PIN4;
-}
-
-
-/**
- * @brief      Disables the half bridge b.
- */
-inline void disableHalfBridgeB() {
-  P3OUT &= ~GPIO_PIN4;
-}
-
-
-/**
- * @brief      Enables the half bridge c.
- */
-inline void enableHalfBridgeC() {
-  P2OUT |= GPIO_PIN1;
-}
-
-
-/**
- * @brief      Disables the half bridge c.
- */
-inline void disableHalfBridgeC() {
-  P2OUT &= ~GPIO_PIN1;
-}
-
-
-/**
- * @brief      Disables the calibration.
- */
-inline void disableCalibration() {
-  GPIO_setOutputLowOnPin(GPIO_PORT_P4,
-                         GPIO_PIN4);
-}
-
-
-/**
- * @brief      Enables the calibration.
- */
-inline void enableCalibration() {
-  GPIO_setOutputHighOnPin(GPIO_PORT_P4,
-                          GPIO_PIN4);
-}
-
-
-/**
- * @brief      Enables the gate driver.
- */
-inline void enableGateDriver(){
-  // enter critical part of the code do not interrupt it
-  GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
-  __delay_cycles(1600000);    // 100 ms
-}
-
-
-/**
- * @brief      Disables the gate driver.
- */
-inline void disableGateDriver(){
-  // enter critical part of the code do not interrupt it
-  GPIO_setOutputLowOnPin(GPIO_PORT_PJ, GPIO_PIN0);
-  __delay_cycles(1600000);    // 100 ms
-}
-
-
 /**
  * @brief      Gets the speed.
  *
  * @return     The speed.
  */
-inline _iq getSpeed(){
+inline _iq getSpeed(void){
   // Normalize speed to -128 ticks < diff < 127 to -1.0 < diff < +1.0
   // 255 ticks per (PI_SPD_CONTROL_PRESCALER * PWM_PERIOD_TICKS) represents 9.600 eRPM
+  // which equates to ~25.22 cm/sec, much faster than we should be going in normal operation
   int32_t deltaPos = _IQsat(g_currentPosition - g_oldPosition, 256, -256);
+  // shift left 7 to scale 9 bit deltaPos (-255,255) to 15 decimal fixed point _IQ (-1.0,1.0)
   g_currentSpeed = deltaPos << 7;
   g_oldPosition = g_currentPosition;
   return g_currentSpeed;
@@ -238,7 +81,7 @@ inline _iq getSpeed(){
 /**
  * @brief      Initializes the adc module.
  */
-void initializeAdcModule(){
+inline void initializeAdcModule(void){
   // Configure ADC for motor current sensing
   ADC12_B_initParam adcParam;
   adcParam.clockSourceDivider = ADC12_B_CLOCKDIVIDER_1;
@@ -287,7 +130,7 @@ void initializeAdcModule(){
 /**
  * @brief      Do the offset calibration of the current sensor
  */
-void currentOffsetCalibration(){
+inline void currentOffsetCalibration(void){
 
   enableCalibration(); // pull p4.4 high (calibration pin on DRV8304 motor driver)
   enableGateDriver();  // let current flow through motor to get accurate offset measurement
@@ -312,7 +155,7 @@ void currentOffsetCalibration(){
  * @param[in]  commutation  The commutation
  * @param[in]  dutyCycle    The duty cycle
  */
-void pwmGenerator(const uint8_t commutation, _iq dutyCycle){
+inline void pwmGenerator(const uint8_t commutation, _iq dutyCycle){
   uint16_t dc; //duty cycle
   uint16_t dcCmpl; //complement
 
@@ -320,57 +163,53 @@ void pwmGenerator(const uint8_t commutation, _iq dutyCycle){
   dc = (uint16_t)(dutyCycle >> 7) + PWM_HALF_PERIOD_TICKS;
   dcCmpl = PWM_PERIOD_TICKS - dc;
 
+  _iq PWM_A = 0;
+  _iq PWM_B = 0;
+  _iq PWM_C = 0;
+
   switch(commutation){
     case 0:
-      setPwmAPeriod(dc);
-      enableHalfBridgeA();
-      setPwmBPeriod(dcCmpl);
-      enableHalfBridgeB();
-      setPwmCPeriod(0);
-      disableHalfBridgeC();
+      PWM_A = dc;
+      PWM_B = dcCmpl;
       break;
     case 1:
-      setPwmAPeriod(dc);
-      enableHalfBridgeA();
-      setPwmBPeriod(0);
-      disableHalfBridgeB();
-      setPwmCPeriod(dcCmpl);
-      enableHalfBridgeC();
+      PWM_A = dc;
+      PWM_C = dcCmpl;
       break;
     case 2:
-      setPwmAPeriod(0);
-      disableHalfBridgeA();
-      setPwmBPeriod(dc);
-      enableHalfBridgeB();
-      setPwmCPeriod(dcCmpl);
-      enableHalfBridgeC();
+      PWM_B = dc;
+      PWM_C = dcCmpl;
       break;
     case 3:
-      setPwmAPeriod(dcCmpl);
-      enableHalfBridgeA();
-      setPwmBPeriod(dc);
-      enableHalfBridgeB();
-      setPwmCPeriod(0);
-      disableHalfBridgeC();
+      PWM_A = dcCmpl;
+      PWM_B = dc;
       break;
     case 4:
-      setPwmAPeriod(dcCmpl);
-      enableHalfBridgeA();
-      setPwmBPeriod(0);
-      disableHalfBridgeB();
-      setPwmCPeriod(dc);
-      enableHalfBridgeC();
+      PWM_A = dcCmpl;
+      PWM_C = dc;
       break;
     case 5:
-      setPwmAPeriod(0);
-      disableHalfBridgeA();
-      setPwmBPeriod(dcCmpl);
-      enableHalfBridgeB();
-      setPwmCPeriod(dc);
-      enableHalfBridgeC();
+      PWM_B = dcCmpl;
+      PWM_C = dc;
       break;
     default:
       break;
+  }
+
+  setPwmAPeriod(PWM_A);
+  enableHalfBridgeA();
+  setPwmBPeriod(PWM_B);
+  enableHalfBridgeB();
+  setPwmCPeriod(PWM_C);
+  enableHalfBridgeC();
+
+  // turn off half bridge that isn't being used (PWM period of 0)
+  if(PWM_A == 0){
+      disableHalfBridgeA();
+  } else if (PWM_B == 0){ // can do else-if because only 1 will be 0
+      disableHalfBridgeB();
+  } else if (PWM_C == 0){
+      disableHalfBridgeC();
   }
 }
 
@@ -378,21 +217,25 @@ void pwmGenerator(const uint8_t commutation, _iq dutyCycle){
 /**
  * @brief      Reads a hall sensor.
  */
-inline void readHallSensor(){
+inline void readHallSensor(void){
   g_hallSensor.Pattern = READ_HALL_W >> 1;   // W
   g_hallSensor.Pattern |= READ_HALL_V >> 4;  // V
   g_hallSensor.Pattern |= READ_HALL_U >> 6;  // U
   g_hallSensor.Event = g_hallSensor.Pattern ^ g_hallSensor.OldPattern;
   g_hallSensor.OldPattern = g_hallSensor.Pattern;
-  if(g_hallSensor.Pattern & 0x07) g_hallSensor.Error = 1;
-  if(g_hallSensor.Pattern == 0x00) g_hallSensor.Error = 1;
+  if(g_hallSensor.Pattern & 0x07){
+      g_hallSensor.Error = 1;
+  }
+  if(g_hallSensor.Pattern == 0x00){
+      g_hallSensor.Error = 1;
+  }
 }
 
 
 /**
  * @brief      Initializes the hall interface.
  */
-void initializeHallInterface(){
+void initializeHallInterface(void){
   g_hallMap[0] = 0xff;
   g_hallMap[7] = 0xff;
 
@@ -408,23 +251,25 @@ void initializeHallInterface(){
 /**
  * @brief      Reset the PI controller
  *
- * @param      pi    { parameter_description }
+ * @param      pi    { controller for either speed or current }
  */
 void resetPiController(volatile PI_CONTROLLER *pi){
-  pi->i1 = _IQ(0.0);
-  pi->ui = _IQ(0.0);
+  pi->i1 = _IQ(0.0);    // reset integrator storage (stores pi->ui from last time step)
+  pi->ui = _IQ(0.0);    // reset integral term (sums error over time steps)
   pi->v1 = _IQ(0.0);
   pi->up = _IQ(0.0);
-  pi->Umax = _IQ(1.0);
-  pi->Umin = _IQ(-1.0);
+  pi->Umax = _IQ(PI_OUTPUT_BOUNDS);
+  pi->Umin = _IQ(-PI_OUTPUT_BOUNDS);
 }
 
 
 /**
  * @brief      Disable the drive
  */
-inline void disable(){
-  if(g_state == IDLE) return; // already in IDLE, nothing to do
+inline void disable(void){
+  if(g_state == IDLE){
+      return; // already in IDLE, nothing to do
+  }
 
   __disable_interrupt();
   disableGateDriver();
@@ -438,8 +283,10 @@ inline void disable(){
 /**
  * @brief      Enter run state
  */
-inline void run(){
-  if(g_state == RUNNING) return; // already in RUNNING, nothing to do
+inline void run(void){
+  if(g_state == RUNNING){
+      return; // already in RUNNING, nothing to do
+  }
   __disable_interrupt();
   enableGateDriver();
   g_targetDirection = (g_targetPosition -  g_currentPosition>= 0) ? 1 : -1;
@@ -453,54 +300,33 @@ inline void run(){
 /**
  * @brief      Update the drive state machine
  */
-void updateStateMachine(){
-    // TODO: no nested case statements
-  switch(g_cmdState){
-    case RUN:
-      switch(g_state){
-          case IDLE:
-            run();
-            break;
-          case UNINITIALIZED:
-          case RUNNING:
-          default:
-          break;
-      }
-     break;
-     case DISABLE:
-       switch(g_state){
-         case RUNNING:
-           disable();
-           break;
-         case UNINITIALIZED:
-         case IDLE:
-         default:
-         break;
-       }
-       break;
-     default:
-         break;
-  }
-
-  g_cmdState = NO_CMD;
+void updateStateMachine(void){
+    if(g_cmdState == RUN && g_state == IDLE){
+        run();
+    } else if (g_cmdState == DISABLE && g_state == RUNNING){
+        disable();
+    }
+    g_cmdState = NO_CMD;
 }
 
 /**
  * @brief      Clears the DRV8304 Driver Fault Register.
  */
-inline void clear_driver_fault(){
+void clear_driver_fault(void){
+    __disable_interrupt(); // entering critical section
     // Pull high first so you can then pull it low:
     GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
-    __delay_cycles(1600000);    // 100 ms
+    __delay_cycles(DELAY_100_ms);
     // Reset Fault Register by pulsing ENABLE for 5-32us (18.5us):
     GPIO_setOutputLowOnPin(GPIO_PORT_PJ, GPIO_PIN0);
     __delay_cycles(296);    // 18.5 us
     GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    __enable_interrupt();
 }
 /**
  * @brief      Reads the whether the DRV8304 driver is in a "fault condition" (and should be cleared). Active low.
  */
-inline bool read_driver_fault(){
+bool read_driver_fault(void){
     return !(PJIN & 0x02);
 }
 
@@ -585,7 +411,7 @@ void initController(void){
 /*
  * @brief  update sensor (Hall & current) readings for when driving in closed loop
  */
-void readSensors(){
+void readSensors(void){
 
     // measure hall sensors
     readHallSensor();
@@ -595,8 +421,13 @@ void readSensors(){
         IMPULSE_MACRO(g_impulse);
         // manually change commutation if necessary
         if(g_impulse.Out){
+            // have ticked through every commutation
             MOD6CNT_MACRO(g_mod6cnt);
-            g_commState = (g_targetDirection > 0) ? g_mod6cnt.Counter : 5 - g_mod6cnt.Counter;
+            if (g_targetDirection > 0){
+                g_commState = g_mod6cnt.Counter;
+            } else {
+                g_commState = 5 - g_mod6cnt.Counter; // account for driving in reverse (comm cycle reverses)
+            }
         }
     }
     else{
@@ -676,7 +507,7 @@ void moderatePIControllers(void){
  * @brief      TODO
  */
 void checkTargetReached(void){
-    if  (_IQabs(g_targetPosition - g_currentPosition) < 100) {
+    if  (_IQabs(g_targetPosition - g_currentPosition) < POSITION_CONVERGENCE_THRESHOLD) {
           // target has been reached
           g_targetReached = true;
           g_statusRegister |= POSITION_CONVERGED;
@@ -704,10 +535,12 @@ void driveOpenLoop(void){
 
 
         _iq output;
-        if(g_controlRegister & OPEN_LOOP_TORQUE_OVERRIDE)
+        if(g_controlRegister & OPEN_LOOP_TORQUE_OVERRIDE){
             output = _IQ(g_maxSpeed / MAX_TARGET_SPEED); // apply user specified output
-        else
-            output = _IQ(0.3); // apply constant output
+        }
+        else{
+            output = _IQ(FULLY_OPEN_LOOP_PWM); // apply constant output (30% duty cycle)
+        }
 
         // apply output as PWM
         if(g_targetDirection > 0) {
@@ -723,8 +556,9 @@ void driveOpenLoop(void){
         g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
         g_currentPosition += g_targetDirection * OPEN_LOOP_SPEED;
 
-        if(!g_targetReached)
+        if(!g_targetReached){
             g_drivingTimeoutCtr++;
+        }
     }
 }
 
@@ -737,7 +571,7 @@ void closedLoopCurrentLoop(void){
     g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 4;
     g_piCur.Ref = g_piSpd.Out;
 
-    PI_MACRO(g_piCur);
+    pi_iteration(&g_piCur);
 
     // check if we can pivot to closed loop control
     g_closedLoop = (_IQabs(g_currentSpeed) > g_closeLoopThreshold && !g_targetReached) ? true : false;
@@ -760,7 +594,7 @@ void closedLoopSpeedLoop(void){
       }
 
     g_piSpd.Fbk = getSpeed();
-    PI_MACRO(g_piSpd);
+    pi_iteration(&g_piSpd);
 }
 
 /*
@@ -854,7 +688,7 @@ void main(void){
       if(g_drivingTimeoutCtr > DRIVING_TIMEOUT_THRESHOLD){
           handleMotorTimeout();
       }
-  }
+  } // end of while loop
 }
 
 

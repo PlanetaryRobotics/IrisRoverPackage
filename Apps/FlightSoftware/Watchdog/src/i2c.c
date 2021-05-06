@@ -160,7 +160,7 @@ void readBatteryCharge(){
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_charge, I2C_RX_BUFFER_MAX_SIZE);
 
     // scale battery charge to fill most of 7 bit range available for telemetry
-    batt_charge_telem = (uint8_t)( (uint16_t)(raw_battery_charge[1] + (raw_battery_charge[0] << 8)) >> 10) * 3;
+    batt_charge_telem = (uint8_t)( 3 * (uint32_t)(raw_battery_charge[1] + (raw_battery_charge[0] << 8)) >> 10);
 
 }
 

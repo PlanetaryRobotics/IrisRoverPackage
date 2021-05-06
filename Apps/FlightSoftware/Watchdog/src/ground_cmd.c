@@ -188,12 +188,15 @@ uint8_t handle_watchdog_reset_cmd(uint8_t cmd) {
 #define GNDRESP_ECMDPARAM    5
 #define GNDRESP_ECMDSEQ      6
 
+#define GNDRESP_DEPLOY       96
+
 /**
  * Reply to a ground command
  *
  * @param cmdid: Command ID replying to (may be 0 if entire packet invalid)
  * @param error_no: Error GNDRESP_E*
  */
+
 void reply_ground_cmd(uint8_t cmdid, uint8_t error_no) {
     uint8_t send_buf[3];
 
@@ -246,8 +249,14 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
         enterMode(RS_MISSION);
         break;
     case 0x02:
-    case 0x04:
-        /* TODO: not actually used */
+        //TODO: disengage from lander (deploy) - watchdog only
+        setDeploy();
+        reply_ground_cmd(0, GNDRESP_DEPLOY);
+        break;
+    case 0x03:
+        break;//TODO: switch connection mode
+    case 0x04: //TODO: un-disengage from lander (un-deploy)
+        unsetDeploy();
         break;
     case 0xAA:
         /* set thermistor Kp (little endian) */
@@ -471,22 +480,28 @@ void send_earth_heartbeat() {
     send_buf[22] = (uint8_t)(TB0CCR2);
     send_buf[23] = (uint8_t)(TB0CCR2 >> 8);
 
+    // send the packet!
+    ipudp_send_packet(send_buf, 24); // @suppress("Invalid arguments")
+
+    ////  Flight-spec heartbeats
+
     /*
-    // send the battery voltage
-    send_buf[1] = (uint8_t)(raw_battery_voltage[0] >> 1); //TODO: fix this
+    send_buf[1] = (uint8_t)(batt_charge_telem << 1);
     send_buf[1] = send_buf[1] << 1;
     // send heater on status
     send_buf[1] |= heaterStatus & 0x1;
     // battery current
-    send_buf[2] = (uint8_t)(raw_battery_current[0] >> 1); //TODO: fix this
+    send_buf[2] = (uint8_t)(batt_curr_telem << 1);
     // send voltage nominal status
-    send_buf[2] |= 0x1; // TODO: fix this
+    send_buf[2] |= (); // TODO: fix this
     // send the thermistor temperature (12 bits to 8 bits)
     send_buf[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
-    pbuf.used += 4;*/
+//    pbuf.used += 4; */
 
     // send the packet!
-    ipudp_send_packet(send_buf, 24); // @suppress("Invalid arguments")
+//    ipudp_send_packet(send_buf, 4); // @suppress("Invalid arguments")
+
+
 }
 
 

@@ -70,27 +70,29 @@ void enterMode(enum rover_state newstate) {
         enable3V3PowerRail();
         enable24VPowerRail();
         enableBatteries();
+        disableHeater();
 
         /* swap uart's */
 //        uart1_disable(); // enabled: 0.0467
         uart0_init();
 
+        /* power everything on and release resets */
+        releaseRadioReset();
+        releaseFPGAReset();
+
         /* start monitoring only mission-relevant voltages */
         adc_setup_mission();
 
-        /* power everything on and release resets */
-        releaseHerculesReset();
-        powerOnHercules();
         powerOnFpga();
         powerOnMotors();
         powerOnRadio();
-        releaseRadioReset();
-        releaseFPGAReset();
         stopChargingBatteries();
 
-        __delay_cycles(1234567); //give fuel gauge time to start up
+        __delay_cycles(12345678); //give fuel gauge [50 ms] & wifi [~750 ms] time to start up
         initializeFuelGauge();
+        powerOnHercules();
         releaseMotorsReset();
+        releaseHerculesReset();
         /* TODO: do we want to do it in this order? */
 
         break;

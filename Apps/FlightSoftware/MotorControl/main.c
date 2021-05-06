@@ -156,8 +156,8 @@ inline void currentOffsetCalibration(void){
  * @param[in]  dutyCycle    The duty cycle
  */
 inline void pwmGenerator(const uint8_t commutation, _iq dutyCycle){
-  uint16_t dc; //duty cycle
-  uint16_t dcCmpl; //complement
+  uint16_t dc = 0; //duty cycle
+  uint16_t dcCmpl = 0; //complement
 
   // Normalize duty cycle -1.0 < dc < +1.0 to 0 < dc < 512
   dc = (uint16_t)(dutyCycle >> 7) + PWM_HALF_PERIOD_TICKS;
@@ -167,34 +167,37 @@ inline void pwmGenerator(const uint8_t commutation, _iq dutyCycle){
   _iq PWM_B = 0;
   _iq PWM_C = 0;
 
-  switch(commutation){
-    case 0:
-      PWM_A = dc;
-      PWM_B = dcCmpl;
-      break;
-    case 1:
-      PWM_A = dc;
-      PWM_C = dcCmpl;
-      break;
-    case 2:
-      PWM_B = dc;
-      PWM_C = dcCmpl;
-      break;
-    case 3:
-      PWM_A = dcCmpl;
-      PWM_B = dc;
-      break;
-    case 4:
-      PWM_A = dcCmpl;
-      PWM_C = dc;
-      break;
-    case 5:
-      PWM_B = dcCmpl;
-      PWM_C = dc;
-      break;
-    default:
-      break;
+  if(dutyCycle != 0){
+      switch(commutation){
+          case 0:
+            PWM_A = dc;
+            PWM_B = dcCmpl;
+            break;
+          case 1:
+            PWM_A = dc;
+            PWM_C = dcCmpl;
+            break;
+          case 2:
+            PWM_B = dc;
+            PWM_C = dcCmpl;
+            break;
+          case 3:
+            PWM_A = dcCmpl;
+            PWM_B = dc;
+            break;
+          case 4:
+            PWM_A = dcCmpl;
+            PWM_C = dc;
+            break;
+          case 5:
+            PWM_B = dcCmpl;
+            PWM_C = dc;
+            break;
+          default:
+            break;
+        }
   }
+
 
   setPwmAPeriod(PWM_A);
   enableHalfBridgeA();
@@ -512,7 +515,7 @@ void checkTargetReached(void){
           g_targetReached = true;
           g_statusRegister |= POSITION_CONVERGED;
           // turn off output
-          _iq output = _IQ(0.0);
+          _iq output = 0;
           pwmGenerator(g_commState, output);
       } else {
           // target not reached yet

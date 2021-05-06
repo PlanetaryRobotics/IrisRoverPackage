@@ -3,8 +3,10 @@ Special prebuilt data standards which exist outside of the FPrime XML (e.g. for
 watchdog heartbeat)
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/17/2021
+@last-updated: 05/05/2021
 """
+from typing import Union, List
+
 from IrisBackendv3.utils.nameiddict import NameIdDict
 
 from .data_standards import DataStandards
@@ -13,18 +15,23 @@ from .fsw_data_type import FswDataType
 from .logging import logger
 
 
-def add_to_standards(standards: DataStandards, module: Module) -> None:
+def add_to_standards(standards: DataStandards, modules: Union[Module, List[Module]]) -> None:
     """
     Adds the given prebuilt module to the given data so long as it doesn't 
     override anything.
     """
-    if module.ID not in standards.modules:
-        standards.modules[module.ID, module.name] = module
-    else:
-        logger.warning(
-            f"Unable to add special prebuilt module {module} since its ID "
-            f"({module.ID}={hex(module.ID)}) is already in the DataStandard."
-        )
+    # Support being given just a single module to add:
+    if not isinstance(modules, list) and isinstance(modules, Module):
+        modules = [modules]
+    # Add each module to standards:
+    for module in modules:
+        if module.ID not in standards.modules:
+            standards.modules[module.ID, module.name] = module
+        else:
+            logger.warning(
+                f"Unable to add special prebuilt module {module} since its ID "
+                f"({module.ID}={hex(module.ID)}) is already in the DataStandard."
+            )
 
 
 watchdog_heartbeat_tvac: Module = Module(
@@ -125,5 +132,101 @@ watchdog_heartbeat_tvac: Module = Module(
         (0x59, 'HeaterPwmDutyCycle'): TelemetryChannel(
             name='HeaterPwmDutyCycle', ID=0x59, datatype=FswDataType.U16
         )
+    })
+)
+
+
+watchdog_heartbeat: Module = Module(
+    name="WatchdogHeartbeat",
+    ID=0xFF01,
+    commands=NameIdDict(),
+    events=NameIdDict(),
+    telemetry=NameIdDict({
+        (0x00, 'BattAdcTempRaw'): TelemetryChannel(
+            name='BattAdcTempRaw',
+            ID=0x00,
+            datatype=FswDataType.U8
+        ),
+        (0x01, 'BattAdcTempKelvin'): TelemetryChannel(
+            name='BattAdcTempKelvin',
+            ID=0x01,
+            datatype=FswDataType.F64
+        ),
+
+        (0x10, 'ChargeRaw'): TelemetryChannel(
+            name='ChargeRaw',
+            ID=0x10,
+            datatype=FswDataType.U8
+        ),
+        (0x11, 'ChargeMah'): TelemetryChannel(
+            name='ChargeMah',
+            ID=0x11,
+            datatype=FswDataType.F64
+        ),
+        (0x12, 'ChargePercent'): TelemetryChannel(
+            name='ChargePercent',
+            ID=0x12,
+            datatype=FswDataType.F64
+        ),
+
+        (0x22, 'BatteryVoltageOk'): TelemetryChannel(
+            # Note: won't use FPrime BOOL std. (so treat as U8)
+            name='BatteryVoltageOk', ID=0x22, datatype=FswDataType.U8
+        ),
+
+        (0x30, 'CurrentRaw'): TelemetryChannel(
+            name='CurrentRaw',
+            ID=0x30,
+            datatype=FswDataType.U8
+        ),
+        (0x31, 'CurrentMilliamps'): TelemetryChannel(
+            name='CurrentMilliamps',
+            ID=0x31,
+            datatype=FswDataType.F64
+        ),
+
+        (0x57, 'HeaterStatus'): TelemetryChannel(
+            # Note: won't use FPrime BOOL std. (so treat as U8)
+            name='HeaterStatus', ID=0x57, datatype=FswDataType.U8
+        )
+    })
+)
+
+
+watchdog_command_response: Module = Module(
+    name="WatchdogCommandResponse",
+    ID=0xFF10,
+    commands=NameIdDict(),
+    events=NameIdDict(),
+    telemetry=NameIdDict({
+        (0x00, 'CommandId'): TelemetryChannel(
+            name='CommandId', ID=0x00, datatype=FswDataType.U8
+        ),
+        (0x01, 'ErrorFlag'): TelemetryChannel(
+            name='ErrorFlag', ID=0x01, datatype=FswDataType.ENUM,
+            enum=[
+                EnumItem('NO_ERROR', 0x00,
+                         comment="Command processed correctly."
+                         ),
+                EnumItem('BAD_PACKET_LENGTH', 0x01,
+                         comment="Given packet length doesn't match the actual length of the data."
+                         ),
+                EnumItem('CHECKSUM_FAILED', 0x02,
+                         comment="Checksum of data doesn't match given checksum. Possible packet corruption."
+                         ),
+                EnumItem('BAD_MODULE_ID', 0x03,
+                         comment="Incorrect Module ID received (not the watchdog ID)."
+                         ),
+                EnumItem('BAD_COMMAND_ID', 0x04,
+                         comment="Command ID received doesn't match any known command."
+                         ),
+                EnumItem('BAD_COMMAND_PARAMETER', 0x05,
+                         comment="Command parameter (argument) isn't formatted correctly or doesn't match an expected value (in the case of magic confirmation values)."
+                         ),
+                EnumItem('BAD_COMMAND_SEND_ORDER', 0x06,
+                         comment="Command received in the wrong order (e.g. `Deploy` received before `Prepare for Deploy`)."
+                         )
+            ]
+        ),
     })
 )

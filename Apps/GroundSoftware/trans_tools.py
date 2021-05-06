@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Basic collection of abstraction tools to make for a successful TVAC test.
-
-Designed to interface solely with Watchdog using IP/UDP-SLIP via RS-422 with
-special `WatchdogTvacHeartbeatPackets` and normal commands.
+Prototyping toolkit for building the Transceiver layer which allows for running 
+tests which require the Transceiver layer while the real thing is still being 
+built.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/01/2021
+@last-updated: 05/06/2021
 """
 
 import traceback
@@ -36,7 +35,7 @@ from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.logging import logger as DsLogger
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response
 from IrisBackendv3.codec.payload import Payload, PayloadCollection, CommandPayload, WatchdogCommandPayload, extract_downlinked_payloads
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket
+from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
 from IrisBackendv3.codec.logging import logger as CodecLogger
@@ -46,11 +45,11 @@ import seaborn as sns  # type: ignore
 sns.set()
 
 settings: Dict[str, Union[str, int]] = {
-    'SAVE_DIR': './tvac_logs/',
+    'SAVE_DIR': './transceiver_logs/',
     'SAVE_FILE_PREFIX': 'iris_logs',
-    'SAVE_FILE_EXT': 'tvac',
+    'SAVE_FILE_EXT': 'tsc',
     # number of minutes after which the old save file won't be overwritten and a new one will be made:
-    'NEW_SAVE_PERIOD': 30
+    'NEW_SAVE_PERIOD': 300
 }
 
 ser: Any = None
@@ -73,12 +72,20 @@ all_payloads: PayloadCollection = PayloadCollection(
 telemetry_streams: NameIdDict[List[Tuple[datetime, Any]]] = NameIdDict()
 
 
-def parse_ip_udp_packet(packet_bytes: bytes) -> Optional[Packet]:
-    """Parses an IP/UDP packet and extracts the meaningful payload."""
+def parse_ip_udp_packet(packet_bytes: bytes, deadspace: int = 0) -> Optional[Packet]:
+    """Parses an IP/UDP packet and extracts the meaningful payload.
+
+    Args:
+        packet_bytes (bytes): Raw data.
+        deadspace (int, optional): Number of bytes to ignore at beginning of Raw section (due to some fault). Defaults to 0.
+
+    Returns:
+        Optional[Packet]: `Packet` if parsing succeeded.
+    """
     # Convert into a full packet:
     full_packet = scp.IP(packet_bytes)
     # Scrape off the IP/UDP and keep the Raw:
-    core_data = scp.raw(full_packet.getlayer(scp.Raw))
+    core_data = scp.raw(full_packet.getlayer(scp.Raw))[deadspace:]
     # Parse like payload:
     return parse_packet(core_data)
 
@@ -86,8 +93,10 @@ def parse_ip_udp_packet(packet_bytes: bytes) -> Optional[Packet]:
 def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
     # All available packet codecs (in order of use preference):
     codecs: List[Type[Packet]] = [
-        WatchdogTvacHeartbeatPacket,
-        IrisCommonPacket
+        WatchdogHeartbeatPacket,
+        WatchdogCommandResponsePacket,
+        IrisCommonPacket,
+        WatchdogTvacHeartbeatPacket
     ]
     # Codecs which support this packet:
     supported = [c for c in codecs if c.is_valid(packet_bytes)]
@@ -238,7 +247,7 @@ def send_slip(dat: bytes) -> None:
 
 
 def send_data_wd_serial(
-    iris_packet: bytes,
+    raw_data: bytes,
     ip_dest: str = '127.0.0.1',  # arbitrary (WD doesn't care)
     ip_src: str = '222.173.190.239',  # arbitrary (WD doesn't care)
     port: int = 8080  # arbitrary (WD doesn't care)
@@ -246,7 +255,7 @@ def send_data_wd_serial(
     try:
         # Build packet
         full_packet = scp.IP(dst=ip_dest, src=ip_src) / \
-            scp.UDP(dport=port)/scp.Raw(load=iris_packet)
+            scp.UDP(dport=port)/scp.Raw(load=raw_data)
         # printraw(scp.raw(scp.IP(scp.raw(full_packet))))
         # printraw(scp.raw(full_packet))
         data = cast(bytes, scp.raw(full_packet))
@@ -280,11 +289,11 @@ def degK_to_adc(tempK: float) -> int:
     return degC_to_adc(tempK - 273.15)
 
 
-def update_telemetry_streams(packet: Packet) -> None:
+def update_telemetry_streams_from_payloads(payloads: PayloadCollection, auto_cache=True):
     """
-    Add all extracted data values in the packet to their streams:
+    Updates the `telemetry_streams` from a PayloadCollection.
     """
-    for t in packet.payloads.TelemetryPayload:
+    for t in payloads.TelemetryPayload:
         # If this payload's channel is new (previously un-logged), add it:
         if t.opcode not in telemetry_streams:
             telemetry_streams[t.opcode, t.module.name+'_'+t.channel.name] = [
@@ -294,10 +303,21 @@ def update_telemetry_streams(packet: Packet) -> None:
             telemetry_streams[t.opcode].append((datetime.now(), t.data))
 
     # Save the updated streams:
-    cache()
+    if auto_cache:
+        cache()
 
 
-def plot_stream(channel_name: str) -> None:
+def update_telemetry_streams(packet: Packet, auto_cache=True) -> None:
+    """
+    Add all extracted data values in the packet to their streams:
+    """
+    update_telemetry_streams_from_payloads(
+        packet.payloads,
+        auto_cache=auto_cache
+    )
+
+
+def plot_stream(channel_name: str, title: str = 'Iris Payload', auto_show: bool = True) -> None:
     if len(telemetry_streams) == 0:
         cprint(
             f"There is no logged data matching this file pattern to plot: "
@@ -309,6 +329,7 @@ def plot_stream(channel_name: str) -> None:
             stream = telemetry_streams[channel_name]
             ts = [t for t, _ in stream]
             vs = [v for _, v in stream]
+            plt.figure()
             plt.plot(ts, vs,
                      color='lightskyblue',
                      marker='o',
@@ -321,8 +342,9 @@ def plot_stream(channel_name: str) -> None:
             plt.gcf().autofmt_xdate()
             plt.xlabel('Time')
             plt.ylabel(channel_name)
-            plt.title('Iris Lunar Rover TVAC')
-            plt.show()
+            plt.title(title)
+            if auto_show:
+                plt.show()
         except KeyError:
             cprint(
                 f"Given channel name `{channel_name}` is invalid. Valid channel "
@@ -439,7 +461,8 @@ def load_cache() -> None:
 
 
 def save_pcap(full_packets):
-    pcap_fp = open('data.pcapng', 'wb')
+    pcap_fp = open(os.path.join(cast(str, settings['SAVE_DIR']),
+                                f'data_{ulid.new()}.pcapng'), 'wb')
 
     # build the header block
     # 28 bytes since no options
@@ -511,12 +534,7 @@ def stream_data_ip_udp_serial() -> None:
                         packet = parse_ip_udp_packet(data_bytes)
                         if packet is not None:
                             # Log the data:
-                            for i in range(len(packet.payloads)):
-                                all_payloads[i].extend(
-                                    packet.payloads[i]  # type: ignore
-                                )
-                                print('')
-                                print(packet)
+                            print(packet)
                             # Feed the streams:
                             update_telemetry_streams(packet)
                         # Move on:

@@ -20,3 +20,4 @@ coloredlogs
 ulid-py
 pyserial
 ipykernel
+bitstruct

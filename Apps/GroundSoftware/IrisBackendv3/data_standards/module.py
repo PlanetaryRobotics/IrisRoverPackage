@@ -6,7 +6,7 @@ Containers for Flight Software Modules/Components and their Relevant Fields
 (where applicable).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/17/2021
+@last-updated: 05/05/2021
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -304,57 +304,61 @@ class DataUnit(GswMetadataContainer):
             )
 
     #! TODO: Unit test these fetchers (`get_enum_xxx`):
-    def get_enum_value(self, name: str) -> Optional[int]:
-        """Returns the value that matches the given name in the enum (if there is one)."""
+    def get_enum_item(self, idx: Union[int, str]) -> Optional[EnumItem]:
+        """Returns the EnumItem that matches the given `str` name or `int` value in the enum (if there is one)."""
         if len(self.enum) == 0 or self.datatype != FswDataType.ENUM:
             return None
 
-        matches = [
-            e.value for e in self.enum if name == e.name
-        ]
+        if isinstance(idx, str):
+            type_str = "name"  # for error logging
+            matches = [
+                e for e in self.enum if idx == e.name
+            ]
+        elif isinstance(idx, int):
+            type_str = "value"  # for error logging
+            matches = [
+                e for e in self.enum if idx == e.value
+            ]
+        else:
+            raise TypeError(
+                "The index supplied to `get_enum_item` must be either a `str` "
+                f"name or an `int` value but instead a value of `{idx}` was given "
+                f"with type {type(idx)}."
+            )
+
         if len(matches) == 0:
             raise ValueError(
-                f"No EnumItems were found in `{self}` whose name matches "
-                f"the supplied argument value `{name}` were found."
+                f"No EnumItems were found in `{self}` whose {type_str} matches "
+                f"the supplied {type_str} `{idx}` were found."
                 f"Valid EnumItems are `{self.enum}` ."
             )
 
         if len(matches) > 1:
             raise ValueError(
                 f"Somehow multiple EnumItems in `{self}` were found whose "
-                "name matches the supplied argument value "
-                f"`{name}`. Valid EnumItems are `{self.enum}` ."
+                f"{type_str} matches the supplied {type_str} `{idx}`. "
+                f"Valid EnumItems are `{self.enum}` ."
                 "This is likely an issue with the DataStandards spec "
                 "which should have been caught when it was built."
             )
 
         return matches[0]
+
+    def get_enum_value(self, name: str) -> Optional[int]:
+        """Returns the value that matches the given name in the enum (if there is one)."""
+        item = self.get_enum_item(name)
+        if item is None:
+            return None
+        else:
+            return item.value
 
     def get_enum_name(self, val: int) -> Optional[str]:
         """Returns the name that matches the given value in the enum (if there is one)."""
-        if len(self.enum) == 0 or self.datatype != FswDataType.ENUM:
+        item = self.get_enum_item(val)
+        if item is None:
             return None
-
-        matches = [
-            e.name for e in self.enum if val == e.value
-        ]
-        if len(matches) == 0:
-            raise ValueError(
-                f"No EnumItems were found in `{self}` whose value matches "
-                f"the supplied argument value `{val}` were found."
-                f"Valid EnumItems are `{self.enum}` ."
-            )
-
-        if len(matches) > 1:
-            raise ValueError(
-                f"Somehow multiple EnumItems in `{self}` were found whose "
-                "value matches the supplied argument value "
-                f"`{val}`. Valid EnumItems are `{self.enum}` ."
-                "This is likely an issue with the DataStandards spec "
-                "which should have been caught when it was built."
-            )
-
-        return matches[0]
+        else:
+            return item.name
 
 
 class EnumItem(object):

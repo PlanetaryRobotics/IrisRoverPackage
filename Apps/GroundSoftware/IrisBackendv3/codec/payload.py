@@ -6,7 +6,7 @@ Defines Common Data Required for Payloads. Support for Building and Parsing
 Payloads as part of a Variable Length Payload.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/17/2020
+@last-updated: 05/06/2020
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -51,6 +51,16 @@ class PayloadCollection(NamedTuple):
     TelemetryPayload: List[TelemetryPayload]
     EventPayload: List[EventPayload]
     FileBlockPayload: List[FileBlockPayload]
+
+    @classmethod
+    def make_empty(cls) -> PayloadCollection:
+        """Makes a new empty payload collection."""
+        return cls(
+            CommandPayload=[],
+            TelemetryPayload=[],
+            EventPayload=[],
+            FileBlockPayload=[]
+        )
 
 
 def extract_downlinked_payloads(
@@ -787,8 +797,29 @@ class TelemetryPayload(TelemetryPayloadInterface[TelemetryPayloadInterface]):
             raw=raw, endianness_code=endianness_code
         )
 
+    def __str__(self) -> str:
+        # Enums could be int or str, so convert to what's not given and show both:
+        if self.channel.datatype == FswDataType.ENUM:
+            if isinstance(self.data, str):
+                val = f"{self.data}[{self.channel.get_enum_value(self.data)}]"
+            else:
+                val = f"{self.channel.get_enum_name(self.data)}[{self.data}]"
+        else:
+            val = self.data
+
+        return f"{self.module.name}{{{self.channel.name}}}@{self.timestamp} = {self.data}"
+
     def __repr__(self) -> str:
-        return f"@{self.timestamp}: {self.module}{{{self.channel}}} = {self.data}"
+        # Enums could be int or str, so convert to what's not given and show both:
+        if self.channel.datatype == FswDataType.ENUM:
+            if isinstance(self.data, str):
+                val = f"{self.data}[{self.channel.get_enum_value(self.data)}]"
+            else:
+                val = f"{self.channel.get_enum_name(self.data)}[{self.data}]"
+        else:
+            val = self.data
+
+        return f"{self.module}{{{self.channel}}}@{self.timestamp} = {self.data}"
 
     @classmethod
     def decode(cls,
@@ -824,7 +855,15 @@ class TelemetryPayload(TelemetryPayloadInterface[TelemetryPayloadInterface]):
         opcode = self.module_id | self.channel_id
         t = self.timestamp
         header = struct.pack(self.endianness_code+'H L', opcode, t)
-        payload = fsw_data_encode(self.channel.datatype, self.data)
+
+        # If data is an enum and the name of an EnumItem was supplied (not
+        # its value), convert it to its value.
+        if self.channel.datatype == FswDataType.ENUM and isinstance(self.data, str):
+            val = [e.value for e in self.channel.enum if e.name == self.data][0]
+        else:
+            val = self.data
+
+        payload = fsw_data_encode(self.channel.datatype, val)
         return header + payload
 
 

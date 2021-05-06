@@ -22,7 +22,7 @@ If a component directory doesn't contain a Bitfields file, it is assumed
 to not have a bitfield.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/12/2021
+@last-updated: 05/01/2021
 """
 
 # Activate postponed annotations (for using classes as return type in their own methods)
@@ -754,9 +754,11 @@ class DataStandards(object):
         def command(i, x): return cprint(f"\n\t\t\t{i}.\t{x}", 'green')
         def telemetry(i, x): return cprint(f"\n\t\t\t{i}.\t{x}", 'red')
         def event(i, x): return cprint(f"\n\t\t\t{i}.\t{x}", 'blue')
+
         def p_arg(a): return cprint(
             f"\n\t\t\t\t\tAvailable values for `{a.name}`:", 'cyan'
         )
+
         def p_enum(x): return cprint(
             f"\n\t\t\t\t\t\t'{x.name}' or {x.value} or {hex(x.value)}", 'magenta'
         )
@@ -776,8 +778,8 @@ class DataStandards(object):
             for i, t in enumerate(m.telemetry.vals):
                 telemetry(i, t)
             header('Events:')
-            for i, e in enumerate(m.events.vals):
-                event(i, e)
+            for i, ev in enumerate(m.events.vals):
+                event(i, ev)
         print('\n]')
 
     def __str__(self) -> str:

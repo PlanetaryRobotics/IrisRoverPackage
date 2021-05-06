@@ -683,10 +683,14 @@ class WatchdogTvacHeartbeatPacketInterface(CustomPayloadPacket[CT]):
                      HeaterPwmDutyCycle: int
                      ) -> None:
             self._AdcTempRaw = AdcTempRaw
-            self._ChargeRaw = ChargeRaw
-            self._VoltageRaw = VoltageRaw
-            self._CurrentRaw = CurrentRaw
-            self._FuelTempRaw = FuelTempRaw
+            self._ChargeRaw = struct.unpack(
+                '>H', struct.pack('<H', ChargeRaw))[0]
+            self._VoltageRaw = struct.unpack(
+                '>H', struct.pack('<H', VoltageRaw))[0]
+            self._CurrentRaw = struct.unpack(
+                '>H', struct.pack('<H', CurrentRaw))[0]
+            self._FuelTempRaw = struct.unpack(
+                '>H', struct.pack('<H', FuelTempRaw))[0]
             self._KpHeater = KpHeater
             self._HeaterSetpoint = HeaterSetpoint
             self._HeaterWindow = HeaterWindow

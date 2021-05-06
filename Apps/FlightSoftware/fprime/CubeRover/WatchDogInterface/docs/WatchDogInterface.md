@@ -7,24 +7,30 @@
 |Mnemonic|ID|Description|Arg Name|Arg Type|Comment
 |---|---|---|---|---|---|
 |Reset_Specific|0 (0x0)|Command to reset the specific parts of rover| | |
-| | | |reset_value|U8|
-                    	U8 Value that specifies which components or hardware need to be reset
+| | | |reset_value|reset_values_possible|
+                    	ENUM Value that specifies which components or hardware need to be reset
                     |
 |Prepare_For_Deployment|1 (0x1)|Command to send signal to MSP430 to prepare for deploying (may not be needed)| | |
-|Disengage_From_Lander|2 (0x2)|Command to send signal to MSP430 that it should send a signal to lander to disengage| | |
+| | | |confirm|confirm_prepare_for_deploy||
+|Disengage_From_Lander|2 (0x2)|Command to send signal to MSP430 that it should send a signal to lander to disengage, sets disengage pin high| | |
+| | | |confirm|confirm_disengage||
 |Switch_Connection_Mode|3 (0x3)|Command to send signal to MSP430 that we switch the current connection mode| | |
-|Set_Kp_Most|170 (0xaa)|Command to send signal to MSP430 that it should set Kp to most significant parameter| | |
-|Set_Kp_Least|171 (0xab)|Command to send signal to MSP430 that it should set Kp to least significant parameter| | |
-|Set_Kp_Specific|172 (0xac)|Command to send signal to MSP430 that it should set Kp to a specific value| | |
-|Set_Ki_Most|186 (0xba)|Command to send signal to MSP430 that it should set Ki to most significant parameter| | |
-|Set_Ki_Least|187 (0xbb)|Command to send signal to MSP430 that it should set Ki to least significant parameter| | |
-|Set_Ki_Specific|188 (0xbc)|Command to send signal to MSP430 that it should set Ki to a specific value| | |
-|Set_Kd_Most|202 (0xca)|Command to send signal to MSP430 that it should set Kd to most significant parameter| | |
-|Set_Kd_Least|203 (0xcb)|Command to send signal to MSP430 that it should set Kd to least significant parameter| | |
-|Set_V_Setpoint|218 (0xda)|Command to send signal to MSP430 that it should set V to a specific value| | |
+|Engage_From_Lander|4 (0x4)|Command to send signal to MSP430 that it should send a signal to lander to engage, sets disengage pin low| | |
+|Set_Kp_Specific|170 (0xaa)|Command to send signal to MSP430 that it should set Kp to a specific value| | |
+| | | |value|U16||
+|Set_Heater_Duty_Cycle_Max|173 (0xad)|Command to send signal to MSP430 that it should set the max possible Duty Cycle value for the heater| | |
+|Set_Heater_Duty_Cycle_Period|174 (0xae)|Command to send signal to MSP430 that it should set the period the Duty Cycle for the heater is at| | |
+| | | |period|U16||
+|Set_Heater_Window|175 (0xaf)|Set the Half-Width of the heater on/off deadband window around the setpoint (in thermistor ADC values). Between setpoint - half_width and setpoint + half_width, heater is off.| | |
+| | | |adc_half_width|U16||
+|Set_Heater_Setpoint|218 (0xda)|Command to send signal to MSP430 that it should set V to a specific value| | |
+| | | |adc_setpoint|U16||
 |Switch_to_Sleep_Mode|234 (0xea)|Command to send signal to MSP430 that it should go into Sleep Mode| | |
+| | | |confirm|confirm_sleep_mode||
 |Switch_to_Keep_Alive_Mode|235 (0xeb)|Command to send signal to MSP430 that it should go into Keep Alive Mode| | |
+| | | |confirm|confirm_alive_mode||
 |Switch_to_Service_Mode|236 (0xec)|Command to send signal to MSP430 that it should go into Service Mode| | |
+| | | |confirm|confirm_service_mode||
 
 ## Telemetry Channel List
 
@@ -57,3 +63,4 @@
 |WatchDogCommError|3 (0x3)|Warning that a WatchDog MSP430 error has occured.| | | | |
 | | | |error|U32||The watchdog error value (reference to documentation)|
 |ADCThermistorError|4 (0x4)|Warning that less than 16 thermistors had conversions or conversion never completed meaning no new tempurature values are being generated| | | | |
+|WatchDogIncorrectResetValue|5 (0x5)|Warning that an incorrect reset value has been sent from ground| | | | |

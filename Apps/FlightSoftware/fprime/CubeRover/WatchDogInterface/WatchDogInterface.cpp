@@ -65,6 +65,8 @@ namespace CubeRover {
     sciSetBaudrate(m_sci, 9600);
     sciExitResetState(m_sci);
 
+    gioSetBit(spiPORT3, deploy_bit, 0);
+
     Read_Temp();
 
     Reset_Specific_Handler(Reset_Radio);           // Reset WF121
@@ -126,6 +128,26 @@ namespace CubeRover {
       return;
      
     dmaSend(reinterpret_cast<void *>(fwBuffer.getdata()), payload_length);  // FIXME: What is DMA send failed? *TUrn blocking off when we use Mutexes **DO the same for other DMA sends and receives
+    
+    /* FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX:
+     * FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX:
+     * FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX:
+     * <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+     * What is the plan here!? We keep on flip-flopping on whether the Watchdog-Hercules protocol will/will-not use response for UDP packets.
+     */
+    U32 comm_error;
+    WatchdogFrameHeader frame = {0};
+    int32_t size_read = Receive_Frame(&comm_error, &frame);
+
+    if(size_read < min_receive_size)
+    {
+      // TODO: Add logging error
+      return;
+    }
+    /*
+    * ================================================================================================================================================
+    * >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    */
   }
   
   void WatchDogInterfaceComponentImpl ::
@@ -557,7 +579,9 @@ namespace CubeRover {
     {
         // TODO: Verify that the MTU for wired connection is the same as Wifi
         Fw::Buffer uplinked_data;
-        dmaReceive(reinterpret_cast<void *>(uplinked_data.getdata()), header->payload_length);
+        dmaReceive(reinterpret_cast<void *>(m_wd_uplink_buffer), header->payload_length);
+        uplinked_data.setdata(reinterpret_cast<U64>(m_wd_uplink_buffer));
+        uplinked_data.setsize(static_cast<U32>(header->payload_length));
         payload_read = header->payload_length;
         *comm_error = 0;
 

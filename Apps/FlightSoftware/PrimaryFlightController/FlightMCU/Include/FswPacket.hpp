@@ -12,13 +12,13 @@
 #define LANDER_SSID             "Houston"
 #define LANDER_NETWORK_PASSWORD "redr0ver"
 
-#define INITIAL_PRIMARY_NETWORK_INTERFACE  WF121    // Must be of type PrimaryInterface (see GroundInterfaceComponentAi.xml or GroundInterfaceComponentAc.hpp)
+#define INITIAL_PRIMARY_NETWORK_INTERFACE  WATCHDOG    // WATCHDOG or WF121 | Must be of type PrimaryInterface (see GroundInterfaceComponentAi.xml or GroundInterfaceComponentAc.hpp)
 
 // Packet sizes
 #define IPV4_MTU                1006                // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 791 **FRAGMENTATION *NOT* SUPPORTED**
 // Static buffer sizes (MAXIMUM ALLOCATION)
 #define WF121_UDP_MAX_PAYLOAD  (IPV4_MTU-20-8)      // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 768 (20byte IPv4 header, 8byte UDP Header)
-#define WATCHDOG_MAX_PAYLOAD    320                 // Watchdog UDP Buffer Size
+#define WATCHDOG_MAX_PAYLOAD    650                // Watchdog UDP Buffer Size
 #define NUM_APPS_USE_FILE_DOWNLINK 2                // Sets the total number of of static downlink buffers (one per application)
                                                     // Since buffers are statically allocated can't use get_appDownlink_Ports()
                                                     // Camera: 0       UWB:1   <- Port Number indexes which application is sending data and which buffer to use

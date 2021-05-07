@@ -385,8 +385,8 @@ void parse_ground_cmd(struct buffer *pp) {
     } else {
         /* forward it on to hercules */
         // copy the buffer into the hercules buffer
-        memcpy(hercbuf.buf + hercbuf.used, pp->buf, pp->used); // @suppress("Invalid arguments")
-        hercbuf.used += pp->used;
+        memcpy(hercbuf.buf + hercbuf.used, buf, pp_len); // @suppress("Invalid arguments")
+        hercbuf.used += pp_len;
         if (hercbuf.used > BUFFER_SIZE) {
             // TODO: better logic here. should overwrite old like a ring buffer, not just
             // reset from 0

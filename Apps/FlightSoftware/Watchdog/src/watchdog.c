@@ -195,14 +195,6 @@ void watchdog_handle_hercules() {
 
     /* deal with incoming udp packet from hercules */
     if (uart0_rx_len != 0) {
-        /* udp packet attached */
-
-        /* echo back watchdog command header only */
-        uart0_tx_nonblocking(8, uart0_rx_header); // @suppress("Invalid arguments")
-
-        // Send telemetry data back to Hercules
-        watchdog_send_hercules_telem();
-
         /* add this packet to the IP/UDP stack send buffer */
         ipudp_send_packet(uart0rx.buf, uart0_rx_len); // @suppress("Invalid arguments")
     }
@@ -235,6 +227,7 @@ void watchdog_handle_hercules() {
     if (hercbuf.used > 0) {
         /* send udp data */
         uart0_tx_nonblocking(hercbuf.used, hercbuf.buf); // @suppress("Invalid arguments")
+        hercbuf.used = 0;
     } else {
         /* send telem */
         watchdog_send_hercules_telem();

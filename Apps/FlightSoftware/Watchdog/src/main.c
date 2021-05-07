@@ -13,7 +13,8 @@
 
 
 /* define all of the buffers used in other files */
-__volatile struct buffer uart0rx, uart0tx, uart1rx, uart1tx, hercbuf;
+__volatile struct buffer uart0rx, uart0tx, uart1rx, uart1tx;
+struct buffer hercbuf;
 __volatile uint16_t loop_flags;
 extern uint8_t heating;
 uint8_t lastHeater = 0;
@@ -29,6 +30,7 @@ void send_earth_heartbeat();
  * main.c
  */
 #pragma PERSISTENT(rovstate)
+//TODO: shjould be RS_KEEPALIVE
 enum rover_state rovstate = RS_KEEPALIVE;
 
 void uart1_disable();

@@ -44,7 +44,7 @@ void __attribute__ ((interrupt(EUSCI_A0_VECTOR))) USCI_A0_ISR (void) {
             /* done sending after this byte; clear IFG */
             UCA0IE &= ~UCTXIE;
             /* unlock the buffer */
-            uart1tx.locked = 0;
+            uart0tx.locked = 0;
         }
 
         /* send the next byte */
@@ -233,6 +233,7 @@ void uart0_init() {
     /* initally all buffers are empty */
     uart0tx.idx = 0;
     uart0tx.used = 0;
+    uart0tx.locked = 0;
     uart0rx.idx = 0;
     uart0rx.used = 0;
 
@@ -315,15 +316,17 @@ void uart1_init() {
 void uart0_tx_nonblocking(uint16_t length, unsigned char *buffer) {
     uint16_t i=0;
     unsigned char b;
-    uint16_t curr_idx = uart0tx.idx + uart0tx.used;
+    uint16_t curr_idx;
 
     // wait for the buffer to be unlocked
-    while (uart1tx.locked) __delay_cycles(100);
+    while (uart0tx.locked) __delay_cycles(100);
 
     // disable interrupts to prevent race conditions
     UCA0IE &= ~UCTXIE;
     // disable interrupts
     __bic_SR_register(GIE);
+
+    curr_idx = uart0tx.idx + uart0tx.used;
 
     for (i = 0; i < length; i++) {
         b = buffer[i];
@@ -333,7 +336,7 @@ void uart0_tx_nonblocking(uint16_t length, unsigned char *buffer) {
     }
 
     /* start interrupts for sending async */
-    uart1tx.locked = 1;
+    uart0tx.locked = 1;
     __bis_SR_register(GIE);
     UCA0IE |= UCTXIE;
 }

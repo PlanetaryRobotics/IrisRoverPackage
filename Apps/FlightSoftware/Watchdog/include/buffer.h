@@ -25,7 +25,9 @@ struct buffer {
 };
 
 /* all of the buffers that exist; total = 3KiB used for tx/rx buffers */
-__volatile extern struct buffer uart0rx, uart0tx, uart1rx, uart1tx, hercbuf;
+__volatile extern struct buffer uart0rx, uart0tx, uart1rx, uart1tx;
+/* buffers used in regular functions - NOT ALLOWED TO BE USED IN INTERRUPTS (UNSAFE) */
+extern struct buffer hercbuf;
 
 /**
  * Allocate n bytes in the buffer x.

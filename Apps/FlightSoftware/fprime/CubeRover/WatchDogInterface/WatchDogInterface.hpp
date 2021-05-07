@@ -24,7 +24,7 @@
 #include "sci.h"
 
 // The pin number for the deploment pin 2
-const U8 deploy_bit = 5;
+const U8 deploy_bit = 4;
 // The number of thermistors on the SBC
 const U8 number_thermistors = 6;
 // Default size of zero sent to watchdog

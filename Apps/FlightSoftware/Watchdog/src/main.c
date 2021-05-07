@@ -29,7 +29,8 @@ void send_earth_heartbeat();
 /**
  * main.c
  */
-#pragma PERSISTENT(rovstate)
+//TODO: commented out for firing test; update to only keep MISSION after deployment
+//#pragma PERSISTENT(rovstate)
 //TODO: shjould be RS_KEEPALIVE
 enum rover_state rovstate = RS_KEEPALIVE;
 

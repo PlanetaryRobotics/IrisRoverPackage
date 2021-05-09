@@ -32,7 +32,7 @@ void send_earth_heartbeat();
 //TODO: commented out for firing test; update to only keep MISSION after deployment
 //#pragma PERSISTENT(rovstate)
 //TODO: shjould be RS_KEEPALIVE
-enum rover_state rovstate = RS_KEEPALIVE;
+enum rover_state rovstate = RS_MISSION; // RAEWYN CHANGE DEFAULT STATE HERE
 
 void uart1_disable();
 void uart0_init();
@@ -207,6 +207,7 @@ int main(void) {
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */
                 updateGaugeReadings();
+                //TODO: don't
                 send_earth_heartbeat();
                 watchdog_monitor();
                 break;

@@ -413,6 +413,7 @@ void send_earth_heartbeat() {
     }
     counter = 0;
 
+    /*
     // build the packet
     send_buf[0] = 0xFF;
     // TODO: tvac changes
@@ -482,24 +483,26 @@ void send_earth_heartbeat() {
 
     // send the packet!
     ipudp_send_packet(send_buf, 24); // @suppress("Invalid arguments")
+    */
 
     ////  Flight-spec heartbeats
 
-    /*
+
+    send_buf[0] = 0xFF;
     send_buf[1] = (uint8_t)(batt_charge_telem << 1);
     send_buf[1] = send_buf[1] << 1;
     // send heater on status
     send_buf[1] |= heaterStatus & 0x1;
     // battery current
     send_buf[2] = (uint8_t)(batt_curr_telem << 1);
-    // send voltage nominal status
-    send_buf[2] |= (); // TODO: fix this
+    // send voltage nominal status (1=good, 0=too low)
+    send_buf[2] |= (raw_battery_charge[0] > 0x3B); // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
     // send the thermistor temperature (12 bits to 8 bits)
     send_buf[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
-//    pbuf.used += 4; */
+//    pbuf.used += 4;
 
     // send the packet!
-//    ipudp_send_packet(send_buf, 4); // @suppress("Invalid arguments")
+    ipudp_send_packet(send_buf, 4); // @suppress("Invalid arguments")
 
 
 }

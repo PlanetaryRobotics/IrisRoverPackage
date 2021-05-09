@@ -12,7 +12,7 @@ class S25fl064l{
 
   #define SPI_REG_FLASH spiREG3
   #define CS_SPI_PORT_FLASH spiPORT3
-  #define CS_SPI_BIT_FLASH 8
+  #define CS_SPI_BIT_FLASH 1
 
 
   enum AddressLengthFormat{

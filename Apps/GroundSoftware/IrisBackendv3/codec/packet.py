@@ -795,14 +795,14 @@ class WatchdogHeartbeatPacketInterface(CustomPayloadPacket[CT]):
             '_ChargeRaw',
             '_HeaterStatus',
             '_CurrentRaw',
-            '_BatteryVoltageOK',
+            '_BatteryVoltageOk',
             '_BattAdcTempRaw'
         ]
 
         _ChargeRaw: int
         _HeaterStatus: bool
         _CurrentRaw: int
-        _BatteryVoltageOK: bool
+        _BatteryVoltageOk: bool
         _BattAdcTempRaw: int
 
         @staticmethod
@@ -935,7 +935,7 @@ class WatchdogHeartbeatPacketInterface(CustomPayloadPacket[CT]):
         @property
         def CurrentRaw(self) -> int: return self._CurrentRaw
         @property
-        def BatteryVoltageOK(self) -> bool: return self._BatteryVoltageOK
+        def BatteryVoltageOk(self) -> bool: return self._BatteryVoltageOk
         @property
         def BattAdcTempRaw(self) -> int: return self._BattAdcTempRaw
 
@@ -943,19 +943,19 @@ class WatchdogHeartbeatPacketInterface(CustomPayloadPacket[CT]):
                      ChargeRaw: int,
                      HeaterStatus: int,
                      CurrentRaw: int,
-                     BatteryVoltageOK: int,
+                     BatteryVoltageOk: int,
                      BattAdcTempRaw: int
                      ) -> None:
             self._ChargeRaw = ChargeRaw
             self._HeaterStatus = bool(HeaterStatus)
             self._CurrentRaw = CurrentRaw
-            self._BatteryVoltageOK = bool(BatteryVoltageOK)
+            self._BatteryVoltageOk = bool(BatteryVoltageOk)
             self._BattAdcTempRaw = BattAdcTempRaw
 
         def __repr__(self) -> str:
             return (
                 f"[HEAT]: {' ON' if self.HeaterStatus else 'OFF'} \t\t "
-                f"[BATT]: Voltage: {'GOOD' if self.BatteryVoltageOK else 'BAD'}, "
+                f"[BATT]: Voltage: {'GOOD' if self.BatteryVoltageOk else 'BAD'}, "
                 f"Charge: {self.ChargeMah:4.0f}mAh = {self.ChargePercent:5.1f}%, "
                 f"Temp: {self.BattAdcTempKelvin:5.1f}°K]"
             )

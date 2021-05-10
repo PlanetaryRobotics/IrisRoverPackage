@@ -65,6 +65,8 @@ namespace CubeRover {
     sciSetBaudrate(m_sci, 9600);
     sciExitResetState(m_sci);
 
+    gioSetBit(spiPORT3, deploy_bit, 0);
+
     Read_Temp();
 
     Reset_Specific_Handler(Reset_Radio);           // Reset WF121
@@ -126,6 +128,17 @@ namespace CubeRover {
       return;
      
     dmaSend(reinterpret_cast<void *>(fwBuffer.getdata()), payload_length);  // FIXME: What is DMA send failed? *TUrn blocking off when we use Mutexes **DO the same for other DMA sends and receives
+
+    U32 comm_error;
+    WatchdogFrameHeader frame = {0};
+    int32_t size_read = Receive_Frame(&comm_error, &frame);
+
+    if(size_read < min_receive_size)
+    {
+      // TODO: Add logging error
+      return;
+    }
+
   }
   
   void WatchDogInterfaceComponentImpl ::
@@ -282,7 +295,7 @@ namespace CubeRover {
       if(reset_value < No_Reset && reset_value >= reset_values_possible_MAX)
       {
         this->log_WARNING_LO_WatchDogIncorrectResetValue();
-        return;
+        return false;
       }
       
       // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
@@ -540,6 +553,7 @@ namespace CubeRover {
           this->tlmWrite_SYSTEM_STATUS(buff.sys_status);
           this->tlmWrite_BATTERY_LEVEL(buff.battery_level);
           this->tlmWrite_BATTERY_CURRENT(buff.battery_current);
+          this->tlmWrite_BATTERY_VOLTAGE(buff.battery_voltage);
           size_read += payload_read;
         }
         else if(payload_read < 0)
@@ -556,7 +570,9 @@ namespace CubeRover {
     {
         // TODO: Verify that the MTU for wired connection is the same as Wifi
         Fw::Buffer uplinked_data;
-        dmaReceive(reinterpret_cast<void *>(uplinked_data.getdata()), header->payload_length);
+        dmaReceive(reinterpret_cast<void *>(m_wd_uplink_buffer), header->payload_length);
+        uplinked_data.setdata(reinterpret_cast<U64>(m_wd_uplink_buffer));
+        uplinked_data.setsize(static_cast<U32>(header->payload_length));
         payload_read = header->payload_length;
         *comm_error = 0;
 

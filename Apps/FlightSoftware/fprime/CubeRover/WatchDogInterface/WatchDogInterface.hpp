@@ -17,13 +17,14 @@
 #define WatchDogInterface_HPP
 
 #include "CubeRover/WatchDogInterface/WatchDogInterfaceComponentAc.hpp"
+#include "Include/FswPacket.hpp"
 
 #include "lin.h"
 #include "adc.h"
 #include "sci.h"
 
 // The pin number for the deploment pin 2
-const U8 deploy_bit = 5;
+const U8 deploy_bit = 4;
 // The number of thermistors on the SBC
 const U8 number_thermistors = 6;
 // Default size of zero sent to watchdog
@@ -235,8 +236,9 @@ namespace CubeRover {
          int16_t voltage_28V;   // Current measured voltage of the 28V line as read from the Watchdog
          int8_t battery_thermistor;   // Current measured voltage of the watchdog battery thermistor as read from the Watchdog
          int8_t sys_status;   // 8 bit systems status where each bit represents a watchdog status
-         int16_t battery_level;   // Current measured battery voltage as read from the Watchdog
-         int32_t battery_current;   // Current measured battery current as read from the Watchdog
+         int16_t battery_level;   // Current measured battery mAH as read from the Watchdog
+         int16_t battery_current;   // Current measured battery current as read from the Watchdog
+         int16_t battery_voltage;   // Voltage measured battery current as read from the Watchdog
      } __attribute__((packed, aligned(8)));
 
      // Incorrect Response Possible Values
@@ -287,6 +289,7 @@ namespace CubeRover {
       adcData_t m_thermistor_buffer[number_thermistors];  // Location to store current data for thermistors
       bool m_finished_initializing;     // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
 
+      U8 m_wd_uplink_buffer [WATCHDOG_MAX_PAYLOAD] __attribute__((aligned(8)));
     };
 
 } // end namespace CubeRover

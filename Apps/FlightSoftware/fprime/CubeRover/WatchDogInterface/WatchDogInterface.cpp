@@ -128,13 +128,7 @@ namespace CubeRover {
       return;
      
     dmaSend(reinterpret_cast<void *>(fwBuffer.getdata()), payload_length);  // FIXME: What is DMA send failed? *TUrn blocking off when we use Mutexes **DO the same for other DMA sends and receives
-    
-    /* FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX:
-     * FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX:
-     * FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX: FIXME: TODO: XXX:
-     * <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-     * What is the plan here!? We keep on flip-flopping on whether the Watchdog-Hercules protocol will/will-not use response for UDP packets.
-     */
+
     U32 comm_error;
     WatchdogFrameHeader frame = {0};
     int32_t size_read = Receive_Frame(&comm_error, &frame);
@@ -144,10 +138,7 @@ namespace CubeRover {
       // TODO: Add logging error
       return;
     }
-    /*
-    * ================================================================================================================================================
-    * >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    */
+
   }
   
   void WatchDogInterfaceComponentImpl ::

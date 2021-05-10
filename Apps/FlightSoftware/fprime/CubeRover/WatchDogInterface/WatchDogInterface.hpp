@@ -289,7 +289,7 @@ namespace CubeRover {
       adcData_t m_thermistor_buffer[number_thermistors];  // Location to store current data for thermistors
       bool m_finished_initializing;     // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
 
-      U8 m_wd_uplink_buffer [WATCHDOG_MAX_PAYLOAD];
+      U8 m_wd_uplink_buffer [WATCHDOG_MAX_PAYLOAD] __attribute__((aligned(8)));
     };
 
 } // end namespace CubeRover

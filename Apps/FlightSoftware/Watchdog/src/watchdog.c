@@ -23,6 +23,7 @@ uint8_t handle_watchdog_reset_cmd(uint8_t cmd);
 volatile uint16_t watchdog_flags;
 
 // for heater control
+// TODO: make Kp persistent
 uint16_t Kp_heater = 500, PWM_limit = 0, heater_setpoint = 3325, heater_window = 60;
 uint16_t heater_on_val = 3670;  // -5 C thermistor voltage ADC reading
 uint16_t heater_off_val = 3352; // 0 C thermistor voltage ADC reading

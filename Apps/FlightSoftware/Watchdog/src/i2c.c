@@ -13,6 +13,9 @@ uint8_t batt_curr_telem;
 uint8_t fuel_gauge_write_control_reg;
 uint8_t fuel_gauge_read_control_reg;
 
+// debug
+uint16_t tmp = 0;
+
 /*
  * File for interfacing with I2C protocol hardware module
  *
@@ -159,9 +162,7 @@ void readBatteryCharge(){
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_MSB, I2C_RX_BUFFER_MAX_SIZE);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_charge, I2C_RX_BUFFER_MAX_SIZE);
 
-    // scale battery charge to fill most of 7 bit range available for telemetry
-    batt_charge_telem = (uint8_t)( 3 * (uint32_t)(raw_battery_charge[1] + (raw_battery_charge[0] << 8)) >> 10);
-
+   batt_charge_telem = 3*((raw_battery_charge[0]) & 0x00FF)>>2; // return 0.75*MSB of charge reading (maps 160->0 to 120->0 to fit into 7 bits)
 }
 
 void readBatteryVoltage(){

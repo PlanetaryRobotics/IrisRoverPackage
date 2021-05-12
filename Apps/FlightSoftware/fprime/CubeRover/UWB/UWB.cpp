@@ -14,6 +14,18 @@
 #include <CubeRover/UWB/UWB.hpp>
 #include "Fw/Types/BasicTypes.hpp"
 
+#include <spi.h>
+#include "App/SPI.h"
+
+/* SPI configuration */
+static spiBASE_t *spi = spiREG5;
+static spiDAT1_t dataConfig = {
+    .CS_HOLD = 0,
+    .WDEL = 0,
+    .DFSEL = SPI_FMT_0,
+    .CSNR = 0b11111110   // Each index corresponds to CS[i]. Value represents the CS level when a transaction is occurring (1: hign, 0: low). SPIDEF sets the non-transaction CS level.
+};
+
 namespace CubeRover {
 
   // ----------------------------------------------------------------------
@@ -75,6 +87,16 @@ namespace CubeRover {
   {
     char times[4*4]; /*4, 4 byte sized U32's for time stamps*/
     Fw::Buffer fwBuffer(0, 0, reinterpret_cast<U64>(&times), sizeof(times));
+
+    // Transmit function
+    // One Byte: uint32 spiTransmitOneByte(spi, dataConfig, uint16* srcbuff)
+    // Multibyte: uint32 spiTransmitData(spi, dataConfig, uint32 blocksize, uint16 * srcbuff);
+
+    // Receive function
+    // One Byte: uint32 spiReceiveOneByte(spi, dataConfig, uint16 *destbuff)
+    // Multibyte: uint32 spiReceiveData(spi, dataConfig, 16, static_cast<uint16_t*>(&times));
+
+
     uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
     UWBSend_out(0, m_callbackId, createTime, fwBuffer);
     m_bytesSent += static_cast<U32>(sizeof(times));

@@ -1,7 +1,5 @@
 #include "include/i2c.h"
 
-// TODO: integrate this code with the rest of the system
-
 int8_t raw_battery_charge[2];
 int8_t raw_battery_voltage[2];
 int8_t raw_battery_current[2];
@@ -9,12 +7,6 @@ int8_t raw_fuel_gauge_temp[2];
 
 uint8_t batt_charge_telem;
 uint8_t batt_curr_telem;
-
-uint8_t fuel_gauge_write_control_reg;
-uint8_t fuel_gauge_read_control_reg;
-
-// debug
-uint16_t tmp = 0;
 
 /*
  * File for interfacing with I2C protocol hardware module
@@ -36,19 +28,12 @@ uint8_t TransmitBuffer[I2C_TX_BUFFER_MAX_SIZE] = {0};
 uint8_t TXByteCtr = 0;
 uint8_t TransmitIndex = 0;
 
-/* uart0 rx handler (will only be called after SLIP packet fully received) */
-void (*i2c_rx_handler)(uint16_t len, struct buffer *buf) = (void *)(0);
-
 
 /* init function */
 void i2c_init() {
     // Configure i2c interface
     P1SEL1 |= BIT6; // P1.6 SDA
     P1SEL1 |= BIT7; // P1.7 SCL
-
-    // pins for using eusci_b2 (only ones available on launchpad)
-//    P7SEL0 |= BIT0 | BIT1;
-//    P7SEL1 &= ~(BIT0 | BIT1);
 
     UCB0CTLW0 = UCSWRST;                      // Enable SW reset
     UCB0CTLW0 |= UCMODE_3 | UCMST | UCSSEL__SMCLK | UCSYNC; // I2C master mode, SMCLK
@@ -57,7 +42,6 @@ void i2c_init() {
     UCB0CTLW0 &= ~UCSWRST;                    // Clear SW reset, resume operation
     UCB0IE |= UCNACKIE;
 }
-
 
 
 /* For slave device with dev_addr, read the data specified in slaves reg_addr.
@@ -141,18 +125,10 @@ void CopyArray(uint8_t *source, uint8_t *dest, uint8_t count)
     }
 }
 
-void updateGaugeReadings(){
-    // record new measurements in fuel gauge
-    readBatteryCharge();
-    readBatteryVoltage();
-    readBatteryCurrent();
-    readGaugeTemp(); //TODO: probably don't need this one
-}
-
 void fuelGaugeLowPower(){
     // shut off all analog parts of fuel gauge circuit by setting LSB of control register to 1
     // set 2 MSB to 00 to put in sleep mode
-    fuel_gauge_write_control_reg = 0b00101001;
+    uint8_t fuel_gauge_write_control_reg = 0b00101001;
     I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &fuel_gauge_write_control_reg, 1);
 }
 
@@ -162,7 +138,7 @@ void readBatteryCharge(){
     I2C_Master_ReadReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_MSB, I2C_RX_BUFFER_MAX_SIZE);
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_charge, I2C_RX_BUFFER_MAX_SIZE);
 
-   batt_charge_telem = 3*((raw_battery_charge[0]) & 0x00FF)>>2; // return 0.75*MSB of charge reading (maps 160->0 to 120->0 to fit into 7 bits)
+    batt_charge_telem = 3*((raw_battery_charge[0]) & 0x00FF)>>2; // return 0.75*MSB of charge reading (maps 160->0 to 120->0 to fit into 7 bits)
 }
 
 void readBatteryVoltage(){
@@ -196,9 +172,12 @@ void readGaugeTemp(){
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_fuel_gauge_temp, I2C_RX_BUFFER_MAX_SIZE);
 }
 
-void readFuelGaugeControlRegister(){
-    I2C_Master_ReadReg(I2C_SLAVE_ADDR, CONTROL, 1);
-    fuel_gauge_read_control_reg = ReceiveBuffer[0];
+void updateGaugeReadings(){
+    // record new measurements in fuel gauge
+    readBatteryCharge();
+    readBatteryVoltage();
+    readBatteryCurrent();
+    readGaugeTemp(); //TODO: probably don't need this one
 }
 
 void initializeFuelGauge(){
@@ -211,7 +190,7 @@ void initializeFuelGauge(){
 
 
     // set ADC to read voltage/curr/temp once and then wait for next measurement request
-    fuel_gauge_write_control_reg = 0b10101000;
+    uint8_t fuel_gauge_write_control_reg = 0b10101000;
     // set control_reg[7:6] to 01 do one conversion, 10 to convert every 10s,
     //      set to 00 to sleep, set to 11 to continuously convert
     // set control_reg[5:3] to 101 for M of 1024 for coulomb counter (see datasheet)
@@ -265,7 +244,6 @@ void __attribute__ ((interrupt(USCI_B0_VECTOR))) USCI_B0_ISR (void)
         {
           UCB0IE &= ~UCRXIE;
           MasterMode = IDLE_MODE;
-//          __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
         }
         break;
     case USCI_I2C_UCTXIFG0:                 // Vector 24: TXIFG0
@@ -305,7 +283,6 @@ void __attribute__ ((interrupt(USCI_B0_VECTOR))) USCI_B0_ISR (void)
                   UCB0CTLW0 |= UCTXSTP;     // Send stop condition
                   MasterMode = IDLE_MODE;
                   UCB0IE &= ~UCTXIE;                       // disable TX interrupt
-//                  __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
               }
               break;
 

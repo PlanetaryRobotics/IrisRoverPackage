@@ -26,7 +26,6 @@ extern uint8_t batt_curr_telem;
 #define I2C_MAX_DATA_SIZE           1
 
 typedef enum I2cRegisterIds_Enum{
-
     STATUS = 0,                 //read only
     CONTROL = 1,
     ACCUMULATED_CHARGE_MSB = 2,
@@ -52,7 +51,6 @@ typedef enum I2cRegisterIds_Enum{
     TEMPERATURE_THRESHOLD_HIGH = 22,
     TEMPERATURE_THRESHOLD_LOW = 23,
     MAX_NB_CMDS = 24
-
 }I2cRegisterIds;
 
 
@@ -68,8 +66,6 @@ typedef enum I2C_ModeEnum{
     TIMEOUT_MODE
 } I2C_Mode;
 
-
-extern void (*i2c_rx_handler)(uint16_t len, struct buffer *buf);
 
 I2C_Mode I2C_Master_WriteReg(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t count);
 I2C_Mode I2C_Master_ReadReg(uint8_t dev_addr, uint8_t reg_addr, uint8_t count);
@@ -87,12 +83,7 @@ void updateGaugeReadings();
  *      power back on using updateGaugeReadings()
  */
 void fuelGaugeLowPower();
-void readBatteryCharge();
-void readBatteryVoltage();
-void readBatteryCurrent();
-void readGaugeTemp();
 void initializeFuelGauge();
-void readFuelGaugeControlRegister();
 
 
 /**

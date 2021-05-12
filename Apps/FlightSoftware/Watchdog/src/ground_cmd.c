@@ -416,7 +416,6 @@ void send_earth_heartbeat() {
     ////  Flight-spec heartbeats
     send_buf[0] = 0xFF;
     send_buf[1] = (uint8_t)(batt_charge_telem << 1);
-//    send_buf[1] = send_buf[1] << 1;
     // send heater on status
     send_buf[1] |= heaterStatus & 0x1;
     // battery current

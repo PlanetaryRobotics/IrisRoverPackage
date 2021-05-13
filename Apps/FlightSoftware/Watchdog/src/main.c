@@ -10,6 +10,7 @@
 #include "include/flags.h"
 #include "include/ip_udp.h"
 #include "include/watchdog.h"
+#include "include/i2c_sensors.h"
 
 
 /* define all of the buffers used in other files */
@@ -19,6 +20,9 @@ __volatile uint16_t loop_flags;
 extern uint8_t heating;
 uint8_t lastHeater = 0;
 uint8_t heatingControlEnabled = 1;
+
+INS_Sensors__InternalState internals;
+I2C_Sensors__Status i2c_status = I2C_SENSORS__STATUS__ERROR__NULL;
 
 // @suppress("Invalid arguments")
 
@@ -92,7 +96,8 @@ void enterMode(enum rover_state newstate) {
         stopChargingBatteries();
 
         __delay_cycles(12345678); //give fuel gauge [50 ms] & wifi [~750 ms] time to start up
-        initializeFuelGauge();
+//        initializeFuelGauge();
+        i2c_status = I2C_Sensors__initializeFuelGaugeBlocking();
         powerOnHercules();
         releaseMotorsReset();
         releaseHerculesReset();
@@ -207,6 +212,9 @@ int main(void) {
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */
                 updateGaugeReadings();
+                I2C_Sensors__initiateGaugeReadings();
+                I2C_Sensors__spinOnce();
+                i2c_status = I2C_Sensors__getGaugeReadingStatus(&internals.readings);
                 //TODO: don't
                 send_earth_heartbeat();
                 watchdog_monitor();

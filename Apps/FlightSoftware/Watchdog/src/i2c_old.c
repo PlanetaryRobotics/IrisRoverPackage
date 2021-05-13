@@ -155,12 +155,12 @@ void readBatteryCurrent(){
     CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_current, I2C_RX_BUFFER_MAX_SIZE);
 
     // scale current reading to maximize 7 bits allocated for current telemetry
-    uint16_t BCurr_tmp = (uint16_t)(32767 - raw_battery_current[1] - (raw_battery_current[0] << 8));
+    uint32_t BCurr_tmp = (uint32_t)(32767 - (0x00FF & raw_battery_current[1] | (raw_battery_current[0] << 8) ) );
     if(BCurr_tmp > 17407) {
         //exceeds maximum value of 0.6 A
         batt_curr_telem = 255;
     } else {
-        batt_curr_telem = (uint8_t)( BCurr_tmp >> 7 );
+        batt_curr_telem = (uint8_t)( BCurr_tmp >> 7);
     }
 }
 

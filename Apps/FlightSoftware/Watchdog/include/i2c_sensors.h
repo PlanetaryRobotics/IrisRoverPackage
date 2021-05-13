@@ -17,10 +17,10 @@ typedef enum I2C_Sensors__NACK_Status {
 } I2C_Sensors__NACK_Status;
 
 typedef struct I2C_Sensors__Readings {
-    int8_t raw_battery_charge[2];
-    int8_t raw_battery_voltage[2];
-    int8_t raw_battery_current[2];
-    int8_t raw_fuel_gauge_temp[2];
+    uint8_t raw_battery_charge[2];
+    uint8_t raw_battery_voltage[2];
+    uint8_t raw_battery_current[2];
+    uint8_t raw_fuel_gauge_temp[2];
     uint8_t batt_charge_telem;
     uint8_t batt_curr_telem;
 
@@ -67,6 +67,26 @@ typedef enum I2C_Sensors__Status {
     I2C_SENSORS__STATUS__ERROR__READINGS_IN_PROGRESS = -4,
     I2C_SENSORS__STATUS__ERROR__INTERNAL = -255
 } I2C_Sensors__Status;
+
+typedef enum GaugeReadingState {
+    GRS__UNKNOWN = 0,
+    GRS__CHARGE_LSB,
+    GRS__CHARGE_MSB,
+    GRS__VOLTAGE_LSB,
+    GRS__VOLTAGE_MSB,
+    GRS__CURRENT_LSB,
+    GRS__CURRENT_MSB,
+    GRS__GAUGE_TEMP_LSB,
+    GRS__GAUGE_TEMP_MSB,
+    GRS__DONE
+} GaugeReadingState;
+
+typedef struct INS_Sensors__InternalState {
+    GaugeReadingState gState;
+    I2C_Sensors__Readings readings;
+} INS_Sensors__InternalState;
+
+extern INS_Sensors__InternalState internals;
 
 void I2C_Sensors__init();
 

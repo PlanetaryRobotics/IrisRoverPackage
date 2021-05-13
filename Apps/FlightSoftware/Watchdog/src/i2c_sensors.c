@@ -14,24 +14,6 @@
 static const BOOL TRUE = 1;
 static const BOOL FALSE = 0;
 
-typedef enum GaugeReadingState {
-    GRS__UNKNOWN = 0,
-    GRS__CHARGE_LSB,
-    GRS__CHARGE_MSB,
-    GRS__VOLTAGE_LSB,
-    GRS__VOLTAGE_MSB,
-    GRS__CURRENT_LSB,
-    GRS__CURRENT_MSB,
-    GRS__GAUGE_TEMP_LSB,
-    GRS__GAUGE_TEMP_MSB,
-    GRS__DONE
-} GaugeReadingState;
-
-typedef struct INS_Sensors__InternalState {
-    GaugeReadingState gState;
-    I2C_Sensors__Readings readings;
-} INS_Sensors__InternalState;
-
 static INS_Sensors__InternalState internals = { 0 };
 
 //###########################################################
@@ -165,7 +147,7 @@ I2C_Sensors__Status I2C_Sensors__initializeFuelGaugeBlocking()
 
 
     BOOL inProgress = TRUE;
-    BOOL success = FALSE;
+    BOOL success = TRUE;
     uint8_t stage = 1;
 
     while (inProgress) {
@@ -395,6 +377,7 @@ BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
         stat = I2C__read(devAddr, regAddr);
 
 //        assert(I2C__STATUS__SUCCESS == stat);
+//        while (I2C__STATUS__SUCCESS != stat);
 
         *done = FALSE;
         *gotOutput = FALSE;
@@ -482,7 +465,7 @@ BOOL I2C_Sensors__chargeMsb()
                                                   &gotOutput);
 
     if (done && gotOutput) {
-        int8_t *raw_battery_charge = internals.readings.raw_battery_charge;
+        uint8_t *raw_battery_charge = internals.readings.raw_battery_charge;
         uint16_t chargeUShort = (uint16_t)(raw_battery_charge[1] + (raw_battery_charge[0] << 8));
         internals.readings.batt_charge_telem = (uint8_t)(chargeUShort >> 10) * 3;
     }
@@ -538,7 +521,7 @@ BOOL I2C_Sensors__currentMsb()
                                                   &gotOutput);
 
     if (done && gotOutput) {
-        int8_t *raw_battery_current = internals.readings.raw_battery_current;
+        uint8_t *raw_battery_current = internals.readings.raw_battery_current;
         uint16_t bCurrUShort = (uint16_t)(32767 - raw_battery_current[1] - (raw_battery_current[0] << 8));
 
         if (bCurrUShort > 17407) {

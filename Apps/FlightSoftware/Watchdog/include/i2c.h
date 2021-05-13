@@ -1,98 +1,51 @@
-/**
- * @file i2c.h
- * @brief File for interfacing with I2C protocol hardware module
- * File for interfacing with I2C protocol hardware module.
- */
-#ifndef __I2C_INC
-#define __I2C_INC
+// i2c.h
 
-#include <msp430.h>
-#include "buffer.h"
-
-extern int8_t raw_battery_charge[2];
-extern int8_t raw_battery_voltage[2];
-extern int8_t raw_battery_current[2];
-extern int8_t raw_fuel_gauge_temp[2];
-
-extern uint8_t batt_charge_telem;
-extern uint8_t batt_curr_telem;
-
-#define I2C_SLAVE_ADDR      100 //0b1100100 //i2c address of LTC2944IDD#PBF fuel gauge
-
-// every piece of i2c data for fuel gauge is 2 bytes (some info is 4 bytes split into MSB and LSB though)
-#define I2C_RX_BUFFER_MAX_SIZE      1
-#define I2C_TX_BUFFER_MAX_SIZE      1
-
-#define I2C_MAX_DATA_SIZE           1
-
-typedef enum I2cRegisterIds_Enum{
-    STATUS = 0,                 //read only
-    CONTROL = 1,
-    ACCUMULATED_CHARGE_MSB = 2,
-    ACCUMULATED_CHARGE_LSB = 3,
-    CHARGE_THRESHOLD_HIGH_MSB = 4,
-    CHARGE_THRESHOLD_HIGH_LSB = 5,
-    CHARGE_THRESHOLD_LOW_MSB = 6,
-    CHARGE_THRESHOLD_LOW_LSB = 7,
-    VOLTAGE_MSB = 8,                //read only
-    VOLTAGE_LSB = 9,                //read only
-    VOLTAGE_THRESHOLD_HIGH_MSB = 10,
-    VOLTAGE_THRESHOLD_HIGH_LSB = 11,
-    VOLTAGE_THRESHOLD_LOW_MSB = 12,
-    VOLTAGE_THRESHOLD_LOW_LSB = 13,
-    CURRENT_MSB = 14,                //read only
-    CURRENT_LSB = 15,                //read only
-    CURRENT_THRESHOLD_HIGH_MSB = 16,
-    CURRENT_THRESHOLD_HIGH_LSB = 17,
-    CURRENT_THRESHOLD_LOW_MSB = 18,
-    CURRENT_THRESHOLD_LOW_LSB = 19,
-    TEMPERATURE_MSB = 20,           //read only
-    TEMPERATURE_LSB = 21,           //read only
-    TEMPERATURE_THRESHOLD_HIGH = 22,
-    TEMPERATURE_THRESHOLD_LOW = 23,
-    MAX_NB_CMDS = 24
-}I2cRegisterIds;
+#ifndef __I2C_H__
+#define __I2C_H__
 
 
-typedef enum I2C_ModeEnum{
-    IDLE_MODE,
-    NACK_MODE,
-    TX_REG_ADDRESS_MODE,
-    RX_REG_ADDRESS_MODE,
-    TX_DATA_MODE,
-    RX_DATA_MODE,
-    SWITCH_TO_RX_MODE,
-    SWITHC_TO_TX_MODE,
-    TIMEOUT_MODE
-} I2C_Mode;
+typedef enum I2C__TransactionType {
+    I2C__TYPE__READ,
+    I2C__TYPE__WRITE
+} I2C__TransactionType;
 
+typedef enum I2C__TransactionState {
+    I2C__TRANSACTION__UNKNOWN = 0, /* Only used prior to transaction being initialized */
+    I2C__TRANSACTION__WAIT_FOR_STOP,
+    I2C__TRANSACTION__TX_START,
+    I2C__TRANSACTION__TX_REG_ADDRESS,
+    I2C__TRANSACTION__TX_DATA,
+    I2C__TRANSACTION__RX_START,
+    I2C__TRANSACTION__RX_DATA_AND_STOP,
+    I2C__TRANSACTION__DONE_SUCCESS,
+    I2C__TRANSACTION__DONE_ERROR_NACK
+} I2C__TransactionState;
 
-/*
- * Need to call updateGaugeReadings() to update the registers for voltage, current and temperature on
- *   the fuel gauge.
- * NOTE: conversion takes ~33ms, registers are updated at end of conversion
- */
-void updateGaugeReadings();
+typedef struct I2C__TransactionStatus {
+    uint8_t devAddr;
+    uint8_t regAddr;
+    I2C__TransactionType type;
+    I2C__TransactionState state;
+    uint8_t data;
+} I2C__TransactionStatus;
 
-/*
- *   won't update readings but current consumption is ~0.15uA
- *      power back on using updateGaugeReadings()
- */
-void fuelGaugeLowPower();
+typedef enum I2C__Status {
+    I2C__STATUS__SUCCESS = 0, /* Operation suceeded. */
+    I2C__STATUS__ERROR__NULL = -1, /* A required argument or a member of an argument was NULL */
+    I2C__STATUS__ERROR__ALREADY_ACTIVE_TRANSACTION = -2, /* Couldn't create a new transaction b/c one is active */
+    I2C__STATUS__ERROR__NO_TRANSACTION = -3 /* Couldn't get status because there has been no transaction */
+} I2C__Status;
 
-/*
- * Initialize fuel gauge with initial charge of battery (3500 mAh), also
- * set a scalar that maximizes resolution of battery charge data while
- * allowing full scale range to fit our full charge
- */
-void initializeFuelGauge();
+/* Note: this implementation only handles one byte reads and writes */
 
+void I2C__init();
 
-/**
- * @brief Initialize I2C hardware.
- * Sets up the interrupts and whatnot for I2C.
- */
-void i2c_init();
+I2C__Status I2C__write(uint8_t dev_addr, uint8_t reg_addr, uint8_t data);
 
+I2C__Status I2C__read(uint8_t dev_addr, uint8_t reg_addr);
 
-#endif /* __I2C_INC */
+I2C__Status I2C__getTransactionStatus(I2C__TransactionStatus* tStatus);
+
+void I2C__spinOnce();
+
+#endif // #ifndef __I2C_H__

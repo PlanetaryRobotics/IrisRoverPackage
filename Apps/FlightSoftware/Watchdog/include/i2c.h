@@ -67,10 +67,6 @@ typedef enum I2C_ModeEnum{
 } I2C_Mode;
 
 
-I2C_Mode I2C_Master_WriteReg(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t count);
-I2C_Mode I2C_Master_ReadReg(uint8_t dev_addr, uint8_t reg_addr, uint8_t count);
-void CopyArray(uint8_t *source, uint8_t *dest, uint8_t count);
-
 /*
  * Need to call updateGaugeReadings() to update the registers for voltage, current and temperature on
  *   the fuel gauge.
@@ -83,6 +79,12 @@ void updateGaugeReadings();
  *      power back on using updateGaugeReadings()
  */
 void fuelGaugeLowPower();
+
+/*
+ * Initialize fuel gauge with initial charge of battery (3500 mAh), also
+ * set a scalar that maximizes resolution of battery charge data while
+ * allowing full scale range to fit our full charge
+ */
 void initializeFuelGauge();
 
 
@@ -91,8 +93,6 @@ void initializeFuelGauge();
  * Sets up the interrupts and whatnot for I2C.
  */
 void i2c_init();
-
-void i2c_tx_blocking(uint16_t len, unsigned char *buf);
 
 
 #endif /* __I2C_INC */

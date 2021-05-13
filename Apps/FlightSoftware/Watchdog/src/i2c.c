@@ -21,12 +21,12 @@ I2C_Mode MasterMode = IDLE_MODE;
 uint8_t TransmitRegAddr = 0;
 
 // initialize buffers and their corresponding byte counters
-uint8_t ReceiveBuffer[I2C_RX_BUFFER_MAX_SIZE] = {0};
-uint8_t RXByteCtr = 0;
-uint8_t ReceiveIndex = 0;
-uint8_t TransmitBuffer[I2C_TX_BUFFER_MAX_SIZE] = {0};
-uint8_t TXByteCtr = 0;
-uint8_t TransmitIndex = 0;
+volatile uint8_t ReceiveBuffer[I2C_RX_BUFFER_MAX_SIZE] = {0};
+volatile uint8_t RXByteCtr = 0;
+volatile uint8_t ReceiveIndex = 0;
+volatile uint8_t TransmitBuffer[I2C_TX_BUFFER_MAX_SIZE] = {0};
+volatile uint8_t TXByteCtr = 0;
+volatile uint8_t TransmitIndex = 0;
 
 
 /* init function */
@@ -287,7 +287,6 @@ void __attribute__ ((interrupt(USCI_B0_VECTOR))) USCI_B0_ISR (void)
               break;
 
           default:
-              __no_operation();
               break;
         }
         break;

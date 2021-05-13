@@ -1,3 +1,4 @@
+#include <include/i2c_old.h>
 #include <msp430.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,7 +8,6 @@
 #include "include/bsp.h"
 #include "include/adc.h"
 #include "include/flags.h"
-#include "include/i2c.h"
 #include "include/ip_udp.h"
 #include "include/watchdog.h"
 

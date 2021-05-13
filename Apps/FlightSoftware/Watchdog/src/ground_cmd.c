@@ -6,6 +6,7 @@
  *  Created on: Nov. 29, 2020
  *      Author: ohnx
  */
+#include <include/i2c_old.h>
 #include <stdint.h>
 #include "include/bsp.h"
 #include "include/buffer.h"
@@ -13,7 +14,6 @@
 #include "include/uart.h"
 #include "include/adc.h"
 #include "include/flags.h"
-#include "include/i2c.h"
 
 extern uint8_t heatingControlEnabled, heaterStatus; // from heater controller
 extern uint8_t batt_charge_telem, batt_curr_telem; // from i2c comms with fuel gauge

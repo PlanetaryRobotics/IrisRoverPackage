@@ -9,6 +9,7 @@
  * are set, and clear them if they are.
  */
 
+#include <include/i2c_old.h>
 #include <msp430.h>
 #include <stdint.h>
 #include "include/flags.h"
@@ -16,7 +17,6 @@
 #include "include/uart.h"
 #include "include/bsp.h"
 #include "include/ip_udp.h"
-#include "include/i2c.h"
 
 uint8_t handle_watchdog_reset_cmd(uint8_t cmd);
 

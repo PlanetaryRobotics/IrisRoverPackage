@@ -1,36 +1,46 @@
-#include "include/i2c.h"
-
-int8_t raw_battery_charge[2];
-int8_t raw_battery_voltage[2];
-int8_t raw_battery_current[2];
-int8_t raw_fuel_gauge_temp[2];
-
-uint8_t batt_charge_telem;
-uint8_t batt_curr_telem;
-
 /*
- * File for interfacing with I2C protocol hardware module
+ * i2c.c
  *
- * I2C communication uses eUSCI_B0 (power circuitry)
+ *  Created on: May 13, 2021
+ *      Author: xprize
  */
 
-/* Used to track the state of the software state machine*/
-I2C_Mode MasterMode = IDLE_MODE;
+#include "include/i2c.h"
+#include <string.h>
 
-/* The Register Address/Command to use*/
-uint8_t TransmitRegAddr = 0;
+//###########################################################
+// Private definitions and globals
+//###########################################################
 
-// initialize buffers and their corresponding byte counters
-volatile uint8_t ReceiveBuffer[I2C_RX_BUFFER_MAX_SIZE] = {0};
-volatile uint8_t RXByteCtr = 0;
-volatile uint8_t ReceiveIndex = 0;
-volatile uint8_t TransmitBuffer[I2C_TX_BUFFER_MAX_SIZE] = {0};
-volatile uint8_t TXByteCtr = 0;
-volatile uint8_t TransmitIndex = 0;
+// Some definitions to identify magic numbers in the code
+#define BOOL short
+static const BOOL TRUE = 1;
+static const BOOL FALSE = 0;
 
+static I2C__TransactionStatus theStatus = { 0 };
 
-/* init function */
-void i2c_init() {
+//###########################################################
+// Private function declarations
+//###########################################################
+
+// Checks for an ack from the slave, stops the transmission
+// if we didn't get one
+BOOL I2C__checkAck();
+
+// State handler functions
+BOOL I2C__waitForStop();
+BOOL I2C__txStart();
+BOOL I2C__txRegAddress();
+BOOL I2C__txData();
+BOOL I2C__rxStart();
+BOOL I2C__rxDataAndStop();
+
+//###########################################################
+// Public function definitions
+//###########################################################
+
+void I2C__init()
+{
     // Configure i2c interface
     P1SEL1 |= BIT6; // P1.6 SDA
     P1SEL1 |= BIT7; // P1.7 SCL
@@ -38,258 +48,252 @@ void i2c_init() {
     UCB0CTLW0 = UCSWRST;                      // Enable SW reset
     UCB0CTLW0 |= UCMODE_3 | UCMST | UCSSEL__SMCLK | UCSYNC; // I2C master mode, SMCLK
     UCB0BRW = 160;                            // fSCL = SMCLK/160 = ~100kHz
-    UCB0I2CSA = I2C_SLAVE_ADDR;                   // Slave Address
     UCB0CTLW0 &= ~UCSWRST;                    // Clear SW reset, resume operation
-    UCB0IE |= UCNACKIE;
+    UCB0IE = 0; // Disable all interrupts; we don't use them
 }
 
-
-/* For slave device with dev_addr, read the data specified in slaves reg_addr.
- * The received data is available in ReceiveBuffer
- *
- * dev_addr: The slave device address.
- *           Example: I2C_SLAVE_ADDR
- * reg_addr: The register or command to send to the slave.
- *           Example: CMD_TYPE_0_SLAVE
- * count: The length of data to read
- *           Example: TYPE_0_LENGTH
- *  */
-I2C_Mode I2C_Master_ReadReg(uint8_t dev_addr, uint8_t reg_addr, uint8_t count)
+I2C__Status I2C__write(uint8_t dev_addr, uint8_t reg_addr, uint8_t data)
 {
-    /* Initialize state machine */
-    MasterMode = TX_REG_ADDRESS_MODE;
-    TransmitRegAddr = reg_addr;
-    RXByteCtr = count;
-    TXByteCtr = 0;
-    ReceiveIndex = 0;
-    TransmitIndex = 0;
+    if (!((theStatus.state == I2C__TRANSACTION__UNKNOWN)
+          || (theStatus.state == I2C__TRANSACTION__DONE_SUCCESS)
+          || (theStatus.state == I2C__TRANSACTION__DONE_ERROR_NACK))) {
+        return I2C__STATUS__ERROR__ALREADY_ACTIVE_TRANSACTION;
+    }
 
-    /* Initialize slave address and interrupts */
-    UCB0I2CSA = dev_addr;
-    UCB0IFG &= ~(UCTXIFG + UCRXIFG);       // Clear any pending interrupts
-    UCB0IE &= ~UCRXIE;                       // Disable RX interrupt
-    UCB0IE |= UCTXIE;                        // Enable TX interrupt
+    theStatus.devAddr = dev_addr;
+    theStatus.regAddr = reg_addr;
+    theStatus.type = I2C__TYPE__WRITE;
+    theStatus.state = I2C__TRANSACTION__WAIT_FOR_STOP;
+    theStatus.data = data;
 
-    UCB0CTLW0 |= UCTR + UCTXSTT;             // I2C TX, start condition
-
-    __bis_SR_register(GIE);              // Enable interrupts
-    __delay_cycles(10000);               // give fuel gauge time to respond
-    return MasterMode;
-
+    return I2C__STATUS__SUCCESS;
 }
 
-/* For slave device with dev_addr, writes the data specified in *reg_data
- *
- * dev_addr: The slave device address.
- *           Example: I2C_SLAVE_ADDR
- * reg_addr: The register or command to send to the slave.
- *           Example: CMD_TYPE_0_MASTER
- * *reg_data: The buffer to write
- *           Example: MasterType0
- * count: The length of *reg_data
- *           Example: TYPE_0_LENGTH
- *  */
-I2C_Mode I2C_Master_WriteReg(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t count)
+I2C__Status I2C__read(uint8_t dev_addr, uint8_t reg_addr)
 {
-    /* Initialize state machine */
-    MasterMode = TX_REG_ADDRESS_MODE;
-    TransmitRegAddr = reg_addr;
+    if (!((theStatus.state == I2C__TRANSACTION__UNKNOWN)
+          || (theStatus.state == I2C__TRANSACTION__DONE_SUCCESS)
+          || (theStatus.state == I2C__TRANSACTION__DONE_ERROR_NACK))) {
+        return I2C__STATUS__ERROR__ALREADY_ACTIVE_TRANSACTION;
+    }
 
-    //Copy register data to TransmitBuffer
-    CopyArray(reg_data, TransmitBuffer, count);
+    theStatus.devAddr = dev_addr;
+    theStatus.regAddr = reg_addr;
+    theStatus.type = I2C__TYPE__READ;
+    theStatus.state = I2C__TRANSACTION__WAIT_FOR_STOP;
+    theStatus.data = 0;
 
-    TXByteCtr = count;
-    RXByteCtr = 0;
-    ReceiveIndex = 0;
-    TransmitIndex = 0;
-
-    /* Initialize slave address and interrupts */
-    UCB0I2CSA = dev_addr;
-    UCB0IFG &= ~(UCTXIFG + UCRXIFG);       // Clear any pending interrupts
-    UCB0IE &= ~UCRXIE;                       // Disable RX interrupt
-    UCB0IE |= UCTXIE;                        // Enable TX interrupt
-
-    UCB0CTLW0 |= UCTR + UCTXSTT;             // I2C TX, start condition
-
-    __bis_SR_register(GIE);              // Enable interrupts
-    __delay_cycles(10000);               // give fuel gauge some time to respond
-    return MasterMode;
+    return I2C__STATUS__SUCCESS;
 }
 
-void CopyArray(uint8_t *source, uint8_t *dest, uint8_t count)
+I2C__Status I2C__getTransactionStatus(I2C__TransactionStatus* tStatus)
 {
-    uint8_t copyIndex = 0;
-    for (copyIndex = 0; copyIndex < count; copyIndex++)
-    {
-        dest[copyIndex] = source[copyIndex];
+    if (NULL == tStatus) {
+        return I2C__STATUS__ERROR__NULL;
+    }
+
+    if (theStatus.state == I2C__TRANSACTION__UNKNOWN) {
+        return I2C__STATUS__ERROR__NO_TRANSACTION;
+    }
+
+    memcpy(tStatus, &theStatus, sizeof(*tStatus));
+    return I2C__STATUS__SUCCESS;
+}
+
+void I2C__spinOnce()
+{
+    BOOL done = FALSE;
+
+    while (!done) {
+        switch (theStatus.state) {
+            case I2C__TRANSACTION__UNKNOWN:
+                // We haven't started a transaction
+                done = TRUE;
+                break;
+
+            case I2C__TRANSACTION__WAIT_FOR_STOP:
+                done = I2C__waitForStop();
+                break;
+
+            case I2C__TRANSACTION__TX_START:
+                done = I2C__txStart();
+                break;
+
+            case I2C__TRANSACTION__TX_REG_ADDRESS:
+                done = I2C__txRegAddress();
+                break;
+
+            case I2C__TRANSACTION__TX_DATA:
+                done = I2C__txData();
+                break;
+
+            case I2C__TRANSACTION__RX_START:
+                done = I2C__rxStart();
+                break;
+
+            case I2C__TRANSACTION__RX_DATA_AND_STOP:
+                done = I2C__rxDataAndStop();
+                break;
+
+            case I2C__TRANSACTION__DONE_SUCCESS: // fall through
+            case I2C__TRANSACTION__DONE_ERROR_NACK: // fall through
+            default:
+                done = TRUE;
+                break;
+
+        }
     }
 }
 
-void fuelGaugeLowPower(){
-    // shut off all analog parts of fuel gauge circuit by setting LSB of control register to 1
-    // set 2 MSB to 00 to put in sleep mode
-    uint8_t fuel_gauge_write_control_reg = 0b00101001;
-    I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &fuel_gauge_write_control_reg, 1);
-}
+//###########################################################
+// Private function definitions
+//###########################################################
 
-void readBatteryCharge(){
-    I2C_Master_ReadReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_LSB, I2C_RX_BUFFER_MAX_SIZE);
-    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_charge[1], I2C_RX_BUFFER_MAX_SIZE);
-    I2C_Master_ReadReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_MSB, I2C_RX_BUFFER_MAX_SIZE);
-    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_charge, I2C_RX_BUFFER_MAX_SIZE);
-
-    batt_charge_telem = 3*((raw_battery_charge[0]) & 0x00FF)>>2; // return 0.75*MSB of charge reading (maps 160->0 to 120->0 to fit into 7 bits)
-}
-
-void readBatteryVoltage(){
-    I2C_Master_ReadReg(I2C_SLAVE_ADDR, VOLTAGE_LSB, 1);
-    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_voltage[1], 1);
-    I2C_Master_ReadReg(I2C_SLAVE_ADDR, VOLTAGE_MSB, 1);
-    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_voltage, 1);
-}
-
-void readBatteryCurrent(){
-    I2C_Master_ReadReg(I2C_SLAVE_ADDR, CURRENT_LSB, I2C_RX_BUFFER_MAX_SIZE);
-    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_current[1], I2C_RX_BUFFER_MAX_SIZE);
-    I2C_Master_ReadReg(I2C_SLAVE_ADDR, CURRENT_MSB, I2C_RX_BUFFER_MAX_SIZE);
-    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_battery_current, I2C_RX_BUFFER_MAX_SIZE);
-
-    // scale current reading to maximize 7 bits allocated for current telemetry
-    uint16_t BCurr_tmp = (uint16_t)(32767 - raw_battery_current[1] - (raw_battery_current[0] << 8));
-    if(BCurr_tmp > 17407) {
-        //exceeds maximum value of 0.6 A
-        batt_curr_telem = 255;
-    } else {
-        batt_curr_telem = (uint8_t)( BCurr_tmp >> 7 );
-    }
-}
-
-
-void readGaugeTemp(){
-    I2C_Master_ReadReg(I2C_SLAVE_ADDR, TEMPERATURE_LSB, I2C_RX_BUFFER_MAX_SIZE);
-    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_fuel_gauge_temp[1], I2C_RX_BUFFER_MAX_SIZE);
-    I2C_Master_ReadReg(I2C_SLAVE_ADDR, TEMPERATURE_MSB, I2C_RX_BUFFER_MAX_SIZE);
-    CopyArray((uint8_t*)ReceiveBuffer, (uint8_t*)&raw_fuel_gauge_temp, I2C_RX_BUFFER_MAX_SIZE);
-}
-
-void updateGaugeReadings(){
-    // record new measurements in fuel gauge
-    readBatteryCharge();
-    readBatteryVoltage();
-    readBatteryCurrent();
-    readGaugeTemp(); //TODO: probably don't need this one
-}
-
-void initializeFuelGauge(){
-
-    // initialize charge register with maximum battery capacity (see data sheet for conversion from 3500 mAh, M is 1048)
-    uint8_t init_tx_buffer = 0xA0;
-    I2C_Master_WriteReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_MSB, &init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
-    init_tx_buffer = 0xD8;
-    I2C_Master_WriteReg(I2C_SLAVE_ADDR, ACCUMULATED_CHARGE_LSB, &init_tx_buffer, I2C_TX_BUFFER_MAX_SIZE);
-
-
-    // set ADC to read voltage/curr/temp once and then wait for next measurement request
-    uint8_t control_reg = 0b10101000;
-    // set control_reg[7:6] to 01 do one conversion, set to 10 to convert every 10s,
-    //      set to 00 to sleep, set to 11 to continuously convert
-    // set control_reg[5:3] to 101 for M of 1024 for coulomb counter (see datasheet)
-    // control_reg[2:1] not used on SBC (pin its related to is floating)
-    // must leave control_reg[0] to 0
-    I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &control_reg, 1);
-}
-
-//******************************************************************************
-// I2C Interrupt ***************************************************************
-//******************************************************************************
-
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector = USCI_B0_VECTOR
-__interrupt void USCI_B0_ISR(void)
-#elif defined(__GNUC__)
-void __attribute__ ((interrupt(USCI_B0_VECTOR))) USCI_B0_ISR (void)
-#else
-#error Compiler not supported!
-#endif
+BOOL I2C__checkAck()
 {
-  //Must read from UCB0RXBUF
-  uint8_t rx_val = 0;
-  switch(__even_in_range(UCB0IV, USCI_I2C_UCBIT9IFG))
-  {
-    case USCI_NONE:          break;         // Vector 0: No interrupts
-    case USCI_I2C_UCALIFG:   break;         // Vector 2: ALIFG
-    case USCI_I2C_UCNACKIFG:                // Vector 4: NACKIFG
-      break;
-    case USCI_I2C_UCSTTIFG:  break;         // Vector 6: STTIFG
-    case USCI_I2C_UCSTPIFG:  break;         // Vector 8: STPIFG
-    case USCI_I2C_UCRXIFG3:  break;         // Vector 10: RXIFG3
-    case USCI_I2C_UCTXIFG3:  break;         // Vector 12: TXIFG3
-    case USCI_I2C_UCRXIFG2:  break;         // Vector 14: RXIFG2
-    case USCI_I2C_UCTXIFG2:  break;         // Vector 16: TXIFG2
-    case USCI_I2C_UCRXIFG1:  break;         // Vector 18: RXIFG1
-    case USCI_I2C_UCTXIFG1:  break;         // Vector 20: TXIFG1
-    case USCI_I2C_UCRXIFG0:                 // Vector 22: RXIFG0
-        rx_val = UCB0RXBUF;
-        if (RXByteCtr)
-        {
-          ReceiveBuffer[ReceiveIndex++] = rx_val;
-          RXByteCtr--;
-        }
+    BOOL result = TRUE;
 
-        if (RXByteCtr == 1)
-        {
-          UCB0CTLW0 |= UCTXSTP;
-        }
-        else if (RXByteCtr == 0)
-        {
-          UCB0IE &= ~UCRXIE;
-          MasterMode = IDLE_MODE;
-        }
-        break;
-    case USCI_I2C_UCTXIFG0:                 // Vector 24: TXIFG0
-        switch (MasterMode)
-        {
-          case TX_REG_ADDRESS_MODE:
-              UCB0TXBUF = TransmitRegAddr;
-              if (RXByteCtr)
-                  MasterMode = SWITCH_TO_RX_MODE;   // Need to start receiving now
-              else
-                  MasterMode = TX_DATA_MODE;        // Continue to transmision with the data in Transmit Buffer
-              break;
+    if (UCB0IFG & UCNACKIFG) {
+        // Stop the current transaction
+        UCB0CTLW0 |= UCTXSTP;
 
-          case SWITCH_TO_RX_MODE:
-              UCB0IE |= UCRXIE;              // Enable RX interrupt
-              UCB0IE &= ~UCTXIE;             // Disable TX interrupt
-              UCB0CTLW0 &= ~UCTR;            // Switch to receiver
-              MasterMode = RX_DATA_MODE;    // State state is to receive data
-              UCB0CTLW0 |= UCTXSTT;          // Send repeated start
-              if (RXByteCtr == 1)
-              {
-                  //Must send stop since this is the N-1 byte
-                  while((UCB0CTLW0 & UCTXSTT));
-                  UCB0CTLW0 |= UCTXSTP;      // Send stop condition
-              }
-              break;
+        // Clear the interrupt flag
+        UCB0IFG &= ~UCNACKIFG;
 
-          case TX_DATA_MODE:
-              if (TXByteCtr)
-              {
-                  UCB0TXBUF = TransmitBuffer[TransmitIndex++];
-                  TXByteCtr--;
-              }
-              else
-              {
-                  //Done with transmission
-                  UCB0CTLW0 |= UCTXSTP;     // Send stop condition
-                  MasterMode = IDLE_MODE;
-                  UCB0IE &= ~UCTXIE;                       // disable TX interrupt
-              }
-              break;
+        theStatus.state = I2C__TRANSACTION__DONE_ERROR_NACK;
+        result = FALSE;
+    }
 
-          default:
-              break;
-        }
-        break;
-    default: break;
-  }
+    return result;
 }
+
+BOOL I2C__waitForStop()
+{
+    BOOL continueSpinning = FALSE;
+
+    // We just want to make sure that the STOP condition of the previous transaction
+    // has cleared (i.e. taken effect)
+    if ((UCB0CTLW0 & UCTXSTP) == 0U) {
+        // STOP has cleared, so initiate tx of device address for the current transaction
+        UCB0I2CSA = theStatus.devAddr;                 // Set the slave device address
+        UCB0IFG &= ~(UCTXIFG + UCRXIFG + UCNACKIFG);   // Clear any pending interrupts
+        UCB0CTLW0 |= UCTR + UCTXSTT;                   // Send the start condition
+
+        theStatus.state = I2C__TRANSACTION__TX_START;
+        continueSpinning = TRUE;
+    }
+
+    return continueSpinning;
+}
+
+BOOL I2C__txStart()
+{
+    BOOL continueSpinning = FALSE;
+
+    // We're looking for the start condition to be set and being ready to transmit the first data
+    // (i.e. UCTXIFG is set) Start condition is not cleared until after first byte is written to UCB0TXBUF
+    if ((UCB0CTLW0 & UCTXSTT) && (UCB0IFG & UCTXIFG)) {
+        // We're ready to transmit the next byte (register address), but first we need to make
+        // sure we got an ACK for the device address
+        if (I2C__checkAck()) {
+            UCB0TXBUF = theStatus.regAddr;
+            UCB0IFG &= ~UCTXIFG; // Clear the interrupt flag
+
+            theStatus.state = I2C__TRANSACTION__TX_REG_ADDRESS;
+            continueSpinning = TRUE;
+        }
+    }
+
+    return continueSpinning;
+}
+
+BOOL I2C__txRegAddress()
+{
+    BOOL continueSpinning = FALSE;
+
+    // We're looking for the register address send being complete (i.e. UCTXIFG is set)
+    if ((UCB0IFG & UCTXIFG)) {
+        // We're ready to read or write the next byte, but first we need to make
+        // sure we got an ACK for the register address
+        if (I2C__checkAck()) {
+            // What we do next depends on whether we're reading or writing data
+            if (I2C__TYPE__READ == theStatus.type) {
+                // We want to read, so switch to receiver and initiate a repeated START condition
+                UCB0CTLW0 &= ~UCTR;            // Switch to receiver
+                UCB0CTLW0 |= UCTXSTT;          // Send repeated start
+
+                theStatus.state = I2C__TRANSACTION__RX_START;
+            } else { /* I2C__TYPE__WRITE == theStatus.type */
+                // We want to write, so put the data in the TX buffer
+                UCB0TXBUF = theStatus.data;
+                UCB0IFG &= ~UCTXIFG; // Clear the interrupt flag
+
+                theStatus.state = I2C__TRANSACTION__TX_DATA;
+            }
+
+            continueSpinning = TRUE;
+        }
+    }
+
+    return continueSpinning;
+}
+
+BOOL I2C__txData()
+{
+    BOOL continueSpinning = FALSE;
+
+    // We're looking for the data send being complete (i.e. UCTXIFG is set)
+    if ((UCB0IFG & UCTXIFG)) {
+        // We finished sending the data. Check to make sure we got an ack, and if so we're done.
+        if (I2C__checkAck()) {
+            // We're done, so send a STOP condition
+            UCB0IFG &= ~UCTXIFG; // Clear the interrupt flag
+            UCB0CTLW0 |= UCTXSTP;
+
+            theStatus.state = I2C__TRANSACTION__DONE_SUCCESS;
+            // We don't want to continue spinning after this since there is nothing left to do
+        }
+    }
+
+    return continueSpinning;
+}
+
+BOOL I2C__rxStart()
+{
+    BOOL continueSpinning = FALSE;
+
+    // We're looking for the repeated START to be cleared
+    if ((UCB0CTLW0 & UCTXSTT) == 0U) {
+        // The start condition has been sent, so verify the slave ACK'ed its address
+        if (I2C__checkAck()) {
+            // We're done, so send a STOP condition with the NACK for the data that either
+            // has already been received or we're still waiting to receive
+            UCB0CTLW0 |= UCTXSTP;
+
+            theStatus.state = I2C__TRANSACTION__RX_DATA_AND_STOP;
+            continueSpinning = TRUE;
+        }
+    }
+
+    return continueSpinning;
+}
+
+BOOL I2C__rxDataAndStop()
+{
+    BOOL continueSpinning = FALSE;
+
+    // We're looking for data to have been received (i.e. UCRXIFG is set)
+    if ((UCB0IFG & UCRXIFG)) {
+        // We finished receiving data, so we're done. Store the data for output
+        theStatus.data = UCB0RXBUF;
+        UCB0IFG &= ~UCRXIFG; // Clear the interrupt flag
+
+        theStatus.state = I2C__TRANSACTION__DONE_SUCCESS;
+        // We don't want to continue spinning after this since there is nothing left to do
+
+    }
+
+    return continueSpinning;
+}
+
+

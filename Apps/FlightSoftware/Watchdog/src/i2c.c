@@ -190,13 +190,13 @@ void initializeFuelGauge(){
 
 
     // set ADC to read voltage/curr/temp once and then wait for next measurement request
-    uint8_t fuel_gauge_write_control_reg = 0b10101000;
-    // set control_reg[7:6] to 01 do one conversion, 10 to convert every 10s,
+    uint8_t control_reg = 0b10101000;
+    // set control_reg[7:6] to 01 do one conversion, set to 10 to convert every 10s,
     //      set to 00 to sleep, set to 11 to continuously convert
     // set control_reg[5:3] to 101 for M of 1024 for coulomb counter (see datasheet)
-    // control_ref[2:1] not used on SBC (pin its related to is floating)
+    // control_reg[2:1] not used on SBC (pin its related to is floating)
     // must leave control_reg[0] to 0
-    I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &fuel_gauge_write_control_reg, 1);
+    I2C_Master_WriteReg(I2C_SLAVE_ADDR, CONTROL, &control_reg, 1);
 }
 
 //******************************************************************************

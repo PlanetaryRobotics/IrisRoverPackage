@@ -8,6 +8,8 @@
 |---|---|---|---|---|---|
 |Set_Primary_Interface|0 (0x0)|Sets the primary interface.| | |
 | | | |primary_interface|PrimaryInterface||
+|Set_GroundInterface_Telemetry_Level|1 (0x1)|Sets the telemetry level of this component| | |
+| | | |telemetry_level|TelemetryLevel||
 
 ## Telemetry Channel List
 

@@ -65,9 +65,11 @@ namespace CubeRover {
     sciSetBaudrate(m_sci, 9600);
     sciExitResetState(m_sci);
 
+    gioSetBit(spiPORT3, deploy_bit, 0);
+
     Read_Temp();
 
-    Reset_Specific_Handler(0x04);           // Reset WF121
+    Reset_Specific_Handler(Reset_Radio);           // Reset WF121
     // There would normally be a 400000000 cycle delay for WF121 to finish resetting.. but that actualyl breaks things... weird
     m_finished_initializing = true;
   }
@@ -75,13 +77,14 @@ namespace CubeRover {
   WatchDogInterfaceComponentImpl ::
     ~WatchDogInterfaceComponentImpl(void)
   {
-
+      // Do Not Use
   }
 
   // ----------------------------------------------------------------------
   // Handler implementations for user-defined typed input ports
   // ----------------------------------------------------------------------
 
+  // Timed function that runs every 1Hz
   void WatchDogInterfaceComponentImpl ::
     Run_handler(
         const NATIVE_INT_TYPE portNum,
@@ -92,12 +95,8 @@ namespace CubeRover {
     // Update Thermistor Telemetry
     Read_Temp();
 
-    // Sends payload and reset value to MSP430
-    U16 payload_length = 0x0000;
-    U16 reset_value = 0x0000;
-
     // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-    if(!Send_Frame(payload_length, reset_value))
+    if(!Send_Frame(zero_size, No_Reset))
       return;
      
     // Receive frame back from MSP430
@@ -105,14 +104,14 @@ namespace CubeRover {
     WatchdogFrameHeader frame;
     Receive_Frame(&comm_error, &frame);
   }
-  
+
   void WatchDogInterfaceComponentImpl ::
     CompResetRequest_handler(
         const NATIVE_INT_TYPE portNum,
         CubeRoverPorts::ResetValue reset
     )
   {
-    // TODO
+    // Depricated, not needed
   }
 
   void WatchDogInterfaceComponentImpl ::
@@ -123,13 +122,23 @@ namespace CubeRover {
   {
     // Sends payload and reset value to MSP430
     U16 payload_length = fwBuffer.getsize();
-    U16 reset_value = 0x0000;
 
     // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-    if(!Send_Frame(payload_length, reset_value))
+    if(!Send_Frame(payload_length, No_Reset))
       return;
      
     dmaSend(reinterpret_cast<void *>(fwBuffer.getdata()), payload_length);  // FIXME: What is DMA send failed? *TUrn blocking off when we use Mutexes **DO the same for other DMA sends and receives
+
+    U32 comm_error;
+    WatchdogFrameHeader frame = {0};
+    int32_t size_read = Receive_Frame(&comm_error, &frame);
+
+    if(size_read < min_receive_size)
+    {
+      // TODO: Add logging error
+      return;
+    }
+
   }
   
   void WatchDogInterfaceComponentImpl ::
@@ -147,19 +156,18 @@ namespace CubeRover {
         U32 code
     )
   {
-    // TODO
-    // Happens everytime Health sends a watchdog code to Watchdog interface
-    // Watchdog code will have info on what components status is (MUST FIGURE OUT HOW CODE WORKS)
+    // Depricated, not used currently
   }
   
   // ----------------------------------------------------------------------
   // Command handler implementations
   // ----------------------------------------------------------------------
 
+  // Function called by cmd handler to send a reset to watchdog
   void WatchDogInterfaceComponentImpl :: Reset_Specific_cmdHandler(
         const FwOpcodeType opCode,
         const U32 cmdSeq,
-        U8 reset_value
+        reset_values_possible reset_value
     )
   {
   	// Send Activity Log/tlm to know watchdog recieved command
@@ -172,23 +180,17 @@ namespace CubeRover {
   	this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
   	//this->tlmWrite_LAST_COMMAND(command_type_tlm);
 
-    // Sends a command to watchdog to reset specified devices. Can be hardware through watchdog or component
+    // Sends a command to watchdog to reset specified devices
 
-    // If reset_value is greater than 0x1B, we are resetting a software component
-    if(reset_value > 0x1B)
-    {
-      // Reset Components in software
-      // TODO
-    }
-    // If reset_value less than or equal to 0x1B, we are resetting hardware
-    else
-    {
-      // Sends payload and reset value to MSP430
-      U16 payload_length = 0x0000;
-      U16 wd_reset_value = reset_value;
+      // Check that reset_value is correct
+      if(reset_value < No_Reset && reset_value >= reset_values_possible_MAX)
+      {
+        this->log_WARNING_LO_WatchDogIncorrectResetValue();
+        return;
+      }
 
       // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-      if(!Send_Frame(payload_length, wd_reset_value))
+      if(!Send_Frame(zero_size, reset_value))
         return;
 	    
       // Receive frame back from MSP430
@@ -196,19 +198,20 @@ namespace CubeRover {
       WatchdogFrameHeader frame;
       int32_t size_read = Receive_Frame(&comm_error, &frame);
 
-      if(size_read < 8)
+      if(size_read < min_receive_size)
       {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;
       }
-    }
+
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
     Disengage_From_Lander_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        confirm_disengage confirm
     )
   {
 	  // Send Activity Log/tlm to know watchdog recieved command
@@ -216,12 +219,8 @@ namespace CubeRover {
 	  Fw::LogStringArg command_type_log = command_type;
 	  this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
 
-      // Sends payload and reset value to MSP430
-      U16 payload_length = 0x0000;
-      U16 reset_value = 0x00EE;
-
       // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-	  if(!Send_Frame(payload_length, reset_value))
+	  if(!Send_Frame(zero_size, Disengage))
 	      return;
 	     
       // Receive frame back from MSP430
@@ -229,7 +228,7 @@ namespace CubeRover {
       WatchdogFrameHeader frame;
       int32_t size_read = Receive_Frame(&comm_error, &frame);
 
-      if(size_read < 8)
+      if(size_read < min_receive_size)
       {
           this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
           return;
@@ -238,15 +237,48 @@ namespace CubeRover {
       // Set Deployment Bit High
       // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
       // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port 
-      gioSetBit(spiPORT3, 5, 1);
+      gioSetBit(spiPORT3, deploy_bit, 1);
 
 	this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
+  void WatchDogInterfaceComponentImpl ::
+    Engage_From_Lander_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq
+    )
+  {
+        // Send Activity Log/tlm to know watchdog recieved command
+    char command_type[24] = "Engage From Rover";
+    Fw::LogStringArg command_type_log = command_type;
+    this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
+
+      // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
+    if(!Send_Frame(zero_size, HDRM_Off))
+        return;
+       
+      // Receive frame back from MSP430
+      U32 comm_error;
+      WatchdogFrameHeader frame;
+      int32_t size_read = Receive_Frame(&comm_error, &frame);
+
+      if(size_read < min_receive_size)
+      {
+          this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_EXECUTION_ERROR);
+          return;
+      }
+
+      // Set Deployment Bit High
+      // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
+      // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port 
+      gioSetBit(spiPORT3, deploy_bit, 0);
+
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
 
   bool WatchDogInterfaceComponentImpl ::
     Reset_Specific_Handler(
-        U8 reset_value
+        reset_values_possible reset_value
     )
   {
     // Send Activity Log/tlm to know watchdog recieved command
@@ -257,24 +289,17 @@ namespace CubeRover {
     Fw::LogStringArg command_type_log = command_type;
     this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
 
-    // Sends a command to watchdog to reset specified devices. Can be hardware through watchdog or component
+    // Sends a command to watchdog to reset specified devices
 
-    // If reset_value is greater than 0x1B, we are resetting a software component
-    if(reset_value > 0x1B)
-    {
-      // Reset Components in software
-      // TODO
-      return true;
-    }
-    // If reset_value less than or equal to 0x1B, we are resetting hardware
-    else
-    {
-      // Sends payload and reset value to MSP430
-      U16 payload_length = 0x0000;
-      U16 wd_reset_value = reset_value;
+      // Check that reset_value is correct
+      if(reset_value < No_Reset && reset_value >= reset_values_possible_MAX)
+      {
+        this->log_WARNING_LO_WatchDogIncorrectResetValue();
+        return false;
+      }
       
       // Send frame to watchdog. If returns false, communication with MSP430 is bad and should not send anymore data. Errors logged in Send_Frame()
-      if(!Send_Frame(payload_length, wd_reset_value))
+      if(!Send_Frame(zero_size, reset_value))
         return false;
 
       // Receive frame back from MSP430
@@ -282,21 +307,21 @@ namespace CubeRover {
       WatchdogFrameHeader frame = {0};
       int32_t size_read = Receive_Frame(&comm_error, &frame);
 
-      if(size_read < 8)
+      if(size_read < min_receive_size)
           return false;
 
       return true;
-    }
   }
 
   /* Commands that Only Watchdog Processes */
   void WatchDogInterfaceComponentImpl ::
     Prepare_For_Deployment_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        confirm_prepare_for_deploy confirm
     )
   {
-    Reset_Specific_Handler(0x00);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
@@ -306,127 +331,94 @@ namespace CubeRover {
         const U32 cmdSeq
     )
   {
-    Reset_Specific_Handler(0x00);
-    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
-  }
-
-  void WatchDogInterfaceComponentImpl ::
-    Set_Kp_Most_cmdHandler(
-        const FwOpcodeType opCode,
-        const U32 cmdSeq
-    )
-  {
-    Reset_Specific_Handler(0x00);
-    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
-  }
-
-  void WatchDogInterfaceComponentImpl ::
-    Set_Kp_Least_cmdHandler(
-        const FwOpcodeType opCode,
-        const U32 cmdSeq
-    )
-  {
-    Reset_Specific_Handler(0x00);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
     Set_Kp_Specific_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        U16 value
     )
   {
-    Reset_Specific_Handler(0x00);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
-    Set_Ki_Most_cmdHandler(
+    Set_Heater_Duty_Cycle_Max_cmdHandler(
         const FwOpcodeType opCode,
         const U32 cmdSeq
     )
   {
-    Reset_Specific_Handler(0x00);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
-    Set_Ki_Least_cmdHandler(
+    Set_Heater_Duty_Cycle_Period_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        U16 period
     )
   {
-    Reset_Specific_Handler(0x00);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
-    Set_Ki_Specific_cmdHandler(
+    Set_Heater_Window_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        U16 adc_half_width
     )
   {
-    Reset_Specific_Handler(0x00);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
-    Set_Kd_Most_cmdHandler(
+    Set_Heater_Setpoint_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        U16 adc_setpoint
     )
   {
-    Reset_Specific_Handler(0x00);
-    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
-  }
-
-  void WatchDogInterfaceComponentImpl ::
-    Set_Kd_Least_cmdHandler(
-        const FwOpcodeType opCode,
-        const U32 cmdSeq
-    )
-  {
-    Reset_Specific_Handler(0x00);
-    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
-  }
-
-  void WatchDogInterfaceComponentImpl ::
-    Set_V_Setpoint_cmdHandler(
-        const FwOpcodeType opCode,
-        const U32 cmdSeq
-    )
-  {
-    Reset_Specific_Handler(0x00);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
     Switch_to_Sleep_Mode_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        confirm_sleep_mode confirm
     )
   {
-    Reset_Specific_Handler(0x00);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
     Switch_to_Keep_Alive_Mode_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        confirm_alive_mode confirm
     )
   {
-    Reset_Specific_Handler(0x00);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
   void WatchDogInterfaceComponentImpl ::
     Switch_to_Service_Mode_cmdHandler(
         const FwOpcodeType opCode,
-        const U32 cmdSeq
+        const U32 cmdSeq,
+        confirm_service_mode confirm
     )
   {
-    Reset_Specific_Handler(0x00);
+    // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
@@ -435,10 +427,10 @@ namespace CubeRover {
   bool WatchDogInterfaceComponentImpl :: Send_Frame(U16 payload_length, U16 reset_value)
   {
       struct WatchdogFrameHeader frame;
-      frame.magic_value = 0x21B00B;
+      frame.magic_value = 0x0021B00B;
       frame.parity = 0;
-      frame.payload_length = payload_length;
-      frame.reset_val = reset_value;
+      frame.payload_length = static_cast<U16>(payload_length);
+      frame.reset_val = static_cast<U16>(reset_value);
 
       uint64_t frame_bin = *((uint64_t *)&frame);
       frame.parity = ~(((frame_bin & 0x00000000000000FFL) >> 0)  +
@@ -476,7 +468,7 @@ namespace CubeRover {
       // Conversion SHOULD end automatically once all ADC values have been converted but this should end it otherwise
       adcStopConversion(adcREG1, adcGROUP1);
       U32 num_conversions = adcGetData(adcREG1, adcGROUP1, m_thermistor_buffer);
-      if(num_conversions >= 6)
+      if(num_conversions >= number_thermistors)
       {
         this->tlmWrite_THERM_0(m_thermistor_buffer[0].value);
         this->tlmWrite_THERM_1(m_thermistor_buffer[1].value);
@@ -519,7 +511,7 @@ namespace CubeRover {
     }
 
     // Check that a magic value, parity and reset_value of frame was sent back
-    if(header->magic_value != 0x21B00B)
+    if(header->magic_value != header_magic)
     {
         this->log_WARNING_HI_WatchDogIncorrectResp(bad_magic_value);
         return size_read;
@@ -542,13 +534,8 @@ namespace CubeRover {
         return size_read;
     }
 
-    if(header->reset_val > 0x0020 && header->reset_val != 0x00EE)
-    {
-        this->log_WARNING_HI_WatchDogIncorrectResp(bad_reset_value);
-    }
-
     int payload_read = 0;
-    if (header->payload_length == 0) // Received a WD echo  // TODO: Are we expecting telemetry ALWAYS??
+    if (header->payload_length == 0) // Received a WD echo, always expect telemtry
     {
         struct WatchdogTelemetry buff;
         dmaReceive(&buff, sizeof(buff));
@@ -566,6 +553,7 @@ namespace CubeRover {
           this->tlmWrite_SYSTEM_STATUS(buff.sys_status);
           this->tlmWrite_BATTERY_LEVEL(buff.battery_level);
           this->tlmWrite_BATTERY_CURRENT(buff.battery_current);
+          this->tlmWrite_BATTERY_VOLTAGE(buff.battery_voltage);
           size_read += payload_read;
         }
         else if(payload_read < 0)
@@ -578,12 +566,13 @@ namespace CubeRover {
             this->log_WARNING_HI_WatchDogTimedOut();
         }
     }
-    else if (0 < header->payload_length and header->payload_length < UDP_MAX_PAYLOAD)  // Received uplinked data
+    else if (0 < header->payload_length and header->payload_length < WATCHDOG_MAX_PAYLOAD)  // Received uplinked data
     {
-        // UDP_MAX_PAYLOAD defined in FlightMCU/Include/FswPacket.hpp
         // TODO: Verify that the MTU for wired connection is the same as Wifi
         Fw::Buffer uplinked_data;
-        dmaReceive(reinterpret_cast<void *>(uplinked_data.getdata()), header->payload_length);
+        dmaReceive(reinterpret_cast<void *>(m_wd_uplink_buffer), header->payload_length);
+        uplinked_data.setdata(reinterpret_cast<U64>(m_wd_uplink_buffer));
+        uplinked_data.setsize(static_cast<U32>(header->payload_length));
         payload_read = header->payload_length;
         *comm_error = 0;
 

@@ -655,7 +655,7 @@
       -->
       
   <connection name="motorControl_to_watchDogInterface_WatchdogResetRequest">
-    <source component="motorControl" port="WatchdogCommandOut" type="CubeRoverPorts::WatchdogResetRequest" num="0" />
+    <source component="motorControl" port="watchdogResetRequest" type="CubeRoverPorts::WatchdogResetRequest" num="0" />
     <target component="watchDogInterface" port="CompResetRequest" type="CubeRoverPorts::WatchdogResetRequest" num="0" />
   </connection>
 

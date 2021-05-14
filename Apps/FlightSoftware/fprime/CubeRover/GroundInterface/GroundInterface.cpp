@@ -15,8 +15,6 @@
 #include "Fw/Types/BasicTypes.hpp"
 #include <string.h>
 
-#define DOWNLINK_OBJECTS_SIZE UDP_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader)
-
 namespace CubeRover {
 
 
@@ -50,9 +48,18 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
       m_logsReceived = 0; m_logsDownlinked = 0;
       m_cmdsUplinked = 0; m_cmdsSent = 0; m_cmdErrs = 0;
       m_appBytesReceived = 0; m_appBytesDownlinked = 0;
-      m_downlinkBufferPos = m_downlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
-      m_downlinkBufferSpaceAvailable = DOWNLINK_OBJECTS_SIZE;
+      m_tlmDownlinkBufferPos = m_tlmDownlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
+      switch (INITIAL_PRIMARY_NETWORK_INTERFACE) {
+          case WF121:
+              m_downlink_objects_size = WF121_UDP_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader);
+              break;
+          case WATCHDOG:                // Default to smallest buffer size for safety even if we were using WF121
+          default:
+              m_downlink_objects_size = WATCHDOG_MAX_PAYLOAD;
+      }
+      m_tlmDownlinkBufferSpaceAvailable = m_downlink_objects_size;
       m_interface_port_num = INITIAL_PRIMARY_NETWORK_INTERFACE;
+      m_telemetry_level = CRITICAL;
   }
 
   void GroundInterfaceComponentImpl ::
@@ -117,9 +124,8 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     // FW_ASSERT(_txStart.getTimeBase() != TB_NONE);   // Assert time port is connected
     uint32_t txStart = static_cast<uint32_t>(_txStart.get_time_ms());
     uint16_t hashedId = hashTime(txStart);
-    
-    if (singleFileObjectSize <= DOWNLINK_OBJECTS_SIZE) {
-        uint8_t downlinkBuffer[singleFileObjectSize];
+    uint8_t *downlinkBuffer = m_fileDownlinkBuffer[portNum];
+    if (singleFileObjectSize <= m_downlink_objects_size) {
         struct FswPacket::FswFile *obj = reinterpret_cast<struct FswPacket::FswFile *>(downlinkBuffer);
         obj->header.magic = FSW_FILE_MAGIC;
         obj->header.totalBlocks = 1;
@@ -130,14 +136,13 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         downlinkBufferWrite(downlinkBuffer, static_cast<FswPacket::Length_t>(singleFileObjectSize), DownlinkFile);
         m_appBytesDownlinked += singleFileObjectSize;
     } else {    // Send file fragments
-        // TESTING don't intersperse telemetry or logs with file!!! flushDownlinkBuffer();  // Flush first to get new seq
-        int numBlocks = static_cast<int>(dataSize) / (DOWNLINK_OBJECTS_SIZE - sizeof(struct FswPacket::FswFileHeader));
-        if (static_cast<int>(dataSize) % (DOWNLINK_OBJECTS_SIZE - sizeof(struct FswPacket::FswFileHeader)) > 0)
+        // TESTING don't intersperse telemetry or logs with file!!! flushTlmDownlinkBuffer();  // Flush first to get new seq
+        int numBlocks = static_cast<int>(dataSize) / (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader));
+        if (static_cast<int>(dataSize) % (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader)) > 0)
             numBlocks++;
         downlinkFileMetadata(hashedId, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(createTime));
-        flushDownlinkBuffer();   // TESTING!! DOWNLINK METADATA PRIOR TO FILE DOWNLINK
+        flushTlmDownlinkBuffer();   // TESTING!! DOWNLINK METADATA PRIOR TO FILE DOWNLINK
         int readStride = static_cast<int>(dataSize) / numBlocks;
-        uint8_t downlinkBuffer[UDP_MAX_PAYLOAD];
         struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket*>(downlinkBuffer);
         for (int blockNum = 1; blockNum <= numBlocks; ++blockNum) {
             packet->payload0.file.header.magic = FSW_FILE_MAGIC;
@@ -160,7 +165,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
                 packet->payload0.file.header.length = blockLength;
                 memcpy(&packet->payload0.file.file.byte0, data, blockLength);
                 downlinkBufferWrite(&packet->payload0.file, sizeof(struct FswPacket::FswFileHeader) + blockLength, DownlinkFile);
-                flushDownlinkBuffer();   // TESTING!! DOWNLINK FINAL BLOCK WITHOUT INTERRUPTION
+                flushTlmDownlinkBuffer();   // TESTING!! DOWNLINK FINAL BLOCK WITHOUT INTERRUPTION
             }
             m_appBytesDownlinked += blockLength;
         }
@@ -201,20 +206,19 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         return;
     }
     
-    if (!computeChecksum(packet, packet->header.length + sizeof(struct FswPacket::FswPacketHeader))) {
+    if (computeChecksum(packet, packet->header.length + sizeof(struct FswPacket::FswPacketHeader))) {       // computeChecksum returns 0 if correct
         m_cmdErrs++;
         log_WARNING_HI_GI_UplinkedPacketError(BAD_CHECKSUM, 0, static_cast<U16>(packet->header.checksum));
         return;
     }
 
     m_uplinkSeq = packet->header.seq;
-
     m_cmdsUplinked++;
     log_ACTIVITY_HI_GI_CommandReceived(packet->header.seq, packet->header.length);
     Fw::ComBuffer command(reinterpret_cast<uint8_t *>(&packet->payload0.command), packet->header.length);
-    m_cmdsSent++;
     
     cmdDispatch_out(0, command, 0);        // TODO: Arg 3 Context?
+    m_cmdsSent++;
     
     updateTelemetry();
   }
@@ -230,9 +234,32 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         PrimaryInterface primary_interface
     )
   {
+    flushTlmDownlinkBuffer();
+    // TODO: Should probably flush file downlink buffers too
+    switch (primary_interface) {
+        case WF121:
+            m_downlink_objects_size = WF121_UDP_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader);
+            break;
+        case WATCHDOG:                // Default to smallest buffer size for safety even if we were using WF121
+        default:
+            m_downlink_objects_size = WATCHDOG_MAX_PAYLOAD;
+    }
+    m_tlmDownlinkBufferSpaceAvailable = m_downlink_objects_size;
     m_interface_port_num = primary_interface;
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
+
+  void GroundInterfaceComponentImpl ::
+    Set_GroundInterface_Telemetry_Level_cmdHandler(
+        const FwOpcodeType opCode,
+        const U32 cmdSeq,
+        TelemetryLevel telemetry_level
+    )
+  {
+    m_telemetry_level = telemetry_level;
+    this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+  }
+
 
   
     /*
@@ -250,23 +277,23 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
      */
     void GroundInterfaceComponentImpl::downlinkBufferWrite(void *_data, FswPacket::Length_t size, downlinkPacketType from) {
         FW_ASSERT(_data);
-        FW_ASSERT(size <= DOWNLINK_OBJECTS_SIZE);
+        FW_ASSERT(size <= m_downlink_objects_size);
         uint8_t *data = reinterpret_cast<uint8_t *>(_data);
         bool flushOnWrite = false;
-        if (size > m_downlinkBufferSpaceAvailable) {
-            flushDownlinkBuffer();
-        } else if (size == m_downlinkBufferSpaceAvailable) {
+        if (size > m_tlmDownlinkBufferSpaceAvailable) {
+            flushTlmDownlinkBuffer();
+        } else if (size == m_tlmDownlinkBufferSpaceAvailable) {
             flushOnWrite = true;
         }
         
-        memcpy(m_downlinkBufferPos, data, size);
-        m_downlinkBufferPos += size;
-        m_downlinkBufferSpaceAvailable -= size;
+        memcpy(m_tlmDownlinkBufferPos, data, size);
+        m_tlmDownlinkBufferPos += size;
+        m_tlmDownlinkBufferSpaceAvailable -= size;
         
         log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, from);
         
         if (flushOnWrite)
-            flushDownlinkBuffer();
+            flushTlmDownlinkBuffer();
         
     }
     
@@ -274,12 +301,12 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
      * @brief Downlink contents of the downlink buffer
      * 
      */
-    void GroundInterfaceComponentImpl::flushDownlinkBuffer() {
+    void GroundInterfaceComponentImpl::flushTlmDownlinkBuffer() {
         // TODO: Check on mode manager wired MTU is 255B
-        FswPacket::Length_t length = static_cast<FswPacket::Length_t>(m_downlinkBufferPos - m_downlinkBuffer);
-        downlink(m_downlinkBuffer, length);
-        m_downlinkBufferPos = m_downlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
-        m_downlinkBufferSpaceAvailable = DOWNLINK_OBJECTS_SIZE;
+        FswPacket::Length_t length = static_cast<FswPacket::Length_t>(m_tlmDownlinkBufferPos - m_tlmDownlinkBuffer);
+        downlink(m_tlmDownlinkBuffer, length);
+        m_tlmDownlinkBufferPos = m_tlmDownlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
+        m_tlmDownlinkBufferSpaceAvailable = m_downlink_objects_size;
     }
 
     /*
@@ -294,7 +321,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
      */
     void GroundInterfaceComponentImpl::downlink(void *_data, FswPacket::Length_t size) {
         FW_ASSERT(_data);
-        FW_ASSERT(size <= UDP_MAX_PAYLOAD);
+        FW_ASSERT(size <= WF121_UDP_MAX_PAYLOAD);
         uint8_t *data = reinterpret_cast<uint8_t *>(_data);     // Start of the ddatagram
         struct FswPacket::FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacket::FswPacketHeader *>(data);
         packetHeader->seq = m_downlinkSeq;
@@ -309,21 +336,26 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     }
   
     void GroundInterfaceComponentImpl::updateTelemetry() {
-        /* TODO: THESE SHOULD ONLY UPDATE ONCE PER TELEMETRY DOWNLINK NOT ON THE RATE GROUP ITS TOO MUCH
-        tlmWrite_GI_UplinkSeqNum(m_uplinkSeq);
-        tlmWrite_GI_DownlinkSeqNum(m_downlinkSeq);
-        tlmWrite_GI_PacketsReceived(m_packetsRx);
-        tlmWrite_GI_PacketsTransmitted(m_packetsTx);
-        tlmWrite_GI_TlmItemsReceived(m_tlmItemsReceived);
-        tlmWrite_GI_TlmItemsDownlinked(m_tlmItemsDownlinked);
-        tlmWrite_GI_LogsReceived(m_logsReceived);
-        tlmWrite_GI_LogsDownlinked(m_logsDownlinked);
-        tlmWrite_GI_CmdsUplinked(m_cmdsUplinked);
-        tlmWrite_GI_CmdsSent(m_cmdsSent);
-        tlmWrite_GI_UplinkPktErrs(m_cmdErrs);
-        tlmWrite_GI_AppBytesReceived(m_appBytesReceived);
-        tlmWrite_GI_AppBytesDownlinked(m_appBytesDownlinked);
-        */
+        switch (m_telemetry_level) {
+            case ALL:
+                /* TODO: THESE SHOULD ONLY UPDATE ONCE PER TELEMETRY DOWNLINK NOT ON THE RATE GROUP ITS TOO MUCH */
+                tlmWrite_GI_DownlinkSeqNum(m_downlinkSeq);
+                tlmWrite_GI_TlmItemsDownlinked(m_tlmItemsDownlinked);
+                tlmWrite_GI_LogsDownlinked(m_logsDownlinked);
+                tlmWrite_GI_AppBytesDownlinked(m_appBytesDownlinked);
+                tlmWrite_GI_CmdsUplinked(m_cmdsUplinked);
+                tlmWrite_GI_UplinkPktErrs(m_cmdErrs);
+            case IMPORTANT:
+                tlmWrite_GI_TlmItemsReceived(m_tlmItemsReceived);
+                tlmWrite_GI_LogsReceived(m_logsReceived);
+                tlmWrite_GI_AppBytesReceived(m_appBytesReceived);
+                tlmWrite_GI_CmdsSent(m_cmdsSent);
+            case CRITICAL:
+            default:
+                tlmWrite_GI_UplinkSeqNum(m_uplinkSeq);
+                tlmWrite_GI_PacketsReceived(m_packetsRx);
+                tlmWrite_GI_PacketsTransmitted(m_packetsTx);
+        }
     }
     
     /*

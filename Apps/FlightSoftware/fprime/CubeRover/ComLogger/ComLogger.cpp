@@ -8,6 +8,7 @@
 #include <Fw/Types/BasicTypes.hpp>
 #include <Fw/Types/SerialBuffer.hpp>
 #include <Os/ValidateFile.hpp>
+#include <Os/FreeRTOS/S25fl064l.hpp>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +20,8 @@ namespace CubeRover {
   // ----------------------------------------------------------------------
   // Construction, initialization, and destruction 
   // ----------------------------------------------------------------------
+    S25fl064l flash_chip;
+
 
   ComLogger ::
 #if FW_OBJECT_NAMES == 1
@@ -63,6 +66,7 @@ namespace CubeRover {
     )
   {
     ComLoggerComponentBase::init(instance);
+    flash_chip.setupDevice();
   }
 
   ComLogger ::

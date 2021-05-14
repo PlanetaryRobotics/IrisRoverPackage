@@ -130,7 +130,7 @@ namespace CubeRover {
 
       FileMode fileMode;
       Os::File file;
-      U8 fileName[MAX_FILENAME_SIZE + MAX_PATH_SIZE];
+      U8 fileName[MAX_FILENAME_SIZE];
       //U8 hashFileName[MAX_FILENAME_SIZE + MAX_PATH_SIZE];
       U32 byteCount;
       bool writeErrorOccured;

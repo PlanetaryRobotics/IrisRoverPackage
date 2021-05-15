@@ -8,20 +8,15 @@
 #define CubeRover_ComLogger_HPP
 
 #include "CubeRover/ComLogger/ComLoggerComponentAc.hpp"
-#include <Os/FreeRTOS/File.hpp>
 #include <Os/Mutex.hpp>
 #include <Fw/Types/Assert.hpp>
-//#include <Utils/Hash/Hash.hpp>
-
 #include <limits.h>
-#ifdef __TI_ARM__   // TI ARM doesn't define limits.h
-#define NAME_MAX 255
-#define PATH_MAX 4096
-#define MAX_FILE_SIZE 100
-#define MAX_NUM_FILES 2
-#endif
 #include <stdio.h>
 #include <cstdarg>
+
+#define MAX_FILENAME_SIZE 8
+#define MAX_LOG_FILE_SIZE 256 //Choosen as page size, could be increased/decreased as needed
+#define MAX_FILE_SIZE 0x10000 // Choosen as block size, could be increased/decreased as needed
 
 namespace CubeRover {
 
@@ -32,26 +27,22 @@ namespace CubeRover {
       // Construction, initialization, and destruction
       // ----------------------------------------------------------------------
 
-    public:
-
-      // CONSTRUCTOR:
-      // filePrefix: string to prepend the file name with, ie. "thermal_telemetry"
-      // maxFileSize: the maximum size a file should reach before being closed and a new one opened
-      // storeBufferLength: if true, store the length of each com buffer before storing the buffer itself,
-      //                    otherwise just store the com buffer. false might be advantageous in a system
-      //                    where you can ensure that all buffers given to the ComLogger are the same size
-      //                    in which case you do not need the overhead. Or you store an id which you can
-      //                    match to an expected size on the ground during post processing.
+    ComLoggerComponentImpl(
 #if FW_OBJECT_NAMES == 1
-      ComLogger(const char* compName, const char* filePrefix, U32 maxFileSize, bool storeBufferLength=true);
+          const char *const compName /*!< The component name*/
 #else
-      ComLogger(const char* filePrefix, U32 maxFileSize, bool storeBufferLength=true);
+          void
 #endif
+      );
+
+    public:
 
       void init(
           //NATIVE_INT_TYPE queueDepth, //!< The queue depth
           NATIVE_INT_TYPE instance //!< The instance number
       );
+
+      ComLogger(void);
 
       ~ComLogger(void);
 
@@ -79,34 +70,39 @@ namespace CubeRover {
           //U32 key /*!< Value to return to pinger*/
       //);
 
-      //! Implementation for SendAllLogs command handler
-      //! Sends all logs from flash to Ground
-      void SendAllLogs_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq /*!< The command sequence number*/
-      );
-
-      //! Implementation for SendSetofLogs command handler
-      //! Sends a set of logs from flash to Ground
-      void SendSetofLogs_cmdHandler(
+      //! Implementation for SendLog command handler
+      //! Sends a log from flash to Ground
+      void SendLog_cmdHandler(
           const FwOpcodeType opCode, /*!< The opcode*/
           const U32 cmdSeq, /*!< The command sequence number*/
-          U32 start, /*!< The start time for a log*/
-          U32 end /*!< The end time for a log*/
+          const Fw::CmdStringArg& prefix, /*!< The prefix for a flash saved file*/
+          U32 time /*!< The time (seconds) for when a file was opened*/
       );
 
       // ----------------------------------------------------------------------
       // Constants:
       // ----------------------------------------------------------------------
       // The maximum size of a filename
-      enum { 
-        MAX_FILENAME_SIZE = NAME_MAX, // as defined in limits.h
-        MAX_PATH_SIZE = PATH_MAX
-      };
+      S25fl064l flash_chip;
 
-      // The filename data:
-      // U8 filePrefix[MAX_FILENAME_SIZE + MAX_PATH_SIZE];
-      U32 maxFileSize = MAX_FILE_SIZE;
+      lfs_t lfs;
+      lfs_file_t file;
+
+      const struct lfs_config cfg = {
+        .read = S25fl064l::readDataFromFlash(flash_chip),
+        .prog = S25fl064l::writeDataToFlash(flash_chip),
+        .erase = S25fl064l::blockErase(),
+        .sync = S25fl064l::pageProgram(),
+
+        .read_size = 8,
+        .prog_size = 8, //Flash allows for single bit programming, making minimum 8 bytes to match read
+        .block_size = 0x10000, // 64KB
+        .block_count = 128, //128 blocks of 64KB each (from FLASH datasheet), ~8MB total? Doesn't make sense as we have 64MB, maybe we have 8 sections of 128 blocks each?
+        .cache_size = 256, // Kinda guessed? Just made it the max possible page that we can save
+        .lookahead_size = 0, //no idea, don't think flash has one
+        .block_cycles = -1,  //disable wear-leveling
+        .name_max = 8,  // Max file name is 3 byte char + '_' 1 bytes + U32 (4 byte) time (seconds) = 8 bytes
+      };
 
       // ----------------------------------------------------------------------
       // Internal state:
@@ -114,6 +110,12 @@ namespace CubeRover {
       enum FileMode {
           CLOSED = 0,
           OPEN = 1
+      };
+
+      enum FileType{
+          log = 0,
+          cam = 1,
+          ukn = 2
       };
 
       // Total number of bytes read
@@ -129,48 +131,34 @@ namespace CubeRover {
       U32 file_end_add;
 
       FileMode fileMode;
-      Os::File file;
-      U8 fileName[MAX_FILENAME_SIZE];
-      //U8 hashFileName[MAX_FILENAME_SIZE + MAX_PATH_SIZE];
-      U32 byteCount;
-      bool writeErrorOccured;
-      bool readErrorOccured;
-      bool openErrorOccured;
-      bool storeBufferLength;
+      FileType fileType;
+      U32 fileByteCount;
       
       // ----------------------------------------------------------------------
       // File functions:
       // ---------------------------------------------------------------------- 
       void openFile(
+        char prefix [3]
       );
 
       void closeFile(
       );
-
-      void writeComBufferToFile(
-        Fw::ComBuffer &data,
-        U16 size
-      );
-
       // ----------------------------------------------------------------------
       // Helper functions:
       // ---------------------------------------------------------------------- 
-      bool writeToFile(
+      void writeToFile(
         void* data, 
-        U16 length
-      );
-/*
-      void writeHashFile(
-      );
-*/
-      void readFiletoComBuffer(
-        Fw::ComBuffer &data,
-        U32 size
+        U32 length,
+        char prefix [3]
       );
 
-      bool readFromFile(
+      void readFromFile(
         void* buffer,
         U32 length
+      );
+
+      FileType prefixToType(
+        char prefix [3]
       );
   };
 };

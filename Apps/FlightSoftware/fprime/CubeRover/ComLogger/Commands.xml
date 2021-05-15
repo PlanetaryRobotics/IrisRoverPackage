@@ -15,18 +15,14 @@
     <comment>Forces a close of the currently opened file.</comment>
   </command>
 
-  <command kind="sync" opcode="0x01" mnemonic="SendAllLogs">
-    <comment>Sends all logs from flash to Ground</comment>
-  </command>
-
-  <command kind="sync" opcode="0x02" mnemonic="SendSetofLogs">
+  <command kind="sync" opcode="0x01" mnemonic="SendLog">
     <comment>Sends a set of logs from flash to Ground</comment>
     <args>
-    	<arg name="start" type="U32">
-    		<comment>The start time (seconds) for a log</comment>
+    	<arg name="prefix" type="string" size="3">
+    		<comment>The prefix for a flash saved file</comment>
     	</arg>
-    	<arg name="end" type="U32">
-    		<comment>The end time (seconds) for a log</comment>
+    	<arg name="time" type="U32">
+    		<comment>The time (seconds) for when a file was opened</comment>
     	</arg>
     </args>	
   </command>

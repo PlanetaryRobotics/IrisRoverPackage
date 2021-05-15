@@ -15,10 +15,13 @@
 #include "Fw/Types/BasicTypes.hpp"
 
 #include <spi.h>
+#include "gio.h"
+#include "reg_spi.h"
 #include "App/SPI.h"
 
 /* SPI configuration */
 static spiBASE_t *spi = spiREG5;
+static U8 UWB_bit = 0;
 static spiDAT1_t dataConfig = {
     .CS_HOLD = 0,
     .WDEL = 0,
@@ -87,16 +90,16 @@ namespace CubeRover {
   {
     char times[4*4]; /*4, 4 byte sized U32's for time stamps*/
     Fw::Buffer fwBuffer(0, 0, reinterpret_cast<U64>(&times), sizeof(times));
-
+    gioSetBit(spiPORT5, UWB_bit, 0);
     // Transmit function
     // One Byte: uint32 spiTransmitOneByte(spi, dataConfig, uint16* srcbuff)
     // Multibyte: uint32 spiTransmitData(spi, dataConfig, uint32 blocksize, uint16 * srcbuff);
 
     // Receive function
     // One Byte: uint32 spiReceiveOneByte(spi, dataConfig, uint16 *destbuff)
-    // Multibyte: uint32 spiReceiveData(spi, dataConfig, 16, static_cast<uint16_t*>(&times));
+    // Multibyte: uint32 spiReceiveData(spi, dataConfig, sizeof(times), static_cast<uint16_t*>(&times));
 
-
+	gioSetBit(spiPORT5, UWB_bit, 1);
     uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
     UWBSend_out(0, m_callbackId, createTime, fwBuffer);
     m_bytesSent += static_cast<U32>(sizeof(times));
@@ -113,6 +116,16 @@ namespace CubeRover {
   {
     char times[4000+4*4]; /*4, 4 byte sized U32's for time stamps and 4k bytes of data*/
     Fw::Buffer fwBuffer(0, 0, reinterpret_cast<U64>(&times), sizeof(times));
+    gioSetBit(spiPORT5, UWB_bit, 0);
+    // Transmit function
+    // One Byte: uint32 spiTransmitOneByte(spi, dataConfig, uint16* srcbuff)
+    // Multibyte: uint32 spiTransmitData(spi, dataConfig, uint32 blocksize, uint16 * srcbuff);
+
+    // Receive function
+    // One Byte: uint32 spiReceiveOneByte(spi, dataConfig, uint16 *destbuff)
+    // Multibyte: uint32 spiReceiveData(spi, dataConfig, sizeof(times), static_cast<uint16_t*>(&times));
+
+	gioSetBit(spiPORT5, UWB_bit, 1);
     uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
     UWBSend_out(0, m_callbackId, createTime, fwBuffer);
     m_bytesSent += static_cast<U32>(sizeof(times));

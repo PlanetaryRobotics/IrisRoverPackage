@@ -133,6 +133,9 @@ namespace CubeRover {
       FileMode fileMode;
       FileType fileType;
       U32 fileByteCount;
+
+      // Reading Buffer
+      U8 m_read_buffer[MAX_FILE_SIZE];
       
       // ----------------------------------------------------------------------
       // File functions:
@@ -141,7 +144,7 @@ namespace CubeRover {
         char prefix [3]
       );
 
-      void closeFile(
+      bool closeFile(
       );
       // ----------------------------------------------------------------------
       // Helper functions:
@@ -149,12 +152,19 @@ namespace CubeRover {
       void writeToFile(
         void* data, 
         U32 length,
-        char prefix [3]
+        char prefix [3],
+        U32 time
+      );
+      // Overloaded version with no prefix or time
+      void writeToFile(
+        void* data, 
+        U32 length,
       );
 
-      void readFromFile(
+      U32 readFromFile(
         void* buffer,
-        U32 length
+        char prefix [3],
+        U32 time
       );
 
       FileType prefixToType(

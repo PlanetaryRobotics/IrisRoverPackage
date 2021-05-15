@@ -11,6 +11,7 @@
     <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
     <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
+    <import_port_type>Fw/Buffer/BufferSendPortAi.xml</import_port_type>
     <import_dictionary>CubeRover/ComLogger/Commands.xml</import_dictionary>
     <import_dictionary>CubeRover/ComLogger/Events.xml</import_dictionary>
 
@@ -48,7 +49,7 @@
             </comment>
         </port>
         
-        <port name="GndOut" data_type="Fw::Com" kind="output" >
+        <port name="GndOut" data_type="Fw::BufferSend" kind="output" >
             <comment>
             Log out (buffered) port to ground
             </comment>

@@ -58,6 +58,7 @@ namespace CubeRover {
       }
     }
     this->fileMode = CLOSED; 
+    this->fileType = ukn;
     this->byteCount = 0;
   }
 
@@ -83,12 +84,15 @@ namespace CubeRover {
     )
   {
     //TODO CALCULATE HOW BIG FILE WILL BE TO SEE IF SHOULD WRITE INTO FILE OR CREATE NEW ONE
-    if(this->fileMode == OPEN && this->fileType == log && )
+    U32 est_file_size = this->fileByteCount + data.getBuffLength();
+    if(this->fileMode == OPEN && this->fileType == log && est_file_size <= MAX_LOG_FILE_SIZE)
     {
-      writeToFile(static_cast<void*>(data), static_cast<U32>(data.getBuffLength()), "log", /*TIME OF CURRENT FILE*/);
+      // Write to current file
+      writeToFile(static_cast<void*>(data), static_cast<U32>(data.getBuffLength()));
     }
     else
     {
+      // Create a new file with log prefix and new time (the current time)
       Fw::Time timestamp = getTime();
       writeToFile(static_cast<void*>(data), static_cast<U32>(data.getBuffLength()), "log", timestamp.getSeconds());
     }
@@ -100,9 +104,12 @@ namespace CubeRover {
       U32 cmdSeq
     )
   {
-    //TODO MAKE CLOSEFILE() A BOOLEAN TO KNOW IF CMD SUCEEDED
-    closeFile();
-    this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+    bool err = closeFile();
+    //TODO CHANGE CMD RESPONSE IF ERROR
+    if(!err)
+      this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+    else
+      this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
   }
 
   void ComLogger ::
@@ -113,8 +120,20 @@ namespace CubeRover {
         U32 time
     )
   {
+    Fw::Buffer data;
+    // Clear read buffer
+    memset(&m_read_buffer, 0, sizeof(m_read_buffer));
+
+    U32 length_read = readFromFile(&m_read_buffer, prefix.toChar(), time);
+    // Set buffer size to read size
+    data.setsize(length_read);
+
+    // Set buffer data to read data buffer
+    data.setdata(static_cast<U64>(m_read_buffer));
 
     // Send Output buffer to ground
+    this->GndOut_out(0, data);
+
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
   /*
@@ -157,8 +176,8 @@ namespace CubeRover {
     //TODO SEND TELEMETRY TO LET GROUND KNOW WHAT FILE IS OPEN
 
     // Change tracked open file type to correct type
-    this->fileMode = OPEN
-    this->fileType = log;
+    this->fileMode = OPEN;
+    this->fileType = prefixToType(prefix);
   }   
 
   void ComLogger ::
@@ -179,6 +198,7 @@ namespace CubeRover {
       // Send event:
       Fw::LogStringArg logStringArg((char*) this->fileName);
       this->log_DIAGNOSTIC_FileClosed(logStringArg);
+      return true;
     }
   }
 
@@ -202,19 +222,55 @@ namespace CubeRover {
       openFile(prefix, time);
     }
 
-    int err = lfs_file_write(&lfs, &file, data, length);
+    U32 true_length;
+    if(length < MAX_FILE_SIZE)
+    {
+      true_length = length;
+    }
+    else
+    {
+      true_length = MAX_FILE_SIZE;
+    }
+
+    int err = lfs_file_write(&lfs, &file, data, true_length);
 
     //TODO IMPLEMENT ERROR DETECTION
     //Fw::LogStringArg logStringArg((char*) this->fileName);
     //this->log_WARNING_HI_FileWriteError(ret, size, length, logStringArg);
 
-    this->fileByteCount += length;
+    this->fileByteCount += true_length;
   }
 
-  void ComLogger :: 
+  // Overloaded version with no prefix or time parameter
+  void ComLogger ::
+    writeToFile(
+      void* data, 
+      U32 length
+    )
+  {
+    // No prefix or time argument given means that we want to write to the same file
+    U32 true_length;
+    if(length < MAX_FILE_SIZE)
+    {
+      true_length = length;
+    }
+    else
+    {
+      true_length = MAX_FILE_SIZE;
+    }
+
+    int err = lfs_file_write(&lfs, &file, data, true_length);
+
+    //TODO IMPLEMENT ERROR DETECTION
+    //Fw::LogStringArg logStringArg((char*) this->fileName);
+    //this->log_WARNING_HI_FileWriteError(ret, size, length, logStringArg);
+
+    this->fileByteCount += true_length;
+  }
+
+  U32 ComLogger :: 
     readFromFile(
       void* buffer,
-      U32 length,
       char prefix [3],
       U32 time
     )
@@ -225,17 +281,20 @@ namespace CubeRover {
     // Open file we want
     openFile(prefix, time);
 
-    // Read from file, put into buffer
-    if(length < MAX_FILE_SIZE)
-      U8 read_buffer[length];
-    else
-      U8 read_buffer[MAX_FILE_SIZE];
+    // Calculate size to be read
+    U32 true_length = static_cast<U32>(lfs_file_size(&lfs, &file));
+    if(true_length > MAX_FILE_SIZE)
+    {
+      true_length = MAX_FILE_SIZE;
+    }
 
-    int err = lfs_file_read(&lfs, &file, &read_buffer, sizeof(read_buffer));
+    // Read from file, put into buffer
+    int err = lfs_file_read(&lfs, &file, buffer, true_length);
         
     //TODO IMPLEMENT ERROR DETECTION
     //Fw::LogStringArg logStringArg((char*) this->fileName);
     //this->log_WARNING_HI_FileReadError(ret, size, logStringArg);
+    return true_length;
   }
 
   FileType prefixToType(

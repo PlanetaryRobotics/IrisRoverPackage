@@ -13,6 +13,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <cstdarg>
+#include <Os/FreeRTOS/lfs.h>
 
 #define MAX_FILENAME_SIZE 8
 #define MAX_LOG_FILE_SIZE 256 //Choosen as page size, could be increased/decreased as needed
@@ -89,19 +90,21 @@ namespace CubeRover {
       lfs_file_t file;
 
       const struct lfs_config cfg = {
-        .read = S25fl064l::readDataFromFlash(flash_chip),
-        .prog = S25fl064l::writeDataToFlash(flash_chip),
-        .erase = S25fl064l::blockErase(),
-        .sync = S25fl064l::pageProgram(),
+        .read = lfs_read,
+        .prog = lfs_prog,
+        .erase = lfs_erase,
+        .sync = lfs_sync,
 
-        .read_size = 8,
-        .prog_size = 8, //Flash allows for single bit programming, making minimum 8 bytes to match read
+        .context = flash_chip,  // Set the correct flash chip instanciation
+        .read_size = 8, // Min read size
+        .prog_size = 8, // Min write size, Flash allows for single bit programming, making minimum 8 bytes to match read
         .block_size = 0x10000, // 64KB
-        .block_count = 128, //128 blocks of 64KB each (from FLASH datasheet), ~8MB total? Doesn't make sense as we have 64MB, maybe we have 8 sections of 128 blocks each?
+        .block_count = 128, // 128 blocks of 64KB each (from FLASH datasheet), ~8MB total? Doesn't make sense as we have 64MB, maybe we have 8 sections of 128 blocks each?
         .cache_size = 256, // Kinda guessed? Just made it the max possible page that we can save
-        .lookahead_size = 0, //no idea, don't think flash has one
-        .block_cycles = -1,  //disable wear-leveling
+        .lookahead_size = 0, // no idea, don't think flash has one so set to zero?
+        .block_cycles = -1,  // disable wear-leveling
         .name_max = 8,  // Max file name is 3 byte char + '_' 1 bytes + U32 (4 byte) time (seconds) = 8 bytes
+        .file_max = MAX_FILE_SIZE // Max file size allowed
       };
 
       // ----------------------------------------------------------------------
@@ -169,6 +172,31 @@ namespace CubeRover {
 
       FileType prefixToType(
         char prefix [3]
+      );
+
+      int lfs_read(
+        const struct lfs_config *cfg, 
+        lfs_block_t block,
+        lfs_offset offset,
+        void *buffer,
+        lfs_size_t size
+      );
+
+      int lfs_prog(
+        const struct lfs_config *cfg, 
+        lfs_block_t block,
+        lfs_offset offset,
+        void *buffer,
+        lfs_size_t size
+      );
+
+      int lfs_erase(
+        const struct lfs_config *cfg, 
+        lfs_block_t block
+      );
+
+      int lfs_sync(
+        const struct lfs_config *cfg
       );
   };
 };

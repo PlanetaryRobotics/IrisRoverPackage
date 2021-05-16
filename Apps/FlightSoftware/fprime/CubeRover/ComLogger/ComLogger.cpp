@@ -9,7 +9,6 @@
 #include <Fw/Types/SerialBuffer.hpp>
 #include <Os/ValidateFile.hpp>
 #include <Os/FreeRTOS/S25fl064l.hpp>
-#include <Os/FreeRTOS/lfs.h>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,7 +82,7 @@ namespace CubeRover {
         U32 context
     )
   {
-    //TODO CALCULATE HOW BIG FILE WILL BE TO SEE IF SHOULD WRITE INTO FILE OR CREATE NEW ONE
+    // Calculate the estimated size of the file to see if it's larger than max size of log file
     U32 est_file_size = this->fileByteCount + data.getBuffLength();
     if(this->fileMode == OPEN && this->fileType == log && est_file_size <= MAX_LOG_FILE_SIZE)
     {
@@ -241,7 +240,7 @@ namespace CubeRover {
     this->fileByteCount += true_length;
   }
 
-  // Overloaded version with no prefix or time parameter
+  // Overloaded version with no prefix or time parameter, assume file that is open is valid and has space
   void ComLogger ::
     writeToFile(
       void* data, 
@@ -297,7 +296,8 @@ namespace CubeRover {
     return true_length;
   }
 
-  FileType prefixToType(
+  FileType ComLogger :: 
+    prefixToType(
         char prefix [3]
       )
   {
@@ -313,5 +313,86 @@ namespace CubeRover {
       default:
         return ukn;
     }
+  }
+
+  int ComLogger :: 
+    lfs_read(
+      const struct lfs_config *cfg, 
+      lfs_block_t block,
+      lfs_offset offset,
+      void *buffer,
+      lfs_size_t size
+    )
+  {
+    // Set the correct context for the read
+    S25fl064l::MemAlloc flash_alloc = cfg->context;
+    // FIXME Is this a correct use of block?
+    // Set the correct offset
+    uint32_t flash_offset = static_cast<U32>(block)*cfg->block_size + static_cast<U32>(offset);
+    // Set the correct size
+    uint16_t flash_size = static_cast<U16>(size);
+    // Set the correct buffer pointer
+    uint8_t *flash_data = static_cast<uint8_t *>(buffer);
+
+    // Create error variable
+    S25fl064l::S25fl064lError err = 0;
+    err = S25fl064l::readDataFromFlash(flash_alloc,
+                                       flash_offset,
+                                       flash_data,
+                                       flash_size);
+    return err;
+  }
+
+  int ComLogger :: 
+    lfs_prog(
+      const struct lfs_config *cfg, 
+      lfs_block_t block,
+      lfs_offset offset,
+      void *buffer,
+      lfs_size_t size
+    )
+  {
+    // Set the correct context for the read
+    S25fl064l::MemAlloc flash_alloc = cfg->context;
+    // FIXME Is this a correct use of block?
+    // Set the correct offset
+    S25fl064l::Address flash_offset = static_cast<S25fl064l::Address>(static_cast<U32>(block)*cfg->block_size + static_cast<U32>(offset));
+    // Set the correct size
+    uint16_t flash_size = static_cast<U16>(size);
+    // Set the correct buffer pointer
+    uint8_t *flash_data = static_cast<uint8_t *>(buffer);
+
+    // Create error variable
+    S25fl064l::S25fl064lError err = 0;
+    err = S25fl064l::writeDataToFlash(flash_alloc,
+                                      flash_offset,
+                                      flash_data,
+                                      flash_size);
+    return err;
+  }
+
+  int ComLogger :: 
+    lfs_erase(
+      const struct lfs_config *cfg, 
+      lfs_block_t block
+    )
+  {
+    // Set the correct block
+    S25fl064l::Block flash_block = static_cast<S25fl064l::Block>(block);
+
+    // Create error variable
+    S25fl064l::S25fl064lError err = 0;
+    err = S25fl064l::blockErase(flash_block);
+
+    return err;
+  }
+
+  int ComLogger :: 
+    lfs_sync(
+      const struct lfs_config *cfg
+    )
+  {
+    // FIXME What do I do here? I though I might use pageProgram() but that requires an address, size, and data buffer
+    return 0;
   }
 }

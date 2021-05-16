@@ -281,6 +281,9 @@ class S25fl064l{
                                 const uint16_t dataSize);
     S25fl064lError setupDevice();
     S25fl064lError blockErase(const S25fl064l::Block block);
+    S25fl064lError pageProgram(S25fl064l::Address address,
+                               uint8_t *txData,
+                               const uint16_t size);
 
   private:
     S25fl064lError flashSpiReadData(const S25fl064l::FlashSpiCommands cmd,
@@ -297,9 +300,6 @@ class S25fl064l{
                                   const uint32_t size);
     S25fl064lError sectorErase(const S25fl064l::Sector sector);
     S25fl064lError halfBlockErase(const S25fl064l::HalfBlock halfBlock);
-    S25fl064lError pageProgram(S25fl064l::Address address,
-                               uint8_t *txData,
-                               const uint16_t size);
     S25fl064lError chipErase();
     S25fl064lError resetDevice();
     S25fl064lError programEraseResume();

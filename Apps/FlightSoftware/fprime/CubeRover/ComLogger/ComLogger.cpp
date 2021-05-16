@@ -8,7 +8,6 @@
 #include <Fw/Types/BasicTypes.hpp>
 #include <Fw/Types/SerialBuffer.hpp>
 #include <Os/ValidateFile.hpp>
-#include <Os/FreeRTOS/S25fl064l.hpp>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,7 +33,7 @@ namespace CubeRover {
 
     }
 
-  void ComLogger :: 
+  void ComLoggerComponentImpl :: 
     init(
       //NATIVE_INT_TYPE queueDepth, //!< The queue depth
       NATIVE_INT_TYPE instance //!< The instance number
@@ -43,6 +42,14 @@ namespace CubeRover {
     ComLoggerComponentBase::init(instance);
     // Initialize FLASH
     flash_chip.setupDevice();
+
+    // Setup cfg with correct functions
+    cfg->context = static_cast<void*>(flash_chip);
+    cfg->read = lfs_read;
+    cfg->prog = lfs_prog;
+    cfg->erase = lfs_erase;
+    cfg->sync = lfs_sync;
+
     // Mount File System
     int err = lfs_mount(&lfs, &cfg);
     // Reformat File System if received error, should only happen on first boot
@@ -61,8 +68,8 @@ namespace CubeRover {
     this->byteCount = 0;
   }
 
-  ComLogger ::
-    ~ComLogger(void)
+  ComLoggerComponentImpl ::
+    ~ComLoggerComponentImpl(void)
   {
     if(this->fileMode == OPEN) 
     {
@@ -75,7 +82,7 @@ namespace CubeRover {
   // Handler implementations
   // ----------------------------------------------------------------------
 
-  void ComLogger ::
+  void ComLoggerComponentImpl ::
     comIn_handler(
         NATIVE_INT_TYPE portNum,
         Fw::ComBuffer &data,
@@ -97,7 +104,7 @@ namespace CubeRover {
     }
   }
 
-  void ComLogger :: 
+  void ComLoggerComponentImpl :: 
     CloseFile_cmdHandler(
       FwOpcodeType opCode,
       U32 cmdSeq
@@ -111,7 +118,7 @@ namespace CubeRover {
       this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
   }
 
-  void ComLogger ::
+  void ComLoggerComponentImpl ::
     SendLog_cmdHandler(
         const FwOpcodeType opCode,
         const U32 cmdSeq,
@@ -148,7 +155,7 @@ namespace CubeRover {
   */
 
   // Should only be called when you know you need a new file
-  void ComLogger ::
+  void ComLoggerComponentImpl ::
     openFile(
       char prefix [3],
       U32 time
@@ -179,7 +186,7 @@ namespace CubeRover {
     this->fileType = prefixToType(prefix);
   }   
 
-  void ComLogger ::
+  void ComLoggerComponentImpl ::
     closeFile(
     )
   {
@@ -201,7 +208,7 @@ namespace CubeRover {
     }
   }
 
-  void ComLogger ::
+  void ComLoggerComponentImpl ::
     writeToFile(
       void* data, 
       U32 length,
@@ -241,7 +248,7 @@ namespace CubeRover {
   }
 
   // Overloaded version with no prefix or time parameter, assume file that is open is valid and has space
-  void ComLogger ::
+  void ComLoggerComponentImpl ::
     writeToFile(
       void* data, 
       U32 length
@@ -267,7 +274,7 @@ namespace CubeRover {
     this->fileByteCount += true_length;
   }
 
-  U32 ComLogger :: 
+  U32 ComLoggerComponentImpl :: 
     readFromFile(
       void* buffer,
       char prefix [3],
@@ -296,7 +303,7 @@ namespace CubeRover {
     return true_length;
   }
 
-  FileType ComLogger :: 
+  FileType ComLoggerComponentImpl :: 
     prefixToType(
         char prefix [3]
       )
@@ -315,11 +322,11 @@ namespace CubeRover {
     }
   }
 
-  int ComLogger :: 
+  int ComLoggerComponentImpl :: 
     lfs_read(
       const struct lfs_config *cfg, 
       lfs_block_t block,
-      lfs_offset offset,
+      lfs_off_t offset,
       void *buffer,
       lfs_size_t size
     )
@@ -343,11 +350,11 @@ namespace CubeRover {
     return err;
   }
 
-  int ComLogger :: 
+  int ComLoggerComponentImpl :: 
     lfs_prog(
       const struct lfs_config *cfg, 
       lfs_block_t block,
-      lfs_offset offset,
+      lfs_off_t offset,
       void *buffer,
       lfs_size_t size
     )
@@ -371,7 +378,7 @@ namespace CubeRover {
     return err;
   }
 
-  int ComLogger :: 
+  int ComLoggerComponentImpl :: 
     lfs_erase(
       const struct lfs_config *cfg, 
       lfs_block_t block
@@ -387,7 +394,7 @@ namespace CubeRover {
     return err;
   }
 
-  int ComLogger :: 
+  int ComLoggerComponentImpl :: 
     lfs_sync(
       const struct lfs_config *cfg
     )

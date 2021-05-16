@@ -14,14 +14,15 @@
 #include <stdio.h>
 #include <cstdarg>
 #include <Os/FreeRTOS/lfs.h>
+#include <Os/FreeRTOS/S25fl064l.hpp>
 
 #define MAX_FILENAME_SIZE 8
 #define MAX_LOG_FILE_SIZE 256 //Choosen as page size, could be increased/decreased as needed
-#define MAX_FILE_SIZE 0x10000 // Choosen as block size, could be increased/decreased as needed
+#define MAX_FILE_SIZE 1024 // Taken from Topology.cpp, could be block size though. Could be increased/decreased as needed
 
 namespace CubeRover {
 
-  class ComLogger :
+  class ComLoggerComponentImpl :
     public ComLoggerComponentBase
   {
       // ----------------------------------------------------------------------
@@ -43,9 +44,9 @@ namespace CubeRover {
           NATIVE_INT_TYPE instance //!< The instance number
       );
 
-      ComLogger(void);
+      //ComLogger(void);
 
-      ~ComLogger(void);
+      ~ComLoggerComponentImpl(void);
 
       // ----------------------------------------------------------------------
       // Handler implementations
@@ -84,18 +85,18 @@ namespace CubeRover {
       // Constants:
       // ----------------------------------------------------------------------
       // The maximum size of a filename
-      S25fl064l flash_chip;
+      S25fl064l::S25fl064l flash_chip;
 
       lfs_t lfs;
       lfs_file_t file;
 
       const struct lfs_config cfg = {
-        .read = lfs_read,
-        .prog = lfs_prog,
-        .erase = lfs_erase,
-        .sync = lfs_sync,
+        //.read = lfs_read,
+        //.prog = lfs_prog,
+        //.erase = lfs_erase,
+        //.sync = lfs_sync,
 
-        .context = flash_chip,  // Set the correct flash chip instanciation
+        //.context = flash_chip,  // Set the correct flash chip instanciation
         .read_size = 8, // Min read size
         .prog_size = 8, // Min write size, Flash allows for single bit programming, making minimum 8 bytes to match read
         .block_size = 0x10000, // 64KB
@@ -161,7 +162,7 @@ namespace CubeRover {
       // Overloaded version with no prefix or time
       void writeToFile(
         void* data, 
-        U32 length,
+        U32 length
       );
 
       U32 readFromFile(
@@ -177,7 +178,7 @@ namespace CubeRover {
       int lfs_read(
         const struct lfs_config *cfg, 
         lfs_block_t block,
-        lfs_offset offset,
+        lfs_off_t offset,
         void *buffer,
         lfs_size_t size
       );
@@ -185,7 +186,7 @@ namespace CubeRover {
       int lfs_prog(
         const struct lfs_config *cfg, 
         lfs_block_t block,
-        lfs_offset offset,
+        lfs_off_t offset,
         void *buffer,
         lfs_size_t size
       );

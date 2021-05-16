@@ -145,13 +145,10 @@ CubeRover::WatchDogInterfaceComponentImpl watchDogInterface(
 );
 
 // ---------------------------------------------------------------------------
-CubeRover::ComLogger comLogger(
+CubeRover::ComLoggerComponentImpl comLogger(
 #if FW_OBJECT_NAMES == 1
-        "ComLogger",  //compName
+        "ComLogger"  //compName
 #endif
-        "",     //filePrefix
-        1024    //maxFileSize
-                //can change store buffer length from true to false here
 );
 
 /**

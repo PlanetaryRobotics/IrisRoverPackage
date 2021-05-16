@@ -80,6 +80,6 @@ extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 extern CubeRover::CameraComponentImpl camera;
 
 // Com Logger
-extern CubeRover::ComLogger comLogger;
+extern CubeRover::ComLoggerComponentImpl comLogger;
 
 #endif /* F_PRIME_CUBEROVER_TOP_COMPONENTS_HPP_ */

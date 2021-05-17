@@ -17,8 +17,7 @@
 #include <Os/FreeRTOS/S25fl064l.hpp>
 
 #define MAX_FILENAME_SIZE 8
-#define MAX_LOG_FILE_SIZE 256 //Choosen as page size, could be increased/decreased as needed
-#define MAX_FILE_SIZE 1024 // Taken from Topology.cpp, could be block size though. Could be increased/decreased as needed
+#define MAX_FILE_SIZE 1024 // Taken from what was in Topology.cpp, could be changed to block size though. Could be increased/decreased as needed
 
 namespace CubeRover {
 
@@ -123,16 +122,9 @@ namespace CubeRover {
       };
 
       // Total number of bytes read
-      U32 bytes_read;
+      U32 bytesRead;
       // Total number of bytes written
-      U32 bytes_written;
-
-      //keep track of earliest file
-      U32 file_start;
-      U32 file_start_add;
-      //keep track of most recent file
-      U32 file_end;
-      U32 file_end_add;
+      U32 bytesWritten;
 
       FileMode fileMode;
       FileType fileType;

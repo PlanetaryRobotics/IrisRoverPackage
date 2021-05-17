@@ -65,7 +65,16 @@ namespace CubeRover {
     }
     this->fileMode = CLOSED; 
     this->fileType = ukn;
-    this->byteCount = 0;
+    this->fileByteCount = 0;
+    this->bytesRead = 0;
+    this->bytesWritten = 0;
+    //TODO Update Telem
+    this->tlmWrite_TOTAL_BYTES_READ(bytesRead);
+    this->tlmWrite_TOTAL_BYTES_WRITTEN(bytesWritten);
+    this->tlmWrite_CUR_FILE_BYTES(fileByteCount);
+    this->tlmWrite_CUR_FILE_TIME(0);    // 0 is default time
+    this->tlmWrite_CUR_FILE_TYPE(fileType);
+    this->tlmWrite_CUR_FILE_STATUS(fileMode);
   }
 
   ComLoggerComponentImpl ::
@@ -91,7 +100,7 @@ namespace CubeRover {
   {
     // Calculate the estimated size of the file to see if it's larger than max size of log file
     U32 est_file_size = this->fileByteCount + data.getBuffLength();
-    if(this->fileMode == OPEN && this->fileType == log && est_file_size <= MAX_LOG_FILE_SIZE)
+    if(this->fileMode == OPEN && this->fileType == log && est_file_size <= MAX_FILE_SIZE)
     {
       // Write to current file
       writeToFile(static_cast<void*>(data), static_cast<U32>(data.getBuffLength()));
@@ -184,13 +193,19 @@ namespace CubeRover {
     // Change tracked open file type to correct type
     this->fileMode = OPEN;
     this->fileType = prefixToType(prefix);
+    this->fileByteCount = static_cast<U32>(lfs_file_size(&lfs, &file));
+
+    // Update Telemetry
+    this->tlmWrite_CUR_FILE_BYTES(fileByteCount);
+    this->tlmWrite_CUR_FILE_STATUS(fileMode);
+    this->tlmWrite_CUR_FILE_TYPE(fileType);
   }   
 
   void ComLoggerComponentImpl ::
     closeFile(
     )
   {
-    if(OPEN == this->fileMode) 
+    if(this->fileMode == OPEN) 
     {
       // Close file:
       //Must close current file as not log file type
@@ -204,6 +219,10 @@ namespace CubeRover {
       // Send event:
       Fw::LogStringArg logStringArg((char*) this->fileName);
       this->log_DIAGNOSTIC_FileClosed(logStringArg);
+
+      // Update Telemetry
+      this->tlmWrite_CUR_FILE_STATUS(fileMode);
+      this->tlmWrite_CUR_FILE_BYTES(fileByteCount);
       return true;
     }
   }
@@ -245,6 +264,9 @@ namespace CubeRover {
     //this->log_WARNING_HI_FileWriteError(ret, size, length, logStringArg);
 
     this->fileByteCount += true_length;
+    this->bytesWritten += true_length;
+    this->tlmWrite_TOTAL_BYTES_WRITTEN(bytesWritten);
+    this->tlmWrite_CUR_FILE_BYTES(fileByteCount);
   }
 
   // Overloaded version with no prefix or time parameter, assume file that is open is valid and has space
@@ -272,6 +294,9 @@ namespace CubeRover {
     //this->log_WARNING_HI_FileWriteError(ret, size, length, logStringArg);
 
     this->fileByteCount += true_length;
+    this->bytesWritten += true_length;
+    this->tlmWrite_TOTAL_BYTES_WRITTEN(bytesWritten);
+    this->tlmWrite_CUR_FILE_BYTES(fileByteCount);
   }
 
   U32 ComLoggerComponentImpl :: 
@@ -300,6 +325,10 @@ namespace CubeRover {
     //TODO IMPLEMENT ERROR DETECTION
     //Fw::LogStringArg logStringArg((char*) this->fileName);
     //this->log_WARNING_HI_FileReadError(ret, size, logStringArg);
+
+    // Update Telemetry
+    this->bytesRead += true_length;
+    this->tlmWrite_TOTAL_BYTES_READ(bytesRead);
     return true_length;
   }
 
@@ -308,7 +337,7 @@ namespace CubeRover {
         char prefix [3]
       )
   {
-    //TODO CHANGE PREFIX INTO A SPECIFIC FileType
+    // Update this list as needed to add in more types of stored data
     switch(prefix)
     {
       case strncmp("log", prefix) == 0:

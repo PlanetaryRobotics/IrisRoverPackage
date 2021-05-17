@@ -76,24 +76,34 @@
     </ports>
 
     <telemetry>
-        <channel id="0" name="BYTES_READ" data_type="U32">
+        <channel id="0" name="TOTAL_BYTES_READ" data_type="U32">
             <comment>
                 Number of bytes read from flash
             </comment>
         </channel>
-        <channel id="1" name="BYTES_WRITTEN" data_type="U32">
+        <channel id="1" name="TOTAL_BYTES_WRITTEN" data_type="U32">
             <comment>
                 Number of bytes written to flash
             </comment>
         </channel>
-        <channel id="2" name="READ_ADDRESS" data_type="U32">
+        <channel id="2" name="CUR_FILE_BYTES" data_type="U32">
             <comment>
-                Previous Address Read from flash
+                Number of bytes saved in current file
             </comment>
         </channel>
-        <channel id="3" name="WRITE_ADDRESS" data_type="U32">
+        <channel id="3" name="CUR_FILE_TIME" data_type="U32">
             <comment>
-                Previous Address written to flash
+                Time in seconds of current file
+            </comment>
+        </channel>
+        <channel id="4" name="CUR_FILE_TYPE" data_type="U8">
+            <comment>
+                Type of current file (sent as U8 enum rep)
+            </comment>
+        </channel>
+        <channel id="5" name="CUR_FILE_STATUS" data_type="bool">
+            <comment>
+               If file is open or closed currently (0 = closed, 1 = open)
             </comment>
         </channel>
     </telemetry>

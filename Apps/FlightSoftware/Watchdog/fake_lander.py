@@ -3,9 +3,15 @@ import re
 import _thread
 import struct
 import math
+import time
+import platform
 
 keep_running = True
-ser = serial.Serial('/dev/ttyUSB0', 9600)  # open serial port
+serdev = '/dev/ttyUSB0'
+if platform.system() == 'Windows':
+    serdev = 'COM6'
+
+ser = serial.Serial(serdev, 9600)  # open serial port
 
 nrx = 0
 line = b''
@@ -25,17 +31,49 @@ def save_pcap():
                            0xFFFFFFFFFFFFFFFF, 28)
     pcap_fp.write(sh_block)  # must be 1st block
 
-    # write IDB
-    # 20 bytes since no options
-    idb_block = struct.pack('=LLHHLL', 0x00000001, 20, 228, 0, 0, 20)
-    pcap_fp.write(idb_block)
+    # write IDB for ROVER
+    if_name = b'IRISROVR'
+    # 20 bytes base + 2 bytes option type + 2 bytes length + 8 bytes string
+    block_len = 20 + 2 + 2 + 8
+    # also add 2 bytes option type + 2 bytes length + 1 byte tsresol (+3 bytes pad) 
+    block_len += 2 + 2 + 1 + 3
+    # 2 = if_name option type
+    idb_block_hdr = struct.pack('=LLHHLHH', 0x00000001, block_len, 228, 0, 0, 2, 8)
+    pcap_fp.write(idb_block_hdr)
+    # write out the string itself
+    pcap_fp.write(if_name)
+    # write out footer
+    # 9 = if_tsresol
+    idb_block_ftr = struct.pack('=HHBxxxL', 9, 1, 3, block_len)
+    pcap_fp.write(idb_block_ftr)
+
+    # write IDB for LANDER
+    if_name = b'ASTRLNDR'
+    # 20 bytes base + 2 bytes option type + 2 bytes length + 8 bytes string
+    block_len = 20 + 2 + 2 + 8
+    # also add 2 bytes option type + 2 bytes length + 1 byte tsresol (+3 bytes pad) 
+    block_len += 2 + 2 + 1 + 3
+    # 2 = if_name option type
+    idb_block_hdr = struct.pack('=LLHHLHH', 0x00000001, block_len, 228, 0, 0, 2, 8)
+    pcap_fp.write(idb_block_hdr)
+    # write out the string itself
+    pcap_fp.write(if_name)
+    # write out footer
+    # 9 = if_tsresol
+    idb_block_ftr = struct.pack('=HHBxxxL', 9, 1, 3, block_len)
+    pcap_fp.write(idb_block_ftr)
 
     # loop through all the bytes and write them out
-    for packet in full_packets:
+    for src, timestamp, packet in full_packets:
         packet_len = len(packet)
         packet_len_pad = math.ceil(packet_len/4)*4
+        extra_len = 4 * 8 + (2 + 2 + 4)
         # write out the header
-        packet_block_hdr = struct.pack('=LLL', 0x00000003, 16 + packet_len_pad,
+        packet_block_hdr = struct.pack('=LLLQLL', 0x00000006,
+                                       extra_len + packet_len_pad,
+                                       src,
+                                       int(timestamp * 1000),
+                                       packet_len,
                                        packet_len)
         pcap_fp.write(packet_block_hdr)
 
@@ -48,7 +86,7 @@ def save_pcap():
             pcap_fp.write(pad)
 
         # footer
-        packet_block_ftr = struct.pack('=L', 16 + packet_len_pad)
+        packet_block_ftr = struct.pack('=HHLL', 2, 4, src+1, extra_len + packet_len_pad)
         pcap_fp.write(packet_block_ftr)
 
     pcap_fp.close()
@@ -56,6 +94,7 @@ def save_pcap():
 
 def send_dat(dat):
     buf = bytearray(b'')
+    full_packets.append((1, time.time(), dat))
     buf.append(0xC0)
 
     for d in dat:
@@ -125,7 +164,7 @@ while keep_running:
     else:
         if b == 0xC0:
             if len(data_bytes) >= 1:
-                full_packets.append(data_bytes)
+                full_packets.append((0, time.time(), data_bytes))
                 data_bytes = bytearray(b'')
             pass
         elif b == 0xDB:

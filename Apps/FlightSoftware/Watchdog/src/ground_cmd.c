@@ -6,7 +6,6 @@
  *  Created on: Nov. 29, 2020
  *      Author: ohnx
  */
-#include <include/i2c_old.h>
 #include <stdint.h>
 #include "include/bsp.h"
 #include "include/buffer.h"
@@ -17,7 +16,6 @@
 #include "include/i2c_sensors.h"
 
 extern uint8_t heatingControlEnabled, heaterStatus; // from heater controller
-extern uint8_t batt_charge_telem, batt_curr_telem; // from i2c comms with fuel gauge
 extern uint16_t Kp_heater, heater_setpoint, heater_window, PWM_limit, heater_on_val, heater_off_val;
 
 void enterMode(enum rover_state newstate);

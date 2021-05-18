@@ -28,7 +28,7 @@ I2C_Sensors__Status i2c_status = I2C_SENSORS__STATUS__ERROR__NULL;
 
 /* function definitions in ground_cmd.c */
 void parse_ground_cmd(struct buffer *pp);
-void send_earth_heartbeat();
+void send_earth_heartbeat(I2C_Sensors__Readings i2cReadings);
 
 /**
  * main.c
@@ -97,7 +97,6 @@ void enterMode(enum rover_state newstate) {
         __delay_cycles(12345678); //give fuel gauge [50 ms] & wifi [~750 ms] time to start up
 //        initializeFuelGauge();
         I2C_Sensors__initializeFuelGaugeBlocking();
-        I2C_Sensors__Readings i2cReadings = { 0 }; // will hold i2c data
         powerOnHercules();
         releaseMotorsReset();
         releaseHerculesReset();
@@ -155,6 +154,8 @@ int main(void) {
     // TODO: debug
     ipudp_send_packet("hello, world!\r\n", 15); // @suppress("Invalid arguments")
 
+    I2C_Sensors__Readings i2cReadings = { 0 }; // will hold i2c data
+
     // the core structure of this program is like an event loop
     while (1) {
         ticks++;
@@ -200,13 +201,13 @@ int main(void) {
 
             switch (rovstate) {
             case RS_SERVICE:
-                send_earth_heartbeat();
+                send_earth_heartbeat(i2cReadings);
                 if (heatingControlEnabled) heaterControl();
                 watchdog_monitor();
                 break;
             case RS_KEEPALIVE:
                 /* send heartbeat with collected data */
-                send_earth_heartbeat();
+                send_earth_heartbeat(i2cReadings);
                 if (heatingControlEnabled) heaterControl(); // calculate PWM duty cycle (if any) to apply to heater
                 break;
             case RS_MISSION:
@@ -218,7 +219,7 @@ int main(void) {
                 I2C_Sensors__initiateGaugeReadings();
                 loop_flags |= FLAG_I2C_GAUGE_READING_ACTIVE;
 
-                send_earth_heartbeat();
+                send_earth_heartbeat(i2cReadings);
                 watchdog_monitor();
                 break;
             case RS_FAULT:
@@ -239,7 +240,7 @@ int main(void) {
 
             if (done) {
                 /* check for kicks from devices and reset misbehaving things */
-                send_earth_heartbeat();
+                send_earth_heartbeat(i2cReadings);
                 watchdog_monitor();
 
                 loop_flags ^= FLAG_I2C_GAUGE_READING_ACTIVE;

@@ -81,7 +81,7 @@ I2C_Sensors__getGaugeReadingStatus(I2C_Sensors__Readings* readings)
             return I2C_SENSORS__STATUS__INCOMPLETE;
 
         case GRS__DONE:
-            memcpy(readings, &internals, sizeof(*readings));
+            memcpy(readings, &internals.readings, sizeof(*readings));
 
             if (internals.readings.nackMask == 0U) {
                 return I2C_SENSORS__STATUS__SUCCESS_DONE;

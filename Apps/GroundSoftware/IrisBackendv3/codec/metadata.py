@@ -2,7 +2,7 @@
 Various Classes defining Metadata for Packets and Payloads.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/16/2021
+@last-updated: 05/18/2021
 """
 
 from typing import List
@@ -20,7 +20,7 @@ class DataPathway(Enum):
     """
     NONE = -1, ''
     WIRED = 0x00, '_rs422'
-    WIRELESS = 0x01, '_wifi'
+    WIRELESS = 0x01, '_wlan'
 
     # Suffix applied to command names when sent to YAMCS to take this path:
     yamcs_suffix: str

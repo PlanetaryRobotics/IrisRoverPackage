@@ -6,11 +6,11 @@ Defines Common Data Required for Packets. Support for Building and Parsing
 Packets.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/06/2020
+@last-updated: 05/18/2020
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
-from typing import List, Tuple, Any, Optional, Callable, Generic, TypeVar, cast, Union, Generic
+from typing import List, Any, Optional, TypeVar, cast, Union, Type
 from abc import ABC, abstractmethod
 from enum import Enum
 import traceback
@@ -42,6 +42,72 @@ CT = TypeVar('CT')
 # TODO: Add `__str__` / `__repr__`s
 
 #! TODO: Handle serialization (must replace container scheme, augment by storing payloads with their metadata)
+#! ^- or don't serialize as packets?... no, must be able to serialize to send over IPC network.
+
+
+def parse_packet(
+    packet_bytes: bytes,
+    codecs: Optional[List[Type[Packet]]]
+) -> Optional[Packet]:
+    """
+    Parses the given packet bytes (with any network headers already stripped off) 
+    and returns a packet if the given bytes fit any of the given packet `codecs`
+    (Packet classes).
+    """
+    # Default: All available packet codecs (in order of use preference):
+    if codecs is None:
+        codecs = [
+            WatchdogHeartbeatPacket,
+            WatchdogCommandResponsePacket,
+            IrisCommonPacket,
+            WatchdogTvacHeartbeatPacket
+        ]
+
+    # Codecs which support this packet:
+    supported = [c for c in codecs if c.is_valid(packet_bytes)]
+
+    # Check for issues:
+    if len(supported) == 0:
+        logger.warning(
+            f"Invalid packet detected. Does not conform to any supported specs: "  # type: ignore
+            f"{packet_bytes}"
+        )
+
+    if len(supported) > 1:
+        logger.warning(
+            f"Multiple codecs "  # type: ignore
+            f"({supported}) support received packet. Using "
+            f"highest in preference order: {supported[0]}. "
+            f"Packet data: {packet_bytes} ."
+        )
+
+    # Parse Packet:
+    packet: Optional[Packet] = None  # default
+    try:
+        if len(supported) > 0:
+            # Parse:
+            packet = supported[0].decode(
+                packet_bytes,
+                pathway=DataPathway.WIRELESS,
+                source=DataSource.PCAP
+            )
+            # Store:
+            packet = cast(Packet, packet)
+            for i in range(len(packet.payloads)):
+                all_payloads[i].extend(packet.payloads[i])  # type: ignore
+
+    except Exception as e:
+        err = e
+        trace = traceback.format_exc()
+        logger.warning(
+            f"Had to abort packet parsing due to the following exception: {err}"
+        )
+        # Add more information if desired:
+        logger.verbose(  # type: ignore
+            f"\t > Had to abort packet parsing due to the following exception: {err} from {trace}"
+        )
+
+    return packet
 
 
 class Packet(ContainerCodec[CT], ABC):

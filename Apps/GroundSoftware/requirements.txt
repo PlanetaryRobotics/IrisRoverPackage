@@ -1,4 +1,5 @@
 mypy
+typeguard
 ipykernel
 scapy
 python-pcapng
@@ -21,3 +22,4 @@ ulid-py
 pyserial
 ipykernel
 bitstruct
+pyzmq

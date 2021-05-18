@@ -1,4 +1,3 @@
-#include <include/i2c_old.h>
 #include <msp430.h>
 #include <stdlib.h>
 #include <string.h>
@@ -58,7 +57,7 @@ void enterMode(enum rover_state newstate) {
         setFPGAReset();
         setMotorsReset();
         setHerculesReset();
-        fuelGaugeLowPower();
+        I2C_Sensors__fuelGaugeLowPowerBlocking();
         /* TODO: do we want to do it in this order? */
 
         /* turn off voltage rails */
@@ -140,8 +139,8 @@ int main(void) {
     /* set up the ADC */
     adc_init();
 
-    /* set up i2c */
-    i2c_init();
+    /* set up i2c to read from fuel gauge*/
+    I2C_Sensors__init();
 
     /* enter keepalive mode */
     enterMode(rovstate);
@@ -212,7 +211,6 @@ int main(void) {
                 break;
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */
-//                updateGaugeReadings();
                 // Initiate gauge readings here, the rest of the actions to do in this state every state
                 // will be done after gauge readings complete, which is monitored in the
                 // FLAG_I2C_GAUGE_READING_ACTIVE loop_flags block below.

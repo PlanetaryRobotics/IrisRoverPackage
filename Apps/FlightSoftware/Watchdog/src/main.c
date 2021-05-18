@@ -171,7 +171,7 @@ int main(void) {
 
         /* a cool thing happened! now time to check what it was */
         if (loop_flags & FLAG_UART0_RX_PACKET) {
-            watchdog_handle_hercules(); // @suppress("Invalid arguments")
+            watchdog_handle_hercules(i2cReadings); // @suppress("Invalid arguments")
 
             /* clear event when done */
             loop_flags ^= FLAG_UART0_RX_PACKET;

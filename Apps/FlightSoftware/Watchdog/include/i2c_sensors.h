@@ -4,6 +4,7 @@
 #define __I2C_SENSORS_H__
 
 #include <stdint.h>
+#include <assert.h>
 
 #define I2C_SLAVE_ADDR      100 //0b1100100 //i2c address of LTC2944IDD#PBF fuel gauge
 

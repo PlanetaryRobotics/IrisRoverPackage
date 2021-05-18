@@ -15,6 +15,7 @@ typedef enum I2C__TransactionState {
     I2C__TRANSACTION__UNKNOWN = 0, /* Only used prior to transaction being initialized */
     I2C__TRANSACTION__WAIT_FOR_STOP,
     I2C__TRANSACTION__TX_START,
+    I2C__TRANSACTION__CONFIRM_START,
     I2C__TRANSACTION__TX_REG_ADDRESS,
     I2C__TRANSACTION__TX_DATA,
     I2C__TRANSACTION__RX_START,

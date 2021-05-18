@@ -21,7 +21,7 @@ extern uint8_t heating;
 uint8_t lastHeater = 0;
 uint8_t heatingControlEnabled = 1;
 
-INS_Sensors__InternalState internals;
+I2C_Sensors__Readings i2cReadings;
 I2C_Sensors__Status i2c_status = I2C_SENSORS__STATUS__ERROR__NULL;
 
 // @suppress("Invalid arguments")
@@ -58,16 +58,15 @@ void enterMode(enum rover_state newstate) {
         setFPGAReset();
         setMotorsReset();
         setHerculesReset();
-//        fuelGaugeLowPower();
+        fuelGaugeLowPower();
         /* TODO: do we want to do it in this order? */
 
         /* turn off voltage rails */
         disable3V3PowerRail();
         disable24VPowerRail();
-//        disableBatteries();
+        disableBatteries();
         /* monitor only lander voltages */
         adc_setup_lander();
-        enableBatteries();      // need enable batteries to read from fuel gauge
         enableHeater();
         startChargingBatteries();
         break;
@@ -97,7 +96,8 @@ void enterMode(enum rover_state newstate) {
 
         __delay_cycles(12345678); //give fuel gauge [50 ms] & wifi [~750 ms] time to start up
 //        initializeFuelGauge();
-        i2c_status = I2C_Sensors__initializeFuelGaugeBlocking();
+        I2C_Sensors__initializeFuelGaugeBlocking();
+        I2C_Sensors__Readings i2cReadings = { 0 }; // will hold i2c data
         powerOnHercules();
         releaseMotorsReset();
         releaseHerculesReset();
@@ -211,11 +211,13 @@ int main(void) {
                 break;
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */
-                updateGaugeReadings();
+//                updateGaugeReadings();
+                // Initiate gauge readings here, the rest of the actions to do in this state every state
+                // will be done after gauge readings complete, which is monitored in the
+                // FLAG_I2C_GAUGE_READING_ACTIVE loop_flags block below.
                 I2C_Sensors__initiateGaugeReadings();
-                I2C_Sensors__spinOnce();
-                i2c_status = I2C_Sensors__getGaugeReadingStatus(&internals.readings);
-                //TODO: don't
+                loop_flags |= FLAG_I2C_GAUGE_READING_ACTIVE;
+
                 send_earth_heartbeat();
                 watchdog_monitor();
                 break;
@@ -227,6 +229,23 @@ int main(void) {
             /* clear event when done */
             loop_flags ^= FLAG_TIMER_TICK;
         }
+
+        if (loop_flags & FLAG_I2C_GAUGE_READING_ACTIVE) {
+            I2C_Sensors__spinOnce();
+
+            I2C_Sensors__Status stat = I2C_Sensors__getGaugeReadingStatus(&i2cReadings);
+
+            int done = (I2C_SENSORS__STATUS__INCOMPLETE != stat);
+
+            if (done) {
+                /* check for kicks from devices and reset misbehaving things */
+                send_earth_heartbeat();
+                watchdog_monitor();
+
+                loop_flags ^= FLAG_I2C_GAUGE_READING_ACTIVE;
+            }
+        }
+
         if (lastHeater ^ heating) {
             if (heating) {
                 enableHeater();

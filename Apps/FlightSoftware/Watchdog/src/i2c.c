@@ -30,6 +30,7 @@ BOOL I2C__checkAck();
 // State handler functions
 BOOL I2C__waitForStop();
 BOOL I2C__txStart();
+BOOL I2C__confirmStart();
 BOOL I2C__txRegAddress();
 BOOL I2C__txData();
 BOOL I2C__rxStart();
@@ -119,6 +120,10 @@ void I2C__spinOnce()
                 done = I2C__txStart();
                 break;
 
+            case I2C__TRANSACTION__CONFIRM_START:
+                done = I2C__confirmStart();
+                break;
+
             case I2C__TRANSACTION__TX_REG_ADDRESS:
                 done = I2C__txRegAddress();
                 break;
@@ -190,20 +195,34 @@ BOOL I2C__txStart()
 {
     BOOL continueSpinning = FALSE;
 
-    // We're looking for the start condition to be set and being ready to transmit the first data
-    // (i.e. UCTXIFG is set) Start condition is not cleared until after first byte is written to UCB0TXBUF
-    if ((UCB0CTLW0 & UCTXSTT) && (UCB0IFG & UCTXIFG)) {
-        // We're ready to transmit the next byte (register address), but first we need to make
-        // sure we got an ACK for the device address
-        if (I2C__checkAck()) {
-            UCB0TXBUF = theStatus.regAddr;
-            UCB0IFG &= ~UCTXIFG; // Clear the interrupt flag
+    // We're looking for being ready to transmit the first data (i.e. UCTXIFG is set)
+    //
+    // The Start condition is not cleared until after first byte is written to UCB0TXBUF
+    // and we get an acknowledgement of the slave device address, so we check for it being
+    // cleared later.
+    if (UCB0IFG & UCTXIFG) {
+        // We need to place the next byte (register address), into the tx buffer before we
+        // will get an ACK for the slave device address byte that was sent
+        UCB0TXBUF = theStatus.regAddr;
+        UCB0IFG &= ~UCTXIFG; // Clear the interrupt flag
+        theStatus.state = I2C__TRANSACTION__CONFIRM_START;
+        continueSpinning = TRUE;
+    }
+    return continueSpinning;
+}
 
+BOOL I2C__confirmStart()
+{
+    BOOL continueSpinning = FALSE;
+    // We're looking for the start condition to be cleared, which means we can check the ack
+    // of the slave device address
+    if ((UCB0CTLW0 & UCTXSTT) == 0U) {
+        // Make sure we got an ACK for the device address
+        if (I2C__checkAck()) {
             theStatus.state = I2C__TRANSACTION__TX_REG_ADDRESS;
             continueSpinning = TRUE;
         }
     }
-
     return continueSpinning;
 }
 

@@ -270,7 +270,7 @@ void I2C_Sensors__spinOnce()
                 break;
 
             case GRS__CHARGE_MSB:
-                keepSpinning = I2C_Sensors__chargeLsb();
+                keepSpinning = I2C_Sensors__chargeMsb();
                 break;
 
             case GRS__VOLTAGE_LSB:
@@ -332,7 +332,9 @@ BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
         BOOL statusForRequestedTransaction = FALSE;
         BOOL prevReadDone = FALSE;
 
-        if ((tStatus.devAddr == devAddr) && (tStatus.regAddr == regAddr)) {
+        if ((tStatus.devAddr == devAddr)
+                && (tStatus.regAddr == regAddr)
+                && (tStatus.type == I2C__TYPE__READ)) {
             // This transaction status is for the currently requested read
             statusForRequestedTransaction = TRUE;
         }
@@ -405,7 +407,9 @@ void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
         BOOL statusForRequestedTransaction = FALSE;
         BOOL prevWriteDone = FALSE;
 
-        if ((tStatus.devAddr == devAddr) && (tStatus.regAddr == regAddr)) {
+        if ((tStatus.devAddr == devAddr)
+                        && (tStatus.regAddr == regAddr)
+                        && (tStatus.type == I2C__TYPE__WRITE)) {
             // This transaction status is for the currently requested write
             statusForRequestedTransaction = TRUE;
         }

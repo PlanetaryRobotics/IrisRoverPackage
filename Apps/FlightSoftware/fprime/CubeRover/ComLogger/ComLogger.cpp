@@ -14,6 +14,84 @@
 #include <string.h>
 
 
+  int lfs_read(
+      const struct lfs_config *cfg,
+      lfs_block_t block,
+      lfs_off_t offset,
+      void *buffer,
+      lfs_size_t size
+    )
+  {
+    // Set the correct context for the read
+    S25fl064l::MemAlloc flash_alloc = CubeRover::ComLoggerComponentImpl::flash_context;
+    // FIXME Is this a correct use of block?
+    // Set the correct offset
+    uint32_t flash_offset = static_cast<U32>(block)*cfg->block_size + static_cast<U32>(offset);
+    // Set the correct size
+    uint16_t flash_size = static_cast<U16>(size);
+    // Set the correct buffer pointer
+    uint8_t *flash_data = static_cast<uint8_t *>(buffer);
+
+    // Create error variable
+    S25fl064l::S25fl064lError err;
+    err = S25fl064l::readDataFromFlash(&flash_alloc,
+                                       flash_offset,
+                                       flash_data,
+                                       flash_size);
+    return err;
+  }
+
+  int lfs_prog(
+      const struct lfs_config *cfg,
+      lfs_block_t block,
+      lfs_off_t offset,
+      void *buffer,
+      lfs_size_t size
+    )
+  {
+    // Set the correct context for the read
+    S25fl064l::MemAlloc flash_alloc = CubeRover::ComLoggerComponentImpl::flash_context;
+    // FIXME Is this a correct use of block?
+    // Set the correct offset
+    uint32_t flash_offset = static_cast<U32>(static_cast<U32>(block)*static_cast<U32>(cfg->block_size) + static_cast<U32>(offset));
+    // Set the correct size
+    uint16_t flash_size = static_cast<U16>(size);
+    // Set the correct buffer pointer
+    uint8_t *flash_data = static_cast<uint8_t *>(buffer);
+
+    // Create error variable
+    S25fl064l::S25fl064lError err;
+    err = S25fl064l::writeDataToFlash(&flash_alloc,
+                                      flash_offset,
+                                      flash_data,
+                                      flash_size);
+    return err;
+  }
+
+  int lfs_erase(
+      const struct lfs_config *cfg,
+      lfs_block_t block
+    )
+  {
+    // FIXME: Not sure I need to have an erase function here
+    /*
+    // Create error variable
+    S25fl064l::S25fl064lError err;
+    err = S25fl064l::sectorErase(block);
+
+    return err;
+    */
+    return 0;
+  }
+
+  int lfs_sync(
+      const struct lfs_config *cfg
+    )
+  {
+    // Return 0, every write/read is sync-ed in flash
+    return 0;
+  }
+
 namespace CubeRover {
 
   // ----------------------------------------------------------------------
@@ -30,7 +108,11 @@ namespace CubeRover {
     ComLoggerComponentImpl(void)
 #endif
     {
-
+      this->fileMode = CLOSED;
+      this->fileType = ukn;
+      this->fileByteCount = 0;
+      this->bytesRead = 0;
+      this->bytesWritten = 0;
     }
 
   void ComLoggerComponentImpl :: 
@@ -42,20 +124,21 @@ namespace CubeRover {
     ComLoggerComponentBase::init(instance);
     // Initialize FLASH
     flash_chip.setupDevice();
+    flash_context.startAddress = 0;
+    flash_context.reservedSize = 0;
 
     // Setup cfg with correct functions
-    cfg->context = static_cast<void*>(flash_chip);
-    cfg->read = lfs_read;
-    cfg->prog = lfs_prog;
-    cfg->erase = lfs_erase;
-    cfg->sync = lfs_sync;
+    cfg.read = lfs_read;
+    cfg.prog = lfs_prog;
+    cfg.erase = lfs_erase;
+    cfg.sync = lfs_sync;
 
     // Mount File System
     int err = lfs_mount(&lfs, &cfg);
     // Reformat File System if received error, should only happen on first boot
     if(err)
     {
-      lfs_format(&lsf, &cfg);
+      lfs_format(&lfs, &cfg);
       err = lfs_mount(&lfs, &cfg);
       // If still error, log error and let ground know stuff's bad
       if(err)
@@ -68,7 +151,7 @@ namespace CubeRover {
     this->fileByteCount = 0;
     this->bytesRead = 0;
     this->bytesWritten = 0;
-    //TODO Update Telem
+    // Update Telem
     this->tlmWrite_TOTAL_BYTES_READ(bytesRead);
     this->tlmWrite_TOTAL_BYTES_WRITTEN(bytesWritten);
     this->tlmWrite_CUR_FILE_BYTES(fileByteCount);
@@ -103,13 +186,14 @@ namespace CubeRover {
     if(this->fileMode == OPEN && this->fileType == log && est_file_size <= MAX_FILE_SIZE)
     {
       // Write to current file
-      writeToFile(static_cast<void*>(data), static_cast<U32>(data.getBuffLength()));
+      writeToFile(static_cast<void*>(data.getBuffAddr()), static_cast<U32>(data.getBuffLength()));
     }
     else
     {
       // Create a new file with log prefix and new time (the current time)
       Fw::Time timestamp = getTime();
-      writeToFile(static_cast<void*>(data), static_cast<U32>(data.getBuffLength()), "log", timestamp.getSeconds());
+      char log_prefix [3] = {'l','o','g'};
+      writeToFile(static_cast<void*>(data.getBuffAddr()), static_cast<U32>(data.getBuffLength()), log_prefix, timestamp.getSeconds());
     }
   }
 
@@ -139,12 +223,14 @@ namespace CubeRover {
     // Clear read buffer
     memset(&m_read_buffer, 0, sizeof(m_read_buffer));
 
-    U32 length_read = readFromFile(&m_read_buffer, prefix.toChar(), time);
+    char prefix_char [3];
+    memcpy(prefix_char, prefix.toChar(), sizeof(prefix_char));
+    U32 length_read = readFromFile(&m_read_buffer, prefix_char, time);
     // Set buffer size to read size
     data.setsize(length_read);
 
     // Set buffer data to read data buffer
-    data.setdata(static_cast<U64>(m_read_buffer));
+    data.setdata((U64)m_read_buffer);
 
     // Send Output buffer to ground
     this->GndOut_out(0, data);
@@ -178,9 +264,11 @@ namespace CubeRover {
 
     // Create string to open new file with
     char file_name[MAX_FILENAME_SIZE];
-    strcat(file_name, "%s_", prefix);
+    strcat(file_name, prefix);
     // Get the current time
-    strcat(file_name, "%d", time);
+    char time_name [10];
+    snprintf(time_name, sizeof(time_name), "%d", time);
+    strcat(file_name, time_name);
 
     // Open a file, create one if it doesn't exist
     int err = lfs_file_open(&lfs, &file, file_name, LFS_O_RDWR | LFS_O_CREAT);
@@ -201,7 +289,7 @@ namespace CubeRover {
     this->tlmWrite_CUR_FILE_TYPE(fileType);
   }   
 
-  void ComLoggerComponentImpl ::
+  bool ComLoggerComponentImpl ::
     closeFile(
     )
   {
@@ -209,7 +297,7 @@ namespace CubeRover {
     {
       // Close file:
       //Must close current file as not log file type
-      int err = lfs_file_close(&lfs, &current_file);
+      int err = lfs_file_close(&lfs, &file);
       //TODO LOG ERRORS IF CAN'T CLOSE CORRECTLY
 
       // Update mode and byte count:
@@ -217,14 +305,14 @@ namespace CubeRover {
       this->fileByteCount = 0;
 
       // Send event:
-      Fw::LogStringArg logStringArg((char*) this->fileName);
-      this->log_DIAGNOSTIC_FileClosed(logStringArg);
+      //Fw::LogStringArg logStringArg((char*) this->fileName);
+      //this->log_DIAGNOSTIC_FileClosed(logStringArg);
 
       // Update Telemetry
       this->tlmWrite_CUR_FILE_STATUS(fileMode);
       this->tlmWrite_CUR_FILE_BYTES(fileByteCount);
-      return true;
     }
+    return true;
   }
 
   void ComLoggerComponentImpl ::
@@ -321,6 +409,9 @@ namespace CubeRover {
 
     // Read from file, put into buffer
     int err = lfs_file_read(&lfs, &file, buffer, true_length);
+
+    if(err != true_length)
+        // TODO: didn't read as much as though or got a negative num meaning error
         
     //TODO IMPLEMENT ERROR DETECTION
     //Fw::LogStringArg logStringArg((char*) this->fileName);
@@ -332,103 +423,22 @@ namespace CubeRover {
     return true_length;
   }
 
-  FileType ComLoggerComponentImpl :: 
+  ComLoggerComponentImpl::FileType ComLoggerComponentImpl ::
     prefixToType(
         char prefix [3]
       )
   {
     // Update this list as needed to add in more types of stored data
-    switch(prefix)
+    switch(atol(prefix))
     {
-      case strncmp("log", prefix) == 0:
+      case log:
         return log;
-      case strncmp("cam", prefix) == 0:
+      case cam:
         return cam;
-      case strncmp("ukn", prefix) == 0:
+      case ukn:
         return ukn;
       default:
         return ukn;
     }
-  }
-
-  int ComLoggerComponentImpl :: 
-    lfs_read(
-      const struct lfs_config *cfg, 
-      lfs_block_t block,
-      lfs_off_t offset,
-      void *buffer,
-      lfs_size_t size
-    )
-  {
-    // Set the correct context for the read
-    S25fl064l::MemAlloc flash_alloc = cfg->context;
-    // FIXME Is this a correct use of block?
-    // Set the correct offset
-    uint32_t flash_offset = static_cast<U32>(block)*cfg->block_size + static_cast<U32>(offset);
-    // Set the correct size
-    uint16_t flash_size = static_cast<U16>(size);
-    // Set the correct buffer pointer
-    uint8_t *flash_data = static_cast<uint8_t *>(buffer);
-
-    // Create error variable
-    S25fl064l::S25fl064lError err = 0;
-    err = S25fl064l::readDataFromFlash(flash_alloc,
-                                       flash_offset,
-                                       flash_data,
-                                       flash_size);
-    return err;
-  }
-
-  int ComLoggerComponentImpl :: 
-    lfs_prog(
-      const struct lfs_config *cfg, 
-      lfs_block_t block,
-      lfs_off_t offset,
-      void *buffer,
-      lfs_size_t size
-    )
-  {
-    // Set the correct context for the read
-    S25fl064l::MemAlloc flash_alloc = cfg->context;
-    // FIXME Is this a correct use of block?
-    // Set the correct offset
-    S25fl064l::Address flash_offset = static_cast<S25fl064l::Address>(static_cast<U32>(block)*cfg->block_size + static_cast<U32>(offset));
-    // Set the correct size
-    uint16_t flash_size = static_cast<U16>(size);
-    // Set the correct buffer pointer
-    uint8_t *flash_data = static_cast<uint8_t *>(buffer);
-
-    // Create error variable
-    S25fl064l::S25fl064lError err = 0;
-    err = S25fl064l::writeDataToFlash(flash_alloc,
-                                      flash_offset,
-                                      flash_data,
-                                      flash_size);
-    return err;
-  }
-
-  int ComLoggerComponentImpl :: 
-    lfs_erase(
-      const struct lfs_config *cfg, 
-      lfs_block_t block
-    )
-  {
-    // Set the correct block
-    S25fl064l::Block flash_block = static_cast<S25fl064l::Block>(block);
-
-    // Create error variable
-    S25fl064l::S25fl064lError err = 0;
-    err = S25fl064l::blockErase(flash_block);
-
-    return err;
-  }
-
-  int ComLoggerComponentImpl :: 
-    lfs_sync(
-      const struct lfs_config *cfg
-    )
-  {
-    // FIXME What do I do here? I though I might use pageProgram() but that requires an address, size, and data buffer
-    return 0;
   }
 }

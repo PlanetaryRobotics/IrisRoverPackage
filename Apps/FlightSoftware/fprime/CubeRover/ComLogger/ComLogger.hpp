@@ -19,6 +19,33 @@
 #define MAX_FILENAME_SIZE 8
 #define MAX_FILE_SIZE 1024 // Taken from what was in Topology.cpp, could be changed to block size though. Could be increased/decreased as needed
 
+extern "C" {
+      int lfs_read(
+        const struct lfs_config *cfg,
+        lfs_block_t block,
+        lfs_off_t offset,
+        void *buffer,
+        lfs_size_t size
+      );
+
+      int lfs_prog(
+        const struct lfs_config *cfg,
+        lfs_block_t block,
+        lfs_off_t offset,
+        void *buffer,
+        lfs_size_t size
+      );
+
+      int lfs_erase(
+        const struct lfs_config *cfg,
+        lfs_block_t block
+      );
+
+      int lfs_sync(
+        const struct lfs_config *cfg
+      );
+}
+
 namespace CubeRover {
 
   class ComLoggerComponentImpl :
@@ -46,9 +73,13 @@ namespace CubeRover {
 
       ~ComLoggerComponentImpl(void);
 
+      // The maximum size of a filename
+      static S25fl064l::S25fl064l flash_chip;
+      static S25fl064l::MemAlloc flash_context;
       // ----------------------------------------------------------------------
       // Handler implementations
       // ----------------------------------------------------------------------
+
 
     PRIVATE:
 
@@ -82,8 +113,6 @@ namespace CubeRover {
       // ----------------------------------------------------------------------
       // Constants:
       // ----------------------------------------------------------------------
-      // The maximum size of a filename
-      S25fl064l::S25fl064l flash_chip;
 
       lfs_t lfs;
       lfs_file_t file;
@@ -136,7 +165,8 @@ namespace CubeRover {
       // File functions:
       // ---------------------------------------------------------------------- 
       void openFile(
-        char prefix [3]
+        char prefix [3],
+        U32 time
       );
 
       bool closeFile(
@@ -166,30 +196,6 @@ namespace CubeRover {
         char prefix [3]
       );
 
-      int lfs_read(
-        const struct lfs_config *cfg, 
-        lfs_block_t block,
-        lfs_off_t offset,
-        void *buffer,
-        lfs_size_t size
-      );
-
-      int lfs_prog(
-        const struct lfs_config *cfg, 
-        lfs_block_t block,
-        lfs_off_t offset,
-        void *buffer,
-        lfs_size_t size
-      );
-
-      int lfs_erase(
-        const struct lfs_config *cfg, 
-        lfs_block_t block
-      );
-
-      int lfs_sync(
-        const struct lfs_config *cfg
-      );
   };
 };
 

@@ -271,17 +271,17 @@ class S25fl064l{
   public:
     S25fl064l();
     //~S25fl064l();
-    S25fl064lError writeDataToFlash(S25fl064l::MemAlloc *alloc,
+    static S25fl064lError writeDataToFlash(S25fl064l::MemAlloc *alloc,
                                const uint32_t offset,
                                uint8_t *data,
                                const uint16_t dataSize);
-    S25fl064lError readDataFromFlash(S25fl064l::MemAlloc *alloc,
+    static S25fl064lError readDataFromFlash(S25fl064l::MemAlloc *alloc,
                                 const uint32_t offset,
                                 uint8_t *data,
                                 const uint16_t dataSize);
-    S25fl064lError setupDevice();
-    S25fl064lError blockErase(const S25fl064l::Block block);
-    S25fl064lError pageProgram(S25fl064l::Address address,
+    static S25fl064lError setupDevice();
+    static S25fl064lError sectorErase(const S25fl064l::Sector sector);
+    static S25fl064lError pageProgram(S25fl064l::Address address,
                                uint8_t *txData,
                                const uint16_t size);
 
@@ -298,8 +298,8 @@ class S25fl064l{
     uint16_t getAddressLengthByte(const S25fl064l::FlashSpiCommands cmd);
     S25fl064lError allocateFlashMemory(S25fl064l::MemAlloc *alloc,
                                   const uint32_t size);
-    S25fl064lError sectorErase(const S25fl064l::Sector sector);
     S25fl064lError halfBlockErase(const S25fl064l::HalfBlock halfBlock);
+    S25fl064lError blockErase(const S25fl064l::Block block);
     S25fl064lError chipErase();
     S25fl064lError resetDevice();
     S25fl064lError programEraseResume();

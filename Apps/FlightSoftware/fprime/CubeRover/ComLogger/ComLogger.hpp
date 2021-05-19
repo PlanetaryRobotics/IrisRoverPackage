@@ -27,7 +27,7 @@ namespace CubeRover {
       // ----------------------------------------------------------------------
       // Construction, initialization, and destruction
       // ----------------------------------------------------------------------
-
+    public:
     ComLoggerComponentImpl(
 #if FW_OBJECT_NAMES == 1
           const char *const compName /*!< The component name*/
@@ -36,7 +36,6 @@ namespace CubeRover {
 #endif
       );
 
-    public:
 
       void init(
           //NATIVE_INT_TYPE queueDepth, //!< The queue depth

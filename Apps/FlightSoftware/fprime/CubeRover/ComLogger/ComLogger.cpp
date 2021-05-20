@@ -15,7 +15,7 @@
 
 
   int lfs_read(
-      const struct lfs_config *cfg,
+      const struct lfs_config *config,
       lfs_block_t block,
       lfs_off_t offset,
       void *buffer,
@@ -26,7 +26,7 @@
     S25fl064l::MemAlloc flash_alloc = CubeRover::ComLoggerComponentImpl::flash_context;
     // FIXME Is this a correct use of block?
     // Set the correct offset
-    uint32_t flash_offset = static_cast<U32>(block)*cfg->block_size + static_cast<U32>(offset);
+    uint32_t flash_offset = static_cast<U32>(block)*config->block_size + static_cast<U32>(offset);
     // Set the correct size
     uint16_t flash_size = static_cast<U16>(size);
     // Set the correct buffer pointer
@@ -42,10 +42,10 @@
   }
 
   int lfs_prog(
-      const struct lfs_config *cfg,
+      const struct lfs_config *config,
       lfs_block_t block,
       lfs_off_t offset,
-      void *buffer,
+      const void *buffer,
       lfs_size_t size
     )
   {
@@ -53,11 +53,11 @@
     S25fl064l::MemAlloc flash_alloc = CubeRover::ComLoggerComponentImpl::flash_context;
     // FIXME Is this a correct use of block?
     // Set the correct offset
-    uint32_t flash_offset = static_cast<U32>(static_cast<U32>(block)*static_cast<U32>(cfg->block_size) + static_cast<U32>(offset));
+    uint32_t flash_offset = static_cast<U32>(static_cast<U32>(block)*static_cast<U32>(config->block_size) + static_cast<U32>(offset));
     // Set the correct size
     uint16_t flash_size = static_cast<U16>(size);
     // Set the correct buffer pointer
-    uint8_t *flash_data = static_cast<uint8_t *>(buffer);
+    uint8_t *flash_data = reinterpret_cast<uint8_t*>(const_cast<void*>(buffer));
 
     // Create error variable
     S25fl064l::S25fl064lError err;
@@ -69,7 +69,7 @@
   }
 
   int lfs_erase(
-      const struct lfs_config *cfg,
+      const struct lfs_config *config,
       lfs_block_t block
     )
   {
@@ -85,7 +85,7 @@
   }
 
   int lfs_sync(
-      const struct lfs_config *cfg
+      const struct lfs_config *config
     )
   {
     // Return 0, every write/read is sync-ed in flash
@@ -114,6 +114,27 @@ namespace CubeRover {
       this->bytesRead = 0;
       this->bytesWritten = 0;
     }
+
+    lfs_t lfs;
+    lfs_file_t file;
+
+    struct lfs_config cfg = {
+      //.read = lfs_read,
+      //.prog = lfs_prog,
+      //.erase = lfs_erase,
+      //.sync = lfs_sync,
+
+      //.context = flash_chip,  // Set the correct flash chip instanciation
+      .read_size = 8, // Min read size
+      .prog_size = 8, // Min write size, Flash allows for single bit programming, making minimum 8 bytes to match read
+      .block_size = 0x10000, // 64KB
+      .block_count = 128, // 128 blocks of 64KB each (from FLASH datasheet), ~8MB total? Doesn't make sense as we have 64MB, maybe we have 8 sections of 128 blocks each?
+      .cache_size = 256, // Kinda guessed? Just made it the max possible page that we can save
+      .lookahead_size = 0, // no idea, don't think flash has one so set to zero?
+      .block_cycles = -1,  // disable wear-leveling
+      .name_max = 8,  // Max file name is 3 byte char + '_' 1 bytes + U32 (4 byte) time (seconds) = 8 bytes
+      .file_max = MAX_FILE_SIZE // Max file size allowed
+    };
 
   void ComLoggerComponentImpl :: 
     init(

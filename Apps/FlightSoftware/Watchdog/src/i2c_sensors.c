@@ -378,8 +378,6 @@ BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
 
         stat = I2C__read(devAddr, regAddr);
 
-        assert(I2C__STATUS__SUCCESS == stat);
-
         *done = FALSE;
         *gotOutput = FALSE;
     }
@@ -436,8 +434,6 @@ void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
 
     if (startNewWrite) {
         stat = I2C__write(devAddr, regAddr, data);
-
-        assert(I2C__STATUS__SUCCESS == stat);
 
         *done = FALSE;
         *success = TRUE;

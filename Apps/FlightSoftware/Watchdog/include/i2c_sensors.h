@@ -87,8 +87,6 @@ typedef struct INS_Sensors__InternalState {
     I2C_Sensors__Readings readings;
 } INS_Sensors__InternalState;
 
-extern INS_Sensors__InternalState internals;
-
 void I2C_Sensors__init();
 
 void I2C_Sensors__initiateGaugeReadings();

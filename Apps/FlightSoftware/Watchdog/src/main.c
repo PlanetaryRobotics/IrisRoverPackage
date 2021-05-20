@@ -20,9 +20,6 @@ extern uint8_t heating;
 uint8_t lastHeater = 0;
 uint8_t heatingControlEnabled = 1;
 
-I2C_Sensors__Readings i2cReadings;
-I2C_Sensors__Status i2c_status = I2C_SENSORS__STATUS__ERROR__NULL;
-
 // @suppress("Invalid arguments")
 
 /* function definitions in ground_cmd.c */

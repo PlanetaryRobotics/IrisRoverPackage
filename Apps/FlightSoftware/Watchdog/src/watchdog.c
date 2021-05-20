@@ -16,7 +16,7 @@
 #include "include/uart.h"
 #include "include/bsp.h"
 #include "include/ip_udp.h"
-#include "include/i2c.h"
+#include "include/i2c_sensors.h"
 
 uint8_t handle_watchdog_reset_cmd(uint8_t cmd);
 
@@ -151,7 +151,7 @@ int watchdog_monitor() {
     return 0;
 }
 
-void watchdog_send_hercules_telem() {
+void watchdog_send_hercules_telem(I2C_Sensors__Readings *i2cReadings) {
     // send the hercules its telemetry
     // Build telemetry packet for Hercules
     unsigned char telbuf[16] = {0};
@@ -171,12 +171,12 @@ void watchdog_send_hercules_telem() {
         // [6,7] won't be able to read lander power in mission mode
         // [8] currently don't read battery temp in mission mode
         //telbuf[9] = (unit8_t)( sys_status (??) )
-        telbuf[10] = (uint8_t)(raw_battery_charge[0]);
-        telbuf[11] = (uint8_t)(raw_battery_charge[1]);
-        telbuf[12] = (uint8_t)(raw_battery_current[0]);
-        telbuf[13] = (uint8_t)(raw_battery_current[1]);
-        telbuf[14] = (uint8_t)(raw_battery_voltage[0]);
-        telbuf[15] = (uint8_t)(raw_battery_voltage[1]);
+        telbuf[10] = (uint8_t)(i2cReadings->raw_battery_charge[0]);
+        telbuf[11] = (uint8_t)(i2cReadings->raw_battery_charge[1]);
+        telbuf[12] = (uint8_t)(i2cReadings->raw_battery_current[0]);
+        telbuf[13] = (uint8_t)(i2cReadings->raw_battery_current[1]);
+        telbuf[14] = (uint8_t)(i2cReadings->raw_battery_voltage[0]);
+        telbuf[15] = (uint8_t)(i2cReadings->raw_battery_voltage[1]);
 //                telbuf[9] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
     }
     uart0_tx_nonblocking(16, telbuf);
@@ -187,7 +187,7 @@ void watchdog_send_hercules_telem() {
  *
  * Assumes checksum valid.
  */
-void watchdog_handle_hercules() {
+void watchdog_handle_hercules(I2C_Sensors__Readings *i2cReadings) {
     // valid hercules message received
     watchdog_flags |= WDFLAG_HERCULES_KICK;
 
@@ -231,7 +231,7 @@ void watchdog_handle_hercules() {
         hercbuf.used = 0;
     } else {
         /* send telem */
-        watchdog_send_hercules_telem();
+        watchdog_send_hercules_telem(i2cReadings);
     }
 
     /* tell the interrupt handler to start processing bytes again */

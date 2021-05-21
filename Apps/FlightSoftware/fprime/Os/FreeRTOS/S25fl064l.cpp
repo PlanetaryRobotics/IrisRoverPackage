@@ -14,7 +14,7 @@ S25fl064l :: S25fl064l(){
   // is set by default to 8 clock cycles
   m_readLatencyCycles = DEFAULT_DUMMY_CYCLES;
 
-  m_flashSpi = (spiBASE_t *)NULL;
+  m_flashSpi = SPI_REG_FLASH;
 
   m_memAllocPointer = 0;
   // default setting of the external memory
@@ -31,8 +31,6 @@ S25fl064l :: S25fl064l(){
  */
 S25fl064l::S25fl064lError S25fl064l :: setupDevice(){
   S25fl064lError err = S25fl064l_NO_ERROR;
-
-  m_flashSpi = SPI_REG_FLASH;
 
   // Check that the correct device is connected to the MCU
   uint8_t id[3];

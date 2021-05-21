@@ -34,7 +34,7 @@
 
     // Create error variable
     S25fl064l::S25fl064lError err;
-    err = S25fl064l::readDataFromFlash(&flash_alloc,
+    err = CubeRover::ComLoggerComponentImpl::flash_chip.readDataFromFlash(&flash_alloc,
                                        flash_offset,
                                        flash_data,
                                        flash_size);
@@ -61,7 +61,7 @@
 
     // Create error variable
     S25fl064l::S25fl064lError err;
-    err = S25fl064l::writeDataToFlash(&flash_alloc,
+    err = CubeRover::ComLoggerComponentImpl::flash_chip.writeDataToFlash(&flash_alloc,
                                       flash_offset,
                                       flash_data,
                                       flash_size);

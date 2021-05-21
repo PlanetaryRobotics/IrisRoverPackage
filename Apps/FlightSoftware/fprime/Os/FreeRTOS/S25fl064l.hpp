@@ -271,17 +271,17 @@ class S25fl064l{
   public:
     S25fl064l();
     //~S25fl064l();
-    static S25fl064lError writeDataToFlash(S25fl064l::MemAlloc *alloc,
+    S25fl064lError writeDataToFlash(S25fl064l::MemAlloc *alloc,
                                const uint32_t offset,
                                uint8_t *data,
                                const uint16_t dataSize);
-    static S25fl064lError readDataFromFlash(S25fl064l::MemAlloc *alloc,
+    S25fl064lError readDataFromFlash(S25fl064l::MemAlloc *alloc,
                                 const uint32_t offset,
                                 uint8_t *data,
                                 const uint16_t dataSize);
-    static S25fl064lError setupDevice();
-    static S25fl064lError sectorErase(const S25fl064l::Sector sector);
-    static S25fl064lError pageProgram(S25fl064l::Address address,
+    S25fl064lError setupDevice();
+    S25fl064lError sectorErase(const S25fl064l::Sector sector);
+    S25fl064lError pageProgram(S25fl064l::Address address,
                                uint8_t *txData,
                                const uint16_t size);
 

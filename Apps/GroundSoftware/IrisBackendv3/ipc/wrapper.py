@@ -25,12 +25,12 @@ from .settings import settings
 from .logging import logger
 
 
-IPD = TypeVar('IPD')
+IPM = TypeVar('IPM')
 
 
-class InterProcessData(Generic[IPD], ABC):
+class InterProcessMessage(Generic[IPM], ABC):
     """
-    Interface for any data which supports being sent between processes.
+    Interface for any message data which supports being sent between processes.
     """
 
     @abstractmethod
@@ -42,7 +42,7 @@ class InterProcessData(Generic[IPD], ABC):
         raise NotImplementedError()
 
     @abstractclassmethod
-    def from_ipc_bytes(cls, data: bytes) -> IPD:
+    def from_ipc_bytes(cls, data: bytes) -> IPM:
         """
         Unpack bytes sent over IPC to reconstruct the sent object.
         """
@@ -167,7 +167,7 @@ class IpcPayload:
 
 def send_to(
     socket: zmq.sugar.socket.Socket,
-    data: Union[bytes, InterProcessData],
+    data: Union[bytes, InterProcessMessage],
     subtopic: Optional[bytes] = None,
     topic: Optional[Topic] = None
 ) -> None:
@@ -200,12 +200,12 @@ def send_to(
     # Extract the core data and add it to the message
     if isinstance(data, bytes):
         payload.msg = data
-    elif isinstance(data, InterProcessData):
+    elif isinstance(data, InterProcessMessage):
         payload.msg = data.to_ipc_bytes()
     else:
         raise ValueError(
             "`data` needs to be `bytes` or an instance of a class which "
-            "implements `InterProcessData`. "
+            "implements `InterProcessMessage`. "
             f"Instead got `{data}` of type `{type(data)}`."
         )
 

@@ -8,13 +8,15 @@ Standalone codec process which converts bytes->packet or payloads->packet
 TODO: Redirect logs to an independent logging process.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/18/2020
+@last-updated: 05/20/2020
 """
+from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
+
 from enum import Enum
 
 from .packet import parse_packet
+from .payload import PayloadCollection
 
-from IrisBackendv3.ipc.wrapper import socket
 import IrisBackendv3.ipc as ipc
 
 
@@ -41,10 +43,10 @@ def run() -> None:
             ipc.send_to(socket, response, subtopic=ipc_raw.subtopic)
 
         elif ipc_raw.subtopic == SubTopics.PAYLOADS_TO_PACKET.value:
-            # payloads = payload.collection
+            payloads = PayloadCollection.from_ipc_bytes(ipc_raw.msg)
             # packet_class =
             # !TODO
-            ipc.
+            # ipc.
 
         ipc.send_to(socket, data)
 

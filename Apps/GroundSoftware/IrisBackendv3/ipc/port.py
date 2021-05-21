@@ -24,5 +24,6 @@ class Port(Enum):
     TRANSCEIVER = 0xF00D
     CODEC = 0xC0DE
     STORAGE = 0xDA7A
-    CLI_WINDOW = 0xBEEF
+    CLI_WINDOW = 0xF001
     TELEM_WINDOW = 0xFEED
+    GUI = 0x15EE

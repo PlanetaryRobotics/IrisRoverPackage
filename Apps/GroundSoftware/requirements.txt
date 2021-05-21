@@ -23,3 +23,4 @@ pyserial
 ipykernel
 bitstruct
 pyzmq
+attrs

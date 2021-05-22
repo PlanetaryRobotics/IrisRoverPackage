@@ -54,16 +54,14 @@ void enterMode(enum rover_state newstate) {
         setFPGAReset();
         setMotorsReset();
         setHerculesReset();
-//        fuelGaugeLowPower();
-        /* TODO: do we want to do it in this order? */
 
         /* turn off voltage rails */
         disable3V3PowerRail();
         disable24VPowerRail();
-//        disableBatteries();
+        disableBatteries();
+
         /* monitor only lander voltages */
         adc_setup_lander();
-        enableBatteries();      // need enable batteries to read from fuel gauge
         enableHeater();
         startChargingBatteries();
         break;
@@ -75,8 +73,7 @@ void enterMode(enum rover_state newstate) {
         enableBatteries();
         disableHeater();
 
-        /* swap uart's */
-//        uart1_disable(); // enabled: 0.0467
+        /* enable hercules uart */
         uart0_init();
 
         /* power everything on and release resets */
@@ -86,6 +83,7 @@ void enterMode(enum rover_state newstate) {
         /* start monitoring only mission-relevant voltages */
         adc_setup_mission();
 
+        /* power stuff on */
         powerOnFpga();
         powerOnMotors();
         powerOnRadio();
@@ -96,7 +94,6 @@ void enterMode(enum rover_state newstate) {
         powerOnHercules();
         releaseMotorsReset();
         releaseHerculesReset();
-        /* TODO: do we want to do it in this order? */
 
         break;
     case RS_FAULT:

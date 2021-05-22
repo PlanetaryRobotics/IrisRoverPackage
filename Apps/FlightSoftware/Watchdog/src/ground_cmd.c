@@ -13,9 +13,9 @@
 #include "include/uart.h"
 #include "include/adc.h"
 #include "include/flags.h"
-#include "include/i2c.h"
+#include "include/i2c_sensors.h"
 
-extern uint8_t heatingControlEnabled, heaterStatus;
+extern uint8_t heatingControlEnabled, heaterStatus; // from heater controller
 extern uint16_t Kp_heater, heater_setpoint, heater_window, PWM_limit, heater_on_val, heater_off_val;
 
 void enterMode(enum rover_state newstate);
@@ -413,7 +413,7 @@ void parse_ground_cmd(struct buffer *pp) {
 /**
  * Send the earth heartbeat
  */
-void send_earth_heartbeat() {
+void send_earth_heartbeat(I2C_Sensors__Readings *i2cReadings) {
     static uint8_t counter = 0;
     uint8_t send_buf[32];
 
@@ -488,21 +488,20 @@ void send_earth_heartbeat() {
         // send the packet!
         ipudp_send_packet(send_buf, 24); // @suppress("Invalid arguments")
     } else if (rovstate == RS_KEEPALIVE) {
-        if (counter % 3 != 2) {
-            // send every 2 seconds
-            counter++;
-            return;
-        }
-        counter = 0;
+      ////  Flight-spec heartbeats
+      send_buf[1] = (uint8_t)(i2cReadings->batt_charge_telem << 1);
+      // send heater on status
+      send_buf[1] |= heaterStatus & 0x1;
+      // battery current
+      send_buf[2] = (uint8_t)(i2cReadings->batt_curr_telem << 1);
+      // send voltage nominal status (1=good, 0=too low)
+      // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
+      send_buf[2] |= (i2cReadings->raw_battery_voltage[0] > 0x3B); // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
 
-        send_buf[1] = (uint8_t)(adc_values[ADC_BATT_LEVEL_IDX] >> 5);
-        send_buf[1] = send_buf[1] << 1;
-        send_buf[1] |= heaterStatus & 0x1;
+      // send the thermistor temperature (12 bits to 8 bits)
+      send_buf[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
 
-        send_buf[2] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
-
-        ipudp_send_packet(send_buf, 3);
+      // send the packet!
+      ipudp_send_packet(send_buf, 4); // @suppress("Invalid arguments")
     }
 }
-
-

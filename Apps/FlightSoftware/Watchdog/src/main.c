@@ -54,6 +54,7 @@ void enterMode(enum rover_state newstate) {
         setFPGAReset();
         setMotorsReset();
         setHerculesReset();
+        unsetDeploy();
 
         /* turn off voltage rails */
         disable3V3PowerRail();
@@ -72,6 +73,7 @@ void enterMode(enum rover_state newstate) {
         enable24VPowerRail();
         enableBatteries();
         disableHeater();
+        unsetDeploy();
 
         /* enable hercules uart */
         uart0_init();

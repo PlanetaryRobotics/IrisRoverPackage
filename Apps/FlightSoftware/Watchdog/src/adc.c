@@ -134,12 +134,8 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
 {
     switch (__even_in_range(ADC12IV, ADC12IV_ADC12RDYIFG)) {
     case ADC12IV_ADC12IFG2: // ADC12IE2 interrupt
-//        adc_values[2] = ADC12MEM2; // Save MEM2
         adc_values[2] = ADC12MEM2; // Save MEM2
-        adc_values[1] = ADC12MEM1; // Save MEM1
-        adc_values[0] = ADC12MEM0; // Save MEM0
-        watchdog_flags |= WDFLAG_ADC_READY; // signal ready to main loop
-        break;
+        // fall through to ADC12IE1 to save MEM1 & MEM0 and signal to main loop
     case ADC12IV_ADC12IFG1: // ADC12IE1 interrupt
         adc_values[1] = ADC12MEM1; // Save MEM1
         adc_values[0] = ADC12MEM0; // Save MEM0

@@ -14,6 +14,7 @@
 #define FLAG_TEMP_LOW        0x10
 #define FLAG_TEMP_HIGH       0x20
 #define FLAG_POWER_ISSUE     0x40
+#define FLAG_I2C_GAUGE_READING_ACTIVE 0x80
 
 __volatile extern uint16_t loop_flags;
 

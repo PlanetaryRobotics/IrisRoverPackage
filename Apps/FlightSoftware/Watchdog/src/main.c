@@ -45,7 +45,6 @@ void enterMode(enum rover_state newstate) {
         setMotorsReset();
         setHerculesReset();
         unsetDeploy();
-        I2C_Sensors__fuelGaugeLowPowerBlocking();
 
         /* turn off voltage rails */
         disable3V3PowerRail();
@@ -83,7 +82,6 @@ void enterMode(enum rover_state newstate) {
         stopChargingBatteries();
 
         __delay_cycles(12345678); //give fuel gauge [50 ms] & wifi [~750 ms] time to start up
-//        initializeFuelGauge();
         I2C_Sensors__initializeFuelGaugeBlocking();
         powerOnHercules();
         releaseMotorsReset();

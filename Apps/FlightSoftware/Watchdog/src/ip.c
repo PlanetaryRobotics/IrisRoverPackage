@@ -227,10 +227,12 @@ void ipudp_send_packet(uint8_t *data, uint16_t data_len) {
  * @return Pointer to the start of the payload
  */
 uint8_t *ipudp_parse_packet(struct buffer *buf, uint16_t *pp_len) {
+    uint16_t n = 0;
+
+#if 0
     struct ip_hdr *ip_hdr;
     struct udp_hdr *udp_hdr;
-    uint16_t n;
-#if 0
+
     if (!ip_verify_packet(buf->buf, buf->used)) {
         /* too small */
         return (void *)0;
@@ -254,6 +256,9 @@ uint8_t *ipudp_parse_packet(struct buffer *buf, uint16_t *pp_len) {
     ip_hdr = (struct ip_hdr *)(buf->buf);
     udp_hdr = (struct udp_hdr *)(ip_hdr + 1);
 
+    // TODO: check that pp_len is equal to the reported packet length in IP/UDP
+    // TODO: this will currently die if we get more than one packet from SLIP. oops.
+
     /* check that the lengths are correct */
     if (header-> == )
 #endif
@@ -265,9 +270,6 @@ uint8_t *ipudp_parse_packet(struct buffer *buf, uint16_t *pp_len) {
     }
 
     if (pp_len) *pp_len = buf->used - n;
-
-    // TODO: check that pp_len is equal to the reported packet length in IP/UDP
-    // TODO: this will currently die if we get more than one packet from SLIP. oops.
 
     /* skip past the ip and udp headers, and we're left with the payload! */
     return buf->buf + n;

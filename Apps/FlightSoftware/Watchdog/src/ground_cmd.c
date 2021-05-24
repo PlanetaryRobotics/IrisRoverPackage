@@ -369,15 +369,14 @@ void parse_ground_cmd(struct buffer *pp) {
     }
 
     /* check that the length is greater than the base sane amount */
-    // TODO: pp->used < pp_len ||  check ?
     if (pp_len < 11) {
         /* malformed packet length */
         reply_ground_cmd(0, GNDRESP_EPACKETLEN);
         return;
     }
 
-    /* first is sequence number */
-    /* TODO: sequence number */
+    /* we ignore sequence number */
+
     /* next is two bytes, little endian, representing length of the packet */
     packet_len = buf[2] << 8 | buf[1];
     /* check that the length is right */
@@ -387,8 +386,7 @@ void parse_ground_cmd(struct buffer *pp) {
         return;
     }
 
-    /* TODO: check the checksum */
-    (void)(buf[3]);
+    /* check the checksum - skipped since we check UDP checksum */
 
     /* get the type (should be 000BADA55 for hercules) */
     if (buf[4] == 0xEE && buf[5] == 0xFF && buf[6] == 0x00 && buf[7] == 0xC0) {
@@ -397,14 +395,14 @@ void parse_ground_cmd(struct buffer *pp) {
         lastcmd = buf[8];
     } else {
         /* forward it on to hercules */
+        if (hercbuf.used + pp_len >= BUFFER_SIZE) {
+            // non-ideal logic here where we just wipe the entire buffer if it overflows
+            hercbuf.used = 0;
+        }
+
         // copy the buffer into the hercules buffer
         memcpy(hercbuf.buf + hercbuf.used, buf, pp_len); // @suppress("Invalid arguments")
         hercbuf.used += pp_len;
-        if (hercbuf.used > BUFFER_SIZE) {
-            // TODO: better logic here. should overwrite old like a ring buffer, not just
-            // reset from 0
-            hercbuf.used = 0;
-        }
     }
 
     /* done parsing */

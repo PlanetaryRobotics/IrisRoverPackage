@@ -194,8 +194,8 @@ void ipudp_send_packet(uint8_t *data, uint16_t data_len) {
     // checksum is 0 for now
     ip_hdr->iphdr_checksum = 0;
     // addresses
-    ip_hdr->source = LANDER_ADDRESS;
-    ip_hdr->dest = SPACECRAFT_ADDRESS;
+    ip_hdr->source = 0x0267A8C0;
+    ip_hdr->dest = 0x0167A8C0;
     // compute checksum
     chksm = ip_checksum(ipudp_tx_buf, sizeof(struct ip_hdr));
     ip_hdr->iphdr_checksum = htons(chksm);

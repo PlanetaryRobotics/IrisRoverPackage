@@ -202,8 +202,8 @@ void ipudp_send_packet(uint8_t *data, uint16_t data_len) {
 
     /* next, make the udp header */
     // SLIP configuration port 42000 on both sides
-    udp_hdr->source_port = htons(42000);
-    udp_hdr->dest_port = htons(42000);
+    udp_hdr->source_port = htons(SPACECRAFT_PORT);
+    udp_hdr->dest_port = htons(LANDER_PORT);
     // length
     udp_hdr->len = data_len + sizeof(struct udp_hdr);
     udp_hdr->len = htons(udp_hdr->len);

@@ -19,7 +19,7 @@ struct buffer hercbuf;
 __volatile uint16_t loop_flags;
 extern uint8_t heating;
 uint8_t lastHeater = 0;
-uint8_t heatingControlEnabled = 1;
+extern uint8_t heatingControlEnabled;
 
 /**
  * main.c

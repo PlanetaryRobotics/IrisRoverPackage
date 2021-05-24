@@ -16,6 +16,20 @@
 #include "include/i2c_sensors.h"
 #include "include/watchdog.h"
 
+uint8_t watchdog_opts = 0;
+// variables for heater control
+#pragma PERSISTENT(Kp_heater)
+#pragma PERSISTENT(PWM_limit)
+#pragma PERSISTENT(heater_setpoint)
+#pragma PERSISTENT(heater_window)
+#pragma PERSISTENT(heater_on_val)
+#pragma PERSISTENT(heater_off_val)
+uint16_t Kp_heater = 500, PWM_limit = 0, heater_setpoint = 3325, heater_window = 60;
+uint16_t heater_on_val = 3670;  // -5 C thermistor voltage ADC reading
+uint16_t heater_off_val = 3352; // 0 C thermistor voltage ADC reading
+uint8_t heating = 0;
+uint8_t heatingControlEnabled = 1;
+
 /**
  * Handle watchdog reset-specific hardware commands
  */

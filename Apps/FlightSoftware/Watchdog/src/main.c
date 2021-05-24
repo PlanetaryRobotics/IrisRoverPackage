@@ -190,17 +190,18 @@ int main(void) {
                 /* check for kicks from devices and reset misbehaving things */
                 send_earth_heartbeat(&i2cReadings);
                 watchdog_monitor();
+
+                // Initiate gauge readings here, the rest of the actions to do in this state every state
+                // will be done after gauge readings complete, which is monitored in the
+                // FLAG_I2C_GAUGE_READING_ACTIVE loop_flags block below.
+                I2C_Sensors__initiateGaugeReadings();
+                loop_flags |= FLAG_I2C_GAUGE_READING_ACTIVE;
+
                 break;
             case RS_FAULT:
                 /* sad :( */
                 break;
             }
-
-            // Initiate gauge readings here, the rest of the actions to do in this state every state
-            // will be done after gauge readings complete, which is monitored in the
-            // FLAG_I2C_GAUGE_READING_ACTIVE loop_flags block below.
-            I2C_Sensors__initiateGaugeReadings();
-            loop_flags |= FLAG_I2C_GAUGE_READING_ACTIVE;
 
             /* clear event when done */
             loop_flags ^= FLAG_TIMER_TICK;

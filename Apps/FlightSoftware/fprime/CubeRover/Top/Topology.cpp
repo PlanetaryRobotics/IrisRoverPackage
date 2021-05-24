@@ -201,8 +201,8 @@ void constructApp(void){
   // Initialize the ground interface (passive)
   networkManager.init();
   
-  // Initialize the camera (passive)
-  camera.init();
+  // Initialize the camera (active)
+  camera.init(1, 0);
 
   // Initialize the Motor control interface (passive)
   motorControl.init();
@@ -285,4 +285,6 @@ void constructApp(void){
   watchDogInterface.start(0,
                           WATCHDOG_AFF,
                           WATCHDOG_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS);
+  
+  camera.start(0, CAMERA_AFF, CAMERA_QUEUE_DEPTH*MIN_STACK_SIZE_WORDS);
 }

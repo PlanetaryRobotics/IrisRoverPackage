@@ -56,6 +56,10 @@
 #define WATCHDOG_AFF                26    // TODO: Good value for this
 #define WATCHDOG_QUEUE_DEPTH        1
 
+#define CAMERA_ID                   0
+#define CAMERA_AFF                  26    // TODO: Good value for this
+#define CAMERA_QUEUE_DEPTH          1
+
 #define MIN_STACK_SIZE_WORDS        1024
 
 // Navigation Configs

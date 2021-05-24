@@ -24,6 +24,8 @@
 #define DOWNSAMPLED_IMG_WIDTH   (IMAGE_WIDTH / DOWNSAMPLING)
 #define DOWNSAMPLE_IMG_HEIGHT   (IMAGE_HEIGHT / DOWNSAMPLING)
 
+#define NUM_DOWNLINK_BUFFERS 2
+
 namespace CubeRover {
 
   class CameraComponentImpl :
@@ -183,13 +185,15 @@ namespace CubeRover {
       
       // User methods
       
-        void downsampleLine();
+        void downsampleLine(int bufferNum);
         void selectCamera(int camera);
-        void triggerImageCapture(uint8_t camera, uint16_t callbackId);
+        void triggerImageCapture(uint8_t camera, uint16_t callbackId, int bufferNum);
         void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime);
       
         S25fl512l m_fpgaFlash;
-        uint8_t m_imageLineBuffer[IMAGE_WIDTH];
+        // Number of downlink buffers is 1 + number of components connected to takeImage port
+        // Camera component is buffer 0, connected components are portNum + 1
+        uint8_t m_imageLineBuffer[NUM_DOWNLINK_BUFFERS][IMAGE_WIDTH];
         U32 m_numComponentImgsReq;
         U32 m_numGroundImgsReq;
         U32 m_imagesSent;

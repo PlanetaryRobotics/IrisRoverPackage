@@ -71,7 +71,7 @@ namespace CubeRover {
   {
     m_numComponentImgsReq++;
     tlmWrite_Cam_ComponentImagesRequested(m_numComponentImgsReq);
-    triggerImageCapture(CameraNum, CallbackId);
+    triggerImageCapture(CameraNum, CallbackId, portNum + 1);
   }
 
   // ----------------------------------------------------------------------
@@ -98,7 +98,7 @@ namespace CubeRover {
   {
     m_numGroundImgsReq++;
     tlmWrite_Cam_CommandImagesRequested(m_numGroundImgsReq);
-    triggerImageCapture(camera_num, callback_id);
+    triggerImageCapture(camera_num, callback_id, 0);
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
@@ -199,9 +199,9 @@ namespace CubeRover {
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
   
-    void CameraComponentImpl::downsampleLine() {
+    void CameraComponentImpl::downsampleLine(int bufferNum) {
         for(uint32_t x = 0; x < IMAGE_WIDTH/DOWNSAMPLING; x++) {
-            m_imageLineBuffer[x] = m_imageLineBuffer[x*DOWNSAMPLING];
+            m_imageLineBuffer[bufferNum][x] = m_imageLineBuffer[bufferNum][x*DOWNSAMPLING];
         }
     }
   
@@ -215,7 +215,7 @@ namespace CubeRover {
   
     // TODO: Implement dual queue image capture to allow for two threads to downlink an
     // image at once (ie navigation and science photo)
-    void CameraComponentImpl::triggerImageCapture(uint8_t camera, uint16_t callbackId) {
+    void CameraComponentImpl::triggerImageCapture(uint8_t camera, uint16_t callbackId, int bufferNum) {
         uint16_t spiTxCmd = 0xFF;
         spiDAT1_t fpgaDataConfig;
         
@@ -230,24 +230,28 @@ namespace CubeRover {
         
         selectCamera(static_cast<int>(camera));
 
+        /* TODO: MUTEX CRITICAL SECTION START */
         gioSetBit(spiPORT1, 0, 0); // set CS LOW
         spiTransmitData(spiREG1, &fpgaDataConfig, 1, &spiTxCmd);    // send data
         gioSetBit(spiPORT1, 0, 1); // set CS HIGH
         
         tlmWrite_Cam_LatestCallbackId(callbackId);
         while(gioGetBit(gioPORTB, 1));  // Wait until image capture complete FIXME: This could loop forever :(
+        /* MUTEX CRITICAL SECTION END */
         uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
             
         // TODO: Operator should be able to specify DOWNSAMPLING (but for testing smaller images are faster
         for(int i = 0; i < IMAGE_HEIGHT; i+=DOWNSAMPLING) {
 #ifdef __USE_DUMMY_IMAGE__
-            getLineDummyImage(i, m_imageLineBuffer);
+            getLineDummyImage(i, m_imageLineBuffer[bufferNum]);
 #else
-            m_fpgaFlash.readDataFromFlash(&alloc, 0, m_imageLineBuffer, sizeof(m_imageLineBuffer));
+            /* TODO: MUTEX CRITICAL SECTION START */
+            m_fpgaFlash.readDataFromFlash(&alloc, 0, m_imageLineBuffer[bufferNum], sizeof(m_imageLineBuffer[bufferNum])); // TODO: It would be nice to DMA this
+            /* MUTEX CRITICAL SECTION END */
             alloc.startAddress = 6 * PAGE_SIZE * i; // jump to next available block
 #endif
-            downsampleLine();
-            downlinkImage(m_imageLineBuffer, sizeof(m_imageLineBuffer), callbackId, createTime);
+            downsampleLine(bufferNum);
+            downlinkImage(m_imageLineBuffer[bufferNum], sizeof(m_imageLineBuffer[bufferNum]), callbackId, createTime);
         }
         m_imagesSent++;
         tlmWrite_Cam_ImagesSent(m_imagesSent);

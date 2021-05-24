@@ -1,4 +1,4 @@
-<component name="Camera" kind="passive" namespace="CubeRover">
+<component name="Camera" kind="active" namespace="CubeRover">
     <import_port_type>CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAi.xml</import_port_type>
     <import_port_type>CubeRover/CubeRoverPorts/CameraTakePicture/CameraTakePicturePortAi.xml</import_port_type>
 
@@ -54,7 +54,7 @@
                 Get camera status
             </comment>
         </command>
-        <command kind="sync" opcode="0x1" mnemonic="Take_Image">
+        <command kind="async" opcode="0x1" mnemonic="Take_Image">
             <comment>
                 Take an Image
             </comment>

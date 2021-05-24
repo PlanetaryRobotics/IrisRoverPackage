@@ -29,9 +29,6 @@
  * 12-bit: LSB = 0.0008056640625V
  */
 
-/* function definitions in ground_cmd.c */
-void reply_ground_cmd(uint8_t cmdid, uint8_t error_no);
-
 void adc_init() {
     // Set the correct settings for various inputs
     P4SEL0 |= BIT0; // P4.0 Analog input 8 (VCC 2V5)
@@ -73,9 +70,6 @@ void adc_init() {
     while(REFCTL0 & REFGENBUSY); // Wait for internal ref generator to be ready
     REFCTL0 |= REFVSEL_2|REFON;  // choose 2.5V internal reference
     while(!(REFCTL0 & REFGENRDY)); //wait for reference generator to settle
-
-
-
 }
 
 void adc_setup_lander() { // set up adc to read values for lander mode
@@ -102,8 +96,9 @@ void adc_setup_mission() { // set up adc to read values for mission mode (voltag
 
     // set up the ADC for the mission state
     ADC12MCTL0 = ADC12INCH_8 | ADC12VRSEL_1; // A8 = P4.0 stored in MEM0 (Vcc 2.5V)
-    ADC12MCTL1 = ADC12INCH_9 | ADC12VRSEL_1; // A9 = P4.1 stored in MEM1 (Vcc 2.8V)
-    ADC12MCTL2 = ADC12INCH_11 | ADC12VRSEL_1 | ADC12EOS; // A11 = P4.3 stored in MEM2 (Vcc 24V divided down)
+    ADC12MCTL1 = ADC12INCH_12 | ADC12VRSEL_1; // A12 = P3.0 stored in MEM1 (temperature)
+    ADC12MCTL2 = ADC12INCH_9 | ADC12VRSEL_1; // A9 = P4.1 stored in MEM2 (Vcc 2.8V)
+    ADC12MCTL3 = ADC12INCH_11 | ADC12VRSEL_1 | ADC12EOS; // A11 = P4.3 stored in MEM2 (Vcc 24V divided down)
 
     // clear sample ready, if set
     watchdog_flags &= ~WDFLAG_ADC_READY;
@@ -120,7 +115,7 @@ inline void adc_sample() {
     ADC12CTL0 |= ADC12SC | ADC12ENC;
 }
 
-volatile unsigned short adc_values[3] = {0,0,0};
+volatile unsigned short adc_values[4] = {0,0,0,0};
 
 // Interrupt handler for when the ADC has completed a reading
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
@@ -133,9 +128,11 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
 #endif
 {
     switch (__even_in_range(ADC12IV, ADC12IV_ADC12RDYIFG)) {
-    case ADC12IV_ADC12IFG2: // ADC12IE2 interrupt
+    case ADC12IV_ADC12IFG3: // ADC12IE3 interrupt
+        adc_values[3] = ADC12MEM3; // Save MEM3
         adc_values[2] = ADC12MEM2; // Save MEM2
         // fall through to ADC12IE1 to save MEM1 & MEM0 and signal to main loop
+        /* no break */
     case ADC12IV_ADC12IFG1: // ADC12IE1 interrupt
         adc_values[1] = ADC12MEM1; // Save MEM1
         adc_values[0] = ADC12MEM0; // Save MEM0

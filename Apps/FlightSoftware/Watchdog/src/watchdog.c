@@ -17,14 +17,19 @@
 #include "include/bsp.h"
 #include "include/ip_udp.h"
 #include "include/i2c_sensors.h"
+#include "include/ground_cmd.h"
 
-uint8_t handle_watchdog_reset_cmd(uint8_t cmd);
 uint8_t watchdog_opts = 0;
 
 volatile uint16_t watchdog_flags;
 
-// for heater control
-// TODO: make Kp persistent
+// variables for heater control
+#pragma PERSISTENT(Kp_heater)
+#pragma PERSISTENT(PWM_limit)
+#pragma PERSISTENT(heater_setpoint)
+#pragma PERSISTENT(heater_window)
+#pragma PERSISTENT(heater_on_val)
+#pragma PERSISTENT(heater_off_val)
 uint16_t Kp_heater = 500, PWM_limit = 0, heater_setpoint = 3325, heater_window = 60;
 uint16_t heater_on_val = 3670;  // -5 C thermistor voltage ADC reading
 uint16_t heater_off_val = 3352; // 0 C thermistor voltage ADC reading
@@ -69,8 +74,7 @@ int watchdog_monitor() {
         /* radio kick received, all ok! */
         watchdog_flags ^= WDFLAG_RADIO_KICK;
     } else {
-        /* MISSING radio kick! */
-        // TODO: reset radio
+        /* MISSING radio kick! don't bother resetting, though */
     }
 
     /* unreset wifi chip */
@@ -147,6 +151,8 @@ int watchdog_monitor() {
             // reset the hercules
             setHerculesReset();
             watchdog_flags |= WDFLAG_UNRESET_HERCULES;
+            // if the issue was due to a comms breakdown, reset the comms state
+            uart0_rx_mode = UA0_RX_HEADER;
         } else {
             // missed a kick, but don't reset the hercules.
         }
@@ -161,13 +167,12 @@ void watchdog_send_hercules_telem(I2C_Sensors__Readings *i2cReadings) {
     // send the hercules its telemetry
     // Build telemetry packet for Hercules
     unsigned char telbuf[16] = {0};
-    if(rovstate == RS_KEEPALIVE || rovstate == RS_SERVICE){
+    if (rovstate == RS_KEEPALIVE || rovstate == RS_SERVICE) {
         // no power on 2V5, 2V8, battery
         telbuf[6] = (uint8_t)(adc_values[ADC_LANDER_LEVEL_IDX]);
         telbuf[7] = (uint8_t)(adc_values[ADC_LANDER_LEVEL_IDX] >> 8);
         telbuf[8] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
-        //telbuf[9] = (unit8_t)( sys_status (??) )
-    } else if (rovstate == RS_MISSION){
+    } else if (rovstate == RS_MISSION) {
         telbuf[0] = (uint8_t)(adc_values[ADC_2V5_LEVEL_IDX]);
         telbuf[1] = (uint8_t)(adc_values[ADC_2V5_LEVEL_IDX] >> 8);
         telbuf[2] = (uint8_t)(adc_values[ADC_2V8_LEVEL_IDX]);
@@ -175,15 +180,14 @@ void watchdog_send_hercules_telem(I2C_Sensors__Readings *i2cReadings) {
         telbuf[4] = (uint8_t)(adc_values[ADC_BATT_LEVEL_IDX]);
         telbuf[5] = (uint8_t)(adc_values[ADC_BATT_LEVEL_IDX] >> 8);
         // [6,7] won't be able to read lander power in mission mode
-        // [8] currently don't read battery temp in mission mode
-        //telbuf[9] = (unit8_t)( sys_status (??) )
+        telbuf[8] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
+        telbuf[9] = hasDeployed;
         telbuf[10] = (uint8_t)(i2cReadings->raw_battery_charge[0]);
         telbuf[11] = (uint8_t)(i2cReadings->raw_battery_charge[1]);
         telbuf[12] = (uint8_t)(i2cReadings->raw_battery_current[0]);
         telbuf[13] = (uint8_t)(i2cReadings->raw_battery_current[1]);
         telbuf[14] = (uint8_t)(i2cReadings->raw_battery_voltage[0]);
         telbuf[15] = (uint8_t)(i2cReadings->raw_battery_voltage[1]);
-//                telbuf[9] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
     }
     uart0_tx_nonblocking(16, telbuf);
 }
@@ -279,7 +283,6 @@ void heaterControl(){
 }
 
 
-// TODO: put ISR for things here
 /*
  * Pins that need an ISR:
  *
@@ -292,8 +295,6 @@ void heaterControl(){
  * Kicks:
  * - P1.0 is Radio Kick
  * - P1.3 is Watchdog Int (Kick?)
- * - P3.5 is FPGA Kick
- *
  *
  * Things that might want an ISR:
  * - Watchdog timer itself

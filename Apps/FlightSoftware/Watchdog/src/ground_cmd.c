@@ -14,12 +14,7 @@
 #include "include/adc.h"
 #include "include/flags.h"
 #include "include/i2c_sensors.h"
-
-extern uint8_t heatingControlEnabled, heaterStatus; // from heater controller
-extern uint16_t Kp_heater, heater_setpoint, heater_window, PWM_limit, heater_on_val, heater_off_val;
-extern uint8_t watchdog_opts;
-
-void enterMode(enum rover_state newstate);
+#include "include/watchdog.h"
 
 /**
  * Handle watchdog reset-specific hardware commands
@@ -433,43 +428,39 @@ void send_earth_heartbeat(I2C_Sensors__Readings *i2cReadings) {
         send_buf[2] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 8);
 
         // send adc value temperature
-        send_buf[3] = (uint8_t)(raw_battery_charge[0]);
-        send_buf[4] = (uint8_t)(raw_battery_charge[1]);
+        send_buf[3] = (uint8_t)(i2cReadings->raw_battery_charge[0]);
+        send_buf[4] = (uint8_t)(i2cReadings->raw_battery_charge[1]);
 
         // send adc value temperature
-        send_buf[5] = (uint8_t)(raw_battery_voltage[0]);
-        send_buf[6] = (uint8_t)(raw_battery_voltage[1]);
+        send_buf[5] = (uint8_t)(i2cReadings->raw_battery_voltage[0]);
+        send_buf[6] = (uint8_t)(i2cReadings->raw_battery_voltage[1]);
 
         // send adc value temperature
-        send_buf[7] = (uint8_t)(raw_battery_current[0]);
-        send_buf[8] = (uint8_t)(raw_battery_current[1]);
+        send_buf[7] = (uint8_t)(i2cReadings->raw_battery_current[0]);
+        send_buf[8] = (uint8_t)(i2cReadings->raw_battery_current[1]);
 
         // send adc value temperature
-        send_buf[9] = (uint8_t)(raw_fuel_gauge_temp[0]);
-        send_buf[10] = (uint8_t)(raw_fuel_gauge_temp[1]);
+        send_buf[9] = (uint8_t)(i2cReadings->raw_fuel_gauge_temp[0]);
+        send_buf[10] = (uint8_t)(i2cReadings->raw_fuel_gauge_temp[1]);
 
-        // send ASDF
+        // send heater info Kp
         send_buf[11] = (uint8_t)(Kp_heater);
         send_buf[12] = (uint8_t)(Kp_heater >> 8);
 
-        // send ASDF
+        // send heater info setpoint
         send_buf[13] = (uint8_t)(heater_setpoint);
         send_buf[14] = (uint8_t)(heater_setpoint >> 8);
 
-        // send ASDF
+        // send heater info window ?
         send_buf[15] = (uint8_t)(heater_window);
         send_buf[16] = (uint8_t)(heater_window >> 8);
 
-        // send ASDF
+        // send ??
         send_buf[17] = (uint8_t)(PWM_limit);
         send_buf[18] = (uint8_t)(PWM_limit >> 8);
 
-        // send ASDF
-
-        // send the current heating status
+        // send the current rover state
         send_buf[19] = 0;
-        send_buf[20] = heaterStatus;
-        send_buf[21] = heatingControlEnabled;
         switch (rovstate) {
         case RS_SLEEP:
             send_buf[19] |= 0x02;
@@ -488,27 +479,41 @@ void send_earth_heartbeat(I2C_Sensors__Readings *i2cReadings) {
             break;
         }
 
-        // send ASDF
+        // send the current heating status
+        send_buf[20] = heaterStatus;
+        send_buf[21] = heatingControlEnabled;
+
+        // send ??
         send_buf[22] = (uint8_t)(TB0CCR2);
         send_buf[23] = (uint8_t)(TB0CCR2 >> 8);
 
+        // send the current deploy state
+        send_buf[24] = hasDeployed;
+
         // send the packet!
-        ipudp_send_packet(send_buf, 24); // @suppress("Invalid arguments")
+        ipudp_send_packet(send_buf, 24);
     } else if (rovstate == RS_KEEPALIVE) {
-      ////  Flight-spec heartbeats
-      send_buf[1] = (uint8_t)(i2cReadings->batt_charge_telem << 1);
-      // send heater on status
-      send_buf[1] |= heaterStatus & 0x1;
-      // battery current
-      send_buf[2] = (uint8_t)(i2cReadings->batt_curr_telem << 1);
-      // send voltage nominal status (1=good, 0=too low)
-      // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
-      send_buf[2] |= (i2cReadings->raw_battery_voltage[0] > 0x3B); // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
+        ////  Flight-spec heartbeats
+        if ((counter % 3) != 2) {
+            /* only send every 3 timer ticks (15s) */
+            counter++;
+            return;
+        }
+        counter = 0;
 
-      // send the thermistor temperature (12 bits to 8 bits)
-      send_buf[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
+        send_buf[1] = (uint8_t)(i2cReadings->batt_charge_telem << 1);
+        // send heater on status
+        send_buf[1] |= heaterStatus & 0x1;
+        // battery current
+        send_buf[2] = (uint8_t)(i2cReadings->batt_curr_telem << 1);
+        // send voltage nominal status (1=good, 0=too low)
+        // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
+        send_buf[2] |= (i2cReadings->raw_battery_voltage[0] > 0x3B); // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
 
-      // send the packet!
-      ipudp_send_packet(send_buf, 4); // @suppress("Invalid arguments")
+        // send the thermistor temperature (12 bits to 8 bits)
+        send_buf[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
+
+        // send the packet!
+        ipudp_send_packet(send_buf, 4);
     }
 }

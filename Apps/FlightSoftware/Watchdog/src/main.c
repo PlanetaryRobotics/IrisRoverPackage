@@ -10,6 +10,7 @@
 #include "include/ip_udp.h"
 #include "include/watchdog.h"
 #include "include/i2c_sensors.h"
+#include "include/ground_cmd.h"
 
 
 /* define all of the buffers used in other files */
@@ -20,27 +21,16 @@ extern uint8_t heating;
 uint8_t lastHeater = 0;
 uint8_t heatingControlEnabled = 1;
 
-// @suppress("Invalid arguments")
-
-/* function definitions in ground_cmd.c */
-void parse_ground_cmd(struct buffer *pp);
-void send_earth_heartbeat(I2C_Sensors__Readings *i2cReadings);
-
 /**
  * main.c
  */
-//TODO: commented out for firing test; update to only keep MISSION after deployment
-//#pragma PERSISTENT(rovstate)
-//TODO: should be RS_KEEPALIVE
-enum rover_state rovstate = RS_MISSION; // RAEWYN CHANGE DEFAULT STATE HERE
-
-void uart1_disable();
-void uart0_init();
+#pragma PERSISTENT(rovstate)
+enum rover_state rovstate = RS_KEEPALIVE;
 
 void enterMode(enum rover_state newstate) {
     switch (newstate) {
     case RS_SLEEP:
-        /* fallthrough to keepalive */
+        /* sleep mode is basically the same thing as keep alive */
     case RS_SERVICE:
         /* service is same as keep alive */
         /* service mode is a temporary step transition to mission mode */
@@ -143,12 +133,8 @@ int main(void) {
     /* enter keepalive mode */
     enterMode(rovstate);
 
-    // TODO: camera switch is for debugging only
-    fpgaCameraSelectHi();
-
     __bis_SR_register(GIE); // Enable all interrupts
 
-    // TODO: debug
     ipudp_send_packet("hello, world!\r\n", 15); // @suppress("Invalid arguments")
 
     I2C_Sensors__Readings i2cReadings = { 0 }; // will hold i2c data
@@ -186,11 +172,6 @@ int main(void) {
             UCA1IE |= UCRXIE;
             /* parse the packet */
         }
-        if (loop_flags & FLAG_I2C_RX_PACKET) {
-            /* TODO: handle event for power system message */
-            /* clear event when done */
-            loop_flags ^= FLAG_I2C_RX_PACKET;
-        }
         if (loop_flags & FLAG_TIMER_TICK) {
             /* handle event for heartbeat */
             /* always sample the ADC for temperature and voltage levels */
@@ -209,12 +190,6 @@ int main(void) {
                 break;
             case RS_MISSION:
                 /* check for kicks from devices and reset misbehaving things */
-                // Initiate gauge readings here, the rest of the actions to do in this state every state
-                // will be done after gauge readings complete, which is monitored in the
-                // FLAG_I2C_GAUGE_READING_ACTIVE loop_flags block below.
-                I2C_Sensors__initiateGaugeReadings();
-                loop_flags |= FLAG_I2C_GAUGE_READING_ACTIVE;
-
                 send_earth_heartbeat(&i2cReadings);
                 watchdog_monitor();
                 break;
@@ -222,6 +197,12 @@ int main(void) {
                 /* sad :( */
                 break;
             }
+
+            // Initiate gauge readings here, the rest of the actions to do in this state every state
+            // will be done after gauge readings complete, which is monitored in the
+            // FLAG_I2C_GAUGE_READING_ACTIVE loop_flags block below.
+            I2C_Sensors__initiateGaugeReadings();
+            loop_flags |= FLAG_I2C_GAUGE_READING_ACTIVE;
 
             /* clear event when done */
             loop_flags ^= FLAG_TIMER_TICK;
@@ -235,10 +216,6 @@ int main(void) {
             int done = (I2C_SENSORS__STATUS__INCOMPLETE != stat);
 
             if (done) {
-                /* check for kicks from devices and reset misbehaving things */
-                send_earth_heartbeat(&i2cReadings);
-                watchdog_monitor();
-
                 loop_flags ^= FLAG_I2C_GAUGE_READING_ACTIVE;
             }
         }

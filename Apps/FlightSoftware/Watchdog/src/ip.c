@@ -3,6 +3,7 @@
 #include "include/ip_udp.h"
 #include "include/buffer.h"
 #include "include/uart.h"
+#include "include/cfg.h"
 
 /* note - msp430 is little endian; networks are big endian */
 
@@ -100,7 +101,13 @@ uint16_t ip_verify_packet(uint8_t *packet, uint16_t packet_len) {
         return 3;
     }
 
-    /* TODO: double-check the ip addresses are correct */
+    /* double-check the ip addresses are correct */
+    if (header->source != LANDER_ADDRESS) {
+        return 4;
+    }
+    if (header->dest != SPACECRAFT_ADDRESS) {
+        return 5;
+    }
 
     /* verify the checksum */
     word_stor = ip_checksum(packet, sizeof(struct ip_hdr));
@@ -186,12 +193,9 @@ void ipudp_send_packet(uint8_t *data, uint16_t data_len) {
     ip_hdr->proto = 0x11;
     // checksum is 0 for now
     ip_hdr->iphdr_checksum = 0;
-    // SLIP configuration payload address
-    // 192.168.103.2 => 0xC0A86702 => big endian'd
-    ip_hdr->source = 0x0267A8C0;
-    // SLIP configuration spacecraft address
-    // 192.168.103.1 => 0xC0A86701 => big endian'd
-    ip_hdr->dest = 0x0167A8C0;
+    // addresses
+    ip_hdr->source = LANDER_ADDRESS;
+    ip_hdr->dest = SPACECRAFT_ADDRESS;
     // compute checksum
     chksm = ip_checksum(ipudp_tx_buf, sizeof(struct ip_hdr));
     ip_hdr->iphdr_checksum = htons(chksm);
@@ -223,12 +227,37 @@ void ipudp_send_packet(uint8_t *data, uint16_t data_len) {
  * @return Pointer to the start of the payload
  */
 uint8_t *ipudp_parse_packet(struct buffer *buf, uint16_t *pp_len) {
+    struct ip_hdr *ip_hdr;
+    struct udp_hdr *udp_hdr;
     uint16_t n;
+#if 0
     if (!ip_verify_packet(buf->buf, buf->used)) {
-        /* TODO: for debugging purposes right now, we ignore erroneous cases where the checksum is wrong */
+        /* too small */
+        return (void *)0;
+    }
+    uint16_t word_stor;
+
+    /* check the size is at least minimally correct */
+    if (packet_len < sizeof(struct ip_hdr)) {
+        /* bad size */
+        return 1;
     }
 
-    /* TODO: proper checking of stuff here ... */
+    /* check header version/length is right */
+    if (*packet != 0x45) {
+        /* either wrong version or wrong packet size (additional options are not
+         * supported in this implementation) */
+        return 2;
+    }
+
+    /* safe to cast now */
+    ip_hdr = (struct ip_hdr *)(buf->buf);
+    udp_hdr = (struct udp_hdr *)(ip_hdr + 1);
+
+    /* check that the lengths are correct */
+    if (header-> == )
+#endif
+
     n = sizeof(struct ip_hdr) + sizeof(struct udp_hdr);
     if (buf->used < n) {
         /* too small */
@@ -236,62 +265,10 @@ uint8_t *ipudp_parse_packet(struct buffer *buf, uint16_t *pp_len) {
     }
 
     if (pp_len) *pp_len = buf->used - n;
+
     // TODO: check that pp_len is equal to the reported packet length in IP/UDP
     // TODO: this will currently die if we get more than one packet from SLIP. oops.
 
     /* skip past the ip and udp headers, and we're left with the payload! */
     return buf->buf + n;
 }
-
-/* to compile: gcc ip_udp.c -Wall -Wxtra -Werror -D__TEST_IP_UDP -o test_ip_udp */
-#ifdef __TEST_IP_UDP
-#include <stdio.h>
-#include <assert.h>
-
-int main() {
-    uint8_t goog_query_bytes[] = {
-        0x45, 0x00,
-        0x00, 0x38, 0x00, 0x00, 0x40, 0x00, 0x40, 0x11,
-        0x65, 0x47, 0xc0, 0xa8, 0xaa, 0x08, 0xc0, 0xa8,
-        0xaa, 0x14, 0x80, 0x1b, 0x00, 0x35, 0x00, 0x24,
-        0x85, 0xed, 0x10, 0x32, 0x01, 0x00, 0x00, 0x01,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x67,
-        0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x03, 0x63, 0x6f,
-        0x6d, 0x00, 0x00, 0x10, 0x00, 0x01
-    };
-    uint8_t example_query_bytes[] = {
-        0x45, 0x00,
-        0x00, 0x44, 0xc4, 0x16, 0x00, 0x00, 0x40, 0x11,
-        0x00, 0x00, 0xc0, 0xa8, 0x01, 0x9d, 0x01, 0x01,
-        0x01, 0x01, 0xcd, 0xab, 0x00, 0x35, 0x00, 0x30,
-        0x20, 0x60, 0x6d, 0x4e, 0x01, 0x20, 0x00, 0x01,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x07, 0x65,
-        0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x03, 0x63,
-        0x6f, 0x6d, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00,
-        0x00, 0x29, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00
-    };
-    uint16_t my_checksum;
-
-    printf("sizeof(ip_hdr) = %lu, ", sizeof(struct ip_hdr));
-    printf("sizeof(ip_pseudohdr) = %lu, ", sizeof(struct ip_pseudohdr));
-    printf("sizeof(udp_hdr) = %lu, ", sizeof(struct udp_hdr));
-    printf("sizeof(checksum_udp_pckt) = %lu, ", sizeof(struct checksum_udp_pckt));
-    printf("sizeof(ip_udp_pckt) = %lu\n", sizeof(struct ip_udp_pckt));
-
-    assert(sizeof(example_query_bytes) == 68);
-    my_checksum = ip_verify_packet(example_query_bytes, sizeof(example_query_bytes));
-    assert(0xf24b == my_checksum);
-
-    assert(sizeof(goog_query_bytes) == 56);
-    my_checksum = ip_verify_packet(goog_query_bytes, sizeof(goog_query_bytes));
-    assert(0x0 == my_checksum);
-
-    return 0;
-}
-
-#endif
-
-
-
-

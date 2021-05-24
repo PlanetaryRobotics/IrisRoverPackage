@@ -1,7 +1,7 @@
 #include "include/bsp.h"
 
-//TODO: uncomment to program MC
-#define PROGRAM_MOTOR_CONTROLLERS
+// uncomment to program MC
+//#define PROGRAM_MOTOR_CONTROLLERS
 
 uint8_t heaterStatus;
 uint8_t hasDeployed;
@@ -57,7 +57,7 @@ void initializeGpios(){
   P4DIR |= BIT6; // P4.6 output 24V0 enable
   P4DIR &= ~BIT7; // P4.7 input power good input (5V0)
 
-  //Analog input configuration done in adc_init()
+  // Analog input configuration done in adc_init()
 
   // PJ configuration
   PJOUT &= ~(BIT0 | BIT1 | BIT2 | BIT3 | BIT4 | BIT5); // Initially everything is off

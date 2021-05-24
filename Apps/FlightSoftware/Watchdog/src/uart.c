@@ -56,7 +56,6 @@ void __attribute__ ((interrupt(EUSCI_A0_VECTOR))) USCI_A0_ISR (void) {
         rcv = UCA0RXBUF;
 
         /* check what mode we're in */
-        // TODO: need a check to ensure we don't get stuck in UA0_RX_PROCESS_UDP forever
         if (uart0_rx_mode == UA0_RX_HEADER) {
             uart0_rx_header[7] = rcv;
             /* verify valid header w/ magic value and parity */
@@ -91,7 +90,6 @@ void __attribute__ ((interrupt(EUSCI_A0_VECTOR))) USCI_A0_ISR (void) {
 
             if (uart0rx.idx >= BUFFER_SIZE) uart0rx.idx -= BUFFER_SIZE;
         } else {
-            // TODO: need a check to ensure we don't get stuck in UA0_RX_PROCESS_UDP forever
             /* drop the byte */
         }
 
@@ -126,8 +124,6 @@ void __attribute__ ((interrupt(EUSCI_A1_VECTOR))) USCI_A1_ISR (void) {
 #endif
 
     unsigned char rcv;
-
-    // TODO: buffer wraparound seems weird right now.
 
     /* two possibilities; rx or tx */
     switch(__even_in_range(UCA1IV, USCI_UART_UCTXCPTIFG)) {

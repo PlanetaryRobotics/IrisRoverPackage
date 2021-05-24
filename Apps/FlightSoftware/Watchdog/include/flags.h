@@ -9,7 +9,6 @@
 
 #define FLAG_UART0_RX_PACKET 0x1
 #define FLAG_UART1_RX_PACKET 0x2
-#define FLAG_I2C_RX_PACKET   0x4
 #define FLAG_TIMER_TICK      0x8
 #define FLAG_TEMP_LOW        0x10
 #define FLAG_TEMP_HIGH       0x20
@@ -46,5 +45,8 @@ enum rover_state {
     RS_FAULT // oops
 };
 extern enum rover_state rovstate;
+
+// enter a rover state
+void enterMode(enum rover_state newstate);
 
 #endif /* __FLAGS_INC */

@@ -209,22 +209,25 @@ watchdog_command_response: Module = Module(
                          comment="Command processed correctly."
                          ),
                 EnumItem('BAD_PACKET_LENGTH', 0x01,
-                         comment="Given packet length doesn't match the actual length of the data."
+                         comment="Given packet length doesn't match the actual length of the data. Note: associated reply command ID may be wrong."
                          ),
                 EnumItem('CHECKSUM_FAILED', 0x02,
-                         comment="Checksum of data doesn't match given checksum. Possible packet corruption."
+                         comment="Checksum of data doesn't match given checksum. Possible packet corruption. Note: associated reply command ID may be wrong."
                          ),
                 EnumItem('BAD_MODULE_ID', 0x03,
-                         comment="Incorrect Module ID received (not the watchdog ID)."
+                         comment="Incorrect Module ID received (not the watchdog ID). Note: associated reply command ID may be wrong."
                          ),
                 EnumItem('BAD_COMMAND_ID', 0x04,
-                         comment="Command ID received doesn't match any known command."
+                         comment="Command ID received doesn't match any known command. Note: associated reply command ID may be wrong."
                          ),
                 EnumItem('BAD_COMMAND_PARAMETER', 0x05,
                          comment="Command parameter (argument) isn't formatted correctly or doesn't match an expected value (in the case of magic confirmation values)."
                          ),
                 EnumItem('BAD_COMMAND_SEND_ORDER', 0x06,
                          comment="Command received in the wrong order (e.g. `Deploy` received before `Prepare for Deploy`)."
+                         ),
+                EnumItem('DEPLOYMENT_SIGNAL_SENT', 0x96,
+                         comment="WatchDog Deployment Interlock Released. (Watchdog HDRM pin is high)."
                          )
             ]
         ),

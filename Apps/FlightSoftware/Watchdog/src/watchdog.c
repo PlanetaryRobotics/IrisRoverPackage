@@ -19,6 +19,7 @@
 #include "include/i2c_sensors.h"
 
 uint8_t handle_watchdog_reset_cmd(uint8_t cmd);
+uint8_t watchdog_opts = 0;
 
 volatile uint16_t watchdog_flags;
 
@@ -142,8 +143,13 @@ int watchdog_monitor() {
     if (watchdog_flags & WDFLAG_HERCULES_KICK) {
         watchdog_flags ^= WDFLAG_HERCULES_KICK;
     } else {
-        //
-        __delay_cycles(100);
+        if (watchdog_opts & WDOPT_MONITOR_HERCULES) {
+            // reset the hercules
+            setHerculesReset();
+            watchdog_flags |= WDFLAG_UNRESET_HERCULES;
+        } else {
+            // missed a kick, but don't reset the hercules.
+        }
     }
 
     /* re-enable interrupts */

@@ -17,6 +17,7 @@
 
 extern uint8_t heatingControlEnabled, heaterStatus; // from heater controller
 extern uint16_t Kp_heater, heater_setpoint, heater_window, PWM_limit, heater_on_val, heater_off_val;
+extern uint8_t watchdog_opts;
 
 void enterMode(enum rover_state newstate);
 
@@ -171,6 +172,22 @@ uint8_t handle_watchdog_reset_cmd(uint8_t cmd) {
         heatingControlEnabled = 0;
         TB0CCR2 = 0;
         break;
+    /* 0x21: enable hercules monitoring */
+    case 0x21:
+        watchdog_opts |= WDFLAG_UNRESET_HERCULES;
+        break;
+    /* 0x22: disable hercules monitoring */
+    case 0x22:
+        watchdog_opts &= ~WDFLAG_UNRESET_HERCULES;
+        break;
+    /* 0x23: enable batteries */
+    case 0x23:
+        disableBatteries();
+        break;
+    /* 0x24: disable batteries */
+    case 0x24:
+        enableBatteries();
+        break;
     default:
         /* invalid command */
         return 0xff;
@@ -250,14 +267,11 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
         enterMode(RS_MISSION);
         break;
     case 0x02:
-        //TODO: disengage from lander (deploy) - watchdog only
+        //  disengage from lander (deploy) - watchdog only
         setDeploy();
         reply_ground_cmd(0, GNDRESP_DEPLOY);
         break;
-    case 0x03:
-        break;//TODO: switch connection mode
-    case 0x04: //TODO: un-disengage from lander (un-deploy)
-        unsetDeploy();
+    case 0x04:
         break;
     case 0xAA:
         /* set thermistor Kp (little endian) */
@@ -278,11 +292,6 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
     case 0xAE:
         /* Set Heater Duty Cycle Period */
         TB0CCR0 = buf[3] << 8 | buf[2];
-        break;
-    case 0xAF:
-        /* set heater window */
-        // [DEPCRECATED]
-//        heater_window = buf[3] << 8 | buf[2];
         break;
     case 0xDA:
         /* set thermistor V setpoint */

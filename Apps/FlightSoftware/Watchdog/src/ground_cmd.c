@@ -240,7 +240,7 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
     }
     if (buf[1] != 0x10) {
         /* module ID invalid */
-        reply_ground_cmd(0, GNDRESP_EMODID);
+        reply_ground_cmd(buf[0], GNDRESP_EMODID);
         return;
     }
     switch (buf[0]) {
@@ -248,7 +248,7 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
         /* watchdog system reset commands */
         if (handle_watchdog_reset_cmd(buf[2])) {
             /* invalid argument */
-            reply_ground_cmd(0, GNDRESP_ECMDPARAM);
+            reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
             return;
         }
         break;
@@ -256,11 +256,11 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
         /* power on all systems */
         if (buf[2] != 0x60) {
             /* magic bad */
-            reply_ground_cmd(0, GNDRESP_ECMDPARAM);
+            reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
             return;
         } else if (rovstate != RS_SERVICE) {
             /* not in the right state to transition to mission mode */
-            reply_ground_cmd(0, GNDRESP_ECMDSEQ);
+            reply_ground_cmd(buf[0], GNDRESP_ECMDSEQ);
             return;
         }
         /* all checks pass, enter mission mode */
@@ -269,9 +269,7 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
     case 0x02:
         //  disengage from lander (deploy) - watchdog only
         setDeploy();
-        reply_ground_cmd(0, GNDRESP_DEPLOY);
-        break;
-    case 0x04:
+        reply_ground_cmd(buf[0], GNDRESP_DEPLOY);
         break;
     case 0xAA:
         /* set thermistor Kp (little endian) */
@@ -301,11 +299,11 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
         /* Enter sleep mode */
         if (buf[2] != 0x77) {
             /* magic bad */
-            reply_ground_cmd(0, GNDRESP_ECMDPARAM);
+            reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
             return;
         } else if (rovstate != RS_KEEPALIVE) {
             /* not in the right state to transition to mission mode */
-            reply_ground_cmd(0, GNDRESP_ECMDSEQ);
+            reply_ground_cmd(buf[0], GNDRESP_ECMDSEQ);
             return;
         }
         /* all checks pass, enter sleep mode */
@@ -315,11 +313,11 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
         /* Enter keepalive mode */
         if (buf[2] != 0x77) {
             /* magic bad */
-            reply_ground_cmd(0, GNDRESP_ECMDPARAM);
+            reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
             return;
         } else if (rovstate != RS_SLEEP || rovstate != RS_SERVICE) {
             /* not in the right state to transition to keepalive mode */
-            reply_ground_cmd(0, GNDRESP_ECMDSEQ);
+            reply_ground_cmd(buf[0], GNDRESP_ECMDSEQ);
             return;
         }
         /* all checks pass, enter keepalive mode */
@@ -329,7 +327,7 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
         /* Enter service mode */
         if (buf[2] != 0x77) {
             /* magic bad */
-            reply_ground_cmd(0, GNDRESP_ECMDPARAM);
+            reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
             return;
         } else if (rovstate == RS_KEEPALIVE) {
             /* all checks pass, enter service mode */
@@ -345,13 +343,14 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len) {
         }
 
         /* not in the right state to transition to service mode */
-        reply_ground_cmd(0, GNDRESP_ECMDSEQ);
+        reply_ground_cmd(buf[0], GNDRESP_ECMDSEQ);
         return;
     default:
         /* invalid command */
         reply_ground_cmd(buf[0], GNDRESP_ECMDID);
         return;
     }
+
     // command successful
     reply_ground_cmd(buf[0], GNDRESP_ENONE);
 }
@@ -414,7 +413,6 @@ void parse_ground_cmd(struct buffer *pp) {
     }
 
     /* done parsing */
-    // TODO: multiple packets? handle.
     pp->used = 0;
     pp->idx = 0;
 }

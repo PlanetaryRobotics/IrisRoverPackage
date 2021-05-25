@@ -20,6 +20,8 @@
 #include "spi.h"
 #include "lin.h"
 
+#include "Camera_Bitfields.hpp"
+
 namespace CubeRover {
 
   // ----------------------------------------------------------------------
@@ -119,9 +121,10 @@ namespace CubeRover {
     Configure_Camera0_cmdHandler(
         const FwOpcodeType opCode,
         const U32 cmdSeq,
-        U64 config
+        U64 _config
     )
   {
+    struct *ConfigureCamera config = &_config;
     // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
@@ -133,6 +136,7 @@ namespace CubeRover {
         U64 config
     )
   {
+    struct *ImageCrop config = &config;
     // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
@@ -141,9 +145,10 @@ namespace CubeRover {
     Configure_Camera1_cmdHandler(
         const FwOpcodeType opCode,
         const U32 cmdSeq,
-        U64 config
+        U64 _config
     )
   {
+    struct *ConfigureCamera config = &_config;
     // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
@@ -155,6 +160,7 @@ namespace CubeRover {
         U64 config
     )
   {
+    struct *ImageCrop config = &config;
     // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }

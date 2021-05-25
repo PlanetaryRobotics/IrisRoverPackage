@@ -115,9 +115,9 @@ namespace CubeRover {
             
         void downlinkFileMetadata(uint16_t hashedId, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms);
         uint16_t hashTime(uint32_t time);   // Used for files to get unique Id for parallel downlinks
-        void downlinkBufferWrite(void *_data, uint16_t size, downlinkPacketType from);
+        void downlinkBufferWrite(const void *_data, uint16_t size, downlinkPacketType from);
         void flushTlmDownlinkBuffer();
-        void downlink(void *_data, uint16_t size);
+        void GroundInterfaceComponentImpl::downlink(struct FswPacket::FswPacket *data, FswPacket::Length_t size);
         void updateTelemetry();
       
         FswPacket::Seq_t  m_uplinkSeq, m_downlinkSeq;       // TLM0, TLM1
@@ -128,7 +128,6 @@ namespace CubeRover {
                  m_appBytesReceived, m_appBytesDownlinked;  // TLM11, TLM 12
         
         uint8_t m_tlmDownlinkBuffer[WF121_UDP_MAX_PAYLOAD];
-        uint8_t m_fileDownlinkBuffer[NUM_APPS_USE_FILE_DOWNLINK][WF121_UDP_MAX_PAYLOAD];
         uint8_t *m_tlmDownlinkBufferPos;
         uint16_t m_downlink_objects_size;           // Maximum usable buffer space for the current network interface
         uint16_t m_tlmDownlinkBufferSpaceAvailable;

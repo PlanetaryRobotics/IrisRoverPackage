@@ -39,6 +39,7 @@
             
         <port name="appDownlink" data_type="CubeRover::FileDownlink"  kind="guarded_input"    max_number="2">
             <comment>
+                ~!!!~ This port type has API requirements that MUST be met. Please see the comment in fprime/CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAi.xml ~!!!~
                 Other application components request a buffer to hand off a downlinked packet to be downlinked.
                 0: Camera   1: UWB
             </comment>

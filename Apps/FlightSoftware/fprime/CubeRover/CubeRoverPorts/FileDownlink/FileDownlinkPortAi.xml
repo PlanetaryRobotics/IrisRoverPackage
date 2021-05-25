@@ -13,7 +13,16 @@
             <comment>Metadata Field: Time the file was created in ms epoch</comment>
         </arg>
         <arg name="fwBuffer" type="Fw::Buffer" pass_by="reference">
-            <comment>Buffer containing the data</comment>
+            <comment>
+                ~!!!~ This port imposes the requirement that:
+                    - The buffer object points to memory where at most 40 bytes prior to the pointer be available for use by this method
+                        - The data pointer still points to the data stored in the buffer
+                        - The data length still indicates the size of the data stored in the buffer
+                        - The contents of the 40byte offset need not be formatted
+                    - The buffer can be clobbered by this method
+                ~!!!~
+                Buffer containing the data
+            </comment>
         </arg>
     </args>
 

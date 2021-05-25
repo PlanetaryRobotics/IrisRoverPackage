@@ -107,6 +107,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     // TODO
   }
 
+/* ~!!!~ This port type has API requirements that MUST be met. Please see the comment in fprime/CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAi.xml ~!!!~ */
   void GroundInterfaceComponentImpl ::
     appDownlink_handler(
         const NATIVE_INT_TYPE portNum,
@@ -115,6 +116,8 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         Fw::Buffer &fwBuffer
     )
   {
+    /* ~!!!~ This port type has API requirements that MUST be met. Please see the comment in fprime/CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAi.xml ~!!!~ */
+    // FW_ASSERT(sizeof(struct FswPacket::FswFileHeader) <= 40);     // 40 is API requirement see above
     uint8_t *data = reinterpret_cast<uint8_t *>(fwBuffer.getdata());
     U32 dataSize = fwBuffer.getsize();
     U32 singleFileObjectSize = dataSize + sizeof(struct FswPacket::FswFileHeader);
@@ -124,16 +127,14 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     // FW_ASSERT(_txStart.getTimeBase() != TB_NONE);   // Assert time port is connected
     uint32_t txStart = static_cast<uint32_t>(_txStart.get_time_ms());
     uint16_t hashedId = hashTime(txStart);
-    uint8_t *downlinkBuffer = m_fileDownlinkBuffer[portNum];
     if (singleFileObjectSize <= m_downlink_objects_size) {
-        struct FswPacket::FswFile *obj = reinterpret_cast<struct FswPacket::FswFile *>(downlinkBuffer);
+        struct FswPacket::FswFile *obj = reinterpret_cast<struct FswPacket::FswFile *>(data - sizeof(struct FswPacket::FswFileHeader));  // ~!!!~ UNCHECKED MEMORY ACCESS. SEE API REQUIREMENT IN ABOVE COMMENT. CODE REVIEW ALL ACCESS TO THIS METHOD ~!!!~
         obj->header.magic = FSW_FILE_MAGIC;
         obj->header.totalBlocks = 1;
         obj->header.blockNumber = 1;
         obj->header.length = static_cast<FswPacket::FileLength_t>(dataSize);
-        memcpy(&obj->file.byte0, data, dataSize);
         downlinkFileMetadata(hashedId, 1, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(createTime));
-        downlinkBufferWrite(downlinkBuffer, static_cast<FswPacket::Length_t>(singleFileObjectSize), DownlinkFile);
+        downlinkBufferWrite(obj, static_cast<FswPacket::Length_t>(singleFileObjectSize), DownlinkFile);
         m_appBytesDownlinked += singleFileObjectSize;
     } else {    // Send file fragments
         // TESTING don't intersperse telemetry or logs with file!!! flushTlmDownlinkBuffer();  // Flush first to get new seq
@@ -143,8 +144,8 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         downlinkFileMetadata(hashedId, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(createTime));
         flushTlmDownlinkBuffer();   // TESTING!! DOWNLINK METADATA PRIOR TO FILE DOWNLINK
         int readStride = static_cast<int>(dataSize) / numBlocks;
-        struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket*>(downlinkBuffer);
         for (int blockNum = 1; blockNum <= numBlocks; ++blockNum) {
+            struct FswPacket::FswPacket *packet = static_cast<struct FswPacket::FswPacket *>(data - sizeof(struct FswPacket::FswPacketHeader) - sizeof(struct FswPacket::FswFileHeader));   // ~!!!~ UNCHECKED MEMORY ACCESS. SEE API REQUIREMENT IN ABOVE COMMENT. CODE REVIEW ALL ACCESS TO THIS METHOD ~!!!~
             packet->payload0.file.header.magic = FSW_FILE_MAGIC;
             packet->payload0.file.header.hashedId = hashedId;
             packet->payload0.file.header.totalBlocks = numBlocks;
@@ -154,19 +155,17 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
                 blockLength = readStride;
                 dataSize -= blockLength;
                 packet->payload0.file.header.length = blockLength;
-                memcpy(&packet->payload0.file.file.byte0, data, blockLength);
                 FswPacket::Length_t datagramLength = sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + blockLength;
-                log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
-                downlink(downlinkBuffer, datagramLength);
+                downlink(packet, datagramLength);
                 data += blockLength;
             } else {        // Final Fragment is written to the member buffer to downlink with other objects
                 FW_ASSERT(dataSize > 0);
                 blockLength = static_cast<FswPacket::FileLength_t>(dataSize);
                 packet->payload0.file.header.length = blockLength;
-                memcpy(&packet->payload0.file.file.byte0, data, blockLength);
                 downlinkBufferWrite(&packet->payload0.file, sizeof(struct FswPacket::FswFileHeader) + blockLength, DownlinkFile);
                 flushTlmDownlinkBuffer();   // TESTING!! DOWNLINK FINAL BLOCK WITHOUT INTERRUPTION
             }
+            log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
             m_appBytesDownlinked += blockLength;
         }
     }
@@ -235,7 +234,6 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     )
   {
     flushTlmDownlinkBuffer();
-    // TODO: Should probably flush file downlink buffers too
     switch (primary_interface) {
         case WF121:
             m_downlink_objects_size = WF121_UDP_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader);
@@ -270,31 +268,32 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
      * the object will be written to the now empty buffer. If the packet fits exactly into the remining space to fill
      * the MTU, the buffer will be immediately flushed with the given object.
      * 
-     * @param _data Pointer to the object to be downlinked. It should start with one of the FSWPacket object headers (TODO: const?)
+     * @param _data Pointer to the object to be downlinked. It should begin with one of the FSWPacket object headers
      * @param size  Size of the object to be downlinked in bytes
      * @param from  Where the downlinked object is from (used for logging)
      * 
      */
-    void GroundInterfaceComponentImpl::downlinkBufferWrite(void *_data, FswPacket::Length_t size, downlinkPacketType from) {
+    void GroundInterfaceComponentImpl::downlinkBufferWrite(const void *_data, FswPacket::Length_t size, downlinkPacketType from) {
         FW_ASSERT(_data);
         FW_ASSERT(size <= m_downlink_objects_size);
-        uint8_t *data = reinterpret_cast<uint8_t *>(_data);
-        bool flushOnWrite = false;
-        if (size > m_tlmDownlinkBufferSpaceAvailable) {
-            flushTlmDownlinkBuffer();
-        } else if (size == m_tlmDownlinkBufferSpaceAvailable) {
-            flushOnWrite = true;
+        const uint8_t *data = static_cast<const uint8_t *>(_data);
         }
+        bool flushOnWrite = false;
+        if (size > m_tlmDownlinkBufferSpaceAvailable)
+            flushTlmDownlinkBuffer();
+        else if (size == m_tlmDownlinkBufferSpaceAvailable)
+            flushOnWrite = true;
         
+        /* CRITICAL SECTION - Not strictly needed since all GroundInterface downlink ports guarded */
         memcpy(m_tlmDownlinkBufferPos, data, size);
         m_tlmDownlinkBufferPos += size;
         m_tlmDownlinkBufferSpaceAvailable -= size;
+        /* END CRITICAL SECTION */
         
         log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, from);
         
         if (flushOnWrite)
             flushTlmDownlinkBuffer();
-        
     }
     
     /*
@@ -302,9 +301,8 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
      * 
      */
     void GroundInterfaceComponentImpl::flushTlmDownlinkBuffer() {
-        // TODO: Check on mode manager wired MTU is 255B
         FswPacket::Length_t length = static_cast<FswPacket::Length_t>(m_tlmDownlinkBufferPos - m_tlmDownlinkBuffer);
-        downlink(m_tlmDownlinkBuffer, length);
+        downlink(static_cast<struct FswPacket::FswPacket *>(m_tlmDownlinkBuffer), length);
         m_tlmDownlinkBufferPos = m_tlmDownlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
         m_tlmDownlinkBufferSpaceAvailable = m_downlink_objects_size;
     }
@@ -315,21 +313,19 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
      * Downlink data at the given buffer and size. The buffer must point to a packet formatted as a FSWPacket.
      * This method will fill the FSWPacket fields and update this object respectively.
      * 
-     * @param _data Pointer to the FSWPacket Buffer
-     * @param size  Size of the object in the UDP buffer including the size of the FSWPacket headers
+     * @param data Pointer to the FSWPacket Buffer
+     * @param size  Size of the packet including the size of the FSWPacket header(s)
      * 
      */
-    void GroundInterfaceComponentImpl::downlink(void *_data, FswPacket::Length_t size) {
-        FW_ASSERT(_data);
+    void GroundInterfaceComponentImpl::downlink(struct FswPacket::FswPacketHeader *data, FswPacket::Length_t size) {
+        FW_ASSERT(data);
         FW_ASSERT(size <= WF121_UDP_MAX_PAYLOAD);
-        uint8_t *data = reinterpret_cast<uint8_t *>(_data);     // Start of the ddatagram
-        struct FswPacket::FswPacketHeader *packetHeader = reinterpret_cast<struct FswPacket::FswPacketHeader *>(data);
-        packetHeader->seq = m_downlinkSeq;
-        packetHeader->length = size - sizeof(struct FswPacket::FswPacketHeader);
-        packetHeader->checksum = 0;
-        packetHeader->checksum = computeChecksum(_data, size);
+        data->header.seq = m_downlinkSeq;
+        data->header.length = size - sizeof(struct FswPacket::FswPacketHeader);
+        data->header.checksum = 0;
+        data->header.checksum = computeChecksum(_data, size);
         Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(data), size);
-        log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, packetHeader->checksum, size);
+        log_ACTIVITY_LO_GI_DownlinkedPacket(m_downlinkSeq, data->checksum, size);
         downlinkBufferSend_out((int)m_interface_port_num, buffer);
         m_downlinkSeq++;
         m_packetsTx++;

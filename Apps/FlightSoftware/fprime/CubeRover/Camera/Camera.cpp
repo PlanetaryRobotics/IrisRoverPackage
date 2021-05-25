@@ -50,6 +50,8 @@ namespace CubeRover {
     m_numGroundImgsReq = 0;
     m_imagesSent = 0;
     m_bytesSent = 0;
+    m_imageLineBuffer[0] = _m_imageLineBuffer[0];
+    m_imageLineBuffer[1] = _m_imageLineBuffer[1];
   }
 
   CameraComponentImpl ::
@@ -238,6 +240,7 @@ namespace CubeRover {
         tlmWrite_Cam_LatestCallbackId(callbackId);
         while(gioGetBit(gioPORTB, 1));  // Wait until image capture complete FIXME: This could loop forever :(
         /* MUTEX CRITICAL SECTION END */
+        
         uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
             
         // TODO: Operator should be able to specify DOWNSAMPLING (but for testing smaller images are faster
@@ -251,14 +254,14 @@ namespace CubeRover {
             alloc.startAddress = 6 * PAGE_SIZE * i; // jump to next available block
 #endif
             downsampleLine(bufferNum);
-            downlinkImage(m_imageLineBuffer[bufferNum], sizeof(m_imageLineBuffer[bufferNum]), callbackId, createTime);
+            downlinkImage(bufferNum, sizeof(m_imageLineBuffer[bufferNum]), callbackId, createTime);
         }
         m_imagesSent++;
         tlmWrite_Cam_ImagesSent(m_imagesSent);
     }
     
-    void CameraComponentImpl::downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime) {
-        Fw::Buffer fwBuffer(0, 0, reinterpret_cast<U64>(image), size);
+    void CameraComponentImpl::downlinkImage(int bufferNum, int size, uint16_t callbackId, uint32_t createTime) {
+        Fw::Buffer fwBuffer(0, 0,  reinterpret_cast<U64>(_m_imageLineBuffer[bufferNum]), size);
         downlinkImage_out(0, callbackId, createTime, fwBuffer);
         m_bytesSent += static_cast<U32>(size);
         tlmWrite_Cam_BytesSent(m_bytesSent);

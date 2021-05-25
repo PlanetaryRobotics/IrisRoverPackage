@@ -188,12 +188,13 @@ namespace CubeRover {
         void downsampleLine(int bufferNum);
         void selectCamera(int camera);
         void triggerImageCapture(uint8_t camera, uint16_t callbackId, int bufferNum);
-        void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime);
+        void downlinkImage(int bufferNum, int size, uint16_t callbackId, uint32_t createTime);
       
         S25fl512l m_fpgaFlash;
         // Number of downlink buffers is 1 + number of components connected to takeImage port
         // Camera component is buffer 0, connected components are portNum + 1
-        uint8_t m_imageLineBuffer[NUM_DOWNLINK_BUFFERS][IMAGE_WIDTH];
+        uint8_t _m_imageLineBuffer[NUM_DOWNLINK_BUFFERS][IMAGE_WIDTH + 40];  // TODO: Replace 40 with offset defined in CubeRoverPorts/FileDownlink
+        uint8_t *m_imageLineBuffer[NUM_DOWNLINK_BUFFERS];
         U32 m_numComponentImgsReq;
         U32 m_numGroundImgsReq;
         U32 m_imagesSent;

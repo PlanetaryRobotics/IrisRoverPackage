@@ -74,6 +74,7 @@ namespace CubeRover {
         CubeRoverNetworkManager::CubeRoverNetworkManager m_crnm;
         CubeRoverNetworkManager::CubeRoverNetworkStateMachine m_current_state;
         U8 m_fileUplinkBuffer[WF121_UDP_MAX_PAYLOAD];
+        void blockingConnectWifi(int maxTries);
         void update();    // Behavior of periodic status update
         void getUplinkDatagram();
 

@@ -172,16 +172,115 @@ Each **component** which expects a bitfield as a command argument (eg. `Configur
 
 ### Requirements and Naming Conventions:
 - All bitfields for a component must be contained in a single file called `{ComponentName}_Bitfields.hpp` which contains only structs in the component's directory. Eg: `fprime/CubeRover/Camera/Camera_Bitfields.hpp` for the Camera component.
-- All structs should be packed.
 - All structs should be named `Command_{mnemonic}_Arg_{name}` where `mnemonic` is the command's mnemonic from the defining XML file and `name` is the argument's name from the XML file.
+- All structs should be packed.
+- One struct field per line.
 
 **Note:** The expected fields for all bitfield structs are listed in C&TL but the official source of truth shared by both FSW and GSW will be these bitfield definition files; so, name your struct fields reasonably since these will be the names that show up on the frontend (though reformatted to be human readable).
 
+### Important Notes on Bitfield Packing:
+
+The specifics for the layout of bitfield structures in memory is highly platform and compiler specific. As such, GSW will be sure to pack data in accordance with the FSW compiler.
+
+#### Requirements:
+Below are the base requirements when writing a bitfield struct to ensure consistency between GSW and FSW. If you're looking for the rationale, see the next section for all platform-specific details on the handling of packed structs containing bitfields. ****THE BOLD POINTS ARE KEY.****
+- Declare the signing of each struct field (especially if signed). Don't just use **int**.
+- **No floats** or doubles inside bitfield structs.
+- **No 64b types** inside bitfield structs (no `long long` or `double`).
+- Ensure the total size of the struct is an **integer multiple of the size of a storage-unit** (4-bytes), eg. 32b, 64b, 96b, etc.
+- **Use padding bits at the end** of the struct to fill out the struct so that it contains the same number of bits as an integer multiple of the storage-unit (see previous).
+- **Explicitly pad out every storage-unit** For example, consider the following struct:
+```cpp
+struct padding_example {
+    uint32_t a : 10;
+    uint32_t b : 10;
+    uint32_t : 2; // pad out the storage-unit
+    uint32_t c : 8;
+    uint32_t : 24; // bring the size up from 40b to a storage-unit multiple (2*32b = 64b).
+} __attribute__((__packed__));
+```
+Members `a` and `b` in this struct fill 20 bytes of the first storage-unit. Since the next field `c` is 8b and can't fit into the remaining 2b of the first storage unit, the first storage unit must be padded off. Likewise, once the last member `c` is added, the struct is only 40b in size and must receive 24b of padding to bring it up to a storage-unit multiple (64b).
+- While arranging data and adding padding, important to know: Bitfields **can span byte borders** but **cannot span 4B storage-unit borders**. Bit fields will only cross byte borders if their type is the same as the previous field's type. Critically this means `uint32_t` fields will always initiate a new storage unit. Because of these two facts, this counter-intuitive example arises: a struct like what's shown below will take up 8B of memory (two storage-units) when it could have taken up only 4B if both fields were declared `uint32_t`:
+```cpp
+struct counterintuitive_structure_example_bad {
+    uint8_t a : 2;
+    uint32_t b : 20;
+} cseb __attribute__((__packed__));
+assert(sizeof(cseb) == 8);
+```
+If padding were correctly and explicitly added, this would have been obvious since it would have had to have taken the form:
+```cpp
+struct counterintuitive_structure_example_bad2 {
+    uint8_t a : 2;
+    unsigned : 30; // pad
+    uint32_t b : 20;
+    uint32_t : 12; // pad
+} cseb2 __attribute__((__packed__));
+assert(sizeof(cseb2) == 8);
+```
+The minimal size form would be if both fields were declared `uint32_t` as shown below:
+```cpp
+struct counterintuitive_structure_example_good {
+    uint32_t a : 2;
+    uint32_t b : 20;
+    uint32_t : 10; // pad
+} cseg __attribute__((__packed__));
+assert(sizeof(cseg) == 4);
+```
+- For the above reason, it's best to **declare all fields in the struct as `uint32_t`/`int32_t` or simply just `unsigned`/`signed`** as shorthand. The memory usage for each field will still only be however many bits you declare until you calculate something with it, at which point you can just cast it to another type first.
+- For the same reason, it's also advised that you visually space out data from different storage units so you don't forget to add the padding, as shown below:
+```cpp
+struct recommended_spacing_example {
+    // Storage-unit 1:
+    unsigned a : 12;
+    unsigned b : 11;
+    unsigned : 9; // pad out the rest of the storage-unit since the next field's 11b won't fit in it
+
+    // Storage-unit 2:
+    unsigned c : 12;
+    unsigned d : 20;
+    unsigned : 0; // start a new storage unit (going to happen anyway here b/c the storage-unit is filled, but good practice to make it explicit)
+} __attribute__((__packed__));
+```
+
+#### Rationale:
+Since the handling of packed structs containing bitfields is highly platform specific, the following information details the specifics of how the TI ARM C++ compiler handles them and comes from the [ARM Optimizing C/C++ Compiler
+v18.1.0.LTS User Guide (TI SPNU151R)](https://www.ti.com/lit/ug/spnu151r/spnu151r.pdf) (Section **5.16.4 Type Attributes** and Section **6.2.2 Bit Fields**) with some information also borrowed from the [Arm Compiler armcc User Guide section on Structures, unions, enumerations, and bitfields in ARM C and C++](https://developer.arm.com/documentation/dui0472/m/c-and-c---implementation-details/structures--unions--enumerations--and-bitfields-in-arm-c-and-c--) to clear up any ambiguities in the TI spec (though, there's not a 100% guarantee that TI didn't change any of this in their implementation; so, check any of the assumptions which come from `armcc`).
+
+For Hercules, TI CCS uses the `TI ARM Optimizing C/C++ Compiler` and has the `--unaligned_access` flag on and supports the `__packed__` attribute. The implications of this are that for a packed structure:
+
+From **ARM Optimizing C/C++ Compiler
+v18.1.0.LTS User Guide (TI SPNU151R)**:
+- Additional bytes of padding usually added to preserve word-alignment are omitted (one byte sequence begins right after the previous). That is members are byte-aligned, not word-aligned.
+- Bitfields inside a packed structure are **bitaligned** and **there are no bits of padding between adjacent bitfields**. However, non-bitfield members will still start on the next byte.
+- Packed structures in an array are packed together without and trailing padding between them.
+
+- Bitfields can range from 1 to 32 bits.
+- Multiple bitfields can be stored within the same byte.
+- **BUT** Bitfields can **never span across a 4-byte storage-unit boundary**.
+- Storage unit counting starts at the beginning of a struct *unless* the struct is __packed__ and stored in an array of other __packed__ structs, in which case it's possible for a struct to not start at the beginning of a storage-unit if the previous struct in the array didn't end at the end of a storage unit boundary.
+
+- In little-endian mode (Hercules), bitfields are packed into registers from **LSBit to MSBit in the order they're defined**.
+- In little-endian mode (Hercules), bitfields are packed into memory from LSbyte to MSbyte.
+- **Always indicate signing**. In a bitfield just using `int` will be interpreted as `unsigned int` unless you explictly state `signed int`
+
+
+From **Arm Compiler armcc User Guide**:
+- Bits fill so that the first field occupies the lowest-addressed bits. Remember: Hercules is little-endian (lowest-addressed = least-significant).
+
+- Bitfields fill up word-sized containers and only fill inside the same container if there's enough space.
+- Bitfields will not span from one partially-filled word-sized container to another.
+- ... but bitfields may span from one partially-filled byte to another.
+
+- Bitfields are stored inside 'containers'.
+- A bitfield must be wholly stored inside its container and not span between containers.
+- A bitfield that does not fit in a container is placed in the next container **of the same type**.
+
 ### Example
-This example should clarify all bitfield requirements
+This example should clarify all bitfield requirements.
 
 The modified and abbreviated `Camera` component shown below has two commands `Configure_Camera0` and `Camera0_Crop` which require bitfield arguments. Each of these commands has one bitfield argument called `config`, though `Configure_Camera0` has two arguments in total. This is all defined in the XML file `fprime/CubeRover/Camera/CameraComponentAi.xml` as follows.
-```
+```xml
 <component name="Camera" kind="passive" namespace="CubeRover">
     ...
     <commands>
@@ -223,30 +322,50 @@ The modified and abbreviated `Camera` component shown below has two commands `Co
 ```
 
 The two separate bitfield structs required for these two commands should then be defined in `fprime/CubeRover/Camera/Camera_Bitfields.hpp` and formatted as shown below.
-```
+```cpp
 ...
-# include guards, imports, etc.
-# but no non-struct Cpp code in this file
+// include guards, includes, etc.
+// but no non-struct Cpp code in this file
 ...
 struct Command_Configure_Camera0_Arg_config {
-    uint8_t compression : 2;
+    uint32_t compression : 2;
+    uint32_t row_bin : 2;
+    uint32_t col_bin : 2;
     uint32_t shutter_width : 20;
+    uint32_t : 6; // pad out the rest of the storage-unit since the next field's 13b won't fit in it
+
     uint16_t shutter_delay : 13;
-    uint8_t row_bin : 2;
-    uint8_t col_bin : 2;
     uint16_t horiz_blanking : 12;
-    uint16_t vert_blanking : 11;
-    uint8_t reserved : 2; // pad up to U64 (arg type)
-} __attribute__((packed));
+    uint16_t : 7; // pad out the rest of the storage-unit since the next field's 11b won't fit in it
+
+    uint32_t vert_blanking : 11;
+    uint32_t : 21; // pad out the rest of the storage-unit and bring pad up to char[12] (arg type)
+} __attribute__((__packed__));
 
 struct Command_Camera0_Crop_Arg_config {
-    uint32_t upperLeftX : 12;
-    uint32_t upperLeftY : 11;
-    uint32_t height : 12;
-    uint32_t width : 11;
-    uint32_t reserved : 18; // pad up to U64 (arg type)
-} __attribute__((packed));
+    unsigned upperLeftX : 12;
+    unsigned upperLeftY : 11;
+    unsigned : 9; // pad out the rest of the storage-unit since the next field's 11b won't fit in it
+
+    unsigned height : 12;
+    unsigned width : 11;
+    unsigned : 9; // pad out the rest of the storage-unit and bring pad up to U64 (arg type)
+} __attribute__((__packed__));
 ...
+```
+
+Test:
+```cpp
+struct size_test_16 {
+    uint16_t a : 16;
+    uint16_t b : 16;
+} st16 __attribute__((__packed__));
+assert(sizeof(st16)==4);
+struct size_test_32 {
+    uint32_t a : 16;
+    uint32_t b : 16;
+} st32 __attribute__((__packed__));
+assert(sizeof(st16)==4);
 ```
 
 ## Component Initializations and Interrupts on FreeRTOS

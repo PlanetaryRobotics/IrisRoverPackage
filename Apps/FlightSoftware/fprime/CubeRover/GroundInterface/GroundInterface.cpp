@@ -254,7 +254,16 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         TelemetryLevel telemetry_level
     )
   {
-    m_telemetry_level = telemetry_level;
+    switch (telemetry_level) {
+        case ALL:
+            m_telemetry_level = ALL;
+        case IMPORTANT:
+            m_telemetry_level = IMPORTANT;
+        case CRITICAL:
+            m_telemetry_level = CRITICAL;
+        default:
+            // Uh oh... Don't change anything
+    }
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 

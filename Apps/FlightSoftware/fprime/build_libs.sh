@@ -20,6 +20,9 @@ umask 022   # Tries to fix the make: execvp <build product>: Permission denied..
 pushd Os
 make clean
 make TIR4
+pushd FreeRTOS
+./build_littlefs.sh
+popd
 popd
 
 pushd Fw

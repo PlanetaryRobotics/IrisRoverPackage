@@ -98,10 +98,8 @@ SRC_RASPIAN =   Pthreads/Queue.cpp \
 				FreeRTOS/IntervalTimer.cpp	\
 				FreeRTOS/InterruptLock.cpp	\
 				FreeRTOS/File.cpp \
-				FreeRTOS/S25fl064l.cpp \
-				FreeRTOS/lfs.c \
-				FreeRTOS/lfs_util.c
-				
+				FreeRTOS/S25fl064l.cpp
+	
 
 
 SUBDIRS = test

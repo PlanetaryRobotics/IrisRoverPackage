@@ -72,10 +72,6 @@ namespace CubeRover {
       //ComLogger(void);
 
       ~ComLoggerComponentImpl(void);
-
-      // The maximum size of a filename
-      static S25fl064l::S25fl064l flash_chip;
-      static S25fl064l::MemAlloc flash_context;
       // ----------------------------------------------------------------------
       // Handler implementations
       // ----------------------------------------------------------------------
@@ -170,6 +166,11 @@ namespace CubeRover {
       FileType prefixToType(
         char prefix [3]
       );
+
+      public:
+        
+      S25fl064l::S25fl064l flash_chip;
+      S25fl064l::MemAlloc flash_context;
 
   };
 };

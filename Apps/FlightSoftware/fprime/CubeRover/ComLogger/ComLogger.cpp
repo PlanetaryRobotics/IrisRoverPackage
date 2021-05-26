@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern CubeRover::ComLoggerComponentImpl comLogger;
 
   int lfs_read(
       const struct lfs_config *config,
@@ -23,7 +24,7 @@
     )
   {
     // Set the correct context for the read
-    S25fl064l::MemAlloc flash_alloc = CubeRover::ComLoggerComponentImpl::flash_context;
+    S25fl064l::MemAlloc flash_alloc = comLogger.flash_context;
     // FIXME Is this a correct use of block?
     // Set the correct offset
     uint32_t flash_offset = static_cast<U32>(block)*config->block_size + static_cast<U32>(offset);
@@ -34,7 +35,7 @@
 
     // Create error variable
     S25fl064l::S25fl064lError err;
-    err = CubeRover::ComLoggerComponentImpl::flash_chip.readDataFromFlash(&flash_alloc,
+    err = comLogger.flash_chip.readDataFromFlash(&flash_alloc,
                                        flash_offset,
                                        flash_data,
                                        flash_size);
@@ -50,7 +51,7 @@
     )
   {
     // Set the correct context for the read
-    S25fl064l::MemAlloc flash_alloc = CubeRover::ComLoggerComponentImpl::flash_context;
+    S25fl064l::MemAlloc flash_alloc = comLogger.flash_context;
     // FIXME Is this a correct use of block?
     // Set the correct offset
     uint32_t flash_offset = static_cast<U32>(static_cast<U32>(block)*static_cast<U32>(config->block_size) + static_cast<U32>(offset));
@@ -61,7 +62,7 @@
 
     // Create error variable
     S25fl064l::S25fl064lError err;
-    err = CubeRover::ComLoggerComponentImpl::flash_chip.writeDataToFlash(&flash_alloc,
+    err = comLogger.flash_chip.writeDataToFlash(&flash_alloc,
                                       flash_offset,
                                       flash_data,
                                       flash_size);

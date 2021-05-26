@@ -13,7 +13,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <cstdarg>
-#include <Os/FreeRTOS/lfs.h>
+#include <Os/FreeRTOS/littlefs/lfs.h>
 #include <Os/FreeRTOS/S25fl064l.hpp>
 
 #define MAX_FILENAME_SIZE 8

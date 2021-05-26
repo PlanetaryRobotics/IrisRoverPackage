@@ -11,14 +11,14 @@ pushd littlefs
 #-ppd=/home/alec/CubeRoverPackage/Apps/FlightSoftware/fprime/Os/FreeRTOS/tiR4-ti-cgt-arm-bin/lfs_util.d  \
 $TI_ARM_COMPILER_BIN_LOC \
 	--c99 -DASSERT_FILE_ID=0x2D1B30AD  -ppa \
-	-I.. -c \
+	-I.. -c -me \
 	-I$TI_ARM_COMPILER_INCLUDE_LOC \
 	--output_file lfs.o ./lfs.c 
 
 #-ppd=/home/alec/CubeRoverPackage/Apps/FlightSoftware/fprime/Os/FreeRTOS/tiR4-ti-cgt-arm-bin/lfs_util.d  \
 $TI_ARM_COMPILER_BIN_LOC \
 	--c99 -DASSERT_FILE_ID=0x2D1B30AD  -ppa \
-	-I.. -c \
+	-I.. -c -me \
 	-I$TI_ARM_COMPILER_INCLUDE_LOC \
 	--output_file lfs_util.o ./lfs_util.c 
 

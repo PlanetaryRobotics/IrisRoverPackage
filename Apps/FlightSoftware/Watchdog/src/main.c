@@ -82,7 +82,7 @@ void enterMode(enum rover_state newstate) {
         stopChargingBatteries();
 
         __delay_cycles(12345678); //give fuel gauge [50 ms] & wifi [~750 ms] time to start up
-        I2C_Sensors__initializeFuelGaugeBlocking();
+//        I2C_Sensors__initializeFuelGaugeBlocking();
         powerOnHercules();
         releaseMotorsReset();
         releaseHerculesReset();
@@ -194,8 +194,8 @@ int main(void) {
                 // Initiate gauge readings here, the rest of the actions to do in this state every state
                 // will be done after gauge readings complete, which is monitored in the
                 // FLAG_I2C_GAUGE_READING_ACTIVE loop_flags block below.
-                I2C_Sensors__initiateGaugeReadings();
-                loop_flags |= FLAG_I2C_GAUGE_READING_ACTIVE;
+//                I2C_Sensors__initiateGaugeReadings();
+//                loop_flags |= FLAG_I2C_GAUGE_READING_ACTIVE;
 
                 break;
             case RS_FAULT:
@@ -207,6 +207,9 @@ int main(void) {
             loop_flags ^= FLAG_TIMER_TICK;
         }
 
+        // NOTE: will never enter this conditional with:
+        //         " loop_flags |= FLAG_I2C_GAUGE_READING_ACTIVE; "
+        //       commented out
         if (loop_flags & FLAG_I2C_GAUGE_READING_ACTIVE) {
             I2C_Sensors__spinOnce();
 

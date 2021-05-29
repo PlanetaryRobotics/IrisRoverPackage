@@ -200,7 +200,7 @@ UART__Status UART__receive(UART__State* uartState,
         if (RB__STATUS__SUCCESS == rbStatus) {
             // we got another byte
             (*numReceived)++;
-        } else if (RB__STATUS__ERROR__EMPTY == rbStatus) {
+        } else if (RB__STATUS__ERROR_EMPTY == rbStatus) {
             // Have gotten all bytes that have been received so far
             break;
         } else {
@@ -403,7 +403,7 @@ void UART__interruptHandler(UART__State* uartState)
             if (RB__STATUS__SUCCESS == rbStatus) {
                 // We got another byte to send, so put it in the tx buffer
                 *(uartState->registers->UCAxTXBUF) = data;
-            } else if (RB__STATUS__ERROR__EMPTY == rbStatus) {
+            } else if (RB__STATUS__ERROR_EMPTY == rbStatus) {
                 // There are no more bytes to send, so disable TX interrupt for this uart
                 *(uartState->registers->UCAxIE) &= ~UCTXIE;
             } else {
@@ -421,7 +421,7 @@ void UART__interruptHandler(UART__State* uartState)
             // buffer. If we'd rather overwrite the old data, this will need to be updated. 
             rbStatus = RingBuffer__put(uartState->rxRingBuff, data);
 
-            if (RB__STATUS__ERROR__FULL == rbStatus) {
+            if (RB__STATUS__ERROR_FULL == rbStatus) {
                 // The ring buffer is full, so data will be dropped.
                 // TODO: handling? logging?
             } else if (RB__STATUS__SUCCESS != rbStatus) {

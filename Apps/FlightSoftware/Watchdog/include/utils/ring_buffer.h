@@ -13,14 +13,14 @@ typedef struct RingBuffer RingBuffer;
 
 typedef enum RingBuffer__Status {
     RB__STATUS__SUCCESS = 0, /* Operation suceeded. */
-    RB__STATUS__ERROR__NULL = -1, /* A required argument or a member of an argument was NULL */
-    RB__STATUS__ERROR__FULL = -2, /* Did not write byte because buffer is full */
-    RB__STATUS__ERROR__EMPTY = -3, /* Could not read byte because buffer is empty */
-    RB__STATUS__ERROR__NOT_POWER_OF_TWO = -4, /* Buffer size was not a power of two */
-    RB__STATUS__ERROR__ZERO_SIZE = -5, /* Buffer size was zero */
-    RB__STATUS__ERROR__ALL_BUFFERS_USED = -6, /* All statically allocated RingBuffers already in use */
+    RB__STATUS__ERROR_NULL = -1, /* A required argument or a member of an argument was NULL */
+    RB__STATUS__ERROR_FULL = -2, /* Did not write byte because buffer is full */
+    RB__STATUS__ERROR_EMPTY = -3, /* Could not read byte because buffer is empty */
+    RB__STATUS__ERROR_NOT_POWER_OF_TWO = -4, /* Buffer size was not a power of two */
+    RB__STATUS__ERROR_ZERO_SIZE = -5, /* Buffer size was zero */
+    RB__STATUS__ERROR_ALL_BUFFERS_USED = -6, /* All statically allocated RingBuffers already in use */
 
-    RB__STATUS__ERROR__INTERNAL = -255 /* An unexpected internal error occurred. */
+    RB__STATUS__ERROR_INTERNAL = -255 /* An unexpected internal error occurred. */
 } RingBuffer__Status;
 
 // Note that bufferSize MUST be a power of two

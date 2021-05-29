@@ -92,7 +92,7 @@ RingBuffer__Status RingBuffer__peekAt(const RingBuffer* rb, size_t index, uint8_
     // Get the index of the head byte, wrapping if necessary
     // The operation below is equivalent to:
     //    (rb->head + index) % rb->bufferSize
-    // and works because rb->bufferSize is guaranteed to be 
+    // and works because rb->bufferSize is guaranteed to be
     // a power of two.
     size_t wrappedIndex = ((rb->head + index) & (rb->bufferSize - 1));
 
@@ -114,10 +114,10 @@ RingBuffer__Status RingBuffer__put(RingBuffer* rb, uint8_t byte)
     // Get the index of the head byte, wrapping if necessary
     // The operation below is equivalent to:
     //    rb->head % rb->bufferSize
-    // and works because rb->bufferSize is guaranteed to be 
+    // and works because rb->bufferSize is guaranteed to be
     // a power of two.
     size_t index = (rb->head & (rb->bufferSize - 1));
-    
+
     rb->buffer[index] = byte;
     rb->head++;
 
@@ -137,10 +137,10 @@ RingBuffer__Status RingBuffer__get(RingBuffer* rb, uint8_t* byte)
     // Get the index of the head byte, wrapping if necessary
     // The operation below is equivalent to:
     //    rb->tail % rb->bufferSize
-    // and works because rb->bufferSize is guaranteed to be 
+    // and works because rb->bufferSize is guaranteed to be
     // a power of two.
     size_t index = (rb->tail & (rb->bufferSize - 1));
-    
+
     *byte = rb->buffer[index];
     rb->tail++;
 
@@ -158,15 +158,15 @@ RingBuffer__Status RingBuffer__putOverwrite(RingBuffer* rb, uint8_t byte)
     // Get the index of the head byte, wrapping if necessary
     // The operation below is equivalent to:
     //    rb->head % rb->bufferSize
-    // and works because rb->bufferSize is guaranteed to be 
+    // and works because rb->bufferSize is guaranteed to be
     // a power of two.
     size_t index = (rb->head & (rb->bufferSize - 1));
-    
+
     rb->buffer[index] = byte;
     rb->head++;
 
     // If the buffer was full before writing the byte, we need to
-    // also increment the tail 
+    // also increment the tail
     if (wasFull) {
         rb->tail++;
     }

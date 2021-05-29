@@ -7,42 +7,42 @@
 //###########################################################
 
 /**
- * @brief Always fails an assertion that this function should never be invoked. 
+ * @brief Always fails an assertion that this function should never be invoked.
  */
 static RoverStateController__Status RoverState__defaultLanderDataFunc(RoverState__LanderDataFuncArgs* args);
 
 /**
- * @brief Always fails an assertion that this function should never be invoked. 
+ * @brief Always fails an assertion that this function should never be invoked.
  */
 static RoverStateController__Status RoverState__defaultHerculesDataFunc(RoverState__HerculesDataFuncArgs* args);
 
 /**
- * @brief Always fails an assertion that this function should never be invoked. 
+ * @brief Always fails an assertion that this function should never be invoked.
  */
 static RoverStateController__Status RoverState__defaultTimerTickFunc(RoverState__TimerTickFuncArgs* args);
 
 /**
- * @brief Always fails an assertion that this function should never be invoked. 
+ * @brief Always fails an assertion that this function should never be invoked.
  */
 static RoverStateController__Status RoverState__defaultI2cStartedFunc(RoverState__I2cStartedFuncArgs* args);
 
 /**
- * @brief Always fails an assertion that this function should never be invoked. 
+ * @brief Always fails an assertion that this function should never be invoked.
  */
 static RoverStateController__Status RoverState__defaultI2cDoneFunc(RoverState__I2cDoneFuncArgs* args);
 
 /**
- * @brief Always fails an assertion that this function should never be invoked. 
+ * @brief Always fails an assertion that this function should never be invoked.
  */
 static RoverStateController__Status RoverState__defaultHighTempFunc(RoverState__HighTempFuncArgs* args);
 
 /**
- * @brief Always fails an assertion that this function should never be invoked. 
+ * @brief Always fails an assertion that this function should never be invoked.
  */
 static RoverStateController__Status RoverState__defaultPowerIssueFunc(RoverState__PowerIssueFuncArgs* args);
 
 /**
- * @brief Always fails an assertion that this function should never be invoked. 
+ * @brief Always fails an assertion that this function should never be invoked.
  */
 static RoverStateController__Status RoverState__defaultSpinOnceFunc(RoverState__SpinOnceFuncArgs* args);
 

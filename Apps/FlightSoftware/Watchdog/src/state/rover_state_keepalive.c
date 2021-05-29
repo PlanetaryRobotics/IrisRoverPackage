@@ -68,10 +68,10 @@ RoverStateController__Status RoverStateKeepAlive__transitionTo(RoverStatePtr sta
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // TODO: Either change adc_setup_lander() to have a constant runtime or add a new 
+    // TODO: Either change adc_setup_lander() to have a constant runtime or add a new
     //       state called "INIT_KEEPALIVE" that we stay in until the work currently done
     //       in adc_setup_lander() is complete, and THEN transition to KEEPALIVE. State
-    //       transitions should have a constant runtime, and the while() loop in the 
+    //       transitions should have a constant runtime, and the while() loop in the
     //       current implementation of adc_setup_lander() makes that not the case for
     //       this transition function.
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -175,7 +175,7 @@ static RoverStateController__Status RoverStateKeepAlive__timerTick(RoverState__T
 static RoverStateController__Status RoverStateKeepAlive__highTemp(RoverState__HighTempFuncArgs* args)
 {
     if (NULL == args) {
-        return RS_CONTROLLER__STATUS__ERROR_NULL; 
+        return RS_CONTROLLER__STATUS__ERROR_NULL;
     }
 
     disableHeater();

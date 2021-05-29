@@ -6,7 +6,7 @@
 #include "include/common.h"
 
 // Forward definition of opaque ring buffer structure, defined in source file
-// Other modules using this structure will not and do not need to know its contents 
+// Other modules using this structure will not and do not need to know its contents
 typedef struct RingBuffer RingBuffer;
 
 #define MAX_NUM_RING_BUFFERS 8
@@ -26,7 +26,7 @@ typedef enum RingBuffer__Status {
 // Note that bufferSize MUST be a power of two
 RingBuffer__Status RingBuffer__init(RingBuffer** rb, volatile uint8_t* buffer, size_t bufferSize);
 
-// These should only be called with interrupts disabled if the ring buffer in question is 
+// These should only be called with interrupts disabled if the ring buffer in question is
 // touched at all from any ISR
 BOOL RingBuffer__full(const RingBuffer* rb);
 BOOL RingBuffer__empty(const RingBuffer* rb);
@@ -51,7 +51,7 @@ RingBuffer__Status RingBuffer__peekAt(const RingBuffer* rb, size_t index, uint8_
 // called it will be noticed.
 //
 // If get() is called in interrupt and put() is called outside an interrupt, then these
-// functions are still safe to use. The worst thing that can happen is that during a 
+// functions are still safe to use. The worst thing that can happen is that during a
 // a call to put(), the get() is invoked from the interrupt. In this case, the get()
 // call may free a slot in the buffer, but the call to put() won't see this free slot
 // and the put() call will fail to write the byte to the buffer. Similarly, the get()
@@ -62,7 +62,7 @@ RingBuffer__Status RingBuffer__put(RingBuffer* rb, uint8_t byte);
 RingBuffer__Status RingBuffer__get(RingBuffer* rb, uint8_t* byte);
 
 // putOverwrite() will overwrite the oldest byte in the buffer with the newest one if
-// the buffer is full. getOverwrite() is the same as get(), but is implemented as a 
+// the buffer is full. getOverwrite() is the same as get(), but is implemented as a
 // separate function to make it clear why interrupts need to be disabled (see below).
 //
 // If using either of these in an interrupt, that same interrupt needs to be disabled

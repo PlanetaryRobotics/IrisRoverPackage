@@ -73,7 +73,7 @@ typedef struct RoverState__PowerIssueFuncArgs {
 
 /**
  * @brief The arguments used by the state-specific function that implements the behavior of invoking the spinOnce()
- *        functions of modules that need it (e.g. I2C_Sensors). This is called once per loop of the rover state 
+ *        functions of modules that need it (e.g. I2C_Sensors). This is called once per loop of the rover state
  *        controller.
  */
 typedef struct RoverState__SpinOnceFuncArgs {
@@ -119,7 +119,7 @@ typedef RoverStateController__Status(*RoverState__PowerIssueFunc)(RoverState__Po
 
 /**
  * @brief The function pointer signature for a function that implements the behavior of invoking the spinOnce()
- *        functions of modules that need it (e.g. I2C_Sensors). This is called once per loop of the rover state 
+ *        functions of modules that need it (e.g. I2C_Sensors). This is called once per loop of the rover state
  *        controller.
  */
 typedef RoverStateController__Status(*RoverState__SpinOnceFunc)(RoverState__SpinOnceFuncArgs*);

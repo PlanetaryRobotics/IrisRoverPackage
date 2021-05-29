@@ -131,7 +131,7 @@ void RoverStateController__spin(RoverStateControllerPtr instance)
             return;
         }
 
-        RoverStateController__Status rscStatus = 
+        RoverStateController__Status rscStatus =
             RoverStateController__handleEvent(instance, event);
 
         if (RS_CONTROLLER__STATUS__SUCCESS != rscStatus) {

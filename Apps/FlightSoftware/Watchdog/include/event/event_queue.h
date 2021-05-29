@@ -40,7 +40,7 @@ EventQueue__Status EventQueue__initialize(volatile uint8_t* buffer, size_t buffe
 // called it will be noticed.
 //
 // If get() is called in interrupt and put() is called outside an interrupt, then these
-// functions are still safe to use. The worst thing that can happen is that during a 
+// functions are still safe to use. The worst thing that can happen is that during a
 // a call to put(), the get() is invoked from the interrupt. In this case, the get()
 // call may free a slot in the buffer, but the call to put() won't see this free slot
 // and the put() call will fail to write the byte to the buffer. Similarly, the get()

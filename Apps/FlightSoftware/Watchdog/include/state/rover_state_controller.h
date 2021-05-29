@@ -22,9 +22,9 @@ typedef enum RoverStateController__Status {
  */
 typedef struct RoverStateController* RoverStateControllerPtr;
 
-// TODO: Populate this with structs that will store the latest telemetry readings (heater values, ADC readings, 
+// TODO: Populate this with structs that will store the latest telemetry readings (heater values, ADC readings,
 //       I2C readings, etc), and then add as a parameter to event handlers that produce or consume these values.
-//       Add a single instance of this as a member of the RoverStateController instance, and pass it to the 
+//       Add a single instance of this as a member of the RoverStateController instance, and pass it to the
 //       appropriate event handlers in rover_state_controller.c
 typedef struct RoverTelemetry
 {

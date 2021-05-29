@@ -2,10 +2,6 @@
 
 #include "include/ring_buffer.h"
 
-// Some definitions to identify magic numbers in the code
-static const int TRUE = 1;
-static const int FALSE = 0;
-
 struct RingBuffer {
     volatile uint8_t* buffer;
     size_t bufferSize;
@@ -46,7 +42,7 @@ RingBuffer__Status RingBuffer__init(RingBuffer** rb, volatile uint8_t* buffer, s
     return RB__STATUS__SUCCESS;
 }
 
-int RingBuffer__full(const RingBuffer* rb)
+BOOL RingBuffer__full(const RingBuffer* rb)
 {
     if (rb == NULL) {
         return FALSE;
@@ -55,7 +51,7 @@ int RingBuffer__full(const RingBuffer* rb)
     return ((rb->head - rb->tail) == rb->bufferSize) ? TRUE : FALSE;
 }
 
-int RingBuffer__empty(const RingBuffer* rb)
+BOOL RingBuffer__empty(const RingBuffer* rb)
 {
     if (rb == NULL) {
         return FALSE;

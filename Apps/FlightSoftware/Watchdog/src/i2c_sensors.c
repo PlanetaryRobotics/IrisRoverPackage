@@ -2,17 +2,13 @@
 
 #include "include/i2c_sensors.h"
 #include "include/i2c.h"
+#include "include/common.h"
 
 #include <string.h>
 
 //###########################################################
 // Private definitions and globals
 //###########################################################
-
-// Some definitions to identify magic numbers in the code
-#define BOOL short
-static const BOOL TRUE = 1;
-static const BOOL FALSE = 0;
 
 static INS_Sensors__InternalState internals = { 0 };
 

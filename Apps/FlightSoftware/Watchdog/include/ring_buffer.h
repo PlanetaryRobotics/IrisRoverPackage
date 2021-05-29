@@ -3,6 +3,8 @@
 #ifndef __RING_BUFFER_H__
 #define __RING_BUFFER_H__
 
+#include "include/common.h"
+
 // Forward definition of opaque ring buffer structure, defined in source file
 // Other modules using this structure will not and do not need to know its contents 
 typedef struct RingBuffer RingBuffer;
@@ -26,8 +28,8 @@ RingBuffer__Status RingBuffer__init(RingBuffer** rb, volatile uint8_t* buffer, s
 
 // These should only be called with interrupts disabled if the ring buffer in question is 
 // touched at all from any ISR
-int RingBuffer__full(const RingBuffer* rb);
-int RingBuffer__empty(const RingBuffer* rb);
+BOOL RingBuffer__full(const RingBuffer* rb);
+BOOL RingBuffer__empty(const RingBuffer* rb);
 size_t RingBuffer__freeCount(const RingBuffer* rb);
 size_t RingBuffer__usedCount(const RingBuffer* rb);
 RingBuffer__Status RingBuffer__peekAt(const RingBuffer* rb, size_t index, uint8_t* value);

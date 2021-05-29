@@ -4,209 +4,222 @@
  * UART communication uses eUSCI_A0 (Hercules) and eUSCI_A1 (Lander).
  *
  * 9600 baud, 1 stop bit, no parity
+ * 
+ * References: SLAU367P (https://www.ti.com/lit/ug/slau367p/slau367p.pdf)
+ * 
+ * Author: mschnur
  */
+
 #include <msp430.h>
 #include "include/uart.h"
+#include "include/ring_buffer.h"
+#include "include/common.h"
 #include "include/flags.h"
 
-/* end byte */
-#define SLIP_END 0xC0
-/* escape byte */
-#define SLIP_ESC 0xDB
-/* escaped end */
-#define SLIP_ESC_END 0xDC
-/* escaped escape */
-#define SLIP_ESC_ESC 0xDD
+//###########################################################
+// Private types
+//###########################################################
 
-/* ========================== interrupt handlers =========================== */
+typedef struct UART__Registers
+{
+    uint16_t * const UCAxTXBUF;
+    uint16_t * const UCAxRXBUF;
+    uint16_t * const UCAxIV;
+    uint16_t * const UCAxIE;
+    uint16_t * const UCAxIFG;
 
-/* uart0 rx interrupt handler (Hercules) */
-volatile uint8_t uart0_rx_mode = UA0_RX_HEADER;
-volatile uint8_t uart0_rx_header[8] = {0};
-volatile uint16_t uart0_rx_len = 0;
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector=EUSCI_A0_VECTOR
-__interrupt void USCI_A0_ISR(void) {
-#elif defined(__GNUC__)
-void __attribute__ ((interrupt(EUSCI_A0_VECTOR))) USCI_A0_ISR (void) {
-#else
-#error Compiler not supported!
-#endif
-    unsigned char rcv;
+} UART__Registers;
 
-    /* two possibilities; rx or tx */
-    switch(__even_in_range(UCA0IV, USCI_UART_UCTXCPTIFG)) {
-    case USCI_UART_UCTXIFG: /* transmitted byte successfully */
-        /* decrement the number of bytes used */
-        uart0tx.used--;
+struct UART__State
+{
+    BOOL initialized;
+    UART__Registers* registers;
 
-        if (uart0tx.used == 0) {
-            /* done sending after this byte; clear IFG */
-            UCA0IE &= ~UCTXIE;
-            /* unlock the buffer */
-            uart0tx.locked = 0;
+    RingBuffer* txRingBuff;
+    RingBuffer* rxRingBuff;
+}
+
+//###########################################################
+// Private globals and constants
+//###########################################################
+
+static UART__Registers uart0Registers = {
+    .UCAxTXBUF = &UCA0TXBUF,
+    .UCAxRXBUF = &UCA0RXBUF,
+    .UCAxIV = &UCA0IV,
+    .UCAxIE = &UCA0IE,
+    .UCAxIFG = &UCA0IFG
+};
+
+static UART__Registers uart1Registers = {
+    .UCAxTXBUF = &UCA1TXBUF,
+    .UCAxRXBUF = &UCA1RXBUF,
+    .UCAxIV = &UCA1IV,
+    .UCAxIE = &UCA1IE,
+    .UCAxIFG = &UCA1IFG
+};
+
+static UART__State uart0State = {
+    .initialized = FALSE,
+    .registers = &uart0Registers;
+    .txRingBuff = NULL,
+    .rxRingBuff = NULL
+};
+
+static UART__State uart1State = {
+    .initialized = FALSE,
+    .registers = &uart1Registers;
+    .txRingBuff = NULL,
+    .rxRingBuff = NULL
+};
+
+//###########################################################
+// Private function declarations
+//###########################################################
+
+void UART__clockInit(void);
+UART__Status UART__initState(UART__State* state, UART__Buffers* buffers);
+void UART__uart0Init(void);
+void UART__uart1Init(void);
+
+void UART__interruptHandler(UART__State* uartState);
+
+//###########################################################
+// Public function definitions
+//###########################################################
+
+UART__Status UART__init(UART__Config* config,
+                        UART__State** uart0StateOut,
+                        UART__State** uart1StateOut)
+{
+    if (NULL == config
+        || NULL == uart0StateOut
+        || NULL == uart1StateOut) {
+        return UART__STATUS__ERROR_NULL;
+    }
+
+    if (uart0State.initialized && uart0State.initialized) {
+        return UART__STATUS__ERROR_ALREADY_INITIALIZED;
+    }
+
+    // First, initialize the clocks. This could be before or after the state structures,
+    // but should be before initializing the uarts themselves
+    UART__clockInit();
+
+
+    // Second, initialize the state structures for both uarts
+    UART__Status uartStatus = UART__initState(&uart0State, &(config->uart0Buffers));
+
+    if (UART__STATUS__SUCCESS != uartStatus) {
+        return uartStatus;
+    }
+
+    uartStatus = UART__initState(&uart1State, &(config->uart1Buffers));
+
+    if (UART__STATUS__SUCCESS != uartStatus) {
+        return uartStatus;
+    }
+
+    // Third, initialize the uarts themselves
+    UART__uart0Init();
+    UART__uart1Init();
+
+    *uart0StateOut = &uart0State;
+    *uart1StateOut = &uart1State;
+
+    return UART__STATUS__SUCCESS;
+ }
+
+
+UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t dataLen)
+{
+    if (NULL == uartState || NULL == data) {
+        return UART__STATUS__ERROR_NULL;
+    }
+
+    if (!(uartState->initialized)) {
+        return UART__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    if (0 == dataLen) {
+        return UART__STATUS__ERROR_ZERO_LENGTH_DATA;
+    }
+
+    size_t numFree = 0;
+
+    // Disable the tx interrupt for this uart while we get the number of free bytes in the ring buffer
+    uint16_t existingTxInterruptBitState = *(uartState->registers->UCAxIE) & UCTXIE;
+    *(uartState->registers->UCAxIE) &= ~UCTXIE;
+
+    numFree = RingBuffer__freeCount(uartState->txRingBuff);
+
+    // Re-enable the tx interrupt only if it was previously enabled
+    *(uartState->registers->UCAxIE) |= existingTxInterruptBitState;
+
+    if (dataLen > numFree) {
+        return UART__STATUS__ERROR_NOT_ENOUGH_SPACE;
+    }
+
+    // We have enough space in the ring buffer for all of our buffer data, so
+    // push it all into the buffer
+    for (size_t i = 0U; i < dataLen; ++i) {
+        RingBuffer__Status rbStatus = RingBuffer__put(uartState->txRingBuff, data[i]);
+
+        if (RB__STATUS__SUCCESS != rbStatus) {
+            return UART__STATUS__ERROR_RB_PUT_FAILURE;
         }
+    }
 
-        /* send the next byte */
-        UCA0TXBUF = uart0tx.buf[uart0tx.idx++];
-        if (uart0tx.idx >= BUFFER_SIZE) uart0tx.idx = 0;
-        break;
-    case USCI_UART_UCRXIFG: /* received new byte */
-        /* get the received character */
-        rcv = UCA0RXBUF;
+    // We've written data to the tx ring buffer, so make sure that the tx interrupt is enabled
+    *(uartState->registers->UCAxIE) |= UCTXIE;
 
-        /* check what mode we're in */
-        if (uart0_rx_mode == UA0_RX_HEADER) {
-            uart0_rx_header[7] = rcv;
-            /* verify valid header w/ magic value and parity */
-            uint8_t parity = 0xDC; /* sum of 0x21, 0xB0, and 0x0B */
-            parity += uart0_rx_header[4] + uart0_rx_header[5];
-            parity += uart0_rx_header[6] + uart0_rx_header[7];
-            /* bitwise NOT to compute parity */
-            parity = ~parity;
-            if (uart0_rx_header[0] == 0x0B && uart0_rx_header[1] == 0xB0 && uart0_rx_header[2] == 0x21
-                    && parity == uart0_rx_header[3]) {
-                /* get the received packet length */
-                uart0_rx_len = (uart0_rx_header[4]) | (uart0_rx_header[5] << 8);
-                /* next byte to process is UDP data */
-                uart0_rx_mode = UA0_RX_UDP;
-                /* clear the rx buffer */
-                uart0rx.idx = 0;
-                uart0rx.used = 0;
-                /* note if uart0_rx_len = 0, we will change to UA0_RX_PROCESS_UDP below */
-            } else {
-                /* no match, shuffle the bytes around and keep going */
-                uart0_rx_header[0] = uart0_rx_header[1];
-                uart0_rx_header[1] = uart0_rx_header[2];
-                uart0_rx_header[2] = uart0_rx_header[3];
-                uart0_rx_header[3] = uart0_rx_header[4];
-                uart0_rx_header[4] = uart0_rx_header[5];
-                uart0_rx_header[5] = uart0_rx_header[6];
-                uart0_rx_header[6] = uart0_rx_header[7];
-            }
-        } else if (uart0_rx_mode == UA0_RX_UDP) {
-            uart0rx.buf[uart0rx.idx++] = rcv;
-            uart0rx.used++;
+    return UART__STATUS__SUCCESS;
+}
 
-            if (uart0rx.idx >= BUFFER_SIZE) uart0rx.idx -= BUFFER_SIZE;
+UART__Status UART__receive(UART__State* uartState,
+                           uint8_t* data,
+                           size_t dataLen,
+                           size_t* numReceived)
+{
+    if (NULL == uartState || NULL == data || NULL == numReceived) {
+        return UART__STATUS__ERROR_NULL;
+    }
+
+    if (!(uartState->initialized)) {
+        return UART__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    // Make sure numReceived starts at zero
+    *numReceived = 0U;
+
+    // We have enough space in the ring buffer for all of our buffer data, so
+    // push it all into the buffer
+    for (size_t i = 0U; i < dataLen; ++i) {
+        RingBuffer__Status rbStatus = RingBuffer__get(uartState->rxRingBuff, data + i);
+
+        if (RB__STATUS__SUCCESS == rbStatus) {
+            // we got another byte
+            (*numReceived)++;
+        } else if (RB__STATUS__ERROR__EMPTY == rbStatus) {
+            // Have gotten all bytes that have been received so far
+            break;
         } else {
-            /* drop the byte */
+            return UART__STATUS__ERROR_RB_GET_FAILURE;
         }
-
-        /* check if we are done reading */
-        if ((uart0_rx_mode == UA0_RX_UDP) && (uart0rx.used >= uart0_rx_len)) {
-            /* note that we received a packet in main loop */
-            loop_flags |= FLAG_UART0_RX_PACKET;
-            /* also stop writing to buffer */
-            uart0_rx_mode = UA0_RX_PROCESS_UDP;
-        }
-
-        /* clear UART_A0 receive flag */
-        /* we are done here */
-        UCA0IFG &= ~UCRXIFG;
-        break;
-    default: /* some other possibilities */
-        break;
     }
+
+    return UART__STATUS__SUCCESS;
 }
 
-__volatile int is_escaped = 0;
-__volatile int has_started = 0;
-
-/* UCA1 interrupt handler (watchdog SLIP) */
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector=EUSCI_A1_VECTOR
-__interrupt void USCI_A1_ISR(void) {
-#elif defined(__GNUC__)
-void __attribute__ ((interrupt(EUSCI_A1_VECTOR))) USCI_A1_ISR (void) {
-#else
-#error Compiler not supported!
-#endif
-
-    unsigned char rcv;
-
-    /* two possibilities; rx or tx */
-    switch(__even_in_range(UCA1IV, USCI_UART_UCTXCPTIFG)) {
-    case USCI_UART_UCTXIFG: /* transmitted byte successfully */
-        /* decrement the number of bytes used */
-        uart1tx.used--;
-
-        if (uart1tx.used == 0) {
-            /* done sending after this byte; clear IFG */
-            UCA1IE &= ~UCTXIE;
-            /* unlock the buffer */
-            uart1tx.locked = 0;
-        }
-
-        /* send the next byte */
-        UCA1TXBUF = uart1tx.buf[uart1tx.idx++];
-        if (uart1tx.idx >= BUFFER_SIZE) uart1tx.idx = 0;
-        break;
-    case USCI_UART_UCRXIFG: /* received new byte */
-        /* get the received character */
-        rcv = UCA1RXBUF;
-
-        if (!has_started) {
-            if (rcv == SLIP_END) {
-                /* start now */
-                has_started = 1;
-                goto end_rx;
-            } else {
-                goto end_rx;
-            }
-        }
-
-        /* deal with escaped characters */
-        if (is_escaped && rcv == SLIP_ESC_END) {
-            /* push the escaped character */
-            uart1rx.buf[uart1rx.idx++] = SLIP_END;
-            is_escaped = 0;
-            goto end_rx;
-        } else if (is_escaped && rcv == SLIP_ESC_ESC) {
-            /* push the escaped character */
-            uart1rx.buf[uart1rx.idx++] = SLIP_ESC;
-            is_escaped = 0;
-            goto end_rx;
-        }
-
-        /* regular case (not escaped character) */
-        switch (rcv) {
-        case SLIP_END:
-            /* done reading; skip storing the end byte, and signal to the main loop that we are done */
-            loop_flags |= FLAG_UART1_RX_PACKET;
-            has_started = 0;
-            // exit LPM
-            __bic_SR_register(DEFAULT_LPM);
-            break;
-        case SLIP_ESC:
-            /* about to start escape sequence; skip storing this byte */
-            is_escaped = 1;
-            break;
-        default:
-            /* regular byte */
-            uart1rx.buf[uart1rx.idx++] = rcv;
-            break;
-        }
-
-        /* clear UART_A1 receive flag */
-        /* we are done here */
-    end_rx:
-        UCA1IFG &= ~UCRXIFG;
-        if (uart1rx.idx >= BUFFER_SIZE) {
-            uart1rx.idx -= BUFFER_SIZE;
-        }
-        break;
-    default: /* some other possibilities */
-        break;
-    }
-}
-
-/* =============================== main code ================================ */
+//###########################################################
+// Private function definitions
+//###########################################################
 
 /**
  * Initialize clocks for UART. necessary and should only be called once, at boot.
  */
-void clock_init() {
+void UART__clockInit()
+{
     CSCTL0_H = CSKEY_H;                     // Unlock CS registers
     CSCTL1 = DCOFSEL_3 | DCORSEL;           // Set DCO to 8MHz
     CSCTL2 = SELA__VLOCLK | SELS__DCOCLK | SELM__DCOCLK;
@@ -214,26 +227,47 @@ void clock_init() {
     CSCTL0_H = 0;                           // Lock CS registers
 }
 
-/**
- * Power-saving measure: disable UART0 and set pins to high impedance input
- */
-void uart0_disable() {
-    UCA0CTLW0 = UCSWRST;                    // Put eUSCI_A0 in reset
-    //  TODO: fill this in
+UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
+{
+    if (NULL == state
+        || NULL == buffers
+        || NULL == buffers->txBuffer
+        || NULL == buffers->rxBuffer) {
+        return UART__STATUS__ERROR_NULL;
+    }
+
+    // Shouldn't be possible to only have one uart initialized but not the other,
+    // but make sure we don't don't re-iniitalize one anyway
+    if (!(state->initialized)) {
+        RingBuffer__Status rbStatus = RingBuffer__init(&(state->txRingBuff),
+                                                       buffers->txBuffer,
+                                                       buffers->txBufferSize);
+
+        if (RB__STATUS__SUCCESS != rbStatus) {
+            return UART__STATUS__ERROR_RB_INIT_FAILURE;
+        }
+
+        rbStatus = RingBuffer__init(&(state->rxRingBuff),
+                                    buffers->rxBuffer,
+                                    buffers->rxBufferSize);
+
+        if (RB__STATUS__SUCCESS != rbStatus) {
+            return UART__STATUS__ERROR_RB_INIT_FAILURE;
+        }
+
+        state->initialized = TRUE;
+    }
+
+    return UART__STATUS__SUCCESS;
 }
 
 /**
  * Initialize UART0 (Hercules <-> watchdog)
  */
-void uart0_init() {
-    /* initally all buffers are empty */
-    uart0tx.idx = 0;
-    uart0tx.used = 0;
-    uart0tx.locked = 0;
-    uart0rx.idx = 0;
-    uart0rx.used = 0;
-
-    UCA0CTLW0 = UCSWRST;                    // Put eUSCI_A0 in reset
+void UART__uart0Init()
+{
+    // Put eUSCI_A0 in reset
+    UCA0CTLW0 = UCSWRST;                    
 
     /* Setup for eUSCI_A0 and eUSCI_A1 */
     /* On the MSP430FR5994, pin P2.0 is used for TX and pin P2.1 is used for RX
@@ -246,44 +280,59 @@ void uart0_init() {
     /* set P2SEL1.1, and P2SEL1.0 to 1 */
     P2SEL1 |= (BIT0 | BIT1);
 
-    UCA0CTLW0 |= UCSSEL__SMCLK;             // CLK = SMCLK
-    // Baud Rate calculation
-    // 8000000/(16*9600) = 52.083
-    // Fractional portion = 0.083
-    // User's Guide Table 21-4: UCBRSx = 0x04
-    // UCBRFx = int ( (52.083-52)*16) = 1
-    UCA0BRW = 52;                           // 8000000/16/9600
-    UCA0MCTLW |= UCOS16 | UCBRF_1 | 0x4900; // ???
-    UCA0CTLW0 &= ~UCSWRST;                  // Release eUSCI_A0 reset
-    UCA0IE |= UCRXIE;                       // Enable USCI_A0 RX interrupt
-}
+    // Use SMCLK as BRCLK
+    UCA0CTLW0 |= UCSSEL__SMCLK;
 
-/**
- * disable uart 1
- */
-void uart1_disable() {
-    UCA1CTLW0 = UCSWRST;                    // Put eUSCI_A1 in reset
+    /*
+    By leaving all other fields as default in UCA0CTLW0, we are using the following configuration:
+    - Parity disabled
+    - LSB first (in the RX and TX shift registers)
+    - 8-bit data
+    - One stop bit
+    - eUSCI_A0 in UART mode
+    - Asynchronous mode
+    - Regular UART mode (no multiprocessor mode or automatic baud-rate detection)
+    - Erroneous characters rejected and corresponding interrupt disabled
+    - Receive break character interrupt disabled
+    - Not dormant
+    - Next frame to be transmitted is data
+    - Next frame to be transmitted is not a break
+    */
 
-    /* set P2SEL0.5, P2SEL0.6 to 0 */
-    P2SEL0 &= ~(BIT5 | BIT6);
-    /* set P2SEL1.5, P2SEL1.6 to 0 */
-    P2SEL0 &= ~(BIT5 | BIT6);
+    // Baud Rate calculation (Section 30.3.10, SLAU367P)
+    // N = (Baud rate clock frequency) / baud rate = 8000000 / 9600 = 833.3333
+    // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
+    UCA0MCTLW = UCOS16; // Enables oversampling baud-rate generation mode
+    // UCBRx = int(N / 16) = int(52.08333)
+    // UCBRx = 52
+    UCA0BRW = 52U; // Note: UCBRSx takes up the full 16 bits of UCAxBRW
+    // UCBRFx = int([(N/16) - int(N / 16)] * 16) = int([52.08333 - 52] * 16) = int(1.3333)
+    // UCBRFx = 1
+    UCA0MCTLW |= UCBRF_1;
+    // UCBRSx = 0x04 (per Table 30-4, SLAU367P)
+    // However, per table 30-5 (SLAU367P), for a BRCLK frequency of 8000000 and a baud rate of 9600,
+    //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
+    //  Therefore, we use 0x49 instead of 0x04. 
+    UCA0MCTLW |= 0x4900U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
 
-    UCA1IE = 0;
-    UCA1CTLW0 = 0; // clear setup
+    // Release eUSCI_A0 reset
+    UCA0CTLW0 &= ~UCSWRST;
+    // Enable USCI_A0 RX interrupt              
+    UCA0IE |= UCRXIE;                       
 }
 
 /**
  * Initialize UART1 (Lander <-> watchdog)
  */
-void uart1_init() {
+void UART__uart1Init() {
     uart1tx.idx = 0;
     uart1tx.used = 0;
     uart1tx.locked = 0;
     uart1rx.idx = 0;
     uart1rx.used = 0;
 
-    UCA1CTLW0 = UCSWRST;                    // Put eUSCI_A1 in reset
+    // Put eUSCI_A1 in reset
+    UCA1CTLW0 = UCSWRST;                    
 
     /* Setup for eUSCI_A1 */
     /* On the MSP430FR5994, pin P2.5 is used for TX and pin P2.6 is used for RX
@@ -296,109 +345,127 @@ void uart1_init() {
     /* set P2SEL1.5, P2SEL1.6 to 1 */
     P2SEL1 |= (BIT5 | BIT6);
 
-    UCA1CTLW0 |= UCSSEL__SMCLK;             // CLK = SMCLK
-    // Baud Rate calculation
-    // 8000000/(16*9600) = 52.083
-    // Fractional portion = 0.083
-    // User's Guide Table 21-4: UCBRSx = 0x04
-    // UCBRFx = int ( (52.083-52)*16) = 1
-    UCA1BRW = 52;                           // 8000000/16/9600
-    UCA1MCTLW |= UCOS16 | UCBRF_1 | 0x4900; // ???
-    UCA1CTLW0 &= ~UCSWRST;                  // Release eUSCI_A1 reset
-    UCA1IE |= UCRXIE;                       // Enable USCI_A1 RX interrupt
+    // Use SMCLK as BRCLK
+    UCA1CTLW0 |= UCSSEL__SMCLK;
+
+    /*
+    By leaving all other fields as default in UCA1CTLW0, we are using the following configuration:
+    - Parity disabled
+    - LSB first (in the RX and TX shift registers)
+    - 8-bit data
+    - One stop bit
+    - eUSCI_A1 in UART mode
+    - Asynchronous mode
+    - Regular UART mode (no multiprocessor mode or automatic baud-rate detection)
+    - Erroneous characters rejected and corresponding interrupt disabled
+    - Receive break character interrupt disabled
+    - Not dormant
+    - Next frame to be transmitted is data
+    - Next frame to be transmitted is not a break
+    */
+
+    // Baud Rate calculation (Section 30.3.10, SLAU367P)
+    // N = (Baud rate clock frequency) / (baud rate) = 8000000 / 9600 = 833.3333
+    // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
+    UCA1MCTLW = UCOS16; // Enables oversampling baud-rate generation mode
+    // UCBRx = int(N / 16) = int(52.08333)
+    // UCBRx = 52
+    UCA1BRW = 52U; // Note: UCBRSx takes up the full 16 bits of UCAxBRW
+    // UCBRFx = int([(N/16) - int(N / 16)] * 16) = int([52.08333 - 52] * 16) = int(1.3333)
+    // UCBRFx = 1
+    UCA1MCTLW |= UCBRF_1;
+    // UCBRSx = 0x04 (per Table 30-4, SLAU367P)
+    // However, per table 30-5 (SLAU367P), for a BRCLK frequency of 8000000 and a baud rate of 9600,
+    //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
+    //  Therefore, we use 0x49 instead of 0x04. 
+    UCA1MCTLW |= 0x4900U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
+
+    // Release eUSCI_A1 reset
+    UCA1CTLW0 &= ~UCSWRST;
+    // Enable USCI_A1 RX interrupt            
+    UCA1IE |= UCRXIE;                       
+}
+
+void UART__interruptHandler(UART__State* uartState)
+{
+    if (NULL == uartState) {
+        return;
+    }
+
+    uint8_t data = 0U;
+    RingBuffer__Status rbStatus = RB__STATUS__SUCCESS;
+
+    /* two possibilities; rx or tx */
+    switch(__even_in_range(*(uartState->registers->UCAxIV), USCI_UART_UCTXCPTIFG)) {
+        case USCI_UART_UCTXIFG: /* transmitted byte successfully */
+            rbStatus = RingBuffer__get(uartState->txRingBuff, &data);
+
+            if (RB__STATUS__SUCCESS == rbStatus) {
+                // We got another byte to send, so put it in the tx buffer
+                *(uartState->registers->UCAxTXBUF) = data;
+            } else if (RB__STATUS__ERROR__EMPTY == rbStatus) {
+                // There are no more bytes to send, so disable TX interrupt for this uart
+                *(uartState->registers->UCAxIE) &= ~UCTXIE;
+            } else {
+                // An error occurred.
+                // TODO: handling? logging?
+            }
+            break;
+
+        case USCI_UART_UCRXIFG: /* received new byte */
+            /* get the received character */
+            data = *(uartState->registers->UCAxRXBUF);
+
+            // Note: calling this means that if the buffer is full and we get new data, 
+            // we'll drop the new data instead of overwriting the oldest data in the 
+            // buffer. If we'd rather overwrite the old data, this will need to be updated. 
+            rbStatus = RingBuffer__put(uartState->rxRingBuff, data);
+
+            if (RB__STATUS__ERROR__FULL == rbStatus) {
+                // The ring buffer is full, so data will be dropped.
+                // TODO: handling? logging?
+            } else if (RB__STATUS__SUCCESS != rbStatus) {
+                // An error occurred.
+                // TODO: handling? logging?
+            }
+
+            // We're done with the byte we just received, so clear the receive interrupt flag
+            // for this uart
+            *(uartState->registers->UCAxIFG) &= ~UCRXIFG;
+            break;
+
+        default: /* some other possibilities */
+            break;
+    }
+}
+
+//###########################################################
+// Interrupt handlers
+//###########################################################
+
+/* uart0 rx interrupt handler (Hercules) */
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+    #pragma vector=EUSCI_A0_VECTOR
+    __interrupt void USCI_A0_ISR(void) {
+#elif defined(__GNUC__)
+    void __attribute__ ((interrupt(EUSCI_A0_VECTOR))) USCI_A0_ISR(void) {
+#else
+    #error Compiler not supported!
+#endif
+    
+    UART__interruptHandler(&uart0State);
 }
 
 
-void uart0_tx_nonblocking(uint16_t length, unsigned char *buffer) {
-    uint16_t i=0;
-    unsigned char b;
-    uint16_t curr_idx;
-
-    // wait for the buffer to be unlocked
-    while (uart0tx.locked) __delay_cycles(100);
-
-    // disable interrupts to prevent race conditions
-    UCA0IE &= ~UCTXIE;
-    // disable interrupts
-    __bic_SR_register(GIE);
-
-    curr_idx = uart0tx.idx + uart0tx.used;
-
-    for (i = 0; i < length; i++) {
-        b = buffer[i];
-        uart0tx.buf[curr_idx++] = b;
-        if (curr_idx >= BUFFER_SIZE) curr_idx = 0;
-        uart0tx.used++;
-    }
-
-    /* start interrupts for sending async */
-    uart0tx.locked = 1;
-    __bis_SR_register(GIE);
-    UCA0IE |= UCTXIE;
+/* UCA1 interrupt handler (watchdog SLIP) */
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+    #pragma vector=EUSCI_A1_VECTOR
+    __interrupt void USCI_A1_ISR(void) {
+#elif defined(__GNUC__)
+    void __attribute__ ((interrupt(EUSCI_A1_VECTOR))) USCI_A1_ISR (void) {
+#else
+    #error Compiler not supported!
+#endif
+    
+    UART__interruptHandler(&uart1State);
 }
-
-void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer, uint8_t opts) {
-    uint16_t i=0;
-    unsigned char b;
-    uint16_t curr_idx;
-
-    // wait for the buffer to be unlocked
-    while (uart1tx.locked) __delay_cycles(100);
-
-    // disable interrupts to prevent race conditions
-    UCA1IE &= ~UCTXIE;
-    // disable interrupts
-    __bic_SR_register(GIE);
-
-    // get the current base index
-    curr_idx = uart1tx.idx + uart1tx.used;
-
-    // TODO: maybe we should do SLIP encoding in the interrupt handler instead,
-    // so that we can have a deterministic MTU
-
-    if (opts & UA1_ADD_PKT_START) {
-        uart1tx.buf[curr_idx++] = SLIP_END;
-        uart1tx.used += 1;
-    }
-
-    for (i = 0; i < length; i++) {
-        b = buffer[i];
-        /* check what byte this is */
-        switch (b) {
-        case SLIP_END:
-            /* have to send 2 characters to escape END */
-            uart1tx.buf[curr_idx++] = SLIP_ESC;
-            if (curr_idx >= BUFFER_SIZE) curr_idx = 0;
-            uart1tx.buf[curr_idx++] = SLIP_ESC_END;
-            if (curr_idx >= BUFFER_SIZE) curr_idx = 0;
-            uart1tx.used += 2;
-            break;
-        case SLIP_ESC:
-            /* have to send 2 characters to escape ESC */
-            uart1tx.buf[curr_idx++] = SLIP_ESC;
-            if (curr_idx >= BUFFER_SIZE) curr_idx = 0;
-            uart1tx.buf[curr_idx++] = SLIP_ESC_ESC;
-            if (curr_idx >= BUFFER_SIZE) curr_idx = 0;
-            uart1tx.used += 2;
-            break;
-        default:
-            /* no need to escape or w/e */
-            uart1tx.buf[curr_idx++] = b;
-            if (curr_idx >= BUFFER_SIZE) curr_idx = 0;
-            uart1tx.used++;
-            break;
-        }
-    }
-
-    if (opts & UA1_ADD_PKT_END) {
-        uart1tx.buf[curr_idx++] = SLIP_END;
-        uart1tx.used += 1;
-    }
-
-    /* start interrupts for sending async */
-    uart1tx.locked = 1;
-    __bis_SR_register(GIE);
-    UCA1IE |= UCTXIE;
-}
-
-

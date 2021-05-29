@@ -1,7 +1,9 @@
-#ifndef CUBEROVER_WATCHDOG_IPUDP_INC
-#define CUBEROVER_WATCHDOG_IPUDP_INC
+#ifndef __WATCHDOG_IP_UDP_H__
+#define __WATCHDOG_IP_UDP_H__
 
+#include <arpa/inet.h>
 #include "include/buffer.h"
+
 
 #define iup_get_ver(pckt) (pckt->ver_hdrlen >> 4)
 #define iup_get_hdrlen(pckt) (pckt->ver_hdrlen & 0xF)
@@ -83,7 +85,28 @@ struct __attribute__((__packed__)) ip_udp_pckt {
     /* -=-=-=-=-=-=-=-=[ data here ]=-=-=-=-=-=-=-=- */
 };
 
+static const size_t IP_UDP_HEADER_LEN = sizeof(struct ip_hdr) + sizeof(struct udp_hdr);
+
+typedef enum IpUdp__Status {
+    IP_UDP__STATUS__SUCCESS = 0,
+
+    IP_UDP__STATUS__ERROR_NULL = -1,
+    IP_UDP__STATUS__ERROR_BUFFER_TOO_SMALL = -2,
+    IP_UDP__STATUS__ERROR_SERIALIZATION_FAILURE = -3
+} IpUdp__Status;
+
 void ipudp_send_packet(uint8_t *data, uint16_t data_len);
 uint8_t *ipudp_parse_packet(struct buffer *buf, uint16_t *pp_len);
 
-#endif /* CUBEROVER_WATCHDOG_IPUDP_INC */
+IpUdp__Status IpUdp__identifyDataInUdpPacket(const uint8_t* fullIpUdpPacketData,
+                                             size_t fullDataLen,
+                                             uint8_t** udpDataPointer,
+                                             size_t* udpDataSize);
+
+IpUdp__Status IpUdp__generateAndSerializeIpUdpHeadersForData(const uint8_t* udpData,
+                                                             size_t udpDataSize,
+                                                             uint8_t* serializationBuffer,
+                                                             size_t bufferLen,
+                                                             uint16_t packetId);
+
+#endif /* __WATCHDOG_IP_UDP_H__ */

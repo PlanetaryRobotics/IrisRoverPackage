@@ -4,6 +4,7 @@
 #include "include/buffer.h"
 #include "include/uart.h"
 #include "include/cfg.h"
+#include "include/serialization.h"
 
 /* note - msp430 is little endian; networks are big endian */
 
@@ -273,4 +274,92 @@ uint8_t *ipudp_parse_packet(struct buffer *buf, uint16_t *pp_len) {
 
     /* skip past the ip and udp headers, and we're left with the payload! */
     return buf->buf + n;
+}
+
+IpUdp__Status IpUdp__identifyDataInUdpPacket(const uint8_t* fullIpUdpPacketData,
+                                             size_t fullDataLen,
+                                             uint8_t** udpDataPointer,
+                                             size_t* udpDataSize)
+{
+    if (NULL == fullIpUdpPacketData || NULL == udpDataPointer || NULL == udpDataSize) {
+        return IP_UDP__STATUS__ERROR_NULL;
+    }
+
+    if (fullDataLen < IP_UDP_HEADER_LEN) {
+        /* Input data is too small to contain a UDP packet inside of an IP packet*/
+        return IP_UDP__STATUS__ERROR_BUFFER_TOO_SMALL;
+    }
+
+    // TODO: Do we want to add validation of contents of IP and/or UDP headers
+
+    *udpDataPointer = fullIpUdpPacketData + IP_UDP_HEADER_LEN;
+    *udpDataSize = fullDataLen - IP_UDP_HEADER_LEN;
+
+    return IP_UDP__STATUS__SUCCESS;
+}
+
+IpUdp__Status IpUdp__generateAndSerializeIpUdpHeadersForData(const uint8_t* udpData,
+                                                             size_t udpDataSize,
+                                                             uint8_t* serializationBuffer,
+                                                             size_t bufferLen,
+                                                             uint16_t packetId)
+{ 
+    if (NULL == udpData || NULL == serializationBuffer) {
+        return IP_UDP__STATUS__ERROR_NULL;
+    }
+
+    if (bufferLen < IP_UDP_HEADER_LEN) {
+        return IP_UDP__STATUS__ERROR_NULL;
+    }
+
+    struct ip_hdr *ip_hdr = (struct ip_hdr *) serializationBuffer;
+    struct udp_hdr *udp_hdr = (struct udp_hdr *)(ip_hdr + 1);
+
+
+    /*
+     * NOTE: The code below is kind of gross, but it (presumably) works so I'm reusing it for now.
+     * TODO: Rewrite this code so it is neater and maybe less hardcoded.
+     *
+     * Old code below 
+     *==============================================================
+     */
+
+
+    /* make the ip header first */
+    ip_hdr->ver_hdrlen = 0x45;
+    ip_hdr->tos = 0;
+    ip_hdr->pckt_len = htons(udpDataSize + sizeof(struct ip_hdr) + sizeof(struct udp_hdr));
+    ip_hdr->id = htons(packetId);
+    ip_hdr->flgs = 0;
+    // don't really care
+    ip_hdr->ttl = 0xff;
+    // udp = 0x11
+    ip_hdr->proto = 0x11;
+    // checksum is 0 for now
+    ip_hdr->iphdr_checksum = 0;
+    // addresses
+    ip_hdr->source = 0x0267A8C0;
+    ip_hdr->dest = 0x0167A8C0;
+    // compute checksum
+    uint16_t ipHeaderChecksum = ip_checksum(ipudp_tx_buf, sizeof(struct ip_hdr));
+    ip_hdr->iphdr_checksum = htons(ipHeaderChecksum);
+
+    /* next, make the udp header */
+    // SLIP configuration port 42000 on both sides
+    udp_hdr->source_port = htons(SPACECRAFT_PORT);
+    udp_hdr->dest_port = htons(LANDER_PORT);
+    // length
+    udp_hdr->len = udpDataSize + sizeof(struct udp_hdr);
+    udp_hdr->len = htons(udp_hdr->len);
+    udp_hdr->checksum = 0;
+    // UDP checksum
+    uint16_t udpHeaderChecksum = udp_checksum(udp_hdr, udpData, udp_hdr->len, ip_hdr->source, ip_hdr->dest);
+    udp_hdr->checksum = htons(udpHeaderChecksum);
+
+    /*
+     *==============================================================
+     * Old code above 
+     */
+
+    return IP_UDP__STATUS__SUCCESS;
 }

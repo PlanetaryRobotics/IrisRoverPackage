@@ -9,7 +9,7 @@
 #ifndef __WATCHDOG_UART_H__
 #define __WATCHDOG_UART_H__
 
-#include "buffer.h"
+#include <stdint.h>
 
 // Forward definition of opaque UART structure, defined in source file
 // Other modules using this structure will not and do not need to know its contents 
@@ -53,27 +53,5 @@ UART__Status UART__receive(UART__State* uartState,
                            uint8_t* data,
                            size_t dataLen,
                            size_t* numReceived);
-
-/**
- * @brief Initialize UART hardware.
- * Sets up the interrupts and whatnot for UART.
- */
-void clock_init();
-void uart0_init();
-void uart1_init();
-
-#define UA0_RX_HEADER       0x1
-#define UA0_RX_UDP          0x2
-#define UA0_RX_PROCESS_UDP  0x4
-
-#define UA1_NO_WRAPS        0x0
-#define UA1_ADD_PKT_START   0x1
-#define UA1_ADD_PKT_END     0x2
-void uart0_tx_nonblocking(uint16_t length, unsigned char *buffer);
-void uart1_tx_nonblocking(uint16_t length, unsigned char *buffer, uint8_t opts);
-
-extern volatile uint8_t uart0_rx_mode;
-extern volatile uint8_t uart0_rx_header[8];
-extern volatile uint16_t uart0_rx_len;
 
 #endif /* __WATCHDOG_UART_H__ */

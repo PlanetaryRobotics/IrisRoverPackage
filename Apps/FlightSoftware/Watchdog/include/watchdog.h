@@ -6,7 +6,7 @@
 #ifndef __WATCHDOG_INC
 #define __WATCHDOG_INC
 
-#include "include/i2c_sensors.h"
+#include "include/comms/i2c_sensors.h"
 
 int watchdog_init();
 int watchdog_monitor();

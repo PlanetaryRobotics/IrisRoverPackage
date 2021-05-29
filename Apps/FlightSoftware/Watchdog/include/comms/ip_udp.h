@@ -2,7 +2,6 @@
 #define __WATCHDOG_IP_UDP_H__
 
 #include <arpa/inet.h>
-#include "include/buffer.h"
 
 
 #define iup_get_ver(pckt) (pckt->ver_hdrlen >> 4)

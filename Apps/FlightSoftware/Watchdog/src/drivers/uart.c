@@ -11,8 +11,8 @@
  */
 
 #include <msp430.h>
-#include "include/uart.h"
-#include "include/ring_buffer.h"
+#include "include/drivers/uart.h"
+#include "include/utils/ring_buffer.h"
 #include "include/common.h"
 #include "include/flags.h"
 

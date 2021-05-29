@@ -12,11 +12,11 @@
 #include <msp430.h>
 #include <stdint.h>
 #include "include/flags.h"
-#include "include/adc.h"
-#include "include/uart.h"
-#include "include/bsp.h"
-#include "include/ip_udp.h"
-#include "include/i2c_sensors.h"
+#include "include/drivers/adc.h"
+#include "include/drivers/uart.h"
+#include "include/drivers/bsp.h"
+#include "include/comms/ip_udp.h"
+#include "include/comms/i2c_sensors.h"
 #include "include/ground_cmd.h"
 #include "include/watchdog.h"
 

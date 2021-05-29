@@ -1,10 +1,11 @@
 // i2c_sensors.c
 
-#include "include/i2c_sensors.h"
-#include "include/i2c.h"
+#include "include/comms/i2c_sensors.h"
+#include "include/drivers/i2c.h"
 #include "include/common.h"
 
 #include <string.h>
+#include <assert.h>
 
 //###########################################################
 // Private definitions and globals

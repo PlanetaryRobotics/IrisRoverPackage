@@ -1,6 +1,6 @@
 
-#include "include/slip_mpsm.h"
-#include "include/ip_udp.h"
+#include "include/comms/slip_mpsm.h"
+#include "include/comms/ip_udp.h"
 #include "include/common.h"
 
 //###########################################################

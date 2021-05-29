@@ -5,7 +5,7 @@
  *      Author: mschnur
  */
 
-#include "include/i2c.h"
+#include "include/drivers/i2c.h"
 #include "include/common.h"
 #include <string.h>
 

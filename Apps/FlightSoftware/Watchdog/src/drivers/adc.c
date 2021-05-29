@@ -1,5 +1,5 @@
 #include <msp430.h>
-#include "include/adc.h"
+#include "include/drivers/adc.h"
 #include "include/flags.h"
 
 /*

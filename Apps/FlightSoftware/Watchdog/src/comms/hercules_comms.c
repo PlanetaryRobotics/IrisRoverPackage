@@ -1,8 +1,8 @@
 
-#include "include/hercules_comms.h"
+#include "include/comms/hercules_comms.h"
 #include "include/common.h"
-#include "include/hercules_mpsm.h"
-#include "include/ip_udp.h"
+#include "include/comms/hercules_mpsm.h"
+#include "include/comms/ip_udp.h"
 
 //###########################################################
 // Private types

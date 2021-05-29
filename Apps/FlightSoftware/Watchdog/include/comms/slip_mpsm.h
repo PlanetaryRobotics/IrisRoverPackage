@@ -1,7 +1,7 @@
 #ifndef __WATCHDOG_SLIP_MPSM_H__
 #define __WATCHDOG_SLIP_MPSM_H__
 
-#include "include/ip_udp.h"
+#include "include/comms/ip_udp.h"
 
 //Note: MPSM stands for "Message parsing state machine"
 

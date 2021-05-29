@@ -1,8 +1,8 @@
 
-#include "include/lander_comms.h"
+#include "include/comms/lander_comms.h"
 #include "include/common.h"
-#include "include/slip_mpsm.h"
-#include "include/ip_udp.h"
+#include "include/comms/slip_mpsm.h"
+#include "include/comms/ip_udp.h"
 
 //###########################################################
 // Private types

@@ -1,7 +1,7 @@
 #ifndef __WATCHDOG_HERCULES_COMMS_H__
 #define __WATCHDOG_HERCULES_COMMS_H__
 
-#include "include/uart.h"
+#include "include/drivers/uart.h"
 #include "include/common.h"
 
 typedef struct HerculesComms__State HerculesComms__State;

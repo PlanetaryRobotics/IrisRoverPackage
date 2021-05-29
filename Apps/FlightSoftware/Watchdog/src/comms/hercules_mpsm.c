@@ -1,7 +1,7 @@
 
-#include "include/hercules_mpsm.h"
+#include "include/comms/hercules_mpsm.h"
 #include "include/common.h"
-#include "include/ring_buffer.h"
+#include "include/utils/ring_buffer.h"
 
 
 //###########################################################

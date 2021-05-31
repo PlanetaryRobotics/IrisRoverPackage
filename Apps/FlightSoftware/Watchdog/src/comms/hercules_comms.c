@@ -133,8 +133,9 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
                 resetMpsmMsg = TRUE;
             } else if (HERCULES_MPSM__STATUS__NEED_MORE_DATA != mpsmStatus) {
                 // Some kind of unexpected error occurred. At a minimum we need to reset the MPSM
-                // TODO: Additional handling? Logging?
                 resetMpsmMsg = true;
+                numReceived = 0;
+                returnStatus = HERCULES_COMMS__STATUS__ERROR_MPSM_PROCESS_FAILURE;
             }
 
             if (resetMpsmMsg) {
@@ -162,11 +163,58 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
 
 HerculesComms__Status HerculesComms__txData(HerculesComms__State* hState, const uint8_t* data, size_t dataLen)
 {
+    if (NULL == hState || NULL == data) {
+        return HERCULES_COMMS__STATUS__ERROR_NULL;
+    }
+
+    if (!hState->initialized) {
+        return HERCULES_COMMS__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
     // Directly insert the data into the UART tx ring buffer with no modification
     hStatus = HerculesComms__transmitBuffer(hState, data, dataLen);
 
     if (HERCULES_COMMS__STATUS__SUCCESS != hStatus) {
         return hStatus;
+    }
+
+    return HERCULES_COMMS__STATUS__SUCCESS;
+}
+
+// Clear the underlying UART rx buffer and reset the message parsing state machine
+HerculesComms__Status HerculesComms__resetState(HerculesComms__State* hState)
+{
+    static uint8_t uartRxData[64] = { 0 };
+
+    if (NULL == hState) {
+        return HERCULES_COMMS__STATUS__ERROR_NULL;
+    }
+
+    if (!hState->initialized) {
+        return HERCULES_COMMS__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    // Empty out the UART rx buffer by getting data from it until we get no more.
+    // We simply ignore the data, since we're also going to be resetting the
+    // message parsing state machine.
+    size_t numReceived = 1;
+
+    // TODO: add timeout
+    while (numReceived > 0) {
+        UART__Status uartStatus = UART__receive(hState->uartState,
+                                                uartRxData,
+                                                SIZE_OF_ARRAY(uartRxData),
+                                                &numReceived);
+
+        if (UART__STATUS__SUCCESS != uartStatus) {
+            return HERCULES_COMMS__STATUS__ERROR_UART_RX_FAILURE;
+        }
+    }
+
+    HerculesMpsm__Status mpsmStatus = HerculesMpsm__reset(&(hState->herculesMsgMpsm));
+
+    if (HERCULES_MPSM__STATUS__SUCCESS != mpsmStatus) {
+        return HERCULES_COMMS__STATUS__ERROR_MPSM_RESET_FAILURE;
     }
 
     return HERCULES_COMMS__STATUS__SUCCESS;

@@ -1,6 +1,8 @@
 #ifndef __WATCHDOG_SERIALIZATION_H___
 #define __WATCHDOG_SERIALIZATION_H___
 
+#include "include/common.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -43,11 +45,11 @@ typedef enum Serialization__StatusCode
  * @param dst
  * @param endianness endianness of the destination
  *
- * @return int If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 1.
- *             If negative, the value is an error code with the following meaning:
+ * @return If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 1.
+ *         If negative, the value is an error code with the following meaning:
  *               SERIALIZATION__ERROR__NULL -> |src| or |dst| was a NULL pointer
  */
-int Serialization__serializeAs8Bit(const void *src, void *dst, Serialization__Endianness endianness);
+short Serialization__serializeAs8Bit(const void *src, void *dst, Serialization__Endianness endianness);
 
 /**
  * @brief Serialize a 16 bit value at address |src| into |dst|, making sure the value put into |dst| has network byte
@@ -59,11 +61,11 @@ int Serialization__serializeAs8Bit(const void *src, void *dst, Serialization__En
  * @param dst
  * @param endianness endianness of the destination
  *
- * @return int If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 2.
- *             If negative, the value is an error code with the following meaning:
+ * @return If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 2.
+ *         If negative, the value is an error code with the following meaning:
  *               SERIALIZATION__ERROR__NULL -> |src| or |dst| was a NULL pointer
  */
-int Serialization__serializeAs16Bit(const void *src, void *dst, Serialization__Endianness endianness);
+short Serialization__serializeAs16Bit(const void *src, void *dst, Serialization__Endianness endianness);
 
 /**
  * @brief Serialize a 32 bit value at address |src| into |dst|, making sure the value put into |dst| has network byte
@@ -75,11 +77,11 @@ int Serialization__serializeAs16Bit(const void *src, void *dst, Serialization__E
  * @param dst
  * @param endianness endianness of the destination
  *
- * @return int If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 4.
- *             If negative, the value is an error code with the following meaning:
+ * @return If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 4.
+ *         If negative, the value is an error code with the following meaning:
  *               SERIALIZATION__ERROR__NULL -> |src| or |dst| was a NULL pointer
  */
-int Serialization__serializeAs32Bit(const void *src, void *dst, Serialization__Endianness endianness);
+short Serialization__serializeAs32Bit(const void *src, void *dst, Serialization__Endianness endianness);
 
 /**
  * @brief Serialize a 64 bit value at address |src| into |dst|, making sure the value put into |dst| has network byte
@@ -91,11 +93,11 @@ int Serialization__serializeAs32Bit(const void *src, void *dst, Serialization__E
  * @param dst
  * @param endianness endianness of the destination
  *
- * @return int If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 8.
- *             If negative, the value is an error code with the following meaning:
+ * @return If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 8.
+ *         If negative, the value is an error code with the following meaning:
  *               SERIALIZATION__ERROR__NULL -> |src| or |dst| was a NULL pointer
  */
-int Serialization__serializeAs64Bit(const void *src, void *dst, Serialization__Endianness endianness);
+short Serialization__serializeAs64Bit(const void *src, void *dst, Serialization__Endianness endianness);
 
 /**
  * @brief Deserialize an 8 bit value at address |src| into |dst|, making sure to convert the source value from network
@@ -107,11 +109,11 @@ int Serialization__serializeAs64Bit(const void *src, void *dst, Serialization__E
  * @param dst
  * @param endianness endianness of the src
  *
- * @return int If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 1.
- *             If negative, the value is an error code with the following meaning:
+ * @return If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 1.
+ *         If negative, the value is an error code with the following meaning:
  *               SERIALIZATION__ERROR__NULL -> |src| or |dst| was a NULL pointer
  */
-int Serialization__deserializeAs8Bit(const void *src, void *dst, Serialization__Endianness endianness);
+short Serialization__deserializeAs8Bit(const void *src, void *dst, Serialization__Endianness endianness);
 
 /**
  * @brief Deserialize a 16 bit value at address |src| into |dst|, making sure to convert the source value from network
@@ -123,11 +125,11 @@ int Serialization__deserializeAs8Bit(const void *src, void *dst, Serialization__
  * @param dst
  * @param endianness endianness of the src
  *
- * @return int If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 2.
- *             If negative, the value is an error code with the following meaning:
+ * @return If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 2.
+ *         If negative, the value is an error code with the following meaning:
  *               SERIALIZATION__ERROR__NULL -> |src| or |dst| was a NULL pointer
  */
-int Serialization__deserializeAs16Bit(const void *src, void *dst, Serialization__Endianness endianness);
+short Serialization__deserializeAs16Bit(const void *src, void *dst, Serialization__Endianness endianness);
 
 
 /**
@@ -140,11 +142,11 @@ int Serialization__deserializeAs16Bit(const void *src, void *dst, Serialization_
  * @param dst
  * @param endianness endianness of the src
  *
- * @return int If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 4.
- *             If negative, the value is an error code with the following meaning:
+ * @return If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 4.
+ *         If negative, the value is an error code with the following meaning:
  *               SERIALIZATION__ERROR__NULL -> |src| or |dst| was a NULL pointer
  */
-int Serialization__deserializeAs32Bit(const void *src, void *dst, Serialization__Endianness endianness);
+short Serialization__deserializeAs32Bit(const void *src, void *dst, Serialization__Endianness endianness);
 
 /**
  * @brief Deserialize a 64 bit value at address |src| into |dst|, making sure to convert the source value from network
@@ -156,11 +158,11 @@ int Serialization__deserializeAs32Bit(const void *src, void *dst, Serialization_
  * @param dst
  * @param endianness endianness of the src
  *
- * @return int If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 8.
- *             If negative, the value is an error code with the following meaning:
+ * @return If non-negative, represents the number of bytes serialized into |dst|, which should always be equal 8.
+ *         If negative, the value is an error code with the following meaning:
  *               SERIALIZATION__ERROR__NULL -> |src| or |dst| was a NULL pointer
  */
-int Serialization__deserializeAs64Bit(const void *src, void *dst, Serialization__Endianness endianness);
+short Serialization__deserializeAs64Bit(const void *src, void *dst, Serialization__Endianness endianness);
 
 /**
  * @}

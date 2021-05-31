@@ -9,7 +9,7 @@
 #include "include/comms/i2c_sensors.h"
 
 int watchdog_init();
-int watchdog_monitor();
+int watchdog_monitor(HerculesComms__State* hState);
 void watchdog_handle_hercules(I2C_Sensors__Readings *i2cReadings);
 void heaterControl();
 

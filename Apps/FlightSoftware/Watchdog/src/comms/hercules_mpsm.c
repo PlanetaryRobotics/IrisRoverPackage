@@ -96,7 +96,6 @@ HerculesMpsm__Status HerculesMpsm__initMsg(HerculesMpsm__Msg* msg)
 
     msg->msgStatus = HERCULES_MPSM__MSG_STATUS__IN_PROGRESS;
     msg->msgLen = 0;
-
     memset(msg->header, 0, SIZE_OF_ARRAY(msg->header));
 
     return HERCULES_MPSM__STATUS__SUCCESS;
@@ -123,6 +122,31 @@ HerculesMpsm__Status HerculesMpsm__process(HerculesMpsm__Msg* msg, uint8_t newDa
             // This is bad and shouldn't ever happen
             return HERCULES_MPSM__STATUS__ERROR_INTERNAL_ERROR;
     }
+}
+
+HerculesMpsm__Status HerculesMpsm__reset(HerculesMpsm__Msg* msg)
+{
+    if (NULL == msg || NULL == msg->dataBuffer) {
+        return HERCULES_MPSM__STATUS__ERROR_NULL;
+    }
+
+    if (!(theStateMachine.initialized)) {
+        return HERCULES_MPSM__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    // Clear the header ring buffer
+    RingBuffer__Status rbStatus = RingBuffer__clear(theStateMachine.headerRb);
+
+    if (RB__STATUS__SUCCESS != rbStatus) {
+        return HERCULES_MPSM__STATUS__ERROR_RB_CLEAR_FAILURE;
+    }
+
+    // Reset the state machine
+    theStateMachine.currentState = HERCULES_MPSM_STATE__VALIDATE_HEADER;
+    theStateMachine.dataLength = 0;
+
+    // Re-initialize the message
+    return HerculesMpsm__initMsg(msg);
 }
 
 //###########################################################
@@ -161,24 +185,7 @@ HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg* msg, u
         computedParity = ~computedParity;
 
         if (expectedParity == computedParity) {
-            // The parity is correct, so this is a valid header. Record the data length and then advance
-            // the state of the state machine so that we record future input as data bytes rather than
-            // header bytes
-            theStateMachine.dataLength = (uint16_t) (((uint16_t) dataLenLsb) & 0x00FFU);
-            theStateMachine.dataLength |= (uint16_t) ((((uint16_t) dataLenMsb) << 8) & 0xFF00U);
-            theStateMachine.currentState = HERCULES_MPSM_STATE__DATA;
-
-            // We can check now if the buffer given by the user is big enough for our data
-            if (theStateMachine.dataLength >= msg->dataBufferLen) {
-                rbstatus = RingBuffer__clear(theStateMachine.headerRb);
-                
-                // Clear should only throw is headerRb is NULL, and it shouldn't be NULL
-                assert(RB__STATUS__SUCCESS == rbstatus);
-
-                msg->msgStatus = HERCULES_MPSM__MSG_STATUS__ERROR_BUFFER_TOO_SMALL;
-                return HERCULES_MPSM__STATUS__ERROR_BUFFER_TOO_SMALL;
-            }
-
+            // The parity is correct, so this is a valid header. 
             // Copy the header into the msg buffer
             for (size_t i = 0; i < SIZE_OF_ARRAY(msg->header); ++i) {
                 rbStatus = RingBuffer__getOverwrite(theStateMachine.headerRb, msg->header + i);
@@ -191,6 +198,35 @@ HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg* msg, u
 
                     msg->msgStatus = HERCULES_MPSM__MSG_STATUS__ERROR_RB_FAILURE;
                     return HERCULES_MPSM__STATUS__ERROR_RB_GET_FAILURE;
+                }
+            }
+
+
+            // Record the data length
+            theStateMachine.dataLength = (uint16_t) (((uint16_t) dataLenLsb) & 0x00FFU);
+            theStateMachine.dataLength |= (uint16_t) ((((uint16_t) dataLenMsb) << 8) & 0xFF00U);
+
+            // If this is a header-only message then we're done parsing
+            if (dataLength == 0) {
+                // Reset the state machine
+                theStateMachine.currentState = HERCULES_MPSM_STATE__VALIDATE_HEADER;
+                theStateMachine.dataLength = 0;
+
+                msg->msgStatus = HERCULES_MPSM__MSG_STATUS__DONE_VALID;
+                return HERCULES_MPSM__STATUS__PARSED_MESSAGE;
+            } else {
+                // We expect data after this header, so advance the state machine
+                theStateMachine.currentState = HERCULES_MPSM_STATE__DATA;
+
+                // We can check now if the buffer given by the user is big enough for our data
+                if (theStateMachine.dataLength > msg->dataBufferLen) {
+                    rbstatus = RingBuffer__clear(theStateMachine.headerRb);
+                    
+                    // Clear should only throw is headerRb is NULL, and it shouldn't be NULL
+                    assert(RB__STATUS__SUCCESS == rbstatus);
+
+                    msg->msgStatus = HERCULES_MPSM__MSG_STATUS__ERROR_BUFFER_TOO_SMALL;
+                    return HERCULES_MPSM__STATUS__ERROR_BUFFER_TOO_SMALL;
                 }
             }
         }

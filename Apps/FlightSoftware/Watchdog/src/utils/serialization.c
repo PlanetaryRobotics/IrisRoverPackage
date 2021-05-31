@@ -56,7 +56,7 @@
     } while (0)
 
 
-int Serialization__serializeAs8Bit(const void* src, void* dst, Serialization__Endianness endianness)
+short Serialization__serializeAs8Bit(const void* src, void* dst, Serialization__Endianness endianness)
 {
     if (NULL == src || NULL == dst) {
         return SERIALIZATION__ERROR__NULL;
@@ -70,7 +70,7 @@ int Serialization__serializeAs8Bit(const void* src, void* dst, Serialization__En
     return 1;
 }
 
-int Serialization__serializeAs16Bit(const void* src, void* dst, Serialization__Endianness endianness)
+short Serialization__serializeAs16Bit(const void* src, void* dst, Serialization__Endianness endianness)
 {
     if (NULL == src || NULL == dst) {
         return SERIALIZATION__ERROR__NULL;
@@ -84,7 +84,7 @@ int Serialization__serializeAs16Bit(const void* src, void* dst, Serialization__E
     return 2;
 }
 
-int Serialization__serializeAs32Bit(const void* src, void* dst, Serialization__Endianness endianness)
+short Serialization__serializeAs32Bit(const void* src, void* dst, Serialization__Endianness endianness)
 {
     if (NULL == src || NULL == dst) {
         return SERIALIZATION__ERROR__NULL;
@@ -98,7 +98,7 @@ int Serialization__serializeAs32Bit(const void* src, void* dst, Serialization__E
     return 4;
 }
 
-int Serialization__serializeAs64Bit(const void* src, void* dst, Serialization__Endianness endianness)
+short Serialization__serializeAs64Bit(const void* src, void* dst, Serialization__Endianness endianness)
 {
     if (NULL == src || NULL == dst) {
         return SERIALIZATION__ERROR__NULL;
@@ -112,7 +112,7 @@ int Serialization__serializeAs64Bit(const void* src, void* dst, Serialization__E
     return 8;
 }
 
-int Serialization__deserializeAs8Bit(const void* src, void* dst, Serialization__Endianness endianness)
+short Serialization__deserializeAs8Bit(const void* src, void* dst, Serialization__Endianness endianness)
 {
     if (NULL == src || NULL == dst) {
         return SERIALIZATION__ERROR__NULL;
@@ -126,7 +126,7 @@ int Serialization__deserializeAs8Bit(const void* src, void* dst, Serialization__
     return 1;
 }
 
-int Serialization__deserializeAs16Bit(const void* src, void* dst, Serialization__Endianness endianness)
+short Serialization__deserializeAs16Bit(const void* src, void* dst, Serialization__Endianness endianness)
 {
     if (NULL == src || NULL == dst) {
         return SERIALIZATION__ERROR__NULL;
@@ -141,7 +141,7 @@ int Serialization__deserializeAs16Bit(const void* src, void* dst, Serialization_
 }
 
 
-int Serialization__deserializeAs32Bit(const void* src, void* dst, Serialization__Endianness endianness)
+short Serialization__deserializeAs32Bit(const void* src, void* dst, Serialization__Endianness endianness)
 {
     if (NULL == src || NULL == dst) {
         return SERIALIZATION__ERROR__NULL;
@@ -155,7 +155,7 @@ int Serialization__deserializeAs32Bit(const void* src, void* dst, Serialization_
     return 4;
 }
 
-int Serialization__deserializeAs64Bit(const void* src, void* dst, Serialization__Endianness endianness)
+short Serialization__deserializeAs64Bit(const void* src, void* dst, Serialization__Endianness endianness)
 {
     if (NULL == src || NULL == dst) {
         return SERIALIZATION__ERROR__NULL;

@@ -15,6 +15,7 @@
 #include "include/flags.h"
 #include "include/comms/i2c_sensors.h"
 #include "include/watchdog.h"
+#include "include/utils/serialization.h"
 
 uint8_t watchdog_opts = 0;
 // variables for heater control
@@ -233,6 +234,349 @@ void reply_ground_cmd(uint8_t cmdid, uint8_t error_no) {
 
     // send the bytes
     ipudp_send_packet(send_buf, 3);
+}
+
+GroundCmd__Status GroundCmd__performResetCommand(const WdCmdMsgs__Message* msg,
+                                                 WdCmdMsgs__Response* response)
+{
+    switch(cmd) {
+        /* 0x00: No Reset */
+        case 0x00:
+            break;
+        /* 0x01: Reset Hercules */
+        case 0x01:
+            setHerculesReset();
+            // queue up hercules unreset
+            watchdog_flags |= WDFLAG_UNRESET_HERCULES;
+            break;
+        /* 0x02: Hercules Power On */
+        case 0x02:
+            powerOnHercules();
+            break;
+        /* 0x03: Hercules Power Off */
+        case 0x03:
+            powerOffHercules();
+            break;
+        /* 0x04: Reset Radio */
+        case 0x04:
+            setRadioReset();
+            // queue up an radio unreset
+            watchdog_flags |= WDFLAG_UNRESET_RADIO1;
+            break;
+        /* 0x05: Radio Power On */
+        case 0x05:
+            powerOnRadio();
+            break;
+        /* 0x06: Radio Power Off */
+        case 0x06:
+            powerOffRadio();
+            break;
+        /* 0x07: Reset Camera FPGA */
+        case 0x07:
+            setFPGAReset();
+            // queue up the fpga unreset
+            watchdog_flags |= WDFLAG_UNRESET_FPGA;
+            break;
+        /* 0x08: Camera FPGA Power On */
+        case 0x08:
+            powerOnFpga();
+            break;
+        /* 0x09: Camera FPGA Power Off */
+        case 0x09:
+            powerOffFpga();
+            break;
+        /* 0x0A: Reset Motor 1 */
+        case 0x0A:
+            setMotor1Reset();
+            // queue up the motor 1 unreset
+            watchdog_flags |= WDFLAG_UNRESET_MOTOR1;
+            break;
+        /* 0x0B: Reset Motor 2 */
+        case 0x0B:
+            setMotor2Reset();
+            // queue up the motor 2 unreset
+            watchdog_flags |= WDFLAG_UNRESET_MOTOR2;
+            break;
+        /* 0x0C: Reset Motor 3 */
+        case 0x0C:
+            setMotor3Reset();
+            // queue up the motor 3 unreset
+            watchdog_flags |= WDFLAG_UNRESET_MOTOR3;
+            break;
+        /* 0x0D: Reset Motor 4 */
+        case 0x0D:
+            setMotor4Reset();
+            // queue up the motor 4 unreset
+            watchdog_flags |= WDFLAG_UNRESET_MOTOR4;
+            break;
+        /* 0x0E: Reset All Motors */
+        case 0x0E:
+            setMotorsReset();
+            // queue up all the motor unresets
+            watchdog_flags |= WDFLAG_UNRESET_MOTOR1 | WDFLAG_UNRESET_MOTOR2 |
+                              WDFLAG_UNRESET_MOTOR3 | WDFLAG_UNRESET_MOTOR4;
+            break;
+        /* 0x0F: All Motors Power On */
+        case 0x0F:
+            powerOnMotors();
+            break;
+        /* 0x10: All Motors Power Off */
+        case 0x10:
+            powerOffMotors();
+            break;
+        /* 0x11: Reset 3.3 EN */
+        case 0x11:
+            disable3V3PowerRail();
+            // queue up 3V3 rail on again
+            watchdog_flags |= WDFLAG_UNRESET_3V3;
+            break;
+        /* 0x12: 3.3 EN On */
+        case 0x12:
+            enable3V3PowerRail();
+            break;
+        /* 0x13: 3.3 EN Off */
+        case 0x13:
+            disable3V3PowerRail();
+            break;
+        /* 0x14: Reset 24 EN */
+        case 0x14:
+            disable24VPowerRail();
+            // queue up 24V rail on again
+            watchdog_flags |= WDFLAG_UNRESET_24V;
+            break;
+        /* 0x15: 24 EN On */
+        case 0x15:
+            enable24VPowerRail();
+            break;
+        /* 0x16: 24 EN Off */
+        case 0x16:
+            disable24VPowerRail();
+            break;
+        /* 0xEE: Deploy */
+        case 0xEE:
+            /* WOOT WOOT! WE ARE ON TO THE MOON, FOLKS */
+            /* ref: https://docs.google.com/document/d/1dKLlBcIIVo8t1bGu3jNiHobGMavA3I2al0cncj3ZAhE/edit */
+            setDeploy();
+            break;
+        /* 0x18: Unset deploy */
+        case 0x18:
+            unsetDeploy();
+            break;
+        /* 0x19: FPGA camera select #0 */
+        case 0x19:
+            fpgaCameraSelectLo();
+            break;
+        /* 0x1A: FPGA camera select #1 */
+        case 0x1A:
+            fpgaCameraSelectHi();
+            break;
+        /* 0x1B: Start battery charging */
+        case 0x1B:
+            startChargingBatteries();
+            break;
+        case 0x1C:
+            stopChargingBatteries();
+            break;
+        /* 0x1F: heater control off */
+        case 0x1F:
+            heatingControlEnabled = 1;
+            break;
+        /* 0x20: heater control on */
+        case 0x20:
+            heatingControlEnabled = 0;
+            TB0CCR2 = 0;
+            break;
+        /* 0x21: enable hercules monitoring */
+        case 0x21:
+            watchdog_opts |= WDFLAG_UNRESET_HERCULES;
+            break;
+        /* 0x22: disable hercules monitoring */
+        case 0x22:
+            watchdog_opts &= ~WDFLAG_UNRESET_HERCULES;
+            break;
+        /* 0x23: enable batteries */
+        case 0x23:
+            disableBatteries();
+            break;
+        /* 0x24: disable batteries */
+        case 0x24:
+            enableBatteries();
+            break;
+        default:
+            /* invalid command */
+            return 0xff;
+    }
+    /* all ok */
+    return 0;
+}
+
+GroundCmd__Status GroundCmd__performWatchdogCommand(const WdCmdMsgs__Message* msg,
+                                                    WdCmdMsgs__Response* response,
+                                                    WdCmdMsgs__Response* deployNotificationResponse,
+                                                    BOOL* sendDeployNotificationResponse)
+{
+    static WdCmdMsgs__CommandId lastCommand = WD_CMD_MSGS__CMD_ID__RESET_SPECIFIC;
+
+    if (NULL == msg 
+        || NULL == response
+        || NULL == deployNotificationResponse
+        || NULL == sendDeployNotificationResponse) {
+        return WD_CMD_MSGS__STATUS__ERROR_NULL;
+    }
+
+    // Make sure that by default we don't want to send the deploy notification response
+    *sendDeployNotificationResponse = FALSE;
+
+    // We always want to set the magic number and command ID (to which this is a response) on the response
+    response->magicNumber = WD_CMD_MSGS__RESPONSE_MAGIC_NUMBER;
+    response->commandId = msg->commandId;
+
+    switch (msg->commandId) {
+        case WD_CMD_MSGS__CMD_ID__RESET_SPECIFIC:
+            return GroundCmd__performResetCommand(msg, response);
+
+        case WD_CMD_MSGS__CMD_ID__PREP_FOR_DEPLOY:
+            /* power on all systems */
+            if (msg->body.prepForDeploy.confirmationMagicNumber != WD_CMD_MSGS__CONFIRM_DEPLOYMENT_MAGIC_NUMBER) {
+                /* magic bad */
+                response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+            } else if (rovstate != RS_SERVICE) {
+                /* not in the right state to transition to mission mode */
+                response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
+            } else {
+                /* all checks pass, enter mission mode */
+                enterMode(RS_MISSION);
+                response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+            }
+            break;
+
+        case WD_CMD_MSGS__CMD_ID__DEPLOY:
+            
+            if (msg->body.prepForDeploy.confirmationMagicNumber != WD_CMD_MSGS__CONFIRM_DEPLOYMENT_MAGIC_NUMBER) {
+                /* magic bad */
+                response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+            } else {
+                //  disengage from lander (deploy) - watchdog only
+                setDeploy();
+
+                // We want to send two response: one to say we deployed, and another to say that this command
+                // was performed successfully.
+                deployNotificationResponse->magicNumber = WD_CMD_MSGS__RESPONSE_MAGIC_NUMBER;
+                deployNotificationResponse->commandId = msg->commandId;
+                deployNotificationResponse->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__DEPLOY;
+                *sendDeployNotificationResponse = TRUE;
+
+                response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+            }
+            break;
+
+        case WD_CMD_MSGS__CMD_ID__SWITCH_CONN_MODE:
+            // TODO: IMPLEMENT!
+            response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+            break;
+
+        case WD_CMD_MSGS__CMD_ID__SET_HEATER_KP:
+            // TODO: Make heater control not through globals
+            Kp_heater = msg->body.setHeaterKp.kp;
+            response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+            break;
+
+        case WD_CMD_MSGS__CMD_ID__SET_AUTO_HEATER_ON_VALUE:
+            // TODO: Make heater control not through globals
+            heater_on_val = msg->body.setAutoHeaterOnValue.heaterOnValue;
+            response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+            break;
+
+        case WD_CMD_MSGS__CMD_ID__SET_AUTO_HEATER_OFF_VALUE:
+            // TODO: Make heater control not through globals
+            heater_off_val = msg->body.setAutoHeaterOffValue.heaterOffValue;
+            response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+            break;
+
+        case WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_MAX:
+            // TODO: Make heater control not through globals
+            PWM_limit = msg->body.setHeaterDutyCycleMax.dutyCycleMax;
+            response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+            break;
+
+        case WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_PERIOD:
+            // TODO: Make heater control not through globals
+            TB0CCR0 = msg->body.setThermisterVSetpoint.dutyCyclePeriod;
+            response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+            break;
+
+        case WD_CMD_MSGS__CMD_ID__SET_THERMISTER_V_SETPOINT:    
+            // TODO: Make heater control not through globals
+            heater_setpoint = msg->body.setHeaterDutyCyclePeriod.thermisterVSetpoint;
+            response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+            break;
+
+        case WD_CMD_MSGS__CMD_ID__ENTER_SLEEP_MODE:
+            /* Enter sleep mode */
+            if (msg->body.enterSleepMode.confirmationMagicNumber != WD_CMD_MSGS__CONFIRM_MODE_CHANGE_MAGIC_NUMBER) {
+                /* magic bad */
+                response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+            } else if (rovstate != RS_KEEPALIVE) {
+                /* not in the right state to transition to sleep mode */
+                response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
+            } else {
+                /* all checks pass, enter sleep mode */
+                enterMode(RS_SLEEP);
+                response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+            }
+            break;
+
+        case WD_CMD_MSGS__CMD_ID__ENTER_KEEPALIVE_MODE:
+            /* Enter keepalive mode */
+            if (msg->body.enterKeepAliveMode.confirmationMagicNumber != WD_CMD_MSGS__CONFIRM_MODE_CHANGE_MAGIC_NUMBER) {
+                /* magic bad */
+                response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+            } else if (rovstate != RS_SLEEP || rovstate != RS_SERVICE) {
+                /* not in the right state to transition to keepalive mode */
+                response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
+            } else {
+                /* all checks pass, enter keepalive mode */
+                enterMode(RS_KEEPALIVE);
+                response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+            }
+            break;
+
+        case WD_CMD_MSGS__CMD_ID__ENTER_SERVICE_MODE:
+            /* Enter service mode */
+            if (msg->body.enterKeepAliveMode.confirmationMagicNumber != WD_CMD_MSGS__CONFIRM_MODE_CHANGE_MAGIC_NUMBER) {
+                /* magic bad */
+                response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+            } else if (rovstate != RS_SLEEP || rovstate != RS_SERVICE) {
+                /* not in the right state to transition to service mode */
+                response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
+            } else {
+                /* all checks pass, enter service mode */
+                enterMode(RS_SERVICE);
+                response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+            }
+
+            /* Enter service mode */
+            if (buf[2] != 0x77) {
+                /* magic bad */
+                reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
+                return;
+            } else if (rovstate == RS_KEEPALIVE) {
+                /* all checks pass, enter service mode */
+                enterMode(RS_SERVICE);
+                break;
+            } else if (rovstate == RS_MISSION) {
+                /* confirmation checks */
+                if (lastcmd == 0xEC) {
+                    /* all checks pass, enter service mode */
+                    enterMode(RS_SERVICE);
+                    break;
+                }
+            }
+            return WdCmdMsgs__deserializeEnterServiceModeBody(src, srcLen, &(dst->timeDelayRequest));
+
+        default:
+            return WD_CMD_MSGS__STATUS__ERROR_UNKNOWN_MESSAGE_ID;
+    }
 }
 
 /**

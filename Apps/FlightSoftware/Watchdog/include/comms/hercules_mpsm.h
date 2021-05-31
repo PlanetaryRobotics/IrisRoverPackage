@@ -9,12 +9,14 @@ typedef enum HerculesMpsm__Status {
     HERCULES_MPSM__STATUS__SUCCESS = 0, /*!< The function was successful. */
     HERCULES_MPSM__STATUS__ERROR_NULL = -1, /*!< A required argument was NULL */
     HERCULES_MPSM__STATUS__ERROR_BUFFER_TOO_SMALL = -2, 
-    HERCULES_MPSM__STATUS__ERROR_INVALID_SEQUENCE = -3,
+    HERCULES_MPSM__STATUS__ERROR_NOT_INITIALIZED = -3,
+    HERCULES_MPSM__STATUS__ERROR_ZERO_LENGTH_BUFFER = -4,
+    HERCULES_MPSM__STATUS__ERROR_WRONG_STATE = -5,
     
     HERCULES_MPSM__STATUS__ERROR_RB_INIT_FAILURE = -10,
     HERCULES_MPSM__STATUS__ERROR_RB_PUT_FAILURE = -11,
-    HERCULES_MPSM__STATUS__ERROR_RB_PEEK_FAILURE = -12,
-    HERCULES_MPSM__STATUS__ERROR_RB_GET_FAILURE = -13,
+    HERCULES_MPSM__STATUS__ERROR_RB_GET_FAILURE = -12,
+    HERCULES_MPSM__STATUS__ERROR_RB_CLEAR_FAILURE = -13,
 
     HERCULES_MPSM__STATUS__ERROR_INTERNAL_ERROR = -255 /*!< An unexpected error occurred */
 } HerculesMpsm__Status;
@@ -65,6 +67,6 @@ HerculesMpsm__Status HerculesMpsm__initMsg(HerculesMpsm__Msg* msg);
 
 HerculesMpsm__Status HerculesMpsm__process(HerculesMpsm__Msg* msg, uint8_t newData);
 
-
+HerculesMpsm__Status HerculesMpsm__reset(HerculesMpsm__Msg* msg);
 
 #endif /* __WATCHDOG_HERCULES_MPSM_H__ */

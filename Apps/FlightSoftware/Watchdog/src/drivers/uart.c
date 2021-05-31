@@ -220,11 +220,48 @@ UART__Status UART__receive(UART__State* uartState,
  */
 void UART__clockInit()
 {
-    CSCTL0_H = CSKEY_H;                     // Unlock CS registers
-    CSCTL1 = DCOFSEL_3 | DCORSEL;           // Set DCO to 8MHz
-    CSCTL2 = SELA__VLOCLK | SELS__DCOCLK | SELM__DCOCLK;
-    CSCTL3 = DIVA__1 | DIVS__1 | DIVM__1;   // Set all dividers
-    CSCTL0_H = 0;                           // Lock CS registers
+    // Unlock all CS registers
+    CSCTL0_H = CSKEY_H;
+
+    // Sets DCO Range select to high speed
+    CSCTL1 = DCORSEL;
+
+    // Sets DCO frequency to 8 MHz.
+    // It is 8 MHz because DCORSEL was set; if DCORSEL was not set, this (a DCOFSEL of 3) would set DCO to 4 MHz.
+    // Note that DCOFSEL_3 means setting the DCOFSEL bits to the decimal value 3, i.e. DCOFSEL is 011b
+    CSCTL1 |= DCOFSEL_3;
+    
+    // Sets the source of ACLK to VLOCLK.
+    // Per Section 8.12.3.4 (pg 42) of the datasheet, this has a typical frequency of 9.4 kHz (so nominally 10kHz)
+    //    (source: https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf)
+    CSCTL2 = SELA__VLOCLK;
+
+    // Sets the source of SMCLK to DCOCLK.
+    CSCTL2 |= SELS__DCOCLK;
+
+    // Sets the source of MCLK to DCOCLK.
+    CSCTL2 |= SELM__DCOCLK;
+    
+    // Sets an input divider of 1 (i.e. no division) for ACLK
+    // Note that unlike DCOFSEL_3, DIVA_1 does NOT mean setting the DIVA bits to the decimal value of 1,
+    //    but instead means that the input divider is 1 (which means setting the DIVA bits to the decimal
+    //    value of 0).
+    CSCTL3 = DIVA__1;
+
+    // Sets an input divider of 1 (i.e. no division) for SMCLK
+    // Note that unlike DCOFSEL_3, DIVS_1 does NOT mean setting the DIVS bits to the decimal value of 1,
+    //    but instead means that the input divider is 1 (which means setting the DIVS bits to the decimal
+    //    value of 0).
+    CSCTL3 |= DIVS__1;
+
+    // Sets an input divider of 1 (i.e. no division) for MCLK
+    // Note that unlike DCOFSEL_3, DIVM_1 does NOT mean setting the DIVM bits to the decimal value of 1,
+    //    but instead means that the input divider is 1 (which means setting the DIVM bits to the decimal
+    //    value of 0).
+    CSCTL3 |= DIVM__1;
+
+    // Lock all CS registers
+    CSCTL0_H = 0;
 }
 
 UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)

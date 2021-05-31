@@ -1,10 +1,12 @@
 #ifndef __WATCHDOG_COMMON_H__
 #define __WATCHDOG_COMMON_H__
 
+#include <stdboool.h>
+
 // Some definitions to identify magic numbers in the code
-#define BOOL short
-static const BOOL TRUE = 1;
-static const BOOL FALSE = 0;
+#define BOOL bool
+static const BOOL TRUE = true;
+static const BOOL FALSE = false;
 
 #define LANDER_COMMS__MAX_RX_SLIP_MESSAGE_SIZE 256
 #define HERCULES_COMMS__MAX_RX_DATA_SIZE 256

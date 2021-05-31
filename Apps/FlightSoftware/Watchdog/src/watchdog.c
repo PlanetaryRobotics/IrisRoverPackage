@@ -31,17 +31,101 @@ int watchdog_init() {
     P1IES |= BIT0;                   // P1.0 Hi/lo edge
     P1IFG &= ~BIT0;                  // P1.0 IFG cleared initally
 
-    /* timer setup */
-    TA0CTL = TASSEL_1 | ID_0 | TAIE;           // ACLK/1, interrupt on overflow
-    TA0EX0 = TAIDEX_0;                  // ??/1
-    TA0CCR0 =  1000;                           // 12.5 Hz (pretty sure its not)
-    TA0CTL |= MC_2;                 // Start timer in continuous mode
+    /* =====================================================
+     Timer_A setup (used for getting interrupts to do periodic actions like sending heartbeat)
+     ===================================================== */
 
-    // set up PWM for heater control
-    TB0CCR0 = 10000;
+    // Use ACLK (which has a frequency of about 9.4 kHz (typ.)) as Timer_A clock source. This also ensures
+    // that the timer is stopped, as all bits in TA0CTL other than TASSEL will be cleared. This means the
+    // MC bits will be set to zero, which means that the timer is stopped. 
+    TA0CTL = TASSEL_1;
+
+    // The input divier for the input clock is determined by the ID bits in TAxCTL and the TAIDEX bits
+    // in TAxEX0. If the resultant timer frequency is f_timer, the frequency of the input clock is f_clk,
+    // the clock divisor determined by the ID bits is d_ID, and the clock divisor determined by the TAIDEX
+    // bits is d_TAIDEX, then their relationship is:
+    //
+    //    f_timer = (f_clk / d_ID ) / d_TAIDEX 
+    //    f_timer = f_clk / (d_ID * d_TAIDEX)
+    // 
+    // Here, we use f_clk = 9.4 kHz, d_ID = 1, and d_TAIDEX = 1, so f_timer = 9.4 kHz
+
+    // Sets ID to 00b, making it divide by 1 (i.e. does not divide).
+    TA0CTL |= ID_0;
+
+    // Sets TAIDEX to 00b makes it divide by 1 (i.e. does not divide).
+    TA0EX0 = TAIDEX_0;
+
+    // Per the note in section 25.2.1.1 (pg 645) of the user guide, TACLR should be set after modifying
+    // the ID or TAIDEX bits. Doing so resets the clock divider logic, and the new settings are 
+    // used once the TACLR bit is cleared. We do not need to manually clear this bit after setting it,
+    // as it is reset automatically.
+    TA0CTL |= TACLR;
+
+    // Enable the TAIFG interrupt request. This interrupt occurs when the timer overflows.
+    // Since Timer_A is a 16-bit timer and the timer clock frequency is ~9.4kHz, this means
+    // that we will get the TAIFG interrupt once about every 7 seconds (2^16 = 65536, and
+    // 65536 / 9400 = ~6.97 seconds)
+    TA0CTL |= TAIE;
+    
+    // Finished setting up Timer_A, so start the timer in "Continuous" mode (i.e. timer will count up to 0xFFFF,
+    // then overflow to zero)
+    TA0CTL |= MC_2;                 
+
+    /* ===================================================== 
+     Timer_B setup (used to generate PWM for heater control)
+     ===================================================== */
+
+    // Use SMCLK (which has a frequency of 8 MHz) as Timer_B clock source. This also ensures
+    // that the timer is stopped, as all bits in TB0CTL other than TBSSEL will be cleared. This means the
+    // MC bits will be set to zero, which means that the timer is stopped. 
+    TB0CTL = TBSSEL__SMCLK;
+
+    // The input divier for the input clock is determined by the ID bits in TBxCTL and the TBIDEX bits
+    // in TAxEX0. If the resultant timer frequency is f_timer, the frequency of the input clock is f_clk,
+    // the clock divisor determined by the ID bits is d_ID, and the clock divisor determined by the TBIDEX
+    // bits is d_TBIDEX, then their relationship is:
+    //
+    //    f_timer = (f_clk / d_ID ) / d_TBIDEX 
+    //    f_timer = f_clk / (d_ID * d_TBIDEX)
+    // 
+    // Here, we use f_clk = 8 MHz, d_ID = 1, and d_TBIDEX = 1, so f_timer = 8 MHz
+
+    // ID bits in TB0CTL will have been set to 00b in the previous assignment, making it divide by 1 (i.e.
+    // does not divide).
+
+    // Sets TBIDEX to 00b makes it divide by 1 (i.e. does not divide).
+    TB0EX0 = TAIDEX_0;
+
+    // Per the note in section 25.2.1.1 (pg 645) of the user guide, TBCLR should be set after modifying
+    // the ID or TBIDEX bits. Doing so resets the clock divider logic, and the new settings are 
+    // used once the TBCLR bit is cleared. We do not need to manually clear this bit after setting it,
+    // as it is reset automatically. More specifically, the state of the output changes when the 
+    TB0CTL |= TBCLR;
+
+    // Set the maximum count value of Timer_B (when it is set to "Up" mode) to 10000.
+    // This determines the period of the PWM output. With this set to 10000 and the timer clock
+    // frequency of 8000000, the period of the PWM is 10000 / 8000000 = 0.00125 seconds, or 1.25 ms.
+    // We subtract one from the desired value because the timer counts starting at 0, rather than 1.
+    TB0CCR0 = 10000 - 1;
+
+    // Set the output mode of capture/compare block 2 to "Reset/Set". This means that the output is
+    // reset (i.e. made low) when Timer_B counts to the value in TB0CCR2, and the output is set (i.e.
+    // made high) when Timer_B counts to TB0CL0 (which is set from the value in TB0CCR0). 
     TB0CCTL2 = OUTMOD_7;
-    TB0CTL = TBSSEL__SMCLK | MC__UP | TBCLR;
-    PWM_limit = 8500;                       // make sure PWM does not exceed ~90% to keep power use low
+
+    // Set the initial duty cycle of the PWM. Specifically, this is the counter value at which the output
+    // will reset, or go low. When this has a value of zero, it means that the heater is effectively 
+    // disabled.
+    TB0CCR2 = 0;
+
+    // Finished setting up Timer_B, so we start the timer in "Up" mode (i.e. timer will count up to the
+    // value in TB0CL0 (which is set automatically from the value in TB0CCR0), then overflow to zero).
+    TB0CTL |= MC__UP;
+    
+
+    // make sure PWM does not exceed ~90% to keep power use low
+    PWM_limit = 8500;                       
 
     return 0;
 }
@@ -51,7 +135,7 @@ int watchdog_init() {
  *
  * Function called every ~5s
  */
-int watchdog_monitor() {
+int watchdog_monitor(HerculesComms__State* hState) {
     /* temporarily disable interrupts */
     __bic_SR_register(GIE);
 
@@ -137,9 +221,15 @@ int watchdog_monitor() {
         if (watchdog_opts & WDOPT_MONITOR_HERCULES) {
             // reset the hercules
             setHerculesReset();
+
+            // Set the flag so that the next time this function triggers, the Hercules will be un-reset
             watchdog_flags |= WDFLAG_UNRESET_HERCULES;
+
             // if the issue was due to a comms breakdown, reset the comms state
-            uart0_rx_mode = UA0_RX_HEADER;
+            HerculesComms__Status hcStatus = HerculesComms__resetState(hState);
+
+            // TODO: Replace with returning watchdog error code once that is implemented.
+            assert(HERCULES_COMMS__STATUS__SUCCESS == hcStatus);
         } else {
             // missed a kick, but don't reset the hercules.
         }
@@ -150,10 +240,19 @@ int watchdog_monitor() {
     return 0;
 }
 
-void watchdog_send_hercules_telem(I2C_Sensors__Readings *i2cReadings) {
-    // send the hercules its telemetry
+
+
+void watchdog_build_hercules_telem(I2C_Sensors__Readings *i2cReadings,
+                                   uint8_t* telbuf,
+                                   size_t telbufSize)
+{
+    if (telbufSize < 16) {
+        return;
+    }
+
+    memset(telbuf, 0, telbfuSize);
+
     // Build telemetry packet for Hercules
-    unsigned char telbuf[16] = {0};
     if (rovstate == RS_KEEPALIVE || rovstate == RS_SERVICE) {
         // no power on 2V5, 2V8, battery
         telbuf[6] = (uint8_t)(adc_values[ADC_LANDER_LEVEL_IDX]);
@@ -176,6 +275,8 @@ void watchdog_send_hercules_telem(I2C_Sensors__Readings *i2cReadings) {
         telbuf[14] = (uint8_t)(i2cReadings->raw_battery_voltage[0]);
         telbuf[15] = (uint8_t)(i2cReadings->raw_battery_voltage[1]);
     }
+
+    // TODO: REMOVE
     uart0_tx_nonblocking(16, telbuf);
 }
 

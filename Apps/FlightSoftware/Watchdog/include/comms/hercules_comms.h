@@ -17,6 +17,8 @@ typedef enum HerculesComms__Status
     HERCULES_COMMS__STATUS__ERROR_TX_OVERFLOW = -6,
 
     HERCULES_COMMS__STATUS__ERROR_MPSM_INIT_FAILURE = -10,
+    HERCULES_COMMS__STATUS__ERROR_MPSM_PROCESS_FAILURE = -11,
+    HERCULES_COMMS__STATUS__ERROR_MPSM_RESET_FAILURE = -12,
 
     HERCULES_COMMS__STATUS__ERROR_UART_RX_FAILURE = -20,
     HERCULES_COMMS__STATUS__ERROR_UART_TX_FAILURE = -21
@@ -37,5 +39,7 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
 // Sends data directly over the UART, with no modification
 HerculesComms__Status HerculesComms__txData(HerculesComms__State* hState, const uint8_t* data, size_t dataLen);
 
+// Clear the underlying UART rx buffer and reset the message parsing state machine
+HerculesComms__Status HerculesComms__resetState(HerculesComms__State* hState);
 
 #endif /* __WATCHDOG_HERCULES_COMMS_H__ */

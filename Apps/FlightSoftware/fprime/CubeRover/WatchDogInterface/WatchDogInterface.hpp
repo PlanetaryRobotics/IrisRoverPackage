@@ -17,6 +17,7 @@
 #define WatchDogInterface_HPP
 
 #include "CubeRover/WatchDogInterface/WatchDogInterfaceComponentAc.hpp"
+#include <CubeRover/WatchDogInterface/WatchDogRxTask.hpp>
 #include "Include/FswPacket.hpp"
 
 #include "lin.h"
@@ -24,48 +25,61 @@
 #include "sci.h"
 
 // The pin number for the deploment pin 2
-const U8 deploy_bit = 4;
+static const U8 deploy_bit = 4;
 // The number of thermistors on the SBC
-const U8 number_thermistors = 6;
+static const U8 number_thermistors = 6;
 // Default size of zero sent to watchdog
-const U16 zero_size = 0x0000;
+static const U16 zero_size = 0x0000;
 // Minimum size that should be received back from watchdog when receiving
-const U8 min_receive_size = 8;
+static const U8 min_receive_size = 8;
 // Magic Value first sent in the header between watchdog and hercules communication
-const U32 header_magic = 0x21B00B;
+static const U32 header_magic = 0x21B00B;
+
+// This controls how long we'll wait for a response before allowing the next message of the same type
+// to be sent to the MSP430 watchdog
+static const uint32_t COMMAND_TIMEOUT_MILLISECONDS = 2000;
+
+// These three parameters control the setup of the task that handles data received from the MSP430 watchdog.
+static const NATIVE_INT_TYPE WATCH_DOG_INTERFACE_RX_TASK_PRIORITY = 16;
+static const NATIVE_INT_TYPE WATCH_DOG_INTERFACE_RX_TASK_STACK_SIZE = 256;
+static const NATIVE_INT_TYPE WATCH_DOG_INTERFACE_RX_TASK_CPU_AFFINITY = -1;
+
+
 
 namespace CubeRover {
 
   class WatchDogInterfaceComponentImpl :
-    public WatchDogInterfaceComponentBase
+    public WatchDogInterfaceComponentBase, public virtual WatchDogRxCallbackProcessor
   {
 
     public:
 
-      // ----------------------------------------------------------------------
-      // Construction, initialization, and destruction
-      // ----------------------------------------------------------------------
-
-      //! Construct object WatchDogInterface
-      //!
-      WatchDogInterfaceComponentImpl(
+        // ----------------------------------------------------------------------
+        // Construction, initialization, and destruction
+        // ----------------------------------------------------------------------
+  
+        //! Construct object WatchDogInterface
+        //!
+        WatchDogInterfaceComponentImpl(
 #if FW_OBJECT_NAMES == 1
-          const char *const compName /*!< The component name*/
+            const char *const compName /*!< The component name*/
 #else
-          void
+            void
 #endif
-      );
+          );
+  
+        //! Initialize object WatchDogInterface
+        //!
+        void init(
+            const NATIVE_INT_TYPE queueDepth, /*!< The queue depth*/
+            const NATIVE_INT_TYPE instance = 0 /*!< The instance number*/
+        );
+  
+        //! Destroy object WatchDogInterface
+        //!
+        ~WatchDogInterfaceComponentImpl(void);
 
-      //! Initialize object WatchDogInterface
-      //!
-      void init(
-          const NATIVE_INT_TYPE queueDepth, /*!< The queue depth*/
-          const NATIVE_INT_TYPE instance = 0 /*!< The instance number*/
-      );
-
-      //! Destroy object WatchDogInterface
-      //!
-      ~WatchDogInterfaceComponentImpl(void);
+        virtual void rxCallback(WatchDogMpsm::Message& msg, bool goodParity);
 
     PRIVATE:
 
@@ -221,75 +235,129 @@ namespace CubeRover {
 
       /* End of Commands that Only Watchdog Processes*/
 
-      // The Header Frame structure sent and received between Hercules and Watchdog
-      struct WatchdogFrameHeader {
-        uint32_t magic_value    :24;  // 24 bit magic value that is constant and sent at the begining of every send
-        uint32_t parity         :8;   // 8 bit partity of whole header, initially calculated with parity equal to 0
-        uint16_t payload_length;      // The length of the payload being sent
-        uint16_t reset_val;           // The reset value being sent to watchdog
-      } __attribute__((packed, aligned(8)));
+        // The Header Frame structure sent and received between Hercules and Watchdog
+        struct WatchdogFrameHeader {
+            uint32_t magic_value    :24;  // 24 bit magic value that is constant and sent at the begining of every send
+            uint32_t parity         :8;   // 8 bit partity of whole header, initially calculated with parity equal to 0
+            uint16_t payload_length;      // The length of the payload being sent
+            uint16_t reset_val;           // The reset value being sent to watchdog
+            uint16_t sequence_number;     // The lower 16 bits of the fprime command sequence number
+            uint16_t opcode;              // The lower 16 bits of the fprime command opcode
+        } __attribute__((packed, aligned(8)));
+   
+        struct WatchdogTelemetry {
+            int16_t voltage_2V5;   // Current measured voltage of the 2.5V line as read from the Watchdog
+            int16_t voltage_2V8;   // Current measured voltage of the 2.8V line as read from the Watchdog
+            int16_t voltage_24V;   // Current measured voltage of the 24V line as read from the Watchdog
+            int16_t voltage_28V;   // Current measured voltage of the 28V line as read from the Watchdog
+            int8_t battery_thermistor;   // Current measured voltage of the watchdog battery thermistor as read from the Watchdog
+            int8_t sys_status;   // 8 bit systems status where each bit represents a watchdog status
+            int16_t battery_level;   // Current measured battery mAH as read from the Watchdog
+            int16_t battery_current;   // Current measured battery current as read from the Watchdog
+            int16_t battery_voltage;   // Voltage measured battery current as read from the Watchdog
+        } __attribute__((packed, aligned(8)));
+   
+        // Incorrect Response Possible Values
+        enum resp_error : U8
+        {
+            bad_parity = 1,    // Error code for response having bad parity value
+            bad_size_received = 2,   // Error code for response having bad data size received
+            bad_reset_value = 3,   // Error code for response having a bad reset value
+            bad_magic_value = 4,   // Error code for response having a bad magic value
+            not_enough_bytes = 5   // Error code for response not having enough bytes (must be over min_receive_size)
+        };
+   
+        enum disengage_command : U16
+        {
+            Disengage = 0x00EE    // Reset value for the disengagement command sent to Watchdog
+        };
 
-     struct WatchdogTelemetry {
-         int16_t voltage_2V5;   // Current measured voltage of the 2.5V line as read from the Watchdog
-         int16_t voltage_2V8;   // Current measured voltage of the 2.8V line as read from the Watchdog
-         int16_t voltage_24V;   // Current measured voltage of the 24V line as read from the Watchdog
-         int16_t voltage_28V;   // Current measured voltage of the 28V line as read from the Watchdog
-         int8_t battery_thermistor;   // Current measured voltage of the watchdog battery thermistor as read from the Watchdog
-         int8_t sys_status;   // 8 bit systems status where each bit represents a watchdog status
-         int16_t battery_level;   // Current measured battery mAH as read from the Watchdog
-         int16_t battery_current;   // Current measured battery current as read from the Watchdog
-         int16_t battery_voltage;   // Voltage measured battery current as read from the Watchdog
-     } __attribute__((packed, aligned(8)));
+        static const uint16_t STROKE_OPCODE = 0;
+        static const uint16_t DOWNLINK_OPCODE = 1;
+        static const uint16_t UPLINK_OPCODE = 2;
+    
+    
+        enum TxCommandIndex
+        {
+            COMMAND_INDEX__STROKE = 0,
+            COMMAND_INDEX__DOWNLINK = 1,
+            COMMAND_INDEX__RESET_SPECIFIC = 2,
+            COMMAND_INDEX__DISENGAGE_FROM_LANDER = 3,
+            COMMAND_INDEX__ENGAGE_FROM_LANDER = 4,
+            COMMAND_INDEX__NUM_COMMANDS = 5
+        };
+    
+        struct TxCommandStatus
+        {
+            FwOpcodeType opcode;
+            U32 seqNum;
+            uint32_t txTimeMillis;
+            bool active;
+            bool sendResponse;
+    
+            TxCommandStatus() : opcode(0)
+            {
+                reset();
+            }
+      
+            void reset()
+            {
+                seqNum = 0;
+                txTimeMillis = 0;
+                active = false;
+                sendResponse = true;
+            }
+        };
+    
+        struct TxCommandArray
+        {
+            TxCommandStatus commands[COMMAND_INDEX__NUM_COMMANDS];
+            ::Os::Mutex cmdMutex;
+        };
+    
+    
+        bool Read_Temp();          // Checking the temperature sensors from the ADC
 
-     // Incorrect Response Possible Values
-     enum resp_error : U8
-     {
-         bad_parity = 1,    // Error code for response having bad parity value
-         bad_size_received = 2,   // Error code for response having bad data size received
-         bad_reset_value = 3,   // Error code for response having a bad reset value
-         bad_magic_value = 4,   // Error code for response having a bad magic value
-         not_enough_bytes = 5   // Error code for response not having enough bytes (must be over min_receive_size)
-     };
+        void pollDMASendFinished();      // Polls DMA send finish to see if we've finished our DMA sending
+        
+        // Perform a DMA send function
+        bool dmaSend(void *buffer,           // The buffer of data to send to watchdog
+                     int size,               // The size of the data to send to watchdog
+                     bool blocking=true);    // Check variable to see if we need to block other DMA requests
 
-     enum disengage_command : U16
-     {
-        Disengage = 0x00EE    // Reset value for the disengagement command sent to Watchdog
-     };
+        // Usage during FSW initialization
+        bool logAndSendResetSpecific(FwOpcodeType opCode,
+                                     U32 cmdSeq,
+                                     reset_values_possible resetValue,
+                                     bool sendResponse);
 
-     // Receives a Frame start everytime data is sent from watchdog to hercules
-     int Receive_Frame(uint32_t *comm_error, // Error returned from receiving frame
-                      WatchdogFrameHeader *header  // Location to save data into
-                      );
+        // Only difference between this is function and Reset_Specific_cmdHandler is lack of cmd response
+        bool sendResetSpecific(FwOpcodeType opCode,
+                               U32 cmdSeq,
+                               reset_values_possible resetValue,
+                               bool sendResponse);
 
-     // Sends a Frame start everytime data is sent from hercules to watchdog
-     bool Send_Frame(
-         U16 payload_length,    // stroke if 0x0000 or UDP data size if larger than
-         U16 reset_value        // reset value for watchdog
-         );
+        void handleUplinkMsg(WatchDogMpsm::Message& msg);
 
-     bool Read_Temp();          // Checking the temperature sensors from the ADC
+        void handleTelemetryMsg(WatchDogMpsm::Message& msg);
 
-     void pollDMAReceiveFinished();   // Polls DMA recieve finish to see if we've finished our DMA receiving
-     void pollDMASendFinished();      // Polls DMA send finish to see if we've finished our DMA sending
-     // Perform a DMA receive function
-     bool dmaReceive(void *buffer,          // The buffer to put all received data into
-                      int size,             // The size that is received from watchdog
-                      bool blocking=true);  // Check variable to see if we need to block other DMA requests
-     // Perform a DMA send function
-     bool dmaSend(void *buffer,           // The buffer of data to send to watchdog
-                  int size,               // The size of the data to send to watchdog
-                  bool blocking=true);    // Check variable to see if we need to block other DMA requests
+        TxCommandStatus* getTxCommandStatusFullOpcode(FwOpcodeType opCode);
 
-      // Usage during FSW initialization
-      // Only difference between this is function and Reset_Specific_cmdHandler is lack of cmd response
-      bool Reset_Specific_Handler(reset_values_possible reset_value);
+        TxCommandStatus* getTxCommandStatus(uint16_t opCode);
 
+        bool txCommand(FwOpcodeType opCode,
+                       U32 cmdSeq,
+                       uint16_t resetValue,
+                       uint8_t* dataBuffer = nullptr,
+                       size_t dataLen = 0,
+                       bool sendResponse = true);
 
-      sciBASE_t *m_sci;   // The sci base used to initialize the watchdog interface connection 
-      adcData_t m_thermistor_buffer[number_thermistors];  // Location to store current data for thermistors
-      bool m_finished_initializing;     // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
-
-      U8 m_wd_uplink_buffer [WATCHDOG_MAX_PAYLOAD] __attribute__((aligned(8)));
+        sciBASE_t *m_sci;   // The sci base used to initialize the watchdog interface connection 
+        adcData_t m_thermistor_buffer[number_thermistors];  // Location to store current data for thermistors
+        bool m_finished_initializing;     // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
+  
+        TxCommandArray m_txCmdArray;
+        WatchDogRxTask m_rxTask;
     };
 
 } // end namespace CubeRover

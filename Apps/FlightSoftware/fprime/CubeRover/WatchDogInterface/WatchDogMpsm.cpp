@@ -168,14 +168,14 @@ namespace CubeRover
                 && m_ringArray.peek((uint8_t) HeaderIndices::MAGIC_THREE) == MAGIC_BYTE_THREE_EXPECTED_VALUE) {
                 // The magic numbers are correct, now check parity
                 uint8_t expectedParity = m_ringArray.peek((uint8_t) HeaderIndices::PARITY);
-                uint8_t dataLenLsb = m_ringArray.peek((uint8_t) HeaderIndices::PARITY);
-                uint8_t dataLenMsb = m_ringArray.peek((uint8_t) HeaderIndices::PARITY);
-                uint8_t resetValLsb = m_ringArray.peek((uint8_t) HeaderIndices::PARITY);
-                uint8_t resetValMsb = m_ringArray.peek((uint8_t) HeaderIndices::PARITY);
-                uint8_t seqNumLsb = m_ringArray.peek((uint8_t) HeaderIndices::PARITY);
-                uint8_t seqNumMsb = m_ringArray.peek((uint8_t) HeaderIndices::PARITY);
-                uint8_t opcodeLsb = m_ringArray.peek((uint8_t) HeaderIndices::PARITY);
-                uint8_t opcodeMsb = m_ringArray.peek((uint8_t) HeaderIndices::PARITY);
+                uint8_t dataLenLsb = m_ringArray.peek((uint8_t) HeaderIndices::DATA_LEN_LSB);
+                uint8_t dataLenMsb = m_ringArray.peek((uint8_t) HeaderIndices::DATA_LEN_MSB);
+                uint8_t resetValLsb = m_ringArray.peek((uint8_t) HeaderIndices::RESET_VAL_LSB);
+                uint8_t resetValMsb = m_ringArray.peek((uint8_t) HeaderIndices::RESET_VAL_MSB);
+                uint8_t seqNumLsb = m_ringArray.peek((uint8_t) HeaderIndices::SEQ_NUM_LSB);
+                uint8_t seqNumMsb = m_ringArray.peek((uint8_t) HeaderIndices::SEQ_NUM_MSB);
+                uint8_t opcodeLsb = m_ringArray.peek((uint8_t) HeaderIndices::OPCODE_LSB);
+                uint8_t opcodeMsb = m_ringArray.peek((uint8_t) HeaderIndices::OPCODE_MSB);
 
                 uint8_t computedParity = MAGIC_BYTE_EXPECTED_VALUE_SUM;
                 computedParity += dataLenLsb + dataLenMsb;

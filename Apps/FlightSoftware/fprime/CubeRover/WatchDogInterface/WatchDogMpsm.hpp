@@ -7,6 +7,8 @@
 
 namespace CubeRover
 {
+    // Note: "MPSM" stands for "message parsing state machine"
+    // This one isn't actually much of a state machine, but the approach is similar so I kept the name.
     class WatchDogMpsm
     {
         public:

@@ -13,8 +13,7 @@ struct HerculesComms__State
     BOOL initialized;
     UART__State* uartState;
 
-    // Note: this size constant is defined in common.h
-    uint8_t rxMsgBuffer[HERCULES_COMMS__MAX_RX_DATA_SIZE];
+    uint8_t rxMsgBuffer[HERC_MSGS__MAX_DATA_SIZE];
     HerculesMpsm__Msg herculesMsg;
 
     uint16_t uplinkSequenceNumber;
@@ -26,7 +25,7 @@ struct HerculesComms__State
 // Private globals and constants
 //###########################################################
 
-HerculesComms__State theState = {
+static HerculesComms__State theState = {
     .initialized = FALSE,
     .uartState = NULL,
     .rxMsgBuffer = { 0 },
@@ -82,9 +81,7 @@ HerculesComms__Status HerculesComms__init(HerculesComms__State** hState, UART__S
 
 HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
                                                    HerculesMsgCallback callback,
-                                                   void* userArg,
-                                                   uint8_t* buffer,
-                                                   size_t bufferLen)
+                                                   void* userArg)
 {
     static uint8_t uartRxData[64] = { 0 };
  
@@ -121,14 +118,11 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
             HerculesMpsm__Status mpsmStatus = HerculesMpsm__process(&(hState->herculesMsg), uartRxData[i]);
 
             if (HERCULES_MPSM__STATUS__PARSED_MESSAGE == mpsmStatus) {
-                // We've gotten our data. Make sure received data can fit into buffer
-                if (hState->herculesMsg.msgLen > bufferLen) {
-                    return HERCULES_COMMS__STATUS__ERROR_BUFFER_TOO_SMALL;
-                }
-
-                // Copy the data into the output buffer and call our callback
-                memcpy(buffer, hState->herculesMsg.dataBuffer, hState->herculesMsg.msgLen);
-                callback(&(hState->herculesMsg.header), buffer, hState->herculesMsg.msgLen, userArg);
+                // We've gotten our data. Copy the data into the output buffer and call our callback
+                callback(&(hState->herculesMsg.header),
+                         hState->herculesMsg.dataBuffer,
+                         hState->herculesMsg.msgLen,
+                         userArg);
 
                 resetMpsmMsg = TRUE;
             } else if (HERCULES_MPSM__STATUS__NEED_MORE_DATA != mpsmStatus) {

@@ -2,7 +2,6 @@
 #include <string.h>
 
 #include "include/comms/ip_udp.h"
-#include "include/buffer.h"
 #include "include/drivers/uart.h"
 #include "include/cfg.h"
 
@@ -166,114 +165,6 @@ uint16_t udp_checksum(uint8_t *udp_header, uint8_t *data_buf, uint16_t udp_packe
 
     // return the final checksum
     return ~running_chksum;
-}
-
-/**
- * Send a UDP datagram
- */
-static uint8_t ipudp_tx_buf[sizeof(struct ip_hdr) + sizeof(struct udp_hdr)];
-void ipudp_send_packet(uint8_t *data, uint16_t data_len) {
-    uint16_t out_len;
-    static uint16_t packet_nbr = 0;
-    uint16_t chksm;
-    struct ip_hdr *ip_hdr = (struct ip_hdr *)ipudp_tx_buf;
-    struct udp_hdr *udp_hdr = (struct udp_hdr *)(ip_hdr + 1);
-
-    /* we can only take a maximum of data_len - sizeof(struct ip_hdr) - sizeof(struct udp_hdr) */
-
-    /* make the ip header first */
-    ip_hdr->ver_hdrlen = 0x45;
-    ip_hdr->tos = 0;
-    ip_hdr->pckt_len = htons(data_len + sizeof(struct ip_hdr) + sizeof(struct udp_hdr));
-    ip_hdr->id = packet_nbr++;
-    ip_hdr->id = htons(ip_hdr->id);
-    ip_hdr->flgs = 0;
-    // don't really care
-    ip_hdr->ttl = 0xff;
-    // udp = 0x11
-    ip_hdr->proto = 0x11;
-    // checksum is 0 for now
-    ip_hdr->iphdr_checksum = 0;
-    // addresses
-    ip_hdr->source = 0x0267A8C0;
-    ip_hdr->dest = 0x0167A8C0;
-    // compute checksum
-    chksm = ip_checksum(ipudp_tx_buf, sizeof(struct ip_hdr));
-    ip_hdr->iphdr_checksum = htons(chksm);
-
-    /* next, make the udp header */
-    // SLIP configuration port 42000 on both sides
-    udp_hdr->source_port = htons(SPACECRAFT_PORT);
-    udp_hdr->dest_port = htons(LANDER_PORT);
-    // length
-    udp_hdr->len = data_len + sizeof(struct udp_hdr);
-    udp_hdr->len = htons(udp_hdr->len);
-    udp_hdr->checksum = 0;
-    // UDP checksum
-    chksm = udp_checksum(udp_hdr, data, udp_hdr->len, ip_hdr->source, ip_hdr->dest); // @suppress("Invalid arguments")
-    udp_hdr->checksum = htons(chksm);
-
-    // queue up the data to send
-    uart1_tx_nonblocking(sizeof(struct ip_hdr) + sizeof(struct udp_hdr), ipudp_tx_buf, UA1_ADD_PKT_START);
-
-    /* send the datagram itself */
-    uart1_tx_nonblocking(data_len, data, UA1_ADD_PKT_END);
-}
-
-/**
- * Parse an input datagram into a buffer
- *
- * @param buf: Buffer to parse the packet from. idx should be 0.
- * @param[OUT] pp_len: Pointer to the payload length
- * @return Pointer to the start of the payload
- */
-uint8_t *ipudp_parse_packet(struct buffer *buf, uint16_t *pp_len) {
-    uint16_t n = 0;
-
-#if 0
-    struct ip_hdr *ip_hdr;
-    struct udp_hdr *udp_hdr;
-
-    if (!ip_verify_packet(buf->buf, buf->used)) {
-        /* too small */
-        return (void *)0;
-    }
-    uint16_t word_stor;
-
-    /* check the size is at least minimally correct */
-    if (packet_len < sizeof(struct ip_hdr)) {
-        /* bad size */
-        return 1;
-    }
-
-    /* check header version/length is right */
-    if (*packet != 0x45) {
-        /* either wrong version or wrong packet size (additional options are not
-         * supported in this implementation) */
-        return 2;
-    }
-
-    /* safe to cast now */
-    ip_hdr = (struct ip_hdr *)(buf->buf);
-    udp_hdr = (struct udp_hdr *)(ip_hdr + 1);
-
-    // TODO: check that pp_len is equal to the reported packet length in IP/UDP
-    // TODO: this will currently die if we get more than one packet from SLIP. oops.
-
-    /* check that the lengths are correct */
-    if (header-> == )
-#endif
-
-    n = sizeof(struct ip_hdr) + sizeof(struct udp_hdr);
-    if (buf->used < n) {
-        /* too small */
-        return (void *)0;
-    }
-
-    if (pp_len) *pp_len = buf->used - n;
-
-    /* skip past the ip and udp headers, and we're left with the payload! */
-    return buf->buf + n;
 }
 
 IpUdp__Status IpUdp__identifyDataInUdpPacket(const uint8_t* fullIpUdpPacketData,

@@ -40,9 +40,7 @@ typedef void(*LanderMsgCallback)(uint8_t* rxDataBuffer, size_t rxDataLen, void* 
 // from the data currently available in the UART rx buffer.
 LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
                                                LanderMsgCallback callback,
-                                               void* userArg,
-                                               uint8_t* buffer,
-                                               size_t bufferLen);
+                                               void* userArg);
 
 // Will send data as contents of a UDP packet, SLIP encode, then send over UART 
 LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8_t* data, size_t dataLen);

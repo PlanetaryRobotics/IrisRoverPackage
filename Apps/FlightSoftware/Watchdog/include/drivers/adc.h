@@ -7,8 +7,6 @@
 #ifndef __ADC_INC
 #define __ADC_INC
 
-#include "include/buffer.h"
-
 extern volatile unsigned short adc_values[4];
 
 /**

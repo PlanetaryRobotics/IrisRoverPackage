@@ -47,9 +47,7 @@ typedef void(*HerculesMsgCallback)(HercMsgs__Header* header,
 // from the data currently available in the UART rx buffer.
 HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
                                                    HerculesMsgCallback callback,
-                                                   void* userArg,
-                                                   uint8_t* buffer,
-                                                   size_t bufferLen);
+                                                   void* userArg);
 
 // Sends data from lander to Hercules. A header will be sent first with the length of the data,
 // a reset value of zero, an internally tracked sequence number, and the opcode

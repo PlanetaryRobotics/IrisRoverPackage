@@ -94,9 +94,6 @@ typedef enum IpUdp__Status {
     IP_UDP__STATUS__ERROR_SERIALIZATION_FAILURE = -3
 } IpUdp__Status;
 
-void ipudp_send_packet(uint8_t *data, uint16_t data_len);
-uint8_t *ipudp_parse_packet(struct buffer *buf, uint16_t *pp_len);
-
 IpUdp__Status IpUdp__identifyDataInUdpPacket(const uint8_t* fullIpUdpPacketData,
                                              size_t fullDataLen,
                                              uint8_t** udpDataPointer,

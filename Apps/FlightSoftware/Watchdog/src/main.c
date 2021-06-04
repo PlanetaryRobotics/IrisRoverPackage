@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "include/buffer.h"
 #include "include/drivers/uart.h"
 #include "include/drivers/bsp.h"
 #include "include/drivers/adc.h"
@@ -350,9 +349,7 @@ void herculesMsgCallback(HercMsgs__Header* header, uint8_t* payloadBuffer, size_
 
 void pumpMsgsFromHercules(I2C_Sensors__Readings* i2cReadings,
                           HerculesComms__State* hCommsState,
-                          LanderComms__State* lcState,
-                          uint8_t* intermediateBuffer,
-                          size_t intermediateBufferSize)
+                          LanderComms__State* lcState)
 {
     HerculesMsgArgContainer args;
     args.herculesCommsState = hCommsState;
@@ -361,9 +358,7 @@ void pumpMsgsFromHercules(I2C_Sensors__Readings* i2cReadings,
 
     HerculesComms__Status hcStatus = HerculesComms__tryGetMessage(hCommsState,
                                                                   herculesMsgCallback,
-                                                                  (void*) &args,
-                                                                  intermediateBuffer,
-                                                                  intermediateBufferSize);
+                                                                  (void*) &args);
 
     if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
         // TODO: logging?
@@ -371,9 +366,7 @@ void pumpMsgsFromHercules(I2C_Sensors__Readings* i2cReadings,
 }
 
 void pumpMsgsFromLander(HerculesComms__State* hCommsState,
-                        LanderComms__State* lcState,
-                        uint8_t* intermediateBuffer,
-                        size_t intermediateBufferSize)
+                        LanderComms__State* lcState)
 {
     LanderMsgArgContainer args;
     args.herculesCommsState = hCommsState;
@@ -381,9 +374,7 @@ void pumpMsgsFromLander(HerculesComms__State* hCommsState,
 
     LanderComms__Status lcStatus = LanderComms__tryGetMessage(lcState,
                                                               landerMsgCallback,
-                                                              (void*) &args,
-                                                              intermediateBuffer,
-                                                              intermediateBufferSize);
+                                                              (void*) &args);
 
     if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
         // TODO: logging?
@@ -420,9 +411,6 @@ int main(void) {
     static volatile uint8_t uart0RxBuffer[HERC_MSGS__MAX_DATA_SIZE + HERC_MSGS__PACKED_SIZE__HEADER] = { 0 };
     static volatile uint8_t uart1TxBuffer[HERC_MSGS__MAX_DATA_SIZE + IP_UDP_HEADER_LEN] = { 0 };
     static volatile uint8_t uart1RxBuffer[HERC_MSGS__MAX_DATA_SIZE + IP_UDP_HEADER_LEN] = { 0 };
-    
-    // Also declare a single buffer for intermediate movement of data out of the UART ring buffers 
-    static uint8_t intermediateBuffer[HERC_MSGS__MAX_DATA_SIZE + IP_UDP_HEADER_LEN] = { 0 };
     
     /* stop watchdog timer */
 	WDTCTL = WDTPW | WDTHOLD;
@@ -503,11 +491,7 @@ int main(void) {
 
         /* Got data from hercules */
         if (loop_flags & FLAG_UART0_RX_PACKET) {
-            pumpMsgsFromHercules(&i2cReadings,
-                                 hcState,
-                                 lcState,
-                                 intermediateBuffer,
-                                 sizeof(intermediateBuffer));
+            pumpMsgsFromHercules(&i2cReadings, hcState, lcState);
 
             /* clear event when done */
             loop_flags ^= FLAG_UART0_RX_PACKET;
@@ -515,10 +499,10 @@ int main(void) {
 
         /* Got data from lander */
         if (loop_flags & FLAG_UART1_RX_PACKET) {
-            pumpMsgsFromLander(hcState,
-                               lcState,
-                               intermediateBuffer,
-                               sizeof(intermediateBuffer));
+            pumpMsgsFromLander(hcState, lcState);
+
+            /* clear event when done */
+            loop_flags ^= FLAG_UART1_RX_PACKET;
         }
 
         if (loop_flags & FLAG_TIMER_TICK) {

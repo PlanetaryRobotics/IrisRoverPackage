@@ -8,7 +8,6 @@
  */
 #include <stdint.h>
 #include "include/drivers/bsp.h"
-#include "include/buffer.h"
 #include "include/comms/ip_udp.h"
 #include "include/drivers/uart.h"
 #include "include/drivers/adc.h"
@@ -482,111 +481,5 @@ GroundCmd__Status GroundCmd__generateEarthHeartbeat(I2C_Sensors__Readings* i2cRe
 
         // send the thermistor temperature (12 bits to 8 bits)
         heartbeatOutBuffer[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
-    }
-}
-
-/**
- * Send the earth heartbeat
- */
-void send_earth_heartbeat(I2C_Sensors__Readings *i2cReadings) {
-    static uint8_t counter = 0;
-    uint8_t heartbeatOutBuffer[32];
-
-    // build the packet
-    heartbeatOutBuffer[0] = 0xFF;
-
-    if (rovstate == RS_SERVICE || rovstate == RS_MISSION) {
-        // send adc value temperature
-        heartbeatOutBuffer[1] = (uint8_t)(adc_values[ADC_TEMP_IDX]);
-        heartbeatOutBuffer[2] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 8);
-
-        // send adc value temperature
-        heartbeatOutBuffer[3] = (uint8_t)(i2cReadings->raw_battery_charge[0]);
-        heartbeatOutBuffer[4] = (uint8_t)(i2cReadings->raw_battery_charge[1]);
-
-        // send adc value temperature
-        heartbeatOutBuffer[5] = (uint8_t)(i2cReadings->raw_battery_voltage[0]);
-        heartbeatOutBuffer[6] = (uint8_t)(i2cReadings->raw_battery_voltage[1]);
-
-        // send adc value temperature
-        heartbeatOutBuffer[7] = (uint8_t)(i2cReadings->raw_battery_current[0]);
-        heartbeatOutBuffer[8] = (uint8_t)(i2cReadings->raw_battery_current[1]);
-
-        // send adc value temperature
-        heartbeatOutBuffer[9] = (uint8_t)(i2cReadings->raw_fuel_gauge_temp[0]);
-        heartbeatOutBuffer[10] = (uint8_t)(i2cReadings->raw_fuel_gauge_temp[1]);
-
-        // send heater info Kp
-        heartbeatOutBuffer[11] = (uint8_t)(Kp_heater);
-        heartbeatOutBuffer[12] = (uint8_t)(Kp_heater >> 8);
-
-        // send heater info setpoint
-        heartbeatOutBuffer[13] = (uint8_t)(heater_setpoint);
-        heartbeatOutBuffer[14] = (uint8_t)(heater_setpoint >> 8);
-
-        // send heater info window ?
-        heartbeatOutBuffer[15] = (uint8_t)(heater_window);
-        heartbeatOutBuffer[16] = (uint8_t)(heater_window >> 8);
-
-        // send ??
-        heartbeatOutBuffer[17] = (uint8_t)(PWM_limit);
-        heartbeatOutBuffer[18] = (uint8_t)(PWM_limit >> 8);
-
-        // send the current rover state
-        heartbeatOutBuffer[19] = 0;
-        switch (rovstate) {
-        case RS_SLEEP:
-            heartbeatOutBuffer[19] |= 0x02;
-            break;
-        case RS_SERVICE:
-            heartbeatOutBuffer[19] |= 0x04;
-            break;
-        case RS_KEEPALIVE:
-            heartbeatOutBuffer[19] |= 0x08;
-            break;
-        case RS_MISSION:
-            heartbeatOutBuffer[19] |= 0x10;
-            break;
-        case RS_FAULT:
-            heartbeatOutBuffer[19] |= 0x20;
-            break;
-        }
-
-        // send the current heating status
-        heartbeatOutBuffer[20] = heaterStatus;
-        heartbeatOutBuffer[21] = heatingControlEnabled;
-
-        // send ??
-        heartbeatOutBuffer[22] = (uint8_t)(TB0CCR2);
-        heartbeatOutBuffer[23] = (uint8_t)(TB0CCR2 >> 8);
-
-        // send the current deploy state
-        heartbeatOutBuffer[24] = hasDeployed;
-
-        // send the packet!
-        ipudp_send_packet(heartbeatOutBuffer, 24);
-    } else if (rovstate == RS_KEEPALIVE) {
-        ////  Flight-spec heartbeats
-        if ((counter % 3) != 2) {
-            /* only send every 3 timer ticks (15s) */
-            counter++;
-            return;
-        }
-        counter = 0;
-
-        heartbeatOutBuffer[1] = (uint8_t)(i2cReadings->batt_charge_telem << 1);
-        // send heater on status
-        heartbeatOutBuffer[1] |= heaterStatus & 0x1;
-        // battery current
-        heartbeatOutBuffer[2] = (uint8_t)(i2cReadings->batt_curr_telem << 1);
-        // send voltage nominal status (1=good, 0=too low)
-        // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
-        heartbeatOutBuffer[2] |= (i2cReadings->raw_battery_voltage[0] > 0x3B); // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
-
-        // send the thermistor temperature (12 bits to 8 bits)
-        heartbeatOutBuffer[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
-
-        // send the packet!
-        ipudp_send_packet(heartbeatOutBuffer, 4);
     }
 }

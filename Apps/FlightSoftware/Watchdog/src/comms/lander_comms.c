@@ -14,7 +14,7 @@ struct LanderComms__State
     UART__State* uartState;
 
     // Note: this size constant is defined in common.h
-    uint8_t slipMsgBuffer[LANDER_COMMS__MAX_RX_SLIP_MESSAGE_SIZE];
+    uint8_t slipMsgBuffer[HERC_MSGS__MAX_DATA_SIZE + IP_UDP_HEADER_LEN];
     SlipMpsm__Msg slipMsgMpsm;
 
     uint16_t txPacketId;
@@ -82,9 +82,7 @@ LanderComms__Status LanderComms__init(LanderComms__State** lcState, UART__State*
 // the SLIP encoding is decoded and the contents of the IP packet are extracted).
 LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
                                                LanderMsgCallback callback,
-                                               void* userArg,
-                                               uint8_t* buffer,
-                                               size_t bufferLen)
+                                               void* userArg)
 {
     static uint8_t uartRxData[64] = { 0 };
  
@@ -131,14 +129,8 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
                                                                         &udpDataSize);
 
                 if (IP_UDP__STATUS__SUCCESS == ipStatus) {
-                    // Make sure received data can fit into buffer
-                    if (udpDataSize > bufferLen) {
-                        return LANDER_COMMS__STATUS__ERROR_BUFFER_TOO_SMALL;
-                    }
-
-                    // Copy the data into the output buffer and then call our callback to handle it
-                    memcpy(buffer, udpData, udpDataSize);
-                    callback(buffer, udpDataSize, userArg);
+                    // Call our callback to handle the data
+                    callback(udpData, udpDataSize, userArg);
                 }
 
                 resetMpsmMsg = TRUE;

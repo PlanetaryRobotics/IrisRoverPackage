@@ -81,12 +81,12 @@ static UART__State uart1State = {
 // Private function declarations
 //###########################################################
 
-void UART__clockInit(void);
-UART__Status UART__initState(UART__State* state, UART__Buffers* buffers);
-void UART__uart0Init(void);
-void UART__uart1Init(void);
+static void UART__clockInit(void);
+static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers);
+static void UART__uart0Init(void);
+static void UART__uart1Init(void);
 
-void UART__interruptHandler(UART__State* uartState);
+static void UART__interruptHandler(UART__State* uartState);
 
 //###########################################################
 // Public function definitions
@@ -222,7 +222,7 @@ UART__Status UART__receive(UART__State* uartState,
 /**
  * Initialize clocks for UART. necessary and should only be called once, at boot.
  */
-void UART__clockInit()
+static void UART__clockInit()
 {
     // Unlock all CS registers
     CSCTL0_H = CSKEY_H;
@@ -268,7 +268,7 @@ void UART__clockInit()
     CSCTL0_H = 0;
 }
 
-UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
+static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
 {
     if (NULL == state
         || NULL == buffers
@@ -305,7 +305,7 @@ UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
 /**
  * Initialize UART0 (Hercules <-> watchdog)
  */
-void UART__uart0Init()
+static void UART__uart0Init()
 {
     // Put eUSCI_A0 in reset
     UCA0CTLW0 = UCSWRST;                    
@@ -365,7 +365,7 @@ void UART__uart0Init()
 /**
  * Initialize UART1 (Lander <-> watchdog)
  */
-void UART__uart1Init() {
+static void UART__uart1Init() {
     uart1tx.idx = 0;
     uart1tx.used = 0;
     uart1tx.locked = 0;
@@ -427,7 +427,7 @@ void UART__uart1Init() {
     UCA1IE |= UCRXIE;                       
 }
 
-void UART__interruptHandler(UART__State* uartState)
+static void UART__interruptHandler(UART__State* uartState)
 {
     if (NULL == uartState) {
         return;

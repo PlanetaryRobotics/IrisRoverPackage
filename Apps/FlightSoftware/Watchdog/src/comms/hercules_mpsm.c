@@ -50,7 +50,7 @@ typedef struct HerculesMpsm__StateMachine
 // Private globals and constants
 //###########################################################
 
-HerculesMpsm__StateMachine theStateMachine = {
+static HerculesMpsm__StateMachine theStateMachine = {
     .initialized = FALSE,
     .currentState = HERCULES_MPSM_STATE__VALIDATE_HEADER,
     .ringBufferMemory = { 0 },
@@ -62,10 +62,10 @@ HerculesMpsm__StateMachine theStateMachine = {
 // Private function declarations
 //###########################################################
 
-HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg* msg, uint8_t newData);
-BOOL HerculesMpsm__checkRb(size_t index, uint8_t expected);
-uint8_t HerculesMpsm__peekRb(size_t index);
-HerculesMpsm__Status HerculesMpsm__appendData(HerculesMpsm__Msg* msg, uint8_t newData);
+static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg* msg, uint8_t newData);
+static BOOL HerculesMpsm__checkRb(size_t index, uint8_t expected);
+static uint8_t HerculesMpsm__peekRb(size_t index);
+static HerculesMpsm__Status HerculesMpsm__appendData(HerculesMpsm__Msg* msg, uint8_t newData);
 
 //###########################################################
 // Public function definitions
@@ -152,7 +152,7 @@ HerculesMpsm__Status HerculesMpsm__reset(HerculesMpsm__Msg* msg)
 // Private function definitions
 //###########################################################
 
-HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg* msg, uint8_t newData)
+static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg* msg, uint8_t newData)
 {
     RingBuffer__Status rbStatus = RingBuffer__putOverwrite(theStateMachine.headerRb, newData);
 
@@ -234,7 +234,7 @@ HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg* msg, u
     return HERCULES_MPSM__STATUS__NEED_MORE_DATA;
 }
 
-BOOL HerculesMpsm__checkRb(size_t index, uint8_t expected)
+static BOOL HerculesMpsm__checkRb(size_t index, uint8_t expected)
 {
     uint8_t value = 0;
 
@@ -247,7 +247,7 @@ BOOL HerculesMpsm__checkRb(size_t index, uint8_t expected)
     }
 }
 
-uint8_t HerculesMpsm__peekRb(size_t index)
+static uint8_t HerculesMpsm__peekRb(size_t index)
 {
     uint8_t value = 0;
 
@@ -261,7 +261,7 @@ uint8_t HerculesMpsm__peekRb(size_t index)
 }
 
 
-HerculesMpsm__Status HerculesMpsm__appendData(HerculesMpsm__Msg* msg, uint8_t newData);
+static HerculesMpsm__Status HerculesMpsm__appendData(HerculesMpsm__Msg* msg, uint8_t newData);
 {
     msg->dataBuffer[msg->msgLen] = newData;
     msg->msgLen++;

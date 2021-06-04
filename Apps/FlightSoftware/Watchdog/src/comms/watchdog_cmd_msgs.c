@@ -34,7 +34,7 @@
  *                                                WD_CMD_MSGS__PACKED_SIZE__RESET_SPECIFIC_BODY.
  *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeResetSpecificBody(const void* src,
                                         size_t srcLen,
                                         WdCmdMsgs__MsgBody__ResetSpecific* dst);
@@ -56,7 +56,7 @@ WdCmdMsgs__deserializeResetSpecificBody(const void* src,
  *                                                WD_CMD_MSGS__PACKED_SIZE__PREP_FOR_DEPLOY_BODY.
  *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializePrepForDeployBody(const void* src,
                                         size_t srcLen,
                                         WdCmdMsgs__MsgBody__PrepForDeploy* dst);
@@ -78,7 +78,7 @@ WdCmdMsgs__deserializePrepForDeployBody(const void* src,
  *                                                WD_CMD_MSGS__PACKED_SIZE__DEPLOY_BODY.
  *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeDeployBody(const void* src,
                                  size_t srcLen,
                                  WdCmdMsgs__MsgBody__Deploy* dst);
@@ -100,7 +100,7 @@ WdCmdMsgs__deserializeDeployBody(const void* src,
  *                                                WD_CMD_MSGS__PACKED_SIZE__SWITCH_CONN_MODE_MSG.
  *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSwitchConnModeBody(const void* src,
                                          size_t srcLen,
                                          WdCmdMsgs__MsgBody__SwitchConnMode* dst);
@@ -122,7 +122,7 @@ WdCmdMsgs__deserializeSwitchConnModeBody(const void* src,
  *                                                WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_KP_BODY.
  *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetHeaterKpBody(const void* src,
                                       size_t srcLen,
                                       WdCmdMsgs__MsgBody__SetHeaterKp* dst);
@@ -144,7 +144,7 @@ WdCmdMsgs__deserializeSetHeaterKpBody(const void* src,
  *                                                WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_ON_VALUE_BODY.
  *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetAutoHeaterOnValueBody(const void* src,
                                                size_t srcLen,
                                                WdCmdMsgs__MsgBody__SetAutoHeaterOnValue* dst);
@@ -166,7 +166,7 @@ WdCmdMsgs__deserializeSetAutoHeaterOnValueBody(const void* src,
  *                                                WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_OFF_VALUE_BODY.
  *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetAutoHeaterOffValueBody(const void* src,
                                                 size_t srcLen,
                                                 WdCmdMsgs__MsgBody__SetAutoHeaterOffValue* dst);
@@ -188,7 +188,7 @@ WdCmdMsgs__deserializeSetAutoHeaterOffValueBody(const void* src,
  *                                                WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_MAX_BODY.
  *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetHeaterDutyCycleMaxBody(const void* src,
                                                 size_t srcLen,
                                                 WdCmdMsgs__MsgBody__SetHeaterDutyCycleMax* dst);
@@ -210,7 +210,7 @@ WdCmdMsgs__deserializeSetHeaterDutyCycleMaxBody(const void* src,
  *                                                WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_PERIOD_BODY.
  *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetHeaterDutyCyclePeriodBody(const void* src,
                                                    size_t srcLen,
                                                    WdCmdMsgs__MsgBody__SetHeaterDutyCyclePeriod* dst);
@@ -232,7 +232,7 @@ WdCmdMsgs__deserializeSetHeaterDutyCyclePeriodBody(const void* src,
  *                                                WD_CMD_MSGS__PACKED_SIZE__SET_THERMISTER_V_SETPOINT_BODY.
  *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetThermisterVSetpointBody(const void* src,
                                                  size_t srcLen,
                                                  WdCmdMsgs__MsgBody__SetThermisterVSetpoint* dst);
@@ -254,7 +254,7 @@ WdCmdMsgs__deserializeSetThermisterVSetpointBody(const void* src,
  *                                                WD_CMD_MSGS__PACKED_SIZE__ENTER_SLEEP_MODE_BODY.
  *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeEnterSleepModeBody(const void* src,
                                          size_t srcLen,
                                          WdCmdMsgs__MsgBody__EnterSleepMode* dst);
@@ -276,7 +276,7 @@ WdCmdMsgs__deserializeEnterSleepModeBody(const void* src,
  *                                                WD_CMD_MSGS__PACKED_SIZE__ENTER_KEEPALIVE_MODE_BODY.
  *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeEnterKeepAliveModeBody(const void* src,
                                              size_t srcLen,
                                              WdCmdMsgs__MsgBody__EnterKeepAliveMode* dst);
@@ -298,7 +298,7 @@ WdCmdMsgs__deserializeEnterKeepAliveModeBody(const void* src,
  *                                                WD_CMD_MSGS__PACKED_SIZE__ENTER_SERVICE_MODE_BODY.
  *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeEnterServiceModeBody(const void* src,
                                            size_t srcLen,
                                            WdCmdMsgs__MsgBody__EnterServiceMode* dst);
@@ -448,7 +448,7 @@ WdCmdMsgs__deserializeMessage(const void* src,
 // Private Function Definitions
 //######################################################################################################################
 
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeResetSpecificBody(const void* src,
                                         size_t srcLen,
                                         WdCmdMsgs__MsgBody__ResetSpecific* dst)
@@ -472,7 +472,7 @@ WdCmdMsgs__deserializeResetSpecificBody(const void* src,
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }
 
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializePrepForDeployBody(const void* src,
                                         size_t srcLen,
                                         WdCmdMsgs__MsgBody__PrepForDeploy* dst)
@@ -493,7 +493,7 @@ WdCmdMsgs__deserializePrepForDeployBody(const void* src,
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }
 
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeDeployBody(const void* src,
                                  size_t srcLen,
                                  WdCmdMsgs__MsgBody__Deploy* dst)
@@ -514,7 +514,7 @@ WdCmdMsgs__deserializeDeployBody(const void* src,
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }
 
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSwitchConnModeBody(const void* src,
                                          size_t srcLen,
                                          WdCmdMsgs__MsgBody__SwitchConnMode* dst)
@@ -537,7 +537,7 @@ WdCmdMsgs__deserializeSwitchConnModeBody(const void* src,
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }
 
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetHeaterKpBody(const void* src,
                                       size_t srcLen,
                                       WdCmdMsgs__MsgBody__SetHeaterKp* dst)
@@ -558,7 +558,7 @@ WdCmdMsgs__deserializeSetHeaterKpBody(const void* src,
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }
 
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetAutoHeaterOnValueBody(const void* src,
                                                size_t srcLen,
                                                WdCmdMsgs__MsgBody__SetAutoHeaterOnValue* dst)
@@ -579,7 +579,7 @@ WdCmdMsgs__deserializeSetAutoHeaterOnValueBody(const void* src,
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }
 
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetAutoHeaterOffValueBody(const void* src,
                                                 size_t srcLen,
                                                 WdCmdMsgs__MsgBody__SetAutoHeaterOffValue* dst)
@@ -600,7 +600,7 @@ WdCmdMsgs__deserializeSetAutoHeaterOffValueBody(const void* src,
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }
 
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetHeaterDutyCycleMaxBody(const void* src,
                                                 size_t srcLen,
                                                 WdCmdMsgs__MsgBody__SetHeaterDutyCycleMax* dst)
@@ -621,7 +621,7 @@ WdCmdMsgs__deserializeSetHeaterDutyCycleMaxBody(const void* src,
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }
 
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetHeaterDutyCyclePeriodBody(const void* src,
                                                    size_t srcLen,
                                                    WdCmdMsgs__MsgBody__SetHeaterDutyCyclePeriod* dst)
@@ -642,7 +642,7 @@ WdCmdMsgs__deserializeSetHeaterDutyCyclePeriodBody(const void* src,
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }
 
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetThermisterVSetpointBody(const void* src,
                                                  size_t srcLen,
                                                  WdCmdMsgs__MsgBody__SetThermisterVSetpoint* dst)
@@ -663,7 +663,7 @@ WdCmdMsgs__deserializeSetThermisterVSetpointBody(const void* src,
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }
 
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeEnterSleepModeBody(const void* src,
                                          size_t srcLen,
                                          WdCmdMsgs__MsgBody__EnterSleepMode* dst)
@@ -684,7 +684,7 @@ WdCmdMsgs__deserializeEnterSleepModeBody(const void* src,
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }
 
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeEnterKeepAliveModeBody(const void* src,
                                              size_t srcLen,
                                              WdCmdMsgs__MsgBody__EnterKeepAliveMode* dst)
@@ -705,7 +705,7 @@ WdCmdMsgs__deserializeEnterKeepAliveModeBody(const void* src,
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }
 
-WdCmdMsgs__Status
+static WdCmdMsgs__Status
 WdCmdMsgs__deserializeEnterServiceModeBody(const void* src,
                                            size_t srcLen,
                                            WdCmdMsgs__MsgBody__EnterServiceMode* dst)

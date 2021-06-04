@@ -24,7 +24,7 @@ struct LanderComms__State
 // Private globals and constants
 //###########################################################
 
-LanderComms__State theState = {
+static LanderComms__State theState = {
     .initialized = FALSE,
     .uartState = NULL,
     .slipMsgBuffer = { 0 },
@@ -36,14 +36,16 @@ LanderComms__State theState = {
 // Private function declarations
 //###########################################################
 
-LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms__State* lcState,
-                                                             const uint8_t* inputBuffer,
-                                                             size_t inputLen,
-                                                             uint8_t* outputBuffer,
-                                                             size_t outputBufferTotalSize,
-                                                             size_t initialUsedOutputByteCount);
+static LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms__State* lcState,
+                                                                    const uint8_t* inputBuffer,
+                                                                    size_t inputLen,
+                                                                    uint8_t* outputBuffer,
+                                                                    size_t outputBufferTotalSize,
+                                                                    size_t initialUsedOutputByteCount);
 
-LanderComms__Status LanderComms__transmitBuffer(LanderComms__State* lcState, const uint8_t* buffer, size_t len);
+static LanderComms__Status LanderComms__transmitBuffer(LanderComms__State* lcState,
+                                                       const uint8_t* buffer,
+                                                       size_t len);
 
 //###########################################################
 // Public function definitions
@@ -246,12 +248,12 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
 // Private function definitions
 //###########################################################
 
-LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms__State* lcState,
-                                                             const uint8_t* inputBuffer,
-                                                             size_t inputLen,
-                                                             uint8_t* outputBuffer,
-                                                             size_t outputBufferTotalSize,
-                                                             size_t initialUsedOutputByteCount)
+static LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms__State* lcState,
+                                                                    const uint8_t* inputBuffer,
+                                                                    size_t inputLen,
+                                                                    uint8_t* outputBuffer,
+                                                                    size_t outputBufferTotalSize,
+                                                                    size_t initialUsedOutputByteCount)
 {
     const uint8_t* inPtr = inputBuffer;
     size_t remainingInBuffSize = intputLen;
@@ -305,7 +307,9 @@ LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms__State*
     return LANDER_COMMS__STATUS__SUCCESS;
 }
 
-LanderComms__Status LanderComms__transmitBuffer(LanderComms__State* lcState, const uint8_t* buffer, size_t len)
+static LanderComms__Status LanderComms__transmitBuffer(LanderComms__State* lcState,
+                                                       const uint8_t* buffer,
+                                                       size_t len)
 {
     UART__Status uartStatus = UART__transmit(lcState->uartState, buffer, len);
 

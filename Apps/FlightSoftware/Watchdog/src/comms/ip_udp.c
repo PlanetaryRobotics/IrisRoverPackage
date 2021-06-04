@@ -10,7 +10,7 @@
 /**
  * Return the IP checksum of the blob given, **in host byte order**
  */
-uint16_t ip_checksum(uint8_t *packet, uint16_t packet_len) {
+static uint16_t ip_checksum(uint8_t *packet, uint16_t packet_len) {
     uint16_t packet_len_orig;
     uint16_t i;
     uint16_t tmp;
@@ -72,7 +72,7 @@ uint16_t ip_checksum(uint8_t *packet, uint16_t packet_len) {
  * (NOTE: there is no guarantee for the returned value to be any specific number
  * if there is an error in the checksum)
  */
-uint16_t ip_verify_packet(uint8_t *packet, uint16_t packet_len) {
+static uint16_t ip_verify_packet(uint8_t *packet, uint16_t packet_len) {
     struct ip_hdr *header;
     uint16_t word_stor;
 
@@ -125,7 +125,11 @@ uint16_t ip_verify_packet(uint8_t *packet, uint16_t packet_len) {
  * @param ip_src: source ip address
  * @param ip_dest: destination ip address
  */
-uint16_t udp_checksum(uint8_t *udp_header, uint8_t *data_buf, uint16_t udp_packet_len, uint32_t ip_src, uint32_t ip_dest) {
+static uint16_t udp_checksum(uint8_t *udp_header,
+                             uint8_t *data_buf,
+                             uint16_t udp_packet_len,
+                             uint32_t ip_src,
+                             uint32_t ip_dest) {
     struct ip_pseudohdr ph;
     uint32_t running_chksum;
     uint16_t chk_ret;

@@ -24,7 +24,7 @@ typedef struct SlipMpsm__StateMachine
 // Private globals and constants
 //###########################################################
 
-SlipMpsm__StateMachine theStateMachine = {
+static SlipMpsm__StateMachine theStateMachine = {
     .currentState = SLIP_MPSM_STATE__FIRST_END,
     .lastByteWasSlipEscape = FALSE
 };
@@ -33,7 +33,7 @@ SlipMpsm__StateMachine theStateMachine = {
 // Private function declarations
 //###########################################################
 
-SlipMpsm__Status SlipMpsm__appendData(SlipMpsm__Msg* msg, uint8_t newData);
+static SlipMpsm__Status SlipMpsm__appendData(SlipMpsm__Msg* msg, uint8_t newData);
 
 //###########################################################
 // Public function definitions
@@ -123,7 +123,7 @@ SlipMpsm__Status SlipMpsm__process(SlipMpsm__Msg* msg, uint8_t newData)
 // Private function definitions
 //###########################################################
 
-SlipMpsm__Status SlipMpsm__appendData(SlipMpsm__Msg* msg, uint8_t newData);
+static SlipMpsm__Status SlipMpsm__appendData(SlipMpsm__Msg* msg, uint8_t newData);
 {
     BOOL gotByteToWrite = FALSE;
     uint8_t byteToWrite = 0;

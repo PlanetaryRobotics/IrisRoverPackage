@@ -39,14 +39,16 @@ static HerculesComms__State theState = {
 // Private function declarations
 //###########################################################
 
-HerculesComms__Status HerculesComms__txHerculesMsg(HerculesComms__State* hState,
-                                                   uint16_t resetValue,
-                                                   uint16_t lowerSeqNum,
-                                                   uint16_t lowerOpCode,
-                                                   const uint8_t* data,
-                                                   size_t dataLen);
+static HerculesComms__Status HerculesComms__txHerculesMsg(HerculesComms__State* hState,
+                                                          uint16_t resetValue,
+                                                          uint16_t lowerSeqNum,
+                                                          uint16_t lowerOpCode,
+                                                          const uint8_t* data,
+                                                          size_t dataLen);
 
-HerculesComms__Status HerculesComms__transmitBuffer(HerculesComms__State* hState, const uint8_t* buffer, size_t len);
+static HerculesComms__Status HerculesComms__transmitBuffer(HerculesComms__State* hState,
+                                                           const uint8_t* buffer,
+                                                           size_t len);
 
 //###########################################################
 // Public function definitions
@@ -236,7 +238,9 @@ HerculesComms__Status HerculesComms__resetState(HerculesComms__State* hState)
 // Private function definitions
 //###########################################################
 
-HerculesComms__Status HerculesComms__transmitBuffer(HerculesComms__State* hState, const uint8_t* buffer, size_t len)
+static HerculesComms__Status HerculesComms__transmitBuffer(HerculesComms__State* hState,
+                                                           const uint8_t* buffer,
+                                                           size_t len)
 {
     UART__Status uartStatus = UART__transmit(hState->uartState, buffer, len);
 
@@ -249,12 +253,12 @@ HerculesComms__Status HerculesComms__transmitBuffer(HerculesComms__State* hState
     }
 }
 
-HerculesComms__Status HerculesComms__txHerculesMsg(HerculesComms__State* hState,
-                                                   uint16_t resetValue,
-                                                   uint16_t lowerSeqNum,
-                                                   uint16_t lowerOpCode,
-                                                   const uint8_t* data,
-                                                   size_t dataLen)
+static HerculesComms__Status HerculesComms__txHerculesMsg(HerculesComms__State* hState,
+                                                          uint16_t resetValue,
+                                                          uint16_t lowerSeqNum,
+                                                          uint16_t lowerOpCode,
+                                                          const uint8_t* data,
+                                                          size_t dataLen)
 {
     if (NULL == hState || (dataLen > 0 && NULL == data)) {
         return HERCULES_COMMS__STATUS__ERROR_NULL;

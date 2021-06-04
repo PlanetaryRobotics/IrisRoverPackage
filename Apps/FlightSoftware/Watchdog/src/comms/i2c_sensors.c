@@ -17,33 +17,34 @@ static INS_Sensors__InternalState internals = { 0 };
 // Private function declarations
 //###########################################################
 
-BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
-                                     uint8_t regAddr,
-                                     uint8_t nackMaskBit,
-                                     GaugeReadingState nextState,
-                                     void* output,
-                                     BOOL* done,
-                                     BOOL* gotOutput);
+static BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
+                                            uint8_t regAddr,
+                                            uint8_t nackMaskBit,
+                                            GaugeReadingState nextState,
+                                            void* output,
+                                            BOOL* done,
+                                            BOOL* gotOutput);
 
 
-void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
-                                      uint8_t regAddr,
-                                      uint8_t data,
-                                      BOOL* done,
-                                      BOOL* success);
+static void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
+                                             uint8_t regAddr,
+                                             uint8_t data,
+                                             BOOL* done,
+                                             BOOL* success);
 
-BOOL I2C_Sensors__chargeLsb();
-BOOL I2C_Sensors__chargeMsb();
-BOOL I2C_Sensors__voltageLsb();
-BOOL I2C_Sensors__voltageMsb();
-BOOL I2C_Sensors__currentLsb();
-BOOL I2C_Sensors__currentMsb();
-BOOL I2C_Sensors__gaugeTempLsb();
-BOOL I2C_Sensors__gaugeTempMsb();
+static BOOL I2C_Sensors__chargeLsb();
+static BOOL I2C_Sensors__chargeMsb();
+static BOOL I2C_Sensors__voltageLsb();
+static BOOL I2C_Sensors__voltageMsb();
+static BOOL I2C_Sensors__currentLsb();
+static BOOL I2C_Sensors__currentMsb();
+static BOOL I2C_Sensors__gaugeTempLsb();
+static BOOL I2C_Sensors__gaugeTempMsb();
 
 //###########################################################
 // Public function definitions
 //###########################################################
+
 void I2C_Sensors__init()
 {
     // Just init the generic I2C module we depend on
@@ -308,13 +309,13 @@ void I2C_Sensors__spinOnce()
 // Private function definitions
 //###########################################################
 
-BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
-                                     uint8_t regAddr,
-                                     uint8_t nackMaskBit,
-                                     GaugeReadingState nextState,
-                                     void* output,
-                                     BOOL* done,
-                                     BOOL* gotOutput)
+static BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
+                                            uint8_t regAddr,
+                                            uint8_t nackMaskBit,
+                                            GaugeReadingState nextState,
+                                            void* output,
+                                            BOOL* done,
+                                            BOOL* gotOutput)
 {
     static I2C__TransactionStatus tStatus = { 0 };
 
@@ -383,11 +384,11 @@ BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
     return continueSpinning;
 }
 
-void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
-                                      uint8_t regAddr,
-                                      uint8_t data,
-                                      BOOL* done,
-                                      BOOL* success)
+static void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
+                                             uint8_t regAddr,
+                                             uint8_t data,
+                                             BOOL* done,
+                                             BOOL* success)
 {
     static I2C__TransactionStatus tStatus = { 0 };
 
@@ -437,7 +438,7 @@ void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
     }
 }
 
-BOOL I2C_Sensors__chargeLsb()
+static BOOL I2C_Sensors__chargeLsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
     return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -449,7 +450,7 @@ BOOL I2C_Sensors__chargeLsb()
                                            &gotOutput);
 }
 
-BOOL I2C_Sensors__chargeMsb()
+static BOOL I2C_Sensors__chargeMsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
     BOOL result = I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -469,7 +470,7 @@ BOOL I2C_Sensors__chargeMsb()
     return result;
 }
 
-BOOL I2C_Sensors__voltageLsb()
+static BOOL I2C_Sensors__voltageLsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
     return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -481,7 +482,7 @@ BOOL I2C_Sensors__voltageLsb()
                                            &gotOutput);
 }
 
-BOOL I2C_Sensors__voltageMsb()
+static BOOL I2C_Sensors__voltageMsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
     return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -493,7 +494,7 @@ BOOL I2C_Sensors__voltageMsb()
                                            &gotOutput);
 }
 
-BOOL I2C_Sensors__currentLsb()
+static BOOL I2C_Sensors__currentLsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
     return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -505,7 +506,7 @@ BOOL I2C_Sensors__currentLsb()
                                            &gotOutput);
 }
 
-BOOL I2C_Sensors__currentMsb()
+static BOOL I2C_Sensors__currentMsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
     BOOL result = I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -531,7 +532,7 @@ BOOL I2C_Sensors__currentMsb()
     return result;
 }
 
-BOOL I2C_Sensors__gaugeTempLsb()
+static BOOL I2C_Sensors__gaugeTempLsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
     return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -543,7 +544,7 @@ BOOL I2C_Sensors__gaugeTempLsb()
                                            &gotOutput);
 }
 
-BOOL I2C_Sensors__gaugeTempMsb()
+static BOOL I2C_Sensors__gaugeTempMsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
     return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,

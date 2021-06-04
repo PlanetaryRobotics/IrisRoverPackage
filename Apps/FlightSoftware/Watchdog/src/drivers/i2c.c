@@ -21,16 +21,16 @@ static I2C__TransactionStatus theStatus = { 0 };
 
 // Checks for an ack from the slave, stops the transmission
 // if we didn't get one
-BOOL I2C__checkAck();
+static BOOL I2C__checkAck();
 
 // State handler functions
-BOOL I2C__waitForStop();
-BOOL I2C__txStart();
-BOOL I2C__confirmStart();
-BOOL I2C__txRegAddress();
-BOOL I2C__txData();
-BOOL I2C__rxStart();
-BOOL I2C__rxDataAndStop();
+static BOOL I2C__waitForStop();
+static BOOL I2C__txStart();
+static BOOL I2C__confirmStart();
+static BOOL I2C__txRegAddress();
+static BOOL I2C__txData();
+static BOOL I2C__rxStart();
+static BOOL I2C__rxDataAndStop();
 
 //###########################################################
 // Public function definitions
@@ -150,7 +150,7 @@ void I2C__spinOnce()
 // Private function definitions
 //###########################################################
 
-BOOL I2C__checkAck()
+static BOOL I2C__checkAck()
 {
     BOOL result = TRUE;
 
@@ -168,7 +168,7 @@ BOOL I2C__checkAck()
     return result;
 }
 
-BOOL I2C__waitForStop()
+static BOOL I2C__waitForStop()
 {
     BOOL continueSpinning = FALSE;
 
@@ -187,7 +187,7 @@ BOOL I2C__waitForStop()
     return continueSpinning;
 }
 
-BOOL I2C__txStart()
+static BOOL I2C__txStart()
 {
     BOOL continueSpinning = FALSE;
 
@@ -207,7 +207,7 @@ BOOL I2C__txStart()
     return continueSpinning;
 }
 
-BOOL I2C__confirmStart()
+static BOOL I2C__confirmStart()
 {
     BOOL continueSpinning = FALSE;
     // We're looking for the start condition to be cleared, which means we can check the ack
@@ -222,7 +222,7 @@ BOOL I2C__confirmStart()
     return continueSpinning;
 }
 
-BOOL I2C__txRegAddress()
+static BOOL I2C__txRegAddress()
 {
     BOOL continueSpinning = FALSE;
 
@@ -253,7 +253,7 @@ BOOL I2C__txRegAddress()
     return continueSpinning;
 }
 
-BOOL I2C__txData()
+static BOOL I2C__txData()
 {
     BOOL continueSpinning = FALSE;
 
@@ -273,7 +273,7 @@ BOOL I2C__txData()
     return continueSpinning;
 }
 
-BOOL I2C__rxStart()
+static BOOL I2C__rxStart()
 {
     BOOL continueSpinning = FALSE;
 
@@ -293,7 +293,7 @@ BOOL I2C__rxStart()
     return continueSpinning;
 }
 
-BOOL I2C__rxDataAndStop()
+static BOOL I2C__rxDataAndStop()
 {
     BOOL continueSpinning = FALSE;
 

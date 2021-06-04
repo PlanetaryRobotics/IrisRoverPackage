@@ -1,7 +1,7 @@
 #ifndef __WATCHDOG_WATCHDOG_CMD_MSGS_H___
 #define __WATCHDOG_WATCHDOG_CMD_MSGS_H___
 
-#include "include/comms/cmd_msgs"
+#include "include/comms/cmd_msgs.h"
 #include "include/common.h"
 
 typedef enum WdCmdMsgs__Status
@@ -10,7 +10,7 @@ typedef enum WdCmdMsgs__Status
     WD_CMD_MSGS__STATUS__ERROR_NULL = CMD_MSGS__STATUS__ERROR_NULL, /* A required argument or a member of an argument was NULL */
     WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL = CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL, 
     WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR = CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR, 
-    WD_CMD_MSGS__STATUS__ERROR_UNKNOWN_MESSAGE_ID = CMD_MSGS__STATUS__ERROR_UNKNOWN_MESSAGE_ID,
+    WD_CMD_MSGS__STATUS__ERROR_UNKNOWN_MESSAGE_ID = -4,
 
     WD_CMD_MSGS__STATUS__ERROR__INTERNAL = CMD_MSGS__STATUS__ERROR__INTERNAL /* An unexpected internal error occurred. */
 } WdCmdMsgs__Status;

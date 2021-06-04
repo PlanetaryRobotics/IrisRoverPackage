@@ -18,9 +18,14 @@ typedef enum GroundCmd__Status
     GND_CMD__STATUS__ERROR_SERIALIZATION_ERROR = -3, 
     GND_CMD__STATUS__ERROR_UNKNOWN_MESSAGE_ID = -4,
     GND_CMD__STATUS__ERROR_UNKNOWN_MAGIC_NUMBER = -5,
+    GND_CMD__STATUS__ERROR_WRONG_STATE = -6,
+    GND_CMD__STATUS__ERROR_UNKNOWN_RESET_VALUE = -7,
 
     GND_CMD__STATUS__ERROR__INTERNAL = -255 /* An unexpected internal error occurred. */
 } GroundCmd__Status;
+
+GroundCmd__Status GroundCmd__performResetCommand(WdCmdMsgs__ResetSpecificId resetValue,
+                                                 WdCmdMsgs__Response* response);
 
 GroundCmd__Status GroundCmd__performWatchdogCommand(const WdCmdMsgs__Message* msg,
                                                     WdCmdMsgs__Response* response,
@@ -30,6 +35,11 @@ GroundCmd__Status GroundCmd__performWatchdogCommand(const WdCmdMsgs__Message* ms
 GroundCmd__Status GroundCmd__parseGroundCommand(uint8_t* src,
                                                 size_t srcLen,
                                                 GroundResponse* gndResp);
+
+GroundCmd__Status GroundCmd__generateEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
+                                                    uint8_t* heartbeatOutBuffer,
+                                                    size_t heartbeatOutBufferLen,
+                                                    size_t* outputHeartbeatSize);
 
 uint8_t handle_watchdog_reset_cmd(uint8_t cmd);
 void parse_ground_cmd(struct buffer *pp);

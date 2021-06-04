@@ -275,65 +275,6 @@ void watchdog_build_hercules_telem(I2C_Sensors__Readings *i2cReadings,
         telbuf[14] = (uint8_t)(i2cReadings->raw_battery_voltage[0]);
         telbuf[15] = (uint8_t)(i2cReadings->raw_battery_voltage[1]);
     }
-
-    // TODO: REMOVE
-    uart0_tx_nonblocking(16, telbuf);
-}
-
-/**
- * Function called whenever the watchdog needs to handle a byte from the hercules
- *
- * Assumes checksum valid.
- */
-void watchdog_handle_hercules(I2C_Sensors__Readings *i2cReadings) {
-    // valid hercules message received
-    watchdog_flags |= WDFLAG_HERCULES_KICK;
-
-    /* handle watchdog reset command */
-    handle_watchdog_reset_cmd(uart0_rx_header[6]);
-
-    /* deal with incoming udp packet from hercules */
-    if (uart0_rx_len != 0) {
-        /* add this packet to the IP/UDP stack send buffer */
-        ipudp_send_packet(uart0rx.buf, uart0_rx_len); // @suppress("Invalid arguments")
-    }
-    
-    /* send udp data back to the hercules if necessary */
-    if (hercbuf.used > 0) {
-        /* write out our buffer */
-        /* update header length first */
-        uart0_rx_header[4] = hercbuf.used & 0xFF;
-        uart0_rx_header[5] = (hercbuf.used >> 8) & 0xFF;
-    } else {
-        /* update header length first */
-        uart0_rx_header[4] = 0;
-        uart0_rx_header[5] = 0;
-    }
-
-    /* recompute parity */
-    uint8_t parity = 0xDC; /* sum of 0x21, 0xB0, and 0x0B */
-    /* skip parity byte (i + 3) in summation */
-    parity += uart0_rx_header[4] + uart0_rx_header[5];
-    parity += uart0_rx_header[6] + uart0_rx_header[7];
-    /* bitwise NOT to compute parity */
-    parity = ~parity;
-    /* write out new parity byte */
-    uart0_rx_header[3] = parity;
-    /* echo back watchdog command header updated version */
-    uart0_tx_nonblocking(8, uart0_rx_header); // @suppress("Invalid arguments")
-
-    /* payload of the header */
-    if (hercbuf.used > 0) {
-        /* send udp data */
-        uart0_tx_nonblocking(hercbuf.used, hercbuf.buf); // @suppress("Invalid arguments")
-        hercbuf.used = 0;
-    } else {
-        /* send telem */
-        watchdog_send_hercules_telem(i2cReadings);
-    }
-
-    /* tell the interrupt handler to start processing bytes again */
-    uart0_rx_mode = UA0_RX_HEADER;
 }
 
 void heaterControl(){

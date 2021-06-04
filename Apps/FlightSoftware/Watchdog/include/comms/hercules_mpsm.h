@@ -1,6 +1,8 @@
 #ifndef __WATCHDOG_HERCULES_MPSM_H__
 #define __WATCHDOG_HERCULES_MPSM_H__
 
+#include "include/comms/hercules_msgs.h"
+
 //Note: MPSM stands for "Message parsing state machine"
 
 typedef enum HerculesMpsm__Status {
@@ -53,7 +55,7 @@ struct HerculesMpsm__Msg
 {
     HerculesMpsm__MsgStatus msgStatus;
 
-    uint8_t header[8];
+    HercMsgs__Header header;
 
     uint8_t* dataBuffer;
     size_t dataBufferLen;

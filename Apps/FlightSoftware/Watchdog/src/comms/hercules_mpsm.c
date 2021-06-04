@@ -16,8 +16,12 @@ typedef enum HerculesMpsm__HeaderContentsByteIndices
     HEADER_INDEX__PARITY = 3,
     HEADER_INDEX__DATA_LEN_LSB = 4,
     HEADER_INDEX__DATA_LEN_MSB = 5,
-    HEADER_INDEX__ONLY_USED_FOR_PARITY_ONE = 6,
-    HEADER_INDEX__ONLY_USED_FOR_PARITY_TWO = 7
+    HEADER_INDEX__RESET_VAL_LSB = 6,
+    HEADER_INDEX__RESET_VAL_MSB = 7,
+    HEADER_INDEX__SEQ_NUM_LSB = 8,
+    HEADER_INDEX__SEQ_NUM_MSB = 9,
+    HEADER_INDEX__OPCODE_LSB = 10,
+    HEADER_INDEX__OPCODE_MSB = 11,
 } HerculesMpsm__HeaderContentsByteIndices;
 
 typedef enum HerculesMpsm__State
@@ -45,11 +49,6 @@ typedef struct HerculesMpsm__StateMachine
 //###########################################################
 // Private globals and constants
 //###########################################################
-
-static const uint8_t MAGIC_BYTE_ONE_EXPECTED_VALUE = 0x0BU;
-static const uint8_t MAGIC_BYTE_TWO_EXPECTED_VALUE = 0xB0U;
-static const uint8_t MAGIC_BYTE_THREE_EXPECTED_VALUE = 0x21U;
-static const uint8_t MAGIC_BYTE_EXPECTED_VALUE_SUM = 0xDCU;
 
 HerculesMpsm__StateMachine theStateMachine = {
     .initialized = FALSE,
@@ -169,48 +168,53 @@ HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg* msg, u
     }
 
     // Start checking the header bytes
-    if (HerculesMpsm__checkRb((uint8_t) HEADER_INDEX__MAGIC_ONE, MAGIC_BYTE_ONE_EXPECTED_VALUE)
-        && HerculesMpsm__checkRb((uint8_t) HEADER_INDEX__MAGIC_TWO, MAGIC_BYTE_TWO_EXPECTED_VALUE)
-        && HerculesMpsm__checkRb((uint8_t) HEADER_INDEX__MAGIC_THREE, MAGIC_BYTE_THREE_EXPECTED_VALUE)) {
+    if (HerculesMpsm__checkRb((uint8_t) HEADER_INDEX__MAGIC_ONE, HERC_MSGS__CONSTANTS__HEADER_MAGIC_ONE)
+        && HerculesMpsm__checkRb((uint8_t) HEADER_INDEX__MAGIC_TWO, HERC_MSGS__CONSTANTS__HEADER_MAGIC_TWO)
+        && HerculesMpsm__checkRb((uint8_t) HEADER_INDEX__MAGIC_THREE, HERC_MSGS__CONSTANTS__HEADER_MAGIC_THREE)) {
         // The magic numbers are correct, now check parity
         uint8_t expectedParity = HerculesMpsm__peekRb(HEADER_INDEX__PARITY);
 
         uint8_t dataLenLsb = HerculesMpsm__peekRb(HEADER_INDEX__DATA_LEN_LSB);
         uint8_t dataLenMsb = HerculesMpsm__peekRb(HEADER_INDEX__DATA_LEN_MSB);
+        uint8_t resetValLsb = HerculesMpsm__peekRb(HEADER_INDEX__RESET_VAL_LSB);
+        uint8_t resetValMsb = HerculesMpsm__peekRb(HEADER_INDEX__RESET_VAL_MSB);
+        uint8_t seqNumLsb = HerculesMpsm__peekRb(HEADER_INDEX__SEQ_NUM_LSB);
+        uint8_t seqNumMsb = HerculesMpsm__peekRb(HEADER_INDEX__SEQ_NUM_MSB);
+        uint8_t opcodeLsb = HerculesMpsm__peekRb(HEADER_INDEX__OPCODE_LSB);
+        uint8_t opcodeMsb = HerculesMpsm__peekRb(HEADER_INDEX__OPCODE_MSB);
 
-        uint8_t computedParity = MAGIC_BYTE_EXPECTED_VALUE_SUM;
+        uint8_t computedParity = HERC_MSGS__CONSTANTS__HEADER_MAGIC_SUM;
         computedParity += dataLenLsb + dataLenMsb;
-        computedParity += HerculesMpsm__peekRb(HEADER_INDEX__ONLY_USED_FOR_PARITY_ONE);
-        computedParity += HerculesMpsm__peekRb(HEADER_INDEX__ONLY_USED_FOR_PARITY_TWO);
+        computedParity += resetValLsb + resetValMsb;
+        computedParity += seqNumLsb + seqNumMsb;
+        computedParity += opcodeLsb + opcodeMsb;
         computedParity = ~computedParity;
 
         if (expectedParity == computedParity) {
             // The parity is correct, so this is a valid header. 
-            // Copy the header into the msg buffer
-            for (size_t i = 0; i < SIZE_OF_ARRAY(msg->header); ++i) {
-                rbStatus = RingBuffer__getOverwrite(theStateMachine.headerRb, msg->header + i);
-                
-                if (RB__STATUS__SUCCESS != rbStatus) {
-                    rbstatus = RingBuffer__clear(theStateMachine.headerRb);
-                
-                    // Clear should only throw is headerRb is NULL, and it shouldn't be NULL
-                    assert(RB__STATUS__SUCCESS == rbstatus);
+            // Copy the header contents into the output structure
+            msg->header.payloadLength = (uint16_t) (((uint16_t) dataLenLsb) & 0x00FFU);
+            msg->header.payloadLength |= (uint16_t) ((((uint16_t) dataLenMsb) << 8) & 0xFF00U);
+            msg->header.resetValue = (uint16_t) (((uint16_t) resetValLsb) & 0x00FFU);
+            msg->header.resetValue |= (uint16_t) ((((uint16_t) resetValMsb) << 8) & 0xFF00U);
+            msg->header.lowerSeqNum = (uint16_t) (((uint16_t) seqNumLsb) & 0x00FFU);
+            msg->header.lowerSeqNum |= (uint16_t) ((((uint16_t) seqNumMsb) << 8) & 0xFF00U);
+            msg->header.lowerOpCode = (uint16_t) (((uint16_t) opcodeLsb) & 0x00FFU);
+            msg->header.lowerOpCode |= (uint16_t) ((((uint16_t) opcodeMsb) << 8) & 0xFF00U);
 
-                    msg->msgStatus = HERCULES_MPSM__MSG_STATUS__ERROR_RB_FAILURE;
-                    return HERCULES_MPSM__STATUS__ERROR_RB_GET_FAILURE;
-                }
-            }
-
+            // Clear the ring buffer, as we're now done with the header.
+            rbstatus = RingBuffer__clear(theStateMachine.headerRb);
+        
+            // Clear should only throw is headerRb is NULL, and it shouldn't be NULL
+            assert(RB__STATUS__SUCCESS == rbstatus);
 
             // Record the data length
-            theStateMachine.dataLength = (uint16_t) (((uint16_t) dataLenLsb) & 0x00FFU);
-            theStateMachine.dataLength |= (uint16_t) ((((uint16_t) dataLenMsb) << 8) & 0xFF00U);
+            theStateMachine.dataLength = msg->header.payloadLength;
 
             // If this is a header-only message then we're done parsing
-            if (dataLength == 0) {
+            if (theStateMachine.dataLength == 0) {
                 // Reset the state machine
                 theStateMachine.currentState = HERCULES_MPSM_STATE__VALIDATE_HEADER;
-                theStateMachine.dataLength = 0;
 
                 msg->msgStatus = HERCULES_MPSM__MSG_STATUS__DONE_VALID;
                 return HERCULES_MPSM__STATUS__PARSED_MESSAGE;
@@ -220,11 +224,6 @@ HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg* msg, u
 
                 // We can check now if the buffer given by the user is big enough for our data
                 if (theStateMachine.dataLength > msg->dataBufferLen) {
-                    rbstatus = RingBuffer__clear(theStateMachine.headerRb);
-                    
-                    // Clear should only throw is headerRb is NULL, and it shouldn't be NULL
-                    assert(RB__STATUS__SUCCESS == rbstatus);
-
                     msg->msgStatus = HERCULES_MPSM__MSG_STATUS__ERROR_BUFFER_TOO_SMALL;
                     return HERCULES_MPSM__STATUS__ERROR_BUFFER_TOO_SMALL;
                 }

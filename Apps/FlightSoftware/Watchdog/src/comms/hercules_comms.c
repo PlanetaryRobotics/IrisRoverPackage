@@ -15,9 +15,11 @@ struct HerculesComms__State
 
     // Note: this size constant is defined in common.h
     uint8_t rxMsgBuffer[HERCULES_COMMS__MAX_RX_DATA_SIZE];
-    HerculesMpsm__Msg herculesMsgMpsm;
+    HerculesMpsm__Msg herculesMsg;
 
-    uint16_t txPacketId;
+    uint16_t uplinkSequenceNumber;
+    HercMsgs__Header headerStruct;
+    uint8_t headerSerializationBuffer[HERC_MSGS__PACKED_SIZE__HEADER];
 };
 
 //###########################################################
@@ -28,13 +30,22 @@ HerculesComms__State theState = {
     .initialized = FALSE,
     .uartState = NULL,
     .rxMsgBuffer = { 0 },
-    .herculesMsgMpsm = { 0 },
-    .txPacketId = 0;
+    .herculesMsg = { 0 },
+    .uplinkSequenceNumber = 0,
+    .headerStruct = { 0 },
+    .headerSerializationBuffer = { 0 }
 }
 
 //###########################################################
 // Private function declarations
 //###########################################################
+
+HerculesComms__Status HerculesComms__txHerculesMsg(HerculesComms__State* hState,
+                                                   uint16_t resetValue,
+                                                   uint16_t lowerSeqNum,
+                                                   uint16_t lowerOpCode,
+                                                   const uint8_t* data,
+                                                   size_t dataLen);
 
 HerculesComms__Status HerculesComms__transmitBuffer(HerculesComms__State* hState, const uint8_t* buffer, size_t len);
 
@@ -54,10 +65,10 @@ HerculesComms__Status HerculesComms__init(HerculesComms__State** hState, UART__S
 
     theState.uartState = uartState;
 
-    theState.herculesMsgMpsm.dataBuffer = theState.rxMsgBuffer;
-    theState.herculesMsgMpsm.dataBufferLen = SIZE_OF_ARRAY(theState.rxMsgBuffer);
+    theState.herculesMsg.dataBuffer = theState.rxMsgBuffer;
+    theState.herculesMsg.dataBufferLen = SIZE_OF_ARRAY(theState.rxMsgBuffer);
 
-    HerculesMpsm__Status mpsmStatus = HerculesMpsm__initMsg(&(theState.herculesMsgMpsm));
+    HerculesMpsm__Status mpsmStatus = HerculesMpsm__initMsg(&(theState.herculesMsg));
     
     if (HERCULES_MPSM__STATUS__SUCCESS != mpsmStatus) {
         return HERCULES_COMMS__STATUS__ERROR_MPSM_INIT_FAILURE;
@@ -70,23 +81,20 @@ HerculesComms__Status HerculesComms__init(HerculesComms__State** hState, UART__S
 }
 
 HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
-                                                   BOOL* gotMessage,
+                                                   HerculesMsgCallback callback,
+                                                   void* userArg,
                                                    uint8_t* buffer,
-                                                   size_t bufferLen,
-                                                   size_t* rxDataLen)
+                                                   size_t bufferLen)
 {
     static uint8_t uartRxData[64] = { 0 };
  
-    if (NULL == hState || NULL == gotMessage || NULL == buffer || NULL == rxDataLen) {
+    if (NULL == hState || NULL == buffer) {
         return HERCULES_COMMS__STATUS__ERROR_NULL;
     }
 
     if (!hState->initialized) {
         return HERCULES_COMMS__STATUS__ERROR_NOT_INITIALIZED;
     }
-
-    // Make sure to initialize gotMessage to false
-    *gotMessage = FALSE;
 
     HerculesComms__Status returnStatus = HERCULES_COMMS__STATUS__SUCCESS;
     BOOL tryToGetMoreData = TRUE;
@@ -110,25 +118,17 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
         // we use up all of the data from the UART
         for (size_t i = 0; i < numReceived; ++i) {
             BOOL resetMpsmMsg = FALSE;
-            HerculesMpsm__Status mpsmStatus = HerculesMpsm__process(&(hState->herculesMsgMpsm));
+            HerculesMpsm__Status mpsmStatus = HerculesMpsm__process(&(hState->herculesMsg), uartRxData[i]);
 
             if (HERCULES_MPSM__STATUS__PARSED_MESSAGE == mpsmStatus) {
-                // If we've already gotten a message in this call and we've now parsed ANOTHER one, we need to 
-                // indicate this happened to the caller via the return status. All but the first message will
-                // be discarded.
-                if (gotMessage) {
-                    returnStatus = HERCULES_COMMS__STATUS__ERROR_MORE_THAN_ONE_MSG_RECEIVED;
-                } else {
-                    // We've gotten our data. Make sure received data can fit into buffer
-                    if (hState->herculesMsgMpsm.msgLen > bufferLen) {
-                        return HERCULES_COMMS__STATUS__ERROR_BUFFER_TOO_SMALL;
-                    }
-
-                    // Copy the data into the output buffer and update the size in the output parameter
-                    memcpy(buffer, hState->herculesMsgMpsm.dataBuffer, hState->herculesMsgMpsm.msgLen);
-                    *rxDataLen = hState->herculesMsgMpsm.msgLen;
-                    gotMessage = TRUE;
+                // We've gotten our data. Make sure received data can fit into buffer
+                if (hState->herculesMsg.msgLen > bufferLen) {
+                    return HERCULES_COMMS__STATUS__ERROR_BUFFER_TOO_SMALL;
                 }
+
+                // Copy the data into the output buffer and call our callback
+                memcpy(buffer, hState->herculesMsg.dataBuffer, hState->herculesMsg.msgLen);
+                callback(&(hState->herculesMsg.header), buffer, hState->herculesMsg.msgLen, userArg);
 
                 resetMpsmMsg = TRUE;
             } else if (HERCULES_MPSM__STATUS__NEED_MORE_DATA != mpsmStatus) {
@@ -139,7 +139,7 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
             }
 
             if (resetMpsmMsg) {
-                mpsmStatus = HerculesMpsm__initMsg(&(hState->herculesMsgMpsm));
+                mpsmStatus = HerculesMpsm__initMsg(&(hState->herculesMsg));
 
                 if (HERCULES_MPSM__STATUS__SUCCESS != mpsmStatus) {
                     // Don't overwrite an existing error return status with this one, but if we haven't had an
@@ -161,24 +161,42 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
     return returnStatus;
 }
 
-HerculesComms__Status HerculesComms__txData(HerculesComms__State* hState, const uint8_t* data, size_t dataLen)
+// Sends data from lander to Hercules. A header will be sent first with the length of the data,
+// a reset value of zero, an internally tracked sequence number, and the opcode
+// HERCULES_COMMS__MSG_OPCODE__UPLINK. Following the header, the given data is sent with no modification.
+HerculesComms__Status HerculesComms__txUplinkMsg(HerculesComms__State* hState, const uint8_t* data, size_t dataLen)
 {
-    if (NULL == hState || NULL == data) {
+    if (dataLen == 0) {
+        return HERCULES_COMMS__STATUS__ERROR_BUFFER_TOO_SMALL;
+    }
+
+    return HerculesComms__txHerculesMsg(hState,
+                                        0,
+                                        uplinkSequenceNumber++,
+                                        (uint16_t) HERCULES_COMMS__MSG_OPCODE__UPLINK,
+                                        data,
+                                        dataLen);
+}
+
+// Sends a response to a message from Hercules back to Hercules. A header containing the length
+// of the given data as well as the reset value, sequence number, and opcode from the given header,
+// will be sent first and then the data will be sent without  modification (if there is any data to send).
+// If dataLen is zero, data is allowed to be NULL.
+HerculesComms__Status HerculesComms__txResponseMsg(HerculesComms__State* hState,
+                                                   const HercMsgs__Header* sourceCommandHeader,
+                                                   const uint8_t* data,
+                                                   size_t dataLen)
+{
+    if (NULL == sourceCommandHeader) {
         return HERCULES_COMMS__STATUS__ERROR_NULL;
     }
 
-    if (!hState->initialized) {
-        return HERCULES_COMMS__STATUS__ERROR_NOT_INITIALIZED;
-    }
-
-    // Directly insert the data into the UART tx ring buffer with no modification
-    hStatus = HerculesComms__transmitBuffer(hState, data, dataLen);
-
-    if (HERCULES_COMMS__STATUS__SUCCESS != hStatus) {
-        return hStatus;
-    }
-
-    return HERCULES_COMMS__STATUS__SUCCESS;
+    return HerculesComms__txHerculesMsg(hState,
+                                        sourceCommandHeader->resetValue,
+                                        sourceCommandHeader->lowerSeqNum,
+                                        sourceCommandHeader->lowerOpCode,
+                                        data,
+                                        dataLen);
 }
 
 // Clear the underlying UART rx buffer and reset the message parsing state machine
@@ -211,7 +229,7 @@ HerculesComms__Status HerculesComms__resetState(HerculesComms__State* hState)
         }
     }
 
-    HerculesMpsm__Status mpsmStatus = HerculesMpsm__reset(&(hState->herculesMsgMpsm));
+    HerculesMpsm__Status mpsmStatus = HerculesMpsm__reset(&(hState->herculesMsg));
 
     if (HERCULES_MPSM__STATUS__SUCCESS != mpsmStatus) {
         return HERCULES_COMMS__STATUS__ERROR_MPSM_RESET_FAILURE;
@@ -234,5 +252,49 @@ HerculesComms__Status HerculesComms__transmitBuffer(HerculesComms__State* hState
         return HERCULES_COMMS__STATUS__ERROR_TX_OVERFLOW;
     } else {
         return HERCULES_COMMS__STATUS__ERROR_UART_TX_FAILURE;
+    }
+}
+
+HerculesComms__Status HerculesComms__txHerculesMsg(HerculesComms__State* hState,
+                                                   uint16_t resetValue,
+                                                   uint16_t lowerSeqNum,
+                                                   uint16_t lowerOpCode,
+                                                   const uint8_t* data,
+                                                   size_t dataLen)
+{
+    if (NULL == hState || (dataLen > 0 && NULL == data)) {
+        return HERCULES_COMMS__STATUS__ERROR_NULL;
+    }
+
+    if (!hState->initialized) {
+        return HERCULES_COMMS__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    // Fill in and serialize the header
+    hState->headerStruct.payloadLength = dataLen;
+    hState->headerStruct.resetValue = sourceCommandHeader->resetValue;
+    hState->headerStruct.lowerSeqNum = sourceCommandHeader->lowerSeqNum;
+    hState->headerStruct.lowerOpCode = sourceCommandHeader->lowerOpCode;
+
+    HercMsgs__Status hMsgStatus = HercMsgs__serializeHeader(&(hState->headerStruct),
+                                                            hState->headerSerializationBuffer,
+                                                            sizeof(hState->headerSerializationBuffer));
+
+    assert(HERC_MSGS__STATUS__SUCCESS == hMsgStatus);
+
+    // Insert the header into the UART tx ring buffer
+    HerculesComms__Status hStatus = HerculesComms__transmitBuffer(hState,
+                                                                  hState->headerSerializationBuffer,
+                                                                  sizeof(hState->headerSerializationBuffer));
+
+    if (HERCULES_COMMS__STATUS__SUCCESS != hStatus) {
+        return hStatus;
+    }
+
+    // Insert the data into the UART tx ring buffer, if we have any
+    if (dataLen > 0) {
+        return HerculesComms__transmitBuffer(hState, data, dataLen);
+    } else {
+        return HERCULES_COMMS__STATUS__SUCCESS;
     }
 }

@@ -6,8 +6,7 @@ typedef enum CmdMsgs__Status
     CMD_MSGS__STATUS__SUCCESS = 0, /* Operation suceeded. */
     CMD_MSGS__STATUS__ERROR_NULL = -1, /* A required argument or a member of an argument was NULL */
     CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL = -2, 
-    CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR = -3, 
-    CMD_MSGS__STATUS__ERROR_UNKNOWN_MESSAGE_ID = -4,
+    CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR = -3,
 
     CMD_MSGS__STATUS__ERROR__INTERNAL = -255 /* An unexpected internal error occurred. */
 } CmdMsgs__Status;

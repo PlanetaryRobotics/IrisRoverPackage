@@ -81,23 +81,20 @@ LanderComms__Status LanderComms__init(LanderComms__State** lcState, UART__State*
 // The data returned by this function is the message data inside all of that (i.e.
 // the SLIP encoding is decoded and the contents of the IP packet are extracted).
 LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
-                                               BOOL* gotMessage,
+                                               LanderMsgCallback callback,
+                                               void* userArg,
                                                uint8_t* buffer,
-                                               size_t bufferLen,
-                                               size_t* rxDataLen)
+                                               size_t bufferLen)
 {
     static uint8_t uartRxData[64] = { 0 };
  
-    if (NULL == lcState || NULL == gotMessage || NULL == buffer || NULL == rxDataLen) {
+    if (NULL == lcState || NULL == buffer) {
         return LANDER_COMMS__STATUS__ERROR_NULL;
     }
 
     if (!lcState->initialized) {
         return LANDER_COMMS__STATUS__ERROR_NOT_INITIALIZED;
     }
-
-    // Make sure to initialize gotMessage to false
-    *gotMessage = FALSE;
 
     LanderComms__Status returnStatus = LANDER_COMMS__STATUS__SUCCESS;
     BOOL tryToGetMoreData = TRUE;
@@ -121,35 +118,27 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
         // we use up all of the data
         for (size_t i = 0; i < numReceived; ++i) {
             BOOL resetMpsmMsg = FALSE;
-            SlipMpsm__Status mpsmStatus = SlipMpsm__process(&(lcState->slipMsgMpsm));
+            SlipMpsm__Status mpsmStatus = SlipMpsm__process(&(lcState->slipMsgMpsm), uartRxData[i]);
 
             if (SLIP_MPSM__STATUS__PARSED_MESSAGE == mpsmStatus) {
-                // If we've already gotten a message in this call and we've now parsed ANOTHER one, we need to 
-                // indicate this happened to the caller via the return status. All but the first message will
-                // be discarded.
-                if (gotMessage) {
-                    returnStatus = LANDER_COMMS__STATUS__ERROR_MORE_THAN_ONE_MSG_RECEIVED;
-                } else {
-                    // We've gotten a complete packet. Now we need to parse the data out of the UDP packet.
-                    uint8_t* udpData = NULL;
-                    size_t udpDataSize = 0;
+                // We've gotten a complete packet. Now we need to parse the data out of the UDP packet.
+                uint8_t* udpData = NULL;
+                size_t udpDataSize = 0;
 
-                    IpUdp__Status ipStatus = IpUdp__identifyDataInUdpPacket(lcState->slipMsgMpsm.buffer,
-                                                                            lcState->slipMsgMpsm.msgLen,
-                                                                            &udpData,
-                                                                            &udpDataSize);
+                IpUdp__Status ipStatus = IpUdp__identifyDataInUdpPacket(lcState->slipMsgMpsm.buffer,
+                                                                        lcState->slipMsgMpsm.msgLen,
+                                                                        &udpData,
+                                                                        &udpDataSize);
 
-                    if (IP_UDP__STATUS__SUCCESS == ipStatus) {
-                        // Make sure received data can fit into buffer
-                        if (udpDataSize > bufferLen) {
-                            return LANDER_COMMS__STATUS__ERROR_BUFFER_TOO_SMALL;
-                        }
-
-                        // Copy the data into the output buffer and update the size in the output parameter
-                        memcpy(buffer, udpData, udpDataSize);
-                        *rxDataLen = udpDataSize;
-                        gotMessage = TRUE;
+                if (IP_UDP__STATUS__SUCCESS == ipStatus) {
+                    // Make sure received data can fit into buffer
+                    if (udpDataSize > bufferLen) {
+                        return LANDER_COMMS__STATUS__ERROR_BUFFER_TOO_SMALL;
                     }
+
+                    // Copy the data into the output buffer and then call our callback to handle it
+                    memcpy(buffer, udpData, udpDataSize);
+                    callback(buffer, udpDataSize, userArg);
                 }
 
                 resetMpsmMsg = TRUE;

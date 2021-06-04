@@ -38,11 +38,11 @@ __volatile extern uint16_t loop_flags;
 __volatile extern uint16_t watchdog_flags;
 
 enum rover_state {
-    RS_SLEEP, // about to lose power
-    RS_KEEPALIVE, // connected to the lander 28V, send heartbeats
-    RS_SERVICE, // temporary state to act as a buffer between mission and service
-    RS_MISSION, // power everything up. woot!
-    RS_FAULT // oops
+    RS_SLEEP = 0x02, // about to lose power
+    RS_SERVICE = 0x04, // temporary state to act as a buffer between mission and service
+    RS_KEEPALIVE = 0x08, // connected to the lander 28V, send heartbeats
+    RS_MISSION = 0x10, // power everything up. woot!
+    RS_FAULT = 0x20 // oops
 };
 extern enum rover_state rovstate;
 

@@ -37,6 +37,8 @@ struct UART__State
 
     RingBuffer* txRingBuff;
     RingBuffer* rxRingBuff;
+
+    uint8_t gotRxLoopFlag;
 }
 
 //###########################################################
@@ -63,14 +65,16 @@ static UART__State uart0State = {
     .initialized = FALSE,
     .registers = &uart0Registers;
     .txRingBuff = NULL,
-    .rxRingBuff = NULL
+    .rxRingBuff = NULL,
+    .gotRxLoopFlag = FLAG_UART0_RX_PACKET
 };
 
 static UART__State uart1State = {
     .initialized = FALSE,
     .registers = &uart1Registers;
     .txRingBuff = NULL,
-    .rxRingBuff = NULL
+    .rxRingBuff = NULL,
+    .gotRxLoopFlag = FLAG_UART1_RX_PACKET
 };
 
 //###########################################################
@@ -469,6 +473,13 @@ void UART__interruptHandler(UART__State* uartState)
             // We're done with the byte we just received, so clear the receive interrupt flag
             // for this uart
             *(uartState->registers->UCAxIFG) &= ~UCRXIFG;
+
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // TODO: REPLACE THESE WITH EVENT DISPATCH
+            loop_flags |= uartState->gotRxLoopFlag;
+            __bic_SR_register(DEFAULT_LPM); //Exits LPM
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
             break;
 
         default: /* some other possibilities */

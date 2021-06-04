@@ -12,23 +12,6 @@
         return CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR; \
     }
 
-/**
- * @brief Deserializes the message header packed in |src| with little endianness into the struct |dst| with system
- *        endianness.
- *
- * @param src [IN] The buffer containing the packed message header to be deserialized. Must have a size, as determined
- *            by the value of |srcLen|, of at least CMD_MSGS__PACKED_SIZE__COMMON_HEADER bytes.
- * @param srcLen [IN] The length of the buffer pointed to by |src|. Must be at least
- *               CMD_MSGS__PACKED_SIZE__COMMON_HEADER.
- * @param dst [OUT] The struct into which the message header will be deserialized.
- *
- * @return One of the following:
- *   CMD_MSGS__STATUS__SUCCESS: The function was successful.
- *   CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
- *   CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                             CMD_MSGS__PACKED_SIZE__COMMON_HEADER.
- *   CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
- */
 CmdMsgs__Status
 CmdMsgs__deserializeHeader(const void* src,
                            size_t srcLen,

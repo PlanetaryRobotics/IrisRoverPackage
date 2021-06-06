@@ -3,6 +3,7 @@
 
 #include <Os/Task.hpp>
 
+#include <Include/FswPacket.hpp>
 #include <CubeRover/WatchDogInterface/WatchDogMpsm.hpp>
 
 #define WATCHDOG_RX_TASK__MAX_NUM_CALLBACKS 1
@@ -17,18 +18,20 @@ namespace CubeRover
     {
         public:
             virtual void rxCallback(WatchDogMpsm::Message& msg, bool goodParity) = 0;
-    }
+    };
 
     class WatchDogRxTask : public ::Os::Task
     {
         public:
             explicit WatchDogRxTask();
+
+            ~WatchDogRxTask();
         
             ::Os::Task::TaskStatus start(NATIVE_INT_TYPE priority,
                                          NATIVE_INT_TYPE stackSize,
                                          NATIVE_INT_TYPE cpuAffinity = -1); //!< start the task
 
-            bool registerCallback(WatchDogRxCallbackProcessor* callback)
+            bool registerCallback(WatchDogRxCallbackProcessor* callback);
 
         private:
             WatchDogRxCallbackProcessor* m_callbacks[WATCHDOG_RX_TASK__MAX_NUM_CALLBACKS];
@@ -40,8 +43,10 @@ namespace CubeRover
 
             uint8_t m_dataBuffer[WATCHDOG_MAX_PAYLOAD] __attribute__((aligned(8)));
 
+            static void rxHandlerTaskFunction(void* arg);
+
             void callAllCallbacks(WatchDogMpsm::Message& msg, bool goodParity);
-    }
+    };
 
 
 } // end namespace CubeRover

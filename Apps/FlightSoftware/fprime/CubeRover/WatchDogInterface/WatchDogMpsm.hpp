@@ -2,8 +2,9 @@
 #define WatchDogInterface_WatchDogMpsm_HPP
 
 #include <stdint.h>
+#include <stddef.h>
 
-#define WATCH_DOG_HEADER_PACKED_SIZE 12;
+#define WATCH_DOG_HEADER_PACKED_SIZE 12
 
 namespace CubeRover
 {
@@ -14,19 +15,19 @@ namespace CubeRover
         public:
             enum ParseHeaderStatus 
             {
-                NEED_MORE_DATA = 0,
-                PARSED_VALID_HEADER = 1,
-                PARSED_HEADER_BAD_PARITY = 2,
+                PHS_NEED_MORE_DATA = 0,
+                PHS_PARSED_VALID_HEADER = 1,
+                PHS_PARSED_HEADER_BAD_PARITY = 2,
 
                 // An unexpected internal error occurred. I don't think this should be possible
                 // (it's only returned if we land in the default case of a switch)
-                INTERNAL_ERROR = -255
+                PHS_INTERNAL_ERROR = -255
             };
 
             enum ParseDataStatus 
             {
-                NEED_MORE_DATA = 0,
-                PARSED_ALL_DATA = 1
+                PDS_NEED_MORE_DATA = 0,
+                PDS_PARSED_ALL_DATA = 1
             };
 
             class Header

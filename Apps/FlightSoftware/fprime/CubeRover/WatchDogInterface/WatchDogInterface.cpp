@@ -73,7 +73,7 @@ namespace CubeRover {
                                                          WATCH_DOG_INTERFACE_RX_TASK_STACK_SIZE,
                                                          WATCH_DOG_INTERFACE_RX_TASK_CPU_AFFINITY);
         // Assert that this will always be started successfully. If it isn't, we're screwed.
-        FW_ASSERT(stat == Os::Task::TASK_OK, stat);
+        FW_ASSERT(taskStat == Os::Task::TASK_OK, taskStat);
         
         gioSetBit(spiPORT3, deploy_bit, 0);
     
@@ -146,7 +146,13 @@ namespace CubeRover {
         bool success = txCommand(DOWNLINK_OPCODE,
                                  sequenceNumber,
                                  static_cast<uint16_t>(No_Reset),
+#pragma diag_push
+#pragma diag_suppress 1107
+                                 // This casts an integer to a pointer with a smaller size than the source integer,
+                                 // and CCS warns about doing this. However, in this case it is necessary and should
+                                 // be fine, so I disable the warning
                                  reinterpret_cast<uint8_t*>(fwBuffer.getdata()),
+#pragma diag_pop
                                  static_cast<size_t>(fwBuffer.getsize()),
                                  true);
 
@@ -188,7 +194,7 @@ namespace CubeRover {
           reset_values_possible reset_value
       )
     {
-        logAndSendResetSpecific(opCode, cmdSeq, reset_value, true);
+        logAndSendResetSpecific(opCode - this->getIdBase(), cmdSeq, reset_value, true);
     }
   
     void WatchDogInterfaceComponentImpl ::
@@ -203,7 +209,10 @@ namespace CubeRover {
   	    Fw::LogStringArg command_type_log = command_type;
   	    this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
     
-        bool success = sendResetSpecific(opCode, cmdSeq, Disengage. true);
+        bool success = sendResetSpecific(opCode - this->getIdBase(),
+                                         cmdSeq,
+                                         static_cast<reset_values_possible>(Disengage),
+                                         true);
 
         if (success) {
             // Set Deployment Bit High
@@ -224,10 +233,10 @@ namespace CubeRover {
         Fw::LogStringArg command_type_log = command_type;
         this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
     
-        bool success = sendResetSpecific(opCode, cmdSeq, HDRM_Off, true);
+        bool success = sendResetSpecific(opCode - this->getIdBase(), cmdSeq, HDRM_Off, true);
     
         if (success) {
-            // Set Deployment Bit High
+            // Set Deployment Bit low
             // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
             // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port 
             gioSetBit(spiPORT3, deploy_bit, 0);
@@ -256,7 +265,7 @@ namespace CubeRover {
                                                            bool sendResponse)
     {  
         // Check that reset_value is correct
-        if(resetValue < No_Reset && resetValue >= reset_values_possible_MAX)
+        if (resetValue >= reset_values_possible_MAX)
         {
             this->log_WARNING_LO_WatchDogIncorrectResetValue();
             return false;
@@ -490,7 +499,7 @@ namespace CubeRover {
   
   
         { // The mutex must be unlocked before we exit this scope 
-            m_txCmdArray->cmdMutex.lock();
+            m_txCmdArray.cmdMutex.lock();
   
             if (!cmdStatus->active) {
                 // Inactive tx command
@@ -517,7 +526,7 @@ namespace CubeRover {
                 }
             }
   
-            m_txCmdArray->cmdMutex.unLock();
+            m_txCmdArray.cmdMutex.unLock();
         }
   
         if (cmdInactive) {
@@ -531,7 +540,7 @@ namespace CubeRover {
             // of our fake opcodes, and don't send a response if we didn't want to send one when we sent the message
             if (txCmdOpCode != STROKE_OPCODE
                 && txCmdOpCode != DOWNLINK_OPCODE
-                && txCmdSendResponse->sendResponse) {
+                && txCmdSendResponse) {
                 this->cmdResponse_out(txCmdOpCode, txCmdSeqNum, Fw::COMMAND_EXECUTION_ERROR);
             } 
         } else {
@@ -539,7 +548,7 @@ namespace CubeRover {
             // of our fake opcodes, and don't send a response if we didn't want to send one when we sent the message
             if (txCmdOpCode != STROKE_OPCODE
                 && txCmdOpCode != DOWNLINK_OPCODE
-                && txCmdSendResponse->sendResponse) {
+                && txCmdSendResponse) {
                 this->cmdResponse_out(txCmdOpCode, txCmdSeqNum, Fw::COMMAND_OK);
             }
         }
@@ -581,25 +590,27 @@ namespace CubeRover {
         struct WatchdogTelemetry* buff = 
             reinterpret_cast<struct WatchdogTelemetry*>(msg.dataBuffer);
   
-        this->tlmWrite_VOLTAGE_2_5V(buff.voltage_2V5);
-        this->tlmWrite_VOLTAGE_2_8V(buff.voltage_2V8);
-        this->tlmWrite_VOLTAGE_24V(buff.voltage_24V);
-        this->tlmWrite_VOLTAGE_28V(buff.voltage_28V);
-        this->tlmWrite_BATTERY_THERMISTOR(buff.battery_thermistor);
-        this->tlmWrite_SYSTEM_STATUS(buff.sys_status);
-        this->tlmWrite_BATTERY_LEVEL(buff.battery_level);
-        this->tlmWrite_BATTERY_CURRENT(buff.battery_current);
-        this->tlmWrite_BATTERY_VOLTAGE(buff.battery_voltage);
+        this->tlmWrite_VOLTAGE_2_5V(buff->voltage_2V5);
+        this->tlmWrite_VOLTAGE_2_8V(buff->voltage_2V8);
+        this->tlmWrite_VOLTAGE_24V(buff->voltage_24V);
+        this->tlmWrite_VOLTAGE_28V(buff->voltage_28V);
+        this->tlmWrite_BATTERY_THERMISTOR(buff->battery_thermistor);
+        this->tlmWrite_SYSTEM_STATUS(buff->sys_status);
+        this->tlmWrite_BATTERY_LEVEL(buff->battery_level);
+        this->tlmWrite_BATTERY_CURRENT(buff->battery_current);
+        this->tlmWrite_BATTERY_VOLTAGE(buff->battery_voltage);
   
         return;
     }
     
-    TxCommandStatus* WatchDogInterfaceComponentImpl::getTxCommandStatusFullOpcode(FwOpcodeType opCode)
+    WatchDogInterfaceComponentImpl::TxCommandStatus*
+    WatchDogInterfaceComponentImpl::getTxCommandStatusFullOpcode(FwOpcodeType opCode)
     {
         return getTxCommandStatus(static_cast<uint16_t>(opCode));
     }
   
-    TxCommandStatus* WatchDogInterfaceComponentImpl::getTxCommandStatus(uint16_t opCode)
+    WatchDogInterfaceComponentImpl::TxCommandStatus*
+    WatchDogInterfaceComponentImpl::getTxCommandStatus(uint16_t opCode)
     {
         static const uint16_t RESET_SPECIFIC_OPCODE_USHORT =
             static_cast<uint16_t>(WatchDogInterfaceComponentBase::OPCODE_RESET_SPECIFIC);
@@ -656,7 +667,7 @@ namespace CubeRover {
         frame.sequence_number = static_cast<uint16_t>(cmdSeq);
         frame.opcode = static_cast<uint16_t>(opCode);
   
-        uint8_t* frameBytes = reinterpret_cast<uint8_t*>(&WatchdogFrameHeader);
+        uint8_t* frameBytes = reinterpret_cast<uint8_t*>(&frame);
         uint8_t runningParity = 0;
   
         for (size_t i = 0; i < sizeof(WatchdogFrameHeader); ++i) {
@@ -707,7 +718,7 @@ namespace CubeRover {
             if (!previousStillWaiting) {
               cmdStatus->active = true;
               cmdStatus->sendResponse = sendResponse;
-              cmdStatus->seqNum = cmdSeq
+              cmdStatus->seqNum = cmdSeq;
               cmdStatus->txTimeMillis = nowMillis;
             }
   
@@ -722,7 +733,7 @@ namespace CubeRover {
             // send a response if we didn't want to send one when we sent the message
             if (timedOutOpcode != STROKE_OPCODE
                 && timedOutOpcode != DOWNLINK_OPCODE
-                && cmdStatus->sendResponse) {
+                && timedOutSendResponse) {
               this->cmdResponse_out(timedOutOpcode, timedOutSeqNum, Fw::COMMAND_EXECUTION_ERROR);
             }
         }

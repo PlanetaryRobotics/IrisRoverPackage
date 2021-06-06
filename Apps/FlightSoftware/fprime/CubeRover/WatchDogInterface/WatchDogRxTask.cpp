@@ -1,11 +1,15 @@
 #include <HAL/include/FreeRTOS.h>
 #include <HAL/include/os_task.h>
 #include <HAL/include/os_portmacro.h>
+#include <HAL/include/sys_dma.h>
 
+#include <Fw/Types/Assert.hpp>
 #include <Fw/Types/BasicTypes.hpp>
 #include <Fw/Types/EightyCharString.hpp>
 
 #include <CubeRover/WatchDogInterface/WatchDogRxTask.hpp>
+
+#include <App/DMA.h>
 
 static TaskHandle_t xTaskToNotify = nullptr;
 static volatile bool dmaReadBusy = false;
@@ -29,14 +33,11 @@ extern "C" void dmaCh0_ISR(dmaInterrupt_t inttype) {
 
 namespace CubeRover
 {
-    WatchDogRxTask::WatchDogRxTask(volatile uint8_t* dataBuff, size_t dataBuffLen)
-        : m_callbacks({}),
-          m_numCallbacksRegistered(0),
+    WatchDogRxTask::WatchDogRxTask()
+        : m_numCallbacksRegistered(0),
           m_mpsm(),
           m_keepRunning(true),
-          m_isRunning(false),
-          m_dataBuffer({}),
-          m_headerBuffer({})
+          m_isRunning(false)
     {
     }
 
@@ -55,7 +56,8 @@ namespace CubeRover
         }
         
         // Join the thread
-        this->join();
+        void* value;
+        this->join(&value);
     }
 
     ::Os::Task::TaskStatus WatchDogRxTask::start(NATIVE_INT_TYPE priority, 
@@ -68,17 +70,17 @@ namespace CubeRover
 
         m_keepRunning = true;
         Fw::EightyCharString task("WatchDogRxTask");
-        Os::Task::TaskStatus stat = this->start(task,
-                                                0,
-                                                priority,
-                                                stackSize,
-                                                WatchDogRxTask::rxHandlerTaskFunction,
-                                                this,
-                                                cpuAffinity);
+        Os::Task::TaskStatus stat = Os::Task::start(task,
+                                                    0,
+                                                    priority,
+                                                    stackSize,
+                                                    WatchDogRxTask::rxHandlerTaskFunction,
+                                                    this,
+                                                    cpuAffinity);
 
         FW_ASSERT(stat == Os::Task::TASK_OK, stat);
 
-        xTaskToNotify = this->m_handle;
+        xTaskToNotify = reinterpret_cast<TaskHandle_t>(this->m_handle);
         m_isRunning = true;
         return stat;
     }
@@ -97,12 +99,8 @@ namespace CubeRover
 
     void WatchDogRxTask::rxHandlerTaskFunction(void* arg)
     {
-        WatchDogRxTask* task = static_cast<WatchDogRxTask*>(ptr);
-        TaskHandle_t tid = (TaskHandle_t) task->m_handle;
-
+        WatchDogRxTask* task = static_cast<WatchDogRxTask*>(arg);
         bool lookingForHeader = true;
-        size_t numHeaderBytesNeeded = sizeof(task->m_headerBuffer);
-        size_t numDataBytesNeeded = 0;
 
         // First, construct the Message we'll use throughout
         WatchDogMpsm::Message msg(task->m_dataBuffer, sizeof(task->m_dataBuffer));
@@ -114,9 +112,9 @@ namespace CubeRover
             // First handle the last transfer (if this isn't the first loop, in which case this will be skipped)
             if (lastTransferDestination != nullptr && lastTransferSize != 0) {
                 if (lookingForHeader) {
-                    m_mpsm.notifyHeaderDmaComplete(msg, lastTransferDestination, lastTransferSize);
+                    task->m_mpsm.notifyHeaderDmaComplete(msg, lastTransferDestination, lastTransferSize);
                 } else {
-                    m_mpsm.notifyDataDmaComplete(msg, lastTransferSize);
+                    task->m_mpsm.notifyDataDmaComplete(msg, lastTransferSize);
                 }
             }
 
@@ -125,36 +123,36 @@ namespace CubeRover
             unsigned nextTransferSize = 0;
 
             if (lookingForHeader) {
-                WatchDogMpsm::ParseHeaderStatus phStatus = m_mpsm.getHeaderDmaDetails(msg,
-                                                                                      &nextTransferDestination,
-                                                                                      nextTransferSize);
+                WatchDogMpsm::ParseHeaderStatus phStatus = task->m_mpsm.getHeaderDmaDetails(msg,
+                                                                                            &nextTransferDestination,
+                                                                                            nextTransferSize);
 
-                bool doneBadParity = (WatchDogMpsm::ParseHeaderStatus::PARSED_HEADER_BAD_PARITY == phStatus);
-                bool doneGoodParity = ((WatchDogMpsm::ParseHeaderStatus::PARSED_VALID_HEADER == phStatus)
+                bool doneBadParity = (WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_HEADER_BAD_PARITY == phStatus);
+                bool doneGoodParity = ((WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_VALID_HEADER == phStatus)
                                        && msg.parsedHeader.payloadLength == 0);
 
                 if (doneGoodParity || doneBadParity) {
-                    callAllCallbacks(msg, doneGoodParity);
+                    task->callAllCallbacks(msg, doneGoodParity);
                     msg.reset();
 
-                    phStatus = m_mpsm.getHeaderDmaDetails(msg,
-                                                          &nextTransferDestination,
-                                                          nextTransferSize);
+                    phStatus = task->m_mpsm.getHeaderDmaDetails(msg,
+                                                                &nextTransferDestination,
+                                                                nextTransferSize);
 
                     // We just reset the message, so we should always need more data here
-                    FW_ASSERT(phStatus == WatchDogMpsm::ParseHeaderStatus::NEED_MORE_DATA, phStatus);
-                } else if (WatchDogMpsm::ParseHeaderStatus::PARSED_VALID_HEADER == phStatus) {
+                    FW_ASSERT(phStatus == WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA, phStatus);
+                } else if (WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_VALID_HEADER == phStatus) {
                     // We're done with the header but not with the message, because payload length is
                     // non-zero. Make the data dma request and change the "state" (represented by lookingForHeader)
-                    WatchDogMpsm::ParseDataStatus pdStatus = m_mpsm.getDataDmaDetails(msg,
-                                                                                      &nextTransferDestination,
-                                                                                      nextTransferSize);
+                    WatchDogMpsm::ParseDataStatus pdStatus = task->m_mpsm.getDataDmaDetails(msg,
+                                                                                            &nextTransferDestination,
+                                                                                            nextTransferSize);
 
                     // It shouldn't be possible for us to not need data here
-                    FW_ASSERT(pdStatus == WatchDogMpsm::ParseDataStatus::NEED_MORE_DATA, pdStatus);
+                    FW_ASSERT(pdStatus == WatchDogMpsm::ParseDataStatus::PDS_NEED_MORE_DATA, pdStatus);
 
                     lookingForHeader = false;
-                } else if (WatchDogMpsm::ParseHeaderStatus::NEED_MORE_DATA != phStatus) {
+                } else if (WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA != phStatus) {
                     // Shouldn't be possible to be in a status other than ParseDataStatus at this point
                     // If we were in VALID_HEADER with dataLen == 0 or BAD_PARITY, the first case would
                     // have been entered. If we were in VALID_HEADER wth dataLen > 0, the second case 
@@ -163,30 +161,30 @@ namespace CubeRover
                     FW_ASSERT(false, phStatus);
                 }
             } else { // Rather than header data, we should have received payload data in the last transfer
-                WatchDogMpsm::ParseDataStatus pdStatus = m_mpsm.getDataDmaDetails(msg,
-                                                                                  &nextTransferDestination,
-                                                                                  nextTransferSize);
+                WatchDogMpsm::ParseDataStatus pdStatus = task->m_mpsm.getDataDmaDetails(msg,
+                                                                                        &nextTransferDestination,
+                                                                                        nextTransferSize);
 
 
                 // Since this is DMA and the receive buffer is large enough for the largest message size,
                 // it should only ever take one transfer for data DMA to complete.
-                FW_ASSERT(pdStatus == WatchDogMpsm::ParseDataStatus::PARSED_ALL_DATA, pdStatus);
+                FW_ASSERT(pdStatus == WatchDogMpsm::ParseDataStatus::PDS_PARSED_ALL_DATA, pdStatus);
 
                 // Now handle the completed message
-                callAllCallbacks(msg, true);
+                task->callAllCallbacks(msg, true);
                 msg.reset();
 
-                WatchDogMpsm::ParseHeaderStatus phStatus = m_mpsm.getHeaderDmaDetails(msg,
-                                                                                      &nextTransferDestination,
-                                                                                      nextTransferSize);
+                WatchDogMpsm::ParseHeaderStatus phStatus = task->m_mpsm.getHeaderDmaDetails(msg,
+                                                                                            &nextTransferDestination,
+                                                                                            nextTransferSize);
 
                 // We just reset the message, so we should always need more data here
-                FW_ASSERT(phStatus == WatchDogMpsm::ParseHeaderStatus::NEED_MORE_DATA, phStatus);
+                FW_ASSERT(phStatus == WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA, phStatus);
             }
 
             // Start the transfer (for either header or data)
             sciDMARecv(SCILIN_RX_DMA_CH, 
-                       static_cast<char *>(nextTransferDestination),
+                       reinterpret_cast<char *>(nextTransferDestination),
                        nextTransferSize,
                        ACCESS_8_BIT,
                        &dmaReadBusy);

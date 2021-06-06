@@ -1,4 +1,6 @@
-#include "Fw/Types/Assert.hpp"
+#include <cstring>
+
+#include <Fw/Types/Assert.hpp>
 
 #include <CubeRover/WatchDogInterface/WatchDogMpsm.hpp>
 
@@ -8,32 +10,28 @@ namespace
     {
         public:
             HeaderRingArray()
-                : buffer({}),
-                  bufferSize(sizeof(buffer)),
-                  head(0),
-                  tail(0),
-                  size(0)
             {
+                clear();
             }
 
             size_t size() const
             {
-                return size;
+                return m_size;
             }
 
             size_t freeSize() const
             {
-                return bufferSize - size;
+                return m_bufferSize - m_size;
             }
 
             bool full() const
             {
-                return (size == bufferSize);
+                return (m_size == m_bufferSize);
             }
 
             bool empty() const
             {
-                return (size == 0);
+                return (m_size == 0);
             }
 
             void putOverwrite(uint8_t data)
@@ -41,18 +39,18 @@ namespace
                 bool wasFull = full();
 
                 // Get the next head index, wrapping if necessary
-                head = incrementAndWrap(head);
-                buffer[head] = data;
+                m_head = incrementAndWrap(m_head);
+                m_buffer[m_head] = data;
 
                 if (wasFull) {
                     // The buffer was full so we needed to overwrite, therefore we need to
                     // also increment the tail. We don't want to increment the size in this
                     // case.
-                    tail = incrementAndWrap(tail);
+                    m_tail = incrementAndWrap(m_tail);
                 } else {
                     // We added an element to a previously empty slot, so we want to increment
                     // the size.
-                    size++;
+                    m_size++;
                 }
             }
 
@@ -62,28 +60,28 @@ namespace
                     return false;
                 }
 
-                outByte = buffer[tail];
-                tail = incrementAndWrap(tail);
+                outByte = m_buffer[m_tail];
+                m_tail = incrementAndWrap(m_tail);
 
                 return true;
             }
 
             uint8_t peek(size_t index)
             {
-                if (index >= size) {
+                if (index >= m_size) {
                     return (uint8_t) -1;
                 }
 
-                size_t wrappedIndex = offsetAndWrap(tail, index);
-                return buffer[wrappedIndex];
+                size_t wrappedIndex = offsetAndWrap(m_tail, index);
+                return m_buffer[wrappedIndex];
             }
 
             void clear()
             {
-                memset(buffer, 0, bufferSize);
-                head = 0;
-                tail = 0;
-                size = 0;
+                memset(m_buffer, 0, m_bufferSize);
+                m_head = 0;
+                m_tail = 0;
+                m_size = 0;
             }
 
         private:
@@ -91,8 +89,8 @@ namespace
             {
                 size_t newIndex = index + offset;
 
-                while (newIndex >= bufferSize) {
-                    newIndex -= bufferSize;
+                while (newIndex >= m_bufferSize) {
+                    newIndex -= m_bufferSize;
                 }
 
                 return newIndex;
@@ -103,11 +101,11 @@ namespace
                 return offsetAndWrap(index, 1);
             }
 
-            uint8_t buffer[12];
-            size_t bufferSize;
-            size_t head;
-            size_t tail;
-            size_t size;
+            uint8_t m_buffer[12];
+            size_t m_bufferSize;
+            size_t m_head;
+            size_t m_tail;
+            size_t m_size;
     };
 
     uint16_t combineBytesToShort(uint8_t lsb, uint8_t msb)
@@ -145,7 +143,15 @@ namespace CubeRover
         static const uint8_t MAGIC_BYTE_EXPECTED_VALUE_SUM = 0xDCU;
 
         HeaderRingArray m_ringArray;
-        uint8_t m_headerBuffer[WATCH_DOG_HEADER_PACKED_SIZE] __attribute__((aligned(8)));
+
+        // Can't normally align member variable, but uint64_t will be naturally aligned on an 8-byte boundary
+        // thus forcing the m_headerBuffer to also be aligned at such a boundary. In other words, this union
+        // is equivalent to:
+        // uint8_t m_headerBuffer[WATCH_DOG_HEADER_PACKED_SIZE] __attribute__((aligned(8)));
+        union {
+            uint8_t m_headerBuffer[WATCH_DOG_HEADER_PACKED_SIZE];
+            uint64_t not_used;
+        };
 
         PrivateImplementation()
             : m_ringArray()
@@ -156,11 +162,11 @@ namespace CubeRover
         {
             // The header is a full 12 bytes, so the ring array (size of 8) needs to be full for the header to be valid
             if (!m_ringArray.full()) {
-                return WatchDogMpsm::ParseHeaderStatus::NEED_MORE_DATA;
+                return WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA;
             }
 
             bool spinForNewMagic = false;
-            WatchDogMpsm::ParseHeaderStatus retStatus = WatchDogMpsm::ParseHeaderStatus::NEED_MORE_DATA;
+            WatchDogMpsm::ParseHeaderStatus retStatus = WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA;
 
             // Start checking the header bytes.
             if (m_ringArray.peek((uint8_t) HeaderIndices::MAGIC_ONE) == MAGIC_BYTE_ONE_EXPECTED_VALUE
@@ -196,11 +202,11 @@ namespace CubeRover
                     // Passed parity check, so this is a valid header. We can empty the ring array since we've already
                     // copied the data into the parsed header structure.
                     m_ringArray.clear();
-                    return WatchDogMpsm::ParseHeaderStatus::PARSED_VALID_HEADER;
+                    return WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_VALID_HEADER;
                 } else {
                     // Our computed parity doesn't match the expected parity. We want to return an error indicating as
                     // much, but we also can pump the ring array until we find new magic numbers.
-                    retStatus = WatchDogMpsm::ParseHeaderStatus::PARSED_HEADER_BAD_PARITY;
+                    retStatus = WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_HEADER_BAD_PARITY;
                     spinForNewMagic = true;
                 }
             } else {
@@ -226,7 +232,7 @@ namespace CubeRover
                     size_t ringSize = m_ringArray.size();
 
                     if (ringSize >= 3) {
-                        bool m3 = 
+                        bool m3 =
                             (m_ringArray.peek((uint8_t) HeaderIndices::MAGIC_THREE) == MAGIC_BYTE_THREE_EXPECTED_VALUE);
                         foundMagicThisIter = (foundMagicThisIter && m3);
                     }
@@ -259,19 +265,19 @@ namespace CubeRover
             WatchDogMpsm::ParseHeaderStatus checkStatus = checkForValidHeader(msg);
 
             switch (checkStatus) {
-                case WatchDogMpsm::ParseHeaderStatus::NEED_MORE_DATA: // Fall through
-                case WatchDogMpsm::ParseHeaderStatus::PARSED_HEADER_BAD_PARITY:
+                case WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA: // Fall through
+                case WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_HEADER_BAD_PARITY:
                     numHeaderBytesStillNeeded = m_ringArray.freeSize();
                     break;
 
-                case WatchDogMpsm::ParseHeaderStatus::PARSED_VALID_HEADER:
+                case WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_VALID_HEADER:
                     numHeaderBytesStillNeeded = 0;
                     break;
 
                 default:
                     // This shouldn't be possible
                     FW_ASSERT(false, checkStatus);
-                    return WatchDogMpsm::ParseHeaderStatus::INTERNAL_ERROR;
+                    return WatchDogMpsm::ParseHeaderStatus::PHS_INTERNAL_ERROR;
             }
 
             return checkStatus;
@@ -284,7 +290,7 @@ namespace CubeRover
         reset();
     }
 
-    WatchDogMpsm::Header::reset()
+    void WatchDogMpsm::Header::reset()
     {
         parity = 0;
         payloadLength = 0;
@@ -302,7 +308,7 @@ namespace CubeRover
     {
     }    
 
-    WatchDogMpsm::Message::reset()
+    void WatchDogMpsm::Message::reset()
     {
         parsedHeader.reset();
         memset(dataBuffer, 0, accumulatedDataSize); // This isn't necessary but should make debugging easier
@@ -348,10 +354,10 @@ namespace CubeRover
         size = msg.parsedHeader.payloadLength - msg.accumulatedDataSize;
 
         if (msg.accumulatedDataSize == msg.parsedHeader.payloadLength) {
-            return WatchDogMpsm::ParseDataStatus::PARSED_ALL_DATA;
+            return WatchDogMpsm::ParseDataStatus::PDS_PARSED_ALL_DATA;
         } else {
             *destination = msg.dataBuffer + msg.accumulatedDataSize;
-            return WatchDogMpsm::ParseDataStatus::NEED_MORE_DATA;
+            return WatchDogMpsm::ParseDataStatus::PDS_NEED_MORE_DATA;
         }
     }
 

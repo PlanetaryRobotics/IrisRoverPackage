@@ -272,10 +272,9 @@ namespace CubeRover {
             Disengage = 0x00EE    // Reset value for the disengagement command sent to Watchdog
         };
 
-        static const uint16_t STROKE_OPCODE = 0;
-        static const uint16_t DOWNLINK_OPCODE = 1;
-        static const uint16_t UPLINK_OPCODE = 2;
-    
+        static const uint16_t STROKE_OPCODE = 0x0100u;
+        static const uint16_t DOWNLINK_OPCODE = 0x0101u;
+        static const uint16_t UPLINK_OPCODE = 0x0102u;
     
         enum TxCommandIndex
         {

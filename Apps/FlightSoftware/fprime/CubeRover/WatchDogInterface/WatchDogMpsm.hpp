@@ -8,9 +8,6 @@
 
 namespace CubeRover
 {
-    // Note: "MPSM" stands for "message parsing state machine"
-    // This one isn't actually much of a state machine, but the approach is similar so I kept the name.
-
     /**
      * @brief A Message Parsing State Machine (MPSM) that facilitates receiving and parsing messages from the MSP430
      *        watchdog.
@@ -30,10 +27,7 @@ namespace CubeRover
             {
                 PHS_NEED_MORE_DATA = 0, //!< Need more data to complete the header.
                 PHS_PARSED_VALID_HEADER = 1, //!< Parsed a full header that passes its parity check.
-                PHS_PARSED_HEADER_BAD_PARITY = 2, //!< Parsed a full header that failed its parity check
-
-                // An unexpected internal error occurred. I don't think this should be possible
-                // (it's only returned if we land in the default case of a switch)
+                PHS_PARSED_HEADER_BAD_PARITY = 2, //!< Parsed a full header that failed its parity check.
 
                 /**
                  * @brief An unexpected internal error occurred.

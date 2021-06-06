@@ -42,7 +42,7 @@ namespace CubeRover
      * because we want to use FreeRTOS Task Notifications (https://www.freertos.org/RTOS-task-notifications.html)
      * rather than FreeRTOS Semaphores in order to implement the task blocking and then being woken up by an
      * external trigger. We want to use Task Notifications over Semaphores because "Unblocking an RTOS task with
-     * a direct notification is 45% faster * and uses less RAM than unblocking a task using an intermediary
+     * a direct notification is 45% faster and uses less RAM than unblocking a task using an intermediary
      * object such as a binary semaphore." (Source: https://www.freertos.org/RTOS-task-notifications.html).
      * However, in order to use Task Notifications we need access to the underlying task handle, thus the
      * need for the modifications and usage described above.

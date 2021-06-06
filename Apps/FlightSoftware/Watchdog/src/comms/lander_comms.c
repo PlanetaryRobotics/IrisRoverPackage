@@ -1,8 +1,12 @@
+#include <assert.h>
+#include <string.h>
 
-#include "include/comms/lander_comms.h"
 #include "include/common.h"
-#include "include/comms/slip_mpsm.h"
+#include "include/comms/hercules_msgs.h"
 #include "include/comms/ip_udp.h"
+#include "include/comms/lander_comms.h"
+#include "include/comms/slip_encode.h"
+#include "include/comms/slip_mpsm.h"
 
 //###########################################################
 // Private types
@@ -28,9 +32,14 @@ static LanderComms__State theState = {
     .initialized = FALSE,
     .uartState = NULL,
     .slipMsgBuffer = { 0 },
-    .slipMsgMpsm = { 0 },
-    .txPacketId = 0;
-}
+    .slipMsgMpsm = {
+        .msgStatus = SLIP_MPSM__MSG_STATUS__NOT_INITIALIZED,
+        .buffer = NULL,
+        .bufferLen = 0,
+        .msgLen = 0
+    },
+    .txPacketId = 0
+};
 
 //###########################################################
 // Private function declarations
@@ -88,7 +97,7 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
 {
     static uint8_t uartRxData[64] = { 0 };
  
-    if (NULL == lcState || NULL == buffer) {
+    if (NULL == lcState || NULL == userArg) {
         return LANDER_COMMS__STATUS__ERROR_NULL;
     }
 
@@ -256,7 +265,7 @@ static LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms_
                                                                     size_t initialUsedOutputByteCount)
 {
     const uint8_t* inPtr = inputBuffer;
-    size_t remainingInBuffSize = intputLen;
+    size_t remainingInBuffSize = inputLen;
 
     size_t outputStartIndex = initialUsedOutputByteCount;
     uint8_t* outPtr = outputBuffer + outputStartIndex;

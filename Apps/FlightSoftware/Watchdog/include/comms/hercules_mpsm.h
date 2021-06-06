@@ -49,19 +49,19 @@ typedef enum HerculesMpsm__MsgStatus
      * The state machine is done parsing the message because an unexpected failure occurred with a RingBuffer function
      */
     HERCULES_MPSM__MSG_STATUS__ERROR_RB_FAILURE = -10
-}
+} HerculesMpsm__MsgStatus;
 
-struct HerculesMpsm__Msg
+typedef struct HerculesMpsm__Msg
 {
     HerculesMpsm__MsgStatus msgStatus;
 
-    HercMsgs__Header header;
+    HercMsgs__CommonHeader header;
 
     uint8_t* dataBuffer;
     size_t dataBufferLen;
 
     size_t msgLen;
-}
+} HerculesMpsm__Msg;
 
 // Should be called before the first time process() is called with a given Msg structure, and before process()
 // is called again with the same Msg structure after a complete message is received.

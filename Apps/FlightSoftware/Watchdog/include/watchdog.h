@@ -6,13 +6,17 @@
 #ifndef __WATCHDOG_INC
 #define __WATCHDOG_INC
 
+#include <stdint.h>
+#include <stddef.h>
+
+#include "include/comms/hercules_comms.h"
 #include "include/comms/i2c_sensors.h"
 
 int watchdog_init();
 
 void watchdog_build_hercules_telem(I2C_Sensors__Readings *i2cReadings,
                                    uint8_t* telbuf,
-                                   size_t telbufSize)
+                                   size_t telbufSize);
 
 int watchdog_monitor(HerculesComms__State* hState);
 

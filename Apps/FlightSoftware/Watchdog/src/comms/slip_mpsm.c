@@ -123,7 +123,7 @@ SlipMpsm__Status SlipMpsm__process(SlipMpsm__Msg* msg, uint8_t newData)
 // Private function definitions
 //###########################################################
 
-static SlipMpsm__Status SlipMpsm__appendData(SlipMpsm__Msg* msg, uint8_t newData);
+static SlipMpsm__Status SlipMpsm__appendData(SlipMpsm__Msg* msg, uint8_t newData)
 {
     BOOL gotByteToWrite = FALSE;
     uint8_t byteToWrite = 0;
@@ -150,7 +150,7 @@ static SlipMpsm__Status SlipMpsm__appendData(SlipMpsm__Msg* msg, uint8_t newData
     }
 
     if (gotByteToWrite) {
-        if (msg->msgLen + 1 > bufferLen) {
+        if (msg->msgLen + 1 > msg->bufferLen) {
             msg->msgStatus = SLIP_MPSM__MSG_STATUS__ERROR_BUFFER_TOO_SMALL;
             return SLIP_MPSM__STATUS__ERROR_BUFFER_TOO_SMALL;
         }

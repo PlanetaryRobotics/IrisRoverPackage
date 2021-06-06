@@ -1,4 +1,5 @@
-#include "include/comms/hercules_msg.h"
+#include "include/comms/hercules_msgs.h"
+#include "include/utils/serialization.h"
 /**
  * @brief Check that the status value |actual| returned from a serialization function is greater than or equal to zero.
  *        If |actual| is less than zero, logs a message to the error function and returns
@@ -12,11 +13,11 @@
     }
 
 
-HercMsgs__Status HercMsgs__serializeHeader(const HercMsgs__Header* src,
+HercMsgs__Status HercMsgs__serializeHeader(const HercMsgs__CommonHeader* src,
                                            void* dst,
                                            size_t dstLen)
 {
-    if (NULL == gndResp || NULL == dst) {
+    if (NULL == src || NULL == dst) {
         return HERC_MSGS__STATUS__ERROR_NULL;
     }
 

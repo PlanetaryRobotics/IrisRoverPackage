@@ -7,7 +7,7 @@ struct RingBuffer {
     size_t bufferSize;
     volatile size_t head;
     volatile size_t tail;
-}
+};
 
 static RingBuffer ALL_RING_BUFFERS[MAX_NUM_RING_BUFFERS];
 

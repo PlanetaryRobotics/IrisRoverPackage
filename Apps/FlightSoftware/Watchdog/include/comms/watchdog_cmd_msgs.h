@@ -109,7 +109,7 @@ typedef enum WdCmdMsgs__ResetSpecificId
 typedef enum WdCmdMsgs__SwitchConnModeSelection
 {
     WD_CMD_MSGS__CONN_MODE__WIRED = 0x01, // Wired (RS-422): Watchdog gets data, forwards to Hercules
-    WD_CMD_MSGS__CONN_MODE__WIRED = 0x02 // Wireless: Hercules gets data, forwards to watchdog
+    WD_CMD_MSGS__CONN_MODE__WIRELESS = 0x02 // Wireless: Hercules gets data, forwards to watchdog
 } WdCmdMsgs__SwitchConnModeSelection;
 
 static const uint8_t WD_CMD_MSGS__CONFIRM_MODE_CHANGE_MAGIC_NUMBER = 0x77u;
@@ -313,10 +313,10 @@ WdCmdMsgs__Status WdCmdMsgs__serializeGroundResponse(const WdCmdMsgs__Response* 
  *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 WdCmdMsgs__Status
-WdCmdMsgs__deserializeBody(WdCmdMsgs__MessageId srcMsgId,
+WdCmdMsgs__deserializeBody(WdCmdMsgs__CommandId srcMsgId,
                            const void* src,
                            size_t srcLen,
-                           WdCmdMsgs__Body* dst);
+                           WdCmdMsgs__MessageBody* dst);
 
 /**
  * @brief Deserializes the message packed in |src| with little endianness into the struct |dst| with system endianness.

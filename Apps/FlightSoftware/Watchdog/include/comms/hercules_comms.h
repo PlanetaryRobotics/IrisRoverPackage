@@ -36,7 +36,7 @@ typedef enum HerculesComms__MsgOpcode
 
 HerculesComms__Status HerculesComms__init(HerculesComms__State** hState, UART__State* uartState);
 
-typedef void(*HerculesMsgCallback)(HercMsgs__Header* header,
+typedef void(*HerculesMsgCallback)(HercMsgs__CommonHeader* header,
                                    uint8_t* payloadBuffer,
                                    size_t payloadSize,
                                    void* userArg);
@@ -59,7 +59,7 @@ HerculesComms__Status HerculesComms__txUplinkMsg(HerculesComms__State* hState, c
 // will be sent first and then the data will be sent without  modification (if there is any data to send).
 // If dataLen is zero, data is allowed to be NULL.
 HerculesComms__Status HerculesComms__txResponseMsg(HerculesComms__State* hState,
-                                                   const HercMsgs__Header* sourceCommandHeader,
+                                                   const HercMsgs__CommonHeader* sourceCommandHeader,
                                                    const uint8_t* data,
                                                    size_t dataLen);
 

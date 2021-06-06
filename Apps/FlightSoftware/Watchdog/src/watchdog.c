@@ -9,14 +9,17 @@
  * are set, and clear them if they are.
  */
 
+#include <assert.h>
 #include <msp430.h>
 #include <stdint.h>
-#include "include/flags.h"
+#include <string.h>
+
+#include "include/comms/ip_udp.h"
+#include "include/comms/i2c_sensors.h"
 #include "include/drivers/adc.h"
 #include "include/drivers/uart.h"
 #include "include/drivers/bsp.h"
-#include "include/comms/ip_udp.h"
-#include "include/comms/i2c_sensors.h"
+#include "include/flags.h"
 #include "include/ground_cmd.h"
 #include "include/watchdog.h"
 
@@ -250,7 +253,7 @@ void watchdog_build_hercules_telem(I2C_Sensors__Readings *i2cReadings,
         return;
     }
 
-    memset(telbuf, 0, telbfuSize);
+    memset(telbuf, 0, telbufSize);
 
     // Build telemetry packet for Hercules
     if (rovstate == RS_KEEPALIVE || rovstate == RS_SERVICE) {

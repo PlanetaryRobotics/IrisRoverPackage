@@ -32,10 +32,6 @@ GroundCmd__Status GroundCmd__performWatchdogCommand(const WdCmdMsgs__Message* ms
                                                     WdCmdMsgs__Response* deployNotificationResponse,
                                                     BOOL* sendDeployNotificationResponse);
 
-GroundCmd__Status GroundCmd__parseGroundCommand(uint8_t* src,
-                                                size_t srcLen,
-                                                GroundResponse* gndResp);
-
 GroundCmd__Status GroundCmd__generateEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
                                                     uint8_t* heartbeatOutBuffer,
                                                     size_t heartbeatOutBufferLen,

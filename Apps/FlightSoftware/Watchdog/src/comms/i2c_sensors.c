@@ -11,7 +11,10 @@
 // Private definitions and globals
 //###########################################################
 
-static INS_Sensors__InternalState internals = { 0 };
+static INS_Sensors__InternalState internals = {
+    .gState = GRS__UNKNOWN,
+    .readings = { 0 }
+};
 
 //###########################################################
 // Private function declarations

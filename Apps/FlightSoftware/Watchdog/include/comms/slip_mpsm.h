@@ -10,8 +10,11 @@ typedef enum SlipMpsm__Status {
     SLIP_MPSM__STATUS__PARSED_MESSAGE = 1, /*!< The function was successful, and successfully parsed a complete message. */
     SLIP_MPSM__STATUS__SUCCESS = 0, /*!< The function was successful. */
     SLIP_MPSM__STATUS__ERROR_NULL = -1, /*!< A required argument was NULL */
-    SLIP_MPSM__STATUS__ERROR_BUFFER_TOO_SMALL = -2, /*!< A required argument was NULL */
-    SLIP_MPSM__STATUS__ERROR_INVALID_SEQUENCE = -3, /*!< A required argument was NULL */
+    SLIP_MPSM__STATUS__ERROR_BUFFER_TOO_SMALL = -2,
+    SLIP_MPSM__STATUS__ERROR_INVALID_SEQUENCE = -3,
+    SLIP_MPSM__STATUS__ERROR_ZERO_LENGTH_BUFFER = -4,
+    SLIP_MPSM__STATUS__ERROR_WRONG_STATE = -5,
+
     SLIP_MPSM__STATUS__ERROR_INTERNAL_ERROR = -255 /*!< An unexpected error occurred */
 } SlipMpsm__Status;
 
@@ -43,9 +46,9 @@ typedef enum SlipMpsm__MsgStatus
      * For SLIP, the only invalid sequences are an ESC byte followed by something other than ESC_END or ESC_ESC.
      */
     SLIP_MPSM__MSG_STATUS__ERROR_INVALID_SEQUENCE = SLIP_MPSM__STATUS__ERROR_INVALID_SEQUENCE
-}
+} SlipMpsm__MsgStatus;
 
-struct SlipMpsm__Msg
+typedef struct SlipMpsm__Msg
 {
     SlipMpsm__MsgStatus msgStatus;
 
@@ -53,7 +56,7 @@ struct SlipMpsm__Msg
     size_t bufferLen;
 
     size_t msgLen;
-}
+} SlipMpsm__Msg;
 
 // Should be called before the first time process() is called with a given Msg structure, and before process()
 // is called again with the same Msg structure after a complete message is received.

@@ -1,3 +1,5 @@
+#include <assert.h>
+#include <string.h>
 
 #include "include/comms/hercules_comms.h"
 #include "include/common.h"
@@ -17,7 +19,7 @@ struct HerculesComms__State
     HerculesMpsm__Msg herculesMsg;
 
     uint16_t uplinkSequenceNumber;
-    HercMsgs__Header headerStruct;
+    HercMsgs__CommonHeader headerStruct;
     uint8_t headerSerializationBuffer[HERC_MSGS__PACKED_SIZE__HEADER];
 };
 
@@ -29,11 +31,17 @@ static HerculesComms__State theState = {
     .initialized = FALSE,
     .uartState = NULL,
     .rxMsgBuffer = { 0 },
-    .herculesMsg = { 0 },
+    .herculesMsg = {
+        .msgStatus = HERCULES_MPSM__MSG_STATUS__NOT_INITIALIZED,
+        .header = { 0 },
+        .dataBuffer = NULL,
+        .dataBufferLen = 0,
+        .msgLen = 0
+    },
     .uplinkSequenceNumber = 0,
     .headerStruct = { 0 },
     .headerSerializationBuffer = { 0 }
-}
+};
 
 //###########################################################
 // Private function declarations
@@ -87,7 +95,7 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
 {
     static uint8_t uartRxData[64] = { 0 };
  
-    if (NULL == hState || NULL == buffer) {
+    if (NULL == hState || NULL == userArg) {
         return HERCULES_COMMS__STATUS__ERROR_NULL;
     }
 
@@ -168,7 +176,7 @@ HerculesComms__Status HerculesComms__txUplinkMsg(HerculesComms__State* hState, c
 
     return HerculesComms__txHerculesMsg(hState,
                                         0,
-                                        uplinkSequenceNumber++,
+                                        hState->uplinkSequenceNumber++,
                                         (uint16_t) HERCULES_COMMS__MSG_OPCODE__UPLINK,
                                         data,
                                         dataLen);
@@ -179,7 +187,7 @@ HerculesComms__Status HerculesComms__txUplinkMsg(HerculesComms__State* hState, c
 // will be sent first and then the data will be sent without  modification (if there is any data to send).
 // If dataLen is zero, data is allowed to be NULL.
 HerculesComms__Status HerculesComms__txResponseMsg(HerculesComms__State* hState,
-                                                   const HercMsgs__Header* sourceCommandHeader,
+                                                   const HercMsgs__CommonHeader* sourceCommandHeader,
                                                    const uint8_t* data,
                                                    size_t dataLen)
 {
@@ -270,9 +278,9 @@ static HerculesComms__Status HerculesComms__txHerculesMsg(HerculesComms__State* 
 
     // Fill in and serialize the header
     hState->headerStruct.payloadLength = dataLen;
-    hState->headerStruct.resetValue = sourceCommandHeader->resetValue;
-    hState->headerStruct.lowerSeqNum = sourceCommandHeader->lowerSeqNum;
-    hState->headerStruct.lowerOpCode = sourceCommandHeader->lowerOpCode;
+    hState->headerStruct.resetValue = resetValue;
+    hState->headerStruct.lowerSeqNum = lowerSeqNum;
+    hState->headerStruct.lowerOpCode = lowerOpCode;
 
     HercMsgs__Status hMsgStatus = HercMsgs__serializeHeader(&(hState->headerStruct),
                                                             hState->headerSerializationBuffer,

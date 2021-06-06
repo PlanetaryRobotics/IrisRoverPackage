@@ -1,21 +1,22 @@
+#include <assert.h>
 #include <msp430.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "include/comms/cmd_msgs.h"
+#include "include/comms/hercules_comms.h"
+#include "include/comms/ip_udp.h"
+#include "include/comms/i2c_sensors.h"
+#include "include/comms/lander_comms.h"
+#include "include/comms/watchdog_cmd_msgs.h"
+
 #include "include/drivers/uart.h"
 #include "include/drivers/bsp.h"
 #include "include/drivers/adc.h"
+
 #include "include/flags.h"
-#include "include/comms/ip_udp.h"
-#include "include/watchdog.h"
-#include "include/comms/i2c_sensors.h"
 #include "include/ground_cmd.h"
-
-#include "include/comms/hercules_comms.h"
-#include "include/comms/lander_comms.h"
-#include "include/comms/cmd_msgs.h"
-#include "include/comms/watchdog_cmd_msgs.h"
-
+#include "include/watchdog.h"
 
 /* define all of the buffers used in other files */
 __volatile uint16_t loop_flags;
@@ -23,12 +24,6 @@ extern uint8_t heating;
 uint8_t lastHeater = 0;
 extern uint8_t heatingControlEnabled;
 
-static const HerculesComms__State* globalHerculesCommsState;
-static const LanderComms__State* globalLanderCommsState;
-
-/**
- * main.c
- */
 enum rover_state rovstate = RS_KEEPALIVE;
 
 void enterMode(enum rover_state newstate) {
@@ -70,7 +65,7 @@ void enterMode(enum rover_state newstate) {
         unsetDeploy();
 
         /* enable hercules uart */
-        uart0_init();
+        //!< @todo Reset UART0 to a clean slate.
 
         /* power everything on and release resets */
         releaseRadioReset();
@@ -123,7 +118,7 @@ void sendLanderResponse(LanderComms__State* landerCommsState, WdCmdMsgs__Respons
                                                                        responseSerializationBuffer,
                                                                        sizeof(responseSerializationBuffer));
 
-    assert(WD_CMD_MSGS__STATUS__SUCCESS == wdCmdStatus, wdCmdStatus);
+    assert(WD_CMD_MSGS__STATUS__SUCCESS == wdCmdStatus);
 
     LanderComms__Status lcStatus = LanderComms__txData(landerCommsState,
                                                        responseSerializationBuffer,
@@ -219,7 +214,7 @@ typedef struct HerculesMsgArgContainer
 } HerculesMsgArgContainer;
 
 void handleStrokeFromHercules(HerculesComms__State* herculesCommsState,
-                              HercMsgs__Header* header,
+                              HercMsgs__CommonHeader* header,
                               I2C_Sensors__Readings* i2cReadings)
 {
     static uint8_t telemetrySerializationBuffer[16] = { 0 };
@@ -246,7 +241,7 @@ void handleStrokeFromHercules(HerculesComms__State* herculesCommsState,
 
 void handleDownlinkFromHercules(HerculesComms__State* herculesCommsState,
                                 LanderComms__State* landerCommsState,
-                                HercMsgs__Header* header,
+                                HercMsgs__CommonHeader* header,
                                 uint8_t* payloadBuffer,
                                 size_t payloadSize)
 {
@@ -282,7 +277,7 @@ void handleDownlinkFromHercules(HerculesComms__State* herculesCommsState,
 }
 
 void handleResetFromHercules(HerculesComms__State* herculesCommsState,
-                             HercMsgs__Header* header)
+                             HercMsgs__CommonHeader* header)
 {
     if (NULL == herculesCommsState || NULL == header) {
         return;
@@ -310,7 +305,7 @@ void handleResetFromHercules(HerculesComms__State* herculesCommsState,
 }
 
 // Determine if downlink, stroke, or reset command and handle each appropriately
-void herculesMsgCallback(HercMsgs__Header* header, uint8_t* payloadBuffer, size_t payloadSize, void* userArg)
+void herculesMsgCallback(HercMsgs__CommonHeader* header, uint8_t* payloadBuffer, size_t payloadSize, void* userArg)
 {
     if (NULL == userArg) {
         return;
@@ -437,8 +432,8 @@ int main(void) {
 
     // Initialize the UARTs (this one call initializes both).
     // This call also initializes the clocks as part of the UART initialization.
-    UART_State* uart0State = NULL;
-    UART_State* uart1State = NULL;
+    UART__State* uart0State = NULL;
+    UART__State* uart1State = NULL;
     UART__Status uartStatus = UART__init(&uartConfig,
                                          &uart0State,
                                          &uart1State);
@@ -477,7 +472,6 @@ int main(void) {
 
     // the core structure of this program is like an event loop
     while (1) {
-        ticks++;
         /* watchdog timer setup - need to stroke every ~1s */
         /* basically, we limit the execution of each loop to ~1s or else reset */
         WDTCTL = WDT_ARST_1000;
@@ -602,6 +596,4 @@ int main(void) {
             loop_flags ^= FLAG_POWER_ISSUE;
         }
     }
-
-	return 0;
 }

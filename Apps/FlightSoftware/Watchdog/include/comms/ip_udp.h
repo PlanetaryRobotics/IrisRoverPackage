@@ -1,15 +1,15 @@
 #ifndef __WATCHDOG_IP_UDP_H__
 #define __WATCHDOG_IP_UDP_H__
 
-#include <arpa/inet.h>
-
+#include <stdint.h>
+#include <stddef.h>
 
 #define iup_get_ver(pckt) (pckt->ver_hdrlen >> 4)
 #define iup_get_hdrlen(pckt) (pckt->ver_hdrlen & 0xF)
 #define iup_as_bytes(pckt) ((unsigned char *)pckt)
 #define iup_get_payload(pckt) ((unsigned char *)(pckt + 1))
 
-/* byter order swapping - msp430 is little endian; networks use big endian */
+/* byte order swapping - msp430 is little endian; networks use big endian */
 #define ntohs(x) ((x) >> 8 | ((x & 0xFF) << 8))
 #define htons(x) ntohs(x)
 
@@ -84,7 +84,10 @@ struct __attribute__((__packed__)) ip_udp_pckt {
     /* -=-=-=-=-=-=-=-=[ data here ]=-=-=-=-=-=-=-=- */
 };
 
-static const size_t IP_UDP_HEADER_LEN = sizeof(struct ip_hdr) + sizeof(struct udp_hdr);
+typedef enum IpUdp__Constants
+{
+    IP_UDP_HEADER_LEN = sizeof(struct ip_hdr) + sizeof(struct udp_hdr)
+} IpUdp_Constants;
 
 typedef enum IpUdp__Status {
     IP_UDP__STATUS__SUCCESS = 0,
@@ -94,7 +97,7 @@ typedef enum IpUdp__Status {
     IP_UDP__STATUS__ERROR_SERIALIZATION_FAILURE = -3
 } IpUdp__Status;
 
-IpUdp__Status IpUdp__identifyDataInUdpPacket(const uint8_t* fullIpUdpPacketData,
+IpUdp__Status IpUdp__identifyDataInUdpPacket(uint8_t* fullIpUdpPacketData,
                                              size_t fullDataLen,
                                              uint8_t** udpDataPointer,
                                              size_t* udpDataSize);

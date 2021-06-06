@@ -3,6 +3,9 @@
 #ifndef __RING_BUFFER_H__
 #define __RING_BUFFER_H__
 
+#include <stdint.h>
+#include <stddef.h>
+
 #include "include/common.h"
 
 // Forward definition of opaque ring buffer structure, defined in source file

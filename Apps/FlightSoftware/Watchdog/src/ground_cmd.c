@@ -7,14 +7,16 @@
  *      Author: ohnx
  */
 #include <stdint.h>
-#include "include/drivers/bsp.h"
+
 #include "include/comms/ip_udp.h"
-#include "include/drivers/uart.h"
-#include "include/drivers/adc.h"
-#include "include/flags.h"
 #include "include/comms/i2c_sensors.h"
-#include "include/watchdog.h"
+#include "include/drivers/adc.h"
+#include "include/drivers/bsp.h"
+#include "include/drivers/uart.h"
+#include "include/flags.h"
+#include "include/ground_cmd.h"
 #include "include/utils/serialization.h"
+#include "include/watchdog.h"
 
 uint8_t watchdog_opts = 0;
 // variables for heater control
@@ -80,7 +82,7 @@ GroundCmd__Status GroundCmd__performResetCommand(WdCmdMsgs__ResetSpecificId rese
             powerOnFpga();
             break;
 
-        case WD_CMD_MSGS__RESET_ID__ALL_MOTORS_POWER_OFF:
+        case WD_CMD_MSGS__RESET_ID__CAM_FPGA_POWER_OFF:
             powerOffFpga();
             break;
 
@@ -237,7 +239,7 @@ GroundCmd__Status GroundCmd__performWatchdogCommand(const WdCmdMsgs__Message* ms
         || NULL == response
         || NULL == deployNotificationResponse
         || NULL == sendDeployNotificationResponse) {
-        return WD_CMD_MSGS__STATUS__ERROR_NULL;
+        return GND_CMD__STATUS__ERROR_NULL;
     }
 
     // Make sure that by default we don't want to send the deploy notification response
@@ -319,13 +321,13 @@ GroundCmd__Status GroundCmd__performWatchdogCommand(const WdCmdMsgs__Message* ms
 
         case WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_PERIOD:
             // TODO: Make heater control not through globals
-            TB0CCR0 = msg->body.setThermisterVSetpoint.dutyCyclePeriod;
+            TB0CCR0 = msg->body.setHeaterDutyCyclePeriod.dutyCyclePeriod;
             response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
             break;
 
         case WD_CMD_MSGS__CMD_ID__SET_THERMISTER_V_SETPOINT:    
             // TODO: Make heater control not through globals
-            heater_setpoint = msg->body.setHeaterDutyCyclePeriod.thermisterVSetpoint;
+            heater_setpoint = msg->body.setThermisterVSetpoint.thermisterVSetpoint;
             response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
             break;
 
@@ -383,7 +385,7 @@ GroundCmd__Status GroundCmd__performWatchdogCommand(const WdCmdMsgs__Message* ms
             break;
 
         default:
-            response->statusCode = GND_CMD__STATUS__ERROR_UNKNOWN_MESSAGE_ID;
+            response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_ID;
             break;
     }
 
@@ -417,8 +419,6 @@ GroundCmd__Status GroundCmd__generateEarthHeartbeat(I2C_Sensors__Readings* i2cRe
     heartbeatOutBuffer[0] = 0xFF;
 
     if (rovstate == RS_SERVICE || rovstate == RS_MISSION) {
-        if ()
-
         // send adc value temperature
         heartbeatOutBuffer[1] = (uint8_t)(adc_values[ADC_TEMP_IDX]);
         heartbeatOutBuffer[2] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 8);
@@ -482,4 +482,6 @@ GroundCmd__Status GroundCmd__generateEarthHeartbeat(I2C_Sensors__Readings* i2cRe
         // send the thermistor temperature (12 bits to 8 bits)
         heartbeatOutBuffer[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
     }
+
+    return GND_CMD__STATUS__SUCCESS;
 }

@@ -255,8 +255,6 @@ static BOOL I2C__txRegAddress()
 
 static BOOL I2C__txData()
 {
-    BOOL continueSpinning = FALSE;
-
     // We're looking for the data send being complete (i.e. UCTXIFG is set)
     if ((UCB0IFG & UCTXIFG)) {
         // We finished sending the data. Check to make sure we got an ack, and if so we're done.
@@ -270,7 +268,7 @@ static BOOL I2C__txData()
         }
     }
 
-    return continueSpinning;
+    return FALSE;
 }
 
 static BOOL I2C__rxStart()
@@ -295,8 +293,6 @@ static BOOL I2C__rxStart()
 
 static BOOL I2C__rxDataAndStop()
 {
-    BOOL continueSpinning = FALSE;
-
     // We're looking for data to have been received (i.e. UCRXIFG is set)
     if ((UCB0IFG & UCRXIFG)) {
         // We finished receiving data, so we're done. Store the data for output
@@ -305,10 +301,9 @@ static BOOL I2C__rxDataAndStop()
 
         theStatus.state = I2C__TRANSACTION__DONE_SUCCESS;
         // We don't want to continue spinning after this since there is nothing left to do
-
     }
 
-    return continueSpinning;
+    return FALSE;
 }
 
 

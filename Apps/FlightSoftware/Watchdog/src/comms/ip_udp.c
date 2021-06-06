@@ -10,7 +10,7 @@
 /**
  * Return the IP checksum of the blob given, **in host byte order**
  */
-static uint16_t ip_checksum(uint8_t *packet, uint16_t packet_len) {
+static uint16_t ip_checksum(const uint8_t *packet, uint16_t packet_len) {
     uint16_t packet_len_orig;
     uint16_t i;
     uint16_t tmp;
@@ -18,7 +18,9 @@ static uint16_t ip_checksum(uint8_t *packet, uint16_t packet_len) {
     
     /* store the original packet length before we modify it */
     packet_len_orig = packet_len;
-    if (packet_len % 2) {
+
+    // (packet_len & 1) is the same as (packet_len % 2)
+    if (packet_len & 1) {
         /* ignore the last byte for now since we have to pad it later */
         packet_len -= 1;
     }
@@ -125,8 +127,8 @@ static uint16_t ip_verify_packet(uint8_t *packet, uint16_t packet_len) {
  * @param ip_src: source ip address
  * @param ip_dest: destination ip address
  */
-static uint16_t udp_checksum(uint8_t *udp_header,
-                             uint8_t *data_buf,
+static uint16_t udp_checksum(const uint8_t *udp_header,
+                             const uint8_t *data_buf,
                              uint16_t udp_packet_len,
                              uint32_t ip_src,
                              uint32_t ip_dest) {
@@ -171,7 +173,7 @@ static uint16_t udp_checksum(uint8_t *udp_header,
     return ~running_chksum;
 }
 
-IpUdp__Status IpUdp__identifyDataInUdpPacket(const uint8_t* fullIpUdpPacketData,
+IpUdp__Status IpUdp__identifyDataInUdpPacket(uint8_t* fullIpUdpPacketData,
                                              size_t fullDataLen,
                                              uint8_t** udpDataPointer,
                                              size_t* udpDataSize)
@@ -236,7 +238,7 @@ IpUdp__Status IpUdp__generateAndSerializeIpUdpHeadersForData(const uint8_t* udpD
     ip_hdr->source = 0x0267A8C0;
     ip_hdr->dest = 0x0167A8C0;
     // compute checksum
-    uint16_t ipHeaderChecksum = ip_checksum(ipudp_tx_buf, sizeof(struct ip_hdr));
+    uint16_t ipHeaderChecksum = ip_checksum(serializationBuffer, sizeof(struct ip_hdr));
     ip_hdr->iphdr_checksum = htons(ipHeaderChecksum);
 
     /* next, make the udp header */
@@ -248,7 +250,11 @@ IpUdp__Status IpUdp__generateAndSerializeIpUdpHeadersForData(const uint8_t* udpD
     udp_hdr->len = htons(udp_hdr->len);
     udp_hdr->checksum = 0;
     // UDP checksum
-    uint16_t udpHeaderChecksum = udp_checksum(udp_hdr, udpData, udp_hdr->len, ip_hdr->source, ip_hdr->dest);
+    uint16_t udpHeaderChecksum = udp_checksum((uint8_t*) udp_hdr,
+                                              udpData,
+                                              udp_hdr->len,
+                                              ip_hdr->source,
+                                              ip_hdr->dest);
     udp_hdr->checksum = htons(udpHeaderChecksum);
 
     /*

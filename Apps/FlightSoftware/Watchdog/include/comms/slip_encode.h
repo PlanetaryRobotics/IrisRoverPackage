@@ -2,6 +2,7 @@
 #define __WATCHDOG_SLIP_ENCODE_H__
 
 #include <stdint.h>
+#include <stddef.h>
 
 typedef enum SlipEncode__Status {
     SLIP_ENCODE__STATUS__OUTPUT_FULL = 1, /*!< The next input byte, when encoded, cannot fit in the output buffer */

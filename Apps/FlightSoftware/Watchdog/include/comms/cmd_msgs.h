@@ -1,9 +1,12 @@
 #ifndef __WATCHDOG_CMD_MSGS_H___
 #define __WATCHDOG_CMD_MSGS_H___
 
+#include <stdint.h>
+#include <stddef.h>
+
 typedef enum CmdMsgs__Status
 {
-    CMD_MSGS__STATUS__SUCCESS = 0, /* Operation suceeded. */
+    CMD_MSGS__STATUS__SUCCESS = 0, /* Operation succeeded. */
     CMD_MSGS__STATUS__ERROR_NULL = -1, /* A required argument or a member of an argument was NULL */
     CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL = -2, 
     CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR = -3,
@@ -19,7 +22,7 @@ typedef enum CmdMsgs__CommonHeaderTypeMagicNumber
     HEADER__TYPE_MAGIC_NUM__TELEMETRY = 0xC00010FFu,
     HEADER__TYPE_MAGIC_NUM__LOG = 0x0DEADBADu,
     HEADER__TYPE_MAGIC_NUM__FILE = 0xDABAD000u
-}
+} CmdMsgs__CommonHeaderTypeMagicNumber;
 
 //######################################################################################################################
 // Message Header

@@ -10,6 +10,7 @@
 #define __WATCHDOG_UART_H__
 
 #include <stdint.h>
+#include <stddef.h>
 
 // Forward definition of opaque UART structure, defined in source file
 // Other modules using this structure will not and do not need to know its contents 

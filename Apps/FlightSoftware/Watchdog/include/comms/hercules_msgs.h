@@ -1,6 +1,9 @@
 #ifndef __WATCHDOG_HERCULES_MSGS_H___
 #define __WATCHDOG_HERCULES_MSGS_H___
 
+#include <stdint.h>
+#include <stddef.h>
+
 typedef enum HercMsgs__Status
 {
     HERC_MSGS__STATUS__SUCCESS = 0, /* Operation suceeded. */
@@ -18,13 +21,13 @@ typedef enum HercMsgs__Constants
     HERC_MSGS__CONSTANTS__HEADER_MAGIC_THREE = 0x21U,
     HERC_MSGS__CONSTANTS__HEADER_MAGIC_SUM = 0xDCU,
     HERC_MSGS__CONSTANTS__MAX_PAYLOAD_SIZE = 650
-}
+} HercMsgs__Constants;
 
 //######################################################################################################################
 // Message Header
 //######################################################################################################################
 
-typedef struct HercMsgs__Header
+typedef struct HercMsgs__CommonHeader
 {
     // Magic numbers (first 3 bytes) and parity (4th byte) are not in this structure, as they will be generated
     // automatically. 
@@ -70,7 +73,7 @@ typedef enum HercMsgs__PackedSize
  *   HERC_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |dst| was too small to hold the serialized message.
  *   HERC_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
-HercMsgs__Status HercMsgs__serializeHeader(const HercMsgs__Header* src,
+HercMsgs__Status HercMsgs__serializeHeader(const HercMsgs__CommonHeader* src,
                                            void* dst,
                                            size_t dstLen);
 

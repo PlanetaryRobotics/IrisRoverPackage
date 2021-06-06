@@ -1,3 +1,5 @@
+#include <assert.h>
+#include <string.h>
 
 #include "include/comms/hercules_mpsm.h"
 #include "include/common.h"
@@ -54,7 +56,7 @@ static HerculesMpsm__StateMachine theStateMachine = {
     .initialized = FALSE,
     .currentState = HERCULES_MPSM_STATE__VALIDATE_HEADER,
     .ringBufferMemory = { 0 },
-    .headerRb = NULL
+    .headerRb = NULL,
     .dataLength = 0
 };
 
@@ -78,7 +80,7 @@ HerculesMpsm__Status HerculesMpsm__initMsg(HerculesMpsm__Msg* msg)
     }
 
     if (!(theStateMachine.initialized)) {
-        RingBuffer__Status rbStatus = RingBuffer__init(theStateMachine.headerRb,
+        RingBuffer__Status rbStatus = RingBuffer__init(&(theStateMachine.headerRb),
                                                        theStateMachine.ringBufferMemory,
                                                        SIZE_OF_ARRAY(theStateMachine.ringBufferMemory));
     
@@ -95,7 +97,7 @@ HerculesMpsm__Status HerculesMpsm__initMsg(HerculesMpsm__Msg* msg)
 
     msg->msgStatus = HERCULES_MPSM__MSG_STATUS__IN_PROGRESS;
     msg->msgLen = 0;
-    memset(msg->header, 0, SIZE_OF_ARRAY(msg->header));
+    memset(&(msg->header), 0, sizeof(msg->header));
 
     return HERCULES_MPSM__STATUS__SUCCESS;
 }
@@ -203,10 +205,10 @@ static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg*
             msg->header.lowerOpCode |= (uint16_t) ((((uint16_t) opcodeMsb) << 8) & 0xFF00U);
 
             // Clear the ring buffer, as we're now done with the header.
-            rbstatus = RingBuffer__clear(theStateMachine.headerRb);
+            rbStatus = RingBuffer__clear(theStateMachine.headerRb);
         
             // Clear should only throw is headerRb is NULL, and it shouldn't be NULL
-            assert(RB__STATUS__SUCCESS == rbstatus);
+            assert(RB__STATUS__SUCCESS == rbStatus);
 
             // Record the data length
             theStateMachine.dataLength = msg->header.payloadLength;
@@ -261,7 +263,7 @@ static uint8_t HerculesMpsm__peekRb(size_t index)
 }
 
 
-static HerculesMpsm__Status HerculesMpsm__appendData(HerculesMpsm__Msg* msg, uint8_t newData);
+static HerculesMpsm__Status HerculesMpsm__appendData(HerculesMpsm__Msg* msg, uint8_t newData)
 {
     msg->dataBuffer[msg->msgLen] = newData;
     msg->msgLen++;

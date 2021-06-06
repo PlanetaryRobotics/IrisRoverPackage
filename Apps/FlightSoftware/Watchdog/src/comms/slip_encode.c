@@ -1,4 +1,5 @@
 #include "include/comms/slip_encode.h"
+#include "include/common.h"
 
 SlipEncode__Status SlipEncode__encode(const uint8_t* input,
                                       size_t inputLen,
@@ -9,17 +10,17 @@ SlipEncode__Status SlipEncode__encode(const uint8_t* input,
 {
     size_t outIndex = 0;
 
-    for (size_t inIndex = 0; inIndex < inputLen, ++inIndex) {
+    for (size_t inIndex = 0; inIndex < inputLen; ++inIndex) {
         uint8_t inByte = input[inIndex];
         size_t lastByteIndexOffset = (inByte == SLIP_END || inByte == SLIP_ESC) ? 1 : 0;
 
         if (outIndex + lastByteIndexOffset < outputLen) {
             // There is room for the SLIP-encoded output for this input byte
-            if (*in == SLIP_END) {
+            if (inByte == SLIP_END) {
                 output[outIndex] = SLIP_ESC;
                 output[outIndex + 1] = SLIP_ESC_END;
                 outIndex += 2;
-            } else if (*in == SLIP_ESC) {
+            } else if (inByte == SLIP_ESC) {
                 output[outIndex] = SLIP_ESC;
                 output[outIndex + 1] = SLIP_ESC_ESC;
                 outIndex += 2;

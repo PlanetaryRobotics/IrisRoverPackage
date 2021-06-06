@@ -22,11 +22,11 @@
 
 typedef struct UART__Registers
 {
-    uint16_t * const UCAxTXBUF;
-    uint16_t * const UCAxRXBUF;
-    uint16_t * const UCAxIV;
-    uint16_t * const UCAxIE;
-    uint16_t * const UCAxIFG;
+    volatile uint16_t * const UCAxTXBUF;
+    volatile uint16_t * const UCAxRXBUF;
+    volatile uint16_t * const UCAxIV;
+    volatile uint16_t * const UCAxIE;
+    volatile uint16_t * const UCAxIFG;
 
 } UART__Registers;
 
@@ -39,7 +39,7 @@ struct UART__State
     RingBuffer* rxRingBuff;
 
     uint8_t gotRxLoopFlag;
-}
+};
 
 //###########################################################
 // Private globals and constants
@@ -63,7 +63,7 @@ static UART__Registers uart1Registers = {
 
 static UART__State uart0State = {
     .initialized = FALSE,
-    .registers = &uart0Registers;
+    .registers = &uart0Registers,
     .txRingBuff = NULL,
     .rxRingBuff = NULL,
     .gotRxLoopFlag = FLAG_UART0_RX_PACKET
@@ -71,7 +71,7 @@ static UART__State uart0State = {
 
 static UART__State uart1State = {
     .initialized = FALSE,
-    .registers = &uart1Registers;
+    .registers = &uart1Registers,
     .txRingBuff = NULL,
     .rxRingBuff = NULL,
     .gotRxLoopFlag = FLAG_UART1_RX_PACKET
@@ -85,8 +85,7 @@ static void UART__clockInit(void);
 static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers);
 static void UART__uart0Init(void);
 static void UART__uart1Init(void);
-
-static void UART__interruptHandler(UART__State* uartState);
+inline static void UART__interruptHandler(UART__State* uartState);
 
 //###########################################################
 // Public function definitions
@@ -366,12 +365,6 @@ static void UART__uart0Init()
  * Initialize UART1 (Lander <-> watchdog)
  */
 static void UART__uart1Init() {
-    uart1tx.idx = 0;
-    uart1tx.used = 0;
-    uart1tx.locked = 0;
-    uart1rx.idx = 0;
-    uart1rx.used = 0;
-
     // Put eUSCI_A1 in reset
     UCA1CTLW0 = UCSWRST;                    
 
@@ -501,6 +494,7 @@ static void UART__interruptHandler(UART__State* uartState)
     #error Compiler not supported!
 #endif
     
+#pragma FORCEINLINE_RECURSIVE
     UART__interruptHandler(&uart0State);
 }
 
@@ -515,5 +509,6 @@ static void UART__interruptHandler(UART__State* uartState)
     #error Compiler not supported!
 #endif
     
+#pragma FORCEINLINE_RECURSIVE
     UART__interruptHandler(&uart1State);
 }

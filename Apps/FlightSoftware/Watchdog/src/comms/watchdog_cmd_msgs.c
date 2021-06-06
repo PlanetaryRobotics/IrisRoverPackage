@@ -1,4 +1,5 @@
 #include "include/comms/watchdog_cmd_msgs.h"
+#include "include/utils/serialization.h"
 
 
 /**
@@ -311,7 +312,7 @@ WdCmdMsgs__Status WdCmdMsgs__serializeGroundResponse(const WdCmdMsgs__Response* 
                                                      void* dst,
                                                      size_t dstLen)
 {
-    if (NULL == gndResp || NULL == dst) {
+    if (NULL == src || NULL == dst) {
         return WD_CMD_MSGS__STATUS__ERROR_NULL;
     }
 
@@ -325,7 +326,7 @@ WdCmdMsgs__Status WdCmdMsgs__serializeGroundResponse(const WdCmdMsgs__Response* 
     dstIntPtr += sizeof(src->magicNumber);
 
     uint8_t commandIdAsUint = (uint8_t) src->commandId;
-    serializationResult = Serialization__serializeAs8Bit(&(commandIdAsUintd), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
+    serializationResult = Serialization__serializeAs8Bit(&(commandIdAsUint), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(serializationResult);
     dstIntPtr += sizeof(commandIdAsUint);
 
@@ -337,10 +338,10 @@ WdCmdMsgs__Status WdCmdMsgs__serializeGroundResponse(const WdCmdMsgs__Response* 
 }
 
 WdCmdMsgs__Status
-WdCmdMsgs__deserializeBody(WdCmdMsgs__MessageId srcMsgId,
+WdCmdMsgs__deserializeBody(WdCmdMsgs__CommandId srcMsgId,
                            const void* src,
                            size_t srcLen,
-                           WdCmdMsgs__Body* dst)
+                           WdCmdMsgs__MessageBody* dst)
 {
     if (NULL == src || NULL == dst) {
         return WD_CMD_MSGS__STATUS__ERROR_NULL;
@@ -384,7 +385,7 @@ WdCmdMsgs__deserializeBody(WdCmdMsgs__MessageId srcMsgId,
             return WdCmdMsgs__deserializeEnterKeepAliveModeBody(src, srcLen, &(dst->enterKeepAliveMode));
 
         case WD_CMD_MSGS__CMD_ID__ENTER_SERVICE_MODE:
-            return WdCmdMsgs__deserializeEnterServiceModeBody(src, srcLen, &(dst->timeDelayRequest));
+            return WdCmdMsgs__deserializeEnterServiceModeBody(src, srcLen, &(dst->enterServiceMode));
 
         default:
             return WD_CMD_MSGS__STATUS__ERROR_UNKNOWN_MESSAGE_ID;

@@ -15,11 +15,11 @@ struct HerculesComms__State
     BOOL initialized;
     UART__State* uartState;
 
-    uint8_t rxMsgBuffer[HERC_MSGS__MAX_DATA_SIZE];
+    uint8_t rxMsgBuffer[HERC_MSGS__CONSTANTS__MAX_PAYLOAD_SIZE];
     HerculesMpsm__Msg herculesMsg;
 
     uint16_t uplinkSequenceNumber;
-    HercMsgs__CommonHeader headerStruct;
+    HercMsgs__Header headerStruct;
     uint8_t headerSerializationBuffer[HERC_MSGS__PACKED_SIZE__HEADER];
 };
 
@@ -47,6 +47,26 @@ static HerculesComms__State theState = {
 // Private function declarations
 //###########################################################
 
+/**
+ * @private
+ *
+ * @brief Transmits a message to the Hercules with the given parameters.
+ *
+ * @param hState The comms instance.
+ * @param resetValue The reset value to send as part of the header.
+ * @param lowerSeqNum The sequence number to send as part of the header.
+ * @param lowerOpCode The opcode to send as part of the header.
+ * @param data The payload data to send. Must be non-NULL if `dataLen` is non-zero.
+ * @param dataLen The length of `data`.
+ *
+ * @return One of the following:
+ *   - HERCULES_COMMS__STATUS__SUCCESS: The function was successful.
+ *   - HERCULES_COMMS__STATUS__ERROR_NULL: `hState` was NULL, or `data` was NULL when `dataLen` is non-zero.
+ *   - HERCULES_COMMS__STATUS__ERROR_NOT_INITIALIZED: `hState` was not initialized.
+ *   - HERCULES_COMMS__STATUS__ERROR_TX_OVERFLOW: Could not fit all of the data in `buffer` into the UART's internal
+ *                                                transmit buffer.
+ *   - HERCULES_COMMS__STATUS__ERROR_UART_TX_FAILURE: Got an error when `UART__transmit` was invoked.
+ */
 static HerculesComms__Status HerculesComms__txHerculesMsg(HerculesComms__State* hState,
                                                           uint16_t resetValue,
                                                           uint16_t lowerSeqNum,
@@ -54,6 +74,21 @@ static HerculesComms__Status HerculesComms__txHerculesMsg(HerculesComms__State* 
                                                           const uint8_t* data,
                                                           size_t dataLen);
 
+/**
+ * @private
+ *
+ * @brief A simple wrapper around UART__transmit that sends the given buffer of data.
+ *
+ * @param hState The comms instance.
+ * @param buffer The data buffer to send.
+ * @param len The length of `buffer`.
+ *
+ * @return One of the following:
+ *   - HERCULES_COMMS__STATUS__SUCCESS: The function was successful.
+ *   - HERCULES_COMMS__STATUS__ERROR_TX_OVERFLOW: Could not fit all of the data in `buffer` into the UART's internal
+ *                                                transmit buffer.
+ *   - HERCULES_COMMS__STATUS__ERROR_UART_TX_FAILURE: Got an error when `UART__transmit` was invoked.
+ */
 static HerculesComms__Status HerculesComms__transmitBuffer(HerculesComms__State* hState,
                                                            const uint8_t* buffer,
                                                            size_t len);
@@ -187,7 +222,7 @@ HerculesComms__Status HerculesComms__txUplinkMsg(HerculesComms__State* hState, c
 // will be sent first and then the data will be sent without  modification (if there is any data to send).
 // If dataLen is zero, data is allowed to be NULL.
 HerculesComms__Status HerculesComms__txResponseMsg(HerculesComms__State* hState,
-                                                   const HercMsgs__CommonHeader* sourceCommandHeader,
+                                                   const HercMsgs__Header* sourceCommandHeader,
                                                    const uint8_t* data,
                                                    size_t dataLen)
 {
@@ -221,7 +256,7 @@ HerculesComms__Status HerculesComms__resetState(HerculesComms__State* hState)
     // message parsing state machine.
     size_t numReceived = 1;
 
-    // TODO: add timeout
+    //!< @todo Do we want to add a timeout to this loop?
     while (numReceived > 0) {
         UART__Status uartStatus = UART__receive(hState->uartState,
                                                 uartRxData,

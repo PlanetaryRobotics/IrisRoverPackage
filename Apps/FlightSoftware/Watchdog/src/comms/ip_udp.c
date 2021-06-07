@@ -187,7 +187,7 @@ IpUdp__Status IpUdp__identifyDataInUdpPacket(uint8_t* fullIpUdpPacketData,
         return IP_UDP__STATUS__ERROR_BUFFER_TOO_SMALL;
     }
 
-    // TODO: Do we want to add validation of contents of IP and/or UDP headers
+    //!< @todo Do we want to add validation of contents of IP and/or UDP headers?
 
     *udpDataPointer = fullIpUdpPacketData + IP_UDP_HEADER_LEN;
     *udpDataSize = fullDataLen - IP_UDP_HEADER_LEN;
@@ -206,20 +206,20 @@ IpUdp__Status IpUdp__generateAndSerializeIpUdpHeadersForData(const uint8_t* udpD
     }
 
     if (bufferLen < IP_UDP_HEADER_LEN) {
-        return IP_UDP__STATUS__ERROR_NULL;
+        return IP_UDP__STATUS__ERROR_BUFFER_TOO_SMALL;
     }
 
     struct ip_hdr *ip_hdr = (struct ip_hdr *) serializationBuffer;
     struct udp_hdr *udp_hdr = (struct udp_hdr *)(ip_hdr + 1);
 
 
-    /*
-     * NOTE: The code below is kind of gross, but it (presumably) works so I'm reusing it for now.
-     * TODO: Rewrite this code so it is neater and maybe less hardcoded.
-     *
-     * Old code below 
-     *==============================================================
-     */
+
+
+     // NOTE: The code below is kind of gross, but it (presumably) works so I'm reusing it for now.
+     //!< @todo Rewrite this code so it is neater and maybe less hardcoded.
+     //
+     // Old code below
+     //==============================================================
 
 
     /* make the ip header first */
@@ -257,10 +257,8 @@ IpUdp__Status IpUdp__generateAndSerializeIpUdpHeadersForData(const uint8_t* udpD
                                               ip_hdr->dest);
     udp_hdr->checksum = htons(udpHeaderChecksum);
 
-    /*
-     *==============================================================
-     * Old code above 
-     */
+     //==============================================================
+     // Old code above
 
     return IP_UDP__STATUS__SUCCESS;
 }

@@ -29,11 +29,11 @@
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
- *   WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
- *   WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
- *   WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                WD_CMD_MSGS__PACKED_SIZE__RESET_SPECIFIC_BODY.
- *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__RESET_SPECIFIC_BODY.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
 WdCmdMsgs__deserializeResetSpecificBody(const void* src,
@@ -51,11 +51,11 @@ WdCmdMsgs__deserializeResetSpecificBody(const void* src,
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
- *   WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
- *   WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
- *   WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                WD_CMD_MSGS__PACKED_SIZE__PREP_FOR_DEPLOY_BODY.
- *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__PREP_FOR_DEPLOY_BODY.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
 WdCmdMsgs__deserializePrepForDeployBody(const void* src,
@@ -73,11 +73,11 @@ WdCmdMsgs__deserializePrepForDeployBody(const void* src,
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
- *   WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
- *   WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
- *   WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                WD_CMD_MSGS__PACKED_SIZE__DEPLOY_BODY.
- *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__DEPLOY_BODY.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
 WdCmdMsgs__deserializeDeployBody(const void* src,
@@ -95,11 +95,11 @@ WdCmdMsgs__deserializeDeployBody(const void* src,
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
- *   WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
- *   WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
- *   WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                WD_CMD_MSGS__PACKED_SIZE__SWITCH_CONN_MODE_MSG.
- *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__SWITCH_CONN_MODE_MSG.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSwitchConnModeBody(const void* src,
@@ -117,11 +117,11 @@ WdCmdMsgs__deserializeSwitchConnModeBody(const void* src,
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
- *   WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
- *   WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
- *   WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_KP_BODY.
- *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_KP_BODY.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetHeaterKpBody(const void* src,
@@ -139,11 +139,11 @@ WdCmdMsgs__deserializeSetHeaterKpBody(const void* src,
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
- *   WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
- *   WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
- *   WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_ON_VALUE_BODY.
- *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_ON_VALUE_BODY.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetAutoHeaterOnValueBody(const void* src,
@@ -161,11 +161,11 @@ WdCmdMsgs__deserializeSetAutoHeaterOnValueBody(const void* src,
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
- *   WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
- *   WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
- *   WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_OFF_VALUE_BODY.
- *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_OFF_VALUE_BODY.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetAutoHeaterOffValueBody(const void* src,
@@ -183,11 +183,11 @@ WdCmdMsgs__deserializeSetAutoHeaterOffValueBody(const void* src,
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
- *   WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
- *   WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
- *   WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_MAX_BODY.
- *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_MAX_BODY.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetHeaterDutyCycleMaxBody(const void* src,
@@ -205,11 +205,11 @@ WdCmdMsgs__deserializeSetHeaterDutyCycleMaxBody(const void* src,
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
- *   WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
- *   WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
- *   WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_PERIOD_BODY.
- *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_PERIOD_BODY.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetHeaterDutyCyclePeriodBody(const void* src,
@@ -227,11 +227,11 @@ WdCmdMsgs__deserializeSetHeaterDutyCyclePeriodBody(const void* src,
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
- *   WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
- *   WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
- *   WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                WD_CMD_MSGS__PACKED_SIZE__SET_THERMISTER_V_SETPOINT_BODY.
- *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__SET_THERMISTER_V_SETPOINT_BODY.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
 WdCmdMsgs__deserializeSetThermisterVSetpointBody(const void* src,
@@ -249,11 +249,11 @@ WdCmdMsgs__deserializeSetThermisterVSetpointBody(const void* src,
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
- *   WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
- *   WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
- *   WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                WD_CMD_MSGS__PACKED_SIZE__ENTER_SLEEP_MODE_BODY.
- *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__ENTER_SLEEP_MODE_BODY.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
 WdCmdMsgs__deserializeEnterSleepModeBody(const void* src,
@@ -271,11 +271,11 @@ WdCmdMsgs__deserializeEnterSleepModeBody(const void* src,
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
- *   WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
- *   WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
- *   WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                WD_CMD_MSGS__PACKED_SIZE__ENTER_KEEPALIVE_MODE_BODY.
- *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__ENTER_KEEPALIVE_MODE_BODY.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
 WdCmdMsgs__deserializeEnterKeepAliveModeBody(const void* src,
@@ -293,11 +293,11 @@ WdCmdMsgs__deserializeEnterKeepAliveModeBody(const void* src,
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
- *   WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
- *   WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
- *   WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                WD_CMD_MSGS__PACKED_SIZE__ENTER_SERVICE_MODE_BODY.
- *   WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__ENTER_SERVICE_MODE_BODY.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
 WdCmdMsgs__deserializeEnterServiceModeBody(const void* src,

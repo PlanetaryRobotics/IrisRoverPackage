@@ -33,7 +33,7 @@ typedef struct UART__Registers
 struct UART__State
 {
     BOOL initialized;
-    UART__Registers* registers;
+    const UART__Registers* registers;
 
     RingBuffer* txRingBuff;
     RingBuffer* rxRingBuff;
@@ -45,7 +45,7 @@ struct UART__State
 // Private globals and constants
 //###########################################################
 
-static UART__Registers uart0Registers = {
+static const UART__Registers uart0Registers = {
     .UCAxTXBUF = &UCA0TXBUF,
     .UCAxRXBUF = &UCA0RXBUF,
     .UCAxIV = &UCA0IV,
@@ -53,7 +53,7 @@ static UART__Registers uart0Registers = {
     .UCAxIFG = &UCA0IFG
 };
 
-static UART__Registers uart1Registers = {
+static const UART__Registers uart1Registers = {
     .UCAxTXBUF = &UCA1TXBUF,
     .UCAxRXBUF = &UCA1RXBUF,
     .UCAxIV = &UCA1IV,
@@ -442,7 +442,7 @@ static void UART__interruptHandler(UART__State* uartState)
                 *(uartState->registers->UCAxIE) &= ~UCTXIE;
             } else {
                 // An error occurred.
-                // TODO: handling? logging?
+                //!< @todo handling? logging?
             }
             break;
 
@@ -457,10 +457,10 @@ static void UART__interruptHandler(UART__State* uartState)
 
             if (RB__STATUS__ERROR__FULL == rbStatus) {
                 // The ring buffer is full, so data will be dropped.
-                // TODO: handling? logging?
+                //!< @todo handling? logging?
             } else if (RB__STATUS__SUCCESS != rbStatus) {
                 // An error occurred.
-                // TODO: handling? logging?
+                //!< @todo handling? logging?
             }
 
             // We're done with the byte we just received, so clear the receive interrupt flag
@@ -468,7 +468,7 @@ static void UART__interruptHandler(UART__State* uartState)
             *(uartState->registers->UCAxIFG) &= ~UCRXIFG;
 
             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            // TODO: REPLACE THESE WITH EVENT DISPATCH
+            //!< @todo REPLACE THESE WITH EVENT DISPATCH
             loop_flags |= uartState->gotRxLoopFlag;
             __bic_SR_register(DEFAULT_LPM); //Exits LPM
             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

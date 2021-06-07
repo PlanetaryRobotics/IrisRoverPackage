@@ -12,6 +12,8 @@
 #include "include/comms/hercules_comms.h"
 #include "include/comms/i2c_sensors.h"
 
+// MPS: I'm not documenting these because this code will soon be restructured into a state-based paradigm.
+
 int watchdog_init();
 
 void watchdog_build_hercules_telem(I2C_Sensors__Readings *i2cReadings,

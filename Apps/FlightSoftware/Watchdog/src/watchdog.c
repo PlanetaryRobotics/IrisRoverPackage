@@ -231,7 +231,7 @@ int watchdog_monitor(HerculesComms__State* hState) {
             // if the issue was due to a comms breakdown, reset the comms state
             HerculesComms__Status hcStatus = HerculesComms__resetState(hState);
 
-            // TODO: Replace with returning watchdog error code once that is implemented.
+            //!< @todo Replace with returning watchdog error code once that is implemented.
             assert(HERCULES_COMMS__STATUS__SUCCESS == hcStatus);
         } else {
             // missed a kick, but don't reset the hercules.

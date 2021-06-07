@@ -10,6 +10,8 @@
 #include "include/comms/watchdog_cmd_msgs.h"
 #include "include/common.h"
 
+// MPS: I'm not documenting these because this code will soon be restructured into a state-based paradigm.
+
 typedef enum GroundCmd__Status
 {
     GND_CMD__STATUS__SUCCESS = 0, /* Operation suceeded. */

@@ -32,7 +32,7 @@ RingBuffer__Status RingBuffer__init(RingBuffer** rb, volatile uint8_t* buffer, s
         return RB__STATUS__ERROR__ALL_BUFFERS_USED;
     }
 
-    RingBuffer* thisRb = ALL_RING_BUFFERS + rbIndex;
+    RingBuffer* thisRb = ALL_RING_BUFFERS + rbIndex++;
     thisRb->buffer = buffer;
     thisRb->bufferSize = bufferSize;
     thisRb->head = 0U;
@@ -187,5 +187,7 @@ RingBuffer__Status RingBuffer__clear(RingBuffer* rb)
 
     rb->head = 0U;
     rb->tail = 0U;
+
+    return RB__STATUS__SUCCESS;
 }
 

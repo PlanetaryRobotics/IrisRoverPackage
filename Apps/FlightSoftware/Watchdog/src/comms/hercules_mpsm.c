@@ -64,9 +64,64 @@ static HerculesMpsm__StateMachine theStateMachine = {
 // Private function declarations
 //###########################################################
 
+/**
+ * @private
+ *
+ * @brief Checks if the internal RingBuffer contains a valid header after appending `newData`.
+ *
+ * @param msg The current message.
+ * @param newData The new byte of data to be appended.
+ *
+ * @return One of the following:
+ *   - HERCULES_MPSM__STATUS__NEED_MORE_DATA: Either no valid header was found and we need more data to find a valid
+ *                                            header, or a valid header was found with a non-zero payload size, so
+ *                                            payload data is needed.
+ *   - HERCULES_MPSM__STATUS__PARSED_MESSAGE: Found a valid header with a payload size of zero, meaning a complete message
+ *                                            has been parsed.
+ *   - HERCULES_MPSM__STATUS__ERROR_RB_PUT_FAILURE: Calling `put()` on the internal RingBuffer failed.
+ */
 static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg* msg, uint8_t newData);
+
+/**
+ * @private
+ *
+ * @brief A wrapper around `RingBuffer__peekAt()` that compares the value at the given index in the ring buffer to the
+ *        expected value.
+ *
+ * @param index The index in the ring buffer to peek at.
+ * @param expected The expected value.
+ *
+ * @return TRUE if the value in the ring buffer and the expected value match, otherwise FALSE. Will be FALSE if the call
+ *         to `RingBuffer__peekAt()` did not return a status indicating success.
+ */
 static BOOL HerculesMpsm__checkRb(size_t index, uint8_t expected);
+
+/**
+ * @private
+ *
+ * @brief A wrapper around `RingBuffer__peekAt()` that returns zero if `RingBuffer__peekAt()` returns a non-success
+ *        status.
+ *
+ * @param index The index in the ring buffer to peek at.
+ *
+ * @return The value at the given index in the ring buffer if `RingBuffer__peekAt()` returned a status indicating
+ *         success, otherwise zero.
+ */
 static uint8_t HerculesMpsm__peekRb(size_t index);
+
+/**
+ * @private
+ *
+ * @brief Appends the given byte to the payload and returns whether or not we need more payload data.
+ *
+ * @param msg The message being constructed.
+ * @param newData The new byte of data being appended.
+ *
+ * @return One of the following:
+ *   - HERCULES_MPSM__STATUS__NEED_MORE_DATA: More payload data is needed to complete the message.
+ *   - HERCULES_MPSM__STATUS__PARSED_MESSAGE: All payload data has been accumulated, so the message has been completely
+ *                                            parsed.
+ */
 static HerculesMpsm__Status HerculesMpsm__appendData(HerculesMpsm__Msg* msg, uint8_t newData);
 
 //###########################################################

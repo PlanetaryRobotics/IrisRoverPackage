@@ -4,6 +4,12 @@
 #include <stdint.h>
 #include <stddef.h>
 
+/**
+ * @defgroup watchdogIpUdp IP/UDP
+ * @addtogroup watchdogIpUdp
+ * @{
+ */
+
 #define iup_get_ver(pckt) (pckt->ver_hdrlen >> 4)
 #define iup_get_hdrlen(pckt) (pckt->ver_hdrlen & 0xF)
 #define iup_as_bytes(pckt) ((unsigned char *)pckt)
@@ -84,28 +90,71 @@ struct __attribute__((__packed__)) ip_udp_pckt {
     /* -=-=-=-=-=-=-=-=[ data here ]=-=-=-=-=-=-=-=- */
 };
 
+/**
+ * @brief Constants related to IP/UDP packets and/or their headers.
+ */
 typedef enum IpUdp__Constants
 {
+    /**
+     * @brief The total combined length of the IP and UDP headers.
+     */
     IP_UDP_HEADER_LEN = sizeof(struct ip_hdr) + sizeof(struct udp_hdr)
 } IpUdp_Constants;
 
+/**
+ * @brief Possible return statuses of IpUdp functions.
+ */
 typedef enum IpUdp__Status {
-    IP_UDP__STATUS__SUCCESS = 0,
+    IP_UDP__STATUS__SUCCESS = 0, //!< The function completed successfully.
 
-    IP_UDP__STATUS__ERROR_NULL = -1,
-    IP_UDP__STATUS__ERROR_BUFFER_TOO_SMALL = -2,
-    IP_UDP__STATUS__ERROR_SERIALIZATION_FAILURE = -3
+    IP_UDP__STATUS__ERROR_NULL = -1, //!< A required argument  or a member of an argument was NULL.
+    IP_UDP__STATUS__ERROR_BUFFER_TOO_SMALL = -2, //!< A given buffer was too small for some purpose.
+    IP_UDP__STATUS__ERROR_SERIALIZATION_FAILURE = -3//!< A Serialization function call returned an error.
 } IpUdp__Status;
 
+/**
+ * @brief Given a serialized IP/IDP packet, returns a pointer to the beginning of the UDP payload of that packet along
+ *        with the size of that payload.
+ *
+ * @param fullIpUdpPacketData The full IP/UDP packet data.
+ * @param fullDataLen The length of `fullIpUdpPacketData`.
+ * @param udpDataPointer An output parameter set to the beginning of the payload data.
+ * @param udpDataSize An output parameter set to the size of the payload data.
+ *
+ * @return One of the following:
+ *   - IP_UDP__STATUS__SUCCESS: The function was successful.
+ *   - IP_UDP__STATUS__ERROR_NULL: `fullIpUdpPacketData`, `udpDataPointer`, or `udpDataSize` was NULL.
+ *   - IP_UDP__STATUS__ERROR_BUFFER_TOO_SMALL: `fullIpUdpPacketData` was smaller than `IP_UDP_HEADER_LEN`.
+ */
 IpUdp__Status IpUdp__identifyDataInUdpPacket(uint8_t* fullIpUdpPacketData,
                                              size_t fullDataLen,
                                              uint8_t** udpDataPointer,
                                              size_t* udpDataSize);
 
+/**
+ * @brief Generates an IP and UDP header for the given payload data and serializes theses headers into the given
+ *        output buffer.
+ *
+ * @param udpData The payload data to be used as the payload of the UDP packet.
+ * @param udpDataSize The size of `udpData`.
+ * @param serializationBuffer The output buffer into which the IP and UDP header will be serialized.
+ * @param bufferLen The size of `serializationBuffer`.
+ * @param packetId The value to use for the ID field of the IP header.
+ *
+ * @return One of the following:
+ *   - IP_UDP__STATUS__SUCCESS: The function was successful.
+ *   - IP_UDP__STATUS__ERROR_NULL: `udpData` or `serializationBuffer` was NULL.
+ *   - IP_UDP__STATUS__ERROR_BUFFER_TOO_SMALL: `bufferLen` was smaller than `IP_UDP_HEADER_LEN`.
+ */
 IpUdp__Status IpUdp__generateAndSerializeIpUdpHeadersForData(const uint8_t* udpData,
                                                              size_t udpDataSize,
                                                              uint8_t* serializationBuffer,
                                                              size_t bufferLen,
                                                              uint16_t packetId);
+
+/**
+ * @}
+ */
+
 
 #endif /* __WATCHDOG_IP_UDP_H__ */

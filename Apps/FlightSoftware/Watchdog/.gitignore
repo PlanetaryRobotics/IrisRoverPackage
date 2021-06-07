@@ -4,3 +4,5 @@ targetConfigs/
 .settings/
 /Release/
 doc/
+/Debug__opt_for_speed__1/
+/Debug__opt_for_speed__4/

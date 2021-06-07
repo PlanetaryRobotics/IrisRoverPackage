@@ -18,7 +18,7 @@ struct LanderComms__State
     UART__State* uartState;
 
     // Note: this size constant is defined in common.h
-    uint8_t slipMsgBuffer[HERC_MSGS__MAX_DATA_SIZE + IP_UDP_HEADER_LEN];
+    uint8_t slipMsgBuffer[HERC_MSGS__CONSTANTS__MAX_PAYLOAD_SIZE + IP_UDP_HEADER_LEN];
     SlipMpsm__Msg slipMsgMpsm;
 
     uint16_t txPacketId;
@@ -147,7 +147,7 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
                 resetMpsmMsg = TRUE;
             } else if (SLIP_MPSM__STATUS__NEED_MORE_DATA != mpsmStatus) {
                 // Some kind of unexpected error occurred. At a minimum we need to reset the MPSM
-                // TODO: Additional handling? Logging?
+                //!< @todo Additional handling? Logging?
                 resetMpsmMsg = true;
             }
 
@@ -179,7 +179,7 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
 {
     static const uint8_t SLIP_END_AS_UINT8 = (uint8_t) SLIP_END;
 
-    // TODO: verify these buffer sizes are OK; we can decrease these, it just means serialization may get more complex
+    //!< @todo Verify these buffer sizes are OK; we can decrease these, it just means serialization may get more complex
     static uint8_t uartHeaderData[IP_UDP_HEADER_LEN] = { 0 };
     static uint8_t uartTxSlipData[256] = { 0 };
 

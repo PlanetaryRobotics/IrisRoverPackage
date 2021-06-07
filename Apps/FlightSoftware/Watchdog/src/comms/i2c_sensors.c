@@ -11,6 +11,52 @@
 // Private definitions and globals
 //###########################################################
 
+typedef enum I2C_Sensors__RegisterAddrs {
+    REG_ADDR__STATUS = 0,                 //read only
+    REG_ADDR__CONTROL = 1,
+    REG_ADDR__ACCUMULATED_CHARGE_MSB = 2,
+    REG_ADDR__ACCUMULATED_CHARGE_LSB = 3,
+    REG_ADDR__CHARGE_THRESHOLD_HIGH_MSB = 4,
+    REG_ADDR__CHARGE_THRESHOLD_HIGH_LSB = 5,
+    REG_ADDR__CHARGE_THRESHOLD_LOW_MSB = 6,
+    REG_ADDR__CHARGE_THRESHOLD_LOW_LSB = 7,
+    REG_ADDR__VOLTAGE_MSB = 8,                //read only
+    REG_ADDR__VOLTAGE_LSB = 9,                //read only
+    REG_ADDR__VOLTAGE_THRESHOLD_HIGH_MSB = 10,
+    REG_ADDR__VOLTAGE_THRESHOLD_HIGH_LSB = 11,
+    REG_ADDR__VOLTAGE_THRESHOLD_LOW_MSB = 12,
+    REG_ADDR__VOLTAGE_THRESHOLD_LOW_LSB = 13,
+    REG_ADDR__CURRENT_MSB = 14,                //read only
+    REG_ADDR__CURRENT_LSB = 15,                //read only
+    REG_ADDR__CURRENT_THRESHOLD_HIGH_MSB = 16,
+    REG_ADDR__CURRENT_THRESHOLD_HIGH_LSB = 17,
+    REG_ADDR__CURRENT_THRESHOLD_LOW_MSB = 18,
+    REG_ADDR__CURRENT_THRESHOLD_LOW_LSB = 19,
+    REG_ADDR__TEMPERATURE_MSB = 20,           //read only
+    REG_ADDR__TEMPERATURE_LSB = 21,           //read only
+    REG_ADDR__TEMPERATURE_THRESHOLD_HIGH = 22,
+    REG_ADDR__TEMPERATURE_THRESHOLD_LOW = 23,
+    REG_ADDR__MAX_NB_CMDS = 24
+} I2C_Sensors__RegisterAddrs;
+
+typedef enum GaugeReadingState {
+    GRS__UNKNOWN = 0,
+    GRS__CHARGE_LSB,
+    GRS__CHARGE_MSB,
+    GRS__VOLTAGE_LSB,
+    GRS__VOLTAGE_MSB,
+    GRS__CURRENT_LSB,
+    GRS__CURRENT_MSB,
+    GRS__GAUGE_TEMP_LSB,
+    GRS__GAUGE_TEMP_MSB,
+    GRS__DONE
+} GaugeReadingState;
+
+typedef struct INS_Sensors__InternalState {
+    GaugeReadingState gState;
+    I2C_Sensors__Readings readings;
+} INS_Sensors__InternalState;
+
 static INS_Sensors__InternalState internals = {
     .gState = GRS__UNKNOWN,
     .readings = { 0 }
@@ -20,6 +66,29 @@ static INS_Sensors__InternalState internals = {
 // Private function declarations
 //###########################################################
 
+/**
+ * @private
+ *
+ * @brief Attempts to progress the process of reading a value from a specified device register. Will not block.
+ *
+ * This will start a new read if no transaction is active, monitor the status of an ongoing transaction if one is
+ * active, and handle returning the read value and transitioning the state machine if a value has been received. This
+ * will also handle the case that the transaction completed due to not receiving an acknowledgment from the other
+ * device in response to a byte transmitted from this device. If the `nackMaskBit` is already set in the `I2C_Readings`
+ * then this read will be skipped.
+ *
+ * @param devAddr The device address to read from.
+ * @param regAddr The register address to read from.
+ * @param nackMaskBit The bit flag to set if no response is received to a transmitted byte.
+ * @param nextState The next state to transition to when this read completes.
+ * @param output A return parameter that will be set to the value read from the specified device register if `done` and
+ *               `gotOutput` are both set to TRUE.
+ * @param done A return parameter that will specify whether or not reading this device register is complete.
+ * @param gotOutput A return parameter that, if `done` is TRUE, will specify if whether or not we successfully read an
+ *                  output byte from the specified device register.
+ *
+ * @return Whether or not the state machine should continue spinning.
+ */
 static BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
                                             uint8_t regAddr,
                                             uint8_t nackMaskBit,
@@ -28,20 +97,124 @@ static BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
                                             BOOL* done,
                                             BOOL* gotOutput);
 
-
+/**
+ * @private
+ *
+ * @private Attempts to progress the process of writing a value to a specified device register. Will not block.
+ *
+ * This will start a new write if no transaction is active, monitor the status of an ongoing transaction if one is
+ * active, and handle the case of the transaction completed due to not receiving an acknowledgment from the other device
+ * in response to a byte transmitted from this device.
+ *
+ * @param devAddr The device address to write to.
+ * @param regAddr The register address to write to.
+ * @param data The value to write to the specified device register.
+ * @param done A return parameter that will specify whether or not the write is complete.
+ * @param success A return parameter that, if `done` is TRUE, will specify whether or not the write completed
+ *                successfully.
+ */
 static void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
                                              uint8_t regAddr,
                                              uint8_t data,
                                              BOOL* done,
                                              BOOL* success);
 
+/**
+ * @private
+ *
+ * @brief Spins the `GRS__CHARGE_LSB` state, which involves reading the LSB of the battery charge. Will not block.
+ *
+ * Populates the `raw_battery_charge[1]` value in the `I2C_Readings` struct when the read completes successfully. Upon
+ * completion, will transition the state machine to the `GRS__CHARGE_MSB` state.
+ *
+ * @return Whether or not to continue spinning the state machine.
+ */
 static BOOL I2C_Sensors__chargeLsb();
+
+/**
+ * @private
+ *
+ * @brief Spins the `GRS__CHARGE_MSB` state, which involves reading the MSB of the battery charge. Will not block.
+ *
+ * Populates the `raw_battery_charge[0]` and `batt_charge_telem` values in the `I2C_Readings` struct if the read
+ * completes successfully. Upon completion, will transition the state machine to the `GRS__VOLTAGE_LSB` state.
+ *
+ * @return Whether or not to continue spinning the state machine.
+ */
 static BOOL I2C_Sensors__chargeMsb();
+
+/**
+ * @private
+ *
+ * @brief Spins the `GRS__VOLTAGE_LSB` state, which involves reading the LSB of the battery voltage. Will not block.
+ *
+ * Populates the `raw_battery_voltage[1]` value in the `I2C_Readings` struct when the read completes successfully. Upon
+ * completion, will transition the state machine to the `GRS__VOLTAGE_MSB` state.
+ *
+ * @return Whether or not to continue spinning the state machine.
+ */
 static BOOL I2C_Sensors__voltageLsb();
+
+/**
+ * @private
+ *
+ * @brief Spins the `GRS__VOLTAGE_MSB` state, which involves reading the MSB of the battery voltage. Will not block.
+ *
+ * Populates the `raw_battery_voltage[0]` value in the `I2C_Readings` struct when the read completes successfully. Upon
+ * completion, will transition the state machine to the `GRS__CURRENT_LSB` state.
+ *
+ * @return Whether or not to continue spinning the state machine.
+ */
 static BOOL I2C_Sensors__voltageMsb();
+
+/**
+ * @private
+ *
+ * @brief Spins the `GRS__CURRENT_LSB` state, which involves reading the LSB of the battery current. Will not block.
+ *
+ * Populates the `raw_battery_current[1]` value in the `I2C_Readings` struct when the read completes successfully. Upon
+ * completion, will transition the state machine to the `GRS__CURRENT_MSB` state.
+ *
+ * @return Whether or not to continue spinning the state machine.
+ */
 static BOOL I2C_Sensors__currentLsb();
+
+/**
+ * @private
+ *
+ * @brief Spins the `GRS__CURRENT_MSB` state, which involves reading the MSB of the battery current. Will not block.
+ *
+ * Populates the `raw_battery_current[0]` and `batt_curr_telem` values in the `I2C_Readings` struct when the read
+ * completes successfully. Upon completion, will transition the state machine to the `GRS__GAUGE_TEMP_LSB` state.
+ *
+ * @return Whether or not to continue spinning the state machine.
+ */
 static BOOL I2C_Sensors__currentMsb();
+
+/**
+ * @private
+ *
+ * @brief Spins the `GRS__GAUGE_TEMP_LSB` state, which involves reading the LSB of the fuel gauge temperature. Will not
+ *        block.
+ *
+ * Populates the `raw_fuel_gauge_temp[1]` value in the `I2C_Readings` struct when the read completes successfully. Upon
+ * completion, will transition the state machine to the `GRS__GAUGE_TEMP_MSB` state.
+ *
+ * @return Whether or not to continue spinning the state machine.
+ */
 static BOOL I2C_Sensors__gaugeTempLsb();
+
+/**
+ * @private
+ *
+ * @brief Spins the `GRS__GAUGE_TEMP_MSB` state, which involves reading the MSB of the fuel gauge temperature. Will not
+ *        block.
+ *
+ * Populates the `raw_fuel_gauge_temp[0]` value in the `I2C_Readings` struct when the read completes successfully. Upon
+ * completion, will transition the state machine to the `GRS__DONE` state.
+ *
+ * @return Whether or not to continue spinning the state machine.
+ */
 static BOOL I2C_Sensors__gaugeTempMsb();
 
 //###########################################################

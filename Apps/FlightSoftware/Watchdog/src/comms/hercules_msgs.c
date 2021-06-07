@@ -13,7 +13,7 @@
     }
 
 
-HercMsgs__Status HercMsgs__serializeHeader(const HercMsgs__CommonHeader* src,
+HercMsgs__Status HercMsgs__serializeHeader(const HercMsgs__Header* src,
                                            void* dst,
                                            size_t dstLen)
 {

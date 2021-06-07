@@ -8,6 +8,10 @@ SlipEncode__Status SlipEncode__encode(const uint8_t* input,
                                       size_t outputLen,
                                       size_t* outputUsed)
 {
+    if (NULL == input || NULL == inputUsed || NULL == output || NULL == outputUsed) {
+        return SLIP_ENCODE__STATUS__ERROR_NULL;
+    }
+
     size_t outIndex = 0;
 
     for (size_t inIndex = 0; inIndex < inputLen; ++inIndex) {

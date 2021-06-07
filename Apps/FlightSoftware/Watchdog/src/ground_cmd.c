@@ -174,11 +174,11 @@ GroundCmd__Status GroundCmd__performResetCommand(WdCmdMsgs__ResetSpecificId rese
             break;
 
         case WD_CMD_MSGS__RESET_ID__RS422_UART_ENABLE:
-            // TODO: IMPLEMENT
+            //!< @todo IMPLEMENT
             break;
 
         case WD_CMD_MSGS__RESET_ID__RS422_UART_DISABLE:
-            // TODO: IMPLEMENT
+            //!< @todo IMPLEMENT
             break;
 
         case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_ENABLE:
@@ -291,42 +291,42 @@ GroundCmd__Status GroundCmd__performWatchdogCommand(const WdCmdMsgs__Message* ms
             break;
 
         case WD_CMD_MSGS__CMD_ID__SWITCH_CONN_MODE:
-            // TODO: IMPLEMENT!
+            //!< @todo IMPLEMENT!
             response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
             break;
 
         case WD_CMD_MSGS__CMD_ID__SET_HEATER_KP:
-            // TODO: Make heater control not through globals
+            //!< @todo Make heater control not through globals
             Kp_heater = msg->body.setHeaterKp.kp;
             response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
             break;
 
         case WD_CMD_MSGS__CMD_ID__SET_AUTO_HEATER_ON_VALUE:
-            // TODO: Make heater control not through globals
+            //!< @todo Make heater control not through globals
             heater_on_val = msg->body.setAutoHeaterOnValue.heaterOnValue;
             response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
             break;
 
         case WD_CMD_MSGS__CMD_ID__SET_AUTO_HEATER_OFF_VALUE:
-            // TODO: Make heater control not through globals
+            //!< @todo Make heater control not through globals
             heater_off_val = msg->body.setAutoHeaterOffValue.heaterOffValue;
             response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
             break;
 
         case WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_MAX:
-            // TODO: Make heater control not through globals
+            //!< @todo Make heater control not through globals
             PWM_limit = msg->body.setHeaterDutyCycleMax.dutyCycleMax;
             response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
             break;
 
         case WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_PERIOD:
-            // TODO: Make heater control not through globals
+            //!< @todo Make heater control not through globals
             TB0CCR0 = msg->body.setHeaterDutyCyclePeriod.dutyCyclePeriod;
             response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
             break;
 
         case WD_CMD_MSGS__CMD_ID__SET_THERMISTER_V_SETPOINT:    
-            // TODO: Make heater control not through globals
+            //!< @todo Make heater control not through globals
             heater_setpoint = msg->body.setThermisterVSetpoint.thermisterVSetpoint;
             response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
             break;

@@ -80,6 +80,7 @@ void enterMode(enum rover_state newstate) {
         powerOnRadio();
         stopChargingBatteries();
 
+        //!< @todo Get rid of this delay
         __delay_cycles(12345678); //give fuel gauge [50 ms] & wifi [~750 ms] time to start up
         I2C_Sensors__initializeFuelGaugeBlocking();
         powerOnHercules();
@@ -88,7 +89,7 @@ void enterMode(enum rover_state newstate) {
 
         break;
     case RS_FAULT:
-        /* TODO: fault mode; enable everything in lander mode */
+        //!< @todo fault mode; enable everything in lander mode
         break;
     }
     rovstate = newstate;
@@ -98,6 +99,7 @@ void enterMode(enum rover_state newstate) {
 // Everything below this, down to but excluding main(), is temporary (at least in
 // this location, that is). This should all be restructured with switch to high level
 // state machine.
+// MPS: I'm not documenting these because they will soon be restructured.
 //########################################################################################
 
 typedef struct LanderMsgArgContainer
@@ -125,7 +127,7 @@ void sendLanderResponse(LanderComms__State* landerCommsState, WdCmdMsgs__Respons
                                                        sizeof(responseSerializationBuffer));
 
     if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
-        // TODO: handling?
+        //!< @todo handling?
     }
 }
 
@@ -148,7 +150,7 @@ void landerMsgCallback(uint8_t* rxDataBuffer, size_t rxDataLen, void* userArg)
     }
 
     if (NULL == rxDataBuffer) {
-        // TODO: reply to lander with this error
+        //!< @todo reply to lander with this error
         return;
     }
 
@@ -158,7 +160,7 @@ void landerMsgCallback(uint8_t* rxDataBuffer, size_t rxDataLen, void* userArg)
 
     if (CMD_MSGS__STATUS__SUCCESS != cmdStatus) {
         // This should only really happen if rxDataLen is the wrong size
-        // TODO: reply to lander with this error
+        //!< @todo reply to lander with this error
         return;
     }
 
@@ -174,7 +176,7 @@ void landerMsgCallback(uint8_t* rxDataBuffer, size_t rxDataLen, void* userArg)
 
         if (WD_CMD_MSGS__STATUS__SUCCESS != wdCmdStatus) {
             // This should only really happen if rxDataLen is the wrong size
-            // TODO: reply to lander with this error
+            //!< @todo reply to lander with this error
             return;
         }
 
@@ -185,7 +187,7 @@ void landerMsgCallback(uint8_t* rxDataBuffer, size_t rxDataLen, void* userArg)
                                                                            &sendDeployNotificationResponse);
 
         if (GND_CMD__STATUS__SUCCESS != gndCmdStatus) {
-            // TODO: reply to lander with this error
+            //!< @todo reply to lander with this error
             return;
         }
 
@@ -201,7 +203,7 @@ void landerMsgCallback(uint8_t* rxDataBuffer, size_t rxDataLen, void* userArg)
                                                                     rxDataLen);
 
         if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-            // TODO: handling? Send response to lander maybe?
+            //!< @todo handling? Send response to lander maybe?
         }
     }
 }
@@ -214,7 +216,7 @@ typedef struct HerculesMsgArgContainer
 } HerculesMsgArgContainer;
 
 void handleStrokeFromHercules(HerculesComms__State* herculesCommsState,
-                              HercMsgs__CommonHeader* header,
+                              HercMsgs__Header* header,
                               I2C_Sensors__Readings* i2cReadings)
 {
     static uint8_t telemetrySerializationBuffer[16] = { 0 };
@@ -235,13 +237,13 @@ void handleStrokeFromHercules(HerculesComms__State* herculesCommsState,
                                                                   sizeof(telemetrySerializationBuffer));
 
     if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-        // TODO: Handle error
+        //!< @todo Handle error
     }
 }
 
 void handleDownlinkFromHercules(HerculesComms__State* herculesCommsState,
                                 LanderComms__State* landerCommsState,
-                                HercMsgs__CommonHeader* header,
+                                HercMsgs__Header* header,
                                 uint8_t* payloadBuffer,
                                 size_t payloadSize)
 {
@@ -259,7 +261,7 @@ void handleDownlinkFromHercules(HerculesComms__State* herculesCommsState,
     LanderComms__Status lcStatus = LanderComms__txData(landerCommsState, payloadBuffer, payloadSize);
 
     if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
-        // TODO: Handle error
+        //!< @todo Handle error
 
         // We still want to follow through. Even if we failed to tx the data we can still
         // try to reply to the Hercules
@@ -272,12 +274,12 @@ void handleDownlinkFromHercules(HerculesComms__State* herculesCommsState,
                                                                   0);
 
     if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-        // TODO: Handle error
+        //!< @todo Handle error
     }
 }
 
 void handleResetFromHercules(HerculesComms__State* herculesCommsState,
-                             HercMsgs__CommonHeader* header)
+                             HercMsgs__Header* header)
 {
     if (NULL == herculesCommsState || NULL == header) {
         return;
@@ -288,7 +290,7 @@ void handleResetFromHercules(HerculesComms__State* herculesCommsState,
     GroundCmd__Status gcStatus = GroundCmd__performResetCommand(resetValue, NULL);
 
     if (GND_CMD__STATUS__SUCCESS != gcStatus) {
-        // TODO: logging/handling?
+        //!< @todo logging/handling?
 
         // We still want to follow through. Even if we failed to do the reset we can still
         // try to reply to the Hercules
@@ -300,12 +302,12 @@ void handleResetFromHercules(HerculesComms__State* herculesCommsState,
                                                                   0);
 
     if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-        // TODO: logging/handling?
+        //!< @todo logging/handling?
     }
 }
 
 // Determine if downlink, stroke, or reset command and handle each appropriately
-void herculesMsgCallback(HercMsgs__CommonHeader* header, uint8_t* payloadBuffer, size_t payloadSize, void* userArg)
+void herculesMsgCallback(HercMsgs__Header* header, uint8_t* payloadBuffer, size_t payloadSize, void* userArg)
 {
     if (NULL == userArg) {
         return;
@@ -356,7 +358,7 @@ void pumpMsgsFromHercules(I2C_Sensors__Readings* i2cReadings,
                                                                   (void*) &args);
 
     if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-        // TODO: logging?
+        //!< @todo logging?
     }
 }
 
@@ -372,7 +374,7 @@ void pumpMsgsFromLander(HerculesComms__State* hCommsState,
                                                               (void*) &args);
 
     if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
-        // TODO: logging?
+        //!< @todo logging?
     }
 }
 
@@ -388,24 +390,24 @@ void sendEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
                                                                    &outputHeartbeatSize);
 
     if (GND_CMD__STATUS__SUCCESS != gcStatus) {
-        // TODO: handling?
+        //!< @todo handling?
         return;
     }
 
     LanderComms__Status lcStatus = LanderComms__txData(lcState, hbSerializationBuffer, outputHeartbeatSize);
 
     if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
-        // TODO: Handling?
+        //!< @todo Handling?
     }
 }
 
 int main(void) {
     // Declare the buffers for the UART rx and tx ring buffers. These are static
     // so that they are not on the stack.
-    static volatile uint8_t uart0TxBuffer[HERC_MSGS__MAX_DATA_SIZE + HERC_MSGS__PACKED_SIZE__HEADER] = { 0 };
-    static volatile uint8_t uart0RxBuffer[HERC_MSGS__MAX_DATA_SIZE + HERC_MSGS__PACKED_SIZE__HEADER] = { 0 };
-    static volatile uint8_t uart1TxBuffer[HERC_MSGS__MAX_DATA_SIZE + IP_UDP_HEADER_LEN] = { 0 };
-    static volatile uint8_t uart1RxBuffer[HERC_MSGS__MAX_DATA_SIZE + IP_UDP_HEADER_LEN] = { 0 };
+    static volatile uint8_t uart0TxBuffer[HERC_MSGS__CONSTANTS__MAX_PAYLOAD_SIZE + HERC_MSGS__PACKED_SIZE__HEADER] = { 0 };
+    static volatile uint8_t uart0RxBuffer[HERC_MSGS__CONSTANTS__MAX_PAYLOAD_SIZE + HERC_MSGS__PACKED_SIZE__HEADER] = { 0 };
+    static volatile uint8_t uart1TxBuffer[HERC_MSGS__CONSTANTS__MAX_PAYLOAD_SIZE + IP_UDP_HEADER_LEN] = { 0 };
+    static volatile uint8_t uart1RxBuffer[HERC_MSGS__CONSTANTS__MAX_PAYLOAD_SIZE + IP_UDP_HEADER_LEN] = { 0 };
     
     /* stop watchdog timer */
 	WDTCTL = WDTPW | WDTHOLD;
@@ -535,8 +537,10 @@ int main(void) {
                 case RS_MISSION:
                     /* check for kicks from devices and reset misbehaving things */
                     
-                    // TODO: Check if we've deployed or if we shouldn't be able to communicate with lander for any
-                    //       other reason, and don't send this if that is the case.
+                    /**
+                     * @todo Check if we've deployed or if we shouldn't be able to communicate with lander for any other
+                     *       reason, and don't send this if that is the case.
+                     */
                     sendEarthHeartbeat(&i2cReadings, lcState);
 
                     watchdog_monitor(hcState);
@@ -590,7 +594,7 @@ int main(void) {
 
         if (loop_flags & FLAG_POWER_ISSUE) {
             if (rovstate == RS_MISSION) {
-                /* TODO: turn off various power lines & enter fault mode */
+                //!< @todo Turn off various power lines & enter fault mode.
             }
             /* clear event when done */
             loop_flags ^= FLAG_POWER_ISSUE;

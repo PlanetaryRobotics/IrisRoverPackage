@@ -424,9 +424,9 @@ WdCmdMsgs__deserializeMessage(const void* src,
     size_t bodySrcLen = srcLen - (size_t) CMD_MSGS__PACKED_SIZE__COMMON_HEADER;
 
     // Next read the watchdog command ID
-    uint8_t watchdogCmdIdUInt = 0;
+    uint16_t watchdogCmdIdUInt = 0;
     short deserializationResult =
-        Serialization__deserializeAs8Bit(srcIntPtr, &(watchdogCmdIdUInt), SERIALIZATION__LITTLE_ENDIAN);
+        Serialization__deserializeAs16Bit(srcIntPtr, &(watchdogCmdIdUInt), SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(deserializationResult);    
     dst->commandId = (WdCmdMsgs__CommandId) watchdogCmdIdUInt;
 

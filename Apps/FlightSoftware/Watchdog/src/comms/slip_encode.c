@@ -12,9 +12,13 @@ SlipEncode__Status SlipEncode__encode(const uint8_t* input,
         return SLIP_ENCODE__STATUS__ERROR_NULL;
     }
 
-    size_t outIndex = 0;
+    *inputUsed = 0;
+    *outputUsed = 0;
 
-    for (size_t inIndex = 0; inIndex < inputLen; ++inIndex) {
+    size_t outIndex = 0;
+    size_t inIndex;
+
+    for (inIndex = 0; inIndex < inputLen; ++inIndex) {
         uint8_t inByte = input[inIndex];
         size_t lastByteIndexOffset = (inByte == SLIP_END || inByte == SLIP_ESC) ? 1 : 0;
 
@@ -39,5 +43,7 @@ SlipEncode__Status SlipEncode__encode(const uint8_t* input,
         }
     }
 
+    *inputUsed = inIndex;
+    *outputUsed = outIndex;
     return SLIP_ENCODE__STATUS__INPUT_FINISHED;
 }

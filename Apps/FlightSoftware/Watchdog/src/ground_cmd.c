@@ -404,7 +404,7 @@ GroundCmd__Status GroundCmd__generateEarthHeartbeat(I2C_Sensors__Readings* i2cRe
     size_t minRequiredBufferSize = 0;
 
     if (rovstate == RS_SERVICE || rovstate == RS_MISSION) {
-        minRequiredBufferSize = 24;
+        minRequiredBufferSize = 25;
     } else if (rovstate == RS_KEEPALIVE) {
         minRequiredBufferSize = 4;
     } else {
@@ -468,6 +468,8 @@ GroundCmd__Status GroundCmd__generateEarthHeartbeat(I2C_Sensors__Readings* i2cRe
 
         // send the current deploy state
         heartbeatOutBuffer[24] = hasDeployed;
+
+        *outputHeartbeatSize = 25;
     } else if (rovstate == RS_KEEPALIVE) {
         ////  Flight-spec heartbeats
         heartbeatOutBuffer[1] = (uint8_t)(i2cReadings->batt_charge_telem << 1);
@@ -481,6 +483,8 @@ GroundCmd__Status GroundCmd__generateEarthHeartbeat(I2C_Sensors__Readings* i2cRe
 
         // send the thermistor temperature (12 bits to 8 bits)
         heartbeatOutBuffer[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
+
+        *outputHeartbeatSize = 4;
     }
 
     return GND_CMD__STATUS__SUCCESS;

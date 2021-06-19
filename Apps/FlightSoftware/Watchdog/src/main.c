@@ -381,7 +381,7 @@ void pumpMsgsFromLander(HerculesComms__State* hCommsState,
 void sendEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
                         LanderComms__State* lcState)
 {
-    static uint8_t hbSerializationBuffer[24] = { 0 };
+    static uint8_t hbSerializationBuffer[25] = { 0 };
 
     size_t outputHeartbeatSize = 0;
     GroundCmd__Status gcStatus = GroundCmd__generateEarthHeartbeat(i2cReadings,
@@ -389,6 +389,7 @@ void sendEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
                                                                    sizeof(hbSerializationBuffer),
                                                                    &outputHeartbeatSize);
 
+    assert(GND_CMD__STATUS__SUCCESS == gcStatus);
     if (GND_CMD__STATUS__SUCCESS != gcStatus) {
         //!< @todo handling?
         return;
@@ -396,6 +397,7 @@ void sendEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
 
     LanderComms__Status lcStatus = LanderComms__txData(lcState, hbSerializationBuffer, outputHeartbeatSize);
 
+    assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
     if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
         //!< @todo Handling?
     }
@@ -404,10 +406,10 @@ void sendEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
 int main(void) {
     // Declare the buffers for the UART rx and tx ring buffers. These are static
     // so that they are not on the stack.
-    static volatile uint8_t uart0TxBuffer[HERC_MSGS__CONSTANTS__MAX_PAYLOAD_SIZE + HERC_MSGS__PACKED_SIZE__HEADER] = { 0 };
-    static volatile uint8_t uart0RxBuffer[HERC_MSGS__CONSTANTS__MAX_PAYLOAD_SIZE + HERC_MSGS__PACKED_SIZE__HEADER] = { 0 };
-    static volatile uint8_t uart1TxBuffer[HERC_MSGS__CONSTANTS__MAX_PAYLOAD_SIZE + IP_UDP_HEADER_LEN] = { 0 };
-    static volatile uint8_t uart1RxBuffer[HERC_MSGS__CONSTANTS__MAX_PAYLOAD_SIZE + IP_UDP_HEADER_LEN] = { 0 };
+    static volatile uint8_t uart0TxBuffer[1024] = { 0 };
+    static volatile uint8_t uart0RxBuffer[1024] = { 0 };
+    static volatile uint8_t uart1TxBuffer[1024] = { 0 };
+    static volatile uint8_t uart1RxBuffer[1024] = { 0 };
     
     /* stop watchdog timer */
 	WDTCTL = WDTPW | WDTHOLD;

@@ -173,6 +173,13 @@ UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t 
         }
     }
 
+    // If the previous state of the TX interrupt enable pin was disabled, then we manually
+    // trigger the TX interrupt so that the first byte available in the ring buffer will
+    // be written to UCAxTXBUF, which will resume the asynchronous TX loop
+    if (!existingTxInterruptBitState) {
+        *(uartState->registers->UCAxIFG) |= UCTXIFG;
+    }
+
     // We've written data to the tx ring buffer, so make sure that the tx interrupt is enabled
     *(uartState->registers->UCAxIE) |= UCTXIE;
 
@@ -462,10 +469,6 @@ static void UART__interruptHandler(UART__State* uartState)
                 // An error occurred.
                 //!< @todo handling? logging?
             }
-
-            // We're done with the byte we just received, so clear the receive interrupt flag
-            // for this uart
-            *(uartState->registers->UCAxIFG) &= ~UCRXIFG;
 
             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             //!< @todo REPLACE THESE WITH EVENT DISPATCH

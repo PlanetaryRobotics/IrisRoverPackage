@@ -381,7 +381,7 @@ void pumpMsgsFromLander(HerculesComms__State* hCommsState,
 void sendEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
                         LanderComms__State* lcState)
 {
-    static uint8_t hbSerializationBuffer[25] = { 0 };
+    static uint8_t hbSerializationBuffer[24] = { 0 };
 
     size_t outputHeartbeatSize = 0;
     GroundCmd__Status gcStatus = GroundCmd__generateEarthHeartbeat(i2cReadings,
@@ -478,7 +478,7 @@ int main(void) {
     while (1) {
         /* watchdog timer setup - need to stroke every ~1s */
         /* basically, we limit the execution of each loop to ~1s or else reset */
-        WDTCTL = WDT_ARST_1000;
+        WDTCTL = (WDTPW+WDTCNTCL+WDTSSEL0+WDTIS_3); // ~ 16 seconds
 
         /* check if anything happened */
         if (!loop_flags) { /* nothing did */

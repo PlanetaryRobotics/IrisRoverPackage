@@ -404,7 +404,7 @@ GroundCmd__Status GroundCmd__generateEarthHeartbeat(I2C_Sensors__Readings* i2cRe
     size_t minRequiredBufferSize = 0;
 
     if (rovstate == RS_SERVICE || rovstate == RS_MISSION) {
-        minRequiredBufferSize = 25;
+        minRequiredBufferSize = 24;
     } else if (rovstate == RS_KEEPALIVE) {
         minRequiredBufferSize = 4;
     } else {
@@ -467,9 +467,9 @@ GroundCmd__Status GroundCmd__generateEarthHeartbeat(I2C_Sensors__Readings* i2cRe
         heartbeatOutBuffer[23] = (uint8_t)(TB0CCR2 >> 8);
 
         // send the current deploy state
-        heartbeatOutBuffer[24] = hasDeployed;
+        //heartbeatOutBuffer[24] = hasDeployed;
 
-        *outputHeartbeatSize = 25;
+        *outputHeartbeatSize = 24;
     } else if (rovstate == RS_KEEPALIVE) {
         ////  Flight-spec heartbeats
         heartbeatOutBuffer[1] = (uint8_t)(i2cReadings->batt_charge_telem << 1);

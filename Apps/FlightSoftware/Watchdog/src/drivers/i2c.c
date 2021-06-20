@@ -44,7 +44,7 @@ void I2C__init()
 
     UCB0CTLW0 = UCSWRST;                      // Enable SW reset
     UCB0CTLW0 |= UCMODE_3 | UCMST | UCSSEL__SMCLK | UCSYNC; // I2C master mode, SMCLK
-    UCB0BRW = 160;                            // fSCL = SMCLK/160 = ~100kHz
+    UCB0BRW = 160;                            // f_SCL = f_SMCLK/160 = 8 Mhz / 160 = ~50kHz
     UCB0CTLW0 &= ~UCSWRST;                    // Clear SW reset, resume operation
     UCB0IE = 0; // Disable all interrupts; we don't use them
 }
@@ -194,7 +194,7 @@ static BOOL I2C__txStart()
     // We're looking for being ready to transmit the first data (i.e. UCTXIFG is set)
     //
     // The Start condition is not cleared until after first byte is written to UCB0TXBUF
-    // and we get an acknowledgement of the slave device address, so we check for it being
+    // and we get an acknowledgment of the slave device address, so we check for it being
     // cleared later.
     if (UCB0IFG & UCTXIFG) {
         // We need to place the next byte (register address), into the tx buffer before we
@@ -250,6 +250,9 @@ static BOOL I2C__txRegAddress()
         }
     }
 
+    // If we got a NACK then change state
+    I2C__checkAck();
+
     return continueSpinning;
 }
 
@@ -267,6 +270,9 @@ static BOOL I2C__txData()
             // We don't want to continue spinning after this since there is nothing left to do
         }
     }
+
+    // If we got a NACK then change state
+    I2C__checkAck();
 
     return FALSE;
 }

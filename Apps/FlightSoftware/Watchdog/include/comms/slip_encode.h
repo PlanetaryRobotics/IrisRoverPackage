@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @defgroup watchdogSlipEncode SLIP Encoding
  * @addtogroup watchdogSlipEncode
@@ -56,5 +61,9 @@ SlipEncode__Status SlipEncode__encode(const uint8_t* input,
 /**
  * @}
  */
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif /* __WATCHDOG_SLIP_ENCODE_H__ */

@@ -4,6 +4,11 @@
 #include "include/drivers/uart.h"
 #include "include/common.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @defgroup watchdogLanderComms Lander Comms
  * @addtogroup watchdogLanderComms
@@ -112,5 +117,9 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
 /**
  * @}
  */
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif /* __WATCHDOG_LANDER_COMMS_H__ */

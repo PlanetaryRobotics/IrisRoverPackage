@@ -3,6 +3,11 @@
 
 #include "include/comms/hercules_msgs.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @defgroup watchdogHerculesMpsm Hercules Message Parsing State Machine
  * @addtogroup watchdogHerculesMpsm
@@ -133,5 +138,9 @@ HerculesMpsm__Status HerculesMpsm__reset(HerculesMpsm__Msg* msg);
 /**
  * @}
  */
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif /* __WATCHDOG_HERCULES_MPSM_H__ */

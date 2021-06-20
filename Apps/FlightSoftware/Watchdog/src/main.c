@@ -478,7 +478,7 @@ int main(void) {
     while (1) {
         /* watchdog timer setup - need to stroke every ~1s */
         /* basically, we limit the execution of each loop to ~1s or else reset */
-        WDCTL = WDT_ARST_1000;
+        WDTCTL = WDT_ARST_1000;
         //WDTCTL = (WDTPW+WDTCNTCL+WDTSSEL0+WDTIS_3); // ~ 16 seconds
 
         /* check if anything happened */

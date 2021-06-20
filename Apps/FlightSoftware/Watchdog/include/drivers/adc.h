@@ -7,6 +7,11 @@
 #ifndef __ADC_INC
 #define __ADC_INC
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 extern volatile unsigned short adc_values[4];
 
 /**
@@ -30,5 +35,8 @@ void adc_sample();
 #define ADC_LANDER_LEVEL_IDX 0
 #define ADC_TEMP_IDX 1
 
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif /* __ADC_INC */

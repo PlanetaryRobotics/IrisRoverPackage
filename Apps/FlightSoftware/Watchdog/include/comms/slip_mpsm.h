@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @defgroup watchdogSlipMpsm SLIP Message Parsing State Machine
  * @addtogroup watchdogSlipMpsm
@@ -110,5 +115,9 @@ SlipMpsm__Status SlipMpsm__process(SlipMpsm__Msg* msg, uint8_t newData);
 /**
  * @}
  */
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif /* __WATCHDOG_SLIP_MPSM_H__ */

@@ -4,6 +4,11 @@
 #include "include/comms/cmd_msgs.h"
 #include "include/common.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @defgroup watchdogWatchdogCmdMsgs Watchdog Command Messages
  * @addtogroup watchdogWatchdogCmdMsgs
@@ -446,5 +451,9 @@ WdCmdMsgs__deserializeMessage(const void* src,
 /**
  * @}
  */
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif /* __WATCHDOG_WATCHDOG_CMD_MSGS_H___ */

@@ -7,6 +7,11 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #define FLAG_UART0_RX_PACKET 0x1
 #define FLAG_UART1_RX_PACKET 0x2
 #define FLAG_TIMER_TICK      0x8
@@ -48,5 +53,9 @@ extern enum rover_state rovstate;
 
 // enter a rover state
 void enterMode(enum rover_state newstate);
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif /* __FLAGS_INC */

@@ -4,6 +4,11 @@
 #include <msp430.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 extern uint8_t heaterStatus;
 extern uint8_t hasDeployed;
 
@@ -47,5 +52,10 @@ inline void setDeploy();
 inline void unsetDeploy();
 inline void startChargingBatteries();
 inline void stopChargingBatteries();
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
+
 #endif // __BSP_H__
 

@@ -6,6 +6,11 @@
 #include <msp430.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @defgroup watchdogI2c I2C Driver
  * @addtogroup watchdogI2c
@@ -118,5 +123,9 @@ void I2C__spinOnce();
 /**
  * @}
  */
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif // #ifndef __I2C_H__

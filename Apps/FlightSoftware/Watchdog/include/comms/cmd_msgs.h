@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @defgroup watchdogCmdMsgs Generic Messages
  * @addtogroup watchdogCmdMsgs
@@ -95,5 +100,9 @@ CmdMsgs__deserializeHeader(const void* src,
 /**
  * @}
  */
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif /* __WATCHDOG_CMD_MSGS_H___ */

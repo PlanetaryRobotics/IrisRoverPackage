@@ -3,6 +3,11 @@
 
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 // Some definitions to identify magic numbers in the code
 #define BOOL bool
 #define TRUE true
@@ -20,5 +25,8 @@ enum SLIP_Constants {
     SLIP_ESC_ESC = 0xDD
 };
 
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif /* __WATCHDOG_COMMON_H__ */

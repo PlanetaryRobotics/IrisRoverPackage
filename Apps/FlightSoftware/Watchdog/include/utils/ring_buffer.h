@@ -8,6 +8,11 @@
 
 #include "include/common.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @defgroup watchdogRingBuffer Ring Buffer
  * @addtogroup watchdogRingBuffer
@@ -220,5 +225,9 @@ RingBuffer__Status RingBuffer__clear(RingBuffer* rb);
 /**
  * @}
  */
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif // #ifndef __RING_BUFFER_H__

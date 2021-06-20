@@ -10,6 +10,11 @@
 #include "include/comms/watchdog_cmd_msgs.h"
 #include "include/common.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 // MPS: I'm not documenting these because this code will soon be restructured into a state-based paradigm.
 
 typedef enum GroundCmd__Status
@@ -38,6 +43,10 @@ GroundCmd__Status GroundCmd__generateEarthHeartbeat(I2C_Sensors__Readings* i2cRe
                                                     uint8_t* heartbeatOutBuffer,
                                                     size_t heartbeatOutBufferLen,
                                                     size_t* outputHeartbeatSize);
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif /* __GROUND_CMD_INC */
 

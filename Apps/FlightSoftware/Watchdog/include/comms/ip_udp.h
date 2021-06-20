@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @defgroup watchdogIpUdp IP/UDP
  * @addtogroup watchdogIpUdp
@@ -155,6 +160,10 @@ IpUdp__Status IpUdp__generateAndSerializeIpUdpHeadersForData(const uint8_t* udpD
 /**
  * @}
  */
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 
 #endif /* __WATCHDOG_IP_UDP_H__ */

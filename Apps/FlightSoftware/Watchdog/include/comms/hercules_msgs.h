@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @defgroup watchdogHerculesMsgs Hercules Messages
  * @addtogroup watchdogHerculesMsgs
@@ -93,5 +98,9 @@ HercMsgs__Status HercMsgs__serializeHeader(const HercMsgs__Header* src,
 /**
  * @}
  */
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif /* __WATCHDOG_HERCULES_MSGS_H___ */

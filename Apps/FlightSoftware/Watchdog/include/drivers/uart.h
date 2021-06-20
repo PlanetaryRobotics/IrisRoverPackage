@@ -12,6 +12,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @defgroup watchdogUart UART Driver.
  * @addtogroup watchdogUart
@@ -121,5 +126,9 @@ UART__Status UART__receive(UART__State* uartState,
 /**
  * @}
  */
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif /* __WATCHDOG_UART_H__ */

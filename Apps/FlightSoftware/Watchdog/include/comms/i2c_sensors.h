@@ -3,6 +3,11 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @defgroup watchdogI2cSensors I2C Sensors
  * @addtogroup watchdogI2cSensors
@@ -184,5 +189,9 @@ void I2C_Sensors__spinOnce();
 /**
  * @}
  */
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif // #ifndef __WATCHDOG_I2C_SENSORS_H__

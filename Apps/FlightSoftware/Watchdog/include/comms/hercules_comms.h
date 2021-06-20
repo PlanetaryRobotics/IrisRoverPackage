@@ -5,6 +5,11 @@
 #include "include/comms/hercules_msgs.h"
 #include "include/common.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @defgroup watchdogHerculesComms Hercules Comms
  * @addtogroup watchdogHerculesComms
@@ -173,5 +178,9 @@ HerculesComms__Status HerculesComms__resetState(HerculesComms__State* hState);
 /**
  * @}
  */
+
+#ifdef __cplusplus
+} /* close extern "C" */
+#endif
 
 #endif /* __WATCHDOG_HERCULES_COMMS_H__ */

@@ -14,48 +14,49 @@ extern uint8_t hasDeployed;
 
 void initializeGpios();
 
-inline void enableHeater();
-inline void disableHeater();
-inline void enable3V3PowerRail();
-inline void disable3V3PowerRail();
-inline void enable24VPowerRail();
-inline void disable24VPowerRail();
-inline void releaseHerculesReset();
-inline void setHerculesReset();
-inline void releaseRadioReset();
-inline void setRadioReset();
-inline void releaseFPGAReset();
-inline void setFPGAReset();
-inline void fpgaCameraSelectHi();
-inline void fpgaCameraSelectLo();
-inline void releaseMotorsReset();
-inline void releaseMotor1Reset();
-inline void releaseMotor2Reset();
-inline void releaseMotor3Reset();
-inline void releaseMotor4Reset();
-inline void setMotorsReset();
-inline void setMotor1Reset();
-inline void setMotor2Reset();
-inline void setMotor3Reset();
-inline void setMotor4Reset();
-inline void powerOnHercules();
-inline void powerOffHercules();
-inline void powerOnRadio();
-inline void powerOffRadio();
-inline void powerOnFpga();
-inline void powerOffFpga();
-inline void powerOnMotors();
-inline void powerOffMotors();
-inline void enableBatteries();
-inline void disableBatteries();
-inline void setDeploy();
-inline void unsetDeploy();
-inline void startChargingBatteries();
-inline void stopChargingBatteries();
+void enableHeater();
+void disableHeater();
+void enable3V3PowerRail();
+void disable3V3PowerRail();
+void enable24VPowerRail();
+void disable24VPowerRail();
+void releaseHerculesReset();
+void setHerculesReset();
+void releaseRadioReset();
+void setRadioReset();
+void releaseFPGAReset();
+void setFPGAReset();
+void fpgaCameraSelectHi();
+void fpgaCameraSelectLo();
+void releaseMotorsReset();
+void releaseMotor1Reset();
+void releaseMotor2Reset();
+void releaseMotor3Reset();
+void releaseMotor4Reset();
+void setMotorsReset();
+void setMotor1Reset();
+void setMotor2Reset();
+void setMotor3Reset();
+void setMotor4Reset();
+void powerOnHercules();
+void powerOffHercules();
+void powerOnRadio();
+void powerOffRadio();
+void powerOnFpga();
+void powerOffFpga();
+void powerOnMotors();
+void powerOffMotors();
+void enableBatteries();
+void disableBatteries();
+void setDeploy();
+void unsetDeploy();
+void startChargingBatteries();
+void stopChargingBatteries();
 
 #ifdef __cplusplus
 } /* close extern "C" */
 #endif
+
 
 #endif // __BSP_H__
 

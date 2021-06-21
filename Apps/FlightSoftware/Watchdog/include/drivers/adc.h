@@ -7,22 +7,34 @@
 #ifndef __ADC_INC
 #define __ADC_INC
 
+#include "include/common.h"
+
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-extern volatile unsigned short adc_values[4];
+typedef struct AdcValues
+{
+    volatile uint16_t data[4];
+    volatile BOOL sampleComplete;
+} AdcValues;
 
 /**
  * @brief Initialize ADC hardware.
  * Sets up the interrupts and whatnot for ADC.
  */
-void adc_init();
+void adc_init(void);
 
-void adc_setup_lander();
-void adc_setup_mission();
-void adc_check_voltage_levels();
+BOOL isAdcSampleDone(void);
+
+BOOL setupAdcForLander(uint16_t* watchdogFlags);
+
+BOOL setupAdcForMission(uint16_t* watchdogFlags);
+
+BOOL adcCheckVoltageLevels(AdcValues* output);
 
 /**
  * @brief Take one ADC sample

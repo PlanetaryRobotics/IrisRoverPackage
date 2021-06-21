@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include "include/comms/watchdog_cmd_msgs.h"
 #include "include/common.h"
+#include "include/drivers/adc.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -16,6 +17,8 @@ extern "C"
 #endif
 
 // MPS: I'm not documenting these because this code will soon be restructured into a state-based paradigm.
+
+extern uint8_t heatingControlEnabled;
 
 typedef enum GroundCmd__Status
 {
@@ -39,10 +42,23 @@ GroundCmd__Status GroundCmd__performWatchdogCommand(const WdCmdMsgs__Message* ms
                                                     WdCmdMsgs__Response* deployNotificationResponse,
                                                     BOOL* sendDeployNotificationResponse);
 
-GroundCmd__Status GroundCmd__generateEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
-                                                    uint8_t* heartbeatOutBuffer,
-                                                    size_t heartbeatOutBufferLen,
-                                                    size_t* outputHeartbeatSize);
+struct FlightEarthHeartbeat
+{
+    uint8_t heartbeatOutBuffer[4];
+};
+
+struct FullEarthHeartbeat
+{
+    uint8_t heartbeatOutBuffer[24];
+};
+
+GroundCmd__Status GroundCmd__generateFlightEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
+                                                          AdcValues* adcValues,
+                                                          FlightEarthHeartbeat* hb);
+
+GroundCmd__Status GroundCmd__generateFullEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
+                                                        AdcValues* adcValues,
+                                                        FullEarthHeartbeat* hb);
 
 #ifdef __cplusplus
 } /* close extern "C" */

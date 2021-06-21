@@ -392,100 +392,93 @@ GroundCmd__Status GroundCmd__performWatchdogCommand(const WdCmdMsgs__Message* ms
     return GND_CMD__STATUS__SUCCESS;
 }
 
-GroundCmd__Status GroundCmd__generateEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
-                                                    uint8_t* heartbeatOutBuffer,
-                                                    size_t heartbeatOutBufferLen,
-                                                    size_t* outputHeartbeatSize)
+GroundCmd__Status GroundCmd__generateFlightEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
+                                                          AdcValues* adcValues,
+                                                          FlightEarthHeartbeat* hb)
 {
-    if (NULL == i2cReadings || NULL == heartbeatOutBuffer || NULL == outputHeartbeatSize) {
+    if (NULL == i2cReadings || NULL == adcValues || NULL == hb) {
         return GND_CMD__STATUS__ERROR_NULL;
     }
 
-    size_t minRequiredBufferSize = 0;
+    // build the packet
+    hb->heartbeatOutBuffer[0] = 0xFF;
 
-    if (rovstate == RS_SERVICE || rovstate == RS_MISSION) {
-        minRequiredBufferSize = 24;
-    } else if (rovstate == RS_KEEPALIVE) {
-        minRequiredBufferSize = 4;
-    } else {
-        return GND_CMD__STATUS__ERROR_WRONG_STATE;
-    }
+    ////  Flight-spec heartbeats
+    hb->heartbeatOutBuffer[1] = (uint8_t)(i2cReadings->batt_charge_telem << 1);
+    // send heater on status
+    hb->heartbeatOutBuffer[1] |= heaterStatus & 0x1;
+    // battery current
+    hb->heartbeatOutBuffer[2] = (uint8_t)(i2cReadings->batt_curr_telem << 1);
+    // send voltage nominal status (1=good, 0=too low)
+    // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
+    hb->heartbeatOutBuffer[2] |= (i2cReadings->raw_battery_voltage[0] > 0x3B);
 
-    if (heartbeatOutBufferLen < minRequiredBufferSize) {
-        return GND_CMD__STATUS__ERROR_BUFFER_TOO_SMALL;
+    // send the thermistor temperature (12 bits to 8 bits)
+    hb->heartbeatOutBuffer[3] = (uint8_t)(adcValues->data[ADC_TEMP_IDX] >> 4);
+
+    return GND_CMD__STATUS__SUCCESS;
+}
+
+GroundCmd__Status GroundCmd__generateFullEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
+                                                        AdcValues* adcValues,
+                                                        FullEarthHeartbeat* hb)
+{
+    if (NULL == i2cReadings || NULL == adcValues || NULL == hb) {
+        return GND_CMD__STATUS__ERROR_NULL;
     }
 
     // build the packet
-    heartbeatOutBuffer[0] = 0xFF;
+    hb->heartbeatOutBuffer[0] = 0xFF;
 
-    if (rovstate == RS_SERVICE || rovstate == RS_MISSION) {
-        // send adc value temperature
-        heartbeatOutBuffer[1] = (uint8_t)(adc_values[ADC_TEMP_IDX]);
-        heartbeatOutBuffer[2] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 8);
+    // send adc value temperature
+    hb->heartbeatOutBuffer[1] = (uint8_t)(adcValues->data[ADC_TEMP_IDX]);
+    hb->heartbeatOutBuffer[2] = (uint8_t)(adcValues->data[ADC_TEMP_IDX] >> 8);
 
-        // send adc value temperature
-        heartbeatOutBuffer[3] = (uint8_t)(i2cReadings->raw_battery_charge[0]);
-        heartbeatOutBuffer[4] = (uint8_t)(i2cReadings->raw_battery_charge[1]);
+    // send adc value temperature
+    hb->heartbeatOutBuffer[3] = (uint8_t)(i2cReadings->raw_battery_charge[0]);
+    hb->heartbeatOutBuffer[4] = (uint8_t)(i2cReadings->raw_battery_charge[1]);
 
-        // send adc value temperature
-        heartbeatOutBuffer[5] = (uint8_t)(i2cReadings->raw_battery_voltage[0]);
-        heartbeatOutBuffer[6] = (uint8_t)(i2cReadings->raw_battery_voltage[1]);
+    // send adc value temperature
+    hb->heartbeatOutBuffer[5] = (uint8_t)(i2cReadings->raw_battery_voltage[0]);
+    hb->heartbeatOutBuffer[6] = (uint8_t)(i2cReadings->raw_battery_voltage[1]);
 
-        // send adc value temperature
-        heartbeatOutBuffer[7] = (uint8_t)(i2cReadings->raw_battery_current[0]);
-        heartbeatOutBuffer[8] = (uint8_t)(i2cReadings->raw_battery_current[1]);
+    // send adc value temperature
+    hb->heartbeatOutBuffer[7] = (uint8_t)(i2cReadings->raw_battery_current[0]);
+    hb->heartbeatOutBuffer[8] = (uint8_t)(i2cReadings->raw_battery_current[1]);
 
-        // send adc value temperature
-        heartbeatOutBuffer[9] = (uint8_t)(i2cReadings->raw_fuel_gauge_temp[0]);
-        heartbeatOutBuffer[10] = (uint8_t)(i2cReadings->raw_fuel_gauge_temp[1]);
+    // send adc value temperature
+    hb->heartbeatOutBuffer[9] = (uint8_t)(i2cReadings->raw_fuel_gauge_temp[0]);
+    hb->heartbeatOutBuffer[10] = (uint8_t)(i2cReadings->raw_fuel_gauge_temp[1]);
 
-        // send heater info Kp
-        heartbeatOutBuffer[11] = (uint8_t)(Kp_heater);
-        heartbeatOutBuffer[12] = (uint8_t)(Kp_heater >> 8);
+    // send heater info Kp
+    hb->heartbeatOutBuffer[11] = (uint8_t)(Kp_heater);
+    hb->heartbeatOutBuffer[12] = (uint8_t)(Kp_heater >> 8);
 
-        // send heater info setpoint
-        heartbeatOutBuffer[13] = (uint8_t)(heater_setpoint);
-        heartbeatOutBuffer[14] = (uint8_t)(heater_setpoint >> 8);
+    // send heater info setpoint
+    hb->heartbeatOutBuffer[13] = (uint8_t)(heater_setpoint);
+    hb->heartbeatOutBuffer[14] = (uint8_t)(heater_setpoint >> 8);
 
-        // send heater info window ?
-        heartbeatOutBuffer[15] = (uint8_t)(heater_window);
-        heartbeatOutBuffer[16] = (uint8_t)(heater_window >> 8);
+    // send heater info window ?
+    hb->heartbeatOutBuffer[15] = (uint8_t)(heater_window);
+    hb->heartbeatOutBuffer[16] = (uint8_t)(heater_window >> 8);
 
-        // send ??
-        heartbeatOutBuffer[17] = (uint8_t)(PWM_limit);
-        heartbeatOutBuffer[18] = (uint8_t)(PWM_limit >> 8);
+    // send ??
+    hb->heartbeatOutBuffer[17] = (uint8_t)(PWM_limit);
+    hb->heartbeatOutBuffer[18] = (uint8_t)(PWM_limit >> 8);
 
-        // send the current rover state
-        heartbeatOutBuffer[19] = (uint8_t) rovstate;
+    // send the current rover state
+    hb->heartbeatOutBuffer[19] = (uint8_t) rovstate;
 
-        // send the current heating status
-        heartbeatOutBuffer[20] = heaterStatus;
-        heartbeatOutBuffer[21] = heatingControlEnabled;
+    // send the current heating status
+    hb->heartbeatOutBuffer[20] = heaterStatus;
+    hb->heartbeatOutBuffer[21] = heatingControlEnabled;
 
-        // send ??
-        heartbeatOutBuffer[22] = (uint8_t)(TB0CCR2);
-        heartbeatOutBuffer[23] = (uint8_t)(TB0CCR2 >> 8);
+    // send ??
+    hb->heartbeatOutBuffer[22] = (uint8_t)(TB0CCR2);
+    hb->heartbeatOutBuffer[23] = (uint8_t)(TB0CCR2 >> 8);
 
-        // send the current deploy state
-        //heartbeatOutBuffer[24] = hasDeployed;
-
-        *outputHeartbeatSize = 24;
-    } else if (rovstate == RS_KEEPALIVE) {
-        ////  Flight-spec heartbeats
-        heartbeatOutBuffer[1] = (uint8_t)(i2cReadings->batt_charge_telem << 1);
-        // send heater on status
-        heartbeatOutBuffer[1] |= heaterStatus & 0x1;
-        // battery current
-        heartbeatOutBuffer[2] = (uint8_t)(i2cReadings->batt_curr_telem << 1);
-        // send voltage nominal status (1=good, 0=too low)
-        // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
-        heartbeatOutBuffer[2] |= (i2cReadings->raw_battery_voltage[0] > 0x3B);
-
-        // send the thermistor temperature (12 bits to 8 bits)
-        heartbeatOutBuffer[3] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
-
-        *outputHeartbeatSize = 4;
-    }
+    // send the current deploy state
+    //heartbeatOutBuffer[24] = hasDeployed;
 
     return GND_CMD__STATUS__SUCCESS;
 }

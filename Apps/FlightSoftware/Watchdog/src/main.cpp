@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <include/stateMachine/RoverStateManager.hpp>
 #include <msp430.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +18,7 @@
 #include "include/flags.h"
 #include "include/ground_cmd.h"
 #include "include/watchdog.h"
+
 
 /* define all of the buffers used in other files */
 __volatile uint16_t loop_flags;
@@ -466,7 +468,7 @@ int main(void) {
 
     __bis_SR_register(GIE); // Enable all interrupts
 
-    char helloWorld[15] = "hello, world!\r\n";
+    char helloWorld[16] = "hello, world!\r\n";
     lcStatus = LanderComms__txData(lcState, (uint8_t*) helloWorld, sizeof(helloWorld));
     assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
 

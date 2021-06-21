@@ -29,7 +29,9 @@
  * 12-bit: LSB = 0.0008056640625V
  */
 
-void adc_init() {
+static AdcValues* outputValues = NULL;
+
+void adc_init(void) {
     // Set the correct settings for various inputs
     P4SEL0 |= BIT0; // P4.0 Analog input 8 (VCC 2V5)
     P4SEL1 |= BIT0; // P4.0 Analog input 8 (VCC 2V5)
@@ -72,9 +74,21 @@ void adc_init() {
     while(!(REFCTL0 & REFGENRDY)); //wait for reference generator to settle
 }
 
-void adc_setup_lander() { // set up adc to read values for lander mode
-    // wait until existing sample done
-    while (ADC12CTL1 & ADC12BUSY) { __no_operation(); }
+BOOL isAdcSampleDone(void)
+{
+    return (!(ADC12CTL1 & ADC12BUSY)) ? TRUE : FALSE;
+}
+
+BOOL setupAdcForLander(uint16_t* watchdogFlags)
+{ // set up adc to read values for lander mode
+    if (NULL == watchdogFlags) {
+        return FALSE;
+    }
+
+    // If existing sample isn't done, then we can't do the setup
+    if (!isAdcSampleDone()) {
+        return FALSE;
+    }
 
     // enable interrupts only on last reading
     ADC12IER0 = ADC12IE1;
@@ -84,12 +98,19 @@ void adc_setup_lander() { // set up adc to read values for lander mode
     ADC12MCTL1 = ADC12INCH_12 | ADC12VRSEL_1 | ADC12EOS; // A12 = P3.0 stored in MEM1 (also, EOS)
 
     // clear sample ready, if set
-    watchdog_flags &= ~WDFLAG_ADC_READY;
+    *watchdogFlags &= ~WDFLAG_ADC_READY;
 }
 
-void adc_setup_mission() { // set up adc to read values for mission mode (voltage rails)
-    // wait until existing sample done
-    while (ADC12CTL1 & ADC12BUSY) { __no_operation(); }
+BOOL setupAdcForMission(uint16_t* watchdogFlags)
+{ // set up adc to read values for mission mode (voltage rails)
+    if (NULL == watchdogFlags) {
+        return FALSE;
+    }
+
+    // If existing sample isn't done, then we can't do the setup
+    if (!isAdcSampleDone()) {
+        return FALSE;
+    }
 
     // enable interrupts only on last reading
     ADC12IER0 = ADC12IE2;
@@ -101,15 +122,26 @@ void adc_setup_mission() { // set up adc to read values for mission mode (voltag
     ADC12MCTL3 = ADC12INCH_11 | ADC12VRSEL_1 | ADC12EOS; // A11 = P4.3 stored in MEM2 (Vcc 24V divided down)
 
     // clear sample ready, if set
-    watchdog_flags &= ~WDFLAG_ADC_READY;
+    *watchdogFlags &= ~WDFLAG_ADC_READY;
 }
 
 /**
  * @brief take one sample of the ADC
  */
-inline void adc_sample() {
-    // wait until existing sample done
-    while (ADC12CTL1 & ADC12BUSY) { __no_operation(); }
+BOOL adcCheckVoltageLevels(AdcValues* output)
+{
+    if (NULL == output) {
+        return FALSE;
+    }
+
+    // If existing sample isn't done, then we can't trigger a new sample
+    if (!isAdcSampleDone()) {
+        return FALSE;
+    }
+
+    // Update the
+    outputValues = output;
+    outputValues->sampleComplete = FALSE;
 
     // take one sample of the ADC
     ADC12CTL0 |= ADC12SC | ADC12ENC;
@@ -127,15 +159,20 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
 #error Compiler not supported!
 #endif
 {
+    if (NULL == outputValues) {
+        return;
+    }
+
     switch (__even_in_range(ADC12IV, ADC12IV_ADC12RDYIFG)) {
     case ADC12IV_ADC12IFG3: // ADC12IE3 interrupt
-        adc_values[3] = ADC12MEM3; // Save MEM3
-        adc_values[2] = ADC12MEM2; // Save MEM2
+        outputValues->data[3] = ADC12MEM3; // Save MEM3
+        outputValues->data[2] = ADC12MEM2; // Save MEM2
         // fall through to ADC12IE1 to save MEM1 & MEM0 and signal to main loop
         /* no break */
     case ADC12IV_ADC12IFG1: // ADC12IE1 interrupt
-        adc_values[1] = ADC12MEM1; // Save MEM1
-        adc_values[0] = ADC12MEM0; // Save MEM0
+        outputValues->data[1] = ADC12MEM1; // Save MEM1
+        outputValues->data[0] = ADC12MEM0; // Save MEM0
+        outputValues->sampleComplete = TRUE; // update output struct to signal sample is complete.
         watchdog_flags |= WDFLAG_ADC_READY; // signal ready to main loop
         break;
     default:

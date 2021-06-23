@@ -57,7 +57,7 @@ namespace iris
 
     RoverState RoverStateKeepAlive::spinOnce(RoverContext& theContext)
     {
-        // This shouldn't get called, but do nothing
+        // Do nothing
         return getState();
     }
 

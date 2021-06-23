@@ -11,6 +11,7 @@
 
 #include "include/comms/hercules_comms.h"
 #include "include/comms/i2c_sensors.h"
+#include "include/drivers/adc.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -21,11 +22,14 @@ extern "C"
 
 int watchdog_init();
 
-void watchdog_build_hercules_telem(I2C_Sensors__Readings *i2cReadings,
+void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
+                                   const AdcValues* adcValues,
                                    uint8_t* telbuf,
                                    size_t telbufSize);
 
-int watchdog_monitor(HerculesComms__State* hState);
+int watchdog_monitor(HerculesComms__State* hState,
+                     volatile uint16_t* watchdogFlags,
+                     uint8_t* watchdogOpts);
 
 void heaterControl();
 

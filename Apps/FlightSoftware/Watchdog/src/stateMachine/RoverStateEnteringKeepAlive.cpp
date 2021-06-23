@@ -10,12 +10,16 @@
 namespace iris
 {
     RoverStateEnteringKeepAlive::RoverStateEnteringKeepAlive()
-        : RoverStateBase(RoverState::ENTERING_KEEP_ALIVE)
+            : RoverStateBase(RoverState::ENTERING_KEEP_ALIVE)
     {
     }
 
     RoverState RoverStateEnteringKeepAlive::handleHerculesData(RoverContext& /*theContext*/)
     {
+        /**
+         * @todo Should we re-enter this state upon this occurring, in order to re-set the bit that should power off
+         *       the Hercules?
+         */
         assert(!"Got hercules data event in EnteringKeepAlive, which shouldn't be possible");
         return getState();
     }
@@ -32,9 +36,9 @@ namespace iris
 
             /* send heartbeat with collected data */
             static FlightEarthHeartbeat hb = { 0 };
-            GroundCmd__Status gcStatus = GroundCmd__generateEarthHeartbeat(&(theContext.i2cReadings),
-                                                                           &(theContext.m_adcValues),
-                                                                           &hb);
+            GroundCmd__Status gcStatus = GroundCmd__generateFlightEarthHeartbeat(&(theContext.i2cReadings),
+                                                                                 &(theContext.m_adcValues),
+                                                                                 &hb);
 
             assert(GND_CMD__STATUS__SUCCESS == gcStatus);
 
@@ -56,13 +60,13 @@ namespace iris
 
     RoverState RoverStateEnteringKeepAlive::handleI2cStarted(RoverContext& /*theContext*/)
     {
-        assert(!"Got I2C started event in EnteringKeepAlive, which shouldn't be possible");
+        assert(!"Got I2C started event when it shouldn't be possible");
         return getState();
     }
 
     RoverState RoverStateEnteringKeepAlive::handleI2cDone(RoverContext& /*theContext*/)
     {
-        assert(!"Got I2C done event in EnteringKeepAlive, which shouldn't be possible");
+        assert(!"Got I2C done event when it shouldn't be possible");
         return getState();
     }
 
@@ -88,6 +92,7 @@ namespace iris
                 break;
 
             case SubState::FINISH_UP_SETUP:
+                // Fall through
             default:
                 // We should only ever spin in this state when the SubState is WAITING_FOR_ADC_DONE. Really we don't
                 // need the substates, but I've kept them because they are representative of the stages of this state.
@@ -101,24 +106,12 @@ namespace iris
 
     RoverState RoverStateEnteringKeepAlive::transitionTo(RoverContext& theContext)
     {
-        return transitionToWaitingForAdcDone(theContext)
+        return transitionToWaitingForAdcDone(theContext);
     }
 
     RoverState RoverStateEnteringKeepAlive::nextStateAfterSetupCompletes()
     {
         return RoverState::KEEP_ALIVE;
-    }
-
-    RoverState RoverStateEnteringKeepAlive::doGndCmdEnterKeepAliveMode(RoverContext& theContext,
-                                                                       const WdCmdMsgs__Message& msg,
-                                                                       WdCmdMsgs__Response& response,
-                                                                       WdCmdMsgs__Response& deployNotificationResponse,
-                                                                       bool& sendDeployNotificationResponse)
-    {
-        // We're already entering keep alive mode, but we can still re-transition into keep alive
-        // once we receive this command.
-        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
-        return transitionToWaitingForAdcDone(theContext);
     }
 
     RoverState RoverStateEnteringKeepAlive::performResetCommand(RoverContext& theContext,
@@ -132,6 +125,27 @@ namespace iris
                                                           false, // whether or not to allow disabling RS422
                                                           false, // whether or not to allow deploy
                                                           false); // whether or not to allow undeploy
+    }
+
+    RoverState RoverStateBase::handleUplinkFromLander(RoverContext& theContext,
+                                                      uint8_t* rxDataBuffer,
+                                                      size_t rxDataLen)
+    {
+        // Ignore any uplink because the Hercules shouldn't be powered on.
+        //!< @todo Should we somehow respond to the lander?
+        return getState();
+    }
+
+    RoverState RoverStateEnteringKeepAlive::doGndCmdEnterKeepAliveMode(RoverContext& theContext,
+                                                                       const WdCmdMsgs__Message& msg,
+                                                                       WdCmdMsgs__Response& response,
+                                                                       WdCmdMsgs__Response& deployNotificationResponse,
+                                                                       bool& sendDeployNotificationResponse)
+    {
+        // We're already entering keep alive mode, but we can still re-transition into keep alive
+        // once we receive this command.
+        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+        return transitionToWaitingForAdcDone(theContext);
     }
 
     RoverState RoverStateEnteringKeepAlive::transitionToWaitingForAdcDone(RoverContext& theContext)
@@ -151,6 +165,8 @@ namespace iris
         disable3V3PowerRail();
         disable24VPowerRail();
         disableBatteries();
+
+        //!< @todo Stop I2C transfer if one is active.
 
         // We want to set up the ADC for reading values when attached to the lander. In order to do this setup, any
         // existing ADC reading must be done. If it's not done, we won't move forward until it is.

@@ -9,10 +9,6 @@ namespace iris
     class RoverStateBase
     {
         public:
-            enum class Status {
-                SUCCESS,
-            };
-
             explicit RoverStateBase(RoverState state);
 
             RoverState getState();
@@ -42,7 +38,7 @@ namespace iris
                                                       const WdCmdMsgs__Message& msg,
                                                       WdCmdMsgs__Response& response,
                                                       WdCmdMsgs__Response& deployNotificationResponse,
-                                                      bool& sendDeployNotificationResponse) = 0;
+                                                      bool& sendDeployNotificationResponse);
 
             virtual RoverState performResetCommand(RoverContext& theContext,
                                                    WdCmdMsgs__ResetSpecificId resetValue,

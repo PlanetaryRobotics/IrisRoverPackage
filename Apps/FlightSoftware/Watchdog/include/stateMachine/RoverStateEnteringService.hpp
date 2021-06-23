@@ -1,27 +1,28 @@
-#ifndef __WATCHDOG_ROVER_STATE_KEEP_ALIVE_HPP__
-#define __WATCHDOG_ROVER_STATE_KEEP_ALIVE_HPP__
+#ifndef __WATCHDOG_ROVER_STATE_ENTERING_SERVICE_HPP__
+#define __WATCHDOG_ROVER_STATE_ENTERING_SERVICE_HPP__
 
-#include "include/stateMachine/RoverStateBase.hpp"
+#include "include/stateMachine/RoverStateEnteringKeepAlive.hpp"
 
 namespace iris
 {
-    class RoverStateKeepAlive : public RoverStateEnteringKeepAlive
+    class RoverStateEnteringService : public RoverStateEnteringKeepAlive
     {
         public:
-            explicit RoverStateKeepAlive();
+            explicit RoverStateEnteringService();
 
             // The functions to handle events
             RoverState handleHerculesData(RoverContext& theContext) override;
             RoverState handleTimerTick(RoverContext& theContext) override;
-            RoverState handleI2cStarted(RoverContext& theContext) override;
-            RoverState handleI2cDone(RoverContext& theContext) override;
             RoverState handleHighTemp(RoverContext& theContext) override;
             RoverState handlePowerIssue(RoverContext& theContext) override;
-            RoverState spinOnce(RoverContext& theContext) override;
-
-            RoverState transitionTo(RoverContext& theContext) override;
 
         protected:
+            RoverState nextStateAfterSetupCompletes() override;
+
+            RoverState performResetCommand(RoverContext& theContext,
+                                           WdCmdMsgs__ResetSpecificId resetValue,
+                                           WdCmdMsgs__Response* response) override;
+
             RoverState doGndCmdEnterKeepAliveMode(RoverContext& theContext,
                                                   const WdCmdMsgs__Message& msg,
                                                   WdCmdMsgs__Response& response,
@@ -37,4 +38,4 @@ namespace iris
 
 }
 
-#endif /* __WATCHDOG_ROVER_STATE_ENTERING_KEEP_ALIVE_HPP__ */
+#endif /* __WATCHDOG_ROVER_STATE_ENTERING_SERVICE_HPP__ */

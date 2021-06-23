@@ -11,17 +11,17 @@ namespace iris
 {
     struct CallbackUserArg
     {
-        RoverStateBase& m_state;
-        RoverContext& m_context;
+            RoverStateBase& m_state;
+            RoverContext& m_context;
 
-        explicit CallbackUserArg(RoverStateBase& state, RoverContext& context)
-            : m_state(state), m_context(context)
-        {
-        }
+            explicit CallbackUserArg(RoverStateBase& state, RoverContext& context)
+                    : m_state(state), m_context(context)
+            {
+            }
     };
 
     RoverStateBase::RoverStateBase(RoverState state)
-        : m_state(state)
+            : m_state(state)
     {
     }
 
@@ -246,7 +246,8 @@ namespace iris
 
             case WD_CMD_MSGS__CMD_ID__ENTER_KEEPALIVE_MODE:
                 /* Enter keepalive mode */
-                if (msg.body.enterKeepAliveMode.confirmationMagicNumber != WD_CMD_MSGS__CONFIRM_MODE_CHANGE_MAGIC_NUMBER) {
+                if (msg.body.enterKeepAliveMode.confirmationMagicNumber
+                        != WD_CMD_MSGS__CONFIRM_MODE_CHANGE_MAGIC_NUMBER) {
                     /* magic bad */
                     response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
                 } else {
@@ -260,7 +261,8 @@ namespace iris
 
             case WD_CMD_MSGS__CMD_ID__ENTER_SERVICE_MODE:
                 /* Enter service mode */
-                if (msg.body.enterServiceMode.confirmationMagicNumber != WD_CMD_MSGS__CONFIRM_MODE_CHANGE_MAGIC_NUMBER) {
+                if (msg.body.enterServiceMode.confirmationMagicNumber
+                        != WD_CMD_MSGS__CONFIRM_MODE_CHANGE_MAGIC_NUMBER) {
                     /* magic bad */
                     response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
                 } else {
@@ -281,8 +283,8 @@ namespace iris
     }
 
     RoverState RoverStateBase::handleUplinkFromLander(RoverContext& theContext,
-                                              uint8_t* rxDataBuffer,
-                                              size_t rxDataLen)
+                                                      uint8_t* rxDataBuffer,
+                                                      size_t rxDataLen)
     {
         // Anything with "Type Magic" field value that isn't for Watchdog is treated as uplink for Hercules
         HerculesComms__Status hcStatus = HerculesComms__txUplinkMsg(theContext.m_hcState,
@@ -297,7 +299,7 @@ namespace iris
     }
 
     RoverState RoverStateBase::handleStrokeFromHercules(RoverContext& theContext,
-                                                       HercMsgs__Header* header)
+                                                        HercMsgs__Header* header)
     {
         static uint8_t telemetrySerializationBuffer[16] = { 0 };
 
@@ -307,7 +309,6 @@ namespace iris
         watchdog_build_hercules_telem(&(theContext.m_i2cReadings),
                                       telemetrySerializationBuffer,
                                       sizeof(telemetrySerializationBuffer));
-
 
         HerculesComms__Status hcStatus = HerculesComms__txResponseMsg(theContext.m_hcState,
                                                                       header,
@@ -681,7 +682,7 @@ namespace iris
                 setMotorsReset();
                 // queue up all the motor unresets
                 theContext.m_watchdogFlags |= WDFLAG_UNRESET_MOTOR1 | WDFLAG_UNRESET_MOTOR2 |
-                                              WDFLAG_UNRESET_MOTOR3 | WDFLAG_UNRESET_MOTOR4;
+                        WDFLAG_UNRESET_MOTOR3 | WDFLAG_UNRESET_MOTOR4;
                 break;
 
             case WD_CMD_MSGS__RESET_ID__ALL_MOTORS_POWER_ON:

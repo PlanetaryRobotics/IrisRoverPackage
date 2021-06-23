@@ -138,59 +138,62 @@ int watchdog_init() {
  *
  * Function called every ~5s
  */
-int watchdog_monitor(HerculesComms__State* hState) {
+int watchdog_monitor(HerculesComms__State* hState,
+                     volatile uint16_t* watchdogFlags,
+                     uint8_t* watchdogOpts)
+{
     /* temporarily disable interrupts */
     __bic_SR_register(GIE);
 
 
     /* check that kicks have been received */
-    if (watchdog_flags & WDFLAG_RADIO_KICK) {
+    if (*watchdogFlags & WDFLAG_RADIO_KICK) {
         /* radio kick received, all ok! */
-        watchdog_flags ^= WDFLAG_RADIO_KICK;
+        *watchdogFlags ^= WDFLAG_RADIO_KICK;
     } else {
         /* MISSING radio kick! don't bother resetting, though */
     }
 
     /* unreset wifi chip */
-    if (watchdog_flags & WDFLAG_UNRESET_RADIO2) {
+    if (*watchdogFlags & WDFLAG_UNRESET_RADIO2) {
         releaseRadioReset();
-        watchdog_flags ^= WDFLAG_UNRESET_RADIO2;
+        *watchdogFlags ^= WDFLAG_UNRESET_RADIO2;
     }
 
     /* unreset wifi chip */
-    if (watchdog_flags & WDFLAG_UNRESET_RADIO1) {
-        watchdog_flags |= WDFLAG_UNRESET_RADIO2;
-        watchdog_flags ^= WDFLAG_UNRESET_RADIO1;
+    if (*watchdogFlags & WDFLAG_UNRESET_RADIO1) {
+        *watchdogFlags |= WDFLAG_UNRESET_RADIO2;
+        *watchdogFlags ^= WDFLAG_UNRESET_RADIO1;
     }
 
     /* unreset hercules */
-    if (watchdog_flags & WDFLAG_UNRESET_HERCULES) {
+    if (*watchdogFlags & WDFLAG_UNRESET_HERCULES) {
         releaseHerculesReset();
-        watchdog_flags ^= WDFLAG_UNRESET_HERCULES;
+        *watchdogFlags ^= WDFLAG_UNRESET_HERCULES;
     }
 
     /* unreset motor 1 */
-    if (watchdog_flags & WDFLAG_UNRESET_MOTOR1) {
+    if (*watchdogFlags & WDFLAG_UNRESET_MOTOR1) {
         releaseMotor1Reset();
-        watchdog_flags ^= WDFLAG_UNRESET_MOTOR1;
+        *watchdogFlags ^= WDFLAG_UNRESET_MOTOR1;
     }
 
     /* unreset motor 2 */
-    if (watchdog_flags & WDFLAG_UNRESET_MOTOR2) {
+    if (*watchdogFlags & WDFLAG_UNRESET_MOTOR2) {
         releaseMotor2Reset();
-        watchdog_flags ^= WDFLAG_UNRESET_MOTOR2;
+        *watchdogFlags ^= WDFLAG_UNRESET_MOTOR2;
     }
 
     /* unreset motor 3 */
-    if (watchdog_flags & WDFLAG_UNRESET_MOTOR3) {
+    if (*watchdogFlags & WDFLAG_UNRESET_MOTOR3) {
         releaseMotor3Reset();
-        watchdog_flags ^= WDFLAG_UNRESET_MOTOR3;
+        *watchdogFlags ^= WDFLAG_UNRESET_MOTOR3;
     }
 
     /* unreset motor 4 */
-    if (watchdog_flags & WDFLAG_UNRESET_MOTOR4) {
+    if (*watchdogFlags & WDFLAG_UNRESET_MOTOR4) {
         releaseMotor4Reset();
-        watchdog_flags ^= WDFLAG_UNRESET_MOTOR4;
+        *watchdogFlags ^= WDFLAG_UNRESET_MOTOR4;
     }
 
     /* unreset FPGA */
@@ -200,33 +203,33 @@ int watchdog_monitor(HerculesComms__State* hState) {
     }
 
     /* bring 3V3 on again */
-    if (watchdog_flags & WDFLAG_UNRESET_3V3) {
+    if (*watchdogFlags & WDFLAG_UNRESET_3V3) {
         enable3V3PowerRail();
-        watchdog_flags ^= WDFLAG_UNRESET_3V3;
+        *watchdogFlags ^= WDFLAG_UNRESET_3V3;
     }
 
     /* turn 24V on again */
-    if (watchdog_flags & WDFLAG_UNRESET_24V) {
+    if (*watchdogFlags & WDFLAG_UNRESET_24V) {
         enable24VPowerRail();
-        watchdog_flags ^= WDFLAG_UNRESET_24V;
+        *watchdogFlags ^= WDFLAG_UNRESET_24V;
     }
 
     /* check ADC values */
-    if (watchdog_flags & WDFLAG_ADC_READY) {
+    if (*watchdogFlags & WDFLAG_ADC_READY) {
         /* ensure ADC values are in spec */
-        watchdog_flags ^= WDFLAG_ADC_READY;
+        *watchdogFlags ^= WDFLAG_ADC_READY;
     }
 
     /* check if hercules has given a valid kick */
-    if (watchdog_flags & WDFLAG_HERCULES_KICK) {
-        watchdog_flags ^= WDFLAG_HERCULES_KICK;
+    if (*watchdogFlags & WDFLAG_HERCULES_KICK) {
+        *watchdogFlags ^= WDFLAG_HERCULES_KICK;
     } else {
-        if (watchdog_opts & WDOPT_MONITOR_HERCULES) {
+        if (*watchdogOpts & WDOPT_MONITOR_HERCULES) {
             // reset the hercules
             setHerculesReset();
 
             // Set the flag so that the next time this function triggers, the Hercules will be un-reset
-            watchdog_flags |= WDFLAG_UNRESET_HERCULES;
+            *watchdogFlags |= WDFLAG_UNRESET_HERCULES;
 
             // if the issue was due to a comms breakdown, reset the comms state
             HerculesComms__Status hcStatus = HerculesComms__resetState(hState);
@@ -245,11 +248,12 @@ int watchdog_monitor(HerculesComms__State* hState) {
 
 
 
-void watchdog_build_hercules_telem(I2C_Sensors__Readings *i2cReadings,
+void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
+                                   const AdcValues* adcValues,
                                    uint8_t* telbuf,
                                    size_t telbufSize)
 {
-    if (telbufSize < 16) {
+    if (telbufSize < 16 || NULL == i2cReadings || NULL == adcValues) {
         return;
     }
 
@@ -258,7 +262,7 @@ void watchdog_build_hercules_telem(I2C_Sensors__Readings *i2cReadings,
     // Build telemetry packet for Hercules
     if (rovstate == RS_KEEPALIVE || rovstate == RS_SERVICE) {
         // no power on 2V5, 2V8, battery
-        telbuf[6] = (uint8_t)(adc_values[ADC_LANDER_LEVEL_IDX]);
+        telbuf[6] = (uint8_t)(adcValues->data[ADC_LANDER_LEVEL_IDX]);
         telbuf[7] = (uint8_t)(adc_values[ADC_LANDER_LEVEL_IDX] >> 8);
         telbuf[8] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
     } else if (rovstate == RS_MISSION) {

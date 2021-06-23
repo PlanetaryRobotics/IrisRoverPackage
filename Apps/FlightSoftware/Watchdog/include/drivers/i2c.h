@@ -67,7 +67,7 @@ typedef enum I2C__Status {
 /**
  * @brief Initializes the I2C module.
  */
-void I2C__init();
+void I2C__init(void);
 
 /**
  * @brief Initiates a write transaction. Will not block.
@@ -100,6 +100,8 @@ I2C__Status I2C__write(uint8_t dev_addr, uint8_t reg_addr, uint8_t data);
  */
 I2C__Status I2C__read(uint8_t dev_addr, uint8_t reg_addr);
 
+I2C__Status I2C__stop(void);
+
 /**
  * @brief Gets the status of the currently active transaction, if there is one. Will not block.
  *
@@ -118,7 +120,7 @@ I2C__Status I2C__getTransactionStatus(I2C__TransactionStatus* tStatus);
  *
  * This must be called periodically to advance any active transactions.
  */
-void I2C__spinOnce();
+void I2C__spinOnce(void);
 
 /**
  * @}

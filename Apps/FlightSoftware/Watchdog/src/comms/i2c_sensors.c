@@ -52,14 +52,60 @@ typedef enum GaugeReadingState {
     GRS__DONE
 } GaugeReadingState;
 
+typedef enum FuelGaugeInitState {
+    FGI__UNKNOWN = 0,
+    FGI__ACCUMULATED_CHARGE_MSB,
+    FGI__ACCUMULATED_CHARGE_LSB,
+    FGI__CONTROL,
+    FGI__DONE,
+    FGI__FAILED_NACK
+} FuelGaugeInitState;
+
+typedef enum ReadControlState {
+    RC__UNKNOWN = 0,
+    RC__READING,
+    RC__DONE,
+    RC__FAILED_NACK
+} WriteControlState;
+
+typedef enum WriteLowPowerState {
+    WLP__UNKNOWN = 0,
+    WLP__WRITING,
+    WLP__DONE,
+    WLP__FAILED_NACK
+} WriteLowPowerState;
+
 typedef struct INS_Sensors__InternalState {
-    GaugeReadingState gState;
+    I2C_Sensors__Action activeAction;
+
+    GaugeReadingState grsState;
+    FuelGaugeInitState fgiState;
+    ReadControlState rcState;
+    WriteLowPowerState wlpState;
+
     I2C_Sensors__Readings readings;
+    uint8_t controlRegisterReadValue;
 } INS_Sensors__InternalState;
 
+static const uint8_t FUEL_GAUGE_CONTROL_LOW_POWER = 0b00101001;
+
+// set control_reg[7:6] to 01 do one conversion, 10 to convert every 10s,
+//      set to 00 to sleep, set to 11 to continuously convert
+// set control_reg[5:3] to 101 for M of 1024 for coulomb counter (see datasheet)
+// control_ref[2:1] not used on SBC (pin its related to is floating)
+// must leave control_reg[0] to 0
+static const uint8_t FUEL_GAUGE_CONTROL_INIT = 0b10101000;
+static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_MSB_INIT = 0xA0;
+static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT = 0xD8
+
 static INS_Sensors__InternalState internals = {
-    .gState = GRS__UNKNOWN,
-    .readings = { 0 }
+    .activeAction = I2C_SENSORS__ACTIONS__INACTIVE,
+    .grsState = GRS__UNKNOWN,
+    .fgiState = FGI__UNKNOWN,
+    .rcState = RC__UNKNOWN,
+    .wlpState = WLP__UNKNOWN,
+    .readings = { 0 },
+    .controlRegisterReadValue = 0
 };
 
 //###########################################################
@@ -80,6 +126,7 @@ static INS_Sensors__InternalState internals = {
  * @param devAddr The device address to read from.
  * @param regAddr The register address to read from.
  * @param nackMaskBit The bit flag to set if no response is received to a transmitted byte.
+ * @param isGaugeReading Whether or not this call is part of a gauge sensor reading.
  * @param nextState The next state to transition to when this read completes.
  * @param output A return parameter that will be set to the value read from the specified device register if `done` and
  *               `gotOutput` are both set to TRUE.
@@ -92,6 +139,7 @@ static INS_Sensors__InternalState internals = {
 static BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
                                             uint8_t regAddr,
                                             uint8_t nackMaskBit,
+                                            BOOL isGaugeReading,
                                             GaugeReadingState nextState,
                                             void* output,
                                             BOOL* done,
@@ -109,6 +157,9 @@ static BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
  * @param devAddr The device address to write to.
  * @param regAddr The register address to write to.
  * @param data The value to write to the specified device register.
+ * @param isGaugeInit Whether or not this write is part of a fuel gauge initialization sequence.
+ * @param nextState The next fuel gauge initialization state to transition to after this read is done if `isGaugeInit`
+ *                  is TRUE.
  * @param done A return parameter that will specify whether or not the write is complete.
  * @param success A return parameter that, if `done` is TRUE, will specify whether or not the write completed
  *                successfully.
@@ -116,6 +167,8 @@ static BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
 static void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
                                              uint8_t regAddr,
                                              uint8_t data,
+                                             BOOL isGaugeInit,
+                                             FuelGaugeInitState nextState,
                                              BOOL* done,
                                              BOOL* success);
 
@@ -125,11 +178,11 @@ static void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
  * @brief Spins the `GRS__CHARGE_LSB` state, which involves reading the LSB of the battery charge. Will not block.
  *
  * Populates the `raw_battery_charge[1]` value in the `I2C_Readings` struct when the read completes successfully. Upon
- * completion, will transition the state machine to the `GRS__CHARGE_MSB` state.
+ * completion, will transition the gauge reading state machine to the `GRS__CHARGE_MSB` state.
  *
- * @return Whether or not to continue spinning the state machine.
+ * @return Whether or not to continue spinning the gauge reading state machine.
  */
-static BOOL I2C_Sensors__chargeLsb();
+static BOOL I2C_Sensors__chargeLsb(void);
 
 /**
  * @private
@@ -137,11 +190,12 @@ static BOOL I2C_Sensors__chargeLsb();
  * @brief Spins the `GRS__CHARGE_MSB` state, which involves reading the MSB of the battery charge. Will not block.
  *
  * Populates the `raw_battery_charge[0]` and `batt_charge_telem` values in the `I2C_Readings` struct if the read
- * completes successfully. Upon completion, will transition the state machine to the `GRS__VOLTAGE_LSB` state.
+ * completes successfully. Upon completion, will transition the gauge reading state machine to the `GRS__VOLTAGE_LSB`
+ * state.
  *
- * @return Whether or not to continue spinning the state machine.
+ * @return Whether or not to continue spinning the gauge reading state machine.
  */
-static BOOL I2C_Sensors__chargeMsb();
+static BOOL I2C_Sensors__chargeMsb(void);
 
 /**
  * @private
@@ -149,11 +203,11 @@ static BOOL I2C_Sensors__chargeMsb();
  * @brief Spins the `GRS__VOLTAGE_LSB` state, which involves reading the LSB of the battery voltage. Will not block.
  *
  * Populates the `raw_battery_voltage[1]` value in the `I2C_Readings` struct when the read completes successfully. Upon
- * completion, will transition the state machine to the `GRS__VOLTAGE_MSB` state.
+ * completion, will transition the gauge reading state machine to the `GRS__VOLTAGE_MSB` state.
  *
- * @return Whether or not to continue spinning the state machine.
+ * @return Whether or not to continue spinning the gauge reading state machine.
  */
-static BOOL I2C_Sensors__voltageLsb();
+static BOOL I2C_Sensors__voltageLsb(void);
 
 /**
  * @private
@@ -161,11 +215,11 @@ static BOOL I2C_Sensors__voltageLsb();
  * @brief Spins the `GRS__VOLTAGE_MSB` state, which involves reading the MSB of the battery voltage. Will not block.
  *
  * Populates the `raw_battery_voltage[0]` value in the `I2C_Readings` struct when the read completes successfully. Upon
- * completion, will transition the state machine to the `GRS__CURRENT_LSB` state.
+ * completion, will transition the gauge reading state machine to the `GRS__CURRENT_LSB` state.
  *
- * @return Whether or not to continue spinning the state machine.
+ * @return Whether or not to continue spinning the gauge reading state machine.
  */
-static BOOL I2C_Sensors__voltageMsb();
+static BOOL I2C_Sensors__voltageMsb(void);
 
 /**
  * @private
@@ -173,11 +227,11 @@ static BOOL I2C_Sensors__voltageMsb();
  * @brief Spins the `GRS__CURRENT_LSB` state, which involves reading the LSB of the battery current. Will not block.
  *
  * Populates the `raw_battery_current[1]` value in the `I2C_Readings` struct when the read completes successfully. Upon
- * completion, will transition the state machine to the `GRS__CURRENT_MSB` state.
+ * completion, will transition the gauge reading state machine to the `GRS__CURRENT_MSB` state.
  *
- * @return Whether or not to continue spinning the state machine.
+ * @return Whether or not to continue spinning the gauge reading state machine.
  */
-static BOOL I2C_Sensors__currentLsb();
+static BOOL I2C_Sensors__currentLsb(void);
 
 /**
  * @private
@@ -185,11 +239,12 @@ static BOOL I2C_Sensors__currentLsb();
  * @brief Spins the `GRS__CURRENT_MSB` state, which involves reading the MSB of the battery current. Will not block.
  *
  * Populates the `raw_battery_current[0]` and `batt_curr_telem` values in the `I2C_Readings` struct when the read
- * completes successfully. Upon completion, will transition the state machine to the `GRS__GAUGE_TEMP_LSB` state.
+ * completes successfully. Upon completion, will transition the gauge reading state machine to the `GRS__GAUGE_TEMP_LSB`
+ * state.
  *
- * @return Whether or not to continue spinning the state machine.
+ * @return Whether or not to continue spinning the gauge reading state machine.
  */
-static BOOL I2C_Sensors__currentMsb();
+static BOOL I2C_Sensors__currentMsb(void);
 
 /**
  * @private
@@ -198,11 +253,11 @@ static BOOL I2C_Sensors__currentMsb();
  *        block.
  *
  * Populates the `raw_fuel_gauge_temp[1]` value in the `I2C_Readings` struct when the read completes successfully. Upon
- * completion, will transition the state machine to the `GRS__GAUGE_TEMP_MSB` state.
+ * completion, will transition the gauge reading state machine to the `GRS__GAUGE_TEMP_MSB` state.
  *
- * @return Whether or not to continue spinning the state machine.
+ * @return Whether or not to continue spinning the gauge reading state machine.
  */
-static BOOL I2C_Sensors__gaugeTempLsb();
+static BOOL I2C_Sensors__gaugeTempLsb(void);
 
 /**
  * @private
@@ -211,271 +266,407 @@ static BOOL I2C_Sensors__gaugeTempLsb();
  *        block.
  *
  * Populates the `raw_fuel_gauge_temp[0]` value in the `I2C_Readings` struct when the read completes successfully. Upon
- * completion, will transition the state machine to the `GRS__DONE` state.
+ * completion, will transition the gauge reading state machine to the `GRS__DONE` state.
  *
- * @return Whether or not to continue spinning the state machine.
+ * @return Whether or not to continue spinning the gauge reading state machine.
  */
-static BOOL I2C_Sensors__gaugeTempMsb();
+static BOOL I2C_Sensors__gaugeTempMsb(void);
+
+/**
+ * @private
+ *
+ * @brief Spins the `FGI__ACCUMULATED_CHARGE_MSB` state, which involves writing the MSB of the fuel gauge accumulated
+ *        charge. Will not block.
+ *
+ * Upon completion, will transition the fuel gauge initialization state machine to the `FGI__ACCUMULATED_CHARGE_LSB`
+ *  or `FGI__FAILED_NACK` state.
+ *
+ * @return Whether or not to continue spinning the fuel gauge initialization state machine.
+ */
+static BOOL I2C_Sensors__accumulatedChargeMsb(void);
+
+/**
+ * @private
+ *
+ * @brief Spins the `FGI__ACCUMULATED_CHARGE_LSB` state, which involves writing the LSB of the fuel gauge accumulated
+ *        charge. Will not block.
+ *
+ * Upon completion, will transition the fuel gauge initialization state machine to the `FGI__CONTROL` or
+ * `FGI__FAILED_NACK`state.
+ *
+ * @return Whether or not to continue spinning the fuel gauge initialization state machine.
+ */
+static BOOL I2C_Sensors__accumulatedChargeLsb(void);
+
+/**
+ * @private
+ *
+ * @brief Spins the `FGI__CONTROL` state, which involves writing the fuel gauge control byte. Will not block.
+ *
+ * Upon completion, will transition the fuel gauge initialization state machine to the `FGI__DONE` or `FGI__FAILED_NACK`
+ * state.
+ *
+ * @return Whether or not to continue spinning the fuel gauge initialization state machine.
+ */
+static BOOL I2C_Sensors__writeControl(void);
+
+/**
+ * @private
+ *
+ * @brief Spins the read of the control byte to the control register of the fuel gauge. Will not block.
+ *
+ * Upon completion, will transition the read control state machine to the `RC__DONE` or `RC__FAILED_NACK` state.
+ *
+ * @return Whether or not to continue spinning the read control state machine.
+ */
+static BOOL I2C_Sensors__readControl(void);
+
+/**
+ * @private
+ *
+ * @brief Spins the write to put the fuel gauge in low power mode. Will not block.
+ *
+ * Upon completion, will transition the write low power state machine to the `WLP__DONE` or `WLP__FAILED_NACK` state.
+ *
+ * @return Whether or not to continue spinning the write low power state machine.
+ */
+static BOOL I2C_Sensors__lowPower(void);
 
 //###########################################################
 // Public function definitions
 //###########################################################
 
-void I2C_Sensors__init()
+void I2C_Sensors__init(void)
 {
     // Just init the generic I2C module we depend on
     I2C__init();
 }
 
-void I2C_Sensors__initiateGaugeReadings()
+void I2C_Sensors__stop(void)
 {
-    internals.gState = GRS__CHARGE_LSB;
-    internals.readings.nackMask = 0U;
+    I2C__stop();
+    I2C_Sensors__clearLastAction();
+}
+
+void I2C_Sensors__clearLastAction(void)
+{
+    internals.activeAction = I2C_SENSORS__ACTIONS__INACTIVE;
+
+    // We could check what the last action was and only reset that one... or we could just reset them all.
+    internals.grsState = GRS__UNKNOWN;
+    internals.fgiState = FGI__UNKNOWN;
+    internals.rcState = RC__UNKNOWN;
+    internals.wlpState = WLP__UNKNOWN;
+}
+
+I2C_Sensors__Status I2C_Sensors__initiateGaugeReadings(void)
+{
+    if (I2C_SENSORS__ACTIONS__INACTIVE == internals.activeAction) {
+        internals.activeAction = I2C_SENSORS__ACTIONS__GAUGE_READING;
+        internals.grsState = GRS__CHARGE_LSB;
+        internals.readings.nackMask = 0U;
+        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+    } else {
+        return I2C_SENSORS__STATUS__ERROR__ACTION_ALREADY_IN_PROGRESS;
+    }
+}
+
+I2C_Sensors__Status I2C_Sensors__initiateFuelGaugeInitialization(void)
+{
+    if (I2C_SENSORS__ACTIONS__INACTIVE == internals.activeAction) {
+        internals.activeAction = I2C_SENSORS__ACTIONS__GAUGE_INIT;
+        internals.fgiState = FGI__ACCUMULATED_CHARGE_MSB;
+        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+    } else {
+        return I2C_SENSORS__STATUS__ERROR__ACTION_ALREADY_IN_PROGRESS;
+    }
+}
+
+I2C_Sensors__Status I2C_Sensors__initiateReadControl(void)
+{
+    if (I2C_SENSORS__ACTIONS__INACTIVE == internals.activeAction) {
+        internals.activeAction = I2C_SENSORS__ACTIONS__READ_GAUGE_CONTROL_REGISTER;
+        internals.rcState = RC__READING;
+        internals.controlRegisterReadValue = 0;
+        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+    } else {
+        return I2C_SENSORS__STATUS__ERROR__ACTION_ALREADY_IN_PROGRESS;
+    }
+}
+
+I2C_Sensors__Status I2C_Sensors__initiateWriteLowPower(void)
+{
+    if (I2C_SENSORS__ACTIONS__INACTIVE == internals.activeAction) {
+        internals.activeAction = I2C_SENSORS__ACTIONS__WRITE_GAUGE_LOW_POWER;
+        internals.wlpState = WLP__WRITING;
+        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+    } else {
+        return I2C_SENSORS__STATUS__ERROR__ACTION_ALREADY_IN_PROGRESS;
+    }
 }
 
 I2C_Sensors__Status
-I2C_Sensors__getGaugeReadingStatus(I2C_Sensors__Readings* readings)
+I2C_Sensors__getActionStatus(I2C_Sensors__Action* action,
+                             I2C_Sensors__Readings* readings,
+                             uint8_t* controlRegisterValue)
 {
-    if (NULL == readings) {
+    if (NULL == action) {
         return I2C_SENSORS__STATUS__ERROR__NULL;
     }
 
-    switch (internals.gState) {
-        case GRS__UNKNOWN:
-            return I2C_SENSORS__STATUS__ERROR__READINGS_NOT_STARTED;
+    if (I2C_SENSORS__ACTIONS__INACTIVE == internals.activeAction) {
+        return I2C_SENSORS__STATUS__ERROR__NO_ACTION_IN_PROGRESS;
+    }
 
-        case GRS__CHARGE_LSB:
-        case GRS__CHARGE_MSB:
-        case GRS__VOLTAGE_LSB:
-        case GRS__VOLTAGE_MSB:
-        case GRS__CURRENT_LSB:
-        case GRS__CURRENT_MSB:
-        case GRS__GAUGE_TEMP_LSB:
-        case GRS__GAUGE_TEMP_MSB:
-            return I2C_SENSORS__STATUS__INCOMPLETE;
+    *action = internals.activeAction;
 
-        case GRS__DONE:
-            memcpy(readings, &internals.readings, sizeof(*readings));
+    switch (internals.activeAction) {
+        case I2C_SENSORS__ACTIONS__GAUGE_READING:
+            {
+                if (NULL == readings) {
+                    return I2C_SENSORS__STATUS__ERROR__NULL;
+                }
 
-            if (internals.readings.nackMask == 0U) {
-                return I2C_SENSORS__STATUS__SUCCESS_DONE;
-            } else {
-                return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
+                switch (internals.grsState) {
+                    case GRS__UNKNOWN:
+                        return I2C_SENSORS__STATUS__ERROR__READINGS_NOT_STARTED;
+
+                    case GRS__CHARGE_LSB:
+                    case GRS__CHARGE_MSB:
+                    case GRS__VOLTAGE_LSB:
+                    case GRS__VOLTAGE_MSB:
+                    case GRS__CURRENT_LSB:
+                    case GRS__CURRENT_MSB:
+                    case GRS__GAUGE_TEMP_LSB:
+                    case GRS__GAUGE_TEMP_MSB:
+                        return I2C_SENSORS__STATUS__INCOMPLETE;
+
+                    case GRS__DONE:
+                        memcpy(readings, &internals.readings, sizeof(*readings));
+
+                        if (internals.readings.nackMask == 0U) {
+                            return I2C_SENSORS__STATUS__SUCCESS_DONE;
+                        } else {
+                            return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
+                        }
+
+                    default:
+                        return I2C_SENSORS__STATUS__ERROR__INTERNAL;
+                }
             }
+            break;
+
+        case I2C_SENSORS__ACTIONS__GAUGE_INIT:
+            {
+                switch (internals.fgiState) {
+                    case FGI__UNKNOWN:
+                        return I2C_SENSORS__STATUS__ERROR__INTERNAL;
+
+                    case FGI__ACCUMULATED_CHARGE_MSB:
+                    case FGI__ACCUMULATED_CHARGE_LSB:
+                    case FGI__CONTROL:
+                        return I2C_SENSORS__STATUS__INCOMPLETE;
+
+                    case FGI__DONE:
+                        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+
+                    case FGI__FAILED_NACK:
+                        return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
+
+                    default:
+                        return I2C_SENSORS__STATUS__ERROR__INTERNAL;
+                }
+            }
+            break;
+
+        case I2C_SENSORS__ACTIONS__WRITE_GAUGE_LOW_POWER:
+            {
+                switch (internals.wlpState) {
+                    case WLP__UNKNOWN:
+                        return I2C_SENSORS__STATUS__ERROR__INTERNAL;
+
+                    case WLP__WRITING:
+                        return I2C_SENSORS__STATUS__INCOMPLETE;
+
+                    case WLP__DONE:
+                        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+
+                    case WLP__FAILED_NACK:
+                        return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
+
+                    default:
+                        return I2C_SENSORS__STATUS__ERROR__INTERNAL;
+                }
+            }
+            break;
+
+        case I2C_SENSORS__ACTIONS__READ_GAUGE_CONTROL_REGISTER:
+            {
+                if (NULL == controlRegisterValue) {
+                    return I2C_SENSORS__STATUS__ERROR__NULL;
+                }
+
+                switch (internals.wlpState) {
+                    case RC__UNKNOWN:
+                        return I2C_SENSORS__STATUS__ERROR__INTERNAL;
+
+                    case RC__READING:
+                        return I2C_SENSORS__STATUS__INCOMPLETE;
+
+                    case RC__DONE:
+                        *controlRegisterValue = internals.controlRegisterReadValue;
+                        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+
+                    case RC__FAILED_NACK:
+                        return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
+
+                    default:
+                        return I2C_SENSORS__STATUS__ERROR__INTERNAL;
+                }
+            }
+            break;
 
         default:
             return I2C_SENSORS__STATUS__ERROR__INTERNAL;
     }
 }
 
-I2C_Sensors__Status I2C_Sensors__fuelGaugeLowPowerBlocking()
-{
-    static const uint8_t FUEL_GAUGE_LOW_POWER = 0b00101001;
-
-    if (!((GRS__DONE == internals.gState)
-          || (GRS__UNKNOWN == internals. gState))) {
-        return I2C_SENSORS__STATUS__ERROR__READINGS_IN_PROGRESS;
-    }
-
-    BOOL inProgress = TRUE;
-    BOOL success = FALSE;
-
-    while (inProgress) {
-        BOOL done = FALSE;
-
-        I2C__spinOnce();
-
-        I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
-                                         REG_ADDR__CONTROL,
-                                         FUEL_GAUGE_LOW_POWER,
-                                         &done,
-                                         &success);
-
-        inProgress = !done;
-
-        if (inProgress) {
-            __delay_cycles(100);
-        }
-    }
-
-    if (success) {
-        return I2C_SENSORS__STATUS__SUCCESS_DONE;
-    } else {
-        return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
-    }
-}
-
-I2C_Sensors__Status I2C_Sensors__initializeFuelGaugeBlocking()
-{
-    // set control_reg[7:6] to 01 do one conversion, 10 to convert every 10s,
-    //      set to 00 to sleep, set to 11 to continuously convert
-    // set control_reg[5:3] to 101 for M of 1024 for coulomb counter (see datasheet)
-    // control_ref[2:1] not used on SBC (pin its related to is floating)
-    // must leave control_reg[0] to 0
-    static const uint8_t FUEL_GAUGE_INIT = 0b10101000;
-
-    if (!((GRS__DONE == internals.gState)
-          || (GRS__UNKNOWN == internals. gState))) {
-        return I2C_SENSORS__STATUS__ERROR__READINGS_IN_PROGRESS;
-    }
-
-
-    BOOL inProgress = TRUE;
-    BOOL success = TRUE;
-    uint8_t stage = 1;
-
-    while (inProgress) {
-        BOOL done = FALSE;
-        BOOL stageSuccess = FALSE;
-
-        I2C__spinOnce();
-
-        switch (stage) {
-            // initialize charge register with maximum battery capacity (see data sheet
-            // for conversion from 3500 mAh, M is 1048)
-            case 1:
-                I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
-                                                 REG_ADDR__ACCUMULATED_CHARGE_MSB,
-                                                 0xA0,
-                                                 &done,
-                                                 &stageSuccess);
-                break;
-
-            case 2:
-                I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
-                                                 REG_ADDR__ACCUMULATED_CHARGE_LSB,
-                                                 0xD8,
-                                                 &done,
-                                                 &stageSuccess);
-                break;
-
-            case 3:
-                I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
-                                                 REG_ADDR__CONTROL,
-                                                 FUEL_GAUGE_INIT,
-                                                 &done,
-                                                 &stageSuccess);
-                break;
-        }
-
-        if (done) {
-            // Only consider successful if all are successful
-            success = success && stageSuccess;
-
-            if (stage >= 3) {
-                inProgress = FALSE;
-            } else {
-                stage++;
-            }
-        }
-
-        if (inProgress) {
-            __delay_cycles(100);
-        }
-    }
-
-    if (success) {
-        return I2C_SENSORS__STATUS__SUCCESS_DONE;
-    } else {
-        return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
-    }
-}
-
-I2C_Sensors__Status I2C_Sensors__readFuelGaugeControlRegisterBlocking(uint8_t* data)
-{
-    if (NULL == data) {
-        return I2C_SENSORS__STATUS__ERROR__NULL;
-    }
-
-    if (!((GRS__DONE == internals.gState)
-          || (GRS__UNKNOWN == internals. gState))) {
-        return I2C_SENSORS__STATUS__ERROR__READINGS_IN_PROGRESS;
-    }
-
-    BOOL inProgress = TRUE;
-    BOOL success = FALSE;
-    GaugeReadingState initialState = internals.gState;
-    uint8_t initialNackMask = internals.readings.nackMask;
-
-    while (inProgress) {
-        BOOL done = FALSE;
-
-        I2C__spinOnce();
-
-        I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
-                                        REG_ADDR__CONTROL,
-                                        0,
-                                        initialState,
-                                        data,
-                                        &done,
-                                        &success);
-
-        inProgress = !done;
-
-        if (inProgress) {
-            __delay_cycles(100);
-        }
-    }
-
-    internals.gState = initialState;
-    internals.readings.nackMask = initialNackMask;
-
-    if (success) {
-        return I2C_SENSORS__STATUS__SUCCESS_DONE;
-    } else {
-        return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
-    }
-}
-
-void I2C_Sensors__spinOnce()
+void I2C_Sensors__spinOnce(void)
 {
     BOOL keepSpinning = TRUE;
+
+    if (I2C_SENSORS__ACTIONS__INACTIVE == internals.activeAction) {
+        return;
+    }
 
     while (keepSpinning) {
         I2C__spinOnce();
 
-        switch (internals.gState) {
-            case GRS__UNKNOWN:
-                keepSpinning = FALSE;
+        switch (internals.activeAction) {
+            case I2C_SENSORS__ACTIONS__GAUGE_READING:
+                {
+                    switch (internals.grsState) {
+                        case GRS__UNKNOWN:
+                            keepSpinning = FALSE;
+                            break;
+
+                        case GRS__CHARGE_LSB:
+                            keepSpinning = I2C_Sensors__chargeLsb();
+                            break;
+
+                        case GRS__CHARGE_MSB:
+                            keepSpinning = I2C_Sensors__chargeMsb();
+                            break;
+
+                        case GRS__VOLTAGE_LSB:
+                            keepSpinning = I2C_Sensors__voltageLsb();
+                            break;
+
+                        case GRS__VOLTAGE_MSB:
+                            keepSpinning = I2C_Sensors__voltageMsb();
+                            break;
+
+                        case GRS__CURRENT_LSB:
+                            keepSpinning = I2C_Sensors__currentLsb();
+                            break;
+
+                        case GRS__CURRENT_MSB:
+                            keepSpinning = I2C_Sensors__currentMsb();
+                            break;
+
+                        case GRS__GAUGE_TEMP_LSB:
+                            keepSpinning = I2C_Sensors__gaugeTempLsb();
+                            break;
+
+                        case GRS__GAUGE_TEMP_MSB:
+                            keepSpinning = I2C_Sensors__gaugeTempMsb();
+                            break;
+
+                        case GRS__DONE:
+                            keepSpinning = FALSE;
+                            break;
+
+                        default:
+                            keepSpinning = FALSE;
+                            break;
+                    }
+                }
                 break;
 
-            case GRS__CHARGE_LSB:
-                keepSpinning = I2C_Sensors__chargeLsb();
+            case I2C_SENSORS__ACTIONS__GAUGE_INIT:
+                {
+                    switch (internals.fgiState) {
+                        case FGI__UNKNOWN:
+                            keepSpinning = FALSE;
+                            break;
+
+                        case FGI__ACCUMULATED_CHARGE_MSB:
+                            keepSpinning = I2C_Sensors__accumulatedChargeMsb();
+                            break;
+
+                        case FGI__ACCUMULATED_CHARGE_LSB:
+                            keepSpinning = I2C_Sensors__accumulatedChargeLsb();
+                            break;
+
+                        case FGI__CONTROL:
+                            keepSpinning = I2C_Sensors__writeControl();
+                            break;
+
+                        case FGI__DONE:
+                        case FGI__FAILED_NACK:
+                        default:
+                            keepSpinning = FALSE;
+                            break;
+                    }
+                }
                 break;
 
-            case GRS__CHARGE_MSB:
-                keepSpinning = I2C_Sensors__chargeMsb();
+            case I2C_SENSORS__ACTIONS__WRITE_GAUGE_LOW_POWER:
+                {
+                    switch (internals.wlpState) {
+                        case WLP__UNKNOWN:
+                            keepSpinning = FALSE;
+                            break;
+
+                        case WLP__WRITING:
+                            keepSpinning = I2C_Sensors__lowPower();
+                            break;
+
+                        case WLP__DONE:
+                        case WLP__FAILED_NACK:
+                        default:
+                            keepSpinning = FALSE;
+                            break;
+                    }
+                }
                 break;
 
-            case GRS__VOLTAGE_LSB:
-                keepSpinning = I2C_Sensors__voltageLsb();
-                break;
+            case I2C_SENSORS__ACTIONS__READ_GAUGE_CONTROL_REGISTER:
+                {
+                    if (NULL == controlRegisterValue) {
+                        return I2C_SENSORS__STATUS__ERROR__NULL;
+                    }
 
-            case GRS__VOLTAGE_MSB:
-                keepSpinning = I2C_Sensors__voltageMsb();
-                break;
+                    switch (internals.wlpState) {
+                        case RC__UNKNOWN:
+                            keepSpinning = FALSE;
+                            break;
 
-            case GRS__CURRENT_LSB:
-                keepSpinning = I2C_Sensors__currentLsb();
-                break;
+                        case RC__READING:
+                            keepSpinning = I2C_Sensors__readControl();
+                            break;
 
-            case GRS__CURRENT_MSB:
-                keepSpinning = I2C_Sensors__currentMsb();
-                break;
-
-            case GRS__GAUGE_TEMP_LSB:
-                keepSpinning = I2C_Sensors__gaugeTempLsb();
-                break;
-
-            case GRS__GAUGE_TEMP_MSB:
-                keepSpinning = I2C_Sensors__gaugeTempMsb();
-                break;
-
-            case GRS__DONE:
-                keepSpinning = FALSE;
+                        case RC__DONE:
+                        case RC__FAILED_NACK:
+                        default:
+                            keepSpinning = FALSE;
+                            break;
+                    }
+                }
                 break;
 
             default:
+                keepSpinning = FALSE;
                 break;
         }
     }
@@ -488,6 +679,7 @@ void I2C_Sensors__spinOnce()
 static BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
                                             uint8_t regAddr,
                                             uint8_t nackMaskBit,
+                                            BOOL isGaugeReading,
                                             GaugeReadingState nextState,
                                             void* output,
                                             BOOL* done,
@@ -516,7 +708,10 @@ static BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
         if (I2C__TRANSACTION__DONE_SUCCESS == tStatus.state) {
             // We're now done with this read (and it was successful)
             if (statusForRequestedTransaction) {
-                internals.gState = nextState;
+                if (isGaugeReading) {
+                    internals.grsState = nextState;
+                }
+
                 *((uint8_t*) output) = tStatus.data;
                 *done = TRUE;
                 *gotOutput = TRUE;
@@ -528,7 +723,11 @@ static BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
             // We're now done with this read (and it failed)
             if (statusForRequestedTransaction) {
                 internals.readings.nackMask |= nackMaskBit;
-                internals.gState = nextState;
+
+                if (isGaugeReading) {
+                    internals.grsState = nextState;
+                }
+
                 *done = TRUE;
                 *gotOutput = FALSE;
                 continueSpinning = TRUE;
@@ -544,7 +743,10 @@ static BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
         // If the NACK mask bit for this register is already set, just skip
         // this register
         if (internals.readings.nackMask & nackMaskBit != 0) {
-            internals.gState = nextState;
+            if (isGaugeReading) {
+                internals.grsState = nextState;
+            }
+
             *done = TRUE;
             *gotOutput = FALSE;
             return TRUE;
@@ -563,6 +765,8 @@ static BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
 static void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
                                              uint8_t regAddr,
                                              uint8_t data,
+                                             BOOL isGaugeInit,
+                                             FuelGaugeInitState nextState,
                                              BOOL* done,
                                              BOOL* success)
 {
@@ -588,6 +792,9 @@ static void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
         if (I2C__TRANSACTION__DONE_SUCCESS == tStatus.state) {
             // We're now done with this write (and it was successful)
             if (statusForRequestedTransaction) {
+                if (isGaugeInit) {
+                    internals.fgiState = nextState;
+                }
                 *done = TRUE;
                 *success = TRUE;
             }
@@ -596,6 +803,10 @@ static void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
         } else if (I2C__TRANSACTION__DONE_ERROR_NACK == tStatus.state) {
             // We're now done with this write (and it failed)
             if (statusForRequestedTransaction) {
+                if (isGaugeInit) {
+                    internals.fgiState = FGI__FAILED_NACK;
+                }
+
                 *done = TRUE;
                 *success = FALSE;
             }
@@ -614,7 +825,7 @@ static void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
     }
 }
 
-static BOOL I2C_Sensors__chargeLsb()
+static BOOL I2C_Sensors__chargeLsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
     return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -626,7 +837,7 @@ static BOOL I2C_Sensors__chargeLsb()
                                            &gotOutput);
 }
 
-static BOOL I2C_Sensors__chargeMsb()
+static BOOL I2C_Sensors__chargeMsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
     BOOL result = I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -646,7 +857,7 @@ static BOOL I2C_Sensors__chargeMsb()
     return result;
 }
 
-static BOOL I2C_Sensors__voltageLsb()
+static BOOL I2C_Sensors__voltageLsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
     return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -658,7 +869,7 @@ static BOOL I2C_Sensors__voltageLsb()
                                            &gotOutput);
 }
 
-static BOOL I2C_Sensors__voltageMsb()
+static BOOL I2C_Sensors__voltageMsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
     return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -670,7 +881,7 @@ static BOOL I2C_Sensors__voltageMsb()
                                            &gotOutput);
 }
 
-static BOOL I2C_Sensors__currentLsb()
+static BOOL I2C_Sensors__currentLsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
     return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -682,7 +893,7 @@ static BOOL I2C_Sensors__currentLsb()
                                            &gotOutput);
 }
 
-static BOOL I2C_Sensors__currentMsb()
+static BOOL I2C_Sensors__currentMsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
     BOOL result = I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -708,7 +919,7 @@ static BOOL I2C_Sensors__currentMsb()
     return result;
 }
 
-static BOOL I2C_Sensors__gaugeTempLsb()
+static BOOL I2C_Sensors__gaugeTempLsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
     return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -720,7 +931,7 @@ static BOOL I2C_Sensors__gaugeTempLsb()
                                            &gotOutput);
 }
 
-static BOOL I2C_Sensors__gaugeTempMsb()
+static BOOL I2C_Sensors__gaugeTempMsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
     return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
@@ -730,4 +941,88 @@ static BOOL I2C_Sensors__gaugeTempMsb()
                                            internals.readings.raw_fuel_gauge_temp,
                                            &done,
                                            &gotOutput);
+}
+
+static BOOL I2C_Sensors__accumulatedChargeMsb(void)
+{
+    BOOL done = FALSE, success = FALSE;
+    I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
+                                     REG_ADDR__ACCUMULATED_CHARGE_MSB,
+                                     FUEL_GAUGE_CHARGE_ACCUM_MSB_INIT,
+                                     TRUE,
+                                     FGI__ACCUMULATED_CHARGE_LSB,
+                                     &done,
+                                     &stageSuccess);
+    return (done && success) ? TRUE : FALSE;
+}
+
+
+static BOOL I2C_Sensors__accumulatedChargeLsb(void)
+{
+    BOOL done = FALSE, success = FALSE;
+    I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
+                                     REG_ADDR__ACCUMULATED_CHARGE_LSB,
+                                     FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT,
+                                     TRUE,
+                                     FGI__CONTROL,
+                                     &done,
+                                     &stageSuccess);
+    return (done && success) ? TRUE : FALSE;
+}
+
+static BOOL I2C_Sensors__writeControl(void)
+{
+    BOOL done = FALSE, success = FALSE;
+    I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
+                                     REG_ADDR__CONTROL,
+                                     FUEL_GAUGE_CONTROL_INIT,
+                                     TRUE,
+                                     FGI__DONE,
+                                     &done,
+                                     &stageSuccess);
+
+    // Either we're not done, succeeded and are done with the gauge initialization, or failed due to a NACK. In
+    // all of these cases, we want to stop spinning.
+    return FALSE;
+}
+
+static BOOL I2C_Sensors__readControl(void)
+{
+    BOOL done = FALSE, gotOutput = FALSE;
+    I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
+                                    REG_ADDR__CONTROL,
+                                    0,
+                                    FALSE,
+                                    initialState,
+                                    &(internals.controlRegisterReadValue),
+                                    &done,
+                                    &success);
+
+    if (done) {
+        internals.rcState = success ? RC__DONE : RC__FAILED_NACK;
+    }
+
+    // Either we're not done, succeeded and are done with this action, or failed due to a NACK. In all cases, we want
+    // to stop spinning
+    return FALSE;
+}
+
+static BOOL I2C_Sensors__lowPower(void)
+{
+    BOOL done = FALSE, success = FALSE;
+    I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
+                                     REG_ADDR__CONTROL,
+                                     FUEL_GAUGE_CONTROL_LOW_POWER,
+                                     FALSE,
+                                     FGI__UNKNOWN,
+                                     &done,
+                                     &success);
+
+    if (done) {
+        internals.wlpState = success ? WLP__DONE : WLP__FAILED_NACK;
+    }
+
+    // Either we're not done, succeeded and are done with this action, or failed due to a NACK. In all cases, we want
+    // to stop spinning
+    return (done && success) ? TRUE : FALSE;
 }

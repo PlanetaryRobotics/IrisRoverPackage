@@ -21,22 +21,22 @@ static I2C__TransactionStatus theStatus = { 0 };
 
 // Checks for an ack from the slave, stops the transmission
 // if we didn't get one
-static BOOL I2C__checkAck();
+static BOOL I2C__checkAck(void);
 
 // State handler functions
-static BOOL I2C__waitForStop();
-static BOOL I2C__txStart();
-static BOOL I2C__confirmStart();
-static BOOL I2C__txRegAddress();
-static BOOL I2C__txData();
-static BOOL I2C__rxStart();
-static BOOL I2C__rxDataAndStop();
+static BOOL I2C__waitForStop(void);
+static BOOL I2C__txStart(void);
+static BOOL I2C__confirmStart(void);
+static BOOL I2C__txRegAddress(void);
+static BOOL I2C__txData(void);
+static BOOL I2C__rxStart(void);
+static BOOL I2C__rxDataAndStop(void);
 
 //###########################################################
 // Public function definitions
 //###########################################################
 
-void I2C__init()
+void I2C__init(void)
 {
     // Configure i2c interface
     P1SEL1 |= BIT6; // P1.6 SDA
@@ -83,6 +83,24 @@ I2C__Status I2C__read(uint8_t dev_addr, uint8_t reg_addr)
     return I2C__STATUS__SUCCESS;
 }
 
+void I2C__stop(void)
+{
+    if ((theStatus.state == I2C__TRANSACTION__UNKNOWN)
+          || (theStatus.state == I2C__TRANSACTION__DONE_SUCCESS)
+          || (theStatus.state == I2C__TRANSACTION__DONE_ERROR_NACK)) {
+        return;
+    }
+
+    // Some kind of transaction is active. Setting the stop bit will generate a STOP condition in case of either a TX
+    // or RX, and my understanding is that it will be automatically cleared once the STOP condition has completed.
+    UCB0CTLW0 |= UCTXSTP;
+
+    // Since the transaction should be terminated by setting the STOP condition above, clear out the transaction status
+    theStatus.state = I2C__TRANSACTION__UNKNOWN;
+
+    return;
+}
+
 I2C__Status I2C__getTransactionStatus(I2C__TransactionStatus* tStatus)
 {
     if (NULL == tStatus) {
@@ -97,7 +115,7 @@ I2C__Status I2C__getTransactionStatus(I2C__TransactionStatus* tStatus)
     return I2C__STATUS__SUCCESS;
 }
 
-void I2C__spinOnce()
+void I2C__spinOnce(void)
 {
     BOOL done = FALSE;
 
@@ -150,7 +168,7 @@ void I2C__spinOnce()
 // Private function definitions
 //###########################################################
 
-static BOOL I2C__checkAck()
+static BOOL I2C__checkAck(void)
 {
     BOOL result = TRUE;
 
@@ -168,7 +186,7 @@ static BOOL I2C__checkAck()
     return result;
 }
 
-static BOOL I2C__waitForStop()
+static BOOL I2C__waitForStop(void)
 {
     BOOL continueSpinning = FALSE;
 
@@ -187,7 +205,7 @@ static BOOL I2C__waitForStop()
     return continueSpinning;
 }
 
-static BOOL I2C__txStart()
+static BOOL I2C__txStart(void)
 {
     BOOL continueSpinning = FALSE;
 
@@ -207,7 +225,7 @@ static BOOL I2C__txStart()
     return continueSpinning;
 }
 
-static BOOL I2C__confirmStart()
+static BOOL I2C__confirmStart(void)
 {
     BOOL continueSpinning = FALSE;
     // We're looking for the start condition to be cleared, which means we can check the ack
@@ -222,7 +240,7 @@ static BOOL I2C__confirmStart()
     return continueSpinning;
 }
 
-static BOOL I2C__txRegAddress()
+static BOOL I2C__txRegAddress(void)
 {
     BOOL continueSpinning = FALSE;
 
@@ -256,7 +274,7 @@ static BOOL I2C__txRegAddress()
     return continueSpinning;
 }
 
-static BOOL I2C__txData()
+static BOOL I2C__txData(void)
 {
     // We're looking for the data send being complete (i.e. UCTXIFG is set)
     if ((UCB0IFG & UCTXIFG)) {
@@ -277,7 +295,7 @@ static BOOL I2C__txData()
     return FALSE;
 }
 
-static BOOL I2C__rxStart()
+static BOOL I2C__rxStart(void)
 {
     BOOL continueSpinning = FALSE;
 
@@ -297,7 +315,7 @@ static BOOL I2C__rxStart()
     return continueSpinning;
 }
 
-static BOOL I2C__rxDataAndStop()
+static BOOL I2C__rxDataAndStop(void)
 {
     // We're looking for data to have been received (i.e. UCRXIFG is set)
     if ((UCB0IFG & UCRXIFG)) {

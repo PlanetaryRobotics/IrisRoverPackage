@@ -55,6 +55,17 @@ typedef struct I2C_Sensors__Readings {
 } I2C_Sensors__Readings;
 
 /**
+ * @brief The possible actions that this module could be performing.
+ */
+typedef enum I2C_Sensors__Action {
+    I2C_SENSORS__ACTIONS__INACTIVE, //!< No action is currently in progress.
+    I2C_SENSORS__ACTIONS__GAUGE_READING, //!< Performing a reading of all fuel gauge sensor values.
+    I2C_SENSORS__ACTIONS__GAUGE_INIT, //!< Initializing the fuel gauge.
+    I2C_SENSORS__ACTIONS__WRITE_GAUGE_LOW_POWER, //!< Putting the fuel gauge into low power mode.
+    I2C_SENSORS__ACTIONS__READ_GAUGE_CONTROL_REGISTER //!< Reading the fuel gauge control register.
+} I2C_Sensors__Action;
+
+/**
  * @brief Possible return statuses of I2C_Sensors functions.
  */
 typedef enum I2C_Sensors__Status {
@@ -69,6 +80,8 @@ typedef enum I2C_Sensors__Status {
 
     I2C_SENSORS__STATUS__ERROR__READINGS_NOT_STARTED = -3, //!< No gauge reading is active.
     I2C_SENSORS__STATUS__ERROR__READINGS_IN_PROGRESS = -4, //!< Gauge readings are already in progress.
+    I2C_SENSORS__STATUS__ERROR__ACTION_ALREADY_IN_PROGRESS = -5, //!< Cannot start a new action with one in progress.
+    I2C_SENSORS__STATUS__ERROR__NO_ACTION_IN_PROGRESS = -6, //!< No action is in progress.
     I2C_SENSORS__STATUS__ERROR__INTERNAL = -255 //!< An unexpected error occurred.
 } I2C_Sensors__Status;
 
@@ -76,7 +89,11 @@ typedef enum I2C_Sensors__Status {
  * @brief Initializes the I2C_Sensors module, which simply invokes `I2C__init()` to initialize the underlying I2C
  *        driver.
  */
-void I2C_Sensors__init();
+void I2C_Sensors__init(void);
+
+void I2C_Sensors__stop(void);
+
+void I2C_Sensors__clearLastAction(void);
 
 /**
  * @brief Initiates the next set of gauge readings. Does not block.
@@ -97,7 +114,13 @@ void I2C_Sensors__init();
  * any of the `*Blocking()` functions will immediately return an error (and not perform the desired action) until
  * the existing gauge reading process is complete.
  */
-void I2C_Sensors__initiateGaugeReadings();
+I2C_Sensors__Status I2C_Sensors__initiateGaugeReadings(void);
+
+I2C_Sensors__Status I2C_Sensors__initiateFuelGaugeInitialization(void);
+
+I2C_Sensors__Status I2C_Sensors__initiateReadControl(void);
+
+I2C_Sensors__Status I2C_Sensors__initiateWriteLowPower(void);
 
 /**
  * @brief Checks the status of reading the gauges. Does not block.
@@ -139,44 +162,9 @@ void I2C_Sensors__initiateGaugeReadings();
  *   - I2C_SENSORS__STATUS__ERROR__READINGS_NOT_STARTED: `I2C_Sensors__initiateGaugeReadings()` has never been called.
  */
 I2C_Sensors__Status
-I2C_Sensors__getGaugeReadingStatus(I2C_Sensors__Readings* readings);
-
-/**
- * @brief Set the fuel gauge to low power mode with a blocking register write.
- *
- * @return One of the following:
- *   - I2C_SENSORS__STATUS__SUCCESS_DONE: The write completed successfully.
- *   - I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS: The write failed due to a NACK.
- *   - I2C_SENSORS__STATUS__ERROR__READINGS_IN_PROGRESS: Gauge readings are already in progress, preventing us from
- *                                                       performing this action.
- */
-I2C_Sensors__Status I2C_Sensors__fuelGaugeLowPowerBlocking();
-
-/**
- * @brief Initializes the fuel gauge with a sequence of three register writes. Blocks until all three writes
- *        are complete.
- *
- * @return One of the following:
- *   - I2C_SENSORS__STATUS__SUCCESS_DONE: The writes have completed successfully.
- *   - I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS: At least one of the writes failed due to a NACK.
- *   - I2C_SENSORS__STATUS__ERROR__READINGS_IN_PROGRESS: Gauge readings are already in progress, preventing us from
- *                                                       performing this action.
- */
-I2C_Sensors__Status I2C_Sensors__initializeFuelGaugeBlocking();
-
-/**
- * @brief Reads the fuel gauge control register with a blocking read.
- *
- * @param data An output parameter set to the data read from the fuel gauge control register. Only set if the return
- *             status is `I2C_SENSORS__STATUS__SUCCESS_DONE`.
- *
- * @return One of the following:
- *   - I2C_SENSORS__STATUS__SUCCESS_DONE: The read completed successfully.
- *   - I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS: The read failed due to a NACK.
- *   - I2C_SENSORS__STATUS__ERROR__READINGS_IN_PROGRESS: Gauge readings are already in progress, preventing us from
- *                                                       performing this action.
- */
-I2C_Sensors__Status I2C_Sensors__readFuelGaugeControlRegisterBlocking(uint8_t* data);
+I2C_Sensors__getActionStatus(I2C_Sensors__Action* action,
+                             I2C_Sensors__Readings* readings,
+                             uint8_t* controlRegisterValue);
 
 /**
  * @brief Spins the gauge reading state machine. If no gauge reading process is active, this will return immediately.
@@ -184,7 +172,7 @@ I2C_Sensors__Status I2C_Sensors__readFuelGaugeControlRegisterBlocking(uint8_t* d
  * @note See the documentation of `I2C_Sensors__initiateGaugeReadings()` for an explanation of the expected use case of
  *       this function.
  */
-void I2C_Sensors__spinOnce();
+void I2C_Sensors__spinOnce(void);
 
 /**
  * @}

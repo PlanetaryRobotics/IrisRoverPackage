@@ -23,12 +23,33 @@
 #include "include/ground_cmd.h"
 #include "include/watchdog.h"
 
-volatile uint16_t watchdog_flags;
+// These three only exist so I can be 100% confident that the Ptr variables
+// below them will never be NULL. Since the Ptr values should be set
+// to non-NULL values in watchdog_init prior to enabling the interrupts,
+// these three shouldn't ever actually be used.
+static volatile uint16_t shouldBeUnusedWatchdogFlags = 0;
+static volatile uint16_t shouldBeUnusedLoopFlags = 0;
+static volatile uint16_t shouldBeUnusedTimeCount = 0;
+
+static volatile uint16_t* watchdogFlagsPtr = &shouldBeUnusedWatchdogFlags;
+static volatile uint16_t* loopFlagsPtr = &shouldBeUnusedLoopFlags;
+static volatile uint16_t* timeCountCentisecondsPtr = &shouldBeUnusedTimeCount;
 
 /**
  * Set up the ISRs for the watchdog
  */
-int watchdog_init() {
+int watchdog_init(volatile uint16_t* watchdogFlags,
+                  volatile uint16_t* loopFlags,
+                  volatile uint16_t* timeCountCentiseconds)
+{
+    DEBUG_LOG_NULL_CHECK_RETURN(watchdogFlags, "Parameter is NULL", -1);
+    DEBUG_LOG_NULL_CHECK_RETURN(loopFlags, "Parameter is NULL", -1);
+    DEBUG_LOG_NULL_CHECK_RETURN(timeCount, "Parameter is NULL", -1);
+
+    watchdogFlagsPtr = watchdogFlags;
+    loopFlagsPtr = loopFlags;
+    timeCountCentisecondsPtr = timeCountCentiseconds;
+
     /* trigger on P1.0 Hi/lo edge */
     P1IE |= BIT0;                    // P1.0 interrupt enabled
     P1IES |= BIT0;                   // P1.0 Hi/lo edge
@@ -43,7 +64,7 @@ int watchdog_init() {
     // MC bits will be set to zero, which means that the timer is stopped. 
     TA0CTL = TASSEL_1;
 
-    // The input divier for the input clock is determined by the ID bits in TAxCTL and the TAIDEX bits
+    // The input divider for the input clock is determined by the ID bits in TAxCTL and the TAIDEX bits
     // in TAxEX0. If the resultant timer frequency is f_timer, the frequency of the input clock is f_clk,
     // the clock divisor determined by the ID bits is d_ID, and the clock divisor determined by the TAIDEX
     // bits is d_TAIDEX, then their relationship is:
@@ -64,6 +85,16 @@ int watchdog_init() {
     // used once the TACLR bit is cleared. We do not need to manually clear this bit after setting it,
     // as it is reset automatically.
     TA0CTL |= TACLR;
+
+    // Set CCR1 to compare mode and enable the CCR1 interrupt, which is part of the TA0IV interrupt vector (CCR0, on
+    // the other hand, has its own interrupt vector).
+    TA0CCTL1 = CCIE;
+
+    // Set the value of Timer_A that will cause a CCR1 compare interrupt to occur.
+    // This determines the period of the PWM output. With this set to 94 and the timer clock
+    // frequency of 9400, the time between each interrupt is 94 / 9400 = 0.01 seconds, or 10 ms.
+    // We subtract one from the desired value because the timer counts starting at 0, rather than 1.
+    TA0CCR1 = 94 - 1;
 
     // Enable the TAIFG interrupt request. This interrupt occurs when the timer overflows.
     // Since Timer_A is a 16-bit timer and the timer clock frequency is ~9.4kHz, this means
@@ -142,6 +173,10 @@ int watchdog_monitor(HerculesComms__State* hState,
                      volatile uint16_t* watchdogFlags,
                      uint8_t* watchdogOpts)
 {
+    DEBUG_LOG_NULL_CHECK_RETURN(hState, "Parameter is NULL", -1);
+    DEBUG_LOG_NULL_CHECK_RETURN(watchdogFlags, "Parameter is NULL", -1);
+    DEBUG_LOG_NULL_CHECK_RETURN(watchdogOpts, "Parameter is NULL", -1);
+
     /* temporarily disable interrupts */
     __bic_SR_register(GIE);
 
@@ -253,7 +288,12 @@ void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
                                    uint8_t* telbuf,
                                    size_t telbufSize)
 {
-    if (telbufSize < 16 || NULL == i2cReadings || NULL == adcValues) {
+    DEBUG_LOG_NULL_CHECK_RETURN(i2cReadings, "Parameter is NULL", );
+    DEBUG_LOG_NULL_CHECK_RETURN(adcValues, "Parameter is NULL", );
+    DEBUG_LOG_NULL_CHECK_RETURN(telbuf, "Parameter is NULL", );
+
+    if (telbufSize < 16) {
+        DPRINTF_ERR("telbufSize is too small: required = %d, actual = %d\n", 16, telbufSize);
         return;
     }
 
@@ -351,7 +391,8 @@ void __attribute__ ((interrupt(PORT1_VECTOR))) port1_isr_handler (void) {
 #endif
     switch(__even_in_range(P1IV, P1IV__P1IFG7)) {
         case P1IV__P1IFG0: // P1.0: Radio Kick
-            watchdog_flags |= WDFLAG_RADIO_KICK;
+            *watchdogFlagsPtr |= WDFLAG_RADIO_KICK;
+
             // exit LPM
             __bic_SR_register(DEFAULT_LPM);
             break;
@@ -386,12 +427,22 @@ void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer0_A1_ISR (void) {
 #error Compiler not supported!
 #endif
     switch (__even_in_range(TA0IV, TAIV__TAIFG)) {
+        case TAIV__TACCR1:
+            *timeCountCentisecondsPtr++;
+
+            // Offset the count value we're looking for by by the number of timer ticks in one centisecond
+            TA0CCR1 += 94;
+            break;
+
         case TAIV__TAIFG: /* timer tick overflowed */
-            loop_flags |= FLAG_TIMER_TICK;
+            *loopFlagsPtr |= FLAG_TIMER_TICK;
+
             // exit LPM
             __bic_SR_register(DEFAULT_LPM);
             break;
-        default: break;
+
+        default:
+            break;
     }
 }
 

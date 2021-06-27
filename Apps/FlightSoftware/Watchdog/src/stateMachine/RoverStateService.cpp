@@ -14,6 +14,40 @@ namespace iris
     {
     }
 
+    RoverState RoverStateService::handleTimerTick(RoverContext& theContext)
+    {
+        // Trigger a new ADC sample if the previous one is done
+        if (isAdcSampleDone()) {
+            adcCheckVoltageLevels(&(theContext.m_adcValues));
+        }
+
+        /* send heartbeat with collected data */
+        static FullEarthHeartbeat hb = { 0 };
+        GroundCmd__Status gcStatus = GroundCmd__generateFullEarthHeartbeat(&(theContext.i2cReadings),
+                                                                           &(theContext.m_adcValues),
+                                                                           &hb);
+
+        assert(GND_CMD__STATUS__SUCCESS == gcStatus);
+
+        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
+                                                           hb->heartbeatOutBuffer,
+                                                           sizeof(hb->heartbeatOutBuffer));
+
+        assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
+        if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
+            //!< @todo Handling?
+        }
+
+        if (heatingControlEnabled) {
+            // calculate PWM duty cycle (if any) to apply to heater
+            heaterControl();
+        }
+
+        watchdog_monitor(theContext.m_hcState,
+                         &(theContext.m_watchdogFlags),
+                         &(theContext.m_watchdogOpts));
+    }
+
     RoverState RoverStateService::handleHighTemp(RoverContext& /*theContext*/)
     {
         //!< @todo Implement RoverStateService::handleHighTemp

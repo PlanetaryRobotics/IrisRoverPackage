@@ -415,6 +415,7 @@ I2C_Sensors__getActionStatus(I2C_Sensors__Action* action,
     }
 
     if (I2C_SENSORS__ACTIONS__INACTIVE == internals.activeAction) {
+        *action = I2C_SENSORS__ACTIONS__INACTIVE;
         return I2C_SENSORS__STATUS__ERROR__NO_ACTION_IN_PROGRESS;
     }
 
@@ -429,6 +430,7 @@ I2C_Sensors__getActionStatus(I2C_Sensors__Action* action,
 
                 switch (internals.grsState) {
                     case GRS__UNKNOWN:
+                        *action = I2C_SENSORS__ACTIONS__INACTIVE;
                         return I2C_SENSORS__STATUS__ERROR__READINGS_NOT_STARTED;
 
                     case GRS__CHARGE_LSB:

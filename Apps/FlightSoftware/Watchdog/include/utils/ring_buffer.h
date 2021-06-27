@@ -1,7 +1,7 @@
 // ring_buffer.h
 
-#ifndef __RING_BUFFER_H__
-#define __RING_BUFFER_H__
+#ifndef __WATCHDOG_RING_BUFFER_H__
+#define __WATCHDOG_RING_BUFFER_H__
 
 #include <stdint.h>
 #include <stddef.h>
@@ -230,4 +230,4 @@ RingBuffer__Status RingBuffer__clear(RingBuffer* rb);
 } /* close extern "C" */
 #endif
 
-#endif // #ifndef __RING_BUFFER_H__
+#endif // #ifndef __WATCHDOG_RING_BUFFER_H__

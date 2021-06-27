@@ -127,9 +127,9 @@ namespace iris
                                                           false); // whether or not to allow undeploy
     }
 
-    RoverState RoverStateBase::handleUplinkFromLander(RoverContext& theContext,
-                                                      uint8_t* rxDataBuffer,
-                                                      size_t rxDataLen)
+    RoverState RoverStateEnteringKeepAlive::handleUplinkFromLander(RoverContext& theContext,
+                                                                   uint8_t* rxDataBuffer,
+                                                                   size_t rxDataLen)
     {
         // Ignore any uplink because the Hercules shouldn't be powered on.
         //!< @todo Should we somehow respond to the lander?

@@ -25,13 +25,20 @@ from .settings import settings
 from .logging import logger
 
 
-IPM = TypeVar('IPM')
+IPMC = TypeVar('IPMC')  # Inter-Process Message Content
 
 
-class InterProcessMessage(Generic[IPM], ABC):
+class InterProcessMessage(Generic[IPMC], ABC):
     """
     Interface for any message data which supports being sent between processes.
     """
+
+    __slots__: List[str] = ['content']
+
+    content: IPMC
+
+    def __init__(self, content: IPMC) -> None:
+        self.content = content
 
     @abstractmethod
     def to_ipc_bytes(self) -> bytes:
@@ -42,7 +49,7 @@ class InterProcessMessage(Generic[IPM], ABC):
         raise NotImplementedError()
 
     @abstractclassmethod
-    def from_ipc_bytes(cls, data: bytes) -> IPM:
+    def from_ipc_bytes(cls, data: bytes) -> IPMC:
         """
         Unpack bytes sent over IPC to reconstruct the sent object.
         """

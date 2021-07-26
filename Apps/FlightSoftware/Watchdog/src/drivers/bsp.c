@@ -1,4 +1,4 @@
-#include "include/drivers/bsp.h"
+#include "drivers/bsp.h"
 
 // uncomment to program MC
 //#define PROGRAM_MOTOR_CONTROLLERS

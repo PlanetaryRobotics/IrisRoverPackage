@@ -1,6 +1,7 @@
 #include <msp430.h>
-#include "include/drivers/adc.h"
-#include "include/flags.h"
+#include "drivers/adc.h"
+#include "flags.h"
+#include "event/event_queue.h"
 
 /*
  * File for interfacing with ADC hardware module
@@ -30,8 +31,11 @@
  */
 
 static AdcValues* outputValues = NULL;
+static volatile uint16_t* watchdogFlagsPtr = NULL;
 
-void adc_init(void) {
+void adc_init(volatile uint16_t* watchdogFlags) {
+    watchdogFlagsPtr = watchdogFlags;
+
     // Set the correct settings for various inputs
     P4SEL0 |= BIT0; // P4.0 Analog input 8 (VCC 2V5)
     P4SEL1 |= BIT0; // P4.0 Analog input 8 (VCC 2V5)
@@ -79,7 +83,7 @@ BOOL isAdcSampleDone(void)
     return (!(ADC12CTL1 & ADC12BUSY)) ? TRUE : FALSE;
 }
 
-BOOL setupAdcForLander(uint16_t* watchdogFlags)
+BOOL setupAdcForLander(void)
 { // set up adc to read values for lander mode
     if (NULL == watchdogFlags) {
         return FALSE;
@@ -98,10 +102,10 @@ BOOL setupAdcForLander(uint16_t* watchdogFlags)
     ADC12MCTL1 = ADC12INCH_12 | ADC12VRSEL_1 | ADC12EOS; // A12 = P3.0 stored in MEM1 (also, EOS)
 
     // clear sample ready, if set
-    *watchdogFlags &= ~WDFLAG_ADC_READY;
+    *watchdogFlagsPtr &= ~WDFLAG_ADC_READY;
 }
 
-BOOL setupAdcForMission(uint16_t* watchdogFlags)
+BOOL setupAdcForMission(void)
 { // set up adc to read values for mission mode (voltage rails)
     if (NULL == watchdogFlags) {
         return FALSE;
@@ -122,7 +126,7 @@ BOOL setupAdcForMission(uint16_t* watchdogFlags)
     ADC12MCTL3 = ADC12INCH_11 | ADC12VRSEL_1 | ADC12EOS; // A11 = P4.3 stored in MEM2 (Vcc 24V divided down)
 
     // clear sample ready, if set
-    *watchdogFlags &= ~WDFLAG_ADC_READY;
+    *watchdogFlagsPtr &= ~WDFLAG_ADC_READY;
 }
 
 /**
@@ -147,8 +151,6 @@ BOOL adcCheckVoltageLevels(AdcValues* output)
     ADC12CTL0 |= ADC12SC | ADC12ENC;
 }
 
-volatile unsigned short adc_values[4] = {0,0,0,0};
-
 // Interrupt handler for when the ADC has completed a reading
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector = ADC12_VECTOR
@@ -164,19 +166,21 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
     }
 
     switch (__even_in_range(ADC12IV, ADC12IV_ADC12RDYIFG)) {
-    case ADC12IV_ADC12IFG3: // ADC12IE3 interrupt
-        outputValues->data[3] = ADC12MEM3; // Save MEM3
-        outputValues->data[2] = ADC12MEM2; // Save MEM2
-        // fall through to ADC12IE1 to save MEM1 & MEM0 and signal to main loop
-        /* no break */
-    case ADC12IV_ADC12IFG1: // ADC12IE1 interrupt
-        outputValues->data[1] = ADC12MEM1; // Save MEM1
-        outputValues->data[0] = ADC12MEM0; // Save MEM0
-        outputValues->sampleComplete = TRUE; // update output struct to signal sample is complete.
-        watchdog_flags |= WDFLAG_ADC_READY; // signal ready to main loop
-        break;
-    default:
-        break;
+        case ADC12IV_ADC12IFG3: // ADC12IE3 interrupt
+            outputValues->data[3] = ADC12MEM3; // Save MEM3
+            outputValues->data[2] = ADC12MEM2; // Save MEM2
+            // fall through to ADC12IE1 to save MEM1 & MEM0 and signal to main loop
+            /* no break */
+        case ADC12IV_ADC12IFG1: // ADC12IE1 interrupt
+            outputValues->data[1] = ADC12MEM1; // Save MEM1
+            outputValues->data[0] = ADC12MEM0; // Save MEM0
+            outputValues->sampleComplete = TRUE; // update output struct to signal sample is complete.
+
+            *watchdogFlagsPtr |= WDFLAG_ADC_READY; // signal ready to main loop
+            //!< @todo
+            break;
+        default:
+            break;
     }
 }
 

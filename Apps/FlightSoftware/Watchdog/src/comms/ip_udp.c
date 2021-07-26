@@ -1,9 +1,9 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "include/comms/ip_udp.h"
-#include "include/drivers/uart.h"
-#include "include/cfg.h"
+#include "comms/ip_udp.h"
+#include "drivers/uart.h"
+#include "cfg.h"
 
 /* note - msp430 is little endian; networks are big endian */
 

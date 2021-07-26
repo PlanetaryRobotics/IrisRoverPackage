@@ -1,8 +1,8 @@
 #ifndef __WATCHDOG_LANDER_COMMS_H__
 #define __WATCHDOG_LANDER_COMMS_H__
 
-#include "include/drivers/uart.h"
-#include "include/common.h"
+#include "drivers/uart.h"
+#include "common.h"
 
 #ifdef __cplusplus
 extern "C"

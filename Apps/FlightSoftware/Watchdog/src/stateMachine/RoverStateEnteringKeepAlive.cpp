@@ -1,9 +1,9 @@
-#include "include/stateMachine/RoverStateEnteringKeepAlive.hpp"
+#include "stateMachine/RoverStateEnteringKeepAlive.hpp"
 
-#include "include/drivers/adc.h"
-#include "include/drivers/bsp.h"
+#include "drivers/adc.h"
+#include "drivers/bsp.h"
 
-#include "include/ground_cmd.h"
+#include "ground_cmd.h"
 
 #include <cassert>
 
@@ -12,6 +12,14 @@ namespace iris
     RoverStateEnteringKeepAlive::RoverStateEnteringKeepAlive()
             : RoverStateBase(RoverState::ENTERING_KEEP_ALIVE)
     {
+    }
+
+    bool RoverStateEnteringKeepAlive::canEnterLowPowerMode()
+    {
+        // Don't allow entering low power mode while entering keep alive. The only non-instant thing this state
+        // does is to wait for the previous ADC transaction to complete. Since we don't wake from LPM after an ADC
+        // reading, we can't enter LPM while waiting for the transaction to complete.
+        return false;
     }
 
     RoverState RoverStateEnteringKeepAlive::handleHerculesData(RoverContext& /*theContext*/)

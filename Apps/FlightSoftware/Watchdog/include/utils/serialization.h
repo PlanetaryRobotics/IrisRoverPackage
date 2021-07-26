@@ -1,7 +1,7 @@
 #ifndef __WATCHDOG_SERIALIZATION_H___
 #define __WATCHDOG_SERIALIZATION_H___
 
-#include "include/common.h"
+#include "common.h"
 
 #ifdef __cplusplus
 extern "C"

@@ -7,9 +7,9 @@
 #define __GROUND_CMD_INC
 
 #include <stdint.h>
-#include "include/comms/watchdog_cmd_msgs.h"
-#include "include/common.h"
-#include "include/drivers/adc.h"
+#include "comms/watchdog_cmd_msgs.h"
+#include "common.h"
+#include "drivers/adc.h"
 
 #ifdef __cplusplus
 extern "C"

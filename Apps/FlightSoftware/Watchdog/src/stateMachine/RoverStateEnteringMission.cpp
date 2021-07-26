@@ -1,13 +1,13 @@
-#include "include/stateMachine/RoverStateEnteringMission.hpp"
+#include "stateMachine/RoverStateEnteringMission.hpp"
 
-#include "include/comms/i2c_sensors.h"
+#include "comms/i2c_sensors.h"
 
-#include "include/drivers/adc.h"
-#include "include/drivers/bsp.h"
+#include "drivers/adc.h"
+#include "drivers/bsp.h"
 
-#include "include/utils/time.h"
+#include "utils/time.h"
 
-#include "include/ground_cmd.h"
+#include "ground_cmd.h"
 
 #include <cassert>
 
@@ -16,6 +16,14 @@ namespace iris
     RoverStateEnteringMission::RoverStateEnteringMission()
             : RoverStateBase(RoverState::ENTERING_MISSION)
     {
+    }
+
+    bool RoverStateEnteringMission::canEnterLowPowerMode()
+    {
+        // Don't allow entering low power mode while entering mission. Waiting for ADC transaction to complete, waiting
+        // for wifi to be ready, and the I2C transactions involved with initializing the fuel gauge are all things that
+        // won't work if we enter LPM.
+        return false;
     }
 
     RoverState RoverStateEnteringMission::handleHerculesData(RoverContext& /*theContext*/)

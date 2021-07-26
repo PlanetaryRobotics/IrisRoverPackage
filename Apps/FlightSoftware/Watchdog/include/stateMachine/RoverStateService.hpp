@@ -1,7 +1,7 @@
 #ifndef __WATCHDOG_ROVER_STATE_SERVICE_HPP__
 #define __WATCHDOG_ROVER_STATE_SERVICE_HPP__
 
-#include "include/stateMachine/RoverStateEnteringService.hpp"
+#include "stateMachine/RoverStateEnteringService.hpp"
 
 namespace iris
 {
@@ -9,6 +9,8 @@ namespace iris
     {
         public:
             explicit RoverStateService();
+
+            bool canEnterLowPowerMode() override;
 
             // The functions to handle events
             RoverState handleTimerTick(RoverContext& theContext) override;
@@ -42,15 +44,6 @@ namespace iris
                                                 WdCmdMsgs__Response& response,
                                                 WdCmdMsgs__Response& deployNotificationResponse,
                                                 bool& sendDeployNotificationResponse) override;
-
-        private:
-            enum class SubState
-            {
-                SERVICE_NORMAL,
-                KEEP_ALIVE_HOLDING
-            };
-
-            SubState m_currentSubState;
     };
 
 }

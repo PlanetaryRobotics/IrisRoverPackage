@@ -1,7 +1,7 @@
 #ifndef __WATCHDOG_ROVER_STATE_ENTERING_MISSION_HPP__
 #define __WATCHDOG_ROVER_STATE_ENTERING_MISSION_HPP__
 
-#include "include/stateMachine/RoverStateBase.hpp"
+#include "stateMachine/RoverStateBase.hpp"
 
 namespace iris
 {
@@ -19,6 +19,8 @@ namespace iris
             static constexpr uint16_t WIFI_READY_TIMEOUT_CENTISECONDS = 100;
 
             explicit RoverStateEnteringMission();
+
+            bool canEnterLowPowerMode() override;
 
             // The functions to handle events
             RoverState handleTimerTick(RoverContext& theContext) override;

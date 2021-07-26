@@ -1,9 +1,9 @@
-#include "include/stateMachine/RoverStateService.hpp"
+#include "stateMachine/RoverStateService.hpp"
 
-#include "include/drivers/adc.h"
-#include "include/drivers/bsp.h"
+#include "drivers/adc.h"
+#include "drivers/bsp.h"
 
-#include "include/ground_cmd.h"
+#include "ground_cmd.h"
 
 #include <cassert>
 
@@ -12,6 +12,13 @@ namespace iris
     RoverStateService::RoverStateService()
             : RoverStateBase(RoverState::SERVICE)
     {
+    }
+
+    bool RoverStateService::canEnterLowPowerMode()
+    {
+        // Receiving data from lander or hercules and timer ticks will both wake us up out of LPM, so we can enter LPM
+        // while in this state.
+        return true;
     }
 
     RoverState RoverStateService::handleTimerTick(RoverContext& theContext)
@@ -60,7 +67,7 @@ namespace iris
         return getState();
     }
 
-    RoverState RoverStateKeepAlive::spinOnce(RoverContext& theContext)
+    RoverState RoverStateService::spinOnce(RoverContext& theContext)
     {
         // Do nothing
         return getState();

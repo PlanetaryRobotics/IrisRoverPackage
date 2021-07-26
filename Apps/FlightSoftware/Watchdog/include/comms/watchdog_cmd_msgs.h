@@ -1,8 +1,8 @@
 #ifndef __WATCHDOG_WATCHDOG_CMD_MSGS_H___
 #define __WATCHDOG_WATCHDOG_CMD_MSGS_H___
 
-#include "include/comms/cmd_msgs.h"
-#include "include/common.h"
+#include "comms/cmd_msgs.h"
+#include "common.h"
 
 #ifdef __cplusplus
 extern "C"

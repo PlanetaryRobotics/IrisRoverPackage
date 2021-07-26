@@ -1,10 +1,10 @@
 #include <assert.h>
 #include <string.h>
 
-#include "include/comms/hercules_comms.h"
-#include "include/common.h"
-#include "include/comms/hercules_mpsm.h"
-#include "include/comms/ip_udp.h"
+#include "comms/hercules_comms.h"
+#include "common.h"
+#include "comms/hercules_mpsm.h"
+#include "comms/ip_udp.h"
 
 //###########################################################
 // Private types

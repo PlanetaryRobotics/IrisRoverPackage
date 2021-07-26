@@ -1,12 +1,12 @@
 #include <assert.h>
 #include <string.h>
 
-#include "include/common.h"
-#include "include/comms/hercules_msgs.h"
-#include "include/comms/ip_udp.h"
-#include "include/comms/lander_comms.h"
-#include "include/comms/slip_encode.h"
-#include "include/comms/slip_mpsm.h"
+#include "common.h"
+#include "comms/hercules_msgs.h"
+#include "comms/ip_udp.h"
+#include "comms/lander_comms.h"
+#include "comms/slip_encode.h"
+#include "comms/slip_mpsm.h"
 
 //###########################################################
 // Private types

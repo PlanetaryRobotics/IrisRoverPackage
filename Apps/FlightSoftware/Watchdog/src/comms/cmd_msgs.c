@@ -1,5 +1,5 @@
-#include "include/comms/cmd_msgs.h"
-#include "include/utils/serialization.h"
+#include "comms/cmd_msgs.h"
+#include "utils/serialization.h"
 
 /**
  * @brief Check that the status value |actual| returned from a serialization function is greater than or equal to zero.

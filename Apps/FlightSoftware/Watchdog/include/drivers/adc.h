@@ -7,7 +7,7 @@
 #ifndef __ADC_INC
 #define __ADC_INC
 
-#include "include/common.h"
+#include "common.h"
 
 #include <stdint.h>
 
@@ -26,20 +26,16 @@ typedef struct AdcValues
  * @brief Initialize ADC hardware.
  * Sets up the interrupts and whatnot for ADC.
  */
-void adc_init(void);
+void adc_init(volatile uint16_t* watchdogFlags);
 
 BOOL isAdcSampleDone(void);
 
-BOOL setupAdcForLander(uint16_t* watchdogFlags);
+BOOL setupAdcForLander(void);
 
-BOOL setupAdcForMission(uint16_t* watchdogFlags);
+BOOL setupAdcForMission(void);
 
 BOOL adcCheckVoltageLevels(AdcValues* output);
 
-/**
- * @brief Take one ADC sample
- */
-void adc_sample();
 
 #define ADC_2V5_LEVEL_IDX 0
 #define ADC_2V8_LEVEL_IDX 2

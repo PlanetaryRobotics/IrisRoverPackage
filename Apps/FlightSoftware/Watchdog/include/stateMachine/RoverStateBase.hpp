@@ -1,8 +1,8 @@
 #ifndef __WATCHDOG_ROVER_STATE_BASE_HPP__
 #define __WATCHDOG_ROVER_STATE_BASE_HPP__
 
-#include "include/stateMachine/RoverState.hpp"
-#include "include/stateMachine/RoverContext.hpp"
+#include "stateMachine/RoverState.hpp"
+#include "stateMachine/RoverContext.hpp"
 
 namespace iris
 {
@@ -12,6 +12,8 @@ namespace iris
             explicit RoverStateBase(RoverState state);
 
             RoverState getState();
+
+            virtual bool canEnterLowPowerMode();
 
             // The functions to handle events
             virtual RoverState handleLanderData(RoverContext& theContext);

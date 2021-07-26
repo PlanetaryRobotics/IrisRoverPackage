@@ -1,9 +1,9 @@
 #ifndef __WATCHDOG_HERCULES_COMMS_H__
 #define __WATCHDOG_HERCULES_COMMS_H__
 
-#include "include/drivers/uart.h"
-#include "include/comms/hercules_msgs.h"
-#include "include/common.h"
+#include "drivers/uart.h"
+#include "comms/hercules_msgs.h"
+#include "common.h"
 
 #ifdef __cplusplus
 extern "C"

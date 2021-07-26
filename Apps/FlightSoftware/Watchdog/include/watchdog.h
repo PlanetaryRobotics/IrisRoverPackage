@@ -9,9 +9,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "include/comms/hercules_comms.h"
-#include "include/comms/i2c_sensors.h"
-#include "include/drivers/adc.h"
+#include "comms/hercules_comms.h"
+#include "comms/i2c_sensors.h"
+#include "drivers/adc.h"
 
 #ifdef __cplusplus
 extern "C"

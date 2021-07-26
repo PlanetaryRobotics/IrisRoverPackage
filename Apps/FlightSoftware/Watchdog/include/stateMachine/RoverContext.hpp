@@ -1,10 +1,10 @@
 #ifndef __WATCHDOG_ROVER_CONTEXT_HPP__
 #define __WATCHDOG_ROVER_CONTEXT_HPP__
 
-#include "include/comms/i2c_sensors.h"
-#include "include/comms/hercules_comms.h"
-#include "include/comms/lander_comms.h"
-#include "include/drivers/adc.h"
+#include "comms/i2c_sensors.h"
+#include "comms/hercules_comms.h"
+#include "comms/lander_comms.h"
+#include "drivers/adc.h"
 
 #include <stdint.h>
 

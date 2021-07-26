@@ -1,9 +1,9 @@
-#include "include/stateMachine/RoverStateEnteringKeepAlive.hpp"
+#include "stateMachine/RoverStateBase.hpp"
 
-#include "include/drivers/adc.h"
-#include "include/drivers/bsp.h"
+#include "drivers/adc.h"
+#include "drivers/bsp.h"
 
-#include "include/ground_cmd.h"
+#include "ground_cmd.h"
 
 #include <cassert>
 
@@ -28,6 +28,11 @@ namespace iris
     RoverState RoverStateBase::getState()
     {
         return m_state;
+    }
+
+    bool RoverStateBase::canEnterLowPowerMode()
+    {
+        return true;
     }
 
     RoverState RoverStateBase::handleLanderData(RoverContext& theContext)

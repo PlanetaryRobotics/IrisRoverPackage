@@ -1,8 +1,8 @@
 // i2c_sensors.c
 
-#include "include/comms/i2c_sensors.h"
-#include "include/drivers/i2c.h"
-#include "include/common.h"
+#include "comms/i2c_sensors.h"
+#include "drivers/i2c.h"
+#include "common.h"
 
 #include <string.h>
 #include <assert.h>

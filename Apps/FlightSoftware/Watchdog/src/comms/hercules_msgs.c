@@ -1,5 +1,5 @@
-#include "include/comms/hercules_msgs.h"
-#include "include/utils/serialization.h"
+#include "comms/hercules_msgs.h"
+#include "utils/serialization.h"
 /**
  * @brief Check that the status value |actual| returned from a serialization function is greater than or equal to zero.
  *        If |actual| is less than zero, logs a message to the error function and returns

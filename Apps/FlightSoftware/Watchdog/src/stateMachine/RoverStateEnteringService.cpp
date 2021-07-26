@@ -1,9 +1,9 @@
-#include "include/stateMachine/RoverStateEnteringService.hpp"
+#include "stateMachine/RoverStateEnteringService.hpp"
 
-#include "include/drivers/adc.h"
-#include "include/drivers/bsp.h"
+#include "drivers/adc.h"
+#include "drivers/bsp.h"
 
-#include "include/ground_cmd.h"
+#include "ground_cmd.h"
 
 #include <cassert>
 

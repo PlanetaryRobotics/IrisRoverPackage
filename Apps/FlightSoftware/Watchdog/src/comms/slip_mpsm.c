@@ -1,7 +1,7 @@
 
-#include "include/comms/slip_mpsm.h"
-#include "include/comms/ip_udp.h"
-#include "include/common.h"
+#include "comms/slip_mpsm.h"
+#include "comms/ip_udp.h"
+#include "common.h"
 
 //###########################################################
 // Private types

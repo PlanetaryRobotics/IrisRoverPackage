@@ -1,7 +1,7 @@
 #ifndef __WATCHDOG_HERCULES_MPSM_H__
 #define __WATCHDOG_HERCULES_MPSM_H__
 
-#include "include/comms/hercules_msgs.h"
+#include "comms/hercules_msgs.h"
 
 #ifdef __cplusplus
 extern "C"

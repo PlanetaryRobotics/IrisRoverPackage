@@ -1,6 +1,6 @@
 // ring_buffer.c
 
-#include "include/utils/ring_buffer.h"
+#include "utils/ring_buffer.h"
 
 struct RingBuffer {
     volatile uint8_t* buffer;

@@ -1,9 +1,9 @@
 #include <assert.h>
 #include <string.h>
 
-#include "include/comms/hercules_mpsm.h"
-#include "include/common.h"
-#include "include/utils/ring_buffer.h"
+#include "comms/hercules_mpsm.h"
+#include "common.h"
+#include "utils/ring_buffer.h"
 
 
 //###########################################################

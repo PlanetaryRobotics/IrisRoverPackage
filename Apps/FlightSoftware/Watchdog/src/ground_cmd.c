@@ -8,15 +8,15 @@
  */
 #include <stdint.h>
 
-#include "include/comms/ip_udp.h"
-#include "include/comms/i2c_sensors.h"
-#include "include/drivers/adc.h"
-#include "include/drivers/bsp.h"
-#include "include/drivers/uart.h"
-#include "include/flags.h"
-#include "include/ground_cmd.h"
-#include "include/utils/serialization.h"
-#include "include/watchdog.h"
+#include "comms/ip_udp.h"
+#include "comms/i2c_sensors.h"
+#include "drivers/adc.h"
+#include "drivers/bsp.h"
+#include "drivers/uart.h"
+#include "flags.h"
+#include "ground_cmd.h"
+#include "utils/serialization.h"
+#include "watchdog.h"
 
 uint8_t watchdog_opts = 0;
 // variables for heater control

@@ -11,10 +11,10 @@
  */
 
 #include <msp430.h>
-#include "include/drivers/uart.h"
-#include "include/utils/ring_buffer.h"
-#include "include/common.h"
-#include "include/flags.h"
+#include "drivers/uart.h"
+#include "utils/ring_buffer.h"
+#include "common.h"
+#include "flags.h"
 
 //###########################################################
 // Private types

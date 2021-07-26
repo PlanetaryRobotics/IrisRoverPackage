@@ -1,5 +1,5 @@
-#include "include/comms/slip_encode.h"
-#include "include/common.h"
+#include "comms/slip_encode.h"
+#include "common.h"
 
 SlipEncode__Status SlipEncode__encode(const uint8_t* input,
                                       size_t inputLen,

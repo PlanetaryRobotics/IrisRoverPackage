@@ -1,7 +1,7 @@
 #ifndef __WATCHDOG_ROVER_STATE_ENTERING_SERVICE_HPP__
 #define __WATCHDOG_ROVER_STATE_ENTERING_SERVICE_HPP__
 
-#include "include/stateMachine/RoverStateEnteringKeepAlive.hpp"
+#include "stateMachine/RoverStateEnteringKeepAlive.hpp"
 
 namespace iris
 {

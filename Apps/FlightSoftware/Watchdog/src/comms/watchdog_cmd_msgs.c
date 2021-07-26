@@ -1,5 +1,5 @@
-#include "include/comms/watchdog_cmd_msgs.h"
-#include "include/utils/serialization.h"
+#include "comms/watchdog_cmd_msgs.h"
+#include "utils/serialization.h"
 
 
 /**

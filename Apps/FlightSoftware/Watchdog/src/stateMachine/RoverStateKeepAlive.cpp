@@ -1,9 +1,9 @@
-#include "include/stateMachine/RoverStateKeepAlive.hpp"
+#include "stateMachine/RoverStateKeepAlive.hpp"
 
-#include "include/drivers/adc.h"
-#include "include/drivers/bsp.h"
+#include "drivers/adc.h"
+#include "drivers/bsp.h"
 
-#include "include/ground_cmd.h"
+#include "ground_cmd.h"
 
 #include <cassert>
 
@@ -12,6 +12,12 @@ namespace iris
     RoverStateKeepAlive::RoverStateKeepAlive()
         : RoverStateBase(RoverState::KEEP_ALIVE)
     {
+    }
+
+    bool RoverStateKeepAlive::canEnterLowPowerMode()
+    {
+        // Handling lander data and timer ticks will both wake us up out of LPM, so it's ok for us to enter it.
+        return true;
     }
 
     RoverState RoverStateKeepAlive::handleHerculesData(RoverContext& /*theContext*/)

@@ -14,14 +14,14 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "include/comms/ip_udp.h"
-#include "include/comms/i2c_sensors.h"
-#include "include/drivers/adc.h"
-#include "include/drivers/uart.h"
-#include "include/drivers/bsp.h"
-#include "include/flags.h"
-#include "include/ground_cmd.h"
-#include "include/watchdog.h"
+#include "comms/ip_udp.h"
+#include "comms/i2c_sensors.h"
+#include "drivers/adc.h"
+#include "drivers/uart.h"
+#include "drivers/bsp.h"
+#include "flags.h"
+#include "ground_cmd.h"
+#include "watchdog.h"
 
 // These three only exist so I can be 100% confident that the Ptr variables
 // below them will never be NULL. Since the Ptr values should be set
@@ -232,9 +232,9 @@ int watchdog_monitor(HerculesComms__State* hState,
     }
 
     /* unreset FPGA */
-    if (watchdog_flags & WDFLAG_UNRESET_FPGA) {
+    if (*watchdogFlags & WDFLAG_UNRESET_FPGA) {
         releaseFPGAReset();
-        watchdog_flags ^= WDFLAG_UNRESET_FPGA;
+        *watchdogFlags ^= WDFLAG_UNRESET_FPGA;
     }
 
     /* bring 3V3 on again */
@@ -297,31 +297,23 @@ void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
         return;
     }
 
-    memset(telbuf, 0, telbufSize);
-
-    // Build telemetry packet for Hercules
-    if (rovstate == RS_KEEPALIVE || rovstate == RS_SERVICE) {
-        // no power on 2V5, 2V8, battery
-        telbuf[6] = (uint8_t)(adcValues->data[ADC_LANDER_LEVEL_IDX]);
-        telbuf[7] = (uint8_t)(adc_values[ADC_LANDER_LEVEL_IDX] >> 8);
-        telbuf[8] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
-    } else if (rovstate == RS_MISSION) {
-        telbuf[0] = (uint8_t)(adc_values[ADC_2V5_LEVEL_IDX]);
-        telbuf[1] = (uint8_t)(adc_values[ADC_2V5_LEVEL_IDX] >> 8);
-        telbuf[2] = (uint8_t)(adc_values[ADC_2V8_LEVEL_IDX]);
-        telbuf[3] = (uint8_t)(adc_values[ADC_2V8_LEVEL_IDX] >> 8);
-        telbuf[4] = (uint8_t)(adc_values[ADC_BATT_LEVEL_IDX]);
-        telbuf[5] = (uint8_t)(adc_values[ADC_BATT_LEVEL_IDX] >> 8);
-        // [6,7] won't be able to read lander power in mission mode
-        telbuf[8] = (uint8_t)(adc_values[ADC_TEMP_IDX] >> 4);
-        telbuf[9] = hasDeployed;
-        telbuf[10] = (uint8_t)(i2cReadings->raw_battery_charge[0]);
-        telbuf[11] = (uint8_t)(i2cReadings->raw_battery_charge[1]);
-        telbuf[12] = (uint8_t)(i2cReadings->raw_battery_current[0]);
-        telbuf[13] = (uint8_t)(i2cReadings->raw_battery_current[1]);
-        telbuf[14] = (uint8_t)(i2cReadings->raw_battery_voltage[0]);
-        telbuf[15] = (uint8_t)(i2cReadings->raw_battery_voltage[1]);
-    }
+    telbuf[0] = (uint8_t)(adcValues->data[ADC_2V5_LEVEL_IDX]);
+    telbuf[1] = (uint8_t)(adcValues->data[ADC_2V5_LEVEL_IDX] >> 8);
+    telbuf[2] = (uint8_t)(adcValues->data[ADC_2V8_LEVEL_IDX]);
+    telbuf[3] = (uint8_t)(adcValues->data[ADC_2V8_LEVEL_IDX] >> 8);
+    telbuf[4] = (uint8_t)(adcValues->data[ADC_BATT_LEVEL_IDX]);
+    telbuf[5] = (uint8_t)(adcValues->data[ADC_BATT_LEVEL_IDX] >> 8);
+    // [6,7] won't be able to read lander power in mission mode
+    telbuf[6] = (uint8_t)(adcValues->data[ADC_LANDER_LEVEL_IDX]);
+    telbuf[7] = (uint8_t)(adcValues->data[ADC_LANDER_LEVEL_IDX] >> 8);
+    telbuf[8] = (uint8_t)(adcValues->data[ADC_TEMP_IDX] >> 4);
+    telbuf[9] = hasDeployed;
+    telbuf[10] = (uint8_t)(i2cReadings->raw_battery_charge[0]);
+    telbuf[11] = (uint8_t)(i2cReadings->raw_battery_charge[1]);
+    telbuf[12] = (uint8_t)(i2cReadings->raw_battery_current[0]);
+    telbuf[13] = (uint8_t)(i2cReadings->raw_battery_current[1]);
+    telbuf[14] = (uint8_t)(i2cReadings->raw_battery_voltage[0]);
+    telbuf[15] = (uint8_t)(i2cReadings->raw_battery_voltage[1]);
 }
 
 void heaterControl(){

@@ -1,23 +1,23 @@
 #include <assert.h>
-#include <include/stateMachine/RoverStateManager.hpp>
+#include <stateMachine/RoverStateManager.hpp>
 #include <msp430.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "include/comms/cmd_msgs.h"
-#include "include/comms/hercules_comms.h"
-#include "include/comms/ip_udp.h"
-#include "include/comms/i2c_sensors.h"
-#include "include/comms/lander_comms.h"
-#include "include/comms/watchdog_cmd_msgs.h"
+#include "comms/cmd_msgs.h"
+#include "comms/hercules_comms.h"
+#include "comms/ip_udp.h"
+#include "comms/i2c_sensors.h"
+#include "comms/lander_comms.h"
+#include "comms/watchdog_cmd_msgs.h"
 
-#include "include/drivers/uart.h"
-#include "include/drivers/bsp.h"
-#include "include/drivers/adc.h"
+#include "drivers/uart.h"
+#include "drivers/bsp.h"
+#include "drivers/adc.h"
 
-#include "include/flags.h"
-#include "include/ground_cmd.h"
-#include "include/watchdog.h"
+#include "flags.h"
+#include "ground_cmd.h"
+#include "watchdog.h"
 
 
 /* define all of the buffers used in other files */

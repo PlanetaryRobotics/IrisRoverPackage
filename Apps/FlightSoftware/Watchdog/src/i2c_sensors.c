@@ -14,7 +14,7 @@
 static const BOOL TRUE = 1;
 static const BOOL FALSE = 0;
 
-static INS_Sensors__InternalState internals = { 0 };
+static I2C_Sensors__InternalState internals = { 0 };
 
 //###########################################################
 // Private function declarations
@@ -111,7 +111,7 @@ I2C_Sensors__Status I2C_Sensors__fuelGaugeLowPowerBlocking()
 
         I2C__spinOnce();
 
-        I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
+        I2C_Sensors__writeRegNonBlocking(I2C_FUEL_GAUGE_SLAVE_ADDR,
                                          REG_ADDR__CONTROL,
                                          FUEL_GAUGE_LOW_POWER,
                                          &done,
@@ -160,7 +160,7 @@ I2C_Sensors__Status I2C_Sensors__initializeFuelGaugeBlocking()
             // initialize charge register with maximum battery capacity (see data sheet
             // for conversion from 3500 mAh, M is 1048)
             case 1:
-                I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
+                I2C_Sensors__writeRegNonBlocking(I2C_FUEL_GAUGE_SLAVE_ADDR,
                                                  REG_ADDR__ACCUMULATED_CHARGE_MSB,
                                                  0xA0,
                                                  &done,
@@ -168,7 +168,7 @@ I2C_Sensors__Status I2C_Sensors__initializeFuelGaugeBlocking()
                 break;
 
             case 2:
-                I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
+                I2C_Sensors__writeRegNonBlocking(I2C_FUEL_GAUGE_SLAVE_ADDR,
                                                  REG_ADDR__ACCUMULATED_CHARGE_LSB,
                                                  0xD8,
                                                  &done,
@@ -176,7 +176,7 @@ I2C_Sensors__Status I2C_Sensors__initializeFuelGaugeBlocking()
                 break;
 
             case 3:
-                I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
+                I2C_Sensors__writeRegNonBlocking(I2C_FUEL_GAUGE_SLAVE_ADDR,
                                                  REG_ADDR__CONTROL,
                                                  FUEL_GAUGE_INIT,
                                                  &done,
@@ -228,7 +228,7 @@ I2C_Sensors__Status I2C_Sensors__readFuelGaugeControlRegisterBlocking(uint8_t* d
 
         I2C__spinOnce();
 
-        I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
+        I2C_Sensors__readRegNonBlocking(I2C_FUEL_GAUGE_SLAVE_ADDR,
                                         REG_ADDR__CONTROL,
                                         0,
                                         initialState,
@@ -252,6 +252,216 @@ I2C_Sensors__Status I2C_Sensors__readFuelGaugeControlRegisterBlocking(uint8_t* d
         return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
     }
 }
+
+I2C_Sensors__Status I2C_Sensors__initializeIOExpanderBlocking()
+{
+    // On rev I, the I/O expander contains the following pins:
+    //     0.0: MC_RST_A, output to reset motor A controller (reset is active when low)
+    //     0.1: MC_RST_B, output to reset motor B controller (reset is active when low)
+    //     0.2: MC_RST_C, output to reset motor C controller (reset is active when low)
+    //     0.3: MC_RST_D, output to reset motor D controller (reset is active when low)
+    //     0.4: Hercules_nRST, output to reset Hercules (reset is active when low)
+    //     0.5: Hercules_nPORRST, output to power-on reset Hercules (reset is active when low)
+    //     0.6: FPGA_nRST, output to reset FPGA (reset is active when low)
+    //     0.7: LATCH_RST, output to force LATCH_STAT LOW, only used as a manual override in case there is an issue with
+    //            the normal data/clock latching. In nominal operation this should remain unused (and pulled HIGH)
+    //
+    //     1.0: Radio_nRST, output to reset wifi chip (reset is active when low)
+    //     1.1: CHARGE_STAT2, input connected to STAT2 pin of BQ24650RVAR charge controller
+    //     1.2: LATCH_STAT, input connected to output of battery enable latch on BLiMP
+    //     1.3: LATCH_SET, output to force LATCH_STAT HIGH, only used as a manual override in case there is an issue
+    //            with the normal data/clock latching. In nominal operation this should remain unused (and pulled HIGH)
+    //     1.4: Not connected
+    //     1.5: Radio_ON, output that controls supply of power to wifi chip (power supplied when high)
+    //     1.6: BMS_BOOT, output currently unused as BMS circuit wasn't completed.
+    //     1.7: Not connected
+
+
+    // Per the datasheet (https://www.nxp.com/docs/en/data-sheet/PCA9575.pdf):
+    // Register 8 is the register to configure the directions of the port 0 pins, where "0" is output. As described
+    //   above, all port 0 pins are outputs.
+    // Register 9 is the register to configure the directions of the port 1 pins, where "0" is output. As described
+    //   above, pins 0, 3, 5, and 6 are outputs, and the rest are either inputs or not connected.
+    static const uint8_t CONFIG_PORT_0_REG_ADDR = 8;
+    static const uint8_t CONFIG_PORT_0_VALUE = 0b00000000;
+    static const uint8_t CONFIG_PORT_1_REG_ADDR = 9;
+    static const uint8_t CONFIG_PORT_1_VALUE = 0b011010011;
+
+    if (!((GRS__DONE == internals.gState)
+          || (GRS__UNKNOWN == internals. gState))) {
+        return I2C_SENSORS__STATUS__ERROR__READINGS_IN_PROGRESS;
+    }
+
+
+    BOOL inProgress = TRUE;
+    BOOL success = TRUE;
+    uint8_t stage = 1;
+
+    while (inProgress) {
+        BOOL done = FALSE;
+        BOOL stageSuccess = FALSE;
+
+        I2C__spinOnce();
+
+        switch (stage) {
+            case 1:
+                I2C_Sensors__writeRegNonBlocking(I2C_IO_EXPANDER_SLAVE_ADDR,
+                                                 CONFIG_PORT_0_REG_ADDR,
+                                                 CONFIG_PORT_0_VALUE,
+                                                 &done,
+                                                 &stageSuccess);
+                break;
+
+            case 2:
+                I2C_Sensors__writeRegNonBlocking(I2C_IO_EXPANDER_SLAVE_ADDR,
+                                                 CONFIG_PORT_1_REG_ADDR,
+                                                 CONFIG_PORT_1_VALUE,
+                                                 &done,
+                                                 &stageSuccess);
+                break;
+        }
+
+        if (done) {
+            // Only consider successful if all are successful
+            success = success && stageSuccess;
+
+            if (stage >= 2) {
+                inProgress = FALSE;
+            } else {
+                stage++;
+            }
+        }
+
+        if (inProgress) {
+            __delay_cycles(10);
+        }
+    }
+
+    if (success) {
+        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+    } else {
+        return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
+    }
+}
+
+I2C_Sensors__Status I2C_Sensors__readIOExpanderBlocking(uint8_t* chargeStat2, uint8_t* latchStat)
+{
+    // Per the datasheet (https://www.nxp.com/docs/en/data-sheet/PCA9575.pdf):
+    // Register 1 is the register to read the incoming logic levels of the pins in port 1.
+    static const uint8_t INPUT_PORT_1_REG_ADDR = 1;
+
+    if (NULL == chargeStat2 || NULL == latchStat) {
+        return I2C_SENSORS__STATUS__ERROR__NULL;
+    }
+
+    if (!((GRS__DONE == internals.gState)
+          || (GRS__UNKNOWN == internals. gState))) {
+        return I2C_SENSORS__STATUS__ERROR__READINGS_IN_PROGRESS;
+    }
+
+    BOOL inProgress = TRUE;
+    BOOL success = FALSE;
+    GaugeReadingState initialState = internals.gState;
+    uint8_t initialNackMask = internals.readings.nackMask;
+    uint8_t regValue = 0;
+
+    while (inProgress) {
+        BOOL done = FALSE;
+
+        I2C__spinOnce();
+
+        I2C_Sensors__readRegNonBlocking(I2C_IO_EXPANDER_SLAVE_ADDR,
+                                        INPUT_PORT_1_REG_ADDR,
+                                        0,
+                                        initialState,
+                                        &regValue,
+                                        &done,
+                                        &success);
+
+        inProgress = !done;
+
+        if (inProgress) {
+            __delay_cycles(100);
+        }
+    }
+
+    internals.gState = initialState;
+    internals.readings.nackMask = initialNackMask;
+
+    if (success) {
+        *chargeStat2 = (regValue & I2C_SENSORS__IOE_P1_BIT__CHARGE_STAT2 != 0) ? 1 : 0;
+        *latchStat = (regValue & I2C_SENSORS__IOE_P1_BIT__LATCH_STAT != 0) ? 1 : 0;
+
+        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+    } else {
+        return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
+    }
+}
+
+I2C_Sensors__Status I2C_Sensors__writeIOExpanderOutputsBlocking(uint8_t port0Value, uint8_t port1Value)
+{
+    // Per the datasheet (https://www.nxp.com/docs/en/data-sheet/PCA9575.pdf):
+    // Register 10 is the port 0 output value register.
+    // Register 11 is the port 0 output value register.
+    static const uint8_t OUTPUT_PORT_0_REG_ADDR = 10;
+    static const uint8_t OUTPUT_PORT_1_REG_ADDR = 11;
+
+    if (!((GRS__DONE == internals.gState)
+          || (GRS__UNKNOWN == internals. gState))) {
+        return I2C_SENSORS__STATUS__ERROR__READINGS_IN_PROGRESS;
+    }
+
+    BOOL inProgress = TRUE;
+    BOOL success = TRUE;
+    uint8_t stage = 1;
+
+    while (inProgress) {
+        BOOL done = FALSE;
+        BOOL stageSuccess = FALSE;
+
+        I2C__spinOnce();
+
+        switch (stage) {
+            case 1:
+                I2C_Sensors__writeRegNonBlocking(I2C_IO_EXPANDER_SLAVE_ADDR,
+                                                 OUTPUT_PORT_0_REG_ADDR,
+                                                 port0Value,
+                                                 &done,
+                                                 &stageSuccess);
+                break;
+
+            case 2:
+                I2C_Sensors__writeRegNonBlocking(I2C_IO_EXPANDER_SLAVE_ADDR,
+                                                 OUTPUT_PORT_1_REG_ADDR,
+                                                 port1Value,
+                                                 &done,
+                                                 &stageSuccess);
+                break;
+        }
+
+        if (done) {
+            // Only consider successful if all are successful
+            success = success && stageSuccess;
+
+            if (stage >= 2) {
+                inProgress = FALSE;
+            } else {
+                stage++;
+            }
+        }
+
+        if (inProgress) {
+            __delay_cycles(10);
+        }
+    }
+
+    if (success) {
+        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+    } else {
+        return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
+    }
+}
+
 
 void I2C_Sensors__spinOnce()
 {
@@ -443,7 +653,7 @@ void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
 BOOL I2C_Sensors__chargeLsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
+    return I2C_Sensors__readRegNonBlocking(I2C_FUEL_GAUGE_SLAVE_ADDR,
                                            REG_ADDR__ACCUMULATED_CHARGE_LSB,
                                            I2C_SENSORS__NACK__BATT_CHARGE,
                                            GRS__CHARGE_MSB,
@@ -455,7 +665,7 @@ BOOL I2C_Sensors__chargeLsb()
 BOOL I2C_Sensors__chargeMsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    BOOL result = I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
+    BOOL result = I2C_Sensors__readRegNonBlocking(I2C_FUEL_GAUGE_SLAVE_ADDR,
                                                   REG_ADDR__ACCUMULATED_CHARGE_MSB,
                                                   I2C_SENSORS__NACK__BATT_CHARGE,
                                                   GRS__VOLTAGE_LSB,
@@ -475,7 +685,7 @@ BOOL I2C_Sensors__chargeMsb()
 BOOL I2C_Sensors__voltageLsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
+    return I2C_Sensors__readRegNonBlocking(I2C_FUEL_GAUGE_SLAVE_ADDR,
                                            REG_ADDR__VOLTAGE_LSB,
                                            I2C_SENSORS__NACK__BATT_VOLTAGE,
                                            GRS__VOLTAGE_MSB,
@@ -487,7 +697,7 @@ BOOL I2C_Sensors__voltageLsb()
 BOOL I2C_Sensors__voltageMsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
+    return I2C_Sensors__readRegNonBlocking(I2C_FUEL_GAUGE_SLAVE_ADDR,
                                            REG_ADDR__VOLTAGE_MSB,
                                            I2C_SENSORS__NACK__BATT_VOLTAGE,
                                            GRS__CURRENT_LSB,
@@ -499,7 +709,7 @@ BOOL I2C_Sensors__voltageMsb()
 BOOL I2C_Sensors__currentLsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
+    return I2C_Sensors__readRegNonBlocking(I2C_FUEL_GAUGE_SLAVE_ADDR,
                                            REG_ADDR__CURRENT_LSB,
                                            I2C_SENSORS__NACK__BATT_CURRENT,
                                            GRS__CURRENT_MSB,
@@ -511,7 +721,7 @@ BOOL I2C_Sensors__currentLsb()
 BOOL I2C_Sensors__currentMsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    BOOL result = I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
+    BOOL result = I2C_Sensors__readRegNonBlocking(I2C_FUEL_GAUGE_SLAVE_ADDR,
                                                   REG_ADDR__CURRENT_MSB,
                                                   I2C_SENSORS__NACK__BATT_CURRENT,
                                                   GRS__GAUGE_TEMP_LSB,
@@ -537,7 +747,7 @@ BOOL I2C_Sensors__currentMsb()
 BOOL I2C_Sensors__gaugeTempLsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
+    return I2C_Sensors__readRegNonBlocking(I2C_FUEL_GAUGE_SLAVE_ADDR,
                                            REG_ADDR__TEMPERATURE_LSB,
                                            I2C_SENSORS__NACK__FUEL_GAUGE_TEMP,
                                            GRS__GAUGE_TEMP_MSB,
@@ -549,7 +759,7 @@ BOOL I2C_Sensors__gaugeTempLsb()
 BOOL I2C_Sensors__gaugeTempMsb()
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
+    return I2C_Sensors__readRegNonBlocking(I2C_FUEL_GAUGE_SLAVE_ADDR,
                                            REG_ADDR__TEMPERATURE_MSB,
                                            I2C_SENSORS__NACK__FUEL_GAUGE_TEMP,
                                            GRS__DONE,

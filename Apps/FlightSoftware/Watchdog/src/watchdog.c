@@ -55,6 +55,7 @@ int watchdog_monitor() {
     /* temporarily disable interrupts */
     __bic_SR_register(GIE);
 
+    short writeIOExpander = 0;
 
     /* check that kicks have been received */
     if (watchdog_flags & WDFLAG_RADIO_KICK) {
@@ -68,6 +69,7 @@ int watchdog_monitor() {
     if (watchdog_flags & WDFLAG_UNRESET_RADIO2) {
         releaseRadioReset();
         watchdog_flags ^= WDFLAG_UNRESET_RADIO2;
+        writeIOExpander = 1;
     }
 
     /* unreset wifi chip */
@@ -80,36 +82,42 @@ int watchdog_monitor() {
     if (watchdog_flags & WDFLAG_UNRESET_HERCULES) {
         releaseHerculesReset();
         watchdog_flags ^= WDFLAG_UNRESET_HERCULES;
+        writeIOExpander = 1;
     }
 
     /* unreset motor 1 */
     if (watchdog_flags & WDFLAG_UNRESET_MOTOR1) {
         releaseMotor1Reset();
         watchdog_flags ^= WDFLAG_UNRESET_MOTOR1;
+        writeIOExpander = 1;
     }
 
     /* unreset motor 2 */
     if (watchdog_flags & WDFLAG_UNRESET_MOTOR2) {
         releaseMotor2Reset();
         watchdog_flags ^= WDFLAG_UNRESET_MOTOR2;
+        writeIOExpander = 1;
     }
 
     /* unreset motor 3 */
     if (watchdog_flags & WDFLAG_UNRESET_MOTOR3) {
         releaseMotor3Reset();
         watchdog_flags ^= WDFLAG_UNRESET_MOTOR3;
+        writeIOExpander = 1;
     }
 
     /* unreset motor 4 */
     if (watchdog_flags & WDFLAG_UNRESET_MOTOR4) {
         releaseMotor4Reset();
         watchdog_flags ^= WDFLAG_UNRESET_MOTOR4;
+        writeIOExpander = 1;
     }
 
     /* unreset FPGA */
     if (watchdog_flags & WDFLAG_UNRESET_FPGA) {
         releaseFPGAReset();
         watchdog_flags ^= WDFLAG_UNRESET_FPGA;
+        writeIOExpander = 1;
     }
 
     /* bring 3V3 on again */
@@ -140,6 +148,7 @@ int watchdog_monitor() {
             watchdog_flags |= WDFLAG_UNRESET_HERCULES;
             // if the issue was due to a comms breakdown, reset the comms state
             uart0_rx_mode = UA0_RX_HEADER;
+            writeIOExpander = 1;
         } else {
             // missed a kick, but don't reset the hercules.
         }
@@ -147,6 +156,11 @@ int watchdog_monitor() {
 
     /* re-enable interrupts */
     __bis_SR_register(GIE);
+
+    if (writeIOExpander != 0) {
+        I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
+    }
+
     return 0;
 }
 

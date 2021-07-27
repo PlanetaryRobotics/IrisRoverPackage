@@ -55,6 +55,10 @@ void enterMode(enum rover_state newstate) {
         adc_setup_lander();
         enableHeater();
         startChargingBatteries();
+
+        //!< @todo Check return statuses
+        I2C_Sensors__initializeIOExpanderBlocking();
+        I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
         break;
     default:
     case RS_MISSION:
@@ -80,13 +84,14 @@ void enterMode(enum rover_state newstate) {
         powerOnMotors();
         powerOnRadio();
         stopChargingBatteries();
+        I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
 
         __delay_cycles(12345678); //give fuel gauge [50 ms] & wifi [~750 ms] time to start up
-//        I2C_Sensors__initializeFuelGaugeBlocking();
+        I2C_Sensors__initializeFuelGaugeBlocking();
         powerOnHercules();
         releaseMotorsReset();
         releaseHerculesReset();
-
+        I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
         break;
     case RS_FAULT:
         /* TODO: fault mode; enable everything in lander mode */
@@ -194,8 +199,8 @@ int main(void) {
                 // Initiate gauge readings here, the rest of the actions to do in this state every state
                 // will be done after gauge readings complete, which is monitored in the
                 // FLAG_I2C_GAUGE_READING_ACTIVE loop_flags block below.
-//                I2C_Sensors__initiateGaugeReadings();
-//                loop_flags |= FLAG_I2C_GAUGE_READING_ACTIVE;
+                I2C_Sensors__initiateGaugeReadings();
+                loop_flags |= FLAG_I2C_GAUGE_READING_ACTIVE;
 
                 break;
             case RS_FAULT:

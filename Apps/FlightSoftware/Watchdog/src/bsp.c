@@ -1,10 +1,14 @@
 #include "include/bsp.h"
+#include "include/i2c_sensors.h"
 
 // uncomment to program MC
 //#define PROGRAM_MOTOR_CONTROLLERS
 
 uint8_t heaterStatus;
 uint8_t hasDeployed;
+
+static uint8_t ioExpanderPort0OutputValues = 0;
+static uint8_t ioExpanderPort1OutputValues = 0;
 
 /**
  * @brief      Initializes the gpios.
@@ -398,7 +402,7 @@ void initializeGpios()
 
     PBSEL0 = 0x00u;
     PBSEL1 = 0x00u;
-    PBDIR = 0xFFu;0
+    PBDIR = 0xFFu;
     PBOUT = 0x00u;
 
     PCSEL0 = 0x00u;
@@ -474,6 +478,8 @@ inline void releaseHerculesReset()
 {
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P3OUT |= BIT1 | BIT2;
+    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST;
+    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__N_HERCULES_PORRST;
 }
 
 /**
@@ -483,6 +489,8 @@ inline void setHerculesReset()
 {
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P3OUT &= ~(BIT1 | BIT2);
+    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST;
+    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__N_HERCULES_PORRST;
 }
 
 /**
@@ -492,6 +500,7 @@ inline void releaseRadioReset()
 {
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P3OUT |= BIT3;
+    ioExpanderPort1OutputValues |= I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST;
 }
 
 /**
@@ -501,6 +510,7 @@ inline void setRadioReset()
 {
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P3OUT &= ~BIT3;
+    ioExpanderPort1OutputValues &= ~I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST;
 }
 
 /**
@@ -510,6 +520,7 @@ inline void releaseFPGAReset()
 {
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P3OUT |= BIT6;
+    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST;
 }
 
 /**
@@ -519,6 +530,7 @@ inline void setFPGAReset()
 {
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P3OUT &= ~BIT6;
+    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST;
 }
 
 /**
@@ -526,7 +538,7 @@ inline void setFPGAReset()
  */
 inline void fpgaCameraSelectHi()
 {
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
+    //!< @todo This was going to the line labeled FPGA_Kick which appears to be a watchdog input, not output... wrong?
     //P3OUT |= BIT5;
 }
 
@@ -535,7 +547,7 @@ inline void fpgaCameraSelectHi()
  */
 inline void fpgaCameraSelectLo()
 {
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
+    //!< @todo This was going to the line labeled FPGA_Kick which appears to be a watchdog input, not output... wrong?
     //P3OUT &= ~BIT5;
 }
 
@@ -547,6 +559,7 @@ inline void releaseMotor1Reset()
 #ifndef PROGRAM_MOTOR_CONTROLLERS
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P2OUT |= BIT3;
+    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_A;
 #endif
 }
 inline void releaseMotor2Reset()
@@ -554,6 +567,7 @@ inline void releaseMotor2Reset()
 #ifndef PROGRAM_MOTOR_CONTROLLERS
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P1OUT |= BIT4;
+    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_B;
 #endif
 }
 inline void releaseMotor3Reset()
@@ -561,6 +575,7 @@ inline void releaseMotor3Reset()
 #ifndef PROGRAM_MOTOR_CONTROLLERS
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P1OUT |= BIT5;
+    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_C;
 #endif
 }
 inline void releaseMotor4Reset()
@@ -568,6 +583,7 @@ inline void releaseMotor4Reset()
 #ifndef PROGRAM_MOTOR_CONTROLLERS
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //PJOUT |= BIT4;
+    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_D;
 #endif
 }
 inline void releaseMotorsReset()
@@ -577,17 +593,23 @@ inline void releaseMotorsReset()
     //P1OUT |= BIT4 | BIT5;
     //P2OUT |= BIT3;
     //PJOUT |= BIT4;
+    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_A;
+    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_B;
+    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_C;
+    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_D;
 #endif
 }
 
 /**
  * @brief      Sets the motors to reset. (LO = RESET)
+ * @todo CONFIRM THIS IS ACTUALLY NEGATED (i.e. reset is active when low)
  */
 inline void setMotor1Reset()
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P2OUT &= ~BIT3;
+    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_A;
 #endif
 }
 inline void setMotor2Reset()
@@ -595,6 +617,7 @@ inline void setMotor2Reset()
 #ifndef PROGRAM_MOTOR_CONTROLLERS
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P1OUT &= ~BIT4;
+    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_B;
 #endif
 }
 inline void setMotor3Reset()
@@ -602,6 +625,7 @@ inline void setMotor3Reset()
 #ifndef PROGRAM_MOTOR_CONTROLLERS
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P1OUT &= ~BIT5;
+    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_C;
 #endif
 }
 inline void setMotor4Reset()
@@ -609,6 +633,7 @@ inline void setMotor4Reset()
 #ifndef PROGRAM_MOTOR_CONTROLLERS
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //PJOUT &= ~BIT4;
+    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_D;
 #endif
 }
 inline void setMotorsReset()
@@ -618,6 +643,10 @@ inline void setMotorsReset()
     //P1OUT &= ~(BIT4 | BIT5);
     //P2OUT &= ~BIT3;
     //PJOUT &= ~BIT4;
+    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_A;
+    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_B;
+    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_C;
+    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_D;
 #endif
 }
 /**
@@ -643,6 +672,7 @@ inline void powerOnRadio()
 {
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P2OUT |= BIT4;
+    ioExpanderPort1OutputValues |= I2C_SENSORS__IOE_P1_BIT__RADIO_ON;
 }
 
 /**
@@ -652,6 +682,7 @@ inline void powerOffRadio()
 {
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P2OUT &= ~BIT4;
+    ioExpanderPort1OutputValues &= ~I2C_SENSORS__IOE_P1_BIT__RADIO_ON;
 }
 
 /**
@@ -733,4 +764,14 @@ inline void startChargingBatteries()
 inline void stopChargingBatteries()
 {
     PJDIR &= ~BIT3;
+}
+
+inline uint8_t getIOExpanderPort0OutputValue()
+{
+    return ioExpanderPort0OutputValues;
+}
+
+inline uint8_t getIOExpanderPort1OutputValue()
+{
+    return ioExpanderPort1OutputValues;
 }

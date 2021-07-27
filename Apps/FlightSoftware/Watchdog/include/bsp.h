@@ -47,5 +47,8 @@ inline void setDeploy();
 inline void unsetDeploy();
 inline void startChargingBatteries();
 inline void stopChargingBatteries();
+
+inline uint8_t getIOExpanderPort0OutputValue();
+inline uint8_t getIOExpanderPort1OutputValue();
 #endif // __BSP_H__
 

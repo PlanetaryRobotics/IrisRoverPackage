@@ -98,7 +98,7 @@ void adc_setup_mission() { // set up adc to read values for mission mode (voltag
     ADC12MCTL0 = ADC12INCH_8 | ADC12VRSEL_1; // A8 = P4.0 stored in MEM0 (Vcc 2.5V)
     ADC12MCTL1 = ADC12INCH_12 | ADC12VRSEL_1; // A12 = P3.0 stored in MEM1 (temperature)
     ADC12MCTL2 = ADC12INCH_9 | ADC12VRSEL_1; // A9 = P4.1 stored in MEM2 (Vcc 2.8V)
-    ADC12MCTL3 = ADC12INCH_11 | ADC12VRSEL_1 | ADC12EOS; // A11 = P4.3 stored in MEM2 (Vcc 24V divided down)
+    ADC12MCTL3 = ADC12INCH_11 | ADC12VRSEL_1 | ADC12EOS; // A11 = P4.3 stored in MEM3 (Vcc 24V divided down)
 
     // clear sample ready, if set
     watchdog_flags &= ~WDFLAG_ADC_READY;

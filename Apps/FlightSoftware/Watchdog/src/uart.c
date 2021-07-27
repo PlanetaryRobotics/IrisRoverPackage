@@ -236,16 +236,6 @@ void uart0_init() {
     UCA0CTLW0 = UCSWRST;                    // Put eUSCI_A0 in reset
 
     /* Setup for eUSCI_A0 and eUSCI_A1 */
-    /* On the MSP430FR5994, pin P2.0 is used for TX and pin P2.1 is used for RX
-     * (ref: pg 92 of datasheet) */
-    /* P2.0 TX: x = 0; P2SEL1.x = 1, P2SEL0.x = 0 */
-    /* P2.1 RX: x = 1; P2SEL1.x = 1, P2SEL0.x = 0 */
-
-    /* set P2SEL0.1, and P2SEL0.0 to 0 */
-    P2SEL0 &= ~(BIT0 | BIT1);
-    /* set P2SEL1.1, and P2SEL1.0 to 1 */
-    P2SEL1 |= (BIT0 | BIT1);
-
     UCA0CTLW0 |= UCSSEL__SMCLK;             // CLK = SMCLK
     // Baud Rate calculation
     // 8000000/(16*9600) = 52.083
@@ -264,11 +254,6 @@ void uart0_init() {
 void uart1_disable() {
     UCA1CTLW0 = UCSWRST;                    // Put eUSCI_A1 in reset
 
-    /* set P2SEL0.5, P2SEL0.6 to 0 */
-    P2SEL0 &= ~(BIT5 | BIT6);
-    /* set P2SEL1.5, P2SEL1.6 to 0 */
-    P2SEL0 &= ~(BIT5 | BIT6);
-
     UCA1IE = 0;
     UCA1CTLW0 = 0; // clear setup
 }
@@ -286,16 +271,6 @@ void uart1_init() {
     UCA1CTLW0 = UCSWRST;                    // Put eUSCI_A1 in reset
 
     /* Setup for eUSCI_A1 */
-    /* On the MSP430FR5994, pin P2.5 is used for TX and pin P2.6 is used for RX
-     * (ref: pg 95 of datasheet) */
-    /* P2.5 TX: x = 5; P2SEL1.x = 1, P2SEL0.x = 0 */
-    /* P2.6 RX: x = 6; P2SEL1.x = 1, P2SEL0.x = 0 */
-
-    /* set P2SEL0.5, P2SEL0.6 to 0 */
-    P2SEL0 &= ~(BIT5 | BIT6);
-    /* set P2SEL1.5, P2SEL1.6 to 1 */
-    P2SEL1 |= (BIT5 | BIT6);
-
     UCA1CTLW0 |= UCSSEL__SMCLK;             // CLK = SMCLK
     // Baud Rate calculation
     // 8000000/(16*9600) = 52.083

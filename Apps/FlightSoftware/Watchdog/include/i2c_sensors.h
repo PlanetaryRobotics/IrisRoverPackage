@@ -6,7 +6,8 @@
 #include <stdint.h>
 #include <assert.h>
 
-#define I2C_SLAVE_ADDR      100 //0b1100100 //i2c address of LTC2944IDD#PBF fuel gauge
+#define I2C_FUEL_GAUGE_SLAVE_ADDR      100 //0b1100100 //i2c address of LTC2944IDD#PBF fuel gauge
+#define I2C_IO_EXPANDER_SLAVE_ADDR     32 //0b0100000 //i2c address of PCA9575 I/O expander
 
 // Bit flags that, if set, indicate that data was not updated because
 // the slave device did not acknowledge a transmitted byte.
@@ -82,10 +83,30 @@ typedef enum GaugeReadingState {
     GRS__DONE
 } GaugeReadingState;
 
-typedef struct INS_Sensors__InternalState {
+typedef struct I2C_Sensors__InternalState {
     GaugeReadingState gState;
     I2C_Sensors__Readings readings;
-} INS_Sensors__InternalState;
+} I2C_Sensors__InternalState;
+
+typedef enum I2C_Sensors__IOExpanderPort0Bit {
+    I2C_SENSORS__IOE_P0_BIT__MC_RST_A = 1,
+    I2C_SENSORS__IOE_P0_BIT__MC_RST_B = 2,
+    I2C_SENSORS__IOE_P0_BIT__MC_RST_C = 4,
+    I2C_SENSORS__IOE_P0_BIT__MC_RST_D = 8,
+    I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST = 16,
+    I2C_SENSORS__IOE_P0_BIT__N_HERCULES_PORRST = 32,
+    I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST = 64,
+    I2C_SENSORS__IOE_P0_BIT__LATCH_RST = 128
+} I2C_Sensors__IOExpanderPort0Bit;
+
+typedef enum I2C_Sensors__IOExpanderPort1Bit {
+    I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST = 1,
+    I2C_SENSORS__IOE_P1_BIT__CHARGE_STAT2 = 2,
+    I2C_SENSORS__IOE_P1_BIT__LATCH_STAT = 4,
+    I2C_SENSORS__IOE_P1_BIT__LATCH_SET = 8,
+    I2C_SENSORS__IOE_P1_BIT__RADIO_ON = 32,
+    I2C_SENSORS__IOE_P1_BIT__BMS_BOOT = 64
+} I2C_Sensors__IOExpanderPort1Bit;
 
 void I2C_Sensors__init();
 
@@ -99,6 +120,12 @@ I2C_Sensors__Status I2C_Sensors__fuelGaugeLowPowerBlocking();
 I2C_Sensors__Status I2C_Sensors__initializeFuelGaugeBlocking();
 
 I2C_Sensors__Status I2C_Sensors__readFuelGaugeControlRegisterBlocking(uint8_t* data);
+
+I2C_Sensors__Status I2C_Sensors__initializeIOExpanderBlocking();
+
+I2C_Sensors__Status I2C_Sensors__readIOExpanderBlocking(uint8_t* chargeStat2, uint8_t* latchStat);
+
+I2C_Sensors__Status I2C_Sensors__writeIOExpanderOutputsBlocking(uint8_t port0Value, uint8_t port1Value);
 
 void I2C_Sensors__spinOnce();
 

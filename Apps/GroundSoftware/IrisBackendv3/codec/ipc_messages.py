@@ -35,7 +35,6 @@ class PayloadsToPacketRequestMessage(InterProcessMessage[PayloadsToPacketRequest
     """
 
     def to_ipc_bytes(self) -> bytes:
-
         raise NotImplementedError()  # !TODO
 
     def from_ipc_bytes(cls, data: bytes) -> PayloadsToPacketRequestContent:

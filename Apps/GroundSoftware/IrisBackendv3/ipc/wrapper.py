@@ -56,6 +56,16 @@ class InterProcessMessage(Generic[IPMC], ABC):
         raise NotImplementedError()
 
 
+@dataclasses.dataclass(order=True)
+class IpcPayload:
+    """
+    Data sent over IPC.
+    """
+    topic_bytes: bytes = b''  # if applicable
+    subtopic: bytes = b''  # if applicable
+    msg: bytes = b''  # message
+
+
 class SocketType(Enum):
     """
     Enumerates all possible socket types.
@@ -160,16 +170,6 @@ def subscribe(socket: zmq.sugar.socket.Socket, topics: Union[Topic, List[Topic]]
     for topic in topics:
         socket.setsockopt(zmq.SUBSCRIBE, topic.value)
         socket.subscribe(topic)
-
-
-@dataclasses.dataclass(order=True)
-class IpcPayload:
-    """
-    Data sent over IPC.
-    """
-    topic_bytes: bytes = b''  # if applicable
-    subtopic: bytes = b''  # if applicable
-    msg: bytes = b''  # message
 
 
 def send_to(

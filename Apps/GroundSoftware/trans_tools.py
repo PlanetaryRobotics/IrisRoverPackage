@@ -515,21 +515,20 @@ def stream_data_ip_udp_serial() -> None:
         cprint("Can't read data, serial connection not started. Try `connect_serial()`.",
                'red')
 
+    startedPacket = False
+    gotFirstNonStop = False
+
     while keep_running and ready:
         try:  # safety exception catch to keep things running
             b: Any = ser.read(1)
-            line += b
+            #line += b
             b = int.from_bytes(b, 'big')
-            if escape:
-                if b == 0xDC:
-                    data_bytes.append(0xC0)
-                elif b == 0xDD:
-                    data_bytes.append(0xDB)
-                escape = False
-            else:
+
+            if startedPacket:
                 if b == 0xC0:
-                    if len(data_bytes) >= 1:  # packet baked:
+                    if gotFirstNonStop:
                         full_packets.append(data_bytes)
+                        #print(data_bytes)
                         # Process it:
                         packet = parse_ip_udp_packet(data_bytes)
                         if packet is not None:
@@ -539,22 +538,43 @@ def stream_data_ip_udp_serial() -> None:
                             update_telemetry_streams(packet)
                         # Move on:
                         data_bytes = bytearray(b'')
-                    pass
-                elif b == 0xDB:
-                    escape = True
-                else:
-                    data_bytes.append(b)
-                    # data_bytes.append(bytes(b.hex(), 'utf-8'))
+                        startedPacket = False
+
+                    else:
+                        # Got sequentials STOP bytes, continue to ignore them
+                        pass
+                else: 
+                    gotFirstNonStop = True
+
+                    if escape:
+                        if b == 0xDC:
+                            data_bytes.append(0xC0)
+                        elif b == 0xDD:
+                            data_bytes.append(0xDB)
+                        escape = False
+                    elif b == 0xDB:
+                        escape = True
+                    else:
+                        data_bytes.append(b)
+                        # data_bytes.append(bytes(b.hex(), 'utf-8'))
+
+
+            elif b == 0xC0:
+                startedPacket = True
+                gotFirstNonStop = False
+                data_bytes = bytearray(b'')
 
             # print stuff
-            # print('%02x ' % b, end='', flush=True)
-            # nrx += 1
-            # if (nrx % 16) == 0:
-            #     print('')
-            #     #print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
-            #     line = b''
-        except KeyboardInterrupt:
-            save_pcap(full_packets)
+            #print('%02x ' % b, end='', flush=True)
+            #nrx += 1
+            #import re
+            #if (nrx % 16) == 0:
+            #    print('')
+            #    print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
+            #    line = b''
+        #except KeyboardInterrupt:
+        #    save_pcap(full_packets)
+
         except Exception as e:
             cprint(
                 f"An otherwise unresolved error occurred during packet streaming: {e}", 'red')

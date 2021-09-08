@@ -44,7 +44,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     GroundInterfaceComponentImpl(void)
 #endif
   {
-      m_uplinkSeq = 0; m_downlinkSeq = 0;
+      m_uplinkSeq = 1; m_downlinkSeq = 0;
       m_packetsRx = 0; m_packetsTx = 0;
       m_tlmItemsReceived = 0; m_tlmItemsDownlinked = 0;
       m_logsReceived = 0; m_logsDownlinked = 0;
@@ -188,7 +188,8 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         return;
     }
     
-    if (packet->header.seq != m_uplinkSeq + 1) {
+    // TODO: Test zeroth sequence number implementation
+    if ((packet->header.seq != m_uplinkSeq + 1) && (packet->header.seq != 0)) {
         m_cmdErrs++;
         return;
     }
@@ -207,7 +208,8 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         return;
     }
 
-    m_uplinkSeq = packet->header.seq;
+    if(packet->header.seq != 0)
+    	m_uplinkSeq = packet->header.seq;
 
     m_cmdsUplinked++;
     log_ACTIVITY_HI_GI_CommandReceived(packet->header.seq, packet->header.length);

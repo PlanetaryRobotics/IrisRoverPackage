@@ -85,7 +85,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     FswPacket::Length_t length = static_cast<FswPacket::Length_t>(data.getBuffLength());
     downlinkBufferWrite(tlmData, length, DownlinkTelemetry);
     m_tlmItemsDownlinked++;
-    updateTelemetry();
+    //updateTelemetry();
   }
 
   void GroundInterfaceComponentImpl ::
@@ -165,7 +165,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
             m_appBytesDownlinked += blockLength;
         }
     }
-    updateTelemetry();
+    //updateTelemetry();
   }
 
   // ASSUME ONE COMMAND PER UPLINK PACKET
@@ -218,7 +218,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     
     cmdDispatch_out(0, command, 0);        // TODO: Arg 3 Context?
     
-    updateTelemetry();
+    //updateTelemetry();
   }
   
   // ----------------------------------------------------------------------
@@ -308,10 +308,12 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         downlinkBufferSend_out((int)m_interface_port_num, buffer);
         m_downlinkSeq++;
         m_packetsTx++;
+        // FIXME: Update Ground interface Telem once every downlink
+        updateTelemetry();
     }
   
     void GroundInterfaceComponentImpl::updateTelemetry() {
-        /* TODO: THESE SHOULD ONLY UPDATE ONCE PER TELEMETRY DOWNLINK NOT ON THE RATE GROUP ITS TOO MUCH
+        /* TODO: THESE SHOULD ONLY UPDATE ONCE PER TELEMETRY DOWNLINK NOT ON THE RATE GROUP ITS TOO MUCH*/
         tlmWrite_GI_UplinkSeqNum(m_uplinkSeq);
         tlmWrite_GI_DownlinkSeqNum(m_downlinkSeq);
         tlmWrite_GI_PacketsReceived(m_packetsRx);
@@ -325,7 +327,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         tlmWrite_GI_UplinkPktErrs(m_cmdErrs);
         tlmWrite_GI_AppBytesReceived(m_appBytesReceived);
         tlmWrite_GI_AppBytesDownlinked(m_appBytesDownlinked);
-        */
+        
     }
     
     /*

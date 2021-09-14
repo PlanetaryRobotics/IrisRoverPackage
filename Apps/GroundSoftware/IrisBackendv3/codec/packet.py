@@ -17,7 +17,7 @@ import traceback
 
 import struct
 import bitstruct  # type: ignore
-import numpy as np
+import numpy as np # type: ignore
 import time
 from math import ceil
 

@@ -190,6 +190,10 @@ class PayloadInterface(ContainerCodec[PIT], ABC):
     def __setstate__(self, data: Dict[str, Any]) -> None:
         raise NotImplementedError()
 
+    @abstractmethod
+    def __eq__(self, other) -> bool:
+        raise NotImplementedError()
+
 
 PT = TypeVar('PT', bound=PayloadInterface)
 

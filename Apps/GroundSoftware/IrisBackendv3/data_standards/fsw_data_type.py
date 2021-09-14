@@ -58,8 +58,7 @@ class FswDataType(Enum):
 
     # NOTE: As a standard, all member names should be UPPERCASE.
     # NOTE: As a standard, C-style type strings should omit any '_t'
-    # packed as 0xFF = True, 0x00 = False
-    BOOL = 'B', 'bool', Category.BOOLEAN, bool
+    BOOL = 'B', 'bool', Category.BOOLEAN, bool  # packed as 0xFF=True, 00=False
     BOOLEAN = 'B', 'bool', Category.BOOLEAN, bool  # alias
     I8 = 'b', 'int8', Category.NUMBER, int
     I16 = 'h', 'int16', Category.NUMBER, int
@@ -164,6 +163,8 @@ class FswDataType(Enum):
         """
         if isinstance(name, str):
             if '_t' in name:
+                # ? TODO: why is this `if` here? Seems like this will ONLY accept names with '_t' in it rather than ALSO if '_t' is in there...
+                # ? Check which is desired behavior and unit test this.
                 # All `type_str`s omit the '_t' BUT we should accept one if it's given.
                 stripped_down = name.replace('_t', '')
                 if cls.is_valid_C_name(stripped_down):

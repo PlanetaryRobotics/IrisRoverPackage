@@ -82,8 +82,8 @@ class ContainerCodec(Generic[CT], ABC):
         # (The first point of storing the raw is to be able to forensically
         # reconstruct what was seen during mission, so use same inputs to get
         # the same outputs).
-        # This also allows for easy re-evaluation of all telemetry by simply
-        # adjusting the decode / parsers and deserializing again.
+        # This also allows for easy re-evaluation of all saved telemetry by
+        # simply adjusting the decode / parsers and deserializing again.
         if self._raw is None:
             self._raw = self.encode()
 
@@ -98,3 +98,20 @@ class ContainerCodec(Generic[CT], ABC):
         # If a subclassed object is reduced, it will call that subclass' `decode`
         # function (assuming it's been implemented).
         return (self.__class__.decode, (self._raw, self._endianness_code), state)
+
+    def __eq__(self, other) -> bool:
+        """
+        Performs an equality test based on all attributes deemed essential to 
+        the container's content (that is, encoded in `__reduce__`).
+        """
+        if not isinstance(other, ContainerCodec):
+            return False
+
+        _, self_data, self_state = self.__reduce__()
+        _, other_data, other_state = other.__reduce__()
+
+        #! TODO: WORKING HERE
+        return (
+            self_data == other_data
+            and self_state == other_state
+        )

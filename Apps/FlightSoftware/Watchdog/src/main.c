@@ -34,34 +34,89 @@ void enterMode(enum rover_state newstate) {
     case RS_SERVICE:
         /* service is same as keep alive */
         /* service mode is a temporary step transition to mission mode */
+        /***
+         * ! TODO: Check Service vs KeepAlive distinction. Service should have
+         *  higher bandwidth (more detailed and more frequent heartbeats) and
+         *  only Service should allow power-on commands and enabling UART0 to
+         *  Hercules.
+         */
     case RS_KEEPALIVE:
         /* power everything off and set resets */
         powerOffFpga();
+//        powerOnFpga();
         powerOffMotors();
+//        powerOnMotors();
         powerOffRadio();
+//        powerOnRadio();
         powerOffHercules();
+//        powerOnHercules();
+
         setRadioReset();
+//        releaseRadioReset();
         setFPGAReset();
+//        releaseFPGAReset();
         setMotorsReset();
+//        releaseMotorsReset();
         setHerculesReset();
+//        releaseHerculesReset();
+
         unsetDeploy();
+//        setDeploy();
 
         /* turn off voltage rails */
         disable3V3PowerRail();
+//        enable3V3PowerRail();
+        //TODO - enable/disable24VPowerRail() sets V_SYS_ALL_EN
+        //       24V power actually set by powerOnMotors()
+        //       V_SYS_ALL used to power everything besides Heater & WD + peripherals
         disable24VPowerRail();
+//        enable24VPowerRail();
         disableBatteries();
 
         /* monitor only lander voltages */
         adc_setup_lander();
-        enableHeater();
-        startChargingBatteries();
+//        enableHeater();
+        disableHeater();
+//        startChargingBatteries();
+        stopChargingBatteries();
 
         //!< @todo Check return statuses
         I2C_Sensors__initializeIOExpanderBlocking();
         I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
+
+        // TODO: remove this block
+#define WD_GPO_TEST
+#ifdef WD_GPO_TEST
+        __delay_cycles(12345678); // arbitrary. lets I2C ISRs happen for initialization
+//        PJOUT |= BIT7; // VSAE ON
+        PJOUT &= ~BIT7; // VSAE OFF
+
+//        PJOUT |= BIT5; // BE ON
+        PJOUT &= ~BIT5; // BE OFF
+
+//        PJOUT |= BIT3; // CE ON (weird?)
+        PJOUT &= ~BIT3; // CE OFF
+
+//        P2OUT |= BIT3; // BCTRLE ON
+        P2OUT &= ~BIT3; // BCTRLE OFF
+
+//        P3OUT |= BIT6; // Latch_batt ON
+        P3OUT &= ~BIT6; // Latch_batt OFF
+
+//        P3OUT |= BIT5; // FPGA_KICK ON
+        P3OUT &= ~BIT5; // FPGA_KICK OFF
+
+//        P3OUT |= BIT4; // DEPLOY_1 ON
+        P3OUT &= ~BIT4; // DEPLOY_1 OFF
+
+#endif
+
+
         break;
     default:
     case RS_MISSION:
+        //TODO - will need V_SYS_ALL_EN before anything else can work
+
         /* bootup process - enable all rails */
         enable3V3PowerRail();
         enable24VPowerRail();
@@ -106,6 +161,9 @@ int main(void) {
     /* stop watchdog timer */
 	WDTCTL = WDTPW | WDTHOLD;
 
+    /* initialize the board */
+    initializeGpios();
+
 	/* unlock changes to registers/ports, etc. */
 	PM5CTL0 &= ~LOCKLPM5;
 
@@ -113,9 +171,6 @@ int main(void) {
 	hercbuf.idx = 0;
 	hercbuf.used = 0;
 	ticks = 0;
-
-	/* initialize the board */
-    initializeGpios();
 
     /* set up uart clock */
     clock_init();

@@ -38,7 +38,7 @@ uint8_t handle_watchdog_reset_cmd(uint8_t cmd)
     short writeIOExpander = 0;
 
     switch (cmd) {
-        /* 0x00: No Reset */
+            /* 0x00: No Reset */
         case 0x00:
             break;
 

@@ -4,6 +4,12 @@
 // uncomment to program MC
 //#define PROGRAM_MOTOR_CONTROLLERS
 
+#define PORT1_ENABLED 1
+#define PORT2_ENABLED 1
+#define PORT3_ENABLED 1
+#define PORT4_ENABLED 1
+#define PORTJ_ENABLED 1
+
 uint8_t heaterStatus;
 uint8_t hasDeployed;
 
@@ -18,7 +24,7 @@ void initializeGpios()
     //########################################################################
     // P1 configuration.
     //########################################################################
-
+#if PORT1_ENABLED
     // Start with all as GPIO output (which is the recommended default config for unused pins)
     P1DIR = 0xFFu;
     P1OUT = 0x00u;
@@ -55,6 +61,7 @@ void initializeGpios()
     P1SEL0 |= BIT4;
     P1SEL1 |= BIT4;
 
+    // ? TODO: Why is this here twice? Repeat of above?
     // P1.4 is connected to the V_LANDER_SENS signal (output of voltage divider for measuring lander voltage being
     // supplied to us), and is used as an ADC analog input (specifically it is ADC analog input A4). This is the
     // tertiary function (SEL1 and SEL0 are 1).
@@ -84,13 +91,13 @@ void initializeGpios()
     //P1DIR |= BIT4;  // P1.4 output Motor control reset B
     //P1DIR |= BIT5;  // P1.5 output Motor control reset C
 #endif
-
+#endif // PORT1_ENABLED
     //########################################################################
     // P2 configuration.
     //########################################################################
-
+#if PORT2_ENABLED
     // Start with all as GPIO output (which is the recommended default config for unused pins)
-    P2DIR = 0xFFu;
+    P2DIR = 0x00u; // is now input, was 0xFFu
     P2OUT = 0x00u;
     P2SEL0 = 0x00u;
     P2SEL1 = 0x00u;
@@ -98,16 +105,21 @@ void initializeGpios()
     // P2.0 is used as the UART0 (UCA0) TX data line (TXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
     // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-23,
     // for UCA0TXD P2DIR is don't care.
-    P2SEL1 |= BIT0;
+    //P2SEL1 |= BIT0;
+    ////P2DIR |= BIT0;
+    ////P2OUT |= BIT0;
 
     // P2.1 is used as the UART0 (UCA0) RX data line (RXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
     // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-23,
     // for UCA0RXD P2DIR is don't care.
     P2SEL1 |= BIT1;
+    ////P2DIR |= BIT1;
+    ////P2OUT |= BIT1;
 
     // P2.2 is connected to the Heater signal (control signal for MOSFET to enable heater), and is used as a GPIO
     // output with an initially low value.
-    P2OUT |= BIT2;
+    P2DIR |= BIT2;
+    P2OUT &= ~BIT2;
 
     // P2.3 is connected to the BATT_CTRL_EN signal (control signal for MOSFET to enable battery controller circuit),
     // and is used as a GPIO output. This line has an external HW pull up so it is preferred to go to high-Z state
@@ -162,11 +174,11 @@ void initializeGpios()
     //P2DIR &= ~BIT7;  // P2.7 input Power good 1V2
 
     //P2SEL0 |= BIT2; // P2.2 heater output, PWM mode
-
+#endif // PORT2_ENABLED
     //########################################################################
     // P3 configuration.
     //########################################################################
-
+#if PORT3_ENABLED
     // Start with all as GPIO output (which is the recommended default config for unused pins)
     P3DIR = 0xFFu;
     P3OUT = 0x00u;
@@ -212,6 +224,7 @@ void initializeGpios()
     // P3.5 is connected to the FPGA_Kick signal and is used as a GPIO input.
     P3DIR &= ~BIT5;
 
+    // ! TODO: Not deployment (anymore on Rev I - not sure if it was on rev H). Is `LATCH_BATT` now.
     // P3.6 is connected to the Deployment signal (control signal for MOSFET to enable HDRM), and is used as a GPIO
     // output with an initially low value.
     P3OUT &= ~BIT6;
@@ -231,11 +244,11 @@ void initializeGpios()
     //P3DIR |= BIT5; // P3.5 output FPGA camera select
     //P3DIR |= BIT6; // P3.6 output FPGA reset
     //P3DIR |= BIT7; // P3.7 output 3V3 enable
-
+#endif // PORT3_ENABLED
     //########################################################################
     // P4 configuration.
     //########################################################################
-
+#if PORT4_ENABLED
     // Start with all as GPIO output (which is the recommended default config for unused pins)
     P4DIR = 0xFFu;
     P4OUT = 0x00u;
@@ -256,6 +269,7 @@ void initializeGpios()
     P4SEL0 |= BIT1;
     P4SEL1 |= BIT1;
 
+    // ! TODO: 24V and 28V sense are backwards. P4.2 is 28V. P4.3 is 24V.
     // P4.2 is connected to a voltage divider on the 24V rail, and is used as an ADC analog input (specifically it is
     // ADC analog input A10). This is the tertiary function (SEL1 and SEL0 are 1).
     // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-29,
@@ -263,6 +277,7 @@ void initializeGpios()
     P4SEL0 |= BIT2;
     P4SEL1 |= BIT2;
 
+    // ! TODO: 24V and 28V sense are backwards. P4.2 is 28V. P4.3 is 24V.
     // P4.3 is connected to a voltage divider on the 28V rail, and is used as an ADC analog input (specifically it is
     // ADC analog input A11). This is the tertiary function (SEL1 and SEL0 are 1).
     // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-29,
@@ -299,7 +314,7 @@ void initializeGpios()
     //!< @todo Make sure interrupt is eventually enabled and implemented.
     P4DIR &= ~BIT7;
     P4REN &= ~BIT7;
-
+#endif // PORT4_ENABLED
     /*
     // P4 configuration
     P4DIR &= 0x00;
@@ -326,10 +341,11 @@ void initializeGpios()
     // Analog input configuration done in adc_init()
     */
 
+    // RAD TODO - PJ config?
     //########################################################################
     // P4 configuration.
     //########################################################################
-
+#if PORTJ_ENABLED
     // Start with all as GPIO output (which is the recommended default config for unused pins)
     PJDIR = 0xFFu;
     PJOUT = 0x00u;
@@ -348,18 +364,20 @@ void initializeGpios()
     // PJ.3 is connected to the CHRG_EN signal and is used as a GPIO output with an initially low value.
     PJOUT &= ~BIT3;
 
+    // TODO: Looks like this is still being set as an output though it should be an input.
     // PJ.4 is connected to the Radio_Kick signal and is used as a GPIO input.
     PJDIR &= ~BIT4;
 
     // PJ.5 is connected to the BATTERY_EN signal and is used as a GPIO output with an initially low value.
     PJOUT &= ~BIT5;
 
+    // TODO: Looks like this is still being set as an output though it should be an input.
     // PJ.6 is connected to the BATT_STAT signal and is used as a GPIO input.
     PJDIR &= ~BIT6;
 
     // PJ.7 is connected to the V_SYS_ALL_EN signal and is used as a GPIO output with an initially low value.
     PJOUT &= ~BIT7;
-
+#endif // PORTJ_ENABLED
     /*
     // PJ configuration
     PJOUT &= ~(BIT0 | BIT1 | BIT2 | BIT3 | BIT4 | BIT5); // Initially everything is off
@@ -374,6 +392,7 @@ void initializeGpios()
     PJDIR |= BIT5; // PJ.5 output BATTERY
     */
 
+    // RAD TODO - what are all these? only pins left I see on schematic that weren't set above are DVCC, etc
     // Initialize all unused ports to as GPIO output to prevent floating pins. (Per slau367p section 12.3.2)
     P5SEL0 = 0x00u;
     P5SEL1 = 0x00u;
@@ -394,26 +413,6 @@ void initializeGpios()
     P8SEL1 = 0x00u;
     P8DIR = 0xFFu;
     P8OUT = 0x00u;
-
-    PASEL0 = 0x00u;
-    PASEL1 = 0x00u;
-    PADIR = 0xFFu;
-    PAOUT = 0x00u;
-
-    PBSEL0 = 0x00u;
-    PBSEL1 = 0x00u;
-    PBDIR = 0xFFu;
-    PBOUT = 0x00u;
-
-    PCSEL0 = 0x00u;
-    PCSEL1 = 0x00u;
-    PCDIR = 0xFFu;
-    PCOUT = 0x00u;
-
-    PCSEL0 = 0x00u;
-    PCSEL1 = 0x00u;
-    PDDIR = 0xFFu;
-    PDOUT = 0x00u;
 
     // Initial statuses
     heaterStatus = 0;
@@ -455,6 +454,7 @@ inline void disable3V3PowerRail()
     P3OUT &= ~BIT7;
 }
 
+// RAD TODO - this is for V_SYS_ALL_EN now (24v w/Motor_ON - PJ.2)
 /**
  * @brief      Enables the 24 v power rail. (high = ON)
  */
@@ -468,7 +468,7 @@ inline void enable24VPowerRail()
  */
 inline void disable24VPowerRail()
 {
-    PJOUT |= BIT7;
+    PJOUT &= ~BIT7;
 }
 
 /**

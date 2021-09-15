@@ -190,9 +190,11 @@ class PayloadInterface(ContainerCodec[PIT], ABC):
     def __setstate__(self, data: Dict[str, Any]) -> None:
         raise NotImplementedError()
 
-    @abstractmethod
-    def __eq__(self, other) -> bool:
-        raise NotImplementedError()
+    # ! TODO: This commit (look at GitLens) shouldn't have been included since this change was made during a scrap testing session on hermes mobile.
+    # Reimplement this.
+    # @abstractmethod
+    # def __eq__(self, other) -> bool:
+    #     raise NotImplementedError()
 
 
 PT = TypeVar('PT', bound=PayloadInterface)
@@ -661,6 +663,7 @@ class WatchdogCommandPayload(CommandPayload):
             data = data + fsw_data_encode(eff_datatype, arg_val)
 
         return data
+
 
 
 class DownlinkedPayload(Payload[PT]):

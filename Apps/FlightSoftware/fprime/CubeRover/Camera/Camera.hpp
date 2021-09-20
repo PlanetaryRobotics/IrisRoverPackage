@@ -19,6 +19,7 @@
 
 #define IMAGE_WIDTH        2592
 #define IMAGE_HEIGHT       1944
+#define MAX_NUM_IMAGES 12   // Calculated as flash is 64MB, image is ~5MB (2592*1944) -> 64/5 = 12.8 images, can't have partial image so 12
 
 #define DOWNSAMPLING        2
 #define DOWNSAMPLED_IMG_WIDTH   (IMAGE_WIDTH / DOWNSAMPLING)
@@ -194,6 +195,7 @@ namespace CubeRover {
         U32 m_numGroundImgsReq;
         U32 m_imagesSent;
         U32 m_bytesSent;
+        //U32 m_imageAddresses[MAX_NUM_IMAGES];
 
     };
 

@@ -249,7 +249,7 @@ ErrorCode Wf121Driver :: StartScanChannels(const HardwareInterface interface,
   uint8_t payload[sizeof(HardwareInterface) + sizeof(ChannelListSize) + channelListSize];
 
   //Prepare command header
-  txHeader.bit.msgType = CMD_RSP_TYPE; //command
+  txHeader.bit.msgType = CMD_RSP_TYPE; //command // [DEBUGGING LOOK HERE FLAG]
   txHeader.bit.technologyType = 1; // wifi
   setHeaderPayloadSize(&txHeader, sizeof(payload));
   txHeader.bit.classId = CLASS_WIFI;

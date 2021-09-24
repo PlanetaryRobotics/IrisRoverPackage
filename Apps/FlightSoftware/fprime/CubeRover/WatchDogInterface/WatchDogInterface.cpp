@@ -67,7 +67,8 @@ namespace CubeRover {
 
     Read_Temp();
 
-    Reset_Specific_Handler(0x04);           // Reset WF121
+//    Reset_Specific_Handler(0x05);           // Radio Power ON ( ! TODO: ADDED ONLY FOR TESTING. SHOULDN'T REALLY BE HERE.)
+    Reset_Specific_Handler(0x04);           // Reset WF121 ( ! TODO: USE ME)
     // There would normally be a 400000000 cycle delay for WF121 to finish resetting.. but that actualyl breaks things... weird
     m_finished_initializing = true;
   }
@@ -178,7 +179,18 @@ namespace CubeRover {
     if(reset_value > 0x1B)
     {
       // Reset Components in software
-      // TODO
+        // TODO
+      // ! TODO: UM. WTF? REMOVE THIS? THOUGHT SW RSTs WERE PHASED OUT. CURRENTLY THIS PREVENTS ANY KNOWN HARDWARE RESETS WITH ARGS >0x1B FROM WORKING.
+      /* AS OF 09/22/2021, THAT'S:
+       *
+      'BATTERY_STOP_CHARGE' or 28 or 0x1c
+      'ENABLE_RS_422_UART' or 29 or 0x1d
+      'DISABLE_RS_422_UART' or 30 or 0x1e
+      'ENABLE_HEATER_CONTROL' or 31 or 0x1f
+      'DISABLE_HEATER_CONTROL' or 32 or 0x20
+       *
+       *... also why are there two of these if()s? shouldn't this be abstracted DRY-wise?
+       */
     }
     // If reset_value less than or equal to 0x1B, we are resetting hardware
     else
@@ -264,6 +276,17 @@ namespace CubeRover {
     {
       // Reset Components in software
       // TODO
+        // ! TODO: UM. WTF? REMOVE THIS? THOUGHT SW RSTs WERE PHASED OUT. CURRENTLY THIS PREVENTS ANY KNOWN HARDWARE RESETS WITH ARGS >0x1B FROM WORKING.
+        /* AS OF 09/22/2021, THAT'S:
+         *
+        'BATTERY_STOP_CHARGE' or 28 or 0x1c
+        'ENABLE_RS_422_UART' or 29 or 0x1d
+        'DISABLE_RS_422_UART' or 30 or 0x1e
+        'ENABLE_HEATER_CONTROL' or 31 or 0x1f
+        'DISABLE_HEATER_CONTROL' or 32 or 0x20
+         *
+         *... also why are there two of these if()s? shouldn't this be abstracted DRY-wise?
+         */
       return true;
     }
     // If reset_value less than or equal to 0x1B, we are resetting hardware

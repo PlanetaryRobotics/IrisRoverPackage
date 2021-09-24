@@ -35,6 +35,7 @@ inline void Update_DMA_Comp_Flag(dmaInterrupt_t inttype, enum dmaCHANNEL channel
             dmaCh3_ISR(inttype);
             break;
         default:
+            break;
     }
 }
 

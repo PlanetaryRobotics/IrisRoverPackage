@@ -56,7 +56,7 @@ CubeRoverNetworkManager :: CubeRoverNetworkManager(){
  * @return     The error code.
  */
 ErrorCode CubeRoverNetworkManager :: UpdateNetworkManager(){
-  ErrorCode errorCode = NO_ERROR;
+  ErrorCode errorCode = NO_ERROR; // [DEBUGGING LOOK HERE FLAG]
 
   if(m_state != UNINITIALIZED){
     errorCode = ExecuteCallbacks();
@@ -80,6 +80,7 @@ ErrorCode CubeRoverNetworkManager :: UpdateNetworkManager(){
       if(errorCode != NO_ERROR) return errorCode;
       break;
     case SCANNING:
+      int one = 1;
       break;
     case SCANNED:
       errorCode = connectToWifiNetwork();        // SCANNED --> CONNECTED

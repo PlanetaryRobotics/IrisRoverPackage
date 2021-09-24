@@ -5,7 +5,7 @@
 #define ROVER_ADDRESS           {192, 168, 1, 2}
 #define SPACECRAFT_ADDRESS      {192, 168, 1, 120}
 #define SUBNET_MASK             {255, 255, 255, 0}
-#define GATEWAY_ADDRESS         {192, 168, 1, 120}
+#define GATEWAY_ADDRESS         {192, 168, 1, 1}
 #define SPACECRAFT_UDP_PORT     8080 
 #define ROVER_UDP_PORT          8080
 
@@ -16,7 +16,7 @@
 #define WIRED_UDP_PORT_ROVER    8080
 #define WIRED_UDP_PORT_LANDER   8080
 
-#define INITIAL_PRIMARY_NETWORK_INTERFACE  WF121    // Must be of type PrimaryInterface (see GroundInterfaceComponentAi.xml or GroundInterfaceComponentAc.hpp)
+#define INITIAL_PRIMARY_NETWORK_INTERFACE  WATCHDOG    // Must be of type PrimaryInterface (see GroundInterfaceComponentAi.xml or GroundInterfaceComponentAc.hpp)
 
 // Packet sizes
 #define IPV4_MTU                1006    // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 791 **FRAGMENTATION *NOT* SUPPORTED**

@@ -133,8 +133,8 @@ namespace CubeRover {
         uint16_t m_downlink_objects_size;           // Maximum usable buffer space for the current network interface
         uint16_t m_tlmDownlinkBufferSpaceAvailable;
         PrimaryInterface m_interface_port_num;
+        PrimaryInterface m_temp_interface_port_num;
         TelemetryLevel m_telemetry_level;
-
     };
 
 } // end namespace CubeRover

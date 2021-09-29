@@ -17,6 +17,8 @@
 
 namespace CubeRover {
 
+#pragma PERSISTENT
+int8_t m_persistent_state = -1;
 
 static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket::Length_t length) {
     const uint8_t *data = static_cast<const uint8_t *>(_data);
@@ -49,16 +51,31 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
       m_cmdsUplinked = 0; m_cmdsSent = 0; m_cmdErrs = 0;
       m_appBytesReceived = 0; m_appBytesDownlinked = 0;
       m_tlmDownlinkBufferPos = m_tlmDownlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
-      switch (INITIAL_PRIMARY_NETWORK_INTERFACE) {
+      // Use INITIAL_PRIMARY_NETWORK_INTERFACE to change the persistent variable m_persistent_state to the correct value
+      if(m_persistent_state == -1)
+      {
+          switch (INITIAL_PRIMARY_NETWORK_INTERFACE) {
+                    case WATCHDOG:
+                        m_persistent_state = 0;
+                        break;
+                    case WF121:                // Default to WF121
+                    default:
+                        m_persistent_state = 1;
+                }
+
+      }
+      switch (m_persistent_state) {
           case WF121:
               m_downlink_objects_size = WF121_UDP_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader);
+              m_temp_interface_port_num = WF121;
               break;
           case WATCHDOG:                // Default to smallest buffer size for safety even if we were using WF121
           default:
               m_downlink_objects_size = WATCHDOG_MAX_PAYLOAD;
+              m_temp_interface_port_num = WATCHDOG;
       }
       m_tlmDownlinkBufferSpaceAvailable = m_downlink_objects_size;
-      m_interface_port_num = INITIAL_PRIMARY_NETWORK_INTERFACE;
+      m_interface_port_num = m_temp_interface_port_num;
       m_telemetry_level = CRITICAL;
   }
 
@@ -239,10 +256,12 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     switch (primary_interface) {
         case WF121:
             m_downlink_objects_size = WF121_UDP_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader);
+            m_persistent_state = 1;
             break;
         case WATCHDOG:                // Default to smallest buffer size for safety even if we were using WF121
         default:
             m_downlink_objects_size = WATCHDOG_MAX_PAYLOAD;
+            m_persistent_state = 0;
     }
     m_tlmDownlinkBufferSpaceAvailable = m_downlink_objects_size;
     m_interface_port_num = primary_interface;

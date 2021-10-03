@@ -18,6 +18,8 @@
 
 namespace CubeRover {
 
+extern int8_t m_persistent_state;
+
   class GroundInterfaceComponentImpl :
     public GroundInterfaceComponentBase
   {

@@ -18,7 +18,7 @@
 namespace CubeRover {
 
 #pragma PERSISTENT
-int8_t m_persistent_state = -1;
+extern int8_t m_persistent_state = -1;
 
 static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket::Length_t length) {
     const uint8_t *data = static_cast<const uint8_t *>(_data);

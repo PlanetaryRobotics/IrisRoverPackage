@@ -12,9 +12,13 @@
 
 
 #include <CubeRover/NetworkManager/NetworkManager.hpp>
+#include <CubeRover/GroundInterface/GroundInterface.hpp>
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
 #include "CubeRover/Wf121/Wf121.hpp"
 #include "Fw/Types/BasicTypes.hpp"
 #include <cstring>
+
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 namespace CubeRover {
 
@@ -70,9 +74,17 @@ namespace CubeRover {
                 break;
             }
         }
-        if (no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
+        // Check if we're in persistent state WATCHDOG (m_persistent_state == 0) and we have tried too many times
+        if (m_persistent_state == 0 && no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
             log_FATAL_WF121InitializationFailed();
-            // TODO: Watchdog reset WF121
+            watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
+            // TODO: Break if reset too many times, ground will have to sent an init command
+        }
+        // Check if we're in persistent state WIFI (m_persistent_state == 1) and we have tried too many times
+        else if (m_persistent_state == 1 && no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
+            log_FATAL_WF121InitializationFailed();
+            watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
+            // This reset of wifi will happen forever until we connect
         }
     }
   }

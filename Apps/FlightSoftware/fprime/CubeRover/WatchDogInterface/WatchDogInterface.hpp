@@ -67,6 +67,10 @@ namespace CubeRover {
       //!
       ~WatchDogInterfaceComponentImpl(void);
 
+      // Usage during FSW initialization or when other components call it
+      // Only difference between this is function and Reset_Specific_cmdHandler is lack of cmd response and using int for reset
+      bool Reset_Specific_Handler(int reset_enum_number);
+
     PRIVATE:
 
       // ----------------------------------------------------------------------
@@ -279,11 +283,6 @@ namespace CubeRover {
      bool dmaSend(void *buffer,           // The buffer of data to send to watchdog
                   int size,               // The size of the data to send to watchdog
                   bool blocking=true);    // Check variable to see if we need to block other DMA requests
-
-      // Usage during FSW initialization
-      // Only difference between this is function and Reset_Specific_cmdHandler is lack of cmd response
-      bool Reset_Specific_Handler(reset_values_possible reset_value);
-
 
       sciBASE_t *m_sci;   // The sci base used to initialize the watchdog interface connection 
       adcData_t m_thermistor_buffer[number_thermistors];  // Location to store current data for thermistors

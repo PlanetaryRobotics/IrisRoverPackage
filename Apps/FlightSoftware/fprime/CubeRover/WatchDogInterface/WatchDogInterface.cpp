@@ -183,7 +183,7 @@ namespace CubeRover {
     // Sends a command to watchdog to reset specified devices
 
       // Check that reset_value is correct
-      if(reset_value < No_Reset && reset_value >= reset_values_possible_MAX)
+      if(reset_value < No_Reset || reset_value >= reset_values_possible_MAX)
       {
         this->log_WARNING_LO_WatchDogIncorrectResetValue();
         return;
@@ -278,9 +278,11 @@ namespace CubeRover {
 
   bool WatchDogInterfaceComponentImpl ::
     Reset_Specific_Handler(
-        reset_values_possible reset_value
+        int reset_enum_number
     )
   {
+    // Convert int into reset_values_possible
+    reset_values_possible reset_value = (reset_values_possible)reset_enum_number;
     // Send Activity Log/tlm to know watchdog recieved command
     char command_type[24] = "Reset Specific:";
     char reset_val_char[8];
@@ -292,7 +294,7 @@ namespace CubeRover {
     // Sends a command to watchdog to reset specified devices
 
       // Check that reset_value is correct
-      if(reset_value < No_Reset && reset_value >= reset_values_possible_MAX)
+      if(reset_value < No_Reset || reset_value >= reset_values_possible_MAX)
       {
         this->log_WARNING_LO_WatchDogIncorrectResetValue();
         return false;

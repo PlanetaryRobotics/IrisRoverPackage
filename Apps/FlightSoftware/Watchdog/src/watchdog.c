@@ -26,10 +26,11 @@ volatile uint16_t watchdog_flags;
  * Set up the ISRs for the watchdog
  */
 int watchdog_init() {
+    // RAD - TODO - is this setting P1.0 to a weird state? / getting bad triggers from being GND
     /* trigger on P1.0 Hi/lo edge */
-    P1IE |= BIT0;                    // P1.0 interrupt enabled
-    P1IES |= BIT0;                   // P1.0 Hi/lo edge
-    P1IFG &= ~BIT0;                  // P1.0 IFG cleared initally
+    //P1IE |= BIT0;                    // P1.0 interrupt enabled
+    //P1IES |= BIT0;                   // P1.0 Hi/lo edge
+    //P1IFG &= ~BIT0;                  // P1.0 IFG cleared initally
 
     /* timer setup */
     TA0CTL = TASSEL_1 | ID_0 | TAIE;           // ACLK/1, interrupt on overflow
@@ -305,6 +306,7 @@ void heaterControl(){
  *      only; this can be done with a timer to wake every X seconds
  */
 
+// RAD - TODO - interrupt on P1.0 - weird behavior when GND?
 /* Port 1 handler */
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=PORT1_VECTOR

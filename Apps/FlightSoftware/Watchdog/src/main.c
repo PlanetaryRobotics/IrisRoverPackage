@@ -48,13 +48,16 @@ void enterMode(enum rover_state newstate) {
 
         /* turn off voltage rails */
         disable3V3PowerRail();
+        //TODO - enable/disable24VPowerRail() sets V_SYS_ALL_EN
+        //       24V power actually set by powerOnMotors()
+        //       V_SYS_ALL used to power everything besides Heater & WD + peripherals
         disable24VPowerRail();
         disableBatteries();
 
         /* monitor only lander voltages */
         adc_setup_lander();
-        enableHeater();
-        startChargingBatteries();
+        disableHeater();
+        stopChargingBatteries();
 
         //!< @todo Check return statuses
         I2C_Sensors__initializeIOExpanderBlocking();
@@ -104,18 +107,18 @@ uint16_t ticks;
 
 int main(void) {
     /* stop watchdog timer */
-	WDTCTL = WDTPW | WDTHOLD;
+    WDTCTL = WDTPW | WDTHOLD;
 
-	/* unlock changes to registers/ports, etc. */
-	PM5CTL0 &= ~LOCKLPM5;
-
-	// initialize buffers
-	hercbuf.idx = 0;
-	hercbuf.used = 0;
-	ticks = 0;
-
-	/* initialize the board */
+    /* initialize the board */
     initializeGpios();
+
+    /* unlock changes to registers/ports, etc. */
+    PM5CTL0 &= ~LOCKLPM5;
+
+    // initialize buffers
+    hercbuf.idx = 0;
+    hercbuf.used = 0;
+    ticks = 0;
 
     /* set up uart clock */
     clock_init();
@@ -252,5 +255,5 @@ int main(void) {
         }
     }
 
-	return 0;
+    return 0;
 }

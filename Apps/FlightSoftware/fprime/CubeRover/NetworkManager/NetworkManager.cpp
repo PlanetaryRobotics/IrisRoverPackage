@@ -37,6 +37,7 @@ namespace CubeRover {
 #endif
   {
     m_current_state = CubeRoverNetworkManager::UNINITIALIZED;
+    wired_wifi_reset_cnt = 0;
   }
 
   void NetworkManagerComponentImpl ::
@@ -77,8 +78,12 @@ namespace CubeRover {
         // Check if we're in persistent state WATCHDOG (m_persistent_state == 0) and we have tried too many times
         if (m_persistent_state == 0 && no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
             log_FATAL_WF121InitializationFailed();
+            // Check if we have reset the wifi more than wired_wifi_reset_cnt_max times. If so, we stop initializing wifi and move on
+            if(wired_wifi_reset_cnt >= wired_wifi_reset_cnt_max)
+                break;
+            // TODO: Notify ground that we have skipped initializing wifi as we have reset a set amount of times
             watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
-            // TODO: Break if reset too many times, ground will have to sent an init command
+            wired_wifi_reset_cnt++;
         }
         // Check if we're in persistent state WIFI (m_persistent_state == 1) and we have tried too many times
         else if (m_persistent_state == 1 && no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {

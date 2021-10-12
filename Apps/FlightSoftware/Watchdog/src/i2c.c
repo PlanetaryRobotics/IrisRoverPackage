@@ -331,6 +331,9 @@ static BOOL I2C__rxDataAndStop(void)
         // We don't want to continue spinning after this since there is nothing left to do
     }
 
+    // If we got a NACK then change state
+    I2C__checkAck();
+
     return FALSE;
 }
 

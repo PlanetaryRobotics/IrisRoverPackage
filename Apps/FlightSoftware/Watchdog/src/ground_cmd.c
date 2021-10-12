@@ -70,6 +70,8 @@ uint8_t handle_watchdog_reset_cmd(uint8_t cmd)
             /* 0x05: Radio Power On */
         case 0x05:
             powerOnRadio();
+            // ! TODO - Adding this for keepalive checkout
+//            releaseRadioReset();
             writeIOExpander = 1;
             break;
 

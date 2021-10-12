@@ -13,8 +13,8 @@
 uint8_t heaterStatus;
 uint8_t hasDeployed;
 
-static uint8_t ioExpanderPort0OutputValues = 0;
-static uint8_t ioExpanderPort1OutputValues = 0;
+static uint8_t ioExpanderPort0OutputValues = 0x00u;
+static uint8_t ioExpanderPort1OutputValues = 0x00u;
 
 /**
  * @brief      Initializes the gpios.
@@ -105,16 +105,12 @@ void initializeGpios()
     // P2.0 is used as the UART0 (UCA0) TX data line (TXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
     // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-23,
     // for UCA0TXD P2DIR is don't care.
-    //P2SEL1 |= BIT0;
-    ////P2DIR |= BIT0;
-    ////P2OUT |= BIT0;
+    P2SEL1 |= BIT0; // comment out if UART line killing things
 
     // P2.1 is used as the UART0 (UCA0) RX data line (RXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
     // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-23,
     // for UCA0RXD P2DIR is don't care.
     P2SEL1 |= BIT1;
-    ////P2DIR |= BIT1;
-    ////P2OUT |= BIT1;
 
     // P2.2 is connected to the Heater signal (control signal for MOSFET to enable heater), and is used as a GPIO
     // output with an initially low value.
@@ -672,7 +668,9 @@ inline void powerOnRadio()
 {
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P2OUT |= BIT4;
-    ioExpanderPort1OutputValues |= I2C_SENSORS__IOE_P1_BIT__RADIO_ON;
+    ioExpanderPort1OutputValues |= I2C_SENSORS__IOE_P1_BIT__RADIO_ON; // ! TODO - KEEP
+//    ioExpanderPort1OutputValues = 0x00; // TODO - REMOVE
+//    ioExpanderPort0OutputValues = 0x00; // TODO - REMOVE
 }
 
 /**

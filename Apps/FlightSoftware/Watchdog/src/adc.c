@@ -92,6 +92,7 @@ void adc_setup_mission() { // set up adc to read values for mission mode (voltag
     while (ADC12CTL1 & ADC12BUSY) { __no_operation(); }
 
     // enable interrupts only on last reading
+    // ! TODO - changed from ADC12IER0 = ADC12IE2; based on line above
     ADC12IER0 = ADC12IE2;
 
     // set up the ADC for the mission state

@@ -24,7 +24,7 @@ extern uint8_t heatingControlEnabled;
 /**
  * main.c
  */
-#pragma PERSISTENT(rovstate)
+//#pragma PERSISTENT(rovstate)
 enum rover_state rovstate = RS_KEEPALIVE;
 
 void enterMode(enum rover_state newstate) {
@@ -41,6 +41,7 @@ void enterMode(enum rover_state newstate) {
          *  Hercules.
          */
     case RS_KEEPALIVE:
+
         /* power everything off and set resets */
         powerOffFpga();
 //        powerOnFpga();
@@ -80,12 +81,29 @@ void enterMode(enum rover_state newstate) {
 //        startChargingBatteries();
         stopChargingBatteries();
 
+//        powerOnRadio();
+
         //!< @todo Check return statuses
         I2C_Sensors__initializeIOExpanderBlocking();
-        I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
+        I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue() | 128u, getIOExpanderPort1OutputValue());
+
+//        uint8_t chargeStat2 = 0;
+//        uint8_t latchStat = 0;
+//        I2C_Sensors__Status stat = I2C_Sensors__readIOExpanderBlocking(&chargeStat2, &latchStat);
+
+//#define HERC_TEST
+#ifdef HERC_TEST
+        enable3V3PowerRail();
+        powerOnHercules();
+//        setHerculesReset();
+        releaseHerculesReset();
+//        releaseRadioReset();
+//        powerOnRadio();
+//        I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
+#endif
 
         // TODO: remove this block
-#define WD_GPO_TEST
+//#define WD_GPO_TEST
 #ifdef WD_GPO_TEST
         __delay_cycles(12345678); // arbitrary. lets I2C ISRs happen for initialization
 //        PJOUT |= BIT7; // VSAE ON
@@ -116,37 +134,58 @@ void enterMode(enum rover_state newstate) {
     default:
     case RS_MISSION:
         //TODO - will need V_SYS_ALL_EN before anything else can work
+        // ! TODO - changed this case a lot to disable for testing
 
         /* bootup process - enable all rails */
         enable3V3PowerRail();
-        enable24VPowerRail();
-        enableBatteries();
+//        enable24VPowerRail();
+        disable24VPowerRail(); // TESTING
+//        enableBatteries();
+        disableBatteries(); // TESTING
         disableHeater();
         unsetDeploy();
+//        setDeploy(); // TESTING
 
         /* enable hercules uart */
         uart0_init();
 
         /* power everything on and release resets */
+//        setRadioReset(); // TESTING
         releaseRadioReset();
-        releaseFPGAReset();
+        setFPGAReset(); // TESTING
+//        releaseFPGAReset();
 
         /* start monitoring only mission-relevant voltages */
         adc_setup_mission();
 
         /* power stuff on */
-        powerOnFpga();
-        powerOnMotors();
+        powerOffFpga(); // TESTING
+//        powerOnFpga();
+        powerOffMotors(); // TESTING
+//        powerOnMotors();
+//        powerOffRadio(); // TESTING
         powerOnRadio();
+
         stopChargingBatteries();
+
+        // !TODO : release RadioReset() and powerOnRadio happen at exact same time... This is a useless spot to set the outputs...
+        // Wondering if it's why sometimes the power goes weird when entering mission but power off herc, power off radio, power on radio, power on herc works...
         I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
 
         __delay_cycles(12345678); //give fuel gauge [50 ms] & wifi [~750 ms] time to start up
         I2C_Sensors__initializeFuelGaugeBlocking();
+
+//        powerOffHercules(); // TESTING
         powerOnHercules();
-        releaseMotorsReset();
+
+        setMotorsReset(); // TESTING
+//        releaseMotorsReset();
+
+//        setHerculesReset(); // TESTING
         releaseHerculesReset();
+
         I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
+
         break;
     case RS_FAULT:
         /* TODO: fault mode; enable everything in lander mode */
@@ -188,7 +227,7 @@ int main(void) {
     /* set up i2c to read from fuel gauge*/
     I2C_Sensors__init();
 
-    /* enter keepalive mode */
+    /* boot into default mode */
     enterMode(rovstate);
 
     __bis_SR_register(GIE); // Enable all interrupts

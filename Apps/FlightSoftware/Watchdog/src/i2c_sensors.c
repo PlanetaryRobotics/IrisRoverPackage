@@ -283,9 +283,17 @@ I2C_Sensors__Status I2C_Sensors__initializeIOExpanderBlocking()
     // Register 9 is the register to configure the directions of the port 1 pins, where "0" is output. As described
     //   above, pins 0, 3, 5, and 6 are outputs, and the rest are either inputs or not connected.
     static const uint8_t CONFIG_PORT_0_REG_ADDR = 8;
-    static const uint8_t CONFIG_PORT_0_VALUE = 0b00000000;
+    // ! TODO: Look into pins 4 and 5 hercules resets; Set as inputs to not drive during programming; Normally outputs
+//    static const uint8_t CONFIG_PORT_0_VALUE = 0b00001100; // resets as inputs - worked for initial programming
+    static const uint8_t CONFIG_PORT_0_VALUE = 0b00000000; // all as outputs - has also worked (programming cable was broken)
+//    static const uint8_t CONFIG_PORT_0_VALUE = 0b11111111; // all as inputs?
     static const uint8_t CONFIG_PORT_1_REG_ADDR = 9;
-    static const uint8_t CONFIG_PORT_1_VALUE = 0b011010011;
+    // ! TODO: Config port 1 value was 9 bits (0b011010011) but looking at the above comments and port 0 value we
+    //   removed the last bit to get (0b01101001)
+    // ! TODO: Is this backwards?
+//    static const uint8_t CONFIG_PORT_1_VALUE = 0b01101001; // orig
+    static const uint8_t CONFIG_PORT_1_VALUE = 0b10010110; // testing
+//    static const uint8_t CONFIG_PORT_1_VALUE = 0b00000000; // all output?
 
     if (!((GRS__DONE == internals.gState)
           || (GRS__UNKNOWN == internals. gState))) {

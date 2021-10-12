@@ -199,6 +199,12 @@ namespace CubeRover {
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
   
+    void CameraComponentImpl::eraseFpgaFlash(){
+        for(int i=0; i< 40; i++){
+            m_fpgaFlash.sectorErase(i);
+        }
+    }
+
     void CameraComponentImpl::downsampleLine() {
         for(uint32_t x = 0; x < IMAGE_WIDTH/DOWNSAMPLING; x++) {
             m_imageLineBuffer[x] = m_imageLineBuffer[x*DOWNSAMPLING];

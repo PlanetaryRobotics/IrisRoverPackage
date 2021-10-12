@@ -4,3 +4,4 @@ Debug/
 /Release/
 *.orig
 *.rej
+/.metadata/

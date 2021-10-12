@@ -183,6 +183,7 @@ namespace CubeRover {
       
       // User methods
       
+        void eraseFpgaFlash();
         void downsampleLine();
         void selectCamera(int camera);
         void triggerImageCapture(uint8_t camera, uint16_t callbackId);

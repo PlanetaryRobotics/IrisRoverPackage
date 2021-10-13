@@ -47,12 +47,17 @@ namespace CubeRover {
   {
     NetworkManagerComponentBase::init(instance);
     
+    telem_send_limit_cnt = 0;
     unsigned no_transition_count = 0;
     m_current_state = m_crnm.GetState();
     bool success = false;
     while (!success) {
         while (no_transition_count < MAX_FSM_NO_TRANSITION_COUNT) {
             Wf121::ErrorCode errorCode = m_crnm.UpdateNetworkManager();
+
+            // Update Telemetry with error code
+            tlmWrite_WIFIErrorStatus(static_cast<U16>(errorCode));
+
             if (errorCode == Wf121::TRY_AGAIN) {
                 no_transition_count++;
                 continue;
@@ -66,7 +71,10 @@ namespace CubeRover {
             if (m_current_state == new_state)
                 no_transition_count++;
             else
+            {
                 log_ACTIVITY_HI_StateChange(m_current_state, new_state);
+                tlmWrite_WIFIStateStatus(static_cast<WIFIState>(static_cast<U8>(new_state)));
+            }
             
             m_current_state = new_state;
             
@@ -128,18 +136,27 @@ namespace CubeRover {
 
     void NetworkManagerComponentImpl::update() {
         Wf121::ErrorCode errorCode = m_crnm.UpdateNetworkManager();   // TODO: Check error
+
+
+
         CubeRoverNetworkManager::CubeRoverNetworkStateMachine updated_state = m_crnm.GetState();
         if (updated_state != m_current_state) {
             log_ACTIVITY_HI_StateChange(m_current_state, updated_state);
+            tlmWrite_WIFIStateStatus(static_cast<WIFIState>(static_cast<U8>(updated_state)));
             // TODO: TRIGGER MODEMANAGER ON LOS
         }
         m_current_state = updated_state;
-        /* TODO: UPDATE TEHSE ONCE PER TELEM DOWNLINK. DOING IT ON THE RATE GROUP IS TOO OFTEN
-        tlmWrite_RSSI(m_crnm.GetSignalRssi());
-        tlmWrite_SNR(m_crnm.GetSignalNoiseRatio());
-        tlmWrite_PktRecv(m_crnm.GetNbOfBytesReceived());
-        tlmWrite_PktSent(m_crnm.GetNbOfBytesSent());
-        */
+        // TODO: UPDATE TEHSE ONCE PER TELEM DOWNLINK. DOING IT ON THE RATE GROUP IS TOO OFTEN
+        if(telem_send_limit_cnt >= telem_send_limit_cnt_max)
+        {
+            tlmWrite_RSSI(m_crnm.GetSignalRssi());
+            tlmWrite_SNR(m_crnm.GetSignalNoiseRatio());
+            tlmWrite_PktRecv(m_crnm.GetNbOfBytesReceived());
+            tlmWrite_PktSent(m_crnm.GetNbOfBytesSent());
+            // Update Telemetry with error code
+            tlmWrite_WIFIErrorStatus(static_cast<U16>(errorCode));
+        }
+
     }
   
     void NetworkManagerComponentImpl::getUplinkDatagram() {

@@ -21,6 +21,7 @@ pushd Os
 make clean
 make TIR4
 pushd FreeRTOS
+git submodule update --init --recursive
 ./build_littlefs.sh
 popd
 popd

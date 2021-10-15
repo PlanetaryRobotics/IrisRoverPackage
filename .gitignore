@@ -1,2 +1,7 @@
-Apps/FlightSoftware/MotorControl/Release/
-Apps/FlightSoftware/MotorControl/Debug/
+./Apps/FlightSoftware/MotorControl/Release/*
+./Apps/FlightSoftware/MotorControl/Debug/*
+Release/
+Debug/
+*.mk
+*.obj
+*.d

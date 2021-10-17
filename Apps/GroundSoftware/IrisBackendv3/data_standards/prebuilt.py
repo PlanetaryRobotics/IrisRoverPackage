@@ -3,14 +3,14 @@ Special prebuilt data standards which exist outside of the FPrime XML (e.g. for
 watchdog heartbeat)
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/05/2021
+@last-updated: 10/16/2021
 """
 from typing import Union, List
 
 from IrisBackendv3.utils.nameiddict import NameIdDict
 
 from .data_standards import DataStandards
-from .module import Module, TelemetryChannel, EnumItem
+from .module import Module, Command, Argument, TelemetryChannel, EnumItem
 from .fsw_data_type import FswDataType
 from .logging import logger
 
@@ -226,10 +226,96 @@ watchdog_command_response: Module = Module(
                 EnumItem('BAD_COMMAND_SEND_ORDER', 0x06,
                          comment="Command received in the wrong order (e.g. `Deploy` received before `Prepare for Deploy`)."
                          ),
-                EnumItem('DEPLOYMENT_SIGNAL_SENT', 0x96,
+                EnumItem('DEPLOYMENT_SIGNAL_SENT', 96,
                          comment="WatchDog Deployment Interlock Released. (Watchdog HDRM pin is high)."
                          )
             ]
         ),
     })
+)
+
+
+watchdog_blimp_commands: Module = Module(
+    name="WatchdogBlimp",
+    ID=0xFF10,
+    commands=NameIdDict({
+        (0xF7, 'SetChargerEn'): Command(
+            name='SetChargerEn',
+            mnemonic='blimp_set_charge_en',
+            ID = 0xF7,
+            args = [
+                Argument(
+                    name='charge_en',
+                    datatype=FswDataType.ENUM,
+                    enum = [
+                        EnumItem('OFF', 0x00),
+                        EnumItem('ON', 0xFF),
+                        EnumItem('FORCE_HIGH', 0x99,
+                                comment="Forces the CE pin high. Not for normal use. Use in case of a voltage divider fault (e.g. due to part failure during launch vibe)."
+                                )
+                    ]
+                )
+            ]
+        ),
+        (0xF8, 'SetChargerPowerConnection'): Command(
+            name='SetChargerPowerConnection',
+            mnemonic='blimp_set_reg_en',
+            ID = 0xF8,
+            args = [
+                Argument(
+                    name='v_lander_reg_en',
+                    datatype=FswDataType.BOOL
+                )
+            ]
+        ),
+        (0xF9, 'SetBatteryConnection'): Command(
+            name='SetBatteryConnection',
+            mnemonic='blimp_set_batt_en',
+            ID = 0xF9,
+            args = [
+                Argument(
+                    name='batt_en',
+                    datatype=FswDataType.BOOL
+                )
+            ]
+        ),
+        (0xFA, 'SetBatteryControlEnable'): Command(
+            name='SetBatteryControlEnable',
+            mnemonic='blimp_set_bctrl_en',
+            ID = 0xFA,
+            args = [
+                Argument(
+                    name='batt_ctrl_en',
+                    datatype=FswDataType.ENUM,
+                    enum = [
+                        EnumItem('OFF', 0x00),
+                        EnumItem('ON', 0xFF),
+                        EnumItem('FORCE_HIGH', 0x99,
+                                comment="Forces the BCTRLE pin high. Not for normal use. Use in case of a pull-up resistor fault (e.g. due to part failure during launch vibe)."
+                                )
+                    ]
+                )
+            ]
+        ),
+        (0xFB, 'SetBatteryLatch'): Command(
+            name='SetBatteryLatch',
+            mnemonic='blimp_set_latch_batt',
+            ID = 0xFB,
+            args = [
+                Argument(
+                    name='latch_batt',
+                    datatype=FswDataType.ENUM,
+                    enum = [
+                        EnumItem('OFF', 0x00),
+                        EnumItem('ON', 0xFF),
+                        EnumItem('PULSE_HIGH', 0xAA,
+                                comment="Pulses the LBATT pin to make the battery D-Latch take on the state of BATT_EN."
+                                )
+                    ]
+                )
+            ]
+        )
+    }),
+    events=NameIdDict(),
+    telemetry=NameIdDict()
 )

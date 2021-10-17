@@ -33,7 +33,7 @@ from IrisBackendv3.utils.nameiddict import NameIdDict
 
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.logging import logger as DsLogger
-from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response
+from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response, watchdog_blimp_commands
 from IrisBackendv3.codec.payload import Payload, PayloadCollection, CommandPayload, WatchdogCommandPayload, extract_downlinked_payloads
 from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
@@ -59,7 +59,8 @@ standards = DataStandards.build_standards()
 add_to_standards(standards, [
     watchdog_heartbeat_tvac,
     watchdog_heartbeat,
-    watchdog_command_response
+    watchdog_command_response,
+    watchdog_blimp_commands
 ])
 set_codec_standards(standards)
 
@@ -91,6 +92,55 @@ def parse_ip_udp_packet(packet_bytes: bytes, deadspace: int = 0) -> Optional[Pac
 
 
 def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
+    # All available packet codecs (in order of use preference):
+    codecs: List[Type[Packet]] = [
+        WatchdogHeartbeatPacket,
+        WatchdogCommandResponsePacket,
+        IrisCommonPacket,
+        WatchdogTvacHeartbeatPacket
+    ]
+    # Codecs which support this packet:
+    supported = [c for c in codecs if c.is_valid(packet_bytes)]
+
+    # Check for issues:
+    if len(supported) == 0:
+        CodecLogger.warning(
+            f"Invalid packet detected. Does not conform to any supported specs: "  # type: ignore
+            f"{packet_bytes}"
+        )
+
+    if len(supported) > 1:
+        CodecLogger.warning(
+            f"Multiple codecs "  # type: ignore
+            f"({supported}) support received packet. Using "
+            f"highest in preference order: {supported[0]}. "
+            f"Packet data: {packet_bytes} ."
+        )
+
+    # Parse Packet:
+    packet: Optional[Packet] = None  # default
+    try:
+        if len(supported) > 0:
+            # Parse:
+            packet = supported[0].decode(
+                packet_bytes,
+                pathway=DataPathway.WIRELESS,
+                source=DataSource.PCAP
+            )
+            # Store:
+            packet = cast(Packet, packet)
+            for i in range(len(packet.payloads)):
+                all_payloads[i].extend(packet.payloads[i])  # type: ignore
+
+    except Exception as e:
+        trace = e  # traceback.format_exc()
+        CodecLogger.warning(
+            f"Had to abort packet parsing due to the following exception: {trace}"
+        )
+
+    return packet
+
+def parse_packet_rev_i_debug(packet_bytes: bytes) -> Optional[Packet]:
     # All available packet codecs (in order of use preference):
     codecs: List[Type[Packet]] = [
         WatchdogHeartbeatPacket,
@@ -217,6 +267,7 @@ def connect_serial(device: str = '/dev/ttyUSB0', baud: int = 9600) -> None:
 def send_wifi(data: bytes, ip="192.168.1.2", port=8080) -> None:
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.sendto(data, (ip, port))
+    sock.close()
 
 
 def send_slip(dat: bytes) -> None:
@@ -498,7 +549,6 @@ def save_pcap(full_packets):
 
     pcap_fp.close()
 
-
 def stream_data_ip_udp_serial() -> None:
     escape = False
     keep_running = True
@@ -515,20 +565,21 @@ def stream_data_ip_udp_serial() -> None:
         cprint("Can't read data, serial connection not started. Try `connect_serial()`.",
                'red')
 
-    startedPacket = False
-    gotFirstNonStop = False
-
     while keep_running and ready:
         try:  # safety exception catch to keep things running
             b: Any = ser.read(1)
-            #line += b
+            line += b
             b = int.from_bytes(b, 'big')
-
-            if startedPacket:
+            if escape:
+                if b == 0xDC:
+                    data_bytes.append(0xC0)
+                elif b == 0xDD:
+                    data_bytes.append(0xDB)
+                escape = False
+            else:
                 if b == 0xC0:
-                    if gotFirstNonStop:
+                    if len(data_bytes) >= 1:  # packet baked:
                         full_packets.append(data_bytes)
-                        #print(data_bytes)
                         # Process it:
                         packet = parse_ip_udp_packet(data_bytes)
                         if packet is not None:
@@ -538,47 +589,25 @@ def stream_data_ip_udp_serial() -> None:
                             update_telemetry_streams(packet)
                         # Move on:
                         data_bytes = bytearray(b'')
-                        startedPacket = False
-
-                    else:
-                        # Got sequentials STOP bytes, continue to ignore them
-                        pass
-                else: 
-                    gotFirstNonStop = True
-
-                    if escape:
-                        if b == 0xDC:
-                            data_bytes.append(0xC0)
-                        elif b == 0xDD:
-                            data_bytes.append(0xDB)
-                        escape = False
-                    elif b == 0xDB:
-                        escape = True
-                    else:
-                        data_bytes.append(b)
-                        # data_bytes.append(bytes(b.hex(), 'utf-8'))
-
-
-            elif b == 0xC0:
-                startedPacket = True
-                gotFirstNonStop = False
-                data_bytes = bytearray(b'')
+                    pass
+                elif b == 0xDB:
+                    escape = True
+                else:
+                    data_bytes.append(b)
+                    # data_bytes.append(bytes(b.hex(), 'utf-8'))
 
             # print stuff
-            #print('%02x ' % b, end='', flush=True)
-            #nrx += 1
-            #import re
-            #if (nrx % 16) == 0:
-            #    print('')
-            #    print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
-            #    line = b''
-        #except KeyboardInterrupt:
-        #    save_pcap(full_packets)
-
+            # print('%02x ' % b, end='', flush=True)
+            # nrx += 1
+            # if (nrx % 16) == 0:
+            #     print('')
+            #     #print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
+            #     line = b''
+        except KeyboardInterrupt:
+            save_pcap(full_packets)
         except Exception as e:
             cprint(
                 f"An otherwise unresolved error occurred during packet streaming: {e}", 'red')
-
 
 """
 def stream_data_ip_udp_serial() -> None:

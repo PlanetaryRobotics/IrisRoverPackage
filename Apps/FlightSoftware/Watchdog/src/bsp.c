@@ -1,7 +1,7 @@
 #include "include/bsp.h"
 #include "include/i2c_sensors.h"
 
-// uncomment to program MC
+// TODO uncomment to program MC
 //#define PROGRAM_MOTOR_CONTROLLERS
 
 #define PORT1_ENABLED 1
@@ -358,7 +358,9 @@ void initializeGpios()
     PJOUT &= ~BIT2;
 
     // PJ.3 is connected to the CHRG_EN signal and is used as a GPIO output with an initially low value.
-    PJOUT &= ~BIT3;
+    // TODO: CHRG_EN should be High-Z or low always.
+    PJDIR &= ~BIT3;
+    PJREN &= ~BIT3;
 
     // TODO: Looks like this is still being set as an output though it should be an input.
     // PJ.4 is connected to the Radio_Kick signal and is used as a GPIO input.
@@ -368,10 +370,12 @@ void initializeGpios()
     PJOUT &= ~BIT5;
 
     // TODO: Looks like this is still being set as an output though it should be an input.
+    // ^- TODO: looks like this has been fixed?
     // PJ.6 is connected to the BATT_STAT signal and is used as a GPIO input.
     PJDIR &= ~BIT6;
 
     // PJ.7 is connected to the V_SYS_ALL_EN signal and is used as a GPIO output with an initially low value.
+    // TODO: VSAE has an external pull-down and VSA switch seems to draw more current when VSAE is driven low (maybe? - retest this), so consider making VSAE always HiZ or High.
     PJOUT &= ~BIT7;
 #endif // PORTJ_ENABLED
     /*
@@ -413,6 +417,186 @@ void initializeGpios()
     // Initial statuses
     heaterStatus = 0;
     hasDeployed = 0;
+}
+
+/**
+ * @brief     Releases BATT_CTRL_EN to enable the 3V3_LATCH regulator and power the battery control (battery latching and battery switch) circuitry.
+ */
+inline void blimp_bctrlEnOn(){
+    // Go HiZ (input with no pulls) to let external pull-up to VIN do the work.
+    P2DIR &= ~BIT3;
+    P2REN &= ~BIT3;
+}
+
+/**
+ * @brief      Forces BATT_CTRL_EN high to enable the 3V3_LATCH regulator and power the battery control (battery latching and battery switch) circuitry at the expense of a couple mA of current at 3V3 draining through the WD.
+ * NOTE: Normally you'd not want to do this because there's an external pull-up to V_LANDER/V_BATT that controls
+ * this but if we can't talk to latching circuitry, it might be because one of the resistors vibed loose, in which
+ * case this can be helpful (and possibly save our mission).
+ */
+inline void blimp_bctrlEnForceHigh(){
+    // Set as output and drive high
+    P2DIR |= BIT3;
+    P2OUT |= BIT3;
+}
+
+/**
+ * @brief     Drives BATT_CTRL_EN low to disable the 3V3_LATCH regulator and power off the battery control (battery latching and battery switch) circuitry.
+ */
+inline void blimp_bctrlEnOff(){
+    // Set as output and drive low
+    P2DIR |= BIT3;
+    P2OUT &= ~BIT3;
+}
+
+/**
+ * @brief     Sets the clock signal to the D-Latch high (note: by itself, this doesn't latch the batteries - see: blimp_latchBattUpdate)
+ */
+inline void blimp_latchBattOn(){
+    P3OUT |= BIT6;
+}
+
+/**
+ * @brief     Sets the clock signal to the D-Latch low (note: by itself, this doesn't un-latch the batteries - see: blimp_latchBattUpdate)
+ */
+inline void blimp_latchBattOff(){
+    P3OUT &= ~BIT6;
+}
+
+/**
+ * @brief     Pulses the clock signal to the D-Latch so the latch absorbs the state of BATT_EN.
+ */
+void blimp_latchBattUpdate(){
+    // Pulse LB low-high-low to have the latch absorb the state of BE
+    // delay should be at least 2us
+    P3OUT &= ~BIT6; // set low first in case LB stayed driven high due to error or became high due to cosmic radiation
+    __delay_cycles(400);
+    P3OUT |= BIT6;
+    __delay_cycles(400);
+    P3OUT &= ~BIT6;
+}
+
+/**
+ * @brief      Enables the charging IC. NOTE: You'll also need to turn on REGE (28V charging regulator) before you can actually charge. Do this first.
+ */
+inline void blimp_chargerEnOn(){
+    // Go HiZ (input with no pulls) to let external pull-up to VIN do the work.
+    PJDIR &= ~BIT3;
+    PJREN &= ~BIT3;
+}
+
+/**
+ * @brief      Forces the charging IC input high.
+ * NOTE: Normally you'd not want to do this because there's an external voltage divider that controls
+ * this but if we can't enable charging, it might be because one of the resistors vibed loose, in which
+ * case this can be helpful (and possibly save our mission).
+ */
+inline void blimp_chargerEnForceHigh(){
+    // Set as output and drive high
+    PJDIR |= BIT3;
+    PJOUT |= BIT3;
+}
+
+/**
+ * @brief      Disables the charging IC. NOTE: If you're no longer charging, you'll also want to turn off REGE (28V charging regulator) to not waste power.
+ */
+inline void blimp_chargerEnOff(){
+    // Set as output and drive low
+    PJDIR |= BIT3;
+    PJOUT &= ~BIT3;
+}
+
+/**
+ * @brief      Turns on the 28V lander power regulator used by the charging IC (REGE).
+ */
+inline void blimp_regEnOn()
+{
+    P1OUT |= BIT5;
+}
+
+/**
+ * @brief      Turns off the 28V lander power regulator used by the charging IC (REGE).
+ */
+inline void blimp_regEnOff()
+{
+    P1OUT &= ~BIT5;
+}
+
+/**
+ * @brief      Enables the battery enable override. NOTE: (by design) this won't latch the batteries on. You'll need to pulse LBATT for the latch absorbs the state of BATT_EN if you want the state to be persistent.
+ */
+void blimp_battEnOn(){
+    PJOUT |= BIT5;
+}
+
+/**
+ * @brief      Disables the battery enable override. NOTE: (by design) this won't turn off the batteries if they are also latched (LSTAT=1). To turn off the latch, you'll need to pulse LBATT so the latch absorbs the state of BATT_EN.
+ */
+void blimp_battEnOff(){
+    PJOUT &= ~BIT5;
+}
+
+/**
+ * @brief      Enables the V_SYS_ALL switch which connects V_SYS_ALL to V_SYS and powers everything beside the WD (which is already powered by V_SYS).
+ */
+void blimp_vSysAllEnOn(){
+    PJOUT |= BIT7;
+}
+
+/**
+ * @brief      Disables the V_SYS_ALL switch which connects V_SYS_ALL to V_SYS and powers everything beside the WD (which is already powered by V_SYS).
+ */
+void blimp_vSysAllEnOff(){
+    PJOUT &= ~BIT7;
+}
+
+/**
+ * @brief      Reads STAT1 from BQ24650 charging IC. If H and STAT2 is H then fault. If L and STAT2 is H, then charging.
+ */
+inline uint8_t blimp_cstat1(){
+    return P1IN & BIT2;
+}
+
+/**
+ * @brief      Reads STAT1 from BQ24650 charging IC. If H and STAT2 is H then fault. If L and STAT2 is H, then charging.
+ */
+uint8_t blimp_cstat2(){
+    static uint8_t cstat2, lstat;
+    //! TODO: NOTE: This is a pretty dumb way of doing this (passing both in here) but need this result quickly and this will
+    // work for now. Change it but don't make it a once per cycle thing since we typ. will need that state asap if calling this function.
+    I2C_Sensors__readIOExpanderBlocking(&cstat2, &lstat);
+    return cstat2;
+}
+
+inline uint8_t blimp_isCharging(){
+    return !blimp_cstat1() && blimp_cstat2();
+}
+
+/**
+ * @brief      Reads the present state of the battery latch output (LSTAT). ON is HIGH.
+ */
+uint8_t blimp_lstat(){
+    static uint8_t cstat2, lstat;
+    //! TODO: NOTE: This is a pretty dumb way of doing this (passing both in here) but need this result quickly and this will
+    // work for now. Change it but don't make it a once per cycle thing since we typ. will need that state asap if calling this function.
+    I2C_Sensors__readIOExpanderBlocking(&cstat2, &lstat);
+    return lstat;
+}
+
+/**
+ * @brief      Reads the present state of the battery switch (BSTAT). ON is HIGH.
+ */
+inline uint8_t blimp_bstat(){
+    return PJIN & BIT6;
+}
+
+
+/**
+ * @brief      Reads the present state of the battery switch (BSTAT). ON is HIGH.
+ */
+inline uint8_t blimp_batteryState(){
+    // Alias for blimp_bstat();
+    return blimp_bstat();
 }
 
 /**
@@ -553,6 +737,7 @@ inline void fpgaCameraSelectLo()
 inline void releaseMotor1Reset()
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
+    // RAD TODO - remove these ifndef I think
     //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
     //P2OUT |= BIT3;
     ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_A;
@@ -716,19 +901,25 @@ inline void powerOffMotors()
 }
 
 /**
- * @brief      Enable the batteries (HI = ON)
+ * @brief      Enable the batteries
  */
 inline void enableBatteries()
 {
-    PJOUT |= BIT5;
+    // Turn on battery enable:
+    blimp_battEnOff();
+    // Make the latch absorb the BE state:
+    blimp_latchBattUpdate();
 }
 
 /**
- * @brief      Disable the batteries (LO = OFF)
+ * @brief      Disable the batteries
  */
 inline void disableBatteries()
 {
-    PJOUT &= ~BIT5;
+    // Turn off battery enable:
+    blimp_battEnOn();
+    // Make the latch absorb the BE state:
+    blimp_latchBattUpdate();
 }
 
 /**
@@ -753,7 +944,15 @@ inline void unsetDeploy()
  */
 inline void startChargingBatteries()
 {
-    PJDIR |= BIT3;
+    // Turn on batteries before charging if not on yet:
+    // (not safe to start charging on an open circuit)
+    if(!blimp_batteryState()){
+        blimp_battEnOn();
+    }
+    // Enable the charging regulator:
+    blimp_regEnOn();
+    // Start charging:
+    blimp_chargerEnOn();
 }
 
 /**
@@ -761,7 +960,10 @@ inline void startChargingBatteries()
  */
 inline void stopChargingBatteries()
 {
-    PJDIR &= ~BIT3;
+    // Stop charging:
+    blimp_chargerEnOff();
+    // Disable the charging regulator:
+    blimp_regEnOff();
 }
 
 inline uint8_t getIOExpanderPort0OutputValue()

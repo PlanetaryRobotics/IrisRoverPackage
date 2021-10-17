@@ -44,35 +44,30 @@ void enterMode(enum rover_state newstate) {
 
         /* power everything off and set resets */
         powerOffFpga();
-//        powerOnFpga();
         powerOffMotors();
-//        powerOnMotors();
         powerOffRadio();
-//        powerOnRadio();
         powerOffHercules();
-//        powerOnHercules();
 
         setRadioReset();
-//        releaseRadioReset();
         setFPGAReset();
-//        releaseFPGAReset();
         setMotorsReset();
-//        releaseMotorsReset();
         setHerculesReset();
-//        releaseHerculesReset();
 
         unsetDeploy();
-//        setDeploy();
 
         /* turn off voltage rails */
-        disable3V3PowerRail();
-//        enable3V3PowerRail();
+
+        disable3V3PowerRail(); // Comment out for programming Motor Controllers
+//        enable3V3PowerRail(); // TESTING - for Programming Motor Controllers!
+//        powerOnMotors(); // TESTING [added] - for Programming Motor Controllers!
+
         //TODO - enable/disable24VPowerRail() sets V_SYS_ALL_EN
         //       24V power actually set by powerOnMotors()
         //       V_SYS_ALL used to power everything besides Heater & WD + peripherals
         disable24VPowerRail();
-//        enable24VPowerRail();
         disableBatteries();
+        // Turn off all system power (VSA) switch:
+        blimp_vSysAllEnOff();
 
         /* monitor only lander voltages */
         adc_setup_lander();
@@ -80,8 +75,6 @@ void enterMode(enum rover_state newstate) {
         disableHeater();
 //        startChargingBatteries();
         stopChargingBatteries();
-
-//        powerOnRadio();
 
         //!< @todo Check return statuses
         I2C_Sensors__initializeIOExpanderBlocking();
@@ -146,11 +139,13 @@ void enterMode(enum rover_state newstate) {
         unsetDeploy();
 //        setDeploy(); // TESTING
 
+        // Turn on all system power (VSA) switch:
+        blimp_vSysAllEnOn();
+
         /* enable hercules uart */
         uart0_init();
 
         /* power everything on and release resets */
-//        setRadioReset(); // TESTING
         releaseRadioReset();
         setFPGAReset(); // TESTING
 //        releaseFPGAReset();
@@ -163,7 +158,6 @@ void enterMode(enum rover_state newstate) {
 //        powerOnFpga();
         powerOffMotors(); // TESTING
 //        powerOnMotors();
-//        powerOffRadio(); // TESTING
         powerOnRadio();
 
         stopChargingBatteries();
@@ -175,13 +169,11 @@ void enterMode(enum rover_state newstate) {
         __delay_cycles(12345678); //give fuel gauge [50 ms] & wifi [~750 ms] time to start up
         I2C_Sensors__initializeFuelGaugeBlocking();
 
-//        powerOffHercules(); // TESTING
         powerOnHercules();
 
         setMotorsReset(); // TESTING
 //        releaseMotorsReset();
 
-//        setHerculesReset(); // TESTING
         releaseHerculesReset();
 
         I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());

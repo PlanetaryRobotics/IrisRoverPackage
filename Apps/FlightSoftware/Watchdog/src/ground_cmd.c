@@ -409,6 +409,97 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len)
             /* not in the right state to transition to service mode */
             reply_ground_cmd(buf[0], GNDRESP_ECMDSEQ);
             return;
+
+        // NEW COMMANDS FOR BLiMP FROM FINAL ICD:
+
+        /* Set charging IC enable state. (CHARGE_EN) */
+        case 0xF7:
+            if(buf[2] == 0xFF){
+                blimp_chargerEnOn();
+            } else if(buf[2] == 0x00){
+                blimp_chargerEnOff();
+            } else if(buf[2] == 0x99){
+                // Special state to force a high output on the pin as a fault resolution:
+                blimp_chargerEnForceHigh();
+            } else{
+                /* bad boolean (for in-flight bitflip safety should be all 1s or all 0s)*/
+                reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
+                return;
+            }
+            break;
+
+        /* Set charging power 28V regulator enable state. (REGE) */
+        case 0xF8:
+            if(buf[2] == 0xFF){
+                blimp_regEnOn();
+            } else if(buf[2] == 0x00){
+                blimp_regEnOff();
+            } else{
+                /* bad boolean (for in-flight bitflip safety should be all 1s or all 0s)*/
+                reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
+                return;
+            }
+            break;
+
+        /* Set battery connection state. (BE) */
+        case 0xF9:
+            if(buf[2] == 0xFF){
+                blimp_battEnOn();
+            } else if(buf[2] == 0x00){
+                blimp_battEnOff();
+            } else{
+                /* bad boolean (for in-flight bitflip safety should be all 1s or all 0s)*/
+                reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
+                return;
+            }
+            break;
+
+        /* Set battery management control state. (BCTRLE) */
+        case 0xFA:
+            if(buf[2] == 0xFF){
+                blimp_bctrlEnOn();
+            } else if(buf[2] == 0x00){
+                blimp_bctrlEnOff();
+            } else if(buf[2] == 0x99){
+                // Special state to force a high output on the pin as a fault resolution:
+                blimp_bctrlEnForceHigh();
+            } else{
+                /* bad boolean (for in-flight bitflip safety should be all 1s or all 0s)*/
+                reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
+                return;
+            }
+            break;
+
+        /* Set battery latch state. (BE) */
+        case 0xFB:
+            if(buf[2] == 0xFF){
+                blimp_latchBattOn();
+            } else if(buf[2] == 0x00){
+                blimp_latchBattOff();
+            } else if(buf[2] == 0xAA){
+                // Special state to pulse latch low-high-low:
+                blimp_latchBattUpdate();
+            } else{
+                /* bad boolean (for in-flight bitflip safety should be all 1s or all 0s)*/
+                reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
+                return;
+            }
+            break;
+
+// TODO: Implement these here and in BSP. Not used nominally. Only used for in-flight diagnostics.
+//        /* Pulse battery latch "SET" override low. (LS) */
+//        case 0xFC:
+//            break;
+//
+//        /* Pulse battery latch "RESET" override low. (LR) */
+//        case 0xFD:
+//            break;
+//
+//        /* Set battery management system boot state. Unused since no BMS implemented. (BMSB) */
+//        case 0xFE:
+//            break;
+
+
         default:
             /* invalid command */
             reply_ground_cmd(buf[0], GNDRESP_ECMDID);
@@ -576,6 +667,7 @@ void send_earth_heartbeat(I2C_Sensors__Readings *i2cReadings)
         // battery current
         send_buf[2] = (uint8_t) (i2cReadings->batt_curr_telem << 1);
         // send voltage nominal status (1=good, 0=too low)
+        // TODO: Change these cutoffs
         // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
         send_buf[2] |= (i2cReadings->raw_battery_voltage[0] > 0x3B); // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
 

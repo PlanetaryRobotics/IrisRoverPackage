@@ -16,6 +16,9 @@ static const BOOL FALSE = 0;
 
 static I2C_Sensors__InternalState internals = { 0 };
 
+// TODO uncomment to program MC
+//#define PROGRAM_MOTOR_CONTROLLERS
+
 //###########################################################
 // Private function declarations
 //###########################################################
@@ -285,7 +288,11 @@ I2C_Sensors__Status I2C_Sensors__initializeIOExpanderBlocking()
     static const uint8_t CONFIG_PORT_0_REG_ADDR = 8;
     // ! TODO: Look into pins 4 and 5 hercules resets; Set as inputs to not drive during programming; Normally outputs
 //    static const uint8_t CONFIG_PORT_0_VALUE = 0b00001100; // resets as inputs - worked for initial programming
+//#ifndef PROGRAM_MOTOR_CONTROLLERS
     static const uint8_t CONFIG_PORT_0_VALUE = 0b00000000; // all as outputs - has also worked (programming cable was broken)
+//#else
+//    static const uint8_t CONFIG_PORT_0_VALUE = 0b11110000; // all as outputs - has also worked (programming cable was broken)
+//#endif
 //    static const uint8_t CONFIG_PORT_0_VALUE = 0b11111111; // all as inputs?
     static const uint8_t CONFIG_PORT_1_REG_ADDR = 9;
     // ! TODO: Config port 1 value was 9 bits (0b011010011) but looking at the above comments and port 0 value we

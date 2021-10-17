@@ -15,6 +15,7 @@
 #include "include/flags.h"
 #include "include/i2c_sensors.h"
 #include "include/watchdog.h"
+#include "include/blimp.h"
 
 uint8_t watchdog_opts = 0;
 // variables for heater control

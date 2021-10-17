@@ -49,29 +49,6 @@ inline void startChargingBatteries();
 inline void stopChargingBatteries();
 
 
-inline void blimp_bctrlEnOn();
-inline void blimp_bctrlEnForceHigh();
-inline void blimp_bctrlEnOff();
-inline void blimp_latchBattOn();
-inline void blimp_latchBattOff();
-void blimp_latchBattUpdate();
-inline void blimp_chargerEnOn();
-inline void blimp_chargerEnForceHigh();
-inline void blimp_chargerEnOff();
-inline void blimp_regEnOn();
-inline void blimp_regEnOff();
-void blimp_battEnOn();
-void blimp_battEnOff();
-void blimp_vSysAllEnOn();
-void blimp_vSysAllEnOff();
-inline uint8_t blimp_cstat1();
-uint8_t blimp_cstat2();
-inline uint8_t blimp_isCharging();
-uint8_t blimp_lstat();
-inline uint8_t blimp_bstat();
-inline uint8_t blimp_batteryState();
-
-
 inline uint8_t getIOExpanderPort0OutputValue();
 inline uint8_t getIOExpanderPort1OutputValue();
 #endif // __BSP_H__

@@ -11,6 +11,7 @@
 #include "include/watchdog.h"
 #include "include/i2c_sensors.h"
 #include "include/ground_cmd.h"
+#include "include/blimp.h"
 
 
 /* define all of the buffers used in other files */
@@ -42,6 +43,9 @@ void enterMode(enum rover_state newstate) {
          */
     case RS_KEEPALIVE:
 
+        // Disable all system power (VSA) switch:
+        blimp_vSysAllEnOff();
+
         /* power everything off and set resets */
         powerOffFpga();
         powerOffMotors();
@@ -64,10 +68,8 @@ void enterMode(enum rover_state newstate) {
         //TODO - enable/disable24VPowerRail() sets V_SYS_ALL_EN
         //       24V power actually set by powerOnMotors()
         //       V_SYS_ALL used to power everything besides Heater & WD + peripherals
-        disable24VPowerRail();
+//        disable24VPowerRail();
         disableBatteries();
-        // Turn off all system power (VSA) switch:
-        blimp_vSysAllEnOff();
 
         /* monitor only lander voltages */
         adc_setup_lander();
@@ -119,6 +121,37 @@ void enterMode(enum rover_state newstate) {
 
 //        P3OUT |= BIT4; // DEPLOY_1 ON
         P3OUT &= ~BIT4; // DEPLOY_1 OFF
+
+#endif
+
+//#define BLiMP
+#ifdef BLiMP
+        // *** vSysAllEn
+//        blimp_vSysAllEnOn();
+        blimp_vSysAllEnOff();
+
+        // *** SetChargerEn
+//        blimp_chargerEnOn();
+//        blimp_chargerEnForceHigh();
+        blimp_chargerEnOff();
+
+        // *** SetChargerPowerConnection
+//        blimp_regEnOn();
+        blimp_regEnOff();
+
+        // *** SetBatteryConnection
+//        blimp_battEnOn();
+        blimp_battEnOff();
+
+        // *** SetBatteryControlEnable
+//        blimp_bctrlEnOn();
+//        blimp_bctrlEnForceHigh();
+        blimp_bctrlEnOff();
+
+        // *** SetBatteryLatch
+//        blimp_latchBattOn();
+        blimp_latchBattOff();
+//        blimp_latchBattUpdate();
 
 #endif
 

@@ -287,9 +287,9 @@ I2C_Sensors__Status I2C_Sensors__initializeIOExpanderBlocking()
     //   above, pins 0, 3, 5, and 6 are outputs, and the rest are either inputs or not connected.
     static const uint8_t CONFIG_PORT_0_REG_ADDR = 8;
     // ! TODO: Look into pins 4 and 5 hercules resets; Set as inputs to not drive during programming; Normally outputs
-//    static const uint8_t CONFIG_PORT_0_VALUE = 0b00001100; // resets as inputs - worked for initial programming
+    static const uint8_t CONFIG_PORT_0_VALUE = 0b00001100; // resets as inputs - worked for initial programming
 //#ifndef PROGRAM_MOTOR_CONTROLLERS
-    static const uint8_t CONFIG_PORT_0_VALUE = 0b00000000; // all as outputs - has also worked (programming cable was broken)
+//    static const uint8_t CONFIG_PORT_0_VALUE = 0b00000000; // all as outputs - has also worked (programming cable was broken)
 //#else
 //    static const uint8_t CONFIG_PORT_0_VALUE = 0b11110000; // all as outputs - has also worked (programming cable was broken)
 //#endif

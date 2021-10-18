@@ -1,6 +1,6 @@
 #include "include/bsp.h"
 #include "include/i2c_sensors.h"
-#include "blimp.h"
+#include "include/blimp.h"
 
 // TODO uncomment to program MC
 //#define PROGRAM_MOTOR_CONTROLLERS
@@ -127,7 +127,7 @@ void initializeGpios()
     // draw from lander) by a command and *not* save this state persistently. Any time WD reboots, BATT_CTRL_EN should
     // go Hi-Z or HIGH."
     //
-    // Even though this pin is essentially an ouptut, to get high-Z state we configure it as input with pullup/pulldown
+    // Even though this pin is essentially an output, to get high-Z state we configure it as input with pullup/pulldown
     // resistors disabled.
     P2DIR &= ~BIT3;
     P2REN &= ~BIT3;
@@ -727,7 +727,7 @@ inline void powerOffMotors()
 inline void enableBatteries()
 {
     // Turn on battery enable:
-    blimp_battEnOff();
+    blimp_battEnOn();
     // Make the latch absorb the BE state:
     blimp_latchBattUpdate();
 }
@@ -738,7 +738,7 @@ inline void enableBatteries()
 inline void disableBatteries()
 {
     // Turn off battery enable:
-    blimp_battEnOn();
+    blimp_battEnOff();
     // Make the latch absorb the BE state:
     blimp_latchBattUpdate();
 }

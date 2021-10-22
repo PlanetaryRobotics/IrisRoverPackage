@@ -16,7 +16,7 @@
 #include "CubeRover/NetworkManager/NetworkManagerComponentAc.hpp"
 #include "CubeRover/NetworkManager/CubeRoverNetworkManager.hpp"
 
-#define wired_wifi_reset_cnt_max 1
+#define wired_wifi_reset_cnt_max 0
 #define telem_send_limit_cnt_max 10
 
 namespace CubeRover {

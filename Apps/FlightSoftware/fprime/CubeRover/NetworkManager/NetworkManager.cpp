@@ -52,11 +52,9 @@ namespace CubeRover {
     m_current_state = m_crnm.GetState();
     bool success = false;
     while (!success) {
+        Wf121::ErrorCode errorCode;
         while (no_transition_count < MAX_FSM_NO_TRANSITION_COUNT) {
-            Wf121::ErrorCode errorCode = m_crnm.UpdateNetworkManager();
-
-            // Update Telemetry with error code
-            tlmWrite_WIFIErrorStatus(static_cast<U16>(errorCode));
+            errorCode = m_crnm.UpdateNetworkManager();
 
             if (errorCode == Wf121::TRY_AGAIN) {
                 no_transition_count++;
@@ -73,6 +71,9 @@ namespace CubeRover {
             else
             {
                 log_ACTIVITY_HI_StateChange(m_current_state, new_state);
+                // Update Telemetry with error code
+                tlmWrite_WIFIErrorStatus(static_cast<U16>(errorCode));
+                // Update Telemetry with new state
                 tlmWrite_WIFIStateStatus(static_cast<WIFIState>(static_cast<U8>(new_state)));
             }
             
@@ -83,6 +84,8 @@ namespace CubeRover {
                 break;
             }
         }
+        // Update Telemetry with error code
+        tlmWrite_WIFIErrorStatus(static_cast<U16>(errorCode));
         // Check if we're in persistent state WATCHDOG (m_persistent_state == 0) and we have tried too many times
         if (m_persistent_state == 0 && no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
             log_FATAL_WF121InitializationFailed();

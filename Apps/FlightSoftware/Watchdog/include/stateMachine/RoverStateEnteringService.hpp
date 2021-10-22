@@ -16,6 +16,8 @@ namespace iris
             RoverState handlePowerIssue(RoverContext& theContext) override;
 
         protected:
+            explicit RoverStateEnteringService(RoverState overridingState);
+
             RoverState nextStateAfterSetupCompletes() override;
 
             RoverState performResetCommand(RoverContext& theContext,

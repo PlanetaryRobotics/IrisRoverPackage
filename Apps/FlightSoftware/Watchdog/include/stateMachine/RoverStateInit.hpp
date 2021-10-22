@@ -14,8 +14,6 @@ namespace iris
             virtual RoverState handleLanderData(RoverContext& theContext) override;
             virtual RoverState handleHerculesData(RoverContext& theContext) override;
             virtual RoverState handleTimerTick(RoverContext& theContext) override;
-            virtual RoverState handleI2cStarted(RoverContext& theContext) override;
-            virtual RoverState handleI2cDone(RoverContext& theContext) override;
             virtual RoverState handleHighTemp(RoverContext& theContext) override;
             virtual RoverState handlePowerIssue(RoverContext& theContext) override;
             virtual RoverState spinOnce(RoverContext& theContext) override;

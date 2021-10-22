@@ -100,7 +100,7 @@ I2C__Status I2C__write(uint8_t dev_addr, uint8_t reg_addr, uint8_t data);
  */
 I2C__Status I2C__read(uint8_t dev_addr, uint8_t reg_addr);
 
-I2C__Status I2C__stop(void);
+void I2C__stop(void);
 
 /**
  * @brief Gets the status of the currently active transaction, if there is one. Will not block.

@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include "comms/watchdog_cmd_msgs.h"
 #include "common.h"
+#include "flags.h"
 #include "drivers/adc.h"
 
 #ifdef __cplusplus
@@ -17,8 +18,6 @@ extern "C"
 #endif
 
 // MPS: I'm not documenting these because this code will soon be restructured into a state-based paradigm.
-
-extern uint8_t heatingControlEnabled;
 
 typedef enum GroundCmd__Status
 {
@@ -34,30 +33,25 @@ typedef enum GroundCmd__Status
     GND_CMD__STATUS__ERROR__INTERNAL = -255 /* An unexpected internal error occurred. */
 } GroundCmd__Status;
 
-GroundCmd__Status GroundCmd__performResetCommand(WdCmdMsgs__ResetSpecificId resetValue,
-                                                 WdCmdMsgs__Response* response);
-
-GroundCmd__Status GroundCmd__performWatchdogCommand(const WdCmdMsgs__Message* msg,
-                                                    WdCmdMsgs__Response* response,
-                                                    WdCmdMsgs__Response* deployNotificationResponse,
-                                                    BOOL* sendDeployNotificationResponse);
-
-struct FlightEarthHeartbeat
+typedef struct FlightEarthHeartbeat
 {
     uint8_t heartbeatOutBuffer[4];
-};
+} FlightEarthHeartbeat;
 
-struct FullEarthHeartbeat
+typedef struct FullEarthHeartbeat
 {
     uint8_t heartbeatOutBuffer[24];
-};
+} FullEarthHeartbeat;
 
 GroundCmd__Status GroundCmd__generateFlightEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
                                                           AdcValues* adcValues,
+                                                          HeaterParams* hParams,
                                                           FlightEarthHeartbeat* hb);
 
 GroundCmd__Status GroundCmd__generateFullEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
                                                         AdcValues* adcValues,
+                                                        HeaterParams* hParams,
+                                                        uint8_t stateAsUint,
                                                         FullEarthHeartbeat* hb);
 
 #ifdef __cplusplus

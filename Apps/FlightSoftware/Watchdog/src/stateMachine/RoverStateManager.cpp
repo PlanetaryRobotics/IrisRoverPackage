@@ -3,61 +3,75 @@
 #include "event/event_queue.h"
 #include "common.h"
 
-    class RoverStateManager
-    {
-        public:
-            explicit RoverStateManager();
-
-            void init();
-
-            void spinForever();
-
-        private:
-            // The states
-            RoverStateEnteringKeepAlive m_stateEnteringKeepAlive;
-            RoverStateEnteringMission m_stateEnteringMission;
-            RoverStateEnteringService m_stateEnteringService;
-            RoverStateInit m_stateInit;
-            RoverStateKeepAlive m_stateKeepAlive;
-            RoverStateMission m_stateMission;
-            RoverStateService m_stateService;
-
-            RoverStateBase* m_roverStateEnumToObjectMap[static_cast<size_t>(RoverState::NUM_STATES)];
-            RoverStateBase* m_currentState;
-
-            RoverContext m_context;
-    };
+#include <cassert>
+#include <msp430.h>
 
 namespace iris
 {
+    // Declare the buffers for the UART rx and tx ring buffers. These are static
+    // so that they are not on the stack.
+    static volatile uint8_t uart0TxBuffer[1024] = { 0 };
+    static volatile uint8_t uart0RxBuffer[1024] = { 0 };
+    static volatile uint8_t uart1TxBuffer[1024] = { 0 };
+    static volatile uint8_t uart1RxBuffer[1024] = { 0 };
+
     RoverStateManager::RoverStateManager()
         : m_stateEnteringKeepAlive(),
           m_stateEnteringMission(),
           m_stateEnteringService(),
-          m_stateInit(RoverState::ENTERING_KEEP_ALIVE),
+          m_stateInit(RoverState::INIT),
           m_stateKeepAlive(),
           m_stateMission(),
           m_stateService(),
           m_currentState(m_stateInit),
           m_context(),
-          m_eventQueueBuffer({})
+          m_eventQueueBuffer()
     {
-
     }
 
     void RoverStateManager::init()
     {
-        EventQueue__Status eqStatus = EventQueue__initialize(m_eventQueueBuffer, sizeof(m_eventQueueBuffer));
+        EventQueue__Status eqStatus = EventQueue__initialize(m_eventQueueBuffer.data(), m_eventQueueBuffer.size());
 
         // There should be no reason for initialization of the event queue to fail.
         assert(EQ__STATUS__SUCCESS == eqStatus);
 
+        // Construct context, then transition to init state. Init state should handle initializing modules as
+        // appropriate, eventually based on persistent memory of the module state.
+        m_context.m_uartConfig.uart0Buffers.txBuffer = uart0TxBuffer;
+        m_context.m_uartConfig.uart0Buffers.txBufferSize = sizeof(uart0TxBuffer);
+        m_context.m_uartConfig.uart0Buffers.rxBuffer = uart0RxBuffer;
+        m_context.m_uartConfig.uart0Buffers.rxBufferSize = sizeof(uart0RxBuffer);
+        m_context.m_uartConfig.uart1Buffers.txBuffer = uart1TxBuffer;
+        m_context.m_uartConfig.uart1Buffers.txBufferSize = sizeof(uart1TxBuffer);
+        m_context.m_uartConfig.uart1Buffers.rxBuffer = uart1RxBuffer;
+        m_context.m_uartConfig.uart1Buffers.rxBufferSize = sizeof(uart1RxBuffer);
 
+        m_context.m_isDeployed = false;
+        m_context.m_i2cActive = false;
+
+        transitionUntilSettled(m_currentState.getState());
     }
 
     void RoverStateManager::spinForever()
     {
         while (true) {
+            // Sets watchdog timer to be based on ACLK, and in our clock configuration the source of ACLK is VLOCLK
+            // (with no divisions, so f_ACLK == f_VLOCLK) and f_VLOCLK == 9.4 KHz. Also clears the watchdog timer count
+            // and configures the watchdog timer period (i.e. how long the WDT timer will tick before resetting the
+            // MSP430 if the timer has not been cleared).
+            //
+            // When WDTIS is 0b100 the watchdog timer frequency is f_WDT / 2^15, so the watchdog timer period is
+            //    p_WDT = 1 / (9400 / 2^15) = 3.486 seconds
+            //
+            // When WDTIS is 0b101 the watchdog timer frequency is f_WDT / 2^13, so the watchdog timer period is
+            //    p_WDT = 1 / (9400 / 2^13) = 0.871 seconds
+            //
+            // Previously a WDTIS of 0b100 was being used so the watchdog period would have been about 3.5 seconds,
+            // though the comment above it had mistakenly described it as setting the watchdog period to 1 second. For
+            // now, we'll use a WDTIS of 0b101 (a period of 0.871 seconds) and see if it causes any issues.
+            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2 + WDTIS0;
+
             Event__Type event = EVENT__TYPE__UNUSED;
             EventQueue__Status eqStatus = EventQueue__get(&event);
             bool gotEvent = false;
@@ -67,12 +81,16 @@ namespace iris
                 // requested by the state(s))
                 handleEvent(event);
                 gotEvent = true;
-            } else if (EQ__STATUS__ERROR_EMPTY == eqStatus && m_currentState.canEnterLowPowerMode()) {
-                //!< @todo Enter LPM here.
+            } else if (EQ__STATUS__ERROR_EMPTY == eqStatus && m_currentState.canEnterLowPowerMode(m_context)) {
+                //!< @todo Enter LPM here. Need to figure out how to handle LPM and WDT together.
                 continue;
             } else {
                 // Any status other than success or empty is an unexpected failure.
                 DEBUG_LOG_CHECK_STATUS(EQ__STATUS__SUCCESS, eqStatus, "Failed to get event from queue due to error");
+            }
+
+            if (m_context.m_i2cActive) {
+                I2C_Sensors__spinOnce();
             }
 
             RoverState currentState = m_currentState.getState();
@@ -142,14 +160,6 @@ namespace iris
 
             case EVENT__TYPE__TIMER_TICK:
                 desiredNextState = m_currentState.handleTimerTick(m_context);
-                break;
-
-            case EVENT__TYPE__I2C_STARTED:
-                desiredNextState = m_currentState.handleI2cStarted(m_context);
-                break;
-
-            case EVENT__TYPE__I2C_DONE:
-                desiredNextState = m_currentState.handleI2cDone(m_context);
                 break;
 
             case EVENT__TYPE__HIGH_TEMP:

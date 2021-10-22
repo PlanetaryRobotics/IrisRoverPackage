@@ -1,6 +1,7 @@
 #ifndef __WATCHDOG_ROVER_STATE_ENTERING_KEEP_ALIVE_HPP__
 #define __WATCHDOG_ROVER_STATE_ENTERING_KEEP_ALIVE_HPP__
 
+#include "comms/watchdog_cmd_msgs.h"
 #include "stateMachine/RoverStateBase.hpp"
 
 namespace iris
@@ -10,13 +11,11 @@ namespace iris
         public:
             explicit RoverStateEnteringKeepAlive();
 
-            bool canEnterLowPowerMode() override;
+            bool canEnterLowPowerMode(RoverContext& theContext) override;
 
             // The functions to handle events
             RoverState handleHerculesData(RoverContext& theContext) override;
             RoverState handleTimerTick(RoverContext& theContext) override;
-            RoverState handleI2cStarted(RoverContext& theContext) override;
-            RoverState handleI2cDone(RoverContext& theContext) override;
             RoverState handleHighTemp(RoverContext& theContext) override;
             RoverState handlePowerIssue(RoverContext& theContext) override;
             RoverState spinOnce(RoverContext& theContext) override;
@@ -24,6 +23,8 @@ namespace iris
             RoverState transitionTo(RoverContext& theContext) override;
 
         protected:
+            explicit RoverStateEnteringKeepAlive(RoverState overridingState);
+
             virtual RoverState nextStateAfterSetupCompletes();
 
             RoverState performResetCommand(RoverContext& theContext,
@@ -43,11 +44,14 @@ namespace iris
         private:
             enum class SubState
             {
+                WAITING_FOR_IO_EXPANDER_WRITE,
                 WAITING_FOR_ADC_DONE,
                 FINISH_UP_SETUP
             };
 
             SubState m_currentSubstate;
+
+            RoverState transitionToWaitingForIoExpanderWrite(RoverContext& theContext);
 
             RoverState transitionToWaitingForAdcDone(RoverContext& theContext);
 

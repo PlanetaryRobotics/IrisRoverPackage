@@ -20,7 +20,7 @@ extern "C"
 // The event queue is a global singleton RingBuffer
 
 typedef enum EventQueue__Status {
-    EQ__STATUS__SUCCESS = RB__STATUS__SUCCESS, /* Operation suceeded. */
+    EQ__STATUS__SUCCESS = RB__STATUS__SUCCESS, /* Operation succeeded. */
     EQ__STATUS__ERROR_NULL = RB__STATUS__ERROR_NULL, /* A required argument or a member of an argument was NULL */
     EQ__STATUS__ERROR_FULL = RB__STATUS__ERROR_FULL, /* Did not write byte because buffer is full */
     EQ__STATUS__ERROR_EMPTY = RB__STATUS__ERROR_EMPTY, /* Could not read byte because buffer is empty */

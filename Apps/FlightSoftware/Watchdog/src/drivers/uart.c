@@ -12,6 +12,9 @@
 
 #include <msp430.h>
 #include "drivers/uart.h"
+#include "drivers/bsp.h"
+#include "event/event.h"
+#include "event/event_queue.h"
 #include "utils/ring_buffer.h"
 #include "common.h"
 #include "flags.h"
@@ -38,7 +41,7 @@ struct UART__State
     RingBuffer* txRingBuff;
     RingBuffer* rxRingBuff;
 
-    uint8_t gotRxLoopFlag;
+    Event__Type gotRxEventType;
 };
 
 //###########################################################
@@ -66,7 +69,7 @@ static UART__State uart0State = {
     .registers = &uart0Registers,
     .txRingBuff = NULL,
     .rxRingBuff = NULL,
-    .gotRxLoopFlag = FLAG_UART0_RX_PACKET
+    .gotRxEventType = EVENT__TYPE__HERCULES_DATA
 };
 
 static UART__State uart1State = {
@@ -74,65 +77,118 @@ static UART__State uart1State = {
     .registers = &uart1Registers,
     .txRingBuff = NULL,
     .rxRingBuff = NULL,
-    .gotRxLoopFlag = FLAG_UART1_RX_PACKET
+    .gotRxEventType = EVENT__TYPE__LANDER_DATA
 };
 
 //###########################################################
 // Private function declarations
 //###########################################################
 
-static void UART__clockInit(void);
 static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers);
 static void UART__uart0Init(void);
 static void UART__uart1Init(void);
-inline static void UART__interruptHandler(UART__State* uartState);
 
 //###########################################################
 // Public function definitions
 //###########################################################
 
-UART__Status UART__init(UART__Config* config,
-                        UART__State** uart0StateOut,
-                        UART__State** uart1StateOut)
+UART__Status UART__init0(UART__Config* config,
+                         UART__State** uart0StateOut)
 {
-    if (NULL == config
-        || NULL == uart0StateOut
-        || NULL == uart1StateOut) {
+    if (NULL == config || NULL == uart0StateOut) {
         return UART__STATUS__ERROR_NULL;
     }
 
-    if (uart0State.initialized && uart0State.initialized) {
+    if (uart0State.initialized) {
         return UART__STATUS__ERROR_ALREADY_INITIALIZED;
     }
 
-    // First, initialize the clocks. This could be before or after the state structures,
-    // but should be before initializing the uarts themselves
-    UART__clockInit();
-
-
-    // Second, initialize the state structures for both uarts
+    // Initialize the state structure
     UART__Status uartStatus = UART__initState(&uart0State, &(config->uart0Buffers));
 
     if (UART__STATUS__SUCCESS != uartStatus) {
         return uartStatus;
     }
 
-    uartStatus = UART__initState(&uart1State, &(config->uart1Buffers));
+    // Initialize the uart itself
+    UART__uart0Init();
+
+    uart0State.initialized = TRUE;
+
+    *uart0StateOut = &uart0State;
+    return UART__STATUS__SUCCESS;
+ }
+
+UART__Status UART__init1(UART__Config* config,
+                         UART__State** uart1StateOut)
+{
+    if (NULL == config || NULL == uart1StateOut) {
+        return UART__STATUS__ERROR_NULL;
+    }
+
+    if (uart1State.initialized) {
+        return UART__STATUS__ERROR_ALREADY_INITIALIZED;
+    }
+
+    // Initialize the state structure
+    UART__Status uartStatus = UART__initState(&uart1State, &(config->uart1Buffers));
 
     if (UART__STATUS__SUCCESS != uartStatus) {
         return uartStatus;
     }
 
-    // Third, initialize the uarts themselves
-    UART__uart0Init();
+    // Initialize the uart itself
     UART__uart1Init();
 
-    *uart0StateOut = &uart0State;
-    *uart1StateOut = &uart1State;
+    uart1State.initialized = TRUE;
 
+    *uart1StateOut = &uart1State;
+    return UART__STATUS__SUCCESS;
+}
+
+UART__Status UART__uninit0(UART__State** uart0StateOut)
+{
+    // Put eUSCI_A0 in reset. We'll leave it in reset until it is re-initialized.
+    UCA0CTLW0 = UCSWRST;
+
+    // Also disable the uart0 tx/rx pins
+    disableUart0Pins();
+
+    if (NULL == uart0StateOut) {
+        return UART__STATUS__ERROR_NULL;
+    }
+
+    if (!(uart0State.initialized)) {
+        return UART__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    uart0State.initialized = FALSE;
+
+    *uart0StateOut = NULL;
     return UART__STATUS__SUCCESS;
  }
 
+UART__Status UART__uninit1(UART__State** uart1StateOut)
+{
+    // Put eUSCI_A1 in reset. We'll leave it in reset until it is re-initialized.
+    UCA1CTLW0 = UCSWRST;
+
+    // Also disable the uart1 tx/rx pins
+    disableUart1Pins();
+
+    if (NULL == uart1StateOut) {
+        return UART__STATUS__ERROR_NULL;
+    }
+
+    if (!(uart1State.initialized)) {
+        return UART__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    uart1State.initialized = FALSE;
+
+    *uart1StateOut = NULL;
+    return UART__STATUS__SUCCESS;
+ }
 
 UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t dataLen)
 {
@@ -210,7 +266,7 @@ UART__Status UART__receive(UART__State* uartState,
         if (RB__STATUS__SUCCESS == rbStatus) {
             // we got another byte
             (*numReceived)++;
-        } else if (RB__STATUS__ERROR__EMPTY == rbStatus) {
+        } else if (RB__STATUS__ERROR_EMPTY == rbStatus) {
             // Have gotten all bytes that have been received so far
             break;
         } else {
@@ -225,55 +281,6 @@ UART__Status UART__receive(UART__State* uartState,
 // Private function definitions
 //###########################################################
 
-/**
- * Initialize clocks for UART. necessary and should only be called once, at boot.
- */
-static void UART__clockInit()
-{
-    // Unlock all CS registers
-    CSCTL0_H = CSKEY_H;
-
-    // Sets DCO Range select to high speed
-    CSCTL1 = DCORSEL;
-
-    // Sets DCO frequency to 8 MHz.
-    // It is 8 MHz because DCORSEL was set; if DCORSEL was not set, this (a DCOFSEL of 3) would set DCO to 4 MHz.
-    // Note that DCOFSEL_3 means setting the DCOFSEL bits to the decimal value 3, i.e. DCOFSEL is 011b
-    CSCTL1 |= DCOFSEL_3;
-    
-    // Sets the source of ACLK to VLOCLK.
-    // Per Section 8.12.3.4 (pg 42) of the datasheet, this has a typical frequency of 9.4 kHz (so nominally 10kHz)
-    //    (source: https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf)
-    CSCTL2 = SELA__VLOCLK;
-
-    // Sets the source of SMCLK to DCOCLK.
-    CSCTL2 |= SELS__DCOCLK;
-
-    // Sets the source of MCLK to DCOCLK.
-    CSCTL2 |= SELM__DCOCLK;
-    
-    // Sets an input divider of 1 (i.e. no division) for ACLK
-    // Note that unlike DCOFSEL_3, DIVA_1 does NOT mean setting the DIVA bits to the decimal value of 1,
-    //    but instead means that the input divider is 1 (which means setting the DIVA bits to the decimal
-    //    value of 0).
-    CSCTL3 = DIVA__1;
-
-    // Sets an input divider of 1 (i.e. no division) for SMCLK
-    // Note that unlike DCOFSEL_3, DIVS_1 does NOT mean setting the DIVS bits to the decimal value of 1,
-    //    but instead means that the input divider is 1 (which means setting the DIVS bits to the decimal
-    //    value of 0).
-    CSCTL3 |= DIVS__1;
-
-    // Sets an input divider of 1 (i.e. no division) for MCLK
-    // Note that unlike DCOFSEL_3, DIVM_1 does NOT mean setting the DIVM bits to the decimal value of 1,
-    //    but instead means that the input divider is 1 (which means setting the DIVM bits to the decimal
-    //    value of 0).
-    CSCTL3 |= DIVM__1;
-
-    // Lock all CS registers
-    CSCTL0_H = 0;
-}
-
 static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
 {
     if (NULL == state
@@ -283,9 +290,9 @@ static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
         return UART__STATUS__ERROR_NULL;
     }
 
-    // Shouldn't be possible to only have one uart initialized but not the other,
-    // but make sure we don't don't re-iniitalize one anyway
-    if (!(state->initialized)) {
+    // Make sure we don't don't re-initialize a buffer, and make sure we clear the buffer it is has previously been
+    // initialized
+    if (NULL == state->txRingBuff) {
         RingBuffer__Status rbStatus = RingBuffer__init(&(state->txRingBuff),
                                                        buffers->txBuffer,
                                                        buffers->txBufferSize);
@@ -293,16 +300,29 @@ static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
         if (RB__STATUS__SUCCESS != rbStatus) {
             return UART__STATUS__ERROR_RB_INIT_FAILURE;
         }
-
-        rbStatus = RingBuffer__init(&(state->rxRingBuff),
-                                    buffers->rxBuffer,
-                                    buffers->rxBufferSize);
+    } else {
+        RingBuffer__Status rbStatus = RingBuffer__clear(state->txRingBuff);
 
         if (RB__STATUS__SUCCESS != rbStatus) {
             return UART__STATUS__ERROR_RB_INIT_FAILURE;
         }
+    }
 
-        state->initialized = TRUE;
+
+    if (NULL == state->rxRingBuff) {
+        RingBuffer__Status rbStatus = RingBuffer__init(&(state->rxRingBuff),
+                                                       buffers->rxBuffer,
+                                                       buffers->rxBufferSize);
+
+        if (RB__STATUS__SUCCESS != rbStatus) {
+            return UART__STATUS__ERROR_RB_INIT_FAILURE;
+        }
+    } else {
+        RingBuffer__Status rbStatus = RingBuffer__clear(state->rxRingBuff);
+
+        if (RB__STATUS__SUCCESS != rbStatus) {
+            return UART__STATUS__ERROR_RB_INIT_FAILURE;
+        }
     }
 
     return UART__STATUS__SUCCESS;
@@ -314,18 +334,7 @@ static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
 static void UART__uart0Init()
 {
     // Put eUSCI_A0 in reset
-    UCA0CTLW0 = UCSWRST;                    
-
-    /* Setup for eUSCI_A0 and eUSCI_A1 */
-    /* On the MSP430FR5994, pin P2.0 is used for TX and pin P2.1 is used for RX
-     * (ref: pg 92 of datasheet) */
-    /* P2.0 TX: x = 0; P2SEL1.x = 1, P2SEL0.x = 0 */
-    /* P2.1 RX: x = 1; P2SEL1.x = 1, P2SEL0.x = 0 */
-
-    /* set P2SEL0.1, and P2SEL0.0 to 0 */
-    P2SEL0 &= ~(BIT0 | BIT1);
-    /* set P2SEL1.1, and P2SEL1.0 to 1 */
-    P2SEL1 |= (BIT0 | BIT1);
+    UCA0CTLW0 = UCSWRST;
 
     // Use SMCLK as BRCLK
     UCA0CTLW0 |= UCSSEL__SMCLK;
@@ -362,6 +371,8 @@ static void UART__uart0Init()
     //  Therefore, we use 0x49 instead of 0x04. 
     UCA0MCTLW |= 0x4900U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
 
+    enableUart0Pins();
+
     // Release eUSCI_A0 reset
     UCA0CTLW0 &= ~UCSWRST;
     // Enable USCI_A0 RX interrupt              
@@ -374,17 +385,6 @@ static void UART__uart0Init()
 static void UART__uart1Init() {
     // Put eUSCI_A1 in reset
     UCA1CTLW0 = UCSWRST;                    
-
-    /* Setup for eUSCI_A1 */
-    /* On the MSP430FR5994, pin P2.5 is used for TX and pin P2.6 is used for RX
-     * (ref: pg 95 of datasheet) */
-    /* P2.5 TX: x = 5; P2SEL1.x = 1, P2SEL0.x = 0 */
-    /* P2.6 RX: x = 6; P2SEL1.x = 1, P2SEL0.x = 0 */
-
-    /* set P2SEL0.5, P2SEL0.6 to 0 */
-    P2SEL0 &= ~(BIT5 | BIT6);
-    /* set P2SEL1.5, P2SEL1.6 to 1 */
-    P2SEL1 |= (BIT5 | BIT6);
 
     // Use SMCLK as BRCLK
     UCA1CTLW0 |= UCSSEL__SMCLK;
@@ -421,66 +421,62 @@ static void UART__uart1Init() {
     //  Therefore, we use 0x49 instead of 0x04. 
     UCA1MCTLW |= 0x4900U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
 
+    enableUart1Pins();
+
     // Release eUSCI_A1 reset
     UCA1CTLW0 &= ~UCSWRST;
     // Enable USCI_A1 RX interrupt            
     UCA1IE |= UCRXIE;                       
 }
 
-static void UART__interruptHandler(UART__State* uartState)
-{
-    if (NULL == uartState) {
-        return;
-    }
 
-    uint8_t data = 0U;
-    RingBuffer__Status rbStatus = RB__STATUS__SUCCESS;
-
-    /* two possibilities; rx or tx */
-    switch(__even_in_range(*(uartState->registers->UCAxIV), USCI_UART_UCTXCPTIFG)) {
-        case USCI_UART_UCTXIFG: /* transmitted byte successfully */
-            rbStatus = RingBuffer__get(uartState->txRingBuff, &data);
-
-            if (RB__STATUS__SUCCESS == rbStatus) {
-                // We got another byte to send, so put it in the tx buffer
-                *(uartState->registers->UCAxTXBUF) = data;
-            } else if (RB__STATUS__ERROR__EMPTY == rbStatus) {
-                // There are no more bytes to send, so disable TX interrupt for this uart
-                *(uartState->registers->UCAxIE) &= ~UCTXIE;
-            } else {
-                // An error occurred.
-                //!< @todo handling? logging?
-            }
-            break;
-
-        case USCI_UART_UCRXIFG: /* received new byte */
-            /* get the received character */
-            data = *(uartState->registers->UCAxRXBUF);
-
-            // Note: calling this means that if the buffer is full and we get new data, 
-            // we'll drop the new data instead of overwriting the oldest data in the 
-            // buffer. If we'd rather overwrite the old data, this will need to be updated. 
-            rbStatus = RingBuffer__put(uartState->rxRingBuff, data);
-
-            if (RB__STATUS__ERROR__FULL == rbStatus) {
-                // The ring buffer is full, so data will be dropped.
-                //!< @todo handling? logging?
-            } else if (RB__STATUS__SUCCESS != rbStatus) {
-                // An error occurred.
-                //!< @todo handling? logging?
-            }
-
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            //!< @todo REPLACE THESE WITH EVENT DISPATCH
-            loop_flags |= uartState->gotRxLoopFlag;
-            __bic_SR_register(DEFAULT_LPM); //Exits LPM
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-            break;
-
-        default: /* some other possibilities */
-            break;
-    }
+#define UART__interruptHandler(uartState)                                                        \
+{                                                                                                \
+    uint8_t data = 0U;                                                                           \
+    RingBuffer__Status rbStatus = RB__STATUS__SUCCESS;                                           \
+                                                                                                 \
+    /* two possibilities; rx or tx */                                                            \
+    switch(__even_in_range(*(uartState.registers->UCAxIV), USCI_UART_UCTXCPTIFG)) {              \
+        case USCI_UART_UCTXIFG: /* transmitted byte successfully */                              \
+            rbStatus = RingBuffer__get(uartState.txRingBuff, &data);                             \
+                                                                                                 \
+            if (RB__STATUS__SUCCESS == rbStatus) {                                               \
+                /* We got another byte to send, so put it in the tx buffer */                    \
+                *(uartState.registers->UCAxTXBUF) = data;                                        \
+            } else if (RB__STATUS__ERROR_EMPTY == rbStatus) {                                    \
+                /* There are no more bytes to send, so disable TX interrupt for this uart */     \
+                *(uartState.registers->UCAxIE) &= ~UCTXIE;                                       \
+            } else {                                                                             \
+                /* An error occurred. */                                                         \
+                /** @todo handling? logging? */                                                  \
+            }                                                                                    \
+            break;                                                                               \
+                                                                                                 \
+        case USCI_UART_UCRXIFG: /* received new byte */                                          \
+            /* get the received character */                                                     \
+            data = *(uartState.registers->UCAxRXBUF);                                            \
+                                                                                                 \
+            /* Note: calling this means that if the buffer is full and we get new data, */       \
+            /* we'll drop the new data instead of overwriting the oldest data in the */          \
+            /* buffer. If we'd rather overwrite the old data, this will need to be updated. */   \
+            rbStatus = RingBuffer__put(uartState.rxRingBuff, data);                              \
+                                                                                                 \
+            if (RB__STATUS__ERROR_FULL == rbStatus) {                                            \
+                /* The ring buffer is full, so data will be dropped. */                          \
+                /** @todo handling? logging? */                                                  \
+            } else if (RB__STATUS__SUCCESS != rbStatus) {                                        \
+                /* An error occurred. */                                                         \
+                /** @todo handling? logging? */                                                  \
+            }                                                                                    \
+                                                                                                 \
+            EventQueue__put(uartState.gotRxEventType);                                           \
+            EXIT_DEFAULT_LPM;                                                                    \
+                                                                                                 \
+            break;                                                                               \
+                                                                                                 \
+        default: /* some other possibilities */                                                  \
+            break;                                                                               \
+    }                                                                                            \
 }
 
 //###########################################################
@@ -498,7 +494,7 @@ static void UART__interruptHandler(UART__State* uartState)
 #endif
     
 #pragma FORCEINLINE_RECURSIVE
-    UART__interruptHandler(&uart0State);
+    UART__interruptHandler(uart0State);
 }
 
 
@@ -513,5 +509,5 @@ static void UART__interruptHandler(UART__State* uartState)
 #endif
     
 #pragma FORCEINLINE_RECURSIVE
-    UART__interruptHandler(&uart1State);
+    UART__interruptHandler(uart1State);
 }

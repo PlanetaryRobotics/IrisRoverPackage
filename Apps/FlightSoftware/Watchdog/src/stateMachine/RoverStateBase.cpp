@@ -2,8 +2,11 @@
 
 #include "drivers/adc.h"
 #include "drivers/bsp.h"
+#include "event/event.h"
+#include "event/event_queue.h"
 
 #include "ground_cmd.h"
+#include "watchdog.h"
 
 #include <cassert>
 
@@ -30,9 +33,129 @@ namespace iris
         return m_state;
     }
 
-    bool RoverStateBase::canEnterLowPowerMode()
+    bool RoverStateBase::canEnterLowPowerMode(RoverContext& /*theContext*/)
     {
         return true;
+    }
+
+    void RoverStateBase::initiateNextI2cAction(RoverContext& theContext)
+    {
+        // A static value so that we remember the index of the last action we performed. By doing this, we can rotate
+        // through all possibles actions to make sure that a single action repeated with a high frequency doesn't
+        // prevent other actions from being triggered.
+        static size_t i = static_cast<size_t>(I2C_SENSORS__ACTIONS__INACTIVE);
+
+        // See what, if anything, is the next action to be performed
+        for (size_t j = 0; j < static_cast<size_t>(I2C_SENSORS__ACTIONS__COUNT); ++j) {
+            size_t actionIndex = i + j;
+
+            // Wrap around if necessary (in theory only an if should be necessary, but a while loop seems safer)
+            while (actionIndex >= static_cast<size_t>(I2C_SENSORS__ACTIONS__COUNT)) {
+                actionIndex -= static_cast<size_t>(I2C_SENSORS__ACTIONS__COUNT);
+            }
+
+            uint16_t actionMask = 1 << actionIndex;
+
+            // If the corresponding bit in m_queuedI2cActions is set, then we want to perform that action
+            if (theContext.m_queuedI2cActions | actionMask != 0) {
+                // First, initiate the action
+                I2C_Sensors__Action actionEnum = static_cast<I2C_Sensors__Action>(actionIndex);
+
+                I2C_Sensors__Status i2cStatus = I2C_SENSORS__STATUS__SUCCESS_DONE;
+
+                switch (actionEnum) {
+                    case I2C_SENSORS__ACTIONS__INACTIVE:
+                        // This is always false in this case, but rechecking this condition makes the resulting output
+                        // more descriptive.
+                        assert(actionEnum != I2C_SENSORS__ACTIONS__INACTIVE);
+                        break;
+
+                    case I2C_SENSORS__ACTIONS__GAUGE_READING:
+                        i2cStatus = I2C_Sensors__initiateGaugeReadings();
+                        assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
+                        break;
+
+                    case I2C_SENSORS__ACTIONS__GAUGE_INIT:
+                        i2cStatus = I2C_Sensors__initiateFuelGaugeInitialization();
+                        assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
+                        break;
+
+                    case I2C_SENSORS__ACTIONS__WRITE_GAUGE_LOW_POWER:
+                        i2cStatus = I2C_Sensors__initiateWriteLowPower();
+                        assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
+                        break;
+
+                    case I2C_SENSORS__ACTIONS__READ_GAUGE_CONTROL_REGISTER:
+                        i2cStatus = I2C_Sensors__initiateReadControl();
+                        assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
+                        break;
+
+                    case I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER:
+                        i2cStatus = I2C_Sensors__initiateIoExpanderInitialization();
+                        assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
+                        break;
+
+                    case I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER:
+                        i2cStatus = I2C_Sensors__initiateWriteIoExpander(theContext.m_queuedIOWritePort0Value,
+                                                                         theContext.m_queuedIOWritePort1Value);
+                        assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
+                        break;
+
+                    case I2C_SENSORS__ACTIONS__READ_IO_EXPANDER:
+                        i2cStatus = I2C_Sensors__initiateReadIoExpander();
+                        assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
+                        break;
+
+                    default:
+                        // This is always false in this case, but rechecking this condition makes the resulting output
+                        // more descriptive.
+                        assert(actionEnum >= I2C_SENSORS__ACTIONS__INACTIVE
+                               && actionEnum < I2C_SENSORS__ACTIONS__COUNT);
+                }
+
+                // Then, clear the queued action bit so we don't repeat this action until it is requeued elsewhere
+                theContext.m_queuedI2cActions &= ~actionMask;
+
+                // Also indicate that I2C is active in our context
+                theContext.m_i2cActive = true;
+
+                // Lastly, update our static index-tracking variable
+                i = actionIndex;
+
+                break;
+            }
+        }
+    }
+
+    void RoverStateBase::heaterControl(RoverContext& theContext) {
+        // voltage, where LSB = 0.0008056640625V
+        unsigned short thermReading = theContext.m_adcValues.data[ADC_TEMP_IDX];
+        bool tempLow = false;
+        HeaterParams& hParams = theContext.m_heaterParams;
+
+        if (thermReading > hParams.m_heaterOnVal) {
+            //   start heating when temperature drops below -5 C
+            tempLow = true;
+        } else if (thermReading < hParams.m_heaterOffVal) {
+            //   stop heating when temperature reaches 0 C
+            EventQueue__put(EVENT__TYPE__HIGH_TEMP);
+        }
+
+        uint32_t pwmCycle = 0;
+
+        // P controller output
+        // setpoint is slightly above desired temp because otherwise it will get stuck slightly below it
+        if (tempLow) {
+            pwmCycle = hParams.m_kpHeater * (thermReading - hParams.m_heaterSetpoint);
+        }
+
+
+        // cannot have duty cycle greater than clock
+        if (pwmCycle > hParams.m_pwmLimit) {
+            pwmCycle = hParams.m_pwmLimit;
+        }
+
+        TB0CCR2 = pwmCycle;
     }
 
     RoverState RoverStateBase::handleLanderData(RoverContext& theContext)
@@ -40,7 +163,7 @@ namespace iris
         return pumpMsgsFromLander(theContext);
     }
 
-    RoverState RoverStateBase::handleHerculesData(RoverContext& /*theContext*/)
+    RoverState RoverStateBase::handleHerculesData(RoverContext& theContext)
     {
         return pumpMsgsFromHercules(theContext);
     }
@@ -58,18 +181,18 @@ namespace iris
 
         switch (header->lowerOpCode) {
             case HERCULES_COMMS__MSG_OPCODE__STROKE:
-                handleStrokeFromHercules(args->m_context, header);
+                args->m_state.handleStrokeFromHercules(args->m_context, header);
                 break;
 
             case HERCULES_COMMS__MSG_OPCODE__DOWNLINK:
-                handleDownlinkFromHercules(args->m_context,
-                                           header,
-                                           payloadBuffer,
-                                           payloadSize);
+                args->m_state.handleDownlinkFromHercules(args->m_context,
+                                                         header,
+                                                         payloadBuffer,
+                                                         payloadSize);
                 break;
 
             default: // We assume this is a reset command
-                handleResetFromHercules(args->m_context, header);
+                args->m_state.handleResetFromHercules(args->m_context, header);
                 break;
         }
     }
@@ -119,22 +242,23 @@ namespace iris
             }
 
             bool sendDeployNotificationResponse = false;
-            m_pumpMsgsFromLanderReturnState = args->m_state.performWatchdogCommand(args->m_context,
-                                                                                   wdMessage,
-                                                                                   response,
-                                                                                   deployNotificationResponse,
-                                                                                   sendDeployNotificationResponse);
+            args->m_state.m_pumpMsgsFromLanderReturnState =
+                    args->m_state.performWatchdogCommand(args->m_context,
+                                                         wdMessage,
+                                                         response,
+                                                         deployNotificationResponse,
+                                                         sendDeployNotificationResponse);
 
             if (sendDeployNotificationResponse) {
-                sendLanderResponse(args->m_context, deployNotificationResponse);
+                args->m_state.sendLanderResponse(args->m_context, deployNotificationResponse);
             }
 
-            sendLanderResponse(args->m_context, response);
+            args->m_state.sendLanderResponse(args->m_context, response);
         } else {
             // Anything with "Type Magic" field value that isn't for Watchdog is treated as uplink for Hercules
-            m_pumpMsgsFromLanderReturnState = args->m_state.handleUplinkFromLander(args->m_context,
-                                                                                   rxDataBuffer,
-                                                                                   rxDataLen);
+            args->m_state.m_pumpMsgsFromLanderReturnState = args->m_state.handleUplinkFromLander(args->m_context,
+                                                                                                 rxDataBuffer,
+                                                                                                 rxDataLen);
         }
     }
 
@@ -151,7 +275,7 @@ namespace iris
         response.magicNumber = WD_CMD_MSGS__RESPONSE_MAGIC_NUMBER;
         response.commandId = msg.commandId;
 
-        switch (msg->commandId) {
+        switch (msg.commandId) {
             case WD_CMD_MSGS__CMD_ID__RESET_SPECIFIC:
                 return doGndCmdResetSpecific(theContext,
                                              msg,
@@ -312,6 +436,8 @@ namespace iris
 
         // For a stroke we just reply to the Hercules with our telemetry
         watchdog_build_hercules_telem(&(theContext.m_i2cReadings),
+                                      &(theContext.m_adcValues),
+                                      (theContext.m_isDeployed ? TRUE : FALSE),
                                       telemetrySerializationBuffer,
                                       sizeof(telemetrySerializationBuffer));
 
@@ -443,7 +569,7 @@ namespace iris
                                                      WdCmdMsgs__Response& deployNotificationResponse,
                                                      bool& sendDeployNotificationResponse)
     {
-        return performResetCommand(theContext, msg.body.resetSpecific.resetId, response);
+        return performResetCommand(theContext, msg.body.resetSpecific.resetId, &response);
     }
 
     RoverState RoverStateBase::doGndCmdPrepForDeploy(RoverContext& theContext,
@@ -485,8 +611,7 @@ namespace iris
                                                    WdCmdMsgs__Response& deployNotificationResponse,
                                                    bool& sendDeployNotificationResponse)
     {
-        //!< @todo Make heater control not through globals
-        Kp_heater = msg.body.setHeaterKp.kp;
+        theContext.m_heaterParams.m_kpHeater = msg.body.setHeaterKp.kp;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -497,9 +622,7 @@ namespace iris
                                                             WdCmdMsgs__Response& deployNotificationResponse,
                                                             bool& sendDeployNotificationResponse)
     {
-
-        //!< @todo Make heater control not through globals
-        heater_on_val = msg.body.setAutoHeaterOnValue.heaterOnValue;
+        theContext.m_heaterParams.m_heaterOnVal = msg.body.setAutoHeaterOnValue.heaterOnValue;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -510,8 +633,7 @@ namespace iris
                                                              WdCmdMsgs__Response& deployNotificationResponse,
                                                              bool& sendDeployNotificationResponse)
     {
-        //!< @todo Make heater control not through globals
-        heater_off_val = msg.body.setAutoHeaterOffValue.heaterOffValue;
+        theContext.m_heaterParams.m_heaterOffVal = msg.body.setAutoHeaterOffValue.heaterOffValue;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -522,8 +644,7 @@ namespace iris
                                                              WdCmdMsgs__Response& deployNotificationResponse,
                                                              bool& sendDeployNotificationResponse)
     {
-        //!< @todo Make heater control not through globals
-        PWM_limit = msg.body.setHeaterDutyCycleMax.dutyCycleMax;
+        theContext.m_heaterParams.m_pwmLimit = msg.body.setHeaterDutyCycleMax.dutyCycleMax;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -534,7 +655,6 @@ namespace iris
                                                                 WdCmdMsgs__Response& deployNotificationResponse,
                                                                 bool& sendDeployNotificationResponse)
     {
-        //!< @todo Make heater control not through globals
         TB0CCR0 = msg.body.setHeaterDutyCyclePeriod.dutyCyclePeriod;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
@@ -546,8 +666,7 @@ namespace iris
                                                               WdCmdMsgs__Response& deployNotificationResponse,
                                                               bool& sendDeployNotificationResponse)
     {
-        //!< @todo Make heater control not through globals
-        heater_setpoint = msg.body.setThermisterVSetpoint.thermisterVSetpoint;
+        theContext.m_heaterParams.m_heaterSetpoint = msg.body.setThermisterVSetpoint.thermisterVSetpoint;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -783,11 +902,11 @@ namespace iris
                 break;
 
             case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_ENABLE:
-                heatingControlEnabled = 1;
+                theContext.m_heaterParams.m_heatingControlEnabled = true;
                 break;
 
             case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_DISABLE:
-                heatingControlEnabled = 0;
+                theContext.m_heaterParams.m_heatingControlEnabled = false;
                 TB0CCR2 = 0;
                 break;
 
@@ -830,9 +949,6 @@ namespace iris
                     // of communicating something didn't work
                 }
         }
-
-        /* all ok */
-        return getState();
     }
 
 } // End namespace iris

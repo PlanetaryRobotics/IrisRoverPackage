@@ -312,6 +312,9 @@ static BOOL I2C__rxStart(void)
         }
     }
 
+    // If we got a NACK then change state
+    I2C__checkAck();
+
     return continueSpinning;
 }
 
@@ -326,6 +329,9 @@ static BOOL I2C__rxDataAndStop(void)
         theStatus.state = I2C__TRANSACTION__DONE_SUCCESS;
         // We don't want to continue spinning after this since there is nothing left to do
     }
+
+    // If we got a NACK then change state
+    I2C__checkAck();
 
     return FALSE;
 }

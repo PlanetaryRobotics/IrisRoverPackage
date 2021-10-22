@@ -19,7 +19,14 @@ extern "C"
  *
  * Equivalent to 0b1100100.
  */
-#define I2C_SLAVE_ADDR 100
+#define FUEL_GAUGE_I2C_SLAVE_ADDR 100
+
+/**
+ * @brief The i2c address of PCA9575 I/O expander.
+ *
+ * Equivalent to 0b0100000.
+ */
+#define IO_EXPANDER_I2C_SLAVE_ADDR 32
 
 /**
  * @brief Bit flags that, if set, indicate that data was not updated because the slave device did not acknowledge a
@@ -58,11 +65,15 @@ typedef struct I2C_Sensors__Readings {
  * @brief The possible actions that this module could be performing.
  */
 typedef enum I2C_Sensors__Action {
-    I2C_SENSORS__ACTIONS__INACTIVE, //!< No action is currently in progress.
+    I2C_SENSORS__ACTIONS__INACTIVE = 0, //!< No action is currently in progress.
     I2C_SENSORS__ACTIONS__GAUGE_READING, //!< Performing a reading of all fuel gauge sensor values.
     I2C_SENSORS__ACTIONS__GAUGE_INIT, //!< Initializing the fuel gauge.
     I2C_SENSORS__ACTIONS__WRITE_GAUGE_LOW_POWER, //!< Putting the fuel gauge into low power mode.
-    I2C_SENSORS__ACTIONS__READ_GAUGE_CONTROL_REGISTER //!< Reading the fuel gauge control register.
+    I2C_SENSORS__ACTIONS__READ_GAUGE_CONTROL_REGISTER, //!< Reading the fuel gauge control register.
+    I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER, //!< Initializing the IO expander.
+    I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER, //!< Writing values to the IO expander outputs.
+    I2C_SENSORS__ACTIONS__READ_IO_EXPANDER, //!< Reading the IO expander inputs.
+    I2C_SENSORS__ACTIONS__COUNT //!< Not an actual action, but the value of this will be the count of actions
 } I2C_Sensors__Action;
 
 /**
@@ -84,6 +95,26 @@ typedef enum I2C_Sensors__Status {
     I2C_SENSORS__STATUS__ERROR__NO_ACTION_IN_PROGRESS = -6, //!< No action is in progress.
     I2C_SENSORS__STATUS__ERROR__INTERNAL = -255 //!< An unexpected error occurred.
 } I2C_Sensors__Status;
+
+typedef enum I2C_Sensors__IOExpanderPort0Bit {
+    I2C_SENSORS__IOE_P0_BIT__MC_RST_A = 1,
+    I2C_SENSORS__IOE_P0_BIT__MC_RST_B = 2,
+    I2C_SENSORS__IOE_P0_BIT__MC_RST_C = 4,
+    I2C_SENSORS__IOE_P0_BIT__MC_RST_D = 8,
+    I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST = 16,
+    I2C_SENSORS__IOE_P0_BIT__N_HERCULES_PORRST = 32,
+    I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST = 64,
+    I2C_SENSORS__IOE_P0_BIT__LATCH_RST = 128
+} I2C_Sensors__IOExpanderPort0Bit;
+
+typedef enum I2C_Sensors__IOExpanderPort1Bit {
+    I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST = 1,
+    I2C_SENSORS__IOE_P1_BIT__CHARGE_STAT2 = 2,
+    I2C_SENSORS__IOE_P1_BIT__LATCH_STAT = 4,
+    I2C_SENSORS__IOE_P1_BIT__LATCH_SET = 8,
+    I2C_SENSORS__IOE_P1_BIT__RADIO_ON = 32,
+    I2C_SENSORS__IOE_P1_BIT__BMS_BOOT = 64
+} I2C_Sensors__IOExpanderPort1Bit;
 
 /**
  * @brief Initializes the I2C_Sensors module, which simply invokes `I2C__init()` to initialize the underlying I2C
@@ -121,6 +152,12 @@ I2C_Sensors__Status I2C_Sensors__initiateFuelGaugeInitialization(void);
 I2C_Sensors__Status I2C_Sensors__initiateReadControl(void);
 
 I2C_Sensors__Status I2C_Sensors__initiateWriteLowPower(void);
+
+I2C_Sensors__Status I2C_Sensors__initiateIoExpanderInitialization(void);
+
+I2C_Sensors__Status I2C_Sensors__initiateWriteIoExpander(uint8_t port0Value, uint8_t port1Value);
+
+I2C_Sensors__Status I2C_Sensors__initiateReadIoExpander(void);
 
 /**
  * @brief Checks the status of reading the gauges. Does not block.
@@ -164,7 +201,7 @@ I2C_Sensors__Status I2C_Sensors__initiateWriteLowPower(void);
 I2C_Sensors__Status
 I2C_Sensors__getActionStatus(I2C_Sensors__Action* action,
                              I2C_Sensors__Readings* readings,
-                             uint8_t* controlRegisterValue);
+                             uint8_t* readValue);
 
 /**
  * @brief Spins the gauge reading state machine. If no gauge reading process is active, this will return immediately.

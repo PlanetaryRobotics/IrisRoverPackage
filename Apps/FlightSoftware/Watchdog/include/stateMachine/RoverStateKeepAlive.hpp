@@ -1,7 +1,7 @@
 #ifndef __WATCHDOG_ROVER_STATE_KEEP_ALIVE_HPP__
 #define __WATCHDOG_ROVER_STATE_KEEP_ALIVE_HPP__
 
-#include "stateMachine/RoverStateBase.hpp"
+#include "stateMachine/RoverStateEnteringKeepAlive.hpp"
 
 namespace iris
 {
@@ -10,13 +10,11 @@ namespace iris
         public:
             explicit RoverStateKeepAlive();
 
-            bool canEnterLowPowerMode() override;
+            bool canEnterLowPowerMode(RoverContext& theContext) override;
 
             // The functions to handle events
             RoverState handleHerculesData(RoverContext& theContext) override;
             RoverState handleTimerTick(RoverContext& theContext) override;
-            RoverState handleI2cStarted(RoverContext& theContext) override;
-            RoverState handleI2cDone(RoverContext& theContext) override;
             RoverState handleHighTemp(RoverContext& theContext) override;
             RoverState handlePowerIssue(RoverContext& theContext) override;
             RoverState spinOnce(RoverContext& theContext) override;

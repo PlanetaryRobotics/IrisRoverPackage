@@ -41,7 +41,7 @@ enum SLIP_Constants {
 
 #define DEBUG_LOG_CHECK_STATUS(expected, actual, msg) \
     if ((expected) != (actual)) { \
-        DPRINTF_ERR("[%s:%d] %s: expected = %d, actual = %d\n", __FILE__, __LINE__, (msg), STR(variable)); \
+        DPRINTF_ERR("[%s:%d] %s: expected = %d, actual = %d\n", __FILE__, __LINE__, (msg), (expected), (actual)); \
     }
 
 #else
@@ -58,13 +58,13 @@ enum SLIP_Constants {
 #define DEBUG_LOG_NULL_CHECK_RETURN(variable, msg, retval) \
     if (NULL == (variable)) { \
         DPRINTF_ERR("[%s:%d] %s: %s is NULL\n", __FILE__, __LINE__, (msg), STR(variable)); \
-        return (retval); \
+        return retval; \
     }
 
 #define DEBUG_LOG_CHECK_STATUS_RETURN(expected, actual, msg, retval) \
     if ((expected) != (actual)) { \
         DPRINTF_ERR("[%s:%d] %s: expected = %d, actual = %d\n", __FILE__, __LINE__, (msg), STR(variable)); \
-        return (retval); \
+        return retval; \
     }
 
 #ifdef __cplusplus

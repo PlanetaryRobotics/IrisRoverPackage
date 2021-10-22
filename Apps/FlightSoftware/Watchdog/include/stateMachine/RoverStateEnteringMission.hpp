@@ -20,7 +20,7 @@ namespace iris
 
             explicit RoverStateEnteringMission();
 
-            bool canEnterLowPowerMode() override;
+            bool canEnterLowPowerMode(RoverContext& theContext) override;
 
             // The functions to handle events
             RoverState handleTimerTick(RoverContext& theContext) override;
@@ -38,23 +38,32 @@ namespace iris
         private:
             enum class SubState
             {
+                WAITING_FOR_I2C_DONE,
+                WAITING_FOR_IO_EXPANDER_WRITE_1,
                 WAITING_FOR_ADC_DONE,
+                WAITING_FOR_IO_EXPANDER_WRITE_2,
                 WAITING_FOR_FUEL_GAUGE_OR_TIMEOUT,
                 WAITING_FOR_WIFI_READY_OR_TIMEOUT,
-                FINISH_UP_SETUP
+                WAITING_FOR_FINAL_IO_EXPANDER_WRITE
             };
 
             SubState m_currentSubstate;
             uint16_t m_startFuelGaugeInitTimeCentiseconds;
             uint16_t m_startWifiReadyTimeCentiseconds;
 
+            RoverState transitionToWaitingForI2cDone(RoverContext& theContext);
+
+            RoverState transitionToWaitingForIoExpanderWrite1(RoverContext& theContext);
+
             RoverState transitionToWaitingForAdcDone(RoverContext& theContext);
+
+            RoverState transitionToWaitingForIoExpanderWrite2(RoverContext& theContext);
 
             RoverState transitionToWaitingForFuelGaugeOrTimeout(RoverContext& theContext);
 
             RoverState transitionToWatitingForWifiReadyOrTimeout(RoverContext& theContext);
 
-            RoverState transitionToFinishUpSetup(RoverContext& theContext);
+            RoverState transitionToWaitingForFinalIoExpanderWrite(RoverContext& theContext);
     };
 
 }

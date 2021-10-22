@@ -4,21 +4,22 @@
 #include "drivers/bsp.h"
 
 #include "ground_cmd.h"
+#include "watchdog.h"
 
 #include <cassert>
 
 namespace iris
 {
     RoverStateService::RoverStateService()
-            : RoverStateBase(RoverState::SERVICE)
+            : RoverStateEnteringService(RoverState::SERVICE)
     {
     }
 
-    bool RoverStateService::canEnterLowPowerMode()
+    bool RoverStateService::canEnterLowPowerMode(RoverContext& theContext)
     {
         // Receiving data from lander or hercules and timer ticks will both wake us up out of LPM, so we can enter LPM
-        // while in this state.
-        return true;
+        // while in this state as long as there are no active I2C transactions occurring
+        return !(theContext.m_i2cActive);
     }
 
     RoverState RoverStateService::handleTimerTick(RoverContext& theContext)
@@ -30,29 +31,45 @@ namespace iris
 
         /* send heartbeat with collected data */
         static FullEarthHeartbeat hb = { 0 };
-        GroundCmd__Status gcStatus = GroundCmd__generateFullEarthHeartbeat(&(theContext.i2cReadings),
+        GroundCmd__Status gcStatus = GroundCmd__generateFullEarthHeartbeat(&(theContext.m_i2cReadings),
                                                                            &(theContext.m_adcValues),
+                                                                           &(theContext.m_heaterParams),
+                                                                           static_cast<uint8_t>(getState()),
                                                                            &hb);
 
         assert(GND_CMD__STATUS__SUCCESS == gcStatus);
 
         LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
-                                                           hb->heartbeatOutBuffer,
-                                                           sizeof(hb->heartbeatOutBuffer));
+                                                           hb.heartbeatOutBuffer,
+                                                           sizeof(hb.heartbeatOutBuffer));
 
         assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
         if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
             //!< @todo Handling?
         }
 
-        if (heatingControlEnabled) {
+        if (theContext.m_heaterParams.m_heatingControlEnabled) {
             // calculate PWM duty cycle (if any) to apply to heater
-            heaterControl();
+            heaterControl(theContext);
         }
 
+        BOOL writeIOExpander = FALSE;
         watchdog_monitor(theContext.m_hcState,
                          &(theContext.m_watchdogFlags),
-                         &(theContext.m_watchdogOpts));
+                         &(theContext.m_watchdogOpts),
+                         &writeIOExpander);
+
+        if (writeIOExpander) {
+            theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
+            theContext.m_queuedIOWritePort0Value = getIOExpanderPort0OutputValue();
+            theContext.m_queuedIOWritePort1Value = getIOExpanderPort1OutputValue();
+
+            if (!theContext.m_i2cActive) {
+                initiateNextI2cAction(theContext);
+            }
+        }
+
+        return getState();
     }
 
     RoverState RoverStateService::handleHighTemp(RoverContext& /*theContext*/)
@@ -69,7 +86,22 @@ namespace iris
 
     RoverState RoverStateService::spinOnce(RoverContext& theContext)
     {
-        // Do nothing
+        if (theContext.m_i2cActive) {
+            I2C_Sensors__Action action = {};
+            uint8_t readValue = 0;
+            I2C_Sensors__Status i2cStatus = I2C_Sensors__getActionStatus(&action,
+                                                                         &(theContext.m_i2cReadings),
+                                                                         &readValue);
+
+            if (I2C_SENSORS__STATUS__INCOMPLETE != i2cStatus) {
+                DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "I2C action failed");
+
+                I2C_Sensors__clearLastAction();
+                theContext.m_i2cActive = false;
+                initiateNextI2cAction(theContext);
+            }
+        }
+
         return getState();
     }
 
@@ -144,14 +176,12 @@ namespace iris
                                                            WdCmdMsgs__Response& deployNotificationResponse,
                                                            bool& sendDeployNotificationResponse)
     {
-        // We're already in service mode, but we can re-enter it here.
-        /**
-         * @todo This will have the effect of powering off all peripherals, since transitioning to service is currently
-         *       identical to transitioning to KeepAlive. Should we do this transition or should we just refuse to do
-         *       this command when in this state?
-         */
-        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
-        return RoverState::ENTERING_SERVICE;
+        // Do the default behavior of complaining about being in the wrong state.
+        return RoverStateBase::doGndCmdEnterServiceMode(theContext,
+                                                        msg,
+                                                        response,
+                                                        deployNotificationResponse,
+                                                        sendDeployNotificationResponse);
     }
 
 } // End namespace iris

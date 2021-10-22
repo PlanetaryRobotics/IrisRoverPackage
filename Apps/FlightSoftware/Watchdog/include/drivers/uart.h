@@ -62,26 +62,68 @@ typedef enum UART__Status {
 
     UART__STATUS__ERROR_RB_PUT_FAILURE = -10, //!< An error occurred on a RingBuffer `put()` call.
     UART__STATUS__ERROR_RB_GET_FAILURE = -11, //!< An error occurred on a RingBuffer `get()` call.
-    UART__STATUS__ERROR_RB_INIT_FAILURE = -12 //!< An error occurred on a RingBuffer `init()` call.
+    UART__STATUS__ERROR_RB_INIT_FAILURE = -12, //!< An error occurred on a RingBuffer `init()` call.
+    UART__STATUS__ERROR_RB_CLEAR_FAILURE = -13 //!< An error occurred on a RingBuffer `clear()` call.
 } UART__Status;
 
 /**
- * @brief Initializes all of the clocks on MSP430 watchdog (used by all modules, not just by the UART) as well as both
+ * @brief Initializes the UART0 interface. This includes enabling the corresponding pins.
  *        UART interfaces.
  *
- * @param config The configuration to use for the UART modules.
+ * @param config The configuration to use for the UART modules. If the state has already been initialized before,
+ *               the buffer configuration from the first initialization is re-used and this parameter is ignored.
  * @param uart0State A return parameter that will be set to the module for UART0 if this call succeeds.
+ *
+ * @return One of the following:
+ *   - UART__STATUS__SUCCESS: The function was successful.
+ *   - UART__STATUS__ERROR_NULL: `config` or `uart0State` was NULL.
+ *   - UART__STATUS__ERROR_ALREADY_INITIALIZED: This module was already initialized.
+ *   - UART__STATUS__ERROR_RB_INIT_FAILURE: Initializing an internal ring buffer failed.
+ *   - UART__STATUS__ERROR_RB_CLEAR_FAILURE: Initializing an internal ring buffer failed.
+ */
+UART__Status UART__init0(UART__Config* config,
+                         UART__State** uart0State);
+
+/**
+ * @brief Initializes the UART1 interface. This includes enabling the corresponding pins.
+ *
+ * @param config The configuration to use for the UART modules. If the state has already been initialized before,
+ *               the buffer configuration from the first initialization is re-used and this parameter is ignored.
  * @param uart1State A return parameter that will be set to the module for UART1 if this call succeeds.
  *
  * @return One of the following:
  *   - UART__STATUS__SUCCESS: The function was successful.
- *   - UART__STATUS__ERROR_NULL: `config`, `uart0State`, or `uart1State` was NULL.
+ *   - UART__STATUS__ERROR_NULL: `config` or `uart1State` was NULL.
  *   - UART__STATUS__ERROR_ALREADY_INITIALIZED: This module was already initialized.
  *   - UART__STATUS__ERROR_RB_INIT_FAILURE: Initializing an internal ring buffer failed.
+ *   - UART__STATUS__ERROR_RB_CLEAR_FAILURE: Initializing an internal ring buffer failed.
  */
-UART__Status UART__init(UART__Config* config,
-                        UART__State** uart0State,
-                        UART__State** uart1State);
+UART__Status UART__init1(UART__Config* config,
+                         UART__State** uart1State);
+
+/**
+ * @brief Uninitializes the UART0 interface. This includes disabling the corresponding pins.
+ *
+ * @param uart0State The UART module to uninitialize.
+ *
+ * @return One of the following:
+ *   - UART__STATUS__SUCCESS: The function was successful.
+ *   - UART__STATUS__ERROR_NULL: `uart0State` was NULL.
+ *   - UART__STATUS__ERROR_NOT_INITIALIZED: This module was not initialized.
+ */
+UART__Status UART__uninit0(UART__State** uart0State);
+
+/**
+ * @brief Uninitializes the UART1 interface. This includes disabling the corresponding pins.
+ *
+ * @param uart1State The UART module to uninitialize.
+ *
+ * @return One of the following:
+ *   - UART__STATUS__SUCCESS: The function was successful.
+ *   - UART__STATUS__ERROR_NULL: `uart1State` was NULL.
+ *   - UART__STATUS__ERROR_NOT_INITIALIZED: This module was not initialized.
+ */
+UART__Status UART__uninit1(UART__State** uart1State);
 
 /**
  * @brief Puts the given data in the transmit ring buffer and kicks off the process that will pump the data from the

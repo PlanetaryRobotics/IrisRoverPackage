@@ -20,22 +20,18 @@ extern "C"
 
 // MPS: I'm not documenting these because this code will soon be restructured into a state-based paradigm.
 
-int watchdog_init();
+int watchdog_init(volatile uint16_t* watchdogFlags, volatile uint16_t* timeCountCentiseconds);
 
 void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
                                    const AdcValues* adcValues,
+                                   BOOL hasDeployed,
                                    uint8_t* telbuf,
                                    size_t telbufSize);
 
 int watchdog_monitor(HerculesComms__State* hState,
                      volatile uint16_t* watchdogFlags,
-                     uint8_t* watchdogOpts);
-
-void heaterControl();
-
-extern uint8_t heatingControlEnabled, heaterStatus; // from heater controller
-extern uint16_t Kp_heater, heater_setpoint, heater_window, PWM_limit, heater_on_val, heater_off_val;
-extern uint8_t watchdog_opts;
+                     uint8_t* watchdogOpts,
+                     BOOL* writeIOExpander);
 
 #ifdef __cplusplus
 } /* close extern "C" */

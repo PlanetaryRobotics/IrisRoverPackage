@@ -1,8 +1,11 @@
 #ifndef __WATCHDOG_ROVER_STATE_BASE_HPP__
 #define __WATCHDOG_ROVER_STATE_BASE_HPP__
 
+#include "comms/watchdog_cmd_msgs.h"
 #include "stateMachine/RoverState.hpp"
 #include "stateMachine/RoverContext.hpp"
+
+#include "flags.h"
 
 namespace iris
 {
@@ -13,15 +16,13 @@ namespace iris
 
             RoverState getState();
 
-            virtual bool canEnterLowPowerMode();
+            virtual bool canEnterLowPowerMode(RoverContext& theContext);
 
             // The functions to handle events
             virtual RoverState handleLanderData(RoverContext& theContext);
             virtual RoverState handleHerculesData(RoverContext& theContext);
 
             virtual RoverState handleTimerTick(RoverContext& theContext) = 0;
-            virtual RoverState handleI2cStarted(RoverContext& theContext) = 0;
-            virtual RoverState handleI2cDone(RoverContext& theContext) = 0;
             virtual RoverState handleHighTemp(RoverContext& theContext) = 0;
             virtual RoverState handlePowerIssue(RoverContext& theContext) = 0;
             virtual RoverState spinOnce(RoverContext& theContext) = 0;
@@ -36,6 +37,10 @@ namespace iris
             static void landerMsgCallback(uint8_t* rxDataBuffer, size_t rxDataLen, void* userArg);
 
         protected:
+            virtual void initiateNextI2cAction(RoverContext& theContext);
+
+            virtual void heaterControl(RoverContext& theContext);
+
             virtual RoverState performWatchdogCommand(RoverContext& theContext,
                                                       const WdCmdMsgs__Message& msg,
                                                       WdCmdMsgs__Response& response,
@@ -65,7 +70,7 @@ namespace iris
 
             virtual RoverState pumpMsgsFromHercules(RoverContext& theContext);
 
-            void sendLanderResponse(RoverContext& theContext, WdCmdMsgs__Response& response)
+            void sendLanderResponse(RoverContext& theContext, WdCmdMsgs__Response& response);
 
             // Specific watchdog command handling
             virtual RoverState doGndCmdResetSpecific(RoverContext& theContext,

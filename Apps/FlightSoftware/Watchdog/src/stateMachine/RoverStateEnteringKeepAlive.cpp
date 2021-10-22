@@ -4,6 +4,7 @@
 #include "drivers/bsp.h"
 
 #include "ground_cmd.h"
+#include "watchdog.h"
 
 #include <cassert>
 
@@ -14,7 +15,12 @@ namespace iris
     {
     }
 
-    bool RoverStateEnteringKeepAlive::canEnterLowPowerMode()
+    RoverStateEnteringKeepAlive::RoverStateEnteringKeepAlive(RoverState overridingState)
+            : RoverStateBase(overridingState)
+    {
+    }
+
+    bool RoverStateEnteringKeepAlive::canEnterLowPowerMode(RoverContext& /*theContext*/)
     {
         // Don't allow entering low power mode while entering keep alive. The only non-instant thing this state
         // does is to wait for the previous ADC transaction to complete. Since we don't wake from LPM after an ADC
@@ -44,15 +50,16 @@ namespace iris
 
             /* send heartbeat with collected data */
             static FlightEarthHeartbeat hb = { 0 };
-            GroundCmd__Status gcStatus = GroundCmd__generateFlightEarthHeartbeat(&(theContext.i2cReadings),
+            GroundCmd__Status gcStatus = GroundCmd__generateFlightEarthHeartbeat(&(theContext.m_i2cReadings),
                                                                                  &(theContext.m_adcValues),
+                                                                                 &(theContext.m_heaterParams),
                                                                                  &hb);
 
             assert(GND_CMD__STATUS__SUCCESS == gcStatus);
 
             LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
-                                                               hb->heartbeatOutBuffer,
-                                                               sizeof(hb->heartbeatOutBuffer));
+                                                               hb.heartbeatOutBuffer,
+                                                               sizeof(hb.heartbeatOutBuffer));
 
             assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
             if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
@@ -60,27 +67,17 @@ namespace iris
             }
         }
 
-        if (heatingControlEnabled) {
+        if (theContext.m_heaterParams.m_heatingControlEnabled) {
             // calculate PWM duty cycle (if any) to apply to heater
-            heaterControl();
+            heaterControl(theContext);
         }
-    }
 
-    RoverState RoverStateEnteringKeepAlive::handleI2cStarted(RoverContext& /*theContext*/)
-    {
-        assert(!"Got I2C started event when it shouldn't be possible");
-        return getState();
-    }
-
-    RoverState RoverStateEnteringKeepAlive::handleI2cDone(RoverContext& /*theContext*/)
-    {
-        assert(!"Got I2C done event when it shouldn't be possible");
         return getState();
     }
 
     RoverState RoverStateEnteringKeepAlive::handleHighTemp(RoverContext& /*theContext*/)
     {
-        //!< @todo Implement RoverStateEnteringKeepAlive::handleHighTemp
+        disableHeater();
         return getState();
     }
 
@@ -93,6 +90,27 @@ namespace iris
     RoverState RoverStateEnteringKeepAlive::spinOnce(RoverContext& theContext)
     {
         switch (m_currentSubstate) {
+            case SubState::WAITING_FOR_IO_EXPANDER_WRITE:
+                {
+                    I2C_Sensors__Action action = I2C_SENSORS__ACTIONS__INACTIVE;
+                    uint8_t readValue = 0;
+                    I2C_Sensors__Status i2cStatus = I2C_Sensors__getActionStatus(&action,
+                                                                                 &(theContext.m_i2cReadings),
+                                                                                 &readValue);
+
+                    // Sanity check
+                    assert(I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER == action);
+
+                    if (I2C_SENSORS__STATUS__INCOMPLETE != i2cStatus) {
+                        DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "I2C action failed");
+
+                        I2C_Sensors__clearLastAction();
+                        theContext.m_i2cActive = false;
+
+                        return transitionToWaitingForAdcDone(theContext);
+                    }
+                }
+                break;
             case SubState::WAITING_FOR_ADC_DONE:
                 if (isAdcSampleDone() == TRUE) {
                     return transitionToFinishUpSetup(theContext);
@@ -114,7 +132,7 @@ namespace iris
 
     RoverState RoverStateEnteringKeepAlive::transitionTo(RoverContext& theContext)
     {
-        return transitionToWaitingForAdcDone(theContext);
+        return transitionToWaitingForIoExpanderWrite(theContext);
     }
 
     RoverState RoverStateEnteringKeepAlive::nextStateAfterSetupCompletes()
@@ -126,13 +144,14 @@ namespace iris
                                                                 WdCmdMsgs__ResetSpecificId resetValue,
                                                                 WdCmdMsgs__Response* response)
     {
-        return RoverStateBase::doConditionalResetSpecific(theContext,
-                                                          resetValue,
-                                                          response,
-                                                          false, // whether or not to allow power on
-                                                          false, // whether or not to allow disabling RS422
-                                                          false, // whether or not to allow deploy
-                                                          false); // whether or not to allow undeploy
+        RoverStateBase::doConditionalResetSpecific(theContext,
+                                                   resetValue,
+                                                   response,
+                                                   false, // whether or not to allow power on
+                                                   false, // whether or not to allow disabling RS422
+                                                   false, // whether or not to allow deploy
+                                                   false); // whether or not to allow undeploy
+        return getState();
     }
 
     RoverState RoverStateEnteringKeepAlive::handleUplinkFromLander(RoverContext& theContext,
@@ -156,8 +175,14 @@ namespace iris
         return transitionToWaitingForAdcDone(theContext);
     }
 
-    RoverState RoverStateEnteringKeepAlive::transitionToWaitingForAdcDone(RoverContext& theContext)
+    RoverState RoverStateEnteringKeepAlive::transitionToWaitingForIoExpanderWrite(RoverContext& theContext)
     {
+        // Clear all queued I2C actions and stop any active one. This allows us to immediately perform the IO expander
+        // write
+        I2C_Sensors__stop();
+        theContext.m_queuedI2cActions = 0;
+        theContext.m_i2cActive = false;
+
         // Power everything off and set resets. All of these are simply setting/clearing bits, so they are instant.
         powerOffFpga();
         powerOffMotors();
@@ -174,8 +199,21 @@ namespace iris
         disable24VPowerRail();
         disableBatteries();
 
-        //!< @todo Stop I2C transfer if one is active.
+        // Make sure to disable the Hercules uart so we don't dump current through that tx pin
+        UART__uninit0(&(theContext.m_uart0State));
 
+        theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
+        theContext.m_queuedIOWritePort0Value = getIOExpanderPort0OutputValue();
+        theContext.m_queuedIOWritePort1Value = getIOExpanderPort1OutputValue();
+
+        initiateNextI2cAction(theContext);
+
+        m_currentSubstate = SubState::WAITING_FOR_IO_EXPANDER_WRITE;
+        return getState();
+    }
+
+    RoverState RoverStateEnteringKeepAlive::transitionToWaitingForAdcDone(RoverContext& theContext)
+    {
         // We want to set up the ADC for reading values when attached to the lander. In order to do this setup, any
         // existing ADC reading must be done. If it's not done, we won't move forward until it is.
         bool lastSampleDone = (isAdcSampleDone() == TRUE);
@@ -195,7 +233,7 @@ namespace iris
         // The last ADC sample being done should be a prerequisite of entering this state, which means that
         // this call shouldn't fail. However, we check the return value anyway and will transition back to the previous
         // state if it did fail.
-        bool setupSuccess = (setupAdcForLander(&(theContext.m_watchdogFlags)) == TRUE);
+        bool setupSuccess = (setupAdcForLander() == TRUE);
 
         if (!setupSuccess) {
             return transitionToWaitingForAdcDone(theContext);
@@ -204,6 +242,14 @@ namespace iris
         // These are simply setting/clearing bits, so they are instant.
         enableHeater();
         startChargingBatteries();
+
+        // Enable all interrupts
+        __enable_interrupt();
+
+        char helloWorld[16] = "hello, world!\r\n";
+        LanderComms__Status lcStatus =
+                LanderComms__txData(theContext.m_lcState, (uint8_t*) helloWorld, sizeof(helloWorld));
+        assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
 
         return nextStateAfterSetupCompletes();
     }

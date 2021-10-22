@@ -11,35 +11,37 @@
 // Private definitions and globals
 //###########################################################
 
-typedef enum I2C_Sensors__RegisterAddrs {
-    REG_ADDR__STATUS = 0,                 //read only
-    REG_ADDR__CONTROL = 1,
-    REG_ADDR__ACCUMULATED_CHARGE_MSB = 2,
-    REG_ADDR__ACCUMULATED_CHARGE_LSB = 3,
-    REG_ADDR__CHARGE_THRESHOLD_HIGH_MSB = 4,
-    REG_ADDR__CHARGE_THRESHOLD_HIGH_LSB = 5,
-    REG_ADDR__CHARGE_THRESHOLD_LOW_MSB = 6,
-    REG_ADDR__CHARGE_THRESHOLD_LOW_LSB = 7,
-    REG_ADDR__VOLTAGE_MSB = 8,                //read only
-    REG_ADDR__VOLTAGE_LSB = 9,                //read only
-    REG_ADDR__VOLTAGE_THRESHOLD_HIGH_MSB = 10,
-    REG_ADDR__VOLTAGE_THRESHOLD_HIGH_LSB = 11,
-    REG_ADDR__VOLTAGE_THRESHOLD_LOW_MSB = 12,
-    REG_ADDR__VOLTAGE_THRESHOLD_LOW_LSB = 13,
-    REG_ADDR__CURRENT_MSB = 14,                //read only
-    REG_ADDR__CURRENT_LSB = 15,                //read only
-    REG_ADDR__CURRENT_THRESHOLD_HIGH_MSB = 16,
-    REG_ADDR__CURRENT_THRESHOLD_HIGH_LSB = 17,
-    REG_ADDR__CURRENT_THRESHOLD_LOW_MSB = 18,
-    REG_ADDR__CURRENT_THRESHOLD_LOW_LSB = 19,
-    REG_ADDR__TEMPERATURE_MSB = 20,           //read only
-    REG_ADDR__TEMPERATURE_LSB = 21,           //read only
-    REG_ADDR__TEMPERATURE_THRESHOLD_HIGH = 22,
-    REG_ADDR__TEMPERATURE_THRESHOLD_LOW = 23,
-    REG_ADDR__MAX_NB_CMDS = 24
-} I2C_Sensors__RegisterAddrs;
+typedef enum I2C_Sensors__FuelGaugeRegisterAddrs
+{
+    FG_REG_ADDR__STATUS = 0,                 //read only
+    FG_REG_ADDR__CONTROL = 1,
+    FG_REG_ADDR__ACCUMULATED_CHARGE_MSB = 2,
+    FG_REG_ADDR__ACCUMULATED_CHARGE_LSB = 3,
+    FG_REG_ADDR__CHARGE_THRESHOLD_HIGH_MSB = 4,
+    FG_REG_ADDR__CHARGE_THRESHOLD_HIGH_LSB = 5,
+    FG_REG_ADDR__CHARGE_THRESHOLD_LOW_MSB = 6,
+    FG_REG_ADDR__CHARGE_THRESHOLD_LOW_LSB = 7,
+    FG_REG_ADDR__VOLTAGE_MSB = 8,                //read only
+    FG_REG_ADDR__VOLTAGE_LSB = 9,                //read only
+    FG_REG_ADDR__VOLTAGE_THRESHOLD_HIGH_MSB = 10,
+    FG_REG_ADDR__VOLTAGE_THRESHOLD_HIGH_LSB = 11,
+    FG_REG_ADDR__VOLTAGE_THRESHOLD_LOW_MSB = 12,
+    FG_REG_ADDR__VOLTAGE_THRESHOLD_LOW_LSB = 13,
+    FG_REG_ADDR__CURRENT_MSB = 14,                //read only
+    FG_REG_ADDR__CURRENT_LSB = 15,                //read only
+    FG_REG_ADDR__CURRENT_THRESHOLD_HIGH_MSB = 16,
+    FG_REG_ADDR__CURRENT_THRESHOLD_HIGH_LSB = 17,
+    FG_REG_ADDR__CURRENT_THRESHOLD_LOW_MSB = 18,
+    FG_REG_ADDR__CURRENT_THRESHOLD_LOW_LSB = 19,
+    FG_REG_ADDR__TEMPERATURE_MSB = 20,           //read only
+    FG_REG_ADDR__TEMPERATURE_LSB = 21,           //read only
+    FG_REG_ADDR__TEMPERATURE_THRESHOLD_HIGH = 22,
+    FG_REG_ADDR__TEMPERATURE_THRESHOLD_LOW = 23,
+    FG_REG_ADDR__MAX_NB_CMDS = 24
+} I2C_Sensors__FuelGaugeRegisterAddrs;
 
-typedef enum GaugeReadingState {
+typedef enum GaugeReadingState
+{
     GRS__UNKNOWN = 0,
     GRS__CHARGE_LSB,
     GRS__CHARGE_MSB,
@@ -52,7 +54,8 @@ typedef enum GaugeReadingState {
     GRS__DONE
 } GaugeReadingState;
 
-typedef enum FuelGaugeInitState {
+typedef enum FuelGaugeInitState
+{
     FGI__UNKNOWN = 0,
     FGI__ACCUMULATED_CHARGE_MSB,
     FGI__ACCUMULATED_CHARGE_LSB,
@@ -61,30 +64,66 @@ typedef enum FuelGaugeInitState {
     FGI__FAILED_NACK
 } FuelGaugeInitState;
 
-typedef enum ReadControlState {
+typedef enum ReadControlState
+{
     RC__UNKNOWN = 0,
     RC__READING,
     RC__DONE,
     RC__FAILED_NACK
-} WriteControlState;
+} ReadControlState;
 
-typedef enum WriteLowPowerState {
+typedef enum WriteLowPowerState
+{
     WLP__UNKNOWN = 0,
     WLP__WRITING,
     WLP__DONE,
     WLP__FAILED_NACK
 } WriteLowPowerState;
 
-typedef struct INS_Sensors__InternalState {
+typedef enum InitIOExpanderState
+{
+    IIE__UNKNOWN = 0,
+    IIE__WRITE_PORT_0_CONFIG,
+    IIE__WRITE_PORT_1_CONFIG,
+    IIE__DONE,
+    IIE__FAILED_NACK
+} InitIOExpanderState;
+
+typedef enum WriteIOExpanderState
+{
+    WIE__UNKNOWN = 0,
+    WIE__WRITE_PORT_0_VALUE,
+    WIE__WRITE_PORT_1_VALUE,
+    WIE__DONE,
+    WIE__FAILED_NACK
+} WriteIOExpanderState;
+
+typedef enum ReadIOExpanderState
+{
+    RIE__UNKNOWN = 0,
+    RIE__READING,
+    RIE__DONE,
+    RIE__FAILED_NACK
+} ReadIOExpanderState;
+
+typedef struct INS_Sensors__InternalState
+{
     I2C_Sensors__Action activeAction;
 
     GaugeReadingState grsState;
     FuelGaugeInitState fgiState;
     ReadControlState rcState;
     WriteLowPowerState wlpState;
+    InitIOExpanderState iieState;
+    WriteIOExpanderState wieState;
+    ReadIOExpanderState rieState;
 
     I2C_Sensors__Readings readings;
     uint8_t controlRegisterReadValue;
+    uint8_t ioExpanderPort1ReadValue;
+
+    uint8_t ioExpanderPort0WriteValue;
+    uint8_t ioExpanderPort1WriteValue;
 } INS_Sensors__InternalState;
 
 static const uint8_t FUEL_GAUGE_CONTROL_LOW_POWER = 0b00101001;
@@ -96,17 +135,64 @@ static const uint8_t FUEL_GAUGE_CONTROL_LOW_POWER = 0b00101001;
 // must leave control_reg[0] to 0
 static const uint8_t FUEL_GAUGE_CONTROL_INIT = 0b10101000;
 static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_MSB_INIT = 0xA0;
-static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT = 0xD8
+static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT = 0xD8;
 
-static INS_Sensors__InternalState internals = {
-    .activeAction = I2C_SENSORS__ACTIONS__INACTIVE,
-    .grsState = GRS__UNKNOWN,
-    .fgiState = FGI__UNKNOWN,
-    .rcState = RC__UNKNOWN,
-    .wlpState = WLP__UNKNOWN,
-    .readings = { 0 },
-    .controlRegisterReadValue = 0
-};
+// On rev I, the I/O expander contains the following pins:
+//     0.0: MC_RST_A, output to reset motor A controller (reset is active when low)
+//     0.1: MC_RST_B, output to reset motor B controller (reset is active when low)
+//     0.2: MC_RST_C, output to reset motor C controller (reset is active when low)
+//     0.3: MC_RST_D, output to reset motor D controller (reset is active when low)
+//     0.4: Hercules_nRST, output to reset Hercules (reset is active when low)
+//     0.5: Hercules_nPORRST, output to power-on reset Hercules (reset is active when low)
+//     0.6: FPGA_nRST, output to reset FPGA (reset is active when low)
+//     0.7: LATCH_RST, output to force LATCH_STAT LOW, only used as a manual override in case there is an issue with
+//            the normal data/clock latching. In nominal operation this should remain unused (and pulled HIGH)
+//
+//     1.0: Radio_nRST, output to reset wifi chip (reset is active when low)
+//     1.1: CHARGE_STAT2, input connected to STAT2 pin of BQ24650RVAR charge controller
+//     1.2: LATCH_STAT, input connected to output of battery enable latch on BLiMP
+//     1.3: LATCH_SET, output to force LATCH_STAT HIGH, only used as a manual override in case there is an issue
+//            with the normal data/clock latching. In nominal operation this should remain unused (and pulled HIGH)
+//     1.4: Not connected
+//     1.5: Radio_ON, output that controls supply of power to wifi chip (power supplied when high)
+//     1.6: BMS_BOOT, output currently unused as BMS circuit wasn't completed.
+//     1.7: Not connected
+// Per the datasheet (https://www.nxp.com/docs/en/data-sheet/PCA9575.pdf):
+// Register 8 is the register to configure the directions of the port 0 pins, where "0" is output. As described
+//   above, all port 0 pins are outputs.
+// Register 9 is the register to configure the directions of the port 1 pins, where "0" is output. As described
+//   above, pins 0, 3, 5, and 6 are outputs, and the rest are either inputs or not connected.
+static const uint8_t IO_EXPANDER_CONFIG_PORT_0_REG_ADDR = 8;
+static const uint8_t IO_EXPANDER_CONFIG_PORT_0_VALUE = 0b00000000;
+static const uint8_t IO_EXPANDER_CONFIG_PORT_1_REG_ADDR = 9;
+static const uint8_t IO_EXPANDER_CONFIG_PORT_1_VALUE = 0b00010110;
+
+// Per the datasheet (https://www.nxp.com/docs/en/data-sheet/PCA9575.pdf):
+// Register 1 is the register to read the incoming logic levels of the pins in port 1.
+static const uint8_t IO_EXPANDER_INPUT_PORT_1_REG_ADDR = 1;
+
+// Per the datasheet (https://www.nxp.com/docs/en/data-sheet/PCA9575.pdf):
+// Register 10 is the port 0 output value register.
+// Register 11 is the port 0 output value register.
+static const uint8_t IO_EXPANDER_OUTPUT_PORT_0_REG_ADDR = 10;
+static const uint8_t IO_EXPANDER_OUTPUT_PORT_1_REG_ADDR = 11;
+
+static INS_Sensors__InternalState internals =
+        {
+          .activeAction = I2C_SENSORS__ACTIONS__INACTIVE,
+          .grsState = GRS__UNKNOWN,
+          .fgiState = FGI__UNKNOWN,
+          .rcState = RC__UNKNOWN,
+          .wlpState = WLP__UNKNOWN,
+          .iieState = IIE__UNKNOWN,
+          .wieState = WIE__UNKNOWN,
+          .rieState = RIE__UNKNOWN,
+          .readings = { 0 },
+          .controlRegisterReadValue = 0,
+          .ioExpanderPort1ReadValue = 0,
+          .ioExpanderPort0WriteValue = 0,
+          .ioExpanderPort1WriteValue = 0
+        };
 
 //###########################################################
 // Private function declarations
@@ -332,6 +418,68 @@ static BOOL I2C_Sensors__readControl(void);
  */
 static BOOL I2C_Sensors__lowPower(void);
 
+/**
+ * @private
+ *
+ * @brief Spins the write to the IO Expander port 0 configuration register (the `IIE__WRITE_PORT_0_CONFIG` state). Will
+ *        not block.
+ *
+ * Upon completion, will transition the initialize IO expander state machine to the `IIE__WRITE_PORT_1_CONFIG` or
+ * `IIE__FAILED_NACK` state.
+ *
+ * @return Whether or not to continue spinning the initialize IO expander state machine.
+ */
+static BOOL I2C_Sensors__ioExpanderInitPort0(void);
+
+/**
+ * @private
+ *
+ * @brief Spins the write to the IO Expander port 1 configuration register (the `IIE__WRITE_PORT_1_CONFIG` state). Will
+ *        not block.
+ *
+ * Upon completion, will transition the initialize IO expander state machine to the `IIE__DONE` or `IIE__FAILED_NACK`
+ * state.
+ *
+ * @return Whether or not to continue spinning the initialize IO expander state machine.
+ */
+static BOOL I2C_Sensors__ioExpanderInitPort1(void);
+
+/**
+ * @private
+ *
+ * @brief Spins the write to the IO Expander port 0 value register (the `WIE__WRITE_PORT_0_VALUE` state). Will
+ *        not block.
+ *
+ * Upon completion, will transition the write IO expander state machine to the `WIE__WRITE_PORT_1_VALUE` or
+ * `WIE__FAILED_NACK` state.
+ *
+ * @return Whether or not to continue spinning the write IO expander state machine.
+ */
+static BOOL I2C_Sensors__ioExpanderWritePort0(void);
+
+/**
+ * @private
+ *
+ * @brief Spins the write to the IO Expander port 1 value register (the `WIE__WRITE_PORT_1_VALUE` state). Will
+ *        not block.
+ *
+ * Upon completion, will transition the write IO expander state machine to the `WIE__DONE` or `WIE__FAILED_NACK` state.
+ *
+ * @return Whether or not to continue spinning the write IO expander state machine.
+ */
+static BOOL I2C_Sensors__ioExpanderWritePort1(void);
+
+/**
+ * @private
+ *
+ * @brief Spins the read of the IO Expander port 1 input register. Will not block.
+ *
+ * Upon completion, will transition the read IO expander machine to the `RIE__DONE` or `RIE__FAILED_NACK` state.
+ *
+ * @return Whether or not to continue spinning the read IO expander state machine.
+ */
+static BOOL I2C_Sensors__ioExpanderReadPort1(void);
+
 //###########################################################
 // Public function definitions
 //###########################################################
@@ -405,10 +553,45 @@ I2C_Sensors__Status I2C_Sensors__initiateWriteLowPower(void)
     }
 }
 
+I2C_Sensors__Status I2C_Sensors__initiateIoExpanderInitialization(void)
+{
+    if (I2C_SENSORS__ACTIONS__INACTIVE == internals.activeAction) {
+        internals.activeAction = I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER;
+        internals.iieState = IIE__WRITE_PORT_0_CONFIG;
+        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+    } else {
+        return I2C_SENSORS__STATUS__ERROR__ACTION_ALREADY_IN_PROGRESS;
+    }
+}
+
+I2C_Sensors__Status I2C_Sensors__initiateWriteIoExpander(uint8_t port0Value, uint8_t port1Value)
+{
+    if (I2C_SENSORS__ACTIONS__INACTIVE == internals.activeAction) {
+        internals.activeAction = I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER;
+        internals.wieState = WIE__WRITE_PORT_0_VALUE;
+        internals.ioExpanderPort0WriteValue = port0Value;
+        internals.ioExpanderPort1WriteValue = port1Value;
+        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+    } else {
+        return I2C_SENSORS__STATUS__ERROR__ACTION_ALREADY_IN_PROGRESS;
+    }
+}
+
+I2C_Sensors__Status I2C_Sensors__initiateReadIoExpander(void)
+{
+    if (I2C_SENSORS__ACTIONS__INACTIVE == internals.activeAction) {
+        internals.activeAction = I2C_SENSORS__ACTIONS__READ_IO_EXPANDER;
+        internals.rieState = RIE__READING;
+        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+    } else {
+        return I2C_SENSORS__STATUS__ERROR__ACTION_ALREADY_IN_PROGRESS;
+    }
+}
+
 I2C_Sensors__Status
 I2C_Sensors__getActionStatus(I2C_Sensors__Action* action,
                              I2C_Sensors__Readings* readings,
-                             uint8_t* controlRegisterValue)
+                             uint8_t* readValue)
 {
     if (NULL == action) {
         return I2C_SENSORS__STATUS__ERROR__NULL;
@@ -434,17 +617,30 @@ I2C_Sensors__getActionStatus(I2C_Sensors__Action* action,
                         return I2C_SENSORS__STATUS__ERROR__READINGS_NOT_STARTED;
 
                     case GRS__CHARGE_LSB:
+                        // Fall through
                     case GRS__CHARGE_MSB:
+                        // Fall through
                     case GRS__VOLTAGE_LSB:
+                        // Fall through
                     case GRS__VOLTAGE_MSB:
+                        // Fall through
                     case GRS__CURRENT_LSB:
+                        // Fall through
                     case GRS__CURRENT_MSB:
+                        // Fall through
                     case GRS__GAUGE_TEMP_LSB:
+                        // Fall through
                     case GRS__GAUGE_TEMP_MSB:
                         return I2C_SENSORS__STATUS__INCOMPLETE;
 
                     case GRS__DONE:
+                        /* temporarily disable interrupts */
+                        __disable_interrupt();
+
                         memcpy(readings, &internals.readings, sizeof(*readings));
+
+                        /* re-enable interrupts */
+                        __enable_interrupt();
 
                         if (internals.readings.nackMask == 0U) {
                             return I2C_SENSORS__STATUS__SUCCESS_DONE;
@@ -456,7 +652,6 @@ I2C_Sensors__getActionStatus(I2C_Sensors__Action* action,
                         return I2C_SENSORS__STATUS__ERROR__INTERNAL;
                 }
             }
-            break;
 
         case I2C_SENSORS__ACTIONS__GAUGE_INIT:
             {
@@ -465,7 +660,9 @@ I2C_Sensors__getActionStatus(I2C_Sensors__Action* action,
                         return I2C_SENSORS__STATUS__ERROR__INTERNAL;
 
                     case FGI__ACCUMULATED_CHARGE_MSB:
+                        // Fall through
                     case FGI__ACCUMULATED_CHARGE_LSB:
+                        // Fall through
                     case FGI__CONTROL:
                         return I2C_SENSORS__STATUS__INCOMPLETE;
 
@@ -479,7 +676,6 @@ I2C_Sensors__getActionStatus(I2C_Sensors__Action* action,
                         return I2C_SENSORS__STATUS__ERROR__INTERNAL;
                 }
             }
-            break;
 
         case I2C_SENSORS__ACTIONS__WRITE_GAUGE_LOW_POWER:
             {
@@ -500,15 +696,14 @@ I2C_Sensors__getActionStatus(I2C_Sensors__Action* action,
                         return I2C_SENSORS__STATUS__ERROR__INTERNAL;
                 }
             }
-            break;
 
         case I2C_SENSORS__ACTIONS__READ_GAUGE_CONTROL_REGISTER:
             {
-                if (NULL == controlRegisterValue) {
+                if (NULL == readValue) {
                     return I2C_SENSORS__STATUS__ERROR__NULL;
                 }
 
-                switch (internals.wlpState) {
+                switch (internals.rcState) {
                     case RC__UNKNOWN:
                         return I2C_SENSORS__STATUS__ERROR__INTERNAL;
 
@@ -516,7 +711,7 @@ I2C_Sensors__getActionStatus(I2C_Sensors__Action* action,
                         return I2C_SENSORS__STATUS__INCOMPLETE;
 
                     case RC__DONE:
-                        *controlRegisterValue = internals.controlRegisterReadValue;
+                        *readValue = internals.controlRegisterReadValue;
                         return I2C_SENSORS__STATUS__SUCCESS_DONE;
 
                     case RC__FAILED_NACK:
@@ -526,7 +721,75 @@ I2C_Sensors__getActionStatus(I2C_Sensors__Action* action,
                         return I2C_SENSORS__STATUS__ERROR__INTERNAL;
                 }
             }
-            break;
+
+        case I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER:
+            {
+                switch (internals.iieState) {
+                    case IIE__UNKNOWN:
+                        return I2C_SENSORS__STATUS__ERROR__INTERNAL;
+
+                    case IIE__WRITE_PORT_0_CONFIG:
+                        // Fall through
+                    case IIE__WRITE_PORT_1_CONFIG:
+                        return I2C_SENSORS__STATUS__INCOMPLETE;
+
+                    case IIE__DONE:
+                        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+
+                    case IIE__FAILED_NACK:
+                        return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
+
+                    default:
+                        return I2C_SENSORS__STATUS__ERROR__INTERNAL;
+                }
+            }
+
+        case I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER:
+            {
+                switch (internals.wieState) {
+                    case WIE__UNKNOWN:
+                        return I2C_SENSORS__STATUS__ERROR__INTERNAL;
+
+                    case WIE__WRITE_PORT_0_VALUE:
+                        // Fall through
+                    case WIE__WRITE_PORT_1_VALUE:
+                        return I2C_SENSORS__STATUS__INCOMPLETE;
+
+                    case WIE__DONE:
+                        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+
+                    case WIE__FAILED_NACK:
+                        return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
+
+                    default:
+                        return I2C_SENSORS__STATUS__ERROR__INTERNAL;
+                }
+            }
+
+        case I2C_SENSORS__ACTIONS__READ_IO_EXPANDER:
+            {
+                if (NULL == readValue) {
+                    return I2C_SENSORS__STATUS__ERROR__NULL;
+                }
+
+                switch (internals.rieState) {
+                    case RIE__UNKNOWN:
+                        return I2C_SENSORS__STATUS__ERROR__INTERNAL;
+
+                    case RIE__READING:
+                        return I2C_SENSORS__STATUS__INCOMPLETE;
+
+                    case RIE__DONE:
+                        *readValue = internals.ioExpanderPort1ReadValue;
+                        return I2C_SENSORS__STATUS__SUCCESS_DONE;
+
+                    case RIE__FAILED_NACK:
+                        return I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS;
+
+                    default:
+                        return I2C_SENSORS__STATUS__ERROR__INTERNAL;
+                }
+            }
 
         default:
             return I2C_SENSORS__STATUS__ERROR__INTERNAL;
@@ -585,9 +848,7 @@ void I2C_Sensors__spinOnce(void)
                             break;
 
                         case GRS__DONE:
-                            keepSpinning = FALSE;
-                            break;
-
+                            // Fall through
                         default:
                             keepSpinning = FALSE;
                             break;
@@ -615,7 +876,9 @@ void I2C_Sensors__spinOnce(void)
                             break;
 
                         case FGI__DONE:
+                            // Fall through
                         case FGI__FAILED_NACK:
+                            // Fall through
                         default:
                             keepSpinning = FALSE;
                             break;
@@ -635,7 +898,9 @@ void I2C_Sensors__spinOnce(void)
                             break;
 
                         case WLP__DONE:
+                            // Fall through
                         case WLP__FAILED_NACK:
+                            // Fall through
                         default:
                             keepSpinning = FALSE;
                             break;
@@ -645,11 +910,7 @@ void I2C_Sensors__spinOnce(void)
 
             case I2C_SENSORS__ACTIONS__READ_GAUGE_CONTROL_REGISTER:
                 {
-                    if (NULL == controlRegisterValue) {
-                        return I2C_SENSORS__STATUS__ERROR__NULL;
-                    }
-
-                    switch (internals.wlpState) {
+                    switch (internals.rcState) {
                         case RC__UNKNOWN:
                             keepSpinning = FALSE;
                             break;
@@ -659,7 +920,83 @@ void I2C_Sensors__spinOnce(void)
                             break;
 
                         case RC__DONE:
+                            // Fall through
                         case RC__FAILED_NACK:
+                            // Fall through
+                        default:
+                            keepSpinning = FALSE;
+                            break;
+                    }
+                }
+                break;
+
+            case I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER:
+                {
+                    switch (internals.iieState) {
+                        case IIE__UNKNOWN:
+                            keepSpinning = FALSE;
+                            break;
+
+                        case IIE__WRITE_PORT_0_CONFIG:
+                            keepSpinning = I2C_Sensors__ioExpanderInitPort0();
+                            break;
+
+                        case IIE__WRITE_PORT_1_CONFIG:
+                            keepSpinning = I2C_Sensors__ioExpanderInitPort1();
+                            break;
+
+                        case IIE__DONE:
+                            // Fall through
+                        case IIE__FAILED_NACK:
+                            // Fall through
+                        default:
+                            keepSpinning = FALSE;
+                            break;
+                    }
+                }
+                break;
+
+            case I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER:
+                {
+                    switch (internals.wieState) {
+                        case WIE__UNKNOWN:
+                            keepSpinning = FALSE;
+                            break;
+
+                        case WIE__WRITE_PORT_0_VALUE:
+                            keepSpinning = I2C_Sensors__ioExpanderWritePort0();
+                            break;
+
+                        case WIE__WRITE_PORT_1_VALUE:
+                            keepSpinning = I2C_Sensors__ioExpanderWritePort1();
+                            break;
+
+                        case WIE__DONE:
+                            // Fall through
+                        case WIE__FAILED_NACK:
+                            // Fall through
+                        default:
+                            keepSpinning = FALSE;
+                            break;
+                    }
+                }
+                break;
+
+            case I2C_SENSORS__ACTIONS__READ_IO_EXPANDER:
+                {
+                    switch (internals.rieState) {
+                        case RIE__UNKNOWN:
+                            keepSpinning = FALSE;
+                            break;
+
+                        case RIE__READING:
+                            keepSpinning = I2C_Sensors__ioExpanderReadPort1();
+                            break;
+
+                        case RIE__DONE:
+                            // Fall through
+                        case RIE__FAILED_NACK:
+                            // Fall through
                         default:
                             keepSpinning = FALSE;
                             break;
@@ -760,7 +1097,6 @@ static BOOL I2C_Sensors__readRegNonBlocking(uint8_t devAddr,
         *gotOutput = FALSE;
     }
 
-
     return continueSpinning;
 }
 
@@ -785,8 +1121,8 @@ static void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
         BOOL prevWriteDone = FALSE;
 
         if ((tStatus.devAddr == devAddr)
-                        && (tStatus.regAddr == regAddr)
-                        && (tStatus.type == I2C__TYPE__WRITE)) {
+                && (tStatus.regAddr == regAddr)
+                && (tStatus.type == I2C__TYPE__WRITE)) {
             // This transaction status is for the currently requested write
             statusForRequestedTransaction = TRUE;
         }
@@ -830,9 +1166,10 @@ static void I2C_Sensors__writeRegNonBlocking(uint8_t devAddr,
 static BOOL I2C_Sensors__chargeLsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
-                                           REG_ADDR__ACCUMULATED_CHARGE_LSB,
+    return I2C_Sensors__readRegNonBlocking(FUEL_GAUGE_I2C_SLAVE_ADDR,
+                                           FG_REG_ADDR__ACCUMULATED_CHARGE_LSB,
                                            I2C_SENSORS__NACK__BATT_CHARGE,
+                                           TRUE,
                                            GRS__CHARGE_MSB,
                                            internals.readings.raw_battery_charge + 1,
                                            &done,
@@ -842,9 +1179,10 @@ static BOOL I2C_Sensors__chargeLsb(void)
 static BOOL I2C_Sensors__chargeMsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    BOOL result = I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
-                                                  REG_ADDR__ACCUMULATED_CHARGE_MSB,
+    BOOL result = I2C_Sensors__readRegNonBlocking(FUEL_GAUGE_I2C_SLAVE_ADDR,
+                                                  FG_REG_ADDR__ACCUMULATED_CHARGE_MSB,
                                                   I2C_SENSORS__NACK__BATT_CHARGE,
+                                                  TRUE,
                                                   GRS__VOLTAGE_LSB,
                                                   internals.readings.raw_battery_charge,
                                                   &done,
@@ -852,8 +1190,8 @@ static BOOL I2C_Sensors__chargeMsb(void)
 
     if (done && gotOutput) {
         uint8_t *raw_battery_charge = internals.readings.raw_battery_charge;
-        uint16_t chargeUShort = (uint16_t)(raw_battery_charge[1] + (raw_battery_charge[0] << 8));
-        internals.readings.batt_charge_telem = (uint8_t)(chargeUShort >> 10) * 3;
+        uint16_t chargeUShort = (uint16_t) (raw_battery_charge[1] + (raw_battery_charge[0] << 8));
+        internals.readings.batt_charge_telem = (uint8_t) (chargeUShort >> 10) * 3;
     }
 
     return result;
@@ -862,9 +1200,10 @@ static BOOL I2C_Sensors__chargeMsb(void)
 static BOOL I2C_Sensors__voltageLsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
-                                           REG_ADDR__VOLTAGE_LSB,
+    return I2C_Sensors__readRegNonBlocking(FUEL_GAUGE_I2C_SLAVE_ADDR,
+                                           FG_REG_ADDR__VOLTAGE_LSB,
                                            I2C_SENSORS__NACK__BATT_VOLTAGE,
+                                           TRUE,
                                            GRS__VOLTAGE_MSB,
                                            internals.readings.raw_battery_voltage + 1,
                                            &done,
@@ -874,9 +1213,10 @@ static BOOL I2C_Sensors__voltageLsb(void)
 static BOOL I2C_Sensors__voltageMsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
-                                           REG_ADDR__VOLTAGE_MSB,
+    return I2C_Sensors__readRegNonBlocking(FUEL_GAUGE_I2C_SLAVE_ADDR,
+                                           FG_REG_ADDR__VOLTAGE_MSB,
                                            I2C_SENSORS__NACK__BATT_VOLTAGE,
+                                           TRUE,
                                            GRS__CURRENT_LSB,
                                            internals.readings.raw_battery_voltage,
                                            &done,
@@ -886,9 +1226,10 @@ static BOOL I2C_Sensors__voltageMsb(void)
 static BOOL I2C_Sensors__currentLsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
-                                           REG_ADDR__CURRENT_LSB,
+    return I2C_Sensors__readRegNonBlocking(FUEL_GAUGE_I2C_SLAVE_ADDR,
+                                           FG_REG_ADDR__CURRENT_LSB,
                                            I2C_SENSORS__NACK__BATT_CURRENT,
+                                           TRUE,
                                            GRS__CURRENT_MSB,
                                            internals.readings.raw_battery_current + 1,
                                            &done,
@@ -898,9 +1239,10 @@ static BOOL I2C_Sensors__currentLsb(void)
 static BOOL I2C_Sensors__currentMsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    BOOL result = I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
-                                                  REG_ADDR__CURRENT_MSB,
+    BOOL result = I2C_Sensors__readRegNonBlocking(FUEL_GAUGE_I2C_SLAVE_ADDR,
+                                                  FG_REG_ADDR__CURRENT_MSB,
                                                   I2C_SENSORS__NACK__BATT_CURRENT,
+                                                  TRUE,
                                                   GRS__GAUGE_TEMP_LSB,
                                                   internals.readings.raw_battery_current,
                                                   &done,
@@ -908,13 +1250,13 @@ static BOOL I2C_Sensors__currentMsb(void)
 
     if (done && gotOutput) {
         uint8_t *raw_battery_current = internals.readings.raw_battery_current;
-        uint16_t bCurrUShort = (uint16_t)(32767 - raw_battery_current[1] - (raw_battery_current[0] << 8));
+        uint16_t bCurrUShort = (uint16_t) (32767 - raw_battery_current[1] - (raw_battery_current[0] << 8));
 
         if (bCurrUShort > 17407) {
             //exceeds maximum value of 0.6 A
             internals.readings.batt_curr_telem = 255;
         } else {
-            internals.readings.batt_curr_telem = (uint8_t)(bCurrUShort >> 7 );
+            internals.readings.batt_curr_telem = (uint8_t) (bCurrUShort >> 7);
         }
     }
 
@@ -924,9 +1266,10 @@ static BOOL I2C_Sensors__currentMsb(void)
 static BOOL I2C_Sensors__gaugeTempLsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
-                                           REG_ADDR__TEMPERATURE_LSB,
+    return I2C_Sensors__readRegNonBlocking(FUEL_GAUGE_I2C_SLAVE_ADDR,
+                                           FG_REG_ADDR__TEMPERATURE_LSB,
                                            I2C_SENSORS__NACK__FUEL_GAUGE_TEMP,
+                                           TRUE,
                                            GRS__GAUGE_TEMP_MSB,
                                            internals.readings.raw_fuel_gauge_temp + 1,
                                            &done,
@@ -936,9 +1279,10 @@ static BOOL I2C_Sensors__gaugeTempLsb(void)
 static BOOL I2C_Sensors__gaugeTempMsb(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    return I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
-                                           REG_ADDR__TEMPERATURE_MSB,
+    return I2C_Sensors__readRegNonBlocking(FUEL_GAUGE_I2C_SLAVE_ADDR,
+                                           FG_REG_ADDR__TEMPERATURE_MSB,
                                            I2C_SENSORS__NACK__FUEL_GAUGE_TEMP,
+                                           TRUE,
                                            GRS__DONE,
                                            internals.readings.raw_fuel_gauge_temp,
                                            &done,
@@ -948,40 +1292,39 @@ static BOOL I2C_Sensors__gaugeTempMsb(void)
 static BOOL I2C_Sensors__accumulatedChargeMsb(void)
 {
     BOOL done = FALSE, success = FALSE;
-    I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
-                                     REG_ADDR__ACCUMULATED_CHARGE_MSB,
+    I2C_Sensors__writeRegNonBlocking(FUEL_GAUGE_I2C_SLAVE_ADDR,
+                                     FG_REG_ADDR__ACCUMULATED_CHARGE_MSB,
                                      FUEL_GAUGE_CHARGE_ACCUM_MSB_INIT,
                                      TRUE,
                                      FGI__ACCUMULATED_CHARGE_LSB,
                                      &done,
-                                     &stageSuccess);
+                                     &success);
     return (done && success) ? TRUE : FALSE;
 }
-
 
 static BOOL I2C_Sensors__accumulatedChargeLsb(void)
 {
     BOOL done = FALSE, success = FALSE;
-    I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
-                                     REG_ADDR__ACCUMULATED_CHARGE_LSB,
+    I2C_Sensors__writeRegNonBlocking(FUEL_GAUGE_I2C_SLAVE_ADDR,
+                                     FG_REG_ADDR__ACCUMULATED_CHARGE_LSB,
                                      FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT,
                                      TRUE,
                                      FGI__CONTROL,
                                      &done,
-                                     &stageSuccess);
+                                     &success);
     return (done && success) ? TRUE : FALSE;
 }
 
 static BOOL I2C_Sensors__writeControl(void)
 {
     BOOL done = FALSE, success = FALSE;
-    I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
-                                     REG_ADDR__CONTROL,
+    I2C_Sensors__writeRegNonBlocking(FUEL_GAUGE_I2C_SLAVE_ADDR,
+                                     FG_REG_ADDR__CONTROL,
                                      FUEL_GAUGE_CONTROL_INIT,
                                      TRUE,
                                      FGI__DONE,
                                      &done,
-                                     &stageSuccess);
+                                     &success);
 
     // Either we're not done, succeeded and are done with the gauge initialization, or failed due to a NACK. In
     // all of these cases, we want to stop spinning.
@@ -991,17 +1334,17 @@ static BOOL I2C_Sensors__writeControl(void)
 static BOOL I2C_Sensors__readControl(void)
 {
     BOOL done = FALSE, gotOutput = FALSE;
-    I2C_Sensors__readRegNonBlocking(I2C_SLAVE_ADDR,
-                                    REG_ADDR__CONTROL,
+    I2C_Sensors__readRegNonBlocking(FUEL_GAUGE_I2C_SLAVE_ADDR,
+                                    FG_REG_ADDR__CONTROL,
                                     0,
                                     FALSE,
-                                    initialState,
+                                    internals.grsState,
                                     &(internals.controlRegisterReadValue),
                                     &done,
-                                    &success);
+                                    &gotOutput);
 
     if (done) {
-        internals.rcState = success ? RC__DONE : RC__FAILED_NACK;
+        internals.rcState = gotOutput ? RC__DONE : RC__FAILED_NACK;
     }
 
     // Either we're not done, succeeded and are done with this action, or failed due to a NACK. In all cases, we want
@@ -1012,8 +1355,8 @@ static BOOL I2C_Sensors__readControl(void)
 static BOOL I2C_Sensors__lowPower(void)
 {
     BOOL done = FALSE, success = FALSE;
-    I2C_Sensors__writeRegNonBlocking(I2C_SLAVE_ADDR,
-                                     REG_ADDR__CONTROL,
+    I2C_Sensors__writeRegNonBlocking(FUEL_GAUGE_I2C_SLAVE_ADDR,
+                                     FG_REG_ADDR__CONTROL,
                                      FUEL_GAUGE_CONTROL_LOW_POWER,
                                      FALSE,
                                      FGI__UNKNOWN,
@@ -1026,5 +1369,102 @@ static BOOL I2C_Sensors__lowPower(void)
 
     // Either we're not done, succeeded and are done with this action, or failed due to a NACK. In all cases, we want
     // to stop spinning
+    return FALSE;
+}
+
+static BOOL I2C_Sensors__ioExpanderInitPort0(void)
+{
+    BOOL done = FALSE, success = FALSE;
+    I2C_Sensors__writeRegNonBlocking(IO_EXPANDER_I2C_SLAVE_ADDR,
+                                     IO_EXPANDER_CONFIG_PORT_0_REG_ADDR,
+                                     IO_EXPANDER_CONFIG_PORT_0_VALUE,
+                                     FALSE,
+                                     internals.fgiState,
+                                     &done,
+                                     &success);
+
+    if (done) {
+        internals.iieState = success ? IIE__WRITE_PORT_1_CONFIG : IIE__FAILED_NACK;
+    }
+
     return (done && success) ? TRUE : FALSE;
+}
+
+static BOOL I2C_Sensors__ioExpanderInitPort1(void)
+{
+    BOOL done = FALSE, success = FALSE;
+    I2C_Sensors__writeRegNonBlocking(IO_EXPANDER_I2C_SLAVE_ADDR,
+                                     IO_EXPANDER_CONFIG_PORT_1_REG_ADDR,
+                                     IO_EXPANDER_CONFIG_PORT_1_VALUE,
+                                     FALSE,
+                                     internals.fgiState,
+                                     &done,
+                                     &success);
+
+    if (done) {
+        internals.iieState = success ? IIE__DONE : IIE__FAILED_NACK;
+    }
+
+    // Either we're not done, succeeded and are done with this action, or failed due to a NACK. In all cases, we want
+    // to stop spinning
+    return FALSE;
+}
+
+static BOOL I2C_Sensors__ioExpanderWritePort0(void)
+{
+    BOOL done = FALSE, success = FALSE;
+    I2C_Sensors__writeRegNonBlocking(IO_EXPANDER_I2C_SLAVE_ADDR,
+                                     IO_EXPANDER_OUTPUT_PORT_0_REG_ADDR,
+                                     internals.ioExpanderPort0WriteValue,
+                                     FALSE,
+                                     internals.fgiState,
+                                     &done,
+                                     &success);
+
+    if (done) {
+        internals.wieState = success ? WIE__WRITE_PORT_1_VALUE : WIE__FAILED_NACK;
+    }
+
+    return (done && success) ? TRUE : FALSE;
+}
+
+static BOOL I2C_Sensors__ioExpanderWritePort1(void)
+{
+    BOOL done = FALSE, success = FALSE;
+    I2C_Sensors__writeRegNonBlocking(IO_EXPANDER_I2C_SLAVE_ADDR,
+                                     IO_EXPANDER_OUTPUT_PORT_1_REG_ADDR,
+                                     internals.ioExpanderPort1WriteValue,
+                                     FALSE,
+                                     internals.fgiState,
+                                     &done,
+                                     &success);
+
+    if (done) {
+        internals.wieState = success ? WIE__DONE : WIE__FAILED_NACK;
+    }
+
+    // Either we're not done, succeeded and are done with this action, or failed due to a NACK. In all cases, we want
+    // to stop spinning
+    return FALSE;
+}
+
+static BOOL I2C_Sensors__ioExpanderReadPort1(void)
+{
+    BOOL done = FALSE, gotOutput = FALSE;
+    I2C_Sensors__readRegNonBlocking(IO_EXPANDER_I2C_SLAVE_ADDR,
+                                    IO_EXPANDER_INPUT_PORT_1_REG_ADDR,
+                                    0,
+                                    FALSE,
+                                    internals.grsState,
+                                    &(internals.ioExpanderPort1ReadValue),
+                                    &done,
+                                    &gotOutput);
+
+    if (done) {
+        internals.rieState = gotOutput ? RIE__DONE : RIE__FAILED_NACK;
+    }
+
+    // Either we're not done, succeeded and are done with this action, or failed due to a NACK. In all cases, we want
+    // to stop spinning
+    return FALSE;
 }

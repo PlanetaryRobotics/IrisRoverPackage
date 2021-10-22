@@ -5,6 +5,7 @@
 #ifndef __FLAGS_INC
 #define __FLAGS_INC
 
+#include "common.h"
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -38,21 +39,31 @@ __volatile extern uint16_t loop_flags;
 
 #define WDOPT_MONITOR_HERCULES  0x0001
 
-#define DEFAULT_LPM LPM2_bits
+#define ENTER_DEFAULT_LPM LPM3
+#define EXIT_DEFAULT_LPM LPM3_EXIT
 
-__volatile extern uint16_t watchdog_flags;
+typedef struct HeaterParams
+{
+    uint16_t m_kpHeater;
+    uint16_t m_pwmLimit;
+    uint16_t m_heaterSetpoint;
+    uint16_t m_heaterWindow;
+    uint16_t m_heaterOnVal;
+    uint16_t m_heaterOffVal;
+    BOOL m_heating;
+    BOOL m_heatingControlEnabled;
+} HeaterParams;
 
-enum rover_state {
-    RS_SLEEP = 0x02, // about to lose power
-    RS_SERVICE = 0x04, // temporary state to act as a buffer between mission and service
-    RS_KEEPALIVE = 0x08, // connected to the lander 28V, send heartbeats
-    RS_MISSION = 0x10, // power everything up. woot!
-    RS_FAULT = 0x20 // oops
-};
-extern enum rover_state rovstate;
-
-// enter a rover state
-void enterMode(enum rover_state newstate);
+#define DEFAULT_KP_HEATER 500
+#define DEFAULT_PWM_LIMIT 8500
+#define DEFAULT_HEATER_SETPOINT 3325
+#define DEFAULT_HEATER_WINDOW 60
+// 3670 is the -5 deg C thermistor voltage ADC reading
+#define DEFAULT_HEATER_ON_VAL 3670
+// 3670 is the 0 deg C thermistor voltage ADC reading
+#define DEFAULT_HEATER_OFF_VAL 3352
+#define DEFAULT_HEATING 0
+#define DEFAULT_HEATING_CONTROL_ENABLED 1
 
 #ifdef __cplusplus
 } /* close extern "C" */

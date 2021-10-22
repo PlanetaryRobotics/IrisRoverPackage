@@ -10,7 +10,12 @@
 namespace iris
 {
     RoverStateEnteringService::RoverStateEnteringService()
-            : RoverStateBase(RoverState::ENTERING_SERVICE)
+            : RoverStateEnteringKeepAlive(RoverState::ENTERING_SERVICE)
+    {
+    }
+
+    RoverStateEnteringService::RoverStateEnteringService(RoverState overridingState)
+            : RoverStateEnteringKeepAlive(overridingState)
     {
     }
 
@@ -39,23 +44,25 @@ namespace iris
     }
 
     RoverState RoverStateEnteringService::performResetCommand(RoverContext& theContext,
-                                                                WdCmdMsgs__ResetSpecificId resetValue,
-                                                                WdCmdMsgs__Response* response)
+                                                              WdCmdMsgs__ResetSpecificId resetValue,
+                                                              WdCmdMsgs__Response* response)
     {
-        return RoverStateBase::doConditionalResetSpecific(theContext,
-                                                          resetValue,
-                                                          response,
-                                                          true, // whether or not to allow power on
-                                                          false, // whether or not to allow disabling RS422
-                                                          false, // whether or not to allow deploy
-                                                          false); // whether or not to allow undeploy
+        RoverStateBase::doConditionalResetSpecific(theContext,
+                                                   resetValue,
+                                                   response,
+                                                   true, // whether or not to allow power on
+                                                   false, // whether or not to allow disabling RS422
+                                                   false, // whether or not to allow deploy
+                                                   false); // whether or not to allow undeploy
+
+        return getState();
     }
 
     RoverState RoverStateEnteringService::doGndCmdEnterKeepAliveMode(RoverContext& theContext,
-                                                                       const WdCmdMsgs__Message& msg,
-                                                                       WdCmdMsgs__Response& response,
-                                                                       WdCmdMsgs__Response& deployNotificationResponse,
-                                                                       bool& sendDeployNotificationResponse)
+                                                                     const WdCmdMsgs__Message& msg,
+                                                                     WdCmdMsgs__Response& response,
+                                                                     WdCmdMsgs__Response& deployNotificationResponse,
+                                                                     bool& sendDeployNotificationResponse)
     {
         // In SERVICE we require EnterKeepAlive to be sent twice in a row in order to actually perform the transition,
         // so rather than implementing that a second time in this state we just refuse this command in this state.
@@ -68,11 +75,11 @@ namespace iris
                                                           sendDeployNotificationResponse);
     }
 
-    RoverState RoverStateKeepAlive::doGndCmdEnterServiceMode(RoverContext& theContext,
-                                                             const WdCmdMsgs__Message& msg,
-                                                             WdCmdMsgs__Response& response,
-                                                             WdCmdMsgs__Response& deployNotificationResponse,
-                                                             bool& sendDeployNotificationResponse)
+    RoverState RoverStateEnteringService::doGndCmdEnterServiceMode(RoverContext& theContext,
+                                                                   const WdCmdMsgs__Message& msg,
+                                                                   WdCmdMsgs__Response& response,
+                                                                   WdCmdMsgs__Response& deployNotificationResponse,
+                                                                   bool& sendDeployNotificationResponse)
     {
         // We're already entering service mode, but we can still re-transition into entering service mode
         // once we receive this command.

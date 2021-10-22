@@ -85,7 +85,7 @@ BOOL isAdcSampleDone(void)
 
 BOOL setupAdcForLander(void)
 { // set up adc to read values for lander mode
-    if (NULL == watchdogFlags) {
+    if (NULL == watchdogFlagsPtr) {
         return FALSE;
     }
 
@@ -103,11 +103,13 @@ BOOL setupAdcForLander(void)
 
     // clear sample ready, if set
     *watchdogFlagsPtr &= ~WDFLAG_ADC_READY;
+
+    return TRUE;
 }
 
 BOOL setupAdcForMission(void)
 { // set up adc to read values for mission mode (voltage rails)
-    if (NULL == watchdogFlags) {
+    if (NULL == watchdogFlagsPtr) {
         return FALSE;
     }
 
@@ -127,6 +129,8 @@ BOOL setupAdcForMission(void)
 
     // clear sample ready, if set
     *watchdogFlagsPtr &= ~WDFLAG_ADC_READY;
+
+    return TRUE;
 }
 
 /**
@@ -149,6 +153,8 @@ BOOL adcCheckVoltageLevels(AdcValues* output)
 
     // take one sample of the ADC
     ADC12CTL0 |= ADC12SC | ADC12ENC;
+
+    return TRUE;
 }
 
 // Interrupt handler for when the ADC has completed a reading

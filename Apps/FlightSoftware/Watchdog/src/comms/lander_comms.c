@@ -183,6 +183,14 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
     static uint8_t uartHeaderData[IP_UDP_HEADER_LEN] = { 0 };
     static uint8_t uartTxSlipData[256] = { 0 };
 
+    if (NULL == lcState || NULL == data) {
+        return LANDER_COMMS__STATUS__ERROR_NULL;
+    }
+
+    if (!lcState->initialized) {
+        return LANDER_COMMS__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
     /*
      * We want to write four things to be transmitted via the UART to the lander:
      *   1) An initial SLIP_END to indicate message start

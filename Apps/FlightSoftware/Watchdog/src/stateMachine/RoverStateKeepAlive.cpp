@@ -10,11 +10,11 @@
 namespace iris
 {
     RoverStateKeepAlive::RoverStateKeepAlive()
-        : RoverStateBase(RoverState::KEEP_ALIVE)
+        : RoverStateEnteringKeepAlive(RoverState::KEEP_ALIVE)
     {
     }
 
-    bool RoverStateKeepAlive::canEnterLowPowerMode()
+    bool RoverStateKeepAlive::canEnterLowPowerMode(RoverContext& /*theContext*/)
     {
         // Handling lander data and timer ticks will both wake us up out of LPM, so it's ok for us to enter it.
         return true;
@@ -35,17 +35,7 @@ namespace iris
 
         // Then do everything else we did in EnteringKeepAlive timer tick
         RoverStateEnteringKeepAlive::handleTimerTick(theContext);
-    }
 
-    RoverState RoverStateKeepAlive::handleI2cStarted(RoverContext& /*theContext*/)
-    {
-        assert(!"Got I2C started event in KeepAlive, which shouldn't be possible");
-        return getState();
-    }
-
-    RoverState RoverStateKeepAlive::handleI2cDone(RoverContext& /*theContext*/)
-    {
-        assert(!"Got I2C done event in KeepAlive, which shouldn't be possible");
         return getState();
     }
 

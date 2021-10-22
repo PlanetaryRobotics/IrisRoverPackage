@@ -19,6 +19,8 @@
 #include "drivers/adc.h"
 #include "drivers/uart.h"
 #include "drivers/bsp.h"
+#include "event/event.h"
+#include "event/event_queue.h"
 #include "flags.h"
 #include "ground_cmd.h"
 #include "watchdog.h"
@@ -28,32 +30,21 @@
 // to non-NULL values in watchdog_init prior to enabling the interrupts,
 // these three shouldn't ever actually be used.
 static volatile uint16_t shouldBeUnusedWatchdogFlags = 0;
-static volatile uint16_t shouldBeUnusedLoopFlags = 0;
 static volatile uint16_t shouldBeUnusedTimeCount = 0;
 
 static volatile uint16_t* watchdogFlagsPtr = &shouldBeUnusedWatchdogFlags;
-static volatile uint16_t* loopFlagsPtr = &shouldBeUnusedLoopFlags;
 static volatile uint16_t* timeCountCentisecondsPtr = &shouldBeUnusedTimeCount;
 
 /**
  * Set up the ISRs for the watchdog
  */
-int watchdog_init(volatile uint16_t* watchdogFlags,
-                  volatile uint16_t* loopFlags,
-                  volatile uint16_t* timeCountCentiseconds)
+int watchdog_init(volatile uint16_t* watchdogFlags, volatile uint16_t* timeCountCentiseconds)
 {
     DEBUG_LOG_NULL_CHECK_RETURN(watchdogFlags, "Parameter is NULL", -1);
-    DEBUG_LOG_NULL_CHECK_RETURN(loopFlags, "Parameter is NULL", -1);
-    DEBUG_LOG_NULL_CHECK_RETURN(timeCount, "Parameter is NULL", -1);
+    DEBUG_LOG_NULL_CHECK_RETURN(timeCountCentiseconds, "Parameter is NULL", -1);
 
     watchdogFlagsPtr = watchdogFlags;
-    loopFlagsPtr = loopFlags;
     timeCountCentisecondsPtr = timeCountCentiseconds;
-
-    /* trigger on P1.0 Hi/lo edge */
-    P1IE |= BIT0;                    // P1.0 interrupt enabled
-    P1IES |= BIT0;                   // P1.0 Hi/lo edge
-    P1IFG &= ~BIT0;                  // P1.0 IFG cleared initally
 
     /* =====================================================
      Timer_A setup (used for getting interrupts to do periodic actions like sending heartbeat)
@@ -156,10 +147,6 @@ int watchdog_init(volatile uint16_t* watchdogFlags,
     // Finished setting up Timer_B, so we start the timer in "Up" mode (i.e. timer will count up to the
     // value in TB0CL0 (which is set automatically from the value in TB0CCR0), then overflow to zero).
     TB0CTL |= MC__UP;
-    
-
-    // make sure PWM does not exceed ~90% to keep power use low
-    PWM_limit = 8500;                       
 
     return 0;
 }
@@ -171,15 +158,16 @@ int watchdog_init(volatile uint16_t* watchdogFlags,
  */
 int watchdog_monitor(HerculesComms__State* hState,
                      volatile uint16_t* watchdogFlags,
-                     uint8_t* watchdogOpts)
+                     uint8_t* watchdogOpts,
+                     BOOL* writeIOExpander)
 {
     DEBUG_LOG_NULL_CHECK_RETURN(hState, "Parameter is NULL", -1);
     DEBUG_LOG_NULL_CHECK_RETURN(watchdogFlags, "Parameter is NULL", -1);
     DEBUG_LOG_NULL_CHECK_RETURN(watchdogOpts, "Parameter is NULL", -1);
+    DEBUG_LOG_NULL_CHECK_RETURN(writeIOExpander, "Parameter is NULL", -1);
 
     /* temporarily disable interrupts */
-    __bic_SR_register(GIE);
-
+    __disable_interrupt();
 
     /* check that kicks have been received */
     if (*watchdogFlags & WDFLAG_RADIO_KICK) {
@@ -193,6 +181,7 @@ int watchdog_monitor(HerculesComms__State* hState,
     if (*watchdogFlags & WDFLAG_UNRESET_RADIO2) {
         releaseRadioReset();
         *watchdogFlags ^= WDFLAG_UNRESET_RADIO2;
+        *writeIOExpander = TRUE;
     }
 
     /* unreset wifi chip */
@@ -205,36 +194,42 @@ int watchdog_monitor(HerculesComms__State* hState,
     if (*watchdogFlags & WDFLAG_UNRESET_HERCULES) {
         releaseHerculesReset();
         *watchdogFlags ^= WDFLAG_UNRESET_HERCULES;
+        *writeIOExpander = TRUE;
     }
 
     /* unreset motor 1 */
     if (*watchdogFlags & WDFLAG_UNRESET_MOTOR1) {
         releaseMotor1Reset();
         *watchdogFlags ^= WDFLAG_UNRESET_MOTOR1;
+        *writeIOExpander = TRUE;
     }
 
     /* unreset motor 2 */
     if (*watchdogFlags & WDFLAG_UNRESET_MOTOR2) {
         releaseMotor2Reset();
         *watchdogFlags ^= WDFLAG_UNRESET_MOTOR2;
+        *writeIOExpander = TRUE;
     }
 
     /* unreset motor 3 */
     if (*watchdogFlags & WDFLAG_UNRESET_MOTOR3) {
         releaseMotor3Reset();
         *watchdogFlags ^= WDFLAG_UNRESET_MOTOR3;
+        *writeIOExpander = TRUE;
     }
 
     /* unreset motor 4 */
     if (*watchdogFlags & WDFLAG_UNRESET_MOTOR4) {
         releaseMotor4Reset();
         *watchdogFlags ^= WDFLAG_UNRESET_MOTOR4;
+        *writeIOExpander = TRUE;
     }
 
     /* unreset FPGA */
     if (*watchdogFlags & WDFLAG_UNRESET_FPGA) {
         releaseFPGAReset();
         *watchdogFlags ^= WDFLAG_UNRESET_FPGA;
+        *writeIOExpander = TRUE;
     }
 
     /* bring 3V3 on again */
@@ -271,13 +266,15 @@ int watchdog_monitor(HerculesComms__State* hState,
 
             //!< @todo Replace with returning watchdog error code once that is implemented.
             assert(HERCULES_COMMS__STATUS__SUCCESS == hcStatus);
+
+            *writeIOExpander = TRUE;
         } else {
             // missed a kick, but don't reset the hercules.
         }
     }
 
     /* re-enable interrupts */
-    __bis_SR_register(GIE);
+    __enable_interrupt();
     return 0;
 }
 
@@ -285,12 +282,13 @@ int watchdog_monitor(HerculesComms__State* hState,
 
 void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
                                    const AdcValues* adcValues,
+                                   BOOL hasDeployed,
                                    uint8_t* telbuf,
                                    size_t telbufSize)
 {
-    DEBUG_LOG_NULL_CHECK_RETURN(i2cReadings, "Parameter is NULL", );
-    DEBUG_LOG_NULL_CHECK_RETURN(adcValues, "Parameter is NULL", );
-    DEBUG_LOG_NULL_CHECK_RETURN(telbuf, "Parameter is NULL", );
+    DEBUG_LOG_NULL_CHECK_RETURN(i2cReadings, "Parameter is NULL", /* nothing, b/c void return */);
+    DEBUG_LOG_NULL_CHECK_RETURN(adcValues, "Parameter is NULL", /* nothing, b/c void return */);
+    DEBUG_LOG_NULL_CHECK_RETURN(telbuf, "Parameter is NULL", /* nothing, b/c void return */);
 
     if (telbufSize < 16) {
         DPRINTF_ERR("telbufSize is too small: required = %d, actual = %d\n", 16, telbufSize);
@@ -307,47 +305,13 @@ void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
     telbuf[6] = (uint8_t)(adcValues->data[ADC_LANDER_LEVEL_IDX]);
     telbuf[7] = (uint8_t)(adcValues->data[ADC_LANDER_LEVEL_IDX] >> 8);
     telbuf[8] = (uint8_t)(adcValues->data[ADC_TEMP_IDX] >> 4);
-    telbuf[9] = hasDeployed;
+    telbuf[9] = hasDeployed ? 1 : 0;
     telbuf[10] = (uint8_t)(i2cReadings->raw_battery_charge[0]);
     telbuf[11] = (uint8_t)(i2cReadings->raw_battery_charge[1]);
     telbuf[12] = (uint8_t)(i2cReadings->raw_battery_current[0]);
     telbuf[13] = (uint8_t)(i2cReadings->raw_battery_current[1]);
     telbuf[14] = (uint8_t)(i2cReadings->raw_battery_voltage[0]);
     telbuf[15] = (uint8_t)(i2cReadings->raw_battery_voltage[1]);
-}
-
-void heaterControl(){
-    // voltage, where LSB = 0.0008056640625V
-    unsigned short therm_reading = adc_values[ADC_TEMP_IDX];
-
-    if(therm_reading > heater_on_val){
-        //   start heating when temperature drops below -5 C
-        loop_flags |= FLAG_TEMP_LOW;
-    } else if(therm_reading < heater_off_val){
-        //   stop heating when temperature reaches 0 C
-        loop_flags |= FLAG_TEMP_HIGH;
-    }
-
-    uint32_t PWM_cycle = 0;
-    // P controller output
-    // setpoint is slightly above desired temp because otherwise it will get stuck slightly below it
-    if(loop_flags & FLAG_TEMP_LOW){
-        PWM_cycle = Kp_heater * (therm_reading - heater_setpoint);
-    }
-
-
-    // cannot have duty cycle greater than clock
-    if(PWM_cycle > PWM_limit){
-        PWM_cycle = PWM_limit;
-    }
-
-    if(rovstate == RS_KEEPALIVE){
-        TB0CCR2 = PWM_cycle;
-    } else {
-        // don't run heaters when not on lander
-        TB0CCR2=0;
-    }
-
 }
 
 
@@ -386,7 +350,7 @@ void __attribute__ ((interrupt(PORT1_VECTOR))) port1_isr_handler (void) {
             *watchdogFlagsPtr |= WDFLAG_RADIO_KICK;
 
             // exit LPM
-            __bic_SR_register(DEFAULT_LPM);
+            EXIT_DEFAULT_LPM;
             break;
         default: // default: ignore
             break;
@@ -427,10 +391,8 @@ void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer0_A1_ISR (void) {
             break;
 
         case TAIV__TAIFG: /* timer tick overflowed */
-            *loopFlagsPtr |= FLAG_TIMER_TICK;
-
-            // exit LPM
-            __bic_SR_register(DEFAULT_LPM);
+            EventQueue__put(EVENT__TYPE__TIMER_TICK);
+            EXIT_DEFAULT_LPM;
             break;
 
         default:

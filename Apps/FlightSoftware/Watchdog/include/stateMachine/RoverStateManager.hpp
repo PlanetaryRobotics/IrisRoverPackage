@@ -1,6 +1,8 @@
 #ifndef __WATCHDOG_ROVER_STATE_MANAGER_HPP__
 #define __WATCHDOG_ROVER_STATE_MANAGER_HPP__
 
+#include "event/event.h"
+#include "event/event_queue.h"
 #include "stateMachine/RoverContext.hpp"
 #include "stateMachine/RoverState.hpp"
 #include "stateMachine/RoverStateEnteringKeepAlive.hpp"
@@ -11,6 +13,7 @@
 #include "stateMachine/RoverStateMission.hpp"
 #include "stateMachine/RoverStateService.hpp"
 
+#include <array>
 #include <cstddef>
 
 namespace iris
@@ -39,7 +42,7 @@ namespace iris
 
 	        RoverContext m_context;
 
-	        volatile uint8_t m_eventQueueBuffer[EVENT_QUEUE_MAX_SIZE];
+	        std::array<volatile uint8_t, EVENT_QUEUE_MAX_SIZE> m_eventQueueBuffer;
 
 	        RoverStateBase& getStateObjectForStateEnum(RoverState stateEnumValue);
 

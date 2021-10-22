@@ -1,6 +1,10 @@
+#include "drivers/bsp.h"
 #include "stateMachine/RoverStateInit.hpp"
+#include "utils/time.h"
+#include "watchdog.h"
 
 #include <cassert>
+#include <msp430.h>
 
 namespace iris
 {
@@ -28,18 +32,6 @@ namespace iris
         return getState();
     }
 
-    RoverState RoverStateInit::handleI2cStarted(RoverContext& /*theContext*/)
-    {
-        assert(!"Handling I2C started event in INIT state, which shouldn't be possible");
-        return getState();
-    }
-
-    RoverState RoverStateInit::handleI2cDone(RoverContext& /*theContext*/)
-    {
-        assert(!"Handling I2C done event in INIT state, which shouldn't be possible");
-        return getState();
-    }
-
     RoverState RoverStateInit::handleHighTemp(RoverContext& /*theContext*/)
     {
         assert(!"Handling high temp event in INIT state, which shouldn't be possible");
@@ -60,6 +52,34 @@ namespace iris
 
     RoverState RoverStateInit::transitionTo(RoverContext& theContext)
     {
+        //!< @todo Replace this with initialization based on persistent status
+
+        /* initialize the board */
+        initializeGpios(&(theContext.m_heaterParams));
+
+        /* unlock changes to registers/ports, etc. */
+        PM5CTL0 &= ~LOCKLPM5;
+
+        clockInit();
+
+        UART__Status uartStatus = UART__init1(&(theContext.m_uartConfig),
+                                              &(theContext.m_uart1State));
+        assert(UART__STATUS__SUCCESS == uartStatus);
+
+        UART__uninit0(&(theContext.m_uart0State));
+
+        LanderComms__Status lcStatus = LanderComms__init(&(theContext.m_lcState), theContext.m_uart1State);
+        assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
+
+        /* set up watchdog */
+        watchdog_init(&(theContext.m_watchdogFlags), Time__getPointerToCentisecondCount());
+
+        /* set up the ADC */
+        adc_init(&(theContext.m_watchdogFlags));
+
+        /* set up i2c to read from fuel gauge*/
+        I2C_Sensors__init();
+
         return RoverState::ENTERING_KEEP_ALIVE;
     }
 

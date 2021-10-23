@@ -14,6 +14,12 @@ namespace iris
     {
     }
 
+    bool RoverStateInit::canEnterLowPowerMode(RoverContext& /*theContext*/)
+    {
+        return false;
+    }
+
+
     RoverState RoverStateInit::handleLanderData(RoverContext& theContext)
     {
         assert(!"Handling data from lander event in INIT state, which shouldn't be possible");
@@ -64,6 +70,7 @@ namespace iris
 
         UART__Status uartStatus = UART__init1(&(theContext.m_uartConfig),
                                               &(theContext.m_uart1State));
+        DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uartStatus, "Failed to init UART1");
         assert(UART__STATUS__SUCCESS == uartStatus);
 
         UART__uninit0(&(theContext.m_uart0State));

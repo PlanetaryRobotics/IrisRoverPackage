@@ -57,7 +57,7 @@ namespace iris
             uint16_t actionMask = 1 << actionIndex;
 
             // If the corresponding bit in m_queuedI2cActions is set, then we want to perform that action
-            if (theContext.m_queuedI2cActions | actionMask != 0) {
+            if ((theContext.m_queuedI2cActions & actionMask) != 0) {
                 // First, initiate the action
                 I2C_Sensors__Action actionEnum = static_cast<I2C_Sensors__Action>(actionIndex);
 

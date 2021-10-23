@@ -21,8 +21,6 @@ extern "C"
 #define FLAG_POWER_ISSUE     0x40
 #define FLAG_I2C_GAUGE_READING_ACTIVE 0x80
 
-__volatile extern uint16_t loop_flags;
-
 #define WDFLAG_RADIO_KICK 0x0001
 #define WDFLAG_ADC_READY 0x0002
 #define WDFLAG_UNRESET_RADIO1 0x0004

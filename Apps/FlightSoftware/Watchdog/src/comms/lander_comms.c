@@ -95,7 +95,7 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
                                                LanderMsgCallback callback,
                                                void* userArg)
 {
-    static uint8_t uartRxData[64] = { 0 };
+    static uint8_t uartRxData[256] = { 0 };
  
     if (NULL == lcState || NULL == userArg) {
         return LANDER_COMMS__STATUS__ERROR_NULL;

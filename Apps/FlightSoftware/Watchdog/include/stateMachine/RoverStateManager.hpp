@@ -38,13 +38,13 @@ namespace iris
 	        RoverStateMission m_stateMission;
 	        RoverStateService m_stateService;
 
-	        RoverStateBase& m_currentState;
+	        RoverStateBase* m_currentState;
 
 	        RoverContext m_context;
 
 	        std::array<volatile uint8_t, EVENT_QUEUE_MAX_SIZE> m_eventQueueBuffer;
 
-	        RoverStateBase& getStateObjectForStateEnum(RoverState stateEnumValue);
+	        RoverStateBase* getStateObjectForStateEnum(RoverState stateEnumValue);
 
 	        void transitionUntilSettled(RoverState desiredState);
 

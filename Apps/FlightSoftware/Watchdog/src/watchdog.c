@@ -32,8 +32,8 @@
 static volatile uint16_t shouldBeUnusedWatchdogFlags = 0;
 static volatile uint16_t shouldBeUnusedTimeCount = 0;
 
-static volatile uint16_t* watchdogFlagsPtr = &shouldBeUnusedWatchdogFlags;
-static volatile uint16_t* timeCountCentisecondsPtr = &shouldBeUnusedTimeCount;
+static volatile uint16_t* volatile watchdogFlagsPtr = &shouldBeUnusedWatchdogFlags;
+static volatile uint16_t* volatile timeCountCentisecondsPtr = &shouldBeUnusedTimeCount;
 
 /**
  * Set up the ISRs for the watchdog
@@ -161,7 +161,7 @@ int watchdog_monitor(HerculesComms__State* hState,
                      uint8_t* watchdogOpts,
                      BOOL* writeIOExpander)
 {
-    DEBUG_LOG_NULL_CHECK_RETURN(hState, "Parameter is NULL", -1);
+    // NOTE: hState can be NULL if the Hercules comm link isn't up
     DEBUG_LOG_NULL_CHECK_RETURN(watchdogFlags, "Parameter is NULL", -1);
     DEBUG_LOG_NULL_CHECK_RETURN(watchdogOpts, "Parameter is NULL", -1);
     DEBUG_LOG_NULL_CHECK_RETURN(writeIOExpander, "Parameter is NULL", -1);
@@ -262,10 +262,12 @@ int watchdog_monitor(HerculesComms__State* hState,
             *watchdogFlags |= WDFLAG_UNRESET_HERCULES;
 
             // if the issue was due to a comms breakdown, reset the comms state
-            HerculesComms__Status hcStatus = HerculesComms__resetState(hState);
+            if (NULL != hState) {
+                HerculesComms__Status hcStatus = HerculesComms__resetState(hState);
 
-            //!< @todo Replace with returning watchdog error code once that is implemented.
-            assert(HERCULES_COMMS__STATUS__SUCCESS == hcStatus);
+                //!< @todo Replace with returning watchdog error code once that is implemented.
+                assert(HERCULES_COMMS__STATUS__SUCCESS == hcStatus);
+            }
 
             *writeIOExpander = TRUE;
         } else {
@@ -384,7 +386,7 @@ void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer0_A1_ISR (void) {
 #endif
     switch (__even_in_range(TA0IV, TAIV__TAIFG)) {
         case TAIV__TACCR1:
-            *timeCountCentisecondsPtr++;
+            *timeCountCentisecondsPtr = *timeCountCentisecondsPtr + 1;
 
             // Offset the count value we're looking for by by the number of timer ticks in one centisecond
             TA0CCR1 += 94;

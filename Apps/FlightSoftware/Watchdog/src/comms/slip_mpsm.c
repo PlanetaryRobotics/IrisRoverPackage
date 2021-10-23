@@ -96,10 +96,14 @@ SlipMpsm__Status SlipMpsm__process(SlipMpsm__Msg* msg, uint8_t newData)
 
         case SLIP_MPSM_STATE__STARTED:
             if (SLIP_END == newData) {
-                // The current message is complete, so reset the state machine and update the msg
-                theStateMachine.currentState = SLIP_MPSM_STATE__FIRST_BYTE_OR_STARTING_END;
-                msg->msgStatus = SLIP_MPSM__MSG_STATUS__DONE_VALID;
-                return SLIP_MPSM__STATUS__PARSED_MESSAGE;
+                if (msg->msgLen == 0) {
+                    // If we get a stream of "END" bytes beyond what we expect, just ignore them
+                } else {
+                    // The current message is complete, so reset the state machine and update the msg
+                    theStateMachine.currentState = SLIP_MPSM_STATE__FIRST_BYTE_OR_STARTING_END;
+                    msg->msgStatus = SLIP_MPSM__MSG_STATUS__DONE_VALID;
+                    return SLIP_MPSM__STATUS__PARSED_MESSAGE;
+                }
             } else {
                 SlipMpsm__Status stat = SlipMpsm__appendData(msg, newData);
 

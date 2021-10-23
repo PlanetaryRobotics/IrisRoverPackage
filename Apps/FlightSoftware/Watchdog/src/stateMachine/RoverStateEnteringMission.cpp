@@ -169,9 +169,12 @@ namespace iris
                 {
                     // First of all, if we've timed out we can simply move forward.
                     uint16_t timePassed = Time__getTimeInCentiseconds() - m_startFuelGaugeInitTimeCentiseconds;
-
+                    //DPRINTF_ERR("%d\n", Time__getTimeInCentiseconds());
                     if (timePassed > FUEL_GAUGE_INIT_TIMEOUT_CENTISECONDS) {
-                        DPRINTF("Setting up fuel gauge timed out\n");
+                        DPRINTF_ERR("Setting up fuel gauge timed out\n");
+                        I2C_Sensors__stop();
+                        theContext.m_queuedI2cActions = 0;
+                        theContext.m_i2cActive = false;
                         return transitionToWatitingForWifiReadyOrTimeout(theContext);
                     }
 
@@ -203,7 +206,7 @@ namespace iris
                         // Kick off the series of I2C transactions to initialize the fuel gauge.
                         theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__GAUGE_INIT);
                         initiateNextI2cAction(theContext);
-                    } else {
+                    } else if (I2C_SENSORS__STATUS__INCOMPLETE != i2cStatus) {
                         DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE,
                                                i2cStatus,
                                                "Unexpected failure while getting I2C status");
@@ -221,7 +224,7 @@ namespace iris
                     uint16_t timePassed = Time__getTimeInCentiseconds() - m_startWifiReadyTimeCentiseconds;
 
                     if (timePassed > WIFI_READY_TIMEOUT_CENTISECONDS) {
-                        DPRINTF("Wait for wifi timed out\n");
+                        DPRINTF_ERR("Wait for wifi timed out\n");
                         return transitionToWaitingForFinalIoExpanderWrite(theContext);
                     }
                     break;

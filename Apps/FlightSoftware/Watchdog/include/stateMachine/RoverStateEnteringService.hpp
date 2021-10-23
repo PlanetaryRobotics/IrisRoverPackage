@@ -14,6 +14,9 @@ namespace iris
             RoverState handleHerculesData(RoverContext& theContext) override;
             RoverState handleHighTemp(RoverContext& theContext) override;
             RoverState handlePowerIssue(RoverContext& theContext) override;
+            RoverState spinOnce(RoverContext& theContext) override;
+
+            RoverState transitionTo(RoverContext& theContext) override;
 
         protected:
             explicit RoverStateEnteringService(RoverState overridingState);

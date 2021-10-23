@@ -10,6 +10,8 @@ namespace iris
         public:
             explicit RoverStateInit(RoverState firstState);
 
+            bool canEnterLowPowerMode(RoverContext& theContext) override;
+
             // The functions to handle events
             virtual RoverState handleLanderData(RoverContext& theContext) override;
             virtual RoverState handleHerculesData(RoverContext& theContext) override;

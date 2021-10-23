@@ -2,6 +2,7 @@
 
 #include "drivers/adc.h"
 #include "drivers/bsp.h"
+#include "utils/time.h"
 
 #include "ground_cmd.h"
 
@@ -54,6 +55,7 @@ namespace iris
     RoverState RoverStateKeepAlive::spinOnce(RoverContext& theContext)
     {
         // Do nothing
+        //DPRINTF_ERR("%d\n", Time__getTimeInCentiseconds());
         return getState();
     }
 

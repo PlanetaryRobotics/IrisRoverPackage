@@ -43,6 +43,16 @@ namespace iris
         return RoverState::SERVICE;
     }
 
+    RoverState RoverStateEnteringService::spinOnce(RoverContext& theContext)
+    {
+        return RoverState::SERVICE;
+    }
+
+    RoverState RoverStateEnteringService::transitionTo(RoverContext& theContext)
+    {
+        return RoverState::SERVICE;
+    }
+
     RoverState RoverStateEnteringService::performResetCommand(RoverContext& theContext,
                                                               WdCmdMsgs__ResetSpecificId resetValue,
                                                               WdCmdMsgs__Response* response)

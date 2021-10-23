@@ -23,7 +23,7 @@ namespace iris
           m_stateKeepAlive(),
           m_stateMission(),
           m_stateService(),
-          m_currentState(m_stateInit),
+          m_currentState(&m_stateInit),
           m_context(),
           m_eventQueueBuffer()
     {
@@ -50,7 +50,8 @@ namespace iris
         m_context.m_isDeployed = false;
         m_context.m_i2cActive = false;
 
-        transitionUntilSettled(m_currentState.getState());
+        RoverState desiredState = m_currentState->transitionTo(m_context);
+        transitionUntilSettled(desiredState);
     }
 
     void RoverStateManager::spinForever()
@@ -81,9 +82,10 @@ namespace iris
                 // requested by the state(s))
                 handleEvent(event);
                 gotEvent = true;
-            } else if (EQ__STATUS__ERROR_EMPTY == eqStatus && m_currentState.canEnterLowPowerMode(m_context)) {
-                //!< @todo Enter LPM here. Need to figure out how to handle LPM and WDT together.
-                continue;
+            } else if (EQ__STATUS__ERROR_EMPTY == eqStatus) {
+                if (m_currentState->canEnterLowPowerMode(m_context)) {
+                    //!< @todo Enter LPM here. Need to figure out how to handle LPM and WDT together.
+                }
             } else {
                 // Any status other than success or empty is an unexpected failure.
                 DEBUG_LOG_CHECK_STATUS(EQ__STATUS__SUCCESS, eqStatus, "Failed to get event from queue due to error");
@@ -93,8 +95,8 @@ namespace iris
                 I2C_Sensors__spinOnce();
             }
 
-            RoverState currentState = m_currentState.getState();
-            RoverState desiredNextState = m_currentState.spinOnce(m_context);
+            RoverState currentState = m_currentState->getState();
+            RoverState desiredNextState = m_currentState->spinOnce(m_context);
 
             if (currentState != desiredNextState) {
                 transitionUntilSettled(desiredNextState);
@@ -102,47 +104,47 @@ namespace iris
         }
     }
 
-    RoverStateBase& RoverStateManager::getStateObjectForStateEnum(RoverState stateEnumValue)
+    RoverStateBase* RoverStateManager::getStateObjectForStateEnum(RoverState stateEnumValue)
     {
         switch (stateEnumValue) {
             case RoverState::INIT:
-                return m_stateInit;
+                return &m_stateInit;
 
             case RoverState::ENTERING_KEEP_ALIVE:
-                return m_stateEnteringKeepAlive;
+                return &m_stateEnteringKeepAlive;
 
             case RoverState::KEEP_ALIVE:
-                return m_stateKeepAlive;
+                return &m_stateKeepAlive;
 
             case RoverState::ENTERING_SERVICE:
-                return m_stateEnteringService;
+                return &m_stateEnteringService;
 
             case RoverState::SERVICE:
-                return m_stateService;
+                return &m_stateService;
 
             case RoverState::ENTERING_MISSION:
-                return m_stateEnteringMission;
+                return &m_stateEnteringMission;
 
             case RoverState::MISSION:
-                return m_stateMission;
+                return &m_stateMission;
 
             default:
                 assert(!"Reached default state in getStateObjectForStateEnum");
-                return m_stateInit;
+                return &m_stateInit;
         }
     }
 
     void RoverStateManager::transitionUntilSettled(RoverState desiredState)
     {
-        while (m_currentState.getState() != desiredState) {
+        while (m_currentState->getState() != desiredState) {
             m_currentState = getStateObjectForStateEnum(desiredState);
-            desiredState = m_currentState.transitionTo(m_context);
+            desiredState = m_currentState->transitionTo(m_context);
         }
     }
 
     void RoverStateManager::handleEvent(Event__Type event)
     {
-        RoverState currentState = m_currentState.getState();
+        RoverState currentState = m_currentState->getState();
         RoverState desiredNextState = currentState;
 
         switch (event) {
@@ -151,23 +153,23 @@ namespace iris
                 return;
 
             case EVENT__TYPE__LANDER_DATA:
-                desiredNextState = m_currentState.handleLanderData(m_context);
+                desiredNextState = m_currentState->handleLanderData(m_context);
                 break;
 
             case EVENT__TYPE__HERCULES_DATA:
-                desiredNextState = m_currentState.handleHerculesData(m_context);
+                desiredNextState = m_currentState->handleHerculesData(m_context);
                 break;
 
             case EVENT__TYPE__TIMER_TICK:
-                desiredNextState = m_currentState.handleTimerTick(m_context);
+                desiredNextState = m_currentState->handleTimerTick(m_context);
                 break;
 
             case EVENT__TYPE__HIGH_TEMP:
-                desiredNextState = m_currentState.handleHighTemp(m_context);
+                desiredNextState = m_currentState->handleHighTemp(m_context);
                 break;
 
             case EVENT__TYPE__POWER_ISSUE:
-                desiredNextState = m_currentState.handlePowerIssue(m_context);
+                desiredNextState = m_currentState->handlePowerIssue(m_context);
                 break;
 
             default:

@@ -2,6 +2,8 @@
 #include "comms/i2c_sensors.h"
 #include "flags.h"
 
+#include <stddef.h>
+
 // uncomment to program MC
 //#define PROGRAM_MOTOR_CONTROLLERS
 

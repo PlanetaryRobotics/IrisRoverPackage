@@ -38,10 +38,13 @@ static volatile uint16_t* volatile timeCountCentisecondsPtr = &shouldBeUnusedTim
 /**
  * Set up the ISRs for the watchdog
  */
-int watchdog_init(volatile uint16_t* watchdogFlags, volatile uint16_t* timeCountCentiseconds)
+int watchdog_init(volatile uint16_t* watchdogFlags,
+                  volatile uint16_t* timeCountCentiseconds,
+                  const HeaterParams* hParams)
 {
     DEBUG_LOG_NULL_CHECK_RETURN(watchdogFlags, "Parameter is NULL", -1);
     DEBUG_LOG_NULL_CHECK_RETURN(timeCountCentiseconds, "Parameter is NULL", -1);
+    DEBUG_LOG_NULL_CHECK_RETURN(hParams, "Parameter is NULL", -1);
 
     watchdogFlagsPtr = watchdogFlags;
     timeCountCentisecondsPtr = timeCountCentiseconds;
@@ -132,7 +135,7 @@ int watchdog_init(volatile uint16_t* watchdogFlags, volatile uint16_t* timeCount
     // This determines the period of the PWM output. With this set to 10000 and the timer clock
     // frequency of 8000000, the period of the PWM is 10000 / 8000000 = 0.00125 seconds, or 1.25 ms.
     // We subtract one from the desired value because the timer counts starting at 0, rather than 1.
-    TB0CCR0 = 10000 - 1;
+    TB0CCR0 = hParams->m_heaterDutyCyclePeriod - 1;
 
     // Set the output mode of capture/compare block 2 to "Reset/Set". This means that the output is
     // reset (i.e. made low) when Timer_B counts to the value in TB0CCR2, and the output is set (i.e.
@@ -142,7 +145,7 @@ int watchdog_init(volatile uint16_t* watchdogFlags, volatile uint16_t* timeCount
     // Set the initial duty cycle of the PWM. Specifically, this is the counter value at which the output
     // will reset, or go low. When this has a value of zero, it means that the heater is effectively 
     // disabled.
-    TB0CCR2 = 0;
+    TB0CCR2 = hParams->m_heaterDutyCycle;
 
     // Finished setting up Timer_B, so we start the timer in "Up" mode (i.e. timer will count up to the
     // value in TB0CL0 (which is set automatically from the value in TB0CCR0), then overflow to zero).
@@ -297,16 +300,16 @@ void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
         return;
     }
 
-    telbuf[0] = (uint8_t)(adcValues->data[ADC_2V5_LEVEL_IDX]);
-    telbuf[1] = (uint8_t)(adcValues->data[ADC_2V5_LEVEL_IDX] >> 8);
-    telbuf[2] = (uint8_t)(adcValues->data[ADC_2V8_LEVEL_IDX]);
-    telbuf[3] = (uint8_t)(adcValues->data[ADC_2V8_LEVEL_IDX] >> 8);
-    telbuf[4] = (uint8_t)(adcValues->data[ADC_BATT_LEVEL_IDX]);
-    telbuf[5] = (uint8_t)(adcValues->data[ADC_BATT_LEVEL_IDX] >> 8);
+    telbuf[0] = (uint8_t)(adcValues->vcc2Point5);
+    telbuf[1] = (uint8_t)(adcValues->vcc2Point5 >> 8);
+    telbuf[2] = (uint8_t)(adcValues->vcc2Point8);
+    telbuf[3] = (uint8_t)(adcValues->vcc2Point8 >> 8);
+    telbuf[4] = (uint8_t)(adcValues->vBattSense);
+    telbuf[5] = (uint8_t)(adcValues->vBattSense >> 8);
     // [6,7] won't be able to read lander power in mission mode
-    telbuf[6] = (uint8_t)(adcValues->data[ADC_LANDER_LEVEL_IDX]);
-    telbuf[7] = (uint8_t)(adcValues->data[ADC_LANDER_LEVEL_IDX] >> 8);
-    telbuf[8] = (uint8_t)(adcValues->data[ADC_TEMP_IDX] >> 4);
+    telbuf[6] = (uint8_t)(adcValues->vLanderSense);
+    telbuf[7] = (uint8_t)(adcValues->vLanderSense >> 8);
+    telbuf[8] = (uint8_t)(adcValues->battTemp >> 4);
     telbuf[9] = hasDeployed ? 1 : 0;
     telbuf[10] = (uint8_t)(i2cReadings->raw_battery_charge[0]);
     telbuf[11] = (uint8_t)(i2cReadings->raw_battery_charge[1]);

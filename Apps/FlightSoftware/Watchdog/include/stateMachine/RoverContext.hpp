@@ -12,22 +12,12 @@
 
 namespace iris
 {
-    enum PersistentStatusBitIndices
-    {
-        I2C_INITIALIZED = 0,
-        UART0_INITIALIZED,
-        UART1_INITIALIZED,
-        THE_NEXT_THING,
-
-    };
-
     class RoverContext
     {
         public:
             UART__Config m_uartConfig;
             UART__State* m_uart0State;
             UART__State* m_uart1State;
-
 
             volatile uint16_t m_watchdogFlags;
             uint8_t m_watchdogOpts;
@@ -44,8 +34,9 @@ namespace iris
             uint8_t m_queuedIOWritePort0Value;
             uint8_t m_queuedIOWritePort1Value;
 
-            HeaterParams m_heaterParams;
             bool m_isDeployed;
+
+            PersistentState* m_persistantStatePtr;
     };
 
 }

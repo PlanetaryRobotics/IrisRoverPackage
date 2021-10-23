@@ -42,7 +42,7 @@ GroundCmd__Status GroundCmd__generateFlightEarthHeartbeat(I2C_Sensors__Readings*
     hb->heartbeatOutBuffer[2] |= (i2cReadings->raw_battery_voltage[0] > 0x3B);
 
     // send the thermistor temperature (12 bits to 8 bits)
-    hb->heartbeatOutBuffer[3] = (uint8_t)(adcValues->data[ADC_TEMP_IDX] >> 4);
+    hb->heartbeatOutBuffer[3] = (uint8_t)(adcValues->battTemp >> 4);
 
     return GND_CMD__STATUS__SUCCESS;
 }
@@ -61,8 +61,8 @@ GroundCmd__Status GroundCmd__generateFullEarthHeartbeat(I2C_Sensors__Readings* i
     hb->heartbeatOutBuffer[0] = 0xFF;
 
     // send adc value temperature
-    hb->heartbeatOutBuffer[1] = (uint8_t)(adcValues->data[ADC_TEMP_IDX]);
-    hb->heartbeatOutBuffer[2] = (uint8_t)(adcValues->data[ADC_TEMP_IDX] >> 8);
+    hb->heartbeatOutBuffer[1] = (uint8_t)(adcValues->battTemp);
+    hb->heartbeatOutBuffer[2] = (uint8_t)(adcValues->battTemp >> 8);
 
     // send adc value temperature
     hb->heartbeatOutBuffer[3] = (uint8_t)(i2cReadings->raw_battery_charge[0]);

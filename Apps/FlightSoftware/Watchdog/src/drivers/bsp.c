@@ -16,16 +16,15 @@
 static uint8_t ioExpanderPort0OutputValues = 0;
 static uint8_t ioExpanderPort1OutputValues = 0;
 
-
-static HeaterParams* heaterParamsPtr = NULL;
+static PersistentState* persistentStatePtr = NULL;
 
 /**
  * @brief      Initializes the gpios.
  */
-void initializeGpios(HeaterParams* hParams)
+void initializeGpios(PersistentState* pState)
 {
-    DEBUG_LOG_NULL_CHECK_RETURN(hParams, "Parameter is NULL", /* nothing, b/c void return */);
-    heaterParamsPtr = hParams;
+    DEBUG_LOG_NULL_CHECK_RETURN(pState, "Parameter is NULL", /* nothing, b/c void return */);
+    persistentStatePtr = pState;
 
     //########################################################################
     // P1 configuration.
@@ -69,8 +68,12 @@ void initializeGpios(HeaterParams* hParams)
 
     // P1.5 is connected to the V_LANDER_REG_EN signal (control signal for MOSFET to enable voltage regulator that
     // regulates lander voltage down to the voltage to be used as battery charger input voltage), and is used as a GPIO
-    // output that is initially low.
-    P1OUT &= ~BIT5;
+    // output that is initially low (unless persistent status says it should be high)
+    if (persistentStatePtr->m_statusBits & PSBI_MASK(PSBI__V_LANDER_REG_EN)) {
+        P1OUT |= BIT5;
+    } else {
+        P1OUT &= ~BIT5;
+    }
 
     // P1.6 is used as the I2C (UCB0) data line (SDA). This is the secondary function (SEL1 is 1 and SEL0 is 0).
     // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-22,
@@ -81,12 +84,7 @@ void initializeGpios(HeaterParams* hParams)
     // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-22,
     // for UCB0SCL P1DIR is don't care.
     P1SEL1 |= BIT7;
-    //P1OUT &= ~(BIT4 | BIT5); // Initially everything is off
 
-#ifndef PROGRAM_MOTOR_CONTROLLERS
-    //P1DIR |= BIT4;  // P1.4 output Motor control reset B
-    //P1DIR |= BIT5;  // P1.5 output Motor control reset C
-#endif
 #endif // PORT1_ENABLED
     //########################################################################
     // P2 configuration.
@@ -115,7 +113,8 @@ void initializeGpios(HeaterParams* hParams)
     P2SEL1 |= BIT1;
 
     // P2.2 is connected to the Heater signal (control signal for MOSFET to enable heater), and is used as a GPIO
-    // output with an initially low value.
+    // output with an initially low value. We always set this low here, and handle persisting the heater state after
+    // GPIO initialization
     P2DIR |= BIT2;
     P2OUT &= ~BIT2;
 
@@ -159,19 +158,6 @@ void initializeGpios(HeaterParams* hParams)
     P2DIR &= ~BIT7;
     P2REN &= ~BIT7;
 
-    // P2 configuration
-    //P2DIR &= 0x00;  // All bits as input
-    //P2OUT &= ~(BIT2 | BIT3 | BIT4); // Initially everything is off
-    //P2DIR |= BIT2;  // P2.2 output Heater
-
-#ifndef PROGRAM_MOTOR_CONTROLLERS
-    //P2DIR |= BIT3;  // P2.3 output Motor control reset A
-#endif
-
-    //P2DIR |= BIT4;  // P2.4 output Radio ON
-    //P2DIR &= ~BIT7;  // P2.7 input Power good 1V2
-
-    //P2SEL0 |= BIT2; // P2.2 heater output, PWM mode
 #endif // PORT2_ENABLED
     //########################################################################
     // P3 configuration.
@@ -216,31 +202,27 @@ void initializeGpios(HeaterParams* hParams)
     P3SEL1 |= BIT3;
 
     // P3.4 is connected to the Deployment signal (control signal for MOSFET to enable HDRM), and is used as a GPIO
-    // output with an initially low value.
-    P3OUT &= ~BIT4;
+    // output with an initially low value unless persistent state was high
+    if (persistentStatePtr->m_statusBits & PSBI_MASK(PSBI__DEPLOYMENT)) {
+        P3OUT |= BIT4;
+    } else {
+        P3OUT &= ~BIT4;
+    }
 
     // P3.5 is connected to the FPGA_Kick signal and is used as a GPIO input.
     P3DIR &= ~BIT5;
 
-    // P3.6 is connected to the Deployment signal (control signal for MOSFET to enable HDRM), and is used as a GPIO
-    // output with an initially low value.
+    // P3.6 is connected to the LATCH_BATT signal, and is used as a GPIO output with an initially low value
     P3OUT &= ~BIT6;
 
     // P3.7 is connected to the 3V3_EN signal (control signal for MOSFET to enable HDRM), and is used as a GPIO
-    // output with an initially low value.
-    P3OUT &= ~BIT7;
+    // output with an initially low value (unless persistent state was high)
+    if (persistentStatePtr->m_statusBits & PSBI_MASK(PSBI__3V3_EN)) {
+        P3OUT |= BIT7;
+    } else {
+        P3OUT &= ~BIT7;
+    }
 
-    // P3 configuration
-    //P3DIR &= 0x00;
-    //P3OUT &= ~(BIT1 | BIT2 | BIT3 | BIT4 | BIT5 | BIT6 | BIT7); // Initially everything is off
-    //P3DIR &= ~BIT0;  // P3.0 input battery thermistor
-    //P3DIR |= BIT1; // P3.1 output Hercules POR
-    //P3DIR |= BIT2; // P3.2 output Hercules Reset
-    //P3DIR |= BIT3; // P3.3 output Radio Reset
-    //P3DIR |= BIT4; // P3.4 output deployment
-    //P3DIR |= BIT5; // P3.5 output FPGA camera select
-    //P3DIR |= BIT6; // P3.6 output FPGA reset
-    //P3DIR |= BIT7; // P3.7 output 3V3 enable
 #endif // PORT3_ENABLED
     //########################################################################
     // P4 configuration.
@@ -310,31 +292,6 @@ void initializeGpios(HeaterParams* hParams)
     P4DIR &= ~BIT7;
     P4REN &= ~BIT7;
 
-    /*
-    // P4 configuration
-    P4DIR &= 0x00;
-    P4OUT |= BIT6; // Initially everything is off (NOTE: 24V0 OFF = HI)
-    P4DIR &= ~BIT4; // P4.4 input power good input (1V8)
-    P4DIR &= ~BIT5; // P4.5 input power good input (3V3)
-    P4DIR |= BIT6; // P4.6 output 24V0 enable
-    P4DIR &= ~BIT7; // P4.7 input power good input (5V0)
-
-    P4SEL0 |= BIT0; // P4.0 Analog input 8 (VCC 2V5)
-    P4SEL1 |= BIT0; // P4.0 Analog input 8 (VCC 2V5)
-
-    P4SEL0 |= BIT1; // P4.1 Analog input 9 (VCC 2V8)
-    P4SEL1 |= BIT1; // P4.1 Analog input 9 (VCC 2V8)
-
-    P4SEL0 |= BIT2; // P4.2 Analog input 10 (VCC 28V0)
-    P4SEL1 |= BIT2; // P4.2 Analog input 10 (VCC 28V0)
-
-    P4SEL0 |= BIT3; // P4.3 Analog input 11 (VCC 24V0)
-    P4SEL1 |= BIT3; // P4.3 Analog input 11 (VCC 24V0)
-
-    P3SEL0 |= BIT0; // P3.0 Analog input 12 (BATT_RT (battery temperature))
-    P3SEL1 |= BIT0; // P3.0 Analog input 12 (BATT_RT (battery temperature))
-    // Analog input configuration done in adc_init()
-    */
 #endif // PORT4_ENABLED
     //########################################################################
     // PJ configuration.
@@ -346,43 +303,69 @@ void initializeGpios(HeaterParams* hParams)
     PJSEL0 = 0x00u;
     PJSEL1 = 0x00u;
 
-    // PJ.0 is connected to the Hercules_ON signal and is used as a GPIO output with an initially low value.
-    PJOUT &= ~BIT0;
+    // PJ.0 is connected to the Hercules_ON signal and is used as a GPIO output with an initially low value (unless
+    // persistent state was high)
+    if (persistentStatePtr->m_statusBits & PSBI_MASK(PSBI__HERCULES_ON)) {
+        PJOUT |= BIT0;
+    } else {
+        PJOUT &= ~BIT0;
+    }
+    // PJ.1 is connected to the FPGA_ON signal and is used as a GPIO output with an initially low value (unless
+    // persistent state was high)
+    if (persistentStatePtr->m_statusBits & PSBI_MASK(PSBI__FPGA_ON)) {
+        PJOUT |= BIT1;
+    } else {
+        PJOUT &= ~BIT1;
+    }
 
-    // PJ.1 is connected to the FPGA_ON signal and is used as a GPIO output with an initially low value.
-    PJOUT &= ~BIT1;
+    // PJ.2 is connected to the Motor_ON signal and is used as a GPIO output with an initially low value (unless
+    // persistent state was high)
+    if (persistentStatePtr->m_statusBits & PSBI_MASK(PSBI__MOTOR_ON)) {
+        PJOUT |= BIT2;
+    } else {
+        PJOUT &= ~BIT2;
+    }
 
-    // PJ.2 is connected to the Motor_ON signal and is used as a GPIO output with an initially low value.
-    PJOUT &= ~BIT2;
-
-    // PJ.3 is connected to the CHRG_EN signal and is used as a GPIO output with an initially low value.
-    PJOUT &= ~BIT3;
+    // PJ.3 is connected to the CHRG_EN signal and is used as a GPIO output with an initially high-Z value (unless
+    // persistent state was low). CHRG_EN should always be high-Z (when charging is enabled) or low.
+    if (persistentStatePtr->m_statusBits & PSBI_MASK(PSBI__CHRG_EN_FORCE_HIGH)) {
+        PJDIR |= BIT3;
+        PJOUT |= BIT3;
+    } else if (persistentStatePtr->m_statusBits & PSBI_MASK(PSBI__CHRG_EN)) {
+        PJDIR &= ~BIT3;
+        PJREN &= ~BIT3;
+    } else {
+        PJDIR |= BIT3;
+        PJOUT &= ~BIT3;
+    }
 
     // PJ.4 is connected to the Radio_Kick signal and is used as a GPIO input.
     PJDIR &= ~BIT4;
 
-    // PJ.5 is connected to the BATTERY_EN signal and is used as a GPIO output with an initially low value.
-    PJOUT &= ~BIT5;
+    // PJ.5 is connected to the BATTERY_EN signal and is used as a GPIO output with an initially low value (unless
+    // persistent state was high)
+    if (persistentStatePtr->m_statusBits & PSBI_MASK(PSBI__BATTERY_EN)) {
+        PJOUT |= BIT5;
+    } else {
+        PJOUT &= ~BIT5;
+    }
 
     // PJ.6 is connected to the BATT_STAT signal and is used as a GPIO input.
     PJDIR &= ~BIT6;
 
-    // PJ.7 is connected to the V_SYS_ALL_EN signal and is used as a GPIO output with an initially low value.
-    PJOUT &= ~BIT7;
+    // PJ.7 is connected to the V_SYS_ALL_EN signal and is used as a GPIO output with an initially high-Z value (unless
+    // persistent state was high). V_SYS_ALL_EN should always be high-Z (when V_SYS_ALL disabled) or high.
+    if (persistentStatePtr->m_statusBits & PSBI_MASK(PSBI__V_SYS_ALL_EN_FORCE_LOW)) {
+        PJDIR |= BIT7;
+        PJOUT &= ~BIT7;
+    } else if (persistentStatePtr->m_statusBits & PSBI_MASK(PSBI__V_SYS_ALL_EN)) {
+        PJDIR |= BIT7;
+        PJOUT |= BIT7;
+    } else {
+        PJDIR &= ~BIT7;
+        PJREN &= ~BIT7;
+    }
 
-    /*
-    // PJ configuration
-    PJOUT &= ~(BIT0 | BIT1 | BIT2 | BIT3 | BIT4 | BIT5); // Initially everything is off
-    PJDIR &= 0x00;
-    PJDIR |= BIT0; // PJ.0 output Hercules ON
-    PJDIR |= BIT1; // PJ.1 output FPGA ON
-    PJDIR |= BIT2; // PJ.2 output MOTORS ON
-    PJDIR |= BIT3; // PJ.3 CHRG output 0 = not charging
-#ifndef PROGRAM_MOTOR_CONTROLLERS
-    PJDIR |= BIT4; // PJ.4 output Motor control reset D
-#endif
-    PJDIR |= BIT5; // PJ.5 output BATTERY
-    */
 #endif // PORTJ_ENABLED
 
     // Initialize all unused ports to as GPIO output to prevent floating pins. (Per slau367p section 12.3.2)
@@ -405,9 +388,6 @@ void initializeGpios(HeaterParams* hParams)
     P8SEL1 = 0x00u;
     P8DIR = 0xFFu;
     P8OUT = 0x00u;
-
-    // Initial status
-    heaterParamsPtr->m_heating = FALSE;
 }
 
 void enableUart0Pins(void)
@@ -519,7 +499,7 @@ void clockInit(void)
 inline void enableHeater(void)
 {
     P2OUT |= BIT2;
-    heaterParamsPtr->m_heating = TRUE;
+    persistentStatePtr->m_heaterParams.m_heating = TRUE;
 }
 
 /**
@@ -528,7 +508,7 @@ inline void enableHeater(void)
 inline void disableHeater(void)
 {
     P2OUT &= ~BIT2;
-    heaterParamsPtr->m_heating = FALSE;
+    persistentStatePtr->m_heaterParams.m_heating = FALSE;
 }
 
 /**
@@ -537,6 +517,7 @@ inline void disableHeater(void)
 inline void enable3V3PowerRail(void)
 {
     P3OUT |= BIT7;
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__3V3_EN);
 }
 
 /**
@@ -545,6 +526,7 @@ inline void enable3V3PowerRail(void)
 inline void disable3V3PowerRail(void)
 {
     P3OUT &= ~BIT7;
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__3V3_EN);
 }
 
 // RAD TODO - this is for V_SYS_ALL_EN now (24v w/Motor_ON - PJ.2)
@@ -553,7 +535,9 @@ inline void disable3V3PowerRail(void)
  */
 inline void enable24VPowerRail(void)
 {
+    PJDIR |= BIT7;
     PJOUT |= BIT7;
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN);
 }
 
 /**
@@ -561,7 +545,9 @@ inline void enable24VPowerRail(void)
  */
 inline void disable24VPowerRail(void)
 {
-    PJOUT &= ~BIT7;
+    PJDIR &= ~BIT7;
+    PJREN &= ~BIT7;
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN);
 }
 
 /**
@@ -569,10 +555,13 @@ inline void disable24VPowerRail(void)
  */
 inline void releaseHerculesReset(void)
 {
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P3OUT |= BIT1 | BIT2;
     ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST;
     ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__N_HERCULES_PORRST;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting these states
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__HERCULES_N_RST);
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__HERCULES_N_PORRST);
 }
 
 /**
@@ -580,10 +569,13 @@ inline void releaseHerculesReset(void)
  */
 inline void setHerculesReset(void)
 {
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P3OUT &= ~(BIT1 | BIT2);
     ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST;
     ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__N_HERCULES_PORRST;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting these states
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__HERCULES_N_RST);
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__HERCULES_N_PORRST);
 }
 
 /**
@@ -591,9 +583,11 @@ inline void setHerculesReset(void)
  */
 inline void releaseRadioReset(void)
 {
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P3OUT |= BIT3;
     ioExpanderPort1OutputValues |= I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__RADIO_N_RST);
 }
 
 /**
@@ -601,9 +595,11 @@ inline void releaseRadioReset(void)
  */
 inline void setRadioReset(void)
 {
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P3OUT &= ~BIT3;
     ioExpanderPort1OutputValues &= ~I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__RADIO_N_RST);
 }
 
 /**
@@ -611,9 +607,11 @@ inline void setRadioReset(void)
  */
 inline void releaseFPGAReset(void)
 {
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P3OUT |= BIT6;
     ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__FPGA_N_RST);
 }
 
 /**
@@ -621,9 +619,11 @@ inline void releaseFPGAReset(void)
  */
 inline void setFPGAReset(void)
 {
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P3OUT &= ~BIT6;
     ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__FPGA_N_RST);
 }
 
 /**
@@ -650,46 +650,57 @@ inline void fpgaCameraSelectLo(void)
 inline void releaseMotor1Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P2OUT |= BIT3;
     ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_A;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_A);
 #endif
 }
 inline void releaseMotor2Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P1OUT |= BIT4;
     ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_B;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_B);
 #endif
 }
 inline void releaseMotor3Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P1OUT |= BIT5;
     ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_C;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_C);
 #endif
 }
 inline void releaseMotor4Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //PJOUT |= BIT4;
     ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_D;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_D);
 #endif
 }
 inline void releaseMotorsReset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P1OUT |= BIT4 | BIT5;
-    //P2OUT |= BIT3;
-    //PJOUT |= BIT4;
     ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_A;
     ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_B;
     ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_C;
     ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_D;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_A);
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_B);
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_C);
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_D);
 #endif
 }
 
@@ -700,46 +711,57 @@ inline void releaseMotorsReset(void)
 inline void setMotor1Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P2OUT &= ~BIT3;
     ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_A;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_A);
 #endif
 }
 inline void setMotor2Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P1OUT &= ~BIT4;
     ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_B;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_B);
 #endif
 }
 inline void setMotor3Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P1OUT &= ~BIT5;
     ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_C;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_C);
 #endif
 }
 inline void setMotor4Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //PJOUT &= ~BIT4;
     ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_D;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_D);
 #endif
 }
 inline void setMotorsReset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P1OUT &= ~(BIT4 | BIT5);
-    //P2OUT &= ~BIT3;
-    //PJOUT &= ~BIT4;
     ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_A;
     ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_B;
     ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_C;
     ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_D;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_A);
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_B);
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_C);
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MC_RST_D);
 #endif
 }
 /**
@@ -748,6 +770,7 @@ inline void setMotorsReset(void)
 inline void powerOnHercules(void)
 {
     PJOUT |= BIT0;
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__HERCULES_ON);
 }
 
 /**
@@ -756,6 +779,7 @@ inline void powerOnHercules(void)
 inline void powerOffHercules(void)
 {
     PJOUT &= ~BIT0;
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__HERCULES_ON);
 }
 
 /**
@@ -763,9 +787,11 @@ inline void powerOffHercules(void)
  */
 inline void powerOnRadio(void)
 {
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P2OUT |= BIT4;
     ioExpanderPort1OutputValues |= I2C_SENSORS__IOE_P1_BIT__RADIO_ON;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__RADIO_ON);
 }
 
 /**
@@ -773,9 +799,11 @@ inline void powerOnRadio(void)
  */
 inline void powerOffRadio(void)
 {
-    //!< @todo CHANGE THIS HIGH PRIORITY! This is controlled through I/O expander now
-    //P2OUT &= ~BIT4;
     ioExpanderPort1OutputValues &= ~I2C_SENSORS__IOE_P1_BIT__RADIO_ON;
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__RADIO_ON);
 }
 
 /**
@@ -784,6 +812,7 @@ inline void powerOffRadio(void)
 inline void powerOnFpga(void)
 {
     PJOUT |= BIT1;
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__FPGA_ON);
 }
 
 /**
@@ -792,6 +821,7 @@ inline void powerOnFpga(void)
 inline void powerOffFpga(void)
 {
     PJOUT &= ~BIT1;
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__FPGA_ON);
 }
 
 /**
@@ -800,6 +830,7 @@ inline void powerOffFpga(void)
 inline void powerOnMotors(void)
 {
     PJOUT |= BIT2;
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MOTOR_ON);
 }
 
 /**
@@ -808,6 +839,7 @@ inline void powerOnMotors(void)
 inline void powerOffMotors(void)
 {
     PJOUT &= ~BIT2;
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__MOTOR_ON);
 }
 
 /**
@@ -815,7 +847,10 @@ inline void powerOffMotors(void)
  */
 inline void enableBatteries(void)
 {
-    PJOUT |= BIT5;
+    // Turn on battery enable:
+    blimp_battEnOn();
+    // Make the latch absorb the BE state:
+    blimp_latchBattUpdate();
 }
 
 /**
@@ -823,7 +858,10 @@ inline void enableBatteries(void)
  */
 inline void disableBatteries(void)
 {
-    PJOUT &= ~BIT5;
+    // Turn off battery enable:
+    blimp_battEnOff();
+    // Make the latch absorb the BE state:
+    blimp_latchBattUpdate();
 }
 
 /**
@@ -832,6 +870,7 @@ inline void disableBatteries(void)
 inline void setDeploy(void)
 {
     P3OUT |= BIT4;
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__DEPLOYMENT);
 }
 
 /**
@@ -840,6 +879,7 @@ inline void setDeploy(void)
 inline void unsetDeploy(void)
 {
     P3OUT &= ~BIT4;
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__DEPLOYMENT);
 }
 
 /**
@@ -847,7 +887,15 @@ inline void unsetDeploy(void)
  */
 inline void startChargingBatteries(void)
 {
-    PJDIR |= BIT3;
+    // Turn on batteries before charging if not on yet:
+    // (not safe to start charging on an open circuit)
+    if(!blimp_batteryState()){
+        blimp_battEnOn();
+    }
+    // Enable the charging regulator:
+    blimp_regEnOn();
+    // Start charging:
+    blimp_chargerEnOn();
 }
 
 /**
@@ -855,7 +903,202 @@ inline void startChargingBatteries(void)
  */
 inline void stopChargingBatteries(void)
 {
+    // Stop charging:
+    blimp_chargerEnOff();
+    // Disable the charging regulator:
+    blimp_regEnOff();
+}
+
+/**
+ * @brief     Releases BATT_CTRL_EN to enable the 3V3_LATCH regulator and power the battery control (battery latching
+ *            and battery switch) circuitry.
+ */
+inline void blimp_bctrlEnOn(){
+    // Go HiZ (input with no pulls) to let external pull-up to VIN do the work.
+    P2DIR &= ~BIT3;
+    P2REN &= ~BIT3;
+}
+
+/**
+ * @brief      Forces BATT_CTRL_EN high to enable the 3V3_LATCH regulator and power the battery control (battery
+ *             latching and battery switch) circuitry at the expense of a couple mA of current at 3V3 draining through
+ *             the WD.
+ *
+ * NOTE: Normally you'd not want to do this because there's an external pull-up to V_LANDER/V_BATT that controls
+ * this but if we can't talk to latching circuitry, it might be because one of the resistors vibed loose, in which
+ * case this can be helpful (and possibly save our mission).
+ */
+inline void blimp_bctrlEnForceHigh(){
+    // Set as output and drive high
+    P2DIR |= BIT3;
+    P2OUT |= BIT3;
+}
+
+/**
+ * @brief     Drives BATT_CTRL_EN low to disable the 3V3_LATCH regulator and power off the battery control (battery
+ *            latching and battery switch) circuitry.
+ */
+inline void blimp_bctrlEnOff(){
+    // Set as output and drive low
+    P2DIR |= BIT3;
+    P2OUT &= ~BIT3;
+}
+
+/**
+ * @brief     Sets the clock signal to the D-Latch high
+ *            (note: by itself, this doesn't latch the batteries - see: blimp_latchBattUpdate)
+ */
+inline void blimp_latchBattOn(){
+    P3OUT |= BIT6;
+}
+
+/**
+ * @brief     Sets the clock signal to the D-Latch low
+ *            (note: by itself, this doesn't un-latch the batteries - see:blimp_latchBattUpdate)
+ */
+inline void blimp_latchBattOff(){
+    P3OUT &= ~BIT6;
+}
+
+/**
+ * @brief     Pulses the clock signal to the D-Latch so the latch absorbs the state of BATT_EN.
+ */
+void blimp_latchBattUpdate(){
+    // Pulse LB low-high-low to have the latch absorb the state of BE
+    // delay should be at least 2us
+    P3OUT &= ~BIT6; // set low first in case LB stayed driven high due to error or became high due to cosmic radiation
+    __delay_cycles(400);
+    P3OUT |= BIT6;
+    __delay_cycles(400);
+    P3OUT &= ~BIT6;
+}
+
+/**
+ * @brief      Enables the charging IC. NOTE: You'll also need to turn on REGE (28V charging regulator) before you can
+ *             actually charge. Do this first.
+ */
+inline void blimp_chargerEnOn(){
+    // Go HiZ (input with no pulls) to let external pull-up to VIN do the work.
     PJDIR &= ~BIT3;
+    PJREN &= ~BIT3;
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__CHRG_EN);
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__CHRG_EN_FORCE_HIGH);
+}
+
+/**
+ * @brief      Forces the charging IC input high.
+ * NOTE: Normally you'd not want to do this because there's an external voltage divider that controls
+ * this but if we can't enable charging, it might be because one of the resistors vibed loose, in which
+ * case this can be helpful (and possibly save our mission).
+ */
+inline void blimp_chargerEnForceHigh(){
+    // Set as output and drive high
+    PJDIR |= BIT3;
+    PJOUT |= BIT3;
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__CHRG_EN);
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__CHRG_EN_FORCE_HIGH);
+}
+
+/**
+ * @brief      Disables the charging IC. NOTE: If you're no longer charging, you'll also want to turn off REGE (28V
+ *             charging regulator) to not waste power.
+ */
+inline void blimp_chargerEnOff(){
+    // Set as output and drive low
+    PJDIR |= BIT3;
+    PJOUT &= ~BIT3;
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__CHRG_EN);
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__CHRG_EN_FORCE_HIGH);
+}
+
+/**
+ * @brief      Turns on the 28V lander power regulator used by the charging IC (REGE).
+ */
+inline void blimp_regEnOn()
+{
+    P1OUT |= BIT5;
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_LANDER_REG_EN);
+}
+
+/**
+ * @brief      Turns off the 28V lander power regulator used by the charging IC (REGE).
+ */
+inline void blimp_regEnOff()
+{
+    P1OUT &= ~BIT5;
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_LANDER_REG_EN);
+}
+
+/**
+ * @brief      Enables the battery enable override. NOTE: (by design) this won't latch the batteries on. You'll need to
+ *             pulse LBATT for the latch absorbs the state of BATT_EN if you want the state to be persistent.
+ */
+void blimp_battEnOn(){
+    PJOUT |= BIT5;
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__BATTERY_EN);
+}
+
+/**
+ * @brief      Disables the battery enable override. NOTE: (by design) this won't turn off the batteries if they are
+ *             also latched (LSTAT=1). To turn off the latch, you'll need to pulse LBATT so the latch absorbs the state
+ *             of BATT_EN.
+ */
+void blimp_battEnOff(){
+    PJOUT &= ~BIT5;
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__BATTERY_EN);
+}
+
+/**
+ * @brief      Enables the V_SYS_ALL switch which connects V_SYS_ALL to V_SYS and powers everything beside the WD
+ *             (which is already powered by V_SYS).
+ */
+void blimp_vSysAllEnOn(){
+    PJDIR |= BIT7;
+    PJOUT |= BIT7;
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN);
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN_FORCE_LOW);
+}
+
+/**
+ * @brief      Disables the V_SYS_ALL switch which connects V_SYS_ALL to V_SYS and powers everything beside the WD
+ *             (which is already powered by V_SYS).
+ */
+void blimp_vSysAllEnOff(){
+    PJDIR &= ~BIT7;
+    PJREN &= ~BIT7;
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN);
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN_FORCE_LOW);
+}
+
+void blimp_vSysAllEnForceLow()
+{
+    PJDIR |= BIT7;
+    PJOUT &= ~BIT7;
+    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN);
+    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN_FORCE_LOW);
+}
+
+/**
+ * @brief      Reads STAT1 from BQ24650 charging IC. If H and STAT2 is H then fault. If L and STAT2 is H, then charging.
+ */
+inline BOOL blimp_cstat1(){
+    return P1IN & BIT2;
+}
+
+/**
+ * @brief      Reads the present state of the battery switch (BSTAT). ON is HIGH.
+ */
+inline BOOL blimp_bstat(){
+    return PJIN & BIT6;
+}
+
+
+/**
+ * @brief      Reads the present state of the battery switch (BSTAT). ON is HIGH.
+ */
+inline BOOL blimp_batteryState(){
+    // Alias for blimp_bstat();
+    return blimp_bstat();
 }
 
 inline uint8_t getIOExpanderPort0OutputValue(void)

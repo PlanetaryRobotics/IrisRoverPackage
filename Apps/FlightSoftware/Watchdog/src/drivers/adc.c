@@ -36,29 +36,14 @@ static volatile uint16_t* watchdogFlagsPtr = NULL;
 void adc_init(volatile uint16_t* watchdogFlags) {
     watchdogFlagsPtr = watchdogFlags;
 
-    // Set the correct settings for various inputs
-    P4SEL0 |= BIT0; // P4.0 Analog input 8 (VCC 2V5)
-    P4SEL1 |= BIT0; // P4.0 Analog input 8 (VCC 2V5)
-
-    P4SEL0 |= BIT1; // P4.1 Analog input 9 (VCC 2V8)
-    P4SEL1 |= BIT1; // P4.1 Analog input 9 (VCC 2V8)
-
-    P4SEL0 |= BIT2; // P4.2 Analog input 10 (VCC 28V0)
-    P4SEL1 |= BIT2; // P4.2 Analog input 10 (VCC 28V0)
-
-    P4SEL0 |= BIT3; // P4.3 Analog input 11 (VCC 24V0)
-    P4SEL1 |= BIT3; // P4.3 Analog input 11 (VCC 24V0)
-
-    P3SEL0 |= BIT0; // P3.0 Analog input 12 (BATT_RT (battery temperature))
-    P3SEL1 |= BIT0; // P3.0 Analog input 12 (BATT_RT (battery temperature))
-
     // configure the ADC module
     // Relevant page numbers: pg. 890 of user manual
-    // ADC12SHT0_2 = 16 ADC12CLK cycles
+    // ADC12SHT0_2 = 16 ADC12CLK cycles for registers ADC12MEM0 to ADC12MEM7 and ADC12MEM24 to ADC12MEM31
+    // ADC12SHT1_2 = 16 ADC12CLK cycles for registers ADC12MEM8 to ADC12MEM23
     // ADC12MSC = multiple samples
     // ADC12ON = ADC12 on (but not necessarily reading)
     // implicitly disables the ADC readings
-    ADC12CTL0 = ADC12SHT0_2 | ADC12MSC | ADC12ON;
+    ADC12CTL0 = ADC12SHT0_2 | ADC12SHT1_2 | ADC12MSC | ADC12ON;
 
     // ADC12SHP = SAMPCON signal is sourced from the sampling timer
     // ADC12CONSEQ_1 = use "sequence-of-channels" mode to read
@@ -73,64 +58,43 @@ void adc_init(volatile uint16_t* watchdogFlags) {
     // Implicitly start reading at MEM0
     ADC12CTL3 = 0;
 
-    while(REFCTL0 & REFGENBUSY); // Wait for internal ref generator to be ready
-    REFCTL0 |= REFVSEL_2|REFON;  // choose 2.5V internal reference
-    while(!(REFCTL0 & REFGENRDY)); //wait for reference generator to settle
+    // MEM0: P1.4 == V_LANDER_SENS == A4. Use VR+ = VeRef+ buffered, VR- = VeRef-
+    ADC12MCTL0 = ADC12INCH_4 | ADC12VRSEL_15;
+
+    // MEM1: P2.4 == BATT_TEMP == A7. Use VR+ = VeRef+ buffered, VR- = VeRef-
+    ADC12MCTL1 = ADC12INCH_7 | ADC12VRSEL_15;
+
+    // MEM2: P3.0 == BATT_RT == A12. Use VR+ = VeRef+ buffered, VR- = VeRef-
+    ADC12MCTL2 = ADC12INCH_12 | ADC12VRSEL_15;
+
+    // MEM3: P3.1 == V_SYS_ALL_SENS == A13. Use VR+ = VeRef+ buffered, VR- = VeRef-
+    ADC12MCTL3 = ADC12INCH_13 | ADC12VRSEL_15;
+
+    // MEM4: P3.2 == I_SYS_ALL_SENS == A14. Use VR+ = VeRef+ buffered, VR- = VeRef-
+    ADC12MCTL4 = ADC12INCH_14 | ADC12VRSEL_15;
+
+    // MEM5: P3.3 == V_BATT_SENS == A15. Use VR+ = VeRef+ buffered, VR- = VeRef-
+    ADC12MCTL5 = ADC12INCH_15 | ADC12VRSEL_15;
+
+    // MEM6: P4.0 == Vcc_2.5 == A8. Use VR+ = VeRef+ buffered, VR- = VeRef-
+    ADC12MCTL6 = ADC12INCH_8 | ADC12VRSEL_15;
+
+    // MEM7: P4.1 == Vcc_2.8 == A9. Use VR+ = VeRef+ buffered, VR- = VeRef-
+    ADC12MCTL7 = ADC12INCH_9 | ADC12VRSEL_15;
+
+    // MEM8: P4.2 == Vcc_28 == A10. Use VR+ = VeRef+ buffered, VR- = VeRef-
+    ADC12MCTL8 = ADC12INCH_10 | ADC12VRSEL_15;
+
+    // MEM9: P4.3 == Vcc_24 == A11. Use VR+ = VeRef+ buffered, VR- = VeRef-. Also, this is the end of the sequence.
+    ADC12MCTL9 = ADC12INCH_11 | ADC12VRSEL_15 | ADC12EOS;
+
+    // enable interrupts only on last reading
+    ADC12IER0 = ADC12IE9;
 }
 
 BOOL isAdcSampleDone(void)
 {
     return (!(ADC12CTL1 & ADC12BUSY)) ? TRUE : FALSE;
-}
-
-BOOL setupAdcForLander(void)
-{ // set up adc to read values for lander mode
-    if (NULL == watchdogFlagsPtr) {
-        return FALSE;
-    }
-
-    // If existing sample isn't done, then we can't do the setup
-    if (!isAdcSampleDone()) {
-        return FALSE;
-    }
-
-    // enable interrupts only on last reading
-    ADC12IER0 = ADC12IE1;
-
-    // set up the ADC for the lander state
-    ADC12MCTL0 = ADC12INCH_10 | ADC12VRSEL_1; // A10 = P4.2 stored in MEM0
-    ADC12MCTL1 = ADC12INCH_12 | ADC12VRSEL_1 | ADC12EOS; // A12 = P3.0 stored in MEM1 (also, EOS)
-
-    // clear sample ready, if set
-    *watchdogFlagsPtr &= ~WDFLAG_ADC_READY;
-
-    return TRUE;
-}
-
-BOOL setupAdcForMission(void)
-{ // set up adc to read values for mission mode (voltage rails)
-    if (NULL == watchdogFlagsPtr) {
-        return FALSE;
-    }
-
-    // If existing sample isn't done, then we can't do the setup
-    if (!isAdcSampleDone()) {
-        return FALSE;
-    }
-
-    // enable interrupts only on last reading
-    ADC12IER0 = ADC12IE2;
-
-    // set up the ADC for the mission state
-    ADC12MCTL0 = ADC12INCH_8 | ADC12VRSEL_1; // A8 = P4.0 stored in MEM0 (Vcc 2.5V)
-    ADC12MCTL1 = ADC12INCH_12 | ADC12VRSEL_1; // A12 = P3.0 stored in MEM1 (temperature)
-    ADC12MCTL2 = ADC12INCH_9 | ADC12VRSEL_1; // A9 = P4.1 stored in MEM2 (Vcc 2.8V)
-    ADC12MCTL3 = ADC12INCH_11 | ADC12VRSEL_1 | ADC12EOS; // A11 = P4.3 stored in MEM2 (Vcc 24V divided down)
-
-    // clear sample ready, if set
-    *watchdogFlagsPtr &= ~WDFLAG_ADC_READY;
-
-    return TRUE;
 }
 
 /**
@@ -172,18 +136,20 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
     }
 
     switch (__even_in_range(ADC12IV, ADC12IV_ADC12RDYIFG)) {
-        case ADC12IV_ADC12IFG3: // ADC12IE3 interrupt
-            outputValues->data[3] = ADC12MEM3; // Save MEM3
-            outputValues->data[2] = ADC12MEM2; // Save MEM2
-            // fall through to ADC12IE1 to save MEM1 & MEM0 and signal to main loop
-            /* no break */
-        case ADC12IV_ADC12IFG1: // ADC12IE1 interrupt
-            outputValues->data[1] = ADC12MEM1; // Save MEM1
-            outputValues->data[0] = ADC12MEM0; // Save MEM0
+        case ADC12IV_ADC12IFG9: // ADC12IE9 interrupt
+            outputValues->vLanderSense = ADC12MEM0;
+            outputValues->battTemp = ADC12MEM1;
+            outputValues->battRT = ADC12MEM2;
+            outputValues->vSysAllSense = ADC12MEM3;
+            outputValues->iSysAllSense = ADC12MEM4;
+            outputValues->vBattSense = ADC12MEM5;
+            outputValues->vcc2Point5 = ADC12MEM6;
+            outputValues->vcc2Point8 = ADC12MEM7;
+            outputValues->vcc28 = ADC12MEM8;
+            outputValues->vcc24 = ADC12MEM9;
             outputValues->sampleComplete = TRUE; // update output struct to signal sample is complete.
 
             *watchdogFlagsPtr |= WDFLAG_ADC_READY; // signal ready to main loop
-            //!< @todo
             break;
         default:
             break;

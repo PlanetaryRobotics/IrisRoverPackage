@@ -12,6 +12,7 @@
 #include "comms/hercules_comms.h"
 #include "comms/i2c_sensors.h"
 #include "drivers/adc.h"
+#include "flags.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -20,7 +21,9 @@ extern "C"
 
 // MPS: I'm not documenting these because this code will soon be restructured into a state-based paradigm.
 
-int watchdog_init(volatile uint16_t* watchdogFlags, volatile uint16_t* timeCountCentiseconds);
+int watchdog_init(volatile uint16_t* watchdogFlags,
+                  volatile uint16_t* timeCountCentiseconds,
+                  const HeaterParams* hParams);
 
 void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
                                    const AdcValues* adcValues,

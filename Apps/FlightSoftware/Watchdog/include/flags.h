@@ -50,6 +50,8 @@ typedef struct HeaterParams
     uint16_t m_heaterOffVal;
     BOOL m_heating;
     BOOL m_heatingControlEnabled;
+    uint16_t m_heaterDutyCyclePeriod;
+    uint16_t m_heaterDutyCycle;
 } HeaterParams;
 
 #define DEFAULT_KP_HEATER 500
@@ -60,8 +62,73 @@ typedef struct HeaterParams
 #define DEFAULT_HEATER_ON_VAL 3670
 // 3670 is the 0 deg C thermistor voltage ADC reading
 #define DEFAULT_HEATER_OFF_VAL 3352
-#define DEFAULT_HEATING 0
-#define DEFAULT_HEATING_CONTROL_ENABLED 1
+#define DEFAULT_HEATING FALSE
+#define DEFAULT_HEATING_CONTROL_ENABLED TRUE
+#define DEFAULT_HEATER_DUTY_CYCLE_PERIOD 10000
+#define DEFAULT_HEATER_DUTY_CYCLE 0
+
+typedef enum PersistentStatusBitIndices
+{
+    // State related things
+    PSBI__I2C_INITIALIZED = 0,
+    PSBI__UART0_INITIALIZED,
+    PSBI__UART1_INITIALIZED,
+    PSBI__DEPLOYED,
+
+    // These are digital outputs. If the corresponding bit is set, these should be high
+    PSBI__V_LANDER_REG_EN,
+    // The state of BATT_CTRL_EN is not saved persistently by design (for safety reasons)
+    PSBI__DEPLOYMENT,
+    // The state of LATCH_BATT is not saved persistently by design (it should only ever be pulsed)
+    PSBI__3V3_EN,
+    PSBI__HERCULES_ON,
+    PSBI__FPGA_ON,
+    PSBI__MOTOR_ON,
+    PSBI__CHRG_EN,
+    PSBI__CHRG_EN_FORCE_HIGH,
+    PSBI__BATTERY_EN,
+    PSBI__V_SYS_ALL_EN,
+    PSBI__V_SYS_ALL_EN_FORCE_LOW,
+    PSBI__MC_RST_A,
+    PSBI__MC_RST_B,
+    PSBI__MC_RST_C,
+    PSBI__MC_RST_D,
+    PSBI__HERCULES_N_RST,
+    PSBI__HERCULES_N_PORRST,
+    PSBI__FPGA_N_RST,
+    PSBI__LATCH_RST,
+    PSBI__RADIO_N_RST,
+    PSBI__LATCH_SET,
+    PSBI__RADIO_ON,
+    PSBI__BMS_BOOT
+} PersistentStatusBitIndices;
+
+#define PSBI_MASK(psbi_index_enum) (((uint32_t) 1) << ((uint32_t) (psbi_index_enum)))
+
+#define SET_PSBI_IN_STATE(state, psbi_index_enum) \
+    (state).m_statusBits |= ((uint32_t) PSBI_MASK(psbi_index_enum))
+
+#define SET_PSBI_IN_STATE_PTR(statePtr, psbi_index_enum) SET_PSBI_IN_STATE(*statePtr, psbi_index_enum)
+
+#define CLEAR_PSBI_IN_STATE(state, psbi_index_enum) \
+    (state).m_statusBits &= ~((uint32_t) PSBI_MASK(psbi_index_enum))
+
+#define CLEAR_PSBI_IN_STATE_PTR(statePtr, psbi_index_enum) CLEAR_PSBI_IN_STATE(*statePtr, psbi_index_enum)
+
+typedef enum AdcState
+{
+    ADC_STATE__UNCONFIGURED,
+    ADC_STATE__CONFIGURED_FOR_LANDER,
+    ADC_STATE__CONFIGURED_FOR_MISSION
+} AdcState;
+
+typedef struct PersistentState
+{
+    uint32_t m_statusBits;
+    HeaterParams m_heaterParams;
+    uint8_t m_stateAsUint;
+    AdcState m_adcState;
+} PersistentState;
 
 #ifdef __cplusplus
 } /* close extern "C" */

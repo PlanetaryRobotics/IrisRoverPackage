@@ -45,15 +45,12 @@ namespace iris
             enum class SubState
             {
                 WAITING_FOR_IO_EXPANDER_WRITE,
-                WAITING_FOR_ADC_DONE,
                 FINISH_UP_SETUP
             };
 
             SubState m_currentSubstate;
 
             RoverState transitionToWaitingForIoExpanderWrite(RoverContext& theContext);
-
-            RoverState transitionToWaitingForAdcDone(RoverContext& theContext);
 
             RoverState transitionToFinishUpSetup(RoverContext& theContext);
     };

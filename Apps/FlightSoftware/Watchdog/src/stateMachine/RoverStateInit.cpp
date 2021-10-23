@@ -61,7 +61,7 @@ namespace iris
         //!< @todo Replace this with initialization based on persistent status
 
         /* initialize the board */
-        initializeGpios(&(theContext.m_heaterParams));
+        initializeGpios(theContext.m_persistantStatePtr);
 
         /* unlock changes to registers/ports, etc. */
         PM5CTL0 &= ~LOCKLPM5;
@@ -79,12 +79,14 @@ namespace iris
         assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
 
         /* set up watchdog */
-        watchdog_init(&(theContext.m_watchdogFlags), Time__getPointerToCentisecondCount());
+        watchdog_init(&(theContext.m_watchdogFlags),
+                      Time__getPointerToCentisecondCount(),
+                      &(theContext.m_persistantStatePtr->m_heaterParams));
 
         /* set up the ADC */
         adc_init(&(theContext.m_watchdogFlags));
 
-        /* set up i2c to read from fuel gauge*/
+        /* set up i2c */
         I2C_Sensors__init();
 
         return RoverState::ENTERING_KEEP_ALIVE;

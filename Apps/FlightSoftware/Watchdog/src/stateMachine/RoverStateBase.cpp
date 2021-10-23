@@ -129,9 +129,9 @@ namespace iris
 
     void RoverStateBase::heaterControl(RoverContext& theContext) {
         // voltage, where LSB = 0.0008056640625V
-        unsigned short thermReading = theContext.m_adcValues.data[ADC_TEMP_IDX];
+        unsigned short thermReading = theContext.m_adcValues.battTemp;
         bool tempLow = false;
-        HeaterParams& hParams = theContext.m_heaterParams;
+        HeaterParams& hParams = theContext.m_persistantStatePtr->m_heaterParams;
 
         if (thermReading > hParams.m_heaterOnVal) {
             //   start heating when temperature drops below -5 C
@@ -156,6 +156,7 @@ namespace iris
         }
 
         TB0CCR2 = pwmCycle;
+        hParams.m_heaterDutyCycle = pwmCycle;
     }
 
     RoverState RoverStateBase::handleLanderData(RoverContext& theContext)
@@ -611,7 +612,7 @@ namespace iris
                                                    WdCmdMsgs__Response& deployNotificationResponse,
                                                    bool& sendDeployNotificationResponse)
     {
-        theContext.m_heaterParams.m_kpHeater = msg.body.setHeaterKp.kp;
+        theContext.m_persistantStatePtr->m_heaterParams.m_kpHeater = msg.body.setHeaterKp.kp;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -622,7 +623,7 @@ namespace iris
                                                             WdCmdMsgs__Response& deployNotificationResponse,
                                                             bool& sendDeployNotificationResponse)
     {
-        theContext.m_heaterParams.m_heaterOnVal = msg.body.setAutoHeaterOnValue.heaterOnValue;
+        theContext.m_persistantStatePtr->m_heaterParams.m_heaterOnVal = msg.body.setAutoHeaterOnValue.heaterOnValue;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -633,7 +634,7 @@ namespace iris
                                                              WdCmdMsgs__Response& deployNotificationResponse,
                                                              bool& sendDeployNotificationResponse)
     {
-        theContext.m_heaterParams.m_heaterOffVal = msg.body.setAutoHeaterOffValue.heaterOffValue;
+        theContext.m_persistantStatePtr->m_heaterParams.m_heaterOffVal = msg.body.setAutoHeaterOffValue.heaterOffValue;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -644,7 +645,7 @@ namespace iris
                                                              WdCmdMsgs__Response& deployNotificationResponse,
                                                              bool& sendDeployNotificationResponse)
     {
-        theContext.m_heaterParams.m_pwmLimit = msg.body.setHeaterDutyCycleMax.dutyCycleMax;
+        theContext.m_persistantStatePtr->m_heaterParams.m_pwmLimit = msg.body.setHeaterDutyCycleMax.dutyCycleMax;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -656,6 +657,8 @@ namespace iris
                                                                 bool& sendDeployNotificationResponse)
     {
         TB0CCR0 = msg.body.setHeaterDutyCyclePeriod.dutyCyclePeriod;
+        theContext.m_persistantStatePtr->m_heaterParams.m_heaterDutyCyclePeriod =
+                msg.body.setHeaterDutyCyclePeriod.dutyCyclePeriod;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -666,7 +669,8 @@ namespace iris
                                                               WdCmdMsgs__Response& deployNotificationResponse,
                                                               bool& sendDeployNotificationResponse)
     {
-        theContext.m_heaterParams.m_heaterSetpoint = msg.body.setThermisterVSetpoint.thermisterVSetpoint;
+        theContext.m_persistantStatePtr->m_heaterParams.m_heaterSetpoint =
+                msg.body.setThermisterVSetpoint.thermisterVSetpoint;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -902,12 +906,13 @@ namespace iris
                 break;
 
             case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_ENABLE:
-                theContext.m_heaterParams.m_heatingControlEnabled = true;
+                theContext.m_persistantStatePtr->m_heaterParams.m_heatingControlEnabled = true;
                 break;
 
             case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_DISABLE:
-                theContext.m_heaterParams.m_heatingControlEnabled = false;
+                theContext.m_persistantStatePtr->m_heaterParams.m_heatingControlEnabled = false;
                 TB0CCR2 = 0;
+                theContext.m_persistantStatePtr->m_heaterParams.m_heaterDutyCycle = 0;
                 break;
 
             case WD_CMD_MSGS__RESET_ID__HERCULES_WATCHDOG_ENABLE:

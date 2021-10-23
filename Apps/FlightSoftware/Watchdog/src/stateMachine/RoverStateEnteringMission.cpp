@@ -35,7 +35,7 @@ namespace iris
         static FullEarthHeartbeat hb = { 0 };
         GroundCmd__Status gcStatus = GroundCmd__generateFullEarthHeartbeat(&(theContext.m_i2cReadings),
                                                                            &(theContext.m_adcValues),
-                                                                           &(theContext.m_heaterParams),
+                                                                           &(theContext.m_persistantStatePtr->m_heaterParams),
                                                                            static_cast<uint8_t>(getState()),
                                                                            &hb);
 
@@ -50,7 +50,7 @@ namespace iris
             //!< @todo Handling?
         }
 
-        if (theContext.m_heaterParams.m_heatingControlEnabled) {
+        if (theContext.m_persistantStatePtr->m_heaterParams.m_heatingControlEnabled) {
             // calculate PWM duty cycle (if any) to apply to heater
             heaterControl(theContext);
         }
@@ -132,14 +132,8 @@ namespace iris
                         I2C_Sensors__clearLastAction();
                         theContext.m_i2cActive = false;
 
-                        return transitionToWaitingForAdcDone(theContext);
+                        return transitionToWaitingForIoExpanderWrite2(theContext);
                     }
-                }
-                break;
-
-            case SubState::WAITING_FOR_ADC_DONE:
-                if (isAdcSampleDone() == TRUE) {
-                    return transitionToWaitingForIoExpanderWrite2(theContext);
                 }
                 break;
 
@@ -320,33 +314,8 @@ namespace iris
         return getState();
     }
 
-    RoverState RoverStateEnteringMission::transitionToWaitingForAdcDone(RoverContext& theContext)
-    {
-        // We want to set up the ADC for reading values when not attached to the lander. In order to do this setup, any
-        // existing ADC reading must be done. If it's not done, we won't move forward until it is.
-        bool lastSampleDone = (isAdcSampleDone() == TRUE);
-
-        if (lastSampleDone) {
-            // The last sample is done already, so advance immediately
-            return transitionToWaitingForIoExpanderWrite2(theContext);
-        } else {
-            // We still need to wait for the last sample to complete, so remain in this state and this substate.
-            m_currentSubstate = SubState::WAITING_FOR_ADC_DONE;
-            return getState();
-        }
-    }
-
     RoverState RoverStateEnteringMission::transitionToWaitingForIoExpanderWrite2(RoverContext& theContext)
     {
-        // The last ADC sample being done should be a prerequisite of entering this state, which means that
-        // this call shouldn't fail. However, we check the return value anyway and will transition back to the previous
-        // state if it did fail.
-        bool setupSuccess = (setupAdcForMission() == TRUE);
-
-        if (!setupSuccess) {
-            return transitionToWaitingForAdcDone(theContext);
-        }
-
         // Power stuff on. These are simply setting/clearing bits, so they are instant. However, powering on the radio
         // requires writing the I/O Expander.
         powerOnFpga();

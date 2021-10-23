@@ -10,10 +10,31 @@ namespace iris
 {
     // Declare the buffers for the UART rx and tx ring buffers. These are static
     // so that they are not on the stack.
-    static volatile uint8_t uart0TxBuffer[1024] = { 0 };
-    static volatile uint8_t uart0RxBuffer[1024] = { 0 };
-    static volatile uint8_t uart1TxBuffer[1024] = { 0 };
-    static volatile uint8_t uart1RxBuffer[1024] = { 0 };
+    static volatile uint8_t uart0TxBuffer[1024] = {};
+    static volatile uint8_t uart0RxBuffer[1024] = {};
+    static volatile uint8_t uart1TxBuffer[1024] = {};
+    static volatile uint8_t uart1RxBuffer[1024] = {};
+
+//#pragma PERSISTENT
+    static PersistentState persistentState =
+    {
+         .m_statusBits = PSBI_MASK(PSBI__CHRG_EN),
+         .m_heaterParams =
+         {
+              .m_kpHeater = DEFAULT_KP_HEATER,
+              .m_pwmLimit = DEFAULT_PWM_LIMIT,
+              .m_heaterSetpoint = DEFAULT_HEATER_SETPOINT,
+              .m_heaterWindow = DEFAULT_HEATER_WINDOW,
+              .m_heaterOnVal = DEFAULT_HEATER_ON_VAL,
+              .m_heaterOffVal = DEFAULT_HEATER_OFF_VAL,
+              .m_heating = DEFAULT_HEATING,
+              .m_heatingControlEnabled = DEFAULT_HEATING_CONTROL_ENABLED,
+              .m_heaterDutyCyclePeriod = DEFAULT_HEATER_DUTY_CYCLE_PERIOD,
+              .m_heaterDutyCycle = DEFAULT_HEATER_DUTY_CYCLE
+         },
+         .m_stateAsUint = static_cast<uint8_t>(RoverState::ENTERING_KEEP_ALIVE),
+         .m_adcState = ADC_STATE__UNCONFIGURED
+    };
 
     RoverStateManager::RoverStateManager()
         : m_stateEnteringKeepAlive(),
@@ -46,6 +67,8 @@ namespace iris
         m_context.m_uartConfig.uart1Buffers.txBufferSize = sizeof(uart1TxBuffer);
         m_context.m_uartConfig.uart1Buffers.rxBuffer = uart1RxBuffer;
         m_context.m_uartConfig.uart1Buffers.rxBufferSize = sizeof(uart1RxBuffer);
+
+        m_context.m_persistantStatePtr = &persistentState;
 
         m_context.m_isDeployed = false;
         m_context.m_i2cActive = false;

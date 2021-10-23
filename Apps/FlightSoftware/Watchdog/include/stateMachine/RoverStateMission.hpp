@@ -63,10 +63,6 @@ namespace iris
             SubState m_currentSubState;
             DeployState m_currentDeployState;
 
-            RoverState transitionToNotDeployed(RoverContext& theContext);
-            RoverState transitionToDeploying(RoverContext& theContext);
-            RoverState transitionToDeployed(RoverContext& theContext);
-
     };
 
 }

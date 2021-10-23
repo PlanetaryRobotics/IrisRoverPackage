@@ -40,7 +40,6 @@ namespace iris
             {
                 WAITING_FOR_I2C_DONE,
                 WAITING_FOR_IO_EXPANDER_WRITE_1,
-                WAITING_FOR_ADC_DONE,
                 WAITING_FOR_IO_EXPANDER_WRITE_2,
                 WAITING_FOR_FUEL_GAUGE_OR_TIMEOUT,
                 WAITING_FOR_WIFI_READY_OR_TIMEOUT,
@@ -54,8 +53,6 @@ namespace iris
             RoverState transitionToWaitingForI2cDone(RoverContext& theContext);
 
             RoverState transitionToWaitingForIoExpanderWrite1(RoverContext& theContext);
-
-            RoverState transitionToWaitingForAdcDone(RoverContext& theContext);
 
             RoverState transitionToWaitingForIoExpanderWrite2(RoverContext& theContext);
 

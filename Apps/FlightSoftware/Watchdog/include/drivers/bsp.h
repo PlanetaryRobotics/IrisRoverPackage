@@ -10,7 +10,7 @@ extern "C"
 {
 #endif
 
-void initializeGpios(HeaterParams* hParams);
+void initializeGpios(PersistentState* pState);
 void enableUart0Pins(void);
 void disableUart0Pins(void);
 void enableUart1Pins(void);
@@ -56,6 +56,26 @@ void setDeploy(void);
 void unsetDeploy(void);
 void startChargingBatteries(void);
 void stopChargingBatteries(void);
+
+inline void blimp_bctrlEnOn();
+inline void blimp_bctrlEnForceHigh();
+inline void blimp_bctrlEnOff();
+inline void blimp_latchBattOn();
+inline void blimp_latchBattOff();
+void blimp_latchBattUpdate();
+inline void blimp_chargerEnOn();
+inline void blimp_chargerEnForceHigh();
+inline void blimp_chargerEnOff();
+inline void blimp_regEnOn();
+inline void blimp_regEnOff();
+void blimp_battEnOn();
+void blimp_battEnOff();
+void blimp_vSysAllEnOn();
+void blimp_vSysAllEnOff();
+void blimp_vSysAllEnForceLow();
+inline BOOL blimp_cstat1();
+inline BOOL blimp_bstat();
+inline BOOL blimp_batteryState();
 
 uint8_t getIOExpanderPort0OutputValue(void);
 uint8_t getIOExpanderPort1OutputValue(void);

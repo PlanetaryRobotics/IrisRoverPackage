@@ -41,7 +41,7 @@ namespace iris
         static FullEarthHeartbeat hb = { 0 };
         GroundCmd__Status gcStatus = GroundCmd__generateFullEarthHeartbeat(&(theContext.m_i2cReadings),
                                                                            &(theContext.m_adcValues),
-                                                                           &(theContext.m_heaterParams),
+                                                                           &(theContext.m_persistantStatePtr->m_heaterParams),
                                                                            static_cast<uint8_t>(getState()),
                                                                            &hb);
 
@@ -56,7 +56,7 @@ namespace iris
             //!< @todo Handling?
         }
 
-        if (theContext.m_heaterParams.m_heatingControlEnabled) {
+        if (theContext.m_persistantStatePtr->m_heaterParams.m_heatingControlEnabled) {
             // calculate PWM duty cycle (if any) to apply to heater
             heaterControl(theContext);
         }
@@ -130,6 +130,7 @@ namespace iris
         // Only use heater when connected to the lander
         if (m_currentDeployState != DeployState::NOT_DEPLOYED) {
             TB0CCR2 = 0;
+            theContext.m_persistantStatePtr->m_heaterParams.m_heaterDutyCycle = 0;
         } else {
             RoverStateBase::heaterControl(theContext);
         }

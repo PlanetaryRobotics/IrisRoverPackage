@@ -44,7 +44,7 @@ namespace iris
                 WAITING_FOR_IO_EXPANDER_WRITE_2,
                 WAITING_FOR_FUEL_GAUGE_OR_TIMEOUT,
                 WAITING_FOR_WIFI_READY_OR_TIMEOUT,
-                WAITING_FOR_FINAL_IO_EXPANDER_WRITE
+                WAITING_FOR_IO_EXPANDER_WRITE_3
             };
 
             SubState m_currentSubstate;
@@ -63,7 +63,9 @@ namespace iris
 
             RoverState transitionToWatitingForWifiReadyOrTimeout(RoverContext& theContext);
 
-            RoverState transitionToWaitingForFinalIoExpanderWrite(RoverContext& theContext);
+            RoverState transitionToWaitingForIoExpanderWrite3(RoverContext& theContext);
+
+            void enableHerculesComms(RoverContext& theContext);
     };
 
 }

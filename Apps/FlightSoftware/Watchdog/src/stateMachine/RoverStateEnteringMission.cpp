@@ -225,12 +225,12 @@ namespace iris
 
                     if (timePassed > WIFI_READY_TIMEOUT_CENTISECONDS) {
                         DPRINTF_ERR("Wait for wifi timed out\n");
-                        return transitionToWaitingForFinalIoExpanderWrite(theContext);
+                        return transitionToWaitingForIoExpanderWrite3(theContext);
                     }
                     break;
                 }
 
-            case SubState::WAITING_FOR_FINAL_IO_EXPANDER_WRITE:
+            case SubState::WAITING_FOR_IO_EXPANDER_WRITE_3:
                 {
                     I2C_Sensors__Action action = I2C_SENSORS__ACTIONS__INACTIVE;
                     uint8_t readValue = 0;
@@ -246,6 +246,8 @@ namespace iris
 
                         I2C_Sensors__clearLastAction();
                         theContext.m_i2cActive = false;
+
+                        enableHerculesComms(theContext);
 
                         return RoverState::MISSION;
                     }
@@ -405,7 +407,7 @@ namespace iris
         return getState();
     }
 
-    RoverState RoverStateEnteringMission::transitionToWaitingForFinalIoExpanderWrite(RoverContext& theContext)
+    RoverState RoverStateEnteringMission::transitionToWaitingForIoExpanderWrite3(RoverContext& theContext)
     {
         // These are simply setting/clearing bits, so they are instant
         powerOnHercules();
@@ -421,8 +423,20 @@ namespace iris
 
         initiateNextI2cAction(theContext);
 
-        m_currentSubstate = SubState::WAITING_FOR_FINAL_IO_EXPANDER_WRITE;
+        m_currentSubstate = SubState::WAITING_FOR_IO_EXPANDER_WRITE_3;
         return getState();
+    }
+
+    void RoverStateEnteringMission::enableHerculesComms(RoverContext& theContext)
+    {
+        UART__Status uartStatus = UART__init0(&(theContext.m_uartConfig),
+                                              &(theContext.m_uart0State));
+
+        DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uartStatus, "Failed to init UART0");
+        assert(UART__STATUS__SUCCESS == uartStatus);
+
+        HerculesComms__Status hcStatus = HerculesComms__init(&(theContext.m_hcState), theContext.m_uart0State);
+        assert(HERCULES_COMMS__STATUS__SUCCESS == hcStatus);
     }
 
 } // End namespace iris

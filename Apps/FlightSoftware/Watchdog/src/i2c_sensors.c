@@ -16,8 +16,12 @@ static const BOOL FALSE = 0;
 
 static I2C_Sensors__InternalState internals = { 0 };
 
+// Start all as LOW unless otherwise indicated (LR and LS need to start HIGH):
+uint8_t ioExpanderPort0OutputValues = 0x00u | I2C_SENSORS__IOE_P0_BIT__LATCH_RST;
+uint8_t ioExpanderPort1OutputValues = 0x00u | I2C_SENSORS__IOE_P1_BIT__LATCH_SET;
+
 // TODO uncomment to program MC
-//#define PROGRAM_MOTOR_CONTROLLERS
+#define PROGRAM_MOTOR_CONTROLLERS
 
 //###########################################################
 // Private function declarations
@@ -266,7 +270,7 @@ I2C_Sensors__Status I2C_Sensors__initializeIOExpanderBlocking()
     //     0.4: Hercules_nRST, output to reset Hercules (reset is active when low)
     //     0.5: Hercules_nPORRST, output to power-on reset Hercules (reset is active when low)
     //     0.6: FPGA_nRST, output to reset FPGA (reset is active when low)
-    //     0.7: LATCH_RST, output to force LATCH_STAT LOW, only used as a manual override in case there is an issue with
+    //     0.7: LATCH_RST output to force LATCH_STAT LOW, only used as a manual override in case there is an issue with
     //            the normal data/clock latching. In nominal operation this should remain unused (and pulled HIGH)
     //
     //     1.0: Radio_nRST, output to reset wifi chip (reset is active when low)
@@ -287,12 +291,8 @@ I2C_Sensors__Status I2C_Sensors__initializeIOExpanderBlocking()
     //   above, pins 0, 3, 5, and 6 are outputs, and the rest are either inputs or not connected.
     static const uint8_t CONFIG_PORT_0_REG_ADDR = 8;
     // ! TODO: Look into pins 4 and 5 hercules resets; Set as inputs to not drive during programming; Normally outputs
-    static const uint8_t CONFIG_PORT_0_VALUE = 0b00001100; // resets as inputs - worked for initial programming
-//#ifndef PROGRAM_MOTOR_CONTROLLERS
-//    static const uint8_t CONFIG_PORT_0_VALUE = 0b00000000; // all as outputs - has also worked (programming cable was broken)
-//#else
-//    static const uint8_t CONFIG_PORT_0_VALUE = 0b11110000; // all as outputs - has also worked (programming cable was broken)
-//#endif
+    //static const uint8_t CONFIG_PORT_0_VALUE = 0b00001111; // resets as inputs - worked for initial programming
+    static const uint8_t CONFIG_PORT_0_VALUE = 0b00001111; // 0.0 - 0.3 as inputs, others as outputs (for programming motors)
 //    static const uint8_t CONFIG_PORT_0_VALUE = 0b11111111; // all as inputs?
     static const uint8_t CONFIG_PORT_1_REG_ADDR = 9;
     // ! TODO: Config port 1 value was 9 bits (0b011010011) but looking at the above comments and port 0 value we
@@ -301,6 +301,8 @@ I2C_Sensors__Status I2C_Sensors__initializeIOExpanderBlocking()
 //    static const uint8_t CONFIG_PORT_1_VALUE = 0b01101001; // orig
     static const uint8_t CONFIG_PORT_1_VALUE = 0b10010110; // testing
 //    static const uint8_t CONFIG_PORT_1_VALUE = 0b00000000; // all output?
+
+
 
     if (!((GRS__DONE == internals.gState)
           || (GRS__UNKNOWN == internals. gState))) {
@@ -781,4 +783,14 @@ BOOL I2C_Sensors__gaugeTempMsb()
                                            internals.readings.raw_fuel_gauge_temp,
                                            &done,
                                            &gotOutput);
+}
+
+inline uint8_t getIOExpanderPort0OutputValue()
+{
+    return ioExpanderPort0OutputValues;
+}
+
+inline uint8_t getIOExpanderPort1OutputValue()
+{
+    return ioExpanderPort1OutputValues;
 }

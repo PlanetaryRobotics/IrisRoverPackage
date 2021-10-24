@@ -43,9 +43,6 @@ void enterMode(enum rover_state newstate) {
          */
     case RS_KEEPALIVE:
 
-        // Disable all system power (VSA) switch:
-        blimp_vSysAllEnOff();
-
         /* power everything off and set resets */
         powerOffFpga();
         powerOffMotors();
@@ -65,22 +62,31 @@ void enterMode(enum rover_state newstate) {
 //        enable3V3PowerRail(); // TESTING - for Programming Motor Controllers!
 //        powerOnMotors(); // TESTING [added] - for Programming Motor Controllers!
 
-        //TODO - enable/disable24VPowerRail() sets V_SYS_ALL_EN
-        //       24V power actually set by powerOnMotors()
-        //       V_SYS_ALL used to power everything besides Heater & WD + peripherals
-//        disable24VPowerRail();
-        disableBatteries();
-
         /* monitor only lander voltages */
         adc_setup_lander();
 //        enableHeater();
         disableHeater();
-//        startChargingBatteries();
-        stopChargingBatteries();
 
         //!< @todo Check return statuses
         I2C_Sensors__initializeIOExpanderBlocking();
-        I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue() | 128u, getIOExpanderPort1OutputValue());
+        I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
+
+//        blimp_normalBoot(); // must happen after IO expander initialization
+        blimp_safeBoot(); // TODO: only for testing.
+
+        // BLiMP controls that must happen after BLiMP boot function (blimp_safeBoot() or blimp_normalBoot()):
+//        startChargingBatteries();
+        stopChargingBatteries();
+
+        // Disable all system power (VSA) switch:
+        blimp_vSysAllEnOff();
+
+        //TODO - enable/disable24VPowerRail() sets V_SYS_ALL_EN
+        //       24V power actually set by powerOnMotors()
+        //       V_SYS_ALL used to power everything besides Heater & WD + peripherals
+//        disable24VPowerRail();
+        // TODO: **ONLY** disable batteries on boot **IF** we haven't deployed (lander voltage present).
+        disableBatteries();
 
 //        uint8_t chargeStat2 = 0;
 //        uint8_t latchStat = 0;
@@ -101,27 +107,28 @@ void enterMode(enum rover_state newstate) {
 //#define WD_GPO_TEST
 #ifdef WD_GPO_TEST
         __delay_cycles(12345678); // arbitrary. lets I2C ISRs happen for initialization
+        blimp_vSysAllEnOn();
 //        PJOUT |= BIT7; // VSAE ON
-        PJOUT &= ~BIT7; // VSAE OFF
-
+        blimp_battEnOn();
 //        PJOUT |= BIT5; // BE ON
-        PJOUT &= ~BIT5; // BE OFF
-
-//        PJOUT |= BIT3; // CE ON (weird?)
-        PJOUT &= ~BIT3; // CE OFF
-
+        blimp_chargerEnForceHigh();
+//        PJOUT |= BIT3; // To Check out SBC
+//        PJOUT |= BIT3; // CE ON
+        blimp_bctrlEnForceHigh();
+//        P2DIR |= BIT3; // To Check out SBC
 //        P2OUT |= BIT3; // BCTRLE ON
-        P2OUT &= ~BIT3; // BCTRLE OFF
-
+        blimp_latchBattOn();
 //        P3OUT |= BIT6; // Latch_batt ON
-        P3OUT &= ~BIT6; // Latch_batt OFF
 
-//        P3OUT |= BIT5; // FPGA_KICK ON
-        P3OUT &= ~BIT5; // FPGA_KICK OFF
+        P3OUT |= BIT5; // FPGA_KICK ON
 
-//        P3OUT |= BIT4; // DEPLOY_1 ON
-        P3OUT &= ~BIT4; // DEPLOY_1 OFF
+        P3OUT |= BIT4; // DEPLOY_1 ON
 
+        enableHeater();
+        latchSetHi();
+        latchRstHi();
+        blimp_regEnOn();
+        I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
 #endif
 
 //#define BLiMP
@@ -149,7 +156,7 @@ void enterMode(enum rover_state newstate) {
         blimp_bctrlEnOff();
 
         // *** SetBatteryLatch
-//        blimp_latchBattOn();
+//        blimp_latchBattOn();blimp_latchBattOn();
         blimp_latchBattOff();
 //        blimp_latchBattUpdate();
 
@@ -162,10 +169,12 @@ void enterMode(enum rover_state newstate) {
         //TODO - will need V_SYS_ALL_EN before anything else can work
         // ! TODO - changed this case a lot to disable for testing
 
+        blimp_normalBoot(); // must happen after IO expander initialization
+
         /* bootup process - enable all rails */
         enable3V3PowerRail();
 //        enable24VPowerRail();
-        disable24VPowerRail(); // TESTING
+////        disable24VPowerRail(); // TESTING
 //        enableBatteries();
         disableBatteries(); // TESTING
         disableHeater();
@@ -173,13 +182,14 @@ void enterMode(enum rover_state newstate) {
 //        setDeploy(); // TESTING
 
         // Turn on all system power (VSA) switch:
-        blimp_vSysAllEnOn();
+//        blimp_vSysAllEnOn();
 
         /* enable hercules uart */
         uart0_init();
 
         /* power everything on and release resets */
-        releaseRadioReset();
+//        releaseRadioReset();
+        setRadioReset(); // TESTING
         setFPGAReset(); // TESTING
 //        releaseFPGAReset();
 
@@ -191,7 +201,8 @@ void enterMode(enum rover_state newstate) {
 //        powerOnFpga();
         powerOffMotors(); // TESTING
 //        powerOnMotors();
-        powerOnRadio();
+//        powerOnRadio();
+        powerOffRadio(); // TESTING
 
         stopChargingBatteries();
 
@@ -202,12 +213,14 @@ void enterMode(enum rover_state newstate) {
         __delay_cycles(12345678); //give fuel gauge [50 ms] & wifi [~750 ms] time to start up
         I2C_Sensors__initializeFuelGaugeBlocking();
 
-        powerOnHercules();
+//        powerOnHercules();
+        powerOffHercules(); // TESTING
 
         setMotorsReset(); // TESTING
 //        releaseMotorsReset();
 
-        releaseHerculesReset();
+//        releaseHerculesReset();
+        setHerculesReset(); // TESTING
 
         I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
 

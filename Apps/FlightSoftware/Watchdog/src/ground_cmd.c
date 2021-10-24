@@ -413,6 +413,39 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len)
 
         // NEW COMMANDS FOR BLiMP FROM FINAL ICD:
 
+        /* DangerousForceBatteryState (make the WD `BSTAT` pin an output and force its state)
+         * **NEVER** do this under normal circumstances.
+         * This is only here to allow for recovery from a VERY specific failure mode where the OR-Gate fails during cis-lunar transit
+         * and ends up floating the output. If that failure were to happen and this command were not to exist, we'd have no way of
+         * enabling/disabling the batteries.
+         * **NOTE:** Using this command when there *isn't* a fault in the OR-gate could cause the OR gate and WD to drive the `BSTAT`
+         * line to different levels, likely blowing one or both of them. This is very much a command of last-resort.
+         * Because of the risk of using this command at wrong time, it requires a 2 octet magic + an argument.
+         * */
+        case 0xF5:
+            if(buf[2] == 0xF0 && buf[3] == 0x01){
+                if(buf[4] == 0x00){
+                    blimp_bstat_dangerous_forceLow();
+                } else if(buf[4] == 0xFF){
+                    blimp_bstat_dangerous_forceHigh();
+                } else if(buf[4] == 0xAA){
+                    // Restore the BSTAT pin to a safe / non-dangerous state (input):
+                    blimp_bstat_safe_restoreInput();
+                } else {
+                    reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
+                    return;
+                }
+            } else{
+                reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
+                return;
+            }
+
+            break;
+
+        /* Request status report (detailed status of all WD states for in-flight diagnostics). */
+//        case 0xF6:
+//            break;
+
         /* Set charging IC enable state. (CHARGE_EN) */
         case 0xF7:
             if(buf[2] == 0xFF){
@@ -488,18 +521,31 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len)
             break;
 
 // TODO: Implement these here and in BSP. Not used nominally. Only used for in-flight diagnostics.
-//        /* Pulse battery latch "SET" override low. (LS) */
-//        case 0xFC:
-//            break;
-//
-//        /* Pulse battery latch "RESET" override low. (LR) */
-//        case 0xFD:
-//            break;
-//
+        /* Pulse battery latch "SET" override low. (LS) */
+        case 0xFC:
+            if(buf[2] == 0x15){ // Check for magic.
+                blimp_latchSetPulseLow();
+            } else{
+                /* bad command magic: */
+                reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
+                return;
+            }
+            break;
+
+        /* Pulse battery latch "RESET" override low. (LR) */
+        case 0xFD:
+            if(buf[2] == 0x5E){ // Check for magic.
+                blimp_latchResetPulseLow();
+            } else{
+                /* bad command magic: */
+                reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
+                return;
+            }
+            break;
+
 //        /* Set battery management system boot state. Unused since no BMS implemented. (BMSB) */
 //        case 0xFE:
 //            break;
-
 
         default:
             /* invalid command */

@@ -9,6 +9,9 @@
 #define I2C_FUEL_GAUGE_SLAVE_ADDR      100 //0b1100100 //i2c address of LTC2944IDD#PBF fuel gauge
 #define I2C_IO_EXPANDER_SLAVE_ADDR     32 //0b0100000 //i2c address of PCA9575 I/O expander
 
+extern uint8_t ioExpanderPort0OutputValues;
+extern uint8_t ioExpanderPort1OutputValues;
+
 // Bit flags that, if set, indicate that data was not updated because
 // the slave device did not acknowledge a transmitted byte.
 typedef enum I2C_Sensors__NACK_Status {
@@ -128,5 +131,8 @@ I2C_Sensors__Status I2C_Sensors__readIOExpanderBlocking(uint8_t* chargeStat2, ui
 I2C_Sensors__Status I2C_Sensors__writeIOExpanderOutputsBlocking(uint8_t port0Value, uint8_t port1Value);
 
 void I2C_Sensors__spinOnce();
+
+inline uint8_t getIOExpanderPort0OutputValue();
+inline uint8_t getIOExpanderPort1OutputValue();
 
 #endif // #ifndef __I2C_SENSORS_H__

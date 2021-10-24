@@ -3,7 +3,7 @@
 #include "include/blimp.h"
 
 // TODO uncomment to program MC
-//#define PROGRAM_MOTOR_CONTROLLERS
+#define PROGRAM_MOTOR_CONTROLLERS
 
 #define PORT1_ENABLED 1
 #define PORT2_ENABLED 1
@@ -13,9 +13,6 @@
 
 uint8_t heaterStatus;
 uint8_t hasDeployed;
-
-static uint8_t ioExpanderPort0OutputValues = 0x00u;
-static uint8_t ioExpanderPort1OutputValues = 0x00u;
 
 /**
  * @brief      Initializes the gpios.
@@ -131,6 +128,8 @@ void initializeGpios()
     // resistors disabled.
     P2DIR &= ~BIT3;
     P2REN &= ~BIT3;
+//    P2DIR |= BIT3; // To Check out SBC
+//    P2OUT |= BIT3; // To Check out SBC
 
     // P2.4 is connected to the BATT_TEMP signal (output of voltage divider for battery pack thermistor), and is used
     // as an ADC analog input (specifically it is ADC analog input A7). This is the tertiary function (SEL1 and SEL0
@@ -219,7 +218,7 @@ void initializeGpios()
     P3OUT &= ~BIT4;
 
     // P3.5 is connected to the FPGA_Kick signal and is used as a GPIO input.
-    P3DIR &= ~BIT5;
+    P3OUT &= ~BIT5;
 
     // ! TODO: Not deployment (anymore on Rev I - not sure if it was on rev H). Is `LATCH_BATT` now.
     // P3.6 is connected to the Deployment signal (control signal for MOSFET to enable HDRM), and is used as a GPIO
@@ -362,10 +361,12 @@ void initializeGpios()
     // TODO: CHRG_EN should be High-Z or low always.
     PJDIR &= ~BIT3;
     PJREN &= ~BIT3;
+//    PJOUT |= BIT3; // To Check out SBC
 
     // TODO: Looks like this is still being set as an output though it should be an input.
     // PJ.4 is connected to the Radio_Kick signal and is used as a GPIO input.
     PJDIR &= ~BIT4;
+    // PJREN here too?
 
     // PJ.5 is connected to the BATTERY_EN signal and is used as a GPIO output with an initially low value.
     PJOUT &= ~BIT5;
@@ -374,6 +375,7 @@ void initializeGpios()
     // ^- TODO: looks like this has been fixed?
     // PJ.6 is connected to the BATT_STAT signal and is used as a GPIO input.
     PJDIR &= ~BIT6;
+    PJREN &= ~BIT6;
 
     // PJ.7 is connected to the V_SYS_ALL_EN signal and is used as a GPIO output with an initially low value.
     // TODO: VSAE has an external pull-down and VSA switch seems to draw more current when VSAE is driven low (maybe? - retest this), so consider making VSAE always HiZ or High.
@@ -540,7 +542,7 @@ inline void setFPGAReset()
 inline void fpgaCameraSelectHi()
 {
     //!< @todo This was going to the line labeled FPGA_Kick which appears to be a watchdog input, not output... wrong?
-    //P3OUT |= BIT5;
+    P3OUT |= BIT5;
 }
 
 /**
@@ -549,7 +551,7 @@ inline void fpgaCameraSelectHi()
 inline void fpgaCameraSelectLo()
 {
     //!< @todo This was going to the line labeled FPGA_Kick which appears to be a watchdog input, not output... wrong?
-    //P3OUT &= ~BIT5;
+    P3OUT &= ~BIT5;
 }
 
 /**
@@ -770,10 +772,10 @@ inline void startChargingBatteries()
     if(!blimp_batteryState()){
         blimp_battEnOn();
     }
+    // Start charging (set the CE pin Hi-Z before giving power to charging IC):
+    blimp_chargerEnOn();
     // Enable the charging regulator:
     blimp_regEnOn();
-    // Start charging:
-    blimp_chargerEnOn();
 }
 
 /**
@@ -781,18 +783,8 @@ inline void startChargingBatteries()
  */
 inline void stopChargingBatteries()
 {
-    // Stop charging:
+    // Stop charging (set the CE pin LOW before cutting power to charging IC):
     blimp_chargerEnOff();
     // Disable the charging regulator:
     blimp_regEnOff();
-}
-
-inline uint8_t getIOExpanderPort0OutputValue()
-{
-    return ioExpanderPort0OutputValues;
-}
-
-inline uint8_t getIOExpanderPort1OutputValue()
-{
-    return ioExpanderPort1OutputValues;
 }

@@ -204,7 +204,7 @@ namespace CubeRover {
         )
       {
         // Convert int into reset_values_possible
-        reset_values_possible reset_value = (reset_values_possible)reset_enum_number;
+        reset_values_possible resetValue = (reset_values_possible)reset_enum_number;
         // Check that reset_value is correct
         if (resetValue >= reset_values_possible_MAX)
         {

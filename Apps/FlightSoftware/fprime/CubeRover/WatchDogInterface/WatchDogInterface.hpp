@@ -366,7 +366,7 @@ namespace CubeRover {
         void pollDMASendFinished();      // Polls DMA send finish to see if we've finished our DMA sending
         
         // Perform a DMA send function
-        bool dmaSend(void *buffer,           // The buffer of data to send to watchdog
+        bool dmaSend(volatile void *buffer,           // The buffer of data to send to watchdog
                      int size,               // The size of the data to send to watchdog
                      bool blocking=true);    // Check variable to see if we need to block other DMA requests
 

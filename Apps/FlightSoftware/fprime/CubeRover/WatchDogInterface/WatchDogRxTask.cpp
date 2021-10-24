@@ -11,6 +11,8 @@
 
 #include <App/DMA.h>
 
+#include <cassert>
+
 static TaskHandle_t xTaskToNotify = nullptr;
 static volatile bool dmaReadBusy = false;
 
@@ -60,9 +62,9 @@ namespace CubeRover
         this->join(&value);
     }
 
-    ::Os::Task::TaskStatus WatchDogRxTask::start(NATIVE_INT_TYPE priority, 
-                                                 NATIVE_INT_TYPE stackSize,
-                                                 NATIVE_INT_TYPE cpuAffinity)
+    ::Os::Task::TaskStatus WatchDogRxTask::startTask(NATIVE_INT_TYPE priority,
+                                                     NATIVE_INT_TYPE stackSize,
+                                                     NATIVE_INT_TYPE cpuAffinity)
     {
         if (m_isRunning) {
             return Os::Task::TASK_UNKNOWN_ERROR;
@@ -70,19 +72,22 @@ namespace CubeRover
 
         m_keepRunning = true;
         Fw::EightyCharString task("WatchDogRxTask");
-        Os::Task::TaskStatus stat = Os::Task::start(task,
-                                                    0,
-                                                    priority,
-                                                    stackSize,
-                                                    WatchDogRxTask::rxHandlerTaskFunction,
-                                                    this,
-                                                    cpuAffinity);
 
-        FW_ASSERT(stat == Os::Task::TASK_OK, stat);
+        TaskHandle_t tid;
+        BaseType_t stat = xTaskCreate(WatchDogRxTask::rxHandlerTaskFunction,
+                                      task.toChar(),
+                                      stackSize,
+                                      this,
+                                      priority,
+                                      &tid);
 
-        xTaskToNotify = reinterpret_cast<TaskHandle_t>(this->m_handle);
+        FW_ASSERT(stat == pdPASS, stat);
+        xTaskToNotify = tid;
+
+        FW_ASSERT(xTaskToNotify != 0);
+
         m_isRunning = true;
-        return stat;
+        return Os::Task::TASK_OK;
     }
 
     bool WatchDogRxTask::registerCallback(WatchDogRxCallbackProcessor* callback)
@@ -107,6 +112,8 @@ namespace CubeRover
 
         uint8_t* lastTransferDestination = nullptr;
         unsigned lastTransferSize = 0;
+
+        while (!task->m_keepRunning); // Wait until keepRunning has been set true
 
         while (task->m_keepRunning) {
             // First handle the last transfer (if this isn't the first loop, in which case this will be skipped)
@@ -188,6 +195,8 @@ namespace CubeRover
                        nextTransferSize,
                        ACCESS_8_BIT,
                        &dmaReadBusy);
+
+            FW_ASSERT(nextTransferSize > 0);
 
             // Copy over the destination and size for the next iteration.
             lastTransferDestination = nextTransferDestination;

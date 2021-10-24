@@ -69,9 +69,9 @@ namespace CubeRover
              *
              * @return The status of starting the task.
              */
-            ::Os::Task::TaskStatus start(NATIVE_INT_TYPE priority,
-                                         NATIVE_INT_TYPE stackSize,
-                                         NATIVE_INT_TYPE cpuAffinity = -1); //!< start the task
+            ::Os::Task::TaskStatus startTask(NATIVE_INT_TYPE priority,
+                                             NATIVE_INT_TYPE stackSize,
+                                             NATIVE_INT_TYPE cpuAffinity = -1); //!< start the task
 
             /**
              * @brief Registers the given object as a callback to be invoked once a message is recieved and parsed.

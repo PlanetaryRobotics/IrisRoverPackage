@@ -69,9 +69,9 @@ namespace CubeRover {
 
         // Configure and up the receivng task
         m_rxTask.registerCallback(this);
-        ::Os::Task::TaskStatus taskStat = m_rxTask.start(WATCH_DOG_INTERFACE_RX_TASK_PRIORITY,
-                                                         WATCH_DOG_INTERFACE_RX_TASK_STACK_SIZE,
-                                                         WATCH_DOG_INTERFACE_RX_TASK_CPU_AFFINITY);
+        ::Os::Task::TaskStatus taskStat = m_rxTask.startTask(WATCH_DOG_INTERFACE_RX_TASK_PRIORITY,
+                                                             WATCH_DOG_INTERFACE_RX_TASK_STACK_SIZE,
+                                                             WATCH_DOG_INTERFACE_RX_TASK_CPU_AFFINITY);
         // Assert that this will always be started successfully. If it isn't, we're screwed.
         FW_ASSERT(taskStat == Os::Task::TASK_OK, taskStat);
         
@@ -659,7 +659,7 @@ namespace CubeRover {
                                                    size_t dataLen,
                                                    bool sendResponse)
     {
-        struct WatchdogFrameHeader frame;
+        volatile struct WatchdogFrameHeader frame;
         frame.magic_value = header_magic;
         frame.parity = 0;
         frame.payload_length = static_cast<uint16_t>(dataLen);
@@ -667,10 +667,10 @@ namespace CubeRover {
         frame.sequence_number = static_cast<uint16_t>(cmdSeq);
         frame.opcode = static_cast<uint16_t>(opCode);
   
-        uint8_t* frameBytes = reinterpret_cast<uint8_t*>(&frame);
+        volatile uint8_t* frameBytes = reinterpret_cast<volatile uint8_t*>(&frame);
         uint8_t runningParity = 0;
   
-        for (size_t i = 0; i < sizeof(WatchdogFrameHeader); ++i) {
+        for (size_t i = 0; i < 12; ++i) {
             runningParity += frameBytes[i];
         }
   
@@ -750,16 +750,16 @@ namespace CubeRover {
         // transmit the data non-blocking. However, with the non-blocking send of the header we need to make
         // sure dmaSend doesn't return false, because if it does that means a previous send is still active.
         // If that's the case then we'll return the send as blocking (even if there is no data).
-        bool success = dmaSend(&frame, sizeof(frame), (dataLen != 0));
+        bool success = dmaSend((void *)&frame, 12, true); //(dataLen != 0));
   
         if (!success) {
-            dmaSend(&frame, sizeof(frame), true);
+            dmaSend((void *)&frame, 12, true);
         }
   
         if (dataLen > 0) {
             // If we're sending data then we always know that the previous blocking send of the header is complete,
             // which means that this should always succeed. However, we'll handle that case anyway just in case.
-            success = dmaSend(dataBuffer, dataLen, false);
+            success = dmaSend(dataBuffer, dataLen, true);
   
             if (!success) {
                 dmaSend(dataBuffer, dataLen, true);
@@ -780,12 +780,15 @@ namespace CubeRover {
     }
   
     // Returns negative on error
-    bool WatchDogInterfaceComponentImpl::dmaSend(void *buffer, int size, bool blocking) {
+    bool WatchDogInterfaceComponentImpl::dmaSend(volatile void *buffer, int size, bool blocking) {
+        //sciSend(m_sci, size, static_cast<uint8_t *>(buffer));
+        //return true;
+
         if (blocking)
             while (dmaWriteBusy);
         else if (dmaWriteBusy)
             return false;
-        sciDMASend(SCILIN_TX_DMA_CH, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaWriteBusy);
+        sciDMASend(SCILIN_TX_DMA_CH, static_cast<volatile char *>(buffer), size, ACCESS_8_BIT, &dmaWriteBusy);
         if (blocking)
             pollDMASendFinished();
         return true;

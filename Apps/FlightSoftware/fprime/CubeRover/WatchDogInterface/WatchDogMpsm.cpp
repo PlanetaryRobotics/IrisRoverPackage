@@ -9,7 +9,7 @@ namespace
     class HeaderRingArray
     {
         public:
-            HeaderRingArray()
+            HeaderRingArray() : m_bufferSize(sizeof(m_buffer))
             {
                 clear();
             }
@@ -62,6 +62,8 @@ namespace
 
                 outByte = m_buffer[m_tail];
                 m_tail = incrementAndWrap(m_tail);
+
+                m_size -= 1;
 
                 return true;
             }

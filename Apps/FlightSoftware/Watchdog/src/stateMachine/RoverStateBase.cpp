@@ -536,7 +536,7 @@ namespace iris
                                                                       RoverStateBase::herculesMsgCallback,
                                                                       (void*) &args);
 
-        assert(HERCULES_COMMS__STATUS__SUCCESS == hcStatus);
+        //assert(HERCULES_COMMS__STATUS__SUCCESS == hcStatus);
         if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
             //!< @todo logging?
         }

@@ -172,7 +172,7 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
                 resetMpsmMsg = TRUE;
             } else if (HERCULES_MPSM__STATUS__NEED_MORE_DATA != mpsmStatus) {
                 // Some kind of unexpected error occurred. At a minimum we need to reset the MPSM
-                resetMpsmMsg = true;
+                resetMpsmMsg = TRUE;
                 numReceived = 0;
                 returnStatus = HERCULES_COMMS__STATUS__ERROR_MPSM_PROCESS_FAILURE;
             }

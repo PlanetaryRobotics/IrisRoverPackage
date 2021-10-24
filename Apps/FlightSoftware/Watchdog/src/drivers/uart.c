@@ -11,6 +11,7 @@
  */
 
 #include <msp430.h>
+#include <assert.h>
 #include "drivers/uart.h"
 #include "drivers/bsp.h"
 #include "event/event.h"
@@ -221,13 +222,16 @@ UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t 
 
     // We have enough space in the ring buffer for all of our buffer data, so
     // push it all into the buffer
+    //__disable_interrupt();
     for (size_t i = 0U; i < dataLen; ++i) {
         RingBuffer__Status rbStatus = RingBuffer__put(uartState->txRingBuff, data[i]);
 
         if (RB__STATUS__SUCCESS != rbStatus) {
+  //          __enable_interrupt();
             return UART__STATUS__ERROR_RB_PUT_FAILURE;
         }
     }
+    //__enable_interrupt();
 
     // If the previous state of the TX interrupt enable pin was disabled, then we manually
     // trigger the TX interrupt so that the first byte available in the ring buffer will
@@ -460,6 +464,7 @@ static void UART__uart1Init() {
             /* we'll drop the new data instead of overwriting the oldest data in the */          \
             /* buffer. If we'd rather overwrite the old data, this will need to be updated. */   \
             rbStatus = RingBuffer__put(uartState.rxRingBuff, data);                              \
+            assert(rbStatus == RB__STATUS__SUCCESS); \
                                                                                                  \
             if (RB__STATUS__ERROR_FULL == rbStatus) {                                            \
                 /* The ring buffer is full, so data will be dropped. */                          \

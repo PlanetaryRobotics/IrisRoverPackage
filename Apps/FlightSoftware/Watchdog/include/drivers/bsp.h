@@ -57,6 +57,8 @@ void unsetDeploy(void);
 void startChargingBatteries(void);
 void stopChargingBatteries(void);
 
+void setLatchSetAndResetHigh(void);
+
 inline void blimp_bctrlEnOn();
 inline void blimp_bctrlEnForceHigh();
 inline void blimp_bctrlEnOff();

@@ -42,7 +42,7 @@ typedef struct HerculesMpsm__StateMachine
     // This is a bit inefficient but hopefully won't have any real impact.
     // If it does have a performance impact we'll need to make something
     // custom for this use-case.
-    volatile uint8_t ringBufferMemory[8];
+    volatile uint8_t ringBufferMemory[16];
     RingBuffer* headerRb;
 
     uint16_t dataLength;
@@ -218,10 +218,13 @@ static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg*
         return HERCULES_MPSM__STATUS__ERROR_RB_PUT_FAILURE;
     }
 
-    // The header is 8 bytes, so the ring buffer (which has a size of 8) needs to be full for the
-    // header to be valid.
-    if (!RingBuffer__full(theStateMachine.headerRb)) {
+    // The header is 12 bytes, so the ring buffer must have that many bytes for the header to be valid.
+    size_t usedCount = RingBuffer__usedCount(theStateMachine.headerRb);
+    if (usedCount < 12) {
         return HERCULES_MPSM__STATUS__NEED_MORE_DATA;
+    } else if (usedCount > 12) {
+        uint8_t unused = 0;
+        RingBuffer__getOverwrite(theStateMachine.headerRb, &unused);
     }
 
     // Start checking the header bytes

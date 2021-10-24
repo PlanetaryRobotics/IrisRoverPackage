@@ -89,6 +89,34 @@ namespace iris
         /* set up i2c */
         I2C_Sensors__init();
 
+        theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER);
+        theContext.m_queuedIOWritePort0Value = getIOExpanderPort0OutputValue();
+        theContext.m_queuedIOWritePort1Value = getIOExpanderPort1OutputValue();
+        initiateNextI2cAction(theContext);
+
+        bool done = false;
+        while (!done) {
+            I2C_Sensors__spinOnce();
+
+            I2C_Sensors__Action action = I2C_SENSORS__ACTIONS__INACTIVE;
+            uint8_t readValue = 0;
+            I2C_Sensors__Status i2cStatus = I2C_Sensors__getActionStatus(&action,
+                                                                         &(theContext.m_i2cReadings),
+                                                                         &readValue);
+
+            // Sanity check
+            assert(I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER == action);
+
+            if (I2C_SENSORS__STATUS__INCOMPLETE != i2cStatus) {
+                DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "I2C action failed");
+
+                I2C_Sensors__clearLastAction();
+                theContext.m_i2cActive = false;
+
+                done = true;
+            }
+        }
+
         return RoverState::ENTERING_KEEP_ALIVE;
     }
 

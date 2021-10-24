@@ -898,6 +898,12 @@ inline void startChargingBatteries(void)
     blimp_chargerEnOn();
 }
 
+void setLatchSetAndResetHigh(void)
+{
+    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__LATCH_RST;
+    ioExpanderPort1OutputValues |= I2C_SENSORS__IOE_P1_BIT__LATCH_SET;
+}
+
 /**
  * @brief      Stop charging batteries
  */

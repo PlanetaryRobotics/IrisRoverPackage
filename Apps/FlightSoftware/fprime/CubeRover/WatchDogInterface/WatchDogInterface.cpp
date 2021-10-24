@@ -659,7 +659,7 @@ namespace CubeRover {
                                                    size_t dataLen,
                                                    bool sendResponse)
     {
-        volatile struct WatchdogFrameHeader frame;
+        struct WatchdogFrameHeader frame;
         frame.magic_value = header_magic;
         frame.parity = 0;
         frame.payload_length = static_cast<uint16_t>(dataLen);
@@ -667,7 +667,7 @@ namespace CubeRover {
         frame.sequence_number = static_cast<uint16_t>(cmdSeq);
         frame.opcode = static_cast<uint16_t>(opCode);
   
-        volatile uint8_t* frameBytes = reinterpret_cast<volatile uint8_t*>(&frame);
+        uint8_t* frameBytes = reinterpret_cast<uint8_t*>(&frame);
         uint8_t runningParity = 0;
   
         for (size_t i = 0; i < 12; ++i) {
@@ -780,7 +780,7 @@ namespace CubeRover {
     }
   
     // Returns negative on error
-    bool WatchDogInterfaceComponentImpl::dmaSend(volatile void *buffer, int size, bool blocking) {
+    bool WatchDogInterfaceComponentImpl::dmaSend(void *buffer, int size, bool blocking) {
         //sciSend(m_sci, size, static_cast<uint8_t *>(buffer));
         //return true;
 
@@ -788,7 +788,7 @@ namespace CubeRover {
             while (dmaWriteBusy);
         else if (dmaWriteBusy)
             return false;
-        sciDMASend(SCILIN_TX_DMA_CH, static_cast<volatile char *>(buffer), size, ACCESS_8_BIT, &dmaWriteBusy);
+        sciDMASend(SCILIN_TX_DMA_CH, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaWriteBusy);
         if (blocking)
             pollDMASendFinished();
         return true;

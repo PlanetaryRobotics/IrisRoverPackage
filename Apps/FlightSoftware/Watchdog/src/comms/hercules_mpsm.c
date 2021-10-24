@@ -222,10 +222,9 @@ static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg*
     size_t usedCount = RingBuffer__usedCount(theStateMachine.headerRb);
     if (usedCount < 12) {
         return HERCULES_MPSM__STATUS__NEED_MORE_DATA;
-    } else if (usedCount > 12) {
-        uint8_t unused = 0;
-        RingBuffer__getOverwrite(theStateMachine.headerRb, &unused);
     }
+
+    BOOL spinForNewMagic = FALSE;
 
     // Start checking the header bytes
     if (HerculesMpsm__checkRb((uint8_t) HEADER_INDEX__MAGIC_ONE, HERC_MSGS__CONSTANTS__HEADER_MAGIC_ONE)
@@ -264,6 +263,7 @@ static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg*
 
             // Clear the ring buffer, as we're now done with the header.
             rbStatus = RingBuffer__clear(theStateMachine.headerRb);
+            memset(theStateMachine.ringBufferMemory, 0, sizeof(theStateMachine.ringBufferMemory));
         
             // Clear should only throw is headerRb is NULL, and it shouldn't be NULL
             assert(RB__STATUS__SUCCESS == rbStatus);
@@ -288,6 +288,44 @@ static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg*
                     return HERCULES_MPSM__STATUS__ERROR_BUFFER_TOO_SMALL;
                 }
             }
+        } else {
+            // Parity check failed, so pop one then signal to spin for the next magic numbers
+            uint8_t unused = 0;
+            RingBuffer__getOverwrite(theStateMachine.headerRb, &unused);
+            spinForNewMagic = TRUE;
+        }
+    } else {
+        spinForNewMagic = TRUE;
+
+    }
+
+    if (spinForNewMagic) {
+        BOOL foundNewMagic = FALSE;
+        uint8_t unused;
+
+        while (!foundNewMagic && !RingBuffer__empty(theStateMachine.headerRb)) {
+            BOOL foundMagicThisIter = TRUE;
+            size_t ringSize = RingBuffer__usedCount(theStateMachine.headerRb);
+
+            if (ringSize >= 3) {
+                BOOL m3 =
+                        HerculesMpsm__checkRb((uint8_t) HEADER_INDEX__MAGIC_THREE, HERC_MSGS__CONSTANTS__HEADER_MAGIC_THREE);
+                foundMagicThisIter = (foundMagicThisIter && m3);
+            }
+
+            if (ringSize >= 2) {
+                BOOL m2 =
+                        HerculesMpsm__checkRb((uint8_t) HEADER_INDEX__MAGIC_TWO, HERC_MSGS__CONSTANTS__HEADER_MAGIC_TWO);
+                foundMagicThisIter = (foundMagicThisIter && m2);
+            }
+
+            if (ringSize >= 1) {
+                BOOL m1 =
+                        HerculesMpsm__checkRb((uint8_t) HEADER_INDEX__MAGIC_ONE, HERC_MSGS__CONSTANTS__HEADER_MAGIC_ONE);
+                foundMagicThisIter = (foundMagicThisIter && m1);
+            }
+
+            foundNewMagic = foundMagicThisIter;
         }
     }
 

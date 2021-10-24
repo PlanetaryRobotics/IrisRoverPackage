@@ -187,7 +187,7 @@ namespace iris
                         theContext.m_i2cActive = false;
 
                         // Then move forward
-                        return transitionToWatitingForWifiReadyOrTimeout(theContext);
+                        return transitionToWaitingForIoExpanderWrite3(theContext);
                     } else if (I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS == i2cStatus) {
                         // Gauge initialization failed, but we haven't timed out yet. Therefore we retry the
                         // initialization action.

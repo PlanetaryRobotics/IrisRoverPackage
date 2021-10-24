@@ -115,19 +115,11 @@ typedef enum PersistentStatusBitIndices
 
 #define CLEAR_PSBI_IN_STATE_PTR(statePtr, psbi_index_enum) CLEAR_PSBI_IN_STATE(*statePtr, psbi_index_enum)
 
-typedef enum AdcState
-{
-    ADC_STATE__UNCONFIGURED,
-    ADC_STATE__CONFIGURED_FOR_LANDER,
-    ADC_STATE__CONFIGURED_FOR_MISSION
-} AdcState;
-
 typedef struct PersistentState
 {
     uint32_t m_statusBits;
     HeaterParams m_heaterParams;
     uint8_t m_stateAsUint;
-    AdcState m_adcState;
 } PersistentState;
 
 #ifdef __cplusplus

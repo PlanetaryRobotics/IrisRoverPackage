@@ -32,9 +32,13 @@ namespace iris
               .m_heaterDutyCyclePeriod = DEFAULT_HEATER_DUTY_CYCLE_PERIOD,
               .m_heaterDutyCycle = DEFAULT_HEATER_DUTY_CYCLE
          },
-         .m_stateAsUint = static_cast<uint8_t>(RoverState::ENTERING_KEEP_ALIVE),
-         .m_adcState = ADC_STATE__UNCONFIGURED
+         .m_stateAsUint = static_cast<uint8_t>(RoverState::ENTERING_KEEP_ALIVE)
     };
+
+#pragma PERSISTENT
+    static bool persistentInMission = false;
+#pragma PERSISTENT
+    static bool persistentDeployed = false;
 
     RoverStateManager::RoverStateManager()
         : m_stateEnteringKeepAlive(),
@@ -69,6 +73,8 @@ namespace iris
         m_context.m_uartConfig.uart1Buffers.rxBufferSize = sizeof(uart1RxBuffer);
 
         m_context.m_persistantStatePtr = &persistentState;
+        m_context.m_persistentInMission = &persistentInMission;
+        m_context.m_persistentDeployed = &persistentDeployed;
 
         m_context.m_isDeployed = false;
         m_context.m_i2cActive = false;

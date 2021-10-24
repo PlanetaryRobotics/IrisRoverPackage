@@ -123,6 +123,7 @@ namespace iris
     {
         // Nothing to do on this transition, which should always be from ENTERING_SERVICE.
         m_currentSubState = SubState::MISSION_NORMAL;
+        *(theContext.m_persistentInMission) = true;
         return getState();
     }
 

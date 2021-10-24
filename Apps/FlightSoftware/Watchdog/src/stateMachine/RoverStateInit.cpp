@@ -68,15 +68,15 @@ namespace iris
 
         clockInit();
 
-        UART__Status uartStatus = UART__init1(&(theContext.m_uartConfig),
-                                              &(theContext.m_uart1State));
-        DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uartStatus, "Failed to init UART1");
-        assert(UART__STATUS__SUCCESS == uartStatus);
+        if (!(*(theContext.m_persistentDeployed))) {
+            UART__Status uartStatus = UART__init1(&(theContext.m_uartConfig),
+                                                  &(theContext.m_uart1State));
+            DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uartStatus, "Failed to init UART1");
+            assert(UART__STATUS__SUCCESS == uartStatus);
 
-        UART__uninit0(&(theContext.m_uart0State));
-
-        LanderComms__Status lcStatus = LanderComms__init(&(theContext.m_lcState), theContext.m_uart1State);
-        assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
+            LanderComms__Status lcStatus = LanderComms__init(&(theContext.m_lcState), theContext.m_uart1State);
+            assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
+        }
 
         /* set up watchdog */
         watchdog_init(&(theContext.m_watchdogFlags),
@@ -117,7 +117,13 @@ namespace iris
             }
         }
 
-        return RoverState::ENTERING_KEEP_ALIVE;
+        if (*(theContext.m_persistentInMission)) {
+            // Enable all interrupts
+            __enable_interrupt();
+            return RoverState::ENTERING_MISSION;
+        } else {
+            return RoverState::ENTERING_KEEP_ALIVE;
+        }
     }
 
     RoverState RoverStateInit::performResetCommand(RoverContext& theContext,

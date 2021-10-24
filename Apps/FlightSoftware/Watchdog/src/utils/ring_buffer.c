@@ -91,10 +91,10 @@ RingBuffer__Status RingBuffer__peekAt(const RingBuffer* rb, size_t index, uint8_
 
     // Get the index of the head byte, wrapping if necessary
     // The operation below is equivalent to:
-    //    (rb->head + index) % rb->bufferSize
+    //    (rb->tail + index) % rb->bufferSize
     // and works because rb->bufferSize is guaranteed to be 
     // a power of two.
-    size_t wrappedIndex = ((rb->head + index) & (rb->bufferSize - 1));
+    size_t wrappedIndex = ((rb->tail + index) & (rb->bufferSize - 1));
 
     *value = rb->buffer[wrappedIndex];
 

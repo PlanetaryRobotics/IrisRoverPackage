@@ -50,6 +50,7 @@ namespace iris
 
     RoverState RoverStateEnteringService::transitionTo(RoverContext& theContext)
     {
+        *(theContext.m_persistentInMission) = false;
         return RoverState::SERVICE;
     }
 

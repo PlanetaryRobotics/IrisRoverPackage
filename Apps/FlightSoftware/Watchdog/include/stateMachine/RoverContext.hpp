@@ -36,7 +36,11 @@ namespace iris
 
             bool m_isDeployed;
 
+            // Note: despite the name, not actually persistent. Only the two bools below are actually persistent.
             PersistentState* m_persistantStatePtr;
+
+            bool* m_persistentInMission;
+            bool* m_persistentDeployed;
     };
 
 }

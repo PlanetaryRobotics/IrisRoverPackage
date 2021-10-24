@@ -127,6 +127,7 @@ namespace iris
 
     RoverState RoverStateEnteringKeepAlive::transitionTo(RoverContext& theContext)
     {
+        *(theContext.m_persistentInMission) = false;
         return transitionToWaitingForIoExpanderWrite(theContext);
     }
 

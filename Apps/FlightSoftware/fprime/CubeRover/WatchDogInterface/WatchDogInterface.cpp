@@ -204,15 +204,15 @@ namespace CubeRover {
         )
       {
         // Convert int into reset_values_possible
-        reset_values_possible resetValue = (reset_values_possible)reset_enum_number;
+        reset_values_possible reset_value = (reset_values_possible)reset_enum_number;
         // Check that reset_value is correct
-        if (resetValue >= reset_values_possible_MAX)
+        if (reset_value >= reset_values_possible_MAX)
         {
             this->log_WARNING_LO_WatchDogIncorrectResetValue();
             return false;
         }    
         // Send command to watchdog, put 0 for opcode and cmdseq
-        bool success = txCommand(0, 0, static_cast<uint16_t>(resetValue), nullptr, 0, true);
+        bool success = logAndSendResetSpecific(WatchDogInterfaceComponentBase::OPCODE_RESET_SPECIFIC, 0, reset_value, false);
 
         return success;
       }

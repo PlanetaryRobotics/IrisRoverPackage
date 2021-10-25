@@ -32,6 +32,9 @@ S25fl064l :: S25fl064l(){
 S25fl064l::S25fl064lError S25fl064l :: setupDevice(){
   S25fl064lError err = S25fl064l_NO_ERROR;
 
+  // Change reset pin of flash chip to high
+  gioSetBit(RESET_SPI_PORT_FLASH, RESET_SPI_BIT_FLASH, 1);
+
   // Check that the correct device is connected to the MCU
   uint8_t id[3];
   err = flashSpiReadData(S25fl064l::RDID, id, sizeof(id));

@@ -1,2 +1,0 @@
-SRC = IMUDataPortAi.xml 
-HDR = 

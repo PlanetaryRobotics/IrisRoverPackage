@@ -97,12 +97,14 @@ namespace CubeRover {
             watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
             m_crnm.ResetState();
             wired_wifi_reset_cnt++;
+            no_transition_count = 0;
         }
         // Check if we're in persistent state WIFI (m_persistent_state == 1) and we have tried too many times
         else if (m_persistent_state == 1 && no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
             log_FATAL_WF121InitializationFailed();
             watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
             m_crnm.ResetState();
+            no_transition_count = 0;
             // This reset of wifi will happen forever until we connect
         }
     }

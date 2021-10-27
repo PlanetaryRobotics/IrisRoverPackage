@@ -48,6 +48,7 @@ namespace CubeRover {
     NetworkManagerComponentBase::init(instance);
     
     telem_send_limit_cnt = 0;
+    stuck_state_wifi_reset_cnt = 0;
     unsigned no_transition_count = 0;
     m_current_state = m_crnm.GetState();
     bool success = false;
@@ -94,12 +95,14 @@ namespace CubeRover {
                 break;
             // TODO: Notify ground that we have skipped initializing wifi as we have reset a set amount of times
             watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
+            m_crnm.ResetState();
             wired_wifi_reset_cnt++;
         }
         // Check if we're in persistent state WIFI (m_persistent_state == 1) and we have tried too many times
         else if (m_persistent_state == 1 && no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
             log_FATAL_WF121InitializationFailed();
             watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
+            m_crnm.ResetState();
             // This reset of wifi will happen forever until we connect
         }
     }
@@ -146,10 +149,23 @@ namespace CubeRover {
         if (updated_state != m_current_state) {
             log_ACTIVITY_HI_StateChange(m_current_state, updated_state);
             tlmWrite_WIFIStateStatus(static_cast<WIFIState>(static_cast<U8>(updated_state)));
-            // TODO: TRIGGER MODEMANAGER ON LOS
+            // TODO: TRIGGER MODEMANAGER ON LOS (check errorCode specifically)
         }
         m_current_state = updated_state;
-        // TODO: UPDATE TEHSE ONCE PER TELEM DOWNLINK. DOING IT ON THE RATE GROUP IS TOO OFTEN
+
+        // Check if we have been in stuck in a state state for over MAX_FSM_NO_TRANSITION_COUNT and reset wifi chip if so
+        if(m_current_state != CubeRoverNetworkManager::CubeRoverNetworkStateMachine::UDP_CONNECTED)
+        {
+            stuck_state_wifi_reset_cnt++;
+            if(stuck_state_wifi_reset_cnt >= MAX_FSM_NO_TRANSITION_COUNT)
+            {
+                watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
+                m_crnm.ResetState();
+                stuck_state_wifi_reset_cnt = 0;
+            }
+        }
+
+        // TODO: UPDATE THESE ONCE PER TELEM DOWNLINK. DOING IT ON THE RATE GROUP IS TOO OFTEN
         if(telem_send_limit_cnt >= telem_send_limit_cnt_max)
         {
             tlmWrite_RSSI(m_crnm.GetSignalRssi());

@@ -73,6 +73,7 @@ public:
   CubeRoverNetworkManager();
   Wf121::ErrorCode UpdateNetworkManager();
   CubeRoverNetworkStateMachine GetState();
+  void ResetState();
   bool GetWifiModuleIdentified();
   int8_t GetSignalRssi();
   int8_t GetSignalNoiseRatio();

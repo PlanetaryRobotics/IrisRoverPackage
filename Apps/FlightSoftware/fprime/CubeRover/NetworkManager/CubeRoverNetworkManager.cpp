@@ -111,6 +111,15 @@ CubeRoverNetworkStateMachine CubeRoverNetworkManager :: GetState(){
   return m_state;
 }
 
+/**
+ * @brief      Resets the state to uninitialized
+ *
+ * @return     void
+ */
+void CubeRoverNetworkManager :: ResetState(){
+  m_state = UNINITIALIZED;
+  return;
+}
 
 /**
  * @brief      Getter for WifiModuleIdentified.

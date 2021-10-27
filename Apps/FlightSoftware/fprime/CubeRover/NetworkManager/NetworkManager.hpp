@@ -79,6 +79,7 @@ namespace CubeRover {
         U8 m_fileUplinkBuffer[WF121_UDP_MAX_PAYLOAD];
         uint8_t wired_wifi_reset_cnt;
         uint8_t telem_send_limit_cnt;
+        unsigned stuck_state_wifi_reset_cnt;
         void update();    // Behavior of periodic status update
         void getUplinkDatagram();
 

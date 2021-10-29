@@ -241,6 +241,74 @@
                 </arg>
             </args>
         </command>
+
+
+        <command kind="async" opcode="0xF7" mnemonic="Set_Charger_Enable">
+            <args>
+                <arg name="charge_en" type="ENUM">
+                    <enum name="charge_en_states">
+                        <item name="Charge_En_Off" value = "0" />
+                        <item name="Charge_En_On" value = "255" />
+                        <item name="Charge_En_Force_High" value = "153" comment="Forces the CE pin high. Not for normal use. Use in case of a voltage divider fault (e.g. due to part failure during launch vibe)." />
+                    </enum>
+                </arg>
+            </args>
+        </command>
+
+        <command kind="async" opcode="0xF8" mnemonic="Set_Charger_Power_Connection">
+            <args>
+                <arg name="v_lander_reg_en" type="BOOL" />
+            </args>
+        </command>
+
+        <command kind="async" opcode="0xF9" mnemonic="Set_Battery_Connection">
+            <args>
+                <arg name="batt_en" type="BOOL" />
+            </args>
+        </command>
+
+        <command kind="async" opcode="0xFA" mnemonic="Set_Battery_Control_Enable">
+            <args>
+                <arg name="batt_ctrl_en" type="ENUM">
+                    <enum name="batt_ctrl_en_states">
+                        <item name="Batt_Ctrl_En_Off" value = "0" />
+                        <item name="Batt_Ctrl_En_On" value = "255" />
+                        <item name="Batt_Ctrl_En_Force_High" value = "153" comment="Forces the BCTRLE pin high. Not for normal use. Use in case of a pull-up resistor fault (e.g. due to part failure during launch vibe)." />
+                    </enum>
+                </arg>
+            </args>
+        </command>
+
+        <command kind="async" opcode="0xFB" mnemonic="Set_Battery_Latch">
+            <args>
+                <arg name="latch_batt" type="ENUM">
+                    <enum name="latch_batt_states">
+                        <item name="Latch_Batt_Off" value = "0" />
+                        <item name="Latch_Batt_En_On" value = "255" />
+                        <item name="Latch_Batt_En_Pulse_High" value = "170" comment="Pulses the LBATT pin to make the battery D-Latch take on the state of BATT_EN." />
+                    </enum>
+                </arg>
+            </args>
+        </command>
+        <command kind="async" opcode="0xFC" mnemonic="Pulse_Latch_Set">
+            <args>
+                <arg name="confirm" type="ENUM">
+                    <enum name="confirm_latch_set">
+                        <item name="Confirm_LS_Pulse" value = "21" />
+                    </enum>
+                </arg>
+            </args>
+        </command>
+        <command kind="async" opcode="0xFD" mnemonic="Pulse_Latch_Reset">
+            <args>
+                <arg name="confirm" type="ENUM">
+                    <enum name="confirm_latch_reset">
+                        <item name="Confirm_LR_Pulse" value = "94" />
+                    </enum>
+                </arg>
+            </args>
+        </command>
+
     </commands>
 
     <events>

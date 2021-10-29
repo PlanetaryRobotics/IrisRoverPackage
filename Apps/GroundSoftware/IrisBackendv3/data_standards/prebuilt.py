@@ -27,6 +27,8 @@ def add_to_standards(standards: DataStandards, modules: Union[Module, List[Modul
     for module in modules:
         if module.ID not in standards.modules:
             standards.modules[module.ID, module.name] = module
+            tmp = standards.modules
+            standards.modules = tmp
         else:
             logger.warning(
                 f"Unable to add special prebuilt module {module} since its ID "
@@ -232,90 +234,4 @@ watchdog_command_response: Module = Module(
             ]
         ),
     })
-)
-
-
-watchdog_blimp_commands: Module = Module(
-    name="WatchdogBlimp",
-    ID=0xFF10,
-    commands=NameIdDict({
-        (0xF7, 'SetChargerEn'): Command(
-            name='SetChargerEn',
-            mnemonic='blimp_set_charge_en',
-            ID = 0xF7,
-            args = [
-                Argument(
-                    name='charge_en',
-                    datatype=FswDataType.ENUM,
-                    enum = [
-                        EnumItem('OFF', 0x00),
-                        EnumItem('ON', 0xFF),
-                        EnumItem('FORCE_HIGH', 0x99,
-                                comment="Forces the CE pin high. Not for normal use. Use in case of a voltage divider fault (e.g. due to part failure during launch vibe)."
-                                )
-                    ]
-                )
-            ]
-        ),
-        (0xF8, 'SetChargerPowerConnection'): Command(
-            name='SetChargerPowerConnection',
-            mnemonic='blimp_set_reg_en',
-            ID = 0xF8,
-            args = [
-                Argument(
-                    name='v_lander_reg_en',
-                    datatype=FswDataType.BOOL
-                )
-            ]
-        ),
-        (0xF9, 'SetBatteryConnection'): Command(
-            name='SetBatteryConnection',
-            mnemonic='blimp_set_batt_en',
-            ID = 0xF9,
-            args = [
-                Argument(
-                    name='batt_en',
-                    datatype=FswDataType.BOOL
-                )
-            ]
-        ),
-        (0xFA, 'SetBatteryControlEnable'): Command(
-            name='SetBatteryControlEnable',
-            mnemonic='blimp_set_bctrl_en',
-            ID = 0xFA,
-            args = [
-                Argument(
-                    name='batt_ctrl_en',
-                    datatype=FswDataType.ENUM,
-                    enum = [
-                        EnumItem('OFF', 0x00),
-                        EnumItem('ON', 0xFF),
-                        EnumItem('FORCE_HIGH', 0x99,
-                                comment="Forces the BCTRLE pin high. Not for normal use. Use in case of a pull-up resistor fault (e.g. due to part failure during launch vibe)."
-                                )
-                    ]
-                )
-            ]
-        ),
-        (0xFB, 'SetBatteryLatch'): Command(
-            name='SetBatteryLatch',
-            mnemonic='blimp_set_latch_batt',
-            ID = 0xFB,
-            args = [
-                Argument(
-                    name='latch_batt',
-                    datatype=FswDataType.ENUM,
-                    enum = [
-                        EnumItem('OFF', 0x00),
-                        EnumItem('ON', 0xFF),
-                        EnumItem('PULSE_HIGH', 0xAA,
-                                comment="Pulses the LBATT pin to make the battery D-Latch take on the state of BATT_EN."
-                                )
-                    ]
-                )
-            ]
-        )
-    }),
-    events=NameIdDict(),
-    telemetry=NameIdDict()
 )

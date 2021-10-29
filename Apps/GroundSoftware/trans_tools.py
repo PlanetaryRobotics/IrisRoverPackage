@@ -33,7 +33,7 @@ from IrisBackendv3.utils.nameiddict import NameIdDict
 
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.logging import logger as DsLogger
-from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response, watchdog_blimp_commands
+from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response
 from IrisBackendv3.codec.payload import Payload, PayloadCollection, CommandPayload, WatchdogCommandPayload, extract_downlinked_payloads
 from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
@@ -59,8 +59,7 @@ standards = DataStandards.build_standards()
 add_to_standards(standards, [
     watchdog_heartbeat_tvac,
     watchdog_heartbeat,
-    watchdog_command_response,
-    watchdog_blimp_commands
+    watchdog_command_response
 ])
 set_codec_standards(standards)
 

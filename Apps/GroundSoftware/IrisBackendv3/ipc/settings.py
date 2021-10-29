@@ -5,7 +5,7 @@
 Configurable settings for the IPC layer.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/18/2020
+@last-updated: 05/18/2021
 """
 
 settings = {

@@ -6,7 +6,7 @@ Defines Common Data Required for Payloads. Support for Building and Parsing
 Payloads as part of a Variable Length Payload.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/06/2020
+@last-updated: 10/01/2020
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -44,7 +44,7 @@ class PayloadCollection(NamedTuple):
     This means that, if class names are changed, these strings will have to be
     MANUALLY updated. This should be relatively easy since, although the linter
     won't detect the member name as outdated, it will detect the class name in
-    the List[] type hint as outdated and all the developer has to do is make
+    the `List[]` type hint as outdated and all the developer has to do is make
     sure the two are the same.
     """
     CommandPayload: List[CommandPayload]
@@ -190,9 +190,15 @@ class PayloadInterface(ContainerCodec[PIT], ABC):
     def __setstate__(self, data: Dict[str, Any]) -> None:
         raise NotImplementedError()
 
-    @abstractmethod
-    def __eq__(self, other) -> bool:
-        raise NotImplementedError()
+    # !TODO: This was hastily commented out because the WIP `__eq__` method of
+    # the superclass `ContainerCodec` **seems** like it should cover the cases
+    # of the child classes but really didn't have time to look into this.
+    # Before using for IPC (with serialization and testing), make sure that's
+    # the case and finish the WIP IPMC.
+    #
+    # @abstractmethod
+    # def __eq__(self, other) -> bool:
+    #     raise NotImplementedError()
 
 
 PT = TypeVar('PT', bound=PayloadInterface)
@@ -219,7 +225,7 @@ class Payload(PayloadInterface[PT], ABC):
     alongside the `raw` bytes.
     """
 
-    # Empty __slots__ allows keeping __slots__ (and not switching to __dict__):
+    # Empty __slots__ allows keeping __slots__ from superclass (and not switching to __dict__):
     __slots__: List[str] = []
 
     def __init__(self,
@@ -254,6 +260,7 @@ class Payload(PayloadInterface[PT], ABC):
             payload_size = 0
         else:
             payload_size = len(payload.raw)
+        # All of the VLP left over for subsequent payloads:
         VLP = VLP[payload_size:]
 
         return payload, VLP
@@ -351,16 +358,16 @@ class UplinkedPayload(Payload[PT]):
 
 class CommandPayloadInterface(UplinkedPayload[PT], ABC):
     """
-    Generic interface which defines all I/O for CommandPayload allowing it to be 
-    used as the Type Generic for CommandPayload, which in turn allows many of 
+    Generic interface which defines all I/O for CommandPayload allowing it to be
+    used as the Type Generic for CommandPayload, which in turn allows many of
     inherited functions to return CommandPayloads.
 
-    In essence, this defines any variables, properties, and methods which are 
-    unique to CommandPayload (and not inherited from its superclasses). 
-    In addition, properties and not just their interfaces are defined here for 
+    In essence, this defines any variables, properties, and methods which are
+    unique to CommandPayload (and not inherited from its superclasses).
+    In addition, properties and not just their interfaces are defined here for
     convenience sake (to reduce code bulk).
 
-    Note: this is basically required because you can't directly reference a 
+    Note: this is basically required because you can't directly reference a
     class as its own generic fill, e.g.:
     `class CommandPayload(UplinkedPayload[CommandPayload])`
     """
@@ -721,16 +728,16 @@ class DownlinkedPayload(Payload[PT]):
 
 class TelemetryPayloadInterface(DownlinkedPayload[PT], ABC):
     """
-    Generic interface which defines all I/O for TelemetryPayload allowing it to be 
-    used as the Type Generic for TelemetryPayload, which in turn allows many of 
+    Generic interface which defines all I/O for TelemetryPayload allowing it to be
+    used as the Type Generic for TelemetryPayload, which in turn allows many of
     inherited functions to return TelemetryPayload.
 
-    In essence, this defines any variables, properties, and methods which are 
-    unique to TelemetryPayload (and not inherited from its superclasses). 
-    In addition, properties and not just their interfaces are defined here for 
+    In essence, this defines any variables, properties, and methods which are
+    unique to TelemetryPayload (and not inherited from its superclasses).
+    In addition, properties and not just their interfaces are defined here for
     convenience sake (to reduce code bulk).
 
-    Note: this is basically required because you can't directly reference a 
+    Note: this is basically required because you can't directly reference a
     class as its own generic fill, e.g.:
     `class TelemetryPayload(DownlinkedPayload[TelemetryPayload])`
     """
@@ -844,6 +851,8 @@ class TelemetryPayload(TelemetryPayloadInterface[TelemetryPayloadInterface]):
             channel.datatype, remaining[:core_data_len]
         )
 
+        # All data used by this payload (so anything else left in `data` is part
+        # of another payload in the VLP):
         data_used = data[:(6+core_data_len)]
 
         return cls(
@@ -873,16 +882,16 @@ class TelemetryPayload(TelemetryPayloadInterface[TelemetryPayloadInterface]):
 
 class EventPayloadInterface(DownlinkedPayload[PT], ABC):
     """
-    Generic interface which defines all I/O for EventPayload allowing it to be 
-    used as the Type Generic for EventPayload, which in turn allows many of 
+    Generic interface which defines all I/O for EventPayload allowing it to be
+    used as the Type Generic for EventPayload, which in turn allows many of
     inherited functions to return EventPayload.
 
-    In essence, this defines any variables, properties, and methods which are 
-    unique to EventPayload (and not inherited from its superclasses). 
-    In addition, properties and not just their interfaces are defined here for 
+    In essence, this defines any variables, properties, and methods which are
+    unique to EventPayload (and not inherited from its superclasses).
+    In addition, properties and not just their interfaces are defined here for
     convenience sake (to reduce code bulk).
 
-    Note: this is basically required because you can't directly reference a 
+    Note: this is basically required because you can't directly reference a
     class as its own generic fill, e.g.:
     `class EventPayload(DownlinkedPayload[EventPayload])`
     """
@@ -975,16 +984,16 @@ FMIT = TypeVar('FMIT')
 
 class FileMetadataInterface(ContainerCodec[FMIT], ABC):
     """
-    Generic interface which defines all I/O for FileMetadata allowing it to be 
-    used as the Type Generic for FileMetadata, which in turn allows many of 
+    Generic interface which defines all I/O for FileMetadata allowing it to be
+    used as the Type Generic for FileMetadata, which in turn allows many of
     inherited functions to return FileMetadata.
 
-    In essence, this defines any variables, properties, and methods which are 
-    unique to FileMetadata (and not inherited from its superclasses). 
-    In addition, properties and not just their interfaces are defined here for 
+    In essence, this defines any variables, properties, and methods which are
+    unique to FileMetadata (and not inherited from its superclasses).
+    In addition, properties and not just their interfaces are defined here for
     convenience sake (to reduce code bulk).
 
-    Note: this is basically required because you can't directly reference a 
+    Note: this is basically required because you can't directly reference a
     class as its own generic fill, e.g.:
     `class FileMetadata(ContainerCodec[FileMetadata])`
     """
@@ -993,11 +1002,12 @@ class FileMetadataInterface(ContainerCodec[FMIT], ABC):
         """
         Enumeration of all file types which could be downlinked.
 
-        As usual, for backwards compatibility and data preservation, *never* change 
+        As usual, for backwards compatibility and data preservation, *never* change
         any of the enum values or delete entries, just deprecate old ones.
         """
         IMAGE = 0x01
         UWB = 0x0F
+        BAD = 0xEE  # No valid Filetype magic was found.
 
     __slots__: List[str] = [
         # Monotonically increasing callback ID of the command that triggered
@@ -1049,7 +1059,58 @@ class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE
                ) -> FileMetadata:
-        raise NotImplementedError()
+        """
+        From C&TL at time of writing (10/01/2021):
+        File Metadata Format:	(data in block 0)
+        Field	        Type		Description
+        callbackId	    uint16_t	Monotonically increasing callback ID of the command that triggered this file to be sent. Uniquely links this file to the command which requested it. Callback IDs are unique for images and UWB files. Callback IDs for commands requesting images start counting at 0. Callback IDs for commands requesting UWB files start counting at 2^5
+        timestamp	    uint32_t	Time (in ms since Hercules power up) of when this file was generated.
+        fileTypeMagic	uint8_t		[See below]
+
+        File        Type Magic (in Metadata):	(data in block 0, inside File Metadata)
+        Image:	    0x01
+        UWB File:	0x0F
+        """
+
+        # Extract header and count up header_size as you go:
+        ptr, size = 0, 2  # `callback_id` is 2B
+        callback_id_bytes = data[ptr:size]
+        callback_id: int = struct.unpack(
+            endianness_code+'H', callback_id_bytes
+        )[0]
+
+        ptr, size = size, size+4  # `timestamp` is 4B
+        timestamp_bytes = data[ptr:size]
+        timestamp: int = struct.unpack(endianness_code+'L', timestamp_bytes)[0]
+
+        ptr, size = size, size+1  # `file_type_magic` is 1B
+        file_type_magic_val: int = int(data[ptr:size][0])
+        try:
+            file_type_magic = FileMetadata.FileTypeMagic(file_type_magic_val)
+        except ValueError as e:
+            # Invalid FTM received:
+            logger.error((
+                f"While decoding `FileMetadata` in a `FileBlockPayload` the "
+                f"the received `file_type_magic` value of {file_type_magic_val}` "
+                f"is not a valid `FileTypeMagic`. Valid values are: "
+                f"{[f'{m.name}=0x{m.value:02x}' for m in FileMetadata.FileTypeMagic if m != FileMetadata.FileTypeMagic.BAD]}"
+                f"\n For: FileMetadata{{callback_id={callback_id}, "
+                f"timestamp={timestamp}, "
+                f"file_type_magic_val={file_type_magic_val}}}"
+                f"\n Packet data supplied to `FileMetadata` extractor: {data!r}"
+            ))
+            file_type_magic = FileMetadata.FileTypeMagic.BAD
+
+        # All data used by the metadata:
+        data_used = data[:size]
+
+        return cls(
+            callback_id=callback_id,
+            timestamp=timestamp,
+            file_type_magic=file_type_magic,
+            raw=data_used,
+            endianness_code=endianness_code
+        )
 
     def encode(self, **kwargs: Any) -> bytes:
         raise NotImplementedError()
@@ -1057,16 +1118,16 @@ class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
 
 class FileBlockPayloadInterface(DownlinkedPayload[PT], ABC):
     """
-    Generic interface which defines all I/O for FileBlockPayload allowing it to be 
-    used as the Type Generic for FileBlockPayload, which in turn allows many of 
+    Generic interface which defines all I/O for FileBlockPayload allowing it to be
+    used as the Type Generic for FileBlockPayload, which in turn allows many of
     inherited functions to return FileBlockPayload.
 
-    In essence, this defines any variables, properties, and methods which are 
-    unique to FileBlockPayload (and not inherited from its superclasses). 
-    In addition, properties and not just their interfaces are defined here for 
+    In essence, this defines any variables, properties, and methods which are
+    unique to FileBlockPayload (and not inherited from its superclasses).
+    In addition, properties and not just their interfaces are defined here for
     convenience sake (to reduce code bulk).
 
-    Note: this is basically required because you can't directly reference a 
+    Note: this is basically required because you can't directly reference a
     class as its own generic fill, e.g.:
     `class FileBlockPayload(DownlinkedPayload[EventPayload])`
     """
@@ -1083,35 +1144,40 @@ class FileBlockPayloadInterface(DownlinkedPayload[PT], ABC):
         '_total_blocks',
         # Number of this block (**1** indexed - 0 is for the metadata)
         '_block_number',
-        # Number of bytes in this block:
+        # Number of bytes in this block (not including metadata block), as received (might not match `len(data)` if corrupted). Appears to be U32 in FSW as of 09/30/2021. Let's stick to this.
         '_length',
-        # Data this block contains:
+        # Data this block contains (* The data of each block will be compressed using heatshrink eventually):
         '_data',
+        # If any possible sources of corruption were detected during loading that don't prevent the packet from being parsable:
+        '_possible_corruption',
         # If this is block 0, this contains the decoded file metadata:
         '_file_metadata'
     ]
-    _hashed_id: bytes
+    _hashed_id: int
     _total_blocks: int
     _block_number: int
     _length: int
     _data: bytes
+    _possible_corruption: bool
     _file_metadata: Optional[FileMetadata]
 
     # Make public get, private set to signal that you can freely use these values
     # but modifying them directly can yield undefined behavior (specifically
     # `raw` not syncing up with whatever other data is in the container)
-    @property
-    def hashed_id(self) -> bytes: return self._hashed_id
-    @property
+    @ property
+    def hashed_id(self) -> int: return self._hashed_id
+    @ property
     def total_blocks(self) -> int: return self._total_blocks
-    @property
+    @ property
     def block_number(self) -> int: return self._block_number
-    @property
+    @ property
     def length(self) -> int: return self._length
-    @property
+    @ property
     def data(self) -> bytes: return self._data
+    @ property
+    def possible_corruption(self) -> bool: return self._possible_corruption
 
-    @property
+    @ property
     def file_metadata(self) -> Optional[FileMetadata]:
         return self._file_metadata
 
@@ -1123,12 +1189,13 @@ class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
     __slots__: List[str] = []
 
     def __init__(self,
-                 hashed_id: bytes,
+                 hashed_id: int,
                  total_blocks: int,
                  block_number: int,
                  length: int,
                  data: bytes,
-                 file_metadata: Optional[FileMetadata],
+                 possible_corruption: bool = False,
+                 file_metadata: Optional[FileMetadata] = None,
                  magic: Magic = Magic.MISSING,
                  pathway: DataPathway = DataPathway.NONE,
                  source: DataSource = DataSource.NONE,
@@ -1140,18 +1207,93 @@ class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
         self._block_number = block_number
         self._length = length
         self._data = data
+        self._possible_corruption = possible_corruption
         self._file_metadata = file_metadata
         super().__init__(
             magic=magic, pathway=pathway, source=source,
             raw=raw, endianness_code=endianness_code
         )
 
-    @classmethod
+    @ classmethod
     def decode(cls,
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE
                ) -> FileBlockPayload:
-        raise NotImplementedError()
+        """
+        From C&TL at time of writing (10/01/2021):
+        File Block Format:
+        Field	        Type		    Description
+        hashedId	    uint16_t		A hash of the timestamp when file transmission started. Used to identify which blocks belong to the same file if multiple files are being sent at once. *NOT* a globally unique file identifier. Two files over the course of the entire mission could have the same hashedId. This is only unique up to the point that no two files with overlapping transmission periods should have the same hashedId.
+        totalBlocks	    uint8_t		    Total number of blocks in this file (not including metadata block)
+        blockNumber	    uint8_t		    Number of this block (**1 indexed** - 0 is for the metadata)
+        length	        FileLength_t    Number of bytes in this block (not including header data - appears to be uint32_t in FSW as of 09/30/2021. Let's stick to this.)
+        data	        uint8_t[]		All the data bytes. * The data of each block will be compressed using heatshrink
+        """
+        # ! TODO: Move `possible_corruption` to `PayloadInterface` so it's more broadly useful?
+        # ! NOTE: ^- But then we'd have to make sure it's being used everywhere else that could be relevant...
+        possible_corruption = False  # not yet at least... updated later on detection
+
+        # Extract header and count up header_size as you go:
+        ptr, header_size = 0, 2  # `hashed_id` is 2B
+        hashed_id_bytes = data[ptr:header_size]
+        hashed_id: int = struct.unpack(endianness_code+'H', hashed_id_bytes)[0]
+
+        ptr, header_size = header_size, header_size+1  # `total_blocks` is 1B
+        total_blocks: int = int(data[ptr:header_size][0])
+
+        # ! TODO: `block_number` overflows rn due to packet count. Talk to FSW about this or guarantee not an issue during flight b/c there will be <255 blocks in any file (unlikely since blocks are lines):
+        ptr, header_size = header_size, header_size+1  # `block_number` is 1B
+        block_number: int = int(data[ptr:header_size][0])
+
+        ptr, header_size = header_size, header_size+4  # `length` is 4B
+        length_bytes = data[ptr:header_size]
+        length: int = struct.unpack(endianness_code+'L', length_bytes)[0]
+
+        max_length = (len(data)-header_size)
+        if length > max_length:
+            logger.error((
+                f"While decoding a `FileBlockPayload` the length was read as "
+                f"{length_bytes!r} = {length}B which is longer than the remaining "
+                f"data in the packet after the file block header ({max_length}B). "
+                "Has `FileLength_t` changed? Was the packet corrupted? For now, "
+                "all data left in this packet will be assumed to be part of this "
+                "block so a file can still be reconstructed even if it's a bit "
+                "corrupted; but, note that this might not be an apt assumption. "
+                f"\n For: FileBlockPayload{{hashed_id={hashed_id}, "
+                f"block_num={block_number}, total_blocks={total_blocks}, "
+                f"length={length}}}"
+                f"\n Packet data supplied to `FileBlockPayload` extractor: {data!r}"
+            ))
+            possible_corruption = True
+
+        # Extract data contained by the block:
+        # TODO: De-heatshrink this once FSW starts using heatshrink (if they do)
+        block_data = data[header_size: (header_size+length)]
+
+        # All data used by this payload (so anything else left in `data` is part
+        # of another payload in the VLP):
+        data_used = data[:(header_size+length)]
+
+        file_metadata: Optional[FileMetadata]
+        if block_number == 0:
+            # This is the metadata block:
+            file_metadata = FileMetadata.decode(
+                block_data, endianness_code
+            )
+        else:
+            # This is an actual file_data block; so, no metadata here.
+            file_metadata = None
+
+        return cls(hashed_id=hashed_id,
+                   total_blocks=total_blocks,
+                   block_number=block_number,
+                   length=length,
+                   data=block_data,
+                   possible_corruption=possible_corruption,
+                   file_metadata=file_metadata,
+                   raw=data_used,
+                   endianness_code=endianness_code
+                   )
 
     def encode(self, **kwargs: Any) -> bytes:
         raise NotImplementedError()

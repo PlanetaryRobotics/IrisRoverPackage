@@ -1,4 +1,0 @@
-<arg name="arg1" type="string" size="40">
-                    <comment>The String command argument</comment>
-                </arg>
-            

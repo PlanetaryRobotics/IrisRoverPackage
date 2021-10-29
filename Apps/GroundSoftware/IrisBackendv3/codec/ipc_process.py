@@ -8,7 +8,7 @@ Standalone codec process which converts bytes->packet or payloads->packet
 TODO: Redirect logs to an independent logging process.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 07/15/2020
+@last-updated: 07/15/2021
 """
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations

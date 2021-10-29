@@ -5,7 +5,7 @@ Defines the Structure, Content, and Serialization for all incoming and outgoing
 Messages for the Codec layer over IPC.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/20/2020
+@last-updated: 05/20/2021
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 

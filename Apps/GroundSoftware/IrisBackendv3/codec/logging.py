@@ -18,4 +18,6 @@ Levels in ascending order are:
     - ERROR (40)
     - CRITICAL (50)
 """
+VALID_LOG_LEVELS = ('SPAM', 'DEBUG', 'VERBOSE', 'INFO', 'NOTICE',
+                    'WARNING', 'SUCCESS', 'ERROR', 'CRITICAL')
 coloredlogs.install(logger=logger, level='DEBUG')

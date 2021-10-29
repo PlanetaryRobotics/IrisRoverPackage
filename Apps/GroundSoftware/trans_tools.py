@@ -217,6 +217,7 @@ def connect_serial(device: str = '/dev/ttyUSB0', baud: int = 9600) -> None:
 def send_wifi(data: bytes, ip="192.168.1.2", port=8080) -> None:
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.sendto(data, (ip, port))
+    sock.close()
 
 
 def send_slip(dat: bytes) -> None:

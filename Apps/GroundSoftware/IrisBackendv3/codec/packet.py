@@ -17,7 +17,7 @@ import traceback
 
 import struct
 import bitstruct  # type: ignore
-import numpy as np # type: ignore
+import numpy as np  # type: ignore
 import time
 from math import ceil
 
@@ -47,7 +47,7 @@ CT = TypeVar('CT')
 
 def parse_packet(
     packet_bytes: bytes,
-    codecs: Optional[List[Type[Packet]]]
+    codecs: Optional[List[Type[Packet]]] = None
 ) -> Optional[Packet]:
     """
     Parses the given packet bytes (with any network headers already stripped off) 
@@ -60,7 +60,8 @@ def parse_packet(
             WatchdogHeartbeatPacket,
             WatchdogCommandResponsePacket,
             IrisCommonPacket,
-            WatchdogTvacHeartbeatPacket
+            WatchdogTvacHeartbeatPacket,
+            Legacy2020IrisCommonPacket
         ]
 
     # Codecs which support this packet:
@@ -92,9 +93,10 @@ def parse_packet(
                 source=DataSource.PCAP
             )
             # Store:
-            packet = cast(Packet, packet)
-            for i in range(len(packet.payloads)):
-                all_payloads[i].extend(packet.payloads[i])  # type: ignore
+            # ! TODO: Don't need this? This came over from `trans_tools`. Do we need storage on decode here? This should be handled by storage IPC node.
+            # packet = cast(Packet, packet)
+            # for i in range(len(packet.payloads)):
+            #     all_payloads[i].extend(packet.payloads[i])  # type: ignore
 
     except Exception as e:
         err = e
@@ -443,7 +445,300 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         try:
             magic = Magic.decode(
                 data[CPH_SIZE:CPH_SIZE+MAGIC_SIZE],
-                byte_order=ENDIANNESS_CODE
+                byte_order=endianness_code
+            )
+            contains_magic = magic != Magic.MISSING
+        except (PacketDecodingException, IndexError):
+            contains_magic = False
+
+        return min_length and contains_magic
+
+
+class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
+    """
+    Legacy Version of `IrisCommonPacket` to support parsing old FSW pcaps from 
+    2020 and early 2021 which use a 2B checksum (which often wasn't populated).
+
+    @author: Connor W. Colombo (CMU)
+    @last-updated: 10/02/2020
+    """
+
+    LEGACY2020_CPH_SIZE: int = 5
+
+    class Legacy2020CommonPacketHeaderInterface(ContainerCodec[CT]):
+        pass
+
+    class Legacy2020CommonPacketHeader(Legacy2020CommonPacketHeaderInterface[Legacy2020CommonPacketHeaderInterface]):
+        """
+        Legacy Version of `CommonPacketHeader` to support parsing old FSW pcaps from 
+        2020 and early 2021 which use a 2B checksum (which often wasn't populated) 
+        and certain standards were adhered to more laxly. 
+
+        SHOULD NOT MAKE IT INTO MISSION SOFTWARE.
+        """
+
+        SEQ_NUM_SYM: str = 'B'  # struct symbol string for en/decoding seq_num
+        VLP_LEN_SYM: str = 'H'  # struct symbol string for en/decoding vlp_len
+        # struct symbol string for encoding checksum (externally from int):
+        CHECKSUM_SYM: str = 'H'
+
+        __slots__: List[str] = [
+            '_seq_num',  # - Sequence Number
+            '_vlp_len',  # - Variable Length Payload (VLP) Length
+            '_checksum'  # - Checksum of Entire Variable Length Payload (VLP)
+        ]
+
+        _seq_num: int
+        _vlp_len: int
+        _checksum: bytes
+
+        # Make public get, private set to signal that you can freely use these values
+        # but modifying them directly can yield undefined behavior (specifically
+        # `raw` not syncing up with whatever other data is in the container)
+        @property
+        def seq_num(self) -> int: return self._seq_num
+        @property
+        def vlp_len(self) -> int: return self._vlp_len
+        @property
+        def checksum(self) -> bytes: return self._checksum
+
+        def __init__(self,
+                     seq_num: int,
+                     vlp_len: int,
+                     checksum: Optional[bytes] = None,
+                     raw: Optional[bytes] = None,
+                     endianness_code: str = ENDIANNESS_CODE
+                     ) -> None:
+            self._seq_num = seq_num
+            self._vlp_len = vlp_len
+
+            if checksum is None:
+                # init as all zeros (before it's computed later):
+                self._checksum = struct.pack(
+                    endianness_code + IrisCommonPacket.CommonPacketHeader.CHECKSUM_SYM, 0x0000)
+            else:
+                self._checksum = checksum
+
+            super().__init__(raw=raw, endianness_code=endianness_code)
+
+        def __str__(self) -> str:
+            return f"CPH[{self.seq_num}]: {self.vlp_len}B"
+
+        @classmethod
+        def decode(cls,
+                   data: bytes,
+                   endianness_code: str = ENDIANNESS_CODE
+                   ) -> Legacy2020IrisCommonPacket.Legacy2020CommonPacketHeader:
+            """Extract all data in the given raw common packet header."""
+            cph_head, checksum = data[:-2], data[-2:]
+
+            sns = Legacy2020IrisCommonPacket.Legacy2020CommonPacketHeader.SEQ_NUM_SYM
+            vls = Legacy2020IrisCommonPacket.Legacy2020CommonPacketHeader.VLP_LEN_SYM
+            struct_str = endianness_code + ' ' + sns + '' + vls
+            seq_num, vlp_len = struct.unpack(struct_str, cph_head)
+
+            return cls(
+                endianness_code=endianness_code,
+                seq_num=seq_num,
+                vlp_len=vlp_len,
+                checksum=checksum,
+                raw=data
+            )
+
+        def encode(self, **kwargs: Any) -> bytes:
+            """Pack data into a bytes object."""
+
+            sns = Legacy2020IrisCommonPacket.Legacy2020CommonPacketHeader.SEQ_NUM_SYM
+            vls = Legacy2020IrisCommonPacket.Legacy2020CommonPacketHeader.VLP_LEN_SYM
+            struct_str = self.endianness_code + ' ' + sns + '' + vls
+            cph_head = struct.pack(struct_str, self.seq_num, self.vlp_len)
+
+            self._raw = cph_head + self.checksum
+
+            return self._raw
+
+    __slots__: List[str] = [
+        # CommonPacketHeader Data:
+        '_common_packet_header'
+    ]
+
+    _common_packet_header: Legacy2020IrisCommonPacket.Legacy2020CommonPacketHeader
+
+    # Make public get, private set to signal that you can freely use these values
+    # but modifying them directly can yield undefined behavior (specifically
+    # `raw` not syncing up with whatever other data is in the container)
+    @property
+    def common_packet_header(self) -> Legacy2020IrisCommonPacket.Legacy2020CommonPacketHeader:
+        return self._common_packet_header
+
+    @staticmethod
+    def _count_vlp_len(payloads: PayloadCollection) -> int:
+        """
+        Calculates the VLP length necessary to send the given PayloadsCollection.
+        Sum of all Payload sizes + MAGIC_SIZE * num_payloads
+        """
+        total_size = 0
+        num_payloads = 0
+        for c in payloads:
+            c = cast(List, c)  # mypy doesn't get this by itself
+            for p in c:
+                total_size += len(p.encode())
+                num_payloads += 1
+        total_size += num_payloads * MAGIC_SIZE  # Each will require a magic
+        return total_size
+
+    def __str__(self) -> str:
+        base = self.__repr__()
+
+        # Grab the string of the lastest value for each unique telemetry channel:
+        latest = {}
+        for payload in self.payloads.TelemetryPayload:
+            latest[(payload.module_id, payload.channel_id)] = str(payload)
+
+        # Append the latest telemetry strings:
+        out = (
+            base +
+            '\n\t Latest Telemetry: ' +
+            ',\t '.join([f'{p}' for p in latest.values()])
+        )
+
+        return out
+
+    def __repr__(self) -> str:
+        return (
+            f"LEGACY2020 ICP["
+            f"#{self.common_packet_header.seq_num}::"
+            f"{self.common_packet_header.vlp_len}]: "
+            f"\t{len(self.payloads.TelemetryPayload)} T"  # Telemetry
+            f"\t- {len(self.payloads.EventPayload)} E"
+            f"\t- {len(self.payloads.FileBlockPayload)} B"  # File Blocks
+            f"\t- {len(self.payloads.CommandPayload)} C"
+        )
+
+    def __init__(self,
+                 payloads: PayloadCollection,
+                 seq_num: int = 0,
+                 common_packet_header: Optional[Legacy2020CommonPacketHeader] = None,
+                 pathway: DataPathway = DataPathway.NONE,
+                 source: DataSource = DataSource.NONE,
+                 raw: Optional[bytes] = None,
+                 endianness_code: str = ENDIANNESS_CODE
+                 ) -> None:
+
+        if common_packet_header is None:
+            self._common_packet_header = Legacy2020IrisCommonPacket.Legacy2020CommonPacketHeader(
+                seq_num=seq_num,
+                vlp_len=Legacy2020IrisCommonPacket._count_vlp_len(payloads)
+            )
+        else:
+            self._common_packet_header = common_packet_header
+        super().__init__(payloads=payloads, pathway=pathway,
+                         source=source, raw=raw, endianness_code=endianness_code)
+
+    @classmethod
+    def decode(cls,
+               data: bytes,
+               endianness_code: str = ENDIANNESS_CODE,
+               pathway: DataPathway = DataPathway.NONE,
+               source: DataSource = DataSource.NONE
+               ) -> Legacy2020IrisCommonPacket:
+        """Construct a Iris Packet Object from Bytes."""
+
+        cph_data = data[:Legacy2020IrisCommonPacket.LEGACY2020_CPH_SIZE]
+        CPH = Legacy2020IrisCommonPacket.Legacy2020CommonPacketHeader.decode(
+            cph_data)
+        # NOTE: Ignore checksum check for Legacy2020. Wasn't impl. yet in FSW.
+        actual_vlp_len = (
+            len(data) - Legacy2020IrisCommonPacket.LEGACY2020_CPH_SIZE
+        )
+        if CPH.vlp_len != actual_vlp_len:
+            raise PacketDecodingException(
+                cph_data,
+                (
+                    f"CPH {CPH} was successfully decoded *but* the length it "
+                    f"expects for the VLP({CPH.vlp_len}B) doesn't match the "
+                    f"actual VLP length ({actual_vlp_len}B)."
+                )
+            )
+        # Extract the Variable Length Payload
+        VLP = data[Legacy2020IrisCommonPacket.LEGACY2020_CPH_SIZE:]
+
+        # Parse VLP:
+        try:
+            # Ignoring uplink and UplinkTimes/DownlinkTimes objects for
+            # Legacy2020.
+            payloads = extract_downlinked_payloads(
+                VLP=VLP,
+                pathway=pathway,
+                source=source
+            )
+
+        except Exception as e:
+            trace = traceback.format_exc()
+            logger.warning(
+                f"Had to abort packet parsing due to the following exception: {trace}"
+            )
+            payloads = PayloadCollection.make_empty()
+
+        return Legacy2020IrisCommonPacket(
+            common_packet_header=CPH,
+            payloads=payloads,
+            pathway=pathway,
+            source=source,
+            raw=data,
+            endianness_code=endianness_code
+        )
+
+    def encode(self, **kwargs: Any) -> bytes:
+        # Lookup table that lists all payload types which should be encoded and
+        # which Magics to use for them:
+        encoded_payload_magics_lookup = {
+            'CommandPayload': Magic.COMMAND.encode(),
+            'TelemetryPayload': Magic.TELEMETRY.encode(),
+            'EventPayload': Magic.EVENT.encode(),
+            'FileBlockPayload': Magic.FILE.encode()
+        }
+
+        # Compile all payloads:
+        VLP = b''
+        for payload_type in encoded_payload_magics_lookup.keys():
+            for cp in getattr(self.payloads, payload_type):
+                VLP += cp.magic.encode() + cp.encode()
+
+        CPH = self.common_packet_header.encode()
+        assert self.common_packet_header.vlp_len == len(VLP)
+
+        packet = CPH + VLP
+
+        # Compute Checksum over entire packet (with checksum defaulted to 0):
+        self.common_packet_header._checksum = struct.pack(
+            self.endianness_code +
+            Legacy2020IrisCommonPacket.Legacy2020CommonPacketHeader.CHECKSUM_SYM,
+            ~np.uint8(sum(bytearray(packet)) % 256)
+        )
+
+        # Rebuild CPH with checksum:
+        CPH = self.common_packet_header.encode()
+
+        # Rebuild Packet with checksum:
+        packet = CPH + VLP
+
+        return packet
+
+    @ classmethod
+    def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
+        """
+        Determines whether the given bytes constitute a valid packet of this type.
+        """
+        # CPH + 4B Magic + at least 1B of data:
+        min_length = len(data) > (
+            Legacy2020IrisCommonPacket.LEGACY2020_CPH_SIZE + MAGIC_SIZE + 1
+        )
+        try:
+            magic = Magic.decode(
+                data[Legacy2020IrisCommonPacket.LEGACY2020_CPH_SIZE:
+                     Legacy2020IrisCommonPacket.LEGACY2020_CPH_SIZE+MAGIC_SIZE],
+                byte_order=endianness_code
             )
             contains_magic = magic != Magic.MISSING
         except (PacketDecodingException, IndexError):
@@ -1037,7 +1332,7 @@ class WatchdogHeartbeatPacket(WatchdogHeartbeatPacketInterface[WatchdogHeartbeat
     def __repr__(self) -> str:
         return self.custom_payload.__repr__()
 
-    @ classmethod
+    @classmethod
     def decode(cls,
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE,

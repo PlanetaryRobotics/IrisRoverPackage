@@ -81,7 +81,15 @@ typedef enum WdCmdMsgs__CommandId
     WD_CMD_MSGS__CMD_ID__SET_THERMISTER_V_SETPOINT = 0x10DA, //!< Set the thermistor value setpoint.
     WD_CMD_MSGS__CMD_ID__ENTER_SLEEP_MODE = 0x10EA, //!< Enter "Sleep" mode.
     WD_CMD_MSGS__CMD_ID__ENTER_KEEPALIVE_MODE = 0x10EB, //!< Enter "Keep Alive" mode.
-    WD_CMD_MSGS__CMD_ID__ENTER_SERVICE_MODE = 0x10EC //!< Enter "Service" mode.
+    WD_CMD_MSGS__CMD_ID__ENTER_SERVICE_MODE = 0x10EC, //!< Enter "Service" mode.
+    WD_CMD_MSGS__CMD_ID__DANGEROUS_FORCE_BATT_STATE = 0x10F5, //!< Dangerous: Force battery state.
+    WD_CMD_MSGS__CMD_ID__SET_CHARGE_EN_STATE = 0x10F7, //!< Set charging IC enable state.
+    WD_CMD_MSGS__CMD_ID__SET_CHARGE_REG_EN_STATE = 0x10F8, //!< Set charging power 28V regulator enable state.
+    WD_CMD_MSGS__CMD_ID__SET_BATT_EN_STATE = 0x10F9, //!< Set battery connection state.
+    WD_CMD_MSGS__CMD_ID__SET_BATT_CTRL_EN_STATE = 0x10FA, //!< Set battery management control state.
+    WD_CMD_MSGS__CMD_ID__SET_LATCH_BATT_STATE = 0x10FB, //!< Set battery latch state.
+    WD_CMD_MSGS__CMD_ID__LATCH_SET_PULSE_LOW = 0x10FC, //!< Pulse battery latch "SET" override low.
+    WD_CMD_MSGS__CMD_ID__LATCH_RESET_PULSE_LOW = 0x10FD, //!< Pulse battery latch "RESET" override low.
 } WdCmdMsgs__CommandId;
 
 /**
@@ -157,6 +165,65 @@ typedef enum WdCmdMsgs__SwitchConnModeSelection
 } WdCmdMsgs__SwitchConnModeSelection;
 
 /**
+ * @brief Possible values of the parameter of the Dangerous Force Battery State command.
+ */
+typedef enum WdCmdMsgs__DangForceBattStateSelection
+{
+    WD_CMD_MSGS__DANG_FORCE_BATT_STATE__LOW = 0x00, //!< Force battery state low
+    WD_CMD_MSGS__DANG_FORCE_BATT_STATE__HIGH = 0xFF, //!< Force battery state high
+    WD_CMD_MSGS__DANG_FORCE_BATT_STATE__RESTORE = 0xAA //!< Restore battery state to an input
+} WdCmdMsgs__DangForceBattStateSelection;
+
+/**
+ * @brief Possible values of the parameter of the Set Charge EN State command.
+ */
+typedef enum WdCmdMsgs__SetChargeEnSelection
+{
+    WD_CMD_MSGS__CHARGE_EN__ON = 0xFF, //!< Enable charging
+    WD_CMD_MSGS__CHARGE_EN__OFF = 0x00, //!< Disable charging
+    WD_CMD_MSGS__CHARGE_EN__FORCE_HIGH = 0x99 //!< Force high output on CHRG_EN pin
+} WdCmdMsgs__SetChargeEnSelection;
+
+/**
+ * @brief Possible values of the parameter of the Set Charge EN State command.
+ */
+typedef enum WdCmdMsgs__SetChargeRegEnSelection
+{
+    WD_CMD_MSGS__CHARGE_REG_EN__ON = 0xFF, //!< Enable charging regulator
+    WD_CMD_MSGS__CHARGE_REG_EN__OFF = 0x00 //!< Disable charging regulator
+} WdCmdMsgs__SetChargeRegEnSelection;
+
+/**
+ * @brief Possible values of the parameter of the Set Battery EN State command.
+ */
+typedef enum WdCmdMsgs__SetBattEnSelection
+{
+    WD_CMD_MSGS__BATT_EN__ON = 0xFF, //!< Enable battery connection
+    WD_CMD_MSGS__BATT_EN__OFF = 0x00 //!< Disable battery connection
+} WdCmdMsgs__SetBattEnSelection;
+
+/**
+ * @brief Possible values of the parameter of the Set Battery Control EN State command.
+ */
+typedef enum WdCmdMsgs__SetBattCtrlEnSelection
+{
+    WD_CMD_MSGS__BATT_CTRL_EN__ON = 0xFF, //!< Enable battery connection
+    WD_CMD_MSGS__BATT_CTRL_EN__OFF = 0x00, //!< Disable battery connection
+    WD_CMD_MSGS__BATT_CTRL_EN__FORCE_HIGH = 0x99 //!< Force high output on BCTRLE pin
+} WdCmdMsgs__SetBattCtrlEnSelection;
+
+/**
+ * @brief Possible values of the parameter of the Set Battery Control EN State command.
+ */
+typedef enum WdCmdMsgs__SetLatchBattSelection
+{
+    WD_CMD_MSGS__LATCH_BATT__ON = 0xFF, //!< Enable battery connection
+    WD_CMD_MSGS__LATCH_BATT__OFF = 0x00, //!< Disable battery connection
+    WD_CMD_MSGS__LATCH_BATT__UPDATE = 0xAA//!< Pulse latch low-high-low
+} WdCmdMsgs__SetLatchBattSelection;
+
+
+/**
  * @brief The magic number that is expected as the parameter of all of the commands that change the mode.
  */
 static const uint8_t WD_CMD_MSGS__CONFIRM_MODE_CHANGE_MAGIC_NUMBER = 0x77u;
@@ -165,6 +232,26 @@ static const uint8_t WD_CMD_MSGS__CONFIRM_MODE_CHANGE_MAGIC_NUMBER = 0x77u;
  * @brief The magic number that is expected as the parameter of the "Prepare to Deploy" and "Deploy" commands.
  */
 static const uint8_t WD_CMD_MSGS__CONFIRM_DEPLOYMENT_MAGIC_NUMBER = 0x60u;
+
+/**
+ * @brief The first magic number expected as a parameter of the "Dangerous Force Battery State" command.
+ */
+static const uint8_t WD_CMD_MSGS__CONFIRM_DANG_FORCE_BATT_STATE_MAGIC_NUMBER_ONE = 0xF0u;
+
+/**
+ * @brief The second magic number expected as a parameter of the "Dangerous Force Battery State" command.
+ */
+static const uint8_t WD_CMD_MSGS__CONFIRM_DANG_FORCE_BATT_STATE_MAGIC_NUMBER_TWO = 0x01u;
+
+/**
+ * @brief The magic number expected as the parameter of the "Latch Set Pulse Low" command.
+ */
+static const uint8_t WD_CMD_MSGS__LATCH_SET_PULSE_LOW_MAGIC_NUMBER = 0x15u;
+
+/**
+ * @brief The magic number expected as the parameter of the "Latch Set Pulse Low" command.
+ */
+static const uint8_t WD_CMD_MSGS__LATCH_RESET_PULSE_LOW_MAGIC_NUMBER = 0x5Eu;
 
 /**
  * @brief The magic number expected as the first byte of the response message.
@@ -279,6 +366,73 @@ typedef struct WdCmdMsgs__MsgBody__EnterServiceMode
     uint8_t confirmationMagicNumber; //!< Must be the expected magic number for this command to be performed.
 } WdCmdMsgs__MsgBody__EnterServiceMode;
 
+/**
+ * @brief The body of an "Dangerous Force Battery State" command.
+ */
+typedef struct WdCmdMsgs__MsgBody__DangForceBattState
+{
+    uint8_t confirmationMagicNumberOne; //!< Must be the first expected magic number for this command to be performed.
+    uint8_t confirmationMagicNumberTwo; //!< Must be the second expected magic number for this command to be performed.
+    WdCmdMsgs__DangForceBattStateSelection state; //!< The state to force.
+} WdCmdMsgs__MsgBody__DangForceBattState;
+
+/**
+ * @brief The body of an "Set Charge En State" command.
+ */
+typedef struct WdCmdMsgs__MsgBody__SetChargeEnState
+{
+    WdCmdMsgs__SetChargeEnSelection selection; //!< The charge enable state to be set.
+} WdCmdMsgs__MsgBody__SetChargeEnState;
+
+/**
+ * @brief The body of an "Set Charge Reg En State" command.
+ */
+typedef struct WdCmdMsgs__MsgBody__SetChargeRegEnState
+{
+    WdCmdMsgs__SetChargeRegEnSelection selection; //!< The charge regulator enable state to be set.
+} WdCmdMsgs__MsgBody__SetChargeRegEnState;
+
+/**
+ * @brief The body of an "Set Batt En State" command.
+ */
+typedef struct WdCmdMsgs__MsgBody__SetBattEnState
+{
+    WdCmdMsgs__SetBattEnSelection selection; //!< The battery enable state to be set.
+} WdCmdMsgs__MsgBody__SetBattEnState;
+
+/**
+ * @brief The body of an "Set Batt Ctrl En State" command.
+ */
+typedef struct WdCmdMsgs__MsgBody__SetBattCtrlEnState
+{
+    WdCmdMsgs__SetBattCtrlEnSelection selection; //!< The battery control enable state to be set.
+} WdCmdMsgs__MsgBody__SetBattCtrlEnState;
+
+/**
+ * @brief The body of an "Set Latch Batt State" command.
+ */
+typedef struct WdCmdMsgs__MsgBody__SetLatchBattState
+{
+    WdCmdMsgs__SetLatchBattSelection selection; //!< The latch battery state to be set.
+} WdCmdMsgs__MsgBody__SetLatchBattState;
+
+/**
+ * @brief The body of an "Latch Set Pulse Low" command.
+ */
+typedef struct WdCmdMsgs__MsgBody__LatchSetPulseLow
+{
+    uint8_t confirmationMagicNumber; //!< Must be the expected magic number for this command to be performed.
+} WdCmdMsgs__MsgBody__LatchSetPulseLow;
+
+/**
+ * @brief The body of an "Latch Reset Pulse Low" command.
+ */
+typedef struct WdCmdMsgs__MsgBody__LatchResetPulseLow
+{
+    uint8_t confirmationMagicNumber; //!< Must be the expected magic number for this command to be performed.
+} WdCmdMsgs__MsgBody__LatchResetPulseLow;
+
+
 //######################################################################################################################
 // Overall Message Structure
 //######################################################################################################################
@@ -303,6 +457,14 @@ typedef union
     WdCmdMsgs__MsgBody__EnterSleepMode enterSleepMode;
     WdCmdMsgs__MsgBody__EnterKeepAliveMode enterKeepAliveMode;
     WdCmdMsgs__MsgBody__EnterServiceMode enterServiceMode;
+    WdCmdMsgs__MsgBody__DangForceBattState dangForceBattState;
+    WdCmdMsgs__MsgBody__SetChargeEnState setChargeEnState;
+    WdCmdMsgs__MsgBody__SetChargeRegEnState setChargeRegEnState;
+    WdCmdMsgs__MsgBody__SetBattEnState setBattEnState;
+    WdCmdMsgs__MsgBody__SetBattCtrlEnState setBattCtrlEnState;
+    WdCmdMsgs__MsgBody__SetLatchBattState setLatchBattState;
+    WdCmdMsgs__MsgBody__LatchSetPulseLow latchSetPulseLow;
+    WdCmdMsgs__MsgBody__LatchResetPulseLow latchResetPulseLow;
 } WdCmdMsgs__MessageBody;
 
 /**
@@ -351,6 +513,15 @@ typedef enum WdCmdMsgs__PackedSize
     WD_CMD_MSGS__PACKED_SIZE__ENTER_SLEEP_MODE_BODY = sizeof(uint8_t),
     WD_CMD_MSGS__PACKED_SIZE__ENTER_KEEPALIVE_MODE_BODY = sizeof(uint8_t),
     WD_CMD_MSGS__PACKED_SIZE__ENTER_SERVICE_MODE_BODY = sizeof(uint8_t),
+    WD_CMD_MSGS__PACKED_SIZE__DANG_FORCE_BATT_STATE_BODY = 3 * sizeof(uint8_t),
+    WD_CMD_MSGS__PACKED_SIZE__SET_CHARGE_EN_STATE_BODY = sizeof(uint8_t),
+    WD_CMD_MSGS__PACKED_SIZE__SET_CHARGE_REG_EN_STATE_BODY = sizeof(uint8_t),
+    WD_CMD_MSGS__PACKED_SIZE__SET_BATT_EN_STATE_BODY = sizeof(uint8_t),
+    WD_CMD_MSGS__PACKED_SIZE__SET_BATT_CTRL_EN_STATE_BODY = sizeof(uint8_t),
+    WD_CMD_MSGS__PACKED_SIZE__SET_LATCH_BATT_STATE_BODY = sizeof(uint8_t),
+    WD_CMD_MSGS__PACKED_SIZE__LATCH_SET_PULSE_LOW_BODY = sizeof(uint8_t),
+    WD_CMD_MSGS__PACKED_SIZE__LATCH_RESET_PULSE_LOW_BODY = sizeof(uint8_t),
+
 
     // Full Messages
 
@@ -369,9 +540,17 @@ typedef enum WdCmdMsgs__PackedSize
     WD_CMD_MSGS__PACKED_SIZE__ENTER_SLEEP_MODE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__ENTER_SLEEP_MODE_BODY,
     WD_CMD_MSGS__PACKED_SIZE__ENTER_KEEPALIVE_MODE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__ENTER_KEEPALIVE_MODE_BODY,
     WD_CMD_MSGS__PACKED_SIZE__ENTER_SERVICE_MODE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__ENTER_SERVICE_MODE_BODY,
+    WD_CMD_MSGS__PACKED_SIZE__DANG_FORCE_BATT_STATE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__DANG_FORCE_BATT_STATE_BODY,
+    WD_CMD_MSGS__PACKED_SIZE__SET_CHARGE_EN_STATE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_CHARGE_EN_STATE_BODY,
+    WD_CMD_MSGS__PACKED_SIZE__SET_CHARGE_REG_EN_STATE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_CHARGE_REG_EN_STATE_BODY,
+    WD_CMD_MSGS__PACKED_SIZE__SET_BATT_EN_STATE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_BATT_EN_STATE_BODY,
+    WD_CMD_MSGS__PACKED_SIZE__SET_BATT_CTRL_EN_STATE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_BATT_CTRL_EN_STATE_BODY,
+    WD_CMD_MSGS__PACKED_SIZE__SET_LATCH_BATT_STATE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_LATCH_BATT_STATE_BODY,
+    WD_CMD_MSGS__PACKED_SIZE__LATCH_SET_PULSE_LOW_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__LATCH_SET_PULSE_LOW_BODY,
+    WD_CMD_MSGS__PACKED_SIZE__LATCH_RESET_PULSE_LOW_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__LATCH_RESET_PULSE_LOW_BODY,
 
     WD_CMD_MSGS__PACKED_SIZE__SMALLEST_MSG = WD_CMD_MSGS__PACKED_SIZE__RESET_SPECIFIC_MSG,
-    WD_CMD_MSGS__PACKED_SIZE__LARGEST_MSG = WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_ON_VALUE_MSG
+    WD_CMD_MSGS__PACKED_SIZE__LARGEST_MSG = WD_CMD_MSGS__PACKED_SIZE__DANG_FORCE_BATT_STATE_MSG
 } WdCmdMsgs__PackedSize;
 
 //######################################################################################################################

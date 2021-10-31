@@ -2,6 +2,7 @@
 
 #include "drivers/adc.h"
 #include "drivers/bsp.h"
+#include "drivers/blimp.h"
 #include "event/event.h"
 #include "event/event_queue.h"
 
@@ -409,6 +410,88 @@ namespace iris
                 }
                 break;
 
+            case WD_CMD_MSGS__CMD_ID__DANGEROUS_FORCE_BATT_STATE:
+                /* Enter service mode */
+                if ((msg.body.dangForceBattState.confirmationMagicNumberOne
+                            != WD_CMD_MSGS__CONFIRM_DANG_FORCE_BATT_STATE_MAGIC_NUMBER_ONE) ||
+                    (msg.body.dangForceBattState.confirmationMagicNumberTwo
+                            != WD_CMD_MSGS__CONFIRM_DANG_FORCE_BATT_STATE_MAGIC_NUMBER_TWO)) {
+                    /* magic bad */
+                    response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+                } else {
+                    return doGndCmdDangForceBattState(theContext,
+                                                      msg,
+                                                      response,
+                                                      deployNotificationResponse,
+                                                      sendDeployNotificationResponse);
+                }
+                break;
+
+            case WD_CMD_MSGS__CMD_ID__SET_CHARGE_EN_STATE:
+                return doGndCmdSetChargeEnState(theContext,
+                                                msg,
+                                                response,
+                                                deployNotificationResponse,
+                                                sendDeployNotificationResponse);
+
+            case WD_CMD_MSGS__CMD_ID__SET_CHARGE_REG_EN_STATE:
+                return doGndCmdSetChargeRegEnState(theContext,
+                                                   msg,
+                                                   response,
+                                                   deployNotificationResponse,
+                                                   sendDeployNotificationResponse);
+
+            case WD_CMD_MSGS__CMD_ID__SET_BATT_EN_STATE:
+                return doGndCmdSetBattEnState(theContext,
+                                              msg,
+                                              response,
+                                              deployNotificationResponse,
+                                              sendDeployNotificationResponse);
+
+            case WD_CMD_MSGS__CMD_ID__SET_BATT_CTRL_EN_STATE:
+                return doGndCmdSetBattCtrlEnState(theContext,
+                                                  msg,
+                                                  response,
+                                                  deployNotificationResponse,
+                                                  sendDeployNotificationResponse);
+
+            case WD_CMD_MSGS__CMD_ID__SET_LATCH_BATT_STATE:
+                return doGndCmdSetLatchBattState(theContext,
+                                                 msg,
+                                                 response,
+                                                 deployNotificationResponse,
+                                                 sendDeployNotificationResponse);
+
+            case WD_CMD_MSGS__CMD_ID__LATCH_SET_PULSE_LOW:
+                /* Enter service mode */
+                if (msg.body.latchSetPulseLow.confirmationMagicNumber
+                            != WD_CMD_MSGS__LATCH_SET_PULSE_LOW_MAGIC_NUMBER) {
+                    /* magic bad */
+                    response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+                } else {
+                    return doGndCmdLatchSetPulseLow(theContext,
+                                                    msg,
+                                                    response,
+                                                    deployNotificationResponse,
+                                                    sendDeployNotificationResponse);
+                }
+                break;
+
+            case WD_CMD_MSGS__CMD_ID__LATCH_RESET_PULSE_LOW:
+                /* Enter service mode */
+                if (msg.body.latchResetPulseLow.confirmationMagicNumber
+                            != WD_CMD_MSGS__LATCH_RESET_PULSE_LOW_MAGIC_NUMBER) {
+                    /* magic bad */
+                    response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+                } else {
+                    return doGndCmdLatchResetPulseLow(theContext,
+                                                      msg,
+                                                      response,
+                                                      deployNotificationResponse,
+                                                      sendDeployNotificationResponse);
+                }
+                break;
+
             default:
                 response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_ID;
                 break;
@@ -710,6 +793,192 @@ namespace iris
     {
         /* Default to not being in the right state to transition to service mode */
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
+        return getState();
+    }
+
+    RoverState RoverStateBase::doGndCmdDangForceBattState(RoverContext& theContext,
+                                                          const WdCmdMsgs__Message& msg,
+                                                          WdCmdMsgs__Response& response,
+                                                          WdCmdMsgs__Response& deployNotificationResponse,
+                                                          bool& sendDeployNotificationResponse)
+    {
+        switch (msg.body.dangForceBattState.state) {
+            case WD_CMD_MSGS__DANG_FORCE_BATT_STATE__LOW:
+                blimp_bstat_dangerous_forceLow();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__DANG_FORCE_BATT_STATE__HIGH:
+                blimp_bstat_dangerous_forceHigh();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__DANG_FORCE_BATT_STATE__RESTORE:
+                blimp_bstat_safe_restoreInput();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            default:
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+        }
+
+        return getState();
+    }
+
+    RoverState RoverStateBase::doGndCmdSetChargeEnState(RoverContext& theContext,
+                                                        const WdCmdMsgs__Message& msg,
+                                                        WdCmdMsgs__Response& response,
+                                                        WdCmdMsgs__Response& deployNotificationResponse,
+                                                        bool& sendDeployNotificationResponse)
+    {
+        switch (msg.body.setChargeEnState.selection) {
+            case WD_CMD_MSGS__CHARGE_EN__ON:
+                blimp_chargerEnOn();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__CHARGE_EN__OFF:
+                blimp_chargerEnOff();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__CHARGE_EN__FORCE_HIGH:
+                blimp_chargerEnForceHigh();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            default:
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+        }
+
+        return getState();
+    }
+
+    RoverState RoverStateBase::doGndCmdSetChargeRegEnState(RoverContext& theContext,
+                                                           const WdCmdMsgs__Message& msg,
+                                                           WdCmdMsgs__Response& response,
+                                                           WdCmdMsgs__Response& deployNotificationResponse,
+                                                           bool& sendDeployNotificationResponse)
+    {
+        switch (msg.body.setChargeRegEnState.selection) {
+            case WD_CMD_MSGS__CHARGE_REG_EN__ON:
+                blimp_regEnOn();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__CHARGE_REG_EN__OFF:
+                blimp_regEnOff();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            default:
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+        }
+
+        return getState();
+    }
+
+    RoverState RoverStateBase::doGndCmdSetBattEnState(RoverContext& theContext,
+                                                      const WdCmdMsgs__Message& msg,
+                                                      WdCmdMsgs__Response& response,
+                                                      WdCmdMsgs__Response& deployNotificationResponse,
+                                                      bool& sendDeployNotificationResponse)
+    {
+        switch (msg.body.setBattEnState.selection) {
+            case WD_CMD_MSGS__BATT_EN__ON:
+                blimp_battEnOn();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__BATT_EN__OFF:
+                blimp_battEnOff();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            default:
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+        }
+
+        return getState();
+    }
+
+    RoverState RoverStateBase::doGndCmdSetBattCtrlEnState(RoverContext& theContext,
+                                                          const WdCmdMsgs__Message& msg,
+                                                          WdCmdMsgs__Response& response,
+                                                          WdCmdMsgs__Response& deployNotificationResponse,
+                                                          bool& sendDeployNotificationResponse)
+    {
+        switch (msg.body.setBattCtrlEnState.selection) {
+            case WD_CMD_MSGS__BATT_CTRL_EN__ON:
+                blimp_bctrlEnOn();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__BATT_CTRL_EN__OFF:
+                blimp_bctrlEnOff();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__BATT_CTRL_EN__FORCE_HIGH:
+                blimp_bctrlEnForceHigh();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            default:
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+        }
+
+        return getState();
+    }
+
+    RoverState RoverStateBase::doGndCmdSetLatchBattState(RoverContext& theContext,
+                                                         const WdCmdMsgs__Message& msg,
+                                                         WdCmdMsgs__Response& response,
+                                                         WdCmdMsgs__Response& deployNotificationResponse,
+                                                         bool& sendDeployNotificationResponse)
+    {
+        switch (msg.body.setLatchBattState.selection) {
+            case WD_CMD_MSGS__LATCH_BATT__ON:
+                blimp_latchBattOn();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__LATCH_BATT__OFF:
+                blimp_latchBattOff();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__LATCH_BATT__UPDATE:
+                blimp_latchBattUpdate();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            default:
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+        }
+
+        return getState();
+    }
+
+    RoverState RoverStateBase::doGndCmdLatchSetPulseLow(RoverContext& theContext,
+                                                        const WdCmdMsgs__Message& msg,
+                                                        WdCmdMsgs__Response& response,
+                                                        WdCmdMsgs__Response& deployNotificationResponse,
+                                                        bool& sendDeployNotificationResponse)
+    {
+        blimp_latchSetPulseLow();
+        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+        return getState();
+    }
+
+    RoverState RoverStateBase::doGndCmdLatchResetPulseLow(RoverContext& theContext,
+                                                          const WdCmdMsgs__Message& msg,
+                                                          WdCmdMsgs__Response& response,
+                                                          WdCmdMsgs__Response& deployNotificationResponse,
+                                                          bool& sendDeployNotificationResponse)
+    {
+        blimp_latchResetPulseLow();
+        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
 

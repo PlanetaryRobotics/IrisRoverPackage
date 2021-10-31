@@ -151,6 +151,54 @@ namespace iris
                                                         WdCmdMsgs__Response& deployNotificationResponse,
                                                         bool& sendDeployNotificationResponse);
 
+            virtual RoverState doGndCmdDangForceBattState(RoverContext& theContext,
+                                                          const WdCmdMsgs__Message& msg,
+                                                          WdCmdMsgs__Response& response,
+                                                          WdCmdMsgs__Response& deployNotificationResponse,
+                                                          bool& sendDeployNotificationResponse);
+
+            virtual RoverState doGndCmdSetChargeEnState(RoverContext& theContext,
+                                                        const WdCmdMsgs__Message& msg,
+                                                        WdCmdMsgs__Response& response,
+                                                        WdCmdMsgs__Response& deployNotificationResponse,
+                                                        bool& sendDeployNotificationResponse);
+
+            virtual RoverState doGndCmdSetChargeRegEnState(RoverContext& theContext,
+                                                           const WdCmdMsgs__Message& msg,
+                                                           WdCmdMsgs__Response& response,
+                                                           WdCmdMsgs__Response& deployNotificationResponse,
+                                                           bool& sendDeployNotificationResponse);
+
+            virtual RoverState doGndCmdSetBattEnState(RoverContext& theContext,
+                                                      const WdCmdMsgs__Message& msg,
+                                                      WdCmdMsgs__Response& response,
+                                                      WdCmdMsgs__Response& deployNotificationResponse,
+                                                      bool& sendDeployNotificationResponse);
+
+            virtual RoverState doGndCmdSetBattCtrlEnState(RoverContext& theContext,
+                                                          const WdCmdMsgs__Message& msg,
+                                                          WdCmdMsgs__Response& response,
+                                                          WdCmdMsgs__Response& deployNotificationResponse,
+                                                          bool& sendDeployNotificationResponse);
+
+            virtual RoverState doGndCmdSetLatchBattState(RoverContext& theContext,
+                                                         const WdCmdMsgs__Message& msg,
+                                                         WdCmdMsgs__Response& response,
+                                                         WdCmdMsgs__Response& deployNotificationResponse,
+                                                         bool& sendDeployNotificationResponse);
+
+            virtual RoverState doGndCmdLatchSetPulseLow(RoverContext& theContext,
+                                                        const WdCmdMsgs__Message& msg,
+                                                        WdCmdMsgs__Response& response,
+                                                        WdCmdMsgs__Response& deployNotificationResponse,
+                                                        bool& sendDeployNotificationResponse);
+
+            virtual RoverState doGndCmdLatchResetPulseLow(RoverContext& theContext,
+                                                          const WdCmdMsgs__Message& msg,
+                                                          WdCmdMsgs__Response& response,
+                                                          WdCmdMsgs__Response& deployNotificationResponse,
+                                                          bool& sendDeployNotificationResponse);
+
             // Specific reset command handling
             void doConditionalResetSpecific(RoverContext& theContext,
                                             WdCmdMsgs__ResetSpecificId resetValue,

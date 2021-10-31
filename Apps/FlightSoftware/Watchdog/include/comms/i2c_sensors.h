@@ -93,6 +93,7 @@ typedef enum I2C_Sensors__Status {
     I2C_SENSORS__STATUS__ERROR__READINGS_IN_PROGRESS = -4, //!< Gauge readings are already in progress.
     I2C_SENSORS__STATUS__ERROR__ACTION_ALREADY_IN_PROGRESS = -5, //!< Cannot start a new action with one in progress.
     I2C_SENSORS__STATUS__ERROR__NO_ACTION_IN_PROGRESS = -6, //!< No action is in progress.
+    I2C_SENSORS__STATUS__ERROR__TIMEOUT = -7, //!< A function timed out.
     I2C_SENSORS__STATUS__ERROR__INTERNAL = -255 //!< An unexpected error occurred.
 } I2C_Sensors__Status;
 
@@ -155,9 +156,25 @@ I2C_Sensors__Status I2C_Sensors__initiateWriteLowPower(void);
 
 I2C_Sensors__Status I2C_Sensors__initiateIoExpanderInitialization(void);
 
+inline void I2C_Sensors__setIOExpanderPort0OutputBits(uint8_t bitsToSet) __attribute__((always_inline));
+inline void I2C_Sensors__setIOExpanderPort1OutputBits(uint8_t bitsToSet) __attribute__((always_inline));
+inline void I2C_Sensors__clearIOExpanderPort0OutputBits(uint8_t bitsToClear) __attribute__((always_inline));
+inline void I2C_Sensors__clearIOExpanderPort1OutputBits(uint8_t bitsToClear) __attribute__((always_inline));
+uint8_t I2C_Sensors__getIOExpanderPort0OutputValue(void);
+uint8_t I2C_Sensors__getIOExpanderPort1OutputValue(void);
+
+I2C_Sensors__Status I2C_Sensors__initiateWriteIoExpanderCurrentValues(void);
 I2C_Sensors__Status I2C_Sensors__initiateWriteIoExpander(uint8_t port0Value, uint8_t port1Value);
 
 I2C_Sensors__Status I2C_Sensors__initiateReadIoExpander(void);
+
+I2C_Sensors__Status I2C_Sensors__writeIoExpanderCurrentValuesBlocking(uint16_t timeoutCentiseconds);
+I2C_Sensors__Status I2C_Sensors__writeIoExpanderBlocking(uint8_t port0Value,
+                                                         uint8_t port1Value,
+                                                         uint16_t timeoutCentiseconds);
+I2C_Sensors__Status I2C_Sensors__readIoExpanderBlocking(uint8_t* chargeStat2,
+                                                        uint8_t* latchStat,
+                                                        uint16_t timeoutCentiseconds);
 
 /**
  * @brief Checks the status of reading the gauges. Does not block.
@@ -210,6 +227,7 @@ I2C_Sensors__getActionStatus(I2C_Sensors__Action* action,
  *       this function.
  */
 void I2C_Sensors__spinOnce(void);
+
 
 /**
  * @}

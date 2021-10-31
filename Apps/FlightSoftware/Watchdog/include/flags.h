@@ -106,12 +106,12 @@ typedef enum PersistentStatusBitIndices
 #define PSBI_MASK(psbi_index_enum) (((uint32_t) 1) << ((uint32_t) (psbi_index_enum)))
 
 #define SET_PSBI_IN_STATE(state, psbi_index_enum) \
-    (state).m_statusBits |= ((uint32_t) PSBI_MASK(psbi_index_enum))
+    /*(state).m_statusBits |= ((uint32_t) PSBI_MASK(psbi_index_enum))*/
 
 #define SET_PSBI_IN_STATE_PTR(statePtr, psbi_index_enum) SET_PSBI_IN_STATE(*statePtr, psbi_index_enum)
 
 #define CLEAR_PSBI_IN_STATE(state, psbi_index_enum) \
-    (state).m_statusBits &= ~((uint32_t) PSBI_MASK(psbi_index_enum))
+    /*(state).m_statusBits &= ~((uint32_t) PSBI_MASK(psbi_index_enum))*/
 
 #define CLEAR_PSBI_IN_STATE_PTR(statePtr, psbi_index_enum) CLEAR_PSBI_IN_STATE(*statePtr, psbi_index_enum)
 

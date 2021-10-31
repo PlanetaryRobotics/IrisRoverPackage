@@ -90,8 +90,7 @@ namespace iris
         I2C_Sensors__init();
 
         theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER);
-        theContext.m_queuedIOWritePort0Value = getIOExpanderPort0OutputValue();
-        theContext.m_queuedIOWritePort1Value = getIOExpanderPort1OutputValue();
+        theContext.m_writeCustomIoExpanderValues = false;
         initiateNextI2cAction(theContext);
 
         bool done = false;

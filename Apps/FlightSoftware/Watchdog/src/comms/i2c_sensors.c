@@ -2,6 +2,7 @@
 
 #include "comms/i2c_sensors.h"
 #include "drivers/i2c.h"
+#include "utils/time.h"
 #include "common.h"
 
 #include <string.h>
@@ -193,6 +194,9 @@ static INS_Sensors__InternalState internals =
           .ioExpanderPort0WriteValue = 0,
           .ioExpanderPort1WriteValue = 0
         };
+
+static uint8_t ioExpanderPort0OutputValues = 0;
+static uint8_t ioExpanderPort1OutputValues = 0;
 
 //###########################################################
 // Private function declarations
@@ -564,6 +568,41 @@ I2C_Sensors__Status I2C_Sensors__initiateIoExpanderInitialization(void)
     }
 }
 
+inline void I2C_Sensors__setIOExpanderPort0OutputBits(uint8_t bitsToSet)
+{
+    ioExpanderPort0OutputValues |= bitsToSet;
+}
+
+inline void I2C_Sensors__setIOExpanderPort1OutputBits(uint8_t bitsToSet)
+{
+    ioExpanderPort1OutputValues |= bitsToSet;
+}
+
+inline void I2C_Sensors__clearIOExpanderPort0OutputBits(uint8_t bitsToClear)
+{
+    ioExpanderPort0OutputValues &= ~bitsToClear;
+}
+
+inline void I2C_Sensors__clearIOExpanderPort1OutputBits(uint8_t bitsToClear)
+{
+    ioExpanderPort1OutputValues &= ~bitsToClear;
+}
+
+uint8_t I2C_Sensors__getIOExpanderPort0OutputValue(void)
+{
+    return ioExpanderPort0OutputValues;
+}
+
+uint8_t I2C_Sensors__getIOExpanderPort1OutputValue(void)
+{
+    return ioExpanderPort1OutputValues;
+}
+
+I2C_Sensors__Status I2C_Sensors__initiateWriteIoExpanderCurrentValues(void)
+{
+    return I2C_Sensors__initiateWriteIoExpander(ioExpanderPort0OutputValues, ioExpanderPort1OutputValues);
+}
+
 I2C_Sensors__Status I2C_Sensors__initiateWriteIoExpander(uint8_t port0Value, uint8_t port1Value)
 {
     if (I2C_SENSORS__ACTIONS__INACTIVE == internals.activeAction) {
@@ -586,6 +625,100 @@ I2C_Sensors__Status I2C_Sensors__initiateReadIoExpander(void)
     } else {
         return I2C_SENSORS__STATUS__ERROR__ACTION_ALREADY_IN_PROGRESS;
     }
+}
+
+I2C_Sensors__Status I2C_Sensors__writeIoExpanderCurrentValuesBlocking(uint16_t timeoutCentiseconds)
+{
+    return I2C_Sensors__writeIoExpanderBlocking(ioExpanderPort0OutputValues,
+                                                ioExpanderPort1OutputValues,
+                                                timeoutCentiseconds);
+}
+
+I2C_Sensors__Status I2C_Sensors__writeIoExpanderBlocking(uint8_t port0Value,
+                                                         uint8_t port1Value,
+                                                         uint16_t timeoutCentiseconds)
+{
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + timeoutCentiseconds;
+
+    I2C_Sensors__Status i2cStatus = I2C_Sensors__initiateWriteIoExpander(port0Value, port1Value);
+
+    if (I2C_SENSORS__STATUS__SUCCESS_DONE != i2cStatus) {
+        return i2cStatus;
+    }
+
+    while (currentTimeCentiseconds <= endTimeCentiseconds) {
+        I2C_Sensors__spinOnce();
+
+        I2C_Sensors__Action action = I2C_SENSORS__ACTIONS__INACTIVE;
+        i2cStatus = I2C_Sensors__getActionStatus(&action, NULL, NULL);
+
+        // Sanity check
+        assert(I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER == action);
+
+        if (I2C_SENSORS__STATUS__INCOMPLETE == i2cStatus) {
+            // Delay a tiny bit so we're not spinning completely tightly. We're single-threaded so it's not like anything
+            // else runs while we delay, but this should hopefully reduce power usage.
+            __delay_cycles(10);
+
+            // Update the current time so we can timeout if necessary
+            currentTimeCentiseconds = Time__getTimeInCentiseconds();
+        } else {
+            DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "IO expander write failed");
+
+            I2C_Sensors__clearLastAction();
+            return i2cStatus;
+        }
+    }
+
+    return I2C_SENSORS__STATUS__ERROR__TIMEOUT;
+}
+
+I2C_Sensors__Status I2C_Sensors__readIoExpanderBlocking(uint8_t* chargeStat2,
+                                                        uint8_t* latchStat,
+                                                        uint16_t timeoutCentiseconds)
+{
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + timeoutCentiseconds;
+
+    I2C_Sensors__Status i2cStatus = I2C_Sensors__initiateReadIoExpander();
+
+    if (I2C_SENSORS__STATUS__SUCCESS_DONE != i2cStatus) {
+        return i2cStatus;
+    }
+
+    while (currentTimeCentiseconds <= endTimeCentiseconds) {
+        I2C_Sensors__spinOnce();
+
+        I2C_Sensors__Action action = I2C_SENSORS__ACTIONS__INACTIVE;
+        uint8_t readValue = 0;
+        i2cStatus = I2C_Sensors__getActionStatus(&action, NULL, &readValue);
+
+        // Sanity check
+        assert(I2C_SENSORS__ACTIONS__READ_IO_EXPANDER == action);
+
+        if (I2C_SENSORS__STATUS__INCOMPLETE == i2cStatus) {
+            // Delay a tiny bit so we're not spinning completely tightly. We're single-threaded so it's not like anything
+            // else runs while we delay, but this should hopefully reduce power usage.
+            __delay_cycles(10);
+
+            // Update the current time so we can timeout if necessary
+            currentTimeCentiseconds = Time__getTimeInCentiseconds();
+        } else {
+            DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "IO expander read failed");
+
+            I2C_Sensors__clearLastAction();
+
+            *chargeStat2 = (readValue & I2C_SENSORS__IOE_P1_BIT__CHARGE_STAT2 != 0) ? 1 : 0;
+            *latchStat = (readValue & I2C_SENSORS__IOE_P1_BIT__LATCH_STAT != 0) ? 1 : 0;
+
+            return i2cStatus;
+        }
+    }
+
+    return I2C_SENSORS__STATUS__ERROR__TIMEOUT;
 }
 
 I2C_Sensors__Status

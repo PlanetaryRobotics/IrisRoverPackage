@@ -199,8 +199,7 @@ namespace iris
         UART__uninit0(&(theContext.m_uart0State));
 
         theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
-        theContext.m_queuedIOWritePort0Value = getIOExpanderPort0OutputValue();
-        theContext.m_queuedIOWritePort1Value = getIOExpanderPort1OutputValue();
+        theContext.m_writeCustomIoExpanderValues = false;
         initiateNextI2cAction(theContext);
 
         m_currentSubstate = SubState::WAITING_FOR_IO_EXPANDER_WRITE;

@@ -63,8 +63,7 @@ namespace iris
 
         if (writeIoExpander && true /** @todo Replace true with whether I2C has been initialized */) {
             theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
-            theContext.m_queuedIOWritePort0Value = getIOExpanderPort0OutputValue();
-            theContext.m_queuedIOWritePort1Value = getIOExpanderPort1OutputValue();
+            theContext.m_writeCustomIoExpanderValues = false;
 
             if (!theContext.m_i2cActive) {
                 initiateNextI2cAction(theContext);
@@ -302,8 +301,7 @@ namespace iris
         releaseFPGAReset();
 
         theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
-        theContext.m_queuedIOWritePort0Value = getIOExpanderPort0OutputValue();
-        theContext.m_queuedIOWritePort1Value = getIOExpanderPort1OutputValue();
+        theContext.m_writeCustomIoExpanderValues = false;
 
         // I2C being inactive should be a prerequisite of entering this state
         assert(!(theContext.m_i2cActive));
@@ -324,8 +322,7 @@ namespace iris
         stopChargingBatteries();
 
         theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
-        theContext.m_queuedIOWritePort0Value = getIOExpanderPort0OutputValue();
-        theContext.m_queuedIOWritePort1Value = getIOExpanderPort1OutputValue();
+        theContext.m_writeCustomIoExpanderValues = false;
 
         // I2C being inactive should be a prerequisite of entering this state
         assert(!(theContext.m_i2cActive));
@@ -384,8 +381,7 @@ namespace iris
         releaseHerculesReset();
 
         theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
-        theContext.m_queuedIOWritePort0Value = getIOExpanderPort0OutputValue();
-        theContext.m_queuedIOWritePort1Value = getIOExpanderPort1OutputValue();
+        theContext.m_writeCustomIoExpanderValues = false;
 
         // I2C being inactive should be a prerequisite of entering this state
         assert(!(theContext.m_i2cActive));

@@ -13,9 +13,6 @@
 #define PORT4_ENABLED 1
 #define PORTJ_ENABLED 1
 
-static uint8_t ioExpanderPort0OutputValues = 0;
-static uint8_t ioExpanderPort1OutputValues = 0;
-
 static PersistentState* persistentStatePtr = NULL;
 
 /**
@@ -547,6 +544,7 @@ inline void disable24VPowerRail(void)
 {
     PJDIR &= ~BIT7;
     PJREN &= ~BIT7;
+
     CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN);
 }
 
@@ -555,8 +553,8 @@ inline void disable24VPowerRail(void)
  */
 inline void releaseHerculesReset(void)
 {
-    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST;
-    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__N_HERCULES_PORRST;
+    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST |
+                                              I2C_SENSORS__IOE_P0_BIT__N_HERCULES_PORRST);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting these states
@@ -569,8 +567,8 @@ inline void releaseHerculesReset(void)
  */
 inline void setHerculesReset(void)
 {
-    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST;
-    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__N_HERCULES_PORRST;
+    I2C_Sensors__clearIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST |
+                                                I2C_SENSORS__IOE_P0_BIT__N_HERCULES_PORRST);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting these states
@@ -583,7 +581,7 @@ inline void setHerculesReset(void)
  */
 inline void releaseRadioReset(void)
 {
-    ioExpanderPort1OutputValues |= I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST;
+    I2C_Sensors__setIOExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -595,7 +593,7 @@ inline void releaseRadioReset(void)
  */
 inline void setRadioReset(void)
 {
-    ioExpanderPort1OutputValues &= ~I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST;
+    I2C_Sensors__clearIOExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -607,7 +605,7 @@ inline void setRadioReset(void)
  */
 inline void releaseFPGAReset(void)
 {
-    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST;
+    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -619,7 +617,7 @@ inline void releaseFPGAReset(void)
  */
 inline void setFPGAReset(void)
 {
-    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST;
+    I2C_Sensors__clearIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -650,7 +648,7 @@ inline void fpgaCameraSelectLo(void)
 inline void releaseMotor1Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_A;
+    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -660,7 +658,7 @@ inline void releaseMotor1Reset(void)
 inline void releaseMotor2Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_B;
+    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_B);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -670,7 +668,7 @@ inline void releaseMotor2Reset(void)
 inline void releaseMotor3Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_C;
+    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_C);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -680,7 +678,7 @@ inline void releaseMotor3Reset(void)
 inline void releaseMotor4Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_D;
+    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_D);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -690,10 +688,10 @@ inline void releaseMotor4Reset(void)
 inline void releaseMotorsReset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_A;
-    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_B;
-    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_C;
-    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__MC_RST_D;
+    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A |
+                                              I2C_SENSORS__IOE_P0_BIT__MC_RST_B |
+                                              I2C_SENSORS__IOE_P0_BIT__MC_RST_C |
+                                              I2C_SENSORS__IOE_P0_BIT__MC_RST_D);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -711,7 +709,7 @@ inline void releaseMotorsReset(void)
 inline void setMotor1Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_A;
+    I2C_Sensors__clearIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -721,7 +719,7 @@ inline void setMotor1Reset(void)
 inline void setMotor2Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_B;
+    I2C_Sensors__clearIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_B);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -731,7 +729,7 @@ inline void setMotor2Reset(void)
 inline void setMotor3Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_C;
+    I2C_Sensors__clearIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_C);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -741,7 +739,7 @@ inline void setMotor3Reset(void)
 inline void setMotor4Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_D;
+    I2C_Sensors__clearIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_D);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -751,10 +749,10 @@ inline void setMotor4Reset(void)
 inline void setMotorsReset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_A;
-    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_B;
-    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_C;
-    ioExpanderPort0OutputValues &= ~I2C_SENSORS__IOE_P0_BIT__MC_RST_D;
+    I2C_Sensors__clearIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A |
+                                                I2C_SENSORS__IOE_P0_BIT__MC_RST_B |
+                                                I2C_SENSORS__IOE_P0_BIT__MC_RST_C |
+                                                I2C_SENSORS__IOE_P0_BIT__MC_RST_D);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -787,7 +785,7 @@ inline void powerOffHercules(void)
  */
 inline void powerOnRadio(void)
 {
-    ioExpanderPort1OutputValues |= I2C_SENSORS__IOE_P1_BIT__RADIO_ON;
+    I2C_Sensors__setIOExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__RADIO_ON);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -799,7 +797,7 @@ inline void powerOnRadio(void)
  */
 inline void powerOffRadio(void)
 {
-    ioExpanderPort1OutputValues &= ~I2C_SENSORS__IOE_P1_BIT__RADIO_ON;
+    I2C_Sensors__clearIOExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__RADIO_ON);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -900,8 +898,8 @@ inline void startChargingBatteries(void)
 
 void setLatchSetAndResetHigh(void)
 {
-    ioExpanderPort0OutputValues |= I2C_SENSORS__IOE_P0_BIT__LATCH_RST;
-    ioExpanderPort1OutputValues |= I2C_SENSORS__IOE_P1_BIT__LATCH_SET;
+    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__LATCH_RST);
+    I2C_Sensors__setIOExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__LATCH_SET);
 }
 
 /**
@@ -1105,14 +1103,4 @@ inline BOOL blimp_bstat(){
 inline BOOL blimp_batteryState(){
     // Alias for blimp_bstat();
     return blimp_bstat();
-}
-
-inline uint8_t getIOExpanderPort0OutputValue(void)
-{
-    return ioExpanderPort0OutputValues;
-}
-
-inline uint8_t getIOExpanderPort1OutputValue(void)
-{
-    return ioExpanderPort1OutputValues;
 }

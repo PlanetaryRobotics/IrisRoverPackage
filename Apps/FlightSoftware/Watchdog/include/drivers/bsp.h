@@ -79,9 +79,6 @@ inline BOOL blimp_cstat1();
 inline BOOL blimp_bstat();
 inline BOOL blimp_batteryState();
 
-uint8_t getIOExpanderPort0OutputValue(void);
-uint8_t getIOExpanderPort1OutputValue(void);
-
 #ifdef __cplusplus
 } /* close extern "C" */
 #endif

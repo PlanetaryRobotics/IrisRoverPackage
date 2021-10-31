@@ -31,6 +31,7 @@ namespace iris
 
             bool m_i2cActive;
             uint16_t m_queuedI2cActions;
+            bool m_writeCustomIoExpanderValues;
             uint8_t m_queuedIOWritePort0Value;
             uint8_t m_queuedIOWritePort1Value;
 

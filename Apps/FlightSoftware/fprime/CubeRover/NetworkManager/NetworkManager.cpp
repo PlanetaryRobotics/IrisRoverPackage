@@ -44,7 +44,7 @@ namespace CubeRover {
     
     unsigned no_transition_count = 0;
     m_current_state = m_crnm.GetState();
-    bool success = false;
+    bool success = true;
     while (!success) {
         while (no_transition_count < MAX_FSM_NO_TRANSITION_COUNT) {
             Wf121::ErrorCode errorCode = m_crnm.UpdateNetworkManager();

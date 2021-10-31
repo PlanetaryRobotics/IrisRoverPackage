@@ -8,6 +8,7 @@
 #include "watchdog.h"
 
 #include <cassert>
+#include <msp430.h>
 
 namespace iris
 {

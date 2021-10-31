@@ -1,7 +1,6 @@
 #ifndef __BSP_H__
 #define __BSP_H__
 
-#include <msp430.h>
 #include <stdint.h>
 #include "flags.h"
 
@@ -58,26 +57,6 @@ void startChargingBatteries(void);
 void stopChargingBatteries(void);
 
 void setLatchSetAndResetHigh(void);
-
-inline void blimp_bctrlEnOn();
-inline void blimp_bctrlEnForceHigh();
-inline void blimp_bctrlEnOff();
-inline void blimp_latchBattOn();
-inline void blimp_latchBattOff();
-void blimp_latchBattUpdate();
-inline void blimp_chargerEnOn();
-inline void blimp_chargerEnForceHigh();
-inline void blimp_chargerEnOff();
-inline void blimp_regEnOn();
-inline void blimp_regEnOff();
-void blimp_battEnOn();
-void blimp_battEnOff();
-void blimp_vSysAllEnOn();
-void blimp_vSysAllEnOff();
-void blimp_vSysAllEnForceLow();
-inline BOOL blimp_cstat1();
-inline BOOL blimp_bstat();
-inline BOOL blimp_batteryState();
 
 #ifdef __cplusplus
 } /* close extern "C" */

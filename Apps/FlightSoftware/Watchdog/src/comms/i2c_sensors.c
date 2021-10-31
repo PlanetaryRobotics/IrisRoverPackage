@@ -568,32 +568,32 @@ I2C_Sensors__Status I2C_Sensors__initiateIoExpanderInitialization(void)
     }
 }
 
-inline void I2C_Sensors__setIOExpanderPort0OutputBits(uint8_t bitsToSet)
+inline void I2C_Sensors__setIoExpanderPort0OutputBits(uint8_t bitsToSet)
 {
     ioExpanderPort0OutputValues |= bitsToSet;
 }
 
-inline void I2C_Sensors__setIOExpanderPort1OutputBits(uint8_t bitsToSet)
+inline void I2C_Sensors__setIoExpanderPort1OutputBits(uint8_t bitsToSet)
 {
     ioExpanderPort1OutputValues |= bitsToSet;
 }
 
-inline void I2C_Sensors__clearIOExpanderPort0OutputBits(uint8_t bitsToClear)
+inline void I2C_Sensors__clearIoExpanderPort0OutputBits(uint8_t bitsToClear)
 {
     ioExpanderPort0OutputValues &= ~bitsToClear;
 }
 
-inline void I2C_Sensors__clearIOExpanderPort1OutputBits(uint8_t bitsToClear)
+inline void I2C_Sensors__clearIoExpanderPort1OutputBits(uint8_t bitsToClear)
 {
     ioExpanderPort1OutputValues &= ~bitsToClear;
 }
 
-uint8_t I2C_Sensors__getIOExpanderPort0OutputValue(void)
+uint8_t I2C_Sensors__getIoExpanderPort0OutputValue(void)
 {
     return ioExpanderPort0OutputValues;
 }
 
-uint8_t I2C_Sensors__getIOExpanderPort1OutputValue(void)
+uint8_t I2C_Sensors__getIoExpanderPort1OutputValue(void)
 {
     return ioExpanderPort1OutputValues;
 }

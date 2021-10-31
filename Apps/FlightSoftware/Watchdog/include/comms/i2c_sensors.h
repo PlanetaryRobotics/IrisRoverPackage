@@ -156,12 +156,12 @@ I2C_Sensors__Status I2C_Sensors__initiateWriteLowPower(void);
 
 I2C_Sensors__Status I2C_Sensors__initiateIoExpanderInitialization(void);
 
-inline void I2C_Sensors__setIOExpanderPort0OutputBits(uint8_t bitsToSet) __attribute__((always_inline));
-inline void I2C_Sensors__setIOExpanderPort1OutputBits(uint8_t bitsToSet) __attribute__((always_inline));
-inline void I2C_Sensors__clearIOExpanderPort0OutputBits(uint8_t bitsToClear) __attribute__((always_inline));
-inline void I2C_Sensors__clearIOExpanderPort1OutputBits(uint8_t bitsToClear) __attribute__((always_inline));
-uint8_t I2C_Sensors__getIOExpanderPort0OutputValue(void);
-uint8_t I2C_Sensors__getIOExpanderPort1OutputValue(void);
+inline void I2C_Sensors__setIoExpanderPort0OutputBits(uint8_t bitsToSet) __attribute__((always_inline));
+inline void I2C_Sensors__setIoExpanderPort1OutputBits(uint8_t bitsToSet) __attribute__((always_inline));
+inline void I2C_Sensors__clearIoExpanderPort0OutputBits(uint8_t bitsToClear) __attribute__((always_inline));
+inline void I2C_Sensors__clearIoExpanderPort1OutputBits(uint8_t bitsToClear) __attribute__((always_inline));
+uint8_t I2C_Sensors__getIoExpanderPort0OutputValue(void);
+uint8_t I2C_Sensors__getIoExpanderPort1OutputValue(void);
 
 I2C_Sensors__Status I2C_Sensors__initiateWriteIoExpanderCurrentValues(void);
 I2C_Sensors__Status I2C_Sensors__initiateWriteIoExpander(uint8_t port0Value, uint8_t port1Value);

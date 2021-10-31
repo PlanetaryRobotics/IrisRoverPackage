@@ -7,6 +7,7 @@
  *      Author: ohnx
  */
 #include <stdint.h>
+#include <msp430.h>
 
 #include "comms/ip_udp.h"
 #include "comms/i2c_sensors.h"

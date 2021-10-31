@@ -1,8 +1,10 @@
 #include "drivers/bsp.h"
+#include "drivers/blimp.h"
 #include "comms/i2c_sensors.h"
 #include "flags.h"
 
 #include <stddef.h>
+#include <msp430.h>
 
 // uncomment to program MC
 //#define PROGRAM_MOTOR_CONTROLLERS
@@ -553,7 +555,7 @@ inline void disable24VPowerRail(void)
  */
 inline void releaseHerculesReset(void)
 {
-    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST |
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST |
                                               I2C_SENSORS__IOE_P0_BIT__N_HERCULES_PORRST);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
@@ -567,7 +569,7 @@ inline void releaseHerculesReset(void)
  */
 inline void setHerculesReset(void)
 {
-    I2C_Sensors__clearIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST |
+    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST |
                                                 I2C_SENSORS__IOE_P0_BIT__N_HERCULES_PORRST);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
@@ -581,7 +583,7 @@ inline void setHerculesReset(void)
  */
 inline void releaseRadioReset(void)
 {
-    I2C_Sensors__setIOExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST);
+    I2C_Sensors__setIoExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -593,7 +595,7 @@ inline void releaseRadioReset(void)
  */
 inline void setRadioReset(void)
 {
-    I2C_Sensors__clearIOExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST);
+    I2C_Sensors__clearIoExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -605,7 +607,7 @@ inline void setRadioReset(void)
  */
 inline void releaseFPGAReset(void)
 {
-    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST);
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -617,7 +619,7 @@ inline void releaseFPGAReset(void)
  */
 inline void setFPGAReset(void)
 {
-    I2C_Sensors__clearIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST);
+    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -648,7 +650,7 @@ inline void fpgaCameraSelectLo(void)
 inline void releaseMotor1Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A);
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -658,7 +660,7 @@ inline void releaseMotor1Reset(void)
 inline void releaseMotor2Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_B);
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_B);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -668,7 +670,7 @@ inline void releaseMotor2Reset(void)
 inline void releaseMotor3Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_C);
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_C);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -678,7 +680,7 @@ inline void releaseMotor3Reset(void)
 inline void releaseMotor4Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_D);
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_D);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -688,7 +690,7 @@ inline void releaseMotor4Reset(void)
 inline void releaseMotorsReset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A |
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A |
                                               I2C_SENSORS__IOE_P0_BIT__MC_RST_B |
                                               I2C_SENSORS__IOE_P0_BIT__MC_RST_C |
                                               I2C_SENSORS__IOE_P0_BIT__MC_RST_D);
@@ -709,7 +711,7 @@ inline void releaseMotorsReset(void)
 inline void setMotor1Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    I2C_Sensors__clearIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A);
+    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -719,7 +721,7 @@ inline void setMotor1Reset(void)
 inline void setMotor2Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    I2C_Sensors__clearIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_B);
+    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_B);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -729,7 +731,7 @@ inline void setMotor2Reset(void)
 inline void setMotor3Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    I2C_Sensors__clearIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_C);
+    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_C);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -739,7 +741,7 @@ inline void setMotor3Reset(void)
 inline void setMotor4Reset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    I2C_Sensors__clearIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_D);
+    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_D);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -749,7 +751,7 @@ inline void setMotor4Reset(void)
 inline void setMotorsReset(void)
 {
 #ifndef PROGRAM_MOTOR_CONTROLLERS
-    I2C_Sensors__clearIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A |
+    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A |
                                                 I2C_SENSORS__IOE_P0_BIT__MC_RST_B |
                                                 I2C_SENSORS__IOE_P0_BIT__MC_RST_C |
                                                 I2C_SENSORS__IOE_P0_BIT__MC_RST_D);
@@ -785,7 +787,7 @@ inline void powerOffHercules(void)
  */
 inline void powerOnRadio(void)
 {
-    I2C_Sensors__setIOExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__RADIO_ON);
+    I2C_Sensors__setIoExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__RADIO_ON);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -797,7 +799,7 @@ inline void powerOnRadio(void)
  */
 inline void powerOffRadio(void)
 {
-    I2C_Sensors__clearIOExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__RADIO_ON);
+    I2C_Sensors__clearIoExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__RADIO_ON);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
@@ -898,8 +900,8 @@ inline void startChargingBatteries(void)
 
 void setLatchSetAndResetHigh(void)
 {
-    I2C_Sensors__setIOExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__LATCH_RST);
-    I2C_Sensors__setIOExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__LATCH_SET);
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__LATCH_RST);
+    I2C_Sensors__setIoExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__LATCH_SET);
 }
 
 /**
@@ -911,196 +913,4 @@ inline void stopChargingBatteries(void)
     blimp_chargerEnOff();
     // Disable the charging regulator:
     blimp_regEnOff();
-}
-
-/**
- * @brief     Releases BATT_CTRL_EN to enable the 3V3_LATCH regulator and power the battery control (battery latching
- *            and battery switch) circuitry.
- */
-inline void blimp_bctrlEnOn(){
-    // Go HiZ (input with no pulls) to let external pull-up to VIN do the work.
-    P2DIR &= ~BIT3;
-    P2REN &= ~BIT3;
-}
-
-/**
- * @brief      Forces BATT_CTRL_EN high to enable the 3V3_LATCH regulator and power the battery control (battery
- *             latching and battery switch) circuitry at the expense of a couple mA of current at 3V3 draining through
- *             the WD.
- *
- * NOTE: Normally you'd not want to do this because there's an external pull-up to V_LANDER/V_BATT that controls
- * this but if we can't talk to latching circuitry, it might be because one of the resistors vibed loose, in which
- * case this can be helpful (and possibly save our mission).
- */
-inline void blimp_bctrlEnForceHigh(){
-    // Set as output and drive high
-    P2DIR |= BIT3;
-    P2OUT |= BIT3;
-}
-
-/**
- * @brief     Drives BATT_CTRL_EN low to disable the 3V3_LATCH regulator and power off the battery control (battery
- *            latching and battery switch) circuitry.
- */
-inline void blimp_bctrlEnOff(){
-    // Set as output and drive low
-    P2DIR |= BIT3;
-    P2OUT &= ~BIT3;
-}
-
-/**
- * @brief     Sets the clock signal to the D-Latch high
- *            (note: by itself, this doesn't latch the batteries - see: blimp_latchBattUpdate)
- */
-inline void blimp_latchBattOn(){
-    P3OUT |= BIT6;
-}
-
-/**
- * @brief     Sets the clock signal to the D-Latch low
- *            (note: by itself, this doesn't un-latch the batteries - see:blimp_latchBattUpdate)
- */
-inline void blimp_latchBattOff(){
-    P3OUT &= ~BIT6;
-}
-
-/**
- * @brief     Pulses the clock signal to the D-Latch so the latch absorbs the state of BATT_EN.
- */
-void blimp_latchBattUpdate(){
-    // Pulse LB low-high-low to have the latch absorb the state of BE
-    // delay should be at least 2us
-    P3OUT &= ~BIT6; // set low first in case LB stayed driven high due to error or became high due to cosmic radiation
-    __delay_cycles(400);
-    P3OUT |= BIT6;
-    __delay_cycles(400);
-    P3OUT &= ~BIT6;
-}
-
-/**
- * @brief      Enables the charging IC. NOTE: You'll also need to turn on REGE (28V charging regulator) before you can
- *             actually charge. Do this first.
- */
-inline void blimp_chargerEnOn(){
-    // Go HiZ (input with no pulls) to let external pull-up to VIN do the work.
-    PJDIR &= ~BIT3;
-    PJREN &= ~BIT3;
-    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__CHRG_EN);
-    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__CHRG_EN_FORCE_HIGH);
-}
-
-/**
- * @brief      Forces the charging IC input high.
- * NOTE: Normally you'd not want to do this because there's an external voltage divider that controls
- * this but if we can't enable charging, it might be because one of the resistors vibed loose, in which
- * case this can be helpful (and possibly save our mission).
- */
-inline void blimp_chargerEnForceHigh(){
-    // Set as output and drive high
-    PJDIR |= BIT3;
-    PJOUT |= BIT3;
-    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__CHRG_EN);
-    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__CHRG_EN_FORCE_HIGH);
-}
-
-/**
- * @brief      Disables the charging IC. NOTE: If you're no longer charging, you'll also want to turn off REGE (28V
- *             charging regulator) to not waste power.
- */
-inline void blimp_chargerEnOff(){
-    // Set as output and drive low
-    PJDIR |= BIT3;
-    PJOUT &= ~BIT3;
-    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__CHRG_EN);
-    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__CHRG_EN_FORCE_HIGH);
-}
-
-/**
- * @brief      Turns on the 28V lander power regulator used by the charging IC (REGE).
- */
-inline void blimp_regEnOn()
-{
-    P1OUT |= BIT5;
-    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_LANDER_REG_EN);
-}
-
-/**
- * @brief      Turns off the 28V lander power regulator used by the charging IC (REGE).
- */
-inline void blimp_regEnOff()
-{
-    P1OUT &= ~BIT5;
-    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_LANDER_REG_EN);
-}
-
-/**
- * @brief      Enables the battery enable override. NOTE: (by design) this won't latch the batteries on. You'll need to
- *             pulse LBATT for the latch absorbs the state of BATT_EN if you want the state to be persistent.
- */
-void blimp_battEnOn(){
-    PJOUT |= BIT5;
-    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__BATTERY_EN);
-}
-
-/**
- * @brief      Disables the battery enable override. NOTE: (by design) this won't turn off the batteries if they are
- *             also latched (LSTAT=1). To turn off the latch, you'll need to pulse LBATT so the latch absorbs the state
- *             of BATT_EN.
- */
-void blimp_battEnOff(){
-    PJOUT &= ~BIT5;
-    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__BATTERY_EN);
-}
-
-/**
- * @brief      Enables the V_SYS_ALL switch which connects V_SYS_ALL to V_SYS and powers everything beside the WD
- *             (which is already powered by V_SYS).
- */
-void blimp_vSysAllEnOn(){
-    PJDIR |= BIT7;
-    PJOUT |= BIT7;
-    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN);
-    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN_FORCE_LOW);
-}
-
-/**
- * @brief      Disables the V_SYS_ALL switch which connects V_SYS_ALL to V_SYS and powers everything beside the WD
- *             (which is already powered by V_SYS).
- */
-void blimp_vSysAllEnOff(){
-    PJDIR &= ~BIT7;
-    PJREN &= ~BIT7;
-    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN);
-    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN_FORCE_LOW);
-}
-
-void blimp_vSysAllEnForceLow()
-{
-    PJDIR |= BIT7;
-    PJOUT &= ~BIT7;
-    CLEAR_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN);
-    SET_PSBI_IN_STATE_PTR(persistentStatePtr, PSBI__V_SYS_ALL_EN_FORCE_LOW);
-}
-
-/**
- * @brief      Reads STAT1 from BQ24650 charging IC. If H and STAT2 is H then fault. If L and STAT2 is H, then charging.
- */
-inline BOOL blimp_cstat1(){
-    return P1IN & BIT2;
-}
-
-/**
- * @brief      Reads the present state of the battery switch (BSTAT). ON is HIGH.
- */
-inline BOOL blimp_bstat(){
-    return PJIN & BIT6;
-}
-
-
-/**
- * @brief      Reads the present state of the battery switch (BSTAT). ON is HIGH.
- */
-inline BOOL blimp_batteryState(){
-    // Alias for blimp_bstat();
-    return blimp_bstat();
 }

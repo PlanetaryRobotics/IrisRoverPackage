@@ -38,9 +38,9 @@ namespace
             {
                 bool wasFull = full();
 
-                // Get the next head index, wrapping if necessary
-                m_head = incrementAndWrap(m_head);
+                // Write to the current head index then increment it, wrapping if necessary
                 m_buffer[m_head] = data;
+                m_head = incrementAndWrap(m_head);
 
                 if (wasFull) {
                     // The buffer was full so we needed to overwrite, therefore we need to
@@ -61,6 +61,7 @@ namespace
                 }
 
                 outByte = m_buffer[m_tail];
+                m_buffer[m_tail] = 0xFA; // Write 0xFA to all "empty" bytes in this array
                 m_tail = incrementAndWrap(m_tail);
 
                 m_size -= 1;
@@ -80,7 +81,8 @@ namespace
 
             void clear()
             {
-                memset(m_buffer, 0, m_bufferSize);
+                // Write 0xFA to all "empty" bytes in this array, this just makes debugging easier
+                memset(m_buffer, 0xFA, m_bufferSize);
                 m_head = 0;
                 m_tail = 0;
                 m_size = 0;

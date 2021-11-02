@@ -1,0 +1,44 @@
+11-01 16:56 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	295.8°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:00 trans_tools  INFO     [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  26.7°K]
+11-02 10:00 trans_tools  INFO     [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  26.7°K]
+11-02 10:00 trans_tools  INFO     > Command[#236] -> NO_ERROR[0x0]
+11-02 10:00 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:00 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:00 trans_tools  INFO     > Command[#1] -> NO_ERROR[0x0]
+11-02 10:00 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:01 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:01 trans_tools  INFO     > Command[#0] -> NO_ERROR[0x0]
+11-02 10:01 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:01 trans_tools  INFO     > Command[#0] -> NO_ERROR[0x0]
+11-02 10:01 trans_tools  INFO     > Command[#0] -> NO_ERROR[0x0]
+11-02 10:01 trans_tools  INFO     > Command[#0] -> NO_ERROR[0x0]
+11-02 10:01 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:01 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:01 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:01 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:01 trans_tools  ERROR    Invalid packet detected. Does not conform to any supported specs: b'\xff\xff\x1d\x08\xa0\xd8\x00\x00\x00\x00\x00\x00\xf4\x01\xfd\x0c<\x004!\x10\x00\x01\x00\x00'
+11-02 10:01 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:02 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:02 trans_tools  ERROR    Invalid packet detected. Does not conform to any supported specs: b'\xff\xff\x1d\x08\xa0\xd8\x00\x00\x00\x00\x00\x00\xf4\x01\xfd\x0c<\x004!\x10\x00\x01\x00\x00'
+11-02 10:02 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:02 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:02 trans_tools  ERROR    Invalid packet detected. Does not conform to any supported specs: b'\xff\xff\x1d\x08\xa0\xd8\x00\x00\x00\x00\x00\x00\xf4\x01\xfd\x0c<\x004!\x10\x00\x01\x00\x00'
+11-02 10:02 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:02 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:02 trans_tools  ERROR    Invalid packet detected. Does not conform to any supported specs: b'\xff\xff\x1d\x08\xa0\xd8\x00\x00\x00\x00\x00\x00\xf4\x01\xfd\x0c<\x004!\x10\x00\x01\x00\x00'
+11-02 10:02 trans_tools  INFO     RS_MISSION:	[Heat: OFF, Ctrl: ON] 	293.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:02 trans_tools  INFO     > Command[#236] -> BAD_COMMAND_SEND_ORDER[0x6]
+11-02 10:02 trans_tools  INFO     > Command[#236] -> NO_ERROR[0x0]
+11-02 10:03 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:03 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:03 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:03 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:03 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:03 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:03 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:03 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:03 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:03 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:03 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:04 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535
+11-02 10:04 trans_tools  INFO     RS_SERVICE:	[Heat: OFF, Ctrl: ON] 	293.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 0/65535

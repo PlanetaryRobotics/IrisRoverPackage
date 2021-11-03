@@ -82,7 +82,7 @@ namespace CubeRover {
         // Reset WF121
         bool success = logAndSendResetSpecific(WatchDogInterfaceComponentBase::OPCODE_RESET_SPECIFIC,
                                                0,
-                                               Reset_Radio,
+                                               No_Reset,
                                                false);
        
         if (!success) {

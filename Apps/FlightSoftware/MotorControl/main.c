@@ -653,8 +653,8 @@ void main(void){
   WDT_A_hold(WDT_A_BASE);
 
   initController(); //init all variables and functionality needed to drive
-  g_targetPosition = 0;
-  g_controlRegister = 0;
+  g_targetPosition = 10000;
+  g_controlRegister = 33;
 
 //  enableHalfBridgeA();
 //  enableHalfBridgeB();

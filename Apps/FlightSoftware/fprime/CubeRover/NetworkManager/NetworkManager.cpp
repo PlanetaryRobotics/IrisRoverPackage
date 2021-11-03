@@ -178,6 +178,8 @@ namespace CubeRover {
             stuck_state_wifi_reset_cnt = 0;
             stuck_state_wifi_reset_herc_cnt = 0;
         }
+        else
+            stuck_state_wifi_reset_cnt = 0;
 
         // TODO: UPDATE THESE ONCE PER TELEM DOWNLINK. DOING IT ON THE RATE GROUP IS TOO OFTEN
         if(telem_send_limit_cnt >= telem_send_limit_cnt_max)

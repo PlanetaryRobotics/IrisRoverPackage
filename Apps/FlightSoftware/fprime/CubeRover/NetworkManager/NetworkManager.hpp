@@ -80,6 +80,7 @@ namespace CubeRover {
         uint8_t wired_wifi_reset_cnt;
         uint8_t telem_send_limit_cnt;
         unsigned stuck_state_wifi_reset_cnt;
+        uint8_t stuck_state_wifi_reset_herc_cnt;
         void update();    // Behavior of periodic status update
         void getUplinkDatagram();
 

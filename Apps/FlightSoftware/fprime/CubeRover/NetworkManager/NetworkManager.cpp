@@ -49,6 +49,7 @@ namespace CubeRover {
     
     telem_send_limit_cnt = 0;
     stuck_state_wifi_reset_cnt = 0;
+    stuck_state_wifi_reset_herc_cnt = 0;
     unsigned no_transition_count = 0;
     m_current_state = m_crnm.GetState();
     bool success = false;
@@ -164,7 +165,18 @@ namespace CubeRover {
                 watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
                 m_crnm.ResetState();
                 stuck_state_wifi_reset_cnt = 0;
+                stuck_state_wifi_reset_herc_cnt++;
             }
+            if(stuck_state_wifi_reset_herc_cnt >= MAX_FSM_NO_TRANSITION_COUNT_RESET_HERC)
+            {
+                watchDogInterface.Reset_Specific_Handler(1 /*Reset_Hercules = 1*/);
+                stuck_state_wifi_reset_herc_cnt = 0;
+            }
+        }
+        else
+        {
+            stuck_state_wifi_reset_cnt = 0;
+            stuck_state_wifi_reset_herc_cnt = 0;
         }
 
         // TODO: UPDATE THESE ONCE PER TELEM DOWNLINK. DOING IT ON THE RATE GROUP IS TOO OFTEN

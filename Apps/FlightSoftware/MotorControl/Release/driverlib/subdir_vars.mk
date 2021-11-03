@@ -2,8 +2,6 @@
 # Automatically-generated file. Do not edit!
 ################################################################################
 
-SHELL = cmd.exe
-
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../driverlib/adc12_b.c \
@@ -114,76 +112,76 @@ OBJS += \
 ./driverlib/wdt_a.obj 
 
 OBJS__QUOTED += \
-"driverlib\adc12_b.obj" \
-"driverlib\aes256.obj" \
-"driverlib\comp_e.obj" \
-"driverlib\crc.obj" \
-"driverlib\crc32.obj" \
-"driverlib\cs.obj" \
-"driverlib\dma.obj" \
-"driverlib\esi.obj" \
-"driverlib\eusci_a_spi.obj" \
-"driverlib\eusci_a_uart.obj" \
-"driverlib\eusci_b_i2c.obj" \
-"driverlib\eusci_b_spi.obj" \
-"driverlib\framctl.obj" \
-"driverlib\framctl_a.obj" \
-"driverlib\gpio.obj" \
-"driverlib\hspll.obj" \
-"driverlib\lcd_c.obj" \
-"driverlib\mpu.obj" \
-"driverlib\mpy32.obj" \
-"driverlib\mtif.obj" \
-"driverlib\pmm.obj" \
-"driverlib\ram.obj" \
-"driverlib\ref_a.obj" \
-"driverlib\rtc_b.obj" \
-"driverlib\rtc_c.obj" \
-"driverlib\saph.obj" \
-"driverlib\sdhs.obj" \
-"driverlib\sfr.obj" \
-"driverlib\sysctl.obj" \
-"driverlib\timer_a.obj" \
-"driverlib\timer_b.obj" \
-"driverlib\tlv.obj" \
-"driverlib\uups.obj" \
-"driverlib\wdt_a.obj" 
+"driverlib/adc12_b.obj" \
+"driverlib/aes256.obj" \
+"driverlib/comp_e.obj" \
+"driverlib/crc.obj" \
+"driverlib/crc32.obj" \
+"driverlib/cs.obj" \
+"driverlib/dma.obj" \
+"driverlib/esi.obj" \
+"driverlib/eusci_a_spi.obj" \
+"driverlib/eusci_a_uart.obj" \
+"driverlib/eusci_b_i2c.obj" \
+"driverlib/eusci_b_spi.obj" \
+"driverlib/framctl.obj" \
+"driverlib/framctl_a.obj" \
+"driverlib/gpio.obj" \
+"driverlib/hspll.obj" \
+"driverlib/lcd_c.obj" \
+"driverlib/mpu.obj" \
+"driverlib/mpy32.obj" \
+"driverlib/mtif.obj" \
+"driverlib/pmm.obj" \
+"driverlib/ram.obj" \
+"driverlib/ref_a.obj" \
+"driverlib/rtc_b.obj" \
+"driverlib/rtc_c.obj" \
+"driverlib/saph.obj" \
+"driverlib/sdhs.obj" \
+"driverlib/sfr.obj" \
+"driverlib/sysctl.obj" \
+"driverlib/timer_a.obj" \
+"driverlib/timer_b.obj" \
+"driverlib/tlv.obj" \
+"driverlib/uups.obj" \
+"driverlib/wdt_a.obj" 
 
 C_DEPS__QUOTED += \
-"driverlib\adc12_b.d" \
-"driverlib\aes256.d" \
-"driverlib\comp_e.d" \
-"driverlib\crc.d" \
-"driverlib\crc32.d" \
-"driverlib\cs.d" \
-"driverlib\dma.d" \
-"driverlib\esi.d" \
-"driverlib\eusci_a_spi.d" \
-"driverlib\eusci_a_uart.d" \
-"driverlib\eusci_b_i2c.d" \
-"driverlib\eusci_b_spi.d" \
-"driverlib\framctl.d" \
-"driverlib\framctl_a.d" \
-"driverlib\gpio.d" \
-"driverlib\hspll.d" \
-"driverlib\lcd_c.d" \
-"driverlib\mpu.d" \
-"driverlib\mpy32.d" \
-"driverlib\mtif.d" \
-"driverlib\pmm.d" \
-"driverlib\ram.d" \
-"driverlib\ref_a.d" \
-"driverlib\rtc_b.d" \
-"driverlib\rtc_c.d" \
-"driverlib\saph.d" \
-"driverlib\sdhs.d" \
-"driverlib\sfr.d" \
-"driverlib\sysctl.d" \
-"driverlib\timer_a.d" \
-"driverlib\timer_b.d" \
-"driverlib\tlv.d" \
-"driverlib\uups.d" \
-"driverlib\wdt_a.d" 
+"driverlib/adc12_b.d" \
+"driverlib/aes256.d" \
+"driverlib/comp_e.d" \
+"driverlib/crc.d" \
+"driverlib/crc32.d" \
+"driverlib/cs.d" \
+"driverlib/dma.d" \
+"driverlib/esi.d" \
+"driverlib/eusci_a_spi.d" \
+"driverlib/eusci_a_uart.d" \
+"driverlib/eusci_b_i2c.d" \
+"driverlib/eusci_b_spi.d" \
+"driverlib/framctl.d" \
+"driverlib/framctl_a.d" \
+"driverlib/gpio.d" \
+"driverlib/hspll.d" \
+"driverlib/lcd_c.d" \
+"driverlib/mpu.d" \
+"driverlib/mpy32.d" \
+"driverlib/mtif.d" \
+"driverlib/pmm.d" \
+"driverlib/ram.d" \
+"driverlib/ref_a.d" \
+"driverlib/rtc_b.d" \
+"driverlib/rtc_c.d" \
+"driverlib/saph.d" \
+"driverlib/sdhs.d" \
+"driverlib/sfr.d" \
+"driverlib/sysctl.d" \
+"driverlib/timer_a.d" \
+"driverlib/timer_b.d" \
+"driverlib/tlv.d" \
+"driverlib/uups.d" \
+"driverlib/wdt_a.d" 
 
 C_SRCS__QUOTED += \
 "../driverlib/adc12_b.c" \

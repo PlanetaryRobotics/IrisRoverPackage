@@ -48,6 +48,13 @@
  *          Constants
  * ============================================
  */
+
+// TO INCREASE MAX SPEED:
+//   - increase 'PI_OUTPUT_BOUNDS'
+//   - increase 'MAX_TARGET_SPEED'
+// change g_targetPosition ~2000 (top of void main()
+// change g_controlRegister to 32
+
 // timing constants (control rate groups, delays, number of iterations for flags)
 #define ERROR_ITERATION_THRESHOLD       10      // how many iterations motor performance must be funky before driving is stopped
 #define PI_SPD_CONTROL_PRESCALER        1000 // 15.6 Hz, speed control

@@ -9,6 +9,7 @@
 // ======================================================================
 
 #include "main.h"
+//#include <msp430.h>
 
 // TODO: re-organize all these variable defs
 _iq g_currentPhaseA;
@@ -318,12 +319,15 @@ void updateStateMachine(void){
 void clear_driver_fault(void){
     __disable_interrupt(); // entering critical section
     // Pull high first so you can then pull it low:
-    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+//    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    PJOUT |= GPIO_PIN0;
     __delay_cycles(DELAY_100_ms);
     // Reset Fault Register by pulsing ENABLE for 5-32us (18.5us):
-    GPIO_setOutputLowOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+//    GPIO_setOutputLowOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    PJOUT &= ~GPIO_PIN0;
     __delay_cycles(296);    // 18.5 us
-    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+//    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    PJOUT |= GPIO_PIN0;
     __enable_interrupt();
 }
 /**
@@ -639,6 +643,7 @@ void handleMotorTimeout(void){
     g_drivingTimeoutCtr = 0;
 }
 
+
 /**
  * @brief      main function
  */
@@ -648,6 +653,27 @@ void main(void){
   WDT_A_hold(WDT_A_BASE);
 
   initController(); //init all variables and functionality needed to drive
+  g_targetPosition = 0;
+  g_controlRegister = 0;
+
+//  enableHalfBridgeA();
+//  enableHalfBridgeB();
+//  enableHalfBridgeC();
+//  int i = 0;
+//
+//  while(1){
+//      enableHalfBridgeA();
+//      enableHalfBridgeB();
+//      enableHalfBridgeC();
+////      __delay_cycles(16000000*5);
+//      i = 1;
+//      disableHalfBridgeA();
+//      disableHalfBridgeB();
+//      disableHalfBridgeC();
+////      __delay_cycles(16000000*5);
+//      i = 0;
+//  }
+
 
   while(1){
       checkTargetReached();

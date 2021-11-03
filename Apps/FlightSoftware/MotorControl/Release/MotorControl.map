@@ -1,7 +1,7 @@
 ******************************************************************************
-                  MSP430 Linker PC v18.12.4                    
+                  MSP430 Linker Unix v20.2.4                   
 ******************************************************************************
->> Linked Sat Apr 10 13:41:10 2021
+>> Linked Sun Aug  8 23:36:06 2021
 
 OUTPUT FILE NAME:   <MotorControl.out>
 ENTRY POINT SYMBOL: "_c_int00_noargs_mpu"  address: 00004000
@@ -17,10 +17,10 @@ MEMORY CONFIGURATION
   INFOC                 00001880   00000080  00000000  00000080  RWIX
   INFOB                 00001900   00000080  00000000  00000080  RWIX
   INFOA                 00001980   00000080  00000000  00000080  RWIX
-  RAM                   00001c00   00001000  000009a3  0000065d  RWIX
+  RAM                   00001c00   00001000  000002f6  00000d0a  RWIX
   LEARAM                00002c00   00000ec8  00000000  00000ec8  RWIX
   LEASTACK              00003ac8   00000138  00000000  00000138  RWIX
-  FRAM                  00004000   0000bf80  000008b8  0000b6c8  RWIX
+  FRAM                  00004000   0000bf80  00000206  0000bd7a  RWIX
   JTAGSIGNATURE         0000ff80   00000004  00000004  00000000  RWIX  ffff 
   BSLSIGNATURE          0000ff84   00000004  00000004  00000000  RWIX  ffff 
   IPESIGNATURE          0000ff88   00000008  00000008  00000000  RWIX  ffff 
@@ -80,7 +80,7 @@ MEMORY CONFIGURATION
   INT53                 0000fffa   00000002  00000002  00000000  RWIX
   INT54                 0000fffc   00000002  00000002  00000000  RWIX
   RESET                 0000fffe   00000002  00000002  00000000  RWIX
-  FRAM2                 00010000   00034000  00000e74  0003318c  RWIX
+  FRAM2                 00010000   00034000  00001d76  0003228a  RWIX
 
 
 SECTION ALLOCATION MAP
@@ -106,15 +106,14 @@ section   page    origin      length       input sections
 .ipe:_isr 
 *          0    00004000    00000000     UNINITIALIZED
 
-.cinit     0    00004880    00000028     
-                  00004880    0000000c     (__TI_handler_table)
-                  0000488c    00000006     (.cinit..bss.load) [load image, compression = zero_init]
-                  00004892    00000005     (.cinit..data.load) [load image, compression = lzss]
-                  00004897    00000001     --HOLE-- [fill = 0]
-                  00004898    00000010     (__TI_cinit_table)
+.cinit     0    000041ce    00000028     
+                  000041ce    0000000c     (__TI_handler_table)
+                  000041da    00000006     (.cinit..bss.load) [load image, compression = zero_init]
+                  000041e0    00000006     (.cinit..data.load) [load image, compression = lzss]
+                  000041e6    00000010     (__TI_cinit_table)
 
-.binit     0    000048a8    00000010     
-                  000048a8    00000010     (.binit)
+.binit     0    000041f6    00000010     
+                  000041f6    00000010     (.binit)
 
 .init_array 
 *          0    00004000    00000000     UNINITIALIZED
@@ -125,57 +124,57 @@ section   page    origin      length       input sections
                   00004020    00000008                            : isr_trap.asm.obj (.text:_isr:__TI_ISR_TRAP)
 
 .TI.ramfunc 
-*          0    00004028    00000828     RUN ADDR = 00001c00
-                  00004028    000006ca     main.obj (.TI.ramfunc:TIMER0_B0_ISR)
-                  000046f2    0000015e     i2c.obj (.TI.ramfunc:USCI_B0_ISR)
+*          0    00004028    00000176     RUN ADDR = 00001c00
+                  00004028    00000166     i2c.obj (.TI.ramfunc:USCI_B0_ISR)
+                  0000418e    00000010     main.obj (.TI.ramfunc:TIMER0_B0_ISR)
 
-.bss       0    00002428    000000da     UNINITIALIZED
-                  00002428    0000002e     (.common:g_piCur)
-                  00002456    0000002e     (.common:g_piSpd)
-                  00002484    00000010     (.common:g_i2cCmdLength)
-                  00002494    00000008     (.common:g_hallMap)
-                  0000249c    00000008     (.common:g_rxBuffer)
-                  000024a4    00000008     (.common:g_txBuffer)
-                  000024ac    00000006     (.common:g_impulse)
-                  000024b2    00000004     (.common:g_closeLoopThreshold)
-                  000024b6    00000004     (.common:g_currentOffsetPhaseA)
-                  000024ba    00000004     (.common:g_currentOffsetPhaseB)
-                  000024be    00000004     (.common:g_currentOffsetPhaseC)
-                  000024c2    00000004     (.common:g_currentPhaseA)
-                  000024c6    00000004     (.common:g_currentPhaseB)
-                  000024ca    00000004     (.common:g_currentPhaseC)
-                  000024ce    00000004     (.common:g_currentPosition)
-                  000024d2    00000004     (.common:g_currentSpeed)
-                  000024d6    00000004     (.common:g_hallSensor)
-                  000024da    00000004     (.common:g_oldPosition)
-                  000024de    00000004     (.common:g_openLoopTorque)
-                  000024e2    00000004     (.common:g_targetPosition)
-                  000024e6    00000002     (.common:g_cmdState)
-                  000024e8    00000002     (.common:g_controlPrescaler)
-                  000024ea    00000002     (.common:g_slaveMode)
-                  000024ec    00000002     (.common:g_state)
-                  000024ee    00000002     (.common:g_transmitCurrentPosition)
-                  000024f0    00000001     (.common:g_calibrating)
-                  000024f1    00000001     (.common:g_calibrationDone)
-                  000024f2    00000001     (.common:g_closedLoop)
-                  000024f3    00000001     (.common:g_commState)
-                  000024f4    00000001     (.common:g_controlRegister)
-                  000024f5    00000001     (.common:g_faultRegister)
-                  000024f6    00000001     (.common:g_i2cSlaveAddress)
-                  000024f7    00000001     (.common:g_maxSpeed)
-                  000024f8    00000001     (.common:g_mod6cnt)
-                  000024f9    00000001     (.common:g_oldCommState)
-                  000024fa    00000001     (.common:g_readRegAddr)
-                  000024fb    00000001     (.common:g_rxBufferIdx)
-                  000024fc    00000001     (.common:g_rxByteCtr)
-                  000024fd    00000001     (.common:g_statusRegister)
-                  000024fe    00000001     (.common:g_targetDirection)
-                  000024ff    00000001     (.common:g_targetReached)
-                  00002500    00000001     (.common:g_txBufferIdx)
-                  00002501    00000001     (.common:g_txByteCtr)
+.bss       0    00001d76    000000de     UNINITIALIZED
+                  00001d76    0000002e     (.common:g_piCur)
+                  00001da4    0000002e     (.common:g_piSpd)
+                  00001dd2    00000010     (.common:g_i2cCmdLength)
+                  00001de2    00000008     (.common:g_hallMap)
+                  00001dea    00000008     (.common:g_rxBuffer)
+                  00001df2    00000008     (.common:g_txBuffer)
+                  00001dfa    00000006     (.common:g_impulse)
+                  00001e00    00000004     (.common:g_closeLoopThreshold)
+                  00001e04    00000004     (.common:g_currentOffsetPhaseA)
+                  00001e08    00000004     (.common:g_currentOffsetPhaseB)
+                  00001e0c    00000004     (.common:g_currentOffsetPhaseC)
+                  00001e10    00000004     (.common:g_currentPhaseA)
+                  00001e14    00000004     (.common:g_currentPhaseB)
+                  00001e18    00000004     (.common:g_currentPhaseC)
+                  00001e1c    00000004     (.common:g_currentPosition)
+                  00001e20    00000004     (.common:g_currentSpeed)
+                  00001e24    00000004     (.common:g_drivingTimeoutCtr)
+                  00001e28    00000004     (.common:g_hallSensor)
+                  00001e2c    00000004     (.common:g_oldPosition)
+                  00001e30    00000004     (.common:g_openLoopTorque)
+                  00001e34    00000004     (.common:g_targetPosition)
+                  00001e38    00000002     (.common:g_accelRate)
+                  00001e3a    00000002     (.common:g_cmdState)
+                  00001e3c    00000002     (.common:g_controlPrescaler)
+                  00001e3e    00000002     (.common:g_decelRate)
+                  00001e40    00000002     (.common:g_slaveMode)
+                  00001e42    00000002     (.common:g_state)
+                  00001e44    00000001     (.common:g_closedLoop)
+                  00001e45    00000001     (.common:g_commState)
+                  00001e46    00000001     (.common:g_controlRegister)
+                  00001e47    00000001     (.common:g_faultRegister)
+                  00001e48    00000001     (.common:g_i2cSlaveAddress)
+                  00001e49    00000001     (.common:g_maxSpeed)
+                  00001e4a    00000001     (.common:g_mod6cnt)
+                  00001e4b    00000001     (.common:g_oldCommState)
+                  00001e4c    00000001     (.common:g_readRegAddr)
+                  00001e4d    00000001     (.common:g_rxBufferIdx)
+                  00001e4e    00000001     (.common:g_rxByteCtr)
+                  00001e4f    00000001     (.common:g_statusRegister)
+                  00001e50    00000001     (.common:g_targetDirection)
+                  00001e51    00000001     (.common:g_targetReached)
+                  00001e52    00000001     (.common:g_txBufferIdx)
+                  00001e53    00000001     (.common:g_txByteCtr)
 
-.data      0    00002502    00000001     UNINITIALIZED
-                  00002502    00000001     main.obj (.data)
+.data      0    00001e54    00000002     UNINITIALIZED
+                  00001e54    00000002     main.obj (.data)
 
 .stack     0    00002b60    000000a0     UNINITIALIZED
                   00002b60    00000004     rts430x_lc_rd_eabi.lib : boot.c.obj (.stack)
@@ -316,98 +315,152 @@ SYSNMI     0    0000fffc    00000002
 .reset     0    0000fffe    00000002     
                   0000fffe    00000002     rts430x_lc_rd_eabi.lib : boot.c.obj (.reset)
 
-.const     0    00004850    00000030     
-                  00004850    0000001c     gpio.obj (.const:GPIO_PORT_TO_BASE)
-                  0000486c    0000000e     main.obj (.const:$P$T0$1)
-                  0000487a    00000006     i2c.obj (.const:$P$T0$1)
+.const     0    0000419e    00000030     
+                  0000419e    0000001c     gpio.obj (.const:GPIO_PORT_TO_BASE)
+                  000041ba    0000000e     bsp.obj (.const:$P$T0$1)
+                  000041c8    00000006     i2c.obj (.const:$P$T0$1)
 
-.text      0    00010000    00000e74     
-                  00010000    000001ce     main.obj (.text:main)
-                  000101ce    000000f0     cs.obj (.text:CS_setDCOFreq)
-                  000102be    000000d8     main.obj (.text:initializePwmModules)
-                  00010396    000000b8     i2c.obj (.text:i2cSlaveTransactionDone)
-                  0001044e    000000b8     main.obj (.text:initializeAdcModule)
-                  00010506    000000b8     main.obj (.text:updateStateMachine)
-                  000105be    000000a4     bsp.obj (.text:initializeGpios)
-                  00010662    00000088     adc12_b.obj (.text:ADC12_B_init)
-                  000106ea    0000007e     i2c.obj (.text:initializeI2cModule)
-                  00010768    00000076     timer_b.obj (.text:Timer_B_initUpDownMode)
-                  000107de    00000076     rts430x_lc_rd_eabi.lib : copy_decompress_lzss.c.obj (.text:decompress:lzss:__TI_decompress_lzss)
-                  00010854    0000006c     gpio.obj (.text:GPIO_setAsPeripheralModuleFunctionInputPin)
-                  000108c0    00000068     gpio.obj (.text:GPIO_setAsPeripheralModuleFunctionOutputPin)
-                  00010928    00000068     main.obj (.text:currentOffsetCalibration)
-                  00010990    00000066     rts430x_lc_rd_eabi.lib : autoinit.c.obj (.text:__TI_auto_init_nopinit_hold_wdt:__TI_auto_init_nopinit_hold_wdt)
-                  000109f6    00000064                            : cpy_tbl.c.obj (.text:copy_in)
-                  00010a5a    00000056     cs.obj (.text:CS_initClockSignal)
-                  00010ab0    00000042     gpio.obj (.text:GPIO_setAsInputPin)
-                  00010af2    0000003e     i2c.obj (.text:initializeCmdLength)
-                  00010b30    0000003e     rts430x_lc_rd_eabi.lib : lsl32.asm.obj (.text:l_lsl_const)
-                  00010b6e    0000003e                            : lsr32.asm.obj (.text:l_lsr_const)
-                  00010bac    0000003c     adc12_b.obj (.text:ADC12_B_configureMemory)
-                  00010be8    00000038     gpio.obj (.text:GPIO_setAsOutputPin)
-                  00010c20    00000038     timer_b.obj (.text:Timer_B_initCompareMode)
-                  00010c58    00000030     adc12_b.obj (.text:ADC12_B_startConversion)
-                  00010c88    0000002c     MSPMPU_INIT_LIB_CCS_msp430_large_code_restricted_data.lib : mpu_init.o (.text:__mpu_init)
-                  00010cb4    0000002c     main.obj (.text:resetPiController)
-                  00010ce0    0000002a     eusci_b_i2c.obj (.text:EUSCI_B_I2C_initSlave)
-                  00010d0a    00000028     main.obj (.text:initializeHallInterface)
-                  00010d32    00000024     rts430x_lc_rd_eabi.lib : copy_zero_init.c.obj (.text:decompress:ZI:__TI_zero_init_nomemset:__TI_zero_init_nomemset)
-                  00010d56    00000020     adc12_b.obj (.text:ADC12_B_setupSamplingTimer)
-                  00010d76    0000001c     gpio.obj (.text:GPIO_setOutputHighOnPin)
-                  00010d92    0000001c     gpio.obj (.text:GPIO_setOutputLowOnPin)
-                  00010dae    00000018     rts430x_lc_rd_eabi.lib : mult16_f5hw.asm.obj (.text)
-                  00010dc6    00000016     wdt_a.obj (.text:WDT_A_hold)
-                  00010ddc    00000014     i2c.obj (.text:copyArray)
-                  00010df0    00000014     rts430x_lc_rd_eabi.lib : memcpy.c.obj (.text:memcpy)
-                  00010e04    00000012                            : copy_decompress_none.c.obj (.text:decompress:none:__TI_decompress_none)
-                  00010e16    00000010     adc12_b.obj (.text:ADC12_B_setResolution)
-                  00010e26    0000000e     adc12_b.obj (.text:ADC12_B_enable)
-                  00010e34    0000000c     eusci_b_i2c.obj (.text:EUSCI_B_I2C_clearInterrupt)
-                  00010e40    0000000c     eusci_b_i2c.obj (.text:EUSCI_B_I2C_enableInterrupt)
-                  00010e4c    0000000c     main.obj (.text:read_driver_fault)
-                  00010e58    0000000a     timer_b.obj (.text:Timer_B_clearCaptureCompareInterrupt)
-                  00010e62    00000006     eusci_b_i2c.obj (.text:EUSCI_B_I2C_enable)
-                  00010e68    00000006     rts430x_lc_rd_eabi.lib : exit.c.obj (.text:abort)
-                  00010e6e    00000004                            : pre_init.c.obj (.text:_system_pre_init)
-                  00010e72    00000002                            : startup.c.obj (.text:_system_post_cinit)
+.text      0    00010000    00001d76     
+                  00010000    00000298     rts430x_lc_rd_eabi.lib : mpyd.c.obj (.text:__mspabi_mpyd)
+                  00010298    000001dc     main.obj (.text:driveOpenLoop)
+                  00010474    00000164     rts430x_lc_rd_eabi.lib : frcmpyd.c.obj (.text:__TI_frcmpyd)
+                  000105d8    00000138     main.obj (.text:readSensors)
+                  00010710    00000132     main.obj (.text:initController)
+                  00010842    0000011c     main.obj (.text:closedLoopCurrentLoop)
+                  0001095e    000000f0     cs.obj (.text:CS_setDCOFreq)
+                  00010a4e    000000ee     main.obj (.text:moderatePIControllers)
+                  00010b3c    000000e8     i2c.obj (.text:i2cSlaveTransactionDone)
+                  00010c24    000000d8     bsp.obj (.text:initializePwmModules)
+                  00010cfc    000000c8     pi.obj (.text:pi_iteration)
+                  00010dc4    000000a8     main.obj (.text:closedLoopSpeedLoop)
+                  00010e6c    000000a4     bsp.obj (.text:initializeGpios)
+                  00010f10    000000a2     main.obj (.text:main)
+                  00010fb2    0000009e     rts430x_lc_rd_eabi.lib : fltlid.c.obj (.text:__mspabi_fltlid)
+                  00011050    00000088     adc12_b.obj (.text:ADC12_B_init)
+                  000110d8    0000007e     main.obj (.text:checkTargetReached)
+                  00011156    0000007e     main.obj (.text:updateStateMachine)
+                  000111d4    0000007c     i2c.obj (.text:initializeI2cModule)
+                  00011250    00000076     timer_b.obj (.text:Timer_B_initUpDownMode)
+                  000112c6    00000076     main.obj (.text:checkForClosedLoopErrors)
+                  0001133c    00000076     rts430x_lc_rd_eabi.lib : copy_decompress_lzss.c.obj (.text:decompress:lzss:__TI_decompress_lzss)
+                  000113b2    00000068     gpio.obj (.text:GPIO_setAsPeripheralModuleFunctionInputPin)
+                  0001141a    00000068     gpio.obj (.text:GPIO_setAsPeripheralModuleFunctionOutputPin)
+                  00011482    00000066     rts430x_lc_rd_eabi.lib : autoinit.c.obj (.text:__TI_auto_init_nopinit_hold_wdt:__TI_auto_init_nopinit_hold_wdt)
+                  000114e8    00000066                            : fixdli.c.obj (.text:__mspabi_fixdli)
+                  0001154e    00000064                            : cpy_tbl.c.obj (.text:copy_in)
+                  000115b2    0000005c                            : mult64_f5hw.asm.obj (.text:__mpyll)
+                  0001160e    00000056     cs.obj (.text:CS_initClockSignal)
+                  00011664    00000056     main.obj (.text:initializeControllerVariables)
+                  000116ba    0000004e     main.obj (.text:clear_driver_fault)
+                  00011708    00000040     gpio.obj (.text:GPIO_setAsInputPin)
+                  00011748    0000003e     i2c.obj (.text:initializeCmdLength)
+                  00011786    0000003e     main.obj (.text:initializeSensorVariables)
+                  000117c4    0000003e     rts430x_lc_rd_eabi.lib : asr32.asm.obj (.text:l_asr_const)
+                  00011802    0000003e                            : lsl32.asm.obj (.text:l_lsl_const)
+                  00011840    0000003e                            : lsr32.asm.obj (.text:l_lsr_const)
+                  0001187e    0000003c     adc12_b.obj (.text:ADC12_B_configureMemory)
+                  000118ba    0000003c     IQmathLib_CCS_MPY32_5xx_6xx_CPUX_large_code_restricted_data.lib : __IQNmpy.o (.text:_IQ15mpy)
+                  000118f6    0000003a     rts430x_lc_rd_eabi.lib : lsl64.c.obj (.text:__mspabi_sllll)
+                  00011930    0000003a                            : lsr64.c.obj (.text:__mspabi_srlll)
+                  0001196a    00000038     timer_b.obj (.text:Timer_B_initCompareMode)
+                  000119a2    00000034     gpio.obj (.text:GPIO_setAsOutputPin)
+                  000119d6    00000030     adc12_b.obj (.text:ADC12_B_startConversion)
+                  00011a06    0000002c     MSPMPU_INIT_LIB_CCS_msp430_large_code_restricted_data.lib : mpu_init.o (.text:__mpu_init)
+                  00011a32    0000002c     rts430x_lc_rd_eabi.lib : mult3264_f5hw.asm.obj (.text:__mpyull)
+                  00011a5e    0000002c     bsp.obj (.text:disableGateDriver)
+                  00011a8a    0000002c     bsp.obj (.text:enableGateDriver)
+                  00011ab6    0000002c     main.obj (.text:resetPiController)
+                  00011ae2    0000002a     eusci_b_i2c.obj (.text:EUSCI_B_I2C_initSlave)
+                  00011b0c    00000028     main.obj (.text:initializeHallInterface)
+                  00011b34    00000024     rts430x_lc_rd_eabi.lib : copy_zero_init.c.obj (.text:decompress:ZI:__TI_zero_init_nomemset:__TI_zero_init_nomemset)
+                  00011b58    00000024                            : mult32_f5hw.asm.obj (.text)
+                  00011b7c    00000022     main.obj (.text:handleMotorTimeout)
+                  00011b9e    00000020     adc12_b.obj (.text:ADC12_B_setupSamplingTimer)
+                  00011bbe    0000001c     gpio.obj (.text:GPIO_setOutputHighOnPin)
+                  00011bda    0000001c     gpio.obj (.text:GPIO_setOutputLowOnPin)
+                  00011bf6    00000018     main.obj (.text:initializeSoftwareControlVariables)
+                  00011c0e    00000018     rts430x_lc_rd_eabi.lib : mult16_f5hw.asm.obj (.text)
+                  00011c26    00000016     wdt_a.obj (.text:WDT_A_hold)
+                  00011c3c    00000016     rts430x_lc_rd_eabi.lib : div16u.asm.obj (.text)
+                  00011c52    00000014                            : memcpy.c.obj (.text:memcpy)
+                  00011c66    00000012     i2c.obj (.text:copyArray)
+                  00011c78    00000012     rts430x_lc_rd_eabi.lib : copy_decompress_none.c.obj (.text:decompress:none:__TI_decompress_none)
+                  00011c8a    00000010     adc12_b.obj (.text:ADC12_B_setResolution)
+                  00011c9a    00000010     rts430x_lc_rd_eabi.lib : lsr32.asm.obj (.text:l_lsr)
+                  00011caa    0000000e     adc12_b.obj (.text:ADC12_B_enable)
+                  00011cb8    0000000e     rts430x_lc_rd_eabi.lib : labs.c.obj (.text:labs)
+                  00011cc6    0000000c     eusci_b_i2c.obj (.text:EUSCI_B_I2C_clearInterrupt)
+                  00011cd2    0000000c     eusci_b_i2c.obj (.text:EUSCI_B_I2C_enableInterrupt)
+                  00011cde    0000000c     rts430x_lc_rd_eabi.lib : fltid.c.obj (.text:__mspabi_fltid)
+                  00011cea    0000000c     main.obj (.text:read_driver_fault)
+                  00011cf6    0000000c     bsp.obj (.text:setPwmAPeriod)
+                  00011d02    0000000c     bsp.obj (.text:setPwmBPeriod)
+                  00011d0e    0000000c     bsp.obj (.text:setPwmCPeriod)
+                  00011d1a    0000000a     timer_b.obj (.text:Timer_B_clearCaptureCompareInterrupt)
+                  00011d24    0000000a     bsp.obj (.text:disableCalibration)
+                  00011d2e    0000000a     bsp.obj (.text:enableCalibration)
+                  00011d38    00000008     bsp.obj (.text:disableHalfBridgeA)
+                  00011d40    00000008     bsp.obj (.text:disableHalfBridgeB)
+                  00011d48    00000008     bsp.obj (.text:enableHalfBridgeA)
+                  00011d50    00000008     bsp.obj (.text:enableHalfBridgeB)
+                  00011d58    00000006     eusci_b_i2c.obj (.text:EUSCI_B_I2C_enable)
+                  00011d5e    00000006     rts430x_lc_rd_eabi.lib : exit.c.obj (.text:abort)
+                  00011d64    00000006     bsp.obj (.text:disableHalfBridgeC)
+                  00011d6a    00000006     bsp.obj (.text:enableHalfBridgeC)
+                  00011d70    00000004     rts430x_lc_rd_eabi.lib : pre_init.c.obj (.text:_system_pre_init)
+                  00011d74    00000002                            : startup.c.obj (.text:_system_post_cinit)
 
 MODULE SUMMARY
 
        Module                       code   ro data   rw data
        ------                       ----   -------   -------
-    .\
-       main.obj                     4722   16        177    
-       i2c.obj                      1092   8         42     
-       bsp.obj                      164    0         0      
+    ./
+       main.obj                     2728   2         184    
+       i2c.obj                      1152   8         40     
+       bsp.obj                      568    14        0      
+       pi.obj                       200    0         0      
     +--+----------------------------+------+---------+---------+
-       Total:                       5978   24        219    
+       Total:                       4648   24        224    
                                                             
-    .\driverlib\
-       gpio.obj                     390    28        0      
+    ./driverlib/
+       gpio.obj                     380    28        0      
        cs.obj                       326    0         0      
        adc12_b.obj                  306    0         0      
        timer_b.obj                  184    0         0      
        eusci_b_i2c.obj              72     0         0      
        wdt_a.obj                    22     0         0      
     +--+----------------------------+------+---------+---------+
-       Total:                       1300   28        0      
+       Total:                       1290   28        0      
                                                             
-    C:\ti\ccs930\ccs\ccs_base\msp430\lib\FR59xx\MSPMPU_INIT_LIB_CCS_msp430_large_code_restricted_data.lib
+    /home/iris/ti/ccs1030/ccs/ccs_base/msp430/lib/FR59xx/MSPMPU_INIT_LIB_CCS_msp430_large_code_restricted_data.lib
        mpu_init.o                   44     0         0      
     +--+----------------------------+------+---------+---------+
        Total:                       44     0         0      
                                                             
-    C:\ti\ccs930\ccs\tools\compiler\ti-cgt-msp430_18.12.4.LTS\lib\rts430x_lc_rd_eabi.lib
+    /home/iris/ti/ccs1030/ccs/tools/compiler/ti-cgt-msp430_20.2.4.LTS/lib/rts430x_lc_rd_eabi.lib
+       mpyd.c.obj                   664    0         0      
+       frcmpyd.c.obj                356    0         0      
+       fltlid.c.obj                 158    0         0      
        copy_decompress_lzss.c.obj   118    0         0      
        autoinit.c.obj               102    0         0      
+       fixdli.c.obj                 102    0         0      
        cpy_tbl.c.obj                100    0         0      
+       mult64_f5hw.asm.obj          92     0         0      
+       lsr32.asm.obj                78     0         0      
+       asr32.asm.obj                62     0         0      
        lsl32.asm.obj                62     0         0      
-       lsr32.asm.obj                62     0         0      
+       lsl64.c.obj                  58     0         0      
+       lsr64.c.obj                  58     0         0      
+       mult3264_f5hw.asm.obj        44     0         0      
        copy_zero_init.c.obj         36     0         0      
+       mult32_f5hw.asm.obj          36     0         0      
        boot.c.obj                   32     2         0      
        mult16_f5hw.asm.obj          24     0         0      
+       div16u.asm.obj               22     0         0      
        memcpy.c.obj                 20     0         0      
        copy_decompress_none.c.obj   18     0         0      
+       labs.c.obj                   14     0         0      
+       fltid.c.obj                  12     0         0      
        isr_trap.asm.obj             8      0         0      
        exit.c.obj                   6      0         0      
        pre_init.c.obj               4      0         0      
@@ -448,26 +501,31 @@ MODULE SUMMARY
        int54.asm.obj                0      2         0      
        startup.c.obj                2      0         0      
     +--+----------------------------+------+---------+---------+
-       Total:                       594    72        0      
+       Total:                       2288   72        0      
+                                                            
+    /home/iris/ti/msp430/IQMATHLIB_01_10_00_05/libraries/CCS/MPY32/5xx_6xx/IQmathLib_CCS_MPY32_5xx_6xx_CPUX_large_code_restricted_data.lib
+       __IQNmpy.o                   60     0         0      
+    +--+----------------------------+------+---------+---------+
+       Total:                       60     0         0      
                                                             
        Stack:                       0      0         160    
-       Linker Generated:            0      55        0      
+       Linker Generated:            0      56        0      
     +--+----------------------------+------+---------+---------+
-       Grand Total:                 7916   179       379    
+       Grand Total:                 8330   180       384    
 
 
 LINKER GENERATED COPY TABLES
 
-__TI_cinit_table @ 00004898 records: 2, size/record: 8, table size: 16
-	.bss: load addr=0000488c, load size=00000006 bytes, run addr=00002428, run size=000000da bytes, compression=zero_init
-	.data: load addr=00004892, load size=00000005 bytes, run addr=00002502, run size=00000001 bytes, compression=lzss
-binit @ 000048a8 records: 1, size/record: 12, table size: 16
-	.TI.ramfunc: load addr=00004028, load size=00000828, run addr=00001c00, run size=00000828, compression=none
+__TI_cinit_table @ 000041e6 records: 2, size/record: 8, table size: 16
+	.bss: load addr=000041da, load size=00000006 bytes, run addr=00001d76, run size=000000de bytes, compression=zero_init
+	.data: load addr=000041e0, load size=00000006 bytes, run addr=00001e54, run size=00000002 bytes, compression=lzss
+binit @ 000041f6 records: 1, size/record: 12, table size: 16
+	.TI.ramfunc: load addr=00004028, load size=00000176, run addr=00001c00, run size=00000176, compression=none
 
 
 LINKER GENERATED HANDLER TABLE
 
-__TI_handler_table @ 00004880 records: 3, size/record: 4, table size: 12
+__TI_handler_table @ 000041ce records: 3, size/record: 4, table size: 12
 	index: 0, handler: __TI_zero_init
 	index: 1, handler: __TI_decompress_lzss
 	index: 2, handler: __TI_decompress_none
@@ -708,12 +766,12 @@ address   name
 00000872  ADC12MEM9                                  
 00000873  ADC12MEM9_H                                
 00000872  ADC12MEM9_L                                
-00010bac  ADC12_B_configureMemory                    
-00010e26  ADC12_B_enable                             
-00010662  ADC12_B_init                               
-00010e16  ADC12_B_setResolution                      
-00010d56  ADC12_B_setupSamplingTimer                 
-00010c58  ADC12_B_startConversion                    
+0001187e  ADC12_B_configureMemory                    
+00011caa  ADC12_B_enable                             
+00011050  ADC12_B_init                               
+00011c8a  ADC12_B_setResolution                      
+00011b9e  ADC12_B_setupSamplingTimer                 
+000119d6  ADC12_B_startConversion                    
 000009c0  AESACTL0                                   
 000009c1  AESACTL0_H                                 
 000009c0  AESACTL0_L                                 
@@ -744,7 +802,7 @@ address   name
 000004bc  BIN2BCD                                    
 000004bd  BIN2BCD_H                                  
 000004bc  BIN2BCD_L                                  
-00010e68  C$$EXIT                                    
+00011d5e  C$$EXIT                                    
 0000043e  CAPTIO0CTL                                 
 0000043f  CAPTIO0CTL_H                               
 0000043e  CAPTIO0CTL_L                               
@@ -838,8 +896,8 @@ address   name
 0000016c  CSCTL6                                     
 0000016d  CSCTL6_H                                   
 0000016c  CSCTL6_L                                   
-00010a5a  CS_initClockSignal                         
-000101ce  CS_setDCOFreq                              
+0001160e  CS_initClockSignal                         
+0001095e  CS_setDCOFreq                              
 00000510  DMA0CTL                                    
 00000511  DMA0CTL_H                                  
 00000510  DMA0CTL_L                                  
@@ -927,10 +985,10 @@ address   name
 0000050e  DMAIV                                      
 0000050f  DMAIV_H                                    
 0000050e  DMAIV_L                                    
-00010e34  EUSCI_B_I2C_clearInterrupt                 
-00010e62  EUSCI_B_I2C_enable                         
-00010e40  EUSCI_B_I2C_enableInterrupt                
-00010ce0  EUSCI_B_I2C_initSlave                      
+00011cc6  EUSCI_B_I2C_clearInterrupt                 
+00011d58  EUSCI_B_I2C_enable                         
+00011cd2  EUSCI_B_I2C_enableInterrupt                
+00011ae2  EUSCI_B_I2C_initSlave                      
 00000140  FRCTL0                                     
 00000141  FRCTL0_H                                   
 00000140  FRCTL0_L                                   
@@ -940,12 +998,12 @@ address   name
 00000146  GCCTL1                                     
 00000147  GCCTL1_H                                   
 00000146  GCCTL1_L                                   
-00010ab0  GPIO_setAsInputPin                         
-00010be8  GPIO_setAsOutputPin                        
-00010854  GPIO_setAsPeripheralModuleFunctionInputPin 
-000108c0  GPIO_setAsPeripheralModuleFunctionOutputPin
-00010d76  GPIO_setOutputHighOnPin                    
-00010d92  GPIO_setOutputLowOnPin                     
+00011708  GPIO_setAsInputPin                         
+000119a2  GPIO_setAsOutputPin                        
+000113b2  GPIO_setAsPeripheralModuleFunctionInputPin 
+0001141a  GPIO_setAsPeripheralModuleFunctionOutputPin
+00011bbe  GPIO_setOutputHighOnPin                    
+00011bda  GPIO_setOutputLowOnPin                     
 00000a80  LEACAP                                     
 00000a82  LEACAPH                                    
 00000a80  LEACAPL                                    
@@ -1644,10 +1702,10 @@ address   name
 000003d0  TB0R                                       
 000003d1  TB0R_H                                     
 000003d0  TB0R_L                                     
-00001c00  TIMER0_B0_ISR                              
-00010e58  Timer_B_clearCaptureCompareInterrupt       
-00010c20  Timer_B_initCompareMode                    
-00010768  Timer_B_initUpDownMode                     
+00001d66  TIMER0_B0_ISR                              
+00011d1a  Timer_B_clearCaptureCompareInterrupt       
+0001196a  Timer_B_initCompareMode                    
+00011250  Timer_B_initUpDownMode                     
 000005d0  UCA0ABCTL                                  
 000005d1  UCA0ABCTL_H                                
 000005d0  UCA0ABCTL_L                                
@@ -1996,23 +2054,25 @@ address   name
 0000070e  UCB3TXBUF                                  
 0000070f  UCB3TXBUF_H                                
 0000070e  UCB3TXBUF_L                                
-000022ca  USCI_B0_ISR                                
+00001c00  USCI_B0_ISR                                
 0000015c  WDTCTL                                     
 0000015d  WDTCTL_H                                   
 0000015c  WDTCTL_L                                   
-00010dc6  WDT_A_hold                                 
+00011c26  WDT_A_hold                                 
+000118ba  _IQ15mpy                                   
 00002c00  __STACK_END                                
 000000a0  __STACK_SIZE                               
-000048a8  __TI_BINIT_Base                            
-000048b8  __TI_BINIT_Limit                           
-00004898  __TI_CINIT_Base                            
-000048a8  __TI_CINIT_Limit                           
-00004880  __TI_Handler_Table_Base                    
-0000488c  __TI_Handler_Table_Limit                   
+000041f6  __TI_BINIT_Base                            
+00004206  __TI_BINIT_Limit                           
+000041e6  __TI_CINIT_Base                            
+000041f6  __TI_CINIT_Limit                           
+000041ce  __TI_Handler_Table_Base                    
+000041da  __TI_Handler_Table_Limit                   
 00004020  __TI_ISR_TRAP                              
-00010990  __TI_auto_init_nopinit_hold_wdt            
-000107de  __TI_decompress_lzss                       
-00010e04  __TI_decompress_none                       
+00011482  __TI_auto_init_nopinit_hold_wdt            
+0001133c  __TI_decompress_lzss                       
+00011c78  __TI_decompress_none                       
+00010474  __TI_frcmpyd                               
 0000ffb4  __TI_int18                                 
 0000ffb6  __TI_int19                                 
 0000ffb8  __TI_int20                                 
@@ -2053,115 +2113,169 @@ address   name
 ffffffff  __TI_pprof_out_hndl                        
 ffffffff  __TI_prof_data_size                        
 ffffffff  __TI_prof_data_start                       
-000048a8  __TI_table_binit                           
-00010d32  __TI_zero_init_nomemset                    
+000041f6  __TI_table_binit                           
+00011b34  __TI_zero_init_nomemset                    
 ffffffff  __c_args__                                 
 00000001  __mpu_enable                               
-00010c88  __mpu_init                                 
-00010dae  __mspabi_mpyi_f5hw                         
-00010b68  __mspabi_slll_1                            
-00010b44  __mspabi_slll_10                           
-00010b40  __mspabi_slll_11                           
-00010b3c  __mspabi_slll_12                           
-00010b38  __mspabi_slll_13                           
-00010b34  __mspabi_slll_14                           
-00010b30  __mspabi_slll_15                           
-00010b64  __mspabi_slll_2                            
-00010b60  __mspabi_slll_3                            
-00010b5c  __mspabi_slll_4                            
-00010b58  __mspabi_slll_5                            
-00010b54  __mspabi_slll_6                            
-00010b50  __mspabi_slll_7                            
-00010b4c  __mspabi_slll_8                            
-00010b48  __mspabi_slll_9                            
-00010ba6  __mspabi_srll_1                            
-00010b82  __mspabi_srll_10                           
-00010b7e  __mspabi_srll_11                           
-00010b7a  __mspabi_srll_12                           
-00010b76  __mspabi_srll_13                           
-00010b72  __mspabi_srll_14                           
-00010b6e  __mspabi_srll_15                           
-00010ba2  __mspabi_srll_2                            
-00010b9e  __mspabi_srll_3                            
-00010b9a  __mspabi_srll_4                            
-00010b96  __mspabi_srll_5                            
-00010b92  __mspabi_srll_6                            
-00010b8e  __mspabi_srll_7                            
-00010b8a  __mspabi_srll_8                            
-00010b86  __mspabi_srll_9                            
+00011a06  __mpu_init                                 
+00011c3c  __mspabi_divu                              
+000114e8  __mspabi_fixdli                            
+00011cde  __mspabi_fltid                             
+00010fb2  __mspabi_fltlid                            
+00010000  __mspabi_mpyd                              
+00011c0e  __mspabi_mpyi_f5hw                         
+00011b58  __mspabi_mpyl_f5hw                         
+000115b2  __mspabi_mpyll_f5hw                        
+00011a32  __mspabi_mpyull_f5hw                       
+00011c3c  __mspabi_remu                              
+0001183a  __mspabi_slll_1                            
+00011816  __mspabi_slll_10                           
+00011812  __mspabi_slll_11                           
+0001180e  __mspabi_slll_12                           
+0001180a  __mspabi_slll_13                           
+00011806  __mspabi_slll_14                           
+00011802  __mspabi_slll_15                           
+00011836  __mspabi_slll_2                            
+00011832  __mspabi_slll_3                            
+0001182e  __mspabi_slll_4                            
+0001182a  __mspabi_slll_5                            
+00011826  __mspabi_slll_6                            
+00011822  __mspabi_slll_7                            
+0001181e  __mspabi_slll_8                            
+0001181a  __mspabi_slll_9                            
+000118f6  __mspabi_sllll                             
+000117fc  __mspabi_sral_1                            
+000117d8  __mspabi_sral_10                           
+000117d4  __mspabi_sral_11                           
+000117d0  __mspabi_sral_12                           
+000117cc  __mspabi_sral_13                           
+000117c8  __mspabi_sral_14                           
+000117c4  __mspabi_sral_15                           
+000117f8  __mspabi_sral_2                            
+000117f4  __mspabi_sral_3                            
+000117f0  __mspabi_sral_4                            
+000117ec  __mspabi_sral_5                            
+000117e8  __mspabi_sral_6                            
+000117e4  __mspabi_sral_7                            
+000117e0  __mspabi_sral_8                            
+000117dc  __mspabi_sral_9                            
+00011c9a  __mspabi_srll                              
+00011878  __mspabi_srll_1                            
+00011854  __mspabi_srll_10                           
+00011850  __mspabi_srll_11                           
+0001184c  __mspabi_srll_12                           
+00011848  __mspabi_srll_13                           
+00011844  __mspabi_srll_14                           
+00011840  __mspabi_srll_15                           
+00011874  __mspabi_srll_2                            
+00011870  __mspabi_srll_3                            
+0001186c  __mspabi_srll_4                            
+00011868  __mspabi_srll_5                            
+00011864  __mspabi_srll_6                            
+00011860  __mspabi_srll_7                            
+0001185c  __mspabi_srll_8                            
+00011858  __mspabi_srll_9                            
+00011930  __mspabi_srlll                             
 00004000  _c_int00_noargs_mpu                        
 0000fffe  _reset_vector                              
 00002b60  _stack                                     
-00010e72  _system_post_cinit                         
-00010e6e  _system_pre_init                           
-00010e68  abort                                      
-00010ddc  copyArray                                  
-000109f6  copy_in                                    
-00010928  currentOffsetCalibration                   
-00002502  driveOpenLoop                              
+00011d74  _system_post_cinit                         
+00011d70  _system_pre_init                           
+00011d5e  abort                                      
+000112c6  checkForClosedLoopErrors                   
+000110d8  checkTargetReached                         
+000116ba  clear_driver_fault                         
+00010842  closedLoopCurrentLoop                      
+00010dc4  closedLoopSpeedLoop                        
+00011c66  copyArray                                  
+0001154e  copy_in                                    
+00011d24  disableCalibration                         
+00011a5e  disableGateDriver                          
+00011d38  disableHalfBridgeA                         
+00011d40  disableHalfBridgeB                         
+00011d64  disableHalfBridgeC                         
+00010298  driveOpenLoop                              
+00011d2e  enableCalibration                          
+00011a8a  enableGateDriver                           
+00011d48  enableHalfBridgeA                          
+00011d50  enableHalfBridgeB                          
+00011d6a  enableHalfBridgeC                          
 00004000  fram_ipe_end                               
 00004000  fram_ipe_start                             
 00004000  fram_rw_start                              
 00004000  fram_rx_start                              
-000024f0  g_calibrating                              
-000024f1  g_calibrationDone                          
-000024b2  g_closeLoopThreshold                       
-000024f2  g_closedLoop                               
-000024e6  g_cmdState                                 
-000024f3  g_commState                                
-000024e8  g_controlPrescaler                         
-000024f4  g_controlRegister                          
-000024b6  g_currentOffsetPhaseA                      
-000024ba  g_currentOffsetPhaseB                      
-000024be  g_currentOffsetPhaseC                      
-000024c2  g_currentPhaseA                            
-000024c6  g_currentPhaseB                            
-000024ca  g_currentPhaseC                            
-000024ce  g_currentPosition                          
-000024d2  g_currentSpeed                             
-000024f5  g_faultRegister                            
-00002494  g_hallMap                                  
-000024d6  g_hallSensor                               
-00002484  g_i2cCmdLength                             
-000024f6  g_i2cSlaveAddress                          
-000024ac  g_impulse                                  
-000024f7  g_maxSpeed                                 
-000024f8  g_mod6cnt                                  
-000024f9  g_oldCommState                             
-000024da  g_oldPosition                              
-000024de  g_openLoopTorque                           
-00002428  g_piCur                                    
-00002456  g_piSpd                                    
-000024fa  g_readRegAddr                              
-0000249c  g_rxBuffer                                 
-000024fb  g_rxBufferIdx                              
-000024fc  g_rxByteCtr                                
-000024ea  g_slaveMode                                
-000024ec  g_state                                    
-000024fd  g_statusRegister                           
-000024fe  g_targetDirection                          
-000024e2  g_targetPosition                           
-000024ff  g_targetReached                            
-000024ee  g_transmitCurrentPosition                  
-000024a4  g_txBuffer                                 
-00002500  g_txBufferIdx                              
-00002501  g_txByteCtr                                
-00010396  i2cSlaveTransactionDone                    
-0001044e  initializeAdcModule                        
-00010af2  initializeCmdLength                        
-000105be  initializeGpios                            
-00010d0a  initializeHallInterface                    
-000106ea  initializeI2cModule                        
-000102be  initializePwmModules                       
-00010000  main                                       
-00010df0  memcpy                                     
+00001e38  g_accelRate                                
+00001e00  g_closeLoopThreshold                       
+00001e44  g_closedLoop                               
+00001e3a  g_cmdState                                 
+00001e45  g_commState                                
+00001e3c  g_controlPrescaler                         
+00001e46  g_controlRegister                          
+00001e04  g_currentOffsetPhaseA                      
+00001e08  g_currentOffsetPhaseB                      
+00001e0c  g_currentOffsetPhaseC                      
+00001e10  g_currentPhaseA                            
+00001e14  g_currentPhaseB                            
+00001e18  g_currentPhaseC                            
+00001e1c  g_currentPosition                          
+00001e20  g_currentSpeed                             
+00001e3e  g_decelRate                                
+00001e24  g_drivingTimeoutCtr                        
+00001e54  g_errorCounter                             
+00001e47  g_faultRegister                            
+00001de2  g_hallMap                                  
+00001e28  g_hallSensor                               
+00001dd2  g_i2cCmdLength                             
+00001e48  g_i2cSlaveAddress                          
+00001dfa  g_impulse                                  
+00001e49  g_maxSpeed                                 
+00001e4a  g_mod6cnt                                  
+00001e4b  g_oldCommState                             
+00001e2c  g_oldPosition                              
+00001e30  g_openLoopTorque                           
+00001d76  g_piCur                                    
+00001da4  g_piSpd                                    
+00001e4c  g_readRegAddr                              
+00001e55  g_readSensors                              
+00001dea  g_rxBuffer                                 
+00001e4d  g_rxBufferIdx                              
+00001e4e  g_rxByteCtr                                
+00001e40  g_slaveMode                                
+00001e42  g_state                                    
+00001e4f  g_statusRegister                           
+00001e50  g_targetDirection                          
+00001e34  g_targetPosition                           
+00001e51  g_targetReached                            
+00001df2  g_txBuffer                                 
+00001e52  g_txBufferIdx                              
+00001e53  g_txByteCtr                                
+00011b7c  handleMotorTimeout                         
+00010b3c  i2cSlaveTransactionDone                    
+00010710  initController                             
+00011748  initializeCmdLength                        
+00011664  initializeControllerVariables              
+00010e6c  initializeGpios                            
+00011b0c  initializeHallInterface                    
+000111d4  initializeI2cModule                        
+00010c24  initializePwmModules                       
+00011786  initializeSensorVariables                  
+00011bf6  initializeSoftwareControlVariables         
+00011cb8  labs                                       
+00010f10  main                                       
+00011c52  memcpy                                     
+00010a4e  moderatePIControllers                      
 0000a501  mpu_ctl0_value                             
 00001513  mpu_sam_value                              
 00000400  mpu_segment_border1                        
 00000400  mpu_segment_border2                        
-00010e4c  read_driver_fault                          
-00010cb4  resetPiController                          
-00010506  updateStateMachine                         
+00010cfc  pi_iteration                               
+000105d8  readSensors                                
+00011cea  read_driver_fault                          
+00011ab6  resetPiController                          
+00011cf6  setPwmAPeriod                              
+00011d02  setPwmBPeriod                              
+00011d0e  setPwmCPeriod                              
+00011156  updateStateMachine                         
 
 
 GLOBAL SYMBOLS: SORTED BY Symbol Address 
@@ -3672,52 +3786,53 @@ address   name
 00000afc  LEAIVL                                     
 00000afe  LEAIVH                                     
 00001513  mpu_sam_value                              
-00001c00  TIMER0_B0_ISR                              
-000022ca  USCI_B0_ISR                                
-00002428  g_piCur                                    
-00002456  g_piSpd                                    
-00002484  g_i2cCmdLength                             
-00002494  g_hallMap                                  
-0000249c  g_rxBuffer                                 
-000024a4  g_txBuffer                                 
-000024ac  g_impulse                                  
-000024b2  g_closeLoopThreshold                       
-000024b6  g_currentOffsetPhaseA                      
-000024ba  g_currentOffsetPhaseB                      
-000024be  g_currentOffsetPhaseC                      
-000024c2  g_currentPhaseA                            
-000024c6  g_currentPhaseB                            
-000024ca  g_currentPhaseC                            
-000024ce  g_currentPosition                          
-000024d2  g_currentSpeed                             
-000024d6  g_hallSensor                               
-000024da  g_oldPosition                              
-000024de  g_openLoopTorque                           
-000024e2  g_targetPosition                           
-000024e6  g_cmdState                                 
-000024e8  g_controlPrescaler                         
-000024ea  g_slaveMode                                
-000024ec  g_state                                    
-000024ee  g_transmitCurrentPosition                  
-000024f0  g_calibrating                              
-000024f1  g_calibrationDone                          
-000024f2  g_closedLoop                               
-000024f3  g_commState                                
-000024f4  g_controlRegister                          
-000024f5  g_faultRegister                            
-000024f6  g_i2cSlaveAddress                          
-000024f7  g_maxSpeed                                 
-000024f8  g_mod6cnt                                  
-000024f9  g_oldCommState                             
-000024fa  g_readRegAddr                              
-000024fb  g_rxBufferIdx                              
-000024fc  g_rxByteCtr                                
-000024fd  g_statusRegister                           
-000024fe  g_targetDirection                          
-000024ff  g_targetReached                            
-00002500  g_txBufferIdx                              
-00002501  g_txByteCtr                                
-00002502  driveOpenLoop                              
+00001c00  USCI_B0_ISR                                
+00001d66  TIMER0_B0_ISR                              
+00001d76  g_piCur                                    
+00001da4  g_piSpd                                    
+00001dd2  g_i2cCmdLength                             
+00001de2  g_hallMap                                  
+00001dea  g_rxBuffer                                 
+00001df2  g_txBuffer                                 
+00001dfa  g_impulse                                  
+00001e00  g_closeLoopThreshold                       
+00001e04  g_currentOffsetPhaseA                      
+00001e08  g_currentOffsetPhaseB                      
+00001e0c  g_currentOffsetPhaseC                      
+00001e10  g_currentPhaseA                            
+00001e14  g_currentPhaseB                            
+00001e18  g_currentPhaseC                            
+00001e1c  g_currentPosition                          
+00001e20  g_currentSpeed                             
+00001e24  g_drivingTimeoutCtr                        
+00001e28  g_hallSensor                               
+00001e2c  g_oldPosition                              
+00001e30  g_openLoopTorque                           
+00001e34  g_targetPosition                           
+00001e38  g_accelRate                                
+00001e3a  g_cmdState                                 
+00001e3c  g_controlPrescaler                         
+00001e3e  g_decelRate                                
+00001e40  g_slaveMode                                
+00001e42  g_state                                    
+00001e44  g_closedLoop                               
+00001e45  g_commState                                
+00001e46  g_controlRegister                          
+00001e47  g_faultRegister                            
+00001e48  g_i2cSlaveAddress                          
+00001e49  g_maxSpeed                                 
+00001e4a  g_mod6cnt                                  
+00001e4b  g_oldCommState                             
+00001e4c  g_readRegAddr                              
+00001e4d  g_rxBufferIdx                              
+00001e4e  g_rxByteCtr                                
+00001e4f  g_statusRegister                           
+00001e50  g_targetDirection                          
+00001e51  g_targetReached                            
+00001e52  g_txBufferIdx                              
+00001e53  g_txByteCtr                                
+00001e54  g_errorCounter                             
+00001e55  g_readSensors                              
 00002b60  _stack                                     
 00002c00  __STACK_END                                
 00004000  _c_int00_noargs_mpu                        
@@ -3726,13 +3841,13 @@ address   name
 00004000  fram_rw_start                              
 00004000  fram_rx_start                              
 00004020  __TI_ISR_TRAP                              
-00004880  __TI_Handler_Table_Base                    
-0000488c  __TI_Handler_Table_Limit                   
-00004898  __TI_CINIT_Base                            
-000048a8  __TI_BINIT_Base                            
-000048a8  __TI_CINIT_Limit                           
-000048a8  __TI_table_binit                           
-000048b8  __TI_BINIT_Limit                           
+000041ce  __TI_Handler_Table_Base                    
+000041da  __TI_Handler_Table_Limit                   
+000041e6  __TI_CINIT_Base                            
+000041f6  __TI_BINIT_Base                            
+000041f6  __TI_CINIT_Limit                           
+000041f6  __TI_table_binit                           
+00004206  __TI_BINIT_Limit                           
 0000a501  mpu_ctl0_value                             
 0000ffb4  __TI_int18                                 
 0000ffb6  __TI_int19                                 
@@ -3772,86 +3887,141 @@ address   name
 0000fffa  __TI_int53                                 
 0000fffc  __TI_int54                                 
 0000fffe  _reset_vector                              
-00010000  main                                       
-000101ce  CS_setDCOFreq                              
-000102be  initializePwmModules                       
-00010396  i2cSlaveTransactionDone                    
-0001044e  initializeAdcModule                        
-00010506  updateStateMachine                         
-000105be  initializeGpios                            
-00010662  ADC12_B_init                               
-000106ea  initializeI2cModule                        
-00010768  Timer_B_initUpDownMode                     
-000107de  __TI_decompress_lzss                       
-00010854  GPIO_setAsPeripheralModuleFunctionInputPin 
-000108c0  GPIO_setAsPeripheralModuleFunctionOutputPin
-00010928  currentOffsetCalibration                   
-00010990  __TI_auto_init_nopinit_hold_wdt            
-000109f6  copy_in                                    
-00010a5a  CS_initClockSignal                         
-00010ab0  GPIO_setAsInputPin                         
-00010af2  initializeCmdLength                        
-00010b30  __mspabi_slll_15                           
-00010b34  __mspabi_slll_14                           
-00010b38  __mspabi_slll_13                           
-00010b3c  __mspabi_slll_12                           
-00010b40  __mspabi_slll_11                           
-00010b44  __mspabi_slll_10                           
-00010b48  __mspabi_slll_9                            
-00010b4c  __mspabi_slll_8                            
-00010b50  __mspabi_slll_7                            
-00010b54  __mspabi_slll_6                            
-00010b58  __mspabi_slll_5                            
-00010b5c  __mspabi_slll_4                            
-00010b60  __mspabi_slll_3                            
-00010b64  __mspabi_slll_2                            
-00010b68  __mspabi_slll_1                            
-00010b6e  __mspabi_srll_15                           
-00010b72  __mspabi_srll_14                           
-00010b76  __mspabi_srll_13                           
-00010b7a  __mspabi_srll_12                           
-00010b7e  __mspabi_srll_11                           
-00010b82  __mspabi_srll_10                           
-00010b86  __mspabi_srll_9                            
-00010b8a  __mspabi_srll_8                            
-00010b8e  __mspabi_srll_7                            
-00010b92  __mspabi_srll_6                            
-00010b96  __mspabi_srll_5                            
-00010b9a  __mspabi_srll_4                            
-00010b9e  __mspabi_srll_3                            
-00010ba2  __mspabi_srll_2                            
-00010ba6  __mspabi_srll_1                            
-00010bac  ADC12_B_configureMemory                    
-00010be8  GPIO_setAsOutputPin                        
-00010c20  Timer_B_initCompareMode                    
-00010c58  ADC12_B_startConversion                    
-00010c88  __mpu_init                                 
-00010cb4  resetPiController                          
-00010ce0  EUSCI_B_I2C_initSlave                      
-00010d0a  initializeHallInterface                    
-00010d32  __TI_zero_init_nomemset                    
-00010d56  ADC12_B_setupSamplingTimer                 
-00010d76  GPIO_setOutputHighOnPin                    
-00010d92  GPIO_setOutputLowOnPin                     
-00010dae  __mspabi_mpyi_f5hw                         
-00010dc6  WDT_A_hold                                 
-00010ddc  copyArray                                  
-00010df0  memcpy                                     
-00010e04  __TI_decompress_none                       
-00010e16  ADC12_B_setResolution                      
-00010e26  ADC12_B_enable                             
-00010e34  EUSCI_B_I2C_clearInterrupt                 
-00010e40  EUSCI_B_I2C_enableInterrupt                
-00010e4c  read_driver_fault                          
-00010e58  Timer_B_clearCaptureCompareInterrupt       
-00010e62  EUSCI_B_I2C_enable                         
-00010e68  C$$EXIT                                    
-00010e68  abort                                      
-00010e6e  _system_pre_init                           
-00010e72  _system_post_cinit                         
+00010000  __mspabi_mpyd                              
+00010298  driveOpenLoop                              
+00010474  __TI_frcmpyd                               
+000105d8  readSensors                                
+00010710  initController                             
+00010842  closedLoopCurrentLoop                      
+0001095e  CS_setDCOFreq                              
+00010a4e  moderatePIControllers                      
+00010b3c  i2cSlaveTransactionDone                    
+00010c24  initializePwmModules                       
+00010cfc  pi_iteration                               
+00010dc4  closedLoopSpeedLoop                        
+00010e6c  initializeGpios                            
+00010f10  main                                       
+00010fb2  __mspabi_fltlid                            
+00011050  ADC12_B_init                               
+000110d8  checkTargetReached                         
+00011156  updateStateMachine                         
+000111d4  initializeI2cModule                        
+00011250  Timer_B_initUpDownMode                     
+000112c6  checkForClosedLoopErrors                   
+0001133c  __TI_decompress_lzss                       
+000113b2  GPIO_setAsPeripheralModuleFunctionInputPin 
+0001141a  GPIO_setAsPeripheralModuleFunctionOutputPin
+00011482  __TI_auto_init_nopinit_hold_wdt            
+000114e8  __mspabi_fixdli                            
+0001154e  copy_in                                    
+000115b2  __mspabi_mpyll_f5hw                        
+0001160e  CS_initClockSignal                         
+00011664  initializeControllerVariables              
+000116ba  clear_driver_fault                         
+00011708  GPIO_setAsInputPin                         
+00011748  initializeCmdLength                        
+00011786  initializeSensorVariables                  
+000117c4  __mspabi_sral_15                           
+000117c8  __mspabi_sral_14                           
+000117cc  __mspabi_sral_13                           
+000117d0  __mspabi_sral_12                           
+000117d4  __mspabi_sral_11                           
+000117d8  __mspabi_sral_10                           
+000117dc  __mspabi_sral_9                            
+000117e0  __mspabi_sral_8                            
+000117e4  __mspabi_sral_7                            
+000117e8  __mspabi_sral_6                            
+000117ec  __mspabi_sral_5                            
+000117f0  __mspabi_sral_4                            
+000117f4  __mspabi_sral_3                            
+000117f8  __mspabi_sral_2                            
+000117fc  __mspabi_sral_1                            
+00011802  __mspabi_slll_15                           
+00011806  __mspabi_slll_14                           
+0001180a  __mspabi_slll_13                           
+0001180e  __mspabi_slll_12                           
+00011812  __mspabi_slll_11                           
+00011816  __mspabi_slll_10                           
+0001181a  __mspabi_slll_9                            
+0001181e  __mspabi_slll_8                            
+00011822  __mspabi_slll_7                            
+00011826  __mspabi_slll_6                            
+0001182a  __mspabi_slll_5                            
+0001182e  __mspabi_slll_4                            
+00011832  __mspabi_slll_3                            
+00011836  __mspabi_slll_2                            
+0001183a  __mspabi_slll_1                            
+00011840  __mspabi_srll_15                           
+00011844  __mspabi_srll_14                           
+00011848  __mspabi_srll_13                           
+0001184c  __mspabi_srll_12                           
+00011850  __mspabi_srll_11                           
+00011854  __mspabi_srll_10                           
+00011858  __mspabi_srll_9                            
+0001185c  __mspabi_srll_8                            
+00011860  __mspabi_srll_7                            
+00011864  __mspabi_srll_6                            
+00011868  __mspabi_srll_5                            
+0001186c  __mspabi_srll_4                            
+00011870  __mspabi_srll_3                            
+00011874  __mspabi_srll_2                            
+00011878  __mspabi_srll_1                            
+0001187e  ADC12_B_configureMemory                    
+000118ba  _IQ15mpy                                   
+000118f6  __mspabi_sllll                             
+00011930  __mspabi_srlll                             
+0001196a  Timer_B_initCompareMode                    
+000119a2  GPIO_setAsOutputPin                        
+000119d6  ADC12_B_startConversion                    
+00011a06  __mpu_init                                 
+00011a32  __mspabi_mpyull_f5hw                       
+00011a5e  disableGateDriver                          
+00011a8a  enableGateDriver                           
+00011ab6  resetPiController                          
+00011ae2  EUSCI_B_I2C_initSlave                      
+00011b0c  initializeHallInterface                    
+00011b34  __TI_zero_init_nomemset                    
+00011b58  __mspabi_mpyl_f5hw                         
+00011b7c  handleMotorTimeout                         
+00011b9e  ADC12_B_setupSamplingTimer                 
+00011bbe  GPIO_setOutputHighOnPin                    
+00011bda  GPIO_setOutputLowOnPin                     
+00011bf6  initializeSoftwareControlVariables         
+00011c0e  __mspabi_mpyi_f5hw                         
+00011c26  WDT_A_hold                                 
+00011c3c  __mspabi_divu                              
+00011c3c  __mspabi_remu                              
+00011c52  memcpy                                     
+00011c66  copyArray                                  
+00011c78  __TI_decompress_none                       
+00011c8a  ADC12_B_setResolution                      
+00011c9a  __mspabi_srll                              
+00011caa  ADC12_B_enable                             
+00011cb8  labs                                       
+00011cc6  EUSCI_B_I2C_clearInterrupt                 
+00011cd2  EUSCI_B_I2C_enableInterrupt                
+00011cde  __mspabi_fltid                             
+00011cea  read_driver_fault                          
+00011cf6  setPwmAPeriod                              
+00011d02  setPwmBPeriod                              
+00011d0e  setPwmCPeriod                              
+00011d1a  Timer_B_clearCaptureCompareInterrupt       
+00011d24  disableCalibration                         
+00011d2e  enableCalibration                          
+00011d38  disableHalfBridgeA                         
+00011d40  disableHalfBridgeB                         
+00011d48  enableHalfBridgeA                          
+00011d50  enableHalfBridgeB                          
+00011d58  EUSCI_B_I2C_enable                         
+00011d5e  C$$EXIT                                    
+00011d5e  abort                                      
+00011d64  disableHalfBridgeC                         
+00011d6a  enableHalfBridgeC                          
+00011d70  _system_pre_init                           
+00011d74  _system_post_cinit                         
 ffffffff  __TI_pprof_out_hndl                        
 ffffffff  __TI_prof_data_size                        
 ffffffff  __TI_prof_data_start                       
 ffffffff  __c_args__                                 
 
-[1685 symbols]
+[1741 symbols]

@@ -52,7 +52,7 @@ namespace CubeRover {
     stuck_state_wifi_reset_herc_cnt = 0;
     unsigned no_transition_count = 0;
     m_current_state = m_crnm.GetState();
-    bool success = false;
+    bool success = true;
     while (!success) {
         Wf121::ErrorCode errorCode;
         while (no_transition_count < MAX_FSM_NO_TRANSITION_COUNT) {

@@ -17,6 +17,7 @@
 // On average it takes 50000 - 160000 Wf121-Hercules "no-op cycles in the state machine to conenct to the accesspoint
 // we provide 3x (and some extra) the time to connect before resetting the WF121 and trying to connect
 #define MAX_FSM_NO_TRANSITION_COUNT     750000
+#define MAX_FSM_NO_TRANSITION_COUNT_RESET_HERC 4
 
 namespace CubeRoverNetworkManager {
 

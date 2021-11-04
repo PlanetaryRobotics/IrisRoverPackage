@@ -99,10 +99,10 @@ namespace iris
 
                     case I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER:
                         if (theContext.m_writeCustomIoExpanderValues) {
-                            i2cStatus = I2C_Sensors__initiateWriteIoExpanderCurrentValues();
-                        } else {
                             i2cStatus = I2C_Sensors__initiateWriteIoExpander(theContext.m_queuedIOWritePort0Value,
                                                                              theContext.m_queuedIOWritePort1Value);
+                        } else {
+                            i2cStatus = I2C_Sensors__initiateWriteIoExpanderCurrentValues();
                         }
                         assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
                         break;

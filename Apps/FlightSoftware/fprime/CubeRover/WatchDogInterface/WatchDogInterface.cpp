@@ -16,6 +16,7 @@
 #include "Fw/Types/BasicTypes.hpp"
 #include <stdio.h>
 #include <string.h>
+#include <cassert>
 
 #include "Include/FswPacket.hpp"
 #include "sys_dma.h"
@@ -73,7 +74,7 @@ namespace CubeRover {
                                                              WATCH_DOG_INTERFACE_RX_TASK_STACK_SIZE,
                                                              WATCH_DOG_INTERFACE_RX_TASK_CPU_AFFINITY);
         // Assert that this will always be started successfully. If it isn't, we're screwed.
-        FW_ASSERT(taskStat == Os::Task::TASK_OK, taskStat);
+        assert(taskStat == Os::Task::TASK_OK);
         
         gioSetBit(spiPORT3, deploy_bit, 0);
     
@@ -664,7 +665,7 @@ namespace CubeRover {
   
             default:
                 // Should never happen;
-                FW_ASSERT(false, opCode);
+                assert(false);
                 break;
         }
   

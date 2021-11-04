@@ -1,4 +1,5 @@
 #include <cstring>
+#include <cassert>
 
 #include <Fw/Types/Assert.hpp>
 
@@ -280,7 +281,7 @@ namespace CubeRover
 
                 default:
                     // This shouldn't be possible
-                    FW_ASSERT(false, checkStatus);
+                    assert(false);
                     return WatchDogMpsm::ParseHeaderStatus::PHS_INTERNAL_ERROR;
             }
 
@@ -370,8 +371,6 @@ namespace CubeRover
         msg.accumulatedDataSize += size;
 
         // Having more data than we want indicates logic or programmer error
-        FW_ASSERT(msg.accumulatedDataSize <= msg.parsedHeader.payloadLength, 
-                  msg.accumulatedDataSize,
-                  msg.parsedHeader.payloadLength);
+        assert(msg.accumulatedDataSize <= msg.parsedHeader.payloadLength);
     }
 } // end namespace CubeRover

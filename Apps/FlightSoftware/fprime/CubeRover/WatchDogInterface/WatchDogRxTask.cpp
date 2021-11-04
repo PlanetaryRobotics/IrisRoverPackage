@@ -81,10 +81,10 @@ namespace CubeRover
                                       priority,
                                       &tid);
 
-        FW_ASSERT(stat == pdPASS, stat);
+        assert(stat == pdPASS);
         xTaskToNotify = tid;
 
-        FW_ASSERT(xTaskToNotify != 0);
+        assert(xTaskToNotify != 0);
 
         m_isRunning = true;
         return Os::Task::TASK_OK;
@@ -141,13 +141,14 @@ namespace CubeRover
                 if (doneGoodParity || doneBadParity) {
                     task->callAllCallbacks(msg, doneGoodParity);
                     msg.reset();
+                    lookingForHeader = true;
 
                     phStatus = task->m_mpsm.getHeaderDmaDetails(msg,
                                                                 &nextTransferDestination,
                                                                 nextTransferSize);
 
                     // We just reset the message, so we should always need more data here
-                    FW_ASSERT(phStatus == WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA, phStatus);
+                    assert(phStatus == WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA);
                 } else if (WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_VALID_HEADER == phStatus) {
                     // We're done with the header but not with the message, because payload length is
                     // non-zero. Make the data dma request and change the "state" (represented by lookingForHeader)
@@ -156,7 +157,7 @@ namespace CubeRover
                                                                                             nextTransferSize);
 
                     // It shouldn't be possible for us to not need data here
-                    FW_ASSERT(pdStatus == WatchDogMpsm::ParseDataStatus::PDS_NEED_MORE_DATA, pdStatus);
+                    assert(pdStatus == WatchDogMpsm::ParseDataStatus::PDS_NEED_MORE_DATA);
 
                     lookingForHeader = false;
                 } else if (WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA != phStatus) {
@@ -165,7 +166,7 @@ namespace CubeRover
                     // have been entered. If we were in VALID_HEADER wth dataLen > 0, the second case 
                     // would have been entered. The only other possibility should be NEED_MORE_DATA,
                     // so if that's NOT the case here then we want to assert.
-                    FW_ASSERT(false, phStatus);
+                    assert(false);
                 }
             } else { // Rather than header data, we should have received payload data in the last transfer
                 WatchDogMpsm::ParseDataStatus pdStatus = task->m_mpsm.getDataDmaDetails(msg,
@@ -175,18 +176,19 @@ namespace CubeRover
 
                 // Since this is DMA and the receive buffer is large enough for the largest message size,
                 // it should only ever take one transfer for data DMA to complete.
-                FW_ASSERT(pdStatus == WatchDogMpsm::ParseDataStatus::PDS_PARSED_ALL_DATA, pdStatus);
+                assert(pdStatus == WatchDogMpsm::ParseDataStatus::PDS_PARSED_ALL_DATA);
 
                 // Now handle the completed message
                 task->callAllCallbacks(msg, true);
                 msg.reset();
+                lookingForHeader = true;
 
                 WatchDogMpsm::ParseHeaderStatus phStatus = task->m_mpsm.getHeaderDmaDetails(msg,
                                                                                             &nextTransferDestination,
                                                                                             nextTransferSize);
 
                 // We just reset the message, so we should always need more data here
-                FW_ASSERT(phStatus == WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA, phStatus);
+                assert(phStatus == WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA);
             }
 
             // Start the transfer (for either header or data)
@@ -196,7 +198,7 @@ namespace CubeRover
                        ACCESS_8_BIT,
                        &dmaReadBusy);
 
-            FW_ASSERT(nextTransferSize > 0);
+            assert(nextTransferSize > 0);
 
             // Copy over the destination and size for the next iteration.
             lastTransferDestination = nextTransferDestination;

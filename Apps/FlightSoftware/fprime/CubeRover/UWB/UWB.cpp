@@ -19,12 +19,13 @@
 #include "reg_spi.h"
 #include "reg_het.h"
 #include "App/SPI.h"
+#include "mibspi.h"
 
 /* SPI configuration */
 static spiBASE_t *spi = spiREG5;
 static U8 UWB_bit = 0;
 static spiDAT1_t dataConfig = {
-    .CS_HOLD = 0,
+    .CS_HOLD = 1,
     .WDEL = 0,
     .DFSEL = SPI_FMT_0,
     .CSNR = 0b11111110   // Each index corresponds to CS[i]. Value represents the CS level when a transaction is occurring (1: hign, 0: low). SPIDEF sets the non-transaction CS level.
@@ -85,13 +86,89 @@ namespace CubeRover {
         __delay_cycles(12000000);
     }
     */
+
+    uint16_t spiTxCmd = 0x00;
+    spiDAT1_t g_UWBDataConfig;
+
+    uint16_t UWB_data[10];
+
+    g_UWBDataConfig.CS_HOLD = false;
+    g_UWBDataConfig.DFSEL = SPI_FMT_0;
+    g_UWBDataConfig.WDEL = false;
+    g_UWBDataConfig.CSNR = 0;
+
+    mibspiInit();
+
+    uint16_t tx_buffer[] = {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
+    uint16_t rx_buffer[10];
+
+    mibspiSetData(mibspiREG5, 0, tx_buffer);
+
+    mibspiTransfer(mibspiREG5, 0);
+
+    while (!(mibspiIsTransferComplete(mibspiREG5, 0)));
+
+    mibspiGetData(mibspiREG5, 0, rx_buffer);
+
+    printf("mib Device is %x\n", rx_buffer[0]);
+
+    gioSetBit(hetPORT1, 7, 0);
+
+    gioSetDirection(hetPORT1, 0x00);
+
     while (true) {
-        printf("check system events\n");
-        printf("Value: %x\n", dwt_read32bitreg(SYS_STATUS_ID));
-        __delay_cycles(12000000);
-        printf("check device id\n");
-        printf("Value: %x\n", dwt_readdevid());
-        __delay_cycles(12000000);
+        uint32 rst_val = gioGetBit(hetPORT1, 7);
+
+        printf("rst is %d\n", rst_val);
+        // uint8 dev_id = read_register(spiREG5, &dataConfig, 0x00);
+
+        // CS WORKS
+        // THIS PULLS CS ACTIVE LOW
+        (&g_UWBDataConfig)->CS_HOLD = 1; /* CS_HOLD starts true to send next frame */
+        uint16 dataBuf[20];
+        uint16 cmd = 0x00;
+        spiTransmitOneByte(spi, &g_UWBDataConfig, &cmd);
+        spiReceiveOneByte(spi, &g_UWBDataConfig, dataBuf);
+        spiReceiveOneByte(spi, &g_UWBDataConfig, dataBuf + 1);
+        spiReceiveOneByte(spi, &g_UWBDataConfig, dataBuf + 2);
+        spiReceiveOneByte(spi, &g_UWBDataConfig, dataBuf + 3);
+
+        (&g_UWBDataConfig)->CS_HOLD = 0; /* This is the last frame */
+
+        printf("Device is %x%x%x%x\n", dataBuf[0], dataBuf[1], dataBuf[2],dataBuf[3]);
+
+        spiReceiveOneByte(spi, &g_UWBDataConfig, UWB_data);
+
+        printf("Device is \n");
+
+
+
+        // THIS PULLS CS inactive HIGH
+
+        // (&g_UWBDataConfig)->CS_HOLD = 0; /* This is the last frame */
+        // spiReceiveOneByte(spi, &g_UWBDataConfig, dataBuf);
+
+        // send data
+        // spiTransmitData(spiREG5, &g_UWBDataConfig, 1, &spiTxCmd);
+
+        // gioSetBit(spiPORT5, 0, 0); // set CS HIGH
+
+        // UWB_data[0] = 0;
+
+        // spiReceiveOneByte(spiREG5, &g_UWBDataConfig, UWB_data);
+
+        // uint16_t data3 = UWB_data[0];
+
+        // printf("Device is %x\n", data3);
+
+        // printf("help%d\n", dev_id);
+        // uint8 id = read_register(spiREG5, &dataConfig, SYS_STATUS_ID);
+        // printf("%d\n",id);
+        // printf("Value: %x\n", dwt_read32bitreg(SYS_STATUS_ID));
+        // __delay_cycles(12000000);
+        // printf("check device id\n");
+        // printf("Value: %x\n", dwt_readdevid());
+        // __delay_cycles(12000000);
     }
   }
 

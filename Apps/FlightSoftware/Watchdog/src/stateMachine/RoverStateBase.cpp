@@ -908,26 +908,7 @@ namespace iris
                                                           WdCmdMsgs__Response& deployNotificationResponse,
                                                           bool& sendDeployNotificationResponse)
     {
-        switch (msg.body.setBattCtrlEnState.selection) {
-            case WD_CMD_MSGS__BATT_CTRL_EN__ON:
-                blimp_bctrlEnOn();
-                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
-                break;
-
-            case WD_CMD_MSGS__BATT_CTRL_EN__OFF:
-                blimp_bctrlEnOff();
-                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
-                break;
-
-            case WD_CMD_MSGS__BATT_CTRL_EN__FORCE_HIGH:
-                blimp_bctrlEnForceHigh();
-                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
-                break;
-
-            default:
-                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
-        }
-
+        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
         return getState();
     }
 
@@ -966,8 +947,7 @@ namespace iris
                                                         WdCmdMsgs__Response& deployNotificationResponse,
                                                         bool& sendDeployNotificationResponse)
     {
-        blimp_latchSetPulseLow();
-        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
         return getState();
     }
 
@@ -977,8 +957,7 @@ namespace iris
                                                           WdCmdMsgs__Response& deployNotificationResponse,
                                                           bool& sendDeployNotificationResponse)
     {
-        blimp_latchResetPulseLow();
-        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
         return getState();
     }
 

@@ -43,28 +43,6 @@ void blimp_normalBoot();
 void blimp_safeBoot();
 
 /**
- * @brief Releases BATT_CTRL_EN to enable the 3V3_LATCH regulator and power the battery control (battery latching and
- *        battery switch) circuitry.
- */
-void blimp_bctrlEnOn();
-
-/**
- * @brief Forces BATT_CTRL_EN high to enable the 3V3_LATCH regulator and power the battery control (battery latching and
- *        battery switch) circuitry at the expense of a couple mA of current at 3V3 draining through the WD.
- *
- * @note Normally you'd not want to do this because there's an external pull-up to V_LANDER/V_BATT that controls this
- *       but if we can't talk to latching circuitry, it might be because one of the resistors vibed loose, in which case
- *       this can be helpful (and possibly save our mission).
- */
-void blimp_bctrlEnForceHigh();
-
-/**
- * @brief Drives BATT_CTRL_EN low to disable the 3V3_LATCH regulator and power off the battery control (battery latching
- *        and battery switch) circuitry.
- */
-void blimp_bctrlEnOff();
-
-/**
  * @brief Sets the clock signal to the D-Latch high
  *
  * @note By itself, this doesn't latch the batteries -- see: blimp_latchBattUpdate
@@ -88,53 +66,6 @@ void blimp_latchBattOff();
  * @note Intentionally blocks for (2 * `IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES`) cycles.
  */
 void blimp_latchBattUpdate();
-
-/**
- * @brief Sets the `LATCH_SET` (set) pin on the BLiMP's D-Latch HIGH.
- *
- * @note `LATCH_SET` is normally not used on the D-latch and should be kept high.
- */
-void blimp_latchSetHigh();
-
-/**
- * @brief Sets the `LATCH_SET` (set) pin on the BLiMP's D-Latch LOW.
- *
- * @note `LATCH_SET` is normally not used on the D-latch and should be kept high.
- */
-void blimp_latchSetLow();
-
-/**
- * @brief Pulses the set signal (`LATCH_SET`) low to the D-Latch, asynchronously forcibly changing the latch output
- *        (LSTAT) state to HIGH.
- *
- * @note Normally unused. Only use to intentionally override and bypass latch logic.
- * @note Intentionally blocking for (2 * `IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES`) cycles.
- */
-void blimp_latchSetPulseLow();
-
-/**
- * @brief Sets the `LATCH_RST` (reset) pin on the BLiMP's D-Latch HIGH.
- *
- * @note `LATCH_RST` is normally not used on the D-latch and should be kept high.
- */
-void blimp_latchResetHigh();
-
-/**
- * @brief Sets the `LATCH_RST` (reset) pin on the BLiMP's D-Latch LOW.
- *
- * @note `LATCH_RST` is normally not used on the D-latch and should be kept high.
- */
-void blimp_latchResetLow();
-
-/**
- * @brief Pulses the reset signal (`LATCH_RST`) low to the D-Latch, asynchronously forcibly changing the latch output
- *        (LSTAT) state to LOW.
- *
- * @note Normally unused. Only use to intentionally override and bypass latch logic.
- * @note Intentionally blocking for (2 * `IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES`) cycles.
- */
-void blimp_latchResetPulseLow();
-
 
 /**
  * @brief Enables the charging IC.

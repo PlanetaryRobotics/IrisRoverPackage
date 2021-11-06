@@ -55,27 +55,6 @@ void blimp_safeBoot()
     blimp_regEnOff();
 }
 
-void blimp_bctrlEnOn()
-{
-    // Go HiZ (input with no pulls) to let external pull-up to VIN do the work.
-    P2DIR &= ~BIT3;
-    P2REN &= ~BIT3;
-}
-
-void blimp_bctrlEnForceHigh()
-{
-    // Set as output and drive high
-    P2DIR |= BIT3;
-    P2OUT |= BIT3;
-}
-
-void blimp_bctrlEnOff()
-{
-    // Set as output and drive low
-    P2DIR |= BIT3;
-    P2OUT &= ~BIT3;
-}
-
 void blimp_latchBattOn()
 {
     P3OUT |= BIT6;
@@ -94,58 +73,6 @@ void blimp_latchBattUpdate()
     P3OUT |= BIT6;
     __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES);
     P3OUT &= ~BIT6;
-}
-
-void blimp_latchSetHigh()
-{
-    I2C_Sensors__setIoExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__LATCH_SET);
-    // Force write now:
-    I2C_Sensors__writeIoExpanderCurrentValuesBlocking(50);
-
-}
-
-void blimp_latchSetLow()
-{
-    I2C_Sensors__clearIoExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__LATCH_SET);
-    // Force write now:
-    I2C_Sensors__writeIoExpanderCurrentValuesBlocking(50);
-
-}
-
-void blimp_latchSetPulseLow()
-{
-    // Pulse LS high-low-high:
-    blimp_latchSetHigh(); // set high first in case LS became low due to cosmic radiation hitting expander IO register
-    __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES);
-    blimp_latchSetLow();
-    __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES);
-    blimp_latchSetHigh();
-}
-
-void blimp_latchResetHigh()
-{
-    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__LATCH_RST);
-    // Force write now:
-    I2C_Sensors__writeIoExpanderCurrentValuesBlocking(50);
-
-}
-
-void blimp_latchResetLow()
-{
-    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__LATCH_RST);
-    // Force write now:
-    I2C_Sensors__writeIoExpanderCurrentValuesBlocking(50);
-
-}
-
-void blimp_latchResetPulseLow()
-{
-    // Pulse LS high-low-high:
-    blimp_latchResetHigh(); // set high first in case LR became low due to cosmic radiation hitting expander IO register
-    __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES);
-    blimp_latchResetLow();
-    __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES);
-    blimp_latchResetHigh();
 }
 
 void blimp_chargerEnOn()

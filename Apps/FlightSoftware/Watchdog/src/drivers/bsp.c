@@ -118,18 +118,9 @@ void initializeGpios(PersistentState* pState)
     P2OUT &= ~BIT2;
 
     // P2.3 is connected to the BATT_CTRL_EN signal (control signal for MOSFET to enable battery controller circuit),
-    // and is used as a GPIO output. This line has an external HW pull up so it is preferred to go to high-Z state
-    // rather than pulling the line high. From BLiMP schematics:
-    //
-    // "For safety reasons (so the WD doesn't accidentally reset it on the surface if there's a
-    // persistent memory fault), WD should *always* boot with BATT_CTRL_EN as Hi-Z and only set it LOW (to reduce power
-    // draw from lander) by a command and *not* save this state persistently. Any time WD reboots, BATT_CTRL_EN should
-    // go Hi-Z or HIGH."
-    //
-    // Even though this pin is essentially an ouptut, to get high-Z state we configure it as input with pullup/pulldown
-    // resistors disabled.
-    P2DIR &= ~BIT3;
-    P2REN &= ~BIT3;
+    // BUT has been disconnected due to power issues. This will be pulled low as an output b/c it is NC
+    P2DIR |= BIT3;
+    P2OUT &= BIT3;
 
     // P2.4 is connected to the BATT_TEMP signal (output of voltage divider for battery pack thermistor), and is used
     // as an ADC analog input (specifically it is ADC analog input A7). This is the tertiary function (SEL1 and SEL0

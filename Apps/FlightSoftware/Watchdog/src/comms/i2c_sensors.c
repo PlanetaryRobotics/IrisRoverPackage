@@ -146,15 +146,12 @@ static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT = 0xD8;
 //     0.4: Hercules_nRST, output to reset Hercules (reset is active when low)
 //     0.5: Hercules_nPORRST, output to power-on reset Hercules (reset is active when low)
 //     0.6: FPGA_nRST, output to reset FPGA (reset is active when low)
-//     0.7: LATCH_RST, output to force LATCH_STAT LOW, only used as a manual override in case there is an issue with
-//            the normal data/clock latching. In nominal operation this should remain unused (and pulled HIGH)
+//     0.7: LATCH_RST, now INPUT due to power loop issue
 //
 //     1.0: Radio_nRST, output to reset wifi chip (reset is active when low)
 //     1.1: CHARGE_STAT2, input connected to STAT2 pin of BQ24650RVAR charge controller
 //     1.2: LATCH_STAT, input connected to output of battery enable latch on BLiMP
-//     1.3: LATCH_SET, output to force LATCH_STAT HIGH, only used as a manual override in case there is an issue
-//            with the normal data/clock latching. In nominal operation this should remain unused (and pulled HIGH)
-//     1.4: Not connected
+//     1.3: LATCH_SET, now INPUT due to power loop issue
 //     1.5: Radio_ON, output that controls supply of power to wifi chip (power supplied when high)
 //     1.6: BMS_BOOT, output currently unused as BMS circuit wasn't completed.
 //     1.7: Not connected
@@ -164,9 +161,9 @@ static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT = 0xD8;
 // Register 9 is the register to configure the directions of the port 1 pins, where "0" is output. As described
 //   above, pins 0, 3, 5, and 6 are outputs, and the rest are either inputs or not connected.
 static const uint8_t IO_EXPANDER_CONFIG_PORT_0_REG_ADDR = 8;
-static const uint8_t IO_EXPANDER_CONFIG_PORT_0_VALUE = 0b00000000;
+static const uint8_t IO_EXPANDER_CONFIG_PORT_0_VALUE = 0b10000000;
 static const uint8_t IO_EXPANDER_CONFIG_PORT_1_REG_ADDR = 9;
-static const uint8_t IO_EXPANDER_CONFIG_PORT_1_VALUE = 0b00010110;
+static const uint8_t IO_EXPANDER_CONFIG_PORT_1_VALUE = 0b00011110;
 
 // Per the datasheet (https://www.nxp.com/docs/en/data-sheet/PCA9575.pdf):
 // Register 1 is the register to read the incoming logic levels of the pins in port 1.

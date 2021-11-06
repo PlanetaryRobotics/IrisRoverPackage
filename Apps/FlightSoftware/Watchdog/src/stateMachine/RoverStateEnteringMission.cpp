@@ -64,6 +64,7 @@ namespace iris
         if (writeIoExpander && true /** @todo Replace true with whether I2C has been initialized */) {
             theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
             theContext.m_writeCustomIoExpanderValues = false;
+            theContext.m_watchdogFlags |= WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE;
 
             if (!theContext.m_i2cActive) {
                 initiateNextI2cAction(theContext);
@@ -128,6 +129,10 @@ namespace iris
                     if (I2C_SENSORS__STATUS__INCOMPLETE != i2cStatus) {
                         DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "I2C action failed");
 
+                        if (I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER == action) {
+                            theContext.m_watchdogFlags &= ~WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE;
+                        }
+
                         I2C_Sensors__clearLastAction();
                         theContext.m_i2cActive = false;
 
@@ -149,6 +154,10 @@ namespace iris
 
                     if (I2C_SENSORS__STATUS__INCOMPLETE != i2cStatus) {
                         DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "I2C action failed");
+
+                        if (I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER == action) {
+                            theContext.m_watchdogFlags &= ~WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE;
+                        }
 
                         I2C_Sensors__clearLastAction();
                         theContext.m_i2cActive = false;
@@ -237,8 +246,15 @@ namespace iris
                     if (I2C_SENSORS__STATUS__INCOMPLETE != i2cStatus) {
                         DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "I2C action failed");
 
+                        if (I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER == action) {
+                            theContext.m_watchdogFlags &= ~WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE;
+                        }
+
                         I2C_Sensors__clearLastAction();
                         theContext.m_i2cActive = false;
+
+                        // Start the next I2C action if one is queued, if nothing queued this will return quickly
+                        initiateNextI2cAction(theContext);
 
                         enableHerculesComms(theContext);
 
@@ -265,13 +281,26 @@ namespace iris
                                                               WdCmdMsgs__ResetSpecificId resetValue,
                                                               WdCmdMsgs__Response* response)
     {
+        bool writeIOExpander = false;
         RoverStateBase::doConditionalResetSpecific(theContext,
                                                    resetValue,
                                                    response,
                                                    true, // whether or not to allow power on
                                                    false, // whether or not to allow disabling RS422
                                                    false, // whether or not to allow deploy
-                                                   false); // whether or not to allow undeploy
+                                                   false, // whether or not to allow undeploy
+                                                   writeIOExpander);
+
+        if (writeIOExpander) {
+            theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
+            theContext.m_writeCustomIoExpanderValues = false;
+            theContext.m_watchdogFlags |= WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE;
+
+            if (!theContext.m_i2cActive) {
+                initiateNextI2cAction(theContext);
+            }
+        }
+
         return getState();
     }
 

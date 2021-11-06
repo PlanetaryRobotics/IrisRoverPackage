@@ -206,7 +206,8 @@ namespace iris
                                             bool allowPowerOn,
                                             bool allowDisableRs422,
                                             bool allowDeploy,
-                                            bool allowUndeploy);
+                                            bool allowUndeploy,
+                                            bool& needToWriteIoExpander);
         private:
             RoverState m_state;
 

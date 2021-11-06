@@ -15,10 +15,10 @@ namespace iris
     {
     }
 
-    bool RoverStateKeepAlive::canEnterLowPowerMode(RoverContext& /*theContext*/)
+    bool RoverStateKeepAlive::canEnterLowPowerMode(RoverContext& theContext)
     {
         // Handling lander data and timer ticks will both wake us up out of LPM, so it's ok for us to enter it.
-        return true;
+        return !(theContext.m_i2cActive);
     }
 
     RoverState RoverStateKeepAlive::handleHerculesData(RoverContext& /*theContext*/)
@@ -54,8 +54,26 @@ namespace iris
 
     RoverState RoverStateKeepAlive::spinOnce(RoverContext& theContext)
     {
-        // Do nothing
-        //DPRINTF_ERR("%d\n", Time__getTimeInCentiseconds());
+        if (theContext.m_i2cActive) {
+            I2C_Sensors__Action action = {};
+            uint8_t readValue = 0;
+            I2C_Sensors__Status i2cStatus = I2C_Sensors__getActionStatus(&action,
+                                                                         &(theContext.m_i2cReadings),
+                                                                         &readValue);
+
+            if (I2C_SENSORS__STATUS__INCOMPLETE != i2cStatus) {
+                DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "I2C action failed");
+
+                if (I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER == action) {
+                    theContext.m_watchdogFlags &= ~WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE;
+                }
+
+                I2C_Sensors__clearLastAction();
+                theContext.m_i2cActive = false;
+                initiateNextI2cAction(theContext);
+            }
+        }
+
         return getState();
     }
 

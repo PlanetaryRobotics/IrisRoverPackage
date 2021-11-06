@@ -181,7 +181,7 @@ int watchdog_monitor(HerculesComms__State* hState,
     }
 
     /* unreset wifi chip */
-    if (*watchdogFlags & WDFLAG_UNRESET_RADIO2) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_RADIO2) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
         releaseRadioReset();
         *watchdogFlags ^= WDFLAG_UNRESET_RADIO2;
         *writeIOExpander = TRUE;
@@ -194,42 +194,42 @@ int watchdog_monitor(HerculesComms__State* hState,
     }
 
     /* unreset hercules */
-    if (*watchdogFlags & WDFLAG_UNRESET_HERCULES) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_HERCULES) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
         releaseHerculesReset();
         *watchdogFlags ^= WDFLAG_UNRESET_HERCULES;
         *writeIOExpander = TRUE;
     }
 
     /* unreset motor 1 */
-    if (*watchdogFlags & WDFLAG_UNRESET_MOTOR1) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_MOTOR1) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
         releaseMotor1Reset();
         *watchdogFlags ^= WDFLAG_UNRESET_MOTOR1;
         *writeIOExpander = TRUE;
     }
 
     /* unreset motor 2 */
-    if (*watchdogFlags & WDFLAG_UNRESET_MOTOR2) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_MOTOR2) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
         releaseMotor2Reset();
         *watchdogFlags ^= WDFLAG_UNRESET_MOTOR2;
         *writeIOExpander = TRUE;
     }
 
     /* unreset motor 3 */
-    if (*watchdogFlags & WDFLAG_UNRESET_MOTOR3) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_MOTOR3) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
         releaseMotor3Reset();
         *watchdogFlags ^= WDFLAG_UNRESET_MOTOR3;
         *writeIOExpander = TRUE;
     }
 
     /* unreset motor 4 */
-    if (*watchdogFlags & WDFLAG_UNRESET_MOTOR4) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_MOTOR4) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
         releaseMotor4Reset();
         *watchdogFlags ^= WDFLAG_UNRESET_MOTOR4;
         *writeIOExpander = TRUE;
     }
 
     /* unreset FPGA */
-    if (*watchdogFlags & WDFLAG_UNRESET_FPGA) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_FPGA) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
         releaseFPGAReset();
         *watchdogFlags ^= WDFLAG_UNRESET_FPGA;
         *writeIOExpander = TRUE;

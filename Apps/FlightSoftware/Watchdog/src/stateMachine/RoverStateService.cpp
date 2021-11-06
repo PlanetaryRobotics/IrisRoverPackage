@@ -62,6 +62,7 @@ namespace iris
         if (writeIOExpander) {
             theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
             theContext.m_writeCustomIoExpanderValues = false;
+            theContext.m_watchdogFlags |= WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE;
 
             if (!theContext.m_i2cActive) {
                 initiateNextI2cAction(theContext);
@@ -94,6 +95,10 @@ namespace iris
 
             if (I2C_SENSORS__STATUS__INCOMPLETE != i2cStatus) {
                 DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "I2C action failed");
+
+                if (I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER == action) {
+                    theContext.m_watchdogFlags &= ~WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE;
+                }
 
                 I2C_Sensors__clearLastAction();
                 theContext.m_i2cActive = false;

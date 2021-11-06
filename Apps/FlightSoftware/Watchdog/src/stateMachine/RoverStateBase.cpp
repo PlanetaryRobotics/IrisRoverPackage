@@ -47,6 +47,11 @@ namespace iris
         // prevent other actions from being triggered.
         static size_t i = static_cast<size_t>(I2C_SENSORS__ACTIONS__INACTIVE);
 
+        // Exit early if we have no queued actions
+        if (theContext.m_queuedI2cActions == 0) {
+            return;
+        }
+
         // See what, if anything, is the next action to be performed
         for (size_t j = 0; j < static_cast<size_t>(I2C_SENSORS__ACTIONS__COUNT); ++j) {
             size_t actionIndex = i + j;
@@ -185,6 +190,8 @@ namespace iris
         }
 
         CallbackUserArg* args = reinterpret_cast<CallbackUserArg*>(userArg);
+
+        args->m_context.m_watchdogFlags |= WDFLAG_HERCULES_KICK;
 
         switch (header->lowerOpCode) {
             case HERCULES_COMMS__MSG_OPCODE__STROKE:
@@ -967,12 +974,15 @@ namespace iris
                                                     bool allowPowerOn,
                                                     bool allowDisableRs422,
                                                     bool allowDeploy,
-                                                    bool allowUndeploy)
+                                                    bool allowUndeploy,
+                                                    bool& writeIoExpander)
     {
         if (nullptr != response) {
             // Default to success, change if necessary
             response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         }
+
+        writeIoExpander = false;
 
         switch (resetValue) {
             case WD_CMD_MSGS__RESET_ID__NO_RESET:
@@ -981,6 +991,7 @@ namespace iris
             case WD_CMD_MSGS__RESET_ID__HERCULES_RESET:
                 //!< @todo Should reset be allowed in KeepAlive? It's not technically powering on, but its similar.
                 setHerculesReset();
+                writeIoExpander = true;
                 // queue up hercules unreset
                 theContext.m_watchdogFlags |= WDFLAG_UNRESET_HERCULES;
                 break;
@@ -1000,6 +1011,7 @@ namespace iris
             case WD_CMD_MSGS__RESET_ID__RADIO_RESET:
                 //!< @todo Should reset be allowed in KeepAlive? It's not technically powering on, but its similar.
                 setRadioReset();
+                writeIoExpander = true;
                 // queue up an radio unreset
                 theContext.m_watchdogFlags |= WDFLAG_UNRESET_RADIO1;
                 break;
@@ -1007,6 +1019,7 @@ namespace iris
             case WD_CMD_MSGS__RESET_ID__RADIO_POWER_ON:
                 if (allowPowerOn) {
                     powerOnRadio();
+                    writeIoExpander = true;
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
@@ -1014,11 +1027,13 @@ namespace iris
 
             case WD_CMD_MSGS__RESET_ID__RADIO_POWER_OFF:
                 powerOffRadio();
+                writeIoExpander = true;
                 break;
 
             case WD_CMD_MSGS__RESET_ID__CAM_FPGA_RESET:
                 //!< @todo Should reset be allowed in KeepAlive? It's not technically powering on, but its similar.
                 setFPGAReset();
+                writeIoExpander = true;
                 // queue up the fpga unreset
                 theContext.m_watchdogFlags |= WDFLAG_UNRESET_FPGA;
                 break;
@@ -1037,30 +1052,35 @@ namespace iris
 
             case WD_CMD_MSGS__RESET_ID__MOTOR_1_RESET:
                 setMotor1Reset();
+                writeIoExpander = true;
                 // queue up the motor 1 unreset
                 theContext.m_watchdogFlags |= WDFLAG_UNRESET_MOTOR1;
                 break;
 
             case WD_CMD_MSGS__RESET_ID__MOTOR_2_RESET:
                 setMotor2Reset();
+                writeIoExpander = true;
                 // queue up the motor 2 unreset
                 theContext.m_watchdogFlags |= WDFLAG_UNRESET_MOTOR2;
                 break;
 
             case WD_CMD_MSGS__RESET_ID__MOTOR_3_RESET:
                 setMotor3Reset();
+                writeIoExpander = true;
                 // queue up the motor 3 unreset
                 theContext.m_watchdogFlags |= WDFLAG_UNRESET_MOTOR3;
                 break;
 
             case WD_CMD_MSGS__RESET_ID__MOTOR_4_RESET:
                 setMotor4Reset();
+                writeIoExpander = true;
                 // queue up the motor 4 unreset
                 theContext.m_watchdogFlags |= WDFLAG_UNRESET_MOTOR4;
                 break;
 
             case WD_CMD_MSGS__RESET_ID__ALL_MOTORS_RESET:
                 setMotorsReset();
+                writeIoExpander = true;
                 // queue up all the motor unresets
                 theContext.m_watchdogFlags |= WDFLAG_UNRESET_MOTOR1 | WDFLAG_UNRESET_MOTOR2 |
                         WDFLAG_UNRESET_MOTOR3 | WDFLAG_UNRESET_MOTOR4;

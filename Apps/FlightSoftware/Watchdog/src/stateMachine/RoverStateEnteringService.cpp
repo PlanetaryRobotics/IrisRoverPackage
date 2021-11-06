@@ -58,13 +58,25 @@ namespace iris
                                                               WdCmdMsgs__ResetSpecificId resetValue,
                                                               WdCmdMsgs__Response* response)
     {
+        bool writeIOExpander = false;
         RoverStateBase::doConditionalResetSpecific(theContext,
                                                    resetValue,
                                                    response,
                                                    true, // whether or not to allow power on
                                                    false, // whether or not to allow disabling RS422
                                                    false, // whether or not to allow deploy
-                                                   false); // whether or not to allow undeploy
+                                                   false, // whether or not to allow undeploy
+                                                   writeIOExpander);
+
+        if (writeIOExpander) {
+            theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
+            theContext.m_writeCustomIoExpanderValues = false;
+            theContext.m_watchdogFlags |= WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE;
+
+            if (!theContext.m_i2cActive) {
+                initiateNextI2cAction(theContext);
+            }
+        }
 
         return getState();
     }

@@ -6,6 +6,9 @@
 
 #include <cassert>
 
+static const bool SEND_DETAILED_REPORTS_IN_SPIN_ONCE = true;
+static const uint16_t CENTISECONDS_BETWEEN_DETAILED_REPORT_SENDS = 6000;
+
 namespace iris
 {
     RoverStateKeepAlive::RoverStateKeepAlive()
@@ -89,12 +92,20 @@ namespace iris
             }
         }
 
+        uint16_t currentTime = Time__getTimeInCentiseconds();
+        if (SEND_DETAILED_REPORTS_IN_SPIN_ONCE &&
+                (currentTime - theContext.m_lastDetailedReportSendTime >= CENTISECONDS_BETWEEN_DETAILED_REPORT_SENDS)) {
+            theContext.m_lastDetailedReportSendTime = currentTime;
+            sendDetailedReportToLander(theContext);
+        }
+
         return getState();
     }
 
     RoverState RoverStateKeepAlive::transitionTo(RoverContext& theContext)
     {
         // Nothing to do on this transition, which should always be from ENTERING_KEEP_ALIVE.
+        theContext.m_lastDetailedReportSendTime = Time__getTimeInCentiseconds();
         return getState();
     }
 

@@ -1045,6 +1045,14 @@ namespace iris
                                                              WdCmdMsgs__Response& deployNotificationResponse,
                                                              bool& sendDeployNotificationResponse)
     {
+        sendDetailedReportToLander(theContext);
+        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+        return getState();
+    }
+
+    void RoverStateBase::sendDetailedReportToLander(RoverContext& theContext)
+    {
+        /* send detailed report */
         static DetailedReport report = { 0 };
         GroundMsgs__Status gcStatus =
                 GroundMsgs__generateDetailedReport(&(theContext.m_i2cReadings),
@@ -1062,9 +1070,6 @@ namespace iris
         if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
             //!< @todo Handling?
         }
-
-        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
-        return getState();
     }
 
     void RoverStateBase::doConditionalResetSpecific(RoverContext& theContext,

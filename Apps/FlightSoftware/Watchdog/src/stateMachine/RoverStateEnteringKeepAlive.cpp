@@ -70,25 +70,7 @@ namespace iris
         /* only send every 17 timer ticks (119s) */
         if (theContext.m_keepAliveTickCountForDetailedReport >= 17) {
             theContext.m_keepAliveTickCountForDetailedReport = 0;
-
-            /* send detailed report */
-            static DetailedReport report = { 0 };
-            GroundMsgs__Status gcStatus =
-                    GroundMsgs__generateDetailedReport(&(theContext.m_i2cReadings),
-                                                       &(theContext.m_adcValues),
-                                                       &(theContext.m_details),
-                                                       &report);
-
-            assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
-
-            LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
-                                                               (uint8_t*) &report,
-                                                               sizeof(report));
-
-            assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
-            if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
-                //!< @todo Handling?
-            }
+            sendDetailedReportToLander(theContext);
         }
 
         if (theContext.m_details.m_hParams.m_heatingControlEnabled) {

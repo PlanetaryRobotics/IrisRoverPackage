@@ -211,6 +211,8 @@ namespace iris
                                                              WdCmdMsgs__Response& deployNotificationResponse,
                                                              bool& sendDeployNotificationResponse);
 
+            virtual void sendDetailedReportToLander(RoverContext& theContext);
+
             // Specific reset command handling
             void doConditionalResetSpecific(RoverContext& theContext,
                                             WdCmdMsgs__ResetSpecificId resetValue,

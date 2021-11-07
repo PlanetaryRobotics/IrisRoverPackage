@@ -25,6 +25,7 @@ namespace iris
             I2C_Sensors__Readings m_i2cReadings;
             uint8_t m_keepAliveTickCount;
             uint8_t m_keepAliveTickCountForDetailedReport;
+            uint16_t m_lastDetailedReportSendTime;
             AdcValues m_adcValues;
 
             HerculesComms__State* m_hcState;

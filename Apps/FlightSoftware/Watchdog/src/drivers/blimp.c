@@ -18,6 +18,8 @@ void blimp_initialize(WatchdogStateDetails* details)
 {
     DEBUG_LOG_NULL_CHECK_RETURN(details, "Parameter is NULL", /* nothing, b/c void return */);
     detailsPtr = details;
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__LATCH_SET_IS_INPUT);
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__LATCH_RESET_IS_INPUT);
 }
 
 void blimp_enterSleep()

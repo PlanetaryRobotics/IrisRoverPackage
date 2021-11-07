@@ -734,6 +734,8 @@ I2C_Sensors__Status I2C_Sensors__getIoExpanderPortDirections(uint8_t* port0Value
 
     *port0Value = internals.ioExpanderPort0DirectionValue;
     *port1Value = internals.ioExpanderPort1DirectionValue;
+
+    return I2C_SENSORS__STATUS__SUCCESS_DONE;
 }
 
 I2C_Sensors__Status I2C_Sensors__writeIoExpanderPortDirectionsBlocking(uint8_t port0Value,

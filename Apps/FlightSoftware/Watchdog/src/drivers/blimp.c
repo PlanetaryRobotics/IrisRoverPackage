@@ -10,6 +10,7 @@
 #include "common.h"
 
 #include <msp430.h>
+#include <stddef.h>
 
 static WatchdogStateDetails* detailsPtr = NULL;
 

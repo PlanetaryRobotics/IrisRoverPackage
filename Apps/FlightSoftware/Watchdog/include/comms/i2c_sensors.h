@@ -176,6 +176,11 @@ I2C_Sensors__Status I2C_Sensors__readIoExpanderBlocking(uint8_t* chargeStat2,
                                                         uint8_t* latchStat,
                                                         uint16_t timeoutCentiseconds);
 
+I2C_Sensors__Status I2C_Sensors__getIoExpanderPortDirections(uint8_t* port0Value, uint8_t* port1Value);
+I2C_Sensors__Status I2C_Sensors__writeIoExpanderPortDirectionsBlocking(uint8_t port0Value,
+                                                                       uint8_t port1Value,
+                                                                       uint16_t timeoutCentiseconds);
+
 /**
  * @brief Checks the status of reading the gauges. Does not block.
  *

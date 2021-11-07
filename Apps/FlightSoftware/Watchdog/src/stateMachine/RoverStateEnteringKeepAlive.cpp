@@ -3,7 +3,7 @@
 #include "drivers/adc.h"
 #include "drivers/bsp.h"
 
-#include "ground_cmd.h"
+#include "comms/ground_msgs.h"
 #include "watchdog.h"
 
 #include <cassert>
@@ -40,26 +40,26 @@ namespace iris
 
     RoverState RoverStateEnteringKeepAlive::handleTimerTick(RoverContext& theContext)
     {
-        // NOTE: Don't try to sample the ADC as we're likely setting it up for the lander configuration
-
         theContext.m_keepAliveTickCount++;
+        theContext.m_keepAliveTickCountForDetailedReport++;
 
-        /* only send every 3 timer ticks (15s) */
+        /* only send every 3 timer ticks (21s) */
         if (theContext.m_keepAliveTickCount >= 3) {
             theContext.m_keepAliveTickCount = 0;
 
             /* send heartbeat with collected data */
             static FlightEarthHeartbeat hb = { 0 };
-            GroundCmd__Status gcStatus = GroundCmd__generateFlightEarthHeartbeat(&(theContext.m_i2cReadings),
-                                                                                 &(theContext.m_adcValues),
-                                                                                 &(theContext.m_persistantStatePtr->m_heaterParams),
-                                                                                 &hb);
+            GroundMsgs__Status gcStatus =
+                    GroundMsgs__generateFlightEarthHeartbeat(&(theContext.m_i2cReadings),
+                                                             &(theContext.m_adcValues),
+                                                             &(theContext.m_details.m_hParams),
+                                                             &hb);
 
-            assert(GND_CMD__STATUS__SUCCESS == gcStatus);
+            assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
 
             LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
-                                                               hb.heartbeatOutBuffer,
-                                                               sizeof(hb.heartbeatOutBuffer));
+                                                               (uint8_t*) &hb,
+                                                               sizeof(hb));
 
             assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
             if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
@@ -67,9 +67,40 @@ namespace iris
             }
         }
 
-        if (theContext.m_persistantStatePtr->m_heaterParams.m_heatingControlEnabled) {
+        /* only send every 17 timer ticks (119s) */
+        if (theContext.m_keepAliveTickCountForDetailedReport >= 17) {
+            theContext.m_keepAliveTickCountForDetailedReport = 0;
+
+            /* send detailed report */
+            static DetailedReport report = { 0 };
+            GroundMsgs__Status gcStatus =
+                    GroundMsgs__generateDetailedReport(&(theContext.m_i2cReadings),
+                                                       &(theContext.m_adcValues),
+                                                       &(theContext.m_details),
+                                                       &report);
+
+            assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
+
+            LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
+                                                               (uint8_t*) &report,
+                                                               sizeof(report));
+
+            assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
+            if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
+                //!< @todo Handling?
+            }
+        }
+
+        if (theContext.m_details.m_hParams.m_heatingControlEnabled) {
             // calculate PWM duty cycle (if any) to apply to heater
             heaterControl(theContext);
+        }
+
+        // Queue up a read of the IO Expander, and initiate it if no other I2C action is active
+        theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__READ_IO_EXPANDER);
+
+        if (!theContext.m_i2cActive) {
+            initiateNextI2cAction(theContext);
         }
 
         return getState();
@@ -136,6 +167,8 @@ namespace iris
     RoverState RoverStateEnteringKeepAlive::transitionTo(RoverContext& theContext)
     {
         *(theContext.m_persistentInMission) = false;
+        theContext.m_keepAliveTickCount = 0;
+        theContext.m_keepAliveTickCountForDetailedReport = 0;
         return transitionToWaitingForIoExpanderWrite(theContext);
     }
 

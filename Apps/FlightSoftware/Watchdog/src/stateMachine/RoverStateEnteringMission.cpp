@@ -1,5 +1,6 @@
 #include "stateMachine/RoverStateEnteringMission.hpp"
 
+#include "comms/ground_msgs.h"
 #include "comms/i2c_sensors.h"
 
 #include "drivers/adc.h"
@@ -7,7 +8,6 @@
 
 #include "utils/time.h"
 
-#include "ground_cmd.h"
 #include "watchdog.h"
 
 #include <cassert>
@@ -29,28 +29,26 @@ namespace iris
 
     RoverState RoverStateEnteringMission::handleTimerTick(RoverContext& theContext)
     {
-        // NOTE: Don't try to sample the ADC as we may be setting it up for mission configuration
-
         /* send heartbeat with collected data */
         static FullEarthHeartbeat hb = { 0 };
-        GroundCmd__Status gcStatus = GroundCmd__generateFullEarthHeartbeat(&(theContext.m_i2cReadings),
-                                                                           &(theContext.m_adcValues),
-                                                                           &(theContext.m_persistantStatePtr->m_heaterParams),
-                                                                           static_cast<uint8_t>(getState()),
-                                                                           &hb);
+        GroundMsgs__Status gcStatus = GroundMsgs__generateFullEarthHeartbeat(&(theContext.m_i2cReadings),
+                                                                            &(theContext.m_adcValues),
+                                                                            &(theContext.m_details.m_hParams),
+                                                                            static_cast<uint8_t>(getState()),
+                                                                            &hb);
 
-        assert(GND_CMD__STATUS__SUCCESS == gcStatus);
+        assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
 
         LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
-                                                           hb.heartbeatOutBuffer,
-                                                           sizeof(hb.heartbeatOutBuffer));
+                                                           (uint8_t*) &hb,
+                                                           sizeof(hb));
 
         assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
         if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
             //!< @todo Handling?
         }
 
-        if (theContext.m_persistantStatePtr->m_heaterParams.m_heatingControlEnabled) {
+        if (theContext.m_details.m_hParams.m_heatingControlEnabled) {
             // calculate PWM duty cycle (if any) to apply to heater
             heaterControl(theContext);
         }
@@ -59,7 +57,8 @@ namespace iris
         watchdog_monitor(theContext.m_hcState,
                          &(theContext.m_watchdogFlags),
                          &(theContext.m_watchdogOpts),
-                         &writeIoExpander);
+                         &writeIoExpander,
+                         &(theContext.m_details));
 
         if (writeIoExpander && true /** @todo Replace true with whether I2C has been initialized */) {
             theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
@@ -69,6 +68,13 @@ namespace iris
             if (!theContext.m_i2cActive) {
                 initiateNextI2cAction(theContext);
             }
+        }
+
+        // Queue up a read of the IO Expander, and initiate it if no other I2C action is active
+        theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__READ_IO_EXPANDER);
+
+        if (!theContext.m_i2cActive) {
+            initiateNextI2cAction(theContext);
         }
 
         return getState();

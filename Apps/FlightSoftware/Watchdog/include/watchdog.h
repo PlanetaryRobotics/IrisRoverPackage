@@ -34,7 +34,8 @@ void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
 int watchdog_monitor(HerculesComms__State* hState,
                      volatile uint16_t* watchdogFlags,
                      uint8_t* watchdogOpts,
-                     BOOL* writeIOExpander);
+                     BOOL* writeIOExpander,
+                     WatchdogStateDetails* details);
 
 #ifdef __cplusplus
 } /* close extern "C" */

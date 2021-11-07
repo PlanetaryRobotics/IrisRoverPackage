@@ -199,6 +199,18 @@ namespace iris
                                                           WdCmdMsgs__Response& deployNotificationResponse,
                                                           bool& sendDeployNotificationResponse);
 
+            virtual RoverState doGndCmdClearResetMemory(RoverContext& theContext,
+                                                        const WdCmdMsgs__Message& msg,
+                                                        WdCmdMsgs__Response& response,
+                                                        WdCmdMsgs__Response& deployNotificationResponse,
+                                                        bool& sendDeployNotificationResponse);
+
+            virtual RoverState doGndCmdRequestDetailedReport(RoverContext& theContext,
+                                                             const WdCmdMsgs__Message& msg,
+                                                             WdCmdMsgs__Response& response,
+                                                             WdCmdMsgs__Response& deployNotificationResponse,
+                                                             bool& sendDeployNotificationResponse);
+
             // Specific reset command handling
             void doConditionalResetSpecific(RoverContext& theContext,
                                             WdCmdMsgs__ResetSpecificId resetValue,

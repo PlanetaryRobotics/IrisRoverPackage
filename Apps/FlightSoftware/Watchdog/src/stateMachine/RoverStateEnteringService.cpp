@@ -1,10 +1,5 @@
 #include "stateMachine/RoverStateEnteringService.hpp"
 
-#include "drivers/adc.h"
-#include "drivers/bsp.h"
-
-#include "ground_cmd.h"
-
 #include <cassert>
 
 namespace iris

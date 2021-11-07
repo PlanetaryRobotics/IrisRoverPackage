@@ -68,60 +68,153 @@ typedef struct HeaterParams
 #define DEFAULT_HEATER_DUTY_CYCLE_PERIOD 10000
 #define DEFAULT_HEATER_DUTY_CYCLE 0
 
-typedef enum PersistentStatusBitIndices
+#define GENERIC_BIT_INDEX_TO_TYPE_MASK(type, index) (((type) 1) << ((type) (index)))
+#define GENERIC_BIT_INDEX_TO_UINT8_MASK(index) GENERIC_BIT_INDEX_TO_TYPE_MASK(uint8_t, index)
+#define GENERIC_BIT_INDEX_TO_UINT16_MASK(index) GENERIC_BIT_INDEX_TO_TYPE_MASK(uint16_t, index)
+#define GENERIC_BIT_INDEX_TO_UINT32_MASK(index) GENERIC_BIT_INDEX_TO_TYPE_MASK(uint32_t, index)
+#define GENERIC_BIT_INDEX_TO_UINT64_MASK(index) GENERIC_BIT_INDEX_TO_TYPE_MASK(uint64_t, index)
+
+#define GENERIC_SET_BIT_IN_UINT8(uintVal, index) \
+        uintVal |= ((uint8_t) GENERIC_BIT_INDEX_TO_UINT8_MASK(index))
+#define GENERIC_SET_BIT_IN_UINT16(uintVal, index) \
+        uintVal |= ((uint16_t) GENERIC_BIT_INDEX_TO_UINT16_MASK(index))
+#define GENERIC_SET_BIT_IN_UINT32(uintVal, index) \
+        uintVal |= ((uint32_t) GENERIC_BIT_INDEX_TO_UINT32_MASK(index))
+#define GENERIC_SET_BIT_IN_UINT64(uintVal, index) \
+        uintVal |= ((uint64_t) GENERIC_BIT_INDEX_TO_UINT64_MASK(index))
+
+#define GENERIC_CLEAR_BIT_IN_UINT8(uintVal, index) \
+        uintVal &= ~((uint8_t) GENERIC_BIT_INDEX_TO_UINT8_MASK(index))
+#define GENERIC_CLEAR_BIT_IN_UINT16(uintVal, index) \
+        uintVal &= ~((uint16_t) GENERIC_BIT_INDEX_TO_UINT16_MASK(index))
+#define GENERIC_CLEAR_BIT_IN_UINT32(uintVal, index) \
+        uintVal &= ~((uint32_t) GENERIC_BIT_INDEX_TO_UINT32_MASK(index))
+#define GENERIC_CLEAR_BIT_IN_UINT64(uintVal, index) \
+        uintVal &= ~((uint64_t) GENERIC_BIT_INDEX_TO_UINT64_MASK(index))
+
+typedef enum OutputPinStatusBitIndices
+{
+    // These are digital outputs. If the corresponding bit is set, these should be high
+    OPSBI__V_LANDER_REG_EN = 0,
+    OPSBI__HEATER,
+    OPSBI__DEPLOYMENT,
+    OPSBI__FPGA_KICK_AKA_CAM_SELECT,
+    OPSBI__LATCH_BATT,
+    OPSBI__3V3_EN,
+    OPSBI__HERCULES_ON,
+    OPSBI__FPGA_ON,
+    OPSBI__MOTOR_ON,
+    OPSBI__CHRG_EN,
+    OPSBI__CHRG_EN_FORCE_HIGH,
+    OPSBI__BATTERY_EN,
+    OPSBI__V_SYS_ALL_EN,
+    OPSBI__V_SYS_ALL_EN_FORCE_LOW,
+    OPSBI__HERCULES_N_RST,
+    OPSBI__HERCULES_N_PORRST,
+    OPSBI__FPGA_N_RST,
+    OPSBI__RADIO_N_RST,
+    OPSBI__RADIO_ON,
+    OPSBI__BMS_BOOT,
+    OPSBI__LATCH_SET,
+    OPSBI__LATCH_RESET,
+    OPSBI__BATT_STAT,
+
+    OPSBI__RADIO_N_RESET_IS_INPUT,
+    OPSBI__HERCULES_N_RST_IS_INPUT,
+    OPSBI__HERCULES_N_PORRST_IS_INPUT,
+    OPSBI__FPGA_N_RST_IS_INPUT,
+    OPSBI__LATCH_SET_IS_INPUT,
+    OPSBI__LATCH_RESET_IS_INPUT,
+    OPSBI__BATT_STAT_IS_INPUT,
+} OutputPinStatusBitIndices;
+
+#define OPSBI_MASK(opsbi_index_enum) GENERIC_BIT_INDEX_TO_UINT32_MASK(opsbi_index_enum)
+#define SET_OPSBI_IN_UINT(opsbiUint, opsbi_index_enum) GENERIC_SET_BIT_IN_UINT32(opsbiUint, opsbi_index_enum)
+#define SET_OPSBI_IN_UINT_PTR(opsbiUintPtr, opsbi_index_enum) SET_OPSBI_IN_UINT(*opsbiUintPtr, opsbi_index_enum)
+#define CLEAR_OPSBI_IN_UINT(opsbiUint, opsbi_index_enum) GENERIC_CLEAR_BIT_IN_UINT32(opsbiUint, opsbi_index_enum)
+#define CLEAR_OPSBI_IN_UINT_PTR(opsbiUintPtr, opsbi_index_enum) CLEAR_OPSBI_IN_UINT(*opsbiUintPtr, opsbi_index_enum)
+
+typedef enum InputPinAndStateBitIndices
 {
     // State related things
-    PSBI__I2C_INITIALIZED = 0,
-    PSBI__UART0_INITIALIZED,
-    PSBI__UART1_INITIALIZED,
-    PSBI__DEPLOYED,
+    IPASBI__UART0_INITIALIZED = 0,
+    IPASBI__UART1_INITIALIZED,
+    IPASBI__DEPLOYED,
+    IPASBI__DEPLOYING,
 
-    // These are digital outputs. If the corresponding bit is set, these should be high
-    PSBI__V_LANDER_REG_EN,
-    // The state of BATT_CTRL_EN is not saved persistently by design (for safety reasons)
-    PSBI__DEPLOYMENT,
-    // The state of LATCH_BATT is not saved persistently by design (it should only ever be pulsed)
-    PSBI__3V3_EN,
-    PSBI__HERCULES_ON,
-    PSBI__FPGA_ON,
-    PSBI__MOTOR_ON,
-    PSBI__CHRG_EN,
-    PSBI__CHRG_EN_FORCE_HIGH,
-    PSBI__BATTERY_EN,
-    PSBI__V_SYS_ALL_EN,
-    PSBI__V_SYS_ALL_EN_FORCE_LOW,
-    PSBI__MC_RST_A,
-    PSBI__MC_RST_B,
-    PSBI__MC_RST_C,
-    PSBI__MC_RST_D,
-    PSBI__HERCULES_N_RST,
-    PSBI__HERCULES_N_PORRST,
-    PSBI__FPGA_N_RST,
-    PSBI__LATCH_RST,
-    PSBI__RADIO_N_RST,
-    PSBI__LATCH_SET,
-    PSBI__RADIO_ON,
-    PSBI__BMS_BOOT
-} PersistentStatusBitIndices;
+    // These are digital inputs. If the corresponding bit is set, then the input reads high
+    IPASBI__CHARGE_STAT1,
+    IPASBI__CHARGE_STAT2,
+    IPASBI__BATT_STAT,
+    IPASBI__LATCH_STAT,
+    IPASBI__PG12,
+    IPASBI__PG18,
+    IPASBI__PG33,
+    IPASBI__PG50,
+} InputPinAndStateBitIndices;
 
-#define PSBI_MASK(psbi_index_enum) (((uint32_t) 1) << ((uint32_t) (psbi_index_enum)))
+#define IPASBI_MASK(ipasbi_index_enum) GENERIC_BIT_INDEX_TO_UINT16_MASK(ipasbi_index_enum)
+#define SET_IPASBI_IN_UINT(ipasbiUint, ipasbi_index_enum) GENERIC_SET_BIT_IN_UINT16(ipasbiUint, ipasbi_index_enum)
+#define SET_IPASBI_IN_UINT_PTR(ipasbiUintPtr, ipasbi_index_enum) SET_IPASBI_IN_UINT(*ipasbiUintPtr, ipasbi_index_enum)
+#define CLEAR_IPASBI_IN_UINT(ipasbiUint, ipasbi_index_enum) GENERIC_CLEAR_BIT_IN_UINT16(ipasbiUint, ipasbi_index_enum)
+#define CLEAR_IPASBI_IN_UINT_PTR(ipasbiUintPtr, ipasbi_index_enum) CLEAR_IPASBI_IN_UINT(*ipasbiUintPtr, ipasbi_index_enum)
 
-#define SET_PSBI_IN_STATE(state, psbi_index_enum) \
-    /*(state).m_statusBits |= ((uint32_t) PSBI_MASK(psbi_index_enum))*/
-
-#define SET_PSBI_IN_STATE_PTR(statePtr, psbi_index_enum) SET_PSBI_IN_STATE(*statePtr, psbi_index_enum)
-
-#define CLEAR_PSBI_IN_STATE(state, psbi_index_enum) \
-    /*(state).m_statusBits &= ~((uint32_t) PSBI_MASK(psbi_index_enum))*/
-
-#define CLEAR_PSBI_IN_STATE_PTR(statePtr, psbi_index_enum) CLEAR_PSBI_IN_STATE(*statePtr, psbi_index_enum)
-
-typedef struct PersistentState
+typedef enum ResetActionBitIndices
 {
-    uint32_t m_statusBits;
-    HeaterParams m_heaterParams;
+    RABI__NO_RESET = 0,
+    RABI__HERCULES_RESET,
+    RABI__HERCULES_UNRESET,
+    RABI__HERCULES_POWER_ON,
+    RABI__HERCULES_POWER_OFF,
+    RABI__RADIO_RESET,
+    RABI__RADIO_UNRESET,
+    RABI__RADIO_POWER_ON,
+    RABI__RADIO_POWER_OFF,
+    RABI__CAM_FPGA_RESET,
+    RABI__CAM_FPGA_UNRESET,
+    RABI__CAM_FPGA_POWER_ON,
+    RABI__CAM_FPGA_POWER_OFF,
+    RABI__ALL_MOTORS_POWER_ON,
+    RABI__ALL_MOTORS_POWER_OFF,
+    RABI__3V3_EN_RESET,
+    RABI__3V3_EN_UNRESET,
+    RABI__3V3_EN_POWER_ON,
+    RABI__3V3_EN_POWER_OFF,
+    RABI__24V_EN_RESET,
+    RABI__24V_EN_UNRESET,
+    RABI__24V_EN_POWER_ON,
+    RABI__24V_EN_POWER_OFF,
+    RABI__HDRM_DEPLOY_SIGNAL_POWER_OFF,
+    RABI__FPGA_CAM_0_SELECT,
+    RABI__FPGA_CAM_1_SELECT,
+    RABI__BATTERY_CHARGE_START,
+    RABI__BATTERY_CHARGE_STOP,
+    RABI__RS422_UART_ENABLE,
+    RABI__RS422_UART_DISABLE,
+    RABI__AUTO_HEATER_CONTROLLER_ENABLE,
+    RABI__AUTO_HEATER_CONTROLLER_DISABLE,
+    RABI__HERCULES_WATCHDOG_ENABLE,
+    RABI__HERCULES_WATCHDOG_DISABLE,
+    RABI__BATTERIES_ENABLE,
+    RABI__BATTERIES_DISABLE,
+    RABI__HDRM_DEPLOY_SIGNAL_POWER_ON,
+    RABI__HERCULES_WATCHDOG_RESET
+} ResetActionBitIndices;
+
+#define RABI_MASK(rabi_index_enum) GENERIC_BIT_INDEX_TO_UINT64_MASK(rabi_index_enum)
+#define SET_RABI_IN_UINT(rabiUint, rabi_index_enum) GENERIC_SET_BIT_IN_UINT64(rabiUint, rabi_index_enum)
+#define SET_RABI_IN_UINT_PTR(rabiUintPtr, rabi_index_enum) SET_RABI_IN_UINT(*rabiUintPtr, rabi_index_enum)
+#define CLEAR_RABI_IN_UINT(rabiUint, rabi_index_enum) GENERIC_CLEAR_BIT_IN_UINT64(rabiUint, rabi_index_enum)
+#define CLEAR_RABI_IN_UINT_PTR(rabiUintPtr, rabi_index_enum) CLEAR_RABI_IN_UINT(*rabiUintPtr, rabi_index_enum)
+
+typedef struct WatchdogStateDetails
+{
+    uint32_t m_outputPinBits;
+    uint16_t m_inputPinAndStateBits;
+    uint64_t m_resetActionBits;
     uint8_t m_stateAsUint;
-} PersistentState;
+    HeaterParams m_hParams;
+} WatchdogStateDetails;
 
 #ifdef __cplusplus
 } /* close extern "C" */

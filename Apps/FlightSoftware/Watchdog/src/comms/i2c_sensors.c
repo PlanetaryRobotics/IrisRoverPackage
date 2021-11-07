@@ -120,6 +120,9 @@ typedef struct INS_Sensors__InternalState
     ReadIOExpanderState rieState;
 
     I2C_Sensors__Readings readings;
+    uint8_t ioExpanderPort0DirectionValue;
+    uint8_t ioExpanderPort1DirectionValue;
+
     uint8_t controlRegisterReadValue;
     uint8_t ioExpanderPort1ReadValue;
 
@@ -139,10 +142,10 @@ static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_MSB_INIT = 0xA0;
 static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT = 0xD8;
 
 // On rev I, the I/O expander contains the following pins:
-//     0.0: MC_RST_A, output to reset motor A controller (reset is active when low)
-//     0.1: MC_RST_B, output to reset motor B controller (reset is active when low)
-//     0.2: MC_RST_C, output to reset motor C controller (reset is active when low)
-//     0.3: MC_RST_D, output to reset motor D controller (reset is active when low)
+//     0.0: MC_RST_A, now INPUT due to needing it to program motors and never using reset functionality
+//     0.1: MC_RST_B, now INPUT due to needing it to program motors and never using reset functionality
+//     0.2: MC_RST_C, now INPUT due to needing it to program motors and never using reset functionality
+//     0.3: MC_RST_D, now INPUT due to needing it to program motors and never using reset functionality
 //     0.4: Hercules_nRST, output to reset Hercules (reset is active when low)
 //     0.5: Hercules_nPORRST, output to power-on reset Hercules (reset is active when low)
 //     0.6: FPGA_nRST, output to reset FPGA (reset is active when low)
@@ -161,7 +164,7 @@ static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT = 0xD8;
 // Register 9 is the register to configure the directions of the port 1 pins, where "0" is output. As described
 //   above, pins 0, 3, 5, and 6 are outputs, and the rest are either inputs or not connected.
 static const uint8_t IO_EXPANDER_CONFIG_PORT_0_REG_ADDR = 8;
-static const uint8_t IO_EXPANDER_CONFIG_PORT_0_VALUE = 0b10000000;
+static const uint8_t IO_EXPANDER_CONFIG_PORT_0_VALUE = 0b10001111;
 static const uint8_t IO_EXPANDER_CONFIG_PORT_1_REG_ADDR = 9;
 static const uint8_t IO_EXPANDER_CONFIG_PORT_1_VALUE = 0b00011110;
 
@@ -186,6 +189,8 @@ static INS_Sensors__InternalState internals =
           .wieState = WIE__UNKNOWN,
           .rieState = RIE__UNKNOWN,
           .readings = { 0 },
+          .ioExpanderPort0DirectionValue = 0,
+          .ioExpanderPort1DirectionValue = 0,
           .controlRegisterReadValue = 0,
           .ioExpanderPort1ReadValue = 0,
           .ioExpanderPort0WriteValue = 0,
@@ -559,6 +564,9 @@ I2C_Sensors__Status I2C_Sensors__initiateIoExpanderInitialization(void)
     if (I2C_SENSORS__ACTIONS__INACTIVE == internals.activeAction) {
         internals.activeAction = I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER;
         internals.iieState = IIE__WRITE_PORT_0_CONFIG;
+        internals.ioExpanderPort0DirectionValue = IO_EXPANDER_CONFIG_PORT_0_VALUE;
+        internals.ioExpanderPort1DirectionValue = IO_EXPANDER_CONFIG_PORT_1_VALUE;
+
         return I2C_SENSORS__STATUS__SUCCESS_DONE;
     } else {
         return I2C_SENSORS__STATUS__ERROR__ACTION_ALREADY_IN_PROGRESS;
@@ -711,6 +719,63 @@ I2C_Sensors__Status I2C_Sensors__readIoExpanderBlocking(uint8_t* chargeStat2,
             *chargeStat2 = (readValue & I2C_SENSORS__IOE_P1_BIT__CHARGE_STAT2 != 0) ? 1 : 0;
             *latchStat = (readValue & I2C_SENSORS__IOE_P1_BIT__LATCH_STAT != 0) ? 1 : 0;
 
+            return i2cStatus;
+        }
+    }
+
+    return I2C_SENSORS__STATUS__ERROR__TIMEOUT;
+}
+
+I2C_Sensors__Status I2C_Sensors__getIoExpanderPortDirections(uint8_t* port0Value, uint8_t* port1Value)
+{
+    if (NULL == port0Value || NULL == port1Value) {
+        return I2C_SENSORS__STATUS__ERROR__NULL;
+    }
+
+    *port0Value = internals.ioExpanderPort0DirectionValue;
+    *port1Value = internals.ioExpanderPort1DirectionValue;
+}
+
+I2C_Sensors__Status I2C_Sensors__writeIoExpanderPortDirectionsBlocking(uint8_t port0Value,
+                                                                       uint8_t port1Value,
+                                                                       uint16_t timeoutCentiseconds)
+{
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + timeoutCentiseconds;
+
+    I2C_Sensors__Status i2cStatus = I2C_Sensors__initiateIoExpanderInitialization();
+
+    if (I2C_SENSORS__STATUS__SUCCESS_DONE != i2cStatus) {
+        return i2cStatus;
+    }
+
+    // Modify the default direction values set in I2C_Sensors__initiateIoExpanderInitialization to the ones passed to
+    // this function
+    internals.ioExpanderPort0DirectionValue = port0Value;
+    internals.ioExpanderPort1DirectionValue = port1Value;
+
+    while (currentTimeCentiseconds <= endTimeCentiseconds) {
+        I2C_Sensors__spinOnce();
+
+        I2C_Sensors__Action action = I2C_SENSORS__ACTIONS__INACTIVE;
+        uint8_t readValue = 0;
+        i2cStatus = I2C_Sensors__getActionStatus(&action, NULL, &readValue);
+
+        // Sanity check
+        assert(I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER == action);
+
+        if (I2C_SENSORS__STATUS__INCOMPLETE == i2cStatus) {
+            // Delay a tiny bit so we're not spinning completely tightly. We're single-threaded so it's not like anything
+            // else runs while we delay, but this should hopefully reduce power usage.
+            __delay_cycles(10);
+
+            // Update the current time so we can timeout if necessary
+            currentTimeCentiseconds = Time__getTimeInCentiseconds();
+        } else {
+            DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "IO expander init failed");
+
+            I2C_Sensors__clearLastAction();
             return i2cStatus;
         }
     }

@@ -1,3 +1,4 @@
+#include "drivers/blimp.h"
 #include "drivers/bsp.h"
 #include "stateMachine/RoverStateInit.hpp"
 #include "utils/time.h"
@@ -61,7 +62,8 @@ namespace iris
         //!< @todo Replace this with initialization based on persistent status
 
         /* initialize the board */
-        initializeGpios(theContext.m_persistantStatePtr);
+        initializeGpios(&(theContext.m_details));
+        blimp_initialize(&(theContext.m_details));
 
         /* unlock changes to registers/ports, etc. */
         PM5CTL0 &= ~LOCKLPM5;
@@ -81,7 +83,7 @@ namespace iris
         /* set up watchdog */
         watchdog_init(&(theContext.m_watchdogFlags),
                       Time__getPointerToCentisecondCount(),
-                      &(theContext.m_persistantStatePtr->m_heaterParams));
+                      &(theContext.m_details.m_hParams));
 
         /* set up the ADC */
         adc_init(&(theContext.m_watchdogFlags));

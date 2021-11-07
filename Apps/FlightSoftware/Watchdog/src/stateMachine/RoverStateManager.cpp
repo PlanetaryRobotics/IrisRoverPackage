@@ -15,26 +15,6 @@ namespace iris
     static volatile uint8_t uart1TxBuffer[1024] = {};
     static volatile uint8_t uart1RxBuffer[1024] = {};
 
-//#pragma PERSISTENT
-    static PersistentState persistentState =
-    {
-         .m_statusBits = PSBI_MASK(PSBI__CHRG_EN),
-         .m_heaterParams =
-         {
-              .m_kpHeater = DEFAULT_KP_HEATER,
-              .m_pwmLimit = DEFAULT_PWM_LIMIT,
-              .m_heaterSetpoint = DEFAULT_HEATER_SETPOINT,
-              .m_heaterWindow = DEFAULT_HEATER_WINDOW,
-              .m_heaterOnVal = DEFAULT_HEATER_ON_VAL,
-              .m_heaterOffVal = DEFAULT_HEATER_OFF_VAL,
-              .m_heating = DEFAULT_HEATING,
-              .m_heatingControlEnabled = DEFAULT_HEATING_CONTROL_ENABLED,
-              .m_heaterDutyCyclePeriod = DEFAULT_HEATER_DUTY_CYCLE_PERIOD,
-              .m_heaterDutyCycle = DEFAULT_HEATER_DUTY_CYCLE
-         },
-         .m_stateAsUint = static_cast<uint8_t>(RoverState::ENTERING_KEEP_ALIVE)
-    };
-
 #pragma PERSISTENT
     static bool persistentInMission = false;
 #pragma PERSISTENT
@@ -72,7 +52,22 @@ namespace iris
         m_context.m_uartConfig.uart1Buffers.rxBuffer = uart1RxBuffer;
         m_context.m_uartConfig.uart1Buffers.rxBufferSize = sizeof(uart1RxBuffer);
 
-        m_context.m_persistantStatePtr = &persistentState;
+        m_context.m_details.m_hParams.m_kpHeater = DEFAULT_KP_HEATER;
+        m_context.m_details.m_hParams.m_pwmLimit = DEFAULT_PWM_LIMIT;
+        m_context.m_details.m_hParams.m_heaterSetpoint = DEFAULT_HEATER_SETPOINT;
+        m_context.m_details.m_hParams.m_heaterWindow = DEFAULT_HEATER_WINDOW;
+        m_context.m_details.m_hParams.m_heaterOnVal = DEFAULT_HEATER_ON_VAL;
+        m_context.m_details.m_hParams.m_heaterOffVal = DEFAULT_HEATER_OFF_VAL;
+        m_context.m_details.m_hParams.m_heating = DEFAULT_HEATING;
+        m_context.m_details.m_hParams.m_heatingControlEnabled = DEFAULT_HEATING_CONTROL_ENABLED;
+        m_context.m_details.m_hParams.m_heaterDutyCyclePeriod = DEFAULT_HEATER_DUTY_CYCLE_PERIOD;
+        m_context.m_details.m_hParams.m_heaterDutyCycle = DEFAULT_HEATER_DUTY_CYCLE;
+        m_context.m_details.m_stateAsUint = static_cast<uint8_t>(RoverState::ENTERING_KEEP_ALIVE);
+        m_context.m_details.m_inputPinAndStateBits = 0;
+        m_context.m_details.m_outputPinBits = 0;
+        m_context.m_details.m_resetActionBits = 0;
+
+
         m_context.m_persistentInMission = &persistentInMission;
         m_context.m_persistentDeployed = &persistentDeployed;
 
@@ -125,6 +120,7 @@ namespace iris
             }
 
             RoverState currentState = m_currentState->getState();
+            m_context.m_details.m_stateAsUint = static_cast<uint8_t>(currentState);
             RoverState desiredNextState = m_currentState->spinOnce(m_context);
 
             if (currentState != desiredNextState) {
@@ -167,6 +163,7 @@ namespace iris
     {
         while (m_currentState->getState() != desiredState) {
             m_currentState = getStateObjectForStateEnum(desiredState);
+            m_context.m_details.m_stateAsUint = static_cast<uint8_t>(m_currentState->getState());
             desiredState = m_currentState->transitionTo(m_context);
         }
     }

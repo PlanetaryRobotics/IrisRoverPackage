@@ -1,10 +1,10 @@
 #include "stateMachine/RoverStateMission.hpp"
 
+#include "comms/ground_msgs.h"
 #include "comms/i2c_sensors.h"
 #include "drivers/adc.h"
 #include "drivers/bsp.h"
 
-#include "ground_cmd.h"
 #include "watchdog.h"
 
 #include <cassert>
@@ -40,24 +40,24 @@ namespace iris
          *       reason, and don't send this if that is the case.
          */
         static FullEarthHeartbeat hb = { 0 };
-        GroundCmd__Status gcStatus = GroundCmd__generateFullEarthHeartbeat(&(theContext.m_i2cReadings),
-                                                                           &(theContext.m_adcValues),
-                                                                           &(theContext.m_persistantStatePtr->m_heaterParams),
-                                                                           static_cast<uint8_t>(getState()),
-                                                                           &hb);
+        GroundMsgs__Status gcStatus = GroundMsgs__generateFullEarthHeartbeat(&(theContext.m_i2cReadings),
+                                                                             &(theContext.m_adcValues),
+                                                                             &(theContext.m_details.m_hParams),
+                                                                             static_cast<uint8_t>(getState()),
+                                                                             &hb);
 
-        assert(GND_CMD__STATUS__SUCCESS == gcStatus);
+        assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
 
         LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
-                                                           hb.heartbeatOutBuffer,
-                                                           sizeof(hb.heartbeatOutBuffer));
+                                                           (uint8_t*) &hb,
+                                                           sizeof(hb));
 
         assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
         if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
             //!< @todo Handling?
         }
 
-        if (theContext.m_persistantStatePtr->m_heaterParams.m_heatingControlEnabled) {
+        if (theContext.m_details.m_hParams.m_heatingControlEnabled) {
             // calculate PWM duty cycle (if any) to apply to heater
             heaterControl(theContext);
         }
@@ -72,7 +72,8 @@ namespace iris
         watchdog_monitor(theContext.m_hcState,
                          &(theContext.m_watchdogFlags),
                          &(theContext.m_watchdogOpts),
-                         &writeIOExpander);
+                         &writeIOExpander,
+                         &(theContext.m_details));
 
         if (writeIOExpander) {
             theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
@@ -82,6 +83,13 @@ namespace iris
             if (!theContext.m_i2cActive) {
                 initiateNextI2cAction(theContext);
             }
+        }
+
+        // Queue up a read of the IO Expander, and initiate it if no other I2C action is active
+        theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__READ_IO_EXPANDER);
+
+        if (!theContext.m_i2cActive) {
+            initiateNextI2cAction(theContext);
         }
 
         return getState();
@@ -115,6 +123,23 @@ namespace iris
                     theContext.m_watchdogFlags &= ~WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE;
                 }
 
+                if (I2C_SENSORS__ACTIONS__READ_IO_EXPANDER == action) {
+                    bool chargeStat2 = (readValue & I2C_SENSORS__IOE_P1_BIT__CHARGE_STAT2 != 0);
+                    bool latchStat = (readValue & I2C_SENSORS__IOE_P1_BIT__LATCH_STAT != 0);
+
+                    if (chargeStat2) {
+                        SET_IPASBI_IN_UINT(theContext.m_details.m_inputPinAndStateBits, IPASBI__CHARGE_STAT2);
+                    } else {
+                        CLEAR_IPASBI_IN_UINT(theContext.m_details.m_inputPinAndStateBits, IPASBI__CHARGE_STAT2);
+                    }
+
+                    if (latchStat) {
+                        SET_IPASBI_IN_UINT(theContext.m_details.m_inputPinAndStateBits, IPASBI__LATCH_STAT);
+                    } else {
+                        CLEAR_IPASBI_IN_UINT(theContext.m_details.m_inputPinAndStateBits, IPASBI__LATCH_STAT);
+                    }
+                }
+
                 I2C_Sensors__clearLastAction();
                 theContext.m_i2cActive = false;
                 initiateNextI2cAction(theContext);
@@ -136,7 +161,7 @@ namespace iris
         // Only use heater when connected to the lander
         if (m_currentDeployState != DeployState::NOT_DEPLOYED) {
             TB0CCR2 = 0;
-            theContext.m_persistantStatePtr->m_heaterParams.m_heaterDutyCycle = 0;
+            theContext.m_details.m_hParams.m_heaterDutyCycle = 0;
         } else {
             RoverStateBase::heaterControl(theContext);
         }

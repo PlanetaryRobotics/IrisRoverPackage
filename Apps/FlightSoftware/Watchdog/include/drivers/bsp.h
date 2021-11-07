@@ -9,7 +9,7 @@ extern "C"
 {
 #endif
 
-void initializeGpios(PersistentState* pState);
+void initializeGpios(WatchdogStateDetails* details);
 void enableUart0Pins(void);
 void disableUart0Pins(void);
 void enableUart1Pins(void);
@@ -56,7 +56,7 @@ void unsetDeploy(void);
 void startChargingBatteries(void);
 void stopChargingBatteries(void);
 
-void setLatchSetAndResetHigh(void);
+void readOnChipInputs(void);
 
 #ifdef __cplusplus
 } /* close extern "C" */

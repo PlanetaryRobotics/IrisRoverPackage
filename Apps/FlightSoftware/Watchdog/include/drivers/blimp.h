@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include "common.h"
+#include "flags.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -19,7 +20,9 @@ extern "C"
 /**
  * @brief Number of cycles to hold a pulse on the D-Latch for (should be at least 2us)
  */
-#define IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES 500
+#define IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES 100000
+
+void blimp_initialize(WatchdogStateDetails* details);
 
 /**
  * @brief Boots the BLiMP into a safe mode for testing by disabling everything.
@@ -197,6 +200,66 @@ void blimp_bstat_dangerous_forceLow();
  *        commands)
  */
 void blimp_bstat_safe_restoreInput();
+
+/**
+ * @brief Sets the `LATCH_SET` (set) pin to be an input with no pull-up/down resistors.
+ *
+ * @note `LATCH_SET` should be left in this state 100% of the time unless actively debugging.
+ */
+void blimp_latchSetOff();
+
+/**
+ * @brief Sets the `LATCH_SET` (set) pin on the BLiMP's D-Latch HIGH.
+ *
+ * @note `LATCH_SET` is normally not used on the D-latch and should be kept high.
+ */
+void blimp_latchSetHigh();
+
+/**
+ * @brief Sets the `LATCH_SET` (set) pin on the BLiMP's D-Latch LOW.
+ *
+ * @note `LATCH_SET` is normally not used on the D-latch and should be kept high.
+ */
+void blimp_latchSetLow();
+
+/**
+ * @brief Pulses the set signal (`LATCH_SET`) low to the D-Latch, asynchronously forcibly changing the latch output
+ *        (LSTAT) state to HIGH.
+ *
+ * @note Normally unused. Only use to intentionally override and bypass latch logic.
+ * @note Intentionally blocking for (2 * `IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES`) cycles.
+ */
+void blimp_latchSetPulseLow();
+
+/**
+ * @brief Sets the `LATCH_RST` (set) pin to be an input with no pull-up/down resistors.
+ *
+ * @note `LATCH_RST` should be left in this state 100% of the time unless actively debugging.
+ */
+void blimp_latchResetOff();
+
+/**
+ * @brief Sets the `LATCH_RST` (reset) pin on the BLiMP's D-Latch HIGH.
+ *
+ * @note `LATCH_RST` is normally not used on the D-latch and should be kept high.
+ */
+void blimp_latchResetHigh();
+
+/**
+ * @brief Sets the `LATCH_RST` (reset) pin on the BLiMP's D-Latch LOW.
+ *
+ * @note `LATCH_RST` is normally not used on the D-latch and should be kept high.
+ */
+void blimp_latchResetLow();
+
+/**
+ * @brief Pulses the reset signal (`LATCH_RST`) low to the D-Latch, asynchronously forcibly changing the latch output
+ *        (LSTAT) state to LOW.
+ *
+ * @note Normally unused. Only use to intentionally override and bypass latch logic.
+ * @note Intentionally blocking for (2 * `IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES`) cycles.
+ */
+void blimp_latchResetPulseLow();
 
 #ifdef __cplusplus
 } /* close extern "C" */

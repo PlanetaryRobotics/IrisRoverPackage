@@ -78,11 +78,13 @@ typedef enum WdCmdMsgs__CommandId
     WD_CMD_MSGS__CMD_ID__SET_AUTO_HEATER_OFF_VALUE = 0x10AC, //!< Set heater "OFF" value used with auto heater controller.
     WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_MAX = 0x10AD, //!< Set max duty cycle of heater PWM.
     WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_PERIOD = 0x10AE, //!< Set duty period period of heater PWM.
-    WD_CMD_MSGS__CMD_ID__SET_THERMISTER_V_SETPOINT = 0x10DA, //!< Set the thermistor value setpoint.
+    WD_CMD_MSGS__CMD_ID__SET_THERMISTOR_V_SETPOINT = 0x10DA, //!< Set the thermistor value setpoint.
     WD_CMD_MSGS__CMD_ID__ENTER_SLEEP_MODE = 0x10EA, //!< Enter "Sleep" mode.
     WD_CMD_MSGS__CMD_ID__ENTER_KEEPALIVE_MODE = 0x10EB, //!< Enter "Keep Alive" mode.
     WD_CMD_MSGS__CMD_ID__ENTER_SERVICE_MODE = 0x10EC, //!< Enter "Service" mode.
+    WD_CMD_MSGS__CMD_ID__CLEAR_RESET_MEMORY = 0x10F4, //!< Clear the reset memory used in the detailed report.
     WD_CMD_MSGS__CMD_ID__DANGEROUS_FORCE_BATT_STATE = 0x10F5, //!< Dangerous: Force battery state.
+    WD_CMD_MSGS__CMD_ID__REQUEST_DETAILED_REPORT = 0x10F6, //!< Request a detailed report
     WD_CMD_MSGS__CMD_ID__SET_CHARGE_EN_STATE = 0x10F7, //!< Set charging IC enable state.
     WD_CMD_MSGS__CMD_ID__SET_CHARGE_REG_EN_STATE = 0x10F8, //!< Set charging power 28V regulator enable state.
     WD_CMD_MSGS__CMD_ID__SET_BATT_EN_STATE = 0x10F9, //!< Set battery connection state.
@@ -222,6 +224,16 @@ typedef enum WdCmdMsgs__SetLatchBattSelection
     WD_CMD_MSGS__LATCH_BATT__UPDATE = 0xAA//!< Pulse latch low-high-low
 } WdCmdMsgs__SetLatchBattSelection;
 
+/**
+ * @brief Possible values of the parameter of the Set Battery Control EN State command.
+ */
+typedef enum WdCmdMsgs__LatchSetResetSelection
+{
+    WD_CMD_MSGS__LATCH_SET_RESET__OFF = 0x00, //!< Set as input
+    WD_CMD_MSGS__LATCH_SET_RESET__PULSE = 0x15, //!< Pulse high-low-high as an output
+    WD_CMD_MSGS__LATCH_SET_RESET__FORCE_HIGH = 0xBB, //!< Make an output and pull high
+    WD_CMD_MSGS__LATCH_SET_RESET__FORCE_LOW = 0xFF //!< Make an output and pull low
+} WdCmdMsgs__LatchSetResetSelection;
 
 /**
  * @brief The magic number that is expected as the parameter of all of the commands that change the mode.
@@ -244,14 +256,19 @@ static const uint8_t WD_CMD_MSGS__CONFIRM_DANG_FORCE_BATT_STATE_MAGIC_NUMBER_ONE
 static const uint8_t WD_CMD_MSGS__CONFIRM_DANG_FORCE_BATT_STATE_MAGIC_NUMBER_TWO = 0x01u;
 
 /**
- * @brief The magic number expected as the parameter of the "Latch Set Pulse Low" command.
+ * @brief The first magic number expected as a parameter of the "Clear Reset Memory" command.
  */
-static const uint8_t WD_CMD_MSGS__LATCH_SET_PULSE_LOW_MAGIC_NUMBER = 0x15u;
+static const uint8_t WD_CMD_MSGS__CONFIRM_CLR_RST_MEM_MAGIC_NUMBER_ONE = 0xC7u;
 
 /**
- * @brief The magic number expected as the parameter of the "Latch Set Pulse Low" command.
+ * @brief The second magic number expected as a parameter of the "Clear Reset Memory" command.
  */
-static const uint8_t WD_CMD_MSGS__LATCH_RESET_PULSE_LOW_MAGIC_NUMBER = 0x5Eu;
+static const uint8_t WD_CMD_MSGS__CONFIRM_CLR_RST_MEM_MAGIC_NUMBER_TWO = 0x19u;
+
+/**
+ * @brief The magic number that is expected as the parameter of the "Request Detailed Report" command.
+ */
+static const uint8_t WD_CMD_MSGS__CONFIRM_REQ_DET_REPORT_MAGIC_NUMBER = 0x57u;
 
 /**
  * @brief The magic number expected as the first byte of the response message.
@@ -421,7 +438,7 @@ typedef struct WdCmdMsgs__MsgBody__SetLatchBattState
  */
 typedef struct WdCmdMsgs__MsgBody__LatchSetPulseLow
 {
-    uint8_t confirmationMagicNumber; //!< Must be the expected magic number for this command to be performed.
+        WdCmdMsgs__LatchSetResetSelection selection; //!< The latch set state to be set.
 } WdCmdMsgs__MsgBody__LatchSetPulseLow;
 
 /**
@@ -429,9 +446,25 @@ typedef struct WdCmdMsgs__MsgBody__LatchSetPulseLow
  */
 typedef struct WdCmdMsgs__MsgBody__LatchResetPulseLow
 {
-    uint8_t confirmationMagicNumber; //!< Must be the expected magic number for this command to be performed.
+        WdCmdMsgs__LatchSetResetSelection selection; //!< The latch reset state to be set.
 } WdCmdMsgs__MsgBody__LatchResetPulseLow;
 
+/**
+ * @brief The body of an "Clear Reset Memory" command.
+ */
+typedef struct WdCmdMsgs__MsgBody__ClearResetMemory
+{
+    uint8_t magicOne;
+    uint8_t magicTwo;
+} WdCmdMsgs__MsgBody__ClearResetMemory;
+
+/**
+ * @brief The body of an "Request Detailed Report" command.
+ */
+typedef struct WdCmdMsgs__MsgBody__RequestDetailedReport
+{
+    uint8_t magic;
+} WdCmdMsgs__MsgBody__RequestDetailedReport;
 
 //######################################################################################################################
 // Overall Message Structure
@@ -465,6 +498,8 @@ typedef union
     WdCmdMsgs__MsgBody__SetLatchBattState setLatchBattState;
     WdCmdMsgs__MsgBody__LatchSetPulseLow latchSetPulseLow;
     WdCmdMsgs__MsgBody__LatchResetPulseLow latchResetPulseLow;
+    WdCmdMsgs__MsgBody__ClearResetMemory clearResetMem;
+    WdCmdMsgs__MsgBody__RequestDetailedReport reqDetReport;
 } WdCmdMsgs__MessageBody;
 
 /**
@@ -521,6 +556,8 @@ typedef enum WdCmdMsgs__PackedSize
     WD_CMD_MSGS__PACKED_SIZE__SET_LATCH_BATT_STATE_BODY = sizeof(uint8_t),
     WD_CMD_MSGS__PACKED_SIZE__LATCH_SET_PULSE_LOW_BODY = sizeof(uint8_t),
     WD_CMD_MSGS__PACKED_SIZE__LATCH_RESET_PULSE_LOW_BODY = sizeof(uint8_t),
+    WD_CMD_MSGS__PACKED_SIZE__CLEAR_RESET_MEMORY_BODY = 2 * sizeof(uint8_t),
+    WD_CMD_MSGS__PACKED_SIZE__REQUEST_DETAILED_REPORT_BODY = sizeof(uint8_t),
 
 
     // Full Messages
@@ -548,6 +585,8 @@ typedef enum WdCmdMsgs__PackedSize
     WD_CMD_MSGS__PACKED_SIZE__SET_LATCH_BATT_STATE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_LATCH_BATT_STATE_BODY,
     WD_CMD_MSGS__PACKED_SIZE__LATCH_SET_PULSE_LOW_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__LATCH_SET_PULSE_LOW_BODY,
     WD_CMD_MSGS__PACKED_SIZE__LATCH_RESET_PULSE_LOW_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__LATCH_RESET_PULSE_LOW_BODY,
+    WD_CMD_MSGS__PACKED_SIZE__CLEAR_RESET_MEMORY_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__CLEAR_RESET_MEMORY_BODY,
+    WD_CMD_MSGS__PACKED_SIZE__REQUEST_DETAILED_REPORT_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__REQUEST_DETAILED_REPORT_BODY,
 
     WD_CMD_MSGS__PACKED_SIZE__SMALLEST_MSG = WD_CMD_MSGS__PACKED_SIZE__RESET_SPECIFIC_MSG,
     WD_CMD_MSGS__PACKED_SIZE__LARGEST_MSG = WD_CMD_MSGS__PACKED_SIZE__DANG_FORCE_BATT_STATE_MSG

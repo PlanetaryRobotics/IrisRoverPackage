@@ -6,7 +6,7 @@
 #include "event/event.h"
 #include "event/event_queue.h"
 
-#include "ground_cmd.h"
+#include "comms/ground_msgs.h"
 #include "watchdog.h"
 
 #include <cassert>
@@ -142,7 +142,7 @@ namespace iris
         // voltage, where LSB = 0.0008056640625V
         unsigned short thermReading = theContext.m_adcValues.battTemp;
         bool tempLow = false;
-        HeaterParams& hParams = theContext.m_persistantStatePtr->m_heaterParams;
+        HeaterParams& hParams = theContext.m_details.m_hParams;
 
         if (thermReading > hParams.m_heaterOnVal) {
             //   start heating when temperature drops below -5 C
@@ -366,7 +366,7 @@ namespace iris
                                                         deployNotificationResponse,
                                                         sendDeployNotificationResponse);
 
-            case WD_CMD_MSGS__CMD_ID__SET_THERMISTER_V_SETPOINT:
+            case WD_CMD_MSGS__CMD_ID__SET_THERMISTOR_V_SETPOINT:
                 return doGndCmdSetThermisterVSetpoint(theContext,
                                                       msg,
                                                       response,
@@ -417,8 +417,21 @@ namespace iris
                 }
                 break;
 
+            case WD_CMD_MSGS__CMD_ID__CLEAR_RESET_MEMORY:
+                if ((msg.body.clearResetMem.magicOne != WD_CMD_MSGS__CONFIRM_CLR_RST_MEM_MAGIC_NUMBER_ONE) ||
+                    (msg.body.clearResetMem.magicTwo != WD_CMD_MSGS__CONFIRM_CLR_RST_MEM_MAGIC_NUMBER_TWO)) {
+                    /* magic bad */
+                    response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+                } else {
+                    return doGndCmdClearResetMemory(theContext,
+                                                    msg,
+                                                    response,
+                                                    deployNotificationResponse,
+                                                    sendDeployNotificationResponse);
+                }
+                break;
+
             case WD_CMD_MSGS__CMD_ID__DANGEROUS_FORCE_BATT_STATE:
-                /* Enter service mode */
                 if ((msg.body.dangForceBattState.confirmationMagicNumberOne
                             != WD_CMD_MSGS__CONFIRM_DANG_FORCE_BATT_STATE_MAGIC_NUMBER_ONE) ||
                     (msg.body.dangForceBattState.confirmationMagicNumberTwo
@@ -431,6 +444,20 @@ namespace iris
                                                       response,
                                                       deployNotificationResponse,
                                                       sendDeployNotificationResponse);
+                }
+                break;
+
+            case WD_CMD_MSGS__CMD_ID__REQUEST_DETAILED_REPORT:
+                /* Enter service mode */
+                if (msg.body.reqDetReport.magic != WD_CMD_MSGS__CONFIRM_REQ_DET_REPORT_MAGIC_NUMBER) {
+                    /* magic bad */
+                    response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+                } else {
+                    return doGndCmdRequestDetailedReport(theContext,
+                                                         msg,
+                                                         response,
+                                                         deployNotificationResponse,
+                                                         sendDeployNotificationResponse);
                 }
                 break;
 
@@ -470,34 +497,18 @@ namespace iris
                                                  sendDeployNotificationResponse);
 
             case WD_CMD_MSGS__CMD_ID__LATCH_SET_PULSE_LOW:
-                /* Enter service mode */
-                if (msg.body.latchSetPulseLow.confirmationMagicNumber
-                            != WD_CMD_MSGS__LATCH_SET_PULSE_LOW_MAGIC_NUMBER) {
-                    /* magic bad */
-                    response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
-                } else {
-                    return doGndCmdLatchSetPulseLow(theContext,
-                                                    msg,
-                                                    response,
-                                                    deployNotificationResponse,
-                                                    sendDeployNotificationResponse);
-                }
-                break;
+                return doGndCmdLatchSetPulseLow(theContext,
+                                                msg,
+                                                response,
+                                                deployNotificationResponse,
+                                                sendDeployNotificationResponse);
 
             case WD_CMD_MSGS__CMD_ID__LATCH_RESET_PULSE_LOW:
-                /* Enter service mode */
-                if (msg.body.latchResetPulseLow.confirmationMagicNumber
-                            != WD_CMD_MSGS__LATCH_RESET_PULSE_LOW_MAGIC_NUMBER) {
-                    /* magic bad */
-                    response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
-                } else {
-                    return doGndCmdLatchResetPulseLow(theContext,
-                                                      msg,
-                                                      response,
-                                                      deployNotificationResponse,
-                                                      sendDeployNotificationResponse);
-                }
-                break;
+                return doGndCmdLatchResetPulseLow(theContext,
+                                                  msg,
+                                                  response,
+                                                  deployNotificationResponse,
+                                                  sendDeployNotificationResponse);
 
             default:
                 response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_ID;
@@ -707,7 +718,7 @@ namespace iris
                                                    WdCmdMsgs__Response& deployNotificationResponse,
                                                    bool& sendDeployNotificationResponse)
     {
-        theContext.m_persistantStatePtr->m_heaterParams.m_kpHeater = msg.body.setHeaterKp.kp;
+        theContext.m_details.m_hParams.m_kpHeater = msg.body.setHeaterKp.kp;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -718,7 +729,7 @@ namespace iris
                                                             WdCmdMsgs__Response& deployNotificationResponse,
                                                             bool& sendDeployNotificationResponse)
     {
-        theContext.m_persistantStatePtr->m_heaterParams.m_heaterOnVal = msg.body.setAutoHeaterOnValue.heaterOnValue;
+        theContext.m_details.m_hParams.m_heaterOnVal = msg.body.setAutoHeaterOnValue.heaterOnValue;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -729,7 +740,7 @@ namespace iris
                                                              WdCmdMsgs__Response& deployNotificationResponse,
                                                              bool& sendDeployNotificationResponse)
     {
-        theContext.m_persistantStatePtr->m_heaterParams.m_heaterOffVal = msg.body.setAutoHeaterOffValue.heaterOffValue;
+        theContext.m_details.m_hParams.m_heaterOffVal = msg.body.setAutoHeaterOffValue.heaterOffValue;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -740,7 +751,7 @@ namespace iris
                                                              WdCmdMsgs__Response& deployNotificationResponse,
                                                              bool& sendDeployNotificationResponse)
     {
-        theContext.m_persistantStatePtr->m_heaterParams.m_pwmLimit = msg.body.setHeaterDutyCycleMax.dutyCycleMax;
+        theContext.m_details.m_hParams.m_pwmLimit = msg.body.setHeaterDutyCycleMax.dutyCycleMax;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -752,7 +763,7 @@ namespace iris
                                                                 bool& sendDeployNotificationResponse)
     {
         TB0CCR0 = msg.body.setHeaterDutyCyclePeriod.dutyCyclePeriod;
-        theContext.m_persistantStatePtr->m_heaterParams.m_heaterDutyCyclePeriod =
+        theContext.m_details.m_hParams.m_heaterDutyCyclePeriod =
                 msg.body.setHeaterDutyCyclePeriod.dutyCyclePeriod;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
@@ -764,7 +775,7 @@ namespace iris
                                                               WdCmdMsgs__Response& deployNotificationResponse,
                                                               bool& sendDeployNotificationResponse)
     {
-        theContext.m_persistantStatePtr->m_heaterParams.m_heaterSetpoint =
+        theContext.m_details.m_hParams.m_heaterSetpoint =
                 msg.body.setThermisterVSetpoint.thermisterVSetpoint;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
@@ -954,7 +965,31 @@ namespace iris
                                                         WdCmdMsgs__Response& deployNotificationResponse,
                                                         bool& sendDeployNotificationResponse)
     {
-        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
+        switch (msg.body.latchSetPulseLow.selection) {
+            case WD_CMD_MSGS__LATCH_SET_RESET__OFF:
+                blimp_latchSetOff();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__LATCH_SET_RESET__PULSE:
+                blimp_latchSetPulseLow();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__LATCH_SET_RESET__FORCE_HIGH:
+                blimp_latchSetHigh();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__LATCH_SET_RESET__FORCE_LOW:
+                blimp_latchSetLow();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            default:
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+        }
+
         return getState();
     }
 
@@ -964,7 +999,71 @@ namespace iris
                                                           WdCmdMsgs__Response& deployNotificationResponse,
                                                           bool& sendDeployNotificationResponse)
     {
-        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
+
+        switch (msg.body.latchResetPulseLow.selection) {
+            case WD_CMD_MSGS__LATCH_SET_RESET__OFF:
+                blimp_latchResetOff();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__LATCH_SET_RESET__PULSE:
+                blimp_latchResetPulseLow();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__LATCH_SET_RESET__FORCE_HIGH:
+                blimp_latchResetHigh();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__LATCH_SET_RESET__FORCE_LOW:
+                blimp_latchResetLow();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            default:
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+        }
+
+        return getState();
+    }
+
+    RoverState RoverStateBase::doGndCmdClearResetMemory(RoverContext& theContext,
+                                                        const WdCmdMsgs__Message& msg,
+                                                        WdCmdMsgs__Response& response,
+                                                        WdCmdMsgs__Response& deployNotificationResponse,
+                                                        bool& sendDeployNotificationResponse)
+    {
+        theContext.m_details.m_resetActionBits = 0;
+        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+        return getState();
+    }
+
+    RoverState RoverStateBase::doGndCmdRequestDetailedReport(RoverContext& theContext,
+                                                             const WdCmdMsgs__Message& msg,
+                                                             WdCmdMsgs__Response& response,
+                                                             WdCmdMsgs__Response& deployNotificationResponse,
+                                                             bool& sendDeployNotificationResponse)
+    {
+        static DetailedReport report = { 0 };
+        GroundMsgs__Status gcStatus =
+                GroundMsgs__generateDetailedReport(&(theContext.m_i2cReadings),
+                                                   &(theContext.m_adcValues),
+                                                   &(theContext.m_details),
+                                                   &report);
+
+        assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
+
+        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
+                                                           (uint8_t*) &report,
+                                                           sizeof(report));
+
+        assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
+        if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
+            //!< @todo Handling?
+        }
+
+        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
 
@@ -986,6 +1085,7 @@ namespace iris
 
         switch (resetValue) {
             case WD_CMD_MSGS__RESET_ID__NO_RESET:
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__NO_RESET);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__HERCULES_RESET:
@@ -994,11 +1094,13 @@ namespace iris
                 writeIoExpander = true;
                 // queue up hercules unreset
                 theContext.m_watchdogFlags |= WDFLAG_UNRESET_HERCULES;
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HERCULES_RESET);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__HERCULES_POWER_ON:
                 if (allowPowerOn) {
                     powerOnHercules();
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HERCULES_POWER_ON);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
@@ -1006,6 +1108,7 @@ namespace iris
 
             case WD_CMD_MSGS__RESET_ID__HERCULES_POWER_OFF:
                 powerOffHercules();
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HERCULES_POWER_OFF);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__RADIO_RESET:
@@ -1014,12 +1117,14 @@ namespace iris
                 writeIoExpander = true;
                 // queue up an radio unreset
                 theContext.m_watchdogFlags |= WDFLAG_UNRESET_RADIO1;
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__RADIO_RESET);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__RADIO_POWER_ON:
                 if (allowPowerOn) {
                     powerOnRadio();
                     writeIoExpander = true;
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__RADIO_POWER_ON);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
@@ -1028,6 +1133,7 @@ namespace iris
             case WD_CMD_MSGS__RESET_ID__RADIO_POWER_OFF:
                 powerOffRadio();
                 writeIoExpander = true;
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__RADIO_POWER_OFF);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__CAM_FPGA_RESET:
@@ -1036,11 +1142,13 @@ namespace iris
                 writeIoExpander = true;
                 // queue up the fpga unreset
                 theContext.m_watchdogFlags |= WDFLAG_UNRESET_FPGA;
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_RESET);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__CAM_FPGA_POWER_ON:
                 if (allowPowerOn) {
                     powerOnFpga();
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_POWER_ON);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
@@ -1048,6 +1156,7 @@ namespace iris
 
             case WD_CMD_MSGS__RESET_ID__CAM_FPGA_POWER_OFF:
                 powerOffFpga();
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_POWER_OFF);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__MOTOR_1_RESET:
@@ -1089,6 +1198,7 @@ namespace iris
             case WD_CMD_MSGS__RESET_ID__ALL_MOTORS_POWER_ON:
                 if (allowPowerOn) {
                     powerOnMotors();
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__ALL_MOTORS_POWER_ON);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
@@ -1096,6 +1206,7 @@ namespace iris
 
             case WD_CMD_MSGS__RESET_ID__ALL_MOTORS_POWER_OFF:
                 powerOffMotors();
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__ALL_MOTORS_POWER_OFF);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__3_3V_EN_RESET:
@@ -1103,6 +1214,7 @@ namespace iris
                     disable3V3PowerRail();
                     // queue up 3V3 rail on again
                     theContext.m_watchdogFlags |= WDFLAG_UNRESET_3V3;
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__3V3_EN_RESET);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
@@ -1111,6 +1223,7 @@ namespace iris
             case WD_CMD_MSGS__RESET_ID__3_3V_EN_POWER_ON:
                 if (allowPowerOn) {
                     enable3V3PowerRail();
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__3V3_EN_POWER_ON);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
@@ -1118,6 +1231,7 @@ namespace iris
 
             case WD_CMD_MSGS__RESET_ID__3_3V_EN_POWER_OFF:
                 disable3V3PowerRail();
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__3V3_EN_POWER_OFF);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__24V_EN_RESET:
@@ -1125,6 +1239,7 @@ namespace iris
                     disable24VPowerRail();
                     // queue up 24V rail on again
                     theContext.m_watchdogFlags |= WDFLAG_UNRESET_24V;
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__24V_EN_RESET);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
@@ -1133,6 +1248,7 @@ namespace iris
             case WD_CMD_MSGS__RESET_ID__24V_EN_POWER_ON:
                 if (allowPowerOn) {
                     enable24VPowerRail();
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__24V_EN_POWER_ON);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
@@ -1140,11 +1256,13 @@ namespace iris
 
             case WD_CMD_MSGS__RESET_ID__24V_EN_POWER_OFF:
                 disable24VPowerRail();
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__24V_EN_POWER_OFF);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_OFF:
                 if (allowUndeploy) {
                     unsetDeploy();
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HDRM_DEPLOY_SIGNAL_POWER_OFF);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
@@ -1152,60 +1270,72 @@ namespace iris
 
             case WD_CMD_MSGS__RESET_ID__FPGA_CAM_0_SELECT:
                 fpgaCameraSelectLo();
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__FPGA_CAM_0_SELECT);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__FPGA_CAM_1_SELECT:
                 fpgaCameraSelectHi();
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__FPGA_CAM_1_SELECT);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__BATTERY_CHARGE_START:
                 startChargingBatteries();
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__BATTERY_CHARGE_START);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__BATTERY_CHARGE_STOP:
                 stopChargingBatteries();
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__BATTERY_CHARGE_STOP);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__RS422_UART_ENABLE:
                 //!< @todo IMPLEMENT
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__RS422_UART_ENABLE);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__RS422_UART_DISABLE:
                 if (allowDisableRs422) {
                     //!< @todo IMPLEMENT
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__RS422_UART_DISABLE);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
                 break;
 
             case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_ENABLE:
-                theContext.m_persistantStatePtr->m_heaterParams.m_heatingControlEnabled = true;
+                theContext.m_details.m_hParams.m_heatingControlEnabled = true;
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__AUTO_HEATER_CONTROLLER_ENABLE);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_DISABLE:
-                theContext.m_persistantStatePtr->m_heaterParams.m_heatingControlEnabled = false;
+                theContext.m_details.m_hParams.m_heatingControlEnabled = false;
                 TB0CCR2 = 0;
-                theContext.m_persistantStatePtr->m_heaterParams.m_heaterDutyCycle = 0;
+                theContext.m_details.m_hParams.m_heaterDutyCycle = 0;
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__AUTO_HEATER_CONTROLLER_DISABLE);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__HERCULES_WATCHDOG_ENABLE:
-                theContext.m_watchdogOpts |= WDFLAG_UNRESET_HERCULES;
+                theContext.m_watchdogOpts |= WDOPT_MONITOR_HERCULES;
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HERCULES_WATCHDOG_ENABLE);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__HERCULES_WATCHDOG_DISABLE:
-                theContext.m_watchdogOpts &= ~WDFLAG_UNRESET_HERCULES;
+                theContext.m_watchdogOpts &= ~WDOPT_MONITOR_HERCULES;
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HERCULES_WATCHDOG_DISABLE);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__BATTERIES_ENABLE:
                 if (allowPowerOn) {
-                    disableBatteries();
+                    enableBatteries();
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__BATTERIES_ENABLE);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
                 break;
 
             case WD_CMD_MSGS__RESET_ID__BATTERIES_DISABLE:
-                enableBatteries();
+                disableBatteries();
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__BATTERIES_DISABLE);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_ON:
@@ -1213,6 +1343,7 @@ namespace iris
                     /* WOOT WOOT! WE ARE ON TO THE MOON, FOLKS */
                     /* ref: https://docs.google.com/document/d/1dKLlBcIIVo8t1bGu3jNiHobGMavA3I2al0cncj3ZAhE/edit */
                     setDeploy();
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HDRM_DEPLOY_SIGNAL_POWER_ON);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }

@@ -480,6 +480,50 @@ WdCmdMsgs__deserializeLatchResetPulseLowBody(const void* src,
                                              size_t srcLen,
                                              WdCmdMsgs__MsgBody__LatchResetPulseLow* dst);
 
+/**
+ * @brief Deserializes the clear reset memory message body packed in |src| with little endianness into the
+ *        struct |dst| with system endianness.
+ *
+ * @param src [IN] The buffer containing the packed message body to be deserialized. Must have a size, as determined by
+ *            the value of |srcLen|, of at least WD_CMD_MSGS__PACKED_SIZE__CLEAR_RESET_MEMORY_BODY bytes.
+ * @param srcLen [IN] The length of the buffer pointed to by |src|. Must be at least
+ *               WD_CMD_MSGS__PACKED_SIZE__CLEAR_RESET_MEMORY_BODY.
+ * @param dst [OUT] The struct into which the message body will be deserialized.
+ *
+ * @return WdCmdMsgs__Status One of the following:
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__CLEAR_RESET_MEMORY_BODY.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ */
+static WdCmdMsgs__Status
+WdCmdMsgs__deserializeClearResetMemoryBody(const void* src,
+                                           size_t srcLen,
+                                           WdCmdMsgs__MsgBody__ClearResetMemory* dst);
+
+/**
+ * @brief Deserializes the request detailed report message body packed in |src| with little endianness into the
+ *        struct |dst| with system endianness.
+ *
+ * @param src [IN] The buffer containing the packed message body to be deserialized. Must have a size, as determined by
+ *            the value of |srcLen|, of at least WD_CMD_MSGS__PACKED_SIZE__REQUEST_DETAILED_REPORT_BODY bytes.
+ * @param srcLen [IN] The length of the buffer pointed to by |src|. Must be at least
+ *               WD_CMD_MSGS__PACKED_SIZE__REQUEST_DETAILED_REPORT_BODY.
+ * @param dst [OUT] The struct into which the message body will be deserialized.
+ *
+ * @return WdCmdMsgs__Status One of the following:
+ *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
+ *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
+ *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__REQUEST_DETAILED_REPORT_BODY.
+ *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
+ */
+static WdCmdMsgs__Status
+WdCmdMsgs__deserializeRequestDetailedReportBody(const void* src,
+                                                size_t srcLen,
+                                                WdCmdMsgs__MsgBody__RequestDetailedReport* dst);
+
 //######################################################################################################################
 // Public Function Definitions
 //######################################################################################################################
@@ -551,7 +595,7 @@ WdCmdMsgs__deserializeBody(WdCmdMsgs__CommandId srcMsgId,
         case WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_PERIOD:
             return WdCmdMsgs__deserializeSetHeaterDutyCyclePeriodBody(src, srcLen, &(dst->setHeaterDutyCyclePeriod));
 
-        case WD_CMD_MSGS__CMD_ID__SET_THERMISTER_V_SETPOINT:
+        case WD_CMD_MSGS__CMD_ID__SET_THERMISTOR_V_SETPOINT:
             return WdCmdMsgs__deserializeSetThermisterVSetpointBody(src, srcLen, &(dst->setThermisterVSetpoint));
 
         case WD_CMD_MSGS__CMD_ID__ENTER_SLEEP_MODE:
@@ -563,8 +607,14 @@ WdCmdMsgs__deserializeBody(WdCmdMsgs__CommandId srcMsgId,
         case WD_CMD_MSGS__CMD_ID__ENTER_SERVICE_MODE:
             return WdCmdMsgs__deserializeEnterServiceModeBody(src, srcLen, &(dst->enterServiceMode));
 
+        case WD_CMD_MSGS__CMD_ID__CLEAR_RESET_MEMORY:
+            return WdCmdMsgs__deserializeClearResetMemoryBody(src, srcLen, &(dst->clearResetMem));
+
         case WD_CMD_MSGS__CMD_ID__DANGEROUS_FORCE_BATT_STATE:
             return WdCmdMsgs__deserializeDangForceBattStateBody(src, srcLen, &(dst->dangForceBattState));
+
+        case WD_CMD_MSGS__CMD_ID__REQUEST_DETAILED_REPORT:
+            return WdCmdMsgs__deserializeRequestDetailedReportBody(src, srcLen, &(dst->reqDetReport));
 
         case WD_CMD_MSGS__CMD_ID__SET_CHARGE_EN_STATE:
             return WdCmdMsgs__deserializeSetChargeEnStateBody(src, srcLen, &(dst->setChargeEnState));
@@ -1089,9 +1139,11 @@ WdCmdMsgs__deserializeLatchSetPulseLowBody(const void* src,
     }
 
     uint8_t* srcIntPtr = (uint8_t*) src;
+    uint8_t enumAsUint = 0;
     short deserializationResult =
-        Serialization__deserializeAs8Bit(srcIntPtr, &(dst->confirmationMagicNumber), SERIALIZATION__LITTLE_ENDIAN);
+        Serialization__deserializeAs8Bit(srcIntPtr, &enumAsUint, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(deserializationResult);
+    dst->selection = (WdCmdMsgs__LatchSetResetSelection) enumAsUint;
 
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }
@@ -1110,8 +1162,59 @@ WdCmdMsgs__deserializeLatchResetPulseLowBody(const void* src,
     }
 
     uint8_t* srcIntPtr = (uint8_t*) src;
+    uint8_t enumAsUint = 0;
     short deserializationResult =
-        Serialization__deserializeAs8Bit(srcIntPtr, &(dst->confirmationMagicNumber), SERIALIZATION__LITTLE_ENDIAN);
+        Serialization__deserializeAs8Bit(srcIntPtr, &enumAsUint, SERIALIZATION__LITTLE_ENDIAN);
+    CHECK_SERIALIZATION_RESULT(deserializationResult);
+    dst->selection = (WdCmdMsgs__LatchSetResetSelection) enumAsUint;
+
+    return WD_CMD_MSGS__STATUS__SUCCESS;
+}
+
+static WdCmdMsgs__Status
+WdCmdMsgs__deserializeClearResetMemoryBody(const void* src,
+                                           size_t srcLen,
+                                           WdCmdMsgs__MsgBody__ClearResetMemory* dst)
+
+{
+    if (NULL == src || NULL == dst) {
+        return WD_CMD_MSGS__STATUS__ERROR_NULL;
+    }
+
+    if (srcLen < WD_CMD_MSGS__PACKED_SIZE__CLEAR_RESET_MEMORY_BODY) {
+        return WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL;
+    }
+
+    uint8_t* srcIntPtr = (uint8_t*) src;
+    short deserializationResult =
+        Serialization__deserializeAs8Bit(srcIntPtr, &(dst->magicOne), SERIALIZATION__LITTLE_ENDIAN);
+    CHECK_SERIALIZATION_RESULT(deserializationResult);
+    srcIntPtr += sizeof(dst->magicOne);
+
+    deserializationResult =
+        Serialization__deserializeAs8Bit(srcIntPtr, &(dst->magicTwo), SERIALIZATION__LITTLE_ENDIAN);
+    CHECK_SERIALIZATION_RESULT(deserializationResult);
+
+    return WD_CMD_MSGS__STATUS__SUCCESS;
+}
+
+static WdCmdMsgs__Status
+WdCmdMsgs__deserializeRequestDetailedReportBody(const void* src,
+                                                size_t srcLen,
+                                                WdCmdMsgs__MsgBody__RequestDetailedReport* dst)
+
+{
+    if (NULL == src || NULL == dst) {
+        return WD_CMD_MSGS__STATUS__ERROR_NULL;
+    }
+
+    if (srcLen < WD_CMD_MSGS__PACKED_SIZE__REQUEST_DETAILED_REPORT_BODY) {
+        return WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL;
+    }
+
+    uint8_t* srcIntPtr = (uint8_t*) src;
+    short deserializationResult =
+        Serialization__deserializeAs8Bit(srcIntPtr, &(dst->magic), SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(deserializationResult);
 
     return WD_CMD_MSGS__STATUS__SUCCESS;

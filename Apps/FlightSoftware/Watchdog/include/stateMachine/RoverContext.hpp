@@ -24,6 +24,7 @@ namespace iris
 
             I2C_Sensors__Readings m_i2cReadings;
             uint8_t m_keepAliveTickCount;
+            uint8_t m_keepAliveTickCountForDetailedReport;
             AdcValues m_adcValues;
 
             HerculesComms__State* m_hcState;
@@ -37,8 +38,7 @@ namespace iris
 
             bool m_isDeployed;
 
-            // Note: despite the name, not actually persistent. Only the two bools below are actually persistent.
-            PersistentState* m_persistantStatePtr;
+            WatchdogStateDetails m_details;
 
             bool* m_persistentInMission;
             bool* m_persistentDeployed;

@@ -1,10 +1,8 @@
 #include "stateMachine/RoverStateKeepAlive.hpp"
 
-#include "drivers/adc.h"
-#include "drivers/bsp.h"
-#include "utils/time.h"
 
-#include "ground_cmd.h"
+#include "drivers/adc.h"
+#include "utils/time.h"
 
 #include <cassert>
 
@@ -66,6 +64,23 @@ namespace iris
 
                 if (I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER == action) {
                     theContext.m_watchdogFlags &= ~WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE;
+                }
+
+                if (I2C_SENSORS__ACTIONS__READ_IO_EXPANDER == action) {
+                    bool chargeStat2 = (readValue & I2C_SENSORS__IOE_P1_BIT__CHARGE_STAT2 != 0);
+                    bool latchStat = (readValue & I2C_SENSORS__IOE_P1_BIT__LATCH_STAT != 0);
+
+                    if (chargeStat2) {
+                        SET_IPASBI_IN_UINT(theContext.m_details.m_inputPinAndStateBits, IPASBI__CHARGE_STAT2);
+                    } else {
+                        CLEAR_IPASBI_IN_UINT(theContext.m_details.m_inputPinAndStateBits, IPASBI__CHARGE_STAT2);
+                    }
+
+                    if (latchStat) {
+                        SET_IPASBI_IN_UINT(theContext.m_details.m_inputPinAndStateBits, IPASBI__LATCH_STAT);
+                    } else {
+                        CLEAR_IPASBI_IN_UINT(theContext.m_details.m_inputPinAndStateBits, IPASBI__LATCH_STAT);
+                    }
                 }
 
                 I2C_Sensors__clearLastAction();

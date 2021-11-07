@@ -1,13 +1,3 @@
-/**
- * This file contains the code that does most of the watching of
- * the rest of the subsystems
- * <b>watchdog_monitor() should only ever be called in MISSION mode!</b>
- * There is no real watchdogging to do in lander connected mode.
- *
- * The way this file is laid out is that there are a number of ISRs. Some ISRs are taking in
- * kicks and setting a flag, and the other ISR is connected to a timer, which will check if the flags
- * are set, and clear them if they are.
- */
 
 #include <assert.h>
 #include <msp430.h>
@@ -22,7 +12,6 @@
 #include "event/event.h"
 #include "event/event_queue.h"
 #include "flags.h"
-#include "ground_cmd.h"
 #include "watchdog.h"
 
 // These three only exist so I can be 100% confident that the Ptr variables
@@ -162,12 +151,14 @@ int watchdog_init(volatile uint16_t* watchdogFlags,
 int watchdog_monitor(HerculesComms__State* hState,
                      volatile uint16_t* watchdogFlags,
                      uint8_t* watchdogOpts,
-                     BOOL* writeIOExpander)
+                     BOOL* writeIOExpander,
+                     WatchdogStateDetails* details)
 {
     // NOTE: hState can be NULL if the Hercules comm link isn't up
     DEBUG_LOG_NULL_CHECK_RETURN(watchdogFlags, "Parameter is NULL", -1);
     DEBUG_LOG_NULL_CHECK_RETURN(watchdogOpts, "Parameter is NULL", -1);
     DEBUG_LOG_NULL_CHECK_RETURN(writeIOExpander, "Parameter is NULL", -1);
+    DEBUG_LOG_NULL_CHECK_RETURN(details, "Parameter is NULL", -1);
 
     /* temporarily disable interrupts */
     __disable_interrupt();
@@ -181,14 +172,15 @@ int watchdog_monitor(HerculesComms__State* hState,
     }
 
     /* unreset wifi chip */
-    if ((*watchdogFlags & WDFLAG_UNRESET_RADIO2) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
+    if (*watchdogFlags & WDFLAG_UNRESET_RADIO2) {
         releaseRadioReset();
         *watchdogFlags ^= WDFLAG_UNRESET_RADIO2;
         *writeIOExpander = TRUE;
+        SET_RABI_IN_UINT(details->m_resetActionBits, RABI__RADIO_UNRESET);
     }
 
     /* unreset wifi chip */
-    if (*watchdogFlags & WDFLAG_UNRESET_RADIO1) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_RADIO1) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
         *watchdogFlags |= WDFLAG_UNRESET_RADIO2;
         *watchdogFlags ^= WDFLAG_UNRESET_RADIO1;
     }
@@ -198,6 +190,7 @@ int watchdog_monitor(HerculesComms__State* hState,
         releaseHerculesReset();
         *watchdogFlags ^= WDFLAG_UNRESET_HERCULES;
         *writeIOExpander = TRUE;
+        SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_UNRESET);
     }
 
     /* unreset motor 1 */
@@ -233,18 +226,21 @@ int watchdog_monitor(HerculesComms__State* hState,
         releaseFPGAReset();
         *watchdogFlags ^= WDFLAG_UNRESET_FPGA;
         *writeIOExpander = TRUE;
+        SET_RABI_IN_UINT(details->m_resetActionBits, RABI__CAM_FPGA_UNRESET);
     }
 
     /* bring 3V3 on again */
     if (*watchdogFlags & WDFLAG_UNRESET_3V3) {
         enable3V3PowerRail();
         *watchdogFlags ^= WDFLAG_UNRESET_3V3;
+        SET_RABI_IN_UINT(details->m_resetActionBits, RABI__3V3_EN_UNRESET);
     }
 
     /* turn 24V on again */
     if (*watchdogFlags & WDFLAG_UNRESET_24V) {
         enable24VPowerRail();
         *watchdogFlags ^= WDFLAG_UNRESET_24V;
+        SET_RABI_IN_UINT(details->m_resetActionBits, RABI__24V_EN_UNRESET);
     }
 
     /* check ADC values */
@@ -260,6 +256,8 @@ int watchdog_monitor(HerculesComms__State* hState,
         if (*watchdogOpts & WDOPT_MONITOR_HERCULES) {
             // reset the hercules
             setHerculesReset();
+
+            SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_WATCHDOG_RESET);
 
             // Set the flag so that the next time this function triggers, the Hercules will be un-reset
             *watchdogFlags |= WDFLAG_UNRESET_HERCULES;

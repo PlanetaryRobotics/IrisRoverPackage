@@ -6,7 +6,7 @@ Containers for Flight Software Modules/Components and their Relevant Fields
 (where applicable).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/05/2021
+@last-updated: 11/07/2021
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -14,6 +14,7 @@ from __future__ import annotations
 from typing import List, Dict, Any, Union, cast, Optional
 from collections import OrderedDict
 from enum import Enum as PyEnum  # just in case, room to prevent name-clash
+import bitstruct
 
 import json
 
@@ -139,6 +140,39 @@ class BitfieldStruct(object):
     def total_bits(self) -> int:
         """Total number of bits in this struct."""
         return sum(self.fields.values()) + self.total_padding
+
+    def unpack(self, data: bytes) -> OrderedDict[str, int]:
+        """
+        Unpacks the data given in the `data` bytes according to the fields 
+        defined in this bitfield struct.
+        """
+        # TODO: handle padding for FPrime w/out killing the `WatchdogDetailedStatus` use cases
+        # ? TODO: handle conversions to any non-uint type contained in the bitfield?
+        # Concatenate all bit lengths in message bitfield into a symbol string for bitstruct:
+        bitfield_struct_sym = (
+            'u' + 'u'.join([str(v) for v in self.fields.values()])
+        )
+
+        # Use bitstruct to pull out all values from message:
+        bitfield_values = bitstruct.unpack(bitfield_struct_sym, data)
+
+        # Zip values with names and put into dict for destructuring in constructor call:
+        return OrderedDict(zip(self.fields.keys(), bitfield_values))
+
+    def pack(self, data: OrderedDict[str, int]) -> bytes:
+        """
+        Packs the data given in the `data` dictionary according to the fields 
+        defined in this bitfield struct.
+        """
+        # TODO: handle padding for FPrime w/out killing the `WatchdogDetailedStatus` use cases
+        # ? TODO: handle conversions to any non-uint type contained in the bitfield?
+        # Concatenate all bit lengths in message bitfield into a symbol string for bitstruct:
+        bitfield_struct_sym = (
+            'u' + 'u'.join([str(v) for v in self.fields.values()])
+        )
+
+        # Use bitstruct to pull out all values from message:
+        return cast(bytes, bitstruct.pack(bitfield_struct_sym, *data.values()))
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, BitfieldStruct):

@@ -21,6 +21,7 @@ import bitstruct  # type: ignore
 import numpy as np  # type: ignore
 import time
 from math import ceil
+from scapy.utils import hexdump  # type: ignore
 
 from .magic import Magic, MAGIC_SIZE
 from .metadata import DataPathway, DataSource
@@ -1798,13 +1799,14 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
                 f"Tchrg: {self.Adc_BatteryTempKelvin:.1f}K ± {self.Adc_BatteryChargingTempUncertaintyKelvin}K \t"
                 f"Tblimp: {self.I2C_FuelGaugeTempKelvin:.1f}K"
                 "\n"
-                "BATTERY MONITOR: "
-                f"{self.I2C_BatteryVoltage:.2f}V \t"
-                f"{self.I2C_BatteryCurrent*1000:.1f}mA \t"
-                f"{self.I2C_BatteryChargeMah:.0f}mAh \t"
-                "\n"
-                f"GPIO (2=HiZ): {dict(**self.Watchdog_CombinedDigitalStates_Dict)} \n"
-                f"Resets: {dict(**self.Watchdog_ResetLogs_Dict)}"
+                f"{hexdump(self.raw)}"
+                # "BATTERY MONITOR: "
+                # f"{self.I2C_BatteryVoltage:.2f}V \t"
+                # f"{self.I2C_BatteryCurrent*1000:.1f}mA \t"
+                # f"{self.I2C_BatteryChargeMah:.0f}mAh \t"
+                # "\n"
+                # f"GPIO (2=HiZ): {dict(**self.Watchdog_CombinedDigitalStates_Dict)} \n"
+                # f"Resets: {dict(**self.Watchdog_ResetLogs_Dict)}"
                 "\n"
                 "\n"
             )

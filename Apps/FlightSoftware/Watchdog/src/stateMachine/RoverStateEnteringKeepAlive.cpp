@@ -246,7 +246,6 @@ namespace iris
     {
         // These are simply setting/clearing bits, so they are instant.
         enableHeater();
-        startChargingBatteries();
 
         // Enable all interrupts
         __enable_interrupt();

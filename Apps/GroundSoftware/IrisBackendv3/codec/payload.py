@@ -670,6 +670,7 @@ class WatchdogCommandPayload(CommandPayload):
         return data
 
 
+
 class DownlinkedPayload(Payload[PT]):
     """
     Generic superclass for all payloads which are downlinked.

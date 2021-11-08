@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Prototyping toolkit for building the Transceiver layer which allows for running 
-tests which require the Transceiver layer while the real thing is still being 
+Prototyping toolkit for building the Transceiver layer which allows for running
+tests which require the Transceiver layer while the real thing is still being
 built.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/06/2021
+@last-updated: 10/29/2021
 """
 
+import logging
+import coloredlogs  # type: ignore # mypy doesn't see type hints
 import traceback
 from typing import Any, List, Type, cast, Union, Dict, Tuple, Optional
 
@@ -53,6 +55,50 @@ settings: Dict[str, Union[str, int]] = {
 }
 
 ser: Any = None
+
+transLogger: Optional[Any] = None
+
+# Set up a logger which both prints to console and logs to file:
+
+
+def setup_logger(name: str):
+    # set up logging to file - see previous section for more details
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                        datefmt='%m-%d %H:%M',
+                        filename=f'./raw-console-logs/{name}.clog',
+                        filemode='a'  # keep adding data to log, don't overwrite
+                        )
+    # define a Handler which writes INFO messages or higher to the sys.stderr
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    # set a format which is simpler for console use
+    FORMAT = '%(asctime)-15s: %(levelname)-8s %(message)s'
+    formatter = logging.Formatter(FORMAT)
+    # tell the handler to use this format
+    console.setFormatter(formatter)
+    # add the handler to the root logger
+    logging.getLogger().addHandler(console)
+
+    # Now, we can log to the root logger, or any other logger. First the root...
+    global transLogger
+    transLogger = logging.getLogger(__name__)
+    coloredlogs.install(logger=transLogger, level='DEBUG', fmt=FORMAT)
+
+
+def log_print(*args, **kwargs):
+    if transLogger is None:
+        print(*args, **kwargs)
+    else:
+        transLogger.info(*args, **kwargs)
+
+
+def err_print(*args, **kwargs):
+    if transLogger is None:
+        cprint(*args, 'red', **kwargs)
+    else:
+        transLogger.error(*args, **kwargs)
+
 
 DsLogger.setLevel('CRITICAL')
 standards = DataStandards.build_standards()
@@ -103,13 +149,13 @@ def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
 
     # Check for issues:
     if len(supported) == 0:
-        CodecLogger.warning(
+        err_print(
             f"Invalid packet detected. Does not conform to any supported specs: "  # type: ignore
             f"{packet_bytes}"
         )
 
     if len(supported) > 1:
-        CodecLogger.warning(
+        err_print(
             f"Multiple codecs "  # type: ignore
             f"({supported}) support received packet. Using "
             f"highest in preference order: {supported[0]}. "
@@ -133,7 +179,57 @@ def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
 
     except Exception as e:
         trace = e  # traceback.format_exc()
-        CodecLogger.warning(
+        err_print(
+            f"Had to abort packet parsing due to the following exception: {trace}"
+        )
+
+    return packet
+
+
+def parse_packet_rev_i_debug(packet_bytes: bytes) -> Optional[Packet]:
+    # All available packet codecs (in order of use preference):
+    codecs: List[Type[Packet]] = [
+        WatchdogHeartbeatPacket,
+        WatchdogCommandResponsePacket,
+        IrisCommonPacket,
+        WatchdogTvacHeartbeatPacket
+    ]
+    # Codecs which support this packet:
+    supported = [c for c in codecs if c.is_valid(packet_bytes)]
+
+    # Check for issues:
+    if len(supported) == 0:
+        err_print(
+            f"Invalid packet detected. Does not conform to any supported specs: "  # type: ignore
+            f"{packet_bytes}"
+        )
+
+    if len(supported) > 1:
+        err_print(
+            f"Multiple codecs "  # type: ignore
+            f"({supported}) support received packet. Using "
+            f"highest in preference order: {supported[0]}. "
+            f"Packet data: {packet_bytes} ."
+        )
+
+    # Parse Packet:
+    packet: Optional[Packet] = None  # default
+    try:
+        if len(supported) > 0:
+            # Parse:
+            packet = supported[0].decode(
+                packet_bytes,
+                pathway=DataPathway.WIRELESS,
+                source=DataSource.PCAP
+            )
+            # Store:
+            packet = cast(Packet, packet)
+            for i in range(len(packet.payloads)):
+                all_payloads[i].extend(packet.payloads[i])  # type: ignore
+
+    except Exception as e:
+        trace = e  # traceback.format_exc()
+        err_print(
             f"Had to abort packet parsing due to the following exception: {trace}"
         )
 
@@ -197,6 +293,50 @@ def pack_watchdog_command(command_name: str, **kwargs) -> bytes:
     seq_num = 0  # watchdog doesn't care
     CPH = struct.pack(ENDIANNESS_CODE + 'B H B', seq_num, vlp_len, checksum)
     packet = CPH + VLP
+    return packet
+
+
+def build_command_packet(
+    seq_num: int,
+    pathway: DataPathway,
+    magic: Magic,
+    command_name: str,
+    kwargs,
+    source: DataSource = DataSource.GENERATED
+) -> IrisCommonPacket:
+    """
+    Builds a Command Payload Packet given the specified command package data
+    (source, pathway, magic type, command name and kwargs).
+    """
+
+    command_payload_type = {
+        Magic.WATCHDOG_COMMAND: WatchdogCommandPayload,
+        Magic.COMMAND: CommandPayload
+    }[magic]
+
+    module, command = standards.global_command_lookup(command_name)
+
+    payloads = PayloadCollection(
+        CommandPayload=[
+            command_payload_type(
+                pathway=pathway,
+                source=source,
+                magic=magic,
+                module_id=module.ID,
+                command_id=command.ID,
+                args=kwargs
+            )
+        ],
+        TelemetryPayload=[],
+        EventPayload=[],
+        FileBlockPayload=[]
+    )
+    packet = IrisCommonPacket(
+        seq_num=seq_num,
+        payloads=payloads,
+        pathway=pathway,
+        source=source
+    )
     return packet
 
 
@@ -270,6 +410,21 @@ def send_data_wd_serial(
 def send_command_wd_serial(command_name: str, **kwargs) -> str:
     data = pack_watchdog_command(command_name, **kwargs)
     return send_data_wd_serial(data)
+
+
+def send_packet(
+    packet: Packet,
+    pathway: DataPathway,
+    ip: Optional[str] = None,
+    port: Optional[str] = None
+) -> None:
+    """
+    Sends the given Packet over the given DataPathway.
+    """
+    if pathway == DataPathway.WIRED:
+        send_data_wd_serial(packet.encode())
+    elif pathway == DataPathway.WIRELESS:
+        send_wifi(packet.encode(), ip=ip, port=port)
 
 
 def adc_to_degC(adc: int) -> float:
@@ -516,69 +671,50 @@ def stream_data_ip_udp_serial() -> None:
         cprint("Can't read data, serial connection not started. Try `connect_serial()`.",
                'red')
 
-    startedPacket = False
-    gotFirstNonStop = False
-
     while keep_running and ready:
         try:  # safety exception catch to keep things running
             b: Any = ser.read(1)
-            #line += b
+            line += b
             b = int.from_bytes(b, 'big')
-
-            if startedPacket:
+            if escape:
+                if b == 0xDC:
+                    data_bytes.append(0xC0)
+                elif b == 0xDD:
+                    data_bytes.append(0xDB)
+                escape = False
+            else:
                 if b == 0xC0:
-                    if gotFirstNonStop:
+                    if len(data_bytes) >= 1:  # packet baked:
                         full_packets.append(data_bytes)
-                        #print(data_bytes)
                         # Process it:
                         packet = parse_ip_udp_packet(data_bytes)
                         if packet is not None:
                             # Log the data:
-                            print(packet)
+                            log_print(packet)
                             # Feed the streams:
                             update_telemetry_streams(packet)
                         # Move on:
                         data_bytes = bytearray(b'')
-                        startedPacket = False
-
-                    else:
-                        # Got sequentials STOP bytes, continue to ignore them
-                        pass
-                else: 
-                    gotFirstNonStop = True
-
-                    if escape:
-                        if b == 0xDC:
-                            data_bytes.append(0xC0)
-                        elif b == 0xDD:
-                            data_bytes.append(0xDB)
-                        escape = False
-                    elif b == 0xDB:
-                        escape = True
-                    else:
-                        data_bytes.append(b)
-                        # data_bytes.append(bytes(b.hex(), 'utf-8'))
-
-
-            elif b == 0xC0:
-                startedPacket = True
-                gotFirstNonStop = False
-                data_bytes = bytearray(b'')
+                    pass
+                elif b == 0xDB:
+                    escape = True
+                else:
+                    data_bytes.append(b)
+                    # data_bytes.append(bytes(b.hex(), 'utf-8'))
 
             # print stuff
-            #print('%02x ' % b, end='', flush=True)
-            #nrx += 1
-            #import re
-            #if (nrx % 16) == 0:
-            #    print('')
-            #    print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
-            #    line = b''
-        #except KeyboardInterrupt:
-        #    save_pcap(full_packets)
-
+            # print('%02x ' % b, end='', flush=True)
+            # nrx += 1
+            # if (nrx % 16) == 0:
+            #     print('')
+            #     #print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
+            #     line = b''
+        except KeyboardInterrupt:
+            save_pcap(full_packets)
         except Exception as e:
-            cprint(
-                f"An otherwise unresolved error occurred during packet streaming: {e}", 'red')
+            err_print(
+                f"An otherwise unresolved error occurred during packet streaming: {e}"
+            )
 
 
 """
@@ -638,6 +774,6 @@ def stream_data_ip_udp_serial() -> None:
         nrx += 1
         if (nrx % 16) == 0:
             print('')
-            #print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
+            # print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
             line = b''
 """

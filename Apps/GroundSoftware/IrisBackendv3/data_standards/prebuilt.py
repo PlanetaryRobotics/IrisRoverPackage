@@ -351,7 +351,7 @@ watchdog_detailed_status_heartbeat: Module = Module(
         nid_nic_entry(
             TelemetryChannel, 0x15, 'Watchdog_DigitalOutputStates', datatype=FswDataType.U32,  # 32b
             bitfields=BitfieldStruct(
-                fields=OrderedDict([
+                fields=OrderedDict(reversed([
                     # Output statuses:
                     ('OPSBI__V_LANDER_REG_EN', 1),
                     ('OPSBI__HEATER', 1),
@@ -384,14 +384,14 @@ watchdog_detailed_status_heartbeat: Module = Module(
                     ('OPSBI__LATCH_SET_IS_INPUT', 1),
                     ('OPSBI__LATCH_RESET_IS_INPUT', 1),
                     ('OPSBI__BATT_STAT_IS_INPUT', 1)
-                ]),
+                ])),
                 total_padding=2
             )
         ),
         nid_nic_entry(
             TelemetryChannel, 0x17, 'Watchdog_CombinedDigitalStates', datatype=FswDataType.U32,  # calc
             bitfields=BitfieldStruct(
-                fields=OrderedDict([
+                fields=OrderedDict(reversed([
                     ('V_LANDER_REG_EN', 1),
                     ('HEATER', 1),
                     ('DEPLOYMENT', 1),
@@ -413,7 +413,7 @@ watchdog_detailed_status_heartbeat: Module = Module(
                     ('LATCH_SET', 2),  # input capable (0b10=Hi-Z)
                     ('LATCH_RESET', 2),  # input capable (0b10=Hi-Z)
                     ('BATT_STAT', 2),  # input capable (0b10=Hi-Z)
-                ]),
+                ])),
                 total_padding=2
             )
         ),
@@ -421,7 +421,7 @@ watchdog_detailed_status_heartbeat: Module = Module(
         nid_nic_entry(
             TelemetryChannel, 0x18, 'Watchdog_ResetLogs', datatype=FswDataType.U64,  # 40b
             bitfields=BitfieldStruct(
-                fields=OrderedDict([
+                fields=OrderedDict(reversed([
                     ('RABI__NO_RESET', 1),
                     ('RABI__HERCULES_RESET', 1),
                     ('RABI__HERCULES_UNRESET', 1),
@@ -460,7 +460,7 @@ watchdog_detailed_status_heartbeat: Module = Module(
                     ('RABI__BATTERIES_DISABLE', 1),
                     ('RABI__HDRM_DEPLOY_SIGNAL_POWER_ON', 1),
                     ('RABI__HERCULES_WATCHDOG_RESET', 1)
-                ]),
+                ])),
                 total_padding=26
             )
         ),

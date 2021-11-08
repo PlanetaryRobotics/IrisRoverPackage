@@ -63,6 +63,23 @@
         <channel id="3" name="PktSent" data_type="U32">
             <comment>Number of packets sent (downlink)</comment>
         </channel>
+        <channel id="4" name="WIFIErrorStatus" data_type="U16">
+            <comment>Returned Error code of WIFI chip</comment>
+        </channel>
+         <channel id="5" name="WIFIStateStatus" data_type="ENUM">
+            <comment>Returned State Transition code of WIFI chip</comment>
+                <enum name="WIFIState">
+                    <item name="UNINITIALIZED"/>
+                    <item name="INITIALIZEED"/>
+                    <item name="WIFI_TURNING_ON"/>
+                    <item name="WIFI_ON"/>
+                    <item name="SCANNING"/>
+                    <item name="SCANNED"/>
+                    <item name="CONNECTING"/>
+                    <item name="CONNECTED"/>
+                    <item name="UDP_CONNECTED"/>
+                </enum>
+        </channel>
     </telemetry>
 
     <events>

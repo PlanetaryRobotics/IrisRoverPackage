@@ -1,0 +1,858 @@
+#include "drivers/bsp.h"
+#include "drivers/blimp.h"
+#include "comms/i2c_sensors.h"
+#include "flags.h"
+
+#include <stddef.h>
+#include <msp430.h>
+
+// uncomment to program MC
+//#define PROGRAM_MOTOR_CONTROLLERS
+
+#define PORT1_ENABLED 1
+#define PORT2_ENABLED 1
+#define PORT3_ENABLED 1
+#define PORT4_ENABLED 1
+#define PORTJ_ENABLED 1
+
+static WatchdogStateDetails* detailsPtr = NULL;
+
+/**
+ * @brief      Initializes the gpios.
+ */
+void initializeGpios(WatchdogStateDetails* details)
+{
+    DEBUG_LOG_NULL_CHECK_RETURN(details, "Parameter is NULL", /* nothing, b/c void return */);
+    detailsPtr = details;
+
+    //########################################################################
+    // P1 configuration.
+    //########################################################################
+#if PORT1_ENABLED
+    // Start with all as GPIO output (which is the recommended default config for unused pins)
+    P1DIR = 0xFFu;
+    P1OUT = 0x00u;
+    P1SEL0 = 0x00u;
+    P1SEL1 = 0x00u;
+
+    // P1.0 is connected to ground, and is used as VeREF-. VeREF- is an input for a negative reference voltage to the
+    // ADC. This is the tertiary function (SEL0 and SEL1 are 1).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-20,
+    // for VeREF- P1DIR is don't care.
+    P1SEL0 |= BIT0;
+    P1SEL1 |= BIT0;
+
+    // P1.1 is connected to 3.3V rail, and is used as VeREF+. VeREF+ is an input for a positive reference voltage to the
+    // ADC. This is the tertiary function (SEL1 and SEL0 are 1).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-20,
+    // for VeREF+ P1DIR is don't care.
+    P1SEL0 |= BIT1;
+    P1SEL1 |= BIT1;
+
+    // P1.2 is connected to the CHARGE_STAT1 signal (i.e. STAT1 pin of BQ24650RVAR charge controller), and is used as a
+    // GPIO input.
+    P1DIR &= ~BIT2;
+
+    // P1.3 is connected to the WD_INT signal and is used as a GPIO input.
+    //!< @todo What is WD_INT actually useful for, if anything? If nothing, make this GPIO output.
+    P1DIR &= ~BIT3;
+
+    // P1.4 is connected to the V_LANDER_SENS signal (output of voltage divider for measuring lander voltage being
+    // supplied to us), and is used as an ADC analog input (specifically it is ADC analog input A4). This is the
+    // tertiary function (SEL1 and SEL0 are 1).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-21,
+    // for A4 P1DIR is don't care.
+    P1SEL0 |= BIT4;
+    P1SEL1 |= BIT4;
+
+    // P1.5 is connected to the V_LANDER_REG_EN signal (control signal for MOSFET to enable voltage regulator that
+    // regulates lander voltage down to the voltage to be used as battery charger input voltage), and is used as a GPIO
+    // output that is initially low
+    P1OUT &= ~BIT5;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__V_LANDER_REG_EN);
+
+    // P1.6 is used as the I2C (UCB0) data line (SDA). This is the secondary function (SEL1 is 1 and SEL0 is 0).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-22,
+    // for UCB0SDA P1DIR is don't care.
+    P1SEL1 |= BIT6;
+
+    // P1.7 is used as the I2C (UCB0) clock line (SCL). This is the secondary function (SEL1 is 1 and SEL0 is 0).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-22,
+    // for UCB0SCL P1DIR is don't care.
+    P1SEL1 |= BIT7;
+
+#endif // PORT1_ENABLED
+    //########################################################################
+    // P2 configuration.
+    //########################################################################
+#if PORT2_ENABLED
+    // Start with all as GPIO input. Unused pins are supposed to be configured as outputs, but due to current draw
+    // issues with P2.0, we initialize all as inputs so that they are high-z and don't allow current draw. We configure
+    // all other pins in Port2 below anyway, so this default doesn't really matter for anything other than P2.0, which
+    // we currently don't set.
+    P2DIR = 0x00u;
+    P2OUT = 0x00u;
+    P2SEL0 = 0x00u;
+    P2SEL1 = 0x00u;
+
+    // P2.0 is used as the UART0 (UCA0) TX data line (TXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-23,
+    // for UCA0TXD P2DIR is don't care.
+    //
+    // TODO >> Don't set this here, as we see large current draw when this mode is set and Hercules is off. <<
+    //
+    //P2SEL1 |= BIT0;
+    CLEAR_IPASBI_IN_UINT(detailsPtr->m_inputPinAndStateBits, IPASBI__UART0_INITIALIZED);
+
+    // P2.1 is used as the UART0 (UCA0) RX data line (RXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-23,
+    // for UCA0RXD P2DIR is don't care.
+    P2SEL1 |= BIT1;
+
+    // P2.2 is connected to the Heater signal (control signal for MOSFET to enable heater), and is used as a GPIO
+    // output with an initially low value. We always set this low here, and handle persisting the heater state after
+    // GPIO initialization
+    P2DIR |= BIT2;
+    P2OUT &= ~BIT2;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HEATER);
+    detailsPtr->m_hParams.m_heating = FALSE;
+
+    // P2.3 is connected to the BATT_CTRL_EN signal (control signal for MOSFET to enable battery controller circuit),
+    // BUT has been disconnected due to power issues. This will be pulled low as an output b/c it is NC
+    P2DIR |= BIT3;
+    P2OUT &= BIT3;
+
+    // P2.4 is connected to the BATT_TEMP signal (output of voltage divider for battery pack thermistor), and is used
+    // as an ADC analog input (specifically it is ADC analog input A7). This is the tertiary function (SEL1 and SEL0
+    // are 1).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-24,
+    // for A7 P2DIR is don't care.
+    P2SEL0 |= BIT4;
+    P2SEL1 |= BIT4;
+
+    // P2.5 is used as the UART1 (UCA1) TX data line (TXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-25,
+    // for UCA1TXD P2DIR is don't care.
+    //
+    // TODO >> Don't set this here, as we could see large current draw if this mode is set while disconnected from
+    //         lander. <<
+    //
+    //P2SEL1 |= BIT5;
+    CLEAR_IPASBI_IN_UINT(detailsPtr->m_inputPinAndStateBits, IPASBI__UART1_INITIALIZED);
+
+    // P2.6 is used as the UART1 (UCA1) RX data line (RXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-25,
+    // for UCA1RXD P2DIR is don't care.
+    P2SEL1 |= BIT6;
+
+    // P2.7 is connected to the PG_1.2 signal (1.2V "power good"), and is used as a GPIO input. The "power good"
+    // is normally pulled up to 3.3V by an external pullup resistor, but when the 1.2V rail power exits a "good" state
+    // (e.g. goes to high or low) then the regulator chip will pull the signal down. We want to interrupt on that
+    // falling edge so that we can react appropriately.
+    //!< @todo Make sure interrupt is eventually enabled and implemented.
+    P2DIR &= ~BIT7;
+    P2REN &= ~BIT7;
+
+#endif // PORT2_ENABLED
+    //########################################################################
+    // P3 configuration.
+    //########################################################################
+#if PORT3_ENABLED
+    // Start with all as GPIO output (which is the recommended default config for unused pins)
+    P3DIR = 0xFFu;
+    P3OUT = 0x00u;
+    P3SEL0 = 0x00u;
+    P3SEL1 = 0x00u;
+
+    // P3.0 is connected to the BATT_RT signal (output of battery temperature thermistor), and is used
+    // as an ADC analog input (specifically it is ADC analog input A12). This is the tertiary function (SEL1 and SEL0
+    // are 1).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-27,
+    // for A12 P3DIR is don't care.
+    P3SEL0 |= BIT0;
+    P3SEL1 |= BIT0;
+
+    // P3.1 is connected to the V_SYS_ALL_SENS signal (output of voltage divider based on V_SYS_ALL on the BLiMP), and
+    // is used as an ADC analog input (specifically it is ADC analog input A13). This is the tertiary function (SEL1 and
+    // SEL0 are 1).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-27,
+    // for A13 P3DIR is don't care.
+    P3SEL0 |= BIT1;
+    P3SEL1 |= BIT1;
+
+    // P3.2 is connected to the I_SYS_ALL_SENS signal (output of voltage divider that allows a measure of the current
+    // by all circuitry running on V_SYS_ALL on the BLiMP), and is used as an ADC analog input (specifically it is ADC
+    // analog input A14). This is the tertiary function (SEL1 and SEL0 are 1).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-27,
+    // for A14 P3DIR is don't care.
+    P3SEL0 |= BIT2;
+    P3SEL1 |= BIT2;
+
+    // P3.3 is connected to the V_BATT_SENS signal (output of voltage divider that based on V_BATT on the BLiMP), and
+    // is used as an ADC analog input (specifically it is ADC analog input A15). This is the tertiary function (SEL1 and
+    // SEL0 are 1).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-27,
+    // for A15 P3DIR is don't care.
+    P3SEL0 |= BIT3;
+    P3SEL1 |= BIT3;
+
+    // P3.4 is connected to the Deployment signal (control signal for MOSFET to enable HDRM), and is used as a GPIO
+    // output with an initially low value
+    P3OUT &= ~BIT4;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__DEPLOYMENT);
+
+    // P3.5 is connected to the FPGA_Kick signal and is used as a GPIO output with an initially low value.
+    P3OUT &= ~BIT5;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__FPGA_KICK_AKA_CAM_SELECT);
+
+    // P3.6 is connected to the LATCH_BATT signal, and is used as a GPIO output with an initially low value
+    P3OUT &= ~BIT6;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__LATCH_BATT);
+
+    // P3.7 is connected to the 3V3_EN signal (control signal for MOSFET to enable HDRM), and is used as a GPIO
+    // output with an initially low value
+    P3OUT &= ~BIT7;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__3V3_EN);
+
+#endif // PORT3_ENABLED
+    //########################################################################
+    // P4 configuration.
+    //########################################################################
+#if PORT4_ENABLED
+    // Start with all as GPIO output (which is the recommended default config for unused pins)
+    P4DIR = 0xFFu;
+    P4OUT = 0x00u;
+    P4SEL0 = 0x00u;
+    P4SEL1 = 0x00u;
+
+    // P4.0 is connected to the VCC_2.5 signal (2.5V rail), and is used as an ADC analog input (specifically it is ADC
+    // analog input A8). This is the tertiary function (SEL1 and SEL0 are 1).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-29,
+    // for A8 P4DIR is don't care.
+    P4SEL0 |= BIT0;
+    P4SEL1 |= BIT0;
+
+    // P4.1 is connected to the VCC_2.8 signal (2.8V rail), and is used as an ADC analog input (specifically it is ADC
+    // analog input A9). This is the tertiary function (SEL1 and SEL0 are 1).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-29,
+    // for A9 P4DIR is don't care.
+    P4SEL0 |= BIT1;
+    P4SEL1 |= BIT1;
+
+    // P4.2 is connected to a voltage divider on the 28V rail, and is used as an ADC analog input (specifically it is
+    // ADC analog input A10). This is the tertiary function (SEL1 and SEL0 are 1).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-29,
+    // for A10 P4DIR is don't care.
+    P4SEL0 |= BIT2;
+    P4SEL1 |= BIT2;
+
+    // P4.3 is connected to a voltage divider on the 24V rail, and is used as an ADC analog input (specifically it is
+    // ADC analog input A11). This is the tertiary function (SEL1 and SEL0 are 1).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-29,
+    // for A11 P4DIR is don't care.
+    P4SEL0 |= BIT3;
+    P4SEL1 |= BIT3;
+
+    // P4.4 is connected to the PG_1.8 signal (1.8V "power good"), and is used as a GPIO input. The "power good"
+    // is normally pulled up to 3.3V by an external pullup resistor, but when the 1.8V rail power exits a "good" state
+    // (e.g. goes to high or low) then the regulator chip will pull the signal down. We want to interrupt on that
+    // falling edge so that we can react appropriately.
+    //!< @todo Make sure interrupt is eventually enabled and implemented.
+    P4DIR &= ~BIT4;
+    P4REN &= ~BIT4;
+
+    // P4.5 is connected to the PG_3.3 signal (3.3V "power good"), and is used as a GPIO input. The "power good"
+    // is normally pulled up to 3.3V by an external pullup resistor, but when the 3.3V rail power exits a "good" state
+    // (e.g. goes to high or low) then the regulator chip will pull the signal down. We want to interrupt on that
+    // falling edge so that we can react appropriately.
+    //!< @todo Make sure interrupt is eventually enabled and implemented.
+    P4DIR &= ~BIT5;
+    P4REN &= ~BIT5;
+
+    // P4.6 is connected to the BMS_ALRT signal (battery monitoring system alert), and is used as a GPIO input.
+    //!< @todo Determine how BMS_ALRT behaves.
+    //!< @todo Make sure interrupt is eventually enabled and implemented.
+    P4DIR &= ~BIT6;
+    P4REN &= ~BIT6;
+
+    // P4.7 is connected to the PG_5.0 signal (5.0V "power good"), and is used as a GPIO input. The "power good"
+    // is normally pulled up to 5.0V by an external pullup resistor, but when the 5.0V rail power exits a "good" state
+    // (e.g. goes to high or low) then the regulator chip will pull the signal down. We want to interrupt on that
+    // falling edge so that we can react appropriately.
+    //!< @todo Make sure interrupt is eventually enabled and implemented.
+    P4DIR &= ~BIT7;
+    P4REN &= ~BIT7;
+
+#endif // PORT4_ENABLED
+    //########################################################################
+    // PJ configuration.
+    //########################################################################
+#if PORTJ_ENABLED
+    // Start with all as GPIO output (which is the recommended default config for unused pins)
+    PJDIR = 0xFFu;
+    PJOUT = 0x00u;
+    PJSEL0 = 0x00u;
+    PJSEL1 = 0x00u;
+
+    // PJ.0 is connected to the Hercules_ON signal and is used as a GPIO output with an initially low value
+    PJOUT &= ~BIT0;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HERCULES_ON);
+
+    // PJ.1 is connected to the FPGA_ON signal and is used as a GPIO output with an initially low value
+    PJOUT &= ~BIT1;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__FPGA_ON);
+
+    // PJ.2 is connected to the Motor_ON signal and is used as a GPIO output with an initially low value
+    PJOUT &= ~BIT2;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__MOTOR_ON);
+
+    // PJ.3 is connected to the CHRG_EN signal and is used as a GPIO output with an initially high-Z value.
+    // CHRG_EN should always be high-Z (when charging is enabled) or low.
+    PJDIR &= ~BIT3;
+    PJREN &= ~BIT3;
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__CHRG_EN);
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__CHRG_EN_FORCE_HIGH);
+
+    // PJ.4 is connected to the Radio_Kick signal and is used as a GPIO input.
+    PJDIR &= ~BIT4;
+
+    // PJ.5 is connected to the BATTERY_EN signal and is used as a GPIO output with an initially low value
+    PJOUT &= ~BIT5;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__BATTERY_EN);
+
+    // PJ.6 is connected to the BATT_STAT signal and is used as a GPIO input.
+    PJDIR &= ~BIT6;
+
+    // PJ.7 is connected to the V_SYS_ALL_EN signal and is used as a GPIO output with an initially high-Z value.
+    // V_SYS_ALL_EN should always be high-Z (when V_SYS_ALL disabled) or high.
+    PJDIR &= ~BIT7;
+    PJREN &= ~BIT7;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__V_SYS_ALL_EN);
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__V_SYS_ALL_EN_FORCE_LOW);
+
+#endif // PORTJ_ENABLED
+
+    // Initialize all unused ports to as GPIO output to prevent floating pins. (Per slau367p section 12.3.2)
+    P5SEL0 = 0x00u;
+    P5SEL1 = 0x00u;
+    P5DIR = 0xFFu;
+    P5OUT = 0x00u;
+
+    P6SEL0 = 0x00u;
+    P6SEL1 = 0x00u;
+    P6DIR = 0xFFu;
+    P6OUT = 0x00u;
+
+    P7SEL0 = 0x00u;
+    P7SEL1 = 0x00u;
+    P7DIR = 0xFFu;
+    P7OUT = 0x00u;
+
+    P8SEL0 = 0x00u;
+    P8SEL1 = 0x00u;
+    P8DIR = 0xFFu;
+    P8OUT = 0x00u;
+}
+
+void enableUart0Pins(void)
+{
+    // P2.0 is used as the UART0 (UCA0) TX data line (TXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-23,
+    // for UCA0TXD P2DIR is don't care.
+    P2SEL1 |= BIT0;
+
+    // P2.1 is used as the UART0 (UCA0) RX data line (RXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-23,
+    // for UCA0RXD P2DIR is don't care.
+    P2SEL1 |= BIT1;
+
+    SET_IPASBI_IN_UINT(detailsPtr->m_inputPinAndStateBits, IPASBI__UART0_INITIALIZED);
+}
+
+void disableUart0Pins(void)
+{
+    // To disable the UART0 pins (P2.0 and P2.1) we want them both set as GPIO inputs in order to prevent current flow
+
+    // Set both pins as GPIO simultaneously
+    P2SEL1 &= ~(BIT0 | BIT1);
+    // This shouldn't be necessary as these should always be zero already, but just to be extra sure I clear these bits
+    // too. With this, the pins are GPIO without a shadow of a doubt.
+    P2SEL0 &= ~(BIT0 | BIT1);
+    // Now that they're GPIO, we need to set them to inputs
+    P2DIR &= ~(BIT0 | BIT1);
+
+    CLEAR_IPASBI_IN_UINT(detailsPtr->m_inputPinAndStateBits, IPASBI__UART0_INITIALIZED);
+}
+
+void enableUart1Pins(void)
+{
+    // P2.5 is used as the UART1 (UCA1) TX data line (TXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-25,
+    // for UCA1TXD P2DIR is don't care.
+    P2SEL1 |= BIT5;
+
+    // P2.6 is used as the UART1 (UCA1) RX data line (RXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
+    // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-25,
+    // for UCA1RXD P2DIR is don't care.
+    P2SEL1 |= BIT6;
+
+    SET_IPASBI_IN_UINT(detailsPtr->m_inputPinAndStateBits, IPASBI__UART1_INITIALIZED);
+}
+
+void disableUart1Pins(void)
+{
+    // To disable the UART1 pins (P2.6 and P2.6) we want them both set as GPIO inputs in order to prevent current flow
+
+    // Set both pins as GPIO simultaneously
+    P2SEL1 &= ~(BIT5 | BIT6);
+    // This shouldn't be necessary as these should always be zero already, but just to be extra sure I clear these bits
+    // too. With this, the pins are GPIO without a shadow of a doubt.
+    P2SEL0 &= ~(BIT5 | BIT6);
+    // Now that they're GPIO, we need to set them to inputs
+    P2DIR &= ~(BIT5 | BIT6);
+
+    CLEAR_IPASBI_IN_UINT(detailsPtr->m_inputPinAndStateBits, IPASBI__UART1_INITIALIZED);
+}
+
+/**
+ * Initialize clocks for UART. necessary and should only be called once, at boot.
+ */
+void clockInit(void)
+{
+    // Unlock all CS registers
+    CSCTL0_H = CSKEY_H;
+
+    // Sets DCO Range select to high speed
+    CSCTL1 = DCORSEL;
+
+    // Sets DCO frequency to 8 MHz.
+    // It is 8 MHz because DCORSEL was set; if DCORSEL was not set, this (a DCOFSEL of 3) would set DCO to 4 MHz.
+    // Note that DCOFSEL_3 means setting the DCOFSEL bits to the decimal value 3, i.e. DCOFSEL is 011b
+    CSCTL1 |= DCOFSEL_3;
+
+    // Sets the source of ACLK to VLOCLK.
+    // Per Section 8.12.3.4 (pg 42) of the datasheet, this has a typical frequency of 9.4 kHz
+    //    (source: https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf)
+    CSCTL2 = SELA__VLOCLK;
+
+    // Sets the source of SMCLK to DCOCLK.
+    CSCTL2 |= SELS__DCOCLK;
+
+    // Sets the source of MCLK to DCOCLK.
+    CSCTL2 |= SELM__DCOCLK;
+
+    // Sets an input divider of 1 (i.e. no division) for ACLK
+    // Note that unlike DCOFSEL_3, DIVA_1 does NOT mean setting the DIVA bits to the decimal value of 1,
+    //    but instead means that the input divider is 1 (which means setting the DIVA bits to the decimal
+    //    value of 0).
+    CSCTL3 = DIVA__1;
+
+    // Sets an input divider of 1 (i.e. no division) for SMCLK
+    // Note that unlike DCOFSEL_3, DIVS_1 does NOT mean setting the DIVS bits to the decimal value of 1,
+    //    but instead means that the input divider is 1 (which means setting the DIVS bits to the decimal
+    //    value of 0).
+    CSCTL3 |= DIVS__1;
+
+    // Sets an input divider of 1 (i.e. no division) for MCLK
+    // Note that unlike DCOFSEL_3, DIVM_1 does NOT mean setting the DIVM bits to the decimal value of 1,
+    //    but instead means that the input divider is 1 (which means setting the DIVM bits to the decimal
+    //    value of 0).
+    CSCTL3 |= DIVM__1;
+
+    // Lock all CS registers
+    CSCTL0_H = 0;
+}
+
+/**
+ * @brief      Enables the heater. (HI = ON)
+ *      TB0CCTL2 is register that toggles PWM output on heater pin
+ */
+inline void enableHeater(void)
+{
+    P2OUT |= BIT2;
+    detailsPtr->m_hParams.m_heating = TRUE;
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HEATER);
+}
+
+/**
+ * @brief      Disables the heater. (LO = OFF)
+ */
+inline void disableHeater(void)
+{
+    P2OUT &= ~BIT2;
+    detailsPtr->m_hParams.m_heating = FALSE;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HEATER);
+}
+
+/**
+ * @brief      Enables the 3.3 v power rail. (HI = ON)
+ */
+inline void enable3V3PowerRail(void)
+{
+    P3OUT |= BIT7;
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__3V3_EN);
+}
+
+/**
+ * @brief      Disables the 3.3 v power rail. (LOW = OFF)
+ */
+inline void disable3V3PowerRail(void)
+{
+    P3OUT &= ~BIT7;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__3V3_EN);
+}
+
+// RAD TODO - this is for V_SYS_ALL_EN now (24v w/Motor_ON - PJ.2)
+/**
+ * @brief      Enables the 24 v power rail. (high = ON)
+ */
+inline void enable24VPowerRail(void)
+{
+    PJDIR |= BIT7;
+    PJOUT |= BIT7;
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__V_SYS_ALL_EN);
+}
+
+/**
+ * @brief      Disables the 24 v power rail. (LOW = OFF)
+ */
+inline void disable24VPowerRail(void)
+{
+    PJDIR &= ~BIT7;
+    PJREN &= ~BIT7;
+
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__V_SYS_ALL_EN);
+}
+
+/**
+ * @brief      Releases a hercules reset. (HI = NORMAL)
+ */
+inline void releaseHerculesReset(void)
+{
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST |
+                                              I2C_SENSORS__IOE_P0_BIT__N_HERCULES_PORRST);
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting these states
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HERCULES_N_RST);
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HERCULES_N_PORRST);
+}
+
+/**
+ * @brief      Sets the hercules reset. (LO = RESET)
+ */
+inline void setHerculesReset(void)
+{
+    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_HERUCLES_RST |
+                                                I2C_SENSORS__IOE_P0_BIT__N_HERCULES_PORRST);
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting these states
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HERCULES_N_RST);
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HERCULES_N_PORRST);
+}
+
+/**
+ * @brief      Releases a radio reset. (HI = NORMAL)
+ */
+inline void releaseRadioReset(void)
+{
+    I2C_Sensors__setIoExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST);
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__RADIO_N_RST);
+}
+
+/**
+ * @brief      Sets the radio reset. (LO = RESET)
+ */
+inline void setRadioReset(void)
+{
+    I2C_Sensors__clearIoExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__N_RADIO_RST);
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__RADIO_N_RST);
+}
+
+/**
+ * @brief      Releases a fpga reset. (HI = NORMAL)
+ */
+inline void releaseFPGAReset(void)
+{
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST);
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__FPGA_N_RST);
+}
+
+/**
+ * @brief      Sets the fpga reset. (LO = RESET)
+ */
+inline void setFPGAReset(void)
+{
+    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST);
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__FPGA_N_RST);
+}
+
+/**
+ * @brief      Select camera 1 in FPGA
+ */
+inline void fpgaCameraSelectHi(void)
+{
+    P3OUT |= BIT5;
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__FPGA_KICK_AKA_CAM_SELECT);
+}
+
+/**
+ * @brief      Select camera 0 in FPGA
+ */
+inline void fpgaCameraSelectLo(void)
+{
+    P3OUT &= ~BIT5;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__FPGA_KICK_AKA_CAM_SELECT);
+}
+
+/**
+ * @brief      Releases the motor resets. (HI = NORMAL)
+ */
+inline void releaseMotor1Reset(void)
+{
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A);
+#endif
+}
+inline void releaseMotor2Reset(void)
+{
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_B);
+#endif
+}
+inline void releaseMotor3Reset(void)
+{
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_C);
+#endif
+}
+inline void releaseMotor4Reset(void)
+{
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_D);
+#endif
+}
+inline void releaseMotorsReset(void)
+{
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A |
+                                              I2C_SENSORS__IOE_P0_BIT__MC_RST_B |
+                                              I2C_SENSORS__IOE_P0_BIT__MC_RST_C |
+                                              I2C_SENSORS__IOE_P0_BIT__MC_RST_D);
+#endif
+}
+
+/**
+ * @brief      Sets the motors to reset. (LO = RESET)
+ * @todo CONFIRM THIS IS ACTUALLY NEGATED (i.e. reset is active when low)
+ */
+inline void setMotor1Reset(void)
+{
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A);
+#endif
+}
+inline void setMotor2Reset(void)
+{
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_B);
+#endif
+}
+inline void setMotor3Reset(void)
+{
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_C);
+#endif
+}
+inline void setMotor4Reset(void)
+{
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_D);
+#endif
+}
+inline void setMotorsReset(void)
+{
+#ifndef PROGRAM_MOTOR_CONTROLLERS
+    I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__MC_RST_A |
+                                                I2C_SENSORS__IOE_P0_BIT__MC_RST_B |
+                                                I2C_SENSORS__IOE_P0_BIT__MC_RST_C |
+                                                I2C_SENSORS__IOE_P0_BIT__MC_RST_D);
+#endif
+}
+/**
+ * @brief      Power the hercules MCU (HI = ON)
+ */
+inline void powerOnHercules(void)
+{
+    PJOUT |= BIT0;
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HERCULES_ON);
+}
+
+/**
+ * @brief      Power off the hercules MCU (LO = OFF)
+ */
+inline void powerOffHercules(void)
+{
+    PJOUT &= ~BIT0;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HERCULES_ON);
+}
+
+/**
+ * @brief      Power on the Radio (HI = ON)
+ */
+inline void powerOnRadio(void)
+{
+    I2C_Sensors__setIoExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__RADIO_ON);
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__RADIO_ON);
+}
+
+/**
+ * @brief      Power off the Radio (LO = OFF)
+ */
+inline void powerOffRadio(void)
+{
+    I2C_Sensors__clearIoExpanderPort1OutputBits(I2C_SENSORS__IOE_P1_BIT__RADIO_ON);
+
+    // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
+    // because calling this means we had the intention of setting this state
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__RADIO_ON);
+}
+
+/**
+ * @brief      Power on the FPGA (HI = ON)
+ */
+inline void powerOnFpga(void)
+{
+    PJOUT |= BIT1;
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__FPGA_ON);
+}
+
+/**
+ * @brief      Power off the FPGA (LO = OFF)
+ */
+inline void powerOffFpga(void)
+{
+    PJOUT &= ~BIT1;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__FPGA_ON);
+}
+
+/**
+ * @brief      Power on the motors (HI = ON)
+ */
+inline void powerOnMotors(void)
+{
+    PJOUT |= BIT2;
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__MOTOR_ON);
+}
+
+/**
+ * @brief      Power off the motors (LO = OFF)
+ */
+inline void powerOffMotors(void)
+{
+    PJOUT &= ~BIT2;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__MOTOR_ON);
+}
+
+/**
+ * @brief      Enable the batteries (HI = ON)
+ */
+inline void enableBatteries(void)
+{
+    // Turn on battery enable:
+    blimp_battEnOn();
+    // Make the latch absorb the BE state:
+    blimp_latchBattUpdate();
+}
+
+/**
+ * @brief      Disable the batteries (LO = OFF)
+ */
+inline void disableBatteries(void)
+{
+    // Turn off battery enable:
+    blimp_battEnOff();
+    // Make the latch absorb the BE state:
+    blimp_latchBattUpdate();
+}
+
+/**
+ * @brief      Deploy the rover from the lander
+ */
+inline void setDeploy(void)
+{
+    P3OUT |= BIT4;
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__DEPLOYMENT);
+}
+
+/**
+ * @brief      Un-set deploy from lander
+ */
+inline void unsetDeploy(void)
+{
+    P3OUT &= ~BIT4;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__DEPLOYMENT);
+}
+
+/**
+ * @brief      Start charging batteries from lander power
+ */
+inline void startChargingBatteries(void)
+{
+    // Turn on batteries before charging if not on yet:
+    // (not safe to start charging on an open circuit)
+    if(!blimp_batteryState()){
+        blimp_battEnOn();
+    }
+    // Enable the charging regulator:
+    blimp_regEnOn();
+    // Start charging:
+    blimp_chargerEnOn();
+}
+
+/**
+ * @brief      Stop charging batteries
+ */
+inline void stopChargingBatteries(void)
+{
+    // Stop charging:
+    blimp_chargerEnOff();
+    // Disable the charging regulator:
+    blimp_regEnOff();
+}
+
+#define UPDATE_INPUT(detPtr, ipasbi_enum, port, bit) \
+        do { \
+            if (port & bit) { \
+                SET_IPASBI_IN_UINT(detPtr->m_inputPinAndStateBits, ipasbi_enum); \
+            } else { \
+                CLEAR_IPASBI_IN_UINT(detPtr->m_inputPinAndStateBits, ipasbi_enum); \
+            } \
+        } while (0)
+
+
+void readOnChipInputs(void)
+{
+    UPDATE_INPUT(detailsPtr, IPASBI__CHARGE_STAT1, P1IN, BIT2);
+    UPDATE_INPUT(detailsPtr, IPASBI__BATT_STAT, PJIN, BIT6);
+    UPDATE_INPUT(detailsPtr, IPASBI__PG12, P2IN, BIT7);
+    UPDATE_INPUT(detailsPtr, IPASBI__PG18, P4IN, BIT4);
+    UPDATE_INPUT(detailsPtr, IPASBI__PG33, P4IN, BIT5);
+    UPDATE_INPUT(detailsPtr, IPASBI__PG50, P4IN, BIT7);
+}

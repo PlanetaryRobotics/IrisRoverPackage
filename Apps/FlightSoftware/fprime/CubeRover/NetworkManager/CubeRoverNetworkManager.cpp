@@ -111,6 +111,15 @@ CubeRoverNetworkStateMachine CubeRoverNetworkManager :: GetState(){
   return m_state;
 }
 
+/**
+ * @brief      Resets the state to uninitialized
+ *
+ * @return     void
+ */
+void CubeRoverNetworkManager :: ResetState(){
+  m_state = UNINITIALIZED;
+  return;
+}
 
 /**
  * @brief      Getter for WifiModuleIdentified.
@@ -1333,7 +1342,7 @@ ErrorCode CubeRoverNetworkManager :: cb_EventUdpData(const Endpoint endpoint,
                                                      const DataSize16 dataSize){
   uint8_t *ptrData = data;
 
-  if(ipAddressesMatch(srcAddress, m_spacecraftIpAddress)){
+  if(ipAddressesMatch(srcAddress, m_spacecraftIpAddress)){    // FIXME: DON"T DO THIS UNNECCESSARY
 
     // Log the number of bytes received
     m_logNbOfBytesReceived += dataSize;

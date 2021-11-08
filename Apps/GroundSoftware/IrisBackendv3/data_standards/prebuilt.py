@@ -694,7 +694,7 @@ watchdog_command_response: Module = Module(
                 EnumItem('BAD_COMMAND_SEND_ORDER', 0x06,
                          comment="Command received in the wrong order (e.g. `Deploy` received before `Prepare for Deploy`)."
                          ),
-                EnumItem('DEPLOYMENT_SIGNAL_SENT', 0x96,
+                EnumItem('DEPLOYMENT_SIGNAL_SENT', 96,
                          comment="WatchDog Deployment Interlock Released. (Watchdog HDRM pin is high)."
                          )
             ]

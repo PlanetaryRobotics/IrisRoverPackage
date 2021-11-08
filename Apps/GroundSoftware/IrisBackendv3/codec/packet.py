@@ -1256,7 +1256,7 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
         # Helpful computed properties (which don't end up in Computed TelemetryChannels):
         @property
         def mean_lander_voltage(self) -> float:
-            return self.Adc_LanderVoltage / 2 + self.Adc_Vcc28Voltage/2
+            return self.Adc_LanderVoltage / 2.0 + self.Adc_Vcc28Voltage / 2.0
 
         @property
         def fused_est_lander_voltage(self) -> float:
@@ -1267,7 +1267,7 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
             # TODO: Update these weights from empirical measurements of their accuracies and uncertainties
             dLander = 0.25  # [Volts] (uncertainty in LanderVoltage reading)
             dVcc28 = 0.5  # [Volts] (uncertainty in Vcc28Voltage reading)
-            return self.Adc_LanderVoltage * (1-dLander/(dLander+dVcc28)) + self.Adc_Vcc28Voltage * (1-dVcc28/(dLander+dVcc28))
+            return self.Adc_LanderVoltage * (1.0-dLander/(dLander+dVcc28)) + self.Adc_Vcc28Voltage * (1.0-dVcc28/(dLander+dVcc28))
 
         # Computed properties for Computed Telemetry Channels:
         @property
@@ -1359,20 +1359,23 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
 
         @property
         def Adc_LanderVoltage(self) -> float:
-            return float(self.Adc_LanderVoltage) / 4095.0 * 3.3 * (232.0+2000.0)/232.0
+            return float(self.Adc_LanderVoltageRaw) / 4095.0 * 3.3 * (232.0+2000.0)/232.0
 
         @property
         def Adc_BatteryChargingTempKelvin(self) -> float:
             R25 = 10e3
             RT1 = 4320
             RT2 = 19100
-            V_ADC = float(self.Adc_BatteryChargingTempRaw) / 4095.0 * 3.3
-            R_TH = 1 / ((3.3 - V_ADC) / (V_ADC * RT1) - 1 / RT2)
-            return float(np.interp(
-                R_TH/R25,
-                self.BATT_CHRG_10K_THERMISTOR_LOOKUP_TABLE['RTH_R25'][::-1],
-                self.BATT_CHRG_10K_THERMISTOR_LOOKUP_TABLE['degC'][::-1]
-            )) + 273.15
+            if self.Adc_BatteryChargingTempRaw > 0:
+                V_ADC = float(self.Adc_BatteryChargingTempRaw) / 4095.0 * 3.3
+                R_TH = 1.0 / ((3.3 - V_ADC) / (V_ADC * RT1) - 1.0 / RT2)
+                return float(np.interp(
+                    R_TH/R25,
+                    self.BATT_CHRG_10K_THERMISTOR_LOOKUP_TABLE['RTH_R25'][::-1],
+                    self.BATT_CHRG_10K_THERMISTOR_LOOKUP_TABLE['degC'][::-1]
+                )) + 273.15
+            else:
+                return 0
 
         @property
         def Adc_BatteryChargingTempUncertaintyKelvin(self) -> float:
@@ -1465,7 +1468,10 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
 
         @property
         def Heater_DutyCyclePercent(self) -> float:
-            return 100.0 * float(self.Heater_DutyCycleCounter) / float(self.Heater_DutyCyclePeriodCycles)
+            if self.Heater_DutyCyclePeriodCycles > 0:
+                return 100.0 * float(self.Heater_DutyCycleCounter) / float(self.Heater_DutyCyclePeriodCycles)
+            else:
+                return 0
 
         @property
         def Heater_EffectiveVoltage(self) -> float:
@@ -1759,18 +1765,18 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
         def __repr__(self) -> str:
             return (
                 f"#{self.Watchdog_DetailedHeartbeatSequenceNumber} "
-                f"[{self.getEnumName(self.Watchdog_State)} + {self.getEnumName(self.Watchdog_DeploymentStatus)}] \t"
-                f"CHARGER: {self.getEnumName(self.Io_ChargerState)} \t"
-                f"BATTERIES: {self.getEnumName(self.Io_BatteryState)} \t"
-                f"UART0: {self.getEnumName(self.Watchdog_Uart0State)} \t"
-                f"UART1: {self.getEnumName(self.Watchdog_Uart1State)}"
+                f"[{self.getEnumName('Watchdog_State')} + {self.getEnumName('Watchdog_DeploymentStatus')}] \t"
+                f"CHARGER: {self.getEnumName('Io_ChargerState')} \t"
+                f"BATTERIES: {self.getEnumName('Io_BatteryState')} \t"
+                f"UART0: {self.getEnumName('Watchdog_Uart0State')} \t"
+                f"UART1: {self.getEnumName('Watchdog_Uart1State')}"
                 "\n"
-                f"1V2: {self.getEnumName(self.Io_1V2PowerGood)} \t"
-                f"1V8: {self.getEnumName(self.Io_1V8PowerGood)} \t"
+                f"1V2: {self.getEnumName('Io_1V2PowerGood')} \t"
+                f"1V8: {self.getEnumName('Io_1V8PowerGood')} \t"
                 f"2V5: {self.Adc_2V5Voltage:.1f} \t"
                 f"2V8: {self.Adc_2V8Voltage:.1f} \t"
-                f"3V3: {self.getEnumName(self.Io_3V3PowerGood)} \t"
-                f"5V0: {self.getEnumName(self.Io_5V0PowerGood)} \t"
+                f"3V3: {self.getEnumName('Io_3V3PowerGood')} \t"
+                f"5V0: {self.getEnumName('Io_5V0PowerGood')} \t"
                 f"24V: {self.Adc_Vcc24Voltage:.2f}"
                 "\n"
                 f"VBm: {self.Adc_SwitchedBatteryVoltage:.2f}V \t"
@@ -1783,8 +1789,8 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
                 f"[{self.Heater_OnTempKelvin:.0f}K |"
                 f"{self.Heater_SetpointKelvin:.0f}K |"
                 f"{self.Heater_OffTempKelvin:.0f}K] \t"
-                f"Control: {self.getEnumName(self.Heater_ControlEnabled)}, "
-                f"is : {self.getEnumName(self.Heater_IsHeating)} \t"
+                f"Control: {self.getEnumName('Heater_ControlEnabled')}, "
+                f"is : {self.getEnumName('Heater_IsHeating')} \t"
                 f"@ {self.Heater_EffectivePower:.3f}W / {self.Heater_EffectivePowerLimit:.3f}W \t"
                 f"Period: {self.Heater_DutyCyclePeriodMs:.1f}ms"
                 "\n"
@@ -1796,6 +1802,11 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
                 f"{self.I2C_BatteryVoltage:.2f}V \t"
                 f"{self.I2C_BatteryCurrent*1000:.1f}mA \t"
                 f"{self.I2C_BatteryChargeMah:.0f}mAh \t"
+                "\n"
+                f"GPIO (2=HiZ): {dict(**self.Watchdog_CombinedDigitalStates_Dict)} \n"
+                f"Resets: {dict(**self.Watchdog_ResetLogs_Dict)}"
+                "\n"
+                "\n"
             )
 
 
@@ -1969,7 +1980,7 @@ class WatchdogDetailedStatusPacket(WatchdogDetailedStatusPacketInterface[Watchdo
         Determines whether the given bytes constitute a valid packet of this type.
         """
         correct_start = len(data) > 0 and data[:1] == cls.START_FLAG
-        correct_length = len(data) == 46  # Bytes
+        correct_length = len(data) == 47  # Bytes
 
         return correct_start and correct_length
 

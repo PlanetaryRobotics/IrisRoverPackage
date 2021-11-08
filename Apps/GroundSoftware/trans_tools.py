@@ -6,7 +6,7 @@ tests which require the Transceiver layer while the real thing is still being
 built.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 10/29/2021
+@last-updated: 11/07/2021
 """
 
 import logging
@@ -35,9 +35,9 @@ from IrisBackendv3.utils.nameiddict import NameIdDict
 
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.logging import logger as DsLogger
-from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response
+from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response, watchdog_detailed_status_heartbeat
 from IrisBackendv3.codec.payload import Payload, PayloadCollection, CommandPayload, WatchdogCommandPayload, extract_downlinked_payloads
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket
+from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket, WatchdogDetailedStatusPacket
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
 from IrisBackendv3.codec.logging import logger as CodecLogger
@@ -103,6 +103,7 @@ def err_print(*args, **kwargs):
 DsLogger.setLevel('CRITICAL')
 standards = DataStandards.build_standards()
 add_to_standards(standards, [
+    watchdog_detailed_status_heartbeat,
     watchdog_heartbeat_tvac,
     watchdog_heartbeat,
     watchdog_command_response
@@ -142,6 +143,7 @@ def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
         WatchdogHeartbeatPacket,
         WatchdogCommandResponsePacket,
         IrisCommonPacket,
+        WatchdogDetailedStatusPacket,
         WatchdogTvacHeartbeatPacket
     ]
     # Codecs which support this packet:
@@ -192,6 +194,7 @@ def parse_packet_rev_i_debug(packet_bytes: bytes) -> Optional[Packet]:
         WatchdogHeartbeatPacket,
         WatchdogCommandResponsePacket,
         IrisCommonPacket,
+        WatchdogDetailedStatusPacket,
         WatchdogTvacHeartbeatPacket
     ]
     # Codecs which support this packet:

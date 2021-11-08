@@ -1318,12 +1318,12 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
                 fields['V_SYS_ALL_EN'] = 1 if out_states['OPSBI__V_SYS_ALL_EN'] else 2
 
             fields['RADIO_N_RST'] = 2 if out_states['OPSBI__RADIO_N_RESET_IS_INPUT'] else out_states['OPSBI__RADIO_N_RST']
-            fields['RADIO_N_RST'] = 2 if out_states['OPSBI__HERCULES_N_RST_IS_INPUT'] else out_states['OPSBI__HERCULES_N_RST']
-            fields['RADIO_N_RST'] = 2 if out_states['OPSBI__HERCULES_N_PORRST_IS_INPUT'] else out_states['OPSBI__HERCULES_N_PORRST']
-            fields['RADIO_N_RST'] = 2 if out_states['OPSBI__FPGA_N_RST_IS_INPUT'] else out_states['OPSBI__FPGA_N_RST']
-            fields['RADIO_N_RST'] = 2 if out_states['OPSBI__LATCH_SET_IS_INPUT'] else out_states['OPSBI__LATCH_SET']
-            fields['RADIO_N_RST'] = 2 if out_states['OPSBI__LATCH_RESET_IS_INPUT'] else out_states['OPSBI__LATCH_RESET']
-            fields['RADIO_N_RST'] = 2 if out_states['OPSBI__BATT_STAT_IS_INPUT'] else out_states['OPSBI__BATT_STAT']
+            fields['HERCULES_N_RST'] = 2 if out_states['OPSBI__HERCULES_N_RST_IS_INPUT'] else out_states['OPSBI__HERCULES_N_RST']
+            fields['HERCULES_N_PORRST'] = 2 if out_states['OPSBI__HERCULES_N_PORRST_IS_INPUT'] else out_states['OPSBI__HERCULES_N_PORRST']
+            fields['FPGA_N_RST'] = 2 if out_states['OPSBI__FPGA_N_RST_IS_INPUT'] else out_states['OPSBI__FPGA_N_RST']
+            fields['LATCH_SET'] = 2 if out_states['OPSBI__LATCH_SET_IS_INPUT'] else out_states['OPSBI__LATCH_SET']
+            fields['LATCH_RESET'] = 2 if out_states['OPSBI__LATCH_RESET_IS_INPUT'] else out_states['OPSBI__LATCH_RESET']
+            fields['BATT_STAT'] = 2 if out_states['OPSBI__BATT_STAT_IS_INPUT'] else out_states['OPSBI__BATT_STAT']
 
             # Check for any unprocessed fields:
             if any(v < 0 for v in fields.values()):
@@ -1789,8 +1789,8 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
                 f"[{self.Heater_OnTempKelvin:.0f}K |"
                 f"{self.Heater_SetpointKelvin:.0f}K |"
                 f"{self.Heater_OffTempKelvin:.0f}K] \t"
-                f"Control: {self.getEnumName('Heater_ControlEnabled')}, "
-                f"is : {self.getEnumName('Heater_IsHeating')} \t"
+                f" is {self.getEnumName('Heater_IsHeating')}, "
+                f"Control: {self.getEnumName('Heater_ControlEnabled')} \t"
                 f"@ {self.Heater_EffectivePower:.3f}W / {self.Heater_EffectivePowerLimit:.3f}W \t"
                 f"Period: {self.Heater_DutyCyclePeriodMs:.1f}ms"
                 "\n"

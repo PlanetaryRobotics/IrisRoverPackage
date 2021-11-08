@@ -175,6 +175,27 @@ def get_command(alias: str, param: Optional[str] = None):
             dict(latch_batt=param),
             DataPathway.WIRED
         ),
+        'set-cam': (
+            DataPathway.WIRED,
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_ResetSpecific',
+            dict(reset_value=param),
+            DataPathway.WIRED
+        ),
+        'set-cam': (
+            DataPathway.WIRED,
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_ResetSpecific',
+            dict(reset_value=param),
+            DataPathway.WIRED
+        ),
+        'take-image': (
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            'Camera_TakeImage',
+            dict(camera_num=param, callback_id=0),
+            DataPathway.WIRED
+        ),
         'misc-test': (
             DataPathway.WIRED,
             # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)

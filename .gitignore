@@ -1,4 +1,5 @@
 
+*.clog
 Apps/GroundSoftware/IrisBackendv3/.DS_Store
 Apps/GroundSoftware/IrisBackendv3/.idea/inspectionProfiles/profiles_settings.xml
 Apps/GroundSoftware/IrisBackendv3/.idea/IrisBackendv3.iml

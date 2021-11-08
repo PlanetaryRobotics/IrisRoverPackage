@@ -1228,7 +1228,7 @@ namespace iris
             case WD_CMD_MSGS__RESET_ID__3_3V_EN_POWER_ON:
                 if (allowPowerOn) {
                     enable3V3PowerRail();
-                    blimp_vSysAllEnOn;
+                    blimp_vSysAllEnOn();
                     SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__3V3_EN_POWER_ON);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;

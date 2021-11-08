@@ -242,6 +242,18 @@
             </args>
         </command>
 
+        <command kind="async" opcode="0xF6" mnemonic="Request_Status_Report">
+            <comment>
+            Request a detailed status report be sent.
+            </comment>
+            <args>
+                <arg name="confirm" type="ENUM">
+                    <enum name="confirm_status_request">
+                        <item name="Confirm_Request" value = "0x57" />
+                    </enum>
+                </arg>
+            </args>
+        </command>
 
         <command kind="async" opcode="0xF7" mnemonic="Set_Charger_Enable">
             <args>

@@ -189,6 +189,13 @@ def get_command(alias: str, param: Optional[str] = None):
             dict(latch_reset=param),
             DataPathway.WIRED
         ),
+        'ReportStatus': (
+            DataPathway.WIRED,
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_RequestStatusReport',
+            dict(confirm='CONFIRM_REQUEST'),
+            DataPathway.WIRED
+        ),
         'misc-test': (
             DataPathway.WIRED,
             # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)

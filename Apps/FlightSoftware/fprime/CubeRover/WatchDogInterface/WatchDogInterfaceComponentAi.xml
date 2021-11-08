@@ -278,7 +278,6 @@
                 </arg>
             </args>
         </command>
-
         <command kind="async" opcode="0xFB" mnemonic="Set_Battery_Latch">
             <args>
                 <arg name="latch_batt" type="ENUM">
@@ -290,20 +289,26 @@
                 </arg>
             </args>
         </command>
-        <command kind="async" opcode="0xFC" mnemonic="Pulse_Latch_Set">
+        <command kind="async" opcode="0xFC" mnemonic="Set_Latch_Set">
             <args>
-                <arg name="confirm" type="ENUM">
-                    <enum name="confirm_latch_set">
-                        <item name="Confirm_LS_Pulse" value = "21" />
+                <arg name="latch_set" type="ENUM">
+                    <enum name="latch_set_states">
+                        <item name="Latch_Set_Off" value = "0x00" />
+                        <item name="Latch_Set_On" value = "0xFF" />
+                        <item name="Force_Latch_Set_High" value = "0xBB" />
+                        <item name="Pulse_Latch_Set_Low" value = "0x15" />
                     </enum>
                 </arg>
             </args>
         </command>
-        <command kind="async" opcode="0xFD" mnemonic="Pulse_Latch_Reset">
+        <command kind="async" opcode="0xFD" mnemonic="Set_Latch_Reset">
             <args>
-                <arg name="confirm" type="ENUM">
-                    <enum name="confirm_latch_reset">
-                        <item name="Confirm_LR_Pulse" value = "94" />
+                <arg name="latch_reset" type="ENUM">
+                    <enum name="latch_reset_states">
+                        <item name="Latch_Reset_Off" value = "0x00" />
+                        <item name="Latch_Reset_On" value = "0xFF" />
+                        <item name="Force_Latch_Reset_High" value = "0xBB" />
+                        <item name="Pulse_Latch_Reset_Low" value = "0x15" />
                     </enum>
                 </arg>
             </args>

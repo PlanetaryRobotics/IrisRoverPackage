@@ -59,6 +59,8 @@
 									<listOptionValue builtIn="false" value=""/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="true" id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.CPP_FILE.391550555" name="File is a C++ file (default for .C .cpp .cc) (--cpp_file, -fp)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.CPP_FILE" valueType="stringList"/>
+								<option id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.EMIT_WARNINGS_AS_ERRORS.545973875" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.EMIT_WARNINGS_AS_ERRORS" value="true" valueType="boolean"/>
+								<option id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.VERBOSE_DIAGNOSTICS.1590438204" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.VERBOSE_DIAGNOSTICS" value="true" valueType="boolean"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__C_SRCS.841609449" name="C Sources" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__C_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__CPP_SRCS.1661679273" name="C++ Sources" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__CPP_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__ASM_SRCS.642589816" name="Assembly Sources" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__ASM_SRCS"/>
@@ -156,6 +158,8 @@
 									<listOptionValue builtIn="false" value="${CG_TOOL_ROOT}/include"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.ADVICE__POWER.302514299" name="Enable checking of ULP power rules (--advice:power)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.ADVICE__POWER" useByScannerDiscovery="false" value="all" valueType="string"/>
+								<option id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.EMIT_WARNINGS_AS_ERRORS.1706806593" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.EMIT_WARNINGS_AS_ERRORS" value="true" valueType="boolean"/>
+								<option id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.VERBOSE_DIAGNOSTICS.1533099407" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.VERBOSE_DIAGNOSTICS" value="true" valueType="boolean"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__C_SRCS.83613134" name="C Sources" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__C_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__CPP_SRCS.1218706495" name="C++ Sources" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__CPP_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__ASM_SRCS.614961785" name="Assembly Sources" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__ASM_SRCS"/>
@@ -260,6 +264,8 @@
 									<listOptionValue builtIn="false" value=""/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="true" id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.CPP_FILE.1072682396" name="File is a C++ file (default for .C .cpp .cc) (--cpp_file, -fp)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.CPP_FILE" valueType="stringList"/>
+								<option id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.EMIT_WARNINGS_AS_ERRORS.1908606011" name="Treat warnings as errors (--emit_warnings_as_errors, -pdew)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.EMIT_WARNINGS_AS_ERRORS" value="true" valueType="boolean"/>
+								<option id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.VERBOSE_DIAGNOSTICS.434393310" name="Verbose diagnostics (--verbose_diagnostics, -pdv)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.VERBOSE_DIAGNOSTICS" value="true" valueType="boolean"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__C_SRCS.2020402495" name="C Sources" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__C_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__CPP_SRCS.1686732473" name="C++ Sources" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__CPP_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__ASM_SRCS.2012235834" name="Assembly Sources" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compiler.inputType__ASM_SRCS"/>

@@ -13,6 +13,8 @@ extern "C"
 {
 #endif
 
+#define MANUALLY_CONSTRUCT_REPORT
+
 typedef enum GroundMsgs__Status
 {
     GND_MSGS__STATUS__SUCCESS = 0, /* Operation succeeded. */

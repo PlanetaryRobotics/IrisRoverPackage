@@ -99,13 +99,13 @@ namespace iris
 
             Event__Type event = EVENT__TYPE__UNUSED;
             EventQueue__Status eqStatus = EventQueue__get(&event);
-            bool gotEvent = false;
+            //bool gotEvent = false;
 
             if (EQ__STATUS__SUCCESS == eqStatus) {
                 // We got an event. Have the current state handle it (performing any necessary state transitions as
                 // requested by the state(s))
                 handleEvent(event);
-                gotEvent = true;
+                //gotEvent = true;
             } else if (EQ__STATUS__ERROR_EMPTY == eqStatus) {
                 if (m_currentState->canEnterLowPowerMode(m_context)) {
                     //!< @todo Enter LPM here. Need to figure out how to handle LPM and WDT together.

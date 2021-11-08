@@ -263,7 +263,9 @@ static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg*
 
             // Clear the ring buffer, as we're now done with the header.
             rbStatus = RingBuffer__clear(theStateMachine.headerRb);
-            memset(theStateMachine.ringBufferMemory, 0, sizeof(theStateMachine.ringBufferMemory));
+            for (size_t i = 0; i < sizeof(theStateMachine.ringBufferMemory); ++i) {
+                theStateMachine.ringBufferMemory[i] = 0;
+            }
         
             // Clear should only throw is headerRb is NULL, and it shouldn't be NULL
             assert(RB__STATUS__SUCCESS == rbStatus);
@@ -289,22 +291,20 @@ static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg*
                 }
             }
         } else {
-            // Parity check failed, so pop one then signal to spin for the next magic numbers
-            uint8_t unused = 0;
-            RingBuffer__getOverwrite(theStateMachine.headerRb, &unused);
+            // Parity check failed, so signal to spin for the next magic numbers
             spinForNewMagic = TRUE;
         }
     } else {
         spinForNewMagic = TRUE;
-
     }
 
     if (spinForNewMagic) {
         BOOL foundNewMagic = FALSE;
-        uint8_t unused;
 
         while (!foundNewMagic && !RingBuffer__empty(theStateMachine.headerRb)) {
             BOOL foundMagicThisIter = TRUE;
+            uint8_t unused = 0;
+            RingBuffer__getOverwrite(theStateMachine.headerRb, &unused);
             size_t ringSize = RingBuffer__usedCount(theStateMachine.headerRb);
 
             if (ringSize >= 3) {

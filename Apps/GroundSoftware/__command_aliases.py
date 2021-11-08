@@ -175,6 +175,20 @@ def get_command(alias: str, param: Optional[str] = None):
             dict(latch_batt=param),
             DataPathway.WIRED
         ),
+        'SetLatchSet': (
+            DataPathway.WIRED,
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_SetLatchSet',
+            dict(latch_set=param),
+            DataPathway.WIRED
+        ),
+        'SetLatchReset': (
+            DataPathway.WIRED,
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_SetLatchReset',
+            dict(latch_reset=param),
+            DataPathway.WIRED
+        ),
         'misc-test': (
             DataPathway.WIRED,
             # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)

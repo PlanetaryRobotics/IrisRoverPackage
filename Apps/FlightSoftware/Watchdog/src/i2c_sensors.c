@@ -292,14 +292,14 @@ I2C_Sensors__Status I2C_Sensors__initializeIOExpanderBlocking()
     static const uint8_t CONFIG_PORT_0_REG_ADDR = 8;
     // ! TODO: Look into pins 4 and 5 hercules resets; Set as inputs to not drive during programming; Normally outputs
     //static const uint8_t CONFIG_PORT_0_VALUE = 0b00001111; // resets as inputs - worked for initial programming
-    static const uint8_t CONFIG_PORT_0_VALUE = 0b00001111; // 0.0 - 0.3 as inputs, others as outputs (for programming motors)
+    static const uint8_t CONFIG_PORT_0_VALUE = 0b10001111; // 0.0 - 0.3 as inputs, others as outputs (for programming motors)
 //    static const uint8_t CONFIG_PORT_0_VALUE = 0b11111111; // all as inputs?
     static const uint8_t CONFIG_PORT_1_REG_ADDR = 9;
     // ! TODO: Config port 1 value was 9 bits (0b011010011) but looking at the above comments and port 0 value we
     //   removed the last bit to get (0b01101001)
     // ! TODO: Is this backwards?
 //    static const uint8_t CONFIG_PORT_1_VALUE = 0b01101001; // orig
-    static const uint8_t CONFIG_PORT_1_VALUE = 0b10010110; // testing
+    static const uint8_t CONFIG_PORT_1_VALUE = 0b10011110; // testing
 //    static const uint8_t CONFIG_PORT_1_VALUE = 0b00000000; // all output?
 
 

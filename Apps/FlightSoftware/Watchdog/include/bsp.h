@@ -48,7 +48,5 @@ inline void unsetDeploy();
 inline void startChargingBatteries();
 inline void stopChargingBatteries();
 
-inline void latchSetHi();
-inline void latchRstHi();
 #endif // __BSP_H__
 

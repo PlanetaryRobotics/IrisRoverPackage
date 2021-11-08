@@ -103,7 +103,7 @@ void initializeGpios()
     // P2.0 is used as the UART0 (UCA0) TX data line (TXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
     // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-23,
     // for UCA0TXD P2DIR is don't care.
-    P2SEL1 |= BIT0; // comment out if UART line killing things
+//    P2SEL1 |= BIT0; // comment out if UART line killing things
 
     // P2.1 is used as the UART0 (UCA0) RX data line (RXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
     // Per MSP430FR599x datasheet (https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf) Table 9-23,
@@ -218,7 +218,8 @@ void initializeGpios()
     P3OUT &= ~BIT4;
 
     // P3.5 is connected to the FPGA_Kick signal and is used as a GPIO input.
-    P3OUT &= ~BIT5;
+    P3DIR &= ~BIT5;
+//    P3DIR |= BIT5;
 
     // ! TODO: Not deployment (anymore on Rev I - not sure if it was on rev H). Is `LATCH_BATT` now.
     // P3.6 is connected to the Deployment signal (control signal for MOSFET to enable HDRM), and is used as a GPIO

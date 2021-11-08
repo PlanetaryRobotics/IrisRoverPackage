@@ -8,8 +8,8 @@
 #include "include/i2c_sensors.h"
 #include "include/blimp.h"
 
-// Number of cycles to hold a pulse on the D-Latch for (should be at least 2us):
-#define IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES 500
+// Number of cycles to hold a pulse on the D-Latch for (should be at least 2us - 500 was too few):
+#define IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES 10000
 
 /**
  * @brief   Boots the BLiMP into a safe mode for testing by disabling everything.
@@ -18,24 +18,25 @@
  * the surface.
  */
 void blimp_enterSleep(){
+//    blimp_latchSetHigh();
+//    blimp_latchResetHigh();
+//    __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES);
     blimp_latchBattOff();
     blimp_battEnOff();
     blimp_latchBattUpdate();
-    blimp_latchSetLow(); // set these LOW to avoid putting voltage on pin of unpowered latch IC (becomes unpowered when BCTRLE goes LOW).
-    blimp_latchResetLow(); // set these LOW to avoid putting voltage on pin of unpowered latch IC (becomes unpowered when BCTRLE goes LOW).
-    blimp_bctrlEnOff();
+//    blimp_bctrlEnOff();
 }
 
 /**
  * @brief   Sets up all BLiMP interfaces on boot.
  */
 void blimp_normalBoot(){
-    // Make sure we're not influencing BCTRLE by default:
-    blimp_bctrlEnOn();
-
-    // Disable Asynchronous Latch Controls (LS, LR):
-    blimp_latchSetHigh();
-    blimp_latchResetHigh();
+//    // Make sure we're not influencing BCTRLE by default:
+//    blimp_bctrlEnOn();
+//
+//    // Disable Asynchronous Latch Controls (LS, LR):
+//    blimp_latchSetHigh();
+//    blimp_latchResetHigh();
 
     // Absorb the state of `BSTAT` (what it was pre-boot) in case we just recovered from a mid-mission reboot:
     if(blimp_bstat()){

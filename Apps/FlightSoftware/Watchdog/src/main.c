@@ -71,8 +71,8 @@ void enterMode(enum rover_state newstate) {
         I2C_Sensors__initializeIOExpanderBlocking();
         I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
 
-//        blimp_normalBoot(); // must happen after IO expander initialization
-        blimp_safeBoot(); // TODO: only for testing.
+        blimp_normalBoot(); // must happen after IO expander initialization
+//        blimp_safeBoot(); // TODO: only for testing.
 
         // BLiMP controls that must happen after BLiMP boot function (blimp_safeBoot() or blimp_normalBoot()):
 //        startChargingBatteries();
@@ -91,6 +91,20 @@ void enterMode(enum rover_state newstate) {
 //        uint8_t chargeStat2 = 0;
 //        uint8_t latchStat = 0;
 //        I2C_Sensors__Status stat = I2C_Sensors__readIOExpanderBlocking(&chargeStat2, &latchStat);
+
+//        fpgaCameraSelectLo();
+//#define MOTOR_TEST
+#ifdef MOTOR_TEST
+        blimp_normalBoot();
+        blimp_vSysAllEnOn();
+        enable3V3PowerRail();
+        powerOnMotors();
+//        setHerculesReset();
+//        releaseHerculesReset();
+//        releaseRadioReset();
+//        powerOnRadio();
+        I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
+#endif
 
 //#define HERC_TEST
 #ifdef HERC_TEST
@@ -120,13 +134,14 @@ void enterMode(enum rover_state newstate) {
         blimp_latchBattOn();
 //        P3OUT |= BIT6; // Latch_batt ON
 
+        P3DIR |= BIT5; // FPGA_KICK OUTPUT
         P3OUT |= BIT5; // FPGA_KICK ON
 
         P3OUT |= BIT4; // DEPLOY_1 ON
 
         enableHeater();
-        latchSetHi();
-        latchRstHi();
+        blimp_latchSetHigh();
+        blimp_latchResetHigh();
         blimp_regEnOn();
         I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
 #endif
@@ -171,6 +186,9 @@ void enterMode(enum rover_state newstate) {
 
         blimp_normalBoot(); // must happen after IO expander initialization
 
+        // Turn on all system power (VSA) switch:
+        blimp_vSysAllEnOn();
+
         /* bootup process - enable all rails */
         enable3V3PowerRail();
 //        enable24VPowerRail();
@@ -181,15 +199,13 @@ void enterMode(enum rover_state newstate) {
         unsetDeploy();
 //        setDeploy(); // TESTING
 
-        // Turn on all system power (VSA) switch:
-//        blimp_vSysAllEnOn();
 
         /* enable hercules uart */
         uart0_init();
 
         /* power everything on and release resets */
-//        releaseRadioReset();
-        setRadioReset(); // TESTING
+        releaseRadioReset();
+//        setRadioReset(); // TESTING
         setFPGAReset(); // TESTING
 //        releaseFPGAReset();
 
@@ -201,8 +217,8 @@ void enterMode(enum rover_state newstate) {
 //        powerOnFpga();
         powerOffMotors(); // TESTING
 //        powerOnMotors();
-//        powerOnRadio();
-        powerOffRadio(); // TESTING
+        powerOnRadio();
+//        powerOffRadio(); // TESTING
 
         stopChargingBatteries();
 
@@ -213,14 +229,14 @@ void enterMode(enum rover_state newstate) {
         __delay_cycles(12345678); //give fuel gauge [50 ms] & wifi [~750 ms] time to start up
         I2C_Sensors__initializeFuelGaugeBlocking();
 
-//        powerOnHercules();
-        powerOffHercules(); // TESTING
+        powerOnHercules();
+//        powerOffHercules(); // TESTING
 
         setMotorsReset(); // TESTING
 //        releaseMotorsReset();
 
-//        releaseHerculesReset();
-        setHerculesReset(); // TESTING
+        releaseHerculesReset();
+//        setHerculesReset(); // TESTING
 
         I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
 

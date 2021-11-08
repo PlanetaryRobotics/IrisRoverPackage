@@ -2260,6 +2260,22 @@ class WatchdogCommandResponsePacketInterface(CustomPayloadPacket[CT]):
         def ErrorFlag(self) -> int: return self._ErrorFlag
 
         @property
+        def CommandName(self) -> str:
+            """
+            Look up the Command Name corresponding to the Command ID given in 
+            this packet in the *current ground software* copy of the 
+            datastandards (that is, it's not a 100% guarantee that this is how 
+            the WD code was interpreting the command ID - *but* appropriate 
+            systems controls and version alignment should prevent them from 
+            being out of sync).
+            """
+            # Grab module ID
+            mid = settings['STANDARDS'].modules['WatchDogInterface'].ID
+            opcode = mid | self.CommandId
+            _, command = settings['STANDARDS'].global_command_lookup(opcode)
+            return command.name
+
+        @property
         def ErrorFlagName(self) -> str:
             return cast(str, self._module.telemetry['ErrorFlag'].get_enum_name(
                 self.ErrorFlag
@@ -2294,12 +2310,12 @@ class WatchdogCommandResponsePacketInterface(CustomPayloadPacket[CT]):
 
         def __str__(self) -> str:
             return (
-                f"> Command #{self._CommandId} responded with {self.ErrorFlagName}[{hex(self.ErrorFlag)}]: '{self.ErrorFlagComment}'."
+                f"> Command #{self._CommandId} ({self.CommandName}) responded with {self.ErrorFlagName}[{hex(self.ErrorFlag)}]: '{self.ErrorFlagComment}'."
             )
 
         def __repr__(self) -> str:
             return (
-                f"> Command[#{self._CommandId}] -> {self.ErrorFlagName}[{hex(self.ErrorFlag)}]"
+                f"> Command[#{self._CommandId}: {self.CommandName}] -> {self.ErrorFlagName}[{hex(self.ErrorFlag)}]"
             )
 
 

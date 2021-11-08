@@ -694,11 +694,11 @@ class DataStandards(object):
                 names_dict
             )
 
-    def global_command_lookup(self, key: Union[str, NameIdDict.KeyTuple]) -> Tuple[Module, Command]:
+    def global_command_lookup(self, key: Union[str, int, NameIdDict.KeyTuple]) -> Tuple[Module, Command]:
         """
         Finds a command from any module which has the given name string `key`
-        (standardized and includes the module name) or KeyTuple `key` which
-        includes the name alongside its corresponding module ID.
+        (standardized and includes the module name), id `key` as a full opcode, 
+        or KeyTuple `key` which includes the name alongside its corresponding module ID.
 
         Returns a tuple of the command's parent module and the command itself.
         """

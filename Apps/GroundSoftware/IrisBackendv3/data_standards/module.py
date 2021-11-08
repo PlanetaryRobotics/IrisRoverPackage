@@ -14,7 +14,7 @@ from __future__ import annotations
 from typing import List, Dict, Any, Union, cast, Optional
 from collections import OrderedDict
 from enum import Enum as PyEnum  # just in case, room to prevent name-clash
-import bitstruct
+import bitstruct # type: ignore
 
 import json
 

@@ -40,6 +40,7 @@ namespace iris
             bool m_isDeployed;
 
             WatchdogStateDetails m_details;
+            bool m_sendDetailedReport;
 
             bool* m_persistentInMission;
             bool* m_persistentDeployed;

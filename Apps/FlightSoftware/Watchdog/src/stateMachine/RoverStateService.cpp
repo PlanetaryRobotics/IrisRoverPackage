@@ -131,6 +131,11 @@ namespace iris
             }
         }
 
+        if (theContext.m_sendDetailedReport) {
+            theContext.m_sendDetailedReport = false;
+            sendDetailedReportToLander(theContext);
+        }
+
         return getState();
     }
 

@@ -1045,7 +1045,7 @@ namespace iris
                                                              WdCmdMsgs__Response& deployNotificationResponse,
                                                              bool& sendDeployNotificationResponse)
     {
-        sendDetailedReportToLander(theContext);
+        m_sendDetailedReport = true;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }

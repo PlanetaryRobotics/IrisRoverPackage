@@ -67,12 +67,12 @@ namespace iris
         m_context.m_details.m_outputPinBits = 0;
         m_context.m_details.m_resetActionBits = 0;
 
-
         m_context.m_persistentInMission = &persistentInMission;
         m_context.m_persistentDeployed = &persistentDeployed;
 
         m_context.m_isDeployed = false;
         m_context.m_i2cActive = false;
+        m_context.m_sendDetailedReport = false;
 
         RoverState desiredState = m_currentState->transitionTo(m_context);
         transitionUntilSettled(desiredState);

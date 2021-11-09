@@ -7,6 +7,35 @@
 
 namespace
 {
+    enum RingArrayActionType
+    {
+        RAAT__START = 0,
+        RAAT__PUSH = 1,
+        RAAT__POP = 2,
+        RAAT__CLEAR = 3,
+        RAAT__UNSET = 255,
+    } __attribute__((packed));
+
+    class RingArrayAction
+    {
+        public:
+            RingArrayActionType type;
+            uint8_t data;
+            uint8_t head;
+            uint8_t tail;
+
+            RingArrayAction()
+                : type(RAAT__UNSET), data(0), head(0), tail(0)
+            {}
+
+            RingArrayAction(RingArrayActionType typ, uint8_t d, size_t h, size_t t)
+                : type(typ), data(d), head(h), tail(t)
+            {}
+    };
+
+    RingArrayAction actionLog[512];
+    size_t actionLogIndex = 0;
+
     class HeaderRingArray
     {
         public:
@@ -359,6 +388,15 @@ namespace CubeRover
         size = msg.parsedHeader.payloadLength - msg.accumulatedDataSize;
 
         if (msg.accumulatedDataSize == msg.parsedHeader.payloadLength) {
+            for (size_t i = 0; i < msg.accumulatedDataSize - 1; ++i) {
+                if (msg.dataBuffer[i] == PrivateImplementation::MAGIC_BYTE_ONE_EXPECTED_VALUE &&
+                        msg.dataBuffer[i+1] == PrivateImplementation::MAGIC_BYTE_TWO_EXPECTED_VALUE) {
+                    size_t j = i +1;
+                    j += (i + 900) * 2;
+                }
+            }
+
+            *destination = nullptr;
             return WatchDogMpsm::ParseDataStatus::PDS_PARSED_ALL_DATA;
         } else {
             *destination = msg.dataBuffer + msg.accumulatedDataSize;

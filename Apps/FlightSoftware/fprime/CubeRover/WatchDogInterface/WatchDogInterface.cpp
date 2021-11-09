@@ -592,6 +592,20 @@ namespace CubeRover {
             this->log_WARNING_HI_WatchDogIncorrectResp(bad_size_received);
             return;
         }
+
+        bool hasBadass = false;
+        for (size_t i = 0; i < msg.accumulatedDataSize - 2; ++i) {
+            if (msg.dataBuffer[i] == 0x55 &&
+                    msg.dataBuffer[i+1] == 0xDA &&
+                    msg.dataBuffer[i+2] == 0xBA) {
+                hasBadass = true;
+                break;
+            }
+        }
+
+        if (!hasBadass) {
+            m_rxTask.printDmaUpdates();
+        }
   
         // TODO: Verify that the MTU for wired connection is the same as Wifi
         Fw::Buffer uplinked_data;

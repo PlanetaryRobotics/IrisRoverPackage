@@ -82,6 +82,14 @@ namespace CubeRover
              */
             bool registerCallback(WatchDogRxCallbackProcessor* callback);
 
+            void printDmaUpdates();
+
+            /**
+             * The message parsing state machine that informs this task how to behave in order to properly receive
+             * messages from the MSP430 watchdog.
+             */
+            WatchDogMpsm m_mpsm;
+
         private:
             /**
              * The array containing callbacks to be invoked upon receiving and parsing a message.
@@ -92,12 +100,6 @@ namespace CubeRover
              * The number of indices in `m_callbacks` that contain callbacks.
              */
             size_t m_numCallbacksRegistered;
-
-            /**
-             * The message parsing state machine that informs this task how to behave in order to properly receive
-             * messages from the MSP430 watchdog.
-             */
-            WatchDogMpsm m_mpsm;
 
             /**
              * Whether or not the task should keep running. The main loop in the task thread is controlled by this.
@@ -114,6 +116,14 @@ namespace CubeRover
              * The buffer to used for holding the payload of messages received from the MSP430 watchdog.
              */
             uint8_t m_dataBuffer[WATCHDOG_MAX_PAYLOAD] __attribute__((aligned(8)));
+
+            /**
+             * The buffer to used for holding the payload of messages received from the MSP430 watchdog.
+             */
+            uint8_t m_dataBuffer2[WATCHDOG_MAX_PAYLOAD] __attribute__((aligned(8)));
+
+            WatchDogMpsm::Message m_msg;
+            WatchDogMpsm::Message m_msg2;
 
             /**
              * The function that implements the task thread.

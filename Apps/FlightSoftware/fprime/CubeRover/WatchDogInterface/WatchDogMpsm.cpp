@@ -190,6 +190,7 @@ namespace CubeRover
         PrivateImplementation()
             : m_ringArray()
         {
+            memset(m_headerBuffer, 0xFA, sizeof(m_headerBuffer));
         }
 
         WatchDogMpsm::ParseHeaderStatus checkForValidHeader(WatchDogMpsm::Message& msg)
@@ -236,6 +237,7 @@ namespace CubeRover
                     // Passed parity check, so this is a valid header. We can empty the ring array since we've already
                     // copied the data into the parsed header structure.
                     m_ringArray.clear();
+                    memset(m_headerBuffer, 0xFA, sizeof(m_headerBuffer));
                     return WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_VALID_HEADER;
                 } else {
                     // Our computed parity doesn't match the expected parity. We want to return an error indicating as
@@ -340,12 +342,13 @@ namespace CubeRover
           accumulatedDataSize(0)
 
     {
+        memset(dataBuffer, 0xFA, dataBufferLen); // This isn't necessary but should make debugging easier
     }    
 
     void WatchDogMpsm::Message::reset()
     {
         parsedHeader.reset();
-        memset(dataBuffer, 0, accumulatedDataSize); // This isn't necessary but should make debugging easier
+        memset(dataBuffer, 0xFA, accumulatedDataSize); // This isn't necessary but should make debugging easier
         accumulatedDataSize = 0;
     }
 

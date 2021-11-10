@@ -7,34 +7,33 @@
 
 namespace
 {
-    enum RingArrayActionType
+    /**
+     * The status of parsing the header of a message.
+     */
+    enum ParseHeaderStatus
     {
-        RAAT__START = 0,
-        RAAT__PUSH = 1,
-        RAAT__POP = 2,
-        RAAT__CLEAR = 3,
-        RAAT__UNSET = 255,
-    } __attribute__((packed));
+        PHS_NEED_MORE_DATA = 0, //!< Need more data to complete the header.
+        PHS_PARSED_VALID_HEADER = 1, //!< Parsed a full header that passes its parity check.
+        PHS_PARSED_HEADER_BAD_PARITY = 2, //!< Parsed a full header that failed its parity check.
 
-    class RingArrayAction
-    {
-        public:
-            RingArrayActionType type;
-            uint8_t data;
-            uint8_t head;
-            uint8_t tail;
-
-            RingArrayAction()
-                : type(RAAT__UNSET), data(0), head(0), tail(0)
-            {}
-
-            RingArrayAction(RingArrayActionType typ, uint8_t d, size_t h, size_t t)
-                : type(typ), data(d), head(h), tail(t)
-            {}
+        /**
+         * @brief An unexpected internal error occurred.
+         *
+         * I don't think should actually be possible to occur (it's only returned if we land
+         * in the default case of a switch statement, and that should only occur in the event
+         * of programmer error).
+         */
+        PHS_INTERNAL_ERROR = -255
     };
 
-    RingArrayAction actionLog[512];
-    size_t actionLogIndex = 0;
+    /**
+     * The status of parsing the payload of a message.
+     */
+    enum ParseDataStatus
+    {
+        PDS_NEED_MORE_DATA = 0, //!< Need more data to complete the payload.
+        PDS_PARSED_ALL_DATA = 1 //!< Successfully got all payload data.
+    };
 
     class HeaderRingArray
     {
@@ -187,21 +186,30 @@ namespace CubeRover
             uint64_t not_used;
         };
 
+        enum ParsingState
+        {
+            PARSING_STATE__VALIDATE_HEADER = 0,
+            PARSING_STATE__DATA = 1,
+        };
+
+        ParsingState m_state;
+
         PrivateImplementation()
-            : m_ringArray()
+            : m_ringArray(),
+              m_state(PARSING_STATE__VALIDATE_HEADER)
         {
             memset(m_headerBuffer, 0xFA, sizeof(m_headerBuffer));
         }
 
-        WatchDogMpsm::ParseHeaderStatus checkForValidHeader(WatchDogMpsm::Message& msg)
+        ParseHeaderStatus checkForValidHeader(WatchDogMpsm::Message& msg)
         {
             // The header is a full 12 bytes, so the ring array (size of 8) needs to be full for the header to be valid
             if (!m_ringArray.full()) {
-                return WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA;
+                return PHS_NEED_MORE_DATA;
             }
 
             bool spinForNewMagic = false;
-            WatchDogMpsm::ParseHeaderStatus retStatus = WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA;
+            ParseHeaderStatus retStatus = PHS_NEED_MORE_DATA;
 
             // Start checking the header bytes.
             if (m_ringArray.peek((uint8_t) HeaderIndices::MAGIC_ONE) == MAGIC_BYTE_ONE_EXPECTED_VALUE
@@ -238,11 +246,11 @@ namespace CubeRover
                     // copied the data into the parsed header structure.
                     m_ringArray.clear();
                     memset(m_headerBuffer, 0xFA, sizeof(m_headerBuffer));
-                    return WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_VALID_HEADER;
+                    return PHS_PARSED_VALID_HEADER;
                 } else {
                     // Our computed parity doesn't match the expected parity. We want to return an error indicating as
                     // much, but we also can pump the ring array until we find new magic numbers.
-                    retStatus = WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_HEADER_BAD_PARITY;
+                    retStatus = PHS_PARSED_HEADER_BAD_PARITY;
                     spinForNewMagic = true;
                 }
             } else {
@@ -294,30 +302,6 @@ namespace CubeRover
             // This header is invalid for some reason
             return retStatus;
         }
-
-        WatchDogMpsm::ParseHeaderStatus getHeaderStatus(WatchDogMpsm::Message& msg,
-                                                        size_t& numHeaderBytesStillNeeded)
-        {
-            WatchDogMpsm::ParseHeaderStatus checkStatus = checkForValidHeader(msg);
-
-            switch (checkStatus) {
-                case WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA: // Fall through
-                case WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_HEADER_BAD_PARITY:
-                    numHeaderBytesStillNeeded = m_ringArray.freeSize();
-                    break;
-
-                case WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_VALID_HEADER:
-                    numHeaderBytesStillNeeded = 0;
-                    break;
-
-                default:
-                    // This shouldn't be possible
-                    assert(false);
-                    return WatchDogMpsm::ParseHeaderStatus::PHS_INTERNAL_ERROR;
-            }
-
-            return checkStatus;
-        }
     };
 
 
@@ -362,56 +346,71 @@ namespace CubeRover
         delete m_impl;
     }
 
-    WatchDogMpsm::ParseHeaderStatus WatchDogMpsm::getHeaderDmaDetails(WatchDogMpsm::Message& msg,
-                                                                      uint8_t** nextTransferDestination,
-                                                                      unsigned& nextTranferSize)
+    WatchDogMpsm::ProcessStatus WatchDogMpsm::process(WatchDogMpsm::Message& msg, uint8_t newData)
     {
-        size_t numHeaderBytesStillNeeded = 0;
+        switch (m_impl->m_state) {
+            case PrivateImplementation::PARSING_STATE__VALIDATE_HEADER:
+                {
+                    m_impl->m_ringArray.putOverwrite(newData);
+                    ParseHeaderStatus status = m_impl->checkForValidHeader(msg);
 
-        WatchDogMpsm::ParseHeaderStatus status = m_impl->getHeaderStatus(msg, numHeaderBytesStillNeeded);
+                    switch (status) {
+                        case PHS_NEED_MORE_DATA:
+                            return PS_IN_PROGRESS;
 
-        *nextTransferDestination = m_impl->m_headerBuffer;
-        nextTranferSize = numHeaderBytesStillNeeded;
-        return status;
-    }
+                        case PHS_PARSED_VALID_HEADER:
+                            if (msg.parsedHeader.payloadLength == 0) {
+                                // We parsed a valid header and it's header only, so we want another
+                                // header next
+                                m_impl->m_state = PrivateImplementation::PARSING_STATE__VALIDATE_HEADER;
 
-   void WatchDogMpsm::notifyHeaderDmaComplete(WatchDogMpsm::Message& msg,
-                                              const uint8_t* destination,
-                                              unsigned size)
-    {
-        for (unsigned i = 0; i < size; ++i) {
-            m_impl->m_ringArray.putOverwrite(destination[i]);
-        }
-    }
+                                // That being said, we did get a valid message
+                                return PS_DONE_VALID;
+                            } else {
+                                // We parsed a valid header but we also need a payload, so we want data
+                                // next
+                                m_impl->m_state = PrivateImplementation::PARSING_STATE__DATA;
 
-    WatchDogMpsm::ParseDataStatus WatchDogMpsm::getDataDmaDetails(WatchDogMpsm::Message& msg,
-                                                                  uint8_t** destination,
-                                                                  unsigned& size)
-    {
-        size = msg.parsedHeader.payloadLength - msg.accumulatedDataSize;
+                                // We're not done with the current message
+                                return PS_IN_PROGRESS;
+                            }
 
-        if (msg.accumulatedDataSize == msg.parsedHeader.payloadLength) {
-            for (size_t i = 0; i < msg.accumulatedDataSize - 1; ++i) {
-                if (msg.dataBuffer[i] == PrivateImplementation::MAGIC_BYTE_ONE_EXPECTED_VALUE &&
-                        msg.dataBuffer[i+1] == PrivateImplementation::MAGIC_BYTE_TWO_EXPECTED_VALUE) {
-                    size_t j = i +1;
-                    j += (i + 900) * 2;
+                        case PHS_PARSED_HEADER_BAD_PARITY:
+                            // We parsed a header with invalid parity, so we'll continue looking for
+                            // a good header
+                            m_impl->m_state = PrivateImplementation::PARSING_STATE__VALIDATE_HEADER;
+
+                            // However, we'll notify that we parsed a header that was proper other than
+                            // parity
+                            return PS_DONE_BAD_PARITY_HEADER;
+
+                        case PHS_INTERNAL_ERROR:
+                        default:
+                            assert(false);
+                    }
                 }
-            }
+                break;
 
-            *destination = nullptr;
-            return WatchDogMpsm::ParseDataStatus::PDS_PARSED_ALL_DATA;
-        } else {
-            *destination = msg.dataBuffer + msg.accumulatedDataSize;
-            return WatchDogMpsm::ParseDataStatus::PDS_NEED_MORE_DATA;
+
+            case PrivateImplementation::PARSING_STATE__DATA:
+                msg.dataBuffer[msg.accumulatedDataSize] = newData;
+                msg.accumulatedDataSize++;
+
+                // Check if we've finished reading the data portion, and if so reset
+                if (msg.parsedHeader.payloadLength == msg.accumulatedDataSize) {
+                    // Reset the state machine
+                    m_impl->m_state = PrivateImplementation::PARSING_STATE__VALIDATE_HEADER;
+                    return PS_DONE_VALID;
+                } else {
+                    return PS_IN_PROGRESS;
+                }
+
+            default:
+                assert(false);
         }
-    }
 
-    void WatchDogMpsm::notifyDataDmaComplete(WatchDogMpsm::Message& msg, unsigned size)
-    {
-        msg.accumulatedDataSize += size;
-
-        // Having more data than we want indicates logic or programmer error
-        assert(msg.accumulatedDataSize <= msg.parsedHeader.payloadLength);
+        // Should be unreachable
+        assert(false);
+        return PS_IN_PROGRESS;
     }
 } // end namespace CubeRover

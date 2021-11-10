@@ -14,8 +14,15 @@
 #include <cassert>
 #include <cstdio>
 
+#include "sci.h"
+#include "FreeRTOS.h"
+#include "os_queue.h"
+
+#define USE_DMA_OR_POLL false
+
 static TaskHandle_t xTaskToNotify = nullptr;
 static volatile bool dmaReadBusy = false;
+static QueueHandle_t rxByteQueue;
 
 extern "C" void dmaCh0_ISR(dmaInterrupt_t inttype) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -34,6 +41,24 @@ extern "C" void dmaCh0_ISR(dmaInterrupt_t inttype) {
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
+extern "C" void scilin_ISR(uint32 flags)
+{
+    if (SCI_RX_INT == flags && rxByteQueue != 0) {
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+        uint8_t rxByte = (uint8_t) (scilinREG->RD & 0x000000FFU);
+
+        xQueueSendFromISR(rxByteQueue, &rxByte, &xHigherPriorityTaskWoken);
+
+        /* If xHigherPriorityTaskWoken is now set to pdTRUE then a
+        context switch should be performed to ensure the interrupt
+        returns directly to the highest priority task. */
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
+
+    scilinREG->SETINT = (uint32) SCI_RX_INT;
+}
+
 namespace CubeRover
 {
     WatchDogRxTask::WatchDogRxTask()
@@ -42,6 +67,8 @@ namespace CubeRover
           m_keepRunning(true),
           m_isRunning(false)
     {
+        rxByteQueue = xQueueCreate(256, sizeof(uint8_t));
+        assert(rxByteQueue != 0);
     }
 
     // This probably will never be called, but I set it up to properly work anyway
@@ -70,6 +97,8 @@ namespace CubeRover
         if (m_isRunning) {
             return Os::Task::TASK_UNKNOWN_ERROR;
         }
+
+        scilinREG->SETINT = (uint32) SCI_RX_INT;
 
         m_keepRunning = true;
         Fw::EightyCharString task("WatchDogRxTask");
@@ -103,173 +132,111 @@ namespace CubeRover
         return true;
     }
 
-#define NUM_DMA_UPDATE_MSGS 6
+#define NUM_BYTE_UPDATES 96
 
-    static char dmaUpdateMsgs[NUM_DMA_UPDATE_MSGS][72] = {};
-    static size_t dmaUpdatesUsed = 0;
-    static size_t dmaUpdatesHead = 0;
+#define RX_BYTE_RESULT__PROGRESS 1
+#define RX_BYTE_RESULT__BAD 2
+#define RX_BYTE_RESULT__DONE 3
 
-    void writeDmaUpdate(const char* dest, uint8_t* data, size_t dataSize) {
-        bool overwrite = (dmaUpdatesUsed == NUM_DMA_UPDATE_MSGS);
-        size_t writeIndex = overwrite ? dmaUpdatesHead : dmaUpdatesUsed;
 
-        char* buf2 = dmaUpdateMsgs[writeIndex];
-        char* endofbuf = buf2 + sizeof(dmaUpdateMsgs[writeIndex]);
-        buf2 += sprintf(buf2, "%s: ", dest);
+    struct RxByteLog
+    {
+        uint8_t data;
+        uint8_t result;
+    } __attribute__((packed));
 
-        for (size_t i = 0; i < dataSize; i++)
-        {
-            if (buf2 + 4 < endofbuf)
-            {
-                buf2 += sprintf(buf2, "%02X ", data[i]);
-            }
-        }
-        *buf2 = '\0';
+    static RxByteLog rxByteUpdates[NUM_BYTE_UPDATES] = {};
+    static size_t updatesUsed = 0;
+    static size_t updatesHead = 0;
+
+    void writeUpdate(uint8_t data, uint8_t result) {
+        bool overwrite = (updatesUsed == NUM_BYTE_UPDATES);
+        size_t writeIndex = overwrite ? updatesHead : updatesUsed;
+
+        rxByteUpdates[writeIndex].data = data;
+        rxByteUpdates[writeIndex].result = result;
 
         if (overwrite) {
-            dmaUpdatesHead++;
+            updatesHead++;
 
-            while (dmaUpdatesHead >= NUM_DMA_UPDATE_MSGS) {
-                dmaUpdatesHead -= NUM_DMA_UPDATE_MSGS;
+            while (updatesHead >= NUM_BYTE_UPDATES) {
+                updatesHead -= NUM_BYTE_UPDATES;
             }
         } else {
-            dmaUpdatesUsed++;
+            updatesUsed++;
         }
     }
 
-    void WatchDogRxTask::printDmaUpdates()
+    void WatchDogRxTask::printRxUpdates()
     {
-        for (size_t i = 0; i < dmaUpdatesUsed; ++i) {
-            size_t wrapped = dmaUpdatesHead + i;
-            while (wrapped >= NUM_DMA_UPDATE_MSGS) {
-                wrapped -= NUM_DMA_UPDATE_MSGS;
+        for (size_t i = 0; i < updatesUsed; ++i) {
+            size_t wrapped = updatesHead + i;
+            while (wrapped >= NUM_BYTE_UPDATES) {
+                wrapped -= NUM_BYTE_UPDATES;
             }
 
-            fprintf(stderr, "%d: %s\n", i, dmaUpdateMsgs[wrapped]);
+            char result;
+            switch (rxByteUpdates[wrapped].result) {
+                case RX_BYTE_RESULT__PROGRESS:
+                    result = 'P';
+                    break;
+
+                case RX_BYTE_RESULT__BAD:
+                    result = 'B';
+                    break;
+
+                case RX_BYTE_RESULT__DONE:
+                    result = 'D';
+                    break;
+
+                default:
+                    result = 'X';
+                    break;
+            }
+
+            fprintf(stderr, "%02d: %02X %c\n", i, rxByteUpdates[wrapped].data, result);
         }
         fprintf(stderr, "\n\n");
 
-        dmaUpdatesHead = 0;
-        dmaUpdatesUsed = 0;
+        updatesHead = 0;
+        updatesUsed = 0;
     }
 
     void WatchDogRxTask::rxHandlerTaskFunction(void* arg)
     {
         WatchDogRxTask* task = static_cast<WatchDogRxTask*>(arg);
-        bool lookingForHeader = true;
 
         // First, construct the Message we'll use throughout
         WatchDogMpsm::Message msg(task->m_dataBuffer, sizeof(task->m_dataBuffer));
 
-        uint8_t* lastTransferDestination = nullptr;
-        unsigned lastTransferSize = 0;
-
         while (!task->m_keepRunning); // Wait until keepRunning has been set true
 
         while (task->m_keepRunning) {
-            // First handle the last transfer (if this isn't the first loop, in which case this will be skipped)
-            if (lastTransferDestination != nullptr && lastTransferSize != 0) {
-                if (lookingForHeader) {
-                    task->m_mpsm.notifyHeaderDmaComplete(msg, lastTransferDestination, lastTransferSize);
-                    writeDmaUpdate("head", lastTransferDestination, lastTransferSize);
+            uint8_t newData = 0;
+            // Effectively blocks forever until something is put into the queue
+            if( xQueueReceive(rxByteQueue, &newData, portMAX_DELAY))
+            {
+                bool resetMpsmMsg = false;
+                WatchDogMpsm::ProcessStatus pStatus = task->m_mpsm.process(msg, newData);
+
+                if (WatchDogMpsm::PS_DONE_VALID == pStatus) {
+                    // We've gotten a full message, so call our callbacks then reset
+                    task->callAllCallbacks(msg, true);
+                    writeUpdate(newData, RX_BYTE_RESULT__DONE);
+                    resetMpsmMsg = true;
+                } else if (WatchDogMpsm::PS_DONE_BAD_PARITY_HEADER == pStatus) {
+                    // Got a full header that was valid other than parity, so callback with this info then reset
+                    task->callAllCallbacks(msg, false);
+                    writeUpdate(newData, RX_BYTE_RESULT__BAD);
+                    resetMpsmMsg = true;
                 } else {
-                    task->m_mpsm.notifyDataDmaComplete(msg, lastTransferSize);
-                    writeDmaUpdate("data", lastTransferDestination, lastTransferSize);
+                    writeUpdate(newData, RX_BYTE_RESULT__PROGRESS);
                 }
 
-                lastTransferDestination = nullptr;
-                lastTransferSize = 0;
-            }
-
-            // Then handle the finished message (if there is one) and set up the next DMA transfer
-            uint8_t* nextTransferDestination = nullptr;
-            unsigned nextTransferSize = 0;
-
-            if (lookingForHeader) {
-                WatchDogMpsm::ParseHeaderStatus phStatus = task->m_mpsm.getHeaderDmaDetails(msg,
-                                                                                            &nextTransferDestination,
-                                                                                            nextTransferSize);
-
-                bool doneBadParity = (WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_HEADER_BAD_PARITY == phStatus);
-                bool doneGoodParity = ((WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_VALID_HEADER == phStatus)
-                                       && msg.parsedHeader.payloadLength == 0);
-
-                if (doneGoodParity || doneBadParity) {
-                    task->callAllCallbacks(msg, doneGoodParity);
+                if (resetMpsmMsg) {
                     msg.reset();
-                    lookingForHeader = true;
-
-                    phStatus = task->m_mpsm.getHeaderDmaDetails(msg,
-                                                                &nextTransferDestination,
-                                                                nextTransferSize);
-
-                    // We just reset the message, so we should always need more data here
-                    assert(phStatus == WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA);
-                } else if (WatchDogMpsm::ParseHeaderStatus::PHS_PARSED_VALID_HEADER == phStatus) {
-                    // We're done with the header but not with the message, because payload length is
-                    // non-zero. Make the data dma request and change the "state" (represented by lookingForHeader)
-                    WatchDogMpsm::ParseDataStatus pdStatus = task->m_mpsm.getDataDmaDetails(msg,
-                                                                                            &nextTransferDestination,
-                                                                                            nextTransferSize);
-
-                    // It shouldn't be possible for us to not need data here
-                    assert(pdStatus == WatchDogMpsm::ParseDataStatus::PDS_NEED_MORE_DATA);
-
-                    lookingForHeader = false;
-                } else if (WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA != phStatus) {
-                    // Shouldn't be possible to be in a status other than ParseDataStatus at this point
-                    // If we were in VALID_HEADER with dataLen == 0 or BAD_PARITY, the first case would
-                    // have been entered. If we were in VALID_HEADER wth dataLen > 0, the second case 
-                    // would have been entered. The only other possibility should be NEED_MORE_DATA,
-                    // so if that's NOT the case here then we want to assert.
-                    assert(false);
                 }
-            } else { // Rather than header data, we should have received payload data in the last transfer
-                WatchDogMpsm::ParseDataStatus pdStatus = task->m_mpsm.getDataDmaDetails(msg,
-                                                                                        &nextTransferDestination,
-                                                                                        nextTransferSize);
-
-
-                // Since this is DMA and the receive buffer is large enough for the largest message size,
-                // it should only ever take one transfer for data DMA to complete.
-                assert(pdStatus == WatchDogMpsm::ParseDataStatus::PDS_PARSED_ALL_DATA);
-
-                // Now handle the completed message
-                task->callAllCallbacks(msg, true);
-                msg.reset();
-                lookingForHeader = true;
-
-                WatchDogMpsm::ParseHeaderStatus phStatus = task->m_mpsm.getHeaderDmaDetails(msg,
-                                                                                            &nextTransferDestination,
-                                                                                            nextTransferSize);
-
-                // We just reset the message, so we should always need more data here
-                assert(phStatus == WatchDogMpsm::ParseHeaderStatus::PHS_NEED_MORE_DATA);
             }
-
-            // Start the transfer (for either header or data)
-            /*
-            sciDMARecv(SCILIN_RX_DMA_CH, 
-                       reinterpret_cast<char *>(nextTransferDestination),
-                       nextTransferSize,
-                       ACCESS_8_BIT,
-                       &dmaReadBusy);
-                       */
-            int32_t payload_read = sciReceiveWithTimeout(scilinREG, nextTransferSize, reinterpret_cast<uint8_t *>(nextTransferDestination), 100000000);
-
-            if ((size_t) payload_read != nextTransferSize) {
-                fprintf(stderr, "pr: %d, nts: %d\n\n\n", payload_read, (int) nextTransferSize);
-            }
-
-            assert(nextTransferSize > 0);
-
-            // Copy over the destination and size for the next iteration.
-            lastTransferDestination = nextTransferDestination;
-            lastTransferSize = nextTransferSize;
-
-            // Block until there is more data to work with. The DMA completion interrupt will wake us up
-            //ulTaskNotifyTake(pdTRUE, /* Clear the notification value before exiting. */
-            //                 portMAX_DELAY); /* Block indefinitely. */
         }
     }
 

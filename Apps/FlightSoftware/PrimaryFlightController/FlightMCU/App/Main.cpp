@@ -23,6 +23,7 @@
 #include "sys_mpu.h"
 
 #include "App/DMA.h"
+#include "App/SCILIN.h"
 
 extern "C" {
     void vApplicationIdleHook(void);
@@ -60,6 +61,7 @@ void main(void)
     spiInit();
     dmaEnable();
     scidmaInit();
+    scilinIntInit();
 
     constructApp();
 

@@ -593,6 +593,8 @@ namespace CubeRover {
             return;
         }
 
+// This block of code can be enabled to debug bad data being received from WD
+#if 0
         bool hasBadass = false;
         for (size_t i = 0; i < msg.accumulatedDataSize - 2; ++i) {
             if (msg.dataBuffer[i] == 0x55 &&
@@ -604,9 +606,10 @@ namespace CubeRover {
         }
 
         if (!hasBadass) {
-            m_rxTask.printDmaUpdates();
+            m_rxTask.printRxUpdates();
         }
-  
+#endif
+
         // TODO: Verify that the MTU for wired connection is the same as Wifi
         Fw::Buffer uplinked_data;
         uplinked_data.setdata(reinterpret_cast<U64>(msg.dataBuffer));

@@ -712,7 +712,7 @@ MotorControlComponentImpl::Throttle_t
 MotorControlComponentImpl::groundSpeedToSpeedPrecent(int16_t speed) {
     // FIXME: Jonathan to develop this function
     // TODO: If no constant multiple by operator editable 1
-    return speed;
+    return speed*10;
 }
 
 bool MotorControlComponentImpl::updateTelemetry() {

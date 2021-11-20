@@ -1,26 +1,25 @@
 # -*- coding: utf-8 -*-
 """
-Extracts any valid payloads from the given pcap/pcapng file. Can be run from the 
+Extracts any valid payloads from the given pcap/pcapng file. Can be run from the
 command line as a standalone program or imported as a python module.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 10/03/2021
+@last-updated: 11/15/2021
 """
-from typing import List, Type, cast, Union
-import traceback
+from typing import List, Generator, Type, cast, Union
+import asyncio
 
 import argparse
 
 from termcolor import cprint
 
 import scapy.all as scp  # type: ignore
-import struct
 import ulid
 from matplotlib import pyplot as plt  # type: ignore
 
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac
-from IrisBackendv3.codec.payload import Payload, PayloadCollection, extract_downlinked_payloads
+from IrisBackendv3.codec.payload import Payload, PayloadCollection, TelemetryPayload, extract_downlinked_payloads
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.magic import Magic
 from IrisBackendv3.codec.logging import VALID_LOG_LEVELS, logger as CodecLogger
@@ -121,8 +120,8 @@ def get_opts(
 
 def parse_pcap(opts):
     """
-    Extracts any valid payloads from the pcap/pcapng file specified in 
-    `pcap_file` of the given `argparse` `opts` Namespace according to the 
+    Extracts any valid payloads from the pcap/pcapng file specified in
+    `pcap_file` of the given `argparse` `opts` Namespace according to the
     options specified in that Namespace.
     """
     extracted_packets: List[Packet] = []
@@ -242,6 +241,27 @@ def parse_pcap(opts):
         'telemetry_streams': telemetry_streams,
         'failed_packet_count': failed_packet_count
     }
+
+
+async def replay_telemetry_at_fixed_rate(
+    packets: List[Packet],
+    fixed_rate: int
+) -> Generator[List[TelemetryPayload], None, None]:
+    """
+    Generator class for replaying a pcap file at a fixed rate (fixed number of
+    milliseconds between each packet).
+
+    Args:
+        packets (List[Packet]): Collection of all packets to be replayed.
+        fixed_rate (int): Number of milliseconds between each packet receipt.
+
+    Yields:
+        Generator[List[TelemetryPayload]]: List of all payloads in the packet that's being replayed.
+    """
+    for packet in packets:
+        telemetry = packet.payloads.TelemetryPayload
+        await asyncio.sleep(fixed_rate/1000.0)
+        yield telemetry
 
 
 if __name__ == "__main__":

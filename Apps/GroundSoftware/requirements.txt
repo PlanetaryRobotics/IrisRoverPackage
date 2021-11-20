@@ -1,4 +1,5 @@
 mypy
+typing_extensions>=4.0.0
 typeguard
 ipykernel
 scapy
@@ -9,6 +10,10 @@ seaborn
 pandas
 plotly
 dash
+panel
+holoviews
+hvplot
+datashader
 lxml
 pytest
 requests
@@ -25,3 +30,4 @@ bitstruct
 pyzmq
 attrs
 argparse
+streamz

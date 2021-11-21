@@ -22,6 +22,7 @@ import numpy as np  # type: ignore
 import time
 from math import ceil
 from scapy.utils import hexstr  # type: ignore
+from pandas import DataFrame  # type: ignore
 
 from .magic import Magic, MAGIC_SIZE
 from .metadata import DataPathway, DataSource
@@ -1363,6 +1364,55 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
                 return 0
 
         @property
+        def Watchdog_CombinedDigitalStates_Shorthand(self) -> OrderedDict[str, int]:
+            """
+            Returns a dict containing all fields from `Watchdog_CombinedDigitalStates_Dict`
+            but using shorthand aliases for each pin (for easy printing):
+            """
+            long_form = self.Watchdog_CombinedDigitalStates_Dict
+            return OrderedDict([
+                ('HEAT', long_form['HEATER']),
+                ('DEP', long_form['DEPLOYMENT']),
+
+                ('BSTAT', long_form['BATT_STAT']),
+
+                ('BE', long_form['BATTERY_EN']),
+                ('LB', long_form['LATCH_BATT']),
+                ('LS', long_form['LATCH_SET']),
+                ('LR', long_form['LATCH_RESET']),
+
+                ('CE', long_form['CHRG_EN']),
+                ('REGE', long_form['V_LANDER_REG_EN']),
+
+                ('VSAE', long_form['V_SYS_ALL_EN']),
+
+                ('3V3_EN', long_form['3V3_EN']),
+
+                ('H_ON', long_form['HERCULES_ON']),
+                ('R_ON', long_form['RADIO_ON']),
+                ('F_ON', long_form['FPGA_ON']),
+                ('M_ON', long_form['MOTOR_ON']),
+
+                ('H_RST', long_form['HERCULES_N_RST']),
+                ('H_N_PRST', long_form['HERCULES_N_PORRST']),
+                ('F_N_RST', long_form['FPGA_N_RST']),
+                ('R_N_RST', long_form['RADIO_N_RST']),
+
+                ('CAMSEL', long_form['FPGA_KICK_AKA_CAM_SELECT']),
+                ('BMSB', long_form['BMS_BOOT'])
+            ])
+
+        @property
+        def Watchdog_CombinedDigitalStates_DataFrame(self) -> DataFrame:
+            """
+            Returns a Pandas DataFrame containing all fields from 
+            `Watchdog_CombinedDigitalStates_Dict` using shorthand aliases for 
+            each pin from `Watchdog_CombinedDigitalStates_Shorthand` for the 
+            column headers.
+            """
+            return DataFrame(self.Watchdog_CombinedDigitalStates_Shorthand, index=['GPIO (2=HiZ)'])
+
+        @property
         def Watchdog_ResetLogs_Dict(self) -> OrderedDict[str, int]:
             data = self.Watchdog_ResetLogs.to_bytes(40//8, 'big')
             # unfortunately we can't just feed `to_bytes(5, 'little')` into
@@ -1377,6 +1427,82 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
                 return bitfields.unpack(data)
             else:
                 return OrderedDict()
+
+        @property
+        def Watchdog_ResetLogs_Dict_Shorthand(self) -> OrderedDict[str, int]:
+            """
+            Returns a dict containing all fields from `Watchdog_ResetLogs_Dict`
+            but using shorthand aliases for each pin (for easy printing):
+            """
+            long_form = self.Watchdog_ResetLogs_Dict
+            return OrderedDict([
+                ('NONE', long_form['RABI__NO_RESET']),
+
+                ('HDRM_SIG_ON', long_form['RABI__HDRM_DEPLOY_SIGNAL_POWER_ON']),  # noqa (don't wrap this line around)
+                ('HDRM_SIG_OFF', long_form['RABI__HDRM_DEPLOY_SIGNAL_POWER_OFF']),  # noqa (don't wrap this line around)
+
+                ('BATT_EN', long_form['RABI__BATTERIES_ENABLE']),
+                ('BATT_DIS', long_form['RABI__BATTERIES_DISABLE']),
+                ('CHARGE_START', long_form['RABI__BATTERY_CHARGE_START']),
+                ('CHARGE_STOP', long_form['RABI__BATTERY_CHARGE_STOP']),
+
+                ('HEAT_CTRL_EN', long_form['RABI__AUTO_HEATER_CONTROLLER_ENABLE']),  # noqa (don't wrap this line around)
+                ('HEAT_CTRL_DIS', long_form['RABI__AUTO_HEATER_CONTROLLER_DISABLE']),  # noqa (don't wrap this line around)
+
+                ('RS422_EN', long_form['RABI__RS422_UART_ENABLE']),
+                ('RS422_DIS', long_form['RABI__RS422_UART_DISABLE']),
+
+                ('3V3_EN_RST', long_form['RABI__3V3_EN_RESET']),
+                ('3V3_EN_UNRST', long_form['RABI__3V3_EN_UNRESET']),
+                ('3V3_EN_ON', long_form['RABI__3V3_EN_POWER_ON']),
+                ('3V3_EN_OFF', long_form['RABI__3V3_EN_POWER_OFF']),
+
+                ('H_RST', long_form['RABI__HERCULES_RESET']),
+                ('H_UNRST', long_form['RABI__HERCULES_UNRESET']),
+                ('H_ON', long_form['RABI__HERCULES_POWER_ON']),
+                ('H_OFF', long_form['RABI__HERCULES_POWER_OFF']),
+                ('H_WD_EN', long_form['RABI__HERCULES_WATCHDOG_ENABLE']),
+                ('H_WD_DIS', long_form['RABI__HERCULES_WATCHDOG_DISABLE']),
+                ('H_WD_RST', long_form['RABI__HERCULES_WATCHDOG_RESET']),
+
+                ('R_RST', long_form['RABI__RADIO_RESET']),
+                ('R_UNRST', long_form['RABI__RADIO_UNRESET']),
+                ('R_ON', long_form['RABI__RADIO_POWER_ON']),
+                ('R_OFF', long_form['RABI__RADIO_POWER_OFF']),
+
+                ('F_RST', long_form['RABI__CAM_FPGA_RESET']),
+                ('F_UNRST', long_form['RABI__CAM_FPGA_UNRESET']),
+                ('F_ON', long_form['RABI__CAM_FPGA_POWER_ON']),
+                ('F_OFF', long_form['RABI__CAM_FPGA_POWER_OFF']),
+
+                ('CAM0_SEL', long_form['RABI__FPGA_CAM_0_SELECT']),
+                ('CAM1_SEL', long_form['RABI__FPGA_CAM_1_SELECT']),
+
+                ('ALL_MOT_ON', long_form['RABI__ALL_MOTORS_POWER_ON']),
+                ('ALL_MOT_OFF', long_form['RABI__ALL_MOTORS_POWER_OFF']),
+                ('24V_EN_RST', long_form['RABI__24V_EN_RESET']),
+                ('24V_EN_UNRST', long_form['RABI__24V_EN_UNRESET']),
+                ('24V_EN_ON', long_form['RABI__24V_EN_POWER_ON']),
+                ('24V_EN_OFF', long_form['RABI__24V_EN_POWER_OFF'])
+            ])
+
+        @property
+        def Watchdog_ResetLogs_Dict_DataFrame(self) -> DataFrame:
+            """
+            Returns a Pandas DataFrame containing all fields from 
+            `Watchdog_ResetLogs_Dict_Dict` using shorthand aliases for 
+            each pin from `Watchdog_ResetLogs_Dict_Shorthand` for the 
+            column headers.
+            """
+            return DataFrame(self.Watchdog_ResetLogs_Dict_Shorthand, index=['Flag'])
+
+        @property
+        def Watchdog_ResetEventsList(self) -> List[str]:
+            """
+            Returns a list of the names of all ResetLogs that have a non-zero 
+            value (i.e. the event happened).
+            """
+            return [name.replace('RABI__', '') for name, val in self.Watchdog_ResetLogs_Dict.items() if val != 0]  # noqa (don't wrap this line around)
 
         @property
         def Adc_LanderVoltage(self) -> float:
@@ -1451,6 +1577,26 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
         @property
         def Adc_Vcc24Voltage(self) -> float:
             return float(self.Adc_Vcc24VoltageRaw) / 4095.0 * 3.3 * (47.0+330.0)/47.0
+
+        @property
+        def Adc_DataFrame(self) -> DataFrame:
+            """
+            Creates a Pandas DataFrame that summarizes all ADC readings incl. 
+            both their raw ADC readings and their conversions to human-readable 
+            units.
+            """
+            return DataFrame({
+                '2V5': [self.Adc_2V5VoltageRaw, f"{self.Adc_2V5Voltage:.2f}V"],
+                '2V8': [self.Adc_2V8VoltageRaw, f"{self.Adc_2V8Voltage:.2f}V"],
+                '24V': [self.Adc_Vcc24VoltageRaw, f"{self.Adc_Vcc24Voltage:.2f}V"],
+                'VBm': [self.Adc_SwitchedBatteryVoltageRaw, f"{self.Adc_SwitchedBatteryVoltage:.2f}V"],
+                'VL': [self.Adc_LanderVoltageRaw, f"{self.Adc_LanderVoltage:.2f}V"],
+                'Vcc28': [self.Adc_Vcc28VoltageRaw, f"{self.Adc_Vcc28Voltage:.2f}V"],
+                'VSA': [self.Adc_FullSystemVoltageRaw, f"{self.Adc_FullSystemVoltage:.2f}V"],
+                'ISA': [self.Adc_FullSystemCurrentRaw, f"{self.Adc_FullSystemCurrent*1000:.1f}mA"],
+                'Tbatt': [self.Adc_BatteryTempRaw, f"{self.Adc_BatteryTempKelvin:.1f}±{self.Adc_BatteryTempUncertaintyKelvin:.1f}K"],
+                'Tchrg': [self.Adc_BatteryChargingTempRaw, f"{self.Adc_BatteryChargingTempKelvin:.1f}±{self.Adc_BatteryChargingTempUncertaintyKelvin:.1f}K"]
+            }, index=['ADC', 'val'])
 
         @property
         def Heater_PwmLimit_DutyCyclePercent(self) -> float:
@@ -1824,18 +1970,20 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
                 f"@ {self.Heater_EffectivePower:.3f}W / {self.Heater_EffectivePowerLimit:.3f}W \t"
                 f"Period: {self.Heater_DutyCyclePeriodMs:.1f}ms"
                 "\n"
-                f"Tbatt: {self.Adc_BatteryTempKelvin:.1f}K ± {self.Adc_BatteryChargingTempUncertaintyKelvin}K \t"
-                f"Tchrg: {self.Adc_BatteryTempKelvin:.1f}K ± {self.Adc_BatteryChargingTempUncertaintyKelvin}K \t"
+                f"Tbatt: {self.Adc_BatteryTempKelvin:.1f}K ± {self.Adc_BatteryTempUncertaintyKelvin}K \t"
+                f"Tchrg: {self.Adc_BatteryChargingTempKelvin:.1f}K ± {self.Adc_BatteryChargingTempUncertaintyKelvin}K \t"
                 f"Tblimp: {self.I2C_FuelGaugeTempKelvin:.1f}K"
                 "\n"
                 "BATTERY MONITOR: "
                 f"{self.I2C_BatteryVoltage:.2f}V \t"
                 f"{self.I2C_BatteryCurrent*1000:.1f}mA \t"
                 f"{self.I2C_BatteryChargeMah:.0f}mAh \t"
-                "\n"
-                f"GPIO (2=HiZ): {dict(**self.Watchdog_CombinedDigitalStates_Dict)} \n"
-                f"Resets: {dict(**self.Watchdog_ResetLogs_Dict)}"
-                "\n"
+                f"\n{self.Adc_DataFrame.to_string(float_format=lambda x: '{:.2f}'.format(x))}"
+                f"\n{self.Watchdog_CombinedDigitalStates_DataFrame.to_string()}"
+                # f"GPIO (2=HiZ): {dict(**self.Watchdog_CombinedDigitalStates_Dict)} \n"
+                f"\nReset/Flag Events: [{', '.join(self.Watchdog_ResetEventsList)}]"
+                # f"\n{dict(**self.Watchdog_ResetLogs_Dict_Shorthand)}"
+                # "\n"
                 "\n"
             )
 

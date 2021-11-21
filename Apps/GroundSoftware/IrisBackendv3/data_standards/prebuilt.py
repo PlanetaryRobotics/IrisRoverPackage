@@ -351,7 +351,7 @@ watchdog_detailed_status_heartbeat: Module = Module(
         nid_nic_entry(
             TelemetryChannel, 0x15, 'Watchdog_DigitalOutputStates', datatype=FswDataType.U32,  # 32b
             bitfields=BitfieldStruct(
-                fields=OrderedDict(reversed([
+                fields=OrderedDict(([
                     # Output statuses:
                     ('OPSBI__V_LANDER_REG_EN', 1),
                     ('OPSBI__HEATER', 1),
@@ -391,7 +391,7 @@ watchdog_detailed_status_heartbeat: Module = Module(
         nid_nic_entry(
             TelemetryChannel, 0x17, 'Watchdog_CombinedDigitalStates', datatype=FswDataType.U32,  # calc
             bitfields=BitfieldStruct(
-                fields=OrderedDict(reversed([
+                fields=OrderedDict(([
                     ('V_LANDER_REG_EN', 1),
                     ('HEATER', 1),
                     ('DEPLOYMENT', 1),
@@ -421,7 +421,7 @@ watchdog_detailed_status_heartbeat: Module = Module(
         nid_nic_entry(
             TelemetryChannel, 0x18, 'Watchdog_ResetLogs', datatype=FswDataType.U64,  # 40b
             bitfields=BitfieldStruct(
-                fields=OrderedDict(reversed([
+                fields=OrderedDict(([
                     ('RABI__NO_RESET', 1),
                     ('RABI__HERCULES_RESET', 1),
                     ('RABI__HERCULES_UNRESET', 1),

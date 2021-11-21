@@ -6,7 +6,7 @@ Defines Common Data Required for Packets. Support for Building and Parsing
 Packets.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 11/20/2021
+@last-updated: 11/21/2021
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -32,7 +32,7 @@ from .settings import ENDIANNESS_CODE, settings
 from .logging import logger
 from .exceptions import PacketDecodingException
 
-from IrisBackendv3.utils.basic import print_bytearray_hex as printraw
+from IrisBackendv3.utils.basic import flip_all_bits_in_bytes
 from IrisBackendv3.data_standards.module import Module
 
 CPH_SIZE = 4
@@ -1285,7 +1285,15 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
         @property
         def Watchdog_DigitalOutputStates_Dict(self) -> OrderedDict[str, int]:
             data = self.Watchdog_DigitalOutputStates.to_bytes(4, 'big')
+            # unfortunately we can't just feed `to_bytes(4, 'little')` into
+            # `bitstruct` because it expects the order of the bits in each byte
+            # to be the left to right but MSP fills right to left. So, we have
+            # to either convert to little then flip the order of the bits in
+            # each byte or convert to big and flip the order of all the bits:
+            data = flip_all_bits_in_bytes(data)
+
             bitfields = self._module.telemetry['Watchdog_DigitalOutputStates'].bitfields
+
             if bitfields is not None:
                 return bitfields.unpack(data)
             else:
@@ -1335,7 +1343,7 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
                     "In `WatchdogDetailedStatus`, not all fields in "
                     "`Watchdog_CombinedDigitalStates` have a matching field in "
                     "`Watchdog_DigitalOutputStates`. "
-                    "`-1` indicated unmatched in the following: "
+                    "`-1` indicates unmatched in the following: "
                     f"Watchdog_CombinedDigitalStates: {fields}, "
                     f"Watchdog_DigitalOutputStates: {out_states} ."
                 )
@@ -1348,6 +1356,8 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
             if bitfields is not None:
                 raw_data = bitfields.pack(
                     self.Watchdog_CombinedDigitalStates_Dict)
+                # flip order of all bits to be consistent with `Watchdog_DigitalOutputStates_Dict` decoding:
+                raw_data = flip_all_bits_in_bytes(raw_data)
                 return int.from_bytes(raw_data, 'big', signed=False)
             else:
                 return 0
@@ -1355,6 +1365,13 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
         @property
         def Watchdog_ResetLogs_Dict(self) -> OrderedDict[str, int]:
             data = self.Watchdog_ResetLogs.to_bytes(40//8, 'big')
+            # unfortunately we can't just feed `to_bytes(5, 'little')` into
+            # `bitstruct` because it expects the order of the bits in each byte
+            # to be the left to right but MSP fills right to left. So, we have
+            # to either convert to little then flip the order of the bits in
+            # each byte or convert to big and flip the order of all the bits:
+            data = flip_all_bits_in_bytes(data)
+
             bitfields = self._module.telemetry['Watchdog_ResetLogs'].bitfields
             if bitfields is not None:
                 return bitfields.unpack(data)
@@ -1810,15 +1827,15 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
                 f"Tbatt: {self.Adc_BatteryTempKelvin:.1f}K ± {self.Adc_BatteryChargingTempUncertaintyKelvin}K \t"
                 f"Tchrg: {self.Adc_BatteryTempKelvin:.1f}K ± {self.Adc_BatteryChargingTempUncertaintyKelvin}K \t"
                 f"Tblimp: {self.I2C_FuelGaugeTempKelvin:.1f}K"
-                # "\n"
-                # "BATTERY MONITOR: "
-                # f"{self.I2C_BatteryVoltage:.2f}V \t"
-                # f"{self.I2C_BatteryCurrent*1000:.1f}mA \t"
-                # f"{self.I2C_BatteryChargeMah:.0f}mAh \t"
-                # "\n"
-                # f"GPIO (2=HiZ): {dict(**self.Watchdog_CombinedDigitalStates_Dict)} \n"
-                # f"Resets: {dict(**self.Watchdog_ResetLogs_Dict)}"
-                # "\n"
+                "\n"
+                "BATTERY MONITOR: "
+                f"{self.I2C_BatteryVoltage:.2f}V \t"
+                f"{self.I2C_BatteryCurrent*1000:.1f}mA \t"
+                f"{self.I2C_BatteryChargeMah:.0f}mAh \t"
+                "\n"
+                f"GPIO (2=HiZ): {dict(**self.Watchdog_CombinedDigitalStates_Dict)} \n"
+                f"Resets: {dict(**self.Watchdog_ResetLogs_Dict)}"
+                "\n"
                 "\n"
             )
 

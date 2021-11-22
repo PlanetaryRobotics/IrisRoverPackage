@@ -1,12 +1,12 @@
 /** @file gio.c
 *   @brief GIO Driver Implementation File
-*   @date 07-July-2017
-*   @version 04.07.00
+*   @date 11-Dec-2018
+*   @version 04.07.01
 *
 */
 
 /* 
-* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com  
+* Copyright (C) 2009-2018 Texas Instruments Incorporated - www.ti.com  
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 
@@ -507,8 +507,8 @@ void gioGetConfigValue(gio_config_reg_t *config_reg, config_value_type_t type)
     /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
         config_reg->CONFIG_PORTBDIR    = gioPORTB->DIR;
         config_reg->CONFIG_PORTBPDR    = gioPORTB->PDR;
-        config_reg->CONFIG_PORTBPSL    = gioPORTB->PULDIS;
-        config_reg->CONFIG_PORTBPULDIS = gioPORTB->PSL;
+        config_reg->CONFIG_PORTBPSL    = gioPORTB->PSL;
+        config_reg->CONFIG_PORTBPULDIS = gioPORTB->PULDIS;
     }
 }
 

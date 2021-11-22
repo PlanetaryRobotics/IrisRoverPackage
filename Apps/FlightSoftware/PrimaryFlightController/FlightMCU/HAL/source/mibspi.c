@@ -1,12 +1,12 @@
 /** @file mibspi.c
 *   @brief MIBSPI Driver Implementation File
-*   @date 07-July-2017
-*   @version 04.07.00
+*   @date 11-Dec-2018
+*   @version 04.07.01
 *
 */
 
 /* 
-* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com 
+* Copyright (C) 2009-2018 Texas Instruments Incorporated - www.ti.com 
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 
@@ -545,7 +545,7 @@ uint32 i ;
                     | (uint32)((uint32)0U << 1U)  /* SCS[1] */
                     | (uint32)((uint32)0U << 2U)  /* SCS[2] */
                     | (uint32)((uint32)0U << 3U)  /* SCS[3] */
-                    | (uint32)((uint32)0U << 8U)  /* ENA */
+                    | (uint32)((uint32)1U << 8U)  /* ENA */
                     | (uint32)((uint32)1U << 9U)  /* CLK */
                     | (uint32)((uint32)1U << 10U)  /* SIMO[0] */
                     | (uint32)((uint32)1U << 11U)  /* SOMI[0] */

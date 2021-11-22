@@ -84,10 +84,11 @@
  *                                                  SDOCM00122833    In API TI_Fee_ErrorRecovery, added polling for
  *                                                                   flash status before calling TI_Fee_Init.
  * 01.19.03       15May2017    Prathap Srinivasan   SDOCM00122917    Added TI_Fee_bIsMainFunctionCalled Global Variable. 
+ * 01.19.04		  05Dec2017    Prathap Srinivasan   HERCULES_SW-5082 Update version history.
  *********************************************************************************************************************/
 
 /*
-* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com  
+* Copyright (C) 2009-2018 Texas Instruments Incorporated - www.ti.com  
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 
@@ -139,7 +140,7 @@
 #define TI_FEE_PATCH_VERSION    2U
 #define TI_FEE_SW_MAJOR_VERSION 1U
 #define TI_FEE_SW_MINOR_VERSION 19U
-#define TI_FEE_SW_PATCH_VERSION 3U
+#define TI_FEE_SW_PATCH_VERSION 4U
 
 #define TI_FEE_VIRTUAL_SECTOR_VERSION 1U
 

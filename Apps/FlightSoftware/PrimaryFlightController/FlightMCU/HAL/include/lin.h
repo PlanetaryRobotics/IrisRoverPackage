@@ -1,12 +1,12 @@
 /** @file lin.h
 *   @brief LIN Driver Definition File
-*   @date 07-July-2017
-*   @version 04.07.00
+*   @date 11-Dec-2018
+*   @version 04.07.01
 *   
 */
 
 /* 
-* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com 
+* Copyright (C) 2009-2018 Texas Instruments Incorporated - www.ti.com 
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 
@@ -223,9 +223,10 @@ typedef struct lin_config_reg
 
 /* Configuration registers initial value for LIN*/
 #define LIN_GCR0_CONFIGVALUE       0x00000001U   
-#define LIN_GCR1_CONFIGVALUE       (0x03000CE0U \
+#define LIN_GCR1_CONFIGVALUE       (0x03000CC0U \
                                  | (uint32)((uint32)1U << 12U) \
-                                 | (uint32)((uint32)0U << 2U))
+                                 | (uint32)((uint32)0U << 2U)\
+								 | (uint32)((uint32)1U << 5U))
 #define LIN_GCR2_CONFIGVALUE       0x00000000U       
 #define LIN_SETINTLVL_CONFIGVALUE  (0x00000000U \
 								  |	0x00000000U \

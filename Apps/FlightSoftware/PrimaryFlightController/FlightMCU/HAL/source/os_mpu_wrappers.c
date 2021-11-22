@@ -92,6 +92,7 @@
 extern BaseType_t prvRaisePrivilege( void );
 
 /*----------------------------------------------------------------------------*/
+#if( configSUPPORT_DYNAMIC_ALLOCATION == 1 )
 
 BaseType_t MPU_xTaskCreate( TaskFunction_t pxTaskCode, const char * const pcName, const uint16_t usStackDepth, void * const pvParameters, UBaseType_t uxPriority, TaskHandle_t * const pxCreatedTask )
 {
@@ -101,7 +102,7 @@ BaseType_t MPU_xTaskCreate( TaskFunction_t pxTaskCode, const char * const pcName
 	portRESET_PRIVILEGE( xRunningPrivileged );
 	return xReturn;
 }
-
+#endif
 /*----------------------------------------------------------------------------*/
 
 #if( configSUPPORT_STATIC_ALLOCATION == 1 )
@@ -182,7 +183,7 @@ BaseType_t MPU_xTaskAbortDelay( TaskHandle_t xTask )
 #endif
 
 /*----------------------------------------------------------------------------*/
-
+#if ( INCLUDE_uxTaskPriorityGet == 1 )
 UBaseType_t MPU_uxTaskPriorityGet( TaskHandle_t xTask )
 {
 	UBaseType_t xReturn;
@@ -191,6 +192,7 @@ UBaseType_t MPU_uxTaskPriorityGet( TaskHandle_t xTask )
 	portRESET_PRIVILEGE( xRunningPrivileged );
 	return xReturn;
 }
+#endif
 
 /*----------------------------------------------------------------------------*/
 
@@ -353,16 +355,17 @@ TaskHookFunction_t MPU_xTaskGetApplicationTaskTag( TaskHandle_t xTask )
 #endif
 
 /*----------------------------------------------------------------------------*/
-
+#if ( configNUM_THREAD_LOCAL_STORAGE_POINTERS != 0 )
 void MPU_vTaskSetThreadLocalStoragePointer( TaskHandle_t xTaskToSet, BaseType_t xIndex, void *pvValue )
 {
 	BaseType_t xRunningPrivileged = prvRaisePrivilege();
 	vTaskSetThreadLocalStoragePointer( xTaskToSet, xIndex, pvValue );
 	portRESET_PRIVILEGE( xRunningPrivileged );
 }
-
+#endif
 /*----------------------------------------------------------------------------*/
 
+#if ( configNUM_THREAD_LOCAL_STORAGE_POINTERS != 0 )
 void *MPU_pvTaskGetThreadLocalStoragePointer( TaskHandle_t xTaskToQuery, BaseType_t xIndex )
 {
 	void *xReturn;
@@ -371,6 +374,7 @@ void *MPU_pvTaskGetThreadLocalStoragePointer( TaskHandle_t xTaskToQuery, BaseTyp
 	portRESET_PRIVILEGE( xRunningPrivileged );
 	return xReturn;
 }
+#endif
 
 /*----------------------------------------------------------------------------*/
 
@@ -413,7 +417,7 @@ UBaseType_t MPU_uxTaskGetSystemState( TaskStatus_t * const pxTaskStatusArray, co
 
 /*----------------------------------------------------------------------------*/
 
-#if ( ( configUSE_TRACE_FACILITY == 1 ) && ( configUSE_STATS_FORMATTING_FUNCTIONS == 1 ) )
+#if ( ( configUSE_TRACE_FACILITY == 1 ) && ( configUSE_STATS_FORMATTING_FUNCTIONS > 0 ) )
 void MPU_vTaskList( char * pcWriteBuffer )
 {
 	BaseType_t xRunningPrivileged = prvRaisePrivilege();
@@ -424,7 +428,7 @@ void MPU_vTaskList( char * pcWriteBuffer )
 
 /*----------------------------------------------------------------------------*/
 
-#if ( configGENERATE_RUN_TIME_STATS == 1 )
+#if ( ( configGENERATE_RUN_TIME_STATS == 1 ) && ( configUSE_STATS_FORMATTING_FUNCTIONS > 0 ) )
 void MPU_vTaskGetRunTimeStats( char *pcWriteBuffer )
 {
 	BaseType_t xRunningPrivileged = prvRaisePrivilege();
@@ -435,6 +439,7 @@ void MPU_vTaskGetRunTimeStats( char *pcWriteBuffer )
 
 /*----------------------------------------------------------------------------*/
 
+#if( configUSE_TASK_NOTIFICATIONS == 1 )
 BaseType_t MPU_xTaskGenericNotify( TaskHandle_t xTaskToNotify, uint32_t ulValue, eNotifyAction eAction, uint32_t *pulPreviousNotificationValue )
 {
 	BaseType_t xReturn;
@@ -443,9 +448,10 @@ BaseType_t MPU_xTaskGenericNotify( TaskHandle_t xTaskToNotify, uint32_t ulValue,
 	portRESET_PRIVILEGE( xRunningPrivileged );
 	return xReturn;
 }
-
+#endif
 /*----------------------------------------------------------------------------*/
 
+#if( configUSE_TASK_NOTIFICATIONS == 1 )
 BaseType_t MPU_xTaskNotifyWait( uint32_t ulBitsToClearOnEntry, uint32_t ulBitsToClearOnExit, uint32_t *pulNotificationValue, TickType_t xTicksToWait )
 {
 	BaseType_t xReturn;
@@ -454,9 +460,11 @@ BaseType_t MPU_xTaskNotifyWait( uint32_t ulBitsToClearOnEntry, uint32_t ulBitsTo
 	portRESET_PRIVILEGE( xRunningPrivileged );
 	return xReturn;
 }
+#endif
 
 /*----------------------------------------------------------------------------*/
 
+#if( configUSE_TASK_NOTIFICATIONS == 1 )
 uint32_t MPU_ulTaskNotifyTake( BaseType_t xClearCountOnExit, TickType_t xTicksToWait )
 {
 	uint32_t xReturn;
@@ -465,9 +473,11 @@ uint32_t MPU_ulTaskNotifyTake( BaseType_t xClearCountOnExit, TickType_t xTicksTo
 	portRESET_PRIVILEGE( xRunningPrivileged );
 	return xReturn;
 }
+#endif
 
 /*----------------------------------------------------------------------------*/
 
+#if( configUSE_TASK_NOTIFICATIONS == 1 )
 BaseType_t MPU_xTaskNotifyStateClear( TaskHandle_t xTask )
 {
 	BaseType_t xReturn;
@@ -476,6 +486,7 @@ BaseType_t MPU_xTaskNotifyStateClear( TaskHandle_t xTask )
 	portRESET_PRIVILEGE( xRunningPrivileged );
 	return xReturn;
 }
+#endif
 
 /*----------------------------------------------------------------------------*/
 
@@ -578,7 +589,7 @@ void MPU_vQueueDelete( QueueHandle_t xQueue )
 
 /*----------------------------------------------------------------------------*/
 
-#if ( configUSE_MUTEXES == 1 )
+#if( ( configUSE_MUTEXES == 1 ) && ( configSUPPORT_DYNAMIC_ALLOCATION == 1 ) )
 QueueHandle_t MPU_xQueueCreateMutex( const uint8_t ucQueueType )
 {
 	QueueHandle_t xReturn;
@@ -587,9 +598,10 @@ QueueHandle_t MPU_xQueueCreateMutex( const uint8_t ucQueueType )
 	portRESET_PRIVILEGE( xRunningPrivileged );
 	return xReturn;
 }
-
+#endif
 /*----------------------------------------------------------------------------*/
 
+#if( ( configUSE_MUTEXES == 1 ) && ( configSUPPORT_STATIC_ALLOCATION == 1 ) )
 QueueHandle_t MPU_xQueueCreateMutexStatic( const uint8_t ucQueueType, StaticQueue_t *pxStaticQueue )
 {
 	QueueHandle_t xReturn;
@@ -602,7 +614,7 @@ QueueHandle_t MPU_xQueueCreateMutexStatic( const uint8_t ucQueueType, StaticQueu
 
 /*----------------------------------------------------------------------------*/
 
-#if configUSE_COUNTING_SEMAPHORES == 1
+#if( ( configUSE_COUNTING_SEMAPHORES == 1 ) && ( configSUPPORT_DYNAMIC_ALLOCATION == 1 ) )
 QueueHandle_t MPU_xQueueCreateCountingSemaphore( const UBaseType_t uxMaxCount, const UBaseType_t uxInitialCount )
 {
 	QueueHandle_t xReturn;
@@ -611,9 +623,10 @@ QueueHandle_t MPU_xQueueCreateCountingSemaphore( const UBaseType_t uxMaxCount, c
 	portRESET_PRIVILEGE( xRunningPrivileged );
 	return xReturn;
 }
-
+#endif
 /*----------------------------------------------------------------------------*/
 
+#if( ( configUSE_COUNTING_SEMAPHORES == 1 ) && ( configSUPPORT_STATIC_ALLOCATION == 1 ) )
 QueueHandle_t MPU_xQueueCreateCountingSemaphoreStatic( const UBaseType_t uxMaxCount, const UBaseType_t uxInitialCount, StaticQueue_t *pxStaticQueue )
 {
 	QueueHandle_t xReturn;
@@ -663,6 +676,7 @@ BaseType_t MPU_xQueueGiveMutexRecursive( QueueHandle_t pxMutex )
 
 /*----------------------------------------------------------------------------*/
 
+#if( configSUPPORT_DYNAMIC_ALLOCATION == 1 )
 QueueHandle_t MPU_xQueueGenericCreate( const UBaseType_t uxQueueLength, const UBaseType_t uxItemSize, const uint8_t ucQueueType )
 {
 	QueueHandle_t xReturn;
@@ -671,6 +685,7 @@ QueueHandle_t MPU_xQueueGenericCreate( const UBaseType_t uxQueueLength, const UB
 	portRESET_PRIVILEGE( xRunningPrivileged );
 	return xReturn;
 }
+#endif
 
 /*----------------------------------------------------------------------------*/
 
@@ -775,8 +790,18 @@ const char *MPU_pcQueueGetName( QueueHandle_t xQueue )
 #endif
 
 /*----------------------------------------------------------------------------*/
-#if ( configUSE_TIMERS == 1 )
-#if( configSUPPORT_STATIC_ALLOCATION == 1 )
+#if( ( configSUPPORT_DYNAMIC_ALLOCATION == 1 ) && ( configUSE_TIMERS == 1 ) )
+TimerHandle_t MPU_xTimerCreate( const char * const pcTimerName, const TickType_t xTimerPeriodInTicks, const UBaseType_t uxAutoReload, void * const pvTimerID, TimerCallbackFunction_t pxCallbackFunction )
+{
+	TimerHandle_t xReturn;
+	BaseType_t xRunningPrivileged = prvRaisePrivilege();
+	xReturn = xTimerCreate( pcTimerName, xTimerPeriodInTicks, uxAutoReload, pvTimerID, pxCallbackFunction );
+	portRESET_PRIVILEGE( xRunningPrivileged );
+	return xReturn;
+}
+#endif
+
+#if( ( configSUPPORT_STATIC_ALLOCATION == 1 ) && ( configUSE_TIMERS == 1 ) )
 TimerHandle_t MPU_xTimerCreateStatic( const char * const pcTimerName, const TickType_t xTimerPeriodInTicks, const UBaseType_t uxAutoReload, void * const pvTimerID, TimerCallbackFunction_t pxCallbackFunction, StaticTimer_t *pxTimerBuffer )
 {
 	TimerHandle_t xReturn;
@@ -788,7 +813,7 @@ TimerHandle_t MPU_xTimerCreateStatic( const char * const pcTimerName, const Tick
 #endif
 
 /*----------------------------------------------------------------------------*/
-
+#if( configUSE_TIMERS == 1 )
 void *MPU_pvTimerGetTimerID( const TimerHandle_t xTimer )
 {
 	void *xReturn;
@@ -828,9 +853,10 @@ TaskHandle_t MPU_xTimerGetTimerDaemonTaskHandle( void )
 	portRESET_PRIVILEGE( xRunningPrivileged );
 	return xReturn;
 }
-
+#endif
 /*----------------------------------------------------------------------------*/
 
+#if( ( INCLUDE_xTimerPendFunctionCall == 1 ) && ( configUSE_TIMERS == 1 ) )
 BaseType_t MPU_xTimerPendFunctionCall( PendedFunction_t xFunctionToPend, void *pvParameter1, uint32_t ulParameter2, TickType_t xTicksToWait )
 {
 	BaseType_t xReturn;
@@ -839,9 +865,11 @@ BaseType_t MPU_xTimerPendFunctionCall( PendedFunction_t xFunctionToPend, void *p
 	portRESET_PRIVILEGE( xRunningPrivileged );
 	return xReturn;
 }
+#endif
 
 /*----------------------------------------------------------------------------*/
 
+#if( configUSE_TIMERS == 1 )
 const char * MPU_pcTimerGetName( TimerHandle_t xTimer )
 {
 	const char * xReturn;
@@ -887,6 +915,7 @@ BaseType_t MPU_xTimerGenericCommand( TimerHandle_t xTimer, const BaseType_t xCom
 
 /*----------------------------------------------------------------------------*/
 
+#if( configSUPPORT_DYNAMIC_ALLOCATION == 1 )
 EventGroupHandle_t MPU_xEventGroupCreate( void )
 {
 	EventGroupHandle_t xReturn;
@@ -895,6 +924,7 @@ EventGroupHandle_t MPU_xEventGroupCreate( void )
 	portRESET_PRIVILEGE( xRunningPrivileged );
 	return xReturn;
 }
+#endif
 
 /*----------------------------------------------------------------------------*/
 

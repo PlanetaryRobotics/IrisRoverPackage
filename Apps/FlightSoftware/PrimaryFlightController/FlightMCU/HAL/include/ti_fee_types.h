@@ -28,10 +28,11 @@
  * 01.19.00       08Augu2016   Vishwanath Reddy     SDOCM00122592    Update version history.
  * 01.19.01       12Augu2016   Vishwanath Reddy     SDOCM00122543    Update version history.
  * 01.19.03       15May2017    Prathap Srinivasan   SDOCM00122917    Update version history.
+ * 01.19.04		  05Dec2017    Prathap Srinivasan   HERCULES_SW-5082 Update version history.
  *********************************************************************************************************************/
 
 /*
-* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com  
+* Copyright (C) 2009-2018 Texas Instruments Incorporated - www.ti.com  
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 

@@ -1,7 +1,7 @@
 /** @file system.c
 *   @brief System Driver Source File
-*   @date 07-July-2017
-*   @version 04.07.00
+*   @date 11-Dec-2018
+*   @version 04.07.01
 *
 *   This file contains:
 *   - API Functions
@@ -10,7 +10,7 @@
 */
 
 /*
-* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com
+* Copyright (C) 2009-2018 Texas Instruments Incorporated - www.ti.com
 *
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -137,34 +137,47 @@ void setupPLL(void)
                       | 0x00000080U
                       | 0x00000000U
                       | 0x00000000U
-                      | 0x00000000U;
+                      | 0x00000000U;  
 }
 
+/** @fn void trimLPO(void)
+*   @brief Initialize LPO trim values
+*   
+*	Load TRIM values from OTP if present else call customTrimLPO() function   
+*
+*/
 /* SourceId : SYSTEM_SourceId_002 */
 /* DesignId : SYSTEM_DesignId_002 */
 /* Requirements : HL_SR468 */
 void trimLPO(void)
 {
-
+    uint32 u32clocktestConfig;
+    /* Save user clocktest register configuration */
+    u32clocktestConfig = systemREG1->CLKTEST;
 /* USER CODE BEGIN (4) */
 /* USER CODE END */
-
-    /** @b Initialize Lpo: */
-    /** Load TRIM values from OTP if present else load user defined values */
+    /*The TRM states OTP TRIM value should be stepped to avoid large changes in the HF LPO clock that would result in a LPOCLKMON fault. At issue is the TRM does not specify what the maximum step is so there is no metric to use for the SW implementation - the routine can temporarily disable the LPOCLKMON range check so the sudden change will not cause a fault.*/
+    /* Disable clock range detection*/
+    systemREG1->CLKTEST = (systemREG1->CLKTEST 
+                        | (uint32)((uint32)0x1U << 24U))
+                        & (uint32)(~((uint32)0x1U << 25U));
+    
     /*SAFETYMCUSW 139 S MR:13.7 <APPROVED> "Hardware status bit read check" */
     if(LPO_TRIM_VALUE != 0xFFFFU)
     {
 
         systemREG1->LPOMONCTL  = (uint32)((uint32)1U << 24U)
-                                | LPO_TRIM_VALUE;
+                               | (uint32)((uint32)LPO_TRIM_VALUE);
     }
     else
     {
-
-        systemREG1->LPOMONCTL   =  (uint32)((uint32)1U << 24U)
-                                 | (uint32)((uint32)16U << 8U)
-                                 | 16U;
+    
+        customTrimLPO();
+        
     }
+    
+    /* Restore the user clocktest register value configuration */
+    systemREG1->CLKTEST = u32clocktestConfig;
 
 /* USER CODE BEGIN (5) */
 /* USER CODE END */
@@ -676,4 +689,26 @@ void sramGetConfigValue(sram_config_reg_t *config_reg, config_value_type_t type)
         config_reg->CONFIG_RAMTEST[1U] = tcram2REG->RAMTEST;
         config_reg->CONFIG_RAMADDRDECVECT[1U] = tcram2REG->RAMADDRDECVECT;
     }
+}
+
+/** @fn customTrimLPO(void)
+*   @brief custom function to initilize LPO trim values
+*
+*   This function initializes default LPO trim values if OTP value is 0XFFFF,
+*   user can also write their own code to handle this case .
+*
+*/
+void customTrimLPO(void)
+{
+    /* User can write logic to handle the case where LPO trim is set to 0xFFFFu */
+/* USER CODE BEGIN (29) */
+/* USER CODE END */
+    
+    /* Load default trimLPO value */
+     systemREG1->LPOMONCTL   = (uint32)((uint32)1U << 24U)
+                             | (uint32)((uint32)16U << 8U)
+                             | (uint32)((uint32)16U);
+                                
+/* USER CODE BEGIN (30) */
+/* USER CODE END */
 }

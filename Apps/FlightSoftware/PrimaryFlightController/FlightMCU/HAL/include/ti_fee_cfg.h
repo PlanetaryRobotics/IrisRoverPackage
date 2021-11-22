@@ -4,7 +4,7 @@
  *         File:  ti_fee_cfg.h
  *      Project:  Tms570_TIFEEDriver
  *       Module:  TIFEEDriver
- *    Generator:  HALCoGen
+ *    Generator:  HALcogen
  *
  *  Description:  This file implements the TI FEE Api.
  *---------------------------------------------------------------------------------------------------------------------
@@ -14,13 +14,12 @@
  *---------------------------------------------------------------------------------------------------------------------
  * Version        Date         Author               Change ID        Description
  *---------------------------------------------------------------------------------------------------------------------
- * 00.00.01       31Aug2012    Vishwanath Reddy     0000000000000    Initial Version
- * 01.19.04		  05Dec2017    Prathap Srinivasan   HERCULES_SW-5082 Update version history.
+ * 03.00.00       31Aug2012    Vishwanath Reddy     0000000000000    Initial Version
  *
  *********************************************************************************************************************/
 
 /*
-* Copyright (C) 2009-2018 Texas Instruments Incorporated - www.ti.com  
+* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com  
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 

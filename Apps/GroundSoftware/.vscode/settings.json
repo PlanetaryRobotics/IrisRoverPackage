@@ -130,6 +130,6 @@
             }
         ]
     },
-    "python.pythonPath": "/Users/connorcolombo/.pyenv/versions/3.8.5/envs/py_irisbackendv3/bin/python",
+    "python.pythonPath": "/home/iris/.pyenv/versions/py_irisbackendv3/bin/python",
     "jupyter.jupyterServerType": "local"
 }

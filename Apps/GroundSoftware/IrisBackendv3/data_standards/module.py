@@ -154,6 +154,7 @@ class BitfieldStruct(object):
         )
 
         # Use bitstruct to pull out all values from message:
+        # TODO: use `bitstruct.compile` in ctor to speed up this process
         bitfield_values = bitstruct.unpack(bitfield_struct_sym, data)
 
         # Zip values with names and put into dict for destructuring in constructor call:
@@ -172,6 +173,7 @@ class BitfieldStruct(object):
         )
 
         # Use bitstruct to pull out all values from message:
+        # TODO: use `bitstruct.compile` in ctor to speed up this process
         return cast(bytes, bitstruct.pack(bitfield_struct_sym, *data.values()))
 
     def __eq__(self, other) -> bool:

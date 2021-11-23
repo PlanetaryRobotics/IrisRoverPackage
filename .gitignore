@@ -15,3 +15,5 @@ Apps/.DS_Store
 Apps/.DS_Store
 Apps/GroundSoftware/.DS_Store
 Apps/GroundSoftware/.DS_Store
+*.clog
+Apps/GroundSoftware/raw-console-logs/iris__sbc3_detailed_status_code_testing__11_07_21C.clog

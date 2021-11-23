@@ -3,7 +3,7 @@
 A Collection of Basic Utility Functions.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/17/2021
+@last-updated: 11/21/2021
 """
 
 import re
@@ -18,6 +18,57 @@ def bytearray_to_spaced_hex(ba) -> str:
 
 def print_bytearray_hex(ba) -> None:
     print(bytearray_to_spaced_hex(ba))
+
+
+def byte_to_binstr(B):
+    # Convert to bin string:
+    binstr = bin(B)[2:]
+    # Pad with appropriate number of zeros:
+    binstr = '0' * (8-len(binstr)) + binstr
+    return binstr
+
+
+def bytes_to_binstr(Bs):
+    return '0b '+' '.join(byte_to_binstr(b) for b in Bs)
+
+
+def flip_bits_in_byte(one_byte: Union[int, bytes]) -> Union[int, bytes]:
+    """
+    Reverses the order of all bits in the given byte (as an int or a 1 byte long bytes object).
+    """
+    if isinstance(one_byte, bytes):
+        byte_as_int: int = one_byte[0]
+    else:
+        byte_as_int = one_byte & 0xFF
+    lookup = [0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6,
+              0xe, 0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf]
+
+    flipped = (lookup[byte_as_int & 0x0F] << 4) | lookup[byte_as_int >> 4]
+
+    if isinstance(one_byte, bytes):
+        return flipped.to_bytes(1, 'big')
+    else:
+        return flipped
+
+
+def flip_all_bits_in_bytes(bs: bytes) -> bytes:
+    """
+    Reverses the order of all bits in the bytes object
+
+    # Examples:
+    >>> bytes_to_binstr(flip_all_bits_in_bytes(0b111111101110110111011110101011011011111011101111.to_bytes(6,'big')))
+    '0b 11110111 01111101 10110101 01111011 10110111 01111111'
+    """
+    lookup = [0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6,
+              0xe, 0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf]
+    # Flip the endianness:
+    rev = bytes(reversed(bs))
+    # Then make a mutable copy of the array which will have each of its bytes progressively flipped:
+    flipped = bytearray(rev)
+    for i in range(0, len(rev)):
+        flipped[i] = (lookup[rev[i] & 0x0F] << 4) | lookup[rev[i] >> 4]
+
+    return bytes(flipped)
 
 
 def dict_field_type_check(data: Dict, field: str, desired_type: Union[type, List[type]], name: str = None) -> None:
@@ -269,8 +320,7 @@ def name_split_and_format_by_term(name: str) -> List[str]:
 
     # Involves all challenge cases:
     >>> name_split_and_format_by_term('A1::ABC2::FSW((say_phrase)): AHelloWorld--1Time_in55seconds_ToGSW')
-    ['A', '1', 'ABC', '2', 'FSW', '((', 'Say', 'Phrase', '))', 'A',
-                                    'Hello', 'World', '1', 'Time', 'In', '55', 'Seconds', 'To', 'GSW']
+    ['A', '1', 'ABC', '2', 'FSW', '((', 'Say', 'Phrase', '))', 'A', 'Hello', 'World', '1', 'Time', 'In', '55', 'Seconds', 'To', 'GSW']
 
     """
     # Format into basic PascalCase to start with standard boundaries:

@@ -6,7 +6,7 @@ Defines Common Data Required for Packets. Support for Building and Parsing
 Packets.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 11/07/2021
+@last-updated: 11/21/2021
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -21,7 +21,8 @@ import bitstruct  # type: ignore
 import numpy as np  # type: ignore
 import time
 from math import ceil
-from scapy.utils import hexdump  # type: ignore
+from scapy.utils import hexstr  # type: ignore
+from pandas import DataFrame  # type: ignore
 
 from .magic import Magic, MAGIC_SIZE
 from .metadata import DataPathway, DataSource
@@ -32,7 +33,7 @@ from .settings import ENDIANNESS_CODE, settings
 from .logging import logger
 from .exceptions import PacketDecodingException
 
-from IrisBackendv3.utils.basic import print_bytearray_hex as printraw
+from IrisBackendv3.utils.basic import flip_all_bits_in_bytes
 from IrisBackendv3.data_standards.module import Module
 
 CPH_SIZE = 4
@@ -1268,7 +1269,10 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
             # TODO: Update these weights from empirical measurements of their accuracies and uncertainties
             dLander = 0.25  # [Volts] (uncertainty in LanderVoltage reading)
             dVcc28 = 0.5  # [Volts] (uncertainty in Vcc28Voltage reading)
-            return self.Adc_LanderVoltage * (1.0-dLander/(dLander+dVcc28)) + self.Adc_Vcc28Voltage * (1.0-dVcc28/(dLander+dVcc28))
+            if (dLander+dVcc28) == 0:
+                return 0
+            else:
+                return self.Adc_LanderVoltage * (1.0-dLander/(dLander+dVcc28)) + self.Adc_Vcc28Voltage * (1.0-dVcc28/(dLander+dVcc28))
 
         # Computed properties for Computed Telemetry Channels:
         @property
@@ -1282,7 +1286,15 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
         @property
         def Watchdog_DigitalOutputStates_Dict(self) -> OrderedDict[str, int]:
             data = self.Watchdog_DigitalOutputStates.to_bytes(4, 'big')
+            # unfortunately we can't just feed `to_bytes(4, 'little')` into
+            # `bitstruct` because it expects the order of the bits in each byte
+            # to be the left to right but MSP fills right to left. So, we have
+            # to either convert to little then flip the order of the bits in
+            # each byte or convert to big and flip the order of all the bits:
+            data = flip_all_bits_in_bytes(data)
+
             bitfields = self._module.telemetry['Watchdog_DigitalOutputStates'].bitfields
+
             if bitfields is not None:
                 return bitfields.unpack(data)
             else:
@@ -1332,7 +1344,7 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
                     "In `WatchdogDetailedStatus`, not all fields in "
                     "`Watchdog_CombinedDigitalStates` have a matching field in "
                     "`Watchdog_DigitalOutputStates`. "
-                    "`-1` indicated unmatched in the following: "
+                    "`-1` indicates unmatched in the following: "
                     f"Watchdog_CombinedDigitalStates: {fields}, "
                     f"Watchdog_DigitalOutputStates: {out_states} ."
                 )
@@ -1345,18 +1357,152 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
             if bitfields is not None:
                 raw_data = bitfields.pack(
                     self.Watchdog_CombinedDigitalStates_Dict)
+                # flip order of all bits to be consistent with `Watchdog_DigitalOutputStates_Dict` decoding:
+                raw_data = flip_all_bits_in_bytes(raw_data)
                 return int.from_bytes(raw_data, 'big', signed=False)
             else:
                 return 0
 
         @property
+        def Watchdog_CombinedDigitalStates_Shorthand(self) -> OrderedDict[str, int]:
+            """
+            Returns a dict containing all fields from `Watchdog_CombinedDigitalStates_Dict`
+            but using shorthand aliases for each pin (for easy printing):
+            """
+            long_form = self.Watchdog_CombinedDigitalStates_Dict
+            return OrderedDict([
+                ('HEAT', long_form['HEATER']),
+                ('DEP', long_form['DEPLOYMENT']),
+
+                ('BSTAT', long_form['BATT_STAT']),
+
+                ('BE', long_form['BATTERY_EN']),
+                ('LB', long_form['LATCH_BATT']),
+                ('LS', long_form['LATCH_SET']),
+                ('LR', long_form['LATCH_RESET']),
+
+                ('CE', long_form['CHRG_EN']),
+                ('REGE', long_form['V_LANDER_REG_EN']),
+
+                ('VSAE', long_form['V_SYS_ALL_EN']),
+
+                ('3V3_EN', long_form['3V3_EN']),
+
+                ('H_ON', long_form['HERCULES_ON']),
+                ('R_ON', long_form['RADIO_ON']),
+                ('F_ON', long_form['FPGA_ON']),
+                ('M_ON', long_form['MOTOR_ON']),
+
+                ('H_RST', long_form['HERCULES_N_RST']),
+                ('H_N_PRST', long_form['HERCULES_N_PORRST']),
+                ('F_N_RST', long_form['FPGA_N_RST']),
+                ('R_N_RST', long_form['RADIO_N_RST']),
+
+                ('CAMSEL', long_form['FPGA_KICK_AKA_CAM_SELECT']),
+                ('BMSB', long_form['BMS_BOOT'])
+            ])
+
+        @property
+        def Watchdog_CombinedDigitalStates_DataFrame(self) -> DataFrame:
+            """
+            Returns a Pandas DataFrame containing all fields from 
+            `Watchdog_CombinedDigitalStates_Dict` using shorthand aliases for 
+            each pin from `Watchdog_CombinedDigitalStates_Shorthand` for the 
+            column headers.
+            """
+            return DataFrame(self.Watchdog_CombinedDigitalStates_Shorthand, index=['GPIO (2=HiZ)'])
+
+        @property
         def Watchdog_ResetLogs_Dict(self) -> OrderedDict[str, int]:
             data = self.Watchdog_ResetLogs.to_bytes(40//8, 'big')
+            # unfortunately we can't just feed `to_bytes(5, 'little')` into
+            # `bitstruct` because it expects the order of the bits in each byte
+            # to be the left to right but MSP fills right to left. So, we have
+            # to either convert to little then flip the order of the bits in
+            # each byte or convert to big and flip the order of all the bits:
+            data = flip_all_bits_in_bytes(data)
+
             bitfields = self._module.telemetry['Watchdog_ResetLogs'].bitfields
             if bitfields is not None:
                 return bitfields.unpack(data)
             else:
                 return OrderedDict()
+
+        @property
+        def Watchdog_ResetLogs_Dict_Shorthand(self) -> OrderedDict[str, int]:
+            """
+            Returns a dict containing all fields from `Watchdog_ResetLogs_Dict`
+            but using shorthand aliases for each pin (for easy printing):
+            """
+            long_form = self.Watchdog_ResetLogs_Dict
+            return OrderedDict([
+                ('NONE', long_form['RABI__NO_RESET']),
+
+                ('HDRM_SIG_ON', long_form['RABI__HDRM_DEPLOY_SIGNAL_POWER_ON']),  # noqa (don't wrap this line around)
+                ('HDRM_SIG_OFF', long_form['RABI__HDRM_DEPLOY_SIGNAL_POWER_OFF']),  # noqa (don't wrap this line around)
+
+                ('BATT_EN', long_form['RABI__BATTERIES_ENABLE']),
+                ('BATT_DIS', long_form['RABI__BATTERIES_DISABLE']),
+                ('CHARGE_START', long_form['RABI__BATTERY_CHARGE_START']),
+                ('CHARGE_STOP', long_form['RABI__BATTERY_CHARGE_STOP']),
+
+                ('HEAT_CTRL_EN', long_form['RABI__AUTO_HEATER_CONTROLLER_ENABLE']),  # noqa (don't wrap this line around)
+                ('HEAT_CTRL_DIS', long_form['RABI__AUTO_HEATER_CONTROLLER_DISABLE']),  # noqa (don't wrap this line around)
+
+                ('RS422_EN', long_form['RABI__RS422_UART_ENABLE']),
+                ('RS422_DIS', long_form['RABI__RS422_UART_DISABLE']),
+
+                ('3V3_EN_RST', long_form['RABI__3V3_EN_RESET']),
+                ('3V3_EN_UNRST', long_form['RABI__3V3_EN_UNRESET']),
+                ('3V3_EN_ON', long_form['RABI__3V3_EN_POWER_ON']),
+                ('3V3_EN_OFF', long_form['RABI__3V3_EN_POWER_OFF']),
+
+                ('H_RST', long_form['RABI__HERCULES_RESET']),
+                ('H_UNRST', long_form['RABI__HERCULES_UNRESET']),
+                ('H_ON', long_form['RABI__HERCULES_POWER_ON']),
+                ('H_OFF', long_form['RABI__HERCULES_POWER_OFF']),
+                ('H_WD_EN', long_form['RABI__HERCULES_WATCHDOG_ENABLE']),
+                ('H_WD_DIS', long_form['RABI__HERCULES_WATCHDOG_DISABLE']),
+                ('H_WD_RST', long_form['RABI__HERCULES_WATCHDOG_RESET']),
+
+                ('R_RST', long_form['RABI__RADIO_RESET']),
+                ('R_UNRST', long_form['RABI__RADIO_UNRESET']),
+                ('R_ON', long_form['RABI__RADIO_POWER_ON']),
+                ('R_OFF', long_form['RABI__RADIO_POWER_OFF']),
+
+                ('F_RST', long_form['RABI__CAM_FPGA_RESET']),
+                ('F_UNRST', long_form['RABI__CAM_FPGA_UNRESET']),
+                ('F_ON', long_form['RABI__CAM_FPGA_POWER_ON']),
+                ('F_OFF', long_form['RABI__CAM_FPGA_POWER_OFF']),
+
+                ('CAM0_SEL', long_form['RABI__FPGA_CAM_0_SELECT']),
+                ('CAM1_SEL', long_form['RABI__FPGA_CAM_1_SELECT']),
+
+                ('ALL_MOT_ON', long_form['RABI__ALL_MOTORS_POWER_ON']),
+                ('ALL_MOT_OFF', long_form['RABI__ALL_MOTORS_POWER_OFF']),
+                ('24V_EN_RST', long_form['RABI__24V_EN_RESET']),
+                ('24V_EN_UNRST', long_form['RABI__24V_EN_UNRESET']),
+                ('24V_EN_ON', long_form['RABI__24V_EN_POWER_ON']),
+                ('24V_EN_OFF', long_form['RABI__24V_EN_POWER_OFF'])
+            ])
+
+        @property
+        def Watchdog_ResetLogs_Dict_DataFrame(self) -> DataFrame:
+            """
+            Returns a Pandas DataFrame containing all fields from 
+            `Watchdog_ResetLogs_Dict_Dict` using shorthand aliases for 
+            each pin from `Watchdog_ResetLogs_Dict_Shorthand` for the 
+            column headers.
+            """
+            return DataFrame(self.Watchdog_ResetLogs_Dict_Shorthand, index=['Flag'])
+
+        @property
+        def Watchdog_ResetEventsList(self) -> List[str]:
+            """
+            Returns a list of the names of all ResetLogs that have a non-zero 
+            value (i.e. the event happened).
+            """
+            return [name.replace('RABI__', '') for name, val in self.Watchdog_ResetLogs_Dict.items() if val != 0]  # noqa (don't wrap this line around)
 
         @property
         def Adc_LanderVoltage(self) -> float:
@@ -1433,15 +1579,41 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
             return float(self.Adc_Vcc24VoltageRaw) / 4095.0 * 3.3 * (47.0+330.0)/47.0
 
         @property
+        def Adc_DataFrame(self) -> DataFrame:
+            """
+            Creates a Pandas DataFrame that summarizes all ADC readings incl. 
+            both their raw ADC readings and their conversions to human-readable 
+            units.
+            """
+            return DataFrame({
+                '2V5': [self.Adc_2V5VoltageRaw, f"{self.Adc_2V5Voltage:.2f}V"],
+                '2V8': [self.Adc_2V8VoltageRaw, f"{self.Adc_2V8Voltage:.2f}V"],
+                '24V': [self.Adc_Vcc24VoltageRaw, f"{self.Adc_Vcc24Voltage:.2f}V"],
+                'VBm': [self.Adc_SwitchedBatteryVoltageRaw, f"{self.Adc_SwitchedBatteryVoltage:.2f}V"],
+                'VL': [self.Adc_LanderVoltageRaw, f"{self.Adc_LanderVoltage:.2f}V"],
+                'Vcc28': [self.Adc_Vcc28VoltageRaw, f"{self.Adc_Vcc28Voltage:.2f}V"],
+                'VSA': [self.Adc_FullSystemVoltageRaw, f"{self.Adc_FullSystemVoltage:.2f}V"],
+                'ISA': [self.Adc_FullSystemCurrentRaw, f"{self.Adc_FullSystemCurrent*1000:.1f}mA"],
+                'Tbatt': [self.Adc_BatteryTempRaw, f"{self.Adc_BatteryTempKelvin:.1f}±{self.Adc_BatteryTempUncertaintyKelvin:.1f}K"],
+                'Tchrg': [self.Adc_BatteryChargingTempRaw, f"{self.Adc_BatteryChargingTempKelvin:.1f}±{self.Adc_BatteryChargingTempUncertaintyKelvin:.1f}K"]
+            }, index=['ADC', 'val'])
+
+        @property
         def Heater_PwmLimit_DutyCyclePercent(self) -> float:
-            return 100.0 * float(self.Heater_PwmLimit_DutyCycleCounter) / float(self.Heater_DutyCyclePeriodCycles)
+            if self.Heater_DutyCyclePeriodCycles == 0:
+                return float('Inf')
+            else:
+                return 100.0 * float(self.Heater_PwmLimit_DutyCycleCounter) / float(self.Heater_DutyCyclePeriodCycles)
 
         @property
         def Heater_EffectivePowerLimit(self) -> float:
             # TODO: consider using V_HEATER_NOM instead of `fused_est_lander_voltage` in case `fused_est_lander_voltage` isn't accurate
             max_avail_voltage = self.fused_est_lander_voltage * \
                 self.Heater_PwmLimit_DutyCyclePercent / 100.0
-            return max_avail_voltage**2 / self.R_HEATER
+            if self.R_HEATER == 0:
+                return float('Inf')
+            else:
+                return max_avail_voltage**2 / self.R_HEATER
 
         @property
         def Heater_SetpointKelvin(self) -> float:
@@ -1469,10 +1641,10 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
 
         @property
         def Heater_DutyCyclePercent(self) -> float:
-            if self.Heater_DutyCyclePeriodCycles > 0:
-                return 100.0 * float(self.Heater_DutyCycleCounter) / float(self.Heater_DutyCyclePeriodCycles)
+            if self.Heater_DutyCyclePeriodCycles == 0:
+                return float('Inf')
             else:
-                return 0
+                return 100.0 * float(self.Heater_DutyCycleCounter) / float(self.Heater_DutyCyclePeriodCycles)
 
         @property
         def Heater_EffectiveVoltage(self) -> float:
@@ -1481,7 +1653,10 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
 
         @property
         def Heater_EffectivePower(self) -> float:
-            return self.Heater_EffectiveVoltage**2 / self.R_HEATER
+            if self.R_HEATER == 0:
+                return float('Inf')
+            else:
+                return self.Heater_EffectiveVoltage**2 / self.R_HEATER
 
         @property
         def I2C_BatteryChargeMah(self) -> float:
@@ -1795,19 +1970,20 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
                 f"@ {self.Heater_EffectivePower:.3f}W / {self.Heater_EffectivePowerLimit:.3f}W \t"
                 f"Period: {self.Heater_DutyCyclePeriodMs:.1f}ms"
                 "\n"
-                f"Tbatt: {self.Adc_BatteryTempKelvin:.1f}K ± {self.Adc_BatteryChargingTempUncertaintyKelvin}K \t"
-                f"Tchrg: {self.Adc_BatteryTempKelvin:.1f}K ± {self.Adc_BatteryChargingTempUncertaintyKelvin}K \t"
+                f"Tbatt: {self.Adc_BatteryTempKelvin:.1f}K ± {self.Adc_BatteryTempUncertaintyKelvin}K \t"
+                f"Tchrg: {self.Adc_BatteryChargingTempKelvin:.1f}K ± {self.Adc_BatteryChargingTempUncertaintyKelvin}K \t"
                 f"Tblimp: {self.I2C_FuelGaugeTempKelvin:.1f}K"
                 "\n"
-                f"{hexdump(self.raw)}"
-                # "BATTERY MONITOR: "
-                # f"{self.I2C_BatteryVoltage:.2f}V \t"
-                # f"{self.I2C_BatteryCurrent*1000:.1f}mA \t"
-                # f"{self.I2C_BatteryChargeMah:.0f}mAh \t"
-                # "\n"
+                "BATTERY MONITOR: "
+                f"{self.I2C_BatteryVoltage:.2f}V \t"
+                f"{self.I2C_BatteryCurrent*1000:.1f}mA \t"
+                f"{self.I2C_BatteryChargeMah:.0f}mAh \t"
+                f"\n{self.Adc_DataFrame.to_string(float_format=lambda x: '{:.2f}'.format(x))}"
+                f"\n{self.Watchdog_CombinedDigitalStates_DataFrame.to_string()}"
                 # f"GPIO (2=HiZ): {dict(**self.Watchdog_CombinedDigitalStates_Dict)} \n"
-                # f"Resets: {dict(**self.Watchdog_ResetLogs_Dict)}"
-                "\n"
+                f"\nReset/Flag Events: [{', '.join(self.Watchdog_ResetEventsList)}]"
+                # f"\n{dict(**self.Watchdog_ResetLogs_Dict_Shorthand)}"
+                # "\n"
                 "\n"
             )
 
@@ -1819,54 +1995,55 @@ class WatchdogDetailedStatusPacket(WatchdogDetailedStatusPacketInterface[Watchdo
 
     # Bitfield Struct Allocations (represents the order and number of bits
     # assigned to all data in the message's bitfield struct):
+    # Each field has the following entries: (n_bits, is_adc_val, n_upper_adc_bits, n_lower_adc_bits)
     BITFIELD_ALLOCATIONS: OrderedDict = OrderedDict([
-        ('Io_ChargingStatus1', 1),
-        ('Io_ChargingStatus2', 1),
-        ('Io_BatteryConnectionStatus', 1),
-        ('Io_BatteryLatchStatus', 1),
-        ('Io_1V2PowerGood', 1),
-        ('Io_1V8PowerGood', 1),
-        ('Io_3V3PowerGood', 1),
-        ('Io_5V0PowerGood', 1),
-        ('Watchdog_State', 8),
-        ('Watchdog_DeploymentStatus', 2),
-        ('Watchdog_Uart0State', 1),
-        ('Watchdog_Uart1State', 1),
-        ('Adc_BatteryTempRaw', 12),
-        ('Watchdog_DetailedHeartbeatSequenceNumber', 8),
-        ('Watchdog_DigitalOutputStates', 32),
-        ('Watchdog_ResetLogs', 40),
-        ('Adc_LanderVoltageRaw', 7),
-        ('Adc_BatteryChargingTempRaw', 9),
-        ('Adc_FullSystemVoltageRaw', 5),
-        ('Adc_FullSystemCurrentRaw', 9),
-        ('Adc_SwitchedBatteryVoltageRaw', 9),
-        ('Adc_Vcc24VoltageRaw', 7),
-        ('Heater_ControlEnabled', 1),
-        ('Heater_IsHeating', 1),
-        ('Adc_2V5VoltageRaw', 5),
-        ('Adc_2V8VoltageRaw', 5),
-        ('Adc_Vcc28VoltageRaw', 6),
-        ('Heater_Kp', 16),
-        ('Heater_PwmLimit_DutyCycleCounter', 16),
-        ('Heater_SetpointValue', 16),
-        ('Heater_OnValue', 16),
-        ('Heater_OffValue', 16),
-        ('Heater_DutyCyclePeriodCycles', 16),
-        ('Heater_DutyCycleCounter', 16),
-        ('I2C_BatteryChargeRaw', 16),
-        ('I2C_BatteryVoltageRaw', 16),
-        ('I2C_BatteryCurrentRaw', 16),
-        ('I2C_FuelGaugeTempRaw', 16),
-        ('I2C_BatteryChargeTelemRaw', 8),
-        ('I2C_BatteryCurrentTelemRaw', 8)
+        ('Io_ChargingStatus1', (1, False, 0, 0)),
+        ('Io_ChargingStatus2', (1, False, 0, 0)),
+        ('Io_BatteryConnectionStatus', (1, False, 0, 0)),
+        ('Io_BatteryLatchStatus', (1, False, 0, 0)),
+        ('Io_1V2PowerGood', (1, False, 0, 0)),
+        ('Io_1V8PowerGood', (1, False, 0, 0)),
+        ('Io_3V3PowerGood', (1, False, 0, 0)),
+        ('Io_5V0PowerGood', (1, False, 0, 0)),
+        ('Watchdog_State', (8, False, 0, 0)),
+        ('Watchdog_DeploymentStatus', (2, False, 0, 0)),
+        ('Watchdog_Uart0State', (1, False, 0, 0)),
+        ('Watchdog_Uart1State', (1, False, 0, 0)),
+        ('Adc_BatteryTempRaw', (12, True, WD_ADC_BITS, WD_ADC_BITS)),
+        ('Watchdog_DetailedHeartbeatSequenceNumber', (8, False, 0, 0)),
+        ('Watchdog_DigitalOutputStates', (32, False, 0, 0)),
+        ('Watchdog_ResetLogs', (40, False, 0, 0)),
+        ('Adc_LanderVoltageRaw', (7, True, 7, WD_ADC_BITS)),
+        ('Adc_BatteryChargingTempRaw', (9, True, 9, WD_ADC_BITS)),
+        ('Adc_FullSystemVoltageRaw', (5, True, 5, WD_ADC_BITS)),
+        ('Adc_FullSystemCurrentRaw', (9, True, WD_ADC_BITS, 9)),
+        ('Adc_SwitchedBatteryVoltageRaw', (9, True, 9, WD_ADC_BITS)),
+        ('Adc_Vcc24VoltageRaw', (7, True, 7, WD_ADC_BITS)),
+        ('Heater_ControlEnabled', (1, False, 0, 0)),
+        ('Heater_IsHeating', (1, False, 0, 0)),
+        ('Adc_2V5VoltageRaw', (5, True, 5, WD_ADC_BITS)),
+        ('Adc_2V8VoltageRaw', (5, True, 5, WD_ADC_BITS)),
+        ('Adc_Vcc28VoltageRaw', (6, True, 6, WD_ADC_BITS)),
+        ('Heater_Kp', (16, False, 0, 0)),
+        ('Heater_PwmLimit_DutyCycleCounter', (16, False, 0, 0)),
+        ('Heater_SetpointValue', (16, False, 0, 0)),
+        ('Heater_OnValue', (16, False, 0, 0)),
+        ('Heater_OffValue', (16, False, 0, 0)),
+        ('Heater_DutyCyclePeriodCycles', (16, False, 0, 0)),
+        ('Heater_DutyCycleCounter', (16, False, 0, 0)),
+        ('I2C_BatteryChargeRaw', (16, False, 0, 0)),
+        ('I2C_BatteryVoltageRaw', (16, False, 0, 0)),
+        ('I2C_BatteryCurrentRaw', (16, False, 0, 0)),
+        ('I2C_FuelGaugeTempRaw', (16, False, 0, 0)),
+        ('I2C_BatteryChargeTelemRaw', (8, False, 0, 0)),
+        ('I2C_BatteryCurrentTelemRaw', (8, False, 0, 0))
     ])
 
     # Empty __slots__ allows super's __slots__ to not turn into __dict__:
     __slots__: List[str] = []
 
     def __repr__(self) -> str:
-        return self.custom_payload.__repr__()
+        return self.custom_payload.__repr__() + f' {hexstr(self.raw)}'
 
     @ classmethod
     def decode(cls,
@@ -1883,83 +2060,44 @@ class WatchdogDetailedStatusPacket(WatchdogDetailedStatusPacketInterface[Watchdo
                 f"Expected {cls.START_FLAG}, Got: {flag} ."
             )
 
-        # Concatenate all bit lengths in message bitfield into a symbol string for bitstruct:
-        bitfield_struct_sym = (
-            'u' + 'u'.join([str(v) for v in cls.BITFIELD_ALLOCATIONS.values()])
-        )
+        # Create empty dict to contain extracted values for later use in destructuring in constructor call:
+        named_bitfield_entries = dict([
+            (k, 0) for k in cls.BITFIELD_ALLOCATIONS.keys()
+        ])
 
-        # Use bitstruct to pull out all values from message:
-        bitfield_values = bitstruct.unpack(bitfield_struct_sym, core_data)
+        # Encode message as int and handle endianness:
+        data_int: int = int.from_bytes(core_data, 'little', signed=False)
 
-        # Zip values with names and put into dict for destructuring in constructor call:
-        named_bitfield_entries = dict(zip(
-            cls.BITFIELD_ALLOCATIONS.keys(), bitfield_values
-        ))
+        # Extract all fields from `data_int` and shift adc fields as required:
+        idx_bit_head: int = 0
+        for field_name, (n_bits, is_adc_val, n_upper_adc_bits, _) in cls.BITFIELD_ALLOCATIONS.items():
+            # TODO: consider storing the mask and idx_bit_head for each value after first run for faster processing (build once and store)
+            field_mask = ((1 << n_bits) - 1) << idx_bit_head
+            field_val = (data_int & field_mask) >> idx_bit_head
 
-        # Handle any endianness changes and bit shifts here:
-        def shift_upper_adc_entry(name: str) -> None:
+            if is_adc_val:
+                # Shift back out to 12 bits (if only the upper bits were sent):
+                field_val = field_val << (cls.WD_ADC_BITS - n_upper_adc_bits)
+
+            named_bitfield_entries[field_name] = field_val
+            idx_bit_head += n_bits
+
+        def flip_endianness(name: str, n_bytes: int) -> None:
             """
-            Applies the necessary bitshift to an adc field (which originally 
-            had `WD_ADC_BITS`) but only sent the upper 
-            `BITFIELD_ALLOCATIONS[name]` number of bits.
-            """
-            nonlocal named_bitfield_entries
-            orig_val = named_bitfield_entries[name]
-            shift_amt = cls.WD_ADC_BITS - cls.BITFIELD_ALLOCATIONS[name]
-            named_bitfield_entries[name] = orig_val << shift_amt
-
-        def l2b_flip_endianness(name: str, struct_sym: str) -> None:
-            """
-            Flips the endianness from little to big of the field with the given 
-            name whose nearest size is given by `struct_sym` (i.e. the symbol 
-            used to encode size in the `struct` package, e.g. `H` is `uint16_t`).
+            Flips the endianness of the field with the given name whose size is 
+            `n_bytes` bytes.
             """
             nonlocal named_bitfield_entries
-            little_val = named_bitfield_entries[name]
-            big_val = struct.unpack(
-                '>'+struct_sym, struct.pack('<'+struct_sym, little_val))[0]
-            named_bitfield_entries[name] = big_val
+            old_val = named_bitfield_entries[name]
+            new_val = int.from_bytes(
+                old_val.to_bytes(n_bytes, 'big'), 'little')
+            named_bitfield_entries[name] = new_val
 
-        l2b_flip_endianness('Adc_BatteryTempRaw', 'H')
-        l2b_flip_endianness('Watchdog_DigitalOutputStates', 'L')
-
-        l2b_flip_endianness('Watchdog_ResetLogs', 'Q')
-        wrl = named_bitfield_entries['Watchdog_ResetLogs']
-        named_bitfield_entries['Watchdog_ResetLogs'] = wrl >> (
-            64-cls.BITFIELD_ALLOCATIONS['Watchdog_ResetLogs']
-        )  # Q is 64b, Watchdog_ResetLogs is not
-
-        shift_upper_adc_entry('Adc_LanderVoltageRaw')
-
-        l2b_flip_endianness('Adc_BatteryChargingTempRaw', 'H')
-        shift_upper_adc_entry('Adc_BatteryChargingTempRaw')
-
-        shift_upper_adc_entry('Adc_FullSystemVoltageRaw')
-
-        l2b_flip_endianness('Adc_FullSystemCurrentRaw', 'H')
-        # Leave `Adc_FullSystemCurrentRaw` shifting alone since it only sent lower bits
-
-        l2b_flip_endianness('Adc_SwitchedBatteryVoltageRaw', 'H')
-        shift_upper_adc_entry('Adc_SwitchedBatteryVoltageRaw')
-
-        shift_upper_adc_entry('Adc_Vcc24VoltageRaw')
-        shift_upper_adc_entry('Adc_2V5VoltageRaw')
-        shift_upper_adc_entry('Adc_2V8VoltageRaw')
-        shift_upper_adc_entry('Adc_Vcc28VoltageRaw')
-
-        l2b_flip_endianness('Heater_Kp', 'H')
-        l2b_flip_endianness('Heater_PwmLimit_DutyCycleCounter', 'H')
-        l2b_flip_endianness('Heater_SetpointValue', 'H')
-        l2b_flip_endianness('Heater_OnValue', 'H')
-        l2b_flip_endianness('Heater_OffValue', 'H')
-        l2b_flip_endianness('Heater_DutyCyclePeriodCycles', 'H')
-        l2b_flip_endianness('Heater_DutyCycleCounter', 'H')
-
-        # TODO: Check is flipping is right thing to do for FuelGauge I2C vals (since they're technically a byte array):
-        l2b_flip_endianness('I2C_BatteryChargeRaw', 'H')
-        l2b_flip_endianness('I2C_BatteryVoltageRaw', 'H')
-        l2b_flip_endianness('I2C_BatteryCurrentRaw', 'H')
-        l2b_flip_endianness('I2C_FuelGaugeTempRaw', 'H')
+        # TODO: Check if flipping is right thing to do for FuelGauge I2C vals (since they're technically a byte array):
+        flip_endianness('I2C_BatteryChargeRaw', 2)
+        flip_endianness('I2C_BatteryVoltageRaw', 2)
+        flip_endianness('I2C_BatteryCurrentRaw', 2)
+        flip_endianness('I2C_FuelGaugeTempRaw', 2)
 
         custom_payload = WatchdogDetailedStatusPacket.CustomPayload(
             **named_bitfield_entries
@@ -2206,6 +2344,7 @@ class WatchdogHeartbeatPacket(WatchdogHeartbeatPacketInterface[WatchdogHeartbeat
                 "Start flag for `WatchdogTvacHeartbeatPacket` was invalid. "  # type: ignore
                 f"Expected {cls.START_FLAG}, Got: {flag} ."
             )
+        # TODO: use `bitstruct.compile` on first run to speed processing time.
         custom_payload = WatchdogHeartbeatPacket.CustomPayload(
             *bitstruct.unpack('u7u1u7u1u8', core_data)
         )

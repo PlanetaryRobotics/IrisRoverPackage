@@ -40,14 +40,14 @@ void blimp_normalBoot()
     blimp_latchResetOff();
 
     // Absorb the state of `BSTAT` (what it was pre-boot) in case we just recovered from a mid-mission reboot:
-    if (blimp_bstat()) {
-        blimp_battEnOn();
-    } else {
-        blimp_battEnOff();
-    }
+//    if (blimp_bstat()) {
+//        blimp_battEnOn();
+//    } else {
+//        blimp_battEnOff();
+//    }
 
     // Only touch `LATCH_BATT` after absorbing `BSTAT` state (in case you cause a clock pulse):
-    blimp_latchBattOff();
+//    blimp_latchBattOff();
 
     blimp_vSysAllEnOff();
     blimp_chargerEnOff();

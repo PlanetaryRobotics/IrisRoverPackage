@@ -317,7 +317,7 @@ void initializeGpios(WatchdogStateDetails* details)
     PJDIR &= ~BIT4;
 
     // PJ.5 is connected to the BATTERY_EN signal and is used as a GPIO output with an initially low value
-    PJOUT &= ~BIT5;
+//    PJOUT &= ~BIT5;
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__BATTERY_EN);
 
     // PJ.6 is connected to the BATT_STAT signal and is used as a GPIO input.

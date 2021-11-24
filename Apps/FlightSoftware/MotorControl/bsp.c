@@ -447,7 +447,7 @@ void initializeGpios() {
     P1DIR = 0xFFu;
     P1OUT = 0x00u;
     P1SEL0 = 0x00u;
-    P1SEL1 = 0xC0u;
+    P1SEL1 = 0x00u;
 
     uint8_t selectedPort = GPIO_PORT_P1;
     uint16_t selectedPins = 0;

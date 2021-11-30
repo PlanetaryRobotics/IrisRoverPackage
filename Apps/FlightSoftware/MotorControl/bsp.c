@@ -444,7 +444,7 @@ void initializeGpios() {
 //                                           GPIO_SECONDARY_MODULE_FUNCTION);
 
 
-    P1DIR = 0xFFu;
+    P1DIR = 0x00u;
     P1OUT = 0x00u;
     P1SEL0 = 0x00u;
     P1SEL1 = 0x00u;
@@ -504,7 +504,7 @@ void initializeGpios() {
 //                                            GPIO_PIN2, //  HIGH_C
 //                                            GPIO_PRIMARY_MODULE_FUNCTION);
 
-    P2DIR = 0xFFu;
+    P2DIR = 0x00u;
     P2OUT = 0x00u;
     P2SEL0 = 0x00u;
     P2SEL1 = 0x00u;
@@ -568,7 +568,7 @@ void initializeGpios() {
 //                   GPIO_PRIMARY_MODULE_FUNCTION
 //                   );
 
-    P3DIR = 0xFFu;
+    P3DIR = 0x00u;
     P3OUT = 0x00u;
     P3SEL0 = 0x00u;
     P3SEL1 = 0x00u;
@@ -634,7 +634,7 @@ void initializeGpios() {
   // GPIO_setAsOutputPin(GPIO_PORT_P4,
   //                     GPIO_PIN4 /* CAL */);
 
-    P4DIR = 0xFFu;
+    P4DIR = 0x00u;
     P4OUT = 0x00u;
     P4SEL0 = 0x00u;
     P4SEL1 = 0x00u;

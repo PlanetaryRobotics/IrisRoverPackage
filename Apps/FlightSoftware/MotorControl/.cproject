@@ -51,7 +51,7 @@
 									<listOptionValue builtIn="false" value="${CCS_BASE_ROOT}/msp430/include"/>
 									<listOptionValue builtIn="false" value="${PROJECT_ROOT}"/>
 									<listOptionValue builtIn="false" value="${CG_TOOL_ROOT}/include"/>
-									<listOptionValue builtIn="false" value="/home/iris/Desktop/Stable_Testing_Repos/Motor Controllers/Apps/FlightSoftware/MotorControl/driverlib"/>
+									<listOptionValue builtIn="false" value="${PROJECT_ROOT}/driverlib"/>
 									<listOptionValue builtIn="false" value="/home/iris/ti/msp430/IQMATHLIB_01_10_00_05/include"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.ADVICE__POWER.749999146" name="Enable checking of ULP power rules (--advice:power)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_18.12.compilerID.ADVICE__POWER" useByScannerDiscovery="false" value="all" valueType="string"/>

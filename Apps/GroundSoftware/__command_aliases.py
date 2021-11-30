@@ -122,6 +122,51 @@ def get_command(alias: str, param: Optional[str] = None):
             dict(reset_value='RESET_FPGA'),
             DataPathway.WIRED
         ),
+        'power-on-fpga': (
+            DataPathway.WIRED,
+            # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_ResetSpecific',
+            # Change this to whatever you want to reset.
+            dict(reset_value='FPGA_POWER_ON'),
+            DataPathway.WIRED
+        ),
+        'power-off-fpga': (
+            DataPathway.WIRED,
+            # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_ResetSpecific',
+            # Change this to whatever you want to reset.
+            dict(reset_value='FPGA_POWER_OFF'),
+            DataPathway.WIRED
+        ),
+        'reset-motors': (
+            DataPathway.WIRED,
+            # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_ResetSpecific',
+            # Change this to whatever you want to reset.
+            dict(reset_value='RESET_ALL_MOTORS'),
+            DataPathway.WIRED
+        ),
+        'power-on-motors': (
+            DataPathway.WIRED,
+            # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_ResetSpecific',
+            # Change this to whatever you want to reset.
+            dict(reset_value='ALL_MOTORS_ON'),
+            DataPathway.WIRED
+        ),
+        'power-off-motors': (
+            DataPathway.WIRED,
+            # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_ResetSpecific',
+            # Change this to whatever you want to reset.
+            dict(reset_value='ALL_MOTORS_OFF'),
+            DataPathway.WIRED
+        ),
         '3v3-on': (
             DataPathway.WIRED,
             # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
@@ -138,6 +183,22 @@ def get_command(alias: str, param: Optional[str] = None):
             'WatchDogInterface_ResetSpecific',
             # Change this to whatever you want to reset.
             dict(reset_value='EN_3_3_POWER_OFF'),
+            DataPathway.WIRED
+        ),
+        'vsa-on': (
+            DataPathway.WIRED,
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_ResetSpecific',
+            # Change this to whatever you want to reset.
+            dict(reset_value='EN_24_ON'),
+            DataPathway.WIRED
+        ),
+        'vsa-off': (
+            DataPathway.WIRED,
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_ResetSpecific',
+            # Change this to whatever you want to reset.
+            dict(reset_value='EN_24_OFF'),
             DataPathway.WIRED
         ),
         'SetChargerEn': (
@@ -194,6 +255,14 @@ def get_command(alias: str, param: Optional[str] = None):
             Magic.WATCHDOG_COMMAND,
             'WatchDogInterface_RequestStatusReport',
             dict(confirm='CONFIRM_REQUEST'),
+            DataPathway.WIRED
+        ),
+        # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
+        'drive-fwd-200': (
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            'Navigation_NavDriveForward',
+            dict(distance=200, speed=100, callback_id=0xBEEF), # Change this to whatever you want to reset.
             DataPathway.WIRED
         ),
         'misc-test': (

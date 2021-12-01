@@ -18,7 +18,7 @@
 #include "Include/FswPacket.hpp"      // PrimaryFlightController/FlightMCU/Include
 
 #define SCI_REG             sciREG
-#define BLOCKING_TIMEOUT_US 1000    // in us
+#define BLOCKING_TIMEOUT_US 20000    // in us // [CWC] 20x this to try to increase RTS low time to allow more time for wifi chip to give us data (5x seemed to help and get us an instant ARP), also these are used more as cycles than microseconds. So to achieve the original target of 1000us, one may have to exceed 16000cycles
 
 #define MAC_ADDRESS_SIZE      6       // in byte
 #define HARDWARE_ADDRESS_SIZE 6       // in byte

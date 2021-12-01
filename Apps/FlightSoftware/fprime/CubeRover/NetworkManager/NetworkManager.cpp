@@ -53,6 +53,10 @@ namespace CubeRover {
     unsigned no_transition_count = 0;
     m_current_state = m_crnm.GetState();
     bool success = true;
+
+    // [CWC] Reset radio first (used to happen on boot way back when WatchDogInterface init'd but was removed from there):
+    watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
+
     while (!success) {
         Wf121::ErrorCode errorCode;
         while (no_transition_count < MAX_FSM_NO_TRANSITION_COUNT) {
@@ -74,7 +78,7 @@ namespace CubeRover {
             {
                 log_ACTIVITY_HI_StateChange(m_current_state, new_state);
                 // Update Telemetry with error code
-                tlmWrite_WIFIErrorStatus(static_cast<U16>(errorCode));
+                tlmWrite_WIFIErrorStatus(static_cast<WIFIErrorCode>(static_cast<U16>(errorCode)));
                 // Update Telemetry with new state
                 tlmWrite_WIFIStateStatus(static_cast<WIFIState>(static_cast<U8>(new_state)));
             }
@@ -86,27 +90,34 @@ namespace CubeRover {
                 break;
             }
         }
+
         // Update Telemetry with error code
-        tlmWrite_WIFIErrorStatus(static_cast<U16>(errorCode));
-        // Check if we're in persistent state WATCHDOG (m_persistent_state == 0) and we have tried too many times
-        if (m_persistent_state == 0 && no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
-            log_FATAL_WF121InitializationFailed();
-            // Check if we have reset the wifi more than wired_wifi_reset_cnt_max times. If so, we stop initializing wifi and move on
-            if(wired_wifi_reset_cnt >= wired_wifi_reset_cnt_max)
+        tlmWrite_WIFIErrorStatus(static_cast<WIFIErrorCode>(static_cast<U16>(errorCode)));
+
+        if(m_current_state != CubeRoverNetworkManager::UDP_CONNECTED){ // [CWC] extra guard as a procaution since it seems we loop for a long time after ARPing
+            // Check if we're in persistent state WATCHDOG (m_persistent_state == 0) and we have tried too many times
+            if (m_persistent_state == 0 && no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
+                log_FATAL_WF121InitializationFailed();
+                wired_wifi_reset_cnt++;
+                no_transition_count = 0;
+                // Check if we have reset the wifi more than wired_wifi_reset_cnt_max times. If so, we stop initializing wifi and move on
+                if(wired_wifi_reset_cnt >= wired_wifi_reset_cnt_max){
+                    // [CWC] Only reset state and restart after several (`wired_wifi_reset_cnt`) failed attempts (were getting nowhere before)
+                    watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
+                    m_crnm.ResetState();
+                }
+                // [CWC] but break every time (so we can still see what state it broke in without it being reset).
                 break;
-            // TODO: Notify ground that we have skipped initializing wifi as we have reset a set amount of times
-            watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
-            m_crnm.ResetState();
-            wired_wifi_reset_cnt++;
-            no_transition_count = 0;
-        }
-        // Check if we're in persistent state WIFI (m_persistent_state == 1) and we have tried too many times
-        else if (m_persistent_state == 1 && no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
-            log_FATAL_WF121InitializationFailed();
-            watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
-            m_crnm.ResetState();
-            no_transition_count = 0;
-            // This reset of wifi will happen forever until we connect
+                // TODO: Notify ground that we have skipped initializing wifi as we have reset a set amount of times
+            }
+            // Check if we're in persistent state WIFI (m_persistent_state == 1) and we have tried too many times
+            else if (m_persistent_state == 1 && no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
+                log_FATAL_WF121InitializationFailed();
+                watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
+                m_crnm.ResetState();
+                no_transition_count = 0;
+                // This reset of wifi will happen forever until we connect
+            }
         }
     }
   }
@@ -189,7 +200,7 @@ namespace CubeRover {
             tlmWrite_PktRecv(m_crnm.GetNbOfBytesReceived());
             tlmWrite_PktSent(m_crnm.GetNbOfBytesSent());
             // Update Telemetry with error code
-            tlmWrite_WIFIErrorStatus(static_cast<U16>(errorCode));
+            tlmWrite_WIFIErrorStatus(static_cast<WIFIErrorCode>(static_cast<U16>(errorCode)));
             // [CWC] Also downlinking wifi state each time:
             // Update Telemetry with new state
             tlmWrite_WIFIStateStatus(static_cast<WIFIState>(static_cast<U8>(m_current_state)));

@@ -180,15 +180,21 @@ namespace CubeRover {
         }
 
         // TODO: UPDATE THESE ONCE PER TELEM DOWNLINK. DOING IT ON THE RATE GROUP IS TOO OFTEN
+        // [CWC]: What do these variables mean?? No comments. Bypassing for now to make telem downlink once every 10 updates.
         if(telem_send_limit_cnt >= telem_send_limit_cnt_max)
         {
+            telem_send_limit_cnt = 0; // [CWC] just using this as an update counter now.
             tlmWrite_RSSI(m_crnm.GetSignalRssi());
             tlmWrite_SNR(m_crnm.GetSignalNoiseRatio());
             tlmWrite_PktRecv(m_crnm.GetNbOfBytesReceived());
             tlmWrite_PktSent(m_crnm.GetNbOfBytesSent());
             // Update Telemetry with error code
             tlmWrite_WIFIErrorStatus(static_cast<U16>(errorCode));
+            // [CWC] Also downlinking wifi state each time:
+            // Update Telemetry with new state
+            tlmWrite_WIFIStateStatus(static_cast<WIFIState>(static_cast<U8>(m_current_state)));
         }
+        telem_send_limit_cnt++; // [CWC] just using this as an update counter now.
 
     }
   

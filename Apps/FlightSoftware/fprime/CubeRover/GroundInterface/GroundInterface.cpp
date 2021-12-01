@@ -362,15 +362,19 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
                 tlmWrite_GI_TlmItemsDownlinked(m_tlmItemsDownlinked);
                 tlmWrite_GI_LogsDownlinked(m_logsDownlinked);
                 tlmWrite_GI_AppBytesDownlinked(m_appBytesDownlinked);
-                tlmWrite_GI_CmdsUplinked(m_cmdsUplinked);
-                tlmWrite_GI_UplinkPktErrs(m_cmdErrs);
+//                tlmWrite_GI_UplinkPktErrs(m_cmdErrs);
+//                tlmWrite_GI_CmdsUplinked(m_cmdsUplinked);
             case IMPORTANT:
                 tlmWrite_GI_TlmItemsReceived(m_tlmItemsReceived);
                 tlmWrite_GI_LogsReceived(m_logsReceived);
                 tlmWrite_GI_AppBytesReceived(m_appBytesReceived);
-                tlmWrite_GI_CmdsSent(m_cmdsSent);
+//                tlmWrite_GI_CmdsSent(m_cmdsSent);
             case CRITICAL:
             default:
+                // [CWC]: INCREASING IMPORTANCE of `tlmWrite_GI_UplinkPktErrs`, `m_cmdsSent`, and `m_cmdsUplinked`
+                tlmWrite_GI_UplinkPktErrs(m_cmdErrs);
+                tlmWrite_GI_CmdsSent(m_cmdsSent);
+                tlmWrite_GI_CmdsUplinked(m_cmdsUplinked);
                 tlmWrite_GI_UplinkSeqNum(m_uplinkSeq);
                 tlmWrite_GI_PacketsReceived(m_packetsRx);
                 tlmWrite_GI_PacketsTransmitted(m_packetsTx);

@@ -154,7 +154,9 @@ typedef enum WdCmdMsgs__ResetSpecificId
     WD_CMD_MSGS__RESET_ID__BATTERIES_ENABLE = 0x23, //!< Enable the batteries.
     WD_CMD_MSGS__RESET_ID__BATTERIES_DISABLE = 0x24, //!< Disable the batteries.
 
-    WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_ON = 0xEE //!< Power on the HDRM.
+    WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_ON = 0xEE, //!< Power on the HDRM.
+
+    WD_CMD_MSGS__RESET_ID__HERCULES_HI = 0xF1 //!< [CWC] Hercules wants us to say "hi" to Earth to let us know its alive.
 } WdCmdMsgs__ResetSpecificId;
 
 /**

@@ -54,6 +54,9 @@ namespace CubeRover {
     m_current_state = m_crnm.GetState();
     bool success = true;
 
+    // [CWC] Let everyone back home know we're okay before we start:
+    watchDogInterface.Reset_Specific_Handler(0xF1 /*Hercules Hi = 0xF1*/);
+
     // [CWC] Reset radio first (used to happen on boot way back when WatchDogInterface init'd but was removed from there):
     watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
 

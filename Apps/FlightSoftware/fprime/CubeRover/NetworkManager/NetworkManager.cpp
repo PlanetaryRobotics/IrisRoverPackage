@@ -54,9 +54,6 @@ namespace CubeRover {
     m_current_state = m_crnm.GetState();
     bool success = true;
 
-    // [CWC] Let everyone back home know we're okay before we start:
-    watchDogInterface.Reset_Specific_Handler(0xF1 /*Hercules Hi = 0xF1*/);
-
     // [CWC] Reset radio first (used to happen on boot way back when WatchDogInterface init'd but was removed from there):
     watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
 
@@ -97,20 +94,19 @@ namespace CubeRover {
         // Update Telemetry with error code
         tlmWrite_WIFIErrorStatus(static_cast<WIFIErrorCode>(static_cast<U16>(errorCode)));
 
-        if(m_current_state != CubeRoverNetworkManager::UDP_CONNECTED){ // [CWC] extra guard as a procaution since it seems we loop for a long time after ARPing
+        if(m_current_state != CubeRoverNetworkManager::UDP_CONNECTED){ // [CWC] extra guard as a precaution since it seems we loop for a long time after ARPing
             // Check if we're in persistent state WATCHDOG (m_persistent_state == 0) and we have tried too many times
             if (m_persistent_state == 0 && no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT) {
                 log_FATAL_WF121InitializationFailed();
-                wired_wifi_reset_cnt++;
-                no_transition_count = 0;
                 // Check if we have reset the wifi more than wired_wifi_reset_cnt_max times. If so, we stop initializing wifi and move on
                 if(wired_wifi_reset_cnt >= wired_wifi_reset_cnt_max){
                     // [CWC] Only reset state and restart after several (`wired_wifi_reset_cnt`) failed attempts (were getting nowhere before)
                     watchDogInterface.Reset_Specific_Handler(4 /*Reset_Radio = 4*/);
                     m_crnm.ResetState();
+                    break;
                 }
-                // [CWC] but break every time (so we can still see what state it broke in without it being reset).
-                break;
+                wired_wifi_reset_cnt++;
+                no_transition_count = 0;
                 // TODO: Notify ground that we have skipped initializing wifi as we have reset a set amount of times
             }
             // Check if we're in persistent state WIFI (m_persistent_state == 1) and we have tried too many times

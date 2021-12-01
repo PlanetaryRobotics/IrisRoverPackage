@@ -306,11 +306,11 @@ void initializeGpios(WatchdogStateDetails* details)
     PJOUT &= ~BIT2;
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__MOTOR_ON);
 
-    // PJ.3 is connected to the CHRG_EN signal and is used as a GPIO output with an initially high-Z value.
+    // PJ.3 is connected to the CHRG_EN signal and is used as a GPIO output with an initially low value.
     // CHRG_EN should always be high-Z (when charging is enabled) or low.
-    PJDIR &= ~BIT3;
-    PJREN &= ~BIT3;
-    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__CHRG_EN);
+    PJDIR |= BIT3;
+    PJOUT &= ~BIT3;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__CHRG_EN);
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__CHRG_EN_FORCE_HIGH);
 
     // PJ.4 is connected to the Radio_Kick signal and is used as a GPIO input.

@@ -94,6 +94,7 @@ extern void vPortPreemptiveTick(void);
 extern void vPortYeildWithinAPI(void);
 extern void dmaFTCAInterrupt(void);
 extern void dmaBTCAInterrupt(void);
+extern void linHighLevelInterrupt(void);
 
 /* USER CODE BEGIN (3) */
 /* USER CODE END */

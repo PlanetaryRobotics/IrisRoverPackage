@@ -61,6 +61,7 @@
 
 /* USER CODE BEGIN (0) */
 #include "App/ISR.hpp"
+
 /* USER CODE END */
 #pragma WEAK(esmGroup1Notification)
 void esmGroup1Notification(uint32 channel)
@@ -160,6 +161,7 @@ void mibspiGroupNotification(mibspiBASE_t *mibspi, uint32 group)
 /* USER CODE END */
 }
 /* USER CODE BEGIN (28) */
+extern void scilin_ISR(uint32 flags);
 /* USER CODE END */
 
 #pragma WEAK(sciNotification)
@@ -167,6 +169,9 @@ void sciNotification(sciBASE_t *sci, uint32 flags)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
 /* USER CODE BEGIN (29) */
+    if (sci == scilinREG) {
+        scilin_ISR(flags);
+    }
 /* USER CODE END */
 }
 

@@ -7,7 +7,7 @@
 #include <cassert>
 
 static const bool SEND_DETAILED_REPORTS_IN_SPIN_ONCE = true;
-static const uint16_t CENTISECONDS_BETWEEN_DETAILED_REPORT_SENDS = 6000;
+static const uint16_t CENTISECONDS_BETWEEN_DETAILED_REPORT_SENDS = 600;
 
 namespace iris
 {
@@ -96,6 +96,11 @@ namespace iris
         if (SEND_DETAILED_REPORTS_IN_SPIN_ONCE &&
                 (currentTime - theContext.m_lastDetailedReportSendTime >= CENTISECONDS_BETWEEN_DETAILED_REPORT_SENDS)) {
             theContext.m_lastDetailedReportSendTime = currentTime;
+            sendDetailedReportToLander(theContext);
+        }
+
+        if (theContext.m_sendDetailedReport) {
+            theContext.m_sendDetailedReport = false;
             sendDetailedReportToLander(theContext);
         }
 

@@ -229,7 +229,6 @@ namespace iris
         // Turn off voltage rails. All of these are simply setting/clearing bits, so they are instant.
         disable3V3PowerRail();
         disable24VPowerRail();
-        disableBatteries();
 
         // Make sure to disable the Hercules uart so we don't dump current through that tx pin
         UART__uninit0(&(theContext.m_uart0State));
@@ -246,7 +245,6 @@ namespace iris
     {
         // These are simply setting/clearing bits, so they are instant.
         enableHeater();
-        startChargingBatteries();
 
         // Enable all interrupts
         __enable_interrupt();

@@ -324,7 +324,7 @@ namespace iris
     {
         /* bootup process - enable all rails */
         enable3V3PowerRail();
-        enable24VPowerRail();
+        disable24VPowerRail();
         enableBatteries();
         disableHeater();
         unsetDeploy();
@@ -352,7 +352,7 @@ namespace iris
         // Power stuff on. These are simply setting/clearing bits, so they are instant. However, powering on the radio
         // requires writing the I/O Expander.
         powerOnFpga();
-        powerOnMotors();
+        powerOffMotors();
         powerOnRadio();
         stopChargingBatteries();
 

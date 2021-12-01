@@ -30,6 +30,8 @@ namespace CubeRover
              * @param goodParity Whether or not `msg` passed its parity check. If false, `msg` will contain only a header.
              */
             virtual void rxCallback(WatchDogMpsm::Message& msg, bool goodParity) = 0;
+
+            virtual ~WatchDogRxCallbackProcessor() = default;
     };
 
     /**
@@ -81,6 +83,8 @@ namespace CubeRover
              * @return True if the registration succeeded, otherwise false.
              */
             bool registerCallback(WatchDogRxCallbackProcessor* callback);
+
+            void printRxUpdates();
 
         private:
             /**

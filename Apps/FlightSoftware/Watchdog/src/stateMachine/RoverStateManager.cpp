@@ -67,12 +67,12 @@ namespace iris
         m_context.m_details.m_outputPinBits = 0;
         m_context.m_details.m_resetActionBits = 0;
 
-
         m_context.m_persistentInMission = &persistentInMission;
         m_context.m_persistentDeployed = &persistentDeployed;
 
         m_context.m_isDeployed = false;
         m_context.m_i2cActive = false;
+        m_context.m_sendDetailedReport = false;
 
         RoverState desiredState = m_currentState->transitionTo(m_context);
         transitionUntilSettled(desiredState);
@@ -99,13 +99,13 @@ namespace iris
 
             Event__Type event = EVENT__TYPE__UNUSED;
             EventQueue__Status eqStatus = EventQueue__get(&event);
-            bool gotEvent = false;
+            //bool gotEvent = false;
 
             if (EQ__STATUS__SUCCESS == eqStatus) {
                 // We got an event. Have the current state handle it (performing any necessary state transitions as
                 // requested by the state(s))
                 handleEvent(event);
-                gotEvent = true;
+                //gotEvent = true;
             } else if (EQ__STATUS__ERROR_EMPTY == eqStatus) {
                 if (m_currentState->canEnterLowPowerMode(m_context)) {
                     //!< @todo Enter LPM here. Need to figure out how to handle LPM and WDT together.

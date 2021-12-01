@@ -592,7 +592,24 @@ namespace CubeRover {
             this->log_WARNING_HI_WatchDogIncorrectResp(bad_size_received);
             return;
         }
-  
+
+// This block of code can be enabled to debug bad data being received from WD
+#if 0
+        bool hasBadass = false;
+        for (size_t i = 0; i < msg.accumulatedDataSize - 2; ++i) {
+            if (msg.dataBuffer[i] == 0x55 &&
+                    msg.dataBuffer[i+1] == 0xDA &&
+                    msg.dataBuffer[i+2] == 0xBA) {
+                hasBadass = true;
+                break;
+            }
+        }
+
+        if (!hasBadass) {
+            m_rxTask.printRxUpdates();
+        }
+#endif
+
         // TODO: Verify that the MTU for wired connection is the same as Wifi
         Fw::Buffer uplinked_data;
         uplinked_data.setdata(reinterpret_cast<U64>(msg.dataBuffer));

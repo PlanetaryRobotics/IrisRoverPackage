@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="com.ti.ccstudio.project.ui.internal.properties.DynamicPropertiesPageManager">
+	</section>
+	<section name="com.ti.ccstudio.project.ui.internal.wizards.importexport.ProjectImportPage">
+		<item value="/home/iris/Desktop/Working_Folders/UWB/CubeRoverPackage/Apps/FlightSoftware/PrimaryFlightController/FlightMCU" key="CCS.BROWSE_DIRS_FILTER"/>
+		<item value="false" key="CCS.IMPORT_FROM_ARCHIVE"/>
+		<item value="false" key="CCS.COPY_INTO_WORKSPACE"/>
+		<item value="false" key="CCS.IMPORT_REFERENCED_PROJECTS"/>
+	</section>
+	<section name="com.ti.ccstudio.project.ui.internal.preferences.DynamicPreferencePageManager">
+	</section>
+</section>

@@ -19,8 +19,6 @@ image_buf = np.zeros(image_height * image_width)
 image_data = np.array(image).flatten()
 image_buf[:image_data.shape[0]] = image_data
 image = image_buf.reshape((image_height, image_width))
-# max_px_num = len(image_data) // image_width * image_width
-# image = image_data[:max_px_num].reshape((-1, image_width))
 plt.imshow(image, cmap='gray')
 plt.show()
 

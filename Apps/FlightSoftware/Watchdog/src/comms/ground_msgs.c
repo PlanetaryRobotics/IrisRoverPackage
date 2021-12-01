@@ -11,6 +11,8 @@
 #include "utils/serialization.h"
 #include "watchdog.h"
 
+#define ENABLE_DEBUGGING_PRINT_OF_FAKE_REPORT 1
+
 GroundMsgs__Status GroundMsgs__generateFlightEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
                                                             AdcValues* adcValues,
                                                             HeaterParams* hParams,
@@ -90,6 +92,17 @@ GroundMsgs__Status GroundMsgs__generateFullEarthHeartbeat(I2C_Sensors__Readings*
     return GND_MSGS__STATUS__SUCCESS;
 }
 
+#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
+#define BYTE_TO_BINARY(byte)  \
+  (byte & 0x80 ? '1' : '0'), \
+  (byte & 0x40 ? '1' : '0'), \
+  (byte & 0x20 ? '1' : '0'), \
+  (byte & 0x10 ? '1' : '0'), \
+  (byte & 0x08 ? '1' : '0'), \
+  (byte & 0x04 ? '1' : '0'), \
+  (byte & 0x02 ? '1' : '0'), \
+  (byte & 0x01 ? '1' : '0')
+
 GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings* i2cReadings,
                                                       AdcValues* adcValues,
                                                       WatchdogStateDetails* details,
@@ -164,6 +177,111 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings* i2c
 
     report->battChargeTelem = i2cReadings->batt_charge_telem;
     report->battCurrTelem = i2cReadings->batt_curr_telem;
+
+#if defined(ENABLE_DEBUG_ONLY_CODE) && ENABLE_DEBUGGING_PRINT_OF_FAKE_REPORT
+    DetailedReport report2 = { 0 };
+    report2.magic = 0xD5;
+
+    report2.chargeStat1 = 1;
+    report2.chargeStat2 = 1;
+    report2.battStat = 0;
+    report2.latchStat = 0;
+    report2.pg12 = 1;
+    report2.pg18 = 0;
+    report2.pg33 = 1;
+    report2.pg50 = 0;
+
+    report2.state = 8;
+    report2.deploymentStatus = 0;
+
+    report2.uart0Initialized = 0;
+    report2.uart1Initialized = 1;
+    report2.adcBattRT = 0b110001100011;
+
+    report2.sequenceNumber = 15;
+
+    report2.outputPinStateBits = 0b00001111101010100011001111111111;
+    report2.lowerResetActionBits = 0;
+    report2.upperResetActionBits = 0;
+
+    report2.vLanderSense = 0b1111111; // Top 7 bits of 12
+    report2.battTemp = 0b110010011; // Top 9 bits of 12
+
+    report2.vSysAllSens = 0b01110; // Top 5 bits of 12
+    report2.iSysAllSense = 0b100000111; // Bottom 9 bits of 12
+    report2.vBattSense = 0b001100110; // Top 9 bits of 12
+    report2.vcc24 = 0b0011100; // Top 7 bits of 12
+    report2.heatingControlEnabled = 0;
+    report2.heating = 0;
+
+    report2.vcc2Point5 = 0b10101; // Top 5 bits of 12
+    report2.vcc2Point8 = 0b01010; // Top 5 bits of 12
+    report2.vcc28 = 0b110011; // Top 6 bits of 12
+
+    report2.kpHeater = 0x0A0B;
+    report2.heaterPwmLimit = 0x0C0D;
+    report2.heaterSetpoint = 0x0E0F;
+    report2.heaterOnValue = 0xAABB;
+    report2.heaterOffValue = 0xCCDD;
+    report2.heaterDutyCyclePeriod = 0xEEFF;
+    report2.heaterPwmValue = 0xF001;
+
+    report2.rawBatteryCharge[0] = 0x1A;
+    report2.rawBatteryCharge[1] = 0x1B;
+
+    report2.rawBatteryVoltage[0] = 0x2A;
+    report2.rawBatteryVoltage[1] = 0x2B;
+
+    report2.rawBatteryCurrent[0] = 0x3A;
+    report2.rawBatteryCurrent[1] = 0x3B;
+
+    report2.rawFuelGaugeTemp[0] = 0x4A;
+    report2.rawFuelGaugeTemp[1] = 0x4B;
+
+    report2.battChargeTelem = 0x5A;
+    report2.battCurrTelem = 0x5B;
+
+    uint8_t *reportView = (uint8_t*) &report2;
+    size_t rowLen = 4;
+
+    size_t numRows = sizeof(report2) / rowLen;
+    if (sizeof(report2) % rowLen > 0) {
+        numRows++;
+    }
+
+    for (size_t r = 0; r < numRows; ++r) {
+        DPRINTF_ERR("%s%d: ", (((rowLen * r) <= 9) ? "0" : ""), (int) (rowLen * r));
+
+        for (size_t c = 0; c < rowLen; ++c) {
+            size_t i = (rowLen * r) + c;
+
+            if (i >= sizeof(report2)) {
+                break;
+            }
+
+            DPRINTF_ERR("%s%x ", ((reportView[i] <= 0xF) ? "0" : ""), reportView[i]);
+        }
+        DPRINTF_ERR("\n");
+    }
+    DPRINTF_ERR("\n");
+
+    for (size_t r = 0; r < numRows; ++r) {
+        DPRINTF_ERR("%s%d: ", (((rowLen * r) <= 9) ? "0" : ""), (int) (rowLen * r));
+
+        for (size_t c = 0; c < rowLen; ++c) {
+            size_t i = (rowLen * r) + c;
+
+            if (i >= sizeof(report2)) {
+                break;
+            }
+
+            DPRINTF_ERR(BYTE_TO_BINARY_PATTERN " ", BYTE_TO_BINARY(reportView[i]));
+        }
+        DPRINTF_ERR("\n");
+    }
+    DPRINTF_ERR("\n");
+
+#endif // #ifdef ENABLE_DEBUG_ONLY_CODE
 
     return GND_MSGS__STATUS__SUCCESS;
 }

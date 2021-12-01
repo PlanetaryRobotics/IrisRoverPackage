@@ -24,6 +24,13 @@ def get_command(alias: str, param: Optional[str] = None):
     argument where necessary.
     """
     prepared_commands = {
+        'transit': (  # Tell the Watchdog to switch into keep-alive mode
+            DataPathway.WIRED,
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_SwitchToKeepAliveMode',
+            dict(confirm='CONFIRM_ALIVE'),
+            DataPathway.WIRED
+        ),
         'setup': (  # Tell the Watchdog to switch into service mode
             DataPathway.WIRED,
             Magic.WATCHDOG_COMMAND,

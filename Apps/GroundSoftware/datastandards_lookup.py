@@ -67,6 +67,8 @@ def print_lookup(module_to_lookup: Optional[str] = None):
         header('Telemetry:')
         for i, t in enumerate(m.telemetry.vals):
             telemetry(i, t)
+            for e in t.enum:
+                p_enum(e)
         header('Events:')
         for i, ev in enumerate(m.events.vals):
             event(i, ev)

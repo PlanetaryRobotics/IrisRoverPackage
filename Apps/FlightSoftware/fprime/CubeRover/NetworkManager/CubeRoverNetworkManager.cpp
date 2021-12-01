@@ -67,7 +67,7 @@ ErrorCode CubeRoverNetworkManager :: UpdateNetworkManager(){
 
   switch(m_state){
     case UNINITIALIZED:
-      errorCode = initializeNetworkManager();     // UNINITIIALIZED --> INITIALIZED
+      errorCode = initializeNetworkManager();     // UNINITIALIZED --> INITIALIZED
       if(errorCode != NO_ERROR) return errorCode;
       break;
     case INITIALIZED:

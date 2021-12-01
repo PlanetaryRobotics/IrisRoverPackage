@@ -819,7 +819,7 @@ class TelemetryPayload(TelemetryPayloadInterface[TelemetryPayloadInterface]):
         else:
             val = self.data
 
-        return f"{self.module.name}{{{self.channel.name}}}@{self.timestamp} = {self.data}"
+        return f"{self.module.name}{{{self.channel.name}}}@{self.timestamp} = {val}"
 
     def __repr__(self) -> str:
         # Enums could be int or str, so convert to what's not given and show both:
@@ -831,7 +831,7 @@ class TelemetryPayload(TelemetryPayloadInterface[TelemetryPayloadInterface]):
         else:
             val = self.data
 
-        return f"{self.module}{{{self.channel}}}@{self.timestamp} = {self.data}"
+        return f"{self.module}{{{self.channel}}}@{self.timestamp} = {val}"
 
     @classmethod
     def decode(cls,

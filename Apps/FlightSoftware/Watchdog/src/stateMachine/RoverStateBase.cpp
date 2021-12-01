@@ -14,6 +14,7 @@
 
 namespace iris
 {
+
     struct CallbackUserArg
     {
             RoverStateBase& m_state;
@@ -1081,9 +1082,6 @@ namespace iris
                                                     bool allowUndeploy,
                                                     bool& writeIoExpander)
     {
-        static char hercHi[35] = "\tHercules says: Hello Earthlings!\n";
-        static LanderComms__Status lcStatus;
-
         if (nullptr != response) {
             // Default to success, change if necessary
             response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
@@ -1356,12 +1354,6 @@ namespace iris
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
-                break;
-
-            case WD_CMD_MSGS__RESET_ID__HERCULES_HI:
-                lcStatus =
-                        LanderComms__txData(theContext.m_lcState, (uint8_t*) hercHi, sizeof(hercHi));
-                assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
                 break;
 
             default:

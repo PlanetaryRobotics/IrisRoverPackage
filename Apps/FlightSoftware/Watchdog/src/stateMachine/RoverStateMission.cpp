@@ -156,7 +156,7 @@ namespace iris
 
     RoverState RoverStateMission::transitionTo(RoverContext& theContext)
     {
-        // Nothing to do on this transition, which should always be from ENTERING_SERVICE.
+        // Nothing to do on this transition, which should always be from ENTERING_MISSION.
         m_currentSubState = SubState::MISSION_NORMAL;
         *(theContext.m_persistentInMission) = true;
         return getState();

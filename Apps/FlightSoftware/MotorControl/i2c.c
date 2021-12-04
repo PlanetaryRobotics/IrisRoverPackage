@@ -316,24 +316,33 @@ void initializeI2cModule(){
   initializeCmdLength();
 
   // Configure I2C interface for slave interface
-  EUSCI_B_I2C_initSlaveParam param = {0};
-  param.slaveAddress = I2C_SLAVE_ADDRESS;
-  param.slaveAddress |= (READ_ADDR1) ? 0x01 : 0x00;
-  param.slaveAddress |= (READ_ADDR2) ? 0x02 : 0x00;
-  g_i2cSlaveAddress = param.slaveAddress; // [DEBUG]
-  param.slaveAddressOffset = EUSCI_B_I2C_OWN_ADDRESS_OFFSET0;
-  param.slaveOwnAddressEnable = EUSCI_B_I2C_OWN_ADDRESS_ENABLE;
-  EUSCI_B_I2C_initSlave(EUSCI_B0_BASE, &param);
+//  EUSCI_B_I2C_initSlaveParam param = {0};
+//  param.slaveAddress = I2C_SLAVE_ADDRESS;
+//  param.slaveAddress |= (READ_ADDR1) ? 0x01 : 0x00;
+//  param.slaveAddress |= (READ_ADDR2) ? 0x02 : 0x00;
+//  g_i2cSlaveAddress = param.slaveAddress; // [DEBUG]
+//  param.slaveAddressOffset = EUSCI_B_I2C_OWN_ADDRESS_OFFSET0;
+//  param.slaveOwnAddressEnable = EUSCI_B_I2C_OWN_ADDRESS_ENABLE;
+//  EUSCI_B_I2C_initSlave(EUSCI_B0_BASE, &param);
+//
+//  EUSCI_B_I2C_enable(EUSCI_B0_BASE);
+//
+//  EUSCI_B_I2C_clearInterrupt(EUSCI_B0_BASE,
+//                             EUSCI_B_I2C_RECEIVE_INTERRUPT0 +
+//                             EUSCI_B_I2C_STOP_INTERRUPT);
+//
+//  EUSCI_B_I2C_enableInterrupt(EUSCI_B0_BASE,
+//                              EUSCI_B_I2C_RECEIVE_INTERRUPT0 +
+//                              EUSCI_B_I2C_STOP_INTERRUPT);
 
-  EUSCI_B_I2C_enable(EUSCI_B0_BASE);
-
-  EUSCI_B_I2C_clearInterrupt(EUSCI_B0_BASE,
-                             EUSCI_B_I2C_RECEIVE_INTERRUPT0 +
-                             EUSCI_B_I2C_STOP_INTERRUPT);
-
-  EUSCI_B_I2C_enableInterrupt(EUSCI_B0_BASE,
-                              EUSCI_B_I2C_RECEIVE_INTERRUPT0 +
-                              EUSCI_B_I2C_STOP_INTERRUPT);
+  uint8_t slave_addr = I2C_SLAVE_ADDRESS;
+  slave_addr |= (READ_ADDR1) ? 0x01 : 0x00;
+  slave_addr |= (READ_ADDR2) ? 0x02 : 0x00;
+  UCB2CTLW0 = UCSWRST;                      // Software reset enabled
+  UCB2CTLW0 |= UCMODE_3 | UCSYNC;           // I2C mode, sync mode
+  UCB2I2COA0 = slave_addr | UCOAEN;        // Own Address and enable
+  UCB2CTLW0 &= ~UCSWRST;                    // clear reset register
+  UCB2IE |= UCRXIE + UCSTPIE;
 }
 
 

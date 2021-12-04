@@ -9,7 +9,6 @@
 // ======================================================================
 
 #include "main.h"
-//#include <msp430.h>
 
 // TODO: re-organize all these variable defs
 _iq g_currentPhaseA;
@@ -426,10 +425,8 @@ void readSensors(void){
     if(g_closedLoop == false && g_targetReached == false){
         // Execute macro to generate ramp up
         IMPULSE_MACRO(g_impulse);
-        // manually change commutation if necessary
         if(g_impulse.Out){
-            // have ticked through every commutation
-            MOD6CNT_MACRO(g_mod6cnt);
+            MOD6CNT_MACRO(g_mod6cnt); // iterate to next commutation
             if (g_targetDirection > 0){
                 g_commState = g_mod6cnt.Counter;
             } else {
@@ -653,27 +650,8 @@ void main(void){
   WDT_A_hold(WDT_A_BASE);
 
   initController(); //init all variables and functionality needed to drive
-  g_targetPosition = 10000;
-  g_controlRegister = 33;
-
-//  enableHalfBridgeA();
-//  enableHalfBridgeB();
-//  enableHalfBridgeC();
-//  int i = 0;
-//
-//  while(1){
-//      enableHalfBridgeA();
-//      enableHalfBridgeB();
-//      enableHalfBridgeC();
-////      __delay_cycles(16000000*5);
-//      i = 1;
-//      disableHalfBridgeA();
-//      disableHalfBridgeB();
-//      disableHalfBridgeC();
-////      __delay_cycles(16000000*5);
-//      i = 0;
-//  }
-
+//  g_targetPosition = 10000;
+//  g_controlRegister = 33;
 
   while(1){
       checkTargetReached();

@@ -774,8 +774,7 @@ void initializePwmModules(void){
  * @param[in]  period  The period
  */
 void setPwmAPeriod(uint16_t period){
-//  if(period > 65535 || period < 0 || )
-  HWREG16(TIMER_B0_BASE + PWMA_H_CCR_REGISTER + OFS_TBxR) = PWM_PERIOD_TICKS - period;
+    TB0CCR6 = PWM_PERIOD_TICKS - period;
 }
 
 
@@ -785,11 +784,11 @@ void setPwmAPeriod(uint16_t period){
  * @param[in]  period  The period
  */
 void setPwmBPeriod(uint16_t period){
-  HWREG16(TIMER_B0_BASE + PWMB_H_CCR_REGISTER + OFS_TBxR) = PWM_PERIOD_TICKS - period;
+  TB0CCR4 = PWM_PERIOD_TICKS - period;
 }
 
 void setPwmCPeriod(uint16_t period){
-  HWREG16(TIMER_B0_BASE + PWMC_H_CCR_REGISTER + OFS_TBxR) = PWM_PERIOD_TICKS - period;
+  TB0CCR2 = PWM_PERIOD_TICKS - period;
 }
 
 

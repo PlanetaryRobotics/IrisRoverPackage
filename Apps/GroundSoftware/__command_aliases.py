@@ -6,7 +6,7 @@ If you want to explore the Data Standards to build new commands, run:
 `pyenv exec python datastandards_lookup.py`.
 
 Created: 10/29/2021
-Last Update: 10/29/2021
+Last Update: 11/22/2021
 """
 from typing import Optional
 from IrisBackendv3.codec.payload import CommandPayload
@@ -194,6 +194,15 @@ def get_command(alias: str, param: Optional[str] = None):
             Magic.WATCHDOG_COMMAND,
             'WatchDogInterface_RequestStatusReport',
             dict(confirm='CONFIRM_REQUEST'),
+            DataPathway.WIRED
+        ),
+        'disable-heater-control': (
+            DataPathway.WIRED,
+            # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_ResetSpecific',
+            # Change this to whatever you want to reset.
+            dict(reset_value='DISABLE_HEATER_CONTROL'),
             DataPathway.WIRED
         ),
         'misc-test': (

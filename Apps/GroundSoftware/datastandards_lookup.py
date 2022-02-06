@@ -3,9 +3,10 @@ Module for looking up definitions from inside the latest Data Standards
 (compiled from latest accessible FPrime).
 
 Created: 10/29/2021
-Last Update: 10/29/2021
+Last Update: 02/05/2022
 """
 from typing import Optional
+from termcolor import cprint, colored
 from trans_tools import *
 import argparse
 
@@ -35,7 +36,15 @@ def get_opts():
     return opts
 
 
-def print_lookup(module_to_lookup: Optional[str] = None):
+def print_modules_list() -> None:
+    cprint("All Registered Modules:", 'magenta', 'on_grey', attrs=['bold'])
+    for m in standards.modules.values():
+        id_text = colored(f"0x{m.ID:04X}: ", 'blue')
+        module_text = colored(f"{m}", 'green')
+        print(f"\t {id_text} {module_text}")
+
+
+def print_lookup(module_to_lookup: Optional[str] = None) -> None:
     if module_to_lookup is None:
         standards.print_overview()
     else:
@@ -83,3 +92,6 @@ if __name__ == '__main__':
 
     if opts.module_name:
         print_lookup(opts.module_name)
+
+    if opts.list_modules:
+        print_modules_list()

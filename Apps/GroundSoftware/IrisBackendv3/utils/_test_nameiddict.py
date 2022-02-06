@@ -6,10 +6,10 @@ It's important for these tests to be rigorous since this class forms the
 backbone of the Backend DataStandards.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 01/23/2021
+@last-updated: 02/06/2022
 """
 import pytest
-from typing import Any, List, Union, Tuple
+from typing import Any, List, Union, Tuple, Iterator
 
 from IrisBackendv3.utils import NameIdDict
 
@@ -22,12 +22,11 @@ def suite_setup(request):
     # `self.commands.ids`, `self.commands.names`, and `self.commands.vals`
     # (So there shouldn't be multiple names mapping to any id by default. The
     # individual test suites can change that as needed.)
-    request.cls.ids: List[int] = [0x03, 0x01, 0x02]
-    request.cls.names: List[str] = ['reset', 'mover', 'image']
-    request.cls.vals: List[str] = [
-        'Reset Rover.', 'Do Drive.', 'Incite Image.']
+    request.cls.ids = [0x03, 0x01, 0x02]
+    request.cls.names = ['reset', 'mover', 'image']
+    request.cls.vals = ['Reset Rover.', 'Do Drive.', 'Incite Image.']
     data = zip(zip(request.cls.ids, request.cls.names), request.cls.vals)
-    request.cls.commands: NameIdDict[str] = NameIdDict(data)
+    request.cls.commands = NameIdDict(data)
 
 
 @pytest.mark.usefixtures('suite_setup')
@@ -859,14 +858,14 @@ class ContainsItemSuite(object):
         unknown_id = max(self.copy_commands.ids) + 1
         # Make sure the NameIdDict knows it's not contained by it:
         assert (unknown_id in self.copy_commands) == False, \
-            f"NameIdDict failed to state that unknown ID {ID} is not contained in it."
+            f"NameIdDict failed to state that unknown ID {unknown_id} is not contained in it."
 
     def test_unknown_name(self):
         # Construct a name that's definitely not in the NameIdDict:
         unknown_name = "".join(self.copy_commands.names)
         # Make sure the NameIdDict knows it's not contained by it:
         assert (unknown_name in self.copy_commands) == False, \
-            f"NameIdDict failed to state that unknown name {name} is not contained in it."
+            f"NameIdDict failed to state that unknown name {unknown_name} is not contained in it."
 
     def test_unknown_tuples(self):
         # Construct an ID that's definitely not in the NameIdDict:
@@ -1320,7 +1319,7 @@ class SerializationSuite(object):
         self.copy_commands[self.ids[0], new_name + "2"] = first_val
 
     def test_jsonpickle(self):
-        import jsonpickle
+        import jsonpickle  # type: ignore # library contains no type-hints
         jsp = jsonpickle.encode(self.copy_commands, keys=True)
         reconstruction = jsonpickle.decode(jsp)
         assert reconstruction == self.copy_commands, (

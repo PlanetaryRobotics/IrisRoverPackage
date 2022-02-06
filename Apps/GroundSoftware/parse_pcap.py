@@ -6,7 +6,7 @@ command line as a standalone program or imported as a python module.
 @author: Connor W. Colombo (CMU)
 @last-updated: 11/15/2021
 """
-from typing import List, Generator, Type, cast, Union
+from typing import List, AsyncGenerator, Type, cast, Union
 import asyncio
 
 import argparse
@@ -246,7 +246,7 @@ def parse_pcap(opts):
 async def replay_telemetry_at_fixed_rate(
     packets: List[Packet],
     fixed_rate: int
-) -> Generator[List[TelemetryPayload], None, None]:
+) -> AsyncGenerator[List[TelemetryPayload], None]:
     """
     Generator class for replaying a pcap file at a fixed rate (fixed number of
     milliseconds between each packet).

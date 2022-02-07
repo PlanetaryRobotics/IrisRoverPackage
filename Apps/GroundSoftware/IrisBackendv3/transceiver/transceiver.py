@@ -5,7 +5,7 @@ Abstract Base Class encapsulating commong behaviors and interfaces for all
 transceiver classes.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/18/2020
+@last-updated: 05/18/2021
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 

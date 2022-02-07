@@ -24,9 +24,8 @@ class Topic(Enum):
     """
     Enum for defines all ports used in the IPC.
 
-    Try to make sure these ports aren't occupied on `localhost` the hosting
-    device but feel free to change them here if needed. This enum should serve
-    as the single source of truth for the port numbers.
+    This enum should serve as the single source of truth for the topic 
+    information.
     """
 
     # Try to keep topics to two bytes. All topic IDs must unique and not an
@@ -34,6 +33,9 @@ class Topic(Enum):
     # and `0xDEAD` but you could have `0xDEADBEEF` and `0xBEEF`).
     RX_PACKETS = b'\xFE\xED', Packet  # Packets received from any transceiver
     TX_PAYLOADS = b'\xF0\x0D', List[Payload]  # Payloads to send in a packet
+    # TODO: PUSH_2_DB is TDB what the datatype should be here (comes from ATLAS (and ARTEMIS?) but should be able to come from anywhere)
+    PUSH_2_DB = b'\x22\xDB', Any
+    ATLAS_OUT = b'\x3D\xE5', Any  # TODO: `AtlasDataProduct` wrapper type
 
     # Instance attributes for type-checker:
     # Type of data written to the topic (can be any valid mypy type):

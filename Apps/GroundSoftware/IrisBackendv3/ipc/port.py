@@ -23,7 +23,9 @@ class Port(Enum):
     # (Remember: max port number is 0xFF49).
     TRANSCEIVER = 0xF00D
     CODEC = 0xC0DE
-    STORAGE = 0xDA7A
+    STORAGE = 0x5709
+    REMOTEDB = 0xDA7A
     CLI_WINDOW = 0xF001
     TELEM_WINDOW = 0xFEED
     GUI = 0x15EE
+    ATLAS = 0x06DE

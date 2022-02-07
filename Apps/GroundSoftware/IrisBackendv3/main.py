@@ -9,6 +9,11 @@ Created on Fri Nov 20 13:18:56 2020
 import pcapng as pcap  # type: ignore
 from IrisBackendv3.data_standards import DataStandards
 
+# !! To avoid needing a codec process: rebuild the standards **once** then **cache** them, everything else will just quickly load the cached representation.
+
+# TODO: Kick off all ipc processes for various layers:
+# -- Process CLI args to configure
+# NB: Metachannels inside transceiver process
 """
 # parse CLI opts inputs
 standards = DataStandards() 

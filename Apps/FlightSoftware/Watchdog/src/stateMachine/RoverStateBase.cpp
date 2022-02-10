@@ -41,6 +41,14 @@ namespace iris
         return true;
     }
 
+    RoverState RoverStateBase::handleHighTemp(RoverContext& theContext)
+    {
+        TB0CCR2 = 0;
+        theContext.m_details.m_hParams.m_heaterDutyCycle = 0;
+        theContext.m_details.m_hParams.m_heating = false;
+        return getState();
+    }
+
     void RoverStateBase::initiateNextI2cAction(RoverContext& theContext)
     {
         // A static value so that we remember the index of the last action we performed. By doing this, we can rotate
@@ -139,9 +147,10 @@ namespace iris
         }
     }
 
-    void RoverStateBase::heaterControl(RoverContext& theContext) {
+    void RoverStateBase::heaterControl(RoverContext& theContext)
+    {
         // voltage, where LSB = 0.0008056640625V
-        unsigned short thermReading = theContext.m_adcValues.battTemp;
+        unsigned short thermReading = theContext.m_adcValues.battRT;
         bool tempLow = false;
         HeaterParams& hParams = theContext.m_details.m_hParams;
 
@@ -161,14 +170,19 @@ namespace iris
             pwmCycle = hParams.m_kpHeater * (thermReading - hParams.m_heaterSetpoint);
         }
 
-
-        // cannot have duty cycle greater than clock
+        // Respect our limit
         if (pwmCycle > hParams.m_pwmLimit) {
             pwmCycle = hParams.m_pwmLimit;
         }
 
+        // cannot have duty cycle greater than period
+        if (pwmCycle > hParams.m_heaterDutyCyclePeriod) {
+            pwmCycle = hParams.m_heaterDutyCyclePeriod;
+        }
+
         TB0CCR2 = pwmCycle;
         hParams.m_heaterDutyCycle = pwmCycle;
+        hParams.m_heating = (pwmCycle > 0);
     }
 
     RoverState RoverStateBase::handleLanderData(RoverContext& theContext)
@@ -1311,6 +1325,7 @@ namespace iris
 
             case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_ENABLE:
                 theContext.m_details.m_hParams.m_heatingControlEnabled = true;
+                //enableHeater();
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__AUTO_HEATER_CONTROLLER_ENABLE);
                 break;
 
@@ -1318,6 +1333,8 @@ namespace iris
                 theContext.m_details.m_hParams.m_heatingControlEnabled = false;
                 TB0CCR2 = 0;
                 theContext.m_details.m_hParams.m_heaterDutyCycle = 0;
+                theContext.m_details.m_hParams.m_heating = false;
+                //disableHeater();
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__AUTO_HEATER_CONTROLLER_DISABLE);
                 break;
 

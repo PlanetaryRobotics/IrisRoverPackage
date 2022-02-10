@@ -6,6 +6,7 @@
 #include "comms/ground_msgs.h"
 #include "watchdog.h"
 
+#include <msp430.h>
 #include <cassert>
 
 namespace iris
@@ -85,12 +86,6 @@ namespace iris
             initiateNextI2cAction(theContext);
         }
 
-        return getState();
-    }
-
-    RoverState RoverStateEnteringKeepAlive::handleHighTemp(RoverContext& /*theContext*/)
-    {
-        disableHeater();
         return getState();
     }
 

@@ -21,12 +21,6 @@ namespace iris
         return RoverStateBase::handleHerculesData(theContext);
     }
 
-    RoverState RoverStateEnteringService::handleHighTemp(RoverContext& /*theContext*/)
-    {
-        //!< @todo Implement RoverStateEnteringService::handleHighTemp
-        return getState();
-    }
-
     RoverState RoverStateEnteringService::handlePowerIssue(RoverContext& /*theContext*/)
     {
         //!< @todo Implement RoverStateEnteringService::handlePowerIssue

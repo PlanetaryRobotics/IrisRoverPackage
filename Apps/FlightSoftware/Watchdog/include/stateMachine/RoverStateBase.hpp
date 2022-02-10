@@ -21,9 +21,9 @@ namespace iris
             // The functions to handle events
             virtual RoverState handleLanderData(RoverContext& theContext);
             virtual RoverState handleHerculesData(RoverContext& theContext);
+            virtual RoverState handleHighTemp(RoverContext& theContext);
 
             virtual RoverState handleTimerTick(RoverContext& theContext) = 0;
-            virtual RoverState handleHighTemp(RoverContext& theContext) = 0;
             virtual RoverState handlePowerIssue(RoverContext& theContext) = 0;
             virtual RoverState spinOnce(RoverContext& theContext) = 0;
 

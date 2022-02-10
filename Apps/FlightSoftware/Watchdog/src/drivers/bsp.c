@@ -114,6 +114,8 @@ void initializeGpios(WatchdogStateDetails* details)
     // GPIO initialization
     P2DIR |= BIT2;
     P2OUT &= ~BIT2;
+    P2SEL0 &= ~BIT2;
+    P2SEL1 &= ~BIT2;
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HEATER);
     detailsPtr->m_hParams.m_heating = FALSE;
 
@@ -469,7 +471,9 @@ void clockInit(void)
  */
 inline void enableHeater(void)
 {
-    P2OUT |= BIT2;
+    P2OUT &= ~BIT2;
+    P2SEL0 |= BIT2;
+    P2SEL1 &= ~BIT2;
     detailsPtr->m_hParams.m_heating = TRUE;
     SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HEATER);
 }
@@ -479,6 +483,8 @@ inline void enableHeater(void)
  */
 inline void disableHeater(void)
 {
+    P2SEL0 &= ~BIT2;
+    P2SEL1 &= ~BIT2;
     P2OUT &= ~BIT2;
     detailsPtr->m_hParams.m_heating = FALSE;
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HEATER);

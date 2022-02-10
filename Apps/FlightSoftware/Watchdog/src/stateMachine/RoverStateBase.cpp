@@ -142,33 +142,17 @@ namespace iris
     void RoverStateBase::heaterControl(RoverContext& theContext) {
         // voltage, where LSB = 0.0008056640625V
         unsigned short thermReading = theContext.m_adcValues.battTemp;
-        bool tempLow = false;
         HeaterParams& hParams = theContext.m_details.m_hParams;
 
         if (thermReading > hParams.m_heaterOnVal) {
-            //   start heating when temperature drops below -5 C
-            tempLow = true;
+            // Start heating when temperature drops low enough, which we detect via the ADC reading rising above a
+            // configured (either via the default value or a value commanded from ground) ADC reading.
+            enableHeater();
         } else if (thermReading < hParams.m_heaterOffVal) {
-            //   stop heating when temperature reaches 0 C
-            EventQueue__put(EVENT__TYPE__HIGH_TEMP);
+            // Start heating when temperature rises high enough, which we detect via the ADC reading falling below a
+            // configured (either via the default value or a value commanded from ground) ADC reading.
+            disableHeater();
         }
-
-        uint32_t pwmCycle = 0;
-
-        // P controller output
-        // setpoint is slightly above desired temp because otherwise it will get stuck slightly below it
-        if (tempLow) {
-            pwmCycle = hParams.m_kpHeater * (thermReading - hParams.m_heaterSetpoint);
-        }
-
-
-        // cannot have duty cycle greater than clock
-        if (pwmCycle > hParams.m_pwmLimit) {
-            pwmCycle = hParams.m_pwmLimit;
-        }
-
-        TB0CCR2 = pwmCycle;
-        hParams.m_heaterDutyCycle = pwmCycle;
     }
 
     RoverState RoverStateBase::handleLanderData(RoverContext& theContext)
@@ -353,8 +337,8 @@ namespace iris
                                                      deployNotificationResponse,
                                                      sendDeployNotificationResponse);
 
-            case WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_MAX:
-                return doGndCmdSetHeaterDutyCycleMax(theContext,
+            case WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE:
+                return doGndCmdSetHeaterDutyCycle(theContext,
                                                      msg,
                                                      response,
                                                      deployNotificationResponse,
@@ -746,14 +730,20 @@ namespace iris
         return getState();
     }
 
-    RoverState RoverStateBase::doGndCmdSetHeaterDutyCycleMax(RoverContext& theContext,
+    RoverState RoverStateBase::doGndCmdSetHeaterDutyCycle(RoverContext& theContext,
                                                              const WdCmdMsgs__Message& msg,
                                                              WdCmdMsgs__Response& response,
                                                              WdCmdMsgs__Response& deployNotificationResponse,
                                                              bool& sendDeployNotificationResponse)
     {
-        theContext.m_details.m_hParams.m_pwmLimit = msg.body.setHeaterDutyCycleMax.dutyCycleMax;
-        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+        const uint16_t& newDutyCycle = msg.body.setHeaterDutyCycle.dutyCycle;
+        if (newDutyCycle <= theContext.m_details.m_hParams.m_heaterDutyCyclePeriod) {
+            TB0CCR2 = newDutyCycle;
+            theContext.m_details.m_hParams.m_heaterDutyCycle = newDutyCycle;
+            response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+        } else {
+            response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+        }
         return getState();
     }
 
@@ -1316,8 +1306,17 @@ namespace iris
 
             case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_DISABLE:
                 theContext.m_details.m_hParams.m_heatingControlEnabled = false;
-                TB0CCR2 = 0;
-                theContext.m_details.m_hParams.m_heaterDutyCycle = 0;
+                /**
+                 * @warning TB0CCR2 should ~NOT~ be set here. It should only be set in two places: when Timer_B is
+                 *          initialized (where TB0CCR2 is set to its default value), and in the handler for the
+                 *          "Set Heater Duty Cycle" ground command. By respecting this, TB0CCR2 keeps whatever value it
+                 *          was set with by the ground command and the heater is interacted with (by this command and
+                 *          the auto heater control loop) simply by enabling/disabling the heater pin.
+                 *
+                 * @note Similar to the TB0CC2, the m_heating field should not be set here. Instead, it should only be
+                 *       modified via calls to enableHeater() and disableHeater().
+                 */
+                disableHeater();
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__AUTO_HEATER_CONTROLLER_DISABLE);
                 break;
 

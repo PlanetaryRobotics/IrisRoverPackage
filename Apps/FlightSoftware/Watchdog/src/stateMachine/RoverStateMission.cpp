@@ -159,8 +159,7 @@ namespace iris
     void RoverStateMission::heaterControl(RoverContext& theContext) {
         // Only use heater when connected to the lander
         if (m_currentDeployState != DeployState::NOT_DEPLOYED) {
-            TB0CCR2 = 0;
-            theContext.m_details.m_hParams.m_heaterDutyCycle = 0;
+            disableHeater();
         } else {
             RoverStateBase::heaterControl(theContext);
         }

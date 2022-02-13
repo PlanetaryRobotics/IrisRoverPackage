@@ -177,22 +177,22 @@ WdCmdMsgs__deserializeSetAutoHeaterOffValueBody(const void* src,
  *        struct |dst| with system endianness.
  *
  * @param src [IN] The buffer containing the packed message body to be deserialized. Must have a size, as determined by
- *            the value of |srcLen|, of at least WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_MAX_BODY bytes.
+ *            the value of |srcLen|, of at least WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_BODY bytes.
  * @param srcLen [IN] The length of the buffer pointed to by |src|. Must be at least
- *               WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_MAX_BODY.
+ *               WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_BODY.
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
  *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
  *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
  *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                  WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_MAX_BODY.
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_BODY.
  *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
-WdCmdMsgs__deserializeSetHeaterDutyCycleMaxBody(const void* src,
+WdCmdMsgs__deserializeSetHeaterDutyCycleBody(const void* src,
                                                 size_t srcLen,
-                                                WdCmdMsgs__MsgBody__SetHeaterDutyCycleMax* dst);
+                                                WdCmdMsgs__MsgBody__SetHeaterDutyCycle* dst);
 
 /**
  * @brief Deserializes the set heater duty cycle peiod message body packed in |src| with little endianness into the
@@ -589,8 +589,8 @@ WdCmdMsgs__deserializeBody(WdCmdMsgs__CommandId srcMsgId,
         case WD_CMD_MSGS__CMD_ID__SET_AUTO_HEATER_OFF_VALUE:
             return WdCmdMsgs__deserializeSetAutoHeaterOffValueBody(src, srcLen, &(dst->setAutoHeaterOffValue));
 
-        case WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_MAX:
-            return WdCmdMsgs__deserializeSetHeaterDutyCycleMaxBody(src, srcLen, &(dst->setHeaterDutyCycleMax));
+        case WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE:
+            return WdCmdMsgs__deserializeSetHeaterDutyCycleBody(src, srcLen, &(dst->setHeaterDutyCycle));
 
         case WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_PERIOD:
             return WdCmdMsgs__deserializeSetHeaterDutyCyclePeriodBody(src, srcLen, &(dst->setHeaterDutyCyclePeriod));
@@ -852,21 +852,21 @@ WdCmdMsgs__deserializeSetAutoHeaterOffValueBody(const void* src,
 }
 
 static WdCmdMsgs__Status
-WdCmdMsgs__deserializeSetHeaterDutyCycleMaxBody(const void* src,
+WdCmdMsgs__deserializeSetHeaterDutyCycleBody(const void* src,
                                                 size_t srcLen,
-                                                WdCmdMsgs__MsgBody__SetHeaterDutyCycleMax* dst)
+                                                WdCmdMsgs__MsgBody__SetHeaterDutyCycle* dst)
 {
     if (NULL == src || NULL == dst) {
         return WD_CMD_MSGS__STATUS__ERROR_NULL;
     }
 
-    if (srcLen < WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_MAX_BODY) {
+    if (srcLen < WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_BODY) {
         return WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL;
     }
 
     uint8_t* srcIntPtr = (uint8_t*) src;
     short deserializationResult = 
-        Serialization__deserializeAs16Bit(srcIntPtr, &(dst->dutyCycleMax), SERIALIZATION__LITTLE_ENDIAN);
+        Serialization__deserializeAs16Bit(srcIntPtr, &(dst->dutyCycle), SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(deserializationResult);
 
     return WD_CMD_MSGS__STATUS__SUCCESS;

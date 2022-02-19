@@ -6,9 +6,9 @@ S25fl064l :: S25fl064l(){
   // Clock polarity unchecked
   // Clock phase checked
   m_flashDataConfig.CS_HOLD = 0;
-  m_flashDataConfig.DFSEL = SPI_FMT_2;
+  m_flashDataConfig.DFSEL = SPI_FMT_0;
   m_flashDataConfig.WDEL = 0;
-  m_flashDataConfig.CSNR = 0b11111101;
+  m_flashDataConfig.CSNR = 0b10111111;
 
   // Refer to datasheet, default number of dummy cycles between a SDI and SDO
   // is set by default to 8 clock cycles
@@ -37,7 +37,7 @@ S25fl064l::S25fl064lError S25fl064l :: setupDevice(){
 
   // Check that the correct device is connected to the MCU
   uint8_t id[3];
-  err = flashSpiReadData(S25fl064l::RDID, id, sizeof(id));
+  err = flashSpiReadData(S25fl064l::RDID, id, sizeof(id)/sizeof(id[0]));
 
   if(err != S25fl064l_NO_ERROR)
       return err;

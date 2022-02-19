@@ -52,26 +52,18 @@ html {
 				<td></td>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="1">SendAllLogs</td>
-			<td rowspan="1">62542 (0xf44e)</td>
-			<td rowspan="1">Sends all logs from flash to Ground</td>
-				<td></td>
-				<td></td>
-				<td></td>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="3">SendSetofLogs</td>
-			<td rowspan="3">62543 (0xf44f)</td>
+			<td rowspan="3">SendLog</td>
+			<td rowspan="3">62542 (0xf44e)</td>
 			<td rowspan="3">Sends a set of logs from flash to Ground</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>start</td>
-						<td>U32</td>
-						<td>The start time (seconds) for a log</td>
+						<td>prefix</td>
+						<td>Fw::CmdStringArg</td>
+						<td>The prefix for a flash saved file</td>
 					</tr>
 					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>end</td>
+						<td>time</td>
 						<td>U32</td>
-						<td>The end time (seconds) for a log</td>
+						<td>The time (seconds) for when a file was opened</td>
 					</tr>
 		</tr>
 	</tbody>

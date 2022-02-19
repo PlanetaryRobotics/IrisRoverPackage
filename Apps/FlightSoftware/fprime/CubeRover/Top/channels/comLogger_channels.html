@@ -33,28 +33,40 @@ html {
  </tr>
 
  <tr>
-    <td>BYTES_READ</td>
+    <td>TOTAL_BYTES_READ</td>
     <td>62541 (0xf44d)</td>
     <td>U32</td>
     <td>Number of bytes read from flash</td>
  </tr>
  <tr>
-    <td>BYTES_WRITTEN</td>
+    <td>TOTAL_BYTES_WRITTEN</td>
     <td>62542 (0xf44e)</td>
     <td>U32</td>
     <td>Number of bytes written to flash</td>
  </tr>
  <tr>
-    <td>READ_ADDRESS</td>
+    <td>CUR_FILE_BYTES</td>
     <td>62543 (0xf44f)</td>
     <td>U32</td>
-    <td>Previous Address Read from flash</td>
+    <td>Number of bytes saved in current file</td>
  </tr>
  <tr>
-    <td>WRITE_ADDRESS</td>
+    <td>CUR_FILE_TIME</td>
     <td>62544 (0xf450)</td>
     <td>U32</td>
-    <td>Previous Address written to flash</td>
+    <td>Time in seconds of current file</td>
+ </tr>
+ <tr>
+    <td>CUR_FILE_TYPE</td>
+    <td>62545 (0xf451)</td>
+    <td>U8</td>
+    <td>Type of current file (sent as U8 enum rep)</td>
+ </tr>
+ <tr>
+    <td>CUR_FILE_STATUS</td>
+    <td>62546 (0xf452)</td>
+    <td>bool</td>
+    <td>If file is open or closed currently (0 = closed, 1 = open)</td>
  </tr>
 </table>
 </body>

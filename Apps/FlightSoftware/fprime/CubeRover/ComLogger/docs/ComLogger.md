@@ -7,19 +7,20 @@
 |Mnemonic|ID|Description|Arg Name|Arg Type|Comment
 |---|---|---|---|---|---|
 |CloseFile|0 (0x0)|Forces a close of the currently opened file.| | |
-|SendAllLogs|1 (0x1)|Sends all logs from flash to Ground| | |
-|SendSetofLogs|2 (0x2)|Sends a set of logs from flash to Ground| | |
-| | | |start|U32|The start time (seconds) for a log|
-| | | |end|U32|The end time (seconds) for a log|
+|SendLog|1 (0x1)|Sends a set of logs from flash to Ground| | |
+| | | |prefix|Fw::CmdStringArg|The prefix for a flash saved file|
+| | | |time|U32|The time (seconds) for when a file was opened|
 
 ## Telemetry Channel List
 
 |Channel Name|ID|Type|Description|
 |---|---|---|---|
-|BYTES_READ|0 (0x0)|U32|Number of bytes read from flash|
-|BYTES_WRITTEN|1 (0x1)|U32|Number of bytes written to flash|
-|READ_ADDRESS|2 (0x2)|U32|Previous Address Read from flash|
-|WRITE_ADDRESS|3 (0x3)|U32|Previous Address written to flash|
+|TOTAL_BYTES_READ|0 (0x0)|U32|Number of bytes read from flash|
+|TOTAL_BYTES_WRITTEN|1 (0x1)|U32|Number of bytes written to flash|
+|CUR_FILE_BYTES|2 (0x2)|U32|Number of bytes saved in current file|
+|CUR_FILE_TIME|3 (0x3)|U32|Time in seconds of current file|
+|CUR_FILE_TYPE|4 (0x4)|U8|Type of current file (sent as U8 enum rep)|
+|CUR_FILE_STATUS|5 (0x5)|bool|If file is open or closed currently (0 = closed, 1 = open)|
 
 ## Event List
 

@@ -25,7 +25,7 @@ extern uint8_t heatingControlEnabled;
  * main.c
  */
 #pragma PERSISTENT(rovstate)
-enum rover_state rovstate = RS_KEEPALIVE;
+enum rover_state rovstate = RS_MISSION;
 
 void enterMode(enum rover_state newstate) {
     switch (newstate) {
@@ -55,6 +55,7 @@ void enterMode(enum rover_state newstate) {
         adc_setup_lander();
         enableHeater();
         startChargingBatteries();
+
         break;
     default:
     case RS_MISSION:

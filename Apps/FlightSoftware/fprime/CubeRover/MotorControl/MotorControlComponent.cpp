@@ -12,11 +12,14 @@
 // ======================================================================
 
 #include <CubeRover/MotorControl/MotorControlComponent.hpp>
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
 #include <stdlib.h>
 #include <string.h>
 
 #include "Fw/Types/BasicTypes.hpp"
 #include "Include/CubeRoverConfig.hpp"
+
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 namespace CubeRover {
     
@@ -536,7 +539,8 @@ bool MotorControlComponentImpl::checkMotorsStatus() {
         err = motorControlTransfer(motorIdAddressMap[i], e_REG_STATUS, &m_currStatus[i].value);
         if (err != MC_NO_ERROR) {
             // I2C Communication Error
-            watchdogResetRequest_out(0, CubeRoverPorts::motorsReset);
+            //watchdogResetRequest_out(0, CubeRoverPorts::motorsReset);
+            watchDogInterface.Reset_Specific_Handler(14 /*Reset_All_Motors = 14*/);
             // TODO: Reset our I2C too
             return false;
         } else if (m_currStatus[i].bits.controller_error) {
@@ -544,7 +548,7 @@ bool MotorControlComponentImpl::checkMotorsStatus() {
             // TODO: Need to check mappping between resetting one motor and which one is connected to watchdog
             // TODO: Check status again after reset
             return false;
-            watchdogResetRequest_out(0, CubeRoverPorts::motorsReset);
+            watchDogInterface.Reset_Specific_Handler(14 /*Reset_All_Motors = 14*/);
             // XXX: Do we need to update our tlm counter?
         } else if (!m_currStatus[i].bits.position_converged) {
             // TODO: Do we... wait?

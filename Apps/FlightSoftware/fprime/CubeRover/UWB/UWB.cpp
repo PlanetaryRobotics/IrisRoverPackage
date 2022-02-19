@@ -97,24 +97,24 @@ namespace CubeRover {
     g_UWBDataConfig.WDEL = false;
     g_UWBDataConfig.CSNR = 0;
 
-    mibspiInit();
+//    mibspiInit();
 
     uint16_t tx_buffer[] = {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
     uint16_t rx_buffer[10];
 
-    mibspiSetData(mibspiREG5, 0, tx_buffer);
+//    mibspiSetData(mibspiREG5, 0, tx_buffer);
+//    mibspiTransfer(mibspiREG5, 0);
+//    while (!(mibspiIsTransferComplete(mibspiREG5, 0)));
+//    mibspiGetData(mibspiREG5, 0, rx_buffer);
 
-    mibspiTransfer(mibspiREG5, 0);
+//    printf("mib Device is %x\n", rx_buffer[0]);
 
-    while (!(mibspiIsTransferComplete(mibspiREG5, 0)));
+//    gioSetDirection(hetPORT1, 0x01 << 7); // Do we need to make sure it's an output before reseting the UWB?
 
-    mibspiGetData(mibspiREG5, 0, rx_buffer);
+    gioSetBit(hetPORT1, 7, 0); // Conversely, do we need to not be reseting it?
 
-    printf("mib Device is %x\n", rx_buffer[0]);
-
-    gioSetBit(hetPORT1, 7, 0);
-
-    gioSetDirection(hetPORT1, 0x00);
+    gioSetDirection(hetPORT1, 0x00); // Errr we probably don't want to set the *entire* Port1 to input... May fuck with other components.
+                                     // That being said... I wonder if another component is fucking with UWB...
 
     while (true) {
         uint32 rst_val = gioGetBit(hetPORT1, 7);
@@ -126,16 +126,24 @@ namespace CubeRover {
         // THIS PULLS CS ACTIVE LOW
         (&g_UWBDataConfig)->CS_HOLD = 1; /* CS_HOLD starts true to send next frame */
         uint16 dataBuf[20];
+        uint8 rx_data_buff[20];
+
         uint16 cmd = 0x00;
         spiTransmitOneByte(spi, &g_UWBDataConfig, &cmd);
+
         spiReceiveOneByte(spi, &g_UWBDataConfig, dataBuf);
         spiReceiveOneByte(spi, &g_UWBDataConfig, dataBuf + 1);
         spiReceiveOneByte(spi, &g_UWBDataConfig, dataBuf + 2);
         spiReceiveOneByte(spi, &g_UWBDataConfig, dataBuf + 3);
+//        spiReceiveData(spi, &g_UWBDataConfig, 4, dataBuf);
+        rx_data_buff[0] = (uint8) (dataBuf[0] & 0xFF);
+        rx_data_buff[1] = (uint8) (dataBuf[1] & 0xFF);
+        rx_data_buff[2] = (uint8) (dataBuf[2] & 0xFF);
+        rx_data_buff[3] = (uint8) (dataBuf[3] & 0xFF);
 
         (&g_UWBDataConfig)->CS_HOLD = 0; /* This is the last frame */
 
-        printf("Device is %x%x%x%x\n", dataBuf[0], dataBuf[1], dataBuf[2],dataBuf[3]);
+        printf("Device is %x%x%x%x\n", rx_data_buff[0], rx_data_buff[1], rx_data_buff[2], rx_data_buff[3]);
 
         spiReceiveOneByte(spi, &g_UWBDataConfig, UWB_data);
 
@@ -168,7 +176,7 @@ namespace CubeRover {
         // __delay_cycles(12000000);
         // printf("check device id\n");
         // printf("Value: %x\n", dwt_readdevid());
-        // __delay_cycles(12000000);
+         __delay_cycles(12000000);
     }
   }
 
@@ -2052,7 +2060,7 @@ namespace CubeRover {
 
     start_ds_twr(times);
 
-	// gioSetBit(spiPORT5, UWB_bit, 1);
+    // gioSetBit(spiPORT5, UWB_bit, 1);
     uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
     UWBSend_out(0, m_callbackId, createTime, fwBuffer);
     m_bytesSent += static_cast<U32>(sizeof(times));
@@ -2082,7 +2090,7 @@ namespace CubeRover {
     start_ds_twr(times);
     Get_CIRdata(times + 32);
 
-	// gioSetBit(spiPORT5, UWB_bit, 1);
+    // gioSetBit(spiPORT5, UWB_bit, 1);
     uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
     UWBSend_out(0, m_callbackId, createTime, fwBuffer);
     m_bytesSent += static_cast<U32>(sizeof(times));

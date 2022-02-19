@@ -144,7 +144,9 @@ namespace CubeRover {
         }
         if (err != MC_NO_ERROR)  // TODO: Should stop right?
             log_WARNING_HI_MC_MSPNotResponding();
-        pollStatus();
+        // [CWC] [AP] pollStatus is probably causing problems and we literally don't use the return value. [AP] is very convinced it causes problems by talking to MCs too soon and is causing us to hang.
+        // [CWC] [AP] if you need completion info, then use this (but you may have to also fix it)
+        // pollStatus();
     }
     else if (command_type == CubeRoverPorts::MC_UpdateTelemetry) {
         updateTelemetry();
@@ -798,6 +800,7 @@ bool MotorControlComponentImpl::pollStatus() {
         for (int i = 0; i < 4; ++i) {
             i2cMasterTransmit(m_i2c, FRONT_LEFT_MC_I2C_ADDR+i, 1, &reg);
             StatusRegister_t this_status;
+            // [CWC] per [AP]  infinite loop here if we dont get a resp. back
             i2cMasterReceive(m_i2c, FRONT_LEFT_MC_I2C_ADDR+i, 1, &this_status.value);
             status.value &= this_status.value;
         }

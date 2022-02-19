@@ -158,11 +158,9 @@ bool i2cMasterReceive(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint32_t length, u
 void delayForI2C() {
     // FIXME: DONT USE POLLING LOOP FOR DELAY
     // for (unsigned i = 180000000; i; --i); ~= 13.5s
-    unsigned i;
-    for (i = 100000; i; --i) {
-        volatile j = 5;
-        j++;
-    }
+    unsigned delay = 5500000;
+        while (delay)    // Delay 0.5s to give the motors a chance to converge. 0.5 / (1/ 110e6)
+            delay--;
 }
 
 

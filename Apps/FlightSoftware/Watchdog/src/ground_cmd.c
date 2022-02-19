@@ -520,28 +520,29 @@ void handle_ground_cmd(unsigned char *buf, uint16_t buf_len)
             }
             break;
 
-// TODO: Implement these here and in BSP. Not used nominally. Only used for in-flight diagnostics.
-        /* Pulse battery latch "SET" override low. (LS) */
-        case 0xFC:
-            if(buf[2] == 0x15){ // Check for magic.
-                blimp_latchSetPulseLow();
-            } else{
-                /* bad command magic: */
-                reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
-                return;
-            }
-            break;
-
-        /* Pulse battery latch "RESET" override low. (LR) */
-        case 0xFD:
-            if(buf[2] == 0x5E){ // Check for magic.
-                blimp_latchResetPulseLow();
-            } else{
-                /* bad command magic: */
-                reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
-                return;
-            }
-            break;
+// REMOVED BC MIGHT TIE LS AND LR HIGH on SBC2).
+//// TODO: Implement these here and in BSP. Not used nominally. Only used for in-flight diagnostics.
+//        /* Pulse battery latch "SET" override low. (LS) */
+//        case 0xFC:
+//            if(buf[2] == 0x15){ // Check for magic.
+//                blimp_latchSetPulseLow();
+//            } else{
+//                /* bad command magic: */
+//                reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
+//                return;
+//            }
+//            break;
+//
+//        /* Pulse battery latch "RESET" override low. (LR) */
+//        case 0xFD:
+//            if(buf[2] == 0x5E){ // Check for magic.
+//                blimp_latchResetPulseLow();
+//            } else{
+//                /* bad command magic: */
+//                reply_ground_cmd(buf[0], GNDRESP_ECMDPARAM);
+//                return;
+//            }
+//            break;
 
 //        /* Set battery management system boot state. Unused since no BMS implemented. (BMSB) */
 //        case 0xFE:

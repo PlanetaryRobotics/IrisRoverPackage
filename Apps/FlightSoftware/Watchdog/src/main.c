@@ -71,8 +71,8 @@ void enterMode(enum rover_state newstate) {
         I2C_Sensors__initializeIOExpanderBlocking();
         I2C_Sensors__writeIOExpanderOutputsBlocking(getIOExpanderPort0OutputValue(), getIOExpanderPort1OutputValue());
 
-//        blimp_normalBoot(); // must happen after IO expander initialization
-        blimp_safeBoot(); // TODO: only for testing.
+        blimp_normalBoot(); // must happen after IO expander initialization
+//        blimp_safeBoot(); // TODO: only for testing.
 
         // BLiMP controls that must happen after BLiMP boot function (blimp_safeBoot() or blimp_normalBoot()):
 //        startChargingBatteries();
@@ -182,7 +182,7 @@ void enterMode(enum rover_state newstate) {
 //        setDeploy(); // TESTING
 
         // Turn on all system power (VSA) switch:
-//        blimp_vSysAllEnOn();
+        blimp_vSysAllEnOn();
 
         /* enable hercules uart */
         uart0_init();

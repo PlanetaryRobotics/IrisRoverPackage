@@ -536,6 +536,7 @@ bool MotorControlComponentImpl::checkMotorsStatus() {
         err = motorControlTransfer(motorIdAddressMap[i], e_REG_STATUS, &m_currStatus[i].value);
         if (err != MC_NO_ERROR) {
             // I2C Communication Error
+            // TODO: Replace this function with whatever the new working one that gets made is. Reference NetworkManager.cpp for how to do this
             watchdogResetRequest_out(0, CubeRoverPorts::motorsReset);
             // TODO: Reset our I2C too
             return false;
@@ -543,11 +544,27 @@ bool MotorControlComponentImpl::checkMotorsStatus() {
             // TODO: Send STOP general call
             // TODO: Need to check mappping between resetting one motor and which one is connected to watchdog
             // TODO: Check status again after reset
-            return false;
+            // TODO: Replace this function with whatever the new working one that gets made is. Reference NetworkManager.cpp for how to do this
             watchdogResetRequest_out(0, CubeRoverPorts::motorsReset);
+            return false;
             // XXX: Do we need to update our tlm counter?
         } else if (!m_currStatus[i].bits.position_converged) {
             // TODO: Do we... wait?
+            return false;
+        }
+    }
+    return true;
+}
+
+bool MotorControlComponentImpl::startMotorMovement() {
+    MCError_t err;
+    char motorStartValue = 32;
+    for (int i = 0; i < NUM_MOTORS; ++i) {
+        err = motorControlTransfer(motorIdAddressMap[i], REG_CTRL, &motorStartValue);
+        if (err != MC_NO_ERROR) {
+            // I2C Communication Error
+            //watchdogResetRequest_out(0, CubeRoverPorts::motorsReset);
+            // TODO: Reset our I2C too
             return false;
         }
     }
@@ -608,6 +625,7 @@ MotorControlComponentImpl::moveAllMotorsStraight(int32_t distance, int16_t speed
     err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Left_Wheels_Relative_ticks);
     
     // FIXME: XXX: CRITICAL SECTION REQUIRED
+    startMotorMovement();
     
     return err;  
 }
@@ -677,10 +695,6 @@ MotorControlComponentImpl::motorControlTransfer(I2cSlaveAddress_t addr,
       return MC_UNEXPECTED_ERROR;
 
     uint8_t reg_buffer = static_cast<uint8_t>(reg);
-    if (!i2cMasterTransmit(m_i2c, addr, 1, &reg_buffer)) {
-        // TODO: Check response below ERROR OCCURRED
-        return MC_I2C_TIMEOUT_ERROR;
-    }
 
     if (reg == REG_I2C_ADDRESS      ||
         reg == REG_CURRENT_POSITION ||
@@ -688,11 +702,19 @@ MotorControlComponentImpl::motorControlTransfer(I2cSlaveAddress_t addr,
         reg == REG_MOTOR_CURRENT    ||
         reg == e_REG_STATUS         ||
         reg == REG_FAULT) {
+            if (!i2cMasterTransmit(m_i2c, addr, 1, &reg_buffer)) {
+                // TODO: Check response below ERROR OCCURRED
+                return MC_I2C_TIMEOUT_ERROR;
+            }
             if (i2cMasterReceive(m_i2c, addr, dataLength, data))
                 return MC_NO_ERROR;
             else
                 return MC_I2C_TIMEOUT_ERROR;
     } else {
+            if (!i2cMasterTransmit(m_i2c, addr, 1, &reg_buffer)) {
+                // TODO: Check response below ERROR OCCURRED
+                return MC_I2C_TIMEOUT_ERROR;
+            }
             if (i2cMasterTransmit(m_i2c, addr, dataLength, data))
                 return MC_NO_ERROR;
             else
@@ -766,8 +788,9 @@ bool MotorControlComponentImpl::updateTelemetry() {
 bool MotorControlComponentImpl::pollStatus() {
     StatusRegister_t status;
     status.value = 0xff;
+    int loop_count = 10;
     do {
-        unsigned delay = 500000;
+        unsigned delay = 55000000;
         while (delay)    // Delay 0.5s to give the motors a chance to converge. 0.5 / (1/ 110e6)
             delay--;
 
@@ -778,7 +801,10 @@ bool MotorControlComponentImpl::pollStatus() {
             i2cMasterReceive(m_i2c, FRONT_LEFT_MC_I2C_ADDR+i, 1, &this_status.value);
             status.value &= this_status.value;
         }
-    } while (!(status.bits.position_converged));        // FIXME: Potential infinite loop
+        loop_count--;
+        if(loop_count <= 0)
+            return false;
+    } while (!(status.bits.position_converged));
 
     return true;
 }

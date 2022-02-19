@@ -22,7 +22,7 @@
 namespace CubeRoverNetworkManager {
 
 typedef enum CubeRoverNetworkStateMachine{
-  UNINITIALIZED=0,
+  UNINITIALIZED,
   INITIALIZED,
   WIFI_SLEEP,
   WIFI_TURNING_ON,

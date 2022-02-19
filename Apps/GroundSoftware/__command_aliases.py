@@ -272,13 +272,22 @@ def get_command(alias: str, param: Optional[str] = None):
             dict(distance=200, speed=100, callback_id=0xBEEF), # Change this to whatever you want to reset.
             DataPathway.WIRED
         ),
+        'set-heater': (
+            DataPathway.WIRED,
+            # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_SetHeaterSetpoint',
+            # Change this to whatever you want to reset.
+            dict(adc_setpoint=param),
+            DataPathway.WIRED
+        ),
         'misc-test': (
             DataPathway.WIRED,
             # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
             Magic.WATCHDOG_COMMAND,
             'WatchDogInterface_ResetSpecific',
             # Change this to whatever you want to reset.
-            dict(reset_value='BATTERY_START_CHARGE'),
+            dict(reset_value=param),
             DataPathway.WIRED
         )
     }

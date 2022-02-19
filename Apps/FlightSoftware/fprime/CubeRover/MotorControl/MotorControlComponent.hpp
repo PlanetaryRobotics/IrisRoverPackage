@@ -40,7 +40,6 @@
 #define MC_BUFFER_MAX_SIZE      16 // Maximum size of I2C buffer
 #define PI                      3.14159265
 
-
 namespace CubeRover {
 
   class MotorControlComponentImpl :
@@ -233,6 +232,7 @@ namespace CubeRover {
         uint32_t regSizeMap(RegisterAddress_t reg);
 
         bool checkMotorsStatus();
+        bool startMotorMovement();
         MCError_t moveAllMotorsStraight(int32_t distance, int16_t speed);
         MCError_t rotateAllMotors(int16_t angle, int16_t speed);
         MCError_t spinMotors(bool forward);

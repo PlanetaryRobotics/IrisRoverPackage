@@ -1,7 +1,7 @@
 #include "include/drivers/bsp.h"
 
 // uncomment to program MC
-//#define PROGRAM_MOTOR_CONTROLLERS
+#define PROGRAM_MOTOR_CONTROLLERS
 
 uint8_t heaterStatus;
 uint8_t hasDeployed;

@@ -24,7 +24,7 @@ extern uint8_t heating;
 uint8_t lastHeater = 0;
 extern uint8_t heatingControlEnabled;
 
-enum rover_state rovstate = RS_KEEPALIVE;
+enum rover_state rovstate = RS_MISSION;
 
 void enterMode(enum rover_state newstate) {
     switch (newstate) {

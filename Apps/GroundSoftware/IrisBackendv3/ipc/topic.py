@@ -33,7 +33,7 @@ class Topic(Enum):
     # and `0xDEAD` but you could have `0xDEADBEEF` and `0xBEEF`).
     RX_PACKETS = b'\xFE\xED', Packet  # Packets received from any transceiver
     TX_PAYLOADS = b'\xF0\x0D', List[Payload]  # Payloads to send in a packet
-    # TODO: PUSH_2_DB is TDB what the datatype should be here (comes from ATLAS (and ARTEMIS?) but should be able to come from anywhere)
+    # TODO: PUSH_2_DB is TBD what the datatype should be here (comes from ATLAS (and ARTEMIS?) but should be able to come from anywhere)
     PUSH_2_DB = b'\x22\xDB', Any
     ATLAS_OUT = b'\x3D\xE5', Any  # TODO: `AtlasDataProduct` wrapper type
 

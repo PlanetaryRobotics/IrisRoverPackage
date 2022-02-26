@@ -8,24 +8,22 @@ Standalone codec process which converts bytes->packet or payloads->packet
 TODO: Redirect logs to an independent logging process.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 07/15/2021
+@last-updated: 02/26/2022
 """
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
 
-from typing import Callable, coerce
+from typing import Callable, Protocol
 from enum import Enum
 
 from .packet import parse_packet
 from .payload import PayloadCollection
 
 import IrisBackendv3.ipc as ipc
-from IrisBackendv3.ipc.wrapper import InterProcessMessage
-
-IpcMessageHandler = Callable[[bytes], InterProcessMessage]
+from IrisBackendv3.ipc.wrapper import InterProcessMessage, IPMHandler, IsIPMHandler
 
 
-@coerce(IpcMessageHandler)
+@IsIPMHandler
 def bytes_to_packet(incoming_msg_data: bytes) -> InterProcessMessage:
     raise NotImplementedError()
     # packet = parse_packet(ipc_raw.msg)
@@ -35,7 +33,7 @@ def bytes_to_packet(incoming_msg_data: bytes) -> InterProcessMessage:
     #     response = packet
 
 
-@coerce(IpcMessageHandler)
+@IsIPMHandler
 def payloads_to_packet(incoming_msg_data: bytes) -> InterProcessMessage:
     raise NotImplementedError()
     # payloads = PayloadCollection.from_ipc_bytes(ipc_raw.msg)
@@ -46,9 +44,9 @@ class SubTopic(Enum):
     PAYLOADS_TO_PACKET = b'\xBE\xEF', payloads_to_packet
 
     # Function which handles responding to messages on the given subtopic:
-    handler: Callable[[bytes], InterProcessMessage]
+    handler: IPMHandler
 
-    def __new__(cls, val: bytes, handler: Callable[[bytes], InterProcessMessage]):
+    def __new__(cls, val: bytes, handler: IPMHandler):
         """Constructs a new instance of the Enum."""
         obj = object.__new__(cls)
         obj._value_ = val
@@ -79,8 +77,6 @@ def run() -> None:
                 f"Valid subtopics are: {[s for s in SubTopic]} ."
             )
 
-        # ?! TODO: WTF? Why not callable? Seems like old mypy bug: https://github.com/python/mypy/issues/5485
-        response: InterProcessMessage = subtopic.handler.__call__(ipc_raw.msg)
         response: InterProcessMessage = subtopic.handler(ipc_raw.msg)
         ipc.send_to(socket, response, subtopic=ipc_raw.subtopic)
 

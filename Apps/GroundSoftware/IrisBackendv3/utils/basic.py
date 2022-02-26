@@ -3,13 +3,75 @@
 A Collection of Basic Utility Functions.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 11/21/2021
+@last-updated: 02/26/2022
 """
 
 import re
 import string
-from typing import Dict, List, Any, Union
+from typing import Optional, Type, Dict, Tuple, List, Any, Union
 import inspect
+
+
+def type_guard_argument(
+    arg_type: Union[Type, Tuple[Type, ...]],
+    arg_name: str,
+    arg_val: Any,
+    attempt_cast: bool = True,
+    calling_function_name: Optional[str] = None
+) -> Any:
+    """A guard to add to the beginning of a function to make sure one of its
+    arguments has one of the allowed types.
+
+    Args:
+        var_type (Union[Type, Tuple[Type, ...]]): Allowable type(s) for argument
+        var_name (str): Name of argument (from parameters list ideally)
+        var_val (Any): Value of argument given
+        attempt_cast (bool, optional): Whether to attemp to cast. Defaults to True.
+        calling_function_name (str, optional): Name of function which had the arg 
+            being checked. Defaults to None, in which case the name of the calling 
+            function is grabbed from the stack.
+
+    Raises:
+        ValueError: Error if value is not one of the specified types.
+
+    Returns:
+        Any: value given, cast to the correct type if needed
+    """
+
+    if isinstance(arg_type, list):
+        # If valid types is a list, convert to tuple for `isinstance`:
+        arg_type = tuple(arg_type)
+
+    if isinstance(arg_type, type):
+        # Just one type was given, wrap it in a 1-tuple so it's iterable:
+        arg_type = (arg_type, )
+
+    if not isinstance(arg_val, arg_type):
+        # Given value does not match any of the allowed types:
+        cast_success = False
+        if attempt_cast:
+            # Attempt to cast `arg_val` to any of the allowed types:
+            i: int = 0
+            while not cast_success and i < len(arg_type):
+                try:
+                    arg_val = arg_type[i](arg_val)
+                    cast_success = True
+                except ValueError:
+                    # try again
+                    i += 1
+
+        if not attempt_cast or attempt_cast and not cast_success:
+            # Get the name of the function that called this one (for message):
+            if calling_function_name is None:
+                calling_function_name = inspect.stack()[1][3]
+            # Raise an error saying the caller got an unexpected argument:
+            raise ValueError(
+                f"`{calling_function_name}` expects `{arg_name}` to be "
+                f"`{arg_type}`, "
+                f"instead it had type `{type(arg_val)}` and value `{arg_val}`."
+            )
+
+    return arg_val
 
 
 def bytearray_to_spaced_hex(ba) -> str:

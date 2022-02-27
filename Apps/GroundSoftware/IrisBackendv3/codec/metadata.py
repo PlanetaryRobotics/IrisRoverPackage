@@ -2,13 +2,15 @@
 Various Classes defining Metadata for Packets and Payloads.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/18/2021
+@last-updated: 02/27/2021
 """
 
-from typing import List
+from typing import Optional, List
 
 from enum import Enum
 from datetime import datetime
+
+import attr
 
 
 class DataPathway(Enum):
@@ -49,81 +51,39 @@ class DataSource(Enum):
     MONGO = 0x30  # Data received (likely from Frontend) via MongoDB
 
 
+@attr.s(cmp=True, slots=True, auto_attribs=True)
 class DownlinkTimes():
     """
     Container for timestamps for every stage of the downlinking pipeline.
     Note: All of these times are the same across an entire packet. 
     Rover-specific times are sent in and managed by each Payload timestamp.
     """
-    __slots__: List[str] = [
-        # When received by lander buffer (`generationTime` in YAMCS):
-        'lander_rx',
-        # When sent by lander:
-        # 'lander_tx',
-        # When received by AMCC [Astrobotic Mission Control] (`acquisitionTime` in YAMCS):
-        'amcc_rx',
-        # When received by PMCC (Payload Mission Control <- the Iris GSW backend)
-        'pmcc_rx'
-    ]
+    # When received by lander buffer (`generationTime` in YAMCS):
+    lander_rx: Optional[datetime] = None
+    # When sent by lander:
     # lander_tx: datetime
-    lander_rx: datetime
-    amcc_rx: datetime
-    pmcc_rx: datetime
-
-    def __init__(self,
-                 #  lander_tx: datetime,
-                 lander_rx: datetime,
-                 amcc_rx: datetime,
-                 pmcc_rx: datetime
-                 ) -> None:
-        self.lander_rx = lander_rx
-        # self.lander_tx = lander_tx
-        self.amcc_rx = amcc_rx
-        self.pmcc_rx = pmcc_rx
+    # When received by AMCC [Astrobotic Mission Control] (`acquisitionTime` in YAMCS):
+    amcc_rx: Optional[datetime] = None
+    # When received by PMCC (Payload Mission Control <- the Iris GSW backend)
+    pmcc_rx: Optional[datetime] = None
 
 
+@attr.s(cmp=True, slots=True, auto_attribs=True)
 class UplinkTimes():
     """
     Container for timestamps for every stage of the uplinking pipeline.
     """
-    __slots__: List[str] = [
-        # When the data was generated (i.e. command sent from frontend):
-        'generated',
-        # When the PMCC GSW backend (this application) first received the data:
-        'pmcc_rx',
-        # When the PMCC GSW backend (this application) sent the data to AMCC:
-        'pmcc_tx',
-        # When AMCC acknowledged receipt of the data:
-        'amcc_rx',
-        # When AMCC reports having sent the data to the spacecraft:
-        # 'amcc_tx'
-        # When the rover indicates that it received the data:
-        'ack_rover',
-        # DownlinkTimes for the rover acknowledgement packet:
-        'ack_downlink_times'
-    ]
-
-    generated: datetime
-    pmcc_rx: datetime
-    pmcc_tx: datetime
-    amcc_rx: datetime
-    # amcc_tx: datetime
-    ack_rover: datetime
-    ack_downlink_times: DownlinkTimes
-
-    def __init__(self,
-                 generated: datetime,
-                 pmcc_rx: datetime,
-                 pmcc_tx: datetime,
-                 amcc_rx: datetime,
-                 # amcc_tx: datetime,
-                 ack_rover: datetime,
-                 ack_downlink_times: DownlinkTimes
-                 ) -> None:
-        self.generated = generated
-        self.pmcc_rx = pmcc_rx
-        self.pmcc_tx = pmcc_tx
-        self.amcc_rx = amcc_rx
-        # self.amcc_tx = amcc_tx
-        self.ack_rover = ack_rover
-        self.ack_downlink_times = ack_downlink_times
+    # When the data was generated (i.e. command sent from frontend):
+    generated: Optional[datetime] = None
+    # When the PMCC GSW backend (this application) first received the data:
+    pmcc_rx: Optional[datetime] = None
+    # When the PMCC GSW backend (this application) sent the data to AMCC:
+    pmcc_tx: Optional[datetime] = None
+    # When AMCC acknowledged receipt of the data:
+    amcc_rx: Optional[datetime] = None
+    # When AMCC reports having sent the data to the spacecraft:
+    # amcc_tx: Optional[datetime] = None
+    # When the rover indicates that it received the data:
+    ack_rover: Optional[datetime] = None
+    # DownlinkTimes for the rover acknowledgement packet:
+    ack_downlink_times: DownlinkTimes = attr.field(factory=DownlinkTimes)

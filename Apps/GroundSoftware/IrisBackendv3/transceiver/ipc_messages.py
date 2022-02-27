@@ -11,29 +11,49 @@ from typing import Type, List
 import attr
 
 from IrisBackendv3.ipc.wrapper import InterProcessMessage
-from IrisBackendv3.codec.payload import PayloadCollection
+from IrisBackendv3.codec.packet import UplinkPacket, DownlinkPacket
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 
 
 @attr.s(frozen=True, cmp=True, slots=True, auto_attribs=True)
-class SendPayloadsRequestContent:
+class SendPacketRequestContent:
     """
-    Defines the Message Content for a Request to Send a `PayloadCollection`
-    from `DataSource` over `DataPathway`.
+    Defines the Message Content for a Request to Send a `Packet` in the uplink 
+    direction.
     """
-    payloads: PayloadCollection
-    pathway: DataPathway
-    source: DataSource
+    packet: UplinkPacket
 
 
-class SendPayloadsRequestMessage(InterProcessMessage[SendPayloadsRequestContent]):
+class SendPacketRequestMessage(InterProcessMessage[SendPacketRequestContent]):
     """
     Defines the Message Structure and Serialization Scheme for a Request to 
-    Send a `PayloadCollection` from `DataSource` over `DataPathway`.
+    Send a `Packet` in the uplink direction.
     """
 
     def to_ipc_bytes(self) -> bytes:
         raise NotImplementedError()  # !TODO
 
-    def from_ipc_bytes(cls, data: bytes) -> SendPayloadsRequestContent:
+    def from_ipc_bytes(cls, data: bytes) -> SendPacketRequestContent:
+        raise NotImplementedError()  # !TODO
+
+
+@attr.s(frozen=True, cmp=True, slots=True, auto_attribs=True)
+class ReceivedPacketContent:
+    """
+    Defines the Message Content wrapping a `Packet` received from the downlink 
+    direction.
+    """
+    packet: DownlinkPacket
+
+
+class ReceivedPacketMessage(InterProcessMessage[ReceivedPacketContent]):
+    """
+    Defines the Message Structure and Serialization Scheme for a `Packet` 
+    received from the downlink direction.
+    """
+
+    def to_ipc_bytes(self) -> bytes:
+        raise NotImplementedError()  # !TODO
+
+    def from_ipc_bytes(cls, data: bytes) -> ReceivedPacketContent:
         raise NotImplementedError()  # !TODO

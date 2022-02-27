@@ -99,6 +99,7 @@
         "ulid",
         "ulids",
         "unpickle",
+        "Unpickler",
         "UNRESET",
         "UNRST",
         "vadc",

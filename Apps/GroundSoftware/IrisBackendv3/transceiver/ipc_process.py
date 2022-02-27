@@ -32,7 +32,8 @@ def bytes_to_packet(incoming_msg_data: bytes) -> InterProcessMessage:
 
 
 @IsIPMHandler
-def send_payloads(incoming_msg_data: bytes) -> InterProcessMessage:
+def send_packet(incoming_msg_data: bytes) -> InterProcessMessage:
+
     raise NotImplementedError()
     # payloads = PayloadCollection.from_ipc_bytes(ipc_raw.msg)
 
@@ -68,36 +69,36 @@ def subscriber_update(
     if topic not in topic_handlers:
         logger.error(
             "ValueError: "
-            f"Bad topic sent to `Transceiver` server on port `{ipc.Port.TRANSCEIVER}`. "
+            f"Bad topic sent to `{port.name}` server on port `{port}`. "
             f"Got `{topic}` "
-            f"but `Transceiver` only has handlers for: {[t for t in ipc.Topic]}"
+            f"but `{port.name}` only has handlers for: "
+            f"{[n for n in topic_handlers.keys()]}"
         )
 
-    # Process the incoming data based on topic:
-
-    if
+    # Now that we know this is a valid topic and a handler exists, call it:
+    topic_handlers[topic](ipc_payload.msg_bytes)
 
 
 def run() -> None:
     # TODO: Print start message right at beginning, incl. all relevant settings
+    port = ipc.Port.TRANSCEIVER
 
     context = ipc.create_context()
     pub_socket = ipc.create_socket(
         context,
         socket_type=ipc.SocketType.PUBLISHER,
-        ports=ipc.Port.TRANSCEIVER
+        ports=port
     )
     sub_socket = ipc.create_socket(
         context,
         socket_type=ipc.SocketType.SUBSCRIBER,
-        ports=ipc.Port.TRANSCEIVER
+        ports=port
     )
 
     while True:
-        subscriber_update(sub_socket, subscription_topic_handlers)
+        subscriber_update(sub_socket, port, subscription_topic_handlers)
 
-        response: InterProcessMessage = subtopic.handler(ipc_raw.msg)
-        ipc.send_to(socket, response, subtopic=ipc_raw.subtopic)
+        # TODO: publisher_update
 
     # TODO: explicitly close socket on close signal from cli
 

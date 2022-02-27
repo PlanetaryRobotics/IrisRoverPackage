@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <common.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -143,6 +144,11 @@ UART__Status UART__uninit1(UART__State** uart1State);
  *                                         buffer.
  */
 UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t dataLen);
+
+/**
+ * Checks if there is enough room in the transmit buffer to store `dataLen` bytes of data.
+ */
+BOOL UART__checkIfSendable(UART__State* uartState, size_t dataLen);
 
 /**
  * @brief Gets as much data as possible (up to the given buffer length) from the receive buffer of the given UART

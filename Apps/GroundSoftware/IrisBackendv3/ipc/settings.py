@@ -5,11 +5,15 @@
 Configurable settings for the IPC layer.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/18/2021
+@last-updated: 02/27/2022
 """
 
 settings = {
-    'IP': '127.0.0.1'  # localhost
+    'IP': '127.0.0.1',  # localhost
+    # Key used to sign all pickled IPC messages.
+    # All process running locally should be given the same session key.
+    # (TODO: make this settable from console for all IPC apps).
+    'SESSION_KEY': 'test-session-key'
 }
 
 

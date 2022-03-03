@@ -2079,6 +2079,10 @@ class WatchdogDetailedStatusPacket(WatchdogDetailedStatusPacketInterface[Watchdo
                 # Shift back out to 12 bits (if only the upper bits were sent):
                 field_val = field_val << (cls.WD_ADC_BITS - n_upper_adc_bits)
 
+            #print("{}: mask={}, data_int={}, idx_bit_head={}, is_adc_val={}, field_val={}".format(
+            #    field_name, hex(field_mask), hex(data_int), idx_bit_head, is_adc_val, field_val
+            #))
+
             named_bitfield_entries[field_name] = field_val
             idx_bit_head += n_bits
 

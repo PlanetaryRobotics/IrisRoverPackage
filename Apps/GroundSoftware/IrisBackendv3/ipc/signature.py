@@ -10,7 +10,6 @@ import hmac
 import hashlib
 
 from .settings import settings
-from .logging import logger
 from .exceptions import MessageIntegrityError
 
 # Delimited used between digest and message in a signed message:

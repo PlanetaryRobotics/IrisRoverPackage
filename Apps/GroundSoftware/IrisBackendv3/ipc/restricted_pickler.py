@@ -10,6 +10,7 @@ package, like pickle itself, should still be used with caution).
 import io
 import builtins
 import pickle
+import datetime
 import IrisBackendv3.codec.magic
 
 from typing import Any, ClassVar, Set
@@ -55,7 +56,8 @@ class _IrisRestrictedUnpickler(pickle.Unpickler):
         'IrisBackendv3.codec.magic': IrisBackendv3.codec.magic,
         'IrisBackendv3.codec.metadata': IrisBackendv3.codec.metadata,
         'IrisBackendv3.codec.payload': IrisBackendv3.codec.payload,
-        'IrisBackendv3.codec.packet': IrisBackendv3.codec.packet
+        'IrisBackendv3.codec.packet': IrisBackendv3.codec.packet,
+        'datetime': datetime
     }
 
     def find_class(self, module, name):

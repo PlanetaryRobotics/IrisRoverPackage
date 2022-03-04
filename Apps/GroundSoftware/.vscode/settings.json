@@ -71,6 +71,7 @@
         "pcap",
         "pcapng",
         "pformat",
+        "pickler",
         "pims",
         "plotly",
         "pmcc",

@@ -1,5 +1,6 @@
 // i2c_sensors.c
 
+#include "comms/debug_comms.h"
 #include "comms/i2c_sensors.h"
 #include "drivers/i2c.h"
 #include "utils/time.h"
@@ -660,7 +661,7 @@ I2C_Sensors__Status I2C_Sensors__writeIoExpanderBlocking(uint8_t port0Value,
         i2cStatus = I2C_Sensors__getActionStatus(&action, NULL, NULL);
 
         // Sanity check
-        assert(I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER == action);
+        DEBUG_ASSERT_EQUAL(I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER, action);
 
         if (I2C_SENSORS__STATUS__INCOMPLETE == i2cStatus) {
             // Delay a tiny bit so we're not spinning completely tightly. We're single-threaded so it's not like anything
@@ -702,7 +703,7 @@ I2C_Sensors__Status I2C_Sensors__readIoExpanderBlocking(uint8_t* chargeStat2,
         i2cStatus = I2C_Sensors__getActionStatus(&action, NULL, &readValue);
 
         // Sanity check
-        assert(I2C_SENSORS__ACTIONS__READ_IO_EXPANDER == action);
+        DEBUG_ASSERT_EQUAL(I2C_SENSORS__ACTIONS__READ_IO_EXPANDER, action);
 
         if (I2C_SENSORS__STATUS__INCOMPLETE == i2cStatus) {
             // Delay a tiny bit so we're not spinning completely tightly. We're single-threaded so it's not like anything
@@ -765,7 +766,7 @@ I2C_Sensors__Status I2C_Sensors__writeIoExpanderPortDirectionsBlocking(uint8_t p
         i2cStatus = I2C_Sensors__getActionStatus(&action, NULL, &readValue);
 
         // Sanity check
-        assert(I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER == action);
+        DEBUG_ASSERT_EQUAL(I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER, action);
 
         if (I2C_SENSORS__STATUS__INCOMPLETE == i2cStatus) {
             // Delay a tiny bit so we're not spinning completely tightly. We're single-threaded so it's not like anything

@@ -9,6 +9,8 @@ extern "C"
 {
 #endif
 
+const char* getResetReasonString(void);
+
 void initializeGpios(WatchdogStateDetails* details);
 void enableUart0Pins(void);
 void disableUart0Pins(void);

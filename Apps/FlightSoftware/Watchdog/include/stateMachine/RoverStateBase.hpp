@@ -63,6 +63,11 @@ namespace iris
                                                           uint8_t* payloadBuffer,
                                                           size_t payloadSize);
 
+            virtual RoverState handleDebugFromHercules(RoverContext& theContext,
+                                                       HercMsgs__Header* header,
+                                                       uint8_t* payloadBuffer,
+                                                       size_t payloadSize);
+
             virtual RoverState handleResetFromHercules(RoverContext& theContext,
                                                        HercMsgs__Header* header);
 

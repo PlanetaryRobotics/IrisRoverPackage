@@ -1,10 +1,23 @@
 #include "stateMachine/RoverStateManager.hpp"
 
+#include "comms/debug_comms.h"
 #include "event/event_queue.h"
 #include "common.h"
 
 #include <cassert>
 #include <msp430.h>
+
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector = WDT_VECTOR
+__interrupt void WDT_ISR(void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(WDT_VECTOR))) WDT_ISR (void)
+#else
+#error Compiler not supported!
+#endif
+{
+    __no_operation();
+}
 
 namespace iris
 {
@@ -20,11 +33,11 @@ namespace iris
 #pragma PERSISTENT
     static bool persistentDeployed = false;
 
-    RoverStateManager::RoverStateManager()
+    RoverStateManager::RoverStateManager(const char* resetReasonString)
         : m_stateEnteringKeepAlive(),
           m_stateEnteringMission(),
           m_stateEnteringService(),
-          m_stateInit(RoverState::INIT),
+          m_stateInit(RoverState::INIT, resetReasonString),
           m_stateKeepAlive(),
           m_stateMission(),
           m_stateService(),
@@ -94,7 +107,7 @@ namespace iris
             // Previously a WDTIS of 0b100 was being used so the watchdog period would have been about 3.5 seconds,
             // though the comment above it had mistakenly described it as setting the watchdog period to 1 second. For
             // now, we'll use a WDTIS of 0b101 (a period of 0.871 seconds) and see if it causes any issues.
-            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2 + WDTIS0;
+            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;// + WDTIS0;
 
             Event__Type event = EVENT__TYPE__UNUSED;
             EventQueue__Status eqStatus = EventQueue__get(&event);
@@ -160,11 +173,16 @@ namespace iris
 
     void RoverStateManager::transitionUntilSettled(RoverState desiredState)
     {
+
         while (m_currentState->getState() != desiredState) {
+            const char *originalStateStr = stateToString(m_currentState->getState());
+            const char *desiredStateStr =  stateToString(desiredState);
+            DebugComms__printfToLander("Transitioning from %s to %s\n", originalStateStr, desiredStateStr);
             m_currentState = getStateObjectForStateEnum(desiredState);
             m_context.m_details.m_stateAsUint = static_cast<uint8_t>(m_currentState->getState());
             desiredState = m_currentState->transitionTo(m_context);
         }
+
     }
 
     void RoverStateManager::handleEvent(Event__Type event)

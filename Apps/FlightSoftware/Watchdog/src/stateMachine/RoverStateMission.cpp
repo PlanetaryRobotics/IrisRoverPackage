@@ -1,5 +1,6 @@
 #include "stateMachine/RoverStateMission.hpp"
 
+#include "comms/debug_comms.h"
 #include "comms/ground_msgs.h"
 #include "comms/i2c_sensors.h"
 #include "drivers/adc.h"
@@ -29,10 +30,12 @@ namespace iris
 
     RoverState RoverStateMission::handleTimerTick(RoverContext& theContext)
     {
+        DebugComms__printfToLander("t\n");
         // Trigger a new ADC sample if the previous one is done
         if (isAdcSampleDone()) {
             adcCheckVoltageLevels(&(theContext.m_adcValues));
         }
+
 
         /* send heartbeat with collected data */
         /**
@@ -46,13 +49,15 @@ namespace iris
                                                                              static_cast<uint8_t>(getState()),
                                                                              &hb);
 
-        assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
+        DEBUG_ASSERT_EQUAL(GND_MSGS__STATUS__SUCCESS, gcStatus);
+
+
 
         LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
                                                            (uint8_t*) &hb,
                                                            sizeof(hb));
 
-        assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
+        DEBUG_ASSERT_EQUAL(LANDER_COMMS__STATUS__SUCCESS, lcStatus);
         if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
             //!< @todo Handling?
         }
@@ -75,6 +80,8 @@ namespace iris
                          &writeIOExpander,
                          &(theContext.m_details));
 
+
+
         if (writeIOExpander) {
             theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
             theContext.m_writeCustomIoExpanderValues = false;
@@ -92,6 +99,8 @@ namespace iris
             initiateNextI2cAction(theContext);
         }
 
+
+        DebugComms__printfToLander("t1\n");
         return getState();
     }
 
@@ -138,11 +147,14 @@ namespace iris
                 theContext.m_i2cActive = false;
                 initiateNextI2cAction(theContext);
             }
+
         }
 
         if (theContext.m_sendDetailedReport) {
+
             theContext.m_sendDetailedReport = false;
             sendDetailedReportToLander(theContext);
+
         }
 
         return getState();
@@ -158,11 +170,13 @@ namespace iris
 
     void RoverStateMission::heaterControl(RoverContext& theContext) {
         // Only use heater when connected to the lander
+
         if (m_currentDeployState != DeployState::NOT_DEPLOYED) {
             disableHeater();
         } else {
             RoverStateBase::heaterControl(theContext);
         }
+
     }
 
     RoverState RoverStateMission::performResetCommand(RoverContext& theContext,
@@ -233,6 +247,9 @@ namespace iris
                 deployNotificationResponse.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__DEPLOY;
                 sendDeployNotificationResponse = true;
                 theContext.m_isDeployed = true;
+
+                // Don't allow DebugComms to write to lander anymore
+                DebugComms__registerLanderComms(NULL);
                 break;
 
             case DeployState::DEPLOYING:

@@ -5,6 +5,7 @@
  *      Author: iris
  */
 
+#include "comms/debug_comms.h"
 #include "comms/i2c_sensors.h"
 #include "drivers/blimp.h"
 #include "common.h"

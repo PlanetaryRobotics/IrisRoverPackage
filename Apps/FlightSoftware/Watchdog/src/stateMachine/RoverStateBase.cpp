@@ -1,5 +1,6 @@
 #include "stateMachine/RoverStateBase.hpp"
 
+#include "comms/debug_comms.h"
 #include "drivers/adc.h"
 #include "drivers/bsp.h"
 #include "drivers/blimp.h"
@@ -13,8 +14,9 @@
 #include <msp430.h>
 #include <cstdio>
 #include <cstring>
+#include <cstdarg>
 
-#define DEBUG_REPORT true
+#define DEBUG_REPORT false
 
 namespace iris
 {
@@ -84,32 +86,32 @@ namespace iris
                     case I2C_SENSORS__ACTIONS__INACTIVE:
                         // This is always false in this case, but rechecking this condition makes the resulting output
                         // more descriptive.
-                        assert(actionEnum != I2C_SENSORS__ACTIONS__INACTIVE);
+                        DEBUG_ASSERT_NOT_EQUAL(actionEnum, I2C_SENSORS__ACTIONS__INACTIVE);
                         break;
 
                     case I2C_SENSORS__ACTIONS__GAUGE_READING:
                         i2cStatus = I2C_Sensors__initiateGaugeReadings();
-                        assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
+                        DEBUG_ASSERT_EQUAL(i2cStatus, I2C_SENSORS__STATUS__SUCCESS_DONE);
                         break;
 
                     case I2C_SENSORS__ACTIONS__GAUGE_INIT:
                         i2cStatus = I2C_Sensors__initiateFuelGaugeInitialization();
-                        assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
+                        DEBUG_ASSERT_EQUAL(i2cStatus, I2C_SENSORS__STATUS__SUCCESS_DONE);
                         break;
 
                     case I2C_SENSORS__ACTIONS__WRITE_GAUGE_LOW_POWER:
                         i2cStatus = I2C_Sensors__initiateWriteLowPower();
-                        assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
+                        DEBUG_ASSERT_EQUAL(i2cStatus, I2C_SENSORS__STATUS__SUCCESS_DONE);
                         break;
 
                     case I2C_SENSORS__ACTIONS__READ_GAUGE_CONTROL_REGISTER:
                         i2cStatus = I2C_Sensors__initiateReadControl();
-                        assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
+                        DEBUG_ASSERT_EQUAL(i2cStatus, I2C_SENSORS__STATUS__SUCCESS_DONE);
                         break;
 
                     case I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER:
                         i2cStatus = I2C_Sensors__initiateIoExpanderInitialization();
-                        assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
+                        DEBUG_ASSERT_EQUAL(i2cStatus, I2C_SENSORS__STATUS__SUCCESS_DONE);
                         break;
 
                     case I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER:
@@ -119,18 +121,18 @@ namespace iris
                         } else {
                             i2cStatus = I2C_Sensors__initiateWriteIoExpanderCurrentValues();
                         }
-                        assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
+                        DEBUG_ASSERT_EQUAL(i2cStatus, I2C_SENSORS__STATUS__SUCCESS_DONE);
                         break;
 
                     case I2C_SENSORS__ACTIONS__READ_IO_EXPANDER:
                         i2cStatus = I2C_Sensors__initiateReadIoExpander();
-                        assert(i2cStatus == I2C_SENSORS__STATUS__SUCCESS_DONE);
+                        DEBUG_ASSERT_EQUAL(i2cStatus, I2C_SENSORS__STATUS__SUCCESS_DONE);
                         break;
 
                     default:
                         // This is always false in this case, but rechecking this condition makes the resulting output
                         // more descriptive.
-                        assert(actionEnum >= I2C_SENSORS__ACTIONS__INACTIVE
+                        DEBUG_ASSERT(actionEnum >= I2C_SENSORS__ACTIONS__INACTIVE
                                && actionEnum < I2C_SENSORS__ACTIONS__COUNT);
                 }
 
@@ -184,6 +186,9 @@ namespace iris
             return;
         }
 
+        DebugComms__printfToLander("h 0x%x\n", header->lowerOpCode);
+        DebugComms__flush();
+
         CallbackUserArg* args = reinterpret_cast<CallbackUserArg*>(userArg);
 
         args->m_context.m_watchdogFlags |= WDFLAG_HERCULES_KICK;
@@ -200,6 +205,13 @@ namespace iris
                                                          payloadSize);
                 break;
 
+            case HERCULES_COMMS__MSG_OPCODE__DEBUG:
+                args->m_state.handleDebugFromHercules(args->m_context,
+                                                      header,
+                                                      payloadBuffer,
+                                                      payloadSize);
+                break;
+
             default: // We assume this is a reset command
                 args->m_state.handleResetFromHercules(args->m_context, header);
                 break;
@@ -213,7 +225,12 @@ namespace iris
         static WdCmdMsgs__Response response = { 0 };
         static WdCmdMsgs__Response deployNotificationResponse = { 0 };
 
-        assert(nullptr != userArg);
+        DebugComms__printfToLander("l\n");
+
+#pragma diag_push
+#pragma diag_suppress 770
+        DEBUG_ASSERT_NOT_EQUAL(nullptr, userArg);
+#pragma diag_pop
 
         CallbackUserArg* args = reinterpret_cast<CallbackUserArg*>(userArg);
 
@@ -226,7 +243,7 @@ namespace iris
         // as the
         CmdMsgs__Status cmdStatus = CmdMsgs__deserializeHeader(rxDataBuffer, rxDataLen, &(wdMessage.commonHeader));
 
-        assert(CMD_MSGS__STATUS__SUCCESS == cmdStatus);
+        DEBUG_ASSERT_EQUAL(CMD_MSGS__STATUS__SUCCESS, cmdStatus);
         if (CMD_MSGS__STATUS__SUCCESS != cmdStatus) {
             // This should only really happen if rxDataLen is the wrong size
             //!< @todo reply to lander with this error
@@ -243,7 +260,7 @@ namespace iris
                                                                           &wdMessage,
                                                                           FALSE); // Don't reparse the header
 
-            assert(WD_CMD_MSGS__STATUS__SUCCESS == wdCmdStatus);
+            DEBUG_ASSERT_EQUAL(WD_CMD_MSGS__STATUS__SUCCESS, wdCmdStatus);
             if (WD_CMD_MSGS__STATUS__SUCCESS != wdCmdStatus) {
                 // This should only really happen if rxDataLen is the wrong size
                 //!< @todo reply to lander with this error
@@ -277,6 +294,7 @@ namespace iris
                                                       WdCmdMsgs__Response& deployNotificationResponse,
                                                       bool& sendDeployNotificationResponse)
     {
+        DebugComms__printfToLander("w\n");
         // Make sure that by default we don't want to send the deploy notification response
         sendDeployNotificationResponse = false;
 
@@ -517,6 +535,7 @@ namespace iris
                                                       uint8_t* rxDataBuffer,
                                                       size_t rxDataLen)
     {
+        DebugComms__printfToLander("u\n");
         // Anything with "Type Magic" field value that isn't for Watchdog is treated as uplink for Hercules
         HerculesComms__Status hcStatus = HerculesComms__txUplinkMsg(theContext.m_hcState,
                                                                     rxDataBuffer,
@@ -534,8 +553,12 @@ namespace iris
     {
         static uint8_t telemetrySerializationBuffer[16] = { 0 };
 
-        assert(nullptr != header);
-
+#pragma diag_push
+#pragma diag_suppress 770
+        DEBUG_ASSERT_NOT_EQUAL(nullptr, header);
+#pragma diag_pop
+        DebugComms__printfToLander("s\n");
+        DebugComms__flush();
         // For a stroke we just reply to the Hercules with our telemetry
         watchdog_build_hercules_telem(&(theContext.m_i2cReadings),
                                       &(theContext.m_adcValues),
@@ -549,7 +572,9 @@ namespace iris
                                                                       sizeof(telemetrySerializationBuffer));
 
         if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-            //!< @todo Handle error
+            DebugComms__printfToLander("HerculesComms__txResponseMsg failed with error: %d in "
+                                       "RoverStateBase::handleStrokeFromHercules\n",
+                                       hcStatus);
         }
 
         return getState();
@@ -560,21 +585,23 @@ namespace iris
                                                           uint8_t* payloadBuffer,
                                                           size_t payloadSize)
     {
-        assert(nullptr != header);
-        assert(nullptr != payloadBuffer);
-        assert(0 != payloadSize);
+#pragma diag_push
+#pragma diag_suppress 770
+        DEBUG_ASSERT_NOT_EQUAL(nullptr, header);
+        DEBUG_ASSERT_NOT_EQUAL(nullptr, payloadBuffer);
+        DEBUG_ASSERT_NOT_EQUAL(0, payloadSize);
+#pragma diag_pop
 
         // For downlink we first send the data to the lander, then we reply to the Hercules
+        DebugComms__printfToLander("d, s=%u\n", payloadSize);
+        DebugComms__flush();
+
+        DebugComms__printDataAsHexToLander(payloadBuffer, (payloadSize < 32) ? payloadSize : 32, TRUE);
 
         // 1) Send data to lander
         LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState, payloadBuffer, payloadSize);
 
-        if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
-            //!< @todo Handle error
-
-            // We still want to follow through. Even if we failed to tx the data we can still
-            // try to reply to the Hercules
-        }
+        DEBUG_LOG_CHECK_STATUS(LANDER_COMMS__STATUS__SUCCESS, lcStatus, "Downlink failed");
 
         // 2) Reply to Hercules
         HerculesComms__Status hcStatus = HerculesComms__txResponseMsg(theContext.m_hcState,
@@ -583,8 +610,32 @@ namespace iris
                                                                       0);
 
         if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-            //!< @todo Handle error
+            DebugComms__printfToLander("HerculesComms__txResponseMsg failed with error: %d in "
+                                       "RoverStateBase::handleDownlinkFromHercules\n",
+                                       hcStatus);
         }
+
+        return getState();
+    }
+
+    RoverState RoverStateBase::handleDebugFromHercules(RoverContext& theContext,
+                                                       HercMsgs__Header* header,
+                                                       uint8_t* payloadBuffer,
+                                                       size_t payloadSize)
+    {
+#pragma diag_push
+#pragma diag_suppress 770
+        DEBUG_ASSERT_NOT_EQUAL(nullptr, header);
+        DEBUG_ASSERT_NOT_EQUAL(nullptr, payloadBuffer);
+        DEBUG_ASSERT_NOT_EQUAL(0, payloadSize);
+#pragma diag_pop
+        DebugComms__printfToLander("g, s=%u\n", payloadSize);
+        DebugComms__flush();
+
+        //DebugComms__printDataAsHexToLander(payloadBuffer, payloadSize, TRUE);
+
+        // For debug just send it to the lander
+        DebugComms__stringBufferToLander(payloadBuffer, payloadSize);
 
         return getState();
     }
@@ -592,7 +643,13 @@ namespace iris
     RoverState RoverStateBase::handleResetFromHercules(RoverContext& theContext,
                                                        HercMsgs__Header* header)
     {
-        assert(nullptr != header);
+#pragma diag_push
+#pragma diag_suppress 770
+        DEBUG_ASSERT_NOT_EQUAL(nullptr, header);
+#pragma diag_pop
+
+        DebugComms__printfToLander("r\n");
+        DebugComms__flush();
 
         // For Reset_Specific we want to do the reset, then reply to Hercules
         WdCmdMsgs__ResetSpecificId resetValue = (WdCmdMsgs__ResetSpecificId) header->resetValue;
@@ -605,7 +662,9 @@ namespace iris
                                                                       0);
 
         if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-            //!< @todo logging/handling?
+            DebugComms__printfToLander("HerculesComms__txResponseMsg failed with error: %d in "
+                                       "RoverStateBase::handleResetFromHercules\n",
+                                       hcStatus);
         }
 
         return result;
@@ -620,7 +679,7 @@ namespace iris
                                                                   RoverStateBase::landerMsgCallback,
                                                                   (void*) &args);
 
-        assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
+        DEBUG_ASSERT_EQUAL(LANDER_COMMS__STATUS__SUCCESS, lcStatus);
         if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
             //!< @todo logging?
         }
@@ -637,9 +696,11 @@ namespace iris
                                                                       RoverStateBase::herculesMsgCallback,
                                                                       (void*) &args);
 
-        //assert(HERCULES_COMMS__STATUS__SUCCESS == hcStatus);
+        //DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
         if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-            //!< @todo logging?
+            DebugComms__printfToLander("HerculesComms__tryGetMessage failed with error: %d in "
+                                       "RoverStateBase::pumpMsgsFromHercules\n",
+                                       hcStatus);
         }
 
         return m_pumpMsgsFromHerculesReturnState;
@@ -653,7 +714,7 @@ namespace iris
                                                                            responseSerializationBuffer,
                                                                            sizeof(responseSerializationBuffer));
 
-        assert(WD_CMD_MSGS__STATUS__SUCCESS == wdCmdStatus);
+        DEBUG_ASSERT_EQUAL(WD_CMD_MSGS__STATUS__SUCCESS, wdCmdStatus);
 
         LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
                                                            responseSerializationBuffer,
@@ -1051,23 +1112,11 @@ namespace iris
         return getState();
     }
 
-#define PRINTF_TO_LANDER(fmt, ...) \
-        memset(printBuffer, 0, sizeof(printBuffer)); \
-        sprintf(printBuffer, fmt, __VA_ARGS__); \
-        do { \
-            lcStatus = LanderComms__txData(theContext.m_lcState, \
-                            (uint8_t*) printBuffer, \
-                            strlen(printBuffer)); \
-            __delay_cycles(100000); \
-            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2 + WDTIS0; \
-        } while (lcStatus == LANDER_COMMS__STATUS__ERROR_TX_OVERFLOW)
-
     void RoverStateBase::sendDetailedReportToLander(RoverContext& theContext)
     {
         /* send detailed report */
         static DetailedReport report = { 0 };
         static uint8_t reportBuffer[sizeof(DetailedReport)] = { 0 };
-        static char printBuffer[128] = { 0 };
         GroundMsgs__Status gcStatus =
                 GroundMsgs__generateDetailedReport(&(theContext.m_i2cReadings),
                                                    &(theContext.m_adcValues),
@@ -1075,67 +1124,60 @@ namespace iris
                                                    &report,
                                                    reportBuffer);
 
-        assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
-
-        int length = 0;
-        uint8_t* reportView = (uint8_t*) &report;
-        for (size_t i = 0; i < sizeof(DetailedReport); ++i) {
-            length += sprintf(printBuffer + length, "%s%x", ((reportView[i] <= 0xF) ? "0" : ""), reportView[i]);
-        }
-
-        LanderComms__Status lcStatus1 = LanderComms__txData(theContext.m_lcState,
-                                                            (uint8_t*) printBuffer,
-                                                           strlen(printBuffer));
+        DEBUG_ASSERT_EQUAL(GND_MSGS__STATUS__SUCCESS, gcStatus);
 
         LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
                                                            (uint8_t*) &report,
                                                            sizeof(report));
 
-        assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
+        DEBUG_ASSERT_EQUAL(LANDER_COMMS__STATUS__SUCCESS, lcStatus);
         if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
             //!< @todo Handling?
         }
 
 #if DEBUG_REPORT
-        PRINTF_TO_LANDER("chargeStat1: %u", report.chargeStat1);
-        PRINTF_TO_LANDER("chargeStat2: %u", report.chargeStat2);
-        PRINTF_TO_LANDER("battStat: %u", report.battStat);
-        PRINTF_TO_LANDER("latchStat: %u", report.latchStat);
-        PRINTF_TO_LANDER("pg12: %u", report.pg12);
-        PRINTF_TO_LANDER("pg18: %u", report.pg18);
-        PRINTF_TO_LANDER("pg33: %u", report.pg50);
-        PRINTF_TO_LANDER("state: %u", report.state);
-        PRINTF_TO_LANDER("deploymentStatus: %u", report.deploymentStatus);
-        PRINTF_TO_LANDER("uart0Initialized: %u", report.uart0Initialized);
-        PRINTF_TO_LANDER("uart1Initialized: %u", report.uart1Initialized);
-        PRINTF_TO_LANDER("adcBattRT: %u", report.adcBattRT);
-        PRINTF_TO_LANDER("sequenceNumber: %u", report.sequenceNumber);
-        PRINTF_TO_LANDER("outputPinStateBits: %lu", report.outputPinStateBits);
-        PRINTF_TO_LANDER("resetActionBits: %llu", theContext.m_details.m_resetActionBits);
-        PRINTF_TO_LANDER("vLanderSense: %u", theContext.m_adcValues.vLanderSense);
-        PRINTF_TO_LANDER("battTemp: %u", theContext.m_adcValues.battTemp);
-        PRINTF_TO_LANDER("vSysAllSens: %u", theContext.m_adcValues.vSysAllSense);
-        PRINTF_TO_LANDER("iSysAllSense: %u", theContext.m_adcValues.iSysAllSense);
-        PRINTF_TO_LANDER("vBattSense: %u", theContext.m_adcValues.vBattSense);
-        PRINTF_TO_LANDER("vcc24: %u", theContext.m_adcValues.vcc24);
-        PRINTF_TO_LANDER("heatingControlEnabled: %u", report.heatingControlEnabled);
-        PRINTF_TO_LANDER("heating: %u", report.heating);
-        PRINTF_TO_LANDER("vcc2Point5: %u", theContext.m_adcValues.vcc2Point5);
-        PRINTF_TO_LANDER("vcc2Point8: %u", theContext.m_adcValues.vcc2Point8);
-        PRINTF_TO_LANDER("vcc28: %u", theContext.m_adcValues.vcc28);
-        PRINTF_TO_LANDER("kpHeater: %u", report.kpHeater);
-        PRINTF_TO_LANDER("heaterPwmLimit: %u", report.heaterPwmLimit);
-        PRINTF_TO_LANDER("heaterSetpoint: %u", report.heaterSetpoint);
-        PRINTF_TO_LANDER("heaterOnValue: %u", report.heaterOnValue);
-        PRINTF_TO_LANDER("heaterOffValue: %u", report.heaterOffValue);
-        PRINTF_TO_LANDER("heaterDutyCyclePeriod: %u", report.heaterDutyCyclePeriod);
-        PRINTF_TO_LANDER("heaterPwmValue: %u", report.heaterPwmValue);
-        PRINTF_TO_LANDER("rawBatteryCharge: %u %u", report.rawBatteryCharge[0], report.rawBatteryCharge[1]);
-        PRINTF_TO_LANDER("rawBatteryVoltage: %u %u", report.rawBatteryVoltage[0], report.rawBatteryVoltage[1]);
-        PRINTF_TO_LANDER("rawBatteryCurrent: %u %u", report.rawBatteryCurrent[0], report.rawBatteryCurrent[1]);
-        PRINTF_TO_LANDER("rawFuelGaugeTemp: %u %u", report.rawFuelGaugeTemp[0], report.rawFuelGaugeTemp[1]);
-        PRINTF_TO_LANDER("battChargeTelem: %u", report.battChargeTelem);
-        PRINTF_TO_LANDER("battCurrTelem: %u", report.battCurrTelem);
+        DebugComms_printfToLander("\n");
+        DebugComms__printDataAsHexToLander((uint8_t*) &report, sizeof(DetailedReport), FALSE);
+        DebugComms_printfToLander("chargeStat1: %u, ", report.chargeStat1);
+        DebugComms_printfToLander("chargeStat2: %u, ", report.chargeStat2);
+        DebugComms_printfToLander("battStat: %u, ", report.battStat);
+        DebugComms_printfToLander("latchStat: %u, ", report.latchStat);
+        DebugComms_printfToLander("pg12: %u, ", report.pg12);
+        DebugComms_printfToLander("pg18: %u, ", report.pg18);
+        DebugComms_printfToLander("pg33: %u, ", report.pg50);
+        DebugComms_printfToLander("state: %u, ", report.state);
+        DebugComms_printfToLander("deploymentStatus: %u, ", report.deploymentStatus);
+        DebugComms_printfToLander("uart0Initialized: %u, ", report.uart0Initialized);
+        DebugComms_printfToLander("uart1Initialized: %u, ", report.uart1Initialized);
+        DebugComms_printfToLander("adcBattRT: %u, ", report.adcBattRT);
+        DebugComms_printfToLander("sequenceNumber: %u, ", report.sequenceNumber);
+        DebugComms_printfToLander("outputPinStateBits: %lu, ", report.outputPinStateBits);
+        DebugComms_printfToLander("resetActionBits: %llu, ", theContext.m_details.m_resetActionBits);
+        DebugComms_printfToLander("vLanderSense: %u, ", theContext.m_adcValues.vLanderSense);
+        DebugComms_printfToLander("battTemp: %u, ", theContext.m_adcValues.battTemp);
+        DebugComms_printfToLander("vSysAllSens: %u, ", theContext.m_adcValues.vSysAllSense);
+        DebugComms_printfToLander("iSysAllSense: %u, ", theContext.m_adcValues.iSysAllSense);
+        DebugComms_printfToLander("vBattSense: %u, ", theContext.m_adcValues.vBattSense);
+        DebugComms_printfToLander("vcc24: %u, ", theContext.m_adcValues.vcc24);
+        DebugComms_printfToLander("heatingControlEnabled: %u, ", report.heatingControlEnabled);
+        DebugComms_printfToLander("heating: %u, ", report.heating);
+        DebugComms_printfToLander("vcc2Point5: %u, ", theContext.m_adcValues.vcc2Point5);
+        DebugComms_printfToLander("vcc2Point8: %u, ", theContext.m_adcValues.vcc2Point8);
+        DebugComms_printfToLander("vcc28: %u, ", theContext.m_adcValues.vcc28);
+        DebugComms_printfToLander("kpHeater: %u, ", report.kpHeater);
+        DebugComms_printfToLander("heaterPwmLimit: %u, ", report.heaterPwmLimit);
+        DebugComms_printfToLander("heaterSetpoint: %u, ", report.heaterSetpoint);
+        DebugComms_printfToLander("heaterOnValue: %u, ", report.heaterOnValue);
+        DebugComms_printfToLander("heaterOffValue: %u, ", report.heaterOffValue);
+        DebugComms_printfToLander("heaterDutyCyclePeriod: %u, ", report.heaterDutyCyclePeriod);
+        DebugComms_printfToLander("heaterPwmValue: %u, ", report.heaterPwmValue);
+        DebugComms_printfToLander("rawBatteryCharge: %u %u, ", report.rawBatteryCharge[0], report.rawBatteryCharge[1]);
+        DebugComms_printfToLander("rawBatteryVoltage: %u %u, ", report.rawBatteryVoltage[0], report.rawBatteryVoltage[1]);
+        DebugComms_printfToLander("rawBatteryCurrent: %u %u, ", report.rawBatteryCurrent[0], report.rawBatteryCurrent[1]);
+        DebugComms_printfToLander("rawFuelGaugeTemp: %u %u, ", report.rawFuelGaugeTemp[0], report.rawFuelGaugeTemp[1]);
+        DebugComms_printfToLander("battChargeTelem: %u, ", report.battChargeTelem);
+        DebugComms_printfToLander("battCurrTelem: %u", report.battCurrTelem);
+        DebugComms_printfToLander("\n\n");
 #endif // DEBUG_REPORT
     }
 

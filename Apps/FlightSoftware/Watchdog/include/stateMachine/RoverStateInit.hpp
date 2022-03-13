@@ -8,7 +8,8 @@ namespace iris
     class RoverStateInit : public RoverStateBase
     {
         public:
-            explicit RoverStateInit(RoverState firstState);
+            explicit RoverStateInit(RoverState firstState,
+                                    const char* resetReasonString);
 
             bool canEnterLowPowerMode(RoverContext& theContext) override;
 
@@ -28,6 +29,7 @@ namespace iris
 
         private:
             RoverState m_firstState;
+            const char* m_resetReasonString;
     };
 
 }

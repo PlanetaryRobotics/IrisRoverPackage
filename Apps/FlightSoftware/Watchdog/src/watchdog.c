@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "comms/debug_comms.h"
 #include "comms/ip_udp.h"
 #include "comms/i2c_sensors.h"
 #include "drivers/adc.h"

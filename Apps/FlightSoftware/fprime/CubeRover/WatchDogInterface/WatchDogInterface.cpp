@@ -45,7 +45,7 @@ namespace CubeRover {
 #else
     WatchDogInterfaceComponentImpl(void)
 #endif
-      , m_sci(scilinREG), m_finished_initializing(false), m_txCmdArray(), m_rxTask()
+      , m_sci(scilinREG), m_finished_initializing(false), m_txCmdArray(), m_rxTask(), m_downlinkSequenceNumber(0)
     {
         m_txCmdArray.commands[COMMAND_INDEX__STROKE].opcode = static_cast<FwOpcodeType>(STROKE_OPCODE);
         m_txCmdArray.commands[COMMAND_INDEX__DOWNLINK].opcode = static_cast<FwOpcodeType>(DOWNLINK_OPCODE);
@@ -142,10 +142,8 @@ namespace CubeRover {
           Fw::Buffer &fwBuffer
       )
     {
-        static uint16_t sequenceNumber = 0;
-
         bool success = txCommand(DOWNLINK_OPCODE,
-                                 sequenceNumber,
+                                 m_downlinkSequenceNumber,
                                  static_cast<uint16_t>(No_Reset),
 #pragma diag_push
 #pragma diag_suppress 1107
@@ -158,9 +156,13 @@ namespace CubeRover {
                                  true);
 
         if (success) {
-            sequenceNumber++;
+            m_downlinkSequenceNumber++;
         } else {
             // TODO: Add logging error
+        }
+
+        if (static_cast<size_t>(fwBuffer.getsize()) > 650) {
+            debugPrintfToWatchdog("fwBuffer has size %u\n", static_cast<size_t>(fwBuffer.getsize()));
         }
 
         return;    
@@ -714,72 +716,75 @@ namespace CubeRover {
   
         frame.parity = ~runningParity;
   
-        TxCommandStatus* cmdStatus = getTxCommandStatusFullOpcode(opCode);
-  
-        if (NULL == cmdStatus) {
-            return false;
-        }
-  
-        // Get the current time
-        Fw::Time now = getTime();
-        uint32_t nowMillis = static_cast<uint32_t>(now.get_time_ms());
-        bool previousStillWaiting = false;
-        bool timeout = false;
-        FwOpcodeType timedOutOpcode = 0;
-        U32 timedOutSeqNum = 0;
-        bool timedOutSendResponse = false;
-  
-        
-        { // We shouldn't leave this scope without unlocking the mutex
-            m_txCmdArray.cmdMutex.lock();
-  
-            // Note: We don't want to do any comms (or anything else long or complicated) with the mutex locked.
-  
-            // First, check if a command of this type is already active (i.e. waiting for a response)
-            if (cmdStatus->active) {
-                // One is active, so check if it has timed out (this will still work even if the time wraps)
-                if (nowMillis - cmdStatus->txTimeMillis >= COMMAND_TIMEOUT_MILLISECONDS) {
-                    // We're timing out the previous command.
-                    timeout = true;
-                    timedOutOpcode = cmdStatus->opcode;
-                    timedOutSeqNum = cmdStatus->seqNum;
-                    timedOutSendResponse = cmdStatus->sendResponse;
-                    cmdStatus->reset();
-                } else {
-                    // The previous tx of this command type has not timed out yet, so we won't send this command
-                    previousStillWaiting = true;
+        // Skip all response checking logic for debug messages, just send it
+        if (frame.opcode != DEBUG_OPCODE) {
+            TxCommandStatus* cmdStatus = getTxCommandStatusFullOpcode(opCode);
+
+            if (NULL == cmdStatus) {
+                return false;
+            }
+
+            // Get the current time
+            Fw::Time now = getTime();
+            uint32_t nowMillis = static_cast<uint32_t>(now.get_time_ms());
+            bool previousStillWaiting = false;
+            bool timeout = false;
+            FwOpcodeType timedOutOpcode = 0;
+            U32 timedOutSeqNum = 0;
+            bool timedOutSendResponse = false;
+
+
+            { // We shouldn't leave this scope without unlocking the mutex
+                m_txCmdArray.cmdMutex.lock();
+
+                // Note: We don't want to do any comms (or anything else long or complicated) with the mutex locked.
+
+                // First, check if a command of this type is already active (i.e. waiting for a response)
+                if (cmdStatus->active) {
+                    // One is active, so check if it has timed out (this will still work even if the time wraps)
+                    if (nowMillis - cmdStatus->txTimeMillis >= COMMAND_TIMEOUT_MILLISECONDS) {
+                        // We're timing out the previous command.
+                        timeout = true;
+                        timedOutOpcode = cmdStatus->opcode;
+                        timedOutSeqNum = cmdStatus->seqNum;
+                        timedOutSendResponse = cmdStatus->sendResponse;
+                        cmdStatus->reset();
+                    } else {
+                        // The previous tx of this command type has not timed out yet, so we won't send this command
+                        previousStillWaiting = true;
+                    }
+                }
+
+                // Update the tx command structure with the current data (only if we don't already have a command
+                // of this type waiting for a response)
+                if (!previousStillWaiting) {
+                  cmdStatus->active = true;
+                  cmdStatus->sendResponse = sendResponse;
+                  cmdStatus->seqNum = cmdSeq;
+                  cmdStatus->txTimeMillis = nowMillis;
+                }
+
+                m_txCmdArray.cmdMutex.unLock();
+            }
+
+            // Now actually send the response about the previous iteration of this command timing out
+            if (timeout) {
+                this->log_WARNING_HI_WatchDogTimedOut();
+
+                // Make sure we don't try to send a response about any of our fake opcodes, and don't
+                // send a response if we didn't want to send one when we sent the message
+                if (timedOutOpcode != STROKE_OPCODE
+                    && timedOutOpcode != DOWNLINK_OPCODE
+                    && timedOutSendResponse) {
+                  this->cmdResponse_out(timedOutOpcode, timedOutSeqNum, Fw::COMMAND_EXECUTION_ERROR);
                 }
             }
-  
-            // Update the tx command structure with the current data (only if we don't already have a command
-            // of this type waiting for a response)
-            if (!previousStillWaiting) {
-              cmdStatus->active = true;
-              cmdStatus->sendResponse = sendResponse;
-              cmdStatus->seqNum = cmdSeq;
-              cmdStatus->txTimeMillis = nowMillis;
+
+            // If we're not sending this command we don't want to continue
+            if (previousStillWaiting) {
+                // TODO: LOG ERROR (which error?)
+                return false;
             }
-  
-            m_txCmdArray.cmdMutex.unLock();
-        }
-  
-        // Now actually send the response about the previous iteration of this command timing out
-        if (timeout) {
-            this->log_WARNING_HI_WatchDogTimedOut();
-  
-            // Make sure we don't try to send a response about any of our fake opcodes, and don't
-            // send a response if we didn't want to send one when we sent the message
-            if (timedOutOpcode != STROKE_OPCODE
-                && timedOutOpcode != DOWNLINK_OPCODE
-                && timedOutSendResponse) {
-              this->cmdResponse_out(timedOutOpcode, timedOutSeqNum, Fw::COMMAND_EXECUTION_ERROR);
-            }
-        }
-  
-        // If we're not sending this command we don't want to continue
-        if (previousStillWaiting) {
-            // TODO: LOG ERROR (which error?)
-            return false;
         }
   
         // Finally we're ready to transmit. If this is header-only we can trasnmit it all in one go (since it's in
@@ -805,6 +810,33 @@ namespace CubeRover {
         }
   
         return true;
+    }
+
+    bool WatchDogInterfaceComponentImpl::debugPrintfToWatchdog(const char* fmt, ...)
+    {
+        if (fmt == NULL) {
+            return false;
+        }
+
+        memset(m_printBuffer, 0, sizeof(m_printBuffer));
+        sprintf(m_printBuffer, "DEBUG");
+        va_list args;
+        va_start(args, fmt);
+        vsnprintf(m_printBuffer + 5, sizeof(m_printBuffer) - 5, fmt, args);
+        va_end(args);
+
+        bool success = txCommand(DEBUG_OPCODE,
+                                 m_downlinkSequenceNumber,
+                                 static_cast<uint16_t>(No_Reset),
+                                 reinterpret_cast<uint8_t*>(m_printBuffer),
+                                 static_cast<size_t>(strnlen(m_printBuffer, sizeof(m_printBuffer))),
+                                 false);
+
+        if (success) {
+            m_downlinkSequenceNumber++;
+        }
+
+        return success;
     }
   
     // FIXME: Add timeout to escape polling loop

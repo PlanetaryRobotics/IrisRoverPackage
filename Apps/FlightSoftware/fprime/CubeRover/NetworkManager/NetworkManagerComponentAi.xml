@@ -68,7 +68,7 @@
 		    <!-- Matches `ErrorCode` from `Wf121.hpp` -->
 		    <enum name="WIFIErrorCode">
 		        <item name="NO_ERROR" value="0" />
-		        <item name="TRY_AGAIN" value="0x0001" />
+		        <item name="TRY_AGAIN" value="1" />
 		        <item name="INVALID_PARAMETER" value="0x0180" comment="This error code indicates that a command contained an invalid parameter" />
 		        <item name="DEVICE_WRONG_STATE" value="0x0181" comment="This error code indicates that the device is in wrong state to accept commands." />
 		        <item name="OUT_OF_MEMORY" value="0x0182" comment="This error indicates that the device has run out of memory." />
@@ -138,7 +138,6 @@
                     <item name="CONNECTED" />
                     <item name="DISCONNECTING" />
                     <item name="UDP_CONNECTED" />
-                    <item name="WIFIState_MAX" />
                 </enum>
         </channel>
     </telemetry>

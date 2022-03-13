@@ -12,6 +12,7 @@
 
 #include <msp430.h>
 #include <assert.h>
+#include "comms/debug_comms.h"
 #include "drivers/uart.h"
 #include "drivers/bsp.h"
 #include "event/event.h"
@@ -191,7 +192,7 @@ UART__Status UART__uninit1(UART__State** uart1StateOut)
     return UART__STATUS__SUCCESS;
  }
 
-BOOL UART__checkIfSendable(UART__State* uartState, size_t dataLen)
+BOOL UART__checkIfSendable(UART__State* uartState, size_t dataLen, size_t* free)
 {
     if (NULL == uartState) {
         return FALSE;
@@ -213,10 +214,61 @@ BOOL UART__checkIfSendable(UART__State* uartState, size_t dataLen)
 
     numFree = RingBuffer__freeCount(uartState->txRingBuff);
 
-    // Re-enable the tx interrupt only if it was previously enabled
-    *(uartState->registers->UCAxIE) |= existingTxInterruptBitState;
+    // I'm not exactly sure what conditions are causing it, but I've seen the TX interrupts stall
+    // (i.e. TX interrupts stop occurring even though there is data in the TX ring buffer)
+    // To work around this, we re-enable the TXIFG bit here under certain conditions
+    /** @todo Replace hard-coded 1024 with a variable. This is cheating and will break if we change the buffer size */
+    //if ((existingTxInterruptBitState == 0) && numFree < 1024) {
+    //    *(uartState->registers->UCAxIFG) |= UCTXIFG;
+    //}
+
+    // Re-enable the tx interrupt only if it was previously enabled or if there are bytes remaining in the ring
+    // buffer
+    /** @todo Replace hard-coded 1024 with a variable. This is cheating and will break if we change the buffer size */
+    *(uartState->registers->UCAxIE) |= (existingTxInterruptBitState); //| ((numFree == 1024) ? UCTXIE : 0));
+
+    if (NULL != free) {
+        *free = numFree;
+    }
 
     return (dataLen <= numFree);
+}
+
+void UART__flushTx(UART__State* uartState)
+{
+    if (NULL == uartState) {
+        return;
+    }
+
+    if (!(uartState->initialized)) {
+        return;
+    }
+
+    size_t numUsed = 0;
+
+    do {
+        // Disable the tx interrupt for this uart while we get the number of free bytes in the ring buffer
+        uint16_t existingTxInterruptBitState = *(uartState->registers->UCAxIE) & UCTXIE;
+        *(uartState->registers->UCAxIE) &= ~UCTXIE;
+
+        numUsed = RingBuffer__usedCount(uartState->txRingBuff);
+
+        // I'm not exactly sure what conditions are causing it, but I've seen the TX interrupts stall
+        // (i.e. TX interrupts stop occurring even though there is data in the TX ring buffer)
+        // To work around this, we re-enable the TXIFG bit here under certain conditions
+        if ((existingTxInterruptBitState == 0) && numUsed > 0) {
+            *(uartState->registers->UCAxIFG) |= UCTXIFG;
+        }
+
+        // Re-enable the tx interrupt only if it was previously enabled or if there are bytes remaining in the ring
+        // buffer
+        *(uartState->registers->UCAxIE) |= (existingTxInterruptBitState);// | ((numUsed > 0) ? UCTXIE : 0));
+
+        if (numUsed != 0) {
+            __delay_cycles(10000);
+            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;// + WDTIS0;
+        }
+    } while (numUsed != 0);
 }
 
 UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t dataLen)
@@ -329,15 +381,13 @@ static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
                                                        buffers->txBuffer,
                                                        buffers->txBufferSize);
 
-        if (RB__STATUS__SUCCESS != rbStatus) {
-            return UART__STATUS__ERROR_RB_INIT_FAILURE;
-        }
+        DEBUG_LOG_CHECK_STATUS_RETURN(RB__STATUS__SUCCESS, rbStatus,
+                                      "Failed to init TX RB", UART__STATUS__ERROR_RB_INIT_FAILURE);
     } else {
         RingBuffer__Status rbStatus = RingBuffer__clear(state->txRingBuff);
 
-        if (RB__STATUS__SUCCESS != rbStatus) {
-            return UART__STATUS__ERROR_RB_INIT_FAILURE;
-        }
+        DEBUG_LOG_CHECK_STATUS_RETURN(RB__STATUS__SUCCESS, rbStatus,
+                                      "Failed to clear TX RB", UART__STATUS__ERROR_RB_CLEAR_FAILURE);
     }
 
 
@@ -346,15 +396,13 @@ static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
                                                        buffers->rxBuffer,
                                                        buffers->rxBufferSize);
 
-        if (RB__STATUS__SUCCESS != rbStatus) {
-            return UART__STATUS__ERROR_RB_INIT_FAILURE;
-        }
+        DEBUG_LOG_CHECK_STATUS_RETURN(RB__STATUS__SUCCESS, rbStatus,
+                                      "Failed to init RX RB", UART__STATUS__ERROR_RB_INIT_FAILURE);
     } else {
         RingBuffer__Status rbStatus = RingBuffer__clear(state->rxRingBuff);
 
-        if (RB__STATUS__SUCCESS != rbStatus) {
-            return UART__STATUS__ERROR_RB_INIT_FAILURE;
-        }
+        DEBUG_LOG_CHECK_STATUS_RETURN(RB__STATUS__SUCCESS, rbStatus,
+                                      "Failed to clear RX RB", UART__STATUS__ERROR_RB_CLEAR_FAILURE);
     }
 
     return UART__STATUS__SUCCESS;
@@ -478,6 +526,7 @@ static void UART__uart1Init() {
             } else if (RB__STATUS__ERROR_EMPTY == rbStatus) {                                    \
                 /* There are no more bytes to send, so disable TX interrupt for this uart */     \
                 *(uartState.registers->UCAxIE) &= ~UCTXIE;                                       \
+                /* *(uartState->registers->UCAxIFG) |= UCTXIFG;            */                         \
             } else {                                                                             \
                 /* An error occurred. */                                                         \
                 /** @todo handling? logging? */                                                  \

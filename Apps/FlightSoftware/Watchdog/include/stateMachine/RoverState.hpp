@@ -21,6 +21,8 @@ namespace iris
         //FAULT = 8 //!< Handle fault if possible, or halt
     };
 
+    const char * stateToString(RoverState state);
+
 }
 
 #endif /* __WATCHDOG_ROVER_STATE_HPP__ */

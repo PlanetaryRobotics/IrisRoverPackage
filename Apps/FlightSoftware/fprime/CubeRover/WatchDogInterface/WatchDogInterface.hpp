@@ -297,6 +297,11 @@ namespace CubeRover {
          * The opcode send in the header with uplink messages from the MSP430 watchdog.
          */
         static const uint16_t UPLINK_OPCODE = 0x0102u;
+
+        /**
+         * The opcode send in the header with debug log messages to the MSP430 watchdog.
+         */
+        static const uint16_t DEBUG_OPCODE = 0x0103u;
     
         /**
          * The indices in the TxCommandArray of the TxCommandStatus for each type of command that is sent to the
@@ -493,6 +498,8 @@ namespace CubeRover {
                        size_t dataLen = 0,
                        bool sendResponse = true);
 
+        bool debugPrintfToWatchdog(const char* fmt, ...);
+
         sciBASE_t *m_sci;   // The sci base used to initialize the watchdog interface connection 
         adcData_t m_thermistor_buffer[number_thermistors];  // Location to store current data for thermistors
         bool m_finished_initializing;     // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
@@ -506,6 +513,10 @@ namespace CubeRover {
          * The task that handles receiving messages from the MSP430 watchdog.
          */
         WatchDogRxTask m_rxTask;
+
+        uint16_t m_downlinkSequenceNumber;
+
+        char m_printBuffer[256];
     };
 
 } // end namespace CubeRover

@@ -4,7 +4,7 @@
 #include "CubeRover/Wf121/Wf121.hpp"
 #include "Include/FswPacket.hpp"      // PrimaryFlightController/FlightMCU/Include
 
-#define TRIES_EXECUTE_CALLBACK    50000
+#define TRIES_EXECUTE_CALLBACK    500
 #define PRESCALE_CHECK_SIGNAL     0         // Used to throttle how often wifi signal quality need to checked
                                             // 0: for no prescaling
 

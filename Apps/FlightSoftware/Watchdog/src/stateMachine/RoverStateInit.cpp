@@ -1,3 +1,4 @@
+#include "comms/debug_comms.h"
 #include "drivers/blimp.h"
 #include "drivers/bsp.h"
 #include "stateMachine/RoverStateInit.hpp"
@@ -9,9 +10,11 @@
 
 namespace iris
 {
-    RoverStateInit::RoverStateInit(RoverState firstState)
+    RoverStateInit::RoverStateInit(RoverState firstState,
+                                   const char* resetReasonString)
             : RoverStateBase(RoverState::INIT),
-              m_firstState(firstState)
+              m_firstState(firstState),
+              m_resetReasonString(resetReasonString)
     {
     }
 
@@ -78,7 +81,13 @@ namespace iris
 
             LanderComms__Status lcStatus = LanderComms__init(&(theContext.m_lcState), theContext.m_uart1State);
             assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
+
+            DebugComms__registerLanderComms(theContext.m_lcState);
         }
+
+        DebugComms__printfToLander("Watchdog in Init state\n");
+        DebugComms__printfToLander("Reason for last reset: %s\n", m_resetReasonString);
+
 
         /* set up watchdog */
         watchdog_init(&(theContext.m_watchdogFlags),

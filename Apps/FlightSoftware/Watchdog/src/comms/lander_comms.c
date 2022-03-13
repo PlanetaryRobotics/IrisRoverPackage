@@ -1,12 +1,15 @@
 #include <assert.h>
 #include <string.h>
+#include <msp430.h>
 
 #include "common.h"
+#include "comms/debug_comms.h"
 #include "comms/hercules_msgs.h"
 #include "comms/ip_udp.h"
 #include "comms/lander_comms.h"
 #include "comms/slip_encode.h"
 #include "comms/slip_mpsm.h"
+#include "utils/time.h"
 
 //###########################################################
 // Private types
@@ -221,12 +224,14 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
                                                                             lcState->txPacketId);
 
     // The above call failing indicates some kind of programmer error
-    assert(IP_UDP__STATUS__SUCCESS == ipStatus);
+    DEBUG_ASSERT_EQUAL(IP_UDP__STATUS__SUCCESS, ipStatus);
 
     size_t bytesToSend = LanderComms__determineSlipEncodedSize(uartHeaderData, SIZE_OF_ARRAY(uartHeaderData),
                                                                data, dataLen);
 
-    if(!UART__checkIfSendable(lcState->uartState, bytesToSend)) {
+    size_t free = 0;
+    if(!UART__checkIfSendable(lcState->uartState, bytesToSend, &free)) {
+        __no_operation();
         return LANDER_COMMS__STATUS__ERROR_TX_OVERFLOW;
     }
 
@@ -267,6 +272,66 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
     if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
         return lcStatus;
     }
+
+    return LANDER_COMMS__STATUS__SUCCESS;
+}
+
+LanderComms__Status LanderComms__txDataUntilSendOrTimeout(LanderComms__State* lcState,
+                                                          const uint8_t* data,
+                                                          size_t dataLen,
+                                                          uint16_t timeoutInCentiseconds)
+{
+    DEBUG_LOG_NULL_CHECK_RETURN(lcState, "Arg is NULL", LANDER_COMMS__STATUS__ERROR_NULL);
+    DEBUG_LOG_NULL_CHECK_RETURN(data, "Arg is NULL", LANDER_COMMS__STATUS__ERROR_NULL);
+
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + timeoutInCentiseconds;
+    static size_t txDurations[10] = { 0 };
+
+    memset(txDurations, 0, sizeof(txDurations));
+    size_t i = 0;
+
+    LanderComms__Status lcStatus = LANDER_COMMS__STATUS__SUCCESS;
+    BOOL timeout = FALSE;
+
+    do {
+        uint16_t txStartCentiseconds = Time__getTimeInCentiseconds();
+        lcStatus = LanderComms__txData(lcState,
+                                       data,
+                                       dataLen);
+        uint16_t txEndCentiseconds = Time__getTimeInCentiseconds();
+
+        if (i < 10) {
+            txDurations[i] = txEndCentiseconds - txStartCentiseconds;
+            i++;
+        }
+
+        __delay_cycles(1000);
+        WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;// + WDTIS0;
+        currentTimeCentiseconds = Time__getTimeInCentiseconds();
+        timeout = currentTimeCentiseconds > endTimeCentiseconds;
+    } while (lcStatus == LANDER_COMMS__STATUS__ERROR_TX_OVERFLOW && !timeout);
+
+    if (timeout) {
+        __no_operation();
+        return LANDER_COMMS__STATUS__ERROR_TIMEOUT;
+    } else {
+        return lcStatus;
+    }
+}
+
+LanderComms__Status LanderComms__flushTx(LanderComms__State* lcState)
+{
+    if (NULL == lcState) {
+        return LANDER_COMMS__STATUS__ERROR_NULL;
+    }
+
+    if (!lcState->initialized) {
+        return LANDER_COMMS__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    UART__flushTx(lcState->uartState);
 
     return LANDER_COMMS__STATUS__SUCCESS;
 }

@@ -1,5 +1,6 @@
 #include "stateMachine/RoverStateService.hpp"
 
+#include "comms/debug_comms.h"
 #include "comms/ground_msgs.h"
 #include "drivers/adc.h"
 #include "drivers/bsp.h"
@@ -75,6 +76,10 @@ namespace iris
 
         if (!theContext.m_i2cActive) {
             initiateNextI2cAction(theContext);
+        }
+
+        for (size_t i = 0; i < 50; ++i) {
+            //DebugComms__printfToLander("Done with WAITING_FOR_IO_EXPANDER_WRITE_1 substate\n");
         }
 
         return getState();

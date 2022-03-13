@@ -148,7 +148,9 @@ UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t 
 /**
  * Checks if there is enough room in the transmit buffer to store `dataLen` bytes of data.
  */
-BOOL UART__checkIfSendable(UART__State* uartState, size_t dataLen);
+BOOL UART__checkIfSendable(UART__State* uartState, size_t dataLen, size_t* free);
+
+void UART__flushTx(UART__State* uartState);
 
 /**
  * @brief Gets as much data as possible (up to the given buffer length) from the receive buffer of the given UART

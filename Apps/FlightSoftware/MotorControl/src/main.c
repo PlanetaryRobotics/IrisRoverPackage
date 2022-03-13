@@ -8,7 +8,7 @@
 //
 // ======================================================================
 
-#include "main.h"
+#include "include/main.h"
 
 // TODO: re-organize all these variable defs
 _iq g_currentPhaseA;
@@ -38,8 +38,8 @@ uint16_t g_controlPrescaler;
 
 volatile PI_CONTROLLER g_piSpd;
 volatile PI_CONTROLLER g_piCur;
-volatile IMPULSE g_impulse;
-volatile MOD6CNT g_mod6cnt;
+IMPULSE_TIMER impulse_timer;
+uint8_t comm_cycle_counter;
 
 bool g_closedLoop;
 bool g_targetReached;
@@ -251,20 +251,6 @@ void initializeHallInterface(void){
 }
 
 
-/**
- * @brief      Reset the PI controller
- *
- * @param      pi    { controller for either speed or current }
- */
-void resetPiController(volatile PI_CONTROLLER *pi){
-  pi->i1 = _IQ(0.0);    // reset integrator storage (stores pi->ui from last time step)
-  pi->ui = _IQ(0.0);    // reset integral term (sums error over time steps)
-  pi->v1 = _IQ(0.0);
-  pi->up = _IQ(0.0);
-  pi->Umax = _IQ(PI_OUTPUT_BOUNDS);
-  pi->Umin = _IQ(-PI_OUTPUT_BOUNDS);
-}
-
 
 /**
  * @brief      Disable the drive
@@ -312,30 +298,6 @@ void updateStateMachine(void){
     g_cmdState = NO_CMD;
 }
 
-/**
- * @brief      Clears the DRV8304 Driver Fault Register.
- */
-void clear_driver_fault(void){
-    __disable_interrupt(); // entering critical section
-    // Pull high first so you can then pull it low:
-//    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
-    PJOUT |= GPIO_PIN0;
-    __delay_cycles(DELAY_100_ms);
-    // Reset Fault Register by pulsing ENABLE for 5-32us (18.5us):
-//    GPIO_setOutputLowOnPin(GPIO_PORT_PJ, GPIO_PIN0);
-    PJOUT &= ~GPIO_PIN0;
-    __delay_cycles(296);    // 18.5 us
-//    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
-    PJOUT |= GPIO_PIN0;
-    __enable_interrupt();
-}
-/**
- * @brief      Reads the whether the DRV8304 driver is in a "fault condition" (and should be cleared). Active low.
- */
-bool read_driver_fault(void){
-    return !(PJIN & 0x02);
-}
-
 /*
  * @brief       TODO
  */
@@ -371,7 +333,8 @@ void initializeControllerVariables(void){
     g_maxSpeed = MAX_TARGET_SPEED;
 
     g_openLoopTorque = _IQ(OPEN_LOOP_TORQUE);
-    g_impulse.Period = PERIOD_IMPULSE;
+    impulse_timer.period = PERIOD_IMPULSE;
+    comm_cycle_counter = 0;
     g_targetDirection = 1;
 
     resetPiController(&g_piSpd);
@@ -424,13 +387,14 @@ void readSensors(void){
 
     if(g_closedLoop == false && g_targetReached == false){
         // Execute macro to generate ramp up
-        IMPULSE_MACRO(g_impulse);
-        if(g_impulse.Out){
-            MOD6CNT_MACRO(g_mod6cnt); // iterate to next commutation
+        iterate_impulse_timer(&impulse_timer, /*driving_open_loop=*/false);
+        if(impulse_timer.cycle){
+            comm_cycle_counter = iterate_mod6_counter(comm_cycle_counter, /*driving_open_loop=*/false);
+
             if (g_targetDirection > 0){
-                g_commState = g_mod6cnt.Counter;
+                g_commState = comm_cycle_counter;
             } else {
-                g_commState = 5 - g_mod6cnt.Counter; // account for driving in reverse (comm cycle reverses)
+                g_commState = 5 - comm_cycle_counter;
             }
         }
     }
@@ -531,12 +495,17 @@ void checkTargetReached(void){
 void driveOpenLoop(void){
     if(!g_targetReached){
         // Iterate through commutations & apply impulse to desired motor windings
-          OPEN_LOOP_IMPULSE_MACRO(g_impulse);
-          if(g_impulse.Out){
-            MOD6CNT_MACRO(g_mod6cnt);
-            g_commState = (g_targetDirection > 0) ? g_mod6cnt.Counter : 5 - g_mod6cnt.Counter;
-          }
+        iterate_impulse_timer(&impulse_timer, /*driving_open_loop=*/true);
 
+        if(impulse_timer.cycle){
+            comm_cycle_counter = iterate_mod6_counter(comm_cycle_counter, /*driving_open_loop=*/true);
+
+            if (g_targetDirection > 0){
+                g_commState = comm_cycle_counter;
+            } else {
+                g_commState = 5 - comm_cycle_counter;
+            }
+        }
 
         _iq output;
         if(g_controlRegister & OPEN_LOOP_TORQUE_OVERRIDE){

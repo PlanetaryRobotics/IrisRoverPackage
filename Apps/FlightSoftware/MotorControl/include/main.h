@@ -12,15 +12,14 @@
 /* Include the IQmath header file. */
 #define GLOBAL_IQ                   15
 #include "IQmathLib.h"
-
 #include "driverlib.h"
-#include "bsp.h"
-#include "i2c.h"
-
-#include "pi.h"
-#include "mod6_cnt.h"
-#include "impulse.h"
 #include <msp430.h>
+
+#include "include/bsp.h"
+#include "include/i2c.h"
+
+#include "include/pi.h"
+#include "include/utils.h"
 
 /* ============================================
  *          Bits of Registers
@@ -62,12 +61,6 @@
 #define OPEN_LOOP_SPEED                 3   // estimate of rotational distance (in hall sensor ticks) covered in 1/15.6 [sec] by motor when in open loop
 #define DRIVING_TIMEOUT_THRESHOLD       1872 // how much time in 1/15.6 [sec] before stopping driving (1872 = ~120 seconds)
 #define POSITION_CONVERGENCE_THRESHOLD  100 // how many motor ticks within target position motor needs to be to stop driving (absolute value)
-// control related constants (gains, thresholds, setpoints, default values)
-#define KP_SPD                  1.5
-#define KI_SPD                  0.0009
-#define KP_CUR                  0.95
-#define KI_CUR                  0.002
-#define PI_OUTPUT_BOUNDS        1.0 // will be converted to _IQ
 
 #define OPEN_LOOP_TORQUE        0.15       // for kick-starting into closed loop (normalized to 1.0, 1.0 being maximum current system can produce)
 #define PERIOD_IMPULSE          150       //   ^ also used to kick-start, see impulse.h for details

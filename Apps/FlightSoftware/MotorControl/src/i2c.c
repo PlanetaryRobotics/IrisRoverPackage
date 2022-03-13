@@ -9,7 +9,7 @@
 //          USES INTERRUPTS
 // ======================================================================
 
-#include "i2c.h"
+#include "include/i2c.h"
 
 uint8_t g_rxBuffer[I2C_RX_BUFFER_MAX_SIZE];
 uint8_t g_txBuffer[I2C_TX_BUFFER_MAX_SIZE];

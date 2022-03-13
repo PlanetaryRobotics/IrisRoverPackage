@@ -1,6 +1,5 @@
-#include "bsp.h"
+#include "include/bsp.h"
 #include "driverlib.h"
-//#include <msp430.h>
 
 /* Bit shift even ports
  */
@@ -881,4 +880,28 @@ void disableGateDriver(void){
   PJOUT &= ~GPIO_PIN0;
   __delay_cycles(DELAY_100_ms);
   __enable_interrupt();
+}
+
+/**
+ * @brief      Clears the DRV8304 Driver Fault Register.
+ */
+void clear_driver_fault(void){
+    __disable_interrupt(); // entering critical section
+    // Pull high first so you can then pull it low:
+//    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    PJOUT |= GPIO_PIN0;
+    __delay_cycles(DELAY_100_ms);
+    // Reset Fault Register by pulsing ENABLE for 5-32us (18.5us):
+//    GPIO_setOutputLowOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    PJOUT &= ~GPIO_PIN0;
+    __delay_cycles(296);    // 18.5 us
+//    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
+    PJOUT |= GPIO_PIN0;
+    __enable_interrupt();
+}
+/**
+ * @brief      Reads the whether the DRV8304 driver is in a "fault condition" (and should be cleared). Active low.
+ */
+bool read_driver_fault(void){
+    return !(PJIN & 0x02);
 }

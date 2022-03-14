@@ -23,9 +23,6 @@ uint8_t g_readRegAddr;
 uint8_t g_i2cCmdLength[MAX_NB_CMDS];
 
 // external variables that are written and read to
-extern volatile _iq g_currentSpeed;
-extern volatile int32_t g_currentPosition;
-extern volatile int32_t g_targetPosition;
 extern volatile struct PI_CONTROLLER g_piSpd;
 extern volatile struct PI_CONTROLLER g_piCur;
 extern volatile uint16_t g_maxSpeed;
@@ -34,7 +31,7 @@ extern uint8_t g_controlRegister;
 extern uint8_t g_faultRegister;
 extern uint32_t g_drivingTimeoutCtr;
 extern uint16_t g_accelRate, g_decelRate;
-extern CmdState g_cmdState;
+extern volatile MOTOR_STATE g_motor_state;
 
 
 /**
@@ -112,14 +109,14 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
         g_slaveMode = TX_DATA_MODE;
         g_txByteCtr = g_i2cCmdLength[cmd];
         //Fill out the TransmitBuffer
-        copyArray((uint8_t*)&g_currentPosition, (uint8_t*)g_txBuffer, g_txByteCtr);
+        copyArray((uint8_t*)&g_motor_state.current_position, (uint8_t*)g_txBuffer, g_txByteCtr);
         disableI2cRxInterrupt();
         enableI2cTxInterrupt();
         break;
       case CURRENT_SPEED:
         g_slaveMode = TX_DATA_MODE;
         g_txByteCtr = g_i2cCmdLength[cmd];
-        int16_t speed_info = (int16_t)(g_currentSpeed >> 7); // 7 LSBs are 0s, 16 MSBs are too
+        int16_t speed_info = (int16_t)(g_motor_state.current_speed >> 7); // 7 LSBs are 0s, 16 MSBs are too
         //Fill out the TransmitBuffer
         copyArray((uint8_t*)&speed_info, (uint8_t*)g_txBuffer, g_txByteCtr);
         disableI2cRxInterrupt();
@@ -196,9 +193,9 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
         break;
       case TARGET_POSITION:
         copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&g_targetPosition,
-                  sizeof(g_targetPosition));
-        g_currentPosition = 0; // reset because target pos is relative
+                  (uint8_t*)&g_motor_state.target_position,
+                  sizeof(g_motor_state.target_position));
+        g_motor_state.current_position = 0; // reset because target pos is relative
         g_statusRegister &= ~POSITION_CONVERGED; // likely no longer converged (if still converged, control loop will correct for that)
         g_drivingTimeoutCtr = 0; //reset timeout counter
         g_faultRegister = 0; // reset fault register
@@ -255,12 +252,12 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
         }
         // update state machine if requested
         if(g_controlRegister & STATE_MACHINE_DISABLE){
-            g_cmdState = DISABLE;
-            updateStateMachine();
+            g_motor_state.state_machine.command = DISABLE;
+            updateStateMachine(&g_motor_state);
             g_statusRegister |= STATE_MACHINE_DISABLE; // status reg bit 3: 1 if in disable state, 0 if not
         } else if (g_controlRegister & STATE_MACHINE_RUN){
-            g_cmdState = RUN;
-            updateStateMachine();
+            g_motor_state.state_machine.command = RUN;
+            updateStateMachine(&g_motor_state);
             g_statusRegister &= ~STATE_MACHINE_DISABLE;
         }
 

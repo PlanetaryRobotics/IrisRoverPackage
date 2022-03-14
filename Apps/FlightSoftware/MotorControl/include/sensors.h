@@ -34,15 +34,10 @@ typedef struct CURRENT_SENSOR{
     _iq current_offset_phase_B;
     _iq current_offset_phase_C;
 
-    bool read_sensors;
+    _iq current_phase_A;
+    _iq current_phase_B;
+    _iq current_phase_C;
 
 }CURRENT_SENSOR;
 
-
-void initializeHallInterface(volatile MOTOR* motor);
-void initializeSensorVariables(volatile MOTOR* motor);
-void currentOffsetCalibration(volatile MOTOR* motor);
-inline void readHallSensor(volatile MOTOR* motor);
-_iq getSpeed(volatile MOTOR* motor);
-void readSensors(volatile MOTOR* motor);
 #endif /* INCLUDE_SENSORS_H_ */

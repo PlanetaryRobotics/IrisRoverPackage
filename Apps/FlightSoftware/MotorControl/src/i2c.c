@@ -26,10 +26,7 @@ uint8_t g_i2cCmdLength[MAX_NB_CMDS];
 extern volatile struct PI_CONTROLLER g_piSpd;
 extern volatile struct PI_CONTROLLER g_piCur;
 extern volatile uint16_t g_maxSpeed;
-extern uint8_t g_statusRegister;
-extern uint8_t g_controlRegister;
-extern uint8_t g_faultRegister;
-extern uint32_t g_drivingTimeoutCtr;
+
 extern uint16_t g_accelRate, g_decelRate;
 extern volatile MOTOR g_motor;
 
@@ -134,7 +131,7 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
         g_slaveMode = TX_DATA_MODE;
         g_txByteCtr = g_i2cCmdLength[cmd];
         //Fill out the TransmitBuffer
-        copyArray((uint8_t*)&g_statusRegister, (uint8_t*)g_txBuffer, g_txByteCtr);
+        copyArray((uint8_t*)&g_motor.registers.status_register, (uint8_t*)g_txBuffer, g_txByteCtr);
         disableI2cRxInterrupt();
         enableI2cTxInterrupt();    
         break;
@@ -142,14 +139,14 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
         g_slaveMode = TX_DATA_MODE;
         g_txByteCtr = g_i2cCmdLength[cmd];
 
-        //update g_faultRegister with if there is fault in motor driver
+        //update g_motor.registers.fault_register with if there is fault in motor driver
         if(read_driver_fault())
-            g_faultRegister |= DRIVER_FAULT;
+            g_motor.registers.fault_register |= DRIVER_FAULT;
         else
-            g_faultRegister &= ~DRIVER_FAULT;
+            g_motor.registers.fault_register &= ~DRIVER_FAULT;
 
         //Fill out the TransmitBuffer
-        copyArray((uint8_t*)&g_faultRegister, (uint8_t*)g_txBuffer, g_txByteCtr);
+        copyArray((uint8_t*)&g_motor.registers.fault_register, (uint8_t*)g_txBuffer, g_txByteCtr);
         disableI2cRxInterrupt();
         enableI2cTxInterrupt();    
         break;        
@@ -196,9 +193,9 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
                   (uint8_t*)&g_motor.target_position,
                   sizeof(g_motor.target_position));
         g_motor.current_position = 0; // reset because target pos is relative
-        g_statusRegister &= ~POSITION_CONVERGED; // likely no longer converged (if still converged, control loop will correct for that)
-        g_drivingTimeoutCtr = 0; //reset timeout counter
-        g_faultRegister = 0; // reset fault register
+        g_motor.registers.status_register &= ~POSITION_CONVERGED; // likely no longer converged (if still converged, control loop will correct for that)
+        g_motor.driving_timeout_ctr = 0; //reset timeout counter
+        g_motor.registers.fault_register = 0; // reset fault register
         break;
       case TARGET_SPEED:
       {
@@ -238,27 +235,27 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
       }
       case CONTROL_REGISTER:
         copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&g_controlRegister,
-                   sizeof(g_controlRegister));
+                  (uint8_t*)&g_motor.registers.control_register,
+                   sizeof(g_motor.registers.control_register));
 
         // update status register if told to drive in open loop
-        if(g_controlRegister & DRIVE_OPEN_LOOP){
-            g_statusRegister |= DRIVE_OPEN_LOOP;
+        if(g_motor.registers.control_register & DRIVE_OPEN_LOOP){
+            g_motor.registers.status_register |= DRIVE_OPEN_LOOP;
         }
 
-        if(g_controlRegister & CLEAR_DRIVER_FAULT){
+        if(g_motor.registers.control_register & CLEAR_DRIVER_FAULT){
             clear_driver_fault();
-            g_statusRegister |= CLEAR_DRIVER_FAULT; // indicates an attempt to clear fault was made
+            g_motor.registers.status_register |= CLEAR_DRIVER_FAULT; // indicates an attempt to clear fault was made
         }
         // update state machine if requested
-        if(g_controlRegister & STATE_MACHINE_DISABLE){
+        if(g_motor.registers.control_register & STATE_MACHINE_DISABLE){
             g_motor.state_machine.command = DISABLE;
             updateStateMachine(&g_motor);
-            g_statusRegister |= STATE_MACHINE_DISABLE; // status reg bit 3: 1 if in disable state, 0 if not
-        } else if (g_controlRegister & STATE_MACHINE_RUN){
+            g_motor.registers.status_register |= STATE_MACHINE_DISABLE; // status reg bit 3: 1 if in disable state, 0 if not
+        } else if (g_motor.registers.control_register & STATE_MACHINE_RUN){
             g_motor.state_machine.command = RUN;
             updateStateMachine(&g_motor);
-            g_statusRegister &= ~STATE_MACHINE_DISABLE;
+            g_motor.registers.status_register &= ~STATE_MACHINE_DISABLE;
         }
 
         break;     

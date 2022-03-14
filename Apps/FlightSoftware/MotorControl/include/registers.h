@@ -33,4 +33,10 @@ enum FAULT_REGISTER_BITS {
     DRIVING_TIMEOUT = 8           // for if motor does not converge in time defined by DRIVING_TIMEOUT_THRESHOLD
 };
 
+typedef struct REGISTERS{
+    uint8_t status_register;
+    uint8_t control_register;
+    uint8_t fault_register;
+}REGISTERS;
+
 #endif /* INCLUDE_REGISTERS_H_ */

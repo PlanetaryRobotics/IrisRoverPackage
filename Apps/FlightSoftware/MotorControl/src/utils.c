@@ -18,7 +18,7 @@ void iterate_impulse_timer(IMPULSE_TIMER* i_timer, uint8_t driving_open_loop){
     if(driving_open_loop){
         i_timer->counter += 2;
     } else {
-        i_timer->counter++;
+        i_timer->counter += 1;
     }
 
     if (i_timer->counter >= i_timer->period){

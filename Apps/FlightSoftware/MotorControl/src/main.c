@@ -10,14 +10,8 @@
 
 #include "include/main.h"
 
-// TODO: re-organize all these variable defs
-_iq g_currentPhaseA;
-_iq g_currentPhaseB;
-_iq g_currentPhaseC;
-_iq g_feedforwardFW;
-
 //// Used for calibration
-//bool motor->current_sensor.read_sensors = false;
+//bool motor->read_sensors = false;
 
 _iq g_openLoopTorque;
 _iq g_closeLoopThreshold;
@@ -28,7 +22,7 @@ uint16_t g_controlPrescaler;
 
 volatile PI_CONTROLLER g_piSpd;
 volatile PI_CONTROLLER g_piCur;
-IMPULSE_TIMER impulse_timer;
+IMPULSE_TIMER g_impulse_timer;
 
 volatile uint8_t g_maxSpeed;
 
@@ -37,10 +31,6 @@ volatile MOTOR g_motor;
 volatile uint16_t g_accelRate;
 volatile uint16_t g_decelRate;
 
-uint8_t g_statusRegister;
-volatile uint8_t g_controlRegister;
-volatile uint8_t g_faultRegister;
-volatile uint32_t g_drivingTimeoutCtr;
 uint8_t g_errorCounter= 0; // incremented every time inner control loop is reached and motor is acting strange
                            // if it exceeds ERROR_ITERATION_THRESHOLD then motor is stopped
 
@@ -54,7 +44,7 @@ void initializeSoftwareControlVariables(volatile MOTOR* motor){
     motor->closed_loop = false;
     motor->state_machine.state = RUNNING;
     motor->state_machine.command = NO_CMD;
-    g_controlRegister = 0; // see main.h for bits
+    motor->registers.control_register = 0; // see main.h for bits
 }
 
 /*
@@ -64,7 +54,7 @@ void initializeControllerVariables(volatile MOTOR* motor){
     g_maxSpeed = MAX_TARGET_SPEED;
 
     g_openLoopTorque = _IQ(OPEN_LOOP_TORQUE);
-    impulse_timer.period = PERIOD_IMPULSE;
+    g_impulse_timer.period = PERIOD_IMPULSE;
     motor->hall_sensor.comm_cycle_counter = 0;
 
     resetPiController(&g_piSpd);
@@ -157,14 +147,14 @@ void checkTargetReached(volatile MOTOR* motor){
     if  (_IQabs(motor->target_position - motor->current_position) < POSITION_CONVERGENCE_THRESHOLD) {
           // target has been reached
           motor->target_reached = true;
-          g_statusRegister |= POSITION_CONVERGED;
+          motor->registers.status_register |= POSITION_CONVERGED;
           // turn off output
           _iq output = 0;
           pwmGenerator(motor->hall_sensor.comm_state, output);
       } else {
           // target not reached yet
           motor->target_reached = false;
-          g_statusRegister &= ~POSITION_CONVERGED;
+          motor->registers.status_register &= ~POSITION_CONVERGED;
       }
 }
 
@@ -174,9 +164,9 @@ void checkTargetReached(volatile MOTOR* motor){
 void driveOpenLoop(volatile MOTOR* motor){
     if(!motor->target_reached){
         // Iterate through commutations & apply impulse to desired motor windings
-        iterate_impulse_timer(&impulse_timer, /*driving_open_loop=*/true);
+        iterate_impulse_timer(&g_impulse_timer, /*driving_open_loop=*/true);
 
-        if(impulse_timer.cycle){
+        if(g_impulse_timer.cycle){
             motor->hall_sensor.comm_cycle_counter = iterate_mod6_counter(motor->hall_sensor.comm_cycle_counter, /*driving_open_loop=*/true);
 
             if (motor->target_direction > 0){
@@ -187,7 +177,7 @@ void driveOpenLoop(volatile MOTOR* motor){
         }
 
         _iq output;
-        if(g_controlRegister & OPEN_LOOP_TORQUE_OVERRIDE){
+        if(motor->registers.control_register & OPEN_LOOP_TORQUE_OVERRIDE){
             output = _IQ(g_maxSpeed / MAX_TARGET_SPEED); // apply user specified output
         }
         else{
@@ -209,7 +199,7 @@ void driveOpenLoop(volatile MOTOR* motor){
         motor->current_position += motor->target_direction * OPEN_LOOP_SPEED;
 
         if(!motor->target_reached){
-            g_drivingTimeoutCtr++;
+            motor->driving_timeout_ctr++;
         }
     }
 }
@@ -220,7 +210,7 @@ void driveOpenLoop(volatile MOTOR* motor){
 void closedLoopCurrentLoop(volatile MOTOR* motor){
     // inner control loop (current), apply output as PWM duty cycle
     // Normalize current values from  -2047 < adc < +2048 to iq15 --> -1.0 < adc < 1.0 and convert to iq format
-    g_piCur.Fbk = (g_currentPhaseA + g_currentPhaseB + g_currentPhaseC) << 4;
+    g_piCur.Fbk = (motor->current_sensor.current_phase_A + motor->current_sensor.current_phase_B + motor->current_sensor.current_phase_C) << 4;
     g_piCur.Ref = g_piSpd.Out;
 
     pi_iteration(&g_piCur);
@@ -262,24 +252,77 @@ void checkForClosedLoopErrors(volatile MOTOR* motor){
     if (motor->current_position == motor->last_position && !motor->target_reached){
       // position isn't updating; hall sensors likely not powered or broken
       g_errorCounter++;
-      g_faultRegister |= POSITION_NO_CHANGE;
+      motor->registers.fault_register |= POSITION_NO_CHANGE;
     } else if ( (motor->current_position - motor->last_position)*motor->target_direction < 0 && !motor->target_reached){
       // moving in wrong direction
       g_errorCounter++;
-      g_faultRegister |= DRIVING_WRONG_DIRECTION;
+      motor->registers.fault_register |= DRIVING_WRONG_DIRECTION;
     } else {
       // operating normally; no error
-      g_statusRegister &= ~CONTROLLER_ERROR;
+      motor->registers.status_register &= ~CONTROLLER_ERROR;
       g_errorCounter = 0; // reset error counter
-      g_faultRegister &= ~(POSITION_NO_CHANGE & DRIVING_WRONG_DIRECTION); //clear faults in register
+      motor->registers.fault_register &= ~(POSITION_NO_CHANGE & DRIVING_WRONG_DIRECTION); //clear faults in register
     }
 
     // errors on last ERROR_ITERATION_THRESHOLD time steps; time to stop trying to drive motor
     if(g_errorCounter >= ERROR_ITERATION_THRESHOLD){
-      if (g_controlRegister & OVERRIDE_FAULT_DETECTION == 0x00) //check if we should stop controller given fault
+      if (motor->registers.control_register & OVERRIDE_FAULT_DETECTION == 0x00) //check if we should stop controller given fault
           motor->target_position = motor->current_position = 0; //stop controller
-      g_statusRegister |= CONTROLLER_ERROR; // add flag to status register
+      motor->registers.status_register |= CONTROLLER_ERROR; // add flag to status register
     }
+}
+
+/*
+* @brief  update sensor (Hall & current) readings for when driving in closed loop
+*/
+void readSensors(volatile MOTOR* motor){
+
+    // measure hall sensors
+    readHallSensor(motor);
+
+    if(motor->closed_loop == false && motor->target_reached == false){
+        // Execute macro to generate ramp up
+        iterate_impulse_timer(&g_impulse_timer, /*driving_open_loop=*/false);
+        if(g_impulse_timer.cycle){
+            motor->hall_sensor.comm_cycle_counter = iterate_mod6_counter(motor->hall_sensor.comm_cycle_counter, /*driving_open_loop=*/false);
+
+            if (motor->target_direction > 0){
+                motor->hall_sensor.comm_state = motor->hall_sensor.comm_cycle_counter;
+            } else {
+                motor->hall_sensor.comm_state = 5 - motor->hall_sensor.comm_cycle_counter;
+            }
+        }
+    }
+    else{
+        // allow commutation to be controlled by hall sensor readings (will time them way better than we could)
+        motor->hall_sensor.comm_state = motor->hall_sensor.HALL_MAP[motor->hall_sensor.pattern];
+    }
+
+    // update current position based on hall sensor readings
+    if(motor->hall_sensor.Event){
+        if(motor->hall_sensor.HALL_MAP[motor->hall_sensor.pattern] == 5 && motor->hall_sensor.last_comm_state == 0){
+            motor->current_position--;
+        }
+        else if(motor->hall_sensor.HALL_MAP[motor->hall_sensor.pattern] == 0 && motor->hall_sensor.last_comm_state == 5){
+            motor->current_position++;
+        }
+        else if(motor->hall_sensor.HALL_MAP[motor->hall_sensor.pattern] > motor->hall_sensor.last_comm_state){
+            motor->current_position++;
+        }
+        else{
+            motor->current_position--;
+        }
+        motor->hall_sensor.last_comm_state = motor->hall_sensor.HALL_MAP[motor->hall_sensor.pattern];
+    }
+
+    // update current readings
+    // Prepare ADC conversion for next round
+    HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) &= ~(ADC12ENC);
+    HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) |= ADC12ENC + ADC12SC;
+    // Remove offset
+    motor->current_sensor.current_phase_A = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_0)) - motor->current_sensor.current_offset_phase_A;
+    motor->current_sensor.current_phase_B = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_1)) - motor->current_sensor.current_offset_phase_B;
+    motor->current_sensor.current_phase_C = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_2)) - motor->current_sensor.current_offset_phase_C;
 }
 
 
@@ -292,8 +335,8 @@ void main(void){
   WDT_A_hold(WDT_A_BASE);
 
   initController(&g_motor); //init all variables and functionality needed to drive
-//  g_targetPosition = 10000;
-//  g_controlRegister = 33;
+  g_motor.target_position = 10000;
+  g_motor.registers.control_register = 32;
 
   while(1){
       checkTargetReached(&g_motor);
@@ -306,16 +349,16 @@ void main(void){
       }
 
       // check if driving in open or closed loop (& have been told to execute command), act accordingly
-      if (g_controlRegister & DRIVE_OPEN_LOOP && g_controlRegister & EXECUTE_COMMAND) {
+      if (g_motor.registers.control_register & DRIVE_OPEN_LOOP && g_motor.registers.control_register & EXECUTE_COMMAND) {
           // driving in fully open loop
           driveOpenLoop(&g_motor);
 
-      } else if (g_controlRegister & EXECUTE_COMMAND){
+      } else if (g_motor.registers.control_register & EXECUTE_COMMAND){
         // driving closed loop
 
-        if(g_motor.current_sensor.read_sensors){ // update sensor readings if requested by timer interrupt
+        if(g_motor.read_sensors){ // update sensor readings if requested by timer interrupt
             readSensors(&g_motor);
-            g_motor.current_sensor.read_sensors = false;
+            g_motor.read_sensors = false;
         }
 
         closedLoopCurrentLoop(&g_motor); // inner loop of controller
@@ -328,13 +371,13 @@ void main(void){
           // reset control prescaler & tick timeout counter
           g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
           if(!g_motor.target_reached){
-              g_drivingTimeoutCtr++;
+              g_motor.driving_timeout_ctr++;
           }
         }
       }
 
       // check if motor has taken too long to converge, act accordingly if so
-      if(g_drivingTimeoutCtr > DRIVING_TIMEOUT_THRESHOLD){
+      if(g_motor.driving_timeout_ctr > DRIVING_TIMEOUT_THRESHOLD){
           handleMotorTimeout(&g_motor);
       }
   } // end of while loop
@@ -349,7 +392,7 @@ void main(void){
 #pragma vector=TIMER0_B0_VECTOR
 __interrupt void TIMER0_B0_ISR (void){
 
-    g_motor.current_sensor.read_sensors=true; // read sensors (hall/encoders & current) again every time this interrupts fires
+    g_motor.read_sensors=true; // read sensors (hall/encoders & current) again every time this interrupts fires
 
     // without conditional can get huge and negative
    if(g_controlPrescaler>0)

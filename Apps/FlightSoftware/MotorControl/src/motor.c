@@ -67,15 +67,16 @@ void updateStateMachine(volatile MOTOR* motor){
 void handleMotorTimeout(volatile MOTOR* motor){
     motor->target_reached = true;
     motor->target_position = motor->current_position; // so motor won't flip g_targetReached again
-    g_faultRegister |= DRIVING_TIMEOUT;
-    g_statusRegister |= (POSITION_CONVERGED | CONTROLLER_ERROR);
-    g_drivingTimeoutCtr = 0;
+    motor->registers.fault_register |= DRIVING_TIMEOUT;
+    motor->registers.status_register |= (POSITION_CONVERGED | CONTROLLER_ERROR);
+    motor->driving_timeout_ctr = 0;
 }
 
 
 /* ========================================================================
  *                      Sensor Functions
- */ =======================================================================
+ * =======================================================================
+ */
 
 /**
 * @brief      Initializes the hall interface.
@@ -106,7 +107,7 @@ void initializeSensorVariables(volatile MOTOR* motor){
      motor->current_position = 0;
      motor->last_position = motor->current_position;
      motor->target_position = 0;
-     g_drivingTimeoutCtr = 0;
+     motor->driving_timeout_ctr = 0;
 }
 
 /**
@@ -134,12 +135,13 @@ void currentOffsetCalibration(volatile MOTOR* motor){
 /**
 * @brief      Reads a hall sensor.
 */
-inline void readHallSensor(volatile MOTOR* motor){
+void readHallSensor(volatile MOTOR* motor){
     motor->hall_sensor.pattern = READ_HALL_W >> 1;   // W
     motor->hall_sensor.pattern |= READ_HALL_V >> 4;  // V
     motor->hall_sensor.pattern |= READ_HALL_U >> 6;  // U
     motor->hall_sensor.Event = motor->hall_sensor.pattern ^ motor->hall_sensor.last_pattern;
     motor->hall_sensor.last_pattern = motor->hall_sensor.pattern;
+
     if(motor->hall_sensor.pattern & 0x07){
        motor->hall_sensor.Error = 1;
     }
@@ -165,56 +167,3 @@ _iq getSpeed(volatile MOTOR* motor){
     return motor->current_speed;
 }
 
-
-/*
-* @brief  update sensor (Hall & current) readings for when driving in closed loop
-*/
-void readSensors(volatile MOTOR* motor){
-
-    // measure hall sensors
-    readHallSensor(motor);
-
-    if(motor->closed_loop == false && motor->target_reached == false){
-        // Execute macro to generate ramp up
-        iterate_impulse_timer(&impulse_timer, /*driving_open_loop=*/false);
-        if(impulse_timer.cycle){
-            motor->hall_sensor.comm_cycle_counter = iterate_mod6_counter(motor->hall_sensor.comm_cycle_counter, /*driving_open_loop=*/false);
-
-            if (motor->target_direction > 0){
-                motor->hall_sensor.comm_state = motor->hall_sensor.comm_cycle_counter;
-            } else {
-                motor->hall_sensor.comm_state = 5 - motor->hall_sensor.comm_cycle_counter;
-            }
-        }
-    }
-    else{
-        // allow commutation to be controlled by hall sensor readings (will time them way better than we could)
-        motor->hall_sensor.comm_state = motor->hall_sensor.HALL_MAP[motor->hall_sensor.pattern];
-    }
-
-    // update current position based on hall sensor readings
-    if(motor->hall_sensor.Event){
-        if(motor->hall_sensor.HALL_MAP[motor->hall_sensor.pattern] == 5 && motor->hall_sensor.last_comm_state == 0){
-            motor->current_position--;
-        }
-        else if(motor->hall_sensor.HALL_MAP[motor->hall_sensor.pattern] == 0 && motor->hall_sensor.last_comm_state == 5){
-            motor->current_position++;
-        }
-        else if(motor->hall_sensor.HALL_MAP[motor->hall_sensor.pattern] > motor->hall_sensor.last_comm_state){
-            motor->current_position++;
-        }
-        else{
-            motor->current_position--;
-        }
-        motor->hall_sensor.last_comm_state = motor->hall_sensor.HALL_MAP[motor->hall_sensor.pattern];
-    }
-
-    // update current readings
-    // Prepare ADC conversion for next round
-    HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) &= ~(ADC12ENC);
-    HWREG8(ADC12_B_BASE + OFS_ADC12CTL0_L) |= ADC12ENC + ADC12SC;
-    // Remove offset
-    g_currentPhaseA = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_0)) - motor->current_sensor.current_offset_phase_A;
-    g_currentPhaseB = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_1)) - motor->current_sensor.current_offset_phase_B;
-    g_currentPhaseC = HWREG16(ADC12_B_BASE + (OFS_ADC12MEM0 + ADC12_B_MEMORY_2)) - motor->current_sensor.current_offset_phase_C;
-}

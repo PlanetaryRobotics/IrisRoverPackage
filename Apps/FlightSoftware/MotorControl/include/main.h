@@ -11,13 +11,11 @@
 
 /* Include the IQmath header file. */
 #include <include/motor.h>
-#include <msp430.h>
 
 #include "include/i2c.h"
 
 #include "include/pi.h"
 #include "include/utils.h"
-#include "include/registers.h"
 
 /* ============================================
  *          Constants
@@ -37,7 +35,7 @@
 #define DRIVING_TIMEOUT_THRESHOLD       1872 // how much time in 1/15.6 [sec] before stopping driving (1872 = ~120 seconds)
 #define POSITION_CONVERGENCE_THRESHOLD  100 // how many motor ticks within target position motor needs to be to stop driving (absolute value)
 
-#define OPEN_LOOP_TORQUE        0.15       // for kick-starting into closed loop (normalized to 1.0, 1.0 being maximum current system can produce)
+#define OPEN_LOOP_TORQUE        0.05       // for kick-starting into closed loop (normalized to 1.0, 1.0 being maximum current system can produce)
 #define PERIOD_IMPULSE          150       //   ^ also used to kick-start, see impulse.h for details
 #define CLOSE_LOOP_THRESHOLD    0.01      // Close loop threshold from open to close loop
                                           //   -> threshold for current speed

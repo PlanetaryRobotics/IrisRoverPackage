@@ -72,10 +72,15 @@ def parse_packet(
 
     # Check for issues:
     if len(supported) == 0:
-        logger.warning(
-            f"Invalid packet detected. Does not conform to any supported specs: "  # type: ignore
-            f"{packet_bytes}"
-        )
+        if packet_bytes.startswith('DEBUG'.encode('utf-8')):
+            debug_msg = packet_bytes[5:].decode('utf-8')
+            print(debug_msg, end='')
+            return None
+        else:
+            CodecLogger.warning(
+                f"Invalid packet detected. Does not conform to any supported specs: "  # type: ignore
+                f"{packet_bytes}"
+            )
 
     if len(supported) > 1:
         logger.warning(
@@ -2520,5 +2525,54 @@ class WatchdogCommandResponsePacket(WatchdogCommandResponsePacketInterface[Watch
         """
         right_start = len(data) > 0 and data[:1] == cls.START_FLAG
         right_length = len(data) == 3  # Bytes
+
+        return right_start and right_length
+
+class WatchdogTvacHeartbeatPacket(WatchdogTvacHeartbeatPacketInterface[WatchdogTvacHeartbeatPacketInterface]):
+    # Properties (r-only class variables):
+    START_FLAG: bytes = b'\xFF'  # Required start flag
+
+    # Empty __slots__ allows super's __slots__ to not turn into __dict__:
+    __slots__: List[str] = []
+
+    def __repr__(self) -> str:
+        return self.custom_payload.__repr__()
+
+    @ classmethod
+    def decode(cls,
+               data: bytes,
+               endianness_code: str = ENDIANNESS_CODE,
+               pathway: DataPathway = DataPathway.NONE,
+               source: DataSource = DataSource.NONE
+               ) -> WatchdogTvacHeartbeatPacket:
+        flag, core_data = data[:1], data[1:]
+        if cls.START_FLAG != flag:
+            raise PacketDecodingException(
+                data,
+                "Start flag for `WatchdogTvacHeartbeatPacket` was invalid. "  # type: ignore
+                f"Expected {cls.START_FLAG}, Got: {flag} ."
+            )
+        custom_payload = WatchdogTvacHeartbeatPacket.CustomPayload(
+            *struct.unpack(endianness_code + '9H 3B H', core_data)
+        )
+        return WatchdogTvacHeartbeatPacket(
+            custom_payload=custom_payload,
+            pathway=pathway,
+            source=source,
+            raw=data,
+            endianness_code=endianness_code
+        )
+
+    def encode(self, **kwargs: Any) -> bytes:
+        #! TODO (not really a typical use case so not super necessary besides for completeness)
+        raise NotImplementedError()
+
+    @classmethod
+    def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
+        """
+        Determines whether the given bytes constitute a valid packet of this type.
+        """
+        right_start = len(data) > 0 and data[:1] == cls.START_FLAG
+        right_length = len(data) == 24  # Bytes
 
         return right_start and right_length

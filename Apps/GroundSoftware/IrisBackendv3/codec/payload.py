@@ -109,6 +109,8 @@ def extract_downlinked_payloads(
     while len(VLP) > 0:
         # Strip off the magic:
         magic_bytes, VLP = VLP[:MAGIC_SIZE], VLP[MAGIC_SIZE:]
+        #print("magic:", magic_bytes)
+        #print("VLP:", VLP)
         magic = Magic.decode(magic_bytes, byte_order=endianness_code)
 
         if magic == Magic.MISSING:

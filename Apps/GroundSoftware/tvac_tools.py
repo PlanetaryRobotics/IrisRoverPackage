@@ -90,10 +90,19 @@ def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
 
     # Check for issues:
     if len(supported) == 0:
-        CodecLogger.warning(
-            f"Invalid packet detected. Does not conform to any supported specs: "  # type: ignore
-            f"{packet_bytes}"
-        )
+        # Check for debug message and if so, print
+        print(packet_bytes[5:])
+        print('DEBUG'.encode('utf-8'))
+        print(packet_bytes[5:] == 'DEBUG'.encode('utf-8'))
+        if packet_bytes.startswith('DEBUG'.encode('utf-8')):
+            debug_msg = packet_bytes[5:].decode('utf-8')
+            print(debug_msg, end='')
+            return None
+        else:
+            CodecLogger.warning(
+                f"Invalid packet detected. Does not conform to any supported specs: "  # type: ignore
+                f"{packet_bytes}"
+            )
 
     if len(supported) > 1:
         CodecLogger.warning(

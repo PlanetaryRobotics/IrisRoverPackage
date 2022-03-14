@@ -154,9 +154,14 @@ def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
     # Codecs which support this packet:
     supported = [c for c in codecs if c.is_valid(packet_bytes)]
 
+    if packet_bytes.startswith('DEBUG'.encode('utf-8')):
+        debug_msg = packet_bytes[5:].decode('utf-8')
+        print(debug_msg, end='')
+        return None
+
     # Check for issues:
     if len(supported) == 0:
-        err_print(
+        CodecLogger.warning(
             f"Invalid packet detected. Does not conform to any supported specs: "  # type: ignore
             f"{packet_bytes}"
         )
@@ -746,12 +751,12 @@ def stream_data_ip_udp_serial() -> None:
 
         except KeyboardInterrupt:
             save_pcap(full_packets)
-        #except Exception as e:
-        #    err_print(
-        #        f"An otherwise unresolved error occurred during packet streaming: {e}"
-        #    )
-        #    data_bytes = bytearray(b'')
-        #    slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
+        except Exception as e:
+            err_print(
+                f"An otherwise unresolved error occurred during packet streaming: {e}"
+            )
+            data_bytes = bytearray(b'')
+            slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
 
 
 """

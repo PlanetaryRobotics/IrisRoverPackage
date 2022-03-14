@@ -1,5 +1,53 @@
 #include "include/bsp.h"
-#include "driverlib.h"
+
+/**
+ * @brief      Initializes the adc module.
+ */
+void initializeAdcModule(void){
+  // Configure ADC for motor current sensing
+  ADC12_B_initParam adcParam;
+  adcParam.clockSourceDivider = ADC12_B_CLOCKDIVIDER_1;
+  adcParam.clockSourcePredivider = ADC12_B_CLOCKPREDIVIDER__1;
+  adcParam.clockSourceSelect = ADC12_B_CLOCKSOURCE_ADC12OSC;
+  adcParam.internalChannelMap = ADC12_B_NOINTCH;
+  adcParam.sampleHoldSignalSourceSelect = ADC12_B_SAMPLEHOLDSOURCE_3; // Synchronize to TB0 CCR0
+  ADC12_B_init(ADC12_B_BASE, &adcParam);
+
+  ADC12_B_enable(ADC12_B_BASE);
+
+  ADC12_B_setupSamplingTimer(ADC12_B_BASE,
+                             ADC12_B_CYCLEHOLD_16_CYCLES,
+                             ADC12_B_CYCLEHOLD_4_CYCLES,
+                             ADC12_B_MULTIPLESAMPLESENABLE);
+
+  ADC12_B_setResolution(ADC12_B_BASE, ADC12_B_RESOLUTION_12BIT);
+
+  ADC12_B_configureMemoryParam configureMemoryParam = {0};
+  // Configure ADC channel for phase A current measurement
+  configureMemoryParam.memoryBufferControlIndex = ADC12_B_MEMORY_0;
+  configureMemoryParam.inputSourceSelect = IPHASE_A_ADC_CHAN;
+  configureMemoryParam.refVoltageSourceSelect = ADC12_B_VREFPOS_AVCC_VREFNEG_VSS;
+  configureMemoryParam.endOfSequence = ADC12_B_NOTENDOFSEQUENCE;
+  configureMemoryParam.windowComparatorSelect = ADC12_B_WINDOW_COMPARATOR_DISABLE;
+  configureMemoryParam.differentialModeSelect = ADC12_B_DIFFERENTIAL_MODE_DISABLE;
+  ADC12_B_configureMemory(ADC12_B_BASE, &configureMemoryParam);
+
+  // Configure ADC channel for phase B current measurement
+  configureMemoryParam.memoryBufferControlIndex = ADC12_B_MEMORY_1;
+  configureMemoryParam.inputSourceSelect = IPHASE_B_ADC_CHAN;
+  ADC12_B_configureMemory(ADC12_B_BASE, &configureMemoryParam);
+
+  // Configure ADC channel for phase C current measurement
+  configureMemoryParam.memoryBufferControlIndex = ADC12_B_MEMORY_2;
+  configureMemoryParam.inputSourceSelect = IPHASE_C_ADC_CHAN;
+  configureMemoryParam.endOfSequence = ADC12_B_ENDOFSEQUENCE;
+  ADC12_B_configureMemory(ADC12_B_BASE, &configureMemoryParam);
+
+  ADC12_B_startConversion(ADC12_B_BASE,
+                          ADC12_B_START_AT_ADC12MEM0,
+                          ADC12_B_SEQOFCHANNELS);
+}
+
 
 /* Bit shift even ports
  */
@@ -765,6 +813,73 @@ void initializePwmModules(void){
   initComp4Param.compareOutputMode = TIMER_B_OUTPUTMODE_TOGGLE_RESET;
   initComp4Param.compareValue = PWM_PERIOD_TICKS - 1;
   Timer_B_initCompareMode(TIMER_B0_BASE, &initComp4Param);
+}
+
+/**
+ * @brief      Generate the pwm period for the 6 pwm channels
+ *
+ * @param[in]  commutation  The commutation
+ * @param[in]  dutyCycle    The duty cycle
+ */
+void pwmGenerator(const uint8_t commutation, _iq dutyCycle){
+  uint16_t dc = 0; //duty cycle
+  uint16_t dcCmpl = 0; //complement
+
+  // Normalize duty cycle -1.0 < dc < +1.0 to 0 < dc < 512
+  dc = (uint16_t)(dutyCycle >> 7) + PWM_HALF_PERIOD_TICKS;
+  dcCmpl = PWM_PERIOD_TICKS - dc;
+
+  _iq PWM_A = 0;
+  _iq PWM_B = 0;
+  _iq PWM_C = 0;
+
+  if(dutyCycle != 0){
+      switch(commutation){
+          case 0:
+            PWM_A = dc;
+            PWM_B = dcCmpl;
+            break;
+          case 1:
+            PWM_A = dc;
+            PWM_C = dcCmpl;
+            break;
+          case 2:
+            PWM_B = dc;
+            PWM_C = dcCmpl;
+            break;
+          case 3:
+            PWM_A = dcCmpl;
+            PWM_B = dc;
+            break;
+          case 4:
+            PWM_A = dcCmpl;
+            PWM_C = dc;
+            break;
+          case 5:
+            PWM_B = dcCmpl;
+            PWM_C = dc;
+            break;
+          default:
+            break;
+        }
+  }
+
+
+  setPwmAPeriod(PWM_A);
+  enableHalfBridgeA();
+  setPwmBPeriod(PWM_B);
+  enableHalfBridgeB();
+  setPwmCPeriod(PWM_C);
+  enableHalfBridgeC();
+
+  // turn off half bridge that isn't being used (PWM period of 0)
+  if(PWM_A == 0){
+      disableHalfBridgeA();
+  } else if (PWM_B == 0){ // can do else-if because only 1 will be 0
+      disableHalfBridgeB();
+  } else if (PWM_C == 0){
+      disableHalfBridgeC();
+  }
 }
 
 /**

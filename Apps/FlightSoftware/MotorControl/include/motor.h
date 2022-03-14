@@ -5,14 +5,11 @@
  *      Author: jonbs
  */
 
-#ifndef INCLUDE_STATE_MACHINE_H_
-#define INCLUDE_STATE_MACHINE_H_
+#ifndef INCLUDE_MOTOR_H_
+#define INCLUDE_MOTOR_H_
 
+#include "include/sensors.h"
 #include "include/bsp.h"
-#include <stdint.h>
-#include "driverlib.h"
-#include "IQmathLib.h"
-#define GLOBAL_IQ                   15
 
 // internal state machine for motor
 typedef enum {
@@ -32,19 +29,25 @@ typedef struct STATE_MACHINE{
     CmdState command;
 }STATE_MACHINE;
 
-typedef struct MOTOR_STATE{
+
+typedef struct MOTOR{
     STATE_MACHINE state_machine;
     int32_t current_position;
     int32_t target_position;
     int8_t target_direction;
     int32_t last_position;
+
     _iq current_speed;
     bool closed_loop;
     bool target_reached;
-}MOTOR_STATE;
 
-void disable(volatile MOTOR_STATE* motor_state);
-void run(volatile MOTOR_STATE* motor_state);
-void updateStateMachine(volatile MOTOR_STATE* motor_state);
+    HALL_SENSOR hall_sensor;
+    CURRENT_SENSOR current_sensor;
+}MOTOR;
 
-#endif /* INCLUDE_STATE_MACHINE_H_ */
+void disable(volatile MOTOR* motor);
+void run(volatile MOTOR* motor);
+void updateStateMachine(volatile MOTOR* motor);
+void handleMotorTimeout(volatile MOTOR* motor);
+
+#endif /* INCLUDE_MOTOR_H_ */

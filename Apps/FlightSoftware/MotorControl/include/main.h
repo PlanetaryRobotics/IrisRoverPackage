@@ -10,15 +10,14 @@
 #define MAIN_H_
 
 /* Include the IQmath header file. */
+#include <include/motor.h>
 #include <msp430.h>
 
-#include "include/bsp.h"
 #include "include/i2c.h"
 
 #include "include/pi.h"
 #include "include/utils.h"
 #include "include/registers.h"
-#include "include/state_machine.h"
 
 /* ============================================
  *          Constants
@@ -54,12 +53,5 @@
 bool read_driver_fault(); //function descriptions in main.c
 void clear_driver_fault();
 void updateStateMachine();
-
-typedef struct HallSensor{
-    uint8_t Pattern;
-    uint8_t OldPattern;
-    bool Event;
-    bool Error;
-}HallSensor;
 
 #endif /* MAIN_H_ */

@@ -1,7 +1,11 @@
 #ifndef BSP_H_
 #define BSP_H_
 
+#include "driverlib.h"
+#include "include/motor.h"
+
 // functions that interact with hardware
+void initializeAdcModule(void);
 void initializeGpios();
 void setPwmAPeriod();
 void setPwmBPeriod();
@@ -17,6 +21,7 @@ void enableCalibration();
 void enableGateDriver();
 void disableGateDriver();
 void initializePwmModules();
+void pwmGenerator(const uint8_t commutation, _iq dutyCycle);
 
 
 #define PWMA_H_CCR_REGISTER TIMER_B_CAPTURECOMPARE_REGISTER_6

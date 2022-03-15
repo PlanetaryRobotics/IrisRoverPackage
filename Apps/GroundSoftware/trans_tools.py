@@ -159,11 +159,8 @@ def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
         print(debug_msg, end='')
         return None
 
-<<<<<<< Updated upstream
-=======
     print(packet_bytes)
 
->>>>>>> Stashed changes
     # Check for issues:
     if len(supported) == 0:
         CodecLogger.warning(

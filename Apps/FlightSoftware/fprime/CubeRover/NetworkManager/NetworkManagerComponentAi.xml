@@ -67,61 +67,61 @@
 		    <comment>Returned Error code of WIFI chip</comment>
 		    <!-- Matches `ErrorCode` from `Wf121.hpp` -->
 		    <enum name="WIFIErrorCode">
-		        <item name="NO_ERROR" value="0" />
-		        <item name="TRY_AGAIN" value="0x0001" />
-		        <item name="INVALID_PARAMETER" value="0x0180" comment="This error code indicates that a command contained an invalid parameter" />
-		        <item name="DEVICE_WRONG_STATE" value="0x0181" comment="This error code indicates that the device is in wrong state to accept commands." />
-		        <item name="OUT_OF_MEMORY" value="0x0182" comment="This error indicates that the device has run out of memory." />
-		        <item name="FEATURE_NOT_IMPLEMENTED" value="0x0183" comment="This error indicates that the feature in question has not been implemented." />
-		        <item name="COMMAND_NOT_RECOGNIZED" value="0x0184" comment="This error indicates that the issued command was not recognized." />
-		        <item name="TIMEOUT" value="0x0185" comment="This error indicates that a command or procedure failed due to timeout.This error code is generated e.g. if you send an incomplete command to the Wi-Fi module - after the timeout of 1 second this error code is sent to the host transported by the event .endpoint_syntax_errorThis error code is generated also e.g. when the maximum number of retry attempts (10) to try to connect to a wireless network have been executed. A typical example of such a case might be when the issued password is invalid, in which case the error code is transported by the event .wifi_evt_sme_connect_failed" />
-		        <item name="UNSPECIFIED_ERROR" value="0x0186" comment="This error code is generated when an unspecified error is detected." />
-		        <item name="HARDWARE_FAILURE" value="0x0187" comment="This error code is generated when a hardware failure is detected." />
-		        <item name="INTERNAL_BUFFER_FULL" value="0x0188" comment="This error code is generated the a command was not accepted due to full internal buffers." />
-		        <item name="DISCONNECTED" value="0x0189" comment="This error code is generated when a command or procedure has failed due to disconnection." />
-		        <item name="TOO_MANY_REQUEST" value="0x018A" comment="This error code is generated when there are too many simultaneous requests." />
-		        <item name="ACCESS_POINT_NOT_IN_SCANLIST" value="0x018B" comment="This error code is generated when the defined Access Point is not found from the scanlist." />
-		        <item name="INVALID_PASSWORD" value="0x018C" comment="This error code is generated in the following cases:1) you try to connect to a secured network without setting the password or the password is too short2) you try to start a secured AP without setting the password or the password is too short3) you try to set a 64-character PSK with non-hex characters4) you try to set an invalid WEP key (invalid characters or invalid length)Notice that WPA does not contain any standard way for the Access Point to communicate to the station that the password is invalid. The Access Point just disconnects the client during authentication if the password is found invalid. Some stations take an educated guess that this probably means the password is incorrect. WF121 simply retries the authentication until it exceeds the maximum amount of retries (10) which then causes the 0x0185 Timeout Error." />
-		        <item name="AUTHENTIFICATION_FAILURE" value="0x018D" comment="This error code is generated when the WPA/WPA2 authentication has failed." />
-		        <item name="OVERFLOW" value="0x018E" comment="This error code is generated when an overflow has been detected." />
-		        <item name="MULTIPLE_PBC_SESSIONS" value="0x018F" comment="This error code is generated when multiple PBC (Push Button Configuration) sessions have been detected." />
-		        <item name="ETHERNET_NOT_CONNECTED" value="0x0190" comment="This error code is generated when the Ethernet cable is not connected" />
-		        <item name="ETHERNET_ROUTE_NOT_SET" value="0x0191" comment="This error code is generated if the Ethernet route is not set" />
-		        <item name="WRONG_OPERATING_MODE" value="0x0192" comment="This error code is generated if the operating mode is wrong for the issued command" />
-		        <item name="WIFI_NOT_FOUND" value="0x0193" comment="This error code is generated if the requested resource was not found." />
-		        <item name="WIFI_NOT_ALREADY_EXIST" value="0x0194" comment="This error is generated if the requested resource already exists." />
-		        <item name="WIFI_INVALID_CONFIGURATION" value="0x0195" comment="This error code is generated if the current configuration is invalid." />
-		        <item name="WIFI_ACCESS_POINT_LOST" value="0x0196" comment="This error code is generated if the connection to an Access Point is lost." />
-		        <item name="PS_STORE_FULL" value="0x0301" comment="This error is generated if the Flash which is reserved for the PS (Persistent Store) is full." />
-		        <item name="PS_KEY_NOT_FOUND" value="0x0302" comment="This error is generated if the PS key (Persistent Store key) was not found." />
-		        <item name="I2C_WRITE_ALREADY_IN_PROGRESS" value="0x0303" comment="This error is generated if I2C transmission was initiated while a transmission was already in progress." />
-		        <item name="I2C_ACK_MISSING" value="0x0304" comment="This error is generated if an acknowledgement for I2C was not received." />
-		        <item name="FLASH_WRITE_FAILED" value="0x0308" comment="This error code is generated if writing to Flash failed." />
-		        <item name="FILE_NOT_OPENED" value="0x0305" comment="This error code is generated if an access was attempted to an unopened file." />
-		        <item name="FILE_NOT_FOUND" value="0x0306" comment="This error code is generated if the requested file was not found in the SD card." />
-		        <item name="DISK_ERROR" value="0x0307" comment="This error code is generated if an SD card error was detected of if the SD card is full" />
-		        <item name="TCP_IP_SUCCESS" value="0x0200" comment="This code indicates that no error was detected." />
-		        <item name="TCP_IP_OUT_OF_MEMORY" value="0x0201" comment="This error code is generated when the system has run out of memory." />
-		        <item name="TCP_IP_BUFFER_ERROR" value="0x0202" comment="This error code is generated when handling of buffers has failed" />
-		        <item name="TCP_IP_TIMEOUT" value="0x0203" comment="This error code is generated when a timeout has been detected." />
-		        <item name="TCP_IP_ROUTING" value="0x0204" comment="This error code is generated when a route could not be found." />
-		        <item name="TCP_IP_IN_PROGRESS" value="0x0205" comment="This error code is generated when an operation is in progress" />
-		        <item name="TCP_IP_ILLEGAL_VALUE" value="0x0206" comment="This error code is generated when the issued value is deemed illegal." />
-		        <item name="TCP_IP_WOULD_BLOCK" value="0x0207" comment="This error code is generated when an operation blocks." />
-		        <item name="TCP_IP_ADDRESS_IN_USE" value="0x0208" comment="This error code is generated when the issued address is already in use" />
-		        <item name="TCP_IP_ALREADY_CONNECTED" value="0x0209" comment="This error code is generated when the Wi-Fi module is already connected" />
-		        <item name="TCP_IP_CONNECTION_ABORTED" value="0x020A" comment="This error code is generated when a connection is aborted." />
-		        <item name="TCP_IP_CONNECTION_RESET" value="0x020B" comment="This error code is generated when a connection has been reset" />
-		        <item name="TCP_IP_CONNECTION_CLOSED" value="0x020C" comment="This error code is generated when a connection has been closed." />
-		        <item name="TCP_IP_NOT_CONNECTED" value="0x020D" comment="This error code is generated when the Wi-Fi module is not connected." />
-		        <item name="TCP_IP_ILLEGAL_ARGUMENT" value="0x020E" comment="This error code is generated if an illegal argument was issued." />
-		        <item name="TCP_IP_INTERFACE_LEVEL_ERROR" value="0x020F" comment="This error code is generated if an interface error was detected" />
-		        <item name="TCP_IP_UNKNOWN_HOST" value="0x0280" comment="This error is generated if an unknown host is detected." />
-		        <item name="SERVICE_NOT_RUNNING" value="0x0210" comment="This error code is generated if the specified service is not running." />
-		        <item name="SERVICE_RUNNING" value="0x0211" comment="This error code is generated if the specified service is already running" />
-		        <item name="HOSTNAME_NOT_SET" value="0x0212" comment="This error code is generated if the hostname has not been set" />
-		        <item name="HOSTNAME_CONFLICT" value="0x0213" comment="This error code is generated if a hostname conflict was detected." />
-		    </enum>
+				<item name="NO_ERROR" value="0" />
+				<item name="TRY_AGAIN" value="1" />
+				<item name="INVALID_PARAMETER" value="384" comment="This error code indicates that a command contained an invalid parameter" />
+				<item name="DEVICE_WRONG_STATE" value="385" comment="This error code indicates that the device is in wrong state to accept commands." />
+				<item name="OUT_OF_MEMORY" value="386" comment="This error indicates that the device has run out of memory." />
+				<item name="FEATURE_NOT_IMPLEMENTED" value="387" comment="This error indicates that the feature in question has not been implemented." />
+				<item name="COMMAND_NOT_RECOGNIZED" value="388" comment="This error indicates that the issued command was not recognized." />
+				<item name="TIMEOUT" value="389" comment="This error indicates that a command or procedure failed due to timeout.This error code is generated e.g. if you send an incomplete command to the Wi-Fi module - after the timeout of 1 second this error code is sent to the host transported by the event .endpoint_syntax_errorThis error code is generated also e.g. when the maximum number of retry attempts (10) to try to connect to a wireless network have been executed. A typical example of such a case might be when the issued password is invalid, in which case the error code is transported by the event .wifi_evt_sme_connect_failed" />
+				<item name="UNSPECIFIED_ERROR" value="390" comment="This error code is generated when an unspecified error is detected." />
+				<item name="HARDWARE_FAILURE" value="391" comment="This error code is generated when a hardware failure is detected." />
+				<item name="INTERNAL_BUFFER_FULL" value="392" comment="This error code is generated the a command was not accepted due to full internal buffers." />
+				<item name="DISCONNECTED" value="393" comment="This error code is generated when a command or procedure has failed due to disconnection." />
+				<item name="TOO_MANY_REQUEST" value="394" comment="This error code is generated when there are too many simultaneous requests." />
+				<item name="ACCESS_POINT_NOT_IN_SCANLIST" value="395" comment="This error code is generated when the defined Access Point is not found from the scanlist." />
+				<item name="INVALID_PASSWORD" value="396" comment="This error code is generated in the following cases:1) you try to connect to a secured network without setting the password or the password is too short2) you try to start a secured AP without setting the password or the password is too short3) you try to set a 64-character PSK with non-hex characters4) you try to set an invalid WEP key (invalid characters or invalid length)Notice that WPA does not contain any standard way for the Access Point to communicate to the station that the password is invalid. The Access Point just disconnects the client during authentication if the password is found invalid. Some stations take an educated guess that this probably means the password is incorrect. WF121 simply retries the authentication until it exceeds the maximum amount of retries (10) which then causes the 0x0185 Timeout Error." />
+				<item name="AUTHENTIFICATION_FAILURE" value="397" comment="This error code is generated when the WPA/WPA2 authentication has failed." />
+				<item name="OVERFLOW" value="398" comment="This error code is generated when an overflow has been detected." />
+				<item name="MULTIPLE_PBC_SESSIONS" value="399" comment="This error code is generated when multiple PBC (Push Button Configuration) sessions have been detected." />
+				<item name="ETHERNET_NOT_CONNECTED" value="400" comment="This error code is generated when the Ethernet cable is not connected" />
+				<item name="ETHERNET_ROUTE_NOT_SET" value="401" comment="This error code is generated if the Ethernet route is not set" />
+				<item name="WRONG_OPERATING_MODE" value="402" comment="This error code is generated if the operating mode is wrong for the issued command" />
+				<item name="WIFI_NOT_FOUND" value="403" comment="This error code is generated if the requested resource was not found." />
+				<item name="WIFI_NOT_ALREADY_EXIST" value="404" comment="This error is generated if the requested resource already exists." />
+				<item name="WIFI_INVALID_CONFIGURATION" value="405" comment="This error code is generated if the current configuration is invalid." />
+				<item name="WIFI_ACCESS_POINT_LOST" value="406" comment="This error code is generated if the connection to an Access Point is lost." />
+				<item name="PS_STORE_FULL" value="769" comment="This error is generated if the Flash which is reserved for the PS (Persistent Store) is full." />
+				<item name="PS_KEY_NOT_FOUND" value="770" comment="This error is generated if the PS key (Persistent Store key) was not found." />
+				<item name="I2C_WRITE_ALREADY_IN_PROGRESS" value="771" comment="This error is generated if I2C transmission was initiated while a transmission was already in progress." />
+				<item name="I2C_ACK_MISSING" value="772" comment="This error is generated if an acknowledgement for I2C was not received." />
+				<item name="FLASH_WRITE_FAILED" value="776" comment="This error code is generated if writing to Flash failed." />
+				<item name="FILE_NOT_OPENED" value="773" comment="This error code is generated if an access was attempted to an unopened file." />
+				<item name="FILE_NOT_FOUND" value="774" comment="This error code is generated if the requested file was not found in the SD card." />
+				<item name="DISK_ERROR" value="775" comment="This error code is generated if an SD card error was detected of if the SD card is full" />
+				<item name="TCP_IP_SUCCESS" value="512" comment="This code indicates that no error was detected." />
+				<item name="TCP_IP_OUT_OF_MEMORY" value="513" comment="This error code is generated when the system has run out of memory." />
+				<item name="TCP_IP_BUFFER_ERROR" value="514" comment="This error code is generated when handling of buffers has failed" />
+				<item name="TCP_IP_TIMEOUT" value="515" comment="This error code is generated when a timeout has been detected." />
+				<item name="TCP_IP_ROUTING" value="516" comment="This error code is generated when a route could not be found." />
+				<item name="TCP_IP_IN_PROGRESS" value="517" comment="This error code is generated when an operation is in progress" />
+				<item name="TCP_IP_ILLEGAL_VALUE" value="518" comment="This error code is generated when the issued value is deemed illegal." />
+				<item name="TCP_IP_WOULD_BLOCK" value="519" comment="This error code is generated when an operation blocks." />
+				<item name="TCP_IP_ADDRESS_IN_USE" value="520" comment="This error code is generated when the issued address is already in use" />
+				<item name="TCP_IP_ALREADY_CONNECTED" value="521" comment="This error code is generated when the Wi-Fi module is already connected" />
+				<item name="TCP_IP_CONNECTION_ABORTED" value="522" comment="This error code is generated when a connection is aborted." />
+				<item name="TCP_IP_CONNECTION_RESET" value="523" comment="This error code is generated when a connection has been reset" />
+				<item name="TCP_IP_CONNECTION_CLOSED" value="524" comment="This error code is generated when a connection has been closed." />
+				<item name="TCP_IP_NOT_CONNECTED" value="525" comment="This error code is generated when the Wi-Fi module is not connected." />
+				<item name="TCP_IP_ILLEGAL_ARGUMENT" value="526" comment="This error code is generated if an illegal argument was issued." />
+				<item name="TCP_IP_INTERFACE_LEVEL_ERROR" value="527" comment="This error code is generated if an interface error was detected" />
+				<item name="TCP_IP_UNKNOWN_HOST" value="640" comment="This error is generated if an unknown host is detected." />
+				<item name="SERVICE_NOT_RUNNING" value="528" comment="This error code is generated if the specified service is not running." />
+				<item name="SERVICE_RUNNING" value="529" comment="This error code is generated if the specified service is already running" />
+				<item name="HOSTNAME_NOT_SET" value="530" comment="This error code is generated if the hostname has not been set" />
+				<item name="HOSTNAME_CONFLICT" value="531" comment="This error code is generated if a hostname conflict was detected." />
+        	</enum>
         </channel>
          <channel id="5" name="WIFIStateStatus" data_type="ENUM">
             <comment>Returned State Transition code of WIFI chip</comment>
@@ -137,7 +137,6 @@
                     <item name="CONNECTED" />
                     <item name="DISCONNECTING" />
                     <item name="UDP_CONNECTED" />
-                    <item name="WIFIState_MAX" />
                 </enum>
         </channel>
     </telemetry>

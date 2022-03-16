@@ -76,7 +76,7 @@ namespace CubeRover
                 {
                     log_ACTIVITY_HI_StateChange(m_current_state, new_state);
                     // Update Telemetry with error code
-                    tlmWrite_WIFIErrorStatus(static_cast<U16>(errorCode));
+                    tlmWrite_WIFIErrorStatus(static_cast<WIFIErrorCode>(static_cast<U16>(errorCode)));
                     // Update Telemetry with new state
                     tlmWrite_WIFIStateStatus(static_cast<WIFIState>(static_cast<U8>(new_state)));
                 }
@@ -90,7 +90,7 @@ namespace CubeRover
                 }
             }
             // Update Telemetry with error code
-            tlmWrite_WIFIErrorStatus(static_cast<U16>(errorCode));
+            tlmWrite_WIFIErrorStatus(static_cast<WIFIErrorCode>(static_cast<U16>(errorCode)));
             // Check if we're in persistent state WATCHDOG (m_persistent_state == 0) and we have tried too many times
             if (m_persistent_state == 0 && no_transition_count >= MAX_FSM_NO_TRANSITION_COUNT)
             {
@@ -194,7 +194,7 @@ namespace CubeRover
 
             // Also send wifi connection status / errors:
             // Update Telemetry with error code
-            tlmWrite_WIFIErrorStatus(static_cast<U16>(errorCode));
+            tlmWrite_WIFIErrorStatus(static_cast<WIFIErrorCode>(static_cast<U16>(errorCode)));
             // Update Telemetry with new state
             tlmWrite_WIFIStateStatus(static_cast<WIFIState>(static_cast<U8>(m_current_state)));
         }

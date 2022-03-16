@@ -103,7 +103,7 @@ ErrorCode Wf121Driver :: SyncSystem(){
   txHeader.bit.cmdId = 0x00; // power saving system command
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);  
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 /**
@@ -176,7 +176,7 @@ ErrorCode Wf121Driver :: TurnOnWifi(){
   txHeader.bit.cmdId = 0x00; // turn on wifi command
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);   
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 /**
@@ -195,7 +195,7 @@ ErrorCode Wf121Driver :: TurnOffWifi(){
   txHeader.bit.cmdId = 0x01; // turn off wifi command
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);   
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 /**
@@ -282,7 +282,7 @@ ErrorCode Wf121Driver :: StopScanChannels(){
   txHeader.bit.cmdId = 0x04; // stop scan channel command
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);   
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 
@@ -335,7 +335,7 @@ ErrorCode Wf121Driver :: Disconnect(){
   txHeader.bit.cmdId = 0x08; // disconnect from AP command
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);   
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 /**
@@ -519,7 +519,7 @@ ErrorCode Wf121Driver :: GetSignalQuality(){
   txHeader.bit.cmdId = 0x13; // get signal quality command
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);   
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 /**
@@ -540,7 +540,7 @@ ErrorCode Wf121Driver :: StartWps(){
   txHeader.bit.cmdId = 0x11; // start WPS command
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);   
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 
@@ -561,7 +561,7 @@ ErrorCode Wf121Driver :: StopWps(){
   txHeader.bit.cmdId = 0x12; // stop WPS command
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);   
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 
@@ -762,7 +762,7 @@ ErrorCode Wf121Driver :: StopApMode(){
   txHeader.bit.cmdId = 0x0C; // stop AP mode
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);   
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 
@@ -997,7 +997,7 @@ ErrorCode Wf121Driver :: StartMDns(){
   txHeader.bit.cmdId = 0x0B; // start mdsn command 
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);  
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 
@@ -1017,7 +1017,7 @@ ErrorCode Wf121Driver :: StopMDns(){
   txHeader.bit.cmdId = 0x0C; // stop mdsn command 
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);  
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 
@@ -1346,7 +1346,7 @@ ErrorCode Wf121Driver :: DhcpClients(){
   txHeader.bit.cmdId = 0x16; // dhcp clients command 
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);   
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 /**
@@ -2332,7 +2332,7 @@ ErrorCode Wf121Driver :: RtcGetTime(){
   txHeader.bit.cmdId = 0x0C; // RTC get time command 
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 
@@ -2618,7 +2618,7 @@ ErrorCode Wf121Driver :: CloseRoute(){
   txHeader.bit.cmdId = 0x01; // close route command 
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);    
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 /**
@@ -2637,7 +2637,7 @@ ErrorCode Wf121Driver :: Connected(){
   txHeader.bit.cmdId = 0x02; // connected command 
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);    
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 
@@ -2800,7 +2800,7 @@ ErrorCode Wf121Driver :: DefragPersistentStore(){
   txHeader.bit.cmdId = 0x01; // ps defrag command 
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);    
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 /**
@@ -2820,7 +2820,7 @@ ErrorCode Wf121Driver :: EraseAllPersistentStore(){
   txHeader.bit.cmdId = 0x02; // erase all command 
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);    
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 
@@ -2914,7 +2914,7 @@ ErrorCode Wf121Driver :: DumpPersistentStore(){
   txHeader.bit.cmdId = 0x01; // ps dump command 
 
   // transmit a command, an event is expected in  return
-  return transmitCommand(&txHeader, NULL);    
+  return transmitCommand(&txHeader, (unsigned char *)NULL);
 }
 
 /**

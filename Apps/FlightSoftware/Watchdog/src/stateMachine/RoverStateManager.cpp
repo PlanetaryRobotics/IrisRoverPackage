@@ -23,10 +23,10 @@ namespace iris
 {
     // Declare the buffers for the UART rx and tx ring buffers. These are static
     // so that they are not on the stack.
-    static volatile uint8_t uart0TxBuffer[1024] = {};
+    static volatile uint8_t uart0TxBuffer[512] = {};
     static volatile uint8_t uart0RxBuffer[1024] = {};
     static volatile uint8_t uart1TxBuffer[1024] = {};
-    static volatile uint8_t uart1RxBuffer[1024] = {};
+    static volatile uint8_t uart1RxBuffer[512] = {};
 
 #pragma PERSISTENT
     static bool persistentInMission = false;

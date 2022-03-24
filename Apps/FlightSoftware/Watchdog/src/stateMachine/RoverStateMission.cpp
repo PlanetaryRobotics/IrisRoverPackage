@@ -30,7 +30,7 @@ namespace iris
 
     RoverState RoverStateMission::handleTimerTick(RoverContext& theContext)
     {
-        DebugComms__printfToLander("t\n");
+        //DebugComms__printfToLander("t\n");
         // Trigger a new ADC sample if the previous one is done
         if (isAdcSampleDone()) {
             adcCheckVoltageLevels(&(theContext.m_adcValues));
@@ -100,7 +100,7 @@ namespace iris
         }
 
 
-        DebugComms__printfToLander("t1\n");
+        //DebugComms__printfToLander("t1\n");
         return getState();
     }
 

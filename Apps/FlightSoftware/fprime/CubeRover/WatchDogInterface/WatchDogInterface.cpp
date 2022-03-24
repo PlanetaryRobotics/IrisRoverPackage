@@ -45,7 +45,13 @@ namespace CubeRover {
 #else
     WatchDogInterfaceComponentImpl(void)
 #endif
-      , m_sci(scilinREG), m_finished_initializing(false), m_txCmdArray(), m_rxTask(), m_downlinkSequenceNumber(0)
+      , m_sci(scilinREG)
+      , m_finished_initializing(false)
+      , m_txCmdArray()
+      , m_rxTask()
+      , m_downlinkSequenceNumber(0)
+      , m_skippedStrokes(0)
+      , m_missedStrokeResponses(0)
     {
         m_txCmdArray.commands[COMMAND_INDEX__STROKE].opcode = static_cast<FwOpcodeType>(STROKE_OPCODE);
         m_txCmdArray.commands[COMMAND_INDEX__DOWNLINK].opcode = static_cast<FwOpcodeType>(DOWNLINK_OPCODE);
@@ -65,7 +71,7 @@ namespace CubeRover {
     {
         WatchDogInterfaceComponentBase::init(queueDepth, instance);
         sciEnterResetState(m_sci);
-        sciSetBaudrate(m_sci, 9600);
+        sciSetBaudrate(m_sci, 57600);
         sciExitResetState(m_sci);
 
         // Configure and up the receivng task
@@ -112,6 +118,7 @@ namespace CubeRover {
       )
     {
         static uint16_t sequenceNumber = 0;
+        static uint32_t lastFailedStrokeMsgSendTime = 0;
         
         // Update Thermistor Telemetry
         Read_Temp();
@@ -121,7 +128,18 @@ namespace CubeRover {
         if (success) {
             sequenceNumber++;
         } else {
+            debugPrintfToWatchdog("Failed to send stroke\n");
             // TODO: Add logging error
+        }
+
+        Fw::Time now = getTime();
+        uint32_t nowMillis = static_cast<uint32_t>(now.get_time_ms());
+
+        if (nowMillis - lastFailedStrokeMsgSendTime >= 10000) {
+            if (debugPrintfToWatchdog("Missed responses: %u, skipped sends: %u\n",
+                                      m_missedStrokeResponses, m_skippedStrokes)) {
+                lastFailedStrokeMsgSendTime = nowMillis;
+            }
         }
 
         return;
@@ -467,6 +485,8 @@ namespace CubeRover {
         if (!goodParity) {
             this->log_WARNING_HI_WatchDogIncorrectResp(bad_parity);
         }
+
+        Fw::Time now = getTime();
   
         // Uplink messages are different (specifically, they aren't a response to a Hercules command)
         // so we handle them separately
@@ -480,6 +500,7 @@ namespace CubeRover {
   
         if (NULL == cmdStatus) {
             // TODO: Log error (which error?)
+            debugPrintfToWatchdog("NULL cmdStatus\n");
             return;
         }
   
@@ -519,6 +540,7 @@ namespace CubeRover {
         FwOpcodeType txCmdOpCode = 0;
         U32 txCmdSeqNum = 0;
         bool txCmdSendResponse = false;
+        uint32_t txTimeMillis = 0;
   
   
         { // The mutex must be unlocked before we exit this scope 
@@ -533,6 +555,7 @@ namespace CubeRover {
                 txCmdOpCode = cmdStatus->opcode;
                 txCmdSeqNum = cmdStatus->seqNum;
                 txCmdSendResponse = cmdStatus->sendResponse;
+                txTimeMillis = cmdStatus->txTimeMillis;
   
                 uint16_t ushortTxSeqNum = static_cast<uint16_t>(txCmdSeqNum);
   
@@ -554,10 +577,13 @@ namespace CubeRover {
   
         if (cmdInactive) {
             // TODO: LOG ERROR (which error to log?)
+            debugPrintfToWatchdog("cmdInactive: %d\n", msg.parsedHeader.lowerOpCode);
         } else if (rxOlderSeqNum) {
             // TODO: LOG ERROR (which error to log?)
+            debugPrintfToWatchdog("rxOlderSeqNum: %d\n", msg.parsedHeader.lowerOpCode);
         } else if (rxNewerSeqNum) {
             // TODO: LOG ERROR (which error to log?)
+            debugPrintfToWatchdog("rxNewerSeqNum: %d\n", msg.parsedHeader.lowerOpCode);
   
             // We want to respond to the old tx message. Make sure we don't try to send a response about any
             // of our fake opcodes, and don't send a response if we didn't want to send one when we sent the message
@@ -567,6 +593,9 @@ namespace CubeRover {
                 this->cmdResponse_out(txCmdOpCode, txCmdSeqNum, Fw::COMMAND_EXECUTION_ERROR);
             } 
         } else {
+            uint32_t nowMillis = static_cast<uint32_t>(now.get_time_ms());
+            debugPrintfToWatchdog("Stroke response RTT: %u ms\n", nowMillis - txTimeMillis);
+
             // We want to respond positively about the tx message. Make sure we don't try to send a response about any
             // of our fake opcodes, and don't send a response if we didn't want to send one when we sent the message
             if (txCmdOpCode != STROKE_OPCODE
@@ -771,6 +800,10 @@ namespace CubeRover {
             if (timeout) {
                 this->log_WARNING_HI_WatchDogTimedOut();
 
+                if (cmdStatus->opcode == STROKE_OPCODE) {
+                    m_missedStrokeResponses++;
+                }
+
                 // Make sure we don't try to send a response about any of our fake opcodes, and don't
                 // send a response if we didn't want to send one when we sent the message
                 if (timedOutOpcode != STROKE_OPCODE
@@ -782,7 +815,12 @@ namespace CubeRover {
 
             // If we're not sending this command we don't want to continue
             if (previousStillWaiting) {
+                if (cmdStatus->opcode == STROKE_OPCODE) {
+                    m_skippedStrokes++;
+                }
+
                 // TODO: LOG ERROR (which error?)
+                //debugPrintfToWatchdog("previousStillWaiting: %d\n", cmdStatus->opcode);
                 return false;
             }
         }

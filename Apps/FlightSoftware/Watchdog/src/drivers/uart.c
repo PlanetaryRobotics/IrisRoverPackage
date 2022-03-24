@@ -266,7 +266,7 @@ void UART__flushTx(UART__State* uartState)
 
         if (numUsed != 0) {
             __delay_cycles(10000);
-            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;// + WDTIS0;
+            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;//+ WDTIS0;
         }
     } while (numUsed != 0);
 }
@@ -434,7 +434,7 @@ static void UART__uart0Init()
     - Next frame to be transmitted is data
     - Next frame to be transmitted is not a break
     */
-
+/*
     // Baud Rate calculation (Section 30.3.10, SLAU367P)
     // N = (Baud rate clock frequency) / baud rate = 8000000 / 9600 = 833.3333
     // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
@@ -450,6 +450,22 @@ static void UART__uart0Init()
     //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
     //  Therefore, we use 0x49 instead of 0x04. 
     UCA0MCTLW |= 0x4900U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
+*/
+    // Baud Rate calculation (Section 30.3.10, SLAU367P)
+    // N = (Baud rate clock frequency) / baud rate = 8000000 / 57600 = 833.3333
+    // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
+    UCA0MCTLW = UCOS16; // Enables oversampling baud-rate generation mode
+    // UCBRx = int(N / 16) = int(52.08333)
+    // UCBRx = 52
+    UCA0BRW = 8U; // Note: UCBRSx takes up the full 16 bits of UCAxBRW
+    // UCBRFx = int([(N/16) - int(N / 16)] * 16) = int([52.08333 - 52] * 16) = int(1.3333)
+    // UCBRFx = 1
+    UCA0MCTLW |= UCBRF_10;
+    // UCBRSx = 0x04 (per Table 30-4, SLAU367P)
+    // However, per table 30-5 (SLAU367P), for a BRCLK frequency of 8000000 and a baud rate of 9600,
+    //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
+    //  Therefore, we use 0x49 instead of 0x04.
+    UCA0MCTLW |= 0xF700U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
 
     enableUart0Pins();
 
@@ -484,7 +500,7 @@ static void UART__uart1Init() {
     - Next frame to be transmitted is data
     - Next frame to be transmitted is not a break
     */
-
+/*
     // Baud Rate calculation (Section 30.3.10, SLAU367P)
     // N = (Baud rate clock frequency) / (baud rate) = 8000000 / 9600 = 833.3333
     // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
@@ -500,6 +516,22 @@ static void UART__uart1Init() {
     //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
     //  Therefore, we use 0x49 instead of 0x04. 
     UCA1MCTLW |= 0x4900U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
+*/
+    // Baud Rate calculation (Section 30.3.10, SLAU367P)
+    // N = (Baud rate clock frequency) / baud rate = 8000000 / 57600 = 833.3333
+    // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
+    UCA1MCTLW = UCOS16; // Enables oversampling baud-rate generation mode
+    // UCBRx = int(N / 16) = int(52.08333)
+    // UCBRx = 52
+    UCA1BRW = 8U; // Note: UCBRSx takes up the full 16 bits of UCAxBRW
+    // UCBRFx = int([(N/16) - int(N / 16)] * 16) = int([52.08333 - 52] * 16) = int(1.3333)
+    // UCBRFx = 1
+    UCA1MCTLW |= UCBRF_10;
+    // UCBRSx = 0x04 (per Table 30-4, SLAU367P)
+    // However, per table 30-5 (SLAU367P), for a BRCLK frequency of 8000000 and a baud rate of 9600,
+    //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
+    //  Therefore, we use 0x49 instead of 0x04.
+    UCA1MCTLW |= 0xF700U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
 
     enableUart1Pins();
 

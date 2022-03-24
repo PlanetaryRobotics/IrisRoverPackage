@@ -111,14 +111,14 @@ namespace iris
                         // If m_i2cActive is still false after calling initiateNextI2cAction, it means all queued i2c
                         // actions have been performed and there is no active i2c action
                         if (!(theContext.m_i2cActive)) {
-                            DebugComms__printfToLander("Done with WAITING_FOR_I2C_DONE substate\n");
-                            DebugComms__flush();
+                            //DebugComms__printfToLander("Done with WAITING_FOR_I2C_DONE substate\n");
+                            //DebugComms__flush();
                             return transitionToWaitingForIoExpanderWrite1(theContext);
                         }
                     }
                 } else {
-                    DebugComms__printfToLander("Done with WAITING_FOR_I2C_DONE substate\n");
-                    DebugComms__flush();
+                    //DebugComms__printfToLander("Done with WAITING_FOR_I2C_DONE substate\n");
+                    //DebugComms__flush();
                     return transitionToWaitingForIoExpanderWrite1(theContext);
                 }
                 break;
@@ -144,8 +144,8 @@ namespace iris
                         I2C_Sensors__clearLastAction();
                         theContext.m_i2cActive = false;
 
-                        DebugComms__printfToLander("Done with WAITING_FOR_IO_EXPANDER_WRITE_1 substate\n");
-                        DebugComms__flush();
+                        //DebugComms__printfToLander("Done with WAITING_FOR_IO_EXPANDER_WRITE_1 substate\n");
+                        //DebugComms__flush();
 
                         return transitionToWaitingForIoExpanderWrite2(theContext);
                     }
@@ -173,8 +173,8 @@ namespace iris
                         I2C_Sensors__clearLastAction();
                         theContext.m_i2cActive = false;
 
-                        DebugComms__printfToLander("Done with WAITING_FOR_IO_EXPANDER_WRITE_2 substate\n");
-                        DebugComms__flush();
+                        //DebugComms__printfToLander("Done with WAITING_FOR_IO_EXPANDER_WRITE_2 substate\n");
+                        //DebugComms__flush();
                         return transitionToWaitingForFuelGaugeOrTimeout(theContext);
                     }
                 }
@@ -191,8 +191,8 @@ namespace iris
                         theContext.m_queuedI2cActions = 0;
                         theContext.m_i2cActive = false;
 
-                        DebugComms__printfToLander("Timed out of WAITING_FOR_FUEL_GAUGE_OR_TIMEOUT substate\n");
-                        DebugComms__flush();
+                        //DebugComms__printfToLander("Timed out of WAITING_FOR_FUEL_GAUGE_OR_TIMEOUT substate\n");
+                        //DebugComms__flush();
                         return transitionToWatitingForWifiReadyOrTimeout(theContext);
                     }
 
@@ -210,8 +210,8 @@ namespace iris
                         I2C_Sensors__clearLastAction();
                         theContext.m_i2cActive = false;
 
-                        DebugComms__printfToLander("Done with WAITING_FOR_FUEL_GAUGE_OR_TIMEOUT substate\n");
-                        DebugComms__flush();
+                        //DebugComms__printfToLander("Done with WAITING_FOR_FUEL_GAUGE_OR_TIMEOUT substate\n");
+                        //DebugComms__flush();
 
                         // Then move forward
                         return transitionToWatitingForWifiReadyOrTimeout(theContext);
@@ -246,8 +246,8 @@ namespace iris
 
                     if (timePassed > WIFI_READY_TIMEOUT_CENTISECONDS) {
                         DPRINTF_ERR("Wait for wifi timed out\n");
-                        DebugComms__printfToLander("Done with WAITING_FOR_WIFI_READY_OR_TIMEOUT substate\n");
-                        DebugComms__flush();
+                        //DebugComms__printfToLander("Done with WAITING_FOR_WIFI_READY_OR_TIMEOUT substate\n");
+                        //DebugComms__flush();
 
                         // At this point the only thing that may be using I2C would be the read/write from the timer tick,
                         // and transitioning to mission has priority over that. If it was a write, the changes being written
@@ -286,8 +286,8 @@ namespace iris
                         initiateNextI2cAction(theContext);
 
                         enableHerculesComms(theContext);
-                        DebugComms__printfToLander("Done with WAITING_FOR_IO_EXPANDER_WRITE_3 substate\n");
-                        DebugComms__flush();
+                        //DebugComms__printfToLander("Done with WAITING_FOR_IO_EXPANDER_WRITE_3 substate\n");
+                        //DebugComms__flush();
 
                         return RoverState::MISSION;
                     }
@@ -338,13 +338,13 @@ namespace iris
     RoverState RoverStateEnteringMission::transitionToWaitingForI2cDone(RoverContext& theContext)
     {
         if (theContext.m_i2cActive) {
-            DebugComms__printfToLander("Entering WAITING_FOR_I2C_DONE substate\n");
-            DebugComms__flush();
+            //DebugComms__printfToLander("Entering WAITING_FOR_I2C_DONE substate\n");
+            //DebugComms__flush();
             m_currentSubstate = SubState::WAITING_FOR_I2C_DONE;
             return getState();
         } else {
-            DebugComms__printfToLander("Entering WAITING_FOR_IO_EXPANDER_WRITE_1 substate\n");
-            DebugComms__flush();
+            //DebugComms__printfToLander("Entering WAITING_FOR_IO_EXPANDER_WRITE_1 substate\n");
+            //DebugComms__flush();
             return transitionToWaitingForIoExpanderWrite1(theContext);
         }
     }
@@ -453,7 +453,7 @@ namespace iris
         initiateNextI2cAction(theContext);
 
         m_currentSubstate = SubState::WAITING_FOR_IO_EXPANDER_WRITE_3;
-        DebugComms__printfToLander("Just enetered WAITING_FOR_IO_EXPANDER_WRITE_3\n");
+        //DebugComms__printfToLander("Just enetered WAITING_FOR_IO_EXPANDER_WRITE_3\n");
         return getState();
     }
 

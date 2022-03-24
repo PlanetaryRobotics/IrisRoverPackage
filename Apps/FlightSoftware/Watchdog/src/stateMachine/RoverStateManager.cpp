@@ -107,7 +107,7 @@ namespace iris
             // Previously a WDTIS of 0b100 was being used so the watchdog period would have been about 3.5 seconds,
             // though the comment above it had mistakenly described it as setting the watchdog period to 1 second. For
             // now, we'll use a WDTIS of 0b101 (a period of 0.871 seconds) and see if it causes any issues.
-            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;// + WDTIS0;
+            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;//+ WDTIS0;
 
             Event__Type event = EVENT__TYPE__UNUSED;
             EventQueue__Status eqStatus = EventQueue__get(&event);

@@ -110,6 +110,7 @@
   
   <connection name = "rgLowFreq_to_watchDogInterface_clk">
     <source component = "rateGroupLowFreq" port = "RateGroupMemberOut" type = "Sched" num = "1" />
+    <!--<source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "2" />-->
     <target component = "watchDogInterface" port = "Run" type = "Sched" num = "0"/>
   </connection>
   

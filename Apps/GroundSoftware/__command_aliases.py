@@ -272,6 +272,30 @@ def get_command(alias: str, param: Optional[str] = None):
             dict(distance=200, speed=100, callback_id=0xBEEF), # Change this to whatever you want to reset.
             DataPathway.WIRED
         ),
+        # Command[16]::MotorControl_McUpdateTelemetry[]
+        'poke-mc-telem': (
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            'MotorControl_McUpdateTelemetry',
+            dict(),
+            DataPathway.WIRED
+        ),
+        # Command[16]::MotorControl_McUpdateTelemetry[]
+        'poke-mc-telem-wifi': (
+            DataPathway.WIRELESS,
+            Magic.COMMAND,
+            'MotorControl_McUpdateTelemetry',
+            dict(),
+            DataPathway.WIRELESS
+        ),
+        # Command[16]::MotorControl_McUpdateTelemetry[]
+        'send-all-gi-telem': (
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            'GroundInterface_SetGroundInterfaceTelemetryLevel',
+            dict(telemetry_level='ALL'),
+            DataPathway.WIRED
+        ),
         'set-heater': (
             DataPathway.WIRED,
             # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)

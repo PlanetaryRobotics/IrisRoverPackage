@@ -159,7 +159,7 @@ def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
         print(debug_msg, end='')
         return None
 
-    print(packet_bytes)
+    #print(packet_bytes)
 
     # Check for issues:
     if len(supported) == 0:
@@ -395,6 +395,9 @@ def send_slip(dat: bytes) -> None:
     buf.append(0xC0)
 
     if ser is not None:
+        cprint(
+            str(bytes(buf)),
+            'blue')
         ser.write(bytes(buf))
     else:
         cprint(

@@ -21,7 +21,6 @@ from scapy.utils import hexstr  # type: ignore
 from pandas import DataFrame  # type: ignore
 
 from .magic import Magic, MAGIC_SIZE
-from .metadata import UplinkTimes, DownlinkTimes
 from .container import ContainerCodec
 from .payload import PayloadCollection, TelemetryPayload, extract_downlinked_payloads
 
@@ -900,68 +899,7 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
 
 PT = TypeVar('PT', bound=Packet)
 
-
-class DownlinkPacket(Generic[PT]):
-    """
-    Wraps a Core Packet (i.e. actual data sent/received) with relevant metadata
-    about the Packet. Metadata here is relevant to packets sent in the downlink
-    (Moon to Earth) direction.
-
-    @author: Connor W. Colombo (CMU)
-    @last-updated: 02/27/2022
-    """
-
-    __slots__: List[str] = [
-        'core_packet',
-        'downlink_times'
-    ]
-    core_packet: PT
-    downlink_times: DownlinkTimes
-
-    def __init__(self, core_packet: PT, downlink_times: DownlinkTimes) -> None:
-        pass
-
-    def to_bytes(self) -> bytes:
-        raise NotImplementedError()
-
-    def from_bytes(self) -> UplinkPacket:
-        # TODO: how are we going to know which constructor to use to rebuild it?
-        # ... pickle handles this, right? (not safe though... just create dispatch dict).
-        raise NotImplementedError()
-
-
-class UplinkPacket(Generic[PT]):
-    """
-    Wraps a Core Packet (i.e. actual data sent/received) with relevant metadata
-    about the Packet. Metadata here is relevant to packets sent in the uplink
-    (Earth to Moon) direction.
-
-    @author: Connor W. Colombo (CMU)
-    @last-updated: 02/27/2022
-    """
-
-    __slots__: List[str] = [
-        'core_packet',
-        'uplink_times'
-    ]
-    core_packet: PT
-    uplink_times: UplinkTimes
-
-    def __init__(self, core_packet: PT, uplink_times: UplinkTimes) -> None:
-        pass
-
-    def to_bytes(self) -> bytes:
-        # self.core_packet.decode()
-        raise NotImplementedError()
-
-    def from_bytes(self) -> UplinkPacket:
-        # TODO: how are we going to know which constructor to use to rebuild it?
-        # ... pickle handles this, right? (not safe though... just create dispatch dict).
-        raise NotImplementedError()
-
-
 CPCT = TypeVar('CPCT')  # CustomPayload Class Type
-
 
 class CustomPayloadPacket(Packet[CT], Generic[CT, CPCT]):
     """

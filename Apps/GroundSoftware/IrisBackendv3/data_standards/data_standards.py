@@ -793,7 +793,7 @@ class DataStandards(object):
     def cache(self,
               cache_dir: str = _CACHE_DIR,
               filename_base: str = "IBv3_DScache",
-              ext: str = "jkl",
+              ext: str = "dsc",
               indent=0
               ) -> str:
         """
@@ -817,7 +817,7 @@ class DataStandards(object):
     def load_cache(cls,
                    cache_dir: str = _CACHE_DIR,
                    filename_base: str = "IBv3_DScache",
-                   ext: str = "jkl",
+                   ext: str = "dsc",
                    cache_filename: Optional[str] = None,
                    ) -> DataStandards:
         """

@@ -1,16 +1,13 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 """
 Defines Common Data Required for Packets. Support for Building and Parsing
 Packets.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 11/21/2021
+@last-updated: 03/28/2022
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
-from typing import List, Any, Optional, TypeVar, cast, Union, Generic, Type, Dict
+from typing import List, Any, Optional, Callable, ClassVar, Tuple, TypeVar, cast, Union, Generic, Type, Dict
 from collections import OrderedDict
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -20,12 +17,11 @@ import struct
 import bitstruct  # type: ignore
 import numpy as np  # type: ignore
 import time
-from math import ceil
 from scapy.utils import hexstr  # type: ignore
 from pandas import DataFrame  # type: ignore
 
 from .magic import Magic, MAGIC_SIZE
-from .metadata import DataPathway, DataSource, UplinkTimes, DownlinkTimes
+from .metadata import UplinkTimes, DownlinkTimes
 from .container import ContainerCodec
 from .payload import PayloadCollection, TelemetryPayload, extract_downlinked_payloads
 
@@ -33,7 +29,7 @@ from .settings import ENDIANNESS_CODE, settings
 from .logging import logger
 from .exceptions import PacketDecodingException
 
-from IrisBackendv3.utils.basic import flip_all_bits_in_bytes
+from IrisBackendv3.utils.basic import flip_all_bits_in_bytes, full_dict_spec_check
 from IrisBackendv3.data_standards.module import Module
 
 CPH_SIZE = 4
@@ -41,11 +37,13 @@ CPH_SIZE = 4
 CT = TypeVar('CT')
 
 # TODO: Add update hooks?
+# ^- I think IPC will just take care of this (make it redundant).
 
 # TODO: Add `__str__` / `__repr__`s
 
 #! TODO: Handle serialization (must replace container scheme, augment by storing payloads with their metadata)
 #! ^- or don't serialize as packets?... no, must be able to serialize to send over IPC network.
+#! ^- augmenting containers with __reduce__ and __getstate__ seems like it will work for IPC.
 
 
 def parse_packet(
@@ -91,9 +89,7 @@ def parse_packet(
         if len(supported) > 0:
             # Parse:
             packet = supported[0].decode(
-                packet_bytes,
-                pathway=DataPathway.WIRELESS,
-                source=DataSource.PCAP
+                packet_bytes
             )
             # Store:
             # ! TODO: Don't need this? This came over from `trans_tools`. Do we need storage on decode here? This should be handled by storage IPC node.
@@ -119,34 +115,40 @@ class Packet(ContainerCodec[CT], ABC):
     # Mainly an aliasing class for now (allows for creating List[Packet])
 
     __slots__: List[str] = [
-        'pathway',  # DataPathway through which this data was received or should be sent
-        'source',  # DataSource of this data (how it entered the GSW)
-        'payloads'  # PayloadCollection of all Payloads, separated by type
-    ]  # empty but lets the slots from parent continue
+        '_payloads'  # PayloadCollection of all Payloads, separated by type
+    ]
 
-    pathway: DataPathway
-    source: DataSource
-    payloads: PayloadCollection
+    _payloads: PayloadCollection
+
+    @property
+    def payloads(self) -> PayloadCollection:
+        """Wrapper for `_payloads`. This getter can be overridden in subclasses
+        for additional functionality (e.g. autocaching & updating of data used
+        to generate or generated from payloads)."""
+        return self._payloads
+
+    @payloads.setter
+    def payloads(self, payloads: PayloadCollection) -> None:
+        """Wrapper for `_payloads`. This getter can be overridden in subclasses
+        for additional functionality (e.g. autocaching & updating of data used
+        to generate or generated from payloads)."""
+        self._payloads = payloads
 
     def __init__(self,
                  payloads: PayloadCollection,
-                 pathway: DataPathway = DataPathway.NONE,
-                 source: DataSource = DataSource.NONE,
                  raw: Optional[bytes] = None,
                  endianness_code: str = ENDIANNESS_CODE
                  ) -> None:
+        # Set payloads using `.payloads` and not `._payloads` so any special
+        # `@payloads.setter` added in a subclass will be automatically called.
         self.payloads = payloads
-        self.pathway = pathway
-        self.source = source
         super().__init__(raw=raw, endianness_code=endianness_code)  # passthru
 
     @classmethod
     @abstractmethod
     def decode(cls,
                data: bytes,
-               endianness_code: str = ENDIANNESS_CODE,
-               pathway: DataPathway = DataPathway.NONE,
-               source: DataSource = DataSource.NONE
+               endianness_code: str = ENDIANNESS_CODE
                ) -> CT:
         raise NotImplementedError()
 
@@ -157,6 +159,57 @@ class Packet(ContainerCodec[CT], ABC):
         Determines whether the given bytes constitute a valid packet of this type.
         """
         raise NotImplementedError()
+
+    @classmethod
+    @abstractmethod
+    def build_minimum_packet(
+        cls,
+        payloads: PayloadCollection,
+        raw: Optional[bytes],
+        endianness_code: str
+    ) -> CT:
+        """ Builds a minimum representation of this Packet (before any
+        additional elements from `__getstate__` are added back). Used by
+        `Packet.__reduce__` for unpacking serialized data.
+        """
+        raise NotImplementedError()
+
+    def __reduce__(self) -> Tuple[Callable, Tuple[PayloadCollection, bytes, str], Optional[Dict]]:
+        """
+        `Packet` `__reduce__` differs from the `__reduce__` of other 
+        `ContainerCodec` subclasses b/c Packets are really just fancy
+        `PayloadCollection`s. Even though the payloads themselves can be
+        derived from `_raw`, each of them have their own metadata, so they
+        should be encoded independently through their on `__reduce__` methods
+        which include any metadata which comes from their `__getstate__`.
+        """
+        # *Don't* automatically re-encode to update fields in case some part of
+        # algorithm is broken and received raw data is lost.
+        # (The first point of storing the raw is to be able to forensically
+        # reconstruct what was seen during mission, so use same inputs to get
+        # the same outputs).
+        # This also allows for easy re-evaluation of all saved telemetry by
+        # simply adjusting the decode / parsers and deserializing again.
+        if self._raw is None:
+            self._raw = self.encode()
+
+        # If the subclass is set up to encode a state (metadata not stored in
+        # `raw`), grab it:
+        if hasattr(self, '__getstate__'):
+            state = self.__getattribute__('__getstate__')()
+        else:
+            state = None
+
+        # The "Callable object" returned will be the decoding function:
+        # If a subclassed object is reduced, it will call that subclass' `decode`
+        # function (assuming it's been implemented).
+        # The output of `decode` will then have its `__setstate__` called with
+        # an argument of `state` (to build back metadata).
+        return (
+            self.__class__.build_minimum_packet,
+            (self.payloads, self._raw, self._endianness_code),
+            state
+        )
 
 
 class IrisCommonPacketInterface(Packet[CT]):
@@ -173,7 +226,7 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
     be handled and transformed and only packed into bytes when needed.
 
     @author: Connor W. Colombo (CMU)
-    @last-updated: 04/09/2020
+    @last-updated: 03/07/2022
     """
 
     # TODO: Do these MTUs matter? Should we take them out? (might matter when
@@ -251,6 +304,7 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
 
             sns = IrisCommonPacket.CommonPacketHeader.SEQ_NUM_SYM
             vls = IrisCommonPacket.CommonPacketHeader.VLP_LEN_SYM
+            # TODO: What's up with the `''` here? - just a relic from a misunderstanding or a typo? It works, so likely just it was thought to be necessary.
             struct_str = endianness_code + ' ' + sns + '' + vls
             seq_num, vlp_len = struct.unpack(struct_str, cph_head)
 
@@ -326,9 +380,9 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
             f"ICP["
             f"#{self.common_packet_header.seq_num}::"
             f"{self.common_packet_header.vlp_len}]: "
-            f"\t{len(self.payloads.TelemetryPayload)} T"  # Telemetry
+            f"\t{len(self.payloads.TelemetryPayload)} T"
             f"\t- {len(self.payloads.EventPayload)} E"
-            f"\t- {len(self.payloads.FileBlockPayload)} B"  # File Blocks
+            f"\t- {len(self.payloads.FileBlockPayload)} B"
             f"\t- {len(self.payloads.CommandPayload)} C"
         )
 
@@ -336,33 +390,100 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
                  payloads: PayloadCollection,
                  seq_num: int = 0,
                  common_packet_header: Optional[CommonPacketHeader] = None,
-                 pathway: DataPathway = DataPathway.NONE,
-                 source: DataSource = DataSource.NONE,
+                 ignore_state_members: bool = False,
                  raw: Optional[bytes] = None,
                  endianness_code: str = ENDIANNESS_CODE
                  ) -> None:
 
-        if common_packet_header is None:
+        if ignore_state_members:
+            # In this case, don't worry about how you init any member variables
+            # that are part of `__getstate__`, so just fill with empty data
+            # since it will likely be replaced immediately.
+            # Designed for use by `build_minimum_packet`.
+            #
+            # NOTE: This is to be used when reconstructing data from
+            # `__reduce__` b/c if this `Packet` was been encoded by `__reduce__`
+            # (e.g. for IPC), `__init__` gets called then the state gets
+            # populated from `__getstate__`. So, this `__init__` will be called
+            # w/o `common_packet_header` when decoding data from `__reduce__`
+            # but the `common_packet_header` and `seq_num` args won't matter b/c
+            # it will just get overwritten by whatever was in`__getstate__`.
             self._common_packet_header = IrisCommonPacket.CommonPacketHeader(
                 seq_num=seq_num,
-                vlp_len=IrisCommonPacket._count_vlp_len(payloads)
+                vlp_len=1  # arbitrary length >0
             )
+
         else:
-            self._common_packet_header = common_packet_header
-        super().__init__(payloads=payloads, pathway=pathway,
-                         source=source, raw=raw, endianness_code=endianness_code)
+            # any data given or not given here was intentional and so any
+            # absences need to be computed:
+            if common_packet_header is None:
+                self._common_packet_header = IrisCommonPacket.CommonPacketHeader(
+                    seq_num=seq_num,
+                    vlp_len=IrisCommonPacket._count_vlp_len(payloads)
+                )
+            else:
+                self._common_packet_header = common_packet_header
+
+        super().__init__(
+            payloads=payloads,
+            raw=raw,
+            endianness_code=endianness_code
+        )
+
+    @classmethod
+    def build_minimum_packet(
+        cls,
+        payloads: PayloadCollection,
+        raw: Optional[bytes],
+        endianness_code: str
+    ) -> IrisCommonPacket:
+        """ Builds a minimum representation of this Packet (before any
+        additional elements from `__getstate__` are added back). Used by
+        `Packet.__reduce__` for unpacking serialized data.
+        """
+        return cls(
+            # don't worry about `seq_num` and `common_packet_header` since they'll come from `__getstate__`
+            ignore_state_members=True,
+            payloads=payloads,
+            raw=raw,
+            endianness_code=endianness_code
+        )
+
+    def __getstate__(self) -> Dict[str, Any]:
+        """Encode metadata which is not stored in `payloads`.
+        """
+        return {
+            'cph': self._common_packet_header
+        }
+
+    def __setstate__(self, data: Dict[str, Any]) -> None:
+        """Retrieve metadata which is not stored in `payloads`."""
+        full_dict_spec_check(
+            data,
+            {
+                'cph': IrisCommonPacket.CommonPacketHeader
+            },
+            name='data'
+        )
+
+        self._common_packet_header = data['cph']
 
     @classmethod
     def decode(cls,
                data: bytes,
-               endianness_code: str = ENDIANNESS_CODE,
-               pathway: DataPathway = DataPathway.NONE,
-               source: DataSource = DataSource.NONE
+               endianness_code: str = ENDIANNESS_CODE
                ) -> IrisCommonPacket:
-        """Construct a Iris Packet Object from Bytes."""
+        """Construct a Iris Packet Object from Bytes.
+            NOTE: This does not add metadata to the Payloads like `Pathway`,
+            `Source`, or `DownlinkTimes`. That needs to be added to the
+            Payloads at the `Transceiver` layer.
+        """
 
         cph_data = data[:CPH_SIZE]
-        CPH = IrisCommonPacket.CommonPacketHeader.decode(cph_data)
+        CPH = IrisCommonPacket.CommonPacketHeader.decode(
+            cph_data,
+            endianness_code=endianness_code
+        )
         #! TODO: Perform checksum check. (not impl. in FSW atm)
         actual_vlp_len = len(data) - CPH_SIZE
         if CPH.vlp_len != actual_vlp_len:
@@ -379,12 +500,9 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
 
         # Parse VLP:
         try:
-            #! TODO: handle uplink packets as well.
-            #! TODO: Handle UplinkTimes/DownlinkTimes objects
             payloads = extract_downlinked_payloads(
                 VLP=VLP,
-                pathway=pathway,
-                source=source
+                endianness_code=endianness_code
             )
 
         except Exception as e:
@@ -397,8 +515,6 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         return IrisCommonPacket(
             common_packet_header=CPH,
             payloads=payloads,
-            pathway=pathway,
-            source=source,
             raw=data,
             endianness_code=endianness_code
         )
@@ -622,8 +738,6 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
                  payloads: PayloadCollection,
                  seq_num: int = 0,
                  common_packet_header: Optional[Legacy2020CommonPacketHeader] = None,
-                 pathway: DataPathway = DataPathway.NONE,
-                 source: DataSource = DataSource.NONE,
                  raw: Optional[bytes] = None,
                  endianness_code: str = ENDIANNESS_CODE
                  ) -> None:
@@ -635,21 +749,60 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
             )
         else:
             self._common_packet_header = common_packet_header
-        super().__init__(payloads=payloads, pathway=pathway,
-                         source=source, raw=raw, endianness_code=endianness_code)
+        super().__init__(
+            payloads=payloads,
+            raw=raw,
+            endianness_code=endianness_code
+        )
+
+    @classmethod
+    def build_minimum_packet(
+        cls,
+        payloads: PayloadCollection,
+        raw: Optional[bytes],
+        endianness_code: str
+    ) -> Legacy2020IrisCommonPacket:
+        """ Builds a minimum representation of this Packet (before any
+        additional elements from `__getstate__` are added back). Used by
+        `Packet.__reduce__` for unpacking serialized data.
+        """
+        return cls(
+            payloads=payloads,
+            raw=raw,
+            endianness_code=endianness_code
+        )
+
+    def __getstate__(self) -> Dict[str, Any]:
+        """Encode metadata which is not stored in `payloads`.
+        """
+        return {
+            'cph': self._common_packet_header
+        }
+
+    def __setstate__(self, data: Dict[str, Any]) -> None:
+        """Retrieve metadata which is not stored in `payloads`."""
+        full_dict_spec_check(
+            data,
+            {
+                'cph': IrisCommonPacket.CommonPacketHeader
+            },
+            name='data'
+        )
+
+        self._common_packet_header = data['cph']
 
     @classmethod
     def decode(cls,
                data: bytes,
-               endianness_code: str = ENDIANNESS_CODE,
-               pathway: DataPathway = DataPathway.NONE,
-               source: DataSource = DataSource.NONE
+               endianness_code: str = ENDIANNESS_CODE
                ) -> Legacy2020IrisCommonPacket:
         """Construct a Iris Packet Object from Bytes."""
 
         cph_data = data[:Legacy2020IrisCommonPacket.LEGACY2020_CPH_SIZE]
         CPH = Legacy2020IrisCommonPacket.Legacy2020CommonPacketHeader.decode(
-            cph_data)
+            cph_data,
+            endianness_code=endianness_code
+        )
         # NOTE: Ignore checksum check for Legacy2020. Wasn't impl. yet in FSW.
         actual_vlp_len = (
             len(data) - Legacy2020IrisCommonPacket.LEGACY2020_CPH_SIZE
@@ -668,12 +821,9 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
 
         # Parse VLP:
         try:
-            # Ignoring uplink and UplinkTimes/DownlinkTimes objects for
-            # Legacy2020.
             payloads = extract_downlinked_payloads(
                 VLP=VLP,
-                pathway=pathway,
-                source=source
+                endianness_code=endianness_code
             )
 
         except Exception as e:
@@ -686,8 +836,6 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
         return Legacy2020IrisCommonPacket(
             common_packet_header=CPH,
             payloads=payloads,
-            pathway=pathway,
-            source=source,
             raw=data,
             endianness_code=endianness_code
         )
@@ -812,7 +960,10 @@ class UplinkPacket(Generic[PT]):
         raise NotImplementedError()
 
 
-class CustomPayloadPacket(Packet[CT]):
+CPCT = TypeVar('CPCT')  # CustomPayload Class Type
+
+
+class CustomPayloadPacket(Packet[CT], Generic[CT, CPCT]):
     """
     Superclass for a special **non**-Iris Common Packet packet
     (e.g. generated by the Watchdog) which contains items which would normally
@@ -828,22 +979,35 @@ class CustomPayloadPacket(Packet[CT]):
 
     Members of the custom payload must have same names as the corresponding
     telemetry channels in the prebuilt `DataStandards` module.
-    Note: an error will get thrown by `WatchdogCommandResponsePacket.__init__`
+    Note: an error will get thrown by `CustomPayloadPacket.__init__`
     when building `payloads` from the `custom_payload` if all the channels
-    in the `WatchdogCommandResponse` prebuilt module don't have a corresponding
+    in the `PREBUILT_MODULE_NAME prebuilt module don't have a corresponding
     attr in this `CustomPayload`.
 
-    *NOTE:* For this to work effectively, all fields, including computed
-    properties, in the custom payload must match the names from the prebuilt
-    module AND the order of the args in `__init__` of the custom payload must
-    match the order of the bytes in the packet.
+    *NOTE:* For this to work effectively:
+    1. All fields, including computed properties, in the custom payload must
+        match the names of the corresponding telemetry channels from the
+        prebuilt module.
+    2. Although the custom payload class can have fields that don't appear as
+        telemetry channels in the linked datastandards module, all telemetry
+        channels in the module must have matching fields in the custom payload
+        class.
+    3. All args to `__init__` of the custom payload must have corresponding
+        channels in the linked datastandards module.
+    4. The order of the args in `__init__` of the custom payload must
+        match the order of the bytes/bits in the packet.
     """
-    PREBUILT_MODULE_NAME: Optional[str] = None
+    # Name of the Module in the linked datastandards that the implementing
+    # `CustomPayloadPacket` encodes:
+    PREBUILT_MODULE_NAME: ClassVar[Optional[str]] = None
+    # Class that contains the values of all payloads in this custom payload
+    # class (used as an intermediary between the packet bytes which contain all
+    # those fields and the `payloads` `PayloadCollection`):
+    CUSTOM_PAYLOAD_CLASS: Optional[Type[CPCT]] = None
 
     __slots__: List[str] = [
-        'custom_payload'
+        '_custom_payload'
     ]
-    custom_payload: object
 
     @classmethod
     def get_ds_module(cls) -> Module:
@@ -867,16 +1031,141 @@ class CustomPayloadPacket(Packet[CT]):
                 "module to be loaded into the standards but it can't be found."
             )
 
-    def __init__(self,
-                 custom_payload: object,
-                 pathway: DataPathway = DataPathway.NONE,
-                 source: DataSource = DataSource.NONE,
-                 raw: Optional[bytes] = None,
-                 endianness_code: str = ENDIANNESS_CODE
-                 ) -> None:
+    @property
+    def custom_payload(self) -> CPCT:
+        # public getter, private setter
+        return self._custom_payload
 
-        self.custom_payload = custom_payload
+    @property
+    def payloads(self) -> PayloadCollection:
+        return self._payloads
 
+    @payloads.setter
+    def payloads(self, payloads: PayloadCollection) -> None:
+        """Override default `Packet` setter so the locally cached 
+        `_custom_payload` can be updated if `payloads` (which drives it) is
+        changed.
+
+        NOTE: The following was checked to make sure that even if a superclass
+        calls `payloads=` (e.g. in `__init__`), it will be dispatched to this
+        subclass overridden version:
+
+        .. code-block:: python:
+            class A():
+                __slots__ = ['_thing']
+                _thing: str          
+                @property
+                def thing(self) -> str:
+                    print(f"Super class thing getter {self._thing}")
+                    return self._thing
+                @thing.setter
+                def thing(self, thing: str) -> None:
+                    print(f"Super class thing setter {thing}")
+                    self._thing = thing
+                def __init__(self, t: str) -> None:
+                    self.thing = t
+
+            class B(A):
+                __slots__ = [] # propagate `__slots__` from parent
+                @property
+                def thing(self) -> str:
+                    print(f"Sub class thing getter {self._thing}")
+                @thing.setter
+                def thing(self, thing: str) -> None:
+                    print(f"Sub class thing setter {thing}")
+                    self._thing = thing
+                def __init__(self, t: str) -> None:
+                    super().__init__(t=t)
+
+            b = B('bb')  # -> prints "Sub class thing setter bb"
+            b.thing  # -> prints "Sub class thing getter bb"
+        """
+        if self._payloads != payloads:
+            # only recompute if a change is actually occuring (necessary to
+            # avoid needing to recompute in the constructor since it sets
+            # `_custom_payload` then `_payloads` and then has to dispatch to
+            # `super`'s `__init__` which will call this setter again.
+            # store this first in case issues arise with unpacking and an error is raised
+            self._payloads = payloads
+            self._custom_payload = self.pack_payloads_into_custom_payload(
+                payloads)
+        else:
+            self._payloads = payloads
+
+    def pack_payloads_into_custom_payload(
+        self,
+        payloads: PayloadCollection,
+    ) -> CPCT:
+        """Reconstructs the `custom_payload` (instance of
+        `cls.CUSTOM_PAYLOAD_CLASS`) which was used to construct all the
+        payloads.
+        `custom_payload` is used as an intermediary between the packet bytes
+        which contain all the fields used to create the `payloads`
+        `PayloadCollection`.
+        After construction, this field is normally redundant since it
+        necessarily contains the same data as in `payloads`.
+        This getter is required to maintain backward compatibility with legacy
+        code written when `custom_payload` was a member of all
+        `CustomPayloadPacket` classes (and thus expected to exist).
+        The `custom_payload` field is also convenient since it allows for a
+        compact representation of all data in al fields and
+        `cls.CUSTOM_PAYLOAD_CLASS` classes often contain a concise way of
+        handling and displaying all the data they contain.
+
+        NOTE: This does not automatically replace `_custom_payload`, though you could
+        do that by `self._custom_payload=self.unpack_custom_payload_to_payloads(...)`
+        if desired.
+        """
+
+        # Go through every telemetry channel in the linked `DataStandards`
+        # `Module` and lookup the value in the Custom Payload.
+        module = self.get_ds_module()
+
+        custom_payload_args = dict()
+
+        for payload in payloads.TelemetryPayload:
+            try:
+                channel = module.telemetry[payload.channel_id]
+            except KeyError as e:
+                raise ValueError(
+                    f"`CustomPayloadPacket` class {self.__class__} was "
+                    f"decoding its internal `payloads` when it encountered a "
+                    f"channel id `{payload.channel_id}` which was not contained "
+                    f"in the registered module `{module}`. Have the "
+                    "datastandards been changed since this data was encoded? "
+                    "If so, consider using a cached datastandards (`*.dsc`) "
+                    "file from the time when this data was first encoded. "
+                    "Note: this data is still contained in an uncorrupted and "
+                    "readable form, just certain debugging functions (likely "
+                    "including printing) will be non-functional until correct "
+                    "datastandards are used. "
+                    f"KeyError given: {e}."
+                )
+            custom_payload_args[channel.name] = payload.data
+
+        if self.CUSTOM_PAYLOAD_CLASS is None:
+            raise NotImplementedError(
+                f"`CustomPayloadPacket` class {self.__class__} appears to not"
+                "be fully implemented since a `CUSTOM_PAYLOAD_CLASS` class "
+                "is required so the class can know how to unpack this data but "
+                "no `CUSTOM_PAYLOAD_CLASS` ClassVar was given."
+            )
+        else:
+            c = self.CUSTOM_PAYLOAD_CLASS  # need to alias so ignore works below
+            return c(**custom_payload_args)  # type: ignore [call-arg]
+
+    def unpack_custom_payload_to_payloads(
+        self,
+        custom_payload: CPCT,
+        endianness_code: str = ENDIANNESS_CODE
+    ) -> PayloadCollection:
+        """Unpacks the given `custom_payload` object into a
+        `PayloadCollection`.
+
+        NOTE: This does not automatically replace `payloads`, though you could
+        do that by `self.payloads=self.unpack_custom_payload_to_payloads(...)`
+        if desired.
+        """
         # Autopopulate payloads based on name:
         payloads: PayloadCollection = PayloadCollection(
             CommandPayload=[],
@@ -894,10 +1183,9 @@ class CustomPayloadPacket(Packet[CT]):
                     module_id=module.ID,
                     channel_id=channel.ID,
                     data=getattr(custom_payload, channel.name),
+                    # TODO: NOTE, it should be made clear that for payloads inside a `CustomPayloadPacket` `timestamp` represents an Earth (unpacking) time and not a Rover (generation) time
                     timestamp=int(time.time()),
                     magic=Magic.TELEMETRY,
-                    pathway=pathway,
-                    source=source,
                     endianness_code=endianness_code
                 ))
             except AttributeError:
@@ -913,14 +1201,69 @@ class CustomPayloadPacket(Packet[CT]):
                     f"class {custom_payload.__class__}."
                 )
 
-        super().__init__(payloads=payloads, pathway=pathway, source=source,
-                         raw=raw, endianness_code=endianness_code)
+        return payloads
+
+    def __init__(self,
+                 custom_payload: Optional[CPCT] = None,
+                 payloads: Optional[PayloadCollection] = None,
+                 raw: Optional[bytes] = None,
+                 endianness_code: str = ENDIANNESS_CODE
+                 ) -> None:
+        """ Constructs an instance of this `CustomPayloadPacket`. If a
+        `custom_payload` (`CPCT`) object is given (e.g. when decoding), it will
+        be unpacked into a `PayloadCollection`. If a `payloads`
+        `PayloadCollection` is given, it will just be loaded.
+        NOTE: `custom_payload` XOR `payloads` must be given. Not neither, not
+        both.
+        """
+
+        if custom_payload is None and payloads is None:
+            raise ValueError(
+                "The constructor of `CustomPayloadPacket` class "
+                f"{self.__class__} can only be given `custom_payload` XOR "
+                "`payloads`, not neither and not both. Neither were given. "
+                "Please provide at least one."
+            )
+        if custom_payload is not None and payloads is not None:
+            raise ValueError(
+                "The constructor of `CustomPayloadPacket` class "
+                f"{self.__class__} can only be given `custom_payload` XOR "
+                "`payloads`, not neither and not both. Both were given. "
+                "Please provide only one. "
+                f"`custom_payload` was `{custom_payload}`. "
+                f"`payloads` was `{payloads}`. "
+            )
+
+        if custom_payload is not None:
+            payloads = self.unpack_custom_payload_to_payloads(
+                custom_payload=custom_payload,
+                endianness_code=endianness_code
+            )
+            # Then store these in the instance right away (so super's `__init__`
+            # doesn't trigger an unnecessary recompute of `_custom_payload`
+            # when it calls the `payloads` setter):
+            self._custom_payload = custom_payload
+            # store `_payloads` automatically too to prevent the recompute (see the `payloads` setter for more notes.)
+            self._payloads = payloads
+        else:
+            # we now implicitly know `payloads` is not `None` but `mypy`
+            # doesn't realize it yet. So, let it know:
+            payloads = cast(PayloadCollection, payloads)
+            # NOTE: don't store to `_payloads` straight away since we don't
+            # know `_custom_payload`, so we'll want `super` to trigger a
+            # recompute when it calls the `payloads=` setter.
+
+        super().__init__(
+            payloads=payloads,
+            raw=raw,
+            endianness_code=endianness_code
+        )
 
 
-class WatchdogTvacHeartbeatPacketInterface(CustomPayloadPacket[CT]):
+class WatchdogTvacHeartbeatPacketInterface(CustomPayloadPacket[CT, CPCT]):
     # Name of the corresponding prebuilt `Module` used for mapping this packet's
     # data to telemetry streams:
-    PREBUILT_MODULE_NAME: str = 'WatchdogHeartbeatTvac'
+    PREBUILT_MODULE_NAME: ClassVar[str] = 'WatchdogHeartbeatTvac'
 
     # Empty __slots__ allows super's __slots__ to not turn into __dict__:
     __slots__: List[str] = []
@@ -935,11 +1278,11 @@ class WatchdogTvacHeartbeatPacketInterface(CustomPayloadPacket[CT]):
         in the `WatchdogHeartbeatTvac` prebuilt module don't have a corresponding
         attr in this `CustomPayload`.
 
-
         *NOTE:* For this to work effectively, all fields, including computed
         properties, must match their names from the prebuilt module
         AND the order of the args in `__init__` must match the order of the
-        bytes in the packet.
+        bytes in the packet. [SEE THE NOTE IN `CustomPayloadPacket` FOR MORE
+        DETAILS]
         """
         THERMISTOR_LOOKUP_TABLE = {  # for 5k thermistor: https://www.tdk-electronics.tdk.com/inf/50/db/ntc/NTC_Mini_sensors_S863.pdf
             'degC': np.asarray([-15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155]),
@@ -1101,22 +1444,27 @@ class WatchdogTvacHeartbeatPacketInterface(CustomPayloadPacket[CT]):
             )
 
 
-class WatchdogTvacHeartbeatPacket(WatchdogTvacHeartbeatPacketInterface[WatchdogTvacHeartbeatPacketInterface]):
+# Some useful type alias that make the subsequent class more readable:
+WTHB_PI = WatchdogTvacHeartbeatPacketInterface
+WTHB_CP = WTHB_PI.CustomPayload
+
+
+class WatchdogTvacHeartbeatPacket(WTHB_PI[WTHB_PI, WTHB_CP]):
     # Properties (r-only class variables):
     START_FLAG: bytes = b'\xFF'  # Required start flag
+    # Specify the `CUSTOM_PAYLOAD_CLASS` used by `CustomPayloadPacket` superclass (weird type signature is used to match the `Optional[Type[CPCT]]` used in the superclass):
+    CUSTOM_PAYLOAD_CLASS: Optional[Type[WTHB_CP]] = WTHB_CP
 
     # Empty __slots__ allows super's __slots__ to not turn into __dict__:
     __slots__: List[str] = []
 
     def __repr__(self) -> str:
-        return self.custom_payload.__repr__()
+        return str(self.custom_payload.__repr__())
 
     @ classmethod
     def decode(cls,
                data: bytes,
-               endianness_code: str = ENDIANNESS_CODE,
-               pathway: DataPathway = DataPathway.NONE,
-               source: DataSource = DataSource.NONE
+               endianness_code: str = ENDIANNESS_CODE
                ) -> WatchdogTvacHeartbeatPacket:
         flag, core_data = data[:1], data[1:]
         if cls.START_FLAG != flag:
@@ -1130,14 +1478,13 @@ class WatchdogTvacHeartbeatPacket(WatchdogTvacHeartbeatPacketInterface[WatchdogT
         )
         return WatchdogTvacHeartbeatPacket(
             custom_payload=custom_payload,
-            pathway=pathway,
-            source=source,
             raw=data,
             endianness_code=endianness_code
         )
 
     def encode(self, **kwargs: Any) -> bytes:
         #! TODO (not really a typical use case so not super necessary besides for completeness)
+        #!! TODO: IS NECESSARY FOR IPC (OR JUST ENCODE THAT STUFF IN A STATE) <- Not with new `Packet`-specific `__reduce__` strategy
         raise NotImplementedError()
 
     @classmethod
@@ -1150,11 +1497,28 @@ class WatchdogTvacHeartbeatPacket(WatchdogTvacHeartbeatPacketInterface[WatchdogT
 
         return right_start and right_length
 
+    @classmethod
+    def build_minimum_packet(
+        cls,
+        payloads: PayloadCollection,
+        raw: Optional[bytes],
+        endianness_code: str
+    ) -> WatchdogTvacHeartbeatPacket:
+        """ Builds a minimum representation of this Packet (before any
+        additional elements from `__getstate__` are added back). Used by
+        `Packet.__reduce__` for unpacking serialized data.
+        """
+        return cls(
+            payloads=payloads,
+            raw=raw,
+            endianness_code=endianness_code
+        )
 
-class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
+
+class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
     # Name of the corresponding prebuilt `Module` used for mapping this packet's
     # data to telemetry streams:
-    PREBUILT_MODULE_NAME: str = 'WatchdogDetailedStatus'
+    PREBUILT_MODULE_NAME: ClassVar[str] = 'WatchdogDetailedStatus'
 
     # Empty __slots__ allows super's __slots__ to not turn into __dict__:
     __slots__: List[str] = []
@@ -1169,11 +1533,11 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
         in the `WatchdogDetailedStatus` prebuilt module don't have a corresponding
         attr in this `CustomPayload`.
 
-
         *NOTE:* For this to work effectively, all fields, including computed
         properties, must match their names from the prebuilt module
         AND the order of the args in `__init__` must match the order of the
-        bytes in the packet.
+        bytes in the packet. [SEE THE NOTE IN `CustomPayloadPacket` FOR MORE
+        DETAILS]
         """
         #! TODO: Consider moving these (and even V divider values etc) into some common GSW "SYSTEM PROPERTIES" struct somewhere
         # TODO: 5k table taken from old Avionics conversion sheet. not yet checked/verified. (check it)
@@ -2009,10 +2373,17 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT]):
             )
 
 
-class WatchdogDetailedStatusPacket(WatchdogDetailedStatusPacketInterface[WatchdogDetailedStatusPacketInterface]):
+# Some useful type alias that make the subsequent class more readable:
+WDS_PI = WatchdogDetailedStatusPacketInterface
+WDS_CP = WDS_PI.CustomPayload
+
+
+class WatchdogDetailedStatusPacket(WDS_PI[WDS_PI, WDS_CP]):
     # Properties (r-only class variables):
     START_FLAG: bytes = b'\xD5'  # Required start flag
     WD_ADC_BITS: int = 12
+    # Specify the `CUSTOM_PAYLOAD_CLASS` used by `CustomPayloadPacket` superclass (weird type signature is used to match the `Optional[Type[CPCT]]` used in the superclass):
+    CUSTOM_PAYLOAD_CLASS: Optional[Type[WDS_CP]] = WDS_CP
 
     # Bitfield Struct Allocations (represents the order and number of bits
     # assigned to all data in the message's bitfield struct):
@@ -2069,9 +2440,7 @@ class WatchdogDetailedStatusPacket(WatchdogDetailedStatusPacketInterface[Watchdo
     @ classmethod
     def decode(cls,
                data: bytes,
-               endianness_code: str = ENDIANNESS_CODE,
-               pathway: DataPathway = DataPathway.NONE,
-               source: DataSource = DataSource.NONE
+               endianness_code: str = ENDIANNESS_CODE
                ) -> WatchdogDetailedStatusPacket:
         flag, core_data = data[:1], data[1:]
         if cls.START_FLAG != flag:
@@ -2125,14 +2494,13 @@ class WatchdogDetailedStatusPacket(WatchdogDetailedStatusPacketInterface[Watchdo
         )
         return WatchdogDetailedStatusPacket(
             custom_payload=custom_payload,
-            pathway=pathway,
-            source=source,
             raw=data,
             endianness_code=endianness_code
         )
 
     def encode(self, **kwargs: Any) -> bytes:
         #! TODO (not really a typical use case so not super necessary besides for completeness)
+        #!! TODO: IS NECESSARY FOR IPC (OR JUST ENCODE THAT STUFF IN A STATE) <- Not with new `Packet`-specific `__reduce__` strategy
         raise NotImplementedError()
 
     @ classmethod
@@ -2145,11 +2513,28 @@ class WatchdogDetailedStatusPacket(WatchdogDetailedStatusPacketInterface[Watchdo
 
         return correct_start and correct_length
 
+    @classmethod
+    def build_minimum_packet(
+        cls,
+        payloads: PayloadCollection,
+        raw: Optional[bytes],
+        endianness_code: str
+    ) -> WatchdogDetailedStatusPacket:
+        """ Builds a minimum representation of this Packet (before any
+        additional elements from `__getstate__` are added back). Used by
+        `Packet.__reduce__` for unpacking serialized data.
+        """
+        return cls(
+            payloads=payloads,
+            raw=raw,
+            endianness_code=endianness_code
+        )
 
-class WatchdogHeartbeatPacketInterface(CustomPayloadPacket[CT]):
+
+class WatchdogHeartbeatPacketInterface(CustomPayloadPacket[CT, CPCT]):
     # Name of the corresponding prebuilt `Module` used for mapping this packet's
     # data to telemetry streams:
-    PREBUILT_MODULE_NAME: str = 'WatchdogHeartbeat'
+    PREBUILT_MODULE_NAME: ClassVar[str] = 'WatchdogHeartbeat'
 
     # Empty __slots__ allows super's __slots__ to not turn into __dict__:
     __slots__: List[str] = []
@@ -2164,11 +2549,11 @@ class WatchdogHeartbeatPacketInterface(CustomPayloadPacket[CT]):
         in the `WatchdogHeartbeat` prebuilt module don't have a corresponding
         attr in this `CustomPayload`.
 
-
         *NOTE:* For this to work effectively, all fields, including computed
         properties, must match their names from the prebuilt module
         AND the order of the args in `__init__` must match the order of the
-        bytes in the packet.
+        bytes in the packet. [SEE THE NOTE IN `CustomPayloadPacket` FOR MORE
+        DETAILS]
         """
 
         __slots__: List[str] = [
@@ -2341,9 +2726,16 @@ class WatchdogHeartbeatPacketInterface(CustomPayloadPacket[CT]):
             )
 
 
-class WatchdogHeartbeatPacket(WatchdogHeartbeatPacketInterface[WatchdogHeartbeatPacketInterface]):
+# Some useful type alias that make the subsequent class more readable:
+WHB_PI = WatchdogHeartbeatPacketInterface
+WHB_CP = WHB_PI.CustomPayload
+
+
+class WatchdogHeartbeatPacket(WHB_PI[WHB_PI, WHB_CP]):
     # Properties (r-only class variables):
     START_FLAG: bytes = b'\xFF'  # Required start flag
+    # Specify the `CUSTOM_PAYLOAD_CLASS` used by `CustomPayloadPacket` superclass (weird type signature is used to match the `Optional[Type[CPCT]]` used in the superclass):
+    CUSTOM_PAYLOAD_CLASS: Optional[Type[WHB_CP]] = WHB_CP
 
     # Empty __slots__ allows super's __slots__ to not turn into __dict__:
     __slots__: List[str] = []
@@ -2354,9 +2746,7 @@ class WatchdogHeartbeatPacket(WatchdogHeartbeatPacketInterface[WatchdogHeartbeat
     @ classmethod
     def decode(cls,
                data: bytes,
-               endianness_code: str = ENDIANNESS_CODE,
-               pathway: DataPathway = DataPathway.NONE,
-               source: DataSource = DataSource.NONE
+               endianness_code: str = ENDIANNESS_CODE
                ) -> WatchdogHeartbeatPacket:
         flag, core_data = data[:1], data[1:]
         if cls.START_FLAG != flag:
@@ -2371,14 +2761,13 @@ class WatchdogHeartbeatPacket(WatchdogHeartbeatPacketInterface[WatchdogHeartbeat
         )
         return WatchdogHeartbeatPacket(
             custom_payload=custom_payload,
-            pathway=pathway,
-            source=source,
             raw=data,
             endianness_code=endianness_code
         )
 
     def encode(self, **kwargs: Any) -> bytes:
         #! TODO (not really a typical use case so not super necessary besides for completeness)
+        #!! TODO: IS NECESSARY FOR IPC (OR JUST ENCODE THAT STUFF IN A STATE) <- Not with new `Packet`-specific `__reduce__` strategy
         raise NotImplementedError()
 
     @ classmethod
@@ -2391,11 +2780,28 @@ class WatchdogHeartbeatPacket(WatchdogHeartbeatPacketInterface[WatchdogHeartbeat
 
         return right_start and right_length
 
+    @classmethod
+    def build_minimum_packet(
+        cls,
+        payloads: PayloadCollection,
+        raw: Optional[bytes],
+        endianness_code: str
+    ) -> WatchdogHeartbeatPacket:
+        """ Builds a minimum representation of this Packet (before any
+        additional elements from `__getstate__` are added back). Used by
+        `Packet.__reduce__` for unpacking serialized data.
+        """
+        return cls(
+            payloads=payloads,
+            raw=raw,
+            endianness_code=endianness_code
+        )
 
-class WatchdogCommandResponsePacketInterface(CustomPayloadPacket[CT]):
+
+class WatchdogCommandResponsePacketInterface(CustomPayloadPacket[CT, CPCT]):
     # Name of the corresponding prebuilt `Module` used for mapping this packet's
     # data to telemetry streams:
-    PREBUILT_MODULE_NAME: str = 'WatchdogCommandResponse'
+    PREBUILT_MODULE_NAME: ClassVar[str] = 'WatchdogCommandResponse'
 
     # Empty __slots__ allows super's __slots__ to not turn into __dict__:
     __slots__: List[str] = []
@@ -2413,7 +2819,8 @@ class WatchdogCommandResponsePacketInterface(CustomPayloadPacket[CT]):
         *NOTE:* For this to work effectively, all fields, including computed
         properties, must match their names from the prebuilt module
         AND the order of the args in `__init__` must match the order of the
-        bytes in the packet.
+        bytes in the packet. [SEE THE NOTE IN `CustomPayloadPacket` FOR MORE
+        DETAILS]
         """
 
         __slots__: List[str] = [
@@ -2492,8 +2899,15 @@ class WatchdogCommandResponsePacketInterface(CustomPayloadPacket[CT]):
             )
 
 
-class WatchdogCommandResponsePacket(WatchdogCommandResponsePacketInterface[WatchdogCommandResponsePacketInterface]):
+# Some useful type alias that make the subsequent class more readable:
+WCR_PI = WatchdogCommandResponsePacketInterface
+WCR_CP = WCR_PI.CustomPayload
+
+
+class WatchdogCommandResponsePacket(WCR_PI[WCR_PI, WCR_CP]):
     START_FLAG: bytes = b'\x0A'  # Required start flag
+    # Specify the `CUSTOM_PAYLOAD_CLASS` used by `CustomPayloadPacket` superclass (weird type signature is used to match the `Optional[Type[CPCT]]` used in the superclass):
+    CUSTOM_PAYLOAD_CLASS: Optional[Type[WCR_CP]] = WCR_CP
 
     # Empty __slots__ allows super's __slots__ to not turn into __dict__:
     __slots__: List[str] = []
@@ -2504,9 +2918,7 @@ class WatchdogCommandResponsePacket(WatchdogCommandResponsePacketInterface[Watch
     @ classmethod
     def decode(cls,
                data: bytes,
-               endianness_code: str = ENDIANNESS_CODE,
-               pathway: DataPathway = DataPathway.NONE,
-               source: DataSource = DataSource.NONE,
+               endianness_code: str = ENDIANNESS_CODE
                ) -> WatchdogCommandResponsePacket:
         flag, core_data = data[:1], data[1:]
         if cls.START_FLAG != flag:
@@ -2520,14 +2932,13 @@ class WatchdogCommandResponsePacket(WatchdogCommandResponsePacketInterface[Watch
         )
         return WatchdogCommandResponsePacket(
             custom_payload=custom_payload,
-            pathway=pathway,
-            source=source,
             raw=data,
             endianness_code=endianness_code
         )
 
     def encode(self, **kwargs: Any) -> bytes:
         #! TODO (not really a typical use case so not super necessary besides for completeness)
+        #!! TODO: IS NECESSARY FOR IPC (OR JUST ENCODE THAT STUFF IN A STATE) <- Not with new `Packet`-specific `__reduce__` strategy
         raise NotImplementedError()
 
     @ classmethod
@@ -2539,3 +2950,20 @@ class WatchdogCommandResponsePacket(WatchdogCommandResponsePacketInterface[Watch
         right_length = len(data) == 3  # Bytes
 
         return right_start and right_length
+
+    @classmethod
+    def build_minimum_packet(
+        cls,
+        payloads: PayloadCollection,
+        raw: Optional[bytes],
+        endianness_code: str
+    ) -> WatchdogCommandResponsePacket:
+        """ Builds a minimum representation of this Packet (before any
+        additional elements from `__getstate__` are added back). Used by
+        `Packet.__reduce__` for unpacking serialized data.
+        """
+        return cls(
+            payloads=payloads,
+            raw=raw,
+            endianness_code=endianness_code
+        )

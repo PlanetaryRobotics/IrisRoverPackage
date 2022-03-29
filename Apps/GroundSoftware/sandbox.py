@@ -116,9 +116,7 @@ for packet in packets:
     try:
         if len(supported) > 0:
             packet = supported[0].decode(
-                packet_bytes,
-                pathway=DataPathway.WIRELESS,
-                source=DataSource.PCAP
+                packet_bytes
             )
             update_telemetry_streams(packet)
             print(packet)

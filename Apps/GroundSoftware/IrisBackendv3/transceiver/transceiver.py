@@ -29,9 +29,18 @@ class Transceiver(ABC):
     @abstractmethod
     def read_update(self) -> List[Packet]:
         """Reads all available packets on the transceiver input."""
+        # TODO: Add metadata to all the payloads first (before returning)
+        # payload.pathway = pathway
+        # payload.source = source
+        # payload.downlink_times = downlink_times
+        # TODO: Maybe go back to just sending an PC of UplinkPayloads (with internal metadata) and letting everything else be handled here (packet assignments, etc.)
+        # ... maybe improve PayloadCollection while you're at it??
+        # -- make it so you it's generic as to if its holding Uplink, Downlink, or just any Payloads.
+        # -- Keep the same named tuple interface while making better iterators (so you just iterate over all of them)
         raise NotImplementedError()
 
     @abstractmethod
     def send(self, send_request: SendPayloadsRequestContent) -> None:
         """Sends the given payloads in as few packets as possible."""
+        # TODO: Add metadata to all the payloads first (before returning)
         raise NotImplementedError()

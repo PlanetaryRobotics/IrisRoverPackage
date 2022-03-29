@@ -6,7 +6,7 @@ Core interface definition for all container classes whose data should be
 encoded/decoded to be passed in/out of the Transceiver layer.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/14/2020
+@last-updated: 03/03/2022
 """
 from typing import List, Tuple, Any, Dict, Optional, Callable, Generic, TypeVar
 from abc import ABC, abstractmethod
@@ -71,12 +71,14 @@ class ContainerCodec(Generic[CT], ABC):
         """
         Encodes the data contained in this instance using this class' formatting.
         (normally should just use instance's contained data and not require any
-        kwargs). Just make sure all overriding methods still work if kwargs
-        aren't supplied.
+        `kwargs`). When implementing a subclass, if you need to pass through
+        `kwargs`, just make sure all overriding methods still work even if
+        `kwargs` aren't supplied (that is, `kwargs` should be purely
+        supplemental information)
         """
         raise NotImplementedError()
 
-    def __reduce__(self) -> Tuple[Callable, Tuple[bytes, str], Optional[Dict]]:
+    def __reduce__(self) -> Tuple[Callable, Tuple, Optional[Dict]]:
         # *Don't* automatically re-encode to update fields in case some part of
         # algorithm is broken and received raw data is lost.
         # (The first point of storing the raw is to be able to forensically
@@ -87,16 +89,18 @@ class ContainerCodec(Generic[CT], ABC):
         if self._raw is None:
             self._raw = self.encode()
 
-        # If the subclass is setup to encode a state (metadata not stored in
+        # If the subclass is set up to encode a state (metadata not stored in
         # `raw`), grab it:
         if hasattr(self, '__getstate__'):
             state = self.__getattribute__('__getstate__')()
         else:
             state = None
 
-        # "Callable object" returned will be the decoding function:
+        # The "Callable object" returned will be the decoding function:
         # If a subclassed object is reduced, it will call that subclass' `decode`
         # function (assuming it's been implemented).
+        # The output of `decode` will then have its `__setstate__` called with
+        # an argument of `state` (to build back metadata).
         return (self.__class__.decode, (self._raw, self._endianness_code), state)
 
     def __eq__(self, other) -> bool:
@@ -110,8 +114,8 @@ class ContainerCodec(Generic[CT], ABC):
         _, self_data, self_state = self.__reduce__()
         _, other_data, other_state = other.__reduce__()
 
-        #! TODO: WORKING HERE
         return (
-            self_data == other_data
+            type(self) == type(other)  # checks against various subclasses
+            and self_data == other_data
             and self_state == other_state
         )

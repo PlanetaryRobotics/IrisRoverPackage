@@ -47,6 +47,7 @@ class InterProcessMessage(Generic[IPMC], ABC):
         Pack this object into bytes to be sent over the IPC network
         (in a safe way, unlike pickle).
         """
+        # ... use restricted_pickler
         raise NotImplementedError()
 
     @abstractclassmethod

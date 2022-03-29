@@ -6,7 +6,7 @@ Defines Common Data Required for Payloads. Support for Building and Parsing
 Payloads as part of a Variable Length Payload.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 10/01/2020
+@last-updated: 03/03/2022
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -65,26 +65,22 @@ class PayloadCollection(NamedTuple):
 
 def extract_downlinked_payloads(
         VLP: bytes,
-        pathway: DataPathway,
-        source: DataSource,
-        downlink_times: Optional[DownlinkTimes] = None,
         endianness_code: str = ENDIANNESS_CODE
 ) -> PayloadCollection:
-    """Extract all Payloads from a Variable Length Payload. Should only be used
-    for downlinked packets (nominal use does not involve deconstructing uplinked
-    packets from bytes since they're packed here.)
+    """Extract all Payloads from a Variable Length Payload.
+
+    Will be used for both downlinked and uplinked packets since both are
+    encoded when being passed around IPC.
 
     Per the Iris C&TL, the VLP should be structured as:
     [magic-0][payload-0][magic-1][payload-1]...[magic-N][payload-N]
 
     Args:
         VLP (bytes): Variable Length Payload
-        pathway (DataPathway): How the VLP data got here (from the rover)
-        source (DataSource): Where the Packet entered the backend
 
     Returns:
         PayloadCollection:
-        Dictionary Collection of Lists of Payloads, separated by Payload Type.
+        Collection of Lists of Payloads, separated by Payload Type.
         All payload types are included but some lists will be empty if no
         payload of that type was found in the given VLP.
     """
@@ -114,20 +110,11 @@ def extract_downlinked_payloads(
         if magic == Magic.MISSING:
             raise PacketDecodingException(
                 magic_bytes,
-                "This set of bytes corresponds to a missing magic value."
+                "This sequence of bytes corresponds to a missing magic value."
             )
 
         # Extract the payload and strip its bytes off the VLP:
         payload_type = payload_magic_dispatch_table[magic]
-
-        if issubclass(payload_type, UplinkedPayload):
-            raise PacketDecodingException(
-                magic_bytes,
-                "This payload magic was found in a packet being processed as a "
-                "downlinked packet but its magic indicates it should be uplinked. "
-                "Was the wrong magic used? Are you trying to unpack a packet to "
-                "be uplinked?"
-            )
 
         payload, VLP = payload_type.process(VLP, endianness_code)
 
@@ -141,9 +128,6 @@ def extract_downlinked_payloads(
 
         # Add on metadata:
         payload.magic = magic
-        payload.pathway = pathway
-        payload.source = source
-        payload.downlink_times = downlink_times
 
         # Note: mypy complains that `logger` doesn't have a member `spam` but it does:
         logger.spam(f"Successfully extracted {payload}")  # type: ignore
@@ -189,16 +173,6 @@ class PayloadInterface(ContainerCodec[PIT], ABC):
     @abstractmethod
     def __setstate__(self, data: Dict[str, Any]) -> None:
         raise NotImplementedError()
-
-    # !TODO: This was hastily commented out because the WIP `__eq__` method of
-    # the superclass `ContainerCodec` **seems** like it should cover the cases
-    # of the child classes but really didn't have time to look into this.
-    # Before using for IPC (with serialization and testing), make sure that's
-    # the case and finish the WIP IPMC.
-    #
-    # @abstractmethod
-    # def __eq__(self, other) -> bool:
-    #     raise NotImplementedError()
 
 
 PT = TypeVar('PT', bound=PayloadInterface)
@@ -266,6 +240,7 @@ class Payload(PayloadInterface[PT], ABC):
         return payload, VLP
 
     def __getstate__(self) -> Dict[str, Any]:
+        # Extra metadata that's not encoded in `_raw` bytes.
         return {
             'magic': self.magic,
             'pathway': self.pathway,
@@ -273,6 +248,7 @@ class Payload(PayloadInterface[PT], ABC):
         }
 
     def __setstate__(self, data: Dict[str, Any]) -> None:
+        # Extra metadata that's not encoded in `_raw` bytes.
         full_dict_spec_check(
             data,
             {
@@ -312,12 +288,15 @@ class UplinkedPayload(Payload[PT]):
                  pathway: DataPathway = DataPathway.NONE,
                  source: DataSource = DataSource.NONE,
                  raw: Optional[bytes] = None,
-                 endianness_code: str = ENDIANNESS_CODE
+                 endianness_code: str = ENDIANNESS_CODE,
+                 amcc: bool = False,
+                 rover_ack: bool = False,
+                 uplink_times: Optional[UplinkTimes] = None
                  ) -> None:
         # Pass through data to parent and initialize metadata values.
-        self.amcc_ack = False
-        self.rover_ack = False
-        self.uplink_times = None
+        self.amcc_ack = amcc
+        self.rover_ack = rover_ack
+        self.uplink_times = uplink_times
         super().__init__(
             magic=magic,
             pathway=pathway,
@@ -340,7 +319,7 @@ class UplinkedPayload(Payload[PT]):
         # Let the parent extract any data it cares about (manages):
         super().__setstate__(data)
 
-        # Then exract the state data managed by this class:
+        # Then extract the state data managed by this class:
         full_dict_spec_check(
             data,
             {
@@ -477,15 +456,24 @@ class CommandPayload(CommandPayloadInterface[CommandPayloadInterface]):
                  pathway: DataPathway = DataPathway.NONE,
                  source: DataSource = DataSource.NONE,
                  raw: Optional[bytes] = None,
-                 endianness_code: str = ENDIANNESS_CODE
+                 endianness_code: str = ENDIANNESS_CODE,
+                 auto_tag_generated_time: bool = True,
+                 **kwargs  # kwargs for UplinkedPayload super class
                  ) -> None:
         self._module_id = module_id
         self._command_id = command_id
         self._args = args
         self.check_args()
+
+        if auto_tag_generated_time and 'uplink_times' not in kwargs:
+            # automatically tag the payload with the generation time in
+            # `UplinkTimes` if `uplink_times` not given.
+            kwargs['uplink_times'] = UplinkTimes(generated=datetime.now())
+
         super().__init__(
             magic=magic, pathway=pathway, source=source,
-            raw=raw, endianness_code=endianness_code
+            raw=raw, endianness_code=endianness_code,
+            **kwargs
         )
 
     @classmethod
@@ -670,7 +658,6 @@ class WatchdogCommandPayload(CommandPayload):
         return data
 
 
-
 class DownlinkedPayload(Payload[PT]):
     """
     Generic superclass for all payloads which are downlinked.
@@ -691,10 +678,11 @@ class DownlinkedPayload(Payload[PT]):
                  pathway: DataPathway = DataPathway.NONE,
                  source: DataSource = DataSource.NONE,
                  raw: Optional[bytes] = None,
-                 endianness_code: str = ENDIANNESS_CODE
+                 endianness_code: str = ENDIANNESS_CODE,
+                 downlink_times: Optional[DownlinkTimes] = None
                  ) -> None:
         # Pass through data to parent and initialize metadata values.
-        self.downlink_times = None
+        self.downlink_times = downlink_times
         super().__init__(
             magic=magic,
             pathway=pathway,
@@ -715,7 +703,7 @@ class DownlinkedPayload(Payload[PT]):
         # Let the parent extract any data it cares about (manages):
         super().__setstate__(data)
 
-        # Then exract the state data managed by this class:
+        # Then extract the state data managed by this class:
         full_dict_spec_check(
             data,
             {

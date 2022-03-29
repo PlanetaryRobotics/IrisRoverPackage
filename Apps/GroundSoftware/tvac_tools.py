@@ -109,9 +109,7 @@ def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
         if len(supported) > 0:
             # Parse:
             packet = supported[0].decode(
-                packet_bytes,
-                pathway=DataPathway.WIRELESS,
-                source=DataSource.PCAP
+                packet_bytes
             )
             # Store:
             packet = cast(Packet, packet)

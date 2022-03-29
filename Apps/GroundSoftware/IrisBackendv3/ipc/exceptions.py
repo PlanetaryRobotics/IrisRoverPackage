@@ -2,7 +2,7 @@
 Various exceptions used throughout the IPC package.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/27/2022
+@last-updated: 02/27/2022
 """
 
 

@@ -28,6 +28,7 @@
         "bv",
         "CAMSEL",
         "CHRG",
+        "CPCT",
         "cstat",
         "current",
         "d",
@@ -109,6 +110,7 @@
         "watchdog",
         "wifi",
         "wlan",
+        "WTHB",
         "yamcs"
     ],
     "cSpell.ignoreWords": [

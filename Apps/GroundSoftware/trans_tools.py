@@ -170,9 +170,7 @@ def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
         if len(supported) > 0:
             # Parse:
             packet = supported[0].decode(
-                packet_bytes,
-                pathway=DataPathway.WIRELESS,
-                source=DataSource.PCAP
+                packet_bytes
             )
             # Store:
             packet = cast(Packet, packet)
@@ -221,9 +219,7 @@ def parse_packet_rev_i_debug(packet_bytes: bytes) -> Optional[Packet]:
         if len(supported) > 0:
             # Parse:
             packet = supported[0].decode(
-                packet_bytes,
-                pathway=DataPathway.WIRELESS,
-                source=DataSource.PCAP
+                packet_bytes
             )
             # Store:
             packet = cast(Packet, packet)
@@ -336,9 +332,7 @@ def build_command_packet(
     )
     packet = IrisCommonPacket(
         seq_num=seq_num,
-        payloads=payloads,
-        pathway=pathway,
-        source=source
+        payloads=payloads
     )
     return packet
 

@@ -108,9 +108,7 @@ class SerialTransceiver(Transceiver):
         # Build packet:
         packet = IrisCommonPacket(
             seq_num=self.seq_num,
-            payloads=send_request.payloads,
-            pathway=send_request.pathway,
-            source=send_request.source
+            payloads=send_request.payloads
         )
 
         # Send!:

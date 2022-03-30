@@ -6,7 +6,7 @@ tests which require the Transceiver layer while the real thing is still being
 built.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 11/07/2021
+@last-updated: 03/29/2022
 """
 
 import logging
@@ -38,6 +38,7 @@ from IrisBackendv3.data_standards.logging import logger as DsLogger
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response, watchdog_detailed_status_heartbeat
 from IrisBackendv3.codec.payload import Payload, PayloadCollection, CommandPayload, WatchdogCommandPayload, extract_downlinked_payloads
 from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket, WatchdogDetailedStatusPacket
+from IrisBackendv3.codec.exceptions import PacketDecodingException
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
 from IrisBackendv3.codec.logging import logger as CodecLogger
@@ -180,7 +181,9 @@ def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
     except Exception as e:
         trace = e  # traceback.format_exc()
         err_print(
-            f"Had to abort packet parsing due to the following exception: {trace}"
+            f"Had to abort packet parsing due to the following exception: `{trace}`."
+            f"The packet bytes being parsed were: \n"
+            f"{scp.hexdump(packet_bytes, dump=True)}\n"
         )
 
     return packet
@@ -229,7 +232,9 @@ def parse_packet_rev_i_debug(packet_bytes: bytes) -> Optional[Packet]:
     except Exception as e:
         trace = e  # traceback.format_exc()
         err_print(
-            f"Had to abort packet parsing due to the following exception: {trace}"
+            f"Had to abort packet parsing due to the following exception: `{trace}`."
+            f"The packet bytes being parsed were: \n"
+            f"{scp.hexdump(packet_bytes, dump=True)}\n"
         )
 
     return packet
@@ -708,6 +713,13 @@ def stream_data_ip_udp_serial() -> None:
             #     line = b''
         except KeyboardInterrupt:
             save_pcap(full_packets)
+        except PacketDecodingException as pde:
+            err_print(
+                "While streaming data, a PacketDecodingException occured. The data "
+                "bytes at the time of the exception were: \n"
+                f"{scp.hexdump(data_bytes, dump=True)}\n."
+                f"The PacketDecodingException was: `{pde}`."
+            )
         except Exception as e:
             err_print(
                 f"An otherwise unresolved error occurred during packet streaming: {e}"

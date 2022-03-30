@@ -3,7 +3,7 @@ Defines Common Data Required for Packets. Support for Building and Parsing
 Packets.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/28/2022
+@last-updated: 03/29/2022
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -15,6 +15,7 @@ import traceback
 
 import struct
 import bitstruct  # type: ignore
+import scapy.all as scp  # type: ignore
 import numpy as np  # type: ignore
 import time
 from scapy.utils import hexstr  # type: ignore
@@ -79,7 +80,7 @@ def parse_packet(
             f"Multiple codecs "  # type: ignore
             f"({supported}) support received packet. Using "
             f"highest in preference order: {supported[0]}. "
-            f"Packet data: {packet_bytes} ."
+            f"Packet data: \n{scp.hexdump(packet_bytes, dump=True)}\n"
         )
 
     # Parse Packet:
@@ -100,11 +101,13 @@ def parse_packet(
         err = e
         trace = traceback.format_exc()
         logger.warning(
-            f"Had to abort packet parsing due to the following exception: {err}"
+            f"Had to abort packet parsing due to the following exception: `{err}`"
+            f"The packet bytes being parsed were: \n"
+            f"{scp.hexdump(packet_bytes, dump=True)}\n"
         )
         # Add more information if desired:
         logger.verbose(  # type: ignore
-            f"\t > Had to abort packet parsing due to the following exception: {err} from {trace}"
+            f"\t > The stack trace of this error was: `{trace}`."
         )
 
     return packet
@@ -507,7 +510,9 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         except Exception as e:
             trace = traceback.format_exc()
             logger.warning(
-                f"Had to abort packet parsing due to the following exception: {trace}"
+                f"Had to abort packet parsing due to the following exception: `{trace}`. "
+                f"The data being parsed was: \n"
+                f"{scp.hexdump(data, dump=True)}\n"
             )
             payloads = PayloadCollection.make_empty()
 
@@ -828,7 +833,9 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
         except Exception as e:
             trace = traceback.format_exc()
             logger.warning(
-                f"Had to abort packet parsing due to the following exception: {trace}"
+                f"Had to abort packet parsing due to the following exception: `{trace}`. "
+                f"The data being parsed was: \n"
+                f"{scp.hexdump(data, dump=True)}\n"
             )
             payloads = PayloadCollection.make_empty()
 

@@ -1,16 +1,33 @@
 #ifndef _FSW_PACKET_H_
 #define _FSW_PACKET_H_
 
-// Wifi Connection Parameters
-#define ROVER_ADDRESS           {192, 168, 1, 2}
-#define SPACECRAFT_ADDRESS      {192, 168, 1, 120}
-#define SUBNET_MASK             {255, 255, 255, 0}
-#define GATEWAY_ADDRESS         {192, 168, 1, 120}
-#define SPACECRAFT_UDP_PORT     8080 
-#define ROVER_UDP_PORT          8080
+#define NETWORK_TEST_ENV_TEST
+#define NETWORK_TEST_ENV_MOON
 
-#define LANDER_SSID             "Houston"
-#define LANDER_NETWORK_PASSWORD "redr0ver"
+
+// Wifi Connection Parameters
+#ifdef NETWORK_TEST_ENV_MOON
+    #define ROVER_ADDRESS           {192, 168, 150, 3}
+    #define SPACECRAFT_ADDRESS      {192, 168, 10, 105}
+    #define SUBNET_MASK             {255, 255, 255, 0}
+    #define GATEWAY_ADDRESS         {192, 168, 150, 254}
+    #define SPACECRAFT_UDP_PORT     43531
+    #define ROVER_UDP_PORT          42000
+
+    #define LANDER_SSID             "PM1LWAP"
+    #define LANDER_NETWORK_PASSWORD "PAWL1MP"
+#else // local testing (we should migrate away from needing this)
+    #define ROVER_ADDRESS           {192, 168, 1, 2}
+    #define SPACECRAFT_ADDRESS      {192, 168, 1, 120}
+    #define SUBNET_MASK             {255, 255, 255, 0}
+    #define GATEWAY_ADDRESS         {192, 168, 1, 120}
+    #define SPACECRAFT_UDP_PORT     8080
+    #define ROVER_UDP_PORT          8080
+
+    #define LANDER_SSID             "Houston"
+    #define LANDER_NETWORK_PASSWORD "redr0ver"
+
+#endif
 
 #define INITIAL_PRIMARY_NETWORK_INTERFACE  WATCHDOG    // WATCHDOG or WF121 | Must be of type PrimaryInterface (see GroundInterfaceComponentAi.xml or GroundInterfaceComponentAc.hpp)
 

@@ -82,7 +82,7 @@ bool i2cMasterTransmit(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint32_t length, 
 //        return false;
     }
 
-    timeout = 0;
+//    timeout = 0;
     //while (i2cIsStopDetected(i2c)) {
 //      if (++timeout > i2c_timeout)
 //        return false;
@@ -131,7 +131,7 @@ bool i2cMasterReceive(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint32_t length, u
 //        return false;
     }
 
-    timeout = 0;
+//    timeout = 0;
 //     while (i2cIsStopDetected(i2c)) {
 //      if (++timeout > i2c_timeout)
 //        return false;

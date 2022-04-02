@@ -4,14 +4,14 @@ NOTE: All makefiles are designed to be run in an environment that supports bash.
 # Install Dependencies
 This package requires `make`, `python` (>=3.8), and (`pyenv` and `pyenv-virtualenv` via `pyenv-installer`) to be installed, and make sure to add `pyenv` to the local path (follow the instructions in the terminal after `pyenv-installer` completes).
 
+For ubuntu install prerequisites: `sudo apt-get install build-essential libffi-dev libsqlite3-dev zlib1g-dev xz-utils sqlite3 llvm libreadline-dev libgdbm-dev openssl libxml2-dev libbz2-dev curl libxmlsec1-dev wget tk-dev libssl-dev libncursesw5-dev libgdbm-compat-dev liblzma-dev uuid-dev bzip2
+
 **Note:** you should be able to run `pyenv-installer` by running
 `curl https://pyenv.run | bash`
 but manually inspect this url's contents before running to ensure it hasn't changed ownership or something and been replaced with a malicious target.
 
 **Note:** If `pyenv` has a build failure (when running `make init` or `pyenv install X.X.X`), make sure all `pyenv` prerequisites are present on your machine (see [pyenv - Common Build Problems](https://github.com/pyenv/pyenv/wiki/common-build-problems) for help.)
 
-For ubuntu: `sudo apt-get install build-essential libsqlite3-dev sqlite3 bzip2 libbz2-dev zlib1g-dev libssl-dev openssl libgdbm-dev libgdbm-compat-dev liblzma-dev libreadline-dev libncursesw5-dev libffi-dev uuid-dev`
- 
 # Setup Development Environment:
 Run:
 `make init`

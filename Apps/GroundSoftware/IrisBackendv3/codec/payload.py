@@ -6,11 +6,11 @@ Defines Common Data Required for Payloads. Support for Building and Parsing
 Payloads as part of a Variable Length Payload.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/03/2022
+@last-updated: 04/03/2022
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
-from typing import List, Any, Dict, Tuple, Optional, TypeVar, Type, NamedTuple, cast
+from typing import List, Any, Union, Dict, Tuple, Optional, TypeVar, Type, NamedTuple, cast, ClassVar
 from abc import ABC, abstractmethod, abstractclassmethod, abstractproperty
 from enum import Enum
 from collections import OrderedDict
@@ -35,6 +35,47 @@ from IrisBackendv3.utils.basic import full_dict_spec_check
 
 from .exceptions import PacketDecodingException
 
+from builtins import tuple as _tuple
+
+
+# class PayloadCollection2(tuple):
+#     """
+#     Essentially an implementation of `NamedTuple` with keys that are subclasses
+#     of `Payloads`.
+
+#     ! TODO (WORKING-HERE): Think about if you actually need this to be a tuple or just a special OrderedDict with Payload class keys.
+#     ^^- you'll likely also want some ability to make sure if a subclass is entered (like WatchdogCommand) it gets added to the right superclass collection (Command).
+#     ^^- Remember this also has to remain light-weight since it will be passed around a lot.
+
+#     TODO: Use `subclasses` to autopopulate _fields <-
+
+#     Args:
+#         tuple (_type_): _description_
+
+#     Returns:
+#         _type_: _description_
+#     """
+#     __slots__: Tuple = ()  # inherit from superclass
+
+#     _fields: ClassVar[Tuple[Type[Payload], ...]] = (
+#         CommandPayload,
+#         TelemetryPayload,
+#         EventPayload,
+#         FileBlockPayload
+#     )
+
+#     def __new__(_cls, *args: List[Payload]):
+#         """
+#         Create a new instance of a `PayloadCollection` from args which are
+#         lists of `Payloads`.
+#         """
+#         if len(args) != len(_cls._fields)
+#         return _tuple.__new__(_cls, tuple(args))
+
+#     @classmethod
+#     def _make(cls, iterable, name=tuple.__new__, len=len):
+#         "Make a PayloadCollection form a"
+
 
 class PayloadCollection(NamedTuple):
     """
@@ -51,6 +92,10 @@ class PayloadCollection(NamedTuple):
     TelemetryPayload: List[TelemetryPayload]
     EventPayload: List[EventPayload]
     FileBlockPayload: List[FileBlockPayload]
+
+    def is_empty(self) -> bool:
+        """Returns whether all Payloads in the Payload Collection are empty."""
+        return all(len(cast(list, x)) == 0 for x in self)
 
     @classmethod
     def make_empty(cls) -> PayloadCollection:

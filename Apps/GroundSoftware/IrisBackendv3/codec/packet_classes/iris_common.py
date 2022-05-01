@@ -17,6 +17,7 @@ import traceback
 
 import struct
 import numpy as np  # type: ignore
+import scapy.all as scp  # type: ignore
 
 from ..magic import Magic, MAGIC_SIZE
 from ..container import ContainerCodec
@@ -331,7 +332,9 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         except Exception as e:
             trace = traceback.format_exc()
             logger.warning(
-                f"Had to abort packet parsing due to the following exception: {trace}"
+                f"Had to abort packet parsing due to the following exception: `{trace}`. "
+                f"The data being parsed was: \n"
+                f"{scp.hexdump(data, dump=True)}\n"
             )
             payloads = PayloadCollection.make_empty()
 
@@ -653,7 +656,9 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
         except Exception as e:
             trace = traceback.format_exc()
             logger.warning(
-                f"Had to abort packet parsing due to the following exception: {trace}"
+                f"Had to abort packet parsing due to the following exception: `{trace}`. "
+                f"The data being parsed was: \n"
+                f"{scp.hexdump(data, dump=True)}\n"
             )
             payloads = PayloadCollection.make_empty()
 

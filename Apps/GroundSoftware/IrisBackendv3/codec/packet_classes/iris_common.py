@@ -12,6 +12,7 @@ from __future__ import annotations  # Activate postponed annotations (for using 
 
 from .packet import Packet, CT
 
+from collections import OrderedDict
 from typing import List, Any, Optional, cast, Dict
 import traceback
 
@@ -537,16 +538,25 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
         base = self.__repr__()
 
         # Grab the string of the lastest value for each unique telemetry channel:
-        latest = {}
+        # dict of module id -> channel_id -> payload string
+        latest: OrderedDict[str, OrderedDict[str, Any]] = OrderedDict()
         for payload in self.payloads.TelemetryPayload:
-            latest[(payload.module_id, payload.channel_id)] = str(payload)
+            if payload.module_id not in latest:
+                latest[payload.module_id] = OrderedDict()  # init
+            latest[payload.module_id][payload.channel_id] = str(payload)
 
-        # Append the latest telemetry strings:
-        out = (
-            base +
-            '\n\t Latest Telemetry: ' +
-            ',\t '.join([f'{p}' for p in latest.values()])
-        )
+        # Sort by module id (make it easier to read):
+        latest = OrderedDict(sorted(latest.items(), key=lambda kv: kv[0]))
+
+        # Sort the channels in each module list by channel id (make it easier to read):
+        for module_id, module_latest in latest.items():
+            latest[module_id] = OrderedDict(
+                sorted(latest[module_id].items(), key=lambda kv: kv[0]))
+
+        # Append the latest telemetry strings with a new line for each module:
+        out = self.__repr__() + '\n > Latest Telemetry: '
+        for module_latest in latest.values():
+            out += '\n' + ',\t '.join([f'{p}' for p in module_latest.values()])
 
         return out
 

@@ -11,6 +11,7 @@ from .packet_classes import *
 from typing import List, Optional, Type
 
 import traceback
+import scapy.all as scp  # type: ignore
 
 from .logging import logger
 
@@ -23,8 +24,6 @@ from .logging import logger
 #! TODO: Handle serialization (must replace container scheme, augment by storing payloads with their metadata)
 #! ^- or don't serialize as packets?... no, must be able to serialize to send over IPC network.
 #! ^- augmenting containers with __reduce__ and __getstate__ seems like it will work for IPC.
-
-# ! TODO: (WORKING HERE) - move all packets to their own dir.
 
 
 def parse_packet(
@@ -62,7 +61,7 @@ def parse_packet(
             f"Multiple codecs "  # type: ignore
             f"({supported}) support received packet. Using "
             f"highest in preference order: {supported[0]}. "
-            f"Packet data: {packet_bytes} ."
+            f"Packet data: \n{scp.hexdump(packet_bytes, dump=True)}\n"
         )
 
     # Parse Packet:
@@ -78,11 +77,13 @@ def parse_packet(
         err = e
         trace = traceback.format_exc()
         logger.warning(
-            f"Had to abort packet parsing due to the following exception: {err}"
+            f"Had to abort packet parsing due to the following exception: `{err}`"
+            f"The packet bytes being parsed were: \n"
+            f"{scp.hexdump(packet_bytes, dump=True)}\n"
         )
         # Add more information if desired:
         logger.verbose(  # type: ignore
-            f"\t > Had to abort packet parsing due to the following exception: {err} from {trace}"
+            f"\t > The stack trace of this error was: `{trace}`."
         )
 
     if packet is None:

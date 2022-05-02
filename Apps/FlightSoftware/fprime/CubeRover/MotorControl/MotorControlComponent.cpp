@@ -715,14 +715,11 @@ MotorControlComponentImpl::motorControlTransfer(I2cSlaveAddress_t addr,
         reg == REG_MOTOR_CURRENT    ||
         reg == e_REG_STATUS         ||
         reg == REG_FAULT) {
-            if (!i2cMasterTransmit(m_i2c, addr, 1, &reg_buffer)) {
-                // TODO: Check response below ERROR OCCURRED
+            if(i2cMasterReadData(m_i2c, addr, reg, dataLength, data)){
+                return MC_NO_ERROR;
+            } else {
                 return MC_I2C_TIMEOUT_ERROR;
             }
-            if (i2cMasterReceive(m_i2c, addr, dataLength, data))
-                return MC_NO_ERROR;
-            else
-                return MC_I2C_TIMEOUT_ERROR;
     } else {
             if (!i2cMasterTransmit(m_i2c, addr, 1, &reg_buffer)) {
                 // TODO: Check response below ERROR OCCURRED
@@ -814,9 +811,8 @@ bool MotorControlComponentImpl::pollStatus() {
 
         uint8_t reg = e_REG_STATUS;
         for (int i = 0; i < 4; ++i) {
-            i2cMasterTransmit(m_i2c, FRONT_LEFT_MC_I2C_ADDR+i, 1, &reg);
             StatusRegister_t this_status;
-            i2cMasterReceive(m_i2c, FRONT_LEFT_MC_I2C_ADDR+i, 1, &this_status.value);
+            i2cMasterReadData(m_i2c, FRONT_LEFT_MC_I2C_ADDR+i, reg, 1, &this_status.value);
             status.value &= this_status.value;
         }
         loop_count--;

@@ -715,20 +715,17 @@ MotorControlComponentImpl::motorControlTransfer(I2cSlaveAddress_t addr,
         reg == REG_MOTOR_CURRENT    ||
         reg == e_REG_STATUS         ||
         reg == REG_FAULT) {
-            if(i2cMasterReadData(m_i2c, addr, reg, dataLength, data)){
+            if(i2cMasterReadData(m_i2c, addr, reg_buffer, dataLength, data)){
                 return MC_NO_ERROR;
             } else {
                 return MC_I2C_TIMEOUT_ERROR;
             }
     } else {
-            if (!i2cMasterTransmit(m_i2c, addr, 1, &reg_buffer)) {
-                // TODO: Check response below ERROR OCCURRED
-                return MC_I2C_TIMEOUT_ERROR;
-            }
-            if (i2cMasterTransmit(m_i2c, addr, dataLength, data))
-                return MC_NO_ERROR;
-            else
-                return MC_I2C_TIMEOUT_ERROR;
+        if(i2cMasterTransmit(m_i2c, addr, reg_buffer, dataLength, data)){
+            return MC_NO_ERROR;
+        } else {
+            return MC_I2C_TIMEOUT_ERROR;
+        }
     }
 }
 

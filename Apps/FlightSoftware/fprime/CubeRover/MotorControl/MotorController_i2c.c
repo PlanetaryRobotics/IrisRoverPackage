@@ -59,7 +59,7 @@ bool i2cMasterReadData(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint8_t slaveRegT
 
     /* wait until MST bit gets cleared, this takes
      * few cycles after Bus Busy is cleared */
-    while(i2cIsMasterReady(i2c) != true);
+//    while(i2cIsMasterReady(i2c) != true);
 
     /* Configure address of Slave to talk to */
     i2cSetSlaveAdd(i2c, sadd);
@@ -136,13 +136,13 @@ bool i2cMasterReadData(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint8_t slaveRegT
 }
 
 // THE OTHER NEW i2c function
-bool i2cMasterTransmit2(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint8_t slaveRegToWriteAddr, uint32_t length, uint8_t *data) {
+bool i2cMasterTransmit(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint8_t slaveRegToWriteAddr, uint32_t length, uint8_t *data) {
     // ASSERT i2c not NULL
     // ASSERT data not NULL
 
     /* wait until MST bit gets cleared, this takes
      * few cycles after Bus Busy is cleared */
-    while(i2cIsMasterReady(i2c) != true);
+//    while(i2cIsMasterReady(i2c) != true);
 
     i2cSetSlaveAdd(i2c, sadd);
     i2cSetDirection(i2c, I2C_TRANSMITTER);
@@ -174,54 +174,104 @@ bool i2cMasterTransmit2(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint8_t slaveReg
 }
 
 
-bool i2cMasterTransmit(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint32_t length, uint8_t *data) {
-    // ASSERT i2c not NULL
-    // ASSERT data not NULL
-
-    i2cSetSlaveAdd(i2c, sadd);
-    i2cSetDirection(i2c, I2C_TRANSMITTER);
-    i2cSetCount(i2c, length);
-    i2cSetMode(i2c, I2C_MASTER);
-    i2cSetStop(i2c);
-    i2cSetStart(i2c);
-
-    // TODO: configCPU_CLOCK_HZ use this to compute optimal timeout
-    // (20 lines of code * 4 instr/line) / (16e6 Hz) * 110e6Hz => 550 cycles <= number of Hercules cycles for MSP to be ready
-//    int maxReceiveAttempts = 4;
-//    while (maxReceiveAttempts) {
-//        if (i2cSendWithTimeout(i2c, length, data, 600))
-//            break;
-//        maxReceiveAttempts--;
+//bool i2cMasterTransmit(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint32_t length, uint8_t *data) {
+//    // ASSERT i2c not NULL
+//    // ASSERT data not NULL
+//
+//    i2cSetSlaveAdd(i2c, sadd);
+//    i2cSetDirection(i2c, I2C_TRANSMITTER);
+//    i2cSetCount(i2c, length);
+//    i2cSetMode(i2c, I2C_MASTER);
+//    i2cSetStop(i2c);
+//    i2cSetStart(i2c);
+//
+//    // TODO: configCPU_CLOCK_HZ use this to compute optimal timeout
+//    // (20 lines of code * 4 instr/line) / (16e6 Hz) * 110e6Hz => 550 cycles <= number of Hercules cycles for MSP to be ready
+////    int maxReceiveAttempts = 4;
+////    while (maxReceiveAttempts) {
+////        if (i2cSendWithTimeout(i2c, length, data, 600))
+////            break;
+////        maxReceiveAttempts--;
+////    }
+////    if (!maxReceiveAttempts)
+////        return false;
+//    i2cSend(i2c, length, data);
+//
+//    int timeout = 0;
+//    while (i2cIsBusBusy(i2c)) {
+////      if (++timeout > i2c_timeout)
+////        return false;
 //    }
-//    if (!maxReceiveAttempts)
-//        return false;
-    i2cSend(i2c, length, data);
-   
-    int timeout = 0;
-    while (i2cIsBusBusy(i2c)) {
-//      if (++timeout > i2c_timeout)
-//        return false;
-    }
-
+//
+////    timeout = 0;
+//    //while (i2cIsStopDetected(i2c)) {
+////      if (++timeout > i2c_timeout)
+////        return false;
+//    //}
+//
 //    timeout = 0;
-    //while (i2cIsStopDetected(i2c)) {
-//      if (++timeout > i2c_timeout)
-//        return false;
-    //}
+//    while (i2cIsMasterReady(i2c)) {
+////      if (++timeout > i2c_timeout)
+////        return false;
+//    }
+//
+//    i2cClearSCD(i2c);   // Clear the Stop condition
+//
+//    /* Delay long enough for the slave to be ready */
+//    delayForI2C();
+//
+//    return true;
+//}
 
-    timeout = 0;
-    while (i2cIsMasterReady(i2c)) {
-//      if (++timeout > i2c_timeout)
-//        return false;
-    }
-   
-    i2cClearSCD(i2c);   // Clear the Stop condition
-   
-    /* Delay long enough for the slave to be ready */
-    delayForI2C();
 
-    return true;
-}
+//bool i2cMasterReceive(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint32_t length, uint8_t *data) {
+//    // ASSERT i2c not NULL
+//    // ASSERT data not NULL
+//
+//    i2cSetSlaveAdd(i2c, sadd);
+//    i2cSetDirection(i2c, I2C_RECEIVER);
+//    i2cSetCount(i2c, length);
+//    i2cSetMode(i2c, I2C_MASTER);
+//    i2cSetStop(i2c);
+//    i2cSetStart(i2c);
+//
+//    // TODO: configCPU_CLOCK_HZ use this to compute optimal timeout
+//    // (20 lines of code * 4 instr/line) / (16e6 Hz) * 110e6Hz => 550 cycles <= number of Hercules cycles for MSP to be ready
+////    int maxReceiveAttempts = 4;
+////    while (maxReceiveAttempts) {
+////        if (i2cReceiveWithTimeout(i2c, length, data, 600))
+////            break;
+////        maxReceiveAttempts--;
+////    }
+////    if (!maxReceiveAttempts)
+////        return false;
+//    i2cReceive(i2c, length, data);
+//
+//    int timeout = 0;
+//    while (i2cIsBusBusy(i2c)) {
+////      if (++timeout > i2c_timeout)
+////        return false;
+//    }
+//
+////    timeout = 0;
+////     while (i2cIsStopDetected(i2c)) {
+////      if (++timeout > i2c_timeout)
+////        return false;
+////     }
+//
+//    timeout = 0;
+//    while (i2cIsMasterReady(i2c)) {
+////      if (++timeout > i2c_timeout)
+////        return false;
+//    }
+//
+//    i2cClearSCD(i2c);  // Clear the Stop condition
+//
+//    /* Delay long enough for the slave to be ready */
+//    delayForI2C();
+//
+//    return true;
+//}
 
 /**
 * @brief      Delays for 1050 ticks slow enough for slave sides

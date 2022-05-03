@@ -383,6 +383,7 @@ __interrupt void USCI_B0_ISR(void){
     } // end case USCI_I2C_ICRXIFG0
     case USCI_I2C_UCTXIFG0:                 // Vector 24: TXIFG0
       if(g_slaveMode == TX_DATA_MODE){
+          __delay_cycles(1000);
           // master is reading bytes from us
           UCB0TXBUF = g_txBuffer[g_txBufferIdx++];
           g_txByteCtr--;

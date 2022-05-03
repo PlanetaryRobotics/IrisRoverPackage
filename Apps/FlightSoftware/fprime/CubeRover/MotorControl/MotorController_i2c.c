@@ -53,122 +53,170 @@ static bool i2cReceiveWithTimeout(i2cBASE_t *i2c, uint32 length, uint8 * data, u
     return true;
 }
 
-bool i2cMasterReadData(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint8_t slaveRegToReadAddr, uint32_t length, uint8_t *data) {
-    // ASSERT i2c not NULL
-    // ASSERT data not NULL
+static void waitWhileDeviceIsBusy(i2cBASE_t *i2c, I2cSlaveAddress_t slaveAddress)
+{
+    // Wait until the bus is not busy
+    while (i2c->STR & I2C_BUSBUSY);
 
-    /* wait until MST bit gets cleared, this takes
-     * few cycles after Bus Busy is cleared */
-//    while(i2cIsMasterReady(i2c) != true);
+    // Disable I2C during configuration
+    i2c->MDR = 0;
 
-    /* Configure address of Slave to talk to */
-    i2cSetSlaveAdd(i2c, sadd);
+    // Configure the I2C controller as transmitter in repeat mode
+    i2cSetSlaveAdd(i2c, slaveAddress);
+    i2c->MDR = I2C_RESET_OUT | I2C_TRANSMITTER | I2C_REPEATMODE;
 
-    /* Set direction to Transmitter */
-    /* Note: Optional - It is done in Init */
-    i2cSetDirection(i2c, I2C_TRANSMITTER);
+    // Wait until the slave device acknowledges its address
+    while (true)
+    {
+        // Set the START condition
+        i2c->MDR |= I2C_START_COND | I2C_MASTER;
 
-    /* Configure Data count */
-    /* Slave address + Word address write operation before reading */
-    i2cSetCount(i2c, 1);
+        // Wait for the ARDY flag
+        while ((i2c->STR & I2C_ARDY) == 0);
 
-    /* Set mode as Master */
-    i2cSetMode(i2c, I2C_MASTER);
+        // Set the STOP condition
+        i2c->MDR |= I2C_STOP_COND;
 
-    /* Set Stop after programmed Count */
-    i2cSetStop(i2c);
+        // Wait until the bus isn't busy and the master mode bit is cleared
+        while (i2c->STR & I2C_BUSBUSY);
+        while (i2c->MDR & I2C_MASTER);
 
-    /* Transmit Start Condition */
-    i2cSetStart(i2c);
+        // Check if the slave address is acknowledged
+        if ((i2c->STR & I2C_NACK) == 0)
+        {
+            // Slave address ACKed; the slave device is ready again
+            return;
+        }
+        else
+        {
+            // Slave address NACKed (clear the NACK bit)
+            i2c->STR = I2C_NACK;
+        }
+    }
+}
 
-    /* Send the Word Address */
-    i2cSendByte(i2c, slaveRegToReadAddr);
+static bool sendByte(i2cBASE_t *i2c, uint8_t byte)
+{
+    // Wait for the TXRDY flag to transmit data or ARDY if we get NACKed
+    while ((i2c->STR & (I2C_TX | I2C_ARDY)) == 0);
 
-    /* Wait until Bus Busy is cleared */
-    while(i2cIsBusBusy(i2c) == true);
+    // If a NACK occurred then SCL is held low and STP bit cleared
+    if (i2c->STR & I2C_NACK)
+    {
+        // Reset the I2C
+        i2c->MDR = 0;
+        return false;
+    }
 
-    /* Wait until Stop is detected */
-    while(i2cIsStopDetected(i2c) == 0);
+    i2c->DXR = byte;
+    return true;
+}
 
-    /* Clear the Stop condition */
-    i2cClearSCD(i2c);
+static bool receiveByte(i2cBASE_t *i2c, uint8_t* byte)
+{
+    // Wait for the RXRDY flag to transmit data or ARDY if we get NACKed
+    while ((i2c->STR & (I2C_RX | I2C_ARDY)) == 0);
 
-    /*****************************************/
-    //// Start receving the data From Slave
-    /*****************************************/
+    // If a NACK occurred then SCL is held low and STP bit cleared
+    if (i2c->STR & I2C_NACK)
+    {
+        // Reset the I2C
+        i2c->MDR = 0;
+        return false;
+    }
 
-    /* wait until MST bit gets cleared, this takes
-     * few cycles after Bus Busy is cleared */
-    while(i2cIsMasterReady(i2c) != true);
+    // Make sure that the RXRDY flag is set
+    while ((i2c->STR & I2C_RX) == 0);
 
-    /* Configure address of Slave to talk to */
-    i2cSetSlaveAdd(i2c, sadd);
+    *byte = (uint8_t) i2c->DRR;
+    return true;
+}
 
-    /* Set direction to receiver */
-    i2cSetDirection(i2c, I2C_RECEIVER);
+/* Read from a slave device */
+bool i2cMasterReadData(i2cBASE_t *i2c, I2cSlaveAddress_t slaveAddress, uint8_t readRegAddress, uint16_t readLength, uint8* buff)
+{
+    if (readLength == 0 || buff == NULL) { // note: replaced 'nullptr' with 'NULL'
+        return false;
+    }
 
-    /* Configure Data count */
-    /* Note: Optional - It is done in Init, unless user want to change */
-    i2cSetCount(i2c, length);
+    // Wait until the slave device is not busy
+    waitWhileDeviceIsBusy(i2c, slaveAddress);
 
-    /* Set mode as Master */
-    i2cSetMode(i2c, I2C_MASTER);
+    // Disable I2C during configuration
+    i2c->MDR = 0;
 
-    /* Set Stop after programmed Count */
-    i2cSetStop(i2c);
+    // Configure the I2C controller as transmitter
+    i2cSetCount(i2c, 1); // 1 byte for the internal address
+    i2cSetSlaveAdd(i2c, slaveAddress);
+    i2c->MDR = I2C_RESET_OUT | I2C_START_COND | I2C_TRANSMITTER | I2C_MASTER;
 
-    /* Transmit Start Condition */
-    i2cSetStart(i2c);
+    // Send the internal address
+    if (!sendByte(i2c, readRegAddress))
+    {
+        return false;
+    }
 
-    /* Receive DATA_COUNT number of data in Polling mode */
-    i2cReceive(i2c, length, data);
+    // Wait for ARDY before beginning the read phase
+    while ((i2c->STR & I2C_ARDY) == 0);
 
-    /* Wait until Bus Busy is cleared */
-    while(i2cIsBusBusy(i2c) == true);
+    // Configure the I2C controller as receiver
+    i2cSetCount(i2c, readLength);
+    i2c->MDR = I2C_RESET_OUT | I2C_START_COND | I2C_STOP_COND | I2C_MASTER;
 
-    /* Wait until Stop is detected */
-    while(i2cIsStopDetected(i2c) == 0);
+    // Receive the data
+    while (readLength)
+    {
+        readLength--;
+        if (!receiveByte(i2c, buff++))
+        {
+            return false;
+        }
+    }
 
-    /* Clear the Stop condition */
-    i2cClearSCD(i2c);
+    // Wait until the bus isn't busy and the master mode bit is cleared
+    while (i2c->STR & I2C_BUSBUSY);
+    while (i2c->MDR & I2C_MASTER);
 
     return true;
 }
 
-// THE OTHER NEW i2c function
-bool i2cMasterTransmit(i2cBASE_t *i2c, I2cSlaveAddress_t sadd, uint8_t slaveRegToWriteAddr, uint32_t length, uint8_t *data) {
-    // ASSERT i2c not NULL
-    // ASSERT data not NULL
-
-    /* wait until MST bit gets cleared, this takes
-     * few cycles after Bus Busy is cleared */
-//    while(i2cIsMasterReady(i2c) != true);
-
-    i2cSetSlaveAdd(i2c, sadd);
-    i2cSetDirection(i2c, I2C_TRANSMITTER);
-    i2cSetCount(i2c, length);
-    i2cSetMode(i2c, I2C_MASTER);
-    i2cSetStop(i2c);
-    i2cSetStart(i2c);
-
-    /* Send the Word Address */
-    i2cSendByte(i2c, slaveRegToWriteAddr);
-
-    i2cSend(i2c, length, data);
-
-    int timeout = 0;
-    while (i2cIsBusBusy(i2c)) {
-//      if (++timeout > i2c_timeout)
-//        return false;
+/* Write to a slave device */
+bool i2cMasterTransmit(i2cBASE_t *i2c, I2cSlaveAddress_t slaveAddress, uint8_t writeRegAddr, uint16_t writeLength, uint8* buff)
+{
+    if (writeLength == 0 || buff == NULL) { // note: replaced 'nullptr' with 'NULL'
+        return false;
     }
 
-    timeout = 0;
-    while (i2cIsStopDetected(i2c)) {
-//      if (++timeout > i2c_timeout)
-//        return false;
+    // Wait until the slave device is not busy
+    waitWhileDeviceIsBusy(i2c, slaveAddress);
+
+    // Disable I2C during configuration
+    i2c->MDR = 0;
+
+    // Configure the I2C controller
+    i2cSetCount(i2c, writeLength + 1); // + 1 bytes for the write reg address
+    i2cSetSlaveAdd(i2c, slaveAddress);
+    i2c->MDR = I2C_RESET_OUT | I2C_START_COND | I2C_STOP_COND | I2C_TRANSMITTER | I2C_MASTER;
+
+    // Send the internal address
+    if (!sendByte(i2c, writeRegAddr))
+    {
+        return false;
     }
 
-    i2cClearSCD(i2c);   // Clear the Stop condition
+    // Transmit the data
+    while (writeLength)
+    {
+        writeLength--;
+        if (!sendByte(i2c, *buff++))
+        {
+            return false;
+        }
+    }
+
+    // Wait until the bus isn't busy and the master mode bit is cleared
+    while (i2c->STR & I2C_BUSBUSY);
+    while (i2c->MDR & I2C_MASTER);
 
     return true;
 }

@@ -6,7 +6,7 @@ parsed by the Watchdog. `IrisCommonPacket` is the current and
 required for backwards compatibility (reading old archived pcaps).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/15/2022
+@last-updated: 05/04/2022
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -184,19 +184,27 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         return total_size
 
     def __str__(self) -> str:
-        base = self.__repr__()
-
         # Grab the string of the lastest value for each unique telemetry channel:
-        latest = {}
+        # dict of module name -> channel_name -> payload string
+        latest: OrderedDict[str, OrderedDict[str, Any]] = OrderedDict()
         for payload in self.payloads.TelemetryPayload:
-            latest[(payload.module_id, payload.channel_id)] = str(payload)
+            if payload.module.name not in latest:
+                latest[payload.module.name] = OrderedDict()  # init
+            latest[payload.module.name][payload.channel.name] = str(payload)
 
-        # Append the latest telemetry strings:
-        out = (
-            base +
-            '\n\t Latest Telemetry: ' +
-            ',\t '.join([f'{p}' for p in latest.values()])
-        )
+        # Sort by module name (make it easier to read):
+        latest = OrderedDict(sorted(latest.items(), key=lambda kv: kv[0]))
+
+        # Sort the channels in each module list by channel name (make it easier to read):
+        for module_name in latest.keys():
+            latest[module_name] = OrderedDict(
+                sorted(latest[module_name].items(), key=lambda kv: kv[0])
+            )
+
+        # Append the latest telemetry strings with a new line for each module:
+        out = self.__repr__() + '\n > Latest Telemetry: '
+        for module_latest in latest.values():
+            out += '\n' + ',\t '.join([f'{p}' for p in module_latest.values()])
 
         return out
 
@@ -538,25 +546,16 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
         base = self.__repr__()
 
         # Grab the string of the lastest value for each unique telemetry channel:
-        # dict of module id -> channel_id -> payload string
-        latest: OrderedDict[str, OrderedDict[str, Any]] = OrderedDict()
+        latest = {}
         for payload in self.payloads.TelemetryPayload:
-            if payload.module_id not in latest:
-                latest[payload.module_id] = OrderedDict()  # init
-            latest[payload.module_id][payload.channel_id] = str(payload)
+            latest[(payload.module_id, payload.channel_id)] = str(payload)
 
-        # Sort by module id (make it easier to read):
-        latest = OrderedDict(sorted(latest.items(), key=lambda kv: kv[0]))
-
-        # Sort the channels in each module list by channel id (make it easier to read):
-        for module_id, module_latest in latest.items():
-            latest[module_id] = OrderedDict(
-                sorted(latest[module_id].items(), key=lambda kv: kv[0]))
-
-        # Append the latest telemetry strings with a new line for each module:
-        out = self.__repr__() + '\n > Latest Telemetry: '
-        for module_latest in latest.values():
-            out += '\n' + ',\t '.join([f'{p}' for p in module_latest.values()])
+        # Append the latest telemetry strings:
+        out = (
+            base +
+            '\n\t Latest Telemetry: ' +
+            ',\t '.join([f'{p}' for p in latest.values()])
+        )
 
         return out
 

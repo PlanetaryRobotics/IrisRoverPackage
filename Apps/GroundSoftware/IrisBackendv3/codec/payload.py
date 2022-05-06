@@ -429,6 +429,18 @@ class CommandPayloadInterface(UplinkedPayload[PT], ABC):
     def opcode(self) -> int:
         return self.module_id | self._command_id
 
+    def __str__(self) -> str:
+        return (
+            f"{self.command.name}"
+            f"[{', '.join(f'{a}={v}' for a,v in self.args.items())}]"
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.command.name}(0x{self.opcode:04X})"
+            f"[{', '.join(f'{a}={v}' for a,v in self.args.items())}]"
+        )
+
     @abstractmethod
     def check_args(self) -> None:
         raise NotImplementedError()

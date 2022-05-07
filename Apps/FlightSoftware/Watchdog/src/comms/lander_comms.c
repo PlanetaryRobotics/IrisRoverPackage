@@ -235,13 +235,6 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
         return LANDER_COMMS__STATUS__ERROR_TX_OVERFLOW;
     }
 
-    size_t bytesToSend = LanderComms__determineSlipEncodedSize(uartHeaderData, SIZE_OF_ARRAY(uartHeaderData),
-                                                               data, dataLen);
-
-    if(!UART__checkIfSendable(lcState->uartState, bytesToSend)) {
-        return LANDER_COMMS__STATUS__ERROR_TX_OVERFLOW;
-    }
-
     // Increment the packet ID for the next packet
     lcState->txPacketId++;
 

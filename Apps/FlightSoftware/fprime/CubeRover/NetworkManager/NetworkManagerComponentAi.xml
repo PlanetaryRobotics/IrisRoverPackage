@@ -125,6 +125,7 @@
         </channel>
          <channel id="5" name="WIFIStateStatus" data_type="ENUM">
             <comment>Returned State Transition code of WIFI chip</comment>
+        		<!-- updated these to match `CubeRoverNetworkStateMachine` values since that's what gets cast -->
                 <enum name="WIFIState">
                     <item name="UNINITIALIZED" />
                     <item name="INITIALIZED" />

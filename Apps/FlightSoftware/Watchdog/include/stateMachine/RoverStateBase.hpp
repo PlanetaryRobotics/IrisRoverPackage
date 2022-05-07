@@ -21,9 +21,9 @@ namespace iris
             // The functions to handle events
             virtual RoverState handleLanderData(RoverContext& theContext);
             virtual RoverState handleHerculesData(RoverContext& theContext);
+            virtual RoverState handleHighTemp(RoverContext& theContext);
 
             virtual RoverState handleTimerTick(RoverContext& theContext) = 0;
-            virtual RoverState handleHighTemp(RoverContext& theContext) = 0;
             virtual RoverState handlePowerIssue(RoverContext& theContext) = 0;
             virtual RoverState spinOnce(RoverContext& theContext) = 0;
 
@@ -115,11 +115,11 @@ namespace iris
                                                              WdCmdMsgs__Response& deployNotificationResponse,
                                                              bool& sendDeployNotificationResponse);
 
-            virtual RoverState doGndCmdSetHeaterDutyCycleMax(RoverContext& theContext,
-                                                             const WdCmdMsgs__Message& msg,
-                                                             WdCmdMsgs__Response& response,
-                                                             WdCmdMsgs__Response& deployNotificationResponse,
-                                                             bool& sendDeployNotificationResponse);
+            virtual RoverState doGndCmdSetHeaterDutyCycle(RoverContext& theContext,
+                                                          const WdCmdMsgs__Message& msg,
+                                                          WdCmdMsgs__Response& response,
+                                                          WdCmdMsgs__Response& deployNotificationResponse,
+                                                          bool& sendDeployNotificationResponse);
 
             virtual RoverState doGndCmdSetHeaterDutyCyclePeriod(RoverContext& theContext,
                                                                 const WdCmdMsgs__Message& msg,

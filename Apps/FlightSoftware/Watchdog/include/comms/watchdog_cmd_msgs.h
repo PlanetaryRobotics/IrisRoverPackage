@@ -76,8 +76,8 @@ typedef enum WdCmdMsgs__CommandId
     WD_CMD_MSGS__CMD_ID__SET_HEATER_KP = 0x10AA, //!< Set proportional constant of heater temperature controller.
     WD_CMD_MSGS__CMD_ID__SET_AUTO_HEATER_ON_VALUE = 0x10AB, //!< Set heater "ON" value used with auto heater controller.
     WD_CMD_MSGS__CMD_ID__SET_AUTO_HEATER_OFF_VALUE = 0x10AC, //!< Set heater "OFF" value used with auto heater controller.
-    WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_MAX = 0x10AD, //!< Set max duty cycle of heater PWM.
-    WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_PERIOD = 0x10AE, //!< Set duty period period of heater PWM.
+    WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE = 0x10AD, //!< Set duty cycle of heater PWM.
+    WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_PERIOD = 0x10AE, //!< Set period of heater PWM.
     WD_CMD_MSGS__CMD_ID__SET_THERMISTOR_V_SETPOINT = 0x10DA, //!< Set the thermistor value setpoint.
     WD_CMD_MSGS__CMD_ID__ENTER_SLEEP_MODE = 0x10EA, //!< Enter "Sleep" mode.
     WD_CMD_MSGS__CMD_ID__ENTER_KEEPALIVE_MODE = 0x10EB, //!< Enter "Keep Alive" mode.
@@ -155,6 +155,7 @@ typedef enum WdCmdMsgs__ResetSpecificId
     WD_CMD_MSGS__RESET_ID__BATTERIES_DISABLE = 0x24, //!< Disable the batteries.
 
     WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_ON = 0xEE //!< Power on the HDRM.
+
 } WdCmdMsgs__ResetSpecificId;
 
 /**
@@ -338,10 +339,10 @@ typedef struct WdCmdMsgs__MsgBody__SetAutoHeaterOffValue
 /**
  * @brief The body of a "Set Heater Duty Cycle Maximum" command.
  */
-typedef struct WdCmdMsgs__MsgBody__SetHeaterDutyCycleMax
+typedef struct WdCmdMsgs__MsgBody__SetHeaterDutyCycle
 {
-    uint16_t dutyCycleMax; //!< The maximum duty cycle value.
-} WdCmdMsgs__MsgBody__SetHeaterDutyCycleMax;
+    uint16_t dutyCycle; //!< The duty cycle value.
+} WdCmdMsgs__MsgBody__SetHeaterDutyCycle;
 
 /**
  * @brief The body of a "Set Heater Duty Cycle Period" command.
@@ -484,7 +485,7 @@ typedef union
     WdCmdMsgs__MsgBody__SetHeaterKp setHeaterKp;
     WdCmdMsgs__MsgBody__SetAutoHeaterOnValue setAutoHeaterOnValue;
     WdCmdMsgs__MsgBody__SetAutoHeaterOffValue setAutoHeaterOffValue;
-    WdCmdMsgs__MsgBody__SetHeaterDutyCycleMax setHeaterDutyCycleMax;
+    WdCmdMsgs__MsgBody__SetHeaterDutyCycle setHeaterDutyCycle;
     WdCmdMsgs__MsgBody__SetHeaterDutyCyclePeriod setHeaterDutyCyclePeriod;
     WdCmdMsgs__MsgBody__SetThermisterVSetpoint setThermisterVSetpoint;
     WdCmdMsgs__MsgBody__EnterSleepMode enterSleepMode;
@@ -542,7 +543,7 @@ typedef enum WdCmdMsgs__PackedSize
     WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_KP_BODY = sizeof(uint16_t),
     WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_ON_VALUE_BODY = sizeof(uint16_t),
     WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_OFF_VALUE_BODY = sizeof(uint16_t),
-    WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_MAX_BODY = sizeof(uint16_t),
+    WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_BODY = sizeof(uint16_t),
     WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_PERIOD_BODY = sizeof(uint16_t),
     WD_CMD_MSGS__PACKED_SIZE__SET_THERMISTER_V_SETPOINT_BODY = sizeof(uint16_t),
     WD_CMD_MSGS__PACKED_SIZE__ENTER_SLEEP_MODE_BODY = sizeof(uint8_t),
@@ -571,7 +572,7 @@ typedef enum WdCmdMsgs__PackedSize
     WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_KP_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_KP_BODY,
     WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_ON_VALUE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_ON_VALUE_BODY,
     WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_OFF_VALUE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_OFF_VALUE_BODY,
-    WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_MAX_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_MAX_BODY,
+    WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_BODY,
     WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_PERIOD_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_PERIOD_BODY,
     WD_CMD_MSGS__PACKED_SIZE__SET_THERMISTER_V_SETPOINT_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_THERMISTER_V_SETPOINT_BODY,
     WD_CMD_MSGS__PACKED_SIZE__ENTER_SLEEP_MODE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__ENTER_SLEEP_MODE_BODY,

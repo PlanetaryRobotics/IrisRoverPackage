@@ -12,7 +12,6 @@ namespace iris
 
             // The functions to handle events
             RoverState handleHerculesData(RoverContext& theContext) override;
-            RoverState handleHighTemp(RoverContext& theContext) override;
             RoverState handlePowerIssue(RoverContext& theContext) override;
             RoverState spinOnce(RoverContext& theContext) override;
 

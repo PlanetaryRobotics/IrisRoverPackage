@@ -95,12 +95,6 @@ namespace iris
         return getState();
     }
 
-    RoverState RoverStateMission::handleHighTemp(RoverContext& /*theContext*/)
-    {
-        //!< @todo Implement RoverStateMission::handleHighTemp
-        return getState();
-    }
-
     RoverState RoverStateMission::handlePowerIssue(RoverContext& /*theContext*/)
     {
         //!< @todo Implement RoverStateMission::handlePowerIssue
@@ -156,7 +150,7 @@ namespace iris
 
     RoverState RoverStateMission::transitionTo(RoverContext& theContext)
     {
-        // Nothing to do on this transition, which should always be from ENTERING_SERVICE.
+        // Nothing to do on this transition, which should always be from ENTERING_MISSION.
         m_currentSubState = SubState::MISSION_NORMAL;
         *(theContext.m_persistentInMission) = true;
         return getState();
@@ -165,8 +159,7 @@ namespace iris
     void RoverStateMission::heaterControl(RoverContext& theContext) {
         // Only use heater when connected to the lander
         if (m_currentDeployState != DeployState::NOT_DEPLOYED) {
-            TB0CCR2 = 0;
-            theContext.m_details.m_hParams.m_heaterDutyCycle = 0;
+            disableHeater();
         } else {
             RoverStateBase::heaterControl(theContext);
         }

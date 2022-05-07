@@ -80,12 +80,6 @@ namespace iris
         return getState();
     }
 
-    RoverState RoverStateService::handleHighTemp(RoverContext& /*theContext*/)
-    {
-        //!< @todo Implement RoverStateService::handleHighTemp
-        return getState();
-    }
-
     RoverState RoverStateService::handlePowerIssue(RoverContext& /*theContext*/)
     {
         //!< @todo Implement RoverStateService::handlePowerIssue

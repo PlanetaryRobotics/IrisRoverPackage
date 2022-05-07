@@ -5,6 +5,7 @@
 
 #include "drivers/adc.h"
 #include "drivers/bsp.h"
+#include "drivers/blimp.h"
 
 #include "utils/time.h"
 
@@ -77,12 +78,6 @@ namespace iris
             initiateNextI2cAction(theContext);
         }
 
-        return getState();
-    }
-
-    RoverState RoverStateEnteringMission::handleHighTemp(RoverContext& /*theContext*/)
-    {
-        //!< @todo Implement RoverStateEnteringMission::handleHighTemp
         return getState();
     }
 
@@ -323,8 +318,8 @@ namespace iris
     RoverState RoverStateEnteringMission::transitionToWaitingForIoExpanderWrite1(RoverContext& theContext)
     {
         /* bootup process - enable all rails */
+        blimp_vSysAllEnOn(); // [CWC] new. desired behavior.
         enable3V3PowerRail();
-        disable24VPowerRail();
         enableBatteries();
         disableHeater();
         unsetDeploy();

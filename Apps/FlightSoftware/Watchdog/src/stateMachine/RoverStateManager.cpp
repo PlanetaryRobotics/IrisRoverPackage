@@ -58,7 +58,6 @@ namespace iris
         m_context.m_details.m_hParams.m_heaterWindow = DEFAULT_HEATER_WINDOW;
         m_context.m_details.m_hParams.m_heaterOnVal = DEFAULT_HEATER_ON_VAL;
         m_context.m_details.m_hParams.m_heaterOffVal = DEFAULT_HEATER_OFF_VAL;
-        m_context.m_details.m_hParams.m_heating = DEFAULT_HEATING;
         m_context.m_details.m_hParams.m_heatingControlEnabled = DEFAULT_HEATING_CONTROL_ENABLED;
         m_context.m_details.m_hParams.m_heaterDutyCyclePeriod = DEFAULT_HEATER_DUTY_CYCLE_PERIOD;
         m_context.m_details.m_hParams.m_heaterDutyCycle = DEFAULT_HEATER_DUTY_CYCLE;

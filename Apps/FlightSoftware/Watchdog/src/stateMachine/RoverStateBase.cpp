@@ -1114,6 +1114,17 @@ namespace iris
         return getState();
     }
 
+#define PRINTF_TO_LANDER(fmt, ...) \
+        memset(printBuffer, 0, sizeof(printBuffer)); \
+        sprintf(printBuffer, fmt, __VA_ARGS__); \
+        do { \
+            lcStatus = LanderComms__txData(theContext.m_lcState, \
+                            (uint8_t*) printBuffer, \
+                            strlen(printBuffer)); \
+            __delay_cycles(100000); \
+            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2 + WDTIS0; \
+        } while (lcStatus == LANDER_COMMS__STATUS__ERROR_TX_OVERFLOW)
+
     void RoverStateBase::sendDetailedReportToLander(RoverContext& theContext)
     {
         /* send detailed report */

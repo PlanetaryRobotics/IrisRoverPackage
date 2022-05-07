@@ -436,11 +436,13 @@ namespace iris
 
     void RoverStateEnteringMission::enableHerculesComms(RoverContext& theContext)
     {
-        UART__Status uartStatus = UART__init0(&(theContext.m_uartConfig),
-                                              &(theContext.m_uart0State));
+        if (!UART__isInitialized(theContext.m_uart0State)) {
+            UART__Status uartStatus = UART__init0(&(theContext.m_uartConfig),
+                                                  &(theContext.m_uart0State));
 
-        DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uartStatus, "Failed to init UART0");
-        DEBUG_ASSERT_EQUAL(UART__STATUS__SUCCESS, uartStatus);
+            DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uartStatus, "Failed to init UART0");
+            DEBUG_ASSERT_EQUAL(UART__STATUS__SUCCESS, uartStatus);
+        }
 
         HerculesComms__Status hcStatus = HerculesComms__init(&(theContext.m_hcState), theContext.m_uart0State);
         DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);

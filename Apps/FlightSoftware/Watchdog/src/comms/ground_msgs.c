@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <msp430.h>
 
+#include "comms/debug_comms.h"
 #include "comms/ip_udp.h"
 #include "comms/i2c_sensors.h"
 #include "drivers/adc.h"
@@ -11,7 +12,7 @@
 #include "utils/serialization.h"
 #include "watchdog.h"
 
-#define ENABLE_DEBUGGING_PRINT_OF_FAKE_REPORT 1
+#define ENABLE_DEBUGGING_PRINT_OF_FAKE_REPORT 0
 #define ENABLE_FORMATTED_DEBUG_PRINT 0
 
 #define CHECK_SERIALIZATION_RESULT(RESULT_VAR) \

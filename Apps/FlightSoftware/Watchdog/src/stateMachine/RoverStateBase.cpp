@@ -11,6 +11,10 @@
 
 #include <cassert>
 #include <msp430.h>
+#include <cstdio>
+#include <cstring>
+
+#define DEBUG_REPORT true
 
 namespace iris
 {
@@ -1047,17 +1051,41 @@ namespace iris
         return getState();
     }
 
+#define PRINTF_TO_LANDER(fmt, ...) \
+        memset(printBuffer, 0, sizeof(printBuffer)); \
+        sprintf(printBuffer, fmt, __VA_ARGS__); \
+        do { \
+            lcStatus = LanderComms__txData(theContext.m_lcState, \
+                            (uint8_t*) printBuffer, \
+                            strlen(printBuffer)); \
+            __delay_cycles(100000); \
+            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2 + WDTIS0; \
+        } while (lcStatus == LANDER_COMMS__STATUS__ERROR_TX_OVERFLOW)
+
     void RoverStateBase::sendDetailedReportToLander(RoverContext& theContext)
     {
         /* send detailed report */
         static DetailedReport report = { 0 };
+        static uint8_t reportBuffer[sizeof(DetailedReport)] = { 0 };
+        static char printBuffer[128] = { 0 };
         GroundMsgs__Status gcStatus =
                 GroundMsgs__generateDetailedReport(&(theContext.m_i2cReadings),
                                                    &(theContext.m_adcValues),
                                                    &(theContext.m_details),
-                                                   &report);
+                                                   &report,
+                                                   reportBuffer);
 
         assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
+
+        int length = 0;
+        uint8_t* reportView = (uint8_t*) &report;
+        for (size_t i = 0; i < sizeof(DetailedReport); ++i) {
+            length += sprintf(printBuffer + length, "%s%x", ((reportView[i] <= 0xF) ? "0" : ""), reportView[i]);
+        }
+
+        LanderComms__Status lcStatus1 = LanderComms__txData(theContext.m_lcState,
+                                                            (uint8_t*) printBuffer,
+                                                           strlen(printBuffer));
 
         LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
                                                            (uint8_t*) &report,
@@ -1067,6 +1095,48 @@ namespace iris
         if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
             //!< @todo Handling?
         }
+
+#if DEBUG_REPORT
+        PRINTF_TO_LANDER("chargeStat1: %u", report.chargeStat1);
+        PRINTF_TO_LANDER("chargeStat2: %u", report.chargeStat2);
+        PRINTF_TO_LANDER("battStat: %u", report.battStat);
+        PRINTF_TO_LANDER("latchStat: %u", report.latchStat);
+        PRINTF_TO_LANDER("pg12: %u", report.pg12);
+        PRINTF_TO_LANDER("pg18: %u", report.pg18);
+        PRINTF_TO_LANDER("pg33: %u", report.pg50);
+        PRINTF_TO_LANDER("state: %u", report.state);
+        PRINTF_TO_LANDER("deploymentStatus: %u", report.deploymentStatus);
+        PRINTF_TO_LANDER("uart0Initialized: %u", report.uart0Initialized);
+        PRINTF_TO_LANDER("uart1Initialized: %u", report.uart1Initialized);
+        PRINTF_TO_LANDER("adcBattRT: %u", report.adcBattRT);
+        PRINTF_TO_LANDER("sequenceNumber: %u", report.sequenceNumber);
+        PRINTF_TO_LANDER("outputPinStateBits: %lu", report.outputPinStateBits);
+        PRINTF_TO_LANDER("resetActionBits: %llu", theContext.m_details.m_resetActionBits);
+        PRINTF_TO_LANDER("vLanderSense: %u", theContext.m_adcValues.vLanderSense);
+        PRINTF_TO_LANDER("battTemp: %u", theContext.m_adcValues.battTemp);
+        PRINTF_TO_LANDER("vSysAllSens: %u", theContext.m_adcValues.vSysAllSense);
+        PRINTF_TO_LANDER("iSysAllSense: %u", theContext.m_adcValues.iSysAllSense);
+        PRINTF_TO_LANDER("vBattSense: %u", theContext.m_adcValues.vBattSense);
+        PRINTF_TO_LANDER("vcc24: %u", theContext.m_adcValues.vcc24);
+        PRINTF_TO_LANDER("heatingControlEnabled: %u", report.heatingControlEnabled);
+        PRINTF_TO_LANDER("heating: %u", report.heating);
+        PRINTF_TO_LANDER("vcc2Point5: %u", theContext.m_adcValues.vcc2Point5);
+        PRINTF_TO_LANDER("vcc2Point8: %u", theContext.m_adcValues.vcc2Point8);
+        PRINTF_TO_LANDER("vcc28: %u", theContext.m_adcValues.vcc28);
+        PRINTF_TO_LANDER("kpHeater: %u", report.kpHeater);
+        PRINTF_TO_LANDER("heaterPwmLimit: %u", report.heaterPwmLimit);
+        PRINTF_TO_LANDER("heaterSetpoint: %u", report.heaterSetpoint);
+        PRINTF_TO_LANDER("heaterOnValue: %u", report.heaterOnValue);
+        PRINTF_TO_LANDER("heaterOffValue: %u", report.heaterOffValue);
+        PRINTF_TO_LANDER("heaterDutyCyclePeriod: %u", report.heaterDutyCyclePeriod);
+        PRINTF_TO_LANDER("heaterPwmValue: %u", report.heaterPwmValue);
+        PRINTF_TO_LANDER("rawBatteryCharge: %u %u", report.rawBatteryCharge[0], report.rawBatteryCharge[1]);
+        PRINTF_TO_LANDER("rawBatteryVoltage: %u %u", report.rawBatteryVoltage[0], report.rawBatteryVoltage[1]);
+        PRINTF_TO_LANDER("rawBatteryCurrent: %u %u", report.rawBatteryCurrent[0], report.rawBatteryCurrent[1]);
+        PRINTF_TO_LANDER("rawFuelGaugeTemp: %u %u", report.rawFuelGaugeTemp[0], report.rawFuelGaugeTemp[1]);
+        PRINTF_TO_LANDER("battChargeTelem: %u", report.battChargeTelem);
+        PRINTF_TO_LANDER("battCurrTelem: %u", report.battCurrTelem);
+#endif // DEBUG_REPORT
     }
 
     void RoverStateBase::doConditionalResetSpecific(RoverContext& theContext,

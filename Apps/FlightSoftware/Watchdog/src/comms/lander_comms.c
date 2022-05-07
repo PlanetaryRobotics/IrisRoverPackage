@@ -45,6 +45,9 @@ static LanderComms__State theState = {
 // Private function declarations
 //###########################################################
 
+static size_t LanderComms__determineSlipEncodedSize(const uint8_t* header, size_t headerLen,
+                                                    const uint8_t* data, size_t dataLen);
+
 static LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms__State* lcState,
                                                                     const uint8_t* inputBuffer,
                                                                     size_t inputLen,
@@ -220,6 +223,13 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
     // The above call failing indicates some kind of programmer error
     assert(IP_UDP__STATUS__SUCCESS == ipStatus);
 
+    size_t bytesToSend = LanderComms__determineSlipEncodedSize(uartHeaderData, SIZE_OF_ARRAY(uartHeaderData),
+                                                               data, dataLen);
+
+    if(!UART__checkIfSendable(lcState->uartState, bytesToSend)) {
+        return LANDER_COMMS__STATUS__ERROR_TX_OVERFLOW;
+    }
+
     // Increment the packet ID for the next packet
     lcState->txPacketId++;
 
@@ -264,6 +274,34 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
 //###########################################################
 // Private function definitions
 //###########################################################
+
+static size_t LanderComms__determineSlipEncodedSize(const uint8_t* header, size_t headerLen,
+                                                    const uint8_t* data, size_t dataLen)
+{
+    size_t totalSize = 2; // Start with 2 to account for initial and final END bytes
+
+    for (size_t i = 0; i < headerLen; ++i) {
+        if (header[i] == SLIP_END) {
+            totalSize += 2;
+        } else if (header[i] == SLIP_ESC) {
+            totalSize += 2;
+        } else {
+            totalSize++;
+        }
+    }
+
+    for (size_t i = 0; i < dataLen; ++i) {
+        if (data[i] == SLIP_END) {
+            totalSize += 2;
+        } else if (data[i] == SLIP_ESC) {
+            totalSize += 2;
+        } else {
+            totalSize++;
+        }
+    }
+
+    return totalSize;
+}
 
 static LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms__State* lcState,
                                                                     const uint8_t* inputBuffer,

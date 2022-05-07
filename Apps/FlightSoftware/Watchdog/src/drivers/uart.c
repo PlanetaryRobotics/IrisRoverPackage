@@ -191,6 +191,34 @@ UART__Status UART__uninit1(UART__State** uart1StateOut)
     return UART__STATUS__SUCCESS;
  }
 
+BOOL UART__checkIfSendable(UART__State* uartState, size_t dataLen)
+{
+    if (NULL == uartState) {
+        return FALSE;
+    }
+
+    if (!(uartState->initialized)) {
+        return FALSE;
+    }
+
+    if (0 == dataLen) {
+        return TRUE;
+    }
+
+    size_t numFree = 0;
+
+    // Disable the tx interrupt for this uart while we get the number of free bytes in the ring buffer
+    uint16_t existingTxInterruptBitState = *(uartState->registers->UCAxIE) & UCTXIE;
+    *(uartState->registers->UCAxIE) &= ~UCTXIE;
+
+    numFree = RingBuffer__freeCount(uartState->txRingBuff);
+
+    // Re-enable the tx interrupt only if it was previously enabled
+    *(uartState->registers->UCAxIE) |= existingTxInterruptBitState;
+
+    return (dataLen <= numFree);
+}
+
 UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t dataLen)
 {
     if (NULL == uartState || NULL == data) {

@@ -21,8 +21,8 @@
 static volatile uint16_t shouldBeUnusedWatchdogFlags = 0;
 static volatile uint16_t shouldBeUnusedTimeCount = 0;
 
-static volatile uint16_t* volatile watchdogFlagsPtr = &shouldBeUnusedWatchdogFlags;
-static volatile uint16_t* volatile timeCountCentisecondsPtr = &shouldBeUnusedTimeCount;
+static volatile uint16_t* watchdogFlagsPtr = &shouldBeUnusedWatchdogFlags;
+static volatile uint16_t* timeCountCentisecondsPtr = &shouldBeUnusedTimeCount;
 
 /**
  * Set up the ISRs for the watchdog

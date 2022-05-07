@@ -1,5 +1,6 @@
 #include "stateMachine/RoverStateEnteringMission.hpp"
 
+#include "comms/debug_comms.h"
 #include "comms/ground_msgs.h"
 #include "comms/i2c_sensors.h"
 
@@ -38,13 +39,13 @@ namespace iris
                                                                             static_cast<uint8_t>(getState()),
                                                                             &hb);
 
-        assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
+        DEBUG_ASSERT_EQUAL(GND_MSGS__STATUS__SUCCESS, gcStatus);
+        LanderComms__Status lcStatus = LanderComms__txDataUntilSendOrTimeout(theContext.m_lcState,
+                                                                             (uint8_t*) &hb,
+                                                                             sizeof(hb),
+                                                                             200);
 
-        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
-                                                           (uint8_t*) &hb,
-                                                           sizeof(hb));
-
-        assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
+        DEBUG_ASSERT_EQUAL(LANDER_COMMS__STATUS__SUCCESS, lcStatus);
         if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
             //!< @todo Handling?
         }
@@ -61,6 +62,7 @@ namespace iris
                          &writeIoExpander,
                          &(theContext.m_details));
 
+#if 0 // Due to lots of race conditions w/ code handling transitions, I'm disabling reading/writing I2C here fo this state
         if (writeIoExpander && true /** @todo Replace true with whether I2C has been initialized */) {
             theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
             theContext.m_writeCustomIoExpanderValues = false;
@@ -77,6 +79,7 @@ namespace iris
         if (!theContext.m_i2cActive) {
             initiateNextI2cAction(theContext);
         }
+#endif
 
         return getState();
     }
@@ -125,7 +128,7 @@ namespace iris
                                                                                  &readValue);
 
                     // Sanity check
-                    assert(I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER == action);
+                    DEBUG_ASSERT_EQUAL(I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER, action);
 
                     if (I2C_SENSORS__STATUS__INCOMPLETE != i2cStatus) {
                         DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "I2C action failed");
@@ -151,7 +154,7 @@ namespace iris
                                                                                  &readValue);
 
                     // Sanity check
-                    assert(I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER == action);
+                    DEBUG_ASSERT_EQUAL(I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER, action);
 
                     if (I2C_SENSORS__STATUS__INCOMPLETE != i2cStatus) {
                         DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "I2C action failed");
@@ -178,6 +181,7 @@ namespace iris
                         I2C_Sensors__stop();
                         theContext.m_queuedI2cActions = 0;
                         theContext.m_i2cActive = false;
+
                         return transitionToWatitingForWifiReadyOrTimeout(theContext);
                     }
 
@@ -186,7 +190,7 @@ namespace iris
                     I2C_Sensors__Status i2cStatus = I2C_Sensors__getActionStatus(&currentAction, NULL, NULL);
 
                     // First of all, we should always be doing the action to initialize the fuel gauges at this point
-                    assert(I2C_SENSORS__ACTIONS__GAUGE_INIT == currentAction);
+                    DEBUG_ASSERT_EQUAL(I2C_SENSORS__ACTIONS__GAUGE_INIT, currentAction);
 
                     if (I2C_SENSORS__STATUS__SUCCESS_DONE == i2cStatus) {
                         // Gauge initialization completed successfully, so move forward
@@ -196,7 +200,7 @@ namespace iris
                         theContext.m_i2cActive = false;
 
                         // Then move forward
-                        return transitionToWaitingForIoExpanderWrite3(theContext);
+                        return transitionToWatitingForWifiReadyOrTimeout(theContext);
                     } else if (I2C_SENSORS__STATUS__ERROR__DONE_WITH_NACKS == i2cStatus) {
                         // Gauge initialization failed, but we haven't timed out yet. Therefore we retry the
                         // initialization action.
@@ -228,6 +232,14 @@ namespace iris
 
                     if (timePassed > WIFI_READY_TIMEOUT_CENTISECONDS) {
                         DPRINTF_ERR("Wait for wifi timed out\n");
+
+                        // At this point the only thing that may be using I2C would be the read/write from the timer tick,
+                        // and transitioning to mission has priority over that. If it was a write, the changes being written
+                        // should be picked up and written in IoExpanderWrite3. If it was a read, then all that we lose by
+                        // canceling it is a short delay in updating the input values on the IO expander
+                        I2C_Sensors__stop();
+                        theContext.m_queuedI2cActions = 0;
+                        theContext.m_i2cActive = false;
                         return transitionToWaitingForIoExpanderWrite3(theContext);
                     }
                     break;
@@ -242,7 +254,7 @@ namespace iris
                                                                                  &readValue);
 
                     // Sanity check
-                    assert(I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER == action);
+                    DEBUG_ASSERT_EQUAL(I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER, action);
 
                     if (I2C_SENSORS__STATUS__INCOMPLETE != i2cStatus) {
                         DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "I2C action failed");
@@ -334,7 +346,7 @@ namespace iris
         theContext.m_writeCustomIoExpanderValues = false;
 
         // I2C being inactive should be a prerequisite of entering this state
-        assert(!(theContext.m_i2cActive));
+        DEBUG_ASSERT(!(theContext.m_i2cActive));
 
         initiateNextI2cAction(theContext);
 
@@ -355,7 +367,7 @@ namespace iris
         theContext.m_writeCustomIoExpanderValues = false;
 
         // I2C being inactive should be a prerequisite of entering this state
-        assert(!(theContext.m_i2cActive));
+        DEBUG_ASSERT(!(theContext.m_i2cActive));
 
         initiateNextI2cAction(theContext);
 
@@ -366,7 +378,7 @@ namespace iris
     RoverState RoverStateEnteringMission::transitionToWaitingForFuelGaugeOrTimeout(RoverContext& theContext)
     {
         // I2C being inactive should be a prerequisite of entering this state
-        assert(!(theContext.m_i2cActive));
+        DEBUG_ASSERT(!(theContext.m_i2cActive));
 
         // Record the start time for the time period in which we'll wait for the fuel gauge to be initialized
         // successfully. If it isn't done being initialized by the end of the timeout period, then we'll move forward
@@ -414,7 +426,7 @@ namespace iris
         theContext.m_writeCustomIoExpanderValues = false;
 
         // I2C being inactive should be a prerequisite of entering this state
-        assert(!(theContext.m_i2cActive));
+        DEBUG_ASSERT(!(theContext.m_i2cActive));
 
         initiateNextI2cAction(theContext);
 
@@ -428,10 +440,10 @@ namespace iris
                                               &(theContext.m_uart0State));
 
         DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uartStatus, "Failed to init UART0");
-        assert(UART__STATUS__SUCCESS == uartStatus);
+        DEBUG_ASSERT_EQUAL(UART__STATUS__SUCCESS, uartStatus);
 
         HerculesComms__Status hcStatus = HerculesComms__init(&(theContext.m_hcState), theContext.m_uart0State);
-        assert(HERCULES_COMMS__STATUS__SUCCESS == hcStatus);
+        DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
     }
 
 } // End namespace iris

@@ -71,7 +71,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
               break;
           case WATCHDOG:                // Default to smallest buffer size for safety even if we were using WF121
           default:
-              m_downlink_objects_size = WATCHDOG_MAX_PAYLOAD;
+              m_downlink_objects_size = WATCHDOG_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader);
               m_temp_interface_port_num = WATCHDOG;
       }
       m_tlmDownlinkBufferSpaceAvailable = m_downlink_objects_size;
@@ -260,7 +260,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
             break;
         case WATCHDOG:                // Default to smallest buffer size for safety even if we were using WF121
         default:
-            m_downlink_objects_size = WATCHDOG_MAX_PAYLOAD;
+            m_downlink_objects_size = WATCHDOG_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader);
             m_persistent_state = 0;
     }
     m_tlmDownlinkBufferSpaceAvailable = m_downlink_objects_size;

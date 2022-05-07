@@ -52,7 +52,8 @@ typedef enum HerculesComms__MsgOpcode
 {
     HERCULES_COMMS__MSG_OPCODE__STROKE = 0x100,  //!< The opcode used for stroke messages.
     HERCULES_COMMS__MSG_OPCODE__DOWNLINK = 0x101,//!< The opcode used for downlink messages.
-    HERCULES_COMMS__MSG_OPCODE__UPLINK = 0x102   //!< The opcode used for uplink messages.
+    HERCULES_COMMS__MSG_OPCODE__UPLINK = 0x102,   //!< The opcode used for uplink messages.
+    HERCULES_COMMS__MSG_OPCODE__DEBUG = 0x103   //!< The opcode used for debug messages.
 } HerculesComms__MsgOpcode;
 
 /**

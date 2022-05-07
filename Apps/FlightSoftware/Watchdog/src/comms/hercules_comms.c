@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <string.h>
 
+#include "comms/debug_comms.h"
 #include "comms/hercules_comms.h"
 #include "common.h"
 #include "comms/hercules_mpsm.h"
@@ -156,6 +157,10 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
             return HERCULES_COMMS__STATUS__ERROR_UART_RX_FAILURE;
         }     
 
+        if (numReceived != 0) {
+            //DebugComms__printfToLander("Got %u bytes of msg data from Hercules\n", numReceived);
+        }
+
         // Iterate through all data, adding it to the hercules mpsm until packet data has been found or
         // we use up all of the data from the UART
         for (size_t i = 0; i < numReceived; ++i) {
@@ -171,6 +176,8 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
 
                 resetMpsmMsg = TRUE;
             } else if (HERCULES_MPSM__STATUS__NEED_MORE_DATA != mpsmStatus) {
+                DebugComms__printfToLander("Unexpected return value from HerculesMpsm__process: %d "
+                                           "in HerculesComms__tryGetMessage\n", mpsmStatus);
                 // Some kind of unexpected error occurred. At a minimum we need to reset the MPSM
                 resetMpsmMsg = TRUE;
                 numReceived = 0;
@@ -181,6 +188,9 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
                 mpsmStatus = HerculesMpsm__initMsg(&(hState->herculesMsg));
 
                 if (HERCULES_MPSM__STATUS__SUCCESS != mpsmStatus) {
+                    DebugComms__printfToLander("Unexpected return value from HerculesMpsm__initMsg: %d "
+                                               "in HerculesComms__tryGetMessage\n", mpsmStatus);
+
                     // Don't overwrite an existing error return status with this one, but if we haven't had an
                     // error before now then set our return status to indicate this failure.
                     if (HERCULES_COMMS__STATUS__SUCCESS == returnStatus) {
@@ -321,7 +331,7 @@ static HerculesComms__Status HerculesComms__txHerculesMsg(HerculesComms__State* 
                                                             hState->headerSerializationBuffer,
                                                             sizeof(hState->headerSerializationBuffer));
 
-    assert(HERC_MSGS__STATUS__SUCCESS == hMsgStatus);
+    DEBUG_ASSERT_EQUAL(HERC_MSGS__STATUS__SUCCESS, hMsgStatus);
 
     // Insert the header into the UART tx ring buffer
     HerculesComms__Status hStatus = HerculesComms__transmitBuffer(hState,

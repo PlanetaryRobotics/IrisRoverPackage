@@ -3,6 +3,7 @@
 #include "drivers/adc.h"
 #include "drivers/bsp.h"
 
+#include "comms/debug_comms.h"
 #include "comms/ground_msgs.h"
 #include "watchdog.h"
 
@@ -244,10 +245,7 @@ namespace iris
         // Enable all interrupts
         __enable_interrupt();
 
-        char helloWorld[16] = "hello, world!\r\n";
-        LanderComms__Status lcStatus =
-                LanderComms__txData(theContext.m_lcState, (uint8_t*) helloWorld, sizeof(helloWorld));
-        assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
+        DebugComms__printfToLander("hello, world!\n");
 
         return nextStateAfterSetupCompletes();
     }

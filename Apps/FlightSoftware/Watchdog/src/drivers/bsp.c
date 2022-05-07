@@ -1,5 +1,6 @@
 #include "drivers/bsp.h"
 #include "drivers/blimp.h"
+#include "comms/debug_comms.h"
 #include "comms/i2c_sensors.h"
 #include "flags.h"
 
@@ -16,6 +17,35 @@
 #define PORTJ_ENABLED 1
 
 static WatchdogStateDetails* detailsPtr = NULL;
+
+const char* getResetReasonString(void)
+{
+    switch (__even_in_range(SYSRSTIV, SYSRSTIV_MPUSEG3IFG))
+    {
+        case SYSRSTIV_NONE: return "None";
+        case SYSRSTIV_BOR: return "Brownout (BOR)";
+        case SYSRSTIV_RSTNMI: return "RSTIFG RST/NMI (BOR)";
+        case SYSRSTIV_DOBOR: return "PMMSWBOR software BOR (BOR)";
+        case SYSRSTIV_LPM5WU: return "LPMx.5 wake up (BOR)";
+        case SYSRSTIV_SECYV: return "Security violation (BOR)";
+        case SYSRSTIV_SVSHIFG: return "SCSHIFG SVSH event (BOR)";
+        case SYSRSTIV_DOPOR: return "PMMSWPOR software POR (POR)";
+        case SYSRSTIV_WDTTO: return "WDTIFG watchdog timeout (PUC)";
+        case SYSRSTIV_WDTPW: return "WDTPW password violation (PUC)";
+        case SYSRSTIV_FRCTLPW: return "FRCTLPW password violation (PUC)";
+        case SYSRSTIV_UBDIFG: return "Uncorrectable FRAM bit error detection (PUC)";
+        case SYSRSTIV_PERF: return "Peripheral area fetch (PUC)";
+        case SYSRSTIV_PMMPW: return "PMMPW PMM password violation (PUC)";
+        case SYSRSTIV_MPUPW: return "MPUPW MPU password violation (PUC)";
+        case SYSRSTIV_CSPW: return "CSPW CS password violation (PUC)";
+        case SYSRSTIV_MPUSEGPIFG: return "MPUSEGIPIFG encapsulated IP memory segment violation (PUC)";
+        case SYSRSTIV_MPUSEGIIFG: return "MPUSEGIIFG information memory segment violation (PUC)";
+        case SYSRSTIV_MPUSEG1IFG: return "MPUSEG1IFG segment 1 memory violation (PUC)";
+        case SYSRSTIV_MPUSEG2IFG: return "MPUSEG2IFG segment 2 memory violation (PUC)";
+        case SYSRSTIV_MPUSEG3IFG: return "MPUSEG3IFG segment 3 memory violation (PUC)";
+        default: return "Unknown";
+    }
+}
 
 /**
  * @brief      Initializes the gpios.

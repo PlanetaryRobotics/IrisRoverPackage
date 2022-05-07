@@ -12,6 +12,7 @@
 
 #include <msp430.h>
 #include <assert.h>
+#include "comms/debug_comms.h"
 #include "drivers/uart.h"
 #include "drivers/bsp.h"
 #include "event/event.h"
@@ -191,7 +192,7 @@ UART__Status UART__uninit1(UART__State** uart1StateOut)
     return UART__STATUS__SUCCESS;
  }
 
-BOOL UART__checkIfSendable(UART__State* uartState, size_t dataLen)
+BOOL UART__checkIfSendable(UART__State* uartState, size_t dataLen, size_t* free)
 {
     if (NULL == uartState) {
         return FALSE;
@@ -213,10 +214,61 @@ BOOL UART__checkIfSendable(UART__State* uartState, size_t dataLen)
 
     numFree = RingBuffer__freeCount(uartState->txRingBuff);
 
-    // Re-enable the tx interrupt only if it was previously enabled
-    *(uartState->registers->UCAxIE) |= existingTxInterruptBitState;
+    // I'm not exactly sure what conditions are causing it, but I've seen the TX interrupts stall
+    // (i.e. TX interrupts stop occurring even though there is data in the TX ring buffer)
+    // To work around this, we re-enable the TXIFG bit here under certain conditions
+    /** @todo Replace hard-coded 1024 with a variable. This is cheating and will break if we change the buffer size */
+    //if ((existingTxInterruptBitState == 0) && numFree < 1024) {
+    //    *(uartState->registers->UCAxIFG) |= UCTXIFG;
+    //}
+
+    // Re-enable the tx interrupt only if it was previously enabled or if there are bytes remaining in the ring
+    // buffer
+    /** @todo Replace hard-coded 1024 with a variable. This is cheating and will break if we change the buffer size */
+    *(uartState->registers->UCAxIE) |= (existingTxInterruptBitState); //| ((numFree == 1024) ? UCTXIE : 0));
+
+    if (NULL != free) {
+        *free = numFree;
+    }
 
     return (dataLen <= numFree);
+}
+
+void UART__flushTx(UART__State* uartState)
+{
+    if (NULL == uartState) {
+        return;
+    }
+
+    if (!(uartState->initialized)) {
+        return;
+    }
+
+    size_t numUsed = 0;
+
+    do {
+        // Disable the tx interrupt for this uart while we get the number of free bytes in the ring buffer
+        uint16_t existingTxInterruptBitState = *(uartState->registers->UCAxIE) & UCTXIE;
+        *(uartState->registers->UCAxIE) &= ~UCTXIE;
+
+        numUsed = RingBuffer__usedCount(uartState->txRingBuff);
+
+        // I'm not exactly sure what conditions are causing it, but I've seen the TX interrupts stall
+        // (i.e. TX interrupts stop occurring even though there is data in the TX ring buffer)
+        // To work around this, we re-enable the TXIFG bit here under certain conditions
+        if ((existingTxInterruptBitState == 0) && numUsed > 0) {
+            *(uartState->registers->UCAxIFG) |= UCTXIFG;
+        }
+
+        // Re-enable the tx interrupt only if it was previously enabled or if there are bytes remaining in the ring
+        // buffer
+        *(uartState->registers->UCAxIE) |= (existingTxInterruptBitState);// | ((numUsed > 0) ? UCTXIE : 0));
+
+        if (numUsed != 0) {
+            __delay_cycles(10000);
+            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;//+ WDTIS0;
+        }
+    } while (numUsed != 0);
 }
 
 UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t dataLen)
@@ -329,15 +381,13 @@ static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
                                                        buffers->txBuffer,
                                                        buffers->txBufferSize);
 
-        if (RB__STATUS__SUCCESS != rbStatus) {
-            return UART__STATUS__ERROR_RB_INIT_FAILURE;
-        }
+        DEBUG_LOG_CHECK_STATUS_RETURN(RB__STATUS__SUCCESS, rbStatus,
+                                      "Failed to init TX RB", UART__STATUS__ERROR_RB_INIT_FAILURE);
     } else {
         RingBuffer__Status rbStatus = RingBuffer__clear(state->txRingBuff);
 
-        if (RB__STATUS__SUCCESS != rbStatus) {
-            return UART__STATUS__ERROR_RB_INIT_FAILURE;
-        }
+        DEBUG_LOG_CHECK_STATUS_RETURN(RB__STATUS__SUCCESS, rbStatus,
+                                      "Failed to clear TX RB", UART__STATUS__ERROR_RB_CLEAR_FAILURE);
     }
 
 
@@ -346,15 +396,13 @@ static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
                                                        buffers->rxBuffer,
                                                        buffers->rxBufferSize);
 
-        if (RB__STATUS__SUCCESS != rbStatus) {
-            return UART__STATUS__ERROR_RB_INIT_FAILURE;
-        }
+        DEBUG_LOG_CHECK_STATUS_RETURN(RB__STATUS__SUCCESS, rbStatus,
+                                      "Failed to init RX RB", UART__STATUS__ERROR_RB_INIT_FAILURE);
     } else {
         RingBuffer__Status rbStatus = RingBuffer__clear(state->rxRingBuff);
 
-        if (RB__STATUS__SUCCESS != rbStatus) {
-            return UART__STATUS__ERROR_RB_INIT_FAILURE;
-        }
+        DEBUG_LOG_CHECK_STATUS_RETURN(RB__STATUS__SUCCESS, rbStatus,
+                                      "Failed to clear RX RB", UART__STATUS__ERROR_RB_CLEAR_FAILURE);
     }
 
     return UART__STATUS__SUCCESS;
@@ -386,7 +434,7 @@ static void UART__uart0Init()
     - Next frame to be transmitted is data
     - Next frame to be transmitted is not a break
     */
-
+/*
     // Baud Rate calculation (Section 30.3.10, SLAU367P)
     // N = (Baud rate clock frequency) / baud rate = 8000000 / 9600 = 833.3333
     // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
@@ -402,6 +450,22 @@ static void UART__uart0Init()
     //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
     //  Therefore, we use 0x49 instead of 0x04. 
     UCA0MCTLW |= 0x4900U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
+*/
+    // Baud Rate calculation (Section 30.3.10, SLAU367P)
+    // N = (Baud rate clock frequency) / baud rate = 8000000 / 57600 = 833.3333
+    // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
+    UCA0MCTLW = UCOS16; // Enables oversampling baud-rate generation mode
+    // UCBRx = int(N / 16) = int(52.08333)
+    // UCBRx = 52
+    UCA0BRW = 8U; // Note: UCBRSx takes up the full 16 bits of UCAxBRW
+    // UCBRFx = int([(N/16) - int(N / 16)] * 16) = int([52.08333 - 52] * 16) = int(1.3333)
+    // UCBRFx = 1
+    UCA0MCTLW |= UCBRF_10;
+    // UCBRSx = 0x04 (per Table 30-4, SLAU367P)
+    // However, per table 30-5 (SLAU367P), for a BRCLK frequency of 8000000 and a baud rate of 9600,
+    //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
+    //  Therefore, we use 0x49 instead of 0x04.
+    UCA0MCTLW |= 0xF700U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
 
     enableUart0Pins();
 
@@ -436,7 +500,7 @@ static void UART__uart1Init() {
     - Next frame to be transmitted is data
     - Next frame to be transmitted is not a break
     */
-
+/*
     // Baud Rate calculation (Section 30.3.10, SLAU367P)
     // N = (Baud rate clock frequency) / (baud rate) = 8000000 / 9600 = 833.3333
     // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
@@ -452,6 +516,22 @@ static void UART__uart1Init() {
     //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
     //  Therefore, we use 0x49 instead of 0x04. 
     UCA1MCTLW |= 0x4900U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
+*/
+    // Baud Rate calculation (Section 30.3.10, SLAU367P)
+    // N = (Baud rate clock frequency) / baud rate = 8000000 / 57600 = 833.3333
+    // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
+    UCA1MCTLW = UCOS16; // Enables oversampling baud-rate generation mode
+    // UCBRx = int(N / 16) = int(52.08333)
+    // UCBRx = 52
+    UCA1BRW = 8U; // Note: UCBRSx takes up the full 16 bits of UCAxBRW
+    // UCBRFx = int([(N/16) - int(N / 16)] * 16) = int([52.08333 - 52] * 16) = int(1.3333)
+    // UCBRFx = 1
+    UCA1MCTLW |= UCBRF_10;
+    // UCBRSx = 0x04 (per Table 30-4, SLAU367P)
+    // However, per table 30-5 (SLAU367P), for a BRCLK frequency of 8000000 and a baud rate of 9600,
+    //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
+    //  Therefore, we use 0x49 instead of 0x04.
+    UCA1MCTLW |= 0xF700U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
 
     enableUart1Pins();
 

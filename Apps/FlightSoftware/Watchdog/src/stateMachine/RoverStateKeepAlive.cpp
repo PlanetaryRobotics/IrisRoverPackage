@@ -1,6 +1,6 @@
 #include "stateMachine/RoverStateKeepAlive.hpp"
 
-
+#include "comms/debug_comms.h"
 #include "drivers/adc.h"
 #include "utils/time.h"
 

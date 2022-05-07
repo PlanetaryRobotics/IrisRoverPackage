@@ -1,5 +1,6 @@
 #include "stateMachine/RoverStateService.hpp"
 
+#include "comms/debug_comms.h"
 #include "comms/ground_msgs.h"
 #include "drivers/adc.h"
 #include "drivers/bsp.h"

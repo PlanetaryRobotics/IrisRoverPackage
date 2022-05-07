@@ -78,10 +78,6 @@ namespace iris
             initiateNextI2cAction(theContext);
         }
 
-        for (size_t i = 0; i < 50; ++i) {
-            //DebugComms__printfToLander("Done with WAITING_FOR_IO_EXPANDER_WRITE_1 substate\n");
-        }
-
         return getState();
     }
 

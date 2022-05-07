@@ -558,7 +558,6 @@ static void UART__uart1Init() {
             } else if (RB__STATUS__ERROR_EMPTY == rbStatus) {                                    \
                 /* There are no more bytes to send, so disable TX interrupt for this uart */     \
                 *(uartState.registers->UCAxIE) &= ~UCTXIE;                                       \
-                /* *(uartState->registers->UCAxIFG) |= UCTXIFG;            */                         \
             } else {                                                                             \
                 /* An error occurred. */                                                         \
                 /** @todo handling? logging? */                                                  \

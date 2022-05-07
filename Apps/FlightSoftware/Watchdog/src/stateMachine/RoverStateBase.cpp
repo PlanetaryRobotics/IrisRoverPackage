@@ -186,9 +186,6 @@ namespace iris
             return;
         }
 
-        //DebugComms__printfToLander("h 0x%x\n", header->lowerOpCode);
-        //DebugComms__flush();
-
         CallbackUserArg* args = reinterpret_cast<CallbackUserArg*>(userArg);
 
         args->m_context.m_watchdogFlags |= WDFLAG_HERCULES_KICK;
@@ -224,8 +221,6 @@ namespace iris
         static WdCmdMsgs__Message wdMessage = { 0 };
         static WdCmdMsgs__Response response = { 0 };
         static WdCmdMsgs__Response deployNotificationResponse = { 0 };
-
-        //DebugComms__printfToLander("l\n");
 
 #pragma diag_push
 #pragma diag_suppress 770
@@ -294,7 +289,6 @@ namespace iris
                                                       WdCmdMsgs__Response& deployNotificationResponse,
                                                       bool& sendDeployNotificationResponse)
     {
-        //DebugComms__printfToLander("w\n");
         // Make sure that by default we don't want to send the deploy notification response
         sendDeployNotificationResponse = false;
 
@@ -535,7 +529,6 @@ namespace iris
                                                       uint8_t* rxDataBuffer,
                                                       size_t rxDataLen)
     {
-        //DebugComms__printfToLander("u\n");
         // Anything with "Type Magic" field value that isn't for Watchdog is treated as uplink for Hercules
         HerculesComms__Status hcStatus = HerculesComms__txUplinkMsg(theContext.m_hcState,
                                                                     rxDataBuffer,
@@ -557,8 +550,6 @@ namespace iris
 #pragma diag_suppress 770
         DEBUG_ASSERT_NOT_EQUAL(nullptr, header);
 #pragma diag_pop
-        //DebugComms__printfToLander("s\n");
-        //DebugComms__flush();
         // For a stroke we just reply to the Hercules with our telemetry
         watchdog_build_hercules_telem(&(theContext.m_i2cReadings),
                                       &(theContext.m_adcValues),
@@ -593,10 +584,6 @@ namespace iris
 #pragma diag_pop
 
         // For downlink we first send the data to the lander, then we reply to the Hercules
-        //DebugComms__printfToLander("d, s=%u\n", payloadSize);
-        //DebugComms__flush();
-
-        //DebugComms__printDataAsHexToLander(payloadBuffer, (payloadSize < 32) ? payloadSize : 32, TRUE);
 
         // 1) Send data to lander
         LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState, payloadBuffer, payloadSize);
@@ -631,10 +618,6 @@ namespace iris
         DEBUG_ASSERT_NOT_EQUAL(nullptr, payloadBuffer);
         DEBUG_ASSERT_NOT_EQUAL(0, payloadSize);
 #pragma diag_pop
-        //DebugComms__printfToLander("g, s=%u\n", payloadSize);
-        //DebugComms__flush();
-
-        //DebugComms__printDataAsHexToLander(payloadBuffer, payloadSize, TRUE);
 
         // For debug just send it to the lander
         DebugComms__stringBufferToLander(payloadBuffer, payloadSize);
@@ -649,9 +632,6 @@ namespace iris
 #pragma diag_suppress 770
         DEBUG_ASSERT_NOT_EQUAL(nullptr, header);
 #pragma diag_pop
-
-        //DebugComms__printfToLander("r\n");
-        //DebugComms__flush();
 
         // For Reset_Specific we want to do the reset, then reply to Hercules
         WdCmdMsgs__ResetSpecificId resetValue = (WdCmdMsgs__ResetSpecificId) header->resetValue;

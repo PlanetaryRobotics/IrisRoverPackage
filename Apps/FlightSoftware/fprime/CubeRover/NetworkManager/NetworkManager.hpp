@@ -16,9 +16,8 @@
 #include "CubeRover/NetworkManager/NetworkManagerComponentAc.hpp"
 #include "CubeRover/NetworkManager/CubeRoverNetworkManager.hpp"
 
-// [CWC] Upped the value here since it was just timing out once and never even initializing when set to 0
-#define wired_wifi_reset_cnt_max 5
-#define telem_send_limit_cnt_max 10
+#define wired_wifi_reset_cnt_max 0
+#define telem_send_limit_cnt_max 5
 
 namespace CubeRover {
 

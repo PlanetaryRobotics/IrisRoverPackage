@@ -348,11 +348,11 @@ namespace CubeRover {
                             m_moveRecord[m_currMove].MoveType,
                             m_distanceToGo,
                             m_moveRecord[m_currMove].Speed);
-        Add_Telem_Disp(m_moveRecord[m_currMove].MoveType, m_maxStepSize);
+        Add_Telem_Disp(m_moveRecord[m_currMove].MoveType, m_distanceToGo);
         m_distanceToGo = 0;
       }
-
       // We have no more distance to go!
+
       else
       {
         // If we are not on the latest move, we should be

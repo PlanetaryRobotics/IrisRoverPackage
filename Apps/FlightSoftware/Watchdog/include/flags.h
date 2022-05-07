@@ -38,8 +38,8 @@ extern "C"
 
 #define WDOPT_MONITOR_HERCULES  0x0001
 
-#define ENTER_DEFAULT_LPM LPM3
-#define EXIT_DEFAULT_LPM LPM3_EXIT
+#define ENTER_DEFAULT_LPM LPM1
+#define EXIT_DEFAULT_LPM LPM1_EXIT
 
 typedef struct HeaterParams
 {

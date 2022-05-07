@@ -107,7 +107,17 @@ namespace iris
             // Previously a WDTIS of 0b100 was being used so the watchdog period would have been about 3.5 seconds,
             // though the comment above it had mistakenly described it as setting the watchdog period to 1 second. For
             // now, we'll use a WDTIS of 0b101 (a period of 0.871 seconds) and see if it causes any issues.
-            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;//+ WDTIS0;
+            //
+            // To support entering LPM1 (not entering a deeper LPM due to errata PMM31 and PMM31, see slaz681o
+            // https://www.ti.com/lit/er/slaz681o/slaz681o.pdf , and also because we need SMCLK to remain on for our
+            // UARTs to be able to receive and to use as our WDT clock) we need to set the WDT so that its interval is
+            // longer than the longest time we know we'll go without an interrupt. We know that we get our timer tick
+            // event every 7 (or so) seconds, so we need a WDT interval greater than that. When using ACLK as the
+            // source of the WDT, our option jumps from ~3.5 seconds to ~55 seconds. However, if we use SMCLK as the
+            // source of the WDT, since f_SMCLK = 8 MHz we can use the 2^27 divider option to get a WDT interval of
+            // just over 16.7 seconds. The 2^27 divider is selected when WDTIS is 0b001.
+            //OLD: WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;
+            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__SMCLK + WDTIS0;
 
             Event__Type event = EVENT__TYPE__UNUSED;
             EventQueue__Status eqStatus = EventQueue__get(&event);
@@ -121,6 +131,7 @@ namespace iris
             } else if (EQ__STATUS__ERROR_EMPTY == eqStatus) {
                 if (m_currentState->canEnterLowPowerMode(m_context)) {
                     //!< @todo Enter LPM here. Need to figure out how to handle LPM and WDT together.
+                    ENTER_DEFAULT_LPM;
                 }
             } else {
                 // Any status other than success or empty is an unexpected failure.

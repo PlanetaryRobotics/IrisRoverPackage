@@ -308,7 +308,8 @@ LanderComms__Status LanderComms__txDataUntilSendOrTimeout(LanderComms__State* lc
         }
 
         __delay_cycles(1000);
-        WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;//+ WDTIS0;
+        //OLD: WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;
+        WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__SMCLK + WDTIS0;
         currentTimeCentiseconds = Time__getTimeInCentiseconds();
         timeout = currentTimeCentiseconds > endTimeCentiseconds;
     } while (lcStatus == LANDER_COMMS__STATUS__ERROR_TX_OVERFLOW && !timeout);

@@ -127,6 +127,11 @@ UART__Status UART__uninit0(UART__State** uart0State);
 UART__Status UART__uninit1(UART__State** uart1State);
 
 /**
+ * @brief Determines whether or not the given UART is currently initialized.
+ */
+BOOL UART__isInitialized(UART__State* uartState);
+
+/**
  * @brief Puts the given data in the transmit ring buffer and kicks off the process that will pump the data from the
  *        transmit ring buffer and transmit it.
  *

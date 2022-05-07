@@ -192,6 +192,15 @@ UART__Status UART__uninit1(UART__State** uart1StateOut)
     return UART__STATUS__SUCCESS;
  }
 
+BOOL UART__isInitialized(UART__State* uartState)
+{
+    if (uartState == NULL) {
+        return FALSE;
+    }
+
+    return uartState->initialized;
+}
+
 BOOL UART__checkIfSendable(UART__State* uartState, size_t dataLen, size_t* free)
 {
     if (NULL == uartState) {
@@ -266,7 +275,8 @@ void UART__flushTx(UART__State* uartState)
 
         if (numUsed != 0) {
             __delay_cycles(10000);
-            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;//+ WDTIS0;
+            //OLD: WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;
+            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__SMCLK + WDTIS0;
         }
     } while (numUsed != 0);
 }

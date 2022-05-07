@@ -32,14 +32,13 @@
 #define REAR_RIGHT_MC_I2C_ID        0x04
 #define NUM_MOTORS                  4
 
-#define MAX_SPEED                   100
-#define CUBEROVER_WHEEL_DIAMETER_CM			20.0f
+#define MAX_SPEED                   100 // TODO: Should be 255?
+#define CUBEROVER_WHEEL_DIAMETER_CM			18.2f
 #define CUBEROVER_COM_TO_WHEEL_CIRC_CM	78.54f
 #define MOTOR_NB_PAIR_POLES							1.0f
 #define MOTOR_GEAR_BOX_REDUCTION				5.0f
 #define MC_BUFFER_MAX_SIZE      16 // Maximum size of I2C buffer
 #define PI                      3.14159265
-
 
 namespace CubeRover {
 
@@ -212,7 +211,8 @@ namespace CubeRover {
         typedef enum {
             MC_NO_ERROR,
             MC_I2C_TIMEOUT_ERROR,
-            MC_UNEXPECTED_ERROR
+            MC_UNEXPECTED_ERROR,
+            MC_BAD_COMMAND_INPUT
         } MCError_t;
         
         typedef int32_t Distance_cm_t;
@@ -233,6 +233,7 @@ namespace CubeRover {
         uint32_t regSizeMap(RegisterAddress_t reg);
 
         bool checkMotorsStatus();
+        bool startMotorMovement();
         MCError_t moveAllMotorsStraight(int32_t distance, int16_t speed);
         MCError_t rotateAllMotors(int16_t angle, int16_t speed);
         MCError_t spinMotors(bool forward);

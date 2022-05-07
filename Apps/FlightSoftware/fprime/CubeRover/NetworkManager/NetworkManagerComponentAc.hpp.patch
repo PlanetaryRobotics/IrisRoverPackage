@@ -37,7 +37,7 @@
 -      to_UDP_CONNECTED, /*  */
 -      networkmanager_state_to_MAX
 -    } networkmanager_state_to;
-+    // State enums defined in CubeRoverNetworkManager
++    // State enums defined in CubeRoverNetworkManager [NOTE: WHEN UPDATING FPRIME, CHECK THE PATCH FILE (the hardcoded lines to remove might have changed if the enums were changed)]
  
    PROTECTED:
  

@@ -16,6 +16,9 @@
 #include "CubeRover/NetworkManager/NetworkManagerComponentAc.hpp"
 #include "CubeRover/NetworkManager/CubeRoverNetworkManager.hpp"
 
+#define wired_wifi_reset_cnt_max 0
+#define telem_send_limit_cnt_max 5
+
 namespace CubeRover {
 
   class NetworkManagerComponentImpl :
@@ -73,7 +76,11 @@ namespace CubeRover {
        
         CubeRoverNetworkManager::CubeRoverNetworkManager m_crnm;
         CubeRoverNetworkManager::CubeRoverNetworkStateMachine m_current_state;
-        U8 m_fileUplinkBuffer[UDP_MAX_PAYLOAD];
+        U8 m_fileUplinkBuffer[WF121_UDP_MAX_PAYLOAD];
+        uint8_t wired_wifi_reset_cnt;
+        uint8_t telem_send_limit_cnt;
+        unsigned stuck_state_wifi_reset_cnt;
+        uint8_t stuck_state_wifi_reset_herc_cnt;
         void update();    // Behavior of periodic status update
         void getUplinkDatagram();
 

@@ -50,7 +50,7 @@ html {
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
 						<td>Motor_ID</td>
 						<td>U8</td>
-						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
+						<td>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </td>
 					</tr>
 					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
 						<td>PI_Values</td>
@@ -65,26 +65,11 @@ html {
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
 						<td>Motor_ID</td>
 						<td>U8</td>
-						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
+						<td>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </td>
 					</tr>
 					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
 						<td>PID_Values</td>
-						<td>U64</td>
-						<td></td>
-					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="3">MC_Position_PID</td>
-			<td rowspan="3">3586 (0xe02)</td>
-			<td rowspan="3"></td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>Motor_ID</td>
-						<td>U8</td>
-						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
-					</tr>
-					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>PID_Values</td>
-						<td>U64</td>
+						<td>U32</td>
 						<td></td>
 					</tr>
 		</tr>
@@ -95,7 +80,7 @@ html {
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
 						<td>Motor_ID</td>
 						<td>U8</td>
-						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
+						<td>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </td>
 					</tr>
 					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
 						<td>Rate_Values</td>
@@ -110,7 +95,7 @@ html {
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
 						<td>Motor_ID</td>
 						<td>U8</td>
-						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
+						<td>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </td>
 					</tr>
 					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
 						<td>Value</td>
@@ -125,7 +110,7 @@ html {
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
 						<td>Motor_ID</td>
 						<td>U8</td>
-						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
+						<td>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </td>
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
@@ -135,11 +120,11 @@ html {
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
 						<td>Motor_ID</td>
 						<td>U8</td>
-						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
+						<td>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </td>
 					</tr>
 					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>Spin_Type</td>
-						<td>U8</td>
+						<td>Raw_Ticks</td>
+						<td>U32</td>
 						<td></td>
 					</tr>
 		</tr>
@@ -150,7 +135,7 @@ html {
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
 						<td>Motor_ID</td>
 						<td>U8</td>
-						<td>The motor id from 0 - 4 (Motor 0 is Front Left motor and goes counter clockwise) 4 is all motors </td>
+						<td>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </td>
 					</tr>
 					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
 						<td>Value</td>
@@ -174,40 +159,9 @@ html {
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="1">MC_GetParameters</td>
-			<td rowspan="1">3593 (0xe09)</td>
-			<td rowspan="1">Returns all current parameters of the module</td>
-				<td></td>
-				<td></td>
-				<td></td>
-		</tr>
-		<tr style = "border: 2px solid black;">
 			<td rowspan="1">MC_UpdateTelemetry</td>
 			<td rowspan="1">3600 (0xe10)</td>
 			<td rowspan="1">Forces a telemetry update from the motors</td>
-				<td></td>
-				<td></td>
-				<td></td>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="3">MC_DriveTest</td>
-			<td rowspan="3">3736 (0xe98)</td>
-			<td rowspan="3">Allows the direct commanding of moves bypassing Nav if things are incorrect</td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>Distance</td>
-						<td>I64</td>
-						<td></td>
-					</tr>
-					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>MoveType</td>
-						<td>I8</td>
-						<td></td>
-					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="1">MC_SelfTest</td>
-			<td rowspan="1">3737 (0xe99)</td>
-			<td rowspan="1">Runs through a routine to confirms the MSP are functioning properly</td>
 				<td></td>
 				<td></td>
 				<td></td>

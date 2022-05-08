@@ -1,2 +1,4 @@
 Apps/FlightSoftware/MotorControl/Release/
 Apps/FlightSoftware/MotorControl/Debug/
+Watchdog.zip
+*.bak

@@ -1,26 +1,44 @@
 #ifndef _FSW_PACKET_H_
 #define _FSW_PACKET_H_
 
+#define NETWORK_TEST_ENV_TEST
+#define NETWORK_TEST_ENV_MOON
+
+
 // Wifi Connection Parameters
-#define ROVER_IP_ADDRESS        {192, 168, 1, 2}
-#define ROVER_MASK_ADDRESS      {255, 255, 255, 0}
-#define ROVER_GATEWAY_ADDRESS   {192, 168, 1, 120}
-#define GATEWAY_PORT            8080
-#define ROVER_UDP_PORT          8080 
+#ifdef NETWORK_TEST_ENV_MOON
+    #define ROVER_ADDRESS           {192, 168, 150, 3}
+    #define SPACECRAFT_ADDRESS      {192, 168, 10, 105}
+    #define SUBNET_MASK             {255, 255, 255, 0}
+    #define GATEWAY_ADDRESS         {192, 168, 150, 254}
+    #define SPACECRAFT_UDP_PORT     43531
+    #define ROVER_UDP_PORT          42000
 
-#define LANDER_SSID             "Houston"
-#define LANDER_NETWORK_PASSWORD "redr0ver"
+    #define LANDER_SSID             "PM1LWAP"
+    #define LANDER_NETWORK_PASSWORD "PAWL1MP"
+#else // local testing (we should migrate away from needing this)
+    #define ROVER_ADDRESS           {192, 168, 1, 2}
+    #define SPACECRAFT_ADDRESS      {192, 168, 1, 120}
+    #define SUBNET_MASK             {255, 255, 255, 0}
+    #define GATEWAY_ADDRESS         {192, 168, 1, 120}
+    #define SPACECRAFT_UDP_PORT     8080
+    #define ROVER_UDP_PORT          8080
 
-// Wired (RS422 via WatchDog) Connection Parameters
-#define WIRED_UDP_PORT_ROVER    8080
-#define WIRED_UDP_PORT_LANDER   8080
+    #define LANDER_SSID             "Houston"
+    #define LANDER_NETWORK_PASSWORD "redr0ver"
 
-#define INITIAL_PRIMARY_NETWORK_INTERFACE  WF121    // Must be of type PrimaryInterface (see GroundInterfaceComponentAi.xml or GroundInterfaceComponentAc.hpp)
+#endif
+
+#define INITIAL_PRIMARY_NETWORK_INTERFACE  WATCHDOG    // WATCHDOG or WF121 | Must be of type PrimaryInterface (see GroundInterfaceComponentAi.xml or GroundInterfaceComponentAc.hpp)
 
 // Packet sizes
-#define IPV4_MTU                1006    // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 791 **FRAGMENTATION *NOT* SUPPORTED**
-#define UDP_MAX_PAYLOAD         (IPV4_MTU-20-8)     // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 768
-// 1006byte - 20byte IPv4 header - 8byte UDP header = 978byte payload
+#define IPV4_MTU                1006                // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 791 **FRAGMENTATION *NOT* SUPPORTED**
+// Static buffer sizes (MAXIMUM ALLOCATION)
+#define WF121_UDP_MAX_PAYLOAD  (IPV4_MTU-20-8)      // IDD Section 5.2.3 (M-PE1-CS-0100G) Table 5 IETC RFC 768 (20byte IPv4 header, 8byte UDP Header)
+#define WATCHDOG_MAX_PAYLOAD    650                // Watchdog UDP Buffer Size
+#define NUM_APPS_USE_FILE_DOWNLINK 2                // Sets the total number of of static downlink buffers (one per application)
+                                                    // Since buffers are statically allocated can't use get_appDownlink_Ports()
+                                                    // Camera: 0       UWB:1   <- Port Number indexes which application is sending data and which buffer to use
 
 // FSW Packet Magic (32bit)
 #define FSW_COMMAND_MAGIC           0x00bada55

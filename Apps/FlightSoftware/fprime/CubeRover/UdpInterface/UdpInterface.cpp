@@ -17,6 +17,10 @@
 #include "sci.h"
 #include <cstring>
 
+// Wired (RS422 via WatchDog) Connection Parameters
+#define WIRED_UDP_PORT_ROVER    8080
+#define WIRED_UDP_PORT_LANDER   8080
+
 namespace CubeRover {
 
   // ----------------------------------------------------------------------

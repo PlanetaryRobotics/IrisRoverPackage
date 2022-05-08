@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<list key="org.eclipse.ui.internal.wizards.datatransfer.SmartImportRootWizardPage.knownSources">
+		<item value="/home/iris/Desktop/Stable_Testing_Repos/Hercules/CubeRoverPackage/Apps/FlightSoftware/PrimaryFlightController"/>
+		<item value="/home/iris/Desktop/Working_Folders/UWB/working_example/justin_ground_interface_staging/CubeRoverPackage/Apps/FlightSoftware/PrimaryFlightController/FlightMCU"/>
+		<item value="/home/iris/Desktop/Working_Folders/UWB/CubeRoverPackage/Apps/FlightSoftware/PrimaryFlightController/FlightMCU"/>
+		<item value="/home/iris/Desktop/Working_Folders/UWB/CubeRoverPackage/Apps/FlightSoftware/fprime/CubeRover"/>
+		<item value="/home/iris/Desktop/Working_Folders/UWB/CubeRoverPackage"/>
+		<item value="/home/iris/Desktop/Working_Folders/Hercules_GSW_Testing/justin_ground_interface_staging/CubeRoverPackage/Apps/FlightSoftware/PrimaryFlightController/FlightMCU"/>
+		<item value="/home/iris/Desktop/Stable_Testing_Repos/Hercules/CubeRoverPackage/Apps/FlightSoftware/PrimaryFlightController/FlightMCU"/>
+	</list>
+</section>

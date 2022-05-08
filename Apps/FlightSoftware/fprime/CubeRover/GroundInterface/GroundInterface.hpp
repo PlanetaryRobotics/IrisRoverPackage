@@ -18,6 +18,8 @@
 
 namespace CubeRover {
 
+extern int8_t m_persistent_state;
+
   class GroundInterfaceComponentImpl :
     public GroundInterfaceComponentBase
   {
@@ -102,12 +104,21 @@ namespace CubeRover {
           PrimaryInterface primary_interface 
       );
 
+      //! Implementation for Set_GroundInterface_Telemetry_Level command handler
+      //! Sets the telemetry level to emit for this component.
+      void Set_GroundInterface_Telemetry_Level_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          TelemetryLevel telemetry_level 
+      );
+
+
         // User defined methods, members, and structs
             
         void downlinkFileMetadata(uint16_t hashedId, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms);
         uint16_t hashTime(uint32_t time);   // Used for files to get unique Id for parallel downlinks
         void downlinkBufferWrite(void *_data, uint16_t size, downlinkPacketType from);
-        void flushDownlinkBuffer();
+        void flushTlmDownlinkBuffer();
         void downlink(void *_data, uint16_t size);
         void updateTelemetry();
       
@@ -118,12 +129,14 @@ namespace CubeRover {
                  m_cmdsUplinked, m_cmdsSent, m_cmdErrs,     // TLM8, TLM9, TLM10
                  m_appBytesReceived, m_appBytesDownlinked;  // TLM11, TLM 12
         
-        uint8_t m_downlinkBuffer[UDP_MAX_PAYLOAD];
-        uint8_t *m_downlinkBufferPos;
-        uint16_t m_downlinkBufferSpaceAvailable;
+        uint8_t m_tlmDownlinkBuffer[WF121_UDP_MAX_PAYLOAD];
+        uint8_t m_fileDownlinkBuffer[NUM_APPS_USE_FILE_DOWNLINK][WF121_UDP_MAX_PAYLOAD];
+        uint8_t *m_tlmDownlinkBufferPos;
+        uint16_t m_downlink_objects_size;           // Maximum usable buffer space for the current network interface
+        uint16_t m_tlmDownlinkBufferSpaceAvailable;
         PrimaryInterface m_interface_port_num;
-      
-
+        PrimaryInterface m_temp_interface_port_num;
+        TelemetryLevel m_telemetry_level;
     };
 
 } // end namespace CubeRover

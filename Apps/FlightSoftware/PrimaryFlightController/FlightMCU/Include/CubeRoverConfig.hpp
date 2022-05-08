@@ -4,7 +4,7 @@
 // Definition of rate group dividers
 // Tick Interrupt @ 1kHz
 #define RATEGROUP_DIVIDER_LOW_FREQ  1000 // 1Hz
-#define RATEGROUP_DIVIDER_MED_FREQ  100  // 100Hz
+#define RATEGROUP_DIVIDER_MED_FREQ  100  // 10Hz
 #define RATEGROUP_DIVIDER_HI_FREQ   1    // 1kHz
 
 // Definition of component instance ID, Affinity and queue depth
@@ -57,21 +57,6 @@
 #define WATCHDOG_QUEUE_DEPTH        1
 
 #define MIN_STACK_SIZE_WORDS        1024
-
-// Configuration of I2C interfaces address and ports
-// For the motor controllers
-#define ALL_MOTOR_ADDR			        0x00
-#define FRONT_LEFT_MC_I2C_ADDR      0x48
-#define FRONT_RIGHT_MC_I2C_ADDR     0x49
-#define REAR_LEFT_MC_I2C_ADDR       0x4A
-#define REAR_RIGHT_MC_I2C_ADDR      0x4B
-#define MOTOR_CONTROL_I2CREG     	i2cREG1
-
-#define CUBEROVER_WHEEL_DIAMETER_CM			20.0f
-#define CUBEROVER_COM_TO_WHEEL_CIRC_CM	78.54f
-#define MOTOR_NB_PAIR_POLES							1.0f
-#define MOTOR_GEAR_BOX_REDUCTION				5.0f
-#define MAX_SPIN_DISTANCE								0x7FFFFFFF
 
 // Navigation Configs
 #define NAV_MOVE_BUFFER_LIMIT           5

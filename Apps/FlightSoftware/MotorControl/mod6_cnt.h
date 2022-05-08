@@ -15,4 +15,11 @@ typedef struct { uint8_t  Counter;	    // Output: Modulo 6 counter output - Q0 (
  else																\
    v.Counter += 1;         /* Otherwise, increment by 1 */          \
 
-#endif // __MOD_6CNT_H__ 
+
+#define OPEN_LOOP_MOD6CNT_MACRO(v)                                         \
+ if (v.Counter >= 5)    /* Reset the counter when it is 5 */        \
+   v.Counter = 0;                                                   \
+ else                                                               \
+   v.Counter += 2;         /* Otherwise, increment by 1 */          \
+
+#endif // __MOD_6CNT_H__

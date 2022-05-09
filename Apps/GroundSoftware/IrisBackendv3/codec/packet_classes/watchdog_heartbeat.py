@@ -15,7 +15,7 @@ from typing import List, Any, Optional, ClassVar, Type
 
 import bitstruct  # type: ignore
 
-from ..payload import PayloadCollection
+from ..payload_collection import EnhancedPayloadCollection
 
 from ..settings import ENDIANNESS_CODE
 from ..exceptions import PacketDecodingException
@@ -275,7 +275,7 @@ class WatchdogHeartbeatPacket(WHB_PI[WHB_PI, WHB_CP]):
     @classmethod
     def build_minimum_packet(
         cls,
-        payloads: PayloadCollection,
+        payloads: EnhancedPayloadCollection,
         raw: Optional[bytes],
         endianness_code: str
     ) -> WatchdogHeartbeatPacket:

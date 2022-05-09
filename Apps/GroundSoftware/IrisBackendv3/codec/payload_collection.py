@@ -10,10 +10,9 @@ Defines convenient containers for `Payload`s of multiple classes.
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
 
+from typing import Any, Optional, Iterable, Final, Iterator, List, Tuple, Type, Dict, Union, NamedTuple, cast
 
-from typing import Any, Optional, Iterable, Final, Iterator, List, Tuple, Type, Dict, Union
-
-from IrisBackendv3.codec.payload import Payload
+from IrisBackendv3.codec.payload import *
 
 import attr
 from itertools import chain
@@ -210,7 +209,7 @@ class BadEnhancedPayloadCollectionKeyError(AttributeError):
         )
 
 
-class EnhancedPayloadCollection:
+class EnhancedPayloadCollection(Iterable[List[Payload]]):
     """
     A container for `Payload`s that allows subsets of it to be queried by
     payload class using either concrete classes (like `CommandPayload`) or
@@ -288,6 +287,11 @@ class EnhancedPayloadCollection:
         modified like a list (append, extend, etc.) **BUT** modifying the
         `Payloads` themselves (adding metadata, etc). will behave as expected.
 
+        NOTE: b/c the return value is an iterable (chain) it can only be
+        traversed once (every time you call __next__ element, you pop an element
+        (it gets shorter)). If you need this to behave like a list, call
+        `list(epc.all_payloads)` or `[*epc.all_payloads]` for short.
+
         If you want to modify the `EnhancedPayloadCollection`, use `append`,
         `extend`, or `remove`.
         """
@@ -307,7 +311,8 @@ class EnhancedPayloadCollection:
 
     @classmethod
     def make_empty(cls) -> EnhancedPayloadCollection:
-        """ Makes a new empty payload collection.
+        """ Makes a new empty `EnhancedPayloadCollection` (just
+        `EnhancedPayloadCollection()`).
 
         This function only exists to preserve backwards-compatibility with code
         that used the `namedtuple`-based predecessor `PayloadCollection`.
@@ -346,22 +351,34 @@ class EnhancedPayloadCollection:
 
         return name
 
-    def extend(self, val: Iterable[Payload]) -> None:
+    def extend(self, val: Union[EnhancedPayloadCollection, Iterable[Payload]]) -> None:
         """
         Appends each value in the given iterable to the appropriate
         list in `_payloads_dict` (the one corresponding to its `__class__`).
 
+        If `val` is another `EnhancedPayloadCollection`, then type checking and
+        sorting steps will be skipped and all core lists in `val` will be
+        appended to the lists in this collection.
+
         See `append` for more details.
         """
-        # Make sure `val` is iterable:
-        if not isinstance(val, Iterable):
-            raise ValueError(
-                "In `EnhancedPayloadCollection.extend`, `val` needs to be an "
-                f"`Iterable` but got: `val = {val}`."
-            )
+        if isinstance(val, EnhancedPayloadCollection):
+            # Just append the entries in all lists in `val` to the corresponding
+            # lists in `self` if `val` is also an `EnhancedPayloadCollection`:
+            for key in val._payloads_dict.keys():
+                self._payloads_dict[key].extend(val._payloads_dict[key])
+        else:
+            # Make sure `val` is iterable:
+            if not isinstance(val, Iterable):
+                raise ValueError(
+                    "In `EnhancedPayloadCollection.extend`, `val` needs to be an "
+                    f"`Iterable` but got: `val = {val}`."
+                )
 
-        for payload in val:
-            self.append(payload)
+            for payload in val:
+                # cast b/c mypy doesn't realize type is Payload not Union[List[Payload], Payload] here
+                # actual `isinstance(..., Payload)` checking happens in `append`
+                self.append(cast(Payload, payload))
 
     def append(self, payload: Payload):
         """
@@ -771,3 +788,106 @@ class EnhancedPayloadCollection:
         ```
         """
         return (pl for pl in self._payloads_dict.values())
+
+
+class PayloadCollection(NamedTuple):
+    """
+    [[DEPRECATED]] Use `EnhancedPayloadCollection` instead.
+    Dictionary Collection of Lists of Payloads, separated by Payload Type.
+    *NOTE:* All keys are strings and should accessed using class.__name__
+
+    This means that, if class names are changed, these strings will have to be
+    MANUALLY updated. This should be relatively easy since, although the linter
+    won't detect the member name as outdated, it will detect the class name in
+    the `List[]` type hint as outdated and all the developer has to do is make
+    sure the two are the same.
+    """
+    CommandPayload: List[CommandPayload]
+    TelemetryPayload: List[TelemetryPayload]
+    EventPayload: List[EventPayload]
+    FileBlockPayload: List[FileBlockPayload]
+
+    def is_empty(self) -> bool:
+        """Returns whether all Payloads in the Payload Collection are empty."""
+        return all(len(cast(list, x)) == 0 for x in self)
+
+    @classmethod
+    def make_empty(cls) -> PayloadCollection:
+        """Makes a new empty payload collection."""
+        return cls(
+            CommandPayload=[],
+            TelemetryPayload=[],
+            EventPayload=[],
+            FileBlockPayload=[]
+        )
+
+
+def extract_downlinked_payloads(
+        VLP: bytes,
+        endianness_code: str = ENDIANNESS_CODE
+) -> EnhancedPayloadCollection:
+    """Extract all Payloads from a Variable Length Payload to produce a
+    `EnhancedPayloadCollection`.
+
+    Will be used for both downlinked and uplinked packets since both are
+    encoded when being passed around IPC.
+
+    Per the Iris C&TL, the VLP should be structured as:
+    [magic-0][payload-0][magic-1][payload-1]...[magic-N][payload-N]
+
+    Args:
+        VLP (bytes): Variable Length Payload
+
+    Returns:
+        EnhancedPayloadCollection:
+        Collection of Lists of Payloads, separated by Payload Type.
+        All payload types are included but some lists will be empty if no
+        payload of that type was found in the given VLP.
+    """
+    # Dispatch table to map extracted magics to the corresponding payloads classes:
+    payload_magic_dispatch_table: Dict[Magic, Type[Payload]] = {
+        Magic.COMMAND: CommandPayload,
+        Magic.WATCHDOG_COMMAND: WatchdogCommandPayload,
+        Magic.TELEMETRY: TelemetryPayload,
+        Magic.EVENT: EventPayload,
+        Magic.FILE: FileBlockPayload
+    }
+
+    # Collection of Payload Lists:
+    payloads: EnhancedPayloadCollection = EnhancedPayloadCollection()
+
+    # Unpack Variable Length Payload:
+    while len(VLP) > 0:
+        # Strip off the magic:
+        magic_bytes, VLP = VLP[:MAGIC_SIZE], VLP[MAGIC_SIZE:]
+        magic = Magic.decode(magic_bytes, byte_order=endianness_code)
+
+        if magic == Magic.MISSING:
+            raise PacketDecodingException(
+                magic_bytes,
+                "This sequence of bytes corresponds to a missing magic value."
+            )
+
+        # Extract the payload and strip its bytes off the VLP:
+        payload_type = payload_magic_dispatch_table[magic]
+
+        payload, VLP = payload_type.process(VLP, endianness_code)
+
+        # Make sure there's data there:
+        if len(payload.raw) == 0:
+            raise PacketDecodingException(
+                VLP,
+                "Failed to extract any data from this VLP with magic type "
+                f"{magic}. Was the wrong magic used?"
+            )
+
+        # Add on metadata:
+        payload.magic = magic
+
+        # Note: mypy complains that `logger` doesn't have a member `spam` but it does:
+        logger.spam(f"Successfully extracted {payload}")  # type: ignore
+
+        # Add payload to collection:
+        payloads.append(payload)
+
+    return payloads

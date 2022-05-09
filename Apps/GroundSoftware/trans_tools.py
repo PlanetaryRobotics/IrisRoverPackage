@@ -6,7 +6,7 @@ tests which require the Transceiver layer while the real thing is still being
 built.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/29/2022
+@last-updated: 05/09/2022
 """
 
 import logging
@@ -36,7 +36,8 @@ from IrisBackendv3.utils.nameiddict import NameIdDict
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.logging import logger as DsLogger
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response, watchdog_detailed_status_heartbeat
-from IrisBackendv3.codec.payload import Payload, PayloadCollection, CommandPayload, WatchdogCommandPayload, extract_downlinked_payloads
+from IrisBackendv3.codec.payload import Payload, TelemetryPayload, CommandPayload, WatchdogCommandPayload
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
 from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket, WatchdogDetailedStatusPacket
 from IrisBackendv3.codec.exceptions import PacketDecodingException
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
@@ -111,12 +112,7 @@ add_to_standards(standards, [
 ])
 set_codec_standards(standards)
 
-all_payloads: PayloadCollection = PayloadCollection(
-    CommandPayload=[],
-    TelemetryPayload=[],
-    EventPayload=[],
-    FileBlockPayload=[]
-)
+all_payloads: EnhancedPayloadCollection = EnhancedPayloadCollection()
 telemetry_streams: NameIdDict[List[Tuple[datetime, Any]]] = NameIdDict()
 
 
@@ -175,8 +171,7 @@ def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
             )
             # Store:
             packet = cast(Packet, packet)
-            for i in range(len(packet.payloads)):
-                all_payloads[i].extend(packet.payloads[i])  # type: ignore
+            all_payloads.extend(packet.payloads)
 
     except Exception as e:
         trace = e  # traceback.format_exc()
@@ -226,8 +221,7 @@ def parse_packet_rev_i_debug(packet_bytes: bytes) -> Optional[Packet]:
             )
             # Store:
             packet = cast(Packet, packet)
-            for i in range(len(packet.payloads)):
-                all_payloads[i].extend(packet.payloads[i])  # type: ignore
+            all_payloads.extend(packet.payloads)
 
     except Exception as e:
         trace = e  # traceback.format_exc()
@@ -320,7 +314,7 @@ def build_command_packet(
 
     module, command = standards.global_command_lookup(command_name)
 
-    payloads = PayloadCollection(
+    payloads = EnhancedPayloadCollection(
         CommandPayload=[
             command_payload_type(
                 pathway=pathway,
@@ -330,10 +324,7 @@ def build_command_packet(
                 command_id=command.ID,
                 args=kwargs
             )
-        ],
-        TelemetryPayload=[],
-        EventPayload=[],
-        FileBlockPayload=[]
+        ]
     )
     packet = IrisCommonPacket(
         seq_num=seq_num,
@@ -447,12 +438,13 @@ def degK_to_adc(tempK: float) -> int:
     return degC_to_adc(tempK - 273.15)
 
 
-def update_telemetry_streams_from_payloads(payloads: PayloadCollection, auto_cache=True):
+def update_telemetry_streams_from_payloads(payloads: EnhancedPayloadCollection, auto_cache=True):
     """
-    Updates the `telemetry_streams` from a PayloadCollection.
+    Updates the `telemetry_streams` from an EnhancedPayloadCollection.
     """
-    for t in payloads.TelemetryPayload:
+    for t in payloads[TelemetryPayload]:
         # If this payload's channel is new (previously un-logged), add it:
+        t = cast(TelemetryPayload, t)
         if t.opcode not in telemetry_streams:
             telemetry_streams[t.opcode, t.module.name+'_'+t.channel.name] = [
                 (datetime.now(), t.data)
@@ -762,11 +754,8 @@ def stream_data_ip_udp_serial() -> None:
                         print("\> Empty packet received.")
                     else:
                         # Log the data:
-                        for i in range(len(packet.payloads)):
-                            all_payloads[i].extend(
-                                packet.payloads[i]  # type: ignore
-                            )
-                            print(packet)
+                        all_payloads.extend(packet.payloads)
+                        print(packet)
                         # Feed the streams:
                         update_telemetry_streams(packet)
                     # Move on:

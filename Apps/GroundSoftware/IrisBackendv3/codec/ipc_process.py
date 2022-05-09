@@ -17,7 +17,7 @@ from typing import Callable, Protocol
 from enum import Enum
 
 from .packet import parse_packet
-from .payload import PayloadCollection
+from .payload_collection import EnhancedPayloadCollection
 
 import IrisBackendv3.ipc as ipc
 from IrisBackendv3.ipc.wrapper import InterProcessMessage, IPMHandler, IsIPMHandler
@@ -36,7 +36,7 @@ def bytes_to_packet(incoming_msg_data: bytes) -> InterProcessMessage:
 @IsIPMHandler
 def payloads_to_packet(incoming_msg_data: bytes) -> InterProcessMessage:
     raise NotImplementedError()
-    # payloads = PayloadCollection.from_ipc_bytes(ipc_raw.msg)
+    # payloads = EnhancedPayloadCollection.from_ipc_bytes(ipc_raw.msg)
 
 
 class SubTopic(Enum):

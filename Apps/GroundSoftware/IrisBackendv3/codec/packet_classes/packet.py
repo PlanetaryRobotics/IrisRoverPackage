@@ -10,7 +10,7 @@ from typing import List, Optional, Callable, Tuple, TypeVar, Dict
 from abc import ABC, abstractmethod
 
 from ..container import ContainerCodec
-from ..payload import PayloadCollection
+from ..payload_collection import EnhancedPayloadCollection
 
 from ..settings import ENDIANNESS_CODE
 
@@ -21,34 +21,34 @@ class Packet(ContainerCodec[CT], ABC):
     """
     A special `CodecContainer` used for Packet data which combines the
     standardized data-encoding features of `ContainerCodec` with a standard
-    `PayloadCollection`. All packets are essentially `PayloadCollection`s with
-    specialized encoding and decoding schemes applied. Each `Packet` en/decodes
-    raw bytes sent over a `Transceiver` layer with any network headers
-    (IP etc.) already stripped off.
+    `EnhancedPayloadCollection`. All packets are essentially 
+    `EnhancedPayloadCollection`s with specialized encoding and decoding schemes
+    applied. Each `Packet` en/decodes raw bytes sent over a `Transceiver` layer
+    with any network headers (IP etc.) already stripped off.
     """
 
     __slots__: List[str] = [
-        '_payloads'  # PayloadCollection of all Payloads, separated by type
+        '_payloads'  # collection of all Payloads, separated by type
     ]
 
-    _payloads: PayloadCollection
+    _payloads: EnhancedPayloadCollection
 
     @property
-    def payloads(self) -> PayloadCollection:
+    def payloads(self) -> EnhancedPayloadCollection:
         """Wrapper for `_payloads`. This getter can be overridden in subclasses
         for additional functionality (e.g. autocaching & updating of data used
         to generate or generated from payloads)."""
         return self._payloads
 
     @payloads.setter
-    def payloads(self, payloads: PayloadCollection) -> None:
+    def payloads(self, payloads: EnhancedPayloadCollection) -> None:
         """Wrapper for `_payloads`. This getter can be overridden in subclasses
         for additional functionality (e.g. autocaching & updating of data used
         to generate or generated from payloads)."""
         self._payloads = payloads
 
     def __init__(self,
-                 payloads: PayloadCollection,
+                 payloads: EnhancedPayloadCollection,
                  raw: Optional[bytes] = None,
                  endianness_code: str = ENDIANNESS_CODE
                  ) -> None:
@@ -69,7 +69,7 @@ class Packet(ContainerCodec[CT], ABC):
     @abstractmethod
     def build_minimum_packet(
         cls,
-        payloads: PayloadCollection,
+        payloads: EnhancedPayloadCollection,
         raw: Optional[bytes],
         endianness_code: str
     ) -> CT:
@@ -79,12 +79,12 @@ class Packet(ContainerCodec[CT], ABC):
         """
         raise NotImplementedError()
 
-    def __reduce__(self) -> Tuple[Callable, Tuple[PayloadCollection, bytes, str], Optional[Dict]]:
+    def __reduce__(self) -> Tuple[Callable, Tuple[EnhancedPayloadCollection, bytes, str], Optional[Dict]]:
         """
         `Packet` `__reduce__` differs from the `__reduce__` of other 
         `ContainerCodec` subclasses b/c Packets are really just fancy
-        `PayloadCollection`s. Even though the payloads themselves can be
-        derived from `_raw`, each of them have their own metadata, so they
+        `EnhancedPayloadCollection`s. Even though the payloads themselves can
+        be derived from `_raw`, each of them have their own metadata, so they
         should be encoded independently through their on `__reduce__` methods
         which include any metadata which comes from their `__getstate__`.
         """

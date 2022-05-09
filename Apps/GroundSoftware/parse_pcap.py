@@ -17,15 +17,9 @@ import scapy.all as scp  # type: ignore
 import ulid
 from matplotlib import pyplot as plt  # type: ignore
 
-from IrisBackendv3.data_standards import DataStandards
-from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac
-from IrisBackendv3.codec.payload import Payload, PayloadCollection, TelemetryPayload, extract_downlinked_payloads
-from IrisBackendv3.codec.metadata import DataPathway, DataSource
-from IrisBackendv3.codec.magic import Magic
+from IrisBackendv3.codec.payload import TelemetryPayload
 from IrisBackendv3.codec.logging import VALID_LOG_LEVELS, logger as CodecLogger
-from IrisBackendv3.codec.settings import set_codec_standards
-from IrisBackendv3.utils.basic import print_bytearray_hex as printraw
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket,  WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket
+from IrisBackendv3.codec.packet import Packet
 
 from IrisBackendv3.codec.packet import parse_packet
 from trans_tools import all_payloads, telemetry_streams, update_telemetry_streams_from_payloads, load_cache, cache, plot_stream
@@ -193,8 +187,7 @@ def parse_pcap(opts):
             # Store:
             extracted_packets.append(packet)
             packet = cast(Packet, packet)
-            for i in range(len(packet.payloads)):
-                all_payloads[i].extend(packet.payloads[i])  # type: ignore
+            all_payloads.extend(packet.payloads)
 
     # Print summary of the results:
     extract_time = time() - extract_start
@@ -219,8 +212,7 @@ def parse_pcap(opts):
 
     if opts.cache_telem or opts.plot:
         print("\t > Building telemetry streams from payloads . . .")
-        update_telemetry_streams_from_payloads(
-            all_payloads, auto_cache=False)
+        update_telemetry_streams_from_payloads(all_payloads, auto_cache=False)
 
     if opts.cache_telem:
         print("\t > Caching telemetry streams . . .")

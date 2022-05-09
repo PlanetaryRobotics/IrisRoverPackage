@@ -19,7 +19,7 @@ import numpy as np  # type: ignore
 from scapy.utils import hexstr  # type: ignore
 from pandas import DataFrame  # type: ignore
 
-from ..payload import PayloadCollection
+from ..payload_collection import EnhancedPayloadCollection
 
 from ..settings import ENDIANNESS_CODE
 from ..exceptions import PacketDecodingException
@@ -1029,7 +1029,7 @@ class WatchdogDetailedStatusPacket(WDS_PI[WDS_PI, WDS_CP]):
     @classmethod
     def build_minimum_packet(
         cls,
-        payloads: PayloadCollection,
+        payloads: EnhancedPayloadCollection,
         raw: Optional[bytes],
         endianness_code: str
     ) -> WatchdogDetailedStatusPacket:

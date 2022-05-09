@@ -22,7 +22,8 @@ import scapy.all as scp  # type: ignore
 
 from ..magic import Magic, MAGIC_SIZE
 from ..container import ContainerCodec
-from ..payload import PayloadCollection, extract_downlinked_payloads
+from ..payload import TelemetryPayload, EventPayload, FileBlockPayload, CommandPayload
+from ..payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
 
 from ..settings import ENDIANNESS_CODE
 from ..logging import logger
@@ -168,18 +169,18 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         return self._common_packet_header
 
     @staticmethod
-    def _count_vlp_len(payloads: PayloadCollection) -> int:
+    def _count_vlp_len(payloads: EnhancedPayloadCollection) -> int:
         """
         Calculates the VLP length necessary to send the given PayloadsCollection.
         Sum of all Payload sizes + MAGIC_SIZE * num_payloads
         """
         total_size = 0
         num_payloads = 0
-        for c in payloads:
-            c = cast(List, c)  # mypy doesn't get this by itself
-            for p in c:
-                total_size += len(p.encode())
-                num_payloads += 1
+
+        for p in payloads.all_payloads:
+            total_size += len(p.encode())
+            num_payloads += 1
+
         total_size += num_payloads * MAGIC_SIZE  # Each will require a magic
         return total_size
 
@@ -187,7 +188,8 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         # Grab the string of the lastest value for each unique telemetry channel:
         # dict of module name -> channel_name -> payload string
         latest: OrderedDict[str, OrderedDict[str, Any]] = OrderedDict()
-        for payload in self.payloads.TelemetryPayload:
+        for payload in self.payloads[TelemetryPayload]:
+            payload = cast(TelemetryPayload, payload)
             if payload.module.name not in latest:
                 latest[payload.module.name] = OrderedDict()  # init
             latest[payload.module.name][payload.channel.name] = str(payload)
@@ -213,14 +215,14 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
             f"ICP["
             f"#{self.common_packet_header.seq_num}::"
             f"{self.common_packet_header.vlp_len}]: "
-            f"\t{len(self.payloads.TelemetryPayload)} T"
-            f"\t- {len(self.payloads.EventPayload)} E"
-            f"\t- {len(self.payloads.FileBlockPayload)} B"
-            f"\t- {len(self.payloads.CommandPayload)} C"
+            f"\t{len(list(self.payloads[TelemetryPayload]))} T"
+            f"\t- {len(list(self.payloads[EventPayload]))} E"
+            f"\t- {len(list(self.payloads[FileBlockPayload]))} B"
+            f"\t- {len(list(self.payloads[CommandPayload]))} C"
         )
 
     def __init__(self,
-                 payloads: PayloadCollection,
+                 payloads: EnhancedPayloadCollection,
                  seq_num: int = 0,
                  common_packet_header: Optional[CommonPacketHeader] = None,
                  ignore_state_members: bool = False,
@@ -266,7 +268,7 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
     @classmethod
     def build_minimum_packet(
         cls,
-        payloads: PayloadCollection,
+        payloads: EnhancedPayloadCollection,
         raw: Optional[bytes],
         endianness_code: str
     ) -> IrisCommonPacket:
@@ -345,7 +347,7 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
                 f"The data being parsed was: \n"
                 f"{scp.hexdump(data, dump=True)}\n"
             )
-            payloads = PayloadCollection.make_empty()
+            payloads = EnhancedPayloadCollection()
 
         return IrisCommonPacket(
             common_packet_header=CPH,
@@ -355,20 +357,10 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         )
 
     def encode(self, **kwargs: Any) -> bytes:
-        # Lookup table that lists all payload types which should be encoded and
-        # which Magics to use for them:
-        encoded_payload_magics_lookup = {
-            'CommandPayload': Magic.COMMAND.encode(),
-            'TelemetryPayload': Magic.TELEMETRY.encode(),
-            'EventPayload': Magic.EVENT.encode(),
-            'FileBlockPayload': Magic.FILE.encode()
-        }
-
         # Compile all payloads:
         VLP = b''
-        for payload_type in encoded_payload_magics_lookup.keys():
-            for cp in getattr(self.payloads, payload_type):
-                VLP += cp.magic.encode() + cp.encode()
+        for payload in self.payloads.all_payloads:
+            VLP += payload.magic.encode() + payload.encode()
 
         CPH = self.common_packet_header.encode()
         assert self.common_packet_header.vlp_len == len(VLP)
@@ -527,18 +519,18 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
         return self._common_packet_header
 
     @staticmethod
-    def _count_vlp_len(payloads: PayloadCollection) -> int:
+    def _count_vlp_len(payloads: EnhancedPayloadCollection) -> int:
         """
         Calculates the VLP length necessary to send the given PayloadsCollection.
         Sum of all Payload sizes + MAGIC_SIZE * num_payloads
         """
         total_size = 0
         num_payloads = 0
-        for c in payloads:
-            c = cast(List, c)  # mypy doesn't get this by itself
-            for p in c:
-                total_size += len(p.encode())
-                num_payloads += 1
+
+        for p in payloads.all_payloads:
+            total_size += len(p.encode())
+            num_payloads += 1
+
         total_size += num_payloads * MAGIC_SIZE  # Each will require a magic
         return total_size
 
@@ -547,7 +539,8 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
 
         # Grab the string of the lastest value for each unique telemetry channel:
         latest = {}
-        for payload in self.payloads.TelemetryPayload:
+        for payload in self.payloads[TelemetryPayload]:
+            payload = cast(TelemetryPayload, payload)
             latest[(payload.module_id, payload.channel_id)] = str(payload)
 
         # Append the latest telemetry strings:
@@ -564,14 +557,14 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
             f"LEGACY2020 ICP["
             f"#{self.common_packet_header.seq_num}::"
             f"{self.common_packet_header.vlp_len}]: "
-            f"\t{len(self.payloads.TelemetryPayload)} T"  # Telemetry
-            f"\t- {len(self.payloads.EventPayload)} E"
-            f"\t- {len(self.payloads.FileBlockPayload)} B"  # File Blocks
-            f"\t- {len(self.payloads.CommandPayload)} C"
+            f"\t{len(list(self.payloads.TelemetryPayload))} T"  # Telemetry
+            f"\t- {len(list(self.payloads.EventPayload))} E"
+            f"\t- {len(list(self.payloads.FileBlockPayload))} B"  # File Blocks
+            f"\t- {len(list(self.payloads.CommandPayload))} C"
         )
 
     def __init__(self,
-                 payloads: PayloadCollection,
+                 payloads: EnhancedPayloadCollection,
                  seq_num: int = 0,
                  common_packet_header: Optional[Legacy2020CommonPacketHeader] = None,
                  raw: Optional[bytes] = None,
@@ -594,7 +587,7 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
     @classmethod
     def build_minimum_packet(
         cls,
-        payloads: PayloadCollection,
+        payloads: EnhancedPayloadCollection,
         raw: Optional[bytes],
         endianness_code: str
     ) -> Legacy2020IrisCommonPacket:
@@ -669,7 +662,7 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
                 f"The data being parsed was: \n"
                 f"{scp.hexdump(data, dump=True)}\n"
             )
-            payloads = PayloadCollection.make_empty()
+            payloads = EnhancedPayloadCollection()
 
         return Legacy2020IrisCommonPacket(
             common_packet_header=CPH,
@@ -679,20 +672,10 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
         )
 
     def encode(self, **kwargs: Any) -> bytes:
-        # Lookup table that lists all payload types which should be encoded and
-        # which Magics to use for them:
-        encoded_payload_magics_lookup = {
-            'CommandPayload': Magic.COMMAND.encode(),
-            'TelemetryPayload': Magic.TELEMETRY.encode(),
-            'EventPayload': Magic.EVENT.encode(),
-            'FileBlockPayload': Magic.FILE.encode()
-        }
-
         # Compile all payloads:
         VLP = b''
-        for payload_type in encoded_payload_magics_lookup.keys():
-            for cp in getattr(self.payloads, payload_type):
-                VLP += cp.magic.encode() + cp.encode()
+        for payload in self.payloads.all_payloads:
+            VLP += payload.magic.encode() + payload.encode()
 
         CPH = self.common_packet_header.encode()
         assert self.common_packet_header.vlp_len == len(VLP)

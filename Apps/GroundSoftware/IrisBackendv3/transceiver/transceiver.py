@@ -15,7 +15,8 @@ from abc import ABC, abstractmethod, abstractclassmethod, abstractproperty
 from .ipc_messages import SendPayloadsRequestContent
 
 from IrisBackendv3.codec.packet import Packet
-from IrisBackendv3.codec.payload import Payload, PayloadCollection
+from IrisBackendv3.codec.payload import Payload
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 from IrisBackendv3.codec.metadata import DataSource
 
 
@@ -29,6 +30,7 @@ class Transceiver(ABC):
     @abstractmethod
     def read_update(self) -> List[Packet]:
         """Reads all available packets on the transceiver input."""
+        #! TODO: (WORKING-HERE)
         # TODO: Add metadata to all the payloads first (before returning)
         # payload.pathway = pathway
         # payload.source = source

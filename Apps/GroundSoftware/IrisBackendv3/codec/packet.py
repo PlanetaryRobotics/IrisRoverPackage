@@ -3,7 +3,7 @@ Defines Common Data Required for Packets. Support for Building and Parsing
 Packets.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/01/2022
+@last-updated: 05/09/2022
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 from .packet_classes import *
@@ -43,7 +43,9 @@ def parse_packet(
             WatchdogCommandResponsePacket,
             IrisCommonPacket,
             WatchdogTvacHeartbeatPacket,
-            Legacy2020IrisCommonPacket
+            Legacy2020IrisCommonPacket,
+            WatchdogHelloPacket,
+            WatchdogDebugPacket
         ]
 
     # Codecs which support this packet:

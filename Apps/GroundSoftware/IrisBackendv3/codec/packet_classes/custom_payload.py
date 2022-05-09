@@ -4,8 +4,9 @@ for Packets which extract a number of Payloads (`CustomPayload`) from a single
 large payload, often, in part, as a bitfield. This is used almost exclusively 
 for communication with the Watchdog which doesn't use the Iris Common Packet
 format for its telemetry (to minimize bandwidth use).
+
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/01/2022
+@last-updated: 05/09/2022
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -16,7 +17,8 @@ from typing import List, Optional, ClassVar, TypeVar, cast, Generic, Type, Dict
 import time
 
 from ..magic import Magic
-from ..payload import PayloadCollection, TelemetryPayload
+from ..payload import TelemetryPayload
+from ..payload_collection import EnhancedPayloadCollection
 
 from ..settings import ENDIANNESS_CODE, settings
 
@@ -65,7 +67,7 @@ class CustomPayloadPacket(Packet[CT], Generic[CT, CPCT]):
     PREBUILT_MODULE_NAME: ClassVar[Optional[str]] = None
     # Class that contains the values of all payloads in this custom payload
     # class (used as an intermediary between the packet bytes which contain all
-    # those fields and the `payloads` `PayloadCollection`):
+    # those fields and the `payloads` `EnhancedPayloadCollection`):
     CUSTOM_PAYLOAD_CLASS: Optional[Type[CPCT]] = None
 
     __slots__: List[str] = [
@@ -100,11 +102,11 @@ class CustomPayloadPacket(Packet[CT], Generic[CT, CPCT]):
         return self._custom_payload
 
     @property
-    def payloads(self) -> PayloadCollection:
+    def payloads(self) -> EnhancedPayloadCollection:
         return self._payloads
 
     @payloads.setter
-    def payloads(self, payloads: PayloadCollection) -> None:
+    def payloads(self, payloads: EnhancedPayloadCollection) -> None:
         """Override default `Packet` setter so the locally cached 
         `_custom_payload` can be updated if `payloads` (which drives it) is
         changed.
@@ -113,7 +115,7 @@ class CustomPayloadPacket(Packet[CT], Generic[CT, CPCT]):
         calls `payloads=` (e.g. in `__init__`), it will be dispatched to this
         subclass overridden version:
 
-        .. code-block:: python:
+        ```python
             class A():
                 __slots__ = ['_thing']
                 _thing: str          
@@ -142,6 +144,7 @@ class CustomPayloadPacket(Packet[CT], Generic[CT, CPCT]):
 
             b = B('bb')  # -> prints "Sub class thing setter bb"
             b.thing  # -> prints "Sub class thing getter bb"
+        ```
         """
         if self._payloads != payloads:
             # only recompute if a change is actually occuring (necessary to
@@ -157,7 +160,7 @@ class CustomPayloadPacket(Packet[CT], Generic[CT, CPCT]):
 
     def pack_payloads_into_custom_payload(
         self,
-        payloads: PayloadCollection,
+        payloads: EnhancedPayloadCollection,
     ) -> CPCT:
         """Reconstructs the `custom_payload` (instance of
         `cls.CUSTOM_PAYLOAD_CLASS`) which was used to construct all the
@@ -186,7 +189,8 @@ class CustomPayloadPacket(Packet[CT], Generic[CT, CPCT]):
 
         custom_payload_args = dict()
 
-        for payload in payloads.TelemetryPayload:
+        for payload in payloads[TelemetryPayload]:
+            payload = cast(TelemetryPayload, payload)
             try:
                 channel = module.telemetry[payload.channel_id]
             except KeyError as e:
@@ -221,28 +225,23 @@ class CustomPayloadPacket(Packet[CT], Generic[CT, CPCT]):
         self,
         custom_payload: CPCT,
         endianness_code: str = ENDIANNESS_CODE
-    ) -> PayloadCollection:
-        """Unpacks the given `custom_payload` object into a
-        `PayloadCollection`.
+    ) -> EnhancedPayloadCollection:
+        """Unpacks the given `custom_payload` object into an
+        `EnhancedPayloadCollection`.
 
         NOTE: This does not automatically replace `payloads`, though you could
         do that by `self.payloads=self.unpack_custom_payload_to_payloads(...)`
         if desired.
         """
         # Autopopulate payloads based on name:
-        payloads: PayloadCollection = PayloadCollection(
-            CommandPayload=[],
-            TelemetryPayload=[],
-            EventPayload=[],
-            FileBlockPayload=[]
-        )
+        payloads: EnhancedPayloadCollection = EnhancedPayloadCollection()
 
         # Go through every telemetry channel in the linked `DataStandards`
         # `Module` and lookup the value in the Custom Payload.
         module = self.get_ds_module()
         for channel in module.telemetry.vals:
             try:
-                payloads.TelemetryPayload.append(TelemetryPayload(
+                payloads.append(TelemetryPayload(
                     module_id=module.ID,
                     channel_id=channel.ID,
                     data=getattr(custom_payload, channel.name),
@@ -268,14 +267,14 @@ class CustomPayloadPacket(Packet[CT], Generic[CT, CPCT]):
 
     def __init__(self,
                  custom_payload: Optional[CPCT] = None,
-                 payloads: Optional[PayloadCollection] = None,
+                 payloads: Optional[EnhancedPayloadCollection] = None,
                  raw: Optional[bytes] = None,
                  endianness_code: str = ENDIANNESS_CODE
                  ) -> None:
         """ Constructs an instance of this `CustomPayloadPacket`. If a
         `custom_payload` (`CPCT`) object is given (e.g. when decoding), it will
-        be unpacked into a `PayloadCollection`. If a `payloads`
-        `PayloadCollection` is given, it will just be loaded.
+        be unpacked into a `EnhancedPayloadCollection`. If a `payloads`
+        `EnhancedPayloadCollection` is given, it will just be loaded.
         NOTE: `custom_payload` XOR `payloads` must be given. Not neither, not
         both.
         """
@@ -311,7 +310,7 @@ class CustomPayloadPacket(Packet[CT], Generic[CT, CPCT]):
         else:
             # we now implicitly know `payloads` is not `None` but `mypy`
             # doesn't realize it yet. So, let it know:
-            payloads = cast(PayloadCollection, payloads)
+            payloads = cast(EnhancedPayloadCollection, payloads)
             # NOTE: don't store to `_payloads` straight away since we don't
             # know `_custom_payload`, so we'll want `super` to trigger a
             # recompute when it calls the `payloads=` setter.

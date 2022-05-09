@@ -13,7 +13,7 @@ from typing import Type, List
 import attr
 
 from .packet import Packet
-from .payload import PayloadCollection
+from .payload_collection import EnhancedPayloadCollection
 
 from IrisBackendv3.ipc.wrapper import InterProcessMessage
 
@@ -21,17 +21,17 @@ from IrisBackendv3.ipc.wrapper import InterProcessMessage
 @attr.s(frozen=True, cmp=True, slots=True, auto_attribs=True)
 class PayloadsToPacketRequestContent:
     """
-    Defines the Message Content for a Request to Convert a `PayloadCollection` 
-    to a `Packet` of a given type.
+    Defines the Message Content for a Request to pack an
+    `EnhancedPayloadCollection` to into a `Packet` of a given type.
     """
-    payloads: PayloadCollection
+    payloads: EnhancedPayloadCollection
     packet_type: Type[Packet]
 
 
 class PayloadsToPacketRequestMessage(InterProcessMessage[PayloadsToPacketRequestContent]):
     """
     Defines the Message Structure and Serialization Scheme for a Request to 
-    Convert a `PayloadCollection` to a `Packet` of a given type.
+    pack an `EnhancedPayloadCollection` to into a `Packet` of a given type.
     """
 
     def to_ipc_bytes(self) -> bytes:

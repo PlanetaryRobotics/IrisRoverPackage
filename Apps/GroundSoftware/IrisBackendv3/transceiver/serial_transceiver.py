@@ -17,7 +17,7 @@ from .transceiver import Transceiver
 from .logging import logger
 
 from IrisBackendv3.codec.packet import Packet, IrisCommonPacket
-from IrisBackendv3.codec.payload import PayloadCollection
+from IrisBackendv3.codec.payload import EnhancedPayloadCollection
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.utils.basic import type_guard_argument
 

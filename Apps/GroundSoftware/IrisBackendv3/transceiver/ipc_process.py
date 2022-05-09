@@ -35,7 +35,7 @@ def bytes_to_packet(incoming_msg_data: bytes) -> InterProcessMessage:
 def send_packet(incoming_msg_data: bytes) -> InterProcessMessage:
 
     raise NotImplementedError()
-    # payloads = PayloadCollection.from_ipc_bytes(ipc_raw.msg)
+    # payloads = EnhancedPayloadCollection.from_ipc_bytes(ipc_raw.msg)
 
 
 subscription_topic_handlers: Dict[ipc.Topic, IPMHandler] = {

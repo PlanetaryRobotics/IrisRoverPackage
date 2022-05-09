@@ -16,7 +16,7 @@ from typing import List, Any, Optional, ClassVar, cast, Union, Type
 import struct
 import numpy as np  # type: ignore
 
-from ..payload import PayloadCollection
+from ..payload_collection import EnhancedPayloadCollection
 
 from ..settings import ENDIANNESS_CODE
 from ..exceptions import PacketDecodingException
@@ -264,7 +264,7 @@ class WatchdogTvacHeartbeatPacket(WTHB_PI[WTHB_PI, WTHB_CP]):
     @classmethod
     def build_minimum_packet(
         cls,
-        payloads: PayloadCollection,
+        payloads: EnhancedPayloadCollection,
         raw: Optional[bytes],
         endianness_code: str
     ) -> WatchdogTvacHeartbeatPacket:

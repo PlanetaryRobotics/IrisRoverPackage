@@ -12,3 +12,9 @@
 ## ^- fully unit test XCVR, etc. pathways so you can make sure nothing is broken from fixing these in rapid succession.
 
 ## Lastly: upgrade to Python 3.10 in `makefile`, `mypy.ini`, `__wsl-ubuntu-setup.py`, and `README`.
+
+# Search for:
+# PayloadCollection
+# .payload, ._payload
+# EnhancedPayloadCollection()
+# "PayloadsCollection"

@@ -13,7 +13,7 @@ from typing import List, Any, Optional
 
 from scapy.utils import hexdump  # type: ignore
 
-from ..payload import PayloadCollection
+from ..payload_collection import EnhancedPayloadCollection
 
 from ..settings import ENDIANNESS_CODE
 from ..logging import logger
@@ -36,7 +36,7 @@ class UnsupportedPacket(UnsupportedPacketInterface[UnsupportedPacketInterface]):
     __slots__: List[str] = []  # empty __slots__ preserves parent __slots__
 
     def __init__(self,
-                 payloads: Optional[PayloadCollection] = None,
+                 payloads: Optional[EnhancedPayloadCollection] = None,
                  raw: Optional[bytes] = None,
                  endianness_code: str = ENDIANNESS_CODE
                  ) -> None:
@@ -56,7 +56,7 @@ class UnsupportedPacket(UnsupportedPacketInterface[UnsupportedPacketInterface]):
             # empty for an `UnsupportedPacket`. `payloads` needs to stay as an
             # `__init__` arg to avoid violating the Liskov substitution
             # principle.
-            payloads = PayloadCollection.make_empty()
+            payloads = EnhancedPayloadCollection()
 
         super().__init__(
             payloads=payloads,
@@ -81,7 +81,7 @@ class UnsupportedPacket(UnsupportedPacketInterface[UnsupportedPacketInterface]):
     @classmethod
     def build_minimum_packet(
         cls,
-        payloads: PayloadCollection,
+        payloads: EnhancedPayloadCollection,
         raw: Optional[bytes],
         endianness_code: str
     ) -> UnsupportedPacket:

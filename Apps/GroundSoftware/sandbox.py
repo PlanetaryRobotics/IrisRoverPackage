@@ -15,7 +15,8 @@ from typing import List, Type
 
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac
-from IrisBackendv3.codec.payload import Payload, PayloadCollection, extract_downlinked_payloads
+from IrisBackendv3.codec.payload import Payload
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.magic import Magic
 from IrisBackendv3.codec.logging import logger as CodecLogger
@@ -79,12 +80,7 @@ packets = list(
     filter(lambda x: x.dport == port, pcap[protocol][packetgap:])
 )
 
-all_payloads: PayloadCollection = PayloadCollection(
-    CommandPayload=[],
-    TelemetryPayload=[],
-    EventPayload=[],
-    FileBlockPayload=[]
-)
+all_payloads: EnhancedPayloadCollection = EnhancedPayloadCollection()
 
 tvac_settings['SAVE_FILE_PREFIX'] = f'iris_pims3_prep_{ulid.new()}'
 load_cache()
@@ -120,8 +116,7 @@ for packet in packets:
             )
             update_telemetry_streams(packet)
             print(packet)
-            for i in range(len(packet.payloads)):
-                all_payloads[i].extend(packet.payloads[i])  # type: ignore
+            all_payloads.extend(packet.payloads)  # type: ignore
 
     except Exception as e:
         trace = e  # traceback.format_exc()

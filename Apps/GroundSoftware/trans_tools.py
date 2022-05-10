@@ -39,6 +39,7 @@ from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_hea
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
 from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket, WatchdogDetailedStatusPacket
+from IrisBackendv3.codec.packet import parse_packet as core_parse_packet
 from IrisBackendv3.codec.exceptions import PacketDecodingException
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
@@ -134,103 +135,12 @@ def parse_ip_udp_packet(packet_bytes: bytes, deadspace: int = 0) -> Optional[Pac
     return parse_packet(core_data)
 
 
-def parse_packet(packet_bytes: bytes) -> Optional[Packet]:
-    # All available packet codecs (in order of use preference):
-    codecs: List[Type[Packet]] = [
-        WatchdogHeartbeatPacket,
-        WatchdogCommandResponsePacket,
-        IrisCommonPacket,
-        WatchdogDetailedStatusPacket,
-        WatchdogTvacHeartbeatPacket
-    ]
-    # Codecs which support this packet:
-    supported = [c for c in codecs if c.is_valid(packet_bytes)]
-
-    # Check for issues:
-    if len(supported) == 0:
-        err_print(
-            f"Invalid packet detected. Does not conform to any supported specs: "  # type: ignore
-            f"{packet_bytes}"
-        )
-
-    if len(supported) > 1:
-        err_print(
-            f"Multiple codecs "  # type: ignore
-            f"({supported}) support received packet. Using "
-            f"highest in preference order: {supported[0]}. "
-            f"Packet data: {packet_bytes} ."
-        )
-
-    # Parse Packet:
-    packet: Optional[Packet] = None  # default
-    try:
-        if len(supported) > 0:
-            # Parse:
-            packet = supported[0].decode(
-                packet_bytes
-            )
-            # Store:
-            packet = cast(Packet, packet)
-            all_payloads.extend(packet.payloads)
-
-    except Exception as e:
-        trace = e  # traceback.format_exc()
-        err_print(
-            f"Had to abort packet parsing due to the following exception: `{trace}`."
-            f"The packet bytes being parsed were: \n"
-            f"{scp.hexdump(packet_bytes, dump=True)}\n"
-        )
-
-    return packet
-
-
-def parse_packet_rev_i_debug(packet_bytes: bytes) -> Optional[Packet]:
-    # All available packet codecs (in order of use preference):
-    codecs: List[Type[Packet]] = [
-        WatchdogHeartbeatPacket,
-        WatchdogCommandResponsePacket,
-        IrisCommonPacket,
-        WatchdogDetailedStatusPacket,
-        WatchdogTvacHeartbeatPacket
-    ]
-    # Codecs which support this packet:
-    supported = [c for c in codecs if c.is_valid(packet_bytes)]
-
-    # Check for issues:
-    if len(supported) == 0:
-        err_print(
-            f"Invalid packet detected. Does not conform to any supported specs: "  # type: ignore
-            f"{packet_bytes}"
-        )
-
-    if len(supported) > 1:
-        err_print(
-            f"Multiple codecs "  # type: ignore
-            f"({supported}) support received packet. Using "
-            f"highest in preference order: {supported[0]}. "
-            f"Packet data: {packet_bytes} ."
-        )
-
-    # Parse Packet:
-    packet: Optional[Packet] = None  # default
-    try:
-        if len(supported) > 0:
-            # Parse:
-            packet = supported[0].decode(
-                packet_bytes
-            )
-            # Store:
-            packet = cast(Packet, packet)
-            all_payloads.extend(packet.payloads)
-
-    except Exception as e:
-        trace = e  # traceback.format_exc()
-        err_print(
-            f"Had to abort packet parsing due to the following exception: `{trace}`."
-            f"The packet bytes being parsed were: \n"
-            f"{scp.hexdump(packet_bytes, dump=True)}\n"
-        )
-
+def parse_packet(
+    packet_bytes: bytes,
+    codecs: Optional[List[Type[Packet]]] = None
+) -> Packet:
+    packet = core_parse_packet(packet_bytes, codecs)
+    all_payloads.extend(packet.payloads)
     return packet
 
 

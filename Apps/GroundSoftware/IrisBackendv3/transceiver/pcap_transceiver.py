@@ -53,7 +53,7 @@ def parse_pcap(opts: PcapParseOpts) -> List[bytes]:
     #     opts.port = 8080
     #     opts.cli_log = True
 
-    logging.notice(  # type: ignore
+    logger.notice(  # type: ignore
         f"Parsing pcap file at {opts.pcap_file}, "
         f"looking for packets on port {opts.filter_port} "
         f"{f'with packet using protcol {opts.filter_protocol}' if opts.filter_protocol else ''}"
@@ -119,7 +119,7 @@ def parse_pcap(opts: PcapParseOpts) -> List[bytes]:
         f"Successfully loaded {len(extracted_packet_bytes)} raw packets "
         f"out of {len(pcap)} total packets in the pcap. "
         f"Of the used packets, a total of {failed_packet_count} were "
-        "unrecognizably unloadable."
+        "unloadable."
     )
 
     # Return results:
@@ -162,7 +162,7 @@ class PcapTransceiver(Transceiver):
         """
         # Validate inputs:
         self.fixed_period_ms = cast(float, type_guard_argument(
-            str, 'fixed_period_ms', fixed_period_ms,
+            float, 'fixed_period_ms', fixed_period_ms,
             calling_function_name='PcapTransceiver.__init__'
         ))
         self.loop = cast(bool, type_guard_argument(
@@ -229,12 +229,12 @@ class PcapTransceiver(Transceiver):
                 self._head = end_idx  # update the `_head`
                 self._last_downlink_time = now  # update the last grab time
         else:
-            logging.verbose(  # type: ignore
+            logger.verbose(  # type: ignore
                 "`PcapTransceiver` has reached the end of the pcap loaded from "
                 f"`{self._pcap_opts.pcap_file}`."
             )
             if self.loop:
-                logging.verbose("Looping the pcap file")  # type: ignore
+                logger.verbose("Looping the pcap file")  # type: ignore
                 self.restart()  # set the head back to 0
                 _byte_packets = self._downlink_byte_packets()  # try again.
 
@@ -246,7 +246,7 @@ class PcapTransceiver(Transceiver):
         recording. You can't send commands to a recording. So this will just
         toss the bytes.
         """
-        logging.debug(  # type: ignore
+        logger.debug(  # type: ignore
             "`PcapTransceiver._uplink_byte_packets` was called. "
             "This `Transceiver` replays a recording, so you can't send using "
             f"it. The data will be thrown out. Data was: `{packet_bytes!r}`."

@@ -4,6 +4,8 @@ is replaying logs from previous testing.
 
 Includes any supporting functions necessary for maintaining serial connection.
 
+TODO: Add playback that uses timestamps from the pcap to determine Dt.
+
 @author: Connor W. Colombo (CMU)
 @last-updated: 05/13/2022
 """
@@ -216,7 +218,7 @@ class PcapTransceiver(Transceiver):
             now = time()  # for optimal timing, only grab `now` once.
             Dt = now - self._last_downlink_time
             # Determine how many full time periods have elapsed:
-            n_periods = int(Dt / self.fixed_period_ms)
+            n_periods = int(Dt / (self.fixed_period_ms/1000))
 
             if n_periods >= 1:
                 # if more than one period has elapsed, we can downlink.

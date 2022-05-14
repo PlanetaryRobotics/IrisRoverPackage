@@ -56,11 +56,13 @@ class InterProcessMessage(Generic[IPMC], ABC):
         Unpack bytes sent over IPC to reconstruct the sent object.
         """
         raise NotImplementedError()
+    
+from typing import Serializable
 
 
 class IPMHandler(Protocol):
     """ Structural typing `Protocol` defining a handler that decodes raw
-    IPC mssage bytes, performs some operation, and optionally returns an 
+    IPC message bytes, performs some operation, and optionally returns an 
     `InterProcessMessage` if needed by the process type (i.e. server/client).
 
     NOTE:

@@ -1,5 +1,3 @@
-# !TODO: Immediately, finish `EnhancedPayloadCollection` work in `sandbox`, add to the codebase, carefully replace all `PayloadCollection` uses with `EnhancedPayloadCollection` and **DEPRECATE** `PayloadCollection` (add `DeprecationWarning` to its ctor).
-
 # Unit-test `EnhancedPayloadCollection`, starting with what's in `sandbox.ipynb`
 
 # TODO: ... metadata should be added at transceiver layer to all payloads and then stored alongside them upon decode if being decoded (basically, let metadata have a life of its own outside of and independent of `_raw`)

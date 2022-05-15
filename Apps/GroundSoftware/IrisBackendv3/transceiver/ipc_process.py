@@ -95,6 +95,8 @@ def run() -> None:
         ports=port
     )
 
+    # Spin up thread for receiver and transmitter
+
     while True:
         subscriber_update(sub_socket, port, subscription_topic_handlers)
 

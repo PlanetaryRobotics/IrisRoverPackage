@@ -3,9 +3,9 @@ Special prebuilt data standards which exist outside of the FPrime XML (e.g. for
 watchdog heartbeat)
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 11/07/2021
+@last-updated: 05/14/2022
 """
-from typing import Any, Type, Union, List, Tuple, TypeVar
+from typing import Any, Final, Type, Union, List, Tuple, TypeVar
 from collections import OrderedDict
 
 from IrisBackendv3.utils.nameiddict import NameIdDict
@@ -701,3 +701,11 @@ watchdog_command_response: Module = Module(
         ),
     })
 )
+
+# List of all special pre-built modules:
+ALL_PREBUILT_MODULES: Final[List[Module]] = [
+    watchdog_detailed_status_heartbeat,
+    watchdog_heartbeat_tvac,
+    watchdog_heartbeat,
+    watchdog_command_response
+]

@@ -1,10 +1,28 @@
-## SETUP:
-
-from trans_tools import *
+from IrisBackendv3.codec.settings import set_codec_standards
+from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
+from IrisBackendv3.data_standards.logging import logger as DsLogger
+from IrisBackendv3.data_standards import DataStandards
+from IrisBackendv3.transceiver import SlipTransceiver
 from __command_aliases import get_command
-from IrisBackendv3.utils.basic import bytearray_to_spaced_hex as hexstr
+from trans_tools import *
 
-seq_num = 0x01
+# Re-build the `DataStandards` fresh from latest fprime and add in all prebuilt
+# (WD Telem) Modules.
+# These `DataStandards` will serve as TMTC definitions be used by the `Codec`
+# layer used by the `Transceiver` layer to interpret packets.
+# TODO: Rebuild this once in the main IPC module, cache it, and load from cache in other IPC apps.
+DsLogger.setLevel('CRITICAL')
+standards = DataStandards.build_standards()
+add_to_standards(standards, ALL_PREBUILT_MODULES)
+set_codec_standards(standards)
+
+# SETUP:
+slip_xcvr = SlipTransceiver(
+    device_sn='A7035PDL',  # Connects to the Lander harness
+    # device_sn= 'AB0JRGV8', # Connects to J36-RS422 header on the SBC
+    baud=57600
+)
+slip_xcvr.begin()
 
 cmd, param = 'ReportStatus', True
 
@@ -70,37 +88,35 @@ specific_cmd_name_override = 'power-on'
 # if overwriting:
 cmd, param = specific_cmd_name_override, specific_param_override
 
-print(cmd,'  :  ',param)
+print(cmd, '  :  ', param)
 
-## SETTINGS:
-serial_device_sn: str = 'A7035PDL' # Connects to the Lander harness
-# serial_device_sn: str = 'AB0JRGV8' # Connects to J36-RS422 header on the SBC
-baud = 57600
-ip="192.168.1.2"
-port=8080
-
-settings['SAVE_FILE_PREFIX'] = 'iris__rc2_wd_herc_checkout_8' # this is the prefix on all log files. make it something unique.
-load_cache()
-setup_logger(settings['SAVE_FILE_PREFIX']) # logs of stuff printed to console will be stored to `raw-console-logs`
-
-# IF ERROR - update last number in FILE_PREFIX
-
-from serial.tools import list_ports, list_ports_common
-serial_device = [cp.device for cp in list_ports.comports() if cp.serial_number is not None and serial_device_sn in cp.serial_number][0]
-serial_device
-
+# Build command(s):
 pathway, magic, command_name, kwargs, telem_pathway = get_command(cmd, param)
 print(pathway, magic, command_name, kwargs)
 
-packet = build_command_packet(seq_num, pathway, magic, command_name, kwargs)
-packet_bytes = packet.encode()
-print(hexstr(packet_bytes))
+command_payload_type = {
+    Magic.WATCHDOG_COMMAND: WatchdogCommandPayload,
+    Magic.COMMAND: CommandPayload
+}[magic]
 
-## Send Command:
-connect_serial(device = serial_device, baud=baud)
-if send_data_packet_to_wd_before_sniffing:
-    send_packet(packet, pathway, ip, port)
+module, command = standards.global_command_lookup(command_name)
 
-## Stream Telemetry:
+payloads = EnhancedPayloadCollection(
+    CommandPayload=[
+        command_payload_type(
+            pathway=pathway,
+            source=DataSource.GENERATED,
+            magic=magic,
+            module_id=module.ID,
+            command_id=command.ID,
+            args=kwargs
+        )
+    ]
+)
+
+# Send Command:
+slip_xcvr.send_payloads(payloads)
+
+# Stream Telemetry:
 stream_data_ip_udp_serial()
 # Check for wireless telemetry in Wireshark. For parsing help, run: `pyenv exec python parse_pcap.py --help`

@@ -49,12 +49,15 @@ class Transceiver(ABC):
     data_source: DataSource
     # Sequence number tracking:
     seq_num: int = 0
+    # Whether to log when a packet is successfully sent:
+    log_on_send: bool
 
     def __init__(
         self,
         endecs: Optional[List[Endec]] = None,
         pathway: DataPathway = DataPathway.NONE,
-        source: DataSource = DataSource.NONE
+        source: DataSource = DataSource.NONE,
+        log_on_send: bool = True
     ) -> None:
         """
         Creates a `Transceiver` over `pathway` (wired/wireless) connecting to
@@ -66,6 +69,8 @@ class Transceiver(ABC):
         """
         # Initialize sequence number counter:
         self.seq_num = 0
+        self.log_on_send = log_on_send
+
         # Just use `UnityEndec` if none are given:
         if isinstance(endecs, list):
             if len(endecs) > 0:
@@ -248,7 +253,14 @@ class Transceiver(ABC):
         packet_bytes = self.endecs_decode(packet_bytes)
 
         # Uplink encoded data:
-        return self._uplink_byte_packets(packet_bytes)
+        success = self._uplink_byte_packets(packet_bytes)
+
+        if success and self.log_on_send:
+            logger.info(
+                f"`{self.__class__.__name__}` sent: {scp.hexstr(packet.raw)}"
+            )
+
+        return success
 
     def send_payloads(self, payloads: EnhancedPayloadCollection) -> List[Packet]:
         """ Sends the given payloads in as few packets as possible.
@@ -275,5 +287,6 @@ class Transceiver(ABC):
         success = self.send(packet)
         if success:
             packets_sent.append(packet)
+            self.seq_num += 1
 
         return packets_sent

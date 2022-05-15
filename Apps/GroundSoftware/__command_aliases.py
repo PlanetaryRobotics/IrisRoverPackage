@@ -6,9 +6,9 @@ If you want to explore the Data Standards to build new commands, run:
 `pyenv exec python datastandards_lookup.py`.
 
 Created: 10/29/2021
-Last Update: 11/22/2021
+Last Update: 05/15/2022
 """
-from typing import Optional
+from typing import Any, Optional
 from IrisBackendv3.codec.payload import CommandPayload
 from IrisBackendv3.codec.packet import IrisCommonPacket
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
@@ -17,7 +17,7 @@ from IrisBackendv3.codec.magic import Magic
 source = DataSource.GENERATED
 
 
-def get_command(alias: str, param: Optional[str] = None):
+def get_command(alias: str, param: Optional[Any] = None):
     """
     Grabs command package data (pathway, type, and payload) given a short-hand 
     name (`alias`) and, optionally, a `param` that gets inserted as a command 

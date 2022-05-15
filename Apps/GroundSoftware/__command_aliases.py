@@ -65,7 +65,35 @@ def get_command(alias: str, param: Optional[str] = None):
             'WatchDogInterface_DisengageFromLander',
             dict(confirm='CONFIRM_DEPLOY'),
             DataPathway.WIRED
+        ), # Note: there's no way to do just the hercules (you can tell just the hercules but then it'll immediately make watch)
+        'deploy-wifi': (
+            DataPathway.WIRELESS,
+            Magic.COMMAND, # "normal" command is for Hercules
+            'WatchDogInterface_DisengageFromLander',
+            dict(confirm='CONFIRM_DEPLOY'),
+            DataPathway.WIRELESS
         ),
+        'deploy-wd-only': ( # special command to tell only WD to release its interlock (in case Herc-WD comms are broken)
+            DataPathway.WIRED,
+            Magic.WATCHDOG_COMMAND,
+            'WatchDogInterface_DisengageFromLander',
+            dict(confirm='CONFIRM_DEPLOY'),
+            DataPathway.WIRELESS
+        ),
+        'undeploy': (
+            DataPathway.WIRED,
+            Magic.COMMAND, # "normal" command is for Hercules
+            'WatchDogInterface_ResetSpecific',
+            dict(reset_value='HDRM_OFF'),
+            DataPathway.WIRED
+        ), # Note: Deploy2 (Herc deploy pin) does not undeploy, but WD does.
+        'undeploy-2': (
+            DataPathway.WIRED,
+            Magic.COMMAND, # "normal" command is for Hercules
+            'WatchDogInterface_EngageFromLander',
+            dict(),
+            DataPathway.WIRED
+        ), # Note: Also does not turn off Deploy2
         'reset-herc': (
             DataPathway.WIRED,
             # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
@@ -147,6 +175,20 @@ def get_command(alias: str, param: Optional[str] = None):
             dict(reset_value='EN_3_3_POWER_OFF'),
             DataPathway.WIRED
         ),
+        '24-on': (
+            DataPathway.WIRED,
+            Magic.WATCHDOG_COMMAND, # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+            'WatchDogInterface_ResetSpecific',
+            dict(reset_value='EN_24_ON'), # Change this to whatever you want to reset.
+            DataPathway.WIRED
+        ),
+        '24-off': (
+            DataPathway.WIRED,
+            Magic.WATCHDOG_COMMAND, # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+            'WatchDogInterface_ResetSpecific',
+            dict(reset_value='EN_24_OFF'), # Change this to whatever you want to reset.
+            DataPathway.WIRED
+        ),
         'SetChargerEn': (
             DataPathway.WIRED,
             Magic.WATCHDOG_COMMAND,
@@ -212,15 +254,82 @@ def get_command(alias: str, param: Optional[str] = None):
             dict(reset_value='DISABLE_HEATER_CONTROL'),
             DataPathway.WIRED
         ),
-        'misc-test': (
-            DataPathway.WIRED,
-            # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
-            Magic.WATCHDOG_COMMAND,
-            'WatchDogInterface_ResetSpecific',
-            # Change this to whatever you want to reset.
-            dict(reset_value='BATTERY_START_CHARGE'),
-            DataPathway.WIRED
-        )
+
+    'reset-motors': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND, # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+        'WatchDogInterface_ResetSpecific',
+        dict(reset_value='RESET_ALL_MOTORS'), # Change this to whatever you want to reset.
+        DataPathway.WIRED
+    ),
+    'power-on-motors': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND, # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+        'WatchDogInterface_ResetSpecific',
+        dict(reset_value='ALL_MOTORS_ON'), # Change this to whatever you want to reset.
+        DataPathway.WIRED
+    ),
+    'power-off-motors': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND, # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+        'WatchDogInterface_ResetSpecific',
+        dict(reset_value='ALL_MOTORS_OFF'), # Change this to whatever you want to reset.
+        DataPathway.WIRED
+    ),
+    # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
+    'drive-fwd-200': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavDriveForward',
+        dict(distance=200, speed=100, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
+    'motor-control-get-telem': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McUpdateTelemetry',
+        dict(),
+        DataPathway.WIRED
+    ),
+    # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
+    'motor-control-spin-all': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        dict(motor_id=0x00, raw_ticks=20000), # Change this to whatever motor you want to control (0 is all)
+        DataPathway.WIRED
+    ),
+    'herc-wired-noop': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'CommandDispatcher_Cmdnoop',
+        dict(),
+        DataPathway.WIRED
+    ),
+    'take-image-0': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Camera_TakeImage',
+        dict(camera_num=0, callback_id=0), # Change this to whatever you want to reset.
+        DataPathway.WIRED
+    ),
+    'take-image-1': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Camera_TakeImage',
+        dict(camera_num=1, callback_id=0), # Change this to whatever you want to reset.
+        DataPathway.WIRED
+    ),
+    'misc-test': (
+        DataPathway.WIRED,
+        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        dict(reset_value='BATTERY_START_CHARGE'),
+        DataPathway.WIRED
+    )
     }
 
     pathway, magic, command_name, kwargs, telem_pathway = prepared_commands[alias]

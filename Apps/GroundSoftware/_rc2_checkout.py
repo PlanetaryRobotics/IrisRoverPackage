@@ -3,10 +3,8 @@ from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT
 from IrisBackendv3.data_standards.logging import logger as DsLogger
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.transceiver import SlipTransceiver
-from IrisBackendv3.utils.basic import bytearray_to_spaced_hex as hexstr
 from __command_aliases import get_command
 from trans_tools import *
-from serial.tools import list_ports, list_ports_common
 
 # Re-build the `DataStandards` fresh from latest fprime and add in all prebuilt
 # (WD Telem) Modules.

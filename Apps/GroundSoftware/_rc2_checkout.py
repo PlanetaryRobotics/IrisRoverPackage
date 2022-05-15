@@ -1,15 +1,12 @@
-# SETUP:
-
-from serial.tools import list_ports, list_ports_common
-from trans_tools import *
-from __command_aliases import get_command
-from IrisBackendv3.utils.basic import bytearray_to_spaced_hex as hexstr
-
-from IrisBackendv3.transceiver import SlipTransceiver
-from IrisBackendv3.data_standards import DataStandards
-from IrisBackendv3.data_standards.logging import logger as DsLogger
-from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
 from IrisBackendv3.codec.settings import set_codec_standards
+from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
+from IrisBackendv3.data_standards.logging import logger as DsLogger
+from IrisBackendv3.data_standards import DataStandards
+from IrisBackendv3.transceiver import SlipTransceiver
+from IrisBackendv3.utils.basic import bytearray_to_spaced_hex as hexstr
+from __command_aliases import get_command
+from trans_tools import *
+from serial.tools import list_ports, list_ports_common
 
 # Re-build the `DataStandards` fresh from latest fprime and add in all prebuilt
 # (WD Telem) Modules.
@@ -21,6 +18,7 @@ standards = DataStandards.build_standards()
 add_to_standards(standards, ALL_PREBUILT_MODULES)
 set_codec_standards(standards)
 
+# SETUP:
 slip_xcvr = SlipTransceiver(
     device_sn='A7035PDL',  # Connects to the Lander harness
     # device_sn= 'AB0JRGV8', # Connects to J36-RS422 header on the SBC
@@ -93,9 +91,6 @@ specific_cmd_name_override = 'power-on'
 cmd, param = specific_cmd_name_override, specific_param_override
 
 print(cmd, '  :  ', param)
-
-# SETTINGS:
-# IF ERROR - update last number in FILE_PREFIX
 
 # Build command(s):
 pathway, magic, command_name, kwargs, telem_pathway = get_command(cmd, param)

@@ -6,7 +6,9 @@ converted to a `EventPayload` eventually) and is just printed to the console.
 @author: Connor W. Colombo (CMU)
 @last-updated: 05/08/2022
 """
-from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
+from __future__ import annotations
+
+from prompt_toolkit import formatted_text  # Activate postponed annotations (for using classes as return type in their own methods)
 
 from .packet import Packet, CT
 
@@ -113,7 +115,11 @@ class WatchdogDebugPacket(WatchdogDebugPacketInterface[WatchdogDebugPacketInterf
         else:
             l = len(self._raw)
             data = self._raw
+
+        formatted_data = data[5:].decode('utf-8').rstrip('\x00').rstrip()
+
         return (
-            f"WatchdogDebugPacket[{l}B]-str: {data!r} "
-            f"\nWatchdogDebugPacket[{l}B]-raw: {' '.join('{:02x}'.format(x) for x in data)}"
+            f" \033[1m\033[30m{formatted_data}\033[0m"
+            # f"\n \033[1m\033[30m WatchdogDebugPacket[{l}B]-str: {data!r} \033[0m\n"
+            # f"\nWatchdogDebugPacket[{l}B]-raw: {' '.join('{:02x}'.format(x) for x in data)}"
         )

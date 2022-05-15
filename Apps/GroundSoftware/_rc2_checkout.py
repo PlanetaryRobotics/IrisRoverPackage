@@ -3,6 +3,8 @@ from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT
 from IrisBackendv3.data_standards.logging import logger as DsLogger
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.transceiver import SlipTransceiver
+from IrisBackendv3.transceiver.endec import IpUdpEndec
+
 from __command_aliases import get_command
 from trans_tools import *
 
@@ -20,7 +22,8 @@ set_codec_standards(standards)
 slip_xcvr = SlipTransceiver(
     device_sn='A7035PDL',  # Connects to the Lander harness
     # device_sn= 'AB0JRGV8', # Connects to J36-RS422 header on the SBC
-    baud=57600
+    baud=57600,
+    endecs = [IpUdpEndec()]
 )
 slip_xcvr.begin()
 
@@ -115,8 +118,15 @@ payloads = EnhancedPayloadCollection(
 )
 
 # Send Command:
-slip_xcvr.send_payloads(payloads)
+if send_data_packet_to_wd_before_sniffing:
+    slip_xcvr.send_payloads(payloads)
 
 # Stream Telemetry:
-stream_data_ip_udp_serial()
+while True:
+    packets = slip_xcvr.read()
+
+    if len(packets) > 0:
+        packets_str = ',\n'.join([str(p) for p in packets])
+        print(f"Got: {packets_str}")
+
 # Check for wireless telemetry in Wireshark. For parsing help, run: `pyenv exec python parse_pcap.py --help`

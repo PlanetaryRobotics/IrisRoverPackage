@@ -260,7 +260,8 @@ def update_telemetry_streams(packet: Packet) -> None:
     """
     Add all extracted data values in the packet to their streams:
     """
-    for t in packet.payloads.TelemetryPayload:
+    for t in packet.payloads[TelemetryPayload]:
+        t = cast(TelemetryPayload, t)
         # If this payload's channel is new (previously un-logged), add it:
         if t.opcode not in telemetry_streams:
             telemetry_streams[t.opcode, t.module.name+'_'+t.channel.name] = [

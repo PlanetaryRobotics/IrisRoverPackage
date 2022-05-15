@@ -114,7 +114,11 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
     LanderComms__Status returnStatus = LANDER_COMMS__STATUS__SUCCESS;
     BOOL tryToGetMoreData = TRUE;
 
-    while (tryToGetMoreData) {
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + 100; // One second timeout
+
+    while (tryToGetMoreData && currentTimeCentiseconds <= endTimeCentiseconds) {
         // Zero out the static buffer on each iteration for easier debugging
         memset(uartRxData, 0, SIZE_OF_ARRAY(uartRxData));
 
@@ -175,6 +179,11 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
 
         // Call receive again if our buffer for getting data from the uart was saturated with data in the last call.
         tryToGetMoreData = (numReceived == SIZE_OF_ARRAY(uartRxData));
+        currentTimeCentiseconds = Time__getTimeInCentiseconds();
+    }
+
+    if (currentTimeCentiseconds > endTimeCentiseconds) {
+        DebugComms__printfToLander("Timed out in LanderComms__tryGetMessage\n");
     }
 
     return returnStatus;
@@ -310,6 +319,7 @@ LanderComms__Status LanderComms__txDataUntilSendOrTimeout(LanderComms__State* lc
         __delay_cycles(1000);
         //OLD: WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;
         WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__SMCLK + WDTIS0;
+        __enable_interrupt(); // Make sure interrupts aren't disabled so that we get clock updates
         currentTimeCentiseconds = Time__getTimeInCentiseconds();
         timeout = currentTimeCentiseconds > endTimeCentiseconds;
     } while (lcStatus == LANDER_COMMS__STATUS__ERROR_TX_OVERFLOW && !timeout);
@@ -385,7 +395,11 @@ static LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms_
 
     BOOL doneWritingBuffer = FALSE;
 
-    while (!doneWritingBuffer) {
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + 300; // Three second timeout
+
+    while (!doneWritingBuffer && currentTimeCentiseconds <= endTimeCentiseconds) {
         // These will be set by the encoding function based on how much it is able to write
         size_t outputStartOffset = 0;
         size_t inputStartOffset = 0;
@@ -423,6 +437,12 @@ static LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms_
         outputStartIndex = 0;
         outPtr = outputBuffer;
         remainingOutBuffSize = outputBufferTotalSize;
+
+        currentTimeCentiseconds = Time__getTimeInCentiseconds();
+    }
+
+    if (currentTimeCentiseconds > endTimeCentiseconds) {
+        DebugComms__printfToLander("Timed out in LanderComms__slipEncodeAndTransmitBuffer\n");
     }
 
     return LANDER_COMMS__STATUS__SUCCESS;

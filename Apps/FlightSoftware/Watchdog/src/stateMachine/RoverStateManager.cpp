@@ -52,7 +52,7 @@ namespace iris
         EventQueue__Status eqStatus = EventQueue__initialize(m_eventQueueBuffer.data(), m_eventQueueBuffer.size());
 
         // There should be no reason for initialization of the event queue to fail.
-        assert(EQ__STATUS__SUCCESS == eqStatus);
+        DEBUG_ASSERT_EQUAL(EQ__STATUS__SUCCESS, eqStatus);
 
         // Construct context, then transition to init state. Init state should handle initializing modules as
         // appropriate, eventually based on persistent memory of the module state.
@@ -131,6 +131,7 @@ namespace iris
             } else if (EQ__STATUS__ERROR_EMPTY == eqStatus) {
                 if (m_currentState->canEnterLowPowerMode(m_context)) {
                     //!< @todo Enter LPM here. Need to figure out how to handle LPM and WDT together.
+                    __enable_interrupt(); // Make sure we haven't somehow left interrupts off
                     ENTER_DEFAULT_LPM;
                 }
             } else {
@@ -177,7 +178,8 @@ namespace iris
                 return &m_stateMission;
 
             default:
-                assert(!"Reached default state in getStateObjectForStateEnum");
+                DebugComms__printfToLander("Reached default state in getStateObjectForStateEnum\n");
+                DebugComms__flush();
                 return &m_stateInit;
         }
     }
@@ -203,7 +205,8 @@ namespace iris
 
         switch (event) {
             case EVENT__TYPE__UNUSED:
-                assert(!"Trying to handle an UNUSED event type, which indicates programmer error");
+                DebugComms__printfToLander("Trying to handle an UNUSED event type, which indicates programmer error\n");
+                DebugComms__flush();
                 return;
 
             case EVENT__TYPE__LANDER_DATA:
@@ -227,7 +230,8 @@ namespace iris
                 break;
 
             default:
-                assert(!"In default case trying to handle event, which indicates programmer error");
+                DebugComms__printfToLander("In default case trying to handle event, which indicates programmer error\n");
+                DebugComms__flush();
                 break;
         }
 

@@ -13,8 +13,10 @@ extern "C"
 void DebugComms__registerLanderComms(LanderComms__State* lcState);
 
 void DebugComms__stringBufferToLander(void* buffer, size_t bufferLen);
+void DebugComms__tryStringBufferToLanderNonblocking(void* buffer, size_t bufferLen);
 
 void DebugComms__printfToLander(const char* fmt, ...);
+void DebugComms__tryPrintfToLanderNonblocking(const char* fmt, ...);
 
 void DebugComms__printDataAsHexToLander(const uint8_t* data, size_t dataLen, BOOL withSpaces);
 

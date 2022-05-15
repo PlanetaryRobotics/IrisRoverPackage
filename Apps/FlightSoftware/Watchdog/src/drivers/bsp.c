@@ -241,7 +241,7 @@ void initializeGpios(WatchdogStateDetails* details)
     P3OUT &= ~BIT6;
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__LATCH_BATT);
 
-    // P3.7 is connected to the 3V3_EN signal (control signal for MOSFET to enable HDRM), and is used as a GPIO
+    // P3.7 is connected to the 3V3_EN signal (control signal for MOSFET), and is used as a GPIO
     // output with an initially low value
     P3OUT &= ~BIT7;
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__3V3_EN);
@@ -354,6 +354,7 @@ void initializeGpios(WatchdogStateDetails* details)
 
     // PJ.6 is connected to the BATT_STAT signal and is used as a GPIO input.
     PJDIR &= ~BIT6;
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__BATT_STAT_IS_INPUT);
 
     // PJ.7 is connected to the V_SYS_ALL_EN signal and is used as a GPIO output with an initially high-Z value.
     // V_SYS_ALL_EN should always be high-Z (when V_SYS_ALL disabled) or high.

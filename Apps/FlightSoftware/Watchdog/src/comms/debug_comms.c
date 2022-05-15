@@ -32,6 +32,20 @@ void DebugComms__stringBufferToLander(void* buffer,
 #endif
 }
 
+
+void DebugComms__tryStringBufferToLanderNonblocking(void* buffer, size_t bufferLen)
+{
+#ifdef ENABLE_DEBUG_ONLY_CODE
+    if (LC_STATE == NULL || buffer == NULL) {
+        return;
+    }
+
+    LanderComms__txData(LC_STATE,
+                        (const uint8_t*) buffer,
+                        bufferLen);
+#endif
+}
+
 void DebugComms__printfToLander(const char* fmt,
                                 ...)
 {
@@ -48,6 +62,25 @@ void DebugComms__printfToLander(const char* fmt,
     va_end(args);
 
     DebugComms__stringBufferToLander(PRINT_BUFFER, strlen(PRINT_BUFFER));
+#endif
+}
+
+void DebugComms__tryPrintfToLanderNonblocking(const char* fmt, ...)
+{
+
+#ifdef ENABLE_DEBUG_ONLY_CODE
+    if (LC_STATE == NULL || fmt == NULL) {
+        return;
+    }
+
+    memset(PRINT_BUFFER, 0, sizeof(PRINT_BUFFER));
+    sprintf(PRINT_BUFFER, "DEBUG");
+    va_list args;
+    va_start(args, fmt);
+    vsprintf(PRINT_BUFFER + 5, fmt, args);
+    va_end(args);
+
+    DebugComms__tryStringBufferToLanderNonblocking(PRINT_BUFFER, strlen(PRINT_BUFFER));
 #endif
 }
 

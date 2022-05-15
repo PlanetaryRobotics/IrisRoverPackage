@@ -4,6 +4,7 @@
 #include "drivers/adc.h"
 #include "drivers/bsp.h"
 #include "drivers/blimp.h"
+#include "drivers/uart.h"
 #include "event/event.h"
 #include "event/event_queue.h"
 
@@ -568,6 +569,8 @@ namespace iris
                                        hcStatus);
         }
 
+        HerculesComms__flushTx(theContext.m_hcState);
+
         return getState();
     }
 
@@ -583,14 +586,9 @@ namespace iris
         DEBUG_ASSERT_NOT_EQUAL(0, payloadSize);
 #pragma diag_pop
 
-        // For downlink we first send the data to the lander, then we reply to the Hercules
+        // For downlink we first reply to the Hercules, then we send the data to the lander
 
-        // 1) Send data to lander
-        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState, payloadBuffer, payloadSize);
-
-        DEBUG_LOG_CHECK_STATUS(LANDER_COMMS__STATUS__SUCCESS, lcStatus, "Downlink failed");
-
-        // 2) Reply to Hercules
+        // 1) Reply to Hercules
         HerculesComms__Status hcStatus = HerculesComms__txResponseMsg(theContext.m_hcState,
                                                                       header,
                                                                       nullptr,
@@ -601,6 +599,14 @@ namespace iris
                                        "RoverStateBase::handleDownlinkFromHercules\n",
                                        hcStatus);
         }
+
+        // First flush response to hercules, then send the downlink data
+        HerculesComms__flushTx(theContext.m_hcState);
+
+        // 2) Send data to lander
+        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState, payloadBuffer, payloadSize);
+
+        DEBUG_LOG_CHECK_STATUS(LANDER_COMMS__STATUS__SUCCESS, lcStatus, "Downlink failed");
 
         LanderComms__flushTx(theContext.m_lcState);
 
@@ -648,6 +654,8 @@ namespace iris
                                        "RoverStateBase::handleResetFromHercules\n",
                                        hcStatus);
         }
+
+        HerculesComms__flushTx(theContext.m_hcState);
 
         return result;
     }
@@ -1318,8 +1326,8 @@ namespace iris
 
             case WD_CMD_MSGS__RESET_ID__3_3V_EN_POWER_ON:
                 if (allowPowerOn) {
-                    enable3V3PowerRail();
                     blimp_vSysAllEnOn();
+                    enable3V3PowerRail();
                     SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__3V3_EN_POWER_ON);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;

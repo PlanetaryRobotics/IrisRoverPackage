@@ -10,6 +10,8 @@ extern "C"
 {
 #endif
 
+void DebugComms__setEnabled(BOOL enabled);
+
 void DebugComms__registerLanderComms(LanderComms__State* lcState);
 
 void DebugComms__stringBufferToLander(void* buffer, size_t bufferLen);

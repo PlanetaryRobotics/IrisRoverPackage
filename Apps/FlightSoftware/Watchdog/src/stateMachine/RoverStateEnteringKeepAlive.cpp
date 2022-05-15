@@ -75,6 +75,16 @@ namespace iris
             sendDetailedReportToLander(theContext);
         }
 
+        // Check for UART errors to report
+        size_t count = 0;
+        BOOL changed = FALSE;
+        UART__Status uStatus = UART__checkRxRbErrors(theContext.m_uart1State, &count, &changed);
+        DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Lander UART Rx Rb Error count");
+
+        if (changed) {
+            DebugComms__printfToLander("New Lander UART Rx Rb failures, total count = %u\n", count);
+        }
+
         if (theContext.m_details.m_hParams.m_heatingControlEnabled) {
             // calculate PWM duty cycle (if any) to apply to heater
             heaterControl(theContext);

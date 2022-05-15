@@ -5,22 +5,34 @@
 #include <string.h>
 #include <stdarg.h>
 
-#ifdef ENABLE_DEBUG_ONLY_CODE
+
 static char PRINT_BUFFER[256] = { 0 };
 static LanderComms__State* LC_STATE = NULL;
+
+static BOOL DEBUG_COMMS_ENABLED =
+#ifdef ENABLE_DEBUG_ONLY_CODE
+        TRUE;
+#else
+        FALSE;
 #endif
+
+void DebugComms__setEnabled(BOOL enabled)
+{
+    DEBUG_COMMS_ENABLED = enabled;
+}
 
 void DebugComms__registerLanderComms(LanderComms__State* lcState)
 {
-#ifdef ENABLE_DEBUG_ONLY_CODE
     LC_STATE = lcState;
-#endif
 }
 
 void DebugComms__stringBufferToLander(void* buffer,
                                       size_t bufferLen)
 {
-#ifdef ENABLE_DEBUG_ONLY_CODE
+    if (!DEBUG_COMMS_ENABLED) {
+        return;
+    }
+
     if (LC_STATE == NULL || buffer == NULL) {
         return;
     }
@@ -29,13 +41,15 @@ void DebugComms__stringBufferToLander(void* buffer,
                                           (const uint8_t*) buffer,
                                           bufferLen,
                                           300);
-#endif
 }
 
 
 void DebugComms__tryStringBufferToLanderNonblocking(void* buffer, size_t bufferLen)
 {
-#ifdef ENABLE_DEBUG_ONLY_CODE
+    if (!DEBUG_COMMS_ENABLED) {
+        return;
+    }
+
     if (LC_STATE == NULL || buffer == NULL) {
         return;
     }
@@ -43,13 +57,14 @@ void DebugComms__tryStringBufferToLanderNonblocking(void* buffer, size_t bufferL
     LanderComms__txData(LC_STATE,
                         (const uint8_t*) buffer,
                         bufferLen);
-#endif
 }
 
-void DebugComms__printfToLander(const char* fmt,
-                                ...)
+void DebugComms__printfToLander(const char* fmt, ...)
 {
-#ifdef ENABLE_DEBUG_ONLY_CODE
+    if (!DEBUG_COMMS_ENABLED) {
+        return;
+    }
+
     if (LC_STATE == NULL || fmt == NULL) {
         return;
     }
@@ -62,13 +77,14 @@ void DebugComms__printfToLander(const char* fmt,
     va_end(args);
 
     DebugComms__stringBufferToLander(PRINT_BUFFER, strlen(PRINT_BUFFER));
-#endif
 }
 
 void DebugComms__tryPrintfToLanderNonblocking(const char* fmt, ...)
 {
+    if (!DEBUG_COMMS_ENABLED) {
+        return;
+    }
 
-#ifdef ENABLE_DEBUG_ONLY_CODE
     if (LC_STATE == NULL || fmt == NULL) {
         return;
     }
@@ -81,14 +97,16 @@ void DebugComms__tryPrintfToLanderNonblocking(const char* fmt, ...)
     va_end(args);
 
     DebugComms__tryStringBufferToLanderNonblocking(PRINT_BUFFER, strlen(PRINT_BUFFER));
-#endif
 }
 
 void DebugComms__printDataAsHexToLander(const uint8_t* data,
                                         size_t dataLen,
                                         BOOL withSpaces)
 {
-#ifdef ENABLE_DEBUG_ONLY_CODE
+    if (!DEBUG_COMMS_ENABLED) {
+        return;
+    }
+
     if (LC_STATE == NULL || data == NULL) {
         return;
     }
@@ -104,18 +122,19 @@ void DebugComms__printDataAsHexToLander(const uint8_t* data,
     length += sprintf(PRINT_BUFFER + length, "\n");
 
     DebugComms__stringBufferToLander(PRINT_BUFFER, strlen(PRINT_BUFFER));
-#endif
 }
 
 void DebugComms__flush(void)
 {
-#ifdef ENABLE_DEBUG_ONLY_CODE
+    if (!DEBUG_COMMS_ENABLED) {
+        return;
+    }
+
     if (LC_STATE == NULL) {
         return;
     }
 
     LanderComms__flushTx(LC_STATE);
-#endif
 }
 
 

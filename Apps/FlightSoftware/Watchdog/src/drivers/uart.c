@@ -45,6 +45,9 @@ struct UART__State
     RingBuffer* rxRingBuff;
 
     Event__Type gotRxEventType;
+
+    size_t isrRxRbPutErrorCount;
+    BOOL isrRxCountChanged;
 };
 
 //###########################################################
@@ -72,7 +75,9 @@ static UART__State uart0State = {
     .registers = &uart0Registers,
     .txRingBuff = NULL,
     .rxRingBuff = NULL,
-    .gotRxEventType = EVENT__TYPE__HERCULES_DATA
+    .gotRxEventType = EVENT__TYPE__HERCULES_DATA,
+    .isrRxRbPutErrorCount = 0,
+    .isrRxCountChanged = FALSE
 };
 
 static UART__State uart1State = {
@@ -80,7 +85,9 @@ static UART__State uart1State = {
     .registers = &uart1Registers,
     .txRingBuff = NULL,
     .rxRingBuff = NULL,
-    .gotRxEventType = EVENT__TYPE__LANDER_DATA
+    .gotRxEventType = EVENT__TYPE__LANDER_DATA,
+    .isrRxRbPutErrorCount = 0,
+    .isrRxCountChanged = FALSE
 };
 
 //###########################################################
@@ -385,6 +392,24 @@ UART__Status UART__receive(UART__State* uartState,
     return UART__STATUS__SUCCESS;
 }
 
+UART__Status UART__checkRxRbErrors(UART__State* uartState, size_t* count, BOOL* countChangedSinceLastCheck)
+{
+    if (NULL == uartState || NULL == count) {
+        return UART__STATUS__ERROR_NULL;
+    }
+
+    if (!(uartState->initialized)) {
+        return UART__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    *count = uartState->isrRxRbPutErrorCount;
+    *countChangedSinceLastCheck = uartState->isrRxCountChanged;
+
+    uartState->isrRxCountChanged = FALSE;
+
+    return UART__STATUS__SUCCESS;
+}
+
 //###########################################################
 // Private function definitions
 //###########################################################
@@ -428,6 +453,9 @@ static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
         DEBUG_LOG_CHECK_STATUS_RETURN(RB__STATUS__SUCCESS, rbStatus,
                                       "Failed to clear RX RB", UART__STATUS__ERROR_RB_CLEAR_FAILURE);
     }
+
+    state->isrRxRbPutErrorCount = 0;
+    state->isrRxCountChanged = FALSE;
 
     return UART__STATUS__SUCCESS;
 }
@@ -598,7 +626,8 @@ BOOL UART__interruptHandler(UART__State* uartState, BOOL isDownlink)
             /* buffer. If we'd rather overwrite the old data, this will need to be updated. */
             rbStatus = RingBuffer__put(uartState->rxRingBuff, data);
             if (rbStatus != RB__STATUS__SUCCESS) {
-                DebugComms__tryPrintfToLanderNonblocking("UART Interrupt RB put error: %d", (int)(rbStatus));
+                uartState->isrRxRbPutErrorCount++;
+                uartState->isrRxCountChanged = TRUE;
             }
 
             if (RB__STATUS__ERROR_FULL == rbStatus) {

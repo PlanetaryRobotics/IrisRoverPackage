@@ -593,8 +593,10 @@ namespace CubeRover {
                 this->cmdResponse_out(txCmdOpCode, txCmdSeqNum, Fw::COMMAND_EXECUTION_ERROR);
             } 
         } else {
-            uint32_t nowMillis = static_cast<uint32_t>(now.get_time_ms());
-            debugPrintfToWatchdog("Stroke response RTT: %u ms\n", nowMillis - txTimeMillis);
+            if (txCmdOpCode == STROKE_OPCODE) {
+                uint32_t nowMillis = static_cast<uint32_t>(now.get_time_ms());
+                debugPrintfToWatchdog("Stroke response RTT: %u ms\n", nowMillis - txTimeMillis);
+            }
 
             // We want to respond positively about the tx message. Make sure we don't try to send a response about any
             // of our fake opcodes, and don't send a response if we didn't want to send one when we sent the message

@@ -250,14 +250,14 @@ class Transceiver(ABC):
         packet_bytes = packet.encode()
 
         # Encode raw data:
-        packet_bytes = self.endecs_decode(packet_bytes)
+        packet_bytes = self.endecs_encode(packet_bytes)
 
         # Uplink encoded data:
         success = self._uplink_byte_packets(packet_bytes)
 
         if success and self.log_on_send:
             logger.info(
-                f"`{self.__class__.__name__}` sent: {scp.hexstr(packet.raw)}"
+                f"`{self.__class__.__name__}` sent: {scp.hexstr(packet_bytes)}"
             )
 
         return success

@@ -4,6 +4,7 @@
 #include "drivers/adc.h"
 #include "drivers/bsp.h"
 #include "drivers/blimp.h"
+#include "drivers/uart.h"
 #include "event/event.h"
 #include "event/event_queue.h"
 
@@ -338,12 +339,18 @@ namespace iris
                                               deployNotificationResponse,
                                               sendDeployNotificationResponse);
 
-            case WD_CMD_MSGS__CMD_ID__SET_HEATER_KP:
-                return doGndCmdSetHeaterKp(theContext,
-                                           msg,
-                                           response,
-                                           deployNotificationResponse,
-                                           sendDeployNotificationResponse);
+            case WD_CMD_MSGS__CMD_ID__SET_DEBUG_COMMS_STATE:
+                if (msg.body.setDebugCommsState.magic != WD_CMD_MSGS__SET_DEBUG_COMMS_STATE_MAGIC_NUMBER) {
+                    /* magic bad */
+                    response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+                } else {
+                    return doGndCmdSetDebugCommsState(theContext,
+                                                      msg,
+                                                      response,
+                                                      deployNotificationResponse,
+                                                      sendDeployNotificationResponse);
+                }
+                break;
 
             case WD_CMD_MSGS__CMD_ID__SET_AUTO_HEATER_ON_VALUE:
                 return doGndCmdSetAutoHeaterOnValue(theContext,
@@ -373,12 +380,18 @@ namespace iris
                                                         deployNotificationResponse,
                                                         sendDeployNotificationResponse);
 
-            case WD_CMD_MSGS__CMD_ID__SET_THERMISTOR_V_SETPOINT:
-                return doGndCmdSetThermisterVSetpoint(theContext,
-                                                      msg,
-                                                      response,
-                                                      deployNotificationResponse,
-                                                      sendDeployNotificationResponse);
+            case WD_CMD_MSGS__CMD_ID__SET_VSAE_STATE:
+                if (msg.body.setVSAEState.magic != WD_CMD_MSGS__SET_VSAE_STATE_MAGIC_NUMBER) {
+                    /* magic bad */
+                    response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+                } else {
+                    return doGndCmdSetVSAEState(theContext,
+                                                msg,
+                                                response,
+                                                deployNotificationResponse,
+                                                sendDeployNotificationResponse);
+                }
+                break;
 
             case WD_CMD_MSGS__CMD_ID__ENTER_SLEEP_MODE:
                 /* Enter sleep mode */
@@ -568,6 +581,8 @@ namespace iris
                                        hcStatus);
         }
 
+        HerculesComms__flushTx(theContext.m_hcState);
+
         return getState();
     }
 
@@ -583,14 +598,9 @@ namespace iris
         DEBUG_ASSERT_NOT_EQUAL(0, payloadSize);
 #pragma diag_pop
 
-        // For downlink we first send the data to the lander, then we reply to the Hercules
+        // For downlink we first reply to the Hercules, then we send the data to the lander
 
-        // 1) Send data to lander
-        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState, payloadBuffer, payloadSize);
-
-        DEBUG_LOG_CHECK_STATUS(LANDER_COMMS__STATUS__SUCCESS, lcStatus, "Downlink failed");
-
-        // 2) Reply to Hercules
+        // 1) Reply to Hercules
         HerculesComms__Status hcStatus = HerculesComms__txResponseMsg(theContext.m_hcState,
                                                                       header,
                                                                       nullptr,
@@ -601,6 +611,11 @@ namespace iris
                                        "RoverStateBase::handleDownlinkFromHercules\n",
                                        hcStatus);
         }
+
+        // 2) Send data to lander
+        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState, payloadBuffer, payloadSize);
+
+        DEBUG_LOG_CHECK_STATUS(LANDER_COMMS__STATUS__SUCCESS, lcStatus, "Downlink failed");
 
         LanderComms__flushTx(theContext.m_lcState);
 
@@ -750,14 +765,29 @@ namespace iris
         return getState();
     }
 
-    RoverState RoverStateBase::doGndCmdSetHeaterKp(RoverContext& theContext,
-                                                   const WdCmdMsgs__Message& msg,
-                                                   WdCmdMsgs__Response& response,
-                                                   WdCmdMsgs__Response& deployNotificationResponse,
-                                                   bool& sendDeployNotificationResponse)
+    RoverState RoverStateBase::doGndCmdSetDebugCommsState(RoverContext& theContext,
+                                                          const WdCmdMsgs__Message& msg,
+                                                          WdCmdMsgs__Response& response,
+                                                          WdCmdMsgs__Response& deployNotificationResponse,
+                                                          bool& sendDeployNotificationResponse)
     {
-        theContext.m_details.m_hParams.m_kpHeater = msg.body.setHeaterKp.kp;
-        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+        switch (msg.body.setDebugCommsState.selection) {
+            case WD_CMD_MSGS__DEBUG_COMMS__ON:
+                DebugComms__setEnabled(TRUE);
+                DebugComms__printfToLander("Debug comms enabled\n");
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__DEBUG_COMMS__OFF:
+                DebugComms__printfToLander("Disabling debug comms\n");
+                DebugComms__setEnabled(FALSE);
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            default:
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+        }
+
         return getState();
     }
 
@@ -813,15 +843,32 @@ namespace iris
         return getState();
     }
 
-    RoverState RoverStateBase::doGndCmdSetThermisterVSetpoint(RoverContext& theContext,
-                                                              const WdCmdMsgs__Message& msg,
-                                                              WdCmdMsgs__Response& response,
-                                                              WdCmdMsgs__Response& deployNotificationResponse,
-                                                              bool& sendDeployNotificationResponse)
+    RoverState RoverStateBase::doGndCmdSetVSAEState(RoverContext& theContext,
+                                                    const WdCmdMsgs__Message& msg,
+                                                    WdCmdMsgs__Response& response,
+                                                    WdCmdMsgs__Response& deployNotificationResponse,
+                                                    bool& sendDeployNotificationResponse)
     {
-        theContext.m_details.m_hParams.m_heaterSetpoint =
-                msg.body.setThermisterVSetpoint.thermisterVSetpoint;
-        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+        switch (msg.body.setVSAEState.selection) {
+            case WD_CMD_MSGS__VSAE__ON:
+                blimp_vSysAllEnOn();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__VSAE__OFF:
+                blimp_vSysAllEnOff();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            case WD_CMD_MSGS__VSAE__FORCE_LOW:
+                blimp_vSysAllEnForceLow();
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+                break;
+
+            default:
+                response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_PARAMETER;
+        }
+
         return getState();
     }
 
@@ -1318,8 +1365,8 @@ namespace iris
 
             case WD_CMD_MSGS__RESET_ID__3_3V_EN_POWER_ON:
                 if (allowPowerOn) {
-                    enable3V3PowerRail();
                     blimp_vSysAllEnOn();
+                    enable3V3PowerRail();
                     SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__3V3_EN_POWER_ON);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;

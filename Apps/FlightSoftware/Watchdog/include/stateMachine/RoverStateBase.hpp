@@ -102,11 +102,11 @@ namespace iris
                                                       WdCmdMsgs__Response& deployNotificationResponse,
                                                       bool& sendDeployNotificationResponse);
 
-            virtual RoverState doGndCmdSetHeaterKp(RoverContext& theContext,
-                                                   const WdCmdMsgs__Message& msg,
-                                                   WdCmdMsgs__Response& response,
-                                                   WdCmdMsgs__Response& deployNotificationResponse,
-                                                   bool& sendDeployNotificationResponse);
+            virtual RoverState doGndCmdSetDebugCommsState(RoverContext& theContext,
+                                                          const WdCmdMsgs__Message& msg,
+                                                          WdCmdMsgs__Response& response,
+                                                          WdCmdMsgs__Response& deployNotificationResponse,
+                                                          bool& sendDeployNotificationResponse);
 
             virtual RoverState doGndCmdSetAutoHeaterOnValue(RoverContext& theContext,
                                                             const WdCmdMsgs__Message& msg,
@@ -132,11 +132,11 @@ namespace iris
                                                                 WdCmdMsgs__Response& deployNotificationResponse,
                                                                 bool& sendDeployNotificationResponse);
 
-            virtual RoverState doGndCmdSetThermisterVSetpoint(RoverContext& theContext,
-                                                              const WdCmdMsgs__Message& msg,
-                                                              WdCmdMsgs__Response& response,
-                                                              WdCmdMsgs__Response& deployNotificationResponse,
-                                                              bool& sendDeployNotificationResponse);
+            virtual RoverState doGndCmdSetVSAEState(RoverContext& theContext,
+                                                    const WdCmdMsgs__Message& msg,
+                                                    WdCmdMsgs__Response& response,
+                                                    WdCmdMsgs__Response& deployNotificationResponse,
+                                                    bool& sendDeployNotificationResponse);
 
             virtual RoverState doGndCmdEnterSleepMode(RoverContext& theContext,
                                                       const WdCmdMsgs__Message& msg,

@@ -107,26 +107,26 @@ WdCmdMsgs__deserializeSwitchConnModeBody(const void* src,
                                          WdCmdMsgs__MsgBody__SwitchConnMode* dst);
 
 /**
- * @brief Deserializes the set heater Kp message body packed in |src| with little endianness into the struct
+ * @brief Deserializes the set debug comms state message body packed in |src| with little endianness into the struct
  *        |dst| with system endianness.
  *
  * @param src [IN] The buffer containing the packed message body to be deserialized. Must have a size, as determined by
- *            the value of |srcLen|, of at least WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_KP_BODY bytes.
+ *            the value of |srcLen|, of at least WD_CMD_MSGS__PACKED_SIZE__SET_DEBUG_COMMS_STATE_BODY bytes.
  * @param srcLen [IN] The length of the buffer pointed to by |src|. Must be at least
- *               WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_KP_BODY.
+ *               WD_CMD_MSGS__PACKED_SIZE__SET_DEBUG_COMMS_STATE_BODY.
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
  *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
  *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
  *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                  WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_KP_BODY.
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__SET_DEBUG_COMMS_STATE_BODY.
  *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
-WdCmdMsgs__deserializeSetHeaterKpBody(const void* src,
-                                      size_t srcLen,
-                                      WdCmdMsgs__MsgBody__SetHeaterKp* dst);
+WdCmdMsgs__deserializeSetDebugCommsStateBody(const void* src,
+                                             size_t srcLen,
+                                             WdCmdMsgs__MsgBody__SetDebugCommsState* dst);
 
 /**
  * @brief Deserializes the set auto heater on value message body packed in |src| with little endianness into the
@@ -217,26 +217,26 @@ WdCmdMsgs__deserializeSetHeaterDutyCyclePeriodBody(const void* src,
                                                    WdCmdMsgs__MsgBody__SetHeaterDutyCyclePeriod* dst);
 
 /**
- * @brief Deserializes the set thermister V setpoint message body packed in |src| with little endianness into the
+ * @brief Deserializes the set VSAE state message body packed in |src| with little endianness into the
  *        struct |dst| with system endianness.
  *
  * @param src [IN] The buffer containing the packed message body to be deserialized. Must have a size, as determined by
- *            the value of |srcLen|, of at least WD_CMD_MSGS__PACKED_SIZE__SET_THERMISTER_V_SETPOINT_BODY bytes.
+ *            the value of |srcLen|, of at least WD_CMD_MSGS__PACKED_SIZE__SET_VSAE_STATE_BODY bytes.
  * @param srcLen [IN] The length of the buffer pointed to by |src|. Must be at least
- *               WD_CMD_MSGS__PACKED_SIZE__SET_THERMISTER_V_SETPOINT_BODY.
+ *               WD_CMD_MSGS__PACKED_SIZE__SET_VSAE_STATE_BODY.
  * @param dst [OUT] The struct into which the message body will be deserialized.
  *
  * @return WdCmdMsgs__Status One of the following:
  *   - WD_CMD_MSGS__STATUS__SUCCESS: The function was successful.
  *   - WD_CMD_MSGS__STATUS__ERROR_NULL: |src| or |dst| was NULL.
  *   - WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL: |srcLen| was less than
- *                                                  WD_CMD_MSGS__PACKED_SIZE__SET_THERMISTER_V_SETPOINT_BODY.
+ *                                                  WD_CMD_MSGS__PACKED_SIZE__SET_VSAE_STATE_BODY.
  *   - WD_CMD_MSGS__STATUS__ERROR_SERIALIZATION_ERROR: A Serialization function call returned an error.
  */
 static WdCmdMsgs__Status
-WdCmdMsgs__deserializeSetThermisterVSetpointBody(const void* src,
-                                                 size_t srcLen,
-                                                 WdCmdMsgs__MsgBody__SetThermisterVSetpoint* dst);
+WdCmdMsgs__deserializeSetVSAEStateBody(const void* src,
+                                       size_t srcLen,
+                                       WdCmdMsgs__MsgBody__SetVSAEState* dst);
 
 /**
  * @brief Deserializes the enter sleep mode message body packed in |src| with little endianness into the
@@ -580,8 +580,8 @@ WdCmdMsgs__deserializeBody(WdCmdMsgs__CommandId srcMsgId,
         case WD_CMD_MSGS__CMD_ID__SWITCH_CONN_MODE:
             return WdCmdMsgs__deserializeSwitchConnModeBody(src, srcLen, &(dst->switchConnMode));
 
-        case WD_CMD_MSGS__CMD_ID__SET_HEATER_KP:
-            return WdCmdMsgs__deserializeSetHeaterKpBody(src, srcLen, &(dst->setHeaterKp));
+        case WD_CMD_MSGS__CMD_ID__SET_DEBUG_COMMS_STATE:
+            return WdCmdMsgs__deserializeSetDebugCommsStateBody(src, srcLen, &(dst->setDebugCommsState));
 
         case WD_CMD_MSGS__CMD_ID__SET_AUTO_HEATER_ON_VALUE:
             return WdCmdMsgs__deserializeSetAutoHeaterOnValueBody(src, srcLen, &(dst->setAutoHeaterOnValue));
@@ -595,8 +595,8 @@ WdCmdMsgs__deserializeBody(WdCmdMsgs__CommandId srcMsgId,
         case WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_PERIOD:
             return WdCmdMsgs__deserializeSetHeaterDutyCyclePeriodBody(src, srcLen, &(dst->setHeaterDutyCyclePeriod));
 
-        case WD_CMD_MSGS__CMD_ID__SET_THERMISTOR_V_SETPOINT:
-            return WdCmdMsgs__deserializeSetThermisterVSetpointBody(src, srcLen, &(dst->setThermisterVSetpoint));
+        case WD_CMD_MSGS__CMD_ID__SET_VSAE_STATE:
+            return WdCmdMsgs__deserializeSetVSAEStateBody(src, srcLen, &(dst->setVSAEState));
 
         case WD_CMD_MSGS__CMD_ID__ENTER_SLEEP_MODE:
             return WdCmdMsgs__deserializeEnterSleepModeBody(src, srcLen, &(dst->enterSleepMode));
@@ -789,22 +789,29 @@ WdCmdMsgs__deserializeSwitchConnModeBody(const void* src,
 }
 
 static WdCmdMsgs__Status
-WdCmdMsgs__deserializeSetHeaterKpBody(const void* src,
-                                      size_t srcLen,
-                                      WdCmdMsgs__MsgBody__SetHeaterKp* dst)
+WdCmdMsgs__deserializeSetDebugCommsStateBody(const void* src,
+                                             size_t srcLen,
+                                             WdCmdMsgs__MsgBody__SetDebugCommsState* dst)
 {
     if (NULL == src || NULL == dst) {
         return WD_CMD_MSGS__STATUS__ERROR_NULL;
     }
 
-    if (srcLen < WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_KP_BODY) {
+    if (srcLen < WD_CMD_MSGS__PACKED_SIZE__SET_DEBUG_COMMS_STATE_BODY) {
         return WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL;
     }
 
     uint8_t* srcIntPtr = (uint8_t*) src;
-    short deserializationResult = 
-        Serialization__deserializeAs16Bit(srcIntPtr, &(dst->kp), SERIALIZATION__LITTLE_ENDIAN);
+    short deserializationResult =
+        Serialization__deserializeAs8Bit(srcIntPtr, &(dst->magic), SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(deserializationResult);
+    srcIntPtr += sizeof(dst->magic);
+
+    uint8_t enumAsUint = 0;
+    deserializationResult =
+        Serialization__deserializeAs8Bit(srcIntPtr, &enumAsUint, SERIALIZATION__LITTLE_ENDIAN);
+    CHECK_SERIALIZATION_RESULT(deserializationResult);
+    dst->selection = (WdCmdMsgs__SetDebugCommsSelection) enumAsUint;
 
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }
@@ -894,22 +901,29 @@ WdCmdMsgs__deserializeSetHeaterDutyCyclePeriodBody(const void* src,
 }
 
 static WdCmdMsgs__Status
-WdCmdMsgs__deserializeSetThermisterVSetpointBody(const void* src,
-                                                 size_t srcLen,
-                                                 WdCmdMsgs__MsgBody__SetThermisterVSetpoint* dst)
+WdCmdMsgs__deserializeSetVSAEStateBody(const void* src,
+                                       size_t srcLen,
+                                       WdCmdMsgs__MsgBody__SetVSAEState* dst)
 {
     if (NULL == src || NULL == dst) {
         return WD_CMD_MSGS__STATUS__ERROR_NULL;
     }
 
-    if (srcLen < WD_CMD_MSGS__PACKED_SIZE__SET_THERMISTER_V_SETPOINT_BODY) {
+    if (srcLen < WD_CMD_MSGS__PACKED_SIZE__SET_VSAE_STATE_BODY) {
         return WD_CMD_MSGS__STATUS__ERROR_BUFFER_TOO_SMALL;
     }
 
     uint8_t* srcIntPtr = (uint8_t*) src;
-    short deserializationResult = 
-        Serialization__deserializeAs16Bit(srcIntPtr, &(dst->thermisterVSetpoint), SERIALIZATION__LITTLE_ENDIAN);
+    short deserializationResult =
+        Serialization__deserializeAs8Bit(srcIntPtr, &(dst->magic), SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(deserializationResult);
+    srcIntPtr += sizeof(dst->magic);
+
+    uint8_t enumAsUint = 0;
+    deserializationResult =
+        Serialization__deserializeAs8Bit(srcIntPtr, &enumAsUint, SERIALIZATION__LITTLE_ENDIAN);
+    CHECK_SERIALIZATION_RESULT(deserializationResult);
+    dst->selection = (WdCmdMsgs__SetVSAESelection) enumAsUint;
 
     return WD_CMD_MSGS__STATUS__SUCCESS;
 }

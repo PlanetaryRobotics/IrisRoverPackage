@@ -159,6 +159,8 @@ HerculesComms__Status HerculesComms__txResponseMsg(HerculesComms__State* hState,
                                                    const uint8_t* data,
                                                    size_t dataLen);
 
+HerculesComms__Status HerculesComms__flushTx(HerculesComms__State* hState);
+
 /**
  * @brief Clears the underlying UART receive buffer and resets the internal message parsing state machine.
  *

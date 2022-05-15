@@ -22,7 +22,7 @@
 static volatile uint16_t shouldBeUnusedWatchdogFlags = 0;
 static volatile uint16_t shouldBeUnusedTimeCount = 0;
 
-static volatile uint16_t* watchdogFlagsPtr = &shouldBeUnusedWatchdogFlags;
+//static volatile uint16_t* watchdogFlagsPtr = &shouldBeUnusedWatchdogFlags;
 static volatile uint16_t* timeCountCentisecondsPtr = &shouldBeUnusedTimeCount;
 
 /**
@@ -36,7 +36,7 @@ int watchdog_init(volatile uint16_t* watchdogFlags,
     DEBUG_LOG_NULL_CHECK_RETURN(timeCountCentiseconds, "Parameter is NULL", -1);
     DEBUG_LOG_NULL_CHECK_RETURN(hParams, "Parameter is NULL", -1);
 
-    watchdogFlagsPtr = watchdogFlags;
+//    watchdogFlagsPtr = watchdogFlags;
     timeCountCentisecondsPtr = timeCountCentiseconds;
 
     /* =====================================================
@@ -268,7 +268,7 @@ int watchdog_monitor(HerculesComms__State* hState,
                 HerculesComms__Status hcStatus = HerculesComms__resetState(hState);
 
                 //!< @todo Replace with returning watchdog error code once that is implemented.
-                assert(HERCULES_COMMS__STATUS__SUCCESS == hcStatus);
+                DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
             }
 
             *writeIOExpander = TRUE;
@@ -341,6 +341,7 @@ void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
  */
 
 /* Port 1 handler */
+#if 0
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=PORT1_VECTOR
 __interrupt void port1_isr_handler(void) {
@@ -354,7 +355,7 @@ void __attribute__ ((interrupt(PORT1_VECTOR))) port1_isr_handler (void) {
             *watchdogFlagsPtr |= WDFLAG_RADIO_KICK;
 
             // exit LPM
-            EXIT_DEFAULT_LPM;
+            __low_power_mode_off_on_exit();
             break;
         default: // default: ignore
             break;
@@ -375,7 +376,7 @@ void __attribute__ ((interrupt(PORT3_VECTOR))) port3_isr_handler (void) {
             break;
     }
 }
-
+#endif
 
 /* Timer 1 handler */
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
@@ -396,7 +397,7 @@ void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer0_A1_ISR (void) {
 
         case TAIV__TAIFG: /* timer tick overflowed */
             EventQueue__put(EVENT__TYPE__TIMER_TICK);
-            EXIT_DEFAULT_LPM;
+            __low_power_mode_off_on_exit();
             break;
 
         default:

@@ -104,8 +104,11 @@ namespace iris
         theContext.m_writeCustomIoExpanderValues = false;
         initiateNextI2cAction(theContext);
 
+        uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+        uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+        uint16_t endTimeCentiseconds = startTimeCentiseconds + 300; // Three second timeout
         bool done = false;
-        while (!done) {
+        while (!done && currentTimeCentiseconds <= endTimeCentiseconds) {
             I2C_Sensors__spinOnce();
 
             I2C_Sensors__Action action = I2C_SENSORS__ACTIONS__INACTIVE;
@@ -125,6 +128,12 @@ namespace iris
 
                 done = true;
             }
+
+            currentTimeCentiseconds = Time__getTimeInCentiseconds();
+        }
+
+        if (currentTimeCentiseconds > endTimeCentiseconds) {
+            DebugComms__printfToLander("Timed out in RoverStateInit::transitionTo\n");
         }
 
         blimp_normalBoot(); // run this on every boot as early as possible after IO Expander init.

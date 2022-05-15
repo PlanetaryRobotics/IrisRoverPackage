@@ -30,6 +30,16 @@ namespace iris
             adcCheckVoltageLevels(&(theContext.m_adcValues));
         }
 
+        // Check for UART errors to report
+        size_t count = 0;
+        BOOL changed = FALSE;
+        UART__Status uStatus = UART__checkRxRbErrors(theContext.m_uart1State, &count, &changed);
+        DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Lander UART Rx Rb Error count");
+
+        if (changed) {
+            DebugComms__printfToLander("New Lander UART Rx Rb failures, total count = %u\n", count);
+        }
+
         /* send heartbeat with collected data */
         static FullEarthHeartbeat hb = { 0 };
         GroundMsgs__Status gcStatus = GroundMsgs__generateFullEarthHeartbeat(&(theContext.m_i2cReadings),

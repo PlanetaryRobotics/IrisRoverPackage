@@ -1002,7 +1002,11 @@ void I2C_Sensors__spinOnce(void)
         return;
     }
 
-    while (keepSpinning) {
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + 100; // One second timeout
+
+    while (keepSpinning && currentTimeCentiseconds <= endTimeCentiseconds) {
         I2C__spinOnce();
 
         switch (internals.activeAction) {
@@ -1206,6 +1210,12 @@ void I2C_Sensors__spinOnce(void)
                 keepSpinning = FALSE;
                 break;
         }
+
+        currentTimeCentiseconds = Time__getTimeInCentiseconds();
+    }
+
+    if (currentTimeCentiseconds > endTimeCentiseconds) {
+        DebugComms__printfToLander("Timed out in I2C_Sensors__spinOnce, action = %d\n", (int)internals.activeAction);
     }
 }
 

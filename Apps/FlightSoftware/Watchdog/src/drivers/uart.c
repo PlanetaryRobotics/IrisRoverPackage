@@ -18,6 +18,7 @@
 #include "event/event.h"
 #include "event/event_queue.h"
 #include "utils/ring_buffer.h"
+#include "utils/time.h"
 #include "common.h"
 #include "flags.h"
 
@@ -44,6 +45,9 @@ struct UART__State
     RingBuffer* rxRingBuff;
 
     Event__Type gotRxEventType;
+
+    size_t isrRxRbPutErrorCount;
+    BOOL isrRxCountChanged;
 };
 
 //###########################################################
@@ -71,7 +75,9 @@ static UART__State uart0State = {
     .registers = &uart0Registers,
     .txRingBuff = NULL,
     .rxRingBuff = NULL,
-    .gotRxEventType = EVENT__TYPE__HERCULES_DATA
+    .gotRxEventType = EVENT__TYPE__HERCULES_DATA,
+    .isrRxRbPutErrorCount = 0,
+    .isrRxCountChanged = FALSE
 };
 
 static UART__State uart1State = {
@@ -79,7 +85,9 @@ static UART__State uart1State = {
     .registers = &uart1Registers,
     .txRingBuff = NULL,
     .rxRingBuff = NULL,
-    .gotRxEventType = EVENT__TYPE__LANDER_DATA
+    .gotRxEventType = EVENT__TYPE__LANDER_DATA,
+    .isrRxRbPutErrorCount = 0,
+    .isrRxCountChanged = FALSE
 };
 
 //###########################################################
@@ -218,8 +226,8 @@ BOOL UART__checkIfSendable(UART__State* uartState, size_t dataLen, size_t* free)
     size_t numFree = 0;
 
     // Disable the tx interrupt for this uart while we get the number of free bytes in the ring buffer
-    uint16_t existingTxInterruptBitState = *(uartState->registers->UCAxIE) & UCTXIE;
-    *(uartState->registers->UCAxIE) &= ~UCTXIE;
+//    uint16_t existingTxInterruptBitState = *(uartState->registers->UCAxIE) & UCTXIE;
+//    *(uartState->registers->UCAxIE) &= ~UCTXIE;
 
     numFree = RingBuffer__freeCount(uartState->txRingBuff);
 
@@ -234,7 +242,7 @@ BOOL UART__checkIfSendable(UART__State* uartState, size_t dataLen, size_t* free)
     // Re-enable the tx interrupt only if it was previously enabled or if there are bytes remaining in the ring
     // buffer
     /** @todo Replace hard-coded 1024 with a variable. This is cheating and will break if we change the buffer size */
-    *(uartState->registers->UCAxIE) |= (existingTxInterruptBitState); //| ((numFree == 1024) ? UCTXIE : 0));
+//    *(uartState->registers->UCAxIE) |= (existingTxInterruptBitState); //| ((numFree == 1024) ? UCTXIE : 0));
 
     if (NULL != free) {
         *free = numFree;
@@ -255,30 +263,43 @@ void UART__flushTx(UART__State* uartState)
 
     size_t numUsed = 0;
 
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + 100; // One second timeout
+    BOOL timeout = FALSE;
+
     do {
         // Disable the tx interrupt for this uart while we get the number of free bytes in the ring buffer
-        uint16_t existingTxInterruptBitState = *(uartState->registers->UCAxIE) & UCTXIE;
-        *(uartState->registers->UCAxIE) &= ~UCTXIE;
+//        uint16_t existingTxInterruptBitState = *(uartState->registers->UCAxIE) & UCTXIE;
+//        *(uartState->registers->UCAxIE) &= ~UCTXIE;
 
         numUsed = RingBuffer__usedCount(uartState->txRingBuff);
 
         // I'm not exactly sure what conditions are causing it, but I've seen the TX interrupts stall
         // (i.e. TX interrupts stop occurring even though there is data in the TX ring buffer)
         // To work around this, we re-enable the TXIFG bit here under certain conditions
-        if ((existingTxInterruptBitState == 0) && numUsed > 0) {
-            *(uartState->registers->UCAxIFG) |= UCTXIFG;
-        }
+//        if ((existingTxInterruptBitState == 0) && numUsed > 0) {
+//            *(uartState->registers->UCAxIFG) |= UCTXIFG;
+//        }
 
         // Re-enable the tx interrupt only if it was previously enabled or if there are bytes remaining in the ring
         // buffer
-        *(uartState->registers->UCAxIE) |= (existingTxInterruptBitState);// | ((numUsed > 0) ? UCTXIE : 0));
+//        *(uartState->registers->UCAxIE) |= (existingTxInterruptBitState);// | ((numUsed > 0) ? UCTXIE : 0));
 
         if (numUsed != 0) {
             __delay_cycles(10000);
             //OLD: WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;
             WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__SMCLK + WDTIS0;
         }
-    } while (numUsed != 0);
+
+        __enable_interrupt(); // Make sure interrupts aren't disabled so that we get clock updates
+        currentTimeCentiseconds = Time__getTimeInCentiseconds();
+        timeout = currentTimeCentiseconds > endTimeCentiseconds;
+    } while (numUsed != 0 && !timeout);
+
+    if (timeout) {
+        DebugComms__printfToLander("Timed out in UART__flushTx\n");
+    }
 }
 
 UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t dataLen)
@@ -371,6 +392,24 @@ UART__Status UART__receive(UART__State* uartState,
     return UART__STATUS__SUCCESS;
 }
 
+UART__Status UART__checkRxRbErrors(UART__State* uartState, size_t* count, BOOL* countChangedSinceLastCheck)
+{
+    if (NULL == uartState || NULL == count) {
+        return UART__STATUS__ERROR_NULL;
+    }
+
+    if (!(uartState->initialized)) {
+        return UART__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    *count = uartState->isrRxRbPutErrorCount;
+    *countChangedSinceLastCheck = uartState->isrRxCountChanged;
+
+    uartState->isrRxCountChanged = FALSE;
+
+    return UART__STATUS__SUCCESS;
+}
+
 //###########################################################
 // Private function definitions
 //###########################################################
@@ -414,6 +453,9 @@ static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
         DEBUG_LOG_CHECK_STATUS_RETURN(RB__STATUS__SUCCESS, rbStatus,
                                       "Failed to clear RX RB", UART__STATUS__ERROR_RB_CLEAR_FAILURE);
     }
+
+    state->isrRxRbPutErrorCount = 0;
+    state->isrRxCountChanged = FALSE;
 
     return UART__STATUS__SUCCESS;
 }
@@ -552,54 +594,59 @@ static void UART__uart1Init() {
 }
 
 
-#define UART__interruptHandler(uartState)                                                        \
-{                                                                                                \
-    uint8_t data = 0U;                                                                           \
-    RingBuffer__Status rbStatus = RB__STATUS__SUCCESS;                                           \
-                                                                                                 \
-    /* two possibilities; rx or tx */                                                            \
-    switch(__even_in_range(*(uartState.registers->UCAxIV), USCI_UART_UCTXCPTIFG)) {              \
-        case USCI_UART_UCTXIFG: /* transmitted byte successfully */                              \
-            rbStatus = RingBuffer__get(uartState.txRingBuff, &data);                             \
-                                                                                                 \
-            if (RB__STATUS__SUCCESS == rbStatus) {                                               \
-                /* We got another byte to send, so put it in the tx buffer */                    \
-                *(uartState.registers->UCAxTXBUF) = data;                                        \
-            } else if (RB__STATUS__ERROR_EMPTY == rbStatus) {                                    \
-                /* There are no more bytes to send, so disable TX interrupt for this uart */     \
-                *(uartState.registers->UCAxIE) &= ~UCTXIE;                                       \
-            } else {                                                                             \
-                /* An error occurred. */                                                         \
-                /** @todo handling? logging? */                                                  \
-            }                                                                                    \
-            break;                                                                               \
-                                                                                                 \
-        case USCI_UART_UCRXIFG: /* received new byte */                                          \
-            /* get the received character */                                                     \
-            data = *(uartState.registers->UCAxRXBUF);                                            \
-                                                                                                 \
-            /* Note: calling this means that if the buffer is full and we get new data, */       \
-            /* we'll drop the new data instead of overwriting the oldest data in the */          \
-            /* buffer. If we'd rather overwrite the old data, this will need to be updated. */   \
-            rbStatus = RingBuffer__put(uartState.rxRingBuff, data);                              \
-            assert(rbStatus == RB__STATUS__SUCCESS); \
-                                                                                                 \
-            if (RB__STATUS__ERROR_FULL == rbStatus) {                                            \
-                /* The ring buffer is full, so data will be dropped. */                          \
-                /** @todo handling? logging? */                                                  \
-            } else if (RB__STATUS__SUCCESS != rbStatus) {                                        \
-                /* An error occurred. */                                                         \
-                /** @todo handling? logging? */                                                  \
-            }                                                                                    \
-                                                                                                 \
-            EventQueue__put(uartState.gotRxEventType);                                           \
-            EXIT_DEFAULT_LPM;                                                                    \
-                                                                                                 \
-            break;                                                                               \
-                                                                                                 \
-        default: /* some other possibilities */                                                  \
-            break;                                                                               \
-    }                                                                                            \
+BOOL UART__interruptHandler(UART__State* uartState, BOOL isDownlink)
+{
+    uint8_t data = 0U;
+    RingBuffer__Status rbStatus = RB__STATUS__SUCCESS;
+    BOOL exitLPMOnExit = FALSE;
+
+    /* two possibilities; rx or tx */
+    switch(__even_in_range(*(uartState->registers->UCAxIV), USCI_UART_UCTXCPTIFG)) {
+        case USCI_UART_UCTXIFG: /* transmitted byte successfully */
+            rbStatus = RingBuffer__get(uartState->txRingBuff, &data);
+
+            if (RB__STATUS__SUCCESS == rbStatus) {
+                /* We got another byte to send, so put it in the tx buffer */
+                *(uartState->registers->UCAxTXBUF) = data;
+            } else if (RB__STATUS__ERROR_EMPTY == rbStatus) {
+                /* There are no more bytes to send, so disable TX interrupt for this uart */
+                *(uartState->registers->UCAxIE) &= ~UCTXIE;
+            } else {
+                /* An error occurred. */
+                /** @todo handling? logging? */
+            }
+            break;
+
+        case USCI_UART_UCRXIFG: /* received new byte */
+            /* get the received character */
+            data = *(uartState->registers->UCAxRXBUF);
+
+            /* Note: calling this means that if the buffer is full and we get new data, */
+            /* we'll drop the new data instead of overwriting the oldest data in the */
+            /* buffer. If we'd rather overwrite the old data, this will need to be updated. */
+            rbStatus = RingBuffer__put(uartState->rxRingBuff, data);
+            if (rbStatus != RB__STATUS__SUCCESS) {
+                uartState->isrRxRbPutErrorCount++;
+                uartState->isrRxCountChanged = TRUE;
+            }
+
+            if (RB__STATUS__ERROR_FULL == rbStatus) {
+                /* The ring buffer is full, so data will be dropped. */
+                /** @todo handling? logging? */
+            } else if (RB__STATUS__SUCCESS != rbStatus) {
+                /* An error occurred. */
+                /** @todo handling? logging? */
+            }
+
+            EventQueue__put(uartState->gotRxEventType);
+            exitLPMOnExit = TRUE;
+            break;
+
+        default: /* some other possibilities */
+            break;
+    }
+
+    return exitLPMOnExit;
 }
 
 //###########################################################
@@ -617,7 +664,9 @@ static void UART__uart1Init() {
 #endif
     
 #pragma FORCEINLINE_RECURSIVE
-    UART__interruptHandler(uart0State);
+    if (UART__interruptHandler(&uart0State, FALSE)) {
+        __low_power_mode_off_on_exit();
+    }
 }
 
 
@@ -632,5 +681,7 @@ static void UART__uart1Init() {
 #endif
     
 #pragma FORCEINLINE_RECURSIVE
-    UART__interruptHandler(uart1State);
+    if (UART__interruptHandler(&uart1State, TRUE)) {
+        __low_power_mode_off_on_exit();
+    }
 }

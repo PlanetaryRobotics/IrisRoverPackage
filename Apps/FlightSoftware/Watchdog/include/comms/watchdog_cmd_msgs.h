@@ -73,12 +73,12 @@ typedef enum WdCmdMsgs__CommandId
     WD_CMD_MSGS__CMD_ID__PREP_FOR_DEPLOY = 0x1001, //!< Prepare to Deploy.
     WD_CMD_MSGS__CMD_ID__DEPLOY = 0x1002, //!< Deploy.
     WD_CMD_MSGS__CMD_ID__SWITCH_CONN_MODE = 0x1004, //!< Switch Connection Mode.
-    WD_CMD_MSGS__CMD_ID__SET_HEATER_KP = 0x10AA, //!< Set proportional constant of heater temperature controller.
+    WD_CMD_MSGS__CMD_ID__SET_DEBUG_COMMS_STATE = 0x10AA, //!< Sets debug comms on or off.
     WD_CMD_MSGS__CMD_ID__SET_AUTO_HEATER_ON_VALUE = 0x10AB, //!< Set heater "ON" value used with auto heater controller.
     WD_CMD_MSGS__CMD_ID__SET_AUTO_HEATER_OFF_VALUE = 0x10AC, //!< Set heater "OFF" value used with auto heater controller.
     WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE = 0x10AD, //!< Set duty cycle of heater PWM.
     WD_CMD_MSGS__CMD_ID__SET_HEATER_DUTY_CYCLE_PERIOD = 0x10AE, //!< Set period of heater PWM.
-    WD_CMD_MSGS__CMD_ID__SET_THERMISTOR_V_SETPOINT = 0x10DA, //!< Set the thermistor value setpoint.
+    WD_CMD_MSGS__CMD_ID__SET_VSAE_STATE = 0x10DA, //!< Set VSAE on or off.
     WD_CMD_MSGS__CMD_ID__ENTER_SLEEP_MODE = 0x10EA, //!< Enter "Sleep" mode.
     WD_CMD_MSGS__CMD_ID__ENTER_KEEPALIVE_MODE = 0x10EB, //!< Enter "Keep Alive" mode.
     WD_CMD_MSGS__CMD_ID__ENTER_SERVICE_MODE = 0x10EC, //!< Enter "Service" mode.
@@ -237,6 +237,25 @@ typedef enum WdCmdMsgs__LatchSetResetSelection
 } WdCmdMsgs__LatchSetResetSelection;
 
 /**
+ * @brief Possible values of the parameter of the Set Debug Comms State command.
+ */
+typedef enum WdCmdMsgs__SetDebugCommsSelection
+{
+    WD_CMD_MSGS__DEBUG_COMMS__ON = 0xFF, //!< Enable Debug Comms
+    WD_CMD_MSGS__DEBUG_COMMS__OFF = 0x00 //!< Disable Debug Comms
+} WdCmdMsgs__SetDebugCommsSelection;
+
+/**
+ * @brief Possible values of the parameter of the Set VSAE State command.
+ */
+typedef enum WdCmdMsgs__SetVSAESelection
+{
+    WD_CMD_MSGS__VSAE__ON = 0xFF, //!< Enable VSAE
+    WD_CMD_MSGS__VSAE__OFF = 0x00, //!< Disable VSAE
+    WD_CMD_MSGS__VSAE__FORCE_LOW = 0x66 //!< Force VSAE low
+} WdCmdMsgs__SetVSAESelection;
+
+/**
  * @brief The magic number that is expected as the parameter of all of the commands that change the mode.
  */
 static const uint8_t WD_CMD_MSGS__CONFIRM_MODE_CHANGE_MAGIC_NUMBER = 0x77u;
@@ -270,6 +289,16 @@ static const uint8_t WD_CMD_MSGS__CONFIRM_CLR_RST_MEM_MAGIC_NUMBER_TWO = 0x19u;
  * @brief The magic number that is expected as the parameter of the "Request Detailed Report" command.
  */
 static const uint8_t WD_CMD_MSGS__CONFIRM_REQ_DET_REPORT_MAGIC_NUMBER = 0x57u;
+
+/**
+ * @brief The magic number that is expected as the parameter of the "Set Debug Comms State" command.
+ */
+static const uint8_t WD_CMD_MSGS__SET_DEBUG_COMMS_STATE_MAGIC_NUMBER = 0xCCu;
+
+/**
+ * @brief The magic number that is expected as the parameter of the "Set VSAE State" command.
+ */
+static const uint8_t WD_CMD_MSGS__SET_VSAE_STATE_MAGIC_NUMBER = 0xBBu;
 
 /**
  * @brief The magic number expected as the first byte of the response message.
@@ -313,12 +342,13 @@ typedef struct WdCmdMsgs__MsgBody__SwitchConnMode
 } WdCmdMsgs__MsgBody__SwitchConnMode;
 
 /**
- * @brief The body of a "Set Heater Kp" command.
+ * @brief The body of a "Set Debug Comms State" command.
  */
-typedef struct WdCmdMsgs__MsgBody__SetHeaterKp
+typedef struct WdCmdMsgs__MsgBody__SetDebugCommsState
 {
-    uint16_t kp; //!< The value to use as the proportional coefficient.
-} WdCmdMsgs__MsgBody__SetHeaterKp;
+    uint8_t magic; //!< Must be the expected number to perform this command.
+    WdCmdMsgs__SetDebugCommsSelection selection;
+} WdCmdMsgs__MsgBody__SetDebugCommsState;
 
 /**
  * @brief The body of a "Set Auto Heater On Value" command.
@@ -355,10 +385,11 @@ typedef struct WdCmdMsgs__MsgBody__SetHeaterDutyCyclePeriod
 /**
  * @brief The body of a "Set Thermister V Setpoint" command.
  */
-typedef struct WdCmdMsgs__MsgBody__SetThermisterVSetpoint
+typedef struct WdCmdMsgs__MsgBody__SetVSAEState
 {
-    uint16_t thermisterVSetpoint; //!< The thermister V setpoint value.
-} WdCmdMsgs__MsgBody__SetThermisterVSetpoint;
+    uint8_t magic; //!< Must be the expected number to perform this command.
+    WdCmdMsgs__SetVSAESelection selection;
+} WdCmdMsgs__MsgBody__SetVSAEState;
 
 /**
  * @brief The body of an "Enter Sleep Mode" command.
@@ -482,12 +513,12 @@ typedef union
     WdCmdMsgs__MsgBody__PrepForDeploy prepForDeploy;
     WdCmdMsgs__MsgBody__Deploy deploy;
     WdCmdMsgs__MsgBody__SwitchConnMode switchConnMode;
-    WdCmdMsgs__MsgBody__SetHeaterKp setHeaterKp;
+    WdCmdMsgs__MsgBody__SetDebugCommsState setDebugCommsState;
     WdCmdMsgs__MsgBody__SetAutoHeaterOnValue setAutoHeaterOnValue;
     WdCmdMsgs__MsgBody__SetAutoHeaterOffValue setAutoHeaterOffValue;
     WdCmdMsgs__MsgBody__SetHeaterDutyCycle setHeaterDutyCycle;
     WdCmdMsgs__MsgBody__SetHeaterDutyCyclePeriod setHeaterDutyCyclePeriod;
-    WdCmdMsgs__MsgBody__SetThermisterVSetpoint setThermisterVSetpoint;
+    WdCmdMsgs__MsgBody__SetVSAEState setVSAEState;
     WdCmdMsgs__MsgBody__EnterSleepMode enterSleepMode;
     WdCmdMsgs__MsgBody__EnterKeepAliveMode enterKeepAliveMode;
     WdCmdMsgs__MsgBody__EnterServiceMode enterServiceMode;
@@ -540,12 +571,12 @@ typedef enum WdCmdMsgs__PackedSize
     WD_CMD_MSGS__PACKED_SIZE__PREP_FOR_DEPLOY_BODY = sizeof(uint8_t),
     WD_CMD_MSGS__PACKED_SIZE__DEPLOY_BODY = sizeof(uint8_t),
     WD_CMD_MSGS__PACKED_SIZE__SWITCH_CONN_MODE_BODY = sizeof(uint8_t),
-    WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_KP_BODY = sizeof(uint16_t),
+    WD_CMD_MSGS__PACKED_SIZE__SET_DEBUG_COMMS_STATE_BODY = sizeof(uint16_t),
     WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_ON_VALUE_BODY = sizeof(uint16_t),
     WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_OFF_VALUE_BODY = sizeof(uint16_t),
     WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_BODY = sizeof(uint16_t),
     WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_PERIOD_BODY = sizeof(uint16_t),
-    WD_CMD_MSGS__PACKED_SIZE__SET_THERMISTER_V_SETPOINT_BODY = sizeof(uint16_t),
+    WD_CMD_MSGS__PACKED_SIZE__SET_VSAE_STATE_BODY = sizeof(uint16_t),
     WD_CMD_MSGS__PACKED_SIZE__ENTER_SLEEP_MODE_BODY = sizeof(uint8_t),
     WD_CMD_MSGS__PACKED_SIZE__ENTER_KEEPALIVE_MODE_BODY = sizeof(uint8_t),
     WD_CMD_MSGS__PACKED_SIZE__ENTER_SERVICE_MODE_BODY = sizeof(uint8_t),
@@ -569,12 +600,12 @@ typedef enum WdCmdMsgs__PackedSize
     WD_CMD_MSGS__PACKED_SIZE__PREP_FOR_DEPLOY_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__PREP_FOR_DEPLOY_BODY,
     WD_CMD_MSGS__PACKED_SIZE__DEPLOY_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__DEPLOY_BODY,
     WD_CMD_MSGS__PACKED_SIZE__SWITCH_CONN_MODE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SWITCH_CONN_MODE_BODY,
-    WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_KP_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_KP_BODY,
+    WD_CMD_MSGS__PACKED_SIZE__SET_DEBUG_COMMS_STATE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_DEBUG_COMMS_STATE_BODY,
     WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_ON_VALUE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_ON_VALUE_BODY,
     WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_OFF_VALUE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_AUTO_HEATER_OFF_VALUE_BODY,
     WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_BODY,
     WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_PERIOD_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_HEATER_DUTY_CYCLE_PERIOD_BODY,
-    WD_CMD_MSGS__PACKED_SIZE__SET_THERMISTER_V_SETPOINT_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_THERMISTER_V_SETPOINT_BODY,
+    WD_CMD_MSGS__PACKED_SIZE__SET_VSAE_STATE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__SET_VSAE_STATE_BODY,
     WD_CMD_MSGS__PACKED_SIZE__ENTER_SLEEP_MODE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__ENTER_SLEEP_MODE_BODY,
     WD_CMD_MSGS__PACKED_SIZE__ENTER_KEEPALIVE_MODE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__ENTER_KEEPALIVE_MODE_BODY,
     WD_CMD_MSGS__PACKED_SIZE__ENTER_SERVICE_MODE_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__ENTER_SERVICE_MODE_BODY,

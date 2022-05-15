@@ -178,6 +178,8 @@ UART__Status UART__receive(UART__State* uartState,
                            size_t dataLen,
                            size_t* numReceived);
 
+UART__Status UART__checkRxRbErrors(UART__State* uartState, size_t* count, BOOL* countChangedSinceLastCheck);
+
 /**
  * @}
  */

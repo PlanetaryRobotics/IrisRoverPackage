@@ -2,6 +2,7 @@
 
 #include "comms/debug_comms.h"
 #include "drivers/adc.h"
+#include "drivers/blimp.h"
 #include "utils/time.h"
 
 #include <cassert>
@@ -104,6 +105,26 @@ namespace iris
     RoverState RoverStateKeepAlive::transitionTo(RoverContext& theContext)
     {
         // Nothing to do on this transition, which should always be from ENTERING_KEEP_ALIVE.
+
+        // [CWC] - FM1 Mods
+        // ... EXCEPT: Power off the batteries to prevent looping.
+        // Only want to do this once we've spun through everything once and are out of ENTERING_KEEP_ALIVE.
+        // Rationale being in testing we would:
+        // 1. Enter service
+        // 2. Send BE = HIGH command
+        // 3. Req. DetailedStatusPacket to be sent
+        // 4. Send BE = PULSE_HIGH (update) command
+        // 5. ... then the rover should be off.
+        // So, since this has to happen automatically on boot, we can't do it in service BUT we can do it here,
+        // which appears to be as late as possible before KeepAlive spins (so everything should be set up).
+        DebugComms__printfToLander("Auto. disabling batt. (BE0+LBu)\n");
+        // Turn off battery enable:
+        blimp_battEnOff();
+        __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES); // throw an extra delay in here to match testing procedure
+        // Make the latch absorb the BE state:
+        blimp_latchBattUpdate();
+        // [CWC] - end of FM1 Mods
+
         theContext.m_lastDetailedReportSendTime = Time__getTimeInCentiseconds();
         return getState();
     }

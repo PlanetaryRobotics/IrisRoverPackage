@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
+
+<component name="Navigation" kind="active" namespace="CubeRover">
+    <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
+    <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
+    <import_port_type>Fw/Tlm/TlmPortAi.xml</import_port_type> 
+    <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
+    <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
+    <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/MotorData/MotorDataPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/MotorCommand/MotorCommandPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/IMUData/IMUDataPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/CameraTakePicture/CameraTakePicturePortAi.xml</import_port_type>
+
+    <!-- PORTS -->
+    <ports>
+        
+        <!-- Command ports -->
+        <!--
+        <port name="CmdDisp" data_type="Fw::Cmd" kind="async_input"  max_number="1" role="Cmd"></port>
+
+        <port name="CmdReg" data_type="Fw::CmdReg" kind="output" max_number="1" role="CmdRegistration"></port>
+
+        <port name="CmdStatus" data_type="Fw::CmdResponse" kind="output" max_number="1" role="CmdResponse"></port>
+        -->
+
+        <!-- Logging and telemetry ports -->
+        <!--
+        <port name="log" data_type="Fw::Log" kind="output"  max_number="1" role="LogEvent"></port>
+
+        <port name="tlmOut" data_type="Fw::Tlm" kind="output" role="Telemetry" max_number="1"></port>
+
+        <port name="timeCaller" data_type="Fw::Time" kind="output" max_number="1" role="TimeGet"></port>
+        -->
+
+        <!-- Ping ports -->
+        <port name="PingIn" data_type="Svc::Ping" kind="async_input" max_number="1"></port>
+
+        <port name="PingOut" data_type="Svc::Ping" kind="output" max_number="1"></port>
+
+        <!-- Scheduler port -->
+        <port name="schedIn" data_type="Svc::Sched" kind="async_input" max_number="1"></port>
+
+        <!-- Custom data ports-->
+        <port name="motorDataIn" data_type="CubeRoverPorts::MotorData" kind="sync_input" max_number="1"></port>
+
+        <port name="IMUDataIn" data_type="CubeRoverPorts::IMUData" kind="sync_input" max_number="1"></port>
+
+        <port name="motorCommandOut" data_type="CubeRoverPorts::MotorCommand" kind="output" max_number="1"></port>
+
+        <port name="cameraTakePictureOut" data_type="CubeRover::CameraTakePicture" kind="output" max_number="1"></port>
+
+        <!-- TODO -->
+        <!-- Still need Mode manager port(s)! -->
+    </ports>
+
+    <commands>
+        <command kind="guarded" opcode="0x00" mnemonic="Nav_DriveForward">
+          <comment> Forward movement command </comment>
+          <args>
+            <arg name="Distance" type="U8">
+                <comment>0x00 - 0x5A meaning 0-30 cm</comment>
+            </arg>
+            <arg name="Speed" type="U8">
+                <comment>0x00 - 0x0A meaning 0-10 cm/s</comment>
+            </arg>
+            <arg name="Callback_ID" type="U16" />
+          </args>
+        </command>
+
+        <command kind="guarded" opcode="0x01" mnemonic="Nav_DriveBackwards">
+          <comment> Backward movement command </comment>
+          <args>
+            <arg name="Distance" type="U8">
+                <comment>0x00 - 0x5A meaning 0-30 cm</comment>
+            </arg>
+            <arg name="Speed" type="U8">
+                <comment>0x00 - 0x0A meaning 0-10 cm/s</comment>
+            </arg>
+            <arg name="Callback_ID" type="U16" />
+          </args>
+        </command>
+
+        <command kind="guarded" opcode="0x02" mnemonic="Nav_RotateRight">
+          <comment> Clockwise rotation command </comment>
+          <args>
+            <arg name="Distance" type="U8">
+                <comment>0x00 - 0x5A meaning 0-90 deg</comment>
+            </arg>
+            <arg name="Speed" type="U8">
+                <comment>0x00 - 0x0A meaning 0-10 deg/s</comment>
+            </arg>
+            <arg name="Callback_ID" type="U16" />
+          </args>
+        </command>
+
+        <command kind="guarded" opcode="0x03" mnemonic="Nav_RotateLeft">
+          <comment> Counter-clockwise rotation command </comment>
+          <args>
+            <arg name="Distance" type="U8">
+                <comment>0x00 - 0x5A meaning 0-90 deg</comment>
+            </arg>
+            <arg name="Speed" type="U8">
+                <comment>0x00 - 0x0A meaning 0-10 deg/s</comment>
+            </arg>
+            <arg name="Callback_ID" type="U16" />
+          </args>
+        </command>
+
+        <command kind="guarded" opcode="0x04" mnemonic="Nav_StopMovement">
+          <comment> Stops all movement </comment>
+        </command>
+    </commands>
+
+    <!-- EVENTS -->
+    <events>
+        <event id="0" name="Nav_moveInterrupted" severity="COMMAND" format_string="A move has been interrupted">
+            <comment> A notification a move has been interrupted </comment>
+        </event>
+
+        <event id="1" name="Nav_moveQueueLimit" severity="WARNING_HI" format_string="The latest move would overwrite a move not completed">
+            <comment> A notification a move was not placed on the move queue </comment>
+        </event>
+    </events>
+
+    <!-- TELEMETRY -->
+    <telemetry>
+        <channel id="0" name="Nav_Moved_Forward" data_type="U16" update = "on_change">
+            <comment> The distance moved forward in cm </comment>
+        </channel>
+
+        <channel id="1" name="Nav_Moved_Backward" data_type="U16" update = "on_change">
+            <comment> The distance moved backward in cm </comment>
+        </channel>
+
+        <channel id="2" name="Nav_Turned_Left" data_type="U16" update = "on_change">
+            <comment> The angle turned to the left (counter clockwise) in degrees </comment>
+        </channel>
+
+        <channel id="3" name="Nav_Turned_Right" data_type="U16" update = "on_change">
+            <comment> The angle turned to the right (clockwise) in degrees </comment>
+        </channel>
+
+        <channel id="4" name="Nav_Image_Size" data_type="U16" update = "on_change">
+            <comment> Image size </comment>
+        </channel>
+    </telemetry>
+</component>

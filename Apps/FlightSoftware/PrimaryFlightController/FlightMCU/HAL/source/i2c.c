@@ -97,7 +97,7 @@ void i2cInit(void)
 
 
     /** - set i2c Backward Compatibility mode */
-    i2cREG1->EMDR = 0U;
+    i2cREG1->EMDR = 1U;
 
     /** - Disable DMA */
     i2cREG1->DMACR = 0x00U;
@@ -112,8 +112,8 @@ void i2cInit(void)
     i2cREG1->PSC = 13U;
 
     /** - set clock rate */
-    i2cREG1->CKH = 34U;
-    i2cREG1->CKL = 34U;
+    i2cREG1->CKH = 5U;
+    i2cREG1->CKL = 5U;
 
     /** - set i2c pins functional mode */
     i2cREG1->PFNC = (0U);

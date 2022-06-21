@@ -1,0 +1,31 @@
+<interface name="MotorCommand" namespace="CubeRoverPorts">
+    <comment>
+    Port to trigger a move of the motor
+    </comment>
+    <args>
+        <arg name="command_type" type="ENUM">
+        	<enum name ="MC_CommandType">
+            <item name="MC_DrivingConfiguration" />
+            <item name="MC_UpdateTelemetry" />
+          </enum>
+          <comment> Selector for which command should be called </comment>
+        </arg> 
+
+        <arg name="movement_type" type="ENUM">
+          <enum name ="MC_MovementType">
+            <item name="MC_Forward" />
+            <item name="MC_Backward" />
+            <item name="MC_Left" />
+            <item name="MC_Right" />
+            <item name="MC_Stop" />
+            <item name="MC_NONE" />
+            <item name="MC_INTERRUPTED" />
+          </enum>
+          <comment> Selector how movement should be interpreted </comment>
+        </arg> 
+
+        <arg name="Distance" type="U8" />
+
+        <arg name="Speed" type="U8" />
+    </args>
+</interface>

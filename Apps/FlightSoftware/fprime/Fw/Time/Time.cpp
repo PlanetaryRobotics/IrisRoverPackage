@@ -74,6 +74,10 @@ namespace Fw {
         Time::Comparison c = Time::compare(*this,other);
         return ((LT == c) or (EQ == c));
     }
+    
+    U32 Time::get_time_ms() const {
+        return this->m_seconds * 1000 + static_cast<U32>(this->m_useconds / 1000);
+    }
 
     SerializeStatus Time::serialize(SerializeBufferBase& buffer) const {
         // serialize members
@@ -91,13 +95,23 @@ namespace Fw {
             return stat;
         }
 #endif
-
+        
+        // Justin~8bytes to store timestamp is toooo much. Convert to ms timestamp and downlink that
+        U32 ms_timestamp = get_time_ms();
+        return buffer.serialize(ms_timestamp);
+        // Early return
+        
         stat = buffer.serialize(this->m_seconds);
         if (stat != FW_SERIALIZE_OK) {
             return stat;
         }
 
         return buffer.serialize(this->m_useconds);
+    }
+    
+    void Time::set_time_ms(U32 ms) {
+        this->m_seconds = static_cast<U32>(ms / 1000);
+        this->m_useconds = static_cast<U32>((ms - this->m_seconds * 1000) * 1000);
     }
 
     SerializeStatus Time::deserialize(SerializeBufferBase& buffer) {
@@ -123,6 +137,14 @@ namespace Fw {
 #else
         this->m_timeContext = 0;
 #endif
+        
+        // Justin~8bytes serialized to store timestamp is toooo much.
+        U32 ms_timestamp;
+        stat = buffer.deserialize(ms_timestamp);
+        set_time_ms(ms_timestamp);
+        return stat;
+        // Early return
+        
         stat = buffer.deserialize(this->m_seconds);
         if (stat != FW_SERIALIZE_OK) {
             return stat;

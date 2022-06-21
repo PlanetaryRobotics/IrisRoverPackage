@@ -1,0 +1,54 @@
+--- NetworkManagerComponentAc.hpp.orig	2020-10-27 11:02:42.111530392 -0700
++++ NetworkManagerComponentAc.hpp	2020-10-27 11:22:34.736416298 -0700
+@@ -35,6 +35,7 @@
+ #include <Fw/Buffer/BufferGetPortAc.hpp>
+ #include <Svc/Sched/SchedPortAc.hpp>
+ #include <Fw/Tlm/TlmPortAc.hpp>
++#include "CubeRover/NetworkManager/CubeRoverNetworkManager.hpp"
+ 
+ namespace CubeRover {
+ 
+@@ -470,31 +471,7 @@
+     // Event enums
+     // ----------------------------------------------------------------------
+ 
+-    typedef enum {
+-      from_UNINITIALIZED, /*  */
+-      from_INITIALIZEED, /*  */
+-      from_WIFI_TURNING_ON, /*  */
+-      from_WIFI_ON, /*  */
+-      from_SCANNING, /*  */
+-      from_SCANNED, /*  */
+-      from_CONNECTING, /*  */
+-      from_CONNECTED, /*  */
+-      from_UDP_CONNECTED, /*  */
+-      networkmanager_state_from_MAX
+-    } networkmanager_state_from;
+-
+-    typedef enum {
+-      to_UNINITIALIZED, /*  */
+-      to_INITIALIZEED, /*  */
+-      to_WIFI_TURNING_ON, /*  */
+-      to_WIFI_ON, /*  */
+-      to_SCANNING, /*  */
+-      to_SCANNED, /*  */
+-      to_CONNECTING, /*  */
+-      to_CONNECTED, /*  */
+-      to_UDP_CONNECTED, /*  */
+-      networkmanager_state_to_MAX
+-    } networkmanager_state_to;
++    // State enums defined in CubeRoverNetworkManager [NOTE: WHEN UPDATING FPRIME, CHECK THE PATCH FILE (the hardcoded lines to remove might have changed if the enums were changed)]
+ 
+   PROTECTED:
+ 
+@@ -506,8 +483,8 @@
+     //!
+     /* Emit event when ever a state transition occurs within the WF121 */
+     void log_ACTIVITY_HI_StateChange(
+-        networkmanager_state_from from_state, 
+-        networkmanager_state_to to_state 
++        CubeRoverNetworkManager::CubeRoverNetworkStateMachine from_state, 
++        CubeRoverNetworkManager::CubeRoverNetworkStateMachine to_state 
+     );
+ 
+ 

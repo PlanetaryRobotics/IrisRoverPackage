@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>networkManager:NetworkManager Component Dictionary</title>
+</head>
+<body>
+
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+}
+th {
+    text-align: left;
+}
+html {
+    font-family: Arial, sans-serif ;
+    font-size: 90% ;
+}
+</style>
+
+
+<h1><b>Telemetry Channels: networkManager:NetworkManager</b></h1>
+<table>
+  <tr>
+     <th>Channel Name</th>
+     <th>ID</th>
+     <th>Type</th>
+     <th>Description</th>
+ </tr>
+
+ <tr>
+    <td>RSSI</td>
+    <td>2560 (0xa00)</td>
+    <td>I8</td>
+    <td>Received Signal Strength Indication abt WF121 connection to AP in dB</td>
+ </tr>
+ <tr>
+    <td>SNR</td>
+    <td>2561 (0xa01)</td>
+    <td>I8</td>
+    <td>Signal to noise radio</td>
+ </tr>
+ <tr>
+    <td>PktRecv</td>
+    <td>2562 (0xa02)</td>
+    <td>U32</td>
+    <td>Number of packets received (uplink)</td>
+ </tr>
+ <tr>
+    <td>PktSent</td>
+    <td>2563 (0xa03)</td>
+    <td>U32</td>
+    <td>Number of packets sent (downlink)</td>
+ </tr>
+ <tr>
+    <td>WIFIErrorStatus</td>
+    <td>2564 (0xa04)</td>
+    <td>WIFIErrorCode</td>
+    <td>Returned Error code of WIFI chip</td>
+ </tr>
+ <tr>
+    <td>WIFIStateStatus</td>
+    <td>2565 (0xa05)</td>
+    <td>WIFIState</td>
+    <td>Returned State Transition code of WIFI chip</td>
+ </tr>
+</table>
+</body>
+</html>

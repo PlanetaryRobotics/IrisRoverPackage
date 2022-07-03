@@ -6,7 +6,7 @@ communicate with the rover over RS-422.
 Includes any supporting functions necessary for maintaining serial connection.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/13/2022
+@last-updated: 05/15/2022
 """
 from typing import Any, Optional, Callable, Dict, Deque, List, Type, cast
 
@@ -226,6 +226,14 @@ class SlipTransceiver(Transceiver):
         )
         ```
         """
+        if endecs is None:
+            endecs = []
+        super().__init__(
+            endecs=cast(List[Endec], [SlipEndec()]) + endecs,  # wrap SLIP last
+            pathway=pathway,
+            source=source
+        )
+
         self._init_slip_data()
 
         # Validate primitive inputs:
@@ -255,14 +263,6 @@ class SlipTransceiver(Transceiver):
                 f"initialized with `device_sn={device_sn}` and "
                 f"`device_port={device_port}`."
             )
-
-        if endecs is None:
-            endecs = []
-        super().__init__(
-            endecs=cast(List[Endec], [SlipEndec()]) + endecs,  # wrap SLIP last
-            pathway=pathway,
-            source=source
-        )
 
     def connect_serial(self) -> None:
         """
@@ -298,14 +298,14 @@ class SlipTransceiver(Transceiver):
         """ Initialize any special registers, etc. for this transceiver.
         Can also be used to reset the state of the transceiver.
         """
+        super().begin()
+
         # (Re)Initialize serial connection:
         self.connect_serial()
 
         # (Re)Initialize SLIP data (if we're starting a new connection session,
         # pre-existing data streams are done):
         self._init_slip_data()
-
-        super().begin()
 
     def _read_all_raw_bytes_from_serial(self) -> bytes:
         """ Reads as many raw bytes from the connected serial line as are
@@ -389,7 +389,7 @@ class SlipTransceiver(Transceiver):
 
         self._recv_buffer += data
 
-        # All byte packets extracted:
+        # All byte packets extracted during this call:
         _byte_packets: Deque[bytes] = deque()
 
         # The following situations can occur:

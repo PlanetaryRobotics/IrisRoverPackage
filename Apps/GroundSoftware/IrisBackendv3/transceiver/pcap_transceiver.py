@@ -160,6 +160,12 @@ class PcapTransceiver(Transceiver):
         NOTE: You'll need to supply the appropriate list of `endecs` which were
         used to encode the data that was put into the PCAP.
         """
+        super().__init__(
+            endecs=endecs,
+            pathway=pathway,
+            source=source
+        )
+
         # Validate inputs:
         self.fixed_period_ms = cast(float, type_guard_argument(
             float, 'fixed_period_ms', fixed_period_ms,
@@ -176,16 +182,12 @@ class PcapTransceiver(Transceiver):
         self.packet_bytes_list = []
         self._head = 0
 
-        super().__init__(
-            endecs=endecs,
-            pathway=pathway,
-            source=source
-        )
-
     def begin(self) -> None:
         """ Initialize any special registers, etc. for this transceiver.
         Can also be used to reset the state of the transceiver.
         """
+        super().begin()
+
         # Parse the file and store the data:
         logger.notice(  # type: ignore
             "Beginning `PcapTransceiver`. "
@@ -200,8 +202,6 @@ class PcapTransceiver(Transceiver):
 
         # Load the packet_bytes_list from the pcap:
         self.packet_bytes_list = parse_pcap(self._pcap_opts)
-
-        super().begin()
 
     def _downlink_byte_packets(self) -> List[bytes]:
         """ Reads the next set of raw packet_bytes from `packet_bytes_list` (if

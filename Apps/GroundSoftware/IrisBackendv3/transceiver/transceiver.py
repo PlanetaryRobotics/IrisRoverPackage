@@ -15,7 +15,7 @@ Transceivers?)
 TODO: Add pcap-save function (writes every outbound bytes_packet to a pcap).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/13/2022
+@last-updated: 05/15/2022
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -51,13 +51,16 @@ class Transceiver(ABC):
     seq_num: int = 0
     # Whether to log when a packet is successfully sent:
     log_on_send: bool
+    # Whether to log when a packet is successfully received:
+    log_on_receive: bool
 
     def __init__(
         self,
         endecs: Optional[List[Endec]] = None,
         pathway: DataPathway = DataPathway.NONE,
         source: DataSource = DataSource.NONE,
-        log_on_send: bool = True
+        log_on_send: bool = True,
+        log_on_receive: bool = True
     ) -> None:
         """
         Creates a `Transceiver` over `pathway` (wired/wireless) connecting to
@@ -70,8 +73,12 @@ class Transceiver(ABC):
         # Initialize sequence number counter:
         self.seq_num = 0
         self.log_on_send = log_on_send
+        self.log_on_receive = log_on_receive
 
         # Just use `UnityEndec` if none are given:
+        if endecs is None:
+            self.endecs = [UnityEndec()]
+
         if isinstance(endecs, list):
             if len(endecs) > 0:
                 self.endecs = endecs
@@ -93,8 +100,6 @@ class Transceiver(ABC):
             )
             endecs = None
 
-        if endecs is None:
-            self.endecs = [UnityEndec()]
         # Store pathway and source for annotating all payloads:
         self.data_pathway = pathway
         self.data_source = source
@@ -127,7 +132,7 @@ class Transceiver(ABC):
 
     def endecs_encode(self, data: bytes) -> bytes:
         """Encodes the given data using all the `endecs`."""
-        # Encode raw data (strip off one at a time):
+        # Encode raw data (add one layer at a time):
         for endec in self.endecs[::-1]:
             try:
                 data = endec.encode(data)
@@ -168,9 +173,9 @@ class Transceiver(ABC):
 
             for bp in byte_packets:
                 try:
-                    # Decode raw data:
+                    # Decode transmitted data to recover raw data:
                     bp = self.endecs_decode(bp)
-                    # Parse packet:
+                    # Parse packet (decode raw data):
                     packet = parse_packet(bp)
                     # Add metadata to all the payloads in Packet:
                     for payload in packet.payloads.all_payloads:
@@ -182,7 +187,7 @@ class Transceiver(ABC):
                                 payload.downlink_times = DownlinkTimes()
                             payload.downlink_times.pmcc_rx = datetime.now()
                         else:
-                            # What's a non-UplinkedPayload doing in here?:
+                            # What's a non-DownlinkedPayload doing in here?:
                             logger.warn(  # type: ignore
                                 f"[{self.__class__.__name__}] When processing "
                                 f"a downlinked packet `{packet}`, a payload "
@@ -197,7 +202,8 @@ class Transceiver(ABC):
                     # Keep the packet:
                     packets.append(packet)
                     # Print the packet into the logs:
-                    logger.info(packet)
+                    if self.log_on_receive:
+                        logger.info(packet)
                 except PacketDecodingException as pde:
                     logger.error(
                         "While processing downlinked data, a "
@@ -249,7 +255,7 @@ class Transceiver(ABC):
         # Generate raw data:
         packet_bytes = packet.encode()
 
-        # Encode raw data:
+        # Encode raw data for transmission:
         packet_bytes = self.endecs_encode(packet_bytes)
 
         # Uplink encoded data:

@@ -7,8 +7,11 @@
 # /cconfiguration[@id="com.ti.ccstudio.buildDefinitions.TMS470.Debug.284604706"]
 # /storageModule[@moduleId="cdtBuildSystem"]
 # /configuration/@postbuildStep
-cd .. # move into the FlightMCU dir
 
-FlightMCU_path=$(dirname $0)
+FlightMCU_path=$(dirname $0)/.. # FlightMCU is one level up from where this file is saved
+
+cd $FlightMCU_path # enter FlightMCU directory
 
 cat $FlightMCU_path/Include/Version.h
+
+cd - # Return to where we were

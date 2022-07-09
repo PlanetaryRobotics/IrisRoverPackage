@@ -1,5 +1,10 @@
 #!/bin/bash
 
+SHELL = /bin/bash  # specify to not use zsh
+
+include local.env # load env file
+export # make everything found in local.env accessible to all `make` operations
+
 .PHONY = help cloc init clean fprime build max-build mb build-flash bf max-build-flash mbf
 
 .DEFAULT_GOAL = help
@@ -55,6 +60,9 @@ cloc:
 # Setup the Development Environment:
 ####
 init:
+	# Make all scripts executable:
+	chmod -R +x scripts
+
 	# Cleanup first:
 	make clean
 
@@ -62,21 +70,13 @@ init:
 # Teardown and Cleanup the Development Environment:
 ####
 clean:
-	# Remove virtual environment:
-	eval "$$(pyenv init -)"; \
-	eval "$$(pyenv virtualenv-init -)"; \
-	pyenv deactivate; \
-	pyenv local system; \
-	pyenv local ${VENV_NAME}; \
-	pyenv_version="$$(pyenv version-name)"; \
-	if [ $$pyenv_version == "${VENV_NAME}" ]; then yes | pyenv virtualenv-delete ${VENV_NAME}; fi
-	pyenv local system;
+	@echo "> TODO."
+	# Fprime cleaning stuff
 
 ####
 # (Re)Builds the FPrime Structure (from XML):
 ####
 fprime:
-# source ./load_local_env.sh; loadEnv local.env; echo "$WITH_QUOTES $WITH_GLOB"
 	@echo "> TODO."
 
 ####
@@ -84,7 +84,7 @@ fprime:
 # not rebuild the FPrime structure from XML).
 ####
 build:
-	@echo "> TODO."
+	./scripts/build.sh
 
 ####
 # Flashes a pre-built binary onto the Flight MCU.

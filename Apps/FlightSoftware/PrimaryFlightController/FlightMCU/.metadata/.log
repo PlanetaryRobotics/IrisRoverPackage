@@ -1853,3 +1853,48 @@ java.lang.NullPointerException
 	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:656)
 	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:592)
 	at org.eclipse.equinox.launcher.Main.run(Main.java:1498)
+!SESSION 2022-07-09 14:02:45.721 -----------------------------------------------
+eclipse.buildId=4.8.0.I20180611-0500
+java.version=1.8.0_112
+java.vendor=Oracle Corporation
+BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=en_US
+Framework arguments:  -application com.ti.ccstudio.apps.projectBuild -ccs.projects FlightMCU -ccs.configuration Debug
+Command-line arguments:  -os linux -ws gtk -arch x86_64 -data /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/PrimaryFlightController/FlightMCU -application com.ti.ccstudio.apps.projectBuild -ccs.projects FlightMCU -ccs.configuration Debug
+
+!ENTRY com.ti.common.core 1 0 2022-07-09 14:02:46.405
+!MESSAGE path=ccs_base/DebugServer
+
+!ENTRY com.ti.common.core 1 0 2022-07-09 14:02:46.405
+!MESSAGE debugServerDir=/home/iris/ti/ccs910/ccs/ccs_base/DebugServer
+
+!ENTRY org.eclipse.core.jobs 2 2 2022-07-09 14:02:48.454
+!MESSAGE Job found still running after platform shutdown.  Jobs should be canceled by the plugin that scheduled them during shutdown: com.ti.ccstudio.devicemodel.DeviceModelLoader$InitializationJob$3
+!SESSION 2022-07-09 14:03:21.994 -----------------------------------------------
+eclipse.buildId=4.8.0.I20180611-0500
+java.version=1.8.0_112
+java.vendor=Oracle Corporation
+BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=en_US
+Framework arguments:  -ccs.autoImport -application com.ti.ccstudio.apps.projectBuild -ccs.projects FlightMCU -ccs.configuration Debug
+Command-line arguments:  -os linux -ws gtk -arch x86_64 -data /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/PrimaryFlightController/FlightMCU -ccs.autoImport -application com.ti.ccstudio.apps.projectBuild -ccs.projects FlightMCU -ccs.configuration Debug
+
+!ENTRY com.ti.common.core 1 0 2022-07-09 14:03:22.689
+!MESSAGE path=ccs_base/DebugServer
+
+!ENTRY com.ti.common.core 1 0 2022-07-09 14:03:22.690
+!MESSAGE debugServerDir=/home/iris/ti/ccs910/ccs/ccs_base/DebugServer
+
+!ENTRY org.eclipse.core.jobs 2 2 2022-07-09 14:03:24.495
+!MESSAGE Job found still running after platform shutdown.  Jobs should be canceled by the plugin that scheduled them during shutdown: com.ti.ccstudio.devicemodel.DeviceModelLoader$InitializationJob$3
+!SESSION 2022-07-09 14:03:51.407 -----------------------------------------------
+eclipse.buildId=4.8.0.I20180611-0500
+java.version=1.8.0_112
+java.vendor=Oracle Corporation
+BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=en_US
+Framework arguments:  -ccs.autoImport -application com.ti.ccstudio.apps.projectBuild -ccs.configuration Debug
+Command-line arguments:  -os linux -ws gtk -arch x86_64 -data /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/PrimaryFlightController/FlightMCU -ccs.autoImport -application com.ti.ccstudio.apps.projectBuild -ccs.configuration Debug
+
+!ENTRY com.ti.common.core 1 0 2022-07-09 14:03:52.084
+!MESSAGE path=ccs_base/DebugServer
+
+!ENTRY com.ti.common.core 1 0 2022-07-09 14:03:52.085
+!MESSAGE debugServerDir=/home/iris/ti/ccs910/ccs/ccs_base/DebugServer

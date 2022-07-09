@@ -1,3 +1,6 @@
 /.metadata/
 /.jxbrowser-data/
 /RemoteSystemsTempFiles/
+
+## Ignore any VSCode settings that appear at the top (Apps) level.
+/.vscode

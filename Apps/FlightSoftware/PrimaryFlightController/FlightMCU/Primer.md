@@ -1,6 +1,6 @@
-# F-Prime Primer
+# Iris F-Prime Primer
 
-Notes about F-Prime (and some FreeRTOS, TI Hercules SoC, and ARM) by Justin N. 
+Notes about F-Prime (and some FreeRTOS, TI Hercules SoC, and ARM) by Justin N. with implementation notes by Connor C.
 
 ## Generally Helpful Resources
 

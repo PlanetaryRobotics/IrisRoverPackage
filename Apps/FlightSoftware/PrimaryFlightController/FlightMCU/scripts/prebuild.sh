@@ -1,7 +1,15 @@
 #!/bin/bash
 
-FlightMCU_path=$(dirname $0)
+# Automatically dispatched to by CCS build process.
+# This is set in ../.cproject at xpath:
+# /cproject
+# /storageModule[@moduleId="org.eclipse.cdt.core.settings"]
+# /cconfiguration[@id="com.ti.ccstudio.buildDefinitions.TMS470.Debug.284604706"]
+# /storageModule[@moduleId="cdtBuildSystem"]
+# /configuration/@prebuildStep
+cd .. # move into the FlightMCU dir
 
+FlightMCU_path=$(dirname $0)
 
 ### Patch HAL's rti.c by appending a C preprocessor #endif since there is no user code section
 rti_c_path=$FlightMCU_path/HAL/source/rti.c

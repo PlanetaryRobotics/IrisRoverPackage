@@ -49,29 +49,14 @@ help:
 # Count Lines of Code (for fun):
 ####
 cloc:
-	cloc --exclude-dir=.jxbrowser-data,HAL . ../../fprime/CubeRover
+	cloc --exclude-dir=.jxbrowser-data,HAL,Debug,.launches,.metadata --exclude-ext=html,htm . ../../fprime/CubeRover
 
 ####
 # Setup the Development Environment:
 ####
 init:
-	@echo "make init"
 	# Cleanup first:
 	make clean
-	
-	# Load the correct version of python and setup the virtual environment:
-	eval "$$(pyenv init -)"; \
-	eval "$$(pyenv virtualenv-init -)"; \
-	pyenv local ${PYTHONVERSION}; \
-	pyenv_version="$$(pyenv version-name)"; \
-	if [ $$pyenv_version != "${PYTHONVERSION}" ]; then pyenv install ${PYTHONVERSION}; fi; \
-	pyenv virtualenv ${PYTHONVERSION} ${VENV_NAME}; \
-	pyenv local ${VENV_NAME}; \
-	echo "$$(pyenv versions)"; \
-	pyenv activate ${VENV_NAME};
-	
-	# Install pip dependencies:
-	make update
 
 ####
 # Teardown and Cleanup the Development Environment:

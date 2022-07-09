@@ -28,6 +28,6 @@ fi
 
 ### Patch HAL's adc.c with a byte in the adcSelect which allows our thermistors to work
 echo "Patching $FlightMCU_path/HAL/source/adc.c ..."
-patch --quiet $FlightMCU_path/HAL/source/adc.c $FlightMCU_path/patches/adc.c.patch
+patch --quiet --forward $FlightMCU_path/HAL/source/adc.c $FlightMCU_path/patches/adc.c.patch
 
 cd - # Return to where we were

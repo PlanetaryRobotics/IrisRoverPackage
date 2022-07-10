@@ -12,7 +12,7 @@ FlightMCU_path=$(dirname $0)/.. # FlightMCU is one level up from where this file
 cd $FlightMCU_path # enter FlightMCU directory
 ./scripts/ccs_temp_workspace__create.sh
 
-$TI_CCS_EXECUTABLE \
+eval "$TI_CCS_EXECUTABLE \
     -noSplash \
     -data $TI_CCS_TEMP_WORKSPACE \
     -application com.ti.ccstudio.apps.projectBuild \
@@ -20,7 +20,7 @@ $TI_CCS_EXECUTABLE \
     -ccs.configuration $TI_CCS_BUILD_TARGET \
     -ccs.buildType full \ # incremental, full, or clean (def. is incremental)
     -ccs.listErrors \
-    -ccs.listProblems
+    -ccs.listProblems"
 
 ./scripts/ccs_temp_workspace__destroy.sh
 cd $StartingDir # Return to where we were

@@ -18,7 +18,8 @@ eval "$TI_CCS_EXECUTABLE \
     -application com.ti.ccstudio.apps.projectBuild \
     -ccs.projects FlightMCU \
     -ccs.configuration $TI_CCS_BUILD_TARGET \
-    -ccs.buildType full \ `# incremental, full, or clean (def. is incremental)`
+    `# buildType is either incremental, full, or clean (default is incremental):`\
+    -ccs.buildType full \
     -ccs.listErrors \
     -ccs.listProblems"
 

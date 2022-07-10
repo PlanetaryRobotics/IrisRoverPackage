@@ -60,11 +60,14 @@ cloc:
 # Setup the Development Environment:
 ####
 init:
+	# Make sure nothing is left lingering around from a previous instance:
+	make clean
+
 	# Make all scripts executable:
 	chmod -R +x scripts
 
-	# Make sure nothing is left lingering around from a previous instance:
-	make clean
+	# Install python requirements:
+	python3 -m pip install -r flash_tool_requirements.txt
 
 ####
 # Teardown and Cleanup the Development Environment:
@@ -96,8 +99,7 @@ build-ccs:
 # Flashes a pre-built binary onto the Flight MCU.
 ####
 flash:
-# use tiflash (python)?
-	@echo "> TODO."
+	python3 ./scripts/ccs_project__flash.py
 
 ####
 # Combined Operations and Shorthand Aliases:

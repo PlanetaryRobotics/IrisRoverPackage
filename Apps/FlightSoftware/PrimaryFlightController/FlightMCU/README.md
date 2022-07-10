@@ -18,6 +18,7 @@ NOTE: All makefiles are designed to be run in an environment that supports bash.
 
 - Install TI Code Composer Studio (CCS) 9.1.0
 - Install `make`
+- Install `python3` (at least 3.8.5)
 
 ### **Update `local.env` Settings**
 If you intend to use the `make` build process, update `local.env` with the correct paths and settings for your build environment. This file is local to your machine and won't be committed.
@@ -34,7 +35,7 @@ If you intend to author commits to this repo:
 
 # **Initialize Development Environment**
 - Run: `make init`
-    - This will perform `make clean` first. If you want to only perform specific parts of the setup, look in the `init` routine of `makefile`.
+    - This will perform `make clean` first then install all dependencies. If you want to only perform specific parts of the setup, look in the `init` routine of `makefile`.
 
 # **Develop**
 

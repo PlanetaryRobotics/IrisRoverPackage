@@ -12,6 +12,8 @@ If you're new to JPL's FPrime or this environment, it's recommended that you rea
 # **Setup**
 NOTE: All makefiles are designed to be run in an environment that supports bash.
 
+# TODO: Consider auto generating the .launches file with a python string template.
+
 ## **Setup Your Development Environment**
 
 ### **Install Build Dependencies**

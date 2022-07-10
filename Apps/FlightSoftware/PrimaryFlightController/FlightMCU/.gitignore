@@ -4,3 +4,6 @@ Debug/
 /Release/
 *.orig
 *.rej
+# Ignore further log changes in metadata:
+.metadata/.log
+.metadata/**/*.log

@@ -11,7 +11,5 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 if __name__ == "__main__":
-    logger.info(
-        "Connected to TI CCS with: \n"
-        f"{'\n'.join([f'{k}: {v}' for k,v in tiflash.get_info().items()])}"
-    )
+    info_msg = '\n\t'.join([f'{k}: {v}' for k,v in tiflash.get_info().items()])
+    logger.info(f"Connected to TI CCS with:\n\t{info_msg}")

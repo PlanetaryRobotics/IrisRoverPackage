@@ -14,7 +14,7 @@ cd $FlightMCU_path # enter FlightMCU directory
 # Create it implicity by referencing it and linking it to the project:
 eval "$TI_CCS_EXECUTABLE \
     -noSplash \
-    -data $FlightMCU_path \
+    -data $TI_CCS_TEMP_WORKSPACE \
     -application com.ti.ccstudio.apps.projectImport \
     -ccs.location $FlightMCU_path"
 

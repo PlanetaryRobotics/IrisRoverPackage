@@ -47,21 +47,22 @@ Development makes use of the `make` tool. Run `make help` to see all available o
 - **Machine:** µHermes laptop (ThinkPad)
 
 ## **Build Fprime**
-`make fprime`
+`make build-fprime`
 
 This rebuilds the FPrime structure (from XML). This should be done at least once before calling `make build` and after any change to the XML.
 
-## **Build Source**
-`make build`
+## **Build Source (CCS Project)**
+`make build-ccs`
 
 This rebuilds the Iris source code but **does not** rebuild the FPrime structure (from XML).
 
 ## **Build FPrime then Iris Source**
-`make max-build` or `make mb`.
+`make build-all` or `make ba`.
 
-This builds everything possible (calls `make fprime` then `make build`).
+This builds everything possible (calls `make build-fprime` then `make build-ccs`).
 
-## Teardown and cleanup development environment (before reinitializing):
+## Cleanup development environment (before reinitializing):
+Useful if you want a clean build.
 `make clean`
 
 # **Program**
@@ -72,13 +73,13 @@ To flash a pre-built binary onto the Hercules, run:
 `make flash`
 
 ## **Build then Flash**
-If you want to re-build and then flash (this just calls `make build` then `make flash`):
+If you want to re-build the CCS project and then flash (this just calls `make build-ccs` then `make flash`):
 
-`make build-flash` or `make bf`
+`make build-flash` or `make b2f`
 
 ## **Build FPrime and Source then Flash**
-If you want to rebuild the FPrime structure (from XML) then rebuild the source (this just calls `make max-build` then `make flash`):
+If you want to rebuild the FPrime structure (from XML) then rebuild the CCS project and then flash (this just calls `make build-all` then `make flash`):
 
-`make max-build-flash` or `make mbf`
+`make build-all-flash` or `make ba2f`
 
 It's recommended that you do this before committing code.

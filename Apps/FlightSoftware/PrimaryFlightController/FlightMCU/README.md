@@ -46,6 +46,15 @@ Development makes use of the `make` tool. Run `make help` to see all available o
 - **IDE:** TI Code Composer Studio 9.1.0
 - **Machine:** µHermes laptop (ThinkPad)
 
+## Developing in Code Composer Studio:
+You don't have to use Code Composer Studio as your IDE if you don't want.
+It will still be used by the build process no matter what. If you want to use it:
+
+- Open Code Composer Studio.
+- Create a new workspace or use an existing one.
+    - Don't worry, all important build/flash settings are held in this project. Any workspace settings are developer specific. The build pipeline uses its own disposable workspace for each build process anyway.
+- Go to `Import Project`, and choose the `FlightMCU` directory (this one).
+
 ## **Build Fprime**
 `make build-fprime`
 

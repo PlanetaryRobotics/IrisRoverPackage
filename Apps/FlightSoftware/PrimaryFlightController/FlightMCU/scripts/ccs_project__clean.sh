@@ -5,8 +5,8 @@
 StartingDir=$PWD
 FlightMCU_path=$(dirname $0)/.. # FlightMCU is one level up from where this file is saved
 
-./ccs_temp_workspace__create.sh
 cd $FlightMCU_path # enter FlightMCU directory
+./scripts/ccs_temp_workspace__create.sh
 
 $TI_CCS_EXECUTABLE \
     -noSplash \
@@ -15,5 +15,5 @@ $TI_CCS_EXECUTABLE \
     -ccs.projects FlightMCU \
     -ccs.clean
 
+./scripts/ccs_temp_workspace__destroy.sh
 cd $StartingDir # Return to where we were
-./ccs_temp_workspace__destroy.sh

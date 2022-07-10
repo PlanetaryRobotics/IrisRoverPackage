@@ -9,7 +9,7 @@ FlightMCU_path=$(dirname $0)/.. # FlightMCU is one level up from where this file
 cd $FlightMCU_path # enter FlightMCU directory
 
 # Destroy it in case it already exists:
-./ccs_temp_workspace__destroy.sh
+./scripts/ccs_temp_workspace__destroy.sh
 
 # Create it implicity by referencing it and linking it to the project:
 $TI_CCS_EXECUTABLE \

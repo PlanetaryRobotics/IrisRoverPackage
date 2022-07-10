@@ -74,7 +74,7 @@ clean:
 	# Fprime cleaning stuff
 
 	# Destroy any left over CCS workspace:
-	./scripts/ccs_temp_workspace_destroy.sh
+	./scripts/ccs_temp_workspace__destroy.sh
 
 	# Clean up all build files:
 	./scripts/ccs_project__clean.sh

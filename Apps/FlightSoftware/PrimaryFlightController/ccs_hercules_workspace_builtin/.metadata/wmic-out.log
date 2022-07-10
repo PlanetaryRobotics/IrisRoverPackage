@@ -1,2 +1,0 @@
-F S UID        PID  PPID  C PRI  NI ADDR SZ WCHAN  STIME TTY          TIME CMD
-0 S iris     27999 27987  0  80   0 - 246944 ep_pol 19:23 tty1    00:00:00 /home/iris/ti/ccs910/ccs/ccs_base/cloudagent/node /home/iris/ti/ccs910/ccs/ccs_base/cloudagent/src/main.js

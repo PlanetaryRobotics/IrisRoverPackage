@@ -1,6 +1,0 @@
-MODULES_CODE_OFFSET=
-MODULES_DATA_OFFSET=
-MODULES_MRU_PATH=\#SYM_\#(,)path\=/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/PrimaryFlightController/FlightMCU/Debug/FlightMCU.out\#THREAD_IDS\#Texas Instruments XDS100v2 USB Debug Probe_0/CortexR4
-MODULES_MRU_PATH.1=/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/PrimaryFlightController/FlightMCU/Debug/FlightMCU.out
-eclipse.preferences.version=1
-useAnnotationsPrefPage=true

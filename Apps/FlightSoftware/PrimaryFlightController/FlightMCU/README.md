@@ -58,6 +58,11 @@ It will still be used by the build process no matter what. If you want to use it
     - Don't worry, all important build/flash settings are held in this project. Any workspace settings are developer specific. The build pipeline uses its own disposable workspace for each build process anyway.
 - Go to `Import Project`, and choose the `FlightMCU` directory (this one).
 
+## **Change `settings.env` if Desired.**
+The `settings.env` file contains environment settings that tell the makefile what to program/flash and how. Change these settings as desired.
+
+You should probably look at this to familiarize yourself with what's in there.
+
 ## **Build Fprime**
 `make build-fprime`
 
@@ -79,10 +84,19 @@ Useful if you want a clean build.
 
 # **Program**
 
+**NOTE:** If you want to change flashing settings, those can be found under `.launches/FlightMCU.launch`. To change these settings, open CCS and go to `Run > Debug Configurations > FlightMCU`. Since we're just flashing and not debugging automatically, many of these shouldn't have an effect but those under the `Target` section will.
+
+## **Change `settings.env` if Desired.**
+The `settings.env` file contains environment settings that tell the makefile what to program/flash and how. Change these settings as desired.
+
+You should probably look at this to familiarize yourself with what's in there.
+
 ## **Flash Binary**
 To flash a pre-built binary onto the Hercules, run:
 
 `make flash`
+
+Or, you can use `./scripts/ccs_project__flash.py` for more fine-grained control (`python3 ./scripts/ccs_project__flash.py --help` for more details).
 
 ## **Build then Flash**
 If you want to re-build the CCS project and then flash (this just calls `make build-ccs` then `make flash`):

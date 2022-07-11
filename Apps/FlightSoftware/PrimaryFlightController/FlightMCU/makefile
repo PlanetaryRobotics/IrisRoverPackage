@@ -2,8 +2,11 @@
 
 SHELL = /bin/bash  # specify to not use zsh
 
+# Load local env variables:
 include local.env # load env file
 export # make everything found in local.env accessible to all `make` operations
+
+# Load program settings:
 
 .PHONY = help cloc init clean build-fprime build-ccs build-all ba build-flash b2f build-all-flash ba2f
 
@@ -99,7 +102,11 @@ build-ccs:
 # Flashes a pre-built binary onto the Flight MCU.
 ####
 flash:
-	python3 ./scripts/ccs_project__flash.py
+# NOTE: This gives the image path rel. to the scripts dir not the current dir.:
+	python3 ./scripts/ccs_project__flash.py \
+		--img ../$$TI_CCS_BUILD_TARGET/FlightMCU.out \
+		--target $$TI_CCS_FLASH_TARGET \
+		--ti-ccs-dir $$TI_CCS_INSTALL_DIR
 
 ####
 # Combined Operations and Shorthand Aliases:

@@ -5,3 +5,4 @@ Debug/
 # Ignore further log changes in metadata:
 .metadata/.log
 .metadata/**/*.log
+.DS_Store

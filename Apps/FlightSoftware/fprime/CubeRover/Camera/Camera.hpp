@@ -18,7 +18,7 @@
 #include "S25fl512l.hpp"
 
 #define IMAGE_WIDTH        2592
-#define IMAGE_HEIGHT       1944
+#define IMAGE_HEIGHT       (1944 / DOWNSAMPLING)
 
 #define DOWNSAMPLING        2
 #define DOWNSAMPLED_IMG_WIDTH   (IMAGE_WIDTH / DOWNSAMPLING)
@@ -183,17 +183,29 @@ namespace CubeRover {
       
       // User methods
       
+        void eraseFpgaFlash();
         void downsampleLine();
-        void selectCamera(int camera);
+        void selectCamera(uint8_t camera);
         void triggerImageCapture(uint8_t camera, uint16_t callbackId);
         void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime);
       
+        // void generateDummyImage();
+        void TEST__fpgaTriggerCameraCapture();
+        // void TEST__getLineDummyImage(int line, uint8_t *dstBuff);
+        void TEST__dummyFlashWrite();
+        void TEST__eraseFpgaFlash();
+        void TEST__downsampleLine();
+        void TEST__getAndTransmitPicture();
+
         S25fl512l m_fpgaFlash;
         uint8_t m_imageLineBuffer[IMAGE_WIDTH];
         U32 m_numComponentImgsReq;
         U32 m_numGroundImgsReq;
         U32 m_imagesSent;
         U32 m_bytesSent;
+
+        // uint8_t g_dummyImage[IMAGE_WIDTH * IMAGE_HEIGHT];
+		uint8_t g_cameraSelect;
 
     };
 

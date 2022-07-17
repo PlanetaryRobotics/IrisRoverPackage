@@ -60,7 +60,7 @@ html {
     <td>BATTERY_THERMISTOR</td>
     <td>4112 (0x1010)</td>
     <td>U8</td>
-    <td>Boolean for Battery Charging or not from Watchdog</td>
+    <td>Battery Charge left in mAH</td>
  </tr>
  <tr>
     <td>SYSTEM_STATUS</td>
@@ -77,42 +77,48 @@ html {
  <tr>
     <td>BATTERY_CURRENT</td>
     <td>4121 (0x1019)</td>
-    <td>U32</td>
+    <td>U16</td>
     <td>Value of Current Used in Battery</td>
  </tr>
  <tr>
-    <td>THERM_0</td>
+    <td>BATTERY_VOLTAGE</td>
     <td>4122 (0x101a)</td>
     <td>U16</td>
-    <td>12 bit Value for Thermistor value</td>
+    <td>Value of Voltage Used in Battery</td>
  </tr>
  <tr>
-    <td>THERM_1</td>
+    <td>THERM_0</td>
     <td>4123 (0x101b)</td>
     <td>U16</td>
     <td>12 bit Value for Thermistor value</td>
  </tr>
  <tr>
-    <td>THERM_2</td>
+    <td>THERM_1</td>
     <td>4124 (0x101c)</td>
     <td>U16</td>
     <td>12 bit Value for Thermistor value</td>
  </tr>
  <tr>
-    <td>THERM_3</td>
+    <td>THERM_2</td>
     <td>4125 (0x101d)</td>
     <td>U16</td>
     <td>12 bit Value for Thermistor value</td>
  </tr>
  <tr>
-    <td>THERM_4</td>
+    <td>THERM_3</td>
     <td>4126 (0x101e)</td>
     <td>U16</td>
     <td>12 bit Value for Thermistor value</td>
  </tr>
  <tr>
-    <td>THERM_5</td>
+    <td>THERM_4</td>
     <td>4127 (0x101f)</td>
+    <td>U16</td>
+    <td>12 bit Value for Thermistor value</td>
+ </tr>
+ <tr>
+    <td>THERM_5</td>
+    <td>4128 (0x1020)</td>
     <td>U16</td>
     <td>12 bit Value for Thermistor value</td>
  </tr>

@@ -28,6 +28,8 @@ uint8_t g_cameraSelect;
 
 CubeRoverNetworkManager g_wf121;
 
+#define __USE_DUMMY_IMAGE__ 1
+
 #ifdef __USE_DUMMY_IMAGE__
 uint8_t g_dummyImage[IMAGE_WIDTH * IMAGE_HEIGHT];
 void generateDummyImage(){
@@ -135,7 +137,7 @@ void getAndTransmitPicture(){
 
     eraseFpgaFlash();
 
-    //dummyFlashWrite();
+    dummyFlashWrite();
 
     // add small delays to make sure camera is selection is done
     for(int delay=0; delay<500; delay++) asm("  NOP");

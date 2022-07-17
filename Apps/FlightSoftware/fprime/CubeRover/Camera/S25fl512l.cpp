@@ -477,7 +477,7 @@ S25fl512l::S25fl512lError S25fl512l :: sectorErase(const S25fl512l::Sector secto
   S25fl512l::Address address;
   S25fl512l::StatusRegister1 status1;
   S25fl512lError err;
-  uint32_t tries = __INT_MAX;
+  uint32_t tries = 1000; // TODO - was __INT_MAX
 
   if(sector > MAX_SECTOR_RANGE){
     return S25fl512l_UNEXPECTED_ERROR;

@@ -88,6 +88,14 @@ namespace iris
         DebugComms__printfToLander("Watchdog in Init state\n");
         DebugComms__printfToLander("Reason for last reset: %s\n", m_resetReasonString);
 
+        // [CWC-08/09/22] Warn that this is the WRONG version of the SW for Flight and should only be used for radio programming.
+        // (see comment above the `IO_EXPANDER_CONFIG_PORT_1_VALUE` declaration for more details, essentially this is a special
+        // version of the SW that releases the radio reset (sets it as input) so the radio can be programmed via its ICSP connector
+        // (as opposed to UART in DFU mode). Better way to do this would be to have a command that puts the radio reset into input
+        // mode but this is faster to implement, safe, does what we need, and will prevent any new features from being added to the
+        // flight code).
+        DebugComms__printfToLander("[WARNING] WD is using Radio-Programming Software from fm1-em4--rc3-wd-radio-programming-mode. This should be changed before flight.\n");
+
 
         /* set up watchdog */
         watchdog_init(&(theContext.m_watchdogFlags),

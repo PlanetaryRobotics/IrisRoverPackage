@@ -5,6 +5,8 @@
 #include "common.h"
 #include "assert.h"
 
+#define ENABLE_DEBUG_ONLY_CODE
+
 #ifdef __cplusplus
 extern "C"
 {

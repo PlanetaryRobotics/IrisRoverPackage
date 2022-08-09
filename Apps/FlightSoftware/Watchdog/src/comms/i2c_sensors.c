@@ -152,7 +152,7 @@ static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT = 0xD8;
 //     0.6: FPGA_nRST, output to reset FPGA (reset is active when low)
 //     0.7: LATCH_RST, now INPUT due to power loop issue
 //
-//     1.0: Radio_nRST, output to reset wifi chip (reset is active when low)
+//     1.0: Radio_nRST, output to reset wifi chip (reset is active when low) -- [CWC-08/09/22] for this Radio programming version of the firmware, the Radio reset is released (input only)
 //     1.1: CHARGE_STAT2, input connected to STAT2 pin of BQ24650RVAR charge controller
 //     1.2: LATCH_STAT, input connected to output of battery enable latch on BLiMP
 //     1.3: LATCH_SET, now INPUT due to power loop issue
@@ -167,7 +167,7 @@ static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT = 0xD8;
 static const uint8_t IO_EXPANDER_CONFIG_PORT_0_REG_ADDR = 8;
 static const uint8_t IO_EXPANDER_CONFIG_PORT_0_VALUE = 0b10001111;
 static const uint8_t IO_EXPANDER_CONFIG_PORT_1_REG_ADDR = 9;
-static const uint8_t IO_EXPANDER_CONFIG_PORT_1_VALUE = 0b00011110;
+static const uint8_t IO_EXPANDER_CONFIG_PORT_1_VALUE = 0b00011111;
 
 // Per the datasheet (https://www.nxp.com/docs/en/data-sheet/PCA9575.pdf):
 // Register 1 is the register to read the incoming logic levels of the pins in port 1.

@@ -6,11 +6,22 @@ from IrisBackendv3.utils.basic import bytearray_to_spaced_hex as hexstr
 
 seq_num = 0x01
 
+
+## SETTINGS:
+serial_device_sn: str = 'A7035PDL' # Connects to the Lander harness
+# serial_device_sn: str = 'AB0JRGV8' # Connects to J36-RS422 header on the SBC
+baud = 57600
+ip="192.168.1.2"
+port=8080
+
+settings['SAVE_FILE_PREFIX'] = 'iris__radio_firmware_checkout__8_8_22' # this is the prefix on all log files.
+
+
 cmd, param = 'ReportStatus', True
 
 # True - send command, # False - sniff only
-send_data_packet_to_wd_before_sniffing = True
-# send_data_packet_to_wd_before_sniffing = False
+# send_data_packet_to_wd_before_sniffing = True
+send_data_packet_to_wd_before_sniffing = False
 
 # overwriting = True
 
@@ -18,11 +29,11 @@ specific_param_override = True
 specific_cmd_name_override = 'ReportStatus'
 
 # specific_cmd_name_override = 'transit'
-specific_cmd_name_override = 'setup'
-specific_cmd_name_override = 'power-on'
+# specific_cmd_name_override = 'setup'
+# specific_cmd_name_override = 'power-on'
 
-# specific_cmd_name_override = 'vsa-off'
-# specific_cmd_name_override = 'vsa-on'
+# specific_cmd_name_override = '24-off'
+# specific_cmd_name_override = '24-on'
 
 # specific_cmd_name_override = '3v3-off'
 # specific_cmd_name_override = '3v3-on'
@@ -32,7 +43,7 @@ specific_cmd_name_override = 'power-on'
 # specific_cmd_name_override = 'power-off-radio'
 # specific_cmd_name_override = 'power-off-fpga'
 # specific_cmd_name_override = 'power-off-motors'
-
+# 
 # specific_cmd_name_override = 'power-on-herc'
 # specific_cmd_name_override = 'power-on-radio'
 # specific_cmd_name_override = 'power-on-fpga'
@@ -55,14 +66,16 @@ specific_cmd_name_override = 'power-on'
 # blimp_cmds: SetChargerEn , SetChargerPowerConnection , SetBatteryConnection
 #             SetBatteryControlEnable , SetBatteryLatch
 # specific_cmd_name_override = 'SetBatteryConnection'
+# specific_cmd_name_override = 'SetBatteryLatch'
 
 # blimp_inputs = [False, True, 'OFF', 'ON', 'FORCE_HIGH', 'FORCE_LOW', 'LATCH_BATT_OFF']
 # specific_param_override = True
+# specific_param_override = 'LATCH_BATT_EN_PULSE_HIGH'
 
 # specific_cmd_name_override = 'SetChargerEn'
 # specific_cmd_name_override = 'setup'
 # specific_cmd_name_override = 'power-on'
-# specific_cmd_name_override = '24-on'
+# specific_cmd_name_override = '24-off'
 # specific_cmd_name_override = 'power-on-motors'
 # specific_param_override = 'CHARGE_EN_ON'
 
@@ -70,16 +83,8 @@ specific_cmd_name_override = 'power-on'
 # if overwriting:
 cmd, param = specific_cmd_name_override, specific_param_override
 
-print(cmd,'  :  ',param)
+print(cmd,'  :  ',param) 
 
-## SETTINGS:
-serial_device_sn: str = 'A7035PDL' # Connects to the Lander harness
-# serial_device_sn: str = 'AB0JRGV8' # Connects to J36-RS422 header on the SBC
-baud = 57600
-ip="192.168.1.2"
-port=8080
-
-settings['SAVE_FILE_PREFIX'] = 'iris__rc2_wd_herc_checkout_8' # this is the prefix on all log files. make it something unique.
 load_cache()
 setup_logger(settings['SAVE_FILE_PREFIX']) # logs of stuff printed to console will be stored to `raw-console-logs`
 
@@ -92,7 +97,7 @@ serial_device
 pathway, magic, command_name, kwargs, telem_pathway = get_command(cmd, param)
 print(pathway, magic, command_name, kwargs)
 
-packet = build_command_packet(seq_num, pathway, magic, command_name, kwargs)
+packet = build_command_packet(seq_num, pathway, magic, command_name,kwargs)
 packet_bytes = packet.encode()
 print(hexstr(packet_bytes))
 

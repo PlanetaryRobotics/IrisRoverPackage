@@ -124,5 +124,4 @@ if send_data_packet_to_wd_before_sniffing:
 # Stream Telemetry:
 while True:
     packets = slip_xcvr.read()
-
 # Check for wireless telemetry in Wireshark. For parsing help, run: `pyenv exec python parse_pcap.py --help`

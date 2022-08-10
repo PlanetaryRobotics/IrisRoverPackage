@@ -1,0 +1,29 @@
+# Load helpers (once imported, these are accessible globally, even in subsequently imported scripts):
+import "src/debug.bgs"
+import "src/network_settings.bgs"
+
+# Include state driver at the end of the main source but before main::system_boot
+# so its event hooks get called after any others (transition after all other
+# actions that need to be taken for that event are complete):
+import "src/state_driver.bgs"
+
+# Main boot event listener
+# (call this last so all other on-boot setup is completed first):
+event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
+	# initialize flags:
+	call INIT_GLOBAL_STATUS()
+
+	# Enter low-latency power-saving mode by default:
+	# call system_set_max_power_saving_state(0)
+
+	# Setup network settings:
+	call SETUP_NETWORK()
+
+	# Kick off the state driver:
+	call START_STATE_DRIVER()
+
+	# Do this at the end so we know it's actually on and working
+	if DEBUG = 1 then
+		call endpoint_send(1, 32, "Hello Moon, this is Iris Radio!\n")
+	end if
+end

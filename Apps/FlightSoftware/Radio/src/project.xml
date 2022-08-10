@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- See: https://www.silabs.com/documents/public/user-guides/UG221.pdf for details on how to structure the XML files. -->
+<project>
+    <hardware in="src/hardware.xml" />
+
+	<scripting>
+        <script in="src/main.bgs" />
+    </scripting>
+	
+	<image out="build/iris_wifi_radio__auto_connect.dfu" out_hex="build/iris_wifi_radio__auto_connect.hex"/>
+</project>

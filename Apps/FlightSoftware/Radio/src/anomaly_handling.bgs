@@ -1,0 +1,41 @@
+# Contains procedures to handle anomalous (untriggered, unrequested, or
+# unexpected) events:
+
+## WIFI DISCONNECT
+# Wifi Network Disconnected (after a connection was previously established):
+const ANOM__WIFI_CONNECTION_LOST__TIMER_HANDLE = $0A00
+event sme_disconnected(reason, hw_interface)
+    if hw_interface = 0 then
+        # Turn off wifi:
+        call sme_wifi_off()
+        # TODO: Let Watchdog know (Hercules will know automatically)
+        # Wait 0.5s, then retry:
+        call hardware_set_soft_timer(500, ANOM__WIFI_CONNECTION_LOST__TIMER_HANDLE, 1)
+
+    end if
+end
+event hardware_soft_timer(handle)
+    if handle = ANOM__WIFI_CONNECTION_LOST__TIMER_HANDLE then
+        call WIFI_ON()  # kicks off the state driver again at WIFI_ON()
+        # don't worry, if this fails, it will eventually give up and restart the radio
+    end if
+end
+
+
+## UDP CLOSURE
+# Listen for UDP closures (this really shouldn't happen so let)
+const ANOM__UDP_CLOSURE__TIMER_HANDLE = $0A01
+event endpoint_closing(reason, endpoint)
+    if endpoint != UDP_NULL_ENDPOINT then
+        if endpoint = udp_client_endpoint || endpoint = udp_server_endpoint then
+            # Wait 1s, then try reopening:
+            call hardware_set_soft_timer(1000, ANOM__UDP_CLOSURE__TIMER_HANDLE, 1)
+        end if
+    end if
+end
+event hardware_soft_timer(handle)
+    if handle = ANOM__UDP_CLOSURE__TIMER_HANDLE then
+        call START_UDP()  # tries to set up the UDP connection again
+        # don't worry, if this fails, it will eventually give up and restart the radio
+    end if
+end

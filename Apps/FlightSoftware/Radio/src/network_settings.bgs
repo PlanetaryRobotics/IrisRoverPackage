@@ -1,0 +1,56 @@
+## All network settings:
+
+# Spacecraft:
+# const NETWORK__ROVER_ADDRESS        =   192.168.150.3
+# const NETWORK__SPACECRAFT_ADDRESS   =   192.168.10.105
+# const NETWORK__SUBNET_MASK          =   255.255.255.0
+# const NETWORK__GATEWAY_ADDRESS      =   192.168.150.254
+# const NETWORK__SPACECRAFT_UDP_PORT  =   43531
+# const NETWORK__ROVER_UDP_PORT       =   42000
+
+# Testing Mac:
+export const NETWORK__ROVER_ADDRESS        =   192.168.2.33
+export const NETWORK__SPACECRAFT_ADDRESS   =   192.168.2.1
+export const NETWORK__SUBNET_MASK          =   255.255.255.0
+export const NETWORK__GATEWAY_ADDRESS      =   192.168.2.255
+export const NETWORK__SPACECRAFT_UDP_PORT  =   43531
+export const NETWORK__ROVER_UDP_PORT       =   42000
+# Warn on boot that we're using these settings:
+event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
+    call endpoint_send(1, 45, "WARNING: Using non-flight network settings.\n")
+end
+
+
+export const NETWORK__LANDER_SSID() = "PM1LWAP"
+export const NETWORK__LANDER_SSID_LEN = 7
+export const NETWORK__LANDER_PASS() = "PIMS_WAN"
+export const NETWORK__LANDER_PASS_LEN = 8
+# List of channels to scan, in order (left-to-right) as bytes (e.g. Ch.11 = 0x0B)
+export const NETWORK__LANDER_CHANS() = "\x0b"
+export const NETWORK__LANDER_CHANS_NUM = 1 # Number of channels to scan
+export const NETWORK__RESTRICT_CHANNELS = 0 # Whether to restrict channel connection to the specified channel(s)
+
+dim result
+
+# Set all network settings:
+export procedure SETUP_NETWORK()
+    # Configure this device's network connection:
+    call tcpip_configure(NETWORK__ROVER_ADDRESS, NETWORK__SUBNET_MASK, NETWORK__GATEWAY_ADDRESS, 0)(result)
+    if result != 0 then
+        call system_reset(0)  # This shouldn't have happened, trigger a reset
+    end if
+
+    # Set the wifi-password:
+    call sme_set_password(NETWORK__LANDER_PASS_LEN, NETWORK__LANDER_PASS(0:NETWORK__LANDER_PASS_LEN))(result)
+    if result != 0 then
+        call system_reset(0)  # This shouldn't have happened, trigger a reset
+    end if
+
+    # Set the default channel(s) to scan (if we want to restrict connection to only certain channels):
+    if NETWORK__RESTRICT_CHANNELS = 1 then
+        call sme_set_scan_channels(0, NETWORK__LANDER_CHANS_NUM, NETWORK__LANDER_CHANS(0:NETWORK__LANDER_CHANS_NUM))(result)
+        if result != 0 then
+            call system_reset(0)  # This shouldn't have happened, trigger a reset
+        end if
+    end if
+end

@@ -1,0 +1,86 @@
+# Automated behavior that attempts to connect to the wifi network.
+# If it fails, it catches it and retries after a delay.
+# If it fails too many times, it restarts the radio.
+# ! Update state_driver.puml if you make changes here.
+
+# Handle for the single shot timer to know what event triggered it
+const TIMER_HANDLE = $be01
+# Max number of times to try before resetting:
+const COUNTER_MAX = 10
+# Time to wait before trying again, in ms:
+const RETRY_WAIT_MS = 500
+
+# How many times it's been tried unsuccessfully so far.
+dim counter
+# Whether we're actively trying to connect:
+dim actively_connecting
+
+
+event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
+    # init vars:
+    counter = 0
+    actively_connecting = 0
+end
+
+
+# Attempt to connect:
+procedure attempt_connection()
+    # Auto-initiate transparent scan then attempt to connect to network.
+    # NOTE: This will scan all channels (1-13) unless sme_set_scan_channels was called (when NETWORK__RESTRICT_CHANNELS=1). Prefers channels 1-11 (see docs).
+    # NOTE: The radio automatically retries to connect 10 times if it fails (see: sme_connect_retry) - allegedly, though we've been unable to replicate+see this behavior over BGAPI.
+    actively_connecting = 1
+    call sme_connect_ssid(NETWORK__LANDER_SSID_LEN, NETWORK__LANDER_SSID(0:NETWORK__LANDER_SSID_LEN))
+end
+
+
+export procedure CONNECT_NETWORK()
+    counter = 0
+    call attempt_connection()
+end
+
+
+# Procedure called in any failure case:
+procedure handle_failure()
+    counter = counter + 1
+    if (counter < COUNTER_MAX) then
+        call hardware_set_soft_timer(RETRY_WAIT_MS, TIMER_HANDLE, 1)
+    else
+        # failed too many times. something must be wrong. Reboot!
+        call system_reset(0)
+    end if
+end
+
+
+event sme_connected(status, hw_interface, bssid)
+    if hw_interface = 0 then  # interface is WiFi
+        if status = 0 then
+            counter = 0
+            actively_connecting = 0
+        else
+            # Wifi connection attempt is complete but unsuccessful
+            call handle_failure()
+        end if
+    end if
+end
+
+
+event sme_connect_failed(reason, hw_interface)
+    if hw_interface = 0 then  # interface is WiFi
+        call handle_failure()
+    end if
+end
+
+
+event sme_interface_status(hw_interface, status)
+    if actively_connecting = 1 && hw_interface = 0 && status = 0 then
+        # Radio went down while trying to connect. Bad news. Restart radio:
+        call system_reset(0)
+    end if
+end
+
+
+event hardware_soft_timer(handle)
+    if handle = TIMER_HANDLE then
+        call attempt_connection()
+    end if
+end

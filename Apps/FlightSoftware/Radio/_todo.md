@@ -1,0 +1,19 @@
+- Add catch for wifi disconnect events (trial this)
+- Determine if we should restrict channels (probably only useful for earth)
+- Add fixed-length state strings (and uart them) - make optional
+
+- Cross reference with all hooks in examples
+- Review adding any extra commands used in Herc code but not present here (diff it)
+- Document state machine.
+
+- Make anomaly_handling.bgs comprehensive
+    - Test anomaly handling.
+
+- Add Watchdog communication via `RADIO_KICK` and `WD_INT` lines.
+
+- Radio heartbeat to Earth (just a couple bytes every couple minutes)?
+    - Could be useful to let us know its still alive since there **could** be a situation in which we can command Hercules but not get telemetry from it if it gets overwhelmed and misses the announcement of the UDP `endpoint`.
+
+- Finish `state_driver.puml` (documenting `state_driver.bgs`).
+
+- Add the ability to pass in new WiFi credentials from Earth (for volatile use).

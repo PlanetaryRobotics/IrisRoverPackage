@@ -1,0 +1,47 @@
+# This drives the radio from one state to another, automatically.
+# This documents just the core state-flow. NOTE: Multiple handles can exist for
+# each event, so this just drives the state changes. As such, this should be
+# included at the bottom of the main source.
+# Flow of automated behaviors is:
+#   BOOT -> WIFI_ON -> CONNECT_NETWORK
+# ! See state_driver.puml for a full state diagram.
+
+# Import automated behaviors:
+import "src/behaviors/bgs_behavior__wifi_on.bgs"
+import "src/behaviors/bgs_behavior__connect_network.bgs"
+import "src/behaviors/bgs_behavior__start_udp.bgs"
+
+# global_status just watches everything, so it should come after all the
+# behaviors but before the state implementations (it needs access to behavior
+# data but the state driver needs access to it):
+import "src/global_status.bgs"
+
+export procedure START_STATE_DRIVER()
+	# Turn on the radio immediately upon boot (and keep trying if it fails):
+	call WIFI_ON()
+end
+
+event sme_wifi_is_on(result)
+	if result = 0 then
+        # WIFI_ON worked.
+        call CONNECT_NETWORK()
+    end if
+end
+
+event sme_connected(status, hw_interface, bssid)
+    if hw_interface = 0 && status = 0 then
+        # CONNECT_NETWORK worked
+        call START_UDP()
+    end if
+end
+
+event endpoint_status(endpoint, type, streaming, destination, active)
+    if status__udp_client_active && status__udp_server_active then
+        # We're connected! Our work here is done.
+        # Let's tell Earth the good news:
+		call endpoint_send(udp_client_endpoint, 39, "Hello Earth, this is Iris on the Moon!\n")
+    end if
+end
+
+
+import "src/anomaly_handling.bgs"  # handle anomalies and get back to a known good state

@@ -1,3 +1,6 @@
 /.metadata/
 /.jxbrowser-data/
 /RemoteSystemsTempFiles/
+
+.DS_Store
+.vscode

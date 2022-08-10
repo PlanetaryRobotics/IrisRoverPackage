@@ -6,21 +6,21 @@ flight rover.
 Includes any supporting functions necessary for maintaining YAMCS connection.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/13/2022
+@last-updated: 07/03/2022
 """
-from typing import Any, Optional, Callable, ClassVar, Dict, Deque, List, Type, cast
+from typing import Any, Final, Optional, Callable, ClassVar, Dict, Deque, List, Type, cast
 
 from collections import deque
 import re
 
-# type: ignore (no typehints)
-from yamcs.client import YamcsClient, YamcsProcessor
+from yamcs.client import YamcsClient, YamcsProcessor  # type: ignore
 from yamcs.core.auth import Credentials as YamcsCredentials  # type: ignore
 
 from .transceiver import Transceiver
 from .endec import Endec, SlipEndec
 from .logging import logger
 from .exceptions import TransceiverConnectionException, TransceiverDecodingException
+from .settings import settings
 
 from IrisBackendv3.codec.packet import Packet, IrisCommonPacket
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
@@ -30,9 +30,9 @@ from IrisBackendv3.utils.basic import type_guard_argument
 
 class YamcsTransceiver(Transceiver):
     # IP of host (YAMCS server IP, e.g. '172.17.0.37'):
-    _host: str
+    _host: Final[str]
     # Port the server is on (e.g. 11234):
-    _port: int
+    _port: Final[int]
     # YAMCS client which has a connection with the AMCC YAMCS server:
     _client: Optional[YamcsClient]
     # Processor used to interface with YAMCS using the `_client`:
@@ -41,51 +41,6 @@ class YamcsTransceiver(Transceiver):
     # Where to get data from in YAMCS:
     YAMCS_INSTANCE: ClassVar[str] = 'Astrobotic-M1'
     YAMCS_PROCESSOR: ClassVar[str] = 'realtime'
-
-    def _connect(self) -> bool:
-        """
-        Attempts to connect to YAMCS. Returns whether this was successful.
-        """
-        success = False
-
-        try:
-            # Sign in with username and password defined at top of file
-            credentials = YamcsCredentials(
-                username='iris',
-                password=")S5FG.8c>'LnKcm*"
-            )
-
-            logger.info(
-                "Attempting to connect `YamcsTransceiver` to "
-                f"a YAMCS server at {self._host}:{self._port} . . ."
-            )
-            # Create a yamcs client that connects to the YAMCS server in AMCC:
-            self._client = YamcsClient(
-                f"{self._host}:{self._port}", credentials=credentials
-            )
-
-            self._processor = self._client.get_processor(
-                instance=self.YAMCS_INSTANCE,
-                processor=self.YAMCS_PROCESSOR
-            )
-
-            #! TODO: (WORKING-HERE)
-
-            success = True
-            logger.verbose(  # type: ignore
-                "`YamcsTransceiver` connected successfully to "
-                f"a YAMCS server at {self._host}:{self._port} . . ."
-            )
-        except Exception as e:
-            logger.info(
-                "Failed to connect `YamcsTransceiver` to "
-                f"a YAMCS server at {self._host}:{self._port} . . ."
-            )
-            # Nullify all YAMCS variables to signify that we're not connected:
-            self._client = None
-            self._processor = None
-
-        return success
 
     def __init__(
         self,
@@ -99,6 +54,11 @@ class YamcsTransceiver(Transceiver):
 
         NOTE: By default, no `endecs` should be required.
         """
+        super().__init__(
+            endecs=endecs,
+            pathway=pathway,
+            source=source
+        )
 
         # Validate input:
         self._host = cast(str, type_guard_argument(str, 'host', host,
@@ -106,24 +66,67 @@ class YamcsTransceiver(Transceiver):
         self._port = cast(int, type_guard_argument(int, 'port', port,
                                                    calling_function_name='YamcsTransceiver.__init__'))
 
-        self.connect(host=host, port=port)
-
-        super().__init__(
-            endecs=endecs,
-            pathway=pathway,
-            source=source
-        )
+        # Start all YAMCS variables as None to signify that we're not connected:
+        self._client = None
+        self._processor = None
 
     def begin(self) -> None:
         """ Initialize any special registers, etc. for this transceiver.
         Can also be used to reset the state of the transceiver.
         """
+        super().begin()
+
         if self._client is None:
             # if it was connected successfully before during __init__,
             # attempt to reconnect:
-            self.connect()
+            self._connect()
 
-        super().begin()
+    def _connect(self) -> bool:
+        """
+        Attempts to connect to YAMCS. Returns whether this was successful.
+        """
+        success = False
+
+        try:
+            details_msg: Final[str] = (
+                f"instance: {self.YAMCS_INSTANCE} "
+                f"\tusing processor: {self.YAMCS_PROCESSOR}"
+                f"\ton a server at {self._host}:{self._port} "
+                f"\twith user {settings['yamcs_username']}"
+            )
+            logger.info(
+                "Attempting to connect `YamcsTransceiver` to "
+                f"{details_msg} . . ."
+            )
+
+            credentials = YamcsCredentials(
+                username=settings['yamcs_username'],
+                password=settings['yamcs_password']
+            )
+
+            # Create a yamcs client that connects to the YAMCS server in AMCC:
+            self._client = YamcsClient(
+                f"{self._host}:{self._port}", credentials=credentials
+            )
+
+            self._processor = self._client.get_processor(
+                instance=self.YAMCS_INSTANCE,
+                processor=self.YAMCS_PROCESSOR
+            )
+
+            success = True
+            logger.success(  # type: ignore
+                f"`YamcsTransceiver` connected successfully to {details_msg}."
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to connect `YamcsTransceiver` to {details_msg}."
+            )
+            # Nullify all YAMCS variables to signify that we're not connected:
+            self._client = None
+            self._processor = None
+
+        return success
 
     def _downlink_byte_packets(self) -> List[bytes]:
         """ Reads all **complete** packets of bytes from the connected serial

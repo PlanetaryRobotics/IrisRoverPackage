@@ -3,7 +3,7 @@ Flashes the given image to the given target (or only target if none is
 supplied and only one is in targetConfigs) using the given TI CCS installation.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 07/10/2022
+@last-updated: 07/12/2022
 """
 
 # Activate postponed annotations (for using classes as return type in their own methods):
@@ -12,6 +12,7 @@ from __future__ import annotations
 import tiflash
 import argparse
 
+import re
 import os
 import pprint
 import logging
@@ -19,10 +20,18 @@ from pathlib import Path
 from dataclasses import dataclass
 import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
-from typing import Any, Final, Dict
+from typing import Any, Final, Dict, List
 
-# Where the CCS config files are located relative to this file:
-CONFIGS_DIR: Final[str] = '../targetConfigs'
+# Name of the project (both the main directory and in CCS - they must match):
+PROJ_NAME: Final[str] = 'FlightMCU'
+# Where the root directory of the project is relative to the directory
+# containing this file (all subsequent directories will be relative to this):
+PROJ_ROOT_DIR: Final[str] = '../'
+# Where the CCS config files are located relative to `PROJ_ROOT_DIR`:
+CONFIGS_DIR: Final[str] = './targetConfigs'
+# Where Project Launch Settings are stored (eclipse configuration used for
+# debugging and flashing) relative to `PROJ_ROOT_DIR`:
+PROJ_LAUNCH_FILE: Final[str] = f"./.launches/{PROJ_NAME}.launch"
 
 # Setup logging:
 console = logging.StreamHandler()
@@ -152,7 +161,8 @@ def find_all_targets() -> Dict[TargetConfig]:
     # Grab all CCXML files in the `CONFIGS_DIR` directory
     # (where CCS puts them):
     cfgs = [
-        Path(os.path.join(CONFIGS_DIR, f)) for f in os.listdir(CONFIGS_DIR)
+        Path(os.path.join(PROJ_ROOT_DIR, CONFIGS_DIR, f))
+        for f in os.listdir(CONFIGS_DIR)
         if f.endswith('.ccxml')
     ]
 
@@ -199,7 +209,7 @@ def get_target_config(target: str) -> TargetConfig:
         # No target was given...
         if len(targets) == 1:
             # if there's only one target anyway, just pick that one:
-            target_config = [targets.keys()][0]
+            target, target_config = [*targets.items()][0]
             logger.info(
                 "No target was given but there's only one target in "
                 f"`{CONFIGS_DIR}`, so that one was chosen. "
@@ -211,16 +221,117 @@ def get_target_config(target: str) -> TargetConfig:
                 f"`{CONFIGS_DIR}` so it would not be safe to just pick "
                 "one arbitrarily as a default. Please provide a target using "
                 "the `--target` argument. "
-                f"The following targets can be chosen:\n {list_targets()}."
+                "The following targets can be chosen:\n"
+                f"{list_targets(targets)}."
+            )
+    else:
+        if target not in targets:
+            raise Exception(
+                f"The given target `{target}` was not found. "
+                f"The following targets were found:\n {list_targets(targets)}."
             )
 
-    if target not in targets:
-        raise Exception(
-            f"The given target `{target}` was not found. "
-            f"The following targets were found:\n {list_targets()}."
-        )
+        target_config = targets[target]
 
     return target_config
+
+
+FlashingOptions = Dict[str, Any]
+
+
+def get_flashing_options(target_config: TargetConfig) -> FlashingOptions:
+    """Loads the options to use while flashing that correspond to the given
+    `target_config` (if any). These settings are loaded from the
+    `PROJ_LAUNCH_FILE` `.launch` file.
+
+    If no attribute in `PROJ_LAUNCH_FILE` matches the given TargetConfig,
+    it's assumed default settings will be used and an empty dict will be
+    returned.
+    """
+
+    # Grab every `StringAttribute` from `PROJ_LAUNCH_FILE`:
+    launch_file_addr = os.path.join(PROJ_ROOT_DIR, PROJ_LAUNCH_FILE)
+    root = ET.parse(launch_file_addr).getroot()
+    string_attrs = root.findall('stringAttribute')
+
+    # Loop over each one and only keep it if the key maps to `file_name` and
+    # `connection` given in `target_config`:
+
+    # The StringAttributes use a key that's part path, part configuration
+    # information. For the debug strings, it follows the pattern:
+    #
+    # "{internal_eclipse_uri_to_an_attribute}
+    # .{absolute_path_to_a_target_config_on_whatever_machine_made_the_config}
+    # .{target_config_connection}
+    # /{connection_driver_name}"
+    #
+    # The StringAttributes that matter to us will be the ones that:
+    #   - have an attribute uri of:
+    #       `com.ti.ccstudio.debug.debugModel.ATTR_DEBUGGER_PROPERTIES`
+    #       (what CCS uses for debugger and programming settings, the debug
+    #       options will just get ignored by tiflash).
+    #   - reference our target config file in our project directory
+    #       (but we only care that the local/relative path matches, not the
+    #       full absolute path).
+    #   - match the connection used by our target_config.
+    # So, we need to filter and grab only the StringAttributes that fit these
+    # criteria:
+    attr_uri = "com.ti.ccstudio.debug.debugModel.ATTR_DEBUGGER_PROPERTIES"
+    local_config_path = os.path.normpath(os.path.join(
+        PROJ_NAME,
+        CONFIGS_DIR,
+        Path(target_config.file_path).name)
+    )
+    # Regex pattern to match against (keep if StringAttribute/@key matches):
+    uri_pattern = re.compile(
+        f'^{re.escape(attr_uri)}'
+        f'.*{re.escape(local_config_path)}'
+        f'\.{re.escape(target_config.connection)}'
+        r'.*$'
+    )
+
+    # Grab and unescape the value (escaped options xml) for all
+    # StringAttributes where the key matches the regex pattern:
+    options_xmls: List[str] = [
+        HTMLParser().unescape(sa.attrib['value'])
+        for sa in string_attrs
+        if uri_pattern.match(sa.attrib['key'])
+    ]
+
+    # Extract all options from each XML tree into a dictionary:
+    # (this is a list of all options for each matching CCS configuration)
+    options_list = []
+    for ox in options_xmls:
+        opts = {}
+        for property in ET.fromstring(ox).findall('property'):
+            val = property.find('curValue').text
+            # Convert to number if possible:
+            try:
+                val = float(val)
+            except:
+                pass  # can't convert to float, just leave as string
+            opts[property.attrib['id']] = val
+        options_list.append(opts)
+
+    if len(options_list) == 0:
+        logger.info(
+            "No special project debug (and flashing) options were found "
+            f"for the target `{target_config}` "
+            f"in the project launch file `{launch_file_addr}`. "
+            "Assuming all default options. "
+        )
+
+    if len(options_list) > 1:
+        # if multiple option sets, make sure there's no overlap:
+        # Make sure:
+        #   - Either every options set configures different options.
+        #   - Or, if multiple options sets configure the same option, make sure
+        #     they have the same value for that option.
+        # Collect all options configured in any options set:
+        all_option_names = {x for os in options_list for x in os.keys()}
+        # Make sure those options:
+
+    return options_list
 
 
 if __name__ == "__main__":
@@ -250,12 +361,7 @@ if __name__ == "__main__":
     info = tiflash.get_info(**sargs)
     logger.info(f"Connected to TI CCS with:\n\t{pretty_dict(info)}")
 
-    # TODO: Load flash settings from .launches/FlightMCU.launch and pass as options
-    # from /launchConfiguration/stringAttribute/@value
-    # where @key contains FlightMCU/targetConfigs/RM46L852.ccxml (or whatever file we're using)
-    # where @key ends with Blackhawk XDS560v2-USB System Trace Emulator_0/CortexR4 (or whatever probe we're using).
-    # use HTMLParser.unescape()
-    # When printing, compare against default from list_options.
+    # ! When printing, compare against default from list_options.
 
     # Flash:
     tiflash.flash(opts.img_path, options=dict(), **sargs)

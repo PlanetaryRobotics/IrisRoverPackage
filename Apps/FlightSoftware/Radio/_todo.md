@@ -14,6 +14,10 @@
 - Radio heartbeat to Earth (just a couple bytes every couple minutes)?
     - Could be useful to let us know its still alive since there **could** be a situation in which we can command Hercules but not get telemetry from it if it gets overwhelmed and misses the announcement of the UDP `endpoint`.
 
+- Do a quick sanity check and make sure pulsing `MCLR` doesn't clear the `BGScript` from memory, when it's been flashed using either the PICKit ICSP or the UART-DFU.
+    - Nowhere does it say this happens, but `MCLR` looks suspiciously like it stands for `Memory Clear` and this would be a dumb way to die on the Moon.
+
+
 - Finish `state_driver.puml` (documenting `state_driver.bgs`).
 
 - Add the ability to pass in new WiFi credentials from Earth (for volatile use).

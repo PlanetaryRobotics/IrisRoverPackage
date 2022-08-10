@@ -21,3 +21,10 @@
 - Finish `state_driver.puml` (documenting `state_driver.bgs`).
 
 - Add the ability to pass in new WiFi credentials from Earth (for volatile use).
+
+- Emit the message that says what endpoint the UDP client is on on a timer (so there's no change Hercules misses it).
+    - Maybe also do this with `signal_quality` so Hercules doesn't have to poll for it.
+        - Doesn't have to be frequent, maybe once every couple seconds.
+        - Include anything Hercules would have to regularly poll for automatically.
+            - (could this risk slowly filling up and eventually overwhelming the UART buffer? check how big it is and measure the clear rate).
+        - Docs (`UG209`) say you can't have more than one **recurring** timer but can you have a recurring timer and the single-shot timers already in use? Test this.

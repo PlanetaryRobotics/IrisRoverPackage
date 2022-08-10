@@ -558,6 +558,11 @@ def save_pcap(full_packets):
 
     pcap_fp.close()
 
+from enum import Enum
+class SlipState(Enum):
+     FIRST_END = 1
+     FIRST_BYTE_OR_STARTING_END = 2
+     STARTED = 3
 
 def stream_data_ip_udp_serial() -> None:
     escape = False
@@ -567,6 +572,7 @@ def stream_data_ip_udp_serial() -> None:
     bin_file = 'file.bin'
     data_bytes = bytearray(b'')
     full_packets: List[bytes] = []
+    slip_state = SlipState.FIRST_END
 
     if ser is not None:
         ready = True
@@ -580,15 +586,44 @@ def stream_data_ip_udp_serial() -> None:
             b: Any = ser.read(1)
             line += b
             b = int.from_bytes(b, 'big')
-            if escape:
-                if b == 0xDC:
-                    data_bytes.append(0xC0)
-                elif b == 0xDD:
-                    data_bytes.append(0xDB)
-                escape = False
-            else:
+
+            def append_byte(b):
+                nonlocal escape
+                nonlocal data_bytes
+                nonlocal line
+                nonlocal nrx
+
+                if escape:
+                    if b == 0xDC:
+                        data_bytes.append(0xC0)
+                    elif b == 0xDD:
+                        data_bytes.append(0xDB)
+                    escape = False
+                else:
+                    if b == 0xDB:
+                        escape = True
+                    else:
+                        data_bytes.append(b)
+                        # data_bytes.append(bytes(b.hex(), 'utf-8'))
+
+                # print stuff
+                # print('%02x ' % b, end='', flush=True)
+                # nrx += 1
+                # if (nrx % 16) == 0:
+                #     print('')
+                #     #print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
+                #     line = b''
+            
+            if slip_state == SlipState.FIRST_END:
                 if b == 0xC0:
-                    if len(data_bytes) >= 1:  # packet baked:
+                    slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
+            elif slip_state == SlipState.FIRST_BYTE_OR_STARTING_END:
+                if b != 0xC0:
+                    append_byte(b)
+                    slip_state = SlipState.STARTED
+            elif slip_state == SlipState.STARTED:
+                if b == 0xC0:
+                    if len(data_bytes) != 0:  # packet baked:
                         full_packets.append(data_bytes)
                         # Process it:
                         packet = parse_ip_udp_packet(data_bytes)
@@ -599,12 +634,9 @@ def stream_data_ip_udp_serial() -> None:
                             update_telemetry_streams(packet)
                         # Move on:
                         data_bytes = bytearray(b'')
-                    pass
-                elif b == 0xDB:
-                    escape = True
+                        slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
                 else:
-                    data_bytes.append(b)
-                    # data_bytes.append(bytes(b.hex(), 'utf-8'))
+                    append_byte(b)
 
             # print stuff
             # print('%02x ' % b, end='', flush=True)
@@ -615,6 +647,8 @@ def stream_data_ip_udp_serial() -> None:
             #     line = b''
         except KeyboardInterrupt:
             save_pcap(full_packets)
+            data_bytes = bytearray(b'')
+            slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
         except PacketDecodingException as pde:
             err_print(
                 "While streaming data, a PacketDecodingException occured. The data "
@@ -622,10 +656,14 @@ def stream_data_ip_udp_serial() -> None:
                 f"{scp.hexdump(data_bytes, dump=True)}\n."
                 f"The PacketDecodingException was: `{pde}`."
             )
+            data_bytes = bytearray(b'')
+            slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
         except Exception as e:
             err_print(
                 f"An otherwise unresolved error occurred during packet streaming: {e}"
             )
+            data_bytes = bytearray(b'')
+            slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
 
 
 """

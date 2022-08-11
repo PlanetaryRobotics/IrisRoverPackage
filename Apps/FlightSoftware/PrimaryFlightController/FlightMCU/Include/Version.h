@@ -9,7 +9,7 @@
  ******************************************************************************
  *****************************************************************************/
 
-static const unsigned VERSION_MAJOR = 1;
+static const unsigned VERSION_MAJOR = 3;
 static const unsigned VERSION_MINOR = 1;
 static const unsigned VERSION_REVISION = 0;
 

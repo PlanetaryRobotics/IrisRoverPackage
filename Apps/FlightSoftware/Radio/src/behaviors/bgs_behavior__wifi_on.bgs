@@ -20,6 +20,7 @@ end
 
 export procedure WIFI_ON()
     counter = 0
+    call HR_DOING_WIFI_ON()
     call sme_set_operating_mode(1)  # Make sure radio is in station mode (not AP)
     call sme_wifi_on()
 end
@@ -36,6 +37,7 @@ event sme_wifi_is_on(result)
             call hardware_set_soft_timer(RETRY_WAIT_MS, TIMER_HANDLE, 1)
         else
             # failed too many times. something must be wrong. Reboot!
+            call HR_FATAL_WIFI_ON_MAX_TRIES() # Let Herc know before resetting
 		    call system_reset(0)
         end if
 	end if

@@ -6,9 +6,13 @@
 const ANOM__WIFI_CONNECTION_LOST__TIMER_HANDLE = $0A00
 event sme_disconnected(reason, hw_interface)
     if hw_interface = 0 then
+        # TODO: Let Watchdog know (Hercules will know automatically)
+        # Log as Hercules Direct Message Error too (just in case):
+        call HR_ERROR_DISCONNECT()
         # Turn off wifi:
         call sme_wifi_off()
-        # TODO: Let Watchdog know (Hercules will know automatically)
+        # Tell Herc we've gone back to INIT state (state before wifi-on):
+        call HR_STATE_INIT()
         # Wait 0.5s, then retry:
         call hardware_set_soft_timer(500, ANOM__WIFI_CONNECTION_LOST__TIMER_HANDLE, 1)
 
@@ -28,6 +32,10 @@ const ANOM__UDP_CLOSURE__TIMER_HANDLE = $0A01
 event endpoint_closing(reason, endpoint)
     if endpoint != UDP_NULL_ENDPOINT then
         if endpoint = udp_client_endpoint || endpoint = udp_server_endpoint then
+            # Log as Hercules Direct Message Error:
+            call HR_ERROR_UDP_LOST()
+            # Tell Herc we've gone back to CONNECTED state (pre-UDP_CONNECTED):
+            call HR_STATE_CONNECTED()
             # Wait 1s, then try reopening:
             call hardware_set_soft_timer(1000, ANOM__UDP_CLOSURE__TIMER_HANDLE, 1)
         end if

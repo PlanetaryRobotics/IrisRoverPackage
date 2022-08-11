@@ -40,6 +40,7 @@ procedure handle_failure()
         call hardware_set_soft_timer(RETRY_WAIT_MS, TIMER_HANDLE, 1)
     else
         # failed too many times. something must be wrong. Reboot!
+        call HR_FATAL_START_UDP_MAX_TRIES() # Let Herc know before resetting
         call system_reset(0)
     end if
 end
@@ -77,6 +78,7 @@ end
 
 export procedure START_UDP()
     counter = 0
+    call HR_DOING_START_UDP()
     call start_service()
 end
 

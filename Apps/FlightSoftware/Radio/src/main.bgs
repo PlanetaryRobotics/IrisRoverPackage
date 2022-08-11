@@ -1,4 +1,6 @@
 # Load helpers (once imported, these are accessible globally, even in subsequently imported scripts):
+import "src/hercules_messaging.bgs"
+import "src/hercules_reports.bgs"
 import "src/debug.bgs"
 import "src/network_settings.bgs"
 
@@ -10,6 +12,11 @@ import "src/state_driver.bgs"
 # Main boot event listener
 # (call this last so all other on-boot setup is completed first):
 event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
+	# immediately set up Hercules messaging (so we can send messages any time):
+	call hercules_direct_message_init()
+	# Let Hercules know we just booted (possibly after a reset):
+	call HR_STATE_BOOT()
+
 	# initialize flags:
 	call INIT_GLOBAL_STATUS()
 
@@ -24,6 +31,6 @@ event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
 
 	# Do this at the end so we know it's actually on and working
 	if DEBUG = 1 then
-		call endpoint_send(1, 32, "Hello Moon, this is Iris Radio!\n")
+		call hercules_direct_message_ascii(32, "Hello Moon, this is Iris Radio!\n")
 	end if
 end

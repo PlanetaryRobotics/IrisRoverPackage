@@ -4,7 +4,9 @@ Firmware for the PIC MCU on the WF121 radio aboard the Iris Lunar Rover.
 
 This firmware runs as a compiled BASIC `BGScript` inside a VM that runs on top of the core WF121 firmware (see `docs/UG207`).
 
-The firmware auto-connects and establishes a UDP client and server with the Lander as specified in `src/network_settings.bgs`. The device can also be commanded using `BGAPI` (see `docs/API_Guide`) over its UART1 interface (connected to Iris' Hercules MCU) and will emit `BGAPI` events over that socket. WiFi Data can be sent/received over UART by issuing the `endpoint_send` `BGAPI` command and monitoring `tcpip_udp_data` `BGAPI` event. This firmware is designed to be fully self-sufficient in setting up and maintaining WiFi connection with the lander, allowing Hercules to treat it as just a fancy serial port which uses `BGAPI` commands and events as its communication protocol.
+The firmware auto-connects and establishes a UDP client and server with the Lander as specified in `src/network_settings.bgs`. The device can also be commanded using `BGAPI` (see `docs/API_Guide`) over its UART1 interface (connected to Iris' Hercules MCU) and will emit `BGAPI` events over that socket. WiFi Data can be sent/received over UART by issuing the `endpoint_send` `BGAPI` command and monitoring `tcpip_udp_data` `BGAPI` event on the Hercules MCU. This firmware is designed to be fully self-sufficient in setting up and maintaining WiFi connection with the lander, allowing Hercules to treat it as just a fancy serial port which uses `BGAPI` commands and events as its communication protocol.
+
+Additionally, this supports sending custom non-BGAPI status packets from the BGScript to the Hercules MCU over UART. See `src/hercules_messaging.bgs` for more details. A registry of common status / error messages can be found in `src/hercules_reports.bgs`.
 
 ## Setup
 - On a Windows machine (Windows 10 confirmed to work):

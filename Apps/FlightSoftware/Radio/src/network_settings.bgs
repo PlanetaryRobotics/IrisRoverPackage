@@ -17,7 +17,7 @@ export const NETWORK__SPACECRAFT_UDP_PORT  =   43531
 export const NETWORK__ROVER_UDP_PORT       =   42000
 # Warn on boot that we're using these settings:
 event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
-    call endpoint_send(1, 45, "WARNING: Using non-flight network settings.\n")
+    call hercules_direct_message_ascii(45, "WARNING: Using non-flight network settings.\n")
 end
 
 
@@ -37,12 +37,14 @@ export procedure SETUP_NETWORK()
     # Configure this device's network connection:
     call tcpip_configure(NETWORK__ROVER_ADDRESS, NETWORK__SUBNET_MASK, NETWORK__GATEWAY_ADDRESS, 0)(result)
     if result != 0 then
+        call HR_FATAL_TCP_CFG_FAIL() # Let Herc know before resetting
         call system_reset(0)  # This shouldn't have happened, trigger a reset
     end if
 
     # Set the wifi-password:
     call sme_set_password(NETWORK__LANDER_PASS_LEN, NETWORK__LANDER_PASS(0:NETWORK__LANDER_PASS_LEN))(result)
     if result != 0 then
+        call HR_FATAL_PASSWORD_FAIL() # Let Herc know before resetting
         call system_reset(0)  # This shouldn't have happened, trigger a reset
     end if
 
@@ -50,6 +52,7 @@ export procedure SETUP_NETWORK()
     if NETWORK__RESTRICT_CHANNELS = 1 then
         call sme_set_scan_channels(0, NETWORK__LANDER_CHANS_NUM, NETWORK__LANDER_CHANS(0:NETWORK__LANDER_CHANS_NUM))(result)
         if result != 0 then
+            call HR_FATAL_SET_SCAN_CHAN_FAIL() # Let Herc know before resetting
             call system_reset(0)  # This shouldn't have happened, trigger a reset
         end if
     end if

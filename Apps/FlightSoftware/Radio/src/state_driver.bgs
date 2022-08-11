@@ -18,12 +18,14 @@ import "src/global_status.bgs"
 
 export procedure START_STATE_DRIVER()
 	# Turn on the radio immediately upon boot (and keep trying if it fails):
+    call HR_STATE_INIT()
 	call WIFI_ON()
 end
 
 event sme_wifi_is_on(result)
 	if result = 0 then
         # WIFI_ON worked.
+        call HR_STATE_WIFI_ON() # Let Herc know
         call CONNECT_NETWORK()
     end if
 end
@@ -31,6 +33,7 @@ end
 event sme_connected(status, hw_interface, bssid)
     if hw_interface = 0 && status = 0 then
         # CONNECT_NETWORK worked
+        call HR_STATE_CONNECTED() # Let Herc know
         call START_UDP()
     end if
 end
@@ -40,6 +43,7 @@ event endpoint_status(endpoint, type, streaming, destination, active)
         # We're connected! Our work here is done.
         # Let's tell Earth the good news:
 		call endpoint_send(udp_client_endpoint, 39, "Hello Earth, this is Iris on the Moon!\n")
+        call HR_STATE_UDP_CONNECTED() # Let Herc know too
     end if
 end
 

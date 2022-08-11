@@ -1,0 +1,84 @@
+# A registry of frequent reports to be sent to Hercules.
+# Serves as a central place for Hercules developers to find what messages they should expect.
+
+# Heartbeat message:
+# Let's Hercules know Radio is still alive (even if data hasn't been received in a while)
+# *and* serves to progressively push any bad data out of its buffer to help with faster out-of-sync recovery.
+export procedure HR_HEARTBEAT()
+    call hercules_direct_message_ascii(5, "THUMP")
+end
+
+# State driver messages:
+export procedure HR_STATE_BOOT()
+    call hercules_direct_message_ascii(10, "state:BOOT")
+end
+
+export procedure HR_STATE_INIT()
+    call hercules_direct_message_ascii(10, "state:INIT")
+end
+
+export procedure HR_STATE_WIFI_ON()
+    call hercules_direct_message_ascii(13, "state:WIFI_ON")
+end
+
+export procedure HR_STATE_CONNECTED()
+    call hercules_direct_message_ascii(15, "state:CONNECTED")
+end
+
+export procedure HR_STATE_UDP_CONNECTED()
+    call hercules_direct_message_ascii(19, "state:UDP_CONNECTED")
+end
+
+# Behavior Messages (what it's currently trying to do):
+export procedure HR_DOING_WIFI_ON()
+    call hercules_direct_message_ascii(13, "doing:WIFI_ON")
+end
+
+export procedure HR_DOING_CONNECT_NETWORK()
+    call hercules_direct_message_ascii(21, "doing:CONNECT_NETWORK")
+end
+
+export procedure HR_DOING_START_UDP()
+    call hercules_direct_message_ascii(15, "doing:START_UDP")
+end
+
+
+# Error reports:
+export procedure HR_ERROR_DISCONNECT()
+    call hercules_direct_message_ascii(18, "error:DISCONNECTED")
+end
+
+export procedure HR_ERROR_UDP_LOST()
+    call hercules_direct_message_ascii(14, "error:UDP_LOST")
+end
+
+
+# Reports on errors prior to an auto reset of the radio:
+export procedure HR_FATAL_TCP_CFG_FAIL()
+    call hercules_direct_message_ascii(20, "fatal:TCPIP_CFG_FAIL")
+end
+
+export procedure HR_FATAL_PASSWORD_FAIL()
+    call hercules_direct_message_ascii(23, "fatal:SET_PASSWORD_FAIL")
+end
+
+export procedure HR_FATAL_SET_SCAN_CHAN_FAIL()
+    call hercules_direct_message_ascii(24, "fatal:SET_SCAN_CHAN_FAIL")
+end
+
+export procedure HR_FATAL_CONNECT_NETWORK_MAX_TRIES()
+    call hercules_direct_message_ascii(23, "fatal:CONNECT_MAX_TRIES")
+end
+
+export procedure HR_FATAL_WIFI_OFF_DURING_CONNECT()
+    # Radio went down while trying to connect. Bad news (and weird, shouldn't ever happen).
+    call hercules_direct_message_ascii(29, "fatal:WIFI_OFF_DURING_CONNECT")
+end
+
+export procedure HR_FATAL_START_UDP_MAX_TRIES()
+    call hercules_direct_message_ascii(25, "fatal:START_UDP_MAX_TRIES")
+end
+
+export procedure HR_FATAL_WIFI_ON_MAX_TRIES()
+    call hercules_direct_message_ascii(23, "fatal:WIFI_ON_MAX_TRIES")
+end

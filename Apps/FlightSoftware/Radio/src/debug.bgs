@@ -4,6 +4,6 @@ export const DEBUG = 1
 # Warn on boot if we're in debug:
 event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
     if DEBUG = 1 then
-        call endpoint_send(1, 34, "WARNING: Radio DEBUG mode active.\n")
+        call hercules_direct_message_ascii(34, "WARNING: Radio DEBUG mode active.\n")
     end if
 end

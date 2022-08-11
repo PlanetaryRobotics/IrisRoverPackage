@@ -1,0 +1,227 @@
+# Lightweight (b/c BGScript is slow) protocol for sending direct messages to
+# Hercules without using BGAPI packets.
+# This exists because there isn't a way to send a custom BGAPI packet received
+# by another device on the line and *just* sending raw data to UART could mess
+# with the BGAPI parsing in Hercules.
+#
+# EXAMPLES:
+#
+# Send a message:
+#   call hercules_direct_message_ascii(11, "Hello Moon!")
+#
+# Send a buffer encoded as a hex string:
+#   call hercules_direct_message_hex_buffer(2, "\xBE\xEF")
+#
+# Compile + send a custom message (containing both ASCII and a hex buffer):
+#   call hercules_compile_dm__new()
+#   call hercules_compile_dm__append_message(5, "MOON ")
+#   call hercules_compile_dm__append_hex_buffer(2, "\xBE\xEF")
+#   call hercules_compile_dm__send()
+# NOTE: You have to use the compile methods to do this since BGScript
+# procedures can't accept more than 1 buffer as an input.
+
+const HERCULES_ENDPOINT = 1 # Which endpoint Hercules is on.
+
+const HEADER() = "\xE6\xE7\xE7\xE6"
+const HEADER_LEN = 4
+
+dim msg_buffer(255)     # Permanently allocate the space for message data.
+dim MAX_MSG_LENGTH      # Maximum allowed message size (constant, but computed)
+dim current_msg_size    # Current size of the payload data of the message
+dim msg_head_idx        # Head pointer inside the message (index of where the next byte should be written - used for compiled messages)
+dim total_packet_size   # Total size of the packet (header included).
+
+
+# Indicates that we're starting a new compiled message.
+#
+# Call this before any other `hercules_compile_dm__XXX` procedures for each
+# message you intend to send.
+export procedure hercules_compile_dm__new()
+    # Reset the head ptr (after the header and message size byte):
+    msg_head_idx = HEADER_LEN + 1
+
+    # Reset the current message size:
+    current_msg_size = 0
+end
+
+
+# Append the given ASCII message to the compiled hercules message.
+#
+# Note: It's encouraged that only ASCII characters are used *BUT* no checks are
+# done for this and any bytes can be sent so long as they don't appear in the
+# `HEADER`. Use non-ASCII characters at your own risk.
+#
+# NOTE: This will increase the `current_msg_size` by `msg_length`.
+#   The final value of `current_msg_size` when sending must be <=MAX_MSG_LENGTH.
+export procedure hercules_compile_dm__append_message(msg_len, msg_data())
+    # Copy over the message data:
+    memcpy(msg_buffer(msg_head_idx), msg_data(0), msg_len)
+    msg_head_idx = msg_head_idx + 5
+
+    # Update the current message size:
+    current_msg_size = current_msg_size + msg_len
+end
+
+
+# Append a buffer into the compiled hercules message encoding each
+# byte as a two character hex string with a ':' separator between bytes.
+# The full encoding uses the following scheme:
+# " X[buffer length in hex as a two character string]\x[BYTE]:[BYTE]:[BYTE]..."
+#
+# NOTE: Each buffer will increase the `current_msg_size` by `6 + 3*b_length - 1`.
+#   The final value of `current_msg_size` when sending must be <=MAX_MSG_LENGTH. 
+#
+# Use this sparingly since the conversion takes a number of operations and
+# BGScript is slow (depending on the chip, each line can take ~1ms so **each**
+# additional byte could add up to ~8ms of execution time). That said, it is
+# worth noting that this runs in a VM on top of the radio firmware, so this
+# wait time shouldn't affect its ability to receive data during this time.
+#
+# NOTE: The WF121 uses little-endian byte order (i.e. if a uint32 is sent as a
+# buffer, it will be little-endian).
+#
+# Example: [0xBE, 0xEF] would be encoded as:
+#   ' ' 'X' '0' '2' '\' 'x' 'B' 'E' ':' 'E' 'F'
+dim hex_index # byte array index
+export procedure hercules_compile_dm__append_hex_buffer(b_length, b_data())
+    hex_index = 0
+
+    # Add buffer metadata:
+    ## Buffer sub-header:
+    msg_buffer(msg_head_idx:2) = " X"
+    msg_head_idx = msg_head_idx + 2
+    ## Buffer length:
+    msg_buffer(msg_head_idx:1) = (b_length/$10) + 48 + ((b_length/$10)/10*7)
+    msg_buffer(msg_head_idx+1:1) = (b_length&$0f) + 48 + ((b_length&$0f)/10*7)
+    msg_head_idx = msg_head_idx + 2
+    ## Buffer prefix:
+    msg_buffer(msg_head_idx:2) = "\\x"
+    msg_head_idx = msg_head_idx + 2
+
+    # Load encoded buffer data itself:
+    while hex_index < b_length
+        msg_buffer(msg_head_idx:1) = (b_data(hex_index:1)/$10) + 48 + ((b_data(hex_index:1)/$10)/10*7)
+        msg_buffer(msg_head_idx+1:1) = (b_data(hex_index:1)&$0f) + 48 + ((b_data(hex_index:1)&$0f)/10*7)
+
+        hex_index = hex_index + 1
+        msg_head_idx = msg_head_idx + 2
+
+        if hex_index < b_length - 1 then
+            msg_buffer(msg_head_idx:1) = ":"
+            msg_head_idx = msg_head_idx + 1
+        end if
+    end while
+
+    # Update the current message size:
+    current_msg_size = current_msg_size + 6 + 3*b_length - 1
+end
+
+
+# Send the compiled direct message to Hercules.
+#
+# A new compiled message is started (before appending data or sending) by
+#   calling `hercules_compile_dm__new`.
+# Data is added to the compiled message (before sending) by calling
+#   `hercules_compile_dm__append_XXX`.
+#
+# Message data is prefixed by `HEADER` followed by 1 byte indicating the length
+#   of the subsequent payload.
+#
+# Note the message data's size (`current_msg_size`) must be <=MAX_MSG_LENGTH in
+#   order to send, otherwise the message will just be dropped (this is to
+#   avoid overwhelming Hercules we don't want to allow sending messages with
+#   unbounded size).
+#
+# Example (Sends the message "Hello Moon!"):
+#   call hercules_compile_dm__new()
+#   call hercules_compile_dm__append_message(11, "Hello Moon!")
+#   call hercules_compile_dm__send()
+# Sends:
+#   E6 E7 E6 E7 0B 'H' 'e' 'l' 'l' 'o' ' ' 'M' 'o' 'o' 'n' '!'
+export procedure hercules_compile_dm__send()
+    if current_msg_size <= MAX_MSG_LENGTH then # Good to send:
+        # Set the length byte:
+        msg_buffer(4) = current_msg_size
+        # Send:
+        total_packet_size = current_msg_size + 1 + HEADER_LEN
+        call endpoint_send(HERCULES_ENDPOINT, total_packet_size, msg_buffer(0:total_packet_size))
+    end if
+end
+
+
+# Send a direct message to Hercules in a single shot.
+#
+# NOTE: It's encouraged that only ASCII characters are used *BUT* no checks are
+# done for this and any bytes can be sent so long as they don't appear in the
+# `HEADER`. Use non-ASCII bytes at your own risk.
+#
+# NOTE: Max message length is `MAX_MSG_LENGTH` Bytes.
+#
+# NOTE:
+# - If you need to send raw bytes, use: `hercules_direct_message_hex_buffer`.
+# - If you need to send both an ASCII string and raw bytes, compile a custom
+#   message (see the examples at the top of the file).
+#
+# Example (Sends the message "Hello Moon!"):
+#   hercules_direct_message_ascii(11, "Hello Moon!")
+# Sends:
+#   E6 E7 E6 E7 0B 'H' 'e' 'l' 'l' 'o' ' ' 'M' 'o' 'o' 'n' '!'
+export procedure hercules_direct_message_ascii(msg_len, msg_data())
+    call hercules_compile_dm__new()
+    call hercules_compile_dm__append_message(msg_len, msg_data(0:msg_len))
+    call hercules_compile_dm__send()
+end
+
+
+#
+#6 + 3*b_length - 1
+
+# Send a direct message to Hercules in a single shot containing the given
+# buffer encoded as a hex string.
+#
+# SEE: `hercules_compile_dm__append_hex_buffer` docs for more details about how
+#   the encoding works.
+#
+# NOTE: Max encoded message length is `MAX_MSG_LENGTH` Bytes. So, with this
+#   encoding scheme, that means the maximum buffer length is
+#   `int((MAX_MSG_LENGTH-5)/3)`. So, with a 4-Byte header, `MAX_MSG_LENGTH=250`,
+#   therefore the max buffer length would be `81`.
+#
+# NOTE:
+# - If you just need to send an ASCII message, use:
+#   `hercules_direct_message_ascii`.
+# - If you need to send both an ASCII string and raw bytes, compile a custom
+#   message (see the examples at the top of the file).
+#
+# Example (Encodes and sends the buffer: [0xBE, 0xEF, 0xEE]):
+#   hercules_direct_message_hex_buffer(3, "\xBE\xEF\xEE")
+# Sends:
+#   E6 E7 E6 E7 0E ' ' 'X' '0' '2' '\' 'x' 'B' 'E' ':' 'E' 'F' ':' 'E' 'E'
+export procedure hercules_direct_message_hex_buffer(buffer_len, buffer_data())
+    call hercules_compile_dm__new()
+    call hercules_compile_dm__append_hex_buffer(buffer_len, buffer_data(0:buffer_len))
+    call hercules_compile_dm__send()
+end
+
+
+# Initialize the Hercules direct message sender.
+#
+# NOTE: This must be called BEFORE calling any other `hercules_` procedure.
+#   because it initializes the header buffer.
+export procedure hercules_direct_message_init()
+    # Initialize the header in the `msg_buffer` (keeps it from needing to be
+    # copied each time a message is sent):
+    memcpy(msg_buffer(0), HEADER(0), HEADER_LEN)
+
+    # Compute max allowable message length:
+    MAX_MSG_LENGTH = 255 - 1 - HEADER_LEN
+
+    # Quick messaging tests:
+    # TODO: REMOVE-ME.
+    call hercules_direct_message_ascii(8, "Hi Herc!")
+    call hercules_direct_message_hex_buffer(3, "\xBA\xDA\x55")
+    call hercules_compile_dm__new()
+    call hercules_compile_dm__append_message(5, "BEEF:")
+    call hercules_compile_dm__append_hex_buffer(2, "\xBE\xEF")
+    call hercules_compile_dm__send()
+end

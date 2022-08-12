@@ -55,6 +55,7 @@ This code is designed to work equally well when:
     - For debugging, you may also add a serial dongle in parallel using the SBC's breakout connector but be careful to only do this with the Hercules unpowered.
 2. Uploaded to a WF121 dev kit and communicating with the BlueGiga WiFi GUI via a 3.3V UART (TTL Serial) dongle.
     - For communication to work properly, you'll need to connect `RTS` and `CTS` on the UART dongle in addition to `TX` and `RX` since control-flow is required.
+        - See `Table 2` in `docs/WF121-DataSheet.pdf` for pin locations. Note, port names use 1-indexing here, so the `UART-1` interface used is labelled `U2`.
     - BlueGiga WiFi GUI can be installed using `resources/bluegiga-wi-fi-1.4.1-91.exe`.
     - Dev kit used for development was the `MIKROE WiFi 6 Click board`.
         - Note: "WiFi 6" here isn't referring to the WiFi 6 protocol, but rather where this board fits in their "WiFi Click" line-up (they offer up to "WiFi 11").

@@ -1,7 +1,7 @@
 @echo off
 
 echo Compiling the WF121 project...
-C:\Bluegiga\wf121-1.4.1-91\bin\bgbuild.exe .\src\project.xml
+C:\Bluegiga\wf121-1.4.1-91\bin\bgbuild.exe .\project.xml
 
 echo Correcting the MAC address...
 :: Change MAC address to Bluegiga (00:07:80) + Iris (12:15) + IF (ff)

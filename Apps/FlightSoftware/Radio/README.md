@@ -14,10 +14,18 @@ Additionally, this supports sending custom non-BGAPI status packets from the BGS
         - Make sure to install it to `C:\Bluegiga\wf121-1.4.1-91\` (i.e. install directory should be `C:\`). If you have to change this, update `compile.bat` accordingly.
     - Download `MPLAB IPE` (v6) if you want to program using ICSP (the PICKit and not using the UART-DFU bootloader).
 
-## Building:
+## Configuration
+- **Project configuration** can be found in `project.xml`.
+    - This dictates what's built, how, and where it goes.
+- **Hardware configuration** can be found in `config/hardware.xml`.
+    - This dictates how the device's physical hardware is configured (IO ports, interfaces, etc.)
+
+If you need to change the hardware setup, feel free to modify the respective `xml` files, just read the docs carefully first. See `docs/UG221` for details on the structure and contents of these files.
+
+## Building
 - From `Powershell`, run `.\compile.bat`.
 
-## Flashing:
+## Flashing
 ### **Over serial with DFU over UART:**
 
 - Use the BlueGiga WF121 GUI software (installed above).
@@ -40,6 +48,17 @@ Additionally, this supports sending custom non-BGAPI status packets from the BGS
     - Click `Program`.
     - After successful programming, power everything off and then unplug the programmer.
     - If the programmer fails to communicate with the device, it's likely the RST pin (`MCLR`) is being held HIGH or LOW.
+
+## Targets
+This code is designed to work equally well when:
+1. Uploaded directly to the WF121 on the `Iris Lunar Rover SBC` (Rev I) and communicating with the Hercules MCU.
+    - For debugging, you may also add a serial dongle in parallel using the SBC's breakout connector but be careful to only do this with the Hercules unpowered.
+2. Uploaded to a WF121 dev kit and communicating with the BlueGiga WiFi GUI via a 3.3V UART (TTL Serial) dongle.
+    - For communication to work properly, you'll need to connect `RTS` and `CTS` on the UART dongle in addition to `TX` and `RX` since control-flow is required.
+    - BlueGiga WiFi GUI can be installed using `resources/bluegiga-wi-fi-1.4.1-91.exe`.
+    - Dev kit used for development was the `MIKROE WiFi 6 Click board`.
+        - Note: "WiFi 6" here isn't referring to the WiFi 6 protocol, but rather where this board fits in their "WiFi Click" line-up (they offer up to "WiFi 11").
+        - **NOTE:** This board ships blank, so the first time you flash it, you'll need to use the `ICSP` `PICKit 3` method detailed above in order to get the UART DFU bootloader on there.
 
 ## Critical Docs
 Critical reference documents can be found in `docs`. Notably, these include examples and more detailed (visual) instructions on things like building and flashing.

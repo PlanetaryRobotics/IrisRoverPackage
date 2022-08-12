@@ -7,43 +7,82 @@
 # ! See state_driver.puml for a full state diagram.
 
 # Import automated behaviors:
-import "src/behaviors/bgs_behavior__wifi_on.bgs"
-import "src/behaviors/bgs_behavior__connect_network.bgs"
-import "src/behaviors/bgs_behavior__start_udp.bgs"
+import "src/behaviors/behaviors.bgs"
 
 # global_status just watches everything, so it should come after all the
 # behaviors but before the state implementations (it needs access to behavior
 # data but the state driver needs access to it):
 import "src/global_status.bgs"
 
-export procedure START_STATE_DRIVER()
+##
+# STATE DEFINITIONS & ACTIONS:
+##
+
+export procedure SET_STATE_INIT()
+    # We're now in the INIT state:
+    call HR_STATE_INIT() # Let Herc know.
+
+    # In the INIT state, we try to turn on WIFI:
 	# Turn on the radio immediately upon boot (and keep trying if it fails):
-    call HR_STATE_INIT()
 	call WIFI_ON()
+end
+
+export procedure SET_STATE_WIFI_ON()
+    # We're now in the WIFI_ON state:
+    call HR_STATE_WIFI_ON() # Let Herc know.
+
+    # In the WIFI_ON state, we try to connect to the network
+    call CONNECT_NETWORK()
+end
+
+export procedure SET_STATE_CONNECTED()
+    # We're now in the CONNECTED state:
+    call HR_STATE_CONNECTED() # Let Herc know.
+
+    # In the CONNECTED state, we try to start UDP:
+    call START_UDP()
+end
+
+export procedure SET_STATE_UDP_CONNECTED()
+    # We're now in the UDP_CONNECTED state:
+    call HR_STATE_UDP_CONNECTED() # Let Herc know.
+
+    # Now that we're connected, tell Hercules we're not currently doing
+    # anything besides remaining vigilent:
+    call HR_DOING_REMAINING_VIGILENT()
+
+    # We're connected! Our work here is done.
+    # Let's tell Earth the good news:
+    call endpoint_send(udp_client_endpoint, 39, "Hello Earth, this is Iris on the Moon!\n")
+end
+
+
+##
+# EVENT HANDLES TO DRIVE US BETWEEN STATES:
+##
+
+export procedure START_STATE_DRIVER()
+    call SET_STATE_INIT()
 end
 
 event sme_wifi_is_on(result)
 	if result = 0 then
         # WIFI_ON worked.
-        call HR_STATE_WIFI_ON() # Let Herc know
-        call CONNECT_NETWORK()
+        call SET_STATE_WIFI_ON()
     end if
 end
 
 event sme_connected(status, hw_interface, bssid)
     if hw_interface = 0 && status = 0 then
         # CONNECT_NETWORK worked
-        call HR_STATE_CONNECTED() # Let Herc know
-        call START_UDP()
+        call SET_STATE_CONNECTED()
     end if
 end
 
 event endpoint_status(endpoint, type, streaming, destination, active)
     if status__udp_client_active && status__udp_server_active then
-        # We're connected! Our work here is done.
-        # Let's tell Earth the good news:
-		call endpoint_send(udp_client_endpoint, 39, "Hello Earth, this is Iris on the Moon!\n")
-        call HR_STATE_UDP_CONNECTED() # Let Herc know too
+        ## START_UDP worked
+        call SET_STATE_UDP_CONNECTED()
     end if
 end
 

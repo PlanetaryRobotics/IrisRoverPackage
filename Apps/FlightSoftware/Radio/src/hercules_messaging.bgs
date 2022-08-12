@@ -208,7 +208,7 @@ end
 #
 # NOTE: This must be called BEFORE calling any other `hercules_` procedure.
 #   because it initializes the header buffer.
-export procedure hercules_direct_message_init()
+procedure hercules_direct_message_init()
     # Initialize the header in the `msg_buffer` (keeps it from needing to be
     # copied each time a message is sent):
     memcpy(msg_buffer(0), HEADER(0), HEADER_LEN)
@@ -224,4 +224,10 @@ export procedure hercules_direct_message_init()
     call hercules_compile_dm__append_message(5, "BEEF:")
     call hercules_compile_dm__append_hex_buffer(2, "\xBE\xEF")
     call hercules_compile_dm__send()
+end
+
+# Set up hercules messaging buffers immediately upon boot:
+event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
+	# immediately set up Hercules messaging (so we can send messages any time):
+    call hercules_direct_message_init()
 end

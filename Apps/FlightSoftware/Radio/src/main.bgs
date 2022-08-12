@@ -8,19 +8,23 @@ import "src/network_settings.bgs"
 # so its event hooks get called after any others (transition after all other
 # actions that need to be taken for that event are complete):
 import "src/state_driver.bgs"
+# Heartbeat services just observe everything, so they can be imported last:
+import "src/heartbeat.bgs"
 
 # Main boot event listener
 # (call this last so all other on-boot setup is completed first):
 event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
-	# immediately set up Hercules messaging (so we can send messages any time):
-	call hercules_direct_message_init()
+	# Immediately initialize hercules report buffers:
+	call INIT_HR()
 	# Let Hercules know we just booted (possibly after a reset):
-	call HR_STATE_BOOT()
+	call HR_BOOT()
 
 	# initialize flags:
 	call INIT_GLOBAL_STATUS()
 
 	# Enter low-latency power-saving mode by default:
+	# Only turn this on (uncomment) if necessary (comms not working in sleep).
+	# Currently seems unnecessary.
 	# call system_set_max_power_saving_state(0)
 
 	# Setup network settings:
@@ -33,4 +37,7 @@ event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
 	if DEBUG = 1 then
 		call hercules_direct_message_ascii(32, "Hello Moon, this is Iris Radio!\n")
 	end if
+
+	# Now that everything is set up and working, kick off heartbeat services:
+	call HEARTBEAT_INIT()
 end

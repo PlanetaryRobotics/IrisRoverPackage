@@ -35,7 +35,7 @@ end
 
 export procedure CONNECT_NETWORK()
     counter = 0
-    call HR_DOING_CONNECT_NETWORK()
+    call HR_DOING_CONNECTING_NETWORK()
     call attempt_connection()
 end
 

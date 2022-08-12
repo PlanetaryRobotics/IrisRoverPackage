@@ -1,49 +1,155 @@
 # A registry of frequent reports to be sent to Hercules.
 # Serves as a central place for Hercules developers to find what messages they should expect.
 
+# Buffers for prefixes on frequently used messages (which need to append a
+# prefix to some variable data):
+
+# State message contains the current state of the state driver:
+const STATE_MSG_PREFIX_LEN = 6  # "state:"
+dim state_msg_buffer(21) # STATE_MSG_PREFIX_LEN(6) + MAX_STATE_LEN(15) (unfortunately we can't just add consts here)
+dim state_msg_body_len # Length of the current state message (excluding prefix)
+
+# Doing indicates what action the radio is primarily working on right now (it's current goal):
+const DOING_MSG_PREFIX_LEN = 6  # "doing:"
+dim doing_msg_buffer(31) # DOING_MSG_PREFIX_LEN(6) + MAX_DOING_MSG_BODY_LEN(25) (unfortunately we can't just add consts here)
+dim doing_msg_body_len # Length of the current doing message (excluding prefix)
+
+# Heartbeat takes the form of "thump:CURRENT_STATE>CURRENTLY_DOING"
+# We do this in case Hercules crashes or resets and has thus forgotten our
+# current state. We want to remind it regularly just in case.
+const HB_MSG_PREFIX_LEN = 6  # "thump:"
+dim hb_msg_buffer(52) # 1 + state_msg_buffer capacity(21) + doing_msg_buffer capacity(31) (unfortunately we can't just add consts here)
+procedure load_heartbeat_data()
+    # Load heartbeat data from state_ and doing_ message buffers:
+    memcpy(hb_msg_buffer(HB_MSG_PREFIX_LEN), state_msg_buffer(STATE_MSG_PREFIX_LEN), state_msg_body_len)
+    hb_msg_buffer(HB_MSG_PREFIX_LEN+state_msg_body_len) = ">" # add separator
+    memcpy(hb_msg_buffer(HB_MSG_PREFIX_LEN+state_msg_body_len+1), doing_msg_buffer(DOING_MSG_PREFIX_LEN), doing_msg_body_len)
+end
+
+
+# Set up hercules reporting buffers:
+export procedure INIT_HR()
+    # Initial state:
+    state_msg_buffer(0:STATE_MSG_PREFIX_LEN) = "state:BOOT" # BOOT = state_driver hasn't initialzed yet
+    state_msg_body_len = 4
+
+    doing_msg_buffer(0:DOING_MSG_PREFIX_LEN) = "doing:BOOTING"
+    doing_msg_body_len = 6
+
+    hb_msg_buffer(0:HB_MSG_PREFIX_LEN) = "thump:"
+    # Init heartbeat message with initial values for state_ and doing_ messages:
+    call load_heartbeat_data()
+end
+
+
+##
+# Actual message sending protocols:
+##
+# Report that we just booted:
+export procedure HR_BOOT()
+    call hercules_direct_message_ascii(4, "BOOT")
+end
+
 # Heartbeat message:
 # Let's Hercules know Radio is still alive (even if data hasn't been received in a while)
 # *and* serves to progressively push any bad data out of its buffer to help with faster out-of-sync recovery.
 export procedure HR_HEARTBEAT()
-    call hercules_direct_message_ascii(5, "THUMP")
+    call load_heartbeat_data()
+    call hercules_direct_message_ascii(HB_MSG_PREFIX_LEN+state_msg_body_len+1+doing_msg_body_len, hb_msg_buffer(0:HB_MSG_PREFIX_LEN+state_msg_body_len+1+doing_msg_body_len))
 end
 
-# State driver messages:
-export procedure HR_STATE_BOOT()
-    call hercules_direct_message_ascii(10, "state:BOOT")
+# Report the current state to Hercules:
+export procedure HR_STATE()
+    # Send the update:
+    call hercules_direct_message_ascii(STATE_MSG_PREFIX_LEN+state_msg_body_len, state_msg_buffer(0:STATE_MSG_PREFIX_LEN+state_msg_body_len))
 end
 
+# Report what the Radio's currently focused on doing (it's goal) to Hercules:
+export procedure HR_DOING()
+    # Send the update:
+    call hercules_direct_message_ascii(DOING_MSG_PREFIX_LEN+doing_msg_body_len, doing_msg_buffer(0:DOING_MSG_PREFIX_LEN+doing_msg_body_len))
+end
+
+
+##
+# State Messages:
+##
 export procedure HR_STATE_INIT()
-    call hercules_direct_message_ascii(10, "state:INIT")
+    # Update the current state string:
+    state_msg_body_len = 4
+    state_msg_buffer(STATE_MSG_PREFIX_LEN:state_msg_body_len) = "INIT"
+    # Send it to Herc:
+    call HR_STATE()
 end
 
 export procedure HR_STATE_WIFI_ON()
-    call hercules_direct_message_ascii(13, "state:WIFI_ON")
+    # Update the current state string:
+    state_msg_body_len = 7
+    state_msg_buffer(STATE_MSG_PREFIX_LEN:state_msg_body_len) = "WIFI_ON"
+    # Send it to Herc:
+    call HR_STATE()
 end
 
 export procedure HR_STATE_CONNECTED()
-    call hercules_direct_message_ascii(15, "state:CONNECTED")
+    # Update the current state string:
+    state_msg_body_len = 9
+    state_msg_buffer(STATE_MSG_PREFIX_LEN:state_msg_body_len) = "CONNECTED"
+    # Send it to Herc:
+    call HR_STATE()
 end
 
 export procedure HR_STATE_UDP_CONNECTED()
-    call hercules_direct_message_ascii(19, "state:UDP_CONNECTED")
+    # Update the current state string:
+    state_msg_body_len = 13
+    state_msg_buffer(STATE_MSG_PREFIX_LEN:state_msg_body_len) = "UDP_CONNECTED"
+    # Send it to Herc:
+    call HR_STATE()
 end
 
+
+##
 # Behavior Messages (what it's currently trying to do):
-export procedure HR_DOING_WIFI_ON()
-    call hercules_direct_message_ascii(13, "doing:WIFI_ON")
+##
+export procedure HR_DOING_TURNING_WIFI_ON()
+    doing_msg_body_len = 15
+    doing_msg_buffer(DOING_MSG_PREFIX_LEN:doing_msg_body_len) = "TURNING_WIFI_ON"
+    call HR_DOING()
 end
 
-export procedure HR_DOING_CONNECT_NETWORK()
-    call hercules_direct_message_ascii(21, "doing:CONNECT_NETWORK")
+export procedure HR_DOING_CONNECTING_NETWORK()
+    doing_msg_body_len = 18
+    doing_msg_buffer(DOING_MSG_PREFIX_LEN:doing_msg_body_len) = "CONNECTING_NETWORK"
+    call HR_DOING()
 end
 
-export procedure HR_DOING_START_UDP()
-    call hercules_direct_message_ascii(15, "doing:START_UDP")
+export procedure HR_DOING_STARTING_UDP()
+    doing_msg_body_len = 12
+    doing_msg_buffer(DOING_MSG_PREFIX_LEN:doing_msg_body_len) = "STARTING_UDP"
+    call HR_DOING()
+end
+
+# Doing nothing, just remaining vigilent (a more fun name than just "NOTHING"):
+# (Also, "NOTHING" would imply that we couldn't be actively passing data to,
+# Hercules issuing Heartbeats, or monitoring events, which we are even when 
+# we're "doing:NOTHING")
+export procedure HR_DOING_REMAINING_VIGILENT()
+    doing_msg_body_len = 18
+    doing_msg_buffer(DOING_MSG_PREFIX_LEN:doing_msg_body_len) = "REMAINING_VIGILENT"
+    call HR_DOING()
+end
+
+# Currently waiting some period of time before issuing a corrective action:
+export procedure HR_WAITING_THEN_CORRECTING()
+    doing_msg_body_len = 23
+    doing_msg_buffer(DOING_MSG_PREFIX_LEN:doing_msg_body_len) = "WAITING_THEN_CORRECTING"
+    call HR_DOING()
 end
 
 
+##
 # Error reports:
+# Problems that kick off corrective action but don't require a system reset (yet).
+##
 export procedure HR_ERROR_DISCONNECT()
     call hercules_direct_message_ascii(18, "error:DISCONNECTED")
 end
@@ -53,7 +159,11 @@ export procedure HR_ERROR_UDP_LOST()
 end
 
 
-# Reports on errors prior to an auto reset of the radio:
+##
+# Fatal reports:
+# Problems that require a system reset.
+# All fatal reports preceed an auto reset of the radio.
+##
 export procedure HR_FATAL_TCP_CFG_FAIL()
     call hercules_direct_message_ascii(20, "fatal:TCPIP_CFG_FAIL")
 end

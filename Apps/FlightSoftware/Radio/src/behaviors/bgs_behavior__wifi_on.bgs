@@ -13,39 +13,59 @@ const RETRY_WAIT_MS = 200
 # How many times it's been tried unsuccessfully so far.
 dim counter
 
+# Temp. variables:
+dim result
+
+
 event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
     # init vars:
     counter = 0
 end
 
-export procedure WIFI_ON()
-    counter = 0
-    call HR_DOING_WIFI_ON()
-    call sme_set_operating_mode(1)  # Make sure radio is in station mode (not AP)
-    call sme_wifi_on()
+
+# Procedure called in any failure case:
+procedure handle_failure()
+    counter = counter + 1
+    # Radio failed to turn on for some reason...
+    if (counter < COUNTER_MAX) then
+        call hardware_set_soft_timer(RETRY_WAIT_MS, TIMER_HANDLE, 1)
+    else
+        # failed too many times. something must be wrong. Reboot!
+        call HR_FATAL_WIFI_ON_MAX_TRIES() # Let Herc know before resetting
+        call system_reset(0)
+    end if
 end
 
 
-event sme_wifi_is_on(result)
+# Attempt to turn WiFi on:
+procedure turn_wifi_on()
+    call sme_wifi_on()(result)
+    if result != 0 then
+        call handle_failure()
+    end if
+end
+
+
+export procedure WIFI_ON()
+    counter = 0
+    call HR_DOING_TURNING_WIFI_ON()
+    call sme_set_operating_mode(1)  # Make sure radio is in station mode (not AP)
+    call turn_wifi_on()
+end
+
+
+event sme_wifi_is_on(res)
 	# If Wi-Fi is ON
-	if result = 0 then
+	if res = 0 then
         counter = 0
 	else
-        counter = counter + 1
-		# Radio failed to turn on for some reason...
-		if (counter < COUNTER_MAX) then
-            call hardware_set_soft_timer(RETRY_WAIT_MS, TIMER_HANDLE, 1)
-        else
-            # failed too many times. something must be wrong. Reboot!
-            call HR_FATAL_WIFI_ON_MAX_TRIES() # Let Herc know before resetting
-		    call system_reset(0)
-        end if
+        call handle_failure()
 	end if
 end
 
 
 event hardware_soft_timer(handle)
     if handle = TIMER_HANDLE then
-        call sme_wifi_on()
+        call turn_wifi_on()
     end if
 end

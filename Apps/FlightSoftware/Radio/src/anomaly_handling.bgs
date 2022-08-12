@@ -11,8 +11,8 @@ event sme_disconnected(reason, hw_interface)
         call HR_ERROR_DISCONNECT()
         # Turn off wifi:
         call sme_wifi_off()
-        # Tell Herc we've gone back to INIT state (state before wifi-on):
-        call HR_STATE_INIT()
+        # Let hercules know we plan on fixing this:
+        call HR_WAITING_THEN_CORRECTING()
         # Wait 0.5s, then retry:
         call hardware_set_soft_timer(500, ANOM__WIFI_CONNECTION_LOST__TIMER_HANDLE, 1)
 
@@ -20,8 +20,9 @@ event sme_disconnected(reason, hw_interface)
 end
 event hardware_soft_timer(handle)
     if handle = ANOM__WIFI_CONNECTION_LOST__TIMER_HANDLE then
-        call WIFI_ON()  # kicks off the state driver again at WIFI_ON()
-        # don't worry, if this fails, it will eventually give up and restart the radio
+        # Since wifi is off, go back to the INIT state (state before wifi-on):
+        call SET_STATE_INIT()
+        # don't worry, if WIFI_ON fails, it will eventually give up and restart the radio
     end if
 end
 
@@ -34,8 +35,8 @@ event endpoint_closing(reason, endpoint)
         if endpoint = udp_client_endpoint || endpoint = udp_server_endpoint then
             # Log as Hercules Direct Message Error:
             call HR_ERROR_UDP_LOST()
-            # Tell Herc we've gone back to CONNECTED state (pre-UDP_CONNECTED):
-            call HR_STATE_CONNECTED()
+            # Let hercules know we plan on fixing this:
+            call HR_WAITING_THEN_CORRECTING()
             # Wait 1s, then try reopening:
             call hardware_set_soft_timer(1000, ANOM__UDP_CLOSURE__TIMER_HANDLE, 1)
         end if
@@ -43,7 +44,8 @@ event endpoint_closing(reason, endpoint)
 end
 event hardware_soft_timer(handle)
     if handle = ANOM__UDP_CLOSURE__TIMER_HANDLE then
-        call START_UDP()  # tries to set up the UDP connection again
-        # don't worry, if this fails, it will eventually give up and restart the radio
+        # Since UDP is disconnected, go back to the CONNECTED state (pre-UDP_CONNECTED):
+        call SET_STATE_CONNECTED()  # tries to set up the UDP connection again
+        # don't worry, if START_UDP fails, it will eventually give up and restart the radio
     end if
 end

@@ -78,7 +78,7 @@ end
 
 export procedure START_UDP()
     counter = 0
-    call HR_DOING_START_UDP()
+    call HR_DOING_STARTING_UDP()
     call start_service()
 end
 

@@ -18,6 +18,12 @@ export const NETWORK__ROVER_UDP_PORT       =   42000
 # Warn on boot that we're using these settings:
 event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
     call hercules_direct_message_ascii(45, "WARNING: Using non-flight network settings.\n")
+    # NOTE: `hercules_direct_message_init` will need to have been called before this (^)
+    # *BUT* if the compiler knows what `hercules_direct_message_ascii` is then that means
+    # `hercules_messaging.bgs` has already been included, which necessarily means its
+    # `system_boot` procedure will be called before this one (they're called in definition
+    # order), which means `hercules_direct_message_init` will have already been called.
+    # Pretty neat, huh?
 end
 
 

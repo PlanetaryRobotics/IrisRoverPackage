@@ -2,7 +2,7 @@
 # NOTE: There can only be one fixed continuous timer running at a time.
 
 const TIMER_HANDLE = $8E97
-const HEARTBEAT_INTERVAL_MS = 10000 # every 10s
+const HEARTBEAT_INTERVAL_MS = 5000 # every 5s
 
 # Number of milliseconds between each Heartbeat message sent over the wifi radio
 # (won't be faster than `HEARTBEAT_INTERVAL_MS`):
@@ -14,6 +14,11 @@ dim ticks_since_last_wifi_heartbeat
 const HERCULES_HEARTBEAT_PERIOD_MS = 10000
 dim ticks_since_last_hercules_heartbeat
 
+# Regularly send connection connection data updates to hercules (if connected):
+const HERCULES_UPDATE_PERIOD_MS = 5000
+dim ticks_since_last_hercules_update
+
+
 # Return variables
 dim result, endpoint
 
@@ -22,6 +27,7 @@ export procedure HEARTBEAT_INIT()
     # Init variables:
     ticks_since_last_wifi_heartbeat = 0
     ticks_since_last_hercules_heartbeat = 0
+    ticks_since_last_hercules_update = 0
 
     # Kick off the heartbeat timer:
     call hardware_set_soft_timer(HEARTBEAT_INTERVAL_MS, TIMER_HANDLE, 0)
@@ -33,6 +39,7 @@ event hardware_soft_timer(handle)
         # Update tick counters (even if we can't send right now):
         ticks_since_last_wifi_heartbeat = ticks_since_last_wifi_heartbeat + 1
         ticks_since_last_hercules_heartbeat = ticks_since_last_hercules_heartbeat + 1
+        ticks_since_last_hercules_update = ticks_since_last_hercules_update + 1
 
         # Check if we can and should send a WiFi heartbeat:
         if status__wifi_connected = 1 && ticks_since_last_wifi_heartbeat * HEARTBEAT_INTERVAL_MS >= WIFI_HEARTBEAT_PERIOD_MS then
@@ -44,6 +51,13 @@ event hardware_soft_timer(handle)
         if ticks_since_last_hercules_heartbeat * HEARTBEAT_INTERVAL_MS >= HERCULES_HEARTBEAT_PERIOD_MS then
             call HR_HEARTBEAT()
             ticks_since_last_hercules_heartbeat = 0
+        end if
+
+        # Check if we can and should send a connection data update to Hercules:
+        if status__wifi_connected = 1 && ticks_since_last_hercules_update * HEARTBEAT_INTERVAL_MS >= HERCULES_UPDATE_PERIOD_MS then
+            # Request a signal quality update:
+            call sme_get_signal_quality()
+            ticks_since_last_hercules_update = 0
         end if
     end if
 end

@@ -24,10 +24,23 @@ end
 
 
 # Procedure called in any failure case:
-procedure handle_failure()
+# NOTE: The weird name is because of a bug discovered in BGScript where the
+# first declared `handle_failure` would be called... even if it was in a
+# different `bgs` file and not exported. To be safe, all procedures should have
+# unique names, even if not exported.
+procedure wo__handle_failure()
+    if DEBUG = 1 then
+        call hercules_direct_message_ascii(27, "Handling Wifi-On Failure...")
+    end if
     counter = counter + 1
     # Radio failed to turn on for some reason...
     if (counter < COUNTER_MAX) then
+        if DEBUG = 1 then
+            call hercules_compile_dm__new()
+            call hercules_compile_dm__append_message(20, "WOF awaiting handle:")
+            call hercules_compile_dm__append_hex_buffer(1, TIMER_HANDLE) # handle is only 1B
+            call hercules_compile_dm__send()
+        end if
         call hardware_set_soft_timer(RETRY_WAIT_MS, TIMER_HANDLE, 1)
     else
         # failed too many times. something must be wrong. Reboot!
@@ -41,7 +54,7 @@ end
 procedure turn_wifi_on()
     call sme_wifi_on()(result)
     if result != 0 then
-        call handle_failure()
+        call wo__handle_failure()
     end if
 end
 
@@ -59,7 +72,7 @@ event sme_wifi_is_on(res)
 	if res = 0 then
         counter = 0
 	else
-        call handle_failure()
+        call wo__handle_failure()
 	end if
 end
 

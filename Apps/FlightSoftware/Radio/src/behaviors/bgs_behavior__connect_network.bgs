@@ -41,9 +41,22 @@ end
 
 
 # Procedure called in any failure case:
-procedure handle_failure()
+# NOTE: The weird name is because of a bug discovered in BGScript where the
+# first declared `handle_failure` would be called... even if it was in a
+# different `bgs` file and not exported. To be safe, all procedures should have
+# unique names, even if not exported.
+procedure cn__handle_failure()
+    if DEBUG = 1 then
+        call hercules_direct_message_ascii(35, "Handling Connect Network Failure...")
+    end if
     counter = counter + 1
     if (counter < COUNTER_MAX) then
+        if DEBUG = 1 then
+            call hercules_compile_dm__new()
+            call hercules_compile_dm__append_message(20, "CNF awaiting handle:")
+            call hercules_compile_dm__append_hex_buffer(1, TIMER_HANDLE) # handle is only 1B
+            call hercules_compile_dm__send()
+        end if
         call hardware_set_soft_timer(RETRY_WAIT_MS, TIMER_HANDLE, 1)
     else
         # failed too many times. something must be wrong. Reboot!
@@ -52,7 +65,6 @@ procedure handle_failure()
     end if
 end
 
-
 event sme_connected(status, hw_interface, bssid)
     if hw_interface = 0 then  # interface is WiFi
         if status = 0 then
@@ -60,7 +72,7 @@ event sme_connected(status, hw_interface, bssid)
             actively_connecting = 0
         else
             # Wifi connection attempt is complete but unsuccessful
-            call handle_failure()
+            call cn__handle_failure()
         end if
     end if
 end
@@ -68,7 +80,7 @@ end
 
 event sme_connect_failed(reason, hw_interface)
     if hw_interface = 0 then  # interface is WiFi
-        call handle_failure()
+        call cn__handle_failure()
     end if
 end
 

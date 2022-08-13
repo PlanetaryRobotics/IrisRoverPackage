@@ -61,5 +61,10 @@ This code is designed to work equally well when:
         - Note: "WiFi 6" here isn't referring to the WiFi 6 protocol, but rather where this board fits in their "WiFi Click" line-up (they offer up to "WiFi 11").
         - **NOTE:** This board ships blank, so the first time you flash it, you'll need to use the `ICSP` `PICKit 3` method detailed above in order to get the UART DFU bootloader on there.
 
+## Notes
+### **Globally Unique Procedure Names Required**
+It appears that there's a bug in this version of `BGScript` where procedures will act as if they're exported even if it isn't listed as `export`. That is, if multiple files all have a local procedure with the same name, only the first one defined will be called. What's worse is that this happens silently, without any compiler warning, etc. **To be safe, all procedure names should be globally unique (not defined ANYWHERE else in the program).**
+- This was discovered because there were multiple `procedure`s named `handle_failure` in different `bgs` files but the first one defined would always be called, even if it was `handle_failure()` wasn't `export`ed and the calling was happening in a different `bgs` file with its own `handle_failure()` `procedure`.
+
 ## Critical Docs
 Critical reference documents can be found in `docs`. Notably, these include examples and more detailed (visual) instructions on things like building and flashing.

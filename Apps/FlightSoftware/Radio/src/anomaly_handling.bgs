@@ -11,12 +11,17 @@ event sme_disconnected(reason, hw_interface)
         call HR_ERROR_DISCONNECT()
         # Turn off wifi:
         call sme_wifi_off()
-        # Let hercules know we plan on fixing this:
+        # Let hercules know we plan on fixing this (once wifi is off):
         call HR_WAITING_THEN_CORRECTING()
-        # Wait 0.5s, then retry:
-        call hardware_set_soft_timer(500, ANOM__WIFI_CONNECTION_LOST__TIMER_HANDLE, 1)
-
     end if
+end
+event sme_wifi_is_off(result)
+	# If Wi-Fi is OFF
+	if result = 0 then
+        # If WiFi has turned off anomalously (or we turned it off above)...
+        # Wait 0.5s, then retry the state driver:
+        call hardware_set_soft_timer(500, ANOM__WIFI_CONNECTION_LOST__TIMER_HANDLE, 1)
+	end if
 end
 event hardware_soft_timer(handle)
     if handle = ANOM__WIFI_CONNECTION_LOST__TIMER_HANDLE then

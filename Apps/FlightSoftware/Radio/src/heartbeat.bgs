@@ -1,7 +1,7 @@
 # Heartbeat (fixed recurring timer) services:
 # NOTE: There can only be one fixed continuous timer running at a time.
 
-const TIMER_HANDLE = $8E97
+const TIMER_HANDLE = $8B # Handle is only uint8
 const HEARTBEAT_INTERVAL_MS = 5000 # every 5s
 
 # Number of milliseconds between each Heartbeat message sent over the wifi radio
@@ -35,6 +35,15 @@ end
 
 # Listen for timer:
 event hardware_soft_timer(handle)
+
+    # Send a message on every timer expiry (for debugging timers):
+    if DEBUG = 1 then
+        call hercules_compile_dm__new()
+        call hercules_compile_dm__append_message(6, "timer:")
+        call hercules_compile_dm__append_hex_buffer(1, handle) # handle is only 1B
+        call hercules_compile_dm__send()
+    end if
+
     if handle = TIMER_HANDLE then
         # Update tick counters (even if we can't send right now):
         ticks_since_last_wifi_heartbeat = ticks_since_last_wifi_heartbeat + 1

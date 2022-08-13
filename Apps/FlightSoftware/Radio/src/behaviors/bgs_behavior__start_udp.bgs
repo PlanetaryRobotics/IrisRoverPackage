@@ -4,7 +4,7 @@
 # ! Update state_driver.puml if you make changes here.
 
 # Handle for the single shot timer to know what event triggered it
-const TIMER_HANDLE = $be02
+const TIMER_HANDLE = $B3  # Handle is only uint8
 # Max number of times to try before resetting:
 const COUNTER_MAX = 5
 # Time to wait before trying again, in ms:

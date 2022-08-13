@@ -3,7 +3,7 @@
 
 ## WIFI DISCONNECT
 # Wifi Network Disconnected (after a connection was previously established):
-const ANOM__WIFI_CONNECTION_LOST__TIMER_HANDLE = $0A00
+const ANOM__WIFI_CONNECTION_LOST__TIMER_HANDLE = $A1  # Handle is only uint8
 event sme_disconnected(reason, hw_interface)
     if hw_interface = 0 then
         # TODO: Let Watchdog know (Hercules will know automatically)
@@ -29,7 +29,7 @@ end
 
 ## UDP CLOSURE
 # Listen for UDP closures (this really shouldn't happen so let)
-const ANOM__UDP_CLOSURE__TIMER_HANDLE = $0A01
+const ANOM__UDP_CLOSURE__TIMER_HANDLE = $A2  # Handle is only uint8
 event endpoint_closing(reason, endpoint)
     if endpoint != UDP_NULL_ENDPOINT then
         if endpoint = udp_client_endpoint || endpoint = udp_server_endpoint then

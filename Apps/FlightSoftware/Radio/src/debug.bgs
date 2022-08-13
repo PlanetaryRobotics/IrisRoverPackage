@@ -1,5 +1,5 @@
 # universally accessible debug flag
-export const DEBUG = 1
+export const DEBUG = 0
 
 # Warn on boot if we're in debug:
 event system_boot(major,minor,patch,build,bootloader,tcpip,hw)

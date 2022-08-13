@@ -56,7 +56,7 @@ end
 export procedure hercules_compile_dm__append_message(msg_len, msg_data())
     # Copy over the message data:
     memcpy(msg_buffer(msg_head_idx), msg_data(0), msg_len)
-    msg_head_idx = msg_head_idx + 5
+    msg_head_idx = msg_head_idx + msg_len
 
     # Update the current message size:
     current_msg_size = current_msg_size + msg_len
@@ -141,7 +141,7 @@ end
 export procedure hercules_compile_dm__send()
     if current_msg_size <= MAX_MSG_LENGTH then # Good to send:
         # Set the length byte:
-        msg_buffer(4) = current_msg_size
+        msg_buffer(4:1) = current_msg_size
         # Send:
         total_packet_size = current_msg_size + 1 + HEADER_LEN
         call endpoint_send(HERCULES_ENDPOINT, total_packet_size, msg_buffer(0:total_packet_size))

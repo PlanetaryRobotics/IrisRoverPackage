@@ -106,7 +106,7 @@ export procedure hercules_compile_dm__append_hex_buffer(b_length, b_data())
         hex_index = hex_index + 1
         msg_head_idx = msg_head_idx + 2
 
-        if hex_index < b_length - 1 then
+        if hex_index < b_length then
             msg_buffer(msg_head_idx:1) = ":"
             msg_head_idx = msg_head_idx + 1
         end if

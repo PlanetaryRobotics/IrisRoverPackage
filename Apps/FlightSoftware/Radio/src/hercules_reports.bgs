@@ -22,7 +22,7 @@ dim hb_msg_buffer(52) # 1 + state_msg_buffer capacity(21) + doing_msg_buffer cap
 procedure load_heartbeat_data()
     # Load heartbeat data from state_ and doing_ message buffers:
     memcpy(hb_msg_buffer(HB_MSG_PREFIX_LEN), state_msg_buffer(STATE_MSG_PREFIX_LEN), state_msg_body_len)
-    hb_msg_buffer(HB_MSG_PREFIX_LEN+state_msg_body_len) = ">" # add separator
+    hb_msg_buffer(HB_MSG_PREFIX_LEN+state_msg_body_len:1) = ">" # add separator
     memcpy(hb_msg_buffer(HB_MSG_PREFIX_LEN+state_msg_body_len+1), doing_msg_buffer(DOING_MSG_PREFIX_LEN), doing_msg_body_len)
 end
 
@@ -30,11 +30,11 @@ end
 # Set up hercules reporting buffers:
 export procedure INIT_HR()
     # Initial state:
-    state_msg_buffer(0:STATE_MSG_PREFIX_LEN) = "state:BOOT" # BOOT = state_driver hasn't initialzed yet
     state_msg_body_len = 4
+    state_msg_buffer(0:STATE_MSG_PREFIX_LEN+state_msg_body_len) = "state:BOOT" # BOOT = state_driver hasn't initialzed yet
 
-    doing_msg_buffer(0:DOING_MSG_PREFIX_LEN) = "doing:BOOTING"
-    doing_msg_body_len = 6
+    doing_msg_body_len = 7
+    doing_msg_buffer(0:DOING_MSG_PREFIX_LEN+doing_msg_body_len) = "doing:BOOTING"
 
     hb_msg_buffer(0:HB_MSG_PREFIX_LEN) = "thump:"
     # Init heartbeat message with initial values for state_ and doing_ messages:

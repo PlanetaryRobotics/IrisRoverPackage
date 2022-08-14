@@ -13,6 +13,7 @@ const HEARTBEAT_INTERVAL_MS = 5000 # every 5s
 # (won't be faster than `HEARTBEAT_INTERVAL_MS`):
 const WIFI_HEARTBEAT_PERIOD_MS = 90000
 dim ticks_since_last_wifi_heartbeat
+dim sent_at_least_one_wifi_heartbeat # whether we've ever sent a WiFi heartbeat (we want to send the first one ASAP and then start counting from there)
 
 # Number of milliseconds between each Heartbeat message sent to Hercules
 # (won't be faster than `HEARTBEAT_INTERVAL_MS`):
@@ -55,6 +56,7 @@ dim radio_gnd_hb_buffer(22)  # Must be same as above (unfortunately, we can't al
 # Initialize heartbeat services:
 export procedure HEARTBEAT_INIT()
     # Init variables:
+    sent_at_least_one_wifi_heartbeat = 0 # we haven't sent one before
     ticks_since_last_wifi_heartbeat = 0
     ticks_since_last_hercules_heartbeat = 0
     ticks_since_last_hercules_update = 0
@@ -79,10 +81,12 @@ end
 dim tmp
 procedure RADIO_GND_HEARTBEAT()
     # Add RSSI information as ASCII (3 digits):
-    tmp = -1 * status__last_rssi # convert to positive int
+    tmp = (status__last_rssi ^ $FF) + 1 # convert to positive int (kinda 2's complement style but not quite since it stores only the lowest one byte so we just handle that - this is why we can't do *-1, it treats it as a uint32 and flips a bunch of 00s to FFs)
     radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN:1) = (tmp / 100) + 48
     radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+1:1) = ((tmp / 10) - (tmp/100)*10) + 48
     radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+2:1) = (tmp - (tmp/10)*10) + 48
+    call hercules_direct_message_hex_buffer(4, status__last_rssi)
+    call hercules_direct_message_hex_buffer(4, tmp)
 
     # Copy over state abbreviation buffer:
     memcpy(radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+4), state_4B_abbr(0), 4)
@@ -115,9 +119,13 @@ event hardware_soft_timer(handle)
         ticks_since_last_self_wd_check = ticks_since_last_self_wd_check + 1
 
         # Check if we can and should send a WiFi heartbeat:
-        if status__wifi_connected = 1 && ticks_since_last_wifi_heartbeat * HEARTBEAT_INTERVAL_MS >= WIFI_HEARTBEAT_PERIOD_MS then
+        # Either:
+        # - Wifi is connected and it's time to send another
+        # - Wifi is connected (just connected) and we haven't sent anything yet *but* we do have an RSSI value so we now can craft a packet
+        if status__wifi_connected = 1 && ((sent_at_least_one_wifi_heartbeat = 0 && status__last_rssi != 0) || (ticks_since_last_wifi_heartbeat * HEARTBEAT_INTERVAL_MS >= WIFI_HEARTBEAT_PERIOD_MS)) then
             call RADIO_GND_HEARTBEAT()
             ticks_since_last_wifi_heartbeat = 0
+            sent_at_least_one_wifi_heartbeat = 1
         end if
 
         # Check if we need to send a heartbeat to Hercules:

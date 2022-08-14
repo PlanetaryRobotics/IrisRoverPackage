@@ -75,6 +75,9 @@ event hardware_soft_timer(handle)
     end if
 
     if handle = TIMER_HANDLE then
+        # Update uptime statistic:
+        status__heartbeat_timer_tick_uptime = status__heartbeat_timer_tick_uptime + 1
+
         # Update tick counters (even if we can't send right now):
         ticks_since_last_wifi_heartbeat = ticks_since_last_wifi_heartbeat + 1
         ticks_since_last_hercules_heartbeat = ticks_since_last_hercules_heartbeat + 1

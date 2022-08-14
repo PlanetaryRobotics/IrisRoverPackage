@@ -9,7 +9,8 @@ export dim status__udp_server_active
 # General information and statistics:
 export dim status__last_rssi  # most recent rssi reading (polled periodically by heartbeat services)
 export dim status__hercules_syntax_err_count  # count of malformed packets (from Hercules)
-
+export dim status__udp_packets_received # number of UDP packets received by the radio (since boot / reboot)
+export dim status__heartbeat_timer_tick_uptime # How many heartbeat timer ticks have we been up for (in multiples of HEARTBEAT_INTERVAL_MS, serviced by `heartbeat.bgs`):
 
 export procedure INIT_GLOBAL_STATUS()
     status__wifi_radio_is_on = 0
@@ -18,9 +19,15 @@ export procedure INIT_GLOBAL_STATUS()
     status__udp_server_active = 0
     status__last_rssi = 0
     status__hercules_syntax_err_count = 0
+    status__udp_packets_received = 0
+    status__heartbeat_timer_tick_uptime = 0
 end
 
 # Listen for events that affect any of these statuses and update them:
+
+##
+# CONNECTION STATUS
+##
 
 event sme_wifi_is_on(result)
 	# If Wi-Fi is ON
@@ -122,13 +129,22 @@ event endpoint_closing(reason, endpoint)
 end
 
 
+##
+# STATISTICS & DATA:
+##
+
 event sme_signal_quality(rssi, hw_interface)
     status__last_rssi = rssi
 end
 
-
 event endpoint_syntax_error(result, endpoint)
     if endpoint = HERCULES_ENDPOINT then
         status__hercules_syntax_err_count = status__hercules_syntax_err_count + 1
+    end if
+end
+
+event tcpip_udp_data(endpoint, source_address, source_port, data_len, data_data)
+    if endpoint = udp_server_endpoint then
+        status__udp_packets_received = status__udp_packets_received + 1
     end if
 end

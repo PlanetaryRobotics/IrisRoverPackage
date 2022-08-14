@@ -37,7 +37,7 @@ event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
 	# Let Hercules know we just booted (possibly after a reset):
 	call HR_BOOT()
 
-	# initialize flags:
+	# Initialize flags:
 	call INIT_GLOBAL_STATUS()
 
 	# Enter low-latency power-saving mode by default:

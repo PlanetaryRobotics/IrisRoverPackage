@@ -1,0 +1,141 @@
+# A registry of frequent reports to be sent to Earth directly from the Radio.
+# Serves as a central place for Ground Software developers to find what messages they should expect.
+#
+# The Standard formatting followed by all Radio-Ground messages is:
+#   - "RAD:" header
+#   - [Message Type]: Sequence of ASCII characters defining message type
+#   - "|"
+#   - A Series of >=0 fields.
+#       - Each must be sepearated by "|" (final field is not followed by a "|")
+#       - Field content itself must not contain the "|" character.
+#       - Any fields where arbitrary raw hex is sent instead of ASCII characters are preceded by an "h" and must either:
+#           - Have a known / fixed length (i.e. this field is always X bytes)
+#           - If variable in length, be the final field in the message (so the field's length doesn't need to be transmitted)
+#
+# Note: this is all going to be wrapped inside a UDP packet, so we don't need
+# length information, CRC, etc. in the header of this message.
+
+##
+# Fixed messaging buffers:
+##
+
+# Buffer for containing fixed bytes for the Radio-Ground Heartbeat:
+const RADIO_GND_HB_HEADER_LEN = 9  # "RAD:HB|R-"
+const RADIO_GND_HB_LEN = 23  # Fixed length (unfortunately we can't just add consts): RADIO_GND_HB_HEADER_LEN + RSSI (3) + 1 + State abbr (4) + 2 + Raw hex of bad syntax count (4)
+dim radio_gnd_hb_buffer(23)  # Must be same as above (unfortunately, we can't allocate with a const variable)
+
+# Buffer for containing message about bad data from Hercules:
+# "RAD:BADHERC|h" + Reason (2B)
+const BAD_HERC_MSG_HEADER_LEN = 13 # "RAD:BADHERC|h"
+const BAD_HERC_MSG_LEN = 15 # BAD_HERC_MSG_HEADER_LEN + 2B of "reason"
+dim bad_herc_msg_buffer(15)
+
+# Buffer for containing message about endpoint errors:
+# "RAD:BADENDP|h" + Endpoint (1B) + "|h" + Reason (2B)
+const BAD_ENDPOINT_MSG_HEADER_LEN = 13 # "RAD:BADENDP|h"
+const BAD_ENDPOINT_MSG_LEN = 18 # BAD_ENDPOINT_MSG_HEADER_LEN + 1B of endpoint + 2 + 2B of "reason"
+dim bad_endpoint_msg_buffer(18)
+
+# Buffer for containing message about impending CRITICAL reset (see `critical_reset_if_bad_reason` for reasons):
+const CRITICAL_RESET_MSG_HEADER_LEN = 11 # "RAD:CRIT!|h"
+const CRITICAL_RESET_MSG_LEN = 13 # CRITICAL_RESET_MSG_HEADER_LEN + 2B of "reason"
+dim critical_reset_msg_buffer(13)
+
+
+# On boot, preallocate buffers with all fixed bytes:
+event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
+    # Prepopulate the RADIO_HEARTBEAT HEADER (since it never changes):
+    radio_gnd_hb_buffer(0:RADIO_GND_HB_HEADER_LEN) = "RAD:HB|R-"
+    # Also prepopulate the fixed separators:
+    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+3:1) = "|"
+    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+3+1+4:2) = "|h"
+
+    # Setup fixed header for Bad Herc Message:
+    bad_herc_msg_buffer(0:BAD_HERC_MSG_HEADER_LEN) = "RAD:BADHERC|h"
+
+    # Setup fixed data for Bad Endpoint Message:
+    bad_endpoint_msg_buffer(0:BAD_ENDPOINT_MSG_HEADER_LEN) = "RAD:BADENDP|h"
+    bad_endpoint_msg_buffer(BAD_ENDPOINT_MSG_HEADER_LEN+1:2) = "|h"
+
+    # Setup fixed header for Critical Reset Message:
+    critical_reset_msg_buffer(0:CRITICAL_RESET_MSG_HEADER_LEN) = "RAD:CRIT!|h"
+end
+
+
+##
+# Unique Messages:
+##
+
+## RADIO-GND HEARTBEAT:
+# Crafts and issues a Radio-Ground Heartbeat
+# (tells Earth that the radio is alive, even if something may have happened to
+# the other components ... or potentially if Herc's TX buffer got screwed but
+# its RX may still be working).
+dim tmp
+export procedure RADIO_GND_HEARTBEAT()
+    # Add RSSI information as ASCII (3 digits):
+    tmp = (status__last_rssi ^ $FF) + 1 # convert to positive int (kinda 2's complement style but not quite since it stores only the lowest one byte so we just handle that - this is why we can't do *-1, it treats it as a uint32 and flips a bunch of 00s to FFs)
+    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN:1) = (tmp / 100) + 48
+    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+1:1) = ((tmp / 10) - (tmp/100)*10) + 48
+    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+2:1) = (tmp - (tmp/10)*10) + 48
+
+    # Copy over state abbreviation buffer:
+    memcpy(radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+4), state_4B_abbr(0), 4)
+
+    # Copy over raw hex of the hercules syntax fault count:
+    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+10:4) = status__hercules_syntax_err_count
+
+    # Send heartbeat to Earth:
+    call endpoint_send(udp_client_endpoint, RADIO_GND_HB_LEN, radio_gnd_hb_buffer(0:RADIO_GND_HB_LEN))
+end
+
+## RADIO-GND HELLO:
+# Sent upon first connection to Earth:
+export procedure RADIO_GND_HELLO()
+    call endpoint_send(udp_client_endpoint, 39, "Hello Earth, this is Iris on the Moon!\n")
+end
+
+
+##
+# Error reports:
+# Problems that kick off corrective action but don't require a system reset (yet).
+##
+
+# We received some garbage from Hercules. Let Earth know - maybe it's time to
+# reset it? This is a result of `endpoint_syntax_error`.
+export procedure RADIO_GND_ERR_BAD_HERC(reason)
+    # Copy in the reason bytes (all numbers are 4B but we only want the lowest 2B):
+    bad_herc_msg_buffer(BAD_HERC_MSG_HEADER_LEN:2) = reason
+    # Send:
+    call endpoint_send(udp_client_endpoint, BAD_HERC_MSG_LEN, bad_herc_msg_buffer(0:BAD_HERC_MSG_LEN))
+end
+
+# Something went wrong with an endpoint (besides / in addition to a syntax BGAPI
+# error). If this message is able to get through to Ground at all, it's likely
+# that the error to do with the Hercules endpoint.
+# This is a result of `endpoint_error`.
+export procedure RADIO_GND_ERR_BAD_ENDPOINT(reason, endpoint)
+    # Copy endpoint data (just lowest 1B):
+    bad_endpoint_msg_buffer(BAD_ENDPOINT_MSG_HEADER_LEN:1) = endpoint & $FF
+    # Copy in the reason bytes (all numbers are 4B but we only want the lowest 2B):
+    bad_endpoint_msg_buffer(BAD_ENDPOINT_MSG_HEADER_LEN+3:2) = reason
+    # Send:
+    call endpoint_send(udp_client_endpoint, BAD_HERC_MSG_LEN, bad_endpoint_msg_buffer(0:BAD_ENDPOINT_MSG_LEN))
+end
+
+
+##
+# Fatal reports:
+# Problems that require a system reset.
+# All fatal reports preceed an auto reset of the radio.
+##
+
+# Let Earth know we're about to perform a "Critical reset" b/c
+# `anomaly_handling` noticed something failed due a `reason` deemed CRITICAL
+# (out of memory, HW fault, etc). Pass along the two bytes indicating that too:
+export procedure RADIO_GND_CRITICAL_RESET_REASON(reason)
+    # Copy in the reason bytes (all numbers are 4B but we only want the lowest 2B):
+    critical_reset_msg_buffer(CRITICAL_RESET_MSG_HEADER_LEN:2) = reason
+    # Send:
+    call endpoint_send(udp_client_endpoint, CRITICAL_RESET_MSG_LEN, critical_reset_msg_buffer(0:CRITICAL_RESET_MSG_LEN))
+end

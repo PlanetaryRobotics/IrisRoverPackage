@@ -8,24 +8,6 @@
 # in any of these states.
 # ! See state_driver.puml for a full state diagram.
 
-# 4-letter state abbreviation used for checking if we should be trigger a state
-# transition based on an event:
-# (4-letter b/c BGScript buffers can only be directly compared if 4 bytes):
-export dim state_4B_abbr(4)
-event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
-    # init vars:
-    state_4B_abbr(0:4) = "BOOT"
-end
-
-
-# Import automated behaviors:
-import "src/behaviors/behaviors.bgs"
-
-# global_status just watches everything, so it should come after all the
-# behaviors but before the state implementations (it needs access to behavior
-# data but the state driver needs access to it):
-import "src/global_status.bgs"
-
 
 ##
 # STATE DEFINITIONS & ACTIONS:
@@ -70,7 +52,7 @@ export procedure SET_STATE_UDP_CONNECTED()
 
     # We're connected! Our work here is done.
     # Let's tell Earth the good news:
-    call endpoint_send(udp_client_endpoint, 39, "Hello Earth, this is Iris on the Moon!\n")
+    call RADIO_GND_HELLO()
 end
 
 
@@ -105,6 +87,3 @@ event endpoint_status(endpoint, type, streaming, destination, active)
         call SET_STATE_UDP_CONNECTED()
     end if
 end
-
-
-import "src/anomaly_handling.bgs"  # handle anomalies and get back to a known good state

@@ -48,11 +48,6 @@ dim ticks_since_last_hercules_update
 const SELF_WD_CHECK_PERIOD_MS = $7FFFF # Should be at least several minutes. See notes above.
 dim ticks_since_last_self_wd_check
 
-const RADIO_GND_HB_HEADER_LEN = 8  # "RADIO:R-"
-const RADIO_GND_HB_LEN = 22  # Fixed length (unfortunately we can't just add consts): RADIO_GND_HB_HEADER_LEN + RSSI (3) + 1 + State abbr (4) + 2 + Raw hex of bad syntax count (4)
-dim radio_gnd_hb_buffer(22)  # Must be same as above (unfortunately, we can't allocate with a const variable)
-
-
 # Initialize heartbeat services:
 export procedure HEARTBEAT_INIT()
     # Init variables:
@@ -62,38 +57,8 @@ export procedure HEARTBEAT_INIT()
     ticks_since_last_hercules_update = 0
     ticks_since_last_self_wd_check = 0
 
-    # Prepopulate the RADIO_HEARTBEAT HEADER (since it never changes):
-    radio_gnd_hb_buffer(0:RADIO_GND_HB_HEADER_LEN) = "RADIO:R-"
-    # Also prepopulate the fixed separators:
-    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+3:1) = "|"
-    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+3+1+4:2) = "|h"
-
     # Kick off the heartbeat timer:
     call hardware_set_soft_timer(HEARTBEAT_INTERVAL_MS, TIMER_HANDLE, 0)
-end
-
-
-## RADIO-GND HEARTBEAT:
-# Crafts and issues a Radio-Ground Heartbeat
-# (tells Earth that the radio is alive, even if something may have happened to
-# the other components ... or potentially if Herc's TX buffer got screwed but
-# its RX may still be working).
-dim tmp
-procedure RADIO_GND_HEARTBEAT()
-    # Add RSSI information as ASCII (3 digits):
-    tmp = (status__last_rssi ^ $FF) + 1 # convert to positive int (kinda 2's complement style but not quite since it stores only the lowest one byte so we just handle that - this is why we can't do *-1, it treats it as a uint32 and flips a bunch of 00s to FFs)
-    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN:1) = (tmp / 100) + 48
-    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+1:1) = ((tmp / 10) - (tmp/100)*10) + 48
-    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+2:1) = (tmp - (tmp/10)*10) + 48
-
-    # Copy over state abbreviation buffer:
-    memcpy(radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+4), state_4B_abbr(0), 4)
-
-    # Copy over raw hex of the hercules syntax fault count:
-    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+10:4) = status__hercules_syntax_err_count
-
-    # Send heartbeat to Earth:
-    call endpoint_send(udp_client_endpoint, RADIO_GND_HB_LEN, radio_gnd_hb_buffer(0:RADIO_GND_HB_LEN))
 end
 
 
@@ -120,7 +85,7 @@ event hardware_soft_timer(handle)
         # Either:
         # - Wifi is connected and it's time to send another
         # - Wifi is connected (just connected) and we haven't sent anything yet *but* we do have an RSSI value so we now can craft a packet
-        if status__wifi_connected = 1 && ((sent_at_least_one_wifi_heartbeat = 0 && status__last_rssi != 0) || (ticks_since_last_wifi_heartbeat * HEARTBEAT_INTERVAL_MS >= WIFI_HEARTBEAT_PERIOD_MS)) then
+        if status__wifi_connected != 0 && ((sent_at_least_one_wifi_heartbeat = 0 && status__last_rssi != 0) || (ticks_since_last_wifi_heartbeat * HEARTBEAT_INTERVAL_MS >= WIFI_HEARTBEAT_PERIOD_MS)) then
             call RADIO_GND_HEARTBEAT()
             ticks_since_last_wifi_heartbeat = 0
             sent_at_least_one_wifi_heartbeat = 1
@@ -133,7 +98,7 @@ event hardware_soft_timer(handle)
         end if
 
         # Check if we can and should send a connection data update to Hercules:
-        if status__wifi_connected = 1 && ticks_since_last_hercules_update * HEARTBEAT_INTERVAL_MS >= HERCULES_UPDATE_PERIOD_MS then
+        if status__wifi_connected != 0 && ticks_since_last_hercules_update * HEARTBEAT_INTERVAL_MS >= HERCULES_UPDATE_PERIOD_MS then
             # Request a signal quality update:
             call sme_get_signal_quality()
             ticks_since_last_hercules_update = 0

@@ -1,6 +1,10 @@
 # A registry of frequent reports to be sent to Hercules.
 # Serves as a central place for Hercules developers to find what messages they should expect.
 
+##
+# Fixed buffers:
+##
+
 # Buffers for prefixes on frequently used messages (which need to append a
 # prefix to some variable data):
 
@@ -196,4 +200,14 @@ end
 export procedure HR_FATAL_SELF_WD_NOT_IN_GOOD_STATE()
     # We weren't in "good state" when the self watchdog woke up and checked on us:
     call hercules_direct_message_ascii(23, "fatal:SELF_WD_NOT_GOOD")
+end
+
+# Let Hercules know we're about to perform a "Critical reset" b/c
+# `anomaly_handling` noticed something failed due a `reason` deemed CRITICAL
+# (out of memory, HW fault, etc). Pass along the two bytes indicating that too:
+export procedure HR_FATAL_CRITICAL_RESET_REASON(reason)
+    call hercules_compile_dm__new()
+    call hercules_compile_dm__append_message(6, "fatal:CRIT!h")
+    call hercules_compile_dm__append_hex_buffer(2, reason) # reason is only 2B (lowest 2B, which come first in little endian)
+    call hercules_compile_dm__send()
 end

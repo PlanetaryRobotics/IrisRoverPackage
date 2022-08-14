@@ -1,13 +1,31 @@
 # Load helpers (once imported, these are accessible globally, even in subsequently imported scripts):
-import "src/hercules_messaging.bgs"
-import "src/hercules_reports.bgs"
+import "src/global_buffers.bgs"
+import "src/comms/hercules_messaging.bgs"
+import "src/comms/hercules_reports.bgs"
 import "src/debug.bgs"
 import "src/network_settings.bgs"
+
+# Import automated behaviors (primary taken by the system):
+import "src/behaviors/behaviors.bgs"
+
+# global_status just watches everything, so it should come after all the
+# behaviors but before the state implementations (it needs access to behavior
+# data but the state driver needs access to it):
+import "src/global_status.bgs"
+
+# Messages to send to Earth: (depends on data from behaviors and status
+# (must be included after). Anomaly handling, heartbeat, and state driver use
+# it (so must come before):
+import "src/comms/ground_reports.bgs"
 
 # Include state driver at the end of the main source but before main::system_boot
 # so its event hooks get called after any others (transition after all other
 # actions that need to be taken for that event are complete):
 import "src/state_driver.bgs"
+
+# Handle anomalies and get back to a known good state (depends on state so must come after):
+import "src/anomaly_handling.bgs"  
+
 # Heartbeat services just observe everything, so they can be imported last:
 import "src/heartbeat.bgs"
 

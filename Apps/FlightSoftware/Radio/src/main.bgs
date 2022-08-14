@@ -51,11 +51,6 @@ event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
 	# Kick off the state driver:
 	call START_STATE_DRIVER()
 
-	# Do this at the end so we know it's actually on and working
-	if DEBUG = 1 then
-		call hercules_direct_message_ascii(32, "Hello Moon, this is Iris Radio!\n")
-	end if
-
 	# Now that everything is set up and working, kick off heartbeat services:
 	call HEARTBEAT_INIT()
 end

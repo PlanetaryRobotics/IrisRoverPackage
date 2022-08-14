@@ -1,5 +1,10 @@
 # Heartbeat (fixed recurring timer) services:
+#
 # NOTE: There can only be one fixed continuous timer running at a time.
+#
+# NOTE: All timer-driven recurrent events (those that use heartbeat services)
+# will happen at the next `HEARTBEAT_INTERVAL_MS` if their period isn't a round
+# multiple of `HEARTBEAT_INTERVAL_MS`.
 
 const TIMER_HANDLE = $8B # Handle is only uint8
 const HEARTBEAT_INTERVAL_MS = 5000 # every 5s
@@ -18,6 +23,30 @@ dim ticks_since_last_hercules_heartbeat
 const HERCULES_UPDATE_PERIOD_MS = 5000
 dim ticks_since_last_hercules_update
 
+# SELF_WD_CHECK (a catch-all-halts reboot):
+# If we're not in "good state" by this time, just reboot the whole radio.
+# - (We have this because **once** it was observed that an `sme_connected` event
+# appeared to be somehow missed and didn't trigger the state driver to the next
+# state, leading to a hang. So, to prevent this and any other potential hang
+# issues, just have the Radio lightly "watchdog" itself and make sure it's in
+# good state at a certain time after boot).
+# -This should be set to a pretty long interval to allow all normal catches
+#  the chance to perform their own catches.
+#   - For safety, make this value several cosmic-ray bit flips away from being
+#     converted to a small number.
+# - Do this repeatedly (not just once) in case a hang state is entered due to a
+#  disconnect while on the surface after we're long into the mission.
+#
+# TL;DR: Once every long while, we're going to do an *extra* safety check to
+# make sure we're in "good state", if not (even if it just happened), too bad
+# we're going to assume something's bad and just reset the radio to be safe.
+#
+# Period is 0x7FFFF. This is 524,287ms (8m44.29s), which is the first number
+# greater than 5 mins (the lowest we wanted to accept) whose binary is all ones
+# (to be more resilient to cosmic ray flips).
+const SELF_WD_CHECK_PERIOD_MS = $7FFFF # Should be at least several minutes. See notes above.
+dim ticks_since_last_self_wd_check
+
 
 # Return variables
 dim result, endpoint
@@ -28,6 +57,7 @@ export procedure HEARTBEAT_INIT()
     ticks_since_last_wifi_heartbeat = 0
     ticks_since_last_hercules_heartbeat = 0
     ticks_since_last_hercules_update = 0
+    ticks_since_last_self_wd_check = 0
 
     # Kick off the heartbeat timer:
     call hardware_set_soft_timer(HEARTBEAT_INTERVAL_MS, TIMER_HANDLE, 0)
@@ -35,7 +65,6 @@ end
 
 # Listen for timer:
 event hardware_soft_timer(handle)
-
     # Send a message on every timer expiry (for debugging timers):
     if DEBUG = 1 then
         call hercules_compile_dm__new()
@@ -49,6 +78,7 @@ event hardware_soft_timer(handle)
         ticks_since_last_wifi_heartbeat = ticks_since_last_wifi_heartbeat + 1
         ticks_since_last_hercules_heartbeat = ticks_since_last_hercules_heartbeat + 1
         ticks_since_last_hercules_update = ticks_since_last_hercules_update + 1
+        ticks_since_last_self_wd_check = ticks_since_last_self_wd_check + 1
 
         # Check if we can and should send a WiFi heartbeat:
         if status__wifi_connected = 1 && ticks_since_last_wifi_heartbeat * HEARTBEAT_INTERVAL_MS >= WIFI_HEARTBEAT_PERIOD_MS then
@@ -67,6 +97,16 @@ event hardware_soft_timer(handle)
             # Request a signal quality update:
             call sme_get_signal_quality()
             ticks_since_last_hercules_update = 0
+        end if
+
+        # Self-WD Check:
+        if ticks_since_last_self_wd_check * HEARTBEAT_INTERVAL_MS >= SELF_WD_CHECK_PERIOD_MS then
+            if (status__wifi_radio_is_on = 0 || status__wifi_connected = 0 || status__udp_client_active = 0 || status__udp_server_active = 0) then
+                # We're not in good state :< ... Reboot!
+                call HR_FATAL_SELF_WD_NOT_IN_GOOD_STATE()
+                call system_reset(0)
+            end if
+            ticks_since_last_self_wd_check = 0
         end if
     end if
 end

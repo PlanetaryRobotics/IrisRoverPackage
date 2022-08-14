@@ -192,3 +192,8 @@ end
 export procedure HR_FATAL_WIFI_ON_MAX_TRIES()
     call hercules_direct_message_ascii(23, "fatal:WIFI_ON_MAX_TRIES")
 end
+
+export procedure HR_FATAL_SELF_WD_NOT_IN_GOOD_STATE()
+    # We weren't in "good state" when the self watchdog woke up and checked on us:
+    call hercules_direct_message_ascii(23, "fatal:SELF_WD_NOT_GOOD")
+end

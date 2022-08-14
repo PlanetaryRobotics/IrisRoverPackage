@@ -85,8 +85,6 @@ procedure RADIO_GND_HEARTBEAT()
     radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN:1) = (tmp / 100) + 48
     radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+1:1) = ((tmp / 10) - (tmp/100)*10) + 48
     radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+2:1) = (tmp - (tmp/10)*10) + 48
-    call hercules_direct_message_hex_buffer(4, status__last_rssi)
-    call hercules_direct_message_hex_buffer(4, tmp)
 
     # Copy over state abbreviation buffer:
     memcpy(radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+4), state_4B_abbr(0), 4)

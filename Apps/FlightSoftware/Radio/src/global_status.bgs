@@ -99,5 +99,16 @@ event endpoint_closing(reason, endpoint)
             status__udp_server_active = 0
             call endpoint_close(udp_server_endpoint) # required acknowledgement for the endpoint index to be reused
         end if
+
+        # If a non-NULL endpoint is closing and UDP client/server is listed as
+        # NULL, then we've just *intentionally* closed it (likely before
+        # opening a new one), so list them as inactive accordingly
+        # (they should be inactive if NULL anyway):
+        if udp_client_endpoint = UDP_NULL_ENDPOINT then
+            status__udp_client_active = 0
+        end if
+        if udp_server_endpoint = UDP_NULL_ENDPOINT then
+            status__udp_server_active = 0
+        end if
     end if
 end

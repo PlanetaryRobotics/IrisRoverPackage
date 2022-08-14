@@ -61,6 +61,21 @@ end
 
 # Attempt to connect:
 procedure start_udp_service()
+    # Check if we've previously been connected, if so, scrap those previous
+    # endpoints:
+    if udp_client_endpoint != UDP_NULL_ENDPOINT then
+        call endpoint_close(udp_client_endpoint)
+        # indicate that we no longer care about this endpoint (so nothing
+        # freaks out when it closes):
+        udp_client_endpoint = UDP_NULL_ENDPOINT
+    end if
+    if udp_server_endpoint != UDP_NULL_ENDPOINT then
+        call endpoint_close(udp_server_endpoint)
+        # indicate that we no longer care about this endpoint (so nothing
+        # freaks out when it closes):
+        udp_server_endpoint = UDP_NULL_ENDPOINT
+    end if
+
     # Connect to port on Spacecraft:
     assert_udp_client_active = 1
     # NOTE: routing to -1 b/c it doesn't matter where data from this node goes (b/c, as a client, it receives no data to pass along)

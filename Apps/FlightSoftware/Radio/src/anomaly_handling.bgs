@@ -97,6 +97,30 @@ event hardware_soft_timer(handle)
     end if
 end
 
+##
+# BAD UDP METADATA:
+##
+dim bad_addr, bad_port
+event tcpip_udp_data(endpoint, source_address, source_port, data_len, data_data)
+    if endpoint = udp_server_endpoint then
+        if source_address = NETWORK__SPACECRAFT_ADDRESS then
+            bad_addr = 0
+        else
+            bad_addr = 1
+        end if
+
+        if source_port = NETWORK__SPACECRAFT_UDP_PORT then
+            bad_port = 0
+        else
+            bad_port = 1
+        end if
+
+        if bad_addr = 1 || bad_port = 1 then
+            call RADIO_GND_ERR_BAD_UDP(bad_addr, bad_port, source_address, source_port)
+        end if
+    end if
+end
+
 
 ##
 # GARBAGE DATA / ENDPOINT ISSUES:

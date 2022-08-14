@@ -8,7 +8,7 @@
 #   - A Series of >=0 fields.
 #       - Each must be sepearated by "|" (final field is not followed by a "|")
 #       - Field content itself must not contain the "|" character.
-#       - Any fields where arbitrary raw hex is sent instead of ASCII characters are preceded by an "h" and must either:
+#       - Any arbitrary raw hex sent instead of ASCII characters in a field must be directly preceded by an "h" and must either:
 #           - Have a known / fixed length (i.e. this field is always X bytes)
 #           - If variable in length, be the final field in the message (so the field's length doesn't need to be transmitted)
 #
@@ -39,6 +39,12 @@ const BAD_ENDPOINT_MSG_HEADER_LEN = 13 # "RAD:BADENDP|h"
 const BAD_ENDPOINT_MSG_LEN = 18 # BAD_ENDPOINT_MSG_HEADER_LEN + 1B of endpoint + 2 + 2B of "reason"
 dim bad_endpoint_msg_buffer(18)
 
+# Buffer for containing message about bad UDP information:
+# "RAD:BADUDP|" + "h" + PROBLEM_FLAGS (1B) [0b01 = didn't like source, 0b10 = didn't like port, 0b11 = didn't like both] + "|h" + UDP_SOURCE_ADDR (4B) + "|h" + UDP_SOURCE_PORT (2B)
+const BAD_UDP_MSG_HEADER_LEN = 12 # "RAD:BADUDP|h"
+const BAD_UDP_MSG_LEN = 23
+dim bad_udp_msg_buffer(23)
+
 # Buffer for containing message about impending CRITICAL reset (see `critical_reset_if_bad_reason` for reasons):
 const CRITICAL_RESET_MSG_HEADER_LEN = 11 # "RAD:CRIT!|h"
 const CRITICAL_RESET_MSG_LEN = 13 # CRITICAL_RESET_MSG_HEADER_LEN + 2B of "reason"
@@ -61,6 +67,11 @@ event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
     # Setup fixed data for Bad Endpoint Message:
     bad_endpoint_msg_buffer(0:BAD_ENDPOINT_MSG_HEADER_LEN) = "RAD:BADENDP|h"
     bad_endpoint_msg_buffer(BAD_ENDPOINT_MSG_HEADER_LEN+1:2) = "|h"
+
+    # Setup fixed data for Bad UDP Data Message:
+    bad_udp_msg_buffer(0:BAD_UDP_MSG_HEADER_LEN) = "RAD:BADUDP|h"
+    bad_udp_msg_buffer(BAD_UDP_MSG_HEADER_LEN+1:2) = "|h"
+    bad_udp_msg_buffer(BAD_UDP_MSG_HEADER_LEN+7:2) = "|h"
 
     # Setup fixed header for Critical Reset Message:
     critical_reset_msg_buffer(0:CRITICAL_RESET_MSG_HEADER_LEN) = "RAD:CRIT!|h"
@@ -127,7 +138,29 @@ export procedure RADIO_GND_ERR_BAD_ENDPOINT(reason, endpoint)
     # Copy in the reason bytes (all numbers are 4B but we only want the lowest 2B):
     bad_endpoint_msg_buffer(BAD_ENDPOINT_MSG_HEADER_LEN+3:2) = reason
     # Send:
-    call endpoint_send(udp_client_endpoint, BAD_HERC_MSG_LEN, bad_endpoint_msg_buffer(0:BAD_ENDPOINT_MSG_LEN))
+    call endpoint_send(udp_client_endpoint, BAD_ENDPOINT_MSG_LEN, bad_endpoint_msg_buffer(0:BAD_ENDPOINT_MSG_LEN))
+end
+
+# Metadata in a UDP packet receivec was incorrect (destination had to be fine
+# or we wouldn't get it but source wasn't what was expected):
+dim tmp_flags
+export procedure RADIO_GND_ERR_BAD_UDP(bad_addr, bad_port, source_addr, source_port)
+    # Craft problem flags:
+    tmp_flags = 0
+    if bad_addr != 0 then
+        tmp_flags = $01
+    end if
+    if bad_port != 0 then
+        tmp_flags = tmp_flags | $02
+    end if
+    # Copy in problem_flags data:
+    bad_udp_msg_buffer(BAD_UDP_MSG_HEADER_LEN:1) = tmp_flags
+    # Copy source IP data:
+    bad_udp_msg_buffer(BAD_UDP_MSG_HEADER_LEN+3:4) = source_addr
+    # Copy source port data:
+    bad_udp_msg_buffer(BAD_UDP_MSG_HEADER_LEN+9:2) = source_port
+    # Send:
+    call endpoint_send(udp_client_endpoint, BAD_UDP_MSG_HEADER_LEN, bad_endpoint_msg_buffer(0:BAD_UDP_MSG_HEADER_LEN))
 end
 
 

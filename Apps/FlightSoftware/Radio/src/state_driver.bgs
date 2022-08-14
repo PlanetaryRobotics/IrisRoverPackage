@@ -2,9 +2,21 @@
 # This documents just the core state-flow. NOTE: Multiple handles can exist for
 # each event, so this just drives the state changes. As such, this should be
 # included at the bottom of the main source.
-# Flow of automated behaviors is:
-#   BOOT -> WIFI_ON -> CONNECT_NETWORK
+# Main flow of automated behaviors is:
+#   BOOT -> INIT -> WIFI_ON -> CONNECT_NETWORK -> START_UDP
+# Though, there are many smaller branches/loop for handling faults that occur
+# in any of these states.
 # ! See state_driver.puml for a full state diagram.
+
+# 4-letter state abbreviation used for checking if we should be trigger a state
+# transition based on an event:
+# (4-letter b/c BGScript buffers can only be directly compared if 4 bytes):
+export dim state_4B_abbr(4)
+event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
+    # init vars:
+    state_4B_abbr(0:4) = "BOOT"
+end
+
 
 # Import automated behaviors:
 import "src/behaviors/behaviors.bgs"
@@ -14,12 +26,14 @@ import "src/behaviors/behaviors.bgs"
 # data but the state driver needs access to it):
 import "src/global_status.bgs"
 
+
 ##
 # STATE DEFINITIONS & ACTIONS:
 ##
 
 export procedure SET_STATE_INIT()
     # We're now in the INIT state:
+    state_4B_abbr(0:4) = "INIT"
     call HR_STATE_INIT() # Let Herc know.
 
     # In the INIT state, we try to turn on WIFI:
@@ -29,6 +43,7 @@ end
 
 export procedure SET_STATE_WIFI_ON()
     # We're now in the WIFI_ON state:
+    state_4B_abbr(0:4) = "WFON"
     call HR_STATE_WIFI_ON() # Let Herc know.
 
     # In the WIFI_ON state, we try to connect to the network
@@ -37,6 +52,7 @@ end
 
 export procedure SET_STATE_CONNECTED()
     # We're now in the CONNECTED state:
+    state_4B_abbr(0:4) = "CONN"
     call HR_STATE_CONNECTED() # Let Herc know.
 
     # In the CONNECTED state, we try to start UDP:
@@ -45,6 +61,7 @@ end
 
 export procedure SET_STATE_UDP_CONNECTED()
     # We're now in the UDP_CONNECTED state:
+    state_4B_abbr(0:4) = "UDPC"
     call HR_STATE_UDP_CONNECTED() # Let Herc know.
 
     # Now that we're connected, tell Hercules we're not currently doing
@@ -66,22 +83,25 @@ export procedure START_STATE_DRIVER()
 end
 
 event sme_wifi_is_on(result)
-	if result = 0 then
+	if result = 0 && state_4B_abbr(0:4) = "INIT" then
         # WIFI_ON worked.
+        # transition INIT -> WIFI_ON
         call SET_STATE_WIFI_ON()
     end if
 end
 
 event sme_connected(status, hw_interface, bssid)
-    if hw_interface = 0 && status = 0 then
+    if hw_interface = 0 && status = 0 && state_4B_abbr(0:4) = "WFON" then
         # CONNECT_NETWORK worked
+        # transition WIFI_ON -> CONNNECTED
         call SET_STATE_CONNECTED()
     end if
 end
 
 event endpoint_status(endpoint, type, streaming, destination, active)
-    if status__udp_client_active && status__udp_server_active then
-        ## START_UDP worked
+    if status__udp_client_active && status__udp_server_active && state_4B_abbr(0:4) = "CONN" then
+        # START_UDP worked
+        # transition CONNECTED -> UDP_CONNNECTED
         call SET_STATE_UDP_CONNECTED()
     end if
 end

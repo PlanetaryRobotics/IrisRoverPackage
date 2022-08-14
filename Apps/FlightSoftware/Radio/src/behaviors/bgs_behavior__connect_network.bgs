@@ -66,7 +66,7 @@ procedure cn__handle_failure()
 end
 
 event sme_connected(status, hw_interface, bssid)
-    if hw_interface = 0 then  # interface is WiFi
+    if actively_connecting = 1 && hw_interface = 0 then  # interface is WiFi
         if status = 0 then
             counter = 0
             actively_connecting = 0
@@ -79,7 +79,7 @@ end
 
 
 event sme_connect_failed(reason, hw_interface)
-    if hw_interface = 0 then  # interface is WiFi
+    if actively_connecting = 1 && hw_interface = 0 then  # interface is WiFi
         call cn__handle_failure()
     end if
 end

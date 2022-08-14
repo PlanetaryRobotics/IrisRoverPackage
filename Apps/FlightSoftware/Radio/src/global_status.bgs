@@ -1,8 +1,14 @@
+##
 # All global status variables:
+##
+# Connection status:
 export dim status__wifi_radio_is_on
 export dim status__wifi_connected
 export dim status__udp_client_active
 export dim status__udp_server_active
+# General information and statistics:
+export dim status__last_rssi  # most recent rssi reading (polled periodically by heartbeat services)
+export dim status__hercules_syntax_err_count  # count of malformed packets (from Hercules)
 
 
 export procedure INIT_GLOBAL_STATUS()
@@ -10,6 +16,8 @@ export procedure INIT_GLOBAL_STATUS()
     status__wifi_connected = 0
     status__udp_client_active = 0
     status__udp_server_active = 0
+    status__last_rssi = 0
+    status__hercules_syntax_err_count = 0
 end
 
 # Listen for events that affect any of these statuses and update them:
@@ -110,5 +118,17 @@ event endpoint_closing(reason, endpoint)
         if udp_server_endpoint = UDP_NULL_ENDPOINT then
             status__udp_server_active = 0
         end if
+    end if
+end
+
+
+event sme_signal_quality(rssi, hw_interface)
+    status__last_rssi = rssi
+end
+
+
+event endpoint_syntax_error(result, endpoint)
+    if endpoint = HERCULES_ENDPOINT then
+        status__hercules_syntax_err_count = status__hercules_syntax_err_count + 1
     end if
 end

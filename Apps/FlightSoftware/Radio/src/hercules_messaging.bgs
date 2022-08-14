@@ -20,7 +20,7 @@
 # NOTE: You have to use the compile methods to do this since BGScript
 # procedures can't accept more than 1 buffer as an input.
 
-const HERCULES_ENDPOINT = 1 # Which endpoint Hercules is on.
+export const HERCULES_ENDPOINT = 1 # Which endpoint Hercules is on.
 
 const HEADER() = "\xE6\xE7\xE7\xE6"
 const HEADER_LEN = 4

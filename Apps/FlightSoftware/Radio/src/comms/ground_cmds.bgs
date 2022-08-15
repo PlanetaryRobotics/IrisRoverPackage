@@ -127,6 +127,9 @@ procedure handle_command(cmd_id, cmd_data_len, cmd_data())
         call send_cmd_completion(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
         return
     end if
+    
+    # If we get here, we did nothing... let Earth know:
+    call send_cmd_completion(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
 end
 
 # Process the Iris Common Packet

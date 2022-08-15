@@ -125,6 +125,39 @@ export procedure RADIO_GND_ECHO(data_len, data())
     call endpoint_send(udp_client_endpoint, 10+data_len, gen_radio_gnd_buffer(0:10+data_len))
 end
 
+## GROUND COMMAND RESPONSES:
+# We have lots of layers of confirmation because if we're commanding the Radio
+# directly in the first place, it means something's already gone wrong so we'll
+# want to be as possible:
+#
+# Let the Earthlings know we received their command and are about to execute it:
+# "RAD:ACK|" + "h" [command_id received, 1B] + "|h" + [data received, nB]
+export procedure RADIO_GND_CMD_ACK(cmd_id, data_len, data())
+    gen_radio_gnd_buffer(0:9) = "RAD:ACK|h"
+    gen_radio_gnd_buffer(9:1) = cmd_id
+    gen_radio_gnd_buffer(10:2) = "|h"
+    gen_radio_gnd_buffer(12:data_len) = data(0:data_len)
+    call endpoint_send(udp_client_endpoint, 12+data_len, gen_radio_gnd_buffer(0:12+data_len))
+end
+# Let the Earthlings know we received their command and executed it:
+# "RAD:DID|" + "h" [command_id received, 1B] + "|h" + [data received, nB]
+export procedure RADIO_GND_CMD_DONE(cmd_id, data_len, data())
+    gen_radio_gnd_buffer(0:9) = "RAD:DID|h"
+    gen_radio_gnd_buffer(9:1) = cmd_id
+    gen_radio_gnd_buffer(10:2) = "|h"
+    gen_radio_gnd_buffer(12:data_len) = data(0:data_len)
+    call endpoint_send(udp_client_endpoint, 12+data_len, gen_radio_gnd_buffer(0:12+data_len))
+end
+# Let the Earthlings know we received their command but didn't do anything because we didn't recognize it (or it contained bad info):
+# "RAD:BADCMD|" + "h" [command_id received, 1B] + "|h" + [data received, nB]
+export procedure RADIO_GND_CMD_BAD(cmd_id, data_len, data())
+    gen_radio_gnd_buffer(0:12) = "RAD:BADCMD|h"
+    gen_radio_gnd_buffer(12:1) = cmd_id
+    gen_radio_gnd_buffer(13:2) = "|h"
+    gen_radio_gnd_buffer(15:data_len) = data(0:data_len)
+    call endpoint_send(udp_client_endpoint, 15+data_len, gen_radio_gnd_buffer(0:15+data_len))
+end
+
 
 ##
 # Error reports:

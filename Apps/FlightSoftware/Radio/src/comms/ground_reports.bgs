@@ -1,4 +1,4 @@
-# A registry of frequent reports to be sent to Earth directly from the Radio.
+# A registry of all reports to be sent to Earth directly from the Radio.
 # Serves as a central place for Ground Software developers to find what messages they should expect.
 #
 # The Standard formatting followed by all Radio-Ground messages is:
@@ -20,6 +20,9 @@
 ##
 # Fixed messaging buffers:
 ##
+# General working buffer for building Radio-Ground messages
+# (faster (dev) way but slower (compute) way to build them):
+dim gen_radio_gnd_buffer(255)
 
 # Buffer for containing fixed bytes for the Radio-Ground Heartbeat:
 # "RAD:HB|" + "R-" + RSSI_ASCII (3B) + "|" + State_Abbrev. + "|Th" + Uptime_Timer_Ticks (4B, hex) + "|Xh" + RX_UDP_Packet_Count (4B, hex) + "|Bh" + Bad_Herc_Packet_Count (4B, hex)
@@ -111,6 +114,15 @@ end
 # Sent upon first connection to Earth:
 export procedure RADIO_GND_HELLO()
     call endpoint_send(udp_client_endpoint, 39, "Hello Earth, this is Iris on the Moon!\n")
+end
+
+## RADIO-GND ECHO:
+# Sent in response to Radio-Only Echo Command:
+# "RAD:ECHO|" + "h" + [data to echo]
+export procedure RADIO_GND_ECHO(data_len, data())
+    gen_radio_gnd_buffer(0:10) = "RAD:ECHO|h"
+    gen_radio_gnd_buffer(10:data_len) = data(0:data_len)
+    call endpoint_send(udp_client_endpoint, 10+data_len, gen_radio_gnd_buffer(0:10+data_len))
 end
 
 

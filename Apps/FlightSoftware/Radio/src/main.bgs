@@ -17,6 +17,9 @@ import "src/global_status.bgs"
 # (must be included after). Anomaly handling, heartbeat, and state driver use
 # it (so must come before):
 import "src/comms/ground_reports.bgs"
+# Ground Commands comes right after Ground Reports b/c some commands trigger
+# reports so we need access to them:
+import "src/comms/ground_cmds.bgs"
 
 # Include state driver at the end of the main source but before main::system_boot
 # so its event hooks get called after any others (transition after all other

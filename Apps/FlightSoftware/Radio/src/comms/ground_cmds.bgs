@@ -1,0 +1,85 @@
+# A registry of all commands that Ground can send directly to the radio:
+#
+# Because these packets will invariably also get routed to Hercules (we can't
+# stop them), they must comply with the Iris Common Packet Header standard with
+# the following caveats:
+#   - A unique type magic will be used for all radio-only commands (0xD0:09:AD:10)
+#   - One and only one payload will be sent in the variable-length payload
+#   section in packets containing radio-only commands.
+#   - Sequence number will always be 0x00 (ignored by Hercules' seq_num counter)
+#   in packets containing Radio-only payloads.
+#   - To minimize computation on the radio (since it's not very efficient, both
+#   in terms of time or thermals), it will *NOT* perform the following checks
+#   that are common in other Iris data nodes:
+#       - Comparing VLP length against the post-header bytes in the packet.
+#       - Checking the checksum in the Iris Common Packet (since it already
+#       does that for the UDP checksum).
+#       - This data *SHOULD* still be computed and included correctly since
+#       Hercules could be checking these commands (even if it doesn't use them).
+#
+# Otherwise, the format is standard as follows (little endian byte-order used):
+#   Header:
+#   - [1B] Sequence Number
+#   - [2B] VLP Length (little-endian)
+#   - [1B] Byte Sum Complement Checksum of entire Iris Common Packet (incl. header) w/ checksum set to 0.
+#   Variable Length Payload (VLP): the following, repeated any number (>=1) of times:
+#   - [4B] Type Magic (indicating payload contents)
+#   - [nB] Serialized Payload Data (which may or may not incl. its own header, depending on its type)
+#
+# The standard for the Radio-Only Serialized Payload Data will be the following:
+#   - [1B] Command-ID
+#   - [nB] Command Data
+
+# Type Magic telling Iris Common Packet that this is a Radio-Only Command:
+const TYPE_MAGIC__RADIO_ONLY() = "\xD0\x09\xAD\x10"
+
+
+##
+# Command IDs:
+##
+const CMD_ID__ECHO = $00
+
+
+##
+# Command handlers:
+##
+procedure RADIO_CMD__ECHO(cmd_data_len, cmd_data())
+    # Just echo back the input data in a bespoke Radio-Ground Report:
+    call RADIO_GND_ECHO(cmd_data_len, cmd_data(0:cmd_data_len))
+end
+
+
+##
+# Processor functions:
+##
+procedure handle_command(cmd_id, cmd_data_len, cmd_data())
+    # Dispatch to the appropriate command handler:
+    if cmd_id = CMD_ID__ECHO then
+        call RADIO_CMD__ECHO(cmd_data_len, cmd_data(0:cmd_data_len))
+    end if
+end
+
+# Process the Iris Common Packet
+# (determine if it's a Radio-Only command and then hand it off to the correct handler):
+dim cdl # command data length working variable
+procedure handle_iris_common_packet(icp_len, icp_data())
+    # Check if the Type Magic is for us (a Radio-Only command):
+    # (just skip all the header info, we don't care about it since we just
+    # verified all the UDP information and are treating the entire VLP as one 
+    # payload)
+    # (VLP section starts at byte index 4 and VLP Type Magic is 4 bytes long):
+    if memcmp(icp_data(4), TYPE_MAGIC__RADIO_ONLY(0), 4) = 1 then
+        # It's a Radio-Only command!
+        # NOTE: Payload data starts at byte 8, of which the first byte is the command ID and the remaining bytes are the command data
+        cdl = icp_len - 9 # all the remaining data is for the command (-4 for ICP header, -4 for type magic, -1 for command ID)
+        call handle_command(icp_data(8:1), cdl, icp_data(9:cdl))
+    end if
+end
+
+# Process incoming data:
+event tcpip_udp_data(endpoint, source_address, source_port, data_len, data_data)
+    if endpoint = udp_server_endpoint then
+        # We got a packet, handle it:
+        call handle_iris_common_packet(data_len, data_data(0:data_len))
+    end if
+end

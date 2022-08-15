@@ -90,6 +90,17 @@ end
 ##
 # Processor functions:
 ##
+
+# Check global `executed_command` to see if a commanded completed and send the appropriate response:
+procedure send_cmd_completion(cmd_id, cmd_data_len, cmd_data())
+    # Tell Earth whether we actually did anything:
+    if executed_command = 1 then
+        call RADIO_GND_CMD_DONE(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
+    else
+        call RADIO_GND_CMD_BAD(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
+    end if
+end
+
 procedure handle_command(cmd_id, cmd_data_len, cmd_data())
     # Acknowledge that we got the command:
     call RADIO_GND_CMD_ACK(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
@@ -98,26 +109,23 @@ procedure handle_command(cmd_id, cmd_data_len, cmd_data())
     executed_command = 0  # this gets modified by the actual procedures being called (if called) - have to do it this way b/c BGScript procedures don't have return values
     if cmd_id = CMD_ID__ECHO then
         call RADIO_CMD__ECHO(cmd_data_len, cmd_data(0:cmd_data_len))
+        call send_cmd_completion(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
         return # Note: BGScript doesn't have if else if else if... so this if-return pattern is cleaner than N-nested ifs.
     end if
     if cmd_id = CMD_ID__RESET_RADIO then
         call RADIO_CMD__RESET_RADIO(cmd_data_len, cmd_data(0:cmd_data_len))
+        call send_cmd_completion(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
         return
     end if
     if cmd_id = CMD_ID__WRITE_UART then
         call RADIO_CMD__WRITE_UART(cmd_data_len, cmd_data(0:cmd_data_len))
+        call send_cmd_completion(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
         return
     end if
     if cmd_id = CMD_ID__HERCULES_DM then
         call RADIO_CMD__HERCULES_DM(cmd_data_len, cmd_data(0:cmd_data_len))
+        call send_cmd_completion(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
         return
-    end if
-
-    # Tell Earth whether we actually did anything:
-    if executed_command = 1 then
-        call RADIO_GND_CMD_DONE(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
-    else
-        call RADIO_GND_CMD_BAD(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
     end if
 end
 

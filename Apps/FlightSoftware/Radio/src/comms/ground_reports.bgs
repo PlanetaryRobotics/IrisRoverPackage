@@ -160,7 +160,7 @@ export procedure RADIO_GND_ERR_BAD_UDP(bad_addr, bad_port, source_addr, source_p
     # Copy source port data:
     bad_udp_msg_buffer(BAD_UDP_MSG_HEADER_LEN+9:2) = source_port
     # Send:
-    call endpoint_send(udp_client_endpoint, BAD_UDP_MSG_HEADER_LEN, bad_endpoint_msg_buffer(0:BAD_UDP_MSG_HEADER_LEN))
+    call endpoint_send(udp_client_endpoint, BAD_UDP_MSG_LEN, bad_udp_msg_buffer(0:BAD_UDP_MSG_LEN))
 end
 
 

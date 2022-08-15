@@ -38,14 +38,31 @@ const TYPE_MAGIC__RADIO_ONLY() = "\xD0\x09\xAD\x10"
 # Command IDs:
 ##
 const CMD_ID__ECHO = $00
+const CMD_ID__WRITE_UART = $DB
+const CMD_ID__HERCULES_DM = $DD
 
 
 ##
 # Command handlers:
 ##
+
+# Echo the given bytes back over WiFi:
 procedure RADIO_CMD__ECHO(cmd_data_len, cmd_data())
     # Just echo back the input data in a bespoke Radio-Ground Report:
     call RADIO_GND_ECHO(cmd_data_len, cmd_data(0:cmd_data_len))
+end
+
+# Write the given bytes to the Radio-Hercules UART line (directly)
+# Designed for diagnostics & repairs only.
+procedure RADIO_CMD__WRITE_UART(cmd_data_len, cmd_data())
+    # Put the given bytes directly on the hercules comm line (**WITHOUT** using the hercules messaging protocol):
+    call endpoint_send(HERCULES_ENDPOINT, cmd_data_len, cmd_data(0:cmd_data_len))
+end
+
+# Send the given bytes (ASCII only) as a Hercules ASCII Direct Message.
+# Designed for diagnostics & repairs only.
+procedure RADIO_CMD__HERCULES_DM(cmd_data_len, cmd_data())
+    call hercules_direct_message_ascii(cmd_data_len, cmd_data(0:cmd_data_len))
 end
 
 
@@ -56,6 +73,15 @@ procedure handle_command(cmd_id, cmd_data_len, cmd_data())
     # Dispatch to the appropriate command handler:
     if cmd_id = CMD_ID__ECHO then
         call RADIO_CMD__ECHO(cmd_data_len, cmd_data(0:cmd_data_len))
+        return # Note: BGScript doesn't have if else if else if... so this if-return pattern is cleaner than N-nested ifs.
+    end if
+    if cmd_id = CMD_ID__WRITE_UART then
+        call RADIO_CMD__WRITE_UART(cmd_data_len, cmd_data(0:cmd_data_len))
+        return
+    end if
+    if cmd_id = CMD_ID__HERCULES_DM then
+        call RADIO_CMD__HERCULES_DM(cmd_data_len, cmd_data(0:cmd_data_len))
+        return
     end if
 end
 

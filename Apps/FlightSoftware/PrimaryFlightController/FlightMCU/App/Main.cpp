@@ -13,6 +13,7 @@
 #include "FreeRTOS.h"
 #include "os_task.h"
 #include "CubeRover/Top/Topology.hpp"
+#include <CubeRover/Wf121/Wf121SerialInterface.hpp>
 #include "adc.h"
 #include "gio.h"
 #include "i2c.h"
@@ -25,36 +26,40 @@
 #include "App/DMA.h"
 #include "App/SCILIN.h"
 
-extern "C" {
+extern "C"
+{
     void vApplicationIdleHook(void);
     void vApplicationTickHook(void);
     void vApplicationStackOverflowHook(void *xTask, char *pcTaskName);
 }
 
-void vApplicationIdleHook(void) {
+void vApplicationIdleHook(void)
+{
     run1cycle();
 }
 
-void vApplicationTickHook(void) {
+void vApplicationTickHook(void)
+{
     // run1cycle();
 }
 
-void vApplicationStackOverflowHook(void *xTask, char *pcTaskName) {
+void vApplicationStackOverflowHook(void *xTask, char *pcTaskName)
+{
     // while (true);
     // something really bad happened
 }
 
-extern "C" void dmaCh2_ISR(dmaInterrupt_t inttype) {}
 extern "C" void dmaCh3_ISR(dmaInterrupt_t inttype) {}
 
 void main(void)
 {
     /* USER CODE BEGIN (3) */
-    _disable_interrupt_();      // Disable all interrupts during initialization (esp. important when we initialize RTI)
+    _disable_interrupt_(); // Disable all interrupts during initialization (esp. important when we initialize RTI)
 
     _mpuInit_();
 
     gioInit();
+    Wf121::Wf121Serial::NotReadyForData(); // Tell the radio we're not ready for data yet.
     i2cInit();
     sciInit();
     adcInit();
@@ -65,12 +70,12 @@ void main(void)
 
     constructApp();
 
-    rtiInit();                  // Initialize RTI for RTOS Tick last
+    rtiInit(); // Initialize RTI for RTOS Tick last
 
-    vTaskStartScheduler();      // Automatically enables IRQs
+    _enable_IRQ();         // Enable IRQs (explicit here just to be extra sure about it)
+    vTaskStartScheduler(); // Automatically enables IRQs
 
-    //Something went very wrong with the RTOS if we end up here
+    // Something went very wrong with the RTOS if we end up here
 
     /* USER CODE END */
 }
-

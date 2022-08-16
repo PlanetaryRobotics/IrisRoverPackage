@@ -1,0 +1,35 @@
+
+
+// Block here if a rx is already underway
+while (--tries && !sciIsRxReady(comp->m_sci))
+    ;
+
+// Blocking until timeout or data available
+stat = sciReceiveWithTimeout(comp->m_sci,
+                             buff.getsize(),
+                             reinterpret_cast<unsigned char *>(buff.getdata()),
+                             0xffffffff); /*Max timeout */
+
+Might have to make sure DMA isn't on for SCI interface (WF121), only SCILIN (WD)
+
+    sciREG->SETINT = (uint32)SCI_RX_INT; (?) from  scilinREG->SETINT = (uint32) SCI_RX_INT;
+
+Check that CTS / RTS lines up correctly in schematic.
+
+                 // How do we handle getting out of sync?
+
+!! Wait for command response before sending anything else. (or wait for timeout -- if we fail to get a response for too many commands in a row, ask WD reset the radio)
+// create system for flagginf=g which callback to expect next
+// Use this to our advantage to make sure sends go through (keep them around and retry X times if fail)
+
+// Add callbacks to catch exceptions/warnings like `system_sw_exception`
+
+// ! NOTE:
+// SCI ISR gets called *AFTER* data has been added to whatever buffer you signaled in sciReceive
+
+// CREATE a separate header + packet scheme for BGScript -> UART comms (since it doesn't seem like there's a way to just pass a BGAPI packet with a message)
+// Make sure this header will be mutually exclusive with BGApiHeader (no overlapping bits).
+
+// Test UART sync-loss by having radio send some garbage to the UART endpoint (with `send_endpoint` not `hercules_direct_messge_ascii`) and make sure it still works.
+
+// Allow for querying Herc from ground for all info it has about Radio (e.g. last received error).

@@ -1,7 +1,5 @@
 #include "CubeRoverNetworkManager.hpp"
 
-using namespace Wf121;
-
 namespace CubeRoverNetworkManager
 {
 

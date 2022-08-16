@@ -24,15 +24,17 @@ static TaskHandle_t xTaskToNotify = nullptr;
 static volatile bool dmaReadBusy = false;
 static QueueHandle_t rxByteQueue;
 
-extern "C" void dmaCh0_ISR(dmaInterrupt_t inttype) {
+extern "C" void SCILIN_RX_DMA_ISR(dmaInterrupt_t inttype)
+{
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     dmaReadBusy = false;
 
-    if (xTaskToNotify == nullptr) {
+    if (xTaskToNotify == nullptr)
+    {
         return;
     }
 
-    // Notify the task that 
+    // Notify the task that
     vTaskNotifyGiveFromISR(xTaskToNotify, &xHigherPriorityTaskWoken);
 
     /* If xHigherPriorityTaskWoken is now set to pdTRUE then a
@@ -43,10 +45,11 @@ extern "C" void dmaCh0_ISR(dmaInterrupt_t inttype) {
 
 extern "C" void scilin_ISR(uint32 flags)
 {
-    if (SCI_RX_INT == flags && rxByteQueue != 0) {
+    if (SCI_RX_INT == flags && rxByteQueue != 0)
+    {
         BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-        uint8_t rxByte = (uint8_t) (scilinREG->RD & 0x000000FFU);
+        uint8_t rxByte = (uint8_t)(scilinREG->RD & 0x000000FFU);
 
         xQueueSendFromISR(rxByteQueue, &rxByte, &xHigherPriorityTaskWoken);
 
@@ -56,7 +59,7 @@ extern "C" void scilin_ISR(uint32 flags)
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
 
-    scilinREG->SETINT = (uint32) SCI_RX_INT;
+    scilinREG->SETINT = (uint32)SCI_RX_INT;
 }
 
 namespace CubeRover
@@ -81,12 +84,13 @@ namespace CubeRover
         m_keepRunning = false;
 
         // Make sure we aren't blocked
-        if (xTaskToNotify != nullptr) {
+        if (xTaskToNotify != nullptr)
+        {
             xTaskNotifyGive(xTaskToNotify);
         }
-        
+
         // Join the thread
-        void* value;
+        void *value;
         this->join(&value);
     }
 
@@ -94,11 +98,12 @@ namespace CubeRover
                                                      NATIVE_INT_TYPE stackSize,
                                                      NATIVE_INT_TYPE cpuAffinity)
     {
-        if (m_isRunning) {
+        if (m_isRunning)
+        {
             return Os::Task::TASK_UNKNOWN_ERROR;
         }
 
-        scilinREG->SETINT = (uint32) SCI_RX_INT;
+        scilinREG->SETINT = (uint32)SCI_RX_INT;
 
         m_keepRunning = true;
         Fw::EightyCharString task("WatchDogRxTask");
@@ -120,14 +125,15 @@ namespace CubeRover
         return Os::Task::TASK_OK;
     }
 
-    bool WatchDogRxTask::registerCallback(WatchDogRxCallbackProcessor* callback)
+    bool WatchDogRxTask::registerCallback(WatchDogRxCallbackProcessor *callback)
     {
-        if (m_numCallbacksRegistered >= WATCHDOG_RX_TASK__MAX_NUM_CALLBACKS) {
+        if (m_numCallbacksRegistered >= WATCHDOG_RX_TASK__MAX_NUM_CALLBACKS)
+        {
             return false;
         }
 
         m_callbacks[m_numCallbacksRegistered] = callback;
-        m_numCallbacksRegistered++; 
+        m_numCallbacksRegistered++;
 
         return true;
     }
@@ -137,7 +143,6 @@ namespace CubeRover
 #define RX_BYTE_RESULT__PROGRESS 1
 #define RX_BYTE_RESULT__BAD 2
 #define RX_BYTE_RESULT__DONE 3
-
 
     struct RxByteLog
     {
@@ -149,49 +154,57 @@ namespace CubeRover
     static size_t updatesUsed = 0;
     static size_t updatesHead = 0;
 
-    void writeUpdate(uint8_t data, uint8_t result) {
+    void writeUpdate(uint8_t data, uint8_t result)
+    {
         bool overwrite = (updatesUsed == NUM_BYTE_UPDATES);
         size_t writeIndex = overwrite ? updatesHead : updatesUsed;
 
         rxByteUpdates[writeIndex].data = data;
         rxByteUpdates[writeIndex].result = result;
 
-        if (overwrite) {
+        if (overwrite)
+        {
             updatesHead++;
 
-            while (updatesHead >= NUM_BYTE_UPDATES) {
+            while (updatesHead >= NUM_BYTE_UPDATES)
+            {
                 updatesHead -= NUM_BYTE_UPDATES;
             }
-        } else {
+        }
+        else
+        {
             updatesUsed++;
         }
     }
 
     void WatchDogRxTask::printRxUpdates()
     {
-        for (size_t i = 0; i < updatesUsed; ++i) {
+        for (size_t i = 0; i < updatesUsed; ++i)
+        {
             size_t wrapped = updatesHead + i;
-            while (wrapped >= NUM_BYTE_UPDATES) {
+            while (wrapped >= NUM_BYTE_UPDATES)
+            {
                 wrapped -= NUM_BYTE_UPDATES;
             }
 
             char result;
-            switch (rxByteUpdates[wrapped].result) {
-                case RX_BYTE_RESULT__PROGRESS:
-                    result = 'P';
-                    break;
+            switch (rxByteUpdates[wrapped].result)
+            {
+            case RX_BYTE_RESULT__PROGRESS:
+                result = 'P';
+                break;
 
-                case RX_BYTE_RESULT__BAD:
-                    result = 'B';
-                    break;
+            case RX_BYTE_RESULT__BAD:
+                result = 'B';
+                break;
 
-                case RX_BYTE_RESULT__DONE:
-                    result = 'D';
-                    break;
+            case RX_BYTE_RESULT__DONE:
+                result = 'D';
+                break;
 
-                default:
-                    result = 'X';
-                    break;
+            default:
+                result = 'X';
+                break;
             }
 
             fprintf(stderr, "%02d: %02X %c\n", i, rxByteUpdates[wrapped].data, result);
@@ -202,50 +215,58 @@ namespace CubeRover
         updatesUsed = 0;
     }
 
-    void WatchDogRxTask::rxHandlerTaskFunction(void* arg)
+    void WatchDogRxTask::rxHandlerTaskFunction(void *arg)
     {
-        WatchDogRxTask* task = static_cast<WatchDogRxTask*>(arg);
+        WatchDogRxTask *task = static_cast<WatchDogRxTask *>(arg);
 
         // First, construct the Message we'll use throughout
         WatchDogMpsm::Message msg(task->m_dataBuffer, sizeof(task->m_dataBuffer));
 
-        while (!task->m_keepRunning); // Wait until keepRunning has been set true
+        while (!task->m_keepRunning)
+            ; // Wait until keepRunning has been set true
 
-        while (task->m_keepRunning) {
+        while (task->m_keepRunning)
+        {
             uint8_t newData = 0;
             // Effectively blocks forever until something is put into the queue
-            if( xQueueReceive(rxByteQueue, &newData, portMAX_DELAY))
+            if (xQueueReceive(rxByteQueue, &newData, portMAX_DELAY))
             {
                 bool resetMpsmMsg = false;
                 WatchDogMpsm::ProcessStatus pStatus = task->m_mpsm.process(msg, newData);
 
-                if (WatchDogMpsm::PS_DONE_VALID == pStatus) {
+                if (WatchDogMpsm::PS_DONE_VALID == pStatus)
+                {
                     // We've gotten a full message, so call our callbacks then reset
                     task->callAllCallbacks(msg, true);
                     writeUpdate(newData, RX_BYTE_RESULT__DONE);
                     resetMpsmMsg = true;
-                } else if (WatchDogMpsm::PS_DONE_BAD_PARITY_HEADER == pStatus) {
+                }
+                else if (WatchDogMpsm::PS_DONE_BAD_PARITY_HEADER == pStatus)
+                {
                     // Got a full header that was valid other than parity, so callback with this info then reset
                     task->callAllCallbacks(msg, false);
                     writeUpdate(newData, RX_BYTE_RESULT__BAD);
                     resetMpsmMsg = true;
-                } else {
+                }
+                else
+                {
                     writeUpdate(newData, RX_BYTE_RESULT__PROGRESS);
                 }
 
-                if (resetMpsmMsg) {
+                if (resetMpsmMsg)
+                {
                     msg.reset();
                 }
             }
         }
     }
 
-    void WatchDogRxTask::callAllCallbacks(WatchDogMpsm::Message& msg, bool goodParity)
+    void WatchDogRxTask::callAllCallbacks(WatchDogMpsm::Message &msg, bool goodParity)
     {
-        for (size_t i = 0; i < m_numCallbacksRegistered; ++i) {
+        for (size_t i = 0; i < m_numCallbacksRegistered; ++i)
+        {
             m_callbacks[i]->rxCallback(msg, goodParity);
         }
     }
-
 
 } // end namespace CubeRover

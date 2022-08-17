@@ -31,7 +31,7 @@ enum {
 // set event history circular buffer sizes
 
 enum {
-    FATAL_EVENT_CB_DEPTH = 5, //!< FATAL event circular buffer depth
+    FATAL_EVENT_CB_DEPTH = 4, //!< FATAL event circular buffer depth
     WARNING_HI_EVENT_CB_DEPTH = 10, //!< WARNING HI event circular buffer depth
     WARNING_LO_EVENT_CB_DEPTH = 20, //!< WARNING LO event circular buffer depth
     COMMAND_EVENT_CB_DEPTH = 20, //!< COMMAND event circular buffer depth

@@ -47,7 +47,7 @@ namespace {
         TLMCHAN_HASH_MOD_VALUE = 250,    // !< The modulo value of the hashing function.
                                         // Should be set to a little below the ID gaps to spread the entries around
 
-        TLMCHAN_HASH_BUCKETS = 100       // !< Buckets assignable to a hash slot.
+        TLMCHAN_HASH_BUCKETS = 30       // !< Buckets assignable to a hash slot.
                                         // Buckets must be >= number of telemetry channels in system
     };
 

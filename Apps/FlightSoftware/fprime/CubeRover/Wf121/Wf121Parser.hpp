@@ -17,11 +17,7 @@
  * NOTE: We can't use a more sophisticated protocol like SLIP for this because
  * BGScript execution is pretty slow on a per-line basis and doesn't have
  * native support for SLIP.
- *
- * If the Radio needs to send a buffer, it will encode it as a hex string with
- * the following format:
- *  " X04\x0B:AD:BE:EF"
- * where "04" is the length of the buffer as a hex-encoded int.
+ * (See: `Wf121DirectMessage.hpp` for more details.)
  *
  * @date 2022-08-11
  */

@@ -4,7 +4,8 @@
  * @brief Parsing and handlers for Direct Messages from the Radio FSW.
  *
  * This uses a proprietary format that's separate from the BGAPI protocol used
- * by the Radio's core firmware to communicate.
+ * by the Radio's core firmware to communicate and is designed to be
+ * human-readable.
  * This format's header has no bytes in common with a
  * valid BGAPI header (i.e it fails the BGAPI header test) or ASCII characters:
  *      [0xE6 0xE7 0xE7 0xE6]
@@ -54,6 +55,8 @@ namespace Wf121::DirectMessage
     {
         // None (we haven't received any state update yet):
         NONE = 0x00,
+        // The last update contained a valid message header but the body was corrupted (didn't match any known message):
+        BAD_MESSAGE = 0x0F,
         // Booted but hasn't initialized its `state_driver` yet:
         BOOT = 0x10,
         // In the initial state but WiFi radio isn't powered up yet:
@@ -71,6 +74,8 @@ namespace Wf121::DirectMessage
     {
         // None (we haven't received any activity update yet):
         NONE = 0x00,
+        // The last update contained a valid message header but the body was corrupted (didn't match any known message):
+        BAD_MESSAGE = 0x0F,
         // Trying to turn on the WiFi radio (power it up):
         TURNING_WIFI_ON = 0x10,
         // Connecting to the network (getting the ARP, the hard part):
@@ -86,7 +91,10 @@ namespace Wf121::DirectMessage
     // Error emitted by the Radio SW:
     enum class RadioSwError
     {
+        // None (we haven't received anything yet):
         NONE = 0x00,
+        // We got a valid message header but the body was corrupted (didn't match any known message):
+        BAD_MESSAGE = 0x0F,
         // Network disconnected:
         DISCONNECTED = 0x10,
         // UDP client or server went down and will need to be restored:
@@ -98,6 +106,8 @@ namespace Wf121::DirectMessage
     {
         // None (we haven't received anything yet):
         NONE = 0x00,
+        // We got a valid message header but the body was corrupted (didn't match any known message):
+        BAD_MESSAGE = 0x0F,
         // Failed to configure the internal TCP/IP settings of the Radio:
         TCPIP_CFG_ERROR = 0x10,
         // Failed to set the internal network password used by the Radio:
@@ -123,9 +133,18 @@ namespace Wf121::DirectMessage
         CRITICAL_RESET = 0x90
     };
 
+    // Known message headers:
+    const uint8_t FIXED_HEADER_LEN = 6; // Length of all fixed headers
+    const uint8_t HEARTBEAT_HEADER[] = "thump:";
+    const uint8_t STATE_HEADER[] = "state:";
+    const uint8_t DOING_HEADER[] = "doing:";
+    const uint8_t ERROR_HEADER[] = "error:";
+    const uint8_t FAULT_HEADER[] = "fault:";
+
     // Driver to handle processing of Direct Messages from the Radio:
     class DirectMessageDriver
     {
+    public:
         // Time of last received heartbeat from the Radio in ms since Hercules
         // boot:
         uint32_t m_timeOfLastHeartbeatMs;
@@ -142,6 +161,80 @@ namespace Wf121::DirectMessage
         // Constructor (just initialize data structures):
         DirectMessageDriver();
         ~DirectMessageDriver();
+
+        // Processes the given message. Returns whether the message contained a
+        // known format (and wasn't just plain text being passed along):
+        bool DirectMessageDriver::process(uint8_t msg_len, uint8_t* msg_data);
+        
+        /**
+         * @brief Handle Heartbeat Radio-Hercules Direct Message.
+         * 
+         * @param body_len Length of body contents (header length excluded)
+         * @param body_data Pointer to start of message body (with any header removed)
+         * @return Returns the number of bytes used (0 if no valid body was found).
+         */
+        uint8_t DirectMessageDriver::handleHeartbeatMessage(uint8_t body_len, uint8_t* body_data);
+        /**
+         * @brief Handle State Change Radio-Hercules Direct Message.
+         * 
+         * @param body_len Length of body contents (header length excluded)
+         * @param body_data Pointer to start of message body (with any header removed)
+         * @return Returns the number of bytes used (0 if no valid body was found).
+         */
+        uint8_t DirectMessageDriver::handleStateMessage(uint8_t body_len, uint8_t* body_data);
+        /**
+         * @brief Handle "doing" (Activity Start) Radio-Hercules Direct Message.
+         * 
+         * @param body_len Length of body contents (header length excluded)
+         * @param body_data Pointer to start of message body (with any header removed)
+         * @return Returns the number of bytes used (0 if no valid body was found).
+         */
+        uint8_t DirectMessageDriver::handleDoingMessage(uint8_t body_len, uint8_t* body_data);
+        /**
+         * @brief Handle Error Radio-Hercules Direct Message.
+         * 
+         * @param body_len Length of body contents (header length excluded)
+         * @param body_data Pointer to start of message body (with any header removed)
+         * @return Returns the number of bytes used (0 if no valid body was found).
+         */
+        uint8_t DirectMessageDriver::handleErrorMessage(uint8_t body_len, uint8_t* body_data);
+        /**
+         * @brief Handle Fault Radio-Hercules Direct Message.
+         * 
+         * @param body_len Length of body contents (header length excluded)
+         * @param body_data Pointer to start of message body (with any header removed)
+         * @return Returns the number of bytes used (0 if no valid body was found).
+         */
+        uint8_t DirectMessageDriver::handleFaultMessage(uint8_t body_len, uint8_t* body_data);
+        
+    private:
+        /**
+         * @brief Helper functions that checks if the given `body_data` buffer
+         * matches (or starts with) the given `state_buf`. If it does, it sets
+         * the state to `state` and returns the number of bytes used (length of
+         * the null-terminated `state_buf`).
+         * 
+         * @param state State to assign if there's a match.
+         * @param state_buf State buffer to check for. 
+         * @param body_len Length of buffer to check.
+         * @param body_data Buffer to check.
+         * @return uint8_t Number of bytes used (0 if no match).
+         */
+        uint8_t checkAndAssignState(RadioSwState state, uint8_t* state_buf, uint8_t body_len, uint8_t* body_data);
+
+        /**
+         * @brief Helper functions that checks if the given `body_data` buffer
+         * matches (or starts with) the given `doing_buf`. If it does, it sets
+         * the current activity to `doing` and returns the number of bytes used
+         * (length of the null-terminated `doing_buf`).
+         * 
+         * @param doing "Doing" activity to assign if there's a match.
+         * @param doing_buf "Doing" activity buffer to check for. 
+         * @param body_len Length of buffer to check.
+         * @param body_data Buffer to check.
+         * @return uint8_t Number of bytes used (0 if no match).
+         */
+        uint8_t checkAndAssignDoingActivity(RadioSwActivity doing, uint8_t* doing_buf, uint8_t body_len, uint8_t* body_data);
     };
 }
 

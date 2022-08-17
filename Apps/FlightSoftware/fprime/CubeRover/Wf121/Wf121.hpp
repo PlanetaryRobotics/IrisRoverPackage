@@ -18,19 +18,6 @@
 #include <CubeRover/Wf121/Wf121Parser.hpp>
 #include <CubeRover/Wf121/Wf121RxTask.hpp>
 
-// ! TODO: (WORKING-HERE): [CWC] Process callback and dispatch to appropriate NetworkInterface functions. Then:
-// - Finish DirectMessageDriver.
-// - Update state inside network interface
-// - Create callback hooks for BGAPI CBs we care about (incl. Signal Quality)
-// - Create Queue to pipe datagrams from callbacks to network manager (or whoever else).
-//    https://www.freertos.org/Inter-Task-Communication.html
-//    https://www.digikey.com/en/maker/projects/introduction-to-rtos-solution-to-part-5-freertos-queue-example/72d2b361f7b94e0691d947c7c29a03c9
-// - Reset radio if no heartbeat for some multiple of expected time?
-//
-// - Lastly go back and review diffs from checkpoint commit (specifically notifications.c)
-//    - Make sure those changes match with the current DMA-ISR system.
-// ^ Copy this over to _wifi_todo.md
-
 namespace Wf121
 {
   // These three parameters control the setup of the task that handles data received from the WF121 Radio:

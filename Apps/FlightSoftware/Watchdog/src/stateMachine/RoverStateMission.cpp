@@ -84,7 +84,7 @@ namespace iris
             heaterControl(theContext);
         }
 
-        theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__GAUGE_READING);
+        //theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__GAUGE_READING);
 
         if (!theContext.m_i2cActive) {
             initiateNextI2cAction(theContext);

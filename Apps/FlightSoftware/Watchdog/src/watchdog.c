@@ -341,7 +341,7 @@ void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
  */
 
 /* Port 1 handler */
-#if 0
+#if 1
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=PORT1_VECTOR
 __interrupt void port1_isr_handler(void) {
@@ -351,17 +351,20 @@ void __attribute__ ((interrupt(PORT1_VECTOR))) port1_isr_handler (void) {
 #error Compiler not supported!
 #endif
     switch(__even_in_range(P1IV, P1IV__P1IFG7)) {
-        case P1IV__P1IFG0: // P1.0: Radio Kick
-            *watchdogFlagsPtr |= WDFLAG_RADIO_KICK;
+        case P1IV__P1IFG3: // P1.3: WD_INT
+            // TODO: DO THE THING
 
+            //*watchdogFlagsPtr |= WDFLAG_RADIO_KICK;
+            //
             // exit LPM
-            __low_power_mode_off_on_exit();
+            //__low_power_mode_off_on_exit();
             break;
         default: // default: ignore
             break;
     }
 }
-
+#endif
+#if 0
 /* Port 3 handler */
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=PORT3_VECTOR

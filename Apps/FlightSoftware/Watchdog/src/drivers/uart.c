@@ -22,6 +22,25 @@
 #include "common.h"
 #include "flags.h"
 
+
+#define LANDER_BAUD_RATE_9600 1
+#define LANDER_BAUD_RATE_57600 0
+
+#define HERC_BAUD_RATE_9600 0
+#define HERC_BAUD_RATE_57600 1
+
+#if LANDER_BAUD_RATE_9600 && LANDER_BAUD_RATE_57600
+#error "Must select only one lander baud rate"
+#elif !LANDER_BAUD_RATE_9600 && !LANDER_BAUD_RATE_57600
+#error "Must select at least one lander baud rate"
+#endif
+
+#if HERC_BAUD_RATE_9600 && HERC_BAUD_RATE_57600
+#error "Must select only one Hercules baud rate"
+#elif !HERC_BAUD_RATE_9600 && !HERC_BAUD_RATE_57600
+#error "Must select at least one Hercules baud rate"
+#endif
+
 //###########################################################
 // Private types
 //###########################################################
@@ -486,7 +505,8 @@ static void UART__uart0Init()
     - Next frame to be transmitted is data
     - Next frame to be transmitted is not a break
     */
-/*
+
+#if HERC_BAUD_RATE_9600
     // Baud Rate calculation (Section 30.3.10, SLAU367P)
     // N = (Baud rate clock frequency) / baud rate = 8000000 / 9600 = 833.3333
     // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
@@ -502,7 +522,9 @@ static void UART__uart0Init()
     //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
     //  Therefore, we use 0x49 instead of 0x04. 
     UCA0MCTLW |= 0x4900U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
-*/
+#endif
+
+#if HERC_BAUD_RATE_57600
     // Baud Rate calculation (Section 30.3.10, SLAU367P)
     // N = (Baud rate clock frequency) / baud rate = 8000000 / 57600 = 833.3333
     // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
@@ -518,6 +540,7 @@ static void UART__uart0Init()
     //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
     //  Therefore, we use 0x49 instead of 0x04.
     UCA0MCTLW |= 0xF700U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
+#endif
 
     enableUart0Pins();
 
@@ -552,7 +575,8 @@ static void UART__uart1Init() {
     - Next frame to be transmitted is data
     - Next frame to be transmitted is not a break
     */
-/*
+
+#if LANDER_BAUD_RATE_9600
     // Baud Rate calculation (Section 30.3.10, SLAU367P)
     // N = (Baud rate clock frequency) / (baud rate) = 8000000 / 9600 = 833.3333
     // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
@@ -568,7 +592,9 @@ static void UART__uart1Init() {
     //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
     //  Therefore, we use 0x49 instead of 0x04. 
     UCA1MCTLW |= 0x4900U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
-*/
+#endif
+
+#if LANDER_BAUD_RATE_57600
     // Baud Rate calculation (Section 30.3.10, SLAU367P)
     // N = (Baud rate clock frequency) / baud rate = 8000000 / 57600 = 833.3333
     // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
@@ -584,6 +610,7 @@ static void UART__uart1Init() {
     //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
     //  Therefore, we use 0x49 instead of 0x04.
     UCA1MCTLW |= 0xF700U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
+#endif
 
     enableUart1Pins();
 

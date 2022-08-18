@@ -388,8 +388,6 @@ namespace Wf121::BgApi
 
   typedef uint8_t Endpoint;
 
-  static uint8_t g_payloadBuffer[WF121_UDP_MAX_PAYLOAD];
-
   class BgApiDriver
   {
   public:
@@ -1518,7 +1516,7 @@ namespace Wf121::BgApi
     virtual ErrorCode cb_CommandErasePersistentStore(const uint16_t result) { return NO_ERROR; }
 
     // Other functions
-    ErrorCode ExecuteCallbacks();
+    ErrorCode processBgApiMessage(BgApiHeader *pHeader, uint16_t payloadLen, uint8_t *payloadData);
     bool CommandIsProcessing();
 
   private:
@@ -1527,9 +1525,6 @@ namespace Wf121::BgApi
     ErrorCode receiveCommand(BgApiHeader *header,
                              uint8_t *payload = (uint8_t *)NULL);
     uint16_t getPayloadSizeFromHeader(BgApiHeader *header);
-    ErrorCode getReplyHeader(BgApiHeader *header);
-    ErrorCode getReplyPayload(uint8_t *payload,
-                              const uint16_t payloadSize);
     void setHeaderPayloadSize(BgApiHeader *header, const uint16_t size);
 
     // Callbacks

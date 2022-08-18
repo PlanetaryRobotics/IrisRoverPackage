@@ -48,3 +48,12 @@ Check that CTS / RTS lines up correctly in schematic.
 // ^ Copy this over to _wifi_todo.md
 
 // ** Check fixed strings in DirectMessageDriver and heartbeatMessage structure
+
+// update transmitCommand
+//  - Add timeout to m_processingCmd (also mutex it)
+// add mutex for BGAPI information.
+// Update RadioDriver callback len (now only needs to be 1 long)
+
+// Look into how NM used to tell WD to reset the Radio (and do that for NM-WD comms)
+
+// ! TODO: (WORKING-HERE) Next thing to do is bring in all the cb_ callbacks from CRNM into NI.

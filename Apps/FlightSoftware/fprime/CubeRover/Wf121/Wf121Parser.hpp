@@ -75,9 +75,9 @@ namespace Wf121::Wf121Parser
         /**
          * @brief Returns a pointer to the header, cast as a BGAPI Header.
          */
-        inline BgApiHeader *bgapiHeader()
+        inline BgApi::BgApiHeader *bgApiHeader()
         {
-            return (BgApiHeader *)&this->header;
+            return (BgApi::BgApiHeader *)&this->header;
         }
 
         /**
@@ -101,9 +101,9 @@ namespace Wf121::Wf121Parser
     /**
      * @brief Helper function to compute the BGAPI payload size from a BGAPI header.
      */
-    inline uint16_t getBgapiPayloadSize(BgApiHeader *bgapiHeader)
+    inline uint16_t getBgapiPayloadSize(BgApi::BgApiHeader *bgApiHeader)
     {
-        return bgapiHeader->bit.lengthLow + (bgapiHeader->bit.lengthHigh << 8);
+        return bgApiHeader->bit.lengthLow + (bgApiHeader->bit.lengthHigh << 8);
     }
 
 // *Message Parsing State Machine:*

@@ -37,9 +37,9 @@ namespace Wf121::Wf121Parser
             this->headerType = HeaderType::DIRECT_MESSAGE;
         }
         else if (
-            bgapiHeader()->bit.technologyType == TT_WIFI &&
-            (bgapiHeader()->bit.msgType == CMD_RSP_TYPE || bgapiHeader()->bit.msgType == EVENT_TYPE) &&
-            bgapiHeader()->bit.classId <= CLASS_WIRED_ETHERNET)
+            bgApiHeader()->bit.technologyType == TT_WIFI &&
+            (bgApiHeader()->bit.msgType == CMD_RSP_TYPE || bgApiHeader()->bit.msgType == EVENT_TYPE) &&
+            bgApiHeader()->bit.classId <= CLASS_WIRED_ETHERNET)
         {
             // This is a valid BGAPI Header:
             this->headerType = HeaderType::BGAPI;
@@ -98,7 +98,7 @@ namespace Wf121::Wf121Parser
                 if (msg.headerType = HeaderType::BGAPI)
                 {
                     // Set how many bytes we are going to wait for:
-                    m_numPayloadBytesExpected = getBgapiPayloadSize(msg.bgapiHeader());
+                    m_numPayloadBytesExpected = getBgapiPayloadSize(msg.bgApiHeader());
                     // and make sure that's reasonable (final check to see if this is a valid BGAPI header):
                     if (m_numPayloadBytesExpected > WF121_BGAPI_MAX_PACKET_SIZE || m_numPayloadBytesExpected > msg.payloadBufferCapacity)
                     {

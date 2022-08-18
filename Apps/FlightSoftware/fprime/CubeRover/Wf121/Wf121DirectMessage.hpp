@@ -48,8 +48,13 @@
 #ifndef CUBEROVER_WF121_WF121_DIRECT_MESSAGE_HPP_
 #define CUBEROVER_WF121_WF121_DIRECT_MESSAGE_HPP_
 
+#include <Fw/Time/Time.hpp>
+
 namespace Wf121::DirectMessage
 {
+    // Radio's built in drop (effectively /dev/null) endpoint (used when UDP isn't set up):
+    const uint8_t UDP_NULL_ENDPOINT = 31;
+
     // State of the Radio's SW (from a "state:" or "thump:" message)
     enum class RadioSwState
     {
@@ -145,16 +150,6 @@ namespace Wf121::DirectMessage
     class DirectMessageDriver
     {
     public:
-        // Time of last received heartbeat from the Radio in ms since Hercules
-        // boot:
-        uint32_t m_timeOfLastHeartbeatMs;
-
-        // Latest Radio Metadata:
-        RadioSwState m_currentRadioState;
-        RadioSwActivity m_currentRadioActivity;
-
-        // TODO: Add radio Error & Fault Queue (We should pass these to WD)
-
         // Initializer (start everything once outer processes are ready):
         void init();
 
@@ -164,77 +159,133 @@ namespace Wf121::DirectMessage
 
         // Processes the given message. Returns whether the message contained a
         // known format (and wasn't just plain text being passed along):
-        bool DirectMessageDriver::process(uint8_t msg_len, uint8_t* msg_data);
-        
-        /**
-         * @brief Handle Heartbeat Radio-Hercules Direct Message.
-         * 
-         * @param body_len Length of body contents (header length excluded)
-         * @param body_data Pointer to start of message body (with any header removed)
-         * @return Returns the number of bytes used (0 if no valid body was found).
-         */
-        uint8_t DirectMessageDriver::handleHeartbeatMessage(uint8_t body_len, uint8_t* body_data);
-        /**
-         * @brief Handle State Change Radio-Hercules Direct Message.
-         * 
-         * @param body_len Length of body contents (header length excluded)
-         * @param body_data Pointer to start of message body (with any header removed)
-         * @return Returns the number of bytes used (0 if no valid body was found).
-         */
-        uint8_t DirectMessageDriver::handleStateMessage(uint8_t body_len, uint8_t* body_data);
-        /**
-         * @brief Handle "doing" (Activity Start) Radio-Hercules Direct Message.
-         * 
-         * @param body_len Length of body contents (header length excluded)
-         * @param body_data Pointer to start of message body (with any header removed)
-         * @return Returns the number of bytes used (0 if no valid body was found).
-         */
-        uint8_t DirectMessageDriver::handleDoingMessage(uint8_t body_len, uint8_t* body_data);
-        /**
-         * @brief Handle Error Radio-Hercules Direct Message.
-         * 
-         * @param body_len Length of body contents (header length excluded)
-         * @param body_data Pointer to start of message body (with any header removed)
-         * @return Returns the number of bytes used (0 if no valid body was found).
-         */
-        uint8_t DirectMessageDriver::handleErrorMessage(uint8_t body_len, uint8_t* body_data);
-        /**
-         * @brief Handle Fault Radio-Hercules Direct Message.
-         * 
-         * @param body_len Length of body contents (header length excluded)
-         * @param body_data Pointer to start of message body (with any header removed)
-         * @return Returns the number of bytes used (0 if no valid body was found).
-         */
-        uint8_t DirectMessageDriver::handleFaultMessage(uint8_t body_len, uint8_t* body_data);
-        
-    private:
-        /**
-         * @brief Helper functions that checks if the given `body_data` buffer
-         * matches (or starts with) the given `state_buf`. If it does, it sets
-         * the state to `state` and returns the number of bytes used (length of
-         * the null-terminated `state_buf`).
-         * 
-         * @param state State to assign if there's a match.
-         * @param state_buf State buffer to check for. 
-         * @param body_len Length of buffer to check.
-         * @param body_data Buffer to check.
-         * @return uint8_t Number of bytes used (0 if no match).
-         */
-        uint8_t checkAndAssignState(RadioSwState state, uint8_t* state_buf, uint8_t body_len, uint8_t* body_data);
+        bool processDirectMessage(uint8_t msg_len, uint8_t *msg_data);
 
         /**
-         * @brief Helper functions that checks if the given `body_data` buffer
-         * matches (or starts with) the given `doing_buf`. If it does, it sets
-         * the current activity to `doing` and returns the number of bytes used
-         * (length of the null-terminated `doing_buf`).
-         * 
-         * @param doing "Doing" activity to assign if there's a match.
-         * @param doing_buf "Doing" activity buffer to check for. 
+         * @brief Handle Heartbeat Radio-Hercules Direct Message.
+         *
+         * @param body_len Length of body contents (header length excluded)
+         * @param body_data Pointer to start of message body (with any header removed)
+         * @return Returns the number of bytes used (0 if no valid body was found).
+         */
+        uint8_t handleHeartbeatMessage(uint8_t body_len, uint8_t *body_data);
+        /**
+         * @brief Handle State Change Radio-Hercules Direct Message.
+         *
+         * @param body_len Length of body contents (header length excluded)
+         * @param body_data Pointer to start of message body (with any header removed)
+         * @param state_output Pointer to a state object to set to the resultant value (if not nullptr). Defaults to `nullptr`.
+         * @param fire_callback Whether to fire the `cb_dm_NowInState` callback if a valid activity is found (defaults to true).
+         * @return Returns the number of bytes used (0 if no valid body was found).
+         */
+        uint8_t handleStateMessage(uint8_t body_len, uint8_t *body_data, RadioSwState *state_output = nullptr, bool fire_callback = true);
+        /**
+         * @brief Handle "doing" (Activity Start) Radio-Hercules Direct Message.
+         *
+         * @param body_len Length of body contents (header length excluded)
+         * @param body_data Pointer to start of message body (with any header removed)
+         * @param doingOutput Pointer to an activity object to set to the resultant value (if not nullptr). Defaults to `nullptr`.
+         * @param doing_output Pointer to a state object to set to the resultant value (if not nullptr). Defaults to nullptr.
+         * @param fire_callback Whether to fire the `cb_dm_NowDoingActivity` callback if a valid activity is found (defaults to true).
+         * @return Returns the number of bytes used (0 if no valid body was found).
+         */
+        uint8_t handleDoingMessage(uint8_t body_len, uint8_t *body_data, RadioSwActivity *doing_output = nullptr, bool fire_callback = true);
+        /**
+         * @brief Handle Error Radio-Hercules Direct Message.
+         *
+         * @param body_len Length of body contents (header length excluded)
+         * @param body_data Pointer to start of message body (with any header removed)
+         * @return Returns the number of bytes used (0 if no valid body was found).
+         */
+        uint8_t handleErrorMessage(uint8_t body_len, uint8_t *body_data);
+        /**
+         * @brief Handle Fault Radio-Hercules Direct Message.
+         *
+         * @param body_len Length of body contents (header length excluded)
+         * @param body_data Pointer to start of message body (with any header removed)
+         * @return Returns the number of bytes used (0 if no valid body was found).
+         */
+        uint8_t handleFaultMessage(uint8_t body_len, uint8_t *body_data);
+
+        /**
+         * @brief      Callback triggered when we receive a Direct Message
+         * Heartbeat from the Radio (even if only part of that message was
+         * valid and the rest was gibberish).
+         *
+         * @param downlinkEndpoint BGAPI Endpoint to send data to be downlinked to Earth.
+         * @param uplinkEndpoint BGAPI Endpoint to use to receive data from Earth.
+         * @param state State the Radio is currently in (or BAD_MESSAGE if the message was garbage by this point).
+         * @param doing Activity the Radio is currently doing (or BAD_MESSAGE if the message was garbage by this point).
+         * @param fullyValid Whether the entire heartbeat message was intelligible (valid).
+         */
+        virtual void cb_dm_Heartbeat(
+            const uint8_t downlinkEndpoint,
+            const uint8_t uplinkEndpoint,
+            const RadioSwState state,
+            const RadioSwActivity doing,
+            const bool fullyValid)
+        {
+            /* do nothing by default */
+        }
+
+        /**
+         * @brief      Callback triggered when we determine we've received
+         * valid information about the Radio's current RadioSwState, from a
+         * state change Direct Message.
+         *
+         * @param state The state we're now in.
+         */
+        virtual void cb_dm_NowInState(const RadioSwState state)
+        {
+            /* do nothing by default */
+        }
+
+        /**
+         * @brief      Callback triggered when we determine we've received
+         * valid information about the Radio's current RadioSwActivity, from a
+         * Direct Message indicating we've just started the activity.
+         *
+         * @param doing The activity we're now doing.
+         */
+        virtual void cb_dm_NowDoingActivity(const RadioSwActivity doing)
+        {
+            /* do nothing by default */
+        }
+
+    private:
+        /**
+         * @brief Helper function that checks if the given `body_data` buffer
+         * matches (or starts with) the given `state_buf`. If it does, it returns
+         * the number of bytes used (length of the null-terminated `state_buf`).
+         * If it matches and `fire_on_match` is true, it will also fire off the
+         * `cb_dm_NowInState` callback with `state` before returning.
+         *
+         * @param state State to assign if there's a match.
+         * @param state_buf State buffer to check for.
          * @param body_len Length of buffer to check.
          * @param body_data Buffer to check.
+         * @param state_output Pointer to a state object to set to the resultant value (if not nullptr).
+         * @param fire_on_match Whether to fire `cb_dm_NowInState` if there's a match.
          * @return uint8_t Number of bytes used (0 if no match).
          */
-        uint8_t checkAndAssignDoingActivity(RadioSwActivity doing, uint8_t* doing_buf, uint8_t body_len, uint8_t* body_data);
+        uint8_t checkIfStateMatches(RadioSwState state, uint8_t *state_buf, uint8_t body_len, uint8_t *body_data, RadioSwState *state_output, bool fire_on_match);
+
+        /**
+         * @brief Helper function that checks if the given `body_data` buffer
+         * matches (or starts with) the given `doing_buf`. If it does, it returns
+         * the number of bytes used (length of the null-terminated `doing_buf`).
+         * If it matches and `fire_on_match` is true, it will also fires off the
+         * `cb_dm_NowDoingActivity` callback with `doing` before returning.
+         *
+         * @param doing "Doing" activity to assign if there's a match.
+         * @param doing_buf "Doing" activity buffer to check for.
+         * @param body_len Length of buffer to check.
+         * @param body_data Buffer to check.
+         * @param doing_output Pointer to a state object to set to the resultant value (if not nullptr).
+         * @param fire_on_match Whether to fire `cb_dm_NowDoingActivity` if there's a match.
+         * @return uint8_t Number of bytes used (0 if no match).
+         */
+        uint8_t checkIfDoingActivityMatches(RadioSwActivity doing, uint8_t *doing_buf, uint8_t body_len, uint8_t *body_data, RadioSwActivity *doing_output, bool fire_on_match);
     };
 }
 

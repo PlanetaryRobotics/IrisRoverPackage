@@ -1543,201 +1543,72 @@ namespace Wf121::BgApi
   }
 
   /**
-   * @brief      Execute any pending callbacks
+   * @brief
    *
    * @return     The error code.
    */
-  ErrorCode BgApiDriver ::ExecuteCallbacks()
+
+  /**
+   * @brief Process the given BGAPI message and execute any required callbacks.
+   *
+   * @param pHeader BGAPI Header.
+   * @param payloadSize Length of the payload data (after the header).
+   * @param payloadData Payload data itself.
+   * @return     The error code.
+   */
+  ErrorCode BgApiDriver ::processBgApiMessage(BgApiHeader *pHeader, uint16_t payloadSize, uint8_t *payloadData)
   {
     ErrorCode err = NO_ERROR;
-    BgApiHeader header;
-    uint16_t payloadSize;
-    ErrorCode cmdResult;
 
-    header.all = 0;
-
-    // Some data is available in the buffer, process it
-    err = getReplyHeader(&header);
-    if (err != NO_ERROR)
-      return err;
-
-    // Get the payload if any.
-    payloadSize = getPayloadSizeFromHeader(&header);
-
-    // Some data need to be processed
-    // Should not block at that point
-    if (payloadSize > 0)
+    if (pHeader->bit.msgType == CMD_RSP_TYPE)
     {
-      err = getReplyPayload(g_payloadBuffer, payloadSize);
-      if (err != NO_ERROR)
-      {
-        return err;
-      }
-    }
-
-    // If the command is a response, then the first two bytes of the reply are
-    // result of the command.
-    if (header.bit.msgType == CMD_RSP_TYPE)
-    {
-      // If payload > 0 than zero, it means the result of the command is in the payload
-      // except for some cases (like "hello system" that acknowledge the command without payload)
-      if (payloadSize > 0)
-      {
-        // Process special command cases
-        if (header.bit.classId == CLASS_WIFI && header.bit.cmdId == 0x05 /* password set */)
-        {
-        }
-        else
-        { // end of special command cases
-          memcpy(&cmdResult,
-                 g_payloadBuffer,
-                 sizeof(cmdResult));
-
-          // If there is an error, return the command failure immediately
-          if (cmdResult != NO_ERROR)
-          {
-            m_processingCmd = false;
-            return cmdResult;
-          }
-        }
-      }
+      // If it's a response, then Radio is done processing whatever the last
+      // command was:
       m_processingCmd = false;
     }
 
     // Execute class specific callback
     // Some payload data is expected at that point
-    switch (header.bit.classId)
+    switch (pHeader->bit.classId)
     {
     case CLASS_SYSTEM:
-      err = executeSystemCallback(&header, g_payloadBuffer, payloadSize);
+      err = executeSystemCallback(pHeader, payloadData, payloadSize);
       break;
     case CLASS_CONFIGURATION:
-      err = executeConfigurationCallback(&header, g_payloadBuffer, payloadSize);
+      err = executeConfigurationCallback(pHeader, payloadData, payloadSize);
       break;
     case CLASS_WIFI:
-      err = executeWifiCallback(&header, g_payloadBuffer, payloadSize);
+      err = executeWifiCallback(pHeader, payloadData, payloadSize);
       break;
     case CLASS_TCP_STACK:
-      err = executeTcpStackCallback(&header, g_payloadBuffer, payloadSize);
+      err = executeTcpStackCallback(pHeader, payloadData, payloadSize);
       break;
     case CLASS_ENDPOINT:
-      err = executeEndpointCallback(&header, g_payloadBuffer, payloadSize);
+      err = executeEndpointCallback(pHeader, payloadData, payloadSize);
       break;
     case CLASS_HARDWARE:
-      err = executeHardwareCallback(&header, g_payloadBuffer, payloadSize);
+      err = executeHardwareCallback(pHeader, payloadData, payloadSize);
       break;
     case CLASS_I2C:
-      err = executeI2cCallback(&header, g_payloadBuffer, payloadSize);
+      err = executeI2cCallback(pHeader, payloadData, payloadSize);
       break;
     case CLASS_WIRED_ETHERNET:
-      err = executeWiredEthernetCallback(&header, g_payloadBuffer, payloadSize);
+      err = executeWiredEthernetCallback(pHeader, payloadData, payloadSize);
       break;
     case CLASS_HTTP_SERVER:
-      err = executeHttpServerCallback(&header, g_payloadBuffer, payloadSize);
+      err = executeHttpServerCallback(pHeader, payloadData, payloadSize);
       break;
     case CLASS_PERSISTENT_STORE:
-      err = executePersistentStoreCallback(&header, g_payloadBuffer, payloadSize);
+      err = executePersistentStoreCallback(pHeader, payloadData, payloadSize);
       break;
     case CLASS_DEVICE_FIRMWARE_UPGRADE:
-      err = executeDeviceFirmwareUpgradeCallback(&header, g_payloadBuffer, payloadSize);
+      err = executeDeviceFirmwareUpgradeCallback(pHeader, payloadData, payloadSize);
       break;
     default:
       return COMMAND_NOT_RECOGNIZED;
     }
 
     return err;
-  }
-
-  /**
-   * @brief      Gets the reply header.
-   *
-   * @param      header  The header
-   *
-   * @return     The reply header.
-   */
-  ErrorCode BgApiDriver ::getReplyHeader(BgApiHeader *header)
-  {
-    Timeout counter;
-    bool dataReady = false;
-
-#if WF121_USE_CTS_RTS
-    gioSetBit(gioPORTB, 3, 0); // Pull low RTS : ready to receive some data
-#endif                         //#if WF121_USE_CTS_RTS
-
-    for (counter = BLOCKING_TIMEOUT_US; counter > 0; counter--)
-    {
-      if (sciIsRxReady(WF121_SCI_REG))
-      {
-        dataReady = true;
-        break;
-      }
-    }
-
-    if (dataReady == false)
-    {
-#if WF121_USE_CTS_RTS
-      gioSetBit(gioPORTB, 3, 1); // Pull low RTS : ready to receive some data
-#endif                           //#if WF121_USE_CTS_RTS
-      return TRY_AGAIN;
-    }
-
-    // Always receive 4 bytes to start the message
-    sciReceive(WF121_SCI_REG, sizeof(header), (uint8_t *)header);
-
-#if WF121_USE_CTS_RTS
-    gioSetBit(gioPORTB, 3, 1); // Release RTS
-#endif                         //#if WF121_USE_CTS_RTS
-
-    // Check for consistency of the message received
-    if (header->bit.technologyType != TT_BLUETOOTH && header->bit.technologyType != TT_WIFI)
-    {
-      return COMMAND_NOT_RECOGNIZED;
-    }
-
-    if (header->bit.msgType != CMD_RSP_TYPE && header->bit.msgType != EVENT_TYPE)
-    {
-      return COMMAND_NOT_RECOGNIZED;
-    }
-
-    if (header->bit.classId > CLASS_WIRED_ETHERNET || header->bit.classId == 0)
-    {
-      return COMMAND_NOT_RECOGNIZED;
-    }
-
-    return NO_ERROR;
-  }
-
-  /**
-   * @brief      Receive data payload from WF121 module
-   *
-   * @param      payload      The payload
-   * @param[in]  payloadSize  The payload size
-   *
-   * @return     The error code.
-   */
-  ErrorCode BgApiDriver ::getReplyPayload(uint8_t *payload,
-                                          const uint16_t payloadSize)
-  {
-
-    // Check if there is more data to read
-    if (payload == NULL)
-    {
-      return INVALID_PARAMETER;
-    }
-
-#if WF121_USE_CTS_RTS
-    gioSetBit(gioPORTB, 3, 0); // Pull low RTS : ready to receive some data
-#endif                         //#if WF121_USE_CTS_RTS
-
-    while (!sciIsRxReady(WF121_SCI_REG))
-      ;
-    sciReceive(WF121_SCI_REG, payloadSize, payload);
-
-#if WF121_USE_CTS_RTS
-    gioSetBit(gioPORTB, 3, 1); // Release RTS
-#endif                         //#if WF121_USE_CTS_RTS
-
-    return NO_ERROR;
   }
 
   /**

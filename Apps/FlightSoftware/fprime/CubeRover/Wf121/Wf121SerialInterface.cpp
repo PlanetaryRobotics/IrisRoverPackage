@@ -28,7 +28,7 @@ namespace Wf121::Wf121Serial
         // NOTE: our RTS pin is connected to the WF121's CTS pin, which is on PB3.
         gioSetBit(gioPORTB, 3, state);
 #else
-        return;      // if no control flow, then we just throw this out
+        return;       // if no control flow, then we just throw this out
 #endif //#if WF121_USE_CTS_RTS
     }
 
@@ -39,7 +39,7 @@ namespace Wf121::Wf121Serial
         // NOTE: our CTS pin is connected to the WF121's RTS pin, which is on PB2.
         return gioGetBit(gioPORTB, 2);
 #else
-        return true; // if no control flow, then we just assume we're always good to send data
+        return false; // if no control flow, then we just assume we're always good to send data (active low)
 #endif //#if WF121_USE_CTS_RTS
     }
 

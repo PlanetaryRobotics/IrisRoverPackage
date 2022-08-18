@@ -1519,7 +1519,7 @@ namespace Wf121::BgApi
     ErrorCode processBgApiMessage(BgApiHeader *pHeader, uint16_t payloadLen, uint8_t *payloadData);
     bool CommandIsProcessing();
 
-  private:
+  protected:
     ErrorCode transmitCommand(BgApiHeader *header,
                               uint8_t *payload = (uint8_t *)NULL);
     ErrorCode receiveCommand(BgApiHeader *header,

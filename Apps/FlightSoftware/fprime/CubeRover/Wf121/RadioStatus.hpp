@@ -14,6 +14,7 @@
 #include <CubeRover/Wf121/Wf121DirectMessage.hpp>
 
 #include <Os/Mutex.hpp>
+#include <Fw/Time/Time.hpp>
 
 namespace Wf121
 {
@@ -37,13 +38,25 @@ namespace Wf121
         BgApi::Endpoint uplinkEndpoint;
         // The latest WiFi connection RSSI (note: value is always negative):
         int8_t rssi;
+        // Number of uplinked UDP packets received:
+        uint32_t udpRxPacketCount;
+        // Number of bytes received in uplinked UDP packets:
+        uint32_t udpRxByteCount;
+        // Number of UDP packets downlinked:
+        uint32_t udpTxPacketCount;
+        // Number of bytes sent in downlinked UDP packets:
+        uint32_t udpTxByteCount;
 
         RadioStatus() : timeOfLastHeartbeatMs(0),
                         currentRadioState(DirectMessage::RadioSwState::NONE),
                         currentRadioActivity(DirectMessage::RadioSwActivity::NONE),
                         downlinkEndpoint(DirectMessage::UDP_NULL_ENDPOINT),
                         uplinkEndpoint(DirectMessage::UDP_NULL_ENDPOINT),
-                        rssi(0)
+                        rssi(0),
+                        udpRxPacketCount(0),
+                        udpRxByteCount(0),
+                        udpTxPacketCount(0),
+                        udpTxByteCount(0)
         {
             // Nothing else to do.
         }
@@ -57,6 +70,10 @@ namespace Wf121
             target->downlinkEndpoint = this->downlinkEndpoint;
             target->uplinkEndpoint = this->uplinkEndpoint;
             target->rssi = this->rssi;
+            target->udpRxPacketCount = this->udpRxPacketCount;
+            target->udpRxByteCount = this->udpRxByteCount;
+            target->udpTxPacketCount = this->udpTxPacketCount;
+            target->udpTxByteCount = this->udpTxByteCount;
         }
 
         // Sets the `timeOfLastHeartbeatMs` to the current Time in milliseconds
@@ -148,6 +165,35 @@ namespace Wf121
             this->mutex.unLock();
         }
 
+        // Obtains a mutex lock, copies `udpRxPacketCount` into the given
+        // object, releases the lock.
+        void copyUdpRxPacketCountInto(uint32_t* udpRxPacketCount){
+            this->mutex.lock();
+            *udpRxPacketCount = this->udpRxPacketCount;
+            this->mutex.unLock();
+        }
+        // Obtains a mutex lock, copies `udpRxByteCount` into the given
+        // object, releases the lock.
+        void copyUdpRxByteCountInto(uint32_t* udpRxByteCount){
+            this->mutex.lock();
+            *udpRxByteCount = this->udpRxByteCount;
+            this->mutex.unLock();
+        }
+        // Obtains a mutex lock, copies `udpTxPacketCount` into the given
+        // object, releases the lock.
+        void copyUdpTxPacketCountInto(uint32_t* udpTxPacketCount){
+            this->mutex.lock();
+            *udpTxPacketCount = this->udpTxPacketCount;
+            this->mutex.unLock();
+        }
+        // Obtains a mutex lock, copies `udpTxByteCount` into the given
+        // object, releases the lock.
+        void copyUdpTxByteCountInto(uint32_t* udpTxByteCount){
+            this->mutex.lock();
+            *udpTxByteCount = this->udpTxByteCount;
+            this->mutex.unLock();
+        }
+
         /* SETTERS: */
         // Obtains a mutex lock, sets the radio state to the given
         // RadioSwState, releases the lock.
@@ -199,6 +245,34 @@ namespace Wf121
         {
             this->mutex.lock();
             this->rssi = rssi;
+            this->mutex.unLock();
+        }
+        // Obtains a mutex lock, increments `udpRxPacketCount` by `x`, releases
+        // the lock:
+        void incUdpRxPacketCount(uint32_t x = 1UL){
+            this->mutex.lock();
+            this->udpRxPacketCount += x;
+            this->mutex.unLock();
+        }
+        // Obtains a mutex lock, increments `udpRxByteCount` by `x`, releases
+        // the lock:
+        void incUdpRxByteCount(uint32_t x = 1UL){
+            this->mutex.lock();
+            this->udpRxByteCount += x;
+            this->mutex.unLock();
+        }
+        // Obtains a mutex lock, increments `udpTxPacketCount` by `x`, releases
+        // the lock:
+        void incUdpTxPacketCount(uint32_t x = 1UL){
+            this->mutex.lock();
+            this->udpTxPacketCount += x;
+            this->mutex.unLock();
+        }
+        // Obtains a mutex lock, increments `udpTxByteCount` by `x`, releases
+        // the lock:
+        void incUdpTxByteCount(uint32_t x = 1UL){
+            this->mutex.lock();
+            this->udpTxByteCount += x;
             this->mutex.unLock();
         }
     };

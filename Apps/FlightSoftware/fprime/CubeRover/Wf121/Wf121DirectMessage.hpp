@@ -252,7 +252,7 @@ namespace Wf121::DirectMessage
             /* do nothing by default */
         }
 
-    private:
+    protected:
         /**
          * @brief Helper function that checks if the given `body_data` buffer
          * matches (or starts with) the given `state_buf`. If it does, it returns

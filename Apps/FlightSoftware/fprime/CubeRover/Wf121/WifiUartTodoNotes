@@ -57,3 +57,24 @@ Check that CTS / RTS lines up correctly in schematic.
 // Look into how NM used to tell WD to reset the Radio (and do that for NM-WD comms)
 
 // ! TODO: (WORKING-HERE) Next thing to do is bring in all the cb_ callbacks from CRNM into NI.
+
+// Add stack overflow detection and reset on overflow.
+// Make sure WD reset Herc if it hangs.
+
+
+// - DMA TX OUT
+// - TX TASK
+// - BGAPI OUT (with mutex and timeout on awaiting command response).
+
+
+
+// Merge RadioDriver into NetworkInterface (basically just a wrapper?) and let
+// everything ext. be handled through Wf121::NetworkInterface (?)
+// ... TX Task will need to be owned by NI, so RX Task probably should be too.
+// ... SerialInterface is separate through and owned by RD. Is there a way to
+// keep TXT owned by RD and just driven by NI? (so far, we kept low-level comms
+// logic out of NI. would be nice to keep it that way)
+
+// NM update checks Radio heartbeat timeout
+
+// reimpl debugPrintfToWatchdog for passing radio messages to WD RS422

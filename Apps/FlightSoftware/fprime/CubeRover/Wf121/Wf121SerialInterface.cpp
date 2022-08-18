@@ -6,6 +6,13 @@
 
 namespace Wf121::Wf121Serial
 {
+    // Whether all serial SCI, DMA, etc. has been initialzed and can be used
+    // (specifically to determine if we can use DMA send or not):
+    bool wf121FinishedInitializingSerial = false;
+    
+    // Mutex-protected information about DMA TX:
+    static volatile DmaWriteStatus dmaWriteStatus;
+
     // Initialize comms:
     void init(void)
     {
@@ -19,6 +26,8 @@ namespace Wf121::Wf121Serial
         sciEnterResetState(WF121_SCI_REG);
         sciSetBaudrate(WF121_SCI_REG, WF121_SCI_BAUD);
         sciExitResetState(WF121_SCI_REG);
+
+        wf121FinishedInitializingSerial = true;
     }
 
     // Set the RTS GPIO pin to the given state:
@@ -54,5 +63,70 @@ namespace Wf121::Wf121Serial
     void signalReadyForInterrupt(void)
     {
         WF121_SCI_REG->SETINT = (uint32)SCI_RX_INT;
+    }
+
+    bool pollDMASendFinished()
+    {
+        bool timedout = false;
+        // Make sure we're set up:
+        if (!wf121FinishedInitializingSerial)
+        {
+            // If not set up yet:
+            // Wait until ready (or timeout):
+            while (!dmaSendReady() && !timedout){
+                timedout = dmaWriteStatus.blockingTimedOut();
+            };
+            // If we finished b/c we're done (not timeout), flag that we're no
+            // longer busy:
+            if(!timedout){
+                dmaWriteStatus.setBusy(false);
+                sciDMASendCleanup(WF121_TX_DMA_CH);
+            }
+        }
+
+        // Now wait for done or timeout:
+        timedout = false;
+        while(dmaWriteStatus.isBusy() && !timedout){
+            timedout = dmaWriteStatus.blockingTimedOut();
+        };
+
+        return !timedout;
+    }
+
+    // Returns negative on error:
+    bool dmaSend(void *buffer, int size, bool blocking)
+    {
+        // old non-DMA code (for posterity - and in case of need for rapid
+        // change-over):
+        // sciSend(m_sci, size, static_cast<uint8_t *>(buffer));
+        // return true;
+
+        bool timedout = false;
+        
+        // Make sure device is not busy first:
+        if (blocking){
+            while (dmaWriteStatus.isBusy() || !dmaSendDone()){
+                // loop until not busy
+                
+            timedout = dmaWriteStatus.blockingTimedOut();
+            // ! TODO: (WORKING-HERE) [CWC]: Make this like poll and re-check the wait logic.
+                if(dmaWriteStatus.blockingTimedOut()){
+                    // If we time out while looping, just eject and say we gave up:
+                    return false;
+                }
+            };
+        } else if (dmaWriteStatus.isBusy()){
+            return false;
+        }
+
+        // Actually send the buffer:
+        sciDMASend(WF121_TX_DMA_CH, static_cast<char *>(buffer), size, ACCESS_8_BIT, &wf121DmaWriteBusy);
+
+        // Restart the timer:
+        dmaWriteStatus.time
+
+        if (blocking)
+            pollDMASendFinished();
+        return true;
     }
 }

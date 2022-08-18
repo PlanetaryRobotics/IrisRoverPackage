@@ -27,20 +27,10 @@ namespace Wf121
 
   class RadioDriver : public virtual Wf121RxCallbackProcessor
   {
-
+  public:
     // Interface responsible for processing data from and sending data to the
     // radio:
     NetworkInterface m_networkInterface;
-
-    // FreeRTOS Task responsible for handling incoming data from the
-    Wf121RxTask m_serialRxTask;
-
-    /**
-     * @brief The callback invoked by the `Wf121RxTask` when it has received a message.
-     *
-     * @param msg The parsed message received from the WF121 Radio.
-     */
-    virtual void rxCallback(Wf121Parser::GenericMessage &msg);
 
     // Begin all processes (once outside code is ready):
     void init();
@@ -50,6 +40,17 @@ namespace Wf121
 
     // Destructor:
     ~RadioDriver();
+
+  private:
+    // FreeRTOS Task responsible for handling incoming data from the
+    Wf121RxTask m_serialRxTask;
+
+    /**
+     * @brief The callback invoked by the `Wf121RxTask` when it has received a message.
+     *
+     * @param msg The parsed message received from the WF121 Radio.
+     */
+    virtual void rxCallback(Wf121Parser::GenericMessage &msg);
   };
 }
 

@@ -154,6 +154,7 @@ void run1cycle(void) {
   Svc::TimerVal timer;
   timer.take();
   rateGroupDriver.get_CycleIn_InputPort(0)->invoke(timer);
+  // TODO: [CWC] Investigate if we should go back to invoking blockDriver.
 }
 
 /**

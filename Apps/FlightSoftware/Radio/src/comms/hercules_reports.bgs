@@ -18,16 +18,23 @@ const DOING_MSG_PREFIX_LEN = 6  # "doing:"
 dim doing_msg_buffer(31) # DOING_MSG_PREFIX_LEN(6) + MAX_DOING_MSG_BODY_LEN(25) (unfortunately we can't just add consts here)
 dim doing_msg_body_len # Length of the current doing message (excluding prefix)
 
-# Heartbeat takes the form of "thump:CURRENT_STATE>CURRENTLY_DOING"
+# Heartbeat takes the form of "thump:[client_endpoint_in_raw_hex]:[server_endpoint_in_raw_hex]:[endCURRENT_STATE>CURRENTLY_DOING"
 # We do this in case Hercules crashes or resets and has thus forgotten our
 # current state. We want to remind it regularly just in case.
 const HB_MSG_PREFIX_LEN = 6  # "thump:"
-dim hb_msg_buffer(52) # 1 + state_msg_buffer capacity(21) + doing_msg_buffer capacity(31) (unfortunately we can't just add consts here)
+dim hb_msg_buffer(50) # HB_MSG_PREFIX_LEN + client_endp(1) + ':'(1) + server_endp(1) + ':'(1) + MAX_STATE_LEN(15) + '>'(1) + MAX_DOING_MSG_BODY_LEN(25) (unfortunately we can't just add consts here)
 procedure load_heartbeat_data()
+    # Load endpoint data:
+    # NOTE: We're about to send raw un-escaped hex in a heartbeat message BUT
+    # since each field is only 1 byte and the separator isn't a valid DM header
+    # byte, there's no chance of accidentally sending a valid DM header which
+    # could get caught by Hercules while scanning for a valid header.
+    hb_msg_buffer(HB_MSG_PREFIX_LEN:1) = udp_client_endpoint
+    hb_msg_buffer(HB_MSG_PREFIX_LEN+2:1) = udp_server_endpoint
     # Load heartbeat data from state_ and doing_ message buffers:
-    memcpy(hb_msg_buffer(HB_MSG_PREFIX_LEN), state_msg_buffer(STATE_MSG_PREFIX_LEN), state_msg_body_len)
-    hb_msg_buffer(HB_MSG_PREFIX_LEN+state_msg_body_len:1) = ">" # add separator
-    memcpy(hb_msg_buffer(HB_MSG_PREFIX_LEN+state_msg_body_len+1), doing_msg_buffer(DOING_MSG_PREFIX_LEN), doing_msg_body_len)
+    memcpy(hb_msg_buffer(HB_MSG_PREFIX_LEN+4), state_msg_buffer(STATE_MSG_PREFIX_LEN), state_msg_body_len)
+    hb_msg_buffer(HB_MSG_PREFIX_LEN+4+state_msg_body_len:1) = ">" # add state-doing separator
+    memcpy(hb_msg_buffer(HB_MSG_PREFIX_LEN+4+state_msg_body_len+1), doing_msg_buffer(DOING_MSG_PREFIX_LEN), doing_msg_body_len)
 end
 
 
@@ -41,6 +48,9 @@ export procedure INIT_HR()
     doing_msg_buffer(0:DOING_MSG_PREFIX_LEN+doing_msg_body_len) = "doing:BOOTING"
 
     hb_msg_buffer(0:HB_MSG_PREFIX_LEN) = "thump:"
+    # Add fixed separators:
+    hb_msg_buffer(HB_MSG_PREFIX_LEN+1:1) = ":"
+    hb_msg_buffer(HB_MSG_PREFIX_LEN+3:1) = ":"
     # Init heartbeat message with initial values for state_ and doing_ messages:
     call load_heartbeat_data()
 end
@@ -59,7 +69,7 @@ end
 # *and* serves to progressively push any bad data out of its buffer to help with faster out-of-sync recovery.
 export procedure HR_HEARTBEAT()
     call load_heartbeat_data()
-    call hercules_direct_message_ascii(HB_MSG_PREFIX_LEN+state_msg_body_len+1+doing_msg_body_len, hb_msg_buffer(0:HB_MSG_PREFIX_LEN+state_msg_body_len+1+doing_msg_body_len))
+    call hercules_direct_message_ascii(HB_MSG_PREFIX_LEN+4+state_msg_body_len+1+doing_msg_body_len, hb_msg_buffer(0:HB_MSG_PREFIX_LEN+4+state_msg_body_len+1+doing_msg_body_len))
 end
 
 # Report the current state to Hercules:

@@ -15,10 +15,6 @@ dim counter
 # Whether we've started UDP setup already (i.e. from this point on, we want the UDP client active):
 dim assert_udp_client_active
 dim assert_udp_server_active
-# Internal routing endpoints for the UDP client and server:
-export dim udp_client_endpoint
-export dim udp_server_endpoint
-export const UDP_NULL_ENDPOINT = 31 # built-in /dev/null endpoint (used until things are actually setup)
 
 # Temp. variables:
 dim result, endpoint
@@ -28,8 +24,6 @@ event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
     counter = 0
     assert_udp_client_active = 0
     assert_udp_server_active = 0
-    udp_client_endpoint = UDP_NULL_ENDPOINT  # drop endpoint (i.e. /dev/null until anything is actually connected)
-    udp_server_endpoint = UDP_NULL_ENDPOINT  # drop endpoint (i.e. /dev/null until anything is actually connected)
 end
 
 

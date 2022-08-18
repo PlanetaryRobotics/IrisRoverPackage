@@ -1,4 +1,4 @@
-# Allocations for buffers that the whole system needs access to:
+# Allocations for buffers (and other variables) that the whole system needs access to:
 
 # 4-letter state abbreviation used for checking if we should be trigger a state
 # transition based on an event:
@@ -6,8 +6,17 @@
 # - Managed by `state_driver.bgs` but can be read elsewhere.
 export dim state_4B_abbr(4) # 4B
 
+# Internal routing endpoints for the UDP client (downlink) and server (uplink):
+export dim udp_client_endpoint
+export dim udp_server_endpoint
+export const UDP_NULL_ENDPOINT = 31 # built-in /dev/null endpoint (used until things are actually setup)
+
 # Initialize global buffers on boot:
 event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
     # Until a state transition happens (incl. into INIT, BOOT is the default):
     state_4B_abbr(0:4) = "BOOT"
+
+    # Initialize endpoints:
+    udp_client_endpoint = UDP_NULL_ENDPOINT  # drop endpoint (i.e. /dev/null until anything is actually connected)
+    udp_server_endpoint = UDP_NULL_ENDPOINT  # drop endpoint (i.e. /dev/null until anything is actually connected)
 end

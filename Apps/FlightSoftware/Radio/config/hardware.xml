@@ -2,5 +2,5 @@
 
 <hardware>
 	<uart channel="0" baud="115200" api="false" />
-	<uart channel="1" baud="115200" api="True" handshake="True" />
+	<uart channel="1" baud="115200" api="True" handshake="False" />
 </hardware>

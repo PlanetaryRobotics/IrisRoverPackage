@@ -59,7 +59,7 @@ namespace iris
 
             assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
 
-            LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
+            LanderComms__Status lcStatus = txDownlinkData(theContext,
                                                                (uint8_t*) &hb,
                                                                sizeof(hb));
 
@@ -235,6 +235,11 @@ namespace iris
         // Turn off voltage rails. All of these are simply setting/clearing bits, so they are instant.
         disable3V3PowerRail();
         disable24VPowerRail();
+
+        if (HerculesComms__isInitialized(theContext.m_hcState)) {
+            HerculesComms__Status hcStatus = HerculesComms__uninitialize(&(theContext.m_hcState));
+            DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
+        }
 
         // Make sure to disable the Hercules uart so we don't dump current through that tx pin
         UART__uninit0(&(theContext.m_uart0State));

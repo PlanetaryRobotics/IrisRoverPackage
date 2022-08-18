@@ -1,6 +1,7 @@
 #include "stateMachine/RoverStateBase.hpp"
 
 #include "comms/debug_comms.h"
+#include "comms/wd_int_mpsm.h"
 #include "drivers/adc.h"
 #include "drivers/bsp.h"
 #include "drivers/blimp.h"
@@ -51,6 +52,48 @@ namespace iris
     RoverState RoverStateBase::handleHighTemp(RoverContext& theContext)
     {
         return getState();
+    }
+
+    RoverState RoverStateBase::handleWdIntEdge(bool rising, RoverContext& theContext)
+    {
+        uint16_t flatDuration = watchdog_get_wd_int_flat_duration();
+        WdIntMpsm__Status status = WdIntMpsm__processEdge(rising ? TRUE : FALSE, flatDuration);
+
+        if (WD_INT_MPSM__STATUS__PARSED_MESSAGE_TYPE_1 == status) {
+            // Handle message type 1
+        } else if (WD_INT_MPSM__STATUS__PARSED_MESSAGE_TYPE_2 == status) {
+            // Handle message type 2
+        } else if (WD_INT_MPSM__STATUS__PARSED_MESSAGE_TYPE_3 == status) {
+            // Handle message type 3
+        }
+
+        return getState();
+    }
+
+    RoverState RoverStateBase::handleWdIntRisingEdge(RoverContext& theContext)
+    {
+        return handleWdIntEdge(true, theContext);
+    }
+
+    RoverState RoverStateBase::handleWdIntFallingEdge(RoverContext& theContext)
+    {
+        return handleWdIntEdge(false, theContext);
+    }
+
+    LanderComms__Status txDownlinkData(RoverContext& theContext, void* data, size_t dataSize)
+    {
+        LanderComms__Status lcStatus = LANDER_COMMS__STATUS__SUCCESS;
+
+        // !! TODO !!: Is this the condition we want here?
+        if (*(theContext.m_persistentDeployed) && HerculesComms__isInitialized(theContext.m_hcState)) {
+            HerculesComms__Status hcStatus = HerculesComms__txDownlinkData(theContext.m_hcState,
+                                                                           data,
+                                                                           dataSize);
+            lcStatus = (LanderComms__Status) hcStatus;
+        }
+
+        LanderComms__Status lcStatus2 = LanderComms__txData(theContext.m_lcState, size_t, dataSize);
+        return lcStatus;
     }
 
     void RoverStateBase::initiateNextI2cAction(RoverContext& theContext)
@@ -613,7 +656,7 @@ namespace iris
         }
 
         // 2) Send data to lander
-        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState, payloadBuffer, payloadSize);
+        LanderComms__Status lcStatus = txDownlinkData(theContext, payloadBuffer, payloadSize);
 
         DEBUG_LOG_CHECK_STATUS(LANDER_COMMS__STATUS__SUCCESS, lcStatus, "Downlink failed");
 
@@ -713,7 +756,7 @@ namespace iris
 
         DEBUG_ASSERT_EQUAL(WD_CMD_MSGS__STATUS__SUCCESS, wdCmdStatus);
 
-        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
+        LanderComms__Status lcStatus = txDownlinkData(theContext,
                                                            responseSerializationBuffer,
                                                            sizeof(responseSerializationBuffer));
 
@@ -1155,7 +1198,7 @@ namespace iris
 
         DEBUG_ASSERT_EQUAL(GND_MSGS__STATUS__SUCCESS, gcStatus);
 
-        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
+        LanderComms__Status lcStatus = txDownlinkData(theContext,
                                                            (uint8_t*) &report,
                                                            sizeof(report));
 
@@ -1440,7 +1483,7 @@ namespace iris
             case WD_CMD_MSGS__RESET_ID__RS422_UART_DISABLE:
                 if (allowDisableRs422) {
                     //!< @todo IMPLEMENT
-                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__RS422_UART_DISABLE);
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__RS422_UART_DISABLE);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
@@ -1490,6 +1533,10 @@ namespace iris
             case WD_CMD_MSGS__RESET_ID__BATTERIES_DISABLE:
                 disableBatteries();
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__BATTERIES_DISABLE);
+                break;
+
+            case WD_CMD_MSGS__RESET_ID__CLEAR_PERSISTENT_DEPLOY:
+                *(theContext.m_persistentDeployed) = false;
                 break;
 
             case WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_ON:

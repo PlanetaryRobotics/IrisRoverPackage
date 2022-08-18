@@ -237,6 +237,20 @@ HerculesComms__Status HerculesComms__txUplinkMsg(HerculesComms__State* hState, c
                                         dataLen);
 }
 
+HerculesComms__Status HerculesComms__txDownlinkData(HerculesComms__State* hState, const uint8_t* data, size_t dataLen)
+{
+    if (dataLen == 0) {
+        return HERCULES_COMMS__STATUS__ERROR_BUFFER_TOO_SMALL;
+    }
+
+    return HerculesComms__txHerculesMsg(hState,
+                                        0,
+                                        hState->uplinkSequenceNumber++,
+                                        (uint16_t) HERCULES_COMMS__MSG_OPCODE__WIFI_DOWNLINK,
+                                        data,
+                                        dataLen);
+}
+
 // Sends a response to a message from Hercules back to Hercules. A header containing the length
 // of the given data as well as the reset value, sequence number, and opcode from the given header,
 // will be sent first and then the data will be sent without  modification (if there is any data to send).
@@ -307,6 +321,56 @@ HerculesComms__Status HerculesComms__resetState(HerculesComms__State* hState)
     return HERCULES_COMMS__STATUS__SUCCESS;
 }
 
+HerculesComms__Status HerculesComms__txDownlinkDataUntilSendOrTimeout(HerculesComms__State* hcState,
+                                                                      const uint8_t* data,
+                                                                      size_t dataLen,
+                                                                      uint16_t timeoutInCentiseconds)
+{
+    DEBUG_LOG_NULL_CHECK_RETURN(hcState, "Arg is NULL", HERCULES_COMMS__STATUS__ERROR_NULL);
+    DEBUG_LOG_NULL_CHECK_RETURN(data, "Arg is NULL", HERCULES_COMMS__STATUS__ERROR_NULL);
+
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + timeoutInCentiseconds;
+    static size_t txDurations[10] = { 0 };
+
+    memset(txDurations, 0, sizeof(txDurations));
+    size_t i = 0;
+
+    HerculesComms__Status hcStatus = HERCULES_COMMS__STATUS__SUCCESS;
+    BOOL timeout = FALSE;
+
+    do {
+        uint16_t txStartCentiseconds = Time__getTimeInCentiseconds();
+        hcStatus = HerculesComms__txHerculesMsg(hState,
+                                            0,
+                                            hState->uplinkSequenceNumber++,
+                                            (uint16_t) HERCULES_COMMS__MSG_OPCODE__WIFI_DOWNLINK,
+                                            data,
+                                            dataLen);
+        uint16_t txEndCentiseconds = Time__getTimeInCentiseconds();
+
+        if (i < 10) {
+            txDurations[i] = txEndCentiseconds - txStartCentiseconds;
+            i++;
+        }
+
+        __delay_cycles(1000);
+        //OLD: WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;
+        WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__SMCLK + WDTIS0;
+        __enable_interrupt(); // Make sure interrupts aren't disabled so that we get clock updates
+        currentTimeCentiseconds = Time__getTimeInCentiseconds();
+        timeout = currentTimeCentiseconds > endTimeCentiseconds;
+    } while (hcStatus == HERCULES_COMMS__STATUS__ERROR_TX_OVERFLOW && !timeout);
+
+    if (timeout) {
+        __no_operation();
+        return HERCULES_COMMS__STATUS__ERROR_TIMEOUT;
+    } else {
+        return lcStatus;
+    }
+}
+
 HerculesComms__Status HerculesComms__flushTx(HerculesComms__State* hState)
 {
     if (NULL == hState) {
@@ -318,6 +382,38 @@ HerculesComms__Status HerculesComms__flushTx(HerculesComms__State* hState)
     }
 
     UART__flushTx(hState->uartState);
+
+    return HERCULES_COMMS__STATUS__SUCCESS;
+}
+
+BOOL HerculesComms__isInitialized(HerculesComms__State* hState)
+{
+    if (NULL == hState) {
+        return FALSE;
+    }
+
+    return hState->initialized;
+}
+
+HerculesComms__Status HerculesComms__uninitialize(HerculesComms__State** hState)
+{
+    if (NULL == hState || NULL == *hState) {
+        return HERCULES_COMMS__STATUS__ERROR_NULL;
+    }
+
+    if (!(*hState)->initialized) {
+        return HERCULES_COMMS__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    HerculesComms__Status status = HerculesComms__resetState(*hState);
+    if (HERCULES_COMMS__STATUS__SUCCESS != status) {
+        DebugComms__printfToLander("Unexpected return value from HerculesComms__resetState: %d "
+                                   "in HerculesComms__uninitialize\n", status);
+    }
+
+    hState->uartState = NULL;
+    hState->initialized = FALSE;
+    *hState = NULL;
 
     return HERCULES_COMMS__STATUS__SUCCESS;
 }

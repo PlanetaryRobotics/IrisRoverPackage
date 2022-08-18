@@ -22,6 +22,8 @@ namespace iris
             virtual RoverState handleLanderData(RoverContext& theContext);
             virtual RoverState handleHerculesData(RoverContext& theContext);
             virtual RoverState handleHighTemp(RoverContext& theContext);
+            virtual RoverState handleWdIntRisingEdge(RoverContext& theContext);
+            virtual RoverState handleWdIntFallingEdge(RoverContext& theContext);
 
             virtual RoverState handleTimerTick(RoverContext& theContext) = 0;
             virtual RoverState handlePowerIssue(RoverContext& theContext) = 0;
@@ -37,6 +39,10 @@ namespace iris
             static void landerMsgCallback(uint8_t* rxDataBuffer, size_t rxDataLen, void* userArg);
 
         protected:
+            virtual LanderComms__Status txDownlinkData(RoverContext& theContext, void* data, size_t dataSize);
+
+            virtual RoverState handleWdIntEdge(bool rising, RoverContext& theContext);
+
             virtual void initiateNextI2cAction(RoverContext& theContext);
 
             virtual void heaterControl(RoverContext& theContext);

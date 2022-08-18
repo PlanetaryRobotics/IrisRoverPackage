@@ -50,7 +50,7 @@ namespace iris
 
         assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
 
-        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
+        LanderComms__Status lcStatus = txDownlinkData(theContext,
                                                            (uint8_t*) &hb,
                                                            sizeof(hb));
 

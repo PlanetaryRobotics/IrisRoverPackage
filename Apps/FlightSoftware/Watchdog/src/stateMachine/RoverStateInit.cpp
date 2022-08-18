@@ -71,6 +71,9 @@ namespace iris
         /* unlock changes to registers/ports, etc. */
         PM5CTL0 &= ~LOCKLPM5;
 
+        // Enable the falling edge interrupt for WD_INT (should be done after unlocking LOCKLPM5 per slau367p section 12.3.2)
+        enableWdIntFallingEdgeInterrupt();
+
         clockInit();
 
         if (!(*(theContext.m_persistentDeployed))) {

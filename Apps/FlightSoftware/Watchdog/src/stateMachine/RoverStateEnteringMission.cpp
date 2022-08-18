@@ -454,8 +454,10 @@ namespace iris
             DEBUG_ASSERT_EQUAL(UART__STATUS__SUCCESS, uartStatus);
         }
 
-        HerculesComms__Status hcStatus = HerculesComms__init(&(theContext.m_hcState), theContext.m_uart0State);
-        DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
+        if (!HerculesComms__isInitialized(theContext.m_hcState)) {
+            HerculesComms__Status hcStatus = HerculesComms__init(&(theContext.m_hcState), theContext.m_uart0State);
+            DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
+        }
     }
 
 } // End namespace iris

@@ -82,7 +82,6 @@ namespace iris
         m_context.m_persistentInMission = &persistentInMission;
         m_context.m_persistentDeployed = &persistentDeployed;
 
-        m_context.m_isDeployed = false;
         m_context.m_i2cActive = false;
         m_context.m_sendDetailedReport = false;
 
@@ -227,6 +226,14 @@ namespace iris
 
             case EVENT__TYPE__POWER_ISSUE:
                 desiredNextState = m_currentState->handlePowerIssue(m_context);
+                break;
+
+            case EVENT__TYPE__WD_INT_RISING_EDGE:
+                desiredNextState = m_currentState->handleWdIntRisingEdge(m_context);
+                break;
+
+            case EVENT__TYPE__WD_INT_FALLING_EDGE:
+                desiredNextState = m_currentState->handleWdIntFallingEdge(m_context);
                 break;
 
             default:

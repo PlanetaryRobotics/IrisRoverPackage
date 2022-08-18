@@ -2,6 +2,7 @@
 #define __WATCHDOG_DEBUG_COMMS_H__
 
 #include "comms/lander_comms.h"
+#include "comms/hercules_comms.h"
 #include "common.h"
 #include "assert.h"
 
@@ -13,6 +14,7 @@ extern "C"
 void DebugComms__setEnabled(BOOL enabled);
 
 void DebugComms__registerLanderComms(LanderComms__State* lcState);
+void DebugComms__registerHerculesComms(HerculesComms__State* hcState);
 
 void DebugComms__stringBufferToLander(void* buffer, size_t bufferLen);
 void DebugComms__tryStringBufferToLanderNonblocking(void* buffer, size_t bufferLen);

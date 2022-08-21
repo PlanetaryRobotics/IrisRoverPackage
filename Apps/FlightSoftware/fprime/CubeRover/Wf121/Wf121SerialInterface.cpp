@@ -27,6 +27,9 @@ namespace Wf121::Wf121Serial
         sciSetBaudrate(WF121_SCI_REG, WF121_SCI_BAUD);
         sciExitResetState(WF121_SCI_REG);
 
+        // Set up any semaphores, etc. for the DMA Write Status:
+        dmaWriteStatus.init();
+
         wf121FinishedInitializingSerial = true;
     }
 
@@ -65,50 +68,54 @@ namespace Wf121::Wf121Serial
         WF121_SCI_REG->SETINT = (uint32)SCI_RX_INT;
     }
 
-    bool pollDMASendFinished()
+    bool blockUntilDmaSendFinished()
     {
         bool timedout = false;
-        // If DMA is not initialized yet, we can't rely on the DMA interrupt to
-        // fire and clear the busy flag, so we have to explicitly poll instead:
-        if (!wf121FinishedInitializingSerial)
+        if (dmaWriteStatus.isBusy())
         {
-            // If it's not done writing yet, block the task (allowing others to
-            // run) for the half the estimated time remaining in the write
-            // operation (it's unlikely we'll be done before then anyway):
-            if (!dmaSendReady())
+            // If DMA is not initialized yet or the Semaphore isn't initialized yet,
+            // we can't rely on the DMA interrupt to fire and get us out, so we
+            // have to explicitly poll instead:
+            if (!wf121FinishedInitializingSerial || dmaWriteStatus.xSemaphore_writeDone == NULL)
             {
-                vTaskDelay(dmaWriteStatus.blockingTimeRemaining() / 2 / portTICK_PERIOD_MS);
-                // Then wait until actually ready (or timeout):
-                while (!dmaSendReady() && !timedout)
+                if (!dmaSendReady())
                 {
-                    // loop until ready
-                    timedout = dmaWriteStatus.blockingTimedOut();
-                };
-            }
-            // If it actually finished (didn't just time out), do what the
-            // interrupt would have done (upon actually finishing):
-            if (!timedout)
-            {
-                sciDMASendCleanup(WF121_TX_DMA_CH); // clean up...
-                dmaWriteStatus.setBusy(false);      // ...and clear the flag
-            }
-        }
-        else
-        {
-            // DMA is set up, so we can just count on the `WF121_TX_DMA_ISR` to
-            // get us out of here:
-
-            // If it's still busy writing right now, block the task (allowing
-            // others to run) for the half the estimated time remaining in the
-            // write operation (it's unlikely we'll be done before then anyway):
-            if (dmaWriteStatus.isBusy())
-            {
-                vTaskDelay(dmaWriteStatus.blockingTimeRemaining() / 2 / portTICK_PERIOD_MS);
-                // ... then wait until not busy (or timeout)
-                while (dmaWriteStatus.isBusy() && !timedout)
+                    // If it's not done writing yet, block the task (allowing others to
+                    // run) for the half the estimated time remaining in the write
+                    // operation (it's unlikely we'll be done before then anyway):
+                    vTaskDelay(dmaWriteStatus.blockingTimeRemaining() / 2 / portTICK_PERIOD_MS);
+                    // Then wait until actually ready (or timeout):
+                    while (!dmaSendReady() && !timedout)
+                    {
+                        // loop until ready
+                        vTaskDelay(WF121_DMA_SEND_POLLING_CHECK_INTERVAL); // Check back in every 10ms (don't hog the processor)
+                        timedout = dmaWriteStatus.blockingTimedOut();
+                    };
+                }
+                // If it actually finished (didn't just time out), do what the
+                // interrupt would have done (upon actually finishing):
+                if (!timedout)
                 {
-                    timedout = dmaWriteStatus.blockingTimedOut();
-                };
+                    sciDMASendCleanup(WF121_TX_DMA_CH); // clean up...
+                    dmaWriteStatus.setBusy(false);      // ...and clear the flag
+                }
+            }
+            else
+            {
+                // DMA is set up, so we can just count on the `WF121_TX_DMA_ISR` to
+                // get us out of here:
+                TickType_t maxTimeToWait = WF121_DMA_SEND_SEMAPHORE_WAIT_MULTIPLE * dmaWriteStatus.blockingTimeRemaining();
+                maxTimeToWait = (maxTimeToWait > WF121_DMA_SEND_SEMAPHORE_WAIT_MIN_TICKS) ? maxTimeToWait : WF121_DMA_SEND_SEMAPHORE_WAIT_MIN_TICKS;
+                if (xSemaphoreTake(dmaWriteStatus.xSemaphore_writeDone, maxTimeToWait) == pdTRUE)
+                {
+                    // Semaphore returned. Writing is done and we didn't time out:
+                    timedout = false;
+                }
+                else
+                {
+                    // We timed out waiting for the flag to clear.
+                    timedout = true;
+                }
             }
         }
 
@@ -118,26 +125,19 @@ namespace Wf121::Wf121Serial
     // Returns negative on error:
     bool dmaSend(void *buffer, unsigned size, bool blocking)
     {
-        // Make sure device is not busy first:
         if (blocking)
         {
-            // If it's busy right now, block the task (allowing others to run)
-            // for the estimated time remaining in the write operation:
-            if (dmaWriteStatus.isBusy())
+            // Make sure device is not busy first (in case we didn't block on the
+            // last write)
+            if (!blockUntilDmaSendFinished())
             {
-                vTaskDelay(dmaWriteStatus.blockingTimeRemaining() / portTICK_PERIOD_MS);
-                // Then, after that period of time, loop until actually not busy:
-                while (dmaWriteStatus.isBusy())
-                {
-                    // loop until not busy
-                    // (since we want this to be blocking, just keep going until
-                    // the DMA ISR fires and clears the flag saying we're good to
-                    // write)
-                };
+                // we timed out, return false:
+                return false;
             }
         }
         else if (dmaWriteStatus.isBusy())
         {
+            // we're busy right now and can't write
             return false;
         }
 
@@ -151,12 +151,14 @@ namespace Wf121::Wf121Serial
         // like the timer, that's fine. Other things that are dutifully obeying
         // the mutex won't be harmed and will continue to work as expected).
         // NOTE: This will block until `!dmaWriteStatus.writeBusy` but won't
-        // clear it (that's done by the `WF121_TX_DMA_ISR`)
+        // clear it (that's done by the `WF121_TX_DMA_ISR`) so we should take
+        // outside precautions (like we do above) to make sure
+        // `!dmaWriteStatus.writeBusy` before calling.
         sciDMASend(WF121_TX_DMA_CH, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaWriteStatus.writeBusy);
 
         if (blocking)
         {
-            return pollDMASendFinished(); // will timeout instead of looping forever
+            return blockUntilDmaSendFinished(); // returns false if times out
         }
         else
         {
@@ -176,13 +178,26 @@ namespace Wf121::Wf121Serial
 
 extern "C" void WF121_TX_DMA_ISR(dmaInterrupt_t inttype)
 {
+    static signed BaseType_t xHigherPriorityTaskWoken;
     // Don't use normal mutex lock/unlock here b/c we're in an ISR, which
     // doesn't obey scheduler ticks (so we need to use special ISR functions...
 
     // Just write the data (it's atomic):
     dmaWriteStatus.writeBusy = false;
-
     // Since we didn't need to use the mutex, we don't need to give/unlock it
     // or perform deferred interrupt yielding (new value will just be grabbed
     // in the next call to `dmaWriteStatus`.)
+
+    // Let the blocking dmaSend task know it's allowed to move forward:
+    xHigherPriorityTaskWoken = pdFALSE;
+    /* Unblock the task by releasing the semaphore. */
+    if (dmaWriteStatus.xSemaphore_writeDone != NULL)
+    {
+        xSemaphoreGiveFromISR(dmaWriteStatus.xSemaphore_writeDone, &xHigherPriorityTaskWoken);
+
+        /* If xHigherPriorityTaskWoken was set to true you
+        we should yield.  The actual macro used here is
+        port specific. */
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
 }

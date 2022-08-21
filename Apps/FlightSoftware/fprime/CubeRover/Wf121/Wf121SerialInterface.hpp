@@ -17,6 +17,19 @@
 #define WF121_TX_DMA_CH SCI_TX_DMA_CH
 #define WF121_TX_DMA_ISR SCI_TX_DMA_ISR
 
+// How often the processor should wait before checking back in on dmaSend completion while polling for it.
+// NOTE: Polling only happens when DMA or the writeDone Semaphore aren't set up yet (which they always should be) - this is just a precaution to handle an edge case.
+// Since this is a high priority task, it's not a good idea for this to be 0 (though it *can* be zero) in order to prevent Task starvation.
+// NOTE: FreeRTOS scheduler ticks are every 1ms.
+static const TickType_t WF121_DMA_SEND_POLLING_CHECK_INTERVAL = 10 / portTICK_PERIOD_MS; // every 10ms (10 ticks)
+
+// How long the dmaSend task should wait for the Semaphore to be available before timing out
+// (since the task won't be doing anything during this time, it's okay for it to be a long time).
+// NOTE: This is a multiple of the expected send time for the given data being sent (using the `smartTimeout` based on the baud rate):
+static const TickType_t WF121_DMA_SEND_SEMAPHORE_WAIT_MULTIPLE = 3; // Longest allowable wait time is 3x the expected send time.
+// Minimum number of FreeRTOS scheduler ticks to wait (minimum for the max. amount of time we'll wait for the Semaphore to tell us the write is done)
+static const TickType_t WF121_DMA_SEND_SEMAPHORE_WAIT_MIN_TICKS = 50 / portTICK_PERIOD_MS; // wait no less than 50ms.
+
 namespace Wf121::Wf121Serial
 {
     // Initialize comms:
@@ -44,13 +57,33 @@ namespace Wf121::Wf121Serial
         bool writeBusy;
         // Time used for blocking timeout, in ms since Hercules boot:
         uint32_t blockingStartTimeMs;
+        // Semaphore to give whenever writing operations complete (note: this
+        // only works once the DMA ISR is active):
+        SemaphoreHandle_t xSemaphore_writeDone;
+        static StaticSemaphore_t xSemaphoreBuffer_writeDone;
 
         DmaWriteStatus(bool smartTimeout) : writeBusy(false),
                                             blockingStartTimeMs(0),
                                             useSmartTimeouts(smartTimeouts),
-                                            smartTimeoutMs(DmaWriteStatus::DMA_BLOCKING_TIMEOUT_MS)
+                                            smartTimeoutMs(DmaWriteStatus::DMA_BLOCKING_TIMEOUT_MS),
+                                            xSemaphore_writeDone(NULL) // null until init'd
         {
             /* nothing else to do */
+        }
+
+        // Initialize semaphore(s):
+        void init()
+        {
+            /* Create a binary semaphore without using any dynamic memory
+            allocation.  The semaphore's data structures will be saved into
+            the xSemaphoreBuffer variable. */
+            this->xSemaphore_writeDone = xSemaphoreCreateBinaryStatic(&DmaWriteStatus::xSemaphoreBuffer_writeDone);
+            // NOTE: Binary Semaphore initializes to 0 ("taken") so anything
+            // that wants to "Take" it will have to wait for a "Give" first.
+
+            /* The pxSemaphoreBuffer was not NULL, so it is expected that the
+            handle will not be NULL. */
+            configASSERT(this->xSemaphore_writeDone);
         }
 
         // Returns whether the DMA Write is busy (in a mutex-safe way):
@@ -128,7 +161,7 @@ namespace Wf121::Wf121Serial
             }
 
             timeRemaining = (startTime + timeoutMs) - now;
-            return timeRemaining > 0 ? timeRemaining : 0;
+            return (timeRemaining > 0) ? timeRemaining : 0;
         }
 
         // Return whether the allowable time to block has expired (obtains
@@ -177,10 +210,10 @@ namespace Wf121::Wf121Serial
         return ((getDMAIntStatus(BTC) >> WF121_TX_DMA_CH) & 0x01U);
     }
 
-    // Polls DMA send finish to see if we've finished our DMA sending.
+    // Blocks (yields) the calling Task until the write operation is complete.
     // Returns whether the finish was caused by completion (true) or a timeout
     // (false).
-    bool pollDMASendFinished();
+    bool blockUntilDmaSendFinished();
 
     // Perform a DMA send function
     /**

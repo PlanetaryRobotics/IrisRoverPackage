@@ -2,7 +2,9 @@
 
 namespace Wf121
 {
-  RadioDriver::RadioDriver() : m_networkInterface(), m_serialRxTask()
+  RadioDriver::RadioDriver() : m_networkInterface(),
+                               m_serialRxTask(),
+                               m_serialUdpTxTask(&m_networkInterface.xUdpTxPayloadQueue)
   {
     // nothing else to do here.
   }
@@ -15,18 +17,25 @@ namespace Wf121
   RadioDriver::init()
   {
     // Make sure NetworkInterface is ready to receive data:
-    m_networkInterface.Init();
+    m_networkInterface.init();
 
     // Setup serial:
     Wf121Serial::init();
 
-    // Initialize the Rx Task:
+    // Initialize the RX Task:
     m_serialRxTask.registerCallback(this);
-    ::Os::Task::TaskStatus taskStat = m_rxTask.startTask(WF121_RX_TASK_PRIORITY,
-                                                         WF121_RX_TASK_STACK_SIZE,
-                                                         WF121_RX_TASK_CPU_AFFINITY);
+    ::Os::Task::TaskStatus rxTaskStat = m_serialRxTask.startTask(WF121_RX_TASK_PRIORITY,
+                                                                 WF121_RX_TASK_STACK_SIZE,
+                                                                 WF121_RX_TASK_CPU_AFFINITY);
     // Assert that this will always be started successfully. If it isn't, we're screwed.
-    assert(taskStat == Os::Task::TASK_OK);
+    assert(rxTaskStat == Os::Task::TASK_OK);
+
+    // Initialize the UDP TX Task:
+    ::Os::Task::TaskStatus txTaskStat = m_serialUdpTxTask.startTask(WF121_UDP_TX_TASK_PRIORITY,
+                                                                    WF121_UDP_TX_TASK_STACK_SIZE,
+                                                                    WF121_UDP_TX_TASK_CPU_AFFINITY);
+    // Assert that this will always be started successfully. If it isn't, we're screwed.
+    assert(txTaskStat == Os::Task::TASK_OK);
 
     // Now that everything is ready to receive data from the radio,
     // tell the radio to send us data whenever it wants:

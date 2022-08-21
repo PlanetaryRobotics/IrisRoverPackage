@@ -9,9 +9,9 @@ namespace Wf121::Wf121Serial
     // Whether all serial SCI, DMA, etc. has been initialzed and can be used
     // (specifically to determine if we can use DMA send or not):
     bool wf121FinishedInitializingSerial = false;
-    
+
     // Mutex-protected information about DMA TX:
-    static volatile DmaWriteStatus dmaWriteStatus;
+    static volatile DmaWriteStatus dmaWriteStatus(true); // use smart timeouts
 
     // Initialize comms:
     void init(void)
@@ -68,65 +68,121 @@ namespace Wf121::Wf121Serial
     bool pollDMASendFinished()
     {
         bool timedout = false;
-        // Make sure we're set up:
+        // If DMA is not initialized yet, we can't rely on the DMA interrupt to
+        // fire and clear the busy flag, so we have to explicitly poll instead:
         if (!wf121FinishedInitializingSerial)
         {
-            // If not set up yet:
-            // Wait until ready (or timeout):
-            while (!dmaSendReady() && !timedout){
-                timedout = dmaWriteStatus.blockingTimedOut();
-            };
-            // If we finished b/c we're done (not timeout), flag that we're no
-            // longer busy:
-            if(!timedout){
-                dmaWriteStatus.setBusy(false);
-                sciDMASendCleanup(WF121_TX_DMA_CH);
+            // If it's not done writing yet, block the task (allowing others to
+            // run) for the half the estimated time remaining in the write
+            // operation (it's unlikely we'll be done before then anyway):
+            if (!dmaSendReady())
+            {
+                vTaskDelay(dmaWriteStatus.blockingTimeRemaining() / 2 / portTICK_PERIOD_MS);
+                // Then wait until actually ready (or timeout):
+                while (!dmaSendReady() && !timedout)
+                {
+                    // loop until ready
+                    timedout = dmaWriteStatus.blockingTimedOut();
+                };
+            }
+            // If it actually finished (didn't just time out), do what the
+            // interrupt would have done (upon actually finishing):
+            if (!timedout)
+            {
+                sciDMASendCleanup(WF121_TX_DMA_CH); // clean up...
+                dmaWriteStatus.setBusy(false);      // ...and clear the flag
             }
         }
+        else
+        {
+            // DMA is set up, so we can just count on the `WF121_TX_DMA_ISR` to
+            // get us out of here:
 
-        // Now wait for done or timeout:
-        timedout = false;
-        while(dmaWriteStatus.isBusy() && !timedout){
-            timedout = dmaWriteStatus.blockingTimedOut();
-        };
+            // If it's still busy writing right now, block the task (allowing
+            // others to run) for the half the estimated time remaining in the
+            // write operation (it's unlikely we'll be done before then anyway):
+            if (dmaWriteStatus.isBusy())
+            {
+                vTaskDelay(dmaWriteStatus.blockingTimeRemaining() / 2 / portTICK_PERIOD_MS);
+                // ... then wait until not busy (or timeout)
+                while (dmaWriteStatus.isBusy() && !timedout)
+                {
+                    timedout = dmaWriteStatus.blockingTimedOut();
+                };
+            }
+        }
 
         return !timedout;
     }
 
     // Returns negative on error:
-    bool dmaSend(void *buffer, int size, bool blocking)
+    bool dmaSend(void *buffer, unsigned size, bool blocking)
     {
-        // old non-DMA code (for posterity - and in case of need for rapid
-        // change-over):
-        // sciSend(m_sci, size, static_cast<uint8_t *>(buffer));
-        // return true;
-
-        bool timedout = false;
-        
         // Make sure device is not busy first:
-        if (blocking){
-            while (dmaWriteStatus.isBusy() || !dmaSendDone()){
-                // loop until not busy
-                
-            timedout = dmaWriteStatus.blockingTimedOut();
-            // ! TODO: (WORKING-HERE) [CWC]: Make this like poll and re-check the wait logic.
-                if(dmaWriteStatus.blockingTimedOut()){
-                    // If we time out while looping, just eject and say we gave up:
-                    return false;
-                }
-            };
-        } else if (dmaWriteStatus.isBusy()){
+        if (blocking)
+        {
+            // If it's busy right now, block the task (allowing others to run)
+            // for the estimated time remaining in the write operation:
+            if (dmaWriteStatus.isBusy())
+            {
+                vTaskDelay(dmaWriteStatus.blockingTimeRemaining() / portTICK_PERIOD_MS);
+                // Then, after that period of time, loop until actually not busy:
+                while (dmaWriteStatus.isBusy())
+                {
+                    // loop until not busy
+                    // (since we want this to be blocking, just keep going until
+                    // the DMA ISR fires and clears the flag saying we're good to
+                    // write)
+                };
+            }
+        }
+        else if (dmaWriteStatus.isBusy())
+        {
             return false;
         }
 
-        // Actually send the buffer:
-        sciDMASend(WF121_TX_DMA_CH, static_cast<char *>(buffer), size, ACCESS_8_BIT, &wf121DmaWriteBusy);
+        // We're about to write, so restart the timer:
+        dmaWriteStatus.setSmartTimeout(size);  // automatically determine how long this should take
+        dmaWriteStatus.restartBlockingTimer(); // set start time to now
 
-        // Restart the timer:
-        dmaWriteStatus.time
+        // Actually send the buffer
+        // (NOTE: technically, this will violate the `dmaWriteStatus` **but**
+        // since it's only one bit and we're not modifying multibyte values
+        // like the timer, that's fine. Other things that are dutifully obeying
+        // the mutex won't be harmed and will continue to work as expected).
+        // NOTE: This will block until `!dmaWriteStatus.writeBusy` but won't
+        // clear it (that's done by the `WF121_TX_DMA_ISR`)
+        sciDMASend(WF121_TX_DMA_CH, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaWriteStatus.writeBusy);
 
         if (blocking)
-            pollDMASendFinished();
+        {
+            return pollDMASendFinished(); // will timeout instead of looping forever
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+    // Don't use this unless DMA has magically broken and it's urgent.
+    bool nonDmaSend(void *buffer, int size)
+    {
+        // old non-DMA code (for posterity - and in case of need for rapid
+        // change-over):
+        sciSend(WF121_SCI_REG, size, static_cast<uint8_t *>(buffer));
         return true;
     }
+}
+
+extern "C" void WF121_TX_DMA_ISR(dmaInterrupt_t inttype)
+{
+    // Don't use normal mutex lock/unlock here b/c we're in an ISR, which
+    // doesn't obey scheduler ticks (so we need to use special ISR functions...
+
+    // Just write the data (it's atomic):
+    dmaWriteStatus.writeBusy = false;
+
+    // Since we didn't need to use the mutex, we don't need to give/unlock it
+    // or perform deferred interrupt yielding (new value will just be grabbed
+    // in the next call to `dmaWriteStatus`.)
 }

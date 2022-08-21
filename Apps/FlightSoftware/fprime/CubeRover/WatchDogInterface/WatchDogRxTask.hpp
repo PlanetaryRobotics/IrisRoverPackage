@@ -76,7 +76,7 @@ namespace CubeRover
                                          NATIVE_INT_TYPE cpuAffinity = -1); //!< start the task
 
         /**
-         * @brief Registers the given object as a callback to be invoked once a message is recieved and parsed.
+         * @brief Registers the given object as a callback to be invoked once a message is received and parsed.
          *
          * @param callback The callback object to register.
          *

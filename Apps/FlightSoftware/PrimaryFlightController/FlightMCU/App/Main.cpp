@@ -31,6 +31,9 @@ extern "C"
     void vApplicationIdleHook(void);
     void vApplicationTickHook(void);
     void vApplicationStackOverflowHook(void *xTask, char *pcTaskName);
+    void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
+                                       StackType_t **ppxIdleTaskStackBuffer,
+                                       uint32_t *pulIdleTaskStackSize);
 }
 
 void vApplicationIdleHook(void)
@@ -48,15 +51,16 @@ is used by the Idle task.
   use at compile time)
 - Impl. taken from: https://www.freertos.org/a00110.html#configSUPPORT_STATIC_ALLOCATION
 */
-void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
-                                    StackType_t **ppxIdleTaskStackBuffer,
-                                    uint32_t *pulIdleTaskStackSize )
+#define IDLE_TASK_STACK_SIZE (configMINIMAL_STACK_SIZE + 4096) // Rn, all of FPrime runs in the idle task so we better give it some space. Use `uxTaskGetStackHighWaterMark(NULL)` to tune.
+void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
+                                   StackType_t **ppxIdleTaskStackBuffer,
+                                   uint32_t *pulIdleTaskStackSize)
 {
     /* If the buffers to be provided to the Idle task are declared inside this
     function then they must be declared static - otherwise they will be allocated on
     the stack and so not exist after this function exits. */
     static StaticTask_t xIdleTaskTCB;
-    static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
+    static StackType_t uxIdleTaskStack[IDLE_TASK_STACK_SIZE];
 
     /* Pass out a pointer to the StaticTask_t structure in which the Idle task's
     state will be stored. */
@@ -67,8 +71,8 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
 
     /* Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
     Note that, as the array is necessarily of type StackType_t,
-    configMINIMAL_STACK_SIZE is specified in words, not bytes. */
-    *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+    stack size is specified in words, not bytes. */
+    *pulIdleTaskStackSize = IDLE_TASK_STACK_SIZE;
 }
 
 void vApplicationTickHook(void)
@@ -85,8 +89,6 @@ void vApplicationStackOverflowHook(void *xTask, char *pcTaskName)
     // TODO: [CWC] Might actually be a good idea to hang here so WatchDog resets us
     // (make sure WD actually does that)
 }
-
-extern "C" void dmaCh3_ISR(dmaInterrupt_t inttype) {}
 
 void main(void)
 {

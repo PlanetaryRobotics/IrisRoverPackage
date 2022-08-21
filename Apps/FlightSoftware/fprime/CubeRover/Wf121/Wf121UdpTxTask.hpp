@@ -1,34 +1,42 @@
 /***
- * The goal of using a Task to handle the SCI RX ISR is so that we can extract
- * bytes as soon as they're available from interface and then process them quickly
+ * This Task handles writing UDP payloads (not packets with a datagram) to the
+ * WF121 UDP downlink endpoint.
+ * This is a Task because each write requires telling the WF121 how many bytes
+ * to expect (it can only take 255 at a time), blocking until it gets a
+ * response, and then sending the actual data.
  *
- * So, the goal:
- * - Grab bytes the moment they're available.
- * - Process them using the Wf121Parser::Mpsm as often as the task is serviced.
+ * NOTE: If you just want to send raw data at the radio, you can use
+ * Wf121Serial::dmaSend.
  */
 
-#ifndef CUBEROVER_WF121_WF121_RX_TASK_HPP_
-#define CUBEROVER_WF121_WF121_RX_TASK_HPP_
+#ifndef CUBEROVER_WF121_WF121_UDP_TX_TASK_HPP_
+#define CUBEROVER_WF121_WF121_UDP_TX_TASK_HPP_
 
-#include <CubeRover/Wf121/Wf121Parser.hpp>
+#include <Include/FswPacket.hpp>
+#include <CubeRover/Wf121/Wf121SerialInterface.hpp>
+#include <CubeRover/Wf121/UdpPayload.hpp>
+
 #include <Os/Task.hpp>
+#include <Os/Mutex.hpp>
 
-// Max. number of processors that can register to receive callbacks from the
-// Wf121RxTask (should be only one: RadioDriver/NetworkInterface).
-#define WF121_RX_TASK__MAX_NUM_CALLBACKS 2
+#include <cassert>
+#include <cstdio>
+
+#include "FreeRTOS.h"
+#include "os_queue.h"
 
 namespace Wf121
 {
     /**
      * @brief Defines the contract (i.e. interface) that must be implemented
-     *      (via subclassing) by classes that want to receive callbacks from
-     *      the `Wf121RxTask` with received messages.
+     *      (via subclassing) by classes that want to handle TX write operations
+     *      (once the data is available).
      *
      * This callback will be called with each message that is received by the
      * `Wf121RxTask` instance to which the object implementing this function
      * is registered.
      */
-    class Wf121RxCallbackProcessor
+    class Wf121TxTaskHandler
     {
     public:
         /**
@@ -37,15 +45,16 @@ namespace Wf121
          *
          * @param msg Generic wrapper for message received from WF121.
          */
-        virtual void rxCallback(Wf121Parser::GenericMessage &msg) = 0;
+        virtual void txHandler(Wf121Parser::GenericMessage &msg) = 0;
 
         virtual ~Wf121RxCallbackProcessor() = default;
     };
 
     /**
-     * The task responsible for receiving and parsing messages from the WF121 Radio.
+     * The task responsible for sending packets of data to the WF121 Radio's
+     * UDP endpoint.
      *
-     * NOTE from `Wf121RxTask` which uses the same interface:
+     * NOTE from `Wf121TxTask` which uses the same interface:
      * This is a subclass of Os::Task so that it can access the `m_handle` field of Os::Task. Os::Task was modified
      * in order to make this field protected. The `m_handle` field contains the native handle of the underlying
      * implementation of Os::Task. In our case, we expect this will always be run on the Hercules, and that the
@@ -58,18 +67,18 @@ namespace Wf121
      * However, in order to use Task Notifications we need access to the underlying task handle, thus the
      * need for the modifications and usage described above.
      */
-    class Wf121RxTask : public ::Os::Task
+    class Wf121UdpTxTask : public ::Os::Task
     {
     public:
         /**
          * @brief Constructor. Does not start the task.
          */
-        explicit Wf121RxTask();
+        explicit Wf121UdpTxTask(QueueHandle_t *pTxPayloadQueue);
 
         /**
          * @brief Destructor. Stops the task if it is currently running.
          */
-        ~Wf121RxTask();
+        ~Wf121UdpTxTask();
 
         /**
          * @brief Starts the FreeRTOS task that underlies this object.
@@ -85,27 +94,13 @@ namespace Wf121
                                          NATIVE_INT_TYPE stackSize,
                                          NATIVE_INT_TYPE cpuAffinity = -1); //!< start the task
 
-        /**
-         * @brief Registers the given object as a callback to be invoked once
-         *  a message is received and parsed.
-         *
-         * @param callback The callback object to register.
-         *
-         * @return True if the registration succeeded, otherwise false.
-         */
-        bool registerCallback(Wf121RxCallbackProcessor *callback);
-
     private:
-        // The array containing callbacks to be invoked upon receiving and
-        // parsing a message.
-        Wf121RxCallbackProcessor *m_callbacks[WF121_RX_TASK__MAX_NUM_CALLBACKS];
+        // Pointer to FreeRTOS Queue of all UDP payloads to be sent
+        // to the Radio (other Tasks push to it, this Task reads from it).
+        QueueHandle_t *m_pTxPayloadQueue;
 
-        // The number of indices in `m_callbacks` that contain callbacks.
-        size_t m_numCallbacksRegistered;
-
-        // The message parsing state machine that informs this task how to
-        // behave in order to properly receive messages from the WF121.
-        Wf121Parser::Mpsm m_mpsm;
+        // Function to be called when the task triggers:
+        void (*foo)(void *);
 
         // Whether or not the task should keep running. The main loop in the
         // task thread is controlled by this.
@@ -115,10 +110,8 @@ namespace Wf121
         // calling start(...) after it has already been called before.
         bool m_isRunning;
 
-        // The buffer to used for holding the message payload received from
-        // WF121 (bounded by the BGAPI packet size since the Radio-Herc
-        // DIRECT_MESSAGES cap out at 255B, including header).
-        uint8_t m_dataBuffer[WF121_BGAPI_MAX_PACKET_SIZE] __attribute__((aligned(8)));
+        // Data struct for working with TXing UDP data internally:
+        UdpTxPayload m_xUdpTxWorkingData;
 
         /**
          * The function that implements the task thread.
@@ -126,17 +119,9 @@ namespace Wf121
          * @param arg The argument to the thread, which in this case will be
          *  the `this` pointer for this object.
          */
-        static void rxHandlerTaskFunction(void *arg);
-
-        /**
-         * Simply iterates through `m_callbacks` and calls all callbacks with
-         * the given parameters.
-         *
-         * @param msg The generic wrapper for the received message.
-         */
-        void callAllCallbacks(Wf121Parser::GenericMessage &msg);
+        static void udpTxHandlerTaskFunction(void *arg);
     };
 
 } // end namespace CubeRover
 
-#endif // #ifndef CUBEROVER_WF121_WF121_RX_TASK_HPP_
+#endif // #ifndef CUBEROVER_WF121_WF121_UDP_TX_TASK_HPP_

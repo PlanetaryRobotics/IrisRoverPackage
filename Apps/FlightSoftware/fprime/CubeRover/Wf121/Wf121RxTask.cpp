@@ -66,7 +66,7 @@ extern "C" void sci_ISR(uint32 flags)
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
 
-    Wf121Serial::signalReadyForInterrupt();
+    Wf121Serial::signalReadyForInterrupt(); // Flag that we're ready for another SCI ISR
 }
 
 namespace Wf121
@@ -110,7 +110,7 @@ namespace Wf121
             return Os::Task::TASK_UNKNOWN_ERROR;
         }
 
-        Wf121Serial::signalReadyForInterrupt();
+        Wf121Serial::signalReadyForInterrupt(); // flag that we're ready for SCI ISRs
 
         m_keepRunning = true;
         Fw::EightyCharString task_name("Wf121RxTask");
@@ -164,33 +164,34 @@ namespace Wf121
         while (task->m_keepRunning)
         {
             uint8_t newData = 0;
+            bool resetMpsmMsg = false;
+
             // Effectively "blocks forever" until something is put into the queue
             if (xQueueReceive(rxByteQueue, &newData, portMAX_DELAY))
             {
-                bool resetMpsmMsg = false;
                 Wf121Parser::Mpsm::ProcessStatus proc_stat = task->m_mpsm.process(msg, newData);
 
                 switch (proc_stat)
                 {
                 // If a full message was parsed, handle all callbacks, then reset:
-                case DM_PARSED:
-                case BGAPI_PARSED:
+                case Wf121Parser::Mpsm::ProcessStatus::DM_PARSED:
+                case Wf121Parser::Mpsm::ProcessStatus::BGAPI_PARSED:
                     // We got a full message, so call our callbacks then reset:
                     task->callAllCallbacks(msg);
                     resetMpsmMsg = true;
                     break;
 
                 // Something bad happened, so we should toss any
-                case POSSIBLE_CORRUPTION:
+                case Wf121Parser::Mpsm::ProcessStatus::POSSIBLE_CORRUPTION:
                     resetMpsmMsg = true;
                     break;
 
                 // If we don't need to do anything
                 //(things are fine, just not done), do nothing:
-                case BGAPI_HEADER_PARSED:
-                case DM_HEADER_PARSED:
-                case DM_LEN_PARSED:
-                case WAITING_FOR_MORE_DATA:
+                case Wf121Parser::Mpsm::ProcessStatus::BGAPI_HEADER_PARSED:
+                case Wf121Parser::Mpsm::ProcessStatus::DM_HEADER_PARSED:
+                case Wf121Parser::Mpsm::ProcessStatus::DM_LEN_PARSED:
+                case Wf121Parser::Mpsm::ProcessStatus::WAITING_FOR_MORE_DATA:
                 default:
                     // Do nothing.
                 }

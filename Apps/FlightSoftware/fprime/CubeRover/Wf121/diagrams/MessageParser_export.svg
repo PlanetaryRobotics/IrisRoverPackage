@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentStyleType="text/css" height="858px" preserveAspectRatio="none" style="width:1304px;height:858px;background:#282828;" version="1.1" viewBox="0 0 1304 858" width="1304px" zoomAndPan="magnify"><defs/><g><rect fill="#282828" height="58.3359" style="stroke:#282828;stroke-width:0.0;" width="797" x="10" y="10"/><text fill="#FFB000" font-family="Verdana" font-size="18" font-weight="bold" lengthAdjust="spacing" textLength="516" x="10" y="28.0967">Iris FPrime WF121 Message Parsing State Machine</text><ellipse cx="15.5" cy="36.5293" fill="#FFB000" rx="2.5" ry="2.5" style="stroke:#FFB000;stroke-width:0.0;"/><text fill="#FFB000" font-family="Verdana" font-size="10" lengthAdjust="spacing" textLength="396" x="20" y="41.9297">Control flow diagram for passing through the states in `Wf121Parser::Mpsm`.</text><ellipse cx="15.5" cy="48.6826" fill="#FFB000" rx="2.5" ry="2.5" style="stroke:#FFB000;stroke-width:0.0;"/><text fill="#FFB000" font-family="Verdana" font-size="10" lengthAdjust="spacing" textLength="174" x="20" y="54.083">Except where otherwise listed as "</text><text fill="#FFB000" font-family="Verdana" font-size="10" font-weight="bold" lengthAdjust="spacing" textLength="61" x="194" y="54.083">immediate</text><text fill="#FFB000" font-family="Verdana" font-size="10" lengthAdjust="spacing" textLength="133" x="255" y="54.083">", each transition between</text><text fill="#FFB000" font-family="Verdana" font-size="10" font-weight="bold" lengthAdjust="spacing" textLength="37" x="392" y="54.083">States</text><text fill="#FFB000" font-family="Verdana" font-size="10" lengthAdjust="spacing" textLength="374" x="433" y="54.083">is taken when the FreeRTOS RxTask notices a new byte in the RX Queue.</text><ellipse cx="15.5" cy="60.8359" fill="#FFB000" rx="2.5" ry="2.5" style="stroke:#FFB000;stroke-width:0.0;"/><text fill="#FFB000" font-family="Verdana" font-size="10" lengthAdjust="spacing" textLength="114" x="20" y="66.2363">Anything prefixed with</text><text fill="#FFB000" font-family="Verdana" font-size="10" font-weight="bold" lengthAdjust="spacing" textLength="50" x="138" y="66.2363">Restart_</text><text fill="#FFB000" font-family="Verdana" font-size="10" lengthAdjust="spacing" textLength="527" x="192" y="66.2363">(like Timeouts) proceeds directly back to the start (just not a cleaner way to show that with PlantUML).</text><ellipse cx="561" cy="90.3359" fill="#FFB000" rx="10" ry="10" style="stroke:none;stroke-width:1.0;"/><rect fill="#282828" height="49.168" rx="12.5" ry="12.5" style="stroke:#FFB000;stroke-width:1.0;" width="145" x="488.5" y="141.3359"/><text fill="#FFB000" font-family="Verdana" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="40" x="498.5" y="163.4004">State:</text><text fill="#FFB000" font-family="Verdana" font-size="12" lengthAdjust="spacing" textLength="125" x="498.5" y="177.9844">Wait for Valid Header</text><g id="elem_#7"><polygon fill="#282828" points="561,336.3359,573,348.3359,561,360.3359,549,348.3359,561,336.3359" style="stroke:#FFB000;stroke-width:1.0;"/></g><g id="elem_GN10"><path d="M415,335.3359 L415,361.1353 A0,0 0 0 0 415,361.1353 L529,361.1353 A0,0 0 0 0 529,361.1353 L529,353.3359 L548.51,348.3359 L529,345.3359 L529,345.3359 L519,335.3359 L415,335.3359 A0,0 0 0 0 415,335.3359 " fill="#282828" style="stroke:#FFB000;stroke-width:1.0;"/><path d="M519,335.3359 L519,345.3359 L529,345.3359 L519,335.3359 " fill="#282828" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="13" lengthAdjust="spacing" textLength="93" x="421" y="353.4058">Check Header</text></g><g id="elem_#13"><polygon fill="#282828" points="561,402.3359,573,414.3359,561,426.3359,549,414.3359,561,402.3359" style="stroke:#FFB000;stroke-width:1.0;"/></g><rect fill="#282828" height="49.168" rx="12.5" ry="12.5" style="stroke:#FFB000;stroke-width:1.0;" width="150" x="333" y="494.3359"/><text fill="#FFB000" font-family="Verdana" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="40" x="343" y="516.4004">State:</text><text fill="#FFB000" font-family="Verdana" font-size="12" lengthAdjust="spacing" textLength="130" x="343" y="530.9844">Wait for rest of BGAPI</text><rect fill="#282828" height="34.584" rx="12.5" ry="12.5" style="stroke:#FFB000;stroke-width:1.0;" width="152" x="12" y="501.3359"/><text fill="#FFB000" font-family="Verdana" font-size="12" lengthAdjust="spacing" textLength="132" x="22" y="523.4004">Restart_BGP_Timeout</text><rect fill="#282828" height="34.584" rx="12.5" ry="12.5" style="stroke:#FFB000;stroke-width:1.0;" width="93" x="395.5" y="667.3359"/><text fill="#FFB000" font-family="Verdana" font-size="12" lengthAdjust="spacing" textLength="73" x="405.5" y="689.4004">Parse BGAPI</text><ellipse cx="505" cy="838.3359" fill="none" rx="10" ry="10" style="stroke:#FFB000;stroke-width:1.0;"/><ellipse cx="505.5" cy="838.8359" fill="#FFB000" rx="6" ry="6" style="stroke:none;stroke-width:1.0;"/><rect fill="#282828" height="49.168" rx="12.5" ry="12.5" style="stroke:#FFB000;stroke-width:1.0;" width="142" x="643" y="494.3359"/><text fill="#FFB000" font-family="Verdana" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="40" x="653" y="516.4004">State:</text><text fill="#FFB000" font-family="Verdana" font-size="12" lengthAdjust="spacing" textLength="122" x="653" y="530.9844">Wait for DM len byte</text><rect fill="#282828" height="49.168" rx="12.5" ry="12.5" style="stroke:#FFB000;stroke-width:1.0;" width="132" x="641" y="598.3359"/><text fill="#FFB000" font-family="Verdana" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="40" x="651" y="620.4004">State:</text><text fill="#FFB000" font-family="Verdana" font-size="12" lengthAdjust="spacing" textLength="112" x="651" y="634.9844">Wait for rest of DM</text><rect fill="#282828" height="34.584" rx="12.5" ry="12.5" style="stroke:#FFB000;stroke-width:1.0;" width="170" x="1128" y="501.3359"/><text fill="#FFB000" font-family="Verdana" font-size="12" lengthAdjust="spacing" textLength="150" x="1138" y="523.4004">Restart_Bad_DM_Length</text><rect fill="#282828" height="34.584" rx="12.5" ry="12.5" style="stroke:#FFB000;stroke-width:1.0;" width="154" x="954" y="501.3359"/><text fill="#FFB000" font-family="Verdana" font-size="12" lengthAdjust="spacing" textLength="134" x="964" y="523.4004">Restart_DML_Timeout</text><rect fill="#282828" height="34.584" rx="12.5" ry="12.5" style="stroke:#FFB000;stroke-width:1.0;" width="154" x="1082" y="605.3359"/><text fill="#FFB000" font-family="Verdana" font-size="12" lengthAdjust="spacing" textLength="134" x="1092" y="627.4004">Restart_DMP_Timeout</text><rect fill="#282828" height="34.584" rx="12.5" ry="12.5" style="stroke:#FFB000;stroke-width:1.0;" width="75" x="665.5" y="722.3359"/><text fill="#FFB000" font-family="Verdana" font-size="12" lengthAdjust="spacing" textLength="55" x="675.5" y="744.4004">Parse DM</text><g id="elem_GN42"><path d="M535,825.3359 L535,834.3359 L515.16,838.3359 L535,842.3359 L535,851.1353 A0,0 0 0 0 535,851.1353 L781,851.1353 A0,0 0 0 0 781,851.1353 L781,835.3359 L771,825.3359 L535,825.3359 A0,0 0 0 0 535,825.3359 " fill="#282828" style="stroke:#FFB000;stroke-width:1.0;"/><path d="M771,825.3359 L771,835.3359 L781,835.3359 L771,825.3359 " fill="#282828" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="13" lengthAdjust="spacing" textLength="225" x="541" y="843.4058">Done. Immediately back to Start.</text></g><rect fill="#282828" height="34.584" rx="12.5" ry="12.5" style="stroke:#FFB000;stroke-width:1.0;" width="120" x="455" y="245.3359"/><text fill="#FFB000" font-family="Verdana" font-size="12" lengthAdjust="spacing" textLength="100" x="465" y="267.4004">Dequeue 1 Byte.</text><!--MD5=[ddc5b552863ad18c1b18f05de67b845a]
+link start to **State:**\nWait for Valid Header--><g id="link_start_**State:**\nWait for Valid Header"><path d="M561,100.3459 C561,109.2859 561,123.4459 561,136.2259 " fill="none" id="start-to-**State:**\nWait for Valid Header" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="561,141.2259,565,132.2259,561,136.2259,557,132.2259,561,141.2259" style="stroke:#FFB000;stroke-width:1.0;"/></g><!--MD5=[f18a02d5ed8a36bafd199f08f5115846]
+reverse link **State:**\nWait for Valid Header to **State:**\nWait for Valid Header--><g id="link_**State:**\nWait for Valid Header_**State:**\nWait for Valid Header"><path d="M638.78,158.8259 C647.71,160.1259 653.5,162.4659 653.5,165.8359 C653.5,169.8359 645.36,172.3759 633.52,173.4659 " fill="none" id="**State:**\nWait for Valid Header-backto-**State:**\nWait for Valid Header" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="633.52,158.2059,641.9902,163.2315,638.4857,158.791,642.9262,155.2865,633.52,158.2059" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="100" x="659.5" y="170.395">bytes_loaded &lt; 4</text></g><!--MD5=[547e950112501c80bec8fca6b80c7d0e]
+link **State:**\nWait for Valid Header to #7--><g id="link_**State:**\nWait for Valid Header_#7"><path d="M581.26,190.7759 C585.26,196.7959 588.87,203.5059 591,210.3359 C604.87,254.8959 608.16,271.9359 591,315.3359 C587.1,325.1859 578.58,333.7859 571.61,339.5759 " fill="none" id="**State:**\nWait for Valid Header-to-#7" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="567.53,342.8059,577.0633,340.3327,571.4427,339.6929,572.0824,334.0724,567.53,342.8059" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="109" x="580.8803" y="338.2738">bytes_loaded &gt;= 4</text></g><!--MD5=[43d67cdef836829311cfcccf0f0a5725]
+link #7 to #13--><g id="link_#7_#13"><path d="M561,360.4859 C561,370.5759 561,385.5759 561,397.0159 " fill="none" id="#7-to-#13" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="561,402.3159,565,393.3159,561,397.3159,557,393.3159,561,402.3159" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="72" x="472.35" y="391.8948">good header</text></g><!--MD5=[2afbf9ad0a7c8bb5169966eb6368fdca]
+link #13 to **State:**\nWait for rest of BGAPI--><g id="link_#13_**State:**\nWait for rest of BGAPI"><path d="M554.03,420.0059 C535.55,432.3859 484.21,466.7759 447.64,491.2759 " fill="none" id="#13-to-**State:**\nWait for rest of BGAPI" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="443.26,494.2159,452.9633,492.5288,447.4137,491.4326,448.5099,485.8829,443.26,494.2159" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="69" x="513" y="464.895">Valid BGAPI</text></g><!--MD5=[2ef8934a550ecd42d0c6a8e26fae6d15]
+reverse link **State:**\nWait for rest of BGAPI to **State:**\nWait for rest of BGAPI--><g id="link_**State:**\nWait for rest of BGAPI_**State:**\nWait for rest of BGAPI"><path d="M488.47,510.6459 C497.3,512.2059 503,514.9359 503,518.8359 C503,523.4559 495,526.4359 483.26,527.7759 " fill="none" id="**State:**\nWait for rest of BGAPI-backto-**State:**\nWait for rest of BGAPI" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="483.26,509.8959,491.5975,515.1386,488.2089,510.609,492.7385,507.2204,483.26,509.8959" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="110" x="509" y="523.395">bytes_loaded &lt; len</text></g><!--MD5=[f61544aff878b2f6be31895d391e4e82]
+reverse link Restart_BGP_Timeout to **State:**\nWait for rest of BGAPI--><g id="link_Restart_BGP_Timeout_**State:**\nWait for rest of BGAPI"><path d="M169.37,518.8359 C219.68,518.8359 283.8,518.8359 332.9,518.8359 " fill="none" id="Restart_BGP_Timeout-backto-**State:**\nWait for rest of BGAPI" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="164.24,518.8359,173.24,522.8359,169.24,518.8359,173.24,514.8359,164.24,518.8359" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="147" x="175" y="512.895">time_since_hdr &gt; timeout</text></g><!--MD5=[d693d23490c51f8ad8bc971c73774b37]
+link **State:**\nWait for rest of BGAPI to Parse BGAPI--><g id="link_**State:**\nWait for rest of BGAPI_Parse BGAPI"><path d="M412.94,543.6859 C419.53,575.4259 431.07,631.1259 437.45,661.8859 " fill="none" id="**State:**\nWait for rest of BGAPI-to-Parse BGAPI" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="438.5,666.9659,440.5927,657.342,437.4865,662.0697,432.7587,658.9636,438.5,666.9659" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="110" x="425" y="575.395">bytes_loaded = len</text></g><!--MD5=[e866f4010224567214a7c8f7901f7d21]
+link Parse BGAPI to end--><g id="link_Parse BGAPI_end"><path d="M448.86,702.3359 C461.47,732.6559 488.08,796.6559 499.55,824.2359 " fill="none" id="Parse BGAPI-to-end" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="501.51,828.9459,501.73,819.0995,499.5819,824.3327,494.3487,822.1846,501.51,828.9459" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="77" x="472" y="737.895">Immediately:</text><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="155" x="472" y="751.2637">Fire BGAPI Callback then...</text></g><!--MD5=[9126aa98c6f20c742d9b0349b0596312]
+link #13 to **State:**\nWait for DM len byte--><g id="link_#13_**State:**\nWait for DM len byte"><path d="M567.97,420.0059 C586.45,432.3859 637.79,466.7759 674.36,491.2759 " fill="none" id="#13-to-**State:**\nWait for DM len byte" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="678.74,494.2159,673.4901,485.8829,674.5863,491.4326,669.0367,492.5288,678.74,494.2159" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="49" x="648" y="464.895">Valid DM</text></g><!--MD5=[f0785a90b6bed43cd79ed58d6b86ac9a]
+link **State:**\nWait for DM len byte to **State:**\nWait for rest of DM--><g id="link_**State:**\nWait for DM len byte_**State:**\nWait for rest of DM"><path d="M712.38,543.4959 C711.36,558.2959 710.04,577.4659 708.97,593.1359 " fill="none" id="**State:**\nWait for DM len byte-to-**State:**\nWait for rest of DM" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="708.61,598.3059,713.218,589.6016,708.953,593.3177,705.2369,589.0527,708.61,598.3059" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="61" x="715" y="575.395">loaded 1 B</text></g><!--MD5=[c4451a0affcdf8daf25b7e98e7a4e17c]
+link **State:**\nWait for DM len byte to Restart_Bad_DM_Length--><g id="link_**State:**\nWait for DM len byte_Restart_Bad_DM_Length"><path d="M763.19,494.2759 C795.06,479.7659 837.93,462.8259 878,455.3359 C912.08,448.9659 999.84,449.4559 1034,455.3359 C1082.52,463.6859 1135.32,483.8959 1170.92,499.2859 " fill="none" id="**State:**\nWait for DM len byte-to-Restart_Bad_DM_Length" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="1175.6,501.3359,1168.9495,494.0715,1171.0169,499.3371,1165.7514,501.4045,1175.6,501.3359" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="4" x="879" y="458.395"> </text><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="154" x="879" y="471.7637">len &gt; max_possible_length</text></g><!--MD5=[6f7268731ae7a2467b67c82cb75a0847]
+link **State:**\nWait for DM len byte to Restart_DML_Timeout--><g id="link_**State:**\nWait for DM len byte_Restart_DML_Timeout"><path d="M785.14,518.8359 C833.67,518.8359 898.1,518.8359 948.82,518.8359 " fill="none" id="**State:**\nWait for DM len byte-to-Restart_DML_Timeout" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="954,518.8359,945,514.8359,949,518.8359,945,522.8359,954,518.8359" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="147" x="796" y="512.895">time_since_hdr &gt; timeout</text></g><!--MD5=[8ca71a57fc3bcaa60413bb1921d0078a]
+reverse link **State:**\nWait for rest of DM to **State:**\nWait for rest of DM--><g id="link_**State:**\nWait for rest of DM_**State:**\nWait for rest of DM"><path d="M778.5,614.3959 C787.26,615.9059 793,618.7259 793,622.8359 C793,627.7159 784.94,630.7559 773.35,631.9759 " fill="none" id="**State:**\nWait for rest of DM-backto-**State:**\nWait for rest of DM" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="773.35,613.6959,781.717,618.8914,778.3028,614.3811,782.8132,610.9669,773.35,613.6959" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="110" x="799" y="627.395">bytes_loaded &lt; len</text></g><!--MD5=[7ad57d10c8e7e00c2e3c6bf27334f247]
+link **State:**\nWait for rest of DM to Restart_DMP_Timeout--><g id="link_**State:**\nWait for rest of DM_Restart_DMP_Timeout"><path d="M773.21,622.8359 C853.63,622.8359 989.32,622.8359 1076.47,622.8359 " fill="none" id="**State:**\nWait for rest of DM-to-Restart_DMP_Timeout" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="1081.62,622.8359,1072.62,618.8359,1076.62,622.8359,1072.62,626.8359,1081.62,622.8359" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="147" x="854" y="616.895">time_since_hdr &gt; timeout</text></g><!--MD5=[675b6ee03bba4e1ea9bd149d5c6e0b01]
+link **State:**\nWait for rest of DM to Parse DM--><g id="link_**State:**\nWait for rest of DM_Parse DM"><path d="M706.18,647.3859 C705.47,667.7759 704.45,697.0359 703.76,716.9259 " fill="none" id="**State:**\nWait for rest of DM-to-Parse DM" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="703.58,722.0259,707.886,713.1683,703.7513,717.0289,699.8907,712.8942,703.58,722.0259" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="110" x="710" y="689.395">bytes_loaded = len</text></g><!--MD5=[831654b9561194ff2e55a7e75364ba3e]
+link Parse DM to end--><g id="link_Parse DM_end"><path d="M665.32,757.4359 C628.92,773.7759 572.49,799.8959 525,825.3359 C522.5,826.6759 519.87,828.1759 517.37,829.6559 " fill="none" id="Parse DM-to-end" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="513.07,832.2459,522.8425,831.0215,517.3512,829.663,518.7097,824.1717,513.07,832.2459" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="77" x="623" y="789.395">Immediately:</text><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="135" x="623" y="802.7637">Fire DM Callback then...</text></g><!--MD5=[3fa46f5903536f295114773891214626]
+reverse link Dequeue 1 Byte. to #7--><g id="link_Dequeue 1 Byte._#7"><path d="M511.72,285.7259 C511.29,295.3259 512.24,306.4159 517,315.3359 C521.14,323.0859 542.49,336.4659 553.86,343.2059 " fill="none" id="Dequeue 1 Byte.-backto-#7" style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="512.08,280.5659,507.4489,289.2581,511.7238,285.5532,515.4286,289.8281,512.08,280.5659" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="67" x="522" y="312.395">Bad Header</text></g><!--MD5=[d45102a4f893248a6ccea4f1516ba980]
+reverse link **State:**\nWait for Valid Header to Dequeue 1 Byte.--><g id="link_**State:**\nWait for Valid Header_Dequeue 1 Byte."><path d="M526.36,194.3259 C522.18,199.1959 518.51,204.5759 516,210.3359 C511.29,221.1559 511.17,234.5159 512.16,244.9059 " fill="none" id="**State:**\nWait for Valid Header-backto-Dequeue 1 Byte." style="stroke:#FFB000;stroke-width:1.0;"/><polygon fill="#FFB000" points="529.98,190.3559,520.9624,194.316,526.6131,194.0524,526.8767,199.7031,529.98,190.3559" style="stroke:#FFB000;stroke-width:1.0;"/><text fill="#FFB000" font-family="Verdana" font-size="11" lengthAdjust="spacing" textLength="72" x="517" y="222.395">Immediately</text></g><!--MD5=[939e8f0a636a220c527dce7d74cfc5a1]
+@startuml Iris FPrime WF121 Message Parsing State Machine
+
+!theme crt-amber
+
+skinparam DefaultTextAlignment left
+
+left header
+= <b>Iris FPrime WF121 Message Parsing State Machine</b>
+* Control flow diagram for passing through the states in `Wf121Parser::Mpsm`.
+* Except where otherwise listed as "**immediate**", each transition between **States** is taken when the FreeRTOS RxTask notices a new byte in the RX Queue.
+* Anything prefixed with **Restart_** (like Timeouts) proceeds directly back to the start (just not a cleaner way to show that with PlantUML).
+endheader
+
+(*) - -> "**State:**\nWait for Valid Header"
+"**State:**\nWait for Valid Header" -up->[bytes_loaded < 4] "**State:**\nWait for Valid Header"
+
+if "bytes_loaded >= 4" then
+    note left: Check Header
+    if "good header" then
+        - ->[Valid BGAPI] "**State:**\nWait for rest of BGAPI"
+        "**State:**\nWait for rest of BGAPI" -up->[bytes_loaded < len] "**State:**\nWait for rest of BGAPI"
+        "**State:**\nWait for rest of BGAPI" -left->[time_since_hdr > timeout] "Restart_BGP_Timeout"
+        
+        "**State:**\nWait for rest of BGAPI"- ->[ bytes_loaded = len] "Parse BGAPI"
+        - ->[Immediately:\nFire BGAPI Callback then...](*)
+    else
+        - ->[Valid DM] "**State:**\nWait for DM len byte"
+        "**State:**\nWait for DM len byte"- ->[ loaded 1 B] "**State:**\nWait for rest of DM"
+        "**State:**\nWait for DM len byte" -right->[\nlen > max_possible_length] "Restart_Bad_DM_Length"
+        "**State:**\nWait for DM len byte" -right->[time_since_hdr > timeout] "Restart_DML_Timeout"
+
+        "**State:**\nWait for rest of DM" -up->[bytes_loaded < len] "**State:**\nWait for rest of DM"
+        "**State:**\nWait for rest of DM" -right->[time_since_hdr > timeout] "Restart_DMP_Timeout"
+        "**State:**\nWait for rest of DM" - ->[ bytes_loaded = len] "Parse DM"
+        - ->[Immediately:\nFire DM Callback then...](*)
+        note right: Done. Immediately back to Start.
+    endif
+else
+    -up->[ Bad Header] "Dequeue 1 Byte."
+    -up->[Immediately] "**State:**\nWait for Valid Header"
+endif
+
+@enduml
+
+@startuml Iris FPrime WF121 Message Parsing State Machine
+
+
+
+
+
+
+
+<style>
+  root {
+    BackgroundColor #282828
+    FontColor #FFB000
+    FontName Verdana
+    HyperLinkColor #FFCC00
+    LineColor #FFB000
+    LineThickness 1
+    Margin 5
+  }
+  box {
+    LineStyle 12-18
+    LineThickness 3
+  }
+  caption {
+    LineThickness 0
+  }
+  footer {
+    LineThickness 0
+  }
+  groupHeader {
+    BackgroundColor #FFB000
+    FontColor #282828
+    FontStyle bold
+  }
+  header {
+    LineThickness 0
+  }
+  node {
+    MaximumWidth 300
+  }
+  referenceHeader {
+    BackgroundColor #FFB000
+    FontColor #282828
+    FontStyle bold
+  }
+  separator {
+    BackgroundColor #FFB000
+    FontColor #282828
+    FontStyle bold
+  }
+  title {
+    FontSize 22
+    LineThickness 0
+  }
+</style>
+
+skinparam ArrowLollipopColor #FFB000
+skinparam BackgroundColor #282828
+skinparam DefaultFontName Verdana
+skinparam DefaultMonospacedFontName Courier
+skinparam LifelineStrategy solid
+skinparam ParticipantPadding 10
+skinparam SequenceLifeLineBorderColor #FFB000
+skinparam Shadowing false
+skinparam UseBetaStyle true
+
+skinparam Activity {
+  BackgroundColor #282828
+  BarColor #FFB000
+  BorderColor #FFB000
+  FontColor #FFB000
+  FontName Verdana
+}
+skinparam Boundary {
+  FontColor #FFB000
+}
+skinparam Box {
+  Padding 5
+}
+skinparam CircledCharacter {
+  FontColor #282828
+  FontName Courier
+  Radius 9
+}
+skinparam Class {
+  BackgroundColor #282828
+  BorderColor #FFB000
+  FontColor #FFB000
+  FontName Verdana
+}
+skinparam ClassAttribute {
+  FontColor #FFB000
+  FontName Verdana
+}
+skinparam ClassStereotype {
+  FontColor #FFB000
+  FontName Verdana
+}
+skinparam Footer {
+  FontColor #FFB000
+  FontName Verdana
+}
+skinparam Header {
+  FontColor #FFB000
+  FontName Verdana
+}
+skinparam Hyperlink {
+  Color #FFCC00
+}
+skinparam IconPackage {
+  Color #FFB000
+  BackgroundColor #282828
+}
+skinparam IconPrivate {
+  Color #FFB000
+  BackgroundColor #282828
+}
+skinparam IconProtected {
+  Color #FFB000
+  BackgroundColor #282828
+}
+skinparam IconPublic {
+  Color #FFB000
+  BackgroundColor #282828
+}
+skinparam Note {
+  FontColor #FFB000
+  FontName Verdana
+}
+skinparam Object {
+  BorderColor #FFB000
+}
+skinparam Package {
+  BorderColor #FFB000
+  FontColor #FFB000
+  FontName Verdana
+}
+skinparam State {
+  BackgroundColor #282828
+  BorderColor #FFB000
+}
+skinparam StereotypeA {
+  BackgroundColor #FFB000
+  BorderColor #FFB000
+}
+skinparam StereotypeC {
+  BackgroundColor #FFB000
+  BorderColor #FFB000
+}
+skinparam StereotypeE {
+  BackgroundColor #FFB000
+  BorderColor #FFB000
+}
+skinparam StereotypeI {
+  BackgroundColor #FFB000
+  BorderColor #FFB000
+}
+skinparam StereotypeN {
+  BackgroundColor #FFB000
+  BorderColor #FFB000
+}
+skinparam UseCaseStereoType {
+  FontColor #FFB000
+  FontName Verdana
+}
+
+skinparam DefaultTextAlignment left
+
+left header
+= <b>Iris FPrime WF121 Message Parsing State Machine</b>
+* Control flow diagram for passing through the states in `Wf121Parser::Mpsm`.
+* Except where otherwise listed as "**immediate**", each transition between **States** is taken when the FreeRTOS RxTask notices a new byte in the RX Queue.
+* Anything prefixed with **Restart_** (like Timeouts) proceeds directly back to the start (just not a cleaner way to show that with PlantUML).
+endheader
+
+(*) - -> "**State:**\nWait for Valid Header"
+"**State:**\nWait for Valid Header" -up->[bytes_loaded < 4] "**State:**\nWait for Valid Header"
+
+if "bytes_loaded >= 4" then
+    note left: Check Header
+    if "good header" then
+        - ->[Valid BGAPI] "**State:**\nWait for rest of BGAPI"
+        "**State:**\nWait for rest of BGAPI" -up->[bytes_loaded < len] "**State:**\nWait for rest of BGAPI"
+        "**State:**\nWait for rest of BGAPI" -left->[time_since_hdr > timeout] "Restart_BGP_Timeout"
+        
+        "**State:**\nWait for rest of BGAPI"- ->[ bytes_loaded = len] "Parse BGAPI"
+        - ->[Immediately:\nFire BGAPI Callback then...](*)
+    else
+        - ->[Valid DM] "**State:**\nWait for DM len byte"
+        "**State:**\nWait for DM len byte"- ->[ loaded 1 B] "**State:**\nWait for rest of DM"
+        "**State:**\nWait for DM len byte" -right->[\nlen > max_possible_length] "Restart_Bad_DM_Length"
+        "**State:**\nWait for DM len byte" -right->[time_since_hdr > timeout] "Restart_DML_Timeout"
+
+        "**State:**\nWait for rest of DM" -up->[bytes_loaded < len] "**State:**\nWait for rest of DM"
+        "**State:**\nWait for rest of DM" -right->[time_since_hdr > timeout] "Restart_DMP_Timeout"
+        "**State:**\nWait for rest of DM" - ->[ bytes_loaded = len] "Parse DM"
+        - ->[Immediately:\nFire DM Callback then...](*)
+        note right: Done. Immediately back to Start.
+    endif
+else
+    -up->[ Bad Header] "Dequeue 1 Byte."
+    -up->[Immediately] "**State:**\nWait for Valid Header"
+endif
+
+@enduml
+
+PlantUML version 1.2022.5(Sat Apr 30 06:55:52 EDT 2022)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>

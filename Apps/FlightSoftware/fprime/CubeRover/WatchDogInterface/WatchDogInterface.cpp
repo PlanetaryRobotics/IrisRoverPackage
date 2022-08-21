@@ -25,7 +25,7 @@
 
 static volatile bool dmaWriteBusy = false;
 
-extern "C" void dmaCh1_ISR(dmaInterrupt_t inttype)
+extern "C" void SCILIN_TX_DMA_ISR(dmaInterrupt_t inttype)
 {
     dmaWriteBusy = false;
 }
@@ -229,7 +229,7 @@ namespace CubeRover
             const U32 cmdSeq,
             confirm_disengage confirm)
     {
-        // Send Activity Log/tlm to know watchdog recieved command
+        // Send Activity Log/tlm to know watchdog received command
         char command_type[24] = "Disengage From Rover";
         Fw::LogStringArg command_type_log = command_type;
         this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
@@ -253,7 +253,7 @@ namespace CubeRover
             const FwOpcodeType opCode,
             const U32 cmdSeq)
     {
-        // Send Activity Log/tlm to know watchdog recieved command
+        // Send Activity Log/tlm to know watchdog received command
         char command_type[24] = "Engage From Rover";
         Fw::LogStringArg command_type_log = command_type;
         this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
@@ -274,7 +274,7 @@ namespace CubeRover
                                                                  reset_values_possible resetValue,
                                                                  bool sendResponse)
     {
-        // Send Activity Log/tlm to know watchdog recieved command
+        // Send Activity Log/tlm to know watchdog received command
         char command_type[24] = "Reset Specific:";
         char reset_val_char[8];
         sprintf(reset_val_char, "%u", resetValue);
@@ -832,7 +832,7 @@ namespace CubeRover
             }
         }
 
-        // Finally we're ready to transmit. If this is header-only we can trasnmit it all in one go (since it's in
+        // Finally we're ready to transmit. If this is header-only we can transmit it all in one go (since it's in
         // one "buffer"), and since we can transmit it all in one go we can also transmit it non-blocking. On the
         // other hand, if there is also data then we need to transmit the header with blocking, then we can
         // transmit the data non-blocking. However, with the non-blocking send of the header we need to make

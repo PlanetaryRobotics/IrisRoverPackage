@@ -32,7 +32,6 @@
 
 #include "sci.h"
 #include "Wf121BgApi.hpp"
-#include <CubeRover/Wf121/Wf121SerialInterface.hpp>
 
 namespace Wf121::Wf121Parser
 {

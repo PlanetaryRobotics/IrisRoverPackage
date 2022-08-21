@@ -895,12 +895,17 @@ namespace CubeRover
         if (!m_finished_initializing)
         {
             while (!((getDMAIntStatus(BTC) >> SCILIN_TX_DMA_CH) & 0x01U))
-                ;
+            {
+                vTaskDelay(DMA_SEND_POLLING_CHECK_INTERVAL); // Check back in every X ticks (don't hog the processor)
+            };
             dmaWriteBusy = false;
             sciDMASendCleanup(SCILIN_TX_DMA_CH);
         }
         while (dmaWriteBusy)
-            ; // TODO: Mutex to allow multiprogramming & TIMEOOUT
+        {
+            vTaskDelay(DMA_SEND_POLLING_CHECK_INTERVAL); // Check back in every X ticks (don't hog the processor)
+        };
+        ; // TODO: Mutex to allow multiprogramming & TIMEOOUT
     }
 
     // Returns negative on error
@@ -910,10 +915,16 @@ namespace CubeRover
         // return true;
 
         if (blocking)
+        {
             while (dmaWriteBusy)
-                ;
+            {
+                vTaskDelay(DMA_SEND_POLLING_CHECK_INTERVAL); // Check back in every X ticks (don't hog the processor)
+            };
+        }
         else if (dmaWriteBusy)
+        {
             return false;
+        }
         sciDMASend(SCILIN_TX_DMA_CH, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaWriteBusy);
         if (blocking)
             pollDMASendFinished();

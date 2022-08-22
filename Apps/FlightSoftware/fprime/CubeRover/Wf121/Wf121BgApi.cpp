@@ -3,15 +3,15 @@
 namespace Wf121::BgApi
 {
 
-  BgApiDriver::BgApiDriver()
+  BgApiDriver::BgApiDriver() : m_bgApiStatus()
   {
-    m_processingCmd = false;
+    // nothing special to do here
   }
 
   ErrorCode BgApiDriver::init()
   {
 
-    m_processingCmd = false;
+    m_bgApiStatus.setProcessingCmd(false);
 
     return NO_ERROR;
   }
@@ -117,8 +117,9 @@ namespace Wf121::BgApi
     {
       switch (header->bit.cmdId)
       {
-      case 0x00:                 // Boot
-        m_processingCmd = false; // the command is processed
+      case 0x00: // Boot
+
+        m_bgApiStatus.setProcessingCmd(false); // the command is processed
         memcpy(&major,
                payload,
                sizeof(major));
@@ -1564,7 +1565,7 @@ namespace Wf121::BgApi
     {
       // If it's a response, then Radio is done processing whatever the last
       // command was:
-      m_processingCmd = false;
+      m_bgApiStatus.setProcessingCmd(false);
     }
 
     // Execute class specific callback
@@ -1643,7 +1644,7 @@ namespace Wf121::BgApi
    */
   bool BgApiDriver ::CommandIsProcessing()
   {
-    return m_processingCmd;
+    return m_bgApiStatus.isProcessingCmd();
   }
 
   ErrorCode BgApiDriver ::cb_EventEndpointSyntaxError(const uint16_t result,
@@ -1651,7 +1652,7 @@ namespace Wf121::BgApi
   {
     if (result != NO_ERROR)
     {
-      m_processingCmd = false;
+      m_bgApiStatus.setProcessingCmd(false);
     }
 
     return (ErrorCode)result;

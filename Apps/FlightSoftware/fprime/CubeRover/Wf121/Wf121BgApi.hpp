@@ -17,14 +17,100 @@
 #include "gio.h"
 #include "Include/FswPacket.hpp" // PrimaryFlightController/FlightMCU/Include
 
+#include <Os/Mutex.hpp>
+#include <Fw/Time/Time.hpp>
+
 #define MAC_ADDRESS_SIZE 6      // in byte
 #define HARDWARE_ADDRESS_SIZE 6 // in byte
 #define IP_ADDRESS_V4_SIZE 4    // in byte
 #define GATEWAY_SIZE 4          // in byte
 #define NETMASK_SIZE 4          // in byte
 
+// What period of time after sending a BGAPI command to the Radio should we
+// just assume that the command was either thrown or we lost the response and
+// let new commands be sent. In milliseconds since Hercules boot:
+static const uint32_t BGAPI_CMD_PROCESSING_TIMEOUT_MS = 2000; // Give the Radio 2.0s to send us a response
+
 namespace Wf121::BgApi
 {
+  // Simple mutex-protected container of data about BgApi-specific processing:
+  class BgApiStatus
+  {
+  public:
+    BgApiStatus() : processingCmd(false)
+    {
+      // nothing else to do
+    }
+
+    // GETTERS:
+    // Returns whether BGAPI is currently processing a command (factoring in
+    // a timeout period):
+    bool isProcessingCmd()
+    {
+      // If someone's querying whether we're still waiting for a command
+      // response and we haven't gotten one in a while, just time out and say
+      // we're good now.
+
+      bool state;
+      uint32_t now = static_cast<uint32_t>(getTime().get_time_ms());
+      // (Do all of the logic in the mutex critical section):
+      this->mutex.lock();
+      {
+        if (this->processingCmd && (now - this->processingStartTimeMs) > BGAPI_CMD_PROCESSING_TIMEOUT_MS)
+        {
+          // took (way) too long to respond, just assume it finished:
+          this->processingCmd = false;
+        }
+        state = this->processingCmd;
+      }
+      this->mutex.unLock();
+
+      return state;
+    }
+
+    // SETTERS:
+    // Set the current command processing state to the given state. If state
+    // is true (we're begging to process a cmd), also start the processing timer.
+    void setProcessingCmd(bool state)
+    {
+      if (state)
+      {
+        // Start the command processing timer and set the state:
+        // Do all the computation to get the time first...
+        uint32_t now = static_cast<uint32_t>(getTime().get_time_ms());
+        // ... and only lock the mutex when absolutely needed:
+        this->mutex.lock();
+        this->processingStartTimeMs = now;
+        this->processingCmd = state;
+        this->mutex.unLock();
+      }
+      else
+      {
+        // Just set the state:
+        this->mutex.lock();
+        this->processingCmd = state;
+        this->mutex.unLock();
+      }
+    }
+
+  private:
+    // Is the BGAPI still waiting for a command response?
+    // NOTE: The Radio's FW only can have one active command at a time, so:
+    // 1. This flag just exists to make sure we don't send a new command
+    // until we've gotten a response for the previous one.
+    // 2. It doesn't matter what command response we get; if we get one, that
+    // means the command we were processing is done. If the response were for
+    // a different command, that just means our response was already emitted
+    // and we happened to miss it (possibly due to a garbled packet?).
+    // 3. It's okay (and good practice) to just set this flag back to false
+    // after some timeout since it's possible the response data got thrown
+    // out due to a garbled packet or something.
+    bool processingCmd;
+    // Time that command processing began in ms.
+    uint32_t processingStartTimeMs;
+    ::Os::Mutex mutex;
+  };
+
   typedef enum CommandClass
   {
     CLASS_SYSTEM = 0x01,
@@ -1561,8 +1647,9 @@ namespace Wf121::BgApi
     ErrorCode executeI2cCallback(BgApiHeader *header,
                                  uint8_t *payload,
                                  const uint16_t payloadSize);
-    // Private members
-    bool m_processingCmd;
+
+    // Protected members
+    BgApiStatus m_bgApiStatus;
   };
 } // Wf121::BgApi
 

@@ -17,53 +17,42 @@ namespace Wf121::BgApi
   }
 
   /**
-   * @brief      Transmit data to WF121 module
+   * @brief      Packs given BGAPI data into the given comm buffer for
+   *             transmission to the WF121 module.
    *
+   * NOTE: Using memcpy instead of just assigning pointers in a struct b/c the
+   * comm buffer might need to stick around for a while (longer than they'll
+   * stay in scope since the caller is likely about to return) and this
+   * implementation is trying to avoid dynamic allocation.
+   *
+   * @param      targetCommBuffer   Comm Buffer to pack data into.
    * @param      header   The header
    * @param      payload  The payload
    *
    * @return     The error code.
    */
-  ErrorCode BgApiDriver ::transmitCommand(BgApiHeader *header,
-                                          uint8_t *payload)
+  ErrorCode BgApiDriver::packCommBuffer(BgApiCommBuffer *targetCommBuffer,
+                                        BgApiHeader *header,
+                                        uint8_t *payload)
   {
+    // Copy in header:
+    memcpy(targetCommBuffer->rawData, (uint8_t *)header, sizeof(header));
+    targetCommBuffer->dataLen = sizeof(header);
 
-    // check if a command is already being sent out, if so, only one command can
-    // be sent at a time.
-    if (m_processingCmd)
-    {
-      return TOO_MANY_REQUEST;
-    }
-
-#if WF121_USE_CTS_RTS
-    uint32_t timeout = 10000;
-    while (gioGetBit(gioPORTB, 2) && --timeout)
-      ; // block until CTS goes low
-    if (!timeout)
-      return TIMEOUT;
-#endif //#if WF121_USE_CTS_RTS
-
-    while (!sciIsTxReady(WF121_SCI_REG))
-      ;
-    sciSend(WF121_SCI_REG, sizeof(header), (uint8_t *)header);
-
+    // Check if we need to copy in a payload:
     uint16_t payloadSize = getPayloadSizeFromHeader(header);
-
     if (payloadSize > 0)
     {
       if (payload == NULL)
       {
+        // bad payload.
         return INVALID_PARAMETER;
       }
 
-      while (!sciIsTxReady(WF121_SCI_REG))
-        ;
-      sciSend(WF121_SCI_REG, payloadSize, payload);
+      // Copy in the payload data:
+      memcpy(targetCommBuffer->rawData + (targetCommBuffer->dataLen), payload, payloadSize);
+      targetCommBuffer->dataLen += payloadSize;
     }
-
-    // Flag that a command is processing, cannot send a new command until the
-    // current one is processed
-    m_processingCmd = true;
 
     return NO_ERROR;
   }
@@ -77,9 +66,9 @@ namespace Wf121::BgApi
    *
    * @return     The error code.
    */
-  ErrorCode BgApiDriver ::executeSystemCallback(BgApiHeader *header,
-                                                uint8_t *payload,
-                                                const uint16_t payloadSize)
+  ErrorCode BgApiDriver::executeSystemCallback(BgApiHeader *header,
+                                               uint8_t *payload,
+                                               const uint16_t payloadSize)
   {
     uint16_t result;
     uint16_t major;
@@ -180,9 +169,9 @@ namespace Wf121::BgApi
    *
    * @return     The error code.
    */
-  ErrorCode BgApiDriver ::executeConfigurationCallback(BgApiHeader *header,
-                                                       uint8_t *payload,
-                                                       const uint16_t payloadSize)
+  ErrorCode BgApiDriver::executeConfigurationCallback(BgApiHeader *header,
+                                                      uint8_t *payload,
+                                                      const uint16_t payloadSize)
   {
     uint16_t result;
     HardwareInterface interface;
@@ -237,9 +226,9 @@ namespace Wf121::BgApi
    *
    * @return     The error code.
    */
-  ErrorCode BgApiDriver ::executeWifiCallback(BgApiHeader *header,
-                                              uint8_t *payload,
-                                              const uint16_t payloadSize)
+  ErrorCode BgApiDriver::executeWifiCallback(BgApiHeader *header,
+                                             uint8_t *payload,
+                                             const uint16_t payloadSize)
   {
     uint16_t result;
     uint16_t reason;
@@ -592,9 +581,9 @@ namespace Wf121::BgApi
    *
    * @return     The error code.
    */
-  ErrorCode BgApiDriver ::executeEndpointCallback(BgApiHeader *header,
-                                                  uint8_t *payload,
-                                                  const uint16_t payloadSize)
+  ErrorCode BgApiDriver::executeEndpointCallback(BgApiHeader *header,
+                                                 uint8_t *payload,
+                                                 const uint16_t payloadSize)
   {
     uint16_t result;
     Endpoint endpoint;
@@ -726,9 +715,9 @@ namespace Wf121::BgApi
    *
    * @return     The error code.
    */
-  ErrorCode BgApiDriver ::executeHardwareCallback(BgApiHeader *header,
-                                                  uint8_t *payload,
-                                                  const uint16_t payloadSize)
+  ErrorCode BgApiDriver::executeHardwareCallback(BgApiHeader *header,
+                                                 uint8_t *payload,
+                                                 const uint16_t payloadSize)
   {
     uint16_t result;
     uint8_t input;
@@ -918,9 +907,9 @@ namespace Wf121::BgApi
    *
    * @return     The error code.
    */
-  ErrorCode BgApiDriver ::executeTcpStackCallback(BgApiHeader *header,
-                                                  uint8_t *payload,
-                                                  const uint16_t payloadSize)
+  ErrorCode BgApiDriver::executeTcpStackCallback(BgApiHeader *header,
+                                                 uint8_t *payload,
+                                                 const uint16_t payloadSize)
   {
     uint16_t result;
     uint8_t index;
@@ -1230,9 +1219,9 @@ namespace Wf121::BgApi
    *
    * @return     The error code.
    */
-  ErrorCode BgApiDriver ::executeWiredEthernetCallback(BgApiHeader *header,
-                                                       uint8_t *payload,
-                                                       const uint16_t payloadSize)
+  ErrorCode BgApiDriver::executeWiredEthernetCallback(BgApiHeader *header,
+                                                      uint8_t *payload,
+                                                      const uint16_t payloadSize)
   {
     uint16_t result;
     uint8_t state;
@@ -1285,9 +1274,9 @@ namespace Wf121::BgApi
    *
    * @return     The error code.
    */
-  ErrorCode BgApiDriver ::executePersistentStoreCallback(BgApiHeader *header,
-                                                         uint8_t *payload,
-                                                         const uint16_t payloadSize)
+  ErrorCode BgApiDriver::executePersistentStoreCallback(BgApiHeader *header,
+                                                        uint8_t *payload,
+                                                        const uint16_t payloadSize)
   {
     uint16_t result;
     uint8_t dataSize;
@@ -1371,9 +1360,9 @@ namespace Wf121::BgApi
    *
    * @return     The error code.
    */
-  ErrorCode BgApiDriver ::executeHttpServerCallback(BgApiHeader *header,
-                                                    uint8_t *payload,
-                                                    const uint16_t payloadSize)
+  ErrorCode BgApiDriver::executeHttpServerCallback(BgApiHeader *header,
+                                                   uint8_t *payload,
+                                                   const uint16_t payloadSize)
   {
     uint16_t result;
     uint32_t request;
@@ -1461,9 +1450,9 @@ namespace Wf121::BgApi
    *
    * @return     The error code.
    */
-  ErrorCode BgApiDriver ::executeDeviceFirmwareUpgradeCallback(BgApiHeader *header,
-                                                               uint8_t *payload,
-                                                               const uint16_t payloadSize)
+  ErrorCode BgApiDriver::executeDeviceFirmwareUpgradeCallback(BgApiHeader *header,
+                                                              uint8_t *payload,
+                                                              const uint16_t payloadSize)
   {
     // Process command reply
     if (header->bit.msgType == CMD_RSP_TYPE)
@@ -1499,9 +1488,9 @@ namespace Wf121::BgApi
    *
    * @return     The error code.
    */
-  ErrorCode BgApiDriver ::executeI2cCallback(BgApiHeader *header,
-                                             uint8_t *payload,
-                                             const uint16_t payloadSize)
+  ErrorCode BgApiDriver::executeI2cCallback(BgApiHeader *header,
+                                            uint8_t *payload,
+                                            const uint16_t payloadSize)
   {
     uint16_t result;
 
@@ -1557,7 +1546,7 @@ namespace Wf121::BgApi
    * @param payloadData Payload data itself.
    * @return     The error code.
    */
-  ErrorCode BgApiDriver ::processBgApiMessage(BgApiHeader *pHeader, uint16_t payloadSize, uint8_t *payloadData)
+  ErrorCode BgApiDriver::processBgApiMessage(BgApiHeader *pHeader, uint16_t payloadSize, uint8_t *payloadData)
   {
     ErrorCode err = NO_ERROR;
 
@@ -1619,7 +1608,7 @@ namespace Wf121::BgApi
    *
    * @return     The payload size from header.
    */
-  uint16_t BgApiDriver ::getPayloadSizeFromHeader(BgApiHeader *header)
+  uint16_t BgApiDriver::getPayloadSizeFromHeader(BgApiHeader *header)
   {
     return header->bit.lengthLow + (header->bit.lengthHigh << 8);
   }
@@ -1630,7 +1619,7 @@ namespace Wf121::BgApi
    * @param      header  The header
    * @param[in]  size    The size
    */
-  void BgApiDriver ::setHeaderPayloadSize(BgApiHeader *header, const uint16_t size)
+  void BgApiDriver::setHeaderPayloadSize(BgApiHeader *header, const uint16_t size)
   {
     header->bit.lengthLow = size & 0xFF;
     header->bit.lengthHigh = size >> 8 & 0x7;
@@ -1642,13 +1631,13 @@ namespace Wf121::BgApi
    * @return     If a command is processing then the function return true,
    *             otherwise it returns false.
    */
-  bool BgApiDriver ::CommandIsProcessing()
+  bool BgApiDriver::CommandIsProcessing()
   {
     return m_bgApiStatus.isProcessingCmd();
   }
 
-  ErrorCode BgApiDriver ::cb_EventEndpointSyntaxError(const uint16_t result,
-                                                      const Endpoint endpoint)
+  ErrorCode BgApiDriver::cb_EventEndpointSyntaxError(const uint16_t result,
+                                                     const Endpoint endpoint)
   {
     if (result != NO_ERROR)
     {

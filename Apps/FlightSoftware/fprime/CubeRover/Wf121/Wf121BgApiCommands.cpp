@@ -1,5 +1,10 @@
 #include "Wf121BgApi.hpp"
 
+// Implementation of all BGAPI commands.
+// NOTE: All BGAPI commands pack data into a given `BgApiCommBuffer` using
+// `packCommBuffer`but don't actually send the data (that's handled by an
+// interface task - i.e. `Wf121UdpTxTask`):
+
 namespace Wf121::BgApi
 {
        /**
@@ -8,7 +13,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::HelloSystem()
+       ErrorCode BgApiDriver::HelloSystem(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -18,7 +23,7 @@ namespace Wf121::BgApi
               txHeader.bit.classId = CLASS_SYSTEM;
               txHeader.bit.cmdId = 0x02;
 
-              return transmitCommand(&txHeader);
+              return packCommBuffer(targetCommBuffer, &txHeader);
        }
 
        /**
@@ -29,7 +34,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ResetSystemWifi(const BootMode bootMode)
+       ErrorCode BgApiDriver::ResetSystemWifi(BgApiCommBuffer *targetCommBuffer,
+                                              const BootMode bootMode)
        {
               BgApiHeader txHeader;
               uint8_t payload[1] /* size of boot mode */;
@@ -45,7 +51,7 @@ namespace Wf121::BgApi
               payload[0] = bootMode;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -68,7 +74,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetPowerSavingState(const PowerSavingState state)
+       ErrorCode BgApiDriver::SetPowerSavingState(BgApiCommBuffer *targetCommBuffer,
+                                                  const PowerSavingState state)
        {
               BgApiHeader txHeader;
               uint8_t payload[1] /* size of state */;
@@ -84,7 +91,7 @@ namespace Wf121::BgApi
               payload[0] = state;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -95,7 +102,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SyncSystem()
+       ErrorCode BgApiDriver::SyncSystem(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -107,7 +114,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x00; // power saving system command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -117,7 +124,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::GetMacAddress(const HardwareInterface interface)
+       ErrorCode BgApiDriver::GetMacAddress(BgApiCommBuffer *targetCommBuffer,
+                                            const HardwareInterface interface)
        {
               BgApiHeader txHeader;
               uint8_t payload[1] /* size of interface */;
@@ -133,7 +141,7 @@ namespace Wf121::BgApi
               payload[0] = interface;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -145,8 +153,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetMacAddress(const HardwareInterface interface,
-                                             const MacAddress mac)
+       ErrorCode BgApiDriver::SetMacAddress(BgApiCommBuffer *targetCommBuffer,
+                                            const HardwareInterface interface,
+                                            const MacAddress mac)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(HardwareInterface) + sizeof(MacAddress)];
@@ -163,7 +172,7 @@ namespace Wf121::BgApi
               memcpy(payload + sizeof(HardwareInterface), mac, sizeof(MacAddress));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -171,7 +180,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::TurnOnWifi()
+       ErrorCode BgApiDriver::TurnOnWifi(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -183,7 +192,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x00; // turn on wifi command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -191,7 +200,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::TurnOffWifi()
+       ErrorCode BgApiDriver::TurnOffWifi(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -203,7 +212,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x01; // turn off wifi command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -216,9 +225,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetScanChannels(const HardwareInterface interface,
-                                               ChannelList *list,
-                                               const ChannelListSize channelListSize)
+       ErrorCode BgApiDriver::SetScanChannels(BgApiCommBuffer *targetCommBuffer,
+                                              const HardwareInterface interface,
+                                              ChannelList *list,
+                                              const ChannelListSize channelListSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(HardwareInterface) + sizeof(ChannelListSize) + channelListSize];
@@ -238,7 +248,7 @@ namespace Wf121::BgApi
                      channelListSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -251,9 +261,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::StartScanChannels(const HardwareInterface interface,
-                                                 ChannelList *list,
-                                                 const ChannelListSize channelListSize)
+       ErrorCode BgApiDriver::StartScanChannels(BgApiCommBuffer *targetCommBuffer,
+                                                const HardwareInterface interface,
+                                                ChannelList *list,
+                                                const ChannelListSize channelListSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(HardwareInterface) + sizeof(ChannelListSize) + channelListSize];
@@ -273,7 +284,7 @@ namespace Wf121::BgApi
                      channelListSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -281,7 +292,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::StopScanChannels()
+       ErrorCode BgApiDriver::StopScanChannels(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -293,7 +304,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x04; // stop scan channel command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -309,7 +320,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ConnectBssid(const HardwareAddress bssid)
+       ErrorCode BgApiDriver::ConnectBssid(BgApiCommBuffer *targetCommBuffer,
+                                           const HardwareAddress bssid)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(HardwareAddress)];
@@ -325,7 +337,7 @@ namespace Wf121::BgApi
               memcpy(payload, bssid, sizeof(HardwareAddress));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -334,7 +346,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::Disconnect()
+       ErrorCode BgApiDriver::Disconnect(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -346,7 +358,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x08; // disconnect from AP command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -359,7 +371,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ScanResultsSortRssi(const uint8_t amount)
+       ErrorCode BgApiDriver::ScanResultsSortRssi(BgApiCommBuffer *targetCommBuffer,
+                                                  const uint8_t amount)
        {
               BgApiHeader txHeader;
               uint8_t payload[1];
@@ -375,7 +388,7 @@ namespace Wf121::BgApi
               payload[0] = amount;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -387,8 +400,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::StartSsidScan(const Ssid *ssid,
-                                             const SsidSize ssidSize)
+       ErrorCode BgApiDriver::StartSsidScan(BgApiCommBuffer *targetCommBuffer,
+                                            const Ssid *ssid,
+                                            const SsidSize ssidSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(SsidSize) + ssidSize];
@@ -408,7 +422,7 @@ namespace Wf121::BgApi
                      ssidSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -419,7 +433,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetApHidden(const bool hidden)
+       ErrorCode BgApiDriver::SetApHidden(BgApiCommBuffer *targetCommBuffer,
+                                          const bool hidden)
        {
               BgApiHeader txHeader;
               uint8_t payload[1] /* hidden */;
@@ -435,7 +450,7 @@ namespace Wf121::BgApi
               payload[0] = hidden;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -447,8 +462,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetPassword(const Password *pwd,
-                                           const PasswordSize pwdSize)
+       ErrorCode BgApiDriver::SetPassword(BgApiCommBuffer *targetCommBuffer,
+                                          const Password *pwd,
+                                          const PasswordSize pwdSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(PasswordSize) + pwdSize];
@@ -468,7 +484,7 @@ namespace Wf121::BgApi
                      pwdSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -490,8 +506,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ConnectSsid(const Ssid *ssid,
-                                           const SsidSize ssidSize)
+       ErrorCode BgApiDriver::ConnectSsid(BgApiCommBuffer *targetCommBuffer,
+                                          const Ssid *ssid,
+                                          const SsidSize ssidSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(SsidSize) + ssidSize];
@@ -511,7 +528,7 @@ namespace Wf121::BgApi
                      ssidSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -520,7 +537,7 @@ namespace Wf121::BgApi
         *
         * @return     The signal quality.
         */
-       ErrorCode BgApiDriver ::GetSignalQuality()
+       ErrorCode BgApiDriver::GetSignalQuality(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -532,7 +549,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x13; // get signal quality command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -542,7 +559,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::StartWps()
+       ErrorCode BgApiDriver::StartWps(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -554,7 +571,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x11; // start WPS command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -563,7 +580,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::StopWps()
+       ErrorCode BgApiDriver::StopWps(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -575,7 +592,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x12; // stop WPS command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -588,7 +605,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetOperatingMode(const OperatingMode mode)
+       ErrorCode BgApiDriver::SetOperatingMode(BgApiCommBuffer *targetCommBuffer,
+                                               const OperatingMode mode)
        {
               BgApiHeader txHeader;
               uint8_t payload[1] /* mode size */;
@@ -603,7 +621,7 @@ namespace Wf121::BgApi
               payload[0] = mode;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -614,7 +632,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::Set11nMode(const bool mode)
+       ErrorCode BgApiDriver::Set11nMode(BgApiCommBuffer *targetCommBuffer,
+                                         const bool mode)
        {
               BgApiHeader txHeader;
               uint8_t payload[1] /* mode size */;
@@ -629,7 +648,7 @@ namespace Wf121::BgApi
               payload[0] = mode;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -643,7 +662,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetApClientIsolation(const bool isolation)
+       ErrorCode BgApiDriver::SetApClientIsolation(BgApiCommBuffer *targetCommBuffer,
+                                                   const bool isolation)
        {
               BgApiHeader txHeader;
               uint8_t payload[1] /* mode size */;
@@ -658,7 +678,7 @@ namespace Wf121::BgApi
               payload[0] = isolation;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -669,7 +689,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetApMaxClient(const uint8_t maxClients)
+       ErrorCode BgApiDriver::SetApMaxClient(BgApiCommBuffer *targetCommBuffer,
+                                             const uint8_t maxClients)
        {
               BgApiHeader txHeader;
               uint8_t payload[1] /* maxClients size */;
@@ -684,7 +705,7 @@ namespace Wf121::BgApi
               payload[0] = maxClients;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -696,8 +717,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetApPassword(const Password *pwd,
-                                             const PasswordSize pwdSize)
+       ErrorCode BgApiDriver::SetApPassword(BgApiCommBuffer *targetCommBuffer,
+                                            const Password *pwd,
+                                            const PasswordSize pwdSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(PasswordSize) + pwdSize];
@@ -717,7 +739,7 @@ namespace Wf121::BgApi
                      pwdSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -730,10 +752,11 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::StartApMode(const Channel chan,
-                                           const SecurityMode sm,
-                                           const Ssid *ssid,
-                                           const SsidSize ssidSize)
+       ErrorCode BgApiDriver::StartApMode(BgApiCommBuffer *targetCommBuffer,
+                                          const Channel chan,
+                                          const SecurityMode sm,
+                                          const Ssid *ssid,
+                                          const SsidSize ssidSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(Channel) + 1 /*Security Mode */ + sizeof(SsidSize) + ssidSize];
@@ -755,7 +778,7 @@ namespace Wf121::BgApi
                      ssidSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -763,7 +786,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::StopApMode()
+       ErrorCode BgApiDriver::StopApMode(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -775,7 +798,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x0C; // stop AP mode
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -785,7 +808,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::DisconnectApClient(const HardwareAddress hwAddr)
+       ErrorCode BgApiDriver::DisconnectApClient(BgApiCommBuffer *targetCommBuffer,
+                                                 const HardwareAddress hwAddr)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(HardwareAddress)];
@@ -801,7 +825,7 @@ namespace Wf121::BgApi
               memcpy(payload, hwAddr, sizeof(HardwareAddress));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -824,10 +848,11 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ConfigureTcpIp(const IpAddress ip,
-                                              const Netmask mask,
-                                              const Gateway gateway,
-                                              const bool useDhcp)
+       ErrorCode BgApiDriver::ConfigureTcpIp(BgApiCommBuffer *targetCommBuffer,
+                                             const IpAddress ip,
+                                             const Netmask mask,
+                                             const Gateway gateway,
+                                             const bool useDhcp)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(IpAddress) + sizeof(Netmask) + sizeof(Gateway) + sizeof(bool)];
@@ -855,7 +880,7 @@ namespace Wf121::BgApi
                      sizeof(bool));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -867,8 +892,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetDhcpHostName(DhcpHostName *hostName,
-                                               const DhcpHostNameSize hostNameSize)
+       ErrorCode BgApiDriver::SetDhcpHostName(BgApiCommBuffer *targetCommBuffer,
+                                              DhcpHostName *hostName,
+                                              const DhcpHostNameSize hostNameSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(DhcpHostNameSize) + hostNameSize];
@@ -888,7 +914,7 @@ namespace Wf121::BgApi
                      hostNameSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -901,8 +927,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ConfigureDns(const DnsIndex index,
-                                            IpAddress *ip)
+       ErrorCode BgApiDriver::ConfigureDns(BgApiCommBuffer *targetCommBuffer,
+                                           const DnsIndex index,
+                                           IpAddress *ip)
        {
               BgApiHeader txHeader;
               uint8_t payload[1 /*DnsIndex */ + sizeof(IpAddress)];
@@ -922,7 +949,7 @@ namespace Wf121::BgApi
                      sizeof(IpAddress));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -936,8 +963,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code
         */
-       ErrorCode BgApiDriver ::GetDnsHostByName(DhcpHostName *name,
-                                                const DhcpHostNameSize size)
+       ErrorCode BgApiDriver::GetDnsHostByName(BgApiCommBuffer *targetCommBuffer,
+                                               DhcpHostName *name,
+                                               const DhcpHostNameSize size)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(DhcpHostNameSize) + size];
@@ -957,7 +985,7 @@ namespace Wf121::BgApi
                      size);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -970,8 +998,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetMdnsHostName(MdnsHostName *name,
-                                               const MdnsHostNameSize size)
+       ErrorCode BgApiDriver::SetMdnsHostName(BgApiCommBuffer *targetCommBuffer,
+                                              MdnsHostName *name,
+                                              const MdnsHostNameSize size)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(MdnsHostNameSize) + size];
@@ -991,7 +1020,7 @@ namespace Wf121::BgApi
                      size);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -999,7 +1028,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::StartMDns()
+       ErrorCode BgApiDriver::StartMDns(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -1011,7 +1040,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x0B; // start mdsn command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -1019,7 +1048,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::StopMDns()
+       ErrorCode BgApiDriver::StopMDns(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -1031,7 +1060,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x0C; // stop mdsn command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -1045,10 +1074,11 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::DnsSdAddService(const TcpPort port,
-                                               const Protocol protocol,
-                                               const ServiceName *serviceName,
-                                               const ServiceNameSize serviceNameSize)
+       ErrorCode BgApiDriver::DnsSdAddService(BgApiCommBuffer *targetCommBuffer,
+                                              const TcpPort port,
+                                              const Protocol protocol,
+                                              const ServiceName *serviceName,
+                                              const ServiceNameSize serviceNameSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(TcpPort) + 1 /* size of protocol */ + sizeof(ServiceNameSize) + serviceNameSize];
@@ -1078,7 +1108,7 @@ namespace Wf121::BgApi
                      serviceNameSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1092,9 +1122,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::DnsSdAddServiceInstance(const uint8_t index,
-                                                       const ServiceName *serviceName,
-                                                       const ServiceNameSize serviceNameSize)
+       ErrorCode BgApiDriver::DnsSdAddServiceInstance(BgApiCommBuffer *targetCommBuffer,
+                                                      const uint8_t index,
+                                                      const ServiceName *serviceName,
+                                                      const ServiceNameSize serviceNameSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[1 /* index */ + sizeof(ServiceNameSize) + serviceNameSize];
@@ -1118,7 +1149,7 @@ namespace Wf121::BgApi
                      serviceNameSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1131,9 +1162,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::DnsSdAddServiceAttribute(const uint8_t index,
-                                                        const ServiceAttribute *serviceAttribute,
-                                                        const ServiceAttributeSize serviceAttributeSize)
+       ErrorCode BgApiDriver::DnsSdAddServiceAttribute(BgApiCommBuffer *targetCommBuffer,
+                                                       const uint8_t index,
+                                                       const ServiceAttribute *serviceAttribute,
+                                                       const ServiceAttributeSize serviceAttributeSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[1 /* index */ + sizeof(ServiceAttribute) + serviceAttributeSize];
@@ -1157,7 +1189,7 @@ namespace Wf121::BgApi
                      serviceAttributeSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1167,7 +1199,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::DnsSdRemoveService(const uint8_t index)
+       ErrorCode BgApiDriver::DnsSdRemoveService(BgApiCommBuffer *targetCommBuffer,
+                                                 const uint8_t index)
        {
               BgApiHeader txHeader;
               uint8_t payload[1];
@@ -1183,7 +1216,7 @@ namespace Wf121::BgApi
               payload[0] = index;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1193,7 +1226,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::DnsSdStartService(const uint8_t index)
+       ErrorCode BgApiDriver::DnsSdStartService(BgApiCommBuffer *targetCommBuffer,
+                                                const uint8_t index)
        {
               BgApiHeader txHeader;
               uint8_t payload[1];
@@ -1209,7 +1243,7 @@ namespace Wf121::BgApi
               payload[0] = index;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1219,7 +1253,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::DnsSdStopService(const uint8_t index)
+       ErrorCode BgApiDriver::DnsSdStopService(BgApiCommBuffer *targetCommBuffer,
+                                               const uint8_t index)
        {
               BgApiHeader txHeader;
               uint8_t payload[1];
@@ -1235,7 +1270,7 @@ namespace Wf121::BgApi
               payload[0] = index;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1248,7 +1283,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::MulticastJoin(IpAddress *ip)
+       ErrorCode BgApiDriver::MulticastJoin(BgApiCommBuffer *targetCommBuffer,
+                                            IpAddress *ip)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(IpAddress)];
@@ -1266,7 +1302,7 @@ namespace Wf121::BgApi
                      sizeof(IpAddress));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1276,7 +1312,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::MulticastLeave(IpAddress *ip)
+       ErrorCode BgApiDriver::MulticastLeave(BgApiCommBuffer *targetCommBuffer,
+                                             IpAddress *ip)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(IpAddress)];
@@ -1294,7 +1331,7 @@ namespace Wf121::BgApi
                      sizeof(IpAddress));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1311,9 +1348,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::DhcpConfigure(IpAddress *ip,
-                                             Netmask *netmask,
-                                             const uint32_t leaseTime)
+       ErrorCode BgApiDriver::DhcpConfigure(BgApiCommBuffer *targetCommBuffer,
+                                            IpAddress *ip,
+                                            Netmask *netmask,
+                                            const uint32_t leaseTime)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(IpAddress) + sizeof(Netmask) + sizeof(leaseTime)];
@@ -1339,7 +1377,7 @@ namespace Wf121::BgApi
                      sizeof(leaseTime));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1348,7 +1386,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::DhcpClients()
+       ErrorCode BgApiDriver::DhcpClients(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -1360,7 +1398,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x16; // dhcp clients command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -1377,9 +1415,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::TcpConnect(IpAddress *ip,
-                                          const TcpPort port,
-                                          const int8_t routing)
+       ErrorCode BgApiDriver::TcpConnect(BgApiCommBuffer *targetCommBuffer,
+                                         IpAddress *ip,
+                                         const TcpPort port,
+                                         const int8_t routing)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(IpAddress) + sizeof(TcpPort) + sizeof(routing)];
@@ -1403,7 +1442,7 @@ namespace Wf121::BgApi
               payload[sizeof(IpAddress) + sizeof(TcpPort)] = routing;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1426,8 +1465,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::StartTcpServer(const TcpPort port,
-                                              const int8_t defaultDestination)
+       ErrorCode BgApiDriver::StartTcpServer(BgApiCommBuffer *targetCommBuffer,
+                                             const TcpPort port,
+                                             const int8_t defaultDestination)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(TcpPort) + sizeof(defaultDestination)];
@@ -1447,7 +1487,7 @@ namespace Wf121::BgApi
               payload[sizeof(TcpPort)] = defaultDestination;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1465,9 +1505,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::UdpConnect(IpAddress *ip,
-                                          const UdpPort port,
-                                          const int8_t routing)
+       ErrorCode BgApiDriver::UdpConnect(BgApiCommBuffer *targetCommBuffer,
+                                         IpAddress *ip,
+                                         const UdpPort port,
+                                         const int8_t routing)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(IpAddress) + sizeof(UdpPort) + sizeof(routing)];
@@ -1491,7 +1532,7 @@ namespace Wf121::BgApi
               payload[sizeof(IpAddress) + sizeof(UdpPort)] = routing;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1506,8 +1547,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::UdpBind(const Endpoint endpoint,
-                                       const UdpPort port)
+       ErrorCode BgApiDriver::UdpBind(BgApiCommBuffer *targetCommBuffer,
+                                      const Endpoint endpoint,
+                                      const UdpPort port)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(Endpoint) + sizeof(UdpPort)];
@@ -1527,7 +1569,7 @@ namespace Wf121::BgApi
                      sizeof(UdpPort));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1542,8 +1584,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::StartUdpServer(const UdpPort port,
-                                              const int8_t defaultDestination)
+       ErrorCode BgApiDriver::StartUdpServer(BgApiCommBuffer *targetCommBuffer,
+                                             const UdpPort port,
+                                             const int8_t defaultDestination)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(UdpPort) + sizeof(defaultDestination)];
@@ -1563,7 +1606,7 @@ namespace Wf121::BgApi
               payload[sizeof(UdpPort)] = defaultDestination;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1575,7 +1618,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::DhcpEnableRouting(const bool enable)
+       ErrorCode BgApiDriver::DhcpEnableRouting(BgApiCommBuffer *targetCommBuffer,
+                                                const bool enable)
        {
               BgApiHeader txHeader;
               uint8_t payload[1 /* enable */];
@@ -1591,7 +1635,7 @@ namespace Wf121::BgApi
               payload[0] = enable;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1612,8 +1656,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetActiveEndpoint(const Endpoint endpoint,
-                                                 const bool endpointStatus)
+       ErrorCode BgApiDriver::SetActiveEndpoint(BgApiCommBuffer *targetCommBuffer,
+                                                const Endpoint endpoint,
+                                                const bool endpointStatus)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(Endpoint) + 1 /* endpointStatus */];
@@ -1633,7 +1678,7 @@ namespace Wf121::BgApi
               payload[sizeof(Endpoint)] = endpointStatus;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1645,9 +1690,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SendEndpoint(const Endpoint endpoint,
-                                            uint8_t *data,
-                                            const DataSize8 dataSize)
+       ErrorCode BgApiDriver::SendEndpoint(BgApiCommBuffer *targetCommBuffer,
+                                           const Endpoint endpoint,
+                                           uint8_t *data,
+                                           const DataSize8 dataSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(Endpoint) + sizeof(DataSize8) + dataSize];
@@ -1673,7 +1719,7 @@ namespace Wf121::BgApi
                      dataSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1694,8 +1740,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetTransmitSize(const Endpoint endpoint,
-                                               const uint16_t transmitSize)
+       ErrorCode BgApiDriver::SetTransmitSize(BgApiCommBuffer *targetCommBuffer,
+                                              const Endpoint endpoint,
+                                              const uint16_t transmitSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(Endpoint) + sizeof(transmitSize)];
@@ -1717,7 +1764,7 @@ namespace Wf121::BgApi
                      sizeof(transmitSize));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1733,8 +1780,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetStreaming(const Endpoint endpoint,
-                                            const Streaming streaming)
+       ErrorCode BgApiDriver::SetStreaming(BgApiCommBuffer *targetCommBuffer,
+                                           const Endpoint endpoint,
+                                           const Streaming streaming)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(Endpoint) + sizeof(streaming)];
@@ -1754,7 +1802,7 @@ namespace Wf121::BgApi
               payload[sizeof(Endpoint)] = streaming;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1765,8 +1813,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetStreamingDestination(const Endpoint endpoint,
-                                                       const StreamingDestination dest)
+       ErrorCode BgApiDriver::SetStreamingDestination(BgApiCommBuffer *targetCommBuffer,
+                                                      const Endpoint endpoint,
+                                                      const StreamingDestination dest)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(Endpoint) + sizeof(StreamingDestination)];
@@ -1788,7 +1837,7 @@ namespace Wf121::BgApi
                      sizeof(StreamingDestination));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1799,7 +1848,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::CloseEndpoint(const Endpoint endpoint)
+       ErrorCode BgApiDriver::CloseEndpoint(BgApiCommBuffer *targetCommBuffer,
+                                            const Endpoint endpoint)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(Endpoint)];
@@ -1817,7 +1867,7 @@ namespace Wf121::BgApi
                      sizeof(Endpoint));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1830,7 +1880,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::DisableEndpoint(const Endpoint endpoint)
+       ErrorCode BgApiDriver::DisableEndpoint(BgApiCommBuffer *targetCommBuffer,
+                                              const Endpoint endpoint)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(Endpoint)];
@@ -1848,7 +1899,7 @@ namespace Wf121::BgApi
                      sizeof(Endpoint));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1863,9 +1914,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetSoftTimer(const TimeMs timeMs,
-                                            const HandleTimer handle,
-                                            const bool singleShot)
+       ErrorCode BgApiDriver::SetSoftTimer(BgApiCommBuffer *targetCommBuffer,
+                                           const TimeMs timeMs,
+                                           const HandleTimer handle,
+                                           const bool singleShot)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(TimeMs) + sizeof(HandleTimer) + 1 /* singleshot */];
@@ -1889,7 +1941,7 @@ namespace Wf121::BgApi
               payload[sizeof(TimeMs) + sizeof(HandleTimer)] = singleShot;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1918,8 +1970,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ConfigureExternalInterrupt(const InterruptMask enable,
-                                                          const InterruptMask polarity)
+       ErrorCode BgApiDriver::ConfigureExternalInterrupt(BgApiCommBuffer *targetCommBuffer,
+                                                         const InterruptMask enable,
+                                                         const InterruptMask polarity)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(InterruptMask) + sizeof(InterruptMask)];
@@ -1936,7 +1989,7 @@ namespace Wf121::BgApi
               payload[1] = polarity;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1954,7 +2007,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ConfigureChangeNotification(const uint32_t enable)
+       ErrorCode BgApiDriver::ConfigureChangeNotification(BgApiCommBuffer *targetCommBuffer,
+                                                          const uint32_t enable)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(enable)];
@@ -1972,7 +2026,7 @@ namespace Wf121::BgApi
                      sizeof(enable));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -1985,7 +2039,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ChangeNotificationPullup(const uint32_t pullup)
+       ErrorCode BgApiDriver::ChangeNotificationPullup(BgApiCommBuffer *targetCommBuffer,
+                                                       const uint32_t pullup)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(pullup)];
@@ -2003,7 +2058,7 @@ namespace Wf121::BgApi
                      sizeof(pullup));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2018,9 +2073,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ConfigureIoPortDirection(const Wf121IoPort port,
-                                                        const uint16_t bitMask,
-                                                        const uint16_t bitDirection)
+       ErrorCode BgApiDriver::ConfigureIoPortDirection(BgApiCommBuffer *targetCommBuffer,
+                                                       const Wf121IoPort port,
+                                                       const uint16_t bitMask,
+                                                       const uint16_t bitDirection)
        {
               BgApiHeader txHeader;
               uint8_t payload[1 /* port */ + sizeof(bitMask) + sizeof(bitDirection)];
@@ -2044,7 +2100,7 @@ namespace Wf121::BgApi
                      sizeof(bitDirection));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2061,9 +2117,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ConfigureIoOpenDrain(const Wf121IoPort port,
-                                                    const uint16_t bitMask,
-                                                    const uint16_t openDrain)
+       ErrorCode BgApiDriver::ConfigureIoOpenDrain(BgApiCommBuffer *targetCommBuffer,
+                                                   const Wf121IoPort port,
+                                                   const uint16_t bitMask,
+                                                   const uint16_t openDrain)
        {
               BgApiHeader txHeader;
               uint8_t payload[1 /* port */ + sizeof(bitMask) + sizeof(openDrain)];
@@ -2087,7 +2144,7 @@ namespace Wf121::BgApi
                      sizeof(openDrain));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2102,9 +2159,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::WriteIoPort(const Wf121IoPort port,
-                                           const uint16_t bitMask,
-                                           const uint16_t val)
+       ErrorCode BgApiDriver::WriteIoPort(BgApiCommBuffer *targetCommBuffer,
+                                          const Wf121IoPort port,
+                                          const uint16_t bitMask,
+                                          const uint16_t val)
        {
               BgApiHeader txHeader;
               uint8_t payload[1 /* port */ + sizeof(bitMask) + sizeof(val)];
@@ -2128,7 +2186,7 @@ namespace Wf121::BgApi
                      sizeof(val));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2141,8 +2199,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ReadIoPort(const Wf121IoPort port,
-                                          const uint16_t bitMask)
+       ErrorCode BgApiDriver::ReadIoPort(BgApiCommBuffer *targetCommBuffer,
+                                         const Wf121IoPort port,
+                                         const uint16_t bitMask)
        {
               BgApiHeader txHeader;
               uint8_t payload[1 /* port */ + sizeof(bitMask)];
@@ -2162,7 +2221,7 @@ namespace Wf121::BgApi
                      sizeof(bitMask));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2195,11 +2254,12 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::OutputCompare(const CompareModuleIndex index,
-                                             const bool bit32,
-                                             const CompareModuleTimer timer,
-                                             const CompareModuleMode mode,
-                                             const uint32_t compareValue)
+       ErrorCode BgApiDriver::OutputCompare(BgApiCommBuffer *targetCommBuffer,
+                                            const CompareModuleIndex index,
+                                            const bool bit32,
+                                            const CompareModuleTimer timer,
+                                            const CompareModuleMode mode,
+                                            const uint32_t compareValue)
        {
               BgApiHeader txHeader;
               uint8_t payload[1 /* index */ + sizeof(bit32) + 1 /* timer */ + 1 /* mode */ + sizeof(compareValue)];
@@ -2222,7 +2282,7 @@ namespace Wf121::BgApi
                      sizeof(compareValue));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2235,7 +2295,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::AdcRead(const uint8_t adcInput)
+       ErrorCode BgApiDriver::AdcRead(BgApiCommBuffer *targetCommBuffer,
+                                      const uint8_t adcInput)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(adcInput)];
@@ -2251,7 +2312,7 @@ namespace Wf121::BgApi
               payload[0] = adcInput;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2262,8 +2323,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::RtcInit(const bool enable,
-                                       const int16_t drift)
+       ErrorCode BgApiDriver::RtcInit(BgApiCommBuffer *targetCommBuffer,
+                                      const bool enable,
+                                      const int16_t drift)
        {
               BgApiHeader txHeader;
               uint8_t payload[1 /*enable */ + sizeof(drift)];
@@ -2283,7 +2345,7 @@ namespace Wf121::BgApi
                      sizeof(drift));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2300,13 +2362,14 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::RtcSetTime(const int16_t year,
-                                          const int8_t month,
-                                          const int8_t day,
-                                          const int8_t weekday,
-                                          const int8_t hour,
-                                          const int8_t minute,
-                                          const int8_t second)
+       ErrorCode BgApiDriver::RtcSetTime(BgApiCommBuffer *targetCommBuffer,
+                                         const int16_t year,
+                                         const int8_t month,
+                                         const int8_t day,
+                                         const int8_t weekday,
+                                         const int8_t hour,
+                                         const int8_t minute,
+                                         const int8_t second)
        {
               BgApiHeader txHeader;
               uint8_t payload[2 /*year */ + 6 /* month..seconds */];
@@ -2331,7 +2394,7 @@ namespace Wf121::BgApi
               payload[7] = second;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2339,7 +2402,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::RtcGetTime()
+       ErrorCode BgApiDriver::RtcGetTime(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -2351,7 +2414,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x0C; // RTC get time command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -2370,15 +2433,16 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::RtcSetAlarm(const int16_t year,
-                                           const int8_t month,
-                                           const int8_t day,
-                                           const int8_t weekday,
-                                           const int8_t hour,
-                                           const int8_t minute,
-                                           const int8_t second,
-                                           const uint8_t repeatMask,
-                                           const uint16_t repeatCount)
+       ErrorCode BgApiDriver::RtcSetAlarm(BgApiCommBuffer *targetCommBuffer,
+                                          const int16_t year,
+                                          const int8_t month,
+                                          const int8_t day,
+                                          const int8_t weekday,
+                                          const int8_t hour,
+                                          const int8_t minute,
+                                          const int8_t second,
+                                          const uint8_t repeatMask,
+                                          const uint16_t repeatCount)
        {
               BgApiHeader txHeader;
               uint8_t payload[2 /*year */ + 6 /* month..seconds */ + 3 /* repeat mask & count */];
@@ -2408,7 +2472,7 @@ namespace Wf121::BgApi
                      sizeof(repeatCount));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2423,12 +2487,13 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ConfigureUart(const uint8_t uartId,
-                                             const uint32_t baudrate,
-                                             const UartDataBit format,
-                                             const UartStopBit stop,
-                                             const UartParity parity,
-                                             const UartFlowCtl flowCtl)
+       ErrorCode BgApiDriver::ConfigureUart(BgApiCommBuffer *targetCommBuffer,
+                                            const uint8_t uartId,
+                                            const uint32_t baudrate,
+                                            const UartDataBit format,
+                                            const UartStopBit stop,
+                                            const UartParity parity,
+                                            const UartFlowCtl flowCtl)
        {
               BgApiHeader txHeader;
               uint8_t payload[1 /* uartId */ + 4 /* baudrate */ + 4 /* uart data bit .. flow ctl */];
@@ -2453,7 +2518,7 @@ namespace Wf121::BgApi
               payload[8] = flowCtl;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2464,7 +2529,8 @@ namespace Wf121::BgApi
         *
         * @return     The hardware configuration.
         */
-       ErrorCode BgApiDriver ::GetHardwareConfiguration(const uint8_t uartId)
+       ErrorCode BgApiDriver::GetHardwareConfiguration(BgApiCommBuffer *targetCommBuffer,
+                                                       const uint8_t uartId)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(uartId)];
@@ -2480,7 +2546,7 @@ namespace Wf121::BgApi
               payload[0] = uartId;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2493,9 +2559,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::I2cStartRead(const uint8_t endpoint,
-                                            const uint16_t slaveAddress,
-                                            const uint8_t length)
+       ErrorCode BgApiDriver::I2cStartRead(BgApiCommBuffer *targetCommBuffer,
+                                           const uint8_t endpoint,
+                                           const uint16_t slaveAddress,
+                                           const uint8_t length)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(endpoint) + sizeof(slaveAddress) + sizeof(length)];
@@ -2517,7 +2584,7 @@ namespace Wf121::BgApi
               payload[3] = length;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2529,8 +2596,9 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::I2cStartwrite(const uint8_t endpoint,
-                                             const uint16_t slaveAddress)
+       ErrorCode BgApiDriver::I2cStartwrite(BgApiCommBuffer *targetCommBuffer,
+                                            const uint8_t endpoint,
+                                            const uint16_t slaveAddress)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(endpoint) + sizeof(slaveAddress)];
@@ -2550,7 +2618,7 @@ namespace Wf121::BgApi
                      sizeof(slaveAddress));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2560,7 +2628,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::I2cStop(const uint8_t endpoint)
+       ErrorCode BgApiDriver::I2cStop(BgApiCommBuffer *targetCommBuffer,
+                                      const uint8_t endpoint)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(endpoint)];
@@ -2576,7 +2645,7 @@ namespace Wf121::BgApi
               payload[0] = endpoint;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2601,7 +2670,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SetDataRoute(const WiredEthernetRoute route)
+       ErrorCode BgApiDriver::SetDataRoute(BgApiCommBuffer *targetCommBuffer,
+                                           const WiredEthernetRoute route)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(WiredEthernetRoute)];
@@ -2617,7 +2687,7 @@ namespace Wf121::BgApi
               payload[0] = route;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2625,7 +2695,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::CloseRoute()
+       ErrorCode BgApiDriver::CloseRoute(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -2637,7 +2707,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x01; // close route command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -2645,7 +2715,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::Connected()
+       ErrorCode BgApiDriver::Connected(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -2657,7 +2727,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x02; // connected command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -2672,9 +2742,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::EnableServers(const bool https,
-                                             const bool dhcps,
-                                             const bool dnss)
+       ErrorCode BgApiDriver::EnableServers(BgApiCommBuffer *targetCommBuffer,
+                                            const bool https,
+                                            const bool dhcps,
+                                            const bool dnss)
        {
               BgApiHeader txHeader;
               uint8_t payload[3 /* https + dhcps + dnss */];
@@ -2691,7 +2762,7 @@ namespace Wf121::BgApi
               payload[2] = dnss;
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2706,9 +2777,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::AddServerPath(const uint8_t device,
-                                             ServerPath *path,
-                                             const ServerPathSize pathSize)
+       ErrorCode BgApiDriver::AddServerPath(BgApiCommBuffer *targetCommBuffer,
+                                            const uint8_t device,
+                                            ServerPath *path,
+                                            const ServerPathSize pathSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(device) + sizeof(ServerPathSize) + pathSize];
@@ -2729,7 +2801,7 @@ namespace Wf121::BgApi
                      pathSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2742,9 +2814,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ApiResponse(const uint32_t request,
-                                           HttpResponseData *data,
-                                           const HttpResponseDataSize dataSize)
+       ErrorCode BgApiDriver::ApiResponse(BgApiCommBuffer *targetCommBuffer,
+                                          const uint32_t request,
+                                          HttpResponseData *data,
+                                          const HttpResponseDataSize dataSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(request) + dataSize + sizeof(HttpResponseDataSize)];
@@ -2770,7 +2843,7 @@ namespace Wf121::BgApi
                      dataSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2781,7 +2854,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ApiResponseFinish(const uint32_t request)
+       ErrorCode BgApiDriver::ApiResponseFinish(BgApiCommBuffer *targetCommBuffer,
+                                                const uint32_t request)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(request)];
@@ -2799,7 +2873,7 @@ namespace Wf121::BgApi
                      sizeof(request));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2809,7 +2883,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::DefragPersistentStore()
+       ErrorCode BgApiDriver::DefragPersistentStore(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -2821,7 +2895,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x01; // ps defrag command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -2830,7 +2904,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::EraseAllPersistentStore()
+       ErrorCode BgApiDriver::EraseAllPersistentStore(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -2842,7 +2916,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x02; // erase all command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -2855,9 +2929,10 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::SavePersistentStore(const uint16_t key,
-                                                   KeyValue *keyVal,
-                                                   const KeyValueSize keyValSize)
+       ErrorCode BgApiDriver::SavePersistentStore(BgApiCommBuffer *targetCommBuffer,
+                                                  const uint16_t key,
+                                                  KeyValue *keyVal,
+                                                  const KeyValueSize keyValSize)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(key) + sizeof(KeyValueSize) + keyValSize];
@@ -2883,7 +2958,7 @@ namespace Wf121::BgApi
                      keyValSize);
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2894,7 +2969,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::LoadPersistentStore(const uint16_t key)
+       ErrorCode BgApiDriver::LoadPersistentStore(BgApiCommBuffer *targetCommBuffer,
+                                                  const uint16_t key)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(key)];
@@ -2912,7 +2988,7 @@ namespace Wf121::BgApi
                      sizeof(key));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 
        /**
@@ -2924,7 +3000,7 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::DumpPersistentStore()
+       ErrorCode BgApiDriver::DumpPersistentStore(BgApiCommBuffer *targetCommBuffer)
        {
               BgApiHeader txHeader;
 
@@ -2936,7 +3012,7 @@ namespace Wf121::BgApi
               txHeader.bit.cmdId = 0x01; // ps dump command
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, (unsigned char *)NULL);
+              return packCommBuffer(targetCommBuffer, &txHeader, (unsigned char *)NULL);
        }
 
        /**
@@ -2947,7 +3023,8 @@ namespace Wf121::BgApi
         *
         * @return     The error code.
         */
-       ErrorCode BgApiDriver ::ErasePersistentStore(const uint16_t key)
+       ErrorCode BgApiDriver::ErasePersistentStore(BgApiCommBuffer *targetCommBuffer,
+                                                   const uint16_t key)
        {
               BgApiHeader txHeader;
               uint8_t payload[sizeof(key)];
@@ -2965,6 +3042,6 @@ namespace Wf121::BgApi
                      sizeof(key));
 
               // transmit a command, an event is expected in  return
-              return transmitCommand(&txHeader, payload);
+              return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
 }

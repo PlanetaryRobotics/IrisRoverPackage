@@ -33,11 +33,29 @@ static const uint32_t BGAPI_CMD_PROCESSING_TIMEOUT_MS = 2000; // Give the Radio 
 
 namespace Wf121::BgApi
 {
+
+  // *WF121 BGAPI Message Info:*
+  // Maximum size of a BGAPI packet that could be sent by the WF121:
+  const uint16_t MAX_PACKET_SIZE = 2052;
+
+  // Simple struct for containing raw BgApi packet data (NOTE: length isn't
+  // read from header b/c this accounts for the possibility that the header
+  // data could be corrupted so has a separate field for bytes to be sent /
+  // that were read):
+  struct BgApiCommBuffer
+  {
+    // Number of bytes in the comm buffer (i.e. number of bytes read / to be
+    // sent):
+    uint16_t dataLen;
+    // Actual raw data:
+    uint8_t rawData[BgApi::MAX_PACKET_SIZE] __attribute__((aligned(8))); // align to 8B for more efficient DMA send
+  };
+
   // Simple mutex-protected container of data about BgApi-specific processing:
   class BgApiStatus
   {
   public:
-    BgApiStatus() : processingCmd(false)
+    BgApiStatus() : processingCmd(false), processingStartTimeMs(0)
     {
       // nothing else to do
     }
@@ -52,13 +70,16 @@ namespace Wf121::BgApi
       // we're good now.
 
       bool state;
+      // Do all the computation to get the time first (minimize mutex lock time):
       uint32_t now = static_cast<uint32_t>(getTime().get_time_ms());
-      // (Do all of the logic in the mutex critical section):
+
+      // But do all of the logic in the mutex critical section so it's grouped):
       this->mutex.lock();
       {
         if (this->processingCmd && (now - this->processingStartTimeMs) > BGAPI_CMD_PROCESSING_TIMEOUT_MS)
         {
-          // took (way) too long to respond, just assume it finished:
+          // took (way) too long to respond, just assume it finished
+          // (or, at least, the Radio won't care if we send another command)
           this->processingCmd = false;
         }
         state = this->processingCmd;
@@ -483,143 +504,202 @@ namespace Wf121::BgApi
 
     // List of commands
     // System class commands
-    ErrorCode HelloSystem();
-    ErrorCode ResetSystemWifi(const BootMode bootMode);
-    ErrorCode SetPowerSavingState(const PowerSavingState state);
-    ErrorCode SyncSystem();
+    ErrorCode HelloSystem(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode ResetSystemWifi(BgApiCommBuffer *targetCommBuffer,
+                              const BootMode bootMode);
+    ErrorCode SetPowerSavingState(BgApiCommBuffer *targetCommBuffer,
+                                  const PowerSavingState state);
+    ErrorCode SyncSystem(BgApiCommBuffer *targetCommBuffer);
 
     // Configuration wi-fi commands
-    ErrorCode GetMacAddress(const HardwareInterface interface);
-    ErrorCode SetMacAddress(const HardwareInterface interface,
+    ErrorCode GetMacAddress(BgApiCommBuffer *targetCommBuffer,
+                            const HardwareInterface interface);
+    ErrorCode SetMacAddress(BgApiCommBuffer *targetCommBuffer,
+                            const HardwareInterface interface,
                             const MacAddress mac);
-    ErrorCode TurnOnWifi();
-    ErrorCode TurnOffWifi();
-    ErrorCode SetScanChannels(const HardwareInterface interface,
+    ErrorCode TurnOnWifi(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode TurnOffWifi(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode SetScanChannels(BgApiCommBuffer *targetCommBuffer,
+                              const HardwareInterface interface,
                               ChannelList *list,
                               const ChannelListSize channelListSize);
-    ErrorCode StartScanChannels(const HardwareInterface interface,
+    ErrorCode StartScanChannels(BgApiCommBuffer *targetCommBuffer,
+                                const HardwareInterface interface,
                                 ChannelList *list,
                                 const ChannelListSize channelListSize);
-    ErrorCode StopScanChannels();
-    ErrorCode ConnectBssid(const HardwareAddress bssid);
-    ErrorCode Disconnect();
-    ErrorCode ScanResultsSortRssi(const uint8_t amount);
-    ErrorCode StartSsidScan(const Ssid *ssid,
+    ErrorCode StopScanChannels(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode ConnectBssid(BgApiCommBuffer *targetCommBuffer,
+                           const HardwareAddress bssid);
+    ErrorCode Disconnect(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode ScanResultsSortRssi(BgApiCommBuffer *targetCommBuffer,
+                                  const uint8_t amount);
+    ErrorCode StartSsidScan(BgApiCommBuffer *targetCommBuffer,
+                            const Ssid *ssid,
                             const SsidSize ssidSize);
-    ErrorCode SetApHidden(const bool hidden);
-    ErrorCode SetPassword(const Password *pwd,
+    ErrorCode SetApHidden(BgApiCommBuffer *targetCommBuffer,
+                          const bool hidden);
+    ErrorCode SetPassword(BgApiCommBuffer *targetCommBuffer,
+                          const Password *pwd,
                           const PasswordSize pwdSize);
-    ErrorCode ConnectSsid(const Ssid *ssid,
+    ErrorCode ConnectSsid(BgApiCommBuffer *targetCommBuffer,
+                          const Ssid *ssid,
                           const SsidSize ssidSize);
-    ErrorCode GetSignalQuality();
-    ErrorCode StartWps();
-    ErrorCode StopWps();
-    ErrorCode SetOperatingMode(const OperatingMode mode);
-    ErrorCode Set11nMode(const bool mode);
-    ErrorCode SetApClientIsolation(const bool isolation);
-    ErrorCode SetApMaxClient(const uint8_t maxClients);
-    ErrorCode SetApPassword(const Password *pwd,
+    ErrorCode GetSignalQuality(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode StartWps(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode StopWps(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode SetOperatingMode(BgApiCommBuffer *targetCommBuffer,
+                               const OperatingMode mode);
+    ErrorCode Set11nMode(BgApiCommBuffer *targetCommBuffer,
+                         const bool mode);
+    ErrorCode SetApClientIsolation(BgApiCommBuffer *targetCommBuffer,
+                                   const bool isolation);
+    ErrorCode SetApMaxClient(BgApiCommBuffer *targetCommBuffer,
+                             const uint8_t maxClients);
+    ErrorCode SetApPassword(BgApiCommBuffer *targetCommBuffer,
+                            const Password *pwd,
                             const PasswordSize pwdSize);
-    ErrorCode StartApMode(const Channel chan,
+    ErrorCode StartApMode(BgApiCommBuffer *targetCommBuffer,
+                          const Channel chan,
                           const SecurityMode sm,
                           const Ssid *ssid,
                           const SsidSize ssidSize);
-    ErrorCode StopApMode();
-    ErrorCode DisconnectApClient(const HardwareAddress hwAddr);
-    ErrorCode ConfigureTcpIp(const IpAddress ip,
+    ErrorCode StopApMode(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode DisconnectApClient(BgApiCommBuffer *targetCommBuffer,
+                                 const HardwareAddress hwAddr);
+    ErrorCode ConfigureTcpIp(BgApiCommBuffer *targetCommBuffer,
+                             const IpAddress ip,
                              const Netmask mask,
                              const Gateway gateway,
                              const bool useDhcp);
-    ErrorCode SetDhcpHostName(DhcpHostName *hostName,
+    ErrorCode SetDhcpHostName(BgApiCommBuffer *targetCommBuffer,
+                              DhcpHostName *hostName,
                               const DhcpHostNameSize hostNameSize);
-    ErrorCode ConfigureDns(const DnsIndex index,
+    ErrorCode ConfigureDns(BgApiCommBuffer *targetCommBuffer,
+                           const DnsIndex index,
                            IpAddress *ip);
-    ErrorCode GetDnsHostByName(DhcpHostName *name,
+    ErrorCode GetDnsHostByName(BgApiCommBuffer *targetCommBuffer,
+                               DhcpHostName *name,
                                const DhcpHostNameSize size);
-    ErrorCode SetMdnsHostName(MdnsHostName *name,
+    ErrorCode SetMdnsHostName(BgApiCommBuffer *targetCommBuffer,
+                              MdnsHostName *name,
                               const MdnsHostNameSize size);
-    ErrorCode StartMDns();
-    ErrorCode StopMDns();
-    ErrorCode DnsSdAddService(const TcpPort port,
+    ErrorCode StartMDns(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode StopMDns(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode DnsSdAddService(BgApiCommBuffer *targetCommBuffer,
+                              const TcpPort port,
                               const Protocol protocol,
                               const ServiceName *serviceName,
                               const ServiceNameSize serviceNameSize);
-    ErrorCode DnsSdAddServiceInstance(const uint8_t index,
+    ErrorCode DnsSdAddServiceInstance(BgApiCommBuffer *targetCommBuffer,
+                                      const uint8_t index,
                                       const ServiceName *serviceName,
                                       const ServiceNameSize serviceNameSize);
-    ErrorCode DnsSdAddServiceAttribute(const uint8_t index,
+    ErrorCode DnsSdAddServiceAttribute(BgApiCommBuffer *targetCommBuffer,
+                                       const uint8_t index,
                                        const ServiceAttribute *serviceAttribute,
                                        const ServiceAttributeSize serviceAttributeSize);
-    ErrorCode DnsSdRemoveService(const uint8_t index);
-    ErrorCode DnsSdStartService(const uint8_t index);
-    ErrorCode DnsSdStopService(const uint8_t index);
-    ErrorCode MulticastJoin(IpAddress *ip);
-    ErrorCode MulticastLeave(IpAddress *ip);
-    ErrorCode DhcpConfigure(IpAddress *ip,
+    ErrorCode DnsSdRemoveService(BgApiCommBuffer *targetCommBuffer,
+                                 const uint8_t index);
+    ErrorCode DnsSdStartService(BgApiCommBuffer *targetCommBuffer,
+                                const uint8_t index);
+    ErrorCode DnsSdStopService(BgApiCommBuffer *targetCommBuffer,
+                               const uint8_t index);
+    ErrorCode MulticastJoin(BgApiCommBuffer *targetCommBuffer,
+                            IpAddress *ip);
+    ErrorCode MulticastLeave(BgApiCommBuffer *targetCommBuffer,
+                             IpAddress *ip);
+    ErrorCode DhcpConfigure(BgApiCommBuffer *targetCommBuffer,
+                            IpAddress *ip,
                             Netmask *netmask,
                             const uint32_t leaseTime);
-    ErrorCode DhcpClients();
-    ErrorCode TcpConnect(IpAddress *ip,
+    ErrorCode DhcpClients(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode TcpConnect(BgApiCommBuffer *targetCommBuffer,
+                         IpAddress *ip,
                          const TcpPort port,
                          const int8_t routing);
-    ErrorCode StartTcpServer(const TcpPort port,
+    ErrorCode StartTcpServer(BgApiCommBuffer *targetCommBuffer,
+                             const TcpPort port,
                              const int8_t defaultDestination);
-    ErrorCode UdpConnect(IpAddress *ip,
+    ErrorCode UdpConnect(BgApiCommBuffer *targetCommBuffer,
+                         IpAddress *ip,
                          const UdpPort port,
                          const int8_t routing);
-    ErrorCode UdpBind(const Endpoint endpoint,
+    ErrorCode UdpBind(BgApiCommBuffer *targetCommBuffer,
+                      const Endpoint endpoint,
                       const UdpPort port);
-    ErrorCode StartUdpServer(const UdpPort port,
+    ErrorCode StartUdpServer(BgApiCommBuffer *targetCommBuffer,
+                             const UdpPort port,
                              const int8_t defaultDestination);
-    ErrorCode DhcpEnableRouting(const bool enable);
-    ErrorCode SetActiveEndpoint(const Endpoint endpoint,
+    ErrorCode DhcpEnableRouting(BgApiCommBuffer *targetCommBuffer,
+                                const bool enable);
+    ErrorCode SetActiveEndpoint(BgApiCommBuffer *targetCommBuffer,
+                                const Endpoint endpoint,
                                 const bool endpointStatus);
-    ErrorCode SendEndpoint(const Endpoint endpoint,
+    ErrorCode SendEndpoint(BgApiCommBuffer *targetCommBuffer,
+                           const Endpoint endpoint,
                            uint8_t *data,
                            const DataSize8 dataSize);
-    ErrorCode SetTransmitSize(const Endpoint endpoint,
+    ErrorCode SetTransmitSize(BgApiCommBuffer *targetCommBuffer,
+                              const Endpoint endpoint,
                               const uint16_t transmitSize);
-    ErrorCode SetStreaming(const Endpoint endpoint,
+    ErrorCode SetStreaming(BgApiCommBuffer *targetCommBuffer,
+                           const Endpoint endpoint,
                            const Streaming streaming);
-    ErrorCode SetStreamingDestination(const Endpoint endpoint,
+    ErrorCode SetStreamingDestination(BgApiCommBuffer *targetCommBuffer,
+                                      const Endpoint endpoint,
                                       const StreamingDestination dest);
-    ErrorCode CloseEndpoint(const Endpoint endpoint);
-    ErrorCode DisableEndpoint(const Endpoint endpoint);
-    ErrorCode SetSoftTimer(const TimeMs timeMs,
+    ErrorCode CloseEndpoint(BgApiCommBuffer *targetCommBuffer,
+                            const Endpoint endpoint);
+    ErrorCode DisableEndpoint(BgApiCommBuffer *targetCommBuffer,
+                              const Endpoint endpoint);
+    ErrorCode SetSoftTimer(BgApiCommBuffer *targetCommBuffer,
+                           const TimeMs timeMs,
                            const HandleTimer handle,
                            const bool singleShot);
-    ErrorCode ConfigureExternalInterrupt(const InterruptMask enable,
+    ErrorCode ConfigureExternalInterrupt(BgApiCommBuffer *targetCommBuffer,
+                                         const InterruptMask enable,
                                          const InterruptMask polarity);
-    ErrorCode ConfigureChangeNotification(const uint32_t enable);
-    ErrorCode ChangeNotificationPullup(const uint32_t pullup);
-    ErrorCode ConfigureIoPortDirection(const Wf121IoPort port,
+    ErrorCode ConfigureChangeNotification(BgApiCommBuffer *targetCommBuffer,
+                                          const uint32_t enable);
+    ErrorCode ChangeNotificationPullup(BgApiCommBuffer *targetCommBuffer,
+                                       const uint32_t pullup);
+    ErrorCode ConfigureIoPortDirection(BgApiCommBuffer *targetCommBuffer,
+                                       const Wf121IoPort port,
                                        const uint16_t bitMask,
                                        const uint16_t bitDirection);
-    ErrorCode ConfigureIoOpenDrain(const Wf121IoPort port,
+    ErrorCode ConfigureIoOpenDrain(BgApiCommBuffer *targetCommBuffer,
+                                   const Wf121IoPort port,
                                    const uint16_t bitMask,
                                    const uint16_t openDrain);
-    ErrorCode WriteIoPort(const Wf121IoPort port,
+    ErrorCode WriteIoPort(BgApiCommBuffer *targetCommBuffer,
+                          const Wf121IoPort port,
                           const uint16_t bitMask,
                           const uint16_t val);
-    ErrorCode ReadIoPort(const Wf121IoPort port,
+    ErrorCode ReadIoPort(BgApiCommBuffer *targetCommBuffer,
+                         const Wf121IoPort port,
                          const uint16_t bitMask);
-    ErrorCode OutputCompare(const CompareModuleIndex index,
+    ErrorCode OutputCompare(BgApiCommBuffer *targetCommBuffer,
+                            const CompareModuleIndex index,
                             const bool bit32,
                             const CompareModuleTimer timer,
                             const CompareModuleMode mode,
                             const uint32_t compareValue);
-    ErrorCode AdcRead(const uint8_t adcInput);
-    ErrorCode RtcInit(const bool enable,
+    ErrorCode AdcRead(BgApiCommBuffer *targetCommBuffer,
+                      const uint8_t adcInput);
+    ErrorCode RtcInit(BgApiCommBuffer *targetCommBuffer,
+                      const bool enable,
                       const int16_t drift);
-    ErrorCode RtcSetTime(const int16_t year,
+    ErrorCode RtcSetTime(BgApiCommBuffer *targetCommBuffer,
+                         const int16_t year,
                          const int8_t month,
                          const int8_t day,
                          const int8_t weekday,
                          const int8_t hour,
                          const int8_t minute,
                          const int8_t second);
-    ErrorCode RtcGetTime();
-    ErrorCode RtcSetAlarm(const int16_t year,
+    ErrorCode RtcGetTime(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode RtcSetAlarm(BgApiCommBuffer *targetCommBuffer,
+                          const int16_t year,
                           const int8_t month,
                           const int8_t day,
                           const int8_t weekday,
@@ -628,40 +708,53 @@ namespace Wf121::BgApi
                           const int8_t second,
                           const uint8_t repeatMask,
                           const uint16_t repeatCount);
-    ErrorCode ConfigureUart(const uint8_t uartId,
+    ErrorCode ConfigureUart(BgApiCommBuffer *targetCommBuffer,
+                            const uint8_t uartId,
                             const uint32_t baudrate,
                             const UartDataBit format,
                             const UartStopBit stop,
                             const UartParity parity,
                             const UartFlowCtl flowCtl);
-    ErrorCode GetHardwareConfiguration(const uint8_t uartId);
-    ErrorCode I2cStartRead(const uint8_t endpoint,
+    ErrorCode GetHardwareConfiguration(BgApiCommBuffer *targetCommBuffer,
+                                       const uint8_t uartId);
+    ErrorCode I2cStartRead(BgApiCommBuffer *targetCommBuffer,
+                           const uint8_t endpoint,
                            const uint16_t slaveAddress,
                            const uint8_t length);
-    ErrorCode I2cStartwrite(const uint8_t endpoint,
+    ErrorCode I2cStartwrite(BgApiCommBuffer *targetCommBuffer,
+                            const uint8_t endpoint,
                             const uint16_t slaveAddress);
-    ErrorCode I2cStop(const uint8_t endpoint);
-    ErrorCode SetDataRoute(const WiredEthernetRoute route);
-    ErrorCode CloseRoute();
-    ErrorCode Connected();
-    ErrorCode EnableServers(const bool https,
+    ErrorCode I2cStop(BgApiCommBuffer *targetCommBuffer,
+                      const uint8_t endpoint);
+    ErrorCode SetDataRoute(BgApiCommBuffer *targetCommBuffer,
+                           const WiredEthernetRoute route);
+    ErrorCode CloseRoute(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode Connected(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode EnableServers(BgApiCommBuffer *targetCommBuffer,
+                            const bool https,
                             const bool dhcps,
                             const bool dnss);
-    ErrorCode AddServerPath(const uint8_t device,
+    ErrorCode AddServerPath(BgApiCommBuffer *targetCommBuffer,
+                            const uint8_t device,
                             ServerPath *path,
                             const ServerPathSize pathSize);
-    ErrorCode ApiResponse(const uint32_t request,
+    ErrorCode ApiResponse(BgApiCommBuffer *targetCommBuffer,
+                          const uint32_t request,
                           HttpResponseData *data,
                           const HttpResponseDataSize dataSize);
-    ErrorCode ApiResponseFinish(const uint32_t request);
-    ErrorCode DefragPersistentStore();
-    ErrorCode EraseAllPersistentStore();
-    ErrorCode SavePersistentStore(const uint16_t key,
+    ErrorCode ApiResponseFinish(BgApiCommBuffer *targetCommBuffer,
+                                const uint32_t request);
+    ErrorCode DefragPersistentStore(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode EraseAllPersistentStore(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode SavePersistentStore(BgApiCommBuffer *targetCommBuffer,
+                                  const uint16_t key,
                                   KeyValue *keyVal,
                                   const KeyValueSize keyValSize);
-    ErrorCode LoadPersistentStore(const uint16_t key);
-    ErrorCode DumpPersistentStore();
-    ErrorCode ErasePersistentStore(const uint16_t key);
+    ErrorCode LoadPersistentStore(BgApiCommBuffer *targetCommBuffer,
+                                  const uint16_t key);
+    ErrorCode DumpPersistentStore(BgApiCommBuffer *targetCommBuffer);
+    ErrorCode ErasePersistentStore(BgApiCommBuffer *targetCommBuffer,
+                                   const uint16_t key);
 
     // -------------------------------------------------------------------------------------
     // List of event callbacks
@@ -1606,9 +1699,8 @@ namespace Wf121::BgApi
     bool CommandIsProcessing();
 
   protected:
-    ErrorCode transmitCommand(BgApiHeader *header,
-                              uint8_t *payload = (uint8_t *)NULL);
-    ErrorCode receiveCommand(BgApiHeader *header,
+    ErrorCode packCommBuffer(BgApiCommBuffer *targetCommBuffer,
+                             BgApiHeader *header,
                              uint8_t *payload = (uint8_t *)NULL);
     uint16_t getPayloadSizeFromHeader(BgApiHeader *header);
     void setHeaderPayloadSize(BgApiHeader *header, const uint16_t size);

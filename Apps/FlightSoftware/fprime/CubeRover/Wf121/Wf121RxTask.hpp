@@ -118,7 +118,7 @@ namespace Wf121
         // The buffer to used for holding the message payload received from
         // WF121 (bounded by the BGAPI packet size since the Radio-Herc
         // DIRECT_MESSAGES cap out at 255B, including header).
-        uint8_t m_dataBuffer[WF121_BGAPI_MAX_PACKET_SIZE] __attribute__((aligned(8)));
+        uint8_t m_dataBuffer[BgApi::MAX_PACKET_SIZE] __attribute__((aligned(8)));
 
         /**
          * The function that implements the task thread.

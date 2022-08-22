@@ -44,6 +44,7 @@ namespace Wf121::BgApi
   // that were read):
   struct BgApiCommBuffer
   {
+    BgApiCommBuffer() : dataLen(0) {}
     // Number of bytes in the comm buffer (i.e. number of bytes read / to be
     // sent):
     uint16_t dataLen;

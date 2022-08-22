@@ -10,11 +10,21 @@
  * this 'data' refers to metadata about the Radio FSW's internal state and
  * activities.
  *
- * Ultimately, all updates on this interface are driven by the `Wf121RxTask`.
+ * Ultimately, all updates on this interface are driven by the `Wf121RxTask`
+ * or `Wf121UdpTxTask`.
  *
  * Any datagrams received here (data that has to be parsed by other parts of
  * the flight software, i.e. not metadata about the radio) is pushed into
  * `uplinkDatagramQueue`, waiting to be read from by `NetworkManager`.
+ *
+ * NOTE: The reason this implements `Wf121TxTaskManager` and manages what data
+ * the `Wf121UdpTxTask` sends and when is due to the fact that much of the TX
+ * control flow is determined by the current `RadioStatus` and callbacks
+ * received from `Wf121RxTask`. All of that data coalesces here anyway,
+ * so from a single-ownership point of view, this made the most sense.
+ * Likewise, the `Wf121TxTask` exists separately because it's best practice to
+ * have a single dedicated interface to the hardware peripherals like the
+ * serial, so it owns the interaction with `dmaSend`.
  *
  * @date 2022-08-13
  */
@@ -33,9 +43,16 @@
 #include <CubeRover/Wf121/Wf121BgApi.hpp>
 #include <CubeRover/Wf121/Wf121DirectMessage.hpp>
 #include <CubeRover/Wf121/RadioStatus.hpp>
+#include <CubeRover/Wf121/UdpTxCommsStatusManager.hpp>
+#include <CubeRover/Wf121/Wf121UdpTxTask.hpp>
 #include <CubeRover/Wf121/UdpPayload.hpp>
 #include <Os/Mutex.hpp>
 
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <stddef.h>
+#include <math.h>
 #include <cassert>
 #include <cstring>
 #include <cstdio>
@@ -43,8 +60,27 @@
 #include "FreeRTOS.h"
 #include "os_queue.h"
 
+// - How much the processor should wait before checking back in to see if we
+//   meet all criteria for sending data to the Radio to be downlinked.
+// - Since this is a high priority task, it's not a good idea for this to be 0
+//   (though it *can* be zero) in order to prevent Task starvation.
+// - In fact, since it's only likely to happen either A.) At boot when the
+//   radio is still connecting or B.) anytime the Radio disconnects (at worst,
+//   very briefly once every many minutes), it's okay for this to be quite long
+//   to give other Tasks room to work.
+// NOTE: This happens when servicing the `Wf121UdpTxTask` (so doesn't block the main Task).
+// NOTE: FreeRTOS scheduler ticks are every 1ms.
+static const TickType_t WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL = 200 / portTICK_PERIOD_MS; // every 200ms (200 ticks)
+
+// Most number of times to try sending a BGAPI command without receiving a response before giving up:
+static const uint8_t WF121_BGAPI_COMMAND_MAX_TRIES = 5;
+
 namespace Wf121
 {
+    // Message sent from Hercules when the first available downlink opportunity
+    // opens:
+    static const uint8_t HELLO_EARTH_MESSAGE[] = "Hello Earth, this is Hercules on the Moon!";
+
     // Struct used for acknowledging that an uplinked UDP packet was
     // successfully received over the Radio (sent back to the radio).
     // Format:
@@ -58,81 +94,17 @@ namespace Wf121
     } __attribute__((packed, aligned(1)));
 
     class NetworkInterface : public BgApi::BgApiDriver,
-                             public DirectMessage::DirectMessageDriver
+                             public DirectMessage::DirectMessageDriver,
+                             public virtual Wf121TxTaskManager
     {
     public:
         friend class RadioDriver; // let Wf121::RadioDriver access private data in this class
-
-        // Simple struct for all data relevant to transmitting UDP messages to
-        // the Radio:
-        struct UdpTxCommsStatus
-        {
-            // Whether the Radio acknowledged us setting the UDP TX size:
-            bool setTxSizeAcknowledged;
-            // How many acknowledgements we've gotten for sendEndpoint chunks:
-            uint16_t numSendEndpointAcknowledgements;
-            ::Os::Mutex mutex;
-
-            UdpTxCommsStatus() : setTxSizeAcknowledged(false),
-                                 numSendEndpointAcknowledgements(0)
-            {
-            }
-
-            // Reset back to the pre-messaging state:
-            void reset()
-            {
-                this->mutex.lock();
-                setTxSizeAcknowledged = false;
-                numSendEndpointAcknowledgements = 0;
-                this->mutex.unLock();
-            }
-
-            // *GETTERS:*
-            // Returns whether setTxSize has been acknowledged:
-            bool hasSetTxSizeBeenAcknowledged()
-            {
-                bool acked;
-                this->mutex.lock();
-                acked = setTxSizeAcknowledged;
-                this->mutex.unLock();
-                return acked;
-            }
-
-            // Returns the number of sendEndpoint acknowledgements we've
-            // received:
-            uint16_t getNumSendEndpointAcknowledgements()
-            {
-                uint16_t numAcks = 0;
-                this->mutex.lock();
-                numAcks = numSendEndpointAcknowledgements;
-                this->mutex.unLock();
-                return numAcks;
-            }
-
-            // *SETTERS:*
-            // Call this when we get an ack for setTxSize:
-            void gotSetTxSizeAcknowledgement()
-            {
-                this->mutex.lock();
-                setTxSizeAcknowledged = true;
-                this->mutex.unLock();
-            }
-
-            // Increment the number of sendEndpoint acknowledgements we've
-            // received:
-            void incNumSendEndpointAcknowledgements()
-            {
-                this->mutex.lock();
-                numSendEndpointAcknowledgements++;
-                this->mutex.unLock();
-            }
-        };
 
         // Current status of the radio:
         ProtectedRadioStatus m_protectedRadioStatus;
 
         // Current status of the outbound comms to the radio:
-        UdpTxCommsStatus m_udpTxCommsStatus;
+        UdpTxCommsStatusManager m_udpTxCommsStatusManager;
 
         // Constructor (just initialize data structures):
         NetworkInterface();
@@ -162,7 +134,7 @@ namespace Wf121
          * @brief Add the given payload to the UDP TX Queue.
          *
          * NOTE: UART writing happens asynchronously and this Queue will be
-         * drained by `Wf121TxTask`.
+         * drained by `Wf121UdpTxTask`.
          *
          * NOTE: This TX queue only has a depth of `UDP_TX_PAYLOAD_QUEUE_DEPTH`
          * payloads. If this queue is full when attempting to add an item, it
@@ -176,9 +148,25 @@ namespace Wf121
          */
         bool sendUdpPayload(UdpTxPayload *pPayload);
 
+        /**
+         * @brief The callback invoked by the `Wf121UdpTxTask` when it's running
+         * (each call of this function is one "writing loop"). Whenever the
+         * `Wf121TxTaskManager` determines it's time to send data, it returns a
+         * pointer to a `UdpTxPayload` and lets the `UdpTxTask` perform a write.
+         *
+         * @param pTask Pointer to Task triggering this handle
+         *
+         * @returns Pointer to data to be written to the Radio-Hercules UART.
+         */
+        virtual BgApi::BgApiCommBuffer *udpTxUpdateHandler(Wf121UdpTxTask *pTask);
+
     private:
         // Data struct for working with RXed UDP data internally:
-        UdpRxPayload xUdpRxWorkingData;
+        UdpRxPayload m_xUdpRxWorkingData;
+        // Data struct for working with TXing UDP data internally (receiving data from the Queue)
+        UdpTxPayload m_xUdpTxWorkingData;
+        // Buffer used to store data for BGAPI commands to be sent to the Radio:
+        BgApi::BgApiCommBuffer m_bgApiCommandBuffer;
         // Buffer to read TX payloads into to remove them.
         // We have to do this b/c the only way to dequeue an item from the
         // Queue is to read it into something (and just passing nullptr gives a
@@ -223,7 +211,7 @@ namespace Wf121
         // just dequeuing each item but the advantage is that it will be much
         // faster (no expensive copy-to-recycling is required) and require less
         // memory (don't need a recycling buffer).
-        UdpTxPayload xUdpTxRecycling;
+        UdpTxPayload m_xUdpTxRecycling;
 
         // Handle to statically-allocated queue of all UDP payloads received
         // from = the Radio.
@@ -232,10 +220,10 @@ namespace Wf121
         // it was supposed to be received before Command B).
         // This is filled here, by `NetworkInterface`, and is designed to be
         // drained by the `NetworkManager` FPrime component.
-        QueueHandle_t xUdpRxPayloadQueue;
+        QueueHandle_t m_xUdpRxPayloadQueue;
         // Handle to statically-allocated queue of all UDP payloads to be sent
         // to the Radio.
-        // NOTE: Unlike `xUdpRxPayloadQueue`, this queue will be handled in such
+        // NOTE: Unlike `m_xUdpRxPayloadQueue`, this queue will be handled in such
         // a way that if you try to add an item to it when it's full, it will
         // dequeue the oldest item and load a new one (prioritizing downlinking
         // new telemetry, etc. over older data). In this way, it's effectively
@@ -243,7 +231,7 @@ namespace Wf121
         // still supporting multiple writers).
         // ^ *but* this behavior only works if you write to the Queue using
         // `sendUdpPayload`.
-        QueueHandle_t xUdpTxPayloadQueue;
+        QueueHandle_t m_xUdpTxPayloadQueue;
 
         ////
         // CALLBACK HOOKS:
@@ -272,6 +260,46 @@ namespace Wf121
                                          const uint16_t srcPort,
                                          uint8_t *data,
                                          const BgApi::DataSize16 dataSize);
+
+        // Number of consecutive times we've failed to send an individual BGAPI
+        // command in a row:
+        uint8_t m_bgApiCommandFailCount = 0;
+        // Number of message chunk bytes pending (that we sent with
+        // `sendEndpoint` and are awaiting a response for):
+        uint8_t m_chunkBytesPending = 0;
+        // Total number of UDP bytes (successfully) downlinked (in the current
+        // message / payload):
+        uint16_t m_totalUdpMessageBytesDownlinked = 0;
+
+        // States used by the State Machine inside udpTxUpdateHandler.
+        enum class UdpTxUpdateState
+        {
+            // Waiting for BGAPI to not be busy:
+            WAIT_FOR_BGAPI_READY = 0x10,
+            // Not in the middle of sending data. Wait for more data to send:
+            WAIT_FOR_NEXT_MESSAGE = 0x11,
+            // We have a message to send and now need to send `SetTransmitSize`:
+            SEND_SET_TRANSMIT_SIZE = 0x12,
+            // Wait for acknowledgement of `SetTransmitSize`:
+            WAIT_FOR_SET_TRANSMIT_SIZE_ACK = 0x20,
+            // Send a UDP chunk:
+            SEND_UDP_CHUNK = 0x21
+            // Wait for acknowledgement of last UDP chunk's `SendEndpoint`:
+            WAIT_FOR_UDP_CHUNK_ACK = 0x22,
+            // Done downlinking data:
+            DONE_DOWNLINKING = 0xE0,
+            // Handle a failure to send a BGAPI command (after surpassing WF121_BGAPI_COMMAND_MAX_TRIES):
+            BGAPI_CMD_FAIL = 0xF0
+        };
+        // State handlers:
+        UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_BGAPI_READY(bool *yieldData);
+        UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_NEXT_MESSAGE(bool *yieldData);
+        UdpTxUpdateState NetworkInterface::handleTxState_SEND_SET_TRANSMIT_SIZE(bool *yieldData);
+        UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK(bool *yieldData);
+        UdpTxUpdateState NetworkInterface::handleTxState_SEND_UDP_CHUNK(bool *yieldData);
+        UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_UDP_CHUNK_ACK(bool *yieldData);
+        UdpTxUpdateState NetworkInterface::handleTxState_DONE_DOWNLINKING(bool *yieldData);
+        UdpTxUpdateState NetworkInterface::handleTxState_BGAPI_CMD_FAIL(bool *yieldData)
     };
 }
 

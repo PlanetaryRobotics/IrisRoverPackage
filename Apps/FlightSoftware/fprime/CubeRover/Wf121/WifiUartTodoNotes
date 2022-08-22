@@ -108,3 +108,28 @@ Check that CTS / RTS lines up correctly in schematic.
 
 // ! TODO: Auto-uplink a hello-from-herc as soon as connection is found (first thing in the tx task?)
 // ^ Grab this before grabbing anything from the queue
+
+// ! TODO: Can WD DetailedStatusPacket give us a Hercules reset counter (I think it gives us a flag which we could just count on gnd to get a minimum count):
+
+// !!! TODO: Make all Queues statically allocated (RxQueue)
+
+// ! Examine what happens if the Radio disconnects while we're sending (i.e. no response / error response) - we should handle this safely. Just give up on the send?
+
+// ! TODO: Once everything "works", make sure nothing blows up if you disconnect for:
+//      A.) a couple seconds (less than a UDP TX Queue fill time)
+//      B.) a long time (several times the UDP TX Queue fill time)
+
+// ! TODO: In `udpTxUpdateHandler`, handle flag from `cb_EventEndpointSyntaxError` (re-send last command b/c Radio didn't understand it? - look for either the expected semaphore or the syntax error semaphore)
+
+// TODO: Await `CanSendData` (CTS) before `dmaSend` in `Wf121UdpTxTask`?
+// doing this properly would require a GIO interrupt and semaphoreGive ... lower priority
+// (doing this improperly would involve a poll-vDelay loop)
+// ... CTS shouldn't really matter since we're waiting for command responses anyway (so we should be CTS by that point no matter what)
+// - still could be worth doing b/c what if the Radio processor gets really busy with something and drops CTS briefly
+
+// TODO: Diagram TX state machine.
+
+// TODO: Put all docs/diagrams into a quick README.
+
+// ! TODO: Raise a semaphore when we've reached ultimate failure (triggers failure callbacks, which NM will register in, which will reset WD)
+// ^ pair this with a time-since-last-hb check

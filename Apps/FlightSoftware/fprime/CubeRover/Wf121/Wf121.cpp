@@ -4,7 +4,7 @@ namespace Wf121
 {
   RadioDriver::RadioDriver() : m_networkInterface(),
                                m_serialRxTask(),
-                               m_serialUdpTxTask(&m_networkInterface.xUdpTxPayloadQueue)
+                               m_serialUdpTxTask(&m_networkInterface)
   {
     // nothing else to do here.
   }

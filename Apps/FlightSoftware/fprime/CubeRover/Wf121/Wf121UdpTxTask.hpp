@@ -29,30 +29,32 @@ namespace Wf121
 {
     /**
      * @brief Defines the contract (i.e. interface) that must be implemented
-     *      (via subclassing) by classes that want to handle TX write operations
-     *      (once the data is available).
-     *
-     * This callback will be called with each message that is received by the
-     * `Wf121RxTask` instance to which the object implementing this function
-     * is registered.
+     *      (via subclassing) by classes that want to handle TX write operations,
+     *      including looking for data and managing state logic.
      */
-    class Wf121TxTaskHandler
+    class Wf121TxTaskManager
     {
     public:
         /**
-         * @brief The callback invoked by the `Wf121RxTask` when it has
-         *  received a message.
+         * @brief The callback invoked by the `Wf121UdpTxTask` when it's running
+         * (each call of this function is one "writing loop"). Whenever the
+         * `Wf121TxTaskManager` determines it's time to send data, it returns a
+         * pointer to a `UdpTxPayload` and lets the `UdpTxTask` perform a write.
          *
-         * @param msg Generic wrapper for message received from WF121.
+         * @param pTask Pointer to Task triggering this handle
+         *
+         * @returns Pointer to data to be written to the Radio-Hercules UART.
          */
-        virtual void txHandler(Wf121Parser::GenericMessage &msg) = 0;
+        virtual BgApi::BgApiCommBuffer *udpTxUpdateHandler(Wf121UdpTxTask *pTask) = 0;
 
-        virtual ~Wf121RxCallbackProcessor() = default;
+        virtual ~Wf121TxTaskHandler() = default;
     };
 
     /**
      * The task responsible for sending packets of data to the WF121 Radio's
-     * UDP endpoint.
+     * UDP endpoint. Specifically, this Task is responsible for owning the
+     * dmaSend calls, while the actual logic for what to send and when is
+     * delegated to `Wf121TxTaskManager`.
      *
      * NOTE from `Wf121TxTask` which uses the same interface:
      * This is a subclass of Os::Task so that it can access the `m_handle` field of Os::Task. Os::Task was modified
@@ -95,12 +97,14 @@ namespace Wf121
                                          NATIVE_INT_TYPE cpuAffinity = -1); //!< start the task
 
     private:
-        // Pointer to FreeRTOS Queue of all UDP payloads to be sent
-        // to the Radio (other Tasks push to it, this Task reads from it).
-        QueueHandle_t *m_pTxPayloadQueue;
+        // Max number of times for the Task to attempt to push data to the DMA
+        // TX buffer (note this can be **very** large without much penalty
+        // since the task just blocks (yields) itself while waiting letting
+        // other things try):
+        static const uint32_t MAX_DMA_SEND_TRIES = 100;
 
-        // Function to be called when the task triggers:
-        void (*foo)(void *);
+        // Functor to handle the actual write operations in each loop of the Task:
+        Wf121TxTaskManager *m_pTxTaskManager;
 
         // Whether or not the task should keep running. The main loop in the
         // task thread is controlled by this.
@@ -109,9 +113,6 @@ namespace Wf121
         // Whether or not the task has been started. Only used to prevent
         // calling start(...) after it has already been called before.
         bool m_isRunning;
-
-        // Data struct for working with TXing UDP data internally:
-        UdpTxPayload m_xUdpTxWorkingData;
 
         /**
          * The function that implements the task thread.

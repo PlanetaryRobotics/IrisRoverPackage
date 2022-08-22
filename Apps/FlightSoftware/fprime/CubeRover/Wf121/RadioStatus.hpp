@@ -113,6 +113,7 @@ namespace Wf121
             this->copyInto(target);
             this->mutex.unLock();
         }
+
         // Obtains a mutex lock, copies the radio state into the given
         // RadioSwState, releases the lock.
         void copyRadioStateInto(DirectMessage::RadioSwState *state)
@@ -121,6 +122,17 @@ namespace Wf121
             *state = this->currentRadioState;
             this->mutex.unLock();
         }
+        // Obtains a mutex lock, copies the value, releases the lock,
+        // returns the copy.
+        DirectMessage::RadioSwState getRadioState()
+        {
+            DirectMessage::RadioSwState state;
+            this->mutex.lock();
+            state = this->currentRadioState;
+            this->mutex.unLock();
+            return state;
+        }
+
         // Obtains a mutex lock, copies the current radio activity into the
         // given RadioSwActivity, releases the lock.
         void copyRadioActivityInto(DirectMessage::RadioSwActivity *act)
@@ -128,6 +140,16 @@ namespace Wf121
             this->mutex.lock();
             *act = this->currentRadioActivity;
             this->mutex.unLock();
+        }
+        // Obtains a mutex lock, copies the value, releases the lock,
+        // returns the copy.
+        DirectMessage::RadioSwActivity getRadioActivity()
+        {
+            DirectMessage::RadioSwActivity act;
+            this->mutex.lock();
+            act = this->currentRadioActivity;
+            this->mutex.unLock();
+            return act;
         }
 
         // Obtains a mutex lock, copies the `timeOfLastHeartbeatMs` in
@@ -139,6 +161,16 @@ namespace Wf121
             *lastHeartbeatTimeMs = this->timeOfLastHeartbeatMs;
             this->mutex.unLock();
         }
+        // Obtains a mutex lock, copies the value, releases the lock,
+        // returns the copy.
+        uint32_t getLastHeartbeatTimeMs()
+        {
+            uint32_t lastHeartbeatTimeMs;
+            this->mutex.lock();
+            lastHeartbeatTimeMs = this->timeOfLastHeartbeatMs;
+            this->mutex.unLock();
+            return lastHeartbeatTimeMs;
+        }
 
         // Obtains a mutex lock, copies the `downlinkEndpoint` into the given
         // object, releases the lock.
@@ -148,6 +180,17 @@ namespace Wf121
             *downlinkEndpoint = this->downlinkEndpoint;
             this->mutex.unLock();
         }
+        // Obtains a mutex lock, copies the value, releases the lock,
+        // returns the copy.
+        BgApi::Endpoint getDownlinkEndpoint()
+        {
+            BgApi::Endpoint downlinkEndpoint;
+            this->mutex.lock();
+            downlinkEndpoint = this->downlinkEndpoint;
+            this->mutex.unLock();
+            return downlinkEndpoint;
+        }
+
         // Obtains a mutex lock, copies the `uplinkEndpoint` into the given
         // object, releases the lock.
         void copyUplinkEndpointInto(BgApi::Endpoint *uplinkEndpoint)
@@ -156,6 +199,17 @@ namespace Wf121
             *uplinkEndpoint = this->uplinkEndpoint;
             this->mutex.unLock();
         }
+        // Obtains a mutex lock, copies the value, releases the lock,
+        // returns the copy.
+        BgApi::Endpoint getUplinkEndpoint()
+        {
+            BgApi::Endpoint uplinkEndpoint;
+            this->mutex.lock();
+            uplinkEndpoint = this->uplinkEndpoint;
+            this->mutex.unLock();
+            return uplinkEndpoint;
+        }
+
         // Obtains a mutex lock, copies the `rssi` into the given
         // object, releases the lock.
         void copyRssiInto(int8_t *rssi)
@@ -164,34 +218,91 @@ namespace Wf121
             *rssi = this->rssi;
             this->mutex.unLock();
         }
+        // Obtains a mutex lock, copies the value, releases the lock,
+        // returns the copy.
+        int8_t getRssi()
+        {
+            int8_t rssi;
+            this->mutex.lock();
+            rssi = this->rssi;
+            this->mutex.unLock();
+            return rssi;
+        }
 
         // Obtains a mutex lock, copies `udpRxPacketCount` into the given
         // object, releases the lock.
-        void copyUdpRxPacketCountInto(uint32_t* udpRxPacketCount){
+        void copyUdpRxPacketCountInto(uint32_t *udpRxPacketCount)
+        {
             this->mutex.lock();
             *udpRxPacketCount = this->udpRxPacketCount;
             this->mutex.unLock();
         }
+        // Obtains a mutex lock, copies the value, releases the lock,
+        // returns the copy.
+        uint32_t getUdpRxPacketCount()
+        {
+            uint32_t udpRxPacketCount;
+            this->mutex.lock();
+            udpRxPacketCount = this->udpRxPacketCount;
+            this->mutex.unLock();
+            return udpRxPacketCount;
+        }
+
         // Obtains a mutex lock, copies `udpRxByteCount` into the given
         // object, releases the lock.
-        void copyUdpRxByteCountInto(uint32_t* udpRxByteCount){
+        void copyUdpRxByteCountInto(uint32_t *udpRxByteCount)
+        {
             this->mutex.lock();
             *udpRxByteCount = this->udpRxByteCount;
             this->mutex.unLock();
         }
+        // Obtains a mutex lock, copies the value, releases the lock,
+        // returns the copy.
+        uint32_t getUdpRxByteCount()
+        {
+            uint32_t udpRxByteCount;
+            this->mutex.lock();
+            udpRxByteCount = this->udpRxByteCount;
+            this->mutex.unLock();
+            return udpRxByteCount;
+        }
+
         // Obtains a mutex lock, copies `udpTxPacketCount` into the given
         // object, releases the lock.
-        void copyUdpTxPacketCountInto(uint32_t* udpTxPacketCount){
+        void copyUdpTxPacketCountInto(uint32_t *udpTxPacketCount)
+        {
             this->mutex.lock();
             *udpTxPacketCount = this->udpTxPacketCount;
             this->mutex.unLock();
         }
+        // Obtains a mutex lock, copies the value, releases the lock,
+        // returns the copy.
+        uint32_t getUdpTxPacketCount()
+        {
+            uint32_t udpTxPacketCount;
+            this->mutex.lock();
+            udpTxPacketCount = this->udpTxPacketCount;
+            this->mutex.unLock();
+            return udpTxPacketCount;
+        }
+
         // Obtains a mutex lock, copies `udpTxByteCount` into the given
         // object, releases the lock.
-        void copyUdpTxByteCountInto(uint32_t* udpTxByteCount){
+        void copyUdpTxByteCountInto(uint32_t *udpTxByteCount)
+        {
             this->mutex.lock();
             *udpTxByteCount = this->udpTxByteCount;
             this->mutex.unLock();
+        }
+        // Obtains a mutex lock, copies the value, releases the lock,
+        // returns the copy.
+        uint32_t getUdpTxByteCount()
+        {
+            uint32_t udpTxByteCount;
+            this->mutex.lock();
+            udpTxByteCount = this->udpTxByteCount;
+            this->mutex.unLock();
+            return udpTxByteCount;
         }
 
         /* SETTERS: */
@@ -249,28 +360,32 @@ namespace Wf121
         }
         // Obtains a mutex lock, increments `udpRxPacketCount` by `x`, releases
         // the lock:
-        void incUdpRxPacketCount(uint32_t x = 1UL){
+        void incUdpRxPacketCount(uint32_t x = 1UL)
+        {
             this->mutex.lock();
             this->udpRxPacketCount += x;
             this->mutex.unLock();
         }
         // Obtains a mutex lock, increments `udpRxByteCount` by `x`, releases
         // the lock:
-        void incUdpRxByteCount(uint32_t x = 1UL){
+        void incUdpRxByteCount(uint32_t x = 1UL)
+        {
             this->mutex.lock();
             this->udpRxByteCount += x;
             this->mutex.unLock();
         }
         // Obtains a mutex lock, increments `udpTxPacketCount` by `x`, releases
         // the lock:
-        void incUdpTxPacketCount(uint32_t x = 1UL){
+        void incUdpTxPacketCount(uint32_t x = 1UL)
+        {
             this->mutex.lock();
             this->udpTxPacketCount += x;
             this->mutex.unLock();
         }
         // Obtains a mutex lock, increments `udpTxByteCount` by `x`, releases
         // the lock:
-        void incUdpTxByteCount(uint32_t x = 1UL){
+        void incUdpTxByteCount(uint32_t x = 1UL)
+        {
             this->mutex.lock();
             this->udpTxByteCount += x;
             this->mutex.unLock();

@@ -23,13 +23,12 @@ static TaskHandle_t xActiveTask = nullptr; // not init'd yet
 
 namespace Wf121
 {
-    Wf121UdpTxTask::Wf121UdpTxTask(QueueHandle_t *ptpq)
-        : m_pTxPayloadQueue(ptpq),
-          m_xUdpTxWorkingData(),
+    Wf121UdpTxTask::Wf121UdpTxTask(QueueHandle_t *pttm)
+        : m_pTxTaskManager(pttm),
           m_keepRunning(true),
           m_isRunning(false)
     {
-        m_xUdpTxWorkingData.clear(); // Pre-fill working buffer with sentinel byte
+        /* nothing special to do here */
     }
 
     // This probably will never be called, but it should up to properly work anyway
@@ -106,70 +105,34 @@ namespace Wf121
 
         while (task->m_keepRunning)
         {
-            // Effectively "blocks forever" until something is put into the queue
-            if (xQueueReceive(*m_pTxPayloadQueue, &m_xUdpTxWorkingData, portMAX_DELAY))
+            // Dispatch to the appropriate handler and let it tell us what to
+            // send and when (i.e. it doesn't return until it needs us to send
+            // data):
+            BgApi::BgApiCommBuffer *dataToSend = task->m_pTxTaskHandler->udpTxUpdateHandler(task);
+
+            // Only attempt to send if we need to send non-zero number of bytes:
+            if (dataToSend->dataSize != 0)
             {
-                // Write
-
-                // While !readyToDownlink
-                // ! TODO: [CWC] readyToDownlink = state==connected && !BGAPI::awaitingCommandResponse && downlinkEndpoint != DROP_ENDPOINT
-
-                // Reset comms status:
-                m_udpTxCommsStatus.reset();
-
-                // Send command to set transmit size:
-                errorCode = SetTransmitSize(m_udpSendEndpoint,
-                                            byteToSend); // !TODO this should return bytes now, not send (all the commands should do this)
-
-                if (errorCode != NO_ERROR)
-                    return errorCode;
-                // dmaSend those bytes
-
-                while (!m_udpTxCommsStatus.hasSetTxSizeBeenAcknowledged())
+                // block task until we can send those bytes:
+                bool sendSuccess = false;
+                uint32_t tries = 0;
+                while (!sendSuccess && tries < Wf121UdpTxTask::MAX_DMA_SEND_TRIES)
                 {
-                    // Block until response.
-                    // ! TODO: Also add timeout that puts us back at the top of the sending process.
-                    // (maybe just make all this a helper function in NI and if it returns false, we try again until MAX_TRIES).
+                    sendSuccess = Wf121Serial::dmaSend((void *)(dataToSend->rawData), dataToSend->dataLen, true);
+                    tries++;
                 }
-
-                // loop until all data is sent
-                uint16_t target_num_send_endpoint_acknowledgements = 0;
-                while (byteToSend > 0)
+                if (tries == Wf121UdpTxTask::MAX_DMA_SEND_TRIES)
                 {
-                    // max number of bytes to send at one time is 255 by hardware restriction
-                    uint8_t byteToSendThisLoop = (byteToSend > 0xff) ? 0xff : byteToSend;
-                    m_commandSendEndpointSet = false;
-
-                    errorCode = SendEndpoint(m_udpSendEndpoint,
-                                             data,
-                                             byteToSendThisLoop); // ! get bytes
-
-                    // ! TODO: (WORKING-HERE) [CWC] Switch to binary semaphores to let the task know that the response was received (https://www.freertos.org/RTOS_Task_Notification_As_Binary_Semaphore.html)
-                    // Block the task **not** indefinitely for the semaphore. If not received, reset, resend the command, and await the semaphore.
-
-                    // dmaSend those bytes
-                    target_num_send_endpoint_acknowledgements++;
-                    while (m_udpTxCommsStatus.getNumSendEndpointAcknowledgements() < target_num_send_endpoint_acknowledgements)
-                    {
-                        // Block until response.
-                        // ! TODO: Also add timeout that puts us back at the top of the sending process.
-                    }
-
-                    // wait until all data is sent
-                    if (errorCode == NO_ERROR)
-                    {
-                        m_logNbOfBytesSent += byteToSendThisLoop;
-                        data += byteToSendThisLoop;
-                        byteToSend -= byteToSendThisLoop;
-                    }
-                    else
-                    {
-                        break; // exit loop on error
-                    }
+                    // We failed to push data into the DMA send buffer too many
+                    // times (a lot of times). What do we do?
+                    // Likely something's wrong with it.
+                    // Do an assert to nuke Hercules and let the WD get us out
+                    // of here:
+                    configASSERT(pdFALSE);
                 }
             }
+            // ... next loop we do it all over again.
         }
     }
-}
 
-} // end namespace CubeRover
+} // end namespace

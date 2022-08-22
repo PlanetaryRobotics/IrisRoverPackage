@@ -93,10 +93,6 @@ namespace Wf121::Wf121Parser
     const uint8_t DM_HEADER_LEN = 4;
     const uint8_t DM_MAX_PAYLOAD_LEN = 255 - DM_HEADER_LEN - 1;
 
-    // *WF121 BGAPI Message Info:*
-    // Maximum size of a BGAPI packet that could be sent by the WF121:
-    const uint16_t WF121_BGAPI_MAX_PACKET_SIZE = 2052;
-
     /**
      * @brief Helper function to compute the BGAPI payload size from a BGAPI header.
      */

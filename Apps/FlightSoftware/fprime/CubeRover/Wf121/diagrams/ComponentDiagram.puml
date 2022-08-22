@@ -15,27 +15,32 @@ endheader
 component RadioDriver
 component "Wf121Serial::" as SerialInterface
 component "Wf121UdpTxTask" as UdpTxTask
+component "UdpTxTaskManager" as UdpTxTaskManager
 component "Wf121RxTask" as RxTask
 component "Wf121Parser::Mpsm" as Mpsm
 component NetworkInterface
-component "BgApi::BgApiDriver" as BgApiDriver
 component "DirectMessage::DirectMessageDriver" as DirectMessageDriver
+component "BgApi::BgApiDriver" as BgApiDriver
 
-UdpTxTask -up-> RadioDriver
-RxTask <-up-> RadioDriver
-Mpsm -up-> RxTask
+UdpTxTask =up=> RadioDriver
+RxTask <=up=> RadioDriver
+Mpsm =up=> RxTask
 SerialInterface -up-> RadioDriver
 
-NetworkInterface .right.> UdpTxTask
+NetworkInterface -right-> UdpTxTask
 
 SerialInterface -up-> RxTask
 SerialInterface -up-> UdpTxTask
 
-NetworkInterface -up-> RadioDriver
-BgApiDriver -up-> NetworkInterface
-DirectMessageDriver -up-> NetworkInterface
+NetworkInterface =up=> RadioDriver
+DirectMessageDriver =up=> NetworkInterface
+BgApiDriver =up=> NetworkInterface
 
+UdpTxTaskManager =up=> NetworkInterface
+
+BgApiDriver .right.> UdpTxTaskManager
 BgApiDriver .right.> Mpsm
+BgApiDriver .up.> UdpTxTask
 
-left footer "\n\n\n* Arrow from 'A' to 'B' means **'A' is used by (called by) 'B'** \n* Dashed Arrow from 'A' to 'B' means **some part of 'A' is referenced by 'B'** (think pointer or simple struct use)"
+left footer "\n\n\n* Bold arrow from 'A' to 'B' means **'A' is owned by (a member of) 'B'**\n* Arrow from 'A' to 'B' means **'A' is used by (called by) 'B'** \n* Dashed Arrow from 'A' to 'B' means **some part of 'A' is referenced by 'B'** (think pointer or simple struct use)"
 @enduml

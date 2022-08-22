@@ -69,7 +69,7 @@ namespace Wf121::Wf121Parser
         {
             Fw::Time now = getTime();
             uint32_t nowMillis = static_cast<uint32_t>(now.get_time_ms());
-            if (nowMillis - m_completedHeaderTimeMs >= WF121_MPSM_FULL_PAYLOAD_TIMEOUT_MS)
+            if ((nowMillis - m_completedHeaderTimeMs) >= WF121_MPSM_FULL_PAYLOAD_TIMEOUT_MS)
             {
                 // Reset state, clear the message, and reset the header buffer:
                 // (essentially, start over since we're assuming the previous
@@ -100,7 +100,7 @@ namespace Wf121::Wf121Parser
                     // Set how many bytes we are going to wait for:
                     m_numPayloadBytesExpected = getBgapiPayloadSize(msg.bgApiHeader());
                     // and make sure that's reasonable (final check to see if this is a valid BGAPI header):
-                    if (m_numPayloadBytesExpected > WF121_BGAPI_MAX_PACKET_SIZE || m_numPayloadBytesExpected > msg.payloadBufferCapacity)
+                    if (m_numPayloadBytesExpected > BgApi::MAX_PACKET_SIZE || m_numPayloadBytesExpected > msg.payloadBufferCapacity)
                     {
                         // Expecting more data than we can load (than max message size).
                         // This is a problem and suggests corrupted data.

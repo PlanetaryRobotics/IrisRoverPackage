@@ -77,7 +77,7 @@ namespace Wf121
           m_keepRunning(true),
           m_isRunning(false)
     {
-        rxByteQueue = xQueueCreate(2 * WF121_BGAPI_MAX_PACKET_SIZE + 5, sizeof(uint8_t));
+        rxByteQueue = xQueueCreate(2 * BgApi::MAX_PACKET_SIZE + 5, sizeof(uint8_t));
         assert(rxByteQueue != 0);
     }
 
@@ -203,14 +203,13 @@ namespace Wf121
             }
         }
     }
-}
 
-void Wf121RxTask::callAllCallbacks(WatchDogMpsm::Message &msg, bool goodParity)
-{
-    for (size_t i = 0; i < m_numCallbacksRegistered; ++i)
+    void Wf121RxTask::callAllCallbacks(WatchDogMpsm::Message &msg, bool goodParity)
     {
-        m_callbacks[i]->rxCallback(msg, goodParity);
+        for (size_t i = 0; i < m_numCallbacksRegistered; ++i)
+        {
+            m_callbacks[i]->rxCallback(msg, goodParity);
+        }
     }
-}
 
 } // end namespace CubeRover

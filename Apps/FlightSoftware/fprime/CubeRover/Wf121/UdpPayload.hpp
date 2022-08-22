@@ -52,15 +52,16 @@ namespace Wf121
         }
     };
 
-    struct UdpRxPayload : public UdpPayload
-    {
-        // At the moment, doesn't require any extra special data.
-    };
-
-    struct UdpTxPayload : public UdpPayload
-    {
-        // At the moment, doesn't require any extra special data.
-    };
+    // Create aliases for Payloads going in each direction:
+    // If this changes (i.e. UdpRxPayload or UdpTxPayload become a subclass of
+    // UdpPayload that contain extra fields), check the codebase for any
+    // static_cast between the different UdpPayload types and make sure they
+    // won't become broken (there is at least one at the time of writing).
+    // ^ compiler should catch UdpRxPayload<->UdpTxPayload casts that break in
+    // this way too since they'll be siblings and not directly related through
+    // inheritance.
+    typedef UdpPayload UdpRxPayload;
+    typedef UdpPayload UdpTxPayload;
 }
 
 #endif /* CUBEROVER_WF121_WF121_UDP_PAYLOAD_HPP_ */

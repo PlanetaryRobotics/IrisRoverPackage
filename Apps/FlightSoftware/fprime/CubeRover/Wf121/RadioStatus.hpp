@@ -46,6 +46,9 @@ namespace Wf121
         uint32_t udpTxPacketCount;
         // Number of bytes sent in downlinked UDP packets:
         uint32_t udpTxByteCount;
+        // Whether there's been a critical comms failure and the RadioDriver
+        // needs external help (e.g. by resetting the Radio):
+        bool criticalCommsFailure_needHelp;
 
         RadioStatus() : timeOfLastHeartbeatMs(0),
                         currentRadioState(DirectMessage::RadioSwState::NONE),
@@ -56,7 +59,8 @@ namespace Wf121
                         udpRxPacketCount(0),
                         udpRxByteCount(0),
                         udpTxPacketCount(0),
-                        udpTxByteCount(0)
+                        udpTxByteCount(0),
+                        criticalCommsFailure_needHelp(false)
         {
             // Nothing else to do.
         }
@@ -74,6 +78,7 @@ namespace Wf121
             target->udpRxByteCount = this->udpRxByteCount;
             target->udpTxPacketCount = this->udpTxPacketCount;
             target->udpTxByteCount = this->udpTxByteCount;
+            target->criticalCommsFailure_needHelp = this->criticalCommsFailure_needHelp;
         }
 
         // Sets the `timeOfLastHeartbeatMs` to the current Time in milliseconds
@@ -305,10 +310,35 @@ namespace Wf121
             return udpTxByteCount;
         }
 
+        // Obtains a mutex lock, copies `criticalCommsFailure_needHelp` into
+        // the given object, releases the lock.
+        void copyCriticalCommsFailure_NeedHelpInto(bool *criticalCommsFailure_needHelp)
+        {
+            this->mutex.lock();
+            *criticalCommsFailure_needHelp = this->criticalCommsFailure_needHelp;
+            this->mutex.unLock();
+        }
+        // Obtains a mutex lock, copies the value, releases the lock,
+        // returns the copy.
+        bool getCriticalCommsFailure_needHelp()
+        {
+            bool criticalCommsFailure_needHelp;
+            this->mutex.lock();
+            criticalCommsFailure_needHelp = this->criticalCommsFailure_needHelp;
+            this->mutex.unLock();
+            return criticalCommsFailure_needHelp;
+        }
+        // Alias:
+        bool needHelpCriticalCommsFailureOccurred()
+        {
+            return this->getCriticalCommsFailure_needHelp();
+        }
+
         /* SETTERS: */
         // Obtains a mutex lock, sets the radio state to the given
         // RadioSwState, releases the lock.
-        void setRadioState(DirectMessage::RadioSwState state)
+        void
+        setRadioState(DirectMessage::RadioSwState state)
         {
             this->mutex.lock();
             this->currentRadioState = state;
@@ -388,6 +418,15 @@ namespace Wf121
         {
             this->mutex.lock();
             this->udpTxByteCount += x;
+            this->mutex.unLock();
+        }
+
+        // Obtains a mutex lock, sets the `criticalCommsFailure_needHelp` flag
+        // to the given value, releases the lock.
+        void setCriticalCommsFailure_NeedHelp(bool criticalCommsFailure_needHelp)
+        {
+            this->mutex.lock();
+            this->criticalCommsFailure_needHelp = criticalCommsFailure_needHelp;
             this->mutex.unLock();
         }
     };

@@ -120,6 +120,7 @@ Check that CTS / RTS lines up correctly in schematic.
 //      B.) a long time (several times the UDP TX Queue fill time)
 
 // ! TODO: In `udpTxUpdateHandler`, handle flag from `cb_EventEndpointSyntaxError` (re-send last command b/c Radio didn't understand it? - look for either the expected semaphore or the syntax error semaphore)
+// Implement this is such a way so that if Radio doesn't respond as expect (due to Lunar EMI interference), we break out of the blocking wait for SetTransmitSize or SendUdpChunk mailboxes in the `udpTxUpdateHandler` state machine.
 
 // TODO: Await `CanSendData` (CTS) before `dmaSend` in `Wf121UdpTxTask`?
 // doing this properly would require a GIO interrupt and semaphoreGive ... lower priority
@@ -131,5 +132,9 @@ Check that CTS / RTS lines up correctly in schematic.
 
 // TODO: Put all docs/diagrams into a quick README.
 
-// ! TODO: Raise a semaphore when we've reached ultimate failure (triggers failure callbacks, which NM will register in, which will reset WD)
-// ^ pair this with a time-since-last-hb check
+// ! TODO: Check criticalCommsFailure_needHelp and time-since-last-hb in NM update.
+
+// Implement 'RESET-ALL-BUFFERS' command on ground.
+// Update C&TL with all new Radio-Ground and Ground-Direct TMTC.
+
+// TODO: If RX bugs, re-test `SimpleAsyncFifoBuffer` in REPL (don't recall how comprehensive testing was before). Would break entire RX pipeline if it doesn't work as expected.

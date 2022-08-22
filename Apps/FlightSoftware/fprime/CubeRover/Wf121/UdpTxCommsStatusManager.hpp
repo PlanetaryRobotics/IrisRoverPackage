@@ -31,7 +31,7 @@ namespace Wf121
     class UdpTxCommsStatusManager
     {
     public:
-        // How long to block (yield) the UDP TX Task while awaiting a response before giving up and timing out:
+        // How long to block (yield) the UDP TX Task while awaiting a BGAPI response packet before giving up and timing out:
         // NOTE: this can be long as all we do is suspend the TX task until we get a response:
         static const TickType_t UDP_TX_RESPONSE_TIMEOUT_TICKS = (30 * 1000) / portTICK_PERIOD_MS; // 30 sec
 

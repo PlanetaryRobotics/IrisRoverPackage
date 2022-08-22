@@ -46,7 +46,9 @@
 #include <CubeRover/Wf121/UdpTxCommsStatusManager.hpp>
 #include <CubeRover/Wf121/Wf121UdpTxTask.hpp>
 #include <CubeRover/Wf121/UdpPayload.hpp>
+#include <CubeRover/Wf121/GroundDirectTMTC.hpp>
 #include <Os/Mutex.hpp>
+#include <Fw/Time/Time.hpp>
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -77,22 +79,6 @@ static const uint8_t WF121_BGAPI_COMMAND_MAX_TRIES = 5;
 
 namespace Wf121
 {
-    // Message sent from Hercules when the first available downlink opportunity
-    // opens:
-    static const uint8_t HELLO_EARTH_MESSAGE[] = "Hello Earth, this is Hercules on the Moon!";
-
-    // Struct used for acknowledging that an uplinked UDP packet was
-    // successfully received over the Radio (sent back to the radio).
-    // Format:
-    //      - "HER:" // Fixed 4B header (parallel of "RAD:")
-    //      - [length of UDP payload received] // (2B, little endian)
-    struct HerculesRadioUplinkResponse
-    {
-        uint32_t fixedHeader = 0x3A'52'45'48; // 'HER:' (in little-endian)
-        uint16_t payloadBytesReceived;        // Number of bytes in the UDP payload
-        HerculesRadioUplinkResponse(uint16_t pbr) : payloadBytesReceived(pbr){};
-    } __attribute__((packed, aligned(1)));
-
     class NetworkInterface : public BgApi::BgApiDriver,
                              public DirectMessage::DirectMessageDriver,
                              public virtual Wf121TxTaskManager
@@ -278,12 +264,14 @@ namespace Wf121
             WAIT_FOR_BGAPI_READY = 0x10,
             // Not in the middle of sending data. Wait for more data to send:
             WAIT_FOR_NEXT_MESSAGE = 0x11,
+            // Start sending the message (perform any setup):
+            START_SENDING_MESSAGE = 0x12,
             // We have a message to send and now need to send `SetTransmitSize`:
-            SEND_SET_TRANSMIT_SIZE = 0x12,
+            SEND_SET_TRANSMIT_SIZE = 0x13,
             // Wait for acknowledgement of `SetTransmitSize`:
             WAIT_FOR_SET_TRANSMIT_SIZE_ACK = 0x20,
             // Send a UDP chunk:
-            SEND_UDP_CHUNK = 0x21
+            SEND_UDP_CHUNK = 0x21,
             // Wait for acknowledgement of last UDP chunk's `SendEndpoint`:
             WAIT_FOR_UDP_CHUNK_ACK = 0x22,
             // Done downlinking data:
@@ -294,6 +282,7 @@ namespace Wf121
         // State handlers:
         UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_BGAPI_READY(bool *yieldData);
         UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_NEXT_MESSAGE(bool *yieldData);
+        UdpTxUpdateState NetworkInterface::handleTxState_START_SENDING_MESSAGE(bool *yieldData);
         UdpTxUpdateState NetworkInterface::handleTxState_SEND_SET_TRANSMIT_SIZE(bool *yieldData);
         UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK(bool *yieldData);
         UdpTxUpdateState NetworkInterface::handleTxState_SEND_UDP_CHUNK(bool *yieldData);

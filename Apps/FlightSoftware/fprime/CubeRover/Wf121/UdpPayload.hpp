@@ -50,6 +50,14 @@ namespace Wf121
             // Write 0xFA to all "empty" bytes in this array, this just makes debugging easier
             memset(this->data, 0xAB, WF121_UDP_MAX_PAYLOAD);
         }
+
+        // Copies data from the given buffer into this payload (capping it at
+        // the max size):
+        void copyIn(size_t bufferLen, uint8_t *buffer)
+        {
+            uint16_t bytesToCopy = bufferLen <= WF121_UDP_MAX_PAYLOAD ? bufferLen : WF121_UDP_MAX_PAYLOAD;
+            memcpy(this->data, buffer, bytesToCopy);
+        }
     };
 
     // Create aliases for Payloads going in each direction:

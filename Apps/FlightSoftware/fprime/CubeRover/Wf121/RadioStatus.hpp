@@ -337,8 +337,7 @@ namespace Wf121
         /* SETTERS: */
         // Obtains a mutex lock, sets the radio state to the given
         // RadioSwState, releases the lock.
-        void
-        setRadioState(DirectMessage::RadioSwState state)
+        void setRadioState(DirectMessage::RadioSwState state)
         {
             this->mutex.lock();
             this->currentRadioState = state;

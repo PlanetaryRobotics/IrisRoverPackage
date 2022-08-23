@@ -108,10 +108,17 @@ namespace Wf121
      * Queue is full, so make sure this function is being called enough to
      * keep the Queue below `UDP_RX_PAYLOAD_QUEUE_DEPTH`.
      *
-     * @param pPayload
+     * @param pPayload Pointer to payload to load the data into.
+     * @param blockingTicks How many FreeRTOS scheduler ticks to block the
+     *      active task for while waiting for data to be available.
+     *      Default is 0, which means it returns immediately, whether or not
+     *      data was available. Since UDP RX is Queued, this behavior is
+     *      desirable b/c it lets us reap all the benefits of using a Queue to
+     *      not have to wait for things in the first place.
+     *
      * @return Whether a payload was found.
      */
-    bool NetworkInterface::getAvailableUdpPayload(NetworkInterface::UdpRxPayload *pPayload)
+    bool NetworkInterface::getAvailableUdpPayload(NetworkInterface::UdpRxPayload *pPayload, TickType_t blockingTicks = 0)
     {
         if (m_xUdpRxPayloadQueue != NULL)
         {
@@ -122,7 +129,7 @@ namespace Wf121
             // we're making it *slightly* non-zero here only as a precaution.
             // NOTE: This send procedure is a **COPY**.
             // NOTE: At FreeRTOS 1000Hz tick rate, each tick is 1ms.
-            if (xQueueReceive(m_xUdpRxPayloadQueue, (void *)pPayload, (TickType_t)3) == pdPASS)
+            if (xQueueReceive(m_xUdpRxPayloadQueue, (void *)pPayload, blockingTicks) == pdPASS)
             {
                 // Got a payload from the queue!
                 // Nothing special to do here, but this is where you'd do it.
@@ -131,6 +138,7 @@ namespace Wf121
             else
             {
                 // Nothing was available (which is fine), just no new data yet.
+                return false;
             }
         }
         return false;

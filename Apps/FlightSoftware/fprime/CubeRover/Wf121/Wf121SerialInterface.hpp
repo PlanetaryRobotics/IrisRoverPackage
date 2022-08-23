@@ -62,6 +62,16 @@ namespace Wf121::Wf121Serial
         SemaphoreHandle_t xSemaphore_writeDone;
         static StaticSemaphore_t xSemaphoreBuffer_writeDone;
 
+        // Extra layer of safety to make sure only one process can use the
+        // core SCI resource (`sciDMASend` for this interface) at a time.
+        // Given that `Wf121UdpTxTask` should own `dmaSend` responsibility in
+        // the first place, this *shouldn't* be an issue but extra protection
+        // doesn't hurt and this makes it a guarantee.
+        // Additional benefit is it can prevent anyone from using `sciSend` if
+        // someone's actively using `sciDMASend` (which shouldn't happen anyway
+        // - but this makes sure it doesn't)
+        ::Os::Mutex sciResourceProtectionMutex;
+
         DmaWriteStatus(bool smartTimeout) : writeBusy(false),
                                             blockingStartTimeMs(0),
                                             useSmartTimeouts(smartTimeouts),
@@ -139,8 +149,6 @@ namespace Wf121::Wf121Serial
         // current write (if blocking).
         uint32_t blockingTimeRemaining()
         {
-            // Do all the computation to get the time first...
-            uint32_t now = static_cast<uint32_t>(getTime().get_time_ms());
             uint32_t startTime;
             uint32_t timeoutMs;
             uint32_t timeRemaining;
@@ -159,6 +167,9 @@ namespace Wf121::Wf121Serial
                 this->mutex.unLock();
                 timeoutMs = DmaWriteStatus::DMA_BLOCKING_TIMEOUT_MS;
             }
+            // Grab `now` **AFTER** the time so there's no chance startTime
+            // > now (unless there's been an overflow, which is okay):
+            uint32_t now = static_cast<uint32_t>(getTime().get_time_ms());
 
             timeRemaining = (startTime + timeoutMs) - now;
             return (timeRemaining > 0) ? timeRemaining : 0;
@@ -169,10 +180,9 @@ namespace Wf121::Wf121Serial
         // mutex, returns if timed out).
         bool blockingTimedOut()
         {
-            // Do all the computation to get the time first...
-            uint32_t now = static_cast<uint32_t>(getTime().get_time_ms());
+            uint32_t now;
             uint32_t startTime;
-            // ... and only lock the mutex when absolutely needed:
+            // only lock the mutex when absolutely needed:
             if (useSmartTimeouts)
             {
                 uint32_t smartTimeoutMs;
@@ -180,6 +190,9 @@ namespace Wf121::Wf121Serial
                 startTime = this->blockingStartTimeMs;
                 smartTimeoutMs = this->smartTimeoutMs;
                 this->mutex.unLock();
+                // Grab `now` **AFTER** the time so there's no chance startTime
+                // > now (unless there's been an overflow, which is okay):
+                now = static_cast<uint32_t>(getTime().get_time_ms());
                 return (now - startTime) > smartTimeoutMs;
             }
             else
@@ -187,6 +200,9 @@ namespace Wf121::Wf121Serial
                 this->mutex.lock();
                 startTime = this->blockingStartTimeMs;
                 this->mutex.unLock();
+                // Grab `now` **AFTER** the time so there's no chance startTime
+                // > now (unless there's been an overflow, which is okay):
+                now = static_cast<uint32_t>(getTime().get_time_ms());
                 return (now - startTime) > DmaWriteStatus::DMA_BLOCKING_TIMEOUT_MS;
             }
         }

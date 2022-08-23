@@ -122,7 +122,7 @@ namespace Wf121::Wf121Serial
         return !timedout;
     }
 
-    // Returns negative on error:
+    // Returns false on error:
     bool dmaSend(void *buffer, unsigned size, bool blocking)
     {
         if (blocking)
@@ -154,7 +154,9 @@ namespace Wf121::Wf121Serial
         // clear it (that's done by the `WF121_TX_DMA_ISR`) so we should take
         // outside precautions (like we do above) to make sure
         // `!dmaWriteStatus.writeBusy` before calling.
+        dmaWriteStatus.sciResourceProtectionMutex.lock();
         sciDMASend(WF121_TX_DMA_CH, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaWriteStatus.writeBusy);
+        dmaWriteStatus.sciResourceProtectionMutex.unLock();
 
         if (blocking)
         {
@@ -171,7 +173,9 @@ namespace Wf121::Wf121Serial
     {
         // old non-DMA code (for posterity - and in case of need for rapid
         // change-over):
+        dmaWriteStatus.sciResourceProtectionMutex.lock();
         sciSend(WF121_SCI_REG, size, static_cast<uint8_t *>(buffer));
+        dmaWriteStatus.sciResourceProtectionMutex.unLock();
         return true;
     }
 }

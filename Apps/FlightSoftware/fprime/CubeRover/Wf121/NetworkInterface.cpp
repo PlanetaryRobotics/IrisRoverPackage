@@ -439,7 +439,8 @@ namespace Wf121
                     {
                         if (xQueueSendToFront(m_xUdpTxPayloadQueue, (void *)pResponsePayload, (TickType_t)10) != pdPASS)
                         {
-                            // We failed because `errQUEUE_FULL`. Ground **has** to get this message.
+                            // We failed because `errQUEUE_FULL`.
+                            // It's **really** important for Ground to get this message.
                             // We already asked nicely, so just nuke the UDP TX Queue and try again:
                             xQueueReset(m_xUdpTxPayloadQueue);
                             xQueueSendToFront(m_xUdpTxPayloadQueue, (void *)pResponsePayload, (TickType_t)0);

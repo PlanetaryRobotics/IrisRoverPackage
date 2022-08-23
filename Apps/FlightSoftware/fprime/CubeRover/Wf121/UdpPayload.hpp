@@ -34,7 +34,7 @@ namespace Wf121
     struct UdpPayload
     {
         uint16_t dataSize;
-        uint8_t data[WF121_UDP_MAX_PAYLOAD] __attribute__((aligned(8))); // align the start of the array for more optimizable copies
+        uint8_t data[WF121_UDP_MAX_PAYLOAD] __attribute__((aligned(8))); // align to uint64_t boundary since all FPrime buffers get handled as U64 (for some reason?)
 
         UdpPayload() : dataSize(0)
         {

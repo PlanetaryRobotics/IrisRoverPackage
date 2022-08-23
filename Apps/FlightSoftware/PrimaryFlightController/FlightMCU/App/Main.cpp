@@ -111,7 +111,6 @@ void main(void)
 
     rtiInit(); // Initialize RTI for RTOS Tick last
 
-    _enable_IRQ();         // Enable IRQs (explicit here just to be extra sure about it)
     vTaskStartScheduler(); // Automatically enables IRQs
 
     // Something went very wrong with the RTOS if we end up here

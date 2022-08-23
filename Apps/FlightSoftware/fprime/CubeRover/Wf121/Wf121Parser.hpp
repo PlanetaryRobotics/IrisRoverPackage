@@ -32,8 +32,9 @@
 
 #include "sci.h"
 #include "Wf121BgApi.hpp"
+#include "SimpleAsyncFifoBuffer.hpp"
 
-namespace Wf121::Wf121Parser
+namespace Wf121{namespace Wf121Parser // Wf121::Wf121Parser
 {
     // *Generic Message Structure:*
     // Message Header Types:
@@ -164,5 +165,5 @@ namespace Wf121::Wf121Parser
         Mpsm::ProcessStatus process(GenericMessage &msg, uint8_t newByte);
     };
 
-}
+}} // Wf121::Wf121Parser
 #endif /* CUBEROVER_WF121_WF121_PARSER_HPP_ */

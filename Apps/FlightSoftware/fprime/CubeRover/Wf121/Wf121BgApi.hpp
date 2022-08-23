@@ -31,7 +31,7 @@
 // let new commands be sent. In milliseconds since Hercules boot:
 static const uint32_t BGAPI_CMD_PROCESSING_TIMEOUT_MS = 2000; // Give the Radio 2.0s to send us a response
 
-namespace Wf121::BgApi
+namespace Wf121{namespace BgApi // Wf121::BgApi
 {
 
   // *WF121 BGAPI Message Info:*
@@ -1744,6 +1744,6 @@ namespace Wf121::BgApi
     // Protected members
     BgApiStatus m_bgApiStatus;
   };
-} // Wf121::BgApi
+}} // Wf121::BgApi
 
 #endif /* CUBEROVER_WF121_WF121_BGAPI_HPP_ */

@@ -8,6 +8,7 @@
 #include <Fw/Types/EightyCharString.hpp>
 
 #include <CubeRover/Wf121/Wf121RxTask.hpp>
+#include <CubeRover/Wf121/Wf121SerialInterface.hpp>
 
 #include <App/DMA.h>
 
@@ -55,7 +56,7 @@ extern "C" void sci_ISR(uint32 flags)
         uint8_t rxByte = (uint8_t)(sciREG->RD & 0x000000FFU);
 
         /* clear error flags */
-        sci->FLR = ((uint32)SCI_FE_INT | (uint32)SCI_OE_INT | (uint32)SCI_PE_INT);
+        sciREG->FLR = ((uint32)SCI_FE_INT | (uint32)SCI_OE_INT | (uint32)SCI_PE_INT);
 
         // Push that byte into the queue so it's available to the outside task:
         xQueueSendFromISR(rxByteQueue, &rxByte, &xHigherPriorityTaskWoken);
@@ -66,7 +67,7 @@ extern "C" void sci_ISR(uint32 flags)
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
 
-    Wf121Serial::signalReadyForInterrupt(); // Flag that we're ready for another SCI ISR
+    Wf121::Wf121Serial::signalReadyForInterrupt(); // Flag that we're ready for another SCI ISR
 }
 
 namespace Wf121
@@ -78,7 +79,7 @@ namespace Wf121
           m_isRunning(false)
     {
         rxByteQueue = xQueueCreate(2 * BgApi::MAX_PACKET_SIZE + 5, sizeof(uint8_t));
-        assert(rxByteQueue != 0);
+        configASSERT(rxByteQueue != 0);
     }
 
     // This probably will never be called, but it should up to properly work anyway
@@ -167,7 +168,7 @@ namespace Wf121
             bool resetMpsmMsg = false;
 
             // Effectively "blocks forever" until something is put into the queue
-            if (xQueueReceive(rxByteQueue, &newData, portMAX_DELAY))
+            if (xQueueReceive(rxByteQueue, &newData, portMAX_DELAY) == pdPASS)
             {
                 Wf121Parser::Mpsm::ProcessStatus proc_stat = task->m_mpsm.process(msg, newData);
 
@@ -181,9 +182,16 @@ namespace Wf121
                     resetMpsmMsg = true;
                     break;
 
-                // Something bad happened, so we should toss any
+                // Something bad happened, so we should toss anything we have:
                 case Wf121Parser::Mpsm::ProcessStatus::POSSIBLE_CORRUPTION:
                     resetMpsmMsg = true;
+                    break;
+
+
+                case Wf121Parser::Mpsm::ProcessStatus::BAD_HEADER:
+                case Wf121Parser::Mpsm::ProcessStatus::BAD_LENGTH:
+                    // We got invalid / bad data. Probably just means
+                    // we're out of sync, so keep scanning. Nothing to do
                     break;
 
                 // If we don't need to do anything

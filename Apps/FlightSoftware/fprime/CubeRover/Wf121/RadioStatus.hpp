@@ -65,6 +65,8 @@ namespace Wf121
             // Nothing else to do.
         }
 
+        virtual ~RadioStatus() = default;
+
         // Copies the entire current status into the given RadioStatus object:
         void copyInto(RadioStatus *target)
         {

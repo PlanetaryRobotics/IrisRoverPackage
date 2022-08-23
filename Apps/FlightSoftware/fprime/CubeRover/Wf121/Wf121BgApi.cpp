@@ -1,6 +1,6 @@
 #include "Wf121BgApi.hpp"
 
-namespace Wf121::BgApi
+namespace Wf121{namespace BgApi // Wf121::BgApi
 {
 
   BgApiDriver::BgApiDriver() : m_bgApiStatus()
@@ -1647,4 +1647,4 @@ namespace Wf121::BgApi
     return (ErrorCode)result;
   }
 
-}
+}}

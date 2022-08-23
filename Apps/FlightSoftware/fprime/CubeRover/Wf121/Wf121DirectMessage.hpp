@@ -50,7 +50,7 @@
 
 #include <Fw/Time/Time.hpp>
 
-namespace Wf121::DirectMessage
+namespace Wf121{namespace DirectMessage // Wf121::DirectMessage
 {
     // Radio's built in drop (effectively /dev/null) endpoint (used when UDP isn't set up):
     const uint8_t UDP_NULL_ENDPOINT = 31;
@@ -268,7 +268,7 @@ namespace Wf121::DirectMessage
          * @param fire_on_match Whether to fire `cb_dm_NowInState` if there's a match.
          * @return uint8_t Number of bytes used (0 if no match).
          */
-        uint8_t checkIfStateMatches(RadioSwState state, uint8_t *state_buf, uint8_t body_len, uint8_t *body_data, RadioSwState *state_output, bool fire_on_match);
+        uint8_t checkIfStateMatches(RadioSwState state, const uint8_t *state_buf, uint8_t body_len, uint8_t *body_data, RadioSwState *state_output, bool fire_on_match);
 
         /**
          * @brief Helper function that checks if the given `body_data` buffer
@@ -285,8 +285,8 @@ namespace Wf121::DirectMessage
          * @param fire_on_match Whether to fire `cb_dm_NowDoingActivity` if there's a match.
          * @return uint8_t Number of bytes used (0 if no match).
          */
-        uint8_t checkIfDoingActivityMatches(RadioSwActivity doing, uint8_t *doing_buf, uint8_t body_len, uint8_t *body_data, RadioSwActivity *doing_output, bool fire_on_match);
+        uint8_t checkIfDoingActivityMatches(RadioSwActivity doing, const uint8_t *doing_buf, uint8_t body_len, uint8_t *body_data, RadioSwActivity *doing_output, bool fire_on_match);
     };
-}
+}}
 
 #endif /* CUBEROVER_WF121_WF121_DIRECT_MESSAGE_HPP_ */

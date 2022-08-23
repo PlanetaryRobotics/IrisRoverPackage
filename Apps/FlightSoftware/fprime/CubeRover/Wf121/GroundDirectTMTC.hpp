@@ -16,6 +16,7 @@
 #define CUBEROVER_WF121_WF121_GROUND_DIRECT_TMTC_HPP_
 
 #include <Fw/Types/BasicTypes.hpp>
+#include <Fw/Time/Time.hpp>
 
 namespace Wf121
 {

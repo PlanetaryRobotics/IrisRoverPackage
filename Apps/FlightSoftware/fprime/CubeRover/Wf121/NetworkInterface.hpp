@@ -95,6 +95,9 @@ namespace Wf121
         // Constructor (just initialize data structures):
         NetworkInterface();
 
+        // Dtor to satisfy polymorphism (this class should never actually be deleted):
+        ~NetworkInterface();
+
         // Initializer (start everything once outer processes are ready):
         void init();
 
@@ -111,10 +114,17 @@ namespace Wf121
          * Queue is full, so make sure this function is being called enough to
          * keep the Queue below `UDP_RX_PAYLOAD_QUEUE_DEPTH`.
          *
-         * @param pPayload
+         * @param pPayload Pointer to payload to load the data into.
+         * @param blockingTicks How many FreeRTOS scheduler ticks to block the
+         *      active task for while waiting for data to be available.
+         *      Default is 0, which means it returns immediately, whether or not
+         *      data was available. Since UDP RX is Queued, this behavior is
+         *      desirable b/c it lets us reap all the benefits of using a Queue to
+         *      not have to wait for things in the first place.
+         *
          * @return Whether a payload was found.
          */
-        bool getAvailableUdpPayload(UdpRxPayload *pPayload);
+        bool getAvailableUdpPayload(UdpRxPayload *pPayload, TickType_t blockingTicks = 0);
 
         /**
          * @brief Add the given payload to the UDP TX Queue.
@@ -280,15 +290,15 @@ namespace Wf121
             BGAPI_CMD_FAIL = 0xF0
         };
         // State handlers:
-        UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_BGAPI_READY(bool *yieldData);
-        UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_NEXT_MESSAGE(bool *yieldData);
-        UdpTxUpdateState NetworkInterface::handleTxState_START_SENDING_MESSAGE(bool *yieldData);
-        UdpTxUpdateState NetworkInterface::handleTxState_SEND_SET_TRANSMIT_SIZE(bool *yieldData);
-        UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK(bool *yieldData);
-        UdpTxUpdateState NetworkInterface::handleTxState_SEND_UDP_CHUNK(bool *yieldData);
-        UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_UDP_CHUNK_ACK(bool *yieldData);
-        UdpTxUpdateState NetworkInterface::handleTxState_DONE_DOWNLINKING(bool *yieldData);
-        UdpTxUpdateState NetworkInterface::handleTxState_BGAPI_CMD_FAIL(bool *yieldData)
+        UdpTxUpdateState handleTxState_WAIT_FOR_BGAPI_READY(bool *yieldData);
+        UdpTxUpdateState handleTxState_WAIT_FOR_NEXT_MESSAGE(bool *yieldData);
+        UdpTxUpdateState handleTxState_START_SENDING_MESSAGE(bool *yieldData);
+        UdpTxUpdateState handleTxState_SEND_SET_TRANSMIT_SIZE(bool *yieldData);
+        UdpTxUpdateState handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK(bool *yieldData);
+        UdpTxUpdateState handleTxState_SEND_UDP_CHUNK(bool *yieldData);
+        UdpTxUpdateState handleTxState_WAIT_FOR_UDP_CHUNK_ACK(bool *yieldData);
+        UdpTxUpdateState handleTxState_DONE_DOWNLINKING(bool *yieldData);
+        UdpTxUpdateState handleTxState_BGAPI_CMD_FAIL(bool *yieldData)
     };
 }
 

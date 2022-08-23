@@ -1,7 +1,7 @@
 #ifndef _FSW_PACKET_H_
 #define _FSW_PACKET_H_
 
-#define NETWORK_TEST_ENV_TEST
+//#define NETWORK_TEST_ENV_TEST
 #define NETWORK_TEST_ENV_MOON
 
 

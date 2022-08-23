@@ -23,7 +23,7 @@ namespace Wf121
     // NetworkInterface (which should be the case) - it belongs to RadioDriver,
     // which belongs to NetworkManager, which there should only be one of.
     // Size of UDP Payloads in `m_xUdpRxPayloadQueue`:
-    static const size_t UDP_RX_PAYLOAD_QUEUE_ITEM_SIZE = sizeof(NetworkInterface::UdpRxPayload);
+    static const size_t UDP_RX_PAYLOAD_QUEUE_ITEM_SIZE = sizeof(UdpRxPayload);
     // Number of UDP Payloads to keep in the `m_xUdpRxPayloadQueue` (note: each payload is 2+WF121_UDP_MAX_PAYLOAD bytes long).
     static const uint8_t UDP_RX_PAYLOAD_QUEUE_DEPTH = 3;
     // Static queue storage area:
@@ -32,7 +32,7 @@ namespace Wf121
     static StaticQueue_t xUdpRxPayloadStaticQueue;
     //
     // Same data but for `m_xUdpTxPayloadQueue`:
-    static const size_t UDP_TX_PAYLOAD_QUEUE_ITEM_SIZE = sizeof(NetworkInterface::UdpTxPayload);
+    static const size_t UDP_TX_PAYLOAD_QUEUE_ITEM_SIZE = sizeof(UdpTxPayload);
     // Number of UDP Payloads to keep in the `m_xUdpTxPayloadQueue` (note: each payload is 2+WF121_UDP_MAX_PAYLOAD bytes long).
     static const uint8_t UDP_TX_PAYLOAD_QUEUE_DEPTH = 5;
     // Static queue storage area:
@@ -59,7 +59,12 @@ namespace Wf121
         m_xUdpTxRecycling.clear();   // Pre-fill recycling with sentinel byte
     }
 
-    NetworkInterface::init()
+    // Dtor to satisfy polymorphism (this class should never actually be deleted):
+    NetworkInterface::~NetworkInterface(){
+        // don't use
+    }
+
+    void NetworkInterface::init()
     {
         // Call parent class initializers (set everything up for them first):
         BgApi::BgApiDriver::init();
@@ -69,7 +74,7 @@ namespace Wf121
         // tasks start):
         m_xUdpRxPayloadQueue = xQueueCreateStatic(
             /* The number of items the queue can hold. */
-            NetworkInterface::UDP_RX_PAYLOAD_QUEUE_DEPTH,
+            UDP_RX_PAYLOAD_QUEUE_DEPTH,
             UDP_RX_PAYLOAD_QUEUE_ITEM_SIZE,
             ucUdpRxPayloadQueueStorageArea,
             &xUdpRxPayloadStaticQueue);
@@ -83,7 +88,7 @@ namespace Wf121
         // tasks start):
         m_xUdpTxPayloadQueue = xQueueCreateStatic(
             /* The number of items the queue can hold. */
-            NetworkInterface::UDP_TX_PAYLOAD_QUEUE_DEPTH,
+            UDP_TX_PAYLOAD_QUEUE_DEPTH,
             UDP_TX_PAYLOAD_QUEUE_ITEM_SIZE,
             ucUdpTxPayloadQueueStorageArea,
             &xUdpTxPayloadStaticQueue);
@@ -118,7 +123,7 @@ namespace Wf121
      *
      * @return Whether a payload was found.
      */
-    bool NetworkInterface::getAvailableUdpPayload(NetworkInterface::UdpRxPayload *pPayload, TickType_t blockingTicks = 0)
+    bool NetworkInterface::getAvailableUdpPayload(UdpRxPayload *pPayload, TickType_t blockingTicks)
     {
         if (m_xUdpRxPayloadQueue != NULL)
         {
@@ -157,7 +162,7 @@ namespace Wf121
      * @param pPayload
      * @return Whether the payload was successfully added to the queue.
      */
-    bool sendUdpPayload(UdpTxPayload *pPayload)
+    bool NetworkInterface::sendUdpPayload(UdpTxPayload *pPayload)
     {
         bool enqueuedSuccessfully = false;
         if (m_xUdpTxPayloadQueue != NULL) // Make sure the Queue has been init'd
@@ -285,7 +290,7 @@ namespace Wf121
         if (endpoint == targetEndpoint)
         {
             // This is for our endpoint. Let the manager know the result:
-            m_udpTxCommsStatusManager.setTransmitSize_Response(result);
+            m_udpTxCommsStatusManager.setTransmitSize_Response((BgApi::ErrorCode)result);
         }
         return (BgApi::ErrorCode)result;
     }
@@ -297,7 +302,7 @@ namespace Wf121
         if (endpoint == targetEndpoint)
         {
             // This is for our endpoint. Let the manager know the result:
-            m_udpTxCommsStatusManager.sendEndpointUdp_Response(result);
+            m_udpTxCommsStatusManager.sendEndpointUdp_Response((BgApi::ErrorCode)result);
         }
         return (BgApi::ErrorCode)result;
     }
@@ -310,6 +315,7 @@ namespace Wf121
         {
             m_protectedRadioStatus.setRssi(rssi)
         }
+        return BgApi::ErrorCode::NO_ERROR;
     }
 
     // Event for uplinked packets:
@@ -439,7 +445,8 @@ namespace Wf121
                     {
                         if (xQueueSendToFront(m_xUdpTxPayloadQueue, (void *)pResponsePayload, (TickType_t)10) != pdPASS)
                         {
-                            // We failed because `errQUEUE_FULL`. Ground **has** to get this message.
+                            // We failed because `errQUEUE_FULL`.
+                            // It's **really** important for Ground to get this message.
                             // We already asked nicely, so just nuke the UDP TX Queue and try again:
                             xQueueReset(m_xUdpTxPayloadQueue);
                             xQueueSendToFront(m_xUdpTxPayloadQueue, (void *)pResponsePayload, (TickType_t)0);
@@ -449,6 +456,8 @@ namespace Wf121
 
             } // m_xUdpRxPayloadQueue exists?
         }     // correct endpoint?
+
+        return BgApi::ErrorCode::NO_ERROR;
     }
 
     // Helper function to handle the `WAIT_FOR_BGAPI_READY` `UdpTxUpdateState`
@@ -456,7 +465,7 @@ namespace Wf121
     // Sets the yieldData flag if it needs the State Machine to pause and yield
     // data to the `Wf121UdpTxTask`.
     // Returns the next state to transition to.
-    UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_BGAPI_READY(bool *yieldData)
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_BGAPI_READY(bool *yieldData)
     {
         // Poll to make sure BGAPI is done processing the last command
         // and it's okay to another BGAPI command:
@@ -478,7 +487,7 @@ namespace Wf121
     // Sets the yieldData flag if it needs the State Machine to pause and yield
     // data to the `Wf121UdpTxTask`.
     // Returns the next state to transition to.
-    UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_NEXT_MESSAGE(bool *yieldData)
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_NEXT_MESSAGE(bool *yieldData)
     {
         static bool first_downlink = false;
         // Grab data to write:
@@ -524,7 +533,7 @@ namespace Wf121
     // Sets the yieldData flag if it needs the State Machine to pause and yield
     // data to the `Wf121UdpTxTask`.
     // Returns the next state to transition to.
-    UdpTxUpdateState NetworkInterface::handleTxState_START_SENDING_MESSAGE(bool *yieldData)
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_START_SENDING_MESSAGE(bool *yieldData)
     {
         // Perform any setup:
 
@@ -541,7 +550,7 @@ namespace Wf121
     // Sets the yieldData flag if it needs the State Machine to pause and yield
     // data to the `Wf121UdpTxTask`.
     // Returns the next state to transition to.
-    UdpTxUpdateState NetworkInterface::handleTxState_SEND_SET_TRANSMIT_SIZE(bool *yieldData)
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_SEND_SET_TRANSMIT_SIZE(bool *yieldData)
     {
         // Pack the data for setting the transmit size (size of `m_xUdpTxWorkingData`):
         SetTransmitSize(&m_bgApiCommandBuffer,
@@ -558,7 +567,7 @@ namespace Wf121
     // Sets the yieldData flag if it needs the State Machine to pause and yield
     // data to the `Wf121UdpTxTask`.
     // Returns the next state to transition to.
-    UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK(bool *yieldData)
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK(bool *yieldData)
     {
         UdpTxUpdateState nextState;
 
@@ -605,7 +614,7 @@ namespace Wf121
     // Sets the yieldData flag if it needs the State Machine to pause and yield
     // data to the `Wf121UdpTxTask`.
     // Returns the next state to transition to.
-    UdpTxUpdateState NetworkInterface::handleTxState_SEND_UDP_CHUNK(bool *yieldData)
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_SEND_UDP_CHUNK(bool *yieldData)
     {
         uint16_t bytesLeftToSend = m_xUdpTxWorkingData.dataSize - m_totalUdpMessageBytesDownlinked;
 
@@ -631,7 +640,7 @@ namespace Wf121
     // Sets the yieldData flag if it needs the State Machine to pause and yield
     // data to the `Wf121UdpTxTask`.
     // Returns the next state to transition to.
-    UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_UDP_CHUNK_ACK(bool *yieldData)
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_UDP_CHUNK_ACK(bool *yieldData)
     {
         UdpTxUpdateState nextState;
 
@@ -692,7 +701,7 @@ namespace Wf121
     // Sets the yieldData flag if it needs the State Machine to pause and yield
     // data to the `Wf121UdpTxTask`.
     // Returns the next state to transition to.
-    UdpTxUpdateState NetworkInterface::handleTxState_DONE_DOWNLINKING(bool *yieldData)
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_DONE_DOWNLINKING(bool *yieldData)
     {
         // Any cleanup we want to do after downlinking a UDP payload / before
         // sending the next:
@@ -707,7 +716,7 @@ namespace Wf121
     // Sets the yieldData flag if it needs the State Machine to pause and yield
     // data to the `Wf121UdpTxTask`.
     // Returns the next state to transition to.
-    UdpTxUpdateState NetworkInterface::handleTxState_BGAPI_CMD_FAIL(bool *yieldData)
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_BGAPI_CMD_FAIL(bool *yieldData)
     {
         // What to do after Radio didn't give us a response for a bunch of packets:
         UdpTxUpdateState nextState;
@@ -791,7 +800,7 @@ namespace Wf121
             // even determining what data to yield):
             while (
                 m_protectedRadioStatus.getRadioState() != DirectMessage::RadioSwState::UDP_CONNECTED || // Radio is connected and able to send UDP data
-                m_protectedRadioStatus.getDownlinkEndpoint() == UDP_NULL_ENDPOINT                       // Target for that UDP data isn't /dev/null
+                m_protectedRadioStatus.getDownlinkEndpoint() == DirectMessage::UDP_NULL_ENDPOINT        // Target for that UDP data isn't /dev/null
             )
             {
                 vTaskDelay(WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL);

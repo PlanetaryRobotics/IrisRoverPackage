@@ -44,12 +44,12 @@ namespace Wf121
         {
             // Create the mailbox queues:
             this->xQueue_SetTransmitSize_Response = xQueueCreateStatic(1,
-                                                                       sizeof(ErrorCode),
+                                                                       sizeof(BgApi::ErrorCode),
                                                                        ucQueueStorageArea_SetTransmitSize_Response,
                                                                        &xStaticQueue_SetTransmitSize_Response);
             configASSERT(xQueue_SetTransmitSize_Response);
             this->xQueue_SendEndpointUdp_Response = xQueueCreateStatic(1,
-                                                                       sizeof(ErrorCode),
+                                                                       sizeof(BgApi::ErrorCode),
                                                                        ucQueueStorageArea_SendEndpointUdp_Response,
                                                                        &xStaticQueue_SendEndpointUdp_Response);
             configASSERT(xQueue_SendEndpointUdp_Response);
@@ -73,14 +73,14 @@ namespace Wf121
         // TRY_AGAIN if the messaging system wasn't set up yet.
         BgApi::ErrorCode awaitResponse_setTransmitSize()
         {
-            return UdpTxCommsStatusManager::awaitResponse(this->xQueue_SetTransmitSize_Response);
+            return UdpTxCommsStatusManager::awaitResponse(&this->xQueue_SetTransmitSize_Response);
         }
         // Block (yield) the calling task until we get a `SendEndpointUdp` response (for the downlink endpoint).
         // Return that response or TIMEOUT if we waited too long or
         // TRY_AGAIN if the messaging system wasn't set up yet.
         BgApi::ErrorCode awaitResponse_sendEndpointUdp()
         {
-            return UdpTxCommsStatusManager::awaitResponse(this->xQueue_SendEndpointUdp_Response);
+            return UdpTxCommsStatusManager::awaitResponse(&this->xQueue_SendEndpointUdp_Response);
         }
 
         // Tell the UdpTxTask that we got the given response code for the `SetTransmitSize` command:

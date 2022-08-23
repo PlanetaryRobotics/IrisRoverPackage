@@ -5,7 +5,7 @@
 // `packCommBuffer`but don't actually send the data (that's handled by an
 // interface task - i.e. `Wf121UdpTxTask`):
 
-namespace Wf121::BgApi
+namespace Wf121{namespace BgApi // Wf121::BgApi
 {
        /**
         * @brief      This command can be used to check whether communication between
@@ -3044,4 +3044,4 @@ namespace Wf121::BgApi
               // transmit a command, an event is expected in  return
               return packCommBuffer(targetCommBuffer, &txHeader, payload);
        }
-}
+}}

@@ -27,6 +27,9 @@
 
 namespace Wf121
 {
+    // Forward declaration of UDP TX Task Class (for `Wf121TxTaskManager`):
+    class Wf121UdpTxTask;
+
     /**
      * @brief Defines the contract (i.e. interface) that must be implemented
      *      (via subclassing) by classes that want to handle TX write operations,
@@ -47,7 +50,7 @@ namespace Wf121
          */
         virtual BgApi::BgApiCommBuffer *udpTxUpdateHandler(Wf121UdpTxTask *pTask) = 0;
 
-        virtual ~Wf121TxTaskHandler() = default;
+        virtual ~Wf121TxTaskManager() = default;
     };
 
     /**

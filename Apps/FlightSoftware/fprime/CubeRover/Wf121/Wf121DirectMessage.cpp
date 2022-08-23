@@ -1,19 +1,21 @@
 #include <CubeRover/Wf121/Wf121DirectMessage.hpp>
 
-#include <cstring>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
 // Anonymous namespace for file-scope helper functions:
 namespace
 {
     // Returns the length of the given fixed buffer containing a
     // null-terminated string:
-    uint8_t getStrBufferLen(const uint8_t *buf)
+    size_t getStrBufferLen(const uint8_t *buf)
     {
         return strlen((const char *)buf);
     }
 }
 
-namespace Wf121::DirectMessage
+namespace Wf121{namespace DirectMessage // Wf121::DirectMessage
 {
     DirectMessageDriver::DirectMessageDriver()
     {
@@ -47,7 +49,7 @@ namespace Wf121::DirectMessage
         }
         if (memcmp(msg_data, STATE_HEADER, FIXED_HEADER_LEN) == 0)
         {
-            return handle_stateMessage(msg_len - FIXED_HEADER_LEN, msg_data + FIXED_HEADER_LEN);
+            return handleStateMessage(msg_len - FIXED_HEADER_LEN, msg_data + FIXED_HEADER_LEN);
         }
         if (memcmp(msg_data, DOING_HEADER, FIXED_HEADER_LEN) == 0)
         {
@@ -152,7 +154,7 @@ namespace Wf121::DirectMessage
      * @param fire_on_match Whether to fire `cb_dm_NowInState` if there's a match.
      * @return uint8_t Number of bytes used (0 if no match).
      */
-    uint8_t DirectMessageDriver::checkIfStateMatches(RadioSwState state, uint8_t *state_buf, uint8_t body_len, uint8_t *body_data, RadioSwState *state_output, bool fire_on_match)
+    uint8_t DirectMessageDriver::checkIfStateMatches(RadioSwState state, const uint8_t *state_buf, uint8_t body_len, uint8_t *body_data, RadioSwState *state_output, bool fire_on_match)
     {
         uint8_t state_len = getStrBufferLen(state_buf);
         if (
@@ -197,27 +199,27 @@ namespace Wf121::DirectMessage
         // BOOT STATE:
         if (bytes_used == 0)
         { // no match found yet
-            bytes_used = checkIfStateMatches(RadioSwState::BOOT, STATE_REF_BUFFER__BOOT, body_len, body_data, state_output, state_output, fire_callback);
+            bytes_used = checkIfStateMatches(RadioSwState::BOOT, STATE_REF_BUFFER__BOOT, body_len, body_data, state_output, fire_callback);
         }
         // INIT STATE:
         if (bytes_used == 0)
         { // no match found yet
-            bytes_used = checkIfStateMatches(RadioSwState::INIT, STATE_REF_BUFFER__INIT, body_len, body_data, state_output, state_output, fire_callback);
+            bytes_used = checkIfStateMatches(RadioSwState::INIT, STATE_REF_BUFFER__INIT, body_len, body_data, state_output, fire_callback);
         }
         // WIFI_ON STATE:
         if (bytes_used == 0)
         { // no match found yet
-            bytes_used = checkIfStateMatches(RadioSwState::WIFI_ON, STATE_REF_BUFFER__WIFI_ON, body_len, body_data, state_output, state_output, fire_callback);
+            bytes_used = checkIfStateMatches(RadioSwState::WIFI_ON, STATE_REF_BUFFER__WIFI_ON, body_len, body_data, state_output, fire_callback);
         }
         // CONNECTED STATE:
         if (bytes_used == 0)
         { // no match found yet
-            bytes_used = checkIfStateMatches(RadioSwState::CONNECTED, STATE_REF_BUFFER__CONNECTED, body_len, body_data, state_output, state_output, fire_callback);
+            bytes_used = checkIfStateMatches(RadioSwState::CONNECTED, STATE_REF_BUFFER__CONNECTED, body_len, body_data, state_output, fire_callback);
         }
         // UDP_CONNECTED STATE:
         if (bytes_used == 0)
         { // no match found yet
-            bytes_used = checkIfStateMatches(RadioSwState::UDP_CONNECTED, STATE_REF_BUFFER__UDP_CONNECTED, body_len, body_data, state_output, state_output, fire_callback);
+            bytes_used = checkIfStateMatches(RadioSwState::UDP_CONNECTED, STATE_REF_BUFFER__UDP_CONNECTED, body_len, body_data, state_output, fire_callback);
         }
 
         // We couldn't understand the message:
@@ -253,7 +255,7 @@ namespace Wf121::DirectMessage
      * @param fire_on_match Whether to fire `cb_dm_NowDoingActivity` if there's a match.
      * @return uint8_t Number of bytes used (0 if no match).
      */
-    uint8_t DirectMessageDriver::checkIfDoingActivityMatches(RadioSwActivity doing, uint8_t *doing_buf, uint8_t body_len, uint8_t *body_data, RadioSwActivity *doing_output, bool fire_on_match)
+    uint8_t DirectMessageDriver::checkIfDoingActivityMatches(RadioSwActivity doing, const uint8_t *doing_buf, uint8_t body_len, uint8_t *body_data, RadioSwActivity *doing_output, bool fire_on_match)
     {
         uint8_t doing_len = getStrBufferLen(doing_buf);
         if (
@@ -361,4 +363,4 @@ namespace Wf121::DirectMessage
         // TODO: (rn, we don't do anything with this info or strictly need it).
         return body_len; // just say all of it was valid
     }
-}
+}}

@@ -156,7 +156,7 @@ namespace CubeRover
             m_lastDownlinkedWifiState = currentWifiState;
         }
 
-        // See if it's time for us to update WiFi telemetry:
+        // See if it's time for us to update general WiFi telemetry:
         if ((now - m_lastTelemDownlinkTimeMs) >= NETWORK_MANAGER_GENERAL_TELEM_UPDATE_INTERVAL_MS)
         {
             m_lastTelemDownlinkTimeMs = now;
@@ -193,6 +193,8 @@ namespace CubeRover
             (now - lastHeartbeatTimeMs) > RADIO_HEARTBEAT_TIMEOUT_MS)
         {
             handleRadioFault();
+            // Reset the critical flag (so we don't trigger this again on the next loop unless there's been another fault):
+            m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.setCriticalCommsFailure_NeedHelp(false);
         }
 
         if (first_update_call)
@@ -203,6 +205,11 @@ namespace CubeRover
 
     // What to do when RadioDriver is says its in a bad state and needs help
     // (i.e. needs NetworkManager to reset something):
+    // NOTE: This only really triggers if the Radio:
+    //      A.) appears to be dead (isn't giving us heartbeats)
+    //      B.) appears to be alive and connected (giving us heartbeats that
+    //          say it's connected) BUT isn't responding to us sending it
+    //          commands (i.e. Radio isn't receiving inbound UART comms).
     void NetworkManagerComponentImpl::handleRadioFault()
     {
         if (m_radioConsecutiveResetRequestCounter <= RADIO_RESET_CONSECUTIVE_MAX_COUNT__RESET_HERCULES_THRESH)

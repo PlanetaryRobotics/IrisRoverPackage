@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include "drivers/bsp.h"
+
 namespace iris
 {
     RoverStateEnteringService::RoverStateEnteringService()

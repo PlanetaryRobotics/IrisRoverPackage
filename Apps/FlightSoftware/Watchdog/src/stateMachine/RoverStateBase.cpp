@@ -80,19 +80,19 @@ namespace iris
         return handleWdIntEdge(false, theContext);
     }
 
-    LanderComms__Status txDownlinkData(RoverContext& theContext, void* data, size_t dataSize)
+    LanderComms__Status RoverStateBase::txDownlinkData(RoverContext& theContext, void* data, size_t dataSize)
     {
         LanderComms__Status lcStatus = LANDER_COMMS__STATUS__SUCCESS;
 
         // !! TODO !!: Is this the condition we want here?
         if (*(theContext.m_persistentDeployed) && HerculesComms__isInitialized(theContext.m_hcState)) {
             HerculesComms__Status hcStatus = HerculesComms__txDownlinkData(theContext.m_hcState,
-                                                                           data,
+                                                                           (uint8_t *) data,
                                                                            dataSize);
             lcStatus = (LanderComms__Status) hcStatus;
         }
 
-        LanderComms__Status lcStatus2 = LanderComms__txData(theContext.m_lcState, size_t, dataSize);
+        LanderComms__Status lcStatus2 = LanderComms__txData(theContext.m_lcState, (uint8_t *) data, dataSize);
         return lcStatus;
     }
 
@@ -609,7 +609,7 @@ namespace iris
         // For a stroke we just reply to the Hercules with our telemetry
         watchdog_build_hercules_telem(&(theContext.m_i2cReadings),
                                       &(theContext.m_adcValues),
-                                      (theContext.m_isDeployed ? TRUE : FALSE),
+                                      (*(theContext.m_persistentDeployed) ? TRUE : FALSE),
                                       telemetrySerializationBuffer,
                                       sizeof(telemetrySerializationBuffer));
 

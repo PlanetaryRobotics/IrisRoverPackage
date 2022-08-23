@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <string.h>
+#include <msp430.h>
 
 #include "comms/debug_comms.h"
 #include "comms/hercules_comms.h"
@@ -342,9 +343,9 @@ HerculesComms__Status HerculesComms__txDownlinkDataUntilSendOrTimeout(HerculesCo
 
     do {
         uint16_t txStartCentiseconds = Time__getTimeInCentiseconds();
-        hcStatus = HerculesComms__txHerculesMsg(hState,
+        hcStatus = HerculesComms__txHerculesMsg(hcState,
                                             0,
-                                            hState->uplinkSequenceNumber++,
+                                            hcState->uplinkSequenceNumber++,
                                             (uint16_t) HERCULES_COMMS__MSG_OPCODE__WIFI_DOWNLINK,
                                             data,
                                             dataLen);
@@ -367,7 +368,7 @@ HerculesComms__Status HerculesComms__txDownlinkDataUntilSendOrTimeout(HerculesCo
         __no_operation();
         return HERCULES_COMMS__STATUS__ERROR_TIMEOUT;
     } else {
-        return lcStatus;
+        return hcStatus;
     }
 }
 
@@ -411,8 +412,8 @@ HerculesComms__Status HerculesComms__uninitialize(HerculesComms__State** hState)
                                    "in HerculesComms__uninitialize\n", status);
     }
 
-    hState->uartState = NULL;
-    hState->initialized = FALSE;
+    (*hState)->uartState = NULL;
+    (*hState)->initialized = FALSE;
     *hState = NULL;
 
     return HERCULES_COMMS__STATUS__SUCCESS;

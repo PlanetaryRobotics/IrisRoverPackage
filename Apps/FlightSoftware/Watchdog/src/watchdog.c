@@ -359,6 +359,8 @@ void __attribute__ ((interrupt(PORT1_VECTOR))) port1_isr_handler (void) {
 #else
 #error Compiler not supported!
 #endif
+    uint16_t now = *timeCountCentisecondsPtr;
+
     switch(__even_in_range(P1IV, P1IV__P1IFG7)) {
         case P1IV__P1IFG3: // P1.3: WD_INT
             if (lookingForWdIntFallingEdge) {
@@ -371,7 +373,6 @@ void __attribute__ ((interrupt(PORT1_VECTOR))) port1_isr_handler (void) {
                 enableWdIntFallingEdgeInterrupt();
             }
 
-            uint16_t now = *timeCountCentisecondsPtr;
             wdIntTimeBetweenLastEdges = now - wdIntLastEdgeTime;
             wdIntLastEdgeTime = now;
 

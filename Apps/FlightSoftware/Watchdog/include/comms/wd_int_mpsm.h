@@ -8,6 +8,10 @@
 #ifndef INCLUDE_COMMS_WD_INT_MPSM_H_
 #define INCLUDE_COMMS_WD_INT_MPSM_H_
 
+#include <stdint.h>
+#include <stddef.h>
+#include "common.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -18,11 +22,6 @@ extern "C"
  * @addtogroup watchdogWdIntMpsm
  * @{
  */
-
-/**
- * @brief An opaque structure that contains the internal state of the WdIntMpsm module.
- */
-typedef struct WdIntMpsm__State WdIntMpsm__State;
 
 /**
  * @brief Possible return statuses for WdIntMpsm functions.

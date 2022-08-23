@@ -182,7 +182,7 @@ HerculesComms__Status HerculesComms__resetState(HerculesComms__State* hState);
 
 BOOL HerculesComms__isInitialized(HerculesComms__State* hState);
 
-HerculesComms__Status HerculesComms__uninitialize(HerculesComms__State* hState);
+HerculesComms__Status HerculesComms__uninitialize(HerculesComms__State** hState);
 
 /**
  * @brief Sends an downlink message containing data from the WD for ground via Hercules and wifi.

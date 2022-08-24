@@ -713,8 +713,7 @@ namespace CubeRover
 
         default:
             // Should never happen;
-            assert(false);
-            break;
+            configASSERT(false);
         }
 
         // This is equivalent to &(m_txCmdArray.commands[index])

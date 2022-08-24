@@ -618,10 +618,10 @@ namespace CubeRover
         return true;
     }
 
-    /**/**
+    /**
      * @brief 
      * 
-     */
+     *
      *
      * @param[in]  Distance       The distance to travel in motor ticks
      * @param[in]  Speed          The speed to travel in normalized speed

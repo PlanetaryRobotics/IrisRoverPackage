@@ -22,44 +22,16 @@
 #include "Fw/Types/BasicTypes.hpp"
 #include <cstring>
 
+#include <CubeRover/Wf121/Timestamp.hpp>
+#include <CubeRover/Wf121/Wf121DirectMessage.hpp>
+
 extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 namespace CubeRover
 {
-    // Helper function to convert RadioSwState (used inside RadioDriver) to
-    // WIFIState (used by FPrime telem).
-    // See `RadioSwState` in `Wf121/Wf121DirectMessage.hpp` for more details on
-    // each state:
-    // TODO: [CWC] Update FPrime XML so this is 1-to-1 correspondence
-    //  - Make sure to get networkmanager_state_from/to
-    //  - (and add a RadioSwActivity) telem item while you're at it)
-    WIFIState convertRadioState2WifiState(Wf121::DirectMessage::RadioSwState state)
-    {
-        switch (state)
-        {
-        case Wf121::DirectMessage::BOOT:
-            return WIFIState::UNINITIALIZED;
-            break;
-        case Wf121::DirectMessage::INIT:
-            return WIFIState::INITIALIZED;
-            break;
-        case Wf121::DirectMessage::WIFI_ON:
-            return WIFIState::WIFI_ON;
-            break;
-        case Wf121::DirectMessage::CONNECTED:
-            return WIFIState::CONNECTED;
-            break;
-        case Wf121::DirectMessage::UDP_CONNECTED:
-            return WIFIState::UDP_CONNECTED;
-            break;
-
-        // Bad state (we don't know what's really going on inside the Radio rn):
-        case Wf121::DirectMessage::NONE:
-        case Wf121::DirectMessage::BAD_MESSAGE:
-        default:
-            return WIFIState::UNINITIALIZED;
-        }
-    }
+    // STATICALLY allocate a SINGLE copy of the RadioDriver (both of these are
+    // very important for proper set up of the internal Tasks):
+    static Wf121::RadioDriver CORE_RADIO_DRIVER;
 
     // ----------------------------------------------------------------------
     // Construction, initialization, and destruction
@@ -68,12 +40,11 @@ namespace CubeRover
     NetworkManagerComponentImpl ::
 #if FW_OBJECT_NAMES == 1
         NetworkManagerComponentImpl(
-            const char *const compName) : NetworkManagerComponentBase(compName)
+            const char *const compName) : NetworkManagerComponentBase(compName), m_pRadioDriver(&CORE_RADIO_DRIVER)
 #else
-        NetworkManagerComponentImpl(void)
+        NetworkManagerComponentImpl(void) : m_pRadioDriver(&CORE_RADIO_DRIVER)
 #endif
     {
-        m_pRadioDriver = &CORE_RADIO_DRIVER;
         // Initialize process variables:
         m_lastTelemDownlinkTimeMs = 0;
         m_radioConsecutiveResetRequestCounter = 0;
@@ -133,6 +104,42 @@ namespace CubeRover
         getUplinkDatagram();
     }
 
+
+    // Helper function to convert RadioSwState (used inside RadioDriver) to
+    // WIFIState (used by FPrime telem).
+    // See `RadioSwState` in `Wf121/Wf121DirectMessage.hpp` for more details on
+    // each state.
+    // TODO: [CWC] Update FPrime XML so this is 1-to-1 correspondence
+    //  - Make sure to get networkmanager_state_from/to
+    //  - (and add a RadioSwActivity) telem item while you're at it)
+    NetworkManagerComponentBase::WIFIState NetworkManagerComponentImpl::convertRadioState2WifiState(Wf121::DirectMessage::RadioSwState state)
+    {
+        switch (state)
+        {
+        case Wf121::DirectMessage::RadioSwState::BOOT:
+            return WIFIState::UNINITIALIZED;
+
+        case Wf121::DirectMessage::RadioSwState::INIT:
+            return WIFIState::INITIALIZED;
+
+        case Wf121::DirectMessage::RadioSwState::WIFI_ON:
+            return WIFIState::WIFI_ON;
+
+        case Wf121::DirectMessage::RadioSwState::CONNECTED:
+            return WIFIState::CONNECTED;
+
+        case Wf121::DirectMessage::RadioSwState::UDP_CONNECTED:
+            return WIFIState::UDP_CONNECTED;
+
+        // Bad state (we don't know what's really going on inside the Radio rn):
+        case Wf121::DirectMessage::RadioSwState::NONE:
+        case Wf121::DirectMessage::RadioSwState::BAD_MESSAGE:
+        default:
+            return WIFIState::UNINITIALIZED;
+        }
+    }
+
+
     void NetworkManagerComponentImpl::update()
     {
         // Flag to make sure all available telem is downlinked on the first call:
@@ -143,7 +150,6 @@ namespace CubeRover
         uint32_t now = Wf121::Timestamp::getTimeMs();
 
         // See if we need to emit new telem because of a `RadioSwState` change:
-        Wf121::DirectMessage::RadioSwState currentRadioState = ;
         WIFIState currentWifiState = convertRadioState2WifiState(
             m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getRadioState());
         if (first_update_call || m_lastDownlinkedWifiState != currentWifiState)
@@ -239,7 +245,7 @@ namespace CubeRover
 
     void NetworkManagerComponentImpl::getUplinkDatagram()
     {
-        if (m_pRadioDriver->m_networkInterface.getAvailableUdpPayload(m_uplinkBuffer))
+        if (m_pRadioDriver->m_networkInterface.getAvailableUdpPayload(&m_uplinkBuffer))
         {
             // An RX payload was available and we got it:
             Fw::Buffer buffer(0, 0, reinterpret_cast<U64>(m_uplinkBuffer.data), m_uplinkBuffer.dataSize);

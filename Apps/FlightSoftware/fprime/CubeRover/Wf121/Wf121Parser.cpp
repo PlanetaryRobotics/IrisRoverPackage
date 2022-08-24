@@ -145,8 +145,8 @@ namespace Wf121
                         // (so it's fresh for the next use):
                         m_headerBuffer.reset();
                         // Log the time we got the complete header:
-                        m_completedHeaderTimeMs = Timestamp::getTimeMs()
-                            returnStatus = Mpsm::ProcessStatus::DM_HEADER_PARSED;
+                        m_completedHeaderTimeMs = Timestamp::getTimeMs();
+                        returnStatus = Mpsm::ProcessStatus::DM_HEADER_PARSED;
                         break;
 
                     case HeaderType::INVALID:

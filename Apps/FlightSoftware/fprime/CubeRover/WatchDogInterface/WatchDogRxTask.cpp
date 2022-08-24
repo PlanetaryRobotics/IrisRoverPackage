@@ -71,7 +71,7 @@ namespace CubeRover
           m_isRunning(false)
     {
         rxByteQueue = xQueueCreate(256, sizeof(uint8_t));
-        assert(rxByteQueue != 0);
+        configASSERT(rxByteQueue != 0);
     }
 
     // This probably will never be called, but I set it up to properly work anyway
@@ -86,7 +86,7 @@ namespace CubeRover
         // Make sure we aren't blocked
         if (xTaskToNotify != nullptr)
         {
-            xTaskNotifyGive(xTaskToNotify);
+            xTaskGenericNotify( ( xTaskToNotify ), ( 0 ), eIncrement, (uint32_t *)NULL ); // this is just the inner implementation of FreeRTOS's `xTaskNotifyGive(xTaskToNotify)` macro with casts so the compiler doesn't whine
         }
 
         // Join the thread
@@ -116,10 +116,10 @@ namespace CubeRover
                                       priority,
                                       &tid);
 
-        assert(stat == pdPASS);
+        configASSERT(stat == pdPASS);
         xTaskToNotify = tid;
 
-        assert(xTaskToNotify != 0);
+        configASSERT(xTaskToNotify != 0);
 
         m_isRunning = true;
         return Os::Task::TASK_OK;

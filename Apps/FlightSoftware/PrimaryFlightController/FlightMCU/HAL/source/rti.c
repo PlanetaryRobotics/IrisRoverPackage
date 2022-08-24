@@ -871,10 +871,5 @@ void vPortPreemptiveTick(void)
 /* USER CODE BEGIN (75) */
 /* USER CODE END */
 }
-#endif
-
-
-
-
 
 #endif

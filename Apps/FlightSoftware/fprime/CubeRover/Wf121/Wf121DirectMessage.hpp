@@ -155,7 +155,7 @@ namespace Wf121{namespace DirectMessage // Wf121::DirectMessage
 
         // Constructor (just initialize data structures):
         DirectMessageDriver();
-        ~DirectMessageDriver();
+        virtual ~DirectMessageDriver();
 
         // Processes the given message. Returns whether the message contained a
         // known format (and wasn't just plain text being passed along):

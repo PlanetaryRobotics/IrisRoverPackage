@@ -8,6 +8,7 @@ namespace Wf121{namespace Wf121Serial // Wf121::Wf121Serial
     bool wf121FinishedInitializingSerial = false;
 
     // Mutex-protected information about DMA TX:
+    StaticSemaphore_t DmaWriteStatus::xSemaphoreBuffer_writeDone; // needs to be actually defined here.
     static DmaWriteStatus dmaWriteStatus(true); // use smart timeouts
 
     // Initialize comms:
@@ -30,34 +31,6 @@ namespace Wf121{namespace Wf121Serial // Wf121::Wf121Serial
         wf121FinishedInitializingSerial = true;
     }
 
-    // Set the RTS GPIO pin to the given state:
-    inline void setRTS(bool state)
-    {
-#if WF121_USE_CTS_RTS
-        // NOTE: our RTS pin is connected to the WF121's CTS pin, which is on PB3.
-        gioSetBit(gioPORTB, 3, state);
-#else
-        return;       // if no control flow, then we just throw this out
-#endif //#if WF121_USE_CTS_RTS
-    }
-
-    // Get the CTS GPIO pin state:
-    inline bool getCTS(void)
-    {
-#if WF121_USE_CTS_RTS
-        // NOTE: our CTS pin is connected to the WF121's RTS pin, which is on PB2.
-        return gioGetBit(gioPORTB, 2);
-#else
-        return false; // if no control flow, then we just assume we're always good to send data (active low)
-#endif //#if WF121_USE_CTS_RTS
-    }
-
-    // Set control flow to indicate that we're ready to receive data:
-    inline void ReadyForData(void) { setRTS(false); } // active low
-    // Set control flow to indicate that we're not ready to receive data:
-    inline void NotReadyForData(void) { setRTS(true); } // active low
-    // Check WF121's control flow status to see if we're allowed to send data:
-    inline bool CanSendData(void) { return getCTS() == false; } // active low
 
     // Signal that we're ready to receive another byte through the SCI RX ISR.
     void signalReadyForInterrupt(void)

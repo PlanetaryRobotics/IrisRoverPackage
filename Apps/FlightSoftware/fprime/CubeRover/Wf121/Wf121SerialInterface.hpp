@@ -47,15 +47,33 @@ namespace Wf121
         void init(void);
 
         // Set the RTS GPIO pin to the given state:
-        void setRTS(bool state);
+        inline void setRTS(bool state)
+        {
+    #if WF121_USE_CTS_RTS
+            // NOTE: our RTS pin is connected to the WF121's CTS pin, which is on PB3.
+            gioSetBit(gioPORTB, 3, state);
+    #else
+            return;       // if no control flow, then we just throw this out
+    #endif //#if WF121_USE_CTS_RTS
+        }
+
         // Get the CTS GPIO pin state:
-        bool getCTS(void);
+        inline bool getCTS(void)
+        {
+    #if WF121_USE_CTS_RTS
+            // NOTE: our CTS pin is connected to the WF121's RTS pin, which is on PB2.
+            return gioGetBit(gioPORTB, 2);
+    #else
+            return false; // if no control flow, then we just assume we're always good to send data (active low)
+    #endif //#if WF121_USE_CTS_RTS
+        }
+
         // Set control flow to indicate that we're ready to receive data:
-        void ReadyForData(void);
+        inline void ReadyForData(void) { setRTS(false); } // active low
         // Set control flow to indicate that we're not ready to receive data:
-        void NotReadyForData(void);
+        inline void NotReadyForData(void) { setRTS(true); } // active low
         // Check WF121's control flow status to see if we're allowed to send data:
-        bool CanSendData(void);
+        inline bool CanSendData(void) { return getCTS() == false; } // active low
 
         // Simple container struct with mutex containing info about DMA write status:
         // Also includes a smart timeout calculator.
@@ -266,7 +284,7 @@ the xSemaphoreBuffer variable. */
          * @param blocking Whether we need to block other DMA requests.
          * @return Whether the operation performed successfully without error.
          */
-        bool dmaSend(void *buffer, int size, bool blocking = true);
+        bool dmaSend(void *buffer, unsigned size, bool blocking = true);
 
         // Perform a normal SCI send. Note: this is a non-DMA blocking send
         // operation.

@@ -11,7 +11,7 @@
     <ports>
 
         <!-- Input ports -->
-        <port name="downlink" data_type="Fw::BufferSend" kind="guarded_input" max_number="1">
+        <port name="downlink" data_type="Fw::BufferSend" kind="guarded_input" max_number="2">
             <comment>GroundInterface sends packets to NM for downlink</comment>
         </port>
 

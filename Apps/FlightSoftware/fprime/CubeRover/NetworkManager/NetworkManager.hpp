@@ -21,6 +21,7 @@
 
 #include "CubeRover/NetworkManager/NetworkManagerComponentAc.hpp"
 #include "CubeRover/Wf121/Wf121.hpp"
+#include "CubeRover/Wf121/Timestamp.hpp"
 
 namespace CubeRover
 {

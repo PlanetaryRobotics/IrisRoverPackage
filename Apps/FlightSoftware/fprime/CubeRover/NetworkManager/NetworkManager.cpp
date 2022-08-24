@@ -22,8 +22,6 @@
 #include "Fw/Types/BasicTypes.hpp"
 #include <cstring>
 
-#include <Fw/Time/Time.hpp>
-
 extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 namespace CubeRover
@@ -62,7 +60,6 @@ namespace CubeRover
             return WIFIState::UNINITIALIZED;
         }
     }
-
 
     // ----------------------------------------------------------------------
     // Construction, initialization, and destruction
@@ -136,7 +133,6 @@ namespace CubeRover
         getUplinkDatagram();
     }
 
-
     void NetworkManagerComponentImpl::update()
     {
         // Flag to make sure all available telem is downlinked on the first call:
@@ -144,7 +140,7 @@ namespace CubeRover
 
         // Get the current time (right at the start of the update),
         // in ms since Hercules boot:
-        uint32_t now = static_cast<uint32_t>(getTime().get_time_ms());
+        uint32_t now = Wf121::Timestamp::getTimeMs();
 
         // See if we need to emit new telem because of a `RadioSwState` change:
         Wf121::DirectMessage::RadioSwState currentRadioState = ;
@@ -189,7 +185,7 @@ namespace CubeRover
         // update `now` **AFTER** grabbing the heartbeat time so there's no chance the Heartbeat comes in between
         // getting `now` and checking the delta (i.e. so there's no chance heartbeatTime > now unless there's been an
         // overflow, which is okay):
-        now = static_cast<uint32_t>(getTime().get_time_ms());
+        now = Wf121::Timestamp::getTimeMs();
         if (m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.needHelpCriticalCommsFailureOccurred() ||
             (now - lastHeartbeatTimeMs) > RADIO_HEARTBEAT_TIMEOUT_MS)
         {

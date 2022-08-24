@@ -47,8 +47,8 @@
 #include <CubeRover/Wf121/Wf121UdpTxTask.hpp>
 #include <CubeRover/Wf121/UdpPayload.hpp>
 #include <CubeRover/Wf121/GroundDirectTMTC.hpp>
+#include <CubeRover/Wf121/Timestamp.hpp>
 #include <Os/Mutex.hpp>
-#include <Fw/Time/Time.hpp>
 
 #include <stdlib.h>
 #include <stdint.h>

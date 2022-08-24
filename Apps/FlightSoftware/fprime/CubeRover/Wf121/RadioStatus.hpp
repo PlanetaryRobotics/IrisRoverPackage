@@ -12,9 +12,9 @@
 
 #include <CubeRover/Wf121/Wf121BgApi.hpp>
 #include <CubeRover/Wf121/Wf121DirectMessage.hpp>
+#include <CubeRover/Wf121/Timestamp.hpp>
 
 #include <Os/Mutex.hpp>
-#include <Fw/Time/Time.hpp>
 
 namespace Wf121
 {
@@ -87,8 +87,7 @@ namespace Wf121
         // since Hercules boot.
         virtual void updateLastHeartbeatTime()
         {
-            Fw::Time now = getTime();
-            timeOfLastHeartbeatMs = static_cast<uint32_t>(now.get_time_ms());
+            timeOfLastHeartbeatMs = Timestamp::getTimeMs();
         }
     };
 
@@ -358,7 +357,7 @@ namespace Wf121
         void updateLastHeartbeatTime()
         {
             // Do all the computation to get the time first...
-            uint32_t now = static_cast<uint32_t>(getTime().get_time_ms());
+            uint32_t now = Timestamp::getTimeMs();
             // ... and only lock the mutex when absolutely needed:
             this->mutex.lock();
             this->timeOfLastHeartbeatMs = now;

@@ -1,5 +1,5 @@
 /**
- * @file NetworkInterface.hpp
+ * @file GroundDirectTMTC.hpp
  * @author Connor Colombo (colombo@cmu.edu)
  * @brief Enumeration of all special Telemetry (TM) and Telecommands (TC)
  * exchanged Directly between Ground and the network layer of Hercules
@@ -16,7 +16,7 @@
 #define CUBEROVER_WF121_WF121_GROUND_DIRECT_TMTC_HPP_
 
 #include <Fw/Types/BasicTypes.hpp>
-#include <Fw/Time/Time.hpp>
+#include <CubeRover/Wf121/Timestamp.hpp>
 
 namespace Wf121
 {
@@ -81,7 +81,7 @@ namespace Wf121
         HerculesRadioUplinkResponse(uint16_t pbr) : payloadBytesReceived(pbr)
         {
             // Set the time the rover created this uplink response:
-            roverResponseGenerationTimeMs = static_cast<uint32_t>(getTime().get_time_ms());
+            roverResponseGenerationTimeMs = Timestamp::getTimeMs();
         };
     };
 }

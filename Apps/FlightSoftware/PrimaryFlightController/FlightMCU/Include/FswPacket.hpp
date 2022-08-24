@@ -1,7 +1,7 @@
 #ifndef _FSW_PACKET_H_
 #define _FSW_PACKET_H_
 
-#define NETWORK_TEST_ENV_TEST
+//#define NETWORK_TEST_ENV_TEST
 #define NETWORK_TEST_ENV_MOON
 
 
@@ -15,7 +15,7 @@
     #define ROVER_UDP_PORT          42000
 
     #define LANDER_SSID             "PM1LWAP"
-    #define LANDER_NETWORK_PASSWORD "PAWL1MP"
+    #define LANDER_NETWORK_PASSWORD "PIMS_WAN"
 #else // local testing (we should migrate away from needing this)
     #define ROVER_ADDRESS           {192, 168, 1, 2}
     #define SPACECRAFT_ADDRESS      {192, 168, 1, 120}

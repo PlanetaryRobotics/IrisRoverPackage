@@ -1,0 +1,121 @@
+@startuml Iris FPrime WF121 RadioDriver Detailed Class Diagram
+
+' ! TODO: [CWC] Finish documenting when done (🤡)
+
+!theme crt-amber
+
+skinparam DefaultTextAlignment left
+skinparam groupInheritance 2
+
+left header
+= <b>Iris FPrime WF121 RadioDriver Detailed Class Diagram</b>
+* More detailed version of "**ComponentDiagram**" which includes key namespaces and functions.
+* Shows which components fo the Wf121 RadioDriver are used by which other components.
+* Hopefully gives a good idea of where to start if you're looking to understand this code and its delegation of responsibilities.
+
+
+endheader
+
+namespace "Wf121::" as Wf121 {
+
+
+    RadioDriver *-- NetworkInterface
+    RadioDriver *-- RxTask
+    RadioDriver *-- UdpTxTask
+
+    class RadioDriver {
+        + init()
+        - rxCallback()
+    }
+
+    class "Wf121RxTask" as RxTask {
+        + registerCallback()
+        + startTask()
+    }
+    class "Wf121UdpTxTask" as UdpTxTask {
+        + startTask()
+    }
+
+
+    NetworkInterface <|-down- DirectMessage.DirectMessageDriver
+    NetworkInterface <|-down- BgApi.BgApiDriver
+    class NetworkInterface {
+        ~xUdpTxPayloadQueue
+        + init()
+    }
+
+    namespace "BgApi::" as BgApi {
+        class BgApiDriver {
+            + init()
+            + processBgApiMessage()
+        }
+    }
+
+    namespace "DirectMessage::" as DirectMessage {
+        class DirectMessageDriver {
+            + init()
+            + processDirectMessage()
+        }
+    }
+
+
+
+    namespace "Wf121Parser::" as Wf121Parser {
+        class Mpsm {
+
+        }
+    }
+
+
+
+
+    namespace "Wf121Serial::" as SerialInterface {
+        () init
+        () ReadyForData
+    }
+
+
+    Wf121Parser.Mpsm -up-> RxTask
+    ' SerialInterface -up-> RadioDriver
+
+    NetworkInterface.xUdpTxPayloadQueue .right.> UdpTxTask
+
+    ' SerialInterface -up-> RxTask
+    ' SerialInterface -up-> UdpTxTask
+
+    NetworkInterface -up-> RadioDriver
+
+    BgApi.BgApiDriver .right.> Wf121Parser.Mpsm
+
+}
+
+
+
+
+' component RadioDriver
+' component "Wf121Serial::" as SerialInterface
+' component "Wf121UdpTxTask" as UdpTxTask
+' component "Wf121RxTask" as RxTask
+' component "Wf121Parser::Mpsm" as Mpsm
+' component NetworkInterface
+' component "BgApi::BgApiDriver" as BgApiDriver
+' component "DirectMessageDriver::DirectMessageDriver" as DirectMessageDriver
+
+' UdpTxTask -up-> RadioDriver
+' RxTask <-up-> RadioDriver
+' Mpsm -up-> RxTask
+' SerialInterface -up-> RadioDriver
+
+' NetworkInterface .right.> UdpTxTask
+
+' SerialInterface -up-> RxTask
+' SerialInterface -up-> UdpTxTask
+
+' NetworkInterface -up-> RadioDriver
+' BgApiDriver -up-> NetworkInterface
+' DirectMessageDriver -up-> NetworkInterface
+
+' BgApiDriver .right.> Mpsm
+
+left footer "\n\n\n* Arrow from 'A' to 'B' means **'A' is used by (called by) 'B'** \n* Dashed Arrow from 'A' to 'B' means **some part of 'A' is referenced by 'B'** (think pointer or simple struct use)"
+@enduml

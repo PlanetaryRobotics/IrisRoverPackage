@@ -59,12 +59,18 @@ namespace iris
         uint16_t flatDuration = watchdog_get_wd_int_flat_duration();
         WdIntMpsm__Status status = WdIntMpsm__processEdge(rising ? TRUE : FALSE, flatDuration);
 
-        if (WD_INT_MPSM__STATUS__PARSED_MESSAGE_TYPE_1 == status) {
-            // Handle message type 1
-        } else if (WD_INT_MPSM__STATUS__PARSED_MESSAGE_TYPE_2 == status) {
-            // Handle message type 2
-        } else if (WD_INT_MPSM__STATUS__PARSED_MESSAGE_TYPE_3 == status) {
-            // Handle message type 3
+        switch (status)
+        {
+            case WD_INT_MPSM__STATUS__POWER_CYCLE_RADIO:
+                return handleRadioPowerCycleRadioCommand(theContext);
+            case WD_INT_MPSM__STATUS__POWER_CYCLE_HERCULES:
+                return handleRadioPowerCycleHerculesCommand(theContext);
+            case WD_INT_MPSM__STATUS__PARSED_EXIT_STASIS:
+                return handleRadioExitStasisCommand(theContext);
+            case WD_INT_MPSM__STATUS__PARSED_ENTER_STASIS:
+                return handleRadioEnterStasisCommand(theContext);
+            case WD_INT_MPSM__STATUS__PARSED_GOT_WIFI:
+                return handleRadioGotWifiCommand(theContext);
         }
 
         return getState();
@@ -78,6 +84,46 @@ namespace iris
     RoverState RoverStateBase::handleWdIntFallingEdge(RoverContext& theContext)
     {
         return handleWdIntEdge(false, theContext);
+    }
+
+    RoverState RoverStateBase::handleRadioPowerCycleRadioCommand(RoverContext&)
+    {
+        setRadioReset();
+        powerOffRadio();
+        __delay_cycles(100000); // Should be at least 2 us (per blimp.h)
+        powerOnRadio();
+        __delay_cycles(10000);
+        releaseRadioReset();
+
+        return getState();
+    }
+
+    RoverState RoverStateBase::handleRadioPowerCycleHerculesCommand(RoverContext&)
+    {
+        setHerculesReset();
+        powerOffHercules();
+        __delay_cycles(100000); // Should be at least 2 us (per blimp.h)
+        powerOnHercules();
+        __delay_cycles(10000);
+        releaseHerculesReset();
+
+        return getState();
+    }
+
+    RoverState RoverStateBase::handleRadioExitStasisCommand(RoverContext&)
+    {
+        return getState();
+    }
+
+    RoverState RoverStateBase::handleRadioEnterStasisCommand(RoverContext&)
+    {
+        return RoverState::ENTERING_STASIS;
+    }
+
+    RoverState RoverStateBase::handleRadioGotWifiCommand(RoverContext& theContext)
+    {
+        theContext.gotWifi = true;
+        return getState();
     }
 
     LanderComms__Status RoverStateBase::txDownlinkData(RoverContext& theContext, void* data, size_t dataSize)

@@ -27,9 +27,11 @@ extern "C"
  * @brief Possible return statuses for WdIntMpsm functions.
  */
 typedef enum WdIntMpsm__Status {
-    WD_INT_MPSM__STATUS__PARSED_MESSAGE_TYPE_1 = 4, /*!< The function was successful, and successfully parsed a complete message. */
-    WD_INT_MPSM__STATUS__PARSED_MESSAGE_TYPE_2 = 3, /*!< The function was successful, and successfully parsed a complete message. */
-    WD_INT_MPSM__STATUS__PARSED_MESSAGE_TYPE_3 = 2, /*!< The function was successful, and successfully parsed a complete message. */
+    WD_INT_MPSM__STATUS__POWER_CYCLE_RADIO = 6, /*!< The function was successful, and successfully parsed a complete message. */
+    WD_INT_MPSM__STATUS__POWER_CYCLE_HERCULES = 5, /*!< The function was successful, and successfully parsed a complete message. */
+    WD_INT_MPSM__STATUS__PARSED_EXIT_STASIS = 4, /*!< The function was successful, and successfully parsed a complete message. */
+    WD_INT_MPSM__STATUS__PARSED_ENTER_STASIS = 3, /*!< The function was successful, and successfully parsed a complete message. */
+    WD_INT_MPSM__STATUS__PARSED_GOT_WIFI = 2, /*!< The function was successful, and successfully parsed a complete message. */
     WD_INT_MPSM__STATUS__NEED_MORE_DATA = 1, /*!< The function was successful, but needs more data to parse a message. */
 
     WD_INT_MPSM__STATUS__ERROR_INTERNAL_ERROR = -255 /*!< An unexpected error occurred */

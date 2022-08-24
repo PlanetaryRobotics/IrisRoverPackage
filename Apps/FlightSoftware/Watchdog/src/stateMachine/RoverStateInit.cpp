@@ -138,6 +138,8 @@ namespace iris
 
         blimp_normalBoot(); // run this on every boot as early as possible after IO Expander init.
 
+        theContext.gotWifi = false;
+
         if (*(theContext.m_persistentInMission)) {
             // Enable all interrupts
             __enable_interrupt();

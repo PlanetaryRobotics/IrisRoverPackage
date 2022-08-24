@@ -233,6 +233,13 @@ namespace iris
                                             bool allowDeploy,
                                             bool allowUndeploy,
                                             bool& needToWriteIoExpander);
+
+
+            virtual RoverState handleRadioPowerCycleRadioCommand(RoverContext& theContext);
+            virtual RoverState handleRadioPowerCycleHerculesCommand(RoverContext& theContext);
+            virtual RoverState handleRadioExitStasisCommand(RoverContext& theContext);
+            virtual RoverState handleRadioEnterStasisCommand(RoverContext& theContext);
+            virtual RoverState handleRadioGotWifiCommand(RoverContext& theContext);
         private:
             RoverState m_state;
 

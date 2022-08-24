@@ -1,6 +1,7 @@
 #include "stateMachine/RoverStateEnteringKeepAlive.hpp"
 
 #include "drivers/adc.h"
+#include "drivers/blimp.h"
 #include "drivers/bsp.h"
 
 #include "comms/debug_comms.h"
@@ -36,6 +37,7 @@ namespace iris
          * @todo Should we re-enter this state upon this occurring, in order to re-set the bit that should power off
          *       the Hercules?
          */
+        DPRINTF("Got hercules data event in EnteringKeepAlive, which shouldn't be possible\n");
         assert(!"Got hercules data event in EnteringKeepAlive, which shouldn't be possible");
         return getState();
     }
@@ -232,11 +234,15 @@ namespace iris
         setHerculesReset();
         unsetDeploy();
 
+        theContext.gotWifi = false;
+
         // Turn off voltage rails. All of these are simply setting/clearing bits, so they are instant.
         disable3V3PowerRail();
         disable24VPowerRail();
+        blimp_normalBoot(); // [CWC] This was added since last successful battery loop test
 
         if (HerculesComms__isInitialized(theContext.m_hcState)) {
+            DebugComms__registerHerculesComms(NULL);
             HerculesComms__Status hcStatus = HerculesComms__uninitialize(&(theContext.m_hcState));
             DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
         }

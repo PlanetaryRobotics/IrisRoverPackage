@@ -9,6 +9,8 @@ namespace iris
     static const char * SERVICE_STR = "SERVICE";
     static const char * ENTERING_MISSION_STR = "ENTERING_MISSION";
     static const char * MISSION_STR = "MISSION";
+    static const char * ENTERING_STASIS_STR = "ENTERING_STASIS";
+    static const char * STASIS_STR = "STASIS";
     static const char * UNKNOWN_STR = "<UNKNOWN>";
 
     const char * stateToString(RoverState state)
@@ -28,6 +30,10 @@ namespace iris
             return ENTERING_MISSION_STR;
         case RoverState::MISSION:
             return MISSION_STR;
+        case RoverState::ENTERING_STASIS:
+            return ENTERING_STASIS_STR;
+        case RoverState::STASIS:
+            return STASIS_STR;
         default:
             return UNKNOWN_STR;
 

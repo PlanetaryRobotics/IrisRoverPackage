@@ -15,6 +15,8 @@ namespace iris
         SERVICE = 4, //!< In diagnostic service mode, which is also a precondition of entering MISSION
         ENTERING_MISSION = 15, //!< Performing all non-instant tasks to set up the appropriate system state for MISSION.
         MISSION = 16, //!< In the fully-powered on mode to perform the mission.
+        ENTERING_STASIS = 31, //!< Performing all non-instant tasks to set up the appropriate system state for STASIS
+        STASIS = 32, //!< In mission, enter low-power stasis.
 
         // Not implemented yet
         //ENTERING_FAULT = 7, //!< Performing all non-instant tasks to set up the appropriate system state for FAULT.

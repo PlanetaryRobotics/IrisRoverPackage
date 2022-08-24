@@ -42,6 +42,8 @@ namespace iris
 
             bool* m_persistentInMission;
             bool* m_persistentDeployed;
+
+            bool gotWifi;
     };
 
 }

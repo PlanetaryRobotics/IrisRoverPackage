@@ -298,7 +298,7 @@ namespace Wf121
         UdpTxUpdateState handleTxState_SEND_UDP_CHUNK(bool *yieldData);
         UdpTxUpdateState handleTxState_WAIT_FOR_UDP_CHUNK_ACK(bool *yieldData);
         UdpTxUpdateState handleTxState_DONE_DOWNLINKING(bool *yieldData);
-        UdpTxUpdateState handleTxState_BGAPI_CMD_FAIL(bool *yieldData)
+        UdpTxUpdateState handleTxState_BGAPI_CMD_FAIL(bool *yieldData);
     };
 }
 

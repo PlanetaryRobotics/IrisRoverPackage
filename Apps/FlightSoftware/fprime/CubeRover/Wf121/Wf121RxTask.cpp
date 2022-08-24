@@ -91,11 +91,11 @@ namespace Wf121
         // Stop looping
         m_keepRunning = false;
 
-        // Make sure we aren't blocked
-        if (xTaskToNotify != nullptr)
-        {
-            xTaskNotifyGive(xTaskToNotify);
-        }
+//        // Make sure we aren't blocked
+//        if (xTaskToNotify != nullptr)
+//        {
+//            xTaskNotifyGive(xTaskToNotify);
+//        }
 
         // Join the thread
         void *value;
@@ -124,10 +124,9 @@ namespace Wf121
                                       priority,
                                       &tid);
 
-        assert(stat == pdPASS); // Bad news if the task wasn't created
+        configASSERT(stat == pdPASS); // Bad news if the task wasn't created
         xTaskToNotify = tid;
-
-        assert(xTaskToNotify != 0);
+        configASSERT(xTaskToNotify != 0);
 
         m_isRunning = true;
         return Os::Task::TASK_OK;
@@ -212,11 +211,11 @@ namespace Wf121
         }
     }
 
-    void Wf121RxTask::callAllCallbacks(WatchDogMpsm::Message &msg, bool goodParity)
+    void Wf121RxTask::callAllCallbacks(Wf121Parser::GenericMessage &msg)
     {
         for (size_t i = 0; i < m_numCallbacksRegistered; ++i)
         {
-            m_callbacks[i]->rxCallback(msg, goodParity);
+            m_callbacks[i]->rxCallback(msg);
         }
     }
 

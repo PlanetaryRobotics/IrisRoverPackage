@@ -1,17 +1,14 @@
 #include "Wf121SerialInterface.hpp"
 
-#include "sci.h"
-#include "sys_common.h"
-#include "system.h"
 
-namespace Wf121::Wf121Serial
+namespace Wf121{namespace Wf121Serial // Wf121::Wf121Serial
 {
     // Whether all serial SCI, DMA, etc. has been initialzed and can be used
     // (specifically to determine if we can use DMA send or not):
     bool wf121FinishedInitializingSerial = false;
 
     // Mutex-protected information about DMA TX:
-    static volatile DmaWriteStatus dmaWriteStatus(true); // use smart timeouts
+    static DmaWriteStatus dmaWriteStatus(true); // use smart timeouts
 
     // Initialize comms:
     void init(void)
@@ -182,26 +179,25 @@ namespace Wf121::Wf121Serial
 
 extern "C" void WF121_TX_DMA_ISR(dmaInterrupt_t inttype)
 {
-    static signed BaseType_t xHigherPriorityTaskWoken;
     // Don't use normal mutex lock/unlock here b/c we're in an ISR, which
-    // doesn't obey scheduler ticks (so we need to use special ISR functions...
+    // doesn't obey scheduler ticks (so we need to use special ISR functions)...
 
     // Just write the data (it's atomic):
-    dmaWriteStatus.writeBusy = false;
+    Wf121::Wf121Serial::dmaWriteStatus.writeBusy = false;
     // Since we didn't need to use the mutex, we don't need to give/unlock it
     // or perform deferred interrupt yielding (new value will just be grabbed
     // in the next call to `dmaWriteStatus`.)
 
     // Let the blocking dmaSend task know it's allowed to move forward:
-    xHigherPriorityTaskWoken = pdFALSE;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     /* Unblock the task by releasing the semaphore. */
-    if (dmaWriteStatus.xSemaphore_writeDone != NULL)
+    if (Wf121::Wf121Serial::dmaWriteStatus.xSemaphore_writeDone != NULL)
     {
-        xSemaphoreGiveFromISR(dmaWriteStatus.xSemaphore_writeDone, &xHigherPriorityTaskWoken);
+        xSemaphoreGiveFromISR(Wf121::Wf121Serial::dmaWriteStatus.xSemaphore_writeDone, &xHigherPriorityTaskWoken);
 
         /* If xHigherPriorityTaskWoken was set to true you
         we should yield.  The actual macro used here is
         port specific. */
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
-}
+}} // Wf121::Wf121Serial

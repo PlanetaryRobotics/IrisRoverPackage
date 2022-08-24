@@ -15,6 +15,7 @@
 #include <Include/FswPacket.hpp>
 #include <CubeRover/Wf121/Wf121SerialInterface.hpp>
 #include <CubeRover/Wf121/UdpPayload.hpp>
+#include <CubeRover/Wf121/Wf121BgApi.hpp>
 
 #include <Os/Task.hpp>
 #include <Os/Mutex.hpp>
@@ -22,6 +23,7 @@
 #include <cassert>
 #include <cstdio>
 
+#include "sci.h"
 #include "FreeRTOS.h"
 #include "os_queue.h"
 
@@ -78,7 +80,7 @@ namespace Wf121
         /**
          * @brief Constructor. Does not start the task.
          */
-        explicit Wf121UdpTxTask(QueueHandle_t *pTxPayloadQueue);
+        explicit Wf121UdpTxTask(Wf121TxTaskManager *pTxTaskManager);
 
         /**
          * @brief Destructor. Stops the task if it is currently running.

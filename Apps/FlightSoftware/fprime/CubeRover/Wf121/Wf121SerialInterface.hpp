@@ -5,7 +5,16 @@
  * (UART) serial.
  */
 #include "sci.h"
+#include "sys_common.h"
+#include "system.h"
+#include "sys_dma.h"
+#include <App/DMA.h>
 #include "gio.h"
+
+#include "FreeRTOS.h"
+#include "os_portmacro.h"
+#include "os_semphr.h"
+#include "os_task.h"
 #include <Os/Mutex.hpp>
 #include <Fw/Time/Time.hpp>
 
@@ -30,7 +39,7 @@ static const TickType_t WF121_DMA_SEND_SEMAPHORE_WAIT_MULTIPLE = 3; // Longest a
 // Minimum number of FreeRTOS scheduler ticks to wait (minimum for the max. amount of time we'll wait for the Semaphore to tell us the write is done)
 static const TickType_t WF121_DMA_SEND_SEMAPHORE_WAIT_MIN_TICKS = 50 / portTICK_PERIOD_MS; // wait no less than 50ms.
 
-namespace Wf121::Wf121Serial
+namespace Wf121{namespace Wf121Serial // Wf121::Wf121Serial
 {
     // Initialize comms:
     void init(void);
@@ -54,7 +63,7 @@ namespace Wf121::Wf121Serial
         // Mutex that should be locked anytime the status is read or modified:
         ::Os::Mutex mutex;
         // Whether DMA write is currently busy:
-        bool writeBusy;
+        volatile bool writeBusy; // written to directly in an ISR
         // Time used for blocking timeout, in ms since Hercules boot:
         uint32_t blockingStartTimeMs;
         // Semaphore to give whenever writing operations complete (note: this
@@ -74,7 +83,7 @@ namespace Wf121::Wf121Serial
 
         DmaWriteStatus(bool smartTimeout) : writeBusy(false),
                                             blockingStartTimeMs(0),
-                                            useSmartTimeouts(smartTimeouts),
+                                            useSmartTimeouts(smartTimeout),
                                             smartTimeoutMs(DmaWriteStatus::DMA_BLOCKING_TIMEOUT_MS),
                                             xSemaphore_writeDone(NULL) // null until init'd
         {
@@ -87,7 +96,19 @@ namespace Wf121::Wf121Serial
             /* Create a binary semaphore without using any dynamic memory
             allocation.  The semaphore's data structures will be saved into
             the xSemaphoreBuffer variable. */
-            this->xSemaphore_writeDone = xSemaphoreCreateBinaryStatic(&DmaWriteStatus::xSemaphoreBuffer_writeDone);
+
+            // The following is just `xSemaphoreCreateBinaryStatic` but with
+            // the FreeRTOSmacro expanded so we can get the compiler to not
+            // whine about `NULL` (which FreeRTOS has there without the type
+            // cast):
+            #if( configSUPPORT_STATIC_ALLOCATION != 1 )
+                #error configSUPPORT_STATIC_ALLOCATION=1 Required!
+            #endif
+            this->xSemaphore_writeDone = xQueueGenericCreateStatic( ( UBaseType_t ) 1,
+                                                                    semSEMAPHORE_QUEUE_ITEM_LENGTH,
+                                                                    (unsigned char*)NULL,
+                                                                    &DmaWriteStatus::xSemaphoreBuffer_writeDone,
+                                                                    queueQUEUE_TYPE_BINARY_SEMAPHORE );
             // NOTE: Binary Semaphore initializes to 0 ("taken") so anything
             // that wants to "Take" it will have to wait for a "Give" first.
 
@@ -137,9 +158,7 @@ namespace Wf121::Wf121Serial
         {
             // calculate before grabbing mutex (to hold mutex for as little
             // time as possible):
-            uint32_t smartTimeoutMs = 15000UL \         // coefficient (see above)
-                                      * dataSize \      // bytes
-                                      / WF121_SCI_BAUD; // baud/sec
+            uint32_t smartTimeoutMs = 15000UL * dataSize /  WF121_SCI_BAUD; // coefficient * bytes / (baud/sec)
             this->mutex.lock();
             this->smartTimeoutMs = smartTimeoutMs;
             this->mutex.unLock();
@@ -252,6 +271,6 @@ namespace Wf121::Wf121Serial
     // Don't use this unless DMA has magically broken and it's urgent.
     // Returns: true (always), to make it drop-in compatible with `dmaSend`.
     bool nonDmaSend(void *buffer, int size);
-}
+}} // Wf121::Wf121Serial
 
 #endif /* CUBEROVER_WF121_WF121_SERIAL_HPP_ */

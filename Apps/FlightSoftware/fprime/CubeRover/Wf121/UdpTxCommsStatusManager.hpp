@@ -35,8 +35,8 @@ namespace Wf121
         // NOTE: this can be long as all we do is suspend the TX task until we get a response:
         static const TickType_t UDP_TX_RESPONSE_TIMEOUT_TICKS = (30 * 1000) / portTICK_PERIOD_MS; // 30 sec
 
-        UdpTxCommsStatus() : xQueue_SetTransmitSize_Response(NULL), // null until init.
-                             xQueue_SendEndpointUdp_Response(NULL)  // null until init.
+        UdpTxCommsStatusManager() : xQueue_SetTransmitSize_Response(NULL), // null until init.
+                                    xQueue_SendEndpointUdp_Response(NULL)  // null until init.
         {
         }
 

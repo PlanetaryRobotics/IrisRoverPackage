@@ -28,6 +28,42 @@ extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 namespace CubeRover
 {
+    // Helper function to convert RadioSwState (used inside RadioDriver) to
+    // WIFIState (used by FPrime telem).
+    // See `RadioSwState` in `Wf121/Wf121DirectMessage.hpp` for more details on
+    // each state:
+    // TODO: [CWC] Update FPrime XML so this is 1-to-1 correspondence
+    //  - Make sure to get networkmanager_state_from/to
+    //  - (and add a RadioSwActivity) telem item while you're at it)
+    WIFIState convertRadioState2WifiState(Wf121::DirectMessage::RadioSwState state)
+    {
+        switch (state)
+        {
+        case Wf121::DirectMessage::BOOT:
+            return WIFIState::UNINITIALIZED;
+            break;
+        case Wf121::DirectMessage::INIT:
+            return WIFIState::INITIALIZED;
+            break;
+        case Wf121::DirectMessage::WIFI_ON:
+            return WIFIState::WIFI_ON;
+            break;
+        case Wf121::DirectMessage::CONNECTED:
+            return WIFIState::CONNECTED;
+            break;
+        case Wf121::DirectMessage::UDP_CONNECTED:
+            return WIFIState::UDP_CONNECTED;
+            break;
+
+        // Bad state (we don't know what's really going on inside the Radio rn):
+        case Wf121::DirectMessage::NONE:
+        case Wf121::DirectMessage::BAD_MESSAGE:
+        default:
+            return WIFIState::UNINITIALIZED;
+        }
+    }
+
+
     // ----------------------------------------------------------------------
     // Construction, initialization, and destruction
     // ----------------------------------------------------------------------
@@ -41,6 +77,12 @@ namespace CubeRover
 #endif
     {
         m_pRadioDriver = &CORE_RADIO_DRIVER;
+        // Initialize process variables:
+        m_lastTelemDownlinkTimeMs = 0;
+        m_radioConsecutiveResetRequestCounter = 0;
+        m_rxPacketCountOnLastReset = 0;
+        m_txPacketCountOnLastReset = 0;
+        m_lastDownlinkedWifiState = convertRadioState2WifiState(Wf121::DirectMessage::RadioSwState::NONE);
     }
 
     void NetworkManagerComponentImpl ::
@@ -53,13 +95,6 @@ namespace CubeRover
         m_udpPayloadWorkingBuffer.clear();
         // Initialize the uplink buffer with known sentinel bytes:
         m_uplinkBuffer.clear();
-
-        // Initialize process variables:
-        m_lastTelemDownlinkTimeMs = 0;
-        m_radioConsecutiveResetRequestCounter = 0;
-        m_rxPacketCountOnLastReset = 0;
-        m_txPacketCountOnLastReset = 0;
-        m_lastDownlinkedWifiState = convertRadioState2WifiState(Wf121::DirectMessage::RadioSwState::NONE);
 
         // Init the RadioDriver (and all its sub-tasks):
         m_pRadioDriver->init();
@@ -101,40 +136,6 @@ namespace CubeRover
         getUplinkDatagram();
     }
 
-    // Helper function to convert RadioSwState (used inside RadioDriver) to
-    // WIFIState (used by FPrime telem).
-    // See `RadioSwState` in `Wf121/Wf121DirectMessage.hpp` for more details on
-    // each state:
-    // TODO: [CWC] Update FPrime XML so this is 1-to-1 correspondence
-    //  - Make sure to get networkmanager_state_from/to
-    //  - (and add a RadioSwActivity) telem item while you're at it)
-    WIFIState convertRadioState2WifiState(Wf121::DirectMessage::RadioSwState state)
-    {
-        switch (state)
-        {
-        case Wf121::DirectMessage::BOOT:
-            return WIFIState::UNINITIALIZED;
-            break;
-        case Wf121::DirectMessage::INIT:
-            return WIFIState::INITIALIZED;
-            break;
-        case Wf121::DirectMessage::WIFI_ON:
-            return WIFIState::WIFI_ON;
-            break;
-        case Wf121::DirectMessage::CONNECTED:
-            return WIFIState::CONNECTED;
-            break;
-        case Wf121::DirectMessage::UDP_CONNECTED:
-            return WIFIState::UDP_CONNECTED;
-            break;
-
-        // Bad state (we don't know what's really going on inside the Radio rn):
-        case Wf121::DirectMessage::NONE:
-        case Wf121::DirectMessage::BAD_MESSAGE:
-        default:
-            return WIFIState::UNINITIALIZED;
-        }
-    }
 
     void NetworkManagerComponentImpl::update()
     {

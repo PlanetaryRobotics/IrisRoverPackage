@@ -313,7 +313,7 @@ namespace Wf121
     {
         if (hwInterface == BgApi::WIFI)
         {
-            m_protectedRadioStatus.setRssi(rssi)
+            m_protectedRadioStatus.setRssi(rssi);
         }
         return BgApi::ErrorCode::NO_ERROR;
     }
@@ -325,8 +325,6 @@ namespace Wf121
                                                        uint8_t *data,
                                                        const BgApi::DataSize16 dataSize)
     {
-        BgApi::ErrorCode errorCode = BgApi::ErrorCode::NO_ERROR;
-
         BgApi::Endpoint uplinkEndpoint;
         m_protectedRadioStatus.copyUplinkEndpointInto(&uplinkEndpoint);
         if (endpoint == uplinkEndpoint)

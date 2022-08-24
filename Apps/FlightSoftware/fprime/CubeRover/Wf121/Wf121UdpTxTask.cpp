@@ -7,23 +7,16 @@
 #include <Fw/Types/BasicTypes.hpp>
 #include <Fw/Types/EightyCharString.hpp>
 
-#include <CubeRover/Wf121/Wf121RxTask.hpp>
-
 #include <App/DMA.h>
 
-#include <cassert>
-#include <cstdio>
-
-#include "sci.h"
-#include "FreeRTOS.h"
-#include "os_queue.h"
+#include <CubeRover/Wf121/Wf121UdpTxTask.hpp>
 
 // Handle to active task (this):
 static TaskHandle_t xActiveTask = nullptr; // not init'd yet
 
 namespace Wf121
 {
-    Wf121UdpTxTask::Wf121UdpTxTask(QueueHandle_t *pttm)
+    Wf121UdpTxTask::Wf121UdpTxTask(Wf121TxTaskManager *pttm)
         : m_pTxTaskManager(pttm),
           m_keepRunning(true),
           m_isRunning(false)
@@ -40,11 +33,11 @@ namespace Wf121
         // Stop looping
         m_keepRunning = false;
 
-        // Make sure we aren't blocked
-        if (xActiveTask != nullptr)
-        {
-            xTaskNotifyGive(xActiveTask);
-        }
+//        // Make sure we aren't blocked
+//        if (xActiveTask != nullptr)
+//        {
+//            xTaskNotifyGive(xActiveTask);
+//        }
 
         // Join the thread
         void *value;
@@ -55,10 +48,6 @@ namespace Wf121
                                                      NATIVE_INT_TYPE stackSize,
                                                      NATIVE_INT_TYPE cpuAffinity)
     {
-        // Make sure that by the time we're setting up the task, the queue has
-        // been set up:
-        assert(*m_pTxPayloadQueue != NULL);
-
         if (m_isRunning)
         {
             return Os::Task::TASK_UNKNOWN_ERROR;
@@ -75,10 +64,10 @@ namespace Wf121
                                       priority,
                                       &tid);
 
-        assert(stat == pdPASS); // Bad news if the task wasn't created
+        configASSERT(stat == pdPASS); // Bad news if the task wasn't created
         xActiveTask = tid;
 
-        assert(xActiveTask != 0);
+        configASSERT(xActiveTask != 0);
 
         m_isRunning = true;
         return Os::Task::TASK_OK;
@@ -108,10 +97,10 @@ namespace Wf121
             // Dispatch to the appropriate handler and let it tell us what to
             // send and when (i.e. it doesn't return until it needs us to send
             // data):
-            BgApi::BgApiCommBuffer *dataToSend = task->m_pTxTaskHandler->udpTxUpdateHandler(task);
+            BgApi::BgApiCommBuffer *dataToSend = task->m_pTxTaskManager->udpTxUpdateHandler(task);
 
             // Only attempt to send if we need to send non-zero number of bytes:
-            if (dataToSend->dataSize != 0)
+            if (dataToSend->dataLen != 0)
             {
                 // block task until we can send those bytes:
                 bool sendSuccess = false;

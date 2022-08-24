@@ -22,6 +22,9 @@
 #include <App/DMA.h>
 #include "gio.h"
 #include "reg_spi.h"
+#include <HAL/include/FreeRTOS.h>
+#include <HAL/include/os_task.h>
+#include <HAL/include/os_portmacro.h>
 
 static volatile bool dmaWriteBusy = false;
 

@@ -19,6 +19,7 @@
 #include "CubeRover/WatchDogInterface/WatchDogInterfaceComponentAc.hpp"
 #include <CubeRover/WatchDogInterface/WatchDogRxTask.hpp>
 #include "Include/FswPacket.hpp"
+#include "FreeRTOSConfig.h"
 
 #include "lin.h"
 #include "adc.h"

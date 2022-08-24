@@ -74,7 +74,7 @@ namespace Wf121
         struct
         {
             uint32_t fixedHeader = 0x3A'52'45'48; // 'HER:' (in little-endian)
-            uint32_t roverResponseGenerationTimeMs = 0;
+            uint32_t roverResponseGenerationTimeMs;
             uint16_t payloadBytesReceived; // Number of bytes in the UDP payload
         } __attribute__((packed, aligned(1)));
 

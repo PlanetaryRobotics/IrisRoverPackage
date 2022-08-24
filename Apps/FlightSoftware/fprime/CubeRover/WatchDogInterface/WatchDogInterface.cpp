@@ -495,6 +495,13 @@ namespace CubeRover {
             return;
         }
   
+        // Downlink messages are different (specifically, they aren't a response to a Hercules command)
+        // so we handle them separately
+        if (msg.parsedHeader.lowerOpCode == DOWNLINK_TO_WIFI_OPCODE) {
+            handleDownlinkMsg(msg);
+            return;
+        }
+
         // Try to get the transmit status structure for the received message
         TxCommandStatus* cmdStatus = getTxCommandStatus(msg.parsedHeader.lowerOpCode);
   
@@ -648,6 +655,39 @@ namespace CubeRover {
         uplinked_data.setdata(reinterpret_cast<U64>(msg.dataBuffer));
         uplinked_data.setsize(static_cast<U32>(msg.accumulatedDataSize));
         uplink_out(0, uplinked_data);
+    }
+
+    void WatchDogInterfaceComponentImpl::handleDownlinkMsg(WatchDogMpsm::Message& msg)
+    {
+        // Before anything else, make sure we have enough data (and since the payload is variable size,
+        // in this case "enough" just means non-zero and not over the maximum)
+        if (msg.accumulatedDataSize <= 0 || msg.accumulatedDataSize > WATCHDOG_MAX_PAYLOAD) {
+            this->log_WARNING_HI_WatchDogIncorrectResp(bad_size_received);
+            return;
+        }
+
+// This block of code can be enabled to debug bad data being received from WD
+#if 0
+        bool hasBadass = false;
+        for (size_t i = 0; i < msg.accumulatedDataSize - 2; ++i) {
+            if (msg.dataBuffer[i] == 0x55 &&
+                    msg.dataBuffer[i+1] == 0xDA &&
+                    msg.dataBuffer[i+2] == 0xBA) {
+                hasBadass = true;
+                break;
+            }
+        }
+
+        if (!hasBadass) {
+            m_rxTask.printRxUpdates();
+        }
+#endif
+
+        // TODO: Verify that the MTU for wired connection is the same as Wifi
+        Fw::Buffer downlinked_data;
+        downlinked_data.setdata(reinterpret_cast<U64>(msg.dataBuffer));
+        downlinked_data.setsize(static_cast<U32>(msg.accumulatedDataSize));
+        downlinkBufferSend_out(0, downlinked_data);
     }
   
     void WatchDogInterfaceComponentImpl::handleTelemetryMsg(WatchDogMpsm::Message& msg)

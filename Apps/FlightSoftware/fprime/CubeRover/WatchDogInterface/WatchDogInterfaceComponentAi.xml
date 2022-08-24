@@ -72,6 +72,12 @@
             Input port from Health Component.
             </comment>
         </port>
+        
+        <port name="downlinkBufferSend" data_type="Fw::BufferSend"  kind="output" max_number="1">
+            <comment>
+                WatchDogInterface sends buffer of data to be downlinked to NetworkManager.
+            </comment>
+        </port>
     </ports>
 
     <commands>

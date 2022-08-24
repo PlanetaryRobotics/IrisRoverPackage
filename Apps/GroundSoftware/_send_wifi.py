@@ -56,6 +56,10 @@ radio_only_cmd_ids = {
     'ECHO': 0x00,
     # Reset the radio (requires data to be 'RESET' or it won't do anything)
     'RESET_RADIO': 0xBB,
+    # Enter stasis mode (requires data to be 'STASIS' or it won't do anything)
+    'ENTER_STASIS': 0xE5,
+    # Exit stasis mode (requires data to be 'STASIS' or it won't do anything)
+    'EXIT_STASIS': 0x5E,
     # Send the given bytes directly to Hercules UART (instead of through the BGAPI) - For use in case something went wrong and we need to place specific bytes on the Radio-UART line:
     'WRITE_UART': 0xDB,
     # Send the given ASCII message to Hercules using the Radio-Hercules Direct Message protocol:
@@ -67,9 +71,13 @@ def send_radio_only_cmd__echo(data_to_echo: bytes, *args, **kwargs):
     send_radio_only_command(radio_only_cmd_ids['ECHO'], data_to_echo, *args, **kwargs)
 
 send_radio_only_cmd__echo(b'HELLO')
-send_radio_only_command(radio_only_cmd_ids['WRITE_UART'], b'TESTING...')
-send_radio_only_command(0xFF, b'This-is-a-bad-cmd-id')
-send_radio_only_command(radio_only_cmd_ids['HERCULES_DM'], b'faked:STATE')
-send_radio_only_command(radio_only_cmd_ids['RESET_RADIO'], b'nada')
-send_radio_only_command(radio_only_cmd_ids['RESET_RADIO'], b'')
+# send_radio_only_command(radio_only_cmd_ids['WRITE_UART'], b'TESTING...')
+# send_radio_only_command(0xFF, b'This-is-a-bad-cmd-id')
+# send_radio_only_command(radio_only_cmd_ids['HERCULES_DM'], b'faked:STATE')
+# send_radio_only_command(radio_only_cmd_ids['RESET_RADIO'], b'nada')
+# send_radio_only_command(radio_only_cmd_ids['RESET_RADIO'], b'')
 # send_radio_only_command(radio_only_cmd_ids['RESET_RADIO'], b'RESET')
+
+
+# send_radio_only_command(radio_only_cmd_ids['ENTER_STASIS'], b'STASIS')
+# send_radio_only_command(radio_only_cmd_ids['EXIT_STASIS'], b'STASIS')

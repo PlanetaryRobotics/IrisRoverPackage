@@ -51,7 +51,7 @@ is used by the Idle task.
   use at compile time)
 - Impl. taken from: https://www.freertos.org/a00110.html#configSUPPORT_STATIC_ALLOCATION
 */
-#define IDLE_TASK_STACK_SIZE (configMINIMAL_STACK_SIZE + 4096) // Rn, all of FPrime runs in the idle task so we better give it some space. Use `uxTaskGetStackHighWaterMark(NULL)` to tune.
+#define IDLE_TASK_STACK_SIZE (configMINIMAL_STACK_SIZE + 1024) // Rn, all of FPrime runs in the idle task so we better give it some space. Use `uxTaskGetStackHighWaterMark(NULL)` to tune.
 void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
                                    StackType_t **ppxIdleTaskStackBuffer,
                                    uint32_t *pulIdleTaskStackSize)

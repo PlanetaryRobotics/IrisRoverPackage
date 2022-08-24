@@ -102,7 +102,7 @@
 #define configTICK_RATE_HZ			  ( ( TickType_t ) 1000 )
 #define configMAX_PRIORITIES		  ( 32 )
 #define configMINIMAL_STACK_SIZE	  ( ( unsigned portSHORT ) 128 )
-#define configTOTAL_HEAP_SIZE		  ( ( size_t ) 65536 )
+#define configTOTAL_HEAP_SIZE		  ( ( size_t ) 63480 ) // now that NetworkManager resources are statically allocated, dropped this by the size of the removed NM resources
 #define configMAX_TASK_NAME_LEN		  ( 16 )
 #define configIDLE_SHOULD_YIELD		  1
 #define configGENERATE_RUN_TIME_STATS 0

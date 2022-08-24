@@ -34,7 +34,7 @@ namespace CubeRover
 
   // How long (in ms) we'll wait for a Radio heartbeat before assuming it needs
   // a reset (NOTE: Standard heartbeat interval is once every 10s):
-  static const uint32_t RADIO_HEARTBEAT_TIMEOUT_MS = 31000; // 31s, a little over 3 HB periods
+  static const uint32_t RADIO_HEARTBEAT_TIMEOUT_MS = 360000; // Several Minutes (6mins) - it might not be HBing b/c it's trying to connect(?) - it should be several X roundtrip comms to Earth (to decrease odds of Earth sending a Radio-Gnd cmd and the Radio being off when it gets there).
 
   // How many times we'll request the Radio to be reset before we realize the
   // problem might actually be us (Hercules) and ask WD to reset us:

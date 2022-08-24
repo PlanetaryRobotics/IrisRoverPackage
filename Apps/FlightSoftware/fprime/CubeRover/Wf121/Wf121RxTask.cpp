@@ -169,6 +169,7 @@ namespace Wf121
             // Effectively "blocks forever" until something is put into the queue
             if (xQueueReceive(rxByteQueue, &newData, portMAX_DELAY) == pdPASS)
             {
+//                printf("\n%02x\n", newData);
                 Wf121Parser::Mpsm::ProcessStatus proc_stat = task->m_mpsm.process(msg, newData);
 
                 switch (proc_stat)

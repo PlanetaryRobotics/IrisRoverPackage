@@ -1,7 +1,6 @@
 #include <CubeRover/Wf121/Wf121DirectMessage.hpp>
 
 #include <stddef.h>
-#include <stdio.h>
 #include <string.h>
 
 // Anonymous namespace for file-scope helper functions:

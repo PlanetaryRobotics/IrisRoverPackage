@@ -2,8 +2,11 @@
 #include <Fw/Types/Assert.hpp>
 #include <Fw/Types/BasicTypes.hpp>
 #include <CubeRover/Wf121/Timestamp.hpp>
+#include <CubeRover/Wf121/Wf121DirectMessage.hpp>
 #include "FreeRTOS.h"
 #include "os_task.h"
+
+#include <string.h>
 
 namespace Wf121
 {
@@ -35,7 +38,7 @@ namespace Wf121
 
         void GenericMessage::updateHeaderType()
         {
-            if (memcmp((void *)this->header, (void *)DM_HEADER, DM_HEADER_LEN) == 0)
+            if (memcmp((void *)&(this->header), (void *)DM_HEADER, DM_HEADER_LEN) == 0)
             {
                 // This is a valid Radio-Herc Direct Message Header (and, therefore, not a BGAPI Header)
                 this->headerType = HeaderType::DIRECT_MESSAGE;
@@ -66,22 +69,29 @@ namespace Wf121
 
         Mpsm::ProcessStatus Mpsm::process(GenericMessage &msg, uint8_t newByte)
         {
-            // If we're currently waiting for post-header data and the time since
-            // we completed the header is >WF121_MPSM_FULL_PAYLOAD_TIMEOUT_MS, then
-            // give up and treat this new byte as part of a header search activity:
-            if (m_currentState != Mpsm::State::WAITING_FOR_VALID_HEADER)
-            {
-                uint32_t nowMillis = Timestamp::getTimeMs();
-                if ((nowMillis - m_completedHeaderTimeMs) >= WF121_MPSM_FULL_PAYLOAD_TIMEOUT_MS)
-                {
-                    // Reset state, clear the message, and reset the header buffer:
-                    // (essentially, start over since we're assuming the previous
-                    // message was a wash and now we're receiving fresh data):
-                    m_currentState = Mpsm::State::WAITING_FOR_VALID_HEADER;
-                    msg.reset();
-                    m_headerBuffer.reset();
-                }
-            }
+            // To promote faster syncing, keep scanning until a DM heartbeat
+            // (b'\xE6\xE7\xE7\xE6\xXXthump') is seen on full boot.
+            // Then, allow other non-DM header types too (just too slow to sync
+            // if accepting any valid-looking BGAPI header - not enough entropy).
+            static bool have_seen_a_dm_heartbeart_since_boot = false;
+
+//            printf("s: %d\n", m_currentState);
+//            // If we're currently waiting for post-header data and the time since
+//            // we completed the header is >WF121_MPSM_FULL_PAYLOAD_TIMEOUT_MS, then
+//            // give up and treat this new byte as part of a header search activity:
+//            if (m_currentState != Mpsm::State::WAITING_FOR_VALID_HEADER)
+//            {
+//                uint32_t nowMillis = Timestamp::getTimeMs();
+//                if ((nowMillis - m_completedHeaderTimeMs) >= WF121_MPSM_FULL_PAYLOAD_TIMEOUT_MS)
+//                {
+//                    // Reset state, clear the message, and reset the header buffer:
+//                    // (essentially, start over since we're assuming the previous
+//                    // message was a wash and now we're receiving fresh data):
+//                    m_currentState = Mpsm::State::WAITING_FOR_VALID_HEADER;
+//                    msg.reset();
+//                    m_headerBuffer.reset();
+//                }
+//            }
 
             Mpsm::ProcessStatus returnStatus = Mpsm::ProcessStatus::WAITING_FOR_MORE_DATA; // default
 
@@ -105,13 +115,26 @@ namespace Wf121
                 }
                 else
                 {
+//                    printf("%08x", msg.header);
                     // Read the bytes out in the correct order into the message header:
                     m_headerBuffer.straighten_into((uint8_t *)(&msg.header));
                     // Check if the header is valid:
                     msg.updateHeaderType();
-                    switch (msg.headerType)
+
+                    if(msg.headerType == HeaderType::DIRECT_MESSAGE){
+                        // We got a valid DIRECT_MESSAGE header! Proceed to next state:
+                        // (next time we'll be waiting for payload bytes to load):
+                        m_currentState = Mpsm::State::DM_WAITING_FOR_LEN_BYTE;
+                        // Now that we're done with it, clear the header buffer
+                        // (so it's fresh for the next use):
+                        m_headerBuffer.reset();
+                        // Log the time we got the complete header:
+                        m_completedHeaderTimeMs = Timestamp::getTimeMs();
+                        returnStatus = Mpsm::ProcessStatus::DM_HEADER_PARSED;
+//                        printf("d\n");
+                    }
+                    else if(have_seen_a_dm_heartbeart_since_boot && msg.headerType == HeaderType::BGAPI)
                     {
-                    case HeaderType::BGAPI:
                         // Set how many bytes we are going to wait for:
                         m_numPayloadBytesExpected = getBgapiPayloadSize(msg.bgApiHeader());
                         // and make sure that's reasonable (final check to see if this is a valid BGAPI header):
@@ -134,30 +157,19 @@ namespace Wf121
                             // Log the time we got the complete header:
                             m_completedHeaderTimeMs = Timestamp::getTimeMs();
                             returnStatus = Mpsm::ProcessStatus::BGAPI_HEADER_PARSED;
+//                            printf("b\n");
                         }
-                        break;
-
-                    case HeaderType::DIRECT_MESSAGE:
-                        // We got a valid DIRECT_MESSAGE header! Proceed to next state:
-                        // (next time we'll be waiting for payload bytes to load):
-                        m_currentState = Mpsm::State::DM_WAITING_FOR_LEN_BYTE;
-                        // Now that we're done with it, clear the header buffer
-                        // (so it's fresh for the next use):
-                        m_headerBuffer.reset();
-                        // Log the time we got the complete header:
-                        m_completedHeaderTimeMs = Timestamp::getTimeMs();
-                        returnStatus = Mpsm::ProcessStatus::DM_HEADER_PARSED;
-                        break;
-
-                    case HeaderType::INVALID:
-                    default:
+                    }
+                    else
+                    {
                         // Got a header's worth of bytes but it wasn't recognized as valid:
+                        // (or it's too early to risk accepting it as valid in the case of BGAPI)
                         // So, keep the state as `WAITING_FOR_VALID_HEADER` and:
                         // Dequeue the oldest byte (so we can keep scanning through
                         // the buffer until we get a valid header):
                         m_headerBuffer.dequeue();
                         returnStatus = Mpsm::ProcessStatus::BAD_HEADER;
-                        break;
+//                        printf("i\n");
                     }
                 }
                 break;
@@ -169,7 +181,10 @@ namespace Wf121
                 m_currentState = Mpsm::State::DM_WAITING_FOR_PAYLOAD;
                 // Set how many bytes we are going to wait for:
                 m_numPayloadBytesExpected = newByte;
-                if (m_numPayloadBytesExpected > DM_MAX_PAYLOAD_LEN || m_numPayloadBytesExpected > msg.payloadBufferCapacity)
+                if (m_numPayloadBytesExpected > DM_MAX_PAYLOAD_LEN ||
+                    m_numPayloadBytesExpected > msg.payloadBufferCapacity ||
+                    // To sync faster, don't accept anything longer than a HB until we've seen a HB:
+                    (!have_seen_a_dm_heartbeart_since_boot && m_numPayloadBytesExpected > DirectMessage::DM_HB_MAX_LEN))
                 {
                     // Expecting more data than we can load (than max message size).
                     // This is a problem and suggests corrupted data.
@@ -221,14 +236,24 @@ namespace Wf121
                     // Tell the caller what we got:
                     if (msg.headerType == HeaderType::DIRECT_MESSAGE)
                     {
+//                        printf("D\n");
+
+                        // Check if it's a DM Heartbeat (and we can now safely say we're in sync):
+                        if(msg.payloadSize > 5 && memcmp(msg.payloadBuffer, "thump", 5) == 0){
+//                            printf("HB\n");
+                            have_seen_a_dm_heartbeart_since_boot = true;
+                        }
+
                         returnStatus = Mpsm::ProcessStatus::DM_PARSED;
                     }
                     else if (msg.headerType == HeaderType::BGAPI)
                     {
+//                        printf("B\n");
                         returnStatus = Mpsm::ProcessStatus::BGAPI_PARSED;
                     }
                     else
                     {
+//                        printf("C\n");
                         // wtf? shouldn't be here. Possible bitflipping?
                         // Something went wrong. Go back to start and reset:
                         m_currentState = Mpsm::State::WAITING_FOR_VALID_HEADER;

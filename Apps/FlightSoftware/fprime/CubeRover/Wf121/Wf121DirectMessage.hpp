@@ -55,6 +55,9 @@ namespace Wf121{namespace DirectMessage // Wf121::DirectMessage
     // Radio's built in drop (effectively /dev/null) endpoint (used when UDP isn't set up):
     const uint8_t UDP_NULL_ENDPOINT = 31;
 
+    // Useful data for the parser (for using heartbeats to determine sync):
+    const uint8_t DM_HB_MAX_LEN = 50;
+
     // State of the Radio's SW (from a "state:" or "thump:" message)
     enum class RadioSwState
     {

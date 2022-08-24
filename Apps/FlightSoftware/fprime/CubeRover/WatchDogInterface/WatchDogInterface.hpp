@@ -46,7 +46,7 @@ static const uint32_t COMMAND_TIMEOUT_MILLISECONDS = 2000;
 // How often the processor should wait before checking back in on dmaSend completion while polling for it.
 // Since this is a high priority task, it's not a good idea for this to be 0 (though it *can* be zero) in order to prevent Task starvation.
 // NOTE: FreeRTOS scheduler ticks are every 1ms.
-static const TickType_t DMA_SEND_POLLING_CHECK_INTERVAL = 3 / portTICK_PERIOD_MS; // every 3ms (3 ticks)
+static const TickType_t DMA_SEND_POLLING_CHECK_INTERVAL = 2 / portTICK_PERIOD_MS; // every 2ms (2 ticks)
 
 // These three parameters control the setup of the task that handles data received from the MSP430 watchdog.
 static const NATIVE_INT_TYPE WATCH_DOG_INTERFACE_RX_TASK_PRIORITY = 16;

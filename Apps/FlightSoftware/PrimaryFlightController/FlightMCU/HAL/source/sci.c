@@ -832,6 +832,7 @@ void sciHighLevelInterrupt(void)
 
     case 11U:
         /* receive */
+#if 0
          byte = (uint8)(sciREG->RD & 0x000000FFU);
 
             if (g_sciTransfer_t[0U].rx_length > 0U)
@@ -845,6 +846,9 @@ void sciHighLevelInterrupt(void)
                     sciNotification(sciREG, (uint32)SCI_RX_INT);
                 }
             }
+#else
+            sciNotification(sciREG, (uint32)SCI_RX_INT);
+#endif
         break;
 
     case 12U:

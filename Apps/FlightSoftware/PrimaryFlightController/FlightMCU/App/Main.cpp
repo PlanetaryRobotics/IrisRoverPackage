@@ -24,6 +24,7 @@
 #include "sys_mpu.h"
 
 #include "App/DMA.h"
+#include "App/SCI.h"
 #include "App/SCILIN.h"
 
 extern "C"
@@ -84,7 +85,8 @@ void vApplicationTickHook(void)
 
 void vApplicationStackOverflowHook(void *xTask, char *pcTaskName)
 {
-    // while (true);
+    printf("STACKOVERFLOW\n");
+//     while (true);
     // something really bad happened
     // TODO: [CWC] Might actually be a good idea to hang here so WatchDog resets us
     // (make sure WD actually does that)
@@ -105,6 +107,7 @@ void main(void)
     spiInit();
     dmaEnable();
     scidmaInit();
+    sciIntInit();
     scilinIntInit();
 
     constructApp();

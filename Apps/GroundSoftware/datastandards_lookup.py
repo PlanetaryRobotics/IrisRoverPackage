@@ -29,6 +29,9 @@ def get_opts():
     parser.add_argument('-l', '--list-modules', action='store_true',
                         help='Lists the names of modules registered in the Data Standards.')
 
+    parser.add_argument('-t', '--telem-count', action='store_true',
+                        help='Lists (and counts) all telemetry channels (useful for sizing hash buckets in FSW).')
+
     parser.add_argument('-m', '--module-name', type=str,
                         help='Print standards just for the module with the given name.')
 
@@ -81,6 +84,25 @@ def print_lookup(module_to_lookup: Optional[str] = None) -> None:
             event(i, ev)
         print('\n]')
 
+def all_telem_channels() -> None:
+    # Useful for determining number of hash buckets needed in TLMCHAN_HASH_BUCKETS in Svc/TlmChan/TlmChanImplCfg.hpp in the FPrime FSW.
+    def module(x): return cprint(
+        f"\n\t{x}", 'magenta', 'on_grey', attrs=['bold'])
+
+    def header(x): return cprint(f"\n\t{x}", 'grey', 'on_white')
+    
+    header('All Telemetry Channels:')
+    tlm_count = 0
+    for ((m_id, m_name), m) in standards.modules.fast_items():
+        module_tlm_count = 0
+        for idx, t in enumerate(m.telemetry.vals):
+            cprint(f"\n\t\t{m_name}: \t{idx}.\t{t}", 'red', 'on_white')
+            module_tlm_count += 1
+            tlm_count += 1
+        print(f"Telemetry Channels in {m_name}: {module_tlm_count}")
+
+    header(f"There are {tlm_count} Total Telemetry Channels in the System.")
+
 
 if __name__ == '__main__':
     opts = get_opts()
@@ -95,3 +117,6 @@ if __name__ == '__main__':
 
     if opts.list_modules:
         print_modules_list()
+
+    if opts.telem_count:
+        all_telem_channels()

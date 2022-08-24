@@ -92,12 +92,13 @@ namespace Wf121
             // Wait until keepRunning has been set true
         };
 
+        BgApi::BgApiCommBuffer *dataToSend;
         while (task->m_keepRunning)
         {
             // Dispatch to the appropriate handler and let it tell us what to
             // send and when (i.e. it doesn't return until it needs us to send
             // data):
-            BgApi::BgApiCommBuffer *dataToSend = task->m_pTxTaskManager->udpTxUpdateHandler(task);
+            dataToSend = task->m_pTxTaskManager->udpTxUpdateHandler(task);
 
             // Only attempt to send if we need to send non-zero number of bytes:
             if (dataToSend->dataLen != 0)

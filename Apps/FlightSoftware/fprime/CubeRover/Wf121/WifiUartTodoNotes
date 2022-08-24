@@ -32,6 +32,7 @@
 
 // ! TODO: In `udpTxUpdateHandler`, handle flag from `cb_EventEndpointSyntaxError` (re-send last command b/c Radio didn't understand it? - look for either the expected semaphore or the syntax error semaphore)
 // Implement this is such a way so that if Radio doesn't respond as expect (due to Lunar EMI interference), we break out of the blocking wait for SetTransmitSize or SendUdpChunk mailboxes in the `udpTxUpdateHandler` state machine.
+// ^ Use a QueueSet to OR the mailbox queues?
 
 // TODO: Await `CanSendData` (CTS) before `dmaSend` in `Wf121UdpTxTask`?
 // doing this properly would require a GIO interrupt and semaphoreGive ... lower priority

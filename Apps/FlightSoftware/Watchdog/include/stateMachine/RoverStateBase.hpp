@@ -39,7 +39,8 @@ namespace iris
             static void landerMsgCallback(uint8_t* rxDataBuffer, size_t rxDataLen, void* userArg);
 
         protected:
-            virtual LanderComms__Status txDownlinkData(RoverContext& theContext, void* data, size_t dataSize);
+            virtual LanderComms__Status txDownlinkData(RoverContext& theContext, void* data, size_t dataSize,
+                                                       bool fromHercules=false);
 
             virtual RoverState handleWdIntEdge(bool rising, RoverContext& theContext);
 

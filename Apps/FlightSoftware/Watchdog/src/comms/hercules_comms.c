@@ -164,7 +164,7 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
         }     
 
         if (numReceived != 0) {
-            //DebugComms__printfToLander("Got %u bytes of msg data from Hercules\n", numReceived);
+            //DebugComms__tryPrintfToLanderNonblocking("Got %d bytes of msg data from Hercules\n", (int)numReceived);
         }
 
         // Iterate through all data, adding it to the hercules mpsm until packet data has been found or
@@ -182,8 +182,8 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
 
                 resetMpsmMsg = TRUE;
             } else if (HERCULES_MPSM__STATUS__NEED_MORE_DATA != mpsmStatus) {
-                DebugComms__printfToLander("Unexpected return value from HerculesMpsm__process: %d "
-                                           "in HerculesComms__tryGetMessage\n", mpsmStatus);
+                DebugComms__tryPrintfToLanderNonblocking("Unexpected return value from HerculesMpsm__process: %d "
+                                                         "in HerculesComms__tryGetMessage\n", mpsmStatus);
                 // Some kind of unexpected error occurred. At a minimum we need to reset the MPSM
                 resetMpsmMsg = TRUE;
                 numReceived = 0;
@@ -194,8 +194,8 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
                 mpsmStatus = HerculesMpsm__initMsg(&(hState->herculesMsg));
 
                 if (HERCULES_MPSM__STATUS__SUCCESS != mpsmStatus) {
-                    DebugComms__printfToLander("Unexpected return value from HerculesMpsm__initMsg: %d "
-                                               "in HerculesComms__tryGetMessage\n", mpsmStatus);
+                    DebugComms__tryPrintfToLanderNonblocking("Unexpected return value from HerculesMpsm__initMsg: %d "
+                                                             "in HerculesComms__tryGetMessage\n", mpsmStatus);
 
                     // Don't overwrite an existing error return status with this one, but if we haven't had an
                     // error before now then set our return status to indicate this failure.
@@ -215,7 +215,7 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
     }
 
     if (currentTimeCentiseconds > endTimeCentiseconds) {
-        DebugComms__printfToLander("Timed out in HerculesComms__tryGetMessage\n");
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in HerculesComms__tryGetMessage\n");
     }
 
     return returnStatus;
@@ -310,7 +310,7 @@ HerculesComms__Status HerculesComms__resetState(HerculesComms__State* hState)
     }
 
     if (currentTimeCentiseconds > endTimeCentiseconds) {
-        DebugComms__printfToLander("Timed out in HerculesComms__resetState\n");
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in HerculesComms__resetState\n");
     }
 
     HerculesMpsm__Status mpsmStatus = HerculesMpsm__reset(&(hState->herculesMsg));
@@ -408,8 +408,8 @@ HerculesComms__Status HerculesComms__uninitialize(HerculesComms__State** hState)
 
     HerculesComms__Status status = HerculesComms__resetState(*hState);
     if (HERCULES_COMMS__STATUS__SUCCESS != status) {
-        DebugComms__printfToLander("Unexpected return value from HerculesComms__resetState: %d "
-                                   "in HerculesComms__uninitialize\n", status);
+        DebugComms__tryPrintfToLanderNonblocking("Unexpected return value from HerculesComms__resetState: %d "
+                                                 "in HerculesComms__uninitialize\n", status);
     }
 
     (*hState)->uartState = NULL;

@@ -116,7 +116,7 @@ namespace CubeRover
         }
         else
         {
-            debugPrintfToWatchdog("Failed to send stroke\n");
+            //debugPrintfToWatchdog("Failed to send stroke\n");
             // TODO: Add logging error
         }
 
@@ -578,12 +578,12 @@ namespace CubeRover
         else if (rxOlderSeqNum)
         {
             // TODO: LOG ERROR (which error to log?)
-            debugPrintfToWatchdog("rxOlderSeqNum: %d\n", msg.parsedHeader.lowerOpCode);
+            debugPrintfToWatchdog("rxOlderSeqNum: %d\n", msg.parsedHeader.lowerSeqNum);
         }
         else if (rxNewerSeqNum)
         {
             // TODO: LOG ERROR (which error to log?)
-            debugPrintfToWatchdog("rxNewerSeqNum: %d\n", msg.parsedHeader.lowerOpCode);
+            debugPrintfToWatchdog("rxNewerSeqNum: %d\n", msg.parsedHeader.lowerSeqNum);
 
             // We want to respond to the old tx message. Make sure we don't try to send a response about any
             // of our fake opcodes, and don't send a response if we didn't want to send one when we sent the message
@@ -597,7 +597,7 @@ namespace CubeRover
             if (txCmdOpCode == STROKE_OPCODE)
             {
                 uint32_t nowMillis = static_cast<uint32_t>(now.get_time_ms());
-                debugPrintfToWatchdog("Stroke response RTT: %u ms\n", nowMillis - txTimeMillis);
+                debugPrintfToWatchdog("RTT: %u ms\n", nowMillis - txTimeMillis);
             }
 
             // We want to respond positively about the tx message. Make sure we don't try to send a response about any

@@ -177,7 +177,7 @@ namespace iris
                 return &m_stateMission;
 
             default:
-                DebugComms__printfToLander("Reached default state in getStateObjectForStateEnum\n");
+                DebugComms__tryPrintfToLanderNonblocking("Reached default state in getStateObjectForStateEnum\n");
                 DebugComms__flush();
                 return &m_stateInit;
         }
@@ -189,7 +189,7 @@ namespace iris
         while (m_currentState->getState() != desiredState) {
             const char *originalStateStr = stateToString(m_currentState->getState());
             const char *desiredStateStr =  stateToString(desiredState);
-            DebugComms__printfToLander("Transitioning from %s to %s\n", originalStateStr, desiredStateStr);
+            DebugComms__tryPrintfToLanderNonblocking("Transitioning from %s to %s\n", originalStateStr, desiredStateStr);
             m_currentState = getStateObjectForStateEnum(desiredState);
             m_context.m_details.m_stateAsUint = static_cast<uint8_t>(m_currentState->getState());
             desiredState = m_currentState->transitionTo(m_context);
@@ -204,7 +204,7 @@ namespace iris
 
         switch (event) {
             case EVENT__TYPE__UNUSED:
-                DebugComms__printfToLander("Trying to handle an UNUSED event type, which indicates programmer error\n");
+                DebugComms__tryPrintfToLanderNonblocking("Trying to handle an UNUSED event type, which indicates programmer error\n");
                 DebugComms__flush();
                 return;
 
@@ -237,7 +237,7 @@ namespace iris
                 break;
 
             default:
-                DebugComms__printfToLander("In default case trying to handle event, which indicates programmer error\n");
+                DebugComms__tryPrintfToLanderNonblocking("In default case trying to handle event, which indicates programmer error\n");
                 DebugComms__flush();
                 break;
         }

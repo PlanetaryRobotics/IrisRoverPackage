@@ -183,7 +183,7 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
     }
 
     if (currentTimeCentiseconds > endTimeCentiseconds) {
-        DebugComms__printfToLander("Timed out in LanderComms__tryGetMessage\n");
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in LanderComms__tryGetMessage\n");
     }
 
     return returnStatus;
@@ -442,7 +442,7 @@ static LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms_
     }
 
     if (currentTimeCentiseconds > endTimeCentiseconds) {
-        DebugComms__printfToLander("Timed out in LanderComms__slipEncodeAndTransmitBuffer\n");
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in LanderComms__slipEncodeAndTransmitBuffer\n");
     }
 
     return LANDER_COMMS__STATUS__SUCCESS;

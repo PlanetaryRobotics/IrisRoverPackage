@@ -76,9 +76,9 @@ void DebugComms__tryStringBufferToLanderNonblocking(void* buffer, size_t bufferL
     }
 
     if (HC_STATE != NULL) {
-            HerculesComms__txDownlinkData(HC_STATE,
-                                          (const uint8_t*) buffer,
-                                           bufferLen);
+        HerculesComms__txDownlinkData(HC_STATE,
+                                      (const uint8_t*) buffer,
+                                       bufferLen);
     }
 
 }

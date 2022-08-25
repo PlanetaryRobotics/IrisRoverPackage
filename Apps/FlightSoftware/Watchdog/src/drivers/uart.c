@@ -284,12 +284,14 @@ void UART__flushTx(UART__State* uartState)
 
     uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
     uint16_t currentTimeCentiseconds = startTimeCentiseconds;
-    uint16_t endTimeCentiseconds = startTimeCentiseconds + 100; // One second timeout
+
+    // (1024 byte tx buffer w/ 9600 baud == 0.106 seconds to send full buffer)
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + 15; // 0.15 second timeout
     BOOL timeout = FALSE;
 
     do {
         // Disable the tx interrupt for this uart while we get the number of free bytes in the ring buffer
-//        uint16_t existingTxInterruptBitState = *(uartState->registers->UCAxIE) & UCTXIE;
+        uint16_t existingTxInterruptBitState = *(uartState->registers->UCAxIE) & UCTXIE;
 //        *(uartState->registers->UCAxIE) &= ~UCTXIE;
 
         numUsed = RingBuffer__usedCount(uartState->txRingBuff);
@@ -303,7 +305,7 @@ void UART__flushTx(UART__State* uartState)
 
         // Re-enable the tx interrupt only if it was previously enabled or if there are bytes remaining in the ring
         // buffer
-//        *(uartState->registers->UCAxIE) |= (existingTxInterruptBitState);// | ((numUsed > 0) ? UCTXIE : 0));
+        *(uartState->registers->UCAxIE) |= (existingTxInterruptBitState) | ((numUsed > 0) ? UCTXIE : 0);
 
         if (numUsed != 0) {
             __delay_cycles(10000);
@@ -317,7 +319,7 @@ void UART__flushTx(UART__State* uartState)
     } while (numUsed != 0 && !timeout);
 
     if (timeout) {
-        DebugComms__printfToLander("Timed out in UART__flushTx\n");
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in UART__flushTx\n");
     }
 }
 

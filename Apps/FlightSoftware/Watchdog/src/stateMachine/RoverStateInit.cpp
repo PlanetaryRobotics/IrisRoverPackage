@@ -85,8 +85,8 @@ namespace iris
             DebugComms__registerLanderComms(theContext.m_lcState);
         }
 
-        DebugComms__printfToLander("Watchdog in Init state\n");
-        DebugComms__printfToLander("Reason for last reset: %s\n", m_resetReasonString);
+        DebugComms__tryPrintfToLanderNonblocking("Watchdog in Init state\n");
+        DebugComms__tryPrintfToLanderNonblocking("Reason for last reset: %s\n", m_resetReasonString);
 
 
         /* set up watchdog */
@@ -133,7 +133,7 @@ namespace iris
         }
 
         if (currentTimeCentiseconds > endTimeCentiseconds) {
-            DebugComms__printfToLander("Timed out in RoverStateInit::transitionTo\n");
+            DebugComms__tryPrintfToLanderNonblocking("Timed out in RoverStateInit::transitionTo\n");
         }
 
         blimp_normalBoot(); // run this on every boot as early as possible after IO Expander init.

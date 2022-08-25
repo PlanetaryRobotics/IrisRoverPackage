@@ -29,9 +29,9 @@ void DebugComms__flush(void);
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define DPRINTF(...) DebugComms__printfToLander(__VA_ARGS__)
-#define DPRINTF_ERR(...) DebugComms__printfToLander(__VA_ARGS__)
-#define DTRACE() DebugComms__printfToLander("[%s:%d]\n", __FILE__, __LINE__)
+#define DPRINTF(...) DebugComms__tryPrintfToLanderNonblocking(__VA_ARGS__)
+#define DPRINTF_ERR(...) DebugComms__tryPrintfToLanderNonblocking(__VA_ARGS__)
+#define DTRACE() DebugComms__tryPrintfToLanderNonblocking("[%s:%d]\n", __FILE__, __LINE__)
 
 #define DEBUG_LOG_NULL_CHECK(variable, msg) \
     if (NULL == (variable)) { \

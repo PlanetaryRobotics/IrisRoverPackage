@@ -199,7 +199,7 @@ namespace iris
         // Enable all interrupts
         __enable_interrupt();
 
-        DebugComms__printfToLander("Hello, Earth!\n");
+        DebugComms__tryPrintfToLanderNonblocking("Hello, Earth!\n");
 
         return nextStateAfterSetupCompletes();
     }

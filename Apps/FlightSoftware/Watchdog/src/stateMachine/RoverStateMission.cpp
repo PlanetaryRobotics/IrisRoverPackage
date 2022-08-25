@@ -42,7 +42,7 @@ namespace iris
         DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Hercules UART Rx Rb Error count");
 
         if (changed) {
-            DebugComms__printfToLander("New Hercules UART Rx Rb failures, total count = %u\n", count);
+            DebugComms__tryPrintfToLanderNonblocking("New Hercules UART Rx Rb failures, total count = %u\n", count);
         }
 
         count = 0;
@@ -51,7 +51,7 @@ namespace iris
         DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Lander UART Rx Rb Error count");
 
         if (changed) {
-            DebugComms__printfToLander("New Lander UART Rx Rb failures, total count = %u\n", count);
+            DebugComms__tryPrintfToLanderNonblocking("New Lander UART Rx Rb failures, total count = %u\n", count);
         }
 
         /* send heartbeat with collected data */

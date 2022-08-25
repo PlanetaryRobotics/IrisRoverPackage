@@ -126,12 +126,13 @@ namespace iris
         return getState();
     }
 
-    LanderComms__Status RoverStateBase::txDownlinkData(RoverContext& theContext, void* data, size_t dataSize)
+    LanderComms__Status RoverStateBase::txDownlinkData(RoverContext& theContext, void* data, size_t dataSize,
+                                                       bool fromHercules)
     {
         LanderComms__Status lcStatus = LANDER_COMMS__STATUS__SUCCESS;
 
         // !! TODO !!: Is this the condition we want here?
-        if (*(theContext.m_persistentDeployed) && HerculesComms__isInitialized(theContext.m_hcState)) {
+        if (*(theContext.m_persistentDeployed) && HerculesComms__isInitialized(theContext.m_hcState) && !fromHercules) {
             HerculesComms__Status hcStatus = HerculesComms__txDownlinkData(theContext.m_hcState,
                                                                            (uint8_t *) data,
                                                                            dataSize);
@@ -665,7 +666,7 @@ namespace iris
                                                                       sizeof(telemetrySerializationBuffer));
 
         if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-            DebugComms__printfToLander("HerculesComms__txResponseMsg failed with error: %d in "
+            DebugComms__tryPrintfToLanderNonblocking("HerculesComms__txResponseMsg failed with error: %d in "
                                        "RoverStateBase::handleStrokeFromHercules\n",
                                        hcStatus);
         }
@@ -696,13 +697,13 @@ namespace iris
                                                                       0);
 
         if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-            DebugComms__printfToLander("HerculesComms__txResponseMsg failed with error: %d in "
+            DebugComms__tryPrintfToLanderNonblocking("HerculesComms__txResponseMsg failed with error: %d in "
                                        "RoverStateBase::handleDownlinkFromHercules\n",
                                        hcStatus);
         }
 
         // 2) Send data to lander
-        LanderComms__Status lcStatus = txDownlinkData(theContext, payloadBuffer, payloadSize);
+        LanderComms__Status lcStatus = txDownlinkData(theContext, payloadBuffer, payloadSize, true);
 
         DEBUG_LOG_CHECK_STATUS(LANDER_COMMS__STATUS__SUCCESS, lcStatus, "Downlink failed");
 
@@ -724,7 +725,8 @@ namespace iris
 #pragma diag_pop
 
         // For debug just send it to the lander
-        DebugComms__stringBufferToLander(payloadBuffer, payloadSize);
+        DebugComms__tryPrintfToLanderNonblocking("ps:%d\n", (int)payloadSize);
+        DebugComms__tryStringBufferToLanderNonblocking(payloadBuffer, payloadSize);
 
         return getState();
     }
@@ -748,7 +750,7 @@ namespace iris
                                                                       0);
 
         if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-            DebugComms__printfToLander("HerculesComms__txResponseMsg failed with error: %d in "
+            DebugComms__tryPrintfToLanderNonblocking("HerculesComms__txResponseMsg failed with error: %d in "
                                        "RoverStateBase::handleResetFromHercules\n",
                                        hcStatus);
         }
@@ -784,7 +786,7 @@ namespace iris
 
         //DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
         if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-            DebugComms__printfToLander("HerculesComms__tryGetMessage failed with error: %d in "
+            DebugComms__tryPrintfToLanderNonblocking("HerculesComms__tryGetMessage failed with error: %d in "
                                        "RoverStateBase::pumpMsgsFromHercules\n",
                                        hcStatus);
         }
@@ -863,12 +865,12 @@ namespace iris
         switch (msg.body.setDebugCommsState.selection) {
             case WD_CMD_MSGS__DEBUG_COMMS__ON:
                 DebugComms__setEnabled(TRUE);
-                DebugComms__printfToLander("Debug comms enabled\n");
+                DebugComms__tryPrintfToLanderNonblocking("Debug comms enabled\n");
                 response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
                 break;
 
             case WD_CMD_MSGS__DEBUG_COMMS__OFF:
-                DebugComms__printfToLander("Disabling debug comms\n");
+                DebugComms__tryPrintfToLanderNonblocking("Disabling debug comms\n");
                 DebugComms__setEnabled(FALSE);
                 response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
                 break;

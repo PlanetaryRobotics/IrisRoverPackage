@@ -84,7 +84,7 @@ namespace iris
         DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Lander UART Rx Rb Error count");
 
         if (changed) {
-            DebugComms__printfToLander("New Lander UART Rx Rb failures, total count = %u\n", count);
+            DebugComms__tryPrintfToLanderNonblocking("New Lander UART Rx Rb failures, total count = %u\n", count);
         }
 
         if (theContext.m_details.m_hParams.m_heatingControlEnabled) {
@@ -266,7 +266,7 @@ namespace iris
         // Enable all interrupts
         __enable_interrupt();
 
-        DebugComms__printfToLander("Hello, Earth!\n");
+        DebugComms__tryPrintfToLanderNonblocking("Hello, Earth!\n");
 
         return nextStateAfterSetupCompletes();
     }

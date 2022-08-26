@@ -3,12 +3,12 @@
 #include <Fw/Types/BasicTypes.hpp>
 #include <CubeRover/Wf121/Timestamp.hpp>
 #include <CubeRover/Wf121/Wf121DirectMessage.hpp>
-#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
 #include "FreeRTOS.h"
 #include "os_task.h"
 
 #include <string.h>
 
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
 extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 namespace Wf121

@@ -11,6 +11,9 @@
 
 #include <CubeRover/Wf121/Wf121UdpTxTask.hpp>
 
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
+
 // Handle to active task (this):
 static TaskHandle_t xActiveTask = nullptr; // not init'd yet
 
@@ -80,6 +83,8 @@ namespace Wf121
         // system itself won't halt.
         // More on FreeRTOS Tasks: https://www.freertos.org/taskandcr.html
         Wf121UdpTxTask *task = static_cast<Wf121UdpTxTask *>(arg);
+
+
 
         // Block task for 50ms to wait for serial to come up and be ready
         // (NOTE: this is already handled elsewhere and this task isn't started

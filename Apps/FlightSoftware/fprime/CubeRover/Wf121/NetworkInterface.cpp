@@ -1,5 +1,8 @@
 #include <CubeRover/Wf121/NetworkInterface.hpp>
 
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
+
 // Anonymous namespace for file-scope helper functions:
 namespace
 {
@@ -417,6 +420,7 @@ namespace Wf121
                     memcpy(pResponsePayload->data, uplinkResponse.rawData, sizeof(uplinkResponse.rawData));
                     pResponsePayload->dataSize = sizeof(uplinkResponse.rawData);
                     // Push into UDP TX queue:
+                    watchDogInterface.debugPrintfToWatchdog("RADIO: UPL-RCVD");
                     sendUdpPayload(pResponsePayload);
                 }
                 else

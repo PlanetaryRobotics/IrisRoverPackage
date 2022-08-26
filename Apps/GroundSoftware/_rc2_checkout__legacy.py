@@ -4,23 +4,24 @@ from trans_tools import *
 from __command_aliases import get_command
 from IrisBackendv3.utils.basic import bytearray_to_spaced_hex as hexstr
 
-seq_num = 0x01
+seq_num = 0x00
 
 
 ## SETTINGS:
 serial_device_sn: str = 'A7035PDL' # Connects to the Lander harness
 # serial_device_sn: str = 'AB0JRGV8' # Connects to J36-RS422 header on the SBC
 baud = 57600
+# baud = 9600
 ip="192.168.1.2"
 port=8080
 
-settings['SAVE_FILE_PREFIX'] = 'iris__radio_firmware_checkout__8_8_22' # this is the prefix on all log files.
+settings['SAVE_FILE_PREFIX'] = 'iris__radio_firmware_checkout__8_26_22_4' # this is the prefix on all log files.
 
 
 cmd, param = 'ReportStatus', True
 
 # True - send command, # False - sniff only
-# send_data_packet_to_wd_before_sniffing = True
+send_data_packet_to_wd_before_sniffing = True
 send_data_packet_to_wd_before_sniffing = False
 
 # overwriting = True
@@ -30,7 +31,8 @@ specific_cmd_name_override = 'ReportStatus'
 
 # specific_cmd_name_override = 'transit'
 # specific_cmd_name_override = 'setup'
-# specific_cmd_name_override = 'power-on'
+specific_cmd_name_override = 'power-on'
+# specific_cmd_name_override = 'wifi-mode'
 
 # specific_cmd_name_override = '24-off'
 # specific_cmd_name_override = '24-on'
@@ -107,5 +109,5 @@ if send_data_packet_to_wd_before_sniffing:
     send_packet(packet, pathway, ip, port)
 
 ## Stream Telemetry:
-stream_data_ip_udp_serial()
+stream_data_ip_udp_serial(use_telem_dataview=True)
 # Check for wireless telemetry in Wireshark. For parsing help, run: `pyenv exec python parse_pcap.py --help`

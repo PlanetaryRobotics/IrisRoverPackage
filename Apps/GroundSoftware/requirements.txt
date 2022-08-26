@@ -8,6 +8,7 @@ numpy
 matplotlib
 seaborn
 pandas
+tabulate
 plotly
 dash
 panel

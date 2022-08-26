@@ -22,7 +22,7 @@ cmd, param = 'ReportStatus', True
 
 # True - send command, # False - sniff only
 send_data_packet_to_wd_before_sniffing = True
-send_data_packet_to_wd_before_sniffing = False
+# send_data_packet_to_wd_before_sniffing = False
 
 # overwriting = True
 
@@ -30,8 +30,8 @@ specific_param_override = True
 specific_cmd_name_override = 'ReportStatus'
 
 # specific_cmd_name_override = 'transit'
-# specific_cmd_name_override = 'setup'
-specific_cmd_name_override = 'power-on'
+specific_cmd_name_override = 'setup'
+# specific_cmd_name_override = 'power-on'
 # specific_cmd_name_override = 'wifi-mode'
 
 # specific_cmd_name_override = '24-off'

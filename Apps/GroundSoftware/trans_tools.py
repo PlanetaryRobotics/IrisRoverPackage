@@ -6,7 +6,7 @@ tests which require the Transceiver layer while the real thing is still being
 built.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 08/25/2022
+@last-updated: 08/26/2022
 """
 
 import logging
@@ -740,6 +740,33 @@ def load_cache() -> None:
         pass  # Do nothing. This is the first go, there's just nothing to load.
 
 
+# Handles a new incoming streamed packet, including logging and display.
+# packet [Packet]: Newly received packet.
+# use_telem_dataview [bool]: Whether to display the new data using the new Telemetry Dataview (True) or by just printing the packet (False).
+def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = False) -> None:
+    if packet is not None:
+        # Feed the streams:
+        update_telemetry_streams(packet) # telem dataframe updated in here
+
+        if USE_LOG_DATAFRAMES:
+            # Normal packet. Load it:
+            update_packet_log_dataframe(packet)
+            # If the packet doesn't contain any telemetry (i.e. log, debug print, etc.), add it to the non-telem packet log in LiFo manner:
+            # - Also do this for WatchdogDetailedStatusPacket since they're *very* detailed (contain way too much data to display so we're just
+            # going to display it here instead).
+            # - Also push command responses to the prints section so they're seen explicitly (its packet printer includes a special parser to decode the command name):
+            if len([*packet.payloads[TelemetryPayload]]) == 0 or isinstance(packet, (WatchdogDetailedStatusPacket, WatchdogCommandResponsePacket)):
+                nontelem_packet_prints.appendleft(f"\033[34;47;1m({datetime.now().strftime(DATETIME_FORMAT_STR)})\033[0m {packet!s}")
+        
+        # Display the data:
+        if use_telem_dataview:
+            # Update the display:
+            refresh_telemetry_dataview()
+        else:
+            # Just log the data:
+            log_print(packet)
+
+
 def save_pcap(full_packets):
     pcap_fp = open(os.path.join(cast(str, settings['SAVE_DIR']),
                                 f'data_{ulid.new()}.pcapng'), 'wb')
@@ -778,36 +805,12 @@ def save_pcap(full_packets):
 
     pcap_fp.close()
 
+
 from enum import Enum
 class SlipState(Enum):
      FIRST_END = 1
      FIRST_BYTE_OR_STARTING_END = 2
      STARTED = 3
-
-# Handles a new incoming streamed packet, including logging and display.
-# packet [Packet]: Newly received packet.
-# use_telem_dataview [bool]: Whether to display the new data using the new Telemetry Dataview (True) or by just printing the packet (False).
-def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = False) -> None:
-    if packet is not None:
-        # Feed the streams:
-        update_telemetry_streams(packet) # telem dataframe updated in here
-
-        if USE_LOG_DATAFRAMES:
-            # Normal packet. Load it:
-            update_packet_log_dataframe(packet)
-            # If the packet doesn't contain any telemetry (i.e. log, debug print, etc.), add it to the non-telem packet log in LiFo manner:
-            # Also do this for WatchdogDetailedStatusPacket since they're *very* detailed (contain way too much data to display so we're just
-            # going to display it here instead):
-            if len([*packet.payloads[TelemetryPayload]]) == 0 or isinstance(packet, WatchdogDetailedStatusPacket):
-                nontelem_packet_prints.appendleft(f"\033[34;47;1m({datetime.now().strftime(DATETIME_FORMAT_STR)})\033[0m {packet!s}")
-        
-        # Display the data:
-        if use_telem_dataview:
-            # Update the display:
-            refresh_telemetry_dataview()
-        else:
-            # Just log the data:
-            log_print(packet)
 
 # Streams data over
 def stream_data_ip_udp_serial(use_telem_dataview: bool = False) -> None:

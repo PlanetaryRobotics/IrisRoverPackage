@@ -45,7 +45,9 @@ def parse_packet(
             WatchdogDetailedStatusPacket,
             WatchdogTvacHeartbeatPacket,
             Legacy2020IrisCommonPacket,
+            RadioDirectMessagePacket,
             WatchdogHelloPacket,
+            WatchdogRadioDebugPacket,
             WatchdogDebugPacket
         ]
 

@@ -1,12 +1,15 @@
 """
-Defines `WatchdogHelloPacket`, a `Packet` wrapper for a hello message from the
-Watchdog. This packet type doesn't contain any telemetry (for now, should get
-converted to a `EventPayload` eventually) and is just printed to the console.
+Defines `RadioDirectMessagePacket`, a `Packet` wrapper for a direct status message from the Radio.
+This packet type doesn't contain any telemetry (for now - eventually, depending on contents,
+should get converted to a `EventPayload` or a `TelemetryPayload` containing radio state,
+activity, etc.) and is just printed to the console.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/09/2022
+@last-updated: 08/26/2022
 """
-from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
+from __future__ import annotations
+
+from prompt_toolkit import formatted_text  # Activate postponed annotations (for using classes as return type in their own methods)
 
 from .packet import Packet, CT
 
@@ -20,18 +23,18 @@ from ..settings import ENDIANNESS_CODE
 from ..logging import logger
 
 
-class WatchdogHelloPacketInterface(Packet[CT]):
+class RadioDirectMessagePacketInterface(Packet[CT]):
     # empty __slots__ preserves parent class __slots__
     __slots__: List[str] = []
 
 
-class WatchdogHelloPacket(WatchdogHelloPacketInterface[WatchdogHelloPacketInterface]):
+class RadioDirectMessagePacket(RadioDirectMessagePacketInterface[RadioDirectMessagePacketInterface]):
     """
-    Creates a data-structure to allow storing and handling a debug string from
-    the Watchdog.
+    Creates a data-structure to allow storing and handling a status message from
+    the Radio.
 
     @author: Connor W. Colombo (CMU)
-    @last-updated: 05/08/2022
+    @last-updated: 08/26/2022
     """
     __slots__: List[str] = []  # empty __slots__ preserves parent __slots__
 
@@ -45,7 +48,7 @@ class WatchdogHelloPacket(WatchdogHelloPacketInterface[WatchdogHelloPacketInterf
             # If both `payloads` and `raw` are `None`, what even caused
             # this to be generated?
             logger.debug(
-                "A `WatchdogHelloPacket` was constructed with no `payloads` and "
+                "A `RadioDirectMessagePacket` was constructed with no `payloads` and "
                 "no `raw` data. This suggests it's being created from "
                 "nothing as a completely empty packet. Was this "
                 "intentional or is this a bug?"
@@ -53,7 +56,7 @@ class WatchdogHelloPacket(WatchdogHelloPacketInterface[WatchdogHelloPacketInterf
 
         if payloads is None:
             # Except possibly in future subclasses, this should normally be
-            # empty for an `WatchdogHelloPacket`. `payloads` needs to stay as
+            # empty for an `WatchdogDebugPacket`. `payloads` needs to stay as
             # an `__init__` arg to avoid violating the Liskov substitution
             # principle.
             payloads = EnhancedPayloadCollection()
@@ -68,7 +71,7 @@ class WatchdogHelloPacket(WatchdogHelloPacketInterface[WatchdogHelloPacketInterf
     def decode(cls,
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE
-               ) -> WatchdogHelloPacket:
+               ) -> RadioDirectMessagePacket:
         return cls(raw=data, endianness_code=endianness_code)
 
     def encode(self, **kwargs: Any) -> bytes:
@@ -84,7 +87,7 @@ class WatchdogHelloPacket(WatchdogHelloPacketInterface[WatchdogHelloPacketInterf
         payloads: EnhancedPayloadCollection,
         raw: Optional[bytes],
         endianness_code: str
-    ) -> WatchdogHelloPacket:
+    ) -> RadioDirectMessagePacket:
         """ Minimum packet is just the packet. """
         return cls(
             payloads=payloads,
@@ -94,8 +97,9 @@ class WatchdogHelloPacket(WatchdogHelloPacketInterface[WatchdogHelloPacketInterf
 
     @classmethod
     def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
-        """Valid if the packet starts with `b'HELLO'`."""
-        return data[:5].lower() == b'hello'
+        """Valid if the packet starts with b'DEBUG' then `0xE6E7E7E6`.
+        Note the b'DEBUG' prefix is there b/c this is sent through the Hercules then through the Watchdog using the debug messaging system."""
+        return data[:9].upper() == b'DEBUG\xE6\xE7\xE7\xE6'
 
     def __repr__(self) -> str:
         if self._raw is None:
@@ -104,7 +108,7 @@ class WatchdogHelloPacket(WatchdogHelloPacketInterface[WatchdogHelloPacketInterf
         else:
             l = len(self._raw)
             data = self._raw
-        return f"WatchdogHelloPacket[{l}B]: {data!r} "
+        return f"RadioDirectMessagePacket[{l}B]: {data!r} "
 
     def __str__(self) -> str:
         if self._raw is None:
@@ -113,7 +117,11 @@ class WatchdogHelloPacket(WatchdogHelloPacketInterface[WatchdogHelloPacketInterf
         else:
             l = len(self._raw)
             data = self._raw
+
+        formatted_data = data[9:].decode('utf-8').rstrip('\x00').rstrip()
+
         return (
-            f"WatchdogHelloPacket[{l}B]-str: {data!r} "
-            f"\nWatchdogHelloPacket[{l}B]-raw: {' '.join('{:02x}'.format(x) for x in data)}"
+            f" \033[34;1mRADIO: [{len(data[9:])}B]: {formatted_data}\033[0m"
+            # f"\n \033[31;m\033[30m RadioDirectMessagePacket[{l}B]-str: {data!r} \033[0m\n"
+            # f"\RadioDirectMessagePacket[{l}B]-raw: {' '.join('{:02x}'.format(x) for x in data)}"
         )

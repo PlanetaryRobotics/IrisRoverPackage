@@ -1,4 +1,8 @@
-# Send data to the Radio over Wifi:
+# Send data to the Radio or Hercules over Wifi:
+from trans_tools import *
+from __command_aliases import get_command
+from IrisBackendv3.utils.basic import bytearray_to_spaced_hex as hexstr
+
 import scapy.all as scp
 import socket
 import numpy as np
@@ -70,7 +74,30 @@ radio_only_cmd_ids = {
 def send_radio_only_cmd__echo(data_to_echo: bytes, *args, **kwargs):
     send_radio_only_command(radio_only_cmd_ids['ECHO'], data_to_echo, *args, **kwargs)
 
-send_radio_only_cmd__echo(b'HELLO')
+
+# Hercules commands:
+SEND_HERCULES_COMMAND: bool = True
+
+seq_num = 0x00
+specific_cmd_name_override = 'wifi-mode'
+# specific_cmd_name_override = 'drive-fwd-200'
+
+specific_param_override = True
+
+pathway, magic, command_name, kwargs, telem_pathway = get_command(specific_cmd_name_override, specific_param_override)
+print(pathway, magic, command_name, kwargs)
+
+packet = build_command_packet(seq_num, pathway, magic, command_name,kwargs)
+packet_bytes = packet.encode()
+print(hexstr(packet_bytes))
+
+## Send Hercules Command:
+if SEND_HERCULES_COMMAND:
+    send_wifi(packet_bytes)
+
+
+# Radio-Direct Commands:
+# send_radio_only_cmd__echo(b'HELLO')
 # send_radio_only_command(radio_only_cmd_ids['WRITE_UART'], b'TESTING...')
 # send_radio_only_command(0xFF, b'This-is-a-bad-cmd-id')
 # send_radio_only_command(radio_only_cmd_ids['HERCULES_DM'], b'faked:STATE')

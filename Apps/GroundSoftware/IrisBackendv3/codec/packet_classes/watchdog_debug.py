@@ -119,7 +119,7 @@ class WatchdogDebugPacket(WatchdogDebugPacketInterface[WatchdogDebugPacketInterf
         formatted_data = data[5:].decode('utf-8').rstrip('\x00').rstrip()
 
         return (
-            f" \033[1m\033[30m{formatted_data}\033[0m"
+            f" \033[1m\033[30m[{len(data[5:])}B]: {formatted_data}\033[0m"
             # f"\n \033[1m\033[30m WatchdogDebugPacket[{l}B]-str: {data!r} \033[0m\n"
             # f"\nWatchdogDebugPacket[{l}B]-raw: {' '.join('{:02x}'.format(x) for x in data)}"
         )

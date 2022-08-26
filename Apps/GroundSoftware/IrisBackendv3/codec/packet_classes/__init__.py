@@ -16,5 +16,7 @@ from .watchdog_tvac_heartbeat import *
 from .watchdog_detailed_status import *
 from .watchdog_heartbeat import *
 from .watchdog_command_response import *
+from .radio_direct_message import *
 from .watchdog_debug import *
 from .watchdog_hello import *
+from .watchdog_radio_debug import *

@@ -905,9 +905,14 @@ def stream_data_ip_udp_serial(use_telem_dataview: bool = False) -> None:
             data_bytes = bytearray(b'')
             slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
         except Exception as e:
-            err_print(
-                f"An otherwise unresolved error occurred during packet streaming: {e}"
-            )
+            if not use_telem_dataview:
+                # Dont print in data view, that would be problematic.
+                err_print(
+                    f"An otherwise unresolved error occurred during packet streaming: {e}"
+                )
+            else:
+                # In data view, just push the string to the packet print console:
+                nontelem_packet_prints.appendleft(f"An otherwise unresolved error occurred during packet streaming: {e}")
             data_bytes = bytearray(b'')
             slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
 

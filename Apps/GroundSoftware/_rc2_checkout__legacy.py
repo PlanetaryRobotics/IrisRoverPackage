@@ -15,7 +15,7 @@ baud = 57600
 ip="192.168.1.2"
 port=8080
 
-settings['SAVE_FILE_PREFIX'] = 'iris__radio_firmware_checkout__8_26_22_4' # this is the prefix on all log files.
+settings['SAVE_FILE_PREFIX'] = 'iris__radio_firmware_checkout__8_26_22_8' # this is the prefix on all log files.
 
 
 cmd, param = 'ReportStatus', True
@@ -30,8 +30,8 @@ specific_param_override = True
 specific_cmd_name_override = 'ReportStatus'
 
 # specific_cmd_name_override = 'transit'
-specific_cmd_name_override = 'setup'
-# specific_cmd_name_override = 'power-on'
+# specific_cmd_name_override = 'setup'
+specific_cmd_name_override = 'power-on'
 # specific_cmd_name_override = 'wifi-mode'
 
 # specific_cmd_name_override = '24-off'

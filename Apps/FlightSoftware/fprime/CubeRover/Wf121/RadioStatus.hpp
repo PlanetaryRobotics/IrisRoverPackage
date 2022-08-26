@@ -49,6 +49,9 @@ namespace Wf121
         // Whether there's been a critical comms failure and the RadioDriver
         // needs external help (e.g. by resetting the Radio):
         bool criticalCommsFailure_needHelp;
+        // Number of successfully parsed direct messages (a basic vital for
+        // if Radio-Herc comms are still working):
+        uint32_t numCompleteDirectMessages;
 
         RadioStatus() : timeOfLastHeartbeatMs(0),
                         currentRadioState(DirectMessage::RadioSwState::NONE),
@@ -60,7 +63,8 @@ namespace Wf121
                         udpRxByteCount(0),
                         udpTxPacketCount(0),
                         udpTxByteCount(0),
-                        criticalCommsFailure_needHelp(false)
+                        criticalCommsFailure_needHelp(false),
+                        numCompleteDirectMessages(0)
         {
             // Nothing else to do.
         }
@@ -81,6 +85,7 @@ namespace Wf121
             target->udpTxPacketCount = this->udpTxPacketCount;
             target->udpTxByteCount = this->udpTxByteCount;
             target->criticalCommsFailure_needHelp = this->criticalCommsFailure_needHelp;
+            target->numCompleteDirectMessages = this->numCompleteDirectMessages;
         }
 
         // Sets the `timeOfLastHeartbeatMs` to the current Time in milliseconds
@@ -311,6 +316,25 @@ namespace Wf121
             return udpTxByteCount;
         }
 
+        // Obtains a mutex lock, copies `numCompleteDirectMessages` into the given
+        // object, releases the lock.
+        void copyNumCompleteDirectMessagesInto(uint32_t *numCompleteDirectMessages)
+        {
+            this->mutex.lock();
+            *numCompleteDirectMessages = this->numCompleteDirectMessages;
+            this->mutex.unLock();
+        }
+        // Obtains a mutex lock, copies the value, releases the lock,
+        // returns the copy.
+        uint32_t getNumCompleteDirectMessages()
+        {
+            uint32_t numCompleteDirectMessages;
+            this->mutex.lock();
+            numCompleteDirectMessages = this->numCompleteDirectMessages;
+            this->mutex.unLock();
+            return numCompleteDirectMessages;
+        }
+
         // Obtains a mutex lock, copies `criticalCommsFailure_needHelp` into
         // the given object, releases the lock.
         void copyCriticalCommsFailure_NeedHelpInto(bool *criticalCommsFailure_needHelp)
@@ -429,6 +453,16 @@ namespace Wf121
             this->criticalCommsFailure_needHelp = criticalCommsFailure_needHelp;
             this->mutex.unLock();
         }
+
+        // Obtains a mutex lock, increments `numCompleteDirectMessages` by x,
+        // releases the lock.
+        void incNumCompleteDirectMessages(uint32_t x = 1UL)
+        {
+            this->mutex.lock();
+            this->numCompleteDirectMessages += x;
+            this->mutex.unLock();
+        }
+
     };
 }
 

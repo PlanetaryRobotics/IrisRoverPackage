@@ -164,12 +164,16 @@ namespace CubeRover
         {
             m_lastTelemDownlinkTimeMs = now;
             tlmWrite_RSSI(m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getRssi());
-            // Note: SSR is defunct (never really something we had live access to)
+            // Note: SNR is defunct (never really something we had live access to)
+            // BUT we're going to trojan it for the time being in order to get numCompleteDirectMessages out so we can assess Radio-Herc Comms Health:
+            tlmWrite_SNR(m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getNumCompleteDirectMessages() % 0xFF);
             tlmWrite_PktRecv(m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpRxPacketCount());
             tlmWrite_PktSent(m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount());
 
             // Repeat the state now (in case it was lost before):
             tlmWrite_WIFIStateStatus(m_lastDownlinkedWifiState);
+
+//            watchDogInterface.debugPrintfToWatchdog("RADIO: NM watching u%u d%u", m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUplinkEndpoint(), m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getDownlinkEndpoint());
         }
 
         // Check if Radio has gotten back into a good state since the last reset

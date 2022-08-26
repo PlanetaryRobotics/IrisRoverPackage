@@ -232,7 +232,7 @@ namespace Wf121
         }
         if (fullyValid || uplinkEndpoint != DirectMessage::UDP_NULL_ENDPOINT)
         {
-            m_protectedRadioStatus.setDownlinkEndpoint(uplinkEndpoint);
+            m_protectedRadioStatus.setUplinkEndpoint(uplinkEndpoint);
         }
 
         // Set the state if we got a non-corrupted state:
@@ -251,6 +251,7 @@ namespace Wf121
         if (fullyValid)
         {
             m_protectedRadioStatus.updateLastHeartbeatTime();
+            m_protectedRadioStatus.incNumCompleteDirectMessages();
         }
     }
 
@@ -266,6 +267,7 @@ namespace Wf121
         // Set the current state (even if's BAD_MESSAGE - we want it to be
         // clear that the state changed and we no longer know what it is):
         m_protectedRadioStatus.setRadioState(state);
+        m_protectedRadioStatus.incNumCompleteDirectMessages();
     }
 
     /**
@@ -280,6 +282,7 @@ namespace Wf121
         // Set the current activity (even if's BAD_MESSAGE - we want it to be
         // clear that the activity changed and we no longer know what it is):
         m_protectedRadioStatus.setRadioActivity(doing);
+        m_protectedRadioStatus.incNumCompleteDirectMessages();
     }
 
     BgApi::ErrorCode NetworkInterface::cb_CommandSetTransmitSize(const uint16_t result,

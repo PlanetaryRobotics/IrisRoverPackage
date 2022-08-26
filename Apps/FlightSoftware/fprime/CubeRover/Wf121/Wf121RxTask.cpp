@@ -169,7 +169,7 @@ namespace Wf121
             // Effectively "blocks forever" until something is put into the queue
             if (xQueueReceive(rxByteQueue, &newData, portMAX_DELAY) == pdPASS)
             {
-//                printf("\n%02x\n", newData);
+//                printf("%02x\n", newData);
                 Wf121Parser::Mpsm::ProcessStatus proc_stat = task->m_mpsm.process(msg, newData);
 
                 switch (proc_stat)
@@ -190,6 +190,7 @@ namespace Wf121
 
                 case Wf121Parser::Mpsm::ProcessStatus::BAD_HEADER:
                 case Wf121Parser::Mpsm::ProcessStatus::BAD_LENGTH:
+                case Wf121Parser::Mpsm::ProcessStatus::PREMATURE_BGAPI:
                     // We got invalid / bad data. Probably just means
                     // we're out of sync, so keep scanning. Nothing to do
                     break;
@@ -197,10 +198,13 @@ namespace Wf121
                 // If we don't need to do anything
                 //(things are fine, just not done), do nothing:
                 case Wf121Parser::Mpsm::ProcessStatus::BGAPI_HEADER_PARSED:
+                case Wf121Parser::Mpsm::ProcessStatus::DM_BGAPI_ENDPOINT_PARSED:
+                case Wf121Parser::Mpsm::ProcessStatus::DM_BGAPI_PACKET_LENGTH_PARSED:
                 case Wf121Parser::Mpsm::ProcessStatus::DM_HEADER_PARSED:
                 case Wf121Parser::Mpsm::ProcessStatus::DM_LEN_PARSED:
                 case Wf121Parser::Mpsm::ProcessStatus::WAITING_FOR_MORE_DATA:
                 default:
+                    resetMpsmMsg = false;
                     // Do nothing.
                 }
             }

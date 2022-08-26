@@ -105,7 +105,7 @@ void main(void)
     sciInit();
     adcInit();
     spiInit();
-    dmaEnable();
+    dmaEnable(); // temporarily disabling. seeing if removing this fixes some SCI data issues. TODO: [CWC] Re-enable and re-test once everything works.
     scidmaInit();
     sciIntInit();
     scilinIntInit();

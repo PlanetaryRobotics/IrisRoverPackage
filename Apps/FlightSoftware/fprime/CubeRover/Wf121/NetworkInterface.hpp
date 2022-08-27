@@ -78,10 +78,10 @@ static const TickType_t WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL = 20
 static const uint8_t WF121_BGAPI_COMMAND_MAX_TRIES = 5;
 
 // Max number of FreeRTOS Scheduler ticks to allow the calling task to wait for
-// the UDP TX Queue to become free while attempting to put data into it:
-// (with the exception of emergency messages, if this tick count is exceeded
-// (b/c the queue is full), the UdpPayload that's trying to be enqueued to the
-// TX buffer will just be dropped).
+// the UDP TX Queue to become available while attempting to put data into it.
+// NOTE: this is mostly precautionary since, before attempting to send anything,
+// the UDP TX Queue is checked for space and, if there isn't any, the oldest
+// item is popped off before writing is attempted.
 static const TickType_t WF121_UDP_TX_ENQUEUE_WAIT_TICKS = 5;
 // Max number of FreeRTOS Scheduler ticks to allow the Wf121RxTask to wait for
 // the UDP RX Queue to become free while attempting to put data into it:

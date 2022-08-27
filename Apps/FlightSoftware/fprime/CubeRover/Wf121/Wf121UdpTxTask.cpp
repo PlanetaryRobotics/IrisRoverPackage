@@ -36,11 +36,11 @@ namespace Wf121
         // Stop looping
         m_keepRunning = false;
 
-//        // Make sure we aren't blocked
-//        if (xActiveTask != nullptr)
-//        {
-//            xTaskNotifyGive(xActiveTask);
-//        }
+        //        // Make sure we aren't blocked
+        //        if (xActiveTask != nullptr)
+        //        {
+        //            xTaskNotifyGive(xActiveTask);
+        //        }
 
         // Join the thread
         void *value;
@@ -83,8 +83,6 @@ namespace Wf121
         // system itself won't halt.
         // More on FreeRTOS Tasks: https://www.freertos.org/taskandcr.html
         Wf121UdpTxTask *task = static_cast<Wf121UdpTxTask *>(arg);
-
-
 
         // Block task for 50ms to wait for serial to come up and be ready
         // (NOTE: this is already handled elsewhere and this task isn't started

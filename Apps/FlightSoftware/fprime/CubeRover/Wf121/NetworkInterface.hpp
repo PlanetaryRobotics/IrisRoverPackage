@@ -283,6 +283,10 @@ namespace Wf121
         // Total number of UDP bytes (successfully) downlinked (in the current
         // message / payload):
         uint16_t m_totalUdpMessageBytesDownlinked = 0;
+        // Target endpoint for a downlink (grabbed from
+        // `m_protectedRadioStatus.getDownlinkEndpoint()` once per downlink so
+        // it doesn't change while we're sending chunks).
+        BgApi::Endpoint m_downlinkTargetEndpoint;
 
         // States used by the State Machine inside udpTxUpdateHandler.
         enum class UdpTxUpdateState

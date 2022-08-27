@@ -55,7 +55,10 @@ namespace Wf121
     // possible to get data to the FPrime stack in a timely manner.
     const uint8_t GND_DIRECT_CMD_RESET_ALL_BUFFERS[] = "RESET-ALL-COMMS-BUFFERS-NOW";
     // Fixed acknowledgement string that the above command was received:
-    // last byte should be replaced with the number of resets done (i.e. let's us know if any of the Queues *couldn't* be reset because they're broken)
+    // last byte should be replaced with the number of resets done as a result
+    // of the command (i.e. let's us know if any of the Queues *couldn't* be
+    // reset because they're broken - if everything is working as was able to
+    // be reset, this number should be 2).
     // * This is in plain ASCII so it's immediately readable from a packet viewer like YAMCS.
     const uint8_t GND_DIRECT_RSP_RESET_ALL_BUFFERS[] = "RESET-ALL-COMMS-BUFFERS-DONE:X";
 

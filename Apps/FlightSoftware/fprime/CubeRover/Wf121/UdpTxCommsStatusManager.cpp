@@ -15,9 +15,8 @@ namespace Wf121
     static StaticQueue_t xStaticQueue_SendEndpointUdp_Response;
     static uint8_t ucQueueStorageArea_SendEndpointUdp_Response[1 * sizeof(BgApi::ErrorCode)];
 
-
     UdpTxCommsStatusManager::UdpTxCommsStatusManager() : xQueue_SetTransmitSize_Response(NULL), // null until init.
-                                xQueue_SendEndpointUdp_Response(NULL)  // null until init.
+                                                         xQueue_SendEndpointUdp_Response(NULL)  // null until init.
     {
     }
 
@@ -76,7 +75,7 @@ namespace Wf121
         {
             xQueueSend(this->xQueue_SetTransmitSize_Response,
                        (void *)&response,
-                       (TickType_t)0);
+                       (TickType_t)1); // allow waiting 1 tick in case its about to be reset (we'll want to fill it again)
         }
     }
 
@@ -92,7 +91,7 @@ namespace Wf121
         {
             xQueueSend(this->xQueue_SendEndpointUdp_Response,
                        (void *)&response,
-                       (TickType_t)0);
+                       (TickType_t)1); // allow waiting 1 tick in case its about to be reset (we'll want to fill it again)
         }
     }
 
@@ -106,6 +105,13 @@ namespace Wf121
 
         if (*blockingQueue != NULL)
         {
+            // Clear the queue in question first because the callbacks that fill
+            // the mailbox queues are triggered when ANYBODY (us or Radio's
+            // internal BGScript) sends the command in question so it could be
+            // already full because someone else (the Radio's internal BGScript)
+            // sent and got a response to this command:
+            xQueueReset(*blockingQueue);
+
             // Block (yield) Task until timeout or data received:
             if (xQueueReceive(*blockingQueue,
                               &(errorCode),

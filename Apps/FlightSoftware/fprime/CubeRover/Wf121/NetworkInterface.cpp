@@ -63,7 +63,8 @@ namespace Wf121
     }
 
     // Dtor to satisfy polymorphism (this class should never actually be deleted):
-    NetworkInterface::~NetworkInterface(){
+    NetworkInterface::~NetworkInterface()
+    {
         // don't use
     }
 
@@ -180,7 +181,7 @@ namespace Wf121
                 // NOTE: This send procedure is a **COPY** (so we don't care about
                 // `pPayload` after this).
                 enqueuedSuccessfully =
-                    (xQueueSend(m_xUdpTxPayloadQueue, (void *)pPayload, (TickType_t)10) == pdPASS);
+                    (xQueueSend(m_xUdpTxPayloadQueue, (void *)pPayload, WF121_UDP_TX_ENQUEUE_WAIT_TICKS) == pdPASS);
             }
             else
             {
@@ -202,7 +203,7 @@ namespace Wf121
                 // Now, as above, push the item to the queue, allowing it to
                 // wait a small number of ticks if needed just to be safe:
                 enqueuedSuccessfully =
-                    (xQueueSend(m_xUdpTxPayloadQueue, (void *)pPayload, (TickType_t)10) == pdPASS);
+                    (xQueueSend(m_xUdpTxPayloadQueue, (void *)pPayload, WF121_UDP_TX_ENQUEUE_WAIT_TICKS) == pdPASS);
             }
         }
         return enqueuedSuccessfully;
@@ -402,7 +403,7 @@ namespace Wf121
                 // even, we're making it *slightly* non-zero here only as a
                 // precaution.
                 // NOTE: This send procedure is a **COPY** (so we don't care about `m_xUdpRxWorkingData` after this).
-                if (xQueueSend(m_xUdpRxPayloadQueue, (void *)&m_xUdpRxWorkingData, (TickType_t)10) == pdPASS)
+                if (xQueueSend(m_xUdpRxPayloadQueue, (void *)&m_xUdpRxWorkingData, WF121_UDP_RX_ENQUEUE_WAIT_TICKS) == pdPASS)
                 {
                     // Send a packet ACK back over the radio:
 
@@ -448,7 +449,7 @@ namespace Wf121
                     // Queue, overwriting anything that's there:
                     if (m_xUdpTxPayloadQueue != NULL)
                     {
-                        if (xQueueSendToFront(m_xUdpTxPayloadQueue, (void *)pResponsePayload, (TickType_t)10) != pdPASS)
+                        if (xQueueSendToFront(m_xUdpTxPayloadQueue, (void *)pResponsePayload, WF121_UDP_TX_ENQUEUE_WAIT_TICKS) != pdPASS)
                         {
                             // We failed because `errQUEUE_FULL`.
                             // It's **really** important for Ground to get this message.

@@ -77,6 +77,23 @@ static const TickType_t WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL = 20
 // Most number of times to try sending a BGAPI command without receiving a response before giving up:
 static const uint8_t WF121_BGAPI_COMMAND_MAX_TRIES = 5;
 
+// Max number of FreeRTOS Scheduler ticks to allow the calling task to wait for
+// the UDP TX Queue to become free while attempting to put data into it:
+// (with the exception of emergency messages, if this tick count is exceeded
+// (b/c the queue is full), the UdpPayload that's trying to be enqueued to the
+// TX buffer will just be dropped).
+static const TickType_t WF121_UDP_TX_ENQUEUE_WAIT_TICKS = 5;
+// Max number of FreeRTOS Scheduler ticks to allow the Wf121RxTask to wait for
+// the UDP RX Queue to become free while attempting to put data into it:
+// (if the UDP RX Queue doesn't have space available by that time, the enqueuing
+// UdpPayload will be dropped *but* an emergency message will be force-pushed
+// to the *front* of the UDP TX Queue so Ground knows that the UDP RX Queue is
+// full and not getting serviced fast enough. If Ground thinks this is a
+// problem, it can send a `GND_DIRECT_CMD_RESET_ALL_BUFFERS` TC to the RX Task
+// to tell it to clear the queue (this way new commands will now be able to get
+// through).
+static const TickType_t WF121_UDP_RX_ENQUEUE_WAIT_TICKS = 10;
+
 namespace Wf121
 {
     class NetworkInterface : public BgApi::BgApiDriver,

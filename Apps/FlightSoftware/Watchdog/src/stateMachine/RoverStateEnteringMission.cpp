@@ -38,7 +38,7 @@ namespace iris
         DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Lander UART Rx Rb Error count");
 
         if (changed) {
-            DebugComms__printfToLander("New Lander UART Rx Rb failures, total count = %u\n", count);
+            DebugComms__tryPrintfToLanderNonblocking("New Lander UART Rx Rb failures, total count = %u\n", count);
         }
 
         /* send heartbeat with collected data */
@@ -239,10 +239,19 @@ namespace iris
                 {
                     // First of all, if we've timed out we can simply move forward.
                     uint16_t timePassed = Time__getTimeInCentiseconds() - m_startWifiReadyTimeCentiseconds;
+                    bool transition = false;
 
                     if (timePassed > WIFI_READY_TIMEOUT_CENTISECONDS) {
                         DPRINTF_ERR("Wait for wifi timed out\n");
+                        transition = true;
+                    }
 
+                    if (theContext.gotWifi) {
+                        DPRINTF("Got Wifi\n");
+                        transition = true;
+                    }
+
+                    if (transition) {
                         // At this point the only thing that may be using I2C would be the read/write from the timer tick,
                         // and transitioning to mission has priority over that. If it was a write, the changes being written
                         // should be picked up and written in IoExpanderWrite3. If it was a read, then all that we lose by
@@ -454,8 +463,12 @@ namespace iris
             DEBUG_ASSERT_EQUAL(UART__STATUS__SUCCESS, uartStatus);
         }
 
-        HerculesComms__Status hcStatus = HerculesComms__init(&(theContext.m_hcState), theContext.m_uart0State);
-        DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
+        if (!HerculesComms__isInitialized(theContext.m_hcState)) {
+            HerculesComms__Status hcStatus = HerculesComms__init(&(theContext.m_hcState), theContext.m_uart0State);
+            DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
+        }
+
+        DebugComms__registerHerculesComms(theContext.m_hcState);
     }
 
 } // End namespace iris

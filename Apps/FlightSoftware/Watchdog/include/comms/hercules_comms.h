@@ -36,6 +36,7 @@ typedef enum HerculesComms__Status
      * @brief Could not store all of the data to be transmitted into the UART transmit buffer.
      */
     HERCULES_COMMS__STATUS__ERROR_TX_OVERFLOW = -5,
+    HERCULES_COMMS__STATUS__ERROR_TIMEOUT = -6,
 
     HERCULES_COMMS__STATUS__ERROR_MPSM_INIT_FAILURE = -10, //!< Initializing the internal MPSM failed.
     HERCULES_COMMS__STATUS__ERROR_MPSM_PROCESS_FAILURE = -11, //!< Got an error from an MPSM `process()` call.
@@ -53,7 +54,8 @@ typedef enum HerculesComms__MsgOpcode
     HERCULES_COMMS__MSG_OPCODE__STROKE = 0x100,  //!< The opcode used for stroke messages.
     HERCULES_COMMS__MSG_OPCODE__DOWNLINK = 0x101,//!< The opcode used for downlink messages.
     HERCULES_COMMS__MSG_OPCODE__UPLINK = 0x102,   //!< The opcode used for uplink messages.
-    HERCULES_COMMS__MSG_OPCODE__DEBUG = 0x103   //!< The opcode used for debug messages.
+    HERCULES_COMMS__MSG_OPCODE__DEBUG = 0x103,   //!< The opcode used for debug messages.
+    HERCULES_COMMS__MSG_OPCODE__WIFI_DOWNLINK = 0x107   //!< The opcode used for data to be downlinked by hercules via wifi.
 } HerculesComms__MsgOpcode;
 
 /**
@@ -177,6 +179,37 @@ HerculesComms__Status HerculesComms__flushTx(HerculesComms__State* hState);
  *   - HERCULES_COMMS__STATUS__ERROR_UART_RX_FAILURE: Got an error when `UART__receive` was invoked.
  */
 HerculesComms__Status HerculesComms__resetState(HerculesComms__State* hState);
+
+BOOL HerculesComms__isInitialized(HerculesComms__State* hState);
+
+HerculesComms__Status HerculesComms__uninitialize(HerculesComms__State** hState);
+
+/**
+ * @brief Sends an downlink message containing data from the WD for ground via Hercules and wifi.
+ *
+ * A header will be sent first with the length of the payload, a reset value of zero, an internally maintained
+ * sequence number, and the opcode `HERCULES_COMMS__MSG_OPCODE__WIFI_DOWNLINK`. Following the header, the given data
+ * is sent without modification.
+ *
+ * @param hState The comms instance.
+ * @param data The payload data to send.
+ * @param dataLen The length of `data`, which must be non-zero.
+ *
+ * @return One of the following:
+ *   - HERCULES_COMMS__STATUS__SUCCESS: The function was successful.
+ *   - HERCULES_COMMS__STATUS__ERROR_NULL: `hState` or `data` was NULL.
+ *   - HERCULES_COMMS__STATUS__ERROR_NOT_INITIALIZED: `hState` was not initialized.
+ *   - HERCULES_COMMS__STATUS__ERROR_BUFFER_TOO_SMALL: `dataLen` was zero.
+ *   - HERCULES_COMMS__STATUS__ERROR_TX_OVERFLOW: Could not fit all of the message data into the UART's internal
+ *                                                transmit buffer.
+ *   - HERCULES_COMMS__STATUS__ERROR_UART_TX_FAILURE: Got an error when `UART__transmit` was invoked.
+ */
+HerculesComms__Status HerculesComms__txDownlinkData(HerculesComms__State* hState, const uint8_t* data, size_t dataLen);
+
+HerculesComms__Status HerculesComms__txDownlinkDataUntilSendOrTimeout(HerculesComms__State* hcState,
+                                                                      const uint8_t* data,
+                                                                      size_t dataLen,
+                                                                      uint16_t timeoutInCentiseconds);
 
 /**
  * @}

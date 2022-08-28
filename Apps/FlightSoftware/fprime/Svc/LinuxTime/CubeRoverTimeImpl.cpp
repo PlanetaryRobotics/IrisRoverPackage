@@ -25,8 +25,14 @@ namespace Svc {
 
         // Assumption here is that configTICK_RATE_HZ is set to 1000
         // from the freeRTOS configuration.
-        uint32_t second = xTaskGetTickCount() / configTICK_RATE_HZ;
-        time.set(TB_WORKSTATION_TIME, 0, second, xTaskGetTickCount() * 1000);
+        TickType_t tickCount = xTaskGetTickCount();
+        uint32_t second = tickCount / configTICK_RATE_HZ;
+        uint32_t ticksRemainder = tickCount - (second * configTICK_RATE_HZ);
+
+        // 1000000 us/sec, and configTICK_RATE_HZ ticks/sec, --> (us/sec) / (ticks/sec) = (us/tick)
+        // Then ticksRemainder (in tick units) * (us / tick) = us
+        uint32_t micros = ticksRemainder * (1000000 / configTICK_RATE_HZ);
+        time.set(TB_WORKSTATION_TIME, 0, second, micros);
     }
 
     void CubeRoverTimeImpl::init(NATIVE_INT_TYPE instance) {

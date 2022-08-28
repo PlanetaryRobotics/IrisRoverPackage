@@ -123,7 +123,7 @@ void I2C__spinOnce(void)
 
     uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
     uint16_t currentTimeCentiseconds = startTimeCentiseconds;
-    uint16_t endTimeCentiseconds = startTimeCentiseconds + 100; // One second timeout
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + 5; // 0.05 second timeout
 
     while (continueSpinning && currentTimeCentiseconds <= endTimeCentiseconds) {
         switch (theStatus.state) {
@@ -172,7 +172,7 @@ void I2C__spinOnce(void)
     }
 
     if (currentTimeCentiseconds > endTimeCentiseconds) {
-        DebugComms__printfToLander("Timed out in I2C__spinOnce, state: %d\n", (int)theStatus.state);
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in I2C__spinOnce, state: %d\n", (int)theStatus.state);
     }
 }
 

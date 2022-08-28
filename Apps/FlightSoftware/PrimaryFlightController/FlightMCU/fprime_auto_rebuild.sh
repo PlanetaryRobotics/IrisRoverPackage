@@ -1,3 +1,12 @@
+# First thing, *immediately* grab the directory containing this file (not where it's being called from):
+SOURCE=${BASH_SOURCE[0]}
+while [ -L "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
+  SOURCE=$(readlink "$SOURCE")
+  [[ $SOURCE != /* ]] && SOURCE=$DIR/$SOURCE # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
+
 # Instructions before running:
 echo -e "\033[1;37;44m MAKE SURE YOU COMMIT ALL UNSAVED GIT CHANGES FIRST! \033[0m"
 echo "If you haven't, please don't continue."
@@ -15,7 +24,8 @@ if [[ $answer = [Yy] ]]; then
 
 	# Save absolute path to starting directory:
 	STARTING_DIR=$(pwd)
-	OUTPUTS_DIR=$STARTING_DIR/fprime_build_full_outputs
+	# Create outputs dir:
+	OUTPUTS_DIR=$SCRIPT_DIR/fprime_build_full_outputs
 	# Setup common grep search string:
 	GREP_SEARCH_STR="Building\|[Cc]omplete\|[Ee]rror[^_=]\|Fail\|[Ff]ailure\|[Ww]arning[^s_=]\|291\|136"
 	# Lines for grep to exclude (known "not a problem" errors):
@@ -29,7 +39,7 @@ if [[ $answer = [Yy] ]]; then
 
 
 	# Go to FPrime:
-	cd ../../fprime
+	cd $SCRIPT_DIR/../../fprime
 
 
 	echo -e "\033[1;37;44m  \033[0m"
@@ -95,6 +105,7 @@ if [[ $answer = [Yy] ]]; then
 
 	{ set +x; } 2>/dev/null
 	echo "** sudo ./build.sh"
+	echo -e "\033[1;37;45m NOTE: It's okay and expected for Topology.o to fail to build *once* (this is before a patch is applied). Twice is a problem. \033[0m"
 	sudo ./build.sh 2>&1 | sudo tee "${OUTPUTS_DIR}/CubeRover_build__out.txt" | grep -v "${GREP_EXCLUDE_STR}" | grep --color=always "${GREP_SEARCH_STR}"
 	set -x
 

@@ -154,6 +154,7 @@ typedef enum WdCmdMsgs__ResetSpecificId
     WD_CMD_MSGS__RESET_ID__BATTERIES_ENABLE = 0x23, //!< Enable the batteries.
     WD_CMD_MSGS__RESET_ID__BATTERIES_DISABLE = 0x24, //!< Disable the batteries.
 
+    WD_CMD_MSGS__RESET_ID__CLEAR_PERSISTENT_DEPLOY = 0xDD, //!< Clear the persistent "deployed" status.
     WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_ON = 0xEE //!< Power on the HDRM.
 
 } WdCmdMsgs__ResetSpecificId;

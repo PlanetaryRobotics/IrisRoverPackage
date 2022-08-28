@@ -334,8 +334,13 @@
   </connection>
       
   <connection name="groundInterface_to_networkManager"><!-- GROUNDINTERFACE downlinkBufferSend PORT #1 -->
-    <source component="groundInterface" port="downlinkBufferSend" type="Buffer" num="1" />
-    <target component="networkManager" port="downlink" type="Buffer" num="0" />
+    <source component="groundInterface" port="downlinkBufferSend" type="Fw::BufferSend" num="1" />
+    <target component="networkManager" port="downlink" type="Fw::BufferSend" num="0" />
+  </connection>
+  
+  <connection name="watchDogInterface_to_networkManager"><!-- WatchDogInterface downlinkBufferSend PORT #0 -->
+    <source component="watchDogInterface" port="downlinkBufferSend" type="Fw::BufferSend" num="0" />
+    <target component="networkManager" port="downlink" type="Fw::BufferSend" num="1"/>
   </connection>
       
 <!-- *********************************************************************************************************

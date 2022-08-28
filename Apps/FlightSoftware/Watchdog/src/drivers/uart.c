@@ -22,6 +22,25 @@
 #include "common.h"
 #include "flags.h"
 
+
+#define LANDER_BAUD_RATE_9600 1
+#define LANDER_BAUD_RATE_57600 0
+
+#define HERC_BAUD_RATE_9600 0
+#define HERC_BAUD_RATE_57600 1
+
+#if LANDER_BAUD_RATE_9600 && LANDER_BAUD_RATE_57600
+#error "Must select only one lander baud rate"
+#elif !LANDER_BAUD_RATE_9600 && !LANDER_BAUD_RATE_57600
+#error "Must select at least one lander baud rate"
+#endif
+
+#if HERC_BAUD_RATE_9600 && HERC_BAUD_RATE_57600
+#error "Must select only one Hercules baud rate"
+#elif !HERC_BAUD_RATE_9600 && !HERC_BAUD_RATE_57600
+#error "Must select at least one Hercules baud rate"
+#endif
+
 //###########################################################
 // Private types
 //###########################################################
@@ -43,11 +62,15 @@ struct UART__State
 
     RingBuffer* txRingBuff;
     RingBuffer* rxRingBuff;
+    size_t txRbSize;
 
     Event__Type gotRxEventType;
 
-    size_t isrRxRbPutErrorCount;
-    BOOL isrRxCountChanged;
+    volatile size_t isrRxRbPutErrorCount;
+    volatile BOOL isrRxCountChanged;
+
+    volatile size_t isrRxZerosInARow;
+    volatile size_t isrRxZerosInARowMax;
 };
 
 //###########################################################
@@ -75,9 +98,12 @@ static UART__State uart0State = {
     .registers = &uart0Registers,
     .txRingBuff = NULL,
     .rxRingBuff = NULL,
+    .txRbSize = 0,
     .gotRxEventType = EVENT__TYPE__HERCULES_DATA,
     .isrRxRbPutErrorCount = 0,
-    .isrRxCountChanged = FALSE
+    .isrRxCountChanged = FALSE,
+    .isrRxZerosInARow = 0,
+    .isrRxZerosInARowMax = 0
 };
 
 static UART__State uart1State = {
@@ -85,9 +111,12 @@ static UART__State uart1State = {
     .registers = &uart1Registers,
     .txRingBuff = NULL,
     .rxRingBuff = NULL,
+    .txRbSize = 0,
     .gotRxEventType = EVENT__TYPE__LANDER_DATA,
     .isrRxRbPutErrorCount = 0,
-    .isrRxCountChanged = FALSE
+    .isrRxCountChanged = FALSE,
+    .isrRxZerosInARow = 0,
+    .isrRxZerosInARowMax = 0
 };
 
 //###########################################################
@@ -265,12 +294,16 @@ void UART__flushTx(UART__State* uartState)
 
     uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
     uint16_t currentTimeCentiseconds = startTimeCentiseconds;
-    uint16_t endTimeCentiseconds = startTimeCentiseconds + 100; // One second timeout
-    BOOL timeout = FALSE;
 
+    // (1024 byte tx buffer w/ 9600 baud == 0.106 seconds to send full buffer)
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + 300; // 0.15 second timeout
+    BOOL timeout = FALSE;
+    numUsed = RingBuffer__usedCount(uartState->txRingBuff);
+    size_t startSize = numUsed;
+    DebugComms__tryPrintfToLanderNonblocking("s%d\n", (int) numUsed);
     do {
         // Disable the tx interrupt for this uart while we get the number of free bytes in the ring buffer
-//        uint16_t existingTxInterruptBitState = *(uartState->registers->UCAxIE) & UCTXIE;
+        uint16_t existingTxInterruptBitState = *(uartState->registers->UCAxIE) & UCTXIE;
 //        *(uartState->registers->UCAxIE) &= ~UCTXIE;
 
         numUsed = RingBuffer__usedCount(uartState->txRingBuff);
@@ -284,7 +317,7 @@ void UART__flushTx(UART__State* uartState)
 
         // Re-enable the tx interrupt only if it was previously enabled or if there are bytes remaining in the ring
         // buffer
-//        *(uartState->registers->UCAxIE) |= (existingTxInterruptBitState);// | ((numUsed > 0) ? UCTXIE : 0));
+        *(uartState->registers->UCAxIE) |= (existingTxInterruptBitState) | ((numUsed > 0) ? UCTXIE : 0);
 
         if (numUsed != 0) {
             __delay_cycles(10000);
@@ -298,8 +331,12 @@ void UART__flushTx(UART__State* uartState)
     } while (numUsed != 0 && !timeout);
 
     if (timeout) {
-        DebugComms__printfToLander("Timed out in UART__flushTx\n");
+        DebugComms__tryPrintfToLanderNonblocking("e%d\n", (int) numUsed);
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in UART__flushTx\n");
     }
+
+    currentTimeCentiseconds = Time__getTimeInCentiseconds();
+    DebugComms__tryPrintfToLanderNonblocking("Took %d centiseconds to flush %d bytes\n", (int) (currentTimeCentiseconds - startTimeCentiseconds), (int)startSize);
 }
 
 UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t dataLen)
@@ -319,15 +356,17 @@ UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t 
     size_t numFree = 0;
 
     // Disable the tx interrupt for this uart while we get the number of free bytes in the ring buffer
-    uint16_t existingTxInterruptBitState = *(uartState->registers->UCAxIE) & UCTXIE;
+    //uint16_t existingTxInterruptBitState = *(uartState->registers->UCAxIE) & UCTXIE;
     *(uartState->registers->UCAxIE) &= ~UCTXIE;
 
     numFree = RingBuffer__freeCount(uartState->txRingBuff);
 
-    // Re-enable the tx interrupt only if it was previously enabled
-    *(uartState->registers->UCAxIE) |= existingTxInterruptBitState;
-
     if (dataLen > numFree) {
+        // Re-enable TX interrupt if buffer is not empty
+        if (uartState->txRbSize - numFree > 0) {
+            *(uartState->registers->UCAxIE) |= UCTXIE;
+        }
+
         return UART__STATUS__ERROR_NOT_ENOUGH_SPACE;
     }
 
@@ -338,7 +377,12 @@ UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t 
         RingBuffer__Status rbStatus = RingBuffer__put(uartState->txRingBuff, data[i]);
 
         if (RB__STATUS__SUCCESS != rbStatus) {
-  //          __enable_interrupt();
+            //if (!existingTxInterruptBitState) {
+                //*(uartState->registers->UCAxIFG) |= UCTXIFG;
+            //}
+
+            // Re-enable TX interrupt
+            *(uartState->registers->UCAxIE) |= UCTXIE;
             return UART__STATUS__ERROR_RB_PUT_FAILURE;
         }
     }
@@ -347,9 +391,9 @@ UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t 
     // If the previous state of the TX interrupt enable pin was disabled, then we manually
     // trigger the TX interrupt so that the first byte available in the ring buffer will
     // be written to UCAxTXBUF, which will resume the asynchronous TX loop
-    if (!existingTxInterruptBitState) {
-        *(uartState->registers->UCAxIFG) |= UCTXIFG;
-    }
+    //if (!existingTxInterruptBitState) {
+        //*(uartState->registers->UCAxIFG) |= UCTXIFG;
+    //}
 
     // We've written data to the tx ring buffer, so make sure that the tx interrupt is enabled
     *(uartState->registers->UCAxIE) |= UCTXIE;
@@ -410,6 +454,23 @@ UART__Status UART__checkRxRbErrors(UART__State* uartState, size_t* count, BOOL* 
     return UART__STATUS__SUCCESS;
 }
 
+UART__Status UART__checkRxZerosMaxCountSinceLastCheck(UART__State* uartState, size_t* count)
+{
+    if (NULL == uartState || NULL == count) {
+        return UART__STATUS__ERROR_NULL;
+    }
+
+    if (!(uartState->initialized)) {
+        return UART__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    *count = uartState->isrRxZerosInARowMax;
+
+    uartState->isrRxZerosInARowMax = 0;
+
+    return UART__STATUS__SUCCESS;
+}
+
 //###########################################################
 // Private function definitions
 //###########################################################
@@ -454,8 +515,12 @@ static UART__Status UART__initState(UART__State* state, UART__Buffers* buffers)
                                       "Failed to clear RX RB", UART__STATUS__ERROR_RB_CLEAR_FAILURE);
     }
 
+    state->txRbSize = buffers->txBufferSize;
+
     state->isrRxRbPutErrorCount = 0;
     state->isrRxCountChanged = FALSE;
+    state->isrRxZerosInARow = 0;
+    state->isrRxZerosInARowMax = 0;
 
     return UART__STATUS__SUCCESS;
 }
@@ -486,7 +551,8 @@ static void UART__uart0Init()
     - Next frame to be transmitted is data
     - Next frame to be transmitted is not a break
     */
-/*
+
+#if HERC_BAUD_RATE_9600
     // Baud Rate calculation (Section 30.3.10, SLAU367P)
     // N = (Baud rate clock frequency) / baud rate = 8000000 / 9600 = 833.3333
     // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
@@ -502,7 +568,9 @@ static void UART__uart0Init()
     //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
     //  Therefore, we use 0x49 instead of 0x04. 
     UCA0MCTLW |= 0x4900U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
-*/
+#endif
+
+#if HERC_BAUD_RATE_57600
     // Baud Rate calculation (Section 30.3.10, SLAU367P)
     // N = (Baud rate clock frequency) / baud rate = 8000000 / 57600 = 833.3333
     // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
@@ -518,6 +586,7 @@ static void UART__uart0Init()
     //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
     //  Therefore, we use 0x49 instead of 0x04.
     UCA0MCTLW |= 0xF700U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
+#endif
 
     enableUart0Pins();
 
@@ -552,7 +621,8 @@ static void UART__uart1Init() {
     - Next frame to be transmitted is data
     - Next frame to be transmitted is not a break
     */
-/*
+
+#if LANDER_BAUD_RATE_9600
     // Baud Rate calculation (Section 30.3.10, SLAU367P)
     // N = (Baud rate clock frequency) / (baud rate) = 8000000 / 9600 = 833.3333
     // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
@@ -568,7 +638,9 @@ static void UART__uart1Init() {
     //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
     //  Therefore, we use 0x49 instead of 0x04. 
     UCA1MCTLW |= 0x4900U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
-*/
+#endif
+
+#if LANDER_BAUD_RATE_57600
     // Baud Rate calculation (Section 30.3.10, SLAU367P)
     // N = (Baud rate clock frequency) / baud rate = 8000000 / 57600 = 833.3333
     // N > 16, so we will use oversampling baud-rate generation mode (as TI recommends)
@@ -584,6 +656,7 @@ static void UART__uart1Init() {
     //  the USBRSx value of 0x49 results in the lowest error (as determined by a search algorithm).
     //  Therefore, we use 0x49 instead of 0x04.
     UCA1MCTLW |= 0xF700U;  // Note: UCBRSx is the top 8 bits of UCAxMCTLW
+#endif
 
     enableUart1Pins();
 
@@ -611,6 +684,9 @@ BOOL UART__interruptHandler(UART__State* uartState, BOOL isDownlink)
             } else if (RB__STATUS__ERROR_EMPTY == rbStatus) {
                 /* There are no more bytes to send, so disable TX interrupt for this uart */
                 *(uartState->registers->UCAxIE) &= ~UCTXIE;
+
+                // Set IFG bit for next time
+                *(uartState->registers->UCAxIFG) |= UCTXIFG;
             } else {
                 /* An error occurred. */
                 /** @todo handling? logging? */
@@ -628,6 +704,16 @@ BOOL UART__interruptHandler(UART__State* uartState, BOOL isDownlink)
             if (rbStatus != RB__STATUS__SUCCESS) {
                 uartState->isrRxRbPutErrorCount++;
                 uartState->isrRxCountChanged = TRUE;
+            } else {
+                if (data == 0) {
+                    uartState->isrRxZerosInARow++;
+
+                    if (uartState->isrRxZerosInARow > uartState->isrRxZerosInARowMax) {
+                        uartState->isrRxZerosInARowMax = uartState->isrRxZerosInARow;
+                    }
+                } else {
+                    uartState->isrRxZerosInARow = 0;
+                }
             }
 
             if (RB__STATUS__ERROR_FULL == rbStatus) {

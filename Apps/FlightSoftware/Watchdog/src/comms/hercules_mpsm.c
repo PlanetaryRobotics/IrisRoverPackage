@@ -165,8 +165,8 @@ HerculesMpsm__Status HerculesMpsm__process(HerculesMpsm__Msg* msg, uint8_t newDa
     }
 
     if (HERCULES_MPSM__MSG_STATUS__IN_PROGRESS != msg->msgStatus) {
-        DebugComms__printfToLander("Message in wrong state in HerculesMpsm__process, msg status is %d\n",
-                                   msg->msgStatus);
+        DebugComms__tryPrintfToLanderNonblocking("Message in wrong state in HerculesMpsm__process, msg status is %d\n",
+                                                 msg->msgStatus);
         return HERCULES_MPSM__STATUS__ERROR_WRONG_STATE;
     }
 
@@ -288,7 +288,7 @@ static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg*
             } else {
                 // We can check now if the buffer given by the user is big enough for our data
                 if (theStateMachine.dataLength > msg->dataBufferLen) {
-                    DebugComms__printfToLander("In HerculesMpsm__checkForValidHeader state machine data length is "
+                    DebugComms__tryPrintfToLanderNonblocking("In HerculesMpsm__checkForValidHeader state machine data length is "
                                                "%u but dataBufferLen is %u\n",
                                                theStateMachine.dataLength, msg->dataBufferLen);
                     msg->msgStatus = HERCULES_MPSM__MSG_STATUS__ERROR_BUFFER_TOO_SMALL;
@@ -371,7 +371,7 @@ static uint8_t HerculesMpsm__peekRb(size_t index)
 static HerculesMpsm__Status HerculesMpsm__appendData(HerculesMpsm__Msg* msg, uint8_t newData)
 {
     if (msg->msgLen > msg->dataBufferLen - 1) {
-        DebugComms__printfToLander("msgLen is %u\n", msg->msgLen);
+        DebugComms__tryPrintfToLanderNonblocking("msgLen is %u\n", msg->msgLen);
     }
     msg->dataBuffer[msg->msgLen] = newData;
     msg->msgLen++;

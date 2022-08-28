@@ -87,6 +87,7 @@ void initializeGpios(WatchdogStateDetails* details)
     //!< @todo What is WD_INT actually useful for, if anything? If nothing, make this GPIO output.
     P1DIR &= ~BIT3;
 
+
     // P1.4 is connected to the V_LANDER_SENS signal (output of voltage divider for measuring lander voltage being
     // supplied to us), and is used as an ADC analog input (specifically it is ADC analog input A4). This is the
     // tertiary function (SEL1 and SEL0 are 1).
@@ -385,6 +386,26 @@ void initializeGpios(WatchdogStateDetails* details)
     P8SEL1 = 0x00u;
     P8DIR = 0xFFu;
     P8OUT = 0x00u;
+}
+
+void enableWdIntFallingEdgeInterrupt(void)
+{
+    P1IFG &= ~BIT3;
+    P1IES |= BIT3;
+    P1IE |= BIT3;
+}
+
+void enableWdIntRisingEdgeInterrupt(void)
+{
+    P1IFG &= ~BIT3;
+    P1IES &= ~BIT3;
+    P1IE |= BIT3;
+}
+
+void disableWdIntInterrupt(void)
+{
+    P1IFG &= ~BIT3;
+    P1IE &= ~BIT3;
 }
 
 void enableUart0Pins(void)

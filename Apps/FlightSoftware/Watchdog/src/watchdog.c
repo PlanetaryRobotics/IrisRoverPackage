@@ -15,7 +15,7 @@
 #include "flags.h"
 #include "watchdog.h"
 
-// These three only exist so I can be 100% confident that the Ptr variables
+// These two only exist so I can be 100% confident that the Ptr variables
 // below them will never be NULL. Since the Ptr values should be set
 // to non-NULL values in watchdog_init prior to enabling the interrupts,
 // these three shouldn't ever actually be used.
@@ -24,6 +24,10 @@ static volatile uint16_t shouldBeUnusedTimeCount = 0;
 
 //static volatile uint16_t* watchdogFlagsPtr = &shouldBeUnusedWatchdogFlags;
 static volatile uint16_t* timeCountCentisecondsPtr = &shouldBeUnusedTimeCount;
+
+static volatile BOOL lookingForWdIntFallingEdge = TRUE;
+static volatile uint16_t wdIntLastEdgeTime = 0;
+static volatile uint16_t wdIntTimeBetweenLastEdges = 0;
 
 /**
  * Set up the ISRs for the watchdog
@@ -318,6 +322,11 @@ void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
     telbuf[15] = (uint8_t)(i2cReadings->raw_battery_voltage[1]);
 }
 
+uint16_t watchdog_get_wd_int_flat_duration(void)
+{
+    return wdIntTimeBetweenLastEdges;
+}
+
 
 /*
  * Pins that need an ISR:
@@ -341,7 +350,7 @@ void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
  */
 
 /* Port 1 handler */
-#if 0
+#if 1
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=PORT1_VECTOR
 __interrupt void port1_isr_handler(void) {
@@ -350,9 +359,22 @@ void __attribute__ ((interrupt(PORT1_VECTOR))) port1_isr_handler (void) {
 #else
 #error Compiler not supported!
 #endif
+    uint16_t now = *timeCountCentisecondsPtr;
+
     switch(__even_in_range(P1IV, P1IV__P1IFG7)) {
-        case P1IV__P1IFG0: // P1.0: Radio Kick
-            *watchdogFlagsPtr |= WDFLAG_RADIO_KICK;
+        case P1IV__P1IFG3: // P1.3: WD_INT
+            if (lookingForWdIntFallingEdge) {
+                EventQueue__put(EVENT__TYPE__WD_INT_FALLING_EDGE);
+                lookingForWdIntFallingEdge = FALSE;
+                enableWdIntRisingEdgeInterrupt();
+            } else {
+                EventQueue__put(EVENT__TYPE__WD_INT_RISING_EDGE);
+                lookingForWdIntFallingEdge = TRUE;
+                enableWdIntFallingEdgeInterrupt();
+            }
+
+            wdIntTimeBetweenLastEdges = now - wdIntLastEdgeTime;
+            wdIntLastEdgeTime = now;
 
             // exit LPM
             __low_power_mode_off_on_exit();
@@ -361,7 +383,8 @@ void __attribute__ ((interrupt(PORT1_VECTOR))) port1_isr_handler (void) {
             break;
     }
 }
-
+#endif
+#if 0
 /* Port 3 handler */
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=PORT3_VECTOR

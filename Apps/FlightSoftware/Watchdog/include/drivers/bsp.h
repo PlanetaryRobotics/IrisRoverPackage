@@ -12,6 +12,9 @@ extern "C"
 const char* getResetReasonString(void);
 
 void initializeGpios(WatchdogStateDetails* details);
+void enableWdIntFallingEdgeInterrupt(void);
+void enableWdIntRisingEdgeInterrupt(void);
+void disableWdIntInterrupt(void);
 void enableUart0Pins(void);
 void disableUart0Pins(void);
 void enableUart1Pins(void);

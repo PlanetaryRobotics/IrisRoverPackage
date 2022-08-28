@@ -1215,7 +1215,7 @@ void I2C_Sensors__spinOnce(void)
     }
 
     if (currentTimeCentiseconds > endTimeCentiseconds) {
-        DebugComms__printfToLander("Timed out in I2C_Sensors__spinOnce, action = %d\n", (int)internals.activeAction);
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in I2C_Sensors__spinOnce, action = %d\n", (int)internals.activeAction);
     }
 }
 

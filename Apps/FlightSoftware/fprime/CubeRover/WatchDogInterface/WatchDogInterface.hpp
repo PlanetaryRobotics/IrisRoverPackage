@@ -302,6 +302,11 @@ namespace CubeRover
         static const uint16_t DEBUG_OPCODE = 0x0103u;
 
         /**
+         * The opcode sent in the header with downlink messages from the MSP430 watchdog.
+         */
+        static const uint16_t DOWNLINK_TO_WIFI_OPCODE = 0x0107u;
+    
+        /**
          * The indices in the TxCommandArray of the TxCommandStatus for each type of command that is sent to the
          * MSP430 watchdog.
          */
@@ -419,7 +424,8 @@ namespace CubeRover
          *
          * @msg The received uplink message.
          */
-        void handleUplinkMsg(WatchDogMpsm::Message &msg);
+        void handleUplinkMsg(WatchDogMpsm::Message& msg);
+        void handleDownlinkMsg(WatchDogMpsm::Message& msg);
 
         /**
          * @brief Handles a message containing telemetry data received from the MSP430 watchdog.

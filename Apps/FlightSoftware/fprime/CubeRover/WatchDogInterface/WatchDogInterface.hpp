@@ -525,7 +525,6 @@ PRIVATE:
         uint16_t m_downlinkSequenceNumber;
 
         char m_printBuffer[256];
-        ::Os::Mutex m_printMutex;
 
         uint32_t m_skippedStrokes;
         uint32_t m_missedStrokeResponses;

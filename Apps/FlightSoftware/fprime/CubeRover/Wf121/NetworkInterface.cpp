@@ -474,18 +474,33 @@ namespace Wf121
     BgApi::ErrorCode NetworkInterface::cb_EventEndpointSyntaxError(const uint16_t result,
                                                                    const Endpoint endpoint)
     {
-        if (result != NO_ERROR)
+        if (result != BgApi::ErrorCode::NO_ERROR)
         {
-            // BGAPI won't be processing our message, so we should stop waiting for
-            // it to do so.
+            // BGAPI won't be processing our message, so we should stop waiting
+            // for it to do so.
             m_bgApiStatus.setProcessingCmd(false);
         }
+
+        // If we're currently awaiting a particular command response but instead
+        // got this, push a `INTERNAL__BAD_SYNTAX` ErrorCode to the appropriate
+        // mailbox queue in the TX manager:
+        // NOTE: Do this no matter what the `endpoint` is because:
+        //     A. The target `m_protectedRadioStatus.getDownlinkEndpoint` could
+        //        have changed since we send the command we're waiting on a
+        //        response for.
+        //     B. This only comes if the packet we sent got garbled (or was
+        //        otherwise incomplete in the Radio's eyes); so, it's possible
+        //        the endpoint byte we sent could have been one of the bytes
+        //        corrupted or lost or misaligned, meaning the endpoint we get
+        //        in this callback won't necessarily correspond to the endpoint
+        //        in our output.
+        m_udpTxCommsStatusManager.setResponseForCurrentlyAwaitedCommand(BgApi::ErrorCode::INTERNAL__BAD_SYNTAX);
 
         // Let ground know the Radio thinks we sent it gibberish:
         // For debugging. TODO: [CWC] REMOVEME
         watchDogInterface.debugPrintfToWatchdog("RADIO: Bad syntax. Code: %#04x", result);
 
-        return (ErrorCode)result;
+        return (BgApi::ErrorCode)result;
     }
 
     // Helper function to handle the `WAIT_FOR_BGAPI_READY` `UdpTxUpdateState`
@@ -626,9 +641,15 @@ namespace Wf121
             m_totalUdpMessageBytesDownlinked = 0;
             break;
 
-        case BgApi::ErrorCode::TRY_AGAIN:
-            // TRY_AGAIN isn't a real BGAPI code, it's just part of the
-            // interpreter and means something, didn't work correctly (or
+        case BgApi::ErrorCode::INTERNAL__BAD_SYNTAX:
+            // INTERNAL__BAD_SYNTAX isn't a real BGAPI code, but is instead put
+            // into the mailbox in response to an `evt_endpoint_syntax_error`
+            // being emitted by the Radio while we're awaiting a response to
+            // this command (likely means our command got garbled).
+            // So, just try sending it again:
+        case BgApi::ErrorCode::INTERNAL__TRY_AGAIN:
+            // INTERNAL__TRY_AGAIN isn't a real BGAPI code, it's just part of
+            // the interpreter and means something didn't work correctly (or
             // wasn't ready). So, try again:
         case BgApi::ErrorCode::TIMEOUT:
             // Didn't get a response in a long time. Maybe Radio didn't get it?
@@ -716,12 +737,19 @@ namespace Wf121
             m_bgApiCommandFailCount = 0;
             break;
 
-        case BgApi::ErrorCode::TRY_AGAIN:
-            // TRY_AGAIN isn't a real BGAPI code, it's just part of the
-            // interpreter and means something, didn't work correctly (or
+        case BgApi::ErrorCode::INTERNAL__BAD_SYNTAX:
+            // INTERNAL__BAD_SYNTAX isn't a real BGAPI code, but is instead put
+            // into the mailbox in response to an `evt_endpoint_syntax_error`
+            // being emitted by the Radio while we're awaiting a response to
+            // this command (likely means our command got garbled).
+            // So, just try sending it again:
+        case BgApi::ErrorCode::INTERNAL__TRY_AGAIN:
+            // INTERNAL__TRY_AGAIN isn't a real BGAPI code, it's just part of
+            // the interpreter and means something, didn't work correctly (or
             // wasn't ready). So, try again:
         case BgApi::ErrorCode::TIMEOUT:
             // Didn't get a response in a long time. Maybe Radio didn't get it?
+            // Try again.
         default:
             // Some other error occurred, try again:
             m_bgApiCommandFailCount++;

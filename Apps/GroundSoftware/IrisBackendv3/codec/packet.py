@@ -61,7 +61,10 @@ def parse_packet(
             f"{packet_bytes}"
         )
 
-    if len(supported) > 1:
+    # Log a warning if this data is valid for multiple packet types, *IGNORING*
+    # `WatchdogDebugPacket` (since it's used as a carrier for many other packet
+    # type sent using WD `debugPrint...` in the FSW:
+    if sum(1 for s in supported if s not in [WatchdogDebugPacket]) > 1:
         logger.warning(
             f"Multiple codecs "  # type: ignore
             f"({supported}) support received packet. Using "

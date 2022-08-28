@@ -671,7 +671,7 @@ namespace iris
                                        hcStatus);
         }
 
-        HerculesComms__flushTx(theContext.m_hcState);
+        //HerculesComms__flushTx(theContext.m_hcState);
 
         return getState();
     }
@@ -707,7 +707,7 @@ namespace iris
 
         DEBUG_LOG_CHECK_STATUS(LANDER_COMMS__STATUS__SUCCESS, lcStatus, "Downlink failed");
 
-        LanderComms__flushTx(theContext.m_lcState);
+        //LanderComms__flushTx(theContext.m_lcState);
 
         return getState();
     }
@@ -725,7 +725,6 @@ namespace iris
 #pragma diag_pop
 
         // For debug just send it to the lander
-        DebugComms__tryPrintfToLanderNonblocking("ps:%d\n", (int)payloadSize);
         DebugComms__tryStringBufferToLanderNonblocking(payloadBuffer, payloadSize);
 
         return getState();

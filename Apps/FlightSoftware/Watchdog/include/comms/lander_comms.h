@@ -42,7 +42,9 @@ typedef enum LanderComms__Status
     LANDER_COMMS__STATUS__ERROR_UART_RX_FAILURE = -20, //!< Got an error when calling the `UART__receive()`.
     LANDER_COMMS__STATUS__ERROR_UART_TX_FAILURE = -21, //!< Got an error when calling `UART__transmit()`.
 
-    LANDER_COMMS__STATUS__ERROR_SLIP_ENCODE_FAILURE = -30 //!< Got an error when attempting to SLIP encode data.
+    LANDER_COMMS__STATUS__ERROR_SLIP_ENCODE_FAILURE = -30, //!< Got an error when attempting to SLIP encode data.
+
+    LANDER_COMMS__STATUS__ERROR_RECURSION = -40 //!< In a loop.
 } LanderComms__Status;
 
 /**

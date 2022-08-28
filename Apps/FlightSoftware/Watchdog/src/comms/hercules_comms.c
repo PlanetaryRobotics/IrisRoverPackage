@@ -132,6 +132,7 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
                                                    void* userArg)
 {
     static uint8_t uartRxData[64] = { 0 };
+    static size_t numZerosInARowFromUart = 0;
  
     if (NULL == hState || NULL == userArg) {
         return HERCULES_COMMS__STATUS__ERROR_NULL;
@@ -165,6 +166,21 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
 
         if (numReceived != 0) {
             //DebugComms__tryPrintfToLanderNonblocking("Got %d bytes of msg data from Hercules\n", (int)numReceived);
+        }
+
+        for (size_t i = 0; i < numReceived; ++i) {
+            if (uartRxData[i] == 0) {
+                numZerosInARowFromUart++;
+            } else {
+                if (numZerosInARowFromUart > 15) {
+                    size_t isrZerosCount = 0;
+                    UART__checkRxZerosMaxCountSinceLastCheck(hState->uartState, &isrZerosCount);
+                    DebugComms__tryPrintfToLanderNonblocking("Got %d zeros from Herc (isr: %d)\n",
+                                                             (int) numZerosInARowFromUart, (int) isrZerosCount);
+                }
+
+                numZerosInARowFromUart = 0;
+            }
         }
 
         // Iterate through all data, adding it to the hercules mpsm until packet data has been found or

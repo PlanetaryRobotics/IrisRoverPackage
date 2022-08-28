@@ -146,11 +146,29 @@ CubeRover::WatchDogInterfaceComponentImpl watchDogInterface(
  */
 void run1cycle(void)
 {
-  // blockDriver.callIsr();
-  Svc::TimerVal timer;
-  timer.take();
-  rateGroupDriver.get_CycleIn_InputPort(0)->invoke(timer);
-  // TODO: [CWC] Investigate if we should go back to invoking blockDriver.
+  static TickType_t lastRunTick = 0;
+  static bool first = true;
+  TickType_t currentTick = xTaskGetTickCount();
+
+  // Only run this function once per tick.
+  //
+  // We were seeing F prime timed event happening too quickly, because we were assuming this was being invoked at
+  // 1000 Hz. However, this is called by the idle task and the idle task can be called multiple times per tick if
+  // all other tasks have run to a yield point in that tick, and we were observing this happen. This guard limits
+  // the running of the contents of this function to once per every tick.
+  //
+  // Note that we are still susceptible to running slower than once per tick if higher priority tasks are using
+  // the full tick time, but that is not what we have observed thus far.
+  if (first || lastRunTick != currentTick) {
+      first = false;
+      lastRunTick = currentTick;
+
+      // blockDriver.callIsr();
+      Svc::TimerVal timer;
+      timer.take();
+      rateGroupDriver.get_CycleIn_InputPort(0)->invoke(timer);
+      // TODO: [CWC] Investigate if we should go back to invoking blockDriver.
+  }
 }
 
 /**

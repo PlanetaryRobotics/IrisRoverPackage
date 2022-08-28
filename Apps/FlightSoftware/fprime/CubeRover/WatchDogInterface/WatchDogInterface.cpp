@@ -909,6 +909,7 @@ namespace CubeRover
             return false;
         }
 
+        m_printMutex.lock();
         memset(m_printBuffer, 0, sizeof(m_printBuffer));
         sprintf(m_printBuffer, "DEBUG");
         va_list args;
@@ -922,6 +923,8 @@ namespace CubeRover
                                  reinterpret_cast<uint8_t *>(m_printBuffer),
                                  static_cast<size_t>(strnlen(m_printBuffer, sizeof(m_printBuffer))),
                                  false);
+
+        m_printMutex.unLock();
 
         if (success)
         {

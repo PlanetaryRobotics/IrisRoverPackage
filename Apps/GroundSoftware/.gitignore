@@ -13,3 +13,9 @@ __pycache__/
 
 # Testing Scripts:
 node_modules/
+
+# By default, ignore all logging directories:
+# To override this for a particular file (e.g. an important FM log), use `git add -f`
+packet_prints/
+pcap_logs/
+transceiver_logs/

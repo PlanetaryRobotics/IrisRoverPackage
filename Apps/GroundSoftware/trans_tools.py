@@ -6,7 +6,7 @@ tests which require the Transceiver layer while the real thing is still being
 built.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 08/26/2022
+@last-updated: 08/28/2022
 """
 
 import logging
@@ -58,6 +58,7 @@ sns.set()
 
 settings: Dict[str, Union[str, int]] = {
     'SAVE_DIR': './transceiver_logs/',
+    'PACKET_PRINTING_DIR': './packet_prints/',
     'SAVE_FILE_PREFIX': 'iris_logs',
     'SAVE_FILE_EXT': 'tsc',
     # number of minutes after which the old save file won't be overwritten and a new one will be made:
@@ -689,7 +690,7 @@ def get_latest_cache_file() -> Tuple[str, ulid.ulid.ULID]:
 
 def cache() -> None:
     """
-    Cache this DataStandards instance in a unique file in `cache_dir`.
+    Cache into a unique file in `cache_dir`.
 
     Returns the unique filename.
     """
@@ -740,6 +741,37 @@ def load_cache() -> None:
         pass  # Do nothing. This is the first go, there's just nothing to load.
 
 
+# Creates a "Print" string of the given packet, along with accompanying metadata like the current time:
+def packet_print_string(packet: Optional[Packet]) -> str:
+    return f"\033[35;47;1m({datetime.now().strftime(DATETIME_FORMAT_STR)})\033[0m {packet!s}"
+
+# Saves the given printout of the given packet into the current packet_prints log file:
+def save_packet_to_packet_prints(packet: Optional[Packet]) -> None:
+    if packet is not None:
+        # Build the path to save to:
+        dir = str(settings['PACKET_PRINTING_DIR'])
+        filename_base = str(settings['SAVE_FILE_PREFIX'])
+        file_path = os.path.join(dir, f'packet_prints_{filename_base}.txt.ansi')
+
+        # Make sure directory exists:
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
+        # Make sure file exists:
+        if not os.path.exists(file_path):
+            with open(file_path, 'w') as file:
+                # Initialize with descriptor:
+                file.write(
+                    "A colored-text log of the print outs of all packets received during the {filename_base} session:\n"
+                    "NOTE: This includes any ANSI escape codes (like coloring) which will show up weird if viewed as "
+                    "plain-text. To view this appropriately, use the terminal `cat` command or view in VSCode with the "
+                    "`ANSI Colors` extension installed.\n\n"
+                )
+        
+        # Append the packet print:
+        with open(file_path, 'a') as file:
+            file.write(f"{packet_print_string(packet)}\n\n")
+
 # Handles a new incoming streamed packet, including logging and display.
 # packet [Packet]: Newly received packet.
 # use_telem_dataview [bool]: Whether to display the new data using the new Telemetry Dataview (True) or by just printing the packet (False).
@@ -756,7 +788,7 @@ def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = 
             # going to display it here instead).
             # - Also push command responses to the prints section so they're seen explicitly (its packet printer includes a special parser to decode the command name):
             if len([*packet.payloads[TelemetryPayload]]) == 0 or isinstance(packet, (WatchdogDetailedStatusPacket, WatchdogCommandResponsePacket)):
-                nontelem_packet_prints.appendleft(f"\033[34;47;1m({datetime.now().strftime(DATETIME_FORMAT_STR)})\033[0m {packet!s}")
+                nontelem_packet_prints.appendleft(packet_print_string(packet))
         
         # Display the data:
         if use_telem_dataview:
@@ -765,6 +797,9 @@ def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = 
         else:
             # Just log the data:
             log_print(packet)
+
+        # Save the printout of the packet:
+        save_packet_to_packet_prints(packet)
 
 
 def save_pcap(full_packets):

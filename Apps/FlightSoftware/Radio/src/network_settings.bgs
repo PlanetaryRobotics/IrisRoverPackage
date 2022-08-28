@@ -34,7 +34,11 @@ export const NETWORK__LANDER_PASS_LEN = 8
 # List of channels to scan, in order (left-to-right) as bytes (e.g. Ch.11 = 0x0B)
 export const NETWORK__LANDER_CHANS() = "\x0b"
 export const NETWORK__LANDER_CHANS_NUM = 1 # Number of channels to scan
-export const NETWORK__RESTRICT_CHANNELS = 0 # Whether to restrict channel connection to the specified channel(s)
+# Whether to restrict channel connection to the specified channel(s)
+# NOTE: We really need this to be on (apparently) b/c a third harmonic in all
+# other 2.4GHz channels can interfere with the lander's RX antenna (X-Band I
+# think?). TL;DR: We're only allowed to emit signals on Channel 11.
+export const NETWORK__RESTRICT_CHANNELS = 1
 
 dim result
 

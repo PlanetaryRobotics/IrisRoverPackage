@@ -239,8 +239,9 @@ namespace iris
         // Turn off voltage rails. All of these are simply setting/clearing bits, so they are instant.
         disable3V3PowerRail();
         disable24VPowerRail();
-        blimp_normalBoot(); // [CWC] This was added since last successful battery loop test
+        blimp_normalBoot(); // Restore BLiMP state if returning to KA from a higher state. Shouldn't do anything if we're pushing straight through KA the first time.
 
+        // Turn off Herc comms (used if returning to KA from a higher state):
         if (HerculesComms__isInitialized(theContext.m_hcState)) {
             DebugComms__registerHerculesComms(NULL);
             HerculesComms__Status hcStatus = HerculesComms__uninitialize(&(theContext.m_hcState));

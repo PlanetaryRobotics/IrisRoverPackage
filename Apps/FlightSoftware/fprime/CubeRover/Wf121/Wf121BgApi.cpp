@@ -1638,18 +1638,5 @@ namespace Wf121
       return m_bgApiStatus.isProcessingCmd();
     }
 
-    ErrorCode BgApiDriver::cb_EventEndpointSyntaxError(const uint16_t result,
-                                                       const Endpoint endpoint)
-    {
-      if (result != NO_ERROR)
-      {
-        // BGAPI won't be processing our message, so we should stop waiting for
-        // it to do so.
-        m_bgApiStatus.setProcessingCmd(false);
-      }
-
-      return (ErrorCode)result;
-    }
-
   }
 }

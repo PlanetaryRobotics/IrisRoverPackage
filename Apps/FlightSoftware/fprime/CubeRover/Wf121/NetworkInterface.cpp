@@ -426,8 +426,8 @@ namespace Wf121
                     memcpy(pResponsePayload->data, uplinkResponse.rawData, sizeof(uplinkResponse.rawData));
                     pResponsePayload->dataSize = sizeof(uplinkResponse.rawData);
                     // DEBUG (TODO: [CWC] REMOVEME): Tell WD->GSW what we got.
-                    static const uint8_t debugDownlinkPrefix = "RADIO: UPL: ";
-                    watchDogInterface.debugPrintfBufferWithPrefix(debugDownlinkPrefix, getStrBufferLen(debugDownlinkPrefix), pResponsePayload->data, pResponsePayload->dataSize);
+                    static const uint8_t debugDownlinkPrefix[] = "RADIO: UPL: ";
+                    watchDogInterface.debugPrintfBufferWithPrefix((uint8_t*)debugDownlinkPrefix, getStrBufferLen(debugDownlinkPrefix), pResponsePayload->data, pResponsePayload->dataSize);
                     // Push into UDP TX queue:
                     sendUdpPayload(pResponsePayload);
                 }
@@ -473,8 +473,10 @@ namespace Wf121
         return BgApi::ErrorCode::NO_ERROR;
     }
 
+    /** Handle the Radio saying we gave it bad data (since we're the only BGAPI endpoint on the
+     * Radio, if it's saying it got bad data, it had to have come from us). */
     BgApi::ErrorCode NetworkInterface::cb_EventEndpointSyntaxError(const uint16_t result,
-                                                                   const Endpoint endpoint)
+                                                                   const BgApi::Endpoint endpoint)
     {
         if (result != BgApi::ErrorCode::NO_ERROR)
         {

@@ -787,8 +787,18 @@ namespace Wf121
        *
        * @return     The error code.
        */
-      ErrorCode cb_EventEndpointSyntaxError(const uint16_t result,
-                                            const Endpoint endpoint);
+      virtual ErrorCode cb_EventEndpointSyntaxError(const uint16_t result,
+                                                    const Endpoint endpoint)
+      {
+         if (result != NO_ERROR)
+         {
+           // BGAPI won't be processing our message, so we should stop waiting for
+           // it to do so.
+           m_bgApiStatus.setProcessingCmd(false);
+         }
+
+         return (ErrorCode)result;
+       }
 
       /**
        * @brief      This event indicates that the device has started and is

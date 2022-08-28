@@ -51,10 +51,14 @@ namespace Wf121
             SET_TRANSMIT_SIZE = 0x10,
             SEND_ENDPOINT_UDP = 0x20
         };
-        // Get what command we're currently awaiting a response for (in a mutex-safe way):
-        AwaitableCommand getCurrentlyAwaitedCommand();
-        // Set what command we're currently awaiting a response for (in a mutex-safe way):
-        void setCurrentlyAwaitedCommand(AwaitableCommand cmd);
+
+        // Sets the response for the given command being awaited:
+        void setCommandResponse(AwaitableCommand cmd, BgApi::ErrorCode response);
+
+        // Sets the command response for the currently awaited command (used
+        // for things like SyntaxError that could crop up any time and we need
+        // to direct to the appropriate Mailbox Queue):
+        void setResponseForCurrentlyAwaitedCommand(BgApi::ErrorCode response);
 
         // Block (yield) the calling task until we get a `SetTransmitSize` response.
         // Return that response or TIMEOUT if we waited too long or
@@ -83,13 +87,10 @@ namespace Wf121
         // Internal ID for command we're currently awaiting a response for:
         AwaitableCommand currentlyAwaitedCommand;
 
-        // Sets the response for the given command being awaited:
-        void setCommandResponse(AwaitableCommand cmd, BgApi::ErrorCode response);
-
-        // Sets the command response for the currently awaited command (used
-        // for things like SyntaxError that could crop up any time and we need
-        // to direct to the appropriate Mailbox Queue):
-        void setResponseForCurrentlyAwaitedCommand(BgApi::ErrorCode response);
+        // Get what command we're currently awaiting a response for (in a mutex-safe way):
+        AwaitableCommand getCurrentlyAwaitedCommand();
+        // Set what command we're currently awaiting a response for (in a mutex-safe way):
+        void setCurrentlyAwaitedCommand(AwaitableCommand cmd);
 
         // Helper function to block (yield) the calling task until we get a
         // response for the given queue correspond to the given `AwaitableCommand`.

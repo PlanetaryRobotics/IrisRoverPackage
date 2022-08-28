@@ -273,6 +273,10 @@ namespace Wf121
                                          const uint16_t srcPort,
                                          uint8_t *data,
                                          const BgApi::DataSize16 dataSize);
+        /** Handle the Radio saying we gave it bad data (since we're the only BGAPI endpoint on the
+         * Radio, if it's saying it got bad data, it had to have come from us). */
+        BgApi::ErrorCode cb_EventEndpointSyntaxError(const uint16_t result,
+                                                     const BgApi::Endpoint endpoint);
 
         // Number of consecutive times we've failed to send an individual BGAPI
         // command in a row:

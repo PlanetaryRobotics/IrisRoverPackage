@@ -61,8 +61,9 @@ namespace Wf121
         this->mutex.unLock();
         return cmd;
     }
+
     // Set what command we're currently awaiting a response for (in a mutex-safe way):
-    UdpTxCommsStatusManager::AwaitableCommand UdpTxCommsStatusManager::AwaitableCommand(UdpTxCommsStatusManager::AwaitableCommand cmd)
+    void UdpTxCommsStatusManager::setCurrentlyAwaitedCommand(UdpTxCommsStatusManager::AwaitableCommand cmd)
     {
         this->mutex.lock();
         this->currentlyAwaitedCommand = cmd;

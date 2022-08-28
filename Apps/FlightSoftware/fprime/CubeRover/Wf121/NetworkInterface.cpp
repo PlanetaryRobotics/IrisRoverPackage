@@ -1,5 +1,8 @@
 #include <CubeRover/Wf121/NetworkInterface.hpp>
 
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
+
 // Anonymous namespace for file-scope helper functions:
 namespace
 {
@@ -60,7 +63,8 @@ namespace Wf121
     }
 
     // Dtor to satisfy polymorphism (this class should never actually be deleted):
-    NetworkInterface::~NetworkInterface(){
+    NetworkInterface::~NetworkInterface()
+    {
         // don't use
     }
 
@@ -177,7 +181,7 @@ namespace Wf121
                 // NOTE: This send procedure is a **COPY** (so we don't care about
                 // `pPayload` after this).
                 enqueuedSuccessfully =
-                    (xQueueSend(m_xUdpTxPayloadQueue, (void *)pPayload, (TickType_t)10) == pdPASS);
+                    (xQueueSend(m_xUdpTxPayloadQueue, (void *)pPayload, WF121_UDP_TX_ENQUEUE_WAIT_TICKS) == pdPASS);
             }
             else
             {
@@ -199,7 +203,7 @@ namespace Wf121
                 // Now, as above, push the item to the queue, allowing it to
                 // wait a small number of ticks if needed just to be safe:
                 enqueuedSuccessfully =
-                    (xQueueSend(m_xUdpTxPayloadQueue, (void *)pPayload, (TickType_t)10) == pdPASS);
+                    (xQueueSend(m_xUdpTxPayloadQueue, (void *)pPayload, WF121_UDP_TX_ENQUEUE_WAIT_TICKS) == pdPASS);
             }
         }
         return enqueuedSuccessfully;
@@ -232,7 +236,7 @@ namespace Wf121
         }
         if (fullyValid || uplinkEndpoint != DirectMessage::UDP_NULL_ENDPOINT)
         {
-            m_protectedRadioStatus.setDownlinkEndpoint(uplinkEndpoint);
+            m_protectedRadioStatus.setUplinkEndpoint(uplinkEndpoint);
         }
 
         // Set the state if we got a non-corrupted state:
@@ -251,6 +255,7 @@ namespace Wf121
         if (fullyValid)
         {
             m_protectedRadioStatus.updateLastHeartbeatTime();
+            m_protectedRadioStatus.incNumCompleteDirectMessages();
         }
     }
 
@@ -266,6 +271,7 @@ namespace Wf121
         // Set the current state (even if's BAD_MESSAGE - we want it to be
         // clear that the state changed and we no longer know what it is):
         m_protectedRadioStatus.setRadioState(state);
+        m_protectedRadioStatus.incNumCompleteDirectMessages();
     }
 
     /**
@@ -280,30 +286,36 @@ namespace Wf121
         // Set the current activity (even if's BAD_MESSAGE - we want it to be
         // clear that the activity changed and we no longer know what it is):
         m_protectedRadioStatus.setRadioActivity(doing);
+        m_protectedRadioStatus.incNumCompleteDirectMessages();
     }
 
     BgApi::ErrorCode NetworkInterface::cb_CommandSetTransmitSize(const uint16_t result,
                                                                  const BgApi::Endpoint endpoint)
     {
-        BgApi::Endpoint targetEndpoint;
-        m_protectedRadioStatus.copyDownlinkEndpointInto(&targetEndpoint);
-        if (endpoint == targetEndpoint)
-        {
-            // This is for our endpoint. Let the manager know the result:
-            m_udpTxCommsStatusManager.setTransmitSize_Response((BgApi::ErrorCode)result);
-        }
+        // NOTE: This callback is triggered when ANYBODY (us or Radio's
+        // internal BGScript) commands setTransmitSize for the downlink endpoint,
+        // so it's not necessarily in response to us sending a `setTransmitSize`.
+
+        // Let the manager know the result (do this no matter what the endpoint
+        // was in case the current `m_protectedRadioStatus.getDownlinkEndpoint`
+        // has changed since we sent this command):
+        m_udpTxCommsStatusManager.setTransmitSize_Response((BgApi::ErrorCode)result);
+
         return (BgApi::ErrorCode)result;
     }
+
     BgApi::ErrorCode NetworkInterface::cb_CommandSendEndpoint(const uint16_t result,
                                                               const BgApi::Endpoint endpoint)
     {
-        BgApi::Endpoint targetEndpoint;
-        m_protectedRadioStatus.copyDownlinkEndpointInto(&targetEndpoint);
-        if (endpoint == targetEndpoint)
-        {
-            // This is for our endpoint. Let the manager know the result:
-            m_udpTxCommsStatusManager.sendEndpointUdp_Response((BgApi::ErrorCode)result);
-        }
+        // NOTE: This callback is triggered when ANYBODY (us or Radio's
+        // internal BGScript) commands sendEndpoint for the downlink endpoint,
+        // so it's not necessarily in response to us sending a `sendEndpoint`.
+
+        // Let the manager know the result (do this no matter what the endpoint
+        // was in case the current `m_protectedRadioStatus.getDownlinkEndpoint`
+        // has changed since we sent this command):
+        m_udpTxCommsStatusManager.sendEndpointUdp_Response((BgApi::ErrorCode)result);
+
         return (BgApi::ErrorCode)result;
     }
 
@@ -345,7 +357,7 @@ namespace Wf121
                 memcmp(data, GND_DIRECT_CMD_RESET_ALL_BUFFERS, getStrBufferLen(GND_DIRECT_CMD_RESET_ALL_BUFFERS)) == 0)
             {
                 // Do the reset(s):
-                uint8_t resetCount = 0; // number of resets performed
+                uint8_t resetCount = 0; // number of resets performed in response to the command
                 if (m_xUdpRxPayloadQueue != NULL)
                 {
                     xQueueReset(m_xUdpRxPayloadQueue);
@@ -396,7 +408,7 @@ namespace Wf121
                 // even, we're making it *slightly* non-zero here only as a
                 // precaution.
                 // NOTE: This send procedure is a **COPY** (so we don't care about `m_xUdpRxWorkingData` after this).
-                if (xQueueSend(m_xUdpRxPayloadQueue, (void *)&m_xUdpRxWorkingData, (TickType_t)10) == pdPASS)
+                if (xQueueSend(m_xUdpRxPayloadQueue, (void *)&m_xUdpRxWorkingData, WF121_UDP_RX_ENQUEUE_WAIT_TICKS) == pdPASS)
                 {
                     // Send a packet ACK back over the radio:
 
@@ -413,6 +425,9 @@ namespace Wf121
                     UdpTxPayload *pResponsePayload = static_cast<UdpTxPayload *>(&m_xUdpRxWorkingData);
                     memcpy(pResponsePayload->data, uplinkResponse.rawData, sizeof(uplinkResponse.rawData));
                     pResponsePayload->dataSize = sizeof(uplinkResponse.rawData);
+                    // DEBUG (TODO: [CWC] REMOVEME): Tell WD->GSW what we got.
+                    static const uint8_t debugDownlinkPrefix = "RADIO: UPL: ";
+                    watchDogInterface.debugPrintfBufferWithPrefix(debugDownlinkPrefix, getStrBufferLen(debugDownlinkPrefix), pResponsePayload->data, pResponsePayload->dataSize);
                     // Push into UDP TX queue:
                     sendUdpPayload(pResponsePayload);
                 }
@@ -441,7 +456,7 @@ namespace Wf121
                     // Queue, overwriting anything that's there:
                     if (m_xUdpTxPayloadQueue != NULL)
                     {
-                        if (xQueueSendToFront(m_xUdpTxPayloadQueue, (void *)pResponsePayload, (TickType_t)10) != pdPASS)
+                        if (xQueueSendToFront(m_xUdpTxPayloadQueue, (void *)pResponsePayload, WF121_UDP_TX_ENQUEUE_WAIT_TICKS) != pdPASS)
                         {
                             // We failed because `errQUEUE_FULL`.
                             // It's **really** important for Ground to get this message.
@@ -456,6 +471,38 @@ namespace Wf121
         }     // correct endpoint?
 
         return BgApi::ErrorCode::NO_ERROR;
+    }
+
+    BgApi::ErrorCode NetworkInterface::cb_EventEndpointSyntaxError(const uint16_t result,
+                                                                   const Endpoint endpoint)
+    {
+        if (result != BgApi::ErrorCode::NO_ERROR)
+        {
+            // BGAPI won't be processing our message, so we should stop waiting
+            // for it to do so.
+            m_bgApiStatus.setProcessingCmd(false);
+        }
+
+        // If we're currently awaiting a particular command response but instead
+        // got this, push a `INTERNAL__BAD_SYNTAX` ErrorCode to the appropriate
+        // mailbox queue in the TX manager:
+        // NOTE: Do this no matter what the `endpoint` is because:
+        //     A. The target `m_protectedRadioStatus.getDownlinkEndpoint` could
+        //        have changed since we send the command we're waiting on a
+        //        response for.
+        //     B. This only comes if the packet we sent got garbled (or was
+        //        otherwise incomplete in the Radio's eyes); so, it's possible
+        //        the endpoint byte we sent could have been one of the bytes
+        //        corrupted or lost or misaligned, meaning the endpoint we get
+        //        in this callback won't necessarily correspond to the endpoint
+        //        in our output.
+        m_udpTxCommsStatusManager.setResponseForCurrentlyAwaitedCommand(BgApi::ErrorCode::INTERNAL__BAD_SYNTAX);
+
+        // Let ground know the Radio thinks we sent it gibberish:
+        // For debugging. TODO: [CWC] REMOVEME
+        watchDogInterface.debugPrintfToWatchdog("RADIO: Bad syntax. Code: %#04x", result);
+
+        return (BgApi::ErrorCode)result;
     }
 
     // Helper function to handle the `WAIT_FOR_BGAPI_READY` `UdpTxUpdateState`
@@ -474,6 +521,9 @@ namespace Wf121
         // means that WF121's BGAPI is ready for another command).
         while (m_bgApiStatus.isProcessingCmd())
         {
+            // NOTE: `isProcessingCmd` includes a timeout check
+            // of `BGAPI_CMD_PROCESSING_TIMEOUT_MS` from the time processingCmd
+            // processing was last set to true (so this loop isn't infinite).
             vTaskDelay(WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL);
         }
 
@@ -511,9 +561,11 @@ namespace Wf121
             {
                 // Make sure Queue is initialized before trying to receive on it.
                 // Should be by this point but, if we're here, clearly something fucked up.
-                // Just let other Tasks breathe while we poll for this.
-                vTaskDelay(WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL);
+                // We want this to be a tight loop that halts everything so that,
+                // if this isn't resolved quickly (i.e. if it wasn't a temporary blip),
+                // WD resets us.
             }
+            // Wait to be told there's new data to downlink:
             while (xQueueReceive(this->m_xUdpTxPayloadQueue, &m_xUdpTxWorkingData, portMAX_DELAY) != pdPASS)
             {
                 // No data was received but awaiting data timed out (after a **really** long time)
@@ -539,6 +591,11 @@ namespace Wf121
         // (clear all the response semaphores/mailboxes):
         m_udpTxCommsStatusManager.reset();
 
+        // Set the target endpoint for the message downlink (grabbed from
+        // `m_protectedRadioStatus.getDownlinkEndpoint()` once per downlink so
+        /// it doesn't change while we're sending chunks).
+        m_downlinkTargetEndpoint = m_protectedRadioStatus.getDownlinkEndpoint();
+
         // First step in sending will be set up the transmit size:
         return UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE;
     }
@@ -552,7 +609,7 @@ namespace Wf121
     {
         // Pack the data for setting the transmit size (size of `m_xUdpTxWorkingData`):
         SetTransmitSize(&m_bgApiCommandBuffer,
-                        m_protectedRadioStatus.getDownlinkEndpoint(),
+                        m_downlinkTargetEndpoint,
                         m_xUdpTxWorkingData.dataSize);
         *yieldData = true; // tell State Machine to send this data
 
@@ -570,6 +627,10 @@ namespace Wf121
         UdpTxUpdateState nextState;
 
         // Wait for a response (or timeout):
+        // NOTE: This will clear the mailbox first (see function definition for
+        // why). So, if somehow the Radio responded (and we processed the
+        // response) basically instantly after us sending the data, then this
+        // will block until `UDP_TX_RESPONSE_TIMEOUT_TICKS`.
         BgApi::ErrorCode errorCode = m_udpTxCommsStatusManager.awaitResponse_setTransmitSize();
         switch (errorCode)
         {
@@ -582,9 +643,15 @@ namespace Wf121
             m_totalUdpMessageBytesDownlinked = 0;
             break;
 
-        case BgApi::ErrorCode::TRY_AGAIN:
-            // TRY_AGAIN isn't a real BGAPI code, it's just part of the
-            // interpreter and means something, didn't work correctly (or
+        case BgApi::ErrorCode::INTERNAL__BAD_SYNTAX:
+            // INTERNAL__BAD_SYNTAX isn't a real BGAPI code, but is instead put
+            // into the mailbox in response to an `evt_endpoint_syntax_error`
+            // being emitted by the Radio while we're awaiting a response to
+            // this command (likely means our command got garbled).
+            // So, just try sending it again:
+        case BgApi::ErrorCode::INTERNAL__TRY_AGAIN:
+            // INTERNAL__TRY_AGAIN isn't a real BGAPI code, it's just part of
+            // the interpreter and means something didn't work correctly (or
             // wasn't ready). So, try again:
         case BgApi::ErrorCode::TIMEOUT:
             // Didn't get a response in a long time. Maybe Radio didn't get it?
@@ -624,7 +691,7 @@ namespace Wf121
 
         // Pack the data for the UDP chunk:
         SendEndpoint(&m_bgApiCommandBuffer,
-                     m_protectedRadioStatus.getDownlinkEndpoint(),
+                     m_downlinkTargetEndpoint,
                      m_xUdpTxWorkingData.data + m_totalUdpMessageBytesDownlinked,
                      m_chunkBytesPending);
         *yieldData = true; // tell State Machine to send this data
@@ -643,6 +710,10 @@ namespace Wf121
         UdpTxUpdateState nextState;
 
         // Wait for a response from the downlink endpoint (or timeout):
+        // NOTE: This will clear the mailbox first (see function definition for
+        // why). So, if somehow the Radio responded (and we processed the
+        // response) basically instantly after us sending the data, then this
+        // will block until `UDP_TX_RESPONSE_TIMEOUT_TICKS`.
         BgApi::ErrorCode errorCode = m_udpTxCommsStatusManager.awaitResponse_sendEndpointUdp();
         switch (errorCode)
         {
@@ -668,12 +739,19 @@ namespace Wf121
             m_bgApiCommandFailCount = 0;
             break;
 
-        case BgApi::ErrorCode::TRY_AGAIN:
-            // TRY_AGAIN isn't a real BGAPI code, it's just part of the
-            // interpreter and means something, didn't work correctly (or
+        case BgApi::ErrorCode::INTERNAL__BAD_SYNTAX:
+            // INTERNAL__BAD_SYNTAX isn't a real BGAPI code, but is instead put
+            // into the mailbox in response to an `evt_endpoint_syntax_error`
+            // being emitted by the Radio while we're awaiting a response to
+            // this command (likely means our command got garbled).
+            // So, just try sending it again:
+        case BgApi::ErrorCode::INTERNAL__TRY_AGAIN:
+            // INTERNAL__TRY_AGAIN isn't a real BGAPI code, it's just part of
+            // the interpreter and means something, didn't work correctly (or
             // wasn't ready). So, try again:
         case BgApi::ErrorCode::TIMEOUT:
             // Didn't get a response in a long time. Maybe Radio didn't get it?
+            // Try again.
         default:
             // Some other error occurred, try again:
             m_bgApiCommandFailCount++;
@@ -759,6 +837,12 @@ namespace Wf121
         // tells us it's alive and ready to receive again.
         m_protectedRadioStatus.setRadioState(DirectMessage::RadioSwState::NONE);
 
+        // Radio's BGAPI processor probably didn't get or ignored our message
+        // (or *we* didn't get the response saying it was done). Either way,
+        // it's probably not actually working on our command now, so let's
+        // reset what we think it's doing:
+        m_bgApiStatus.setProcessingCmd(false);
+
         return nextState;
     }
 
@@ -807,43 +891,53 @@ namespace Wf121
             // Now advance the state machine:
             switch (inner_state)
             {
-            case UdpTxUpdateState::WAIT_FOR_BGAPI_READY:
+            case UdpTxUpdateState::/******/ WAIT_FOR_BGAPI_READY:
                 inner_state = handleTxState_WAIT_FOR_BGAPI_READY(&yieldData);
+                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in WAIT_FOR_BGAPI_READY"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
-            case UdpTxUpdateState::WAIT_FOR_NEXT_MESSAGE:
+            case UdpTxUpdateState::/******/ WAIT_FOR_NEXT_MESSAGE:
                 inner_state = handleTxState_WAIT_FOR_NEXT_MESSAGE(&yieldData);
+                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in WAIT_FOR_NEXT_MESSAGE"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
-            case UdpTxUpdateState::START_SENDING_MESSAGE:
+            case UdpTxUpdateState::/******/ START_SENDING_MESSAGE:
                 inner_state = handleTxState_START_SENDING_MESSAGE(&yieldData);
+                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in START_SENDING_MESSAGE"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
-            case UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE:
+            case UdpTxUpdateState::/******/ SEND_SET_TRANSMIT_SIZE:
                 inner_state = handleTxState_SEND_SET_TRANSMIT_SIZE(&yieldData);
+                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in SEND_SET_TRANSMIT_SIZE"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
-            case UdpTxUpdateState::WAIT_FOR_SET_TRANSMIT_SIZE_ACK:
+            case UdpTxUpdateState::/******/ WAIT_FOR_SET_TRANSMIT_SIZE_ACK:
                 inner_state = handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK(&yieldData);
+                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in WAIT_FOR_SET_TRANSMIT_SIZE_ACK"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
-            case UdpTxUpdateState::SEND_UDP_CHUNK:
+            case UdpTxUpdateState::/******/ SEND_UDP_CHUNK:
                 inner_state = handleTxState_SEND_UDP_CHUNK(&yieldData);
+                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in SEND_UDP_CHUNK"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
-            case UdpTxUpdateState::WAIT_FOR_UDP_CHUNK_ACK:
+            case UdpTxUpdateState::/******/ WAIT_FOR_UDP_CHUNK_ACK:
                 inner_state = handleTxState_WAIT_FOR_UDP_CHUNK_ACK(&yieldData);
+                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in WAIT_FOR_UDP_CHUNK_ACK"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
-            case UdpTxUpdateState::DONE_DOWNLINKING:
+            case UdpTxUpdateState::/******/ DONE_DOWNLINKING:
                 inner_state = handleTxState_DONE_DOWNLINKING(&yieldData);
+                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in DONE_DOWNLINKING"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
-            case UdpTxUpdateState::BGAPI_CMD_FAIL:
+            case UdpTxUpdateState::/******/ BGAPI_CMD_FAIL:
                 inner_state = handleTxState_BGAPI_CMD_FAIL(&yieldData);
+                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in BGAPI_CMD_FAIL"); // For debugging. TODO: [CWC] REMOVEME
                 break;
             default:
-                // There must have been a bit-flip or something because we've gone enumerated all the states above.
+                // There must have been a bit-flip or something because we've
+                // enumerated all the states above.
                 // Attempt to recover by going back to the start:
                 inner_state = UdpTxUpdateState::WAIT_FOR_BGAPI_READY;
             }
@@ -856,9 +950,11 @@ namespace Wf121
                 // next state machine driver run - we want to handle this right
                 // away):
                 inner_state = handleTxState_BGAPI_CMD_FAIL(&yieldData);
+                watchDogInterface.debugPrintfToWatchdog("RADIO: TX did early BGAPI_CMD_FAIL"); // For debugging. TODO: [CWC] REMOVEME
             }
         }
 
+        // If we're out here, we have BGAPI data to send to the radio:
         // Yield (pass) BGAPI Comm Buffer data to WF121:
         m_bgApiStatus.setProcessingCmd(true); // flag that WF121 is about to be processing a command
         return &m_bgApiCommandBuffer;

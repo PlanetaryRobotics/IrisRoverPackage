@@ -77,6 +77,23 @@ static const TickType_t WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL = 20
 // Most number of times to try sending a BGAPI command without receiving a response before giving up:
 static const uint8_t WF121_BGAPI_COMMAND_MAX_TRIES = 5;
 
+// Max number of FreeRTOS Scheduler ticks to allow the calling task to wait for
+// the UDP TX Queue to become available while attempting to put data into it.
+// NOTE: this is mostly precautionary since, before attempting to send anything,
+// the UDP TX Queue is checked for space and, if there isn't any, the oldest
+// item is popped off before writing is attempted.
+static const TickType_t WF121_UDP_TX_ENQUEUE_WAIT_TICKS = 5;
+// Max number of FreeRTOS Scheduler ticks to allow the Wf121RxTask to wait for
+// the UDP RX Queue to become free while attempting to put data into it:
+// (if the UDP RX Queue doesn't have space available by that time, the enqueuing
+// UdpPayload will be dropped *but* an emergency message will be force-pushed
+// to the *front* of the UDP TX Queue so Ground knows that the UDP RX Queue is
+// full and not getting serviced fast enough. If Ground thinks this is a
+// problem, it can send a `GND_DIRECT_CMD_RESET_ALL_BUFFERS` TC to the RX Task
+// to tell it to clear the queue (this way new commands will now be able to get
+// through).
+static const TickType_t WF121_UDP_RX_ENQUEUE_WAIT_TICKS = 10;
+
 namespace Wf121
 {
     class NetworkInterface : public BgApi::BgApiDriver,
@@ -266,6 +283,10 @@ namespace Wf121
         // Total number of UDP bytes (successfully) downlinked (in the current
         // message / payload):
         uint16_t m_totalUdpMessageBytesDownlinked = 0;
+        // Target endpoint for a downlink (grabbed from
+        // `m_protectedRadioStatus.getDownlinkEndpoint()` once per downlink so
+        // it doesn't change while we're sending chunks).
+        BgApi::Endpoint m_downlinkTargetEndpoint;
 
         // States used by the State Machine inside udpTxUpdateHandler.
         enum class UdpTxUpdateState

@@ -25,6 +25,7 @@
 #include <HAL/include/FreeRTOS.h>
 #include <HAL/include/os_task.h>
 #include <HAL/include/os_portmacro.h>
+#include <Os/Mutex.hpp>
 
 static volatile bool dmaWriteBusy = false;
 
@@ -753,7 +754,7 @@ namespace CubeRover
 
         default:
             // Should never happen;
-            configASSERT(false);
+//            configASSERT(false);
         }
 
         // This is equivalent to &(m_txCmdArray.commands[index])
@@ -904,12 +905,13 @@ namespace CubeRover
 
     bool WatchDogInterfaceComponentImpl::debugPrintfToWatchdog(const char *fmt, ...)
     {
+        static Os::Mutex sloppyResourceProtectionMutex; // quick and dirty. keeps multiple tasks from doing this at once.
         if (fmt == NULL)
         {
             return false;
         }
-
-        m_printMutex.lock();
+        
+        sloppyResourceProtectionMutex.lock();
         memset(m_printBuffer, 0, sizeof(m_printBuffer));
         sprintf(m_printBuffer, "DEBUG");
         va_list args;
@@ -924,14 +926,94 @@ namespace CubeRover
                                  static_cast<size_t>(strnlen(m_printBuffer, sizeof(m_printBuffer))),
                                  false);
 
-        m_printMutex.unLock();
+        if (success)
+        {
+            m_downlinkSequenceNumber++;
+        }
+        sloppyResourceProtectionMutex.unLock();
+
+        return success;
+    }
+
+    bool WatchDogInterfaceComponentImpl::debugPrintfBuffer(uint8_t* buffer, size_t bufferLen){
+        static Os::Mutex sloppyResourceProtectionMutex; // quick and dirty. keeps multiple tasks from doing this at once.
+        if (bufferLen == 0)
+        {
+            return false;
+        }
+        sloppyResourceProtectionMutex.lock();
+        memset(m_printBuffer, 0, sizeof(m_printBuffer));
+        sprintf(m_printBuffer, "DEBUG");
+        size_t bytesToSend = (bufferLen > (sizeof(m_printBuffer)-5)) ? (sizeof(m_printBuffer)-5) : bufferLen;
+        memcpy(m_printBuffer+5, buffer, bytesToSend);
+
+        bool success = txCommand(DEBUG_OPCODE,
+                                 m_downlinkSequenceNumber,
+                                 static_cast<uint16_t>(No_Reset),
+                                 reinterpret_cast<uint8_t *>(m_printBuffer),
+                                 (5+bytesToSend),
+                                 false);
 
         if (success)
         {
             m_downlinkSequenceNumber++;
         }
+        sloppyResourceProtectionMutex.unLock();
 
         return success;
+    }
+
+
+    bool WatchDogInterfaceComponentImpl::debugPrintfBufferWithPrefix(uint8_t* prefixBuffer, size_t prefixBufferLen, uint8_t* buffer, size_t bufferLen){
+        static Os::Mutex sloppyResourceProtectionMutex; // quick and dirty. keeps multiple tasks from doing this at once.
+        if (bufferLen == 0 || prefixBufferLen == 0)
+        {
+            return false;
+        }
+        sloppyResourceProtectionMutex.lock();
+        memset(m_printBuffer, 0, sizeof(m_printBuffer));
+        sprintf(m_printBuffer, "DEBUG");
+
+        // Safety check the buffer sizes:
+        size_t prefixBytesToSend, mainBytesToSend;
+
+        // If prefix is too big, we just send that:
+        if(prefixBufferLen > (sizeof(m_printBuffer)-5)){
+            prefixBytesToSend = (sizeof(m_printBuffer)-5);
+            mainBytesToSend = 0;
+        }
+        else{
+            prefixBytesToSend = prefixBufferLen;
+        }
+
+        // Clip main buffer:
+        if(bufferLen > (sizeof(m_printBuffer)-5-prefixBytesToSend)){
+            mainBytesToSend = (sizeof(m_printBuffer)-5-prefixBytesToSend);
+        }
+        else{
+            mainBytesToSend = bufferLen;
+        }
+
+        // Copy data:
+        memcpy(m_printBuffer+5, prefixBuffer, prefixBytesToSend);
+        memcpy(m_printBuffer+5+prefixBytesToSend, buffer, mainBytesToSend);
+
+        // Send:
+        bool success = txCommand(DEBUG_OPCODE,
+                                 m_downlinkSequenceNumber,
+                                 static_cast<uint16_t>(No_Reset),
+                                 reinterpret_cast<uint8_t *>(m_printBuffer),
+                                 (5+prefixBytesToSend+mainBytesToSend),
+                                 false);
+
+        if (success)
+        {
+            m_downlinkSequenceNumber++;
+        }
+        sloppyResourceProtectionMutex.unLock();
+
+        return success;
+
     }
 
     // FIXME: Add timeout to escape polling loop
@@ -956,8 +1038,10 @@ namespace CubeRover
     // Returns negative on error
     bool WatchDogInterfaceComponentImpl::dmaSend(void *buffer, int size, bool blocking)
     {
+        static Os::Mutex resourceProtectionMutex; // quick and dirty. prevents multiple Tasks from trying this at once
         // sciSend(m_sci, size, static_cast<uint8_t *>(buffer));
         // return true;
+        resourceProtectionMutex.lock();
 
         if (blocking)
         {
@@ -973,6 +1057,8 @@ namespace CubeRover
         sciDMASend(SCILIN_TX_DMA_CH, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaWriteBusy);
         if (blocking)
             pollDMASendFinished();
+
+        resourceProtectionMutex.unLock();
         return true;
     }
 

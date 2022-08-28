@@ -59,8 +59,8 @@ namespace CubeRover
 
     class WatchDogInterfaceComponentImpl : public WatchDogInterfaceComponentBase, public virtual WatchDogRxCallbackProcessor
     {
-
     public:
+        friend class NetworkManagerComponentImpl;
         // ----------------------------------------------------------------------
         // Construction, initialization, and destruction
         // ----------------------------------------------------------------------
@@ -500,8 +500,13 @@ namespace CubeRover
                        uint8_t *dataBuffer = nullptr,
                        size_t dataLen = 0,
                        bool sendResponse = true);
-
+public:
         bool debugPrintfToWatchdog(const char *fmt, ...);
+        // Sends the given buffer as a debug printf message to the watchdog. Be careful with the size on this one.
+        bool debugPrintfBuffer(uint8_t* buffer, size_t bufferLen);
+        // Same as `debugPrintfBuffer` but appends a prefix buffer before the main buffer (helpful for labelling messages):
+        bool debugPrintfBufferWithPrefix(uint8_t* prefixBuffer, size_t prefixBufferLen, uint8_t* buffer, size_t bufferLen);
+PRIVATE:
 
         sciBASE_t *m_sci;                                  // The sci base used to initialize the watchdog interface connection
         adcData_t m_thermistor_buffer[number_thermistors]; // Location to store current data for thermistors

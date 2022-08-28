@@ -43,13 +43,28 @@ namespace Wf121
         // Reset all mailbox queues to their empty state (we're starting a new send operation):
         void reset();
 
+        // All the different commands we could be awaiting a response for:
+        // (NOTE: this is internal so values are arbitrary and don't correspond to anything in BGAPI).
+        enum class AwaitableCommand
+        {
+            NONE = 0x00, // Not currently awaiting anything:
+            SET_TRANSMIT_SIZE = 0x10,
+            SEND_ENDPOINT_UDP = 0x20
+        };
+        // Get what command we're currently awaiting a response for (in a mutex-safe way):
+        AwaitableCommand getCurrentlyAwaitedCommand();
+        // Set what command we're currently awaiting a response for (in a mutex-safe way):
+        void setCurrentlyAwaitedCommand(AwaitableCommand cmd);
+
         // Block (yield) the calling task until we get a `SetTransmitSize` response.
         // Return that response or TIMEOUT if we waited too long or
-        // TRY_AGAIN if the messaging system wasn't set up yet.
+        // INTERNAL__TRY_AGAIN if the messaging system wasn't set up yet or
+        // INTERNAL__BAD_SYNTAX if a BadSyntax event was emitted while we were awaiting a response.
         BgApi::ErrorCode awaitResponse_setTransmitSize();
         // Block (yield) the calling task until we get a `SendEndpointUdp` response (for the downlink endpoint).
         // Return that response or TIMEOUT if we waited too long or
-        // TRY_AGAIN if the messaging system wasn't set up yet.
+        // INTERNAL__TRY_AGAIN if the messaging system wasn't set up yet or
+        // INTERNAL__BAD_SYNTAX if a BadSyntax event was emitted while we were awaiting a response.
         BgApi::ErrorCode awaitResponse_sendEndpointUdp();
 
         // Tell the UdpTxTask that we got the given response code for the `SetTransmitSize` command:
@@ -59,14 +74,29 @@ namespace Wf121
         void sendEndpointUdp_Response(BgApi::ErrorCode response);
 
     private:
+        // Mutex to protect internal data (NOTE: Queues do this themselves)
+        ::Os::Mutex mutex;
+
         QueueHandle_t xQueue_SetTransmitSize_Response;
         QueueHandle_t xQueue_SendEndpointUdp_Response;
 
+        // Internal ID for command we're currently awaiting a response for:
+        AwaitableCommand currentlyAwaitedCommand;
+
+        // Sets the response for the given command being awaited:
+        void setCommandResponse(AwaitableCommand cmd, BgApi::ErrorCode response);
+
+        // Sets the command response for the currently awaited command (used
+        // for things like SyntaxError that could crop up any time and we need
+        // to direct to the appropriate Mailbox Queue):
+        void setResponseForCurrentlyAwaitedCommand(BgApi::ErrorCode response);
+
         // Helper function to block (yield) the calling task until we get a
-        // response for the given queue.
+        // response for the given queue correspond to the given `AwaitableCommand`.
         // Return that response or TIMEOUT if we waited too long or
-        // TRY_AGAIN if the messaging system wasn't set up yet.
-        static BgApi::ErrorCode awaitResponse(QueueHandle_t *blockingQueue);
+        // INTERNAL__TRY_AGAIN if the messaging system wasn't set up yet or
+        // INTERNAL__BAD_SYNTAX if a BadSyntax event was emitted while we were awaiting a response.
+        BgApi::ErrorCode awaitResponse(AwaitableCommand cmd, QueueHandle_t *blockingQueue);
     };
 }
 

@@ -29,7 +29,7 @@
 // What period of time after sending a BGAPI command to the Radio should we
 // just assume that the command was either thrown or we lost the response and
 // let new commands be sent. In milliseconds since Hercules boot:
-static const uint32_t BGAPI_CMD_PROCESSING_TIMEOUT_MS = 2000; // Give the Radio 2.0s to send us a response
+static const uint32_t BGAPI_CMD_PROCESSING_TIMEOUT_MS = 2500; // Give the Radio 2.5s to send us a response
 
 namespace Wf121
 {
@@ -153,7 +153,14 @@ namespace Wf121
     typedef enum ErrorCode
     {
       NO_ERROR = 0,
-      TRY_AGAIN = 0x0001,
+      INTERNAL__TRY_AGAIN = 0x0001,           // Custom (not part of the actual BGAPI specification - only used
+                                              // internally) for when something went wrong internally and a
+                                              // command needs to be tried again.
+      INTERNAL__BAD_SYNTAX = 0x0002,          // Custom (not part of the actual BGAPI specification - only used
+                                              // internally) for when a BadSyntax callback was received while we were
+                                              // awaiting a command response. Not actually returned by the BadSyntax
+                                              // callback but, rather, is pushed to any awaiting mailbox queues by
+                                              // that handler.
       INVALID_PARAMETER = 0x0180,             // This error code indicates that a command contained an invalid
                                               // parameter
       DEVICE_WRONG_STATE = 0x0181,            // This error code indicates that the device is in wrong state to

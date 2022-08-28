@@ -11,6 +11,9 @@
 
 #include <CubeRover/Wf121/Wf121UdpTxTask.hpp>
 
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
+
 // Handle to active task (this):
 static TaskHandle_t xActiveTask = nullptr; // not init'd yet
 
@@ -33,11 +36,11 @@ namespace Wf121
         // Stop looping
         m_keepRunning = false;
 
-//        // Make sure we aren't blocked
-//        if (xActiveTask != nullptr)
-//        {
-//            xTaskNotifyGive(xActiveTask);
-//        }
+        //        // Make sure we aren't blocked
+        //        if (xActiveTask != nullptr)
+        //        {
+        //            xTaskNotifyGive(xActiveTask);
+        //        }
 
         // Join the thread
         void *value;

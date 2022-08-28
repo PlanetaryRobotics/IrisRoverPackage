@@ -42,6 +42,9 @@
  *                          going to reset itself to try to recover.
  *      -Most messages contain one field of data but those which contain >1
  *      field separate those fields using a ':'.
+ *
+ * NOTE: On the Hercules side, **ALL DIRECT MESSAGES WILL BE PRECEDED BY AN "evt_endpoint_data"
+ * BGAPI header (and the endpoint ID for Hercules UART (1) and 1B BGAPI payload length).**
  * @date 2022-08-11
  */
 
@@ -54,9 +57,6 @@ namespace Wf121{namespace DirectMessage // Wf121::DirectMessage
 {
     // Radio's built in drop (effectively /dev/null) endpoint (used when UDP isn't set up):
     const uint8_t UDP_NULL_ENDPOINT = 31;
-
-    // Useful data for the parser (for using heartbeats to determine sync):
-    const uint8_t DM_HB_MAX_LEN = 50;
 
     // State of the Radio's SW (from a "state:" or "thump:" message)
     enum class RadioSwState

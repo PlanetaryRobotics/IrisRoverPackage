@@ -15,7 +15,7 @@ baud = 9600
 ip="192.168.1.2"
 port=8080
 
-settings['SAVE_FILE_PREFIX'] = 'iris__radio_firmware_checkout__8_28_22_2' # this is the prefix on all log files.
+settings['SAVE_FILE_PREFIX'] = 'iris__radio_firmware_checkout__8_28_22_4' # this is the prefix on all log files.
 
 
 cmd, param = 'ReportStatus', True
@@ -88,7 +88,7 @@ cmd, param = specific_cmd_name_override, specific_param_override
 print(cmd,'  :  ',param) 
 
 load_cache()
-setup_logger(settings['SAVE_FILE_PREFIX']) # logs of stuff printed to console will be stored to `raw-console-logs`
+setup_logger(str(settings['SAVE_FILE_PREFIX'])) # logs of stuff printed to console will be stored to `raw-console-logs`
 
 # IF ERROR - update last number in FILE_PREFIX
 
@@ -106,8 +106,8 @@ print(hexstr(packet_bytes))
 ## Send Command:
 connect_serial(device = serial_device, baud=baud)
 if send_data_packet_to_wd_before_sniffing:
-    send_packet(packet, pathway, ip, port)
+    send_packet(packet, pathway, ip, str(port))
 
 ## Stream Telemetry:
-stream_data_ip_udp_serial(use_telem_dataview=True)
+stream_data_ip_udp_serial(use_console_view=True)
 # Check for wireless telemetry in Wireshark. For parsing help, run: `pyenv exec python parse_pcap.py --help`

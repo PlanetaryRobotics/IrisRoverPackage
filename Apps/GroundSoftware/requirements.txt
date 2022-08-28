@@ -9,6 +9,8 @@ matplotlib
 seaborn
 pandas
 tabulate
+pynput
+multi-await
 plotly
 dash
 panel
@@ -26,6 +28,7 @@ verboselogs
 coloredlogs
 ulid-py
 pyserial
+pyserial-asyncio
 ipykernel
 bitstruct
 pyzmq

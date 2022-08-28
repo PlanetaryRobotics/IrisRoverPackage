@@ -425,8 +425,10 @@ namespace Wf121
                     UdpTxPayload *pResponsePayload = static_cast<UdpTxPayload *>(&m_xUdpRxWorkingData);
                     memcpy(pResponsePayload->data, uplinkResponse.rawData, sizeof(uplinkResponse.rawData));
                     pResponsePayload->dataSize = sizeof(uplinkResponse.rawData);
+                    // DEBUG (TODO: [CWC] REMOVEME): Tell WD->GSW what we got.
+                    static const uint8_t debugDownlinkPrefix = "RADIO: UPL: ";
+                    watchDogInterface.debugPrintfBufferWithPrefix(debugDownlinkPrefix, getStrBufferLen(debugDownlinkPrefix), pResponsePayload->data, pResponsePayload->dataSize);
                     // Push into UDP TX queue:
-                    watchDogInterface.debugPrintfToWatchdog("RADIO: UPL-RCVD");
                     sendUdpPayload(pResponsePayload);
                 }
                 else

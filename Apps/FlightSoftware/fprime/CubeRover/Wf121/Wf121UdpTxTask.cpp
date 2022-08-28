@@ -11,9 +11,6 @@
 
 #include <CubeRover/Wf121/Wf121UdpTxTask.hpp>
 
-#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
-extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
-
 // Handle to active task (this):
 static TaskHandle_t xActiveTask = nullptr; // not init'd yet
 

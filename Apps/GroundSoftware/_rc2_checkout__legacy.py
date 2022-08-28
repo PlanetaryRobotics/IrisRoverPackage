@@ -11,18 +11,18 @@ seq_num = 0x00
 serial_device_sn: str = 'A7035PDL' # Connects to the Lander harness
 # serial_device_sn: str = 'AB0JRGV8' # Connects to J36-RS422 header on the SBC
 baud = 57600
-# baud = 9600
+baud = 9600
 ip="192.168.1.2"
 port=8080
 
-settings['SAVE_FILE_PREFIX'] = 'iris__radio_firmware_checkout__8_26_22_8' # this is the prefix on all log files.
+settings['SAVE_FILE_PREFIX'] = 'iris__radio_firmware_checkout__8_28_22_2' # this is the prefix on all log files.
 
 
 cmd, param = 'ReportStatus', True
 
 # True - send command, # False - sniff only
 send_data_packet_to_wd_before_sniffing = True
-# send_data_packet_to_wd_before_sniffing = False
+#send_data_packet_to_wd_before_sniffing = False
 
 # overwriting = True
 
@@ -30,7 +30,7 @@ specific_param_override = True
 specific_cmd_name_override = 'ReportStatus'
 
 # specific_cmd_name_override = 'transit'
-# specific_cmd_name_override = 'setup'
+specific_cmd_name_override = 'setup'
 specific_cmd_name_override = 'power-on'
 # specific_cmd_name_override = 'wifi-mode'
 

@@ -762,7 +762,7 @@ def save_packet_to_packet_prints(packet: Optional[Packet]) -> None:
             with open(file_path, 'w') as file:
                 # Initialize with descriptor:
                 file.write(
-                    "A colored-text log of the print outs of all packets received during the {filename_base} session:\n"
+                    f"A colored-text log of the print outs of all packets received during the {filename_base} session:\n"
                     "NOTE: This includes any ANSI escape codes (like coloring) which will show up weird if viewed as "
                     "plain-text. To view this appropriately, use the terminal `cat` command or view in VSCode with the "
                     "`ANSI Colors` extension installed.\n\n"

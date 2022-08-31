@@ -121,7 +121,7 @@ class RadioDirectMessagePacket(RadioDirectMessagePacketInterface[RadioDirectMess
         formatted_data = data[9:].decode('utf-8').rstrip('\x00').rstrip()
 
         return (
-            f" \033[34;1mRADIO: [{len(data[9:])}B]: {formatted_data}\033[0m"
+            f" \033[34;1mRADIO-DM: [{len(data[9:])}B]: {formatted_data}\033[0m"
             # f"\n \033[31;m\033[30m RadioDirectMessagePacket[{l}B]-str: {data!r} \033[0m\n"
             # f"\RadioDirectMessagePacket[{l}B]-raw: {' '.join('{:02x}'.format(x) for x in data)}"
         )

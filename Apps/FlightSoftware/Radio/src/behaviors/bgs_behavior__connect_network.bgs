@@ -6,7 +6,11 @@
 # Handle for the single shot timer to know what event triggered it
 const TIMER_HANDLE = $B2  # Handle is only uint8
 # Max number of times to try before resetting:
-const COUNTER_MAX = 50
+# *RETRY_WAIT_MS/1000 = seconds (so, at 500ms wait, this is 120s = two mins) -
+# really doesn't need to be this long. If net is there, usually connect in 1-2
+# tries. BUT, on the Moon, who knows: set this high to give ourselves some room
+# before performing a system reset.
+const COUNTER_MAX = 240
 # Time to wait before trying again, in ms:
 const RETRY_WAIT_MS = 500
 

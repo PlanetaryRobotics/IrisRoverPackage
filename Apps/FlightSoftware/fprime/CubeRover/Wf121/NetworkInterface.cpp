@@ -757,6 +757,7 @@ namespace Wf121
         default:
             // Some other error occurred, try again:
             m_bgApiCommandFailCount++;
+            watchDogInterface.debugPrintfToWatchdog("RADIO: WAIT_FOR_UDP_CHUNK_ACK FAIL: %#04x, %u", errorCode, m_bgApiCommandFailCount); // For debugging. TODO: [CWC] REMOVEME
             if (m_bgApiCommandFailCount > WF121_BGAPI_COMMAND_MAX_TRIES)
             {
                 // We've sent this again too many times. Go to bad case:

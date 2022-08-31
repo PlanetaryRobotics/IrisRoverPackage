@@ -236,6 +236,25 @@ def reset_console_command() -> None:
     current_user_arg = ""
     user_prompt = USER_PROMPT_COMMAND
 
+def accept_top_suggestion() -> None:
+    """
+    Sets current command to top suggestion in command table if:
+    A. The user is currently being prompted for a command.
+    B. There is at least one suggestion present (i.e. the currently
+       entered next needs to at least partially match something).
+    C. At least one character has been entered so far (so you
+       can't just hit tab-enter to send the top suggestion -
+       could be accident prone).
+    """
+    global user_cmd_input_str, current_user_arg, user_prompt
+    filtered_results = filter_command_dataframe(user_cmd_input_str)
+    if (
+        user_prompt == USER_PROMPT_COMMAND
+        and filtered_results.shape[0] > 0
+        and user_cmd_input_str != ""
+    ):
+        user_cmd_input_str = filtered_results.index[0]
+
 def send_slip(dat: bytes, serial_writer) -> None:
     """
     Wraps the given data in SLIP and sends it over RS422,
@@ -387,6 +406,12 @@ def handle_keypress(key: Union[pynput.keyboard.Key, pynput.keyboard.KeyCode], me
     if key == pynput.keyboard.Key.esc:
         # Reset the command:
         reset_console_command()
+        something_changed = True
+
+    if key == pynput.keyboard.Key.tab:
+        # Accept first auto-complete suggestion.
+        accept_top_suggestion()
+        something_changed = True
 
     elif key == pynput.keyboard.Key.backspace:
         # Remove the last character if backspace is pressed:
@@ -630,7 +655,7 @@ def create_console_view() -> str:
     all_lines += [' '] * (term_lines - len(all_lines))
 
     ## Add help message to bottom line:
-    all_lines += [ljust_noCodes(f"\033[37;40m    Type to enter command.    Press \033[1mEnter\033[22m when \033[32mgreen\033[37m to send.    Press \033[1mEscape\033[22m to reset input.", term_cols) + "\033[0m"]
+    all_lines += [ljust_noCodes(f"\033[37;40m    Type to enter command.    Press \033[1mTab\033[22m to accept autocomplete.    Press \033[1mEnter\033[22m when \033[32mgreen\033[37m to send.    Press \033[1mEscape\033[22m to reset input.", term_cols) + "\033[0m"]
 
     ### Build the full message:
     full_str = '\n'.join(all_lines) + "\033[0m" # make sure formatting is reset at the end

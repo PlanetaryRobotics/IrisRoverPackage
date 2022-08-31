@@ -133,11 +133,15 @@ watchdog_heartbeat_tvac: Module = Module(
         (0x56, 'WatchdogMode'): TelemetryChannel(
             name='WatchdogMode', ID=0x56, datatype=FswDataType.ENUM,
             enum=[
-                EnumItem('RS_SLEEP', 0x02),
-                EnumItem('RS_SERVICE', 0x04),
-                EnumItem('RS_KEEPALIVE', 0x08),
-                EnumItem('RS_MISSION', 0x10),
-                EnumItem('RS_FAULT', 0x20)
+                EnumItem('INIT', 0, comment = "The state that the state machine is in during initialization."),
+                EnumItem('ENTERING_KEEP_ALIVE', 7, comment = "Performing all non-instant tasks to set up the appropriate system state for KEEP_ALIVE"),
+                EnumItem('KEEP_ALIVE', 8, comment = "In keep alive mode, used in transit to use little power but stay in communication"),
+                EnumItem('ENTERING_SERVICE', 3, comment = "Performing all non-instant tasks to set up the appropriate system state for SERVICE"),
+                EnumItem('SERVICE', 4, comment = "In diagnostic service mode, which is also a precondition of entering MISSION"),
+                EnumItem('ENTERING_MISSION', 15, comment = " Performing all non-instant tasks to set up the appropriate system state for MISSION."),
+                EnumItem('MISSION', 16, comment = "In the fully-powered on mode to perform the mission."),
+                EnumItem('ENTERING_STASIS', 31, comment = " Performing all non-instant tasks to set up the appropriate system state for STASIS"),
+                EnumItem('STASIS', 32, comment = "In mission, enter low-power stasis.")
             ]
         ),
         (0x57, 'HeaterStatus'): TelemetryChannel(
@@ -289,34 +293,15 @@ watchdog_detailed_status_heartbeat: Module = Module(
         nid_nic_entry(
             TelemetryChannel, 0x10, 'Watchdog_State', datatype=FswDataType.ENUM,  # 8b
             enum=[
-                EnumItem(
-                    'RS_INIT', 0,
-                    comment='The state that the state machine is in during initialization.'
-                ),
-                EnumItem(
-                    'RS_ENTERING_KEEP_ALIVE', 7,
-                    comment='Performing all non-instant tasks to set up the appropriate system state for KEEP_ALIVE'
-                ),
-                EnumItem(
-                    'RS_KEEP_ALIVE', 8,
-                    comment='In keep alive mode, used in transit to use little power but stay in communication'
-                ),
-                EnumItem(
-                    'RS_ENTERING_SERVICE', 3,
-                    comment='Performing all non-instant tasks to set up the appropriate system state for SERVICE'
-                ),
-                EnumItem(
-                    'RS_SERVICE', 4,
-                    comment='In diagnostic service mode, which is also a precondition of entering MISSION'
-                ),
-                EnumItem(
-                    'RS_ENTERING_MISSION', 15,
-                    comment='Performing all non-instant tasks to set up the appropriate system state for MISSION.'
-                ),
-                EnumItem(
-                    'RS_MISSION', 16,
-                    comment='In the fully-powered on mode to perform the mission.'
-                )
+                EnumItem('RS_INIT', 0, comment = "The state that the state machine is in during initialization."),
+                EnumItem('RS_ENTERING_KEEP_ALIVE', 7, comment = "Performing all non-instant tasks to set up the appropriate system state for KEEP_ALIVE"),
+                EnumItem('RS_KEEP_ALIVE', 8, comment = "In keep alive mode, used in transit to use little power but stay in communication"),
+                EnumItem('RS_ENTERING_SERVICE', 3, comment = "Performing all non-instant tasks to set up the appropriate system state for SERVICE"),
+                EnumItem('RS_SERVICE', 4, comment = "In diagnostic service mode, which is also a precondition of entering MISSION"),
+                EnumItem('RS_ENTERING_MISSION', 15, comment = " Performing all non-instant tasks to set up the appropriate system state for MISSION."),
+                EnumItem('RS_MISSION', 16, comment = "In the fully-powered on mode to perform the mission."),
+                EnumItem('RS_ENTERING_STASIS', 31, comment = " Performing all non-instant tasks to set up the appropriate system state for STASIS"),
+                EnumItem('RS_STASIS', 32, comment = "In mission, enter low-power stasis.")
             ]
         ),
 

@@ -84,7 +84,7 @@ void initializeGpios(WatchdogStateDetails* details)
     P1DIR &= ~BIT2;
 
     // P1.3 is connected to the WD_INT signal and is used as a GPIO input.
-    //!< @todo What is WD_INT actually useful for, if anything? If nothing, make this GPIO output.
+    // Used when the Radio wants to send information to the Watchdog.
     P1DIR &= ~BIT3;
 
 
@@ -346,8 +346,9 @@ void initializeGpios(WatchdogStateDetails* details)
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__CHRG_EN);
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__CHRG_EN_FORCE_HIGH);
 
-    // PJ.4 is connected to the Radio_Kick signal and is used as a GPIO input.
-    PJDIR &= ~BIT4;
+    // PJ.4 is connected to the Radio_Kick signal and is used as a GPIO output (to tell the Radio something - e.g. go into statis mode).
+    // Initially driven LOW.
+    PJOUT &= ~BIT4;
 
     // PJ.5 is connected to the BATTERY_EN signal and is used as a GPIO output with an initially low value
     PJOUT &= ~BIT5;

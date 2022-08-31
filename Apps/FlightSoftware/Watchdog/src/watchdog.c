@@ -145,6 +145,10 @@ int watchdog_init(volatile uint16_t* watchdogFlags,
     // value in TB0CL0 (which is set automatically from the value in TB0CCR0), then overflow to zero).
     TB0CTL |= MC__UP;
 
+    // Set which edge we're looking for as the opposite of the current state (in case we boot and
+    // Radio is already connected - i.e. WD_INT is HIGH and we want to look for a falling edge):
+    lookingForWdIntFallingEdge = getWdIntState() ? TRUE : FALSE;
+
     return 0;
 }
 

@@ -16,7 +16,7 @@ namespace iris
             /**
              * @brief The amount of time, in centiseconds, to wait for wifi to become ready.
              */
-            static constexpr uint16_t WIFI_READY_TIMEOUT_CENTISECONDS = 100;
+            static constexpr uint16_t WIFI_READY_TIMEOUT_CENTISECONDS = 2500; // 25s (typ. connection is in ~8.5s)
 
             explicit RoverStateEnteringMission();
 

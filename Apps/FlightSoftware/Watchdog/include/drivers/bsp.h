@@ -15,6 +15,7 @@ void initializeGpios(WatchdogStateDetails* details);
 void enableWdIntFallingEdgeInterrupt(void);
 void enableWdIntRisingEdgeInterrupt(void);
 void disableWdIntInterrupt(void);
+uint8_t getWdIntState(void);
 void enableUart0Pins(void);
 void disableUart0Pins(void);
 void enableUart1Pins(void);

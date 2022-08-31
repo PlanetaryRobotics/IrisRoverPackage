@@ -136,7 +136,13 @@ namespace iris
 
         blimp_normalBoot(); // run this on every boot as early as possible after IO Expander init.
 
-        theContext.gotWifi = false;
+        // Set `gotWifi` based on the *current* state of the WD_INT pin.
+        // Needed for knowing if we're booting into a WiFi-ON state.
+        // That is, if WiFi is ON and the Radio is messaging us and WD_INT happens to be low,
+        // then the gotWifi state will get updated on the next rising edge (no big deal).
+        // However, if WiFi is ON *but* the Radio isn't actively messaging us, we'll never get
+        // the rising edge notice. So, we need to grab it here:
+        theContext.gotWifi = getWdIntState();
 
         if (*(theContext.m_persistentInMission)) {
             // Enable all interrupts

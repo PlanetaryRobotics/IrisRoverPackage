@@ -409,6 +409,11 @@ void disableWdIntInterrupt(void)
     P1IE &= ~BIT3;
 }
 
+// Return the *current* state of the WD_INT pin:
+uint8_t getWdIntState(void){
+    return P1IN & BIT3;
+}
+
 void enableUart0Pins(void)
 {
     // P2.0 is used as the UART0 (UCA0) TX data line (TXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).

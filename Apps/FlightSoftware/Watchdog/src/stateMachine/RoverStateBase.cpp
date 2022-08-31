@@ -122,6 +122,7 @@ namespace iris
 
     RoverState RoverStateBase::handleRadioGotWifiCommand(RoverContext& theContext)
     {
+        DPRINTF("Got WiFi Event.\n");
         theContext.gotWifi = true;
         return getState();
     }

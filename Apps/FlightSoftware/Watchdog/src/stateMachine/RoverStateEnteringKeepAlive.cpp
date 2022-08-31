@@ -234,7 +234,7 @@ namespace iris
         setHerculesReset();
         unsetDeploy();
 
-        theContext.gotWifi = false;
+        theContext.gotWifi = false; // reset
 
         // Turn off voltage rails. All of these are simply setting/clearing bits, so they are instant.
         disable3V3PowerRail();

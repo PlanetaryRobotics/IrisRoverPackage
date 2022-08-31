@@ -18,6 +18,11 @@ const DOING_MSG_PREFIX_LEN = 6  # "doing:"
 dim doing_msg_buffer(31) # DOING_MSG_PREFIX_LEN(6) + MAX_DOING_MSG_BODY_LEN(25) (unfortunately we can't just add consts here)
 dim doing_msg_body_len # Length of the current doing message (excluding prefix)
 
+# Separate message buffer for sending information about the UDP interlock:
+const ILOCK_MSG_PREFIX_LEN = 6  # "ilock:"
+dim ilock_msg_buffer(10) # ILOCK_MSG_PREFIX_LEN(6) + MAX_DOING_MSG_BODY_LEN(4) (unfortunately we can't just add consts here)
+dim ilock_msg_body_len # Length of the current interlock message (excluding prefix)
+
 # Heartbeat takes the form of "thump:[client_endpoint_in_raw_hex]:[server_endpoint_in_raw_hex]:[endCURRENT_STATE>CURRENTLY_DOING"
 # We do this in case Hercules crashes or resets and has thus forgotten our
 # current state. We want to remind it regularly just in case.
@@ -46,6 +51,10 @@ export procedure INIT_HR()
 
     doing_msg_body_len = 7
     doing_msg_buffer(0:DOING_MSG_PREFIX_LEN+doing_msg_body_len) = "doing:BOOTING"
+
+    ilock_msg_body_len = 3
+    ilock_msg_buffer(0:ILOCK_MSG_PREFIX_LEN+ilock_msg_body_len) = "ilock:OFF"
+
 
     hb_msg_buffer(0:HB_MSG_PREFIX_LEN) = "thump:"
     # Add fixed separators:
@@ -142,6 +151,23 @@ export procedure HR_DOING_STARTING_UDP()
     call HR_DOING()
 end
 
+# A notice to Hercules that the Radio has engaged the UDP interlock and it's
+# clear to send UDP data for `HERCULES_INTERLOCK_PERIOD_MS`.
+export procedure HR_UDP_INTERLOCK_IS_ON()
+    ilock_msg_body_len = 2
+    ilock_msg_buffer(ILOCK_MSG_PREFIX_LEN:ilock_msg_body_len) = "ON" # UDP Clear To Send
+    # Send the update:
+    call hercules_direct_message_ascii(ILOCK_MSG_PREFIX_LEN+ilock_msg_body_len, ilock_msg_buffer(0:ILOCK_MSG_PREFIX_LEN+ilock_msg_body_len))
+end
+# A notice to Hercules that the Radio has engaged the UDP interlock and it's
+# no longer clear to send UDP data:
+export procedure HR_UDP_INTERLOCK_IS_OFF()
+    ilock_msg_body_len = 3
+    ilock_msg_buffer(ILOCK_MSG_PREFIX_LEN:ilock_msg_body_len) = "OFF" # Do Not Send UDP
+    # Send the update:
+    call hercules_direct_message_ascii(ILOCK_MSG_PREFIX_LEN+ilock_msg_body_len, ilock_msg_buffer(0:ILOCK_MSG_PREFIX_LEN+ilock_msg_body_len))
+end
+
 # Doing nothing, just remaining vigilent (a more fun name than just "NOTHING"):
 # (Also, "NOTHING" would imply that we couldn't be actively passing data to,
 # Hercules issuing Heartbeats, or monitoring events, which we are even when 
@@ -170,6 +196,12 @@ end
 
 export procedure HR_ERROR_UDP_LOST()
     call hercules_direct_message_ascii(14, "error:UDP_LOST")
+end
+
+# Hercules sent us garbage data (this is more for the WD to pass on to Earth
+# while on the lander than for Hercules' sake):
+export procedure HR_ERROR_BAD_HERCULES_DATA()
+    call hercules_direct_message_ascii(14, "error:BAD_HERC")
 end
 
 

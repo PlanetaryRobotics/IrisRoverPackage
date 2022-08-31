@@ -18,6 +18,63 @@
 # length information, CRC, etc. in the header of this message.
 
 ##
+# Interlock Settings & Variables:
+##
+
+# To prevent Hercules from needing the lock but needing to wait for it to
+# expire before it can send more data (as would be the case with a simple flag
+# mutex), this interlock will be implemented as a simple semaphore:
+# - Everytime Hercules wants to send a UDP packet and needs the lock, the count goes up by one and a timer starts.
+# - When the timer expires the count goes down by one.
+# - If the count hits 0, the lock is released.
+# The nice implication of this is: whenever Hercules wants the lock again, it
+# doesn't have to wait for it to be freed, it can just take it and the timer
+# will have effectively increased by the wait time.
+# NOTE: To prevent a run-away, this count will be capped at some high value, at
+# which point the lock will have to go back down to zero before restarting (this
+# should only take, at most, the full wait time).
+dim hercules_interlock_counting_semaphore
+# Max value of counting semaphore before we say a run-away has been detected
+# and we let everything breathe:
+# (number of messages in a row with less than `HERCULES_INTERLOCK_PERIOD_MS` between them):
+const HERCULES_INTERLOCK_COUNTING_SEMAPHORE_MAX_VAL = 100
+# Whether we've detected an interlock runaway and are letting everything cool
+# down before giving out any more locks:
+dim hercules_interlock_runaway_detected
+dim hercules_interlock_timer_running
+# Timer handle used for the interlock timer:
+const HERCULES_INTERLOCK_TIMER_HANDLE = $17
+
+# Period to allow Hercules to have the UDP lock for.
+# NOTE: Hercules MTU is 1006B (inside the UDP packet). So, accounting for the
+# bytes needed to be sent in the set transmit size message, the bytes in every
+# BGAPI header (and arguments), and the responses to every endpoint command,
+# sending that 1006B MTU would require synchronously transmitting 1089B across
+# the line, which comes out to 10,890bauds. Ignoring any WF121 and Hercules
+# processing time, this suggests Hercules would need the lock for 94ms to
+# transmit a full UDP message. So, 400ms gives that a lot of room without 
+# causing substantial latency that would lead to a Hercules TX payload buffer
+# fill.
+#
+# Looking at the problem the other way, Iris has a maximum allowance of 50kps,
+# so accounting for a BGAPI overhead of 1089/1006 (from above), that's 6765B/s.
+# This is the maximum possible speed Hercules could transmit data to the Radio
+# in nominal operation. This is 67.657kbaud of data. So at 115200baud/s, that
+# gives a 58.7% duty cycle. That is, if Hercules transmitted all those bytes
+# all at once and then waited for the next second, it would be waiting
+# (1-0.587)=0.412s. So, as long as we don't make it every have to wait longer
+# than that for a lock release, there's no chance of Hercules needing to
+# consistently send data and not being able to.
+#
+# In summary, this number must be between 94ms and 412ms, ideally weighted
+# heavily towards the upper end.
+#
+# NOTE: This doesn't matter as much now that we're using a counting semaphore
+# instead of a simple flag (so Hercules no longer needs to wait for it to be
+# cleared) BUT it's still worth obeying the above notes as a precaution.
+const HERCULES_INTERLOCK_PERIOD_MS = 450 # 400 (target) + max time lock message takes to be processed by Hercules (<~50ms)
+
+##
 # Fixed messaging buffers:
 ##
 # General working buffer for building Radio-Ground messages
@@ -25,10 +82,10 @@
 dim gen_radio_gnd_buffer(255)
 
 # Buffer for containing fixed bytes for the Radio-Ground Heartbeat:
-# "RAD:HB|" + "R-" + RSSI_ASCII (3B) + "|" + State_Abbrev. + "|Th" + Uptime_Timer_Ticks (4B, hex) + "|Xh" + RX_UDP_Packet_Count (4B, hex) + "|Bh" + Bad_Herc_Packet_Count (4B, hex)
+# "RAD:HB|" + "R-" + RSSI_ASCII (3B) + "|" + State_Abbrev. + "|Th" + Uptime_Timer_Ticks (4B, hex) + "|Xh" + RX_UDP_Packet_Count (4B, hex) + "|Bh" + Bad_Herc_Packet_Count (4B, hex) + "|Ih" + hercules_interlock_counting_semaphore (1B, hex)
 const RADIO_GND_HB_HEADER_LEN = 9  # "RAD:HB|R-"
-const RADIO_GND_HB_LEN = 38  # Fixed length (unfortunately we can't just add consts)
-dim radio_gnd_hb_buffer(38)  # Must be same as above (unfortunately, we can't allocate with a const variable)
+const RADIO_GND_HB_LEN = 42  # Fixed length (unfortunately we can't just add consts)
+dim radio_gnd_hb_buffer(42)  # Must be same as above (unfortunately, we can't allocate with a const variable)
 
 # Buffer for containing message about bad data from Hercules:
 # "RAD:BADHERC|h" + Reason (2B)
@@ -54,32 +111,41 @@ const CRITICAL_RESET_MSG_LEN = 13 # CRITICAL_RESET_MSG_HEADER_LEN + 2B of "reaso
 dim critical_reset_msg_buffer(13)
 
 
-# On boot, preallocate buffers with all fixed bytes:
-event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
-    # Prepopulate the RADIO_HEARTBEAT HEADER (since it never changes):
-    radio_gnd_hb_buffer(0:RADIO_GND_HB_HEADER_LEN) = "RAD:HB|R-"
-    # Also prepopulate the fixed separators:
-    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+3:1) = "|"
-    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+8:3) = "|Th"
-    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+15:3) = "|Rh"
-    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+22:3) = "|Bh"
+# Downlink a message, ignoring the interlock either because we're choosing not to care or because it's already been checked:
+procedure force_downlink_message(msg_len, msg_buff())
+    # NOTE: for the time being, we're not going to support downlinking packets
+    # greater than 0xFF bytes. The way to do it would be appropriately setting
+    # set_transmit_size and then sending the message in a bunch of chunks.
+    # At the moment, we have no need.
+    if (msg_len > 0 && msg_len < $FF) then
+        # If hercules has the lock (i.e. we're forcing this)...
+        if(hercules_interlock_counting_semaphore != 0) then
+            # Tell Hercules it's lost the lock (likely because Ground asked us
+            # something and we needed to respond or b/c it sent us garbage):
+            hercules_interlock_timer_running = 0
+            hercules_interlock_counting_semaphore = 0
+            call HR_UDP_INTERLOCK_IS_OFF()
+        end if
 
-    # Setup fixed header for Bad Herc Message:
-    bad_herc_msg_buffer(0:BAD_HERC_MSG_HEADER_LEN) = "RAD:BADHERC|h"
-
-    # Setup fixed data for Bad Endpoint Message:
-    bad_endpoint_msg_buffer(0:BAD_ENDPOINT_MSG_HEADER_LEN) = "RAD:BADENDP|h"
-    bad_endpoint_msg_buffer(BAD_ENDPOINT_MSG_HEADER_LEN+1:2) = "|h"
-
-    # Setup fixed data for Bad UDP Data Message:
-    bad_udp_msg_buffer(0:BAD_UDP_MSG_HEADER_LEN) = "RAD:BADUDP|h"
-    bad_udp_msg_buffer(BAD_UDP_MSG_HEADER_LEN+1:2) = "|h"
-    bad_udp_msg_buffer(BAD_UDP_MSG_HEADER_LEN+7:2) = "|h"
-
-    # Setup fixed header for Critical Reset Message:
-    critical_reset_msg_buffer(0:CRITICAL_RESET_MSG_HEADER_LEN) = "RAD:CRIT!|h"
+        # Set transmit size:
+        # NOTE: We have to do this b/c Hercules will also be setting the
+        # transmit size and it will stay at whatever value it used once it's
+        # done.
+        call endpoint_set_transmit_size(udp_client_endpoint, msg_len)
+        # Actually send the data:
+        call endpoint_send(udp_client_endpoint, msg_len, msg_buff(0:msg_len))
+    end if
 end
 
+# Procedure for downlinking messages (interlock-safe):
+procedure downlink_message(msg_len, msg_buff())
+    # Only downlink if Hercules doens't have the lock on the UDP resource (so
+    # we aren't both sending into the same buffer at the same time - this was a
+    # problem before):
+    if(hercules_interlock_counting_semaphore = 0) then
+        call force_downlink_message(msg_len, msg_buff(0:msg_len))
+    end if
+end
 
 ##
 # Unique Messages:
@@ -91,7 +157,7 @@ end
 # the other components ... or potentially if Herc's TX buffer got screwed but
 # its RX may still be working).
 dim tmp
-export procedure RADIO_GND_HEARTBEAT()
+procedure UPDATE_RADIO_GND_HEARTBEAT_BUFFER()
     # Add RSSI information as ASCII (3 digits):
     tmp = (status__last_rssi ^ $FF) + 1 # convert to positive int (kinda 2's complement style but not quite since it stores only the lowest one byte so we just handle that - this is why we can't do *-1, it treats it as a uint32 and flips a bunch of 00s to FFs)
     radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN:1) = (tmp / 100) + 48
@@ -106,14 +172,27 @@ export procedure RADIO_GND_HEARTBEAT()
     radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+18:4) = status__udp_packets_received
     radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+25:4) = status__hercules_syntax_err_count
 
+    # Copy in hercules_interlock_counting_semaphore:
+    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+32:1) = hercules_interlock_counting_semaphore
+end
+export procedure RADIO_GND_HEARTBEAT()
+    # Update the buffer:
+    call UPDATE_RADIO_GND_HEARTBEAT_BUFFER()
     # Send heartbeat to Earth:
-    call endpoint_send(udp_client_endpoint, RADIO_GND_HB_LEN, radio_gnd_hb_buffer(0:RADIO_GND_HB_LEN))
+    call downlink_message(RADIO_GND_HB_LEN, radio_gnd_hb_buffer(0:RADIO_GND_HB_LEN))
+end
+# Force send a heartbeat (ignoring any interlocks):
+procedure FORCE_RADIO_GND_HEARTBEAT()
+    # Update the buffer:
+    call UPDATE_RADIO_GND_HEARTBEAT_BUFFER()
+    # Send heartbeat to Earth:
+    call force_downlink_message(RADIO_GND_HB_LEN, radio_gnd_hb_buffer(0:RADIO_GND_HB_LEN))
 end
 
 ## RADIO-GND HELLO:
 # Sent upon first connection to Earth:
 export procedure RADIO_GND_HELLO()
-    call endpoint_send(udp_client_endpoint, 39, "Hello Earth, this is Iris on the Moon!\n")
+    call force_downlink_message(39, "Hello Earth, this is Iris on the Moon!\n")
 end
 
 ## RADIO-GND ECHO:
@@ -122,7 +201,7 @@ end
 export procedure RADIO_GND_ECHO(data_len, data())
     gen_radio_gnd_buffer(0:10) = "RAD:ECHO|h"
     gen_radio_gnd_buffer(10:data_len) = data(0:data_len)
-    call endpoint_send(udp_client_endpoint, 10+data_len, gen_radio_gnd_buffer(0:10+data_len))
+    call force_downlink_message(10+data_len, gen_radio_gnd_buffer(0:10+data_len))
 end
 
 ## GROUND COMMAND RESPONSES:
@@ -137,7 +216,7 @@ export procedure RADIO_GND_CMD_ACK(cmd_id, data_len, data())
     gen_radio_gnd_buffer(9:1) = cmd_id
     gen_radio_gnd_buffer(10:2) = "|h"
     gen_radio_gnd_buffer(12:data_len) = data(0:data_len)
-    call endpoint_send(udp_client_endpoint, 12+data_len, gen_radio_gnd_buffer(0:12+data_len))
+    call force_downlink_message(12+data_len, gen_radio_gnd_buffer(0:12+data_len))
 end
 # Let the Earthlings know we received their command and executed it:
 # "RAD:DID|" + "h" [command_id received, 1B] + "|h" + [data received, nB]
@@ -146,7 +225,7 @@ export procedure RADIO_GND_CMD_DONE(cmd_id, data_len, data())
     gen_radio_gnd_buffer(9:1) = cmd_id
     gen_radio_gnd_buffer(10:2) = "|h"
     gen_radio_gnd_buffer(12:data_len) = data(0:data_len)
-    call endpoint_send(udp_client_endpoint, 12+data_len, gen_radio_gnd_buffer(0:12+data_len))
+    call force_downlink_message(12+data_len, gen_radio_gnd_buffer(0:12+data_len))
 end
 # Let the Earthlings know we received their command but didn't do anything because we didn't recognize it (or it contained bad info):
 # "RAD:BADCMD|" + "h" [command_id received, 1B] + "|h" + [data received, nB]
@@ -155,7 +234,7 @@ export procedure RADIO_GND_CMD_BAD(cmd_id, data_len, data())
     gen_radio_gnd_buffer(12:1) = cmd_id
     gen_radio_gnd_buffer(13:2) = "|h"
     gen_radio_gnd_buffer(15:data_len) = data(0:data_len)
-    call endpoint_send(udp_client_endpoint, 15+data_len, gen_radio_gnd_buffer(0:15+data_len))
+    call force_downlink_message(15+data_len, gen_radio_gnd_buffer(0:15+data_len))
 end
 
 
@@ -169,8 +248,8 @@ end
 export procedure RADIO_GND_ERR_BAD_HERC(reason)
     # Copy in the reason bytes (all numbers are 4B but we only want the lowest 2B):
     bad_herc_msg_buffer(BAD_HERC_MSG_HEADER_LEN:2) = reason
-    # Send:
-    call endpoint_send(udp_client_endpoint, BAD_HERC_MSG_LEN, bad_herc_msg_buffer(0:BAD_HERC_MSG_LEN))
+    # Send (ignoring the interlock - b/c this is probably what Herc used the interlock to do):
+    call force_downlink_message(BAD_HERC_MSG_LEN, bad_herc_msg_buffer(0:BAD_HERC_MSG_LEN))
 end
 
 # Something went wrong with an endpoint (besides / in addition to a syntax BGAPI
@@ -182,12 +261,12 @@ export procedure RADIO_GND_ERR_BAD_ENDPOINT(reason, endpoint)
     bad_endpoint_msg_buffer(BAD_ENDPOINT_MSG_HEADER_LEN:1) = endpoint & $FF
     # Copy in the reason bytes (all numbers are 4B but we only want the lowest 2B):
     bad_endpoint_msg_buffer(BAD_ENDPOINT_MSG_HEADER_LEN+3:2) = reason
-    # Send:
-    call endpoint_send(udp_client_endpoint, BAD_ENDPOINT_MSG_LEN, bad_endpoint_msg_buffer(0:BAD_ENDPOINT_MSG_LEN))
+    # Send (ignoring the interlock - b/c this is probably what Herc used the interlock to do):
+    call force_downlink_message(BAD_ENDPOINT_MSG_LEN, bad_endpoint_msg_buffer(0:BAD_ENDPOINT_MSG_LEN))
 end
 
-# Metadata in a UDP packet receivec was incorrect (destination had to be fine
-# or we wouldn't get it but source wasn't what was expected):
+# Metadata in an uplinked UDP packet received was incorrect (destination had to
+# be fine or we wouldn't get it but source wasn't what was expected):
 dim tmp_flags
 export procedure RADIO_GND_ERR_BAD_UDP(bad_addr, bad_port, source_addr, source_port)
     # Craft problem flags:
@@ -205,7 +284,7 @@ export procedure RADIO_GND_ERR_BAD_UDP(bad_addr, bad_port, source_addr, source_p
     # Copy source port data:
     bad_udp_msg_buffer(BAD_UDP_MSG_HEADER_LEN+9:2) = source_port
     # Send:
-    call endpoint_send(udp_client_endpoint, BAD_UDP_MSG_LEN, bad_udp_msg_buffer(0:BAD_UDP_MSG_LEN))
+    call force_downlink_message(BAD_UDP_MSG_LEN, bad_udp_msg_buffer(0:BAD_UDP_MSG_LEN))
 end
 
 
@@ -221,6 +300,123 @@ end
 export procedure RADIO_GND_CRITICAL_RESET_REASON(reason)
     # Copy in the reason bytes (all numbers are 4B but we only want the lowest 2B):
     critical_reset_msg_buffer(CRITICAL_RESET_MSG_HEADER_LEN:2) = reason
-    # Send:
-    call endpoint_send(udp_client_endpoint, CRITICAL_RESET_MSG_LEN, critical_reset_msg_buffer(0:CRITICAL_RESET_MSG_LEN))
+    # Send (no matter what, ignoring the interlock):
+    call force_downlink_message(CRITICAL_RESET_MSG_LEN, critical_reset_msg_buffer(0:CRITICAL_RESET_MSG_LEN))
+end
+
+
+##
+# Interlock Logic:
+##
+
+# Hercules is trying to grab the interlock:
+procedure hercules_grab_interlock()
+    if (hercules_interlock_counting_semaphore >= HERCULES_INTERLOCK_COUNTING_SEMAPHORE_MAX_VAL) then
+        # Time to breathe:
+        hercules_interlock_runaway_detected = 1
+        
+        # Use this opportunity to send out a Radio-Ground Heartbeat since we
+        # likely haven't in a while.
+        call FORCE_RADIO_GND_HEARTBEAT()
+    end if
+
+    # Give out the lock if not in a runaway state:
+    if (hercules_interlock_runaway_detected != 1) then # NOTE: != is more bitflip resilient than =
+        # First, let Hercules know it got the lock:
+        call HR_UDP_INTERLOCK_IS_ON()
+
+        # Then up the semaphore count:
+        hercules_interlock_counting_semaphore = hercules_interlock_counting_semaphore + 1
+
+        # And kick off the timer cascade if it's not currently running:
+        # (should only happen when starting over. using separate flag just in case)
+        if (hercules_interlock_timer_running != 1) then
+            hercules_interlock_timer_running = 1
+            call hardware_set_soft_timer(HERCULES_INTERLOCK_PERIOD_MS, HERCULES_INTERLOCK_TIMER_HANDLE, 1)
+        end if
+    end if
+end
+
+# Handle counting the Hercules semaphore back down:
+event hardware_soft_timer(handle)
+    if handle = HERCULES_INTERLOCK_TIMER_HANDLE then
+        # Count the semaphore down:
+        if(hercules_interlock_counting_semaphore > 0) then
+            hercules_interlock_counting_semaphore = hercules_interlock_counting_semaphore - 1
+        end if
+        
+        # Check if the breathing period is over and we can resume giving out locks:
+        if (hercules_interlock_runaway_detected = 1 && hercules_interlock_counting_semaphore = 0) then
+            hercules_interlock_runaway_detected = 0
+        end if
+
+        # Kick off another timer event if we are still needed:
+        if(hercules_interlock_counting_semaphore > 0) then
+            hercules_interlock_timer_running = 1
+            call hardware_set_soft_timer(HERCULES_INTERLOCK_PERIOD_MS, HERCULES_INTERLOCK_TIMER_HANDLE, 1)
+        else
+            # The interlock has been released.
+            hercules_interlock_timer_running = 0
+            # Let Hercules know:
+            call HR_UDP_INTERLOCK_IS_OFF()
+        end if
+    end if
+end
+
+# Since we have no way to pass any data from Hercules to Radio with its UART
+# used as a BGAPI endpoint, we must hijack an innocuous, unused, and effect-less
+# BGAPI command so Hercules can signal the Radio that it wants the lock.
+# There aren't many of those, esp. not any without *any* possible side-effects,
+# that won't remotely be triggered elsewhere, and that don't require allocating
+# extra resources (like a new dummy endpoint).
+# This is most insidious b/c we can't hook into command responses generated from
+# endpoint BGAPI commands; we can only hook into events, almost all of which are
+# triggered only after materially doing something.
+# The two exceptions to this seem to be Get RSSI (which we're already using and 
+# automatically sending out) and Get MAC, which is our winner.
+# It's only triggered in response to sync (which we don't do) and GetMAC. So,
+# if we see this event, that means Hercules sent a "GetMAC" command to tell us
+# to give it the lock.
+# So, we highjack this command event. If we see it, we engage the interlock
+# and don't send any UDP data until it's released.
+event config_mac_address(hw_interface, mac)
+    # Don't care about the args. Just set the lock:
+    call hercules_grab_interlock()
+end
+
+
+##
+# SETUP:
+##
+
+# On boot, preallocate buffers with all fixed bytes:
+event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
+    # Prepopulate the RADIO_HEARTBEAT HEADER (since it never changes):
+    radio_gnd_hb_buffer(0:RADIO_GND_HB_HEADER_LEN) = "RAD:HB|R-"
+    # Also prepopulate the fixed separators:
+    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+3:1) = "|"
+    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+8:3) = "|Th"
+    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+15:3) = "|Rh"
+    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+22:3) = "|Bh"
+    radio_gnd_hb_buffer(RADIO_GND_HB_HEADER_LEN+29:3) = "|Ih"
+
+    # Setup fixed header for Bad Herc Message:
+    bad_herc_msg_buffer(0:BAD_HERC_MSG_HEADER_LEN) = "RAD:BADHERC|h"
+
+    # Setup fixed data for Bad Endpoint Message:
+    bad_endpoint_msg_buffer(0:BAD_ENDPOINT_MSG_HEADER_LEN) = "RAD:BADENDP|h"
+    bad_endpoint_msg_buffer(BAD_ENDPOINT_MSG_HEADER_LEN+1:2) = "|h"
+
+    # Setup fixed data for Bad UDP Data Message:
+    bad_udp_msg_buffer(0:BAD_UDP_MSG_HEADER_LEN) = "RAD:BADUDP|h"
+    bad_udp_msg_buffer(BAD_UDP_MSG_HEADER_LEN+1:2) = "|h"
+    bad_udp_msg_buffer(BAD_UDP_MSG_HEADER_LEN+7:2) = "|h"
+
+    # Setup fixed header for Critical Reset Message:
+    critical_reset_msg_buffer(0:CRITICAL_RESET_MSG_HEADER_LEN) = "RAD:CRIT!|h"
+
+    # Initiate the interlock:
+    hercules_interlock_counting_semaphore = 0
+    hercules_interlock_runaway_detected = 0
+    hercules_interlock_timer_running = 0
 end

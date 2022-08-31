@@ -131,6 +131,11 @@ end
 # only BGAPI endpoint):
 event endpoint_syntax_error(result, endpoint)
     if endpoint = HERCULES_ENDPOINT then
+        # Tell Hercules we got garbage (it'll get the syntax error too, so this
+        # is more for Herc to pas to WD to pass to Ground in case we're on the
+        # lander):
+        call HR_ERROR_BAD_HERCULES_DATA()
+        # pass to the WD to pass to Ground if we're on the lander):
         # If we're connected to WiFi, tattle to the Earthlings:
         if status__wifi_connected != 0 then # compare as != 0 instead of = 1 since more bit-flip resistant to telling us if we might be connected:
             call RADIO_GND_ERR_BAD_HERC(result)

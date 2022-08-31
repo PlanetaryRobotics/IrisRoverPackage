@@ -377,9 +377,9 @@ def send_console_command(pathway: DataPathway, magic: Magic, command_name: str, 
 def attempt_console_command_send(message_queue, serial_writer) -> None:
     global user_args, current_user_arg, user_prompt
 
-    # Only send if one command is locked in (only one result):
+    # Only send if one command is locked in (only one result OR our input exactly matches the first result):
     filtered_results = filter_command_dataframe(user_cmd_input_str)
-    if filtered_results.shape[0] == 1:
+    if filtered_results.shape[0] == 1 or user_cmd_input_str == filtered_results.index[0]:
         command_alias = filtered_results.index[0]
         pathway, magic, command_name, kwargs, telem_pathway = prepared_commands[command_alias]
 

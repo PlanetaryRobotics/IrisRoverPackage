@@ -12,7 +12,11 @@ import subprocess
 from datetime import datetime, timedelta
 
 import socket
-import pynput
+try:
+    import pynput
+except ImportError:
+    # ignore import on pynput (if console is currently running, this will fail. Which is fine b/c console is already running.)
+    pass
 import numpy as np
 import pandas as pd
 from tabulate import tabulate
@@ -398,7 +402,8 @@ def attempt_console_command_send(message_queue, serial_writer) -> None:
             send_console_command(pathway, magic, command_name, user_args, message_queue, serial_writer)
 
 
-def handle_keypress(key: Union[pynput.keyboard.Key, pynput.keyboard.KeyCode], message_queue, serial_writer) -> None:
+def handle_keypress(key: Any, message_queue, serial_writer) -> None:
+    key = cast(Union[pynput.keyboard.Key, pynput.keyboard.KeyCode], key)
     # Handles new key input:
     global user_cmd_input_str, user_prompt
     

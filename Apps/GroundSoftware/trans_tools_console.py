@@ -45,6 +45,8 @@ from __command_aliases import prepared_commands, Parameter
 IRIS_CONSOLE_WINDOW_TITLE: Final[str] = "Iris Console"
 # Actual title of the window (grabbed once at init, right after setting the window title, just in case setting it didn't work:
 ACTUAL_REFERENCE_WINDOW_TITLE: Optional[str] = None
+# Whether or not the console is currently paused:
+console_paused: bool = False
 # All dataframes for storing data:
 telemetry_payload_log_dataframe: pd.DataFrame = pd.DataFrame(columns=['Opcode', 'Module', 'Channel', 'Num. Received', 'Last Updated', 'Current Value', 'H+1', 'H+2', 'H+3'], dtype=object).set_index('Opcode')
 packet_log_dataframe: pd.DataFrame = pd.DataFrame(columns=['Packet Type', 'Num. Received', 'Last Updated', 'Avg. Interval [s]', 'Current Interval [s]', 'Bytes Received', 'Avg. bits/sec', 'Avg. bits/sec w/CCSDS'], dtype=object).set_index('Packet Type')
@@ -140,6 +142,9 @@ def init_console_view() -> None:
     
     # Immediately update the reference title (just in case setting the title didn't work on this platform):
     update_reference_window_title()
+
+    # Make sure console starts unpaused:
+    unpause_console()
 
     # Build the first frame:
     build_command_dataframe()
@@ -403,13 +408,22 @@ def handle_keypress(key: Union[pynput.keyboard.Key, pynput.keyboard.KeyCode], me
     if not window_is_focused():
         return
 
+    if key == pynput.keyboard.Key.f2:
+        # Toggle the console input/output pause state:
+        toggle_console_pause()
+        something_changed = True
+
+    # If the console is paused, ignore input (besides the unpause command):
+    if console_is_paused():
+        return
+
     if key == pynput.keyboard.Key.esc:
         # Reset the command:
         reset_console_command()
         something_changed = True
 
-    if key == pynput.keyboard.Key.tab:
-        # Accept first auto-complete suggestion.
+    elif key == pynput.keyboard.Key.tab:
+        # Accept first auto-complete suggestion:
         accept_top_suggestion()
         something_changed = True
 
@@ -662,12 +676,39 @@ def create_console_view() -> str:
     all_lines += [' '] * (term_lines - len(all_lines))
 
     ## Add help message to bottom line:
-    all_lines += [ljust_noCodes(f"\033[37;40m    Type to enter command.    Press \033[1mTab\033[22m to accept autocomplete.    Press \033[1mEnter\033[22m when \033[32mgreen\033[37m to send.    Press \033[1mEscape\033[22m to reset input.", term_cols) + "\033[0m"]
+    all_lines += [ljust_noCodes(
+        f"\033[37;40m    Type to enter command."
+        f"    Press \033[1mTab\033[22m to accept autocomplete."
+        f"    Press \033[1mEnter\033[22m when \033[32mgreen\033[37m to send."
+        f"    Press \033[1mEscape\033[22m to reset input."
+        f"    Press \033[1mF2\033[22m to pause/unpause console input/output (packets are still received, just not displayed)."
+        f"    Press \033[1mCtrl+'\\'\033[22m to end session.", term_cols) + "\033[0m"]
 
     ### Build the full message:
     full_str = '\n'.join(all_lines) + "\033[0m" # make sure formatting is reset at the end
 
     return full_str
+
+# "Pauses" the Console window:
+def pause_console() -> None:
+    global console_paused
+    console_paused = True
+
+# "Unpauses" the Console window:
+def unpause_console() -> None:
+    global console_paused
+    console_paused = False
+
+# Returns whether the console is currently paused:
+def console_is_paused() -> bool:
+    return console_paused
+
+# Toggles console pause state:
+def toggle_console_pause() -> None:
+    if console_is_paused():
+        unpause_console()
+    else:
+        pause_console()
 
 # Clears the Console Window:
 def clear_console() -> None:
@@ -676,6 +717,8 @@ def clear_console() -> None:
 # Refreshes (clears) the Console Window with Highlevel Telemetry Dataview:
 def refresh_console_view() -> None:
     # Build the string before clearing the screen to minimize off-time:
-    data = create_console_view()
-    clear_console()
-    print(data)
+    # (only update console view if not paused):
+    if not console_is_paused():
+        data = create_console_view()
+        clear_console()
+        print(data)

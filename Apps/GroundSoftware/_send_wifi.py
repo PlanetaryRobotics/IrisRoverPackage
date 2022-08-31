@@ -8,7 +8,7 @@ import socket
 import numpy as np
 import struct
 
-def send_wifi(data: bytes, ip="192.168.150.3", port=42000, src_ip="192.168.10.105", src_port=43531) -> None:
+def send_wifi_adv2(data: bytes, ip="192.168.150.3", port=42000, src_ip="192.168.10.105", src_port=43531) -> None:
     # Craft UDP packet (incl. using the correct src_ip, even if that's not our own):
     full_packet = scp.IP(dst=ip, src=src_ip) / scp.UDP(sport=src_port, dport=port)/scp.Raw(load=data)
     # printraw(scp.raw(scp.IP(scp.raw(full_packet))))
@@ -52,7 +52,7 @@ def send_radio_only_command(command_id: int, command_data: bytes, *args, **kwarg
     data = cph + vlp
 
     ## Send the data:
-    send_wifi(data, *args, **kwargs)
+    send_wifi_adv2(data, *args, **kwargs)
 
 
 radio_only_cmd_ids = {
@@ -93,7 +93,8 @@ print(hexstr(packet_bytes))
 
 ## Send Hercules Command:
 if SEND_HERCULES_COMMAND:
-    send_wifi(packet_bytes)
+    # send_wifi(packet_bytes)
+    pass
 
 
 # Radio-Direct Commands:

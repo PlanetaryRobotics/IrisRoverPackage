@@ -615,6 +615,10 @@ def create_console_view() -> str:
             plog_line_wraps.append(textwrap.wrap(line, width=plog_width, replace_whitespace=False, break_on_hyphens=False, tabsize=4))
     plog_lines = [tabs2spaces(line) for clump in plog_line_wraps for line in clump] # Reflatten
     
+    # Make sure formatting ends at end of each line (this would be broken if a formatted line was word wrapped -
+    # that's why we're doing it here and not at the end; only need it after word wrap):
+    plog_lines = [line + "\033[0m" for line in plog_lines]
+
     # Grab all lines up to the limit and then tack on header and footer:
     plog_lines = plog_header_lines + plog_lines[:plog_max_len] + plog_footer_lines
     # Make sure no line exceeds max width:
@@ -650,6 +654,9 @@ def create_console_view() -> str:
 
     ## Join left and right sides:
     all_lines = [a + horiz_padding + b for a,b in itertools.zip_longest(left_side_lines, right_side_lines, fillvalue="")]
+
+    # Make sure formatting resets before each line starts:
+    all_lines = ["\033[0m" + line for line in all_lines]
 
     # Pad out total number of lines to max height:
     all_lines += [' '] * (term_lines - len(all_lines))

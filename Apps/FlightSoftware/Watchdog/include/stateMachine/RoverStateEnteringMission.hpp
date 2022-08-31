@@ -48,6 +48,8 @@ namespace iris
             SubState m_currentSubstate;
             uint16_t m_startFuelGaugeInitTimeCentiseconds;
             uint16_t m_startWifiReadyTimeCentiseconds;
+            // Whether we've already sent a "Waiting for WiFi" message during this EnteringMission session.
+            uint8_t m_sentWaitingForWifiMessage;
 
             RoverState transitionToWaitingForI2cDone(RoverContext& theContext);
 

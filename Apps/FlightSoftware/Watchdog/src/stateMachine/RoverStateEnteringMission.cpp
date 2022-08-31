@@ -16,6 +16,7 @@
 
 namespace iris
 {
+
     RoverStateEnteringMission::RoverStateEnteringMission()
             : RoverStateBase(RoverState::ENTERING_MISSION)
     {
@@ -241,8 +242,14 @@ namespace iris
                     uint16_t timePassed = Time__getTimeInCentiseconds() - m_startWifiReadyTimeCentiseconds;
                     bool transition = false;
 
+                    if(!m_sentWaitingForWifiMessage){
+                        // Let Ground know why they'll not hear anything from us for a bit:
+                        DPRINTF("Awaiting Wifi for %d cs\n", WIFI_READY_TIMEOUT_CENTISECONDS);
+                        m_sentWaitingForWifiMessage = true;
+                    }
+
                     if (timePassed > WIFI_READY_TIMEOUT_CENTISECONDS) {
-                        DPRINTF_ERR("Wait for wifi timed out\n");
+                        DPRINTF_ERR("Wait for Wifi timed out\n");
                         transition = true;
                     }
 
@@ -306,6 +313,7 @@ namespace iris
 
     RoverState RoverStateEnteringMission::transitionTo(RoverContext& theContext)
     {
+        m_sentWaitingForWifiMessage = false; // reset flag
         return transitionToWaitingForI2cDone(theContext);
     }
 

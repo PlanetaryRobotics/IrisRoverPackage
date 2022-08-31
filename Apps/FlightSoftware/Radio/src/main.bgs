@@ -1,5 +1,6 @@
 # Load helpers (once imported, these are accessible globally, even in subsequently imported scripts):
 import "src/global_buffers.bgs"
+import "src/comms/wd_comms.bgs"
 import "src/comms/hercules_messaging.bgs"
 import "src/comms/hercules_reports.bgs"
 import "src/debug.bgs"

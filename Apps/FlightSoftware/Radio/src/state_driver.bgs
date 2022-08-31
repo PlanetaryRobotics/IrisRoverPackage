@@ -35,6 +35,7 @@ end
 export procedure SET_STATE_CONNECTED()
     # We're now in the CONNECTED state:
     state_4B_abbr(0:4) = "CONN"
+    call WD_WIFI_CONNECTED() # Let WD know.
     call HR_STATE_CONNECTED() # Let Herc know.
 
     # In the CONNECTED state, we try to start UDP:

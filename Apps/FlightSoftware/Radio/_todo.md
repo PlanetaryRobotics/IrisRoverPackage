@@ -13,5 +13,7 @@
 + Restrict to Ch.11 only
 - Fix set_transmit_size
 - Interlock with Hercules Comms
-- Basic GPIO to WD on Connection status (and only transmit GND HBs if not in statis)
++ Properly configure I/O
++ Basic GPIO to WD on Connection status
+- (and only transmit GND HBs if not in statis)
 - Anomaly check for events like software_exception (so we can have a critical reset)

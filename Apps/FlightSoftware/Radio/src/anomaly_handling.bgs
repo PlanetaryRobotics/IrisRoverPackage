@@ -46,7 +46,8 @@ end
 const ANOM__WIFI_CONNECTION_LOST__TIMER_HANDLE = $A1  # Handle is only uint8
 event sme_disconnected(reason, hw_interface)
     if hw_interface = 0 then
-        # TODO: Let Watchdog know (Hercules will know automatically)
+        # Tell WD we're no longer connected:
+        call WD_WIFI_NOT_CONNECTED()
         # Log as Hercules Direct Message Error too (just in case):
         call HR_ERROR_DISCONNECT()
         # Turn off wifi:

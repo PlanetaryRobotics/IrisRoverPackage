@@ -116,7 +116,11 @@ class WatchdogDebugPacket(WatchdogDebugPacketInterface[WatchdogDebugPacketInterf
             l = len(self._raw)
             data = self._raw
 
-        formatted_data = data[5:].decode('utf-8').rstrip('\x00').rstrip()
+        try:
+            formatted_data = data[5:].decode('utf-8').rstrip('\x00').rstrip()
+        except UnicodeDecodeError:
+            # Contains non-unicode characters
+            formatted_data = str(data[5:])
 
         return (
             f" \033[1m\033[30m[{len(data[5:])}B]: {formatted_data}\033[0m"

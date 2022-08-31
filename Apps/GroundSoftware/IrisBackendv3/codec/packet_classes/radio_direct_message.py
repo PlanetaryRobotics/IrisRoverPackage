@@ -118,7 +118,11 @@ class RadioDirectMessagePacket(RadioDirectMessagePacketInterface[RadioDirectMess
             l = len(self._raw)
             data = self._raw
 
-        formatted_data = data[9:].decode('utf-8').rstrip('\x00').rstrip()
+        try:
+            formatted_data = data[9:].decode('utf-8').rstrip('\x00').rstrip()
+        except UnicodeDecodeError:
+            # Contains non-unicode characters
+            formatted_data = str(data[9:])
 
         return (
             f" \033[34;1mRADIO-DM: [{len(data[9:])}B]: {formatted_data}\033[0m"

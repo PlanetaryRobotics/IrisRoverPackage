@@ -2,12 +2,13 @@
 Helper functions to handle the console functions of `trans_tools`.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 08/28/2022
+@last-updated: 08/30/2022
 """
 from typing import Any, Final, List, OrderedDict, Type, cast, Union, Dict, Tuple, Optional
 
 import re
 import os
+import subprocess
 from datetime import datetime, timedelta
 
 import socket
@@ -40,6 +41,10 @@ from IrisBackendv3.codec.settings import ENDIANNESS_CODE, set_codec_standards
 
 from __command_aliases import prepared_commands, Parameter
 
+# Title of the window (helps with focus checking):
+IRIS_CONSOLE_WINDOW_TITLE: Final[str] = "Iris Console"
+# Actual title of the window (grabbed once at init, right after setting the window title, just in case setting it didn't work:
+ACTUAL_REFERENCE_WINDOW_TITLE: Optional[str] = None
 # All dataframes for storing data:
 telemetry_payload_log_dataframe: pd.DataFrame = pd.DataFrame(columns=['Opcode', 'Module', 'Channel', 'Num. Received', 'Last Updated', 'Current Value', 'H+1', 'H+2', 'H+3'], dtype=object).set_index('Opcode')
 packet_log_dataframe: pd.DataFrame = pd.DataFrame(columns=['Packet Type', 'Num. Received', 'Last Updated', 'Avg. Interval [s]', 'Current Interval [s]', 'Bytes Received', 'Avg. bits/sec', 'Avg. bits/sec w/CCSDS'], dtype=object).set_index('Packet Type')
@@ -82,9 +87,61 @@ def len_noCodes(x: str) -> int:
     # returns the length of the given string, excluding any escape codes in it:
     return len(remove_ansi_escape_codes(x))
 
+def ljust_noCodes(x: str, targ_len: int, padding_char: str = ' ') -> str:
+    # Pads given string out to `targ_len` using `padding_char`
+    # (like `ljust`), **NOT** counting ANSI escape codes in
+    # the length.
+    # NOTE: If `padding_char` is more than one character long, only the
+    # first character will be used for padding. If it's no characters
+    # long, ' ' (space) will be used.
+    padding_char = padding_char[0] if len(padding_char) > 0 else ' '
+    x += padding_char * (targ_len - len_noCodes(x))
+    return x
+
+def set_window_title() -> None:
+    print(f"\033]0;{IRIS_CONSOLE_WINDOW_TITLE}\a")
+
+def get_active_window_title() -> Optional[str]:
+    # Gets the title of the current window (used for focus checking)
+    # Currently only works in windows:
+    root = subprocess.Popen(['xprop', '-root', '_NET_ACTIVE_WINDOW'], stdout=subprocess.PIPE)
+    stdout, stderr = root.communicate()
+
+    m = re.search(b'^_NET_ACTIVE_WINDOW.* ([\w]+)$', stdout)
+    if m is not None:
+        window_id = m.group(1)
+        window = subprocess.Popen(['xprop', '-id', window_id, 'WM_NAME'], stdout=subprocess.PIPE)
+        stdout, stderr = window.communicate()
+    else:
+        return None
+
+    match = re.match(b"WM_NAME\(\w+\) = (?P<name>.+)$", stdout)
+    if match is not None:
+        return match.group("name").strip(b'"').decode()
+    return None
+
+def update_reference_window_title():
+    global ACTUAL_REFERENCE_WINDOW_TITLE
+    ACTUAL_REFERENCE_WINDOW_TITLE = get_active_window_title()
+
+def window_is_focused() -> bool:
+    return get_active_window_title() == ACTUAL_REFERENCE_WINDOW_TITLE
 
 def init_console_view() -> None:
     # Initializes the console view.
+    # NOTE: Window needs to be in focus for this ... which it should be since the user *just* started the program.
+
+    # Set the appropriate window title (helps with focus checking):
+
+    # Make sure the console only captures input if this window is focused
+    # (only works in bash, but, the same goes for the rest of this program).
+    # Likely doesn't work on Windows, even if running bash (though *might* work in WSL - untested):
+    set_window_title()
+    
+    # Immediately update the reference title (just in case setting the title didn't work on this platform):
+    update_reference_window_title()
+
+    # Build the first frame:
     build_command_dataframe()
 
 def build_command_dataframe() -> None:
@@ -323,6 +380,10 @@ def handle_keypress(key: Union[pynput.keyboard.Key, pynput.keyboard.KeyCode], me
     
     something_changed: bool = False
 
+    # If window is not focused, ignore input:
+    if not window_is_focused():
+        return
+
     if key == pynput.keyboard.Key.esc:
         # Reset the command:
         reset_console_command()
@@ -468,7 +529,7 @@ def create_console_view() -> str:
     horiz_padding = tabs2spaces("\t\t")
     term_cols, term_lines = os.get_terminal_size()
     # Adjust by subtracing bottom and right side buffers (from experimentation):
-    term_lines = term_lines - 1
+    term_lines = term_lines - 2 # -1 for padding -1 for help message on bottom row
     term_cols = term_cols - 2
 
     ### Build each section:
@@ -560,8 +621,18 @@ def create_console_view() -> str:
         # add extra lines that match the max width:
         left_side_lines += [' ' * left_side_max_width] * (len(right_side_lines) - len(left_side_lines))
 
-    ### Join left and right sides:
+
+
+    ## Join left and right sides:
     all_lines = [a + horiz_padding + b for a,b in itertools.zip_longest(left_side_lines, right_side_lines, fillvalue="")]
+
+    # Pad out total number of lines to max height:
+    all_lines += [' '] * (term_lines - len(all_lines))
+
+    ## Add help message to bottom line:
+    all_lines += [ljust_noCodes(f"\033[37;40m    Type to enter command.    Press \033[1mEnter\033[22m when \033[32mgreen\033[37m to send.    Press \033[1mEscape\033[22m to reset input.", term_cols) + "\033[0m"]
+
+    ### Build the full message:
     full_str = '\n'.join(all_lines) + "\033[0m" # make sure formatting is reset at the end
 
     return full_str

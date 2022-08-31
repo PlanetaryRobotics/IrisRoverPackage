@@ -109,5 +109,5 @@ if send_data_packet_to_wd_before_sniffing:
     send_packet(packet, pathway, ip, str(port))
 
 ## Stream Telemetry:
-stream_data_ip_udp_serial(use_console_view=True)
+stream_data_ip_udp_serial(use_console_view=False)
 # Check for wireless telemetry in Wireshark. For parsing help, run: `pyenv exec python parse_pcap.py --help`

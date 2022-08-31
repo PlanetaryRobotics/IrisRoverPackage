@@ -8,7 +8,10 @@
 
 - Add the ability to pass in new WiFi credentials from Earth (for volatile use).
 
-- Emit the message that says what endpoint the UDP client is on on a timer (so there's no change Hercules misses it).
-        - Include anything Hercules would have to regularly poll for automatically.
-            - (could this risk slowly filling up and eventually overwhelming the UART buffer? check how big it is and measure the clear rate).
-        - Docs (`UG209`) say you can't have more than one **recurring** timer but can you have a recurring timer and the single-shot timers already in use? Test this.
+
+# Critical Todos:
++ Restrict to Ch.11 only
+- Fix set_transmit_size
+- Interlock with Hercules Comms
+- Basic GPIO to WD on Connection status (and only transmit GND HBs if not in statis)
+- Anomaly check for events like software_exception (so we can have a critical reset)

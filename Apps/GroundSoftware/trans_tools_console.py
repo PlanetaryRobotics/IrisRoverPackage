@@ -219,8 +219,8 @@ def str_user_command() -> str:
 
             command = top_result
 
-            # If there's only one result, make the whole thing green:
-            if filtered_results.shape[0] == 1:
+            # If there's only one result or out input matches the top result exactly (i.e. we've locked it in), make the whole thing green:
+            if filtered_results.shape[0] == 1 or user_cmd_input_str == filtered_results.index[0]:
                 command = f"\033[37;42m{command}\033[0m"
                 # And still highlight the part the user supplied:
                 command = command.replace(user_cmd_input_str, f"\033[37;42;1m{user_cmd_input_str}\033[37;42m")

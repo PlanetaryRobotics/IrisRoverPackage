@@ -58,12 +58,13 @@
 // ! TODO: Add a command that lets us update the stored network info in the radio (in case it gets corrupted during transit).
 // This should be paired with an echo so we know the data got to Hercules okay.
 
-
 // ! TODO: Max sure default state of RTS (WF121 CTS) is active.
 
 //
 //
 //
+
+// TODO: Diagram UDP TX State Machine
 
 ////
 // POTENTIAL BUG REMEDIES:

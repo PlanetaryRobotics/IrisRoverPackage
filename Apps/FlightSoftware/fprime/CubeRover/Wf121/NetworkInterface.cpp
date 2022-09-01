@@ -289,6 +289,22 @@ namespace Wf121
         m_protectedRadioStatus.incNumCompleteDirectMessages();
     }
 
+    /**
+     * @brief      Callback triggered when we determine we've received
+     * valid information about the Radio's UDP interlock
+     * RadioUdpInterlockStatus, from an "ilock" Direct Message.
+     *
+     * @param status Current interlock status
+     */
+    void NetworkInterface::cb_dm_InterlockUpdate(const DirectMessage::RadioUdpInterlockStatus status)
+    {
+        // ! TODO: (WORKING-HERE) [CWC]
+        // Pass into HERC_HAS_INTERLOCK to a UdpTxCommsStatusManager mailbox (make it awaitable).
+        // Pass RADIO_HAS_INTERLOCK into active mailbox as a new ErrorCode.
+        // If we're currently awaiting something and we lost the interlock, send a DEBUG message to WD->GND.
+        // Finally add set (MAC) and release (RSSI) command encapsulations.
+    }
+
     BgApi::ErrorCode NetworkInterface::cb_CommandSetTransmitSize(const uint16_t result,
                                                                  const BgApi::Endpoint endpoint)
     {
@@ -427,7 +443,7 @@ namespace Wf121
                     pResponsePayload->dataSize = sizeof(uplinkResponse.rawData);
                     // DEBUG (TODO: [CWC] REMOVEME): Tell WD->GSW what we got.
                     static const uint8_t debugDownlinkPrefix[] = "RADIO: UPL: ";
-                    watchDogInterface.debugPrintfBufferWithPrefix((uint8_t*)debugDownlinkPrefix, getStrBufferLen(debugDownlinkPrefix), pResponsePayload->data, pResponsePayload->dataSize);
+                    watchDogInterface.debugPrintfBufferWithPrefix((uint8_t *)debugDownlinkPrefix, getStrBufferLen(debugDownlinkPrefix), pResponsePayload->data, pResponsePayload->dataSize);
                     // Push into UDP TX queue:
                     sendUdpPayload(pResponsePayload);
                 }
@@ -907,6 +923,11 @@ namespace Wf121
             case UdpTxUpdateState::/******/ START_SENDING_MESSAGE:
                 inner_state = handleTxState_START_SENDING_MESSAGE(&yieldData);
                 watchDogInterface.debugPrintfToWatchdog("RADIO: TX in START_SENDING_MESSAGE"); // For debugging. TODO: [CWC] REMOVEME
+                break;
+
+            case UdpTxUpdateState::/******/ WAIT_FOR_UDP_INTERLOCK:
+                inner_state = handleTxState_WAIT_FOR_UDP_INTERLOCK(&yieldData);
+                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in WAIT_FOR_UDP_INTERLOCK"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
             case UdpTxUpdateState::/******/ SEND_SET_TRANSMIT_SIZE:

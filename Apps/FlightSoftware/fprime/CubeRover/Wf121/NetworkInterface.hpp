@@ -257,6 +257,7 @@ namespace Wf121
                              const bool fullyValid);
         void cb_dm_NowInState(const DirectMessage::RadioSwState state);
         void cb_dm_NowDoingActivity(const DirectMessage::RadioSwActivity doing);
+        void cb_dm_InterlockUpdate(const DirectMessage::RadioUdpInterlockStatus status);
 
         /* BGAPI COMMAND CALLBACKS */
         BgApi::ErrorCode cb_CommandSetTransmitSize(const uint16_t result,
@@ -301,8 +302,12 @@ namespace Wf121
             WAIT_FOR_NEXT_MESSAGE = 0x11,
             // Start sending the message (perform any setup):
             START_SENDING_MESSAGE = 0x12,
+            // Waiting for the Radio to give us the interlock (mutex effectively)
+            // saying we're good to send data to the UDP port and it won't
+            // interrupt us:
+            WAIT_FOR_UDP_INTERLOCK = 0x13,
             // We have a message to send and now need to send `SetTransmitSize`:
-            SEND_SET_TRANSMIT_SIZE = 0x13,
+            SEND_SET_TRANSMIT_SIZE = 0x14,
             // Wait for acknowledgement of `SetTransmitSize`:
             WAIT_FOR_SET_TRANSMIT_SIZE_ACK = 0x20,
             // Send a UDP chunk:
@@ -318,6 +323,7 @@ namespace Wf121
         UdpTxUpdateState handleTxState_WAIT_FOR_BGAPI_READY(bool *yieldData);
         UdpTxUpdateState handleTxState_WAIT_FOR_NEXT_MESSAGE(bool *yieldData);
         UdpTxUpdateState handleTxState_START_SENDING_MESSAGE(bool *yieldData);
+        UdpTxUpdateState handleTxState_WAIT_FOR_UDP_INTERLOCK(bool *yieldData);
         UdpTxUpdateState handleTxState_SEND_SET_TRANSMIT_SIZE(bool *yieldData);
         UdpTxUpdateState handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK(bool *yieldData);
         UdpTxUpdateState handleTxState_SEND_UDP_CHUNK(bool *yieldData);

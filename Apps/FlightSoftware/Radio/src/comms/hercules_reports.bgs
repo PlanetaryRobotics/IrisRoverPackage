@@ -20,7 +20,7 @@ dim doing_msg_body_len # Length of the current doing message (excluding prefix)
 
 # Separate message buffer for sending information about the UDP interlock:
 const ILOCK_MSG_PREFIX_LEN = 6  # "ilock:"
-dim ilock_msg_buffer(10) # ILOCK_MSG_PREFIX_LEN(6) + MAX_DOING_MSG_BODY_LEN(4) (unfortunately we can't just add consts here)
+dim ilock_msg_buffer(10) # ILOCK_MSG_PREFIX_LEN(6) + MAX_ILOCK_MSG_BODY_LEN(4) (unfortunately we can't just add consts here)
 dim ilock_msg_body_len # Length of the current interlock message (excluding prefix)
 
 # Heartbeat takes the form of "thump:[client_endpoint_in_raw_hex]:[server_endpoint_in_raw_hex]:[CURRENT_STATE>CURRENTLY_DOING]"

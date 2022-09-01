@@ -11,8 +11,8 @@
 
 # Critical Todos:
 + Restrict to Ch.11 only
-- Fix set_transmit_size
-- Interlock with Hercules Comms
++ Fix set_transmit_size
++ Interlock with Hercules Comms
 + Properly configure I/O
 + Basic GPIO to WD on Connection status
 - (and only transmit GND HBs if not in statis)

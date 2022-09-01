@@ -45,6 +45,27 @@ dim hercules_interlock_timer_running
 # Timer handle used for the interlock timer:
 const HERCULES_INTERLOCK_TIMER_HANDLE = $17
 
+# Clean up after interlock has been released:
+procedure hercules_interlock_post_release_cleanup()
+    # Let Hercules know:
+    call HR_UDP_INTERLOCK_IS_OFF()
+end
+
+
+# Turn off interlock.
+# Counterpart to `hercules_grab_interlock`.
+# (need to define this here because it's used by several callbacks that have to
+# precede `hercules_grab_interlock`)
+procedure hercules_release_interlock()
+    # Check if the interlock even needs to be released:
+    if(hercules_interlock_timer_running != 0 || hercules_interlock_counting_semaphore != 0)then
+        # Reset semaphore:
+        hercules_interlock_counting_semaphore = 0
+        # Clean up:
+        call hercules_interlock_post_release_cleanup()
+    end if
+end
+
 # Period to allow Hercules to have the UDP lock for.
 # NOTE: Hercules MTU is 1006B (inside the UDP packet). So, accounting for the
 # bytes needed to be sent in the set transmit size message, the bytes in every
@@ -110,6 +131,11 @@ const CRITICAL_RESET_MSG_HEADER_LEN = 11 # "RAD:CRIT!|h"
 const CRITICAL_RESET_MSG_LEN = 13 # CRITICAL_RESET_MSG_HEADER_LEN + 2B of "reason"
 dim critical_reset_msg_buffer(13)
 
+# Buffer for containing message about impending CRITICAL reset due to a software exception (special breed that has different causes)
+const CRITICAL_RESET_SWE_MSG_HEADER_LEN = 10 # "RAD:SWE!|h"
+const CRITICAL_RESET_SWE_MSG_LEN = 17 # CRITICAL_RESET_SWE_MSG_HEADER_LEN + 4B of "Address" + "|h" + 1B of "Type"
+dim critical_reset_swe_msg_buffer(17)
+
 
 # Downlink a message, ignoring the interlock either because we're choosing not to care or because it's already been checked:
 procedure force_downlink_message(msg_len, msg_buff())
@@ -119,13 +145,9 @@ procedure force_downlink_message(msg_len, msg_buff())
     # At the moment, we have no need.
     if (msg_len > 0 && msg_len < $FF) then
         # If hercules has the lock (i.e. we're forcing this)...
-        if(hercules_interlock_counting_semaphore != 0) then
-            # Tell Hercules it's lost the lock (likely because Ground asked us
-            # something and we needed to respond or b/c it sent us garbage):
-            hercules_interlock_timer_running = 0
-            hercules_interlock_counting_semaphore = 0
-            call HR_UDP_INTERLOCK_IS_OFF()
-        end if
+        # and tell Hercules it's lost the lock (likely because Ground asked us
+        # something and we needed to respond or b/c it sent us garbage):
+        call hercules_release_interlock() # (only releases if it's currently held)
 
         # Set transmit size:
         # NOTE: We have to do this b/c Hercules will also be setting the
@@ -304,6 +326,17 @@ export procedure RADIO_GND_CRITICAL_RESET_REASON(reason)
     call force_downlink_message(CRITICAL_RESET_MSG_LEN, critical_reset_msg_buffer(0:CRITICAL_RESET_MSG_LEN))
 end
 
+# Let Earth know we're about to perform a "Critical reset" b/c
+# `anomaly_handling` caught a software exception:
+export procedure RADIO_GND_CRITICAL_RESET_SWE_REASON(address, type)
+    # Copy in the address bytes:
+    critical_reset_swe_msg_buffer(CRITICAL_RESET_SWE_MSG_HEADER_LEN:4) = address
+    # Copy in the type bytes (all numbers are 4B but we only want the lowest 1B):
+    critical_reset_swe_msg_buffer(CRITICAL_RESET_SWE_MSG_HEADER_LEN+4+2:1) = type
+
+    # Send (no matter what, ignoring the interlock):
+    call force_downlink_message(CRITICAL_RESET_SWE_MSG_LEN, critical_reset_swe_msg_buffer(0:CRITICAL_RESET_SWE_MSG_LEN))
+end
 
 ##
 # Interlock Logic:
@@ -320,9 +353,9 @@ procedure hercules_grab_interlock()
         call FORCE_RADIO_GND_HEARTBEAT()
     end if
 
-    # Give out the lock if not in a runaway state:
+    # Give out the lock anytime asked but only if not in a runaway state:
     if (hercules_interlock_runaway_detected != 1) then # NOTE: != is more bitflip resilient than =
-        # First, let Hercules know it got the lock:
+        # First, let Hercules know it got the lock (do this first so it has time to get the message):
         call HR_UDP_INTERLOCK_IS_ON()
 
         # Then up the semaphore count:
@@ -355,10 +388,14 @@ event hardware_soft_timer(handle)
             hercules_interlock_timer_running = 1
             call hardware_set_soft_timer(HERCULES_INTERLOCK_PERIOD_MS, HERCULES_INTERLOCK_TIMER_HANDLE, 1)
         else
-            # The interlock has been released.
+            # The interlock has been released implicitly (count went back to zero).
+            # Flag that we'll no longer be continuing the timer:
+            # ONLY do this here since we want the timer (and the start trigger)
+            # to be the only thing in charge of its control flow to prevent
+            # obscure race conditions
             hercules_interlock_timer_running = 0
-            # Let Hercules know:
-            call HR_UDP_INTERLOCK_IS_OFF()
+            # Make it formal:
+            call hercules_interlock_post_release_cleanup()
         end if
     end if
 end
@@ -414,8 +451,12 @@ event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
 
     # Setup fixed header for Critical Reset Message:
     critical_reset_msg_buffer(0:CRITICAL_RESET_MSG_HEADER_LEN) = "RAD:CRIT!|h"
+    
+    # .. and all fixed bytes for the Software Exception version:
+    critical_reset_swe_msg_buffer(0:CRITICAL_RESET_SWE_MSG_HEADER_LEN) = "RAD:SWE!|h"
+    critical_reset_swe_msg_buffer(CRITICAL_RESET_SWE_MSG_HEADER_LEN+4:2) = "|h"
 
-    # Initiate the interlock:
+    # Initialize the interlock:
     hercules_interlock_counting_semaphore = 0
     hercules_interlock_runaway_detected = 0
     hercules_interlock_timer_running = 0

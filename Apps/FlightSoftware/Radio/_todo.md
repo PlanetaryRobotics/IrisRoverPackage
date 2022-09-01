@@ -17,3 +17,13 @@
 + Basic GPIO to WD on Connection status
 - (and only transmit GND HBs if not in statis)
 - Anomaly check for events like software_exception (so we can have a critical reset)
+- Add sentinel byte check (every HB) using a couple sentinel bytes at beginning
+  of dim memory space (every bgs dim just in case?) to make sure the stack isn't
+  overwriting into dim space (per manual). -> fatal:so (stack overflow)
+  ^ could just check it with any timer at the bottom of main? (incl. stack
+  overflow checker at bottom of main)
+    - Also, as a precaution, check all *really* important operational values to
+    make sure they have a known possible value (e.g. check state_4B_abbr)
+    - Also can serve as a basic cosmic radiation safety
+- Run a long (>72hrs) continuous test with Hercules and check for any fatal or
+  fatal:crit/swe/so messages.

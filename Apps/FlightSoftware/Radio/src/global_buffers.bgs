@@ -1,5 +1,11 @@
 # Allocations for buffers (and other variables) that the whole system needs access to:
 
+# Whether or not we are expecting an RSSI event (so we can hijack
+# signal_quality to also allow Hercules to signal us to release its UDP
+# interlock (see `ground_reports` for more details about the insanity for why
+# we need to do this).
+export dim expecting_rssi_update
+
 # 4-letter state abbreviation used for checking if we should be trigger a state
 # transition based on an event:
 # - 4-letter b/c BGScript buffers can only be directly compared if 4 bytes)
@@ -19,4 +25,7 @@ event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
     # Initialize endpoints:
     udp_client_endpoint = UDP_NULL_ENDPOINT  # drop endpoint (i.e. /dev/null until anything is actually connected)
     udp_server_endpoint = UDP_NULL_ENDPOINT  # drop endpoint (i.e. /dev/null until anything is actually connected)
+
+    # Initialize global flags:
+    expecting_rssi_update = 0
 end

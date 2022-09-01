@@ -400,6 +400,7 @@ event hardware_soft_timer(handle)
     end if
 end
 
+# CHECK FOR HERCULES INTERLOCK REQUEST:
 # Since we have no way to pass any data from Hercules to Radio with its UART
 # used as a BGAPI endpoint, we must hijack an innocuous, unused, and effect-less
 # BGAPI command so Hercules can signal the Radio that it wants the lock.
@@ -419,6 +420,34 @@ end
 event config_mac_address(hw_interface, mac)
     # Don't care about the args. Just set the lock:
     call hercules_grab_interlock()
+end
+
+# CHECK FOR HERCULES INTERLOCK RELEASE:
+# While the counting semaphore system is designed to NOT need a closing signal,
+# we can prevent runaways by having one. So, we will delicately hijack the Get
+# RSSI command event for that (there are no other good options for commands to
+# hijack - see the Get MAC note above for more details). When Hercules wants to
+# tell us it's done sending a message and we can release the interlock, it will
+# request an RSSI update.
+# Only wrinkle is that we do that normally here, so we need to check to see if
+# we have an outstanding RSSI request (i.e. did this event come from us or from
+# Hercules).
+#
+# NOTE: With this scheme, it's (maybe) *possible* that Hercules could cause an
+# event to fire while we have an outstanding request (or even, the outstanding
+# request bit could be flipped by radiation), in which case, we'll fail to
+# release the interlock. This is *very* unlikely and why the counting semaphore
+# system is designed to be self-sufficient. This is just a nicety. That said,
+# unless I'm vastly misunderstanding how BGScript and BGAPI endpoints interact,
+# the command->response->event flow for an internal RSSI update request should
+# complete before the command->response->event flow triggered by a command from
+# Hercules is allowed to start - they shouldn't interleave - making the
+# aforementioned concern impossible. This is somewhat opaque in the docs, so we
+# define for safety just in case.
+event sme_signal_quality(rssi, hw_interface)
+    if(expecting_rssi_update = 0) then
+        call hercules_release_interlock()
+    end if
 end
 
 

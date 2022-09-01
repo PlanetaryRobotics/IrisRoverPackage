@@ -23,7 +23,7 @@ const ILOCK_MSG_PREFIX_LEN = 6  # "ilock:"
 dim ilock_msg_buffer(10) # ILOCK_MSG_PREFIX_LEN(6) + MAX_DOING_MSG_BODY_LEN(4) (unfortunately we can't just add consts here)
 dim ilock_msg_body_len # Length of the current interlock message (excluding prefix)
 
-# Heartbeat takes the form of "thump:[client_endpoint_in_raw_hex]:[server_endpoint_in_raw_hex]:[endCURRENT_STATE>CURRENTLY_DOING"
+# Heartbeat takes the form of "thump:[client_endpoint_in_raw_hex]:[server_endpoint_in_raw_hex]:[CURRENT_STATE>CURRENTLY_DOING]"
 # We do this in case Hercules crashes or resets and has thus forgotten our
 # current state. We want to remind it regularly just in case.
 const HB_MSG_PREFIX_LEN = 6  # "thump:"
@@ -241,7 +241,7 @@ end
 
 export procedure HR_FATAL_SELF_WD_NOT_IN_GOOD_STATE()
     # We weren't in "good state" when the self watchdog woke up and checked on us:
-    call hercules_direct_message_ascii(23, "fatal:SELF_WD_NOT_GOOD")
+    call hercules_direct_message_ascii(22, "fatal:SELF_WD_NOT_GOOD")
 end
 
 # Let Hercules know we're about to perform a "Critical reset" b/c
@@ -249,7 +249,18 @@ end
 # (out of memory, HW fault, etc). Pass along the two bytes indicating that too:
 export procedure HR_FATAL_CRITICAL_RESET_REASON(reason)
     call hercules_compile_dm__new()
-    call hercules_compile_dm__append_message(6, "fatal:CRIT!h")
+    call hercules_compile_dm__append_message(12, "fatal:CRIT!h")
     call hercules_compile_dm__append_hex_buffer(2, reason) # reason is only 2B (lowest 2B, which come first in little endian)
+    call hercules_compile_dm__send()
+end
+
+# Let Hercules know we're about to perform a "Critical reset"
+# b/c a software exception was caught.
+export procedure HR_FATAL_CRITICAL_RESET_SW_EXCEPTION(address, type)
+    call hercules_compile_dm__new()
+    call hercules_compile_dm__append_message(11, "fatal:SWE!h")
+    call hercules_compile_dm__append_hex_buffer(4, address) # address is a full 4B uint32
+    call hercules_compile_dm__append_message(2, ":h")
+    call hercules_compile_dm__append_hex_buffer(1, type) # type is only 1B (lowest 1B, which come first in little endian)
     call hercules_compile_dm__send()
 end

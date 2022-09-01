@@ -177,3 +177,18 @@ end
 event endpoint_error(reason, endpoint)
     call critical_reset_if_bad_reason(reason)
 end
+
+event system_sw_exception(address, type)
+    # oh no, software broke...
+    # if connected, let ground know (in some cases of "very bad", this
+    # might not be possible but we should at least try):
+    if status__wifi_connected != 0 then # compare as != 0 instead of = 1 since more bit-flip resistant to telling us if we might be connected:
+        call RADIO_GND_CRITICAL_RESET_SWE_REASON(address, type)
+    end if
+
+    # Let Hercules know:
+    call HR_FATAL_CRITICAL_RESET_SW_EXCEPTION(address, type)
+
+    # We've gone critical. Reset:
+    call system_reset(0)
+end

@@ -298,11 +298,30 @@ namespace Wf121
      */
     void NetworkInterface::cb_dm_InterlockUpdate(const DirectMessage::RadioUdpInterlockStatus status)
     {
-        // ! TODO: (WORKING-HERE) [CWC]
-        // Pass into HERC_HAS_INTERLOCK to a UdpTxCommsStatusManager mailbox (make it awaitable).
-        // Pass RADIO_HAS_INTERLOCK into active mailbox as a new ErrorCode.
-        // If we're currently awaiting something and we lost the interlock, send a DEBUG message to WD->GND.
-        // Finally add set (MAC) and release (RSSI) command encapsulations.
+        // Since we need to obey the interlock even when we're not awaiting a
+        // command response, we need to store the latest update elsewhere too:
+        m_udpTxCommsStatusManager.setLatestUdpInterlockStatus(status);
+
+        switch (status)
+        {
+        case DirectMessage::RadioUdpInterlockStatus::HERC_HAS_INTERLOCK:
+            // Let the manager know we have the lock (i.e. NO_ERROR occurred):
+            m_udpTxCommsStatusManager.getUdpInterlock_Response(BgApi::ErrorCode::NO_ERROR);
+            break;
+        case DirectMessage::RadioUdpInterlockStatus::RADIO_HAS_INTERLOCK:
+            // Tell the manager that we no longer have the lock (pass this into
+            // whatever mailbox we're currently awaiting).
+            // I.e. if we're currently awaiting a particular command response but
+            // instead got this, push a `INTERNAL__LOST_INTERLOCK` ErrorCode to
+            // the appropriate mailbox queue in the TX manager:
+            m_udpTxCommsStatusManager.setResponseForCurrentlyAwaitedCommand(BgApi::ErrorCode::INTERNAL__LOST_INTERLOCK);
+            // NOTE: in nominal operation, we'll get this no matter what after
+            // we tell the Radio to release the interlock at the end of a write
+            // operation. In this case, we'll still push to a mailbox which will
+            // never be read b/c it will be reset before the next read operation
+            // begins.
+            break;
+        }
     }
 
     BgApi::ErrorCode NetworkInterface::cb_CommandSetTransmitSize(const uint16_t result,
@@ -626,6 +645,10 @@ namespace Wf121
     NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_ASK_FOR_UDP_INTERLOCK(bool *yieldData)
     {
         // ! TODO: [CWC] (WORKING-HERE)
+        // - Add set (MAC) and release (RSSI) command encapsulations.
+        // - Make sure to check the stored status before sending anything too (it should loop back here if so - or back to START SEND probably...)
+        // - Make sure to release the interlock when done sending (don't need to await it, just need to cast it out into the ether, since we'll necessarily get that update before we get any reacquisition updates)
+        // - Shove these new states between start send and set transmit size.
         *yieldData = true;
         return UdpTxUpdateState::WAIT_FOR_UDP_INTERLOCK;
     }

@@ -161,6 +161,12 @@ namespace Wf121
                                               // awaiting a command response. Not actually returned by the BadSyntax
                                               // callback but, rather, is pushed to any awaiting mailbox queues by
                                               // that handler.
+      INTERNAL__LOST_INTERLOCK = 0x0003,      // Custom (not part of the actual BGAPI specification - only used
+                                              // internally) for when the Radio tells us we lost exclusive access to
+                                              // the UDP downlink interface (the UDP interlock) - i.e. we should stop
+                                              // sending stuff to the UDP downlink interface until we get it back.
+                                              // Really this is a DM thing and not a BGAPI thing but all the mailboxes
+                                              // are set up to accept BgApi::ErrorCode, so we'll just roll with this.
       INVALID_PARAMETER = 0x0180,             // This error code indicates that a command contained an invalid
                                               // parameter
       DEVICE_WRONG_STATE = 0x0181,            // This error code indicates that the device is in wrong state to
@@ -790,15 +796,15 @@ namespace Wf121
       virtual ErrorCode cb_EventEndpointSyntaxError(const uint16_t result,
                                                     const Endpoint endpoint)
       {
-         if (result != NO_ERROR)
-         {
-           // BGAPI won't be processing our message, so we should stop waiting for
-           // it to do so.
-           m_bgApiStatus.setProcessingCmd(false);
-         }
+        if (result != NO_ERROR)
+        {
+          // BGAPI won't be processing our message, so we should stop waiting for
+          // it to do so.
+          m_bgApiStatus.setProcessingCmd(false);
+        }
 
-         return (ErrorCode)result;
-       }
+        return (ErrorCode)result;
+      }
 
       /**
        * @brief      This event indicates that the device has started and is

@@ -28,6 +28,14 @@
 
 namespace Wf121
 {
+    // How long it takes for the UDP interlock to expire automatically.
+    // In milliseconds since we were last given the interlock.
+    // For more details on the interlock see `ground_reports.bgs` in the Radio
+    // firmware.
+    // ! Check `HERCULES_INTERLOCK_PERIOD_MS` in ground_reports.bgs` in the Radio
+    // firmware. These two numbers should match.
+    static uint32_t UDP_INTERLOCK_EXPIRATION_TIME_MS = 1350;
+
     class UdpTxCommsStatusManager
     {
     public:
@@ -48,6 +56,7 @@ namespace Wf121
         enum class AwaitableCommand
         {
             NONE = 0x00, // Not currently awaiting anything:
+            GET_UDP_INTERLOCK = 0x0A,
             SET_TRANSMIT_SIZE = 0x10,
             SEND_ENDPOINT_UDP = 0x20
         };
@@ -60,16 +69,30 @@ namespace Wf121
         // to direct to the appropriate Mailbox Queue):
         void setResponseForCurrentlyAwaitedCommand(BgApi::ErrorCode response);
 
+        // Block (yield) the calling task until we get a `GetUdpInterlock` response.
+        // Return that response or TIMEOUT if we waited too long or
+        // INTERNAL__TRY_AGAIN if the messaging system wasn't set up yet or
+        // INTERNAL__BAD_SYNTAX if a BadSyntax event was emitted while we were awaiting a response.
+        // INTERNAL__LOST_INTERLOCK if we lose the interlock while awaiting this response.
+        BgApi::ErrorCode awaitResponse_getUdpInterlock();
         // Block (yield) the calling task until we get a `SetTransmitSize` response.
         // Return that response or TIMEOUT if we waited too long or
         // INTERNAL__TRY_AGAIN if the messaging system wasn't set up yet or
         // INTERNAL__BAD_SYNTAX if a BadSyntax event was emitted while we were awaiting a response.
+        // INTERNAL__LOST_INTERLOCK if we lose the interlock while awaiting this response.
         BgApi::ErrorCode awaitResponse_setTransmitSize();
         // Block (yield) the calling task until we get a `SendEndpointUdp` response (for the downlink endpoint).
         // Return that response or TIMEOUT if we waited too long or
         // INTERNAL__TRY_AGAIN if the messaging system wasn't set up yet or
         // INTERNAL__BAD_SYNTAX if a BadSyntax event was emitted while we were awaiting a response.
+        // INTERNAL__LOST_INTERLOCK if we lose the interlock while awaiting this response.
         BgApi::ErrorCode awaitResponse_sendEndpointUdp();
+
+        // Helper function to process the given response for the given Mailbox Queue:
+        static void processMailboxResponse(BgApi::ErrorCode response, QueueHandle_t *queue);
+
+        // Tell the UdpTxTask that we got the given response code for the `GetUdpInterlock` command:
+        void getUdpInterlock_Response(BgApi::ErrorCode response);
 
         // Tell the UdpTxTask that we got the given response code for the `SetTransmitSize` command:
         void setTransmitSize_Response(BgApi::ErrorCode response);
@@ -78,9 +101,10 @@ namespace Wf121
         void sendEndpointUdp_Response(BgApi::ErrorCode response);
 
     private:
-        // Mutex to protect internal data (NOTE: Queues do this themselves)
+        // Mutex to protect internal data (NOTE: the Queues do this themselves)
         ::Os::Mutex mutex;
 
+        QueueHandle_t xQueue_GetUdpInterlock_Response;
         QueueHandle_t xQueue_SetTransmitSize_Response;
         QueueHandle_t xQueue_SendEndpointUdp_Response;
 
@@ -98,6 +122,31 @@ namespace Wf121
         // INTERNAL__TRY_AGAIN if the messaging system wasn't set up yet or
         // INTERNAL__BAD_SYNTAX if a BadSyntax event was emitted while we were awaiting a response.
         BgApi::ErrorCode awaitResponse(AwaitableCommand cmd, QueueHandle_t *blockingQueue);
+
+        // Status of the UDP interlock according to the latest update we've
+        // received from the Radio (NOTE: as a matter of principle, this never
+        // reflects our time-based expiration inferences. That's what
+        // `getUdpInterlockStatus` is for.)
+        //
+        // We store this in addition to pushing the update to the awaiting
+        // mailboxes because we need to obey the interlock even when we're not
+        // awaiting a command response.
+        DirectMessage::RadioUdpInterlockStatus latestUpdatedInterlockStatus;
+        // Timestamp (in milliseconds since boot based on FreeRTOS scheduler
+        // ticks) of the last time we **acquired** the UDP interlock. UDP
+        // interlock expires after some time so we want to keep track of this
+        // so we can infer that it's expired even if we haven't been told or
+        // missed the message telling us so.
+        uint32_t lastInterlockAcquisitionTimeMs;
+
+        // Set the latest interlock status and update the acquisition time if
+        // we got an update.
+        void setLatestUdpInterlockStatus(DirectMessage::RadioUdpInterlockStatus status);
+        // Get the current interlock status, accounting for the expiration time
+        // (i.e. if our latest update from the Radio said we had the lock but
+        // it's been too long since we got that update, we'll infer it's
+        // expired but we missed the message).
+        DirectMessage::RadioUdpInterlockStatus getUdpInterlockStatus();
     };
 }
 

@@ -357,7 +357,7 @@ namespace Wf121
          * @param body_data Buffer to check.
          * @return uint8_t Number of bytes used (0 if no match).
          */
-        uint8_t DirectMessageDriver::checkIfInterlockMatches(RadioUdpInterlockStatus status, const uint8_t *ilock_buf, uint8_t body_len, uint8_t *body_data);
+        uint8_t DirectMessageDriver::checkIfInterlockMatches(RadioUdpInterlockStatus status, const uint8_t *ilock_buf, uint8_t body_len, uint8_t *body_data)
         {
             uint8_t ilock_len = getStrBufferLen(ilock_buf);
             if (

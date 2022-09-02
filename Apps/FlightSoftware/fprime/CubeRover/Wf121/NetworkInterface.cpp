@@ -618,6 +618,29 @@ namespace Wf121
         return UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE;
     }
 
+    // Helper function to handle the `ASK_FOR_UDP_INTERLOCK` `UdpTxUpdateState`
+    // state in `udpTxUpdateHandler`:
+    // Sets the yieldData flag if it needs the State Machine to pause and yield
+    // data to the `Wf121UdpTxTask`.
+    // Returns the next state to transition to.
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_ASK_FOR_UDP_INTERLOCK(bool *yieldData)
+    {
+        // ! TODO: [CWC] (WORKING-HERE)
+        *yieldData = true;
+        return UdpTxUpdateState::WAIT_FOR_UDP_INTERLOCK;
+    }
+
+    // Helper function to handle the `WAIT_FOR_UDP_INTERLOCK` `UdpTxUpdateState`
+    // state in `udpTxUpdateHandler`:
+    // Sets the yieldData flag if it needs the State Machine to pause and yield
+    // data to the `Wf121UdpTxTask`.
+    // Returns the next state to transition to.
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_UDP_INTERLOCK(bool *yieldData)
+    {
+        // ! TODO: [CWC] (WORKING-HERE)
+        return UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE;
+    }
+
     // Helper function to handle the `SEND_SET_TRANSMIT_SIZE` `UdpTxUpdateState`
     // state in `udpTxUpdateHandler`:
     // Sets the yieldData flag if it needs the State Machine to pause and yield
@@ -923,6 +946,11 @@ namespace Wf121
             case UdpTxUpdateState::/******/ START_SENDING_MESSAGE:
                 inner_state = handleTxState_START_SENDING_MESSAGE(&yieldData);
                 watchDogInterface.debugPrintfToWatchdog("RADIO: TX in START_SENDING_MESSAGE"); // For debugging. TODO: [CWC] REMOVEME
+                break;
+
+            case UdpTxUpdateState::/******/ ASK_FOR_UDP_INTERLOCK:
+                inner_state = handleTxState_ASK_FOR_UDP_INTERLOCK(&yieldData);
+                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in ASK_FOR_UDP_INTERLOCK"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
             case UdpTxUpdateState::/******/ WAIT_FOR_UDP_INTERLOCK:

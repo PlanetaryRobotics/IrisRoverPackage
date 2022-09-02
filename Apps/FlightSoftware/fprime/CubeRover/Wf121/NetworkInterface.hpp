@@ -302,12 +302,14 @@ namespace Wf121
             WAIT_FOR_NEXT_MESSAGE = 0x11,
             // Start sending the message (perform any setup):
             START_SENDING_MESSAGE = 0x12,
+            // Asking Radio for the UDP interlock:
+            ASK_FOR_UDP_INTERLOCK = 0x13,
             // Waiting for the Radio to give us the interlock (mutex effectively)
             // saying we're good to send data to the UDP port and it won't
             // interrupt us:
-            WAIT_FOR_UDP_INTERLOCK = 0x13,
+            WAIT_FOR_UDP_INTERLOCK = 0x14,
             // We have a message to send and now need to send `SetTransmitSize`:
-            SEND_SET_TRANSMIT_SIZE = 0x14,
+            SEND_SET_TRANSMIT_SIZE = 0x15,
             // Wait for acknowledgement of `SetTransmitSize`:
             WAIT_FOR_SET_TRANSMIT_SIZE_ACK = 0x20,
             // Send a UDP chunk:
@@ -323,6 +325,7 @@ namespace Wf121
         UdpTxUpdateState handleTxState_WAIT_FOR_BGAPI_READY(bool *yieldData);
         UdpTxUpdateState handleTxState_WAIT_FOR_NEXT_MESSAGE(bool *yieldData);
         UdpTxUpdateState handleTxState_START_SENDING_MESSAGE(bool *yieldData);
+        UdpTxUpdateState handleTxState_ASK_FOR_UDP_INTERLOCK(bool *yieldData);
         UdpTxUpdateState handleTxState_WAIT_FOR_UDP_INTERLOCK(bool *yieldData);
         UdpTxUpdateState handleTxState_SEND_SET_TRANSMIT_SIZE(bool *yieldData);
         UdpTxUpdateState handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK(bool *yieldData);

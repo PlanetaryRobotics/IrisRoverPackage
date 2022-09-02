@@ -8,7 +8,10 @@ import socket
 import numpy as np
 import struct
 
-def send_wifi_adv2(data: bytes, ip="192.168.150.3", port=42000, src_ip="192.168.10.105", src_port=43531) -> None:
+def send_wifi_adv2(data: bytes, ip="192.168.150.3", port=42000, src_ip="192.168.10.105", src_port=43531, verbose=True) -> None:
+    if verbose:
+        print(f"Sending over WiFi:\n\t{':'.join(f'{d:02x}' for d in data)} . . .")
+
     # Craft UDP packet (incl. using the correct src_ip, even if that's not our own):
     full_packet = scp.IP(dst=ip, src=src_ip) / scp.UDP(sport=src_port, dport=port)/scp.Raw(load=data)
     # printraw(scp.raw(scp.IP(scp.raw(full_packet))))
@@ -98,7 +101,7 @@ if SEND_HERCULES_COMMAND:
 
 
 # Radio-Direct Commands:
-# send_radio_only_cmd__echo(b'HELLO')
+send_radio_only_cmd__echo(b'HELLO')
 # send_radio_only_command(radio_only_cmd_ids['WRITE_UART'], b'TESTING...')
 # send_radio_only_command(0xFF, b'This-is-a-bad-cmd-id')
 # send_radio_only_command(radio_only_cmd_ids['HERCULES_DM'], b'faked:STATE')

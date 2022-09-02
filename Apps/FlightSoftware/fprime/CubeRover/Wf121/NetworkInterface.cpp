@@ -321,6 +321,11 @@ namespace Wf121
             // never be read b/c it will be reset before the next read operation
             // begins.
             break;
+        case DirectMessage::RadioUdpInterlockStatus::BAD_MESSAGE:
+        default:
+            // We got an update but it was garbled. For safety, we have to
+            // assume this means we lost the lock. Tell the Manager:
+            m_udpTxCommsStatusManager.setResponseForCurrentlyAwaitedCommand(BgApi::ErrorCode::INTERNAL__LOST_INTERLOCK);
         }
     }
 

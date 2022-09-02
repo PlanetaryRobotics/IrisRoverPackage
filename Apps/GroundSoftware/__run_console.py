@@ -25,6 +25,6 @@ if __name__ == '__main__':
     input(f"Press ENTER to begin . . .")
 
     start_console(
-        serial_device_sn = 'A7035PDL',
-        baud = 9600
+        serial_device_sn = SERIAL_DEVICE_SNS[SERIAL_DEVICE],
+        baud = BAUD
     )

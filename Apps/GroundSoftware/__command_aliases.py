@@ -344,6 +344,13 @@ prepared_commands = {
         OrderedDict(camera_num=1, callback_id=0), # Change this to whatever you want to reset.
         DataPathway.WIRED
     ),
+    'wd-echo-hi-watchdog': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'WatchDogInterface_Echo',
+        OrderedDict(length=10, message="HiWatchdog"), # Change this to whatever you want to reset.
+        DataPathway.WIRED
+    ),
     'misc-test': (
         DataPathway.WIRED,
         # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)

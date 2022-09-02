@@ -112,8 +112,14 @@
 					    <item name="Battery_Stop_Charge" value = "28"/>
 					    <item name="Enable_RS422_UART" value = "29"/>
 					    <item name="Disable_RS422_UART" value = "30"/>
-					    <item name="Enable_Heater_Control" value = "31"/>
-					    <item name="Disable_Heater_Control" value = "32"/>
+					    <item name="Auto_Heater_Controller_Enable" value = "31"/>
+					    <item name="Auto_Heater_Controller_Disable" value = "32"/>
+					    <item name="Hercules_Watchdog_Enable" value = "0x21" comment="Enable Hercules Watchdog behavior (Watchdog resets Hercules if it's unresponsive)." />
+					    <item name="Hercules_Watchdog_Disable" value = "0x22" comment="Disable Hercules Watchdog behavior (Watchdog **DOESN'T** reset Hercules if it's unresponsive)." />
+					    <item name="Enable_Batteries" value = "0x23" comment="Properly enable the batteries (with persistent latching)." />
+					    <item name="Disable_Batteries" value = "0x24" comment="Properly disable the batteries (with persistent latching)." />
+					    <item name="Clear_Persistent_Deploy" value = "0xDD" comment="Clear the persistent 'deployed' status (in case it comes on erroneously during transit - e.g. due to cosmic radiation)." />
+					    <item name="HDRM_Deploy_Signal_Power_On" value = "0xEE" comment="Have the MSP430 Watchdog raise **its** deploy interlock signal. NOTE: This is not the normal way to do this. Only due this if the normal deploy pathway isn't working for some reason." />
 					</enum>
 					<comment>
                     	ENUM Value that specifies which components or hardware need to be reset
@@ -145,50 +151,76 @@
                 </arg>
             </args>
         </command>
-        <command kind="async" opcode="0x03" mnemonic="Switch_Connection_Mode">
+        <command kind="async" opcode="0x04" mnemonic="Switch_Connection_Mode">
             <comment>
-            Command to send signal to MSP430 that we switch the current connection mode
+            Command to send signal to MSP430 that we switch the current connection mode. NOTE: This is currently deprecated behavior. Watchdog now sends data to all available and active interfaces in any given state.
             </comment>
+            <args>
+                <arg name="mode" type="ENUM">
+                    <enum name="watchdog_connection_mode">
+                        <item name="WDCM_WIRED" value = "0x01" />
+                        <item name="WDCM_WIRELESS" value = "0x02" />
+                    </enum>
+                </arg>
+            </args>
         </command>
+        <!-- DEPRECATED
         <command kind="async" opcode="0x04" mnemonic="Engage_From_Lander">
             <comment>
             Command to send signal to MSP430 that it should send a signal to lander to engage, sets disengage pin low
             </comment>
-        </command>
-        <command kind="async" opcode="0xAA" mnemonic="Set_Kp_Specific">
+        </command>-->
+        <command kind="async" opcode="0xAA" mnemonic="Set_Debug_Comms_State">
             <comment>
-            Command to send signal to MSP430 that it should set Kp to a specific value
+            Turn Watchdog DEBUG comms messages ON or OFF (should default to ON).
             </comment>
             <args>
-                <arg name="value" type="U16" />
+                <arg name="confirm" type="ENUM">
+                    <enum name=" confirm_change_debug">
+                        <item name="Confirm_Change_Debug" value = "0xCC" />
+                    </enum>
+                </arg>
+                <arg name="state" type="ENUM">
+                    <enum name="debug_comms_state">
+                        <item name="DEBUG_ON" value = "0xFF" />
+                        <item name="DEBUG_OFF" value = "0x00" />
+                    </enum>
+                </arg>
             </args>
         </command>
-        <!-- <command kind="async" opcode="0xAB" mnemonic="Set_Heater_On_value">
+        <command kind="async" opcode="0xAB" mnemonic="Set_Auto_Heater_On_Value">
             <comment>
-            Command to send signal to MSP430 that it should set the value which the heater automatically turns on
-            </comment>
-        </command>
-        <command kind="async" opcode="0xAC" mnemonic="Set_Heater_Off_value">
-            <comment>
-            Command to send signal to MSP430 that it should set the value which the heater automatically turns off
-            </comment>
-        </command> -->
-        <command kind="async" opcode="0xAD" mnemonic="Set_Heater_Duty_Cycle_Max">
-            <comment>
-            Command to send signal to MSP430 that it should set the max possible Duty Cycle value for the heater
+            Set the ON threshold for the auto heater controller on the Watchdog.
             </comment>
             <args>
-                <arg name="limit" type="U16" />
+                <arg name="on" type="U16" />
+            </args>
+        </command>
+        <command kind="async" opcode="0xAC" mnemonic="Set_Auto_Heater_Off_Value">
+            <comment>
+            Set the OFF threshold for the auto heater controller on the Watchdog.
+            </comment>
+            <args>
+                <arg name="off" type="U16" />
+            </args>
+        </command>
+        <command kind="async" opcode="0xAD" mnemonic="Set_Heater_Duty_Cycle">
+            <comment>
+            Set the PWM duty cycle of the auto heater controller on the Watchdog. 
+            </comment>
+            <args>
+                <arg name="duty" type="U16" />
             </args>
         </command>
         <command kind="async" opcode="0xAE" mnemonic="Set_Heater_Duty_Cycle_Period">
             <comment>
-            Command to send signal to MSP430 that it should set the period the Duty Cycle for the heater is at
+            Set the PWM period of the auto heater controller on the Watchdog.
             </comment>
             <args>
                 <arg name="period" type="U16" />
             </args>
         </command>
+        <!-- DEPRECATED
         <command kind="async" opcode="0xAF" mnemonic="Set_Heater_Window">
             <comment>
             Set the Half-Width of the heater on/off deadband window around the setpoint (in thermistor ADC values). Between setpoint - half_width and setpoint + half_width, heater is off.
@@ -196,13 +228,24 @@
             <args>
                 <arg name="adc_half_width" type="U16" />
             </args>
-        </command>
-        <command kind="async" opcode="0xDA" mnemonic="Set_Heater_Setpoint">
+        </command> -->
+        <command kind="async" opcode="0xDA" mnemonic="Set_VSAE_State">
             <comment>
-            Command to send signal to MSP430 that it should set V to a specific value
+            Tells the Watchdog to manually set the state for the V_SYS_ALL_ENABLE line on the BLiMP.
             </comment>
             <args>
-                <arg name="adc_setpoint" type="U16" />
+                <arg name="confirm" type="ENUM">
+                    <enum name=" confirm_vsae_change_enum">
+                        <item name="Confirm_VSAE_Change" value = "0xBB" />
+                    </enum>
+                </arg>
+                <arg name="state" type="ENUM">
+                    <enum name="vsae_state">
+                        <item name="VSAE_ON" value = "0xFF" />
+                        <item name="VSAE_OFF" value = "0x00" />
+                        <item name="VSAE_FORCE_LOW" value = "0x66" comment="VSAE is normally OFF by being set as an input and floated. This sets it as an OUTPUT and drives it low." />
+                    </enum>
+                </arg>
             </args>
         </command>
         <command kind="async" opcode="0xEA" mnemonic="Switch_to_Sleep_Mode">
@@ -242,9 +285,52 @@
             </args>
         </command>
 
+        <command kind="async" opcode="0xF4" mnemonic="Clear_Reset_Memory">
+            <comment>
+            Clear the reset memory used in the Watchdog's Detailed Status Report.
+            </comment>
+            <args>
+                <arg name="confirm_1" type="ENUM">
+                    <enum name="confirm_clear_reset_memory_1">
+                        <item name="Confirm_Clear_Resets_1" value = "0xC7" />
+                    </enum>
+                </arg>
+                <arg name="confirm_2" type="ENUM">
+                    <enum name="confirm_clear_reset_memory_2">
+                        <item name="Confirm_Clear_Resets_2" value = "0x19" />
+                    </enum>
+                </arg>
+            </args>
+        </command>
+
+        <command kind="async" opcode="0xF5" mnemonic="DANGEROUS_Force_Battery_State_DANGEROUS">
+            <comment>
+            **DANGEROUS**: Tells the Watchdog to set the BLiMP's BSTAT pin (normally an input) to OUTPUT the given value. This is designed to be used as a last ditch effort to connect the batteries in case any of the components driving BSTAT die. If they aren't dead, this will have the effect of blowing up the BSTAT circuitry and maybe a port on the Watchdog if not the whole Watchdog. This is **ONLY** to be used if the Mission will be over if you don't. You've got to be really sure you want to do this.
+            </comment>
+            <args>
+                <arg name="confirm_1" type="ENUM">
+                    <enum name="dangerous_confirm_force_bstat_enum_1">
+                        <item name="Dangerous_Confirm_Force_BSTAT_1" value = "0xF0" />
+                    </enum>
+                </arg>
+                <arg name="confirm_2" type="ENUM">
+                    <enum name="dangerous_confirm_force_bstat_enum_2">
+                        <item name="Dangerous_Confirm_Force_BSTAT_2" value = "0x01" />
+                    </enum>
+                </arg>
+                <arg name="state" type="ENUM">
+                    <enum name="bstat_state">
+                        <item name="DANGEROUS_BSTAT_LOW" value = "0x00" comment="Sets BSTAT to OUTPUT and drives it LOW. This one is dangerous (can blow stuff up)." />
+                        <item name="DANGEROUS_BSTAT_HIGH" value = "0xFF" comment="Sets BSTAT to OUTPUT and drives it HIGH. This one is dangerous (can blow stuff up)." />
+                        <item name="BSTAT_RESTORE" value = "0xAA" comment="Returns BSTAT to its nominal state as an INPUT. This one isn't explictly dangerous to run." />
+                    </enum>
+                </arg>
+            </args>
+        </command>
+
         <command kind="async" opcode="0xF6" mnemonic="Request_Status_Report">
             <comment>
-            Request a detailed status report be sent.
+            Request the Watchdog to send a Detailed Status Report.
             </comment>
             <args>
                 <arg name="confirm" type="ENUM">
@@ -256,6 +342,9 @@
         </command>
 
         <command kind="async" opcode="0xF7" mnemonic="Set_Charger_Enable">
+            <comment>
+            Manually set charging IC enable state: CE. (normally you should just use the start and stop charging commands in reset specific.)
+            </comment>
             <args>
                 <arg name="charge_en" type="ENUM">
                     <enum name="charge_en_states">
@@ -268,18 +357,27 @@
         </command>
 
         <command kind="async" opcode="0xF8" mnemonic="Set_Charger_Power_Connection">
+            <comment>
+            Manually set charging power 28V regulator enable state: REGE. (normally you should just use the start and stop charging commands in reset specific.)
+            </comment>
             <args>
                 <arg name="v_lander_reg_en" type="BOOL" />
             </args>
         </command>
 
         <command kind="async" opcode="0xF9" mnemonic="Set_Battery_Connection">
+            <comment>
+            Manually set battery connection state: BE. (normally you should just use the batteries enable/disable command in reset specific.)
+            </comment>
             <args>
                 <arg name="batt_en" type="BOOL" />
             </args>
         </command>
 
-        <command kind="async" opcode="0xFA" mnemonic="Set_Battery_Control_Enable">
+        <command kind="async" opcode="0xFA" mnemonic="Set_Battery_Control_Enable">        
+            <comment>
+            Manually set the state of the battery control circuitry: BCTRLE. On Iris FM1 this line (should be) disconnected so this *should effectively be a no-op. To be used if the engineers believe this connection may have reformed somehow.
+            </comment>
             <args>
                 <arg name="batt_ctrl_en" type="ENUM">
                     <enum name="batt_ctrl_en_states">
@@ -291,6 +389,9 @@
             </args>
         </command>
         <command kind="async" opcode="0xFB" mnemonic="Set_Battery_Latch">
+            <comment>
+            Manually set battery latch state: LB. (normally you should just use the batteries enable/disable command in reset specific.)
+            </comment>
             <args>
                 <arg name="latch_batt" type="ENUM">
                     <enum name="latch_batt_states">
@@ -302,26 +403,50 @@
             </args>
         </command>
         <command kind="async" opcode="0xFC" mnemonic="Set_Latch_Set">
+            <comment>
+            Control the battery latch "SET" override. This line *should* be severed on Iris FM1, so this *should* effectively be a no-op.
+            </comment>
             <args>
                 <arg name="latch_set" type="ENUM">
                     <enum name="latch_set_states">
-                        <item name="Latch_Set_Off" value = "0x00" />
-                        <item name="Latch_Set_On" value = "0xFF" />
-                        <item name="Force_Latch_Set_High" value = "0xBB" />
-                        <item name="Pulse_Latch_Set_Low" value = "0x15" />
+                        <item name="Latch_Set_Off" value = "0x00" comment="Set as input." />
+                        <item name="Pulse_Latch_Set_Low" value = "0x15" comment="Pulse LS HIGH-LOW-HIGH as an output." />
+                        <item name="Force_Latch_Set_Low" value = "0xFF" comment="Make an output and drive LOW." />
+                        <item name="Force_Latch_Set_High" value = "0xBB" comment="Make an output and drive HIGH." />
                     </enum>
                 </arg>
             </args>
         </command>
         <command kind="async" opcode="0xFD" mnemonic="Set_Latch_Reset">
+            <comment>
+            Control the battery latch "RESET" override. This line *should* be severed on Iris FM1, so this *should* effectively be a no-op.
+            </comment>
             <args>
                 <arg name="latch_reset" type="ENUM">
                     <enum name="latch_reset_states">
-                        <item name="Latch_Reset_Off" value = "0x00" />
-                        <item name="Latch_Reset_On" value = "0xFF" />
-                        <item name="Force_Latch_Reset_High" value = "0xBB" />
-                        <item name="Pulse_Latch_Reset_Low" value = "0x15" />
+                        <item name="Latch_Reset_Off" value = "0x00" comment="Set as input." />
+                        <item name="Pulse_Latch_Reset_Low" value = "0x15" comment="Pulse LR HIGH-LOW-HIGH as an output." />
+                        <item name="Force_Latch_Reset_Low" value = "0xFF" comment="Make an output and drive LOW." />
+                        <item name="Force_Latch_Reset_High" value = "0xBB" comment="Make an output and drive HIGH." />
                     </enum>
+                </arg>
+            </args>
+        </command>
+
+        <command kind="async" opcode="0xFF" mnemonic="Echo">
+            <comment>
+            Echo the given fixed length string (technically can send a string of any length up to the max length).
+            </comment>
+            <args>
+                <arg name="length" type="U8">
+                Number of bytes to actually echo back.
+                </arg>
+                <arg
+                    name="message"
+                    type="string"
+                    size="10" 
+                ><!-- 'size' must match (or be less than) `MAX_ECHO_LENGTH` in the Watchdog MSP430 software. -->
+                    <comment>Message for the Watchdog to Echo back to us.</comment>
                 </arg>
             </args>
         </command>

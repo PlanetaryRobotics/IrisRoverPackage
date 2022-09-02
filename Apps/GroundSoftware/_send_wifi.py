@@ -101,8 +101,8 @@ if SEND_HERCULES_COMMAND:
 
 
 # Radio-Direct Commands:
-send_radio_only_cmd__echo(b'HELLO')
-# send_radio_only_command(radio_only_cmd_ids['WRITE_UART'], b'TESTING...')
+# send_radio_only_cmd__echo(b'HELLO')
+send_radio_only_command(radio_only_cmd_ids['WRITE_UART'], b'TESTING...')
 # send_radio_only_command(0xFF, b'This-is-a-bad-cmd-id')
 # send_radio_only_command(radio_only_cmd_ids['HERCULES_DM'], b'faked:STATE')
 # send_radio_only_command(radio_only_cmd_ids['RESET_RADIO'], b'nada')

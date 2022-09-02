@@ -29,7 +29,7 @@ export const NETWORK__ROVER_UDP_PORT       =   42000
 
 export const NETWORK__LANDER_SSID() = "PM1LWAP"
 export const NETWORK__LANDER_SSID_LEN = 7
-export const NETWORK__LANDER_PASS() = "PIMS_WAN"
+export const NETWORK__LANDER_PASS() = "PIMS_WAP"
 export const NETWORK__LANDER_PASS_LEN = 8
 # List of channels to scan, in order (left-to-right) as bytes (e.g. Ch.11 = 0x0B)
 export const NETWORK__LANDER_CHANS() = "\x0b"

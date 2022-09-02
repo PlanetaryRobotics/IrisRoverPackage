@@ -52,8 +52,8 @@ ACTUAL_REFERENCE_WINDOW_TITLE: Optional[str] = None
 # Whether or not the console is currently paused:
 console_paused: bool = False
 # All dataframes for storing data:
-telemetry_payload_log_dataframe: pd.DataFrame = pd.DataFrame(columns=['Opcode', 'Module', 'Channel', 'Num. Received', 'Last Updated', 'Current Value', 'H+1', 'H+2', 'H+3'], dtype=object).set_index('Opcode')
-packet_log_dataframe: pd.DataFrame = pd.DataFrame(columns=['Packet Type', 'Num. Received', 'Last Updated', 'Avg. Interval [s]', 'Current Interval [s]', 'Bytes Received', 'Avg. bits/sec', 'Avg. bits/sec w/CCSDS'], dtype=object).set_index('Packet Type')
+telemetry_payload_log_dataframe: pd.DataFrame = pd.DataFrame(columns=['Opcode', 'Module', 'Channel', 'nRX', 'Updated', 'Current Value', 'H+1', 'H+2', 'H+3'], dtype=object).set_index('Opcode')
+packet_log_dataframe: pd.DataFrame = pd.DataFrame(columns=['Packet Type', 'nRX', 'Updated', 'Avg. Interval [s]', 'Current Interval [s]', 'Bytes Received', 'Avg. bits/sec', 'Avg. bits/sec w/CCSDS'], dtype=object).set_index('Packet Type')
 # LiFo Queue Log of the string prints of the most recent packets received that don't contain telemetry (i.e. logs, events, debug prints, etc.):
 nontelem_packet_prints: deque = deque(maxlen=50)
 # DataFrame of all prepared commands:
@@ -489,8 +489,8 @@ def update_telemetry_payload_log_dataframe(t: TelemetryPayload) -> None:
         new_data = {
             'Module': t.module.name,
             'Channel': t.channel.name,
-            'Num. Received': old_row['Num. Received'] + 1,
-            'Last Updated': datetime.now(),
+            'nRX': old_row['nRX'] + 1,
+            'Updated': datetime.now(),
             'Current Value': val,
             'H+1': old_row['Current Value'],
             'H+2': old_row['H+1'],
@@ -500,8 +500,8 @@ def update_telemetry_payload_log_dataframe(t: TelemetryPayload) -> None:
         new_data = {
             'Module': t.module.name,
             'Channel': t.channel.name,
-            'Num. Received': 1,
-            'Last Updated': datetime.now(),
+            'nRX': 1,
+            'Updated': datetime.now(),
             'Current Value': val,
             'H+1': np.nan,
             'H+2': np.nan,
@@ -517,13 +517,13 @@ def update_packet_log_dataframe_row(row_name: str, now: datetime, num_bytes: int
     if row_name in packet_log_dataframe.index: # 'Packet Type', 
         # Row already exists for this field, just update it:
         old_row = packet_log_dataframe.loc[row_name]
-        total_num_recv = old_row['Num. Received'] + 1
-        current_interval = (now - old_row['Last Updated']).total_seconds()
-        avg_interval = (((old_row['Num. Received']-1) * old_row['Avg. Interval [s]']) + current_interval) / old_row['Num. Received']
+        total_num_recv = old_row['nRX'] + 1
+        current_interval = (now - old_row['Updated']).total_seconds()
+        avg_interval = (((old_row['nRX']-1) * old_row['Avg. Interval [s]']) + current_interval) / old_row['nRX']
         total_bytes_recv = old_row['Bytes Received'] + num_bytes
         new_data = {
-            'Last Updated': now,
-            'Num. Received': total_num_recv,
+            'Updated': now,
+            'nRX': total_num_recv,
             'Avg. Interval [s]': avg_interval,
             'Current Interval [s]': current_interval,
             'Bytes Received': total_bytes_recv,
@@ -532,8 +532,8 @@ def update_packet_log_dataframe_row(row_name: str, now: datetime, num_bytes: int
         }
     else:
         new_data = {
-            'Last Updated': now,
-            'Num. Received': 1,
+            'Updated': now,
+            'nRX': 1,
             'Avg. Interval [s]': 0,
             'Current Interval [s]': 0,
             'Bytes Received': num_bytes,
@@ -560,6 +560,7 @@ def update_packet_log_dataframe(packet: Packet) -> None:
 def str_telemetry_payload_log_dataframe() -> str:
     df_out = telemetry_payload_log_dataframe.copy()
     df_out.index = df_out.index.map(lambda x: f"0x{x:04X}")
+    df_out['Updated'] = [x.strftime('%H:%M:%S') for x in df_out['Updated']]
     return tabulate(df_out.fillna('').sort_index(ascending=True), headers='keys', tablefmt='fancy_grid', numalign='right', stralign='right')
 
 # Pretty-Formats Packet Log Dataframe:
@@ -679,6 +680,9 @@ def create_console_view() -> str:
 
     # Pad out total number of lines to max height:
     all_lines += [' '] * (term_lines - len(all_lines))
+
+    ## Trim to match console height:
+    all_lines = all_lines[:term_lines]
 
     ## Add help message to bottom line:
     all_lines += [ljust_noCodes(

@@ -93,7 +93,13 @@ end
 # NOTE: This doesn't matter as much now that we're using a counting semaphore
 # instead of a simple flag (so Hercules no longer needs to wait for it to be
 # cleared) BUT it's still worth obeying the above notes as a precaution.
-const HERCULES_INTERLOCK_PERIOD_MS = 450 # 400 (target) + max time lock message takes to be processed by Hercules (<~50ms)
+#
+# ! NOTE: Now that we have both run-away protections and Hercules nominally
+# releasing the interlock when it's done with it, we can safely add some buffer
+# to this time. To protect against issues arising from clock differences or one
+# of the MCUs getting held up doing something else, we'll (semi-arbitrarily) add
+# a 3x Factor of Safety to the ideal number.
+const HERCULES_INTERLOCK_PERIOD_MS = 1350 # 3 * [400 (target) + max time lock message takes to be processed by Hercules (<~50ms)]
 
 ##
 # Fixed messaging buffers:

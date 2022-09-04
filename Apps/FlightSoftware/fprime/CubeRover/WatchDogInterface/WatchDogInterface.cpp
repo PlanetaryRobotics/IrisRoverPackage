@@ -1,6 +1,6 @@
 // ======================================================================
 // \title  WatchDogInterfaceComponentImpl.cpp
-// \author alec, justin, mschnur
+// \author alec, justin, mschnur, cwcolomb
 // \brief  cpp file for WatchDogInterface component implementation class
 //
 // \copyright
@@ -77,7 +77,7 @@ namespace CubeRover
                                                              WATCH_DOG_INTERFACE_RX_TASK_STACK_SIZE,
                                                              WATCH_DOG_INTERFACE_RX_TASK_CPU_AFFINITY);
         // Assert that this will always be started successfully. If it isn't, we're screwed.
-        assert(taskStat == Os::Task::TASK_OK);
+        configASSERT(taskStat == Os::Task::TASK_OK);
 
         gioSetBit(spiPORT3, deploy_bit, 0);
 
@@ -915,7 +915,7 @@ namespace CubeRover
         memset(m_printBuffer, 0, sizeof(m_printBuffer));
         sprintf(m_printBuffer, "DEBUG");
         va_list args;
-        va_start(args, fmt);
+        va_start(args, fmt); // @suppress("Function cannot be resolved")
         vsnprintf(m_printBuffer + 5, sizeof(m_printBuffer) - 5, fmt, args);
         va_end(args);
 

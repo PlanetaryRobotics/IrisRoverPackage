@@ -558,6 +558,13 @@ namespace iris
                 }
                 break;
 
+            case WD_CMD_MSGS__CMD_ID__ECHO:
+                return doGndCmdEcho(theContext,
+                                     msg,
+                                     response,
+                                     deployNotificationResponse,
+                                     sendDeployNotificationResponse);
+
             case WD_CMD_MSGS__CMD_ID__REQUEST_DETAILED_REPORT:
                 /* Enter service mode */
                 if (msg.body.reqDetReport.magic != WD_CMD_MSGS__CONFIRM_REQ_DET_REPORT_MAGIC_NUMBER) {
@@ -1221,6 +1228,17 @@ namespace iris
         return getState();
     }
 
+    RoverState RoverStateBase::doGndCmdEcho(RoverContext& theContext,
+                                                 const WdCmdMsgs__Message& msg,
+                                                 WdCmdMsgs__Response& response,
+                                                 WdCmdMsgs__Response& deployNotificationResponse,
+                                                 bool& sendDeployNotificationResponse)
+    {
+        echoToLander(theContext, msg.body.echo.numBytesToEcho, msg.body.echo.bytesToEcho);
+        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+        return getState();
+    }
+
     RoverState RoverStateBase::doGndCmdRequestDetailedReport(RoverContext& theContext,
                                                              const WdCmdMsgs__Message& msg,
                                                              WdCmdMsgs__Response& response,
@@ -1230,6 +1248,34 @@ namespace iris
         theContext.m_sendDetailedReport = true;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
+    }
+
+    void RoverStateBase::echoToLander(RoverContext& theContext, uint8_t numBytesToEcho, const uint8_t* bytesToEcho)
+    {
+        /* settings */
+        static const char ECHO_HEADER[] = "ECHO: ";
+        static const uint8_t ECHO_HEADER_SIZE = 6; // strlen((const char*)ECHO_HEADER);
+        static char ECHO_BUFFER[ECHO_HEADER_SIZE + MAX_ECHO_LENGTH];
+
+        memset(ECHO_BUFFER, 0xBE, sizeof(ECHO_BUFFER)); // reset buffer with sentinel
+        sprintf(ECHO_BUFFER, ECHO_HEADER);
+
+        // Clip at max echo size (this should have already happened but let's be sure):
+        numBytesToEcho = (numBytesToEcho < MAX_ECHO_LENGTH) ? numBytesToEcho : MAX_ECHO_LENGTH;
+
+        /* build echo */
+        memcpy(ECHO_BUFFER + ECHO_HEADER_SIZE, bytesToEcho, numBytesToEcho);
+
+        /* send echo */
+        LanderComms__Status lcStatus = txDownlinkData(theContext,
+                                                      ECHO_BUFFER,
+                                                      (ECHO_HEADER_SIZE+numBytesToEcho));
+
+        DEBUG_ASSERT_EQUAL(LANDER_COMMS__STATUS__SUCCESS, lcStatus);
+        if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
+            //!< @todo Handling?
+            // just an echo so we can probably just ignore it. Ground will just try again.
+        }
     }
 
     void RoverStateBase::sendDetailedReportToLander(RoverContext& theContext)

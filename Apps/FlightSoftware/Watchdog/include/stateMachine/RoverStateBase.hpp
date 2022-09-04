@@ -217,11 +217,19 @@ namespace iris
                                                         WdCmdMsgs__Response& deployNotificationResponse,
                                                         bool& sendDeployNotificationResponse);
 
+            virtual RoverState doGndCmdEcho(RoverContext& theContext,
+                                             const WdCmdMsgs__Message& msg,
+                                             WdCmdMsgs__Response& response,
+                                             WdCmdMsgs__Response& deployNotificationResponse,
+                                             bool& sendDeployNotificationResponse);
+
             virtual RoverState doGndCmdRequestDetailedReport(RoverContext& theContext,
                                                              const WdCmdMsgs__Message& msg,
                                                              WdCmdMsgs__Response& response,
                                                              WdCmdMsgs__Response& deployNotificationResponse,
                                                              bool& sendDeployNotificationResponse);
+
+            virtual void echoToLander(RoverContext& theContext, uint8_t numBytesToEcho, const uint8_t* bytesToEcho);
 
             virtual void sendDetailedReportToLander(RoverContext& theContext);
 

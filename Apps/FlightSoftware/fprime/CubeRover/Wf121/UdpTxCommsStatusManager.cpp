@@ -23,7 +23,8 @@ namespace Wf121
     static StaticQueue_t xStaticQueue_SendEndpointUdp_Response;
     static uint8_t ucQueueStorageArea_SendEndpointUdp_Response[1 * sizeof(BgApi::ErrorCode)];
 
-    UdpTxCommsStatusManager::UdpTxCommsStatusManager() : xQueue_SetTransmitSize_Response(NULL),                                                     // null until init.
+    UdpTxCommsStatusManager::UdpTxCommsStatusManager() : xQueue_GetUdpInterlock_Response(NULL),                                                     // null until init.
+                                                         xQueue_SetTransmitSize_Response(NULL),                                                     // null until init.
                                                          xQueue_SendEndpointUdp_Response(NULL),                                                     // null until init.
                                                          currentlyAwaitedCommand(UdpTxCommsStatusManager::AwaitableCommand::NONE),                  // waiting on nothing by default
                                                          latestUpdatedInterlockStatus(DirectMessage::RadioUdpInterlockStatus::RADIO_HAS_INTERLOCK), // by default, we assume we don't have it (because we don't)
@@ -176,6 +177,7 @@ namespace Wf121
             // anything (not sending data) which is fine and expected.
         default:
             // Shouldn't be here. No way for us to know what was meant by this. Do nothing.
+            asm("  NOP");
         }
     }
 
@@ -234,7 +236,7 @@ namespace Wf121
 
     // Set the latest interlock status and update the acquisition time if
     // we got an update.
-    void setLatestUdpInterlockStatus(DirectMessage::RadioUdpInterlockStatus status)
+    void UdpTxCommsStatusManager::setLatestUdpInterlockStatus(DirectMessage::RadioUdpInterlockStatus status)
     {
         // Do timestamp computation outside the mutex to minimize mutex lock time:
         uint32_t now;
@@ -252,11 +254,14 @@ namespace Wf121
                 lastInterlockAcquisitionTimeMs = now;
             }
         }
-        this->mutex.unlock();
+        this->mutex.unLock();
     }
 
-    // Get the current interlock status, accounting for the expiration time.
-    DirectMessage::RadioUdpInterlockStatus getLatestUdpInterlockStatus()
+    // Get the current interlock status, accounting for the expiration time
+    // (i.e. if our latest update from the Radio said we had the lock but
+    // it's been too long since we got that update, we'll infer it's
+    // expired but we missed the message).
+    DirectMessage::RadioUdpInterlockStatus UdpTxCommsStatusManager::getUdpInterlockStatus()
     {
         DirectMessage::RadioUdpInterlockStatus status;
         uint32_t lastUpdateMs;
@@ -267,7 +272,7 @@ namespace Wf121
             status = latestUpdatedInterlockStatus;
             lastUpdateMs = lastInterlockAcquisitionTimeMs;
         }
-        this->mutex.unlock();
+        this->mutex.unLock();
 
         if (status == DirectMessage::RadioUdpInterlockStatus::HERC_HAS_INTERLOCK)
         {

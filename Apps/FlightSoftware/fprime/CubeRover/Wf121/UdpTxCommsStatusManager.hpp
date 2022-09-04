@@ -11,6 +11,7 @@
 #define CUBEROVER_WF121_WF121_UDP_TX_COMMS_STATUS_MANAGER_HPP_
 
 #include <CubeRover/Wf121/Wf121BgApi.hpp>
+#include <CubeRover/Wf121/Wf121DirectMessage.hpp>
 
 #include <HAL/include/FreeRTOS.h>
 #include <HAL/include/os_task.h>
@@ -100,6 +101,14 @@ namespace Wf121
         // Tell the UdpTxTask that we got the given response code for the `SendEndpointUdp` command:
         void sendEndpointUdp_Response(BgApi::ErrorCode response);
 
+        // Set the latest interlock status and update the acquisition time if
+        // we got an update.
+        void setLatestUdpInterlockStatus(DirectMessage::RadioUdpInterlockStatus status);
+        // Get the current interlock status, accounting for the expiration time
+        // (i.e. if our latest update from the Radio said we had the lock but
+        // it's been too long since we got that update, we'll infer it's
+        // expired but we missed the message).
+        DirectMessage::RadioUdpInterlockStatus getUdpInterlockStatus();
     private:
         // Mutex to protect internal data (NOTE: the Queues do this themselves)
         ::Os::Mutex mutex;
@@ -138,15 +147,6 @@ namespace Wf121
         // so we can infer that it's expired even if we haven't been told or
         // missed the message telling us so.
         uint32_t lastInterlockAcquisitionTimeMs;
-
-        // Set the latest interlock status and update the acquisition time if
-        // we got an update.
-        void setLatestUdpInterlockStatus(DirectMessage::RadioUdpInterlockStatus status);
-        // Get the current interlock status, accounting for the expiration time
-        // (i.e. if our latest update from the Radio said we had the lock but
-        // it's been too long since we got that update, we'll infer it's
-        // expired but we missed the message).
-        DirectMessage::RadioUdpInterlockStatus getUdpInterlockStatus();
     };
 }
 

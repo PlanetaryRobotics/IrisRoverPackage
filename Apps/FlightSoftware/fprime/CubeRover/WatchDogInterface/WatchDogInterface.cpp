@@ -18,6 +18,7 @@
 #include <cassert>
 
 #include "Include/FswPacket.hpp"
+#include "Include/Version.h"
 #include "sys_dma.h"
 #include <App/DMA.h>
 #include "gio.h"
@@ -83,7 +84,9 @@ namespace CubeRover
 
         Read_Temp();
 
-        // There would normally be a 400000000 cycle delay for WF121 to finish resetting.. but that actualyl breaks things... weird
+        // Let the Watchdog know we've booted, incl. current software version (useful for later Hercules Remote Programming):
+        debugPrintfToWatchdog("Hercules Boot v.%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION);
+
         m_finished_initializing = true;
     }
 

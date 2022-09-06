@@ -2,7 +2,7 @@
 Helper functions to handle the console functions of `trans_tools`.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 08/30/2022
+@last-updated: 09/06/2022
 """
 from typing import Any, Final, List, OrderedDict, Type, cast, Union, Dict, Tuple, Optional
 
@@ -288,8 +288,8 @@ def send_slip(dat: bytes, serial_writer) -> None:
         serial_writer.write(bytes(buf))
     else:
         raise Exception(
-            "Can't send data, serial connection not started. Try `connect_serial()`.",
-            'red')
+            "Can't send data, serial connection not started. Try `connect_serial()`."
+        )
 
 def send_data_wd_serial(
     raw_data: bytes,
@@ -402,7 +402,7 @@ def attempt_console_command_send(message_queue, serial_writer) -> None:
             send_console_command(pathway, magic, command_name, user_args, message_queue, serial_writer)
 
 
-def handle_keypress(key: Any, message_queue, serial_writer) -> None:
+def handle_keypress(key: Any, message_queue, serial_writer, app_context) -> None:
     key = cast(Union[pynput.keyboard.Key, pynput.keyboard.KeyCode], key)
     # Handles new key input:
     global user_cmd_input_str, user_prompt
@@ -418,9 +418,20 @@ def handle_keypress(key: Any, message_queue, serial_writer) -> None:
         toggle_console_pause()
         something_changed = True
 
-    # If the console is paused, ignore input (besides the unpause command):
+    # If the console is paused, ignore input (besides the unpause command above):
     if console_is_paused():
         return
+
+    if key == pynput.keyboard.Key.f3:
+        # Toggle the packet and SLIP byte printing:
+        app_context['echo_all_packet_slip'] = not app_context['echo_all_packet_slip']
+        app_context['echo_all_packet_bytes'] = not app_context['echo_all_packet_bytes']
+        something_changed = True
+
+    if key == pynput.keyboard.Key.f4:
+        # Toggle showing/hiding the command table:
+        app_context['collapse_command_table'] = not app_context['collapse_command_table']
+        something_changed = True
 
     if key == pynput.keyboard.Key.esc:
         # Reset the command:
@@ -464,7 +475,7 @@ def handle_keypress(key: Any, message_queue, serial_writer) -> None:
 
     # Redraw the screen so the key input is reflected (only if something changed):
     if something_changed:
-        refresh_console_view()
+        refresh_console_view(app_context)
 
 
 def update_telemetry_payload_log_dataframe(t: TelemetryPayload) -> None:
@@ -569,7 +580,7 @@ def str_packet_log_dataframe() -> str:
 
 
 # Creates a new Console view by pretty-formatting all log DataFrames into one big string:
-def create_console_view() -> str:
+def create_console_view(app_context) -> str:
     # Settings:
     horiz_padding = tabs2spaces("\t\t")
     term_cols, term_lines = os.get_terminal_size()
@@ -602,10 +613,12 @@ def create_console_view() -> str:
     packets_view_lines = [tabs2spaces(x) for x in packets_view.split('\n')]
 
     # Commands list:
-    command_view = (
-        f"\n\n{user_prompt}: {str_user_command()}\n"
-        +str_command_dataframe(filter_command_dataframe(user_cmd_input_str))
-    )
+    command_view = f"\n\n{user_prompt}: {str_user_command()}\n"
+    if not app_context['collapse_command_table']:
+        # Include the command table only if it's not collapsed:
+        command_view += str_command_dataframe(filter_command_dataframe(user_cmd_input_str))
+    else:
+        command_view += "[Table collapsed. F4 to uncollapse.]"
     command_view_lines = [tabs2spaces(x) for x in command_view.split('\n')]
     command_view_width = max(len_noCodes(l) for l in command_view_lines)
     command_view_lines = [l.ljust(command_view_width, ' ') for l in command_view_lines]
@@ -690,7 +703,9 @@ def create_console_view() -> str:
         f"    Press \033[1mTab\033[22m to accept autocomplete."
         f"    Press \033[1mEnter\033[22m when \033[32mgreen\033[37m to send."
         f"    Press \033[1mEscape\033[22m to reset input."
-        f"    Press \033[1mF2\033[22m to pause/unpause console input/output (packets are still received, just not displayed)."
+        f"    Press \033[1mF2\033[22m to pause/unpause console in/output (packets still received, just not displayed)."
+        f"    Press \033[1mF3\033[22m to start/stop printing bytes for \033[1mall\033[22m packets."
+        f"    Press \033[1mF4\033[22m to un/collapse command table."
         f"    Press \033[1mCtrl+'\\'\033[22m to end session.", term_cols) + "\033[0m"]
 
     ### Build the full message:
@@ -724,10 +739,10 @@ def clear_console() -> None:
     os.system('cls' if os.name in ('nt', 'dos') else 'clear')
 
 # Refreshes (clears) the Console Window with Highlevel Telemetry Dataview:
-def refresh_console_view() -> None:
+def refresh_console_view(app_context) -> None:
     # Build the string before clearing the screen to minimize off-time:
     # (only update console view if not paused):
     if not console_is_paused():
-        data = create_console_view()
+        data = create_console_view(app_context)
         clear_console()
         print(data)

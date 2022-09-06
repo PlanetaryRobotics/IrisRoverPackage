@@ -2,7 +2,7 @@
 The actual multiprocessing that runs `trans_tools_console`.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 08/28/2022
+@last-updated: 09/06/2022
 """
 import pynput
 import asyncio
@@ -13,8 +13,20 @@ from serial.tools import list_ports, list_ports_common
 
 from trans_tools import *
 
+import scapy.all as scp
+
 # Async Serial Writer Handle:
 serial_writer = None
+
+# Application Context (settings, flags, etc. to be passed by reference to functions that need it):
+app_context: Dict[str, Any] = {
+    # Whether or not to hide the command table (False = show the table):
+    'collapse_command_table': False,
+    # Whether to print raw SLIP bytes received for all packets to the console:
+    'echo_all_packet_slip': False,
+    # Whether to print bytes received for all packets to the console:
+    'echo_all_packet_bytes': False
+}
 
 # Special message types that wrap primitives (so we can check type in Queue receiver):
 @dataclass
@@ -23,6 +35,10 @@ class QueueMessage:
 @dataclass
 class QueueTick:
     count: int
+
+@dataclass
+class QueueByte:
+    byte: bytes
 
 def stream_keys(q):
     # Start a keyboard listener that streams keypresses into
@@ -76,7 +92,8 @@ class BasicSlipTransceiver():
             else:
                 self.data_bytes.append(b)
 
-    def parse_new_byte(self, newByte: bytes):
+    def parse_new_byte(self, newByte: bytes) -> bool: # Returns if we just completed a packet
+        madeAPacket: bool = False
         try:
             self.line += newByte
             b = int.from_bytes(newByte, 'big')
@@ -98,6 +115,7 @@ class BasicSlipTransceiver():
                         # Move on:
                         self.data_bytes = bytearray(b'')
                         self.slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
+                        madeAPacket = True
                 else:
                     self.append_byte(b)
         
@@ -115,8 +133,8 @@ class BasicSlipTransceiver():
                     "bytes at the time of the exception were: \n"
                     f"{scp.hexdump(self.data_bytes, dump=True)}\n."
                     f"The PacketDecodingException was: `{pde}`."
-            )
             # In data view, just push the string to the packet print console:
+            )
             self.message_queue.put_nowait(QueueMessage(msg))
         
         except Exception as e:
@@ -125,24 +143,40 @@ class BasicSlipTransceiver():
             self.message_queue.put_nowait(QueueMessage(msg))
             self.data_bytes = bytearray(b'')
             self.slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
+        
+        return madeAPacket
 
 
-async def stream_SLIP_packets(serial_settings, packet_queue, message_queue):
+async def stream_SLIP_packets(serial_settings, packet_queue, message_queue, app_context):
     global serial_writer
     # Stream packets into the given Queue `packet_queue` from bytes received over
     # SLIP on the serial interface defined by the given `serial_settings`.
     # Any error (etc.) messages that come up are put into `message_queue`.
+
+    # Log of all slip byte received in this packet:
+    slip_packet_bytes_log: bytes = b''
+
+    # # Connect to echo-out serial:
+    # if app_context['echo_all_packet_bytes']:
+    #     try:
+    #         out_serial_device = [cp.device for cp in list_ports.comports() if cp.product=='UPort 1150'][0]
+    #         out_ser = serial.Serial(out_serial_device, serial_settings['baud'])  # open serial port
+    #         message_queue.put_nowait(QueueMessage("Echo Out Serial Connection Success!"))
+    #     except serial.SerialException as e:
+    #         message_queue.put_nowait(QueueMessage(
+    #             f"Failed to connect to echo-out serial device. Is the device name right? Check the connection? Original error: {e}"
+    #         ))
 
     # Connect to Serial:
     try:
         serial_device_id = [cp.device for cp in list_ports.comports() if cp.serial_number is not None and serial_settings['device_sn'] in cp.serial_number][0]
         reader, writer = await serial_asyncio.open_serial_connection(url=serial_device_id, baudrate=serial_settings['baud'])
         serial_writer = writer
-        cprint("Connection Success!", 'green')
-    except serial.SerialException as e:
-        cprint(
-            f"Failed to connect to serial device. Is the device name right? Check the connection? Original error: {e}",
-            'red')
+        message_queue.put_nowait(QueueMessage("Main Serial Connection Success!"))
+    except Exception as e:
+        message_queue.put_nowait(QueueMessage(
+            f"Failed to connect to main serial device. Is the device name right? Check the connection? Original error: {e}"
+        ))
 
     # Fire up the Transceiver:
     slip_xcvr = BasicSlipTransceiver(packet_queue, message_queue)
@@ -150,7 +184,19 @@ async def stream_SLIP_packets(serial_settings, packet_queue, message_queue):
     # Parse serial data as it arrives:
     while True:
         newByte = await reader.readexactly(1)
-        slip_xcvr.parse_new_byte(newByte)
+        madeAPacket = slip_xcvr.parse_new_byte(newByte)
+        # Add to log:
+        slip_packet_bytes_log += newByte
+
+        # # Echo to output:
+        # out_ser.write(newByte)
+
+        if madeAPacket:
+            if app_context['echo_all_packet_slip']:
+                # If we made a packet with this new byte, push it to the console:
+                message_queue.put_nowait(QueueMessage("Raw Undecoded SLIP:\n-----------\n"+scp.hexdump(slip_packet_bytes_log, dump=True)))
+            # Reset log no matter what (packet's done):
+            slip_packet_bytes_log = b''
 
 
 async def ticker(tick_period_s: int, tick_queue):
@@ -184,7 +230,7 @@ async def console_main(serial_settings):
     # Start tasks:
     stream_keys(key_queue)
     tasks = [
-        asyncio.create_task(stream_SLIP_packets(serial_settings, packet_queue, message_queue)),
+        asyncio.create_task(stream_SLIP_packets(serial_settings, packet_queue, message_queue, app_context)),
         asyncio.create_task(ticker(1, tick_queue)) # this controls the base draw rate of the screen (i.e. how frequently we update if no packets or key presses are received)
     ]
 
@@ -205,22 +251,29 @@ async def console_main(serial_settings):
                 if r is not None:
                     if isinstance(r, Packet):
                         packet = cast(Packet, r)
-                        handle_streamed_packet(packet, True) # NOTE: this refreshes the screen too
+                        handle_streamed_packet(packet, True, app_context) # NOTE: this refreshes the screen too
+
+                        if app_context['echo_all_packet_bytes']:
+                            # Echo the data out...
+                            echo_bytes: bytes = packet.raw if packet.raw is not None else b''
+                            # To the console:
+                            message_queue.put_nowait(QueueMessage("Packet Bytes:\n-----------\n"+scp.hexdump(echo_bytes, dump=True)))
+
                     elif isinstance(r, (pynput.keyboard.Key, pynput.keyboard.KeyCode)):
-                        handle_keypress(r, message_queue, serial_writer) # NOTE: this refreshes the screen too
+                        handle_keypress(r, message_queue, serial_writer, app_context) # NOTE: this refreshes the screen too
                     elif isinstance(r, str):
                         msg = cast(str, r)
                         nontelem_packet_prints.appendleft(msg)
-                        refresh_console_view()
+                        refresh_console_view(app_context)
                     elif isinstance(r, QueueMessage):
                         msg = cast(QueueMessage, r).msg
                         # Add the message to the non-telemetry feed:
                         nontelem_packet_prints.appendleft(msg)
                         # Refresh the display:
-                        refresh_console_view()
+                        refresh_console_view(app_context)
                     elif isinstance(r, QueueTick):
                         # Don't do anything special besides update screen:
-                        refresh_console_view()
+                        refresh_console_view(app_context)
 
     # Clean up if the above closes for some reason:
     [await t for t in tasks]

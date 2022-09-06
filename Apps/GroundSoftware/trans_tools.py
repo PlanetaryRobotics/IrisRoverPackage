@@ -574,7 +574,7 @@ def save_packet_to_packet_prints(packet: Optional[Packet]) -> None:
 # Handles a new incoming streamed packet, including logging and display.
 # packet [Packet]: Newly received packet.
 # use_telem_dataview [bool]: Whether to display the new data using the new Telemetry Dataview (True) or by just printing the packet (False).
-def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = False) -> None:
+def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = False, app_context=dict()) -> None:
     if packet is not None:
         # Feed the streams:
         update_telemetry_streams(packet) # telem dataframe updated in here
@@ -592,7 +592,7 @@ def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = 
         # Display the data:
         if use_telem_dataview:
             # Update the display:
-            refresh_console_view()
+            refresh_console_view(app_context)
         else:
             # Just log the data:
             log_print(packet)

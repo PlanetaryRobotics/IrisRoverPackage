@@ -348,7 +348,7 @@ prepared_commands = {
         DataPathway.WIRED,
         Magic.COMMAND,
         'WatchDogInterface_Echo',
-        OrderedDict(length=10, message="HiWatchdog"), # Change this to whatever you want to reset.
+        OrderedDict(length='10', message="HiWatchdog"), # Change this to whatever you want to reset.
         DataPathway.WIRED
     ),
     'misc-test': (

@@ -11,8 +11,9 @@ SERIAL_DEVICE_SNS = {
 }
 
 # Settings (TODO: make the opt. CLI args):
-SERIAL_DEVICE: str = 'lander_harness' # key in SERIAL_DEVICE_SNS
+SERIAL_DEVICE: str = 'J36_debugger' # key in SERIAL_DEVICE_SNS
 BAUD: int = 9600
+# BAUD = 57600
 
 if __name__ == '__main__':
     print(

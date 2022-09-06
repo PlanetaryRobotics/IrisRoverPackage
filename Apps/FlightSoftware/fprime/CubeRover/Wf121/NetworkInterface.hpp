@@ -74,8 +74,20 @@
 // NOTE: FreeRTOS scheduler ticks are every 1ms.
 static const TickType_t WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL = 200 / portTICK_PERIOD_MS; // every 200ms (200 ticks)
 
-// Most number of times to try sending a BGAPI command without receiving a response before giving up:
+// Most number of times to try sending a BGAPI command without receiving a
+// response before giving up:
 static const uint8_t WF121_BGAPI_COMMAND_MAX_TRIES = 5;
+
+// Max number of times we can consecutively lose the UDP interlock in the
+// middle of sending a message before we assume something's wrong and we need
+// to fix it.
+// Really anything above 1 or 2 is a problem but, if there's really a problem
+// it that requires a reset, the count will likely grow without bound. So,
+// setting this value some distance from 2 gives us a little margin in case
+// this might also be caused by some unforeseen and possibly frequent reason.
+// Essentially, this value just lets us determine how quickly we want to catch
+// this kind of fault vs. how tolerant we want to be of unforeseen issues:
+static const uint8_t WF121_MAX_UDP_INTERLOCK_LOSSES = 10;
 
 // Max number of FreeRTOS Scheduler ticks to allow the calling task to wait for
 // the UDP TX Queue to become available while attempting to put data into it.
@@ -172,6 +184,38 @@ namespace Wf121
          * @returns Pointer to data to be written to the Radio-Hercules UART.
          */
         virtual BgApi::BgApiCommBuffer *udpTxUpdateHandler(Wf121UdpTxTask *pTask);
+
+        ////
+        // Aliases for Packing Hijacked-Commands:
+        // (BGAPI commands we're using for unintended purposes)
+        ////
+
+        // Request that the Radio give Hercules the UDP interlock (exclusive
+        // access to the UDP interface, meaning the Radio won't interrupt our
+        // transmissions with its own for a set period of time or until we
+        // release the interlock. See: `ground_reports.bgs` in the Radio FW for
+        // more information on how this works).
+        // We have to hijack an existing BGAPI command for this. GetMAC is the
+        // best option. As above, see `ground_reports.bgs` in the Radio FW for
+        // why.
+        BgApi::ErrorCode RequestUdpInterlock(BgApi::BgApiCommBuffer *targetCommBuffer)
+        {
+            return BgApi::BgApiDriver::GetMacAddress(targetCommBuffer,
+                                                     BgApi::HardwareInterface::WIFI);
+        }
+
+        // Tell the Radio that Hercules is done with the UDP interlock (we no
+        // longer need exclusive access to the UDP interface, meaning the Radio
+        // is clear to downlink any of its own reports. See:
+        // `ground_reports.bgs` in the Radio FW for more information on how
+        // this works).
+        // We have to hijack an existing BGAPI command for this. GetRSSI is the
+        // best option. As above, see `ground_reports.bgs` in the Radio FW for
+        // why.
+        BgApi::ErrorCode ReleaseUdpInterlock(BgApi::BgApiCommBuffer *targetCommBuffer)
+        {
+            return BgApi::BgApiDriver::GetSignalQuality(targetCommBuffer);
+        }
 
     private:
         // Data struct for working with RXed UDP data internally:
@@ -282,6 +326,9 @@ namespace Wf121
         // Number of consecutive times we've failed to send an individual BGAPI
         // command in a row:
         uint8_t m_bgApiCommandFailCount = 0;
+        // Number of consecutive times we've lost the UDP interlock without
+        // getting to the end of sending a message:
+        uint8_t m_unexpectedUdpInterlockLossCount = 0;
         // Number of message chunk bytes pending (that we sent with
         // `sendEndpoint` and are awaiting a response for):
         uint8_t m_chunkBytesPending = 0;

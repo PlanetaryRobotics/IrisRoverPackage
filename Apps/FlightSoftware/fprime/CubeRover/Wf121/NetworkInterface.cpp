@@ -541,7 +541,6 @@ namespace Wf121
         m_udpTxCommsStatusManager.setResponseForCurrentlyAwaitedCommand(BgApi::ErrorCode::INTERNAL__BAD_SYNTAX);
 
         // Let ground know the Radio thinks we sent it gibberish:
-        // For debugging. TODO: [CWC] REMOVEME
         watchDogInterface.debugPrintfToWatchdog("RADIO: Bad syntax. Code: %#04x", result);
 
         return (BgApi::ErrorCode)result;
@@ -639,7 +638,7 @@ namespace Wf121
         m_downlinkTargetEndpoint = m_protectedRadioStatus.getDownlinkEndpoint();
 
         // First step in sending will be set up the transmit size:
-        return UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE;
+        return UdpTxUpdateState::ASK_FOR_UDP_INTERLOCK;
     }
 
     // Helper function to handle the `ASK_FOR_UDP_INTERLOCK` `UdpTxUpdateState`
@@ -649,12 +648,11 @@ namespace Wf121
     // Returns the next state to transition to.
     NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_ASK_FOR_UDP_INTERLOCK(bool *yieldData)
     {
-        // ! TODO: [CWC] (WORKING-HERE)
-        // - Add set (MAC) and release (RSSI) command encapsulations.
-        // - Make sure to check the stored status before sending anything too (it should loop back here if so - or back to START SEND probably...)
-        // - Make sure to release the interlock when done sending (don't need to await it, just need to cast it out into the ether, since we'll necessarily get that update before we get any reacquisition updates)
-        // - Shove these new states between start send and set transmit size.
-        *yieldData = true;
+        // Pack the data for setting the transmit size (size of `m_xUdpTxWorkingData`):
+        RequestUdpInterlock(&m_bgApiCommandBuffer);
+        *yieldData = true; // tell State Machine to send this data
+
+        // Next state will be waiting for a response (after sending data):
         return UdpTxUpdateState::WAIT_FOR_UDP_INTERLOCK;
     }
 
@@ -665,8 +663,59 @@ namespace Wf121
     // Returns the next state to transition to.
     NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_UDP_INTERLOCK(bool *yieldData)
     {
-        // ! TODO: [CWC] (WORKING-HERE)
-        return UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE;
+        UdpTxUpdateState nextState;
+
+        // Wait for a response (or timeout):
+        // NOTE: This will clear the mailbox first (see function definition for
+        // why). So, if somehow the Radio responded (and we processed the
+        // response) basically instantly after us sending the data, then this
+        // will block until `UDP_TX_RESPONSE_TIMEOUT_TICKS`.
+        BgApi::ErrorCode errorCode = m_udpTxCommsStatusManager.awaitResponse_getUdpInterlock();
+        switch (errorCode)
+        {
+        case BgApi::ErrorCode::NO_ERROR:
+            // Cool, we can move on.
+            nextState = UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE;
+            // Reset fail counter:
+            m_bgApiCommandFailCount = 0;
+            break;
+
+        case BgApi::ErrorCode::INTERNAL__LOST_INTERLOCK:
+            // We couldn't have lost the interlock before getting it but we
+            // could receive this if we got a garbled "ilock" DirectMessage
+            // update from the Radio which, for safety, we have to assume means
+            // we don't have the interlock.
+            //
+            // (we just process like all the other BGAPI fails here b/c
+            // technically, we're hijacking BGAPI for the interlock).
+        case BgApi::ErrorCode::INTERNAL__BAD_SYNTAX:
+            // INTERNAL__BAD_SYNTAX isn't a real BGAPI code, but is instead put
+            // into the mailbox in response to an `evt_endpoint_syntax_error`
+            // being emitted by the Radio while we're awaiting a response to
+            // this command (likely means our command got garbled).
+            // So, just try sending it again:
+        case BgApi::ErrorCode::INTERNAL__TRY_AGAIN:
+            // INTERNAL__TRY_AGAIN isn't a real BGAPI code, it's just part of
+            // the interpreter and means something didn't work correctly (or
+            // wasn't ready). So, try again:
+        case BgApi::ErrorCode::TIMEOUT:
+            // Didn't get a response in a long time. Maybe Radio didn't get it?
+        default:
+            // Some other error occurred, try again:
+            m_bgApiCommandFailCount++;
+            if (m_bgApiCommandFailCount > WF121_BGAPI_COMMAND_MAX_TRIES)
+            {
+                nextState = UdpTxUpdateState::BGAPI_CMD_FAIL;
+            }
+            else
+            {
+                // Try getting interlock again:
+                nextState = UdpTxUpdateState::ASK_FOR_UDP_INTERLOCK;
+            }
+            break;
+        }
+
+        return nextState;
     }
 
     // Helper function to handle the `SEND_SET_TRANSMIT_SIZE` `UdpTxUpdateState`
@@ -712,6 +761,14 @@ namespace Wf121
             m_totalUdpMessageBytesDownlinked = 0;
             break;
 
+        case BgApi::ErrorCode::INTERNAL__LOST_INTERLOCK:
+            // We lost the interlock while processing this command, which means
+            // we have to assume our entire message is lost.
+            // Nothing to actually do here besides break. Outside the state
+            // transitions section, we'll check to see if we still have the
+            // interlock against the current state and this anomaly will be
+            // dealt with there.
+            break;
         case BgApi::ErrorCode::INTERNAL__BAD_SYNTAX:
             // INTERNAL__BAD_SYNTAX isn't a real BGAPI code, but is instead put
             // into the mailbox in response to an `evt_endpoint_syntax_error`
@@ -808,6 +865,14 @@ namespace Wf121
             m_bgApiCommandFailCount = 0;
             break;
 
+        case BgApi::ErrorCode::INTERNAL__LOST_INTERLOCK:
+            // We lost the interlock while processing this command, which means
+            // we have to assume our entire message is lost.
+            // Nothing to actually do here besides break. Outside the state
+            // transitions section, we'll check to see if we still have the
+            // interlock against the current state and this anomaly will be
+            // dealt with there.
+            break;
         case BgApi::ErrorCode::INTERNAL__BAD_SYNTAX:
             // INTERNAL__BAD_SYNTAX isn't a real BGAPI code, but is instead put
             // into the mailbox in response to an `evt_endpoint_syntax_error`
@@ -851,6 +916,19 @@ namespace Wf121
     {
         // Any cleanup we want to do after downlinking a UDP payload / before
         // sending the next:
+
+        // Release the UDP interlock:
+        // (don't need to await this, just need to cast it out into the ether,
+        // since we'll necessarily get the update that it went through before
+        // we get any reacquisition updates):
+        ReleaseUdpInterlock(&m_bgApiCommandBuffer);
+        *yieldData = true; // tell State Machine to send this data
+
+        // We made it through a message without any unexpected interlock losses,
+        // so we can reset the count:
+        m_unexpectedUdpInterlockLossCount = 0;
+
+        // Increment the successful TX packet count:
         m_protectedRadioStatus.incUdpTxPacketCount();
 
         // Go back to the start:
@@ -913,6 +991,10 @@ namespace Wf121
         // reset what we think it's doing:
         m_bgApiStatus.setProcessingCmd(false);
 
+        // We've handled the failure, so hopefully this fixes whatever caused
+        // it. Reset the fail counter accordingly:
+        m_bgApiCommandFailCount = 0;
+
         return nextState;
     }
 
@@ -950,6 +1032,7 @@ namespace Wf121
             // Poll until we meet all downlinking criteria (check every X ms):
             // (make sure we can downlink before yielding **any** data or
             // even determining what data to yield):
+            watchDogInterface.debugPrintfToWatchdog("\tRADIO: SM: Awaiting UDP + Connection..."); // For debugging. TODO: [CWC] REMOVEME
             while (
                 m_protectedRadioStatus.getRadioState() != DirectMessage::RadioSwState::UDP_CONNECTED || // Radio is connected and able to send UDP data
                 m_protectedRadioStatus.getDownlinkEndpoint() == DirectMessage::UDP_NULL_ENDPOINT        // Target for that UDP data isn't /dev/null
@@ -959,6 +1042,7 @@ namespace Wf121
             }
 
             // Now advance the state machine:
+            watchDogInterface.debugPrintfToWatchdog("\tRADIO: SM: Advancing..."); // For debugging. TODO: [CWC] REMOVEME
             switch (inner_state)
             {
             case UdpTxUpdateState::/******/ WAIT_FOR_BGAPI_READY:
@@ -1020,6 +1104,53 @@ namespace Wf121
                 // enumerated all the states above.
                 // Attempt to recover by going back to the start:
                 inner_state = UdpTxUpdateState::WAIT_FOR_BGAPI_READY;
+            }
+
+            // If we're in the middle of sending a message (between downlink
+            // start and end) to the Radio as part of a UDP downlink, and
+            // should have the interlock (after WAIT_FOR_UDP_INTERLOCK),
+            // make sure we still have the UDP interlock. If we don't, we're
+            // just going to have to start over sending the message.
+            // NOTE: We also check for this as an end condition for each of the
+            // await blocks. However, interlock is managed asynchronously so it's
+            // possible for us to lose it at any time, so we have to always check
+            // it.
+            if ( // we're in the middle of sending a message...:
+                (inner_state > UdpTxUpdateState::WAIT_FOR_UDP_INTERLOCK &&
+                 inner_state < UdpTxUpdateState::DONE_DOWNLINKING) &&
+                // .. and we no longer have the interlock (NOTE: this method also accounts for interlock expiration):
+                m_udpTxCommsStatusManager.getUdpInterlockStatus() != DirectMessage::RadioUdpInterlockStatus::HERC_HAS_INTERLOCK
+                //...
+            )
+            {
+                // Make sure we don't send anything to the Radio. Whatever it
+                // was, it's not important now since it would have necessarily
+                // assumed we had the interlock.
+                yieldData = false;
+
+                // Make sure this doesn't happen too often in a row:
+                m_unexpectedUdpInterlockLossCount++;
+                if (m_unexpectedUdpInterlockLossCount > WF121_MAX_UDP_INTERLOCK_LOSSES)
+                {
+                    // Go to bad case:
+                    // (we process this as a BGAPI fail here b/c:
+                    //      1. Technically, we're hijacking BGAPI for the interlock.
+                    //      2. It's a pretty generic cleanup step.
+                    // ).
+                    inner_state = UdpTxUpdateState::BGAPI_CMD_FAIL;
+
+                    // We're handling this issue and should be starting over so
+                    // reset the consecutive counter:
+                    m_unexpectedUdpInterlockLossCount = 0;
+
+                    watchDogInterface.debugPrintfToWatchdog("RADIO: Excessive UDP interlock loss."); // For debugging. TODO: [CWC] REMOVEME
+                }
+                else
+                {
+                    // We have to start sending the message over again,
+                    // which will start by us asking for the interlock again:
+                    inner_state = UdpTxUpdateState::START_SENDING_MESSAGE;
+                }
             }
 
             if (inner_state == UdpTxUpdateState::BGAPI_CMD_FAIL)

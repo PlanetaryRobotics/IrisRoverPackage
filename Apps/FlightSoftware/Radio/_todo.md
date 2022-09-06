@@ -25,5 +25,6 @@
     - Also, as a precaution, check all *really* important operational values to
     make sure they have a known possible value (e.g. check state_4B_abbr)
     - Also can serve as a basic cosmic radiation safety
+- Test behavior on disconnect while Hercules is actively TXing UDP (and also when it's not)
 - Run a long (>72hrs) continuous test with Hercules and check for any fatal or
   fatal:crit/swe/so messages.

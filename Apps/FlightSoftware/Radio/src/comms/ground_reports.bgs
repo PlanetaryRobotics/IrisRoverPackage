@@ -58,7 +58,7 @@ end
 # precede `hercules_grab_interlock`)
 procedure hercules_release_interlock()
     # Check if the interlock even needs to be released:
-    if(hercules_interlock_timer_running != 0 || hercules_interlock_counting_semaphore != 0)then
+    if(hercules_interlock_timer_running != 0 || hercules_interlock_counting_semaphore != 0) then
         # Reset semaphore:
         hercules_interlock_counting_semaphore = 0
         # Clean up:
@@ -453,6 +453,24 @@ end
 event sme_signal_quality(rssi, hw_interface)
     if(expecting_rssi_update = 0) then
         call hercules_release_interlock()
+    end if
+end
+
+# If we disconnect from WiFi, Hercules loses the interlock if it has it
+# (b/c we'll want it first upon reconnection):
+event sme_disconnected(reason, hw_interface)
+    if hw_interface = 0 then
+        call hercules_release_interlock()
+    end if
+end
+
+# If one of the UDP endpoints close, Hercules loses the interlock if it has it
+# (b/c we'll want it first upon reopening):
+event endpoint_closing(reason, endpoint)
+    if endpoint != UDP_NULL_ENDPOINT then
+        if (endpoint = udp_client_endpoint || endpoint = udp_server_endpoint) then
+            call hercules_release_interlock()
+        end if
     end if
 end
 

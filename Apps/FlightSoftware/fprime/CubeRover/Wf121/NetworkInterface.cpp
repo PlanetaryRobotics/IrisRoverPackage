@@ -652,6 +652,20 @@ namespace Wf121
         RequestUdpInterlock(&m_bgApiCommandBuffer);
         *yieldData = true; // tell State Machine to send this data
 
+        // Set up everything so we can capture any responses starting now, even
+        // if it comes before we enter the WAIT_ state:
+        while (!m_udpTxCommsStatusManager.startListeningFor_getUdpInterlock_Response())
+        {
+            // NOTE: If startListening failed for some reason, that means we're
+            // very early (or things are very wrong) and things aren't set up
+            // yet. Technically that means we're not actually ready to downlink,
+            // so let's other tasks breathe while we wait for this to be set up:
+            // (NOTE: if this is because things are very wrong, Earth will
+            // notice it's not getting anything and, since it can still command
+            // us and Watchdog, it will reset us).
+            vTaskDelay(WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL);
+        }
+
         // Next state will be waiting for a response (after sending data):
         return UdpTxUpdateState::WAIT_FOR_UDP_INTERLOCK;
     }
@@ -730,6 +744,20 @@ namespace Wf121
                         m_downlinkTargetEndpoint,
                         m_xUdpTxWorkingData.dataSize);
         *yieldData = true; // tell State Machine to send this data
+
+        // Set up everything so we can capture any responses starting now, even
+        // if it comes before we enter the WAIT_ state:
+        while (!m_udpTxCommsStatusManager.startListeningFor_setTransmitSize_Response())
+        {
+            // NOTE: If startListening failed for some reason, that means we're
+            // very early (or things are very wrong) and things aren't set up
+            // yet. Technically that means we're not actually ready to downlink,
+            // so let's other tasks breathe while we wait for this to be set up:
+            // (NOTE: if this is because things are very wrong, Earth will
+            // notice it's not getting anything and, since it can still command
+            // us and Watchdog, it will reset us).
+            vTaskDelay(WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL);
+        }
 
         // Next state will be waiting for a response (after sending data):
         return UdpTxUpdateState::WAIT_FOR_SET_TRANSMIT_SIZE_ACK;
@@ -821,6 +849,20 @@ namespace Wf121
                      m_xUdpTxWorkingData.data + m_totalUdpMessageBytesDownlinked,
                      m_chunkBytesPending);
         *yieldData = true; // tell State Machine to send this data
+
+        // Set up everything so we can capture any responses starting now, even
+        // if it comes before we enter the WAIT_ state:
+        while (!m_udpTxCommsStatusManager.startListeningFor_sendEndpointUdp_Response())
+        {
+            // NOTE: If startListening failed for some reason, that means we're
+            // very early (or things are very wrong) and things aren't set up
+            // yet. Technically that means we're not actually ready to downlink,
+            // so let's other tasks breathe while we wait for this to be set up:
+            // (NOTE: if this is because things are very wrong, Earth will
+            // notice it's not getting anything and, since it can still command
+            // us and Watchdog, it will reset us).
+            vTaskDelay(WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL);
+        }
 
         // Next state will be waiting for a response (after sending data):
         return UdpTxUpdateState::WAIT_FOR_UDP_CHUNK_ACK;

@@ -92,6 +92,24 @@ namespace Wf121
         this->mutex.unLock();
     }
 
+    bool UdpTxCommsStatusManager::startListeningFor_getUdpInterlock_Response()
+    {
+        return UdpTxCommsStatusManager::prepareToAwaitResponse(AwaitableCommand::GET_UDP_INTERLOCK,
+                                                               &this->xQueue_GetUdpInterlock_Response);
+    }
+
+    bool UdpTxCommsStatusManager::startListeningFor_setTransmitSize_Response()
+    {
+        return UdpTxCommsStatusManager::prepareToAwaitResponse(AwaitableCommand::SET_TRANSMIT_SIZE,
+                                                               &this->xQueue_SetTransmitSize_Response);
+    }
+
+    bool UdpTxCommsStatusManager::startListeningFor_sendEndpointUdp_Response()
+    {
+        return UdpTxCommsStatusManager::prepareToAwaitResponse(AwaitableCommand::SEND_ENDPOINT_UDP,
+                                                               &this->xQueue_SendEndpointUdp_Response);
+    }
+
     // Block (yield) the calling task until we get a `GetUdpInterlock` response.
     // Return that response or TIMEOUT if we waited too long or
     // INTERNAL__TRY_AGAIN if the messaging system wasn't set up yet or
@@ -189,15 +207,18 @@ namespace Wf121
         setCommandResponse(getCurrentlyAwaitedCommand(), response);
     }
 
-    // Helper function to block (yield) the calling task until we get a
-    // response for the given queue correspond to the given `AwaitableCommand`.
-    // Return that response or TIMEOUT if we waited too long or
-    // INTERNAL__TRY_AGAIN if the messaging system wasn't set up yet or
-    // INTERNAL__BAD_SYNTAX if a BadSyntax event was emitted while we were awaiting a response.
-    BgApi::ErrorCode UdpTxCommsStatusManager::awaitResponse(UdpTxCommsStatusManager::AwaitableCommand cmd, QueueHandle_t *blockingQueue)
+    // Helper function that readies us to perform a blocking await for a command
+    // response. This allows us to collect data (e.g. really fast commands
+    // responses) after we send the command but before we start the blocking
+    // await for it.
+    // This was added out of necessity as, during testing, it was observed that
+    // many command responses came in almost immediately, before the UDP TX
+    // state machine was able to advance into an awaiting state.
+    //
+    // Returns `true` if we were able to successfully set everything up and
+    // start listening (`false` if, for ex, the queue was init'd yet).
+    bool UdpTxCommsStatusManager::prepareToAwaitResponse(UdpTxCommsStatusManager::AwaitableCommand cmd, QueueHandle_t *blockingQueue)
     {
-        BgApi::ErrorCode errorCode;
-
         if (*blockingQueue != NULL)
         {
             // Clear the queue in question first because the callbacks that fill
@@ -210,6 +231,23 @@ namespace Wf121
             // Signal that we're now waiting for a response for the given command:
             setCurrentlyAwaitedCommand(cmd);
 
+            return true;
+        }
+
+        return false;
+    }
+
+    // Helper function to block (yield) the calling task until we get a
+    // response for the given queue correspond to the given `AwaitableCommand`.
+    // Return that response or TIMEOUT if we waited too long or
+    // INTERNAL__TRY_AGAIN if the messaging system wasn't set up yet or
+    // INTERNAL__BAD_SYNTAX if a BadSyntax event was emitted while we were awaiting a response.
+    BgApi::ErrorCode UdpTxCommsStatusManager::awaitResponse(UdpTxCommsStatusManager::AwaitableCommand cmd, QueueHandle_t *blockingQueue)
+    {
+        BgApi::ErrorCode errorCode;
+
+        if (*blockingQueue != NULL)
+        {
             // Block (yield) Task until timeout or data received:
             if (xQueueReceive(*blockingQueue,
                               &(errorCode),

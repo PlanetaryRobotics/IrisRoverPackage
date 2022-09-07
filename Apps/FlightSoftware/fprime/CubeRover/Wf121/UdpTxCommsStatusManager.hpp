@@ -70,6 +70,31 @@ namespace Wf121
         // to direct to the appropriate Mailbox Queue):
         void setResponseForCurrentlyAwaitedCommand(BgApi::ErrorCode response);
 
+        // Sets up everything so any new `getUdpInterlock` command responses will be
+        // captured by the appropriate Mailbox Queue.
+        // This allows us to collect data (e.g. really fast commands responses)
+        // after we send the command but before we start the blocking await.
+        //
+        // Returns `true` if we were able to successfully set everything up and
+        // start listening (`false` if, for ex, the queue was init'd yet).
+        bool startListeningFor_getUdpInterlock_Response();
+        // Sets up everything so any new `setTransmitSize` command responses will be
+        // captured by the appropriate Mailbox Queue.
+        // This allows us to collect data (e.g. really fast commands responses)
+        // after we send the command but before we start the blocking await.
+        //
+        // Returns `true` if we were able to successfully set everything up and
+        // start listening (`false` if, for ex, the queue was init'd yet).
+        bool startListeningFor_setTransmitSize_Response();
+        // Sets up everything so any new `sendEndpointUdp` command responses will be
+        // captured by the appropriate Mailbox Queue.
+        // This allows us to collect data (e.g. really fast commands responses)
+        // after we send the command but before we start the blocking await.
+        //
+        // Returns `true` if we were able to successfully set everything up and
+        // start listening (`false` if, for ex, the queue was init'd yet).
+        bool startListeningFor_sendEndpointUdp_Response();
+
         // Block (yield) the calling task until we get a `GetUdpInterlock` response.
         // Return that response or TIMEOUT if we waited too long or
         // INTERNAL__TRY_AGAIN if the messaging system wasn't set up yet or
@@ -109,6 +134,7 @@ namespace Wf121
         // it's been too long since we got that update, we'll infer it's
         // expired but we missed the message).
         DirectMessage::RadioUdpInterlockStatus getUdpInterlockStatus();
+
     private:
         // Mutex to protect internal data (NOTE: the Queues do this themselves)
         ::Os::Mutex mutex;
@@ -124,6 +150,18 @@ namespace Wf121
         AwaitableCommand getCurrentlyAwaitedCommand();
         // Set what command we're currently awaiting a response for (in a mutex-safe way):
         void setCurrentlyAwaitedCommand(AwaitableCommand cmd);
+
+        // Helper function that readies us to perform a blocking await for a command
+        // response. This allows us to collect data (e.g. really fast commands
+        // responses) after we send the command but before we start the blocking
+        // await for it.
+        // This was added out of necessity as, during testing, it was observed that
+        // many command responses came in almost immediately, before the UDP TX
+        // state machine was able to advance into an awaiting state.
+        //
+        // Returns `true` if we were able to successfully set everything up and
+        // start listening (`false` if, for ex, the queue was init'd yet).
+        bool prepareToAwaitResponse(AwaitableCommand cmd, QueueHandle_t *blockingQueue);
 
         // Helper function to block (yield) the calling task until we get a
         // response for the given queue correspond to the given `AwaitableCommand`.

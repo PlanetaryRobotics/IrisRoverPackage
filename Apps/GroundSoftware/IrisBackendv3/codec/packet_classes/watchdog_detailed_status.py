@@ -378,10 +378,11 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
 
                 ('ALL_MOT_ON', long_form['RABI__ALL_MOTORS_POWER_ON']),
                 ('ALL_MOT_OFF', long_form['RABI__ALL_MOTORS_POWER_OFF']),
-                ('24V_EN_RST', long_form['RABI__24V_EN_RESET']),
-                ('24V_EN_UNRST', long_form['RABI__24V_EN_UNRESET']),
-                ('24V_EN_ON', long_form['RABI__24V_EN_POWER_ON']),
-                ('24V_EN_OFF', long_form['RABI__24V_EN_POWER_OFF'])
+
+                ('VSA_RST', long_form['RABI__V_SYS_ALL_OFF__RESET']),
+                ('VSA_UNRST', long_form['RABI__V_SYS_ALL_ON__UNRESET']),
+                ('VSA_ON', long_form['RABI__V_SYS_ALL_POWER_ON']),
+                ('VSA_OFF', long_form['RABI__V_SYS_ALL_POWER_OFF'])
             ])
 
         @property

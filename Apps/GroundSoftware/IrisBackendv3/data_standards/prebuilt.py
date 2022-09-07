@@ -3,7 +3,7 @@ Special prebuilt data standards which exist outside of the FPrime XML (e.g. for
 watchdog heartbeat)
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/14/2022
+@last-updated: 09/07/2022
 """
 from typing import Any, Final, Type, Union, List, Tuple, TypeVar
 from collections import OrderedDict
@@ -426,10 +426,10 @@ watchdog_detailed_status_heartbeat: Module = Module(
                     ('RABI__3V3_EN_UNRESET', 1),
                     ('RABI__3V3_EN_POWER_ON', 1),
                     ('RABI__3V3_EN_POWER_OFF', 1),
-                    ('RABI__24V_EN_RESET', 1),
-                    ('RABI__24V_EN_UNRESET', 1),
-                    ('RABI__24V_EN_POWER_ON', 1),
-                    ('RABI__24V_EN_POWER_OFF', 1),
+                    ('RABI__V_SYS_ALL_OFF__RESET', 1),
+                    ('RABI__V_SYS_ALL_ON__UNRESET', 1),
+                    ('RABI__V_SYS_ALL_POWER_ON', 1),
+                    ('RABI__V_SYS_ALL_POWER_OFF', 1),
                     ('RABI__HDRM_DEPLOY_SIGNAL_POWER_OFF', 1),
                     ('RABI__FPGA_CAM_0_SELECT', 1),
                     ('RABI__FPGA_CAM_1_SELECT', 1),

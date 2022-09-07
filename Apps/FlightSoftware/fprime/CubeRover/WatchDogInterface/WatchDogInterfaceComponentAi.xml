@@ -102,9 +102,9 @@
 					    <item name="Reset_EN_3_3" value = "17"/>
 					    <item name="EN_3_3_Power_On" value = "18"/>
 					    <item name="EN_3_3_Power_Off" value = "19"/>
-					    <item name="Reset_24_EN" value = "20"/>
-					    <item name="EN_24_On" value = "21"/>
-					    <item name="EN_24_Off" value = "22"/>
+					    <item name="System_Power_Cycle" value = "20" comment="V_SYS_ALL OFF, wait, then ON" />
+					    <item name="System_On" value = "21"  comment="V_SYS_ALL ON" />
+					    <item name="System_Off" value = "22" comment="V_SYS_ALL OFF"/>
 					    <item name="HDRM_Off" value = "24"/>
 					    <item name="FPGA_Cam_0" value = "25"/>
 					    <item name="FPGA_Cam_1" value = "26"/>

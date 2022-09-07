@@ -6,7 +6,7 @@ If you want to explore the Data Standards to build new commands, run:
 `pyenv exec python datastandards_lookup.py`.
 
 Created: 10/29/2021
-Last Update: 08/28/2022
+Last Update: 09/07/2022
 """
 from enum import Enum
 from collections import OrderedDict
@@ -117,6 +117,20 @@ prepared_commands = {
         OrderedDict(),
         DataPathway.WIRED
     ), # Note: Also does not turn off Deploy2
+    'power-on-system-vsa': ( # VSA ON (designed for use in SERVICE)
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='SYSTEM_POWER_ON'),
+        DataPathway.WIRED
+    ),
+    'power-off-system-vsa': ( # VSA OFF (designed for use in SERVICE)
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='SYSTEM_POWER_OFF'),
+        DataPathway.WIRED
+    ),
     'reset-herc': (
         DataPathway.WIRED,
         # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)

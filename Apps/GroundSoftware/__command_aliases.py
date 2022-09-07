@@ -121,14 +121,14 @@ prepared_commands = {
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
-        OrderedDict(reset_value='SYSTEM_POWER_ON'),
+        OrderedDict(reset_value='SYSTEM_ON'),
         DataPathway.WIRED
     ),
     'power-off-system-vsa': ( # VSA OFF (designed for use in SERVICE)
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
-        OrderedDict(reset_value='SYSTEM_POWER_OFF'),
+        OrderedDict(reset_value='SYSTEM_OFF'),
         DataPathway.WIRED
     ),
     'reset-herc': (

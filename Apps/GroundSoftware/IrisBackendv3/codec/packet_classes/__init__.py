@@ -20,3 +20,4 @@ from .radio_direct_message import *
 from .watchdog_debug import *
 from .watchdog_hello import *
 from .watchdog_radio_debug import *
+from .watchdog_debug_important import *

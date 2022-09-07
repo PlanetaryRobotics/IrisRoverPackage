@@ -175,7 +175,7 @@ namespace iris
         unsetDeploy();
 
         // Turn off voltage rails. All of these are simply setting/clearing bits, so they are instant.
-        disable24VPowerRail();
+//        disableVSysAllPowerRail(); // NOTE: [CWC] Don't turn off VSA, needs to stay on to keep Radio on. 24V will have gone down with `powerOffMotors`
 
         if (HerculesComms__isInitialized(theContext.m_hcState)) {
             DebugComms__registerHerculesComms(NULL);

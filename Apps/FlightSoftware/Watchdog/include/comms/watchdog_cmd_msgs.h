@@ -131,9 +131,9 @@ typedef enum WdCmdMsgs__ResetSpecificId
     WD_CMD_MSGS__RESET_ID__3_3V_EN_POWER_ON = 0x12, //!< Power on the 3.3V line enable.
     WD_CMD_MSGS__RESET_ID__3_3V_EN_POWER_OFF = 0x13, //!< Power off the 3.3V line enable.
 
-    WD_CMD_MSGS__RESET_ID__24V_EN_RESET = 0x14, //!< Reset the 24V line enable.
-    WD_CMD_MSGS__RESET_ID__24V_EN_POWER_ON = 0x15, //!< Power on the 24V line enable.
-    WD_CMD_MSGS__RESET_ID__24V_EN_POWER_OFF = 0x16, //!< Power off the 24V line enable.
+    WD_CMD_MSGS__RESET_ID__V_SYS_ALL_POWER_CYCLE = 0x14, //!< Reset the 24V line enable.
+    WD_CMD_MSGS__RESET_ID__V_SYS_ALL_ON = 0x15, //!< Power on the 24V line enable.
+    WD_CMD_MSGS__RESET_ID__V_SYS_ALL_OFF = 0x16, //!< Power off the 24V line enable.
 
     WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_OFF = 0x18, //!< Power off the HDRM.
 

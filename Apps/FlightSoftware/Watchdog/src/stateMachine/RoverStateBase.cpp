@@ -1515,29 +1515,29 @@ namespace iris
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__3V3_EN_POWER_OFF);
                 break;
 
-            case WD_CMD_MSGS__RESET_ID__24V_EN_RESET:
+            case WD_CMD_MSGS__RESET_ID__V_SYS_ALL_POWER_CYCLE:
                 if (allowPowerOn) {
-                    disable24VPowerRail();
-                    // queue up 24V rail on again
-                    theContext.m_watchdogFlags |= WDFLAG_UNRESET_24V;
-                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__24V_EN_RESET);
+                    disableVSysAllPowerRail();
+                    // queue up VSA rail on again
+                    theContext.m_watchdogFlags |= WDFLAG_POWER_ON_V_SYS_ALL;
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__V_SYS_ALL_OFF__RESET);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
                 break;
 
-            case WD_CMD_MSGS__RESET_ID__24V_EN_POWER_ON:
+            case WD_CMD_MSGS__RESET_ID__V_SYS_ALL_ON:
                 if (allowPowerOn) {
-                    enable24VPowerRail();
-                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__24V_EN_POWER_ON);
+                    enableVSysAllPowerRail();
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__V_SYS_ALL_POWER_ON);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
                 break;
 
-            case WD_CMD_MSGS__RESET_ID__24V_EN_POWER_OFF:
-                disable24VPowerRail();
-                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__24V_EN_POWER_OFF);
+            case WD_CMD_MSGS__RESET_ID__V_SYS_ALL_OFF:
+                disableVSysAllPowerRail();
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__V_SYS_ALL_POWER_OFF);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_OFF:

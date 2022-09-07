@@ -245,11 +245,11 @@ int watchdog_monitor(HerculesComms__State* hState,
         SET_RABI_IN_UINT(details->m_resetActionBits, RABI__3V3_EN_UNRESET);
     }
 
-    /* turn 24V on again */
-    if (*watchdogFlags & WDFLAG_UNRESET_24V) {
-        enable24VPowerRail();
-        *watchdogFlags ^= WDFLAG_UNRESET_24V;
-        SET_RABI_IN_UINT(details->m_resetActionBits, RABI__24V_EN_UNRESET);
+    /* turn VSA on again */
+    if (*watchdogFlags & WDFLAG_POWER_ON_V_SYS_ALL) {
+        enableVSysAllPowerRail();
+        *watchdogFlags ^= WDFLAG_POWER_ON_V_SYS_ALL;
+        SET_RABI_IN_UINT(details->m_resetActionBits, RABI__V_SYS_ALL_ON__UNRESET);
     }
 
     /* check ADC values */

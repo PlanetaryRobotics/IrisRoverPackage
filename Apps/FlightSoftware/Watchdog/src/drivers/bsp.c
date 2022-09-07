@@ -566,26 +566,28 @@ inline void disable3V3PowerRail(void)
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__3V3_EN);
 }
 
-// RAD TODO - this is for V_SYS_ALL_EN now (24v w/Motor_ON - PJ.2)
 /**
- * @brief      Enables the 24 v power rail. (high = ON)
+ * @brief      Enables the VSA power rail. Just an alias for `blimp_vSysAllEnOn` when dispatched from a reset specific command.
+ *
+ * NOTE: [CWC] This was converted from being a 24V command that was a Rev H hold over.
+ * Names have now been updated to match but function has been this was since at least RM1 RC1.
+ * NOTE: 24V line is only controlled via MOTOR_ON.
  */
-inline void enable24VPowerRail(void)
+inline void enableVSysAllPowerRail(void)
 {
-    PJDIR |= BIT7;
-    PJOUT |= BIT7;
-    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__V_SYS_ALL_EN);
+    blimp_vSysAllEnOn();
 }
 
 /**
- * @brief      Disables the 24 v power rail. (LOW = OFF)
+ * @brief      Disables the VSA power rail. Just an alias for `blimp_vSysAllEnOff` when dispatched from a reset specific command.
+ *
+ * NOTE: [CWC] This was converted from being a 24V command that was a Rev H hold over.
+ * Names have now been updated to match but function has been this was since at least RM1 RC1.
+ * NOTE: 24V line is only controlled via MOTOR_ON.
  */
-inline void disable24VPowerRail(void)
+inline void disableVSysAllPowerRail(void)
 {
-    PJDIR &= ~BIT7;
-    PJREN &= ~BIT7;
-
-    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__V_SYS_ALL_EN);
+    blimp_vSysAllEnOff();
 }
 
 /**

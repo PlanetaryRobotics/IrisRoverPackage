@@ -238,7 +238,7 @@ namespace iris
 
         // Turn off voltage rails. All of these are simply setting/clearing bits, so they are instant.
         disable3V3PowerRail();
-        disable24VPowerRail();
+        disableVSysAllPowerRail();
         blimp_normalBoot(); // Restore BLiMP state if returning to KA from a higher state. Shouldn't do anything if we're pushing straight through KA the first time.
 
         // Turn off Herc comms (used if returning to KA from a higher state):

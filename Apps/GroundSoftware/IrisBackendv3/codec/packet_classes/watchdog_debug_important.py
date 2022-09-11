@@ -17,7 +17,8 @@ IMPORTANT_DEBUG_KEYWORDS: Final[List[bytes]] = [
     b"Crit",
     b"Fatal",
     b"Important",
-    b"Notice"
+    b"Notice",
+    b"Boot"
 ]
 
 class WatchdogDebugImportantPacket(WatchdogDebugPacket):

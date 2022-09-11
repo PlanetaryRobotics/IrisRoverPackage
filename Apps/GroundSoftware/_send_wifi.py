@@ -81,7 +81,7 @@ def send_radio_only_cmd__echo(data_to_echo: bytes, *args, **kwargs):
 # Hercules commands:
 SEND_HERCULES_COMMAND: bool = True
 
-seq_num = 0x00
+seq_num = 0x01
 specific_cmd_name_override = 'wifi-mode'
 # specific_cmd_name_override = 'drive-fwd-200'
 
@@ -96,13 +96,13 @@ print(hexstr(packet_bytes))
 
 ## Send Hercules Command:
 if SEND_HERCULES_COMMAND:
-    # send_wifi(packet_bytes)
+    # send_wifi_adv2(packet_bytes)
     pass
 
 
 # Radio-Direct Commands:
-# send_radio_only_cmd__echo(b'HELLO')
-send_radio_only_command(radio_only_cmd_ids['WRITE_UART'], b'TESTING...')
+send_radio_only_cmd__echo(b'HELLO')
+# send_radio_only_command(radio_only_cmd_ids['WRITE_UART'], b'TESTING...')
 # send_radio_only_command(0xFF, b'This-is-a-bad-cmd-id')
 # send_radio_only_command(radio_only_cmd_ids['HERCULES_DM'], b'faked:STATE')
 # send_radio_only_command(radio_only_cmd_ids['RESET_RADIO'], b'nada')

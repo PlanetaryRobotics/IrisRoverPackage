@@ -69,6 +69,13 @@ prepared_commands = {
         DataPathway.WIRED
     ),
     'wifi-mode': (  # Command herc to send telem over wifi
+        DataPathway.WIRELESS,
+        Magic.COMMAND,  # "normal" command is for Hercules
+        'GroundInterface_SetPrimaryInterface',
+        OrderedDict(primary_interface='WF_121'),
+        DataPathway.WIRELESS
+    ),
+    'wifi-mode-wired-send': (  # Command herc to send telem over wifi using a wired command
         DataPathway.WIRED,
         Magic.COMMAND,  # "normal" command is for Hercules
         'GroundInterface_SetPrimaryInterface',

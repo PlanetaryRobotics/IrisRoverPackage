@@ -360,7 +360,11 @@ def send_console_command(pathway: DataPathway, magic: Magic, command_name: str, 
             payloads=payloads
         )
         packet_bytes = packet.encode()
-        message_queue.put_nowait(f"Sending: {command_payload} . . .\n{hexstr(packet_bytes)}")
+        if pathway == DataPathway.WIRED:
+            path = "RS422"
+        elif pathway == DataPathway.WIRELESS:
+            path = "WIFI"
+        message_queue.put_nowait(f"Sending over {path}: {command_payload} . . .\n{hexstr(packet_bytes)}")
     except Exception as e:
         message_queue.put_nowait(f"An exception occured while trying to pack bytes for an outbound command: {e}")
 
@@ -379,7 +383,7 @@ def attempt_console_command_send(message_queue, serial_writer) -> None:
 
     # Only send if one command is locked in (only one result OR our input exactly matches the first result):
     filtered_results = filter_command_dataframe(user_cmd_input_str)
-    if filtered_results.shape[0] == 1 or user_cmd_input_str == filtered_results.index[0]:
+    if filtered_results.shape[0] == 1 or filtered_results.shape[0] > 1 and user_cmd_input_str == filtered_results.index[0]:
         command_alias = filtered_results.index[0]
         pathway, magic, command_name, kwargs, telem_pathway = prepared_commands[command_alias]
 

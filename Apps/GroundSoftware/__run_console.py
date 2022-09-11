@@ -10,15 +10,38 @@ SERIAL_DEVICE_SNS = {
     'J36_debugger': 'AB0JRGV8' # Connects to J36-RS422 header on the SBC
 }
 
-# Settings (TODO: make the opt. CLI args):
-SERIAL_DEVICE: str = 'J36_debugger' # key in SERIAL_DEVICE_SNS
-BAUD: int = 9600
-# BAUD = 57600
+import argparse
+
+parser = argparse.ArgumentParser(
+    description='IRIS Lunar Rover — Data Standards Lookup — CLI')
+
+
+# Settings:
+def get_opts():
+    """
+    Return settings wrapped in argparse.
+
+    Returns
+    -------
+    opts : Settings wrapped in argparse.
+
+    """
+    default_baud: int = 9600
+    parser.add_argument('-b', '--baud', type=int, default=default_baud, choices=[9600, 57600],
+                        help=f'RS422 Baud Rate between Watchdog and Lander. Default: {default_baud}.')
+
+    default_serial_device = [*SERIAL_DEVICE_SNS.keys()][0]
+    parser.add_argument('-s', '--serial-device', type=str, default=default_serial_device, choices=list(SERIAL_DEVICE_SNS.keys()),
+                        help=f'Which serial device is being used for RS422 comms. Default: {default_serial_device}.')
+
+    opts = parser.parse_args()
+    return opts
 
 if __name__ == '__main__':
+    opts = get_opts()
     print(
         f"Starting Iris Console with \t"
-        f"SERIAL: baud: {BAUD},  using: {SERIAL_DEVICE} (SN: {SERIAL_DEVICE_SNS[SERIAL_DEVICE]})"
+        f"SERIAL: baud: {opts.baud},  using: {opts.serial_device} (SN: {SERIAL_DEVICE_SNS[opts.serial_device]})"
         "\n"
         f"NOTE: On windows this will likely capture all keyboard inputs EVEN WHEN WINDOW IS NOT IN FOCUS (potentially leading to accidental command sends). So, be sure to close the window when not in use if using Windows."
         "\n"
@@ -26,6 +49,6 @@ if __name__ == '__main__':
     input(f"Press ENTER to begin . . .")
 
     start_console(
-        serial_device_sn = SERIAL_DEVICE_SNS[SERIAL_DEVICE],
-        baud = BAUD
+        serial_device_sn = SERIAL_DEVICE_SNS[opts.serial_device],
+        baud = opts.baud
     )

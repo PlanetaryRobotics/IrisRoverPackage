@@ -77,6 +77,7 @@ namespace Wf121
 
         // Simple container struct with mutex containing info about DMA write status:
         // Also includes a smart timeout calculator.
+        static StaticSemaphore_t xSemaphoreBuffer_dmaWriteStatus_writeDone;
         struct DmaWriteStatus
         {
         public:
@@ -89,7 +90,6 @@ namespace Wf121
             // Semaphore to give whenever writing operations complete (note: this
             // only works once the DMA ISR is active):
             SemaphoreHandle_t xSemaphore_writeDone;
-            static StaticSemaphore_t xSemaphoreBuffer_writeDone;
 
             // Extra layer of safety to make sure only one process can use the
             // core SCI resource (`sciDMASend` for this interface) at a time.
@@ -127,7 +127,7 @@ the xSemaphoreBuffer variable. */
                 this->xSemaphore_writeDone = xQueueGenericCreateStatic((UBaseType_t)1,
                                                                        semSEMAPHORE_QUEUE_ITEM_LENGTH,
                                                                        (unsigned char *)NULL,
-                                                                       &DmaWriteStatus::xSemaphoreBuffer_writeDone,
+                                                                       &xSemaphoreBuffer_dmaWriteStatus_writeDone,
                                                                        queueQUEUE_TYPE_BINARY_SEMAPHORE);
                 // NOTE: Binary Semaphore initializes to 0 ("taken") so anything
                 // that wants to "Take" it will have to wait for a "Give" first.
@@ -178,7 +178,7 @@ the xSemaphoreBuffer variable. */
             {
                 // calculate before grabbing mutex (to hold mutex for as little
                 // time as possible):
-                uint32_t smartTimeoutMs = 15000UL * dataSize / WF121_SCI_BAUD; // coefficient * bytes / (baud/sec)
+                uint32_t smartTimeoutMs = 15000UL * dataSize / WF121_SCI_BAUD + 1; // coefficient * bytes / (baud/sec)
                 this->mutex.lock();
                 this->smartTimeoutMs = smartTimeoutMs;
                 this->mutex.unLock();
@@ -190,7 +190,6 @@ the xSemaphoreBuffer variable. */
             {
                 uint32_t startTime;
                 uint32_t timeoutMs;
-                uint32_t timeRemaining;
                 // ... and only lock the mutex when absolutely needed:
                 if (useSmartTimeouts)
                 {
@@ -209,9 +208,8 @@ the xSemaphoreBuffer variable. */
                 // Grab `now` **AFTER** the time so there's no chance startTime
                 // > now (unless there's been an overflow, which is okay):
                 uint32_t now = Timestamp::getTimeMs();
-
-                timeRemaining = (startTime + timeoutMs) - now;
-                return (timeRemaining > 0) ? timeRemaining : 0;
+                uint32_t endTime = (startTime + timeoutMs);
+                return (now < endTime) ? (endTime-now) : 0;
             }
 
             // Return whether the allowable time to block has expired (obtains

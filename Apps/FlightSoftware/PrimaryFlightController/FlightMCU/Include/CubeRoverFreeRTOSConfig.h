@@ -13,13 +13,13 @@
 //#define traceTASK_SWITCHED_OUT() DEBUG("RTOS: Task switch out\n");
 //
 //#define traceTASK_SWITCHED_IN() DEBUG("RTOS: Task switch in\n");
-//
+
 //#define traceTASK_CREATE(xTask)  {                  \
 //    DEBUG("RTOS: Task created: ");                  \
 //    DEBUG(xTask->pcTaskName);                       \
 //    DEBUG("\n");                                    \
 //}
-//
+
 //#define traceTASK_SUSPEND(xTask)  {                 \
 //    DEBUG("RTOS: Task suspended: ");                 \
 //    DEBUG(xTask->pcTaskName);                       \

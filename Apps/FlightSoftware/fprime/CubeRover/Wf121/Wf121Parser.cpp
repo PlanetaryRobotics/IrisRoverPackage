@@ -381,13 +381,125 @@ namespace Wf121
                         }
 
                         // Pass whatever the Radio sent us to ground (for surface diagnostics on the Lander):
-                        watchDogInterface.debugPrintfBufferWithPrefix((uint8_t*)&msg.header, sizeof(msg.header), msg.payloadBuffer, msg.payloadSize);
+                        // as long as it's not an ILOCK messsage. At least 2 of those come with every
+                        // downlink and since this message would be downlinked, that would mean the downlink
+                        // buffer would grow by >=2 packets for every packet sent (it would swamp itself).
+                        if(msg.payloadSize < 5 || memcmp(msg.payloadBuffer, "ilock", 5) != 0){
+                            watchDogInterface.debugPrintfBufferWithPrefix((uint8_t*)&msg.header, sizeof(msg.header), msg.payloadBuffer, msg.payloadSize);
+                        }
 
                         returnStatus = Mpsm::ProcessStatus::DM_PARSED;
                     }
                     else if (msg.headerType == HeaderType::BGAPI)
                     {
                         returnStatus = Mpsm::ProcessStatus::BGAPI_PARSED;
+
+                        // ! TODO: [CWC] REMOVEME (for debugging only)
+                        if (!(
+                                msg.bgApiHeader()->bit.msgType == BgApi::MsgType::CMD_RSP_TYPE && msg.bgApiHeader()->bit.classId == BgApi::CommandClass::CLASS_ENDPOINT && msg.bgApiHeader()->bit.cmdId == 0 || // ignore send data response
+                                msg.bgApiHeader()->bit.msgType == BgApi::MsgType::CMD_RSP_TYPE && msg.bgApiHeader()->bit.classId == BgApi::CommandClass::CLASS_ENDPOINT && msg.bgApiHeader()->bit.cmdId == 5 || // ignore set transmit size response
+                                msg.bgApiHeader()->bit.msgType == BgApi::MsgType::EVENT_TYPE && msg.bgApiHeader()->bit.classId == BgApi::CommandClass::CLASS_WIFI && msg.bgApiHeader()->bit.cmdId == 22 || // ignore RSSI update
+                                msg.bgApiHeader()->bit.msgType == BgApi::MsgType::CMD_RSP_TYPE && msg.bgApiHeader()->bit.classId == BgApi::CommandClass::CLASS_WIFI && msg.bgApiHeader()->bit.cmdId == 19 || // ignore RSSI update request
+                                msg.bgApiHeader()->bit.classId == BgApi::CommandClass::CLASS_HARDWARE && msg.bgApiHeader()->bit.cmdId == 0 || // ignore timer commands and hooks
+                                msg.bgApiHeader()->bit.classId == BgApi::CommandClass::CLASS_CONFIGURATION && msg.bgApiHeader()->bit.cmdId == 0 // ignore get MAC response and event
+                        )){
+                            uint8_t headerDecoding[35];
+                            uint8_t headerDecodingHead = 0;
+
+                            // Add a fixed prefix:
+                            memcpy(headerDecoding + headerDecodingHead, "RADIO: BG: ", 11);
+                            headerDecodingHead += 11;
+
+                            // Add cmd rsp or event:
+                            switch(msg.bgApiHeader()->bit.msgType){
+                            case BgApi::MsgType::CMD_RSP_TYPE:
+                                headerDecoding[headerDecodingHead] = 'R';
+                                break;
+                            case BgApi::MsgType::EVENT_TYPE:
+                                headerDecoding[headerDecodingHead] = 'E';
+                                break;
+                            default:
+                                headerDecoding[headerDecodingHead] = 'O';
+                            }
+                            headerDecoding[headerDecodingHead+1] = ':';
+                            headerDecoding[headerDecodingHead+2] = ' ';
+                            headerDecodingHead += 3;
+
+                            // Start with class:
+                            switch(msg.bgApiHeader()->bit.classId){
+                            case BgApi::CommandClass::CLASS_SYSTEM:
+                                memcpy(headerDecoding + headerDecodingHead, "SYSTEM", 6);
+                                headerDecodingHead += 6;
+                                break;
+                            case BgApi::CommandClass::CLASS_CONFIGURATION:
+                                memcpy(headerDecoding + headerDecodingHead, "CFG", 3);
+                                headerDecodingHead += 3;
+                                break;
+                            case BgApi::CommandClass::CLASS_WIFI:
+                                memcpy(headerDecoding + headerDecodingHead, "WIFI", 4);
+                                headerDecodingHead += 4;
+                                break;
+                            case BgApi::CommandClass::CLASS_TCP_STACK:
+                                memcpy(headerDecoding + headerDecodingHead, "TCP", 3);
+                                headerDecodingHead += 3;
+                                break;
+                            case BgApi::CommandClass::CLASS_ENDPOINT:
+                                memcpy(headerDecoding + headerDecodingHead, "ENDP", 4);
+                                headerDecodingHead += 4;
+                                break;
+                            case BgApi::CommandClass::CLASS_HARDWARE:
+                                memcpy(headerDecoding + headerDecodingHead, "HW", 2);
+                                headerDecodingHead += 2;
+                                break;
+                            case BgApi::CommandClass::CLASS_I2C:
+                                memcpy(headerDecoding + headerDecodingHead, "I2C", 3);
+                                headerDecodingHead += 3;
+                                break;
+                            case BgApi::CommandClass::CLASS_WIRED_ETHERNET:
+                                memcpy(headerDecoding + headerDecodingHead, "ETH", 3);
+                                headerDecodingHead += 3;
+                                break;
+                            case BgApi::CommandClass::CLASS_HTTP_SERVER:
+                                memcpy(headerDecoding + headerDecodingHead, "HTTP", 4);
+                                headerDecodingHead += 4;
+                                break;
+                            case BgApi::CommandClass::CLASS_PERSISTENT_STORE:
+                                memcpy(headerDecoding + headerDecodingHead, "PS", 2);
+                                headerDecodingHead += 2;
+                                break;
+                                break;
+                            case BgApi::CommandClass::CLASS_DEVICE_FIRMWARE_UPGRADE:
+                                memcpy(headerDecoding + headerDecodingHead, "FW", 2);
+                                headerDecodingHead += 2;
+                                break;
+                            default:
+                                headerDecoding[headerDecodingHead] = 'O';
+                                int clid = msg.bgApiHeader()->bit.classId;
+                                headerDecoding[headerDecodingHead+1] = '0' + (int(clid/1000) % 10);
+                                headerDecoding[headerDecodingHead+2] = '0' + (int(clid/100) % 10);
+                                headerDecoding[headerDecodingHead+3] = '0' + (int(clid/10) % 10);
+                                headerDecoding[headerDecodingHead+4] = '0' + (clid % 10);
+                                headerDecodingHead += 5;
+                            }
+
+                            // Add in MID:
+                            headerDecoding[headerDecodingHead] = ' ';
+                            headerDecodingHead++;
+                            headerDecoding[headerDecodingHead] = 'm';
+                            int mid = msg.bgApiHeader()->bit.cmdId;
+                            headerDecoding[headerDecodingHead+1] = '0' + (int(mid/1000) % 10);
+                            headerDecoding[headerDecodingHead+2] = '0' + (int(mid/100) % 10);
+                            headerDecoding[headerDecodingHead+3] = '0' + (int(mid/10) % 10);
+                            headerDecoding[headerDecodingHead+4] = '0' + (mid % 10);
+                            headerDecodingHead += 5;
+
+                            // Signal that data is next:
+                            headerDecoding[headerDecodingHead] = ':';
+                            headerDecoding[headerDecodingHead+1] = ' ';
+                            headerDecodingHead += 2;
+
+                            watchDogInterface.debugPrintfBufferWithPrefix((uint8_t*)headerDecoding, headerDecodingHead, msg.payloadBuffer, msg.payloadSize);
+                        } // ! TODO: [CWC] end of REMOVEME block
                     }
                     else
                     {

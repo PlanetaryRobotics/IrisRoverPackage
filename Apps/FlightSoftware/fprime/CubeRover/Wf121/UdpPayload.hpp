@@ -52,11 +52,15 @@ namespace Wf121
         }
 
         // Copies data from the given buffer into this payload (capping it at
-        // the max size):
-        void copyIn(size_t bufferLen, uint8_t *buffer)
+        // the max size).
+        // Also sets the buffer size appropriately.
+        // Returns the number of bytes actually copied.
+        size_t copyIn(size_t bufferLen, uint8_t *buffer)
         {
             uint16_t bytesToCopy = bufferLen <= WF121_UDP_MAX_PAYLOAD ? bufferLen : WF121_UDP_MAX_PAYLOAD;
             memcpy(this->data, buffer, bytesToCopy);
+            this->dataSize = bytesToCopy;
+            return bytesToCopy;
         }
     };
 

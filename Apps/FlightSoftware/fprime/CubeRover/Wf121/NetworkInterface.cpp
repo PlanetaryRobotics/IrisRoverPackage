@@ -50,7 +50,8 @@ namespace Wf121
                                            m_xUdpRxWorkingData(),
                                            m_xUdpTxWorkingData(),
                                            m_bgApiCommandBuffer(),
-                                           m_xUdpTxRecycling()
+                                           m_xUdpTxRecycling(),
+                                           m_downlinkTargetEndpoint(DirectMessage::UDP_NULL_ENDPOINT)
     {
         // Set up read buffer:
         m_xUdpRxPayloadQueue = NULL; // for now (NULL until initialized)
@@ -578,7 +579,7 @@ namespace Wf121
     // Returns the next state to transition to.
     NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_NEXT_MESSAGE(bool *yieldData)
     {
-        static bool first_downlink = false;
+        static bool first_downlink = true;
         // Grab data to write:
         // (if this is the first call upon connection, send a preformatted
         // "Hello" packet. Otherwise grab from queue.)
@@ -607,7 +608,7 @@ namespace Wf121
                 // WD resets us.
             }
             // Wait to be told there's new data to downlink:
-            while (xQueueReceive(this->m_xUdpTxPayloadQueue, &m_xUdpTxWorkingData, portMAX_DELAY) != pdPASS)
+            while (xQueueReceive(m_xUdpTxPayloadQueue, (void*)(&m_xUdpTxWorkingData), portMAX_DELAY) != pdPASS)
             {
                 // No data was received but awaiting data timed out (after a **really** long time)
                 // This shouldn't ever happen unless someone set `INCLUDE_vTaskSuspend` to `0`.
@@ -1074,7 +1075,6 @@ namespace Wf121
             // Poll until we meet all downlinking criteria (check every X ms):
             // (make sure we can downlink before yielding **any** data or
             // even determining what data to yield):
-            watchDogInterface.debugPrintfToWatchdog("\tRADIO: SM: Awaiting UDP + Connection..."); // For debugging. TODO: [CWC] REMOVEME
             while (
                 m_protectedRadioStatus.getRadioState() != DirectMessage::RadioSwState::UDP_CONNECTED || // Radio is connected and able to send UDP data
                 m_protectedRadioStatus.getDownlinkEndpoint() == DirectMessage::UDP_NULL_ENDPOINT        // Target for that UDP data isn't /dev/null
@@ -1084,62 +1084,50 @@ namespace Wf121
             }
 
             // Now advance the state machine:
-            watchDogInterface.debugPrintfToWatchdog("\tRADIO: SM: Advancing..."); // For debugging. TODO: [CWC] REMOVEME
             switch (inner_state)
             {
             case UdpTxUpdateState::/******/ WAIT_FOR_BGAPI_READY:
                 inner_state = handleTxState_WAIT_FOR_BGAPI_READY(&yieldData);
-                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in WAIT_FOR_BGAPI_READY"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
             case UdpTxUpdateState::/******/ WAIT_FOR_NEXT_MESSAGE:
                 inner_state = handleTxState_WAIT_FOR_NEXT_MESSAGE(&yieldData);
-                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in WAIT_FOR_NEXT_MESSAGE"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
             case UdpTxUpdateState::/******/ START_SENDING_MESSAGE:
                 inner_state = handleTxState_START_SENDING_MESSAGE(&yieldData);
-                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in START_SENDING_MESSAGE"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
             case UdpTxUpdateState::/******/ ASK_FOR_UDP_INTERLOCK:
                 inner_state = handleTxState_ASK_FOR_UDP_INTERLOCK(&yieldData);
-                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in ASK_FOR_UDP_INTERLOCK"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
             case UdpTxUpdateState::/******/ WAIT_FOR_UDP_INTERLOCK:
                 inner_state = handleTxState_WAIT_FOR_UDP_INTERLOCK(&yieldData);
-                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in WAIT_FOR_UDP_INTERLOCK"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
             case UdpTxUpdateState::/******/ SEND_SET_TRANSMIT_SIZE:
                 inner_state = handleTxState_SEND_SET_TRANSMIT_SIZE(&yieldData);
-                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in SEND_SET_TRANSMIT_SIZE"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
             case UdpTxUpdateState::/******/ WAIT_FOR_SET_TRANSMIT_SIZE_ACK:
                 inner_state = handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK(&yieldData);
-                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in WAIT_FOR_SET_TRANSMIT_SIZE_ACK"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
             case UdpTxUpdateState::/******/ SEND_UDP_CHUNK:
                 inner_state = handleTxState_SEND_UDP_CHUNK(&yieldData);
-                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in SEND_UDP_CHUNK"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
             case UdpTxUpdateState::/******/ WAIT_FOR_UDP_CHUNK_ACK:
                 inner_state = handleTxState_WAIT_FOR_UDP_CHUNK_ACK(&yieldData);
-                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in WAIT_FOR_UDP_CHUNK_ACK"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
             case UdpTxUpdateState::/******/ DONE_DOWNLINKING:
                 inner_state = handleTxState_DONE_DOWNLINKING(&yieldData);
-                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in DONE_DOWNLINKING"); // For debugging. TODO: [CWC] REMOVEME
                 break;
 
             case UdpTxUpdateState::/******/ BGAPI_CMD_FAIL:
                 inner_state = handleTxState_BGAPI_CMD_FAIL(&yieldData);
-                watchDogInterface.debugPrintfToWatchdog("RADIO: TX in BGAPI_CMD_FAIL"); // For debugging. TODO: [CWC] REMOVEME
                 break;
             default:
                 // There must have been a bit-flip or something because we've
@@ -1160,8 +1148,8 @@ namespace Wf121
             if ( // we're in the middle of sending a message...:
                 (inner_state > UdpTxUpdateState::WAIT_FOR_UDP_INTERLOCK &&
                  inner_state < UdpTxUpdateState::DONE_DOWNLINKING) &&
-                // .. and we no longer have the interlock (NOTE: this method also accounts for interlock expiration):
-                m_udpTxCommsStatusManager.getUdpInterlockStatus() != DirectMessage::RadioUdpInterlockStatus::HERC_HAS_INTERLOCK
+                // ... and we no longer have the interlock (NOTE: this method also accounts for interlock expiration):
+                 m_udpTxCommsStatusManager.getUdpInterlockStatus() != DirectMessage::RadioUdpInterlockStatus::HERC_HAS_INTERLOCK
                 //...
             )
             {
@@ -1185,7 +1173,7 @@ namespace Wf121
                     // reset the consecutive counter:
                     m_unexpectedUdpInterlockLossCount = 0;
 
-                    watchDogInterface.debugPrintfToWatchdog("RADIO: Excessive UDP interlock loss."); // For debugging. TODO: [CWC] REMOVEME
+                    watchDogInterface.debugPrintfToWatchdog("RADIO: ERR: Excessive UDP interlock loss.");
                 }
                 else
                 {
@@ -1203,7 +1191,7 @@ namespace Wf121
                 // next state machine driver run - we want to handle this right
                 // away):
                 inner_state = handleTxState_BGAPI_CMD_FAIL(&yieldData);
-                watchDogInterface.debugPrintfToWatchdog("RADIO: TX did early BGAPI_CMD_FAIL"); // For debugging. TODO: [CWC] REMOVEME
+                watchDogInterface.debugPrintfToWatchdog("RADIO: TX did early BGAPI_CMD_FAIL");
             }
         }
 

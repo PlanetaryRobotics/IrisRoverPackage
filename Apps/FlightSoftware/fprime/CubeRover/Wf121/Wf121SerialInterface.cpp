@@ -8,7 +8,6 @@ namespace Wf121{namespace Wf121Serial // Wf121::Wf121Serial
     bool wf121FinishedInitializingSerial = false;
 
     // Mutex-protected information about DMA TX:
-    StaticSemaphore_t DmaWriteStatus::xSemaphoreBuffer_writeDone; // needs to be actually defined here.
     static DmaWriteStatus dmaWriteStatus(true); // use smart timeouts
 
     // Initialize comms:
@@ -53,7 +52,7 @@ namespace Wf121{namespace Wf121Serial // Wf121::Wf121Serial
                     // If it's not done writing yet, block the task (allowing others to
                     // run) for the half the estimated time remaining in the write
                     // operation (it's unlikely we'll be done before then anyway):
-                    vTaskDelay(dmaWriteStatus.blockingTimeRemaining() / 2 / portTICK_PERIOD_MS);
+                    vTaskDelay(dmaWriteStatus.blockingTimeRemaining() / 2 / portTICK_PERIOD_MS + 1);
                     // Then wait until actually ready (or timeout):
                     while (!dmaSendReady() && !timedout)
                     {
@@ -148,7 +147,7 @@ namespace Wf121{namespace Wf121Serial // Wf121::Wf121Serial
         dmaWriteStatus.sciResourceProtectionMutex.unLock();
         return true;
     }
-}
+}} // Wf121::Wf121Serial
 
 extern "C" void WF121_TX_DMA_ISR(dmaInterrupt_t inttype)
 {
@@ -173,4 +172,4 @@ extern "C" void WF121_TX_DMA_ISR(dmaInterrupt_t inttype)
         port specific. */
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
-}} // Wf121::Wf121Serial
+}

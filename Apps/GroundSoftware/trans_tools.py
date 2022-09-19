@@ -6,9 +6,10 @@ tests which require the Transceiver layer while the real thing is still being
 built.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 08/28/2022
+@last-updated: 09/14/2022
 """
 
+from enum import Enum
 import logging
 import coloredlogs  # type: ignore # mypy doesn't see type hints
 import traceback
@@ -25,7 +26,7 @@ import socket
 import serial  # type: ignore # no type hints
 import scapy.all as scp  # type: ignore # no type hints
 import numpy as np
-import pandas as pd
+import pandas as pd  # type: ignore
 from tabulate import tabulate
 import matplotlib.pyplot as plt  # type: ignore # no type hints
 import ulid
@@ -42,8 +43,8 @@ from IrisBackendv3.utils.nameiddict import NameIdDict
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.fsw_data_type import FswDataType
 from IrisBackendv3.data_standards.logging import logger as DsLogger
-from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response, watchdog_detailed_status_heartbeat
-from IrisBackendv3.codec.payload import Payload, TelemetryPayload, CommandPayload, WatchdogCommandPayload
+from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
+from IrisBackendv3.codec.payload import Payload, TelemetryPayload, EventPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
 from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket, WatchdogDetailedStatusPacket
 from IrisBackendv3.codec.packet import parse_packet as core_parse_packet
@@ -75,6 +76,8 @@ transLogger: Optional[Any] = None
 # Set up a logger which both prints to console and logs to file:
 
 DATETIME_FORMAT_STR: Final[str] = '%m-%d %H:%M:%S'
+
+
 def setup_logger(name: str):
     # set up logging to file - see previous section for more details
     logging.basicConfig(level=logging.DEBUG,
@@ -116,12 +119,7 @@ def err_print(*args, **kwargs):
 
 DsLogger.setLevel('CRITICAL')
 standards = DataStandards.build_standards()
-add_to_standards(standards, [
-    watchdog_detailed_status_heartbeat,
-    watchdog_heartbeat_tvac,
-    watchdog_heartbeat,
-    watchdog_command_response
-])
+add_to_standards(standards, ALL_PREBUILT_MODULES)
 set_codec_standards(standards)
 
 all_payloads: EnhancedPayloadCollection = EnhancedPayloadCollection()
@@ -129,7 +127,8 @@ telemetry_streams: NameIdDict[List[Tuple[datetime, Any]]] = NameIdDict()
 # Dataframes used for tabular printing of highlevel info about data received:
 USE_LOG_DATAFRAMES: Final[bool] = True
 
-def parse_ip_udp_packet(packet_bytes: bytes, deadspace: int = 0) -> Optional[Packet]:
+
+def parse_ip_udp_packet(packet_bytes: bytes, deadspace: int = 0) -> Packet:
     """Parses an IP/UDP packet and extracts the meaningful payload.
 
     Args:
@@ -137,7 +136,7 @@ def parse_ip_udp_packet(packet_bytes: bytes, deadspace: int = 0) -> Optional[Pac
         deadspace (int, optional): Number of bytes to ignore at beginning of Raw section (due to some fault). Defaults to 0.
 
     Returns:
-        Optional[Packet]: `Packet` if parsing succeeded.
+        Packet: `Packet` if parsing succeeded.
     """
     # Convert into a full packet:
     full_packet = scp.IP(packet_bytes)
@@ -231,6 +230,7 @@ def build_command_packet(
 
     command_payload_type = {
         Magic.WATCHDOG_COMMAND: WatchdogCommandPayload,
+        Magic.RADIO_COMMAND: CommandPayload,
         Magic.COMMAND: CommandPayload
     }[magic]
 
@@ -360,7 +360,6 @@ def degK_to_adc(tempK: float) -> int:
     return degC_to_adc(tempK - 273.15)
 
 
-
 def update_telemetry_streams_from_payloads(payloads: EnhancedPayloadCollection, auto_cache=True, include_in_dataframe: bool = True):
     """
     Updates the `telemetry_streams` from an EnhancedPayloadCollection.
@@ -384,6 +383,7 @@ def update_telemetry_streams_from_payloads(payloads: EnhancedPayloadCollection, 
     if auto_cache:
         cache()
 
+
 def update_telemetry_streams(packet: Packet, auto_cache=True) -> None:
     """
     Add all extracted data values in the packet to their streams:
@@ -393,7 +393,8 @@ def update_telemetry_streams(packet: Packet, auto_cache=True) -> None:
     update_telemetry_streams_from_payloads(
         packet.payloads,
         auto_cache=auto_cache,
-        include_in_dataframe = not isinstance(packet, WatchdogDetailedStatusPacket)
+        include_in_dataframe=not isinstance(
+            packet, WatchdogDetailedStatusPacket)
     )
 
 
@@ -545,12 +546,15 @@ def packet_print_string(packet: Optional[Packet]) -> str:
     return f"\033[35;47;1m({datetime.now().strftime(DATETIME_FORMAT_STR)})\033[0m {packet!s}"
 
 # Saves the given printout of the given packet into the current packet_prints log file:
+
+
 def save_packet_to_packet_prints(packet: Optional[Packet]) -> None:
     if packet is not None:
         # Build the path to save to:
         dir = str(settings['PACKET_PRINTING_DIR'])
         filename_base = str(settings['SAVE_FILE_PREFIX'])
-        file_path = os.path.join(dir, f'packet_prints_{filename_base}.txt.ansi')
+        file_path = os.path.join(
+            dir, f'packet_prints_{filename_base}.txt.ansi')
 
         # Make sure directory exists:
         if not os.path.exists(dir):
@@ -566,29 +570,39 @@ def save_packet_to_packet_prints(packet: Optional[Packet]) -> None:
                     "plain-text. To view this appropriately, use the terminal `cat` command or view in VSCode with the "
                     "`ANSI Colors` extension installed.\n\n"
                 )
-        
+
         # Append the packet print:
         with open(file_path, 'a') as file:
             file.write(f"{packet_print_string(packet)}\n\n")
 
-# Handles a new incoming streamed packet, including logging and display.
-# packet [Packet]: Newly received packet.
-# use_telem_dataview [bool]: Whether to display the new data using the new Telemetry Dataview (True) or by just printing the packet (False).
+
 def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = False, app_context=dict()) -> None:
+    """
+    Handles a new incoming streamed packet, including logging and display.
+    packet [Packet]: Newly received packet.
+    use_telem_dataview [bool]: Whether to display the new data using the new Telemetry Dataview (True) or by just printing the packet (False).
+    """
     if packet is not None:
         # Feed the streams:
-        update_telemetry_streams(packet) # telem dataframe updated in here
+        update_telemetry_streams(packet)  # telem dataframe updated in here
 
         if USE_LOG_DATAFRAMES:
             # Normal packet. Load it:
             update_packet_log_dataframe(packet)
-            # If the packet doesn't contain any telemetry (i.e. log, debug print, etc.), add it to the non-telem packet log in LiFo manner:
+            # If the packet doesn't contain any telemetry or events (i.e. log, debug print, etc.), add it to the non-telem packet log in LiFo manner:
             # - Also do this for WatchdogDetailedStatusPacket since they're *very* detailed (contain way too much data to display so we're just
             # going to display it here instead).
             # - Also push command responses to the prints section so they're seen explicitly (its packet printer includes a special parser to decode the command name):
-            if len([*packet.payloads[TelemetryPayload]]) == 0 or isinstance(packet, (WatchdogDetailedStatusPacket, WatchdogCommandResponsePacket)):
+            if (
+                len([*packet.payloads[TelemetryPayload]]) == 0 and  # no telem
+                len([*packet.payloads[EventPayload]]) == 0 or  # no events
+                isinstance(packet, (
+                    WatchdogDetailedStatusPacket,
+                    WatchdogCommandResponsePacket
+                ))
+            ):
                 nontelem_packet_prints.appendleft(packet_print_string(packet))
-        
+
         # Display the data:
         if use_telem_dataview:
             # Update the display:
@@ -640,13 +654,14 @@ def save_pcap(full_packets):
     pcap_fp.close()
 
 
-from enum import Enum
 class SlipState(Enum):
-     FIRST_END = 1
-     FIRST_BYTE_OR_STARTING_END = 2
-     STARTED = 3
+    FIRST_END = 1
+    FIRST_BYTE_OR_STARTING_END = 2
+    STARTED = 3
 
 # Streams data over
+
+
 def stream_data_ip_udp_serial(use_console_view: bool = False) -> None:
     if use_console_view:
         init_console_view()
@@ -689,7 +704,7 @@ def stream_data_ip_udp_serial(use_console_view: bool = False) -> None:
             b: Any = ser.read(1)
             line += b
             b = int.from_bytes(b, 'big')
-            
+
             if slip_state == SlipState.FIRST_END:
                 if b == 0xC0:
                     slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
@@ -722,10 +737,10 @@ def stream_data_ip_udp_serial(use_console_view: bool = False) -> None:
 
             # Print what happened:
             msg = (
-                    "While streaming data, a PacketDecodingException occured. The data "
-                    "bytes at the time of the exception were: \n"
-                    f"{scp.hexdump(data_bytes, dump=True)}\n."
-                    f"The PacketDecodingException was: `{pde}`."
+                "While streaming data, a PacketDecodingException occured. The data "
+                "bytes at the time of the exception were: \n"
+                f"{scp.hexdump(data_bytes, dump=True)}\n."
+                f"The PacketDecodingException was: `{pde}`."
             )
             if not use_console_view:
                 # Don't print in data view, that would be problematic.

@@ -99,6 +99,7 @@ print(pathway, magic, command_name, kwargs)
 
 command_payload_type = {
     Magic.WATCHDOG_COMMAND: WatchdogCommandPayload,
+    Magic.RADIO_COMMAND: CommandPayload,
     Magic.COMMAND: CommandPayload
 }[magic]
 

@@ -1,19 +1,21 @@
 # Runs a Transceiver Console:
+import argparse
 import time
 from trans_tools_console_process import start_console, settings
 
-settings['SAVE_FILE_PREFIX'] = 'iris__radio_firmware_checkout__8_28_22_4' # this is the prefix on all log files.
+# this is the prefix on all log files.
+settings['SAVE_FILE_PREFIX'] = 'iris__radio_firmware_checkout__8_28_22_4'
 
 # Serial numbers for each serial transceiver we use:
 SERIAL_DEVICE_SNS = {
     'lander_harness': 'A7035PDL',  # Connects to the Lander harness
-    'J36_debugger': 'AB0JRGV8' # Connects to J36-RS422 header on the SBC
+    'J36_debugger': 'AB0JRGV8'  # Connects to J36-RS422 header on the SBC
 }
 
-import argparse
 
 parser = argparse.ArgumentParser(
-    description='IRIS Lunar Rover — Data Standards Lookup — CLI')
+    description='IRIS Lunar Rover — Diagnostic Console (Iris Console)'
+)
 
 
 # Settings:
@@ -37,18 +39,19 @@ def get_opts():
     opts = parser.parse_args()
     return opts
 
+
 if __name__ == '__main__':
     opts = get_opts()
     print(
         f"Starting Iris Console with \t"
         f"SERIAL: baud: {opts.baud},  using: {opts.serial_device} (SN: {SERIAL_DEVICE_SNS[opts.serial_device]})"
         "\n"
-        f"NOTE: On windows this will likely capture all keyboard inputs EVEN WHEN WINDOW IS NOT IN FOCUS (potentially leading to accidental command sends). So, be sure to close the window when not in use if using Windows."
+        f"NOTE: On Windows and MacOS this will likely capture all keyboard inputs EVEN WHEN WINDOW IS NOT IN FOCUS (potentially leading to accidental command sends). So, be sure to close the window when not in use if using Windows."
         "\n"
     )
     input(f"Press ENTER to begin . . .")
 
     start_console(
-        serial_device_sn = SERIAL_DEVICE_SNS[opts.serial_device],
-        baud = opts.baud
+        serial_device_sn=SERIAL_DEVICE_SNS[opts.serial_device],
+        baud=opts.baud
     )

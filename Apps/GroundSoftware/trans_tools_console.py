@@ -2,9 +2,10 @@
 Helper functions to handle the console functions of `trans_tools`.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 09/06/2022
+@last-updated: 09/17/2022
 """
-from typing import Any, Final, List, OrderedDict, Type, cast, Union, Dict, Tuple, Optional
+from __future__ import annotations  # Support things like OrderedDict[A,B]
+from typing import Any, Final, List, Type, cast, Union, Dict, Tuple, Optional
 
 import re
 import os
@@ -13,17 +14,17 @@ from datetime import datetime, timedelta
 
 import socket
 try:
-    import pynput
+    import pynput  # type: ignore
 except ImportError:
     # ignore import on pynput (if console is currently running, this will fail. Which is fine b/c console is already running.)
     pass
 import numpy as np
-import pandas as pd
+import pandas as pd  # type: ignore
 from tabulate import tabulate
 import scapy.all as scp  # type: ignore # no type hints
 import itertools
 import textwrap
-from collections import deque
+from collections import deque, OrderedDict
 
 from termcolor import cprint
 
@@ -35,7 +36,7 @@ from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.data_standards.fsw_data_type import FswDataType
 from IrisBackendv3.data_standards.logging import logger as DsLogger
-from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response, watchdog_detailed_status_heartbeat
+from IrisBackendv3.data_standards.prebuilt import ALL_PREBUILT_MODULES, add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response, watchdog_detailed_status_heartbeat
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
 from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket, WatchdogDetailedStatusPacket
@@ -52,12 +53,15 @@ ACTUAL_REFERENCE_WINDOW_TITLE: Optional[str] = None
 # Whether or not the console is currently paused:
 console_paused: bool = False
 # All dataframes for storing data:
-telemetry_payload_log_dataframe: pd.DataFrame = pd.DataFrame(columns=['Opcode', 'Module', 'Channel', 'nRX', 'Updated', 'Current Value', 'H+1', 'H+2', 'H+3'], dtype=object).set_index('Opcode')
-packet_log_dataframe: pd.DataFrame = pd.DataFrame(columns=['Packet Type', 'nRX', 'Updated', 'Avg. Interval [s]', 'Current Interval [s]', 'Bytes Received', 'Avg. bits/sec', 'Avg. bits/sec w/CCSDS'], dtype=object).set_index('Packet Type')
+telemetry_payload_log_dataframe: pd.DataFrame = pd.DataFrame(
+    columns=['Opcode', 'Module', 'Channel', 'nRX', 'Updated', 'Current Value', 'H+1', 'H+2', 'H+3'], dtype=object).set_index('Opcode')
+packet_log_dataframe: pd.DataFrame = pd.DataFrame(columns=['Packet Type', 'nRX', 'nRS422', 'nWIFI', 'Updated', 'Avg. Dt [s]',
+                                                  'Current Dt [s]', 'Bytes Received', 'Avg. bits/sec', 'Avg. bits/sec w/CCSDS'], dtype=object).set_index('Packet Type')
 # LiFo Queue Log of the string prints of the most recent packets received that don't contain telemetry (i.e. logs, events, debug prints, etc.):
 nontelem_packet_prints: deque = deque(maxlen=50)
 # DataFrame of all prepared commands:
-prepared_commands_dataframe: pd.DataFrame = pd.DataFrame(columns=['Alias', 'Pathway', 'Type', 'Command', 'Args'], dtype=object).set_index('Alias')
+prepared_commands_dataframe: pd.DataFrame = pd.DataFrame(
+    columns=['Alias', 'Pathway', 'Type', 'Command', 'Args'], dtype=object).set_index('Alias')
 # String of all keys pressed so far (the user's current input):
 user_cmd_input_str: str = ""
 # Any arguments the user has supplied
@@ -68,30 +72,32 @@ current_user_arg: str = ""
 USER_PROMPT_COMMAND: Final[str] = "Command"
 USER_PROMPT_ARG: Final[str] = "Argument"
 user_prompt: str = USER_PROMPT_COMMAND
+# Name of the last sent command (for quick re-sending):
+last_sent_command_name: Optional[str] = None
 
 DsLogger.setLevel('CRITICAL')
 standards = DataStandards.build_standards()
-add_to_standards(standards, [
-    watchdog_detailed_status_heartbeat,
-    watchdog_heartbeat_tvac,
-    watchdog_heartbeat,
-    watchdog_command_response
-])
+add_to_standards(standards, ALL_PREBUILT_MODULES)
 set_codec_standards(standards)
 
 # Small general helper functions:
+
+
 def tabs2spaces(x: str) -> str:
-    # tabs screw up spacing calculation. 
+    # tabs screw up spacing calculation.
     # just replace with appropriate amount of spaces, accounting for tabstop:
     return x.expandtabs(4)
+
 
 def remove_ansi_escape_codes(x: str) -> str:
     # removes any ansi escape codes from given string:
     return re.sub('\033\[[^m]*m', '', x)
 
+
 def len_noCodes(x: str) -> int:
     # returns the length of the given string, excluding any escape codes in it:
     return len(remove_ansi_escape_codes(x))
+
 
 def ljust_noCodes(x: str, targ_len: int, padding_char: str = ' ') -> str:
     # Pads given string out to `targ_len` using `padding_char`
@@ -104,19 +110,23 @@ def ljust_noCodes(x: str, targ_len: int, padding_char: str = ' ') -> str:
     x += padding_char * (targ_len - len_noCodes(x))
     return x
 
+
 def set_window_title() -> None:
     print(f"\033]0;{IRIS_CONSOLE_WINDOW_TITLE}\a")
 
+
 def get_active_window_title() -> Optional[str]:
     # Gets the title of the current window (used for focus checking)
-    # Currently only works in windows:
-    root = subprocess.Popen(['xprop', '-root', '_NET_ACTIVE_WINDOW'], stdout=subprocess.PIPE)
+    # Currently only works in linux:
+    root = subprocess.Popen(
+        ['xprop', '-root', '_NET_ACTIVE_WINDOW'], stdout=subprocess.PIPE)
     stdout, stderr = root.communicate()
 
     m = re.search(b'^_NET_ACTIVE_WINDOW.* ([\w]+)$', stdout)
     if m is not None:
         window_id = m.group(1)
-        window = subprocess.Popen(['xprop', '-id', window_id, 'WM_NAME'], stdout=subprocess.PIPE)
+        window = subprocess.Popen(
+            ['xprop', '-id', window_id, 'WM_NAME'], stdout=subprocess.PIPE)
         stdout, stderr = window.communicate()
     else:
         return None
@@ -126,12 +136,15 @@ def get_active_window_title() -> Optional[str]:
         return match.group("name").strip(b'"').decode()
     return None
 
+
 def update_reference_window_title():
     global ACTUAL_REFERENCE_WINDOW_TITLE
     ACTUAL_REFERENCE_WINDOW_TITLE = get_active_window_title()
 
+
 def window_is_focused() -> bool:
     return get_active_window_title() == ACTUAL_REFERENCE_WINDOW_TITLE
+
 
 def init_console_view() -> None:
     # Initializes the console view.
@@ -143,7 +156,7 @@ def init_console_view() -> None:
     # (only works in bash, but, the same goes for the rest of this program).
     # Likely doesn't work on Windows, even if running bash (though *might* work in WSL - untested):
     set_window_title()
-    
+
     # Immediately update the reference title (just in case setting the title didn't work on this platform):
     update_reference_window_title()
 
@@ -153,10 +166,11 @@ def init_console_view() -> None:
     # Build the first frame:
     build_command_dataframe()
 
+
 def build_command_dataframe() -> None:
     # Builds a DataFrame of all available prepared
     # commands (from `__command_aliases.py`):
-    
+
     # Add each command alias to the dataframe:
     for alias in prepared_commands:
         pathway, magic, command_name, args, telem_pathway = prepared_commands[alias]
@@ -164,10 +178,12 @@ def build_command_dataframe() -> None:
             'Pathway': pathway.name,
             'Type': magic.name,
             'Command': ':\n'.join(command_name.split('_')),
-            'Args': tabs2spaces('\n'.join( f"{k}:\n\t{'XXX' if v == Parameter.PASTE else v}" for k,v in cast(Dict, args).items() ))
+            'Args': tabs2spaces('\n'.join(f"{k}:\n\t{'XXX' if v == Parameter.PASTE else v}" for k, v in cast(Dict, args).items()))
         }
         # Save row:
-        prepared_commands_dataframe.loc[alias, [*new_row.keys()]] = [*new_row.values()]
+        prepared_commands_dataframe.loc[alias, [
+            *new_row.keys()]] = [*new_row.values()]
+
 
 def filter_command_dataframe(partial_cmd_alias: str) -> pd.DataFrame:
     """
@@ -177,36 +193,41 @@ def filter_command_dataframe(partial_cmd_alias: str) -> pd.DataFrame:
     """
     filtered = prepared_commands_dataframe.copy()
     # Grab only commands whose aliases contain the given partial_cmd_alias:
-    filtered = filtered[filtered.apply(lambda row: partial_cmd_alias in row.name, axis=1)]
+    filtered = filtered[filtered.apply(
+        lambda row: partial_cmd_alias in row.name, axis=1)]
     # Sort by match percentage:
-    filtered['match_percent'] = [len(partial_cmd_alias) / len(i) for i in filtered.index]
+    filtered['match_percent'] = [
+        len(partial_cmd_alias) / len(i) for i in filtered.index]
     filtered = filtered.sort_values(by='match_percent', ascending=False)
     filtered = filtered.drop('match_percent', axis=1)
 
     return filtered
 
-# Pretty-Formats the given Command Dataframe (possibly after being filtered):
+
 def str_command_dataframe(cdf: pd.DataFrame) -> str:
-    table = tabulate(cdf.fillna(''), headers='keys', tablefmt='fancy_grid', numalign='left', stralign='left')
-    
+    # Pretty-Formats the given Command Dataframe (possibly after being filtered):
+    table = tabulate(cdf.fillna(''), headers='keys',
+                     tablefmt='fancy_grid', numalign='left', stralign='left')
+
     # If there's only one entry (we've locked it in), make table green:
     if cdf.shape[0] == 1:
         table_lines = table.split('\n')
         for i, line in enumerate(table_lines):
             table_lines[i] = f"\033[32m{line}\033[0m"
         table = '\n'.join(table_lines)
-    
+
     # If there are no entries (no matches), make table red:
     if cdf.shape[0] == 0:
         table_lines = table.split('\n')
         for i, line in enumerate(table_lines):
             table_lines[i] = f"\033[31m{line}\033[0m"
         table = '\n'.join(table_lines)
-    
+
     return table
 
-# Pretty formats the user command based on the `user_cmd_input_str`, highlighting the part that the user input (not auto-completed):
+
 def str_user_command() -> str:
+    # Pretty formats the user command based on the `user_cmd_input_str`, highlighting the part that the user input (not auto-completed):
     if user_cmd_input_str == '':
         command = ""
     else:
@@ -223,20 +244,23 @@ def str_user_command() -> str:
             if filtered_results.shape[0] == 1 or user_cmd_input_str == filtered_results.index[0]:
                 command = f"\033[37;42m{command}\033[0m"
                 # And still highlight the part the user supplied:
-                command = command.replace(user_cmd_input_str, f"\033[37;42;1m{user_cmd_input_str}\033[37;42m")
+                command = command.replace(
+                    user_cmd_input_str, f"\033[37;42;1m{user_cmd_input_str}\033[37;42m")
             else:
                 # Else, just highlight the part the user supplied:
-                command = command.replace(user_cmd_input_str, f"\033[1m{user_cmd_input_str}\033[0m")
-    
+                command = command.replace(
+                    user_cmd_input_str, f"\033[1m{user_cmd_input_str}\033[0m")
+
     if user_prompt == USER_PROMPT_ARG:
         command += "["
         command += ','.join(
             f"{arg_name}: {arg_val if arg_val != Parameter.PASTE else 'XXX'}"
-            for arg_name, arg_val in user_args.items()
+            for arg_name, arg_val in user_args.items()  # type: ignore
         )
         command += "]"
 
     return command
+
 
 def reset_console_command() -> None:
     global user_cmd_input_str, current_user_arg, user_prompt
@@ -244,6 +268,7 @@ def reset_console_command() -> None:
     user_cmd_input_str = ""
     current_user_arg = ""
     user_prompt = USER_PROMPT_COMMAND
+
 
 def accept_top_suggestion() -> None:
     """
@@ -263,6 +288,7 @@ def accept_top_suggestion() -> None:
         and user_cmd_input_str != ""
     ):
         user_cmd_input_str = filtered_results.index[0]
+
 
 def send_slip(dat: bytes, serial_writer) -> None:
     """
@@ -291,6 +317,7 @@ def send_slip(dat: bytes, serial_writer) -> None:
             "Can't send data, serial connection not started. Try `connect_serial()`."
         )
 
+
 def send_data_wd_serial(
     raw_data: bytes,
     serial_writer,
@@ -307,31 +334,60 @@ def send_data_wd_serial(
     data = cast(bytes, scp.raw(full_packet))
     send_slip(data, serial_writer)
 
-def send_wifi_adv(data: bytes, ip="192.168.150.3", port=42000, src_ip="192.168.10.105", src_port=43531) -> None:
-    # Craft UDP packet (incl. using the correct src_ip, even if that's not our own):
-    full_packet = scp.IP(dst=ip, src=src_ip) / scp.UDP(sport=src_port, dport=port)/scp.Raw(load=data)
-    # printraw(scp.raw(scp.IP(scp.raw(full_packet))))
-    # printraw(scp.raw(full_packet))
-    full_packet_data = scp.raw(full_packet)
 
-    # Open raw socket and send:
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
-        # Tell kernel not to add headers (we took care of that above):
-        sock.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
-        sock.sendto(full_packet_data, (ip, 0))
-        sock.close()
-    except PermissionError as pe:
-        print("Failed to open socket for sending WiFi packets due to PermissionError. You should be running this as `sudo` - are you?")
+def send_wifi_adv(data: bytes, app_context, gateway_send_force: bool = False) -> None:
+    # Sends an UDP packet to the rover over wifi (INET really).
+    # Only works if sending from a machine (NIC) bound to the lander IP while a
+    # separate machine (NIC), bound to the gateway ip, is hosting the network
+    # which the rover is also connected to.
+    #
+    # If `gateway_send_force`, this forces it to go through (use this only if
+    # sending from the gateway but you need it to look like its coming from the
+    # lander). You likely will need to run as sudo for this feature to work.
 
-def send_console_command(pathway: DataPathway, magic: Magic, command_name: str, kwargs: OrderedDict[str, Any], message_queue, serial_writer) -> None:
+    ip = app_context['wifi_settings']['rover_ip']
+    port = app_context['wifi_settings']['rover_port']
+    gwy_ip = app_context['wifi_settings']['gateway_ip']
+    src_ip = app_context['wifi_settings']['lander_ip']
+    src_port = app_context['wifi_settings']['lander_port']
+
+    if not gateway_send_force:
+        # Main way of doing this if connected to network on separate machine
+        # with lander address:
+        sock = cast(socket.socket, app_context['udp_server'].socket)
+        sock.sendto(data, (ip, port))
+    else:
+        # Craft UDP packet (incl. using the correct src_ip, even if that's not our own):
+        full_packet = scp.IP(dst=ip, src=src_ip) / \
+            scp.UDP(sport=src_port, dport=port)/scp.Raw(load=data)
+        # printraw(scp.raw(scp.IP(scp.raw(full_packet))))
+        # printraw(scp.raw(full_packet))
+        full_packet_data = scp.raw(full_packet)
+
+        # Open raw socket and send:
+        try:
+            sock = socket.socket(
+                socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
+            # Tell kernel not to add headers (we took care of that above):
+            sock.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
+            sock.sendto(full_packet_data, (ip, port))
+            sock.close()
+        except PermissionError as pe:
+            print("Failed to open socket for sending WiFi packets due to PermissionError. You should be running this as `sudo` - are you?")
+
+
+def send_console_command(pathway: DataPathway, magic: Magic, command_name: str, kwargs: OrderedDict[str, Any], app_context, message_queue, serial_writer) -> None:
     # Attempt to send the given console command:
 
+    global last_sent_command_name, user_cmd_input_str
+
     # No matter what, we're done with this command now, so reset:
+    source_user_cmd_input_str = user_cmd_input_str  # store before resetting
     reset_console_command()
 
     command_payload_type = {
         Magic.WATCHDOG_COMMAND: WatchdogCommandPayload,
+        Magic.RADIO_COMMAND: CommandPayload,
         Magic.COMMAND: CommandPayload
     }[magic]
 
@@ -340,13 +396,14 @@ def send_console_command(pathway: DataPathway, magic: Magic, command_name: str, 
         try:
             kwargs[arg_name] = int(arg_val, base=0)
         except ValueError:
-            pass # this one's not convertible, that's fine
+            pass  # this one's not convertible, that's fine
 
     module, command = standards.global_command_lookup(command_name)
 
     # Pack command:
+    packet_bytes = b''
     try:
-        command_payload =  command_payload_type(
+        command_payload = command_payload_type(
             pathway=pathway,
             source=DataSource.GENERATED,
             magic=magic,
@@ -363,22 +420,37 @@ def send_console_command(pathway: DataPathway, magic: Magic, command_name: str, 
         if pathway == DataPathway.WIRED:
             path = "RS422"
         elif pathway == DataPathway.WIRELESS:
-            path = "WIFI"
-        message_queue.put_nowait(f"Sending over {path}: {command_payload} . . .\n{hexstr(packet_bytes)}")
+            path = (
+                "WIFI ["
+                f"{app_context['wifi_settings']['lander_ip']}:{app_context['wifi_settings']['lander_port']}"
+                f"->{app_context['wifi_settings']['rover_ip']}:{app_context['wifi_settings']['rover_port']}"
+                "]"
+            )
+        message_queue.put_nowait(
+            f"\033[1m\033[48;5;15m\033[38;5;34m({datetime.now().strftime('%m-%d %H:%M:%S')})\033[0m "
+            f"Sending over {path}: {command_payload} . . .\n{hexstr(packet_bytes)}"
+        )
     except Exception as e:
-        message_queue.put_nowait(f"An exception occured while trying to pack bytes for an outbound command: {e}")
+        message_queue.put_nowait(
+            f"An exception occurred while trying to pack bytes for an outbound command: {e}")
 
     # Send command:
-    try:
-        if pathway == DataPathway.WIRED:
-            send_data_wd_serial(packet_bytes, serial_writer)
-        elif pathway == DataPathway.WIRELESS:
-            send_wifi_adv(packet_bytes)
-    except Exception as e:
-        message_queue.put_nowait(f"An exception occured while trying to transmit an outbound command: {e}")
+    if len(packet_bytes) > 0:
+        # If we get here, we we're able to send the command. Store it:
+        last_sent_command_name = source_user_cmd_input_str
+
+        try:
+            if pathway == DataPathway.WIRED:
+                send_data_wd_serial(packet_bytes, serial_writer)
+            elif pathway == DataPathway.WIRELESS:
+                # Application Context (settings, flags, etc. to be passed by reference to functions that need it):
+                send_wifi_adv(packet_bytes, app_context)
+        except Exception as e:
+            message_queue.put_nowait(
+                f"An exception occurred while trying to transmit an outbound command: {e}")
 
 
-def attempt_console_command_send(message_queue, serial_writer) -> None:
+def attempt_console_command_send(app_context, message_queue, serial_writer) -> None:
     global user_args, current_user_arg, user_prompt
 
     # Only send if one command is locked in (only one result OR our input exactly matches the first result):
@@ -389,9 +461,10 @@ def attempt_console_command_send(message_queue, serial_writer) -> None:
 
         if current_user_arg == "":
             # we're just starting this command, so fill up the buffer:
-            user_args = cast(OrderedDict[str,Any], kwargs)
+            user_args = cast('OrderedDict[str, Any]', kwargs)
 
-        current_user_arg == "" # reset user args pointer (look for any more paste values)
+        # reset user args pointer (look for any more paste values)
+        current_user_arg == ""
         # If there are any params still set to PASTE, set the pointer there:
         for arg_name, arg_val in user_args.items():
             if arg_val == Parameter.PASTE:
@@ -399,18 +472,19 @@ def attempt_console_command_send(message_queue, serial_writer) -> None:
                 user_args[current_user_arg] = ""
                 user_prompt = USER_PROMPT_ARG
                 break
-        
+
         # If the pointer is still empty, then all the arguments are accounted for,
         # and we can proceed with the send:
         if current_user_arg == "":
-            send_console_command(pathway, magic, command_name, user_args, message_queue, serial_writer)
+            send_console_command(pathway, magic, command_name,
+                                 user_args, app_context, message_queue, serial_writer)
 
 
 def handle_keypress(key: Any, message_queue, serial_writer, app_context) -> None:
     key = cast(Union[pynput.keyboard.Key, pynput.keyboard.KeyCode], key)
     # Handles new key input:
-    global user_cmd_input_str, user_prompt
-    
+    global user_cmd_input_str, user_prompt, last_sent_command_name
+
     something_changed: bool = False
 
     # If window is not focused, ignore input:
@@ -447,6 +521,14 @@ def handle_keypress(key: Any, message_queue, serial_writer, app_context) -> None
         accept_top_suggestion()
         something_changed = True
 
+    elif key == pynput.keyboard.Key.up:
+        # Set the input to the name of the last sent command
+        # (for quick resending):
+        if last_sent_command_name is not None:
+            user_prompt = USER_PROMPT_COMMAND
+            user_cmd_input_str = last_sent_command_name
+            something_changed = True
+
     elif key == pynput.keyboard.Key.backspace:
         # Remove the last character if backspace is pressed:
         if user_prompt == USER_PROMPT_COMMAND:
@@ -455,7 +537,7 @@ def handle_keypress(key: Any, message_queue, serial_writer, app_context) -> None
         elif user_prompt == USER_PROMPT_ARG and current_user_arg in user_args:
             user_args[current_user_arg] = user_args[current_user_arg][:-1]
             something_changed = True
-    
+
     elif key == pynput.keyboard.Key.space:
         if user_prompt == USER_PROMPT_COMMAND:
             user_cmd_input_str += ' '
@@ -465,9 +547,9 @@ def handle_keypress(key: Any, message_queue, serial_writer, app_context) -> None
             something_changed = True
 
     elif key == pynput.keyboard.Key.enter:
-        attempt_console_command_send(message_queue, serial_writer)
+        attempt_console_command_send(app_context, message_queue, serial_writer)
         something_changed = True
-    
+
     elif isinstance(key, pynput.keyboard.KeyCode) and key.char is not None:
         # Add the given key to the user input:
         if user_prompt == USER_PROMPT_COMMAND:
@@ -524,23 +606,37 @@ def update_telemetry_payload_log_dataframe(t: TelemetryPayload) -> None:
         }
 
     # Save row:
-    telemetry_payload_log_dataframe.loc[t.opcode, [*new_data.keys()]] = [*new_data.values()]
+    telemetry_payload_log_dataframe.loc[t.opcode, [
+        *new_data.keys()]] = [*new_data.values()]
 
-def update_packet_log_dataframe_row(row_name: str, now: datetime, num_bytes: int) -> None:
+
+def update_all_packet_log_times(now: datetime) -> None:
+    # Updates the `current_interval` times for every packet (done in response
+    # to ticks so we can see how long its been since we've received something):
+    for row_name in packet_log_dataframe.index:
+        row = packet_log_dataframe.loc[row_name]
+        current_interval = (now - row['Updated']).total_seconds()
+        row['Current Dt [s]'] = current_interval
+
+
+def update_packet_log_dataframe_row(row_name: str, now: datetime, num_bytes: int, is_rs422: bool, is_wifi: bool) -> None:
     # Update the given row in the packet log dataframe (used for tabular printing) for a packet
     # containing `num_bytes` received at time `now`.
-    if row_name in packet_log_dataframe.index: # 'Packet Type', 
+    if row_name in packet_log_dataframe.index:  # 'Packet Type',
         # Row already exists for this field, just update it:
         old_row = packet_log_dataframe.loc[row_name]
         total_num_recv = old_row['nRX'] + 1
         current_interval = (now - old_row['Updated']).total_seconds()
-        avg_interval = (((old_row['nRX']-1) * old_row['Avg. Interval [s]']) + current_interval) / old_row['nRX']
+        avg_interval = (
+            ((old_row['nRX']-1) * old_row['Avg. Dt [s]']) + current_interval) / old_row['nRX']
         total_bytes_recv = old_row['Bytes Received'] + num_bytes
         new_data = {
             'Updated': now,
             'nRX': total_num_recv,
-            'Avg. Interval [s]': avg_interval,
-            'Current Interval [s]': current_interval,
+            'nRS422': old_row['nRS422'] + int(is_rs422),
+            'nWIFI': old_row['nWIFI'] + int(is_wifi),
+            'Avg. Dt [s]': avg_interval,
+            'Current Dt [s]': current_interval,
             'Bytes Received': total_bytes_recv,
             'Avg. bits/sec':  total_bytes_recv / total_num_recv / avg_interval,
             'Avg. bits/sec w/CCSDS': (total_bytes_recv + total_num_recv*14*8) / total_num_recv / avg_interval
@@ -549,13 +645,17 @@ def update_packet_log_dataframe_row(row_name: str, now: datetime, num_bytes: int
         new_data = {
             'Updated': now,
             'nRX': 1,
-            'Avg. Interval [s]': 0,
-            'Current Interval [s]': 0,
+            'nRS422': int(is_rs422),
+            'nWIFI': int(is_wifi),
+            'Avg. Dt [s]': 0,
+            'Current Dt [s]': 0,
             'Bytes Received': num_bytes,
             'Avg. bits/sec': 0,
             'Avg. bits/sec w/CCSDS': 0
         }
-    packet_log_dataframe.loc[row_name, [*new_data.keys()]] = [*new_data.values()]
+    packet_log_dataframe.loc[row_name, [
+        *new_data.keys()]] = [*new_data.values()]
+
 
 def update_packet_log_dataframe(packet: Packet) -> None:
     # Update packet log dataframe (used for tabular printing) after
@@ -564,55 +664,70 @@ def update_packet_log_dataframe(packet: Packet) -> None:
         # Update the dataframe for this packet:
         now = datetime.now()
         name = packet.__class__.__name__
-        num_bytes =  len(packet.raw if packet.raw is not None else packet.encode())
-        update_packet_log_dataframe_row(name, now, num_bytes)
+        num_bytes = len(
+            packet.raw if packet.raw is not None else packet.encode())
+
+        is_rs422 = packet.pathway == DataPathway.WIRED
+        is_wifi = packet.pathway == DataPathway.WIRELESS
+
+        update_packet_log_dataframe_row(
+            name, now, num_bytes, is_rs422, is_wifi
+        )
 
         # Update total across all packets:
-        update_packet_log_dataframe_row('zTotal', now, num_bytes)
+        update_packet_log_dataframe_row(
+            'zTotal', now, num_bytes, is_rs422, is_wifi
+        )
 
 
-# Pretty-Formats Telemetry Payload Log Dataframe:
 def str_telemetry_payload_log_dataframe() -> str:
+    # Pretty-Formats Telemetry Payload Log Dataframe:
     df_out = telemetry_payload_log_dataframe.copy()
     df_out.index = df_out.index.map(lambda x: f"0x{x:04X}")
     df_out['Updated'] = [x.strftime('%H:%M:%S') for x in df_out['Updated']]
     return tabulate(df_out.fillna('').sort_index(ascending=True), headers='keys', tablefmt='fancy_grid', numalign='right', stralign='right')
 
-# Pretty-Formats Packet Log Dataframe:
+
 def str_packet_log_dataframe() -> str:
-    return tabulate(packet_log_dataframe.fillna('').sort_index(ascending=True), headers='keys', tablefmt='fancy_grid', numalign='right', stralign='right')
+    # Pretty-Formats Packet Log Dataframe:
+    df_out = packet_log_dataframe.copy()
+    df_out['Current Dt [s]'] = [f"{x:.3f}" for x in df_out['Current Dt [s]']]
+    df_out['Avg. Dt [s]'] = [f"{x:.3f}" for x in df_out['Avg. Dt [s]']]
+    return tabulate(df_out.fillna('').sort_index(ascending=True), headers='keys', tablefmt='fancy_grid', floatfmt=".3f", numalign='right', stralign='right')
 
 
-# Creates a new Console view by pretty-formatting all log DataFrames into one big string:
 def create_console_view(app_context) -> str:
+    # Creates a new Console view by pretty-formatting all log DataFrames into one big string:
+
     # Settings:
     horiz_padding = tabs2spaces("\t\t")
     term_cols, term_lines = os.get_terminal_size()
     # Adjust by subtracing bottom and right side buffers (from experimentation):
-    term_lines = term_lines - 2 # -1 for padding -1 for help message on bottom row
+    term_lines = term_lines - 2  # -1 for padding -1 for help message on bottom row
     term_cols = term_cols - 2
 
-    ### Build each section:
-    ## Build the left side:
+    # Build each section:
+    # Build the left side:
     # Telemetry Table:
     telem_view = (
         "\n\nTelemetry:\n"
-        +str_telemetry_payload_log_dataframe()
+        + str_telemetry_payload_log_dataframe()
     )
     telem_view_lines = [tabs2spaces(x) for x in telem_view.split('\n')]
     telem_view_width = max(len(l) for l in telem_view_lines)
-    telem_view_lines = [l.ljust(telem_view_width, ' ') for l in telem_view_lines]
+    telem_view_lines = [l.ljust(telem_view_width, ' ')
+                        for l in telem_view_lines]
 
     # Build the left-hand side (just telem view):
     left_side_lines = telem_view_lines
     left_side_max_width = telem_view_width
 
-    ## Build the right side:
+    # Build the right side:
     right_side_max_width = term_cols - left_side_max_width - len(horiz_padding)
     # Packets Table:
     packets_view = (
         "\n\nPackets:\n"
-        +str_packet_log_dataframe()
+        + str_packet_log_dataframe()
     )
     packets_view_lines = [tabs2spaces(x) for x in packets_view.split('\n')]
 
@@ -620,24 +735,30 @@ def create_console_view(app_context) -> str:
     command_view = f"\n\n{user_prompt}: {str_user_command()}\n"
     if not app_context['collapse_command_table']:
         # Include the command table only if it's not collapsed:
-        command_view += str_command_dataframe(filter_command_dataframe(user_cmd_input_str))
+        command_view += str_command_dataframe(
+            filter_command_dataframe(user_cmd_input_str))
     else:
         command_view += "[Table collapsed. F4 to uncollapse.]"
     command_view_lines = [tabs2spaces(x) for x in command_view.split('\n')]
     command_view_width = max(len_noCodes(l) for l in command_view_lines)
-    command_view_lines = [l.ljust(command_view_width, ' ') for l in command_view_lines]
+    command_view_lines = [l.ljust(command_view_width, ' ')
+                          for l in command_view_lines]
     # Cap the size of the command view:
     command_view_max_len = term_lines - len(packets_view_lines)
     command_view_lines = command_view_lines[:command_view_max_len]
 
     # Non-Telemetry Packets log:
     # Get the boundaries of the area we're going to squeeze this into:
-    plog_header_lines = [' ', ' ', 'Non-Telemetry Packets:', '---------------------------']
+    plog_header_lines = [
+        ' ', ' ', 'Non-Telemetry Packets:', '---------------------------']
     plog_footer_lines = [' ']
     plog_width = right_side_max_width - len(horiz_padding) - command_view_width
-    plog_max_len = term_lines - len(plog_header_lines) - len(packets_view_lines) - len(plog_footer_lines)
+    plog_max_len = term_lines - \
+        len(plog_header_lines) - len(packets_view_lines) - len(plog_footer_lines)
     # Build the raw (ideal / un-squeezed) output:
-    plog_raw = tabs2spaces('\n\n'.join([tabs2spaces(x).strip() + "\033[0m" for x in nontelem_packet_prints])) # add escape close to ensure end of formatting for each line
+    # add escape close to ensure end of formatting for each line
+    plog_raw = tabs2spaces('\n\n'.join([tabs2spaces(
+        x).strip() + "\033[0m" for x in nontelem_packet_prints]))
     plog_lines = plog_raw.split('\n')
     # Wrap each line to the width:
     plog_line_wraps = []
@@ -649,15 +770,18 @@ def create_console_view(app_context) -> str:
             plog_line_wraps.append([line])
         else:
             # otherwise, it contains text, so we wrap it like normal:
-            plog_line_wraps.append(textwrap.wrap(line, width=plog_width, replace_whitespace=False, break_on_hyphens=False, tabsize=4))
-    plog_lines = [tabs2spaces(line) for clump in plog_line_wraps for line in clump] # Reflatten
-    
+            plog_line_wraps.append(textwrap.wrap(
+                line, width=plog_width, replace_whitespace=False, break_on_hyphens=False, tabsize=4))
+    plog_lines = [tabs2spaces(
+        line) for clump in plog_line_wraps for line in clump]  # Reflatten
+
     # Make sure formatting ends at end of each line (this would be broken if a formatted line was word wrapped -
     # that's why we're doing it here and not at the end; only need it after word wrap):
     plog_lines = [line + "\033[0m" for line in plog_lines]
 
     # Grab all lines up to the limit and then tack on header and footer:
-    plog_lines = plog_header_lines + plog_lines[:plog_max_len] + plog_footer_lines
+    plog_lines = plog_header_lines + \
+        plog_lines[:plog_max_len] + plog_footer_lines
     # Make sure no line exceeds max width:
     plog_lines = [l[:plog_width] for l in plog_lines]
     # Make sure it's fixed width:
@@ -666,17 +790,21 @@ def create_console_view(app_context) -> str:
     # Build the lower right section (plog on left, command view on right):
     if len(command_view_lines) > len(plog_lines):
         # add extra lines that match the max width:
-        plog_lines += [' ' * plog_width] * (len(command_view_lines) - len(plog_lines))
-    lower_right_lines = [a + horiz_padding + b for a,b in itertools.zip_longest(plog_lines, command_view_lines, fillvalue="")]
+        plog_lines += [' ' * plog_width] * \
+            (len(command_view_lines) - len(plog_lines))
+    lower_right_lines = [a + horiz_padding + b for a,
+                         b in itertools.zip_longest(plog_lines, command_view_lines, fillvalue="")]
 
     # Build the right-hand side (packets_view on top of lower right side):
     right_side_lines = packets_view_lines + lower_right_lines
 
     # Make sure it's fixed width:
-    right_side_lines = [l.ljust(right_side_max_width, ' ') for l in right_side_lines]
-    
+    right_side_lines = [l.ljust(right_side_max_width, ' ')
+                        for l in right_side_lines]
+
     # Add notice to the upper right:
-    notice_lines = ['\033[231;41;1m Iris Lunar Rover Console \033[0m', '(use in full-size terminal) ']
+    notice_lines = [
+        '\033[231;41;1m Iris Lunar Rover Console \033[0m', '(use in full-size terminal) ']
     notice_width = max(len_noCodes(l) for l in notice_lines)
     notice_lines = [l.rjust(notice_width, ' ') for l in notice_lines]
     for i, line in enumerate(notice_lines):
@@ -685,12 +813,12 @@ def create_console_view(app_context) -> str:
     # Make sure left side has at least as many lines as right side:
     if len(right_side_lines) > len(left_side_lines):
         # add extra lines that match the max width:
-        left_side_lines += [' ' * left_side_max_width] * (len(right_side_lines) - len(left_side_lines))
+        left_side_lines += [' ' * left_side_max_width] * \
+            (len(right_side_lines) - len(left_side_lines))
 
-
-
-    ## Join left and right sides:
-    all_lines = [a + horiz_padding + b for a,b in itertools.zip_longest(left_side_lines, right_side_lines, fillvalue="")]
+    # Join left and right sides:
+    all_lines = [a + horiz_padding + b for a,
+                 b in itertools.zip_longest(left_side_lines, right_side_lines, fillvalue="")]
 
     # Make sure formatting resets before each line starts:
     all_lines = ["\033[0m" + line for line in all_lines]
@@ -698,10 +826,10 @@ def create_console_view(app_context) -> str:
     # Pad out total number of lines to max height:
     all_lines += [' '] * (term_lines - len(all_lines))
 
-    ## Trim to match console height:
+    # Trim to match console height:
     all_lines = all_lines[:term_lines]
 
-    ## Add help message to bottom line:
+    # Add help message to bottom line:
     all_lines += [ljust_noCodes(
         f"\033[37;40m    Type to enter command."
         f"    Press \033[1mTab\033[22m to accept autocomplete."
@@ -712,41 +840,56 @@ def create_console_view(app_context) -> str:
         f"    Press \033[1mF4\033[22m to un/collapse command table."
         f"    Press \033[1mCtrl+'\\'\033[22m to end session.", term_cols) + "\033[0m"]
 
-    ### Build the full message:
-    full_str = '\n'.join(all_lines) + "\033[0m" # make sure formatting is reset at the end
+    # Build the full message:
+    # make sure formatting is reset at the end
+    full_str = '\n'.join(all_lines) + "\033[0m"
 
     return full_str
 
-# "Pauses" the Console window:
+
 def pause_console() -> None:
+    # "Pauses" the Console window:
     global console_paused
     console_paused = True
 
-# "Unpauses" the Console window:
+
 def unpause_console() -> None:
+    # "Unpauses" the Console window:
     global console_paused
     console_paused = False
 
-# Returns whether the console is currently paused:
+
 def console_is_paused() -> bool:
+    # Returns whether the console is currently paused:
     return console_paused
 
-# Toggles console pause state:
+
 def toggle_console_pause() -> None:
+    # Toggles console pause state:
     if console_is_paused():
         unpause_console()
     else:
         pause_console()
 
-# Clears the Console Window:
+
 def clear_console() -> None:
+    # Clears the Console Window:
     os.system('cls' if os.name in ('nt', 'dos') else 'clear')
 
-# Refreshes (clears) the Console Window with Highlevel Telemetry Dataview:
+
 def refresh_console_view(app_context) -> None:
+    # Refreshes (clears) the Console Window with High-level Dataview:
+
     # Build the string before clearing the screen to minimize off-time:
     # (only update console view if not paused):
     if not console_is_paused():
+        # Always use this opportunity to update the dataframe timestamps:
+        now = datetime.now()
+        update_all_packet_log_times(now)
+
+        # Build the screen string:
         data = create_console_view(app_context)
+
+        # Update the screen:
         clear_console()
         print(data)

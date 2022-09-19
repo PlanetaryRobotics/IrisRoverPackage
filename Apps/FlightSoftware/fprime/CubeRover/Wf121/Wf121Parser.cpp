@@ -394,7 +394,7 @@ namespace Wf121
                     {
                         returnStatus = Mpsm::ProcessStatus::BGAPI_PARSED;
 
-                        // ! TODO: [CWC] REMOVEME (for debugging only)
+#ifdef WF121_DEBUG_PRINT_ALL_BGAPI_TO_WD // Activate to see any potentially noteworthy (atypical) BGAPI messages in WD prints.
                         if (!(
                                 msg.bgApiHeader()->bit.msgType == BgApi::MsgType::CMD_RSP_TYPE && msg.bgApiHeader()->bit.classId == BgApi::CommandClass::CLASS_ENDPOINT && msg.bgApiHeader()->bit.cmdId == 0 || // ignore send data response
                                 msg.bgApiHeader()->bit.msgType == BgApi::MsgType::CMD_RSP_TYPE && msg.bgApiHeader()->bit.classId == BgApi::CommandClass::CLASS_ENDPOINT && msg.bgApiHeader()->bit.cmdId == 5 || // ignore set transmit size response
@@ -499,7 +499,8 @@ namespace Wf121
                             headerDecodingHead += 2;
 
                             watchDogInterface.debugPrintfBufferWithPrefix((uint8_t*)headerDecoding, headerDecodingHead, msg.payloadBuffer, msg.payloadSize);
-                        } // ! TODO: [CWC] end of REMOVEME block
+                        }
+#endif //WF121_DEBUG_PRINT_ALL_BGAPI_TO_WD
                     }
                     else
                     {

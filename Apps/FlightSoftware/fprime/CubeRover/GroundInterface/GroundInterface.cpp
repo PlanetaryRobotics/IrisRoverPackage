@@ -113,6 +113,25 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
   }
 
   void GroundInterfaceComponentImpl ::
+  logDirectDownlink_handler(
+        const NATIVE_INT_TYPE portNum,
+        Fw::ComBuffer &data,
+        U32 context
+    )
+  {
+        // In the new topology, all logs go to ActiveLogger, which passes some of them (e.g. severe or fatal) to
+        // GroundInterface for immediate downlinking, based on filters (cfg'able from ground), and all them to
+        // ComLogger (TBD). ComLogger can then be commanded to pull any of them from the FileSystem based on timestamp
+        // and pass those to GroundInterface as well (see logDownlink_handler below for more info).
+        m_logsReceived++;
+        uint8_t *logData = reinterpret_cast<uint8_t *>(data.getBuffAddr());
+        FswPacket::Length_t length = static_cast<FswPacket::Length_t>(data.getBuffLength());
+        downlinkBufferWrite(logData, length, DownlinkLog);
+        m_logsDownlinked++;
+        updateTelemetry();
+  }
+
+  void GroundInterfaceComponentImpl ::
     logDownlink_handler(
         const NATIVE_INT_TYPE portNum,
         FwEventIdType id,
@@ -121,7 +140,8 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         Fw::LogBuffer &args
     )
   {
-    // TODO
+      // This is where logs from ComLogger go, after they're pulled from the FileSystem. See `logDirectDownlink` above for where logs from ActiveLogger are handled.
+      // TODO: Based on ComLogger
   }
 
   void GroundInterfaceComponentImpl ::
@@ -210,7 +230,8 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         return;
     }
     
-    if (packet->header.seq != m_uplinkSeq + 1) {
+    if (packet->header.seq != 0 && packet->header.seq != (m_uplinkSeq + 1)) {
+        // 0 is a special uplinkSeq we use to say we don't care about the uplinkSeq (in case of sync-loss)
         m_cmdErrs++;
         return;
     }
@@ -229,6 +250,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         return;
     }
 
+    // Set new uplinkSeq. NOTE: by design, if seq_num==0, this will reset uplinkSeq to 0 (where it starts on boot).
     m_uplinkSeq = packet->header.seq;
     m_cmdsUplinked++;
     log_ACTIVITY_HI_GI_CommandReceived(packet->header.seq, packet->header.length);
@@ -286,7 +308,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
      * 
      * Multiple downlink objects can be written to the downlink buffer to be packed into a single packet for downlink.
      * If the given object exceeds the space available in the buffer, the buffer will be flushed (downlinked) first then
-     * the object will be written to the now empty buffer. If the packet fits exactly into the remining space to fill
+     * the object will be written to the now empty buffer. If the packet fits exactly into the remaining space to fill
      * the MTU, the buffer will be immediately flushed with the given object.
      * 
      * @param _data Pointer to the object to be downlinked. It should start with one of the FSWPacket object headers (TODO: const?)
@@ -313,7 +335,6 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         
         if (flushOnWrite)
             flushTlmDownlinkBuffer();
-        
     }
     
     /*

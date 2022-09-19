@@ -29,10 +29,17 @@
                 data in to application level blocks which is sent to UDP sender to be fragmented by MTU and transport.
             </comment>
         </port>
+        
+        <port name="logDirectDownlink" data_type="Fw::Com"  kind="guarded_input"    max_number="1">
+            <comment>
+                ActiveLogger sends GroundInterface pre-serialized log items to downlink, if they pass its filter criteria.
+                The GroundInterface component will serialize the data in to application level blocks which is sent to UDP sender for framing, MTU fragmentation, and transport..
+            </comment>
+        </port>
             
         <port name="logDownlink" data_type="Fw::Log"  kind="guarded_input"    max_number="1">
             <comment>
-                ComLogger sends GroundInterface log items to downlink. The GroundInterface component will serialize the
+                ComLogger sends GroundInterface log items pulled from the filesystem to downlink. The GroundInterface component will serialize the
                 data in to application level blocks which is sent to UDP sender for framing, MTU fragmentation, and transport.
             </comment>
         </port>

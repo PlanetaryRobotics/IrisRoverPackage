@@ -6,7 +6,7 @@ Defines Common Data Required for Payloads. Support for Building and Parsing
 Payloads as part of a Variable Length Payload.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/03/2022
+@last-updated: 09/14/2022
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -403,7 +403,7 @@ class CommandPayload(CommandPayloadInterface[CommandPayloadInterface]):
         total_arg_len = 0
         for arg in command.args:
             #! TODO: Maybe move this checker into the appropriate Module class?
-            arg_len = arg.datatype.num_octets
+            arg_len = arg.datatype.get_actual_num_bytes(remaining)
             total_arg_len += arg_len
             arg_bytes = remaining[:arg_len]
             args[arg.name] = fsw_data_decode(
@@ -493,7 +493,7 @@ class WatchdogCommandPayload(CommandPayload):
         total_arg_len = 0
         for arg in command.args:
             #! TODO: Maybe move this checker into the appropriate Module class?
-            arg_len = arg.datatype.num_octets
+            arg_len = arg.datatype.get_actual_num_bytes(remaining)
             total_arg_len += arg_len
             arg_bytes = remaining[:arg_len]
             # Watchdog takes U8 Enums instead of U32:
@@ -709,11 +709,8 @@ class TelemetryPayload(TelemetryPayloadInterface[TelemetryPayloadInterface]):
 
     def __str__(self) -> str:
         # Enums could be int or str, so convert to what's not given and show both:
-        if self.channel.datatype == FswDataType.ENUM:
-            if isinstance(self.data, str):
-                val = f"{self.data}[{self.channel.get_enum_value(self.data)}]"
-            else:
-                val = f"{self.channel.get_enum_name(self.data)}[{self.data}]"
+        if self.channel.is_enum:
+            val = self.channel.get_enum_formatted_str(self.data)
         else:
             val = self.data
 
@@ -721,11 +718,8 @@ class TelemetryPayload(TelemetryPayloadInterface[TelemetryPayloadInterface]):
 
     def __repr__(self) -> str:
         # Enums could be int or str, so convert to what's not given and show both:
-        if self.channel.datatype == FswDataType.ENUM:
-            if isinstance(self.data, str):
-                val = f"{self.data}[{self.channel.get_enum_value(self.data)}]"
-            else:
-                val = f"{self.channel.get_enum_name(self.data)}[{self.data}]"
+        if self.channel.is_enum:
+            val = self.channel.get_enum_formatted_str(self.data)
         else:
             val = self.data
 
@@ -745,7 +739,7 @@ class TelemetryPayload(TelemetryPayloadInterface[TelemetryPayloadInterface]):
         module = settings['STANDARDS'].modules[module_id]
         channel = module.telemetry[channel_id]
 
-        core_data_len = channel.datatype.num_octets
+        core_data_len = channel.datatype.get_actual_num_bytes(remaining)
         core_data = fsw_data_decode(
             channel.datatype, remaining[:core_data_len]
         )
@@ -832,7 +826,16 @@ class EventPayloadInterface(DownlinkedPayload[PT], ABC):
     @property
     def formatted_string(self) -> str:
         """Use the parsed args to populate the Event's format string."""
-        raise NotImplementedError()
+        ordered_formatted_args_list = []
+        for arg, v in zip(self.event.args, self.args.values()):
+            if arg.is_enum:
+                val = arg.get_enum_formatted_str(v)
+            else:
+                val = v
+            ordered_formatted_args_list.append(val)
+
+        # Apply the args list to the Event's format string:
+        return self.event.format_string % tuple(ordered_formatted_args_list)
 
 
 class EventPayload(EventPayloadInterface[EventPayloadInterface]):
@@ -842,15 +845,23 @@ class EventPayload(EventPayloadInterface[EventPayloadInterface]):
     __slots__: List[str] = []
 
     def __str__(self) -> str:
-        return self.formatted_string
+        return (
+            f"({self.event.severity_str}) "
+            f"{self.event.name}@{self.timestamp}: "
+            f"'{self.formatted_string}'"
+        )
 
     def __repr__(self) -> str:
-        return f"{self.event.name}{self.args} -> '{self.formatted_string}'"
+        return (
+            f"({self.event.severity_str}) "
+            f"{self.event.name}{self.args}@{self.timestamp} "
+            f"-> '{self.formatted_string}'"
+        )
 
     def __init__(self,
                  module_id: int,
                  event_id: int,
-                 args: OrderedDict[str, Any],
+                 args: Dict[str, Any],
                  timestamp: int,
                  magic: Magic = Magic.MISSING,
                  pathway: DataPathway = DataPathway.NONE,
@@ -860,14 +871,15 @@ class EventPayload(EventPayloadInterface[EventPayloadInterface]):
                  ) -> None:
         self._module_id = module_id
         self._event_id = event_id
-        self._args = args
+        # Convert args Dict to OrderedDict, taking order from args list in Event:
+        self._args = OrderedDict([(a.name, args[a.name]) for a in self.event.args])
         self._timestamp = timestamp
         super().__init__(
             magic=magic, pathway=pathway, source=source,
             raw=raw, endianness_code=endianness_code
         )
 
-    @classmethod
+    @ classmethod
     def decode(cls,
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE
@@ -927,11 +939,11 @@ class FileMetadataInterface(ContainerCodec[FMIT], ABC):
     # Make public get, private set to signal that you can freely use these values
     # but modifying them directly can yield undefined behavior (specifically
     # `raw` not syncing up with whatever other data is in the container)
-    @property
+    @ property
     def callback_id(self) -> int: return self._callback_id
-    @property
+    @ property
     def timestamp(self) -> int: return self._timestamp
-    @property
+    @ property
     def file_type_magic(self) -> FileTypeMagic: return self._file_type_magic
 
 
@@ -953,7 +965,7 @@ class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
         self._file_type_magic = file_type_magic
         super().__init__(raw=raw, endianness_code=endianness_code)
 
-    @classmethod
+    @ classmethod
     def decode(cls,
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE

@@ -22,7 +22,7 @@ If a component directory doesn't contain a Bitfields file, it is assumed
 to not have a bitfield.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/01/2021
+@last-updated: 09/15/2022
 """
 
 # Activate postponed annotations (for using classes as return type in their own methods)
@@ -659,16 +659,9 @@ class DataStandards(object):
         self.commands_chainmap_name = ChainMap()
         self.modules = modules
 
-    @property
-    def modules(self) -> NameIdDict[Module]:
-        return self._modules
-
-    @modules.setter
-    def modules(self, new_val) -> None:
+    def rebuild_command_chainmap(self) -> None:
+        """Rebuilds the ChainMap used for command lookup."""
         # !TODO: Unit test ChainMap updates and linking.
-        # Update Value:
-        self._modules = new_val
-        # Rebuild ChainMap:
         self.commands_chainmap_opcode = ChainMap()
         self.commands_chainmap_name = ChainMap()
         # NB: ChainMap will update if module's contents update but not if it's replaced entirely
@@ -693,6 +686,38 @@ class DataStandards(object):
             self.commands_chainmap_name = self.commands_chainmap_name.new_child(
                 names_dict
             )
+
+    def add_new_modules(self, modules: List[Module]) -> None:
+        """Adds new modules to the datastandards.
+        NOTE: Any modules whose names or IDs are already present aren't added.
+        """
+        # Add modules:
+        for module in modules:
+            if module.ID in self._modules:
+                logger.warning(
+                    f"Unable to add module {module} since its ID ({module.ID})"
+                    f"={hex(module.ID)}) is already in the DataStandard."
+                )
+            elif module.name in self._modules:
+                logger.warning(
+                    f"Unable to add module {module} since its name "
+                    f"({module.name}) is already in the DataStandard."
+                )
+            else:
+                self._modules[module.ID, module.name] = module
+
+        # Rebuild the chain map in case any new commands were added:
+        self.rebuild_command_chainmap()
+
+    @property
+    def modules(self) -> NameIdDict[Module]:
+        return self._modules
+
+    @modules.setter
+    def modules(self, new_val) -> None:
+        # Update Value:
+        self._modules = new_val
+        self.rebuild_command_chainmap()
 
     def global_command_lookup(self, key: Union[str, int, NameIdDict.KeyTuple]) -> Tuple[Module, Command]:
         """

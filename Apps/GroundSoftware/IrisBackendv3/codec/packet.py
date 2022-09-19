@@ -45,6 +45,8 @@ def parse_packet(
             WatchdogDetailedStatusPacket,
             WatchdogTvacHeartbeatPacket,
             Legacy2020IrisCommonPacket,
+            RadioGroundPacket,
+            RadioHelloPacket,
             RadioDirectMessagePacket,
             WatchdogHelloPacket,
             WatchdogRadioDebugPacket,
@@ -64,8 +66,10 @@ def parse_packet(
 
     # Log a warning if this data is valid for multiple packet types, *IGNORING*
     # `WatchdogDebugPacket` and its direct variants (since it's used as a carrier
-    # for several other packet types sent using WD `debugPrint...` in the FSW:
-    if sum(1 for s in supported if s not in [WatchdogDebugPacket, WatchdogDebugImportantPacket]) > 1:
+    # for several other packet types sent using WD `debugPrint...` in the FSW)
+    # as well as `RadioHelloPacket` since we know it also would pass as a
+    # `WatchdogHelloPacket` (which is why it has higher preference):
+    if sum(1 for s in supported if s not in [WatchdogDebugPacket, WatchdogDebugImportantPacket, RadioHelloPacket]) > 1:
         logger.warning(
             f"Multiple codecs "  # type: ignore
             f"({supported}) support received packet. Using "

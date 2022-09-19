@@ -61,7 +61,7 @@ class PayloadTreeNode:
     # list of the `PayloadTreeNode`s corresponding to all subclasses of this class:
     subtree: List[PayloadTreeNode] = attr.field(factory=list)
 
-    @payload_class.validator
+    @payload_class.validator  # type: ignore
     def _check_payload_class(self, attr, payload_class) -> None:
         if not issubclass(payload_class, Payload) and payload_class != Payload:
             raise ValueError(
@@ -69,7 +69,7 @@ class PayloadTreeNode:
                 f"`{payload_class}` was given."
             )
 
-    @subtree.validator
+    @subtree.validator  # type: ignore
     def _check_subtree(self, attr, subtree) -> None:
         if not isinstance(subtree, list):
             raise ValueError(
@@ -88,7 +88,7 @@ class PayloadTreeNode:
         """ Builds an empty `PayloadTreeNode` for the given
             `Payload` (sub)class.
         """
-        return PayloadTreeNode(
+        return PayloadTreeNode(  # type: ignore
             c, [cls.build_class_tree(sc) for sc in c.__subclasses__()]
         )
 
@@ -847,6 +847,7 @@ def extract_downlinked_payloads(
     # Dispatch table to map extracted magics to the corresponding payloads classes:
     payload_magic_dispatch_table: Dict[Magic, Type[Payload]] = {
         Magic.COMMAND: CommandPayload,
+        Magic.RADIO_COMMAND: CommandPayload,
         Magic.WATCHDOG_COMMAND: WatchdogCommandPayload,
         Magic.TELEMETRY: TelemetryPayload,
         Magic.EVENT: EventPayload,

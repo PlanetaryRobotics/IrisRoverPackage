@@ -10,7 +10,7 @@ deleted from Magic**, only marked as deprecated. Once a magic value is used, it
 should remain persistently and never be later removed or repurposed.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/08/2021
+@last-updated: 09/13/2022
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -31,7 +31,7 @@ MAGIC_SIZE = struct.calcsize(ENDIANNESS_CODE+SIZE_SYM)
 
 class Magic(Enum):
     """
-    Enum for Respresenting Iris Common Packet Header (CPH) Magic identifiers 
+    Enum for Representing Iris Common Packet Header (CPH) Magic identifiers 
     used in the Variable Length Payload (VLP).
     """
 
@@ -39,6 +39,8 @@ class Magic(Enum):
     MISSING = 0xBEEFEEEE, 'Missing', True
     COMMAND = 0x00BADA55, 'Commands', False
     WATCHDOG_COMMAND = 0xC000FFEE, 'Commands Destined for Watchdog Hardware', False
+    # 0xD09AD10 when encoded as little-endian:
+    RADIO_COMMAND = 0x10AD09D0, 'Commands Destined for Radio\'s internal MCU', False
     TELEMETRY = 0xC00010FF, 'Telemetry', False
     EVENT = 0x0DEADBAD, 'Events (Logs)', False
     FILE = 0xDABAD000, 'Files (Images, UWB, etc.)', False

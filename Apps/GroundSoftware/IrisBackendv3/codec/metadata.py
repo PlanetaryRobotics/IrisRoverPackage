@@ -46,6 +46,7 @@ class DataSource(Enum):
     NONE = -1  # Invalid (No source given)
     YAMCS = 0x00  # Any YAMCS Connection
     UDP_SERIAL_DIRECT = 0x01  # Direct UDP Serial Connection
+    WIFI_CONNECTION_DIRECT = 0x02  # Direct WiFi Connection
     PCAP = 0x10  # Loaded from a Packet Capture (pcap)
     GENERATED = 0x20  # Data Generated within the GSW (eg. in a metachannel)
     MONGO = 0x30  # Data received (likely from Frontend) via MongoDB
@@ -81,8 +82,9 @@ class UplinkTimes():
     pmcc_tx: Optional[datetime] = None
     # When AMCC acknowledged receipt of the data:
     amcc_rx: Optional[datetime] = None
-    # When AMCC reports having sent the data to the spacecraft:
-    # amcc_tx: Optional[datetime] = None
+    # When AMCC reports having sent the data to the spacecraft / released it
+    # from the YAMCS queue:
+    amcc_tx: Optional[datetime] = None
     # When the rover indicates that it received the data:
     ack_rover: Optional[datetime] = None
     # DownlinkTimes for the rover acknowledgement packet:

@@ -6,11 +6,12 @@ If you want to explore the Data Standards to build new commands, run:
 `pyenv exec python datastandards_lookup.py`.
 
 Created: 10/29/2021
-Last Update: 09/07/2022
+Last Update: 09/15/2022
 """
+from __future__ import annotations  # Support things like OrderedDict[A,B]
 from enum import Enum
+from typing import Any, Optional, Dict, Tuple
 from collections import OrderedDict
-from typing import Any, Optional, Dict, cast
 
 from IrisBackendv3.codec.payload import CommandPayload
 from IrisBackendv3.codec.packet import IrisCommonPacket
@@ -18,6 +19,7 @@ from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.magic import Magic
 
 source = DataSource.GENERATED
+
 
 class Parameter(Enum):
     """
@@ -46,7 +48,16 @@ class Parameter(Enum):
     """
     PASTE = 0
 
-prepared_commands = {
+
+PreparedCommandType = Tuple[
+    DataPathway,
+    Magic,
+    str,
+    'OrderedDict[str, Any]',
+    DataPathway
+]
+
+prepared_commands: Dict[str, PreparedCommandType] = {
     'transit': (  # Tell the Watchdog to switch into service mode
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
@@ -95,15 +106,15 @@ prepared_commands = {
         'WatchDogInterface_DisengageFromLander',
         OrderedDict(confirm='CONFIRM_DEPLOY'),
         DataPathway.WIRED
-    ), # Note: there's no way to do just the hercules (you can tell just the hercules but then it'll immediately make watch)
+    ),  # Note: there's no way to do just the hercules (you can tell just the hercules but then it'll immediately make watch)
     'deploy-wifi': (
         DataPathway.WIRELESS,
-        Magic.COMMAND, # "normal" command is for Hercules
+        Magic.COMMAND,  # "normal" command is for Hercules
         'WatchDogInterface_DisengageFromLander',
         OrderedDict(confirm='CONFIRM_DEPLOY'),
         DataPathway.WIRELESS
     ),
-    'deploy-wd-only': ( # special command to tell only WD to release its interlock (in case Herc-WD comms are broken)
+    'deploy-wd-only': (  # special command to tell only WD to release its interlock (in case Herc-WD comms are broken)
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_DisengageFromLander',
@@ -112,26 +123,26 @@ prepared_commands = {
     ),
     'undeploy': (
         DataPathway.WIRED,
-        Magic.COMMAND, # "normal" command is for Hercules
+        Magic.COMMAND,  # "normal" command is for Hercules
         'WatchDogInterface_ResetSpecific',
         OrderedDict(reset_value='HDRM_OFF'),
         DataPathway.WIRED
-    ), # Note: Deploy2 (Herc deploy pin) does not undeploy, but WD does.
+    ),  # Note: Deploy2 (Herc deploy pin) does not undeploy, but WD does.
     'undeploy-2': (
         DataPathway.WIRED,
-        Magic.COMMAND, # "normal" command is for Hercules
+        Magic.COMMAND,  # "normal" command is for Hercules
         'WatchDogInterface_EngageFromLander',
         OrderedDict(),
         DataPathway.WIRED
-    ), # Note: Also does not turn off Deploy2
-    'power-on-system-vsa': ( # VSA ON (designed for use in SERVICE)
+    ),  # Note: Also does not turn off Deploy2
+    'power-on-system-vsa': (  # VSA ON (designed for use in SERVICE)
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
         OrderedDict(reset_value='SYSTEM_ON'),
         DataPathway.WIRED
     ),
-    'power-off-system-vsa': ( # VSA OFF (designed for use in SERVICE)
+    'power-off-system-vsa': (  # VSA OFF (designed for use in SERVICE)
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
@@ -221,16 +232,20 @@ prepared_commands = {
     ),
     '24-on': (
         DataPathway.WIRED,
-        Magic.WATCHDOG_COMMAND, # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+        Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
-        OrderedDict(reset_value='EN_24_ON'), # Change this to whatever you want to reset.
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='EN_24_ON'),
         DataPathway.WIRED
     ),
     '24-off': (
         DataPathway.WIRED,
-        Magic.WATCHDOG_COMMAND, # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+        Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
-        OrderedDict(reset_value='EN_24_OFF'), # Change this to whatever you want to reset.
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='EN_24_OFF'),
         DataPathway.WIRED
     ),
     'SetChargerEn': (
@@ -301,23 +316,29 @@ prepared_commands = {
 
     'reset-motors': (
         DataPathway.WIRED,
-        Magic.WATCHDOG_COMMAND, # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+        Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
-        OrderedDict(reset_value='RESET_ALL_MOTORS'), # Change this to whatever you want to reset.
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='RESET_ALL_MOTORS'),
         DataPathway.WIRED
     ),
     'power-on-motors': (
         DataPathway.WIRED,
-        Magic.WATCHDOG_COMMAND, # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+        Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
-        OrderedDict(reset_value='ALL_MOTORS_ON'), # Change this to whatever you want to reset.
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='ALL_MOTORS_ON'),
         DataPathway.WIRED
     ),
     'power-off-motors': (
         DataPathway.WIRED,
-        Magic.WATCHDOG_COMMAND, # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
+        Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
-        OrderedDict(reset_value='ALL_MOTORS_OFF'), # Change this to whatever you want to reset.
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='ALL_MOTORS_OFF'),
         DataPathway.WIRED
     ),
     # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
@@ -341,7 +362,8 @@ prepared_commands = {
         DataPathway.WIRED,
         Magic.COMMAND,
         'MotorControl_McSpin',
-        OrderedDict(motor_id=0x00, raw_ticks=20000), # Change this to whatever motor you want to control (0 is all)
+        # Change this to whatever motor you want to control (0 is all)
+        OrderedDict(motor_id=0x00, raw_ticks=20000),
         DataPathway.WIRED
     ),
     'herc-wired-noop': (
@@ -355,45 +377,96 @@ prepared_commands = {
         DataPathway.WIRED,
         Magic.COMMAND,
         'Camera_TakeImage',
-        OrderedDict(camera_num=0, callback_id=0), # Change this to whatever you want to reset.
+        # Change this to whatever you want to reset.
+        OrderedDict(camera_num=0, callback_id=0),
         DataPathway.WIRED
     ),
     'take-image-1': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'Camera_TakeImage',
-        OrderedDict(camera_num=1, callback_id=0), # Change this to whatever you want to reset.
+        # Change this to whatever you want to reset.
+        OrderedDict(camera_num=1, callback_id=0),
         DataPathway.WIRED
     ),
     'wd-echo-hi-watchdog': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'WatchDogInterface_Echo',
-        OrderedDict(length='10', message="HiWatchdog"), # Change this to whatever you want to reset.
+        # Change this to whatever you want to reset.
+        OrderedDict(length='10', message="HiWatchdog"),
         DataPathway.WIRED
     ),
     'misc-test': (
         DataPathway.WIRED,
-        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
         # Change this to whatever you want to reset.
         OrderedDict(reset_value='BATTERY_START_CHARGE'),
         DataPathway.WIRED
+    ),
+
+    'radio-echo-hello': (
+        DataPathway.WIRELESS,
+        Magic.RADIO_COMMAND,
+        'RadioGround_Echo',
+        OrderedDict(text_to_echo='HELLO'),
+        DataPathway.WIRELESS
+    ),
+    'radio-reset-self': (
+        DataPathway.WIRELESS,
+        Magic.RADIO_COMMAND,
+        'RadioGround_ResetRadio',
+        OrderedDict(confirm_by_typing_RESET='RESET'),
+        DataPathway.WIRELESS
+    ),
+    'radio-enter-stasis': (
+        DataPathway.WIRELESS,
+        Magic.RADIO_COMMAND,
+        'RadioGround_EnterStasis',
+        OrderedDict(confirm_by_typing_STASIS='STASIS'),
+        DataPathway.WIRELESS
+    ),
+    'radio-exit-stasis': (
+        DataPathway.WIRELESS,
+        Magic.RADIO_COMMAND,
+        'RadioGround_ExitStasis',
+        OrderedDict(confirm_by_typing_STASIS='STASIS'),
+        DataPathway.WIRELESS
+    ),
+    'radio-write-testing-to-uart': (
+        DataPathway.WIRELESS,
+        Magic.RADIO_COMMAND,
+        'RadioGround_WriteUart',
+        OrderedDict(text_to_echo='TESTING...'),
+        DataPathway.WIRELESS
+    ),
+    'radio-write-send-bad-dm': (
+        DataPathway.WIRELESS,
+        Magic.RADIO_COMMAND,
+        'RadioGround_HerculesDm',
+        OrderedDict(text_to_echo='faked:STATE'),
+        DataPathway.WIRELESS
+    ),
+    'radio-write-send-disconnected-dm': (
+        DataPathway.WIRELESS,
+        Magic.RADIO_COMMAND,
+        'RadioGround_HerculesDm',
+        OrderedDict(text_to_echo='state:INIT'),
+        DataPathway.WIRELESS
     )
 }
 
-def get_command(alias: str, params: Optional[Any] = None):
+
+def get_command(alias: str, params: Optional[Any] = None) -> PreparedCommandType:
     """
-    Grabs command package data (pathway, type, and payload) given a short-hand 
-    name (`alias`) and, optionally, a `param` that gets inserted as a command 
+    Grabs command package data (pathway, type, and payload) given a short-hand
+    name (`alias`) and, optionally, a `param` that gets inserted as a command
     argument where necessary.
 
     See docstring for `Parameter` for more details about how `params` pasting works.
     """
     pathway, magic, command_name, kwargs, telem_pathway = prepared_commands[alias]
-
-    kwargs = cast(Dict, kwargs)
 
     # Paste the given parameters anywhere we're told:
     if not isinstance(params, list):

@@ -3,7 +3,7 @@
 A Collection of Basic Utility Functions.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 02/26/2022
+@last-updated: 09/17/2022
 """
 
 import re
@@ -74,12 +74,24 @@ def type_guard_argument(
     return arg_val
 
 
-def bytearray_to_spaced_hex(ba) -> str:
-    return " ".join(["{:02x}".format(x) for x in ba])
+def bytearray_to_spaced_hex(ba, spacer: str = ' ') -> str:
+    return spacer.join(["{:02x}".format(x) for x in ba])
 
 
 def print_bytearray_hex(ba) -> None:
     print(bytearray_to_spaced_hex(ba))
+
+
+def hexstr_to_bytes(hexstr: str, delimiter: str = ' '):
+    """
+    Converts the given hex string, delimited with the given delimiter, to a
+    bytes object.
+
+    # Examples:
+    >>> hexstr_to_bytes('52 41 44 3A 45 43 48 4F 7C 68 48 45 4C 4C 4F', ' ')
+    b'RAD:ECHO|hHELLO'
+    """
+    return bytes.fromhex(hexstr.replace(delimiter, ''))
 
 
 def byte_to_binstr(B):

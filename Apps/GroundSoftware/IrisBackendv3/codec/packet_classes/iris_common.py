@@ -605,11 +605,13 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
         """Encode metadata which is not stored in `payloads`.
         """
         return {
+            **super().__getstate__(),
             'cph': self._common_packet_header
         }
 
     def __setstate__(self, data: Dict[str, Any]) -> None:
         """Retrieve metadata which is not stored in `payloads`."""
+        super().__setstate__(data)
         full_dict_spec_check(
             data,
             {

@@ -6,7 +6,7 @@ Containers for Flight Software Modules/Components and their Relevant Fields
 (where applicable).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 11/07/2021
+@last-updated: 09/14/2022
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -14,7 +14,7 @@ from __future__ import annotations
 from typing import List, Dict, Any, Union, cast, Optional
 from collections import OrderedDict
 from enum import Enum as PyEnum  # just in case, room to prevent name-clash
-import bitstruct # type: ignore
+import bitstruct  # type: ignore
 
 import json
 
@@ -311,6 +311,10 @@ class DataUnit(GswMetadataContainer):
     def enum(self) -> List[EnumItem]:
         return self._enum
 
+    @property
+    def is_enum(self) -> bool:
+        return self.datatype == FswDataType.ENUM
+
     @property  # public get-only
     def bitfields(self) -> Optional[BitfieldStruct]:
         return self._bitfields
@@ -395,6 +399,15 @@ class DataUnit(GswMetadataContainer):
             return None
         else:
             return item.name
+
+    def get_enum_formatted_str(self, data: Union[str, int]) -> Optional[str]:
+        """Returns a nicely formatted string containing the name and value of
+        the enum item matching the given data (either name or value)."""
+        item = self.get_enum_item(data)
+        if item is None:
+            return None
+        else:
+            return f"{item.name}[{item.value}]"
 
 
 class EnumItem(object):

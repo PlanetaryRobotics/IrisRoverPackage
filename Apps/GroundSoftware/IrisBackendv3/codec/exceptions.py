@@ -24,7 +24,7 @@ class PacketDecodingException(Exception):
         """
         self.data = data
         self.info = info
-        self.message = f"Unable to properly decode `0x {hexstr(data)}` because: {info}"
+        self.message = f"Unable to properly decode `0x{hexstr(data)}` because: {info}"
         super().__init__(self.message)
 
 

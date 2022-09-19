@@ -72,17 +72,26 @@ def print_lookup(module_to_lookup: Optional[str] = None) -> None:
         for i, c in enumerate(m.commands.vals):
             command(i, c)
             for arg in c.args:
-                if len(arg.enum) > 0:
+                if arg.is_enum:
                     p_arg(arg)
                     for e in arg.enum:
                         p_enum(e)
         header('Telemetry:')
         for i, t in enumerate(m.telemetry.vals):
             telemetry(i, t)
+            if t.is_enum:
+                for e in t.enum:
+                    p_enum(e)
         header('Events:')
         for i, ev in enumerate(m.events.vals):
             event(i, ev)
+            for arg in ev.args:
+                if arg.is_enum:
+                    p_arg(arg)
+                    for e in arg.enum:
+                        p_enum(e)
         print('\n]')
+
 
 def all_telem_channels() -> None:
     # Useful for determining number of hash buckets needed in TLMCHAN_HASH_BUCKETS in Svc/TlmChan/TlmChanImplCfg.hpp in the FPrime FSW.
@@ -90,7 +99,7 @@ def all_telem_channels() -> None:
         f"\n\t{x}", 'magenta', 'on_grey', attrs=['bold'])
 
     def header(x): return cprint(f"\n\t{x}", 'grey', 'on_white')
-    
+
     header('All Telemetry Channels:')
     tlm_count = 0
     for ((m_id, m_name), m) in standards.modules.fast_items():

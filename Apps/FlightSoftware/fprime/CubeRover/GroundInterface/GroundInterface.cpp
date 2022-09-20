@@ -123,9 +123,13 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         // GroundInterface for immediate downlinking, based on filters (cfg'able from ground), and all them to
         // ComLogger (TBD). ComLogger can then be commanded to pull any of them from the FileSystem based on timestamp
         // and pass those to GroundInterface as well (see logDownlink_handler below for more info).
+        //
+        // NOTE: Serialization into a packet (LogPacket) has already happened by this point. See `Primer.md` for more
+        // details about how this works.
         m_logsReceived++;
         uint8_t *logData = reinterpret_cast<uint8_t *>(data.getBuffAddr());
         FswPacket::Length_t length = static_cast<FswPacket::Length_t>(data.getBuffLength());
+        // NOTE: These go into the telem downlink buffer, right along side telemetry (intentionally).
         downlinkBufferWrite(logData, length, DownlinkLog);
         m_logsDownlinked++;
         updateTelemetry();
@@ -329,7 +333,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         m_tlmDownlinkBufferPos += size;
         m_tlmDownlinkBufferSpaceAvailable -= size;
         
-        log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, from);
+        // log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, from); // This is bad b/c it causes a race condition where every log will generate >=1 log
         
         if (flushOnWrite)
             flushTlmDownlinkBuffer();

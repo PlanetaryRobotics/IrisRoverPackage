@@ -225,22 +225,20 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     U32 buffer_size = fwBuffer.getsize();
     if (buffer_size != packet->header.length + sizeof(struct FswPacket::FswPacketHeader)) {
         m_cmdErrs++;
-        log_WARNING_HI_GI_UplinkedPacketError(MISMATCHED_LENGTH, packet->header.length,
-                static_cast<U16>(buffer_size));
+        log_WARNING_HI_GI_UplinkedPacketError(MISMATCHED_LENGTH, packet->header.length, static_cast<U16>(buffer_size));
         return;
     }
     
     if (packet->header.seq != 0 && packet->header.seq != (m_uplinkSeq + 1)) {
         // 0 is a special uplinkSeq we use to say we don't care about the uplinkSeq (in case of sync-loss)
         m_cmdErrs++;
+        log_WARNING_HI_GI_UplinkedPacketError(uplinkedPacketError::OUT_OF_SEQUENCE, (m_uplinkSeq + 1), packet->header.seq);
         return;
     }
     
-    if (packet->payload0.command.magic != COMMAND_MAGIC) {
+    if (packet->payload0.command.magic != COMMAND_MAGIC && packet->payload0.command.magic != FSW_RADIO_COMMAND_MAGIC) {
         m_cmdErrs++;
-        log_WARNING_HI_GI_UplinkedPacketError(BAD_CHECKSUM,
-                                              static_cast<U16>(((U16 *)&packet->payload0.command.magic)[0]),
-                                              static_cast<U16>(((U16 *)&packet->payload0.command.magic)[1]));
+        log_WARNING_LO_GI_UplinkedBadMagic((U32)packet->payload0.command.magic);
         return;
     }
     

@@ -42,6 +42,7 @@
 
 // FSW Packet Magic (32bit)
 #define FSW_COMMAND_MAGIC           0x00bada55
+#define FSW_RADIO_COMMAND_MAGIC     0xd009ad10  // Magic used for commands sent to the Radio. Due to the way the Radio intercepts them, they'll get through to us but we can safely ignore them.
 #define FSW_LOG_MAGIC               0x0deadbad
 #define FSW_TELEMETRY_MAGIC         0xc00010ff
 #define FSW_FILE_MAGIC              0xdabad000

@@ -8,7 +8,8 @@ converted to a `EventPayload` eventually) and is just printed to the console.
 """
 from __future__ import annotations
 
-from prompt_toolkit import formatted_text  # Activate postponed annotations (for using classes as return type in their own methods)
+# Activate postponed annotations (for using classes as return type in their own methods)
+from prompt_toolkit import formatted_text
 
 from .packet import Packet, CT
 
@@ -123,7 +124,7 @@ class WatchdogDebugPacket(WatchdogDebugPacketInterface[WatchdogDebugPacketInterf
             formatted_data = str(data[5:])
 
         return (
-            f" \033[1m\033[30m[{len(data[5:])}B]: {formatted_data}\033[0m"
+            f" \033[1m\033[38;5;243m[{len(data[5:])}B]: {formatted_data}\033[0m"
             # f"\n \033[1m\033[30m WatchdogDebugPacket[{l}B]-str: {data!r} \033[0m\n"
             # f"\nWatchdogDebugPacket[{l}B]-raw: {' '.join('{:02x}'.format(x) for x in data)}"
         )

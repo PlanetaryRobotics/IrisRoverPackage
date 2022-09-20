@@ -6,7 +6,7 @@ tests which require the Transceiver layer while the real thing is still being
 built.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 09/14/2022
+@last-updated: 09/19/2022
 """
 
 from enum import Enum
@@ -541,14 +541,17 @@ def load_cache() -> None:
         pass  # Do nothing. This is the first go, there's just nothing to load.
 
 
-# Creates a "Print" string of the given packet, along with accompanying metadata like the current time:
 def packet_print_string(packet: Optional[Packet]) -> str:
-    return f"\033[35;47;1m({datetime.now().strftime(DATETIME_FORMAT_STR)})\033[0m {packet!s}"
-
-# Saves the given printout of the given packet into the current packet_prints log file:
+    # Creates a "Print" string of the given packet, along with accompanying metadata like the current time:
+    return (
+        f"\033[35;47;1m({datetime.now().strftime(DATETIME_FORMAT_STR)})\033[0m "
+        f"\033[48;5;248m\033[38;5;233m\033[1m {packet.pathway.name if packet is not None else 'NONE'} \033[0m "
+        f"{packet!s}"
+    )
 
 
 def save_packet_to_packet_prints(packet: Optional[Packet]) -> None:
+    # Saves the given printout of the given packet into the current packet_prints log file:
     if packet is not None:
         # Build the path to save to:
         dir = str(settings['PACKET_PRINTING_DIR'])
@@ -573,7 +576,10 @@ def save_packet_to_packet_prints(packet: Optional[Packet]) -> None:
 
         # Append the packet print:
         with open(file_path, 'a') as file:
-            file.write(f"{packet_print_string(packet)}\n\n")
+            file.write(f"{packet_print_string(packet)}\n")
+            if packet is not None and packet._raw is not None:
+                file.write(f"{scp.hexdump(packet._raw, dump=True)}\n")
+            file.write(f"\n")
 
 
 def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = False, app_context=dict()) -> None:
@@ -603,6 +609,9 @@ def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = 
             ):
                 nontelem_packet_prints.appendleft(packet_print_string(packet))
 
+        # Save the printout of the packet:
+        save_packet_to_packet_prints(packet)
+
         # Display the data:
         if use_telem_dataview:
             # Update the display:
@@ -610,9 +619,6 @@ def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = 
         else:
             # Just log the data:
             log_print(packet)
-
-        # Save the printout of the packet:
-        save_packet_to_packet_prints(packet)
 
 
 def save_pcap(full_packets):

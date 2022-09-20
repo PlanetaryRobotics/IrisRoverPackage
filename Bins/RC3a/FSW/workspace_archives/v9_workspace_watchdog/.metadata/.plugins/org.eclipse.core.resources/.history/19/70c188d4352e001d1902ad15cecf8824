@@ -1,0 +1,163 @@
+#include "comms/debug_comms.h"
+#include "drivers/blimp.h"
+#include "drivers/bsp.h"
+#include "stateMachine/RoverStateInit.hpp"
+#include "utils/time.h"
+#include "watchdog.h"
+
+#include <cassert>
+#include <msp430.h>
+
+namespace iris
+{
+    RoverStateInit::RoverStateInit(RoverState firstState,
+                                   const char* resetReasonString)
+            : RoverStateBase(RoverState::INIT),
+              m_firstState(firstState),
+              m_resetReasonString(resetReasonString)
+    {
+    }
+
+    bool RoverStateInit::canEnterLowPowerMode(RoverContext& /*theContext*/)
+    {
+        return false;
+    }
+
+
+    RoverState RoverStateInit::handleLanderData(RoverContext& theContext)
+    {
+        assert(!"Handling data from lander event in INIT state, which shouldn't be possible");
+        return getState();
+    }
+
+    RoverState RoverStateInit::handleHerculesData(RoverContext& /*theContext*/)
+    {
+        assert(!"Handling data from hercules event in INIT state, which shouldn't be possible");
+        return getState();
+    }
+
+    RoverState RoverStateInit::handleTimerTick(RoverContext& theContext)
+    {
+        assert(!"Handling timer tick event in INIT state, which shouldn't be possible");
+        return getState();
+    }
+
+    RoverState RoverStateInit::handleHighTemp(RoverContext& /*theContext*/)
+    {
+        assert(!"Handling high temp event in INIT state, which shouldn't be possible");
+        return getState();
+    }
+
+    RoverState RoverStateInit::handlePowerIssue(RoverContext& /*theContext*/)
+    {
+        assert(!"Handling power issue event in INIT state, which shouldn't be possible");
+        return getState();
+    }
+
+    RoverState RoverStateInit::spinOnce(RoverContext& theContext)
+    {
+        assert(!"In spinOnce() in INIT state, which shouldn't be possible");
+        return getState();
+    }
+
+    RoverState RoverStateInit::transitionTo(RoverContext& theContext)
+    {
+        //!< @todo Replace this with initialization based on persistent status
+
+        /* initialize the board */
+        initializeGpios(&(theContext.m_details));
+        blimp_initialize(&(theContext.m_details));
+
+        /* unlock changes to registers/ports, etc. */
+        PM5CTL0 &= ~LOCKLPM5;
+
+        clockInit();
+
+        UART__Status uartStatus = UART__init1(&(theContext.m_uartConfig),
+                                              &(theContext.m_uart1State));
+        DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uartStatus, "Failed to init UART1");
+        assert(UART__STATUS__SUCCESS == uartStatus);
+
+        LanderComms__Status lcStatus = LanderComms__init(&(theContext.m_lcState), theContext.m_uart1State);
+        assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
+
+        DebugComms__registerLanderComms(theContext.m_lcState);
+
+        DebugComms__tryPrintfToLanderNonblocking("Watchdog in Init state\n");
+        DebugComms__tryPrintfToLanderNonblocking("Reason for last reset: %s\n", m_resetReasonString);
+
+
+        /* set up watchdog */
+        watchdog_init(&(theContext.m_watchdogFlags),
+                      Time__getPointerToCentisecondCount(),
+                      &(theContext.m_details.m_hParams));
+
+        /* set up the ADC */
+        adc_init(&(theContext.m_watchdogFlags));
+
+        /* set up i2c */
+        I2C_Sensors__init();
+
+        theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER);
+        theContext.m_writeCustomIoExpanderValues = false;
+        initiateNextI2cAction(theContext);
+
+        uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+        uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+        uint16_t endTimeCentiseconds = startTimeCentiseconds + 300; // Three second timeout
+        bool done = false;
+        while (!done && currentTimeCentiseconds <= endTimeCentiseconds) {
+            I2C_Sensors__spinOnce();
+
+            I2C_Sensors__Action action = I2C_SENSORS__ACTIONS__INACTIVE;
+            uint8_t readValue = 0;
+            I2C_Sensors__Status i2cStatus = I2C_Sensors__getActionStatus(&action,
+                                                                         &(theContext.m_i2cReadings),
+                                                                         &readValue);
+
+            // Sanity check
+            assert(I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER == action);
+
+            if (I2C_SENSORS__STATUS__INCOMPLETE != i2cStatus) {
+                DEBUG_LOG_CHECK_STATUS(I2C_SENSORS__STATUS__SUCCESS_DONE, i2cStatus, "I2C action failed");
+
+                I2C_Sensors__clearLastAction();
+                theContext.m_i2cActive = false;
+
+                done = true;
+            }
+
+            currentTimeCentiseconds = Time__getTimeInCentiseconds();
+        }
+
+        if (currentTimeCentiseconds > endTimeCentiseconds) {
+            DebugComms__tryPrintfToLanderNonblocking("Timed out in RoverStateInit::transitionTo\n");
+        }
+
+        blimp_normalBoot(); // run this on every boot as early as possible after IO Expander init.
+
+        // Set `gotWifi` based on the *current* state of the WD_INT pin.
+        // Needed for knowing if we're booting into a WiFi-ON state.
+        // That is, if WiFi is ON and the Radio is messaging us and WD_INT happens to be low,
+        // then the gotWifi state will get updated on the next rising edge (no big deal).
+        // However, if WiFi is ON *but* the Radio isn't actively messaging us, we'll never get
+        // the rising edge notice. So, we need to grab it here:
+        theContext.gotWifi = getWdIntState();
+
+        if (*(theContext.m_persistentInMission)) {
+            // Enable all interrupts
+            __enable_interrupt();
+            return RoverState::ENTERING_MISSION;
+        } else {
+            return RoverState::ENTERING_KEEP_ALIVE;
+        }
+    }
+
+    RoverState RoverStateInit::performResetCommand(RoverContext& theContext,
+                                                                WdCmdMsgs__ResetSpecificId resetValue,
+                                                                WdCmdMsgs__Response* response)
+    {
+        assert(!"Performing reset command in INIT state, which shouldn't be possible");
+        return getState();
+    }
+} // End namespace iris

@@ -11,6 +11,6 @@
 
 static const unsigned VERSION_MAJOR = 3;
 static const unsigned VERSION_MINOR = 4;
-static const unsigned VERSION_REVISION = 0;
+static const unsigned VERSION_REVISION = 1;
 
 #endif // _VERSION_H_

@@ -318,10 +318,10 @@ def handle_bad_udp(**fields: bytes) -> EnhancedPayloadCollection:
     args['port'] = fields['port']
 
     # Convert IP bytes to string (b'\x01\x01\xA8\xC0' -> '192.168.001.001')
-    ip_str = '.'.join(f'{b:03d}' for b in fields['ip'][::-1])
+    ip_str = '.'.join(f'{b:03d}' for b in fields['ip'])
     # ... then back to bytes, following FPrime standard, so it can be format
     # checked by the pipeline:
-    args['ip'] = fsw_data_encode(FswDataType.STRING15, ip_str.encode('ascii'))
+    args['ip'] = fsw_data_encode(FswDataType.STRING15, ip_str)
 
     # Parse all arguments according to datastandards:
     parsed_args = parse_event_args(event, args)

@@ -44,27 +44,13 @@ dim hercules_interlock_runaway_detected
 dim hercules_interlock_timer_running
 # Timer handle used for the interlock timer:
 const HERCULES_INTERLOCK_TIMER_HANDLE = $17
-
-# Clean up after interlock has been released:
-procedure hercules_interlock_post_release_cleanup()
-    # Let Hercules know:
-    call HR_UDP_INTERLOCK_IS_OFF()
-end
-
-
-# Turn off interlock.
-# Counterpart to `hercules_grab_interlock`.
-# (need to define this here because it's used by several callbacks that have to
-# precede `hercules_grab_interlock`)
-procedure hercules_release_interlock()
-    # Check if the interlock even needs to be released:
-    if(hercules_interlock_timer_running != 0 || hercules_interlock_counting_semaphore != 0) then
-        # Reset semaphore:
-        hercules_interlock_counting_semaphore = 0
-        # Clean up:
-        call hercules_interlock_post_release_cleanup()
-    end if
-end
+# Whether the hercules interlock is "cooling off" right now (see
+# `HERCULES_INTERLOCK_COOLOFF_PERIOD_MS` for more details):
+dim hercules_interlock_cooling_off
+# Timer handle used for ending the hercules interlock cooloff period:
+const HERCULES_INTERLOCK_COOLOFF_END_TIMER_HANDLE = $18
+# Handle to try grabbing the interlock again (if Hercules asked for it during a cooloff period):
+const HERCULES_GRAB_INTERLOCK_TRY_AGAIN_TIMER_HANDLE = $19
 
 # Period to allow Hercules to have the UDP lock for.
 # NOTE: Hercules MTU is 1006B (inside the UDP packet). So, accounting for the
@@ -100,6 +86,50 @@ end
 # of the MCUs getting held up doing something else, we'll (semi-arbitrarily) add
 # a 3x Factor of Safety to the ideal number.
 const HERCULES_INTERLOCK_PERIOD_MS = 1350 # 3 * [400 (target) + max time lock message takes to be processed by Hercules (<~50ms)]
+# It seems like Hercules can overwhelm the UDP system (? process?) by
+# continously sending UDP packets, preventing the Radio from receiving UDP
+# packets. This is strange and even happens when the UDP client and server are
+# on different ports (so there isn't a binding issue)... So, we need to let the
+# Radio do its own thing for a bit (a cooloff period) after Hercules' UDP
+# interlock is released before we let Hercules have the interlock and send
+# again. Based on the above note, this needs to be << 412ms
+const HERCULES_INTERLOCK_COOLOFF_PERIOD_MS = 50
+# If Hercules asks for the interlock during an interlock, how long should we
+# wait before checking to see if we can give it the interlock again (max
+# Hercules wait time will be HERCULES_INTERLOCK_COOLOFF_PERIOD_MS + this value):
+const HERCULES_INTERLOCK_COOLOFF_TRY_AGAIN_PERIOD_MS = 10 # HERCULES_INTERLOCK_COOLOFF_PERIOD_MS / 5
+
+# Clean up after interlock has been released:
+procedure hercules_interlock_post_release_cleanup()
+    # Let Hercules know:
+    call HR_UDP_INTERLOCK_IS_OFF()
+
+    # Start the cool off period:
+    hercules_interlock_cooling_off = 1
+    # Set the timer that will end the cooloff period:
+    call hardware_set_soft_timer(HERCULES_INTERLOCK_COOLOFF_PERIOD_MS, HERCULES_INTERLOCK_COOLOFF_END_TIMER_HANDLE, 1)
+end
+
+# Handle ending the cooloff period:
+event hardware_soft_timer(handle)
+    if handle = HERCULES_INTERLOCK_COOLOFF_END_TIMER_HANDLE then
+        hercules_interlock_cooling_off = 0
+    end if
+end
+
+# Turn off interlock.
+# Counterpart to `hercules_grab_interlock`.
+# (need to define this here because it's used by several callbacks that have to
+# precede `hercules_grab_interlock`)
+procedure hercules_release_interlock()
+    # Check if the interlock even needs to be released:
+    if(hercules_interlock_timer_running != 0 || hercules_interlock_counting_semaphore != 0) then
+        # Reset semaphore:
+        hercules_interlock_counting_semaphore = 0
+        # Clean up:
+        call hercules_interlock_post_release_cleanup()
+    end if
+end
 
 ##
 # Fixed messaging buffers:
@@ -359,20 +389,32 @@ procedure hercules_grab_interlock()
         call FORCE_RADIO_GND_HEARTBEAT()
     end if
 
-    # Give out the lock anytime asked but only if not in a runaway state:
-    if (hercules_interlock_runaway_detected != 1) then # NOTE: != is more bitflip resilient than =
-        # First, let Hercules know it got the lock (do this first so it has time to get the message):
-        call HR_UDP_INTERLOCK_IS_ON()
+    # If we're currently in a cooloff period, check back later (in 1/3 of a cooloff period):
+    if(hercules_interlock_cooling_off != 0) then
+        call hardware_set_soft_timer(HERCULES_INTERLOCK_COOLOFF_TRY_AGAIN_PERIOD_MS, HERCULES_GRAB_INTERLOCK_TRY_AGAIN_TIMER_HANDLE, 1)
+    else
+        # Give out the lock anytime asked but only if not in a runaway state (or a cooloff period):
+        if (hercules_interlock_runaway_detected != 1) then # NOTE: != is more bitflip resilient than =
+            # First, let Hercules know it got the lock (do this first so it has time to get the message):
+            call HR_UDP_INTERLOCK_IS_ON()
 
-        # Then up the semaphore count:
-        hercules_interlock_counting_semaphore = hercules_interlock_counting_semaphore + 1
+            # Then up the semaphore count:
+            hercules_interlock_counting_semaphore = hercules_interlock_counting_semaphore + 1
 
-        # And kick off the timer cascade if it's not currently running:
-        # (should only happen when starting over. using separate flag just in case)
-        if (hercules_interlock_timer_running != 1) then
-            hercules_interlock_timer_running = 1
-            call hardware_set_soft_timer(HERCULES_INTERLOCK_PERIOD_MS, HERCULES_INTERLOCK_TIMER_HANDLE, 1)
+            # And kick off the timer cascade if it's not currently running:
+            # (should only happen when starting over. using separate flag just in case)
+            if (hercules_interlock_timer_running != 1) then
+                hercules_interlock_timer_running = 1
+                call hardware_set_soft_timer(HERCULES_INTERLOCK_PERIOD_MS, HERCULES_INTERLOCK_TIMER_HANDLE, 1)
+            end if
         end if
+    end if
+end
+
+# Handle counting the Hercules semaphore back down:
+event hardware_soft_timer(handle)
+    if handle = HERCULES_GRAB_INTERLOCK_TRY_AGAIN_TIMER_HANDLE then
+        call hercules_grab_interlock()
     end if
 end
 
@@ -513,4 +555,5 @@ event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
     hercules_interlock_counting_semaphore = 0
     hercules_interlock_runaway_detected = 0
     hercules_interlock_timer_running = 0
+    hercules_interlock_cooling_off = 0
 end

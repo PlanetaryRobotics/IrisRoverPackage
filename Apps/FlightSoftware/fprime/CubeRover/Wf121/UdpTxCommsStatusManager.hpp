@@ -35,7 +35,7 @@ namespace Wf121
     // firmware.
     // ! Check `HERCULES_INTERLOCK_PERIOD_MS` in ground_reports.bgs` in the Radio
     // firmware. These two numbers should match.
-    static uint32_t UDP_INTERLOCK_EXPIRATION_TIME_MS = 13500;
+    static uint32_t UDP_INTERLOCK_EXPIRATION_TIME_MS = 1350;
 
     class UdpTxCommsStatusManager
     {

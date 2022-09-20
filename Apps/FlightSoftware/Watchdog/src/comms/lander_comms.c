@@ -131,7 +131,7 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
 
         if (UART__STATUS__SUCCESS != uartStatus) {
             return LANDER_COMMS__STATUS__ERROR_UART_RX_FAILURE;
-        }     
+        }
 
         // Iterate through all data, adding it to the SLIP mpsm until a full SLIP packet has been found or
         // we use up all of the data
@@ -183,7 +183,7 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
     }
 
     if (currentTimeCentiseconds > endTimeCentiseconds) {
-        DebugComms__printfToLander("Timed out in LanderComms__tryGetMessage\n");
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in LanderComms__tryGetMessage\n");
     }
 
     return returnStatus;
@@ -193,6 +193,7 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
 LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8_t* data, size_t dataLen)
 {
     static const uint8_t SLIP_END_AS_UINT8 = (uint8_t) SLIP_END;
+    static uint8_t RECURSION_SENTINAL = 0;
 
     //!< @todo Verify these buffer sizes are OK; we can decrease these, it just means serialization may get more complex
     static uint8_t uartHeaderData[IP_UDP_HEADER_LEN] = { 0 };
@@ -205,6 +206,13 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
     if (!lcState->initialized) {
         return LANDER_COMMS__STATUS__ERROR_NOT_INITIALIZED;
     }
+
+    // Allow one extra level of looping back into this function, then prevent any further
+    if (RECURSION_SENTINAL > 2) {
+        return LANDER_COMMS__STATUS__ERROR_RECURSION;
+    }
+
+    RECURSION_SENTINAL++;
 
     /*
      * We want to write four things to be transmitted via the UART to the lander:
@@ -241,6 +249,7 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
     size_t free = 0;
     if(!UART__checkIfSendable(lcState->uartState, bytesToSend, &free)) {
         __no_operation();
+        RECURSION_SENTINAL--;
         return LANDER_COMMS__STATUS__ERROR_TX_OVERFLOW;
     }
 
@@ -256,6 +265,7 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
                                                                             sizeof(SLIP_END_AS_UINT8));
 
     if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
+        RECURSION_SENTINAL--;
         return lcStatus;
     }
 
@@ -270,6 +280,7 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
                                                         0);
 
     if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
+        RECURSION_SENTINAL--;
         return lcStatus;
     }
 
@@ -279,9 +290,11 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
     lcStatus = LanderComms__transmitBuffer(lcState, &SLIP_END_AS_UINT8, sizeof(SLIP_END_AS_UINT8));
 
     if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
+        RECURSION_SENTINAL--;
         return lcStatus;
     }
 
+    RECURSION_SENTINAL--;
     return LANDER_COMMS__STATUS__SUCCESS;
 }
 
@@ -397,7 +410,7 @@ static LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms_
 
     uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
     uint16_t currentTimeCentiseconds = startTimeCentiseconds;
-    uint16_t endTimeCentiseconds = startTimeCentiseconds + 300; // Three second timeout
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + 300U; // Three second timeout
 
     while (!doneWritingBuffer && currentTimeCentiseconds <= endTimeCentiseconds) {
         // These will be set by the encoding function based on how much it is able to write
@@ -442,7 +455,7 @@ static LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms_
     }
 
     if (currentTimeCentiseconds > endTimeCentiseconds) {
-        DebugComms__printfToLander("Timed out in LanderComms__slipEncodeAndTransmitBuffer\n");
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in LanderComms__slipEncodeAndTransmitBuffer\n");
     }
 
     return LANDER_COMMS__STATUS__SUCCESS;

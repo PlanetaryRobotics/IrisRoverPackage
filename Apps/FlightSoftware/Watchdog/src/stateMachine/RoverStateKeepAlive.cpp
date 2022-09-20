@@ -117,7 +117,7 @@ namespace iris
         // 5. ... then the rover should be off.
         // So, since this has to happen automatically on boot, we can't do it in service BUT we can do it here,
         // which appears to be as late as possible before KeepAlive spins (so everything should be set up).
-        DebugComms__printfToLander("Auto. disabling batt. (BE0+LBu)\n");
+        DebugComms__tryPrintfToLanderNonblocking("Auto. disabling batt. (BE0+LBu)\n");
         // Turn off battery enable:
         blimp_battEnOff();
         __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES); // throw an extra delay in here to match testing procedure

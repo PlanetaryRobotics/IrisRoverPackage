@@ -1,4 +1,4 @@
-#include <cstring>
+#include <string.h>
 #include <cassert>
 
 #include <Fw/Types/Assert.hpp>
@@ -111,7 +111,7 @@ namespace
             void clear()
             {
                 // Write 0xFA to all "empty" bytes in this array, this just makes debugging easier
-                memset(m_buffer, 0xFA, m_bufferSize);
+                memset((void*)m_buffer, 0xFA, m_bufferSize);
                 m_head = 0;
                 m_tail = 0;
                 m_size = 0;
@@ -198,7 +198,7 @@ namespace CubeRover
             : m_ringArray(),
               m_state(PARSING_STATE__VALIDATE_HEADER)
         {
-            memset(m_headerBuffer, 0xFA, sizeof(m_headerBuffer));
+            memset((void*)m_headerBuffer, 0xFA, sizeof(m_headerBuffer));
         }
 
         ParseHeaderStatus checkForValidHeader(WatchDogMpsm::Message& msg)
@@ -245,7 +245,7 @@ namespace CubeRover
                     // Passed parity check, so this is a valid header. We can empty the ring array since we've already
                     // copied the data into the parsed header structure.
                     m_ringArray.clear();
-                    memset(m_headerBuffer, 0xFA, sizeof(m_headerBuffer));
+                    memset((void*)m_headerBuffer, 0xFA, sizeof(m_headerBuffer));
                     return PHS_PARSED_VALID_HEADER;
                 } else {
                     // Our computed parity doesn't match the expected parity. We want to return an error indicating as
@@ -326,13 +326,13 @@ namespace CubeRover
           accumulatedDataSize(0)
 
     {
-        memset(dataBuffer, 0xFA, dataBufferLen); // This isn't necessary but should make debugging easier
+        memset((void*)dataBuffer, 0xFA, dataBufferLen); // This isn't necessary but should make debugging easier
     }    
 
     void WatchDogMpsm::Message::reset()
     {
         parsedHeader.reset();
-        memset(dataBuffer, 0xFA, accumulatedDataSize); // This isn't necessary but should make debugging easier
+        memset((void*)dataBuffer, 0xFA, accumulatedDataSize); // This isn't necessary but should make debugging easier memset(
         accumulatedDataSize = 0;
     }
 

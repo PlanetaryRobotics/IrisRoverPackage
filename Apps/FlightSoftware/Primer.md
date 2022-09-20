@@ -122,20 +122,32 @@ out the PktSend port, one item per call, as a member allocated `Fw::ComBuffer`. 
 is a serialized `Fw::TlmPacket` object containing the id, timestamp and value. Note that the
 periodic task will only send fresh telemetry items as it iterates over all telemetry items.
 
-`Fw::TlmPacket` serialization is as follows: 
+### `Fw::TlmPacket` serialization is as follows: 
 
 1. `FW_PACKET_TELEM` aka packet type (`enum ComPacket::ComPacketType` aka int)
-2. Id                                (`FwChanIdType` aka `U32`, default #defined in `Fw/Cfg/Config.hpp`)
+2. Id                                (`FwChanIdType` aka `U16`, default #defined in `Fw/Cfg/Config.hpp`, overridden in `CubeRoverFPrimeConfig.hpp`)
 3. Time                              (`Fw::Time` see below)
 4. Buffer                            (Variable based on telemetry value type)
+Actual serialization process occurs progressively in `TlmPacket::serialize` in `Fw/Tlm/TlmPacket.cpp` (each `buffer.serialize` call in there adds data).
 
-Packet type, and time are only serialized if `FW_AMPCS_COMPATIBLE` is **false**..
+
+### `Fw::LogPacket` serialization is as follows: 
+NOTE: Log serialization process very much parallels the telemetry process.
+
+1. `FW_PACKET_LOG` aka packet type (`enum ComPacket::ComPacketType` aka int)
+2. Id                                (`FwEventIdType` aka `U16`, default #defined in `Fw/Cfg/Config.hpp`, overridden in `CubeRoverFPrimeConfig.hpp`)
+3. Time                              (`Fw::Time` see below)
+4. Buffer                            (`Fw::LogBuffer` of serialized event arguments. `Fw::LogPacket` just takes a `U8*` to these and the actual serialization occurs in each autocoded `log_SEVERITY_LEVEL_eventName` handler in each `ComponentNameAc.cpp` file. Since we don't have `AMPCS` on, this is just all arguments, serialized in order, one after the other, packed together (like the arguments in a command).)
+
+Actual serialization process occurs progressively in `LogPacket::serialize` in `Fw/Log/LogPacket.cpp` (each `buffer.serialize` call in there adds data). Note, we don't need to encode things like `severity` because that can be extracted from the message definitions using the `Id` as a lookup key.
+
+Packet type, and time are only serialized if `FW_AMPCS_COMPATIBLE` is **false**.
 
 ### Fw::Time serialization:
 
 1. Time base    (`enum TimeBase (aka int) in `Fw/Cfg/Config.hpp`)
 2. Time context (`FwTimeContextStoreType` aka U8, default #defined in `Fw/Cfg/Config.hpp`)
-3. Seoncds      (`U32`)
+3. Seconds      (`U32`)
 4. uSeconds     (`U32`)
 
 Note that time base and time context are only serialized if `FW_USE_TIME_BASE` or
@@ -151,7 +163,7 @@ Note that time base and time context are only serialized if `FW_USE_TIME_BASE` o
 - The component is connected to CmdDispatcher `compCmdReg` port of type `CmdReg`
 - The component is connected to CmdDispatcher `compCmdSend` port of type `Cmd`
 - The component is connected to CmdDispatcher `compCmdStat` port of type `CmdResponse`
-- TODO: Log connections
+- If the component has <events>, its `Log` port is connected to ActiveLogger `logRecv` port of type `Log`
 
 ## Command Uplink Format
 

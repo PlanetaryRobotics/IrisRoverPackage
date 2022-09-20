@@ -1,0 +1,19 @@
+@startuml Iris Radio State Driver
+' Diagram for actions taken by Radio State Driver (and its states):
+
+!theme crt-amber
+(*) --> "BOOT"
+"BOOT" --> "WIFI_ON"
+
+note right: sme_set_operating_mode\nsme_wifi_on
+
+if "sme_wifi_is_on" then
+  -->[Success] "CONNECT_NETWORK"
+else
+     if "Fail" then
+         -->[count < 5] "WIFI_ON"
+     else
+         -->[count >= 5] (*)
+     endif
+endif
+@enduml

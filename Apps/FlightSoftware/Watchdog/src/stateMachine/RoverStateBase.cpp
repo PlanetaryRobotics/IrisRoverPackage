@@ -1,6 +1,7 @@
 #include "stateMachine/RoverStateBase.hpp"
 
 #include "comms/debug_comms.h"
+#include "comms/wd_int_mpsm.h"
 #include "drivers/adc.h"
 #include "drivers/bsp.h"
 #include "drivers/blimp.h"
@@ -51,6 +52,96 @@ namespace iris
     RoverState RoverStateBase::handleHighTemp(RoverContext& theContext)
     {
         return getState();
+    }
+
+    RoverState RoverStateBase::handleWdIntEdge(bool rising, RoverContext& theContext)
+    {
+        uint16_t flatDuration = watchdog_get_wd_int_flat_duration();
+        WdIntMpsm__Status status = WdIntMpsm__processEdge(rising ? TRUE : FALSE, flatDuration);
+
+        switch (status)
+        {
+            case WD_INT_MPSM__STATUS__POWER_CYCLE_RADIO:
+                return handleRadioPowerCycleRadioCommand(theContext);
+            case WD_INT_MPSM__STATUS__POWER_CYCLE_HERCULES:
+                return handleRadioPowerCycleHerculesCommand(theContext);
+            case WD_INT_MPSM__STATUS__PARSED_EXIT_STASIS:
+                return handleRadioExitStasisCommand(theContext);
+            case WD_INT_MPSM__STATUS__PARSED_ENTER_STASIS:
+                return handleRadioEnterStasisCommand(theContext);
+            case WD_INT_MPSM__STATUS__PARSED_GOT_WIFI:
+                return handleRadioGotWifiCommand(theContext);
+        }
+
+        return getState();
+    }
+
+    RoverState RoverStateBase::handleWdIntRisingEdge(RoverContext& theContext)
+    {
+        return handleWdIntEdge(true, theContext);
+    }
+
+    RoverState RoverStateBase::handleWdIntFallingEdge(RoverContext& theContext)
+    {
+        return handleWdIntEdge(false, theContext);
+    }
+
+    RoverState RoverStateBase::handleRadioPowerCycleRadioCommand(RoverContext&)
+    {
+        setRadioReset();
+        powerOffRadio();
+        __delay_cycles(100000); // Should be at least 2 us (per blimp.h)
+        powerOnRadio();
+        __delay_cycles(10000);
+        releaseRadioReset();
+
+        return getState();
+    }
+
+    RoverState RoverStateBase::handleRadioPowerCycleHerculesCommand(RoverContext&)
+    {
+        setHerculesReset();
+        powerOffHercules();
+        __delay_cycles(100000); // Should be at least 2 us (per blimp.h)
+        powerOnHercules();
+        __delay_cycles(10000);
+        releaseHerculesReset();
+
+        return getState();
+    }
+
+    RoverState RoverStateBase::handleRadioExitStasisCommand(RoverContext&)
+    {
+        return getState();
+    }
+
+    RoverState RoverStateBase::handleRadioEnterStasisCommand(RoverContext&)
+    {
+        return RoverState::ENTERING_STASIS;
+    }
+
+    RoverState RoverStateBase::handleRadioGotWifiCommand(RoverContext& theContext)
+    {
+        DPRINTF("Got WiFi Event.\n");
+        theContext.gotWifi = true;
+        return getState();
+    }
+
+    LanderComms__Status RoverStateBase::txDownlinkData(RoverContext& theContext, void* data, size_t dataSize,
+                                                       bool fromHercules)
+    {
+        LanderComms__Status lcStatus = LANDER_COMMS__STATUS__SUCCESS;
+
+        // !! TODO !!: Is this the condition we want here?
+        if (*(theContext.m_persistentDeployed) && HerculesComms__isInitialized(theContext.m_hcState) && !fromHercules) {
+            HerculesComms__Status hcStatus = HerculesComms__txDownlinkData(theContext.m_hcState,
+                                                                           (uint8_t *) data,
+                                                                           dataSize);
+            lcStatus = (LanderComms__Status) hcStatus;
+        }
+
+        LanderComms__Status lcStatus2 = LanderComms__txData(theContext.m_lcState, (uint8_t *) data, dataSize);
+        return lcStatus;
     }
 
     void RoverStateBase::initiateNextI2cAction(RoverContext& theContext)
@@ -467,6 +558,13 @@ namespace iris
                 }
                 break;
 
+            case WD_CMD_MSGS__CMD_ID__ECHO:
+                return doGndCmdEcho(theContext,
+                                     msg,
+                                     response,
+                                     deployNotificationResponse,
+                                     sendDeployNotificationResponse);
+
             case WD_CMD_MSGS__CMD_ID__REQUEST_DETAILED_REPORT:
                 /* Enter service mode */
                 if (msg.body.reqDetReport.magic != WD_CMD_MSGS__CONFIRM_REQ_DET_REPORT_MAGIC_NUMBER) {
@@ -566,7 +664,7 @@ namespace iris
         // For a stroke we just reply to the Hercules with our telemetry
         watchdog_build_hercules_telem(&(theContext.m_i2cReadings),
                                       &(theContext.m_adcValues),
-                                      (theContext.m_isDeployed ? TRUE : FALSE),
+                                      (*(theContext.m_persistentDeployed) ? TRUE : FALSE),
                                       telemetrySerializationBuffer,
                                       sizeof(telemetrySerializationBuffer));
 
@@ -576,12 +674,12 @@ namespace iris
                                                                       sizeof(telemetrySerializationBuffer));
 
         if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-            DebugComms__printfToLander("HerculesComms__txResponseMsg failed with error: %d in "
+            DebugComms__tryPrintfToLanderNonblocking("HerculesComms__txResponseMsg failed with error: %d in "
                                        "RoverStateBase::handleStrokeFromHercules\n",
                                        hcStatus);
         }
 
-        HerculesComms__flushTx(theContext.m_hcState);
+        //HerculesComms__flushTx(theContext.m_hcState);
 
         return getState();
     }
@@ -607,17 +705,17 @@ namespace iris
                                                                       0);
 
         if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-            DebugComms__printfToLander("HerculesComms__txResponseMsg failed with error: %d in "
+            DebugComms__tryPrintfToLanderNonblocking("HerculesComms__txResponseMsg failed with error: %d in "
                                        "RoverStateBase::handleDownlinkFromHercules\n",
                                        hcStatus);
         }
 
         // 2) Send data to lander
-        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState, payloadBuffer, payloadSize);
+        LanderComms__Status lcStatus = txDownlinkData(theContext, payloadBuffer, payloadSize, true);
 
         DEBUG_LOG_CHECK_STATUS(LANDER_COMMS__STATUS__SUCCESS, lcStatus, "Downlink failed");
 
-        LanderComms__flushTx(theContext.m_lcState);
+        //LanderComms__flushTx(theContext.m_lcState);
 
         return getState();
     }
@@ -635,7 +733,7 @@ namespace iris
 #pragma diag_pop
 
         // For debug just send it to the lander
-        DebugComms__stringBufferToLander(payloadBuffer, payloadSize);
+        DebugComms__tryStringBufferToLanderNonblocking(payloadBuffer, payloadSize);
 
         return getState();
     }
@@ -659,7 +757,7 @@ namespace iris
                                                                       0);
 
         if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-            DebugComms__printfToLander("HerculesComms__txResponseMsg failed with error: %d in "
+            DebugComms__tryPrintfToLanderNonblocking("HerculesComms__txResponseMsg failed with error: %d in "
                                        "RoverStateBase::handleResetFromHercules\n",
                                        hcStatus);
         }
@@ -695,7 +793,7 @@ namespace iris
 
         //DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
         if (HERCULES_COMMS__STATUS__SUCCESS != hcStatus) {
-            DebugComms__printfToLander("HerculesComms__tryGetMessage failed with error: %d in "
+            DebugComms__tryPrintfToLanderNonblocking("HerculesComms__tryGetMessage failed with error: %d in "
                                        "RoverStateBase::pumpMsgsFromHercules\n",
                                        hcStatus);
         }
@@ -713,7 +811,7 @@ namespace iris
 
         DEBUG_ASSERT_EQUAL(WD_CMD_MSGS__STATUS__SUCCESS, wdCmdStatus);
 
-        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
+        LanderComms__Status lcStatus = txDownlinkData(theContext,
                                                            responseSerializationBuffer,
                                                            sizeof(responseSerializationBuffer));
 
@@ -774,12 +872,12 @@ namespace iris
         switch (msg.body.setDebugCommsState.selection) {
             case WD_CMD_MSGS__DEBUG_COMMS__ON:
                 DebugComms__setEnabled(TRUE);
-                DebugComms__printfToLander("Debug comms enabled\n");
+                DebugComms__tryPrintfToLanderNonblocking("Debug comms enabled\n");
                 response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
                 break;
 
             case WD_CMD_MSGS__DEBUG_COMMS__OFF:
-                DebugComms__printfToLander("Disabling debug comms\n");
+                DebugComms__tryPrintfToLanderNonblocking("Disabling debug comms\n");
                 DebugComms__setEnabled(FALSE);
                 response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
                 break;
@@ -1130,6 +1228,17 @@ namespace iris
         return getState();
     }
 
+    RoverState RoverStateBase::doGndCmdEcho(RoverContext& theContext,
+                                                 const WdCmdMsgs__Message& msg,
+                                                 WdCmdMsgs__Response& response,
+                                                 WdCmdMsgs__Response& deployNotificationResponse,
+                                                 bool& sendDeployNotificationResponse)
+    {
+        echoToLander(theContext, msg.body.echo.numBytesToEcho, msg.body.echo.bytesToEcho);
+        response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
+        return getState();
+    }
+
     RoverState RoverStateBase::doGndCmdRequestDetailedReport(RoverContext& theContext,
                                                              const WdCmdMsgs__Message& msg,
                                                              WdCmdMsgs__Response& response,
@@ -1139,6 +1248,34 @@ namespace iris
         theContext.m_sendDetailedReport = true;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
+    }
+
+    void RoverStateBase::echoToLander(RoverContext& theContext, uint8_t numBytesToEcho, const uint8_t* bytesToEcho)
+    {
+        /* settings */
+        static const char ECHO_HEADER[] = "ECHO: ";
+        static const uint8_t ECHO_HEADER_SIZE = 6; // strlen((const char*)ECHO_HEADER);
+        static char ECHO_BUFFER[ECHO_HEADER_SIZE + MAX_ECHO_LENGTH];
+
+        memset(ECHO_BUFFER, 0xBE, sizeof(ECHO_BUFFER)); // reset buffer with sentinel
+        sprintf(ECHO_BUFFER, ECHO_HEADER);
+
+        // Clip at max echo size (this should have already happened but let's be sure):
+        numBytesToEcho = (numBytesToEcho < MAX_ECHO_LENGTH) ? numBytesToEcho : MAX_ECHO_LENGTH;
+
+        /* build echo */
+        memcpy(ECHO_BUFFER + ECHO_HEADER_SIZE, bytesToEcho, numBytesToEcho);
+
+        /* send echo */
+        LanderComms__Status lcStatus = txDownlinkData(theContext,
+                                                      ECHO_BUFFER,
+                                                      (ECHO_HEADER_SIZE+numBytesToEcho));
+
+        DEBUG_ASSERT_EQUAL(LANDER_COMMS__STATUS__SUCCESS, lcStatus);
+        if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
+            //!< @todo Handling?
+            // just an echo so we can probably just ignore it. Ground will just try again.
+        }
     }
 
     void RoverStateBase::sendDetailedReportToLander(RoverContext& theContext)
@@ -1155,7 +1292,7 @@ namespace iris
 
         DEBUG_ASSERT_EQUAL(GND_MSGS__STATUS__SUCCESS, gcStatus);
 
-        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
+        LanderComms__Status lcStatus = txDownlinkData(theContext,
                                                            (uint8_t*) &report,
                                                            sizeof(report));
 
@@ -1378,29 +1515,29 @@ namespace iris
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__3V3_EN_POWER_OFF);
                 break;
 
-            case WD_CMD_MSGS__RESET_ID__24V_EN_RESET:
+            case WD_CMD_MSGS__RESET_ID__V_SYS_ALL_POWER_CYCLE:
                 if (allowPowerOn) {
-                    disable24VPowerRail();
-                    // queue up 24V rail on again
-                    theContext.m_watchdogFlags |= WDFLAG_UNRESET_24V;
-                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__24V_EN_RESET);
+                    disableVSysAllPowerRail();
+                    // queue up VSA rail on again
+                    theContext.m_watchdogFlags |= WDFLAG_POWER_ON_V_SYS_ALL;
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__V_SYS_ALL_OFF__RESET);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
                 break;
 
-            case WD_CMD_MSGS__RESET_ID__24V_EN_POWER_ON:
+            case WD_CMD_MSGS__RESET_ID__V_SYS_ALL_ON:
                 if (allowPowerOn) {
-                    enable24VPowerRail();
-                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__24V_EN_POWER_ON);
+                    enableVSysAllPowerRail();
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__V_SYS_ALL_POWER_ON);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
                 break;
 
-            case WD_CMD_MSGS__RESET_ID__24V_EN_POWER_OFF:
-                disable24VPowerRail();
-                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__24V_EN_POWER_OFF);
+            case WD_CMD_MSGS__RESET_ID__V_SYS_ALL_OFF:
+                disableVSysAllPowerRail();
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__V_SYS_ALL_POWER_OFF);
                 break;
 
             case WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_OFF:
@@ -1440,7 +1577,7 @@ namespace iris
             case WD_CMD_MSGS__RESET_ID__RS422_UART_DISABLE:
                 if (allowDisableRs422) {
                     //!< @todo IMPLEMENT
-                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__RS422_UART_DISABLE);
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__RS422_UART_DISABLE);
                 } else if (nullptr != response) {
                     response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
                 }
@@ -1490,6 +1627,10 @@ namespace iris
             case WD_CMD_MSGS__RESET_ID__BATTERIES_DISABLE:
                 disableBatteries();
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__BATTERIES_DISABLE);
+                break;
+
+            case WD_CMD_MSGS__RESET_ID__CLEAR_PERSISTENT_DEPLOY:
+                *(theContext.m_persistentDeployed) = false;
                 break;
 
             case WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_ON:

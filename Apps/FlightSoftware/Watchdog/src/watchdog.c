@@ -15,7 +15,7 @@
 #include "flags.h"
 #include "watchdog.h"
 
-// These three only exist so I can be 100% confident that the Ptr variables
+// These two only exist so I can be 100% confident that the Ptr variables
 // below them will never be NULL. Since the Ptr values should be set
 // to non-NULL values in watchdog_init prior to enabling the interrupts,
 // these three shouldn't ever actually be used.
@@ -24,6 +24,10 @@ static volatile uint16_t shouldBeUnusedTimeCount = 0;
 
 //static volatile uint16_t* watchdogFlagsPtr = &shouldBeUnusedWatchdogFlags;
 static volatile uint16_t* timeCountCentisecondsPtr = &shouldBeUnusedTimeCount;
+
+static volatile BOOL lookingForWdIntFallingEdge = TRUE;
+static volatile uint16_t wdIntLastEdgeTime = 0;
+static volatile uint16_t wdIntTimeBetweenLastEdges = 0;
 
 /**
  * Set up the ISRs for the watchdog
@@ -141,6 +145,10 @@ int watchdog_init(volatile uint16_t* watchdogFlags,
     // value in TB0CL0 (which is set automatically from the value in TB0CCR0), then overflow to zero).
     TB0CTL |= MC__UP;
 
+    // Set which edge we're looking for as the opposite of the current state (in case we boot and
+    // Radio is already connected - i.e. WD_INT is HIGH and we want to look for a falling edge):
+    lookingForWdIntFallingEdge = getWdIntState() ? TRUE : FALSE;
+
     return 0;
 }
 
@@ -237,11 +245,11 @@ int watchdog_monitor(HerculesComms__State* hState,
         SET_RABI_IN_UINT(details->m_resetActionBits, RABI__3V3_EN_UNRESET);
     }
 
-    /* turn 24V on again */
-    if (*watchdogFlags & WDFLAG_UNRESET_24V) {
-        enable24VPowerRail();
-        *watchdogFlags ^= WDFLAG_UNRESET_24V;
-        SET_RABI_IN_UINT(details->m_resetActionBits, RABI__24V_EN_UNRESET);
+    /* turn VSA on again */
+    if (*watchdogFlags & WDFLAG_POWER_ON_V_SYS_ALL) {
+        enableVSysAllPowerRail();
+        *watchdogFlags ^= WDFLAG_POWER_ON_V_SYS_ALL;
+        SET_RABI_IN_UINT(details->m_resetActionBits, RABI__V_SYS_ALL_ON__UNRESET);
     }
 
     /* check ADC values */
@@ -318,6 +326,11 @@ void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
     telbuf[15] = (uint8_t)(i2cReadings->raw_battery_voltage[1]);
 }
 
+uint16_t watchdog_get_wd_int_flat_duration(void)
+{
+    return wdIntTimeBetweenLastEdges;
+}
+
 
 /*
  * Pins that need an ISR:
@@ -350,14 +363,25 @@ void __attribute__ ((interrupt(PORT1_VECTOR))) port1_isr_handler (void) {
 #else
 #error Compiler not supported!
 #endif
+    uint16_t now = *timeCountCentisecondsPtr;
+
     switch(__even_in_range(P1IV, P1IV__P1IFG7)) {
         case P1IV__P1IFG3: // P1.3: WD_INT
-            // TODO: DO THE THING
+            if (lookingForWdIntFallingEdge) {
+                EventQueue__put(EVENT__TYPE__WD_INT_FALLING_EDGE);
+                lookingForWdIntFallingEdge = FALSE;
+                enableWdIntRisingEdgeInterrupt();
+            } else {
+                EventQueue__put(EVENT__TYPE__WD_INT_RISING_EDGE);
+                lookingForWdIntFallingEdge = TRUE;
+                enableWdIntFallingEdgeInterrupt();
+            }
 
-            //*watchdogFlagsPtr |= WDFLAG_RADIO_KICK;
-            //
+            wdIntTimeBetweenLastEdges = now - wdIntLastEdgeTime;
+            wdIntLastEdgeTime = now;
+
             // exit LPM
-            //__low_power_mode_off_on_exit();
+            __low_power_mode_off_on_exit();
             break;
         default: // default: ignore
             break;

@@ -92,6 +92,7 @@ typedef enum WdCmdMsgs__CommandId
     WD_CMD_MSGS__CMD_ID__SET_LATCH_BATT_STATE = 0x10FB, //!< Set battery latch state.
     WD_CMD_MSGS__CMD_ID__LATCH_SET_PULSE_LOW = 0x10FC, //!< Pulse battery latch "SET" override low.
     WD_CMD_MSGS__CMD_ID__LATCH_RESET_PULSE_LOW = 0x10FD, //!< Pulse battery latch "RESET" override low.
+    WD_CMD_MSGS__CMD_ID__ECHO = 0x10FF, //!< Diagnostic request to echo the given bytes back (with a header attached marking it as an echo)
 } WdCmdMsgs__CommandId;
 
 /**
@@ -130,9 +131,9 @@ typedef enum WdCmdMsgs__ResetSpecificId
     WD_CMD_MSGS__RESET_ID__3_3V_EN_POWER_ON = 0x12, //!< Power on the 3.3V line enable.
     WD_CMD_MSGS__RESET_ID__3_3V_EN_POWER_OFF = 0x13, //!< Power off the 3.3V line enable.
 
-    WD_CMD_MSGS__RESET_ID__24V_EN_RESET = 0x14, //!< Reset the 24V line enable.
-    WD_CMD_MSGS__RESET_ID__24V_EN_POWER_ON = 0x15, //!< Power on the 24V line enable.
-    WD_CMD_MSGS__RESET_ID__24V_EN_POWER_OFF = 0x16, //!< Power off the 24V line enable.
+    WD_CMD_MSGS__RESET_ID__V_SYS_ALL_POWER_CYCLE = 0x14, //!< Reset the 24V line enable.
+    WD_CMD_MSGS__RESET_ID__V_SYS_ALL_ON = 0x15, //!< Power on the 24V line enable.
+    WD_CMD_MSGS__RESET_ID__V_SYS_ALL_OFF = 0x16, //!< Power off the 24V line enable.
 
     WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_OFF = 0x18, //!< Power off the HDRM.
 
@@ -154,6 +155,7 @@ typedef enum WdCmdMsgs__ResetSpecificId
     WD_CMD_MSGS__RESET_ID__BATTERIES_ENABLE = 0x23, //!< Enable the batteries.
     WD_CMD_MSGS__RESET_ID__BATTERIES_DISABLE = 0x24, //!< Disable the batteries.
 
+    WD_CMD_MSGS__RESET_ID__CLEAR_PERSISTENT_DEPLOY = 0xDD, //!< Clear the persistent "deployed" status.
     WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_ON = 0xEE //!< Power on the HDRM.
 
 } WdCmdMsgs__ResetSpecificId;
@@ -230,10 +232,10 @@ typedef enum WdCmdMsgs__SetLatchBattSelection
  */
 typedef enum WdCmdMsgs__LatchSetResetSelection
 {
-    WD_CMD_MSGS__LATCH_SET_RESET__OFF = 0x00, //!< Set as input
+    WD_CMD_MSGS__LATCH_SET_RESET__OFF = 0x00, //!<
     WD_CMD_MSGS__LATCH_SET_RESET__PULSE = 0x15, //!< Pulse high-low-high as an output
-    WD_CMD_MSGS__LATCH_SET_RESET__FORCE_HIGH = 0xBB, //!< Make an output and pull high
-    WD_CMD_MSGS__LATCH_SET_RESET__FORCE_LOW = 0xFF //!< Make an output and pull low
+    WD_CMD_MSGS__LATCH_SET_RESET__FORCE_HIGH = 0xBB, //!< Make an output and drive high
+    WD_CMD_MSGS__LATCH_SET_RESET__FORCE_LOW = 0xFF //!< Make an output and drive low
 } WdCmdMsgs__LatchSetResetSelection;
 
 /**
@@ -491,6 +493,17 @@ typedef struct WdCmdMsgs__MsgBody__ClearResetMemory
 } WdCmdMsgs__MsgBody__ClearResetMemory;
 
 /**
+ * @brief The body of an "Echo" command.
+ */
+#define MAX_ECHO_LENGTH 10
+typedef struct WdCmdMsgs__MsgBody__Echo
+{
+
+    uint8_t numBytesToEcho;
+    uint8_t bytesToEcho[MAX_ECHO_LENGTH]; // allocate max space so we don't have to malloc and free it
+} WdCmdMsgs__MsgBody__Echo;
+
+/**
  * @brief The body of an "Request Detailed Report" command.
  */
 typedef struct WdCmdMsgs__MsgBody__RequestDetailedReport
@@ -531,6 +544,7 @@ typedef union
     WdCmdMsgs__MsgBody__LatchSetPulseLow latchSetPulseLow;
     WdCmdMsgs__MsgBody__LatchResetPulseLow latchResetPulseLow;
     WdCmdMsgs__MsgBody__ClearResetMemory clearResetMem;
+    WdCmdMsgs__MsgBody__Echo echo;
     WdCmdMsgs__MsgBody__RequestDetailedReport reqDetReport;
 } WdCmdMsgs__MessageBody;
 
@@ -589,6 +603,7 @@ typedef enum WdCmdMsgs__PackedSize
     WD_CMD_MSGS__PACKED_SIZE__LATCH_SET_PULSE_LOW_BODY = sizeof(uint8_t),
     WD_CMD_MSGS__PACKED_SIZE__LATCH_RESET_PULSE_LOW_BODY = sizeof(uint8_t),
     WD_CMD_MSGS__PACKED_SIZE__CLEAR_RESET_MEMORY_BODY = 2 * sizeof(uint8_t),
+    WD_CMD_MSGS__PACKED_SIZE__ECHO_MAX_BODY = sizeof(uint8_t) + MAX_ECHO_LENGTH, // largest possible size
     WD_CMD_MSGS__PACKED_SIZE__REQUEST_DETAILED_REPORT_BODY = sizeof(uint8_t),
 
 
@@ -618,10 +633,11 @@ typedef enum WdCmdMsgs__PackedSize
     WD_CMD_MSGS__PACKED_SIZE__LATCH_SET_PULSE_LOW_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__LATCH_SET_PULSE_LOW_BODY,
     WD_CMD_MSGS__PACKED_SIZE__LATCH_RESET_PULSE_LOW_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__LATCH_RESET_PULSE_LOW_BODY,
     WD_CMD_MSGS__PACKED_SIZE__CLEAR_RESET_MEMORY_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__CLEAR_RESET_MEMORY_BODY,
+    WD_CMD_MSGS__PACKED_SIZE__ECHO_MAX_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__ECHO_MAX_BODY, // maximum possible size
     WD_CMD_MSGS__PACKED_SIZE__REQUEST_DETAILED_REPORT_MSG = WD_CMD_MSGS__PACKED_SIZE__COMMON_HEADER + sizeof(uint16_t) + WD_CMD_MSGS__PACKED_SIZE__REQUEST_DETAILED_REPORT_BODY,
 
     WD_CMD_MSGS__PACKED_SIZE__SMALLEST_MSG = WD_CMD_MSGS__PACKED_SIZE__RESET_SPECIFIC_MSG,
-    WD_CMD_MSGS__PACKED_SIZE__LARGEST_MSG = WD_CMD_MSGS__PACKED_SIZE__DANG_FORCE_BATT_STATE_MSG
+    WD_CMD_MSGS__PACKED_SIZE__LARGEST_MSG = (WD_CMD_MSGS__PACKED_SIZE__ECHO_MAX_MSG > WD_CMD_MSGS__PACKED_SIZE__DANG_FORCE_BATT_STATE_MSG) ? WD_CMD_MSGS__PACKED_SIZE__ECHO_MAX_MSG : WD_CMD_MSGS__PACKED_SIZE__DANG_FORCE_BATT_STATE_MSG
 } WdCmdMsgs__PackedSize;
 
 //######################################################################################################################

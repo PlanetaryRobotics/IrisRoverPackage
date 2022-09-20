@@ -42,7 +42,7 @@ namespace iris
         DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Hercules UART Rx Rb Error count");
 
         if (changed) {
-            DebugComms__printfToLander("New Hercules UART Rx Rb failures, total count = %u\n", count);
+            DebugComms__tryPrintfToLanderNonblocking("New Hercules UART Rx Rb failures, total count = %d\n", (int) count);
         }
 
         count = 0;
@@ -51,7 +51,7 @@ namespace iris
         DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Lander UART Rx Rb Error count");
 
         if (changed) {
-            DebugComms__printfToLander("New Lander UART Rx Rb failures, total count = %u\n", count);
+            DebugComms__tryPrintfToLanderNonblocking("New Lander UART Rx Rb failures, total count = %d\n", (int) count);
         }
 
         /* send heartbeat with collected data */
@@ -70,7 +70,7 @@ namespace iris
 
 
 
-        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
+        LanderComms__Status lcStatus = txDownlinkData(theContext,
                                                            (uint8_t*) &hb,
                                                            sizeof(hb));
 
@@ -180,6 +180,12 @@ namespace iris
         // Nothing to do on this transition, which should always be from ENTERING_MISSION.
         m_currentSubState = SubState::MISSION_NORMAL;
         *(theContext.m_persistentInMission) = true;
+
+        if (*(theContext.m_persistentDeployed)) {
+            m_currentDeployState = DeployState::DEPLOYED;
+            disableHeater();
+        }
+
         return getState();
     }
 
@@ -261,7 +267,7 @@ namespace iris
                 deployNotificationResponse.commandId = msg.commandId;
                 deployNotificationResponse.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__DEPLOY;
                 sendDeployNotificationResponse = true;
-                theContext.m_isDeployed = true;
+                *(theContext.m_persistentDeployed) = true;
 
                 // Don't allow DebugComms to write to lander anymore
                 DebugComms__registerLanderComms(NULL);

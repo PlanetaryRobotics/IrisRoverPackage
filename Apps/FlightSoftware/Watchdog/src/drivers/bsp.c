@@ -84,8 +84,9 @@ void initializeGpios(WatchdogStateDetails* details)
     P1DIR &= ~BIT2;
 
     // P1.3 is connected to the WD_INT signal and is used as a GPIO input.
-    //!< @todo What is WD_INT actually useful for, if anything? If nothing, make this GPIO output.
+    // Used when the Radio wants to send information to the Watchdog.
     P1DIR &= ~BIT3;
+
 
     // P1.4 is connected to the V_LANDER_SENS signal (output of voltage divider for measuring lander voltage being
     // supplied to us), and is used as an ADC analog input (specifically it is ADC analog input A4). This is the
@@ -345,8 +346,9 @@ void initializeGpios(WatchdogStateDetails* details)
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__CHRG_EN);
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__CHRG_EN_FORCE_HIGH);
 
-    // PJ.4 is connected to the Radio_Kick signal and is used as a GPIO input.
-    PJDIR &= ~BIT4;
+    // PJ.4 is connected to the Radio_Kick signal and is used as a GPIO output (to tell the Radio something - e.g. go into statis mode).
+    // Initially driven LOW.
+    PJOUT &= ~BIT4;
 
     // PJ.5 is connected to the BATTERY_EN signal and is used as a GPIO output with an initially low value
     PJOUT &= ~BIT5;
@@ -385,6 +387,31 @@ void initializeGpios(WatchdogStateDetails* details)
     P8SEL1 = 0x00u;
     P8DIR = 0xFFu;
     P8OUT = 0x00u;
+}
+
+void enableWdIntFallingEdgeInterrupt(void)
+{
+    P1IFG &= ~BIT3;
+    P1IES |= BIT3;
+    P1IE |= BIT3;
+}
+
+void enableWdIntRisingEdgeInterrupt(void)
+{
+    P1IFG &= ~BIT3;
+    P1IES &= ~BIT3;
+    P1IE |= BIT3;
+}
+
+void disableWdIntInterrupt(void)
+{
+    P1IFG &= ~BIT3;
+    P1IE &= ~BIT3;
+}
+
+// Return the *current* state of the WD_INT pin:
+uint8_t getWdIntState(void){
+    return P1IN & BIT3;
 }
 
 void enableUart0Pins(void)
@@ -539,26 +566,28 @@ inline void disable3V3PowerRail(void)
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__3V3_EN);
 }
 
-// RAD TODO - this is for V_SYS_ALL_EN now (24v w/Motor_ON - PJ.2)
 /**
- * @brief      Enables the 24 v power rail. (high = ON)
+ * @brief      Enables the VSA power rail. Just an alias for `blimp_vSysAllEnOn` when dispatched from a reset specific command.
+ *
+ * NOTE: [CWC] This was converted from being a 24V command that was a Rev H hold over.
+ * Names have now been updated to match but function has been this was since at least RM1 RC1.
+ * NOTE: 24V line is only controlled via MOTOR_ON.
  */
-inline void enable24VPowerRail(void)
+inline void enableVSysAllPowerRail(void)
 {
-    PJDIR |= BIT7;
-    PJOUT |= BIT7;
-    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__V_SYS_ALL_EN);
+    blimp_vSysAllEnOn();
 }
 
 /**
- * @brief      Disables the 24 v power rail. (LOW = OFF)
+ * @brief      Disables the VSA power rail. Just an alias for `blimp_vSysAllEnOff` when dispatched from a reset specific command.
+ *
+ * NOTE: [CWC] This was converted from being a 24V command that was a Rev H hold over.
+ * Names have now been updated to match but function has been this was since at least RM1 RC1.
+ * NOTE: 24V line is only controlled via MOTOR_ON.
  */
-inline void disable24VPowerRail(void)
+inline void disableVSysAllPowerRail(void)
 {
-    PJDIR &= ~BIT7;
-    PJREN &= ~BIT7;
-
-    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__V_SYS_ALL_EN);
+    blimp_vSysAllEnOff();
 }
 
 /**

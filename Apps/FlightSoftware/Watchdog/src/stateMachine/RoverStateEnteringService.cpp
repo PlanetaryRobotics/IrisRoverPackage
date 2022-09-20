@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include "drivers/bsp.h"
+
 namespace iris
 {
     RoverStateEnteringService::RoverStateEnteringService()
@@ -40,6 +42,10 @@ namespace iris
     RoverState RoverStateEnteringService::transitionTo(RoverContext& theContext)
     {
         *(theContext.m_persistentInMission) = false;
+
+        // Enable the falling edge interrupt for WD_INT (should be done after unlocking LOCKLPM5 per slau367p section 12.3.2)
+        enableWdIntFallingEdgeInterrupt();
+
         return RoverState::SERVICE;
     }
 

@@ -5,7 +5,6 @@
 
 namespace iris
 {
-    //!< @todo IMPLEMENT MISSION STATE!
     class RoverStateMission : public RoverStateBase
     {
         public:

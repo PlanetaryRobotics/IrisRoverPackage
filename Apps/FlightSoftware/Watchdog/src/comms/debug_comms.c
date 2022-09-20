@@ -8,6 +8,7 @@
 
 static char PRINT_BUFFER[256] = { 0 };
 static LanderComms__State* LC_STATE = NULL;
+static HerculesComms__State* HC_STATE = NULL;
 
 static BOOL DEBUG_COMMS_ENABLED =
 #ifdef ENABLE_DEBUG_ONLY_CODE
@@ -26,6 +27,11 @@ void DebugComms__registerLanderComms(LanderComms__State* lcState)
     LC_STATE = lcState;
 }
 
+void DebugComms__registerHerculesComms(HerculesComms__State* hcState)
+{
+    HC_STATE = hcState;
+}
+
 void DebugComms__stringBufferToLander(void* buffer,
                                       size_t bufferLen)
 {
@@ -33,14 +39,23 @@ void DebugComms__stringBufferToLander(void* buffer,
         return;
     }
 
-    if (LC_STATE == NULL || buffer == NULL) {
+    if (buffer == NULL) {
         return;
     }
 
-    LanderComms__txDataUntilSendOrTimeout(LC_STATE,
-                                          (const uint8_t*) buffer,
-                                          bufferLen,
-                                          300);
+    if (LC_STATE != NULL) {
+        LanderComms__txDataUntilSendOrTimeout(LC_STATE,
+                                              (const uint8_t*) buffer,
+                                              bufferLen,
+                                              300);
+    }
+
+    if (HC_STATE != NULL) {
+        HerculesComms__txDownlinkDataUntilSendOrTimeout(HC_STATE,
+                                                        (const uint8_t*) buffer,
+                                                        bufferLen,
+                                                        300);
+    }
 }
 
 
@@ -50,13 +65,22 @@ void DebugComms__tryStringBufferToLanderNonblocking(void* buffer, size_t bufferL
         return;
     }
 
-    if (LC_STATE == NULL || buffer == NULL) {
+    if (buffer == NULL) {
         return;
     }
 
-    LanderComms__txData(LC_STATE,
-                        (const uint8_t*) buffer,
-                        bufferLen);
+    if (LC_STATE != NULL) {
+        LanderComms__txData(LC_STATE,
+                            (const uint8_t*) buffer,
+                            bufferLen);
+    }
+
+    if (HC_STATE != NULL) {
+        HerculesComms__txDownlinkData(HC_STATE,
+                                      (const uint8_t*) buffer,
+                                       bufferLen);
+    }
+
 }
 
 void DebugComms__printfToLander(const char* fmt, ...)
@@ -65,7 +89,7 @@ void DebugComms__printfToLander(const char* fmt, ...)
         return;
     }
 
-    if (LC_STATE == NULL || fmt == NULL) {
+    if ((LC_STATE == NULL && HC_STATE == NULL) || fmt == NULL) {
         return;
     }
 
@@ -85,7 +109,7 @@ void DebugComms__tryPrintfToLanderNonblocking(const char* fmt, ...)
         return;
     }
 
-    if (LC_STATE == NULL || fmt == NULL) {
+    if ((LC_STATE == NULL && HC_STATE == NULL) || fmt == NULL) {
         return;
     }
 
@@ -107,7 +131,7 @@ void DebugComms__printDataAsHexToLander(const uint8_t* data,
         return;
     }
 
-    if (LC_STATE == NULL || data == NULL) {
+    if ((LC_STATE == NULL && HC_STATE == NULL) || data == NULL) {
         return;
     }
 
@@ -130,11 +154,13 @@ void DebugComms__flush(void)
         return;
     }
 
-    if (LC_STATE == NULL) {
-        return;
+    if (LC_STATE != NULL) {
+        LanderComms__flushTx(LC_STATE);
     }
 
-    LanderComms__flushTx(LC_STATE);
+    if (HC_STATE != NULL) {
+        HerculesComms__flushTx(HC_STATE);
+    }
 }
 
 

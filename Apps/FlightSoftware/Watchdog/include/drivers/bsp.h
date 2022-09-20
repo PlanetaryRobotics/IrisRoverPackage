@@ -12,6 +12,10 @@ extern "C"
 const char* getResetReasonString(void);
 
 void initializeGpios(WatchdogStateDetails* details);
+void enableWdIntFallingEdgeInterrupt(void);
+void enableWdIntRisingEdgeInterrupt(void);
+void disableWdIntInterrupt(void);
+uint8_t getWdIntState(void);
 void enableUart0Pins(void);
 void disableUart0Pins(void);
 void enableUart1Pins(void);
@@ -23,8 +27,8 @@ void enableHeater(void);
 void disableHeater(void);
 void enable3V3PowerRail(void);
 void disable3V3PowerRail(void);
-void enable24VPowerRail(void);
-void disable24VPowerRail(void);
+void enableVSysAllPowerRail(void);
+void disableVSysAllPowerRail(void);
 void releaseHerculesReset(void);
 void setHerculesReset(void);
 void releaseRadioReset(void);

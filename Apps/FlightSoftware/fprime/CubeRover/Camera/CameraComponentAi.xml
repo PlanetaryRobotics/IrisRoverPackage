@@ -16,8 +16,13 @@
         </port>
     </ports>
             
-    <!-- Any logs?? <events>
-    </events>-->
+  <!-- EVENTS -->
+  <events>
+    <event id="0" name="Camera_FailedToTakeImage" severity="WARNING_LO" format_string="Failed to capture image. Try again.">
+    	<!--This is a really basic default event. Added this so Camera component would have a Log port that we could connect to ActiveLogger so, if we want to add detailed logs in the future, it's not burdensome.-->
+        <comment>A basic notification that, for some reason, the camera failed to capture an image. Try again.</comment>
+    </event>
+  </events>
     
     <telemetry>
         <channel id="0" name="Cam_ComponentImagesRequested" data_type="U32" update = "on_change">

@@ -1,7 +1,7 @@
 #ifndef _FSW_PACKET_H_
 #define _FSW_PACKET_H_
 
-#define NETWORK_TEST_ENV_TEST
+//#define NETWORK_TEST_ENV_TEST
 #define NETWORK_TEST_ENV_MOON
 
 
@@ -15,7 +15,7 @@
     #define ROVER_UDP_PORT          42000
 
     #define LANDER_SSID             "PM1LWAP"
-    #define LANDER_NETWORK_PASSWORD "PAWL1MP"
+    #define LANDER_NETWORK_PASSWORD "PIMS_WAP"
 #else // local testing (we should migrate away from needing this)
     #define ROVER_ADDRESS           {192, 168, 1, 2}
     #define SPACECRAFT_ADDRESS      {192, 168, 1, 120}
@@ -42,6 +42,7 @@
 
 // FSW Packet Magic (32bit)
 #define FSW_COMMAND_MAGIC           0x00bada55
+#define FSW_RADIO_COMMAND_MAGIC     0xd009ad10  // Magic used for commands sent to the Radio. Due to the way the Radio intercepts them, they'll get through to us but we can safely ignore them.
 #define FSW_LOG_MAGIC               0x0deadbad
 #define FSW_TELEMETRY_MAGIC         0xc00010ff
 #define FSW_FILE_MAGIC              0xdabad000

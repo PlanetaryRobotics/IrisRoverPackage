@@ -64,6 +64,14 @@ extern int8_t m_persistent_state;
           U32 context /*!< Call context value; meaning chosen by user*/
       );
 
+      //! Handler for input port logDirectDownlink
+      //
+      void logDirectDownlink_handler(
+          NATIVE_INT_TYPE portNum, /*!< The port number*/
+          Fw::ComBuffer &data, /*!< Buffer containing packet data*/
+          U32 context /*!< Call context value; meaning chosen by user*/
+      );
+
       //! Handler implementation for logDownlink
       //!
       void logDownlink_handler(

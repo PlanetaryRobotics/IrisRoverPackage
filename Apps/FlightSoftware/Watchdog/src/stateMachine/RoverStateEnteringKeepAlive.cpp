@@ -1,6 +1,7 @@
 #include "stateMachine/RoverStateEnteringKeepAlive.hpp"
 
 #include "drivers/adc.h"
+#include "drivers/blimp.h"
 #include "drivers/bsp.h"
 
 #include "comms/debug_comms.h"
@@ -36,6 +37,7 @@ namespace iris
          * @todo Should we re-enter this state upon this occurring, in order to re-set the bit that should power off
          *       the Hercules?
          */
+        DPRINTF("Got hercules data event in EnteringKeepAlive, which shouldn't be possible\n");
         assert(!"Got hercules data event in EnteringKeepAlive, which shouldn't be possible");
         return getState();
     }
@@ -59,7 +61,7 @@ namespace iris
 
             assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
 
-            LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
+            LanderComms__Status lcStatus = txDownlinkData(theContext,
                                                                (uint8_t*) &hb,
                                                                sizeof(hb));
 
@@ -82,7 +84,7 @@ namespace iris
         DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Lander UART Rx Rb Error count");
 
         if (changed) {
-            DebugComms__printfToLander("New Lander UART Rx Rb failures, total count = %u\n", count);
+            DebugComms__tryPrintfToLanderNonblocking("New Lander UART Rx Rb failures, total count = %u\n", count);
         }
 
         if (theContext.m_details.m_hParams.m_heatingControlEnabled) {
@@ -232,9 +234,19 @@ namespace iris
         setHerculesReset();
         unsetDeploy();
 
+        theContext.gotWifi = false; // reset
+
         // Turn off voltage rails. All of these are simply setting/clearing bits, so they are instant.
         disable3V3PowerRail();
-        disable24VPowerRail();
+        disableVSysAllPowerRail();
+        blimp_normalBoot(); // Restore BLiMP state if returning to KA from a higher state. Shouldn't do anything if we're pushing straight through KA the first time.
+
+        // Turn off Herc comms (used if returning to KA from a higher state):
+        if (HerculesComms__isInitialized(theContext.m_hcState)) {
+            DebugComms__registerHerculesComms(NULL);
+            HerculesComms__Status hcStatus = HerculesComms__uninitialize(&(theContext.m_hcState));
+            DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
+        }
 
         // Make sure to disable the Hercules uart so we don't dump current through that tx pin
         UART__uninit0(&(theContext.m_uart0State));
@@ -255,7 +267,7 @@ namespace iris
         // Enable all interrupts
         __enable_interrupt();
 
-        DebugComms__printfToLander("Hello, Earth!\n");
+        DebugComms__tryPrintfToLanderNonblocking("Hello, Earth!\n");
 
         return nextStateAfterSetupCompletes();
     }

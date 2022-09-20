@@ -569,7 +569,7 @@ def update_telemetry_payload_log_dataframe(t: TelemetryPayload) -> None:
     # with data from the given telemetry payload `t`.
 
     # Format value (if enum):
-    if t.channel.datatype == FswDataType.ENUM:
+    if t.channel.is_enum:
         if isinstance(t.data, str):
             val = f"{t.data}[{t.channel.get_enum_value(t.data)}]"
         else:

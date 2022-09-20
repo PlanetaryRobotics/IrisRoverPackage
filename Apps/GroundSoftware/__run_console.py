@@ -3,9 +3,6 @@ import argparse
 import time
 from trans_tools_console_process import start_console, settings
 
-# this is the prefix on all log files.
-settings['SAVE_FILE_PREFIX'] = 'iris__radio_firmware_checkout__8_28_22_4'
-
 # Serial numbers for each serial transceiver we use:
 SERIAL_DEVICE_SNS = {
     'lander_harness': 'A7035PDL',  # Connects to the Lander harness
@@ -36,12 +33,20 @@ def get_opts():
     parser.add_argument('-s', '--serial-device', type=str, default=default_serial_device, choices=list(SERIAL_DEVICE_SNS.keys()),
                         help=f'Which serial device is being used for RS422 comms. Default: {default_serial_device}.')
 
+    default_test_name: str = 'generic_test'
+    parser.add_argument('-n', '--test-name', type=str, default=default_test_name,
+                        help=f'Name of this test (for logging purposes). Default: {default_test_name}.')
+
     opts = parser.parse_args()
     return opts
 
 
 if __name__ == '__main__':
     opts = get_opts()
+
+    # this is the prefix on all log files.
+    settings['SAVE_FILE_PREFIX'] = opts.test_name
+
     print(
         f"Starting Iris Console with \t"
         f"SERIAL: baud: {opts.baud},  using: {opts.serial_device} (SN: {SERIAL_DEVICE_SNS[opts.serial_device]})"

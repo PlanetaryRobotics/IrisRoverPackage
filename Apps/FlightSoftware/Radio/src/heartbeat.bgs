@@ -11,7 +11,7 @@ const HEARTBEAT_INTERVAL_MS = 5000 # every 5s
 
 # Number of milliseconds between each Heartbeat message sent over the wifi radio
 # (won't be faster than `HEARTBEAT_INTERVAL_MS`):
-const WIFI_HEARTBEAT_PERIOD_MS = 90000
+const WIFI_HEARTBEAT_PERIOD_MS = 60000
 dim ticks_since_last_wifi_heartbeat
 dim sent_at_least_one_wifi_heartbeat # whether we've ever sent a WiFi heartbeat (we want to send the first one ASAP and then start counting from there)
 

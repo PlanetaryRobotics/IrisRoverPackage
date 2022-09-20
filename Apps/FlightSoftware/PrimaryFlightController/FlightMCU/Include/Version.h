@@ -10,7 +10,7 @@
  *****************************************************************************/
 
 static const unsigned VERSION_MAJOR = 3;
-static const unsigned VERSION_MINOR = 3;
-static const unsigned VERSION_REVISION = 1;
+static const unsigned VERSION_MINOR = 4;
+static const unsigned VERSION_REVISION = 0;
 
 #endif // _VERSION_H_

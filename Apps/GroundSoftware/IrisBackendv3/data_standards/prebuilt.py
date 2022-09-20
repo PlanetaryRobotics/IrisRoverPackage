@@ -964,7 +964,7 @@ radio_ground: Module = Module(
         ),
         nid_nic_entry(
             Event, 0xF1, 'BadEndpointData', severity_str='WARNING_LO',
-            format_string="One of the Radio's routing endpoints experienced an issue. Issue: %s.",
+            format_string="One of the Radio's routing endpoints experienced an issue. Endpoint: %d, Issue: %s.",
             args=[
                 Argument("endpoint", datatype=FswDataType.U8),
                 Argument(

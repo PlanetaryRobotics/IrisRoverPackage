@@ -6,7 +6,7 @@ Containers for Flight Software Modules/Components and their Relevant Fields
 (where applicable).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 09/14/2022
+@last-updated: 09/19/2022
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -16,10 +16,13 @@ from collections import OrderedDict
 from enum import Enum as PyEnum  # just in case, room to prevent name-clash
 import bitstruct  # type: ignore
 
+import re
 import json
 
 from IrisBackendv3.utils import NameIdDict
 from IrisBackendv3.utils.basic import full_dict_spec_check
+
+from .logging import logger
 from .fsw_data_type import FswDataType
 
 
@@ -758,6 +761,91 @@ class Event(GswMetadataContainer):
             self.args: List[Argument] = []
         else:
             self.args = args
+
+        self.check_and_correct_format_string()
+
+    @staticmethod
+    def _grab_format_string_arg_specs(
+        fstr: str,
+        # Creating pattern as a pre-defined arg so its statically allocated
+        # (only compiled once) but can be replaced if desired:
+        static_pattern: re.Pattern = re.compile(
+            '('
+            '\%[0 #+-]?'
+            '[0-9*]*'
+            '\.?\d*'
+            '([hl]{0,2}|[jztL])?'
+            '[diuoxXeEfgGaAcpsSn%]'
+            ')'
+        )
+    ) -> List[str]:
+        """Helper function that grabs all format specifiers from the format string."""
+        if not isinstance(fstr, str):
+            # Can't be any matches if format string is not a string.
+            return []
+
+        return [m for m, _ in static_pattern.findall(fstr)]
+
+    def grab_format_string_arg_specs(self) -> List[str]:
+        """Grabs all format specifiers from the format string."""
+        return Event._grab_format_string_arg_specs(self.format_string)
+
+    def check_and_correct_format_string(self) -> None:
+        """Make sure the format string's argument specifiers match the event
+        args. Raise an exception if there's a problem.
+        If there are correctable problems, they will be fixed."""
+        fs_args = self.grab_format_string_arg_specs()
+
+        # Make sure the length matches:
+
+        if len(self.args) < len(fs_args):
+            # Too many args for format string format string.
+            # Warn:
+            logger.warning(
+                f"Event {self} contains {len(self.args)} args ({self.args}) "
+                f"but its format string ('{self.format_string!r}') contains "
+                f"{len(fs_args)} argument specifiers: {fs_args}. "
+                "There are more arg specifiers in the format string than args "
+                "in the event, which suggests an incorrect format string. "
+                "This will be automatically fixed by replacing all extraneous "
+                "argument specifiers with '--', starting at the back."
+                "If the number of specifiers is less than the number of args"
+            )
+            # Fix by removing extraneous arg specifiers, starting at the back:
+            n_extra = len(fs_args) - len(self.args)
+            for extra_arg in fs_args[-1:-1-n_extra:-1]:
+                # Replace LAST instance of the arg
+                # (flip everything, replace, flip back):
+                self.format_string = self.format_string[::-1]\
+                    .replace(extra_arg[::-1], '--')[::-1]
+            # Recompute arg specifiers (b/c they've changed):
+            fs_args = self.grab_format_string_arg_specs()
+            # Length should now match. If it doesn't, that's a problem:
+            if len(self.args) != len(fs_args):
+                raise Exception(
+                    f"Correcting the number of argument specifiers in the "
+                    f"format string of Event {self} failed. "
+                    f"Format String Argument specifiers are now: {fs_args}, "
+                    f""
+                )
+
+        if len(self.args) > len(fs_args):
+            raise ValueError(
+                f"Event {self} contains {len(self.args)} args ({self.args}) "
+                f"but its format string ('{self.format_string!r}') contains "
+                f"{len(fs_args)} argument specifiers: {fs_args}. "
+                "There are fewer arg specifiers in the format string than args "
+                "in the event, which means the format string will not be able "
+                "to be used. Please correct the format string."
+            )
+
+        # Ensure all enums are represented by strings by replacing any
+        # '%d' with '%s' (by default, emums are represented by ints in native
+        # FPrime format strings - i.e. %d - but we'll be passing strings.
+        # Note: this %d -> %s replacement will have no negative effects on args
+        # which actually are plain ints since %d and %s are functionally
+        # equivalent for int args: str(int) vs str(str(int)) ).
+        self.format_string = self.format_string.replace('%d', '%s')
 
     @property
     def severity_str(self) -> str:

@@ -6,7 +6,7 @@ Defines Common Data Required for Payloads. Support for Building and Parsing
 Payloads as part of a Variable Length Payload.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 09/14/2022
+@last-updated: 09/19/2022
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -329,7 +329,7 @@ class CommandPayload(CommandPayloadInterface[CommandPayloadInterface]):
                 )
 
             # Check to make sure any enum args have a valid value:
-            if arg.datatype == FswDataType.ENUM:
+            if arg.is_enum:
                 if type(arg_value) == str:
                     matches = [
                         arg_value == e.name for e in arg.enum
@@ -376,6 +376,7 @@ class CommandPayload(CommandPayloadInterface[CommandPayloadInterface]):
         self.check_args()
 
         if auto_tag_generated_time and 'uplink_times' not in kwargs:
+            # ! TODO: Shouldn't this be in UplinkedPayload?
             # automatically tag the payload with the generation time in
             # `UplinkTimes` if `uplink_times` not given.
             kwargs['uplink_times'] = UplinkTimes(generated=datetime.now())
@@ -400,11 +401,11 @@ class CommandPayload(CommandPayloadInterface[CommandPayloadInterface]):
         command = module.commands[command_id]
 
         args: Dict[str, Any] = {}
-        total_arg_len = 0
+        total_args_len = 0
         for arg in command.args:
             #! TODO: Maybe move this checker into the appropriate Module class?
             arg_len = arg.datatype.get_actual_num_bytes(remaining)
-            total_arg_len += arg_len
+            total_args_len += arg_len
             arg_bytes = remaining[:arg_len]
             args[arg.name] = fsw_data_decode(
                 arg.datatype, arg_bytes
@@ -412,7 +413,7 @@ class CommandPayload(CommandPayloadInterface[CommandPayloadInterface]):
             remaining = remaining[arg_len:]
 
             # Convert to enum name string if type is enum:
-            if arg.datatype == FswDataType.ENUM:
+            if arg.is_enum:
                 # Grab names of all EnumItems whose value matches the extracted value:
                 # (there should be one)
                 matches = [
@@ -440,7 +441,7 @@ class CommandPayload(CommandPayloadInterface[CommandPayloadInterface]):
 
                 args[arg.name] = matches[0]
 
-        data_used = data[:(2+total_arg_len)]
+        data_used = data[:(2+total_args_len)]
 
         #! TODO: Handle bitfields
 
@@ -466,7 +467,7 @@ class CommandPayload(CommandPayloadInterface[CommandPayloadInterface]):
             arg_val = self.args[arg.name]
             # If it's an enum and the name of an EnumItem was supplied (not
             # its value), convert it to its value.
-            if arg.datatype == FswDataType.ENUM and isinstance(arg_val, str):
+            if arg.is_enum and isinstance(arg_val, str):
                 arg_val = [e.value for e in arg.enum if e.name == arg_val][0]
             # Encode and append arg bytes:
             data = data + fsw_data_encode(arg.datatype, arg_val)
@@ -490,11 +491,11 @@ class WatchdogCommandPayload(CommandPayload):
         command = module.commands[command_id]
 
         args: Dict[str, Any] = {}
-        total_arg_len = 0
+        total_args_len = 0
         for arg in command.args:
             #! TODO: Maybe move this checker into the appropriate Module class?
             arg_len = arg.datatype.get_actual_num_bytes(remaining)
-            total_arg_len += arg_len
+            total_args_len += arg_len
             arg_bytes = remaining[:arg_len]
             # Watchdog takes U8 Enums instead of U32:
             eff_datatype = arg.datatype if arg.datatype != FswDataType.ENUM else FswDataType.U8
@@ -504,7 +505,7 @@ class WatchdogCommandPayload(CommandPayload):
             remaining = remaining[arg_len:]
 
             # Convert to enum name string if type is enum:
-            if arg.datatype == FswDataType.ENUM:
+            if arg.is_enum:
                 # Grab names of all EnumItems whose value matches the extracted value:
                 # (there should be one)
                 matches = [
@@ -532,7 +533,7 @@ class WatchdogCommandPayload(CommandPayload):
 
                 args[arg.name] = matches[0]
 
-        data_used = data[:(2+total_arg_len)]
+        data_used = data[:(2+total_args_len)]
 
         #! TODO: Handle bitfields
 
@@ -558,7 +559,7 @@ class WatchdogCommandPayload(CommandPayload):
             arg_val = self.args[arg.name]
             # If it's an enum and the name of an EnumItem was supplied (not
             # its value), convert it to its value.
-            if arg.datatype == FswDataType.ENUM and isinstance(arg_val, str):
+            if arg.is_enum and isinstance(arg_val, str):
                 arg_val = [e.value for e in arg.enum if e.name == arg_val][0]
             # Encode and append arg bytes:
             # Watchdog takes U8 Enums instead of U32:
@@ -764,7 +765,7 @@ class TelemetryPayload(TelemetryPayloadInterface[TelemetryPayloadInterface]):
 
         # If data is an enum and the name of an EnumItem was supplied (not
         # its value), convert it to its value.
-        if self.channel.datatype == FswDataType.ENUM and isinstance(self.data, str):
+        if self.channel.is_enum and isinstance(self.data, str):
             val = [e.value for e in self.channel.enum if e.name == self.data][0]
         else:
             val = self.data
@@ -844,6 +845,60 @@ class EventPayload(EventPayloadInterface[EventPayloadInterface]):
     # Empty __slots__ allows keeping __slots__ (and not switching to __dict__):
     __slots__: List[str] = []
 
+    def check_args(self) -> None:
+        """Checks whether this events's args exactly meet the events's spec."""
+        #! TODO: Maybe move this checker into the appropriate Module class?
+        given_args = set(self.args.keys())
+        required_args = {a.name for a in self.event.args}
+
+        # Make sure all the right and only the arg names are supplied:
+        if given_args != required_args:
+            raise ValueError(
+                f"Event Payload for event {self.event} was given wrong "
+                f"set of arguments. Required: {required_args}, Given: {given_args} ."
+            )
+
+        # Check given arg's value and type conformity:
+        for arg in self.event.args:
+            arg_value = self.args[arg.name]
+            # Check all args have the right datatype:
+            if not isinstance(arg_value, arg.datatype.python_type):
+                raise TypeError(
+                    f"Type of given arg data `{arg_value}` is `{type(arg_value)}` "
+                    f"which is not valid for argument `{arg}` with FswDataType "
+                    f"`{arg.datatype}` of event `{self.event}`."
+                )
+
+            # Check to make sure any enum args have a valid value:
+            if arg.is_enum:
+                if type(arg_value) == str:
+                    matches = [
+                        arg_value == e.name for e in arg.enum
+                    ]
+                else:
+                    matches = [
+                        arg_value == e.value for e in arg.enum
+                    ]
+                if not any(matches):
+                    raise ValueError(
+                        f"Argument `{arg}` is an Enum of event `{self.event}` "
+                        f"but no EnumItems whose name/value matches the supplied "
+                        f"argument value `{arg_value}` were found."
+                        f"Valid EnumItems are `{arg.enum}` ."
+                    )
+
+                if sum(matches) > 1:
+                    raise ValueError(
+                        f"Argument `{arg}` is an Enum of command `{self.event}` "
+                        f"and somehow multiple EnumItems were found whose "
+                        "name/value matches the supplied argument value "
+                        f"`{arg_value}`. Valid EnumItems are `{arg.enum}` ."
+                        "This is likely an issue with the DataStandards spec "
+                        "which should have been caught when it was built."
+                    )
+
+            #! TODO: Check against bitfields
+
     def __str__(self) -> str:
         return (
             f"({self.event.severity_str}) "
@@ -872,22 +927,105 @@ class EventPayload(EventPayloadInterface[EventPayloadInterface]):
         self._module_id = module_id
         self._event_id = event_id
         # Convert args Dict to OrderedDict, taking order from args list in Event:
-        self._args = OrderedDict([(a.name, args[a.name]) for a in self.event.args])
+        self._args = OrderedDict([(a.name, args[a.name])
+                                 for a in self.event.args])
+        self.check_args()
+
         self._timestamp = timestamp
         super().__init__(
             magic=magic, pathway=pathway, source=source,
             raw=raw, endianness_code=endianness_code
         )
 
-    @ classmethod
+    @classmethod
     def decode(cls,
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE
                ) -> EventPayload:
-        raise NotImplementedError()
+        opcode_bytes, timestamp_bytes, remaining = data[:2], data[2:6], data[6:]
+        opcode: int = struct.unpack(endianness_code+'H', opcode_bytes)[0]
+        timestamp: int = struct.unpack(endianness_code+'L', timestamp_bytes)[0]
+        module_id = opcode & 0xFF00
+        event_id = opcode & 0xFF
+
+        module = settings['STANDARDS'].modules[module_id]
+        event = module.events[event_id]
+
+        args: Dict[str, Any] = {}
+        total_args_len = 0
+        for arg in event.args:
+            arg_len = arg.datatype.get_actual_num_bytes(remaining)
+            total_args_len += arg_len
+            arg_bytes = remaining[:arg_len]
+            args[arg.name] = fsw_data_decode(
+                arg.datatype, arg_bytes
+            )
+            remaining = remaining[arg_len:]
+
+            # Convert to enum name string if type is enum:
+            if arg.is_enum:
+                # Grab names of all EnumItems whose value matches the extracted value:
+                # (there should be one)
+                matches = [
+                    e.name for e in arg.enum if args[arg.name] == e.value
+                ]
+                if len(matches) == 0:
+                    raise PacketDecodingException(
+                        arg_bytes,
+                        f"No EnumItems found in argument `{arg}` of event "
+                        f"`{event}` whose value matches the value "
+                        f"`{args[arg.name]}` extracted from the given data. "
+                        f"Valid EnumItems are `{arg.enum}` ."
+                    )
+
+                if len(matches) > 1:
+                    raise PacketDecodingException(
+                        arg_bytes,
+                        f"Somehow multiple EnumItems found in argument `{arg}` "
+                        f"of event `{event}` whose value matches the value "
+                        f"`{args[arg.name]}` extracted from the given data. "
+                        f"Valid EnumItems are `{arg.enum}` ."
+                        "This is likely an issue with the DataStandards spec "
+                        "which should have been caught when it was built."
+                    )
+
+                args[arg.name] = matches[0]
+
+        # All data used by this payload (so anything else left in `data` is part
+        # of another payload in the VLP):
+        data_used = data[:(6+total_args_len)]
+
+        return cls(
+            module_id=module.ID,
+            event_id=event.ID,
+            args=args,
+            timestamp=timestamp,
+            raw=data_used,
+            endianness_code=endianness_code
+        )
 
     def encode(self, **kwargs: Any) -> bytes:
-        raise NotImplementedError()
+        # Check all args meet spec:
+        self.check_args()
+
+        # Build header:
+        opcode = self.module_id | self.event_id
+        t = self.timestamp
+        header = struct.pack(self.endianness_code+'H L', opcode, t)
+        data = header
+
+        # Successively encode and append all arguments:
+        for arg in self.event.args:
+            # Grab argument value:
+            arg_val = self.args[arg.name]
+            # If it's an enum and the name of an EnumItem was supplied (not
+            # its value), convert it to its value.
+            if arg.is_enum and isinstance(arg_val, str):
+                arg_val = [e.value for e in arg.enum if e.name == arg_val][0]
+            # Encode and append arg bytes:
+            data = data + fsw_data_encode(arg.datatype, arg_val)
+
+        return data
 
 
 FMIT = TypeVar('FMIT')
@@ -939,11 +1077,11 @@ class FileMetadataInterface(ContainerCodec[FMIT], ABC):
     # Make public get, private set to signal that you can freely use these values
     # but modifying them directly can yield undefined behavior (specifically
     # `raw` not syncing up with whatever other data is in the container)
-    @ property
+    @property
     def callback_id(self) -> int: return self._callback_id
-    @ property
+    @property
     def timestamp(self) -> int: return self._timestamp
-    @ property
+    @property
     def file_type_magic(self) -> FileTypeMagic: return self._file_type_magic
 
 
@@ -965,7 +1103,7 @@ class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
         self._file_type_magic = file_type_magic
         super().__init__(raw=raw, endianness_code=endianness_code)
 
-    @ classmethod
+    @classmethod
     def decode(cls,
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE
@@ -1075,20 +1213,20 @@ class FileBlockPayloadInterface(DownlinkedPayload[PT], ABC):
     # Make public get, private set to signal that you can freely use these values
     # but modifying them directly can yield undefined behavior (specifically
     # `raw` not syncing up with whatever other data is in the container)
-    @ property
+    @property
     def hashed_id(self) -> int: return self._hashed_id
-    @ property
+    @property
     def total_blocks(self) -> int: return self._total_blocks
-    @ property
+    @property
     def block_number(self) -> int: return self._block_number
-    @ property
+    @property
     def length(self) -> int: return self._length
-    @ property
+    @property
     def data(self) -> bytes: return self._data
-    @ property
+    @property
     def possible_corruption(self) -> bool: return self._possible_corruption
 
-    @ property
+    @property
     def file_metadata(self) -> Optional[FileMetadata]:
         return self._file_metadata
 
@@ -1125,7 +1263,7 @@ class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
             raw=raw, endianness_code=endianness_code
         )
 
-    @ classmethod
+    @classmethod
     def decode(cls,
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE

@@ -1,4 +1,4 @@
-# IrisRover Mission Control Interface 2020 v.1
+# Iris Terminal (2022): A Mission Operations Center Interface v.1
 
 ## **Project setup**
 Install `node@12.5.0`, `npm`, `yarn`, and a c-compiler (`xcode` if on a mac).

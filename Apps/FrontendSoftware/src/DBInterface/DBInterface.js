@@ -25,7 +25,7 @@ class DBEventHub extends EventEmitter {
         // Elevate threshold for memory leak detection since default of 10 listener 
         // is possible for highly subscribed events. NOTE: There should always be a 
         // (practical) limit to ensure memory leaks are caught (so no Inf, 1e6, or 0 here)
-        this.setMaxListeners(100);
+        this.setMaxListeners(500);
     }
 }
 
@@ -47,7 +47,7 @@ out a template literal from given passcode and partition as inputs.
 */
 const DB_URLs = {
     hermes: (code,user) => `mongodb://CubeRoverAdmin:${code}@127.0.0.1:27017/${user}?retryWrites=true`,
-    default: (code,user) => `mongodb+srv://CubeRoverAdmin:${code}@devcluster-3thor.mongodb.net/${user}?retryWrites=true`
+    default: (code,user) => `mongodb+srv://${user}:${code}@moc-dev-cluster.aapdlyf.mongodb.net/?retryWrites=true&w=majority`
 };
 
 // Primary Databases Users for Each Known Mission:

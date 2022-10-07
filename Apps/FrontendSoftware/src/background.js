@@ -114,8 +114,9 @@ async function initProgram(){
         icon: ICON,
         show: no_splash, // only hide if a splash-screen is shown
         webPreferences: {
-            nodeIntegration: true, // allow use of node in renderer
             contextIsolation: false, // don't use separate JS context
+            nodeIntegration: true, // allow use of node in renderer
+            nodeIntegrationInWorker: true,
             preload: path.join(__static, 'preload.js')
         }
     };

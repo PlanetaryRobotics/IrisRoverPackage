@@ -42,6 +42,7 @@ module.exports = {
         // VUE EXCEPTIONS:
         'vue/no-v-html': 'off',
         'vue/require-default-prop': 'off',
+        'vue/attribute-hyphenation': 'off', // this breaks a lot since we're adding lint late into dev
         'vue/no-mutating-props': process.env.NODE_ENV === 'production' ? 'warn' : 'warn'
     }
 };

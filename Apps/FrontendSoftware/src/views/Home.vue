@@ -9,8 +9,8 @@ Last Update: 08/14/2020, Colombo
 <template>
   <div class="main">
     <CombinedScreens>
-      <ImageViewer tab-name="Image Viewer" />
-      <Map tab-name="Map" />
+      <ImageViewer TabName="Image Viewer" />
+      <Map TabName="Map" />
       <div
         id="Telemetry"
         TabName="Telemetry"
@@ -27,16 +27,16 @@ Last Update: 08/14/2020, Colombo
       </div>
       <FTA
         ref="fta"
-        tab-name="Failure Tree"
-        modal-header="Failure Tree Analysis"
-        modal-icon="data"
+        TabName="Failure Tree"
+        ModalHeader="Failure Tree Analysis"
+        ModalIcon="data"
       />
 
       <template #modal-components>
         <CLI
           ref="cli"
-          modal-header="Command Line"
-          modal-icon="commandLine"
+          ModalHeader="Command Line"
+          ModalIcon="commandLine"
         />
         <div
           ModalHeader="Mini Map"

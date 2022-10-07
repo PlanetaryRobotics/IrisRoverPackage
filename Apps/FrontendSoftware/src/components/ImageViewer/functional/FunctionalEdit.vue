@@ -41,7 +41,7 @@ Last Updated: 10/6/2019, Colombo
       >
         <img
           class="histogram"
-          src="~@/assets/histogrum.png"
+          src="~@/assets/gifs/egg/dumpster.gif"
         >
         [Histogram goes here ;]
       </div>

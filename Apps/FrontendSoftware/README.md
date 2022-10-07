@@ -3,6 +3,7 @@
 ## **Project setup**
 Install `node@14.20.1` (it's recommended to use `nvm`), `npm`, `yarn`, and a c-compiler (`xcode` if on a mac).
 ```
+(run `nvm use 14.20.1` first if `node --version` is not correct).
 npm install
 npm audit fix
 yarn install

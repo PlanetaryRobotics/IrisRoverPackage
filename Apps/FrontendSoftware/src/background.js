@@ -7,14 +7,14 @@
  * 
  * Author: Connor W. Colombo
  * Created: 1/2019
- * Last Updated: 10/06/2022
+ * Last Updated: 10/07/2022
  */
 
 /* global __static */
 import path from 'path';
 
 // Electron Dependencies:
-import { app, protocol, BrowserWindow } from 'electron';
+import { app, protocol, BrowserWindow, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 // import log from 'electron-log';
 // autoUpdater.logger = log;
@@ -26,7 +26,8 @@ require('@electron/remote/main').initialize();
 // Vue Dependencies:
 import {createProtocol} from 'vue-cli-plugin-electron-builder/lib';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
-const isDevelopment = process.env.NODE_ENV !== 'production';
+const isProduction = process.env.NODE_ENV === 'production';
+const isDevelopment = !isProduction;
 
 // Handle all unhandled exceptions for diagnostics (and reporting):
 const unhandled = require('electron-unhandled');
@@ -34,12 +35,15 @@ unhandled();
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win;
+let win; // main window
+let splash; // splash screen window
 
 const ICON =
-  process.platform == 'darwin' ? path.join(__dirname, 'assets/icons/mac/logo.png.hqx')
-      : process.platform == 'win32' ? path.join(__dirname, 'assets/icons/win/logo.png.ico')
-          : path.join(__dirname, 'assets/icons/png/64x64.png');
+  process.platform == 'darwin' ? path.join(__dirname, 'assets', 'icons', 'mac', 'logo.png.hqx')
+      : process.platform == 'win32' ? path.join(__dirname, 'assets', 'icons', 'win', 'logo.png.ico')
+          : path.join(__dirname, 'assets', 'icons', 'logo.png_64x64.png');
+
+let URL_PREFIX;
 
 // Standard scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{
@@ -51,7 +55,42 @@ protocol.registerSchemesAsPrivileged([{
     }
 }]);
 
-function initProgram(){
+async function createSplashScreen() {
+    let width = 750;
+    let height = 750;
+    splash = new BrowserWindow({
+        width: width,
+        height: height,
+        minWidth: width,
+        minHeight: height,
+        maxWidth: width,
+        maxHeight: height,
+        resizable: false,
+        minimizable: false,
+        maximizable: false,
+        closable: true,
+        fullscreenable: false,
+        frame: false,
+        titleBarStyle: 'hidden',
+        hasShadow: false,
+        backgroundColor: 'white',
+        transparent: true,
+        opacity: 0.8,
+        skipTaskbar: true,
+        alwaysOnTop: false,
+        icon: ICON,
+        title: 'Loading Iris Terminal . . .',
+        webPreferences: {
+            preload: path.join(__static, 'splash', 'splash_preload.js'),
+            contextIsolation: true
+        }
+    });
+    
+    await splash.loadURL(`${URL_PREFIX}splash/splash.html`);
+    splash.center();
+}
+
+async function initProgram(){
     // Determine if a splash-screen should be skipped:
     let no_splash = false; // default
     // Process command-line arguments:
@@ -76,10 +115,11 @@ function initProgram(){
         show: no_splash, // only hide if a splash-screen is shown
         webPreferences: {
             nodeIntegration: true, // allow use of node in renderer
-            contextIsolation: false // don't use separate JS context
+            contextIsolation: false, // don't use separate JS context
+            preload: path.join(__static, 'preload.js')
         }
     };
-    if(!isDevelopment){
+    if(isProduction){
         windowOptions = Object.assign(windowOptions, {
             frame: false,
             show: false // don't show until content rendered (handled by Login.vue)
@@ -91,21 +131,30 @@ function initProgram(){
 
     // Enable remote access to the window's webContents:
     require('@electron/remote/main').enable(win.webContents);
+
+    if (process.env.WEBPACK_DEV_SERVER_URL) {
+        // Load urls from the dev server if in development mode
+        URL_PREFIX = `${process.env.WEBPACK_DEV_SERVER_URL}/`;
+    } else {
+        // Load urls from production server via app protocol:
+        createProtocol('app');
+        URL_PREFIX = 'app://./';
+    }
+
+    if(!no_splash){
+        createSplashScreen();
+    } else {
+        splash = null; // no slash screen
+    }
 }
 
 async function renderWindow() {
-    if (process.env.WEBPACK_DEV_SERVER_URL) {
-        // Load the url of the dev server if in development mode
-        await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
-    } else {
-        // Production:
-        createProtocol('app');
-        // Load the index.html when not in development
-        await win.loadURL('app://./index.html');
-        // Check for Updates to the Github Releases Page:
+    // Load window:
+    await win.loadURL(`${URL_PREFIX}index.html`);
+    // If in production, check for Updates to the Github Releases Page:
+    if (!process.env.WEBPACK_DEV_SERVER_URL) {
         autoUpdater.checkForUpdatesAndNotify();
     }
-    if (isDevelopment && !process.env.IS_TEST) win.webContents.openDevTools();
 
     win.on('closed', () => {
         win = null;
@@ -118,7 +167,11 @@ async function spawn(){
     if (isDevelopment && !process.env.IS_TEST) {
         // Install Vue Devtools
         installExtension(VUEJS_DEVTOOLS)
-            .then( (name) => console.log(`Added extension ${name}.`) )
+            .then( (name) => {
+                console.log(`Added extension ${name}.`);
+                // Open dev tools:
+                win.webContents.openDevTools();
+            } )
             .catch( (err) => console.log('Error occurred while attempting to add an extension: ', err) );
     }
     renderWindow();
@@ -196,3 +249,17 @@ autoUpdater.on('update-downloaded', () => {
 autoUpdater.on('error', (err) => {
     sendUpdateMessage(`Error during auto-update. Info: ${err.toString()}`);
 });
+
+// Electron IPC Handlers:
+ipcMain.on('app-loaded-and-ready', () => {
+    // Transition from slash-screen to main application window.
+    // Called when the application is loaded and ready to go.
+    if(splash != null){
+        splash.close();
+    }
+    if(win != null){
+        win.show();
+    }
+});
+
+ipcMain.handle('get-version', () => app.getVersion());

@@ -1,0 +1,49 @@
+<html>
+    <!-- Simple Iris Terminal Splashscreen that play a gif. -->
+    <head>
+        <title>Iris Terminal</title>
+        <style>
+            .centering {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 95vh;
+                width: auto;
+                z-index: 1;
+            }
+            .info {
+                color: #929191;
+                opacity: 0.4;
+                position: fixed;
+                bottom: 0.5rem;
+                right: 1rem;
+                text-align: right;
+                z-index: 999;
+            }
+        </style>
+        <script>
+            async function init(){
+                // Fetch the information:
+                let version;
+                try{
+                    // Ask main process to tell us the app version:
+                    // (we can't/shouldn't have direct access to `electron.app`
+                    // out here in the renderer/preloader so we have to ask).
+                    version = await window.versions.irisTerminal();
+                } catch(e) {
+                    version = "VVV"; // placeholder
+                }
+        
+                const infoBlock = document.getElementById("info");
+                infoBlock.innerHTML=`Iris Terminal v.${version}`;
+            }
+        </script>
+    </head>
+    <body style="background-color: white" onload="init()">
+        <div class="centering">
+            <!--crop the image as needed (auto, auto for no cropping): -->
+            <img src="./loading.gif" style="height: 700px; width: auto; object-fit: none" />
+        </div>
+        <div id="info" class="info"></div>
+    </body>
+</html>

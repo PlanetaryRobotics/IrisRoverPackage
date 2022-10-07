@@ -65,13 +65,14 @@ export default {
 
         activateWindow: function () {
             /* Wrapped in timeout to add semi-arbitrary delay (needs to be greater
-      than ~1500ms to avoid flashing white screen when opening to fullscreen.
-      Can't prevent this by listening for DOM load because Vue will still be
-      bringing in resources after first load).
-      That said, there almost certainly is a more robust implementation but
-      simply not worth the dev time or maintenance (would likely require
-      reporting from all components loaded in Login.vue and router). */
+            than ~1500ms to avoid flashing white screen when opening to fullscreen.
+            Can't prevent this by listening for DOM load because Vue will still be
+            bringing in resources after first load).
+            That said, there almost certainly is a more robust implementation but
+            simply not worth the dev time or maintenance (would likely require
+            reporting from all components loaded in Login.vue and router). */
             setTimeout(() => {
+                window.ShieldedElectronAPI.signalAppLoadedAndReady();
                 if (process.env.NODE_ENV == 'production') {
                     this.setFullScreen(true);
                 }

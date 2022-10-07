@@ -2,7 +2,7 @@
 A singleton renderless Vue component containing basic functionality to setup and manage the complete (frontend+DB+backend) 
 software system.
 
-**Note:** There should only be one SystemManager instatiated on the root Component (App.vue). This class mainly exists as a 
+**Note:** There should only be one SystemManager instantiated on the root Component (App.vue). This class mainly exists as a 
 way of streamlining the code present in the root component.
 
 TODO: Currently doesn't do anything (LazyList autopopulate took over core functionality). Data upkeep operations will be 

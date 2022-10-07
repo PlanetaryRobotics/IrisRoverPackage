@@ -23,6 +23,7 @@
         ]
     },
     "cSpell.words": [
+        "autopopulate",
         "Deletemodal",
         "devcluster",
         "frameless",
@@ -38,6 +39,7 @@
         "passcodes",
         "postuninstall",
         "rehook",
+        "renderless",
         "sankey",
         "saslprep",
         "Sidemodal",

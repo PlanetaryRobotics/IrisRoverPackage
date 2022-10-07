@@ -77,7 +77,7 @@ Last Update: 08/14/2020, Colombo
 
 <script>
 import { mapGetters, mapState } from 'vuex';
-const { dialog } = require('electron').remote;
+const { dialog } = require('electron');
 const fs = require('fs');
 const csv = require('neat-csv');
 

@@ -1,6 +1,7 @@
 # Install Metadata
-package-lock.json
-yarn.lock
+# KEEP THE LOCK FILES (per npm install instructions - makes sure this is 100% rebuildable).
+# package-lock.json
+# yarn.lock
 
 # Built Files
 dist/
@@ -77,3 +78,6 @@ typings/
 # Keep VSCode Tasks (Debugging)
 !.vscode/tasks.json
 !.vscode/launch.json
+
+#Electron-builder output
+/dist_electron

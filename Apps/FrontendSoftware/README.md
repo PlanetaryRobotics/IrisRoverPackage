@@ -1,7 +1,7 @@
 # Iris Terminal (2022): A Mission Operations Center Interface v.1
 
 ## **Project setup**
-Install `node@12.5.0`, `npm`, `yarn`, and a c-compiler (`xcode` if on a mac).
+Install `node@14.20.1` (it's recommended to use `nvm`), `npm`, `yarn`, and a c-compiler (`xcode` if on a mac).
 ```
 npm install
 npm audit fix

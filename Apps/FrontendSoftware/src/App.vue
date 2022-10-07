@@ -14,8 +14,7 @@
 </template>
 
 <script>
-import { remote } from 'electron';
-import { reportReady } from 'electron-splashscreen';
+import { process, getCurrentWindow } from '@electron/remote';
 import DB from '@/DBInterface/DBInterface';
 
 import SystemManager from '@/system/SystemManager.vue';
@@ -31,13 +30,13 @@ export default {
         };
     },
     created: function () {
-    // Add event listners to the global event hub:
+    // Add event listeners to the global event hub:
         this.$eventHub.$on('loginMounted', this.activateWindow);
 
         this.processArgs();
     },
     beforeDestroy: function () {
-    // Removes event listners from the global event hub
+    // Removes event listeners from the global event hub
         this.$eventHub.$off('loginMounted', this.activateWindow);
     },
     methods: {
@@ -50,7 +49,7 @@ export default {
                 this.fullScreenState = !this.fullScreenState;
             }
             console.warn(`SETTING FULLSCREEN STATUS ${this.fullScreenState}`);
-            remote.getCurrentWindow().setFullScreen(this.fullScreenState);
+            getCurrentWindow().setFullScreen(this.fullScreenState);
         },
 
         // Opens a new OS Window Containing a List of the App-Wide Shortcut Keys:
@@ -73,7 +72,6 @@ export default {
       simply not worth the dev time or maintenance (would likely require
       reporting from all components loaded in Login.vue and router). */
             setTimeout(() => {
-                reportReady(); // App is loaded, close the splash-screen
                 if (process.env.NODE_ENV == 'production') {
                     this.setFullScreen(true);
                 }
@@ -83,7 +81,7 @@ export default {
 
         processArgs: async function () {
             // Process command-line arguments:
-            let argv = JSON.parse(remote.process.env.npm_config_argv).remain; // grab unused arguments
+            let argv = JSON.parse(process.env.npm_config_argv).remain; // grab unused arguments
             let keys = argv.filter((v, i) => !(i % 2)); // grab keys
             let vals = argv.filter((v, i) => i % 2); // grab values associated with keys
 

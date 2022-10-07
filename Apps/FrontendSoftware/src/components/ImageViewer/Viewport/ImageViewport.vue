@@ -55,7 +55,7 @@ TODO:
 </template>
 
 <script>
-const electron = require('electron');
+import { screen } from '@electron/remote';
 import { mapState, mapGetters } from 'vuex';
 import { sha256 } from 'js-sha256';
 import fx from '@/lib/glfx/glfx.js';
@@ -158,7 +158,7 @@ export default {
       stops growing to fit the container but the images around it continue to grow).
       Pretty hacky fix but it works with minimal cost. */
             // Fetch info about all available displays:
-            let displays = electron.screen.getAllDisplays();
+            let displays = screen.getAllDisplays();
             // Get the largest value for vertical and horizontal size of any display:
             let maxWidth = displays.reduce((max,d) => d.bounds.width > max ? d.bounds.width : max, 0);
             let maxHeight = displays.reduce((max,d) => d.bounds.height > max ? d.bounds.height : max, 0);

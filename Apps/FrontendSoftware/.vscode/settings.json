@@ -21,5 +21,24 @@
                 }
             }
         ]
-    }
+    },
+    "cSpell.words": [
+        "Deletemodal",
+        "irisrover",
+        "keyevents",
+        "linebreak",
+        "luxon",
+        "nsis",
+        "postuninstall",
+        "rehook",
+        "sankey",
+        "saslprep",
+        "Sidemodal",
+        "splashless",
+        "tooltipster",
+        "vals",
+        "VUEJS",
+        "vuex"
+    ],
+    "compile-hero.disable-compile-files-on-did-save-code": false
 }

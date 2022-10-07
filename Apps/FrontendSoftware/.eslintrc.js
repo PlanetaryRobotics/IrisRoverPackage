@@ -1,7 +1,7 @@
 module.exports = {
     'env': {
         'browser': true,
-        'es2021': true,
+        'es2020': true,
         'node': true
     },
     'extends': [
@@ -10,7 +10,7 @@ module.exports = {
     ],
     'parserOptions': {
         'parser': 'babel-eslint',
-        'ecmaVersion': 12,
+        'ecmaVersion': 11,
         'sourceType': 'module'
     },
     'plugins': [
@@ -35,10 +35,13 @@ module.exports = {
             'always'
         ],
 
-        // EXCEPTIONS:
+        // GENERAL EXCEPTIONS:
+        'no-console': process.env.NODE_ENV === 'production' ? 'off' : 'off',
+        'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+
+        // VUE EXCEPTIONS:
         'vue/no-v-html': 'off',
         'vue/require-default-prop': 'off',
-        'no-console': process.env.NODE_ENV === 'production' ? 'off' : 'off',
-        'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
+        'vue/no-mutating-props': process.env.NODE_ENV === 'production' ? 'warn' : 'warn'
     }
 };

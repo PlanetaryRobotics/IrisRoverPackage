@@ -9,10 +9,13 @@ module.exports = {
     },
     pluginOptions: {
         electronBuilder: {
+            contextIsolation: false,
+            nodeIntegration: true,
+            nodeIntegrationInWorker: true,
             builderOptions: {
                 // options placed here will be merged with default configuration and passed to electron-builder
                 'appId': 'com.iris.terminal',
-                'copyright': 'Copyright © 2020 ${author}',
+                'copyright': 'Copyright © 2022 ${author}',
                 'publish': ['github'],
                 'mac': {
                     'target': 'dmg',
@@ -38,7 +41,7 @@ module.exports = {
                 'win': {
                     'target': 'nsis',
                     'icon': 'build/icon.png',
-                    'legalTrademarks': 'Copyright © 2020 ${author}'
+                    'legalTrademarks': 'Copyright © 2022 ${author}'
                 },
                 'linux': {
                     'target': [

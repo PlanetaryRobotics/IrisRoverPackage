@@ -8,7 +8,7 @@
       <Sidemodal
         :key="0"
         :p-o-i-list-el="POIListEl"
-        :target="this.$refs.images"
+        :target="$refs.images"
         :data="POICard.getData().images"
         type="IMAGES"
         header="Images"
@@ -19,7 +19,7 @@
       <Sidemodal
         :key="1"
         :p-o-i-list-el="POIListEl"
-        :target="this.$refs.tags"
+        :target="$refs.tags"
         :data="tagNames.slice(7)"
         type="TAGS"
         header="Tags"
@@ -180,7 +180,7 @@
             class="POICard__imagesViewMore"
             @click="toggleModal('modalImages')"
           >
-            {{ "View All (" + this.POIData.images.length + ")" }}
+            {{ "View All (" + POIData.images.length + ")" }}
           </div>
         </div>
         <div class="POICard__tags">

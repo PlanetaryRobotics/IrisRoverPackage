@@ -7,16 +7,16 @@ import Home from './views/Home.vue';
 
 // Sandboxes:
 // import AtomicTest from './views/sandboxes/AtomicTest.vue' // NB: just importing this breaks the app ...
-import MapTest from './views/sandboxes/MapTest.vue';
-import POIDashboardTest from './views/sandboxes/POIDashboardTest';
+// import MapTest from './views/sandboxes/MapTest.vue';
+// import POIDashboardTest from './views/sandboxes/POIDashboardTest';
 
-import { remote } from 'electron';
+import { process } from '@electron/remote';
 
 Vue.use(Router);
 
 export default new Router({
     mode: 'hash', // history doesn't work consistently in production
-    base: remote.process.env.BASE_URL,
+    base: process.env.BASE_URL,
     routes: [
         {
             path: '/',
@@ -27,16 +27,16 @@ export default new Router({
             path: '/home',
             name: 'home',
             component: Home
-        },
-        {
-            path: '/sandbox_mapTest',
-            name: 'sandbox_mapTest',
-            component: MapTest
-        },
-        {
-            path: '/sandbox_POIDashboardTest',
-            name: 'sandbox_POIDashboardTest',
-            component: POIDashboardTest
         }
+        // {
+        //     path: '/sandbox_mapTest',
+        //     name: 'sandbox_mapTest',
+        //     component: MapTest
+        // },
+        // {
+        //     path: '/sandbox_POIDashboardTest',
+        //     name: 'sandbox_POIDashboardTest',
+        //     component: POIDashboardTest
+        // }
     ]
 });

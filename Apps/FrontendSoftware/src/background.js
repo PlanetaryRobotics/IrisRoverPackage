@@ -7,7 +7,7 @@
  * 
  * Author: Connor W. Colombo
  * Created: 1/2019
- * Last Updated: 10/01/2020
+ * Last Updated: 10/06/2022
  */
 
 /* global __static */
@@ -16,16 +16,16 @@ import path from 'path';
 // Electron Dependencies:
 import { app, protocol, BrowserWindow } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import { initSplashScreen, OfficeTemplate } from 'electron-splashscreen';
 // import log from 'electron-log';
 // autoUpdater.logger = log;
 // autoUpdater.transports.file.level = 'info';
 
+// Setup remote link:
+require('@electron/remote/main').initialize();
+
 // Vue Dependencies:
-import {
-    createProtocol,
-    installVueDevtools
-} from 'vue-cli-plugin-electron-builder/lib';
+import {createProtocol} from 'vue-cli-plugin-electron-builder/lib';
+import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 // Handle all unhandled exceptions for diagnostics (and reporting):
@@ -35,7 +35,6 @@ unhandled();
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
-let hideSplashscreen;
 
 const ICON =
   process.platform == 'darwin' ? path.join(__dirname, 'assets/icons/mac/logo.png.hqx')
@@ -43,7 +42,15 @@ const ICON =
           : path.join(__dirname, 'assets/icons/png/64x64.png');
 
 // Standard scheme must be registered before the app is ready
-protocol.registerStandardSchemes(['app'], { secure: true });
+protocol.registerSchemesAsPrivileged([{
+    scheme: 'app',
+    privileges: {
+        standard: true,
+        secure: true,
+        supportFetchAPI: true
+    }
+}]);
+
 function initProgram(){
     // Determine if a splash-screen should be skipped:
     let no_splash = false; // default
@@ -66,7 +73,11 @@ function initProgram(){
         minWidth: 869,
         minHeight: 580,
         icon: ICON,
-        show: no_splash // only hide if a splash-screen is shown
+        show: no_splash, // only hide if a splash-screen is shown
+        webPreferences: {
+            nodeIntegration: true, // allow use of node in renderer
+            contextIsolation: false // don't use separate JS context
+        }
     };
     if(!isDevelopment){
         windowOptions = Object.assign(windowOptions, {
@@ -78,33 +89,19 @@ function initProgram(){
     // Create the browser window.
     win = new BrowserWindow(windowOptions);
 
-    // Setup Splash Screen
-    hideSplashscreen = initSplashScreen({
-        mainWindow: win,
-        icon: ICON,
-        url: OfficeTemplate,
-        width: 500,
-        height: 300,
-        brand: '',
-        productName: 'Iris Rover',
-        logo: path.join(__static, 'icon.png'),
-        website: '',
-        text: 'Initializing . . .'
-    });
-
-    if(no_splash){
-        hideSplashscreen();
-    }
+    // Enable remote access to the window's webContents:
+    require('@electron/remote/main').enable(win.webContents);
 }
 
-function renderWindow() {
+async function renderWindow() {
     if (process.env.WEBPACK_DEV_SERVER_URL) {
-    // Load the url of the dev server if in development mode
-        win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
+        // Load the url of the dev server if in development mode
+        await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
     } else {
+        // Production:
         createProtocol('app');
         // Load the index.html when not in development
-        win.loadURL('app://./index.html');
+        await win.loadURL('app://./index.html');
         // Check for Updates to the Github Releases Page:
         autoUpdater.checkForUpdatesAndNotify();
     }
@@ -119,8 +116,10 @@ function renderWindow() {
 async function spawn(){
     initProgram();
     if (isDevelopment && !process.env.IS_TEST) {
-    // Install Vue Devtools
-        await installVueDevtools();
+        // Install Vue Devtools
+        installExtension(VUEJS_DEVTOOLS)
+            .then( (name) => console.log(`Added extension ${name}.`) )
+            .catch( (err) => console.log('Error occurred while attempting to add an extension: ', err) );
     }
     renderWindow();
 }
@@ -133,11 +132,11 @@ app.on('window-all-closed', () => {
         app.quit();
     }
 });
-
+ 
 app.on('activate', () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (win === null) {
+    if (win === null || BrowserWindow.getAllWindows().length === 0) {
         spawn();
     }
 });

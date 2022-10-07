@@ -11,14 +11,16 @@ import App from './App.vue';
 import router from './router';
 import store from './store';
 
-import { remote } from 'electron';
+import { process } from '@electron/remote';
 
 /* Whether the Application is Currently being Run in Development Mode. Any
 experimental features can be wrapped in v-if="$isDev" and experimental functions
 in if(this.$isDev){} to keep them from being visible in production builds: */
-Vue.prototype.$isDev = remote.process.env.NODE_ENV !== 'production';
+Vue.prototype.$isDev = process.env.NODE_ENV !== 'production';
 
 Vue.prototype.$eventHub = new Vue(); // Creates global eventHub
+
+console.log('Vue started...');
 
 // Activate Vue:
 new Vue({

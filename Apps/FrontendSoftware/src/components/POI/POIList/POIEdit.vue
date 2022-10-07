@@ -8,7 +8,7 @@
         :key="0" 
         :p-o-i-list-el="POIListEl" 
         :p-o-i-card="POICard"
-        :target="this.$refs.images" 
+        :target="$refs.images" 
         :data="POICard.getData().images"
         type="IMAGES_EDITABLE"
         header="Images"
@@ -21,7 +21,7 @@
         :key="1" 
         :p-o-i-list-el="POIListEl" 
         :p-o-i-card="POICard"
-        :target="this.$refs.history" 
+        :target="$refs.history" 
         :data="POICard.getData().modificationHistory"
         type="HISTORY"
         header="Modification History"
@@ -34,7 +34,7 @@
         :key="2" 
         :p-o-i-list-el="POIListEl" 
         :p-o-i-card="POICard"
-        :target="this.$refs.importance" 
+        :target="$refs.importance" 
         :data="[1,2,3]"
         type="IMPORTANCE"
         header="Importance"
@@ -195,7 +195,7 @@
     <!-- TAG LIST -->
     <div class="tags">
       <div
-        v-for="(tag, index) of this.POICard.getData().tagList"
+        v-for="(tag, index) of POICard.getData().tagList"
         :key="index"
         class="pill__tag--edit"
       >
@@ -301,7 +301,7 @@
         class="viewMore"
         @click="toggleModal('modalImages')"
       >
-        {{ "View All (" + this.POICard.getData().images.length + ")  >" }}
+        {{ "View All (" + POICard.getData().images.length + ")  >" }}
       </div>
     </div>
 
@@ -343,7 +343,7 @@
         class="viewMore"
         @click="toggleModal('modalHistory')"
       >
-        {{ "View All (" + this.POICard.getData().modificationHistory.length + ")  >" }}
+        {{ "View All (" + POICard.getData().modificationHistory.length + ")  >" }}
       </div>
     </div>
 

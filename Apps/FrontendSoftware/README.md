@@ -2,6 +2,10 @@
 
 ## **Project setup**
 Install `node@14.20.1` (it's recommended to use `nvm`), `npm`, `yarn`, and a c-compiler (`xcode` if on a mac).
+
+**NOTE:** If using MacOS and `nvm` make sure nvm setup is in `~/.zshenv` (what normally goes in `~/.bash_profile`)
+
+
 ```
 (run `nvm use 14.20.1` first if `node --version` is not correct).
 npm install
@@ -124,7 +128,9 @@ To run the following, you must be on a mac with a Parallels Windows 10 VM instal
 npm run electron:build -- --linux AppImage --win nsis --mac dmg
 ```
 
-### **Looking change build settings?**
+**NOTE:** You'll need `python2` for this (the electron builder uses it), which became unsupported in 2020 and is no longer included in MacOS >=12. Install it with [this installer](https://www.python.org/downloads/release/python-2718/) and point the `PYTHON_PATH` environment variable to it (on the dev machine for `0.8.1`, it was set to `/usr/local/bin/python2` - this was then executed by running `PYTHON_PATH=/usr/local/bin/python2 npm run electron:build {SETTINGS}`).
+
+### **Looking to change build settings?**
 Package metadata is handled by `package.json` and platform specific build settings are managed in `pluginOptions.electronBuilder.builderOptions` of `vue.config.js`.
 
 ### **Looking to add extra build functionality?**

@@ -111,6 +111,12 @@ async function initProgram(){
         height: 800,
         minWidth: 869,
         minHeight: 580,
+        resizable: true,
+        minimizable: true,
+        maximizable: true,
+        closable: true,
+        fullscreenable: true,
+        frame: true,
         icon: ICON,
         show: no_splash, // only hide if a splash-screen is shown
         webPreferences: {

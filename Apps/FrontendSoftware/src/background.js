@@ -265,7 +265,10 @@ ipcMain.on('app-loaded-and-ready', () => {
         splash.close();
     }
     if(win != null){
+        // Show the window:
         win.show();
+        // Tell the window it's now being shown:
+        win.webContents.send('window:shown');
     }
 });
 

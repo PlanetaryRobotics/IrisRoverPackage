@@ -3,7 +3,7 @@
  * Set of All Functionality for Pushing or Pulling JSON Data to/from the Database.
 
  * Author: Sofia Hurtado, CMU
- * Last Update: 08/30/2020, Colombo
+ * Last Update: 10/08/2022, Colombo
  */
 // TODO: Let user w/o permissions push command to db but have it flagged and ignored. (this behavior should be moved to CommandField.vue)
 // TODO: Update connected & currentlyConnected everywhere it could be caught (#onCollection, #onClient, etc.)
@@ -38,6 +38,7 @@ import DBObject from '@/data_classes/DBObject.js';
 // All Acceptable Mission IDs: (note, all mission names are forced to be lowercase through #init)
 const Missions = [
     'hermes',
+    'osiris',
     'paper', // NOTE: Login.vue allows there to be any number of Missions Named "PaperXXX..."
     'dev'
 ];
@@ -45,14 +46,25 @@ const Missions = [
 /* Database Addresses for Each Mission (w/out passcodes) as lambdas which fill
 out a template literal from given passcode and partition as inputs.
 */
+const DB_SERVERS = {
+    hermes: '127.0.0.1:27017',
+    osiris: '127.0.0.1:27017',
+    default: 'moc-dev-cluster.aapdlyf.mongodb.net'
+};
+
+/* Database Addresses for Each Mission (w/out passcodes) as lambdas which fill
+out a template literal from given passcode and partition as inputs.
+*/
 const DB_URLs = {
-    hermes: (code,user) => `mongodb://CubeRoverAdmin:${code}@127.0.0.1:27017/${user}?retryWrites=true`,
-    default: (code,user) => `mongodb+srv://${user}:${code}@moc-dev-cluster.aapdlyf.mongodb.net/?retryWrites=true&w=majority`
+    hermes: (code,user, server=DB_SERVERS.hermes) => `mongodb://CubeRoverAdmin:${code}@${server}/${user}?retryWrites=true`,
+    osiris: (code,user, server=DB_SERVERS.osiris) => `mongodb://${user}:${code}@${server}/?retryWrites=true&w=majority`,
+    default: (code,user, server=DB_SERVERS.default) => `mongodb+srv://${user}:${code}@${server}/?retryWrites=true&w=majority`
 };
 
 // Primary Databases Users for Each Known Mission:
 const DB_Users = {
     hermes: 'admin',
+    osiris: 'admin',
     dev: 'test',
     default: 'test'
 };
@@ -60,31 +72,31 @@ const DB_Users = {
 // Database Addresses for Each Known Mission: (note: acceptable partition names must be lowercase (by internal convention, not technical requirement))
 const DB_Partitions = {
     hermes: 'hermes',
+    osiris: 'osiris',
     paper: 'paper',
     dev: 'test'
 };
 
+let serverAddress = '';
 let mission = '';
+let username = '';
 let passcode = '';
 
-function DB_URL(){
-    let selector;
-    if(mission in DB_URLs){
-        selector = mission;
+function DB_SELECTOR(dataset){
+    if(mission in dataset){
+        return mission;
     } else{
-        selector = 'default';
+        return 'default';
     }
-    return DB_URLs[selector](passcode, DB_USER());
+}
+
+function DB_URL(){
+    let server = serverAddress || DB_SERVERS[DB_SELECTOR(DB_SERVERS)];
+    return DB_URLs[DB_SELECTOR(DB_URLs)](passcode, DB_USER(), server);
 }
 
 function DB_USER(){
-    let selector;
-    if(mission in DB_URLs){
-        selector = mission;
-    } else{
-        selector = 'default';
-    }
-    return DB_Users[selector];
+    return username || DB_Users[DB_SELECTOR(DB_Users)];
 }
 
 function DB_PARTITION(){
@@ -119,12 +131,33 @@ export default {
         return Missions;
     },
 
+    get serverNames(){
+        return Object.keys(DB_SERVERS);
+    },
+
+    get serverAddresses(){
+        return Object.values(DB_SERVERS);
+    },
+
     /* Attempts to Connect to and Setup the Database for the Mission with the
   MissionID which uses the Given Passcode.
   Returns true if successfully connected and formatted. */
-    init: async function(missionID, code){
+    init: async function(server, missionID, user, code){
+        console.log('[IRIS-DB] Init.');
         mission = missionID.toLowerCase();
+        username = user;
         passcode = code;
+
+        if(server in DB_SERVERS){
+            // If server given is the name (key) of default server, use that
+            // address:
+            serverAddress = DB_SERVERS[server];
+            console.log(`[IRIS-DB] Using server address: ${server} -> ${serverAddress}`);
+        } else {
+            // Otherwise, just use the given value as an address:
+            serverAddress = server;
+            console.log(`[IRIS-DB] Using server address: ${server}`);
+        }
 
         let connected = await this.checkConnection();
         this.verifyCollectionFormatting(); // Do this only once, on startup

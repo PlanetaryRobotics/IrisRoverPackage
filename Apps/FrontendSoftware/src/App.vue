@@ -72,12 +72,16 @@ export default {
             simply not worth the dev time or maintenance (would likely require
             reporting from all components loaded in Login.vue and router). */
             setTimeout(() => {
-                window.ShieldedElectronAPI.signalAppLoadedAndReady();
-                if (process.env.NODE_ENV == 'production') {
-                    this.setFullScreen(true);
-                }
-                this.$eventHub.$emit('windowActivated');
+                window.ShieldedElectronAPI.receive.onWindowShown(this.windowShown);
+                window.ShieldedElectronAPI.send.signalAppLoadedAndReady(); // responds with `receive.onWindowShown`
             }, 1500);
+        },
+
+        windowShown: function () {
+            if (process.env.NODE_ENV == 'production') {
+                this.setFullScreen(true);
+            }
+            this.$eventHub.$emit('windowActivated');
         },
 
         processArgs: async function () {
@@ -88,13 +92,19 @@ export default {
 
             // Login to the DB (skipping UI login). MUST happen before any Vue routing
             // to pages that require DB access.
+            // NOTE: Since this is dev-only, this will just use the 'default' server
+            // (by passing a false-y value for the server addr.)
             let missionIdx = keys.indexOf('db-mission'); // Index of db-mission value
             if (missionIdx != -1) {
                 let mission = vals[missionIdx];
+
+                let userIdx = keys.indexOf('db-user');
+                let user = userIdx > -1 ? vals[userIdx] : 'test';
+
                 let codeIdx = keys.indexOf('db-pass');
                 let code = codeIdx > -1 ? vals[codeIdx] : '';
 
-                let connected = await DB.init(mission, code);
+                let connected = await DB.init('', mission, user, code);
                 console.log(
                     '[IRIS-APP] DB Connection',
                     connected ? 'Successful' : 'Failed'

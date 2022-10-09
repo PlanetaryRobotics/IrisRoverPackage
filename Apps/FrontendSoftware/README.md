@@ -88,10 +88,10 @@ Go to the `sandbox_mapTest` page in the router:
 npm run electron:serve route-to sandbox_mapTest
 ```
 
-`db-mission` and `db-pass`: Used when bypassing the login. `db-mission` specifies the mission (partition and database address) to be accessed, `db-pass` specifies the passcode for that partition.
+`db-mission`, `db-user`, and `db-pass`: Used when bypassing the login. `db-mission` specifies the mission (partition and database address) to be accessed, `db-user` specifies the user/operator name (both for server access and operator settings), and `db-pass` specifies the passcode for that user.
 Example:
 ```
-npm run electron:serve db-mission Dev db-pass Passcode
+npm run electron:serve db-mission Dev db-user UserName db-pass Passcode
 ```
 
 ----

@@ -19,6 +19,21 @@
     <div class="input-block">
       <TextInput
         tab-order="1"
+        placeholder="Server"
+        :callback="collectServerName"
+        :form-event="submitEvent"
+        :valid-terms="standardServers"
+        :valid-regex="/^.*$/i"
+        :search-limit="0"
+        :clear-on-enter="false"
+        :case-sensitive="false"
+        :hide-text="false"
+        :style="{opacity: openInputBlock ? 1.0 : 0.0}"
+        class="text-input server tooltip"
+        title="Name or address of server, provided by MOps or GSW. Up and down arrows scroll through default names. Press right arrow to select, tab to advance."
+      />
+      <TextInput
+        tab-order="2"
         placeholder="Mission Name"
         :callback="collectMissionName"
         :form-event="submitEvent"
@@ -33,9 +48,24 @@
         title="Up and down arrows scroll through options. Press right arrow to select, tab to advance."
       />
       <TextInput
-        tab-order="2"
-        placeholder="Mission Passcode"
-        :callback="collectMissionCode"
+        tab-order="3"
+        placeholder="User Name"
+        :callback="collectUserName"
+        :form-event="submitEvent"
+        :valid-terms="['test', 'FLIGHT','INCO','CAPCOM','EECOM','GNC','TELMU']"
+        :valid-regex="/^.*$/i"
+        :search-limit="0"
+        :clear-on-enter="false"
+        :case-sensitive="false"
+        :hide-text="false"
+        :style="{opacity: openInputBlock ? 1.0 : 0.0}"
+        class="text-input user tooltip"
+        title="Operator's username. Mission Operations or Ground Software should have helped you set this up."
+      />
+      <TextInput
+        tab-order="4"
+        placeholder="User Passcode"
+        :callback="collectPasscode"
         :form-event="submitEvent"
         :error-event="errorEvent"
         :search-limit="0"
@@ -44,22 +74,8 @@
         :style="{opacity: openInputBlock ? 1.0 : 0.0}"
         class="text-input code"
       />
-      <TextInput
-        tab-order="3"
-        placeholder="Operations Role"
-        :callback="collectRole"
-        :form-event="submitEvent"
-        :valid-terms="['FLIGHT','INCO','CAPCOM','EECOM','GNC','TELMU']"
-        :search-limit="0"
-        :clear-on-enter="false"
-        :case-sensitive="false"
-        :hide-text="false"
-        :style="{opacity: openInputBlock ? 1.0 : 0.0}"
-        class="text-input role tooltip"
-        title="Up and down arrows scroll through options. Press right arrow to select, tab to advance."
-      />
       <button
-        tabindex="4"
+        tabindex="5"
         :style="{opacity: openInputBlock ? 1.0 : 0.0}"
         class="login-button button button__brand_mute addTag__buttons--input"
         @click="$eventHub.$emit(submitEvent);"
@@ -93,21 +109,27 @@ export default {
             logoSVGArc: '', // Inline SVG HTML for the Arc of the Logo
             logoLoaded: false,
             openInputBlock: false, // Flag turns true when it's time to animate in the input block
+            serverName: '',
             missionName: '',
-            missionCode: '',
-            operationsRole: '',
+            userName: '',
+            passcode: '',
             codeError: false, // Whether an error was detected with the entered code.
-            connecting: false // Whether system is currently attemping to connect to the DB.
+            connecting: false // Whether system is currently attempting to connect to the DB.
         };
     },
     computed: {
-    // All Valid Mission IDs:
+        // All Valid Mission IDs:
         missionIDs(){
             return DB.missionIDs;
         },
 
+        // All Standard Server Addresses:
+        standardServers(){
+            return DB.serverNames;
+        },
+
         allDataCollected(){
-            return this.missionName && this.missionCode && this.operationsRole; // All have to be populated strings.
+            return this.serverName && this.missionName && this.userName && this.passcode; // All have to be populated strings.
         }
     },
     watch: {
@@ -131,7 +153,7 @@ export default {
     // visible before animating any content:
         this.$eventHub.$on('windowActivated', this.transitionInUI);
     },
-    beforeDestroy: function() { // Removes event listners from the global event hub
+    beforeDestroy: function() { // Removes event listeners from the global event hub
         this.$eventHub.$off('windowActivated', this.transitionInUI);
     },
     methods: {
@@ -146,23 +168,27 @@ export default {
             }, 2100);
         },
 
+        collectServerName(x){
+            this.serverName = x[0];
+        },
         collectMissionName(x){
             this.missionName = x[0];
         },
-        collectMissionCode(x){
-            this.missionCode = x[0];
+        collectUserName(x){
+            this.userName = x[0];
         },
-        collectRole(x){
-            this.operationsRole = x[0];
+        collectPasscode(x){
+            this.passcode = x[0];
         },
 
         async login(){
+            console.log('[IRIS-LOGIN] Server: ', this.serverName);
             console.log('[IRIS-LOGIN] Mission: ', this.missionName);
-            console.log('[IRIS-LOGIN] Role: ', this.operationsRole);
+            console.log('[IRIS-LOGIN] User: ', this.userName);
 
             // Attempt to Connect to DB:
             this.connecting = true;
-            let connected = await DB.init(this.missionName, this.missionCode);
+            let connected = await DB.init(this.serverName, this.missionName, this.userName, this.passcode);
             console.log('[IRIS-LOGIN] DB Connection', connected ? 'Successful' : 'Failed');
 
             if(connected){
@@ -172,7 +198,7 @@ export default {
             }
 
             // Reset Code Field:
-            this.missionCode = '';
+            this.passcode = '';
             this.connecting = false;
         }
     }
@@ -280,8 +306,8 @@ export default {
     grid-template-columns: minmax(0,1fr) minmax(0,1fr);
     grid-template-rows: min-content min-content 4rem auto;
     grid-template-areas:
-      "mission code"
-      "role role"
+      "server mission"
+      "user code"
       "launch launch";
     align-content: start;
 
@@ -289,25 +315,33 @@ export default {
       margin: 2.5rem;
       height: min-content;
     }
+
+    .server {
+      grid-area: server;
+      opacity: 0%;
+      transition: opacity $transition-duration / 2;
+      transition-timing-function: linear;
+      transition-delay: 0s;
+    }
     .mission {
       grid-area: mission;
       opacity: 0%;
       transition: opacity $transition-duration / 2;
       transition-timing-function: linear;
-      transition-delay: 0s;
+      transition-delay: 0.25s;
+    }
+    .user {
+      grid-area: user;
+      transition: opacity $transition-duration / 2;
+      transition-timing-function: linear;
+      transition-delay: 0.5s;
     }
     .code {
       grid-area: code;
       opacity: 0%;
       transition: opacity $transition-duration / 2;
       transition-timing-function: linear;
-      transition-delay: 0.25s;
-    }
-    .role {
-      grid-area: role;
-      transition: opacity $transition-duration / 2;
-      transition-timing-function: linear;
-      transition-delay: 0.5s;
+      transition-delay: 0.75s;
     }
     .login-button{
       grid-area: launch;
@@ -315,7 +349,7 @@ export default {
       user-select: none;
       transition: opacity $transition-duration / 2;
       transition-timing-function: linear;
-      transition-delay: 0.75s;
+      transition-delay: 1.0s;
     }
   }
 </style>

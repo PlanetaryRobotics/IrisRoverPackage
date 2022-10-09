@@ -160,7 +160,7 @@ async function renderWindow() {
     await win.loadURL(`${URL_PREFIX}index.html`);
     // If in production, check for Updates to the Github Releases Page:
     if (!process.env.WEBPACK_DEV_SERVER_URL) {
-        autoUpdater.checkForUpdatesAndNotify();
+        // autoUpdater.checkForUpdatesAndNotify(); // Suppressed temporarily until updating server ready.
     }
 
     win.on('closed', () => {

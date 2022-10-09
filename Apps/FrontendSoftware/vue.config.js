@@ -22,7 +22,7 @@ module.exports = {
                     'icon': 'build/icon.png'
                 },
                 'dmg': {
-                    'title': '${productName} ${version}',
+                    'title': '${productName}',
                     'background': 'build/background.png',
                     'icon': 'build/icon.png',
                     'contents': [

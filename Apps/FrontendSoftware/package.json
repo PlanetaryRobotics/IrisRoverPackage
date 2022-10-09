@@ -1,6 +1,6 @@
 {
-  "name": "iris-ground-terminal-calm-collins",
-  "version": "0.8.1",
+  "name": "iris-ground-terminal-calm-collins-2",
+  "version": "0.8.2",
   "private": true,
   "description": "MOC Terminal Software for the Iris Rover (L2022)",
   "author": {
@@ -72,6 +72,6 @@
     "vue-svg-inline-loader": "^1.4.5"
   },
   "homepage": "https://github.com/PlanetaryRobotics/CubeRoverPackage",
-  "productName": "Iris Terminal",
+  "productName": "Iris Terminal 0.8.2",
   "repository": "https://github.com/PlanetaryRobotics/CubeRoverPackage"
 }

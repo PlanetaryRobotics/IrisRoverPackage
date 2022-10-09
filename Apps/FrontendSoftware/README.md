@@ -128,7 +128,7 @@ To run the following, you must be on a mac with a Parallels Windows 10 VM instal
 npm run electron:build -- --linux AppImage --win nsis --mac dmg
 ```
 
-**NOTE:** You'll need `python2` for this (the electron builder uses it), which became unsupported in 2020 and is no longer included in MacOS >=12. Install it with [this installer](https://www.python.org/downloads/release/python-2718/) and point the `PYTHON_PATH` environment variable to it (on the dev machine for `0.8.1`, it was set to `/usr/local/bin/python2` - this was then executed by running `PYTHON_PATH=/usr/local/bin/python2 npm run electron:build {SETTINGS}`).
+**NOTE:** You'll need `python2` for this (the electron builder uses it), which became unsupported in 2020 and is no longer included in MacOS >=12. Install it with [this installer](https://www.python.org/downloads/release/python-2718/) and point the `PYTHON_PATH` environment variable to it (on the dev machine for `0.8.1`, it was set to `/usr/local/bin/python2` - this was then executed by running `PYTHON_PATH=/usr/local/bin/python2 npm run electron:build {SETTINGS}`, example: `PYTHON_PATH=/usr/local/bin/python2 npm run electron:build -- --linux AppImage --win nsis --mac dmg`).
 
 ### **Looking to change build settings?**
 Package metadata is handled by `package.json` and platform specific build settings are managed in `pluginOptions.electronBuilder.builderOptions` of `vue.config.js`.

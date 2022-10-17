@@ -120,8 +120,8 @@ namespace CubeRover
         }
         else
         {
-            //debugPrintfToWatchdog("Failed to send stroke\n");
-            // TODO: Add logging error
+            // debugPrintfToWatchdog("Failed to send stroke\n");
+            //  TODO: Add logging error
         }
 
         Fw::Time now = getTime();
@@ -322,7 +322,7 @@ namespace CubeRover
             confirm_prepare_for_deploy confirm)
     {
         // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
     }
 
     void WatchDogInterfaceComponentImpl ::
@@ -331,7 +331,7 @@ namespace CubeRover
             const U32 cmdSeq)
     {
         // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
     }
 
     void WatchDogInterfaceComponentImpl ::
@@ -341,7 +341,7 @@ namespace CubeRover
             U16 value)
     {
         // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
     }
 
     void WatchDogInterfaceComponentImpl ::
@@ -350,7 +350,7 @@ namespace CubeRover
             const U32 cmdSeq)
     {
         // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
     }
 
     void WatchDogInterfaceComponentImpl ::
@@ -360,7 +360,7 @@ namespace CubeRover
             U16 period)
     {
         // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
     }
 
     void WatchDogInterfaceComponentImpl ::
@@ -370,7 +370,7 @@ namespace CubeRover
             U16 adc_half_width)
     {
         // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
     }
 
     void WatchDogInterfaceComponentImpl ::
@@ -380,7 +380,7 @@ namespace CubeRover
             U16 adc_setpoint)
     {
         // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
     }
 
     void WatchDogInterfaceComponentImpl ::
@@ -390,7 +390,7 @@ namespace CubeRover
             confirm_sleep_mode confirm)
     {
         // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
     }
 
     void WatchDogInterfaceComponentImpl ::
@@ -400,7 +400,7 @@ namespace CubeRover
             confirm_alive_mode confirm)
     {
         // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
     }
 
     void WatchDogInterfaceComponentImpl ::
@@ -410,12 +410,12 @@ namespace CubeRover
             confirm_service_mode confirm)
     {
         // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
     }
 
     /* End of Commands that Only Watchdog Processes*/
 
-    bool WatchDogInterfaceComponentImpl ::Read_Temp()
+    bool WatchDogInterfaceComponentImpl::Read_Temp()
     {
         // Start ADC Conversions for all thermistors
         adcStartConversion(adcREG1, adcGROUP1);
@@ -478,10 +478,11 @@ namespace CubeRover
             handleUplinkMsg(msg);
             return;
         }
-  
+
         // Downlink messages are different (specifically, they aren't a response to a Hercules command)
         // so we handle them separately
-        if (msg.parsedHeader.lowerOpCode == DOWNLINK_TO_WIFI_OPCODE) {
+        if (msg.parsedHeader.lowerOpCode == DOWNLINK_TO_WIFI_OPCODE)
+        {
             handleDownlinkMsg(msg);
             return;
         }
@@ -657,11 +658,12 @@ namespace CubeRover
         uplink_out(0, uplinked_data);
     }
 
-    void WatchDogInterfaceComponentImpl::handleDownlinkMsg(WatchDogMpsm::Message& msg)
+    void WatchDogInterfaceComponentImpl::handleDownlinkMsg(WatchDogMpsm::Message &msg)
     {
         // Before anything else, make sure we have enough data (and since the payload is variable size,
         // in this case "enough" just means non-zero and not over the maximum)
-        if (msg.accumulatedDataSize <= 0 || msg.accumulatedDataSize > WATCHDOG_MAX_PAYLOAD) {
+        if (msg.accumulatedDataSize <= 0 || msg.accumulatedDataSize > WATCHDOG_MAX_PAYLOAD)
+        {
             this->log_WARNING_HI_WatchDogIncorrectResp(bad_size_received);
             return;
         }
@@ -689,8 +691,8 @@ namespace CubeRover
         downlinked_data.setsize(static_cast<U32>(msg.accumulatedDataSize));
         downlinkBufferSend_out(0, downlinked_data);
     }
-  
-    void WatchDogInterfaceComponentImpl::handleTelemetryMsg(WatchDogMpsm::Message& msg)
+
+    void WatchDogInterfaceComponentImpl::handleTelemetryMsg(WatchDogMpsm::Message &msg)
     {
         // Before anything else, make sure we have enough data
         if (msg.accumulatedDataSize != sizeof(struct WatchdogTelemetry))
@@ -757,7 +759,7 @@ namespace CubeRover
 
         default:
             // Should never happen;
-//            configASSERT(false);
+            //            configASSERT(false);
         }
 
         // This is equivalent to &(m_txCmdArray.commands[index])
@@ -913,7 +915,7 @@ namespace CubeRover
         {
             return false;
         }
-        
+
         sloppyResourceProtectionMutex.lock();
         memset(m_printBuffer, 0, sizeof(m_printBuffer));
         sprintf(m_printBuffer, "DEBUG");
@@ -938,7 +940,8 @@ namespace CubeRover
         return success;
     }
 
-    bool WatchDogInterfaceComponentImpl::debugPrintfBuffer(uint8_t* buffer, size_t bufferLen){
+    bool WatchDogInterfaceComponentImpl::debugPrintfBuffer(uint8_t *buffer, size_t bufferLen)
+    {
         static Os::Mutex sloppyResourceProtectionMutex; // quick and dirty. keeps multiple tasks from doing this at once.
         if (bufferLen == 0)
         {
@@ -947,14 +950,14 @@ namespace CubeRover
         sloppyResourceProtectionMutex.lock();
         memset(m_printBuffer, 0, sizeof(m_printBuffer));
         sprintf(m_printBuffer, "DEBUG");
-        size_t bytesToSend = (bufferLen > (sizeof(m_printBuffer)-5)) ? (sizeof(m_printBuffer)-5) : bufferLen;
-        memcpy(m_printBuffer+5, buffer, bytesToSend);
+        size_t bytesToSend = (bufferLen > (sizeof(m_printBuffer) - 5)) ? (sizeof(m_printBuffer) - 5) : bufferLen;
+        memcpy(m_printBuffer + 5, buffer, bytesToSend);
 
         bool success = txCommand(DEBUG_OPCODE,
                                  m_downlinkSequenceNumber,
                                  static_cast<uint16_t>(No_Reset),
                                  reinterpret_cast<uint8_t *>(m_printBuffer),
-                                 (5+bytesToSend),
+                                 (5 + bytesToSend),
                                  false);
 
         if (success)
@@ -966,8 +969,8 @@ namespace CubeRover
         return success;
     }
 
-
-    bool WatchDogInterfaceComponentImpl::debugPrintfBufferWithPrefix(uint8_t* prefixBuffer, size_t prefixBufferLen, uint8_t* buffer, size_t bufferLen){
+    bool WatchDogInterfaceComponentImpl::debugPrintfBufferWithPrefix(uint8_t *prefixBuffer, size_t prefixBufferLen, uint8_t *buffer, size_t bufferLen)
+    {
         static Os::Mutex sloppyResourceProtectionMutex; // quick and dirty. keeps multiple tasks from doing this at once.
         if (bufferLen == 0 || prefixBufferLen == 0)
         {
@@ -981,32 +984,36 @@ namespace CubeRover
         size_t prefixBytesToSend, mainBytesToSend;
 
         // If prefix is too big, we just send that:
-        if(prefixBufferLen > (sizeof(m_printBuffer)-5)){
-            prefixBytesToSend = (sizeof(m_printBuffer)-5);
+        if (prefixBufferLen > (sizeof(m_printBuffer) - 5))
+        {
+            prefixBytesToSend = (sizeof(m_printBuffer) - 5);
             mainBytesToSend = 0;
         }
-        else{
+        else
+        {
             prefixBytesToSend = prefixBufferLen;
         }
 
         // Clip main buffer:
-        if(bufferLen > (sizeof(m_printBuffer)-5-prefixBytesToSend)){
-            mainBytesToSend = (sizeof(m_printBuffer)-5-prefixBytesToSend);
+        if (bufferLen > (sizeof(m_printBuffer) - 5 - prefixBytesToSend))
+        {
+            mainBytesToSend = (sizeof(m_printBuffer) - 5 - prefixBytesToSend);
         }
-        else{
+        else
+        {
             mainBytesToSend = bufferLen;
         }
 
         // Copy data:
-        memcpy(m_printBuffer+5, prefixBuffer, prefixBytesToSend);
-        memcpy(m_printBuffer+5+prefixBytesToSend, buffer, mainBytesToSend);
+        memcpy(m_printBuffer + 5, prefixBuffer, prefixBytesToSend);
+        memcpy(m_printBuffer + 5 + prefixBytesToSend, buffer, mainBytesToSend);
 
         // Send:
         bool success = txCommand(DEBUG_OPCODE,
                                  m_downlinkSequenceNumber,
                                  static_cast<uint16_t>(No_Reset),
                                  reinterpret_cast<uint8_t *>(m_printBuffer),
-                                 (5+prefixBytesToSend+mainBytesToSend),
+                                 (5 + prefixBytesToSend + mainBytesToSend),
                                  false);
 
         if (success)
@@ -1016,7 +1023,6 @@ namespace CubeRover
         sloppyResourceProtectionMutex.unLock();
 
         return success;
-
     }
 
     // FIXME: Add timeout to escape polling loop

@@ -171,82 +171,174 @@ namespace CubeRover
 
         /* Commands that Only Watchdog Processes */
 
-        //! Implementation for Prepare_For_Deployment command handler
-        //! Command to send signal to MSP430 to prepare for deploying (may not be needed)
+        //! Handler for command Prepare_For_Deployment
+        /* Command to send signal to MSP430 to prepare for deploying (may not be needed) */
         void Prepare_For_Deployment_cmdHandler(
-            const FwOpcodeType opCode, /*!< The opcode*/
-            const U32 cmdSeq,          /*!< The command sequence number*/
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
             confirm_prepare_for_deploy confirm);
 
-        //! Implementation for Switch_Connection_Mode command handler
-        //! Command to send signal to MSP430 that we switch the current connection mode
+        //! Handler for command Switch_Connection_Mode
+        /* Command to send signal to MSP430 that we switch the current connection mode. NOTE: This is currently deprecated behavior. Watchdog now sends data to all available and active interfaces in any given state. */
         void Switch_Connection_Mode_cmdHandler(
-            const FwOpcodeType opCode, /*!< The opcode*/
-            const U32 cmdSeq           /*!< The command sequence number*/
-        );
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            watchdog_connection_mode mode);
 
-        //! Implementation for Set_Kp_Specific command handler
-        //! Command to send signal to MSP430 that it should set Kp to a specific value
-        void Set_Kp_Specific_cmdHandler(
-            const FwOpcodeType opCode, /*!< The opcode*/
-            const U32 cmdSeq,          /*!< The command sequence number*/
-            U16 value);
+        //! Handler for command Set_Debug_Comms_State
+        /* Turn Watchdog DEBUG comms messages ON or OFF (should default to ON). */
+        void Set_Debug_Comms_State_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            confirm_change_debug confirm,
+            debug_comms_state state);
 
-        //! Implementation for Set_Heater_Duty_Cycle_Max command handler
-        //! Command to send signal to MSP430 that it should set the max possible Duty Cycle value for the heater
-        void Set_Heater_Duty_Cycle_Max_cmdHandler(
-            const FwOpcodeType opCode, /*!< The opcode*/
-            const U32 cmdSeq           /*!< The command sequence number*/
-        );
+        //! Handler for command Set_Auto_Heater_On_Value
+        /* Set the ON threshold for the auto heater controller on the Watchdog. */
+        void Set_Auto_Heater_On_Value_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            U16 on);
 
-        //! Implementation for Set_Heater_Duty_Cycle_Period command handler
-        //! Command to send signal to MSP430 that it should set the period the Duty Cycle for the heater is at
+        //! Handler for command Set_Auto_Heater_Off_Value
+        /* Set the OFF threshold for the auto heater controller on the Watchdog. */
+        void Set_Auto_Heater_Off_Value_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            U16 off);
+
+        //! Handler for command Set_Heater_Duty_Cycle
+        /* Set the PWM duty cycle of the auto heater controller on the Watchdog. */
+        void Set_Heater_Duty_Cycle_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            U16 duty);
+
+        //! Handler for command Set_Heater_Duty_Cycle_Period
+        /* Set the PWM period of the auto heater controller on the Watchdog. */
         void Set_Heater_Duty_Cycle_Period_cmdHandler(
-            const FwOpcodeType opCode, /*!< The opcode*/
-            const U32 cmdSeq,          /*!< The command sequence number*/
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
             U16 period);
 
-        //! Implementation for Set_Heater_Window command handler
-        //! Set the Half-Width of the heater on/off deadband window around the setpoint (in thermistor ADC values). Between setpoint - half_width and setpoint + half_width, heater is off.
-        void Set_Heater_Window_cmdHandler(
-            const FwOpcodeType opCode, /*!< The opcode*/
-            const U32 cmdSeq,          /*!< The command sequence number*/
-            U16 adc_half_width);
+        //! Handler for command Set_VSAE_State
+        /* Tells the Watchdog to manually set the state for the V_SYS_ALL_ENABLE line on the BLiMP. */
+        void Set_VSAE_State_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            confirm_vsae_change_enum confirm,
+            vsae_state state);
 
-        //! Implementation for Set_Heater_Setpoint command handler
-        //! Command to send signal to MSP430 that it should set V to a specific value
-        void Set_Heater_Setpoint_cmdHandler(
-            const FwOpcodeType opCode, /*!< The opcode*/
-            const U32 cmdSeq,          /*!< The command sequence number*/
-            U16 adc_setpoint);
-
-        //! Implementation for Switch_to_Sleep_Mode command handler
-        //! Command to send signal to MSP430 that it should go into Sleep Mode
+        //! Handler for command Switch_to_Sleep_Mode
+        /* Command to send signal to MSP430 that it should go into Sleep Mode */
         void Switch_to_Sleep_Mode_cmdHandler(
-            const FwOpcodeType opCode, /*!< The opcode*/
-            const U32 cmdSeq,          /*!< The command sequence number*/
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
             confirm_sleep_mode confirm);
 
-        //! Implementation for Switch_to_Keep_Alive_Mode command handler
-        //! Command to send signal to MSP430 that it should go into Keep Alive Mode
+        //! Handler for command Switch_to_Keep_Alive_Mode
+        /* Command to send signal to MSP430 that it should go into Keep Alive Mode */
         void Switch_to_Keep_Alive_Mode_cmdHandler(
-            const FwOpcodeType opCode, /*!< The opcode*/
-            const U32 cmdSeq,          /*!< The command sequence number*/
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
             confirm_alive_mode confirm);
 
-        //! Implementation for Switch_to_Service_Mode command handler
-        //! Command to send signal to MSP430 that it should go into Service Mode
+        //! Handler for command Switch_to_Service_Mode
+        /* Command to send signal to MSP430 that it should go into Service Mode */
         void Switch_to_Service_Mode_cmdHandler(
-            const FwOpcodeType opCode, /*!< The opcode*/
-            const U32 cmdSeq,          /*!< The command sequence number*/
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
             confirm_service_mode confirm);
 
+        //! Handler for command Clear_Reset_Memory
+        /* Clear the reset memory used in the Watchdog's Detailed Status Report. */
+        void Clear_Reset_Memory_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            confirm_clear_reset_memory_1 confirm_1,
+            confirm_clear_reset_memory_2 confirm_2);
+
+        //! Handler for command DANGEROUS_Force_Battery_State_DANGEROUS
+        /* **DANGEROUS**: Tells the Watchdog to set the BLiMP's BSTAT pin (normally an input) to OUTPUT the given value. This is designed to be used as a last ditch effort to connect the batteries in case any of the components driving BSTAT die. If they aren't dead, this will have the effect of blowing up the BSTAT circuitry and maybe a port on the Watchdog if not the whole Watchdog. This is **ONLY** to be used if the Mission will be over if you don't. You've got to be really sure you want to do this. */
+        void DANGEROUS_Force_Battery_State_DANGEROUS_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            dangerous_confirm_force_bstat_enum_1 confirm_1,
+            dangerous_confirm_force_bstat_enum_2 confirm_2,
+            bstat_state state);
+
+        //! Handler for command Request_Status_Report
+        /* Request the Watchdog to send a Detailed Status Report. */
+        void Request_Status_Report_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            confirm_status_request confirm);
+
+        //! Handler for command Set_Charger_Enable
+        /* Manually set charging IC enable state: CE. (normally you should just use the start and stop charging commands in reset specific.) */
+        void Set_Charger_Enable_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            charge_en_states charge_en);
+
+        //! Handler for command Set_Charger_Power_Connection
+        /* Manually set charging power 28V regulator enable state: REGE. (normally you should just use the start and stop charging commands in reset specific.) */
+        void Set_Charger_Power_Connection_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            bool v_lander_reg_en);
+
+        //! Handler for command Set_Battery_Connection
+        /* Manually set battery connection state: BE. (normally you should just use the batteries enable/disable command in reset specific.) */
+        void Set_Battery_Connection_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            bool batt_en);
+
+        //! Handler for command Set_Battery_Control_Enable
+        /* Manually set the state of the battery control circuitry: BCTRLE. On Iris FM1 this line (should be) disconnected so this *should effectively be a no-op. To be used if the engineers believe this connection may have reformed somehow. */
+        void Set_Battery_Control_Enable_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            batt_ctrl_en_states batt_ctrl_en);
+
+        //! Handler for command Set_Battery_Latch
+        /* Manually set battery latch state: LB. (normally you should just use the batteries enable/disable command in reset specific.) */
+        void Set_Battery_Latch_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            latch_batt_states latch_batt);
+
+        //! Handler for command Set_Latch_Set
+        /* Control the battery latch "SET" override. This line *should* be severed on Iris FM1, so this *should* effectively be a no-op. */
+        void Set_Latch_Set_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            latch_set_states latch_set);
+
+        //! Handler for command Set_Latch_Reset
+        /* Control the battery latch "RESET" override. This line *should* be severed on Iris FM1, so this *should* effectively be a no-op. */
+        void Set_Latch_Reset_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            latch_reset_states latch_reset);
+
+        //! Handler for command Echo
+        /* Echo the given fixed length string (technically can send a string of any length up to the max length). */
+        void Echo_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            U8 length,
+            const Fw::CmdStringArg &message /*!< Message for the Watchdog to Echo back to us.*/
+        );
+
         /* End of Commands that Only Watchdog Processes*/
+
         // The Header Frame structure sent and received between Hercules and Watchdog
         struct WatchdogFrameHeader
         {
             uint32_t magic_value : 24; // 24 bit magic value that is constant and sent at the begining of every send
-            uint32_t parity : 8;       // 8 bit partity of whole header, initially calculated with parity equal to 0
+            uint32_t parity : 8;       // 8 bit parity of whole header, initially calculated with parity equal to 0
             uint16_t payload_length;   // The length of the payload being sent
             uint16_t reset_val;        // The reset value being sent to watchdog
             uint16_t sequence_number;  // The lower 16 bits of the fprime command sequence number
@@ -305,7 +397,7 @@ namespace CubeRover
          * The opcode sent in the header with downlink messages from the MSP430 watchdog.
          */
         static const uint16_t DOWNLINK_TO_WIFI_OPCODE = 0x0107u;
-    
+
         /**
          * The indices in the TxCommandArray of the TxCommandStatus for each type of command that is sent to the
          * MSP430 watchdog.
@@ -418,14 +510,32 @@ namespace CubeRover
                                bool sendResponse);
 
         /**
+         * Standard handler for any commands that only the WatchDog MSP430
+         * processes.
+         *
+         * Currently, this function only sends a response to the CmdDispatcher
+         * indicating the command couldn't be executed (b/c this isn't the
+         * MSP430) due to Fw::COMMAND_EXECUTION_ERROR.
+         *
+         * @param opCode The parameter, excluding the base ID (i.e. without the offset specified in Top), of the
+         *               command that is sending the reset specific command.
+         * @param cmdSeq The sequence number of the command to be transmitted.
+         */
+
+        void watchDogOnlyCommand(FwOpcodeType opCode,
+                                 U32 cmdSeq)
+        {
+        }
+
+        /**
          * @brief Handles a message containing uplink data received from the MSP430 watchdog.
          *
          * Handling this message involves sending the received uplink data out the uplink port.
          *
          * @msg The received uplink message.
          */
-        void handleUplinkMsg(WatchDogMpsm::Message& msg);
-        void handleDownlinkMsg(WatchDogMpsm::Message& msg);
+        void handleUplinkMsg(WatchDogMpsm::Message &msg);
+        void handleDownlinkMsg(WatchDogMpsm::Message &msg);
 
         /**
          * @brief Handles a message containing telemetry data received from the MSP430 watchdog.
@@ -500,15 +610,16 @@ namespace CubeRover
                        uint8_t *dataBuffer = nullptr,
                        size_t dataLen = 0,
                        bool sendResponse = true);
-public:
+
+    public:
         bool debugPrintfToWatchdog(const char *fmt, ...);
         // Sends the given buffer as a debug printf message to the watchdog. Be careful with the size on this one.
-        bool debugPrintfBuffer(uint8_t* buffer, size_t bufferLen);
+        bool debugPrintfBuffer(uint8_t *buffer, size_t bufferLen);
         // Same as `debugPrintfBuffer` but appends a prefix buffer before the main buffer (helpful for labelling messages):
-        bool debugPrintfBufferWithPrefix(uint8_t* prefixBuffer, size_t prefixBufferLen, uint8_t* buffer, size_t bufferLen);
-PRIVATE:
+        bool debugPrintfBufferWithPrefix(uint8_t *prefixBuffer, size_t prefixBufferLen, uint8_t *buffer, size_t bufferLen);
+        PRIVATE :
 
-        sciBASE_t *m_sci;                                  // The sci base used to initialize the watchdog interface connection
+            sciBASE_t *m_sci;                              // The sci base used to initialize the watchdog interface connection
         adcData_t m_thermistor_buffer[number_thermistors]; // Location to store current data for thermistors
         bool m_finished_initializing;                      // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
 

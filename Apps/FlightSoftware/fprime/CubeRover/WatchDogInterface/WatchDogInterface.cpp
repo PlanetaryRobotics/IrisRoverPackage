@@ -328,7 +328,7 @@ namespace CubeRover
      *               command that is sending the reset specific command.
      * @param cmdSeq The sequence number of the command to be transmitted.
      */
-    void handleWatchDogOnlyCommand(FwOpcodeType opCode, U32 cmdSeq)
+    void WatchDogInterfaceComponentImpl::handleWatchDogOnlyCommand(FwOpcodeType opCode, U32 cmdSeq)
     {
         // TODO (consider fwd'ing these to WD somehow...).
         // Would need to account for vargs and would need Matt Schnur's help
@@ -338,7 +338,7 @@ namespace CubeRover
 
     //! Handler for command Prepare_For_Deployment
     /* Command to send signal to MSP430 to prepare for deploying (may not be needed) */
-    void Prepare_For_Deployment_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Prepare_For_Deployment_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         confirm_prepare_for_deploy confirm)
@@ -348,7 +348,7 @@ namespace CubeRover
 
     //! Handler for command Switch_Connection_Mode
     /* Command to send signal to MSP430 that we switch the current connection mode. NOTE: This is currently deprecated behavior. Watchdog now sends data to all available and active interfaces in any given state. */
-    void Switch_Connection_Mode_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Switch_Connection_Mode_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         watchdog_connection_mode mode)
@@ -358,7 +358,7 @@ namespace CubeRover
 
     //! Handler for command Set_Debug_Comms_State
     /* Turn Watchdog DEBUG comms messages ON or OFF (should default to ON). */
-    void Set_Debug_Comms_State_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Set_Debug_Comms_State_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         confirm_change_debug confirm,
@@ -369,7 +369,7 @@ namespace CubeRover
 
     //! Handler for command Set_Auto_Heater_On_Value
     /* Set the ON threshold for the auto heater controller on the Watchdog. */
-    void Set_Auto_Heater_On_Value_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Set_Auto_Heater_On_Value_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         U16 on)
@@ -379,7 +379,7 @@ namespace CubeRover
 
     //! Handler for command Set_Auto_Heater_Off_Value
     /* Set the OFF threshold for the auto heater controller on the Watchdog. */
-    void Set_Auto_Heater_Off_Value_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Set_Auto_Heater_Off_Value_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         U16 off)
@@ -389,7 +389,7 @@ namespace CubeRover
 
     //! Handler for command Set_Heater_Duty_Cycle
     /* Set the PWM duty cycle of the auto heater controller on the Watchdog. */
-    void Set_Heater_Duty_Cycle_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Set_Heater_Duty_Cycle_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         U16 duty)
@@ -399,7 +399,7 @@ namespace CubeRover
 
     //! Handler for command Set_Heater_Duty_Cycle_Period
     /* Set the PWM period of the auto heater controller on the Watchdog. */
-    void Set_Heater_Duty_Cycle_Period_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Set_Heater_Duty_Cycle_Period_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         U16 period)
@@ -409,7 +409,7 @@ namespace CubeRover
 
     //! Handler for command Set_VSAE_State
     /* Tells the Watchdog to manually set the state for the V_SYS_ALL_ENABLE line on the BLiMP. */
-    void Set_VSAE_State_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Set_VSAE_State_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         confirm_vsae_change_enum confirm,
@@ -420,7 +420,7 @@ namespace CubeRover
 
     //! Handler for command Switch_to_Sleep_Mode
     /* Command to send signal to MSP430 that it should go into Sleep Mode */
-    void Switch_to_Sleep_Mode_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Switch_to_Sleep_Mode_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         confirm_sleep_mode confirm)
@@ -430,7 +430,7 @@ namespace CubeRover
 
     //! Handler for command Switch_to_Keep_Alive_Mode
     /* Command to send signal to MSP430 that it should go into Keep Alive Mode */
-    void Switch_to_Keep_Alive_Mode_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Switch_to_Keep_Alive_Mode_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         confirm_alive_mode confirm)
@@ -440,7 +440,7 @@ namespace CubeRover
 
     //! Handler for command Switch_to_Service_Mode
     /* Command to send signal to MSP430 that it should go into Service Mode */
-    void Switch_to_Service_Mode_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Switch_to_Service_Mode_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         confirm_service_mode confirm)
@@ -450,7 +450,7 @@ namespace CubeRover
 
     //! Handler for command Clear_Reset_Memory
     /* Clear the reset memory used in the Watchdog's Detailed Status Report. */
-    void Clear_Reset_Memory_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Clear_Reset_Memory_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         confirm_clear_reset_memory_1 confirm_1,
@@ -461,7 +461,7 @@ namespace CubeRover
 
     //! Handler for command DANGEROUS_Force_Battery_State_DANGEROUS
     /* **DANGEROUS**: Tells the Watchdog to set the BLiMP's BSTAT pin (normally an input) to OUTPUT the given value. This is designed to be used as a last ditch effort to connect the batteries in case any of the components driving BSTAT die. If they aren't dead, this will have the effect of blowing up the BSTAT circuitry and maybe a port on the Watchdog if not the whole Watchdog. This is **ONLY** to be used if the Mission will be over if you don't. You've got to be really sure you want to do this. */
-    void DANGEROUS_Force_Battery_State_DANGEROUS_cmdHandler(
+    void WatchDogInterfaceComponentImpl::DANGEROUS_Force_Battery_State_DANGEROUS_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         dangerous_confirm_force_bstat_enum_1 confirm_1,
@@ -473,7 +473,7 @@ namespace CubeRover
 
     //! Handler for command Request_Status_Report
     /* Request the Watchdog to send a Detailed Status Report. */
-    void Request_Status_Report_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Request_Status_Report_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         confirm_status_request confirm)
@@ -483,7 +483,7 @@ namespace CubeRover
 
     //! Handler for command Set_Charger_Enable
     /* Manually set charging IC enable state: CE. (normally you should just use the start and stop charging commands in reset specific.) */
-    void Set_Charger_Enable_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Set_Charger_Enable_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         charge_en_states charge_en)
@@ -493,7 +493,7 @@ namespace CubeRover
 
     //! Handler for command Set_Charger_Power_Connection
     /* Manually set charging power 28V regulator enable state: REGE. (normally you should just use the start and stop charging commands in reset specific.) */
-    void Set_Charger_Power_Connection_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Set_Charger_Power_Connection_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         bool v_lander_reg_en)
@@ -503,7 +503,7 @@ namespace CubeRover
 
     //! Handler for command Set_Battery_Connection
     /* Manually set battery connection state: BE. (normally you should just use the batteries enable/disable command in reset specific.) */
-    void Set_Battery_Connection_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Set_Battery_Connection_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         bool batt_en)
@@ -513,7 +513,7 @@ namespace CubeRover
 
     //! Handler for command Set_Battery_Control_Enable
     /* Manually set the state of the battery control circuitry: BCTRLE. On Iris FM1 this line (should be) disconnected so this *should effectively be a no-op. To be used if the engineers believe this connection may have reformed somehow. */
-    void Set_Battery_Control_Enable_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Set_Battery_Control_Enable_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         batt_ctrl_en_states batt_ctrl_en)
@@ -523,7 +523,7 @@ namespace CubeRover
 
     //! Handler for command Set_Battery_Latch
     /* Manually set battery latch state: LB. (normally you should just use the batteries enable/disable command in reset specific.) */
-    void Set_Battery_Latch_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Set_Battery_Latch_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         latch_batt_states latch_batt)
@@ -533,7 +533,7 @@ namespace CubeRover
 
     //! Handler for command Set_Latch_Set
     /* Control the battery latch "SET" override. This line *should* be severed on Iris FM1, so this *should* effectively be a no-op. */
-    void Set_Latch_Set_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Set_Latch_Set_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         latch_set_states latch_set)
@@ -543,7 +543,7 @@ namespace CubeRover
 
     //! Handler for command Set_Latch_Reset
     /* Control the battery latch "RESET" override. This line *should* be severed on Iris FM1, so this *should* effectively be a no-op. */
-    void Set_Latch_Reset_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Set_Latch_Reset_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         latch_reset_states latch_reset)
@@ -553,7 +553,7 @@ namespace CubeRover
 
     //! Handler for command Echo
     /* Echo the given fixed length string (technically can send a string of any length up to the max length). */
-    void Echo_cmdHandler(
+    void WatchDogInterfaceComponentImpl::Echo_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
         U32 cmdSeq,          /*!< The command sequence number*/
         U8 length,

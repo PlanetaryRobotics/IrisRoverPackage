@@ -521,11 +521,8 @@ namespace CubeRover
          *               command that is sending the reset specific command.
          * @param cmdSeq The sequence number of the command to be transmitted.
          */
-
-        void watchDogOnlyCommand(FwOpcodeType opCode,
-                                 U32 cmdSeq)
-        {
-        }
+        void handleWatchDogOnlyCommand(FwOpcodeType opCode,
+                                       U32 cmdSeq);
 
         /**
          * @brief Handles a message containing uplink data received from the MSP430 watchdog.

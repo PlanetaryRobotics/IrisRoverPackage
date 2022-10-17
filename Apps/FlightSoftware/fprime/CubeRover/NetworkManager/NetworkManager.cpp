@@ -104,7 +104,6 @@ namespace CubeRover
         getUplinkDatagram();
     }
 
-
     // Helper function to convert RadioSwState (used inside RadioDriver) to
     // WIFIState (used by FPrime telem).
     // See `RadioSwState` in `Wf121/Wf121DirectMessage.hpp` for more details on
@@ -116,29 +115,32 @@ namespace CubeRover
     {
         switch (state)
         {
+        case Wf121::DirectMessage::RadioSwState::NONE:
+            return WIFIState::nm_NONE;
+
+        case Wf121::DirectMessage::RadioSwState::BAD_MESSAGE:
+            return WIFIState::nm_BAD_MESSAGE;
+
         case Wf121::DirectMessage::RadioSwState::BOOT:
-            return WIFIState::UNINITIALIZED;
+            return WIFIState::nm_BOOT;
 
         case Wf121::DirectMessage::RadioSwState::INIT:
-            return WIFIState::INITIALIZED;
+            return WIFIState::nm_INIT;
 
         case Wf121::DirectMessage::RadioSwState::WIFI_ON:
-            return WIFIState::WIFI_ON;
+            return WIFIState::nm_WIFI_ON;
 
         case Wf121::DirectMessage::RadioSwState::CONNECTED:
-            return WIFIState::CONNECTED;
+            return WIFIState::nm_CONNECTED;
 
         case Wf121::DirectMessage::RadioSwState::UDP_CONNECTED:
-            return WIFIState::UDP_CONNECTED;
+            return WIFIState::nm_UDP_CONNECTED;
 
         // Bad state (we don't know what's really going on inside the Radio rn):
-        case Wf121::DirectMessage::RadioSwState::NONE:
-        case Wf121::DirectMessage::RadioSwState::BAD_MESSAGE:
         default:
-            return WIFIState::UNINITIALIZED;
+            return WIFIState::nm_BAD_MESSAGE;
         }
     }
-
 
     void NetworkManagerComponentImpl::update()
     {
@@ -173,7 +175,7 @@ namespace CubeRover
             // Repeat the state now (in case it was lost before):
             tlmWrite_WIFIStateStatus(m_lastDownlinkedWifiState);
 
-//            watchDogInterface.debugPrintfToWatchdog("RADIO: NM watching u%u d%u", m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUplinkEndpoint(), m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getDownlinkEndpoint());
+            //            watchDogInterface.debugPrintfToWatchdog("RADIO: NM watching u%u d%u", m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUplinkEndpoint(), m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getDownlinkEndpoint());
         }
 
         // Check if Radio has gotten back into a good state since the last reset

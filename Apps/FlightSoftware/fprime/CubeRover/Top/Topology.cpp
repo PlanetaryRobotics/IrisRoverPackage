@@ -232,6 +232,7 @@ void constructApp(void)
     constructCubeRoverArchitecture();
 
     // Register Commands
+    cmdDispatcher.regCommands();
     watchDogInterface.regCommands();
     camera.regCommands();
     navigation.regCommands();

@@ -1,1 +1,21 @@
-Readme
+# Ignore Python Bytecode Caching:
+*.py[cod]
+__pycache__/
+
+# Ignore linter cache:
+.mypy_cache/
+
+# Ignore (unsupported) editor settings:
+.idea/
+
+# Ignore OS Files:
+.DS_Store
+
+# Testing Scripts:
+node_modules/
+
+# By default, ignore all logging directories:
+# To override this for a particular file (e.g. an important FM log), use `git add -f`
+packet_prints/
+pcap_logs/
+transceiver_logs/

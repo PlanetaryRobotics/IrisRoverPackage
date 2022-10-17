@@ -1,0 +1,17 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/connorcolombo/Documents/PKBACK/GitHub/CubeRoverPackage/Apps/GroundSoftware'
+echo "---- Iris Backend v3 Makefile ----"
+echo "	make help: Information"
+echo " "
+echo "	make init: Clean and resetup the project on a *new* system"
+echo "	make update: Install any new dependencies and update existing dependencies"
+echo " "
+echo "	make clean: Teardown and Cleanup the Development Environment"
+echo " "
+ 
+echo "	make run: Run the application (in development mode)"
+echo " "
+echo "	make cloc: Count Lines Of Code (and comments) by language, excluding builds and libraries."
+echo "----------------------------------"
+make: Leaving directory `/Users/connorcolombo/Documents/PKBACK/GitHub/CubeRoverPackage/Apps/GroundSoftware'
+ 

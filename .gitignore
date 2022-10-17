@@ -3,4 +3,20 @@ Apps/FlightSoftware/MotorControl/Debug/
 Watchdog.zip
 *.bak
 
+Apps/GroundSoftware/IrisBackendv3/.DS_Store
+Apps/GroundSoftware/IrisBackendv3/.idea/inspectionProfiles/profiles_settings.xml
+Apps/GroundSoftware/IrisBackendv3/.idea/IrisBackendv3.iml
+Apps/GroundSoftware/IrisBackendv3/.idea/misc.xml
+Apps/GroundSoftware/IrisBackendv3/.idea/modules.xml
+Apps/GroundSoftware/IrisBackendv3/.idea/other.xml
+Apps/GroundSoftware/IrisBackendv3/.idea/vcs.xml
+Apps/GroundSoftware/IrisBackendv3/.DS_Store
 .DS_Store
+.DS_Store
+Apps/GroundSoftware/IrisBackendv3/.DS_Store
+Apps/.DS_Store
+Apps/.DS_Store
+Apps/GroundSoftware/.DS_Store
+Apps/GroundSoftware/.DS_Store
+*.clog
+Apps/GroundSoftware/raw-console-logs/iris__sbc3_detailed_status_code_testing__11_07_21C.clog

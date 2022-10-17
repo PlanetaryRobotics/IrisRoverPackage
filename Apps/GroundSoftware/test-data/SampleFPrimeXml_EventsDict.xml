@@ -1,0 +1,23 @@
+    <!-- Logs stolen from NetworkManager for the sake of example -->
+    <events>
+        <event id="0" name="StateChange" severity="ACTIVITY_HI" format_string="WF121 State Changed %d -> %d">
+            <comment>Emit event when ever a state transition occurs within the WF121</comment>
+            <args>
+                <arg name="from_state" type="ENUM">
+                    <import_enum_type>SampleFPrimeXml_Enum.xml</import_enum_type>
+                </arg>
+                <arg name="to_state" type="ENUM">
+                    <import_enum_type>SampleFPrimeXml_Enum.xml</import_enum_type>
+                </arg>
+            </args>
+        </event>
+        <event id="1" name="ExecuteCallbackError" severity="WARNING_HI" format_string="ExecuteCallBackError %d">
+            <comment>Emit event when there is an error executing a WF121 callback</comment>
+            <args>
+                <arg name="ErrorCode" type="U16"/>
+            </args>
+        </event>
+        <event id="2" name="WF121InitializationFailed" severity="FATAL" format_string="WF121 Failed to initialize">
+            <comment>Emit event when there is an error executing a WF121 callback</comment>
+        </event>
+    </events>

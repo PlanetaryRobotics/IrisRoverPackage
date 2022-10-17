@@ -1,0 +1,152 @@
+@startuml name Iris_Backendv3_IPC_Arch
+
+title **Iris Lunar Rover — GSw Backend v.3 – Inter-Process Communication Architecture**
+
+hide <<process>> circle
+hide <<endpoint>> circle
+hide empty description
+skinparam defaultTextAlignment center
+
+package "[:PortNumber] Example Package" {
+    storage EXAMPLE_TOPIC [
+        [""Topic ID""] Example Topic
+        ----
+        ""TopicReturnType""
+    ]
+}
+
+package "[:F00D] - PUB/SUB - Transceiver <&rss>" as xcvr_pkg {
+    legend
+    Monitors a specified pathway (e.g. YAMCS, RS-422, etc.) for packets from rover.
+    endlegend
+
+    enum TransceiverType {
+        RS-422
+        WIFI
+        YAMCS
+        PCAP_PLAYER
+        ARTEMIS
+    }
+    class "transceiver::ipc_process" as xcvr <<process>> {
+        + TransceiverType xcvr_type
+        ----
+        - tx_update() Sends commands
+        - rx_update() Listens for packets
+    }
+
+    storage RX_PACKETS [
+        [""0xFEED""] RX_PACKETS
+        ----
+        ""Packet""
+    ]
+    storage TX_PACKETS [
+        [""0xF00D""] TX_PACKETS
+        ----
+        ""Payload""
+    ]
+
+    ' TransceiverType -right[hidden]- xcvr
+    ' TX_PACKETS -down[hidden]- RX_PACKETS
+    TX_PACKETS -[bold,#blue]> xcvr::tx_update: sub
+    xcvr::rx_update -[bold,#green]> RX_PACKETS: pub
+}
+
+' package "[:C0DE] - REQ/REP - Codec <&book>" {
+'     legend
+'     Manages internal DataStandards and 
+'     encodes/decodes binary packets.
+'     endlegend
+
+'     class "codec::ipc_process" as codec <<process>> {
+'         ----
+'         - encode() Sends commands
+'         - decode() Listens for packets
+'         - lookup() Looks up an entry in the DataStandards
+'     }
+' }
+' codec::encode <-> xcvr::tx_update: req/rep
+' codec::decode <-> xcvr::rx_update: req/rep
+
+package "[:5709] - SUB - Storage <&hard-drive>" as storage_pkg {
+    legend
+    Manages a local database of all packets received.
+    endlegend
+
+    class "storage::ipc_process" as local_storage <<process>> {
+        ----
+        - store() Stores a packet
+    }
+}
+local_storage::store <-[bold,#blue]- RX_PACKETS: sub
+
+package "[:DA7A] - PUB/SUB - RemoteDB <&transfer>" as rdb_pkg {
+    legend
+    Exchanges data with a remote database (MongoDB) and monitors it for changes.
+    This remote database is used as a interface between the backend and remote 
+    agents. Changes to the remote database can spawn command sends.
+    endlegend
+
+    class "remote_db::ipc_process" as remote_db <<process>> {
+        ----
+        - process_changestream()
+        - store_data()
+    }
+
+    ' storage PUSH_2_DB [
+    '     [""0x22DB""] PUSH_2_DB
+    '     ----
+    '     ""TBD""
+    ' ]
+
+    ' PUSH_2_DB -> remote_db::store_data: sub
+}
+remote_db::process_changestream -[bold,#green]-> TX_PACKETS: pub
+remote_db::store_data <-[bold,#blue]- RX_PACKETS: sub
+
+package "[:06DE] - PUB/SUB - ATLAS <&location>" as atlas_pkg {
+    legend
+    Localization service. Processes rover data and 
+    produces specialized data products.
+    endlegend
+
+    class "atlas::ipc_process" as atlas <<process>> {
+        ----
+        -run()
+    }
+
+    storage ATLAS_OUT [
+        [""0x3DE5""] ATLAS_OUT
+        ----
+        ""AtlasDataProduct""
+    ]
+
+    atlas::run -[bold,#green]-> ATLAS_OUT: pub
+}
+local_storage::store <-[bold,#blue]- ATLAS_OUT: sub
+remote_db::store_data <-[bold,#blue]- ATLAS_OUT: sub
+
+class "FLEUR <<&project>>" as fleur <<endpoint>>
+fleur <-[bold,#blue]- RX_PACKETS: sub
+class "telem_window <<&justify-center>>" as tlm_window <<endpoint>>
+tlm_window <-[bold,#blue]- RX_PACKETS: sub
+class "cli_window <<&terminal>>" as cli_window <<endpoint>>
+cli_window -[bold,#green]-> TX_PACKETS: pub
+class "gui <<&browser>>" as gui <<endpoint>>
+gui <-[bold,#blue]- RX_PACKETS: sub
+gui -[bold,#green]-> TX_PACKETS: pub
+
+together {
+    class tlm_window
+    class cli_window
+    class gui
+}
+
+RX_PACKETS -down[hidden]- tlm_window
+RX_PACKETS -down[hidden]- cli_window
+TX_PACKETS -down[hidden]- gui
+RX_PACKETS -down[hidden]- gui
+RX_PACKETS -down[hidden]- fleur
+atlas_pkg -down[hidden]- rdb_pkg
+' xcvr_pkg ---down[hidden]--- storage_pkg
+
+@enduml

@@ -161,6 +161,14 @@
             <comment>
             Command to send signal to MSP430 that it should send a signal to lander to engage, sets disengage pin low. Impl. only exists inside Hercules.
             </comment>
+            <args>
+                <arg name="mode" type="ENUM">
+                    <enum name="watchdog_connection_mode">
+                        <item name="WDCM_WIRED" value = "0x01" />
+                        <item name="WDCM_WIRELESS" value = "0x02" />
+                    </enum>
+                </arg>
+            </args>
         </command>
         <command kind="async" opcode="0x04" mnemonic="Switch_Connection_Mode">
             <comment>

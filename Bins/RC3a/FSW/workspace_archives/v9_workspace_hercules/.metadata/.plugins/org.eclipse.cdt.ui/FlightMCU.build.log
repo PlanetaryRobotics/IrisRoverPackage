@@ -1,0 +1,10 @@
+
+**** Build of configuration Debug for project FlightMCU ****
+
+/home/iris/ti/ccs910/ccs/utils/bin/gmake -k -j 8 all -O 
+ 
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/PrimaryFlightController/FlightMCU/Debug/../prebuild_script.sh
+ 
+gmake[2]: 'FlightMCU.out' is up to date.
+
+**** Build Finished ****

@@ -475,9 +475,9 @@
             </comment>
         </event>
 
-        <event id="0x2" name="WatchDogCmdReceived" severity="ACTIVITY_HI" format_string = "WatchDog Cmd to reset %s recieved" >
+        <event id="0x2" name="WatchDogCmdReceived" severity="ACTIVITY_HI" format_string = "WatchDog Cmd to reset %s received" >
             <comment>
-            Notification that watchdog interface recieved a command from Cmd_Dispatcher 
+            Notification that watchdog interface received a command from Cmd_Dispatcher 
             </comment>
              <args>
                 <arg name="Cmd" type="string" size="50">

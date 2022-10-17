@@ -1393,11 +1393,20 @@ namespace iris
 
             case WD_CMD_MSGS__RESET_ID__RADIO_RESET:
                 //!< @todo Should reset be allowed in KeepAlive? It's not technically powering on, but its similar.
-                setRadioReset();
+                static int x = 1;
+                if(x){
+                    setRadioReset();
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__RADIO_RESET);
+                    x = 0;
+                } else{
+                    releaseRadioReset();
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__RADIO_UNRESET);
+                    x = 1;
+                }
+
                 writeIoExpander = true;
                 // queue up an radio unreset
-                theContext.m_watchdogFlags |= WDFLAG_UNRESET_RADIO1;
-                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__RADIO_RESET);
+//                theContext.m_watchdogFlags |= WDFLAG_UNRESET_RADIO1;
                 break;
 
             case WD_CMD_MSGS__RESET_ID__RADIO_POWER_ON:

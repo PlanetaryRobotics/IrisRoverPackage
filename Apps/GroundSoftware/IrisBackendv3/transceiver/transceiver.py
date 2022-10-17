@@ -15,7 +15,7 @@ Transceivers?)
 TODO: Add pcap-save function (writes every outbound bytes_packet to a pcap).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/15/2022
+@last-updated: 07/03/2022
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -121,10 +121,17 @@ class Transceiver(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def _uplink_byte_packets(self, packet_bytes: bytes) -> bool:
+    def _uplink_byte_packets(
+        self,
+        packet_bytes: bytes,
+        **uplink_metadata
+    ) -> bool:
         """ Transmits the given packet of bytes on this `Transceiver`'s uplink
         transmission line.
         No encoding occurs with the `endecs`, just transmits the bytes as given.
+
+        `**uplink_metadata` contains any special data needed by methods further
+        down the uplink pipeline, particularly `_uplink_byte_packets`.
 
         Returns whether the uplink was successful.
         """
@@ -177,10 +184,11 @@ class Transceiver(ABC):
                     bp = self.endecs_decode(bp)
                     # Parse packet (decode raw data):
                     packet = parse_packet(bp)
+                    # Add metadata to packet (and all its payloads):
+                    packet.pathway = self.data_pathway
+                    packet.source = self.data_source
                     # Add metadata to all the payloads in Packet:
                     for payload in packet.payloads.all_payloads:
-                        payload.pathway = self.data_pathway
-                        payload.source = self.data_source
                         if isinstance(payload, DownlinkedPayload):
                             # Add Downlink metadata:
                             if payload.downlink_times is None:
@@ -229,9 +237,12 @@ class Transceiver(ABC):
 
         return packets
 
-    def send(self, packet: Packet) -> bool:
+    def send(self, packet: Packet, **uplink_metadata) -> bool:
         """ Sends the given packet over this `Transceiver`'s transmission line,
         encoding it as necessary.
+
+        `**uplink_metadata` contains any special data needed by methods further
+        down the uplink pipeline, particularly `_uplink_byte_packets`.
 
         Returns whether the send was successful.
         """
@@ -259,7 +270,7 @@ class Transceiver(ABC):
         packet_bytes = self.endecs_encode(packet_bytes)
 
         # Uplink encoded data:
-        success = self._uplink_byte_packets(packet_bytes)
+        success = self._uplink_byte_packets(packet_bytes, **uplink_metadata)
 
         if success and self.log_on_send:
             logger.info(
@@ -268,8 +279,15 @@ class Transceiver(ABC):
 
         return success
 
-    def send_payloads(self, payloads: EnhancedPayloadCollection) -> List[Packet]:
+    def send_payloads(
+        self,
+        payloads: EnhancedPayloadCollection,
+        **uplink_metadata
+    ) -> List[Packet]:
         """ Sends the given payloads in as few packets as possible.
+
+        `**uplink_metadata` contains any special data needed by methods further
+        down the uplink pipeline, particularly `_uplink_byte_packets`.
 
         TODO: Mind the MTUs and actually handle splitting up the `Payload`s
         into multiple `Packet`s as necessary.
@@ -290,7 +308,7 @@ class Transceiver(ABC):
         )
 
         # Send!:
-        success = self.send(packet)
+        success = self.send(packet, **uplink_metadata)
         if success:
             packets_sent.append(packet)
             self.seq_num += 1

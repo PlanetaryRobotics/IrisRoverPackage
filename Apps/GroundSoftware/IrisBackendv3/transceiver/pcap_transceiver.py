@@ -7,7 +7,7 @@ Includes any supporting functions necessary for maintaining serial connection.
 TODO: Add playback that uses timestamps from the pcap to determine Dt.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/13/2022
+@last-updated: 07/03/2022
 """
 from typing import Any, Optional, Callable, Dict, Deque, List, Union, Type, cast
 
@@ -143,7 +143,7 @@ class PcapTransceiver(Transceiver):
     _last_downlink_time: float
 
     def restart(self) -> None:
-        """Sets the head back to the beginning of the packet_bytes list."""
+        """Sets the head back to the beginning of the `packet_bytes` list."""
         self._head = 0
 
     def __init__(
@@ -240,11 +240,16 @@ class PcapTransceiver(Transceiver):
 
         return _byte_packets
 
-    def _uplink_byte_packets(self, packet_bytes: bytes) -> bool:
+    def _uplink_byte_packets(self, packet_bytes: bytes, **_) -> bool:
         """ This would transmit the given packet of bytes on this
         `Transceiver`'s uplink transmission line. **HOWEVER** this is a
         recording. You can't send commands to a recording. So this will just
         toss the bytes.
+
+        NOTE: `**uplink_metadata` is given in the superclass and contains any
+        special data needed by methods further down the uplink pipeline, but is
+        unused by `PcapTransceiver` since it doesn't even have a meaningful
+        uplink.
         """
         logger.debug(  # type: ignore
             "`PcapTransceiver._uplink_byte_packets` was called. "

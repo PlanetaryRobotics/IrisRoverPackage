@@ -6,7 +6,7 @@ communicate with the rover over RS-422.
 Includes any supporting functions necessary for maintaining serial connection.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/15/2022
+@last-updated: 07/03/2022
 """
 from typing import Any, Optional, Callable, Dict, Deque, List, Type, cast
 
@@ -54,7 +54,7 @@ class SlipTransceiver(Transceiver):
     @property
     def device_sn(self) -> Optional[str]: return self._device_sn
 
-    @ staticmethod
+    @staticmethod
     def _find_serial_port(
         ports: List[list_ports_common.ListPortInfo],
         filter_func: Callable[[list_ports_common.ListPortInfo], bool]
@@ -415,7 +415,11 @@ class SlipTransceiver(Transceiver):
         # Return the extracted complete packets to be processed:
         return [*_byte_packets]
 
-    def _uplink_byte_packets(self, packet_bytes: bytes) -> bool:
+    def _uplink_byte_packets(
+        self,
+        packet_bytes: bytes,
+        **_
+    ) -> bool:
         """ Transmits the given packet of bytes on this `Transceiver`'s uplink
         transmission line.
 
@@ -425,6 +429,10 @@ class SlipTransceiver(Transceiver):
         NOTE: This expects the given `packet_bytes` to have **ALREADY** been
         SLIP encoded by `Transceiver` since `SlipEndec` was added to `endecs` in
         `SlipTransceiver.__init__`.)
+
+        NOTE: `**uplink_metadata` is given in the superclass and contains any
+        special data needed by methods further down the uplink pipeline, but is
+        unused by `SlipTransceiver` since it has no special metadata.
 
         Returns whether the uplink was successful.
         """

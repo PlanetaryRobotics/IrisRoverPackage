@@ -128,6 +128,19 @@ class YamcsTransceiver(Transceiver):
 
         return success
 
+    @property
+    def has_connected(self) -> bool:
+        """
+        Returns whether this Transceiver has successfully connected to YAMCS
+        during its most recent connection attempt. If it has since experienced
+        a connection failure, this becomes `False`.
+
+        NOTE: This just checks the history. It's not an active test and does not
+        poll the network to determine if it's currently connected (which is
+        often unnecessary).
+        """
+        return self._client is not None and self._processor is not None
+
     def _downlink_byte_packets(self) -> List[bytes]:
         """ Reads all **complete** packets of bytes from the connected serial
         interface using SLIP (Serial Line Internet Protocol).
@@ -145,23 +158,73 @@ class YamcsTransceiver(Transceiver):
     #! TODO: TX: set suffix by pathway meta, RX: set pathway by suffix
     # (have to override super's send and receive)
 
-    def _uplink_byte_packets(self, packet_bytes: bytes) -> bool:
+    def send(self, packet: Packet, **uplink_metadata) -> bool:
+        """ Sends the given packet over this `Transceiver`'s transmission line,
+        encoding it as necessary.
+
+        `**uplink_metadata` contains any special data needed by methods further
+        down the uplink pipeline, particularly `_uplink_byte_packets`.
+
+        NOTE: AB's YAMCS setup requires that:
+        - Each payload uplink packet contain only one command.
+        - Each payload uplink packet be labelled with the desired interface
+          (rs422 or wifi).
+
+        Returns whether the send was successful.
+        """
+        # Verify AB YAMCS requirements:
+
+        # TODO: (WORKING-HERE)
+
+        # Add necessary metadata:
+        uplink_metadata = {
+            **uplink_metadata,
+            'command_name': command.name,
+            'yamcs_suffix': pathway.yamcs_suffix
+        }
+
+        # Dispatch to the superclass' `send` method, now equipped with the
+        # proper metadata:
+        return super().send(packet, **uplink_metadata)
+
+    def _uplink_byte_packets(
+        self,
+        packet_bytes: bytes,
+        **uplink_metadata
+    ) -> bool:
         """ Transmits the given packet of bytes on this `Transceiver`'s uplink
         transmission line.
 
         NOTE: No encoding occurs with the `endecs` here, just transmits the
         bytes as given.
 
-        NOTE: This expects the given `packet_bytes` to have **ALREADY** been
-        SLIP encoded by `Transceiver` since `SlipEndec` was added to `endecs` in
-        `SlipTransceiver.__init__`.)
+        NOTE: `**uplink_metadata` contains any special data needed by methods further
+        down the uplink pipeline, particularly `_uplink_byte_packets`.
 
         Returns whether the uplink was successful.
         """
 
-        # Send a command:
-        yamcs_cmd_name = f"/{self.YAMCS_INSTANCE}/{yamcs_name_root}{pathway.yamcs_suffix}"
-        status = processor.issue_command(yamcs_cmd_name, args=yamcs_payload)
-        print("Command status: ", status.__dict__)
+        if self.has_connected:
 
-        return self._send_raw_bytes_over_serial(packet_bytes)
+            yamcs_cmd_name = (
+                f"/{self.YAMCS_INSTANCE}"
+                f"/{uplink_metadata['command_name']}"
+                f"{uplink_metadata['yamcs_suffix']}"
+            )
+
+            # Build the YAMCS payload:
+            yamcs_payload = {
+                'tc-binary': ''.join(['{:02x}'.format(x) for x in packet_bytes])
+            }
+            status = self._processor.issue_command(
+                yamcs_cmd_name, args=yamcs_payload)
+
+            # TODO: Check the status dict for the queue it was placed in (maybe
+            # if it was automatically sent, we want to capture that here).
+
+            # TODO: Monitor the queue to make sure it actually goes through.
+            print("Command status: ", status.__dict__)
+            return True
+
+        else:
+            return False

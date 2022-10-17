@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
+
+<component name="NetworkManager" kind="passive" namespace="CubeRover" modeler="true">
+    <import_port_type>Fw/Buffer/BufferSendPortAi.xml</import_port_type>
+    <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
+    <import_port_type>Fw/Log/LogTextPortAi.xml</import_port_type>
+    <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
+    <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
+    <import_port_type>CubeRover/CubeRoverPorts/WatchdogResetRequest/WatchdogResetRequestPortAi.xml</import_port_type>
+    <ports>
+
+        <!-- Input ports -->
+        <port name="downlink" data_type="Fw::BufferSend" kind="guarded_input" max_number="2">
+            <comment>GroundInterface sends packets to NM for downlink</comment>
+        </port>
+
+        <port name="schedIn" data_type="Svc::Sched" kind="guarded_input" max_number="1">
+            <comment>Clock from RateGroupMedFreq. Every clock tick need to interllay check:
+                RSSI, downlink queue, uplink (command) queue
+            </comment>
+        </port>
+
+        <!-- Output ports -->
+        <port name="uplink" data_type="Fw::BufferSend" kind="output" max_number="1">
+            <comment>NM sends received packets to GroundInterface</comment>
+        </port>
+            
+        <port name="WatchdogResetRequest" data_type="CubeRoverPorts::WatchdogResetRequest" kind="output">
+            <comment>
+                This allows other components to request the Watchdog interface to reset some hardware
+            </comment>
+        </port>
+
+
+        <!-- TODO: MODE -->
+
+        <!-- Standard F prime ports -->
+        <port name="Log" data_type="Fw::Log"  kind="output" role="LogEvent"    max_number="1">
+        </port>
+
+        <port name="LogText" data_type="Fw::LogText"  kind="output" role="LogTextEvent"    max_number="1">
+        </port>
+
+        <port name="Time" data_type="Time"  kind="output" role="TimeGet"    max_number="1">
+        </port>
+
+        <!-- TODO: HEALTH -->
+
+    </ports>
+
+
+    <telemetry>
+        <channel id="0" name="RSSI" data_type="I8">
+            <comment>Received Signal Strength Indication abt WF121 connection to AP in dB</comment>
+        </channel>
+        <channel id="1" name="SNR" data_type="I8">
+            <comment>Signal to noise radio</comment>
+        </channel>
+        <channel id="2" name="PktRecv" data_type="U32">
+            <comment>Number of packets received (uplink)</comment>
+        </channel>
+        <channel id="3" name="PktSent" data_type="U32">
+            <comment>Number of packets sent (downlink)</comment>
+        </channel>
+		<channel id="4" name="WIFIErrorStatus" data_type="ENUM">
+		    <comment>Returned Error code of WIFI chip</comment>
+		    <!-- Matches `ErrorCode` from `Wf121.hpp` -->
+		    <enum name="WIFIErrorCode">
+				<item name="WEC_NO_ERROR" value="0" />
+				<item name="WEC_TRY_AGAIN" value="1" />
+				<item name="WEC_INVALID_PARAMETER" value="384" comment="This error code indicates that a command contained an invalid parameter" />
+				<item name="WEC_DEVICE_WRONG_STATE" value="385" comment="This error code indicates that the device is in wrong state to accept commands." />
+				<item name="WEC_OUT_OF_MEMORY" value="386" comment="This error indicates that the device has run out of memory." />
+				<item name="WEC_FEATURE_NOT_IMPLEMENTED" value="387" comment="This error indicates that the feature in question has not been implemented." />
+				<item name="WEC_COMMAND_NOT_RECOGNIZED" value="388" comment="This error indicates that the issued command was not recognized." />
+				<item name="WEC_TIMEOUT" value="389" comment="This error indicates that a command or procedure failed due to timeout.This error code is generated e.g. if you send an incomplete command to the Wi-Fi module - after the timeout of 1 second this error code is sent to the host transported by the event .endpoint_syntax_errorThis error code is generated also e.g. when the maximum number of retry attempts (10) to try to connect to a wireless network have been executed. A typical example of such a case might be when the issued password is invalid, in which case the error code is transported by the event .wifi_evt_sme_connect_failed" />
+				<item name="WEC_UNSPECIFIED_ERROR" value="390" comment="This error code is generated when an unspecified error is detected." />
+				<item name="WEC_HARDWARE_FAILURE" value="391" comment="This error code is generated when a hardware failure is detected." />
+				<item name="WEC_INTERNAL_BUFFER_FULL" value="392" comment="This error code is generated the a command was not accepted due to full internal buffers." />
+				<item name="WEC_DISCONNECTED" value="393" comment="This error code is generated when a command or procedure has failed due to disconnection." />
+				<item name="WEC_TOO_MANY_REQUEST" value="394" comment="This error code is generated when there are too many simultaneous requests." />
+				<item name="WEC_ACCESS_POINT_NOT_IN_SCANLIST" value="395" comment="This error code is generated when the defined Access Point is not found from the scanlist." />
+				<item name="WEC_INVALID_PASSWORD" value="396" comment="This error code is generated in the following cases:1) you try to connect to a secured network without setting the password or the password is too short2) you try to start a secured AP without setting the password or the password is too short3) you try to set a 64-character PSK with non-hex characters4) you try to set an invalid WEP key (invalid characters or invalid length)Notice that WPA does not contain any standard way for the Access Point to communicate to the station that the password is invalid. The Access Point just disconnects the client during authentication if the password is found invalid. Some stations take an educated guess that this probably means the password is incorrect. WF121 simply retries the authentication until it exceeds the maximum amount of retries (10) which then causes the 0x0185 Timeout Error." />
+				<item name="WEC_AUTHENTIFICATION_FAILURE" value="397" comment="This error code is generated when the WPA/WPA2 authentication has failed." />
+				<item name="WEC_OVERFLOW" value="398" comment="This error code is generated when an overflow has been detected." />
+				<item name="WEC_MULTIPLE_PBC_SESSIONS" value="399" comment="This error code is generated when multiple PBC (Push Button Configuration) sessions have been detected." />
+				<item name="WEC_ETHERNET_NOT_CONNECTED" value="400" comment="This error code is generated when the Ethernet cable is not connected" />
+				<item name="WEC_ETHERNET_ROUTE_NOT_SET" value="401" comment="This error code is generated if the Ethernet route is not set" />
+				<item name="WEC_WRONG_OPERATING_MODE" value="402" comment="This error code is generated if the operating mode is wrong for the issued command" />
+				<item name="WEC_WIFI_NOT_FOUND" value="403" comment="This error code is generated if the requested resource was not found." />
+				<item name="WEC_WIFI_NOT_ALREADY_EXIST" value="404" comment="This error is generated if the requested resource already exists." />
+				<item name="WEC_WIFI_INVALID_CONFIGURATION" value="405" comment="This error code is generated if the current configuration is invalid." />
+				<item name="WEC_WIFI_ACCESS_POINT_LOST" value="406" comment="This error code is generated if the connection to an Access Point is lost." />
+				<item name="WEC_PS_STORE_FULL" value="769" comment="This error is generated if the Flash which is reserved for the PS (Persistent Store) is full." />
+				<item name="WEC_PS_KEY_NOT_FOUND" value="770" comment="This error is generated if the PS key (Persistent Store key) was not found." />
+				<item name="WEC_I2C_WRITE_ALREADY_IN_PROGRESS" value="771" comment="This error is generated if I2C transmission was initiated while a transmission was already in progress." />
+				<item name="WEC_I2C_ACK_MISSING" value="772" comment="This error is generated if an acknowledgement for I2C was not received." />
+				<item name="WEC_FLASH_WRITE_FAILED" value="776" comment="This error code is generated if writing to Flash failed." />
+				<item name="WEC_FILE_NOT_OPENED" value="773" comment="This error code is generated if an access was attempted to an unopened file." />
+				<item name="WEC_FILE_NOT_FOUND" value="774" comment="This error code is generated if the requested file was not found in the SD card." />
+				<item name="WEC_DISK_ERROR" value="775" comment="This error code is generated if an SD card error was detected of if the SD card is full" />
+				<item name="WEC_TCP_IP_SUCCESS" value="512" comment="This code indicates that no error was detected." />
+				<item name="WEC_TCP_IP_OUT_OF_MEMORY" value="513" comment="This error code is generated when the system has run out of memory." />
+				<item name="WEC_TCP_IP_BUFFER_ERROR" value="514" comment="This error code is generated when handling of buffers has failed" />
+				<item name="WEC_TCP_IP_TIMEOUT" value="515" comment="This error code is generated when a timeout has been detected." />
+				<item name="WEC_TCP_IP_ROUTING" value="516" comment="This error code is generated when a route could not be found." />
+				<item name="WEC_TCP_IP_IN_PROGRESS" value="517" comment="This error code is generated when an operation is in progress" />
+				<item name="WEC_TCP_IP_ILLEGAL_VALUE" value="518" comment="This error code is generated when the issued value is deemed illegal." />
+				<item name="WEC_TCP_IP_WOULD_BLOCK" value="519" comment="This error code is generated when an operation blocks." />
+				<item name="WEC_TCP_IP_ADDRESS_IN_USE" value="520" comment="This error code is generated when the issued address is already in use" />
+				<item name="WEC_TCP_IP_ALREADY_CONNECTED" value="521" comment="This error code is generated when the Wi-Fi module is already connected" />
+				<item name="WEC_TCP_IP_CONNECTION_ABORTED" value="522" comment="This error code is generated when a connection is aborted." />
+				<item name="WEC_TCP_IP_CONNECTION_RESET" value="523" comment="This error code is generated when a connection has been reset" />
+				<item name="WEC_TCP_IP_CONNECTION_CLOSED" value="524" comment="This error code is generated when a connection has been closed." />
+				<item name="WEC_TCP_IP_NOT_CONNECTED" value="525" comment="This error code is generated when the Wi-Fi module is not connected." />
+				<item name="WEC_TCP_IP_ILLEGAL_ARGUMENT" value="526" comment="This error code is generated if an illegal argument was issued." />
+				<item name="WEC_TCP_IP_INTERFACE_LEVEL_ERROR" value="527" comment="This error code is generated if an interface error was detected" />
+				<item name="WEC_TCP_IP_UNKNOWN_HOST" value="640" comment="This error is generated if an unknown host is detected." />
+				<item name="WEC_SERVICE_NOT_RUNNING" value="528" comment="This error code is generated if the specified service is not running." />
+				<item name="WEC_SERVICE_RUNNING" value="529" comment="This error code is generated if the specified service is already running" />
+				<item name="WEC_HOSTNAME_NOT_SET" value="530" comment="This error code is generated if the hostname has not been set" />
+				<item name="WEC_HOSTNAME_CONFLICT" value="531" comment="This error code is generated if a hostname conflict was detected." />
+        	</enum>
+        </channel>
+         <channel id="5" name="WIFIStateStatus" data_type="ENUM">
+            <comment>Returned State Transition code of WIFI chip</comment>
+        		<!-- updated these to match `CubeRoverNetworkStateMachine` values since that's what gets cast -->
+                <enum name="WIFIState">
+                    <item name="UNINITIALIZED" />
+                    <item name="INITIALIZED" />
+                    <item name="WIFI_SLEEP" />
+                    <item name="WIFI_TURNING_ON" />
+                    <item name="WIFI_ON" />
+                    <item name="SCANNING" />
+                    <item name="SCANNED" />
+                    <item name="CONNECTING" />
+                    <item name="CONNECTED" />
+                    <item name="DISCONNECTING" />
+                    <item name="UDP_CONNECTED" />
+                </enum>
+        </channel>
+    </telemetry>
+
+    <events>
+        <event id="0" name="StateChange" severity="ACTIVITY_HI" format_string="WF121 State Changed %d -> %d">
+            <comment>Emit event when ever a state transition occurs within the WF121</comment>
+            <args>
+                <arg name="from_state" type="ENUM">
+                    <enum name="networkmanager_state_from">
+                        <item name="from_UNINITIALIZED"/>
+                        <item name="from_INITIALIZEED"/>
+                        <item name="from_WIFI_TURNING_ON"/>
+                        <item name="from_WIFI_ON"/>
+                        <item name="from_SCANNING"/>
+                        <item name="from_SCANNED"/>
+                        <item name="from_CONNECTING"/>
+                        <item name="from_CONNECTED"/>
+                        <item name="from_UDP_CONNECTED"/>
+                    </enum>
+                </arg>
+                <arg name="to_state" type="ENUM">
+                    <enum name="networkmanager_state_to">
+                        <item name="to_UNINITIALIZED"/>
+                        <item name="to_INITIALIZEED"/>
+                        <item name="to_WIFI_TURNING_ON"/>
+                        <item name="to_WIFI_ON"/>
+                        <item name="to_SCANNING"/>
+                        <item name="to_SCANNED"/>
+                        <item name="to_CONNECTING"/>
+                        <item name="to_CONNECTED"/>
+                        <item name="to_UDP_CONNECTED"/>
+                    </enum>
+                </arg>
+            </args>
+        </event>
+        <event id="1" name="ExecuteCallbackError" severity="WARNING_HI" format_string="ExecuteCallBackError %d">
+            <comment>Emit event when there is an error executing a WF121 callback</comment>
+            <args>
+                <arg name="ErrorCode" type="U16"/>
+            </args>
+        </event>
+        <event id="2" name="WF121InitializationFailed" severity="FATAL" format_string="WF121 Failed to initialize">
+            <comment>Emit event when there is an error executing a WF121 callback</comment>
+        </event>
+    </events>
+
+
+
+</component>

@@ -1,0 +1,10 @@
+Debug/
+.launches/
+targetConfigs/
+.settings/
+/Release/
+doc/
+/Debug__opt_for_speed__1/
+/Debug__opt_for_speed__4/
+/Debug_with_flag/
+/Debug_Radio_Flashing/

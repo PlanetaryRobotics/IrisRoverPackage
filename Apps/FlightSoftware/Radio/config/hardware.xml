@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<hardware>
+	<!-- CONFIG I/O PORTS: -->
+	<!-- NOTE: Per datasheet, config all unused pins as Output LOW to reduce leakage current and decrease EM susceptability: -->
+	
+	<!-- PORTB (1): -->
+	<!-- 	- CTS (RB8) is input -->
+	<!-- 	- RTS (RB14) is output, default latch HIGH, ODC 0 -->
+	<!-- all others OUT LOW -->
+	<port index="1" tristate="0x0100" latch="0x4000" open_drain="0x0000" />
+	
+	<!-- PORTC (2): -->
+	<!-- all OUT LOW -->
+	<port index="2" tristate="0x0000" latch="0x0000" open_drain="0x0000" />
+	
+	<!-- PORTD (3): -->
+	<!-- For endpoint allocation sake, we're defining and keeping active UART0 (U1), so: -->
+	<!-- 	- U1RX (RD2) is input -->
+	<!-- 	- U1TX (RD3) is output, default latch HIGH, ODC 0 -->
+	<!-- all others OUT LOW -->
+	<port index="3" tristate="0x0004" latch="0x0008" open_drain="0x0000" />
+
+	<!-- PORTE (4): -->
+	<!-- 	- WD_INT (RE2) is output, default latch LOW (not connected) -->
+	<!-- 	- RADIO_KICK (RE3) is input -->
+	<!-- all others OUT LOW -->
+	<port index="4" tristate="0x0008" latch="0x0000" open_drain="0x0000" />
+
+	<!-- PORTF (5): -->
+	<!-- 	- U2RX (RF4) is input -->
+	<!-- 	- U2TX (RF5) is output, default latch HIGH, ODC 0 -->
+	<!-- all others OUT LOW -->
+	<port index="5" tristate="0x0010" latch="0x0020" open_drain="0x0000" />
+
+	<!-- PORTG (6): -->
+	<!-- 	- RG2 and RG3 are marked as input only in the datasheet -->
+	<!-- all others OUT LOW -->
+	<port index="6" tristate="0x000C" latch="0x0000" open_drain="0x0000" />
+	<!-- NOTE: The stock (no <port> calls but still <uart> calls is):
+	port:b
+	TRIS       :bfff
+	LAT        :4000
+	ODC        :0
+	port:c
+	TRIS       :ffff
+	LAT        :0
+	ODC        :0
+	port:d
+	TRIS       :fff7
+	LAT        :8
+	ODC        :0
+	port:e
+	TRIS       :ffff
+	LAT        :0
+	ODC        :0
+	port:f
+	TRIS       :ffdf
+	LAT        :20
+	ODC        :0
+	port:g
+	TRIS       :ffff
+	LAT        :0
+	ODC        :0
+	-->
+	
+	<!-- CONFIG UART ENDPOINTS: -->
+	<uart channel="0" baud="115200" api="false" />
+	<uart channel="1" baud="115200" api="True" handshake="True" />
+</hardware>

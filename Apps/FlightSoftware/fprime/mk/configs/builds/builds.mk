@@ -1,0 +1,8 @@
+BUILDS := \
+	DARWIN \
+	LINUX \
+	CYGWIN \
+	RASPIAN \
+	RASPIAN-CROSS \
+	TIR4
+

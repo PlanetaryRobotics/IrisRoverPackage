@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>networkManager:NetworkManager Component Dictionary</title>
+</head>
+<body>
+
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+}
+th {
+    text-align: left;
+}
+html {
+    font-family: Arial, sans-serif ;
+    font-size: 90% ;
+}
+</style>
+
+<h1><b>Events: networkManager:NetworkManager</b></h1>
+
+<table>
+	<thead>
+		<tr style = "border-right: 2px solid black; border-left: 2px solid black; border-top: 2px solid black;">
+			<th rowspan = "2">Event Name</th>
+			<th rowspan = "2">ID</th>
+			<th rowspan = "2">Description</th>
+			<th rowspan = "1" colspan = "4">Arguments</th>
+		</tr>
+		<tr style = "border-right: 2px solid black; ">
+			<th>Argument</th>
+			<th>Type</th>
+			<th>Size</th>
+			<th>Description</th>
+		<tr>
+	</thead>
+	<tbody>
+
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">StateChange</td>
+			<td rowspan="3">2560 (0xa00)</td>
+			<td rowspan="3">Emit event when ever a state transition occurs within the WF121</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>from_state</td>
+						<td>networkmanager_state_from</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>to_state</td>
+						<td>networkmanager_state_to</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">ExecuteCallbackError</td>
+			<td rowspan="2">2561 (0xa01)</td>
+			<td rowspan="2">Emit event when there is an error executing a WF121 callback</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>ErrorCode</td>
+						<td>U16</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">WF121InitializationFailed</td>
+			<td rowspan="1">2562 (0xa02)</td>
+			<td rowspan="1">Emit event when there is an error executing a WF121 callback</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+	</tbody>
+</table>
+
+</body>
+</html>

@@ -132,8 +132,8 @@
                     <item name="NM_BOOT" value="0x10" comment="Booted but hasn't initialized its state_driver yet." />
                     <item name="NM_INIT" value="0x20" comment="In the initial state but WiFi radio isn't powered up yet." />
                     <item name="NM_WIFI_ON" value="0x30" comment="Radio hardware (power amplifier) has turned on successfully - radio has enough power to work." />
-                    <item name="NM_CONNECTED" value="0x40" comment="Radio is connected to the network (ARP, etc) but UDP client & socket aren't active yet." />
-                    <item name="NM_UDP_CONNECTED" value="0x50" comment="UDP client & socket are active. Radio is ready to communicate." />
+                    <item name="NM_CONNECTED" value="0x40" comment="Radio is connected to the network (ARP, etc) but UDP client &amp; socket aren't active yet." />
+                    <item name="NM_UDP_CONNECTED" value="0x50" comment="UDP client &amp; socket are active. Radio is ready to communicate." />
                 </enum>
         </channel>
     </telemetry>
@@ -150,8 +150,8 @@
                         <item name="from_BOOT" value="0x10" comment="Booted but hasn't initialized its state_driver yet." />
                         <item name="from_INIT" value="0x20" comment="In the initial state but WiFi radio isn't powered up yet." />
                         <item name="from_WIFI_ON" value="0x30" comment="Radio hardware (power amplifier) has turned on successfully - radio has enough power to work." />
-                        <item name="from_CONNECTED" value="0x40" comment="Radio is connected to the network (ARP, etc) but UDP client & socket aren't active yet." />
-                        <item name="from_UDP_CONNECTED" value="0x50" comment="UDP client & socket are active. Radio is ready to communicate." />
+                        <item name="from_CONNECTED" value="0x40" comment="Radio is connected to the network (ARP, etc) but UDP client &amp; socket aren't active yet." />
+                        <item name="from_UDP_CONNECTED" value="0x50" comment="UDP client &amp; socket are active. Radio is ready to communicate." />
                     </enum>
                 </arg>
                 <arg name="to_state" type="ENUM">
@@ -162,8 +162,8 @@
                         <item name="to_BOOT" value="0x10" comment="Booted but hasn't initialized its state_driver yet." />
                         <item name="to_INIT" value="0x20" comment="In the initial state but WiFi radio isn't powered up yet." />
                         <item name="to_WIFI_ON" value="0x30" comment="Radio hardware (power amplifier) has turned on successfully - radio has enough power to work." />
-                        <item name="to_CONNECTED" value="0x40" comment="Radio is connected to the network (ARP, etc) but UDP client & socket aren't active yet." />
-                        <item name="to_UDP_CONNECTED" value="0x50" comment="UDP client & socket are active. Radio is ready to communicate." />
+                        <item name="to_CONNECTED" value="0x40" comment="Radio is connected to the network (ARP, etc) but UDP client &amp; socket aren't active yet." />
+                        <item name="to_UDP_CONNECTED" value="0x50" comment="UDP client &amp; socket are active. Radio is ready to communicate." />
                     </enum>
                 </arg>
             </args>

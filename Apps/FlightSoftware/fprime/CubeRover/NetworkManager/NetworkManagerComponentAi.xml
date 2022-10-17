@@ -128,7 +128,7 @@
                 <enum name="WIFIState">
                     <!--This enum should be synced up with Wf121::DirectMessage::RadioSwState. Actual conversion to this downlink-type happens in `NetworkManagerComponentImpl::convertRadioState2WifiState` though.-->
                     <item name="NM_NONE" value="0x00" comment="None (we haven't received any state update yet)." />
-                    <item name="NM_BAD_MESSAGE" value="0x0F"comment="The last state update from the Radio contained a valid message header but the body was corrupted (didn't match any known message). Bad state message was received (we don't know what's really going on inside the Radio rn)." />
+                    <item name="NM_BAD_MESSAGE" value="0x0F" comment="The last state update from the Radio contained a valid message header but the body was corrupted (didn't match any known message). Bad state message was received (we don't know what's really going on inside the Radio rn)." />
                     <item name="NM_BOOT" value="0x10" comment="Booted but hasn't initialized its state_driver yet." />
                     <item name="NM_INIT" value="0x20" comment="In the initial state but WiFi radio isn't powered up yet." />
                     <item name="NM_WIFI_ON" value="0x30" comment="Radio hardware (power amplifier) has turned on successfully - radio has enough power to work." />
@@ -146,7 +146,7 @@
                     <enum name="networkmanager_state_from">
                         <!--NOTE: This enum NEEDS to be synced up with WIFIState enum (same values for each concept, names can be and need to be different). If it's not, Ground won't be able to parse these messages.-->
                         <item name="from_NONE" value="0x00" comment="None (we haven't received any state update yet)." />
-                        <item name="from_BAD_MESSAGE" value="0x0F"comment="The last state update from the Radio contained a valid message header but the body was corrupted (didn't match any known message). Bad state message was received (we don't know what's really going on inside the Radio rn)." />
+                        <item name="from_BAD_MESSAGE" value="0x0F" comment="The last state update from the Radio contained a valid message header but the body was corrupted (didn't match any known message). Bad state message was received (we don't know what's really going on inside the Radio rn)." />
                         <item name="from_BOOT" value="0x10" comment="Booted but hasn't initialized its state_driver yet." />
                         <item name="from_INIT" value="0x20" comment="In the initial state but WiFi radio isn't powered up yet." />
                         <item name="from_WIFI_ON" value="0x30" comment="Radio hardware (power amplifier) has turned on successfully - radio has enough power to work." />
@@ -158,7 +158,7 @@
                     <enum name="networkmanager_state_to">
                         <!--NOTE: This enum NEEDS to be synced up with WIFIState enum (same values for each concept, names can be and need to be different). If it's not, Ground won't be able to parse these messages.-->
                         <item name="to_NONE" value="0x00" comment="None (we haven't received any state update yet)." />
-                        <item name="to_BAD_MESSAGE" value="0x0F"comment="The last state update from the Radio contained a valid message header but the body was corrupted (didn't match any known message). Bad state message was received (we don't know what's really going on inside the Radio rn)." />
+                        <item name="to_BAD_MESSAGE" value="0x0F" comment="The last state update from the Radio contained a valid message header but the body was corrupted (didn't match any known message). Bad state message was received (we don't know what's really going on inside the Radio rn)." />
                         <item name="to_BOOT" value="0x10" comment="Booted but hasn't initialized its state_driver yet." />
                         <item name="to_INIT" value="0x20" comment="In the initial state but WiFi radio isn't powered up yet." />
                         <item name="to_WIFI_ON" value="0x30" comment="Radio hardware (power amplifier) has turned on successfully - radio has enough power to work." />

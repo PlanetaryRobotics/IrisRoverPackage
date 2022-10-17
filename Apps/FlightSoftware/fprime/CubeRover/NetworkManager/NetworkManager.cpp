@@ -116,29 +116,29 @@ namespace CubeRover
         switch (state)
         {
         case Wf121::DirectMessage::RadioSwState::NONE:
-            return WIFIState::NM_NONE;
+            return WIFIState::nm_NONE;
 
         case Wf121::DirectMessage::RadioSwState::BAD_MESSAGE:
-            return WIFIState::NM_BAD_MESSAGE;
+            return WIFIState::nm_BAD_MESSAGE;
 
         case Wf121::DirectMessage::RadioSwState::BOOT:
-            return WIFIState::NM_BOOT;
+            return WIFIState::nm_BOOT;
 
         case Wf121::DirectMessage::RadioSwState::INIT:
-            return WIFIState::NM_INIT;
+            return WIFIState::nm_INIT;
 
         case Wf121::DirectMessage::RadioSwState::WIFI_ON:
-            return WIFIState::NM_WIFI_ON;
+            return WIFIState::nm_WIFI_ON;
 
         case Wf121::DirectMessage::RadioSwState::CONNECTED:
-            return WIFIState::NM_CONNECTED;
+            return WIFIState::nm_CONNECTED;
 
         case Wf121::DirectMessage::RadioSwState::UDP_CONNECTED:
-            return WIFIState::NM_UDP_CONNECTED;
+            return WIFIState::nm_UDP_CONNECTED;
 
         // Bad state (we don't know what's really going on inside the Radio rn):
         default:
-            return WIFIState::NM_BAD_MESSAGE;
+            return WIFIState::nm_BAD_MESSAGE;
         }
     }
 

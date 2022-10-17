@@ -394,7 +394,10 @@ def send_console_command(pathway: DataPathway, magic: Magic, command_name: str, 
     # Try to convert any args to int (since they all would have come in as str):
     for arg_name, arg_val in kwargs.items():
         try:
-            kwargs[arg_name] = int(arg_val, base=0)
+            if isinstance(arg_val, int):
+                kwargs[arg_name] = arg_val
+            else:
+                kwargs[arg_name] = int(str(arg_val), base=0)
         except ValueError:
             pass  # this one's not convertible, that's fine
 

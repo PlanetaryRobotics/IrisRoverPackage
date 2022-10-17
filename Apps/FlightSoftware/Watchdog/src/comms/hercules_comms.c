@@ -1,10 +1,13 @@
 #include <assert.h>
 #include <string.h>
+#include <msp430.h>
 
+#include "comms/debug_comms.h"
 #include "comms/hercules_comms.h"
 #include "common.h"
 #include "comms/hercules_mpsm.h"
 #include "comms/ip_udp.h"
+#include "utils/time.h"
 
 //###########################################################
 // Private types
@@ -129,6 +132,7 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
                                                    void* userArg)
 {
     static uint8_t uartRxData[64] = { 0 };
+    static size_t numZerosInARowFromUart = 0;
  
     if (NULL == hState || NULL == userArg) {
         return HERCULES_COMMS__STATUS__ERROR_NULL;
@@ -141,7 +145,11 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
     HerculesComms__Status returnStatus = HERCULES_COMMS__STATUS__SUCCESS;
     BOOL tryToGetMoreData = TRUE;
 
-    while (tryToGetMoreData) {
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + 100; // One second timeout
+
+    while (tryToGetMoreData && currentTimeCentiseconds <= endTimeCentiseconds) {
         // Zero out the static buffer on each iteration for easier debugging
         memset(uartRxData, 0, SIZE_OF_ARRAY(uartRxData));
 
@@ -155,6 +163,25 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
         if (UART__STATUS__SUCCESS != uartStatus) {
             return HERCULES_COMMS__STATUS__ERROR_UART_RX_FAILURE;
         }     
+
+        if (numReceived != 0) {
+            //DebugComms__tryPrintfToLanderNonblocking("Got %d bytes of msg data from Hercules\n", (int)numReceived);
+        }
+
+        for (size_t i = 0; i < numReceived; ++i) {
+            if (uartRxData[i] == 0) {
+                numZerosInARowFromUart++;
+            } else {
+                if (numZerosInARowFromUart > 15) {
+                    size_t isrZerosCount = 0;
+                    UART__checkRxZerosMaxCountSinceLastCheck(hState->uartState, &isrZerosCount);
+                    DebugComms__tryPrintfToLanderNonblocking("Got %d zeros from Herc (isr: %d)\n",
+                                                             (int) numZerosInARowFromUart, (int) isrZerosCount);
+                }
+
+                numZerosInARowFromUart = 0;
+            }
+        }
 
         // Iterate through all data, adding it to the hercules mpsm until packet data has been found or
         // we use up all of the data from the UART
@@ -171,6 +198,8 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
 
                 resetMpsmMsg = TRUE;
             } else if (HERCULES_MPSM__STATUS__NEED_MORE_DATA != mpsmStatus) {
+                DebugComms__tryPrintfToLanderNonblocking("Unexpected return value from HerculesMpsm__process: %d "
+                                                         "in HerculesComms__tryGetMessage\n", mpsmStatus);
                 // Some kind of unexpected error occurred. At a minimum we need to reset the MPSM
                 resetMpsmMsg = TRUE;
                 numReceived = 0;
@@ -181,6 +210,9 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
                 mpsmStatus = HerculesMpsm__initMsg(&(hState->herculesMsg));
 
                 if (HERCULES_MPSM__STATUS__SUCCESS != mpsmStatus) {
+                    DebugComms__tryPrintfToLanderNonblocking("Unexpected return value from HerculesMpsm__initMsg: %d "
+                                                             "in HerculesComms__tryGetMessage\n", mpsmStatus);
+
                     // Don't overwrite an existing error return status with this one, but if we haven't had an
                     // error before now then set our return status to indicate this failure.
                     if (HERCULES_COMMS__STATUS__SUCCESS == returnStatus) {
@@ -195,6 +227,11 @@ HerculesComms__Status HerculesComms__tryGetMessage(HerculesComms__State* hState,
 
         // Call receive again if our buffer for getting data from the uart was saturated with data in the last call.
         tryToGetMoreData = (numReceived == SIZE_OF_ARRAY(uartRxData));
+        currentTimeCentiseconds = Time__getTimeInCentiseconds();
+    }
+
+    if (currentTimeCentiseconds > endTimeCentiseconds) {
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in HerculesComms__tryGetMessage\n");
     }
 
     return returnStatus;
@@ -213,6 +250,20 @@ HerculesComms__Status HerculesComms__txUplinkMsg(HerculesComms__State* hState, c
                                         0,
                                         hState->uplinkSequenceNumber++,
                                         (uint16_t) HERCULES_COMMS__MSG_OPCODE__UPLINK,
+                                        data,
+                                        dataLen);
+}
+
+HerculesComms__Status HerculesComms__txDownlinkData(HerculesComms__State* hState, const uint8_t* data, size_t dataLen)
+{
+    if (dataLen == 0) {
+        return HERCULES_COMMS__STATUS__ERROR_BUFFER_TOO_SMALL;
+    }
+
+    return HerculesComms__txHerculesMsg(hState,
+                                        0,
+                                        hState->uplinkSequenceNumber++,
+                                        (uint16_t) HERCULES_COMMS__MSG_OPCODE__WIFI_DOWNLINK,
                                         data,
                                         dataLen);
 }
@@ -257,7 +308,11 @@ HerculesComms__Status HerculesComms__resetState(HerculesComms__State* hState)
     size_t numReceived = 1;
 
     //!< @todo Do we want to add a timeout to this loop?
-    while (numReceived > 0) {
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + 100; // One second timeout
+
+    while (numReceived > 0 && currentTimeCentiseconds <= endTimeCentiseconds) {
         UART__Status uartStatus = UART__receive(hState->uartState,
                                                 uartRxData,
                                                 SIZE_OF_ARRAY(uartRxData),
@@ -266,6 +321,12 @@ HerculesComms__Status HerculesComms__resetState(HerculesComms__State* hState)
         if (UART__STATUS__SUCCESS != uartStatus) {
             return HERCULES_COMMS__STATUS__ERROR_UART_RX_FAILURE;
         }
+
+        currentTimeCentiseconds = Time__getTimeInCentiseconds();
+    }
+
+    if (currentTimeCentiseconds > endTimeCentiseconds) {
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in HerculesComms__resetState\n");
     }
 
     HerculesMpsm__Status mpsmStatus = HerculesMpsm__reset(&(hState->herculesMsg));
@@ -273,6 +334,103 @@ HerculesComms__Status HerculesComms__resetState(HerculesComms__State* hState)
     if (HERCULES_MPSM__STATUS__SUCCESS != mpsmStatus) {
         return HERCULES_COMMS__STATUS__ERROR_MPSM_RESET_FAILURE;
     }
+
+    return HERCULES_COMMS__STATUS__SUCCESS;
+}
+
+HerculesComms__Status HerculesComms__txDownlinkDataUntilSendOrTimeout(HerculesComms__State* hcState,
+                                                                      const uint8_t* data,
+                                                                      size_t dataLen,
+                                                                      uint16_t timeoutInCentiseconds)
+{
+    DEBUG_LOG_NULL_CHECK_RETURN(hcState, "Arg is NULL", HERCULES_COMMS__STATUS__ERROR_NULL);
+    DEBUG_LOG_NULL_CHECK_RETURN(data, "Arg is NULL", HERCULES_COMMS__STATUS__ERROR_NULL);
+
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + timeoutInCentiseconds;
+    static size_t txDurations[10] = { 0 };
+
+    memset(txDurations, 0, sizeof(txDurations));
+    size_t i = 0;
+
+    HerculesComms__Status hcStatus = HERCULES_COMMS__STATUS__SUCCESS;
+    BOOL timeout = FALSE;
+
+    do {
+        uint16_t txStartCentiseconds = Time__getTimeInCentiseconds();
+        hcStatus = HerculesComms__txHerculesMsg(hcState,
+                                            0,
+                                            hcState->uplinkSequenceNumber++,
+                                            (uint16_t) HERCULES_COMMS__MSG_OPCODE__WIFI_DOWNLINK,
+                                            data,
+                                            dataLen);
+        uint16_t txEndCentiseconds = Time__getTimeInCentiseconds();
+
+        if (i < 10) {
+            txDurations[i] = txEndCentiseconds - txStartCentiseconds;
+            i++;
+        }
+
+        __delay_cycles(1000);
+        //OLD: WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;
+        WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__SMCLK + WDTIS0;
+        __enable_interrupt(); // Make sure interrupts aren't disabled so that we get clock updates
+        currentTimeCentiseconds = Time__getTimeInCentiseconds();
+        timeout = currentTimeCentiseconds > endTimeCentiseconds;
+    } while (hcStatus == HERCULES_COMMS__STATUS__ERROR_TX_OVERFLOW && !timeout);
+
+    if (timeout) {
+        __no_operation();
+        return HERCULES_COMMS__STATUS__ERROR_TIMEOUT;
+    } else {
+        return hcStatus;
+    }
+}
+
+HerculesComms__Status HerculesComms__flushTx(HerculesComms__State* hState)
+{
+    if (NULL == hState) {
+        return HERCULES_COMMS__STATUS__ERROR_NULL;
+    }
+
+    if (!hState->initialized) {
+        return HERCULES_COMMS__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    UART__flushTx(hState->uartState);
+
+    return HERCULES_COMMS__STATUS__SUCCESS;
+}
+
+BOOL HerculesComms__isInitialized(HerculesComms__State* hState)
+{
+    if (NULL == hState) {
+        return FALSE;
+    }
+
+    return hState->initialized;
+}
+
+HerculesComms__Status HerculesComms__uninitialize(HerculesComms__State** hState)
+{
+    if (NULL == hState || NULL == *hState) {
+        return HERCULES_COMMS__STATUS__ERROR_NULL;
+    }
+
+    if (!(*hState)->initialized) {
+        return HERCULES_COMMS__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    HerculesComms__Status status = HerculesComms__resetState(*hState);
+    if (HERCULES_COMMS__STATUS__SUCCESS != status) {
+        DebugComms__tryPrintfToLanderNonblocking("Unexpected return value from HerculesComms__resetState: %d "
+                                                 "in HerculesComms__uninitialize\n", status);
+    }
+
+    (*hState)->uartState = NULL;
+    (*hState)->initialized = FALSE;
+    *hState = NULL;
 
     return HERCULES_COMMS__STATUS__SUCCESS;
 }
@@ -321,7 +479,7 @@ static HerculesComms__Status HerculesComms__txHerculesMsg(HerculesComms__State* 
                                                             hState->headerSerializationBuffer,
                                                             sizeof(hState->headerSerializationBuffer));
 
-    assert(HERC_MSGS__STATUS__SUCCESS == hMsgStatus);
+    DEBUG_ASSERT_EQUAL(HERC_MSGS__STATUS__SUCCESS, hMsgStatus);
 
     // Insert the header into the UART tx ring buffer
     HerculesComms__Status hStatus = HerculesComms__transmitBuffer(hState,

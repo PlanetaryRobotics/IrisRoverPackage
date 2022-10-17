@@ -5,7 +5,9 @@
  *      Author: mschnur
  */
 
+#include "comms/debug_comms.h"
 #include "drivers/i2c.h"
+#include "utils/time.h"
 #include "common.h"
 #include <string.h>
 
@@ -117,50 +119,60 @@ I2C__Status I2C__getTransactionStatus(I2C__TransactionStatus* tStatus)
 
 void I2C__spinOnce(void)
 {
-    BOOL done = FALSE;
+    BOOL continueSpinning = TRUE;
 
-    while (!done) {
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + 5; // 0.05 second timeout
+
+    while (continueSpinning && currentTimeCentiseconds <= endTimeCentiseconds) {
         switch (theStatus.state) {
             case I2C__TRANSACTION__UNKNOWN:
                 // We haven't started a transaction
-                done = TRUE;
+                continueSpinning = FALSE;
                 break;
 
             case I2C__TRANSACTION__WAIT_FOR_STOP:
-                done = I2C__waitForStop();
+                continueSpinning = I2C__waitForStop();
                 break;
 
             case I2C__TRANSACTION__TX_START:
-                done = I2C__txStart();
+                continueSpinning = I2C__txStart();
                 break;
 
             case I2C__TRANSACTION__CONFIRM_START:
-                done = I2C__confirmStart();
+                continueSpinning = I2C__confirmStart();
                 break;
 
             case I2C__TRANSACTION__TX_REG_ADDRESS:
-                done = I2C__txRegAddress();
+                continueSpinning = I2C__txRegAddress();
                 break;
 
             case I2C__TRANSACTION__TX_DATA:
-                done = I2C__txData();
+                continueSpinning = I2C__txData();
                 break;
 
             case I2C__TRANSACTION__RX_START:
-                done = I2C__rxStart();
+                continueSpinning = I2C__rxStart();
                 break;
 
             case I2C__TRANSACTION__RX_DATA_AND_STOP:
-                done = I2C__rxDataAndStop();
+                continueSpinning = I2C__rxDataAndStop();
                 break;
 
             case I2C__TRANSACTION__DONE_SUCCESS: // fall through
             case I2C__TRANSACTION__DONE_ERROR_NACK: // fall through
             default:
-                done = TRUE;
+                continueSpinning = FALSE;
                 break;
 
         }
+
+        currentTimeCentiseconds = Time__getTimeInCentiseconds();
+    }
+
+    if (currentTimeCentiseconds > endTimeCentiseconds) {
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in I2C__spinOnce, state: %d\n", (int)theStatus.state);
     }
 }
 

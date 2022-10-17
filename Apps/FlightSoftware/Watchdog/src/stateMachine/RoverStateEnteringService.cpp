@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include "drivers/bsp.h"
+
 namespace iris
 {
     RoverStateEnteringService::RoverStateEnteringService()
@@ -19,12 +21,6 @@ namespace iris
         // We want to handle Hercules data as normal in this state, so revert back to the implementation in the base
         // state class.
         return RoverStateBase::handleHerculesData(theContext);
-    }
-
-    RoverState RoverStateEnteringService::handleHighTemp(RoverContext& /*theContext*/)
-    {
-        //!< @todo Implement RoverStateEnteringService::handleHighTemp
-        return getState();
     }
 
     RoverState RoverStateEnteringService::handlePowerIssue(RoverContext& /*theContext*/)
@@ -46,6 +42,10 @@ namespace iris
     RoverState RoverStateEnteringService::transitionTo(RoverContext& theContext)
     {
         *(theContext.m_persistentInMission) = false;
+
+        // Enable the falling edge interrupt for WD_INT (should be done after unlocking LOCKLPM5 per slau367p section 12.3.2)
+        enableWdIntFallingEdgeInterrupt();
+
         return RoverState::SERVICE;
     }
 

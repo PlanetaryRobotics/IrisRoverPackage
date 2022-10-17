@@ -1,20 +1,29 @@
+// ======================================================================
+// \title  i2c.h
+// \author cedric
+// \edited by Jonathan
+// \brief  header file for i2c interface between MSP430 motor controller
+//         (this device) and the Hercules microcontroller
+//
+// ======================================================================
+
 #ifndef I2C_H_
 #define I2C_H_
+
+// variables for i2c functionality
+#define I2C_RX_BUFFER_MAX_SIZE      8
+#define I2C_TX_BUFFER_MAX_SIZE      8
+#define I2C_MAX_DATA_SIZE           4
+#define I2C_SLAVE_ADDRESS           0x48
+#define I2C_PACKET_HEADER           0xAA
 
 #include "driverlib.h"
 #include "main.h"
 
-#define I2C_RX_BUFFER_MAX_SIZE      8
-#define I2C_TX_BUFFER_MAX_SIZE      8
-
-#define I2C_MAX_DATA_SIZE           4
-
-#define I2C_SLAVE_ADDRESS               0x48
-#define I2C_PACKET_HEADER               0xAA
-
+// Register ids for i2c communication with Hercules
 typedef enum I2cRegisterIds{
     I2C_ADDRESS = 0,
-    RELATIVE_TARGET_POSITION = 1,
+    TARGET_POSITION = 1,
     TARGET_SPEED = 2,
     CURRENT_POSITION = 3,
     CURRENT_SPEED = 4,
@@ -28,31 +37,19 @@ typedef enum I2cRegisterIds{
     CONTROL_REGISTER = 12,
     STATUS_REGISTER = 13,
     FAULT_REGISTER = 14,
+    CLEAR_FAULT_REGISTER = 15,
     MAX_NB_CMDS = 15
 }I2cRegisterIds;
 
+// Different modes for i2c functionality
+//  _REG_ADDRESS_MODE -> receiving register id from Hercules that it wants to interact with
+//  _DATA_MODE        -> ready to write or read bytes of data to/from Herules
 typedef enum I2cMode{
-    IDLE_MODE,
-    NACK_MODE,
-    TX_REG_ADDRESS_MODE,
-    RX_REG_ADDRESS_MODE,
-    TX_DATA_MODE,
-    RX_DATA_MODE,
-    SWITCH_TO_RX_MODE,
-    SWITCH_TO_TX_MODE,
-    TIMEOUT_MODE
+    RX_REG_ADDRESS_MODE = 0,
+    TX_DATA_MODE = 1,
+    RX_DATA_MODE = 2
 }I2cMode;
 
-
-typedef struct I2cPacket{
-    uint8_t header;
-    uint8_t dataSize;
-    uint8_t regId;
-    uint8_t data[I2C_MAX_DATA_SIZE];
-
-}I2cPacket;
-
-bool readI2cData(I2cPacket *pckt);
 void initializeI2cModule();
 
 #endif /* I2C_H_ */

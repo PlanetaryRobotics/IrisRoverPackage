@@ -12,7 +12,7 @@
 #define WATCHDOG_RX_TASK__MAX_NUM_CALLBACKS 1
 
 namespace CubeRover
-{   
+{
     /**
      * @brief Defines the contract (i.e. interface) that must be implemented (via subclassing) by classes
      *        that want to receive callbacks from the WatchDogRxTask with received messages.
@@ -22,14 +22,16 @@ namespace CubeRover
      */
     class WatchDogRxCallbackProcessor
     {
-        public:
-            /**
-             * @brief The callback invoked by the `WatchDogRxTask` when it has received a message.
-             *
-             * @param msg The parsed message received from the MSP430 watchdog.
-             * @param goodParity Whether or not `msg` passed its parity check. If false, `msg` will contain only a header.
-             */
-            virtual void rxCallback(WatchDogMpsm::Message& msg, bool goodParity) = 0;
+    public:
+        /**
+         * @brief The callback invoked by the `WatchDogRxTask` when it has received a message.
+         *
+         * @param msg The parsed message received from the MSP430 watchdog.
+         * @param goodParity Whether or not `msg` passed its parity check. If false, `msg` will contain only a header.
+         */
+        virtual void rxCallback(WatchDogMpsm::Message &msg, bool goodParity) = 0;
+
+        virtual ~WatchDogRxCallbackProcessor() = default;
     };
 
     /**
@@ -49,88 +51,89 @@ namespace CubeRover
      */
     class WatchDogRxTask : public ::Os::Task
     {
-        public:
-            /**
-             * @brief Constructor. Does not start the task.
-             */
-            explicit WatchDogRxTask();
+    public:
+        /**
+         * @brief Constructor. Does not start the task.
+         */
+        explicit WatchDogRxTask();
 
-            /**
-             * @brief Destructor. Stops the task if it is currently running.
-             */
-            ~WatchDogRxTask();
+        /**
+         * @brief Destructor. Stops the task if it is currently running.
+         */
+        ~WatchDogRxTask();
 
-            /**
-             * @brief Starts the FreeRTOS task that underlies this object.
-             *
-             * @param priority The priority to use for the task being started.
-             * @param stackSize The stack size to use for the task being started.
-             * @param cpuAffinity The CPU affinity to use for the task being started, or -1 to have no affinity.
-             *
-             * @return The status of starting the task.
-             */
-            ::Os::Task::TaskStatus startTask(NATIVE_INT_TYPE priority,
-                                             NATIVE_INT_TYPE stackSize,
-                                             NATIVE_INT_TYPE cpuAffinity = -1); //!< start the task
+        /**
+         * @brief Starts the FreeRTOS task that underlies this object.
+         *
+         * @param priority The priority to use for the task being started.
+         * @param stackSize The stack size to use for the task being started.
+         * @param cpuAffinity The CPU affinity to use for the task being started, or -1 to have no affinity.
+         *
+         * @return The status of starting the task.
+         */
+        ::Os::Task::TaskStatus startTask(NATIVE_INT_TYPE priority,
+                                         NATIVE_INT_TYPE stackSize,
+                                         NATIVE_INT_TYPE cpuAffinity = -1); //!< start the task
 
-            /**
-             * @brief Registers the given object as a callback to be invoked once a message is recieved and parsed.
-             *
-             * @param callback The callback object to register.
-             *
-             * @return True if the registration succeeded, otherwise false.
-             */
-            bool registerCallback(WatchDogRxCallbackProcessor* callback);
+        /**
+         * @brief Registers the given object as a callback to be invoked once a message is received and parsed.
+         *
+         * @param callback The callback object to register.
+         *
+         * @return True if the registration succeeded, otherwise false.
+         */
+        bool registerCallback(WatchDogRxCallbackProcessor *callback);
 
-        private:
-            /**
-             * The array containing callbacks to be invoked upon receiving and parsing a message.
-             */
-            WatchDogRxCallbackProcessor* m_callbacks[WATCHDOG_RX_TASK__MAX_NUM_CALLBACKS];
+        void printRxUpdates();
 
-            /**
-             * The number of indices in `m_callbacks` that contain callbacks.
-             */
-            size_t m_numCallbacksRegistered;
+    private:
+        /**
+         * The array containing callbacks to be invoked upon receiving and parsing a message.
+         */
+        WatchDogRxCallbackProcessor *m_callbacks[WATCHDOG_RX_TASK__MAX_NUM_CALLBACKS];
 
-            /**
-             * The message parsing state machine that informs this task how to behave in order to properly receive
-             * messages from the MSP430 watchdog.
-             */
-            WatchDogMpsm m_mpsm;
+        /**
+         * The number of indices in `m_callbacks` that contain callbacks.
+         */
+        size_t m_numCallbacksRegistered;
 
-            /**
-             * Whether or not the task should keep running. The main loop in the task thread is controlled by this.
-             */
-            bool m_keepRunning;
+        /**
+         * The message parsing state machine that informs this task how to behave in order to properly receive
+         * messages from the MSP430 watchdog.
+         */
+        WatchDogMpsm m_mpsm;
 
-            /**
-             * Whether or not the task has been started. Only used to prevent calling start(...) after it has already
-             * been called before.
-             */
-            bool m_isRunning;
+        /**
+         * Whether or not the task should keep running. The main loop in the task thread is controlled by this.
+         */
+        bool m_keepRunning;
 
-            /**
-             * The buffer to used for holding the payload of messages received from the MSP430 watchdog.
-             */
-            uint8_t m_dataBuffer[WATCHDOG_MAX_PAYLOAD] __attribute__((aligned(8)));
+        /**
+         * Whether or not the task has been started. Only used to prevent calling start(...) after it has already
+         * been called before.
+         */
+        bool m_isRunning;
 
-            /**
-             * The function that implements the task thread.
-             *
-             * @param arg The argument to the thread, which in this case will be the `this` pointer for this object.
-             */
-            static void rxHandlerTaskFunction(void* arg);
+        /**
+         * The buffer to used for holding the payload of messages received from the MSP430 watchdog.
+         */
+        uint8_t m_dataBuffer[WATCHDOG_MAX_PAYLOAD] __attribute__((aligned(8)));
 
-            /**
-             * Simply iterates through `m_callbacks` and calls all callbacks with the given parameters.
-             *
-             * @param msg The received message.
-             * @param goodParity Whether or not `msg` passed its parity check.
-             */
-            void callAllCallbacks(WatchDogMpsm::Message& msg, bool goodParity);
+        /**
+         * The function that implements the task thread.
+         *
+         * @param arg The argument to the thread, which in this case will be the `this` pointer for this object.
+         */
+        static void rxHandlerTaskFunction(void *arg);
+
+        /**
+         * Simply iterates through `m_callbacks` and calls all callbacks with the given parameters.
+         *
+         * @param msg The received message.
+         * @param goodParity Whether or not `msg` passed its parity check.
+         */
+        void callAllCallbacks(WatchDogMpsm::Message &msg, bool goodParity);
     };
-
 
 } // end namespace CubeRover
 

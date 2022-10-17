@@ -13,6 +13,8 @@ extern "C"
 {
 #endif
 
+#define MANUALLY_CONSTRUCT_REPORT
+
 typedef enum GroundMsgs__Status
 {
     GND_MSGS__STATUS__SUCCESS = 0, /* Operation succeeded. */
@@ -164,7 +166,8 @@ GroundMsgs__Status GroundMsgs__generateFullEarthHeartbeat(I2C_Sensors__Readings*
 GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings* i2cReadings,
                                                       AdcValues* adcValues,
                                                       WatchdogStateDetails* details,
-                                                      DetailedReport* hb);
+                                                      DetailedReport* hb,
+                                                      uint8_t* reportBuffer);
 
 #ifdef __cplusplus
 } /* close extern "C" */

@@ -21,9 +21,11 @@ namespace iris
             // The functions to handle events
             virtual RoverState handleLanderData(RoverContext& theContext);
             virtual RoverState handleHerculesData(RoverContext& theContext);
+            virtual RoverState handleHighTemp(RoverContext& theContext);
+            virtual RoverState handleWdIntRisingEdge(RoverContext& theContext);
+            virtual RoverState handleWdIntFallingEdge(RoverContext& theContext);
 
             virtual RoverState handleTimerTick(RoverContext& theContext) = 0;
-            virtual RoverState handleHighTemp(RoverContext& theContext) = 0;
             virtual RoverState handlePowerIssue(RoverContext& theContext) = 0;
             virtual RoverState spinOnce(RoverContext& theContext) = 0;
 
@@ -37,6 +39,11 @@ namespace iris
             static void landerMsgCallback(uint8_t* rxDataBuffer, size_t rxDataLen, void* userArg);
 
         protected:
+            virtual LanderComms__Status txDownlinkData(RoverContext& theContext, void* data, size_t dataSize,
+                                                       bool fromHercules=false);
+
+            virtual RoverState handleWdIntEdge(bool rising, RoverContext& theContext);
+
             virtual void initiateNextI2cAction(RoverContext& theContext);
 
             virtual void heaterControl(RoverContext& theContext);
@@ -62,6 +69,11 @@ namespace iris
                                                           HercMsgs__Header* header,
                                                           uint8_t* payloadBuffer,
                                                           size_t payloadSize);
+
+            virtual RoverState handleDebugFromHercules(RoverContext& theContext,
+                                                       HercMsgs__Header* header,
+                                                       uint8_t* payloadBuffer,
+                                                       size_t payloadSize);
 
             virtual RoverState handleResetFromHercules(RoverContext& theContext,
                                                        HercMsgs__Header* header);
@@ -97,11 +109,11 @@ namespace iris
                                                       WdCmdMsgs__Response& deployNotificationResponse,
                                                       bool& sendDeployNotificationResponse);
 
-            virtual RoverState doGndCmdSetHeaterKp(RoverContext& theContext,
-                                                   const WdCmdMsgs__Message& msg,
-                                                   WdCmdMsgs__Response& response,
-                                                   WdCmdMsgs__Response& deployNotificationResponse,
-                                                   bool& sendDeployNotificationResponse);
+            virtual RoverState doGndCmdSetDebugCommsState(RoverContext& theContext,
+                                                          const WdCmdMsgs__Message& msg,
+                                                          WdCmdMsgs__Response& response,
+                                                          WdCmdMsgs__Response& deployNotificationResponse,
+                                                          bool& sendDeployNotificationResponse);
 
             virtual RoverState doGndCmdSetAutoHeaterOnValue(RoverContext& theContext,
                                                             const WdCmdMsgs__Message& msg,
@@ -115,11 +127,11 @@ namespace iris
                                                              WdCmdMsgs__Response& deployNotificationResponse,
                                                              bool& sendDeployNotificationResponse);
 
-            virtual RoverState doGndCmdSetHeaterDutyCycleMax(RoverContext& theContext,
-                                                             const WdCmdMsgs__Message& msg,
-                                                             WdCmdMsgs__Response& response,
-                                                             WdCmdMsgs__Response& deployNotificationResponse,
-                                                             bool& sendDeployNotificationResponse);
+            virtual RoverState doGndCmdSetHeaterDutyCycle(RoverContext& theContext,
+                                                          const WdCmdMsgs__Message& msg,
+                                                          WdCmdMsgs__Response& response,
+                                                          WdCmdMsgs__Response& deployNotificationResponse,
+                                                          bool& sendDeployNotificationResponse);
 
             virtual RoverState doGndCmdSetHeaterDutyCyclePeriod(RoverContext& theContext,
                                                                 const WdCmdMsgs__Message& msg,
@@ -127,11 +139,11 @@ namespace iris
                                                                 WdCmdMsgs__Response& deployNotificationResponse,
                                                                 bool& sendDeployNotificationResponse);
 
-            virtual RoverState doGndCmdSetThermisterVSetpoint(RoverContext& theContext,
-                                                              const WdCmdMsgs__Message& msg,
-                                                              WdCmdMsgs__Response& response,
-                                                              WdCmdMsgs__Response& deployNotificationResponse,
-                                                              bool& sendDeployNotificationResponse);
+            virtual RoverState doGndCmdSetVSAEState(RoverContext& theContext,
+                                                    const WdCmdMsgs__Message& msg,
+                                                    WdCmdMsgs__Response& response,
+                                                    WdCmdMsgs__Response& deployNotificationResponse,
+                                                    bool& sendDeployNotificationResponse);
 
             virtual RoverState doGndCmdEnterSleepMode(RoverContext& theContext,
                                                       const WdCmdMsgs__Message& msg,
@@ -205,11 +217,19 @@ namespace iris
                                                         WdCmdMsgs__Response& deployNotificationResponse,
                                                         bool& sendDeployNotificationResponse);
 
+            virtual RoverState doGndCmdEcho(RoverContext& theContext,
+                                             const WdCmdMsgs__Message& msg,
+                                             WdCmdMsgs__Response& response,
+                                             WdCmdMsgs__Response& deployNotificationResponse,
+                                             bool& sendDeployNotificationResponse);
+
             virtual RoverState doGndCmdRequestDetailedReport(RoverContext& theContext,
                                                              const WdCmdMsgs__Message& msg,
                                                              WdCmdMsgs__Response& response,
                                                              WdCmdMsgs__Response& deployNotificationResponse,
                                                              bool& sendDeployNotificationResponse);
+
+            virtual void echoToLander(RoverContext& theContext, uint8_t numBytesToEcho, const uint8_t* bytesToEcho);
 
             virtual void sendDetailedReportToLander(RoverContext& theContext);
 
@@ -222,6 +242,13 @@ namespace iris
                                             bool allowDeploy,
                                             bool allowUndeploy,
                                             bool& needToWriteIoExpander);
+
+
+            virtual RoverState handleRadioPowerCycleRadioCommand(RoverContext& theContext);
+            virtual RoverState handleRadioPowerCycleHerculesCommand(RoverContext& theContext);
+            virtual RoverState handleRadioExitStasisCommand(RoverContext& theContext);
+            virtual RoverState handleRadioEnterStasisCommand(RoverContext& theContext);
+            virtual RoverState handleRadioGotWifiCommand(RoverContext& theContext);
         private:
             RoverState m_state;
 

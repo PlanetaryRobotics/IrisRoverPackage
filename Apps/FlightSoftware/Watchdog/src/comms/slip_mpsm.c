@@ -139,6 +139,7 @@ static SlipMpsm__Status SlipMpsm__appendData(SlipMpsm__Msg* msg, uint8_t newData
             byteToWrite = (uint8_t) SLIP_END;
         } else {
             msg->msgStatus = SLIP_MPSM__MSG_STATUS__ERROR_INVALID_SEQUENCE;
+            theStateMachine.lastByteWasSlipEscape = FALSE;
             return SLIP_MPSM__STATUS__ERROR_INVALID_SEQUENCE;
         }
 

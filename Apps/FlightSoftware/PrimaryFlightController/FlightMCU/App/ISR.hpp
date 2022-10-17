@@ -31,10 +31,11 @@ inline void Update_DMA_Comp_Flag(dmaInterrupt_t inttype, enum dmaCHANNEL channel
             dmaCh2_ISR(inttype);
             break;
         case DMA_CH3:
-            sciDMARecvCleanup(channel);
+            sciDMASendCleanup(channel);
             dmaCh3_ISR(inttype);
             break;
         default:
+            asm("  NOP");
     }
 }
 

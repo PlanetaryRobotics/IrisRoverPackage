@@ -71,7 +71,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
               break;
           case WATCHDOG:                // Default to smallest buffer size for safety even if we were using WF121
           default:
-              m_downlink_objects_size = WATCHDOG_MAX_PAYLOAD;
+              m_downlink_objects_size = WATCHDOG_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader);
               m_temp_interface_port_num = WATCHDOG;
       }
       m_tlmDownlinkBufferSpaceAvailable = m_downlink_objects_size;
@@ -113,6 +113,29 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
   }
 
   void GroundInterfaceComponentImpl ::
+  logDirectDownlink_handler(
+        const NATIVE_INT_TYPE portNum,
+        Fw::ComBuffer &data,
+        U32 context
+    )
+  {
+        // In the new topology, all logs go to ActiveLogger, which passes some of them (e.g. severe or fatal) to
+        // GroundInterface for immediate downlinking, based on filters (cfg'able from ground), and all them to
+        // ComLogger (TBD). ComLogger can then be commanded to pull any of them from the FileSystem based on timestamp
+        // and pass those to GroundInterface as well (see logDownlink_handler below for more info).
+        //
+        // NOTE: Serialization into a packet (LogPacket) has already happened by this point. See `Primer.md` for more
+        // details about how this works.
+        m_logsReceived++;
+        uint8_t *logData = reinterpret_cast<uint8_t *>(data.getBuffAddr());
+        FswPacket::Length_t length = static_cast<FswPacket::Length_t>(data.getBuffLength());
+        // NOTE: These go into the telem downlink buffer, right along side telemetry (intentionally).
+        downlinkBufferWrite(logData, length, DownlinkLog);
+        m_logsDownlinked++;
+        updateTelemetry();
+  }
+
+  void GroundInterfaceComponentImpl ::
     logDownlink_handler(
         const NATIVE_INT_TYPE portNum,
         FwEventIdType id,
@@ -121,7 +144,8 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         Fw::LogBuffer &args
     )
   {
-    // TODO
+      // This is where logs from ComLogger go, after they're pulled from the FileSystem. See `logDirectDownlink` above for where logs from ActiveLogger are handled.
+      // TODO: Based on ComLogger
   }
 
   void GroundInterfaceComponentImpl ::
@@ -205,21 +229,20 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     U32 buffer_size = fwBuffer.getsize();
     if (buffer_size != packet->header.length + sizeof(struct FswPacket::FswPacketHeader)) {
         m_cmdErrs++;
-        log_WARNING_HI_GI_UplinkedPacketError(MISMATCHED_LENGTH, packet->header.length,
-                static_cast<U16>(buffer_size));
+        log_WARNING_HI_GI_UplinkedPacketError(MISMATCHED_LENGTH, packet->header.length, static_cast<U16>(buffer_size));
         return;
     }
     
-    if (packet->header.seq != m_uplinkSeq + 1) {
+    if (packet->header.seq != 0 && packet->header.seq != (m_uplinkSeq + 1)) {
+        // 0 is a special uplinkSeq we use to say we don't care about the uplinkSeq (in case of sync-loss)
         m_cmdErrs++;
+        log_WARNING_HI_GI_UplinkedPacketError(uplinkedPacketError::OUT_OF_SEQUENCE, (m_uplinkSeq + 1), packet->header.seq);
         return;
     }
     
-    if (packet->payload0.command.magic != COMMAND_MAGIC) {
+    if (packet->payload0.command.magic != COMMAND_MAGIC && packet->payload0.command.magic != FSW_RADIO_COMMAND_MAGIC) {
         m_cmdErrs++;
-        log_WARNING_HI_GI_UplinkedPacketError(BAD_CHECKSUM,
-                                              static_cast<U16>(((U16 *)&packet->payload0.command.magic)[0]),
-                                              static_cast<U16>(((U16 *)&packet->payload0.command.magic)[1]));
+        log_WARNING_LO_GI_UplinkedBadMagic((U32)packet->payload0.command.magic);
         return;
     }
     
@@ -229,6 +252,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         return;
     }
 
+    // Set new uplinkSeq. NOTE: by design, if seq_num==0, this will reset uplinkSeq to 0 (where it starts on boot).
     m_uplinkSeq = packet->header.seq;
     m_cmdsUplinked++;
     log_ACTIVITY_HI_GI_CommandReceived(packet->header.seq, packet->header.length);
@@ -260,7 +284,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
             break;
         case WATCHDOG:                // Default to smallest buffer size for safety even if we were using WF121
         default:
-            m_downlink_objects_size = WATCHDOG_MAX_PAYLOAD;
+            m_downlink_objects_size = WATCHDOG_MAX_PAYLOAD - sizeof(struct FswPacket::FswPacketHeader);
             m_persistent_state = 0;
     }
     m_tlmDownlinkBufferSpaceAvailable = m_downlink_objects_size;
@@ -286,7 +310,7 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
      * 
      * Multiple downlink objects can be written to the downlink buffer to be packed into a single packet for downlink.
      * If the given object exceeds the space available in the buffer, the buffer will be flushed (downlinked) first then
-     * the object will be written to the now empty buffer. If the packet fits exactly into the remining space to fill
+     * the object will be written to the now empty buffer. If the packet fits exactly into the remaining space to fill
      * the MTU, the buffer will be immediately flushed with the given object.
      * 
      * @param _data Pointer to the object to be downlinked. It should start with one of the FSWPacket object headers (TODO: const?)
@@ -309,11 +333,10 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
         m_tlmDownlinkBufferPos += size;
         m_tlmDownlinkBufferSpaceAvailable -= size;
         
-        log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, from);
+        // log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, from); // This is bad b/c it causes a race condition where every log will generate >=1 log
         
         if (flushOnWrite)
             flushTlmDownlinkBuffer();
-        
     }
     
     /*
@@ -357,6 +380,9 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
     void GroundInterfaceComponentImpl::updateTelemetry() {
         switch (m_telemetry_level) {
             case ALL:
+            case IMPORTANT:
+            case CRITICAL:
+            default:
                 /* TODO: THESE SHOULD ONLY UPDATE ONCE PER TELEMETRY DOWNLINK NOT ON THE RATE GROUP ITS TOO MUCH */
                 tlmWrite_GI_DownlinkSeqNum(m_downlinkSeq);
                 tlmWrite_GI_TlmItemsDownlinked(m_tlmItemsDownlinked);
@@ -364,13 +390,10 @@ static inline FswPacket::Checksum_t computeChecksum(const void *_data, FswPacket
                 tlmWrite_GI_AppBytesDownlinked(m_appBytesDownlinked);
                 tlmWrite_GI_CmdsUplinked(m_cmdsUplinked);
                 tlmWrite_GI_UplinkPktErrs(m_cmdErrs);
-            case IMPORTANT:
                 tlmWrite_GI_TlmItemsReceived(m_tlmItemsReceived);
                 tlmWrite_GI_LogsReceived(m_logsReceived);
                 tlmWrite_GI_AppBytesReceived(m_appBytesReceived);
                 tlmWrite_GI_CmdsSent(m_cmdsSent);
-            case CRITICAL:
-            default:
                 tlmWrite_GI_UplinkSeqNum(m_uplinkSeq);
                 tlmWrite_GI_PacketsReceived(m_packetsRx);
                 tlmWrite_GI_PacketsTransmitted(m_packetsTx);

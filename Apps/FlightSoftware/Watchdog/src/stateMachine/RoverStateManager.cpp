@@ -1,30 +1,43 @@
 #include "stateMachine/RoverStateManager.hpp"
 
+#include "comms/debug_comms.h"
 #include "event/event_queue.h"
 #include "common.h"
 
 #include <cassert>
 #include <msp430.h>
 
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector = WDT_VECTOR
+__interrupt void WDT_ISR(void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(WDT_VECTOR))) WDT_ISR (void)
+#else
+#error Compiler not supported!
+#endif
+{
+    __no_operation();
+}
+
 namespace iris
 {
     // Declare the buffers for the UART rx and tx ring buffers. These are static
     // so that they are not on the stack.
-    static volatile uint8_t uart0TxBuffer[1024] = {};
+    static volatile uint8_t uart0TxBuffer[512] = {};
     static volatile uint8_t uart0RxBuffer[1024] = {};
     static volatile uint8_t uart1TxBuffer[1024] = {};
-    static volatile uint8_t uart1RxBuffer[1024] = {};
+    static volatile uint8_t uart1RxBuffer[512] = {};
 
 #pragma PERSISTENT
     static bool persistentInMission = false;
 #pragma PERSISTENT
     static bool persistentDeployed = false;
 
-    RoverStateManager::RoverStateManager()
+    RoverStateManager::RoverStateManager(const char* resetReasonString)
         : m_stateEnteringKeepAlive(),
           m_stateEnteringMission(),
           m_stateEnteringService(),
-          m_stateInit(RoverState::INIT),
+          m_stateInit(RoverState::INIT, resetReasonString),
           m_stateKeepAlive(),
           m_stateMission(),
           m_stateService(),
@@ -39,7 +52,7 @@ namespace iris
         EventQueue__Status eqStatus = EventQueue__initialize(m_eventQueueBuffer.data(), m_eventQueueBuffer.size());
 
         // There should be no reason for initialization of the event queue to fail.
-        assert(EQ__STATUS__SUCCESS == eqStatus);
+        DEBUG_ASSERT_EQUAL(EQ__STATUS__SUCCESS, eqStatus);
 
         // Construct context, then transition to init state. Init state should handle initializing modules as
         // appropriate, eventually based on persistent memory of the module state.
@@ -58,7 +71,6 @@ namespace iris
         m_context.m_details.m_hParams.m_heaterWindow = DEFAULT_HEATER_WINDOW;
         m_context.m_details.m_hParams.m_heaterOnVal = DEFAULT_HEATER_ON_VAL;
         m_context.m_details.m_hParams.m_heaterOffVal = DEFAULT_HEATER_OFF_VAL;
-        m_context.m_details.m_hParams.m_heating = DEFAULT_HEATING;
         m_context.m_details.m_hParams.m_heatingControlEnabled = DEFAULT_HEATING_CONTROL_ENABLED;
         m_context.m_details.m_hParams.m_heaterDutyCyclePeriod = DEFAULT_HEATER_DUTY_CYCLE_PERIOD;
         m_context.m_details.m_hParams.m_heaterDutyCycle = DEFAULT_HEATER_DUTY_CYCLE;
@@ -67,12 +79,11 @@ namespace iris
         m_context.m_details.m_outputPinBits = 0;
         m_context.m_details.m_resetActionBits = 0;
 
-
         m_context.m_persistentInMission = &persistentInMission;
         m_context.m_persistentDeployed = &persistentDeployed;
 
-        m_context.m_isDeployed = false;
         m_context.m_i2cActive = false;
+        m_context.m_sendDetailedReport = false;
 
         RoverState desiredState = m_currentState->transitionTo(m_context);
         transitionUntilSettled(desiredState);
@@ -95,20 +106,32 @@ namespace iris
             // Previously a WDTIS of 0b100 was being used so the watchdog period would have been about 3.5 seconds,
             // though the comment above it had mistakenly described it as setting the watchdog period to 1 second. For
             // now, we'll use a WDTIS of 0b101 (a period of 0.871 seconds) and see if it causes any issues.
-            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2 + WDTIS0;
+            //
+            // To support entering LPM1 (not entering a deeper LPM due to errata PMM31 and PMM31, see slaz681o
+            // https://www.ti.com/lit/er/slaz681o/slaz681o.pdf , and also because we need SMCLK to remain on for our
+            // UARTs to be able to receive and to use as our WDT clock) we need to set the WDT so that its interval is
+            // longer than the longest time we know we'll go without an interrupt. We know that we get our timer tick
+            // event every 7 (or so) seconds, so we need a WDT interval greater than that. When using ACLK as the
+            // source of the WDT, our option jumps from ~3.5 seconds to ~55 seconds. However, if we use SMCLK as the
+            // source of the WDT, since f_SMCLK = 8 MHz we can use the 2^27 divider option to get a WDT interval of
+            // just over 16.7 seconds. The 2^27 divider is selected when WDTIS is 0b001.
+            //OLD: WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;
+            WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__SMCLK + WDTIS0;
 
             Event__Type event = EVENT__TYPE__UNUSED;
             EventQueue__Status eqStatus = EventQueue__get(&event);
-            bool gotEvent = false;
+            //bool gotEvent = false;
 
             if (EQ__STATUS__SUCCESS == eqStatus) {
                 // We got an event. Have the current state handle it (performing any necessary state transitions as
                 // requested by the state(s))
                 handleEvent(event);
-                gotEvent = true;
+                //gotEvent = true;
             } else if (EQ__STATUS__ERROR_EMPTY == eqStatus) {
                 if (m_currentState->canEnterLowPowerMode(m_context)) {
                     //!< @todo Enter LPM here. Need to figure out how to handle LPM and WDT together.
+                    __enable_interrupt(); // Make sure we haven't somehow left interrupts off
+                    ENTER_DEFAULT_LPM;
                 }
             } else {
                 // Any status other than success or empty is an unexpected failure.
@@ -154,18 +177,24 @@ namespace iris
                 return &m_stateMission;
 
             default:
-                assert(!"Reached default state in getStateObjectForStateEnum");
+                DebugComms__tryPrintfToLanderNonblocking("Reached default state in getStateObjectForStateEnum\n");
+                DebugComms__flush();
                 return &m_stateInit;
         }
     }
 
     void RoverStateManager::transitionUntilSettled(RoverState desiredState)
     {
+
         while (m_currentState->getState() != desiredState) {
+            const char *originalStateStr = stateToString(m_currentState->getState());
+            const char *desiredStateStr =  stateToString(desiredState);
+            DebugComms__tryPrintfToLanderNonblocking("Transitioning from %s to %s\n", originalStateStr, desiredStateStr);
             m_currentState = getStateObjectForStateEnum(desiredState);
             m_context.m_details.m_stateAsUint = static_cast<uint8_t>(m_currentState->getState());
             desiredState = m_currentState->transitionTo(m_context);
         }
+
     }
 
     void RoverStateManager::handleEvent(Event__Type event)
@@ -175,7 +204,8 @@ namespace iris
 
         switch (event) {
             case EVENT__TYPE__UNUSED:
-                assert(!"Trying to handle an UNUSED event type, which indicates programmer error");
+                DebugComms__tryPrintfToLanderNonblocking("Trying to handle an UNUSED event type, which indicates programmer error\n");
+                DebugComms__flush();
                 return;
 
             case EVENT__TYPE__LANDER_DATA:
@@ -198,8 +228,17 @@ namespace iris
                 desiredNextState = m_currentState->handlePowerIssue(m_context);
                 break;
 
+            case EVENT__TYPE__WD_INT_RISING_EDGE:
+                desiredNextState = m_currentState->handleWdIntRisingEdge(m_context);
+                break;
+
+            case EVENT__TYPE__WD_INT_FALLING_EDGE:
+                desiredNextState = m_currentState->handleWdIntFallingEdge(m_context);
+                break;
+
             default:
-                assert(!"In default case trying to handle event, which indicates programmer error");
+                DebugComms__tryPrintfToLanderNonblocking("In default case trying to handle event, which indicates programmer error\n");
+                DebugComms__flush();
                 break;
         }
 

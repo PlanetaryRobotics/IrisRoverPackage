@@ -1,5 +1,6 @@
 // i2c_sensors.c
 
+#include "comms/debug_comms.h"
 #include "comms/i2c_sensors.h"
 #include "drivers/i2c.h"
 #include "utils/time.h"
@@ -151,7 +152,7 @@ static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT = 0xD8;
 //     0.6: FPGA_nRST, output to reset FPGA (reset is active when low)
 //     0.7: LATCH_RST, now INPUT due to power loop issue
 //
-//     1.0: Radio_nRST, output to reset wifi chip (reset is active when low)
+//     1.0: Radio_nRST, output to reset wifi chip (reset is active when low) - unless in RADIO_PROGRAMMING_MODE, in which case it's always an input
 //     1.1: CHARGE_STAT2, input connected to STAT2 pin of BQ24650RVAR charge controller
 //     1.2: LATCH_STAT, input connected to output of battery enable latch on BLiMP
 //     1.3: LATCH_SET, now INPUT due to power loop issue
@@ -166,7 +167,12 @@ static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT = 0xD8;
 static const uint8_t IO_EXPANDER_CONFIG_PORT_0_REG_ADDR = 8;
 static const uint8_t IO_EXPANDER_CONFIG_PORT_0_VALUE = 0b10001111;
 static const uint8_t IO_EXPANDER_CONFIG_PORT_1_REG_ADDR = 9;
-static const uint8_t IO_EXPANDER_CONFIG_PORT_1_VALUE = 0b00011110;
+static const uint8_t IO_EXPANDER_CONFIG_PORT_1_VALUE = 0b00011110
+#ifdef RADIO_PROGRAMMING_MODE
+        | 0b1; // keep the default mask but then also make sure RADIO_RESET is an input.
+#else
+        ; // just use the default mask above
+#endif
 
 // Per the datasheet (https://www.nxp.com/docs/en/data-sheet/PCA9575.pdf):
 // Register 1 is the register to read the incoming logic levels of the pins in port 1.
@@ -660,7 +666,7 @@ I2C_Sensors__Status I2C_Sensors__writeIoExpanderBlocking(uint8_t port0Value,
         i2cStatus = I2C_Sensors__getActionStatus(&action, NULL, NULL);
 
         // Sanity check
-        assert(I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER == action);
+        DEBUG_ASSERT_EQUAL(I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER, action);
 
         if (I2C_SENSORS__STATUS__INCOMPLETE == i2cStatus) {
             // Delay a tiny bit so we're not spinning completely tightly. We're single-threaded so it's not like anything
@@ -702,7 +708,7 @@ I2C_Sensors__Status I2C_Sensors__readIoExpanderBlocking(uint8_t* chargeStat2,
         i2cStatus = I2C_Sensors__getActionStatus(&action, NULL, &readValue);
 
         // Sanity check
-        assert(I2C_SENSORS__ACTIONS__READ_IO_EXPANDER == action);
+        DEBUG_ASSERT_EQUAL(I2C_SENSORS__ACTIONS__READ_IO_EXPANDER, action);
 
         if (I2C_SENSORS__STATUS__INCOMPLETE == i2cStatus) {
             // Delay a tiny bit so we're not spinning completely tightly. We're single-threaded so it's not like anything
@@ -765,7 +771,7 @@ I2C_Sensors__Status I2C_Sensors__writeIoExpanderPortDirectionsBlocking(uint8_t p
         i2cStatus = I2C_Sensors__getActionStatus(&action, NULL, &readValue);
 
         // Sanity check
-        assert(I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER == action);
+        DEBUG_ASSERT_EQUAL(I2C_SENSORS__ACTIONS__INIT_IO_EXPANDER, action);
 
         if (I2C_SENSORS__STATUS__INCOMPLETE == i2cStatus) {
             // Delay a tiny bit so we're not spinning completely tightly. We're single-threaded so it's not like anything
@@ -1001,7 +1007,11 @@ void I2C_Sensors__spinOnce(void)
         return;
     }
 
-    while (keepSpinning) {
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + 100; // One second timeout
+
+    while (keepSpinning && currentTimeCentiseconds <= endTimeCentiseconds) {
         I2C__spinOnce();
 
         switch (internals.activeAction) {
@@ -1205,6 +1215,12 @@ void I2C_Sensors__spinOnce(void)
                 keepSpinning = FALSE;
                 break;
         }
+
+        currentTimeCentiseconds = Time__getTimeInCentiseconds();
+    }
+
+    if (currentTimeCentiseconds > endTimeCentiseconds) {
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in I2C_Sensors__spinOnce, action = %d\n", (int)internals.activeAction);
     }
 }
 

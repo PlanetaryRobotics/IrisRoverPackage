@@ -1,12 +1,15 @@
 #include <assert.h>
 #include <string.h>
+#include <msp430.h>
 
 #include "common.h"
+#include "comms/debug_comms.h"
 #include "comms/hercules_msgs.h"
 #include "comms/ip_udp.h"
 #include "comms/lander_comms.h"
 #include "comms/slip_encode.h"
 #include "comms/slip_mpsm.h"
+#include "utils/time.h"
 
 //###########################################################
 // Private types
@@ -44,6 +47,9 @@ static LanderComms__State theState = {
 //###########################################################
 // Private function declarations
 //###########################################################
+
+static size_t LanderComms__determineSlipEncodedSize(const uint8_t* header, size_t headerLen,
+                                                    const uint8_t* data, size_t dataLen);
 
 static LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms__State* lcState,
                                                                     const uint8_t* inputBuffer,
@@ -108,7 +114,11 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
     LanderComms__Status returnStatus = LANDER_COMMS__STATUS__SUCCESS;
     BOOL tryToGetMoreData = TRUE;
 
-    while (tryToGetMoreData) {
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + 100; // One second timeout
+
+    while (tryToGetMoreData && currentTimeCentiseconds <= endTimeCentiseconds) {
         // Zero out the static buffer on each iteration for easier debugging
         memset(uartRxData, 0, SIZE_OF_ARRAY(uartRxData));
 
@@ -121,7 +131,7 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
 
         if (UART__STATUS__SUCCESS != uartStatus) {
             return LANDER_COMMS__STATUS__ERROR_UART_RX_FAILURE;
-        }     
+        }
 
         // Iterate through all data, adding it to the SLIP mpsm until a full SLIP packet has been found or
         // we use up all of the data
@@ -169,6 +179,11 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
 
         // Call receive again if our buffer for getting data from the uart was saturated with data in the last call.
         tryToGetMoreData = (numReceived == SIZE_OF_ARRAY(uartRxData));
+        currentTimeCentiseconds = Time__getTimeInCentiseconds();
+    }
+
+    if (currentTimeCentiseconds > endTimeCentiseconds) {
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in LanderComms__tryGetMessage\n");
     }
 
     return returnStatus;
@@ -178,6 +193,7 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
 LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8_t* data, size_t dataLen)
 {
     static const uint8_t SLIP_END_AS_UINT8 = (uint8_t) SLIP_END;
+    static uint8_t RECURSION_SENTINAL = 0;
 
     //!< @todo Verify these buffer sizes are OK; we can decrease these, it just means serialization may get more complex
     static uint8_t uartHeaderData[IP_UDP_HEADER_LEN] = { 0 };
@@ -190,6 +206,13 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
     if (!lcState->initialized) {
         return LANDER_COMMS__STATUS__ERROR_NOT_INITIALIZED;
     }
+
+    // Allow one extra level of looping back into this function, then prevent any further
+    if (RECURSION_SENTINAL > 2) {
+        return LANDER_COMMS__STATUS__ERROR_RECURSION;
+    }
+
+    RECURSION_SENTINAL++;
 
     /*
      * We want to write four things to be transmitted via the UART to the lander:
@@ -218,7 +241,17 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
                                                                             lcState->txPacketId);
 
     // The above call failing indicates some kind of programmer error
-    assert(IP_UDP__STATUS__SUCCESS == ipStatus);
+    DEBUG_ASSERT_EQUAL(IP_UDP__STATUS__SUCCESS, ipStatus);
+
+    size_t bytesToSend = LanderComms__determineSlipEncodedSize(uartHeaderData, SIZE_OF_ARRAY(uartHeaderData),
+                                                               data, dataLen);
+
+    size_t free = 0;
+    if(!UART__checkIfSendable(lcState->uartState, bytesToSend, &free)) {
+        __no_operation();
+        RECURSION_SENTINAL--;
+        return LANDER_COMMS__STATUS__ERROR_TX_OVERFLOW;
+    }
 
     // Increment the packet ID for the next packet
     lcState->txPacketId++;
@@ -232,6 +265,7 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
                                                                             sizeof(SLIP_END_AS_UINT8));
 
     if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
+        RECURSION_SENTINAL--;
         return lcStatus;
     }
 
@@ -246,6 +280,7 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
                                                         0);
 
     if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
+        RECURSION_SENTINAL--;
         return lcStatus;
     }
 
@@ -255,8 +290,72 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
     lcStatus = LanderComms__transmitBuffer(lcState, &SLIP_END_AS_UINT8, sizeof(SLIP_END_AS_UINT8));
 
     if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
+        RECURSION_SENTINAL--;
         return lcStatus;
     }
+
+    RECURSION_SENTINAL--;
+    return LANDER_COMMS__STATUS__SUCCESS;
+}
+
+LanderComms__Status LanderComms__txDataUntilSendOrTimeout(LanderComms__State* lcState,
+                                                          const uint8_t* data,
+                                                          size_t dataLen,
+                                                          uint16_t timeoutInCentiseconds)
+{
+    DEBUG_LOG_NULL_CHECK_RETURN(lcState, "Arg is NULL", LANDER_COMMS__STATUS__ERROR_NULL);
+    DEBUG_LOG_NULL_CHECK_RETURN(data, "Arg is NULL", LANDER_COMMS__STATUS__ERROR_NULL);
+
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + timeoutInCentiseconds;
+    static size_t txDurations[10] = { 0 };
+
+    memset(txDurations, 0, sizeof(txDurations));
+    size_t i = 0;
+
+    LanderComms__Status lcStatus = LANDER_COMMS__STATUS__SUCCESS;
+    BOOL timeout = FALSE;
+
+    do {
+        uint16_t txStartCentiseconds = Time__getTimeInCentiseconds();
+        lcStatus = LanderComms__txData(lcState,
+                                       data,
+                                       dataLen);
+        uint16_t txEndCentiseconds = Time__getTimeInCentiseconds();
+
+        if (i < 10) {
+            txDurations[i] = txEndCentiseconds - txStartCentiseconds;
+            i++;
+        }
+
+        __delay_cycles(1000);
+        //OLD: WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;
+        WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__SMCLK + WDTIS0;
+        __enable_interrupt(); // Make sure interrupts aren't disabled so that we get clock updates
+        currentTimeCentiseconds = Time__getTimeInCentiseconds();
+        timeout = currentTimeCentiseconds > endTimeCentiseconds;
+    } while (lcStatus == LANDER_COMMS__STATUS__ERROR_TX_OVERFLOW && !timeout);
+
+    if (timeout) {
+        __no_operation();
+        return LANDER_COMMS__STATUS__ERROR_TIMEOUT;
+    } else {
+        return lcStatus;
+    }
+}
+
+LanderComms__Status LanderComms__flushTx(LanderComms__State* lcState)
+{
+    if (NULL == lcState) {
+        return LANDER_COMMS__STATUS__ERROR_NULL;
+    }
+
+    if (!lcState->initialized) {
+        return LANDER_COMMS__STATUS__ERROR_NOT_INITIALIZED;
+    }
+
+    UART__flushTx(lcState->uartState);
 
     return LANDER_COMMS__STATUS__SUCCESS;
 }
@@ -264,6 +363,34 @@ LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8
 //###########################################################
 // Private function definitions
 //###########################################################
+
+static size_t LanderComms__determineSlipEncodedSize(const uint8_t* header, size_t headerLen,
+                                                    const uint8_t* data, size_t dataLen)
+{
+    size_t totalSize = 2; // Start with 2 to account for initial and final END bytes
+
+    for (size_t i = 0; i < headerLen; ++i) {
+        if (header[i] == SLIP_END) {
+            totalSize += 2;
+        } else if (header[i] == SLIP_ESC) {
+            totalSize += 2;
+        } else {
+            totalSize++;
+        }
+    }
+
+    for (size_t i = 0; i < dataLen; ++i) {
+        if (data[i] == SLIP_END) {
+            totalSize += 2;
+        } else if (data[i] == SLIP_ESC) {
+            totalSize += 2;
+        } else {
+            totalSize++;
+        }
+    }
+
+    return totalSize;
+}
 
 static LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms__State* lcState,
                                                                     const uint8_t* inputBuffer,
@@ -281,7 +408,11 @@ static LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms_
 
     BOOL doneWritingBuffer = FALSE;
 
-    while (!doneWritingBuffer) {
+    uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
+    uint16_t currentTimeCentiseconds = startTimeCentiseconds;
+    uint16_t endTimeCentiseconds = startTimeCentiseconds + 300U; // Three second timeout
+
+    while (!doneWritingBuffer && currentTimeCentiseconds <= endTimeCentiseconds) {
         // These will be set by the encoding function based on how much it is able to write
         size_t outputStartOffset = 0;
         size_t inputStartOffset = 0;
@@ -319,6 +450,12 @@ static LanderComms__Status LanderComms__slipEncodeAndTransmitBuffer(LanderComms_
         outputStartIndex = 0;
         outPtr = outputBuffer;
         remainingOutBuffSize = outputBufferTotalSize;
+
+        currentTimeCentiseconds = Time__getTimeInCentiseconds();
+    }
+
+    if (currentTimeCentiseconds > endTimeCentiseconds) {
+        DebugComms__tryPrintfToLanderNonblocking("Timed out in LanderComms__slipEncodeAndTransmitBuffer\n");
     }
 
     return LANDER_COMMS__STATUS__SUCCESS;

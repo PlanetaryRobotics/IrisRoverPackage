@@ -1,5 +1,6 @@
 #include "stateMachine/RoverStateService.hpp"
 
+#include "comms/debug_comms.h"
 #include "comms/ground_msgs.h"
 #include "drivers/adc.h"
 #include "drivers/bsp.h"
@@ -29,6 +30,16 @@ namespace iris
             adcCheckVoltageLevels(&(theContext.m_adcValues));
         }
 
+        // Check for UART errors to report
+        size_t count = 0;
+        BOOL changed = FALSE;
+        UART__Status uStatus = UART__checkRxRbErrors(theContext.m_uart1State, &count, &changed);
+        DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Lander UART Rx Rb Error count");
+
+        if (changed) {
+            DebugComms__tryPrintfToLanderNonblocking("New Lander UART Rx Rb failures, total count = %u\n", count);
+        }
+
         /* send heartbeat with collected data */
         static FullEarthHeartbeat hb = { 0 };
         GroundMsgs__Status gcStatus = GroundMsgs__generateFullEarthHeartbeat(&(theContext.m_i2cReadings),
@@ -39,7 +50,7 @@ namespace iris
 
         assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
 
-        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
+        LanderComms__Status lcStatus = txDownlinkData(theContext,
                                                            (uint8_t*) &hb,
                                                            sizeof(hb));
 
@@ -77,12 +88,6 @@ namespace iris
             initiateNextI2cAction(theContext);
         }
 
-        return getState();
-    }
-
-    RoverState RoverStateService::handleHighTemp(RoverContext& /*theContext*/)
-    {
-        //!< @todo Implement RoverStateService::handleHighTemp
         return getState();
     }
 
@@ -129,6 +134,11 @@ namespace iris
                 theContext.m_i2cActive = false;
                 initiateNextI2cAction(theContext);
             }
+        }
+
+        if (theContext.m_sendDetailedReport) {
+            theContext.m_sendDetailedReport = false;
+            sendDetailedReportToLander(theContext);
         }
 
         return getState();

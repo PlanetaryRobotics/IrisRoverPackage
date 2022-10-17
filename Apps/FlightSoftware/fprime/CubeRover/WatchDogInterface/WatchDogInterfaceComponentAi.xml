@@ -72,6 +72,12 @@
             Input port from Health Component.
             </comment>
         </port>
+        
+        <port name="downlinkBufferSend" data_type="Fw::BufferSend"  kind="output" max_number="1">
+            <comment>
+                WatchDogInterface sends buffer of data to be downlinked to NetworkManager.
+            </comment>
+        </port>
     </ports>
 
     <commands>
@@ -151,6 +157,19 @@
                 </arg>
             </args>
         </command>
+        <command kind="async" opcode="0x03" mnemonic="Engage_From_Lander">
+            <comment>
+            Command to send signal to MSP430 that it should send a signal to lander to engage, sets disengage pin low. Impl. only exists inside Hercules.
+            </comment>
+            <args>
+                <arg name="mode" type="ENUM">
+                    <enum name="watchdog_connection_mode">
+                        <item name="WDCM_WIRED" value = "0x01" />
+                        <item name="WDCM_WIRELESS" value = "0x02" />
+                    </enum>
+                </arg>
+            </args>
+        </command>
         <command kind="async" opcode="0x04" mnemonic="Switch_Connection_Mode">
             <comment>
             Command to send signal to MSP430 that we switch the current connection mode. NOTE: This is currently deprecated behavior. Watchdog now sends data to all available and active interfaces in any given state.
@@ -164,12 +183,6 @@
                 </arg>
             </args>
         </command>
-        <!-- DEPRECATED
-        <command kind="async" opcode="0x04" mnemonic="Engage_From_Lander">
-            <comment>
-            Command to send signal to MSP430 that it should send a signal to lander to engage, sets disengage pin low
-            </comment>
-        </command>-->
         <command kind="async" opcode="0xAA" mnemonic="Set_Debug_Comms_State">
             <comment>
             Turn Watchdog DEBUG comms messages ON or OFF (should default to ON).
@@ -361,7 +374,7 @@
             Manually set charging power 28V regulator enable state: REGE. (normally you should just use the start and stop charging commands in reset specific.)
             </comment>
             <args>
-                <arg name="v_lander_reg_en" type="BOOL" />
+                <arg name="v_lander_reg_en" type="bool" />
             </args>
         </command>
 
@@ -370,7 +383,7 @@
             Manually set battery connection state: BE. (normally you should just use the batteries enable/disable command in reset specific.)
             </comment>
             <args>
-                <arg name="batt_en" type="BOOL" />
+                <arg name="batt_en" type="bool" />
             </args>
         </command>
 
@@ -450,7 +463,6 @@
                 </arg>
             </args>
         </command>
-
     </commands>
 
     <events>
@@ -516,22 +528,22 @@
         -->
         <channel id="2" name="VOLTAGE_2_5V" data_type="int16_t">
             <comment>
-                Voltage from 2.5V line from Watchdog
+                WD ADC reading for Voltage from 2.5V line from Watchdog
             </comment>
         </channel>
         <channel id="3" name="VOLTAGE_2_8V" data_type="int16_t">
             <comment>
-                Voltage from 2.8V line from Watchdog
+                WD ADC reading for Voltage from 2.8V line from Watchdog
             </comment>
         </channel>
         <channel id="4" name="VOLTAGE_24V" data_type="int16_t">
             <comment>
-                Voltage from 24V line from Watchdog
+                WD ADC reading for Voltage from 24V line from Watchdog
             </comment>
         </channel>
         <channel id="5" name="VOLTAGE_28V" data_type="int16_t">
             <comment>
-                Voltage from 28V line from Watchdog
+                WD ADC reading for Voltage from 28V line from Watchdog
             </comment>
         </channel>
         <channel id="16" name="BATTERY_THERMISTOR" data_type="U8">
@@ -539,54 +551,55 @@
                 Battery Charge left in mAH
             </comment>
         </channel>
+        <!-- -DEPRECATED-
         <channel id="23" name="SYSTEM_STATUS" data_type="int8_t">
             <comment>
-                Boolean for Heater On/Off from Watchdog
+                8 bit systems status where each bit represents a watchdog status. Not currently impl. (we get this from WD->Herc packet forwarding anyway).
             </comment>
         </channel>
         <channel id="24" name="BATTERY_LEVEL" data_type="U16">
             <comment>
-                Value of Charge in Battery
+                Value of Charge in Battery. Not currently impl. (we get this from WD->Herc packet forwarding anyway).
             </comment>
         </channel>
         <channel id="25" name="BATTERY_CURRENT" data_type="U16">
             <comment>
-                Value of Current Used in Battery
+                Value of Current Used in Battery.  Not currently impl. (we get this from WD->Herc packet forwarding anyway).
             </comment>
         </channel>
         <channel id="26" name="BATTERY_VOLTAGE" data_type="U16">
             <comment>
-                Value of Voltage Used in Battery
+                Value of Voltage Used in Battery.  Not currently impl. (we get this from WD->Herc packet forwarding anyway).
             </comment>
-        </channel>
+        </channel> -END OF DEPRECATION- -->
         <channel id="27" name="THERM_0" data_type="U16">
             <comment>
-                12 bit Value for Thermistor value
+                12 bit ADC Reading for On-SBC Thermistor RT1.
             </comment>
         </channel>
         <channel id="28" name="THERM_1" data_type="U16">
             <comment>
-                12 bit Value for Thermistor value
+                12 bit ADC Reading for On-SBC Thermistor RT2.
             </comment>
         </channel>
         <channel id="29" name="THERM_2" data_type="U16">
             <comment>
-                12 bit Value for Thermistor value
+                12 bit ADC Reading for On-SBC Thermistor RT3.
             </comment>
         </channel>
         <channel id="30" name="THERM_3" data_type="U16">
             <comment>
-                12 bit Value for Thermistor value
+                12 bit ADC Reading for On-SBC Thermistor RT4.
             </comment>
         </channel>
         <channel id="31" name="THERM_4" data_type="U16">
             <comment>
-                12 bit Value for Thermistor value
+                12 bit ADC Reading for On-SBC Thermistor RT5.
             </comment>
         </channel>
         <channel id="32" name="THERM_5" data_type="U16">
             <comment>
-                12 bit Value for Thermistor value
+                12 bit ADC Reading for On-SBC Thermistor RT6.
             </comment>
         </channel>
     </telemetry>

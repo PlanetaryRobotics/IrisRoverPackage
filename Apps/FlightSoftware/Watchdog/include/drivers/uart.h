@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <common.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -126,6 +127,11 @@ UART__Status UART__uninit0(UART__State** uart0State);
 UART__Status UART__uninit1(UART__State** uart1State);
 
 /**
+ * @brief Determines whether or not the given UART is currently initialized.
+ */
+BOOL UART__isInitialized(UART__State* uartState);
+
+/**
  * @brief Puts the given data in the transmit ring buffer and kicks off the process that will pump the data from the
  *        transmit ring buffer and transmit it.
  *
@@ -143,6 +149,13 @@ UART__Status UART__uninit1(UART__State** uart1State);
  *                                         buffer.
  */
 UART__Status UART__transmit(UART__State* uartState, const uint8_t* data, size_t dataLen);
+
+/**
+ * Checks if there is enough room in the transmit buffer to store `dataLen` bytes of data.
+ */
+BOOL UART__checkIfSendable(UART__State* uartState, size_t dataLen, size_t* free);
+
+void UART__flushTx(UART__State* uartState);
 
 /**
  * @brief Gets as much data as possible (up to the given buffer length) from the receive buffer of the given UART
@@ -164,6 +177,10 @@ UART__Status UART__receive(UART__State* uartState,
                            uint8_t* data,
                            size_t dataLen,
                            size_t* numReceived);
+
+UART__Status UART__checkRxRbErrors(UART__State* uartState, size_t* count, BOOL* countChangedSinceLastCheck);
+
+UART__Status UART__checkRxZerosMaxCountSinceLastCheck(UART__State* uartState, size_t* count);
 
 /**
  * @}

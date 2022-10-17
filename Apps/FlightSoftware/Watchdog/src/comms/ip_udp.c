@@ -64,61 +64,6 @@ static uint16_t ip_checksum(const uint8_t *packet, uint16_t packet_len) {
 }
 
 /**
- * Verify the values (including checksum) in an ip header.
- * 
- * Performs some basic validation of the input (e.g. packet length is long
- * enough, etc.) and then checks that the checksum = 0
- * 
- * Returns 0 if checksum is ok, and non-zero value if header or checksum has
- * some sort of error
- * (NOTE: there is no guarantee for the returned value to be any specific number
- * if there is an error in the checksum)
- */
-static uint16_t ip_verify_packet(uint8_t *packet, uint16_t packet_len) {
-    struct ip_hdr *header;
-    uint16_t word_stor;
-
-    /* check the size is at least minimally correct */
-    if (packet_len < sizeof(struct ip_hdr)) {
-        /* bad size */
-        return 1;
-    }
-
-    /* check header version/length is right */
-    if (*packet != 0x45) {
-        /* either wrong version or wrong packet size (additional options are not
-         * supported in this implementation) */
-        return 2;
-    }
-
-    /* safe to cast now */
-    header = (struct ip_hdr *)packet;
-
-    /* ensure length is correct */
-    word_stor = header->pckt_len;
-    /* swap endianness of all values > 8 bits */
-    word_stor = htons(word_stor);
-    if (word_stor != packet_len) {
-        /* packet reported length does not equal received length */
-        return 3;
-    }
-
-    /* double-check the ip addresses are correct */
-    if (header->source != LANDER_ADDRESS) {
-        return 4;
-    }
-    if (header->dest != SPACECRAFT_ADDRESS) {
-        return 5;
-    }
-
-    /* verify the checksum */
-    word_stor = ip_checksum(packet, sizeof(struct ip_hdr));
-
-    /* ip checksum should be 0 or 0xffff (negative 0) for a valid packet */
-    return (word_stor == 0xffff || word_stor == 0x0) ? 0 : word_stor;
-}
-
-/**
  * calculate UDP checksum
  *
  * @param udp_header: udp header *only* (no ip header part)

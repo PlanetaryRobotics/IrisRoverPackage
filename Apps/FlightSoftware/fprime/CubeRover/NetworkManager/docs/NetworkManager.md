@@ -10,6 +10,8 @@
 |SNR|1 (0x1)|I8|Signal to noise radio|
 |PktRecv|2 (0x2)|U32|Number of packets received (uplink)|
 |PktSent|3 (0x3)|U32|Number of packets sent (downlink)|
+|WIFIErrorStatus|4 (0x4)|WIFIErrorCode|Returned Error code of WIFI chip|
+|WIFIStateStatus|5 (0x5)|WIFIState|Returned State Transition code of WIFI chip|
 
 ## Event List
 

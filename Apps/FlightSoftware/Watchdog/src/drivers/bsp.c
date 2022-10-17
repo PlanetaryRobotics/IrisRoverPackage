@@ -1,5 +1,6 @@
 #include "drivers/bsp.h"
 #include "drivers/blimp.h"
+#include "comms/debug_comms.h"
 #include "comms/i2c_sensors.h"
 #include "flags.h"
 
@@ -16,6 +17,35 @@
 #define PORTJ_ENABLED 1
 
 static WatchdogStateDetails* detailsPtr = NULL;
+
+const char* getResetReasonString(void)
+{
+    switch (__even_in_range(SYSRSTIV, SYSRSTIV_MPUSEG3IFG))
+    {
+        case SYSRSTIV_NONE: return "None";
+        case SYSRSTIV_BOR: return "Brownout (BOR)";
+        case SYSRSTIV_RSTNMI: return "RSTIFG RST/NMI (BOR)";
+        case SYSRSTIV_DOBOR: return "PMMSWBOR software BOR (BOR)";
+        case SYSRSTIV_LPM5WU: return "LPMx.5 wake up (BOR)";
+        case SYSRSTIV_SECYV: return "Security violation (BOR)";
+        case SYSRSTIV_SVSHIFG: return "SCSHIFG SVSH event (BOR)";
+        case SYSRSTIV_DOPOR: return "PMMSWPOR software POR (POR)";
+        case SYSRSTIV_WDTTO: return "WDTIFG watchdog timeout (PUC)";
+        case SYSRSTIV_WDTPW: return "WDTPW password violation (PUC)";
+        case SYSRSTIV_FRCTLPW: return "FRCTLPW password violation (PUC)";
+        case SYSRSTIV_UBDIFG: return "Uncorrectable FRAM bit error detection (PUC)";
+        case SYSRSTIV_PERF: return "Peripheral area fetch (PUC)";
+        case SYSRSTIV_PMMPW: return "PMMPW PMM password violation (PUC)";
+        case SYSRSTIV_MPUPW: return "MPUPW MPU password violation (PUC)";
+        case SYSRSTIV_CSPW: return "CSPW CS password violation (PUC)";
+        case SYSRSTIV_MPUSEGPIFG: return "MPUSEGIPIFG encapsulated IP memory segment violation (PUC)";
+        case SYSRSTIV_MPUSEGIIFG: return "MPUSEGIIFG information memory segment violation (PUC)";
+        case SYSRSTIV_MPUSEG1IFG: return "MPUSEG1IFG segment 1 memory violation (PUC)";
+        case SYSRSTIV_MPUSEG2IFG: return "MPUSEG2IFG segment 2 memory violation (PUC)";
+        case SYSRSTIV_MPUSEG3IFG: return "MPUSEG3IFG segment 3 memory violation (PUC)";
+        default: return "Unknown";
+    }
+}
 
 /**
  * @brief      Initializes the gpios.
@@ -54,8 +84,9 @@ void initializeGpios(WatchdogStateDetails* details)
     P1DIR &= ~BIT2;
 
     // P1.3 is connected to the WD_INT signal and is used as a GPIO input.
-    //!< @todo What is WD_INT actually useful for, if anything? If nothing, make this GPIO output.
+    // Used when the Radio wants to send information to the Watchdog.
     P1DIR &= ~BIT3;
+
 
     // P1.4 is connected to the V_LANDER_SENS signal (output of voltage divider for measuring lander voltage being
     // supplied to us), and is used as an ADC analog input (specifically it is ADC analog input A4). This is the
@@ -114,6 +145,8 @@ void initializeGpios(WatchdogStateDetails* details)
     // GPIO initialization
     P2DIR |= BIT2;
     P2OUT &= ~BIT2;
+    P2SEL0 &= ~BIT2;
+    P2SEL1 &= ~BIT2;
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HEATER);
     detailsPtr->m_hParams.m_heating = FALSE;
 
@@ -209,7 +242,7 @@ void initializeGpios(WatchdogStateDetails* details)
     P3OUT &= ~BIT6;
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__LATCH_BATT);
 
-    // P3.7 is connected to the 3V3_EN signal (control signal for MOSFET to enable HDRM), and is used as a GPIO
+    // P3.7 is connected to the 3V3_EN signal (control signal for MOSFET), and is used as a GPIO
     // output with an initially low value
     P3OUT &= ~BIT7;
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__3V3_EN);
@@ -306,15 +339,16 @@ void initializeGpios(WatchdogStateDetails* details)
     PJOUT &= ~BIT2;
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__MOTOR_ON);
 
-    // PJ.3 is connected to the CHRG_EN signal and is used as a GPIO output with an initially high-Z value.
+    // PJ.3 is connected to the CHRG_EN signal and is used as a GPIO output with an initially low value.
     // CHRG_EN should always be high-Z (when charging is enabled) or low.
-    PJDIR &= ~BIT3;
-    PJREN &= ~BIT3;
-    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__CHRG_EN);
+    PJDIR |= BIT3;
+    PJOUT &= ~BIT3;
+    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__CHRG_EN);
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__CHRG_EN_FORCE_HIGH);
 
-    // PJ.4 is connected to the Radio_Kick signal and is used as a GPIO input.
-    PJDIR &= ~BIT4;
+    // PJ.4 is connected to the Radio_Kick signal and is used as a GPIO output (to tell the Radio something - e.g. go into statis mode).
+    // Initially driven LOW.
+    PJOUT &= ~BIT4;
 
     // PJ.5 is connected to the BATTERY_EN signal and is used as a GPIO output with an initially low value
     PJOUT &= ~BIT5;
@@ -322,6 +356,7 @@ void initializeGpios(WatchdogStateDetails* details)
 
     // PJ.6 is connected to the BATT_STAT signal and is used as a GPIO input.
     PJDIR &= ~BIT6;
+    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__BATT_STAT_IS_INPUT);
 
     // PJ.7 is connected to the V_SYS_ALL_EN signal and is used as a GPIO output with an initially high-Z value.
     // V_SYS_ALL_EN should always be high-Z (when V_SYS_ALL disabled) or high.
@@ -352,6 +387,31 @@ void initializeGpios(WatchdogStateDetails* details)
     P8SEL1 = 0x00u;
     P8DIR = 0xFFu;
     P8OUT = 0x00u;
+}
+
+void enableWdIntFallingEdgeInterrupt(void)
+{
+    P1IFG &= ~BIT3;
+    P1IES |= BIT3;
+    P1IE |= BIT3;
+}
+
+void enableWdIntRisingEdgeInterrupt(void)
+{
+    P1IFG &= ~BIT3;
+    P1IES &= ~BIT3;
+    P1IE |= BIT3;
+}
+
+void disableWdIntInterrupt(void)
+{
+    P1IFG &= ~BIT3;
+    P1IE &= ~BIT3;
+}
+
+// Return the *current* state of the WD_INT pin:
+uint8_t getWdIntState(void){
+    return P1IN & BIT3;
 }
 
 void enableUart0Pins(void)
@@ -469,7 +529,9 @@ void clockInit(void)
  */
 inline void enableHeater(void)
 {
-    P2OUT |= BIT2;
+    P2OUT &= ~BIT2;
+    P2SEL0 |= BIT2;
+    P2SEL1 &= ~BIT2;
     detailsPtr->m_hParams.m_heating = TRUE;
     SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HEATER);
 }
@@ -479,6 +541,8 @@ inline void enableHeater(void)
  */
 inline void disableHeater(void)
 {
+    P2SEL0 &= ~BIT2;
+    P2SEL1 &= ~BIT2;
     P2OUT &= ~BIT2;
     detailsPtr->m_hParams.m_heating = FALSE;
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__HEATER);
@@ -502,26 +566,28 @@ inline void disable3V3PowerRail(void)
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__3V3_EN);
 }
 
-// RAD TODO - this is for V_SYS_ALL_EN now (24v w/Motor_ON - PJ.2)
 /**
- * @brief      Enables the 24 v power rail. (high = ON)
+ * @brief      Enables the VSA power rail. Just an alias for `blimp_vSysAllEnOn` when dispatched from a reset specific command.
+ *
+ * NOTE: [CWC] This was converted from being a 24V command that was a Rev H hold over.
+ * Names have now been updated to match but function has been this was since at least RM1 RC1.
+ * NOTE: 24V line is only controlled via MOTOR_ON.
  */
-inline void enable24VPowerRail(void)
+inline void enableVSysAllPowerRail(void)
 {
-    PJDIR |= BIT7;
-    PJOUT |= BIT7;
-    SET_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__V_SYS_ALL_EN);
+    blimp_vSysAllEnOn();
 }
 
 /**
- * @brief      Disables the 24 v power rail. (LOW = OFF)
+ * @brief      Disables the VSA power rail. Just an alias for `blimp_vSysAllEnOff` when dispatched from a reset specific command.
+ *
+ * NOTE: [CWC] This was converted from being a 24V command that was a Rev H hold over.
+ * Names have now been updated to match but function has been this was since at least RM1 RC1.
+ * NOTE: 24V line is only controlled via MOTOR_ON.
  */
-inline void disable24VPowerRail(void)
+inline void disableVSysAllPowerRail(void)
 {
-    PJDIR &= ~BIT7;
-    PJREN &= ~BIT7;
-
-    CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__V_SYS_ALL_EN);
+    blimp_vSysAllEnOff();
 }
 
 /**

@@ -123,7 +123,7 @@
     <!-- LOGS -->
 
     <events>
-        <event id="0" name="GI_UplinkedPacketError" severity="WARNING_HI" format_string="Error with uplinked packet %s %d %d.">
+        <event id="0" name="GI_UplinkedPacketError" severity="WARNING_HI" format_string="Error with uplinked packet: %s. Expected: %d. Got: %d.">
             <comment>
                 Error validating uplinked packet. Expected field is only logged for MISMATCHED_LENGTH and OUT_OF_SEQUENCE.
             </comment>
@@ -150,14 +150,14 @@
             	<arg name="magicReceived" type="U32" />
         	</args>
         </event>
-        <event id="2" name="GI_CommandReceived" severity="ACTIVITY_HI" format_string="Command Received %d %d">
+        <event id="2" name="GI_CommandReceived" severity="ACTIVITY_HI" format_string="Command Received with seq_num=%d, checksum=%d.">
             <comment>A command packet was received. One command per packet (and datagram) is strictly enforced</comment>
             <args>
                 <arg name="seq" type="U8"></arg>
                 <arg name="checksum" type="U16"></arg>
             </args>
         </event>
-        <event id="3" name="GI_DownlinkedPacket" severity="ACTIVITY_LO" format_string="Packet Downlinked %d %d %d">
+        <event id="3" name="GI_DownlinkedPacket" severity="ACTIVITY_LO" format_string="Downlinked Packet #%d (checksum=%d, %dB).">
             <comment>A packet sent to UDP receiver for downlink</comment>
             <args>
                 <arg name="seq" type="U8"></arg>
@@ -165,8 +165,8 @@
                 <arg name="length" type="U16"></arg>
             </args>
         </event>
-        <event id="4" name="GI_DownlinkedItem" severity="DIAGNOSTIC" format_string="Item Fownlinked %d %s">
-            <comment>An item was added to the packet for downlink</comment>
+        <event id="4" name="GI_DownlinkedItem" severity="DIAGNOSTIC" format_string="Item Downlinked with seq_num=%d from %s.">
+            <comment>An item was added to the packet for downlink. This will be basically never used since using it would mean adding 1 downlink item for every item downlinked (which would run away).</comment>
             <args>
                 <arg name="seq" type="U8"></arg>
                 <arg name="from" type="ENUM">

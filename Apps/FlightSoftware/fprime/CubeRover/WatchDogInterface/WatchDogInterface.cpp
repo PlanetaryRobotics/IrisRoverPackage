@@ -120,8 +120,8 @@ namespace CubeRover
         }
         else
         {
-            //debugPrintfToWatchdog("Failed to send stroke\n");
-            // TODO: Add logging error
+            // debugPrintfToWatchdog("Failed to send stroke\n");
+            //  TODO: Add logging error
         }
 
         Fw::Time now = getTime();
@@ -144,7 +144,7 @@ namespace CubeRover
             const NATIVE_INT_TYPE portNum,
             CubeRoverPorts::ResetValue reset)
     {
-        // Depricated, not needed
+        // Deprecated, not needed
     }
 
     void WatchDogInterfaceComponentImpl ::
@@ -315,107 +315,257 @@ namespace CubeRover
     }
 
     /* Commands that Only Watchdog Processes */
-    void WatchDogInterfaceComponentImpl ::
-        Prepare_For_Deployment_cmdHandler(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            confirm_prepare_for_deploy confirm)
+
+    /**
+     * Standard handler for any commands that only the WatchDog MSP430
+     * processes.
+     *
+     * Currently, this function only sends a response to the CmdDispatcher
+     * indicating the command couldn't be executed (b/c this isn't the
+     * MSP430) due to Fw::COMMAND_EXECUTION_ERROR.
+     *
+     * @param opCode The parameter, excluding the base ID (i.e. without the offset specified in Top), of the
+     *               command that is sending the reset specific command.
+     * @param cmdSeq The sequence number of the command to be transmitted.
+     */
+    void WatchDogInterfaceComponentImpl::handleWatchDogOnlyCommand(FwOpcodeType opCode, U32 cmdSeq)
     {
-        // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        // TODO (consider fwd'ing these to WD somehow...).
+        // Would need to account for vargs and would need Matt Schnur's help
+        // passing the data through the stroking protocol.
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
     }
 
-    void WatchDogInterfaceComponentImpl ::
-        Switch_Connection_Mode_cmdHandler(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq)
+    //! Handler for command Prepare_For_Deployment
+    /* Command to send signal to MSP430 to prepare for deploying (may not be needed) */
+    void WatchDogInterfaceComponentImpl::Prepare_For_Deployment_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        confirm_prepare_for_deploy confirm)
     {
-        // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
     }
 
-    void WatchDogInterfaceComponentImpl ::
-        Set_Kp_Specific_cmdHandler(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            U16 value)
+    //! Handler for command Switch_Connection_Mode
+    /* Command to send signal to MSP430 that we switch the current connection mode. NOTE: This is currently deprecated behavior. Watchdog now sends data to all available and active interfaces in any given state. */
+    void WatchDogInterfaceComponentImpl::Switch_Connection_Mode_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        watchdog_connection_mode mode)
     {
-        // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
     }
 
-    void WatchDogInterfaceComponentImpl ::
-        Set_Heater_Duty_Cycle_Max_cmdHandler(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq)
+    //! Handler for command Set_Debug_Comms_State
+    /* Turn Watchdog DEBUG comms messages ON or OFF (should default to ON). */
+    void WatchDogInterfaceComponentImpl::Set_Debug_Comms_State_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        confirm_change_debug confirm,
+        debug_comms_state state)
     {
-        // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
     }
 
-    void WatchDogInterfaceComponentImpl ::
-        Set_Heater_Duty_Cycle_Period_cmdHandler(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            U16 period)
+    //! Handler for command Set_Auto_Heater_On_Value
+    /* Set the ON threshold for the auto heater controller on the Watchdog. */
+    void WatchDogInterfaceComponentImpl::Set_Auto_Heater_On_Value_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        U16 on)
     {
-        // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
     }
 
-    void WatchDogInterfaceComponentImpl ::
-        Set_Heater_Window_cmdHandler(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            U16 adc_half_width)
+    //! Handler for command Set_Auto_Heater_Off_Value
+    /* Set the OFF threshold for the auto heater controller on the Watchdog. */
+    void WatchDogInterfaceComponentImpl::Set_Auto_Heater_Off_Value_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        U16 off)
     {
-        // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
     }
 
-    void WatchDogInterfaceComponentImpl ::
-        Set_Heater_Setpoint_cmdHandler(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            U16 adc_setpoint)
+    //! Handler for command Set_Heater_Duty_Cycle
+    /* Set the PWM duty cycle of the auto heater controller on the Watchdog. */
+    void WatchDogInterfaceComponentImpl::Set_Heater_Duty_Cycle_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        U16 duty)
     {
-        // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
     }
 
-    void WatchDogInterfaceComponentImpl ::
-        Switch_to_Sleep_Mode_cmdHandler(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            confirm_sleep_mode confirm)
+    //! Handler for command Set_Heater_Duty_Cycle_Period
+    /* Set the PWM period of the auto heater controller on the Watchdog. */
+    void WatchDogInterfaceComponentImpl::Set_Heater_Duty_Cycle_Period_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        U16 period)
     {
-        // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
     }
 
-    void WatchDogInterfaceComponentImpl ::
-        Switch_to_Keep_Alive_Mode_cmdHandler(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            confirm_alive_mode confirm)
+    //! Handler for command Set_VSAE_State
+    /* Tells the Watchdog to manually set the state for the V_SYS_ALL_ENABLE line on the BLiMP. */
+    void WatchDogInterfaceComponentImpl::Set_VSAE_State_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        confirm_vsae_change_enum confirm,
+        vsae_state state)
     {
-        // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
     }
 
-    void WatchDogInterfaceComponentImpl ::
-        Switch_to_Service_Mode_cmdHandler(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            confirm_service_mode confirm)
+    //! Handler for command Switch_to_Sleep_Mode
+    /* Command to send signal to MSP430 that it should go into Sleep Mode */
+    void WatchDogInterfaceComponentImpl::Switch_to_Sleep_Mode_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        confirm_sleep_mode confirm)
     {
-        // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
+    }
+
+    //! Handler for command Switch_to_Keep_Alive_Mode
+    /* Command to send signal to MSP430 that it should go into Keep Alive Mode */
+    void WatchDogInterfaceComponentImpl::Switch_to_Keep_Alive_Mode_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        confirm_alive_mode confirm)
+    {
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
+    }
+
+    //! Handler for command Switch_to_Service_Mode
+    /* Command to send signal to MSP430 that it should go into Service Mode */
+    void WatchDogInterfaceComponentImpl::Switch_to_Service_Mode_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        confirm_service_mode confirm)
+    {
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
+    }
+
+    //! Handler for command Clear_Reset_Memory
+    /* Clear the reset memory used in the Watchdog's Detailed Status Report. */
+    void WatchDogInterfaceComponentImpl::Clear_Reset_Memory_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        confirm_clear_reset_memory_1 confirm_1,
+        confirm_clear_reset_memory_2 confirm_2)
+    {
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
+    }
+
+    //! Handler for command DANGEROUS_Force_Battery_State_DANGEROUS
+    /* **DANGEROUS**: Tells the Watchdog to set the BLiMP's BSTAT pin (normally an input) to OUTPUT the given value. This is designed to be used as a last ditch effort to connect the batteries in case any of the components driving BSTAT die. If they aren't dead, this will have the effect of blowing up the BSTAT circuitry and maybe a port on the Watchdog if not the whole Watchdog. This is **ONLY** to be used if the Mission will be over if you don't. You've got to be really sure you want to do this. */
+    void WatchDogInterfaceComponentImpl::DANGEROUS_Force_Battery_State_DANGEROUS_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        dangerous_confirm_force_bstat_enum_1 confirm_1,
+        dangerous_confirm_force_bstat_enum_2 confirm_2,
+        bstat_state state)
+    {
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
+    }
+
+    //! Handler for command Request_Status_Report
+    /* Request the Watchdog to send a Detailed Status Report. */
+    void WatchDogInterfaceComponentImpl::Request_Status_Report_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        confirm_status_request confirm)
+    {
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
+    }
+
+    //! Handler for command Set_Charger_Enable
+    /* Manually set charging IC enable state: CE. (normally you should just use the start and stop charging commands in reset specific.) */
+    void WatchDogInterfaceComponentImpl::Set_Charger_Enable_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        charge_en_states charge_en)
+    {
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
+    }
+
+    //! Handler for command Set_Charger_Power_Connection
+    /* Manually set charging power 28V regulator enable state: REGE. (normally you should just use the start and stop charging commands in reset specific.) */
+    void WatchDogInterfaceComponentImpl::Set_Charger_Power_Connection_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        bool v_lander_reg_en)
+    {
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
+    }
+
+    //! Handler for command Set_Battery_Connection
+    /* Manually set battery connection state: BE. (normally you should just use the batteries enable/disable command in reset specific.) */
+    void WatchDogInterfaceComponentImpl::Set_Battery_Connection_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        bool batt_en)
+    {
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
+    }
+
+    //! Handler for command Set_Battery_Control_Enable
+    /* Manually set the state of the battery control circuitry: BCTRLE. On Iris FM1 this line (should be) disconnected so this *should effectively be a no-op. To be used if the engineers believe this connection may have reformed somehow. */
+    void WatchDogInterfaceComponentImpl::Set_Battery_Control_Enable_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        batt_ctrl_en_states batt_ctrl_en)
+    {
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
+    }
+
+    //! Handler for command Set_Battery_Latch
+    /* Manually set battery latch state: LB. (normally you should just use the batteries enable/disable command in reset specific.) */
+    void WatchDogInterfaceComponentImpl::Set_Battery_Latch_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        latch_batt_states latch_batt)
+    {
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
+    }
+
+    //! Handler for command Set_Latch_Set
+    /* Control the battery latch "SET" override. This line *should* be severed on Iris FM1, so this *should* effectively be a no-op. */
+    void WatchDogInterfaceComponentImpl::Set_Latch_Set_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        latch_set_states latch_set)
+    {
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
+    }
+
+    //! Handler for command Set_Latch_Reset
+    /* Control the battery latch "RESET" override. This line *should* be severed on Iris FM1, so this *should* effectively be a no-op. */
+    void WatchDogInterfaceComponentImpl::Set_Latch_Reset_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        latch_reset_states latch_reset)
+    {
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
+    }
+
+    //! Handler for command Echo
+    /* Echo the given fixed length string (technically can send a string of any length up to the max length). */
+    void WatchDogInterfaceComponentImpl::Echo_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        U8 length,
+        const Fw::CmdStringArg &message /*!< Message for the Watchdog to Echo back to us.*/
+    )
+    {
+        this->handleWatchDogOnlyCommand(opCode, cmdSeq);
     }
 
     /* End of Commands that Only Watchdog Processes*/
 
-    bool WatchDogInterfaceComponentImpl ::Read_Temp()
+    bool WatchDogInterfaceComponentImpl::Read_Temp()
     {
         // Start ADC Conversions for all thermistors
         adcStartConversion(adcREG1, adcGROUP1);
@@ -478,10 +628,11 @@ namespace CubeRover
             handleUplinkMsg(msg);
             return;
         }
-  
+
         // Downlink messages are different (specifically, they aren't a response to a Hercules command)
         // so we handle them separately
-        if (msg.parsedHeader.lowerOpCode == DOWNLINK_TO_WIFI_OPCODE) {
+        if (msg.parsedHeader.lowerOpCode == DOWNLINK_TO_WIFI_OPCODE)
+        {
             handleDownlinkMsg(msg);
             return;
         }
@@ -657,11 +808,12 @@ namespace CubeRover
         uplink_out(0, uplinked_data);
     }
 
-    void WatchDogInterfaceComponentImpl::handleDownlinkMsg(WatchDogMpsm::Message& msg)
+    void WatchDogInterfaceComponentImpl::handleDownlinkMsg(WatchDogMpsm::Message &msg)
     {
         // Before anything else, make sure we have enough data (and since the payload is variable size,
         // in this case "enough" just means non-zero and not over the maximum)
-        if (msg.accumulatedDataSize <= 0 || msg.accumulatedDataSize > WATCHDOG_MAX_PAYLOAD) {
+        if (msg.accumulatedDataSize <= 0 || msg.accumulatedDataSize > WATCHDOG_MAX_PAYLOAD)
+        {
             this->log_WARNING_HI_WatchDogIncorrectResp(bad_size_received);
             return;
         }
@@ -689,8 +841,8 @@ namespace CubeRover
         downlinked_data.setsize(static_cast<U32>(msg.accumulatedDataSize));
         downlinkBufferSend_out(0, downlinked_data);
     }
-  
-    void WatchDogInterfaceComponentImpl::handleTelemetryMsg(WatchDogMpsm::Message& msg)
+
+    void WatchDogInterfaceComponentImpl::handleTelemetryMsg(WatchDogMpsm::Message &msg)
     {
         // Before anything else, make sure we have enough data
         if (msg.accumulatedDataSize != sizeof(struct WatchdogTelemetry))
@@ -707,10 +859,10 @@ namespace CubeRover
         this->tlmWrite_VOLTAGE_24V(buff->voltage_24V);
         this->tlmWrite_VOLTAGE_28V(buff->voltage_28V);
         this->tlmWrite_BATTERY_THERMISTOR(buff->battery_thermistor);
-        this->tlmWrite_SYSTEM_STATUS(buff->sys_status);
-        this->tlmWrite_BATTERY_LEVEL(buff->battery_level);
-        this->tlmWrite_BATTERY_CURRENT(buff->battery_current);
-        this->tlmWrite_BATTERY_VOLTAGE(buff->battery_voltage);
+        // this->tlmWrite_SYSTEM_STATUS(buff->sys_status);        // Not currently impl. (we get this from WD->Herc packet forwarding anyway).
+        // this->tlmWrite_BATTERY_LEVEL(buff->battery_level);     //  Not currently impl. (we get this from WD->Herc packet forwarding anyway).
+        // this->tlmWrite_BATTERY_CURRENT(buff->battery_current); //  Not currently impl. (we get this from WD->Herc packet forwarding anyway).
+        // this->tlmWrite_BATTERY_VOLTAGE(buff->battery_voltage); // Not currently impl. (we get this from WD->Herc packet forwarding anyway)
 
         return;
     }
@@ -757,7 +909,7 @@ namespace CubeRover
 
         default:
             // Should never happen;
-//            configASSERT(false);
+            //            configASSERT(false);
         }
 
         // This is equivalent to &(m_txCmdArray.commands[index])
@@ -913,7 +1065,7 @@ namespace CubeRover
         {
             return false;
         }
-        
+
         sloppyResourceProtectionMutex.lock();
         memset(m_printBuffer, 0, sizeof(m_printBuffer));
         sprintf(m_printBuffer, "DEBUG");
@@ -938,7 +1090,8 @@ namespace CubeRover
         return success;
     }
 
-    bool WatchDogInterfaceComponentImpl::debugPrintfBuffer(uint8_t* buffer, size_t bufferLen){
+    bool WatchDogInterfaceComponentImpl::debugPrintfBuffer(uint8_t *buffer, size_t bufferLen)
+    {
         static Os::Mutex sloppyResourceProtectionMutex; // quick and dirty. keeps multiple tasks from doing this at once.
         if (bufferLen == 0)
         {
@@ -947,14 +1100,14 @@ namespace CubeRover
         sloppyResourceProtectionMutex.lock();
         memset(m_printBuffer, 0, sizeof(m_printBuffer));
         sprintf(m_printBuffer, "DEBUG");
-        size_t bytesToSend = (bufferLen > (sizeof(m_printBuffer)-5)) ? (sizeof(m_printBuffer)-5) : bufferLen;
-        memcpy(m_printBuffer+5, buffer, bytesToSend);
+        size_t bytesToSend = (bufferLen > (sizeof(m_printBuffer) - 5)) ? (sizeof(m_printBuffer) - 5) : bufferLen;
+        memcpy(m_printBuffer + 5, buffer, bytesToSend);
 
         bool success = txCommand(DEBUG_OPCODE,
                                  m_downlinkSequenceNumber,
                                  static_cast<uint16_t>(No_Reset),
                                  reinterpret_cast<uint8_t *>(m_printBuffer),
-                                 (5+bytesToSend),
+                                 (5 + bytesToSend),
                                  false);
 
         if (success)
@@ -966,8 +1119,8 @@ namespace CubeRover
         return success;
     }
 
-
-    bool WatchDogInterfaceComponentImpl::debugPrintfBufferWithPrefix(uint8_t* prefixBuffer, size_t prefixBufferLen, uint8_t* buffer, size_t bufferLen){
+    bool WatchDogInterfaceComponentImpl::debugPrintfBufferWithPrefix(uint8_t *prefixBuffer, size_t prefixBufferLen, uint8_t *buffer, size_t bufferLen)
+    {
         static Os::Mutex sloppyResourceProtectionMutex; // quick and dirty. keeps multiple tasks from doing this at once.
         if (bufferLen == 0 || prefixBufferLen == 0)
         {
@@ -981,32 +1134,36 @@ namespace CubeRover
         size_t prefixBytesToSend, mainBytesToSend;
 
         // If prefix is too big, we just send that:
-        if(prefixBufferLen > (sizeof(m_printBuffer)-5)){
-            prefixBytesToSend = (sizeof(m_printBuffer)-5);
+        if (prefixBufferLen > (sizeof(m_printBuffer) - 5))
+        {
+            prefixBytesToSend = (sizeof(m_printBuffer) - 5);
             mainBytesToSend = 0;
         }
-        else{
+        else
+        {
             prefixBytesToSend = prefixBufferLen;
         }
 
         // Clip main buffer:
-        if(bufferLen > (sizeof(m_printBuffer)-5-prefixBytesToSend)){
-            mainBytesToSend = (sizeof(m_printBuffer)-5-prefixBytesToSend);
+        if (bufferLen > (sizeof(m_printBuffer) - 5 - prefixBytesToSend))
+        {
+            mainBytesToSend = (sizeof(m_printBuffer) - 5 - prefixBytesToSend);
         }
-        else{
+        else
+        {
             mainBytesToSend = bufferLen;
         }
 
         // Copy data:
-        memcpy(m_printBuffer+5, prefixBuffer, prefixBytesToSend);
-        memcpy(m_printBuffer+5+prefixBytesToSend, buffer, mainBytesToSend);
+        memcpy(m_printBuffer + 5, prefixBuffer, prefixBytesToSend);
+        memcpy(m_printBuffer + 5 + prefixBytesToSend, buffer, mainBytesToSend);
 
         // Send:
         bool success = txCommand(DEBUG_OPCODE,
                                  m_downlinkSequenceNumber,
                                  static_cast<uint16_t>(No_Reset),
                                  reinterpret_cast<uint8_t *>(m_printBuffer),
-                                 (5+prefixBytesToSend+mainBytesToSend),
+                                 (5 + prefixBytesToSend + mainBytesToSend),
                                  false);
 
         if (success)
@@ -1016,7 +1173,6 @@ namespace CubeRover
         sloppyResourceProtectionMutex.unLock();
 
         return success;
-
     }
 
     // FIXME: Add timeout to escape polling loop

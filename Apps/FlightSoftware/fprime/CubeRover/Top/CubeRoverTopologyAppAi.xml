@@ -207,7 +207,7 @@
     <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
   </connection>-->
 
-  <connection name = "watchdogInterface_to_cubeRoverTime">
+  <connection name = "watchDogInterface_to_cubeRoverTime">
     <source component = "watchDogInterface" port = "Time" type = "Time" num = "0" />
     <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
   </connection>
@@ -278,7 +278,7 @@
   </connection>
   
   <connection name="watchdog_to_chanTlm">
-    <source component="watchdogInterface" port="Tlm" type="Tlm" num="0" />
+    <source component="watchDogInterface" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
       

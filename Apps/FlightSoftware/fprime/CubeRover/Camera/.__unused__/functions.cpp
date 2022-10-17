@@ -1,7 +1,7 @@
 #include "gio.h"
 #include "spi.h"
 #include "lin.h"
-/*
+
 S25fl512l g_fpgaFlash;
 uint8_t g_cameraSelet = 0;      // 0 or 1
 
@@ -85,4 +85,4 @@ void getAndTransmitPicture(){
         // sendCameraDataOverWifi(g_imageLineBuffer, sizeof(g_imageLineBuffer) / DOWNSAMPLING, status);
     }
 }
-*/
+

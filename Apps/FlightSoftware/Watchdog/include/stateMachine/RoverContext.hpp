@@ -37,13 +37,12 @@ namespace iris
             uint8_t m_queuedIOWritePort0Value;
             uint8_t m_queuedIOWritePort1Value;
 
+            bool m_isDeployed;
+
             WatchdogStateDetails m_details;
-            bool m_sendDetailedReport;
 
             bool* m_persistentInMission;
             bool* m_persistentDeployed;
-
-            bool gotWifi;
     };
 
 }

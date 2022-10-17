@@ -1,1 +1,2 @@
-# Nothing to do here anymore.
+patch NetworkManagerComponentAc.cpp NetworkManagerComponentAc.cpp.patch
+patch NetworkManagerComponentAc.hpp NetworkManagerComponentAc.hpp.patch

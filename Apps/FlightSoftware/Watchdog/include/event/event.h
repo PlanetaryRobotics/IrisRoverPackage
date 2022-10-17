@@ -21,9 +21,7 @@ typedef enum Event__Type
     EVENT__TYPE__HERCULES_DATA = 2,
     EVENT__TYPE__TIMER_TICK = 3,
     EVENT__TYPE__HIGH_TEMP = 4,
-    EVENT__TYPE__POWER_ISSUE = 5,
-    EVENT__TYPE__WD_INT_RISING_EDGE = 6,
-    EVENT__TYPE__WD_INT_FALLING_EDGE = 7
+    EVENT__TYPE__POWER_ISSUE = 5
 } Event__Type;
 
 /**

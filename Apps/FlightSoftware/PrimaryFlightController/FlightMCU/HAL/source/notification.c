@@ -1,49 +1,50 @@
-/** @file notification.c
- *   @brief User Notification Definition File
- *   @date 11-Dec-2018
- *   @version 04.07.01
- *
- *   This file  defines  empty  notification  routines to avoid
- *   linker errors, Driver expects user to define the notification.
- *   The user needs to either remove this file and use their custom
- *   notification function or place their code sequence in this file
- *   between the provided USER CODE BEGIN and USER CODE END.
- *
- */
+/** @file notification.c 
+*   @brief User Notification Definition File
+*   @date 11-Dec-2018
+*   @version 04.07.01
+*
+*   This file  defines  empty  notification  routines to avoid
+*   linker errors, Driver expects user to define the notification. 
+*   The user needs to either remove this file and use their custom 
+*   notification function or place their code sequence in this file 
+*   between the provided USER CODE BEGIN and USER CODE END.
+*
+*/
 
-/*
- * Copyright (C) 2009-2018 Texas Instruments Incorporated - www.ti.com
- *
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *    Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- *    Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the
- *    distribution.
- *
- *    Neither the name of Texas Instruments Incorporated nor the names of
- *    its contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- */
+/* 
+* Copyright (C) 2009-2018 Texas Instruments Incorporated - www.ti.com 
+* 
+* 
+*  Redistribution and use in source and binary forms, with or without 
+*  modification, are permitted provided that the following conditions 
+*  are met:
+*
+*    Redistributions of source code must retain the above copyright 
+*    notice, this list of conditions and the following disclaimer.
+*
+*    Redistributions in binary form must reproduce the above copyright
+*    notice, this list of conditions and the following disclaimer in the 
+*    documentation and/or other materials provided with the   
+*    distribution.
+*
+*    Neither the name of Texas Instruments Incorporated nor the names of
+*    its contributors may be used to endorse or promote products derived
+*    from this software without specific prior written permission.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+*  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
+*  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+*  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
+*  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+*  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+*  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
+*  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+*  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+*/
+
 
 /* Include Files */
 
@@ -60,14 +61,13 @@
 
 /* USER CODE BEGIN (0) */
 #include "App/ISR.hpp"
-
 /* USER CODE END */
 #pragma WEAK(esmGroup1Notification)
 void esmGroup1Notification(uint32 channel)
 {
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (1) */
-    /* USER CODE END */
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (1) */
+/* USER CODE END */
 }
 
 /* USER CODE BEGIN (2) */
@@ -75,9 +75,9 @@ void esmGroup1Notification(uint32 channel)
 #pragma WEAK(esmGroup2Notification)
 void esmGroup2Notification(uint32 channel)
 {
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (3) */
-    /* USER CODE END */
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (3) */
+/* USER CODE END */
 }
 
 /* USER CODE BEGIN (4) */
@@ -85,9 +85,9 @@ void esmGroup2Notification(uint32 channel)
 #pragma WEAK(memoryPort0TestFailNotification)
 void memoryPort0TestFailNotification(uint32 groupSelect, uint32 dataSelect, uint32 address, uint32 data)
 {
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (5) */
-    /* USER CODE END */
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (5) */
+/* USER CODE END */
 }
 
 /* USER CODE BEGIN (6) */
@@ -95,9 +95,9 @@ void memoryPort0TestFailNotification(uint32 groupSelect, uint32 dataSelect, uint
 #pragma WEAK(memoryPort1TestFailNotification)
 void memoryPort1TestFailNotification(uint32 groupSelect, uint32 dataSelect, uint32 address, uint32 data)
 {
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (7) */
-    /* USER CODE END */
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (7) */
+/* USER CODE END */
 }
 
 /* USER CODE BEGIN (8) */
@@ -105,9 +105,9 @@ void memoryPort1TestFailNotification(uint32 groupSelect, uint32 dataSelect, uint
 #pragma WEAK(rtiNotification)
 void rtiNotification(uint32 notification)
 {
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (9) */
-    /* USER CODE END */
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (9) */
+/* USER CODE END */
 }
 
 /* USER CODE BEGIN (10) */
@@ -115,9 +115,9 @@ void rtiNotification(uint32 notification)
 #pragma WEAK(adcNotification)
 void adcNotification(adcBASE_t *adc, uint32 group)
 {
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (11) */
-    /* USER CODE END */
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (11) */
+/* USER CODE END */
 }
 
 /* USER CODE BEGIN (12) */
@@ -125,19 +125,19 @@ void adcNotification(adcBASE_t *adc, uint32 group)
 #pragma WEAK(gioNotification)
 void gioNotification(gioPORT_t *port, uint32 bit)
 {
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (19) */
-    /* USER CODE END */
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (19) */
+/* USER CODE END */
 }
 
 /* USER CODE BEGIN (20) */
 /* USER CODE END */
 #pragma WEAK(i2cNotification)
-void i2cNotification(i2cBASE_t *i2c, uint32 flags)
+void i2cNotification(i2cBASE_t *i2c, uint32 flags)      
 {
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (21) */
-    /* USER CODE END */
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (21) */
+/* USER CODE END */
 }
 
 /* USER CODE BEGIN (22) */
@@ -145,9 +145,9 @@ void i2cNotification(i2cBASE_t *i2c, uint32 flags)
 #pragma WEAK(mibspiNotification)
 void mibspiNotification(mibspiBASE_t *mibspi, uint32 flags)
 {
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (25) */
-    /* USER CODE END */
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (25) */
+/* USER CODE END */
 }
 
 /* USER CODE BEGIN (26) */
@@ -155,29 +155,19 @@ void mibspiNotification(mibspiBASE_t *mibspi, uint32 flags)
 #pragma WEAK(mibspiGroupNotification)
 void mibspiGroupNotification(mibspiBASE_t *mibspi, uint32 group)
 {
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (27) */
-    /* USER CODE END */
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (27) */
+/* USER CODE END */
 }
 /* USER CODE BEGIN (28) */
-extern void sci_ISR(uint32 flags);    // ISR for SCI interface (used for WF121)
-extern void scilin_ISR(uint32 flags); // ISR for SCILIN interface (used for WD)
 /* USER CODE END */
 
 #pragma WEAK(sciNotification)
-void sciNotification(sciBASE_t *sci, uint32 flags)
+void sciNotification(sciBASE_t *sci, uint32 flags)     
 {
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (29) */
-    if (sci == sciREG)
-    {
-        sci_ISR(flags);
-    }
-    else if (sci == scilinREG)
-    {
-        scilin_ISR(flags);
-    }
-    /* USER CODE END */
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (29) */
+/* USER CODE END */
 }
 
 /* USER CODE BEGIN (30) */
@@ -185,9 +175,9 @@ void sciNotification(sciBASE_t *sci, uint32 flags)
 #pragma WEAK(spiNotification)
 void spiNotification(spiBASE_t *spi, uint32 flags)
 {
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (31) */
-    /* USER CODE END */
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (31) */
+/* USER CODE END */
 }
 
 /* USER CODE BEGIN (32) */
@@ -195,22 +185,27 @@ void spiNotification(spiBASE_t *spi, uint32 flags)
 #pragma WEAK(spiEndNotification)
 void spiEndNotification(spiBASE_t *spi)
 {
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (33) */
-    /* USER CODE END */
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (33) */
+/* USER CODE END */
 }
 
 /* USER CODE BEGIN (34) */
 /* USER CODE END */
 
+
+
 /* USER CODE BEGIN (43) */
 /* USER CODE END */
+
 
 /* USER CODE BEGIN (47) */
 /* USER CODE END */
 
+
 /* USER CODE BEGIN (50) */
 /* USER CODE END */
+
 
 /* USER CODE BEGIN (53) */
 /* USER CODE END */
@@ -218,10 +213,10 @@ void spiEndNotification(spiBASE_t *spi)
 #pragma WEAK(dmaGroupANotification)
 void dmaGroupANotification(dmaInterrupt_t inttype, uint32 channel)
 {
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (54) */
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (54) */
     Update_DMA_Comp_Flag(inttype, (enum dmaCHANNEL)channel);
-    /* USER CODE END */
+/* USER CODE END */
 }
 /* USER CODE BEGIN (55) */
 /* USER CODE END */

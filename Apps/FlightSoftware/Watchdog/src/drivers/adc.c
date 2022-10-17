@@ -150,7 +150,6 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
             outputValues->sampleComplete = TRUE; // update output struct to signal sample is complete.
 
             *watchdogFlagsPtr |= WDFLAG_ADC_READY; // signal ready to main loop
-            __low_power_mode_off_on_exit();
             break;
         default:
             break;

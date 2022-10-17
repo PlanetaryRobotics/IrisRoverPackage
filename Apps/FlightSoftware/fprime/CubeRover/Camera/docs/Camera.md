@@ -55,8 +55,3 @@
 |Cam_BytesSent|3 (0x3)|U32|Number of bytes sent for downlink|
 |Cam_LatestCallbackId|4 (0x4)|U16|The latest callback ID that triggerd an image to be taken|
 
-## Event List
-
-|Event Name|ID|Description|Arg Name|Arg Type|Arg Size|Description
-|---|---|---|---|---|---|---|
-|Camera_FailedToTakeImage|0 (0x0)|A basic notification that, for some reason, the camera failed to capture an image. Try again.| | | | |

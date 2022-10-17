@@ -1,6 +1,5 @@
 #include "stateMachine/RoverStateMission.hpp"
 
-#include "comms/debug_comms.h"
 #include "comms/ground_msgs.h"
 #include "comms/i2c_sensors.h"
 #include "drivers/adc.h"
@@ -35,25 +34,6 @@ namespace iris
             adcCheckVoltageLevels(&(theContext.m_adcValues));
         }
 
-        // Check for UART errors to report
-        size_t count = 0;
-        BOOL changed = FALSE;
-        UART__Status uStatus = UART__checkRxRbErrors(theContext.m_uart0State, &count, &changed);
-        DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Hercules UART Rx Rb Error count");
-
-        if (changed) {
-            DebugComms__tryPrintfToLanderNonblocking("New Hercules UART Rx Rb failures, total count = %d\n", (int) count);
-        }
-
-        count = 0;
-        changed = FALSE;
-        uStatus = UART__checkRxRbErrors(theContext.m_uart1State, &count, &changed);
-        DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Lander UART Rx Rb Error count");
-
-        if (changed) {
-            DebugComms__tryPrintfToLanderNonblocking("New Lander UART Rx Rb failures, total count = %d\n", (int) count);
-        }
-
         /* send heartbeat with collected data */
         /**
          * @todo Check if we've deployed or if we shouldn't be able to communicate with lander for any other
@@ -66,15 +46,13 @@ namespace iris
                                                                              static_cast<uint8_t>(getState()),
                                                                              &hb);
 
-        DEBUG_ASSERT_EQUAL(GND_MSGS__STATUS__SUCCESS, gcStatus);
+        assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
 
-
-
-        LanderComms__Status lcStatus = txDownlinkData(theContext,
+        LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
                                                            (uint8_t*) &hb,
                                                            sizeof(hb));
 
-        DEBUG_ASSERT_EQUAL(LANDER_COMMS__STATUS__SUCCESS, lcStatus);
+        assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
         if (LANDER_COMMS__STATUS__SUCCESS != lcStatus) {
             //!< @todo Handling?
         }
@@ -84,7 +62,7 @@ namespace iris
             heaterControl(theContext);
         }
 
-        //theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__GAUGE_READING);
+        theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__GAUGE_READING);
 
         if (!theContext.m_i2cActive) {
             initiateNextI2cAction(theContext);
@@ -96,8 +74,6 @@ namespace iris
                          &(theContext.m_watchdogOpts),
                          &writeIOExpander,
                          &(theContext.m_details));
-
-
 
         if (writeIOExpander) {
             theContext.m_queuedI2cActions |= 1 << ((uint16_t) I2C_SENSORS__ACTIONS__WRITE_IO_EXPANDER);
@@ -116,6 +92,12 @@ namespace iris
             initiateNextI2cAction(theContext);
         }
 
+        return getState();
+    }
+
+    RoverState RoverStateMission::handleHighTemp(RoverContext& /*theContext*/)
+    {
+        //!< @todo Implement RoverStateMission::handleHighTemp
         return getState();
     }
 
@@ -162,14 +144,6 @@ namespace iris
                 theContext.m_i2cActive = false;
                 initiateNextI2cAction(theContext);
             }
-
-        }
-
-        if (theContext.m_sendDetailedReport) {
-
-            theContext.m_sendDetailedReport = false;
-            sendDetailedReportToLander(theContext);
-
         }
 
         return getState();
@@ -177,27 +151,20 @@ namespace iris
 
     RoverState RoverStateMission::transitionTo(RoverContext& theContext)
     {
-        // Nothing to do on this transition, which should always be from ENTERING_MISSION.
+        // Nothing to do on this transition, which should always be from ENTERING_SERVICE.
         m_currentSubState = SubState::MISSION_NORMAL;
         *(theContext.m_persistentInMission) = true;
-
-        if (*(theContext.m_persistentDeployed)) {
-            m_currentDeployState = DeployState::DEPLOYED;
-            disableHeater();
-        }
-
         return getState();
     }
 
     void RoverStateMission::heaterControl(RoverContext& theContext) {
         // Only use heater when connected to the lander
-
         if (m_currentDeployState != DeployState::NOT_DEPLOYED) {
-            disableHeater();
+            TB0CCR2 = 0;
+            theContext.m_details.m_hParams.m_heaterDutyCycle = 0;
         } else {
             RoverStateBase::heaterControl(theContext);
         }
-
     }
 
     RoverState RoverStateMission::performResetCommand(RoverContext& theContext,
@@ -267,10 +234,7 @@ namespace iris
                 deployNotificationResponse.commandId = msg.commandId;
                 deployNotificationResponse.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__DEPLOY;
                 sendDeployNotificationResponse = true;
-                *(theContext.m_persistentDeployed) = true;
-
-                // Don't allow DebugComms to write to lander anymore
-                DebugComms__registerLanderComms(NULL);
+                theContext.m_isDeployed = true;
                 break;
 
             case DeployState::DEPLOYING:

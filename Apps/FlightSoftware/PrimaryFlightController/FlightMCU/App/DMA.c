@@ -6,35 +6,15 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #pragma SWI_ALIAS(prvRaisePrivilege, 1);
 extern BaseType_t prvRaisePrivilege( void );
 #define portRESET_PRIVILEGE( xRunningPrivileged ) if( xRunningPrivileged == 0 ) portSWITCH_TO_USER_MODE()
 
+g_dmaCTRL g_dmaCTRLPKT;
 
-/* Makes a DMA CTRL packet with default settings.
- * Previously, there was one global g_dmaCTRLPKT shared between all DMA sends/recvs,
- * but this wasn't multiprocessing safe. So, now each operation gets its own.
- */
-g_dmaCTRL makeDefaultDmaCtrlPacket(){
-    g_dmaCTRL dmaCTRLPKT;
-
-    // Define Default DMA control packet for each channel
-    dmaCTRLPKT.CHCTRL    = 0;                 /* channel control chain      */
-    dmaCTRLPKT.ELCNT     = 1;                 /* element count              */
-    dmaCTRLPKT.ELDOFFSET = 0;                 /* element destination offset */
-    dmaCTRLPKT.ELSOFFSET = 0;                 /* element source offset      */
-    dmaCTRLPKT.FRDOFFSET = 0;                 /* frame destination offset   */
-    dmaCTRLPKT.FRSOFFSET = 0;                 /* frame source offset        */
-    dmaCTRLPKT.PORTASGN  = 4;                 /* port b                     */
-    dmaCTRLPKT.TTYPE     = FRAME_TRANSFER ;   /* transfer type              */
-    dmaCTRLPKT.AUTOINIT  = AUTOINIT_OFF;      /* autoinit                   */
-
-    return dmaCTRLPKT;
-}
 
 /** @fn void scidmaInit()
-*   @brief Initialize the SCI and DMA to transfer SCI data via DMA
+*   @brief Initialize the SCI and DMA to tranfer SCI data via DMA
 *   @note This function configures the SCI to trigger a DMA request when the SCI TX/RX is complete. Does not explicitly
 *   enable DMA. Call dmaEnable prior to this.
 */
@@ -42,6 +22,17 @@ void scidmaInit()
 {
     // DMA and VIM are only accessible in privileged mode!
     // Make sure dmaEnable() has been called
+
+    // Define Default DMA control packet for each channel
+	g_dmaCTRLPKT.CHCTRL    = 0;                 /* channel control chain      */
+	g_dmaCTRLPKT.ELCNT     = 1;                 /* element count              */
+	g_dmaCTRLPKT.ELDOFFSET = 0;                 /* element destination offset */
+	g_dmaCTRLPKT.ELSOFFSET = 0;                 /* element source offset      */
+	g_dmaCTRLPKT.FRDOFFSET = 0;                 /* frame destination offset   */
+	g_dmaCTRLPKT.FRSOFFSET = 0;                 /* frame source offset        */
+	g_dmaCTRLPKT.PORTASGN  = 4;                 /* port b                     */
+	g_dmaCTRLPKT.TTYPE     = FRAME_TRANSFER ;   /* transfer type              */
+    g_dmaCTRLPKT.AUTOINIT  = AUTOINIT_OFF;      /* autoinit                   */
 
 	vimChannelMap(BTCA_INT, BTCA_INT, dmaBTCAInterrupt);
 	// vimChannelMap(FTCA_INT, FTCA_INT, dmaFTCAInterrupt);
@@ -87,20 +78,18 @@ void sciDMASend(enum dmaCHANNEL channel, char *source_address, unsigned size, dm
     while(*busy);
     *busy = true;
 
-    g_dmaCTRL dmaCTRLPKT = makeDefaultDmaCtrlPacket();
-
-    dmaCTRLPKT.RDSIZE = access;                                       /* read size                  */
-    dmaCTRLPKT.WRSIZE = access;                                       /* write size                 */
-    dmaCTRLPKT.FRCNT  = size;                                         /* frame count                */
-    dmaCTRLPKT.ADDMODERD = ADDR_INC1;                                 /* address mode read (source) */
-    dmaCTRLPKT.ADDMODEWR = ADDR_FIXED;                                /* address mode write (dest)  */
-    dmaCTRLPKT.SADD   = (uint32)source_address;                       /* source address             */
+    g_dmaCTRLPKT.RDSIZE = access;                                       /* read size                  */
+    g_dmaCTRLPKT.WRSIZE = access;                                       /* write size                 */
+    g_dmaCTRLPKT.FRCNT  = size;                                         /* frame count                */
+    g_dmaCTRLPKT.ADDMODERD = ADDR_INC1;                                 /* address mode read (source) */
+    g_dmaCTRLPKT.ADDMODEWR = ADDR_FIXED;                                /* address mode write (dest)  */
+    g_dmaCTRLPKT.SADD   = (uint32)source_address;                       /* source address             */
     switch (channel) {
         case SCILIN_TX_DMA_CH:
-            dmaCTRLPKT.DADD   = (uint32)(&(scilinREG->TD));           /* Destination address        */
+            g_dmaCTRLPKT.DADD   = (uint32)(&(scilinREG->TD));           /* Destination address        */
             break;
         case SCI_TX_DMA_CH:
-            dmaCTRLPKT.DADD   = (uint32)(&(sciREG->TD));              /* Destination address        */
+            g_dmaCTRLPKT.DADD   = (uint32)(&(sciREG->TD));              /* Destination address        */
             break;
         default:
             return;     // Invalid DMA channel from mapping selected. Not assigned to SCI TX
@@ -108,7 +97,7 @@ void sciDMASend(enum dmaCHANNEL channel, char *source_address, unsigned size, dm
 
     BaseType_t privilege = prvRaisePrivilege();
     /* - setting dma control packets for transmit *//* - setting dma control packets for transmit */
-    dmaSetCtrlPacket(channel, dmaCTRLPKT);
+    dmaSetCtrlPacket(channel, g_dmaCTRLPKT);
     /* - setting the dma channel to trigger on h/w request */
     dmaSetChEnable(channel, DMA_HW);
     portRESET_PRIVILEGE(privilege);
@@ -159,20 +148,18 @@ void sciDMARecv(enum dmaCHANNEL channel, char *dest_address, unsigned size, dmaA
     while(*busy);
     *busy = true;
 
-    g_dmaCTRL dmaCTRLPKT = makeDefaultDmaCtrlPacket();
-
-    dmaCTRLPKT.RDSIZE = access;                                       /* read size                  */
-    dmaCTRLPKT.WRSIZE = access;                                       /* write size                 */
-    dmaCTRLPKT.FRCNT  = size;                                         /* frame count                */
-    dmaCTRLPKT.ADDMODERD = ADDR_FIXED;                                /* address mode read (source) */
-    dmaCTRLPKT.ADDMODEWR = ADDR_INC1;                                 /* address mode write (dest)  */
-    dmaCTRLPKT.DADD   = (uint32)dest_address;                         /* destination address        */
+    g_dmaCTRLPKT.RDSIZE = access;                                       /* read size                  */
+    g_dmaCTRLPKT.WRSIZE = access;                                       /* write size                 */
+    g_dmaCTRLPKT.FRCNT  = size;                                         /* frame count                */
+    g_dmaCTRLPKT.ADDMODERD = ADDR_FIXED;                                /* address mode read (source) */
+    g_dmaCTRLPKT.ADDMODEWR = ADDR_INC1;                                 /* address mode write (dest)  */
+    g_dmaCTRLPKT.DADD   = (uint32)dest_address;                         /* destination address        */
     switch (channel) {
         case SCILIN_RX_DMA_CH:
-            dmaCTRLPKT.SADD   = (uint32)(&(scilinREG->RD));           /* Source address             */
+            g_dmaCTRLPKT.SADD   = (uint32)(&(scilinREG->RD));           /* Source address             */
             break;
         case SCI_RX_DMA_CH:
-            dmaCTRLPKT.SADD   = (uint32)(&(sciREG->RD));              /* Source address             */
+            g_dmaCTRLPKT.SADD   = (uint32)(&(sciREG->RD));              /* Source address             */
             break;
         default:
             return;     // Invalid DMA  int status =channel from mapping selected. Not assigned to SCI RX
@@ -180,7 +167,7 @@ void sciDMARecv(enum dmaCHANNEL channel, char *dest_address, unsigned size, dmaA
 
     BaseType_t privilege = prvRaisePrivilege();
     /* - setting dma control packets for transmit */
-    dmaSetCtrlPacket(channel, dmaCTRLPKT);
+    dmaSetCtrlPacket(channel, g_dmaCTRLPKT);
     /* - setting the dma channel to trigger on h/w request */
     dmaSetChEnable(channel, DMA_HW);
     portRESET_PRIVILEGE(privilege);

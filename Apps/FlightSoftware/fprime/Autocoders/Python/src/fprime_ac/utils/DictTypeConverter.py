@@ -28,10 +28,7 @@ class DictTypeConverter(object):
             for (mname,mval,mcomment) in t[1]:
                 # check for member value
                 if mval != None:
-                    if mval[:2].upper() == "0X":
-                        curr_memb_val = int(mval, base=16)
-                    else:
-                        curr_memb_val = int(mval)
+                    curr_memb_val = int(mval)
                 type_string += "\"%s\":%d,"%(mname,curr_memb_val)
                 curr_memb_val += 1
             type_string += "})"

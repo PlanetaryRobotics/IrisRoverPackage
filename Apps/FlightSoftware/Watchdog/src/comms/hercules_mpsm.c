@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <string.h>
 
-#include "comms/debug_comms.h"
 #include "comms/hercules_mpsm.h"
 #include "common.h"
 #include "utils/ring_buffer.h"
@@ -165,8 +164,6 @@ HerculesMpsm__Status HerculesMpsm__process(HerculesMpsm__Msg* msg, uint8_t newDa
     }
 
     if (HERCULES_MPSM__MSG_STATUS__IN_PROGRESS != msg->msgStatus) {
-        DebugComms__tryPrintfToLanderNonblocking("Message in wrong state in HerculesMpsm__process, msg status is %d\n",
-                                                 msg->msgStatus);
         return HERCULES_MPSM__STATUS__ERROR_WRONG_STATE;
     }
 
@@ -229,8 +226,6 @@ static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg*
 
     BOOL spinForNewMagic = FALSE;
 
-    HerculesMpsm__Status returnStatus = HERCULES_MPSM__STATUS__NEED_MORE_DATA;
-
     // Start checking the header bytes
     if (HerculesMpsm__checkRb((uint8_t) HEADER_INDEX__MAGIC_ONE, HERC_MSGS__CONSTANTS__HEADER_MAGIC_ONE)
         && HerculesMpsm__checkRb((uint8_t) HEADER_INDEX__MAGIC_TWO, HERC_MSGS__CONSTANTS__HEADER_MAGIC_TWO)
@@ -268,12 +263,10 @@ static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg*
 
             // Clear the ring buffer, as we're now done with the header.
             rbStatus = RingBuffer__clear(theStateMachine.headerRb);
-            for (size_t i = 0; i < sizeof(theStateMachine.ringBufferMemory); ++i) {
-                theStateMachine.ringBufferMemory[i] = 0;
-            }
+            memset(theStateMachine.ringBufferMemory, 0, sizeof(theStateMachine.ringBufferMemory));
         
             // Clear should only throw is headerRb is NULL, and it shouldn't be NULL
-            DEBUG_ASSERT_EQUAL(RB__STATUS__SUCCESS, rbStatus);
+            assert(RB__STATUS__SUCCESS == rbStatus);
 
             // Record the data length
             theStateMachine.dataLength = msg->header.payloadLength;
@@ -286,34 +279,32 @@ static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg*
                 msg->msgStatus = HERCULES_MPSM__MSG_STATUS__DONE_VALID;
                 return HERCULES_MPSM__STATUS__PARSED_MESSAGE;
             } else {
+                // We expect data after this header, so advance the state machine
+                theStateMachine.currentState = HERCULES_MPSM_STATE__DATA;
+
                 // We can check now if the buffer given by the user is big enough for our data
                 if (theStateMachine.dataLength > msg->dataBufferLen) {
-                    DebugComms__tryPrintfToLanderNonblocking("In HerculesMpsm__checkForValidHeader state machine data length is "
-                                               "%u but dataBufferLen is %u\n",
-                                               theStateMachine.dataLength, msg->dataBufferLen);
                     msg->msgStatus = HERCULES_MPSM__MSG_STATUS__ERROR_BUFFER_TOO_SMALL;
-                    returnStatus = HERCULES_MPSM__STATUS__ERROR_BUFFER_TOO_SMALL;
-                    spinForNewMagic = TRUE;
-                } else {
-                    // We expect data after this header, so advance the state machine
-                    theStateMachine.currentState = HERCULES_MPSM_STATE__DATA;
+                    return HERCULES_MPSM__STATUS__ERROR_BUFFER_TOO_SMALL;
                 }
             }
         } else {
-            // Parity check failed, so signal to spin for the next magic numbers
+            // Parity check failed, so pop one then signal to spin for the next magic numbers
+            uint8_t unused = 0;
+            RingBuffer__getOverwrite(theStateMachine.headerRb, &unused);
             spinForNewMagic = TRUE;
         }
     } else {
         spinForNewMagic = TRUE;
+
     }
 
     if (spinForNewMagic) {
         BOOL foundNewMagic = FALSE;
+        uint8_t unused;
 
         while (!foundNewMagic && !RingBuffer__empty(theStateMachine.headerRb)) {
             BOOL foundMagicThisIter = TRUE;
-            uint8_t unused = 0;
-            RingBuffer__getOverwrite(theStateMachine.headerRb, &unused);
             size_t ringSize = RingBuffer__usedCount(theStateMachine.headerRb);
 
             if (ringSize >= 3) {
@@ -338,7 +329,7 @@ static HerculesMpsm__Status HerculesMpsm__checkForValidHeader(HerculesMpsm__Msg*
         }
     }
 
-    return returnStatus;
+    return HERCULES_MPSM__STATUS__NEED_MORE_DATA;
 }
 
 static BOOL HerculesMpsm__checkRb(size_t index, uint8_t expected)
@@ -370,9 +361,6 @@ static uint8_t HerculesMpsm__peekRb(size_t index)
 
 static HerculesMpsm__Status HerculesMpsm__appendData(HerculesMpsm__Msg* msg, uint8_t newData)
 {
-    if (msg->msgLen > msg->dataBufferLen - 1) {
-        DebugComms__tryPrintfToLanderNonblocking("msgLen is %u\n", msg->msgLen);
-    }
     msg->dataBuffer[msg->msgLen] = newData;
     msg->msgLen++;
 

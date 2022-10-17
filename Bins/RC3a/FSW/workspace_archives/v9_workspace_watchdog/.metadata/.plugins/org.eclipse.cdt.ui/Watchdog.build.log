@@ -1,8 +1,0 @@
-
-**** Build of configuration Debug_with_flag for project Watchdog ****
-
-/home/iris/ti/ccs910/ccs/utils/bin/gmake -k -j 8 all -O 
- 
-gmake[1]: 'Watchdog.out' is up to date.
-
-**** Build Finished ****

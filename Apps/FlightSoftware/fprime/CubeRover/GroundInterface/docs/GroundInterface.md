@@ -33,19 +33,17 @@
 
 |Event Name|ID|Description|Arg Name|Arg Type|Arg Size|Description
 |---|---|---|---|---|---|---|
-|GI_UplinkedPacketError|0 (0x0)|Error validating uplinked packet. Expected field is only logged for MISMATCHED_LENGTH and OUT_OF_SEQUENCE.| | | | |
+|GI_UplinkedPacketError|0 (0x0)|Error validating uplinked packet. Expected field is only logged for MISMATCHED_LENGTH and OUT_OF_SEQUENCE. For INCORRECT_TYPE, the magic value s a U32 so the upper short is stored in expected and lower short is stored in got.| | | | |
 | | | |errorType|uplinkedPacketError|||
 | | | |expected|U16|||
 | | | |got|U16|||
-|GI_UplinkedBadMagic|1 (0x1)|Error validating uplinked packet. The first payload in the variable length payload section had an incorrect magic.| | | | |
-| | | |magicReceived|U32|||
-|GI_CommandReceived|2 (0x2)|A command packet was received. One command per packet (and datagram) is strictly enforced| | | | |
+|GI_CommandReceived|1 (0x1)|A command packet was received. One command per packet (and datagram) is strictly enforced| | | | |
 | | | |seq|U8|||
 | | | |checksum|U16|||
-|GI_DownlinkedPacket|3 (0x3)|A packet sent to UDP receiver for downlink| | | | |
+|GI_DownlinkedPacket|2 (0x2)|A packet sent to UDP receiver for downlink| | | | |
 | | | |seq|U8|||
 | | | |checksum|U16|||
 | | | |length|U16|||
-|GI_DownlinkedItem|4 (0x4)|An item was added to the packet for downlink| | | | |
+|GI_DownlinkedItem|3 (0x3)|An item was added to the packet for downlink| | | | |
 | | | |seq|U8|||
 | | | |from|downlinkPacketType|||

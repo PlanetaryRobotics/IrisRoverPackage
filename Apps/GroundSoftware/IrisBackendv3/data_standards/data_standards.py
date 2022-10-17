@@ -802,9 +802,17 @@ class DataStandards(object):
             header('Telemetry:')
             for i, t in enumerate(m.telemetry.vals):
                 telemetry(i, t)
+                if t.is_enum:
+                    for e in t.enum:
+                        p_enum(e)
             header('Events:')
             for i, ev in enumerate(m.events.vals):
                 event(i, ev)
+                for arg in ev.args:
+                    if arg.is_enum:
+                        p_arg(arg)
+                        for e in arg.enum:
+                            p_enum(e)
         print('\n]')
 
     def __str__(self) -> str:

@@ -9,6 +9,7 @@ matplotlib
 seaborn
 pandas
 tabulate
+styleframe
 pynput
 multi-await
 plotly

@@ -52,7 +52,7 @@ class DataSource(Enum):
     MONGO = 0x30  # Data received (likely from Frontend) via MongoDB
 
 
-@attr.s(cmp=True, slots=True, auto_attribs=True)
+@attr.s(eq=True, order=True, slots=True, auto_attribs=True)
 class DownlinkTimes():
     """
     Container for timestamps for every stage of the downlinking pipeline.
@@ -69,7 +69,7 @@ class DownlinkTimes():
     pmcc_rx: Optional[datetime] = None
 
 
-@attr.s(cmp=True, slots=True, auto_attribs=True)
+@attr.s(eq=True, order=True, slots=True, auto_attribs=True)
 class UplinkTimes():
     """
     Container for timestamps for every stage of the uplinking pipeline.

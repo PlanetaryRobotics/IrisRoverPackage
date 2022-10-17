@@ -399,7 +399,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
     ),
     'wd-echo-hi-watchdog': (
         DataPathway.WIRED,
-        Magic.COMMAND,
+        Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_Echo',
         # Change this to whatever you want to reset.
         OrderedDict(length='10', message="HiWatchdog"),

@@ -520,24 +520,25 @@
         -->
         <channel id="2" name="VOLTAGE_2_5V" data_type="int16_t">
             <comment>
-                Voltage from 2.5V line from Watchdog
+                WD ADC reading for Voltage from 2.5V line from Watchdog
             </comment>
         </channel>
         <channel id="3" name="VOLTAGE_2_8V" data_type="int16_t">
             <comment>
-                Voltage from 2.8V line from Watchdog
+                WD ADC reading for Voltage from 2.8V line from Watchdog
             </comment>
         </channel>
         <channel id="4" name="VOLTAGE_24V" data_type="int16_t">
             <comment>
-                Voltage from 24V line from Watchdog
+                WD ADC reading for Voltage from 24V line from Watchdog
             </comment>
         </channel>
         <channel id="5" name="VOLTAGE_28V" data_type="int16_t">
             <comment>
-                Voltage from 28V line from Watchdog
+                WD ADC reading for Voltage from 28V line from Watchdog
             </comment>
         </channel>
+        <!--DEPRECATED
         <channel id="16" name="BATTERY_THERMISTOR" data_type="U8">
             <comment>
                 Battery Charge left in mAH
@@ -545,52 +546,52 @@
         </channel>
         <channel id="23" name="SYSTEM_STATUS" data_type="int8_t">
             <comment>
-                Boolean for Heater On/Off from Watchdog
+                8 bit systems status where each bit represents a watchdog status. Not currently impl. (we get this from WD->Herc packet forwarding anyway).
             </comment>
         </channel>
         <channel id="24" name="BATTERY_LEVEL" data_type="U16">
             <comment>
-                Value of Charge in Battery
+                Value of Charge in Battery. Not currently impl. (we get this from WD->Herc packet forwarding anyway).
             </comment>
         </channel>
         <channel id="25" name="BATTERY_CURRENT" data_type="U16">
             <comment>
-                Value of Current Used in Battery
+                Value of Current Used in Battery.  Not currently impl. (we get this from WD->Herc packet forwarding anyway).
             </comment>
         </channel>
         <channel id="26" name="BATTERY_VOLTAGE" data_type="U16">
             <comment>
-                Value of Voltage Used in Battery
+                Value of Voltage Used in Battery.  Not currently impl. (we get this from WD->Herc packet forwarding anyway).
             </comment>
-        </channel>
+        </channel>-->
         <channel id="27" name="THERM_0" data_type="U16">
             <comment>
-                12 bit Value for Thermistor value
+                12 bit ADC Reading for On-SBC Thermistor RT1.
             </comment>
         </channel>
         <channel id="28" name="THERM_1" data_type="U16">
             <comment>
-                12 bit Value for Thermistor value
+                12 bit ADC Reading for On-SBC Thermistor RT2.
             </comment>
         </channel>
         <channel id="29" name="THERM_2" data_type="U16">
             <comment>
-                12 bit Value for Thermistor value
+                12 bit ADC Reading for On-SBC Thermistor RT3.
             </comment>
         </channel>
         <channel id="30" name="THERM_3" data_type="U16">
             <comment>
-                12 bit Value for Thermistor value
+                12 bit ADC Reading for On-SBC Thermistor RT4.
             </comment>
         </channel>
         <channel id="31" name="THERM_4" data_type="U16">
             <comment>
-                12 bit Value for Thermistor value
+                12 bit ADC Reading for On-SBC Thermistor RT5.
             </comment>
         </channel>
         <channel id="32" name="THERM_5" data_type="U16">
             <comment>
-                12 bit Value for Thermistor value
+                12 bit ADC Reading for On-SBC Thermistor RT6.
             </comment>
         </channel>
     </telemetry>

@@ -859,10 +859,10 @@ namespace CubeRover
         this->tlmWrite_VOLTAGE_24V(buff->voltage_24V);
         this->tlmWrite_VOLTAGE_28V(buff->voltage_28V);
         this->tlmWrite_BATTERY_THERMISTOR(buff->battery_thermistor);
-        this->tlmWrite_SYSTEM_STATUS(buff->sys_status);
-        this->tlmWrite_BATTERY_LEVEL(buff->battery_level);
-        this->tlmWrite_BATTERY_CURRENT(buff->battery_current);
-        this->tlmWrite_BATTERY_VOLTAGE(buff->battery_voltage);
+        // this->tlmWrite_SYSTEM_STATUS(buff->sys_status);        // Not currently impl. (we get this from WD->Herc packet forwarding anyway).
+        // this->tlmWrite_BATTERY_LEVEL(buff->battery_level);     //  Not currently impl. (we get this from WD->Herc packet forwarding anyway).
+        // this->tlmWrite_BATTERY_CURRENT(buff->battery_current); //  Not currently impl. (we get this from WD->Herc packet forwarding anyway).
+        // this->tlmWrite_BATTERY_VOLTAGE(buff->battery_voltage); // Not currently impl. (we get this from WD->Herc packet forwarding anyway)
 
         return;
     }

@@ -231,19 +231,17 @@ void constructApp(void)
     // Construct the application and make all connections between components
     constructCubeRoverArchitecture();
 
+    // Register Commands
+    watchDogInterface.regCommands();
+    camera.regCommands();
+    navigation.regCommands();
+    IMU.regCommands();
+    motorControl.regCommands();
+    groundInterface.regCommands();
+    activeLogger.regCommands();
+
     // Register Health Commands
     // health.regCommands();
-
-    // Register WatchDog Interface Commands
-    watchDogInterface.regCommands();
-
-    // Register Camera Commands
-    camera.regCommands();
-
-    // Register Camera Commands
-    navigation.regCommands();
-
-    groundInterface.regCommands();
 
     // Set Health Ping Entries
     // TODO: [CWC] Look into why all this is commented and if we should reactivate it.

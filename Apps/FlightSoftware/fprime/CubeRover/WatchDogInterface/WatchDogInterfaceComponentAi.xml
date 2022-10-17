@@ -366,7 +366,7 @@
             Manually set charging power 28V regulator enable state: REGE. (normally you should just use the start and stop charging commands in reset specific.)
             </comment>
             <args>
-                <arg name="v_lander_reg_en" type="BOOL" />
+                <arg name="v_lander_reg_en" type="bool" />
             </args>
         </command>
 
@@ -375,7 +375,7 @@
             Manually set battery connection state: BE. (normally you should just use the batteries enable/disable command in reset specific.)
             </comment>
             <args>
-                <arg name="batt_en" type="BOOL" />
+                <arg name="batt_en" type="bool" />
             </args>
         </command>
 

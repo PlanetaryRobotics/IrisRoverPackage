@@ -200,12 +200,11 @@ void constructApp(void)
     cubeRoverTime.init(0);
 
     // Initialize the active logger component (active)
-    // TODO: This hasn't been started yet
     activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
 
     // Initialize the watchdog interface component (active)
-    watchDogInterface.init(1,  /*Queue Depth*/
-                           0); /*Instance Number*/
+    watchDogInterface.init(WATCHDOG_QUEUE_DEPTH, /*Queue Depth*/
+                           0);                   /*Instance Number*/
 
     // Initialize the health component (queued)
     // health.init(25,                   /*Queue Depth*/
@@ -297,6 +296,10 @@ void constructApp(void)
     cmdDispatcher.start(0,
                         CMD_DISP_AFF,
                         CMD_DISP_QUEUE_DEPTH * MIN_STACK_SIZE_WORDS);
+
+    activeLogger.start(0,
+                       ACTIVE_LOGGER_AFF,
+                       ACTIVE_LOGGER_QUEUE_DEPTH * MIN_STACK_SIZE_WORDS);
 
     navigation.start(0,
                      NAV_AFF,

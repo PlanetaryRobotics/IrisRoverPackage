@@ -5,6 +5,7 @@
 
 namespace iris
 {
+    //!< @todo IMPLEMENT MISSION STATE!
     class RoverStateMission : public RoverStateBase
     {
         public:
@@ -14,6 +15,7 @@ namespace iris
 
             // The functions to handle events
             RoverState handleTimerTick(RoverContext& theContext) override;
+            RoverState handleHighTemp(RoverContext& theContext) override;
             RoverState handlePowerIssue(RoverContext& theContext) override;
             RoverState spinOnce(RoverContext& theContext) override;
 

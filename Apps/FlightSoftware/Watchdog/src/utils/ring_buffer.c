@@ -4,16 +4,16 @@
 
 struct RingBuffer {
     volatile uint8_t* buffer;
-    uint16_t bufferSize;
-    volatile uint16_t head;
-    volatile uint16_t tail;
+    size_t bufferSize;
+    volatile size_t head;
+    volatile size_t tail;
 };
 
 static RingBuffer ALL_RING_BUFFERS[MAX_NUM_RING_BUFFERS];
 
-RingBuffer__Status RingBuffer__init(RingBuffer** rb, volatile uint8_t* buffer, uint16_t bufferSize)
+RingBuffer__Status RingBuffer__init(RingBuffer** rb, volatile uint8_t* buffer, size_t bufferSize)
 {
-    static uint16_t rbIndex = 0;
+    static size_t rbIndex = 0;
 
     if (rb == NULL || buffer == NULL) {
         return RB__STATUS__ERROR_NULL;
@@ -60,7 +60,7 @@ BOOL RingBuffer__empty(const RingBuffer* rb)
     return ((rb->head - rb->tail) == 0U) ? TRUE : FALSE;
 }
 
-uint16_t RingBuffer__freeCount(const RingBuffer* rb)
+size_t RingBuffer__freeCount(const RingBuffer* rb)
 {
     if (rb == NULL) {
         return 0;
@@ -69,7 +69,7 @@ uint16_t RingBuffer__freeCount(const RingBuffer* rb)
     return (rb->bufferSize - (rb->head - rb->tail));
 }
 
-uint16_t RingBuffer__usedCount(const RingBuffer* rb)
+size_t RingBuffer__usedCount(const RingBuffer* rb)
 {
     if (rb == NULL) {
         return 0;
@@ -78,7 +78,7 @@ uint16_t RingBuffer__usedCount(const RingBuffer* rb)
     return (rb->head - rb->tail);
 }
 
-RingBuffer__Status RingBuffer__peekAt(const RingBuffer* rb, uint16_t index, uint8_t* value)
+RingBuffer__Status RingBuffer__peekAt(const RingBuffer* rb, size_t index, uint8_t* value)
 {
     if (rb == NULL || rb->buffer == NULL) {
         return RB__STATUS__ERROR_NULL;
@@ -94,7 +94,7 @@ RingBuffer__Status RingBuffer__peekAt(const RingBuffer* rb, uint16_t index, uint
     //    (rb->tail + index) % rb->bufferSize
     // and works because rb->bufferSize is guaranteed to be 
     // a power of two.
-    uint16_t wrappedIndex = ((rb->tail + index) & (rb->bufferSize - 1));
+    size_t wrappedIndex = ((rb->tail + index) & (rb->bufferSize - 1));
 
     *value = rb->buffer[wrappedIndex];
 
@@ -116,7 +116,7 @@ RingBuffer__Status RingBuffer__put(RingBuffer* rb, uint8_t byte)
     //    rb->head % rb->bufferSize
     // and works because rb->bufferSize is guaranteed to be 
     // a power of two.
-    uint16_t index = (rb->head & (rb->bufferSize - 1));
+    size_t index = (rb->head & (rb->bufferSize - 1));
     
     rb->buffer[index] = byte;
     rb->head++;
@@ -139,7 +139,7 @@ RingBuffer__Status RingBuffer__get(RingBuffer* rb, uint8_t* byte)
     //    rb->tail % rb->bufferSize
     // and works because rb->bufferSize is guaranteed to be 
     // a power of two.
-    uint16_t index = (rb->tail & (rb->bufferSize - 1));
+    size_t index = (rb->tail & (rb->bufferSize - 1));
     
     *byte = rb->buffer[index];
     rb->tail++;
@@ -160,7 +160,7 @@ RingBuffer__Status RingBuffer__putOverwrite(RingBuffer* rb, uint8_t byte)
     //    rb->head % rb->bufferSize
     // and works because rb->bufferSize is guaranteed to be 
     // a power of two.
-    uint16_t index = (rb->head & (rb->bufferSize - 1));
+    size_t index = (rb->head & (rb->bufferSize - 1));
     
     rb->buffer[index] = byte;
     rb->head++;

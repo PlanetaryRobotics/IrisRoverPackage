@@ -1,4 +1,3 @@
-#include "comms/debug_comms.h"
 #include "drivers/blimp.h"
 #include "drivers/bsp.h"
 #include "stateMachine/RoverStateInit.hpp"
@@ -10,11 +9,9 @@
 
 namespace iris
 {
-    RoverStateInit::RoverStateInit(RoverState firstState,
-                                   const char* resetReasonString)
+    RoverStateInit::RoverStateInit(RoverState firstState)
             : RoverStateBase(RoverState::INIT),
-              m_firstState(firstState),
-              m_resetReasonString(resetReasonString)
+              m_firstState(firstState)
     {
     }
 
@@ -73,27 +70,15 @@ namespace iris
 
         clockInit();
 
-        UART__Status uartStatus = UART__init1(&(theContext.m_uartConfig),
-                                              &(theContext.m_uart1State));
-        DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uartStatus, "Failed to init UART1");
-        assert(UART__STATUS__SUCCESS == uartStatus);
+        if (!(*(theContext.m_persistentDeployed))) {
+            UART__Status uartStatus = UART__init1(&(theContext.m_uartConfig),
+                                                  &(theContext.m_uart1State));
+            DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uartStatus, "Failed to init UART1");
+            assert(UART__STATUS__SUCCESS == uartStatus);
 
-        LanderComms__Status lcStatus = LanderComms__init(&(theContext.m_lcState), theContext.m_uart1State);
-        assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
-
-        DebugComms__registerLanderComms(theContext.m_lcState);
-
-        DebugComms__tryPrintfToLanderNonblocking("Watchdog in Init state\n");
-        DebugComms__tryPrintfToLanderNonblocking("Reason for last reset: %s\n", m_resetReasonString);
-
-#ifdef RADIO_PROGRAMMING_MODE
-        // [CWC-08/09/22, 09/06/22] Warn that this is the WRONG version of the SW for Flight and should only be used for radio programming.
-        // Essentially this is a special version of the SW that releases the radio reset (sets it as input) so the radio can be programmed
-        // via its ICSP connector (as opposed to UART in DFU mode). Better way to do this would be to have a command that puts the radio
-        // reset into input mode but this is faster to implement, safe, does what we need, and will prevent any new features from being
-        // added to the flight code).
-        DebugComms__tryPrintfToLanderNonblocking("[WARNING] WD SW is in Radio-Programming Mode. This should be changed before flight.\n");
-#endif
+            LanderComms__Status lcStatus = LanderComms__init(&(theContext.m_lcState), theContext.m_uart1State);
+            assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
+        }
 
         /* set up watchdog */
         watchdog_init(&(theContext.m_watchdogFlags),
@@ -110,11 +95,8 @@ namespace iris
         theContext.m_writeCustomIoExpanderValues = false;
         initiateNextI2cAction(theContext);
 
-        uint16_t startTimeCentiseconds = Time__getTimeInCentiseconds();
-        uint16_t currentTimeCentiseconds = startTimeCentiseconds;
-        uint16_t endTimeCentiseconds = startTimeCentiseconds + 300; // Three second timeout
         bool done = false;
-        while (!done && currentTimeCentiseconds <= endTimeCentiseconds) {
+        while (!done) {
             I2C_Sensors__spinOnce();
 
             I2C_Sensors__Action action = I2C_SENSORS__ACTIONS__INACTIVE;
@@ -134,23 +116,7 @@ namespace iris
 
                 done = true;
             }
-
-            currentTimeCentiseconds = Time__getTimeInCentiseconds();
         }
-
-        if (currentTimeCentiseconds > endTimeCentiseconds) {
-            DebugComms__tryPrintfToLanderNonblocking("Timed out in RoverStateInit::transitionTo\n");
-        }
-
-        blimp_normalBoot(); // run this on every boot as early as possible after IO Expander init.
-
-        // Set `gotWifi` based on the *current* state of the WD_INT pin.
-        // Needed for knowing if we're booting into a WiFi-ON state.
-        // That is, if WiFi is ON and the Radio is messaging us and WD_INT happens to be low,
-        // then the gotWifi state will get updated on the next rising edge (no big deal).
-        // However, if WiFi is ON *but* the Radio isn't actively messaging us, we'll never get
-        // the rising edge notice. So, we need to grab it here:
-        theContext.gotWifi = getWdIntState();
 
         if (*(theContext.m_persistentInMission)) {
             // Enable all interrupts

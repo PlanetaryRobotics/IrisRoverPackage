@@ -1,14 +1,11 @@
 #include "stateMachine/RoverStateEnteringKeepAlive.hpp"
 
 #include "drivers/adc.h"
-#include "drivers/blimp.h"
 #include "drivers/bsp.h"
 
-#include "comms/debug_comms.h"
 #include "comms/ground_msgs.h"
 #include "watchdog.h"
 
-#include <msp430.h>
 #include <cassert>
 
 namespace iris
@@ -37,7 +34,6 @@ namespace iris
          * @todo Should we re-enter this state upon this occurring, in order to re-set the bit that should power off
          *       the Hercules?
          */
-        DPRINTF("Got hercules data event in EnteringKeepAlive, which shouldn't be possible\n");
         assert(!"Got hercules data event in EnteringKeepAlive, which shouldn't be possible");
         return getState();
     }
@@ -61,7 +57,7 @@ namespace iris
 
             assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
 
-            LanderComms__Status lcStatus = txDownlinkData(theContext,
+            LanderComms__Status lcStatus = LanderComms__txData(theContext.m_lcState,
                                                                (uint8_t*) &hb,
                                                                sizeof(hb));
 
@@ -77,16 +73,6 @@ namespace iris
             sendDetailedReportToLander(theContext);
         }
 
-        // Check for UART errors to report
-        size_t count = 0;
-        BOOL changed = FALSE;
-        UART__Status uStatus = UART__checkRxRbErrors(theContext.m_uart1State, &count, &changed);
-        DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Lander UART Rx Rb Error count");
-
-        if (changed) {
-            DebugComms__tryPrintfToLanderNonblocking("New Lander UART Rx Rb failures, total count = %u\n", count);
-        }
-
         if (theContext.m_details.m_hParams.m_heatingControlEnabled) {
             // calculate PWM duty cycle (if any) to apply to heater
             heaterControl(theContext);
@@ -99,6 +85,12 @@ namespace iris
             initiateNextI2cAction(theContext);
         }
 
+        return getState();
+    }
+
+    RoverState RoverStateEnteringKeepAlive::handleHighTemp(RoverContext& /*theContext*/)
+    {
+        disableHeater();
         return getState();
     }
 
@@ -234,19 +226,10 @@ namespace iris
         setHerculesReset();
         unsetDeploy();
 
-        theContext.gotWifi = false; // reset
-
         // Turn off voltage rails. All of these are simply setting/clearing bits, so they are instant.
         disable3V3PowerRail();
-        disableVSysAllPowerRail();
-        blimp_normalBoot(); // Restore BLiMP state if returning to KA from a higher state. Shouldn't do anything if we're pushing straight through KA the first time.
-
-        // Turn off Herc comms (used if returning to KA from a higher state):
-        if (HerculesComms__isInitialized(theContext.m_hcState)) {
-            DebugComms__registerHerculesComms(NULL);
-            HerculesComms__Status hcStatus = HerculesComms__uninitialize(&(theContext.m_hcState));
-            DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
-        }
+        disable24VPowerRail();
+        disableBatteries();
 
         // Make sure to disable the Hercules uart so we don't dump current through that tx pin
         UART__uninit0(&(theContext.m_uart0State));
@@ -263,11 +246,15 @@ namespace iris
     {
         // These are simply setting/clearing bits, so they are instant.
         enableHeater();
+        startChargingBatteries();
 
         // Enable all interrupts
         __enable_interrupt();
 
-        DebugComms__tryPrintfToLanderNonblocking("Hello, Earth!\n");
+        char helloWorld[16] = "hello, world!\r\n";
+        LanderComms__Status lcStatus =
+                LanderComms__txData(theContext.m_lcState, (uint8_t*) helloWorld, sizeof(helloWorld));
+        assert(LANDER_COMMS__STATUS__SUCCESS == lcStatus);
 
         return nextStateAfterSetupCompletes();
     }

@@ -1,4 +1,0 @@
-# Import all behaviors:
-import "src/behaviors/bgs_behavior__wifi_on.bgs"
-import "src/behaviors/bgs_behavior__connect_network.bgs"
-import "src/behaviors/bgs_behavior__start_udp.bgs"

@@ -16,7 +16,7 @@ namespace iris
             /**
              * @brief The amount of time, in centiseconds, to wait for wifi to become ready.
              */
-            static constexpr uint16_t WIFI_READY_TIMEOUT_CENTISECONDS = 2500; // 25s (typ. connection is in ~8.5s)
+            static constexpr uint16_t WIFI_READY_TIMEOUT_CENTISECONDS = 100;
 
             explicit RoverStateEnteringMission();
 
@@ -24,6 +24,7 @@ namespace iris
 
             // The functions to handle events
             RoverState handleTimerTick(RoverContext& theContext) override;
+            RoverState handleHighTemp(RoverContext& theContext) override;
             RoverState handlePowerIssue(RoverContext& theContext) override;
             RoverState spinOnce(RoverContext& theContext) override;
 
@@ -48,8 +49,6 @@ namespace iris
             SubState m_currentSubstate;
             uint16_t m_startFuelGaugeInitTimeCentiseconds;
             uint16_t m_startWifiReadyTimeCentiseconds;
-            // Whether we've already sent a "Waiting for WiFi" message during this EnteringMission session.
-            uint8_t m_sentWaitingForWifiMessage;
 
             RoverState transitionToWaitingForI2cDone(RoverContext& theContext);
 

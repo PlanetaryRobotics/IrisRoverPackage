@@ -4,7 +4,7 @@
 // Definition of rate group dividers
 // Tick Interrupt @ 1kHz
 #define RATEGROUP_DIVIDER_LOW_FREQ  1000 // 1Hz
-#define RATEGROUP_DIVIDER_MED_FREQ  100  // 10Hz
+#define RATEGROUP_DIVIDER_MED_FREQ  100  // 100Hz
 #define RATEGROUP_DIVIDER_HI_FREQ   1    // 1kHz
 
 // Definition of component instance ID, Affinity and queue depth

@@ -1,7 +1,0 @@
-#Sun, 10 Jul 2022 20:22:15 -0400
-#Ant properties
-#Sun Jul 10 20:22:15 EDT 2022
-p.Version=1.0.0
-
-dvt.activity.name=System Analyzer/Statistical Analysis
-dvt.factory.activity=${dvt.basepath}common/analysis/usecases/dvt/SA_CountAnalysis.control.xml

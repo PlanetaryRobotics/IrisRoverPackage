@@ -35,16 +35,13 @@ typedef enum LanderComms__Status
      * @brief Could store all of the data to be transmitted into the UART transmit buffer.
      */
     LANDER_COMMS__STATUS__ERROR_TX_OVERFLOW = -5,
-    LANDER_COMMS__STATUS__ERROR_TIMEOUT = -6,
 
     LANDER_COMMS__STATUS__ERROR_MPSM_INIT_FAILURE = -10, //!< Initializing the internal MPSM failed
 
     LANDER_COMMS__STATUS__ERROR_UART_RX_FAILURE = -20, //!< Got an error when calling the `UART__receive()`.
     LANDER_COMMS__STATUS__ERROR_UART_TX_FAILURE = -21, //!< Got an error when calling `UART__transmit()`.
 
-    LANDER_COMMS__STATUS__ERROR_SLIP_ENCODE_FAILURE = -30, //!< Got an error when attempting to SLIP encode data.
-
-    LANDER_COMMS__STATUS__ERROR_RECURSION = -40 //!< In a loop.
+    LANDER_COMMS__STATUS__ERROR_SLIP_ENCODE_FAILURE = -30 //!< Got an error when attempting to SLIP encode data.
 } LanderComms__Status;
 
 /**
@@ -116,13 +113,6 @@ LanderComms__Status LanderComms__tryGetMessage(LanderComms__State* lcState,
  *   - LANDER_COMMS__STATUS__ERROR_SLIP_ENCODE_FAILURE: A failure occurred when attempting to SLIP encode the packet.
  */
 LanderComms__Status LanderComms__txData(LanderComms__State* lcState, const uint8_t* data, size_t dataLen);
-
-LanderComms__Status LanderComms__txDataUntilSendOrTimeout(LanderComms__State* lcState,
-                                                          const uint8_t* data,
-                                                          size_t dataLen,
-                                                          uint16_t timeoutInCentiseconds);
-
-LanderComms__Status LanderComms__flushTx(LanderComms__State* lcState);
 
 /**
  * @}

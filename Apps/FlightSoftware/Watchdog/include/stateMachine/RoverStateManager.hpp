@@ -22,7 +22,7 @@ namespace iris
 	class RoverStateManager
 	{
 		public:
-	        RoverStateManager(const char* resetReasonString);
+	        RoverStateManager();
 
 	        void init();
 

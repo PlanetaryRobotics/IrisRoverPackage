@@ -4,5 +4,3 @@ Debug/
 /Release/
 *.orig
 *.rej
-fprime_build_full_outputs/
-env/

@@ -37,8 +37,6 @@ int watchdog_monitor(HerculesComms__State* hState,
                      BOOL* writeIOExpander,
                      WatchdogStateDetails* details);
 
-uint16_t watchdog_get_wd_int_flat_duration(void);
-
 #ifdef __cplusplus
 } /* close extern "C" */
 #endif

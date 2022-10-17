@@ -1,4 +1,6 @@
 SRC = NetworkManagerComponentAi.xml \
+	  CubeRoverNetworkManager.cpp \
 	  NetworkManager.cpp
 
-HDR = NetworkManager.hpp
+HDR = CubeRoverNetworkManager.hpp \
+	  NetworkManager.hpp

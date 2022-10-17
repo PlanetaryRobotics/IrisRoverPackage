@@ -5,7 +5,6 @@
  *      Author: iris
  */
 
-#include "comms/debug_comms.h"
 #include "comms/i2c_sensors.h"
 #include "drivers/blimp.h"
 #include "common.h"
@@ -28,17 +27,17 @@ void blimp_enterSleep()
     blimp_latchBattOff();
     blimp_battEnOff();
     blimp_latchBattUpdate();
-    // set these OFF to avoid putting voltage on pin of unpowered latch IC (becomes unpowered when BCTRLE goes LOW).
-    blimp_latchSetOff();
-    // set these OFF to avoid putting voltage on pin of unpowered latch IC (becomes unpowered when BCTRLE goes LOW).
-    blimp_latchResetOff();
+    // set these LOW to avoid putting voltage on pin of unpowered latch IC (becomes unpowered when BCTRLE goes LOW).
+    blimp_latchSetLow();
+    // set these LOW to avoid putting voltage on pin of unpowered latch IC (becomes unpowered when BCTRLE goes LOW).
+    blimp_latchResetLow();
 }
 
 void blimp_normalBoot()
 {
     // Disable Asynchronous Latch Controls (LS, LR):
-    blimp_latchSetOff();
-    blimp_latchResetOff();
+    blimp_latchSetHigh();
+    blimp_latchResetHigh();
 
     // Absorb the state of `BSTAT` (what it was pre-boot) in case we just recovered from a mid-mission reboot:
     if (blimp_bstat()) {

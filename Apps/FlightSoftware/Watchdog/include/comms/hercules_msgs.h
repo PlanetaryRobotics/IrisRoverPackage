@@ -37,7 +37,7 @@ typedef enum HercMsgs__Constants
     HERC_MSGS__CONSTANTS__HEADER_MAGIC_TWO = 0xB0U,  //!< The value of the second magic number (at index one)
     HERC_MSGS__CONSTANTS__HEADER_MAGIC_THREE = 0x21U,//!< The value of the third magic number (at index two)
     HERC_MSGS__CONSTANTS__HEADER_MAGIC_SUM = 0xDCU,  //!< The sum of the three magic numbers in the header.
-    HERC_MSGS__CONSTANTS__MAX_PAYLOAD_SIZE = 670     //!< The maximum size of the payload of a Hercules message.
+    HERC_MSGS__CONSTANTS__MAX_PAYLOAD_SIZE = 650     //!< The maximum size of the payload of a Hercules message.
 } HercMsgs__Constants;
 
 //######################################################################################################################

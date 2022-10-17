@@ -1,6 +1,0 @@
-16:13:01 **** Build of configuration Default for project MyProject ****
-make all 
-make: *** No rule to make target 'all'.  Stop.
-
-16:13:02 Build Failed. 1 errors, 0 warnings. (took 517ms)
-

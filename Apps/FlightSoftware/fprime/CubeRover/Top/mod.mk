@@ -1,4 +1,4 @@
-SRC = 				CubeRoverTopologyAppAi.xml \
-					Topology.cpp
+SRC = 				Topology.cpp \
+                    CubeRoverTopologyAppAi.xml
 
 HDR = 				Topology.hpp

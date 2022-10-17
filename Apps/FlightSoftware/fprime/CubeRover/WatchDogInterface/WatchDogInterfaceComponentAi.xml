@@ -538,12 +538,12 @@
                 WD ADC reading for Voltage from 28V line from Watchdog
             </comment>
         </channel>
-        <!--DEPRECATED
         <channel id="16" name="BATTERY_THERMISTOR" data_type="U8">
             <comment>
                 Battery Charge left in mAH
             </comment>
         </channel>
+        <!-- -DEPRECATED-
         <channel id="23" name="SYSTEM_STATUS" data_type="int8_t">
             <comment>
                 8 bit systems status where each bit represents a watchdog status. Not currently impl. (we get this from WD->Herc packet forwarding anyway).
@@ -563,7 +563,7 @@
             <comment>
                 Value of Voltage Used in Battery.  Not currently impl. (we get this from WD->Herc packet forwarding anyway).
             </comment>
-        </channel>-->
+        </channel> -END OF DEPRECATION- -->
         <channel id="27" name="THERM_0" data_type="U16">
             <comment>
                 12 bit ADC Reading for On-SBC Thermistor RT1.

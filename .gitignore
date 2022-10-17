@@ -1,3 +1,7 @@
+Apps/FlightSoftware/MotorControl/Release/
+Apps/FlightSoftware/MotorControl/Debug/
+Watchdog.zip
+*.bak
 
 Apps/GroundSoftware/IrisBackendv3/.DS_Store
 Apps/GroundSoftware/IrisBackendv3/.idea/inspectionProfiles/profiles_settings.xml

@@ -127,17 +127,14 @@
             <comment>Returned State Transition code of WIFI chip</comment>
         		<!-- updated these to match `CubeRoverNetworkStateMachine` values since that's what gets cast -->
                 <enum name="WIFIState">
-                    <item name="UNINITIALIZED" />
-                    <item name="INITIALIZED" />
-                    <item name="WIFI_SLEEP" />
-                    <item name="WIFI_TURNING_ON" />
-                    <item name="WIFI_ON" />
-                    <item name="SCANNING" />
-                    <item name="SCANNED" />
-                    <item name="CONNECTING" />
-                    <item name="CONNECTED" />
-                    <item name="DISCONNECTING" />
-                    <item name="UDP_CONNECTED" />
+                    <!--This enum should be synced up with Wf121::DirectMessage::RadioSwState. Actual conversion to this downlink-type happens in `NetworkManagerComponentImpl::convertRadioState2WifiState` though.-->
+                    <item name="NM_NONE" value="0x00" comment="None (we haven't received any state update yet)." />
+                    <item name="NM_BAD_MESSAGE" value="0x0F"comment="The last state update from the Radio contained a valid message header but the body was corrupted (didn't match any known message). Bad state message was received (we don't know what's really going on inside the Radio rn)." />
+                    <item name="NM_BOOT" value="0x10" comment="Booted but hasn't initialized its `state_driver` yet." />
+                    <item name="NM_INIT" value="0x20" comment="In the initial state but WiFi radio isn't powered up yet." />
+                    <item name="NM_WIFI_ON" value="0x30" comment="Radio hardware (power amplifier) has turned on successfully - radio has enough power to work." />
+                    <item name="NM_CONNECTED" value="0x40" comment="Radio is connected to the network (ARP, etc) but UDP client & socket aren't active yet." />
+                    <item name="NM_UDP_CONNECTED" value="0x50" comment="UDP client & socket are active. Radio is ready to communicate." />
                 </enum>
         </channel>
     </telemetry>
@@ -148,28 +145,26 @@
             <args>
                 <arg name="from_state" type="ENUM">
                     <enum name="networkmanager_state_from">
-                        <item name="from_UNINITIALIZED"/>
-                        <item name="from_INITIALIZEED"/>
-                        <item name="from_WIFI_TURNING_ON"/>
-                        <item name="from_WIFI_ON"/>
-                        <item name="from_SCANNING"/>
-                        <item name="from_SCANNED"/>
-                        <item name="from_CONNECTING"/>
-                        <item name="from_CONNECTED"/>
-                        <item name="from_UDP_CONNECTED"/>
+                        <!--NOTE: This enum NEEDS to be synced up with WIFIState enum (same values for each concept, names can be and need to be different). If it's not, Ground won't be able to parse these messages.-->
+                        <item name="from_NONE" value="0x00" comment="None (we haven't received any state update yet)." />
+                        <item name="from_BAD_MESSAGE" value="0x0F"comment="The last state update from the Radio contained a valid message header but the body was corrupted (didn't match any known message). Bad state message was received (we don't know what's really going on inside the Radio rn)." />
+                        <item name="from_BOOT" value="0x10" comment="Booted but hasn't initialized its `state_driver` yet." />
+                        <item name="from_INIT" value="0x20" comment="In the initial state but WiFi radio isn't powered up yet." />
+                        <item name="from_WIFI_ON" value="0x30" comment="Radio hardware (power amplifier) has turned on successfully - radio has enough power to work." />
+                        <item name="from_CONNECTED" value="0x40" comment="Radio is connected to the network (ARP, etc) but UDP client & socket aren't active yet." />
+                        <item name="from_UDP_CONNECTED" value="0x50" comment="UDP client & socket are active. Radio is ready to communicate." />
                     </enum>
                 </arg>
                 <arg name="to_state" type="ENUM">
                     <enum name="networkmanager_state_to">
-                        <item name="to_UNINITIALIZED"/>
-                        <item name="to_INITIALIZEED"/>
-                        <item name="to_WIFI_TURNING_ON"/>
-                        <item name="to_WIFI_ON"/>
-                        <item name="to_SCANNING"/>
-                        <item name="to_SCANNED"/>
-                        <item name="to_CONNECTING"/>
-                        <item name="to_CONNECTED"/>
-                        <item name="to_UDP_CONNECTED"/>
+                        <!--NOTE: This enum NEEDS to be synced up with WIFIState enum (same values for each concept, names can be and need to be different). If it's not, Ground won't be able to parse these messages.-->
+                        <item name="to_NONE" value="0x00" comment="None (we haven't received any state update yet)." />
+                        <item name="to_BAD_MESSAGE" value="0x0F"comment="The last state update from the Radio contained a valid message header but the body was corrupted (didn't match any known message). Bad state message was received (we don't know what's really going on inside the Radio rn)." />
+                        <item name="to_BOOT" value="0x10" comment="Booted but hasn't initialized its `state_driver` yet." />
+                        <item name="to_INIT" value="0x20" comment="In the initial state but WiFi radio isn't powered up yet." />
+                        <item name="to_WIFI_ON" value="0x30" comment="Radio hardware (power amplifier) has turned on successfully - radio has enough power to work." />
+                        <item name="to_CONNECTED" value="0x40" comment="Radio is connected to the network (ARP, etc) but UDP client & socket aren't active yet." />
+                        <item name="to_UDP_CONNECTED" value="0x50" comment="UDP client & socket are active. Radio is ready to communicate." />
                     </enum>
                 </arg>
             </args>

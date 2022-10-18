@@ -536,14 +536,28 @@
     <source component = "groundInterface" port = "CmdStatus" type = "CmdResponse" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
   </connection>
+
+  <!--CommandDispatcher Commands Link-->
+  <connection name = "cmdDispatcherCmdReg_to_cmdDispatcher">
+    <source component = "cmdDispatcher" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "7" />
+  </connection>
+  <connection name = "cmdDispatcherSendCmd_to_cmdDispatcherCmdDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "7" />
+    <target component = "cmdDispatcher" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
+  <connection name = "cmdDispatcherCmdStatus_to_cmdDispatcher_CmdStatus">
+    <source component = "cmdDispatcher" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
   
   <!--ActiveLogger Commands Link-->
   <connection name = "activeLoggerCmdReg_to_cmdDispatcher">
     <source component = "activeLogger" port = "CmdReg" type = "CmdReg" num = "0" />
-    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "7" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "8" />
   </connection>
   <connection name = "cmdDispatcherSendCmd_to_activeLoggerCmdDisp">
-    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "7" />
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "8" />
     <target component = "activeLogger" port = "CmdDisp" type = "Cmd" num = "0" />
   </connection>
   <connection name = "activeLoggerCmdStatus_to_cmdDispatcher_CmdStatus">

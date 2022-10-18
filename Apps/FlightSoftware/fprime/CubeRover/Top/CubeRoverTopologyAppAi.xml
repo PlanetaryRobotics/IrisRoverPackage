@@ -396,6 +396,11 @@
     <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
   </connection>
 
+  <connection name = "cmdDispatcher_to_aLogger">
+    <source component = "cmdDispatcher" port = "Log" type = "Log" num = "0" />
+    <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />
+  </connection>
+
   <connection name = "groundInterface_to_aLogger">
     <source component = "groundInterface" port = "Log" type = "Log" num = "0" />
     <target component = "activeLogger" port = "LogRecv" type = "Log" num = "0" />

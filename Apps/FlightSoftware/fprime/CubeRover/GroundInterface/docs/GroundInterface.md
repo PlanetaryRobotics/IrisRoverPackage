@@ -46,6 +46,6 @@
 | | | |seq|U8|||
 | | | |checksum|U16|||
 | | | |length|U16|||
-|GI_DownlinkedItem|4 (0x4)|An item was added to the packet for downlink| | | | |
+|GI_DownlinkedItem|4 (0x4)|An item was added to the packet for downlink. This will be basically never used since using it would mean adding 1 downlink item for every item downlinked (which would run away).| | | | |
 | | | |seq|U8|||
 | | | |from|downlinkPacketType|||

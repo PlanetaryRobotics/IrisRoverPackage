@@ -200,12 +200,11 @@ void constructApp(void)
     cubeRoverTime.init(0);
 
     // Initialize the active logger component (active)
-    // TODO: This hasn't been started yet
     activeLogger.init(ACTIVE_LOGGER_QUEUE_DEPTH, ACTIVE_LOGGER_ID);
 
     // Initialize the watchdog interface component (active)
-    watchDogInterface.init(1,  /*Queue Depth*/
-                           0); /*Instance Number*/
+    watchDogInterface.init(WATCHDOG_QUEUE_DEPTH, /*Queue Depth*/
+                           0);                   /*Instance Number*/
 
     // Initialize the health component (queued)
     // health.init(25,                   /*Queue Depth*/
@@ -232,19 +231,18 @@ void constructApp(void)
     // Construct the application and make all connections between components
     constructCubeRoverArchitecture();
 
+    // Register Commands
+    watchDogInterface.regCommands();
+    cmdDispatcher.regCommands();
+    camera.regCommands();
+    navigation.regCommands();
+    IMU.regCommands();
+    motorControl.regCommands();
+    groundInterface.regCommands();
+    activeLogger.regCommands();
+
     // Register Health Commands
     // health.regCommands();
-
-    // Register WatchDog Interface Commands
-    watchDogInterface.regCommands();
-
-    // Register Camera Commands
-    camera.regCommands();
-
-    // Register Camera Commands
-    navigation.regCommands();
-
-    groundInterface.regCommands();
 
     // Set Health Ping Entries
     // TODO: [CWC] Look into why all this is commented and if we should reactivate it.
@@ -297,6 +295,10 @@ void constructApp(void)
     cmdDispatcher.start(0,
                         CMD_DISP_AFF,
                         CMD_DISP_QUEUE_DEPTH * MIN_STACK_SIZE_WORDS);
+
+    activeLogger.start(0,
+                       ACTIVE_LOGGER_AFF,
+                       ACTIVE_LOGGER_QUEUE_DEPTH * MIN_STACK_SIZE_WORDS);
 
     navigation.start(0,
                      NAV_AFF,

@@ -9,8 +9,8 @@
  ******************************************************************************
  *****************************************************************************/
 
-static const unsigned VERSION_MAJOR = 3;
-static const unsigned VERSION_MINOR = 4;
-static const unsigned VERSION_REVISION = 4;
+static const unsigned VERSION_MAJOR = 4; // Version: ++ when drafting a new Release Candidate (for a new upload opportunity)
+static const unsigned VERSION_MINOR = 2; // Subversion: ++ when a new major feature has been added / made to work
+static const unsigned VERSION_REVISION = 0; // Patch: ++ when you make a change and want to reflect that.
 
 #endif // _VERSION_H_

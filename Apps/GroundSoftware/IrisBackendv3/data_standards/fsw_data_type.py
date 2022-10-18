@@ -75,7 +75,7 @@ class FswDataType(Enum):
     ENUM = 'l', 'enum/*int32*/', Category.ENUM, (str, int)
     # Fixed Length Strings (only expected / pre-approved sizes allowed):
     # This is a halfword (2B, as ">H") indicating length followed by a (utf-8) encoded char[]
-    # Per [FPrime docs](https://nasa.github.io/fprime/UsersGuide/api/python/fprime/html/modules/fprime/common/models/serialize/string_type.html)
+    # Per [FPrime docs](https://nasa.github.io/fprime/v1.5/UsersGuide/api/python/fprime/html/modules/fprime/common/models/serialize/string_type.html)
     STRING5 = 'H5s', 'char[5]', Category.STRING, str
     STRING6 = 'H6s', 'char[6]', Category.STRING, str
     STRING8 = 'H8s', 'char[8]', Category.STRING, str
@@ -113,9 +113,13 @@ class FswDataType(Enum):
         @param data: The data that has this type (only needed for variable
         length strings).
         """
-        if self.category != Category.VARSTRING:
+        if self.category not in [Category.VARSTRING, Category.STRING]:
             return self.num_octets
         else:
+            # FPrime packs all strings (variable length or not) as just the
+            # data given (so a STRING50 that only uses 10B will only be sent as
+            # 10B with a length of 0x000A).
+
             # Make sure data was given:
             if data is None:
                 raise ValueError(

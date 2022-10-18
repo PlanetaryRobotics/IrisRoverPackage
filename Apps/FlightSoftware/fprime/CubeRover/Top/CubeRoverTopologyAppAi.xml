@@ -458,13 +458,41 @@
   </connection>
 -->
 
+  <!--ActiveLogger Commands Link-->
+  <connection name = "activeLoggerCmdReg_to_cmdDispatcher">
+    <source component = "activeLogger" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "0" />
+  </connection>
+  <connection name = "cmdDispatcherSendCmd_to_activeLoggerCmdDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "0" />
+    <target component = "activeLogger" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
+  <connection name = "activeLoggerCmdStatus_to_cmdDispatcher_CmdStatus">
+    <source component = "activeLogger" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+
+  <!--CommandDispatcher Commands Link-->
+  <connection name = "cmdDispatcherCmdReg_to_cmdDispatcher">
+    <source component = "cmdDispatcher" port = "CmdReg" type = "CmdReg" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "1" />
+  </connection>
+  <connection name = "cmdDispatcherSendCmd_to_cmdDispatcherCmdDisp">
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "1" />
+    <target component = "cmdDispatcher" port = "CmdDisp" type = "Cmd" num = "0" />
+  </connection>
+  <connection name = "cmdDispatcherCmdStatus_to_cmdDispatcher_CmdStatus">
+    <source component = "cmdDispatcher" port = "CmdStatus" type = "CmdResponse" num = "0" />
+    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
+  </connection>
+
   <!--WatchDogInterface Commands Link-->
   <connection name = "WatchdogReg">
     <source component = "watchDogInterface" port = "CmdReg" type = "CmdReg" num = "0" />
-    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "1" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "2" />
   </connection>
   <connection name = "WatchdogDisp">
-    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "1" />
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "2" />
     <target component = "watchDogInterface" port = "CmdDisp" type = "Cmd" num = "0" />
   </connection>
   <connection name = "WatchdogReg_to_cmdDispatcher_CmdStatus">
@@ -475,10 +503,10 @@
   <!--Camera Commands Link-->
   <connection name = "cameraCmdReg_to_cmdDispatcher">
     <source component = "camera" port = "CmdReg" type = "CmdReg" num = "0" />
-    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "2" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "3" />
   </connection>
   <connection name = "cmdDispatcherSendCmd_to_cameraCmdDisp">
-    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "2" />
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "3" />
     <target component = "camera" port = "CmdDisp" type = "Cmd" num = "0" />
   </connection>
   <connection name = "cameraCmdStatus_to_cmdDispatcher_CmdStatus">
@@ -489,10 +517,10 @@
   <!--Navigation Commands Link-->
   <connection name = "navigationCmdReg_to_cmdDispatcher">
     <source component = "navigation" port = "CmdReg" type = "CmdReg" num = "0" />
-    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "3" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "4" />
   </connection>
   <connection name = "cmdDispatcherSendCmd_to_navigationCmdDisp">
-    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "3" />
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "4" />
     <target component = "navigation" port = "CmdDisp" type = "Cmd" num = "0" />
   </connection>
   <connection name = "navigationCmdStatus_to_cmdDispatcher_CmdStatus">
@@ -503,10 +531,10 @@
   <!--IMU Commands Link-->
   <connection name = "IMUCmdReg_to_cmdDispatcher">
     <source component = "IMU" port = "CmdReg" type = "CmdReg" num = "0" />
-    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "4" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "5" />
   </connection>
   <connection name = "cmdDispatcherSendCmd_to_IMUCmdDisp">
-    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "4" />
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "5" />
     <target component = "IMU" port = "CmdDisp" type = "Cmd" num = "0" />
   </connection>
   <connection name = "IMUCmdStatus_to_cmdDispatcher_CmdStatus">
@@ -517,10 +545,10 @@
   <!--MotorControl Commands Link-->
   <connection name = "motorControlCmdReg_to_cmdDispatcher">
     <source component = "motorControl" port = "CmdReg" type = "CmdReg" num = "0" />
-    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "5" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "6" />
   </connection>
   <connection name = "cmdDispatcherSendCmd_to_motorControlCmdDisp">
-    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "5" />
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "6" />
     <target component = "motorControl" port = "CmdDisp" type = "Cmd" num = "0" />
   </connection>
   <connection name = "motorControlCmdStatus_to_cmdDispatcher_CmdStatus">
@@ -531,44 +559,17 @@
   <!--GroundInterface Commands Link-->
   <connection name = "groundInterfaceCmdReg_to_cmdDispatcher">
     <source component = "groundInterface" port = "CmdReg" type = "CmdReg" num = "0" />
-    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "6" />
+    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "7" />
   </connection>
   <connection name = "cmdDispatcherSendCmd_to_groundInterfaceCmdDisp">
-    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "6" />
+    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "7" />
     <target component = "groundInterface" port = "CmdDisp" type = "Cmd" num = "0" />
   </connection>
   <connection name = "groundInterfaceCmdStatus_to_cmdDispatcher_CmdStatus">
     <source component = "groundInterface" port = "CmdStatus" type = "CmdResponse" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
   </connection>
-
-  <!--CommandDispatcher Commands Link-->
-  <connection name = "cmdDispatcherCmdReg_to_cmdDispatcher">
-    <source component = "cmdDispatcher" port = "CmdReg" type = "CmdReg" num = "0" />
-    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "7" />
-  </connection>
-  <connection name = "cmdDispatcherSendCmd_to_cmdDispatcherCmdDisp">
-    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "7" />
-    <target component = "cmdDispatcher" port = "CmdDisp" type = "Cmd" num = "0" />
-  </connection>
-  <connection name = "cmdDispatcherCmdStatus_to_cmdDispatcher_CmdStatus">
-    <source component = "cmdDispatcher" port = "CmdStatus" type = "CmdResponse" num = "0" />
-    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
-  </connection>
   
-  <!--ActiveLogger Commands Link-->
-  <connection name = "activeLoggerCmdReg_to_cmdDispatcher">
-    <source component = "activeLogger" port = "CmdReg" type = "CmdReg" num = "0" />
-    <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "8" />
-  </connection>
-  <connection name = "cmdDispatcherSendCmd_to_activeLoggerCmdDisp">
-    <source component = "cmdDispatcher" port = "compCmdSend" type = "Cmd" num = "8" />
-    <target component = "activeLogger" port = "CmdDisp" type = "Cmd" num = "0" />
-  </connection>
-  <connection name = "activeLoggerCmdStatus_to_cmdDispatcher_CmdStatus">
-    <source component = "activeLogger" port = "CmdStatus" type = "CmdResponse" num = "0" />
-    <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
-  </connection>
 
   <!-- *********************************************************************************************************
         CONNECTION OF Health PORTS

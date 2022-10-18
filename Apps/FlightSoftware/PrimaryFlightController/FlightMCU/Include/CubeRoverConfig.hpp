@@ -22,7 +22,7 @@
 
 #define CMD_DISP_ID 0
 #define CMD_DISP_AFF 2
-#define CMD_DISP_QUEUE_DEPTH 1
+#define CMD_DISP_QUEUE_DEPTH 3
 
 #define BLOCK_DRV_ID 0
 #define BLOCK_DRV_AFF 0

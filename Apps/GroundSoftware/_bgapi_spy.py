@@ -6,10 +6,12 @@ Designed for use leading up to RC4.
 @last-updated: 10/18/2022
 """
 
+from asyncio import events
+import os
 from serial.tools import list_ports, list_ports_common
 from datetime import datetime
 from dataclasses import dataclass, InitVar, field
-from typing import Any, Final, Optional, Dict, cast, List
+from typing import Any, Final, Optional, Dict, cast, Union, List
 import asyncio
 import threading
 import socketserver
@@ -17,6 +19,8 @@ import serial_asyncio  # type: ignore
 from multi_await import multi_await  # type: ignore
 import scapy.all as scp  # type: ignore
 from termcolor import cprint, colored
+
+import IrisBackendv3.codec.bgapi as bgapi
 
 # Async Serial Writer Handle:
 serial_writer: Optional[asyncio.StreamWriter] = None
@@ -40,7 +44,8 @@ DATETIME_FORMAT_STR: Final[str] = '%m-%d %H:%M:%S'
 class BgApiMessage:
     source_name: str
     time: datetime  # time *first* byte in message received
-    data: bytes
+    msg: Union[bgapi.BGCommand,
+               bgapi.BGResponse, bgapi.BGEvent]
 
 
 @dataclass
@@ -58,118 +63,57 @@ class QueueByte:
     byte: bytes
 
 
-class BgApiSerialTransceiver:
-    source_name: str
-    data_bytes: bytearray
-    # Queue to push bytes into:
-    packet_queue: asyncio.Queue
-    # Queue to push non-telemetry messages into:
-    message_queue: asyncio.Queue
-    # Max time since first byte before a packet is considered complete and cut
-    # off:
-    packet_timeout_ms: float
-    # Time of first byte in current packet:
-    time_of_first_byte: datetime
-
-    def __init__(self,
-                 source_name: str,
-                 packet_queue: asyncio.Queue,
-                 message_queue: asyncio.Queue,
-                 packet_timeout_ms: float = 10
-                 ) -> None:
-        self.source_name = source_name
-        self.packet_queue = packet_queue
-        self.message_queue = message_queue
-        self.packet_timeout_ms = packet_timeout_ms
-        self.time_of_first_byte = datetime.now()
-
-        # Init state:
-        self.data_bytes: bytearray = bytearray(b'')
-
-    def append_byte(self, b: int) -> None:
-        self.data_bytes.append(b)
-
-    # Returns if we just completed a packet
-    def parse_new_byte(self, newByte: bytes) -> bool:
-        madeAPacket: bool = False
-        now = datetime.now()
-
-        if (now - self.time_of_first_byte).total_seconds() * 1000 > self.packet_timeout_ms:
-            # This byte isn't part of the same packet as the last one. Emit a packet:
-            if len(self.data_bytes) > 0:
-                message = BgApiMessage(
-                    source_name=self.source_name,
-                    time=self.time_of_first_byte,
-                    data=bytes(self.data_bytes)
-                )
-                self.packet_queue.put_nowait(message)
-                madeAPacket = True
-
-            # Reset the timer:
-            self.time_of_first_byte = now
-
-        b = int.from_bytes(newByte, 'big')
-        self.append_byte(b)
-
-        return madeAPacket
+def make_bgapi_msg_handler(source_name: str, bgapi_message_queue: asyncio.Queue):
+    def handler(msg: bgapi.BGMsg):
+        bgapi_message_queue.put_nowait(BgApiMessage(
+            source_name=source_name,
+            time=datetime.fromtimestamp(msg._timestamp),
+            msg=msg
+        ))
+    return handler
 
 
 @dataclass
-class SerialHw:
+class BgApiSerial:
     source_name: str
     baud: int
     device: str
-    reader: asyncio.StreamReader = field(init=False)
-    writer: asyncio.StreamWriter = field(init=False)
-    bgapi_xcvr: BgApiSerialTransceiver = field(init=False)
+    # False if the BGAPI device (e.g. WF121), True if the host (Hercules):
+    is_bgapi_host: bool
+    bgapi_message_queue: asyncio.Queue
+    message_queue: asyncio.Queue
+    bgapi_lib: bgapi.BGLibListener = field(init=False)
     ready: bool = False
 
-    async def begin(self, message_queue: asyncio.Queue):
-        # Attempts to start up serial connection and create async reader and
-        # writer. Status messages are directed to `message_queue`.
+    def __post_init__(self):
+        # Attempts to start up an async serial connection using BGLib:
         try:
-            self.reader, self.writer = await serial_asyncio.open_serial_connection(url=self.device, baudrate=self.baud)
+            self.bgapi_lib = bgapi.BGLibListener(
+                bgapi.SerialConnector(self.device),
+                bgapi.BGAPI_WIFI_DEF,
+                make_bgapi_msg_handler(
+                    self.source_name, self.bgapi_message_queue
+                ),
+                listening_to_host=self.is_bgapi_host
+            )
+            # Fire up the Transceiver:
             self.ready = True
-            message_queue.put_nowait(QueueMessage(
-                f"{self.source_name} ({self.device}) Serial Connection Success!"
+            self.message_queue.put_nowait(QueueMessage(
+                f"{self.source_name} ({self.device}) BGAPI Serial Connection Success!"
             ))
         except Exception as e:
             self.ready = False
-            message_queue.put_nowait(QueueMessage(
-                f"Failed to connect to {self.device} serial device. "
+            self.message_queue.put_nowait(QueueMessage(
+                f"Failed to connect to {self.device} serial device using BGLib "
+                f"for {self.source_name}. "
                 f"Is the device name right? Check the connection? "
                 f"Original error: {e}"
             ))
 
-    async def stream_BGAPI(self, packet_queue: asyncio.Queue, message_queue: asyncio.Queue, app_context):
-        # Stream BGAPI packets into the given Queue `packet_queue` from bytes received
-        # on this serial interface.
-        # Any error (etc.) messages that come up are put into `message_queue`.
-
-        # Log of all bytes received in this packet:
-        packet_bytes_log: bytes = b''
-
-        # Only proceed if ready (or able to be made ready):
-        if not self.ready:
-            await self.begin(message_queue)
-            if not self.ready:
-                return  # Don't continue
-
-        # Fire up the Transceiver:
-        self.bgapi_xcvr = BgApiSerialTransceiver(
-            self.source_name, packet_queue, message_queue
-        )
-
-        # Parse serial data as it arrives:
-        while True:
-            newByte = await self.reader.readexactly(1)
-            madeAPacket = self.bgapi_xcvr.parse_new_byte(newByte)
-            # Add to log:
-            packet_bytes_log += newByte
-
-            if madeAPacket:
-                # Reset log no matter what (packet's done):
-                packet_bytes_log = b''
+    def begin(self):
+        if self.ready:
+            # Fire up the Transceiver:
+            self.bgapi_lib.open()
 
 
 async def ticker(tick_period_s: int, tick_queue):
@@ -202,10 +146,10 @@ def handle_async_bgapi(msg: BgApiMessage) -> None:
     color = bgapi_source_colors[msg.source_name]
 
     time_txt = colored(f"{msg.time.strftime(DATETIME_FORMAT_STR)}: ", 'blue')
-    source_txt = colored(f" {msg.source_name.upper()} ",
+    source_txt = colored(f" {msg.source_name.upper()}-{msg.msg.__class__.__name__} ",
                          'white', f'on_{color}', ['bold'])
-    data_txt = colored(scp.hexdump(msg.data, dump=True), color)
-    print(f"\n{time_txt} {source_txt} {len(msg.data)}B \n {data_txt}\n")
+    data_txt = colored(str(msg.msg), color)
+    print(f"\n{time_txt} {source_txt} {data_txt}")
 
 
 def handle_async_message(msg: str) -> None:
@@ -219,28 +163,34 @@ async def console_main(app_context):
     # Uses the serial interface defined by the given settings.
 
     # Setup IPC Queues:
-    bgapi_packet_queue = asyncio.Queue()
+    bgapi_message_queue = asyncio.Queue()
     message_queue = asyncio.Queue()
     tick_queue = asyncio.Queue()
 
     # Create Serial Listeners:
-    herc_tx = SerialHw(
-        'Hercules', app_context['baud'], app_context['herc_tx_device'])
-    radio_tx = SerialHw(
-        'Radio', app_context['baud'], app_context['radio_tx_device'])
+    herc_tx = BgApiSerial(
+        'Hercules', app_context['baud'], app_context['herc_tx_device'],
+        is_bgapi_host=True,
+        bgapi_message_queue=bgapi_message_queue,
+        message_queue=message_queue)
+    radio_tx = BgApiSerial(
+        'Radio', app_context['baud'], app_context['radio_tx_device'],
+        is_bgapi_host=False,
+        bgapi_message_queue=bgapi_message_queue,
+        message_queue=message_queue)
+
+    # Start listeners:
+    herc_tx.begin()
+    radio_tx.begin()
 
     # Start tasks:
     tasks = [
-        asyncio.create_task(herc_tx.stream_BGAPI(
-            bgapi_packet_queue, message_queue, app_context)),
-        asyncio.create_task(radio_tx.stream_BGAPI(
-            bgapi_packet_queue, message_queue, app_context)),
         # this controls the min draw rate of the screen (i.e. how frequently we update if no packets or key presses are received)
         asyncio.create_task(ticker(1, tick_queue))
     ]
 
     async with multi_await() as m:
-        m.add(bgapi_packet_queue.get)
+        m.add(bgapi_message_queue.get)
         m.add(message_queue.get)
         m.add(tick_queue.get)
         m.add(run_forever)  # Does nothing but keep things open
@@ -265,6 +215,9 @@ async def console_main(app_context):
 
         # Clean up if the above closes for some reason:
         [await t for t in tasks]
+        # Clean up listeners:
+        herc_tx.bgapi_lib.close()
+        radio_tx.bgapi_lib.close()
 
 
 def start_console():

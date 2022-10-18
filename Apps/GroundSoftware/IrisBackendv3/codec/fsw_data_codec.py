@@ -46,19 +46,16 @@ def format_string(datatype: FswDataType, data: Optional[bytes] = None) -> str:
     length string, in which case the data needs to be supplied.
     """
     if datatype.category in [FswDataCategory.STRING, FswDataCategory.VARSTRING]:
+        # Strings get a special format_string since their length
+        # depends on the length of the data:
         endianness = '>'  # FPrime encodes all strings as big endian
-    else:
-        endianness = ENDIANNESS_CODE
-
-    # Variable length strings get a special format_string since their length
-    # depends on the length of the data:
-    if datatype.category == FswDataCategory.VARSTRING:
         if isinstance(data, bytes):
             struct_sym = f"H{len(data)}s"
         else:
             # Bad datatype given. Just use the default:
             struct_sym = datatype.struct_sym
     else:
+        endianness = ENDIANNESS_CODE
         struct_sym = datatype.struct_sym
 
     return endianness + struct_sym
@@ -289,14 +286,11 @@ class StringPacker(Codec[Tuple[int, str]]):
         Decodes the given val as a String.
         """
         data_len, raw_data = struct.unpack(format_string, buffer)
-        # Must have enough data (when sending fixed length strings, FPrime will
-        # give more data than the actual buffer being sent and set the length
-        # to the length of the intended usable portion).
-        if data_len > len(raw_data):
+        if data_len != len(raw_data):
             raise PacketDecodingException(
                 buffer,
                 f"The expected length of the string ({data_len}B) "
                 f"is greater than the length of available raw length ({len(raw_data)}B)."
             )
 
-        return (data_len, cls.decode_str(raw_data)[:data_len])
+        return (data_len, cls.decode_str(raw_data))

@@ -53,6 +53,7 @@
         "deserialization",
         "dgram",
         "dport",
+        "dstr",
         "dtype",
         "Dummer",
         "Endec",

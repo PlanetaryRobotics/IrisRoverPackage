@@ -113,9 +113,13 @@ class FswDataType(Enum):
         @param data: The data that has this type (only needed for variable
         length strings).
         """
-        if self.category != Category.VARSTRING:
+        if self.category not in [Category.VARSTRING, Category.STRING]:
             return self.num_octets
         else:
+            # FPrime packs all strings (variable length or not) as just the
+            # data given (so a STRING50 that only uses 10B will only be sent as
+            # 10B with a length of 0x000A).
+
             # Make sure data was given:
             if data is None:
                 raise ValueError(

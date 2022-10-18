@@ -87,7 +87,7 @@
 |WatchDogIncorrectResp|0 (0x0)|Warning that the WatchDog MSP430 sent back a response different than what was sent to it| | | | |
 | | | |error|U8||The watchdog error value (reference to documentation)|
 |WatchDogTimedOut|1 (0x1)|Warning that a WatchDog MSP430 watchdog timer went off| | | | |
-|WatchDogCmdReceived|2 (0x2)|Notification that watchdog interface recieved a command from Cmd_Dispatcher| | | | |
+|WatchDogCmdReceived|2 (0x2)|Notification that watchdog interface received a command from Cmd_Dispatcher| | | | |
 | | | |Cmd|Fw::LogStringArg&|50|The cmd that watchdog interface processed|
 |WatchDogCommError|3 (0x3)|Warning that a WatchDog MSP430 error has occured.| | | | |
 | | | |error|U32||The watchdog error value (reference to documentation)|

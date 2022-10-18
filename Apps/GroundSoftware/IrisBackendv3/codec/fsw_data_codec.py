@@ -4,7 +4,7 @@
 Enum for En/Decoding FPrime Datatypes using Python Struct Strings.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 09/14/2022
+@last-updated: 10/17/2022
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -258,7 +258,7 @@ class StringPacker(Codec[Tuple[int, str]]):
             len(args) == 2
             and isinstance(args[0], int)
             and isinstance(args[1], (str, bytes))
-            and len(args[1]) == args[0]
+            and len(args[1]) >= args[0]  # AT LEAST enough data given.
         )
 
     @classmethod
@@ -268,7 +268,7 @@ class StringPacker(Codec[Tuple[int, str]]):
         where *args are [string_length, string]
         """
         raw_data_len = args[0]
-        raw_data = cls.encode_str(args[1])
+        raw_data = cls.encode_str(args[1][:raw_data_len])
 
         valid = cls.check(format_string, (raw_data_len, raw_data))
         if not valid:
@@ -289,11 +289,14 @@ class StringPacker(Codec[Tuple[int, str]]):
         Decodes the given val as a String.
         """
         data_len, raw_data = struct.unpack(format_string, buffer)
-        if data_len != len(raw_data):
+        # Must have enough data (when sending fixed length strings, FPrime will
+        # give more data than the actual buffer being sent and set the length
+        # to the length of the intended usable portion).
+        if data_len > len(raw_data):
             raise PacketDecodingException(
                 buffer,
                 f"The expected length of the string ({data_len}B) "
-                f"does not match its actual raw length ({len(raw_data)}B)."
+                f"is greater than the length of available raw length ({len(raw_data)}B)."
             )
 
-        return (data_len, cls.decode_str(raw_data))
+        return (data_len, cls.decode_str(raw_data)[:data_len])

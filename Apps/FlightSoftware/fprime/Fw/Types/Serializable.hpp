@@ -88,7 +88,7 @@ namespace Fw
 
 #if FW_HAS_16_BIT == 1
         SerializeStatus deserialize(U16 &val, bool forceBigEndian = false); //!< deserialize 16-bit unsigned int
-        SerializeStatus deserialize(I16 &val);                              //!< deserialize 16-bit signed int
+        SerializeStatus deserialize(I16 &val, bool forceBigEndian = false); //!< deserialize 16-bit signed int
 #endif
 
 #if FW_HAS_32_BIT == 1

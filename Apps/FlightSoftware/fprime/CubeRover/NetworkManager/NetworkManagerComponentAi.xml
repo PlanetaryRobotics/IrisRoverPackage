@@ -57,8 +57,8 @@
             <args>
                 <arg name="mode" type="ENUM">
                     <enum name="nm_radio_communications_mode">
-                        <item name="HERCULES" comment="Normal mode. Hercules-Radio UART is ON inside Hercules and Hercules is the one talking to the Radio. Returning to this mode *might* not work, in which case you'll need to just send a reset-herc command to the WatchDog." />
-                        <item name="EXTERNAL" comment="External mode. Hercules-Radio UART is turned OFF inside Hercules allowing an external device to talk to the Radio via J33. Used for debugging and programming the Radio. NOTE: in this mode, Hercules's RTS (which is connected to the Radio's CTS) is kept in the active/ready mode (LOW) so that the Radio feels free to send data whenever. This effectively deactivates control flow, though an external device can still listen to the Radio's RTS if needed - though this wasn't needed in development." />
+                        <item name="HERCULES" value="0x00" comment="Normal mode. Hercules-Radio UART is ON inside Hercules and Hercules is the one talking to the Radio. Returning to this mode *might* not work, in which case you'll need to just send a reset-herc command to the WatchDog." />
+                        <item name="EXTERNAL" value="0x01" comment="External mode. Hercules-Radio UART is turned OFF inside Hercules allowing an external device to talk to the Radio via J33. Used for debugging and programming the Radio. NOTE: in this mode, Hercules's RTS (which is connected to the Radio's CTS) is kept in the active/ready mode (LOW) so that the Radio feels free to send data whenever. This effectively deactivates control flow, though an external device can still listen to the Radio's RTS if needed - though this wasn't needed in development." />
                     </enum>
                 </arg>
             </args>
@@ -191,6 +191,39 @@
         </event>
         <event id="2" name="WF121InitializationFailed" severity="FATAL" format_string="WF121 Failed to initialize">
             <comment>Emit event when there is an error executing a WF121 callback</comment>
+        </event>
+
+        <event id="3" name="RadioCommunicationsModeChange" severity="ACTIVITY_HI" format_string="Radio Communications Mode Changed %s -> %s">
+            <comment>Emit event whenever the radio communications mode is changed.</comment>
+            <args>
+                <arg name="from_mode" type="ENUM">
+                    <enum name="nm_radio_communications_mode_from">
+                        <!--NOTE: This enum NEEDS to be synced up with nm_radio_communications_mode enum (same values for each concept, names can be and need to be different). If it's not, Ground won't be able to parse these messages.-->
+                        <item name="from_HERCULES"  value="0x00" comment="Normal mode. Hercules-Radio UART is ON inside Hercules and Hercules is the one talking to the Radio. Returning to this mode *might* not work, in which case you'll need to just send a reset-herc command to the WatchDog." />
+                        <item name="from_EXTERNAL"  value="0x01" comment="External mode. Hercules-Radio UART is turned OFF inside Hercules allowing an external device to talk to the Radio via J33. Used for debugging and programming the Radio. NOTE: in this mode, Hercules's RTS (which is connected to the Radio's CTS) is kept in the active/ready mode (LOW) so that the Radio feels free to send data whenever. This effectively deactivates control flow, though an external device can still listen to the Radio's RTS if needed - though this wasn't needed in development." />
+                    </enum>
+                </arg>
+                <arg name="to_mode" type="ENUM">
+                    <enum name="nm_radio_communications_mode_to">
+                        <!--NOTE: This enum NEEDS to be synced up with nm_radio_communications_mode enum (same values for each concept, names can be and need to be different). If it's not, Ground won't be able to parse these messages.-->
+                        <item name="to_HERCULES"  value="0x00" comment="Normal mode. Hercules-Radio UART is ON inside Hercules and Hercules is the one talking to the Radio. Returning to this mode *might* not work, in which case you'll need to just send a reset-herc command to the WatchDog." />
+                        <item name="to_EXTERNAL"  value="0x01" comment="External mode. Hercules-Radio UART is turned OFF inside Hercules allowing an external device to talk to the Radio via J33. Used for debugging and programming the Radio. NOTE: in this mode, Hercules's RTS (which is connected to the Radio's CTS) is kept in the active/ready mode (LOW) so that the Radio feels free to send data whenever. This effectively deactivates control flow, though an external device can still listen to the Radio's RTS if needed - though this wasn't needed in development." />
+                    </enum>
+                </arg>
+            </args>
+        </event>
+
+        <event id="4" name="RadioCommunicationsModeState" severity="ACTIVITY_LO" format_string="Radio Communications Mode now: %s">
+            <comment>Current state of the Radio Communications mode. Emitted anytime a change is requested, even if a change isn't performed because the radio is already in the desired mode.</comment>
+            <args>
+                <arg name="mode" type="ENUM">
+                    <enum name="nm_radio_communications_mode_now">
+                        <!--NOTE: This enum NEEDS to be synced up with nm_radio_communications_mode enum (same values for each concept, names can be and need to be different). If it's not, Ground won't be able to parse these messages.-->
+                        <item name="now_HERCULES"  value="0x00" comment="Normal mode. Hercules-Radio UART is ON inside Hercules and Hercules is the one talking to the Radio. Returning to this mode *might* not work, in which case you'll need to just send a reset-herc command to the WatchDog." />
+                        <item name="now_EXTERNAL"  value="0x01" comment="External mode. Hercules-Radio UART is turned OFF inside Hercules allowing an external device to talk to the Radio via J33. Used for debugging and programming the Radio. NOTE: in this mode, Hercules's RTS (which is connected to the Radio's CTS) is kept in the active/ready mode (LOW) so that the Radio feels free to send data whenever. This effectively deactivates control flow, though an external device can still listen to the Radio's RTS if needed - though this wasn't needed in development." />
+                    </enum>
+                </arg>
+            </args>
         </event>
     </events>
 

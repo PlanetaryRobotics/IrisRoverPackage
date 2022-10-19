@@ -33,7 +33,9 @@ app_context_default: Dict[str, Any] = {
     # SBC RX (connected to XCVR RX pin)
     'radio_tx_device': '/dev/cu.usbserial-A50285BI',
     # SBC TX (connected to XCVR RX pin)
-    'herc_tx_device': '/dev/cu.usbserial-3'
+    'herc_tx_device': '/dev/cu.usbserial-3',
+    'listen_to_herc_tx': False,
+    'listen_to_radio_tx': True
 }
 DATETIME_FORMAT_STR: Final[str] = '%m-%d %H:%M:%S.%f'
 
@@ -180,8 +182,10 @@ async def console_main(app_context):
         message_queue=message_queue)
 
     # Start listeners:
-    herc_tx.begin()
-    radio_tx.begin()
+    if app_context['listen_to_herc_tx']:
+        herc_tx.begin()
+    if app_context['listen_to_radio_tx']:
+        radio_tx.begin()
 
     # Start tasks:
     tasks = [
@@ -213,10 +217,12 @@ async def console_main(app_context):
                         # Don't do anything special.
                         pass
 
-        # Clean up if the above closes for some reason:
-        [await t for t in tasks]
-        # Clean up listeners:
+    # Clean up if the above closes for some reason:
+    [await t for t in tasks]
+    # Clean up listeners:
+    if app_context['listen_to_herc_tx']:
         herc_tx.bgapi_lib.close()
+    if app_context['listen_to_radio_tx']:
         radio_tx.bgapi_lib.close()
 
 

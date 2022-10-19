@@ -119,7 +119,7 @@ namespace CubeRover
         {
             // If currently in HERCULES (default) mode, deinit to switch to EXTERNAL mode:
             Wf121::Wf121Serial::deinit();
-            log_ACTIVITY_HI_RadioCommunicationsModeChange(static_cast<nm_radio_communications_mode_from>(nmCurrentCommunicationMode), nm_radio_communications_mode_to::EXTERNAL);
+            log_ACTIVITY_HI_RadioCommunicationsModeChange(static_cast<nm_radio_communications_mode_from>(nmCurrentCommunicationMode), nm_radio_communications_mode_to::to_EXTERNAL);
             nmCurrentCommunicationMode = nm_radio_communications_mode::EXTERNAL;
         }
         else
@@ -127,7 +127,7 @@ namespace CubeRover
             // If currently in EXTERNAL mode (or, just, not the default due to a bitflip),
             // deinit to switch to HERCULES (default) mode:
             Wf121::Wf121Serial::reinit();
-            log_ACTIVITY_HI_RadioCommunicationsModeChange(static_cast<nm_radio_communications_mode_from>(nmCurrentCommunicationMode), nm_radio_communications_mode_to::HERCULES);
+            log_ACTIVITY_HI_RadioCommunicationsModeChange(static_cast<nm_radio_communications_mode_from>(nmCurrentCommunicationMode), nm_radio_communications_mode_to::to_HERCULES);
             nmCurrentCommunicationMode = nm_radio_communications_mode::HERCULES;
         }
         // Flag the end state (even if a change wasn't made):

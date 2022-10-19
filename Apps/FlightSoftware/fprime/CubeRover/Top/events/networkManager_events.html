@@ -78,6 +78,34 @@ html {
 				<td></td>
 				<td></td>
 		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">RadioCommunicationsModeChange</td>
+			<td rowspan="3">2563 (0xa03)</td>
+			<td rowspan="3">Emit event whenever the radio communications mode is changed.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>from_mode</td>
+						<td>nm_radio_communications_mode_from</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>to_mode</td>
+						<td>nm_radio_communications_mode_to</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">RadioCommunicationsModeState</td>
+			<td rowspan="2">2564 (0xa04)</td>
+			<td rowspan="2">Current state of the Radio Communications mode. Emitted anytime a change is requested, even if a change isn't performed because the radio is already in the desired mode.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>mode</td>
+						<td>nm_radio_communications_mode_now</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
 	</tbody>
 </table>
 

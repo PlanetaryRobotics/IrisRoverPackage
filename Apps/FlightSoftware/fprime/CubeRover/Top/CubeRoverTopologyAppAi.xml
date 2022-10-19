@@ -570,7 +570,7 @@
     <target component = "cmdDispatcher" port = "compCmdStat" type = "CmdResponse" num = "0" />
   </connection>
 
-  <!--NetworkManager Commands Link-->
+  <!--NetworkManager Commands Link -->
   <connection name = "networkManagerCmdReg_to_cmdDispatcher">
     <source component = "networkManager" port = "CmdReg" type = "CmdReg" num = "0" />
     <target component = "cmdDispatcher" port = "compCmdReg" type = "CmdReg" num = "8" />

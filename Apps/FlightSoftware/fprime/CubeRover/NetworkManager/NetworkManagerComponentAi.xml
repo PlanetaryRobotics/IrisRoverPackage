@@ -5,6 +5,9 @@
     <import_port_type>Fw/Buffer/BufferSendPortAi.xml</import_port_type>
     <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
     <import_port_type>Fw/Log/LogTextPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
+    <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
     <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
     <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
     <import_port_type>CubeRover/CubeRoverPorts/WatchdogResetRequest/WatchdogResetRequestPortAi.xml</import_port_type>
@@ -18,6 +21,25 @@
         <port name="schedIn" data_type="Svc::Sched" kind="guarded_input" max_number="1">
             <comment>Clock from RateGroupMedFreq. Every clock tick need to interllay check:
                 RSSI, downlink queue, uplink (command) queue
+            </comment>
+        </port>
+
+        <!-- Command Ports -->
+        <port name="CmdReg" data_type="Fw::CmdReg" kind="output" role="CmdRegistration" max_number="1">
+            <comment>
+            Command Registration Port
+            </comment>
+        </port>
+
+        <port name="CmdStatus" data_type="Fw::CmdResponse" kind="output" role="CmdResponse" max_number="1">
+            <comment>
+            Command Response Port
+            </comment>
+        </port>
+
+        <port name="CmdDisp" data_type="Fw::Cmd" kind="input" role="Cmd" max_number="1">
+            <comment>
+            Command Input Port
             </comment>
         </port>
 

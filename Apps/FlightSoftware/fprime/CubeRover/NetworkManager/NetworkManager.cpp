@@ -24,11 +24,15 @@
 
 #include <CubeRover/Wf121/Timestamp.hpp>
 #include <CubeRover/Wf121/Wf121DirectMessage.hpp>
+#include <CubeRover/Wf121/Wf121SerialInterface.hpp>
 
 extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 namespace CubeRover
 {
+    // Set nmCurrentCommunicationMode to the default:
+    NetworkManagerComponentImpl::nm_radio_communications_mode NetworkManagerComponentImpl::nmCurrentCommunicationMode = NetworkManagerComponentImpl::nm_radio_communications_mode::HERCULES;
+
     // STATICALLY allocate a SINGLE copy of the RadioDriver (both of these are
     // very important for proper set up of the internal Tasks):
     static Wf121::RadioDriver CORE_RADIO_DRIVER;
@@ -102,6 +106,35 @@ namespace CubeRover
         update();
         // See if there's any available uplinked data:
         getUplinkDatagram();
+    }
+
+    //! Handler for command Set_Radio_Communications_Mode
+    /* Sets the Radio communications mode. For Radio debugging and UART/DFU programming. */
+    void NetworkManagerComponentImpl::Set_Radio_Communications_Mode_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        nm_radio_communications_mode mode)
+    {
+        if (nmCurrentCommunicationMode == nm_radio_communications_mode::HERCULES)
+        {
+            // If currently in HERCULES (default) mode, deinit to switch to EXTERNAL mode:
+            Wf121::Wf121Serial::deinit();
+            log_ACTIVITY_HI_RadioCommunicationsModeChange(static_cast<nm_radio_communications_mode_from>(nmCurrentCommunicationMode), nm_radio_communications_mode_to::to_EXTERNAL);
+            nmCurrentCommunicationMode = nm_radio_communications_mode::EXTERNAL;
+        }
+        else
+        {
+            // If currently in EXTERNAL mode (or, just, not the default due to a bitflip),
+            // deinit to switch to HERCULES (default) mode:
+            Wf121::Wf121Serial::reinit();
+            log_ACTIVITY_HI_RadioCommunicationsModeChange(static_cast<nm_radio_communications_mode_from>(nmCurrentCommunicationMode), nm_radio_communications_mode_to::to_HERCULES);
+            nmCurrentCommunicationMode = nm_radio_communications_mode::HERCULES;
+        }
+        // Flag the end state (even if a change wasn't made):
+        log_ACTIVITY_LO_RadioCommunicationsModeState(static_cast<nm_radio_communications_mode_now>(nmCurrentCommunicationMode));
+
+        // Signal that we're done:
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
     // Helper function to convert RadioSwState (used inside RadioDriver) to

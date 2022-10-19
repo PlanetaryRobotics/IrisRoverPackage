@@ -414,6 +414,24 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRED
     ),
 
+    # Turn off Hercules-Radio UART (inside the Hercules) so an external device
+    # can use it (for Radio diagnostics and programming).
+    'radio-comms-ext-mode': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_SetRadioCommunicationsMode',
+        OrderedDict(mode='EXTERNAL'),
+        DataPathway.WIRED
+    ),
+    # Turn on Hercules-Radio UART (inside the Hercules) so Hercules can use it
+    # (normal operation). If this doesn't work, just do a `reset-herc`.
+    'radio-comms-normal-mode': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_SetRadioCommunicationsMode',
+        OrderedDict(mode='HERCULES'),
+        DataPathway.WIRED
+    ),
     'radio-echo-hello': (
         DataPathway.WIRELESS,
         Magic.RADIO_COMMAND,

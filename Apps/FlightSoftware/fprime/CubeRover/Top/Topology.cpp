@@ -239,6 +239,7 @@ void constructApp(void)
     IMU.regCommands();
     motorControl.regCommands();
     groundInterface.regCommands();
+    networkManager.regCommands();
     activeLogger.regCommands();
 
     // Register Health Commands

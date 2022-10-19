@@ -83,6 +83,8 @@ namespace CubeRover
     //!
     ~NetworkManagerComponentImpl(void);
 
+    static nm_radio_communications_mode nmCurrentCommunicationMode;
+
     PRIVATE :
 
         // ----------------------------------------------------------------------
@@ -101,6 +103,14 @@ namespace CubeRover
     void schedIn_handler(
         const NATIVE_INT_TYPE portNum, /*!< The port number*/
         NATIVE_UINT_TYPE context       /*!< The call order*/
+    );
+
+    //! Handler for command Set_Radio_Communications_Mode
+    /* Sets the Radio communications mode. For Radio debugging and UART/DFU programming. */
+    void Set_Radio_Communications_Mode_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq, /*!< The command sequence number*/
+        nm_radio_communications_mode mode
     );
 
     // User defined methods, members, and structs

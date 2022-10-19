@@ -2,6 +2,13 @@
 # NetworkManager Component Dictionary
 
 
+## Command List
+
+|Mnemonic|ID|Description|Arg Name|Arg Type|Comment
+|---|---|---|---|---|---|
+|Set_Radio_Communications_Mode|0 (0x0)|Sets the Radio communications mode. For Radio debugging and UART/DFU programming.| | |
+| | | |mode|nm_radio_communications_mode||
+
 ## Telemetry Channel List
 
 |Channel Name|ID|Type|Description|
@@ -23,3 +30,8 @@
 |ExecuteCallbackError|1 (0x1)|Emit event when there is an error executing a WF121 callback| | | | |
 | | | |ErrorCode|U16|||
 |WF121InitializationFailed|2 (0x2)|Emit event when there is an error executing a WF121 callback| | | | |
+|RadioCommunicationsModeChange|3 (0x3)|Emit event whenever the radio communications mode is changed.| | | | |
+| | | |from_mode|nm_radio_communications_mode_from|||
+| | | |to_mode|nm_radio_communications_mode_to|||
+|RadioCommunicationsModeState|4 (0x4)|Current state of the Radio Communications mode. Emitted anytime a change is requested, even if a change isn't performed because the radio is already in the desired mode.| | | | |
+| | | |mode|nm_radio_communications_mode_now|||

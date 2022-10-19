@@ -103,6 +103,14 @@ namespace CubeRover
         NATIVE_UINT_TYPE context       /*!< The call order*/
     );
 
+    //! Handler for command Set_Radio_Communications_Mode
+    /* Sets the Radio communications mode. For Radio debugging and UART/DFU programming. */
+    void Set_Radio_Communications_Mode_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq, /*!< The command sequence number*/
+        nm_radio_communications_mode mode
+    );
+
     // User defined methods, members, and structs
 
     // Pointer to the RadioDriver being used (we add this level of indirection

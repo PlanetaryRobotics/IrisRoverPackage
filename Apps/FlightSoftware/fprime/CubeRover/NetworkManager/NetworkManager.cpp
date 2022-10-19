@@ -104,6 +104,18 @@ namespace CubeRover
         getUplinkDatagram();
     }
 
+
+    //! Handler for command Set_Radio_Communications_Mode
+    /* Sets the Radio communications mode. For Radio debugging and UART/DFU programming. */
+    void NetworkManagerComponentImpl::Set_Radio_Communications_Mode_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq, /*!< The command sequence number*/
+        nm_radio_communications_mode mode
+    ){
+        // TODO
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+    }
+
     // Helper function to convert RadioSwState (used inside RadioDriver) to
     // WIFIState (used by FPrime telem).
     // See `RadioSwState` in `Wf121/Wf121DirectMessage.hpp` for more details on

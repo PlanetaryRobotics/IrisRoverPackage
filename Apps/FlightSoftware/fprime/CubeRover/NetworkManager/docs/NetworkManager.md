@@ -2,6 +2,13 @@
 # NetworkManager Component Dictionary
 
 
+## Command List
+
+|Mnemonic|ID|Description|Arg Name|Arg Type|Comment
+|---|---|---|---|---|---|
+|Set_Radio_Communications_Mode|0 (0x0)|Sets the Radio communications mode. For Radio debugging and UART/DFU programming.| | |
+| | | |mode|nm_radio_communications_mode||
+
 ## Telemetry Channel List
 
 |Channel Name|ID|Type|Description|

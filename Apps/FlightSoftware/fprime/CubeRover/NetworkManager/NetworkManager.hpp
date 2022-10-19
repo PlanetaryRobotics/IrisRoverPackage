@@ -83,6 +83,8 @@ namespace CubeRover
     //!
     ~NetworkManagerComponentImpl(void);
 
+    static nm_radio_communications_mode nmCurrentCommunicationMode;
+
     PRIVATE :
 
         // ----------------------------------------------------------------------

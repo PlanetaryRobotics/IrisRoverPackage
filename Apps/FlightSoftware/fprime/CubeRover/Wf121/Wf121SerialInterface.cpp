@@ -19,7 +19,7 @@ namespace Wf121
             // bitflip. So, we'll only enter this mode if `wf121WritesAllowed`
             // has 1 specific 32bit value. This mode is only for use on Earth,
             // so it's not really a problem if we can easily exit it.
-            WF121_NO_WRITES_ALLOWED = 0xFEEDF00D; // I'm hungry
+            WF121_NO_WRITES_ALLOWED = 0xFEEDF00D // I'm hungry
         };
 
         // Mutex-protected information about DMA TX:
@@ -109,7 +109,7 @@ namespace Wf121
             // Set SCI to functional (SCI, not GIO) mode:
             sciSetFunctional(WF121_SCI_REG,
                              (uint32)((uint32)1U << 2U)        /* tx pin */
-                                 | (uint32)((uint32)1U << 1U); /* rx pin */
+                                 | (uint32)((uint32)1U << 1U) /* rx pin */
             );
             // See https://www.ti.com/lit/ug/spnu514c/spnu514c.pdf?ts=1666185943372 (Table 28-30, when FUNC=1, DIR doesn't matter.).
 

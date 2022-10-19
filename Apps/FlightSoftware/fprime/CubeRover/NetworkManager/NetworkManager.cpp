@@ -31,7 +31,7 @@ extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 namespace CubeRover
 {
     // Set nmCurrentCommunicationMode to the default:
-    static nm_radio_communications_mode nmCurrentCommunicationMode = nm_radio_communications_mode::HERCULES;
+    NetworkManagerComponentImpl::nm_radio_communications_mode NetworkManagerComponentImpl::nmCurrentCommunicationMode = NetworkManagerComponentImpl::nm_radio_communications_mode::HERCULES;
 
     // STATICALLY allocate a SINGLE copy of the RadioDriver (both of these are
     // very important for proper set up of the internal Tasks):

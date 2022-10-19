@@ -46,26 +46,33 @@ namespace Wf121
         // Initialize comms:
         void init(void);
 
+        // De-initialize comms (so an external device can take over):
+        void deinit(void);
+
+        // Re-initialize comms after they've been deinit'd during program
+        // execution:
+        void reinit(void);
+
         // Set the RTS GPIO pin to the given state:
         inline void setRTS(bool state)
         {
-    #if WF121_USE_CTS_RTS
+#if WF121_USE_CTS_RTS
             // NOTE: our RTS pin is connected to the WF121's CTS pin, which is on PB3.
             gioSetBit(gioPORTB, 3, state);
-    #else
+#else
             return;       // if no control flow, then we just throw this out
-    #endif //#if WF121_USE_CTS_RTS
+#endif //#if WF121_USE_CTS_RTS
         }
 
         // Get the CTS GPIO pin state:
         inline bool getCTS(void)
         {
-    #if WF121_USE_CTS_RTS
+#if WF121_USE_CTS_RTS
             // NOTE: our CTS pin is connected to the WF121's RTS pin, which is on PB2.
             return gioGetBit(gioPORTB, 2);
-    #else
+#else
             return false; // if no control flow, then we just assume we're always good to send data (active low)
-    #endif //#if WF121_USE_CTS_RTS
+#endif //#if WF121_USE_CTS_RTS
         }
 
         // Set control flow to indicate that we're ready to receive data:
@@ -124,11 +131,16 @@ the xSemaphoreBuffer variable. */
 #if (configSUPPORT_STATIC_ALLOCATION != 1)
 #error configSUPPORT_STATIC_ALLOCATION=1 Required!
 #endif
-                this->xSemaphore_writeDone = xQueueGenericCreateStatic((UBaseType_t)1,
-                                                                       semSEMAPHORE_QUEUE_ITEM_LENGTH,
-                                                                       (unsigned char *)NULL,
-                                                                       &xSemaphoreBuffer_dmaWriteStatus_writeDone,
-                                                                       queueQUEUE_TYPE_BINARY_SEMAPHORE);
+                if (this->xSemaphore_writeDone == NULL)
+                {
+                    // Only create the semaphore if it doesn't already exist
+                    // (in case this is being called a second time from a reinit).
+                    this->xSemaphore_writeDone = xQueueGenericCreateStatic((UBaseType_t)1,
+                                                                           semSEMAPHORE_QUEUE_ITEM_LENGTH,
+                                                                           (unsigned char *)NULL,
+                                                                           &xSemaphoreBuffer_dmaWriteStatus_writeDone,
+                                                                           queueQUEUE_TYPE_BINARY_SEMAPHORE);
+                }
                 // NOTE: Binary Semaphore initializes to 0 ("taken") so anything
                 // that wants to "Take" it will have to wait for a "Give" first.
 
@@ -209,7 +221,7 @@ the xSemaphoreBuffer variable. */
                 // > now (unless there's been an overflow, which is okay):
                 uint32_t now = Timestamp::getTimeMs();
                 uint32_t endTime = (startTime + timeoutMs);
-                return (now < endTime) ? (endTime-now) : 0;
+                return (now < endTime) ? (endTime - now) : 0;
             }
 
             // Return whether the allowable time to block has expired (obtains

@@ -24,11 +24,15 @@
 
 #include <CubeRover/Wf121/Timestamp.hpp>
 #include <CubeRover/Wf121/Wf121DirectMessage.hpp>
+#include <CubeRover/Wf121/Wf121SerialInterface.hpp>
 
 extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 namespace CubeRover
 {
+    // Set nmCurrentCommunicationMode to the default:
+    static nm_radio_communications_mode nmCurrentCommunicationMode = nm_radio_communications_mode::HERCULES;
+
     // STATICALLY allocate a SINGLE copy of the RadioDriver (both of these are
     // very important for proper set up of the internal Tasks):
     static Wf121::RadioDriver CORE_RADIO_DRIVER;
@@ -104,15 +108,26 @@ namespace CubeRover
         getUplinkDatagram();
     }
 
-
     //! Handler for command Set_Radio_Communications_Mode
     /* Sets the Radio communications mode. For Radio debugging and UART/DFU programming. */
     void NetworkManagerComponentImpl::Set_Radio_Communications_Mode_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
-        U32 cmdSeq, /*!< The command sequence number*/
-        nm_radio_communications_mode mode
-    ){
-        // TODO
+        U32 cmdSeq,          /*!< The command sequence number*/
+        nm_radio_communications_mode mode)
+    {
+        if (nmCurrentCommunicationMode == nm_radio_communications_mode::HERCULES)
+        {
+            // If currently in HERCULES (default) mode, deinit to switch to EXTERNAL mode:
+            Wf121::Wf121Serial::deinit();
+            nmCurrentCommunicationMode = nm_radio_communications_mode::EXTERNAL;
+        }
+        else
+        {
+            // If currently in EXTERNAL mode, deinit to switch to HERCULES (default) mode:
+            Wf121::Wf121Serial::reinit();
+            nmCurrentCommunicationMode = nm_radio_communications_mode::HERCULES;
+        }
+        // Signal that we're done:
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 

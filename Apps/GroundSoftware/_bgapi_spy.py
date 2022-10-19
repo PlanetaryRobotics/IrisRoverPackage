@@ -3,7 +3,7 @@ Spies on the BGAPI comms between Hercules and the WF121.
 Designed for use leading up to RC4.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 10/18/2022
+@last-updated: 10/19/2022
 """
 
 from asyncio import events
@@ -35,7 +35,7 @@ app_context_default: Dict[str, Any] = {
     # SBC TX (connected to XCVR RX pin)
     'herc_tx_device': '/dev/cu.usbserial-3'
 }
-DATETIME_FORMAT_STR: Final[str] = '%m-%d %H:%M:%S'
+DATETIME_FORMAT_STR: Final[str] = '%m-%d %H:%M:%S.%f'
 
 # Special message types that wrap primitives (so we can check type in Queue receiver):
 

@@ -49,6 +49,21 @@
 
     </ports>
 
+    <commands>
+        <command kind="sync" opcode="0x0" mnemonic="Set_Radio_Communications_Mode">
+            <comment>
+                Sets the Radio communications mode. For Radio debugging and UART/DFU programming.
+            </comment>
+            <args>
+                <arg name="mode" type="ENUM">
+                    <enum name="nm_radio_communications_mode">
+                        <item name="HERCULES" comment="Normal mode. Hercules-Radio UART is ON inside Hercules and Hercules is the one talking to the Radio. Returning to this mode *might* not work, in which case you'll need to just send a reset-herc command to the WatchDog." />
+                        <item name="EXTERNAL" comment="External mode. Hercules-Radio UART is turned OFF inside Hercules allowing an external device to talk to the Radio via J33. Used for debugging and programming the Radio. NOTE: in this mode, Hercules's RTS (which is connected to the Radio's CTS) is kept in the active/ready mode (LOW) so that the Radio feels free to send data whenever. This effectively deactivates control flow, though an external device can still listen to the Radio's RTS if needed - though this wasn't needed in development." />
+                    </enum>
+                </arg>
+            </args>
+        </command>
+    </commands>
 
     <telemetry>
         <channel id="0" name="RSSI" data_type="I8">

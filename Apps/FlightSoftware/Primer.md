@@ -8,7 +8,9 @@ F-Prime user guide and source
 
 Each section may also reference helpful documents and readings.
 
-Lastly, all (or at least, most) FPrime-provided components contain a `./docs/sdd.md` file. In the bigger ones like `ActiveLogger` or `CommandDispatcher`, these include detailed information about the design, use, and configuration of these components, which is quite helpful, especially when modifying their `XXXCfg.hpp` files (where present).
+Also, all (or at least, most) FPrime-provided components contain a `./docs/sdd.md` file. In the bigger ones like `ActiveLogger` or `CommandDispatcher`, these include detailed information about the design, use, and configuration of these components, which is quite helpful, especially when modifying their `XXXCfg.hpp` files (where present).
+
+Lastly, be aware that a lot of the functions of core FPrime are configured in `fprime/Fw/Cfg/`.
 
 ## Differentiating Telemetry and Logs 
 

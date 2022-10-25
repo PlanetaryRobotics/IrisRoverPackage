@@ -277,8 +277,15 @@
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
   
+  <!-- WatchDogInterface to telemetry channel (port 9) -->
   <connection name="watchdog_to_chanTlm">
     <source component="watchDogInterface" port="Tlm" type="Tlm" num="0" />
+    <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
+  </connection>
+  
+  <!-- Camera to telemetry channel (port 10) -->
+  <connection name="camera_to_chanTlm">
+    <source component="camera" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
       

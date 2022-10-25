@@ -169,16 +169,6 @@
                 </arg>
             </args>
         </command>
-
-        <command kind="sync" opcode="0x04" mnemonic="DumpRadioUartBuffer">
-            <comment>
-                Dumps the latest 90B (limited by `FW_LOG_STRING_MAX_SIZE`) in 
-                the UART comm buffer from Hercules.
-            </comment>
-            <args>
-                <arg name="newBaud" type="U32" />
-            </args>
-        </command>
     </commands>
 
     <telemetry>
@@ -419,14 +409,14 @@
                     </comment>
                 </arg>
                 <arg name="status" type="ENUM">
+                    <comment>
+                        Status of the `Send_BgApi_Command`.
+                    </comment>
                     <enum name="nm_radio_send_bgapi_command_ack_status">
-                        <comment>
-                            Status of the `Send_BgApi_Command`.
-                        </comment>
                         <item name="nm_bgapi_send_CRC_FAIL"  value="0xC9C0FA11" comment="Computed CRC of data received did not match target CRC received." />
                         <item name="nm_bgapi_send_UART_SEND_FAILED"  value="0xDA7AFA11" comment="All given data was valid but failed to send the packet to the Radio over UART. Try again?" />
-                        <item name="nm_bgapi_send_BAD_STATE"  value="BAD57A7E"  comment="Hercules is in the wrong state to do this (not in passthrough mode - need to send `Set_Radio_BgApi_Passthrough[passthrough=TRUE]` first)." />
-                        <item name="nm_bgapi_send_SEND_SUCCESS"  value="600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART." />
+                        <item name="nm_bgapi_send_BAD_STATE"  value="0xBAD57A7E"  comment="Hercules is in the wrong state to do this (not in passthrough mode - need to send `Set_Radio_BgApi_Passthrough[passthrough=TRUE]` first)." />
+                        <item name="nm_bgapi_send_SEND_SUCCESS"  value="0x600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART." />
                     </enum>
                 </arg>
             </args>

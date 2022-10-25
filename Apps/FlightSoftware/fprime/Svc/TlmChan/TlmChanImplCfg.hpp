@@ -43,9 +43,9 @@ namespace
 
     enum
     {
-        TLMCHAN_NUM_TLM_HASH_SLOTS = 25, // !< Number of slots in the hash table.
+        TLMCHAN_NUM_TLM_HASH_SLOTS = 22, // !< Number of slots in the hash table.
                                          // Works best when set to about twice the number of components producing telemetry
-        // At the time of writing, there are only 12 components producing telem. So 2*12=24 + some room (it used to be 30)=26
+        // At the time of writing, there are only 12 components producing telem, but only 10 are connected. So 2*10=20 + some room (it used to be 30 as default)=22
         TLMCHAN_HASH_MOD_VALUE = 250, // !< The modulo value of the hashing function.
                                       // Should be set to a little below the ID gaps to spread the entries around
 

@@ -9,6 +9,10 @@ from bgapi.socketconnector import SocketConnector
 # Expose main BGAPI message types:
 from bgapi.bglib import BGMsg, BGCommand, BGResponse, BGEvent
 
+# Expose Serializer / Deserializer:
+from bgapi import serdeser
+
+
 # Expose our custom handlers:
 from .custom_listener import BGLibListener
 

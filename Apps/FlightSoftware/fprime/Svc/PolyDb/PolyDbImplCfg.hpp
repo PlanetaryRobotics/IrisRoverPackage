@@ -8,10 +8,12 @@
 #ifndef POLYDB_POLYDBIMPLCFG_HPP_
 #define POLYDB_POLYDBIMPLCFG_HPP_
 
-namespace {
+namespace
+{
 
-    enum {
-        POLYDB_NUM_DB_ENTRIES = 25
+    enum
+    {
+        POLYDB_NUM_DB_ENTRIES = 20
     };
 
 }

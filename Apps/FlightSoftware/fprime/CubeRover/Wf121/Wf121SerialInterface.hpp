@@ -18,8 +18,8 @@
 #include <Os/Mutex.hpp>
 #include <CubeRover/Wf121/Timestamp.hpp>
 
-#define WF121_SCI_REG sciREG // if you change this, make sure to change which ISR is being used too
-#define WF121_SCI_BAUD 115200
+#define WF121_SCI_REG sciREG          // if you change this, make sure to change which ISR is being used too
+#define WF121_SCI_BAUD_DEFAULT 115200 // default value for the WF121 SCI BAUD RATE (when code is loaded. actual value used is the persistent `Wf121::Wf121Serial::persistent_wf121_sci_baud`)
 // Whether or not to use control flow:
 #define WF121_USE_CTS_RTS 1
 // DMA TX Interfaces (uses SCI):
@@ -43,6 +43,8 @@ namespace Wf121
 {
     namespace Wf121Serial // Wf121::Wf121Serial
     {
+        extern uint32_t persistent_wf121_sci_baud;
+
         // Initialize comms:
         void init(void);
 
@@ -52,6 +54,11 @@ namespace Wf121
         // Re-initialize comms after they've been deinit'd during program
         // execution:
         void reinit(void);
+
+        // Changes the persistent_wf121_sci_baud to the given uint32 and resets
+        // the UART so that new baud applies. If there are issues after calling
+        // this, reset Hercules and the new rate should be applied.
+        void changeUartBaud(uint32_t newBaud);
 
         // Set the RTS GPIO pin to the given state:
         inline void setRTS(bool state)
@@ -190,7 +197,7 @@ the xSemaphoreBuffer variable. */
             {
                 // calculate before grabbing mutex (to hold mutex for as little
                 // time as possible):
-                uint32_t smartTimeoutMs = 15000UL * dataSize / WF121_SCI_BAUD + 1; // coefficient * bytes / (baud/sec)
+                uint32_t smartTimeoutMs = 15000UL * dataSize / persistent_wf121_sci_baud + 1; // coefficient * bytes / (baud/sec)
                 this->mutex.lock();
                 this->smartTimeoutMs = smartTimeoutMs;
                 this->mutex.unLock();

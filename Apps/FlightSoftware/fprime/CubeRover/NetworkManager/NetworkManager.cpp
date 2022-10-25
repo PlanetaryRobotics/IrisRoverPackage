@@ -70,6 +70,13 @@ namespace CubeRover
 
         // Init the RadioDriver (and all its sub-tasks):
         m_pRadioDriver->init();
+
+        // Log the initial Radio UART baud rate (can be changed and is persistent):
+        log_ACTIVITY_HI_RadioUartBaudRateChanged(
+            false, // no change is being made here
+            // from and to are the same because no change is being made here:
+            Wf121::Wf121Serial::persistent_wf121_sci_baud,
+            Wf121::Wf121Serial::persistent_wf121_sci_baud);
     }
 
     NetworkManagerComponentImpl ::
@@ -137,8 +144,6 @@ namespace CubeRover
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
-
-
     //! Handler for command Set_Radio_Uart_Baud
     /* Sets the (peristent) baud rate for UART communication with the
             WF121 Radio. Note: if Radio-Hercules comms appear not to work
@@ -148,10 +153,12 @@ namespace CubeRover
             called (if no change was made, `changeMade=FALSE`). */
     void NetworkManagerComponentImpl::Set_Radio_Uart_Baud_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
-        U32 cmdSeq, /*!< The command sequence number*/
-        U32 newBaud
-    ){
-        // ! TODO
+        U32 cmdSeq,          /*!< The command sequence number*/
+        U32 newBaud)
+    {
+        uint32_t initialBaud = Wf121::Wf121Serial::persistent_wf121_sci_baud;
+        Wf121::Wf121Serial::changeUartBaud(newBaud);
+        log_ACTIVITY_HI_RadioUartBaudRateChanged(true, initialBaud, newBaud);
     }
 
     //! Handler for command Set_Radio_BgApi_Passthrough
@@ -177,9 +184,9 @@ namespace CubeRover
                 called (if no change was made, `changeMade=FALSE`). */
     void NetworkManagerComponentImpl::Set_Radio_BgApi_Passthrough_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
-        U32 cmdSeq, /*!< The command sequence number*/
-        bool passthrough
-    ){
+        U32 cmdSeq,          /*!< The command sequence number*/
+        bool passthrough)
+    {
         // ! TODO
     }
 
@@ -188,17 +195,17 @@ namespace CubeRover
                 Radio.
                 A `RadioSendBgApiCommandAck` event is emitted when this command is received */
     void NetworkManagerComponentImpl::Send_BgApi_Command_cmdHandler(
-        FwOpcodeType opCode, /*!< The opcode*/
-        U32 cmdSeq, /*!< The command sequence number*/
-        U32 crc32, /*!<
-                        CRC32 of the packed BGAPI packet, as a uint32.
-                    */
-        U32 packetId, /*!<
-                        ID of the packet, assigned by ground. This is just
-                        included in the response event so ground can know what
-                        packet to resend if it needs to resend a packet.
-                    */
-        const Fw::CmdStringArg& bgapiPacket /*!<
+        FwOpcodeType opCode,                /*!< The opcode*/
+        U32 cmdSeq,                         /*!< The command sequence number*/
+        U32 crc32,                          /*!<
+                                                 CRC32 of the packed BGAPI packet, as a uint32.
+                                             */
+        U32 packetId,                       /*!<
+                                              ID of the packet, assigned by ground. This is just
+                                              included in the response event so ground can know what
+                                              packet to resend if it needs to resend a packet.
+                                          */
+        const Fw::CmdStringArg &bgapiPacket /*!<
                         The data as a 'string', with a MAX length of 134B
                         (4B of BGAPI header + 1B 'BGAPI uint8array' length byte
                         + 128B of data + 1B null termination). To increase this
@@ -218,10 +225,10 @@ namespace CubeRover
                         and the memory in the `CmdStringArg->m_buf` inside
                         Hercules would look like: [byte0, byte1, byte2, NULL].
                     */
-    ){
+    )
+    {
         // ! TODO
     }
-
 
     // Helper function to convert RadioSwState (used inside RadioDriver) to
     // WIFIState (used by FPrime telem).

@@ -35,7 +35,7 @@
             
                 A `RadioBgApiPassthroughChange` event is emitted when 
                 called (if no change was made, `changeMade=FALSE`).| | |
-| | | |passthrough|BOOL||
+| | | |passthrough|bool||
 |Send_BgApi_Command|3 (0x3)|Forwards the given BGAPI command (packed as binary) to the 
                 Radio. 
                 A `RadioSendBgApiCommandAck` event is emitted when this command is received| | |
@@ -106,7 +106,7 @@
                 This event will also be fired once upon boot with 
                 `changeMade=FALSE` and `fromBaud=toBaud` to indicate the 
                 current value of the persistent baud rate.| | | | |
-| | | |changeMade|BOOL|||
+| | | |changeMade|bool|||
 | | | |fromBaud|U32|||
 | | | |toBaud|U32|||
 |RadioBgApiPassthroughChange|6 (0x6)|Fired in response to a `Set_Radio_BgApi_Passthrough` command. 
@@ -120,9 +120,9 @@
                 This event will also be fired once upon boot with 
                 `changeMade=FALSE` and `from=to` to indicate the 
                 current value of the passthrough state.| | | | |
-| | | |changeMade|BOOL|||
-| | | |from|BOOL|||
-| | | |to|BOOL|||
+| | | |changeMade|bool|||
+| | | |from|bool|||
+| | | |to|bool|||
 |RadioSendBgApiCommandAck|7 (0x7)|Fired in response to a `Send_BgApi_Command` command. 
                 `from` will always be the state before the command. 
                 `to` will always be the requested state in the command. 

@@ -122,7 +122,7 @@
                 called (if no change was made, `changeMade=FALSE`).
             </comment>
             <args>
-                <arg name="passthrough" type="BOOL" />
+                <arg name="passthrough" type="bool" />
             </args>
         </command>
 
@@ -350,7 +350,7 @@
                 current value of the persistent baud rate.
             </comment>
             <args>
-                <arg name="changeMade" type="BOOL" />
+                <arg name="changeMade" type="bool" />
                 <arg name="fromBaud" type="U32" />
                 <arg name="toBaud" type="U32" />
             </args>
@@ -371,9 +371,9 @@
                 current value of the passthrough state.
             </comment>
             <args>
-                <arg name="changeMade" type="BOOL" />
-                <arg name="from" type="BOOL" />
-                <arg name="to" type="BOOL" />
+                <arg name="changeMade" type="bool" />
+                <arg name="from" type="bool" />
+                <arg name="to" type="bool" />
             </args>
         </event>
 

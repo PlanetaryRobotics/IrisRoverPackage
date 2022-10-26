@@ -6,6 +6,35 @@ namespace Wf121
 #pragma PERSISTENT
   extern bool persistent_bgapi_passthrough_enabled = BGAPI_PASSTHROUGH_DEFAULT;
 
+  // Getter that checks if the value is valid and corrects if not:
+  // (accounts for possible memory fading if stored in SRAM and a POR occurred)
+  BgApiPassThroughState getPersistentBgApiPassthrough()
+  {
+    BgApiPassThroughState retVal;
+    persistent_bgapi_passthrough_mutex.lock();
+    // Check the passthrough state (make sure it's valid):
+    switch (persistent_bgapi_passthrough)
+    {
+    case BGAPI_PASSTHROUGH_ENABLED:
+    case BGAPI_PASSTHROUGH_DISABLED:
+      // All fine. Do nothing.
+      asm("  NOP");
+      break;
+    default:
+      // Value not recognized. Go to default:
+      persistent_bgapi_passthrough = BGAPI_PASSTHROUGH_DEFAULT;
+    }
+    retVal = persistent_bgapi_passthrough;
+    persistent_bgapi_passthrough_mutex.unLock();
+    return retVal;
+  }
+
+  // Convenient shorthand:
+  bool persistentBgApiPassthroughEnabled()
+  {
+    return getPersistentBgApiPassthrough() == BgApiPassThroughState::BGAPI_PASSTHROUGH_ENABLED;
+  }
+
   // Changes the persistent_bgapi_passthrough to the given boolean
   // enabled state, performing any necessary supporting operations
   // depending on the target state.

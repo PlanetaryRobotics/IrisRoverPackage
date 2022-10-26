@@ -141,6 +141,50 @@ namespace Wf121
             ReadyForData();
         }
 
+        // Checks if the given baud rate is in the list of supported baud rates:
+        bool checkBaudRate(uint32_t baud_int)
+        {
+            Wf121AllowedBaudRate baud = static_cast<Wf121AllowedBaudRate>(baud_int);
+            switch (baud)
+            {
+            case WF121_BAUD_10_000_000:
+            case WF121_BAUD_5_000_000:
+            case WF121_BAUD_2_500_000:
+            case WF121_BAUD_2_000_000:
+            case WF121_BAUD_1_000_000:
+            case WF121_BAUD_115_200:
+            case WF121_BAUD_57_600:
+            case WF121_BAUD_38_400:
+            case WF121_BAUD_19_200:
+            case WF121_BAUD_14_400:
+            case WF121_BAUD_9_600:
+            case WF121_BAUD_4_800:
+                // All fine.
+                return true;
+                break;
+            default:
+                // Value not recognized.
+                return false;
+            }
+        }
+
+        // Getter that checks if the value is valid and corrects if not:
+        // (accounts for possible memory fading if stored in SRAM and a POR occurred)
+        uint32_t getWf121SciBaud()
+        {
+            // Make sure the value is valid. If not, reinit to default baud rate:
+            uint32_t retVal;
+            persistent_wf121_sci_baud_mutex.lock();
+            if (!checkBaudRate(persistent_wf121_sci_baud))
+            {
+                persistent_wf121_sci_baud = static_cast<Wf121AllowedBaudRate>(WF121_SCI_BAUD_DEFAULT);
+            }
+            retVal = persistent_wf121_sci_baud;
+            persistent_wf121_sci_baud_mutex.unLock();
+
+            return retVal;
+        }
+
         // Changes the persistent_wf121_sci_baud to the given uint32 and resets
         // the UART so that new baud applies. If there are issues after calling
         // this, reset Hercules and the new rate should be applied.

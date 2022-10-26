@@ -1,12 +1,16 @@
 # F-Prime Primer
 
-Notes about F-Prime (and some FreeRTOS, TI Hercules SoC, and ARM) by Justin N. 
+Notes about F-Prime (and some FreeRTOS, TI Hercules SoC, and ARM) by Justin N. with some additional notes by Connor C.
 
 ## Generally Helpful Resources
 
 F-Prime user guide and source
 
-Eacch section may also reference helpful documents and readings.
+Each section may also reference helpful documents and readings.
+
+Also, all (or at least, most) FPrime-provided components contain a `./docs/sdd.md` file. In the bigger ones like `ActiveLogger` or `CommandDispatcher`, these include detailed information about the design, use, and configuration of these components, which is quite helpful, especially when modifying their `XXXCfg.hpp` files (where present).
+
+Lastly, be aware that a lot of the functions of core FPrime are configured in `fprime/Fw/Cfg/`.
 
 ## Differentiating Telemetry and Logs 
 

@@ -97,6 +97,8 @@ if [[ $answer = [Yy] ]]; then
 	echo -e "\033[1;37;44m  \033[0m"
 	set -x
 	cd ./CubeRover
+# Shortcut to just rebuild CubeRover from FlightMCU (NOT recommended for general use as this skips some necessary steps, which is why it's not put in its own sh file):
+# cd ../../fprime/CubeRover; sudo ./clean.sh; sudo ./build.sh; cd -
 
 	{ set +x; } 2>/dev/null
 	echo "** sudo ./clean.sh"

@@ -72,7 +72,7 @@
     </ports>
 
     <commands>
-        <command kind="sync" opcode="0x0" mnemonic="Set_Radio_Communications_Mode">
+        <command kind="sync" opcode="0x00" mnemonic="Set_Radio_Communications_Mode">
             <comment>
                 Sets the Radio communications mode. For Radio debugging and UART/DFU programming.
             </comment>
@@ -82,6 +82,90 @@
                         <item name="HERCULES" value="0x00" comment="Normal mode. Hercules-Radio UART is ON inside Hercules and Hercules is the one talking to the Radio. Returning to this mode *might* not work, in which case you'll need to just send a reset-herc command to the WatchDog." />
                         <item name="EXTERNAL" value="0x01" comment="External mode. Hercules-Radio UART is turned OFF inside Hercules allowing an external device to talk to the Radio via J33. Used for debugging and programming the Radio. NOTE: in this mode, Hercules's RTS (which is connected to the Radio's CTS) is kept in the active/ready mode (LOW) so that the Radio feels free to send data whenever. This effectively deactivates control flow, though an external device can still listen to the Radio's RTS if needed - though this wasn't needed in development." />
                     </enum>
+                </arg>
+            </args>
+        </command>
+        <command kind="sync" opcode="0x01" mnemonic="Set_Radio_Uart_Baud">
+            <comment>
+            Sets the (peristent) baud rate for UART communication with the 
+            WF121 Radio. Note: if Radio-Hercules comms appear not to work 
+            properly after issuing this command, you may have to reboot. 
+            
+            A `RadioUartBaudRateChange` event is emitted when 
+            called (if no change was made, `changeMade=FALSE`).
+            </comment>
+            <args>
+                <arg name="newBaud" type="U32" />
+            </args>
+        </command>
+        <command kind="sync" opcode="0x02" mnemonic="Set_Radio_BgApi_Passthrough">
+            <comment>
+                If TRUE: 
+                Turns off the state machine in Hercules managing UART BGAPI 
+                communications with the WF121 Radio and begins forwarding all 
+                BGAPI responses and events to Ground via the 
+                `WatchDog DebugPrintf` pipeline. 
+                During this time, the `Send_BgApi_Command` CAN be used to send 
+                BGAPI commands to the Radio.
+
+                If FALSE: 
+                Turns back on and resets the state machine in Hercules managing 
+                UART BGAPI communications with the WF121 Radio and stops 
+                forwarding all BGAPI responses and events to Ground via the 
+                `WatchDog DebugPrintf` pipeline. 
+                During this time, the `Send_BgApi_Command` CANNOT be used to 
+                send BGAPI commands to the Radio.
+
+                Changes are only made if the passthrough mode is being changed. 
+            
+                A `RadioBgApiPassthroughChange` event is emitted when 
+                called (if no change was made, `changeMade=FALSE`).
+            </comment>
+            <args>
+                <arg name="passthrough" type="bool" />
+            </args>
+        </command>
+
+        <command kind="sync" opcode="0x03" mnemonic="Send_BgApi_Command">
+            <comment>
+                Forwards the given BGAPI command (packed as binary) to the 
+                Radio. 
+                A `RadioSendBgApiCommandAck` event is emitted when this command is received
+            </comment>
+            <args>
+                <arg name="crc32" type="U32">
+                    <comment>
+                        CRC32 of the packed BGAPI packet, as a uint32.
+                    </comment>
+                </arg>
+                <arg name="packetId" type="U32">
+                    <comment>
+                        ID of the packet, assigned by ground. This is just 
+                        included in the response event so ground can know what 
+                        packet to resend if it needs to resend a packet.
+                    </comment>
+                </arg>
+                <arg name="bgapiPacket" type="string" size="134">
+                    <comment>
+                        The data as a 'string', with a MAX length of 134B 
+                        (4B of BGAPI header + 1B 'BGAPI uint8array' length byte 
+                        + 128B of data + 1B null termination). To increase this 
+                        limit, you'll likely need to bump up 
+                        'FW_COM_BUFFER_MAX_SIZE' and 'FW_CMD_STRING_MAX_SIZE' 
+                        in 'fprime/Fw/Cfg/Config.hpp' (read the notes there for 
+                        more information about required padding). Note that 
+                        increasing the max string size has a pretty big effect 
+                        on the total program size in memory.
+ 
+ 
+                        Here string here just means a null terminated char 
+                        array. To be specific, the NULL termination is EXCLUDED 
+                        from the length and does NOT need to be (and should not 
+                        be) included in the data sent. That is, if length is 3, 
+                        the data sent would be [0x00, 0x03, byte0, byte1, byte2] 
+                        and the memory in the `CmdStringArg->m_buf` inside 
+                        Hercules would look like: [byte0, byte1, byte2, NULL].
+                    </comment>
                 </arg>
             </args>
         </command>
@@ -173,6 +257,9 @@
                     <item name="nm_UDP_CONNECTED" value="0x50" comment="UDP client &amp; socket are active. Radio is ready to communicate." />
                 </enum>
         </channel>
+        <channel id="6" name="UartBytesReceived" data_type="U32">
+            <comment>Number of raw bytes received over UART from the Radio (valid or invalid - used for diagnostics).</comment>
+        </channel>
     </telemetry>
 
     <events>
@@ -243,6 +330,93 @@
                         <!--NOTE: This enum NEEDS to be synced up with nm_radio_communications_mode enum (same values for each concept, names can be and need to be different). If it's not, Ground won't be able to parse these messages.-->
                         <item name="now_HERCULES"  value="0x00" comment="Normal mode. Hercules-Radio UART is ON inside Hercules and Hercules is the one talking to the Radio. Returning to this mode *might* not work, in which case you'll need to just send a reset-herc command to the WatchDog." />
                         <item name="now_EXTERNAL"  value="0x01" comment="External mode. Hercules-Radio UART is turned OFF inside Hercules allowing an external device to talk to the Radio via J33. Used for debugging and programming the Radio. NOTE: in this mode, Hercules's RTS (which is connected to the Radio's CTS) is kept in the active/ready mode (LOW) so that the Radio feels free to send data whenever. This effectively deactivates control flow, though an external device can still listen to the Radio's RTS if needed - though this wasn't needed in development." />
+                    </enum>
+                </arg>
+            </args>
+        </event>
+
+        <event id="5" name="RadioUartBaudRateChange" severity="ACTIVITY_HI" format_string="Hercules' Radio UART Baud Rate changed (%d) %d -> %d">
+            <comment>
+                Fired in response to a `Set_Radio_Uart_Baud` command.
+                `fromBaud` will always be the baud rate before the command. 
+                `toBaud` will always be the actual baud rate after running this command. 
+                `changeMade` indicates whether the change was actually 
+                (successfully) changed. It can be false because either the 
+                change was not able to be made or because it didn't need to be 
+                made (requested baud rate is the current baud rate). 
+ 
+                This event will also be fired once upon boot with 
+                `changeMade=FALSE` and `fromBaud=toBaud` to indicate the 
+                current value of the persistent baud rate.
+            </comment>
+            <args>
+                <arg name="changeMade" type="bool" />
+                <arg name="fromBaud" type="U32" />
+                <arg name="toBaud" type="U32" />
+            </args>
+        </event>
+
+        <event id="6" name="RadioBgApiPassthroughChange" severity="ACTIVITY_HI" format_string="BGAPI Passthrough Mode changed (%d) %d -> %d">
+            <comment>
+                Fired in response to a `Set_Radio_BgApi_Passthrough` command. 
+                `from` will always be the state before the command. 
+                `to` will always be the actual state after running this command. 
+                `changeMade` indicates whether the change was actually 
+                (successfully) changed. It can be false because either the 
+                change was not able to be made or because it didn't need to be 
+                made (requested state is the current state). 
+
+                This event will also be fired once upon boot with 
+                `changeMade=FALSE` and `from=to` to indicate the 
+                current value of the passthrough state.
+            </comment>
+            <args>
+                <arg name="changeMade" type="bool" />
+                <arg name="from" type="bool" />
+                <arg name="to" type="bool" />
+            </args>
+        </event>
+
+        <event id="7" name="RadioSendBgApiCommandAck" severity="WARNING_LO" format_string="Got BGAPI Command Send #%d. Target CRC: 0x%08X. Computed CRC: 0x%08X. Status: %s.">
+            <comment>
+                Fired in response to a `Send_BgApi_Command` command. 
+                `from` will always be the state before the command. 
+                `to` will always be the requested state in the command. 
+                `changeMade` indicates whether the change was actually 
+                (successfully) changed. It can be false because either the 
+                change was not able to be made or because it didn't need to be 
+                made (requested state is the current state).
+ 
+
+                Not actually a warning but sent using the `WARNING_LO` queue 
+                because it has high importance, a (comparatively) large buffer, 
+                and not many events use the `WARNING_LO` queue.
+            </comment>
+            <args>
+                <arg name="packetId" type="U32">
+                    <comment>
+                        Packet ID given from ground.
+                    </comment>
+                </arg>
+                <arg name="targetCrc32" type="U32">
+                    <comment>
+                        Uplinked CRC32 (as received).
+                    </comment>
+                </arg>
+                <arg name="computedCrc32" type="U32">
+                    <comment>
+                        CRC32 of the `bgapiPacket` received, as a uint32.
+                    </comment>
+                </arg>
+                <arg name="status" type="ENUM">
+                    <comment>
+                        Status of the `Send_BgApi_Command`.
+                    </comment>
+                    <enum name="nm_radio_send_bgapi_command_ack_status">
+                        <item name="nm_bgapi_send_CRC_FAIL"  value="0xC9C0FA11" comment="Computed CRC of data received did not match target CRC received." />
+                        <item name="nm_bgapi_send_UART_SEND_FAILED"  value="0xDA7AFA11" comment="All given data was valid but failed to send the packet to the Radio over UART. Try again?" />
+                        <item name="nm_bgapi_send_BAD_STATE"  value="0xBAD57A7E"  comment="Hercules is in the wrong state to do this (not in passthrough mode - need to send `Set_Radio_BgApi_Passthrough[passthrough=TRUE]` first)." />
+                        <item name="nm_bgapi_send_SEND_SUCCESS"  value="0x600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART." />
                     </enum>
                 </arg>
             </args>

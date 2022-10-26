@@ -106,6 +106,112 @@ html {
 						<td></td>
 					</tr>
 		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">RadioUartBaudRateChange</td>
+			<td rowspan="4">2565 (0xa05)</td>
+			<td rowspan="4">Fired in response to a `Set_Radio_Uart_Baud` command.
+                `fromBaud` will always be the baud rate before the command. 
+                `toBaud` will always be the actual baud rate after running this command. 
+                `changeMade` indicates whether the change was actually 
+                (successfully) changed. It can be false because either the 
+                change was not able to be made or because it didn't need to be 
+                made (requested baud rate is the current baud rate). 
+ 
+                This event will also be fired once upon boot with 
+                `changeMade=FALSE` and `fromBaud=toBaud` to indicate the 
+                current value of the persistent baud rate.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>changeMade</td>
+						<td>bool</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>fromBaud</td>
+						<td>U32</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>toBaud</td>
+						<td>U32</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">RadioBgApiPassthroughChange</td>
+			<td rowspan="4">2566 (0xa06)</td>
+			<td rowspan="4">Fired in response to a `Set_Radio_BgApi_Passthrough` command. 
+                `from` will always be the state before the command. 
+                `to` will always be the actual state after running this command. 
+                `changeMade` indicates whether the change was actually 
+                (successfully) changed. It can be false because either the 
+                change was not able to be made or because it didn't need to be 
+                made (requested state is the current state). 
+
+                This event will also be fired once upon boot with 
+                `changeMade=FALSE` and `from=to` to indicate the 
+                current value of the passthrough state.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>changeMade</td>
+						<td>bool</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>from</td>
+						<td>bool</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>to</td>
+						<td>bool</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="5">RadioSendBgApiCommandAck</td>
+			<td rowspan="5">2567 (0xa07)</td>
+			<td rowspan="5">Fired in response to a `Send_BgApi_Command` command. 
+                `from` will always be the state before the command. 
+                `to` will always be the requested state in the command. 
+                `changeMade` indicates whether the change was actually 
+                (successfully) changed. It can be false because either the 
+                change was not able to be made or because it didn't need to be 
+                made (requested state is the current state).
+ 
+
+                Not actually a warning but sent using the `WARNING_LO` queue 
+                because it has high importance, a (comparatively) large buffer, 
+                and not many events use the `WARNING_LO` queue.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>packetId</td>
+						<td>U32</td>
+						<td></td>
+						<td>Packet ID given from ground.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>targetCrc32</td>
+						<td>U32</td>
+						<td></td>
+						<td>Uplinked CRC32 (as received).</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>computedCrc32</td>
+						<td>U32</td>
+						<td></td>
+						<td>CRC32 of the `bgapiPacket` received, as a uint32.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>status</td>
+						<td>nm_radio_send_bgapi_command_ack_status</td>
+						<td></td>
+						<td>Status of the `Send_BgApi_Command`.</td>
+					</tr>
+		</tr>
 	</tbody>
 </table>
 

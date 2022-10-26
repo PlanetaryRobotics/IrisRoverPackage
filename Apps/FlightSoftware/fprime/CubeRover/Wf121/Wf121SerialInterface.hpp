@@ -18,8 +18,8 @@
 #include <Os/Mutex.hpp>
 #include <CubeRover/Wf121/Timestamp.hpp>
 
-#define WF121_SCI_REG sciREG // if you change this, make sure to change which ISR is being used too
-#define WF121_SCI_BAUD 115200
+#define WF121_SCI_REG sciREG          // if you change this, make sure to change which ISR is being used too
+#define WF121_SCI_BAUD_DEFAULT 115200 // default value for the WF121 SCI BAUD RATE (when code is loaded. actual value used is the persistent `Wf121::Wf121Serial::persistent_wf121_sci_baud`)
 // Whether or not to use control flow:
 #define WF121_USE_CTS_RTS 1
 // DMA TX Interfaces (uses SCI):
@@ -43,6 +43,31 @@ namespace Wf121
 {
     namespace Wf121Serial // Wf121::Wf121Serial
     {
+        // Use an enum of allowed values - not just an int - so memory corruption /
+        // fading (if in SRAM) can be detected and corrected by resetting to a default:
+        enum Wf121AllowedBaudRate
+        {
+            WF121_BAUD_10_000_000 = 10000000,
+            WF121_BAUD_5_000_000 = 5000000,
+            WF121_BAUD_2_500_000 = 2500000,
+            WF121_BAUD_2_000_000 = 2000000,
+            WF121_BAUD_1_000_000 = 1000000,
+            WF121_BAUD_115_200 = 115200,
+            WF121_BAUD_57_600 = 57600,
+            WF121_BAUD_38_400 = 38400,
+            WF121_BAUD_19_200 = 19200,
+            WF121_BAUD_14_400 = 14400,
+            WF121_BAUD_9_600 = 9600,
+            WF121_BAUD_4_800 = 4800
+        };
+
+        // Checks if the given baud rate is in the list of supported baud rates:
+        bool checkBaudRate(uint32_t baud_int);
+
+        // Getter that checks if the value is valid and corrects if not:
+        // (accounts for possible memory fading if stored in SRAM and a POR occurred)
+        uint32_t getWf121SciBaud();
+
         // Initialize comms:
         void init(void);
 
@@ -52,6 +77,11 @@ namespace Wf121
         // Re-initialize comms after they've been deinit'd during program
         // execution:
         void reinit(void);
+
+        // Changes the persistent_wf121_sci_baud to the given uint32 and resets
+        // the UART so that new baud applies. If there are issues after calling
+        // this, reset Hercules and the new rate should be applied.
+        void changeUartBaud(uint32_t newBaud);
 
         // Set the RTS GPIO pin to the given state:
         inline void setRTS(bool state)
@@ -190,7 +220,7 @@ the xSemaphoreBuffer variable. */
             {
                 // calculate before grabbing mutex (to hold mutex for as little
                 // time as possible):
-                uint32_t smartTimeoutMs = 15000UL * dataSize / WF121_SCI_BAUD + 1; // coefficient * bytes / (baud/sec)
+                uint32_t smartTimeoutMs = 15000UL * dataSize / getWf121SciBaud() + 1; // coefficient * bytes / (baud/sec)
                 this->mutex.lock();
                 this->smartTimeoutMs = smartTimeoutMs;
                 this->mutex.unLock();

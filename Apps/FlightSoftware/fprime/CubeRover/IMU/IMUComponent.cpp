@@ -97,7 +97,10 @@ namespace CubeRover {
     computePitchRoll(&pitch, &roll);
 
     if(fabs(pitch) > MAX_ROVER_PITCH_ANGLE || fabs(roll) > MAX_ROVER_ROLL_ANGLE)
+    {
 //        log_WARNING_HI_IMU_AngleWarning();
+        assert(true);
+    }
   }
 
   /**

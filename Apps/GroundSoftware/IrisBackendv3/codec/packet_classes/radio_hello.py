@@ -7,9 +7,8 @@ just printed to the console.
 @author: Connor W. Colombo (CMU)
 @last-updated: 09/14/2022
 """
-from __future__ import annotations
 # Activate postponed annotations (for using classes as return type in their own methods)
-from multiprocessing import Event
+from __future__ import annotations
 
 from .packet import Packet, CT
 

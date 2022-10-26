@@ -9,6 +9,7 @@
 
 #include <App/DMA.h>
 
+#include <CubeRover/Wf121/Wf121.hpp>
 #include <CubeRover/Wf121/Wf121UdpTxTask.hpp>
 
 // Handle to active task (this):
@@ -99,6 +100,22 @@ namespace Wf121
             // send and when (i.e. it doesn't return until it needs us to send
             // data):
             dataToSend = task->m_pTxTaskManager->udpTxUpdateHandler(task);
+
+            // Halt the task while Passthrough is enabled, checking back every
+            // once in a while to see if we've been freed (we don't need to
+            // respond right away (in tight timing) to being freed):
+            if (Wf121::persistentBgApiPassthroughEnabled())
+            {
+                // If pass through is enabled, don't send this data...
+                while (Wf121::persistentBgApiPassthroughEnabled())
+                {
+                    // Instead, check back every once in a while to see if
+                    // we've been freed.
+                    vTaskDelay(WF121_UDP_TX_TASK_PASSTHROUGH_PAUSE_CHECK_MS);
+                }
+                // Once freed, restart the loop (toss whatever data it was we were going to send):
+                continue;
+            }
 
             // Only attempt to send if we need to send non-zero number of bytes:
             if (dataToSend->dataLen != 0)

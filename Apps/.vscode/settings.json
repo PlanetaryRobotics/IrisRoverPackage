@@ -26,11 +26,15 @@
         "__string": "cpp",
         "string": "cpp",
         "string_view": "cpp",
-        "ios": "cpp"
+        "ios": "cpp",
+        "__mutex_base": "cpp"
     },
     "cSpell.words": [
+        "BGBH",
         "bitflip",
         "deinitialized",
-        "SETINT"
+        "heartbeart",
+        "SETINT",
+        "SRAM"
     ]
 }

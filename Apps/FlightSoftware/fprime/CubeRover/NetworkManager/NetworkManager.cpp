@@ -70,6 +70,20 @@ namespace CubeRover
 
         // Init the RadioDriver (and all its sub-tasks):
         m_pRadioDriver->init();
+
+        // Log the initial Radio UART baud rate (can be changed and is persistent):
+        log_ACTIVITY_HI_RadioUartBaudRateChange(
+            false, // no change is being made here
+            // from and to are the same because no change is being made here:
+            Wf121::Wf121Serial::getWf121SciBaud(),
+            Wf121::Wf121Serial::getWf121SciBaud());
+
+        // Log the initial BGAPI Passthrough state (can be changed and is persistent):
+        log_ACTIVITY_HI_RadioBgApiPassthroughChange(
+            false, // no change is being made here
+            // from and to are the same because no change is being made here:
+            Wf121::persistentBgApiPassthroughEnabled(),
+            Wf121::persistentBgApiPassthroughEnabled());
     }
 
     NetworkManagerComponentImpl ::
@@ -135,6 +149,111 @@ namespace CubeRover
 
         // Signal that we're done:
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+    }
+
+    //! Handler for command Set_Radio_Uart_Baud
+    /* Sets the (persistent) baud rate for UART communication with the
+            WF121 Radio. Note: if Radio-Hercules comms appear not to work
+            properly after issuing this command, you may have to reboot.
+
+            A `RadioUartBaudRateChange` event is emitted when
+            called (if no change was made, `changeMade=FALSE`). */
+    void NetworkManagerComponentImpl::Set_Radio_Uart_Baud_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        U32 newBaud)
+    {
+        uint32_t initialBaud = Wf121::Wf121Serial::getWf121SciBaud();
+        Wf121::Wf121Serial::changeUartBaud(newBaud);
+        // Check that the value actually changed (was valid):
+        uint32_t actualNewBaud = Wf121::Wf121Serial::getWf121SciBaud();
+        log_ACTIVITY_HI_RadioUartBaudRateChange(
+            (initialBaud != actualNewBaud),
+            initialBaud,
+            actualNewBaud);
+
+        // Signal that we're done:
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+    }
+
+    //! Handler for command Set_Radio_BgApi_Passthrough
+    /* If TRUE:
+                Turns off the state machine in Hercules managing UART BGAPI
+                communications with the WF121 Radio and begins forwarding all
+                BGAPI responses and events to Ground via the
+                `WatchDog DebugPrintf` pipeline.
+                During this time, the `Send_BgApi_Command` CAN be used to send
+                BGAPI commands to the Radio.
+
+                If FALSE:
+                Turns back on and resets the state machine in Hercules managing
+                UART BGAPI communications with the WF121 Radio and stops
+                forwarding all BGAPI responses and events to Ground via the
+                `WatchDog DebugPrintf` pipeline.
+                During this time, the `Send_BgApi_Command` CANNOT be used to
+                send BGAPI commands to the Radio.
+
+                Changes are only made if the passthrough mode is being changed.
+
+                A `RadioBgApiPassthroughChange` event is emitted when
+                called (if no change was made, `changeMade=FALSE`). */
+    void NetworkManagerComponentImpl::Set_Radio_BgApi_Passthrough_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        bool passthrough)
+    {
+        bool initialState = Wf121::persistentBgApiPassthroughEnabled();
+        bool changeMade = Wf121::changeBgApiPassthroughState(passthrough);
+        log_ACTIVITY_HI_RadioBgApiPassthroughChange(
+            changeMade,
+            initialState,
+            Wf121::persistentBgApiPassthroughEnabled());
+
+        // Signal that we're done:
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+    }
+
+    //! Handler for command Send_BgApi_Command
+    /* Forwards the given BGAPI command (packed as binary) to the
+                Radio.
+                A `RadioSendBgApiCommandAck` event is emitted when this command is received */
+    void NetworkManagerComponentImpl::Send_BgApi_Command_cmdHandler(
+        FwOpcodeType opCode,                /*!< The opcode*/
+        U32 cmdSeq,                         /*!< The command sequence number*/
+        U32 crc32,                          /*!<
+                                                 CRC32 of the packed BGAPI packet, as a uint32.
+                                             */
+        U32 packetId,                       /*!<
+                                              ID of the packet, assigned by ground. This is just
+                                              included in the response event so ground can know what
+                                              packet to resend if it needs to resend a packet.
+                                          */
+        const Fw::CmdStringArg &bgapiPacket /*!<
+                        The data as a 'string', with a MAX length of 134B
+                        (4B of BGAPI header + 1B 'BGAPI uint8array' length byte
+                        + 128B of data + 1B null termination). To increase this
+                        limit, you'll likely need to bump up
+                        'FW_COM_BUFFER_MAX_SIZE' and 'FW_CMD_STRING_MAX_SIZE'
+                        in 'fprime/Fw/Cfg/Config.hpp' (read the notes there for
+                        more information about required padding). Note that
+                        increasing the max string size has a pretty big effect
+                        on the total program size in memory.
+
+
+                        Here string here just means a null terminated char
+                        array. To be specific, the NULL termination is EXCLUDED
+                        from the length and does NOT need to be (and should not
+                        be) included in the data sent. That is, if length is 3,
+                        the data sent would be [0x00, 0x03, byte0, byte1, byte2]
+                        and the memory in the `CmdStringArg->m_buf` inside
+                        Hercules would look like: [byte0, byte1, byte2, NULL].
+                    */
+    )
+    {
+        // ! TODO
+
+        // Signal that we're done:
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR); // not impl. yet.
     }
 
     // Helper function to convert RadioSwState (used inside RadioDriver) to

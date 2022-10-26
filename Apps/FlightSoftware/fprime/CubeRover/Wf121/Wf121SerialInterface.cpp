@@ -4,6 +4,11 @@ namespace Wf121
 {
     namespace Wf121Serial // Wf121::Wf121Serial
     {
+#pragma PERSISTENT
+        static Wf121AllowedBaudRate persistent_wf121_sci_baud = static_cast<Wf121AllowedBaudRate>(WF121_SCI_BAUD_DEFAULT);
+
+        static Os::Mutex persistent_wf121_sci_baud_mutex;
+
         // Whether all serial SCI, DMA, etc. has been initialzed and can be used
         // (specifically to determine if we can use DMA send or not):
         bool wf121FinishedInitializingSerial = false;
@@ -36,7 +41,7 @@ namespace Wf121
 
             // Config the SCI:
             sciEnterResetState(WF121_SCI_REG);
-            sciSetBaudrate(WF121_SCI_REG, WF121_SCI_BAUD);
+            sciSetBaudrate(WF121_SCI_REG, getWf121SciBaud());
             sciExitResetState(WF121_SCI_REG);
 
             // Set up any semaphores, etc. for the DMA Write Status:
@@ -108,7 +113,7 @@ namespace Wf121
 
             // Set SCI to functional (SCI, not GIO) mode:
             sciSetFunctional(WF121_SCI_REG,
-                             (uint32)((uint32)1U << 2U)        /* tx pin */
+                             (uint32)((uint32)1U << 2U)       /* tx pin */
                                  | (uint32)((uint32)1U << 1U) /* rx pin */
             );
             // See https://www.ti.com/lit/ug/spnu514c/spnu514c.pdf?ts=1666185943372 (Table 28-30, when FUNC=1, DIR doesn't matter.).
@@ -136,6 +141,67 @@ namespace Wf121
             // happening during program execution, once those tasks are already
             // set up, so we can just flag immediately.)
             ReadyForData();
+        }
+
+        // Checks if the given baud rate is in the list of supported baud rates:
+        bool checkBaudRate(uint32_t baud_int)
+        {
+            Wf121AllowedBaudRate baud = static_cast<Wf121AllowedBaudRate>(baud_int);
+            switch (baud)
+            {
+            case WF121_BAUD_10_000_000:
+            case WF121_BAUD_5_000_000:
+            case WF121_BAUD_2_500_000:
+            case WF121_BAUD_2_000_000:
+            case WF121_BAUD_1_000_000:
+            case WF121_BAUD_115_200:
+            case WF121_BAUD_57_600:
+            case WF121_BAUD_38_400:
+            case WF121_BAUD_19_200:
+            case WF121_BAUD_14_400:
+            case WF121_BAUD_9_600:
+            case WF121_BAUD_4_800:
+                // All fine.
+                return true;
+                break;
+            default:
+                // Value not recognized.
+                return false;
+            }
+        }
+
+        // Getter that checks if the value is valid and corrects if not:
+        // (accounts for possible memory fading if stored in SRAM and a POR occurred)
+        uint32_t getWf121SciBaud()
+        {
+            // Make sure the value is valid. If not, reinit to default baud rate:
+            uint32_t retVal;
+            persistent_wf121_sci_baud_mutex.lock();
+            if (!checkBaudRate(persistent_wf121_sci_baud))
+            {
+                persistent_wf121_sci_baud = static_cast<Wf121AllowedBaudRate>(WF121_SCI_BAUD_DEFAULT);
+            }
+            retVal = persistent_wf121_sci_baud;
+            persistent_wf121_sci_baud_mutex.unLock();
+
+            return retVal;
+        }
+
+        // Changes the persistent_wf121_sci_baud to the given uint32 and resets
+        // the UART so that new baud applies. If there are issues after calling
+        // this, reset Hercules and the new rate should be applied.
+        void changeUartBaud(uint32_t newBaud)
+        {
+            // Only change if `newBaud` is valid:
+            if (checkBaudRate(newBaud))
+            {
+                persistent_wf121_sci_baud_mutex.lock();
+                persistent_wf121_sci_baud = static_cast<Wf121AllowedBaudRate>(newBaud);
+                persistent_wf121_sci_baud_mutex.unLock();
+                sciEnterResetState(WF121_SCI_REG);
+                sciSetBaudrate(WF121_SCI_REG, getWf121SciBaud());
+                sciExitResetState(WF121_SCI_REG);
+            }
         }
 
         // Signal that we're ready to receive another byte through the SCI RX ISR.

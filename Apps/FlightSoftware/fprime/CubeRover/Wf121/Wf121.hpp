@@ -46,10 +46,7 @@ namespace Wf121
     BGAPI_PASSTHROUGH_ENABLED = 0x9A550060,
     BGAPI_PASSTHROUGH_DISABLED = 0x0FF09A55
   };
-  // Whether BGAPI pass through mode is enabled. Persistent. Default: false (normal Hercules-Radio communications).
-  extern BgApiPassThroughState persistent_bgapi_passthrough;
-  Os::Mutex persistent_bgapi_passthrough_mutex;
-  static BgApiPassThroughState BGAPI_PASSTHROUGH_DEFAULT = BGAPI_PASSTHROUGH_DISABLED;
+  static const BgApiPassThroughState BGAPI_PASSTHROUGH_DEFAULT = BGAPI_PASSTHROUGH_DISABLED;
 
   // Getter that checks if the value is valid and corrects if not:
   // (accounts for possible memory fading if stored in SRAM and a POR occurred)

@@ -60,8 +60,6 @@ namespace Wf121
             WF121_BAUD_9_600 = 9600,
             WF121_BAUD_4_800 = 4800
         };
-        extern Wf121AllowedBaudRate persistent_wf121_sci_baud;
-        Os::Mutex persistent_wf121_sci_baud_mutex;
 
         // Checks if the given baud rate is in the list of supported baud rates:
         bool checkBaudRate(uint32_t baud_int);
@@ -222,7 +220,7 @@ the xSemaphoreBuffer variable. */
             {
                 // calculate before grabbing mutex (to hold mutex for as little
                 // time as possible):
-                uint32_t smartTimeoutMs = 15000UL * dataSize / persistent_wf121_sci_baud + 1; // coefficient * bytes / (baud/sec)
+                uint32_t smartTimeoutMs = 15000UL * dataSize / getWf121SciBaud() + 1; // coefficient * bytes / (baud/sec)
                 this->mutex.lock();
                 this->smartTimeoutMs = smartTimeoutMs;
                 this->mutex.unLock();

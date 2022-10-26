@@ -1,0 +1,66 @@
+A colored-text log of the print outs of all packets received during the RC5_demate_and_jumper_install session:
+NOTE: This includes any ANSI escape codes (like coloring) which will show up weird if viewed as plain-text. To view this appropriately, use the terminal `cat` command or view in VSCode with the `ANSI Colors` extension installed.
+
+[35;47;1m(10-26 08:08:14)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[23B]: Watchdog in Init state[0m
+0000  44 45 42 55 47 57 61 74 63 68 64 6F 67 20 69 6E  DEBUGWatchdog in
+0010  20 49 6E 69 74 20 73 74 61 74 65 0A               Init state.
+
+[35;47;1m(10-26 08:08:14)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[38B]: Reason for last reset: Brownout (BOR)[0m
+0000  44 45 42 55 47 52 65 61 73 6F 6E 20 66 6F 72 20  DEBUGReason for 
+0010  6C 61 73 74 20 72 65 73 65 74 3A 20 42 72 6F 77  last reset: Brow
+0020  6E 6F 75 74 20 28 42 4F 52 29 0A                 nout (BOR).
+
+[35;47;1m(10-26 08:08:14)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[47B]: Transitioning from INIT to ENTERING_KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 49 4E 49 54 20 74 6F 20  ng from INIT to 
+0020  45 4E 54 45 52 49 4E 47 5F 4B 45 45 50 5F 41 4C  ENTERING_KEEP_AL
+0030  49 56 45 0A                                      IVE.
+
+[35;47;1m(10-26 08:08:14)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[14B]: Hello, Earth![0m
+0000  44 45 42 55 47 48 65 6C 6C 6F 2C 20 45 61 72 74  DEBUGHello, Eart
+0010  68 21 0A                                         h!.
+
+[35;47;1m(10-26 08:08:40)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[40B]: Transitioning from ENTERING_KEEP_ALIV[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 45 4E 54 45 52 49 4E 47  ng from ENTERING
+0020  5F 4B 45 45 50 5F 41 4C 49 56 05 00 00           _KEEP_ALIV...
+
+[35;47;1m(10-26 08:08:40)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[23B]: Watchdog in Init state[0m
+0000  44 45 42 55 47 57 61 74 63 68 64 6F 67 20 69 6E  DEBUGWatchdog in
+0010  20 49 6E 69 74 20 73 74 61 74 65 0A               Init state.
+
+[35;47;1m(10-26 08:08:41)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[38B]: Reason for last reset: Brownout (BOR)[0m
+0000  44 45 42 55 47 52 65 61 73 6F 6E 20 66 6F 72 20  DEBUGReason for 
+0010  6C 61 73 74 20 72 65 73 65 74 3A 20 42 72 6F 77  last reset: Brow
+0020  6E 6F 75 74 20 28 42 4F 52 29 0A                 nout (BOR).
+
+[35;47;1m(10-26 08:08:41)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[47B]: Transitioning from INIT to ENTERING_KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 49 4E 49 54 20 74 6F 20  ng from INIT to 
+0020  45 4E 54 45 52 49 4E 47 5F 4B 45 45 50 5F 41 4C  ENTERING_KEEP_AL
+0030  49 56 45 0A                                      IVE.
+
+[35;47;1m(10-26 08:08:41)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[14B]: Hello, Earth![0m
+0000  44 45 42 55 47 48 65 6C 6C 6F 2C 20 45 61 72 74  DEBUGHello, Eart
+0010  68 21 0A                                         h!.
+
+[35;47;1m(10-26 08:08:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[38B]: b'Transitioning from ENTERING_KEEP_ALI\xd6\x00'[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 45 4E 54 45 52 49 4E 47  ng from ENTERING
+0020  5F 4B 45 45 50 5F 41 4C 49 D6 00                 _KEEP_ALI..
+
+[35;47;1m(10-26 08:08:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[23B]: Watchdog in Init state[0m
+0000  44 45 42 55 47 57 61 74 63 68 64 6F 67 20 69 6E  DEBUGWatchdog in
+0010  20 49 6E 69 74 20 73 74 61 74 65 0A               Init state.
+
+[35;47;1m(10-26 08:08:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[38B]: Reason for last reset: Brownout (BOR)[0m
+0000  44 45 42 55 47 52 65 61 73 6F 6E 20 66 6F 72 20  DEBUGReason for 
+0010  6C 61 73 74 20 72 65 73 65 74 3A 20 42 72 6F 77  last reset: Brow
+0020  6E 6F 75 74 20 28 42 4F 52 29 0A                 nout (BOR).
+
+[35;47;1m(10-26 08:08:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[47B]: Transitioning from INIT to ENTERING_KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 49 4E 49 54 20 74 6F 20  ng from INIT to 
+0020  45 4E 54 45 52 49 4E 47 5F 4B 45 45 50 5F 41 4C  ENTERING_KEEP_AL
+0030  49 56 45 0A                                      IVE.
+

@@ -442,6 +442,21 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRED
     ),
 
+    'radio-bgapi-passthru-on': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_SetRadioBgApiPassthrough',
+        OrderedDict(passthrough=True),
+        DataPathway.WIRED
+    ),
+    'radio-bgapi-passthru-off': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_SetRadioBgApiPassthrough',
+        OrderedDict(passthrough=False),
+        DataPathway.WIRED
+    ),
+
     # Turn off Hercules-Radio UART (inside the Hercules) so an external device
     # can use it (for Radio diagnostics and programming).
     'radio-comms-ext-mode': (

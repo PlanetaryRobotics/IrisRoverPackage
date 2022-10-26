@@ -419,7 +419,8 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRED,
         Magic.COMMAND,
         'ActiveLogger_Alogsetidfilter',
-        OrderedDict(id=0x0903, id_filter_enable='IDDISABLED'),
+        # enable filter entry to disable that log ID:
+        OrderedDict(id=0x0903, id_filter_enable='IDENABLED'),
         DataPathway.WIRED
     ),
     # Re-enable (don't filter out) GiDownlinkedPacket logs (ID <0x0903>):
@@ -427,7 +428,8 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRED,
         Magic.COMMAND,
         'ActiveLogger_Alogsetidfilter',
-        OrderedDict(id=0x0903, id_filter_enable='IDENABLED'),
+        # disable/remove filter entry to re-enable that log ID:
+        OrderedDict(id=0x0903, id_filter_enable='IDDISABLED'),
         DataPathway.WIRED
     ),
 

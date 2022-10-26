@@ -46,7 +46,7 @@ from IrisBackendv3.data_standards.logging import logger as DsLogger
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, EventPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket, WatchdogDetailedStatusPacket
+from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket, WatchdogDetailedStatusPacket, RadioUartBytePacket
 from IrisBackendv3.codec.packet import parse_packet as core_parse_packet
 from IrisBackendv3.codec.exceptions import PacketDecodingException
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
@@ -598,13 +598,17 @@ def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = 
             # If the packet doesn't contain any telemetry or events (i.e. log, debug print, etc.), add it to the non-telem packet log in LiFo manner:
             # - Also do this for WatchdogDetailedStatusPacket since they're *very* detailed (contain way too much data to display so we're just
             # going to display it here instead).
-            # - Also push command responses to the prints section so they're seen explicitly (its packet printer includes a special parser to decode the command name):
+            # - Also push command responses to the prints section so they're seen explicitly (its packet printer includes a special parser to decode the command name)
+            # - So long as it's not a `RadioUartBytePacket` (they clog the interface):
             if (
-                len([*packet.payloads[TelemetryPayload]]) == 0 and  # no telem
-                len([*packet.payloads[EventPayload]]) == 0 or  # no events
-                isinstance(packet, (
+                (len([*packet.payloads[TelemetryPayload]]) == 0 and  # no telem
+                 len([*packet.payloads[EventPayload]]) == 0 or  # no events
+                 isinstance(packet, (
                     WatchdogDetailedStatusPacket,
                     WatchdogCommandResponsePacket
+                     )))
+                and not isinstance(packet, (
+                    RadioUartBytePacket
                 ))
             ):
                 nontelem_packet_prints.appendleft(packet_print_string(packet))

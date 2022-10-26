@@ -1,6 +1,7 @@
 """
-Defines `RadioBgApiPacket`, a `Packet` wrapper for a BGAPI packet forwarded
-from the Radio in BGAPI Passthrough / Transparency Mode.
+Defines `RadioUartBytePacket`, a `Packet` wrapper for a byte received by 
+Hercules from the radio forwarded from the Radio in BGAPI Passthrough / 
+Transparency Mode.
 This packet type doesn't contain any telemetry (for now - eventually, depending on contents,
 should get converted to a `EventPayload` or a `TelemetryPayload` containing radio state,
 activity, etc.) and is just printed to the console.
@@ -17,7 +18,8 @@ from .packet import Packet, CT
 
 from typing import Any, Final, Optional, List
 
-from scapy.utils import hexdump  # type: ignore
+from scapy.all import hexdump
+
 from termcolor import colored
 
 from ..payload_collection import EnhancedPayloadCollection
@@ -25,21 +27,18 @@ from ..payload_collection import EnhancedPayloadCollection
 from ..settings import ENDIANNESS_CODE
 from ..logging import logger
 
-
-import IrisBackendv3.codec.bgapi as bgapi
-
-# Fixed prefix. All `RadioBgApiPacket`s start with b'DEBUG' then `BGP:`
-# (BGapi Packet). Note the b'DEBUG' prefix is there b/c this is sent through
+# Fixed prefix. All `RadioBgApiPacket`s start with b'DEBUG' then `BGB: `
+# (BGapi Byte). Note the b'DEBUG' prefix is there b/c this is sent through
 # the Hercules then through the Watchdog using the debug messaging system.
-FIXED_PREFIX: bytes = b'DEBUGBGP:'
+FIXED_PREFIX: bytes = b'DEBUGBGB: '
 
 
-class RadioBgApiPacketInterface(Packet[CT]):
+class RadioUartBytePacketInterface(Packet[CT]):
     # empty __slots__ preserves parent class __slots__
     __slots__: List[str] = []
 
 
-class RadioBgApiPacket(RadioBgApiPacketInterface[RadioBgApiPacketInterface]):
+class RadioUartBytePacket(RadioUartBytePacketInterface[RadioUartBytePacketInterface]):
     """
     Creates a data-structure to allow storing and handling a status message from
     the Radio.
@@ -47,9 +46,9 @@ class RadioBgApiPacket(RadioBgApiPacketInterface[RadioBgApiPacketInterface]):
     @author: Connor W. Colombo (CMU)
     @last-updated: 10/26/2022
     """
-    __slots__: List[str] = ['_bgmsg']
+    __slots__: List[str] = ['_byte']
 
-    _bgmsg: Optional[bgapi.BGMsg]
+    _byte: Optional[int]
 
     def __init__(self,
                  payloads: Optional[EnhancedPayloadCollection] = None,
@@ -61,7 +60,7 @@ class RadioBgApiPacket(RadioBgApiPacketInterface[RadioBgApiPacketInterface]):
             # If both `payloads` and `raw` are `None`, what even caused
             # this to be generated?
             logger.debug(
-                "A `RadioBgApiPacket` was constructed with no `payloads` and "
+                "A `RadioUartBytePacket` was constructed with no `payloads` and "
                 "no `raw` data. This suggests it's being created from "
                 "nothing as a completely empty packet. Was this "
                 "intentional or is this a bug?"
@@ -85,23 +84,24 @@ class RadioBgApiPacket(RadioBgApiPacketInterface[RadioBgApiPacketInterface]):
 
         # Strip off fixed prefix:
         data = self._raw[len(FIXED_PREFIX):]
+        # Grab only the byte data (excluding termination):
+        data = data[:4]
+
         # Decode BGMsg:
         try:
-            self._bgmsg = bgapi.decode(
-                bgapi.BGAPI_WIFI_DECODER, data, fromHost=False
-            )
+            self._byte = int(data, 16)
         except Exception as e:
             logger.warning(
-                f"Failed to decode BGAPI message inside `RadioBgApiPacket` "
+                f"Failed to decode UART/BGAPI byte inside `RadioUartBytePacket` "
                 f"with data `{hexdump(raw, dump=True)}` because: {e}."
             )
-            self._bgmsg = None
+            self._byte = None
 
     @classmethod
     def decode(cls,
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE
-               ) -> RadioBgApiPacket:
+               ) -> RadioUartBytePacket:
         return cls(raw=data, endianness_code=endianness_code)
 
     def encode(self, **kwargs: Any) -> bytes:
@@ -117,7 +117,7 @@ class RadioBgApiPacket(RadioBgApiPacketInterface[RadioBgApiPacketInterface]):
         payloads: EnhancedPayloadCollection,
         raw: Optional[bytes],
         endianness_code: str
-    ) -> RadioBgApiPacket:
+    ) -> RadioUartBytePacket:
         """ Minimum packet is just the packet. """
         return cls(
             payloads=payloads,
@@ -138,13 +138,12 @@ class RadioBgApiPacket(RadioBgApiPacketInterface[RadioBgApiPacketInterface]):
             l = len(self._raw) - len(FIXED_PREFIX)
             data = self._raw
 
-        if self._bgmsg is None:
-            msg = colored(f'!! BGAPI DECODING FAILED !! {data!r}', 'red')
+        if self._byte is None:
+            msg = colored(f'!! BYTE DECODING FAILED !! {data!r}', 'red')
         else:
-            msg = colored(str(self._bgmsg), 'magenta')
+            msg = colored(f'0x{self._byte:02X}', 'grey')
 
-        prefix = colored(f" BGAPI[{l}B] ", 'white', 'on_magenta', ['bold'])
-        return f"{prefix} {msg}"
+        return f"Radio-UART Byte: {msg}."
 
     def __str__(self) -> str:
         return self.__repr__()

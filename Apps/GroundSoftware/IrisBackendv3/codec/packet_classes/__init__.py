@@ -19,6 +19,7 @@ from .watchdog_command_response import *
 from .radio_ground import *
 from .radio_hello import *
 from .radio_bgapi_packet import *
+from .radio_uart_byte import *
 from .radio_direct_message import *
 from .watchdog_debug import *
 from .watchdog_hello import *

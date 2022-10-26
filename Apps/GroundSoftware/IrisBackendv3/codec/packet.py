@@ -48,6 +48,7 @@ def parse_packet(
             RadioGroundPacket,
             RadioHelloPacket,
             RadioBgApiPacket,
+            RadioUartBytePacket,
             RadioDirectMessagePacket,
             WatchdogHelloPacket,
             WatchdogRadioDebugPacket,

@@ -90,6 +90,9 @@ namespace Wf121
             // if accepting any valid-looking BGAPI header - not enough entropy).
             static bool have_seen_a_dm_heartbeart_since_boot = false;
 
+            // Passthrough state at the time of the previous call (to look for a change):
+            static bool prevPassthroughState = Wf121::BGAPI_PASSTHROUGH_DEFAULT == Wf121::BGAPI_PASSTHROUGH_ENABLED;
+
             //            printf("s: %d\n", m_currentState);
             // NOTE: This seems to be breaking things *and* isn't strictly necessary. For the time being, leave this out/
             // ^ TODO: [CWC] Figure out why this was broken and fix it.
@@ -112,11 +115,19 @@ namespace Wf121
 
             Mpsm::ProcessStatus returnStatus = Mpsm::ProcessStatus::WAITING_FOR_MORE_DATA; // default
 
-            if (!have_seen_a_dm_heartbeart_since_boot && Wf121::persistentBgApiPassthroughEnabled())
+            // Check BGAPI passthrough state (only actually do the mutex-protected get once):
+            bool passthroughState = Wf121::persistentBgApiPassthroughEnabled();
+            if (!have_seen_a_dm_heartbeart_since_boot && passthroughState)
             {
                 // If BGAPI passthrough is enabled, for the state machine to
                 // think it's synced (so all BGAPI messages, even pre-sync ones, make it through):
                 have_seen_a_dm_heartbeart_since_boot = true;
+            }
+            // Reset state if BGAPI passthrough was just turned on:
+            if (prevPassthroughState != passthroughState)
+            {
+                m_currentState = Mpsm::State::WAITING_FOR_VALID_BGAPI_HEADER;
+                prevPassthroughState = passthroughState;
             }
 
             // Core State Driver:
@@ -598,6 +609,6 @@ namespace Wf121
             }
 
             return returnStatus;
-    }
+        }
     }
 } // Wf121::Wf121Parser

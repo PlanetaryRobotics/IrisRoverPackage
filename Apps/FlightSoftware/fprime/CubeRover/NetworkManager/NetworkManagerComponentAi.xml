@@ -356,7 +356,7 @@
             </args>
         </event>
 
-        <event id="6" name="RadioBgApiPassthroughChange" severity="ACTIVITY_HI" format_string="BGAPI Passthrough Modea changed (%d) %d -> %d">
+        <event id="6" name="RadioBgApiPassthroughChange" severity="ACTIVITY_HI" format_string="BGAPI Passthrough Mode changed (%d) %d -> %d">
             <comment>
                 Fired in response to a `Set_Radio_BgApi_Passthrough` command. 
                 `from` will always be the state before the command. 

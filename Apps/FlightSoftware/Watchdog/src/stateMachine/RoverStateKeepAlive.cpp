@@ -8,7 +8,7 @@
 #include <cassert>
 
 static const bool SEND_DETAILED_REPORTS_IN_SPIN_ONCE = true;
-static const uint16_t CENTISECONDS_BETWEEN_DETAILED_REPORT_SENDS = 600;
+static const uint16_t CENTISECONDS_BETWEEN_DETAILED_REPORT_SENDS = 1500;
 
 namespace iris
 {

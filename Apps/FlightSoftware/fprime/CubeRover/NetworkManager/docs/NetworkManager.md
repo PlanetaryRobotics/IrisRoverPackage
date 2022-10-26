@@ -97,7 +97,7 @@
 | | | |mode|nm_radio_communications_mode_now|||
 |RadioUartBaudRateChange|5 (0x5)|Fired in response to a `Set_Radio_Uart_Baud` command.
                 `fromBaud` will always be the baud rate before the command. 
-                `toBaud` will always be the requested baud rate in the command. 
+                `toBaud` will always be the actual baud rate after running this command. 
                 `changeMade` indicates whether the change was actually 
                 (successfully) changed. It can be false because either the 
                 change was not able to be made or because it didn't need to be 
@@ -111,7 +111,7 @@
 | | | |toBaud|U32|||
 |RadioBgApiPassthroughChange|6 (0x6)|Fired in response to a `Set_Radio_BgApi_Passthrough` command. 
                 `from` will always be the state before the command. 
-                `to` will always be the requested state in the command. 
+                `to` will always be the actual state after running this command. 
                 `changeMade` indicates whether the change was actually 
                 (successfully) changed. It can be false because either the 
                 change was not able to be made or because it didn't need to be 

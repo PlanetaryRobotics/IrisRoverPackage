@@ -12,6 +12,7 @@ import serial_asyncio  # type: ignore
 from dataclasses import dataclass
 from multi_await import multi_await  # type: ignore
 from serial.tools import list_ports, list_ports_common  # type: ignore
+from termcolor import colored
 
 from trans_tools import *
 from IrisBackendv3.codec.payload import EventPayload
@@ -385,20 +386,34 @@ async def console_main(serial_settings):
     tick_queue = asyncio.Queue()
 
     # Start WiFi UDP Server:
-    udp_server = socketserver.ThreadingUDPServer(
-        (
-            app_context['wifi_settings']['lander_ip'],
-            app_context['wifi_settings']['lander_port']
-        ),
-        make_udp_handler(app_context, packet_queue, message_queue),
-        bind_and_activate=True
-    )
+    server_active: bool
+    try:
+        udp_server = socketserver.ThreadingUDPServer(
+            (
+                app_context['wifi_settings']['lander_ip'],
+                app_context['wifi_settings']['lander_port']
+            ),
+            make_udp_handler(app_context, packet_queue, message_queue),
+            bind_and_activate=True
+        )
+        server_active = True
+        message_queue.put_nowait(QueueMessage(colored("UDP Server Bound.", 'green')))
+    except Exception as e:
+        message_queue.put_nowait(QueueMessage(colored("UDP Server Failed to Bind.", 'red')))
+        server_active = False
+        class DummyWithable__UdpConnectionFailed():
+            def __init__(self): pass
+            def __enter__(self, *args, **kwargs): pass
+            def __exit__(self, *args, **kwargs): pass
+        udp_server = DummyWithable__UdpConnectionFailed() # Basically `None` but supports `with`
+        
     # Add pointer to context:
     app_context['udp_server'] = udp_server
     with udp_server:
-        udp_server_thread = threading.Thread(target=udp_server.serve_forever)
-        udp_server_thread.daemon = True
-        udp_server_thread.start()
+        if server_active:
+            udp_server_thread = threading.Thread(target=udp_server.serve_forever)
+            udp_server_thread.daemon = True
+            udp_server_thread.start()
 
         # Start tasks:
         stream_keys(key_queue, message_queue)
@@ -442,7 +457,8 @@ async def console_main(serial_settings):
         [await t for t in tasks]
 
         # Close the UDP Server:
-        udp_server_thread.shutdown()
+        if server_active:
+            udp_server_thread.shutdown()
 
 
 def start_console(serial_device_sn: str = 'A7035PDL', baud: int = 57600):

@@ -1,6 +1,7 @@
 #include "Wf121Parser.hpp"
 #include <Fw/Types/Assert.hpp>
 #include <Fw/Types/BasicTypes.hpp>
+#include <CubeRover/Wf121/Wf121.hpp>
 #include <CubeRover/Wf121/Timestamp.hpp>
 #include <CubeRover/Wf121/Wf121DirectMessage.hpp>
 #include "FreeRTOS.h"
@@ -18,7 +19,6 @@ namespace Wf121
         // Prefix used on
         static const uint8_t bgapiPassthroughPrefix[] = "BGP:";
         static const uint8_t bgapiPassthroughPrefixLen = 4;
-        watchDogInterface.debugPrintfBufferWithPrefix((uint8_t *)debugDownlinkPrefix
         // Maximum size of a BGAPI packet that will be passed through.
         // Above this, it'll be dropped (not passed through to ground. Still
         // will be processed by Hercules):
@@ -448,7 +448,7 @@ namespace Wf121
                             }
                             else
                             {
-                                debugPrintfToWatchdog("BGAPI Passthrough TOO-BIG. Got: %dB.", forwardingLen);
+                                watchDogInterface.debugPrintfToWatchdog("BGAPI Passthrough TOO-BIG. Got: %dB.", forwardingLen);
                             }
                         }
 
@@ -590,11 +590,11 @@ namespace Wf121
             }
 
             if (Wf121::persistentBgApiPassthroughEnabled() &&
-                returnStatus < DM_HEADER_PARSED)
+                returnStatus < Mpsm::ProcessStatus::DM_HEADER_PARSED)
             {
                 // If we got a byte but it isn't NECESSARILY part of a BGAPI
                 // packet, pass it out just in case:
-                debugPrintfToWatchdog("BGB: 0x%02X.", newByte);
+                watchDogInterface.debugPrintfToWatchdog("BGB: 0x%02X.", newByte);
             }
 
             return returnStatus;

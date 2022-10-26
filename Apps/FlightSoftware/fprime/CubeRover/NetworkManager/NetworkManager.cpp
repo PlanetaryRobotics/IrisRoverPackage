@@ -72,7 +72,7 @@ namespace CubeRover
         m_pRadioDriver->init();
 
         // Log the initial Radio UART baud rate (can be changed and is persistent):
-        log_ACTIVITY_HI_RadioUartBaudRateChanged(
+        log_ACTIVITY_HI_RadioUartBaudRateChange(
             false, // no change is being made here
             // from and to are the same because no change is being made here:
             Wf121::Wf121Serial::getWf121SciBaud(),
@@ -163,11 +163,11 @@ namespace CubeRover
         U32 cmdSeq,          /*!< The command sequence number*/
         U32 newBaud)
     {
-        uint32_t initialBaud = getWf121SciBaud();
+        uint32_t initialBaud = Wf121::Wf121Serial::getWf121SciBaud();
         Wf121::Wf121Serial::changeUartBaud(newBaud);
         // Check that the value actually changed (was valid):
-        uint32_t actualNewBaud = getWf121SciBaud();
-        log_ACTIVITY_HI_RadioUartBaudRateChanged(
+        uint32_t actualNewBaud = Wf121::Wf121Serial::getWf121SciBaud();
+        log_ACTIVITY_HI_RadioUartBaudRateChange(
             (initialBaud != actualNewBaud),
             initialBaud,
             actualNewBaud);
@@ -203,7 +203,7 @@ namespace CubeRover
         bool passthrough)
     {
         bool initialState = Wf121::persistentBgApiPassthroughEnabled();
-        bool changeMade = changeBgApiPassthroughState(passthrough);
+        bool changeMade = Wf121::changeBgApiPassthroughState(passthrough);
         log_ACTIVITY_HI_RadioBgApiPassthroughChange(
             changeMade,
             initialState,

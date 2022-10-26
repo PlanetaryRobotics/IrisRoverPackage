@@ -5,7 +5,7 @@ namespace Wf121
     namespace Wf121Serial // Wf121::Wf121Serial
     {
 #pragma PERSISTENT
-        extern Wf121AllowedBaudRate persistent_wf121_sci_baud = static_cast<Wf121AllowedBaudRates>(WF121_SCI_BAUD_DEFAULT);
+        extern Wf121AllowedBaudRate persistent_wf121_sci_baud = static_cast<Wf121AllowedBaudRate>(WF121_SCI_BAUD_DEFAULT);
 
         // Whether all serial SCI, DMA, etc. has been initialzed and can be used
         // (specifically to determine if we can use DMA send or not):
@@ -150,8 +150,8 @@ namespace Wf121
             if (checkBaudRate(newBaud))
             {
                 persistent_wf121_sci_baud_mutex.lock();
-                persistent_wf121_sci_baud = newBaud;
-                persistent_wf121_sci_baud.unLock();
+                persistent_wf121_sci_baud = static_cast<Wf121AllowedBaudRate>(newBaud);
+                persistent_wf121_sci_baud_mutex.unLock();
                 sciEnterResetState(WF121_SCI_REG);
                 sciSetBaudrate(WF121_SCI_REG, getWf121SciBaud());
                 sciExitResetState(WF121_SCI_REG);

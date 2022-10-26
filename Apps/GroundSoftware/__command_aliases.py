@@ -414,6 +414,15 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRED
     ),
 
+    # Turn off WARNING_HI logs (e.g. ImuAngleWarning spamming us)
+    'active-logger-turn-off-warning-hi': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'ActiveLogger_Alogseteventreportfilter',
+        OrderedDict(filter_level='INPUTWARNINGHI', filter_enable='INPUTDISABLED'),
+        DataPathway.WIRED
+    ),
+
     # Turn off Hercules-Radio UART (inside the Hercules) so an external device
     # can use it (for Radio diagnostics and programming).
     'radio-comms-ext-mode': (

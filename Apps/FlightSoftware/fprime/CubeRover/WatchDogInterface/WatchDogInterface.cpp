@@ -923,6 +923,9 @@ namespace CubeRover
                                                    size_t dataLen,
                                                    bool sendResponse)
     {
+        static Os::Mutex sloppyResourceProtectionMutex; // quick and dirty. keeps multiple tasks from doing this at once.
+
+        sloppyResourceProtectionMutex.lock();
         struct WatchdogFrameHeader frame;
         frame.magic_value = header_magic;
         frame.parity = 0;
@@ -948,6 +951,7 @@ namespace CubeRover
 
             if (NULL == cmdStatus)
             {
+                sloppyResourceProtectionMutex.unLock();
                 return false;
             }
 
@@ -1026,6 +1030,7 @@ namespace CubeRover
 
                 // TODO: LOG ERROR (which error?)
                 // debugPrintfToWatchdog("previousStillWaiting: %d\n", cmdStatus->opcode);
+                sloppyResourceProtectionMutex.unLock();
                 return false;
             }
         }
@@ -1055,6 +1060,7 @@ namespace CubeRover
             }
         }
 
+        sloppyResourceProtectionMutex.unLock();
         return true;
     }
 

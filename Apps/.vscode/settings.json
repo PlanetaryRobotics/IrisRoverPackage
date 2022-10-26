@@ -29,8 +29,11 @@
         "ios": "cpp"
     },
     "cSpell.words": [
+        "BGBH",
         "bitflip",
         "deinitialized",
-        "SETINT"
+        "heartbeart",
+        "SETINT",
+        "SRAM"
     ]
 }

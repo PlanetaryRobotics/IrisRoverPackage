@@ -2,6 +2,29 @@
 
 namespace Wf121
 {
+  // Whether BGAPI pass through mode is enabled. Persistent. Default: false (normal Hercules-Radio communications).
+#pragma PERSISTENT
+  extern bool persistent_bgapi_passthrough_enabled = BGAPI_PASSTHROUGH_DEFAULT;
+
+  // Changes the persistent_bgapi_passthrough to the given boolean
+  // enabled state, performing any necessary supporting operations
+  // depending on the target state.
+  // Returns whether a change was made.
+  bool changeBgApiPassthroughState(bool enabled)
+  {
+    if (enabled == persistentBgApiPassthroughEnabled())
+    {
+      // Already in the requested state. No change needs to be made.
+      return false;
+    }
+
+    // Change the mode:
+    persistent_bgapi_passthrough_mutex.lock();
+    persistent_bgapi_passthrough = enabled ? BGAPI_PASSTHROUGH_ENABLED : BGAPI_PASSTHROUGH_DISABLED;
+    persistent_bgapi_passthrough_mutex.unLock();
+    return true;
+  }
+
   RadioDriver::RadioDriver() : m_networkInterface(),
                                m_serialRxTask(),
                                m_serialUdpTxTask(&m_networkInterface)
@@ -16,6 +39,9 @@ namespace Wf121
 
   void RadioDriver::init()
   {
+    // Call passthrough-state getter to re-initialize it if it has a bad value:
+    getPersistentBgApiPassthrough();
+
     // Make sure NetworkInterface is ready to receive data:
     m_networkInterface.init();
 

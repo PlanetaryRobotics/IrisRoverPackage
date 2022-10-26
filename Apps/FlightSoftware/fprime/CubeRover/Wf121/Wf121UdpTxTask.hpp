@@ -27,6 +27,11 @@
 #include "FreeRTOS.h"
 #include "os_queue.h"
 
+// When BGAPI Passthrough is on, how frequently should the UdpTxTask should
+// check back to see if BGAPI Passthrough has been turned off (so the task can
+// proceed):
+static const TickType_t WF121_UDP_TX_TASK_PASSTHROUGH_PAUSE_CHECK_MS = 100 / portTICK_PERIOD_MS; // every 100ms (100 ticks)
+
 namespace Wf121
 {
     // Forward declaration of UDP TX Task Class (for `Wf121TxTaskManager`):

@@ -5,7 +5,7 @@ namespace Wf121
     namespace Wf121Serial // Wf121::Wf121Serial
     {
 #pragma PERSISTENT
-        extern uint32_t persistent_wf121_sci_baud = WF121_SCI_BAUD_DEFAULT;
+        extern Wf121AllowedBaudRate persistent_wf121_sci_baud = static_cast<Wf121AllowedBaudRates>(WF121_SCI_BAUD_DEFAULT);
 
         // Whether all serial SCI, DMA, etc. has been initialzed and can be used
         // (specifically to determine if we can use DMA send or not):
@@ -39,7 +39,7 @@ namespace Wf121
 
             // Config the SCI:
             sciEnterResetState(WF121_SCI_REG);
-            sciSetBaudrate(WF121_SCI_REG, persistent_wf121_sci_baud);
+            sciSetBaudrate(WF121_SCI_REG, getWf121SciBaud());
             sciExitResetState(WF121_SCI_REG);
 
             // Set up any semaphores, etc. for the DMA Write Status:
@@ -146,10 +146,16 @@ namespace Wf121
         // this, reset Hercules and the new rate should be applied.
         void changeUartBaud(uint32_t newBaud)
         {
-            persistent_wf121_sci_baud = newBaud;
-            sciEnterResetState(WF121_SCI_REG);
-            sciSetBaudrate(WF121_SCI_REG, persistent_wf121_sci_baud);
-            sciExitResetState(WF121_SCI_REG);
+            // Only change if `newBaud` is valid:
+            if (checkBaudRate(newBaud))
+            {
+                persistent_wf121_sci_baud_mutex.lock();
+                persistent_wf121_sci_baud = newBaud;
+                persistent_wf121_sci_baud.unLock();
+                sciEnterResetState(WF121_SCI_REG);
+                sciSetBaudrate(WF121_SCI_REG, getWf121SciBaud());
+                sciExitResetState(WF121_SCI_REG);
+            }
         }
 
         // Signal that we're ready to receive another byte through the SCI RX ISR.

@@ -75,8 +75,15 @@ namespace CubeRover
         log_ACTIVITY_HI_RadioUartBaudRateChanged(
             false, // no change is being made here
             // from and to are the same because no change is being made here:
-            Wf121::Wf121Serial::persistent_wf121_sci_baud,
-            Wf121::Wf121Serial::persistent_wf121_sci_baud);
+            Wf121::Wf121Serial::getWf121SciBaud(),
+            Wf121::Wf121Serial::getWf121SciBaud());
+
+        // Log the initial BGAPI Passthrough state (can be changed and is persistent):
+        log_ACTIVITY_HI_RadioBgApiPassthroughChange(
+            false, // no change is being made here
+            // from and to are the same because no change is being made here:
+            Wf121::persistentBgApiPassthroughEnabled(),
+            Wf121::persistentBgApiPassthroughEnabled());
     }
 
     NetworkManagerComponentImpl ::
@@ -145,7 +152,7 @@ namespace CubeRover
     }
 
     //! Handler for command Set_Radio_Uart_Baud
-    /* Sets the (peristent) baud rate for UART communication with the
+    /* Sets the (persistent) baud rate for UART communication with the
             WF121 Radio. Note: if Radio-Hercules comms appear not to work
             properly after issuing this command, you may have to reboot.
 
@@ -156,9 +163,17 @@ namespace CubeRover
         U32 cmdSeq,          /*!< The command sequence number*/
         U32 newBaud)
     {
-        uint32_t initialBaud = Wf121::Wf121Serial::persistent_wf121_sci_baud;
+        uint32_t initialBaud = getWf121SciBaud();
         Wf121::Wf121Serial::changeUartBaud(newBaud);
-        log_ACTIVITY_HI_RadioUartBaudRateChanged(true, initialBaud, newBaud);
+        // Check that the value actually changed (was valid):
+        uint32_t actualNewBaud = getWf121SciBaud();
+        log_ACTIVITY_HI_RadioUartBaudRateChanged(
+            (initialBaud != actualNewBaud),
+            initialBaud,
+            actualNewBaud);
+
+        // Signal that we're done:
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
     //! Handler for command Set_Radio_BgApi_Passthrough
@@ -187,7 +202,15 @@ namespace CubeRover
         U32 cmdSeq,          /*!< The command sequence number*/
         bool passthrough)
     {
-        // ! TODO
+        bool initialState = Wf121::persistentBgApiPassthroughEnabled();
+        bool changeMade = changeBgApiPassthroughState(passthrough);
+        log_ACTIVITY_HI_RadioBgApiPassthroughChange(
+            changeMade,
+            initialState,
+            Wf121::persistentBgApiPassthroughEnabled());
+
+        // Signal that we're done:
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
     //! Handler for command Send_BgApi_Command
@@ -228,6 +251,9 @@ namespace CubeRover
     )
     {
         // ! TODO
+
+        // Signal that we're done:
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR); // not impl. yet.
     }
 
     // Helper function to convert RadioSwState (used inside RadioDriver) to

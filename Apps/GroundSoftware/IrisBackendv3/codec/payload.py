@@ -812,6 +812,8 @@ class EventPayloadInterface(DownlinkedPayload[PT], ABC):
     @property
     def event_id(self) -> int: return self._event_id
     @property
+    def opcode(self) -> int: return self.module_id | self.event_id
+    @property
     def args(self) -> OrderedDict[str, Any]: return self._args
     @property
     def timestamp(self) -> int: return self._timestamp
@@ -902,6 +904,7 @@ class EventPayload(EventPayloadInterface[EventPayloadInterface]):
     def __str__(self) -> str:
         return (
             f"({self.event.severity_str}) "
+            f"<0x{self.opcode:04X}>"
             f"{self.event.name}@{self.timestamp}: "
             f"'{self.formatted_string}'"
         )
@@ -909,7 +912,8 @@ class EventPayload(EventPayloadInterface[EventPayloadInterface]):
     def __repr__(self) -> str:
         return (
             f"({self.event.severity_str}) "
-            f"{self.event.name}{self.args}@{self.timestamp} "
+            f"<0x{self.opcode:04X}>"
+            f"{self.event.name}[{self.args}]@{self.timestamp} "
             f"-> '{self.formatted_string}'"
         )
 

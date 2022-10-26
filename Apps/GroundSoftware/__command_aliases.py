@@ -6,7 +6,7 @@ If you want to explore the Data Standards to build new commands, run:
 `pyenv exec python datastandards_lookup.py`.
 
 Created: 10/29/2021
-Last Update: 09/15/2022
+Last Update: 10/25/2022
 """
 from __future__ import annotations  # Support things like OrderedDict[A,B]
 from enum import Enum
@@ -411,6 +411,32 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         'WatchDogInterface_ResetSpecific',
         # Change this to whatever you want to reset.
         OrderedDict(reset_value='BATTERY_START_CHARGE'),
+        DataPathway.WIRED
+    ),
+
+    # Suppress (filter out) GiDownlinkedPacket logs (ID <0x0903>):
+    'active-logger-suppress-GiDownlinkedPacket': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'ActiveLogger_Alogsetidfilter',
+        OrderedDict(id=0x0903, id_filter_enable='IDDISABLED'),
+        DataPathway.WIRED
+    ),
+    # Re-enable (don't filter out) GiDownlinkedPacket logs (ID <0x0903>):
+    'active-logger-enable-GiDownlinkedPacket': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'ActiveLogger_Alogsetidfilter',
+        OrderedDict(id=0x0903, id_filter_enable='IDENABLED'),
+        DataPathway.WIRED
+    ),
+
+    # Re-enable (don't filter out) GiDownlinkedPacket logs (ID <0x0903>):
+    'active-logger-dump-filter-state': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'ActiveLogger_Alogdumpfilterstate',
+        OrderedDict(),
         DataPathway.WIRED
     ),
 

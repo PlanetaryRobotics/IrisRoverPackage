@@ -71,8 +71,9 @@ namespace iris
             }
         }
 
-        /* only send every 20 timer ticks (140s) */
-        if (theContext.m_keepAliveTickCountForDetailedReport >= 20) {
+        /* only send every 70 timer ticks (490s) */
+        // NOTE: This is just the base rate for ENTERING KeepAlive (if stuck here). Actual KeepAlive also sends its own detailed status packets.
+        if (theContext.m_keepAliveTickCountForDetailedReport >= 70) {
             theContext.m_keepAliveTickCountForDetailedReport = 0;
             sendDetailedReportToLander(theContext);
         }

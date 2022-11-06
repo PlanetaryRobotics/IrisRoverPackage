@@ -11,6 +11,7 @@
 // ======================================================================
 
 #include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
+#include <CubeRover/Wf121/Wf121SerialInterface.hpp>
 #include <Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentImpl.hpp>
 #include "Fw/Types/BasicTypes.hpp"
 #include <stdio.h>
@@ -27,6 +28,9 @@
 #include <HAL/include/os_task.h>
 #include <HAL/include/os_portmacro.h>
 #include <Os/Mutex.hpp>
+
+
+extern CubeRover::Wf121Serial watchDogInterface;
 
 static volatile bool dmaWriteBusy = false;
 
@@ -68,17 +72,8 @@ namespace CubeRover
             const NATIVE_INT_TYPE instance)
     {
         WatchDogInterfaceComponentBase::init(queueDepth, instance);
-        sciEnterResetState(m_sci);
-        sciSetBaudrate(m_sci, 57600);
-        sciExitResetState(m_sci);
 
-        // Configure and up the receiving task
-        m_rxTask.registerCallback(this);
-        ::Os::Task::TaskStatus taskStat = m_rxTask.startTask(WATCH_DOG_INTERFACE_RX_TASK_PRIORITY,
-                                                             WATCH_DOG_INTERFACE_RX_TASK_STACK_SIZE,
-                                                             WATCH_DOG_INTERFACE_RX_TASK_CPU_AFFINITY);
-        // Assert that this will always be started successfully. If it isn't, we're screwed.
-        configASSERT(taskStat == Os::Task::TASK_OK);
+        init_uart();
 
         gioSetBit(spiPORT3, deploy_bit, 0);
 
@@ -100,6 +95,8 @@ namespace CubeRover
     // Handler implementations for user-defined typed input ports
     // ----------------------------------------------------------------------
 
+    static const uint8_t UART_TEST_REF_BUFF[] = "UART TESTING MSG";
+
     // Timed function that runs every 1Hz
     void WatchDogInterfaceComponentImpl ::
         Run_handler(
@@ -108,6 +105,13 @@ namespace CubeRover
     {
         static uint16_t sequenceNumber = 0;
         static uint32_t lastFailedStrokeMsgSendTime = 0;
+        static uint16_t fiveSecDelayCnt = 0;
+        if (fiveSecDelayCnt == 5) {
+            debugPrintfToWatchdog("%s %u\n",UART_TEST_REF_BUFF,sequenceNumber);
+            fiveSecDelayCnt = 0;
+        } else {
+            fiveSecDelayCnt = fiveSecDelayCnt + 1;
+        }
 
         // Update Thermistor Telemetry
         Read_Temp();
@@ -1066,6 +1070,7 @@ namespace CubeRover
 
     bool WatchDogInterfaceComponentImpl::debugPrintfToWatchdog(const char *fmt, ...)
     {
+
         static Os::Mutex sloppyResourceProtectionMutex; // quick and dirty. keeps multiple tasks from doing this at once.
         if (fmt == NULL)
         {
@@ -1079,6 +1084,14 @@ namespace CubeRover
         va_start(args, fmt); // @suppress("Function cannot be resolved")
         vsnprintf(m_printBuffer + 5, sizeof(m_printBuffer) - 5, fmt, args);
         va_end(args);
+
+        if(memcmp(UART_TEST_REF_BUFF, fmt, sizeof(UART_TEST_REF_BUFF)) == 0) {
+            if (Wf121Serial::dmaSend(fmt, sizeof(fmt), true)) {
+                sprintf(m_printBuffer + strlen(m_printBuffer),"Radio UART dma pkt SENT\n");
+            } else {
+                sprintf(m_printBuffer + strlen(m_printBuffer),"Radio UART dma pkt DROP\n");
+            }
+        }
 
         bool success = txCommand(DEBUG_OPCODE,
                                  m_downlinkSequenceNumber,
@@ -1225,6 +1238,21 @@ namespace CubeRover
 
         resourceProtectionMutex.unLock();
         return true;
+    }
+
+    void WatchDogInterfaceComponentImpl::init_uart()
+    {
+            sciEnterResetState(m_sci);
+            sciSetBaudrate(m_sci, 57600);
+            sciExitResetState(m_sci);
+
+            // Configure and up the receiving task
+            m_rxTask.registerCallback(this);
+            ::Os::Task::TaskStatus taskStat = m_rxTask.startTask(WATCH_DOG_INTERFACE_RX_TASK_PRIORITY,
+                                                                 WATCH_DOG_INTERFACE_RX_TASK_STACK_SIZE,
+                                                                 WATCH_DOG_INTERFACE_RX_TASK_CPU_AFFINITY);
+            // Assert that this will always be started successfully. If it isn't, we're screwed.
+            configASSERT(taskStat == Os::Task::TASK_OK);
     }
 
 } // end namespace CubeRover

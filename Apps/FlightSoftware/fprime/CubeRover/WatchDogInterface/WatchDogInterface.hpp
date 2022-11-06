@@ -636,6 +636,8 @@ namespace CubeRover
 
         uint32_t m_skippedStrokes;
         uint32_t m_missedStrokeResponses;
+
+        void init_uart();
     };
 
 } // end namespace CubeRover

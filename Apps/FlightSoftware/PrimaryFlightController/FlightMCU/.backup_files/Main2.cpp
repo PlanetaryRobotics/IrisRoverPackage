@@ -14,11 +14,9 @@
 #include "os_task.h"
 #include "CubeRover/Top/Topology.hpp"
 #include <CubeRover/Wf121/Wf121SerialInterface.hpp>
-//#include "CubeRover/WatchDogInterface/WatchDogInterface.cpp"
 #include "adc.h"
 #include "gio.h"
 #include "i2c.h"
-#include "sci.h"
 #include "spi.h"
 #include "adc.h"
 #include "rti.h"
@@ -94,15 +92,7 @@ void vApplicationStackOverflowHook(void *xTask, char *pcTaskName)
     // (make sure WD actually does that)
 }
 
-
-// ---------------------------------------------------------------------------
-//CubeRover::WatchDogInterfaceComponentImpl watchDogInterface2(
-//#if FW_OBJECT_NAMES == 1
-//    "Watchdog2"
-//#endif
-//);
-
-void main(void)
+void main2(void)
 {
     /* USER CODE BEGIN (3) */
     _disable_interrupt_(); // Disable all interrupts during initialization (esp. important when we initialize RTI)
@@ -119,11 +109,6 @@ void main(void)
     scidmaInit();
     sciIntInit();
     scilinIntInit();
-
-//    // Initialize watchdog sci comms
-//    watchDogInterface2.init_uart();
-//    vTaskDelay(500);
-//    watchDogInterface2.debugPrintfToWatchdog("---HERCULES BOOT---\n");
 
     constructApp();
 

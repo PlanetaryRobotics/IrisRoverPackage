@@ -228,6 +228,9 @@ namespace CubeRover
     // What to do when RadioDriver is says its in a bad state and needs help
     // (i.e. needs NetworkManager to reset something):
     void handleRadioFault();
+
+//    char printBuffer[256];
+//    void uart_testing_helper(uint32_t now, WIFIState currentWifiState)
   };
 
 } // end namespace CubeRover

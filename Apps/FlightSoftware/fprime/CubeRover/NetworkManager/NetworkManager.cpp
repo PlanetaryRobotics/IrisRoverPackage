@@ -306,6 +306,7 @@ namespace CubeRover
         // See if we need to emit new telem because of a `RadioSwState` change:
         WIFIState currentWifiState = convertRadioState2WifiState(
             m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getRadioState());
+
         if (first_update_call || m_lastDownlinkedWifiState != currentWifiState)
         {
             log_ACTIVITY_HI_StateChange(static_cast<networkmanager_state_from>(m_lastDownlinkedWifiState), static_cast<networkmanager_state_to>(currentWifiState));
@@ -410,5 +411,28 @@ namespace CubeRover
             uplink_out(0, buffer);
         }
     }
+
+
+//    void uart_testing_helper(uint32_t now, WIFIState currentWifiState)
+//    {
+//        static uint32_t last_wd_print = 0;
+//        if (last_wd_print == 0) {
+//            last_wd_print = now;
+//        }
+//        if (now - last_wd_print < 5000) return;
+//
+//        watchDogInterface.debugPrintfToWatchdog(
+//                "Curr WiFi State (NONE 0x00): %#x\n",
+//                currentWifiState);
+//        last_wd_print = now;
+//
+//        Wf121Serial::dmaSend(void *buffer, unsigned size, bool blocking)
+//        memset(printBuffer, 0, sizeof(printBuffer));
+//        sprintf(printBuffer, "DEBUG");
+//        size_t bytesToSend = sizeof(printBuffer);
+//        memcpy(printBuffer + 5, buffer, bytesToSend);
+//
+//        Wf121Serial::dmaSend(void *buffer, unsigned size, true)
+//    }
 
 } // end namespace CubeRover

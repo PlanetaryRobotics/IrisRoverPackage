@@ -197,15 +197,15 @@ void constructApp(void){
   //health.init(25,                   /*Queue Depth*/
   //            0);                   /*Instance Number*/
 
-  // Initialize the UWB component
-  UWB.init(1,          /*Queue Depth*/
-           0);         /*Instance Number*/
-
   // Initialize the ground interface (passive)
   groundInterface.init();
 
   // Initialize the IMU interface (passive)
   IMU.init();
+
+  // Initialize the UWB component
+  UWB.init(1,          /*Queue Depth*/
+           0);         /*Instance Number*/
 
   // Initialize the ground interface (passive)
   networkManager.init();
@@ -227,7 +227,7 @@ void constructApp(void){
 
   // Register WatchDog Interface Commands
   watchDogInterface.regCommands();
-  
+
   // Register Camera Commands
   camera.regCommands();
   

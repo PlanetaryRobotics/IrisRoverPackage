@@ -87,6 +87,8 @@ namespace CubeRover {
     */
     while (true) {
         printf("check system events\n");
+        uint8 id = read_register(spiREG5, &dataConfig, SYS_STATUS_ID);
+        printf("%d\n",id);
         printf("Value: %x\n", dwt_read32bitreg(SYS_STATUS_ID));
         __delay_cycles(12000000);
         printf("check device id\n");

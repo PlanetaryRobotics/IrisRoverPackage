@@ -1,7 +1,7 @@
 /** @file sys_startup.c 
 *   @brief Startup Source File
-*   @date 11-Dec-2018
-*   @version 04.07.01
+*   @date 07-July-2017
+*   @version 04.07.00
 *
 *   This file contains:
 *   - Include Files
@@ -14,7 +14,7 @@
 */
 
 /* 
-* Copyright (C) 2009-2018 Texas Instruments Incorporated - www.ti.com 
+* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com 
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 
@@ -62,7 +62,6 @@
 #include "esm.h"
 #include "mibspi.h"
 
-#include "errata_SSWF021_45.h"
 /* USER CODE BEGIN (1) */
 /* USER CODE END */
 
@@ -83,10 +82,9 @@ extern void exit(int _status);
 
 /* USER CODE BEGIN (3) */
 /* USER CODE END */
-void handlePLLLockFail(void);
+
 /* Startup Routine */
 void _c_int00(void);
-#define PLL_RETRIES 5U
 /* USER CODE BEGIN (4) */
 /* USER CODE END */
 
@@ -98,7 +96,8 @@ void _c_int00(void);
 /* DesignId : STARTUP_DesignId_001 */
 /* Requirements : HL_SR508 */
 void _c_int00(void)
-{    
+{
+    
 /* USER CODE BEGIN (5) */
 /* USER CODE END */
 
@@ -136,15 +135,10 @@ void _c_int00(void)
     /* check for power-on reset condition */
     /*SAFETYMCUSW 139 S MR:13.7 <APPROVED> "Hardware status bit read check" */
     if ((SYS_EXCEPTION & POWERON_RESET) != 0U)
-    {		
+    {
 /* USER CODE BEGIN (12) */
 /* USER CODE END */
-        /* Add condition to check whether PLL can be started successfully */
-        if (_errata_SSWF021_45_both_plls(PLL_RETRIES) != 0U)
-        {
-            /* Put system in a safe state */
-			handlePLLLockFail();
-        }
+        
         /* clear all reset status flags */
         SYS_EXCEPTION = 0xFFFFU;
 
@@ -191,7 +185,7 @@ void _c_int00(void)
             SYS_EXCEPTION = ICEPICK_RESET;
 /* USER CODE BEGIN (19) */
 /* USER CODE END */
-		}
+        }
     }
     /*SAFETYMCUSW 139 S MR:13.7 <APPROVED> "Hardware status bit read check" */
     else if ((SYS_EXCEPTION & CPU_RESET) !=0U)
@@ -215,10 +209,10 @@ void _c_int00(void)
     {
         /* Reset caused due to software reset.
         Add user code to handle software reset. */
-		
+
 /* USER CODE BEGIN (22) */
 /* USER CODE END */
-	}
+    }
     else
     {
         /* Reset caused by nRST being driven low externally.
@@ -226,7 +220,7 @@ void _c_int00(void)
 
 /* USER CODE BEGIN (23) */
 /* USER CODE END */
-	}
+    }
 
     /* Check if there were ESM group3 errors during power-up.
      * These could occur during eFuse auto-load or during reads from flash OTP
@@ -653,20 +647,4 @@ void _c_int00(void)
 }
 
 /* USER CODE BEGIN (78) */
-/* USER CODE END */
-/** @fn void handlePLLLockFail(void)
-*   @brief This function handles PLL lock fail.
-*/
-void handlePLLLockFail(void)
-{
-/* USER CODE BEGIN (79) */
-/* USER CODE END */
-	while(1)
-	{
-		
-	}
-/* USER CODE BEGIN (80) */
-/* USER CODE END */
-}
-/* USER CODE BEGIN (81) */
 /* USER CODE END */

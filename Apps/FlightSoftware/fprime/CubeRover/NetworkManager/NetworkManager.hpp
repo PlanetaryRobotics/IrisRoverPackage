@@ -85,6 +85,8 @@ namespace CubeRover
 
     static nm_radio_communications_mode nmCurrentCommunicationMode;
 
+    bool sendRadioUartPkt(char *buffer);
+
     PRIVATE :
 
         // ----------------------------------------------------------------------

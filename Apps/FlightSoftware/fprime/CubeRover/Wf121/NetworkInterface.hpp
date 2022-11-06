@@ -172,6 +172,7 @@ namespace Wf121
          * Task.)
          */
         bool sendUdpPayload(UdpTxPayload *pPayload);
+        bool sendUartPkt(char *buffer);
 
         /**
          * @brief The callback invoked by the `Wf121UdpTxTask` when it's running

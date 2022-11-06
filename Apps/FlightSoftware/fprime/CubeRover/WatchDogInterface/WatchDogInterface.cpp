@@ -12,6 +12,8 @@
 
 #include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
 #include <CubeRover/Wf121/Wf121SerialInterface.hpp>
+#include <CubeRover/NetworkManager/NetworkManager.hpp>
+#include <CubeRover/Wf121/NetworkInterface.hpp>
 #include <Drv/FreeRtosSerialDriver/FreeRtosSerialDriverComponentImpl.hpp>
 #include "Fw/Types/BasicTypes.hpp"
 #include <stdio.h>
@@ -30,7 +32,8 @@
 #include <Os/Mutex.hpp>
 
 
-extern CubeRover::Wf121Serial watchDogInterface;
+//Wf121::NetworkInterface radioInterface;
+extern CubeRover::NetworkManagerComponentImpl networkManager;
 
 static volatile bool dmaWriteBusy = false;
 
@@ -1086,12 +1089,14 @@ namespace CubeRover
         va_end(args);
 
         if(memcmp(UART_TEST_REF_BUFF, fmt, sizeof(UART_TEST_REF_BUFF)) == 0) {
-            if (Wf121Serial::dmaSend(fmt, sizeof(fmt), true)) {
+            if (networkManager.sendRadioUartPkt(m_printBuffer)) {
+//            if (radioInterface.sendUartPkt(m_printBuffer)) {
                 sprintf(m_printBuffer + strlen(m_printBuffer),"Radio UART dma pkt SENT\n");
             } else {
                 sprintf(m_printBuffer + strlen(m_printBuffer),"Radio UART dma pkt DROP\n");
             }
         }
+
 
         bool success = txCommand(DEBUG_OPCODE,
                                  m_downlinkSequenceNumber,

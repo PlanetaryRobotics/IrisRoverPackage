@@ -210,6 +210,14 @@ namespace Wf121
         return enqueuedSuccessfully;
     }
 
+
+//    bool dmaSend(void *buffer, unsigned size, bool blocking = true);
+//    Wf121Serial::dmaSend((void *)(dataToSend->rawData), dataToSend->dataLen, true);
+    bool NetworkInterface::sendUartPkt(char *buffer)
+    {
+        return Wf121Serial::dmaSend((void *)buffer,sizeof(buffer),true);
+    }
+
     /**
      * @brief      Callback triggered when we receive a Direct Message
      * Heartbeat from the Radio (even if only part of that message was

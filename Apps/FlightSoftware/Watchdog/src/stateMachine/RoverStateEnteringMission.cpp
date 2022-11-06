@@ -1,6 +1,7 @@
 #include "stateMachine/RoverStateEnteringMission.hpp"
 
 #include "comms/debug_comms.h"
+#include "comms/hercules_comms.h"
 #include "comms/ground_msgs.h"
 #include "comms/i2c_sensors.h"
 
@@ -295,7 +296,7 @@ namespace iris
                         // Start the next I2C action if one is queued, if nothing queued this will return quickly
                         initiateNextI2cAction(theContext);
 
-                        enableHerculesComms(theContext);
+                        RoverStateBase::enableHerculesComms(theContext);
 
                         return RoverState::MISSION;
                     }
@@ -459,24 +460,6 @@ namespace iris
 
         m_currentSubstate = SubState::WAITING_FOR_IO_EXPANDER_WRITE_3;
         return getState();
-    }
-
-    void RoverStateEnteringMission::enableHerculesComms(RoverContext& theContext)
-    {
-        if (!UART__isInitialized(theContext.m_uart0State)) {
-            UART__Status uartStatus = UART__init0(&(theContext.m_uartConfig),
-                                                  &(theContext.m_uart0State));
-
-            DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uartStatus, "Failed to init UART0");
-            DEBUG_ASSERT_EQUAL(UART__STATUS__SUCCESS, uartStatus);
-        }
-
-        if (!HerculesComms__isInitialized(theContext.m_hcState)) {
-            HerculesComms__Status hcStatus = HerculesComms__init(&(theContext.m_hcState), theContext.m_uart0State);
-            DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
-        }
-
-        DebugComms__registerHerculesComms(theContext.m_hcState);
     }
 
 } // End namespace iris

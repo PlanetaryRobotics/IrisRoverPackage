@@ -1,6 +1,7 @@
 #include "stateMachine/RoverStateMission.hpp"
 
 #include "comms/debug_comms.h"
+#include "comms/hercules_comms.h"
 #include "comms/ground_msgs.h"
 #include "comms/i2c_sensors.h"
 #include "drivers/adc.h"
@@ -36,22 +37,31 @@ namespace iris
         }
 
         // Check for UART errors to report
+        // Lander UART
         size_t count = 0;
         BOOL changed = FALSE;
-        UART__Status uStatus = UART__checkRxRbErrors(theContext.m_uart0State, &count, &changed);
+        UART__Status uStatus = UART__checkRxRbErrors(theContext.m_uart1State, &count, &changed);
+        DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Lander UART Rx Rb Error count");
+
+        if (changed) {
+            DebugComms__tryPrintfToLanderNonblocking("New Lander UART Rx Rb failures, total count = %d\n", (int) count);
+        }
+
+        // Hercules UART
+        count = 0;
+        changed = FALSE;
+        uStatus = UART__checkRxRbErrors(theContext.m_uart0State, &count, &changed);
         DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Hercules UART Rx Rb Error count");
 
         if (changed) {
             DebugComms__tryPrintfToLanderNonblocking("New Hercules UART Rx Rb failures, total count = %d\n", (int) count);
         }
 
-        count = 0;
-        changed = FALSE;
-        uStatus = UART__checkRxRbErrors(theContext.m_uart1State, &count, &changed);
-        DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Lander UART Rx Rb Error count");
-
-        if (changed) {
-            DebugComms__tryPrintfToLanderNonblocking("New Lander UART Rx Rb failures, total count = %d\n", (int) count);
+        if ((theContext.m_details.m_outputPinBits & OPSBI__HERCULES_ON)
+                && !(HerculesComms__isInitialized(theContext.m_hcState))) {
+            // We should hopefully never be here during Mission...
+            DebugComms__tryPrintfToLanderNonblocking("Trying to establish UART between WD and Hercules\n");
+            RoverStateBase::enableHerculesComms(theContext);
         }
 
         /* send heartbeat with collected data */

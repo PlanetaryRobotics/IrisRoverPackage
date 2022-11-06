@@ -31,6 +31,8 @@ namespace iris
 
             virtual RoverState transitionTo(RoverContext& theContext) = 0;
 
+            static void enableHerculesComms(RoverContext& theContext);
+
             static void herculesMsgCallback(HercMsgs__Header* header,
                                             uint8_t* payloadBuffer,
                                             size_t payloadSize,

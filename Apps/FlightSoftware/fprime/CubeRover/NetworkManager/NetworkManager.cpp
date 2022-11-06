@@ -92,6 +92,14 @@ namespace CubeRover
         // This should NEVER get called
     }
 
+//    bool dmaSend(void *buffer, unsigned size, bool blocking = true);
+//    Wf121Serial::dmaSend((void *)(dataToSend->rawData), dataToSend->dataLen, true);
+    bool NetworkManagerComponentImpl ::
+        sendRadioUartPkt(char *buffer)
+    {
+       return m_pRadioDriver->m_networkInterface.sendUartPkt(buffer);
+    }
+
     // ----------------------------------------------------------------------
     // Handler implementations for user-defined typed input ports
     // ----------------------------------------------------------------------

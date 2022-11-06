@@ -24,11 +24,4 @@
 		<nature>org.eclipse.cdt.core.ccnature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>CubeRover</name>
-			<type>2</type>
-			<locationURI>PARENT-2-PROJECT_LOC/fprime/CubeRover</locationURI>
-		</link>
-	</linkedResources>
 </projectDescription>

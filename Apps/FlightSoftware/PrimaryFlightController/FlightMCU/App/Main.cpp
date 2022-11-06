@@ -9,11 +9,9 @@
 #include "sys_core.h"
 #include "system.h"
 
-#include "CubeRoverConfig.hpp"
 #include "FreeRTOS.h"
 #include "os_task.h"
-#include "CubeRover/Top/Topology.hpp"
-#include <CubeRover/Wf121/Wf121SerialInterface.hpp>
+
 #include "adc.h"
 #include "gio.h"
 #include "i2c.h"
@@ -27,96 +25,160 @@
 #include "App/SCI.h"
 #include "App/SCILIN.h"
 
-extern "C"
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <cassert>
+
+
+static volatile bool dmaWriteBusy = false;
+
+extern "C" void SCILIN_TX_DMA_ISR(dmaInterrupt_t inttype)
 {
-    void vApplicationIdleHook(void);
-    void vApplicationTickHook(void);
-    void vApplicationStackOverflowHook(void *xTask, char *pcTaskName);
-    void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
-                                       StackType_t **ppxIdleTaskStackBuffer,
-                                       uint32_t *pulIdleTaskStackSize);
+    dmaWriteBusy = false;
 }
 
-void vApplicationIdleHook(void)
+static const TickType_t DMA_SEND_POLLING_CHECK_INTERVAL = 2 / portTICK_PERIOD_MS; // every 2ms (2 ticks)
+
+#define POINTER_CAST U32
+typedef uint32_t       U32; //!< 32-bit signed integer
+
+class Mutex {
+    public:
+
+        Mutex(void); //!<  Constructor. Mutex is unlocked when created
+        virtual ~Mutex(void); //!<  Destructor
+
+        void lock(void); //!<  lock the mutex
+        void unLock(void); //!<  unlock the mutex
+
+    private:
+
+        POINTER_CAST m_handle; //!<  Stored handle to mutex
+};
+
+// The sci base used to initialize the watchdog interface connection
+sciBASE_t *m_sci;
+
+char m_printBuffer[256];
+bool m_finished_initializing;                      // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
+
+typedef int NATIVE_INT_TYPE; //!< native integer type declaration
+NATIVE_INT_TYPE strnlen(const char *s, NATIVE_INT_TYPE maxlen);
+
+void init_uart_test()
 {
-    // Consider actually making a real FreeRTOS Task for FPrime (instead of
-    // just running it on the lowest priority task, idle).
-    run1cycle();
+    m_sci = scilinREG;
 }
 
-/* configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must provide
-an implementation of vApplicationGetIdleTaskMemory() to provide the memory that
-is used by the Idle task.
-- Needed b/c we need `configSUPPORT_STATIC_ALLOCATION=1`
-  so we can statically allocate Comms Buffer Queues (so we can control memory
-  use at compile time)
-- Impl. taken from: https://www.freertos.org/a00110.html#configSUPPORT_STATIC_ALLOCATION
-*/
-#define IDLE_TASK_STACK_SIZE (configMINIMAL_STACK_SIZE + 1024) // Rn, all of FPrime runs in the idle task so we better give it some space. Use `uxTaskGetStackHighWaterMark(NULL)` to tune.
-void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
-                                   StackType_t **ppxIdleTaskStackBuffer,
-                                   uint32_t *pulIdleTaskStackSize)
+// FIXME: Add timeout to escape polling loop
+void pollDMASendFinished()
 {
-    /* If the buffers to be provided to the Idle task are declared inside this
-    function then they must be declared static - otherwise they will be allocated on
-    the stack and so not exist after this function exits. */
-    static StaticTask_t xIdleTaskTCB;
-    static StackType_t uxIdleTaskStack[IDLE_TASK_STACK_SIZE];
+    if (!m_finished_initializing)
+    {
+        while (!((getDMAIntStatus(BTC) >> SCILIN_TX_DMA_CH) & 0x01U))
+        {
+            vTaskDelay(DMA_SEND_POLLING_CHECK_INTERVAL); // Check back in every X ticks (don't hog the processor)
+        };
+        dmaWriteBusy = false;
+        sciDMASendCleanup(SCILIN_TX_DMA_CH);
+    }
 
-    /* Pass out a pointer to the StaticTask_t structure in which the Idle task's
-    state will be stored. */
-    *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
-
-    /* Pass out the array that will be used as the Idle task's stack. */
-    *ppxIdleTaskStackBuffer = uxIdleTaskStack;
-
-    /* Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
-    Note that, as the array is necessarily of type StackType_t,
-    stack size is specified in words, not bytes. */
-    *pulIdleTaskStackSize = IDLE_TASK_STACK_SIZE;
+    while (dmaWriteBusy)
+    {
+        vTaskDelay(DMA_SEND_POLLING_CHECK_INTERVAL); // Check back in every X ticks (don't hog the processor)
+    };
+    ; // TODO: Mutex to allow multiprogramming & TIMEOOUT
 }
 
-void vApplicationTickHook(void)
+// Returns negative on error
+bool dmaSend(void *buffer, int size, bool blocking)
 {
-    // this is used for timers (which are inactive rn) - not a good idea to
-    // drive FPrime from here but could use it for timers (if carefully
-    // implemented with care taken for configSUPPORT_STATIC_ALLOCATION).
+    static Mutex resourceProtectionMutex; // quick and dirty. prevents multiple Tasks from trying this at once
+    // sciSend(m_sci, size, static_cast<uint8_t *>(buffer));
+    // return true;
+    resourceProtectionMutex.lock();
+
+    if (blocking)
+    {
+        while (dmaWriteBusy)
+        {
+            vTaskDelay(DMA_SEND_POLLING_CHECK_INTERVAL); // Check back in every X ticks (don't hog the processor)
+        };
+    }
+    else if (dmaWriteBusy)
+    {
+        return false;
+    }
+    sciDMASend(SCILIN_TX_DMA_CH, static_cast<char *>(buffer), size, ACCESS_8_BIT, &dmaWriteBusy);
+    if (blocking)
+        pollDMASendFinished();
+
+    resourceProtectionMutex.unLock();
+    return true;
 }
 
-void vApplicationStackOverflowHook(void *xTask, char *pcTaskName)
+bool debugPrintfToWatchdog(const char *fmt, ...)
 {
-    printf("STACKOVERFLOW\n");
-//     while (true);
-    // something really bad happened
-    // TODO: [CWC] Might actually be a good idea to hang here so WatchDog resets us
-    // (make sure WD actually does that)
+    static Mutex sloppyResourceProtectionMutex; // quick and dirty. keeps multiple tasks from doing this at once.
+    if (fmt == NULL)
+    {
+        return false;
+    }
+
+    sloppyResourceProtectionMutex.lock();
+    memset(m_printBuffer, 0, sizeof(m_printBuffer));
+    sprintf(m_printBuffer, "DEBUG");
+    va_list args;
+    va_start(args, fmt); // @suppress("Function cannot be resolved")
+    vsnprintf(m_printBuffer + 5, sizeof(m_printBuffer) - 5, fmt, args);
+    va_end(args);
+
+    uint8_t *dataBuffer = reinterpret_cast<uint8_t *>(m_printBuffer);
+    size_t dataLen = static_cast<size_t>(strnlen(m_printBuffer, sizeof(m_printBuffer)));
+
+    bool success = dmaSend(dataBuffer, dataLen, true);;
+
+    sloppyResourceProtectionMutex.unLock();
+
+    return success;
 }
 
 void main(void)
 {
     /* USER CODE BEGIN (3) */
     _disable_interrupt_(); // Disable all interrupts during initialization (esp. important when we initialize RTI)
-
     _mpuInit_();
 
     gioInit();
-    Wf121::Wf121Serial::NotReadyForData(); // Tell the radio we're not ready for data yet.
-    i2cInit();
     sciInit();
-    adcInit();
-    spiInit();
     dmaEnable();
     scidmaInit();
     sciIntInit();
     scilinIntInit();
 
-    constructApp();
+    sciEnterResetState(m_sci);
+    sciSetBaudrate(m_sci, 57600);
+    sciExitResetState(m_sci);
 
-    rtiInit(); // Initialize RTI for RTOS Tick last
+    init_uart_test();
 
-    vTaskStartScheduler(); // Automatically enables IRQs
+    /* Block for 1s (1000ms) after each uart print attempt. */
+    const TickType_t xDelay = 1000 / portTICK_PERIOD_MS;
+    uint16_t uart_print_counter = 1;
+    uint16_t uart_print_success = 1;
 
-    // Something went very wrong with the RTOS if we end up here
+    while(1) {
+        if (debugPrintfToWatchdog("Hercules UART %u of %u\n", uart_print_success, uart_print_counter)) {
+            uart_print_success = uart_print_success + 1;
+        }
 
-    /* USER CODE END */
+        uart_print_counter = uart_print_counter + 1;
+        vTaskDelay( xDelay );
+    }
+
 }
+
+// -RAD-
+
+

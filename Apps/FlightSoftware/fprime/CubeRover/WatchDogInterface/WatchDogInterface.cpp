@@ -82,7 +82,7 @@ namespace CubeRover
 
         gioSetBit(spiPORT3, deploy_bit, 0);
 
-        Read_Temp();
+        // Read_Temp();
 
         // Let the Watchdog know we've booted, incl. current software version (useful for later Hercules Remote Programming):
         debugPrintfToWatchdog("Hercules Boot v.%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION);

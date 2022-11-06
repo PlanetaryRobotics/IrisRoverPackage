@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configuration XML_version="1.2" id="UARTConnection_0">
+        <instance XML_version="1.2" desc="UARTConnection_0" href="connections/uart_connection.xml" id="UARTConnection_0" xml="uart_connection.xml" xmlpath="connections"/>
+        <connection XML_version="1.2" id="UARTConnection_0">
+            <instance XML_version="1.2" href="drivers/gti_uart_driver.xml" id="drivers" xml="gti_uart_driver.xml" xmlpath="drivers"/>
+            <platform XML_version="1.2" id="platform_0">
+                <instance XML_version="1.2" desc="RM46L852_0" href="devices/rm46l852.xml" id="RM46L852_0" xml="rm46l852.xml" xmlpath="devices"/>
+            </platform>
+        </connection>
+    </configuration>
+</configurations>

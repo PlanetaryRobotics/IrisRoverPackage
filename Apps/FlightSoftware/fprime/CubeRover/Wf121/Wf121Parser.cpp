@@ -123,7 +123,7 @@ namespace Wf121
                 // think it's synced (so all BGAPI messages, even pre-sync ones, make it through):
                 have_seen_a_dm_heartbeart_since_boot = true;
             }
-            // Reset state if BGAPI passthrough was just turned on:
+            // Reset state if BGAPI passthrough was just toggled:
             if (prevPassthroughState != passthroughState)
             {
                 m_currentState = Mpsm::State::WAITING_FOR_VALID_BGAPI_HEADER;

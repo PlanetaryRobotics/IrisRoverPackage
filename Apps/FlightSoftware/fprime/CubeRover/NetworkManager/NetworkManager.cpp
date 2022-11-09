@@ -297,11 +297,11 @@ namespace CubeRover
         // NOTE: Not actually a warning but sent using the `WARNING_LO` queue
         // because it has high importance, a (comparatively) large buffer,
         // and not many events use the `WARNING_LO` queue.
-        log_WARNING_LO_RadioSendBgApiCommandAck(
+        /*log_WARNING_LO_RadioSendBgApiCommandAck(
             packetId,
             targetCrc32,
             computedCrc32,
-            status);
+            status);*/
 
         // Signal that we're done:
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
@@ -315,7 +315,7 @@ namespace CubeRover
                 packets have been processed recently and what the outcomes were. */
     void NetworkManagerComponentImpl::Downlink_BgApi_Command_Records_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
-        U32 cmdSeq,          /*!< The command sequence number*/
+        U32 cmdSeq          /*!< The command sequence number*/
     )
     {
         // Grab records:

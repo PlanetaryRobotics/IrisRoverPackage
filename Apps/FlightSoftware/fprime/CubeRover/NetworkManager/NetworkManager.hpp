@@ -56,15 +56,6 @@ namespace CubeRover
         // (^should be able to pull these straight from `reset_values_possible` enum)
     };
 
-    /*
-     * Simple struct containing data about what happened to a command.
-     * (See `Send_BgApi_Command_cmdHandler` for more details)
-     */
-    struct BgApiCommandPassthroughRecord
-    {
-        uint32_t packetId = 0;
-        NetworkManagerComponentImpl::nm_radio_rec0_bgapi_command_ack_status resultingStatus = NetworkManagerComponentImpl::nm_radio_rec0_bgapi_command_ack_status::nm_bgapi_rec0_EMPTY_RECORD;
-    };
     // Number of entries to be stored in the
     // `m_bgApiCommandPassthroughRecordBook` queue (ultimately used for
     // `log_WARNING_LO_RadioBgApiCommandRecords`, so this number must be at
@@ -100,6 +91,16 @@ namespace CubeRover
         ~NetworkManagerComponentImpl(void);
 
         static nm_radio_communications_mode nmCurrentCommunicationMode;
+
+        /*
+         * Simple struct containing data about what happened to a command.
+         * (See `Send_BgApi_Command_cmdHandler` for more details)
+         */
+        struct BgApiCommandPassthroughRecord
+        {
+            uint32_t packetId = 0;
+            nm_radio_rec0_bgapi_command_ack_status resultingStatus = nm_radio_rec0_bgapi_command_ack_status::nm_bgapi_rec0_EMPTY_RECORD;
+        };
 
         PRIVATE :
 
@@ -201,6 +202,14 @@ namespace CubeRover
                             and the memory in the `CmdStringArg->m_buf` inside
                             Hercules would look like: [byte0, byte1, byte2, NULL].
                         */
+        );
+
+        //! Handler for command Downlink_BgApi_Command_Records
+        /* Triggers a `RadioBgApiCommandRecords` event to see what BgApi
+                    packets have been processed recently and what the outcomes were. */
+        void Downlink_BgApi_Command_Records_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq /*!< The command sequence number*/
         );
 
         // User defined methods, members, and structs

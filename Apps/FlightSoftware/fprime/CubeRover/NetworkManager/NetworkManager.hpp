@@ -63,7 +63,7 @@ namespace CubeRover
     struct BgApiCommandPassthroughRecord
     {
         uint32_t packetId = 0;
-        nm_radio_rec0_bgapi_command_ack_status resultingStatus = nm_radio_rec0_bgapi_command_ack_status::nm_bgapi_rec0_EMPTY_RECORD;
+        NetworkManagerComponentImpl::nm_radio_rec0_bgapi_command_ack_status resultingStatus = NetworkManagerComponentImpl::nm_radio_rec0_bgapi_command_ack_status::nm_bgapi_rec0_EMPTY_RECORD;
     };
     // Number of entries to be stored in the
     // `m_bgApiCommandPassthroughRecordBook` queue (ultimately used for
@@ -233,7 +233,7 @@ namespace CubeRover
         // Records of what happened to the last three uplinked BGAPI commands
         // processed as FIFO queue:
         // (See `Send_BgApi_Command_cmdHandler` for more details)
-        SimpleAsyncFifoBuffer<BgApiCommandPassthroughRecord, NUM_BGAPI_COMMAND_PASSTHROUGH_RECORDS> m_bgApiCommandPassthroughRecordBook;
+        Wf121::SimpleAsyncFifoBuffer<BgApiCommandPassthroughRecord, NUM_BGAPI_COMMAND_PASSTHROUGH_RECORDS> m_bgApiCommandPassthroughRecordBook;
 
         void update(); // Behavior of periodic status update
         void getUplinkDatagram();

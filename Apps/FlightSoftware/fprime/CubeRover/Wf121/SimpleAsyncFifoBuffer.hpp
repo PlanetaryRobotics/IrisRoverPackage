@@ -54,19 +54,6 @@ namespace Wf121
 
         inline bool is_full() { return num_entries == N; }
 
-        // Enqueues, returning success.
-        bool enqueue(T value)
-        {
-            if (is_full())
-            {
-                return false;
-            }
-            values[tail] = value;
-            tail = (tail + 1) % N;
-            num_entries++;
-            return true;
-        }
-
         // Dequeues a value, simply "removing it" (advancing the head past it).
         // Returns if anything was actually "removed".
         bool dequeue()
@@ -93,6 +80,31 @@ namespace Wf121
             head = (head + 1) % N;
             num_entries--;
             return true;
+        }
+
+        // Enqueues, returning success.
+        bool enqueue(T value)
+        {
+            if (is_full())
+            {
+                return false;
+            }
+            values[tail] = value;
+            tail = (tail + 1) % N;
+            num_entries++;
+            return true;
+        }
+
+        // Forcibly enqueues the given item, dequeuing an item first to make
+        // room if needed.
+        // (should always return `true` unless something's gone terribly wrong.)
+        bool force_enqueue(T value)
+        {
+            if (is_full())
+            {
+                dequeue();
+            }
+            return enqueue(value);
         }
 
         T *tail_ptr()

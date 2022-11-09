@@ -44,9 +44,12 @@ namespace CubeRover
     NetworkManagerComponentImpl ::
 #if FW_OBJECT_NAMES == 1
         NetworkManagerComponentImpl(
-            const char *const compName) : NetworkManagerComponentBase(compName), m_pRadioDriver(&CORE_RADIO_DRIVER)
+            const char *const compName) : NetworkManagerComponentBase(compName),
+                                          m_pRadioDriver(&CORE_RADIO_DRIVER),
+                                          m_bgApiCommandPassthroughRecordBook()
 #else
-        NetworkManagerComponentImpl(void) : m_pRadioDriver(&CORE_RADIO_DRIVER)
+        NetworkManagerComponentImpl(void) : m_pRadioDriver(&CORE_RADIO_DRIVER),
+                                            m_bgApiCommandPassthroughRecordBook()
 #endif
     {
         // Initialize process variables:
@@ -218,17 +221,17 @@ namespace CubeRover
                 Radio.
                 A `RadioSendBgApiCommandAck` event is emitted when this command is received */
     void NetworkManagerComponentImpl::Send_BgApi_Command_cmdHandler(
-        FwOpcodeType opCode,                /*!< The opcode*/
-        U32 cmdSeq,                         /*!< The command sequence number*/
-        U32 crc32,                          /*!<
-                                                 CRC32 of the packed BGAPI packet, as a uint32.
-                                             */
-        U32 packetId,                       /*!<
-                                              ID of the packet, assigned by ground. This is just
-                                              included in the response event so ground can know what
-                                              packet to resend if it needs to resend a packet.
-                                          */
-        const Fw::CmdStringArg &bgapiPacket /*!<
+        FwOpcodeType opCode,                        /*!< The opcode*/
+        U32 cmdSeq,                                 /*!< The command sequence number*/
+        U32 crc32,                                  /*!<
+                                                         CRC32 of the packed BGAPI packet, as a uint32.
+                                                     */
+        U32 packetId,                               /*!<
+                                                      ID of the packet, assigned by ground. This is just
+                                                      included in the response event so ground can know what
+                                                      packet to resend if it needs to resend a packet.
+                                                  */
+        const Fw::IrisCmdByteStringArg &bgapiPacket /*!<
                         The data as a 'string', with a MAX length of 134B
                         (4B of BGAPI header + 1B 'BGAPI uint8array' length byte
                         + 128B of data + 1B null termination). To increase this
@@ -250,19 +253,95 @@ namespace CubeRover
                     */
     )
     {
-        // ! TODO
+        // ! TODO: [CWC] (WORKING-HERE)
+
+        // Set default status:
+        // (data passed all validation and was sent to the Radio successfully over UART)
+        nm_radio_send_bgapi_command_ack_status status = nm_radio_send_bgapi_command_ack_status::nm_bgapi_send_SEND_SUCCESS;
+
+        // Grab data:
+        const char *bgapiPacketData = bgapiPacket.toChar();
+        /*NATIVE_INT_TYPE
+
+        // Compute CRC32 of data:
+        uint32_t computedCrc32 = 0xffffffffL;
+        FW_ASSERT(bgapiPacketData);
+        char c;
+        for (int index = 0; index < len; index++)
+        {
+            c = ((char *)data)[index];
+            local_hash_handle = update_crc_32(local_hash_handle, c);
+        }
+        HashBuffer bufferOut;
+        // For CRC32 we need to return the one's compliment of the result:
+        Fw::SerializeStatus status = bufferOut.serialize(~(local_hash_handle));
+        FW_ASSERT(Fw::FW_SERIALIZE_OK == status);
+        buffer = bufferOut;*/
+
+        // Check CRC32
+
+        // Status:
+        // Computed CRC of data received did not match target CRC received.
+        /*nm_radio_send_bgapi_command_ack_status::nm_bgapi_send_CRC_FAIL;
+         // All given data was valid but failed to send the packet to the Radio over UART. Try again?
+         nm_radio_send_bgapi_command_ack_status::nm_bgapi_send_UART_SEND_FAILED;
+         // Hercules is in the wrong state to do this (not in passthrough mode - need to send `Set_Radio_BgApi_Passthrough[passthrough=TRUE]` first).
+         nm_radio_send_bgapi_command_ack_status::nm_bgapi_send_BAD_STATE;*/
+
+        // Record the results in the record book (in case our ACK doesn't make
+        // it to ground and it needs to request records of what happened):
+        m_bgApiCommandPassthroughRecordBook.force_enqueue({packetId,
+                                                           static_cast<nm_radio_rec0_bgapi_command_ack_status>(status)});
+
+        // Log what happened here:
+        // NOTE: Not actually a warning but sent using the `WARNING_LO` queue
+        // because it has high importance, a (comparatively) large buffer,
+        // and not many events use the `WARNING_LO` queue.
+        log_WARNING_LO_RadioSendBgApiCommandAck(
+            packetId,
+            targetCrc32,
+            computedCrc32,
+            status);
+
+        // Signal that we're done:
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
 
         // Signal that we're done:
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR); // not impl. yet.
+    }
+
+    //! Handler for command Downlink_BgApi_Command_Records
+    /* Triggers a `RadioBgApiCommandRecords` event to see what BgApi
+                packets have been processed recently and what the outcomes were. */
+    void NetworkManagerComponentImpl::Downlink_BgApi_Command_Records_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+    )
+    {
+        // Grab records:
+        // (NOTE: FIFO queue reads them out oldest-first, but we'll
+        // downlink the records with oldest-last).
+        BgApiCommandPassthroughRecord records[NUM_BGAPI_COMMAND_PASSTHROUGH_RECORDS];
+        m_bgApiCommandPassthroughRecordBook.straighten_into(records);
+
+        // Send the log:
+        log_WARNING_LO_RadioBgApiCommandRecords(
+            records[2].packetId,
+            static_cast<nm_radio_rec0_bgapi_command_ack_status>(records[2].resultingStatus),
+            records[1].packetId,
+            static_cast<nm_radio_rec1_bgapi_command_ack_status>(records[1].resultingStatus),
+            records[0].packetId,
+            static_cast<nm_radio_rec2_bgapi_command_ack_status>(records[0].resultingStatus));
+
+        // Signal that we're done:
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
     // Helper function to convert RadioSwState (used inside RadioDriver) to
     // WIFIState (used by FPrime telem).
     // See `RadioSwState` in `Wf121/Wf121DirectMessage.hpp` for more details on
     // each state.
-    // TODO: [CWC] Update FPrime XML so this is 1-to-1 correspondence
-    //  - Make sure to get networkmanager_state_from/to
-    //  - (and add a RadioSwActivity) telem item while you're at it)
+    //  TODO: [CWC] Consider also adding a RadioSwActivity telem item?
     NetworkManagerComponentBase::WIFIState NetworkManagerComponentImpl::convertRadioState2WifiState(Wf121::DirectMessage::RadioSwState state)
     {
         switch (state)

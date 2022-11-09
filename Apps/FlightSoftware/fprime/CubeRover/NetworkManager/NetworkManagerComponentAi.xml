@@ -145,7 +145,7 @@
                         packet to resend if it needs to resend a packet.
                     </comment>
                 </arg>
-                <arg name="bgapiPacket" type="string" size="134">
+                <arg name="bgapiPacket" type="Fw::IrisCmdByteStringArg" size="134">
                     <comment>
                         The data as a 'string', with a MAX length of 134B 
                         (4B of BGAPI header + 1B 'BGAPI uint8array' length byte 
@@ -168,6 +168,13 @@
                     </comment>
                 </arg>
             </args>
+        </command>
+
+        <command kind="sync" opcode="0x04" mnemonic="Downlink_BgApi_Command_Records">
+            <comment>
+                Triggers a `RadioBgApiCommandRecords` event to see what BgApi
+                packets have been processed recently and what the outcomes were.
+            </comment>
         </command>
     </commands>
 
@@ -379,14 +386,7 @@
 
         <event id="7" name="RadioSendBgApiCommandAck" severity="WARNING_LO" format_string="Got BGAPI Command Send #%d. Target CRC: 0x%08X. Computed CRC: 0x%08X. Status: %s.">
             <comment>
-                Fired in response to a `Send_BgApi_Command` command. 
-                `from` will always be the state before the command. 
-                `to` will always be the requested state in the command. 
-                `changeMade` indicates whether the change was actually 
-                (successfully) changed. It can be false because either the 
-                change was not able to be made or because it didn't need to be 
-                made (requested state is the current state).
- 
+                Fired in response to a `Send_BgApi_Command` command.
 
                 Not actually a warning but sent using the `WARNING_LO` queue 
                 because it has high importance, a (comparatively) large buffer, 
@@ -417,6 +417,97 @@
                         <item name="nm_bgapi_send_UART_SEND_FAILED"  value="0xDA7AFA11" comment="All given data was valid but failed to send the packet to the Radio over UART. Try again?" />
                         <item name="nm_bgapi_send_BAD_STATE"  value="0xBAD57A7E"  comment="Hercules is in the wrong state to do this (not in passthrough mode - need to send `Set_Radio_BgApi_Passthrough[passthrough=TRUE]` first)." />
                         <item name="nm_bgapi_send_SEND_SUCCESS"  value="0x600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART." />
+                    </enum>
+                </arg>
+            </args>
+        </event>
+
+        <event id="8" name="RadioBgApiCommandRecords" severity="WARNING_LO" format_string="Got BGAPI Command Send #%d. Target CRC: 0x%08X. Computed CRC: 0x%08X. Status: %s.">
+            <comment>
+                Fired in response to a `Downlink_BgApi_Command_Records` command. 
+                Downlinks the GSW-Assigned `PacketId` of the last 3 
+                `Send_BgApi_Command` s processed by the NetworkManager as well 
+                as what the resulting status of that downlink was (used for 
+                ensuring all packets in a programming sequence are uplinked 
+                correctly and in the correct order).
+ 
+                Technically it's a bit hacky to just have three args with 
+                manually synced enums and, instead, this should be using an 
+                FPrime Array of custom erializables but we don't have that 
+                serialization built in our GDS and don't have time to add it 
+                since it would be non-trivial.
+ 
+                Not actually a warning but sent using the `WARNING_LO` queue 
+                because it has high importance, a (comparatively) large buffer, 
+                and not many events use the `WARNING_LO` queue.
+            </comment>
+            <args>
+                <arg name="packetId0" type="U32">
+                    <comment>
+                        GSW-Assigned Packet ID of the most recently processed BgApi Packet.
+                    </comment>
+                </arg>
+                <arg name="result0" type="ENUM">
+                    <comment>
+                        Result of processing the most recently processed BgApi Packet.
+                        NOTE: This enum needs to EXACTLY match 
+                        `nm_radio_send_bgapi_command_ack_status` in `status` of 
+                        `RadioSendBgApiCommandAck` (with the exception of 
+                        `_EMPTY_RECORD` which is used to indicate
+                        that the record is empty).
+                    </comment>
+                    <enum name="nm_radio_rec0_bgapi_command_ack_status">
+                        <item name="nm_bgapi_rec0_EMPTY_RECORD"  value="0x0000BA1D" comment="This record is empty (we haven't actually processed this many commands yet)." />
+                        <item name="nm_bgapi_rec0_CRC_FAIL"  value="0xC9C0FA11" comment="Computed CRC of data received did not match target CRC received." />
+                        <item name="nm_bgapi_rec0_UART_SEND_FAILED"  value="0xDA7AFA11" comment="All given data was valid but failed to send the packet to the Radio over UART. Try again?" />
+                        <item name="nm_bgapi_rec0_BAD_STATE"  value="0xBAD57A7E"  comment="Hercules is in the wrong state to do this (not in passthrough mode - need to send `Set_Radio_BgApi_Passthrough[passthrough=TRUE]` first)." />
+                        <item name="nm_bgapi_rec0_SEND_SUCCESS"  value="0x600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART." />
+                    </enum>
+                </arg>
+
+                <arg name="packetId1" type="U32">
+                    <comment>
+                        GSW-Assigned Packet ID of the 2nd most recently processed BgApi Packet.
+                    </comment>
+                </arg>
+                <arg name="result1" type="ENUM">
+                    <comment>
+                        Result of processing the 2nd most recently processed BgApi Packet.
+                        NOTE: This enum needs to EXACTLY match 
+                        `nm_radio_send_bgapi_command_ack_status` in `status` of 
+                        `RadioSendBgApiCommandAck` (with the exception of 
+                        `_EMPTY_RECORD` which is used to indicate
+                        that the record is empty).
+                    </comment>
+                    <enum name="nm_radio_rec1_bgapi_command_ack_status">
+                        <item name="nm_bgapi_rec1_EMPTY_RECORD"  value="0x0000BA1D" comment="This record is empty (we haven't actually processed this many commands yet)." />
+                        <item name="nm_bgapi_rec1_CRC_FAIL"  value="0xC9C0FA11" comment="Computed CRC of data received did not match target CRC received." />
+                        <item name="nm_bgapi_rec1_UART_SEND_FAILED"  value="0xDA7AFA11" comment="All given data was valid but failed to send the packet to the Radio over UART. Try again?" />
+                        <item name="nm_bgapi_rec1_BAD_STATE"  value="0xBAD57A7E"  comment="Hercules is in the wrong state to do this (not in passthrough mode - need to send `Set_Radio_BgApi_Passthrough[passthrough=TRUE]` first)." />
+                        <item name="nm_bgapi_rec1_SEND_SUCCESS"  value="0x600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART." />
+                    </enum>
+                </arg>
+
+                <arg name="packetId2" type="U32">
+                    <comment>
+                        GSW-Assigned Packet ID of the 3rd most recently processed BgApi Packet.
+                    </comment>
+                </arg>
+                <arg name="result2" type="ENUM">
+                    <comment>
+                        Result of processing the 3rd most recently processed BgApi Packet.
+                        NOTE: This enum needs to EXACTLY match 
+                        `nm_radio_send_bgapi_command_ack_status` in `status` of 
+                        `RadioSendBgApiCommandAck` (with the exception of 
+                        `_EMPTY_RECORD` which is used to indicate
+                        that the record is empty).
+                    </comment>
+                    <enum name="nm_radio_rec2_bgapi_command_ack_status">
+                        <item name="nm_bgapi_rec2_EMPTY_RECORD"  value="0x0000BA1D" comment="This record is empty (we haven't actually processed this many commands yet)." />
+                        <item name="nm_bgapi_rec2_CRC_FAIL"  value="0xC9C0FA11" comment="Computed CRC of data received did not match target CRC received." />
+                        <item name="nm_bgapi_rec2_UART_SEND_FAILED"  value="0xDA7AFA11" comment="All given data was valid but failed to send the packet to the Radio over UART. Try again?" />
+                        <item name="nm_bgapi_rec2_BAD_STATE"  value="0xBAD57A7E"  comment="Hercules is in the wrong state to do this (not in passthrough mode - need to send `Set_Radio_BgApi_Passthrough[passthrough=TRUE]` first)." />
+                        <item name="nm_bgapi_rec2_SEND_SUCCESS"  value="0x600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART." />
                     </enum>
                 </arg>
             </args>

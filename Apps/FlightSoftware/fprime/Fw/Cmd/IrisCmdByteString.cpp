@@ -56,7 +56,7 @@ namespace Fw
             this->actual_size = s;
         }
     }
-    NATIVE_UINT_TYPE IrisCmdByteStringArg::getActualSize(void)
+    NATIVE_UINT_TYPE IrisCmdByteStringArg::getActualSize(void) const
     {
         // Make sure actual_size wasn't corrupted somehow and won't cause an
         // out-of-bounds issue:
@@ -138,7 +138,7 @@ namespace Fw
         else
         {
             const char *ourData = this->toChar();
-            const char *otherData = other->toChar();
+            const char *otherData = other.toChar();
             if ((ourData == 0) or (otherData == 0))
             {
                 return false;
@@ -239,13 +239,13 @@ namespace Fw
 
     const CmdStringArg &IrisCmdByteStringArg::operator=(const CmdStringArg &other)
     {
-        this->copyBuff(other.m_buf, this->getCapacity());
+        this->copyBuff(other.toChar(), this->getCapacity());
         return *this;
     }
 
     const IrisCmdByteStringArg &IrisCmdByteStringArg::operator=(const IrisCmdByteStringArg &other)
     {
-        this->copyBuff(other.m_buf, this->getCapacity());
+        this->copyBuff(other.toChar(), this->getCapacity());
         this->setActualSize(other.getActualSize());
         return *this;
     }

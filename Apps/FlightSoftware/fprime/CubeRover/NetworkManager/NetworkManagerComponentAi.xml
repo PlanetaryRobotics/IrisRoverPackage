@@ -422,7 +422,7 @@
             </args>
         </event>
 
-        <event id="8" name="RadioBgApiCommandRecords" severity="WARNING_LO" format_string="Got BGAPI Command Send #%d. Target CRC: 0x%08X. Computed CRC: 0x%08X. Status: %s.">
+        <event id="8" name="RadioBgApiCommandRecords" severity="WARNING_LO" format_string="BGAPI Command Records:\n\t Most Recent:\n\t\t GSW Packet ID: %d \t->\t %s\n\t 2nd Most Recent:\n\t\t GSW Packet ID: %d \t->\t %s\n\t 3rd Most Recent:\n\t\t GSW Packet ID: %d \t->\t %s">
             <comment>
                 Fired in response to a `Downlink_BgApi_Command_Records` command. 
                 Downlinks the GSW-Assigned `PacketId` of the last 3 

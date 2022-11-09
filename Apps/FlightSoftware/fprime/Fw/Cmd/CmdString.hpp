@@ -39,16 +39,11 @@ namespace Fw
         char m_buf[FW_CMD_STRING_MAX_SIZE];
     };
 
-/*
- * Variant of `CmdStringArg`, included here so its available everywhere
- * `CmdStringArg` is which allows
- */
+}
 
-// Include #IrisCmdBufferString here so it's it's available everywhere
+// Include `IrisCmdBufferString` here so it's available everywhere
 // `CmdStringArg` is (so it can be used as a simple alternative to `string`
 // in FPrime XML):
 #include <Fw/Cmd/IrisCmdByteString.hpp>
-
-}
 
 #endif

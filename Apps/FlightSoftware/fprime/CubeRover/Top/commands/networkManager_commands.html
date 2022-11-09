@@ -121,7 +121,7 @@ html {
 					</tr>
 					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
 						<td>bgapiPacket</td>
-						<td>Fw::CmdStringArg</td>
+						<td>Fw::IrisCmdByteStringArg</td>
 						<td>
                         The data as a 'string', with a MAX length of 134B 
                         (4B of BGAPI header + 1B 'BGAPI uint8array' length byte 
@@ -143,6 +143,15 @@ html {
                         Hercules would look like: [byte0, byte1, byte2, NULL].
                     </td>
 					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">Downlink_BgApi_Command_Records</td>
+			<td rowspan="1">2564 (0xa04)</td>
+			<td rowspan="1">Triggers a `RadioBgApiCommandRecords` event to see what BgApi
+                packets have been processed recently and what the outcomes were.</td>
+				<td></td>
+				<td></td>
+				<td></td>
 		</tr>
 	</tbody>
 </table>

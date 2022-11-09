@@ -40,6 +40,8 @@ namespace Fw
         IrisCmdByteStringArg(void);
         ~IrisCmdByteStringArg(void);
 
+        const char *toChar(void) const;
+
         // Returns the number of bytes, EXCLUDING the null termination
         NATIVE_UINT_TYPE length(void) const;
 
@@ -80,7 +82,7 @@ namespace Fw
 
     protected:
         void setActualSize(NATIVE_UINT_TYPE s);
-        NATIVE_UINT_TYPE getActualSize(void);
+        NATIVE_UINT_TYPE getActualSize(void) const;
     };
 
 }

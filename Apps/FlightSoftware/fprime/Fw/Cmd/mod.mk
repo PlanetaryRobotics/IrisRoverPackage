@@ -19,11 +19,13 @@ SRC = \
 	CmdRegPortAi.xml \
 	CmdArgBuffer.cpp \
 	CmdPacket.cpp \
-	CmdString.cpp
+	CmdString.cpp \
+	IrisCmdByteString.cpp
 	
 	
 HDR =  \
 	CmdArgBuffer.hpp \
 	CmdPacket.hpp \
-	CmdString.hpp
+	CmdString.hpp \
+	IrisCmdByteString.hpp
 

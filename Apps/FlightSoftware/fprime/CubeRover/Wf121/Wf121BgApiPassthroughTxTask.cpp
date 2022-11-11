@@ -50,7 +50,7 @@ namespace Wf121
 
     Wf121BgApiPassthroughTxTask::Wf121BgApiPassthroughTxTask(BgApi::BgApiDriver *bgapid)
         : m_pBgApiDriver(bgapid),
-        : m_keepRunning(true),
+          m_keepRunning(true),
           m_isRunning(false)
     {
         // Set up write buffer:
@@ -154,7 +154,7 @@ namespace Wf121
      *
      * @return Whether the new message was enqueued successfully.
      */
-    bool Wf121BgApiPassthroughTxTask::enqueueMessage(BgApiPassthroughMessage *pMsg, TickType_t blockingTicks)
+    bool Wf121BgApiPassthroughTxTask::enqueueMessage(Wf121BgApiPassthroughTxTask::BgApiPassthroughMessage *pMsg, TickType_t blockingTicks)
     {
         // Push data into inter-process status Queue:
         // NOTE: This is *NOT* a circular buffer. Data is just dropped if it
@@ -199,7 +199,7 @@ namespace Wf121
      *
      * @return Whether the new status was enqueued successfully.
      */
-    bool Wf121BgApiPassthroughTxTask::enqueueMessageResponse(BgApiCommandSendStatusMessage *pStatus)
+    bool Wf121BgApiPassthroughTxTask::enqueueMessageResponse(Wf121BgApiPassthroughTxTask::BgApiCommandSendStatusMessage status)
     {
         // Push data into inter-process status Queue:
         // NOTE: This is *NOT* a circular buffer. Data is just dropped if it
@@ -218,7 +218,7 @@ namespace Wf121
             // precaution.
             // NOTE: This send procedure is a **COPY** (so we don't care
             // about `pStatus` after this).
-            if (xQueueSend(m_xBgApiTxStatusQueue, (void *)pStatus, WF121_BGAPI_PASSTHROUGH_STATUS_ENQUEUE_WAIT_TICKS) == pdPASS)
+            if (xQueueSend(m_xBgApiTxStatusQueue, (void *)&status, WF121_BGAPI_PASSTHROUGH_STATUS_ENQUEUE_WAIT_TICKS) == pdPASS)
             {
                 // Enqueued successfully.
                 return true;
@@ -264,7 +264,7 @@ namespace Wf121
      *
      * @return Whether a new status was found.
      */
-    bool Wf121BgApiPassthroughTxTask::getMessageResponse(BgApiCommandSendStatusMessage *pStatus, TickType_t blockingTicks)
+    bool Wf121BgApiPassthroughTxTask::getMessageResponse(Wf121BgApiPassthroughTxTask::BgApiCommandSendStatusMessage *pStatus, TickType_t blockingTicks)
     {
         if (m_xBgApiTxStatusQueue != NULL)
         {
@@ -338,7 +338,7 @@ namespace Wf121
      *
      * @return The resulting status of the send operation.
      */
-    BgApiCommandSendStatus Wf121BgApiPassthroughTxTask::attemptSend(BgApiPassthroughMessage *pMsg)
+    Wf121BgApiPassthroughTxTask::BgApiCommandSendStatus Wf121BgApiPassthroughTxTask::attemptSend(Wf121BgApiPassthroughTxTask::BgApiPassthroughMessage *pMsg)
     {
         // Only attempt to send if we need to send non-zero number of bytes:
         if (pMsg->dataLen == 0 || pMsg->dataLen > WF121_BGAPI_PASSTHROUGH_MAX_MESSAGE_SIZE)
@@ -368,7 +368,7 @@ namespace Wf121
         // response):
         // READ THE COMMENT IN THE FUNCTION FOR SOME PRECAUTIONS IF YOU'RE
         // THINKING ABOUT USING IT ELSEWHERE.
-        m_pRadioDriver->m_networkInterface.AwaitCommandResponse();
+        m_pBgApiDriver->AwaitCommandResponse();
 
         // block task until we can send those bytes:
         bool sendSuccess = false;
@@ -471,8 +471,13 @@ namespace Wf121
             {
                 // If pass through isn't enabled, don't send this data...
                 // and let the outside world know:
-                task->enqueueMessageResponse({xBgApiTxWorkingData.packetId,
-                                              BgApiCommandSendStatus::BAD_STATE});
+
+                task->enqueueMessageResponse(//-
+                    { //-
+                        .packetId = xBgApiTxWorkingData.packetId, //-
+                        .resultingStatus = BgApiCommandSendStatus::BAD_STATE //-
+                    } //-
+                );
                 // Then just wait for it to come back up...
                 while (!Wf121::persistentBgApiPassthroughEnabled())
                 {
@@ -488,8 +493,12 @@ namespace Wf121
             BgApiCommandSendStatus status = task->attemptSend(&xBgApiTxWorkingData);
 
             // Enqueue whatever the status was:
-            task->enqueueMessageResponse({xBgApiTxWorkingData.packetId,
-                                          status});
+            task->enqueueMessageResponse( //-
+                { //-
+                    .packetId = xBgApiTxWorkingData.packetId, //-
+                    .resultingStatus = status //-
+                } //-
+            );
 
             // ... next loop we do it all over again.
         }

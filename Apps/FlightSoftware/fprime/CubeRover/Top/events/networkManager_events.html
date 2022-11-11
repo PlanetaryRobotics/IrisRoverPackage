@@ -179,7 +179,12 @@ html {
 
                 Not actually a warning but sent using the `WARNING_LO` queue 
                 because it has high importance, a (comparatively) large buffer, 
-                and not many events use the `WARNING_LO` queue.</td>
+                and not many events use the `WARNING_LO` queue.
+
+                NOTE: CRC values will only be populated if command FAILED
+                validation (for any reason, including CRC failure). If status
+                indicates there was no validation error, both CRCs will be
+                `0xFF'FF'FF'FF`.</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
 						<td>packetId</td>
 						<td>U32</td>
@@ -190,13 +195,13 @@ html {
 						<td>targetCrc32</td>
 						<td>U32</td>
 						<td></td>
-						<td>Uplinked CRC32 (as received).</td>
+						<td>Uplinked CRC32 (as received), or `0xFF'FF'FF'FF` if no validation error.</td>
 					</tr>
 					<tr style = "border-right: 2px solid black;">
 						<td>computedCrc32</td>
 						<td>U32</td>
 						<td></td>
-						<td>CRC32 of the `bgapiPacket` received, as a uint32.</td>
+						<td>CRC32 of the `bgapiPacket` received, as a uint32, or `0xFF'FF'FF'FF` if no validation error.</td>
 					</tr>
 					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
 						<td>status</td>
@@ -217,7 +222,7 @@ html {
  
                 Technically it's a bit hacky to just have three args with 
                 manually synced enums and, instead, this should be using an 
-                FPrime Array of custom erializables but we don't have that 
+                FPrime Array of custom serializables but we don't have that 
                 serialization built in our GDS and don't have time to add it 
                 since it would be non-trivial.
  

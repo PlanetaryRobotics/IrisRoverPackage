@@ -1638,11 +1638,6 @@ namespace Wf121
       return m_bgApiStatus.isProcessingCmd();
     }
 
-    bool BgApiDriver::CommandIsProcessing()
-    {
-      return m_bgApiStatus.isProcessingCmd();
-    }
-
     // Tell Hercules' BGAPI processor that it should be awaiting a command
     // response.
     //

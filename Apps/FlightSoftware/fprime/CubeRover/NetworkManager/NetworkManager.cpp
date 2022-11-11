@@ -22,9 +22,6 @@
 #include "Fw/Types/BasicTypes.hpp"
 #include <cstring>
 
-// Load CRC32 Hash tools:
-#include <Utils/Hash/libcrc/CRC32.hpp>
-
 #include <CubeRover/Wf121/Timestamp.hpp>
 #include <CubeRover/Wf121/Wf121DirectMessage.hpp>
 #include <CubeRover/Wf121/Wf121SerialInterface.hpp>
@@ -39,7 +36,7 @@ namespace CubeRover
     static uint32_t computeCrc32(const char *bufferData, const NATIVE_INT_TYPE bufferLen)
     {
         // Compute CRC32 of data:
-        uint32_t computedCrc32 = 0xffffffffL;
+        unsigned long computedCrc32 = 0xffffffffL;
         FW_ASSERT(bufferData);
         char c;
         for (int index = 0; index < bufferLen; index++)
@@ -87,7 +84,6 @@ namespace CubeRover
 
         // Initialize working buffers with known sentinel bytes:
         m_bgApiMsgOutWorkingBuffer.clear();
-        m_bgApiStatusInWorkingBuffer.clear();
     }
 
     void NetworkManagerComponentImpl ::
@@ -358,9 +354,9 @@ namespace CubeRover
             // This is handled in `schedIn_handler`.
             m_bgApiMsgOutWorkingBuffer.packetId = packetId;
             m_bgApiMsgOutWorkingBuffer.dataLen = bgApiPacketLen;
-            m_bgApiMsgOutWorkingBuffer.expectResponse = expectResponse;
+            m_bgApiMsgOutWorkingBuffer.expectResponse = expectResponseBool;
             memcpy(m_bgApiMsgOutWorkingBuffer.rawData, bgapiPacketData, bgApiPacketLen);
-            m_pRadioDriver->m_serialBgApiPassthroughTxTask.enqueueMessage(m_bgApiMsgOutWorkingBuffer);
+            m_pRadioDriver->m_serialBgApiPassthroughTxTask.enqueueMessage(&m_bgApiMsgOutWorkingBuffer);
 
             // Signal that we're done (and the command worked okay, results are pending...)
             this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
@@ -499,7 +495,7 @@ namespace CubeRover
                 m_bgApiStatusInWorkingBuffer.packetId,
                 0xFF'FF'FF'FF,
                 0xFF'FF'FF'FF,
-                m_bgApiStatusInWorkingBuffer.resultingStatus //-
+                static_cast<nm_radio_send_bgapi_command_ack_status>(m_bgApiStatusInWorkingBuffer.resultingStatus) //-
             );
         }
     }

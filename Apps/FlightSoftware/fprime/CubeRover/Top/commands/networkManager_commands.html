@@ -98,9 +98,9 @@ html {
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="4">Send_BgApi_Command</td>
-			<td rowspan="4">2563 (0xa03)</td>
-			<td rowspan="4">Forwards the given BGAPI command (packed as binary) to the 
+			<td rowspan="5">Send_BgApi_Command</td>
+			<td rowspan="5">2563 (0xa03)</td>
+			<td rowspan="5">Forwards the given BGAPI command (packed as binary) to the 
                 Radio. 
                 A `RadioSendBgApiCommandAck` event is emitted when this command is received</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
@@ -119,11 +119,23 @@ html {
                         packet to resend if it needs to resend a packet.
                     </td>
 					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>expectResponse</td>
+						<td>nm_radio_send_bgapi_command_expect_response</td>
+						<td>
+                        Whether or not we should expect (and wait for) a BGAPI 
+                        response from the Radio after sending this command 
+                        (certain BGAPI DFU flashing operations don't return a 
+                        response). Setting this correctly will ensure fast and
+                        reliable data transfers. Using an enum here instead of
+                        a bool because it's easier to detect corruption with
+                    </td>
+					</tr>
 					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
 						<td>bgapiPacket</td>
 						<td>Fw::IrisCmdByteStringArg</td>
 						<td>
-                        The data as a 'string', with a MAX length of 134B 
+                        The data as a 'byte string', with a MAX length of 134B 
                         (4B of BGAPI header + 1B 'BGAPI uint8array' length byte 
                         + 128B of data + 1B null termination). To increase this 
                         limit, you'll likely need to bump up 

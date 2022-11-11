@@ -47,8 +47,16 @@
                         included in the response event so ground can know what 
                         packet to resend if it needs to resend a packet.
                     |
+| | | |expectResponse|nm_radio_send_bgapi_command_expect_response|
+                        Whether or not we should expect (and wait for) a BGAPI 
+                        response from the Radio after sending this command 
+                        (certain BGAPI DFU flashing operations don't return a 
+                        response). Setting this correctly will ensure fast and
+                        reliable data transfers. Using an enum here instead of
+                        a bool because it's easier to detect corruption with
+                    |
 | | | |bgapiPacket|Fw::IrisCmdByteStringArg|
-                        The data as a 'string', with a MAX length of 134B 
+                        The data as a 'byte string', with a MAX length of 134B 
                         (4B of BGAPI header + 1B 'BGAPI uint8array' length byte 
                         + 128B of data + 1B null termination). To increase this 
                         limit, you'll likely need to bump up 
@@ -129,10 +137,15 @@
 
                 Not actually a warning but sent using the `WARNING_LO` queue 
                 because it has high importance, a (comparatively) large buffer, 
-                and not many events use the `WARNING_LO` queue.| | | | |
+                and not many events use the `WARNING_LO` queue.
+
+                NOTE: CRC values will only be populated if command FAILED
+                validation (for any reason, including CRC failure). If status
+                indicates there was no validation error, both CRCs will be
+                `0xFF'FF'FF'FF`.| | | | |
 | | | |packetId|U32||Packet ID given from ground.|
-| | | |targetCrc32|U32||Uplinked CRC32 (as received).|
-| | | |computedCrc32|U32||CRC32 of the `bgapiPacket` received, as a uint32.|
+| | | |targetCrc32|U32||Uplinked CRC32 (as received), or `0xFF'FF'FF'FF` if no validation error.|
+| | | |computedCrc32|U32||CRC32 of the `bgapiPacket` received, as a uint32, or `0xFF'FF'FF'FF` if no validation error.|
 | | | |status|nm_radio_send_bgapi_command_ack_status||Status of the `Send_BgApi_Command`.|
 |RadioBgApiCommandRecords|8 (0x8)|Fired in response to a `Downlink_BgApi_Command_Records` command. 
                 Downlinks the GSW-Assigned `PacketId` of the last 3 
@@ -143,7 +156,7 @@
  
                 Technically it's a bit hacky to just have three args with 
                 manually synced enums and, instead, this should be using an 
-                FPrime Array of custom erializables but we don't have that 
+                FPrime Array of custom serializables but we don't have that 
                 serialization built in our GDS and don't have time to add it 
                 since it would be non-trivial.
  

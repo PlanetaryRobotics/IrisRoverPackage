@@ -47,7 +47,8 @@ static const TickType_t WF121_BGAPI_READY_TO_SEND_POLLING_CHECK_INTERVAL = 200 /
 
 // Max number of bytes that can be sent in one BGAPI passthrough message (based
 // on the fact that we have to uplink that data as a string).
-static NATIVE_UINT_TYPE WF121_BGAPI_PASSTHROUGH_MAX_MESSAGE_SIZE = FW_CMD_ARG_BUFFER_MAX_SIZE;
+// NOTE: Needs to be a define (not a const int) because it's used to size arrays.
+#define WF121_BGAPI_PASSTHROUGH_MAX_MESSAGE_SIZE FW_CMD_ARG_BUFFER_MAX_SIZE
 
 // Max number of FreeRTOS Scheduler ticks to allow the
 // `Wf121BgApiPassthroughTxTask` to wait for the Status Queue to become free
@@ -79,7 +80,7 @@ namespace Wf121
         // This is a subset and not identical because a number of the failure
         // cases in `nm_radio_send_bgapi_command_ack_status` will happen before
         // a message even gets posted to this Task's input queue.
-        enum class BgApiCommandSendStatus : I32
+        enum class BgApiCommandSendStatus : U32
         {
             // Bad length received (decoded). Either 0 or bigger than max
             // possible size: WF121_BGAPI_PASSTHROUGH_MAX_MESSAGE_SIZE. This
@@ -124,7 +125,7 @@ namespace Wf121
         // from the main FPrime task to this task.
         struct BgApiPassthroughMessage
         {
-            BgApiPassthroughMessage() : packetId(0), dataLen(0) {}
+            BgApiPassthroughMessage() : packetId(0), dataLen(0), expectResponse(true) {}
             // GSW-Assigned ID of the packet:
             uint32_t packetId;
             // Number of bytes in the comm buffer (i.e. number of bytes read / to be
@@ -149,7 +150,7 @@ namespace Wf121
         /**
          * @brief Constructor. Does not start the task.
          */
-        explicit Wf121BgApiPassthroughTxTask();
+        explicit Wf121BgApiPassthroughTxTask(BgApi::BgApiDriver *bgapid);
 
         /**
          * @brief Destructor. Stops the task if it is currently running.
@@ -281,7 +282,7 @@ namespace Wf121
          *
          * @return Whether the new status was enqueued successfully.
          */
-        bool enqueueMessageResponse(BgApiCommandSendStatusMessage *pStatus);
+        bool enqueueMessageResponse(BgApiCommandSendStatusMessage status);
 
         /**
          * @brief Waits until the Radio's BGS is done processing any outstanding

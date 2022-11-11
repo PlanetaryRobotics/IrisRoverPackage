@@ -1,1 +1,0 @@
-Parameters: ['/Peregrine/FCPU/TMGR/TCS_DECKD_1/TCS_DECKD_1', '/Peregrine/FCPU/TMGR/TCS_DECKD_2/TCS_DECKD_2', '/Peregrine/FCPU/TMGR/TCS_DECKD_3/TCS_DECKD_3', '/Peregrine/payloads/iris/iris-payload-tm-rs422', '/Peregrine/payloads/iris/iris-payload-tm-wlan', '/Peregrine/PL1/SLIPsvc@3Status', '/Peregrine/PL1/WIFIsvc@3Status']

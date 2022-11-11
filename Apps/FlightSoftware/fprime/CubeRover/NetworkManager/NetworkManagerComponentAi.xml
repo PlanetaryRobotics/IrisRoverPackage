@@ -156,7 +156,7 @@
                     </comment>
                     <enum name="nm_radio_send_bgapi_command_expect_response">
                         <item name="nm_bgapi_cmd_EXPECT_RESPONSE"  value="0xFFFF9E59" comment="Hercules SHOULD expect the Radio to return a response to this command." />
-                        <item name="nm_bgapi_cmd_DONT_EXPECT_RESPONSE"  value="BA1D0000" comment="Hercules SHOULD NOT expect the Radio to return a response to this command." />
+                        <item name="nm_bgapi_cmd_DONT_EXPECT_RESPONSE"  value="0xBA1D0000" comment="Hercules SHOULD NOT expect the Radio to return a response to this command." />
                     </enum>
                 </arg>
                 <arg name="bgapiPacket" type="Fw::IrisCmdByteStringArg" size="134">

@@ -1,0 +1,40 @@
+usage: datastandards_lookup.py [-h] [-a] [-l] [-t] [-m MODULE_NAME]
+                               [-f PRINT_TO_FILE]
+
+IRIS Lunar Rover — Data Standards Lookup — CLI
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -a, --all             Prints all the Data Standards
+  -l, --list-modules    Lists the names of modules registered in the Data
+                        Standards.
+  -t, --telem-count     Lists (and counts) all telemetry channels (useful for
+                        sizing hash buckets in FSW).
+  -m MODULE_NAME, --module-name MODULE_NAME
+                        Print standards just for the module with the given
+                        name.
+  -f PRINT_TO_FILE, --print-to-file PRINT_TO_FILE
+                        Print standards to the excel file with the given name
+                        (ignoring xlsx extension).
+[1m[40m[35mAll Registered Modules:[0m
+	 [34m0x0100: [0m [32mModule[256]::BlockDriver[0m
+	 [34m0x0200: [0m [32mModule[512]::RateGroupDriver[0m
+	 [34m0x0300: [0m [32mModule[768]::ActiveRateGroup-RateGroupLowFreq[0m
+	 [34m0x0400: [0m [32mModule[1024]::ActiveRateGroup-RateGroupMedFreq[0m
+	 [34m0x0500: [0m [32mModule[1280]::ActiveRateGroup-RateGroupHiFreq[0m
+	 [34m0x0600: [0m [32mModule[1536]::CubeRoverTime[0m
+	 [34m0x0700: [0m [32mModule[1792]::TlmChan[0m
+	 [34m0x0800: [0m [32mModule[2048]::CommandDispatcher[0m
+	 [34m0x0900: [0m [32mModule[2304]::GroundInterface[0m
+	 [34m0x0A00: [0m [32mModule[2560]::NetworkManager[0m
+	 [34m0x0B00: [0m [32mModule[2816]::ActiveLogger[0m
+	 [34m0x0D00: [0m [32mModule[3328]::Navigation[0m
+	 [34m0x0E00: [0m [32mModule[3584]::MotorControl[0m
+	 [34m0x0F00: [0m [32mModule[3840]::Imu[0m
+	 [34m0x1000: [0m [32mModule[4096]::WatchDogInterface[0m
+	 [34m0x1100: [0m [32mModule[4352]::Camera[0m
+	 [34m0xEF00: [0m [32mModule[61184]::RadioGround[0m
+	 [34m0xFA00: [0m [32mModule[64000]::WatchdogHeartbeatTvac[0m
+	 [34m0xFB00: [0m [32mModule[64256]::WatchdogHeartbeat[0m
+	 [34m0xFC00: [0m [32mModule[64512]::WatchdogDetailedStatus[0m
+	 [34m0xFD00: [0m [32mModule[64768]::WatchdogCommandResponse[0m

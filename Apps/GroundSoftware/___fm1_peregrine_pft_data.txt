@@ -1,0 +1,864 @@
+[32m
+
+Received at SCET 2022-11-11T14:39:45.446Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  74.3°K]
+[32m
+
+Received at SCET 2022-11-11T14:40:11.665Z:[0m
+#0 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 1.77V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    264    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.21V  1.77V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 00 00 00 00 38 00 00 00 00 00 67 00 41 40 88 40 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.@....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:40:11.706Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:40:37.805Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:41:03.977Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:41:30.193Z:[0m
+#1 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 3.7mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    488    3296    3136    128      1           1         0
+val  0.00V  0.00V  0.21V  3.26V  25.55V  27.80V  0.99V  3.7mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 01 00 00 00 38 00 00 00 00 00 67 00 21 40 8F 40 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.!@.@....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:41:30.234Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:41:56.324Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:42:22.493Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:42:48.700Z:[0m
+#2 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    488    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 02 00 00 00 38 00 00 00 00 00 67 00 41 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:42:48.741Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:43:14.820Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:43:41.000Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:44:07.223Z:[0m
+#3 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 3.7mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     32    488    3296    3136    128      1           1          32
+val  0.00V  0.00V  0.21V  3.26V  25.55V  27.80V  0.99V  3.7mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 03 00 00 00 38 00 00 00 00 00 67 02 21 40 8F 40 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.!@.@....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:44:07.265Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  74.3°K]
+[32m
+
+Received at SCET 2022-11-11T14:44:33.360Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:44:59.557Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:45:25.784Z:[0m
+#4 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    488    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.21V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 04 00 00 00 38 00 00 00 00 00 67 00 41 40 8F 40 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.@....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:45:25.825Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:45:51.929Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:46:18.105Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:46:31.240Z:[0m
+#5 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 3.7mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    488    3296    3136    128      1           1         0
+val  0.00V  0.00V  0.21V  3.26V  25.55V  27.80V  0.99V  3.7mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 05 00 00 00 38 00 00 00 00 00 67 00 21 40 8F 40 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.!@.@....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:46:44.324Z:[0m
+#6 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    488    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.21V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 06 00 00 00 38 00 00 00 00 00 67 00 41 40 8F 40 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.@....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:46:44.366Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:47:10.459Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:47:36.634Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:48:02.841Z:[0m
+#7 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    488    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 07 00 00 00 38 00 00 00 00 00 67 00 41 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:48:02.882Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:48:28.958Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:48:55.118Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:49:21.327Z:[0m
+#8 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    488    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 08 00 00 00 38 00 00 00 00 00 67 00 41 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:49:21.368Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:49:47.444Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:50:13.617Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:50:39.839Z:[0m
+#9 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 3.7mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    488    3296    3136    128      1           1         0
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  3.7mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 09 00 00 00 38 00 00 00 00 00 67 00 21 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.!@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:50:39.881Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:51:05.987Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  74.3°K]
+[32m
+
+Received at SCET 2022-11-11T14:51:32.175Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:51:58.426Z:[0m
+#10 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    488    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 0A 00 00 00 38 00 00 00 00 00 67 00 41 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:51:58.467Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:52:24.583Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  69.4°K]
+[32m
+
+Received at SCET 2022-11-11T14:52:50.789Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:53:17.035Z:[0m
+#11 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.32V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    496    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.41V  3.32V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 0B 00 00 00 38 00 00 00 00 00 67 00 41 80 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A..A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:53:17.077Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:53:43.195Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:54:09.380Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:54:09.464Z:[0m
+#12 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 3.7mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    488    3296    3136    128      1           1         0
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  3.7mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 0C 00 00 00 38 00 00 00 00 00 67 00 21 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.!@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:54:35.589Z:[0m
+#13 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 3.32V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    496    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.21V  3.32V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 0D 00 00 00 38 00 00 00 00 00 67 00 41 80 8F 40 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A..@....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:54:35.630Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:55:01.730Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:55:27.933Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:55:54.174Z:[0m
+#14 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    488    3296    3136    128      2           1           8
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 0E 00 00 00 38 00 00 00 00 00 E7 00 41 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.......A@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:55:54.215Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:56:20.334Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  74.6°K]
+[32m
+
+Received at SCET 2022-11-11T14:56:46.529Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:57:12.767Z:[0m
+#15 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 3.7mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    488    3296    3136    128      1           1         112
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  3.7mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 0F 00 00 00 38 00 00 00 00 00 67 07 21 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.!@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:57:12.808Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  72.4°K]
+[32m
+
+Received at SCET 2022-11-11T14:57:38.913Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:58:05.092Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:58:31.320Z:[0m
+#16 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     32    488    3296    3136    128      2           1          24
+val  0.00V  0.00V  0.21V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 10 00 00 00 38 00 00 00 00 00 E7 01 41 40 8F 40 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.......A@.@....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:58:31.362Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  74.6°K]
+[32m
+
+Received at SCET 2022-11-11T14:58:57.457Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:59:23.659Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T14:59:49.902Z:[0m
+#17 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    488    3296    3136    128      2           1          16
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 11 00 00 00 38 00 00 00 00 00 67 01 41 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T14:59:49.943Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  74.6°K]
+[32m
+
+Received at SCET 2022-11-11T15:00:16.059Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:00:42.270Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:01:08.520Z:[0m
+#18 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 3.7mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    488    3296    3136    128      1           1         0
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  3.7mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 12 00 00 00 38 00 00 00 00 00 67 00 21 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.!@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:01:08.561Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:01:34.681Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  74.6°K]
+[32m
+
+Received at SCET 2022-11-11T15:01:47.825Z:[0m
+#19 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    488    3296    3136    128      2           1          16
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 13 00 00 00 38 00 00 00 00 00 67 01 41 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:02:00.881Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:02:27.130Z:[0m
+#20 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     32    488    3296    3136    128      2           1          16
+val  0.00V  0.00V  0.21V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 14 00 00 00 38 00 00 00 00 00 67 01 41 40 8F 40 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.@....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:02:27.171Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  74.6°K]
+[32m
+
+Received at SCET 2022-11-11T15:02:53.286Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:03:19.478Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:03:45.717Z:[0m
+#21 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 3.7mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    488    3296    3136    128      1           1         0
+val  0.00V  0.00V  0.21V  3.26V  25.55V  27.80V  0.99V  3.7mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 15 00 00 00 38 00 00 00 00 00 67 00 21 40 8F 40 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.!@.@....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:03:45.759Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:04:11.885Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:04:38.088Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:05:04.318Z:[0m
+#22 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    488    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 16 00 00 00 38 00 00 00 00 00 67 00 41 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:05:04.359Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:05:30.463Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:05:56.646Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:06:22.879Z:[0m
+#23 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.32V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    496    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.41V  3.32V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 17 00 00 00 38 00 00 00 00 00 67 00 41 80 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A..A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:06:22.920Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:06:49.032Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:07:15.237Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  69.8°K]
+[32m
+
+Received at SCET 2022-11-11T15:07:41.480Z:[0m
+#24 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 3.32V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     32    496    3296    3136    128      2           1          96
+val  0.00V  0.00V  0.21V  3.32V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 18 00 00 00 38 00 00 00 00 00 67 06 41 80 8F 40 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A..@....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:07:41.521Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  72.8°K]
+[32m
+
+Received at SCET 2022-11-11T15:08:07.625Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:08:33.807Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  73.5°K]
+[32m
+
+Received at SCET 2022-11-11T15:09:00.028Z:[0m
+#25 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.32V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    496    3296    3136    128      2           1           8
+val  0.00V  0.00V  0.41V  3.32V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 19 00 00 00 38 00 00 00 00 00 E7 00 41 80 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.......A..A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:09:00.069Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:09:26.159Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:09:26.242Z:[0m
+#26 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 397.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    488    3296    3136    128      2           1         304
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  397.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 1A 00 00 00 38 00 00 00 00 00 67 13 41 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:09:52.334Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:10:18.533Z:[0m
+#27 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    488    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 1B 00 00 00 38 00 00 00 00 00 67 00 41 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:10:18.574Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:10:44.664Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:11:10.836Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  67.1°K]
+[32m
+
+Received at SCET 2022-11-11T15:11:37.046Z:[0m
+#28 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    488    3296    3136    128      2           1           8
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 1C 00 00 00 38 00 00 00 00 00 E7 00 41 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.......A@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:11:37.088Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:12:03.182Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  72.4°K]
+[32m
+
+Received at SCET 2022-11-11T15:12:29.362Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:12:55.594Z:[0m
+#29 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 3.7mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 386.4K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    488    3296    3136    128      1           1         392
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  3.7mA  428.1±0.0K  386.4±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 1D 00 00 00 38 00 00 00 00 00 E7 18 21 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.......!@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:12:55.636Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  66.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:13:21.736Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:13:47.933Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:14:14.179Z:[0m
+#30 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    488    3296    3136    128      2           1         128
+val  0.00V  0.00V  0.41V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 1E 00 00 00 38 00 00 00 00 00 67 08 41 40 0F 41 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.A....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:14:14.221Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  72.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:14:40.330Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:15:06.523Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+[32m
+
+Received at SCET 2022-11-11T15:15:29.829Z:[0m
+#31 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    488    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.21V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 1F 00 00 00 38 00 00 00 00 00 67 00 41 40 8F 40 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.@....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:15:29.862Z:[0m
+> Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+[32m
+
+Received at SCET 2022-11-11T15:15:29.949Z:[0m
+#32 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 3.26V 	VL: 25.55V 	Vcc28: 27.80V 	VSA: 0.99V 	ISA: 7.4mA
+HEATER [268K |274K |273K] 	 is NOT_HEATING, Control: ENABLED 	@ 0.000W / 0.796W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    488    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.21V  3.26V  25.55V  27.80V  0.99V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 20 00 00 00 38 00 00 00 00 00 67 00 41 40 8F 40 00 C4 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  ..... ...8.....g.A@.@....4!..V....'............
+[32m
+
+Received at SCET 2022-11-11T15:15:32.727Z:[0m
+[HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]

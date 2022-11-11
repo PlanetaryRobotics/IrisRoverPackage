@@ -1,0 +1,9 @@
+ERROR:root:Problem while processing message. Closing connection
+Traceback (most recent call last):
+  File "/home/osiris/.pyenv/versions/py_irisbackendv3/lib/python3.8/site-packages/yamcs/core/subscriptions.py", line 144, in _on_websocket_message
+    self._callback(data)
+  File "/home/osiris/.pyenv/versions/py_irisbackendv3/lib/python3.8/site-packages/yamcs/tmtc/client.py", line 52, in _wrap_callback_parse_parameter_data
+    on_data(parameter_data)
+  File "./_pft_peregrine.py", line 78, in print_packet_data
+    packet_bytes = bytes.fromhex(packet_str)
+TypeError: fromhex() argument must be str, not bytes

@@ -1,4 +1,8 @@
 #include "Wf121SerialInterface.hpp"
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
+
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
+
 
 namespace Wf121
 {
@@ -273,6 +277,7 @@ namespace Wf121
                 // data.
                 // We don't want the system to freak out here, so we'll just
                 // silently drop the packets by returning true.
+                watchDogInterface.debugPrintfToWatchdog("RADIO: Writes not allowed");
                 return true;
             }
 
@@ -283,12 +288,14 @@ namespace Wf121
                 if (!blockUntilDmaSendFinished())
                 {
                     // we timed out, return false:
+                    watchDogInterface.debugPrintfToWatchdog("RADIO: DMA device block wait timeout");
                     return false;
                 }
             }
             else if (dmaWriteStatus.isBusy())
             {
                 // we're busy right now and can't write
+                watchDogInterface.debugPrintfToWatchdog("RADIO: Device is busy");
                 return false;
             }
 
@@ -311,6 +318,7 @@ namespace Wf121
 
             if (blocking)
             {
+                watchDogInterface.debugPrintfToWatchdog("RADIO: blocking while sending");
                 return blockUntilDmaSendFinished(); // returns false if times out
             }
             else

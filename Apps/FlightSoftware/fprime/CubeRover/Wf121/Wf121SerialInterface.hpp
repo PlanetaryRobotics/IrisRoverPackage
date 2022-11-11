@@ -26,6 +26,7 @@
 #define WF121_TX_DMA_CH SCI_TX_DMA_CH
 #define WF121_TX_DMA_ISR SCI_TX_DMA_ISR
 
+
 // How much the processor should wait before checking back in on dmaSend completion while polling for it.
 // NOTE: Polling only happens when DMA or the writeDone Semaphore aren't set up yet (which they always should be) - this is just a precaution to handle an edge case.
 // Since this is a high priority task, it's not a good idea for this to be 0 (though it *can* be zero) in order to prevent Task starvation.

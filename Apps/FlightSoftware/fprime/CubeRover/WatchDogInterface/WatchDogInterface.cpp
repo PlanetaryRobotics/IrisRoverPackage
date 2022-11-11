@@ -110,7 +110,12 @@ namespace CubeRover
         static uint32_t lastFailedStrokeMsgSendTime = 0;
         static uint16_t fiveSecDelayCnt = 0;
         if (fiveSecDelayCnt == 5) {
-            debugPrintfToWatchdog("%s %u\n",UART_TEST_REF_BUFF,sequenceNumber);
+            if (networkManager.sendRadioUartPkt((char *)UART_TEST_REF_BUFF)) {
+                debugPrintfToWatchdog("%s %u   SENT",UART_TEST_REF_BUFF,sequenceNumber);
+            } else {
+                debugPrintfToWatchdog("%s %u   DROP",UART_TEST_REF_BUFF,sequenceNumber);
+            }
+
             fiveSecDelayCnt = 0;
         } else {
             fiveSecDelayCnt = fiveSecDelayCnt + 1;

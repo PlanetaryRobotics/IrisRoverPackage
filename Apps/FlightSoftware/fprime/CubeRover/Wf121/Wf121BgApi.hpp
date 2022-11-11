@@ -1722,7 +1722,21 @@ namespace Wf121
 
       // Other functions
       ErrorCode processBgApiMessage(BgApiHeader *pHeader, uint16_t payloadLen, uint8_t *payloadData);
+      // Return whether Hercules' BGAPI processor is currently awaiting a
+      // command response.
       bool CommandIsProcessing();
+
+      // Tell Hercules' BGAPI processor that it should be awaiting a command
+      // response.
+      //
+      // **ONLY DO THIS IF YOU KNOW EXACTLY WHAT YOU'RE DOING.**
+      // Only really meaningful and not necessarily going to break things if
+      // you're bypassing the UdpTxTask, which should only be done in
+      // BgApiPassThrough mode (when the UdpTxTask is off), which again
+      // **SHOULD ONLY BE WORKED ON IF YOU REALLY KNOW WHAT YOU'RE DOING**.
+      // Talk to Connor Colombo (connor.w.colombo@gmail.com) if you have any
+      // questions.
+      void AwaitCommandResponse();
 
     protected:
       ErrorCode packCommBuffer(BgApiCommBuffer *targetCommBuffer,

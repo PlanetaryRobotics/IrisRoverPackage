@@ -81,10 +81,15 @@
         "variant": "cpp"
     },
     "cSpell.words": [
+        "asyncs",
+        "bgapid",
         "BGBH",
         "bitflip",
         "deinitialized",
         "heartbeart",
+        "kbps",
+        "networkmanager",
+        "RSSI",
         "SETINT",
         "SRAM"
     ]

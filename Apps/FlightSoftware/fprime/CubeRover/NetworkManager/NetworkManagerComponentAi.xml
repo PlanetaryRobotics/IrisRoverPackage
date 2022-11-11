@@ -145,9 +145,23 @@
                         packet to resend if it needs to resend a packet.
                     </comment>
                 </arg>
+                <arg name="expectResponse" type="ENUM">
+                    <comment>
+                        Whether or not we should expect (and wait for) a BGAPI 
+                        response from the Radio after sending this command 
+                        (certain BGAPI DFU flashing operations don't return a 
+                        response). Setting this correctly will ensure fast and
+                        reliable data transfers. Using an enum here instead of
+                        a bool because it's easier to detect corruption with
+                    </comment>
+                    <enum name="nm_radio_send_bgapi_command_expect_response">
+                        <item name="nm_bgapi_cmd_EXPECT_RESPONSE"  value="0xFFFF9E59" comment="Hercules SHOULD expect the Radio to return a response to this command." />
+                        <item name="nm_bgapi_cmd_DONT_EXPECT_RESPONSE"  value="BA1D0000" comment="Hercules SHOULD NOT expect the Radio to return a response to this command." />
+                    </enum>
+                </arg>
                 <arg name="bgapiPacket" type="Fw::IrisCmdByteStringArg" size="134">
                     <comment>
-                        The data as a 'string', with a MAX length of 134B 
+                        The data as a 'byte string', with a MAX length of 134B 
                         (4B of BGAPI header + 1B 'BGAPI uint8array' length byte 
                         + 128B of data + 1B null termination). To increase this 
                         limit, you'll likely need to bump up 
@@ -391,6 +405,11 @@
                 Not actually a warning but sent using the `WARNING_LO` queue 
                 because it has high importance, a (comparatively) large buffer, 
                 and not many events use the `WARNING_LO` queue.
+
+                NOTE: CRC values will only be populated if command FAILED
+                validation (for any reason, including CRC failure). If status
+                indicates there was no validation error, both CRCs will be
+                `0xFF'FF'FF'FF`.
             </comment>
             <args>
                 <arg name="packetId" type="U32">
@@ -400,12 +419,12 @@
                 </arg>
                 <arg name="targetCrc32" type="U32">
                     <comment>
-                        Uplinked CRC32 (as received).
+                        Uplinked CRC32 (as received), or `0xFF'FF'FF'FF` if no validation error.
                     </comment>
                 </arg>
                 <arg name="computedCrc32" type="U32">
                     <comment>
-                        CRC32 of the `bgapiPacket` received, as a uint32.
+                        CRC32 of the `bgapiPacket` received, as a uint32, or `0xFF'FF'FF'FF` if no validation error.
                     </comment>
                 </arg>
                 <arg name="status" type="ENUM">
@@ -413,10 +432,13 @@
                         Status of the `Send_BgApi_Command`.
                     </comment>
                     <enum name="nm_radio_send_bgapi_command_ack_status">
-                        <item name="nm_bgapi_send_CRC_FAIL"  value="0xC9C0FA11" comment="Computed CRC of data received did not match target CRC received." />
+                        <item name="nm_bgapi_send_BAD_EXPECT_RESPONSE_VAL"  value="0x0BADDA77" comment="Value for `expectResponse` didn't match any of the acceptable enum values. Suggests data corruption. Nothing will be sent to the Radio." />
+                        <item name="nm_bgapi_send_BAD_LEN"  value="0x0BADDA77" comment="Bad length received (decoded). Nothing was sent to the Radio. Either 0 or bigger than max possible size: WF121_BGAPI_PASSTHROUGH_MAX_MESSAGE_SIZE." />
+                        <item name="nm_bgapi_send_CRC_FAIL"  value="0xC9C0FA11" comment="Computed CRC of data received did not match target CRC received. Nothing was sent to the Radio." />
                         <item name="nm_bgapi_send_UART_SEND_FAILED"  value="0xDA7AFA11" comment="All given data was valid but failed to send the packet to the Radio over UART. Try again?" />
                         <item name="nm_bgapi_send_BAD_STATE"  value="0xBAD57A7E"  comment="Hercules is in the wrong state to do this (not in passthrough mode - need to send `Set_Radio_BgApi_Passthrough[passthrough=TRUE]` first)." />
-                        <item name="nm_bgapi_send_SEND_SUCCESS"  value="0x600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART." />
+                        <item name="nm_bgapi_send_SUCCESS_NO_RESP"  value="0x0005097A"  comment="Data passed all validation and was sent to the Radio successfully over UART but no response was received from the radio (this can be expected some BGAPI DFU flashing commands)." />
+                        <item name="nm_bgapi_send_SUCCESS"  value="0x600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART and a response was received from the radio (this doesn't necessarily happen for some BGAPI DFU flashing commands)." />
                     </enum>
                 </arg>
             </args>
@@ -433,7 +455,7 @@
  
                 Technically it's a bit hacky to just have three args with 
                 manually synced enums and, instead, this should be using an 
-                FPrime Array of custom erializables but we don't have that 
+                FPrime Array of custom serializables but we don't have that 
                 serialization built in our GDS and don't have time to add it 
                 since it would be non-trivial.
  
@@ -458,10 +480,13 @@
                     </comment>
                     <enum name="nm_radio_rec0_bgapi_command_ack_status">
                         <item name="nm_bgapi_rec0_EMPTY_RECORD"  value="0x0000BA1D" comment="This record is empty (we haven't actually processed this many commands yet)." />
-                        <item name="nm_bgapi_rec0_CRC_FAIL"  value="0xC9C0FA11" comment="Computed CRC of data received did not match target CRC received." />
+                        <item name="nm_bgapi_rec0_BAD_EXPECT_RESPONSE_VAL"  value="0x0BADDA77" comment="Value for `expectResponse` didn't match any of the acceptable enum values. Suggests data corruption. Nothing will be sent to the Radio." />
+                        <item name="nm_bgapi_rec0_BAD_LEN"  value="0x0BADDA77" comment="Bad length received (decoded). Nothing was sent to the Radio. Either 0 or bigger than max possible size: WF121_BGAPI_PASSTHROUGH_MAX_MESSAGE_SIZE." />
+                        <item name="nm_bgapi_rec0_CRC_FAIL"  value="0xC9C0FA11" comment="Computed CRC of data received did not match target CRC received. Nothing was sent to the Radio." />
                         <item name="nm_bgapi_rec0_UART_SEND_FAILED"  value="0xDA7AFA11" comment="All given data was valid but failed to send the packet to the Radio over UART. Try again?" />
                         <item name="nm_bgapi_rec0_BAD_STATE"  value="0xBAD57A7E"  comment="Hercules is in the wrong state to do this (not in passthrough mode - need to send `Set_Radio_BgApi_Passthrough[passthrough=TRUE]` first)." />
-                        <item name="nm_bgapi_rec0_SEND_SUCCESS"  value="0x600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART." />
+                        <item name="nm_bgapi_rec0_SUCCESS_NO_RESP"  value="0x0005097A"  comment="Data passed all validation and was sent to the Radio successfully over UART but no response was received from the radio, or we didn't look for a response if the command was flagged as `DONT_EXPECT_RESPONSE` (this can be expected for some BGAPI DFU flashing commands)." />
+                        <item name="nm_bgapi_rec0_SUCCESS"  value="0x600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART and a response was received from the radio (this doesn't necessarily happen for some BGAPI DFU flashing commands)." />
                     </enum>
                 </arg>
 
@@ -481,10 +506,13 @@
                     </comment>
                     <enum name="nm_radio_rec1_bgapi_command_ack_status">
                         <item name="nm_bgapi_rec1_EMPTY_RECORD"  value="0x0000BA1D" comment="This record is empty (we haven't actually processed this many commands yet)." />
-                        <item name="nm_bgapi_rec1_CRC_FAIL"  value="0xC9C0FA11" comment="Computed CRC of data received did not match target CRC received." />
+                        <item name="nm_bgapi_rec1_BAD_EXPECT_RESPONSE_VAL"  value="0x0BADDA77" comment="Value for `expectResponse` didn't match any of the acceptable enum values. Suggests data corruption. Nothing will be sent to the Radio." />
+                        <item name="nm_bgapi_rec1_BAD_LEN"  value="0x0BADDA77" comment="Bad length received (decoded). Nothing was sent to the Radio. Either 0 or bigger than max possible size: WF121_BGAPI_PASSTHROUGH_MAX_MESSAGE_SIZE." />
+                        <item name="nm_bgapi_rec1_CRC_FAIL"  value="0xC9C0FA11" comment="Computed CRC of data received did not match target CRC received. Nothing was sent to the Radio." />
                         <item name="nm_bgapi_rec1_UART_SEND_FAILED"  value="0xDA7AFA11" comment="All given data was valid but failed to send the packet to the Radio over UART. Try again?" />
                         <item name="nm_bgapi_rec1_BAD_STATE"  value="0xBAD57A7E"  comment="Hercules is in the wrong state to do this (not in passthrough mode - need to send `Set_Radio_BgApi_Passthrough[passthrough=TRUE]` first)." />
-                        <item name="nm_bgapi_rec1_SEND_SUCCESS"  value="0x600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART." />
+                        <item name="nm_bgapi_rec1_SUCCESS_NO_RESP"  value="0x0005097A"  comment="Data passed all validation and was sent to the Radio successfully over UART but no response was received from the radio, or we didn't look for a response if the command was flagged as `DONT_EXPECT_RESPONSE` (this can be expected for some BGAPI DFU flashing commands)." />
+                        <item name="nm_bgapi_rec1_SUCCESS"  value="0x600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART and a response was received from the radio (this doesn't necessarily happen for some BGAPI DFU flashing commands)." />
                     </enum>
                 </arg>
 
@@ -504,10 +532,13 @@
                     </comment>
                     <enum name="nm_radio_rec2_bgapi_command_ack_status">
                         <item name="nm_bgapi_rec2_EMPTY_RECORD"  value="0x0000BA1D" comment="This record is empty (we haven't actually processed this many commands yet)." />
-                        <item name="nm_bgapi_rec2_CRC_FAIL"  value="0xC9C0FA11" comment="Computed CRC of data received did not match target CRC received." />
+                        <item name="nm_bgapi_rec2_BAD_EXPECT_RESPONSE_VAL"  value="0x0BADDA77" comment="Value for `expectResponse` didn't match any of the acceptable enum values. Suggests data corruption. Nothing will be sent to the Radio." />
+                        <item name="nm_bgapi_rec2_BAD_LEN"  value="0x0BADDA77" comment="Bad length received (decoded). Nothing was sent to the Radio. Either 0 or bigger than max possible size: WF121_BGAPI_PASSTHROUGH_MAX_MESSAGE_SIZE." />
+                        <item name="nm_bgapi_rec2_CRC_FAIL"  value="0xC9C0FA11" comment="Computed CRC of data received did not match target CRC received. Nothing was sent to the Radio." />
                         <item name="nm_bgapi_rec2_UART_SEND_FAILED"  value="0xDA7AFA11" comment="All given data was valid but failed to send the packet to the Radio over UART. Try again?" />
                         <item name="nm_bgapi_rec2_BAD_STATE"  value="0xBAD57A7E"  comment="Hercules is in the wrong state to do this (not in passthrough mode - need to send `Set_Radio_BgApi_Passthrough[passthrough=TRUE]` first)." />
-                        <item name="nm_bgapi_rec2_SEND_SUCCESS"  value="0x600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART." />
+                        <item name="nm_bgapi_rec2_SUCCESS_NO_RESP"  value="0x0005097A"  comment="Data passed all validation and was sent to the Radio successfully over UART but no response was received from the radio, or we didn't look for a response if the command was flagged as `DONT_EXPECT_RESPONSE` (this can be expected for some BGAPI DFU flashing commands)." />
+                        <item name="nm_bgapi_rec2_SUCCESS"  value="0x600DDA7A"  comment="Data passed all validation and was sent to the Radio successfully over UART and a response was received from the radio (this doesn't necessarily happen for some BGAPI DFU flashing commands)." />
                     </enum>
                 </arg>
             </args>

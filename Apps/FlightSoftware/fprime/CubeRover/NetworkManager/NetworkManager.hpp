@@ -9,6 +9,8 @@
 // the `RadioDriver` and handle unresolvable Radio faults (mainly by resetting
 // the Radio).
 //
+// Built as a component in FPrime, which is provided by JPL with the following
+// acknowledgement:
 // \copyright
 // Copyright 2009-2015, by the California Institute of Technology.
 // ALL RIGHTS RESERVED.  United States Government Sponsorship
@@ -24,6 +26,7 @@
 #include "CubeRover/Wf121/Wf121.hpp"
 #include "CubeRover/Wf121/Wf121DirectMessage.hpp"
 #include "CubeRover/Wf121/SimpleAsyncFifoBuffer.hpp"
+#include "CubeRover/Wf121/Wf121BgApiPassthroughTxTask.hpp"
 
 namespace CubeRover
 {
@@ -172,36 +175,44 @@ namespace CubeRover
                     Radio.
                     A `RadioSendBgApiCommandAck` event is emitted when this command is received */
         void Send_BgApi_Command_cmdHandler(
-            FwOpcodeType opCode,                        /*!< The opcode*/
-            U32 cmdSeq,                                 /*!< The command sequence number*/
-            U32 crc32,                                  /*!<
-                                                             CRC32 of the packed BGAPI packet, as a uint32.
-                                                         */
-            U32 packetId,                               /*!<
-                                                          ID of the packet, assigned by ground. This is just
-                                                          included in the response event so ground can know what
-                                                          packet to resend if it needs to resend a packet.
-                                                      */
-            const Fw::IrisCmdByteStringArg &bgapiPacket /*!<
-                            The data as a 'string', with a MAX length of 134B
-                            (4B of BGAPI header + 1B 'BGAPI uint8array' length byte
-                            + 128B of data + 1B null termination). To increase this
-                            limit, you'll likely need to bump up
-                            'FW_COM_BUFFER_MAX_SIZE' and 'FW_CMD_STRING_MAX_SIZE'
-                            in 'fprime/Fw/Cfg/Config.hpp' (read the notes there for
-                            more information about required padding). Note that
-                            increasing the max string size has a pretty big effect
-                            on the total program size in memory.
-
-
-                            Here string here just means a null terminated char
-                            array. To be specific, the NULL termination is EXCLUDED
-                            from the length and does NOT need to be (and should not
-                            be) included in the data sent. That is, if length is 3,
-                            the data sent would be [0x00, 0x03, byte0, byte1, byte2]
-                            and the memory in the `CmdStringArg->m_buf` inside
-                            Hercules would look like: [byte0, byte1, byte2, NULL].
-                        */
+            FwOpcodeType opCode,                                                                     /*!< The opcode*/
+            U32 cmdSeq,                                                                              /*!< The command sequence number*/
+            U32 crc32,                                                                               /*!<
+                                                                                                          CRC32 of the packed BGAPI packet, as a uint32.
+                                                                                                      */
+            U32 packetId,                                                                            /*!<
+                                                                                                       ID of the packet, assigned by ground. This is just
+                                                                                                       included in the response event so ground can know what
+                                                                                                       packet to resend if it needs to resend a packet.
+                                                                                                   */
+            NetworkManagerComponentImpl::nm_radio_send_bgapi_command_expect_response expectResponse, /*!<
+                                                                                                        Whether or not we should expect (and wait for) a BGAPI
+                                                                                                        response from the Radio after sending this command
+                                                                                                        (certain BGAPI DFU flashing operations don't return a
+                                                                                                        response). Setting this correctly will ensure fast and
+                                                                                                        reliable data transfers. Using an enum here instead of
+                                                                                                        a bool because it's easier to detect corruption with
+                                                                                                    */
+            const Fw::IrisCmdByteStringArg &bgapiPacket                                              /*!<
+                                                                                                        The data as a 'byte string', with a MAX length of 134B
+                                                                                                        (4B of BGAPI header + 1B 'BGAPI uint8array' length byte
+                                                                                                        + 128B of data + 1B null termination). To increase this
+                                                                                                        limit, you'll likely need to bump up
+                                                                                                        'FW_COM_BUFFER_MAX_SIZE' and 'FW_CMD_STRING_MAX_SIZE'
+                                                                                                        in 'fprime/Fw/Cfg/Config.hpp' (read the notes there for
+                                                                                                        more information about required padding). Note that
+                                                                                                        increasing the max string size has a pretty big effect
+                                                                                                        on the total program size in memory.
+                                             
+                                             
+                                                                                                        Here string here just means a null terminated char
+                                                                                                        array. To be specific, the NULL termination is EXCLUDED
+                                                                                                        from the length and does NOT need to be (and should not
+                                                                                                        be) included in the data sent. That is, if length is 3,
+                                                                                                        the data sent would be [0x00, 0x03, byte0, byte1, byte2]
+                                                                                                        and the memory in the `CmdStringArg->m_buf` inside
+                                                                                                        Hercules would look like: [byte0, byte1, byte2, NULL].
+                                                                                                    */
         );
 
         //! Handler for command Downlink_BgApi_Command_Records
@@ -209,7 +220,7 @@ namespace CubeRover
                     packets have been processed recently and what the outcomes were. */
         void Downlink_BgApi_Command_Records_cmdHandler(
             FwOpcodeType opCode, /*!< The opcode*/
-            U32 cmdSeq /*!< The command sequence number*/
+            U32 cmdSeq           /*!< The command sequence number*/
         );
 
         // User defined methods, members, and structs
@@ -239,12 +250,22 @@ namespace CubeRover
         // Buffer for data uplinked through the Radio via UDP:
         Wf121::UdpRxPayload m_uplinkBuffer;
 
+        // Working buffer for outbound BgApi Passthrough Messages (out to `Wf121BgApiPassthroughTxTask`):
+        Wf121::Wf121BgApiPassthroughTxTask::BgApiPassthroughMessage m_bgApiMsgOutWorkingBuffer;
+        // Working buffer for inbound BgApi Passthrough Message Statuses (as an async response from `Wf121BgApiPassthroughTxTask`):
+        Wf121::Wf121BgApiPassthroughTxTask::BgApiCommandSendStatusMessage m_bgApiStatusInWorkingBuffer;
         // Records of what happened to the last three uplinked BGAPI commands
         // processed as FIFO queue:
         // (See `Send_BgApi_Command_cmdHandler` for more details)
-        Wf121::SimpleAsyncFifoBuffer<BgApiCommandPassthroughRecord, NUM_BGAPI_COMMAND_PASSTHROUGH_RECORDS> m_bgApiCommandPassthroughRecordBook;
+        Wf121::SimpleAsyncFifoBuffer<BgApiCommandPassthroughRecord, NUM_BGAPI_COMMAND_PASSTHROUGH_RECORDS>
+            m_bgApiCommandPassthroughRecordBook;
 
-        void update(); // Behavior of periodic status update
+        // Behavior of periodic status update:
+        void update();
+        // Check for any new asynchronous responses to BGAPI Passthrough
+        // messages (and handle them):
+        void checkForBgApiPassthroughResponse();
+        // Get any uplinked data (and pass to `GroundInterface`):
         void getUplinkDatagram();
 
         // Helper function to convert RadioSwState (used inside RadioDriver) to

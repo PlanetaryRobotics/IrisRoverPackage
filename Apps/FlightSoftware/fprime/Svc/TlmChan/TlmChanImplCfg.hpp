@@ -49,7 +49,7 @@ namespace
         TLMCHAN_HASH_MOD_VALUE = 250, // !< The modulo value of the hashing function.
                                       // Should be set to a little below the ID gaps to spread the entries around
 
-        TLMCHAN_HASH_BUCKETS = 72 // !< Buckets assignable to a hash slot.
+        TLMCHAN_HASH_BUCKETS = 70 // !< Buckets assignable to a hash slot.
                                   // Buckets must be >= number of telemetry channels in system
         // At the time of writing, there are 71 total telemetry channels in the system (used GSW to count across all FPrime XML):
         /*
@@ -73,7 +73,7 @@ namespace
         But only those with *s are connected to `TlmChan` in Top, so this
         number could go as low as: 68 + some room = 70
         */
-        // ... So, 72 plays it a little safe (in case any are added last minute but we forget to update this).
+        // ... So, 70 plays it a little safe (in case any are added last minute but we forget to update this).
     };
 
 }

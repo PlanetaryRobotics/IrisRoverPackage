@@ -63,9 +63,9 @@ namespace CubeRover
             g3 = g0 >> 3;
 
         crc = 0xFF'FF'FF'FF;
-        for (i = 0, i < bufferLen; i++)
+        for (i = 0; i < bufferLen; i++)
         { // Get next byte.
-            byte = message[i];
+            byte = bufferData[i];
             crc = crc ^ byte;
             for (j = 1; j >= 0; j--)
             { // Do two times.

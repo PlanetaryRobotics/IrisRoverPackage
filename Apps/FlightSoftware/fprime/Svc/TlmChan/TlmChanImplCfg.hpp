@@ -38,6 +38,7 @@
 //        ... (Other buckets in the slot)
 //     The number of buckets assigned to each slot can be checked for balance.
 
+// ^ NOTE: Alternatively, GroundSoftware/datastandards_lookup.py can list all telem in system.
 namespace
 {
 
@@ -47,9 +48,9 @@ namespace
                                          // Works best when set to about twice the number of components producing telemetry
         // At the time of writing, there are only 12 components producing telem, but only 10 are connected. So 2*10=20 + some room (it used to be 30 as default)=22
         TLMCHAN_HASH_MOD_VALUE = 250, // !< The modulo value of the hashing function.
-                                      // Should be set to a little below the ID gaps to spread the entries around
+                                      // Should be set to a little below the ID gaps to spread the entries around (ID gap is 256)
 
-        TLMCHAN_HASH_BUCKETS = 70 // !< Buckets assignable to a hash slot.
+        TLMCHAN_HASH_BUCKETS = 74 // !< Buckets assignable to a hash slot.
                                   // Buckets must be >= number of telemetry channels in system
         // At the time of writing, there are 71 total telemetry channels in the system (used GSW to count across all FPrime XML):
         /*
@@ -74,6 +75,7 @@ namespace
         number could go as low as: 68 + some room = 70
         */
         // ... So, 70 plays it a little safe (in case any are added last minute but we forget to update this).
+        // ... NOTE: Freed up extra system mem so bumped this up to 74.
     };
 
 }

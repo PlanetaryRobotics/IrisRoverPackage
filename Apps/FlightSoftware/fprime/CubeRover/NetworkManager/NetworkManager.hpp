@@ -28,9 +28,6 @@
 #include "CubeRover/Wf121/SimpleAsyncFifoBuffer.hpp"
 #include "CubeRover/Wf121/Wf121BgApiPassthroughTxTask.hpp"
 
-// Load CRC32 Hash tools:
-#include "Utils/Hash/libcrc/CRC32.hpp"
-
 namespace CubeRover
 {
 

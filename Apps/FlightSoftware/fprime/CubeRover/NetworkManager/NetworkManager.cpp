@@ -32,21 +32,70 @@ extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 namespace CubeRover
 {
-    // Local helper function that computes the CRC32 of the given buffer:
+    //
+
+    /**
+     * @brief Local helper function that computes the CRC32 of the given buffer.
+     * Runs in ~ 6 + 38*n (best of evaluated non-lookup-table-based methods).
+     * This is the only we'll use a CRC32 in the entire codebase, so it's not
+     * worth devoting precious RAM to it (if calculating on first call as in
+     * CRC32.hpp) and storing a giant static lookup table in flash is just
+     * asking for a cosmic bitflip to make this entire operation not work.
+     *
+     * NOTE: For BGAPI Passthrough, GSW should use this EXACT algorithm for
+     * CRC32 compute.
+     *
+     * Derived from: https://web.archive.org/web/20190108202303/http://www.hackersdelight.org/hdcodetxt/crc.c.txt
+     * License: https://web.archive.org/web/20190716204559/http://www.hackersdelight.org/permissions.htm
+     *
+     * @param bufferData
+     * @param bufferLen
+     * @return CRC32
+     */
     static uint32_t computeCrc32(const char *bufferData, const NATIVE_INT_TYPE bufferLen)
     {
-        // Compute CRC32 of data:
-        unsigned long computedCrc32 = 0xffffffffL;
-        FW_ASSERT(bufferData);
-        char c;
-        for (int index = 0; index < bufferLen; index++)
-        {
-            c = ((char *)bufferData)[index];
-            computedCrc32 = update_crc_32(computedCrc32, c);
+        int i, j;
+        unsigned int byte, crc, c;
+        const unsigned int      //-
+            g0 = 0xED'B8'83'20, //-
+            g1 = g0 >> 1,       //-
+            g2 = g0 >> 2,       //-
+            g3 = g0 >> 3;
+
+        crc = 0xFF'FF'FF'FF;
+        for (i = 0, i < bufferLen; i++)
+        { // Get next byte.
+            byte = message[i];
+            crc = crc ^ byte;
+            for (j = 1; j >= 0; j--)
+            { // Do two times.
+                // clang-format off
+                switch(crc & 0xF) {
+                    case  0: c = 0;                  break;
+                    case  1: c =                g3;  break;
+                    case  2: c =           g2;       break;
+                    case  3: c =           g2 ^ g3;  break;
+                    case  4: c =      g1;            break;
+                    case  5: c =      g1 ^      g3;  break;
+                    case  6: c =      g1 ^ g2;       break;
+                    case  7: c =      g1 ^ g2 ^ g3;  break;
+                    case  8: c = g0;                 break;
+                    case  9: c = g0 ^           g3;  break;
+                    case 10: c = g0 ^      g2;       break;
+                    case 11: c = g0 ^      g2 ^ g3;  break;
+                    case 12: c = g0 ^ g1;            break;
+                    case 13: c = g0 ^ g1 ^      g3;  break;
+                    case 14: c = g0 ^ g1 ^ g2;       break;
+                    case 15: c = g0 ^ g1 ^ g2 ^ g3;  break;
+                }
+                // clang-format on
+                crc = (crc >> 4) ^ c;
+            }
+            i = i + 1;
         }
+
         // For CRC32 we need to return the one's compliment of the result:
-        computedCrc32 = ~(computedCrc32);
-        return computedCrc32;
+        return ~crc;
     }
 
     // Set nmCurrentCommunicationMode to the default:

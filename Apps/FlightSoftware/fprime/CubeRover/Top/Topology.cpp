@@ -128,11 +128,12 @@ CubeRover::CameraComponentImpl camera(
 );
 
 // ---------------------------------------------------------------------------
-Svc::HealthImpl health(
-#if FW_OBJECT_NAMES == 1
-    "Health"
-#endif
-);
+// NOTE: Removed Health (we don't use it and this buys us >4kB of RAM)
+//Svc::HealthImpl health(
+//#if FW_OBJECT_NAMES == 1
+//    "Health"
+//#endif
+//);
 
 // ---------------------------------------------------------------------------
 CubeRover::WatchDogInterfaceComponentImpl watchDogInterface(
@@ -247,6 +248,7 @@ void constructApp(void)
 
     // Set Health Ping Entries
     // TODO: [CWC] Look into why all this is commented and if we should reactivate it.
+    // NOTE (later in time): Removed Health (we don't use it and this buys us >4kB of RAM)
     // **** THIS IS WHERE YOU CAN ADD ANY COMPONENTS THAT HAVE HEALTH PINGS ****
     // Svc::HealthImpl::PingEntry pingEntries[] = {
     // {3, 5, name.getObjName()},

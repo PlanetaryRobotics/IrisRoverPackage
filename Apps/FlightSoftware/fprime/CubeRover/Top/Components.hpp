@@ -70,7 +70,8 @@ extern CubeRover::NetworkManagerComponentImpl networkManager;
 // extern Drv::FreeRtosSerialDriverComponentImpl radioSerialInterface;
 
 // Health
-extern Svc::HealthImpl health;
+// NOTE: Removed Health (we don't use it and this buys us >4kB of RAM)
+//extern Svc::HealthImpl health;
 
 // Watchdog
 extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;

@@ -14,6 +14,7 @@
     "cSpell.words": [
         "ABBRS",
         "af",
+        "Alogseteventreportfilter",
         "amcc",
         "apicmd",
         "apicmdevt",
@@ -94,6 +95,8 @@
         "iloc",
         "ilock",
         "inet",
+        "INPUTDISABLED",
+        "INPUTWARNINGHI",
         "interp",
         "ipmc",
         "ipmh",

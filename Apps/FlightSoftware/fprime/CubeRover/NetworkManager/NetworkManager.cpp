@@ -91,7 +91,6 @@ namespace CubeRover
                 // clang-format on
                 crc = (crc >> 4) ^ c;
             }
-            i = i + 1;
         }
 
         // For CRC32 we need to return the one's compliment of the result:

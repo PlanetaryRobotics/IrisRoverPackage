@@ -414,6 +414,18 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRED
     ),
 
+    # Test FPrime Echo Command (a CommandDispatcher No-op):
+    # (should see this echoed back in a log - good for testing bidirectional
+    # FPrime string encoding/decoding):
+    'fprime-cmd-echo': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'CommandDispatcher_Cmdnoopstring',
+        # enable filter entry to disable that log ID:
+        OrderedDict(arg1='Hello Command Dispatcher!'),
+        DataPathway.WIRED
+    ),
+
     # Suppress (filter out) GiDownlinkedPacket logs (ID <0x0903>):
     'active-logger-suppress-GiDownlinkedPacket': (
         DataPathway.WIRED,
@@ -457,12 +469,23 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRED
     ),
 
+    # Triggers a `RadioBgApiCommandRecords` event to see what BgApi
+    # packets have been processed recently and what the outcomes were.
+    'radio-bgapi-passthru-cmd-dump': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_DownlinkBgApiCommandRecords',
+        OrderedDict(),
+        DataPathway.WIRED
+    ),
+
     # Turn off WARNING_HI logs (e.g. ImuAngleWarning spamming us)
     'active-logger-turn-off-warning-hi': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'ActiveLogger_Alogseteventreportfilter',
-        OrderedDict(filter_level='INPUTWARNINGHI', filter_enable='INPUTDISABLED'),
+        OrderedDict(filter_level='INPUTWARNINGHI',
+                    filter_enable='INPUTDISABLED'),
         DataPathway.WIRED
     ),
 

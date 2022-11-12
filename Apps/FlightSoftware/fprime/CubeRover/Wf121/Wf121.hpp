@@ -43,7 +43,7 @@ namespace Wf121
   // These three parameters control the setup of the task that handles sending BGAPI passthrough data for the WF121 Radio:
   static const NATIVE_INT_TYPE WF121_BGAPI_PASSTHROUGH_TX_TASK_PRIORITY = WF121_UDP_TX_TASK_PRIORITY; // Match WF121_UDP_TX_TASK_PRIORITY
   // NOTE: Stack size is in words. Make sure there's enough room for the overhead (min task size) plus some overhead. Use `uxTaskGetStackHighWaterMark(NULL)` to tune.
-  static const NATIVE_INT_TYPE WF121_BGAPI_PASSTHROUGH_TX_TASK_STACK_SIZE = configMINIMAL_STACK_SIZE + 256; // Doesn't handle BGAPI callback processing so it can be much shallower than the RX task.
+  static const NATIVE_INT_TYPE WF121_BGAPI_PASSTHROUGH_TX_TASK_STACK_SIZE = configMINIMAL_STACK_SIZE + 64; // Doesn't handle BGAPI callback processing so it can be much shallower than the RX task.
   static const NATIVE_INT_TYPE WF121_BGAPI_PASSTHROUGH_TX_TASK_CPU_AFFINITY = -1;
 
   // Use an enum of specific values - not just a bool - so memory corruption /

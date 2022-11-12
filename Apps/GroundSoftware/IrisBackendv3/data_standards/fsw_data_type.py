@@ -4,7 +4,7 @@
 Enum for Representing FPrime Datatypes as Python Struct Strings.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 09/14/2022
+@last-updated: 11/12/2022
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -27,6 +27,10 @@ class Category(Enum):
     ENUM = 0x02
     STRING = 0x03  # Fixed-length string
     VARSTRING = 0x04  # Variable length string
+    # Special Iris Serializable Type for uplinking arbitrary byte sequences
+    # (made forBGAPI Passthrough):
+    # Equivalent to custom `Fw::IrisCmdByteStringArg` in FSW.
+    IRISBYTESTRING = 0x05
 
 
 class FswDataType(Enum):
@@ -88,6 +92,17 @@ class FswDataType(Enum):
     STRING240 = 'H240s', 'char[240]', Category.STRING, str
     # Variable length string with max length of 255:
     VARSTRING_255 = 'H255s', 'char[/*up to*/255]', Category.VARSTRING, str
+
+    # Special Iris Serializable Type for uplinking arbitrary byte sequences
+    # (made forBGAPI Passthrough):
+    # Equivalent to custom `Fw::IrisCmdByteStringArg` in FSW.
+    #
+    # NOTE: Size here is just the max. Actual encoded/decoded size is
+    # variable and will be determined based on the data):
+    # NOTE: Size must always be << `FW_COM_BUFFER_MAX_SIZE` in
+    # `fprime/Fw/Cfg/Config.hpp`).
+    IRISBYTESTRING134 = 'H134s', 'char[/*up to*/134]', Category.IRISBYTESTRING, bytes
+
     # Invalid / Unsupported Type:
     INVALID = '', 'invalid', Category.EMPTY, type(None), 0
 
@@ -113,12 +128,14 @@ class FswDataType(Enum):
         @param data: The data that has this type (only needed for variable
         length strings).
         """
-        if self.category not in [Category.VARSTRING, Category.STRING]:
+        if self.category not in [Category.VARSTRING, Category.STRING, Category.IRISBYTESTRING]:
             return self.num_octets
         else:
             # FPrime packs all strings (variable length or not) as just the
             # data given (so a STRING50 that only uses 10B will only be sent as
             # 10B with a length of 0x000A).
+            # Note: `Fw::IrisCmdByteStringArg` is derived from strings in FPrime.
+            # Serialization is the same, it just also allows 0x00 anywhere in its contents.
 
             # Make sure data was given:
             if data is None:

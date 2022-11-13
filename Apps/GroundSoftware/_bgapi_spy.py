@@ -19,6 +19,7 @@ import serial_asyncio  # type: ignore
 from multi_await import multi_await  # type: ignore
 import scapy.all as scp  # type: ignore
 from termcolor import cprint, colored
+import logging
 
 import IrisBackendv3.codec.bgapi as bgapi
 
@@ -31,15 +32,33 @@ app_context_default: Dict[str, Any] = {
     'baud': 115200,
     # Serial devices to listen to:
     # SBC RX (connected to XCVR RX pin)
-    'radio_tx_device': '/dev/cu.usbserial-A50285BI',
+    'radio_tx_device': '/dev/cu.usbserial-3',
+    # 'radio_tx_device': '/dev/cu.usbserial-A50285BI',
     # SBC TX (connected to XCVR RX pin)
-    'herc_tx_device': '/dev/cu.usbserial-3',
-    'listen_to_herc_tx': False,
-    'listen_to_radio_tx': True
+    # 'herc_tx_device': '/dev/cu.usbserial-3',
+    'herc_tx_device': '/dev/cu.usbserial-A50285BI',
+    'listen_to_herc_tx': True,
+    'listen_to_radio_tx': False
 }
 DATETIME_FORMAT_STR: Final[str] = '%m-%d %H:%M:%S.%f'
 
 # Special message types that wrap primitives (so we can check type in Queue receiver):
+
+
+logger = logging.getLogger(__file__)
+file_log_handler = logging.FileHandler('___bgapi_spy.log')
+logger.addHandler(file_log_handler)
+
+stderr_log_handler = logging.StreamHandler()
+logger.addHandler(stderr_log_handler)
+
+# nice output format
+formatter = logging.Formatter(
+    '[%(levelname)s] %(message)s')
+file_log_handler.setFormatter(formatter)
+stderr_log_handler.setFormatter(formatter)
+logging.getLogger().setLevel(logging.DEBUG)
+logger.info("BOOT")
 
 
 @dataclass
@@ -151,13 +170,13 @@ def handle_async_bgapi(msg: BgApiMessage) -> None:
     source_txt = colored(f" {msg.source_name.upper()}-{msg.msg.__class__.__name__} ",
                          'white', f'on_{color}', ['bold'])
     data_txt = colored(str(msg.msg), color)
-    print(f"\n{time_txt} {source_txt} {data_txt}")
+    logger.info(f"\n{time_txt} {source_txt} {data_txt}")
 
 
 def handle_async_message(msg: str) -> None:
     """Handles a message pushed asynchronously to a queue."""
     msg_txt = colored(f"{msg}", 'blue')
-    print(f"{msg_txt}")
+    logger.debug(f"{msg_txt}")
 
 
 async def console_main(app_context):

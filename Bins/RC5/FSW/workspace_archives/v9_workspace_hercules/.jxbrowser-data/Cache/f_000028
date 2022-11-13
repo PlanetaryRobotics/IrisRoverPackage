@@ -1,0 +1,1172 @@
+<main role="main">
+    <div ng-controller="MyController"
+         ng-intro-options="IntroOptions" ng-intro-method="GuidedTour"
+         ng-intro-oncomplete="CompletedEvent" ng-intro-onexit="ExitEvent"
+         ng-intro-onchange="ChangeEvent" ng-intro-onbeforechange="BeforeChangeEvent"
+         ng-intro-autostart="showIntro">
+        <div class="container-fluid" style="padding:0;margin:0">
+            <header role="nav">
+                <div id="navBar" class="noselect">
+                    <div id="navMenuLogo" ng-if="!isLocalServer()"
+                         ng-class="showTIToolsMenu?'navMenuListLiActive':'navMenuListLi'" ng-mouseenter="showAppMenu()" ng-click="showTIToolsMenu=!showTIToolsMenu" ng-mouseleave="hideAppMenu(500)">
+                        <!-- TI logo image -->
+		        <span>
+			    <i id="appsIcon" class="material-icons">apps</i>
+		        </span>
+                        <!-- TI App Drawer -->
+                        <div id="tiToolsHoverMenu" ng-show="showTIToolsMenu" class="bubble">
+                            <!-- TI Cloud Tools Header -->
+                            <div class="tiToolsApp" title="TI Cloud Tools Home Page">
+                                <a href="/"><img src="icns/cloud_tools.png" />TI Cloud Tools</a>
+                            </div>
+
+                            <!-- TI Cloud Apps -->
+                            <div class="tiToolsApp" title="Explore Documentation, Examples and Resources for your device">
+                                <a href="#/All" ng-click="reloadPage('#/All')"><img src="icns/trex.png"/>Resource Explorer</a>
+                            </div>
+                            <div class="tiToolsApp" title="Configure device peripherals and pin multiplexing options">
+                                <a href="/pinmux/" target="pinmux"><img src="icns/pinmux.png" />TI PinMux</a>
+                            </div>
+                            <div class="tiToolsApp" title="Edit, Build and download your project to your device">
+                                <a href="/ide" target="ccscloud"><img src="icns/ccs_cloud.png" />CCS Cloud IDE</a>
+                            </div>
+                            <div class="tiToolsApp" title="Check compatibility between LaunchPads and BoosterPacks">
+                                <a href="/bpchecker/" target="_self"><img src="icns/bpchecker.png" />BoosterPack Checker</a>
+                            </div>
+                            <div class="tiToolsApp" title="Explore and interact with other Engineers via forums, videos, and blogs">
+                                <a href="http://e2e.ti.com" target="e2e"><img src="icns/launchpad-social-e2e.png" />TI E2E Community</a>
+                            </div>
+                            <div class="tiToolsApp" title="Explore robust reference design libraries spanning analog, embedded processor and connectivity">
+                                <a href="http://www.ti.com/general/docs/refdesignsearch.tsp" target="tidesigns"><img src="icns/TIDesignsLogo.png" style="width:60px;height:auto;padding-top:11px;padding-bottom:12px;" />TI Designs</a>
+                            </div>
+                            <div class="tiToolsApp" title="TI.com">
+                                <a href="http://www.ti.com" target="ti"><img src="icns/ti_logo_red.svg" />TI.com</a>
+                            </div>
+                        </div>
+                    </div>
+                    <ul id="navMenuList">
+                        <li id="navMenuToolNameContainer" ng-if="!isLocalServer()">
+                            <a id="navMenuToolNameText" ng-click="browseAll()" style="padding-right:6px; cursor: pointer;">TI Resource Explorer</a>
+                            <!-- Announcements placeholder: Should be limited to ~ 80 chars to avoid widgets getting pushed off the bar on low resolutions -->
+                            <!--span style="background-color: yellow;color: #222;font-weight: bold;padding: 5px;">CCS Cloud Application Planned Maintenance on 2018/12/13 10:00-11:00EST. See
+                                <a href="https://e2e.ti.com/support/tools/ccs/f/81/t/754466">details</a></span-->
+                        </li>
+
+                        <li test_id="navMenuDeviceContainer" id="navMenuDeviceContainer" class="navMenuListLi">
+                            <div class="inner-addon left-addon">
+                                <input select2-focus-on="true" ui-select2="deviceDevToolsDropDown"
+                                       ng-show="!deviceId && !devtoolId" ng-model="deviceDevToolsDropDownmodel"
+                                       data-placeholder="&nbsp;&nbsp;&nbsp;&nbsp;Select a Device or Board" style="width:380px"
+                                       onchange="document.location = this.value"    />
+                                <input ui-select2="deviceDevToolsDropDown" ng-show="deviceId || devtoolId" ng-model="deviceDevToolsDropDownmodel" style="width:380px" onchange="document.location = this.value"/>
+                                <span ng-show="!deviceId && !devtoolId" id="searchglass2"class="glyphicon glyphicon-search"> </span>
+                            </div>
+                            <span ng-show="deviceId || devtoolId" id="searchclear2" class="glyphicon glyphicon-remove-circle" ng-click="browseAll()" ></span>
+                        </li>
+                        <li id="navMenuRightHam" class="navMenuListLiRight" ng-click="toggleActionHam()">
+                            <i id="hamMenuIcon" class="material-icons">menu</i>
+                            <!-- the menu -->
+                            <div id="hamHoverMenu" ng-show="showActionHam" style="text-align:right;">
+                                <ul id="mainList">
+                                    <li test_id="hamAbout" id="hamAbout" class="link" ng-click="toggleHamAbout()">
+                                        <i class="glyphicon glyphicon-chevron-left" style="float:left;"></i>
+                                        <span class="hamMenuText">About</span>
+                                        <i class="glyphicon glyphicon-question-sign" style="top:2px;padding-left:7px;" aria-hidden="true"></i>
+                                        <ul test_id="hamAboutHoverBox" id="hamAboutHoverBox" ng-show="showHamAbout" class="hamHoverBox textselect" style="width:510px">
+
+                                            <div id="aboutMainTextAndImg">
+                                                <img src="icns/trex.png">
+						<span id="aboutMainText">
+						    <u style="font-size:20px">TI Resource Explorer</u>
+						    <span style="padding-left:5px">Version: {{tirexVersion}}, includes content from:</span>
+						</span>
+                                            </div>
+
+                                            <ul>
+                                                <li ng-controller="OverviewController" style="cursor: pointer;" ng-click="goToPackage(package.selectedPackage)" ng-repeat="package in packageObj"><strong>{{ package.name }}</strong>:
+                                                    <span ng-repeat="version in package.versions | limitTo:(package.versions.length - 2)"> {{ version }}, </span> <span>{{ package.versions[package.versions.length - 2] }}</span>
+                                                </li>
+                                                <!--li ng-repeat="package in packages"><strong>{{package.name}}</strong></li-->
+                                            </ul>
+
+                                            <div id="copyrightText">© Copyright <img src="icns/ti_logo_red.svg" style="height:16px;padding:0 1px;"><span style="font-weight:bold;">Texas Instruments</span> 2018. All rights reserved. </div>
+                                        </ul>
+                                    </li>
+
+                                    <li test_id="hamPreference" id="hamPreference" class="link" ng-click="preferenceSelector()">
+                                        <a href="" ng-click="onPreferencesClicked()">
+                                            <span class="hamMenuText">Preferences</span>
+                                            <i class="glyphicon glyphicon-cog" style="top:2px;padding-left:7px;" aria-hidden="true"></i>
+                                        </a>
+                                    </li>
+
+                                    <li id="navMenuInstalledPackages"
+                                        class="link"
+                                        ng-click="installedPackages()"
+                                        async-values="[serverstate.isLocalServer(), serverstate.isInOfflineMode()]"
+                                        async-show="asyncValues[0] && !asyncValues[1]"
+                                        async>
+                                        <a href="">
+                                            <span test_id="scan" class="hamMenuText">Scan Desktop</span>
+                                            <i class="material-icons" style="font-size: 1.2em; top: 3px; padding-left: 7px;">desktop_windows</i>
+                                        </a>
+                                    </li>
+
+                                </ul>
+                            </div>
+                        </li>
+
+                        <!-- li id="navMenuTour" class="link" ng-click="startTour()" data-toggle="tooltip" tooltip="Take a Tour" tooltip-placement="bottom">
+                             <a href="">
+                             <i ng-if="!isLocalServer()" class="glyphicon glyphicon-eye-open" style=" color:white;top:2px;padding-left:7px;" aria-hidden="true"></i>
+                             <i ng-if="isLocalServer()" class="glyphicon glyphicon-eye-open" style="top:2px;padding-left:7px;" aria-hidden="true"></i>
+                             </a>
+                             </li -->
+
+                        <li id="navMenuTour" class="link navMenuListLiRight"  ng-click="isLocalServer() ? startTourExt() : startTour()" data-toggle="tooltip" tooltip="Take a Tour" tooltip-placement="bottom">
+                            <i ng-if="!isLocalServer()" style="color:white; position:relative; top:-0.2em" class="glyphicon glyphicon-eye-open"></i>
+                            <i ng-if="isLocalServer()" class="glyphicon glyphicon-eye-open"></i>
+                        </li>
+
+                        <li test_id="navMenuHome" id="navMenuHome" class="link navMenuListLiRight"  ng-click="browseAll()" data-toggle="tooltip" tooltip="Home" tooltip-placement="bottom">
+                            <i ng-if="!isLocalServer()" style="color:white; position:relative; top:-0.2em" class="glyphicon glyphicon-home"></i>
+                            <i ng-if="isLocalServer()" class="glyphicon glyphicon-home"></i>
+                        </li>
+
+                        <!--<div id="navMenuBadge" ng-show="isLocalServer() && showBadge" ng-click="badgeDialog()" data-toggle="tooltip" tooltip="New Packages" tooltip-placement="bottom">-->
+                            <!--<span class="badge" ng-model="badgeNumber"> {{ badgeNumber }} </span></a>-->
+                        <!--</div>-->
+
+                        <!-- Pacakge Picker Commented out for local server now since it doesnt work on windows properly -->
+
+                        <li ng-if="!isLocalServer()" id="navMenuPackagePicker" class="link" ng-click="packagePicker()" data-toggle="tooltip" tooltip="Package Picker" tooltip-placement="bottom">
+                            <i class="material-icons" style="top:-2px;position:relative;">pages</i>
+                        </li>
+
+                        <li test_id="navMenuOffline" id="navMenuOffline" class="link" style="text-decoration: none !important;"
+                            async-values="[serverstate.isLocalServer(), serverstate.isInOfflineMode()]"
+                            async-show="asyncValues[0]"
+                            ng-click="toggleRemoteContent()"
+                            async>
+                            <a href="" data-toggle="tooltip" ng-mouseover="toggleTooltip()"
+                               tooltip="{{ tooltipMessage }}" tooltip-placement="bottom">
+                                <i class="material-icons cloud"
+                                   style="top:-1px; position: relative;"
+                                   async-values="[serverstate.isInOfflineMode()]"
+                                    async-show="!asyncValues[0]"
+                                    async>
+                                    cloud_queue </i>
+                                <i id="cloudOff" class="material-icons cloud"
+                                   test_id="cloudOff"
+                                   style="top:-1px; color:red; font-weight:bold; position: relative"
+                                   async-values="[serverstate.isInOfflineMode()]"
+                                   async-show="asyncValues[0]"
+                                   async>
+                                    cloud_off </i>
+                            </a>
+                        </li>
+                        <!-- div class="statusIndicator" ng-class="toggleStatusIndictator()" aria-hidden="true" ng-if="isLocalServer()"></div-->
+
+                        <li id="navMenuSearchContainer" class="navMenuListLiRight" ng-controller="DeviceController">
+                            <div class="inner-addon right-addon">
+                                <input type="text" ng-model="search"
+                                       test_id="searchinput"
+                                       id="searchinput" type="search"
+                                       class="form-control"
+                                       placeholder="{{placeHolderMessage}}"
+                                       ng-keyup="searchTree($event)"
+                                >
+                                <span id="searchglass" class="glyphicon glyphicon-search" ng-show="!search"></span>
+                                <span id="searchclear" class="glyphicon glyphicon-remove-circle"
+                                      ng-click="clearFilter()" ng-show="search" ></span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </header>
+
+
+            <script type="text/ng-template" id="importVariantSelection">
+                <!--<div class="modal-header">-->
+                <div class="modal-body">
+                    <p>Select the device to import the project for:</p>
+                    <form name="myForm">
+                        <div ng-repeat="Option in Options">
+                            <input type="radio" ng-model="$parent.selectedOption"  ng-change="optionClicked(Option)" value="{{Option}}"> {{Option}} </br>
+                        </div>
+                    </form>
+                            </br>
+                            <button class="btn btn-primary" ng-click="ok()">OK</button>
+                            <button class="btn btn-inverse" ng-click="cancel()">Cancel</button>
+                </div>
+            </script>
+
+            <script type="text/ng-template" id="importEnergiaBoardSelection">
+                <div class="modal-body">
+                    <p>Select the device to import the project for:</p>
+                    <form name="myForm">
+                        <div ng-repeat="Option in Options">
+                            <input type="radio" ng-model="$parent.selectedOption"  ng-change="optionClicked(Option.id)" value="{{Option.id}}"> {{Option.description}} </br>
+                        </div>
+                    </form>
+                            </br>
+                            <button class="btn-info" ng-click="ok()">OK</button>
+                            <button class="btn-danger" ng-click="cancel()">Cancel</button>
+                </div>
+            </script>
+
+
+            <script type="text/ng-template" id="downloadLicense">
+                <div class="modal-body">
+                    <iframe ng-src="{{licenseUrl}}" height="90%" width="100%"></iframe>
+                    <div class="modal-footer">
+                        <button test_id="licenseAgree" class="btn-info" ng-click="agree()">I Have Read And Agree</button>
+                        <button class="btn-danger" ng-click="disagree()">Disagree</button>
+                    </div>
+                </div>
+            </script>
+
+            <script type="text/ng-template" id="removeWarning">
+                <div class="modal-body">
+                    <div class="modal-header">
+                        <h4>Confirmation</h4>
+                    </div>
+                    <p>{{message}}</p>
+                    <div class="modal-footer" style="margin:0px; padding:10px;">
+                        <button class="btn-remove" ng-click="agree()">Yes</button>
+                        <button class="btn-exit" ng-click="disagree()">Cancel</button>
+                    </div>
+                </div>
+            </script>
+
+            <script type="text/ng-template" id="AutoImport">
+                <div class="modal-body">
+                    <p>This project resides in the cloud. To use it offline you need a copy of it and its dependencies. Please use the "Install to desktop" button (<img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" style="" height="{{isLocalServer()?16:13}}">), then select the "Download and install" option to install them. After that, click on the "Import to IDE" button again to import the project.</p>
+                    <button style="position:relative; left:290px;" class="btn-remove" ng-click="agree()">Ok</button>
+                </div>
+            </script>
+
+            <script type="text/ng-template" id="RunExecutableMessage">
+                <div class="modal-body">
+                    <p>This project resides in the cloud. To run it offline you need a copy of it and its dependencies. Please use the "Install to desktop" button (<img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" style="" height="{{isLocalServer()?16:13}}">), then select the "Download and install" option to install them. After that, click on the "Run Locally" button again to run the project.</p>
+                    <button style="float:right;" class="btn-remove" ng-click="agree()">Ok</button>
+                </div>
+            </script>
+
+            <script type="text/ng-template" id="importError">
+                <div class="modal-body">
+                    <p class="url-wrap">Error importing project. {{errorMessage}}</p>
+                    <div class="modal-footer">
+                        <button class="btn-remove" ng-click="agree()">Close</button>
+                    </div>
+                </div>
+            </script>
+
+            <script type="text/ng-template" id="downloadProgress">
+                <div class="modal-body">
+                    <div ng-show="show_progress_screen && waitingScreen" style="padding-top: 10px;">
+                        <div class="download-message"> {{ waitingMessage }} <br />
+                            Do not close Resource Explorer while operation is in progress.
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{progress}}"  ng-style="{width : ( progress + '%' ) }" >{{progress}}%</div>
+                        </div>
+                    </div>
+                </div>
+                <!--<div ng-show="show_progress_screen && waitingScreen && showCancel"  class="modal-footer">-->
+                    <!--<button type="button" class="btn btn-default" ng-show="showCancel" ng-disabled="!canCancel" ng-click="cancel()">Cancel</button>-->
+                <!--</div>-->
+            </script>
+
+            <script type="text/ng-template" id="showFilePath">
+                <div class="modal-header">
+                    <h4> Package Location</h4>
+                </div>
+                <div class="modal-body">
+                    <p class="text" style="word-wrap: break-word;">Installed locally: {{partialText}}</p>
+                    <p class="text" style="word-wrap: break-word;">Installed location: {{filePath}} </p>
+                    <div class="modal-footer" style="margin:0px; padding:0px;" >
+                        <button class="btn-remove" ng-click="agree()" >Ok</button>
+                    </div>
+                </div>
+            </script>
+
+            <script type="text/ng-template" id="packagePicker">
+                <div class="modal-body">
+                    <div class="panel panel-default">
+                        <table class="table table-hover">
+                            <tbody>
+                                <tr style="background-color:#ebebeb;cursor:auto; font-size:16px">
+                                    <th>Package</th>
+                                    <th>Version</th>
+                                </tr>
+                                <tr ng-repeat="package in packageObj" ng-class="{'checkbox-highlight': package.selected}" ng-click="package.selected = !package.selected; optionToggled(package.selected, package.id)">
+                                    <td>
+                                        <div class="checkbox">
+                                            {{package.name}}
+                                        </div>
+                                    </td>
+                                    <td style="width:180px">
+                                        <select class="form-control" ng-model="package.selectedVersion" ng-options="version for version in package.versions.slice().reverse()" ng-click="$event.stopPropagation()" ng-change="versionToggled(package.selectedVersion, package.id)">
+                                            <option> {{ version }} </option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" ng-click="ok()">OK</button>
+                    <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+                </div>
+            </script>
+
+            <script type="text/ng-template" id="badgeDialog">
+                <div class="modal-header">
+                    New Packages
+                </div>
+                <div class="modal-body" ng-show="{{bool1}}">
+                    <div class="info-text">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                        <span class="text" ng-model="messageHeader"> {{ messageHeader1 }}</span>
+                    </div>
+                    <div class="block" style="padding: 10px;"></div>
+                    <ul class="list-group">
+                        <li class="list-group-item" ng-repeat="package in array1">
+                            <span class="name">{{ package }}</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-body" ng-show="{{bool2}}">
+                    <div class="info-text">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                        <span class="text" ng-model="messageHeader"> {{ messageHeader2 }}</span>
+                    </div>
+                    <div class="block" style="padding: 10px;"></div>
+                    <ul class="list-group">
+                        <li class="list-group-item" ng-repeat="package in array2">
+                            <span class="name">{{ package }}</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" ng-click="ok()">OK</button>
+                </div>
+            </script>
+
+            <script type="text/ng-template" id="packageDependencies">
+                <div class="modal-header">
+                    Dependencies
+                </div>
+                <div class="">
+                    <div class="info-text">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                        <span class="text" ng-model="messageHeader"> {{ messageHeader }}</span>
+                    </div>
+                    <table class="table table-hover">
+                        <tbody>
+                            <tr ng-repeat="dependency in dependencies" ng-class="{'checkbox-highlight': dependency.selected}">
+                                <td>
+                                    <div class="checkbox" ng-click="toggleSelection(dependency)" style="width: 92%">
+                                        <input type="checkbox" ng-disabled="dependency.isDisabled" ng-model="dependency.selected" ng-click="$event.stopPropagation()">
+                                        <span class="name"> {{ dependency.name }} </span>
+                                        <span class="version" ng-hide="{{ dependency.version === '' || dependency.version === undefined }}"> - {{ dependency.version }}</span>
+                                        <span class="name"> ({{dependency.requirement}})</span>
+                                        <span class="badge" ng-hide="{{ dependency.size === '' || dependency.size === undefined }} "> {{ dependency.size }} </span>
+                                    </div>
+                                    <div class="description" data-toggle="tooltip" title="Dependency Information" tooltip-placement="right" ng-click="dependency.showDescription = !dependency.showDescription" ng-hide="{{ dependency.description === '' || dependency.description === undefined }}">
+                                        <i class="glyphicon glyphicon-list-alt" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="description-box">
+                                        <div class="well nav" ng-hide="!dependency.showDescription"> {{ dependency.description }}</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- ng-show="waitingScreen && show_progress_screen"-->
+                    <div ng-show="show_progress_screen && waitingScreen" style="padding-top: 10px;">
+                        <div class="download-message"> {{ waitingMessage }} <br/>
+                            Do not close Resource Explorer while operation is in progress.
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="{{ progressBar }}" aria-valuemin="0" aria-valuemax="100" ng-style="{width : ( progressBar + '%' ) }" >{{ progressBar }}%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" ng-click="install()" ng-disabled="show_progress_screen">OK</button>
+                </div>
+            </script>
+
+            <script type="text/ng-template" id="progressScreen">
+                <div class="modal-header"> Progress </div>
+                <div class="download-message"> {{ waitingMessage }} </div>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped active" aria-valuemin="0" aria-valuemax="100" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" ng-style="{width : ( progress + '%' ) }" >{{ progress }}%</div>
+                </div>
+            </script>
+
+            <script type="text/ng-template" id="installedPackages">
+                <div class="modal-header">
+                    Installed Packages
+                </div>
+                <div class="modal-body">
+                    <div class="info-text" ng-hide="changesFound">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                        <span class="text" ng-model="messageHeader"> {{ messageHeader }}</span>
+                    </div>
+                    <div class="info-text" ng-hide="importDisabled">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                        <span class="text" ng-model="importMessage"> {{ importMessage }}</span>
+                    </div>
+                    <ul class="list-group" ng-hide="importDisabled">
+                        <li class="list-group-item" ng-repeat="package in installed" ng-click="package.showDescription = !package.showDescription">
+                            <span class="name">{{ package.name }}</span>
+                            <span class="version">- {{ package.version }}</span>
+                            <span ng-class="toggleIcn(package)"></span>
+                            <span class="message italic"> Local path : {{ package.localPackagePath }}</span>
+                            <div class="well" ng-hide="!package.showDescription">{{ package.description }}</div>
+                        </li>
+                    </ul>
+                    <div class="info-text" ng-hide="removeDisabled">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                        <span class="text" ng-model="removeMessage"> {{ removeMessage }}</span>
+                    </div>
+                    <ul class="list-group" ng-hide="removeDisabled">
+                        <li class="list-group-item" ng-repeat="package in removedList" ng-click="package.showDescription = !package.showDescription">
+                            <span class="name">{{ package.name }}</span>
+                            <span class="version">- {{ package.version }}</span>
+                            <span ng-class="toggleIcn(package)"></span>
+                            <span class="message italic"> Local path : {{ package.localPackagePath }}</span>
+                            <div class="well" ng-hide="!package.showDescription">{{ package.description }}</div>
+                        </li>
+                    </ul>
+                </div>
+                <div ng-show="waiting && show_progress">
+                    <div class="download-message"> {{ waitingMessage }} </div>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped active" aria-valuemin="0" aria-valuemax="100" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" ng-style="{width : ( progress + '%' ) }" >{{progress}}%</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" ng-click="import()" ng-disabled="show_progress || importDisabled">Import</button>
+                    <button ng-show="importDisabled || !waiting || !removeDisabled" type="button" class="btn btn-default" ng-click="close()">Cancel</button>
+                </div>
+            </script>
+
+            <script type="text/ng-template" id="preferenceSelector">
+                <div class="modal-body">
+                    <div class="modal-header">
+                        <div class="text">Settings</div>
+                    </div>
+                    <ul class="list-group content">
+
+                        <li class="list-group-item"
+                            async-values="[serverstate.isLocalServer()]"
+                            async-show="asyncValues[0]"
+                            async>
+                            <span style="font-weight: bold;"> Package Folders </span>
+                            <br>
+                            <ul class="infoList">
+                                <li> Specify the folders to scan for installed packages </li>
+                                <li> Select the default folder in which to install packages </li>
+                            </ul>
+                            <table class="scanTable">
+                                <th>Path</th>
+                                <th>Install Folder</th>
+                                <th> </th>
+                                <tr ng-repeat="path in folderPaths.getFolderPaths()">
+                                    <td class="pathCol">
+                                        {{path}}
+                                    </td>
+                                    <td style="width:25%;" class="endCol">
+                                        <input type="radio" name="installPath" test_id="{{path}}" value="{{path}}" ng-click="$parent.setDefaultInstall(path)" ng-model="$parent.defaultInstall" tooltip-placement="bottom" tooltip="Set Default"/>
+                                    </td>
+                                    <td style="width:15%;"class="endCol">
+                                        <button type="button" class="removeBtn btn" ng-click="folderPaths.removeFolderPath(path)"> Remove </button>
+
+                                    </td>
+                                </tr>
+                            </table>
+                            <div style="margin:0.5em 0 0.5em 0">
+                                <input test_id="newFolderPath" type="text" ng-model="newFolderPath" style="width: 70%;">
+                                <button type="button"
+                                        id="addFolderPath"
+                                        test_id="addFolderPath"
+                                        class="btn btn-default"
+                                        ng-click="folderPaths.addFolderPath(newFolderPath)"> Add Folder </button>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="device-counter">
+                                Show resource count in tree
+                            </span>
+                            <i class="fa fa-toggle-off"></i>
+                            <span test_id="onoffswitch" class="onoffswitch">
+                                <label for="onRadio">ON</label>
+                                <input id="onRadio" type="radio" value="on" ng-model="switchValue"/>
+                                <label test_id="offRadio" for="offRadio">OFF</label>
+                                <input id="offRadio" type="radio" value="off" ng-model="switchValue"/>
+                            </span>
+                        </li>
+                    </ul>
+                    <div class="modal-footer">
+                        <div class="errorBox">{{errMsg}}</div>
+                        <button test_id="btn-save" type="button" class="btn btn-default" ng-click="save(installFolder)">Save</button>
+                        <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+                    </div>
+                </div>
+            </script>
+
+            <div ng-controller="OverviewController"  >
+                <ui-layout id="screen" >
+                    <div class="progress-bar-div" test_id="progress-bar-div" style="height:0; width:0;"></div>
+                    <div id="step4" class="ui-layout-west" ng-show="showTree || deviceId || devtoolId || search"
+                         >
+                        <div class="ui-layout-north toolbar">
+                            <button style="float:right;margin-right:3px" class="toggleTreeBtn" title="Collapse Tree">«</button>
+                        </div>
+                        <div class="ui-layout-center" id="tree">
+                            <div test_id="jstree" jstree id="jstree"
+                                 style="padding-bottom:10px"
+                                 selected-node="selectedTreeNode"
+                                 selected-path="selectedPath"
+                                 selected-node-changed="nodeChanged"></div>
+                        </div>
+                    </div>
+
+                    <ui-layout-center id="step5" style="height:100%; width: 100%">
+                        <div class="left-panel-content">
+                            <div ng-show="selectedTreeNode.emptyTree && selectedPath.search != null">
+                            </br></br></br>
+                            <h4>
+                                <strong>No search results found for <span class="text-primary">&ldquo;{{selectedPath.search}}&rdquo;</span> . We are continuously adding more content to Resource Explorer. </strong>
+                            </h4>
+                            </div>
+
+                            <div class="panel panel-default resource-file-display"
+                                 style="background-color: #ebebeb;"
+                                 ng-show="selectedTreeNode.parentContent && selectedTreeNode.showAce" >
+                                <p/>
+                                <table class="table" style="width: 100%;">
+                                    <tbody>
+                                        <tr>
+                                            <th align="center">
+                                                <img src="icns/new_sketch.gif" ng-show="selectedTreeNode.parentContent.icon == null && selectedTreeNode.parentContent.resourceType == 'project.energia'"/>
+                                                <img src="icns/new_sketch.gif" ng-show="selectedTreeNode.parentContent.text=='Energia'" />
+                                                <h1 class="resource-header" style="margin: 0 25px">{{selectedTreeNode.parentContent.text}}</h1>
+                                            </th>
+                                            <th valign="center" ng-show="selectedTreeNode.parentContent.description">{{selectedTreeNode.parentContent.description}}</th>
+                                            <td width="18%" valign="center" align="right" style="padding-right: 24px;">
+                                                <a ng-click="goUp(selectedTreeNode)"
+                                                   data-toggle="tooltip"
+                                                   tooltip="Up&nbsp;one&nbsp;level"
+                                                   tooltip-placement="bottom"
+                                                   class="btn btn-info btn-mini icon-size"
+                                                   id="{{selectedTreeNode.parentContent.text}}_back"><img src="icns/arrow_back_16.svg" height="12"/></a>
+                                                <a href="" ng-show="selectedTreeNode.parentContent.importProject" ng-click="import(selectedTreeNode.parentContent)"
+                                                   class="btn btn-info btn-mini icon-size" data-toggle="tooltip" ng-disabled="" tooltip="{{importCCStooltip()}}"
+                                                   tooltip-placement="bottom" id="{{selectedTreeNode.parentContent.name}}_import" disabled-import-tooltip>
+                                                    <img ng-src="{{importCCSIcn()}}" height="{{isLocalServer()?16:12}}" />
+                                                </a>
+                                                <a ng-href="" ng-show="selectedTreeNode.parentContent.downloadLink" ng-click="isLocalServer() || downloadFile(selectedTreeNode.parentContent)" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" tooltip="{{downloadAllTooltip(selectedTreeNode.parentContent)}}" tooltip-placement="{{downloadTooltipPlacement()}}" id="{{selectedTreeNode.parentContent.name}}_download" offline-dropdown>
+                                                    <img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" height="{{isLocalServer()?16:13}}">
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                <table class="table" style="height:100%; width:100%;">
+                                    <tbody>
+                                        <tr>
+                                            <td valign="center" style="width: 100%">
+                                                <div style="width: 100%; height: 80vh;" test_id="editor" id="editor">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="panel panel-default resource-file-display" style="background-color: #ebebeb;"
+                                 ng-show="selectedTreeNode.parentContent && selectedTreeNode.showFrame">
+                                <p/>
+                                <div class="header-title headerp col-sm-9" id="descContainer">
+                                    <h1 class="resource-header">{{selectedTreeNode.parentContent.text}}</h1>
+				    <span id="descTextContainer" ng-show="selectedTreeNode.parentContent.description" tooltip="{{selectedTreeNode.parentContent.description}}" tooltip-placement="bottom">
+                        <strong id="descTextElement">{{selectedTreeNode.parentContent.description}}</strong>
+				    </span>
+                                    <!--&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;{{selectedTreeNode.weblink}}-->
+                                </div>
+                                <div class="headerp text-right col-sm-3">
+                                    <span ng-if="!isLocalServer()">&nbsp;&nbsp;
+                                        <a href="{{selectedTreeNode.weblink}}"
+                                           target="{{selectedTreeNode.parentContent.text}}"
+                                           class="btn btn-info btn-mini icon-size"
+                                           data-toggle="tooltip"
+                                           tooltip="Open in a New tab"
+                                           tooltip-placement="bottom"
+                                           id="{{selectedTreeNode.parentContent.text}}_newtab"
+                                           async>
+                                            <img src="icns/newwindow.svg" height="12">
+                                        </a>
+                                    </span>
+                                    <span ng-if="isLocalServer()">&nbsp;&nbsp;
+                                        <a ng-click="openLinkInBrowser(selectedTreeNode.weblink, selectedTreeNode.parentContent.text)"
+                                           class="btn btn-info btn-mini icon-size"
+                                           data-toggle="tooltip"
+                                           tooltip="Open in a default browser"
+                                           tooltip-placement="bottom"
+                                           id="{{selectedTreeNode.parentContent.text}}_newtab"
+                                           async>
+                                            <img src="icns/newwindow.svg" height="12">
+                                        </a>
+                                    </span>
+                                    <a ng-click="goUp(selectedTreeNode)" data-toggle="tooltip" tooltip="Up one level" tooltip-placement="bottom" class="btn btn-info btn-mini icon-size" 	id="{{selectedTreeNode.parentContent.text}}_back"><img src="icns/arrow_back_16.svg" height="12"/></a>
+
+                                    <a ng-click="browserNavigate('back')" ng-if="selectedTreeNode.weblink" data-toggle="tooltip" tooltip="Go back" tooltip-placement="bottom" class="btn btn-info btn-mini icon-size"><i style="color: #696969" class="glyphicon glyphicon-arrow-left" aria-hidden="true"></i></a>
+                                    <a ng-click="browserNavigate('forward')" ng-if="selectedTreeNode.weblink" data-toggle="tooltip" tooltip="Go forward" tooltip-placement="bottom" class="btn btn-info btn-mini icon-size"><i style="color: #696969" class="glyphicon glyphicon-arrow-right" aria-hidden="true"></i></a>
+
+                                    <a ng-href="" ng-show="selectedTreeNode.parentContent.downloadLink"
+                                       class="btn btn-info btn-mini icon-size"
+                                       data-toggle="tooltip"
+                                       tooltip="{{downloadTooltip(selectedTreeNode.parentContent)}}"
+                                       tooltip-placement="{{downloadTooltipPlacement()}}"
+                                       id="{{selectedTreeNode.parentContent.text}}_download"
+                                       offline-dropdown
+                                       async-values="[serverstate.isLocalServer()]"
+                                       ng-click="isLocalServer() || downloadFile(selectedTreeNode.parentContent)"
+                                       async><img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" height="{{isLocalServer()?16:13}}" /></a>
+                                </div>
+                                <br/>
+			        <p/>
+                                <iframe test_id="custom-page" id="custom-page" ng-src="{{selectedTreeNode.weblink}}" src="about:blank"
+				        style="height: 93%; border: none; background: #FFFFFF;"
+				        width="100%" frameborder="0"></iframe>
+                            </div>
+
+                            <div ng-show="showIntro" test-id="rex-title">
+			        <!-- this div is for take a tour, it has to be the same as the package layout code. Have to keep on updating layout code in both places. poor design and needs to be fixed in the future-->
+
+                                <img src="images/tirex_logo_256.png" height="130" style="float:right;padding-right:15px;padding-left:30px" />
+                                <h2 ng-if="!isLocalServer()" style="margin-top:0px">
+                                    <strong>Welcome to <span class="text-primary">Resource Explorer</span></strong>
+                                </h2>
+                                <h2 ng-if="isLocalServer()" style="margin-top:0px">
+                                    <strong>Welcome to <span class="text-primary">Resource Explorer</span></strong>
+                                </h2>
+                                <h4>
+                                    Examples, libraries, executables and documentation for your device and development board
+                                </h4>
+                                <br>
+                                <h3 ng-if="isLocalServer()">Online Viewing</h3>
+                                <h4 ng-if="isLocalServer()" ><span class="text-primary">Browse</span> all available software packages using the tree view on the left. For more optimized viewing, select your Device or Development tool first from the dropdown above. You can also select packages and versions below. </h4>
+                                <br><br>
+                                <div ng-if="isLocalServer()" class="banner"></div>
+                                <span ng-if="isLocalServer()" ><br></span>
+                                <!--</center>-->
+                                <center>
+                                    <div ng-controller="homePackageController">
+                                        <h3 ng-if="isLocalServer()" style="text-align:left;">Working Offline</h3>
+                                        <h4 ng-if="isLocalServer()" style="text-align:left;"><span class="text-primary">Install</span> Individual software packages to your local computer to work offline.</h4>
+                                        <br>
+                                        <div class="tile-block">
+                                            <div class="row" ng-repeat="package in packageObj" ng-class="" ng-click="">
+                                                <div class="col-md-4 block" style="width: 16em; height: 100%; position: relative;">
+                                                    <div class="checkbox" ng-if="isLocalServer()" style="position: relative; width:10%; float:left; margin-top: -0.5em;">
+                                                        <input type="checkbox" ng-model="package.selected" ng-change="optionToggled2(package.selected, package.id)" ng-click="$event.stopPropagation()">
+                                                    </div>
+                                                    <div  ng-if="isLocalServer()" style="position: relative; width:25%; float:left; margin-top:-0.2em;">Show</div>
+                                                    <div class="go-to" ng-click="showFilePath(package)" ng-if="isLocalServer()" style="float:right; text-align: right; cursor: pointer; width:50%; position:relative">
+                                                        <i class="material-icons" ng-show="isPackageOffline(package) === 'full'" style=" color:green; position: relative; float:right; top: -0.2em;">info_outline</i>
+                                                        <i class="material-icons" ng-show="isPackageOffline(package) === 'partial'" style=" color:dark grey; position: relative; float:right; top: -0.2em;">info_outline</i>
+                                                        <i class="material-icons" ng-show="!isPackageOffline(package)" style=" color:#B8B8B8; position: relative; float:right; top: -0.2em;">info_outline</i>
+                                                    </div>
+
+                                                    <div class="container" ng-click="goToPackage(package.selectedPackage)">
+                                                        <img ng-src="content/{{package.selectedPackage.image}}" class="{{package.selectedPackage.image}}"/>
+                                                    </div>
+                                                    <div class="description text-center">
+                                                        <div class="name">{{package.name}}</div>
+                                                    </div>
+                                                    <!-- when it is localserver -->
+                                                    <div class="select-block text-left" ng-if="isLocalServer()">
+                                                        <select class="form-control" ng-model="package.selectedVersion" style="top:1%;" ng-options="version for version in package.versions.slice().reverse()" ng-click="$event.stopPropagation()" ng-change="versionToggled2(package.selectedVersion, package.id)">
+                                                            <option> {{ version }} </option>
+                                                        </select>
+                                                        <div style="margin-bottom: 0.5em;" ng-disabled="!cloud() || isPackageOffline(package) === 'full' " class="btn btn-info btn-mini icon-size" style="top:100%;" ng-click="homemakeOffline(package)">
+                                                            <img data-toggle="tooltip" tooltip="Download and install" tooltip-placement="bottom" ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" style="" height="{{isLocalServer()?16:13}}">
+                                                        </div>
+                                                    </div>
+                                                    <!-- when it is remoteserver -->
+                                                    <div class="select-block text-left" ng-if="!isLocalServer()">
+                                                        <div data-toggle="tooltip" tooltip="Download" tooltip-placement="bottom-left" ng-click="homedownload(package)">
+                                                            <!-- button style="width:100%;" class="btn"> <img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" height="{{isLocalServer()?16:13}}"> Download </button-->
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                            </div>
+
+                            <div>
+                                <div ng-show="!showIntro && selectedTreeNode.showWelcome && !selectedTreeNode.show" id="main">
+                                    <!--<h4><img src="images/arrow-up-red.png" height="50" style="margin-left:50px;vertical-align:baseline">-->
+                                    <!--<strong><em>Start browsing by selecting your device or development board</em></strong>-->
+                                    <!--</h4>-->
+                                    <!--<center>-->
+                                    <img src="images/tirex_logo_256.png" height="130" style="float:right;padding-right:15px;padding-left:30px" />
+                                    <h2 ng-if="!isLocalServer()" style="margin-top:0px">
+                                        <strong>Welcome to <span class="text-primary">Resource Explorer</span></strong>
+                                    </h2>
+                                    <h2 ng-if="isLocalServer()" style="margin-top:0px">
+                                        <strong>Welcome to <span class="text-primary">Resource Explorer</span></strong>
+                                    </h2>
+                                    <h4>
+                                        Examples, libraries, executables and documentation for your device and development board
+                                    </h4>
+                                    <br>
+
+                                    <div class="welcome-page-link"><h4><span class="glyphicon glyphicon-exclamation-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em; color: #f0ad4e; font-size: 1.5em"></span><span style="vertical-align: middle; color: #f0ad4e;">Are you new to Resource Explorer?
+</span></h4>
+                                        <p>Try the <a ng-click="isLocalServer() ? startTourExt() : startTour()">Quick Tour</a> to help you navigate Resource Explorer.</p>
+                                    </div>
+                                    <br>
+                                    <h4>
+                                        <div
+                                            async-values="[serverstate.isInOfflineMode()]"
+                                            async-show="asyncValues[0]"
+                                            async>
+                                            <br> <br>
+                                            <div test_id="disconnected-warning" class="alert alert-warning">
+                                                <i class="material-icons">warning</i>
+                                                <strong>Warning!</strong> Not connected to the cloud server. Working in offline mode.
+                                            </div>
+                                            <h4 style="margin-left:6px;"> If you did not want to work offline please see our
+                                                <a href="http://processors.wiki.ti.com/index.php/Troubleshooting_CCSv7#Resource_Explorer" style="color:#cc0000">troubleshooting guide.</a></h4>
+                                            <br>
+                                        </div>
+                                    </h4>
+                                    <h3 ng-if="isLocalServer()">Online Viewing</h3>
+                                    <h4 ng-if="isLocalServer()" ><span class="text-primary">Browse</span> all available software packages using the tree view on the left. For more optimized viewing, select your Device or Development tool first from the dropdown above. You can also select packages and versions below. </h4>
+                                    <br><br>
+                                    <div ng-if="isLocalServer()" class="banner"></div>
+                                    <span ng-if="isLocalServer()" ><br></span>
+                                    <!--</center>-->
+                                    <center>
+
+
+				        <div ng-controller="homePackageController">
+					    <h3 ng-if="isLocalServer()" style="text-align:left;">Working Offline</h3>
+					    <h4 ng-if="isLocalServer()" style="text-align:left;"><span class="text-primary">Install</span> Individual software packages to your local computer to work offline.</h4>
+					    <br>
+					    <!--
+					         <div ng-if="isLocalServer()" class="banner" align="right" style="height:3em;">
+                                                 <!-- div class="all">
+                                                 <input type="checkbox" ng-click="selectAll2()" ng-model="isAllSelected" style="margin-right:0.5em; float:left; margin-top: 0px;">
+                                                 <div class="text" style="margin-right:5em; top: -0.25em;" >Select All</div>
+                                                 </div -->
+                                            <!--
+                                                 <div class="apply-block">
+                                                 <button class="btn btn-secondary" ng-click="ok2()">Apply</button>
+                                                 </div> -->
+					    <!--  </div> -->
+
+					    <!-- New - Package Tile Layout (Mohammed Baquir) -->
+					    <div test_id="tile-block" class="tile-block">
+                            <div class="row" ng-repeat="package in packageObj" ng-class="" ng-click="">
+						        <div class="col-md-4 block" style="width: 16em; height: 100%; position: relative;">
+                                    <div  class="go-to" ng-click="showFilePath(package)" ng-if="isLocalServer()" style="float:right; text-align: right; cursor: pointer; width:50%; position:relative">
+							            <i data-toggle="tooltip" tooltip="Info" tooltip-placement="bottom" class="material-icons" ng-show="isPackageOffline(package) === 'full'" style=" color:green; position: relative; float:right; top: -0.2em;">info_outline</i>
+							            <i data-toggle="tooltip" tooltip="Info" tooltip-placement="bottom" class="material-icons" ng-show="isPackageOffline(package) === 'partial'" style=" color:dark grey; position: relative; float:right; top: -0.2em;">info_outline</i>
+							            <i data-toggle="tooltip" tooltip="Info" tooltip-placement="bottom" class="material-icons" ng-show="!isPackageOffline(package)" style=" color:#B8B8B8; position: relative; float:right; top: -0.2em;">info_outline</i>
+                                    </div>
+                                    <div test_id="package-container" class="container" ng-click="goToPackage(package.selectedPackage)">
+							            <img  test_id="{{package.id}}" ng-src="content/{{package.selectedPackage.image}}" class="{{package.selectedPackage.image}}"/>
+                                    </div>
+                                    <div class="description text-center">
+							            <div class="name">{{package.name}}</div>
+                                    </div>
+                                    <!-- when it is localserver -->
+                                    <div class="select-block text-left" ng-if="isLocalServer()">
+							            <select data-toggle="tooltip" tooltip="Select a package version" tooltip-placement="bottom" class="form-control" ng-model="package.selectedVersion" style="top:1%;" ng-options="version for version in package.versions.slice().reverse()" ng-click="$event.stopPropagation()" ng-change="versionToggled2(package.selectedVersion, package.id)">
+                                            <option> {{ version }} </option>
+							            </select>
+							            <div test_id="{{package.id + '-install-icon'}}" style="margin-bottom: 0.5em;" ng-disabled="!cloud() || isPackageOffline(package) === 'full' " class="btn btn-info btn-mini icon-size" style="top:100%;" ng-click="homemakeOffline(package)">
+                                            <img data-toggle="tooltip" tooltip="Download and install" tooltip-placement="bottom" ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" style="" height="{{isLocalServer()?16:13}}">
+							            </div>
+                                    </div>
+                                    <!-- when it is remoteserver -->
+                                    <div class="select-block text-left" ng-if="!isLocalServer()">
+							            <div data-toggle="tooltip" tooltip="Download" tooltip-placement="bottom-left" ng-click="homedownload(package)">
+                                        </div>
+                                    </div>
+						        </div>
+                            </div>
+					    </div>
+				        </div>
+
+                                    </center>
+                                    <div class="panel panel-default panelp" ng-show="showContent" >
+                                        <div class="panel-heading"><strong>{{theContent.name}}</strong>
+                                        </div>
+                                        <div class="panel-body" style="overflow: auto;">
+                                            <table>
+                                                <tr>
+                                                    <td valign="top">
+                                                        <span ng-bind-html="theContent.description | to_trusted" />
+                                                    </td>
+                                                    <td valign="top">
+                                                        <img ng-src="content/{{theContent.image}}" width="150px" title="{{theContent.name}}" />
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="panel panel-default panelp" ng-show="selectedTreeNode.parentContent && !selectedTreeNode.parentContent.overviewLink && (selectedTreeNode.parentContent.overviewDescription || selectedTreeNode.parentContent.overviewImage )" >
+                                    <div class="panel-heading"><h1 class="resource-header"><strong>{{selectedTreeNode.parentContent.text}}</strong></h1>
+                                    </div>
+                                    <div class="panel-body" style="overflow: auto;">
+                                        <table>
+                                            <tr>
+                                                <td valign="top">
+                                                    <span ng-show="selectedTreeNode.parentContent.overviewDescription !== 'undefined'" ng-bind-html="selectedTreeNode.parentContent.overviewDescription | to_trusted" />
+                                                </td>
+                                                <td valign="top">
+                                                    <img ng-if="selectedTreeNode.parentContent.overviewImage" ng-src="content/{{selectedTreeNode.parentContent.overviewImage}}" width="150px" title="{{selectedTreeNode.parentContent.text}}" />
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+
+
+                                <div class="panel panel-default" style="background-color: #ebebeb;" ng-show="selectedTreeNode.parentContent.overviewLink && selectedTreeNode.parentContent.resourceType == 'categoryInfo'">
+                                    <p/>
+                                    <div class="headerp col-sm-9" >
+                                        <h1 class="resource-header">{{selectedTreeNode.parentContent.text}}</h1>
+				        <span ng-show="selectedTreeNode.parentContent.description">
+					    &nbsp;&nbsp;|&nbsp;&nbsp;<strong>{{selectedTreeNode.parentContent.description}}</strong>
+				        </span>
+                                        <!--&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;{{selectedTreeNode.weblink}}-->
+				        <span>&nbsp;&nbsp;
+					    <a ng-if="!isLocalServer()" href="{{selectedTreeNode.parentContent.overviewLink}}" target="{{selectedTreeNode.parentContent.text}}"
+					       class="btn btn-info btn-mini icon-size" data-toggle="tooltip" tooltip="Open in a New tab" tooltip-placement="bottom"id="{{selectedTreeNode.parentContent.text}}_newtab"><img src="icns/newwindow.svg" height="12"></a>
+				        </span>
+                                    </div>
+                                    <div class="headerp text-right col-sm-3">
+                                        <a ng-click="goUp(selectedTreeNode)" data-toggle="tooltip" tooltip="Up one level" tooltip-placement="bottom" class="btn btn-info btn-mini icon-size" 	id="{{selectedTreeNode.parentContent.text}}_back">
+                                            <img src="icns/arrow_back_16.svg" height="12"/>
+                                        </a>
+                                        <a ng-href="" ng-click="isLocalServer() || downloadFile(selectedTreeNode.parentContent)" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" tooltip="{{downloadTooltip(selectedTreeNode.parentContent)}}" tooltip-placement="{{downloadTooltipPlacement()}}" id="{{selectedTreeNode.parentContent.text}}_download" offline-dropdown>
+                                            <img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" height="{{isLocalServer()?16:13}}" />
+                                        </a>
+                                    </div>
+                                    <br/><p/>
+                                    <iframe ng-src="{{selectedTreeNode.weblink}}" src="about:blank" style="background: #FFFFFF;" width="100%" height="93%" frameborder="0"></iframe>
+                                </div>
+
+                                <div style="margin-bottom: 30px">
+                                    <table test_id="file-table" class="table table-hover file-table" ng-show="selectedTreeNode.show && selectedTreeNode.parentContent.overviewLink == null && selectedTreeNode.parentContent.resourceType != 'web.page'" width="100%" >
+                                        <tbody>
+
+					    <!-- Bruce: #12945 - let the color setting done by JS -->
+					    <tr style="background-color:{{selectedTreeNode.headerBgColor}}" ng-if="!(selectedTreeNode.parentContent.resourceType=='projectSpec'
+					                          || selectedTreeNode.parentContent.resourceType=='file'
+					                          || selectedTreeNode.parentContent.resourceType=='folder.importable'
+                                              || selectedTreeNode.parentContent.resourceType=='file.executable'
+                                              || selectedTreeNode.parentContent.resourceType=='executable'
+                                              || selectedTreeNode.parentContent.resourceType=='project.ccs')">
+                            <th align="center">
+						        <img src="icns/new_sketch.gif" ng-show="selectedTreeNode.parentContent.icon == null && selectedTreeNode.parentContent.resourceType == 'project.energia'"/>
+						        <img src="icns/new_sketch.gif" ng-show="selectedTreeNode.parentContent.text=='Energia'" />
+						        <h1 class="resource-header">{{selectedTreeNode.parentContent.text}}</h1>
+                            </th>
+                            <th valign="center">
+                                {{selectedTreeNode.parentContent.description}}
+                            </th>
+                            <td width="18%" valign="center" align="right" style="padding-right: 24px;">
+                                <span ng-if="selectedTreeNode.showOpenExternally">&nbsp;&nbsp;
+                                    <a ng-click="openLinkInBrowser(selectedTreeNode.weblink, selectedTreeNode.parentContent.text)"
+                                       class="btn btn-info btn-mini icon-size"
+                                       data-toggle="tooltip"
+                                       tooltip="Open in a default browser"
+                                       tooltip-placement="bottom"
+                                       id="{{selectedTreeNode.parentContent.text}}_newtab"
+                                       async>
+                                        <img src="icns/newwindow.svg" height="12">
+                                    </a>
+                                </span>
+                                <a ng-click="goUp(selectedTreeNode)" data-toggle="tooltip" tooltip="Up one level" tooltip-placement="bottom" class="btn btn-info btn-mini icon-size" id="{{selectedTreeNode.parentContent.text}}_back"><img src="icns/arrow_back_16.svg" height="12"/></a>
+                                <a href="" ng-show="selectedTreeNode.parentContent.importProject" ng-click="importEnergia(selectedTreeNode.parentContent.importProject, selectedTreeNode.parentContent.createProject, selectedTreeNode.parentContent.energiaBoards,selectedTreeNode.parentContent)" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" ng-disabled="" tooltip="{{importCCStooltip()}}" tooltip-placement="bottom" id="{{selectedTreeNode.parentContent.name}}_import" ><img ng-src="{{importCCSIcn()}}" height="{{isLocalServer()?16:12}}" /></a>
+                                <a test_id="download-button" ng-href="" ng-show="selectedTreeNode.parentContent.downloadLink" ng-click="isLocalServer() || downloadFile(selectedTreeNode.parentContent)" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" tooltip="{{downloadAllTooltip(selectedTreeNode.parentContent)}}" tooltip-placement="{{downloadTooltipPlacement()}}" id="{{selectedTreeNode.parentContent.name}}_download" offline-dropdown><img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" height="{{isLocalServer()?16:13}}"></a>
+                            </td>
+					    </tr>
+
+					    <!-- Bruce: #12945 - let the color setting done by JS -->
+					    <tr style="background-color:{{selectedTreeNode.headerBgColor}}" ng-if="selectedTreeNode.parentContent.resourceType=='projectSpec'
+													           || selectedTreeNode.parentContent.resourceType=='project.ccs'
+													           || selectedTreeNode.parentContent.resourceType=='folder.importable'
+													           || selectedTreeNode.parentContent.resourceType=='file.executable'
+                                                               || selectedTreeNode.parentContent.resourceType=='executable'">
+                                                <th align="center" style="min-width: 20%">
+						    <img src="icns/ccs_proj.gif" ng-show="selectedTreeNode.parentContent.resourceType=='projectSpec' || selectedTreeNode.parentContent.resourceType=='project.ccs'"/>
+						    <img src="icns/exec.gif" ng-show="selectedTreeNode.parentContent.resourceType=='file.executable'" />
+						    <img src="icns/file.gif" ng-show="selectedTreeNode.parentContent.resourceType=='file'" />
+						    <h1 class="resource-header">{{selectedTreeNode.parentContent.text}}</h1>
+                                                </th>
+                                                <th valign="center">{{selectedTreeNode.parentContent.description}}</th>
+                                                <td width="18%" valign="center" align="right" style="padding-right: 24px;">
+						    <a ng-click="goUp(selectedTreeNode)" data-toggle="tooltip" tooltip="Up one level" tooltip-placement="bottom" class="btn btn-info btn-mini icon-size" id="{{selectedTreeNode.parentContent.text}}_back"><img src="icns/arrow_back_16.svg" height="12" /></a>
+						    <span ng-show="selectedTreeNode.parentContent.importProject && (selectedTreeNode.parentContent.resourceType=='projectSpec' || selectedTreeNode.parentContent.resourceType=='project.ccs')">
+						        <a href="" ng-click="import(selectedTreeNode.parentContent)"  target="ccscloud" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" ng-disabled="" tooltip="{{importCCStooltip()}}" tooltip-placement="bottom" id="{{selectedTreeNode.parentContent.name}}_import" >
+							    <img ng-src="{{importCCSIcn()}}" height="{{isLocalServer()?16:12}}">
+						        </a>
+						    </span>
+						    <span ng-show="selectedTreeNode.parentContent.importProject && selectedTreeNode.parentContent.resourceType=='folder.importable'">
+						        <a href="" ng-click="import(selectedTreeNode.parentContent)" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" ng-disabled="" tooltip="{{importCCStooltip()}}" tooltip-placement="bottom" id="{{selectedTreeNode.parentContent.name}}_import" >
+							    <img ng-src="{{importCCSIcn()}}" height="{{isLocalServer()?16:12}}">
+						        </a>
+						    </span>
+                            <span ng-show="selectedTreeNode.parentContent.resourceType=='file.executable' && isLocalServer()">
+						        <a ng-click="runOfflineFile(selectedTreeNode.parentContent)"
+                                   class="btn btn-info btn-mini icon-size"
+                                   data-toggle="tooltip"
+                                   tooltip="{{runOfflineTooltip(selectedTreeNode.parentContent)}}"
+                                   tooltip-placement="{{downloadTooltipPlacement()}}"
+                                   id="{{selectedTreeNode.parentContent.name}}_run" >
+							    <img ng-src="{{runOfflineIcn()}}"> </img>
+						        </a>
+						    </span>
+						    <a test_id="download-button" ng-href="" ng-show="selectedTreeNode.parentContent.downloadLink"  ng-click="isLocalServer() || downloadFile(selectedTreeNode.parentContent)" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" tooltip="{{downloadAllTooltip(selectedTreeNode.parentContent)}}" tooltip-placement="{{downloadTooltipPlacement()}}" id="{{selectedTreeNode.parentContent.name}}_download" offline-dropdown><img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" height="{{isLocalServer()?16:13}}"></a>
+                                                </td>
+					    </tr>
+
+					    <tr ng-repeat="c in selectedTreeNode.content" ng-if="c.resourceType=='web.app'" >
+                                                <td>
+						    <a href="" ng-click="openLink(selectedTreeNode, c, 'web.app')">
+                                                        <img src="icns/demo.png" /><span ng-class="markUpIcon(c)" style="width:5px;right:4px"/> {{c.name}}</a>
+                                                </td>
+                                                <td valign="center">
+						    {{c.description}}
+                                                </td>
+                                                <td width="18%" valign="center" align="right" style="padding-right: 24px;">
+						    <a ng-href="" test_id="download-button" ng-show="c.downloadLink" ng-click="isLocalServer() || downloadFile(c)" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" tooltip="{{downloadTooltip(c)}}" tooltip-placement="{{downloadTooltipPlacement()}}" id="{{c.name}}_download" offline-dropdown><img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" height="{{isLocalServer()?16:13}}"></a>
+                                                </td>
+					    </tr>
+
+					    <tr ng-repeat="c in selectedTreeNode.content" ng-if="c.resourceType=='file.executable'">
+					        <!-- left area -->
+					        <td>
+						    <img src="icns/exec.gif" /><span ng-class="markUpIcon(c)"/> {{c.name}}
+					        </td>
+
+					        <!-- center area -->
+					        <td valign="center">
+						    {{c.description}}
+					        </td>
+
+					        <!-- right area -->
+					        <td width="18%" valign="center" align="right" style="padding-right: 24px;">
+						    <span ng-if="isLocalServer()" class="dropdown pull-right">
+						        <a ng-href="" test_id="download-button"
+                                                           ng-click="runOfflineFile(c)"
+						           class="btn btn-info btn-mini icon-size dropdown-toggle"
+						           data-toggle="tooltip"
+						           tooltip="{{runOfflineTooltip(c)}}"
+						           tooltip-placement="{{downloadTooltipPlacement()}}"
+						           id="{{c.name}}_download" >
+							    <img ng-src="{{runOfflineIcn()}}"> </img>
+						        </a>
+						        <!--
+							     <ul ng-show="isLocalServer()" class="dropdown-menu">
+							     <li>
+							     <a href="" ng-click="util.uiManager.runOffline(c)">
+							     <div ng-if="isOfflineOrPartial(c)">
+							     Run Locally
+							     </div>
+							     <div ng-if="!isOfflineOrPartial(c)">
+							     Make Offline and Run Locally
+							     </div>
+							     </a>
+							     </li>
+							     </ul> -->
+						    </span>
+
+						    <!-- this seems to appear in a couple of places, we may want to use a directive -->
+						    <!-- or something similar to group them all, to make maintaining them easier -->
+						    <a ng-href=""
+                               test_id="download-button"
+						       ng-show="c.downloadLink"
+						       ng-click="isLocalServer() || downloadFile(c)"
+						       class="btn btn-info btn-mini icon-size"
+						       data-toggle="tooltip"
+						       tooltip="{{downloadTooltip(c)}}"
+						       tooltip-placement="{{downloadTooltipPlacement()}}"
+						       id="{{c.name}}_download" offline-dropdown>
+						        <img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" height="{{isLocalServer()?16:13}}">
+						    </a>
+					        </td>
+					    </tr>
+
+					    <tr ng-repeat="c in selectedTreeNode.content" ng-if="c.resourceType=='file'" >
+					        <td><a href="" ng-click="openLink(selectedTreeNode, c, 'c/asm')">
+						    <img src="icns/linker_command_file.gif" ng-show="c.link.lastIndexOf('.cmd')>0"/>
+						    <img src="icns/c_file_obj.gif" ng-show="c.link.substr(-2) === '.c'"/>
+						    <img src="icns/c_file_obj.gif" ng-show="c.link.substr(-4) === '.cpp'"/>
+						    <img src="icns/c_file_obj.gif" ng-show="c.link.substr(-4) === '.ino'"/>
+						    <img src="icns/s_file_obj.gif" ng-show="c.link.lastIndexOf('.asm')>0"/>
+						    <img src="icns/h_file_obj.gif" ng-show="c.link.substr(-2) === '.h' "/>
+						    <img src="icns/link.png" ng-show="c.link.substr(-4) === '.htm' "/>
+						    <img src="icns/link.png" ng-show="c.link.substr(-5) === '.html' "/>
+						    <img src="icns/pdf.png" ng-show="c.link.lastIndexOf('.pdf')>0"/>
+						    <img src="icns/file.gif" ng-show="!(c.link.substr(-2) === '.c' || c.link.substr(-4) === '.cpp'  || c.link.lastIndexOf('.ino')>0 || c.link.lastIndexOf('.asm')>0 || c.link.substr(-2) === '.h' || c.link.substr(-4) === '.htm' || c.link.substr(-5) === '.html' || c.link.lastIndexOf('.pdf')>0 || c.link.lastIndexOf('.cmd')>0)"/>
+						    <span ng-class="markUpIcon(c)"/>
+						    {{c.name}}</a>
+					        </td>
+					        <td valign="center">{{c.description}}</td>
+					        <td width="18%" valign="center" align="right" style="padding-right: 24px;" >
+					            <span ng-show="c.importProject" style="display: inline-block;">
+						        <a href="" ng-click="import(c)" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" ng-disabled="" tooltip="{{importCCStooltip()}}" tooltip-placement="bottom" id="{{c.name}}_import">
+							    <img ng-src="{{importCCSIcn()}}" height="{{isLocalServer()?16:12}}" /></a>
+					            </span>
+						    <!--<a  test_id="download-button" ng-href="" ng-show="c.downloadLink" ng-click="isLocalServer() || downloadFile(c)" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" tooltip="{{downloadTooltip(c)}}" tooltip-placement="{{downloadTooltipPlacement()}}" id="{{c.name}}_download" offline-dropdown><img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" height="{{isLocalServer()?16:13}}"/></a>-->
+					        </td>
+					    </tr>
+
+
+					    <tr ng-repeat="c in selectedTreeNode.content" ng-if="c.resourceType=='projectSpec' || c.resourceType=='project.ccs' || c.resourceType=='folder.importable'" >
+                                                <td>
+						    <span ng-show="c.type=='folder'">
+						        <a href="" ng-click="openLink(selectedTreeNode, c,'proj')"><img src="icns/ccs_proj.gif"><span ng-class="markUpIcon(c)" style="width:5px;right:4px"/> {{c.name}} </a>
+						    </span>
+						    <span ng-show="c.type!='folder'">
+						        <img src="icns/ccs_proj.gif"/><span ng-class="markUpIcon(c)" style="width:5px;right:4px"/> {{c.name}}
+						    </span>
+                                                </td>
+                                                <td width="63%" valign="center">{{c.description}}</td>
+                                                <td width="18%" valign="center" align="right" style="padding-right: 24px;">
+						    <span ng-show="c.importProject && (c.resourceType=='projectSpec' || c.resourceType=='project.ccs')" style="display: inline-block;">
+						        <div>
+							    <!--<a href="" ng-click="import(c)" target="ccscloud" class="btn btn-info btn-mini icon-size" data-toggle="tooltip"  tooltip="{{importCCStooltip()}}" tooltip="{{importCCStooltip()}}" tooltip-placement="bottom" ng-disabled="" id="{{c.name}}_import">-->
+							        <!--<img ng-src="{{importCCSIcn()}}" height="{{isLocalServer()?16:12}}"></a>-->
+						        </div>
+
+						    </span>
+						    <span ng-show="c.importProject && c.resourceType=='folder.importable'" >
+							    <a href="" ng-click="import(c)" class="btn btn-info btn-mini icon-size" ng-disabled="" tooltip="{{importCCStooltip()}}" tooltip-placement="bottom" id="{{c.name}}_import">
+							        <img ng-src="{{importCCSIcn()}}" height="{{isLocalServer()?16:12}}" /></a>
+						    </span>
+						    <!--<a ng-href="" test_id="download-button" ng-show="c.downloadLink" ng-click="isLocalServer() || downloadFile(c)" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" tooltip="{{downloadTooltip(c)}}" tooltip-placement="{{downloadTooltipPlacement()}}" id="{{c.name}}_download" offline-dropdown><img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" height="{{isLocalServer()?16:13}}"/></a>-->
+                                                </td>
+					    </tr>
+
+					    <tr ng-repeat="c in selectedTreeNode.content" ng-if="c.resourceType=='overview'" >
+                                                <td class="jumbotron">
+						    <strong>{{c.name}}</strong><hr/>
+						    <div  ng-bind-html="c.content | to_trusted" /></td>
+						    <td width="18%" valign="center">
+						        <a ng-href="" test_id="download-button" ng-show="c.downloadLink" ng-click="isLocalServer() || downloadFile(c)" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" tooltip="{{downloadTooltip(c)}}" tooltip-placement="{{downloadTooltipPlacement()}}" id="{{c.name}}_download" offline-dropdown><img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" height="{{isLocalServer()?16:13}}"/></a>
+						    </td>
+					    </tr>
+
+					    <tr ng-repeat="c in selectedTreeNode.content" ng-if="c.type=='weblink'" >
+                                                <td><a href="" ng-click="openLink(selectedTreeNode, c, 'pdf')">
+						    <img src="icns/pdf.png" ng-show="c.link.lastIndexOf('.pdf')>0"/>
+						    <img src="icns/link.png" ng-show="c.link.lastIndexOf('.pdf')<0"/>
+						    <span ng-class="markUpIcon(c)" style="right:7px"/>
+						    {{c.name}}</a>
+                                                </td>
+                                                <td valign="center">{{c.description}}</td>
+                                                <!--td width="18%" valign="center"><a href="{{c.downloadLink}}" title="Download"><img src="icns/download16x19.png" height="13"></a OPS: can't download weblinks through the server -->
+                                                <td width="18%" valign="center" align="right" style="padding-right: 24px;" ><a test_id="download-button" ng-href="" ng-show="c.downloadLink" ng-click="isLocalServer() || downloadFile(c)" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" tooltip="{{downloadTooltip(c)}}" tooltip-placement="{{downloadTooltipPlacement()}}" id="{{c.name}}_download" offline-dropdown><img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" height="{{isLocalServer()?16:13}}" /></a>
+                                                </td>
+					    </tr>
+
+					    <tr ng-repeat="c in selectedTreeNode.content" ng-if="(c.type=='folder' || c.resourceType=='folder')
+											         && !(c.resourceType=='projectSpec' || c.resourceType=='project.ccs' || c.resourceType=='folder.importable')" >
+                                                <td valign="center">
+						    <a href="" ng-click="openLink(selectedTreeNode, c, 'folder')">
+                                                        <img src="icns/folder_closed.gif" ng-if="c.icon == null && c.resourceType!=='project.energia'"/>
+                                                        <img src="icns/new_sketch.gif" ng-if="c.icon == null && c.resourceType == 'project.energia'"/>
+                                                        <img ng-src="content/{{c.icon}}" ng-if="c.icon != null" />
+                                                        <span ng-class="markUpIcon(c)"/>
+                                                        {{c.text}}
+						    </a>
+                                                </td>
+                                                <td>{{c.description}}</td>
+                                                <td width="18%" valign="center" align="right" style="padding-right: 24px;" >
+						    <a href="" ng-show="c.importProject" ng-click="importEnergia(c.importProject, c.createProject, c.energiaBoards,c)" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" ng-disabled="" tooltip="{{importCCStooltip()}}" tooltip-placement="bottom" id="{{c.name}}_import" disabled-import-tooltip>
+                                                        <img ng-src="{{importCCSIcn()}}" height="{{isLocalServer()?16:12}}"/></a>
+						        <!--<a test-id="download-button" ng-href="" ng-show="c.downloadLink" ng-click="isLocalServer() || downloadFile(c)" class="btn btn-info btn-mini icon-size" data-toggle="tooltip" tooltip="{{downloadTooltip(c)}}" tooltip-placement="{{downloadTooltipPlacement()}}" id="{{c.name}}_download" offline-dropdown><img ng-src="{{downloadIcn()}}" ng-class="{'grey':isLocalServer()}" height="{{isLocalServer()?16:13}}"/></a>-->
+                                                </td>
+					    </tr>
+
+                        <span ng-if="selectedTreeNode.showOpenExternally" style="color: black;">
+                                    <br/> Content Currently Cannot be Displayed</span>
+                        <span ng-if="selectedTreeNode.showOpenExternally" style="color: red; cursor: pointer;" ng-click="openLinkInBrowser(selectedTreeNode.weblink, selectedTreeNode.parentContent.text)">
+                                    <br/> Please Click Here to Open Externally</span>
+
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                            </div>
+                        </div>
+                    </ui-layout-center>
+
+                    <div class="ui-layout-south" >
+                        <a href="http://www.ti.com/corp/docs/legal/copyright.shtml"
+                           name="&lid=EN_US_footer_websitefeedback">&copy; Copyright
+                            <span id="copyear">2018</span> -
+                        </a> Texas Instruments Incorporated. All rights reserved.
+
+                        <div style="float: right; text-align: right;">
+                            <div class="social">
+                                <span>Follow Us</span> <span><a
+								 href="//www.ti.com/facebook" style="color: #000;"
+								 name="&lid=EN_US_footer_facebookicon"><img
+													   src="//www.ti.com/assets/en/images/homepage/follow-us-facebook.png"
+													   alt="Texas Instruments on Facebook" border="0" align="absmiddle" /></a></span>
+				<span><a href="//twitter.com/txinstruments"
+					 style="color: #000;" name="&lid=EN_US_footer_twittericon"><img
+												       src="//www.ti.com/assets/en/images/homepage/follow-us-twitter.png"
+												       alt="Texas Instruments on Twitter" border="0" align="absmiddle" /></a></span>
+				<span><a href="//www.ti.com/linkedin"
+					 style="color: #000;" name="&lid=EN_US_footer_linkedin-icon"><img
+													 src="//www.ti.com/assets/en/images/homepage/linkedin.png"
+													 alt="Texas Instruments on LinkedIn" border="0" align="absmiddle" /></a></span>
+				<span><a
+					  href="//plus.google.com/u/0/104292131839044508100/posts?hl=en"
+					  style="color: #000;" name="&lid=EN_US_footer_google-icon"><img
+                                                                                                        src="//www.ti.com/assets/en/images/homepage/google.png"
+                                                                                                        alt="Texas Instruments on Google+" border="0" align="absmiddle" /></a></span>
+				<span><a href="http://e2e.ti.com/" style="color: #000;"
+					 name="&lid=EN_US_footer_e2e-icon"><img
+									       src="//www.ti.com/assets/en/images/homepage/e2e_footer.png"
+									       alt="Texas Instruments on e2e" border="0" align="absmiddle" /></a></span>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                        /* Script for Geo location */
+                        $.getJSON("http://www.ti.com/general/docs/readAkamaiHeaders0.tsp", function(data){window.tiUserGeo = data;});
+                    </script>
+                    <div id="tiPrivacy"></div>
+                </ui-layout>
+
+            </div>
+        </div>
+    </div>
+</main>
+
+
+

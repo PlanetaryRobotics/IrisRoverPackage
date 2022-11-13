@@ -1,0 +1,1 @@
+Radio was found to be alive during RC5 via Hercules BGAPI Passthrough but it was not (yet) able to be programmed via these means. So, the Radio was not programmed during RC5. Binaries to be programmed remain unchanged from RC3a.

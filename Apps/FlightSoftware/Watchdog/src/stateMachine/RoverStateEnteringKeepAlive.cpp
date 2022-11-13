@@ -47,8 +47,8 @@ namespace iris
         theContext.m_keepAliveTickCount++;
         theContext.m_keepAliveTickCountForDetailedReport++;
 
-        /* only send every 3 timer ticks (21s) */
-        if (theContext.m_keepAliveTickCount >= 3) {
+        /* only send every 4 timer ticks (28s) */
+        if (theContext.m_keepAliveTickCount >= 4) {
             theContext.m_keepAliveTickCount = 0;
 
             /* send heartbeat with collected data */
@@ -71,8 +71,9 @@ namespace iris
             }
         }
 
-        /* only send every 17 timer ticks (119s) */
-        if (theContext.m_keepAliveTickCountForDetailedReport >= 17) {
+        /* only send every 70 timer ticks (490s) */
+        // NOTE: This is just the base rate for ENTERING KeepAlive (if stuck here). Actual KeepAlive also sends its own detailed status packets.
+        if (theContext.m_keepAliveTickCountForDetailedReport >= 70) {
             theContext.m_keepAliveTickCountForDetailedReport = 0;
             sendDetailedReportToLander(theContext);
         }

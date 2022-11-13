@@ -1,0 +1,6 @@
+A colored-text log of the print outs of all packets received during the RC5_pickit_cable_ring_out session:
+NOTE: This includes any ANSI escape codes (like coloring) which will show up weird if viewed as plain-text. To view this appropriately, use the terminal `cat` command or view in VSCode with the `ANSI Colors` extension installed.
+
+[35;47;1m(10-26 08:00:33)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp:  75.0°K]
+0000  FF 00 00 00                                      ....
+

@@ -296,6 +296,20 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(batt_en=Parameter.PASTE),
         DataPathway.WIRED
     ),
+    'batt-en-on': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetBatteryConnection',
+        OrderedDict(batt_en=True),
+        DataPathway.WIRED
+    ),
+    'batt-en-off': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetBatteryConnection',
+        OrderedDict(batt_en=False),
+        DataPathway.WIRED
+    ),
     'SetBatteryControlEnable': (
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,

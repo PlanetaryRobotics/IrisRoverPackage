@@ -463,29 +463,18 @@ namespace Wf121
                 // If that is the case, just go back to listening.
             }
 
-            // Suspend the task if Passthrough isn't enabled,
-            // checking back every once in a while to see if it's been enabled
-            // (we don't need to respond right away (in tight timing) to being
-            // freed):
+            // Make sure Passthrough isn't enabled:
             if (!Wf121::persistentBgApiPassthroughEnabled())
             {
                 // If pass through isn't enabled, don't send this data...
                 // and let the outside world know:
-
                 task->enqueueMessageResponse(//-
                     { //-
                         .packetId = xBgApiTxWorkingData.packetId, //-
                         .resultingStatus = BgApiCommandSendStatus::BAD_STATE //-
                     } //-
                 );
-                // Then just wait for it to come back up...
-                while (!Wf121::persistentBgApiPassthroughEnabled())
-                {
-                    // Instead, check back every once in a while to see if
-                    // we've been freed.
-                    vTaskDelay(WF121_BGAPI_TX_TASK_PASSTHROUGH_PAUSE_CHECK_MS);
-                }
-                // Once freed, restart the loop (toss whatever data it was we were going to send):
+                // Then restart the loop, going back to listening for more data to process:
                 continue;
             }
 

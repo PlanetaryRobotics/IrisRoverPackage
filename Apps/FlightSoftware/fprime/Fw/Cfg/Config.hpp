@@ -116,7 +116,7 @@
 
 // This allows tracing calls through ports for debugging
 #ifndef FW_PORT_TRACING
-#define FW_PORT_TRACING 1 //!< Indicates whether port calls are traced (more code, more visibility into execution)
+#define FW_PORT_TRACING 0 //!< Indicates whether port calls are traced (more code, more visibility into execution)
 #endif
 
 // This generates code to connect to serialized ports
@@ -130,7 +130,9 @@
 
 // Add a type id when serialization is done. More storage,
 // but better detection of errors
-// TODO: Not working yet
+// We can cram more data into each packet without it so we'll forgo this since
+// opcode necessarily informs us of type information so long as GSW can parse
+// FPrime XML (which it can).
 
 #ifndef FW_SERIALIZATION_TYPE_ID
 #define FW_SERIALIZATION_TYPE_ID 0 //!< Indicates if type id is stored when type is serialized. (More storage, but more type safety)
@@ -208,10 +210,10 @@
 // `NetworkManager::Send_BgApi_Command` command containing a serialized
 // `wifi_cmd_dfu_flash_upload` BGAPI command uplinked from Ground (4B BGAPI
 // header + 1 len byte + 128B of data) + [2 F' length bytes + 1 NULL termination
-// byte in F' + 2B of overhead] + [4B CRC32 + 4B packet ID] +
-// [2B FwOpcodeType + 4B FwPacketDescriptorType] + 4B extra overhead = 156B.
+// byte in F' + 2B of overhead] + [4B CRC32 + 4B packet ID + 4B expectResponse enum] +
+// [2B FwOpcodeType + 4B FwPacketDescriptorType] + 4B extra overhead = 1B.
 #ifndef FW_COM_BUFFER_MAX_SIZE
-#define FW_COM_BUFFER_MAX_SIZE 156 //!< Max size of Fw::Com buffer
+#define FW_COM_BUFFER_MAX_SIZE 160 //!< Max size of Fw::Com buffer
 #endif
 
 // Specifies the size of the buffer that contains the serialized command arguments.
@@ -223,7 +225,7 @@
 // Specifies the maximum size of a string in a command argument
 // This was set so it's just big enough to fit a serialized
 // `wifi_cmd_dfu_flash_upload` BGAPI command uplinked from Ground (4B BGAPI
-// header + 1 len byte + 128B of data) + 2 F' length bytes + 1 NULL termination
+// header + 1 len byte + 128B of data) + 2 F' length bytes + 1B NULL termination
 // byte in F' + 2B of overhead = 138B.
 #ifndef FW_CMD_STRING_MAX_SIZE
 #define FW_CMD_STRING_MAX_SIZE 138 //!< Max character size of command string arguments
@@ -317,7 +319,7 @@ enum TimeBase
 
 // How many bits are used to store the time base
 #ifndef FwTimeBaseStoreType
-#define FwTimeBaseStoreType U16 //!< Storage conversion for time base in scripts/ground interface
+#define FwTimeBaseStoreType U32 //!< Storage conversion for time base in scripts/ground interface
 #endif
 
 #ifndef FwTimeContextStoreType

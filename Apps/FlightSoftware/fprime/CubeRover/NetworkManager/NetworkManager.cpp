@@ -25,11 +25,78 @@
 #include <CubeRover/Wf121/Timestamp.hpp>
 #include <CubeRover/Wf121/Wf121DirectMessage.hpp>
 #include <CubeRover/Wf121/Wf121SerialInterface.hpp>
+#include <CubeRover/Wf121/NetworkInterface.hpp>
+#include <CubeRover/Wf121/Timestamp.hpp>
 
 extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 namespace CubeRover
 {
+    //
+
+    /**
+     * @brief Local helper function that computes the CRC32 of the given buffer.
+     * Runs in ~ 6 + 38*n (best of evaluated non-lookup-table-based methods).
+     * This is the only we'll use a CRC32 in the entire codebase, so it's not
+     * worth devoting precious RAM to it (if calculating on first call as in
+     * CRC32.hpp) and storing a giant static lookup table in flash is just
+     * asking for a cosmic bitflip to make this entire operation not work.
+     *
+     * NOTE: For BGAPI Passthrough, GSW should use this EXACT algorithm for
+     * CRC32 compute.
+     *
+     * Derived from: https://web.archive.org/web/20190108202303/http://www.hackersdelight.org/hdcodetxt/crc.c.txt
+     * License: https://web.archive.org/web/20190716204559/http://www.hackersdelight.org/permissions.htm
+     *
+     * @param bufferData
+     * @param bufferLen
+     * @return CRC32
+     */
+    static uint32_t computeCrc32(const uint8_t *bufferData, const NATIVE_INT_TYPE bufferLen)
+    {
+        int i, j;
+        unsigned int byte, crc, c;
+        const unsigned int      //-
+            g0 = 0xED'B8'83'20, //-
+            g1 = g0 >> 1,       //-
+            g2 = g0 >> 2,       //-
+            g3 = g0 >> 3;
+
+        crc = 0xFF'FF'FF'FF;
+        for (i = 0; i < bufferLen; i++)
+        { // Get next byte.
+            byte = bufferData[i];
+            crc = crc ^ byte;
+            for (j = 1; j >= 0; j--)
+            { // Do two times.
+                // clang-format off
+                switch(crc & 0xF) {
+                    case  0: c = 0;                  break;
+                    case  1: c =                g3;  break;
+                    case  2: c =           g2;       break;
+                    case  3: c =           g2 ^ g3;  break;
+                    case  4: c =      g1;            break;
+                    case  5: c =      g1 ^      g3;  break;
+                    case  6: c =      g1 ^ g2;       break;
+                    case  7: c =      g1 ^ g2 ^ g3;  break;
+                    case  8: c = g0;                 break;
+                    case  9: c = g0 ^           g3;  break;
+                    case 10: c = g0 ^      g2;       break;
+                    case 11: c = g0 ^      g2 ^ g3;  break;
+                    case 12: c = g0 ^ g1;            break;
+                    case 13: c = g0 ^ g1 ^      g3;  break;
+                    case 14: c = g0 ^ g1 ^ g2;       break;
+                    case 15: c = g0 ^ g1 ^ g2 ^ g3;  break;
+                }
+                // clang-format on
+                crc = (crc >> 4) ^ c;
+            }
+        }
+
+        // For CRC32 we need to return the one's compliment of the result:
+        return ~crc;
+    }
+
     // Set nmCurrentCommunicationMode to the default:
     NetworkManagerComponentImpl::nm_radio_communications_mode NetworkManagerComponentImpl::nmCurrentCommunicationMode = NetworkManagerComponentImpl::nm_radio_communications_mode::HERCULES;
 
@@ -44,9 +111,16 @@ namespace CubeRover
     NetworkManagerComponentImpl ::
 #if FW_OBJECT_NAMES == 1
         NetworkManagerComponentImpl(
-            const char *const compName) : NetworkManagerComponentBase(compName), m_pRadioDriver(&CORE_RADIO_DRIVER)
+            const char *const compName) : NetworkManagerComponentBase(compName),
+                                          m_pRadioDriver(&CORE_RADIO_DRIVER),
+                                          m_bgApiMsgOutWorkingBuffer(),
+                                          m_bgApiStatusInWorkingBuffer(),
+                                          m_bgApiCommandPassthroughRecordBook()
 #else
-        NetworkManagerComponentImpl(void) : m_pRadioDriver(&CORE_RADIO_DRIVER)
+        NetworkManagerComponentImpl(void) : m_pRadioDriver(&CORE_RADIO_DRIVER),
+                                            m_bgApiMsgOutWorkingBuffer(),
+                                            m_bgApiStatusInWorkingBuffer(),
+                                            m_bgApiCommandPassthroughRecordBook()
 #endif
     {
         // Initialize process variables:
@@ -55,6 +129,9 @@ namespace CubeRover
         m_rxPacketCountOnLastReset = 0;
         m_txPacketCountOnLastReset = 0;
         m_lastDownlinkedWifiState = convertRadioState2WifiState(Wf121::DirectMessage::RadioSwState::NONE);
+
+        // Initialize working buffers with known sentinel bytes:
+        m_bgApiMsgOutWorkingBuffer.clear();
     }
 
     void NetworkManagerComponentImpl ::
@@ -118,6 +195,9 @@ namespace CubeRover
     {
         // Perform standard updates:
         update();
+        // Check for any new asynchronous responses to BGAPI Passthrough
+        // messages (and handle them):
+        checkForBgApiPassthroughResponse();
         // See if there's any available uplinked data:
         getUplinkDatagram();
     }
@@ -218,51 +298,178 @@ namespace CubeRover
                 Radio.
                 A `RadioSendBgApiCommandAck` event is emitted when this command is received */
     void NetworkManagerComponentImpl::Send_BgApi_Command_cmdHandler(
-        FwOpcodeType opCode,                /*!< The opcode*/
-        U32 cmdSeq,                         /*!< The command sequence number*/
-        U32 crc32,                          /*!<
-                                                 CRC32 of the packed BGAPI packet, as a uint32.
-                                             */
-        U32 packetId,                       /*!<
-                                              ID of the packet, assigned by ground. This is just
-                                              included in the response event so ground can know what
-                                              packet to resend if it needs to resend a packet.
-                                          */
-        const Fw::CmdStringArg &bgapiPacket /*!<
-                        The data as a 'string', with a MAX length of 134B
-                        (4B of BGAPI header + 1B 'BGAPI uint8array' length byte
-                        + 128B of data + 1B null termination). To increase this
-                        limit, you'll likely need to bump up
-                        'FW_COM_BUFFER_MAX_SIZE' and 'FW_CMD_STRING_MAX_SIZE'
-                        in 'fprime/Fw/Cfg/Config.hpp' (read the notes there for
-                        more information about required padding). Note that
-                        increasing the max string size has a pretty big effect
-                        on the total program size in memory.
-
-
-                        Here string here just means a null terminated char
-                        array. To be specific, the NULL termination is EXCLUDED
-                        from the length and does NOT need to be (and should not
-                        be) included in the data sent. That is, if length is 3,
-                        the data sent would be [0x00, 0x03, byte0, byte1, byte2]
-                        and the memory in the `CmdStringArg->m_buf` inside
-                        Hercules would look like: [byte0, byte1, byte2, NULL].
-                    */
+        FwOpcodeType opCode,                                                                     /*!< The opcode*/
+        U32 cmdSeq,                                                                              /*!< The command sequence number*/
+        U32 crc32,                                                                               /*!<
+                                                                                                      CRC32 of the packed BGAPI packet, as a uint32.
+                                                                                                  */
+        U32 packetId,                                                                            /*!<
+                                                                                                   ID of the packet, assigned by ground. This is just
+                                                                                                   included in the response event so ground can know what
+                                                                                                   packet to resend if it needs to resend a packet.
+                                                                                               */
+        NetworkManagerComponentImpl::nm_radio_send_bgapi_command_expect_response expectResponse, /*!<
+                                                                                                    Whether or not we should expect (and wait for) a BGAPI
+                                                                                                    response from the Radio after sending this command
+                                                                                                    (certain BGAPI DFU flashing operations don't return a
+                                                                                                    response). Setting this correctly will ensure fast and
+                                                                                                    reliable data transfers. Using an enum here instead of
+                                                                                                    a bool because it's easier to detect corruption with
+                                                                                                */
+        const Fw::IrisCmdByteStringArg &bgapiPacket                                              /*!<
+                                                                                                  The data as a 'byte string', with a MAX length of 134B
+                                                                                                  (4B of BGAPI header + 1B 'BGAPI uint8array' length byte
+                                                                                                  + 128B of data + 1B null termination). To increase this
+                                                                                                  limit, you'll likely need to bump up
+                                                                                                  'FW_COM_BUFFER_MAX_SIZE' and 'FW_CMD_STRING_MAX_SIZE'
+                                                                                                  in 'fprime/Fw/Cfg/Config.hpp' (read the notes there for
+                                                                                                  more information about required padding). Note that
+                                                                                                  increasing the max string size has a pretty big effect
+                                                                                                  on the total program size in memory.
+                                             
+                                             
+                                                                                                  Here string here just means a null terminated char
+                                                                                                  array. To be specific, the NULL termination is EXCLUDED
+                                                                                                  from the length and does NOT need to be (and should not
+                                                                                                  be) included in the data sent. That is, if length is 3,
+                                                                                                  the data sent would be [0x00, 0x03, byte0, byte1, byte2]
+                                                                                                  and the memory in the `CmdStringArg->m_buf` inside
+                                                                                                  Hercules would look like: [byte0, byte1, byte2, NULL].
+                                                                                              */
     )
     {
-        // ! TODO
+        bool good_so_far = true;
+        nm_radio_send_bgapi_command_ack_status status;
+
+        // Grab data:
+        const char *bgapiPacketData = bgapiPacket.toChar();
+        NATIVE_INT_TYPE bgApiPacketLen = bgapiPacket.length();
+
+        // Make sure len makes sense:
+        if (bgApiPacketLen == 0 || bgApiPacketLen > WF121_BGAPI_PASSTHROUGH_MAX_MESSAGE_SIZE)
+        {
+            // Bad length received (decoded). Nothing was sent to the Radio.
+            // Either 0 or bigger than max possible size: WF121_BGAPI_PASSTHROUGH_MAX_MESSAGE_SIZE:
+            status = nm_radio_send_bgapi_command_ack_status::nm_bgapi_send_BAD_LEN;
+            good_so_far = false;
+        }
+
+        // Validate expectResponse (really important this is correct):
+        bool expectResponseBool;
+        if (good_so_far)
+        {
+            if (
+                expectResponse != nm_radio_send_bgapi_command_expect_response::nm_bgapi_cmd_EXPECT_RESPONSE &&
+                expectResponse != nm_radio_send_bgapi_command_expect_response::nm_bgapi_cmd_DONT_EXPECT_RESPONSE)
+            {
+                // Expect response doesn't match any of the allowed values.
+                // Data corruption likely. Don't continue and let ground know:
+                status = nm_radio_send_bgapi_command_ack_status::nm_bgapi_send_BAD_EXPECT_RESPONSE_VAL;
+                good_so_far = false;
+            }
+            else
+            {
+                expectResponseBool = expectResponse == nm_radio_send_bgapi_command_expect_response::nm_bgapi_cmd_EXPECT_RESPONSE;
+            }
+        }
+
+        // Validate data CRC:
+        U32 computedCrc32;
+        if (good_so_far)
+        {
+            // Compute CRC32 of data:
+            computedCrc32 = computeCrc32((uint8_t *)bgapiPacketData, bgApiPacketLen);
+
+            // Check CRC32
+            if (crc32 != computedCrc32)
+            {
+                // Computed CRC of data received did not match target CRC received.
+                status = nm_radio_send_bgapi_command_ack_status::nm_bgapi_send_CRC_FAIL;
+                good_so_far = false;
+            }
+        }
+
+        // Send out results and pass on to Task if necessary:
+        if (good_so_far)
+        {
+            // Data passes validation. Send it off to
+            // `Wf121BgApiPassthroughTxTask` to be sent to the Radio
+            // (asynchronously so this Task doesn't have to be blocked).
+            // NOTE: we only send one `log_WARNING_LO_RadioSendBgApiCommandAck`
+            // per packet so that will be sent once we get a final status from
+            // `Wf121BgApiPassthroughTxTask` via
+            // `Wf121BgApiPassthroughTxTask::getMessageResponse`.
+            // This is handled in `schedIn_handler`.
+            m_bgApiMsgOutWorkingBuffer.packetId = packetId;
+            m_bgApiMsgOutWorkingBuffer.dataLen = bgApiPacketLen;
+            m_bgApiMsgOutWorkingBuffer.expectResponse = expectResponseBool;
+            memcpy(m_bgApiMsgOutWorkingBuffer.rawData, bgapiPacketData, bgApiPacketLen);
+            m_pRadioDriver->m_serialBgApiPassthroughTxTask.enqueueMessage(&m_bgApiMsgOutWorkingBuffer);
+
+            // Signal that we're done (and the command worked okay, results are pending...)
+            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        }
+        else
+        {
+            // Data failed validation somewhere, let Ground know that this
+            // packet won't be downlinked and why:
+
+            // Record the results in the record book (in case our ACK doesn't make
+            // it to ground and it needs to request records of what happened):
+            m_bgApiCommandPassthroughRecordBook.force_enqueue( //-
+                {
+                    .packetId = packetId,
+                    .resultingStatus = static_cast<nm_radio_rec0_bgapi_command_ack_status>(status) //-
+                }                                                                                  //-
+            );
+
+            // NOTE: Not actually a warning but sent using the `WARNING_LO` queue
+            // because it has high importance, a (comparatively) large buffer,
+            // and not many events use the `WARNING_LO` queue.
+            log_WARNING_LO_RadioSendBgApiCommandAck(
+                packetId,
+                crc32,
+                computedCrc32,
+                status //-
+            );
+
+            // Signal that we're done:
+            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_VALIDATION_ERROR);
+        }
+    }
+
+    //! Handler for command Downlink_BgApi_Command_Records
+    /* Triggers a `RadioBgApiCommandRecords` event to see what BgApi
+                packets have been processed recently and what the outcomes were. */
+    void NetworkManagerComponentImpl::Downlink_BgApi_Command_Records_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq           /*!< The command sequence number*/
+    )
+    {
+        // Grab records:
+        // (NOTE: FIFO queue reads them out oldest-first, but we'll
+        // downlink the records with oldest-last).
+        BgApiCommandPassthroughRecord records[NUM_BGAPI_COMMAND_PASSTHROUGH_RECORDS];
+        m_bgApiCommandPassthroughRecordBook.straighten_into(records);
+
+        // Send the log:
+        log_WARNING_LO_RadioBgApiCommandRecords(
+            records[2].packetId,
+            static_cast<nm_radio_rec0_bgapi_command_ack_status>(records[2].resultingStatus),
+            records[1].packetId,
+            static_cast<nm_radio_rec1_bgapi_command_ack_status>(records[1].resultingStatus),
+            records[0].packetId,
+            static_cast<nm_radio_rec2_bgapi_command_ack_status>(records[0].resultingStatus));
 
         // Signal that we're done:
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR); // not impl. yet.
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
     // Helper function to convert RadioSwState (used inside RadioDriver) to
     // WIFIState (used by FPrime telem).
     // See `RadioSwState` in `Wf121/Wf121DirectMessage.hpp` for more details on
     // each state.
-    // TODO: [CWC] Update FPrime XML so this is 1-to-1 correspondence
-    //  - Make sure to get networkmanager_state_from/to
-    //  - (and add a RadioSwActivity) telem item while you're at it)
+    //  TODO: [CWC] Consider also adding a RadioSwActivity telem item?
     NetworkManagerComponentBase::WIFIState NetworkManagerComponentImpl::convertRadioState2WifiState(Wf121::DirectMessage::RadioSwState state)
     {
         switch (state)
@@ -291,6 +498,53 @@ namespace CubeRover
         // Bad state (we don't know what's really going on inside the Radio rn):
         default:
             return WIFIState::nm_BAD_MESSAGE;
+        }
+    }
+
+    // Check for any new asynchronous responses to BGAPI Passthrough
+    // messages (and handle them):
+    void NetworkManagerComponentImpl::checkForBgApiPassthroughResponse()
+    {
+        // Check for a response:
+        // NOTE: The vast majority of the times this function is called,
+        // nothing will be available so it's very important that blockingTicks
+        // stays at 0 here since it's called frequently by the scheduler.
+        bool gotResponse = m_pRadioDriver->m_serialBgApiPassthroughTxTask.getMessageResponse( //-
+            &m_bgApiStatusInWorkingBuffer, 0                                                  //-
+        );
+
+        // Handle a response:
+        if (gotResponse)
+        {
+            // Record the results in the record book (in case our ACK doesn't make
+            // it to ground and it needs to request records of what happened):
+            m_bgApiCommandPassthroughRecordBook.force_enqueue( //-
+                {
+                    .packetId = m_bgApiStatusInWorkingBuffer.packetId,
+                    .resultingStatus = static_cast<nm_radio_rec0_bgapi_command_ack_status>(m_bgApiStatusInWorkingBuffer.resultingStatus) //-
+                }                                                                                                                        //-
+            );
+
+            // NOTE: Not actually a warning but sent using the `WARNING_LO` queue
+            // because it has high importance, a (comparatively) large buffer,
+            // and not many events use the `WARNING_LO` queue.
+            //
+            // NOTE: Since, if we're here, the uplinked command necessarily
+            // passed validation, we'll just downlink all 0xFF for the CRC bytes.
+            // The alternatives would be:
+            // 1.) Adding another log for this condition that doesn't have CRC
+            // args (more program memory).
+            // 2.) Passing the CRCs through every stage of the pipeline just so
+            // they could get here (more RAM, which is especially precious).
+            // Neither is really worth using since the alternative here is just
+            // a tiny amount more comms data (which will only be used during
+            // our 50kbps period).
+            log_WARNING_LO_RadioSendBgApiCommandAck(
+                m_bgApiStatusInWorkingBuffer.packetId,
+                0xFF'FF'FF'FF,
+                0xFF'FF'FF'FF,
+                static_cast<nm_radio_send_bgapi_command_ack_status>(m_bgApiStatusInWorkingBuffer.resultingStatus) //-
+            );
         }
     }
 
@@ -327,7 +581,7 @@ namespace CubeRover
             // Repeat the state now (in case it was lost before):
             tlmWrite_WIFIStateStatus(m_lastDownlinkedWifiState);
 
-            //            watchDogInterface.debugPrintfToWatchdog("RADIO: NM watching u%u d%u", m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUplinkEndpoint(), m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getDownlinkEndpoint());
+            // watchDogInterface.debugPrintfToWatchdog("RADIO: NM watching u%u d%u", m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUplinkEndpoint(), m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getDownlinkEndpoint());
         }
 
         // Check if Radio has gotten back into a good state since the last reset

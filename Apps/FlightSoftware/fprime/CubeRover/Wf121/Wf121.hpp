@@ -24,6 +24,7 @@
 #include <CubeRover/Wf121/Wf121Parser.hpp>
 #include <CubeRover/Wf121/Wf121RxTask.hpp>
 #include <CubeRover/Wf121/Wf121UdpTxTask.hpp>
+#include <CubeRover/Wf121/Wf121BgApiPassthroughTxTask.hpp>
 
 namespace Wf121
 {
@@ -38,6 +39,12 @@ namespace Wf121
   // NOTE: Stack size is in words. Make sure there's enough room for the overhead (min task size) plus some overhead. Use `uxTaskGetStackHighWaterMark(NULL)` to tune.
   static const NATIVE_INT_TYPE WF121_UDP_TX_TASK_STACK_SIZE = configMINIMAL_STACK_SIZE + 256; // Doesn't handle BGAPI callback processing so it can be much shallower than the RX task.
   static const NATIVE_INT_TYPE WF121_UDP_TX_TASK_CPU_AFFINITY = -1;
+
+  // These three parameters control the setup of the task that handles sending BGAPI passthrough data for the WF121 Radio:
+  static const NATIVE_INT_TYPE WF121_BGAPI_PASSTHROUGH_TX_TASK_PRIORITY = WF121_UDP_TX_TASK_PRIORITY; // Match WF121_UDP_TX_TASK_PRIORITY
+  // NOTE: Stack size is in words. Make sure there's enough room for the overhead (min task size) plus some overhead. Use `uxTaskGetStackHighWaterMark(NULL)` to tune.
+  static const NATIVE_INT_TYPE WF121_BGAPI_PASSTHROUGH_TX_TASK_STACK_SIZE = configMINIMAL_STACK_SIZE + 64; // Doesn't handle BGAPI callback processing so it can be much shallower than the RX task.
+  static const NATIVE_INT_TYPE WF121_BGAPI_PASSTHROUGH_TX_TASK_CPU_AFFINITY = -1;
 
   // Use an enum of specific values - not just a bool - so memory corruption /
   // fading (if in SRAM) can be detected and corrected by resetting to a default:
@@ -68,6 +75,10 @@ namespace Wf121
     // radio:
     NetworkInterface m_networkInterface;
 
+    // FreeRTOS Task responsible for handling sending BGAPI passthrough data to
+    // the Radio over UART (only when IN passthrough mode):
+    Wf121BgApiPassthroughTxTask m_serialBgApiPassthroughTxTask;
+
     // Begin all processes (once outside code is ready):
     void init();
 
@@ -83,7 +94,7 @@ namespace Wf121
     Wf121RxTask m_serialRxTask;
 
     // FreeRTOS Task responsible for handling sending payload data to the
-    // Radio's UDP endpoint over UART:
+    // Radio's UDP endpoint over UART (only when NOT in passthrough mode):
     Wf121UdpTxTask m_serialUdpTxTask;
 
     /**

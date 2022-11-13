@@ -6,7 +6,10 @@
  * response, and then sending the actual data.
  *
  * NOTE: If you just want to send raw data at the radio, you can use
- * Wf121Serial::dmaSend.
+ * Wf121Serial::dmaSend BUT SHOULD BE REALLY CAREFUL BECAUSE IT'S BAD PRACTICE
+ * TO HAVE MORE THAN ONE TASK ALLOWED TO INTERACT WITH AN INTERFACE AT A TIME.
+ * Instead, consider switching in/out a comms task, like how `Wf121UdpTxTask`
+ * shares the interface with `Wf121BgApiPassthroughTxTask`.
  */
 
 #ifndef CUBEROVER_WF121_WF121_UDP_TX_TASK_HPP_
@@ -66,7 +69,7 @@ namespace Wf121
      * dmaSend calls, while the actual logic for what to send and when is
      * delegated to `Wf121TxTaskManager`.
      *
-     * NOTE from `Wf121TxTask` which uses the same interface:
+     * NOTE from `WatchdogTxTask` which uses the same interface:
      * This is a subclass of Os::Task so that it can access the `m_handle` field of Os::Task. Os::Task was modified
      * in order to make this field protected. The `m_handle` field contains the native handle of the underlying
      * implementation of Os::Task. In our case, we expect this will always be run on the Hercules, and that the

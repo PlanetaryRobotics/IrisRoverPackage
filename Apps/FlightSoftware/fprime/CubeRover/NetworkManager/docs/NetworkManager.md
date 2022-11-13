@@ -47,8 +47,16 @@
                         included in the response event so ground can know what 
                         packet to resend if it needs to resend a packet.
                     |
-| | | |bgapiPacket|Fw::CmdStringArg|
-                        The data as a 'string', with a MAX length of 134B 
+| | | |expectResponse|nm_radio_send_bgapi_command_expect_response|
+                        Whether or not we should expect (and wait for) a BGAPI 
+                        response from the Radio after sending this command 
+                        (certain BGAPI DFU flashing operations don't return a 
+                        response). Setting this correctly will ensure fast and
+                        reliable data transfers. Using an enum here instead of
+                        a bool because it's easier to detect corruption with
+                    |
+| | | |bgapiPacket|Fw::IrisCmdByteStringArg|
+                        The data as a 'byte string', with a MAX length of 134B 
                         (4B of BGAPI header + 1B 'BGAPI uint8array' length byte 
                         + 128B of data + 1B null termination). To increase this 
                         limit, you'll likely need to bump up 
@@ -67,6 +75,8 @@
                         and the memory in the `CmdStringArg->m_buf` inside 
                         Hercules would look like: [byte0, byte1, byte2, NULL].
                     |
+|Downlink_BgApi_Command_Records|4 (0x4)|Triggers a `RadioBgApiCommandRecords` event to see what BgApi
+                packets have been processed recently and what the outcomes were.| | |
 
 ## Telemetry Channel List
 
@@ -123,19 +133,54 @@
 | | | |changeMade|bool|||
 | | | |from|bool|||
 | | | |to|bool|||
-|RadioSendBgApiCommandAck|7 (0x7)|Fired in response to a `Send_BgApi_Command` command. 
-                `from` will always be the state before the command. 
-                `to` will always be the requested state in the command. 
-                `changeMade` indicates whether the change was actually 
-                (successfully) changed. It can be false because either the 
-                change was not able to be made or because it didn't need to be 
-                made (requested state is the current state).
- 
+|RadioSendBgApiCommandAck|7 (0x7)|Fired in response to a `Send_BgApi_Command` command.
 
                 Not actually a warning but sent using the `WARNING_LO` queue 
                 because it has high importance, a (comparatively) large buffer, 
-                and not many events use the `WARNING_LO` queue.| | | | |
+                and not many events use the `WARNING_LO` queue.
+
+                NOTE: CRC values will only be populated if command FAILED
+                validation (for any reason, including CRC failure). If status
+                indicates there was no validation error, both CRCs will be
+                `0xFF'FF'FF'FF`.| | | | |
 | | | |packetId|U32||Packet ID given from ground.|
-| | | |targetCrc32|U32||Uplinked CRC32 (as received).|
-| | | |computedCrc32|U32||CRC32 of the `bgapiPacket` received, as a uint32.|
+| | | |targetCrc32|U32||Uplinked CRC32 (as received), or `0xFF'FF'FF'FF` if no validation error.|
+| | | |computedCrc32|U32||CRC32 of the `bgapiPacket` received, as a uint32, or `0xFF'FF'FF'FF` if no validation error.|
 | | | |status|nm_radio_send_bgapi_command_ack_status||Status of the `Send_BgApi_Command`.|
+|RadioBgApiCommandRecords|8 (0x8)|Fired in response to a `Downlink_BgApi_Command_Records` command. 
+                Downlinks the GSW-Assigned `PacketId` of the last 3 
+                `Send_BgApi_Command` s processed by the NetworkManager as well 
+                as what the resulting status of that downlink was (used for 
+                ensuring all packets in a programming sequence are uplinked 
+                correctly and in the correct order).
+ 
+                Technically it's a bit hacky to just have three args with 
+                manually synced enums and, instead, this should be using an 
+                FPrime Array of custom serializables but we don't have that 
+                serialization built in our GDS and don't have time to add it 
+                since it would be non-trivial.
+ 
+                Not actually a warning but sent using the `WARNING_LO` queue 
+                because it has high importance, a (comparatively) large buffer, 
+                and not many events use the `WARNING_LO` queue.| | | | |
+| | | |packetId0|U32||GSW-Assigned Packet ID of the most recently processed BgApi Packet.|
+| | | |result0|nm_radio_rec0_bgapi_command_ack_status||Result of processing the most recently processed BgApi Packet.
+                        NOTE: This enum needs to EXACTLY match 
+                        `nm_radio_send_bgapi_command_ack_status` in `status` of 
+                        `RadioSendBgApiCommandAck` (with the exception of 
+                        `_EMPTY_RECORD` which is used to indicate
+                        that the record is empty).|
+| | | |packetId1|U32||GSW-Assigned Packet ID of the 2nd most recently processed BgApi Packet.|
+| | | |result1|nm_radio_rec1_bgapi_command_ack_status||Result of processing the 2nd most recently processed BgApi Packet.
+                        NOTE: This enum needs to EXACTLY match 
+                        `nm_radio_send_bgapi_command_ack_status` in `status` of 
+                        `RadioSendBgApiCommandAck` (with the exception of 
+                        `_EMPTY_RECORD` which is used to indicate
+                        that the record is empty).|
+| | | |packetId2|U32||GSW-Assigned Packet ID of the 3rd most recently processed BgApi Packet.|
+| | | |result2|nm_radio_rec2_bgapi_command_ack_status||Result of processing the 3rd most recently processed BgApi Packet.
+                        NOTE: This enum needs to EXACTLY match 
+                        `nm_radio_send_bgapi_command_ack_status` in `status` of 
+                        `RadioSendBgApiCommandAck` (with the exception of 
+                        `_EMPTY_RECORD` which is used to indicate
+                        that the record is empty).|

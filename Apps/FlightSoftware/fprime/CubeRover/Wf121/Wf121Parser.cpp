@@ -123,7 +123,7 @@ namespace Wf121
                 // think it's synced (so all BGAPI messages, even pre-sync ones, make it through):
                 have_seen_a_dm_heartbeart_since_boot = true;
             }
-            // Reset state if BGAPI passthrough was just turned on:
+            // Reset state if BGAPI passthrough was just toggled:
             if (prevPassthroughState != passthroughState)
             {
                 m_currentState = Mpsm::State::WAITING_FOR_VALID_BGAPI_HEADER;
@@ -605,7 +605,8 @@ namespace Wf121
             {
                 // If we got a byte but it isn't NECESSARILY part of a BGAPI
                 // packet, pass it out just in case:
-                watchDogInterface.debugPrintfToWatchdog("BGB: 0x%02X.", newByte);
+//                watchDogInterface.debugPrintfToWatchdog("BGB: 0x%02X.", newByte);
+                // ON-EARTH DEBUGGING ONLY - this swamps the interface w/ ~2kbps.
             }
 
             return returnStatus;

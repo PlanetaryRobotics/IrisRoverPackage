@@ -4,7 +4,7 @@ namespace Wf121
 {
   // Whether BGAPI pass through mode is enabled. Persistent. Default: false (normal Hercules-Radio communications).
 #pragma PERSISTENT
-        static BgApiPassThroughState persistent_bgapi_passthrough = BGAPI_PASSTHROUGH_DEFAULT;
+  static BgApiPassThroughState persistent_bgapi_passthrough = BGAPI_PASSTHROUGH_DEFAULT;
 
   static Os::Mutex persistent_bgapi_passthrough_mutex;
 
@@ -58,7 +58,8 @@ namespace Wf121
 
   RadioDriver::RadioDriver() : m_networkInterface(),
                                m_serialRxTask(),
-                               m_serialUdpTxTask(&m_networkInterface)
+                               m_serialUdpTxTask(&m_networkInterface),
+                               m_serialBgApiPassthroughTxTask(&m_networkInterface)
   {
     // nothing else to do here.
   }
@@ -88,11 +89,18 @@ namespace Wf121
     configASSERT(rxTaskStat == Os::Task::TASK_OK);
 
     // Initialize the UDP TX Task:
-    ::Os::Task::TaskStatus txTaskStat = m_serialUdpTxTask.startTask(WF121_UDP_TX_TASK_PRIORITY,
-                                                                    WF121_UDP_TX_TASK_STACK_SIZE,
-                                                                    WF121_UDP_TX_TASK_CPU_AFFINITY);
+    ::Os::Task::TaskStatus udpTxTaskStat = m_serialUdpTxTask.startTask(WF121_UDP_TX_TASK_PRIORITY,
+                                                                       WF121_UDP_TX_TASK_STACK_SIZE,
+                                                                       WF121_UDP_TX_TASK_CPU_AFFINITY);
     // Assert that this will always be started successfully. If it isn't, we're screwed.
-    configASSERT(txTaskStat == Os::Task::TASK_OK);
+    configASSERT(udpTxTaskStat == Os::Task::TASK_OK);
+
+    // Initialize the UDP TX Task:
+    ::Os::Task::TaskStatus bgApiTxTaskStat = m_serialBgApiPassthroughTxTask.startTask(WF121_BGAPI_PASSTHROUGH_TX_TASK_PRIORITY,
+                                                                                      WF121_BGAPI_PASSTHROUGH_TX_TASK_STACK_SIZE,
+                                                                                      WF121_BGAPI_PASSTHROUGH_TX_TASK_CPU_AFFINITY);
+    // Assert that this will always be started successfully. If it isn't, it's bad news anyway.
+    configASSERT(bgApiTxTaskStat == Os::Task::TASK_OK);
 
     // Now that everything is ready to receive data from the radio,
     // tell the radio to send us data whenever it wants:

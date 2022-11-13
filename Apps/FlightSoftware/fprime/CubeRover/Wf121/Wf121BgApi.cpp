@@ -1638,5 +1638,21 @@ namespace Wf121
       return m_bgApiStatus.isProcessingCmd();
     }
 
+    // Tell Hercules' BGAPI processor that it should be awaiting a command
+    // response.
+    //
+    // **ONLY DO THIS IF YOU KNOW EXACTLY WHAT YOU'RE DOING.**
+    // Only really meaningful and not necessarily going to break things if
+    // you're bypassing the UdpTxTask, which should only be done in
+    // `Wf121BgApiPassthroughTxTask` in BgApiPassThrough mode (when the
+    // UdpTxTask is off), which again
+    // **SHOULD ONLY BE WORKED ON IF YOU REALLY KNOW WHAT YOU'RE DOING** .
+    // Talk to Connor Colombo (connor.w.colombo@gmail.com) if you have any
+    // questions.
+    void BgApiDriver::AwaitCommandResponse()
+    {
+      m_bgApiStatus.setProcessingCmd(true); // flag that WF121 is about to be processing a command
+    }
+
   }
 }

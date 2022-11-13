@@ -22,7 +22,7 @@ If a component directory doesn't contain a Bitfields file, it is assumed
 to not have a bitfield.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 09/15/2022
+@last-updated: 11/12/2022
 """
 
 # Activate postponed annotations (for using classes as return type in their own methods)
@@ -146,12 +146,35 @@ def extract_type(node: etree.Element, attr_name: str) -> FswDataType:
             f"\n Original KeyError: {e}"
         )
 
+    type_size: int
     if type_name.lower() == 'string':
         try:
             # Extract the string size:
-            type_size: int = parse_int(node.attrib['size'])
+            type_size = parse_int(node.attrib['size'])
             # Craft the appropriate fixed-size type name used in FswDataType:
+            # NOTE: This is just the max. Actual encoded/decoded size is
+            # variable and will be determined based on the data):
             type_name = 'STRING' + str(type_size)
+        except KeyError as e:
+            raise StandardsFormattingException(
+                node.base,
+                f"[KeyError]: At sourceline {node.sourceline}, given attribute name "
+                f"'{attr_name}' has value {type_name}. As such, it needs a `size` "
+                f"attribute to work as a fixed-size type but a `size` attribute "
+                f"cannot be found."
+                f"\n Original KeyError: {e}"
+            )
+
+    if 'IrisCmdByteStringArg'.lower() in type_name.lower():
+        try:
+            # Grab the maximum size.
+            # NOTE: This must always be < `FW_COM_BUFFER_MAX_SIZE` in
+            # `fprime/Fw/Cfg/Config.hpp`).
+            type_size = parse_int(node.attrib['size'])
+            # Craft the appropriate fixed-size type name used in FswDataType:
+            # NOTE: This is just the max. Actual encoded/decoded size is
+            # variable and will be determined based on the data):
+            type_name = 'IRISBYTESTRING' + str(type_size)
         except KeyError as e:
             raise StandardsFormattingException(
                 node.base,

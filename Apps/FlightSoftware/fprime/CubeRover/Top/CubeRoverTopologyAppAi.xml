@@ -11,7 +11,8 @@
   <import_component_type>Svc/TlmChan/TlmChanComponentAi.xml</import_component_type>
   <import_component_type>Svc/CmdDispatcher/CommandDispatcherComponentAi.xml</import_component_type>
   <import_component_type>Svc/ActiveLogger/ActiveLoggerComponentAi.xml</import_component_type>
-  <import_component_type>Svc/Health/HealthComponentAi.xml</import_component_type>
+  <!--NOTE: Removed Health (we don't use it and this buys us >4kB of RAM)-->
+  <!--<import_component_type>Svc/Health/HealthComponentAi.xml</import_component_type>-->
   <import_component_type>CubeRover/WatchDogInterface/WatchDogInterfaceComponentAi.xml</import_component_type>
 
 <!-- Specifics to CubeRover -->

@@ -133,10 +133,10 @@ namespace Wf121
         if (m_xUdpRxPayloadQueue != NULL)
         {
             // Grab a value from the Queue. Give up (assume nothing is
-            // currently available) if nothing is available within 3 ticks.
+            // currently available) if nothing is available within N ticks.
             // **DON'T** increase this tick count to some large value,
             // it will halt everything. It should be safe for it to even be 0,
-            // we're making it *slightly* non-zero here only as a precaution.
+            // you could make it *slightly* non-zero here only as a precaution.
             // NOTE: This send procedure is a **COPY**.
             // NOTE: At FreeRTOS 1000Hz tick rate, each tick is 1ms.
             if (xQueueReceive(m_xUdpRxPayloadQueue, (void *)pPayload, blockingTicks) == pdPASS)
@@ -608,7 +608,7 @@ namespace Wf121
                 // WD resets us.
             }
             // Wait to be told there's new data to downlink:
-            while (xQueueReceive(m_xUdpTxPayloadQueue, (void*)(&m_xUdpTxWorkingData), portMAX_DELAY) != pdPASS)
+            while (xQueueReceive(m_xUdpTxPayloadQueue, (void *)(&m_xUdpTxWorkingData), portMAX_DELAY) != pdPASS)
             {
                 // No data was received but awaiting data timed out (after a **really** long time)
                 // This shouldn't ever happen unless someone set `INCLUDE_vTaskSuspend` to `0`.
@@ -1149,7 +1149,7 @@ namespace Wf121
                 (inner_state > UdpTxUpdateState::WAIT_FOR_UDP_INTERLOCK &&
                  inner_state < UdpTxUpdateState::DONE_DOWNLINKING) &&
                 // ... and we no longer have the interlock (NOTE: this method also accounts for interlock expiration):
-                 m_udpTxCommsStatusManager.getUdpInterlockStatus() != DirectMessage::RadioUdpInterlockStatus::HERC_HAS_INTERLOCK
+                m_udpTxCommsStatusManager.getUdpInterlockStatus() != DirectMessage::RadioUdpInterlockStatus::HERC_HAS_INTERLOCK
                 //...
             )
             {

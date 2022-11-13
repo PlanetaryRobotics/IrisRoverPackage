@@ -36,9 +36,9 @@ enum
     FATAL_EVENT_CB_DEPTH = 4,        //!< FATAL event circular buffer depth
     WARNING_HI_EVENT_CB_DEPTH = 10,  //!< WARNING HI event circular buffer depth
     WARNING_LO_EVENT_CB_DEPTH = 10,  //!< WARNING LO event circular buffer depth
-    COMMAND_EVENT_CB_DEPTH = 4,      //!< COMMAND event circular buffer depth
+    COMMAND_EVENT_CB_DEPTH = 10,      //!< COMMAND event circular buffer depth
     ACTIVITY_HI_EVENT_CB_DEPTH = 10, //!< ACTIVITY HI event circular buffer depth
-    ACTIVITY_LO_EVENT_CB_DEPTH = 5,  //!< ACTIVITY LO circular buffer depth
+    ACTIVITY_LO_EVENT_CB_DEPTH = 7,  //!< ACTIVITY LO circular buffer depth
     DIAGNOSTIC_EVENT_CB_DEPTH = 3,   //!< DIAGNOSTIC event circular buffer depth
     TELEM_ID_FILTER_SIZE = 25,       //!< Size of telemetry ID filter
 };

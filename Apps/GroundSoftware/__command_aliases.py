@@ -500,6 +500,20 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         ),
         DataPathway.WIRED
     ),
+    # Sends a BGAPI command to the Radio to get the MAC address (basic test
+    # command) but with an intentionally incorrect CRC:
+    'radio-bgapi-passthru-get-mac--bad-crc': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_SendBgApiCommand',
+        OrderedDict(
+            crc_32=crc32_fsw(BGAPI_GET_MAC_BYTES)-1,
+            packet_id=1234,
+            expect_response='NM_BGAPI_CMD_DONTEXPECTRESPONSE' if BGAPI_GET_MAC_CMD.no_response else 'NM_BGAPI_CMD_EXPECTRESPONSE',
+            bgapi_packet=BGAPI_GET_MAC_BYTES
+        ),
+        DataPathway.WIRED
+    ),
 
     # Turn off WARNING_HI logs (e.g. ImuAngleWarning spamming us)
     'active-logger-turn-off-warning-hi': (

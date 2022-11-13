@@ -76,7 +76,9 @@ class FswDataType(Enum):
     F32 = 'f', 'float', Category.NUMBER, float  # IEEE 754 binary32 float
     F64 = 'd', 'double', Category.NUMBER, float  # IEEE 754 binary64 double
     # FPrime enums all map to an int (default `int` type is `int32_t`):
-    ENUM = 'l', 'enum/*int32*/', Category.ENUM, (str, int)
+    # but python plays much nicer with the encodings if we treat them as uint32
+    # so we'll use L instead of l:
+    ENUM = 'L', 'enum/*uint32*/', Category.ENUM, (str, int)
     # Fixed Length Strings (only expected / pre-approved sizes allowed):
     # This is a halfword (2B, as ">H") indicating length followed by a (utf-8) encoded char[]
     # Per [FPrime docs](https://nasa.github.io/fprime/v1.5/UsersGuide/api/python/fprime/html/modules/fprime/common/models/serialize/string_type.html)

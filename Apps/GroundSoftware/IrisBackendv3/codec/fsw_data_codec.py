@@ -314,7 +314,8 @@ class StringPacker(Codec[Tuple[int, str]]):
         # (IRISBYTESTRING in GSW) for transmitting arbitrary bytes sequences.
         # NOTE: It is, however, okay if this appears in the terminal position
         # (hence, why we're only checking up to but not including the last byte):
-        if b'\0' in enc_out[:-1]:
+        # Also, first 2B are length so we skip those:
+        if b'\0' in enc_out[2:-1]:
             raise PacketEncodingException(
                 args,
                 f"Data `{args}` not able to be encoded as a String, "
@@ -387,30 +388,12 @@ class BytesPacker(Codec[Tuple[int, bytes]]):
 
         enc_out = struct.pack(format_string, raw_data_len, raw_data)
 
-        # NOTE: Native Strings in FSW don't allow for 0x00 (NULL) anywhere
-        # in the string since they use null termination for length checking.
-        # If this is important to you, use `Fw::IrisCmdByteStringArg`
-        # (IRISBYTESTRING in GSW) for transmitting arbitrary bytes sequences.
-        # NOTE: It is, however, okay if this appears in the terminal position
-        # (hence, why we're only checking up to but not including the last byte):
-        if b'\0' in enc_out[:-1]:
-            raise PacketEncodingException(
-                args,
-                f"Data `{args}` not able to be encoded as a String, "
-                f"since it encodes to: `{enc_out!r}` which contains b'\\0' "
-                f"(a null byte) in a non-terminal position. FSW doesn't allow "
-                f"this. "
-                f"If this is important to you, use `Fw::IrisCmdByteStringArg` "
-                f"(IRISBYTESTRING in GSW) for transmitting arbitrary bytes "
-                f"sequences."
-            )
-
         return enc_out
 
     @classmethod
     def decode(cls, format_string: str, buffer: bytes) -> Tuple[int, bytes]:
         """
-        Decodes the given val as a String.
+        Decodes the given val as `bytes`.
         """
         data_len, raw_data = struct.unpack(format_string, buffer)
         if data_len > len(raw_data):

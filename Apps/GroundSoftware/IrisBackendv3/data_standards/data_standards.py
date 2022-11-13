@@ -22,7 +22,7 @@ If a component directory doesn't contain a Bitfields file, it is assumed
 to not have a bitfield.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 09/15/2022
+@last-updated: 11/12/2022
 """
 
 # Activate postponed annotations (for using classes as return type in their own methods)

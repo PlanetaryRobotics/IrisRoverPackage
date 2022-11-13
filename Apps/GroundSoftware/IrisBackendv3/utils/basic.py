@@ -431,5 +431,5 @@ def name_split_and_format_by_term(name: str) -> List[str]:
 if __name__ == "__main__":
     # Run cheap doctests on built-in examples for any util functions:
     import doctest
-    doctest.testmod()
+    print(f"\n{doctest.testmod()}\n")
     print("Doctest Done!")

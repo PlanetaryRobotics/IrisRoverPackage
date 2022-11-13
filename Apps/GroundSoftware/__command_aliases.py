@@ -6,19 +6,27 @@ If you want to explore the Data Standards to build new commands, run:
 `pyenv exec python datastandards_lookup.py`.
 
 Created: 10/29/2021
-Last Update: 10/25/2022
+Last Update: 11/12/2022
 """
 from __future__ import annotations  # Support things like OrderedDict[A,B]
 from enum import Enum
-from typing import Any, Optional, Dict, Tuple
+from typing import Any, Optional, Final, Dict, Tuple
 from collections import OrderedDict
 
 from IrisBackendv3.codec.payload import CommandPayload
 from IrisBackendv3.codec.packet import IrisCommonPacket
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.magic import Magic
+import IrisBackendv3.codec.bgapi as bgapi
+from IrisBackendv3.utils.crc import crc32_fsw
 
 source = DataSource.GENERATED
+
+# Test BGAPI Passthrough data:
+BGAPI_GET_MAC_CMD: Final = bgapi.build_command(
+    bgapi.BGAPI_WIFI_API, 'config', 'get_mac', {'hw_interface': 0})
+BGAPI_GET_MAC_BYTES: Final[bytes] = bgapi.encode_command(
+    bgapi.BGAPI_WIFI_ENCODER, BGAPI_GET_MAC_CMD)
 
 
 class Parameter(Enum):
@@ -417,12 +425,12 @@ prepared_commands: Dict[str, PreparedCommandType] = {
     # Test FPrime Echo Command (a CommandDispatcher No-op):
     # (should see this echoed back in a log - good for testing bidirectional
     # FPrime string encoding/decoding):
-    'fprime-cmd-echo': (
+    'herc-cmd-echo': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'CommandDispatcher_Cmdnoopstring',
         # enable filter entry to disable that log ID:
-        OrderedDict(arg1='Hello Command Dispatcher!'),
+        OrderedDict(arg_1='Hello Command Dispatcher!'),
         DataPathway.WIRED
     ),
 
@@ -468,7 +476,6 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(passthrough=False),
         DataPathway.WIRED
     ),
-
     # Triggers a `RadioBgApiCommandRecords` event to see what BgApi
     # packets have been processed recently and what the outcomes were.
     'radio-bgapi-passthru-cmd-dump': (
@@ -476,6 +483,21 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         Magic.COMMAND,
         'NetworkManager_DownlinkBgApiCommandRecords',
         OrderedDict(),
+        DataPathway.WIRED
+    ),
+
+    # Sends a BGAPI command to the Radio to get the MAC address (basic test
+    # command):
+    'radio-bgapi-passthru-get-mac': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_SendBgApiCommand',
+        OrderedDict(
+            crc_32=crc32_fsw(BGAPI_GET_MAC_BYTES),
+            packet_id=1234,
+            expect_response='NM_BGAPI_CMD_DONTEXPECTRESPONSE' if BGAPI_GET_MAC_CMD.no_response else 'NM_BGAPI_CMD_EXPECTRESPONSE',
+            bgapi_packet=BGAPI_GET_MAC_BYTES
+        ),
         DataPathway.WIRED
     ),
 

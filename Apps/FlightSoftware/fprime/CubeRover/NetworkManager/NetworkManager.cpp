@@ -52,7 +52,7 @@ namespace CubeRover
      * @param bufferLen
      * @return CRC32
      */
-    static uint32_t computeCrc32(const char *bufferData, const NATIVE_INT_TYPE bufferLen)
+    static uint32_t computeCrc32(const uint8_t *bufferData, const NATIVE_INT_TYPE bufferLen)
     {
         int i, j;
         unsigned int byte, crc, c;
@@ -378,7 +378,7 @@ namespace CubeRover
         if (good_so_far)
         {
             // Compute CRC32 of data:
-            computedCrc32 = computeCrc32(bgapiPacketData, bgApiPacketLen);
+            computedCrc32 = computeCrc32((uint8_t *)bgapiPacketData, bgApiPacketLen);
 
             // Check CRC32
             if (crc32 != computedCrc32)

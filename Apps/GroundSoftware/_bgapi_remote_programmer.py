@@ -2,31 +2,75 @@
 
 from typing import Final
 
-import zlib
+from collections import OrderedDict
 
 import IrisBackendv3.codec.bgapi as bgapi
+from IrisBackendv3.utils.crc import crc32_fsw
 
+from IrisBackendv3.codec.settings import set_codec_standards
+from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
+from IrisBackendv3.data_standards.logging import logger as DsLogger
+from IrisBackendv3.data_standards import DataStandards
 
-BGAPI_API: Final[str] = bgapi.BGAPI_WIFI_DEF
+from trans_tools import *
+
+BGAPI_API: Final = bgapi.BGAPI_WIFI_API
 BGAPI_ENCODE: Final = bgapi.serdeser.Serializer(BGAPI_API)
 BGAPI_DECODE: Final = bgapi.serdeser.Deserializer(BGAPI_API)
 
 
-def send_bgapi_cmd_over_icp(bgcmd: bgapi.BGCommand) -> None:
-    # Serialize BGAPI command (max 150B): # TODO: temp (need at least 128B to do radio programming)
-    bg_data = BGAPI_ENCODE.command(bgcmd._device_name,
-                                   bgcmd._class_name, bgcmd._msg_name, bgcmd)
+# Re-build the `DataStandards` fresh from latest fprime and add in all prebuilt
+# (WD Telem) Modules.
+# These `DataStandards` will serve as TMTC definitions be used by the `Codec`
+# layer used by the `Transceiver` layer to interpret packets.
+# TODO: Rebuild this once in the main IPC module, cache it, and load from cache in other IPC apps.
+DsLogger.setLevel('CRITICAL')
+standards = DataStandards.build_standards()
+add_to_standards(standards, ALL_PREBUILT_MODULES)
+set_codec_standards(standards)
+
+
+def compile_bgapi_cmd_as_icp(packet_id: int, bgcmd: bgapi.BGCommand) -> bytes:
+    """
+    Compiles the given BGAPI Command inside an Iris Common Packet (ICP) as a
+    BGAPI-Passthrough Command to the Hercules. This Hercules command is tagged
+    with the given packet_id (uint32_t).
+    Returns the raw packet bytes to be sent to the Rover.
+    """
+    # Serialize BGAPI command (max 134B - checked by ICP encoder automatically):
+    bg_data = bgapi.encode_command(BGAPI_ENCODE, bgcmd)
+
+    # Compute args:
+    command_args = OrderedDict(
+        crc_32=crc32_fsw(bg_data),
+        packet_id=packet_id,
+        expect_response='NM_BGAPI_CMD_DONTEXPECTRESPONSE' if bgcmd.no_response else 'NM_BGAPI_CMD_EXPECTRESPONSE',
+        bgapi_packet=bg_data
+    ),
 
     # Pack inside an Iris Common Packet:
-    crc32 = zlib.crc32(bg_data)
-
-    command_name = 'NetworkManager_ForwardBgApiCommand'
-    command_args = {
-        'crc32': crc32,
-        'data': bg_data
-    }
-
+    command_name = 'NetworkManager_SendBgApiCommand'
     module, command = standards.global_command_lookup(command_name)
+
+    # Pack command:
+    # Make ICP payload:
+    command_payload = CommandPayload(
+        pathway=DataPathway.WIRED,
+        source=DataSource.GENERATED,
+        magic=Magic.COMMAND,
+        module_id=module.ID,
+        command_id=command.ID,
+        args=command_args
+    )
+    # Load payload into ICP packet:
+    payloads = EnhancedPayloadCollection(CommandPayload=[command_payload])
+    packet = IrisCommonPacket(
+        seq_num=0x00,
+        payloads=payloads
+    )
+    packet_bytes = packet.encode()
+
+    return packet_bytes
 
     """
     <command kind="sync" opcode="0x01" mnemonic="Start_Radio_Programming">
@@ -51,25 +95,6 @@ def send_bgapi_cmd_over_icp(bgcmd: bgapi.BGCommand) -> None:
         </comment>
     </command>
     """
-
-    # Pack command:
-    packet_bytes = b''
-    try:
-        # Make ICP payload:
-        command_payload = CommandPayload(
-            pathway=DataPathway.WIRED,
-            source=DataSource.GENERATED,
-            magic=Magic.COMMAND,
-            module_id=module.ID,
-            command_id=command.ID,
-            args=command_args
-        )
-        # Load payload into ICP packet:
-        payloads = EnhancedPayloadCollection(CommandPayload=[command_payload])
-        packet = IrisCommonPacket(
-            seq_num=0x00,
-            payloads=payloads
-        )
 
 
 def extract_bgapi_response(packet: IrisCommonPacket):

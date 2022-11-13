@@ -53,8 +53,8 @@ APP_CONTEXT: Final[Dict[str, Any]] = {
     # Baud rate for the RS422 comms connection to the Rover
     'baud': 9600,
     # Serial number of RS422 transceiver:
-    'serial_device_sn': 'A7035PDL',  # Connects to the Lander harness
-    # 'serial_device_sn': 'AB0JRGV8', # Connects to J36-RS422 header on the SBC
+    # 'serial_device_sn': 'A7035PDL',  # Connects to the Lander harness
+    'serial_device_sn': 'AB0JRGV8',  # Connects to J36-RS422 header on the SBC
     # Path to the DFU binary file to load:
     'dfu_file_path': '../FlightSoftware/Radio/build/iris_wifi_radio__auto_connect.dfu',
     # DFU file is read in sections of size `chunkSize`. 128B is the standard
@@ -238,6 +238,7 @@ class BasicSerialUdpSlipTransceiver:
         self.baud = baud
         self.ser = None
 
+        self.last_warn_time = datetime.now()
         self.escape = False
         self.keep_running = True
         self.line = b''
@@ -303,12 +304,12 @@ class BasicSerialUdpSlipTransceiver:
 
                 if self.slip_state == SlipState.FIRST_END:
                     if b == 0xC0:
-                        slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
-                elif slip_state == SlipState.FIRST_BYTE_OR_STARTING_END:
+                        self.slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
+                elif self.slip_state == SlipState.FIRST_BYTE_OR_STARTING_END:
                     if b != 0xC0:
                         self.append_byte(b)
-                        slip_state = SlipState.STARTED
-                elif slip_state == SlipState.STARTED:
+                        self.slip_state = SlipState.STARTED
+                elif self.slip_state == SlipState.STARTED:
                     if b == 0xC0:
                         if len(self.data_bytes) != 0:  # packet baked:
                             # Process it:
@@ -334,10 +335,13 @@ class BasicSerialUdpSlipTransceiver:
                     f"The PacketDecodingException was: `{pde}`."
                 )
             except Exception as e:
-                progLogger.warning(
-                    f"An otherwise unresolved error occurred during packet "
-                    f"streaming: {e}."
-                )
+                # Debounce this warning:
+                if (datetime.now()-self.last_warn_time).total_seconds() > 1:
+                    self.last_warn_time = datetime.now()
+                    progLogger.warning(
+                        f"An otherwise unresolved error occurred during packet "
+                        f"streaming: {e}."
+                    )
                 self.data_bytes = bytearray(b'')
                 self.slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
 
@@ -882,6 +886,7 @@ def attempt_dfu_flash(dfuChunks: List[DfuChunk]) -> bool:
     """Attempts to program the Radio with the given `DfuChunk`s.
     Returns whether or not it worked.
     """
+    progLogger.notice("Beginning Flashing Procedure . . .")
 
     # First send a basic test command to make sure everything works:
     if not pack_send_and_verify_key_bgapi_command(
@@ -948,6 +953,14 @@ def attempt_dfu_flash(dfuChunks: List[DfuChunk]) -> bool:
     return True
 
 
+def wait_for_hercules():
+    """Wait until we receive an Iris Common Packet from the ROVER (tells us
+    Hercules is alive and talking). Want to check this before trying to talk to
+    it.
+    """
+    return read_until_filter([PacketTypeFilter(IrisCommonPacket)], 100)
+
+
 if __name__ == "__main__":
     progLogger.notice('Starting Iris BGAPI Passthrough Programmer . . .')
 
@@ -977,8 +990,20 @@ if __name__ == "__main__":
     )
     UDP_SLIP_XCVR.connect()
 
-    # Flash the Radio!
-    if attempt_dfu_flash(dfuChunks):
-        progLogger.success("Radio Flashing Successful!")
+    while True:
+        packet = read_packet()
+        print(packet)
+
+    # Make sure Hercules is talking to us before proceeding...
+    progLogger.info(f'Waiting for data from Hercules . . .')
+    herc_data = wait_for_hercules()
+    if herc_data is None:
+        progLogger.error(f"Haven't heard anything from Hercules. Aborting.")
     else:
-        progLogger.error("Radio Flashing Failed. See logs for more info.")
+        progLogger.success(f"Received data from Hercules.")
+
+        # Flash the Radio!
+        if attempt_dfu_flash(dfuChunks):
+            progLogger.success("Radio Flashing Successful!")
+        else:
+            progLogger.error("Radio Flashing Failed. See logs for more info.")

@@ -990,10 +990,6 @@ if __name__ == "__main__":
     )
     UDP_SLIP_XCVR.connect()
 
-    while True:
-        packet = read_packet()
-        print(packet)
-
     # Make sure Hercules is talking to us before proceeding...
     progLogger.info(f'Waiting for data from Hercules . . .')
     herc_data = wait_for_hercules()

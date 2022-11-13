@@ -59,6 +59,9 @@ class FswDataType(Enum):
     and can be computed using `struct.calcsize(struct_sym)` but if for some
     reason it's more complex or needs to be explicit, this field can be
     specified too.
+
+    NOTE: For variable length types, `num_octets` is the MAXIMUM size of the
+    datatype when encoded.
     """
 
     # NOTE: As a standard, all member names should be UPPERCASE.
@@ -79,7 +82,7 @@ class FswDataType(Enum):
     # but python plays much nicer with the encodings if we treat them as uint32
     # so we'll use L instead of l:
     ENUM = 'L', 'enum/*uint32*/', Category.ENUM, (str, int)
-    # Fixed Length Strings (only expected / pre-approved sizes allowed):
+    # FPrime Strings (any sizes less than the cap are allowed):
     # This is a halfword (2B, as ">H") indicating length followed by a (utf-8) encoded char[]
     # Per [FPrime docs](https://nasa.github.io/fprime/v1.5/UsersGuide/api/python/fprime/html/modules/fprime/common/models/serialize/string_type.html)
     STRING5 = 'H5s', 'char[5]', Category.STRING, str
@@ -92,7 +95,9 @@ class FswDataType(Enum):
     STRING40 = 'H40s', 'char[40]', Category.STRING, str
     STRING50 = 'H50s', 'char[50]', Category.STRING, str
     STRING240 = 'H240s', 'char[240]', Category.STRING, str
-    # Variable length string with max length of 255:
+    # Variable length string with max length of 255 (at this point in time,
+    # effectively the same as STRING. A relic from when STRING was considered
+    # to be fixed-length):
     VARSTRING_255 = 'H255s', 'char[/*up to*/255]', Category.VARSTRING, str
 
     # Special Iris Serializable Type for uplinking arbitrary byte sequences
@@ -120,6 +125,11 @@ class FswDataType(Enum):
         """Number of bits in the datatype (or max number in the case of a
         variable-length string)."""
         return self.num_octets * 8
+
+    def get_max_num_bytes(self) -> int:
+        """Returns the maximum number of bytes for an encoded representation of
+        the datatype."""
+        return self.num_octets
 
     def get_actual_num_bytes(self, data: Optional[bytes] = None) -> int:
         """Returns the actual number of bytes in this datatype.

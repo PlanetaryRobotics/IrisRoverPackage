@@ -84,15 +84,8 @@ def encode(datatype: FswDataType, data: Any) -> bytes:
         # of the string:
         raw_data = StringPacker.encode_str(data)
 
-        if datatype.category in [FswDataCategory.VARSTRING, FswDataCategory.STRING]:
-            target_raw_data_len = len(raw_data)
-        else:
-            # Shouldn't be here. Added as a precaution.
-            # -2 because first two bytes of encoding are the length:
-            target_raw_data_len = datatype.get_actual_num_bytes() - 2
-
         fstr = format_string(datatype, raw_data)
-        en = codec.encode(fstr, (target_raw_data_len, data))
+        en = codec.encode(fstr, (datatype.get_max_num_bytes(), data))
 
     elif codec == BytesPacker:
         if not isinstance(data, bytes):
@@ -104,15 +97,8 @@ def encode(datatype: FswDataType, data: Any) -> bytes:
                 )
             )
 
-        if datatype.category in [FswDataCategory.IRISBYTESTRING]:
-            target_raw_data_len = len(data)
-        else:
-            # Shouldn't be here. Added as a precaution.
-            # -2 because first two bytes of encoding are the length:
-            target_raw_data_len = datatype.get_actual_num_bytes() - 2
-
         fstr = format_string(datatype, data)
-        en = codec.encode(fstr, (target_raw_data_len, data))
+        en = codec.encode(fstr, (datatype.get_max_num_bytes(), data))
 
     else:
         fstr = format_string(datatype)
@@ -132,11 +118,20 @@ def decode(datatype: FswDataType, buffer: bytes) -> Any:
     """
     codec = category_to_codec(datatype)
     if codec in [StringPacker, BytesPacker]:
-        dec = codec.decode(
+        dec_len, dec = codec.decode(
             # [2:] to skip length bytes
             format_string=format_string(datatype, buffer[2:]),
             buffer=buffer
-        )[1]  # [1] to grab just the string, we don't care about the length
+        )
+
+        if dec_len > datatype.get_max_num_bytes():
+            raise PacketDecodingException(
+                buffer,
+                (f"The length of the string/bytestring `{dec!r}` ({dec_len-2}B) "
+                 f"is greater than the max capacity of the datatype "
+                 f"{datatype} ({datatype.get_max_num_bytes()-2}B).")
+                # -2 to ignore length bytes in the print (easier to understand for the reader)
+            )
     else:
         dec = codec.decode(
             format_string=format_string(datatype),
@@ -249,10 +244,10 @@ class BooleanPacker(Codec[bool]):
 
 class StringPacker(Codec[Tuple[int, str]]):
     """
-    Defines how to en/decode a Fixed-Length String.
-    This is also used for Variable-Length strings since the variable length of
-    the string is given as the "fixed" length before using the packer.
-    *Note:* Here the *args must be [fixed_length, string]
+    Defines how to en/decode a String with a Variable-Length up to a fixed
+    limit. Think of this length limit as the amount of buffer space allocated
+    in the FSW.
+    *Note:* Here the *args must be [max_encoded_length, string]
     """
 
     @staticmethod
@@ -282,31 +277,34 @@ class StringPacker(Codec[Tuple[int, str]]):
             and isinstance(args[0], int)  # max length
             and isinstance(args[1], (str, bytes))  # data
             # AT LEAST enough room for all the data:
-            and len(args[1]) <= args[0]
+            and len(args[1]) <= (args[0]-2)  # -2 to ignore the length bytes
         )
 
     @classmethod
     def encode(cls, format_string: str, args: Tuple[int, str]) -> bytes:
         """
         Encodes the given val as a String.
-        where *args are [string_length, string]
+        where *args are [max_encoded_length, string]
+        NOTE: Format string will contain the ACTUAL number of bytes to use for
+        the encoding (and it will clip if more data is supplied).
         """
-        raw_data_len = args[0]
-        enc_core_data = cls.encode_str(args[1][:raw_data_len])
-        enc_data_len = len(enc_core_data)
+        max_enc_len = args[0]
+        max_data_len = max_enc_len-2  # -2 to ignore the length bytes
+        proc_core_data = cls.encode_str(args[1])
+        proc_data_len = len(proc_core_data)
 
-        valid = cls.check(format_string, (enc_data_len, enc_core_data))
+        valid = cls.check(format_string, (max_enc_len, proc_core_data))
         if not valid:
             raise PacketEncodingException(
                 args,
-                f"Data `{args}` not able to be encoded as a String."
-                f"Where data should contain [target_length, string]"
-                f"and the target_length should reflect the length of the "
-                f"string after encoding, which is: {enc_core_data!r} w/ "
-                f"len={len(enc_core_data)}"
+                f"Data `{args}` not able to be encoded as a String. "
+                f"Where data should contain [max_encoded_length, string]. "
+                f"Processed string is: {proc_core_data!r} w/ "
+                f"len={proc_data_len}B (max processed length: "
+                f"{max_enc_len}-2B = {max_data_len}B)."
             )
 
-        enc_out = struct.pack(format_string, enc_data_len, enc_core_data)
+        enc_out = struct.pack(format_string, proc_data_len, proc_core_data)
 
         # NOTE: Native Strings in FSW don't allow for 0x00 (NULL) anywhere
         # in the string since they use null termination for length checking.
@@ -339,51 +337,54 @@ class StringPacker(Codec[Tuple[int, str]]):
             raise PacketDecodingException(
                 buffer,
                 f"The expected length of the string ({data_len}B) "
-                f"is greater than the length of available raw length ({len(raw_data)}B)."
+                f"is greater than the length of available raw data ({len(raw_data)}B)."
             )
 
-        return (data_len, cls.decode_str(raw_data[:data_len]))
+        return (data_len+2, cls.decode_str(raw_data[:data_len]))
 
 
 class BytesPacker(Codec[Tuple[int, bytes]]):
     """
     Defines how to en/decode a string of arbitrary raw bytes for FSW (i.e.
     impl. of `Fw::IrisCmdByteStringArg` from FSW).
-    *Note:* Here the *args must be [fixed_length, bytes]
+    *Note:* Here the *args must be [max_length, bytes]
     """
 
     @classmethod
     def check(cls, format_string: str, args: Tuple[int, Union[str, bytes]]) -> bool:
         """
-        Checks the if the given vals can be used to encode as a Fixed Length String.
-        where *args are [fixed_length, string]
+        Checks the if the given vals can be used to encode as a Byte String.
+        where *args are [max_length, string]
         """
         return (
             len(args) == 2  # (max_length, data)
             and isinstance(args[0], int)  # max length
             and isinstance(args[1], bytes)  # data
             # AT LEAST enough room for all the data:
-            and len(args[1]) <= args[0]
+            and len(args[1]) <= (args[0]-2)  # -2 to ignore the length bytes
         )
 
     @classmethod
     def encode(cls, format_string: str, args: Tuple[int, bytes]) -> bytes:
         """
-        Encodes the given val as a String.
-        where *args are [string_length, string]
+        Encodes the given val as a Byte String.
+        where *args are [max_string_length, string].
+        NOTE: Format string will contain the ACTUAL number of bytes to use for
+        the encoding (and it will clip if more data is supplied).
         """
-        raw_data_len = args[0]
-        raw_data = args[1][:raw_data_len]
+        max_enc_len = args[0]
+        max_data_len = args[0]-2  # -2 to ignore the length bytes
+        raw_data = args[1]
+        raw_data_len = len(raw_data)
 
-        valid = cls.check(format_string, (raw_data_len, raw_data))
+        valid = cls.check(format_string, args)
         if not valid:
             raise PacketEncodingException(
                 args,
-                f"Data `{args}` not able to be encoded as an IRISBYTESTRING."
-                f"Where data should contain [target_length, bytes]"
-                f"and the target_length should reflect the length of the "
-                f"raw data, which is: {raw_data!r} w/ "
-                f"len={len(raw_data)}"
+                f"Data `{args}` not able to be encoded as an IRISBYTESTRING. "
+                f"Where data should contain [max_encoded_length, bytes]. "
+                f"Raw data is: {raw_data!r} w/ len={raw_data_len}B (max raw "
+                f"length: {max_enc_len}-2B = {max_data_len}B)."
             )
 
         enc_out = struct.pack(format_string, raw_data_len, raw_data)
@@ -400,7 +401,8 @@ class BytesPacker(Codec[Tuple[int, bytes]]):
             raise PacketDecodingException(
                 buffer,
                 f"The expected length of the string ({data_len}B) "
-                f"is greater than the length of available raw length ({len(raw_data)}B)."
+                f"is greater than the length of available raw data ({len(raw_data)}B)."
             )
 
-        return (data_len, raw_data[:data_len])
+        # +2 b/c total size include 2 len bytes
+        return (data_len+2, raw_data[:data_len])

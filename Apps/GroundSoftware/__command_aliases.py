@@ -28,6 +28,17 @@ BGAPI_GET_MAC_CMD: Final = bgapi.build_command(
 BGAPI_GET_MAC_BYTES: Final[bytes] = bgapi.encode_command(
     bgapi.BGAPI_WIFI_ENCODER, BGAPI_GET_MAC_CMD)
 
+BGAPI_WIFI_ON_CMD: Final = bgapi.build_command(
+    bgapi.BGAPI_WIFI_API, 'sme', 'wifi_on', dict())
+BGAPI_WIFI_ON_BYTES: Final[bytes] = bgapi.encode_command(
+    bgapi.BGAPI_WIFI_ENCODER, BGAPI_WIFI_ON_CMD)
+
+BGAPI_START_SCAN_CMD: Final = bgapi.build_command(
+    bgapi.BGAPI_WIFI_API, 'sme', 'start_scan', {'hw_interface': 0, 'chList': b''})
+# bgapi.BGAPI_WIFI_API, 'sme', 'start_scan', {'hw_interface': 0, 'chList': b'\x0b'})
+BGAPI_START_SCAN_BYTES: Final[bytes] = bgapi.encode_command(
+    bgapi.BGAPI_WIFI_ENCODER, BGAPI_START_SCAN_CMD)
+
 
 class Parameter(Enum):
     """
@@ -511,6 +522,33 @@ prepared_commands: Dict[str, PreparedCommandType] = {
             packet_id=1234,
             expect_response='NM_BGAPI_CMD_DONTEXPECTRESPONSE' if BGAPI_GET_MAC_CMD.no_response else 'NM_BGAPI_CMD_EXPECTRESPONSE',
             bgapi_packet=BGAPI_GET_MAC_BYTES
+        ),
+        DataPathway.WIRED
+    ),
+
+    # Some basic diagnostic Radio passthru commands:
+    'radio-bgapi-passthru-wifi-on': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_SendBgApiCommand',
+        OrderedDict(
+            crc_32=crc32_fsw(BGAPI_WIFI_ON_BYTES),
+            packet_id=1235,
+            expect_response='NM_BGAPI_CMD_DONTEXPECTRESPONSE' if BGAPI_WIFI_ON_CMD.no_response else 'NM_BGAPI_CMD_EXPECTRESPONSE',
+            bgapi_packet=BGAPI_WIFI_ON_BYTES
+        ),
+        DataPathway.WIRED
+    ),
+
+    'radio-bgapi-passthru-scan': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_SendBgApiCommand',
+        OrderedDict(
+            crc_32=crc32_fsw(BGAPI_START_SCAN_BYTES),
+            packet_id=1236,
+            expect_response='NM_BGAPI_CMD_DONTEXPECTRESPONSE' if BGAPI_START_SCAN_CMD.no_response else 'NM_BGAPI_CMD_EXPECTRESPONSE',
+            bgapi_packet=BGAPI_START_SCAN_BYTES
         ),
         DataPathway.WIRED
     ),

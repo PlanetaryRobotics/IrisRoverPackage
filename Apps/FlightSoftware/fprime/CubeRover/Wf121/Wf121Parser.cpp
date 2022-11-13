@@ -605,7 +605,8 @@ namespace Wf121
             {
                 // If we got a byte but it isn't NECESSARILY part of a BGAPI
                 // packet, pass it out just in case:
-                watchDogInterface.debugPrintfToWatchdog("BGB: 0x%02X.", newByte);
+//                watchDogInterface.debugPrintfToWatchdog("BGB: 0x%02X.", newByte);
+                // ON-EARTH DEBUGGING ONLY - this swamps the interface w/ ~2kbps.
             }
 
             return returnStatus;

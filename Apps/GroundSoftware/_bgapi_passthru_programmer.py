@@ -36,7 +36,7 @@ from IrisBackendv3.utils.crc import crc32_fsw
 from IrisBackendv3.data_standards.module import Command, TelemetryChannel, Event
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, EventPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, RadioBgApiPacket, UnsupportedPacket
+from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, RadioBgApiPacket, UnsupportedPacket, WatchdogDebugImportantPacket
 from IrisBackendv3.codec.packet import parse_packet as core_parse_packet
 from IrisBackendv3.codec.exceptions import PacketDecodingException
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
@@ -70,7 +70,7 @@ APP_CONTEXT: Final[Dict[str, Any]] = {
     # data transmission time.
     # we expect the WD to have to process about 26B of return data (at minimum)
     # after each command send.
-    'throttling_time_ms': 26 / (9600/10) * 1000
+    'throttling_time_ms': 32 / (9600/10) * 1000
 }
 
 DATETIME_FORMAT_STR: Final[str] = '%m-%d %H:%M:%S.%f'
@@ -159,6 +159,7 @@ class DfuChunk:
     chunkIndex: int
     packetId: int
     bgcmd: bgapi.BGCommand
+    chunkSize: int  # num bytes in the DFU chunk (the actual binary portion)
     # Compiled Iris Common Packet bytes for transmission:
     icPacketBytes: bytes
 
@@ -187,7 +188,8 @@ def compile_dfu_file_to_icp(
             chunkData = dfu_file.read(chunkSize)
             if len(chunkData) == 0:
                 break  # we're done
-            totalFileSize += len(chunkData)
+            actualChunkSize = len(chunkData)  # final chunk could be <chunkSize
+            totalFileSize += actualChunkSize
 
             chunkIndex += 1
             packetId = APP_CONTEXT['file_packet_id_base'] + chunkIndex
@@ -202,6 +204,7 @@ def compile_dfu_file_to_icp(
                 chunkIndex=chunkIndex,
                 packetId=packetId,
                 bgcmd=bgcmd,
+                chunkSize=actualChunkSize,
                 icPacketBytes=packetBytes
             ))
 
@@ -612,6 +615,7 @@ class PassthroughVerificationStateMachine:
             self.State.AWAIT_BGAPI_RESPONSE: self._handle_await_bgapi_response,
             self.State.REQUEST_RECORDS: self._handle_request_records,
             self.State.AWAIT_RECORDS: self._handle_await_records,
+            self.State.HERCULES_CRASHED: self._handle_hercules_crash,
             self.State.RADIO_FAILURE: self._handle_radio_failure,
             self.State.FAULT: self._handle_fault,
             self.State.DONE: self._handle_done
@@ -624,12 +628,35 @@ class PassthroughVerificationStateMachine:
         AWAIT_BGAPI_RESPONSE = 0x11
         REQUEST_RECORDS = 0x20
         AWAIT_RECORDS = 0x21
+        HERCULES_CRASHED = 0XE0
         # Got a response from the Radio and it indicated a failure on its part:
         RADIO_FAILURE = 0xFD
         # A fault prevented the message from getting to the Radio:
         FAULT = 0xFE
         # Everything worked!
         DONE = 0xFF
+
+    def _handle_hercules_crash(self) -> PassthroughVerificationStateMachine.State:
+        # Shit. Hercules crashed.
+        # Get back into the right state (*should* correctly update the
+        # memory pointer):
+        progLogger.error(
+            "Hercules Reboot Detected. "
+            "Attempting to recover."
+        )
+        recovery_success = setup_for_dfu()
+        if recovery_success:
+            progLogger.notice(
+                "Hercules recovery appears successful. Proceeding . . ."
+            )
+            # Resend this command (memory pointer would have been set to
+            # before this command):
+            return self.State.SEND_PACKET
+
+        progLogger.error(
+            "Unable to recover. Review logs and proceed manually."
+        )
+        return self.State.FAULT
 
     def _handle_init(self) -> PassthroughVerificationStateMachine.State:
         progLogger.spam(
@@ -666,7 +693,8 @@ class PassthroughVerificationStateMachine:
             [
                 PacketBgMsgFilter(self.bgcmd._class_name,
                                   self.bgcmd._msg_name),
-                PacketEventFilter(fprimeEvent)
+                PacketEventFilter(fprimeEvent),
+                PacketTypeFilter(WatchdogDebugImportantPacket)
             ],
             # Testing of 30 commands showed that, in DFU mode, all responses
             # came within <=5 packets.
@@ -680,7 +708,15 @@ class PassthroughVerificationStateMachine:
             return self.State.REQUEST_RECORDS
 
         # Check individual results:
-        bgResponse, events = results
+        bgResponse, events, importantNotice = results
+
+        # Make sure Hercules didn't crash:
+        if importantNotice is not None:
+            # We might have just gotten a Hercules boot message:
+            if b'Hercules Boot' in importantNotice.raw:
+                # Shit. Hercules crashed. Handle it:
+                return self.State.HERCULES_CRASHED
+
         if isinstance(bgResponse, bgapi.BGResponse):
             progLogger.debug(f'Got BGResponse: {bgResponse}')
             if bgResponse._errorcode == 0:
@@ -770,7 +806,10 @@ class PassthroughVerificationStateMachine:
         # Read datastream until either a records event is found:
         fprimeEvent = XCVR.standards.modules['NetworkManager'].events['RadioBgApiCommandRecords']
         results = read_until_filter(
-            [PacketEventFilter(fprimeEvent)],
+            [
+                PacketEventFilter(fprimeEvent),
+                PacketTypeFilter(WatchdogDebugImportantPacket)
+            ],
             # Testing of 30 commands showed that, in DFU mode, all responses
             # came within <=5 packets.
             wait_count_max=6
@@ -783,7 +822,14 @@ class PassthroughVerificationStateMachine:
             return self.State.REQUEST_RECORDS
 
         # Check results:
-        events = results[0]
+        events, importantNotice = results[0]
+
+        # Make sure Hercules didn't crash:
+        if importantNotice is not None:
+            # We might have just gotten a Hercules boot message:
+            if b'Hercules Boot' in importantNotice.raw:
+                # Shit. Hercules crashed. Handle it:
+                return self.State.HERCULES_CRASHED
 
         # Check all matching Records events (should be only 1 but ... maybe there
         # are multiple if lagging occurred in Hercules, either way, should only
@@ -793,6 +839,8 @@ class PassthroughVerificationStateMachine:
             if ep.event == fprimeEvent:
                 progLogger.debug(f'Got RadioBgApiCommandRecords Event: {ep}')
                 # This is a RadioBgApiCommandRecords.
+
+                recordsEmpty = [False] * 3
 
                 # Due to FPrime weirdness (it uses UNSCOPED enums for all its
                 # enums), we have to have different conversion checking for
@@ -816,6 +864,9 @@ class PassthroughVerificationStateMachine:
                     status = status_arg.get_enum_formatted_str(
                         ep.args[status_name])
 
+                    # Log whether this record was empty:
+                    recordsEmpty[i] = status is not None and 'EMPTY' in status
+
                     # Return if this result indicates any sort of success:
                     return status is not None and 'SUCCESS' in status
 
@@ -837,6 +888,17 @@ class PassthroughVerificationStateMachine:
                                 f'Trying again...'
                             )
                             return self.State.SEND_PACKET
+
+                # Make sure all records weren't empty (that would indicate
+                # that Hercules crashed):
+                if all(r for r in recordsEmpty):
+                    progLogger.warning(
+                        f"Received empty set of BGAPI records ({ep})."
+                        f"This suggests that Hercules crashed. "
+                        f"Attempting to handle it . . ."
+                    )
+                    # Shit. Hercules crashed. Handle it:
+                    return self.State.HERCULES_CRASHED
 
         # If we get here no response contained useful information.
         # So, we'll have to request records again (all we can do):
@@ -945,11 +1007,51 @@ def pack_send_and_verify_key_bgapi_command(
         return False
 
 
-def attempt_dfu_flash(dfuChunks: List[DfuChunk]) -> bool:
-    """Attempts to program the Radio with the given `DfuChunk`s.
-    Returns whether or not it worked.
+def turn_on_passthrough() -> None:
+    """Sends a command to turn on BGAPI Passthrough Mode.
     """
-    progLogger.notice("Beginning Flashing Procedure . . .")
+    command_name = 'NetworkManager_SetRadioBgApiPassthrough'
+    module, command = XCVR.standards.global_command_lookup(command_name)
+
+    # Pack command:
+    # Make ICP payload:
+    command_payload = CommandPayload(
+        pathway=DataPathway.WIRED,
+        source=DataSource.GENERATED,
+        magic=Magic.COMMAND,
+        module_id=module.ID,
+        command_id=command.ID,
+        args=OrderedDict(
+            passthrough=True
+        )
+    )
+    # Load payload into ICP packet:
+    payloads = EnhancedPayloadCollection(CommandPayload=[command_payload])
+    packet = IrisCommonPacket(
+        seq_num=0x00,
+        payloads=payloads
+    )
+    packet_bytes = packet.encode()
+    send_bytes(packet_bytes)
+    time.sleep(5)
+    # Do it twice just to be safe (time is low, this is a hack):
+    send_bytes(packet_bytes)
+
+
+# Address in memory to start programming at:
+# necessary if Herc crashes during programming and we need to restart.
+DFU_ADDRESS_PTR: int = 0
+
+
+def setup_for_dfu() -> bool:
+    """Sends all the key commands necessary to set the device up for DFU."""
+    global DFU_ADDRESS_PTR
+
+    # Make sure passthrough is on:
+    progLogger.info("Turning on BGAPI Passthrough . . .")
+    turn_on_passthrough()
+    # Wait a bit...
+    time.sleep(5)
 
     # First send a basic test command to make sure everything works:
     if not pack_send_and_verify_key_bgapi_command(
@@ -966,9 +1068,25 @@ def attempt_dfu_flash(dfuChunks: List[DfuChunk]) -> bool:
         return False
 
     # Set the address to the start of program memory:
+    # Start at pointer in case we have to restart
     if not pack_send_and_verify_key_bgapi_command(
-        'dfu', 'flash_set_address', {'address': 0}
+        'dfu', 'flash_set_address', {'address': DFU_ADDRESS_PTR}
     ):
+        # If it didn't work (i.e. StateMachine couldn't fix it. We're done.
+        return False
+
+    return True
+
+
+def attempt_dfu_flash(dfuChunks: List[DfuChunk]) -> bool:
+    """Attempts to program the Radio with the given `DfuChunk`s.
+    Returns whether or not it worked.
+    """
+    global DFU_ADDRESS_PTR
+    progLogger.notice("Beginning Flashing Procedure . . .")
+
+    # Get ready for DFU mode:
+    if not setup_for_dfu():
         # If it didn't work (i.e. StateMachine couldn't fix it. We're done.
         return False
 
@@ -990,6 +1108,9 @@ def attempt_dfu_flash(dfuChunks: List[DfuChunk]) -> bool:
             progLogger.success(
                 f"Successfully sent {n_chunks}/{tot_chunks} chunks."
             )
+            DFU_ADDRESS_PTR += chunk.chunkSize
+            # Log pointer in case we have to manually recover:
+            progLogger.debug(f"Mem ptr at: {DFU_ADDRESS_PTR}")
         else:
             progLogger.error(
                 f"Sending failed at chunk {chunk.packetId} b/c {result}. "

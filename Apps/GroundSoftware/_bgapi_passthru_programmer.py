@@ -60,6 +60,9 @@ APP_CONTEXT: Final[Dict[str, Any]] = {
     # DFU file is read in sections of size `chunkSize`. 128B is the standard
     # defined by the BGAPI docs and changing this value is not recommended.
     'dfu_chunk_size': 128,
+    # What chunk to start at (if resuming from a broken upload):
+    # (default is 0):
+    'dfu_starting_chunk': 0,
     # Base to apply to all PacketIds derived from the DFU file (so maintenance
     # commands can have a lower ID and so all file packet IDs can be easily
     # identifiable in the passthrough dumps).
@@ -469,6 +472,13 @@ class PacketTypeFilter(PacketFilter[Packet]):
         return (False, None)
 
 
+class PacketNullFilter(PacketFilter[Any]):
+    """Functor used to clear the input."""
+
+    def __call__(self, packet: Packet) -> Tuple[bool, Any]:
+        return (False, None)
+
+
 class PacketBgMsgFilter(PacketFilter[bgapi.BGMsg]):
     """Functor used for filtering packets until a `RadioBgApiPacket` is
     received where the `class_name` and `msg_name` match the given values."""
@@ -636,28 +646,6 @@ class PassthroughVerificationStateMachine:
         # Everything worked!
         DONE = 0xFF
 
-    def _handle_hercules_crash(self) -> PassthroughVerificationStateMachine.State:
-        # Shit. Hercules crashed.
-        # Get back into the right state (*should* correctly update the
-        # memory pointer):
-        progLogger.error(
-            "Hercules Reboot Detected. "
-            "Attempting to recover."
-        )
-        recovery_success = setup_for_dfu()
-        if recovery_success:
-            progLogger.notice(
-                "Hercules recovery appears successful. Proceeding . . ."
-            )
-            # Resend this command (memory pointer would have been set to
-            # before this command):
-            return self.State.SEND_PACKET
-
-        progLogger.error(
-            "Unable to recover. Review logs and proceed manually."
-        )
-        return self.State.FAULT
-
     def _handle_init(self) -> PassthroughVerificationStateMachine.State:
         progLogger.spam(
             f'PassthroughVerificationStateMachine in INIT for '
@@ -698,7 +686,7 @@ class PassthroughVerificationStateMachine:
             ],
             # Testing of 30 commands showed that, in DFU mode, all responses
             # came within <=5 packets.
-            wait_count_max=6
+            wait_count_max=12
         )
 
         if results is None or all(x is None for x in results):
@@ -733,29 +721,35 @@ class PassthroughVerificationStateMachine:
         # Check all matching ACK events (should be only 1 but ... maybe there
         # are multiple if lagging occurred in Hercules, either way, should only
         # be 1 for us):
-        eventPayloads = cast(List[EventPayload], events)
-        for ep in eventPayloads:
-            progLogger.debug(f'Got RadioSendBgApiCommandAck Event: {ep}')
-            if ep.event == fprimeEvent and ep.args['packet_id'] == self.packetId:
-                # This is a RadioSendBgApiCommandAck for us. Decode status:
-                status_arg = [
-                    a for a in fprimeEvent.args if a.name == 'status'
-                ][0]
-                status = status_arg.get_enum_formatted_str(ep.args['status'])
+        if isinstance(events, list) and len(events) > 0 and isinstance(events[0], EventPayload):
+            eventPayloads = cast(List[EventPayload], events)
+            for ep in eventPayloads:
+                progLogger.debug(f'Got RadioSendBgApiCommandAck Event: {ep}')
+                if ep.event == fprimeEvent and ep.args['packet_id'] == self.packetId:
+                    # This is a RadioSendBgApiCommandAck for us. Decode status:
+                    status_arg = [
+                        a for a in fprimeEvent.args if a.name == 'status'
+                    ][0]
+                    status = status_arg.get_enum_formatted_str(
+                        ep.args['status'])
 
-                if status is not None and 'SUCCESS' in status:
-                    progLogger.debug(
-                        f'Got good RadioSendBgApiCommandAck status: {status}.'
-                    )
-                    # We met some def of success:
-                    return self.State.DONE
-                else:
-                    progLogger.warning(
-                        f'Got bad RadioSendBgApiCommandAck status: {status}.\n'
-                        f'Trying again...'
-                    )
-                    # Try sending again:
-                    return self.State.SEND_PACKET
+                    if status is not None and 'SUCCESS' in status:
+                        progLogger.debug(
+                            f'Got good RadioSendBgApiCommandAck status: {status}.'
+                        )
+                        if 'NORESP' in status:
+                            progLogger.info(
+                                f"Got success, but with 'NORESP'."
+                            )
+                        # We met some def of success:
+                        return self.State.DONE
+                    else:
+                        progLogger.warning(
+                            f'Got bad RadioSendBgApiCommandAck status: {status}.\n'
+                            f'Trying again...'
+                        )
+                        # Try sending again:
+                        return self.State.SEND_PACKET
 
         # If we get here no response contained useful information.
         # So, we'll have to request records:
@@ -766,12 +760,42 @@ class PassthroughVerificationStateMachine:
         progLogger.spam('In REQUEST_RECORDS.')
 
         if self.records_request_count >= self.maxRecordsRequestCount:
-            # We've done this too many times already. We're done.
+            # We've done this too many times already. Send again.
             progLogger.warning(
-                f"Max records request count ({self.maxRecordsRequestCount}). "
-                f"reached. Aborting send of {self.bgcmd}."
+                f"Records request count maximum "
+                f"({self.maxRecordsRequestCount}) reached. "
+                f"Perhaps Hercules is overwhelmed and didn't get the message. "
+                f"Letting it breathe for 10s . . ."
             )
-            return self.State.FAULT
+            time.sleep(10)
+            progLogger.info(
+                f"Flushing serial stream . . ."
+            )
+            if UDP_SLIP_XCVR is not None and UDP_SLIP_XCVR.ser is not None:
+                UDP_SLIP_XCVR.ser.flush()
+                UDP_SLIP_XCVR.ser.flushInput()
+            progLogger.info(
+                f"Resetting request count and resending packet {self.packetId} . . ."
+            )
+            # so it doesn't immediately re-trigger:
+            self.records_request_count = 0
+            return self.State.SEND_PACKET
+
+        elif self.records_request_count == self.maxRecordsRequestCount//2:
+            # We've done this a lot of times already. Maybe there's a clog?
+            progLogger.warning(
+                f"Records request count at half maximum "
+                f"({self.maxRecordsRequestCount//2}). "
+                f"Perhaps Hercules is overwhelmed. "
+                f"Letting it breathe for 10s . . ."
+            )
+            time.sleep(10)
+            progLogger.info(
+                f"Flushing serial stream . . ."
+            )
+            if UDP_SLIP_XCVR is not None and UDP_SLIP_XCVR.ser is not None:
+                UDP_SLIP_XCVR.ser.flush()
+                UDP_SLIP_XCVR.ser.flushInput()
 
         # Build Request Command:
         command_name = 'NetworkManager_DownlinkBgApiCommandRecords'
@@ -812,7 +836,7 @@ class PassthroughVerificationStateMachine:
             ],
             # Testing of 30 commands showed that, in DFU mode, all responses
             # came within <=5 packets.
-            wait_count_max=6
+            wait_count_max=12
         )
 
         if results is None or all(x is None for x in results):
@@ -822,7 +846,7 @@ class PassthroughVerificationStateMachine:
             return self.State.REQUEST_RECORDS
 
         # Check results:
-        events, importantNotice = results[0]
+        events, importantNotice = results
 
         # Make sure Hercules didn't crash:
         if importantNotice is not None:
@@ -830,80 +854,157 @@ class PassthroughVerificationStateMachine:
             if b'Hercules Boot' in importantNotice.raw:
                 # Shit. Hercules crashed. Handle it:
                 return self.State.HERCULES_CRASHED
+            else:
+                # didn't actually get records so dec the request counter
+                # (so we'll just be trying fresh)
+                self.records_request_count -= 1
 
         # Check all matching Records events (should be only 1 but ... maybe there
         # are multiple if lagging occurred in Hercules, either way, should only
         # be 1 for us):
-        eventPayloads = cast(List[EventPayload], events)
-        for ep in eventPayloads:
-            if ep.event == fprimeEvent:
-                progLogger.debug(f'Got RadioBgApiCommandRecords Event: {ep}')
-                # This is a RadioBgApiCommandRecords.
-
-                recordsEmpty = [False] * 3
-
-                # Due to FPrime weirdness (it uses UNSCOPED enums for all its
-                # enums), we have to have different conversion checking for
-                # each enum. This helper helps with that so we don't have to
-                # repeat code:
-                def checkRecord(recordIdx: int):
-                    """Checks the record with the given index and returns:
-                    - `True` if it indicates our command was successful,
-                    - `False` if not,
-                    - `None` if the record isn't for our command.
-                    """
-                    if ep.args[f'packet_id_{recordIdx}'] != self.packetId:
-                        return None
-
-                    # This record is for us. Decode the status:
-                    status_name = f'result_{recordIdx}'
-                    status_arg = [
-                        a for a in fprimeEvent.args
-                        if a.name == status_name
-                    ][0]
-                    status = status_arg.get_enum_formatted_str(
-                        ep.args[status_name])
-
-                    # Log whether this record was empty:
-                    recordsEmpty[i] = status is not None and 'EMPTY' in status
-
-                    # Return if this result indicates any sort of success:
-                    return status is not None and 'SUCCESS' in status
-
-                # Check all records, starting with 0 (most recent):
-                for i in range(3):
-                    status = checkRecord(i)
-                    if status is not None:
-                        # This record is for us:
-                        if status:
-                            # Records show we were successful. We're DONE!
-                            progLogger.debug(
-                                f'Records show {self.packetId} was successful.'
-                            )
-                            return self.State.DONE
-                        else:
-                            # Records show it didn't work, try sending again:
-                            progLogger.warning(
-                                f'Records show {self.packetId} failed.\n'
-                                f'Trying again...'
-                            )
-                            return self.State.SEND_PACKET
-
-                # Make sure all records weren't empty (that would indicate
-                # that Hercules crashed):
-                if all(r for r in recordsEmpty):
-                    progLogger.warning(
-                        f"Received empty set of BGAPI records ({ep})."
-                        f"This suggests that Hercules crashed. "
-                        f"Attempting to handle it . . ."
+        if isinstance(events, list) and len(events) > 0 and isinstance(events[0], EventPayload):
+            eventPayloads = cast(List[EventPayload], events)
+            for ep in eventPayloads:
+                if ep.event == fprimeEvent:
+                    progLogger.debug(
+                        f'Got RadioBgApiCommandRecords Event: {ep}'
                     )
-                    # Shit. Hercules crashed. Handle it:
-                    return self.State.HERCULES_CRASHED
+                    # This is a RadioBgApiCommandRecords.
+
+                    recordsEmpty = [False] * 3
+
+                    # Due to FPrime weirdness (it uses UNSCOPED enums for all its
+                    # enums), we have to have different conversion checking for
+                    # each enum. This helper helps with that so we don't have to
+                    # repeat code:
+                    def checkRecord(recordIdx: int):
+                        """Checks the record with the given index and returns:
+                        - `True` if it indicates our command was successful,
+                        - `False` if not,
+                        - `None` if the record isn't for our command.
+                        """
+                        if ep.args[f'packet_id_{recordIdx}'] != self.packetId:
+                            return None
+
+                        # This record is for us. Decode the status:
+                        status_name = f'result_{recordIdx}'
+                        status_arg = [
+                            a for a in fprimeEvent.args
+                            if a.name == status_name
+                        ][0]
+                        status = status_arg.get_enum_formatted_str(
+                            ep.args[status_name])
+
+                        # Log whether this record was empty:
+                        recordsEmpty[i] = status is not None and 'EMPTY' in status
+
+                        if status is not None and 'SUCCESS' in status and 'NORESP' in status:
+                            progLogger.info(
+                                f"Got success, but with 'NORESP'."
+                            )
+
+                        # Return if this result indicates any sort of success:
+                        return status is not None and 'SUCCESS' in status
+
+                    # Check all records, starting with 0 (most recent):
+                    for i in range(3):
+                        status = checkRecord(i)
+                        if status is not None:
+                            # This record is for us:
+                            if status:
+                                # Records show we were successful. We're DONE!
+                                progLogger.debug(
+                                    f'Records show {self.packetId} was successful.'
+                                )
+                                return self.State.DONE
+                            else:
+                                # Records show it didn't work, try sending again:
+                                progLogger.warning(
+                                    f'Records show {self.packetId} failed.\n'
+                                    f'Trying again...'
+                                )
+                                return self.State.SEND_PACKET
+
+                    # Make sure all records weren't empty (that would indicate
+                    # that Hercules crashed):
+                    if all(r for r in recordsEmpty):
+                        progLogger.warning(
+                            f"Received empty set of BGAPI records ({ep})."
+                            f"This suggests that Hercules crashed. "
+                            f"Attempting to handle it . . ."
+                        )
+                        # Shit. Hercules crashed. Handle it:
+                        return self.State.HERCULES_CRASHED
+
+                    # AS IS, THE FOLLOWING CHECK IS BAD B/C IT DOESN'T ACCOUNT FOR
+                    # DELAYED LOGS. LOOKING FOR SUCC WILL BE SUFFICIENT.
+                    # # If most recent chunk record is for a packets preceeding this
+                    # # one, then it's likely the command was never received:
+                    # if ep.args[f'packet_id_0'] > APP_CONTEXT['file_packet_id_base']:
+                    #     if ep.args[f'packet_id_0'] < self.packetId:
+                    #         progLogger.warning(
+                    #             f'Most recent record of a chunk is for chunk '
+                    #             f"{ep.args[f'packet_id_0']}, which precedes "
+                    #             f'the current chunk ({self.packetId}). '
+                    #             f"This suggests the packets wasn't received."
+                    #             f"Trying to send again . . ."
+                    #         )
+                    #         return self.State.SEND_PACKET
+                    # elif ep.args[f'packet_id_1'] > APP_CONTEXT['file_packet_id_base']:
+                    #     if ep.args[f'packet_id_1'] < self.packetId:
+                    #         progLogger.warning(
+                    #             f'Most recent record of a chunk is for chunk '
+                    #             f"{ep.args[f'packet_id_1']}, which precedes "
+                    #             f'the current chunk ({self.packetId}). '
+                    #             f"This suggests the packets wasn't received."
+                    #             f"Trying to send again . . ."
+                    #         )
+                    #         return self.State.SEND_PACKET
+                    # elif ep.args[f'packet_id_2'] > APP_CONTEXT['file_packet_id_base']:
+                    #     if ep.args[f'packet_id_2'] < self.packetId:
+                    #         progLogger.warning(
+                    #             f'Most recent record of a chunk is for chunk '
+                    #             f"{ep.args[f'packet_id_2']}, which precedes "
+                    #             f'the current chunk ({self.packetId}). '
+                    #             f"This suggests the packets wasn't received."
+                    #             f"Trying to send again . . ."
+                    #         )
+                    #         return self.State.SEND_PACKET
+                    # else:
+                    #     progLogger.warning(
+                    #         f"No records in {ep} are for a chunk. "
+                    #         f"This suggests the last command didn't go through. "
+                    #         f"Trying to send again . . ."
+                    #     )
+                    #     return self.State.SEND_PACKET
 
         # If we get here no response contained useful information.
         # So, we'll have to request records again (all we can do):
-        progLogger.debug('No useful info. Requesting records.')
+        progLogger.debug(
+            f'No useful info for packet {self.packetId}. Requesting records.')
         return self.State.REQUEST_RECORDS
+
+    def _handle_hercules_crash(self) -> PassthroughVerificationStateMachine.State:
+        # Shit. Hercules crashed.
+        # Get back into the right state (*should* correctly update the
+        # memory pointer):
+        progLogger.error(
+            "Hercules Reboot Detected. "
+            "Attempting to Recover . . ."
+        )
+        recovery_success = setup_for_dfu()
+        if recovery_success:
+            progLogger.notice(
+                "Hercules recovery appears successful. Proceeding . . ."
+            )
+            # Resend this command (memory pointer would have been set to
+            # before this command):
+            return self.State.SEND_PACKET
+
+        progLogger.error(
+            "Unable to recover. Review logs and proceed manually."
+        )
+        return self.State.FAULT
 
     def _handle_radio_failure(self) -> PassthroughVerificationStateMachine.State:
         # Stay in RADIO_FAILURE:
@@ -963,7 +1064,7 @@ def send_and_verify_bgapi_cmd(
         bgcmd=bgcmd,
         icPacketBytes=icPacketBytes,
         maxSendCount=5,
-        maxRecordsRequestCount=5
+        maxRecordsRequestCount=15
     )
     return pvsm.run()
 
@@ -1040,7 +1141,8 @@ def turn_on_passthrough() -> None:
 
 # Address in memory to start programming at:
 # necessary if Herc crashes during programming and we need to restart.
-DFU_ADDRESS_PTR: int = 0
+DFU_ADDRESS_PTR: int = APP_CONTEXT['dfu_starting_chunk'] * \
+    APP_CONTEXT['dfu_chunk_size']
 
 
 def setup_for_dfu() -> bool:
@@ -1091,32 +1193,36 @@ def attempt_dfu_flash(dfuChunks: List[DfuChunk]) -> bool:
         return False
 
     # Send every chunk:
-    for chunk in dfuChunks:
-        # Send it:
-        progLogger.debug(
-            f'Sending chunk {chunk.packetId}: {chunk.bgcmd} . . .'
-        )
-        result = send_and_verify_bgapi_cmd(
-            chunk.packetId, chunk.bgcmd, chunk.icPacketBytes
-        )
-
-        if result == PassthroughVerificationStateMachine.State.DONE:
-            # Emit a success message (it's slow enough that it's fine if we do this for all):
-            n_chunks = chunk.packetId - \
-                APP_CONTEXT['file_packet_id_base'] + 1
-            tot_chunks = len(dfuChunks)
-            progLogger.success(
-                f"Successfully sent {n_chunks}/{tot_chunks} chunks."
-            )
-            DFU_ADDRESS_PTR += chunk.chunkSize
-            # Log pointer in case we have to manually recover:
-            progLogger.debug(f"Mem ptr at: {DFU_ADDRESS_PTR}")
+    for i, chunk in enumerate(dfuChunks):
+        if i < APP_CONTEXT['dfu_starting_chunk']:
+            # Skip until we hit the starting chunk.
+            continue
         else:
-            progLogger.error(
-                f"Sending failed at chunk {chunk.packetId} b/c {result}. "
-                f"Check logs for more info."
+            # Send it:
+            progLogger.debug(
+                f'Sending chunk {chunk.packetId}: {chunk.bgcmd} . . .'
             )
-            return False
+            result = send_and_verify_bgapi_cmd(
+                chunk.packetId, chunk.bgcmd, chunk.icPacketBytes
+            )
+
+            if result == PassthroughVerificationStateMachine.State.DONE:
+                # Emit a success message (it's slow enough that it's fine if we do this for all):
+                n_chunks = chunk.packetId - \
+                    APP_CONTEXT['file_packet_id_base'] + 1
+                tot_chunks = len(dfuChunks)
+                progLogger.success(
+                    f"Successfully sent {n_chunks}/{tot_chunks} chunks."
+                )
+                DFU_ADDRESS_PTR += chunk.chunkSize
+                # Log pointer in case we have to manually recover:
+                progLogger.debug(f"Mem ptr at: {DFU_ADDRESS_PTR}")
+            else:
+                progLogger.error(
+                    f"Sending failed at chunk {chunk.packetId} b/c {result}. "
+                    f"Check logs for more info."
+                )
+                return False
 
     # Flag that we're done sending chunks:
     if not pack_send_and_verify_key_bgapi_command(

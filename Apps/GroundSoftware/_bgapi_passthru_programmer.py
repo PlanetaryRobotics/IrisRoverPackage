@@ -6,8 +6,20 @@ NOTE: For simplicity, this process is completely synchronous. This shouldn't
 cause any issues since the only incoming data we care about are command
 responses and we start looking for those immediately after sending a command.
 
+TODO: (note for future use - hopefully not though, this was very scary):
+Currently Hercules crashes are handled by restarting everything and just 
+adjusting the starting address. This is iffy because it's not well documented 
+whether this address is in bytes or words. **FORTUNATELY**, if only Hercules 
+has crashed and not the Radio, all you have to do (and should do) is put 
+*Hercules* (and just Hercules) back into the right mode). The Radio will 
+remember where it was since it doesn't know anything happened. The only thing 
+that will be a little tricky is determining whether Hercules crashed between a 
+write and a write response (check for command_ok in logs)? Also, completely 
+restarting from address 0 would be a viable (but slow) option.
+
 @author: Connor W. Colombo (CMU)
-@last-updated: 11/13/2022
+@created: 11/13/2022
+@last-updated: 11/14/2022
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations

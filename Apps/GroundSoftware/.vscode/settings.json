@@ -40,6 +40,7 @@
         "bgcmd",
         "bglib",
         "bgmsg",
+        "bitfield",
         "bitfields",
         "bitflip",
         "bitstruct",

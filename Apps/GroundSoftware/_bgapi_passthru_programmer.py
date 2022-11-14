@@ -543,7 +543,7 @@ def read_until_filter(
     the extracted value returned from the PacketFilter when called on the first
     packet that makes any of them return `(True, _)`.
     """
-    for _ in range(wait_count_max):
+    for i in range(wait_count_max):
         packet = read_packet()
         if isinstance(packet, Packet):
             # Run on all filters:
@@ -668,10 +668,9 @@ class PassthroughVerificationStateMachine:
                                   self.bgcmd._msg_name),
                 PacketEventFilter(fprimeEvent)
             ],
-            # a max of 9 BGAPI packets diff was observed in testing (when the
-            # radio was running it's normal script - not in DFU mode).
-            # Use 15 to be safe.
-            wait_count_max=15
+            # Testing of 30 commands showed that, in DFU mode, all responses
+            # came within <=5 packets.
+            wait_count_max=6
         )
 
         if results is None or all(x is None for x in results):
@@ -772,10 +771,9 @@ class PassthroughVerificationStateMachine:
         fprimeEvent = XCVR.standards.modules['NetworkManager'].events['RadioBgApiCommandRecords']
         results = read_until_filter(
             [PacketEventFilter(fprimeEvent)],
-            # a max of 9 BGAPI packets diff was observed in testing (when the
-            # radio was running it's normal script - not in DFU mode).
-            # Use 15 to be safe.
-            wait_count_max=15
+            # Testing of 30 commands showed that, in DFU mode, all responses
+            # came within <=5 packets.
+            wait_count_max=6
         )
 
         if results is None or all(x is None for x in results):
@@ -977,7 +975,7 @@ def attempt_dfu_flash(dfuChunks: List[DfuChunk]) -> bool:
     # Send every chunk:
     for chunk in dfuChunks:
         # Send it:
-        progLogger.verbose(
+        progLogger.debug(
             f'Sending chunk {chunk.packetId}: {chunk.bgcmd} . . .'
         )
         result = send_and_verify_bgapi_cmd(
@@ -985,14 +983,13 @@ def attempt_dfu_flash(dfuChunks: List[DfuChunk]) -> bool:
         )
 
         if result == PassthroughVerificationStateMachine.State.DONE:
-            if (chunk.packetId+1) % 100:
-                # Emit a success message for every 100 messages:
-                n_chunks = chunk.packetId - \
-                    APP_CONTEXT['file_packet_id_base'] + 1
-                tot_chunks = len(dfuChunks)
-                progLogger.success(
-                    f"Successfully sent {n_chunks}/{tot_chunks} chunks."
-                )
+            # Emit a success message (it's slow enough that it's fine if we do this for all):
+            n_chunks = chunk.packetId - \
+                APP_CONTEXT['file_packet_id_base'] + 1
+            tot_chunks = len(dfuChunks)
+            progLogger.success(
+                f"Successfully sent {n_chunks}/{tot_chunks} chunks."
+            )
         else:
             progLogger.error(
                 f"Sending failed at chunk {chunk.packetId} b/c {result}. "

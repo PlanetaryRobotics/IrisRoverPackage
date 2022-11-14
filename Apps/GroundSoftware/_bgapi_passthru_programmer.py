@@ -208,13 +208,6 @@ def compile_dfu_file_to_icp(
     return (compiledPackets, totalFileSize)
 
 
-def send_bytes(data: bytes) -> None:
-    """Sends the given bytes to the Rover. Abstracted in case we want to reuse
-    this logic but change the transceiver behavior later."""
-    time.sleep(APP_CONTEXT['throttling_time_ms']/1000)
-    XCVR.send_data_wd_serial(data)  # type: ignore
-
-
 class SlipState(PyEnum):
     FIRST_END = 1
     FIRST_BYTE_OR_STARTING_END = 2
@@ -269,6 +262,58 @@ class BasicSerialUdpSlipTransceiver:
                 f"Original error: {e}"
             )
             return False
+
+    def send_slip(self, dat: bytes) -> None:
+        """
+        Wraps the given data in SLIP and sends it over RS422.
+        """
+        buf = bytearray(b'')
+        buf.append(0xC0)
+
+        for d in dat:
+            if d == 0xC0:
+                buf.append(0xDB)
+                buf.append(0xDC)
+            elif d == 0xDB:
+                buf.append(0xDB)
+                buf.append(0xDD)
+            else:
+                buf.append(d)
+
+        buf.append(0xC0)
+
+        if self.ser is not None:
+            self.ser.write(bytes(buf))
+        else:
+            progLogger.warning(
+                "Can't send data, serial connection not started. "
+                "Try `connect_serial()`."
+            )
+
+    def send_udp_slip(
+        self,
+        raw_data: bytes,
+        ip_dest: str = '127.0.0.1',  # arbitrary (WD doesn't care)
+        ip_src: str = '222.173.190.239',  # arbitrary (WD doesn't care)
+        port: int = 8080  # arbitrary (WD doesn't care)
+    ) -> str:
+        """
+        Wraps the given data in UDP then SLIP and sends it over RS422.
+        """
+        try:
+            # Build packet
+            full_packet = scp.IP(dst=ip_dest, src=ip_src) / \
+                scp.UDP(dport=port)/scp.Raw(load=raw_data)
+            # printraw(scp.raw(scp.IP(scp.raw(full_packet))))
+            # printraw(scp.raw(full_packet))
+            data = cast(bytes, scp.raw(full_packet))
+            self.send_slip(data)
+        except serial.SerialTimeoutException:
+            progLogger.warning(
+                "Failed to send due to serial timeout. Check the connection?"
+            )
+        finally:
+            return f"Data: {scp.hexstr(data)}."
 
     def append_byte(self, b):
         if self.escape:
@@ -351,6 +396,23 @@ class BasicSerialUdpSlipTransceiver:
 
 
 UDP_SLIP_XCVR: Optional[BasicSerialUdpSlipTransceiver] = None
+
+
+def send_bytes(data: bytes) -> None:
+    """Sends the given bytes to the Rover. Abstracted in case we want to reuse
+    this logic but change the transceiver behavior later."""
+    if UDP_SLIP_XCVR is None:
+        progLogger.error(
+            "Can't send data. Serial transceiver is not initialized."
+        )
+    elif not UDP_SLIP_XCVR.connected:
+        progLogger.error(
+            "Can't send data. Serial transceiver is not connected."
+        )
+    else:
+        progLogger.spam(f'Sent: {data!r}')
+        time.sleep(APP_CONTEXT['throttling_time_ms']/1000)
+        UDP_SLIP_XCVR.send_udp_slip(data)  # type: ignore
 
 
 def read_packet() -> Packet:

@@ -53,8 +53,8 @@ APP_CONTEXT: Final[Dict[str, Any]] = {
     # Baud rate for the RS422 comms connection to the Rover
     'baud': 9600,
     # Serial number of RS422 transceiver:
-    # 'serial_device_sn': 'A7035PDL',  # Connects to the Lander harness
-    'serial_device_sn': 'AB0JRGV8',  # Connects to J36-RS422 header on the SBC
+    'serial_device_sn': 'A7035PDL',  # Connects to the Lander harness
+    # 'serial_device_sn': 'AB0JRGV8',  # Connects to J36-RS422 header on the SBC
     # Path to the DFU binary file to load:
     'dfu_file_path': '../FlightSoftware/Radio/build/iris_wifi_radio__auto_connect.dfu',
     # DFU file is read in sections of size `chunkSize`. 128B is the standard

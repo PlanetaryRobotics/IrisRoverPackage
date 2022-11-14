@@ -1,0 +1,216 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+CG_TOOL_ROOT := /home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-arm_18.12.2.LTS
+
+GEN_OPTS__FLAG := 
+GEN_CMDS__FLAG := 
+
+ORDERED_OBJS += \
+"./RM46/source/can.obj" \
+"./RM46/source/dabort.obj" \
+"./RM46/source/emac.obj" \
+"./RM46/source/errata_SSWF021_45.obj" \
+"./RM46/source/esm.obj" \
+"./RM46/source/gio.obj" \
+"./RM46/source/mdio.obj" \
+"./RM46/source/notification.obj" \
+"./RM46/source/phy_dp83640.obj" \
+"./RM46/source/pinmux.obj" \
+"./RM46/source/rti.obj" \
+"./RM46/source/sci.obj" \
+"./RM46/source/spi.obj" \
+"./RM46/source/sys_core.obj" \
+"./RM46/source/sys_dma.obj" \
+"./RM46/source/sys_intvecs.obj" \
+"./RM46/source/sys_mpu.obj" \
+"./RM46/source/sys_pcr.obj" \
+"./RM46/source/sys_phantom.obj" \
+"./RM46/source/sys_pmm.obj" \
+"./RM46/source/sys_pmu.obj" \
+"./RM46/source/sys_selftest.obj" \
+"./RM46/source/sys_startup.obj" \
+"./RM46/source/sys_vim.obj" \
+"./RM46/source/system.obj" \
+"./source/Fapi_UserDefinedFunctions.obj" \
+"./source/bl_check.obj" \
+"./source/bl_copySections2SRAM.obj" \
+"./source/bl_dcan.obj" \
+"./source/bl_flash.obj" \
+"./source/bl_led_demo.obj" \
+"./source/bl_main.obj" \
+"./source/bl_spi.obj" \
+"./source/bl_spi_packet.obj" \
+"./source/bl_uart.obj" \
+"./source/bl_ymodem.obj" \
+"./source/sci_common.obj" \
+"./source/sw_hw_ver.obj" \
+"./source/ymodem_crc16.obj" \
+"/home/iris/Desktop/Workspaces/v9_workspace_bootloader/SafetyMCU_Bootloaders/RM46Lx/bl_link.cmd" \
+$(GEN_CMDS__FLAG) \
+-l"/home/iris/ti/Hercules/F021 Flash API/02.01.01/F021_API_CortexR4_LE.lib" \
+-lrtsv7R4_A_le_v3D16_eabi.lib \
+
+-include ../makefile.init
+
+RM := rm -rf
+RMDIR := rm -rf
+
+# All of the sources participating in the build are defined here
+-include sources.mk
+-include subdir_vars.mk
+-include RM46/source/subdir_vars.mk
+-include source/subdir_vars.mk
+-include subdir_rules.mk
+-include RM46/source/subdir_rules.mk
+-include source/subdir_rules.mk
+-include objects.mk
+
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(strip $(C55_DEPS)),)
+-include $(C55_DEPS)
+endif
+ifneq ($(strip $(C_UPPER_DEPS)),)
+-include $(C_UPPER_DEPS)
+endif
+ifneq ($(strip $(S67_DEPS)),)
+-include $(S67_DEPS)
+endif
+ifneq ($(strip $(S62_DEPS)),)
+-include $(S62_DEPS)
+endif
+ifneq ($(strip $(S_DEPS)),)
+-include $(S_DEPS)
+endif
+ifneq ($(strip $(OPT_DEPS)),)
+-include $(OPT_DEPS)
+endif
+ifneq ($(strip $(C??_DEPS)),)
+-include $(C??_DEPS)
+endif
+ifneq ($(strip $(ASM_UPPER_DEPS)),)
+-include $(ASM_UPPER_DEPS)
+endif
+ifneq ($(strip $(S??_DEPS)),)
+-include $(S??_DEPS)
+endif
+ifneq ($(strip $(C64_DEPS)),)
+-include $(C64_DEPS)
+endif
+ifneq ($(strip $(CXX_DEPS)),)
+-include $(CXX_DEPS)
+endif
+ifneq ($(strip $(S64_DEPS)),)
+-include $(S64_DEPS)
+endif
+ifneq ($(strip $(INO_DEPS)),)
+-include $(INO_DEPS)
+endif
+ifneq ($(strip $(CLA_DEPS)),)
+-include $(CLA_DEPS)
+endif
+ifneq ($(strip $(S55_DEPS)),)
+-include $(S55_DEPS)
+endif
+ifneq ($(strip $(SV7A_DEPS)),)
+-include $(SV7A_DEPS)
+endif
+ifneq ($(strip $(C62_DEPS)),)
+-include $(C62_DEPS)
+endif
+ifneq ($(strip $(C67_DEPS)),)
+-include $(C67_DEPS)
+endif
+ifneq ($(strip $(PDE_DEPS)),)
+-include $(PDE_DEPS)
+endif
+ifneq ($(strip $(K_DEPS)),)
+-include $(K_DEPS)
+endif
+ifneq ($(strip $(C_DEPS)),)
+-include $(C_DEPS)
+endif
+ifneq ($(strip $(CC_DEPS)),)
+-include $(CC_DEPS)
+endif
+ifneq ($(strip $(C++_DEPS)),)
+-include $(C++_DEPS)
+endif
+ifneq ($(strip $(C43_DEPS)),)
+-include $(C43_DEPS)
+endif
+ifneq ($(strip $(S43_DEPS)),)
+-include $(S43_DEPS)
+endif
+ifneq ($(strip $(ASM_DEPS)),)
+-include $(ASM_DEPS)
+endif
+ifneq ($(strip $(S_UPPER_DEPS)),)
+-include $(S_UPPER_DEPS)
+endif
+ifneq ($(strip $(CPP_DEPS)),)
+-include $(CPP_DEPS)
+endif
+ifneq ($(strip $(SA_DEPS)),)
+-include $(SA_DEPS)
+endif
+endif
+
+-include ../makefile.defs
+
+# Add inputs and outputs from these tool invocations to the build variables 
+EXE_OUTPUTS += \
+rm46_can_boot.out \
+
+EXE_OUTPUTS__QUOTED += \
+"rm46_can_boot.out" \
+
+BIN_OUTPUTS += \
+rm46_can_boot.hex \
+
+BIN_OUTPUTS__QUOTED += \
+"rm46_can_boot.hex" \
+
+
+# All Target
+all: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
+	@$(MAKE) --no-print-directory -Onone "rm46_can_boot.out"
+
+# Tool invocations
+rm46_can_boot.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
+	@echo 'Building target: "$@"'
+	@echo 'Invoking: ARM Linker'
+	"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-arm_18.12.2.LTS/bin/armcl" -mv7R4 --code_state=32 --float_support=VFPv3D16 -me -g --diag_warning=225 --diag_wrap=off --display_error_number --enum_type=packed --abi=eabi -z -m"rm46_can_boot.map" --heap_size=0x800 --stack_size=0x800 -i"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-arm_18.12.2.LTS/lib" -i"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-arm_18.12.2.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --ecc=on --xml_link_info="rm46_can_boot_linkInfo.xml" --rom_model -o "rm46_can_boot.out" $(ORDERED_OBJS)
+	@echo 'Finished building target: "$@"'
+	@echo ' '
+	@$(MAKE) --no-print-directory post-build
+
+rm46_can_boot.hex: $(EXE_OUTPUTS)
+	@echo 'Building files: $(strip $(EXE_OUTPUTS__QUOTED))'
+	@echo 'Invoking: ARM Hex Utility'
+	"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-arm_18.12.2.LTS/bin/armhex"  -o "rm46_can_boot.hex" $(EXE_OUTPUTS__QUOTED)
+	@echo 'Finished building: $(strip $(EXE_OUTPUTS__QUOTED))'
+	@echo ' '
+	@$(MAKE) --no-print-directory post-build
+
+# Other Targets
+clean:
+	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
+	-$(RM) "RM46/source/can.obj" "RM46/source/dabort.obj" "RM46/source/emac.obj" "RM46/source/errata_SSWF021_45.obj" "RM46/source/esm.obj" "RM46/source/gio.obj" "RM46/source/mdio.obj" "RM46/source/notification.obj" "RM46/source/phy_dp83640.obj" "RM46/source/pinmux.obj" "RM46/source/rti.obj" "RM46/source/sci.obj" "RM46/source/spi.obj" "RM46/source/sys_core.obj" "RM46/source/sys_dma.obj" "RM46/source/sys_intvecs.obj" "RM46/source/sys_mpu.obj" "RM46/source/sys_pcr.obj" "RM46/source/sys_phantom.obj" "RM46/source/sys_pmm.obj" "RM46/source/sys_pmu.obj" "RM46/source/sys_selftest.obj" "RM46/source/sys_startup.obj" "RM46/source/sys_vim.obj" "RM46/source/system.obj" "source/Fapi_UserDefinedFunctions.obj" "source/bl_check.obj" "source/bl_copySections2SRAM.obj" "source/bl_dcan.obj" "source/bl_flash.obj" "source/bl_led_demo.obj" "source/bl_main.obj" "source/bl_spi.obj" "source/bl_spi_packet.obj" "source/bl_uart.obj" "source/bl_ymodem.obj" "source/sci_common.obj" "source/sw_hw_ver.obj" "source/ymodem_crc16.obj" 
+	-$(RM) "RM46/source/can.d" "RM46/source/emac.d" "RM46/source/errata_SSWF021_45.d" "RM46/source/esm.d" "RM46/source/gio.d" "RM46/source/mdio.d" "RM46/source/notification.d" "RM46/source/phy_dp83640.d" "RM46/source/pinmux.d" "RM46/source/rti.d" "RM46/source/sci.d" "RM46/source/spi.d" "RM46/source/sys_dma.d" "RM46/source/sys_pcr.d" "RM46/source/sys_phantom.d" "RM46/source/sys_pmm.d" "RM46/source/sys_selftest.d" "RM46/source/sys_startup.d" "RM46/source/sys_vim.d" "RM46/source/system.d" "source/Fapi_UserDefinedFunctions.d" "source/bl_check.d" "source/bl_dcan.d" "source/bl_flash.d" "source/bl_led_demo.d" "source/bl_main.d" "source/bl_spi.d" "source/bl_spi_packet.d" "source/bl_uart.d" "source/bl_ymodem.d" "source/sci_common.d" "source/sw_hw_ver.d" 
+	-$(RM) "RM46/source/dabort.d" "RM46/source/sys_core.d" "RM46/source/sys_intvecs.d" "RM46/source/sys_mpu.d" "RM46/source/sys_pmu.d" "source/bl_copySections2SRAM.d" "source/ymodem_crc16.d" 
+	-@echo 'Finished clean'
+	-@echo ' '
+
+post-build:
+	-"/home/iris/ti/ccs910/ccs/utils/tiobj2bin/tiobj2bin.bat" "rm46_can_boot.out"
+	-"rm46_can_boot.bin" "/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-arm_18.12.2.LTS/bin/ofd470"
+	-"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-arm_18.12.2.LTS/bin/hex470" "/home/iris/ti/ccs910/ccs/utils/tiobj2bin/mkhex4bin"
+	-@echo ' '
+
+.PHONY: all clean dependents
+.SECONDARY:
+
+-include ../makefile.targets
+

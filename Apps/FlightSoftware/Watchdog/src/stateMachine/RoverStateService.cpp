@@ -31,6 +31,8 @@ namespace iris
         }
 
         // Check for UART errors to report
+
+        // Lander UART
         size_t count = 0;
         BOOL changed = FALSE;
         UART__Status uStatus = UART__checkRxRbErrors(theContext.m_uart1State, &count, &changed);
@@ -38,6 +40,24 @@ namespace iris
 
         if (changed) {
             DebugComms__tryPrintfToLanderNonblocking("New Lander UART Rx Rb failures, total count = %u\n", count);
+        }
+
+        // Hercules UART
+        if (HerculesComms__isInitialized(theContext.m_hcState)) {
+            // Hercules Comms initialized
+            size_t count = 0;
+            BOOL changed = FALSE;
+            UART__Status uStatus = UART__checkRxRbErrors(theContext.m_uart0State, &count, &changed);
+            DEBUG_LOG_CHECK_STATUS(UART__STATUS__SUCCESS, uStatus, "Failed to get Hercules UART Rx Rb Error count");
+
+            if (changed) {
+                DebugComms__tryPrintfToLanderNonblocking("New Hercules UART Rx Rb failures, total count = %d\n", (int) count);
+            }
+        } else if ((theContext.m_details.m_outputPinBits & OPSBI__HERCULES_ON)) {
+            // Enable Hercules UART if Hercules is ON:
+            // Hercules Power ON but Comms not initialized
+            DebugComms__tryPrintfToLanderNonblocking("Trying to establish UART between WD and Hercules\n");
+            enableHerculesComms(theContext);
         }
 
         /* send heartbeat with collected data */

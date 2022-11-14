@@ -62,8 +62,6 @@ namespace iris
             RoverState transitionToWatitingForWifiReadyOrTimeout(RoverContext& theContext);
 
             RoverState transitionToWaitingForIoExpanderWrite3(RoverContext& theContext);
-
-            void enableHerculesComms(RoverContext& theContext);
     };
 
 }

@@ -429,6 +429,9 @@ def read_packet() -> Packet:
         packet = UDP_SLIP_XCVR.read_until_packet()
         progLogger.spam(
             f"Got:\n{packet}\n{scp.hexdump(packet.raw, dump=True)}")
+        # Also log all Events for diagnostics:
+        for event in packet.payloads[EventPayload]:
+            progLogger.spam(f'\tGot Event: {event}.')
         return packet
 
 
@@ -705,7 +708,7 @@ class PassthroughVerificationStateMachine:
                 ][0]
                 status = status_arg.get_enum_formatted_str(ep.args['status'])
 
-                if status in ['NM_BGAPI_SEND_SUCCESS', 'NM_BGAPI_SEND_SUCCESSNORESP']:
+                if status is not None and 'SUCCESS' in status:
                     progLogger.debug(
                         f'Got good RadioSendBgApiCommandAck status: {status}.'
                     )
@@ -760,7 +763,7 @@ class PassthroughVerificationStateMachine:
         self.records_request_count += 1
 
         # Move on to awaiting a response:
-        return self.State.AWAIT_BGAPI_RESPONSE
+        return self.State.AWAIT_RECORDS
 
     def _handle_await_records(self) -> PassthroughVerificationStateMachine.State:
         progLogger.spam('In AWAIT_RECORDS.')
@@ -778,7 +781,7 @@ class PassthroughVerificationStateMachine:
         if results is None or all(x is None for x in results):
             # No response was found. Likely we missed it or didn't get it.
             # Ask again:
-            progLogger.debug('Awaiting results maxxed out.')
+            progLogger.debug('Awaiting records maxxed out.')
             return self.State.REQUEST_RECORDS
 
         # Check results:

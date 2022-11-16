@@ -1,1 +1,3 @@
-Radio was found to be alive during RC5 via Hercules BGAPI Passthrough but it was not (yet) able to be programmed via these means. So, the Radio was not programmed during RC5. Binaries to be programmed remain unchanged from RC3a.
+After the Radio was found to be alive during RC5 via Hercules BGAPI Passthrough, for the first time during an FM1 RC, the Radio was successfully programmed during RC6 using Hercules BGAPI Passthrough Programming.
+
+See RC6 release notes on GitHub CubeRoverPackage repo for more details.

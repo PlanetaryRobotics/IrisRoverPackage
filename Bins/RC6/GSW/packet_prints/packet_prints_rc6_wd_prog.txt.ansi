@@ -1,0 +1,209 @@
+A colored-text log of the print outs of all packets received during the rc6_wd_prog session:
+NOTE: This includes any ANSI escape codes (like coloring) which will show up weird if viewed as plain-text. To view this appropriately, use the terminal `cat` command or view in VSCode with the `ANSI Colors` extension installed.
+
+[35;47;1m(11-14 03:56:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[23B]: Watchdog in Init state[0m
+0000  44 45 42 55 47 57 61 74 63 68 64 6F 67 20 69 6E  DEBUGWatchdog in
+0010  20 49 6E 69 74 20 73 74 61 74 65 0A               Init state.
+
+[35;47;1m(11-14 03:56:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[44B]: Reason for last reset: RSTIFG RST/NMI (BOR)[0m
+0000  44 45 42 55 47 52 65 61 73 6F 6E 20 66 6F 72 20  DEBUGReason for 
+0010  6C 61 73 74 20 72 65 73 65 74 3A 20 52 53 54 49  last reset: RSTI
+0020  46 47 20 52 53 54 2F 4E 4D 49 20 28 42 4F 52 29  FG RST/NMI (BOR)
+0030  0A                                               .
+
+[35;47;1m(11-14 03:56:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[47B]: Transitioning from INIT to ENTERING_KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 49 4E 49 54 20 74 6F 20  ng from INIT to 
+0020  45 4E 54 45 52 49 4E 47 5F 4B 45 45 50 5F 41 4C  ENTERING_KEEP_AL
+0030  49 56 45 0A                                      IVE.
+
+[35;47;1m(11-14 03:56:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[14B]: Hello, Earth![0m
+0000  44 45 42 55 47 48 65 6C 6C 6F 2C 20 45 61 72 74  DEBUGHello, Eart
+0010  68 21 0A                                         h!.
+
+[35;47;1m(11-14 03:56:33)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[53B]: Transitioning from ENTERING_KEEP_ALIVE to KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 45 4E 54 45 52 49 4E 47  ng from ENTERING
+0020  5F 4B 45 45 50 5F 41 4C 49 56 45 20 74 6F 20 4B  _KEEP_ALIVE to K
+0030  45 45 50 5F 41 4C 49 56 45 0A                    EEP_ALIVE.
+
+[35;47;1m(11-14 03:56:33)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[32B]: Auto. disabling batt. (BE0+LBu)[0m
+0000  44 45 42 55 47 41 75 74 6F 2E 20 64 69 73 61 62  DEBUGAuto. disab
+0010  6C 69 6E 67 20 62 61 74 74 2E 20 28 42 45 30 2B  ling batt. (BE0+
+0020  4C 42 75 29 0A                                   LBu).
+
+[35;47;1m(11-14 03:57:11)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[23B]: Watchdog in Init state[0m
+0000  44 45 42 55 47 57 61 74 63 68 64 6F 67 20 69 6E  DEBUGWatchdog in
+0010  20 49 6E 69 74 20 73 74 61 74 65 0A               Init state.
+
+[35;47;1m(11-14 03:57:11)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[44B]: Reason for last reset: RSTIFG RST/NMI (BOR)[0m
+0000  44 45 42 55 47 52 65 61 73 6F 6E 20 66 6F 72 20  DEBUGReason for 
+0010  6C 61 73 74 20 72 65 73 65 74 3A 20 52 53 54 49  last reset: RSTI
+0020  46 47 20 52 53 54 2F 4E 4D 49 20 28 42 4F 52 29  FG RST/NMI (BOR)
+0030  0A                                               .
+
+[35;47;1m(11-14 03:57:11)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [48;5;172m[38;5;15m[1m[84B]: [WARNING] WD SW is in Radio-Programming Mode. This should be changed before flight.[0m
+0000  44 45 42 55 47 5B 57 41 52 4E 49 4E 47 5D 20 57  DEBUG[WARNING] W
+0010  44 20 53 57 20 69 73 20 69 6E 20 52 61 64 69 6F  D SW is in Radio
+0020  2D 50 72 6F 67 72 61 6D 6D 69 6E 67 20 4D 6F 64  -Programming Mod
+0030  65 2E 20 54 68 69 73 20 73 68 6F 75 6C 64 20 62  e. This should b
+0040  65 20 63 68 61 6E 67 65 64 20 62 65 66 6F 72 65  e changed before
+0050  20 66 6C 69 67 68 74 2E 0A                        flight..
+
+[35;47;1m(11-14 03:57:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[25B]: [../src/stateMachine/Rov[0m
+0000  44 45 42 55 47 5B 2E 2E 2F 73 72 63 2F 73 74 61  DEBUG[../src/sta
+0010  74 65 4D 61 63 68 69 6E 65 2F 52 6F 76 00        teMachine/Rov.
+
+[35;47;1m(11-14 03:57:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[23B]: Watchdog in Init state[0m
+0000  44 45 42 55 47 57 61 74 63 68 64 6F 67 20 69 6E  DEBUGWatchdog in
+0010  20 49 6E 69 74 20 73 74 61 74 65 0A               Init state.
+
+[35;47;1m(11-14 03:57:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[44B]: Reason for last reset: RSTIFG RST/NMI (BOR)[0m
+0000  44 45 42 55 47 52 65 61 73 6F 6E 20 66 6F 72 20  DEBUGReason for 
+0010  6C 61 73 74 20 72 65 73 65 74 3A 20 52 53 54 49  last reset: RSTI
+0020  46 47 20 52 53 54 2F 4E 4D 49 20 28 42 4F 52 29  FG RST/NMI (BOR)
+0030  0A                                               .
+
+[35;47;1m(11-14 03:57:43)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [48;5;172m[38;5;15m[1m[84B]: [WARNING] WD SW is in Radio-Programming Mode. This should be changed before flight.[0m
+0000  44 45 42 55 47 5B 57 41 52 4E 49 4E 47 5D 20 57  DEBUG[WARNING] W
+0010  44 20 53 57 20 69 73 20 69 6E 20 52 61 64 69 6F  D SW is in Radio
+0020  2D 50 72 6F 67 72 61 6D 6D 69 6E 67 20 4D 6F 64  -Programming Mod
+0030  65 2E 20 54 68 69 73 20 73 68 6F 75 6C 64 20 62  e. This should b
+0040  65 20 63 68 61 6E 67 65 64 20 62 65 66 6F 72 65  e changed before
+0050  20 66 6C 69 67 68 74 2E 0A                        flight..
+
+[35;47;1m(11-14 03:57:43)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[90B]: [../src/stateMachine/RoverStateInit.cpp:130] I2C action failed: expected = 0, actual = -2[0m
+0000  44 45 42 55 47 5B 2E 2E 2F 73 72 63 2F 73 74 61  DEBUG[../src/sta
+0010  74 65 4D 61 63 68 69 6E 65 2F 52 6F 76 65 72 53  teMachine/RoverS
+0020  74 61 74 65 49 6E 69 74 2E 63 70 70 3A 31 33 30  tateInit.cpp:130
+0030  5D 20 49 32 43 20 61 63 74 69 6F 6E 20 66 61 69  ] I2C action fai
+0040  6C 65 64 3A 20 65 78 70 65 63 74 65 64 20 3D 20  led: expected = 
+0050  30 2C 20 61 63 74 75 61 6C 20 3D 20 2D 32 0A     0, actual = -2.
+
+[35;47;1m(11-14 03:57:43)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[47B]: Transitioning from INIT to ENTERING_KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 49 4E 49 54 20 74 6F 20  ng from INIT to 
+0020  45 4E 54 45 52 49 4E 47 5F 4B 45 45 50 5F 41 4C  ENTERING_KEEP_AL
+0030  49 56 45 0A                                      IVE.
+
+[35;47;1m(11-14 03:57:43)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[103B]: [../src/stateMachine/RoverStateEnteringKeepAlive.cpp:127] I2C action failed: expected = 0, actual = -2[0m
+0000  44 45 42 55 47 5B 2E 2E 2F 73 72 63 2F 73 74 61  DEBUG[../src/sta
+0010  74 65 4D 61 63 68 69 6E 65 2F 52 6F 76 65 72 53  teMachine/RoverS
+0020  74 61 74 65 45 6E 74 65 72 69 6E 67 4B 65 65 70  tateEnteringKeep
+0030  41 6C 69 76 65 2E 63 70 70 3A 31 32 37 5D 20 49  Alive.cpp:127] I
+0040  32 43 20 61 63 74 69 6F 6E 20 66 61 69 6C 65 64  2C action failed
+0050  3A 20 65 78 70 65 63 74 65 64 20 3D 20 30 2C 20  : expected = 0, 
+0060  61 63 74 75 61 6C 20 3D 20 2D 32 0A              actual = -2.
+
+[35;47;1m(11-14 03:57:43)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[14B]: Hello, Earth![0m
+0000  44 45 42 55 47 48 65 6C 6C 6F 2C 20 45 61 72 74  DEBUGHello, Eart
+0010  68 21 0A                                         h!.
+
+[35;47;1m(11-14 03:57:43)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[53B]: Transitioning from ENTERING_KEEP_ALIVE to KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 45 4E 54 45 52 49 4E 47  ng from ENTERING
+0020  5F 4B 45 45 50 5F 41 4C 49 56 45 20 74 6F 20 4B  _KEEP_ALIVE to K
+0030  45 45 50 5F 41 4C 49 56 45 0A                    EEP_ALIVE.
+
+[35;47;1m(11-14 03:57:43)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[32B]: Auto. disabling batt. (BE0+LBu)[0m
+0000  44 45 42 55 47 41 75 74 6F 2E 20 64 69 73 61 62  DEBUGAuto. disab
+0010  6C 69 6E 67 20 62 61 74 74 2E 20 28 42 45 30 2B  ling batt. (BE0+
+0020  4C 42 75 29 0A                                   LBu).
+
+[35;47;1m(11-14 03:57:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[23B]: Watchdog in Init state[0m
+0000  44 45 42 55 47 57 61 74 63 68 64 6F 67 20 69 6E  DEBUGWatchdog in
+0010  20 49 6E 69 74 20 73 74 61 74 65 0A               Init state.
+
+[35;47;1m(11-14 03:57:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[58B]: Reason for last reset: PMMPW PMM password violation (PUC)[0m
+0000  44 45 42 55 47 52 65 61 73 6F 6E 20 66 6F 72 20  DEBUGReason for 
+0010  6C 61 73 74 20 72 65 73 65 74 3A 20 50 4D 4D 50  last reset: PMMP
+0020  57 20 50 4D 4D 20 70 61 73 73 77 6F 72 64 20 76  W PMM password v
+0030  69 6F 6C 61 74 69 6F 6E 20 28 50 55 43 29 0A     iolation (PUC).
+
+[35;47;1m(11-14 03:57:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [48;5;172m[38;5;15m[1m[84B]: [WARNING] WD SW is in Radio-Programming Mode. This should be changed before flight.[0m
+0000  44 45 42 55 47 5B 57 41 52 4E 49 4E 47 5D 20 57  DEBUG[WARNING] W
+0010  44 20 53 57 20 69 73 20 69 6E 20 52 61 64 69 6F  D SW is in Radio
+0020  2D 50 72 6F 67 72 61 6D 6D 69 6E 67 20 4D 6F 64  -Programming Mod
+0030  65 2E 20 54 68 69 73 20 73 68 6F 75 6C 64 20 62  e. This should b
+0040  65 20 63 68 61 6E 67 65 64 20 62 65 66 6F 72 65  e changed before
+0050  20 66 6C 69 67 68 74 2E 0A                        flight..
+
+[35;47;1m(11-14 03:57:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[47B]: Transitioning from INIT to ENTERING_KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 49 4E 49 54 20 74 6F 20  ng from INIT to 
+0020  45 4E 54 45 52 49 4E 47 5F 4B 45 45 50 5F 41 4C  ENTERING_KEEP_AL
+0030  49 56 45 0A                                      IVE.
+
+[35;47;1m(11-14 03:57:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[14B]: Hello, Earth![0m
+0000  44 45 42 55 47 48 65 6C 6C 6F 2C 20 45 61 72 74  DEBUGHello, Eart
+0010  68 21 0A                                         h!.
+
+[35;47;1m(11-14 03:57:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[53B]: Transitioning from ENTERING_KEEP_ALIVE to KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 45 4E 54 45 52 49 4E 47  ng from ENTERING
+0020  5F 4B 45 45 50 5F 41 4C 49 56 45 20 74 6F 20 4B  _KEEP_ALIVE to K
+0030  45 45 50 5F 41 4C 49 56 45 0A                    EEP_ALIVE.
+
+[35;47;1m(11-14 03:57:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[32B]: Auto. disabling batt. (BE0+LBu)[0m
+0000  44 45 42 55 47 41 75 74 6F 2E 20 64 69 73 61 62  DEBUGAuto. disab
+0010  6C 69 6E 67 20 62 61 74 74 2E 20 28 42 45 30 2B  ling batt. (BE0+
+0020  4C 42 75 29 0A                                   LBu).
+
+[35;47;1m(11-14 03:57:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[23B]: Watchdog in Init state[0m
+0000  44 45 42 55 47 57 61 74 63 68 64 6F 67 20 69 6E  DEBUGWatchdog in
+0010  20 49 6E 69 74 20 73 74 61 74 65 0A               Init state.
+
+[35;47;1m(11-14 03:57:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[38B]: Reason for last reset: Brownout (BOR)[0m
+0000  44 45 42 55 47 52 65 61 73 6F 6E 20 66 6F 72 20  DEBUGReason for 
+0010  6C 61 73 74 20 72 65 73 65 74 3A 20 42 72 6F 77  last reset: Brow
+0020  6E 6F 75 74 20 28 42 4F 52 29 0A                 nout (BOR).
+
+[35;47;1m(11-14 03:57:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [48;5;172m[38;5;15m[1m[84B]: [WARNING] WD SW is in Radio-Programming Mode. This should be changed before flight.[0m
+0000  44 45 42 55 47 5B 57 41 52 4E 49 4E 47 5D 20 57  DEBUG[WARNING] W
+0010  44 20 53 57 20 69 73 20 69 6E 20 52 61 64 69 6F  D SW is in Radio
+0020  2D 50 72 6F 67 72 61 6D 6D 69 6E 67 20 4D 6F 64  -Programming Mod
+0030  65 2E 20 54 68 69 73 20 73 68 6F 75 6C 64 20 62  e. This should b
+0040  65 20 63 68 61 6E 67 65 64 20 62 65 66 6F 72 65  e changed before
+0050  20 66 6C 69 67 68 74 2E 0A                        flight..
+
+[35;47;1m(11-14 03:57:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[47B]: Transitioning from INIT to ENTERING_KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 49 4E 49 54 20 74 6F 20  ng from INIT to 
+0020  45 4E 54 45 52 49 4E 47 5F 4B 45 45 50 5F 41 4C  ENTERING_KEEP_AL
+0030  49 56 45 0A                                      IVE.
+
+[35;47;1m(11-14 03:57:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[14B]: Hello, Earth![0m
+0000  44 45 42 55 47 48 65 6C 6C 6F 2C 20 45 61 72 74  DEBUGHello, Eart
+0010  68 21 0A                                         h!.
+
+[35;47;1m(11-14 03:57:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[53B]: Transitioning from ENTERING_KEEP_ALIVE to KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 45 4E 54 45 52 49 4E 47  ng from ENTERING
+0020  5F 4B 45 45 50 5F 41 4C 49 56 45 20 74 6F 20 4B  _KEEP_ALIVE to K
+0030  45 45 50 5F 41 4C 49 56 45 0A                    EEP_ALIVE.
+
+[35;47;1m(11-14 03:57:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[32B]: Auto. disabling batt. (BE0+LBu)[0m
+0000  44 45 42 55 47 41 75 74 6F 2E 20 64 69 73 61 62  DEBUGAuto. disab
+0010  6C 69 6E 67 20 62 61 74 74 2E 20 28 42 45 30 2B  ling batt. (BE0+
+0020  4C 42 75 29 0A                                   LBu).
+
+[35;47;1m(11-14 03:57:59)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(11-14 03:57:59)[0m [48;5;248m[38;5;233m[1m WIRED [0m #0 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.00
+VBm: 0.00V 	VL: 0.00V 	Vcc28: 0.00V 	VSA: 0.00V 	ISA: 0.0mA
+HEATER [268K |274K |273K] 	 is HEATING, Control: ENABLED 	@ 0.000W / 0.000W 	Period: 1.2ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0      0      0      0      0      0      0           0         0
+val  0.00V  0.00V  0.00V  0.00V  0.00V  0.00V  0.00V  0.0mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     1    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 08 00 00 02 00 00 38 00 00 00 00 00 00 00 00 00 00 C0 00 00 F4 01 34 21 FD 0C 56 0E 18 0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00  .........8...............4!..V....'............
+0000  D5 00 08 08 00 00 02 00 00 38 00 00 00 00 00 00  .........8......
+0010  00 00 00 00 C0 00 00 F4 01 34 21 FD 0C 56 0E 18  .........4!..V..
+0020  0D 10 27 00 00 00 00 00 00 00 00 00 00 00 00     ..'............
+

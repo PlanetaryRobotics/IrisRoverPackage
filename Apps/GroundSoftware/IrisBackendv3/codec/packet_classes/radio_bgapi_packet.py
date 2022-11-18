@@ -51,6 +51,9 @@ class RadioBgApiPacket(RadioBgApiPacketInterface[RadioBgApiPacketInterface]):
 
     _bgmsg: Optional[bgapi.BGMsg]
 
+    def getMessage(self) -> Optional[bgapi.BGMsg]:
+        return self._bgmsg
+
     def __init__(self,
                  payloads: Optional[EnhancedPayloadCollection] = None,
                  raw: Optional[bytes] = None,

@@ -39,6 +39,21 @@ BGAPI_START_SCAN_CMD: Final = bgapi.build_command(
 BGAPI_START_SCAN_BYTES: Final[bytes] = bgapi.encode_command(
     bgapi.BGAPI_WIFI_ENCODER, BGAPI_START_SCAN_CMD)
 
+BGAPI_STOP_SCAN_CMD: Final = bgapi.build_command(
+    bgapi.BGAPI_WIFI_API, 'sme', 'stop_scan', dict())
+BGAPI_STOP_SCAN_BYTES: Final[bytes] = bgapi.encode_command(
+    bgapi.BGAPI_WIFI_ENCODER, BGAPI_STOP_SCAN_CMD)
+
+BGAPI_DFU_ON_CMD: Final = bgapi.build_command(
+    bgapi.BGAPI_WIFI_API, 'dfu', 'reset', {'dfu': 1})
+BGAPI_DFU_ON_BYTES: Final[bytes] = bgapi.encode_command(
+    bgapi.BGAPI_WIFI_ENCODER, BGAPI_DFU_ON_CMD)
+
+BGAPI_DFU_OFF_CMD: Final = bgapi.build_command(
+    bgapi.BGAPI_WIFI_API, 'dfu', 'reset', {'dfu': 0})
+BGAPI_DFU_OFF_BYTES: Final[bytes] = bgapi.encode_command(
+    bgapi.BGAPI_WIFI_ENCODER, BGAPI_DFU_OFF_CMD)
+
 
 class Parameter(Enum):
     """
@@ -566,6 +581,45 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         ),
         DataPathway.WIRED
     ),
+    'radio-bgapi-passthru-scan-stop': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_SendBgApiCommand',
+        OrderedDict(
+            crc_32=crc32_fsw(BGAPI_STOP_SCAN_BYTES),
+            packet_id=1237,
+            expect_response='NM_BGAPI_CMD_DONTEXPECTRESPONSE' if BGAPI_STOP_SCAN_CMD.no_response else 'NM_BGAPI_CMD_EXPECTRESPONSE',
+            bgapi_packet=BGAPI_STOP_SCAN_BYTES
+        ),
+        DataPathway.WIRED
+    ),
+
+
+    'radio-bgapi-passthru-dfu-on': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_SendBgApiCommand',
+        OrderedDict(
+            crc_32=crc32_fsw(BGAPI_DFU_ON_BYTES),
+            packet_id=4321,
+            expect_response='NM_BGAPI_CMD_DONTEXPECTRESPONSE' if BGAPI_DFU_ON_CMD.no_response else 'NM_BGAPI_CMD_EXPECTRESPONSE',
+            bgapi_packet=BGAPI_DFU_ON_BYTES
+        ),
+        DataPathway.WIRED
+    ),
+    'radio-bgapi-passthru-dfu-off': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_SendBgApiCommand',
+        OrderedDict(
+            crc_32=crc32_fsw(BGAPI_DFU_OFF_BYTES),
+            packet_id=4320,
+            expect_response='NM_BGAPI_CMD_DONTEXPECTRESPONSE' if BGAPI_DFU_OFF_CMD.no_response else 'NM_BGAPI_CMD_EXPECTRESPONSE',
+            bgapi_packet=BGAPI_DFU_OFF_BYTES
+        ),
+        DataPathway.WIRED
+    ),
+
 
     # Turn off WARNING_HI logs (e.g. ImuAngleWarning spamming us)
     'active-logger-turn-off-warning-hi': (

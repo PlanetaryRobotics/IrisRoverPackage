@@ -605,7 +605,8 @@ namespace CubeRover
         // overflow, which is okay):
         now = Wf121::Timestamp::getTimeMs();
         if (m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.needHelpCriticalCommsFailureOccurred() ||
-            (now - lastHeartbeatTimeMs) > RADIO_HEARTBEAT_TIMEOUT_MS)
+            (now - lastHeartbeatTimeMs) > RADIO_HEARTBEAT_TIMEOUT_MS &&
+                !Wf121::persistentBgApiPassthroughEnabled())
         {
             handleRadioFault();
             // Reset the critical flag (so we don't trigger this again on the next loop unless there's been another fault):
@@ -629,15 +630,17 @@ namespace CubeRover
     {
         if (m_radioConsecutiveResetRequestCounter <= RADIO_RESET_CONSECUTIVE_MAX_COUNT__RESET_HERCULES_THRESH)
         {
-            // Reset the Radio:
-            watchDogInterface.Reset_Specific_Handler(WD_RADIO_RESET_ID);
-            // TODO: [CWC] This (^) is how resets were done before but shouldn't we be using `WatchdogResetRequest` for this? Investigate.
-            m_radioConsecutiveResetRequestCounter++;
+            // Reset the Radio if not in passthrough mode:
+            if (!Wf121::persistentBgApiPassthroughEnabled())
+            {
+                watchDogInterface.Reset_Specific_Handler(WD_RADIO_RESET_ID);
+                // TODO: [CWC] This (^) is how resets were done before but shouldn't we be using `WatchdogResetRequest` for this? Investigate.
+                m_radioConsecutiveResetRequestCounter++;
 
-            // Log the current packet counts (so we can see if the Radio gets back into a good state after the reset with bidirectional comms working):
-            m_rxPacketCountOnLastReset = m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpRxPacketCount();
-            m_txPacketCountOnLastReset = m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount();
-
+                // Log the current packet counts (so we can see if the Radio gets back into a good state after the reset with bidirectional comms working):
+                m_rxPacketCountOnLastReset = m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpRxPacketCount();
+                m_txPacketCountOnLastReset = m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount();
+            }
             // Reset the Radio State data (since we expect the Radio is resetting):
             // Set the RadioSwState back to NONE (i.e. we don't know it anymore until the Radio wakes back up and gives us another Heartbeat):
             m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.setRadioState(Wf121::DirectMessage::RadioSwState::NONE);
@@ -648,10 +651,17 @@ namespace CubeRover
         {
             // We've asked for the Radio to be reset too many times without
             // good data from the Radio. Maybe we're the problem?
-            watchDogInterface.Reset_Specific_Handler(WD_HERCULES_RESET_ID);
+            if (!Wf121::persistentBgApiPassthroughEnabled())
+            {
+                // Only perform reset if not in passthrough mode:
+                watchDogInterface.Reset_Specific_Handler(WD_HERCULES_RESET_ID);
+            }
             // since we aren't asking for anything to happen to the radio, we
             // don't need to update any of the status info like we do above
             // when resetting the Radio.
+
+            // Reset the counter so we don't ask again immediately:
+            m_radioConsecutiveResetRequestCounter = 0;
         }
     }
 

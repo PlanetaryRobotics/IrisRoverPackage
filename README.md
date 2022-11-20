@@ -9,20 +9,21 @@ The following is the policy for branching as of mid-2022 in the lead up to missi
 
 #### General Branching Structure:
 ```
-                             master
-                               |                                     
-                               |                                  |-
-                         master-staging - - - - - - - - - - - - - |-  ...  [GSW feature branches]
-                               |                                  |-
-                               |
-                       release-candidate
-                           |   |   |
-                     [RC feature branches]
+                           master
+                             |                                     
+                             |                                  |-
+                       master-staging - - - - - - - - - - - - - |-  ...  [GSW feature branches]
+                             |                                  |-
+                             |
+                     release-candidate
+                         |   |   |
+                   [RC feature branches]
 ```
 
 #### Branch Definitions:
 - `master`: Complete Iris Lunar Rover Software Package.
-- `master-staging`: Draft code for `master`. Only contains **released** FSW (FSW that's on the Flight Rover). Used for performing integrated tests of the full software stack.
+- `master-staging`: Draft code for `master`. Only contains **released** FSW (FSW that's on the Flight Rover).
+    - Used for performing integrated tests of the full software stack.
 - `release-candidate`: Draft FSW + GSW used for a Release Candidate (RC) in preparation for a **Flight Release** (uploading code to the Flight Rover).
     - Every time code is uploaded to the flight rover, that constitutes a new **Flight Release**, at which point `release-candidate` is PR'd into `master-staging`.
     - Release Candidates that became Flight Releases can be found using `tags` (e.g. [`RC5`](https://github.com/PlanetaryRobotics/IrisRoverPackage/releases/tag/rc5), [`RC6`](https://github.com/PlanetaryRobotics/IrisRoverPackage/releases/tag/rc6), etc.). For tracking purposes, these preserve their "`RC`" names.

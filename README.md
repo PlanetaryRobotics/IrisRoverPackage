@@ -1,8 +1,5 @@
-# CubeRoverPackage
-Code to be included in the Iris Lunar Rover software package.
-
-NOTE: The name `CubeRoverPackage` is legacy and predates the split of CubeRover and Iris Lunar Rover. This codebase is entirely unaffiliated with `CUBEROVER™`, a trademark of Astrobotic Technology.
-
+# IrisRoverPackage
+Complete software package for the Iris Lunar Rover (CMU).
 
 ## Development
 ### Highlevel Late-Stage Branching Philosophy:

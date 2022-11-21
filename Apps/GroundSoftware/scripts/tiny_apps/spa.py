@@ -9,7 +9,7 @@ import ulid
 import time
 
 from IrisBackendv3.codec.payload import FileBlockPayload
-from parse_pcap import parse_pcap
+from scripts.tiny_apps.parse_pcap import parse_pcap
 
 import attr
 

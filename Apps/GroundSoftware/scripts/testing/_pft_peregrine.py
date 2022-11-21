@@ -34,7 +34,7 @@ from IrisBackendv3.data_standards import DataStandards
 import scapy.all as scp
 from termcolor import cprint
 
-from __command_aliases import get_command
+from scripts.utils.__command_aliases import get_command
 
 TITLE: Final[str] = 'IRIS Lunar Rover —  FM1 Peregrine PFT YAMCS Listener — CLI'
 IRIS_TELEM_PARAM_NAME: Final[str] = '/Peregrine/payloads/iris/iris-payload-tm-rs422'

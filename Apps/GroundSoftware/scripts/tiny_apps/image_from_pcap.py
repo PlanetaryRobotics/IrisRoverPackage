@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt  # type: ignore
 from termcolor import cprint
 
 from IrisBackendv3.codec.payload import FileBlockPayload
-from parse_pcap import parse_pcap, get_opts as get_pcap_opts
+from scripts.tiny_apps.parse_pcap import parse_pcap, get_opts as get_pcap_opts
 
 image_width = 2592
 image_height = 1944

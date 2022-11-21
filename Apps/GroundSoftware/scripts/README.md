@@ -4,7 +4,7 @@ These used to be stored in the `GroundSoftware` root directory, leading to a lot
 
 To run any of the `*.py` files, call `./run-script.sh ./scripts/directory/your-script.py` from `GroundSoftware`. Example:
 ```
-./run-script.sh ./scripts/tiny-apps/datastandards_lookup.py -l
+./run-script.sh ./scripts/tiny_apps/datastandards_lookup.py -l
 ```
 
 To run Jupyter notebooks, follow the instructions in: `scripts/notebooks`.

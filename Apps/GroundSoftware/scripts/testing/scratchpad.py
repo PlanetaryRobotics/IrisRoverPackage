@@ -83,7 +83,7 @@ print('pause')
 #
 # Inputs:
 search_dir: str = '../FlightSoftware/fprime'
-cache_dir: str = './DataStandardsCache'
+cache_dir: str = './out/DataStandardsCache'
 
 # Settings:
 # Relative Locations of Import Definition Files and Directories w.r.t. `search_dir`:

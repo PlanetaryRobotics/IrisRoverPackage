@@ -34,7 +34,7 @@ from streamz.dataframe import DataFrame as StreamingDataFrame  # type: ignore
 class PcapParseOpts:
     pcap_file: str = './test-data/Iris_210503_18_hours_of_telem.pcap'
     port: Union[str, int] = 'any'
-    cache_dir: str = './pcap_logs/'
+    cache_dir: str = './out/pcap_logs/'
     cache_prefix: str = f'iris_pcap_{ulid.new()}'
     cache_telem: bool = True
     cli_log: bool = False

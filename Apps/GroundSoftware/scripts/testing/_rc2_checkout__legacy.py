@@ -88,7 +88,7 @@ cmd, param = specific_cmd_name_override, specific_param_override
 print(cmd,'  :  ',param) 
 
 load_cache()
-setup_logger(str(settings['SAVE_FILE_PREFIX'])) # logs of stuff printed to console will be stored to `raw-console-logs`
+setup_logger(str(settings['SAVE_FILE_PREFIX'])) # logs of stuff printed to console will be stored to `out/raw-console-logs`
 
 # IF ERROR - update last number in FILE_PREFIX
 

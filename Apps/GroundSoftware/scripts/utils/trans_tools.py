@@ -61,8 +61,8 @@ import seaborn as sns  # type: ignore
 sns.set()
 
 settings: Dict[str, Union[str, int]] = {
-    'SAVE_DIR': './transceiver_logs/',
-    'PACKET_PRINTING_DIR': './packet_prints/',
+    'SAVE_DIR': './out/transceiver_logs/',
+    'PACKET_PRINTING_DIR': './out/packet_prints/',
     'SAVE_FILE_PREFIX': 'iris_logs',
     'SAVE_FILE_EXT': 'tsc',
     # number of minutes after which the old save file won't be overwritten and a new one will be made:
@@ -83,7 +83,7 @@ def setup_logger(name: str):
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                         datefmt=DATETIME_FORMAT_STR,
-                        filename=f'./raw-console-logs/{name}.clog',
+                        filename=f'./out/raw-console-logs/{name}.clog',
                         filemode='a'  # keep adding data to log, don't overwrite
                         )
     # define a Handler which writes INFO messages or higher to the sys.stderr

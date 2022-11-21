@@ -81,7 +81,7 @@ def get_opts(
     parser.add_argument('--port', type=udp_port_selection, default=default_port,
                         help="UDP port to look for packets on (or 'any' to grab all UDP packets).")
 
-    parser.add_argument('--cache-dir', type=str, default=f'./pcap_logs/',
+    parser.add_argument('--cache-dir', type=str, default=f'./out/pcap_logs/',
                         help='Where to save transceiver cache files.')
 
     parser.add_argument('--cache-prefix', type=str, default=f'iris_pcap_{ulid.new()}',

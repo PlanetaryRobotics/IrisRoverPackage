@@ -47,7 +47,7 @@ import seaborn as sns  # type: ignore
 sns.set()
 
 settings: Dict[str, Union[str, int]] = {
-    'SAVE_DIR': './tvac_logs/test_results',
+    'SAVE_DIR': './out/tvac_logs/test_results',
     'SAVE_FILE_PREFIX': 'iris_logs',
     'SAVE_FILE_EXT': 'tvac',
     # number of minutes after which the old save file won't be overwritten and a new one will be made:

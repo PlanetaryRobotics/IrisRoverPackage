@@ -50,13 +50,13 @@ standards = DataStandards.build_standards()
 standards.print_overview()
 
 standards.cache(
-    cache_dir="./sandbox-cache",
+    cache_dir="./scripts/testing/sandbox-cache",
     filename_base="sandbox", ext="json",
     indent=2
 )
 
 uncached_standands = DataStandards.load_cache(
-    cache_dir="./sandbox-cache",
+    cache_dir="./scripts/testing/sandbox-cache",
     filename_base="sandbox", ext="json"
 )
 

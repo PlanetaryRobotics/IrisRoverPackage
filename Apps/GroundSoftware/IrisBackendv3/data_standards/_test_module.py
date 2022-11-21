@@ -489,7 +489,7 @@ class EqualsSuite(object):
                         name="EventA",
                         ID=0,
                         severity_str="ACTIVITY_HI",
-                        format_string=r"Event a occurred at %d, %d, and %d!",
+                        format_string=r"Event a occurred at %d and %d!",
                         args=self.sample_args_1,
                         metadata_json_str='{"fieldA": "A", "fieldB": 2}'
                     ),
@@ -497,7 +497,7 @@ class EqualsSuite(object):
                         name="EventB",
                         ID=1,
                         severity_str="ACTIVITY_HI",
-                        format_string=r"Event b occurred at %d, %d, and %d!",
+                        format_string=r"Event b occurred at %d and %s!",
                         args=self.sample_args_2,
                         metadata_json_str='{"fieldA": "A", "fieldB": 2}'
                     ),
@@ -529,7 +529,7 @@ class EqualsSuite(object):
                         name="EventA",
                         ID=0,
                         severity_str="ACTIVITY_HI",
-                        format_string=r"Event a occurred at %d, %d, and %d!",
+                        format_string=r"Event a occurred at %d and %s!",
                         args=self.sample_args_2,
                         metadata_json_str='{"fieldA": "A", "fieldB": 2}'
                     )

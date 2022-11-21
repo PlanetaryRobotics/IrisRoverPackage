@@ -5,8 +5,8 @@ from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.transceiver import SlipTransceiver, list_all_device_info
 from IrisBackendv3.transceiver.endec import IpUdpEndec
 
-from __command_aliases import get_command
-from trans_tools import *
+from scripts.utils.__command_aliases import get_command
+from scripts.utils.trans_tools import *
 
 # List all available serial devices:
 print("\nAll available serial devices:")

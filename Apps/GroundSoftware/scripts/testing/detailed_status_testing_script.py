@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from trans_tools import *
+from scripts.utils.trans_tools import *
 from termcolor import cprint
 
 # TODO: Turn these into unit tests

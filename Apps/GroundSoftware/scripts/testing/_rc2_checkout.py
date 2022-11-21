@@ -5,8 +5,8 @@ from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.transceiver import SlipTransceiver
 from IrisBackendv3.transceiver.endec import IpUdpEndec
 
-from __command_aliases import get_command
-from trans_tools import *
+from scripts.utils.__command_aliases import get_command
+from scripts.utils.trans_tools import *
 
 # Re-build the `DataStandards` fresh from latest fprime and add in all prebuilt
 # (WD Telem) Modules.

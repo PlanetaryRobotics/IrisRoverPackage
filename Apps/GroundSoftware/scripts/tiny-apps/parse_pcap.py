@@ -22,8 +22,8 @@ from IrisBackendv3.codec.logging import VALID_LOG_LEVELS, logger as CodecLogger
 from IrisBackendv3.codec.packet import Packet
 
 from IrisBackendv3.codec.packet import parse_packet
-from trans_tools import all_payloads, telemetry_streams, update_telemetry_streams_from_payloads, load_cache, cache, plot_stream
-from trans_tools import settings as trans_settings
+from scripts.utils.trans_tools import all_payloads, telemetry_streams, update_telemetry_streams_from_payloads, load_cache, cache, plot_stream
+from scripts.utils.trans_tools import settings as trans_settings
 
 from time import time
 

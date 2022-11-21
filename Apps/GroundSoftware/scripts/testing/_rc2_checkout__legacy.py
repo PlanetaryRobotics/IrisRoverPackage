@@ -1,7 +1,7 @@
 ## SETUP:
 
-from trans_tools import *
-from __command_aliases import get_command
+from scripts.utils.trans_tools import *
+from scripts.utils.__command_aliases import get_command
 from IrisBackendv3.utils.basic import bytearray_to_spaced_hex as hexstr
 
 seq_num = 0x00

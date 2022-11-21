@@ -20,7 +20,7 @@ except ImportError:
     pass
 import numpy as np
 import pandas as pd  # type: ignore
-from tabulate import tabulate
+from tabulate import tabulate # type: ignore
 import scapy.all as scp  # type: ignore # no type hints
 import itertools
 import textwrap
@@ -44,7 +44,7 @@ from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
 from IrisBackendv3.codec.logging import logger as CodecLogger
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, set_codec_standards
 
-from __command_aliases import prepared_commands, Parameter
+from scripts.utils.__command_aliases import prepared_commands, Parameter
 
 # Title of the window (helps with focus checking):
 IRIS_CONSOLE_WINDOW_TITLE: Final[str] = "Iris Console"

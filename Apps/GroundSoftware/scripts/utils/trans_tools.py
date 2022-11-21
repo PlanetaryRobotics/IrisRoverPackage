@@ -27,7 +27,7 @@ import serial  # type: ignore # no type hints
 import scapy.all as scp  # type: ignore # no type hints
 import numpy as np
 import pandas as pd  # type: ignore
-from tabulate import tabulate
+from tabulate import tabulate # type: ignore
 import matplotlib.pyplot as plt  # type: ignore # no type hints
 import ulid
 import itertools
@@ -55,7 +55,7 @@ from IrisBackendv3.codec.logging import logger as CodecLogger
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, set_codec_standards
 
 # Load all console helper function:
-from trans_tools_console import *
+from scripts.utils.trans_tools_console import *
 
 import seaborn as sns  # type: ignore
 sns.set()

@@ -18,7 +18,7 @@ from collections import OrderedDict
 from typing import Optional
 from termcolor import cprint, colored
 from dataclasses import dataclass
-from trans_tools import *
+from scripts.utils.trans_tools import *
 import argparse
 
 from IrisBackendv3.data_standards.module import Module, Argument, Command, Event, TelemetryChannel, EnumItem

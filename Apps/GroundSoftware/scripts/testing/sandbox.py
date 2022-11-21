@@ -24,10 +24,10 @@ from IrisBackendv3.codec.settings import set_codec_standards
 from IrisBackendv3.utils.basic import print_bytearray_hex as printraw
 from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket
 
-from tvac_tools import telemetry_streams, update_telemetry_streams, load_cache, plot_stream
-from tvac_tools import settings as tvac_settings
+from scripts.utils.tvac_tools import telemetry_streams, update_telemetry_streams, load_cache, plot_stream
+from scripts.utils.tvac_tools import settings as tvac_settings
 
-from tvac_tools import stitch_and_export_all_data
+from scripts.utils.tvac_tools import stitch_and_export_all_data
 from datetime import datetime
 stitch_and_export_all_data(
     out_folder='./tvac_export/'

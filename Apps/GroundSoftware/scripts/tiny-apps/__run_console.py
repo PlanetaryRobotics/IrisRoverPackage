@@ -1,7 +1,7 @@
 # Runs a Transceiver Console:
 import argparse
 import time
-from trans_tools_console_process import start_console, settings
+from scripts.utils.trans_tools_console_process import start_console, settings
 
 # Serial numbers for each serial transceiver we use:
 SERIAL_DEVICE_SNS = {

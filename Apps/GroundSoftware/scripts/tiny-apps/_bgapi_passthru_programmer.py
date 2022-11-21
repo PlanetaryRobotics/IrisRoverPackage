@@ -54,7 +54,7 @@ from IrisBackendv3.codec.exceptions import PacketDecodingException
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
 
-import trans_tools as XCVR
+import scripts.utils.trans_tools as XCVR
 
 BGAPI_API: Final = bgapi.BGAPI_WIFI_API
 BGAPI_ENCODE: Final = bgapi.BGAPI_WIFI_ENCODER

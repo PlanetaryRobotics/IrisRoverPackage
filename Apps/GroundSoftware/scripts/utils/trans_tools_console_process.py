@@ -14,7 +14,7 @@ from multi_await import multi_await  # type: ignore
 from serial.tools import list_ports, list_ports_common  # type: ignore
 from termcolor import colored
 
-from trans_tools import *
+from scripts.utils.trans_tools import *
 from IrisBackendv3.codec.payload import EventPayload
 
 import scapy.all as scp  # type: ignore

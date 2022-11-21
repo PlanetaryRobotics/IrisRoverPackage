@@ -55,7 +55,7 @@ from . import gsw_metadata_tools as GswMetadataTools
 # Default directory to search for files in:
 _SEARCH_DIR: str = '../FlightSoftware/fprime'
 # Default directory to store cached files in:
-_CACHE_DIR: str = './DataStandardsCache'
+_CACHE_DIR: str = './out/DataStandardsCache'
 # Relative Locations of FPrime XML Topology File w.r.t. `_SEARCH_DIR`:
 _URI_TOPOLOGY: str = './CubeRover/Top/CubeRoverTopologyAppAi.xml'
 

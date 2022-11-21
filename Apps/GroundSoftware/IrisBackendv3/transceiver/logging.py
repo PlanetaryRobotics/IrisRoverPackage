@@ -10,7 +10,7 @@ verboselogs.install()
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
-                    filename=f'./raw-console-logs/TransceiverLogger_{ulid.new()}.clog',
+                    filename=f'./out/raw-console-logs/TransceiverLogger_{ulid.new()}.clog',
                     filemode='a'  # keep adding data to log if it already exists, don't overwrite
                     )
 # define a Handler which writes INFO messages or higher to the sys.stderr

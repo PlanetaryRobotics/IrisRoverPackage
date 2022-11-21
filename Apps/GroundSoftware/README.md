@@ -63,6 +63,15 @@ can lint mypy (type annotations) via the Python Language Server.
 # Update Dependencies:
 `make update`
 
+# Run a script:
+To run a python script using the appropriate `pyenv` as if it was executed from
+the `GroundSoftware` directory, use `./run-script.sh`.
+
+Example:
+```
+./run-script.sh ./scripts/tiny_apps/datastandards_lookup.py -l
+```
+
 # Run application:
 `make run`
 

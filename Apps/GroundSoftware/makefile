@@ -41,6 +41,9 @@ init:
 	pyenv local ${VENV_NAME}; \
 	echo "$$(pyenv versions)"; \
 	pyenv activate ${VENV_NAME};
+
+	# Make all scripts executable:
+	chmod +x ./run-script.sh
 	
 	# Install pip dependencies:
 	make update

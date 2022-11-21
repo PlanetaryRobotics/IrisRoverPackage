@@ -19,3 +19,7 @@ node_modules/
 packet_prints/
 pcap_logs/
 transceiver_logs/
+
+# Ignore any notebooks in root
+# (bad behavior - these should go in scripts/notebooks now):
+/*.ipynb

@@ -41,7 +41,7 @@ def get_opts():
     return opts
 
 
-if __name__ == '__main__':
+def main():
     opts = get_opts()
 
     # this is the prefix on all log files.
@@ -60,3 +60,7 @@ if __name__ == '__main__':
         serial_device_sn=SERIAL_DEVICE_SNS[opts.serial_device],
         baud=opts.baud
     )
+    
+
+if __name__ == '__main__':
+    main()

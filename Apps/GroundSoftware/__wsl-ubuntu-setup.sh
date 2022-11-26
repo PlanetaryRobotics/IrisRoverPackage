@@ -14,7 +14,7 @@ sudo apt-get install pass gnupg
 sudo apt-get install -y software-properties-common
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt-get update
-sudo apt-get -y install python3.10
+sudo apt-get -y install python3.11
 
 # Install Git Credential Manager:
 cd ~ # go to home (so GCM isn't installed in the repo)

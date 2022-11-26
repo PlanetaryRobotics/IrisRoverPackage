@@ -32,7 +32,7 @@ If you intend to author commits to this repo:
 ## Manual Setup
 It is advised you set up your environment using the automated scripts above; however, if you prefer or need not to run these scripts, the key setup steps are listed below. In addition, it is recommended that you look through each step in the automated scripts used above to make sure you're not missing anything critical.
 
-This package requires `make`, `python` (>=3.8), and (`pyenv` and `pyenv-virtualenv` via `pyenv-installer`) to be installed, and make sure to add `pyenv` to the local path (follow the instructions in the terminal after `pyenv-installer` completes).
+This package requires `make`, `python` (>=3.10), and (`pyenv` and `pyenv-virtualenv` via `pyenv-installer`) to be installed, and make sure to add `pyenv` to the local path (follow the instructions in the terminal after `pyenv-installer` completes).
 
 For ubuntu, install the following prerequisites: `sudo apt-get install build-essential libffi-dev libsqlite3-dev zlib1g-dev xz-utils sqlite3 llvm libreadline-dev libgdbm-dev openssl libxml2-dev libbz2-dev curl libxmlsec1-dev wget tk-dev libssl-dev libncursesw5-dev libgdbm-compat-dev liblzma-dev uuid-dev bzip2 pass gnupg`
 
@@ -51,6 +51,8 @@ Will perform `make clean` first. If you want to only perform specific parts of t
 
 *Note*: As a dev, you'll likely want to `pip install pyls-mypy` so that your IDE 
 can lint mypy (type annotations) via the Python Language Server.
+
+You can setup the development-only tools like this by running `./__dev-setup.sh` (after `make init`).
 
 ### Known good development and build environment:
 

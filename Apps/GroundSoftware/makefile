@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PYTHON ?= python
-PYTHONVERSION ?= 3.8.5
+PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
 .PHONY = help init update clean run cloc
@@ -31,6 +31,12 @@ init:
 	# Cleanup first:
 	make clean
 	
+	# Update `pyenv`:
+	pyenv install ${PYTHONVERSION};
+
+	# Install the appropriate python version:
+	eval "$$(pyenv init -)";
+
 	# Load the correct version of python and setup the virtual environment:
 	eval "$$(pyenv init -)"; \
 	eval "$$(pyenv virtualenv-init -)"; \
@@ -43,6 +49,7 @@ init:
 	pyenv activate ${VENV_NAME};
 
 	# Make all scripts executable:
+	chmod +x ./__dev-setup.sh
 	chmod +x ./run-script.sh
 	
 	# Install pip dependencies:

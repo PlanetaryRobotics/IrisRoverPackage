@@ -1,4 +1,5 @@
 # IPC Package-wide logging format standards.
+from typing import Any
 import logging
 import verboselogs  # type: ignore # mypy doesn't see type hints
 import coloredlogs  # type: ignore # mypy doesn't see type hints
@@ -24,7 +25,9 @@ console.setFormatter(formatter)
 # add the handler to the root logger
 logging.getLogger().addHandler(console)
 
-logger = logging.getLogger(__name__)
+# Tagging this as `Any` prevents mypy from complaining about methods like
+# `verbose` and `notice` that it thinks don't exist.
+logger: Any = logging.getLogger(__name__)
 """
 Any logs at a level >= the level selected below will be displayed.
 Levels in ascending order are:

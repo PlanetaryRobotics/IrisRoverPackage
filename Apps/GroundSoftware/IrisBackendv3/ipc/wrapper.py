@@ -7,18 +7,23 @@ system.
 
 Only the interior of this module should have any idea that zmq is being used.
 Anything outside of this wrapper should not be affected by the fact that ZMQ is
-being used for IPC.
+being used for IPC. That is, if we ever decide to migrate away from ZMQ for IPC,
+the only area that should **need** to be changed would be this file.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 02/26/2022
+@last-updated: 11/22/2022
 """
+# Activate postponed annotations (for using classes as return type in their own methods)
+from __future__ import annotations
 from abc import ABC, abstractmethod, abstractclassmethod
-from typing import Any, Generic, Optional, Protocol, Union, List, cast, TypeVar
+from typing import Any, Awaitable, Callable, Generic, Optional, ClassVar, Protocol, Union, Dict, List, cast, TypeVar, Tuple
 from typing_extensions import TypeAlias
 import dataclasses
 from enum import Enum
+from typeguard import check_type
 
 import zmq
+import zmq.asyncio
 
 from .port import Port
 from .topic import Topic
@@ -56,13 +61,11 @@ class InterProcessMessage(Generic[IPMC], ABC):
         Unpack bytes sent over IPC to reconstruct the sent object.
         """
         raise NotImplementedError()
-    
-from typing import Serializable
 
 
 class IPMHandler(Protocol):
     """ Structural typing `Protocol` defining a handler that decodes raw
-    IPC message bytes, performs some operation, and optionally returns an 
+    IPC message bytes, performs some operation, and optionally returns an
     `InterProcessMessage` if needed by the process type (i.e. server/client).
 
     NOTE:
@@ -108,6 +111,13 @@ class IpcPayload:
     subtopic_bytes: bytes = b''  # if applicable
     msg_bytes: bytes = b''  # message
 
+    @property
+    def topic(self) -> Topic:
+        # Type ignore note: mypy doesn't recognize that Enum() doesn't call
+        # __new__ but is instead an Enum indexing operation and, thus,
+        # doesn't need __new__'s arguments.
+        return Topic(self.topic_bytes)  # type: ignore
+
 
 class SocketType(Enum):
     """
@@ -131,13 +141,19 @@ class SocketType(Enum):
 
 
 Context = zmq.sugar.context.Context  # convenient type alias
+AsyncContext = zmq.asyncio.Context  # convenient type alias
 
 
-def create_context() -> Context:
-    return zmq.Context()
+def create_context(*args, **kwargs) -> Context:
+    return zmq.Context(*args, **kwargs)
+
+
+def create_async_context(*args, **kwargs) -> AsyncContext:
+    return zmq.asyncio.Context(*args, **kwargs)
 
 
 Socket = zmq.sugar.socket.Socket  # convenient type alias
+AsyncSocket = zmq.asyncio.Socket  # convenient type alias
 
 
 def create_socket(
@@ -145,6 +161,22 @@ def create_socket(
     socket_type: SocketType,
     ports: Union[Port, List[Port]]
 ) -> Socket:
+    return cast(Socket, _create_socket(context, socket_type, ports))
+
+
+def create_async_socket(
+    context: AsyncContext,
+    socket_type: SocketType,
+    ports: Union[Port, List[Port]]
+) -> AsyncSocket:
+    return cast(AsyncSocket, _create_socket(context, socket_type, ports))
+
+
+def _create_socket(
+    context: Union[Context, AsyncContext],
+    socket_type: SocketType,
+    ports: Union[Port, List[Port]]
+) -> Union[Socket, AsyncSocket]:
     """
     Creates a socket of the given `socket_type` on the given `context` and binds
     or connects it to the given port/ports.
@@ -198,10 +230,10 @@ def create_socket(
             f"Unsupported/unimplemented socket type. Got {socket_type}."
         )
 
-    return cast(zmq.sugar.socket.Socket, socket)
+    return cast(Socket, socket)
 
 
-def subscribe(socket: zmq.sugar.socket.Socket, topics: Union[Topic, List[Topic]]) -> None:
+def subscribe(socket: Union[Socket, AsyncSocket], topics: Union[Topic, List[Topic]]) -> None:
     """
     Subscribes the given socket to the given topic(s).
     """
@@ -224,17 +256,17 @@ def subscribe(socket: zmq.sugar.socket.Socket, topics: Union[Topic, List[Topic]]
 
     for topic in topics:
         socket.setsockopt(zmq.SUBSCRIBE, topic.value)
-        socket.subscribe(topic)
+        socket.subscribe(topic.value)
 
 
-def send_to(
-    socket: zmq.sugar.socket.Socket,
+def _prep_send_payload(
     data: Union[bytes, InterProcessMessage],
-    subtopic: Optional[bytes] = None,
-    topic: Optional[Topic] = None
-) -> None:
-    """
-    Sends the given `data` using the given `socket`.
+    subtopic: Optional[bytes],
+    topic: Optional[Topic]
+) -> IpcPayload:
+    """Prepares for a send operation by creating an `IpcPayload` from the given
+    data. This is a helper for the various `send` functions.
+
     If a `topic` is given, the data will be published to that `topic` iff the
     `data` is allowed on the given `topic`.
 
@@ -273,14 +305,65 @@ def send_to(
             f"Instead got `{data}` of type `{type(data)}`."
         )
 
+    return payload
+
+
+def send_to(
+    socket: Socket,
+    data: Union[bytes, InterProcessMessage],
+    subtopic: Optional[bytes] = None,
+    topic: Optional[Topic] = None
+) -> None:
+    """
+    Sends the given `data` using the given `socket`.
+    If a `topic` is given, the data will be published to that `topic` iff the
+    `data` is allowed on the given `topic`.
+
+    If `subtopic` bytes are given, they will be prepended to the data.
+    This can be done even if `topic` isn't being used.
+    """
+    payload = _prep_send_payload(data, subtopic, topic)
     socket.send_multipart(dataclasses.astuple(payload))
 
 
-def read_from(
-    socket: zmq.sugar.socket.Socket
-) -> IpcPayload:
-    raw = socket.recv_multipart()
+async def async_send_to(
+    socket: AsyncSocket,
+    data: Union[bytes, InterProcessMessage],
+    subtopic: Optional[bytes] = None,
+    topic: Optional[Topic] = None
+) -> None:
+    """
+    Sends the given `data` using the given `socket`.
+    If a `topic` is given, the data will be published to that `topic` iff the
+    `data` is allowed on the given `topic`.
 
+    If `subtopic` bytes are given, they will be prepended to the data.
+    This can be done even if `topic` isn't being used.
+    """
+    payload = _prep_send_payload(data, subtopic, topic)
+    await socket.send_multipart(dataclasses.astuple(payload))
+
+
+def validate_ipc_payload(ipc_payload: IpcPayload) -> None:
+    """Checks the contents of an `IpcPayload`."""
+    # Make sure the topic is a topic that exists at all:
+    try:
+        # Attempt to extract a valid `Topic` from `topic_bytes`:
+        _ = ipc_payload.topic
+    except ValueError as e:
+        logger.error(
+            "ValueError: "
+            f"Bad topic bytes received. "
+            f"Got `0x{ipc_payload.topic_bytes!r:04X}`. "
+            f"Valid topics are: {[t for t in Topic]} ."
+        )
+
+
+def _process_multipart(raw: List[bytes]) -> IpcPayload:
+    """Helper for various `read` functions that processes a multipart message."""
+    payload: IpcPayload
+
+    # Make sure multipart message is valid:
     if len(raw) != 3:
         logger.warning(
             "Invalid multipart message received. "
@@ -289,4 +372,24 @@ def read_from(
         )
         return IpcPayload()
 
-    return IpcPayload(*raw)
+    # Extract data:
+    payload = IpcPayload(*raw)
+
+    # Make sure data is valid:
+    validate_ipc_payload(payload)
+
+    return payload
+
+
+def read_from(
+    socket: Socket
+) -> IpcPayload:
+    raw: List[bytes] = socket.recv_multipart()
+    return _process_multipart(raw)
+
+
+async def async_read_from(
+    socket: AsyncSocket
+) -> IpcPayload:
+    raw: List[bytes] = await socket.recv_multipart()
+    return _process_multipart(raw)

@@ -179,6 +179,7 @@ class WatchdogHeartbeatPacketInterface(CustomPayloadPacket[CT, CPCT]):
 
         @property
         def BattAdcTempKelvin(self) -> float:
+            # ! TODO: This is wrong.
             return self.despan(self._BattAdcTempRaw, 8, 75, -12.31, span_max=233)
 
         # Make public get, private set to signal that you can freely use these values
@@ -248,8 +249,11 @@ class WatchdogHeartbeatPacket(WHB_PI[WHB_PI, WHB_CP]):
                 f"Expected {cls.START_FLAG}, Got: {flag} ."
             )
         # TODO: use `bitstruct.compile` on first run to speed processing time.
+        bitfields = [*bitstruct.unpack('u7u1u7u1u8', core_data)]
+        # Unshift fields:
+        bitfields[-1] = bitfields[-1] << 4
         custom_payload = WatchdogHeartbeatPacket.CustomPayload(
-            *bitstruct.unpack('u7u1u7u1u8', core_data)
+            *bitfields
         )
         return WatchdogHeartbeatPacket(
             custom_payload=custom_payload,

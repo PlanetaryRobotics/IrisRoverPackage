@@ -336,7 +336,7 @@ void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
     // [6,7] won't be able to read lander power in mission mode
     telbuf[6] = (uint8_t)(adcValues->vLanderSense);
     telbuf[7] = (uint8_t)(adcValues->vLanderSense >> 8);
-    telbuf[8] = (uint8_t)(adcValues->battTemp >> 4);
+    telbuf[8] = (uint8_t)(adcValues->battRT >> 4);
     telbuf[9] = hasDeployed ? 1 : 0;
     telbuf[10] = (uint8_t)(i2cReadings->raw_battery_charge[0]);
     telbuf[11] = (uint8_t)(i2cReadings->raw_battery_charge[1]);

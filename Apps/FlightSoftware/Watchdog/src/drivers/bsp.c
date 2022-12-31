@@ -8,7 +8,7 @@
 #include <msp430.h>
 
 // uncomment to program MC
-//#define PROGRAM_MOTOR_CONTROLLERS
+// #define PROGRAM_MOTOR_CONTROLLERS
 
 #define PORT1_ENABLED 1
 #define PORT2_ENABLED 1
@@ -16,48 +16,70 @@
 #define PORT4_ENABLED 1
 #define PORTJ_ENABLED 1
 
-static WatchdogStateDetails* detailsPtr = NULL;
+static WatchdogStateDetails *detailsPtr = NULL;
 
-const char* getResetReasonString(void)
+const char *getResetReasonString(void)
 {
     switch (__even_in_range(SYSRSTIV, SYSRSTIV_MPUSEG3IFG))
     {
-        case SYSRSTIV_NONE: return "None";
-        case SYSRSTIV_BOR: return "Brownout (BOR)";
-        case SYSRSTIV_RSTNMI: return "RSTIFG RST/NMI (BOR)";
-        case SYSRSTIV_DOBOR: return "PMMSWBOR software BOR (BOR)";
-        case SYSRSTIV_LPM5WU: return "LPMx.5 wake up (BOR)";
-        case SYSRSTIV_SECYV: return "Security violation (BOR)";
-        case SYSRSTIV_SVSHIFG: return "SCSHIFG SVSH event (BOR)";
-        case SYSRSTIV_DOPOR: return "PMMSWPOR software POR (POR)";
-        case SYSRSTIV_WDTTO: return "WDTIFG watchdog timeout (PUC)";
-        case SYSRSTIV_WDTPW: return "WDTPW password violation (PUC)";
-        case SYSRSTIV_FRCTLPW: return "FRCTLPW password violation (PUC)";
-        case SYSRSTIV_UBDIFG: return "Uncorrectable FRAM bit error detection (PUC)";
-        case SYSRSTIV_PERF: return "Peripheral area fetch (PUC)";
-        case SYSRSTIV_PMMPW: return "PMMPW PMM password violation (PUC)";
-        case SYSRSTIV_MPUPW: return "MPUPW MPU password violation (PUC)";
-        case SYSRSTIV_CSPW: return "CSPW CS password violation (PUC)";
-        case SYSRSTIV_MPUSEGPIFG: return "MPUSEGIPIFG encapsulated IP memory segment violation (PUC)";
-        case SYSRSTIV_MPUSEGIIFG: return "MPUSEGIIFG information memory segment violation (PUC)";
-        case SYSRSTIV_MPUSEG1IFG: return "MPUSEG1IFG segment 1 memory violation (PUC)";
-        case SYSRSTIV_MPUSEG2IFG: return "MPUSEG2IFG segment 2 memory violation (PUC)";
-        case SYSRSTIV_MPUSEG3IFG: return "MPUSEG3IFG segment 3 memory violation (PUC)";
-        default: return "Unknown";
+    case SYSRSTIV_NONE:
+        return "None";
+    case SYSRSTIV_BOR:
+        return "Brownout (BOR)";
+    case SYSRSTIV_RSTNMI:
+        return "RSTIFG RST/NMI (BOR)";
+    case SYSRSTIV_DOBOR:
+        return "PMMSWBOR software BOR (BOR)";
+    case SYSRSTIV_LPM5WU:
+        return "LPMx.5 wake up (BOR)";
+    case SYSRSTIV_SECYV:
+        return "Security violation (BOR)";
+    case SYSRSTIV_SVSHIFG:
+        return "SCSHIFG SVSH event (BOR)";
+    case SYSRSTIV_DOPOR:
+        return "PMMSWPOR software POR (POR)";
+    case SYSRSTIV_WDTTO:
+        return "WDTIFG watchdog timeout (PUC)";
+    case SYSRSTIV_WDTPW:
+        return "WDTPW password violation (PUC)";
+    case SYSRSTIV_FRCTLPW:
+        return "FRCTLPW password violation (PUC)";
+    case SYSRSTIV_UBDIFG:
+        return "Uncorrectable FRAM bit error detection (PUC)";
+    case SYSRSTIV_PERF:
+        return "Peripheral area fetch (PUC)";
+    case SYSRSTIV_PMMPW:
+        return "PMMPW PMM password violation (PUC)";
+    case SYSRSTIV_MPUPW:
+        return "MPUPW MPU password violation (PUC)";
+    case SYSRSTIV_CSPW:
+        return "CSPW CS password violation (PUC)";
+    case SYSRSTIV_MPUSEGPIFG:
+        return "MPUSEGIPIFG encapsulated IP memory segment violation (PUC)";
+    case SYSRSTIV_MPUSEGIIFG:
+        return "MPUSEGIIFG information memory segment violation (PUC)";
+    case SYSRSTIV_MPUSEG1IFG:
+        return "MPUSEG1IFG segment 1 memory violation (PUC)";
+    case SYSRSTIV_MPUSEG2IFG:
+        return "MPUSEG2IFG segment 2 memory violation (PUC)";
+    case SYSRSTIV_MPUSEG3IFG:
+        return "MPUSEG3IFG segment 3 memory violation (PUC)";
+    default:
+        return "Unknown";
     }
 }
 
 /**
  * @brief      Initializes the gpios.
  */
-void initializeGpios(WatchdogStateDetails* details)
+void initializeGpios(WatchdogStateDetails *details)
 {
     DEBUG_LOG_NULL_CHECK_RETURN(details, "Parameter is NULL", /* nothing, b/c void return */);
     detailsPtr = details;
 
-    //########################################################################
-    // P1 configuration.
-    //########################################################################
+    // ########################################################################
+    //  P1 configuration.
+    // ########################################################################
 #if PORT1_ENABLED
     // Start with all as GPIO output (which is the recommended default config for unused pins)
     P1DIR = 0xFFu;
@@ -87,7 +109,6 @@ void initializeGpios(WatchdogStateDetails* details)
     // Used when the Radio wants to send information to the Watchdog.
     P1DIR &= ~BIT3;
 
-
     // P1.4 is connected to the V_LANDER_SENS signal (output of voltage divider for measuring lander voltage being
     // supplied to us), and is used as an ADC analog input (specifically it is ADC analog input A4). This is the
     // tertiary function (SEL1 and SEL0 are 1).
@@ -113,9 +134,9 @@ void initializeGpios(WatchdogStateDetails* details)
     P1SEL1 |= BIT7;
 
 #endif // PORT1_ENABLED
-    //########################################################################
-    // P2 configuration.
-    //########################################################################
+    // ########################################################################
+    //  P2 configuration.
+    // ########################################################################
 #if PORT2_ENABLED
     // Start with all as GPIO input. Unused pins are supposed to be configured as outputs, but due to current draw
     // issues with P2.0, we initialize all as inputs so that they are high-z and don't allow current draw. We configure
@@ -132,7 +153,7 @@ void initializeGpios(WatchdogStateDetails* details)
     //
     // TODO >> Don't set this here, as we see large current draw when this mode is set and Hercules is off. <<
     //
-    //P2SEL1 |= BIT0;
+    // P2SEL1 |= BIT0;
     CLEAR_IPASBI_IN_UINT(detailsPtr->m_inputPinAndStateBits, IPASBI__UART0_INITIALIZED);
 
     // P2.1 is used as the UART0 (UCA0) RX data line (RXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
@@ -170,7 +191,7 @@ void initializeGpios(WatchdogStateDetails* details)
     // TODO >> Don't set this here, as we could see large current draw if this mode is set while disconnected from
     //         lander. <<
     //
-    //P2SEL1 |= BIT5;
+    // P2SEL1 |= BIT5;
     CLEAR_IPASBI_IN_UINT(detailsPtr->m_inputPinAndStateBits, IPASBI__UART1_INITIALIZED);
 
     // P2.6 is used as the UART1 (UCA1) RX data line (RXD). This is the secondary function (SEL1 is 1 and SEL0 is 0).
@@ -187,9 +208,9 @@ void initializeGpios(WatchdogStateDetails* details)
     P2REN &= ~BIT7;
 
 #endif // PORT2_ENABLED
-    //########################################################################
-    // P3 configuration.
-    //########################################################################
+    // ########################################################################
+    //  P3 configuration.
+    // ########################################################################
 #if PORT3_ENABLED
     // Start with all as GPIO output (which is the recommended default config for unused pins)
     P3DIR = 0xFFu;
@@ -248,9 +269,9 @@ void initializeGpios(WatchdogStateDetails* details)
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__3V3_EN);
 
 #endif // PORT3_ENABLED
-    //########################################################################
-    // P4 configuration.
-    //########################################################################
+    // ########################################################################
+    //  P4 configuration.
+    // ########################################################################
 #if PORT4_ENABLED
     // Start with all as GPIO output (which is the recommended default config for unused pins)
     P4DIR = 0xFFu;
@@ -317,9 +338,9 @@ void initializeGpios(WatchdogStateDetails* details)
     P4REN &= ~BIT7;
 
 #endif // PORT4_ENABLED
-    //########################################################################
-    // PJ configuration.
-    //########################################################################
+    // ########################################################################
+    //  PJ configuration.
+    // ########################################################################
 #if PORTJ_ENABLED
     // Start with all as GPIO output (which is the recommended default config for unused pins)
     PJDIR = 0xFFu;
@@ -410,7 +431,8 @@ void disableWdIntInterrupt(void)
 }
 
 // Return the *current* state of the WD_INT pin:
-uint8_t getWdIntState(void){
+uint8_t getWdIntState(void)
+{
     return P1IN & BIT3;
 }
 
@@ -883,7 +905,8 @@ inline void startChargingBatteries(void)
 {
     // Turn on batteries before charging if not on yet:
     // (not safe to start charging on an open circuit)
-    if(!blimp_batteryState()){
+    if (!blimp_batteryState())
+    {
         blimp_battEnOn();
     }
     // Enable the charging regulator:
@@ -903,15 +926,18 @@ inline void stopChargingBatteries(void)
     blimp_regEnOff();
 }
 
-#define UPDATE_INPUT(detPtr, ipasbi_enum, port, bit) \
-        do { \
-            if (port & bit) { \
-                SET_IPASBI_IN_UINT(detPtr->m_inputPinAndStateBits, ipasbi_enum); \
-            } else { \
-                CLEAR_IPASBI_IN_UINT(detPtr->m_inputPinAndStateBits, ipasbi_enum); \
-            } \
-        } while (0)
-
+#define UPDATE_INPUT(detPtr, ipasbi_enum, port, bit)                           \
+    do                                                                         \
+    {                                                                          \
+        if (port & bit)                                                        \
+        {                                                                      \
+            SET_IPASBI_IN_UINT(detPtr->m_inputPinAndStateBits, ipasbi_enum);   \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+            CLEAR_IPASBI_IN_UINT(detPtr->m_inputPinAndStateBits, ipasbi_enum); \
+        }                                                                      \
+    } while (0)
 
 void readOnChipInputs(void)
 {

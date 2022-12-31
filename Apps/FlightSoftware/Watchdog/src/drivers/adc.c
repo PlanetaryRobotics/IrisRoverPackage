@@ -60,6 +60,7 @@ void adc_init(volatile uint16_t *watchdogFlags)
     ADC12CTL3 = 0;
 
     // MEM0: P1.4 == V_LANDER_SENS == A4. Use VR+ = VeRef+ buffered, VR- = VeRef-
+    // ADC12VRSEL_15 is listed in `adc12_b.h` as `ADC12_B_VREFPOS_EXTBUF_VREFNEG_EXTNEG`, so seems right...
     ADC12MCTL0 = ADC12INCH_4 | ADC12VRSEL_15;
 
     // MEM1: P2.4 == BATT_TEMP == A7. Use VR+ = VeRef+ buffered, VR- = VeRef-

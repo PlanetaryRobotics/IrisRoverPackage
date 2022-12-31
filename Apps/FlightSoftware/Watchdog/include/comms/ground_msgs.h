@@ -75,7 +75,7 @@ extern "C"
         uint16_t deploymentStatus : 2; // 00 = not deployed, 01 = deploying, 10 = deployed
         uint16_t uart0Initialized : 1;
         uint16_t uart1Initialized : 1;
-        uint16_t adcBattRT : 12;
+        uint16_t adcBattRT : 12; // main heater thermistor
 
         uint8_t sequenceNumber;
 
@@ -85,7 +85,7 @@ extern "C"
         uint8_t upperResetActionBits;
 
         uint16_t vLanderSense : 7; // upper 7 bits (from 12-bit resolution data)
-        uint16_t battTemp : 9;     // upper 9 bits (from 12-bit resolution data)
+        uint16_t battTemp : 9;     // upper 9 bits (from 12-bit resolution data) - charging thermistor
 
         uint32_t vSysAllSens : 5;  // upper 5 bits (from 12-bit resolution data)
         uint32_t iSysAllSense : 9; // LOWER 9 bits (from 12-bit resolution data)

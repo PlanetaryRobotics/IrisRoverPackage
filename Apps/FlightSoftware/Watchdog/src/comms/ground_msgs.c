@@ -39,7 +39,7 @@ GroundMsgs__Status GroundMsgs__generateFlightEarthHeartbeat(I2C_Sensors__Reading
     // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
     /** @todo Update this threshold **/
     hb->battery_voltage_good = (i2cReadings->raw_battery_voltage[0] > 0x3B) ? 1 : 0;
-    hb->battTemp = (uint8_t)(adcValues->battTemp >> 4);
+    hb->battRT = (uint8_t)(adcValues->battRT >> 4);
 
     return GND_MSGS__STATUS__SUCCESS;
 }
@@ -59,7 +59,7 @@ GroundMsgs__Status GroundMsgs__generateFullEarthHeartbeat(I2C_Sensors__Readings 
     hb->magicNumber = 0xFF;
 
     // send adc value temperature
-    hb->battTemp = adcValues->battTemp;
+    hb->battTemp = adcValues->battRT;
 
     // send adc value temperature
     hb->raw_battery_charge[0] = i2cReadings->raw_battery_charge[0];

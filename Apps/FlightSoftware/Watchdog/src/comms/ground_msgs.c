@@ -37,8 +37,11 @@ GroundMsgs__Status GroundMsgs__generateFlightEarthHeartbeat(I2C_Sensors__Reading
     hb->batt_curr_telem = (uint8_t)(i2cReadings->batt_curr_telem & 0x7F);
     // send voltage nominal status (1=good, 0=too low)
     // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
-    /** @todo Update this threshold **/
-    hb->battery_voltage_good = (i2cReadings->raw_battery_voltage[0] > 0x3B) ? 1 : 0;
+    // 16.59 * 4095.0 / 3.3 / (274.0+2000.0)*274.0 (NOTE: this thresh is likely
+    // too high since FM1 RC testing on Earth showed that at 23.80V-VBS, the
+    // divider was reading low by a factor of 2928/3560, meaning the voltage
+    // could actually be as high as 20.17V when this alarm sounds).
+    hb->battery_voltage_good = (adcValues->vBattSense > 2480) ? 1 : 0;
     hb->battRT = (uint8_t)(adcValues->battRT >> 4);
 
     return GND_MSGS__STATUS__SUCCESS;

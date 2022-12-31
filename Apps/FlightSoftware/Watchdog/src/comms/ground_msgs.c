@@ -15,40 +15,43 @@
 #define ENABLE_DEBUGGING_PRINT_OF_FAKE_REPORT 0
 #define ENABLE_FORMATTED_DEBUG_PRINT 0
 
-#define CHECK_SERIALIZATION_RESULT(RESULT_VAR) \
-    if (0 > RESULT_VAR) { \
+#define CHECK_SERIALIZATION_RESULT(RESULT_VAR)    \
+    if (0 > RESULT_VAR)                           \
+    {                                             \
         return GND_MSGS__STATUS__ERROR__INTERNAL; \
     }
 
-GroundMsgs__Status GroundMsgs__generateFlightEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
-                                                            AdcValues* adcValues,
-                                                            HeaterParams* hParams,
-                                                            FlightEarthHeartbeat* hb)
+GroundMsgs__Status GroundMsgs__generateFlightEarthHeartbeat(I2C_Sensors__Readings *i2cReadings,
+                                                            AdcValues *adcValues,
+                                                            HeaterParams *hParams,
+                                                            FlightEarthHeartbeat *hb)
 {
-    if (NULL == i2cReadings || NULL == adcValues || NULL == hb) {
+    if (NULL == i2cReadings || NULL == adcValues || NULL == hb)
+    {
         return GND_MSGS__STATUS__ERROR_NULL;
     }
 
     hb->magicNumber = 0xFF;
-    hb->batt_charge_telem = (uint8_t) (i2cReadings->batt_charge_telem & 0x7F);
+    hb->batt_charge_telem = (uint8_t)(i2cReadings->batt_charge_telem & 0x7F);
     hb->heating = hParams->m_heating ? 1 : 0;
-    hb->batt_curr_telem  = (uint8_t) (i2cReadings->batt_curr_telem & 0x7F);
+    hb->batt_curr_telem = (uint8_t)(i2cReadings->batt_curr_telem & 0x7F);
     // send voltage nominal status (1=good, 0=too low)
     // check if batt voltage is above 16.59 V (~10% above discharge cutoff)
     /** @todo Update this threshold **/
-    hb->battery_voltage_good  = (i2cReadings->raw_battery_voltage[0] > 0x3B) ? 1 : 0;
-    hb->battTemp = (uint8_t) (adcValues->battTemp >> 4);
+    hb->battery_voltage_good = (i2cReadings->raw_battery_voltage[0] > 0x3B) ? 1 : 0;
+    hb->battTemp = (uint8_t)(adcValues->battTemp >> 4);
 
     return GND_MSGS__STATUS__SUCCESS;
 }
 
-GroundMsgs__Status GroundMsgs__generateFullEarthHeartbeat(I2C_Sensors__Readings* i2cReadings,
-                                                          AdcValues* adcValues,
-                                                          HeaterParams* hParams,
+GroundMsgs__Status GroundMsgs__generateFullEarthHeartbeat(I2C_Sensors__Readings *i2cReadings,
+                                                          AdcValues *adcValues,
+                                                          HeaterParams *hParams,
                                                           uint8_t stateAsUint,
-                                                          FullEarthHeartbeat* hb)
+                                                          FullEarthHeartbeat *hb)
 {
-    if (NULL == i2cReadings || NULL == adcValues || NULL == hParams || NULL == hb) {
+    if (NULL == i2cReadings || NULL == adcValues || NULL == hParams || NULL == hb)
+    {
         return GND_MSGS__STATUS__ERROR_NULL;
     }
 
@@ -100,32 +103,33 @@ GroundMsgs__Status GroundMsgs__generateFullEarthHeartbeat(I2C_Sensors__Readings*
 }
 
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
-#define BYTE_TO_BINARY(byte)  \
-  (byte & 0x80 ? '1' : '0'), \
-  (byte & 0x40 ? '1' : '0'), \
-  (byte & 0x20 ? '1' : '0'), \
-  (byte & 0x10 ? '1' : '0'), \
-  (byte & 0x08 ? '1' : '0'), \
-  (byte & 0x04 ? '1' : '0'), \
-  (byte & 0x02 ? '1' : '0'), \
-  (byte & 0x01 ? '1' : '0')
+#define BYTE_TO_BINARY(byte)       \
+    (byte & 0x80 ? '1' : '0'),     \
+        (byte & 0x40 ? '1' : '0'), \
+        (byte & 0x20 ? '1' : '0'), \
+        (byte & 0x10 ? '1' : '0'), \
+        (byte & 0x08 ? '1' : '0'), \
+        (byte & 0x04 ? '1' : '0'), \
+        (byte & 0x02 ? '1' : '0'), \
+        (byte & 0x01 ? '1' : '0')
 
-GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings* i2cReadings,
-                                                      AdcValues* adcValues,
-                                                      WatchdogStateDetails* details,
-                                                      DetailedReport* report,
-                                                      uint8_t* reportBuffer)
+GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings *i2cReadings,
+                                                      AdcValues *adcValues,
+                                                      WatchdogStateDetails *details,
+                                                      DetailedReport *report,
+                                                      uint8_t *reportBuffer)
 {
     static uint8_t sequenceNumber = 0;
 
-    if (NULL == i2cReadings || NULL == adcValues || NULL == details || NULL == report) {
+    if (NULL == i2cReadings || NULL == adcValues || NULL == details || NULL == report)
+    {
         return GND_MSGS__STATUS__ERROR_NULL;
     }
 
     // Update values read from digital inputs on WD chip itself (not on I/O expander)
     readOnChipInputs();
 
-    uint8_t* dstIntPtr = (uint8_t*) reportBuffer;
+    uint8_t *dstIntPtr = (uint8_t *)reportBuffer;
 
     report->magic = 0xD5;
 
@@ -144,14 +148,14 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings* i2c
     report->pg50 = (details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__PG50)) ? 1 : 0;
 
     uint8_t data = 0;
-    data |= (uint8_t) ((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__CHARGE_STAT1)) ? 1 : 0) & 0x1) << 7);
-    data |= (uint8_t) ((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__CHARGE_STAT2)) ? 1 : 0) & 0x1) << 6);
-    data |= (uint8_t) ((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__BATT_STAT)) ? 1 : 0) & 0x1) << 5);
-    data |= (uint8_t) ((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__LATCH_STAT)) ? 1 : 0) & 0x1) << 4);
-    data |= (uint8_t) ((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__PG12)) ? 1 : 0) & 0x1) << 3);
-    data |= (uint8_t) ((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__PG18)) ? 1 : 0) & 0x1) << 2);
-    data |= (uint8_t) ((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__PG33)) ? 1 : 0) & 0x1) << 1);
-    data |= (uint8_t) ((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__PG50)) ? 1 : 0) & 0x1) << 0);
+    data |= (uint8_t)((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__CHARGE_STAT1)) ? 1 : 0) & 0x1) << 7);
+    data |= (uint8_t)((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__CHARGE_STAT2)) ? 1 : 0) & 0x1) << 6);
+    data |= (uint8_t)((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__BATT_STAT)) ? 1 : 0) & 0x1) << 5);
+    data |= (uint8_t)((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__LATCH_STAT)) ? 1 : 0) & 0x1) << 4);
+    data |= (uint8_t)((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__PG12)) ? 1 : 0) & 0x1) << 3);
+    data |= (uint8_t)((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__PG18)) ? 1 : 0) & 0x1) << 2);
+    data |= (uint8_t)((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__PG33)) ? 1 : 0) & 0x1) << 1);
+    data |= (uint8_t)((((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__PG50)) ? 1 : 0) & 0x1) << 0);
 
     serializationResult = Serialization__serializeAs8Bit(&(data), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(serializationResult);
@@ -163,28 +167,32 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings* i2c
     CHECK_SERIALIZATION_RESULT(serializationResult);
     dstIntPtr += sizeof(details->m_stateAsUint);
 
-
     uint8_t deploymentStatus;
-    if (details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__DEPLOYED)) {
+    if (details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__DEPLOYED))
+    {
         report->deploymentStatus = 2;
         deploymentStatus = 2;
-    } else if (details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__DEPLOYING)) {
+    }
+    else if (details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__DEPLOYING))
+    {
         report->deploymentStatus = 1;
         deploymentStatus = 1;
-    } else {
+    }
+    else
+    {
         report->deploymentStatus = 0;
         deploymentStatus = 0;
     }
 
     report->uart0Initialized = (details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__UART0_INITIALIZED)) ? 1 : 0;
     report->uart1Initialized = (details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__UART1_INITIALIZED)) ? 1 : 0;
-    report->adcBattRT = (uint16_t) (adcValues->battRT && 0x0FFF);
+    report->adcBattRT = (uint16_t)(adcValues->battRT && 0x0FFF);
 
     uint16_t data16 = 0;
-    data16 |= (uint16_t) (((uint16_t) (((uint8_t) deploymentStatus) & 0x3)) << 14);
-    data16 |= (uint16_t) (((uint16_t) (((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__UART0_INITIALIZED)) ? 1 : 0) & 0x1)) << 13);
-    data16 |= (uint16_t) (((uint16_t) (((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__UART1_INITIALIZED)) ? 1 : 0) & 0x1)) << 12);
-    data16 |= (uint16_t) (adcValues->battRT && 0x0FFF);
+    data16 |= (uint16_t)(((uint16_t)(((uint8_t)deploymentStatus) & 0x3)) << 14);
+    data16 |= (uint16_t)(((uint16_t)(((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__UART0_INITIALIZED)) ? 1 : 0) & 0x1)) << 13);
+    data16 |= (uint16_t)(((uint16_t)(((details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__UART1_INITIALIZED)) ? 1 : 0) & 0x1)) << 12);
+    data16 |= (uint16_t)(adcValues->battRT && 0x0FFF);
 
     serializationResult = Serialization__serializeAs16Bit(&(data16), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(serializationResult);
@@ -202,56 +210,57 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings* i2c
     CHECK_SERIALIZATION_RESULT(serializationResult);
     dstIntPtr += sizeof(details->m_outputPinBits);
 
-    report->lowerResetActionBits = (uint32_t) (0xFFFFFFFF & (details->m_resetActionBits));
-    report->upperResetActionBits = (uint8_t) (((details->m_resetActionBits) >> 32) & 0xFF);
+    report->lowerResetActionBits = (uint32_t)(0xFFFFFFFF & (details->m_resetActionBits));
+    report->upperResetActionBits = (uint8_t)(((details->m_resetActionBits) >> 32) & 0xFF);
 
-    uint8_t buffer64bit[8] = { 0 };
+    uint8_t buffer64bit[8] = {0};
     serializationResult = Serialization__serializeAs64Bit(&(details->m_resetActionBits), buffer64bit, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(serializationResult);
 
-    for (int i = 5; i >= 0; i--) {
+    for (int i = 5; i >= 0; i--)
+    {
         *dstIntPtr = buffer64bit[i];
         dstIntPtr++;
     }
 
-    report->vLanderSense = (uint8_t) (((adcValues->vLanderSense) >> 5) & 0x7F); // Top 7 bits of 12
-    report->battTemp = (uint16_t) (((adcValues->battTemp) >> 3) & 0x1FF); // Top 9 bits of 12
+    report->vLanderSense = (uint8_t)(((adcValues->vLanderSense) >> 5) & 0x7F); // Top 7 bits of 12
+    report->battTemp = (uint16_t)(((adcValues->battTemp) >> 3) & 0x1FF);       // Top 9 bits of 12
 
     data16 = 0;
-    data16 |= (uint16_t) (((uint16_t) (((adcValues->vLanderSense) >> 5) & 0x7F)) << 9);
-    data16 |= (uint16_t) (((adcValues->battTemp) >> 3) & 0x1FF);
+    data16 |= (uint16_t)(((uint16_t)(((adcValues->vLanderSense) >> 5) & 0x7F)) << 9);
+    data16 |= (uint16_t)(((adcValues->battTemp) >> 3) & 0x1FF);
 
     serializationResult = Serialization__serializeAs16Bit(&(data16), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(serializationResult);
     dstIntPtr += sizeof(data16);
 
-    report->vSysAllSens = (uint8_t) (((adcValues->vSysAllSense) >> 7) & 0x1F); // Top 5 bits of 12
-    report->iSysAllSense = (uint16_t) ((adcValues->iSysAllSense) & 0x1FF); // Bottom 9 bits of 12
-    report->vBattSense = (uint16_t) (((adcValues->vBattSense) >> 3) & 0x1FF); // Top 9 bits of 12
-    report->vcc24 = (uint8_t) (((adcValues->vcc24) >> 5) & 0x7F); // Top 7 bits of 12
+    report->vSysAllSens = (uint8_t)(((adcValues->vSysAllSense) >> 7) & 0x1F); // Top 5 bits of 12
+    report->iSysAllSense = (uint16_t)((adcValues->iSysAllSense) & 0x1FF);     // Bottom 9 bits of 12
+    report->vBattSense = (uint16_t)(((adcValues->vBattSense) >> 3) & 0x1FF);  // Top 9 bits of 12
+    report->vcc24 = (uint8_t)(((adcValues->vcc24) >> 5) & 0x7F);              // Top 7 bits of 12
     report->heatingControlEnabled = (details->m_hParams.m_heatingControlEnabled) ? 1 : 0;
     report->heating = (details->m_hParams.m_heating) ? 1 : 0;
 
     uint32_t data32 = 0;
-    data32 |= (uint32_t) (((uint32_t) (((adcValues->vSysAllSense) >> 7) & 0x1F)) << 27);
-    data32 |= (uint32_t) (((uint32_t) ((adcValues->iSysAllSense) & 0x1FF)) << 18);
-    data32 |= (uint32_t) (((uint32_t) (((adcValues->vBattSense) >> 3) & 0x1FF)) << 9);
-    data32 |= (uint32_t) (((uint32_t) (((adcValues->vcc24) >> 5) & 0x7F)) << 2);
-    data32 |= (uint32_t) (((details->m_hParams.m_heatingControlEnabled) ? 1 : 0) << 1);
-    data32 |= (uint32_t) ((details->m_hParams.m_heating) ? 1 : 0);
+    data32 |= (uint32_t)(((uint32_t)(((adcValues->vSysAllSense) >> 7) & 0x1F)) << 27);
+    data32 |= (uint32_t)(((uint32_t)((adcValues->iSysAllSense) & 0x1FF)) << 18);
+    data32 |= (uint32_t)(((uint32_t)(((adcValues->vBattSense) >> 3) & 0x1FF)) << 9);
+    data32 |= (uint32_t)(((uint32_t)(((adcValues->vcc24) >> 5) & 0x7F)) << 2);
+    data32 |= (uint32_t)(((details->m_hParams.m_heatingControlEnabled) ? 1 : 0) << 1);
+    data32 |= (uint32_t)((details->m_hParams.m_heating) ? 1 : 0);
 
     serializationResult = Serialization__serializeAs32Bit(&(data32), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(serializationResult);
     dstIntPtr += sizeof(data32);
 
-    report->vcc2Point5 = (uint8_t) (((adcValues->vcc2Point5) >> 7) & 0x1F); // Top 5 bits of 12
-    report->vcc2Point8 = (uint8_t) (((adcValues->vcc2Point8) >> 7) & 0x1F); // Top 5 bits of 12
-    report->vcc28 = (uint8_t) (((adcValues->vcc28) >> 6) & 0x3F); // Top 6 bits of 12
+    report->vcc2Point5 = (uint8_t)(((adcValues->vcc2Point5) >> 7) & 0x1F); // Top 5 bits of 12
+    report->vcc2Point8 = (uint8_t)(((adcValues->vcc2Point8) >> 7) & 0x1F); // Top 5 bits of 12
+    report->vcc28 = (uint8_t)(((adcValues->vcc28) >> 6) & 0x3F);           // Top 6 bits of 12
 
     data16 = 0;
-    data16 |= (uint16_t) (((uint16_t) (((adcValues->vcc2Point5) >> 7) & 0x1F)) << 11);
-    data16 |= (uint16_t) (((uint16_t) (((adcValues->vcc2Point8) >> 7) & 0x1F)) << 6);
-    data16 |= (uint16_t) (((adcValues->vcc28) >> 6) & 0x3F);
+    data16 |= (uint16_t)(((uint16_t)(((adcValues->vcc2Point5) >> 7) & 0x1F)) << 11);
+    data16 |= (uint16_t)(((uint16_t)(((adcValues->vcc2Point8) >> 7) & 0x1F)) << 6);
+    data16 |= (uint16_t)(((adcValues->vcc28) >> 6) & 0x3F);
 
     serializationResult = Serialization__serializeAs16Bit(&(data16), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(serializationResult);
@@ -319,7 +328,7 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings* i2c
     dstIntPtr += sizeof(i2cReadings->batt_curr_telem);
 
 #if defined(ENABLE_DEBUG_ONLY_CODE) && ENABLE_DEBUGGING_PRINT_OF_FAKE_REPORT
-    DetailedReport report2 = { 0 };
+    DetailedReport report2 = {0};
     report2.magic = 0xD5;
 
     report2.chargeStat1 = 1;
@@ -345,18 +354,18 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings* i2c
     report2.upperResetActionBits = 0;
 
     report2.vLanderSense = 0b1111111; // Top 7 bits of 12
-    report2.battTemp = 0b110010011; // Top 9 bits of 12
+    report2.battTemp = 0b110010011;   // Top 9 bits of 12
 
-    report2.vSysAllSens = 0b01110; // Top 5 bits of 12
+    report2.vSysAllSens = 0b01110;      // Top 5 bits of 12
     report2.iSysAllSense = 0b100000111; // Bottom 9 bits of 12
-    report2.vBattSense = 0b001100110; // Top 9 bits of 12
-    report2.vcc24 = 0b0011100; // Top 7 bits of 12
+    report2.vBattSense = 0b001100110;   // Top 9 bits of 12
+    report2.vcc24 = 0b0011100;          // Top 7 bits of 12
     report2.heatingControlEnabled = 0;
     report2.heating = 0;
 
     report2.vcc2Point5 = 0b10101; // Top 5 bits of 12
     report2.vcc2Point8 = 0b01010; // Top 5 bits of 12
-    report2.vcc28 = 0b110011; // Top 6 bits of 12
+    report2.vcc28 = 0b110011;     // Top 6 bits of 12
 
     report2.kpHeater = 0x0A0B;
     report2.heaterPwmLimit = 0x0C0D;
@@ -381,21 +390,25 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings* i2c
     report2.battChargeTelem = 0x5A;
     report2.battCurrTelem = 0x5B;
 
-    uint8_t *reportView = (uint8_t*) &report2;
+    uint8_t *reportView = (uint8_t *)&report2;
     size_t rowLen = 4;
 
     size_t numRows = sizeof(report2) / rowLen;
-    if (sizeof(report2) % rowLen > 0) {
+    if (sizeof(report2) % rowLen > 0)
+    {
         numRows++;
     }
 
-    for (size_t r = 0; r < numRows; ++r) {
-        DPRINTF_ERR("%s%d: ", (((rowLen * r) <= 9) ? "0" : ""), (int) (rowLen * r));
+    for (size_t r = 0; r < numRows; ++r)
+    {
+        DPRINTF_ERR("%s%d: ", (((rowLen * r) <= 9) ? "0" : ""), (int)(rowLen * r));
 
-        for (size_t c = 0; c < rowLen; ++c) {
+        for (size_t c = 0; c < rowLen; ++c)
+        {
             size_t i = (rowLen * r) + c;
 
-            if (i >= sizeof(report2)) {
+            if (i >= sizeof(report2))
+            {
                 break;
             }
 
@@ -405,13 +418,16 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings* i2c
     }
     DPRINTF_ERR("\n");
 
-    for (size_t r = 0; r < numRows; ++r) {
-        DPRINTF_ERR("%s%d: ", (((rowLen * r) <= 9) ? "0" : ""), (int) (rowLen * r));
+    for (size_t r = 0; r < numRows; ++r)
+    {
+        DPRINTF_ERR("%s%d: ", (((rowLen * r) <= 9) ? "0" : ""), (int)(rowLen * r));
 
-        for (size_t c = 0; c < rowLen; ++c) {
+        for (size_t c = 0; c < rowLen; ++c)
+        {
             size_t i = (rowLen * r) + c;
 
-            if (i >= sizeof(report2)) {
+            if (i >= sizeof(report2))
+            {
                 break;
             }
 
@@ -425,4 +441,3 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings* i2c
 
     return GND_MSGS__STATUS__SUCCESS;
 }
-

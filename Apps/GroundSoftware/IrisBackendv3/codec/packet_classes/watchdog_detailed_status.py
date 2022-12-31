@@ -200,6 +200,10 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
             VLander = self.Adc_LanderVoltage
             Vcc28 = self.Adc_Vcc28Voltage
 
+            # Guard against 0:
+            if max(abs(VLander), abs(Vcc28)) == 0:
+                return 0
+
             # If a significant difference exists (i.e. one sensor is likely faulty)...:
             if (abs(Vcc28 - VLander) / max(abs(VLander), abs(Vcc28))) > 0.5:
                 # If one of them is significantly greater (50%) than the max

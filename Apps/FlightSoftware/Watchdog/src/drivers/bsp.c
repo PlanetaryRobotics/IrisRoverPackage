@@ -547,10 +547,13 @@ void clockInit(void)
 
 /**
  * @brief      Enables the heater. (HI = ON)
- *      TB0CCTL2 is register that toggles PWM output on heater pin
+ *  Lets the TB0.2 timer take control (SEL0=1, SEL1=0)
+ *      TB0CCTL2 is register that toggles PWM output on heater pin.
+ * Per Table 9-23 in https://www.ti.com/lit/ds/symlink/msp430fr5994.pdf.
  */
 inline void enableHeater(void)
 {
+    P2DIR |= BIT2;
     P2OUT &= ~BIT2;
     P2SEL0 |= BIT2;
     P2SEL1 &= ~BIT2;
@@ -560,6 +563,7 @@ inline void enableHeater(void)
 
 /**
  * @brief      Disables the heater. (LO = OFF)
+ * Sets pin back to GPIO output (SEL0=0, SEL1=0) low (OFF).
  */
 inline void disableHeater(void)
 {

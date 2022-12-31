@@ -41,6 +41,8 @@ GroundMsgs__Status GroundMsgs__generateFlightEarthHeartbeat(I2C_Sensors__Reading
     // too high since FM1 RC testing on Earth showed that at 23.80V-VBS, the
     // divider was reading low by a factor of 2928/3560, meaning the voltage
     // could actually be as high as 20.17V when this alarm sounds).
+    // Also, note, this is mostly meaningless in KA since the battery is
+    // disconnected anyway, so we won't be able to read it.
     hb->battery_voltage_good = (adcValues->vBattSense > 2480) ? 1 : 0;
     hb->battRT = (uint8_t)(adcValues->battRT >> 4);
 

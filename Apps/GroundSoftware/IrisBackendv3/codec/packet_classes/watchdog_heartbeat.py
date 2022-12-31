@@ -4,7 +4,7 @@ This is used as a dense and minimally sized way to communicate the most
 important Watchdog statuses during cis-lunar transit.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/01/2022
+@last-updated: 12/31/2022
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -19,6 +19,9 @@ from ..payload_collection import EnhancedPayloadCollection
 
 from ..settings import ENDIANNESS_CODE
 from ..exceptions import PacketDecodingException
+
+# Borrow conversions from Detailed status:
+from .watchdog_detailed_status import WatchdogDetailedStatusPacketInterface
 
 from IrisBackendv3.data_standards.module import Module
 
@@ -62,7 +65,7 @@ class WatchdogHeartbeatPacketInterface(CustomPayloadPacket[CT, CPCT]):
         _BatteryVoltageOk: bool
         _BattAdcTempRaw: int
 
-        @ staticmethod
+        @staticmethod
         def despan(span: int,
                    num_bits: int,
                    min_val: float,
@@ -112,7 +115,7 @@ class WatchdogHeartbeatPacketInterface(CustomPayloadPacket[CT, CPCT]):
 
             return (span-span_min)/(span_max-span_min) * (max_val-min_val) + min_val
 
-        @ staticmethod
+        @staticmethod
         def span(val: float,
                  num_bits: int,
                  min_val: float,
@@ -179,8 +182,7 @@ class WatchdogHeartbeatPacketInterface(CustomPayloadPacket[CT, CPCT]):
 
         @property
         def BattAdcTempKelvin(self) -> float:
-            # ! TODO: This is wrong.
-            return self.despan(self._BattAdcTempRaw, 8, 75, -12.31, span_max=233)
+            return WatchdogDetailedStatusPacketInterface.CustomPayload.battery_adc_reading_to_kelvin(self._BattAdcTempRaw)
 
         # Make public get, private set to signal that you can freely use these values
         # but modifying them directly can yield undefined behavior (specifically
@@ -236,7 +238,7 @@ class WatchdogHeartbeatPacket(WHB_PI[WHB_PI, WHB_CP]):
     def __repr__(self) -> str:
         return self.custom_payload.__repr__()
 
-    @ classmethod
+    @classmethod
     def decode(cls,
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE
@@ -266,7 +268,7 @@ class WatchdogHeartbeatPacket(WHB_PI[WHB_PI, WHB_CP]):
         #!! TODO: IS NECESSARY FOR IPC (OR JUST ENCODE THAT STUFF IN A STATE) <- Not with new `Packet`-specific `__reduce__` strategy
         raise NotImplementedError()
 
-    @ classmethod
+    @classmethod
     def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
         """
         Determines whether the given bytes constitute a valid packet of this type.

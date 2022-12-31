@@ -480,11 +480,12 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
             # ! TODO: (pull from BACK HAL code + supporting samsung notes)
             return 0.0
 
-        def battery_adc_reading_to_kelvin(self, adc_reading) -> float:
+        @classmethod
+        def battery_adc_reading_to_kelvin(cls, adc_reading) -> float:
             return float(np.interp(
                 float(adc_reading),
-                self.BATT_5K_THERMISTOR_LOOKUP_TABLE['adc'][::-1],
-                self.BATT_5K_THERMISTOR_LOOKUP_TABLE['degC'][::-1]
+                cls.BATT_5K_THERMISTOR_LOOKUP_TABLE['adc'][::-1],
+                cls.BATT_5K_THERMISTOR_LOOKUP_TABLE['degC'][::-1]
             )) + 273.15
 
         @property

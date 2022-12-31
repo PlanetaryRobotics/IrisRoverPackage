@@ -44,7 +44,7 @@ GroundMsgs__Status GroundMsgs__generateFlightEarthHeartbeat(I2C_Sensors__Reading
     // Also, note, this is mostly meaningless in KA since the battery is
     // disconnected anyway, so we won't be able to read it.
     hb->battery_voltage_good = (adcValues->vBattSense > 2480) ? 1 : 0;
-    hb->battRT = (uint8_t)(adcValues->battRT >> 4);
+    hb->battTemp = (uint8_t)(adcValues->battRT >> 4);
 
     return GND_MSGS__STATUS__SUCCESS;
 }

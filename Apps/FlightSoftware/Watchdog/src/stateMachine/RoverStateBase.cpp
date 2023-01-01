@@ -257,13 +257,13 @@ namespace iris
         unsigned short thermReading = theContext.m_adcValues.battRT;
         HeaterParams &hParams = theContext.m_details.m_hParams;
 
-        if (thermReading > hParams.m_heaterOnVal)
+        if (!m_hParams.m_heating && thermReading > hParams.m_heaterOnVal)
         {
             // Start heating when temperature drops low enough, which we detect via the ADC reading rising above a
             // configured (either via the default value or a value commanded from ground) ADC reading.
             enableHeater();
         }
-        else if (thermReading < hParams.m_heaterOffVal)
+        else if (m_hParams.m_heating && thermReading < hParams.m_heaterOffVal)
         {
             // Start heating when temperature rises high enough, which we detect via the ADC reading falling below a
             // configured (either via the default value or a value commanded from ground) ADC reading.
@@ -632,7 +632,7 @@ namespace iris
                                 sendDeployNotificationResponse);
 
         case WD_CMD_MSGS__CMD_ID__REQUEST_DETAILED_REPORT:
-            /* Enter service mode */
+            /* Make sure magic is valid: */
             if (msg.body.reqDetReport.magic != WD_CMD_MSGS__CONFIRM_REQ_DET_REPORT_MAGIC_NUMBER)
             {
                 /* magic bad */
@@ -1367,7 +1367,7 @@ namespace iris
         }
     }
 
-    void RoverStateBase::sendDetailedReportToLander(RoverContext &theContext)
+    void RoverStateBase::sendDetailedReportToLander(RoverContext &theContext, bool alsoSendHeartbeats)
     {
         /* send detailed report */
         static DetailedReport report = {0};
@@ -1389,6 +1389,28 @@ namespace iris
         if (LANDER_COMMS__STATUS__SUCCESS != lcStatus)
         {
             //!< @todo Handling?
+        }
+
+        if (alsoSendHeartbeats)
+        {
+            static FlightEarthHeartbeat hb = {0};
+            GroundMsgs__Status gcStatus =
+                GroundMsgs__generateFlightEarthHeartbeat(&(theContext.m_i2cReadings),
+                                                         &(theContext.m_adcValues),
+                                                         &(theContext.m_details.m_hParams),
+                                                         &hb);
+
+            assert(GND_MSGS__STATUS__SUCCESS == gcStatus);
+
+            LanderComms__Status lcHbStatus = txDownlinkData(theContext,
+                                                            (uint8_t *)&hb,
+                                                            sizeof(hb));
+
+            assert(LANDER_COMMS__STATUS__SUCCESS == lcHbStatus);
+            if (LANDER_COMMS__STATUS__SUCCESS != lcHbStatus)
+            {
+                //!< @todo Handling?
+            }
         }
 
 #if DEBUG_REPORT
@@ -1782,6 +1804,13 @@ namespace iris
                 // of communicating something didn't work
             }
         }
+
+        // Report what we did (and under what conditions):
+        uint8_t resetConditions = allowPowerOn;
+        resetConditions = (resetConditions << 1) & allowDisableRs422;
+        resetConditions = (resetConditions << 1) & allowDeploy;
+        resetConditions = (resetConditions << 1) & allowUndeploy;
+        DebugComms__tryPrintfToLanderNonblocking("RESET:%u -> %u with 0x%02x\n", resetValue, response->statusCode, resetConditions);
     }
 
 } // End namespace iris

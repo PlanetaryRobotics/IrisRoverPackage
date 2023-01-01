@@ -25,3 +25,4 @@ from .watchdog_debug import *
 from .watchdog_hello import *
 from .watchdog_radio_debug import *
 from .watchdog_debug_important import *
+from .watchdog_reset_specific_ack import *

@@ -1813,5 +1813,4 @@ namespace iris
         DebugComms__tryPrintfToLanderNonblocking("RESET:%d -> %d with 0x%x\n", int(resetValue), int(response->statusCode), resetConditions);
     }
 
-} // End namespace iris            // configured (either via the default value or a value commanded from ground) ADC reading.
-
+} // End namespace iris

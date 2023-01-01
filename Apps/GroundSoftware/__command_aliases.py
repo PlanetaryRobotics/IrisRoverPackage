@@ -525,6 +525,43 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRED
     ),
 
+    'heater-force-off': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='HEATER_FORCE_OFF'),
+        DataPathway.WIRED
+    ),
+    'heater-force-on': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='HEATER_FORCE_ON'),
+        DataPathway.WIRED
+    ),
+    'heater-force-nothing': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='HEATER_FORCE_NOTHING'),
+        DataPathway.WIRED
+    ),
+
+    'set-heater-on-level': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetAutoHeaterOnValue',
+        OrderedDict(on=4000),
+        DataPathway.WIRED
+    ),
+    'set-heater-off-level': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetAutoHeaterOffValue',
+        OrderedDict(off=1500),
+        DataPathway.WIRED
+    ),
+
 
 
 

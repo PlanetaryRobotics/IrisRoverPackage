@@ -280,18 +280,43 @@ namespace iris
             hParams.m_thresholdsChanged = false;
         }
 
-        // Normal controller operation:
-        if (!hParams.m_heating && thermReading > hParams.m_heaterOnVal)
+        // Check for failure cases, in which case, turn the heater on:
+        if (thermReading < 5)
         {
-            // Start heating when temperature drops low enough, which we detect via the ADC reading rising above a
-            // configured (either via the default value or a value commanded from ground) ADC reading.
-            enableHeater();
+            // if the sensor is giving an ADC reading of basically 0, we
+            // probably have an open circuit. For safety, enable the heater:
+            if (!hParams.m_heating)
+            {
+                // Let Earth know we're turning on the Heat (this might be during an LOS):
+                DebugComms__tryPrintfToLanderNonblocking("POSSIBLE BATT_RT THERMISTOR FAILURE DETECTED. ADC < 5. ENABLING HEATER FOR SAFETY. RECOMMEND MANUAL HEATER CONTROL.");
+                enableHeater();
+            }
         }
-        else if (hParams.m_heating && thermReading < hParams.m_heaterOffVal)
+        else
         {
-            // Start heating when temperature rises high enough, which we detect via the ADC reading falling below a
-            // configured (either via the default value or a value commanded from ground) ADC reading.
-            disableHeater();
+            // Normal controller state machine operation:
+            if (hParams.m_heating)
+            {
+                // In the HEATER_ON state...
+                if (thermReading < hParams.m_heaterOffVal)
+                {
+                    // transition to HEATER_OFF
+                    // Start heating when temperature rises high enough, which we detect via the ADC reading falling below a
+                    // configured (either via the default value or a value commanded from ground) ADC reading.
+                    disableHeater();
+                }
+            }
+            else
+            {
+                // In the HEATER_OFF state...
+                if (thermReading > hParams.m_heaterOnVal)
+                {
+                    // transition to HEATER_ON
+                    // Start heating when temperature drops low enough, which we detect via the ADC reading rising above a
+                    // configured (either via the default value or a value commanded from ground) ADC reading.
+                    enableHeater();
+                }
+            }
         }
     }
 

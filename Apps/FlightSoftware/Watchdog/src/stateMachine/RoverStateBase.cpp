@@ -1810,7 +1810,8 @@ namespace iris
         resetConditions = (resetConditions << 1) & allowDisableRs422;
         resetConditions = (resetConditions << 1) & allowDeploy;
         resetConditions = (resetConditions << 1) & allowUndeploy;
-        DebugComms__tryPrintfToLanderNonblocking("RESET:%l -> %l with 0x%x\n", uint16_t(resetValue), response->statusCode, resetConditions);
+        DebugComms__tryPrintfToLanderNonblocking("RESET:%d -> %d with 0x%x\n", int(resetValue), int(response->statusCode), resetConditions);
     }
 
-} // End namespace iris
+} // End namespace iris            // configured (either via the default value or a value commanded from ground) ADC reading.
+

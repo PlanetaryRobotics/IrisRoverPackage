@@ -1806,11 +1806,11 @@ namespace iris
         }
 
         // Report what we did (and under what conditions):
-        uint8_t resetConditions = allowPowerOn;
+        uint16_t resetConditions = allowPowerOn;
         resetConditions = (resetConditions << 1) & allowDisableRs422;
         resetConditions = (resetConditions << 1) & allowDeploy;
         resetConditions = (resetConditions << 1) & allowUndeploy;
-        DebugComms__tryPrintfToLanderNonblocking("RESET:%u -> %u with 0x%02x\n", resetValue, response->statusCode, resetConditions);
+        DebugComms__tryPrintfToLanderNonblocking("RESET:%l -> %l with 0x%x\n", uint16_t(resetValue), response->statusCode, resetConditions);
     }
 
 } // End namespace iris

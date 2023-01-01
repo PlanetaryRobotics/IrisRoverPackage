@@ -555,9 +555,9 @@ inline void enableHeater(void)
 {
     // For safety against some register having been bitflipped, just reaffirm
     // all heater (P2.2) related settings when turning on:
-    TB0CCR0 = detailsPtr->hParams->m_heaterDutyCyclePeriod - 1;
+    TB0CCR0 = detailsPtr->m_hParams.m_heaterDutyCyclePeriod - 1;
     TB0CCTL2 = OUTMOD_7;
-    TB0CCR2 = detailsPtr->hParams->m_heaterDutyCycle;
+    TB0CCR2 = detailsPtr->m_hParams.m_heaterDutyCycle;
     TB0CTL |= MC__UP;
     P2DIR |= BIT2;
     P2OUT &= ~BIT2;

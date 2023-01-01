@@ -109,7 +109,7 @@ namespace iris
         if (theContext.m_sendDetailedReport)
         {
             theContext.m_sendDetailedReport = false;
-            sendDetailedReportToLander(theContext);
+            sendDetailedReportToLander(theContext, true);
         }
 
         return getState();

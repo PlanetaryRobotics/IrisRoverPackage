@@ -253,9 +253,37 @@ namespace iris
 
     void RoverStateBase::heaterControl(RoverContext &theContext)
     {
-        unsigned short thermReading = theContext.m_adcValues.battRT;
         HeaterParams &hParams = theContext.m_details.m_hParams;
+        unsigned short thermReading;
+        if (m_hParams.m_inputSource == HEATER_CONTROL_INPUT_CHARGER)
+        {
+            thermReading = theContext.m_adcValues.battTherm;
+        }
+        else
+        {
+            // Default case (in case of bitflips, etc.), use normal thermistor:
+            thermReading = theContext.m_adcValues.battRT;
+        }
 
+        // Process force states and eject early (nothing more to do):
+        if (hParams.m_forceState == HEATER_FORCE_ALWAYS_ON)
+        {
+            if (!hParams.m_heating)
+            {
+                enableHeater();
+            }
+            return;
+        }
+        else if (hParams.m_forceState == HEATER_FORCE_ALWAYS_OFF)
+        {
+            if (hParams.m_heating)
+            {
+                disableHeater();
+            }
+            return;
+        }
+
+        // Check for threshold changes that need to be handled first:
         if (hParams.m_thresholdsChanged)
         {
             // Ground operators changed the thresholds. Re-evaluate against
@@ -280,11 +308,14 @@ namespace iris
             hParams.m_thresholdsChanged = false;
         }
 
-        // Check for failure cases, in which case, turn the heater on:
+        // Check for failure cases, in which case, turn the heater ON:
         if (thermReading < 5)
         {
             // if the sensor is giving an ADC reading of basically 0, we
-            // probably have an open circuit. For safety, enable the heater:
+            // probably have an open circuit (at max T for the thermistor
+            // (+155C), we only go as low as ~45).
+            // For safety, enable the heater (unless told explicitly not to do
+            // so via a force state):
             if (!hParams.m_heating)
             {
                 // Let Earth know we're turning on the Heat (this might be during an LOS):
@@ -300,7 +331,7 @@ namespace iris
                 // In the HEATER_ON state...
                 if (thermReading < hParams.m_heaterOffVal)
                 {
-                    // transition to HEATER_OFF
+                    // if we should turn OFF and we're not being forced ON, transition to HEATER_OFF
                     // Start heating when temperature rises high enough, which we detect via the ADC reading falling below a
                     // configured (either via the default value or a value commanded from ground) ADC reading.
                     disableHeater();
@@ -311,7 +342,7 @@ namespace iris
                 // In the HEATER_OFF state...
                 if (thermReading > hParams.m_heaterOnVal)
                 {
-                    // transition to HEATER_ON
+                    // if we should turn ON and we're not being forced OFF, transition to HEATER_ON
                     // Start heating when temperature drops low enough, which we detect via the ADC reading rising above a
                     // configured (either via the default value or a value commanded from ground) ADC reading.
                     enableHeater();
@@ -1803,6 +1834,53 @@ namespace iris
             SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__AUTO_HEATER_CONTROLLER_DISABLE);
             break;
 
+        case WD_CMD_MSGS__RESET_ID__HEATER_FORCE_OFF:
+            theContext.m_details.m_hParams.m_forceState = HEATER_FORCE_ALWAYS_OFF;
+            disableHeater();
+            break;
+        case WD_CMD_MSGS__RESET_ID__HEATER_FORCE_ON:
+            theContext.m_details.m_hParams.m_forceState = HEATER_FORCE_ALWAYS_ON;
+            enableHeater();
+            break;
+        case WD_CMD_MSGS__RESET_ID__HEATER_FORCE_NOTHING:
+            theContext.m_details.m_hParams.m_forceState = HEATER_FORCE_NOTHING;
+            break;
+        case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_USE_RT_INPUT:
+            theContext.m_details.m_hParams.m_inputSource = HEATER_CONTROL_INPUT_BATT_RT;
+            break;
+        case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_USE_CHARGER_INPUT_DEACTIVATE:
+            // Disable charger circuitry so we can return to normal:
+            blimp_regEnOff();
+            blimp_chargerEnOff();
+            blimp_battEnOff();
+            break;
+        case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_USE_CHARGER_INPUT_ACTIVATE:
+            // Assert that charging should not happen:
+            blimp_chargerEnOff();
+            // Turn on (but don't latch) the batteries (might be unsafe to turn
+            // on charger without the batteries connected, even with CE=OFF...
+            // need to test on SBC with BLiMP to determine).
+            // NOTE: So long as lander power is supplied, this shouldn't do
+            // anything since everything will be powered off lander power before
+            // battery power and since the batteries won't be latched, once
+            // lander power is removed, they should power back off.
+            blimp_battEnOn();
+            // Then power up the charging regulator so the charging IC can
+            // create the VREF used by the charging TS:
+            // (unfortunately we can't just use an internal pullup with the ADC
+            // on the MSP430 so we have to do this this way)
+            blimp_regEnOn();
+            // NOTE: Even if CE=OFF fails for some reason, if the batteries
+            // were to remain disconnected, charging wouldn't be able to
+            // happen (and this open circuit shouldn't cause an issue for the
+            // battery charging IC b/c it has over-voltage protection to handle
+            // a battery/load disconnect case).
+            break;
+        case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_USE_CHARGER_INPUT:
+            // Just set the input source, don't change the circuitry (this might
+            // be desirable and lets us arm before actually messing with the circuitry):
+            theContext.m_details.m_hParams.m_inputSource = HEATER_CONTROL_INPUT_CHARGER;
+            break;
         case WD_CMD_MSGS__RESET_ID__HERCULES_WATCHDOG_ENABLE:
             theContext.m_watchdogOpts |= WDOPT_MONITOR_HERCULES;
             SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HERCULES_WATCHDOG_ENABLE);

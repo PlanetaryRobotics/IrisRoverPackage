@@ -75,6 +75,8 @@ namespace iris
         m_context.m_details.m_hParams.m_heaterDutyCyclePeriod = DEFAULT_HEATER_DUTY_CYCLE_PERIOD;
         m_context.m_details.m_hParams.m_heaterDutyCycle = DEFAULT_HEATER_DUTY_CYCLE;
         m_context.m_details.m_hParams.m_thresholdsChanged = true;
+        m_context.m_details.m_hParams.m_forceState = HEATER_FORCE_NOTHING;
+        m_context.m_details.m_hParams.m_inputSource = HEATER_CONTROL_INPUT_BATT_RT;
         m_context.m_details.m_stateAsUint = static_cast<uint8_t>(RoverState::ENTERING_KEEP_ALIVE);
         m_context.m_details.m_inputPinAndStateBits = 0;
         m_context.m_details.m_outputPinBits = 0;

@@ -41,6 +41,25 @@ extern "C"
 #define ENTER_DEFAULT_LPM LPM1
 #define EXIT_DEFAULT_LPM LPM1_EXIT
 
+        typedef enum Heater_ForceState
+        {
+                // force the heater to always be on or off (at whatever duty)
+                // - using specific enums to make it hard to be bitflipped
+                // into this state.
+                HEATER_FORCE_ALWAYS_ON = 0xAA,  // heater always ON
+                HEATER_FORCE_ALWAYS_OFF = 0x55, // heater always OFF
+                HEATER_FORCE_NOTHING = 0xFF     // let heater control do its thing
+        } Heater_ForceState;
+
+        typedef enum HeaterControl_InputSource
+        {
+                // force the heater to always be on or off (at whatever duty)
+                // - using specific enums to make it hard to be bitflipped
+                // into this state.
+                HEATER_CONTROL_INPUT_BATT_RT = 0xAA, // Use Normal Battery RT Thermistor (Default)
+                HEATER_CONTROL_INPUT_CHARGER = 0x55, // Power up the Charging IC, Don't Charge, and use the Charging Thermistor (only as a last ditch effort)
+        } HeaterControl_InputSource;
+
         typedef struct HeaterParams
         {
                 uint16_t m_kpHeater;
@@ -53,7 +72,9 @@ extern "C"
                 BOOL m_heatingControlEnabled;
                 uint16_t m_heaterDutyCyclePeriod;
                 uint16_t m_heaterDutyCycle;
-                BOOL m_thresholdsChanged; // flag that the on or off thresholds have changed since they were last checked
+                BOOL m_thresholdsChanged;                // flag that the on or off thresholds have changed since they were last checked
+                Heater_ForceState m_forceState;          // force the heater to always be on or off (at whatever duty) - using specific enums to make it hard to be bitflipped into this state.
+                HeaterControl_InputSource m_inputSource; // what sensor should drive the heater controller (note, changing this should be accompanied by changing thresholds)
         } HeaterParams;
 
 #define DEFAULT_KP_HEATER 500        // deprecated

@@ -110,8 +110,6 @@ class WatchdogResetSpecificAckPacket(WatchdogResetSpecificAckPacketInterface[Wat
                 self._allowDeploy = bool(resetConditions & 0b0010)
                 self._allowUndeploy = bool(resetConditions & 0b0001)
             except Exception as e:
-                print(e)
-                exit()
                 bad_formatting = True
         if bad_formatting:
             # Raise an exception (so this will become an `UnsupportedPacket`):

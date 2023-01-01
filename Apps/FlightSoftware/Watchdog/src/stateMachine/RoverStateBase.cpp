@@ -257,13 +257,13 @@ namespace iris
         unsigned short thermReading = theContext.m_adcValues.battRT;
         HeaterParams &hParams = theContext.m_details.m_hParams;
 
-        if (thermReading > hParams.m_heaterOnVal)
+        if (!m_hParams.m_heating && thermReading > hParams.m_heaterOnVal)
         {
             // Start heating when temperature drops low enough, which we detect via the ADC reading rising above a
             // configured (either via the default value or a value commanded from ground) ADC reading.
             enableHeater();
         }
-        else if (thermReading < hParams.m_heaterOffVal)
+        else if (m_hParams.m_heating && thermReading < hParams.m_heaterOffVal)
         {
             // Start heating when temperature rises high enough, which we detect via the ADC reading falling below a
             // configured (either via the default value or a value commanded from ground) ADC reading.

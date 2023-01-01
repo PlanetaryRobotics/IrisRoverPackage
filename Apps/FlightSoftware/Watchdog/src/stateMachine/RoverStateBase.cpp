@@ -9,6 +9,7 @@
 #include "drivers/uart.h"
 #include "event/event.h"
 #include "event/event_queue.h"
+#include "utils/time.h"
 
 #include "comms/ground_msgs.h"
 #include "watchdog.h"
@@ -309,11 +310,14 @@ namespace iris
         }
 
         // Check for failure cases, in which case, turn the heater ON:
-        if (thermReading < 5)
+        if (thermReading < 5 && Time__getTimeInCentiseconds() > 6000)
         {
             // if the sensor is giving an ADC reading of basically 0, we
             // probably have an open circuit (at max T for the thermistor
             // (+155C), we only go as low as ~45).
+            // NOTE: We provide a 60s grace period for everything to initialize.
+            // This is way longer than necessary but it's relatively short on
+            // thermal time-scales so this is fine.
             // For safety, enable the heater (unless told explicitly not to do
             // so via a force state):
             if (!hParams.m_heating)

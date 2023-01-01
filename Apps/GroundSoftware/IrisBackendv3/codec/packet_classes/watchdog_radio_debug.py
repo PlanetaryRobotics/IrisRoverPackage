@@ -9,7 +9,8 @@ to the console.
 """
 from __future__ import annotations
 
-from prompt_toolkit import formatted_text  # Activate postponed annotations (for using classes as return type in their own methods)
+# Activate postponed annotations (for using classes as return type in their own methods)
+from prompt_toolkit import formatted_text
 
 from .packet import Packet, CT
 
@@ -56,8 +57,8 @@ class WatchdogRadioDebugPacket(WatchdogRadioDebugPacketInterface[WatchdogRadioDe
 
         if payloads is None:
             # Except possibly in future subclasses, this should normally be
-            # empty for an `WatchdogDebugPacket`. `payloads` needs to stay as
-            # an `__init__` arg to avoid violating the Liskov substitution
+            # empty for an `WatchdogRadioDebugPacket`. `payloads` needs to stay
+            # as an `__init__` arg to avoid violating the Liskov substitution
             # principle.
             payloads = EnhancedPayloadCollection()
 

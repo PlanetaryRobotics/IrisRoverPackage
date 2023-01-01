@@ -4,8 +4,6 @@ acknowledging a reset specific command and providing info about what occurred.
 This packet type doesn't contain any telemetry (for now, should get converted
 to a `EventPayload` eventually) and is just printed to the console.
 
-# ! TODO: (WORKING-HERE): Add result field to GSW and FSW then test. + COLOR
-
 @author: Connor W. Colombo (CMU)
 @last-updated: 01/01/2023
 """
@@ -50,7 +48,7 @@ class WatchdogResetSpecificAckPacket(WatchdogResetSpecificAckPacketInterface[Wat
         '_resetId',
         '_resultStatusCode',
         '_allowPowerOn',
-        '_allowDisableRs422',
+        '_allowDisableRS422',
         '_allowDeploy',
         '_allowUndeploy'
     ]
@@ -58,7 +56,7 @@ class WatchdogResetSpecificAckPacket(WatchdogResetSpecificAckPacketInterface[Wat
     _resetId: int
     _resultStatusCode: int
     _allowPowerOn: bool
-    _allowDisableRs422: bool
+    _allowDisableRS422: bool
     _allowDeploy: bool
     _allowUndeploy: bool
 
@@ -96,7 +94,7 @@ class WatchdogResetSpecificAckPacket(WatchdogResetSpecificAckPacketInterface[Wat
 
         # Strip off fixed prefix:
         core_data = self._raw[len(FIXED_PREFIX):]
-        # Unpack fields from format: "RESET:%u -> %u with 0x%02x\n"
+        # Unpack fields from format: "RESET:%d -> %d with 0x%x\n"
         fields = core_data.strip().split(b' ')
         bad_formatting = False
         if len(fields) != 5:
@@ -105,16 +103,19 @@ class WatchdogResetSpecificAckPacket(WatchdogResetSpecificAckPacketInterface[Wat
             try:
                 # Formatting is correct. Extract data:
                 self._resetId = int(fields[0])
-                self._resultStatusCode = int(fields[3])
+                self._resultStatusCode = int(fields[2])
                 resetConditions = int(fields[-1], 16)
                 self._allowPowerOn = bool(resetConditions & 0b1000)
                 self._allowDisableRS422 = bool(resetConditions & 0b0100)
                 self._allowDeploy = bool(resetConditions & 0b0010)
                 self._allowUndeploy = bool(resetConditions & 0b0001)
-            except Exception:
+            except Exception as e:
+                print(e)
+                exit()
                 bad_formatting = True
         if bad_formatting:
             # Raise an exception (so this will become an `UnsupportedPacket`):
+
             raise PacketDecodingException(
                 self._raw,
                 (
@@ -134,12 +135,12 @@ class WatchdogResetSpecificAckPacket(WatchdogResetSpecificAckPacketInterface[Wat
         else:
             try:
                 module = CodecSettings['STANDARDS'].modules['WatchDogInterface']
-                command = module.commands['ResetSpecific']
+                command = module.commands['WatchDogInterface_ResetSpecific']
                 arg = command.args[0]
                 name = arg.get_enum_name(self._resetId)
                 return str(name)
             except Exception:
-                return 'NOT-FOUND'
+                return f'NOT-FOUND ({self._resetId})'
 
     @property
     def resetResult(self) -> str:
@@ -154,7 +155,7 @@ class WatchdogResetSpecificAckPacket(WatchdogResetSpecificAckPacketInterface[Wat
                 name = channel.get_enum_name(self._resultStatusCode)
                 return str(name)
             except Exception:
-                return 'NOT-FOUND'
+                return f'NOT-FOUND ({self._resultStatusCode})'
 
     @classmethod
     def decode(cls,
@@ -195,15 +196,15 @@ class WatchdogResetSpecificAckPacket(WatchdogResetSpecificAckPacketInterface[Wat
         else:
             msg = self._raw.decode().strip()
         return (
-            colored(f" {msg} ", 'black', 'on_grey', ['bold']) +
-            colored(f": {self.resetFieldName} -> {self.resetResult}", 'grey', attrs=['bold']) +
+            colored(f" {msg} ", 'white', 'on_yellow', ['bold']) +
+            colored(f": {self.resetFieldName} -> {self.resetResult}", 'yellow', attrs=['bold']) +
             colored(
                 f", allowing\t "
                 f"(PowerOn: {'✓' if self._allowPowerOn else '𐄂'},\t "
-                f"Rs422Off: {'✓' if self._allowDisableRs422 else '𐄂'},\t "
-                f"Deploy: {'✓' if self._allowDisableRs422 else '𐄂'},\t "
-                f"Undeploy: {'✓' if self._allowDisableRs422 else '𐄂'}).",
-                'grey'
+                f"Rs422Off: {'✓' if self._allowDisableRS422 else '𐄂'},\t "
+                f"Deploy: {'✓' if self._allowDeploy else '𐄂'},\t "
+                f"Undeploy: {'✓' if self._allowUndeploy else '𐄂'}).",
+                'white'
             )
         )
 

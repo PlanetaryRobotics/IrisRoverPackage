@@ -255,9 +255,9 @@ namespace iris
     {
         HeaterParams &hParams = theContext.m_details.m_hParams;
         unsigned short thermReading;
-        if (m_hParams.m_inputSource == HEATER_CONTROL_INPUT_CHARGER)
+        if (hParams.m_inputSource == HEATER_CONTROL_INPUT_CHARGER)
         {
-            thermReading = theContext.m_adcValues.battTherm;
+            thermReading = theContext.m_adcValues.battTemp;
         }
         else
         {

@@ -113,7 +113,6 @@ class WatchdogResetSpecificAckPacket(WatchdogResetSpecificAckPacketInterface[Wat
                 bad_formatting = True
         if bad_formatting:
             # Raise an exception (so this will become an `UnsupportedPacket`):
-
             raise PacketDecodingException(
                 self._raw,
                 (

@@ -995,7 +995,8 @@ namespace iris
                                                           bool &sendDeployNotificationResponse)
     {
         const uint16_t &newDutyCycle = msg.body.setHeaterDutyCycle.dutyCycle;
-        if (newDutyCycle <= theContext.m_details.m_hParams.m_heaterDutyCyclePeriod)
+        // NOTE: TB0CCR0 (max count) is set to m_heaterDutyCyclePeriod-1 (so we need to be < that).
+        if (newDutyCycle < theContext.m_details.m_hParams.m_heaterDutyCyclePeriod)
         {
             TB0CCR2 = newDutyCycle;
             theContext.m_details.m_hParams.m_heaterDutyCycle = newDutyCycle;

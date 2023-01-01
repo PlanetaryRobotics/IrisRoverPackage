@@ -253,10 +253,34 @@ namespace iris
 
     void RoverStateBase::heaterControl(RoverContext &theContext)
     {
-        // voltage, where LSB = 0.0008056640625V
         unsigned short thermReading = theContext.m_adcValues.battRT;
         HeaterParams &hParams = theContext.m_details.m_hParams;
 
+        if (hParams.m_thresholdsChanged)
+        {
+            // Ground operators changed the thresholds. Re-evaluate against
+            // thresholds:
+            if (thermReading > hParams.m_heaterOnVal)
+            {
+                enableHeater();
+            }
+            else if (thermReading < hParams.m_heaterOffVal)
+            {
+                disableHeater();
+            }
+            else
+            {
+                // We're somewhere in the middle, in which case, for safety, we
+                // should default to ON.
+                // NOTE: unless the settings were intentionally configured
+                // weirdly during mission, there should be no middle ground
+                // because Toff should be > Ton (that is ADCoff < ADCon b/c NTC)
+                enableHeater();
+            }
+            hParams.m_thresholdsChanged = false;
+        }
+
+        // Normal controller operation:
         if (!hParams.m_heating && thermReading > hParams.m_heaterOnVal)
         {
             // Start heating when temperature drops low enough, which we detect via the ADC reading rising above a
@@ -973,6 +997,8 @@ namespace iris
                                                             bool &sendDeployNotificationResponse)
     {
         theContext.m_details.m_hParams.m_heaterOnVal = msg.body.setAutoHeaterOnValue.heaterOnValue;
+        // Flag that the thresholds have changed:
+        theContext.m_details.m_hParams.m_thresholdsChanged = true;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }
@@ -984,6 +1010,8 @@ namespace iris
                                                              bool &sendDeployNotificationResponse)
     {
         theContext.m_details.m_hParams.m_heaterOffVal = msg.body.setAutoHeaterOffValue.heaterOffValue;
+        // Flag that the thresholds have changed:
+        theContext.m_details.m_hParams.m_thresholdsChanged = true;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
     }

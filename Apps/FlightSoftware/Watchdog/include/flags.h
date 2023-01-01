@@ -53,6 +53,7 @@ extern "C"
                 BOOL m_heatingControlEnabled;
                 uint16_t m_heaterDutyCyclePeriod;
                 uint16_t m_heaterDutyCycle;
+                BOOL m_thresholdsChanged; // flag that the on or off thresholds have changed since they were last checked
         } HeaterParams;
 
 #define DEFAULT_KP_HEATER 500        // deprecated

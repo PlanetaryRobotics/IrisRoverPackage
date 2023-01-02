@@ -82,9 +82,9 @@ extern "C"
 #define DEFAULT_HEATER_SETPOINT 3325 // deprecated
 #define DEFAULT_HEATER_WINDOW 60     // deprecated
 // 3670 is the -5 deg C thermistor voltage ADC reading - heater transitions to ON when T ADC < this value:
-#define DEFAULT_HEATER_ON_VAL 3670
+#define DEFAULT_HEATER_ON_VAL 2781
 // 3670 is the 0 deg C thermistor voltage ADC reading - heater transitions to OFF when T ADC > this value:
-#define DEFAULT_HEATER_OFF_VAL 3352
+#define DEFAULT_HEATER_OFF_VAL 2291
 #define DEFAULT_HEATING_CONTROL_ENABLED TRUE
 #define DEFAULT_HEATER_DUTY_CYCLE_PERIOD 10000
 #define DEFAULT_HEATER_DUTY_CYCLE 8500

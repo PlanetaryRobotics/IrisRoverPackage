@@ -56,7 +56,7 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
         # TODO: 5k table taken from old Avionics conversion sheet. not yet checked/verified. (check it)
         BATT_5K_THERMISTOR_LOOKUP_TABLE = {  # for 5k thermistor: https://www.tdk-electronics.tdk.com/inf/50/db/ntc/NTC_Mini_sensors_S863.pdf
             'degC': np.asarray([-15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155]),
-            'adc': np.asarray([4242, 3970, 3670, 3352, 3023, 2695, 2378, 2077, 1801, 1552, 1330, 1137, 969, 825, 702, 598, 510, 435, 372, 319, 274, 237, 204, 177, 154, 134, 117, 103, 90, 79, 70, 62, 55, 49, 44])
+            'adc': np.asarray([3214, 3008, 2781, 2540, 2291, 2042, 1801, 1574, 1365, 1176, 1008, 861, 734, 625, 532, 453, 386, 329, 282, 242, 208, 179, 155, 134, 116, 102, 89, 78, 68, 60, 53, 47, 42, 37, 33])
         }
         BATT_CHRG_10K_THERMISTOR_LOOKUP_TABLE = {  # for 10k thermistor (NTC10k_B57863S0103F040)
             'degC': np.asarray([-55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155]),

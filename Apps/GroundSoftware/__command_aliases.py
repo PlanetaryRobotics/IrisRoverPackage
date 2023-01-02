@@ -551,14 +551,14 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_SetAutoHeaterOnValue',
-        OrderedDict(on=4000),
+        OrderedDict(on=1000),
         DataPathway.WIRED
     ),
     'set-heater-off-level': (
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_SetAutoHeaterOffValue',
-        OrderedDict(off=1500),
+        OrderedDict(off=500),
         DataPathway.WIRED
     ),
 

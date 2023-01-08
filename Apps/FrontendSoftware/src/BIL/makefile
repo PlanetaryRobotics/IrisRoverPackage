@@ -87,6 +87,7 @@ build-bil:
 	./dev-setup.sh
 	./build_py_protos.sh
 	./build_js_protos.sh
+	./build_cs_protos.sh
 	set +x
 
 ####

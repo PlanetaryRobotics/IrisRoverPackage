@@ -1,7 +1,6 @@
 // Prototype proto for the BIL used by ARTEMIS (Python-Unity).
 syntax = "proto3";
 
-import "time.proto";
 import "db.proto";
 
 package iris_artemis_bil;

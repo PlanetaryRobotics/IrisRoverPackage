@@ -11,19 +11,18 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from . import time_pb2 as time__pb2
-from . import db_pb2 as db__pb2
+import db_pb2 as db__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11\x61rtemis_bil.proto\x12\x10iris_artemis_bil\x1a\ntime.proto\x1a\x08\x64\x62.proto\"\x1f\n\x0cSendTelemAck\x12\x0f\n\x07success\x18\x01 \x01(\x08\x32P\n\nArtemisBil\x12\x42\n\tSendTelem\x12\x13.iris_bil.TelemItem\x1a\x1e.iris_artemis_bil.SendTelemAck\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11\x61rtemis_bil.proto\x12\x10iris_artemis_bil\x1a\x08\x64\x62.proto\"\x1f\n\x0cSendTelemAck\x12\x0f\n\x07success\x18\x01 \x01(\x08\x32P\n\nArtemisBil\x12\x42\n\tSendTelem\x12\x13.iris_bil.TelemItem\x1a\x1e.iris_artemis_bil.SendTelemAck\"\x00\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'artemis_bil_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  _SENDTELEMACK._serialized_start=61
-  _SENDTELEMACK._serialized_end=92
-  _ARTEMISBIL._serialized_start=94
-  _ARTEMISBIL._serialized_end=174
+  _SENDTELEMACK._serialized_start=49
+  _SENDTELEMACK._serialized_end=80
+  _ARTEMISBIL._serialized_start=82
+  _ARTEMISBIL._serialized_end=162
 # @@protoc_insertion_point(module_scope)

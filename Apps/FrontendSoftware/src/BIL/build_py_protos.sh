@@ -3,10 +3,6 @@ IRIS_BIL_PROTOS_DIR="./protos_src"
 PY_PACKAGE_NAME="built_protos"
 IRIS_BIL_PROTOS_PY_OUT_DIR="./py_src/$PY_PACKAGE_NAME"
 
-IRIS_BIL_PROTO_MAIN="$IRIS_BIL_PROTOS_DIR/bil.proto"
-IRIS_BIL_PROTO_TIME_DEF="$IRIS_BIL_PROTOS_DIR/time.proto"
-IRIS_BIL_PROTO_DB_DEF="$IRIS_BIL_PROTOS_DIR/db.proto"
-
 mkdir -p $IRIS_BIL_PROTOS_PY_OUT_DIR
 
 pyenv exec python3 -m grpc_tools.protoc \

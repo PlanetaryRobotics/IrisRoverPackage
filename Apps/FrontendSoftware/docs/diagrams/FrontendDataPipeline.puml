@@ -1,0 +1,47 @@
+@startuml Iris Frontend Terminal - Data Pipeline Architecture
+
+!theme crt-amber
+
+skinparam DefaultTextAlignment center
+
+left header
+= <b>Iris Frontend Terminal - Data Pipeline Architecture</b>
+* Shows how data flows from Iris' Ground Software GDS Backend to the various components of the Frontend interface.
+* The architecture outside of the Frontend application is for illustration only and details the This diagram details the interim (pre-IPC) architecture used during 2023 pre-mission simulations.
+endheader
+
+' External Architecture
+component "ARTEMIS Sim\n[Unity]" as Unity
+component "ARTEMIS Backend\n[py]" as ARTEMIS
+component "MongoDB\n[AWS/MiLAN]" as MDB
+component "MOC God\n[py]" as MOC
+
+ARTEMIS .right.> Unity : "Commands (CSV)"
+Unity .left.> ARTEMIS : "Images (FS)"
+Unity .left.> ARTEMIS : "Telemetry (ZMQ)"
+
+ARTEMIS .down.> MDB : "Basic\nCRUD\n(https)"
+MDB .up.> ARTEMIS : "Change\nStream\n(https)"
+
+MOC .left.> MDB : "Basic CRUD (https)"
+
+' Frontend Application
+rectangle "Frontend Application" as Frontend {
+    component "Backend Interface Layer (BIL)\n[gRPC Server, py]" as BIL
+    component "Electron Backend\n[gRPC Client, NodeJS]" as elec
+    component "Window 1\n[Vue]" as Vue1
+    component "Window 2\n[Vue]" as Vue2
+    component "etc...\n[Vue]" as Vue3
+    BIL -up-> MDB : "Basic\nCRUD\n(https)"
+    MDB -down-> BIL : "Change\nStream\n(https)"
+
+    elec -left-> BIL : "New Data"
+    BIL -right-> elec : "Data Request / Command"
+
+    elec <-down-> Vue1
+    elec <-down-> Vue2
+    elec <-down-> Vue3 : "Electron IPC\n(Preloader Events \n Callbacks)"
+}
+
+' left footer "\n\n\n* Example footer for explanation of diagram symbols."
+@enduml

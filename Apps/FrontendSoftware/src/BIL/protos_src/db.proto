@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+import "time.proto";
+
+package iris_bil;
+
+// Common way to uniquely identify all pieces of data in the database:
+message DatabaseId {
+    // ULID for this piece of data (created at generation time, even before being
+    // logged in the DB):
+    // NOTE: This is ULID, not UUID. Similar but has shorter string representation
+    // and is lexicographically sortable.
+    string ulid = 1;
+    // lookupId (1-index) in the database collection, for legacy support
+    int32 lookupId = 2;
+}
+
+message DataUnitValue {
+    // Allowable values for 'DataUnit's (discrete pieces of data able to be passed
+    // to or from the rover - FPrime Command Args, Telemetry Channel Values, Event 
+    // Args):
+    oneof val {
+    string str_val = 1;
+    int32 int_val = 2;
+    float float_val = 3;
+    string string_val = 4;
+    }
+}
+
+message TelemItem {
+    DatabaseId dbid = 1;
+    string channel_name = 2;
+    DataUnitValue val = 3;
+    repeated IrisDownlinkTimestamp timestamps = 4;
+}
+
+message EventArg {
+    string name = 1;
+    DataUnitValue val = 2;
+}
+
+message Event {
+    DatabaseId dbid = 1;
+    string event_name = 2;
+    repeated EventArg args = 3;
+    repeated IrisDownlinkTimestamp timestamps = 4;
+}
+
+message CommandArg {
+    string name = 1;
+    DataUnitValue val = 2;
+}
+
+message Command {
+    enum CommandType {
+    FSW_COMMAND = 0; // Raw FSW command, passed straight along
+    META_COMMAND = 1; // Meta command that converts units and possibly sythesizes multiple commands
+    ALIAS_COMMAND = 2; // Arg-less single command / verb that triggers a FSW-Command or Meta-Command with pre-specified args.
+    }
+
+    string ulid = 1; // NOTE: DBID doesn't exist yet.
+    CommandType type = 2;
+    string name = 3;
+    repeated CommandArg args = 4;
+    repeated IrisUplinkTimestamp timestamps = 5;
+}

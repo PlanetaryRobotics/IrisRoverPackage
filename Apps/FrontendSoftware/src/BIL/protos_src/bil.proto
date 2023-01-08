@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+import "time.proto";
+import "db.proto";
+
+package iris_bil;
+
+// Backend Interface Layer Service Definition:
+service Bil {
+  // Aliveness Ping (for debugging):
+  rpc Ping (PingMessage) returns (PingMessage) {}
+
+  // Tells the BIL to push the given command to the database:
+  rpc SendCommand (Command) returns (InternalCommandAck) {}
+
+  // Generic one-time request for stored data
+  // (generic because any received data goes straight into an event emitter):
+  rpc RequestStoredData (BilDataRequest) returns (BilDataRequestResponse) {}
+
+  // Stream all new data that matches the given request:
+  rpc StreamNewData (BilDataRequest) returns (stream BilDataRequestResponse) {}
+}
+
+// Status of the BIL:
+enum BilStatus {
+  // Connecting to the database for storage-mediated communication:
+  CONNECTING_DB = 0;
+  // Connected to the database for storage-mediated communication:
+  CONNECTED_TO_DB = 10;
+  // BIL fatally crashed and needs to be restarted:
+  CRASHED = 20;
+}
+
+message BilIngest {
+  // Data that can be received by the BIL:
+  oneof data {
+    BilDataRequest data_request = 1;
+    Command command = 2;
+  }
+}
+
+message BilData {
+  // All data that could be passed from the BIL to electron
+  oneof data {
+    BilStatus bil_status = 1;
+    InternalCommandAck cmd_ack = 10;
+    CommandUpdate cmd_update = 11;
+    TelemItem telem = 20;
+    Event event = 21;
+    Image image = 30;
+  }
+}
+
+// Ask the BIL to fetch and return data from the DB matching the given query:
+message BilDataRequest {
+  enum Type {
+    CommandRecord = 0;
+    Telemetry = 10;
+    Events = 20;
+    Images = 30;
+  }
+
+  message All {
+    bool all = 1;
+  }
+
+  message UplinkTimeSpan {
+    IrisUplinkTimestamp start = 1;
+    IrisUplinkTimestamp end = 2;
+  }
+  message DownlinkTimeSpan {
+    IrisDownlinkTimestamp start = 1;
+    IrisDownlinkTimestamp end = 2;
+  }
+  message UlidSpan{
+    string start = 1;
+    string end = 2;
+  }
+  message LookupIdSpan{
+    int32 start = 1;
+    int32 end = 2;
+  }
+  // Request to grab the latest n entries:
+  message Latest {
+    int32 num = 1;
+  }
+
+  Type type = 1;
+  // Only fetch data from streams with a matching name (e.g. telemetry from
+  // this telemetry channel, commands with this name, etc.)
+  optional string stream_name_filter = 2;
+  oneof query {
+    All all = 3;
+    UplinkTimeSpan ul_time_span = 4;
+    DownlinkTimeSpan dl_time_span = 5;
+    UlidSpan ulid_span = 6;
+    LookupIdSpan lookupId_span = 7;
+    Latest latest = 8;
+  }
+}
+
+// Response to an Async BIL Data Request.
+message BilDataRequestResponse {
+  bool success = 1;
+  repeated BilData data = 2;
+}
+
+message Image {
+  DatabaseId dbid = 1;
+  string b64_encoding = 2;
+  repeated IrisDownlinkTimestamp timestamps = 3;
+  string file_name = 4;
+  string description = 5;
+}
+
+// Acknowledgement of a command send operation:
+message InternalCommandAck {
+  DatabaseId dbid = 1;
+  int32 lookupId = 2; // lookupId (index) in the database
+  repeated IrisUplinkTimestamp timestamps = 3;
+}
+
+// Update to Command Metadata:
+message CommandUpdate {
+  // All that's needed to know exactly what's happened to a command is to look
+  // at the list of timestamps attributed to it. So, command updates just detail
+  // what time stamps have been added/changed:
+  DatabaseId dbid = 1;
+  int32 lookupId = 2; // lookupId (index) in the daabase
+  repeated IrisUplinkTimestamp times = 3;
+}
+
+// Frontend pings the BIL, asking it to echo back a payload.
+// BIL replies to a ping with the given payload. (for debugging only)
+message PingMessage {
+  string payload = 1;
+}

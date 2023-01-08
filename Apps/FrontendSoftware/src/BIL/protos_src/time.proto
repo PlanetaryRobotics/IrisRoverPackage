@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package iris_bil;
+
+import "google/protobuf/timestamp.proto";
+
+// All of the different stages in an uplink that *could* generate a timestamp:
+enum UplinkTimeType {
+    // NOTE: we may or may not actually know all of these times during mission.
+    // Data generated (command made):
+    ULT_GENERATED = 0;
+    // Data logged in database:
+    ULT_LOGGED_IN_DB = 10;
+    // Data received by Iris Backend:
+    ULT_OSIRIS_RX = 20;
+    // Data sent from Iris Backend to YAMCS:
+    ULT_OSIRIS_TX = 25;
+    // Data received by YAMCS (AMCC):
+    ULT_YAMCS_RX = 30;
+    // Data released from YAMCS (AMCC):
+    ULT_YAMCS_TX = 35;
+    // Data received by lander:
+    ULT_LANDER_RX = 40;
+    // Data sent from lander to rover:
+    ULT_LANDER_TX = 45;
+    // Data first received by rover (e.g. WD, GroundInterface, etc.):
+    ULT_ROVER_RX = 50;
+    // Command processed by rover (WD, CommandDispatcher, or Radio BGS):
+    ULT_CMD_PROCESSING = 60;
+    // Working on command (e.g. command dispatched to the appropriate module or radio ACK):
+    ULT_CMD_WORKING = 70;
+    // Command complete (e.g. command dispatcher received a result or radio DID/BAD):
+    // NOTE: For things like motor movements or triggering an image, this just
+    // means that the command was understood with no errors but the rover is still
+    // working on completing the movement, downlinking the image, etc.
+    ULT_CMD_PROCESSED = 80;
+    // Command executed (whatever outcomes were supposed to happen as a result of
+    // this command have happened and nothing more will occur as a result of this 
+    // command):
+    ULT_CMD_EXECUTED = 90;
+    // Command failed (whatever outcomes were supposed to happen failed to occur
+    // and nothing more will happen as a result of this command):
+    ULT_CMD_FAILED = 95;
+}
+
+// All of the different stages in a downlink that *could* generate a timestamp:
+enum DownlinkTimeType {
+    // NOTE: we may or may not actually know all of these times during mission.
+    // Data generated (timestamped in rover: typ. when it's made, processed by
+    // GroundInterface, or written to the lander interface):
+    DLT_GENERATED = 0;
+    // Data received by lander:
+    DLT_LANDER_RX = 10;
+    // Data sent from lander to Earth:
+    DLT_LANDER_TX = 15;
+    // Data received by YAMCS (AMCC):
+    DLT_YAMCS_RX = 20;
+    // Data received by Iris Backend:
+    DLT_OSIRIS_RX = 30;
+    // Data logged into the local (OSIRIS) database:
+    DLT_LOGGED_IN_DB = 40;
+    // Data logged in the remote archival database (MongoDB Atlas):
+    DLT_ARCHIVED_IN_DB = 45;
+}
+
+message IrisUplinkTimestamp {
+    google.protobuf.Timestamp time = 1;
+    UplinkTimeType type = 2;
+}
+
+message IrisDownlinkTimestamp {
+    google.protobuf.Timestamp time = 1;
+    DownlinkTimeType type = 2;
+}

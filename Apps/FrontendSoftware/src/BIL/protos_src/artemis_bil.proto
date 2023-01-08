@@ -1,0 +1,20 @@
+// Prototype proto for the BIL used by ARTEMIS (Python-Unity).
+syntax = "proto3";
+
+import "time.proto";
+import "db.proto";
+
+package iris_artemis_bil;
+
+// Service running in the BIL (Python).
+// In the prototype, it basically just handles data send requests from the
+// client (Unity). In the future, this will also handle streaming uplink data
+// into Unity.
+service ArtemisBil {
+    // Asks the BIL to send telem to the rest of the stack:
+    rpc SendTelem (iris_bil.TelemItem) returns (SendTelemAck) {}
+}
+
+message SendTelemAck {
+    bool success = 1;
+}

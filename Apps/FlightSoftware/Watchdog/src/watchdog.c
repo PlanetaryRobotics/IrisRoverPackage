@@ -22,8 +22,8 @@
 static volatile uint16_t shouldBeUnusedWatchdogFlags = 0;
 static volatile uint16_t shouldBeUnusedTimeCount = 0;
 
-//static volatile uint16_t* watchdogFlagsPtr = &shouldBeUnusedWatchdogFlags;
-static volatile uint16_t* timeCountCentisecondsPtr = &shouldBeUnusedTimeCount;
+// static volatile uint16_t* watchdogFlagsPtr = &shouldBeUnusedWatchdogFlags;
+static volatile uint16_t *timeCountCentisecondsPtr = &shouldBeUnusedTimeCount;
 
 static volatile BOOL lookingForWdIntFallingEdge = TRUE;
 static volatile uint16_t wdIntLastEdgeTime = 0;
@@ -32,15 +32,15 @@ static volatile uint16_t wdIntTimeBetweenLastEdges = 0;
 /**
  * Set up the ISRs for the watchdog
  */
-int watchdog_init(volatile uint16_t* watchdogFlags,
-                  volatile uint16_t* timeCountCentiseconds,
-                  const HeaterParams* hParams)
+int watchdog_init(volatile uint16_t *watchdogFlags,
+                  volatile uint16_t *timeCountCentiseconds,
+                  const HeaterParams *hParams)
 {
     DEBUG_LOG_NULL_CHECK_RETURN(watchdogFlags, "Parameter is NULL", -1);
     DEBUG_LOG_NULL_CHECK_RETURN(timeCountCentiseconds, "Parameter is NULL", -1);
     DEBUG_LOG_NULL_CHECK_RETURN(hParams, "Parameter is NULL", -1);
 
-//    watchdogFlagsPtr = watchdogFlags;
+    //    watchdogFlagsPtr = watchdogFlags;
     timeCountCentisecondsPtr = timeCountCentiseconds;
 
     /* =====================================================
@@ -49,7 +49,7 @@ int watchdog_init(volatile uint16_t* watchdogFlags,
 
     // Use ACLK (which has a frequency of about 9.4 kHz (typ.)) as Timer_A clock source. This also ensures
     // that the timer is stopped, as all bits in TA0CTL other than TASSEL will be cleared. This means the
-    // MC bits will be set to zero, which means that the timer is stopped. 
+    // MC bits will be set to zero, which means that the timer is stopped.
     TA0CTL = TASSEL_1;
 
     // The input divider for the input clock is determined by the ID bits in TAxCTL and the TAIDEX bits
@@ -57,9 +57,9 @@ int watchdog_init(volatile uint16_t* watchdogFlags,
     // the clock divisor determined by the ID bits is d_ID, and the clock divisor determined by the TAIDEX
     // bits is d_TAIDEX, then their relationship is:
     //
-    //    f_timer = (f_clk / d_ID ) / d_TAIDEX 
+    //    f_timer = (f_clk / d_ID ) / d_TAIDEX
     //    f_timer = f_clk / (d_ID * d_TAIDEX)
-    // 
+    //
     // Here, we use f_clk = 9.4 kHz, d_ID = 1, and d_TAIDEX = 1, so f_timer = 9.4 kHz
 
     // Sets ID to 00b, making it divide by 1 (i.e. does not divide).
@@ -69,7 +69,7 @@ int watchdog_init(volatile uint16_t* watchdogFlags,
     TA0EX0 = TAIDEX_0;
 
     // Per the note in section 25.2.1.1 (pg 645) of the user guide, TACLR should be set after modifying
-    // the ID or TAIDEX bits. Doing so resets the clock divider logic, and the new settings are 
+    // the ID or TAIDEX bits. Doing so resets the clock divider logic, and the new settings are
     // used once the TACLR bit is cleared. We do not need to manually clear this bit after setting it,
     // as it is reset automatically.
     TA0CTL |= TACLR;
@@ -89,18 +89,18 @@ int watchdog_init(volatile uint16_t* watchdogFlags,
     // that we will get the TAIFG interrupt once about every 7 seconds (2^16 = 65536, and
     // 65536 / 9400 = ~6.97 seconds)
     TA0CTL |= TAIE;
-    
+
     // Finished setting up Timer_A, so start the timer in "Continuous" mode (i.e. timer will count up to 0xFFFF,
     // then overflow to zero)
-    TA0CTL |= MC_2;                 
+    TA0CTL |= MC_2;
 
-    /* ===================================================== 
+    /* =====================================================
      Timer_B setup (used to generate PWM for heater control)
      ===================================================== */
 
     // Use SMCLK (which has a frequency of 8 MHz) as Timer_B clock source. This also ensures
     // that the timer is stopped, as all bits in TB0CTL other than TBSSEL will be cleared. This means the
-    // MC bits will be set to zero, which means that the timer is stopped. 
+    // MC bits will be set to zero, which means that the timer is stopped.
     TB0CTL = TBSSEL__SMCLK;
 
     // The input divier for the input clock is determined by the ID bits in TBxCTL and the TBIDEX bits
@@ -108,9 +108,9 @@ int watchdog_init(volatile uint16_t* watchdogFlags,
     // the clock divisor determined by the ID bits is d_ID, and the clock divisor determined by the TBIDEX
     // bits is d_TBIDEX, then their relationship is:
     //
-    //    f_timer = (f_clk / d_ID ) / d_TBIDEX 
+    //    f_timer = (f_clk / d_ID ) / d_TBIDEX
     //    f_timer = f_clk / (d_ID * d_TBIDEX)
-    // 
+    //
     // Here, we use f_clk = 8 MHz, d_ID = 1, and d_TBIDEX = 1, so f_timer = 8 MHz
 
     // ID bits in TB0CTL will have been set to 00b in the previous assignment, making it divide by 1 (i.e.
@@ -120,9 +120,9 @@ int watchdog_init(volatile uint16_t* watchdogFlags,
     TB0EX0 = TAIDEX_0;
 
     // Per the note in section 25.2.1.1 (pg 645) of the user guide, TBCLR should be set after modifying
-    // the ID or TBIDEX bits. Doing so resets the clock divider logic, and the new settings are 
+    // the ID or TBIDEX bits. Doing so resets the clock divider logic, and the new settings are
     // used once the TBCLR bit is cleared. We do not need to manually clear this bit after setting it,
-    // as it is reset automatically. More specifically, the state of the output changes when the 
+    // as it is reset automatically. More specifically, the state of the output changes when the
     TB0CTL |= TBCLR;
 
     // Set the maximum count value of Timer_B (when it is set to "Up" mode) to 10000.
@@ -133,11 +133,11 @@ int watchdog_init(volatile uint16_t* watchdogFlags,
 
     // Set the output mode of capture/compare block 2 to "Reset/Set". This means that the output is
     // reset (i.e. made low) when Timer_B counts to the value in TB0CCR2, and the output is set (i.e.
-    // made high) when Timer_B counts to TB0CL0 (which is set from the value in TB0CCR0). 
+    // made high) when Timer_B counts to TB0CL0 (which is set from the value in TB0CCR0).
     TB0CCTL2 = OUTMOD_7;
 
     // Set the initial duty cycle of the PWM. Specifically, this is the counter value at which the output
-    // will reset, or go low. When this has a value of zero, it means that the heater is effectively 
+    // will reset, or go low. When this has a value of zero, it means that the heater is effectively
     // disabled.
     TB0CCR2 = hParams->m_heaterDutyCycle;
 
@@ -157,11 +157,11 @@ int watchdog_init(volatile uint16_t* watchdogFlags,
  *
  * Function called every ~5s
  */
-int watchdog_monitor(HerculesComms__State* hState,
-                     volatile uint16_t* watchdogFlags,
-                     uint8_t* watchdogOpts,
-                     BOOL* writeIOExpander,
-                     WatchdogStateDetails* details)
+int watchdog_monitor(HerculesComms__State *hState,
+                     volatile uint16_t *watchdogFlags,
+                     uint8_t *watchdogOpts,
+                     BOOL *writeIOExpander,
+                     WatchdogStateDetails *details)
 {
     // NOTE: hState can be NULL if the Hercules comm link isn't up
     DEBUG_LOG_NULL_CHECK_RETURN(watchdogFlags, "Parameter is NULL", -1);
@@ -173,15 +173,19 @@ int watchdog_monitor(HerculesComms__State* hState,
     __disable_interrupt();
 
     /* check that kicks have been received */
-    if (*watchdogFlags & WDFLAG_RADIO_KICK) {
+    if (*watchdogFlags & WDFLAG_RADIO_KICK)
+    {
         /* radio kick received, all ok! */
         *watchdogFlags ^= WDFLAG_RADIO_KICK;
-    } else {
+    }
+    else
+    {
         /* MISSING radio kick! don't bother resetting, though */
     }
 
     /* unreset wifi chip */
-    if (*watchdogFlags & WDFLAG_UNRESET_RADIO2) {
+    if (*watchdogFlags & WDFLAG_UNRESET_RADIO2)
+    {
         releaseRadioReset();
         *watchdogFlags ^= WDFLAG_UNRESET_RADIO2;
         *writeIOExpander = TRUE;
@@ -189,13 +193,15 @@ int watchdog_monitor(HerculesComms__State* hState,
     }
 
     /* unreset wifi chip */
-    if ((*watchdogFlags & WDFLAG_UNRESET_RADIO1) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_RADIO1) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE))
+    {
         *watchdogFlags |= WDFLAG_UNRESET_RADIO2;
         *watchdogFlags ^= WDFLAG_UNRESET_RADIO1;
     }
 
     /* unreset hercules */
-    if ((*watchdogFlags & WDFLAG_UNRESET_HERCULES) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_HERCULES) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE))
+    {
         releaseHerculesReset();
         *watchdogFlags ^= WDFLAG_UNRESET_HERCULES;
         *writeIOExpander = TRUE;
@@ -203,35 +209,40 @@ int watchdog_monitor(HerculesComms__State* hState,
     }
 
     /* unreset motor 1 */
-    if ((*watchdogFlags & WDFLAG_UNRESET_MOTOR1) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_MOTOR1) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE))
+    {
         releaseMotor1Reset();
         *watchdogFlags ^= WDFLAG_UNRESET_MOTOR1;
         *writeIOExpander = TRUE;
     }
 
     /* unreset motor 2 */
-    if ((*watchdogFlags & WDFLAG_UNRESET_MOTOR2) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_MOTOR2) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE))
+    {
         releaseMotor2Reset();
         *watchdogFlags ^= WDFLAG_UNRESET_MOTOR2;
         *writeIOExpander = TRUE;
     }
 
     /* unreset motor 3 */
-    if ((*watchdogFlags & WDFLAG_UNRESET_MOTOR3) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_MOTOR3) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE))
+    {
         releaseMotor3Reset();
         *watchdogFlags ^= WDFLAG_UNRESET_MOTOR3;
         *writeIOExpander = TRUE;
     }
 
     /* unreset motor 4 */
-    if ((*watchdogFlags & WDFLAG_UNRESET_MOTOR4) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_MOTOR4) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE))
+    {
         releaseMotor4Reset();
         *watchdogFlags ^= WDFLAG_UNRESET_MOTOR4;
         *writeIOExpander = TRUE;
     }
 
     /* unreset FPGA */
-    if ((*watchdogFlags & WDFLAG_UNRESET_FPGA) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE)) {
+    if ((*watchdogFlags & WDFLAG_UNRESET_FPGA) && !(*watchdogFlags & WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE))
+    {
         releaseFPGAReset();
         *watchdogFlags ^= WDFLAG_UNRESET_FPGA;
         *writeIOExpander = TRUE;
@@ -239,30 +250,37 @@ int watchdog_monitor(HerculesComms__State* hState,
     }
 
     /* bring 3V3 on again */
-    if (*watchdogFlags & WDFLAG_UNRESET_3V3) {
+    if (*watchdogFlags & WDFLAG_UNRESET_3V3)
+    {
         enable3V3PowerRail();
         *watchdogFlags ^= WDFLAG_UNRESET_3V3;
         SET_RABI_IN_UINT(details->m_resetActionBits, RABI__3V3_EN_UNRESET);
     }
 
     /* turn VSA on again */
-    if (*watchdogFlags & WDFLAG_POWER_ON_V_SYS_ALL) {
+    if (*watchdogFlags & WDFLAG_POWER_ON_V_SYS_ALL)
+    {
         enableVSysAllPowerRail();
         *watchdogFlags ^= WDFLAG_POWER_ON_V_SYS_ALL;
         SET_RABI_IN_UINT(details->m_resetActionBits, RABI__V_SYS_ALL_ON__UNRESET);
     }
 
     /* check ADC values */
-    if (*watchdogFlags & WDFLAG_ADC_READY) {
+    if (*watchdogFlags & WDFLAG_ADC_READY)
+    {
         /* ensure ADC values are in spec */
         *watchdogFlags ^= WDFLAG_ADC_READY;
     }
 
     /* check if hercules has given a valid kick */
-    if (*watchdogFlags & WDFLAG_HERCULES_KICK) {
+    if (*watchdogFlags & WDFLAG_HERCULES_KICK)
+    {
         *watchdogFlags ^= WDFLAG_HERCULES_KICK;
-    } else {
-        if (*watchdogOpts & WDOPT_MONITOR_HERCULES) {
+    }
+    else
+    {
+        if (*watchdogOpts & WDOPT_MONITOR_HERCULES)
+        {
             // reset the hercules
             setHerculesReset();
 
@@ -272,7 +290,8 @@ int watchdog_monitor(HerculesComms__State* hState,
             *watchdogFlags |= WDFLAG_UNRESET_HERCULES;
 
             // if the issue was due to a comms breakdown, reset the comms state
-            if (NULL != hState) {
+            if (NULL != hState)
+            {
                 HerculesComms__Status hcStatus = HerculesComms__resetState(hState);
 
                 //!< @todo Replace with returning watchdog error code once that is implemented.
@@ -280,7 +299,9 @@ int watchdog_monitor(HerculesComms__State* hState,
             }
 
             *writeIOExpander = TRUE;
-        } else {
+        }
+        else
+        {
             // missed a kick, but don't reset the hercules.
         }
     }
@@ -290,19 +311,18 @@ int watchdog_monitor(HerculesComms__State* hState,
     return 0;
 }
 
-
-
 void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
-                                   const AdcValues* adcValues,
+                                   const AdcValues *adcValues,
                                    BOOL hasDeployed,
-                                   uint8_t* telbuf,
+                                   uint8_t *telbuf,
                                    size_t telbufSize)
 {
     DEBUG_LOG_NULL_CHECK_RETURN(i2cReadings, "Parameter is NULL", /* nothing, b/c void return */);
     DEBUG_LOG_NULL_CHECK_RETURN(adcValues, "Parameter is NULL", /* nothing, b/c void return */);
     DEBUG_LOG_NULL_CHECK_RETURN(telbuf, "Parameter is NULL", /* nothing, b/c void return */);
 
-    if (telbufSize < 16) {
+    if (telbufSize < 16)
+    {
         DPRINTF_ERR("telbufSize is too small: required = %d, actual = %d\n", 16, telbufSize);
         return;
     }
@@ -316,7 +336,7 @@ void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
     // [6,7] won't be able to read lander power in mission mode
     telbuf[6] = (uint8_t)(adcValues->vLanderSense);
     telbuf[7] = (uint8_t)(adcValues->vLanderSense >> 8);
-    telbuf[8] = (uint8_t)(adcValues->battTemp >> 4);
+    telbuf[8] = (uint8_t)(adcValues->battRT >> 4);
     telbuf[9] = hasDeployed ? 1 : 0;
     telbuf[10] = (uint8_t)(i2cReadings->raw_battery_charge[0]);
     telbuf[11] = (uint8_t)(i2cReadings->raw_battery_charge[1]);
@@ -330,7 +350,6 @@ uint16_t watchdog_get_wd_int_flat_duration(void)
 {
     return wdIntTimeBetweenLastEdges;
 }
-
 
 /*
  * Pins that need an ISR:
@@ -356,42 +375,48 @@ uint16_t watchdog_get_wd_int_flat_duration(void)
 /* Port 1 handler */
 #if 1
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector=PORT1_VECTOR
-__interrupt void port1_isr_handler(void) {
+#pragma vector = PORT1_VECTOR
+__interrupt void port1_isr_handler(void)
+{
 #elif defined(__GNUC__)
-void __attribute__ ((interrupt(PORT1_VECTOR))) port1_isr_handler (void) {
+void __attribute__((interrupt(PORT1_VECTOR))) port1_isr_handler(void)
+{
 #else
 #error Compiler not supported!
 #endif
     uint16_t now = *timeCountCentisecondsPtr;
 
-    switch(__even_in_range(P1IV, P1IV__P1IFG7)) {
-        case P1IV__P1IFG3: // P1.3: WD_INT
-            if (lookingForWdIntFallingEdge) {
-                EventQueue__put(EVENT__TYPE__WD_INT_FALLING_EDGE);
-                lookingForWdIntFallingEdge = FALSE;
-                enableWdIntRisingEdgeInterrupt();
-            } else {
-                EventQueue__put(EVENT__TYPE__WD_INT_RISING_EDGE);
-                lookingForWdIntFallingEdge = TRUE;
-                enableWdIntFallingEdgeInterrupt();
-            }
+    switch (__even_in_range(P1IV, P1IV__P1IFG7))
+    {
+    case P1IV__P1IFG3: // P1.3: WD_INT
+        if (lookingForWdIntFallingEdge)
+        {
+            EventQueue__put(EVENT__TYPE__WD_INT_FALLING_EDGE);
+            lookingForWdIntFallingEdge = FALSE;
+            enableWdIntRisingEdgeInterrupt();
+        }
+        else
+        {
+            EventQueue__put(EVENT__TYPE__WD_INT_RISING_EDGE);
+            lookingForWdIntFallingEdge = TRUE;
+            enableWdIntFallingEdgeInterrupt();
+        }
 
-            wdIntTimeBetweenLastEdges = now - wdIntLastEdgeTime;
-            wdIntLastEdgeTime = now;
+        wdIntTimeBetweenLastEdges = now - wdIntLastEdgeTime;
+        wdIntLastEdgeTime = now;
 
-            // exit LPM
-            __low_power_mode_off_on_exit();
-            break;
-        default: // default: ignore
-            break;
+        // exit LPM
+        __low_power_mode_off_on_exit();
+        break;
+    default: // default: ignore
+        break;
     }
 }
 #endif
 #if 0
 /* Port 3 handler */
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector=PORT3_VECTOR
+#pragma vector = PORT3_VECTOR
 __interrupt void port3_isr_handler(void) {
 #elif defined(__GNUC__)
 void __attribute__ ((interrupt(PORT3_VECTOR))) port3_isr_handler (void) {
@@ -408,27 +433,29 @@ void __attribute__ ((interrupt(PORT3_VECTOR))) port3_isr_handler (void) {
 /* Timer 1 handler */
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector = TIMER0_A1_VECTOR
-__interrupt void Timer0_A1_ISR(void) {
+__interrupt void Timer0_A1_ISR(void)
+{
 #elif defined(__GNUC__)
-void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer0_A1_ISR (void) {
+void __attribute__((interrupt(TIMER0_A1_VECTOR))) Timer0_A1_ISR(void)
+{
 #else
 #error Compiler not supported!
 #endif
-    switch (__even_in_range(TA0IV, TAIV__TAIFG)) {
-        case TAIV__TACCR1:
-            *timeCountCentisecondsPtr = *timeCountCentisecondsPtr + 1;
+    switch (__even_in_range(TA0IV, TAIV__TAIFG))
+    {
+    case TAIV__TACCR1:
+        *timeCountCentisecondsPtr = *timeCountCentisecondsPtr + 1;
 
-            // Offset the count value we're looking for by by the number of timer ticks in one centisecond
-            TA0CCR1 += 94;
-            break;
+        // Offset the count value we're looking for by by the number of timer ticks in one centisecond
+        TA0CCR1 += 94;
+        break;
 
-        case TAIV__TAIFG: /* timer tick overflowed */
-            EventQueue__put(EVENT__TYPE__TIMER_TICK);
-            __low_power_mode_off_on_exit();
-            break;
+    case TAIV__TAIFG: /* timer tick overflowed */
+        EventQueue__put(EVENT__TYPE__TIMER_TICK);
+        __low_power_mode_off_on_exit();
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 }
-

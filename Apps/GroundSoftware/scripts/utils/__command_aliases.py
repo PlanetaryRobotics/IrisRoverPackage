@@ -6,7 +6,7 @@ If you want to explore the Data Standards to build new commands, run:
 `pyenv exec python datastandards_lookup.py`.
 
 Created: 10/29/2021
-Last Update: 11/12/2022
+Last Update: 01/01/2023
 """
 from __future__ import annotations  # Support things like OrderedDict[A,B]
 from enum import Enum
@@ -360,15 +360,210 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(confirm='CONFIRM_REQUEST'),
         DataPathway.WIRED
     ),
-    'disable-heater-control': (
+    'disable-heater-control-via-herc': (
         DataPathway.WIRED,
         # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
-        Magic.WATCHDOG_COMMAND,
+        Magic.COMMAND,
         'WatchDogInterface_ResetSpecific',
-        # Change this to whatever you want to reset.
-        OrderedDict(reset_value='DISABLE_HEATER_CONTROL'),
+        OrderedDict(reset_value='AUTO_HEATER_CONTROLLER_DISABLE'),
         DataPathway.WIRED
     ),
+    'disable-heater-control': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='AUTO_HEATER_CONTROLLER_DISABLE'),
+        DataPathway.WIRED
+    ),
+    'enable-heater-control': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='AUTO_HEATER_CONTROLLER_ENABLE'),
+        DataPathway.WIRED
+    ),
+
+    # Set the heater's "ON" power level to be 10%:
+    # NOTE: this is actually setting the TB0CCR2 on counter.
+    # Percentage Voltage is calculated as DutyCycle/DutyCyclePeriod (TB0CCR0),
+    # which this assumes is fixed at 10000 (1.25ms).
+    # Note, b/c P = V^2/R, P/Pmax = (V/Vmax)^2, therefore 10% power = 32% voltage = 3162/10000
+    'set-heater-to-power-10': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        OrderedDict(duty=3162),
+        DataPathway.WIRED
+    ),
+    # Set the heater's "ON" power level to be 20%:
+    # b/c P/Pmax = (V/Vmax)^2, 20% power = 45% voltage = 4472/10000
+    'set-heater-to-power-20': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        OrderedDict(duty=4472),
+        DataPathway.WIRED
+    ),
+    # Set the heater's "ON" power level to be 25%:
+    # b/c P/Pmax = (V/Vmax)^2, 25% power = 50% voltage = 5000/10000
+    'set-heater-to-power-25': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        OrderedDict(duty=5000),
+        DataPathway.WIRED
+    ),
+    # Set the heater's "ON" power level to be 30%:
+    # b/c P/Pmax = (V/Vmax)^2, 30% power = 55% voltage = 5477/10000
+    'set-heater-to-power-30': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        OrderedDict(duty=5477),
+        DataPathway.WIRED
+    ),
+    # Set the heater's "ON" power level to be 40%:
+    # b/c P/Pmax = (V/Vmax)^2, 40% power = 63% voltage = 6325/10000
+    'set-heater-to-power-40': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        OrderedDict(duty=6325),
+        DataPathway.WIRED
+    ),
+    # Set the heater's "ON" power level to be 50%:
+    # b/c P/Pmax = (V/Vmax)^2, 50% power = 71% voltage = 7071/10000
+    'set-heater-to-power-50': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        OrderedDict(duty=7071),
+        DataPathway.WIRED
+    ),
+    # Set the heater's "ON" power level to be 60%:
+    # b/c P/Pmax = (V/Vmax)^2, 60% power = 77% voltage = 7746/10000
+    'set-heater-to-power-60': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        OrderedDict(duty=7746),
+        DataPathway.WIRED
+    ),
+    # Set the heater's "ON" power level to be 70%:
+    # b/c P/Pmax = (V/Vmax)^2, 70% power = 84% voltage = 8367/10000
+    'set-heater-to-power-70': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        OrderedDict(duty=8367),
+        DataPathway.WIRED
+    ),
+    # Set the heater's "ON" power level to be 75%:
+    # b/c P/Pmax = (V/Vmax)^2, 75% power = 87% voltage = 8660/10000
+    'set-heater-to-power-75': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        OrderedDict(duty=8660),
+        DataPathway.WIRED
+    ),
+    # Set the heater's "ON" power level to be 80%:
+    # b/c P/Pmax = (V/Vmax)^2, 80% power = 89% voltage = 8944/10000
+    'set-heater-to-power-80': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        OrderedDict(duty=8944),
+        DataPathway.WIRED
+    ),
+    # Set the heater's "ON" power level to be 90%:
+    # b/c P/Pmax = (V/Vmax)^2, 90% power = 89% voltage = 9486/10000
+    'set-heater-to-power-90': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        OrderedDict(duty=9486),
+        DataPathway.WIRED
+    ),
+    # Set the heater's "ON" power level to be 95%:
+    # b/c P/Pmax = (V/Vmax)^2, 95% power = 97% voltage = 9746/10000
+    'set-heater-to-power-95': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        OrderedDict(duty=9746),
+        DataPathway.WIRED
+    ),
+    # Set the heater's "ON" power level to be 100%:
+    'set-heater-to-power-100': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        # DON'T set to the full value of 10000 (since cutoff is 1 less)
+        OrderedDict(duty=9999),
+        DataPathway.WIRED
+    ),
+    # Set the heater's "ON" power level to be 0% (basically, always off no
+    # matter what):
+    'set-heater-to-power-0': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        # DON'T set to the full value of 10000 (since cutoff is 1 less)
+        OrderedDict(duty=0),
+        DataPathway.WIRED
+    ),
+    # Set the heater's "ON" power level back to its default (8500 duty, which
+    # was used during EM3 TVAC). This equates to 72.2% max power or 0.889W at
+    # 27.80V.
+    'set-heater-to-power-default': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetHeaterDutyCycle',
+        # DON'T set to the full value of 10000 (since cutoff is 1 less)
+        OrderedDict(duty=8500),
+        DataPathway.WIRED
+    ),
+
+    'heater-force-off': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='HEATER_FORCE_OFF'),
+        DataPathway.WIRED
+    ),
+    'heater-force-on': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='HEATER_FORCE_ON'),
+        DataPathway.WIRED
+    ),
+    'heater-force-nothing': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='HEATER_FORCE_NOTHING'),
+        DataPathway.WIRED
+    ),
+
+    'set-heater-on-level': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetAutoHeaterOnValue',
+        OrderedDict(on=1000),
+        DataPathway.WIRED
+    ),
+    'set-heater-off-level': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetAutoHeaterOffValue',
+        OrderedDict(off=500),
+        DataPathway.WIRED
+    ),
+
+
+
 
     'reset-motors': (
         DataPathway.WIRED,

@@ -1,0 +1,144 @@
+A colored-text log of the print outs of all packets received during the RC7_PM1_lander_power_on_post_prog_with_heater_cal_and_therm_cal session:
+NOTE: This includes any ANSI escape codes (like coloring) which will show up weird if viewed as plain-text. To view this appropriately, use the terminal `cat` command or view in VSCode with the `ANSI Colors` extension installed.
+
+[35;47;1m(01-02 07:49:35)[0m [48;5;248m[38;5;233m[1m WIRED [0m #2 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.97V 	VL: 29.77V 	Vcc28: 29.61V 	VSA: 1.21V 	ISA: 3.7mA
+HEATER [↑268K (2781) | ↓278K (2291)] 	 is NOT_HEATING, Control: ENABLED 	@ 1.016W / 1.406W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    488    3296    3136    128      1           1          80
+val  0.00V  0.00V  0.41V  3.97V  29.77V  29.61V  1.21V  3.7mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 02 00 00 00 38 00 00 00 00 00 67 05 21 40 0F 41 00 C4 F4 01 0F 27 FD 0C DD 0A F3 08 10 27 34 21 00 00 00 00 00 00 00 00 00 00  .........8.....g.!@.A.....'.......'4!..........
+0000  D5 00 08 18 00 02 00 00 00 38 00 00 00 00 00 67  .........8.....g
+0010  05 21 40 0F 41 00 C4 F4 01 0F 27 FD 0C DD 0A F3  .!@.A.....'.....
+0020  08 10 27 34 21 00 00 00 00 00 00 00 00 00 00     ..'4!..........
+
+[35;47;1m(01-02 07:49:35)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(01-02 07:49:35)[0m [48;5;248m[38;5;233m[1m WIRED [0m #3 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.97V 	VL: 29.77V 	Vcc28: 29.61V 	VSA: 1.21V 	ISA: 3.7mA
+HEATER [↑268K (2781) | ↓278K (2291)] 	 is NOT_HEATING, Control: ENABLED 	@ 1.016W / 1.406W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    488    3296    3136    128      1           1          80
+val  0.00V  0.00V  0.41V  3.97V  29.77V  29.61V  1.21V  3.7mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 03 00 00 00 38 00 00 00 00 00 67 05 21 40 0F 41 00 C4 F4 01 0F 27 FD 0C DD 0A F3 08 10 27 34 21 00 00 00 00 00 00 00 00 00 00  .........8.....g.!@.A.....'.......'4!..........
+0000  D5 00 08 18 00 03 00 00 00 38 00 00 00 00 00 67  .........8.....g
+0010  05 21 40 0F 41 00 C4 F4 01 0F 27 FD 0C DD 0A F3  .!@.A.....'.....
+0020  08 10 27 34 21 00 00 00 00 00 00 00 00 00 00     ..'4!..........
+
+[35;47;1m(01-02 07:49:35)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 297.5°K]
+0000  FF 00 00 57                                      ...W
+
+[35;47;1m(01-02 07:49:38)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 297.5°K]
+0000  FF 00 00 57                                      ...W
+
+[35;47;1m(01-02 07:50:05)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 297.5°K]
+0000  FF 00 00 57                                      ...W
+
+[35;47;1m(01-02 07:50:31)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 297.5°K]
+0000  FF 00 00 57                                      ...W
+
+[35;47;1m(01-02 07:50:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m #4 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 4.03V 	VL: 29.77V 	Vcc28: 29.61V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑268K (2781) | ↓278K (2291)] 	 is NOT_HEATING, Control: ENABLED 	@ 1.016W / 1.406W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    496    3296    3136    128      2           1           8
+val  0.00V  0.00V  0.41V  4.03V  29.77V  29.61V  1.21V  7.4mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 04 00 00 00 38 00 00 00 00 00 E7 00 41 80 0F 41 00 C4 F4 01 0F 27 FD 0C DD 0A F3 08 10 27 34 21 00 00 00 00 00 00 00 00 00 00  .........8.......A..A.....'.......'4!..........
+0000  D5 00 08 18 00 04 00 00 00 38 00 00 00 00 00 E7  .........8......
+0010  00 41 80 0F 41 00 C4 F4 01 0F 27 FD 0C DD 0A F3  .A..A.....'.....
+0020  08 10 27 34 21 00 00 00 00 00 00 00 00 00 00     ..'4!..........
+
+[35;47;1m(01-02 07:50:57)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 297.5°K]
+0000  FF 00 00 57                                      ...W
+
+[35;47;1m(01-02 07:51:23)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 297.5°K]
+0000  FF 00 00 57                                      ...W
+
+[35;47;1m(01-02 07:51:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 297.5°K]
+0000  FF 00 00 57                                      ...W
+
+[35;47;1m(01-02 07:52:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m #5 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.97V 	VL: 29.77V 	Vcc28: 29.61V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑268K (2781) | ↓278K (2291)] 	 is NOT_HEATING, Control: ENABLED 	@ 1.016W / 1.406W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    488    3296    3136    128      2           1         0
+val  0.00V  0.00V  0.41V  3.97V  29.77V  29.61V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 05 00 00 00 38 00 00 00 00 00 67 00 41 40 0F 41 00 C4 F4 01 0F 27 FD 0C DD 0A F3 08 10 27 34 21 00 00 00 00 00 00 00 00 00 00  .........8.....g.A@.A.....'.......'4!..........
+0000  D5 00 08 18 00 05 00 00 00 38 00 00 00 00 00 67  .........8.....g
+0010  00 41 40 0F 41 00 C4 F4 01 0F 27 FD 0C DD 0A F3  .A@.A.....'.....
+0020  08 10 27 34 21 00 00 00 00 00 00 00 00 00 00     ..'4!..........
+
+[35;47;1m(01-02 07:52:15)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 297.5°K]
+0000  FF 00 00 57                                      ...W
+
+[35;47;1m(01-02 07:52:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 297.5°K]
+0000  FF 00 00 57                                      ...W
+
+[35;47;1m(01-02 07:53:08)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 297.5°K]
+0000  FF 00 00 57                                      ...W
+
+[35;47;1m(01-02 07:53:21)[0m [48;5;248m[38;5;233m[1m WIRED [0m #6 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 4.03V 	VL: 29.77V 	Vcc28: 29.61V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑268K (2781) | ↓278K (2291)] 	 is NOT_HEATING, Control: ENABLED 	@ 1.016W / 1.406W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 415.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    496    3296    3136    128      2           1         200
+val  0.00V  0.00V  0.41V  4.03V  29.77V  29.61V  1.21V  7.4mA  428.1±0.0K  415.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 06 00 00 00 38 00 00 00 00 00 E7 0C 41 80 0F 41 00 C4 F4 01 0F 27 FD 0C DD 0A F3 08 10 27 34 21 00 00 00 00 00 00 00 00 00 00  .........8.......A..A.....'.......'4!..........
+0000  D5 00 08 18 00 06 00 00 00 38 00 00 00 00 00 E7  .........8......
+0010  0C 41 80 0F 41 00 C4 F4 01 0F 27 FD 0C DD 0A F3  .A..A.....'.....
+0020  08 10 27 34 21 00 00 00 00 00 00 00 00 00 00     ..'4!..........
+
+[35;47;1m(01-02 07:53:27)[0m [48;5;248m[38;5;233m[1m WIRED [0m #7 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 4.03V 	VL: 29.77V 	Vcc28: 29.61V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑268K (2781) | ↓278K (2291)] 	 is NOT_HEATING, Control: ENABLED 	@ 1.016W / 1.406W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 415.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    496    3296    3136    128      2           1         200
+val  0.00V  0.00V  0.41V  4.03V  29.77V  29.61V  1.21V  7.4mA  428.1±0.0K  415.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 07 00 00 00 38 00 00 00 00 00 E7 0C 41 80 0F 41 00 C4 F4 01 0F 27 FD 0C DD 0A F3 08 10 27 34 21 00 00 00 00 00 00 00 00 00 00  .........8.......A..A.....'.......'4!..........
+0000  D5 00 08 18 00 07 00 00 00 38 00 00 00 00 00 E7  .........8......
+0010  0C 41 80 0F 41 00 C4 F4 01 0F 27 FD 0C DD 0A F3  .A..A.....'.....
+0020  08 10 27 34 21 00 00 00 00 00 00 00 00 00 00     ..'4!..........
+
+[35;47;1m(01-02 07:53:34)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 297.5°K]
+0000  FF 00 00 57                                      ...W
+
+[35;47;1m(01-02 07:54:00)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 297.5°K]
+0000  FF 00 00 57                                      ...W
+

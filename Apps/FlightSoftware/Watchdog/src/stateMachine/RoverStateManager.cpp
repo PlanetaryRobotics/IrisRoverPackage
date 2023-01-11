@@ -11,7 +11,7 @@
 #pragma vector = WDT_VECTOR
 __interrupt void WDT_ISR(void)
 #elif defined(__GNUC__)
-void __attribute__ ((interrupt(WDT_VECTOR))) WDT_ISR (void)
+void __attribute__((interrupt(WDT_VECTOR))) WDT_ISR(void)
 #else
 #error Compiler not supported!
 #endif
@@ -33,7 +33,7 @@ namespace iris
 #pragma PERSISTENT
     static bool persistentDeployed = false;
 
-    RoverStateManager::RoverStateManager(const char* resetReasonString)
+    RoverStateManager::RoverStateManager(const char *resetReasonString)
         : m_stateEnteringKeepAlive(),
           m_stateEnteringMission(),
           m_stateEnteringService(),
@@ -74,6 +74,9 @@ namespace iris
         m_context.m_details.m_hParams.m_heatingControlEnabled = DEFAULT_HEATING_CONTROL_ENABLED;
         m_context.m_details.m_hParams.m_heaterDutyCyclePeriod = DEFAULT_HEATER_DUTY_CYCLE_PERIOD;
         m_context.m_details.m_hParams.m_heaterDutyCycle = DEFAULT_HEATER_DUTY_CYCLE;
+        m_context.m_details.m_hParams.m_thresholdsChanged = true;
+        m_context.m_details.m_hParams.m_forceState = HEATER_FORCE_NOTHING;
+        m_context.m_details.m_hParams.m_inputSource = HEATER_CONTROL_INPUT_BATT_RT;
         m_context.m_details.m_stateAsUint = static_cast<uint8_t>(RoverState::ENTERING_KEEP_ALIVE);
         m_context.m_details.m_inputPinAndStateBits = 0;
         m_context.m_details.m_outputPinBits = 0;
@@ -91,7 +94,8 @@ namespace iris
 
     void RoverStateManager::spinForever()
     {
-        while (true) {
+        while (true)
+        {
             // Sets watchdog timer to be based on ACLK, and in our clock configuration the source of ACLK is VLOCLK
             // (with no divisions, so f_ACLK == f_VLOCLK) and f_VLOCLK == 9.4 KHz. Also clears the watchdog timer count
             // and configures the watchdog timer period (i.e. how long the WDT timer will tick before resetting the
@@ -115,30 +119,37 @@ namespace iris
             // source of the WDT, our option jumps from ~3.5 seconds to ~55 seconds. However, if we use SMCLK as the
             // source of the WDT, since f_SMCLK = 8 MHz we can use the 2^27 divider option to get a WDT interval of
             // just over 16.7 seconds. The 2^27 divider is selected when WDTIS is 0b001.
-            //OLD: WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;
+            // OLD: WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__ACLK + WDTIS2;
             WDTCTL = WDTPW + WDTCNTCL + WDTSSEL__SMCLK + WDTIS0;
 
             Event__Type event = EVENT__TYPE__UNUSED;
             EventQueue__Status eqStatus = EventQueue__get(&event);
-            //bool gotEvent = false;
+            // bool gotEvent = false;
 
-            if (EQ__STATUS__SUCCESS == eqStatus) {
+            if (EQ__STATUS__SUCCESS == eqStatus)
+            {
                 // We got an event. Have the current state handle it (performing any necessary state transitions as
                 // requested by the state(s))
                 handleEvent(event);
-                //gotEvent = true;
-            } else if (EQ__STATUS__ERROR_EMPTY == eqStatus) {
-                if (m_currentState->canEnterLowPowerMode(m_context)) {
+                // gotEvent = true;
+            }
+            else if (EQ__STATUS__ERROR_EMPTY == eqStatus)
+            {
+                if (m_currentState->canEnterLowPowerMode(m_context))
+                {
                     //!< @todo Enter LPM here. Need to figure out how to handle LPM and WDT together.
                     __enable_interrupt(); // Make sure we haven't somehow left interrupts off
                     ENTER_DEFAULT_LPM;
                 }
-            } else {
+            }
+            else
+            {
                 // Any status other than success or empty is an unexpected failure.
                 DEBUG_LOG_CHECK_STATUS(EQ__STATUS__SUCCESS, eqStatus, "Failed to get event from queue due to error");
             }
 
-            if (m_context.m_i2cActive) {
+            if (m_context.m_i2cActive)
+            {
                 I2C_Sensors__spinOnce();
             }
 
@@ -146,55 +157,57 @@ namespace iris
             m_context.m_details.m_stateAsUint = static_cast<uint8_t>(currentState);
             RoverState desiredNextState = m_currentState->spinOnce(m_context);
 
-            if (currentState != desiredNextState) {
+            if (currentState != desiredNextState)
+            {
                 transitionUntilSettled(desiredNextState);
             }
         }
     }
 
-    RoverStateBase* RoverStateManager::getStateObjectForStateEnum(RoverState stateEnumValue)
+    RoverStateBase *RoverStateManager::getStateObjectForStateEnum(RoverState stateEnumValue)
     {
-        switch (stateEnumValue) {
-            case RoverState::INIT:
-                return &m_stateInit;
+        switch (stateEnumValue)
+        {
+        case RoverState::INIT:
+            return &m_stateInit;
 
-            case RoverState::ENTERING_KEEP_ALIVE:
-                return &m_stateEnteringKeepAlive;
+        case RoverState::ENTERING_KEEP_ALIVE:
+            return &m_stateEnteringKeepAlive;
 
-            case RoverState::KEEP_ALIVE:
-                return &m_stateKeepAlive;
+        case RoverState::KEEP_ALIVE:
+            return &m_stateKeepAlive;
 
-            case RoverState::ENTERING_SERVICE:
-                return &m_stateEnteringService;
+        case RoverState::ENTERING_SERVICE:
+            return &m_stateEnteringService;
 
-            case RoverState::SERVICE:
-                return &m_stateService;
+        case RoverState::SERVICE:
+            return &m_stateService;
 
-            case RoverState::ENTERING_MISSION:
-                return &m_stateEnteringMission;
+        case RoverState::ENTERING_MISSION:
+            return &m_stateEnteringMission;
 
-            case RoverState::MISSION:
-                return &m_stateMission;
+        case RoverState::MISSION:
+            return &m_stateMission;
 
-            default:
-                DebugComms__tryPrintfToLanderNonblocking("Reached default state in getStateObjectForStateEnum\n");
-                DebugComms__flush();
-                return &m_stateInit;
+        default:
+            DebugComms__tryPrintfToLanderNonblocking("Reached default state in getStateObjectForStateEnum\n");
+            DebugComms__flush();
+            return &m_stateInit;
         }
     }
 
     void RoverStateManager::transitionUntilSettled(RoverState desiredState)
     {
 
-        while (m_currentState->getState() != desiredState) {
+        while (m_currentState->getState() != desiredState)
+        {
             const char *originalStateStr = stateToString(m_currentState->getState());
-            const char *desiredStateStr =  stateToString(desiredState);
+            const char *desiredStateStr = stateToString(desiredState);
             DebugComms__tryPrintfToLanderNonblocking("Transitioning from %s to %s\n", originalStateStr, desiredStateStr);
             m_currentState = getStateObjectForStateEnum(desiredState);
             m_context.m_details.m_stateAsUint = static_cast<uint8_t>(m_currentState->getState());
             desiredState = m_currentState->transitionTo(m_context);
         }
-
     }
 
     void RoverStateManager::handleEvent(Event__Type event)
@@ -202,47 +215,49 @@ namespace iris
         RoverState currentState = m_currentState->getState();
         RoverState desiredNextState = currentState;
 
-        switch (event) {
-            case EVENT__TYPE__UNUSED:
-                DebugComms__tryPrintfToLanderNonblocking("Trying to handle an UNUSED event type, which indicates programmer error\n");
-                DebugComms__flush();
-                return;
+        switch (event)
+        {
+        case EVENT__TYPE__UNUSED:
+            DebugComms__tryPrintfToLanderNonblocking("Trying to handle an UNUSED event type, which indicates programmer error\n");
+            DebugComms__flush();
+            return;
 
-            case EVENT__TYPE__LANDER_DATA:
-                desiredNextState = m_currentState->handleLanderData(m_context);
-                break;
+        case EVENT__TYPE__LANDER_DATA:
+            desiredNextState = m_currentState->handleLanderData(m_context);
+            break;
 
-            case EVENT__TYPE__HERCULES_DATA:
-                desiredNextState = m_currentState->handleHerculesData(m_context);
-                break;
+        case EVENT__TYPE__HERCULES_DATA:
+            desiredNextState = m_currentState->handleHerculesData(m_context);
+            break;
 
-            case EVENT__TYPE__TIMER_TICK:
-                desiredNextState = m_currentState->handleTimerTick(m_context);
-                break;
+        case EVENT__TYPE__TIMER_TICK:
+            desiredNextState = m_currentState->handleTimerTick(m_context);
+            break;
 
-            case EVENT__TYPE__HIGH_TEMP:
-                desiredNextState = m_currentState->handleHighTemp(m_context);
-                break;
+        case EVENT__TYPE__HIGH_TEMP:
+            desiredNextState = m_currentState->handleHighTemp(m_context);
+            break;
 
-            case EVENT__TYPE__POWER_ISSUE:
-                desiredNextState = m_currentState->handlePowerIssue(m_context);
-                break;
+        case EVENT__TYPE__POWER_ISSUE:
+            desiredNextState = m_currentState->handlePowerIssue(m_context);
+            break;
 
-            case EVENT__TYPE__WD_INT_RISING_EDGE:
-                desiredNextState = m_currentState->handleWdIntRisingEdge(m_context);
-                break;
+        case EVENT__TYPE__WD_INT_RISING_EDGE:
+            desiredNextState = m_currentState->handleWdIntRisingEdge(m_context);
+            break;
 
-            case EVENT__TYPE__WD_INT_FALLING_EDGE:
-                desiredNextState = m_currentState->handleWdIntFallingEdge(m_context);
-                break;
+        case EVENT__TYPE__WD_INT_FALLING_EDGE:
+            desiredNextState = m_currentState->handleWdIntFallingEdge(m_context);
+            break;
 
-            default:
-                DebugComms__tryPrintfToLanderNonblocking("In default case trying to handle event, which indicates programmer error\n");
-                DebugComms__flush();
-                break;
+        default:
+            DebugComms__tryPrintfToLanderNonblocking("In default case trying to handle event, which indicates programmer error\n");
+            DebugComms__flush();
+            break;
         }
 
-        if (currentState != desiredNextState) {
+        if (currentState != desiredNextState)
+        {
             transitionUntilSettled(desiredNextState);
         }
     }

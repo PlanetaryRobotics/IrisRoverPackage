@@ -5,7 +5,7 @@ sensor and interface the Watchdog has access to. Occassionally used as a
 detailed replacement for Heartbeat.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/01/2022
+@last-updated: 12/31/2022
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -56,14 +56,43 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
         # TODO: 5k table taken from old Avionics conversion sheet. not yet checked/verified. (check it)
         BATT_5K_THERMISTOR_LOOKUP_TABLE = {  # for 5k thermistor: https://www.tdk-electronics.tdk.com/inf/50/db/ntc/NTC_Mini_sensors_S863.pdf
             'degC': np.asarray([-15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155]),
-            'adc': np.asarray([4242, 3970, 3670, 3352, 3023, 2695, 2378, 2077, 1801, 1552, 1330, 1137, 969, 825, 702, 598, 510, 435, 372, 319, 274, 237, 204, 177, 154, 134, 117, 103, 90, 79, 70, 62, 55, 49, 44])
+            'adc': np.asarray([3214, 3008, 2781, 2540, 2291, 2042, 1801, 1574, 1365, 1176, 1008, 861, 734, 625, 532, 453, 386, 329, 282, 242, 208, 179, 155, 134, 116, 102, 89, 78, 68, 60, 53, 47, 42, 37, 33])
         }
         BATT_CHRG_10K_THERMISTOR_LOOKUP_TABLE = {  # for 10k thermistor (NTC10k_B57863S0103F040)
             'degC': np.asarray([-55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155]),
             'RTH_R25': np.asarray([96.3, 67.01, 47.17, 33.65, 24.26, 17.7, 13.04, 9.707, 7.293, 5.533, 4.232, 3.265, 2.539, 1.99, 1.571, 1.249, 1.0000, 0.8057, 0.6531, 0.5327, 0.4369, 0.3603, 0.2986, 0.2488, 0.2083, 0.1752, 0.1481, 0.1258, 0.1072, 0.09177, 0.07885, 0.068, 0.05886, 0.05112, 0.04454, 0.03893, 0.03417, 0.03009, 0.02654, 0.02348, 0.02083, 0.01853, 0.01653])
         }
+        V_LANDER_MAX = 1.10*28.0  # Maximum possible lander voltage (allowed)
         V_HEATER_NOM = 28.0  # NOMINAL Heater Voltage
         R_HEATER = 628.245  # Heater resistance (ohms)
+
+        # Correction factor for Vcc28 ADC conversion on FM1 in the cleanroom
+        # during RC6 at 28.0V input:
+        # upper 6bits = +-64ADC = +-0.567V
+        # At 28.0V, an ADC reading of 3158.6777 would be expected. Since only
+        # upper 6b are being sent, this needs to be rounded to nearest 64: 3136.
+        VCC28_ADC_FM1_CORRECTION_FACTOR = 3136 / 2944
+        # Correction factor for VL ADC conversion on FM1 in the cleanroom
+        # during RC6 at 28.0V input:
+        # upper 7bits = +-32ADC = +-0.248V
+        # At 28.0V, an ADC reading of 3611.5347 would be expected. Since only
+        # upper 7b are being sent, this needs to be rounded to nearest 32: 3616.
+        VL_ADC_FM1_CORRECTION_FACTOR = 3616 / 3104
+
+        # Correction factor for VSA ADC conversion on FM1 in the cleanroom
+        # during RC6 at 28.0V input:
+        # upper 5bits = +-128ADC = +-0.992V
+        # At 28.0V, an ADC reading of 3611.5347 would be expected. Since only
+        # upper 5b are being sent, this needs to be rounded to nearest 128: 3584.
+        # yes, 2944 was observed here too (large jumps b/c so few bits)
+        VSA_ADC_FM1_CORRECTION_FACTOR = 3584 / 2944
+
+        # Correction factor for VBS ADC conversion on FM1 in the cleanroom
+        # during RC5 at 23.80V VBS:
+        # upper 9bits = +-8ADC = +-0.054V
+        # At 23.80V, an ADC reading of 3558.5824 would be expected. Since only
+        # upper 9b are being sent, this needs to be rounded to nearest 8: 3560.
+        VBS_ADC_FM1_CORRECTION_FACTOR = 3560 / 2928
 
         __slots__: List[str] = [
             '_Io_ChargingStatus1',
@@ -167,10 +196,33 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
             # TODO: Update these weights from empirical measurements of their accuracies and uncertainties
             dLander = 0.25  # [Volts] (uncertainty in LanderVoltage reading)
             dVcc28 = 0.5  # [Volts] (uncertainty in Vcc28Voltage reading)
+
+            VLander = self.Adc_LanderVoltage
+            Vcc28 = self.Adc_Vcc28Voltage
+
+            # Guard against 0:
+            if max(abs(VLander), abs(Vcc28)) == 0:
+                return 0
+
+            # If a significant difference exists (i.e. one sensor is likely faulty)...:
+            if (abs(Vcc28 - VLander) / max(abs(VLander), abs(Vcc28))) > 0.5:
+                # If one of them is significantly greater (50%) than the max
+                # possible lander voltage (i.e. way to large -- failed high),
+                # take the other one:
+                if (VLander > 1.5 * self.V_LANDER_MAX) and (Vcc28 <= 1.5 * self.V_LANDER_MAX):
+                    return Vcc28
+                if (Vcc28 > 1.5 * self.V_LANDER_MAX) and (VLander <= 1.5 * self.V_LANDER_MAX):
+                    return VLander
+                # otherwise, just use the larger of the two (since the lower
+                # one likely failed low):
+                return max(VLander, Vcc28)
+
+            # Guard against poor uncertainty settings:
             if (dLander+dVcc28) == 0:
                 return 0
-            else:
-                return self.Adc_LanderVoltage * (1.0-dLander/(dLander+dVcc28)) + self.Adc_Vcc28Voltage * (1.0-dVcc28/(dLander+dVcc28))
+
+            # Both sensors have consistent values, so fuse the results:
+            return VLander * (1.0-dLander/(dLander+dVcc28)) + Vcc28 * (1.0-dVcc28/(dLander+dVcc28))
 
         # Computed properties for Computed Telemetry Channels:
         @property
@@ -405,7 +457,7 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
 
         @property
         def Adc_LanderVoltage(self) -> float:
-            return float(self.Adc_LanderVoltageRaw) / 4095.0 * 3.3 * (232.0+2000.0)/232.0
+            return self.VL_ADC_FM1_CORRECTION_FACTOR * float(self.Adc_LanderVoltageRaw) / 4095.0 * 3.3 * (232.0+2000.0)/232.0
 
         @property
         def Adc_BatteryChargingTempKelvin(self) -> float:
@@ -428,11 +480,12 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
             # ! TODO: (pull from BACK HAL code + supporting samsung notes)
             return 0.0
 
-        def battery_adc_reading_to_kelvin(self, adc_reading) -> float:
+        @classmethod
+        def battery_adc_reading_to_kelvin(cls, adc_reading) -> float:
             return float(np.interp(
                 float(adc_reading),
-                self.BATT_5K_THERMISTOR_LOOKUP_TABLE['adc'][::-1],
-                self.BATT_5K_THERMISTOR_LOOKUP_TABLE['degC'][::-1]
+                cls.BATT_5K_THERMISTOR_LOOKUP_TABLE['adc'][::-1],
+                cls.BATT_5K_THERMISTOR_LOOKUP_TABLE['degC'][::-1]
             )) + 273.15
 
         @property
@@ -447,7 +500,7 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
 
         @property
         def Adc_FullSystemVoltage(self) -> float:
-            return float(self.Adc_FullSystemVoltageRaw) / 4095.0 * 3.3 * (232.0+2000.0)/232.0
+            return self.VSA_ADC_FM1_CORRECTION_FACTOR * float(self.Adc_FullSystemVoltageRaw) / 4095.0 * 3.3 * (232.0+2000.0)/232.0
 
         @property
         def Adc_FullSystemCurrent(self) -> float:
@@ -457,7 +510,7 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
 
         @property
         def Adc_SwitchedBatteryVoltage(self) -> float:
-            return float(self.Adc_SwitchedBatteryVoltageRaw) / 4095.0 * 3.3 * (274.0+2000.0)/274.0
+            return self.VBS_ADC_FM1_CORRECTION_FACTOR * float(self.Adc_SwitchedBatteryVoltageRaw) / 4095.0 * 3.3 * (274.0+2000.0)/274.0
 
         @property
         def Adc_2V5Voltage(self) -> float:
@@ -471,7 +524,7 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
 
         @property
         def Adc_Vcc28Voltage(self) -> float:
-            return float(self.Adc_Vcc28VoltageRaw) / 4095.0 * 3.3 * (47.0+470.0)/47.0
+            return self.VCC28_ADC_FM1_CORRECTION_FACTOR * float(self.Adc_Vcc28VoltageRaw) / 4095.0 * 3.3 * (47.0+470.0)/47.0
 
         @property
         def Adc_Vcc24Voltage(self) -> float:
@@ -499,6 +552,7 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
 
         @property
         def Heater_PwmLimit_DutyCyclePercent(self) -> float:
+            # NOTE: PwmLimit is deprecated
             if self.Heater_DutyCyclePeriodCycles == 0:
                 return float('Inf')
             else:
@@ -506,13 +560,21 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
 
         @property
         def Heater_EffectivePowerLimit(self) -> float:
-            # TODO: consider using V_HEATER_NOM instead of `fused_est_lander_voltage` in case `fused_est_lander_voltage` isn't accurate
+            # NOTE: PwmLimit is deprecated
             max_avail_voltage = self.fused_est_lander_voltage * \
                 self.Heater_PwmLimit_DutyCyclePercent / 100.0
             if self.R_HEATER == 0:
                 return float('Inf')
             else:
                 return max_avail_voltage**2 / self.R_HEATER
+
+        @property
+        def Heater_MaxPossiblePower(self) -> float:
+            # Maximum possible heater power
+            if self.R_HEATER == 0:
+                return float('Inf')
+            else:
+                return self.fused_est_lander_voltage**2 / self.R_HEATER
 
         @property
         def Heater_SetpointKelvin(self) -> float:
@@ -547,7 +609,6 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
 
         @property
         def Heater_EffectiveVoltage(self) -> float:
-            # TODO: consider using V_HEATER_NOM instead of `fused_est_lander_voltage` in case `fused_est_lander_voltage` isn't accurate
             return self.fused_est_lander_voltage * self.Heater_DutyCyclePercent / 100.0
 
         @property
@@ -861,13 +922,12 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
                 f"ISA: {self.Adc_FullSystemCurrent*1000:.1f}mA"
                 "\n"
                 "HEATER "
-                f"[{self.Heater_OnTempKelvin:.0f}K |"
-                f"{self.Heater_SetpointKelvin:.0f}K |"
-                f"{self.Heater_OffTempKelvin:.0f}K] \t"
+                f"[↑{self.Heater_OnTempKelvin:.0f}K ({self.Heater_OnValue}) | "
+                f"↓{self.Heater_OffTempKelvin:.0f}K ({self.Heater_OffValue})] \t"
                 f" is {self.getEnumName('Heater_IsHeating')}, "
                 f"Control: {self.getEnumName('Heater_ControlEnabled')} \t"
-                f"@ {self.Heater_EffectivePower:.3f}W / {self.Heater_EffectivePowerLimit:.3f}W \t"
-                f"Period: {self.Heater_DutyCyclePeriodMs:.1f}ms"
+                f"@ {self.Heater_EffectivePower:.3f}W / {self.Heater_MaxPossiblePower:.3f}W \t"
+                f"Period: {self.Heater_DutyCyclePeriodMs:.2f}ms"
                 "\n"
                 f"Tbatt: {self.Adc_BatteryTempKelvin:.1f}K ± {self.Adc_BatteryTempUncertaintyKelvin}K \t"
                 f"Tchrg: {self.Adc_BatteryChargingTempKelvin:.1f}K ± {self.Adc_BatteryChargingTempUncertaintyKelvin}K \t"
@@ -930,9 +990,9 @@ class WatchdogDetailedStatusPacket(WDS_PI[WDS_PI, WDS_CP]):
         ('Adc_2V5VoltageRaw', (5, True, 5, WD_ADC_BITS)),
         ('Adc_2V8VoltageRaw', (5, True, 5, WD_ADC_BITS)),
         ('Adc_Vcc28VoltageRaw', (6, True, 6, WD_ADC_BITS)),
-        ('Heater_Kp', (16, False, 0, 0)),
-        ('Heater_PwmLimit_DutyCycleCounter', (16, False, 0, 0)),
-        ('Heater_SetpointValue', (16, False, 0, 0)),
+        ('Heater_Kp', (16, False, 0, 0)),  # Deprecated
+        ('Heater_PwmLimit_DutyCycleCounter', (16, False, 0, 0)),  # Deprecated
+        ('Heater_SetpointValue', (16, False, 0, 0)),  # Deprecated
         ('Heater_OnValue', (16, False, 0, 0)),
         ('Heater_OffValue', (16, False, 0, 0)),
         ('Heater_DutyCyclePeriodCycles', (16, False, 0, 0)),

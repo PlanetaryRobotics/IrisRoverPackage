@@ -118,8 +118,15 @@
 					    <item name="Battery_Stop_Charge" value = "28"/>
 					    <item name="Enable_RS422_UART" value = "29"/>
 					    <item name="Disable_RS422_UART" value = "30"/>
-					    <item name="Auto_Heater_Controller_Enable" value = "31"/>
-					    <item name="Auto_Heater_Controller_Disable" value = "32"/>
+					    <item name="Auto_Heater_Controller_Enable" value = "0x1F" comment="Activates the heater controller, with a starting state of ON."/>
+					    <item name="Auto_Heater_Controller_Disable" value = "0x20" comment="Deactivates the heater controller and turns the heater OFF."/>
+					    <item name="Heater_Force_Off" value = "0xC0" comment="Forces the Heater to always be OFF, no matter the controller state."/>
+					    <item name="Heater_Force_On" value = "0xC1" comment="Forces the Heater to always be ON (at the specified duty cycle), no matter the controller state."/>
+					    <item name="Heater_Force_Nothing" value = "0xC2" comment="Doesn't force the heater to do anything (allows the heater controller to take back over if it's on). Leaves the heater status unchanged."/>
+					    <item name="Auto_Heater_Controller_Use_RT_Input" value = "0xCF" comment="Makes the heater controller use the normal Battery RT Thermistor as its input (NOTE: changing this should be accompanied by changing the ADC thresholds)."/>
+					    <item name="Auto_Heater_Controller_Use_Charger_Input_Deactivate" value = "0xCE" comment="Deactivate charging circuitry used to allow Auto Heater Controller to use Charger Thermistor as the temperature input (for use if returning to BATT_RT from CHRG)."/>
+					    <item name="Auto_Heater_Controller_Use_Charger_Input_Activate" value = "0xCD" comment="Activate charging circuitry but disable charging so the Auto Heater Controller can use Charger Thermistor as the temperature input (needed for `WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_USE_CHARGER_INPUT` to work)."/>
+                        <item name="Auto_Heater_Controller_Use_Charger_Input" value = "0xCC" comment="Makes the heater controller use the special Battery Charging Thermistor as its input. ONLY TO BE USED IN A LAST DITCH EFFORT IF BATT_RT DOESN'T WORK. Using this would require `WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_USE_CHARGER_INPUT_ACTIVATE`, which would increase power wastage and is **RISKY**. (NOTE: changing this should be accompanied by changing the ADC thresholds)."/>
 					    <item name="Hercules_Watchdog_Enable" value = "0x21" comment="Enable Hercules Watchdog behavior (Watchdog resets Hercules if it's unresponsive)." />
 					    <item name="Hercules_Watchdog_Disable" value = "0x22" comment="Disable Hercules Watchdog behavior (Watchdog **DOESN'T** reset Hercules if it's unresponsive)." />
 					    <item name="Enable_Batteries" value = "0x23" comment="Properly enable the batteries (with persistent latching)." />

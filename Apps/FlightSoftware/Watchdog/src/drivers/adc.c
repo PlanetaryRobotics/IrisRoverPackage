@@ -30,10 +30,11 @@
  * 12-bit: LSB = 0.0008056640625V
  */
 
-static AdcValues* outputValues = NULL;
-static volatile uint16_t* watchdogFlagsPtr = NULL;
+static AdcValues *outputValues = NULL;
+static volatile uint16_t *watchdogFlagsPtr = NULL;
 
-void adc_init(volatile uint16_t* watchdogFlags) {
+void adc_init(volatile uint16_t *watchdogFlags)
+{
     watchdogFlagsPtr = watchdogFlags;
 
     // configure the ADC module
@@ -59,6 +60,7 @@ void adc_init(volatile uint16_t* watchdogFlags) {
     ADC12CTL3 = 0;
 
     // MEM0: P1.4 == V_LANDER_SENS == A4. Use VR+ = VeRef+ buffered, VR- = VeRef-
+    // ADC12VRSEL_15 is listed in `adc12_b.h` as `ADC12_B_VREFPOS_EXTBUF_VREFNEG_EXTNEG`, so seems right...
     ADC12MCTL0 = ADC12INCH_4 | ADC12VRSEL_15;
 
     // MEM1: P2.4 == BATT_TEMP == A7. Use VR+ = VeRef+ buffered, VR- = VeRef-
@@ -100,14 +102,16 @@ BOOL isAdcSampleDone(void)
 /**
  * @brief take one sample of the ADC
  */
-BOOL adcCheckVoltageLevels(AdcValues* output)
+BOOL adcCheckVoltageLevels(AdcValues *output)
 {
-    if (NULL == output) {
+    if (NULL == output)
+    {
         return FALSE;
     }
 
     // If existing sample isn't done, then we can't trigger a new sample
-    if (!isAdcSampleDone()) {
+    if (!isAdcSampleDone())
+    {
         return FALSE;
     }
 
@@ -126,37 +130,35 @@ BOOL adcCheckVoltageLevels(AdcValues* output)
 #pragma vector = ADC12_VECTOR
 __interrupt void ADC12_ISR(void)
 #elif defined(__GNUC__)
-void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
+void __attribute__((interrupt(ADC12_VECTOR))) ADC12_ISR(void)
 #else
 #error Compiler not supported!
 #endif
 {
-    if (NULL == outputValues) {
+    if (NULL == outputValues)
+    {
         return;
     }
 
-    switch (__even_in_range(ADC12IV, ADC12IV_ADC12RDYIFG)) {
-        case ADC12IV_ADC12IFG9: // ADC12IE9 interrupt
-            outputValues->vLanderSense = ADC12MEM0;
-            outputValues->battTemp = ADC12MEM1;
-            outputValues->battRT = ADC12MEM2;
-            outputValues->vSysAllSense = ADC12MEM3;
-            outputValues->iSysAllSense = ADC12MEM4;
-            outputValues->vBattSense = ADC12MEM5;
-            outputValues->vcc2Point5 = ADC12MEM6;
-            outputValues->vcc2Point8 = ADC12MEM7;
-            outputValues->vcc28 = ADC12MEM8;
-            outputValues->vcc24 = ADC12MEM9;
-            outputValues->sampleComplete = TRUE; // update output struct to signal sample is complete.
+    switch (__even_in_range(ADC12IV, ADC12IV_ADC12RDYIFG))
+    {
+    case ADC12IV_ADC12IFG9: // ADC12IE9 interrupt
+        outputValues->vLanderSense = ADC12MEM0;
+        outputValues->battTemp = ADC12MEM1;
+        outputValues->battRT = ADC12MEM2;
+        outputValues->vSysAllSense = ADC12MEM3;
+        outputValues->iSysAllSense = ADC12MEM4;
+        outputValues->vBattSense = ADC12MEM5;
+        outputValues->vcc2Point5 = ADC12MEM6;
+        outputValues->vcc2Point8 = ADC12MEM7;
+        outputValues->vcc28 = ADC12MEM8;
+        outputValues->vcc24 = ADC12MEM9;
+        outputValues->sampleComplete = TRUE; // update output struct to signal sample is complete.
 
-            *watchdogFlagsPtr |= WDFLAG_ADC_READY; // signal ready to main loop
-            __low_power_mode_off_on_exit();
-            break;
-        default:
-            break;
+        *watchdogFlagsPtr |= WDFLAG_ADC_READY; // signal ready to main loop
+        __low_power_mode_off_on_exit();
+        break;
+    default:
+        break;
     }
 }
-
-
-
-

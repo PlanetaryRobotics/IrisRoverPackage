@@ -1,0 +1,507 @@
+11-21 08:53:09.f NOTICE  	 Starting Iris BGAPI Passthrough Programmer . . .
+11-21 08:53:09.f INFO    	 Loading and Compiling DFU file ../FlightSoftware/Radio/build/iris_wifi_radio__auto_connect.dfu . . .
+11-21 08:53:12.f VERBOSE 	 	Compiled 512000B into 4000 chunks of 128B with a total ICP transmission size of 628000B.
+11-21 08:53:12.f INFO    	 Starting Serial using A7035PDL at 9600baud . . .
+11-21 08:53:12.f ERROR   	 Failed to connect to serial device. Is the device name right? Check the connection? Original error: list index out of range
+11-21 08:53:12.f INFO    	 Waiting for data from Hercules . . .
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Can't read data, serial connection not started. Try `connect_serial()`.
+11-21 08:53:12.f SPAM    	 Got:
+UnsupportedPacket[0B]:
+
+
+11-21 08:53:12.f ERROR   	 Haven't heard anything from Hercules. Aborting.

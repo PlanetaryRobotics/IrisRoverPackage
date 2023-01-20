@@ -29,6 +29,44 @@ If you intend to author commits to this repo:
     - `gpg` has been installed and set as `GCM_CREDENTIAL_STORE` if one wasn't set yet.
     - If you haven't initialized `pass` yet, run `pass init <pick-a-gpg-key-for-your-password-manager-and-save-it>`.
 
+### Using graphical utilities (like `Iris Console`) in WSL:
+- Make sure you have WSL2 using a linux kernel from Sept. 2022 or later (`systemd` support was added then)
+    - Make sure you're using Windows 11 22H2 or later to get this (Windows 10 22H2 or later may also work but hasn't been tested yet).
+- Install `VcXrv` on Windows (1.20.14.0 was used in testing)
+- Somewhere conveniently accesssible, create a file called `Ubuntu_GUI.xlaunch` in Windows with the following contents:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<XLaunch WindowMode="MultiWindow" ClientMode="NoClient" LocalClient="False" Display="-1" LocalProgram="xcalc" RemoteProgram="xterm" RemotePassword="" PrivateKey="" RemoteHost="" RemoteUser="" XDMCPHost="" XDMCPBroadcast="False" XDMCPIndirect="False" Clipboard="True" ClipboardPrimary="True" ExtraParams="" Wgl="True" DisableAC="True" XDMCPTerminate="False"/>
+```
+- Click this file (open with `XLaunch.exe`) to launch XServe. It should open a black window which is where the WSL GUI will appear later.
+- In your WSL distro:
+    - Forward the WSL display output to XServe in Windows:
+        - Add the following `~/.bashrc` (assuming you're using `bash` not `zsh`) in your WSL distro:
+```bash
+export DISPLAY="`grep nameserver /etc/resolv.conf | sed 's/nameserver //'`:0"
+```
+    - Install XApps (`sudo apt install x11-apps`)
+    - Create or edit an XTerm config file at `~/XTerm` with the following contents:
+```bash
+XTerm*Background: Grey15
+XTerm*Foreground: white
+XTerm*faceName: DejaVu Sans Mono:size=8:antialias=true:hinting=true
+XTerm*font: 6x10
+XTerm*saveLines: 500
+XTerm*HiForeColor: white
+XTerm*HiBackColor: Grey15
+XTerm*geometery: 1920x1080+0+0
+```
+    - Enable `systemd` by adding the following lines to `/etc/wsl.conf`:
+```ini
+[boot]
+systemd=true
+``
+    - Restart WSL
+        - Close the WSL terminal
+        - Open Powershell in Windows and run `wsl --shutdown`
+    - Run a graphical application (example `make xconsole`)
+
 ## Manual Setup
 It is advised you set up your environment using the automated scripts above; however, if you prefer or need not to run these scripts, the key setup steps are listed below. In addition, it is recommended that you look through each step in the automated scripts used above to make sure you're not missing anything critical.
 

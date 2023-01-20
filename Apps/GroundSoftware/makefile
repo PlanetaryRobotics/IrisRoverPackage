@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run cloc
+.PHONY = help init update clean run console xconsole cloc
 
 .DEFAULT_GOAL = help
 all: help
@@ -19,6 +19,10 @@ help:
 	@echo "	make clean: Teardown and Cleanup the Development Environment"
 	@echo " "
 	@echo "	make run: Run the application (in development mode)"
+	@echo " "
+	@echo "	make console: Run the Iris Console CLI application"
+	@echo " "
+	@echo "	make xconsole: Run the Iris Console CLI application in XTerm (for WSL users)"
 	@echo " "
 	@echo "	make cloc: Count Lines Of Code (and comments) by language, excluding builds and libraries."
 	@echo "----------------------------------"
@@ -80,6 +84,18 @@ clean:
 ####
 run:
 	pyenv exec ${PYTHON} IrisBackendv3/main.py
+
+####
+# Run the Iris Console CLI application:
+####
+console:
+	./run-script.sh __run_console.py
+
+####
+# Run the Iris Console CLI application in XTerm (for WSL users):
+####
+xconsole:
+	xterm -hold -e make console &
 
 ####
 # Count Lines of Code (for fun):

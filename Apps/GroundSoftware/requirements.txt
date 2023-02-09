@@ -21,7 +21,7 @@ datashader
 lxml
 pytest
 requests
-yamcs-client<=1.6.3
+yamcs-client==1.7.5
 jsonpickle
 termcolor
 colorama

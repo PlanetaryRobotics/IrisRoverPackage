@@ -182,7 +182,7 @@ def merge_right(
         sheet = writer.book[sheet_name]
         cell = sheet.cell(row=row+1, column=col+1)  # 1-indexed
         cell.style = post_merge_styler.to_openpyxl_style()
-        writer.save()
+        # writer.save()  # not part of public API, covered by .close()
 
 
 def write_text(
@@ -200,7 +200,7 @@ def write_text(
     cell.value = txt
     if styler is not None:
         cell.style = styler.to_openpyxl_style()
-    writer.save()
+    # writer.save()  # not part of public API, covered by .close()
 
 
 def write_section_header(
@@ -341,7 +341,7 @@ def draw_section_border_from_end(
     sheet_context.startrow += n_rows
 
     # Save changes to workbook before proceeding further:
-    writer.save()
+    # writer.save()  # not part of public API, covered by .close()
 
 
 def draw_section_fill_from_start(
@@ -366,7 +366,7 @@ def draw_section_fill_from_start(
             cell.style = bg_styler.to_openpyxl_style()
 
     # Save changes to workbook before proceeding further:
-    writer.save()
+    # writer.save()  # not part of public API, covered by .close()
 
 
 def write_dict_data(
@@ -427,7 +427,8 @@ def write_table(
     sheet_context.startcol += lateral_offset
     # Write table:
     table.to_excel(writer, **sheet_context.__dict__)
-    writer.save()  # testing shows we need to save here for some reason
+    # writer.save()  # testing shows we need to save here for some reason
+    # not part of public API, covered by .close()
     # Advance rows:
     sheet_context.startrow += table.data_df.shape[0]+1  # +1 for header
     # Reset lateral adjustment:
@@ -862,7 +863,7 @@ def write_module(module: Module, writer: StyleFrame.ExcelWriter) -> None:
     # Add the sheet:
     sheet = writer.book.create_sheet(sheet_context.sheet_name)
     sheet.title = sheet_context.sheet_name
-    writer.sheets = {ws.title: ws for ws in writer.book.worksheets}
+    writer.sheets.update({ws.title: ws for ws in writer.book.worksheets})
 
     # Add module header:
     write_section_header(
@@ -885,7 +886,7 @@ def write_module(module: Module, writer: StyleFrame.ExcelWriter) -> None:
 
     # Write commands:
     write_commands(module, writer, sheet_context)
-    writer.save()
+    # writer.save()  # not part of public API, covered by .close()
 
     # Shift over, add a separator column, shift over:
     sheet_context.startcol += 1
@@ -895,7 +896,7 @@ def write_module(module: Module, writer: StyleFrame.ExcelWriter) -> None:
     # Write Telemetry Channels:
     sheet_context.startrow = first_data_row  # Reset sheet_context to the top
     write_telem(module, writer, sheet_context)
-    writer.save()
+    # writer.save()  # not part of public API, covered by .close()
 
     # Shift over, add a separator column, shift over:
     sheet_context.startcol += 1
@@ -905,7 +906,7 @@ def write_module(module: Module, writer: StyleFrame.ExcelWriter) -> None:
     # Write Telemetry Channels:
     sheet_context.startrow = first_data_row  # Reset sheet_context to the top
     write_events(module, writer, sheet_context)
-    writer.save()
+    # writer.save()  # not part of public API, covered by .close()
 
 
 def print_to_file(file_name: str) -> None:
@@ -918,7 +919,7 @@ def print_to_file(file_name: str) -> None:
         writer.book = book
         for module in standards.modules.vals:
             write_module(module, writer)
-        writer.save()
+        # writer.save()  # not part of public API, covered by .close()
 
 
 def print_lookup(module_to_lookup: Optional[str] = None) -> None:

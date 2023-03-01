@@ -37,3 +37,4 @@ attrs
 argparse
 streamz
 pybgapi==1.2.0
+tables

@@ -3,7 +3,7 @@ Special prebuilt data standards which exist outside of the FPrime XML (e.g. for
 watchdog heartbeat)
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 09/15/2022
+@last-updated: 01/13/2023
 """
 from typing import Any, Final, Type, Union, List, Tuple, TypeVar
 from collections import OrderedDict
@@ -230,7 +230,7 @@ watchdog_detailed_status_heartbeat: Module = Module(
         ),
         nid_nic_entry(
             TelemetryChannel, 0x02, 'Io_ChargerState', datatype=FswDataType.ENUM,  # calc
-            enum=[  # cstat1 << 1 | cstat2
+            enum=[  # (cstat1 << 1) | cstat2
                 EnumItem('OFF', 0b00),
                 EnumItem('CHARGING', 0b01),
                 EnumItem('DONE_CHARGING', 0b10),
@@ -1044,11 +1044,103 @@ radio_ground: Module = Module(
     ])
 )
 
+
+# Data we're supplied from Peregrine:
+peregrine: Module = Module(
+    name="Peregine",
+    ID=0xDF00,
+    commands=NameIdDict(),
+    events=NameIdDict(),
+    telemetry=NameIdDict([
+        nid_nic_entry(
+            TelemetryChannel, 0x00, 'IrisOperationalEnabledFet', datatype=FswDataType.ENUM,
+            enum=[
+                EnumItem('DISABLED', 0x00,
+                         comment="Iris Operational Power Circuit Disabled."
+                         ),
+                EnumItem('ENABLED', 0x01,
+                         comment="Iris Operational Power Circuit Enabled."
+                        )
+            ]
+        ),
+        nid_nic_entry(
+            TelemetryChannel, 0x01, 'IrisReleaseEnabledFet', datatype=FswDataType.ENUM, 
+            enum=[
+                EnumItem('DISABLED', 0x00,
+                         comment="Iris Release Power Circuit Disabled."
+                         ),
+                EnumItem('ENABLED', 0x01,
+                         comment="Iris Release Power Circuit Enabled."
+                        )
+            ]
+        ),
+        nid_nic_entry(  # calc
+            TelemetryChannel, 0xF2, 'IrisOperationalAvgPower', datatype=FswDataType.F64
+        ),
+        nid_nic_entry(
+            TelemetryChannel, 0x02, 'IrisOperationalAvgCurrent', datatype=FswDataType.F64
+        ),
+        nid_nic_entry(
+            TelemetryChannel, 0x03, 'IrisReleaseAvgCurrent', datatype=FswDataType.F64
+        ),
+        nid_nic_entry(
+            TelemetryChannel, 0x04, 'IrisOperationalMaxCurrent', datatype=FswDataType.F64
+        ),
+        nid_nic_entry(
+            TelemetryChannel, 0x05, 'IrisReleaseMaxCurrent', datatype=FswDataType.F64
+        ),
+        nid_nic_entry(
+            TelemetryChannel, 0x06, 'SlipServiceStatus', datatype=FswDataType.ENUM,
+            enum=[
+                EnumItem('ACTIVE', 0x00,
+                    comment='Service is currently active.'),
+                EnumItem('RELOADING', 0x01,
+                    comment='Service is currently reloading.'),
+                EnumItem('INACTIVE', 0x02,
+                    comment='Service is currently inactive.'),
+                EnumItem('FAILED', 0x03,
+                    comment='Service is currently failed.'),
+                EnumItem('ACTIVATING', 0x04,
+                    comment='Service is currently activiating.'),
+                EnumItem('DEACTIVATING', 0x05,
+                    comment='Service is currently deactiviating.')
+            ]
+        ),
+        nid_nic_entry(
+            TelemetryChannel, 0x07, 'WifiServiceStatus', datatype=FswDataType.ENUM,
+            enum=[
+                EnumItem('ACTIVE', 0x00,
+                    comment='Service is currently active.'),
+                EnumItem('RELOADING', 0x01,
+                    comment='Service is currently reloading.'),
+                EnumItem('INACTIVE', 0x02,
+                    comment='Service is currently inactive.'),
+                EnumItem('FAILED', 0x03,
+                    comment='Service is currently failed.'),
+                EnumItem('ACTIVATING', 0x04,
+                    comment='Service is currently activiating.'),
+                EnumItem('DEACTIVATING', 0x05,
+                    comment='Service is currently deactiviating.')
+            ]
+        ),
+        nid_nic_entry(
+            TelemetryChannel, 0x08, 'DeckD1TempKelvin', datatype=FswDataType.F64
+        ),
+        nid_nic_entry(
+            TelemetryChannel, 0x09, 'DeckD2TempKelvin', datatype=FswDataType.F64
+        ),
+        nid_nic_entry(
+            TelemetryChannel, 0x0A, 'DeckD3TempKelvin', datatype=FswDataType.F64
+        ),
+    ])
+)
+
 # List of all special pre-built modules:
 ALL_PREBUILT_MODULES: Final[List[Module]] = [
     watchdog_detailed_status_heartbeat,
     watchdog_heartbeat_tvac,
     watchdog_heartbeat,
     watchdog_command_response,
-    radio_ground
+    radio_ground,
+    peregrine
 ]

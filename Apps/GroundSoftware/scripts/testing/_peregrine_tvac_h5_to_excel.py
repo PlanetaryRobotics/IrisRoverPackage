@@ -1,5 +1,7 @@
 """
 Converts an `h5` (HDF) archive from integrated TVAC to an excel file.
+NOTE: This only extracts the `telem` table containing parsed telemtery and not
+the raw `yamcs` table containing raw data received from YAMCS.
 NOTE: If this gives protobuf warnings, either resolve them or run:
 - `PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python ./run-script.sh ...`
 - instead of: `./run-script.sh ...`
@@ -245,7 +247,7 @@ def main(opts):
     print(TITLE)
 
     in_file = os.path.join(opts.db_dir, f"{opts.name}.h5")
-    out_file = os.path.join(opts.db_dir, f"{opts.name}_export.xlsx")
+    out_file = os.path.join(opts.db_dir, f"{opts.name}_telem_export.xlsx")
 
     print(f"Connecting to Local DB: {in_file}. . .")
     db = pd.HDFStore(in_file)

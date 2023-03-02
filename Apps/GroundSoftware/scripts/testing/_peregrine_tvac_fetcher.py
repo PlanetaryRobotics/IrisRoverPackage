@@ -818,20 +818,20 @@ def check_packet_for_alarms(packet: Packet) -> List[str]:
         VSysAll = data['Adc_FullSystemVoltage'].data
         if VSysAll > 5:
             alarms.append(
-                f"V_SYS_ALL APPEARS TO BE ON: {VSysAll:.3f} > 5V (should be "
+                f"V_SYS_ALL ON or FLOATING HIGH: {VSysAll:.3f} > 5V (should be "
                 f"~1.2V at STP when off)."
             )
         VBattSw = data['Adc_SwitchedBatteryVoltage'].data
         if VBattSw > 10:
             alarms.append(
-                f"BATTERY APPEARS TO BE ON: {VBattSw:.3f} > 10V. This sensor "
+                f"BATTERY ON or FLOATING HIGH: {VBattSw:.3f} > 10V. This sensor "
                 f"is only loosely calibrated should be less than ~5 at STP "
                 f"when off)."
             )
         Vcc24 = data['Adc_Vcc24Voltage'].data
         if Vcc24 > 5:
             alarms.append(
-                f"24V MOTOR POWER APPEARS TO BE ON: {Vcc24:.3f} > 5V (should "
+                f"24V MOTOR PWR ON or FLOATING HIGH: {Vcc24:.3f} > 5V (should "
                 f"be ~0.5V at STP when off)."
             )
 
@@ -1337,6 +1337,13 @@ def print_from_db(opts) -> None:
     db = pd.HDFStore(os.path.join(opts.db_dir, f"{opts.name}.h5"))
     print("Loading Stored YAMCS Data . . .")
     lander_data = DataSet.load_from('yamcs', db)
+
+    # There are duplicates of all rows in some time windows due to overlaps in
+    # YAMCS archives that were replayed and reprocessing of some archives.
+    # Only keep the first row of a collection of rows with the **exact** same
+    # timestamp:
+    keep = ~lander_data.data.index.duplicated(keep='first')
+    lander_data.data = lander_data.data[keep]
 
     # Extract all the packets:
     print("Extracting and processing all Iris Packets. . .")

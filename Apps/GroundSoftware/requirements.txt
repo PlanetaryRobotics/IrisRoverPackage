@@ -4,9 +4,10 @@ typeguard
 ipykernel
 scapy
 python-pcapng
-numpy
+numba~=0.56.4
+numpy<1.24
 matplotlib
-seaborn
+seaborn~=0.12.2
 pandas
 tabulate
 styleframe

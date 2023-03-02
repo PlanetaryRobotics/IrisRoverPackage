@@ -1047,7 +1047,7 @@ radio_ground: Module = Module(
 
 # Data we're supplied from Peregrine:
 peregrine: Module = Module(
-    name="Peregine",
+    name="Peregrine",
     ID=0xDF00,
     commands=NameIdDict(),
     events=NameIdDict(),

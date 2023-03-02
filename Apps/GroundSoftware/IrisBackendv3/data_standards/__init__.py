@@ -17,7 +17,7 @@ to save compact `data_standards` caches alongside data logs from the rover to
 ensure the formatting of logged data streams is always known.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 01/31/2021
+@last-updated: 03/01/2023
 """
 
 # Expose internal modules (allow them to be accessed directly):
@@ -26,3 +26,52 @@ from .data_standards import *
 from .fsw_data_type import *
 
 from .exceptions import *
+
+# Private imports for use by helper functions:
+from .logging import logger as _logger
+from .prebuilt import (
+    add_to_standards as _add_to_standards,
+    ALL_PREBUILT_MODULES as _ALL_PREBUILT_MODULES
+)
+from .data_standards import _CACHE_DIR, _FILENAME_BASE_DEFAULT
+
+
+# Helper to build and manage datastandards:
+def build(include_all_prebuilts: bool = True) -> DataStandards:
+    """Helper to build DataStandards, optionally including all prebuilt
+    modules. Returns the DataStandards."""
+    standards = DataStandards.build_standards()
+    if include_all_prebuilts:
+        _logger.notice(
+            f'Adding {len(_ALL_PREBUILT_MODULES)} Prebuilt Modules . . .'
+        )
+        _add_to_standards(standards, _ALL_PREBUILT_MODULES)
+    return standards
+
+
+def build_and_cache(
+    cache_dir: str = _CACHE_DIR,
+    cache_name_base: str = _FILENAME_BASE_DEFAULT,
+    include_ulid_suffix: bool = True,
+    include_all_prebuilts: bool = True
+) -> str:
+    """Builds the datastandards and caches them.
+    Cache file is stored in `cache_dir` and uses `cache_name_base` as the base
+    of the file name (a ULID sufffix is added if `include_ulid_suffix` is left
+    on).
+    Optionally including all prebuilt modules.
+    Returns absolute path to cache."""
+    _logger.notice('Building DataStandards . . .')
+    standards = build(include_all_prebuilts)
+
+    _logger.notice('Caching DataStandards . . .')
+    filename = standards.cache(
+        cache_dir=cache_dir,
+        filename_base=cache_name_base,
+        include_ulid_suffix=include_ulid_suffix
+    )
+
+    filepath = os.path.join(cache_dir, filename)
+    filepath = os.path.abspath(filepath)
+    _logger.success(f"DataStandards Cached to `{filepath}`.")
+    return filepath

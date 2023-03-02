@@ -11,6 +11,7 @@ seaborn~=0.12.2
 pandas
 tabulate
 styleframe
+xlsxwriter
 pynput
 multi-await
 plotly

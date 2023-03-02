@@ -764,7 +764,7 @@ def write_events(
     n_cols = 5  # Always has this many columns
     write_section_header("Events", writer, sheet_context, width=n_cols)
 
-    cprint(f"\t\t{len(module.commands)} Event(s)", 'green')
+    cprint(f"\t\t{len(module.events)} Event(s)", 'green')
 
     # Set default column width for first column (if no tables written):
     set_sheet_column_width(80, writer, sheet_context)

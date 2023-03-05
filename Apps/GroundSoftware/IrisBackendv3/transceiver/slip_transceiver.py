@@ -184,7 +184,8 @@ class SlipTransceiver(Transceiver):
         baud: int = 57600,
         endecs: Optional[List[Endec]] = None,
         pathway: DataPathway = DataPathway.WIRED,
-        source: DataSource = DataSource.UDP_SERIAL_DIRECT
+        source: DataSource = DataSource.UDP_SERIAL_DIRECT,
+        **kwargs
     ) -> None:
         """ Initializes a `SlipTransceiver`.
 
@@ -231,7 +232,8 @@ class SlipTransceiver(Transceiver):
         super().__init__(
             endecs=cast(List[Endec], [SlipEndec()]) + endecs,  # wrap SLIP last
             pathway=pathway,
-            source=source
+            source=source,
+            **kwargs  # fwd all other kwargs to parent
         )
 
         self._init_slip_data()
@@ -415,7 +417,7 @@ class SlipTransceiver(Transceiver):
         # Return the extracted complete packets to be processed:
         return [*_byte_packets]
 
-    def _uplink_byte_packets(
+    def _uplink_byte_packet(
         self,
         packet_bytes: bytes,
         **_

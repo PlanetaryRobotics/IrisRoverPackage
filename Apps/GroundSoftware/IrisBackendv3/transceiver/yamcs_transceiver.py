@@ -5,6 +5,8 @@ flight rover.
 
 Includes any supporting functions necessary for maintaining YAMCS connection.
 
+TODO: Consult script used for iTVAC...
+
 @author: Connor W. Colombo (CMU)
 @last-updated: 07/03/2022
 """
@@ -163,7 +165,7 @@ class YamcsTransceiver(Transceiver):
         encoding it as necessary.
 
         `**uplink_metadata` contains any special data needed by methods further
-        down the uplink pipeline, particularly `_uplink_byte_packets`.
+        down the uplink pipeline, particularly `_uplink_byte_packet`.
 
         NOTE: AB's YAMCS setup requires that:
         - Each payload uplink packet contain only one command.
@@ -173,8 +175,6 @@ class YamcsTransceiver(Transceiver):
         Returns whether the send was successful.
         """
         # Verify AB YAMCS requirements:
-
-        # TODO: (WORKING-HERE)
 
         # Add necessary metadata:
         uplink_metadata = {
@@ -187,7 +187,7 @@ class YamcsTransceiver(Transceiver):
         # proper metadata:
         return super().send(packet, **uplink_metadata)
 
-    def _uplink_byte_packets(
+    def _uplink_byte_packet(
         self,
         packet_bytes: bytes,
         **uplink_metadata
@@ -199,7 +199,7 @@ class YamcsTransceiver(Transceiver):
         bytes as given.
 
         NOTE: `**uplink_metadata` contains any special data needed by methods further
-        down the uplink pipeline, particularly `_uplink_byte_packets`.
+        down the uplink pipeline, particularly `_uplink_byte_packet`.
 
         Returns whether the uplink was successful.
         """

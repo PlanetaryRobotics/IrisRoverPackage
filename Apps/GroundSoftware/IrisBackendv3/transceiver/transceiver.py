@@ -15,14 +15,15 @@ Transceivers?)
 TODO: Add pcap-save function (writes every outbound bytes_packet to a pcap).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 07/03/2022
+@last-updated: 03/03/2023
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
-from typing import Optional, List, Type
+from typing import Optional, Awaitable, List, Type
 from abc import ABC, abstractmethod, abstractclassmethod, abstractproperty
 from datetime import datetime
 import scapy.all as scp  # type: ignore # no type hints
+import asyncio
 
 from .logging import logger
 from .endec import Endec, UnityEndec
@@ -36,7 +37,7 @@ from IrisBackendv3.codec.exceptions import PacketDecodingException
 
 
 class Transceiver(ABC):
-    """ Abstract base class for all `Transceivers`. This class handles all 
+    """ Abstract base class for all `Transceivers`. This class handles all
     logic interfacing with `Packet` classes and `Endec`s so the implementation
     of the subclasses can be as simple as possible (just handling how to get
     and send packet bytes.)
@@ -60,7 +61,8 @@ class Transceiver(ABC):
         pathway: DataPathway = DataPathway.NONE,
         source: DataSource = DataSource.NONE,
         log_on_send: bool = True,
-        log_on_receive: bool = True
+        log_on_receive: bool = True,
+        **_  # allow any kwargs to be passed in (i.e. via CLI)
     ) -> None:
         """
         Creates a `Transceiver` over `pathway` (wired/wireless) connecting to
@@ -110,9 +112,10 @@ class Transceiver(ABC):
         self.seq_num = 0
 
     @abstractmethod
-    def _downlink_byte_packets(self) -> List[bytes]:
-        """ Reads all complete packets of bytes on this `Transceiver`'s downlink
-        transmission line.
+    async def _async_downlink_byte_packets(self) -> List[bytes]:
+        """ 
+        Asynchronously awaits the next available complete packet(s) of bytes on
+        this `Transceiver`'s downlink transmission line.
         No decoding occurs with the `endec`, just transmits the packet of bytes
         as given.
 
@@ -120,8 +123,27 @@ class Transceiver(ABC):
         """
         raise NotImplementedError()
 
+    def _downlink_byte_packets(self) -> List[bytes]:
+        """ Synchronously (blocking) reads all complete packets of bytes on
+        this `Transceiver`'s downlink transmission line.
+        No decoding occurs with the `endec`, just transmits the packet of bytes
+        as given.
+
+        NOTE: The default implementation of this function just synchronously
+        awaits the output of `_async_downlink_byte_packets` but this can be
+        overridden if the synchronous and asynchronous interactions with this
+        interface are truly unique.
+
+        Returns a list of all packets received, as bytes.
+        """
+        # NOTE: This approach may not work if running from a Jupyter notebook
+        # ... but, in that case, you can simply `await` the async version.
+        return asyncio.get_event_loop().run_until_complete(
+            self._async_downlink_byte_packets()
+        )
+
     @abstractmethod
-    def _uplink_byte_packets(
+    def _uplink_byte_packet(
         self,
         packet_bytes: bytes,
         **uplink_metadata
@@ -131,7 +153,7 @@ class Transceiver(ABC):
         No encoding occurs with the `endecs`, just transmits the bytes as given.
 
         `**uplink_metadata` contains any special data needed by methods further
-        down the uplink pipeline, particularly `_uplink_byte_packets`.
+        down the uplink pipeline.
 
         Returns whether the uplink was successful.
         """
@@ -171,13 +193,12 @@ class Transceiver(ABC):
                 )
         return data
 
-    def read(self) -> List[Packet]:
-        """Reads all available packets on the transceiver input."""
+    def _read_processor(self, byte_packets: List[bytes]) -> List[Packet]:
+        """The processing that's common to both synchronous and asynchronous
+        reads."""
         packets: List[Packet] = []
 
         try:
-            byte_packets = self._downlink_byte_packets()
-
             for bp in byte_packets:
                 try:
                     # Decode transmitted data to recover raw data:
@@ -228,21 +249,49 @@ class Transceiver(ABC):
                         f"{scp.hexdump(bp, dump=True)}\n."
                         f"The TransceiverDecodingException was: `{tde}`."
                     )
+        except Exception as e:
+            logger.error(
+                "An otherwise unresolved error occurred during packet "
+                f"processing: {e}"
+            )
 
+        # Returns all packets successfully retrieved:
+        return packets
+
+    async def async_read(self) -> List[Packet]:
+        """Asynchronously awaits the next available packet(s) on the transceiver input."""
+        try:
+            byte_packets = await self._async_downlink_byte_packets()
         except Exception as e:
             logger.error(
                 "An otherwise unresolved error occurred during packet "
                 f"streaming: {e}"
             )
+            # Nothing to process, just return empty:
+            return []
 
-        return packets
+        return self._read_processor(byte_packets)
+
+    def read(self) -> List[Packet]:
+        """Reads all available packets on the transceiver input."""
+        try:
+            byte_packets = self._downlink_byte_packets()
+        except Exception as e:
+            logger.error(
+                "An otherwise unresolved error occurred during packet "
+                f"streaming: {e}"
+            )
+            # Nothing to process, just return empty:
+            return []
+
+        return self._read_processor(byte_packets)
 
     def send(self, packet: Packet, **uplink_metadata) -> bool:
         """ Sends the given packet over this `Transceiver`'s transmission line,
         encoding it as necessary.
 
         `**uplink_metadata` contains any special data needed by methods further
-        down the uplink pipeline, particularly `_uplink_byte_packets`.
+        down the uplink pipeline, particularly `_uplink_byte_packet`.
 
         Returns whether the send was successful.
         """
@@ -270,7 +319,7 @@ class Transceiver(ABC):
         packet_bytes = self.endecs_encode(packet_bytes)
 
         # Uplink encoded data:
-        success = self._uplink_byte_packets(packet_bytes, **uplink_metadata)
+        success = self._uplink_byte_packet(packet_bytes, **uplink_metadata)
 
         if success and self.log_on_send:
             logger.info(
@@ -287,7 +336,7 @@ class Transceiver(ABC):
         """ Sends the given payloads in as few packets as possible.
 
         `**uplink_metadata` contains any special data needed by methods further
-        down the uplink pipeline, particularly `_uplink_byte_packets`.
+        down the uplink pipeline, particularly `_uplink_byte_packet`.
 
         TODO: Mind the MTUs and actually handle splitting up the `Payload`s
         into multiple `Packet`s as necessary.

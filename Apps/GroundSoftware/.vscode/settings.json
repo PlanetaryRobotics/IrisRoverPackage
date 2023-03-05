@@ -32,6 +32,7 @@
         "asyncio",
         "attribs",
         "autocaching",
+        "Autopopulate",
         "backendv",
         "BADCMD",
         "BADENDP",

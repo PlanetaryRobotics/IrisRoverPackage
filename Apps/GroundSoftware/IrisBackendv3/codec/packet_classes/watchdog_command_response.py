@@ -162,8 +162,7 @@ class WatchdogCommandResponsePacket(WCR_PI[WCR_PI, WCR_CP]):
         )
 
     def encode(self, **kwargs: Any) -> bytes:
-        #! TODO (not really a typical use case so not super necessary besides for completeness)
-        #!! TODO: IS NECESSARY FOR IPC (OR JUST ENCODE THAT STUFF IN A STATE) <- Not with new `Packet`-specific `__reduce__` strategy
+        # TODO (not really a typical use case so not super necessary besides for completeness)
         raise NotImplementedError()
 
     @classmethod

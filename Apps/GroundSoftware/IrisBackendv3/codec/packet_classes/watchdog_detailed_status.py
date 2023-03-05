@@ -1,7 +1,7 @@
 """
 Implementation of Watchdog Detailed Status Packet and its Interface.
 This is a maximally detailed status packet that contains status info for every
-sensor and interface the Watchdog has access to. Occassionally used as a
+sensor and interface the Watchdog has access to. Occasionally used as a
 detailed replacement for Heartbeat.
 
 @author: Connor W. Colombo (CMU)
@@ -1074,8 +1074,7 @@ class WatchdogDetailedStatusPacket(WDS_PI[WDS_PI, WDS_CP]):
         )
 
     def encode(self, **kwargs: Any) -> bytes:
-        #! TODO (not really a typical use case so not super necessary besides for completeness)
-        #!! TODO: IS NECESSARY FOR IPC (OR JUST ENCODE THAT STUFF IN A STATE) <- Not with new `Packet`-specific `__reduce__` strategy
+        # TODO (not really a typical use case so not super necessary besides for completeness)
         raise NotImplementedError()
 
     @ classmethod

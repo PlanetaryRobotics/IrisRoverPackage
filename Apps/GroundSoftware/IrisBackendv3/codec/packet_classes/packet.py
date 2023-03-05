@@ -218,10 +218,10 @@ class Packet(ContainerCodec[CT], ABC):
             state = None
 
         # The "Callable object" returned will be the decoding function:
-        # If a subclassed object is reduced, it will call that subclass' `decode`
-        # function (assuming it's been implemented).
-        # The output of `decode` will then have its `__setstate__` called with
-        # an argument of `state` (to build back metadata).
+        # If a subclassed object is reduced, it will call that subclass'
+        # `build_minimum_packet` function (assuming it's been implemented).
+        # The output of the decoder will then have its `__setstate__` called
+        # with an argument of `state` (to build back metadata).
         return (
             self.__class__.build_minimum_packet,
             (self.payloads, self._raw, self._endianness_code),

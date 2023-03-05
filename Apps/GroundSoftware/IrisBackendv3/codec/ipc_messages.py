@@ -15,7 +15,7 @@ import attr
 from .packet import Packet
 from .payload_collection import EnhancedPayloadCollection
 
-from IrisBackendv3.ipc.wrapper import InterProcessMessage
+from IrisBackendv3.ipc import InterProcessMessage
 
 
 @attr.s(frozen=True, cmp=True, slots=True, auto_attribs=True)

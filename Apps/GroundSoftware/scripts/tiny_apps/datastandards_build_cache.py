@@ -46,7 +46,8 @@ def get_opts():
                             'unique.'
                         ))
 
-    parser.add_argument('-n', '--name', type=str, default="datastandards",
+    parser.add_argument('-n', '--name', type=str,
+                        default=data_standards.data_standards._FILENAME_BASE_DEFAULT,
                         help='Name of these DataStandards Cache.')
 
     parser.add_argument('-d', '--dir', type=str,

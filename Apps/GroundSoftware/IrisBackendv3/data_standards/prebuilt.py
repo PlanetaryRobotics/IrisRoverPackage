@@ -3,7 +3,7 @@ Special prebuilt data standards which exist outside of the FPrime XML (e.g. for
 watchdog heartbeat)
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 01/13/2023
+@last-updated: 03/04/2023
 """
 from typing import Any, Final, Type, Union, List, Tuple, TypeVar
 from collections import OrderedDict
@@ -112,13 +112,13 @@ watchdog_heartbeat_tvac: Module = Module(
             name='HeaterSetpoint', ID=0x51, datatype=FswDataType.U16
         ),
         (0x52, 'HeaterSetpointKelvin'): TelemetryChannel(
-            name='HeaterSetpointKelvin', ID=0x52, datatype=FswDataType.U16
+            name='HeaterSetpointKelvin', ID=0x52, datatype=FswDataType.F64
         ),
         (0x53, 'HeaterWindow'): TelemetryChannel(
             name='HeaterWindow', ID=0x53, datatype=FswDataType.U16
         ),
         (0x54, 'HeaterWindowKelvin'): TelemetryChannel(
-            name='HeaterWindowKelvin', ID=0x54, datatype=FswDataType.U16
+            name='HeaterWindowKelvin', ID=0x54, datatype=FswDataType.F64
         ),
         (0x55, 'HeaterPwmLimit'): TelemetryChannel(
             name='HeaterPwmLimit', ID=0x55, datatype=FswDataType.U16
@@ -1060,18 +1060,18 @@ peregrine: Module = Module(
                          ),
                 EnumItem('ENABLED', 0x01,
                          comment="Iris Operational Power Circuit Enabled."
-                        )
+                         )
             ]
         ),
         nid_nic_entry(
-            TelemetryChannel, 0x01, 'IrisReleaseEnabledFet', datatype=FswDataType.ENUM, 
+            TelemetryChannel, 0x01, 'IrisReleaseEnabledFet', datatype=FswDataType.ENUM,
             enum=[
                 EnumItem('DISABLED', 0x00,
                          comment="Iris Release Power Circuit Disabled."
                          ),
                 EnumItem('ENABLED', 0x01,
                          comment="Iris Release Power Circuit Enabled."
-                        )
+                         )
             ]
         ),
         nid_nic_entry(  # calc
@@ -1093,34 +1093,34 @@ peregrine: Module = Module(
             TelemetryChannel, 0x06, 'SlipServiceStatus', datatype=FswDataType.ENUM,
             enum=[
                 EnumItem('ACTIVE', 0x00,
-                    comment='Service is currently active.'),
+                         comment='Service is currently active.'),
                 EnumItem('RELOADING', 0x01,
-                    comment='Service is currently reloading.'),
+                         comment='Service is currently reloading.'),
                 EnumItem('INACTIVE', 0x02,
-                    comment='Service is currently inactive.'),
+                         comment='Service is currently inactive.'),
                 EnumItem('FAILED', 0x03,
-                    comment='Service is currently failed.'),
+                         comment='Service is currently failed.'),
                 EnumItem('ACTIVATING', 0x04,
-                    comment='Service is currently activiating.'),
+                         comment='Service is currently activating.'),
                 EnumItem('DEACTIVATING', 0x05,
-                    comment='Service is currently deactiviating.')
+                         comment='Service is currently deactivating.')
             ]
         ),
         nid_nic_entry(
             TelemetryChannel, 0x07, 'WifiServiceStatus', datatype=FswDataType.ENUM,
             enum=[
                 EnumItem('ACTIVE', 0x00,
-                    comment='Service is currently active.'),
+                         comment='Service is currently active.'),
                 EnumItem('RELOADING', 0x01,
-                    comment='Service is currently reloading.'),
+                         comment='Service is currently reloading.'),
                 EnumItem('INACTIVE', 0x02,
-                    comment='Service is currently inactive.'),
+                         comment='Service is currently inactive.'),
                 EnumItem('FAILED', 0x03,
-                    comment='Service is currently failed.'),
+                         comment='Service is currently failed.'),
                 EnumItem('ACTIVATING', 0x04,
-                    comment='Service is currently activiating.'),
+                         comment='Service is currently activating.'),
                 EnumItem('DEACTIVATING', 0x05,
-                    comment='Service is currently deactiviating.')
+                         comment='Service is currently deactivating.')
             ]
         ),
         nid_nic_entry(

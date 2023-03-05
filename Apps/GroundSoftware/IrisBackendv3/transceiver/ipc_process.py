@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 """
 Standalone codec process which manages the reading of telemetry and sending of
 commands using a transceiver.
@@ -8,16 +5,21 @@ commands using a transceiver.
 TODO: Redirect logs to an independent logging process.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 12/29/2022
+@last-updated: 03/04/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
 
-from typing import Any, Final, ClassVar, Awaitable, Callable, Dict, TypeAlias
+from typing import Any, Final, ClassVar, Awaitable, Callable, Dict, TypeAlias, Type
 
 import asyncio
+import argparse
 
 from .logging import logger
+from .transceiver import Transceiver
+from .prebuilts import build_xcvr_by_name
+
+import IrisBackendv3 as IB3
 
 import IrisBackendv3.ipc as ipc
 from IrisBackendv3.ipc import (
@@ -30,6 +32,30 @@ from IrisBackendv3.ipc.app_manager import (
     SocketHandlerAsync, SocketTopicHandlerAsync,
     IpcAppManager, IpcAppManagerAsync
 )
+
+parser = argparse.ArgumentParser(description=(
+    'IRIS Lunar Rover — Transceiver IPC App — CLI'
+))
+
+
+def get_opts():
+    """
+    Return settings wrapped in argparse.
+    """
+    parser.add_argument('-n', '--xcvr-name', type=str, required=True,
+                        help=(
+                            'Name of the prebuilt XCVR to use.'
+                        ))
+    # TODO: Add this --.|.
+    parser.add_argument('-x', '--xcvr-args-yaml', type=str, required=False,
+                        help=(
+                            'Path to a YAML file to be used as optional args '
+                            'for the transceiver. '
+                            'This YAML file gets loaded as a dictionary and '
+                            'passed into the Transceiver constructor as '
+                            'keyword arguments.'
+                        ))
+    return parser.parse_args()
 
 
 @IsIPMHandler
@@ -55,18 +81,31 @@ class PubHandler(SocketHandlerAsync):
         manager: IpcAppManagerAsync,
         payload: IpcPayload
     ) -> None:
+        # Nothing to do here. We only pub.
         pass
+
+
+def build_dl_process(opts):
+    xcvr = build_xcvr_by_name(opts.xcvr_name)
+    # TODO: grab XCVR kwargs from YAML
+
+    async def task_core():
+        # Grab packets from the XCVR:
+        packets = await xcvr.async_read()
+        # Pack them up in a message and publish to the Topic:
+        topic = ipc.Topic.DL_PACKETS
+        message_content = topic.definition.message_def
+        message = topic.definition.message.to_ipc_bytes(message_content)
+        ipc.send_to(socket, message)
+
+    return task_core
 
 
 class SubHandler(SocketTopicHandlerAsync['SubHandler']):
     _raise_on_unhandled_topics: ClassVar[bool] = False
+    _require_unhandled_topic_handler: ClassVar[bool] = False
     # Decorator shorthand (also plays more nicely with syntax highlighting):
     topic_handler = SocketTopicHandlerAsync['SubHandler'].TopicHandlerFactory()
-    
-    @topic_handler
-    async def do_nothing(self, *_) -> None:
-        # Do nothing. Just toss this data out.
-        return None
 
     def handle_unhandled_topic(
         self,
@@ -75,10 +114,17 @@ class SubHandler(SocketTopicHandlerAsync['SubHandler']):
     ) -> Awaitable[None]:
         """ Handler called for a payload whose topic has no registered handler
         """
-        return self.do_nothing(*[])
+        async def do_nothing(self, *_) -> None:
+            # Do nothing. Just toss this data out.
+            return None
+        return do_nothing(*[])
 
     @topic_handler
-    async def uplink_handler(self, manager: IpcAppManagerAsync, payload: IpcPayload) -> None:
+    async def uplink_handler(
+        self,
+        manager: IpcAppManagerAsync,
+        payload: IpcPayload
+    ) -> None:
         # Pass to XCVR for uplink.
         # TODO
         # ! TODO: (WORKING-HERE) ... what about async behaviors?
@@ -107,7 +153,7 @@ async def run() -> None:
             SUB_SOCK: SocketSpec(
                 sock_type=ipc.SocketType.SUBSCRIBER,
                 port=port,
-                topics=[ipc.Topic.UL_PAYLOADS],
+                topics=SubHandler.TOPICS(),
                 rx_handler=SubHandler()
             )
         }
@@ -182,6 +228,9 @@ def main():
 
 
 if __name__ == '__main__':
+    # Initialize the Backend with the latest codec, standards, etc:
+    IB3.init_from_latest()
+    # Run the program:
     main()
     #! TODO: standard cli process wrapper with standard args for close, help, etc.(?)
     # ... maybe base internal-to-process threading on ARTEMIS backend threading?

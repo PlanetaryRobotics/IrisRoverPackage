@@ -6,7 +6,26 @@ At this level, all IPC interface operations have been abstracted. For the
 low-level IPC interface and implementation, see `wrapper.py`.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 12/29/2022
+@last-updated: 03/04/2023
+
+# ! TODO: (WORKING-HERE):
+# - Finish `SocketTopicHandler` sync and async versions (like in SocketHandler).
+#   -- Double check how logic for async __call__ works (might have to consult SocketHandler solution)
+# - Integrate into `IpcAppManager` and subclasses.
+#   -- + finish impl.s
+# - At end, double check if _CT, _ST, and _HT need to be marked as covariant.
+#   -- Does having them as covariant break anything?
+#   -- Does changing them back to invariant break anything new?
+#   -- Particularly, be careful with TopicHandler Protocol (not sure why
+#       this stopped being a problem).
+# - Go through and update all docs + examples
+# - Build + Test XCVR demo
+#   -- Consider bringing any generic(able) messaging / queue impl.s used for
+#      XCVR demo into here
+#
+# !! How does IpcAppManager work with multiple SocketHandler types? Seems like
+# we'd need multiple (if we want reg. and topic handler versions but have to
+# enforce one...) <- might have to restructure when async is enforced.
 """
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
@@ -23,43 +42,18 @@ from .wrapper import (
     create_socket, create_async_socket,
     subscribe,
     SocketType,
-    IpcPayload,
-    InterProcessMessage, IPMHandler,
     read_from, async_read_from,
     send_to, async_send_to,
 )
 
+from .ipc_payload import IpcPayload
+from .inter_process_message import InterProcessMessage, IPMHandler
+
 from .port import Port
-from .topic import Topic
+from .topics_registry import Topic
 from .settings import settings
 from .logging import logger
 from .exceptions import UnhandledTopicException
-
-
-def _subscriber_dispatch_handler(
-    payload: IpcPayload,
-    topic_dispatch_table: Dict[Topic, IPMHandler]
-) -> None:
-    """Helper function that passes the `raw_data` of the given `IpcPayload`
-    into the handler function found by looking up `payload.topic` in the given
-    `topic_dispatch_table`.
-
-    Args:
-        payload (IpcPayload): Payload to handle.
-        topic_dispatch_table (Dict[Topic, IPMHandler]): Maps topic to handlers.
-    """
-    topic = payload.topic
-
-    # Make sure a handler exists for this topic:
-    if topic not in topic_dispatch_table:
-        logger.error(
-            "ValueError: "
-            f"Bad topic found. "
-            f"Got `{topic}` "
-            f"but dispatch table only has handlers for: "
-            f"{[n for n in topic_dispatch_table.keys()]}"
-        )
-
 
 # Context Type (sync or async):
 _CT = TypeVar('_CT', bound=(Context | AsyncContext), covariant=True)
@@ -158,7 +152,7 @@ class SocketHandler(Generic[_HRT, _AMT]):
         self,
         manager: _AMT,
         payload: IpcPayload
-    ) -> _HRT:
+    ) -> _HRT | None:
         """
         The actual handler.
         Must be overridden in subclasses.
@@ -287,6 +281,18 @@ class SocketTopicHandler(SocketHandler[_HRT, _AMT], Generic[_SHT, _HRT, _AMT]):
     # **Can** be overridden in subclass.
     _raise_on_unhandled_topics: ClassVar[bool] = False
 
+    # Whether or not to require `handle_unhandled_topic` to be implemented in
+    # the subclass if `_raise_on_handled_topics = False`.
+    # That is, if `_raise_on_handled_topics = False`, then
+    # `handle_unhandled_topic` would normally be called if this socket
+    # encounters a topic it doesn't have a handler for.
+    # If `handle_unhandled_topic` isn't implemented in the subclass, then this
+    # would cause an exception, unless
+    # `_require_unhandled_topic_handler = False`, in which case nothing will
+    # happen and the data will simply be ignored.
+    # **Can** be overridden in subclass.
+    _require_unhandled_topic_handler: ClassVar[bool] = False
+
     class TopicHandlerFactory:
         """
         Decorator that makes sure the wrapped function complies with this
@@ -330,28 +336,39 @@ class SocketTopicHandler(SocketHandler[_HRT, _AMT], Generic[_SHT, _HRT, _AMT]):
         def __call__(self, func: TopicHandlerType[_SHT, _AMT, _HRT]) -> TopicHandlerType[_SHT, _AMT, _HRT]:
             return func
 
+    @classmethod
+    def TOPICS(cls) -> List[Topic]:
+        """Returns a list of all `Topic`s this SocketTopicHandler interacts
+        with (non-None keys of `_topic_handlers`)."""
+        return [k for k in cls._topic_handlers.keys() if k is not None]
+
     def handle_unhandled_topic(
         self,
         manager: _AMT,
         payload: IpcPayload
-    ) -> _HRT:
+    ) -> _HRT | None:
         """ Handler called for a payload whose topic has no registered handler
         (and only iff `cls._raise_on_unhandled_topics==False`).
 
         Default behavior raises a `NotImplementedError`.
         **Should** be overridden in subclass if
-        `cls._raise_on_unhandled_topics==False`.
+        `cls._raise_on_unhandled_topics==False`, unless
+        `cls._require_unhandled_topic_handler==False`.
         """
-        raise NotImplementedError(
-            f"`handle_unhandled_topic` called but unimplemented in "
-            f"{self.__class__.__name__}."
-        )
+        if self._require_unhandled_topic_handler:
+            raise NotImplementedError(
+                f"`handle_unhandled_topic` called but unimplemented in "
+                f"{self.__class__.__name__} but "
+                f"`{self._require_unhandled_topic_handler=}`."
+            )
+
+        return None
 
     def __call__(
         self,
         manager: _AMT,
         payload: IpcPayload
-    ) -> _HRT:
+    ) -> _HRT | None:
         try:
             topic = payload.topic
         except Exception:
@@ -406,25 +423,6 @@ class SocketTopicHandlerAsync(SocketTopicHandlerAsync_T[_SHT]):
     """
     pass
 
-# ! TODO: (WORKING-HERE):
-# - Finish `SocketTopicHandler` sync and async versions (like in SocketHandler).
-#   -- Double check how logic for async __call__ works (might have to consult SocketHandler solution)
-# - Integrate into `IpcAppManager` and subclasses.
-#   -- + finish impl.s
-# - At end, double check if _CT, _ST, and _HT need to be marked as covariant.
-#   -- Does having them as covariant break anything?
-#   -- Does changing them back to invariant break anything new?
-#   -- Particularly, be careful with TopicHandler Protocol (not sure why
-#       this stopped being a problem).
-# - Go through and update all docs + examples
-# - Build + Test XCVR demo
-#   -- Consider bringing any generic(able) messaging / queue impl.s used for
-#      XCVR demo into here
-#
-# !! How does IpcAppManager work with multiple SocketHandler types? Seems like
-# we'd need multiple (if we want reg. and topic handler versions but have to
-# enforce one...) <- might have to restructure when async is enforced.
-
 
 @dataclasses.dataclass
 class SocketSpec(Generic[_HT]):
@@ -475,7 +473,7 @@ class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
     def __init__(
         self,
         socket_specs: Dict[str, SocketSpec[_HT]],
-        context_io_threads: int = 2,
+        context_io_threads: int = 2,  # default: 2 IO threads (RX and TX)
         context: Optional[_CT] = None,
     ) -> None:
         """
@@ -487,7 +485,6 @@ class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
 
         # Load or create context:
         if context is None:
-            # 2 IO threads, one for RX, one for TX:
             self.context = self.create_context(io_threads=context_io_threads)
         else:
             self.context = context
@@ -524,7 +521,7 @@ class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
         if spec.topics is not None:
             subscribe(self.sockets[name], spec.topics)
 
-    @ abstractmethod
+    @abstractmethod
     def create_context(*args, **kwargs) -> _CT:
         """Creates an IPC context of type `_CT`.
         To be implemented in concrete subclasses."""
@@ -533,7 +530,7 @@ class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
         # @abstractmethod doesn't always play nicely with @staticmethod at runtime.)
         raise NotImplementedError()
 
-    @ abstractmethod
+    @abstractmethod
     def create_socket(self, spec: SocketSpec[_HT]) -> _ST:
         """Creates a socket of type `_ST`.
         To be implemented in concrete subclasses."""
@@ -541,7 +538,7 @@ class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
 
 
 class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerAsync_T]):
-    @ staticmethod
+    @staticmethod
     def create_context(*args, **kwargs) -> AsyncContext:
         """Creates an async IPC context."""
         return create_async_context(*args, **kwargs)
@@ -605,7 +602,7 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
 
 
 class IpcAppManagerSync(IpcAppManager[Context, Socket, SocketHandlerSync_T]):
-    @ staticmethod
+    @staticmethod
     def create_context(*args, **kwargs) -> Context:
         """Creates an async IPC context."""
         return create_context(*args, **kwargs)

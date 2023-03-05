@@ -20,7 +20,7 @@ from .packet import parse_packet
 from .payload_collection import EnhancedPayloadCollection
 
 import IrisBackendv3.ipc as ipc
-from IrisBackendv3.ipc.wrapper import InterProcessMessage, IPMHandler, IsIPMHandler
+from IrisBackendv3.ipc import InterProcessMessage, IPMHandler, IsIPMHandler
 
 
 @IsIPMHandler

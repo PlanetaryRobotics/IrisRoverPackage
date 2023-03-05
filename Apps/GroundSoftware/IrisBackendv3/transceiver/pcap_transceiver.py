@@ -225,7 +225,6 @@ class PcapTransceiver(Transceiver):
             time_to_next_packet_ms = max(self.fixed_period_ms - Dt_ms, 0)
 
             # if the time to emit a packet hasn't passed yet, wait:
-            print(time_to_next_packet_ms)
             if time_to_next_packet_ms > 0:
                 # wait until this period ends:
                 await asyncio.sleep(time_to_next_packet_ms/1000)

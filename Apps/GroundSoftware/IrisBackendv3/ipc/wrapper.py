@@ -15,108 +15,20 @@ the only area that should **need** to be changed would be this file.
 """
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
-from abc import ABC, abstractmethod, abstractclassmethod
-from typing import Any, Awaitable, Callable, Generic, Optional, ClassVar, Protocol, Union, Dict, List, cast, TypeVar, Tuple
-from typing_extensions import TypeAlias
+from typing import Optional, Union, List, cast
 import dataclasses
 from enum import Enum
-from typeguard import check_type
 
 import zmq
 import zmq.asyncio
 
 from .port import Port
-from .topic import Topic
+from .topics_registry import Topic
 from .settings import settings
 from .logging import logger
 
-
-IPMC = TypeVar('IPMC')  # Inter-Process Message Content
-
-
-class InterProcessMessage(Generic[IPMC], ABC):
-    """
-    Interface for any message data which supports being sent between processes.
-    """
-
-    __slots__: List[str] = ['content']
-
-    content: IPMC
-
-    def __init__(self, content: IPMC) -> None:
-        self.content = content
-
-    @abstractmethod
-    def to_ipc_bytes(self) -> bytes:
-        """
-        Pack this object into bytes to be sent over the IPC network
-        (in a safe way, unlike pickle).
-        """
-        # ... use restricted_pickler
-        raise NotImplementedError()
-
-    @abstractclassmethod
-    def from_ipc_bytes(cls, data: bytes) -> IPMC:
-        """
-        Unpack bytes sent over IPC to reconstruct the sent object.
-        """
-        raise NotImplementedError()
-
-
-class IPMHandler(Protocol):
-    """ Structural typing `Protocol` defining a handler that decodes raw
-    IPC message bytes, performs some operation, and optionally returns an
-    `InterProcessMessage` if needed by the process type (i.e. server/client).
-
-    NOTE:
-    Can't do something as simple as `Callable[[bytes], InterProcessMessage])`
-    b/c of this still open (as of 2/26/22) issue:
-    https://github.com/python/mypy/issues/5485
-    which prevents `subtopic.handler(ipc_raw.msg)` or even
-    `subtopic.handler.__call__(ipc_raw.msg)` from working.
-    """
-
-    def __call__(self, __raw_msg: bytes) -> Optional[InterProcessMessage]: ...
-
-
-def IsIPMHandler(func: IPMHandler) -> IPMHandler:
-    """ Decorator to use before a function to have `mypy` make sure it complies
-    with the `IPMHandler` callback protocol.
-    Example:
-    ```py
-    @IsIPMHandler
-    def good_ipmh(msg_bytes: bytes) -> InterProcessMessage:
-        pass
-    ```
-    creates no errors.
-
-    ```py
-    @IsIPMHandler
-    def bad_ipmh(x: int, y: Dict) -> float:
-        pass
-    ```
-    gives a mypy error b/c it's argument and return type signatures are wrong.
-
-    but
-    """
-    return func
-
-
-@dataclasses.dataclass(order=True)
-class IpcPayload:
-    """
-    Data sent over IPC.
-    """
-    topic_bytes: bytes = b''  # if applicable
-    subtopic_bytes: bytes = b''  # if applicable
-    msg_bytes: bytes = b''  # message
-
-    @property
-    def topic(self) -> Topic:
-        # Type ignore note: mypy doesn't recognize that Enum() doesn't call
-        # __new__ but is instead an Enum indexing operation and, thus,
-        # doesn't need __new__'s arguments.
-        return Topic(self.topic_bytes)  # type: ignore
+from .ipc_payload import IpcPayload
+from .inter_process_message import InterProcessMessage
 
 
 class SocketType(Enum):
@@ -284,7 +196,7 @@ def _prep_send_payload(
                 "ValueError: "
                 f"Given data `{data!r}` is not allowed on topic `{topic}` "
                 f"because its type `{type(data)}` is not a supported type. "
-                f"This topic allows: {topic.topic_type}."
+                f"This topic allows: {topic.definition.topic_type}."
             )
         payload.topic_bytes = topic.value
 

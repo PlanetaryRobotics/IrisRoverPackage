@@ -4,22 +4,66 @@ Tools for 'safely' pickling data to be sent over IPC. See notes in
 package, like pickle itself, should still be used with caution).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 02/27/2022
+@last-updated: 03/05/2023
 """
 
+import pkgutil
 import io
 import builtins
 import pickle
 import datetime
 
-from typing import Any, ClassVar, Set
+from typing import Any, ClassVar, Dict, Set
+from types import ModuleType
 
-from .signature import add_digest, extract_message_and_check_integrity
+from IrisBackendv3.utils.imports import import_package_modules
 
 import IrisBackendv3.codec.magic
 import IrisBackendv3.codec.metadata
 import IrisBackendv3.codec.payload
+import IrisBackendv3.codec.payload_collection
 import IrisBackendv3.codec.packet
+import IrisBackendv3.codec.packet_classes
+
+
+def create_module_entry(module: ModuleType) -> Dict[str, ModuleType]:
+    """Creates a {module_name: module} dictionary as an entry to
+        `approved_iris_modules`.
+        e.g.: `{'IrisBackendv3.codec.magic': IrisBackendv3.codec.magic}`
+        """
+    return {module.__name__: module}
+
+
+def create_package_entries(package: ModuleType) -> Dict[str, ModuleType]:
+    """Creates a number of {module_name: module} entries in a dictionary for
+    every module in the given package, including importing all the necessary
+    modules from the package.
+
+    NOTE: By design, this only grabs one layer deep and **will not** import
+    packages within packages. This is to make it so that such actions need to
+    be intentional and one line of code can't inadvertently add a bunch of new
+    modules to the approved list.
+    E.g.:
+    ```py
+    import IrisBackendv3.codec.packet_classes
+    create_package_entries(IrisBackendv3.codec.packet_classes)
+    ```
+    will return a dictionary that looks like:
+    ```py
+    {
+        'IrisBackendv3.codec.packet_classes.custom_payload': IrisBackendv3.codec.packet_classes.custom_payload,
+        'IrisBackendv3.codec.packet_classes.iris_common': IrisBackendv3.codec.packet_classes.iris_common,
+        # etc ...
+    }
+    ```
+    """
+    modules = import_package_modules(package)
+    return modules
+
+
+# Shorthand:
+_m = create_module_entry
+_p = create_package_entries
 
 
 class _IrisRestrictedUnpickler(pickle.Unpickler):
@@ -29,14 +73,14 @@ class _IrisRestrictedUnpickler(pickle.Unpickler):
     (i.e., a class or a function) is requested. This only allows safe builtins
     and a selection of pre-approved and pre-imported Iris modules to be loaded.
 
-    This is used as a security layer for any pickles sent over the internal Iris
-    Backend IPC network. Pickles are only sent over IPC in the first place to
-    allow any classes which are already set up for being cached as pickles
+    This is used as a security layer for any pickles sent over the internal
+    Iris Backend IPC network. Pickles are only sent over IPC in the first place
+    to allow any classes which are already set up for being cached as pickles
     (think `DataStandards`) to also be sent over IPC.
 
     Note: even though this should offer a secure way to transfer pickles over a
-    network, as a matter of principle, **pickles should still never be sent over
-    an open network**.
+    network, as a matter of principle, **pickles should still never be sent**
+    **over an open network**.
 
     Note: careful consideration should be given when adding any iris module to
     `approved_iris_modules` to ensure there are no ways for it to be used to
@@ -53,23 +97,25 @@ class _IrisRestrictedUnpickler(pickle.Unpickler):
         'getattr'
     }
 
-    approved_iris_modules = {
+    approved_iris_modules: ClassVar[Dict[str, ModuleType]] = {
         'datetime': datetime,
-        'IrisBackendv3.codec.magic': IrisBackendv3.codec.magic,
-        'IrisBackendv3.codec.metadata': IrisBackendv3.codec.metadata,
-        'IrisBackendv3.codec.payload': IrisBackendv3.codec.payload,
-        'IrisBackendv3.codec.packet': IrisBackendv3.codec.packet
+        **_m(IrisBackendv3.codec.magic),
+        **_m(IrisBackendv3.codec.metadata),
+        **_m(IrisBackendv3.codec.payload),
+        **_m(IrisBackendv3.codec.payload_collection),
+        **_m(IrisBackendv3.codec.packet),
+        **_p(IrisBackendv3.codec.packet_classes)
     }
 
     def find_class(self, module, name):
         # Only allow safe classes from builtins.
 
         # Allow safe built-ins:
-        if module == "builtins" and name in _IrisRestrictedUnpickler.safe_builtins:
+        if module == "builtins" and name in self.__class__.safe_builtins:
             return getattr(builtins, name)
 
         # Allow approved Iris Modules:
-        if module in _IrisRestrictedUnpickler.approved_iris_modules:
+        if module in self.__class__.approved_iris_modules:
             # Return global with the given name in the given module, in such a
             # way that handles nested classes
             # (e.g. if `name = 'IrisCommonPacket.CommonPacketHeader'`, clearly
@@ -78,7 +124,7 @@ class _IrisRestrictedUnpickler(pickle.Unpickler):
             # - as a nested class in this case.
             # The following recursive strategy handles this edge case):
 
-            import_result = _IrisRestrictedUnpickler.approved_iris_modules[module]
+            import_result = self.__class__.approved_iris_modules[module]
             for piece in name.split('.'):
                 import_result = getattr(import_result, piece)
 
@@ -96,17 +142,12 @@ class _IrisRestrictedUnpickler(pickle.Unpickler):
 
 
 def restricted_loads(s: bytes) -> Any:
-    """ Functionally analogous to pickle.loads() but is used for a 
-    double-signed message made using `restricted_dumps`."""
-    layer1 = extract_message_and_check_integrity(s)
-    layer0 = extract_message_and_check_integrity(layer1)
-    o = _IrisRestrictedUnpickler.restricted_loads(layer0)
-    return o
+    """ Functionally analogous to pickle.loads() but uses a restricted
+    unpickler."""
+    return _IrisRestrictedUnpickler.restricted_loads(s)
 
 
 def restricted_dumps(o: Any) -> bytes:
-    """ Functionally analogous to pickle.dumps() but double signs the message."""
-    layer0 = pickle.dumps(o)
-    layer1 = add_digest(layer0)
-    layer2 = add_digest(layer1)
-    return layer2
+    """ Functionally analogous to pickle.dumps(), but wrapped to do any prep
+    work necessary to use the restricted unpickler."""
+    return pickle.dumps(o)

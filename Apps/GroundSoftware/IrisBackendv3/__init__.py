@@ -19,6 +19,14 @@ IB3.init_from_latest()
 If the standards source gets updated, just re-run
 `IB3.data_standards.build_and_cache()`.
 """
+# Import all top-level modules so they're dot-accessible if just
+# `IrisBackendv3` is imported:
+from . import codec
+from . import data_standards
+from . import ipc
+from . import transceiver
+from . import utils
+
 
 # Private imports for use by helper functions:
 from .codec.settings import get_codec_standards as _get_codec_standards

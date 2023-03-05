@@ -12,7 +12,15 @@ system.
 """
 
 # Expose internal modules (allow them to be accessed directly):
-from .port import *
-from .topic import *
 
+from .settings import settings
 from .wrapper import *
+from .inter_process_message import *
+from .ipc_payload import *
+from .topics_registry import *
+
+# Expose important IPC modules as modules (so they can be dot-accessed when
+# including IrisBackendv3 as a package):
+from . import port
+from . import messages
+from . import topics

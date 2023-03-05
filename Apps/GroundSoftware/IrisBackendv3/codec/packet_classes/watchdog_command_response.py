@@ -140,7 +140,7 @@ class WatchdogCommandResponsePacket(WCR_PI[WCR_PI, WCR_CP]):
     def __repr__(self) -> str:
         return self.custom_payload.__repr__()
 
-    @ classmethod
+    @classmethod
     def decode(cls,
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE
@@ -166,7 +166,7 @@ class WatchdogCommandResponsePacket(WCR_PI[WCR_PI, WCR_CP]):
         #!! TODO: IS NECESSARY FOR IPC (OR JUST ENCODE THAT STUFF IN A STATE) <- Not with new `Packet`-specific `__reduce__` strategy
         raise NotImplementedError()
 
-    @ classmethod
+    @classmethod
     def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
         """
         Determines whether the given bytes constitute a valid packet of this type.

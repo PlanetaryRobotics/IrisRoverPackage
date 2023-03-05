@@ -108,7 +108,7 @@ def make_udp_handler(app_context: Dict[str, Any], packet_queue, message_queue):
         def handle(self):
             src_ip, src_port = self.client_address
             # Make sure src IP is the rover or the gateway:
-            if(src_ip not in [
+            if (src_ip not in [
                 app_context['wifi_settings']['rover_ip'],
                 app_context['wifi_settings']['gateway_ip']
             ]):
@@ -118,7 +118,7 @@ def make_udp_handler(app_context: Dict[str, Any], packet_queue, message_queue):
 
             # Make sure src port is the rover or lander reflected by the gateway:
             rover_port = app_context['wifi_settings']['rover_port']
-            if(src_port not in [
+            if (src_port not in [
                 rover_port,
                 rover_port+1,  # A special testing case
                 app_context['wifi_settings']['lander_port']
@@ -397,21 +397,26 @@ async def console_main(serial_settings):
             bind_and_activate=True
         )
         server_active = True
-        message_queue.put_nowait(QueueMessage(colored("UDP Server Bound.", 'green')))
+        message_queue.put_nowait(QueueMessage(
+            colored("UDP Server Bound.", 'green')))
     except Exception as e:
-        message_queue.put_nowait(QueueMessage(colored("UDP Server Failed to Bind.", 'red')))
+        message_queue.put_nowait(QueueMessage(
+            colored("UDP Server Failed to Bind.", 'red')))
         server_active = False
+
         class DummyWithable__UdpConnectionFailed():
             def __init__(self): pass
             def __enter__(self, *args, **kwargs): pass
             def __exit__(self, *args, **kwargs): pass
-        udp_server = DummyWithable__UdpConnectionFailed() # Basically `None` but supports `with`
-        
+        # Basically `None` but supports `with`
+        udp_server = DummyWithable__UdpConnectionFailed()
+
     # Add pointer to context:
     app_context['udp_server'] = udp_server
     with udp_server:
         if server_active:
-            udp_server_thread = threading.Thread(target=udp_server.serve_forever)
+            udp_server_thread = threading.Thread(
+                target=udp_server.serve_forever)
             udp_server_thread.daemon = True
             udp_server_thread.start()
 

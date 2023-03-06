@@ -79,7 +79,9 @@ clean:
 # Run the Development Application:
 ####
 run:
-	pyenv exec ${PYTHON} IrisBackendv3/main.py
+# Rebuild latest datastandards first so every app has access via cache:
+	./run-script.sh ./scripts/tiny_apps/datastandards_build_cache.py
+#	pyenv exec ${PYTHON} IrisBackendv3/main.py
 
 ####
 # Count Lines of Code (for fun):

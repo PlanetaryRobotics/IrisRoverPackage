@@ -29,6 +29,9 @@ import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = !isProduction;
 
+// Launch python script
+import child_process from 'child_process';
+
 // Handle all unhandled exceptions for diagnostics (and reporting):
 const unhandled = require('electron-unhandled');
 unhandled();
@@ -44,6 +47,9 @@ const ICON =
           : path.join(__dirname, 'assets', 'icons', 'logo.png_64x64.png');
 
 let URL_PREFIX;
+
+// flask process launched for FLEUR
+let flaskProcess;
 
 // Standard scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{
@@ -206,6 +212,11 @@ app.on('activate', () => {
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
     spawn();
+    flaskProcess = child_process.spawn('python3', [path.join(__static, 'FLEUR', 'fleur_server.py')]);
+});
+
+app.on('quit', async () => {
+    if (flaskProcess) flaskProcess.kill();
 });
 
 // Exit cleanly on request from parent process in development mode.

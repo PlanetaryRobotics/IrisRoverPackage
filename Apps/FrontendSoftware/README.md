@@ -1,6 +1,14 @@
 # Iris Terminal (2022): A Mission Operations Center Interface v.1
 
 ## **Project setup**
+First, run this to get FLEUR (you need access to the FLEUR repository)
+```
+git submodule update --init --recursive --remote
+```
+
+Make sure `python3` and [required packages](https://github.com/PlanetaryRobotics/FLEUR/blob/redesign-dev/README.md#Development) are installed. 
+A copy of FLEUR can be found in `Apps/FrontendSoftware/public/FLEUR`.
+
 Install `node@14.20.1` (it's recommended to use `nvm`), `npm`, `yarn`, and a c-compiler (`xcode` if on a mac).
 
 **NOTE:** If using MacOS and `nvm` make sure nvm setup is in `~/.zshenv` (what normally goes in `~/.bash_profile`)

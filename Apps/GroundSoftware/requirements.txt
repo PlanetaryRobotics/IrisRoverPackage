@@ -23,6 +23,8 @@ datashader
 lxml
 pytest
 requests
+# Need Protobuf <=3.20.x (after that is 4, which breaks yamcs protos)
+protobuf <= 3.20.999
 yamcs-client==1.7.5
 jsonpickle
 termcolor

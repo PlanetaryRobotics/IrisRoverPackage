@@ -212,7 +212,7 @@ app.on('activate', () => {
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
     spawn();
-    flaskProcess = child_process.spawn('python3', [path.join(__static, 'FLEUR', 'fleur_server.py')]);
+    flaskProcess = child_process.spawn('python', [path.join(__static, 'FLEUR', 'fleur_server.py')]);
 });
 
 app.on('quit', async () => {

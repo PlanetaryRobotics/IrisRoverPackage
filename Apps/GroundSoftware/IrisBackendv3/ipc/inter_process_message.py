@@ -209,9 +209,7 @@ class InterProcessMessage(Generic[IPMC], ABC):
             )
 
 
-def IpmSubclassFactory(
-    ipmc_t: Type[IPMC]
-) -> Type[InterProcessMessage[IPMC]]:
+def IpmSubclassFactory(ipmc_t: Type[IPMC]) -> Type[InterProcessMessage[IPMC]]:
     """Factory that handles the boiler plate of creating a basic subclass of
     `InterProcessMessage` (basically removes the repetition).
 

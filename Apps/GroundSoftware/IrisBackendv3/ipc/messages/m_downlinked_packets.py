@@ -17,7 +17,10 @@ from IrisBackendv3.codec.packet_classes.packet import Packet
 class DownlinkedPacketsContent(MessageContentAttrMixin):
     """
     Defines the Message Content wrapping a collection `Packets` received from
-    the downlink direction during one read.
+    the downlink direction during one read by a transceiver.
+
+    Args:
+        `packets` (`List[Packet]`): Packets downlinked.
     """
     packets: List[Packet]
 

@@ -7,7 +7,7 @@ This registry serves two purposes:
   2. Provide an enumeration of all available `Topics`.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/02/2023
+@last-updated: 03/06/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations

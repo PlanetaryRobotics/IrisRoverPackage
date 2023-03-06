@@ -19,11 +19,14 @@ AnyType: TypeAlias = Type | _BaseGenericAlias | Tuple | Callable | _SpecialForm
 
 @dataclass
 class TopicDefinition:
-    # Instance attributes for type-checker:
-    # Type of data written to the topic (can be any valid mypy type):
-    topic_type: AnyType
     # Definition (class) of Message that gets sent on this topic:
     message_def: Type[InterProcessMessage]
+
+    @property
+    def topic_type(self) -> AnyType:
+        """Instance attributes for type-checker:
+        Type of data written to the topic (can be any valid mypy type):"""
+        return self.message_def.CONTENT_TYPE()
 
     def allows(self, data: Any) -> bool:
         """

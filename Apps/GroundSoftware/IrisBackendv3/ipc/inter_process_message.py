@@ -5,7 +5,7 @@ between IPC Apps.
 NOTE: This code used to live inside `wrapper.py`
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/04/2023
+@last-updated: 03/06/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
@@ -14,8 +14,10 @@ from typing import Any, Generic, Optional, TypeVar, Protocol, List, TypeGuard, D
 import attr
 import typeguard
 
-from .exceptions import DecodedInterProcessMessageContentTypeException
-from .serializer import IrisGenericSerializer
+from IrisBackendv3.ipc.exceptions import DecodedInterProcessMessageContentTypeException
+from IrisBackendv3.ipc.restricted_pickler import IRIS_RESTRICTED_PICKLER_VERSION
+from IrisBackendv3.ipc.serializer import IrisGenericSerializer, IRIS_SERIALIZER_VERSION
+from IrisBackendv3.ipc.logging import logger
 
 # Create special serializer for messages:
 _MessageSerializer = IrisGenericSerializer()
@@ -38,30 +40,72 @@ class MessageContentInterface(ABC):
     def encode(self) -> Dict:
         """Basically just `to_dict` but adds a field that includes the class
         name to make sure the class rebuilt on the other end is the correct
-        class, not just a class with the same fields."""
-        return {**self.to_dict(), '__class__': self.__class__.__name__}
+        class, not just a class with the same fields.
+        Also adds a check for the restricted pickler and serializer versions,
+        to act as a compatibility check."""
+        return {
+            **self.to_dict(),
+            '__class__': self.__class__.__name__,
+            '_vIRP': IRIS_RESTRICTED_PICKLER_VERSION,
+            '_vIS': IRIS_SERIALIZER_VERSION
+        }
 
     @classmethod
     def decode(cls: Type[IPMC], d: Dict) -> IPMC:
         """Basically just `from_dict` but checks a field that includes the
         class name to make sure the class rebuilt on the other end is the
-        correct class, not just a class with the same fields."""
-        class_field = '__class__'
-        if class_field not in d:
+        correct class, not just a class with the same fields.
+        Also checks the restricted pickler and serializer versions,
+        to act as a compatibility check."""
+        # Check for Iris Restricted Pickler and Serializer versions for
+        # compatibility:
+        k_vIRP, k_vIS = '_vIRP', '_vIS'
+        if k_vIRP not in d or k_vIS not in d:
             raise ValueError(
                 f"In `MessageContentInterface.decode`, message content dict "
-                f"doesn't include the mandatory __class__ field. "
+                f"is missing either or both of the mandatory version fields: "
+                f"`{k_vIRP}`, `{k_vIS}`. "
                 f"Dict: `{d}`."
             )
-        if d[class_field] != cls.__name__:
+        if d[k_vIRP] != IRIS_RESTRICTED_PICKLER_VERSION:
+            # To prevent thing from breaking, just log a very annoying error.
+            # Don't raise an exception outright.
+            logger.error(
+                f"Iris Restricted Pickler Version in received message "
+                f"({d[k_vIRP]}) doesn't match the version in this instance of "
+                f"the backend ({IRIS_RESTRICTED_PICKLER_VERSION=}). "
+                f"It's possible an incompatible version of the IrisBackend "
+                f"was used to encode this message. Sync versions ASAP."
+            )
+        if d[k_vIS] != IRIS_SERIALIZER_VERSION:
+            # To prevent thing from breaking, just log a very annoying error.
+            # Don't raise an exception outright.
+            logger.error(
+                f"Iris Serializer Version in received message "
+                f"({d[k_vIS]}) doesn't match the version in this instance of "
+                f"the backend ({IRIS_SERIALIZER_VERSION=}). "
+                f"It's possible an incompatible version of the IrisBackend "
+                f"was used to encode this message. Sync versions ASAP."
+            )
+
+        k_class = '__class__'
+        if k_class not in d:
+            raise ValueError(
+                f"In `MessageContentInterface.decode`, message content dict "
+                f"doesn't include the mandatory {k_class} field. "
+                f"Dict: `{d}`."
+            )
+        if d[k_class] != cls.__name__:
             raise ValueError(
                 f"In `MessageContentInterface.decode`, "
-                f"message content class indicated by `{d[class_field]=}` "
+                f"message content class indicated by `{d[k_class]=}` "
                 f"doesn't match the message content class trying to be "
                 f"rebuilt `{cls.__name__=}`."
             )
-        # Remove __class__ field and rebuild:
-        del d[class_field]
+        # Remove meta-fields and rebuild:
+        del d[k_vIRP]
+        del d[k_vIS]
+        del d[k_class]
         return cls.from_dict(d)
 
     @abstractmethod

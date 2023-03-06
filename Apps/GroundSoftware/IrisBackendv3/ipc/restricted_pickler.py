@@ -52,6 +52,9 @@ import IrisBackendv3.codec.packet_classes.watchdog_radio_debug
 import IrisBackendv3.codec.packet_classes.watchdog_debug_important
 import IrisBackendv3.codec.packet_classes.watchdog_debug
 
+# Use the latest supported version of pickle (faster and more performant):
+# (don't worry, pickle handles compat. checking with messages).
+_PICKLE_PROTOCOL: Final[int] = 5
 
 # Version of Iris Restricted Pickler. Inc. when there's a change that could
 # break backwards compatibility. (gets checked on receiving end to ensure
@@ -103,8 +106,6 @@ def create_module_entry(module: ModuleType) -> Dict[str, ModuleType]:
 # Shorthand:
 _m = create_module_entry
 # _p = create_package_entries
-
-_PICKLE_PROTOCOL: Final[int] = 5
 
 _DEFAULT_APPROVED_IRIS_MODULES: Final[Dict[str, ModuleType]] = {
     'datetime': datetime,

@@ -33,8 +33,8 @@ async def check_all_packets() -> None:
             assert (dpm == dpm2)
     except Exception as e:
         print(e)
-        dpmb = dpm.to_ipc_bytes()
-        dpm2 = DownlinkedPacketsMessage.from_ipc_bytes(dpmb)
+        # dpmb = dpm.to_ipc_bytes()
+        # dpm2 = DownlinkedPacketsMessage.from_ipc_bytes(dpmb)
         from IrisBackendv3.codec.payload import TelemetryPayload
         from IrisBackendv3.ipc.serializer import serialize, deserialize
         packets = dpm.content.packets

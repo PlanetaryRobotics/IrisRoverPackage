@@ -32,15 +32,13 @@ class Topic(Enum):
     # initial subset of any other topic (e.g. you could not have `0xDEADBEEF`
     # and `0xDEAD` but you could have `0xDEADBEEF` and `0xBEEF`).
 
-    # Packets downlinked to any xcvr:
+    # Topic Assignments:
+    # (see `TopicDefinition`s (`TD``) and their messages for more details on
+    # the contents of the specific topics):
     DL_PACKETS = b'\xFE\xED', TD_DL_PACKETS
-    # # Payloads downlinked to any xcvr (contents of a packet *and* Meta payloads generated from that data):
-    # DL_PAYLOADS = b'\xFE\xEE', List[Payload]
-    # # Packets to be uplinked by all listening XCVRs:
-    # UL_PACKETS = b'\xF0\x01', Packet
-    # # Payloads to uplink (either in one packet or each in their own packet
-    # # ... up to the packer):
-    # UL_PAYLOADS = b'\xF0\x0D', List[Payload]
+    DL_PAYLOADS = b'\xFE\xEE', TD_DL_PAYLOADS
+    UL_PACKET = b'\xF0\x01', TD_UL_PACKET
+    UL_PAYLOADS = b'\xF0\x0D', TD_UL_PAYLOADS
 
     # Definition of the topic:
     definition: TopicDefinition

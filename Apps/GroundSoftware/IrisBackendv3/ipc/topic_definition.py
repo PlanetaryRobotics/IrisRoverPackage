@@ -33,8 +33,10 @@ class TopicDefinition:
         Checks whether the given data is allowed on the given topic based on
         its type.
         """
-        try:
-            check_type('data', data, self.topic_type)
-            return True
-        except TypeError:
-            return False
+        return (
+            # Can't just do a direct isinstance check because sometimes
+            # messages register as the IpmSubclassFactory's internal `SubIpm`
+            # class...
+            isinstance(data, InterProcessMessage)
+            and data.CONTENT_TYPE() == self.message_def.CONTENT_TYPE()
+        )

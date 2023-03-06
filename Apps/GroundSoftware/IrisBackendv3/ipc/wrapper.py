@@ -11,11 +11,11 @@ being used for IPC. That is, if we ever decide to migrate away from ZMQ for IPC,
 the only area that should **need** to be changed would be this file.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 11/22/2022
+@last-updated: 03/06/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
-from typing import Optional, Union, List, cast
+from typing import Optional, Union, List, cast, Tuple, Type, TypeVar
 import dataclasses
 from enum import Enum
 
@@ -130,7 +130,7 @@ def _create_socket(
     elif socket_type in [SocketType.CLIENT, socket_type.SUBSCRIBER]:
         # Connect Clients and Subscribers:
         for port in ports:
-            socket.connect(f"tcp://{settings['IP']}:{port}")
+            socket.connect(f"tcp://{settings['IP']}:{port.value}")
 
         logger.info(  # type: ignore
             f"Created a `{socket_type}` connected to `tcp://{settings['IP']}` on ports `{ports}`."
@@ -305,3 +305,33 @@ async def async_read_from(
 ) -> IpcPayload:
     raw: List[bytes] = await socket.recv_multipart()
     return _process_multipart(raw)
+
+_IPMT = TypeVar('_IPMT', bound=InterProcessMessage)
+
+
+def read_from_as(
+    socket: Socket,
+    message_type: Type[_IPMT]
+) -> Tuple[IpcPayload, _IPMT]:
+    """Same as `read_from`, but instead of returning raw binary, it 
+    parses the data read as the given IPC `InterProcessMessage`.
+    Returns a tuple containing the raw `IpcPayload` alongside the interpreted
+    `InterProcessMessage`.
+    """
+    payload = read_from(socket)
+    message = message_type.from_ipc_bytes(payload.msg_bytes)
+    return (payload, message)
+
+
+async def async_read_from_as(
+    socket: AsyncSocket,
+    message_type: Type[_IPMT]
+) -> Tuple[IpcPayload, _IPMT]:
+    """Same as `async_read_from`, but instead of returning raw binary, it 
+    parses the data read as the given IPC `InterProcessMessage`.
+    Returns a tuple containing the raw `IpcPayload` alongside the interpreted
+    `InterProcessMessage`.
+    """
+    payload = await async_read_from(socket)
+    message = message_type.from_ipc_bytes(payload.msg_bytes)
+    return (payload, message)

@@ -10,7 +10,7 @@ from typing import List
 import attr
 
 from IrisBackendv3.ipc.inter_process_message import IpmSubclassFactory, MessageContentAttrMixin
-from IrisBackendv3.codec.packet import Packet
+from IrisBackendv3.codec.packet_classes.packet import Packet
 
 
 @attr.s(frozen=True, cmp=True, slots=True, auto_attribs=True)

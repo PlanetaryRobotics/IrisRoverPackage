@@ -15,9 +15,9 @@ from typing import Any, Final, ClassVar, Awaitable, Callable, Dict, TypeAlias, T
 import asyncio
 import argparse
 
-from .logging import logger
-from .transceiver import Transceiver
-from .prebuilts import build_xcvr_by_name
+from IrisBackendv3.transceiver.logging import logger
+from IrisBackendv3.transceiver.transceiver import Transceiver
+from IrisBackendv3.transceiver.prebuilts import build_xcvr_by_name
 
 import IrisBackendv3 as IB3
 

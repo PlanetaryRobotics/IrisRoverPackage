@@ -20,7 +20,7 @@ information in the supplied data.
 @last-updated: 05/12/2022
 """
 
-from .endecs.endec import Endec
-from .endecs.unity_endec import UnityEndec
-from .endecs.ip_udp_endec import IpUdpEndec
-from .endecs.slip_endec import SlipEndec
+from IrisBackendv3.transceiver.endecs.endec import Endec
+from IrisBackendv3.transceiver.endecs.unity_endec import UnityEndec
+from IrisBackendv3.transceiver.endecs.ip_udp_endec import IpUdpEndec
+from IrisBackendv3.transceiver.endecs.slip_endec import SlipEndec

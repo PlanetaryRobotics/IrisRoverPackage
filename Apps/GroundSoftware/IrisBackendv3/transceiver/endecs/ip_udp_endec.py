@@ -1,4 +1,4 @@
-from .endec import *
+from IrisBackendv3.transceiver.endec import *
 
 from typing import cast
 import scapy.all as scp  # type: ignore # no type hints

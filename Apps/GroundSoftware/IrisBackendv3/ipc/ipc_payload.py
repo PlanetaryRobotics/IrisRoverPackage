@@ -11,7 +11,7 @@ NOTE: This code used to live inside `wrapper.py`
 from __future__ import annotations
 import dataclasses
 
-from .topics_registry import Topic
+from IrisBackendv3.ipc.topics_registry import Topic
 
 
 @dataclasses.dataclass(order=True)

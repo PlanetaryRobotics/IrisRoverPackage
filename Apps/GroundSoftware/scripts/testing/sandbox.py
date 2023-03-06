@@ -22,7 +22,8 @@ from IrisBackendv3.codec.magic import Magic
 from IrisBackendv3.codec.logging import logger as CodecLogger
 from IrisBackendv3.codec.settings import set_codec_standards
 from IrisBackendv3.utils.basic import print_bytearray_hex as printraw
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket
+from IrisBackendv3.codec.packet_classes.packet import Packet
+from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket
 
 from scripts.utils.tvac_tools import telemetry_streams, update_telemetry_streams, load_cache, plot_stream
 from scripts.utils.tvac_tools import settings as tvac_settings

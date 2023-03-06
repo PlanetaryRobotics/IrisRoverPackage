@@ -35,7 +35,7 @@ from typing_extensions import TypeAlias
 from types import NoneType
 import dataclasses
 
-from .wrapper import (
+from IrisBackendv3.ipc.wrapper import (
     Context, AsyncContext,
     create_context, create_async_context,
     Socket, AsyncSocket,
@@ -46,14 +46,14 @@ from .wrapper import (
     send_to, async_send_to,
 )
 
-from .ipc_payload import IpcPayload
-from .inter_process_message import InterProcessMessage, IPMHandler
+from IrisBackendv3.ipc.ipc_payload import IpcPayload
+from IrisBackendv3.ipc.inter_process_message import InterProcessMessage, IPMHandler
 
-from .port import Port
-from .topics_registry import Topic
-from .settings import settings
-from .logging import logger
-from .exceptions import UnhandledTopicException
+from IrisBackendv3.ipc.port import Port
+from IrisBackendv3.ipc.topics_registry import Topic
+from IrisBackendv3.ipc.settings import settings
+from IrisBackendv3.ipc.logging import logger
+from IrisBackendv3.ipc.exceptions import UnhandledTopicException
 
 # Context Type (sync or async):
 _CT = TypeVar('_CT', bound=(Context | AsyncContext), covariant=True)

@@ -13,16 +13,16 @@ to the `Transceiver` layer.
 """
 
 # Expose internal modules (allow them to be accessed directly):
-from .magic import *
+from IrisBackendv3.codec.magic import *
 
-from .fsw_data_codec import *
+from IrisBackendv3.codec.fsw_data_codec import *
 
-from .exceptions import *
+from IrisBackendv3.codec.exceptions import *
 
 # Expose important codec modules as modules (so they can be dot-accessed when
 # including IrisBackendv3 as a package):
-from . import metadata
-from . import packet
-from . import payload_collection
-from . import payload
-from . import settings
+from IrisBackendv3.codec import metadata
+from IrisBackendv3.codec import packet
+from IrisBackendv3.codec import payload_collection
+from IrisBackendv3.codec import payload
+from IrisBackendv3.codec import settings

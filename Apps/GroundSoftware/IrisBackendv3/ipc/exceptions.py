@@ -14,7 +14,7 @@ if typing.TYPE_CHECKING:
     # NOTE: Having this as a normal import causes a circular dependency issue
     # b/c `ipc_payload` depends on this that depend on exceptions, which would
     # depend on `ipc_payload`, etc... (hence the circle)
-    from .ipc_payload import IpcPayload
+    from IrisBackendv3.ipc.ipc_payload import IpcPayload
 
 
 class IpcException(Exception):

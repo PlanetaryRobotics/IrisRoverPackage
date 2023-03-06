@@ -3,7 +3,7 @@
 # NOTE: For some reason this doesn't work with `tee` in bash, even when just using raw YAMCS (causes prints to only happen once every ~4mins)
 # Running this normally (`pyenv exec python3 ./_pft_peregrine.py -u UNAME -p PASS` from inside WSL on OSIRIS works like a charm)
 
-from yamcs.client import YamcsClient # type: ignore
+from yamcs.client import YamcsClient  # type: ignore
 from yamcs.core.auth import Credentials as YamcsCredentials  # type: ignore
 
 from typing import Final
@@ -28,7 +28,9 @@ from IrisBackendv3.data_standards.logging import logger as DsLogger
 from IrisBackendv3.codec.magic import Magic
 from IrisBackendv3.codec.payload import WatchdogCommandPayload, CommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, parse_packet
+from IrisBackendv3.codec.packet import parse_packet
+from IrisBackendv3.codec.packet_classes.packet import Packet
+from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.data_standards import DataStandards
 import scapy.all as scp
@@ -52,6 +54,7 @@ set_codec_standards(standards)
 parser = argparse.ArgumentParser(
     description=TITLE)
 
+
 def get_opts():
     """
     Return settings wrapped in argparse.
@@ -64,9 +67,12 @@ def get_opts():
     opts = parser.parse_args()
     return opts
 
+
 def obtain_client(opts) -> YamcsClient:
-    credentials = YamcsCredentials(username=opts.username, password=opts.password)
+    credentials = YamcsCredentials(
+        username=opts.username, password=opts.password)
     return YamcsClient("plyamcs1.mission.local:443", credentials=credentials, tls=True, tls_verify=True)
+
 
 @dataclass
 class QueueMessage:
@@ -76,6 +82,7 @@ class QueueMessage:
 @dataclass
 class QueueTick:
     count: int
+
 
 async def ticker(tick_period_s: int, tick_queue):
     # Makes one tick every `tick_period_s` seconds.
@@ -92,16 +99,18 @@ async def run_forever():
     while True:
         await asyncio.sleep(1)
 
+
 def create_basic_param_printer(message_queue, param_name: str):
     def print_data(data) -> None:
         if data is not None:
             for parameter in data.parameters:
                 message_queue.put_nowait(
-                    colored(f'[{parameter.generation_time}]', 'green') + 
+                    colored(f'[{parameter.generation_time}]', 'green') +
                     colored(f' {param_name}:', 'blue') +
                     f' {parameter.raw_value} \t->\t {parameter.eng_value}'
                 )
     return print_data
+
 
 def create_packet_data_printer(message_queue):
     def print_packet_data(data) -> None:
@@ -111,11 +120,12 @@ def create_packet_data_printer(message_queue):
                 packet_bytes = parameter.raw_value
                 packet = parse_packet(packet_bytes)
                 message_queue.put_nowait(
-                    "\nP"+colored(f"[{t}])", 'green')+
-                    colored(f" {packet}", 'magenta')+
+                    "\nP"+colored(f"[{t}])", 'green') +
+                    colored(f" {packet}", 'magenta') +
                     f'\n{scp.hexdump(packet_bytes, dump=True)}\n'
                 )
     return print_packet_data
+
 
 async def main():
     print(TITLE)
@@ -136,14 +146,17 @@ async def main():
         return
 
     # Subscribe to every data parameter we have access to:
-    processor = client.get_processor(instance='Astrobotic-M1', processor='realtime')
+    processor = client.get_processor(
+        instance='Astrobotic-M1', processor='realtime')
     for param in params:
         if param.qualified_name == IRIS_TELEM_PARAM_NAME:
             func = create_packet_data_printer(message_queue)
         else:
-            func = create_basic_param_printer(message_queue, param.qualified_name)
+            func = create_basic_param_printer(
+                message_queue, param.qualified_name)
         print(f"Subscribing to updates of parameter: {param.qualified_name}")
-        processor.create_parameter_subscription(param.qualified_name, on_data=func)
+        processor.create_parameter_subscription(
+            param.qualified_name, on_data=func)
 
     # Listen for data:
     tasks = [
@@ -172,9 +185,11 @@ async def main():
     # Clean up if the above closes for some reason:
     [await t for t in tasks]
 
+
 def run_yamcs():
     print('Booting . . .')
     asyncio.run(main())
+
 
 if __name__ == "__main__":
     run_yamcs()

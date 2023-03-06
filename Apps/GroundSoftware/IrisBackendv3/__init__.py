@@ -19,20 +19,24 @@ IB3.init_from_latest()
 If the standards source gets updated, just re-run
 `IB3.data_standards.build_and_cache()`.
 """
+# Import `restricted_pickler` before **ANYTHING ELSE** so it has first dibs on
+# how the modules it cares about are imported:
+import IrisBackendv3.ipc.restricted_pickler
+
 # Import all top-level modules so they're dot-accessible if just
 # `IrisBackendv3` is imported:
-from . import codec
-from . import data_standards
-from . import ipc
-from . import transceiver
-from . import utils
+from IrisBackendv3 import codec
+from IrisBackendv3 import data_standards
+from IrisBackendv3 import ipc
+from IrisBackendv3 import transceiver
+from IrisBackendv3 import utils
 
 
 # Private imports for use by helper functions:
-from .codec.settings import get_codec_standards as _get_codec_standards
-from .codec.settings import set_codec_standards as _set_codec_standards
-from .data_standards import DataStandards as _DataStandards
-from .data_standards.data_standards import (
+from IrisBackendv3.codec.settings import get_codec_standards as _get_codec_standards
+from IrisBackendv3.codec.settings import set_codec_standards as _set_codec_standards
+from IrisBackendv3.data_standards import DataStandards as _DataStandards
+from IrisBackendv3.data_standards.data_standards import (
     _CACHE_DIR as _DS_CACHE_DIR,
     _FILENAME_BASE_DEFAULT as _DS_FILENAME_BASE_DEFAULT
 )

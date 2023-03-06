@@ -6,21 +6,21 @@ for communication with the Watchdog which doesn't use the Iris Common Packet
 format for its telemetry (to minimize bandwidth use).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/09/2022
+@last-updated: 03/05/2023
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
-from .packet import Packet, CT
+from IrisBackendv3.codec.packet_classes.packet import Packet, CT
 
 from typing import List, Optional, ClassVar, TypeVar, cast, Generic, Type, Dict
 import inspect
 import time
 
-from ..magic import Magic
-from ..payload import TelemetryPayload
-from ..payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.magic import Magic
+from IrisBackendv3.codec.payload import TelemetryPayload
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
-from ..settings import ENDIANNESS_CODE, settings
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE, settings
 
 from IrisBackendv3.data_standards.module import Module
 

@@ -18,22 +18,22 @@ from collections import OrderedDict
 import struct
 from datetime import datetime
 
-from .magic import Magic, MAGIC_SIZE
-from .metadata import DataPathway, DataSource, DownlinkTimes, UplinkTimes
-from .container import ContainerCodec
-from .fsw_data_codec import encode as fsw_data_encode
-from .fsw_data_codec import decode as fsw_data_decode
+from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
+from IrisBackendv3.codec.metadata import DataPathway, DataSource, DownlinkTimes, UplinkTimes
+from IrisBackendv3.codec.container import ContainerCodec
+from IrisBackendv3.codec.fsw_data_codec import encode as fsw_data_encode
+from IrisBackendv3.codec.fsw_data_codec import decode as fsw_data_decode
 
-from .logging import logger
+from IrisBackendv3.codec.logging import logger
 
-from .settings import ENDIANNESS_CODE, settings
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE, settings
 
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.module import Module, Command, TelemetryChannel, Event
 from IrisBackendv3.data_standards import FswDataType
 from IrisBackendv3.utils.basic import full_dict_spec_check
 
-from .exceptions import PacketDecodingException
+from IrisBackendv3.codec.exceptions import PacketDecodingException
 
 
 PIT = TypeVar('PIT')

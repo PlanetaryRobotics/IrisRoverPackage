@@ -22,13 +22,13 @@ from enum import Enum
 import zmq
 import zmq.asyncio
 
-from .port import Port
-from .topics_registry import Topic
-from .settings import settings
-from .logging import logger
+from IrisBackendv3.ipc.port import Port
+from IrisBackendv3.ipc.topics_registry import Topic
+from IrisBackendv3.ipc.settings import settings
+from IrisBackendv3.ipc.logging import logger
 
-from .ipc_payload import IpcPayload
-from .inter_process_message import InterProcessMessage
+from IrisBackendv3.ipc.ipc_payload import IpcPayload
+from IrisBackendv3.ipc.inter_process_message import InterProcessMessage
 
 
 class SocketType(Enum):

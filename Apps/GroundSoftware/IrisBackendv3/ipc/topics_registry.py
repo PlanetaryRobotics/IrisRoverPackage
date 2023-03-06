@@ -16,8 +16,8 @@ from typing import Any
 
 from enum import Enum
 
-from .topic_definition import TopicDefinition
-from .topics import *
+from IrisBackendv3.ipc.topic_definition import TopicDefinition
+from IrisBackendv3.ipc.topics import *
 
 
 class Topic(Enum):

@@ -14,12 +14,13 @@ import asyncio
 import scapy.all as scp  # type: ignore
 from time import time
 
-from .transceiver import Transceiver
-from .endec import Endec, SlipEndec
-from .logging import logger, logging
-from .exceptions import TransceiverConnectionException, TransceiverDecodingException
+from IrisBackendv3.transceiver.transceiver import Transceiver
+from IrisBackendv3.transceiver.endec import Endec, SlipEndec
+from IrisBackendv3.transceiver.logging import logger, logging
+from IrisBackendv3.transceiver.exceptions import TransceiverConnectionException, TransceiverDecodingException
 
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket
+from IrisBackendv3.codec.packet_classes.packet import Packet
+from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.utils.basic import type_guard_argument

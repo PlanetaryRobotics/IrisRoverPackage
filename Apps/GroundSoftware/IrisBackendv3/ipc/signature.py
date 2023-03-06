@@ -9,8 +9,8 @@ from typing import Final
 import hmac
 import hashlib
 
-from .settings import settings
-from .exceptions import MessageIntegrityError
+from IrisBackendv3.ipc.settings import settings
+from IrisBackendv3.ipc.exceptions import MessageIntegrityError
 
 # Delimited used between digest and message in a signed message:
 DIGEST_DELIMITER: Final[bytes] = b' '

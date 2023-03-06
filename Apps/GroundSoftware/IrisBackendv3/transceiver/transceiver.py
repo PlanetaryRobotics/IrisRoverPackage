@@ -25,11 +25,13 @@ from datetime import datetime
 import scapy.all as scp  # type: ignore # no type hints
 import asyncio
 
-from .logging import logger
-from .endec import Endec, UnityEndec
-from .exceptions import TransceiverDecodingException
+from IrisBackendv3.transceiver.logging import logger
+from IrisBackendv3.transceiver.endec import Endec, UnityEndec
+from IrisBackendv3.transceiver.exceptions import TransceiverDecodingException
 
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, parse_packet
+from IrisBackendv3.codec.packet import parse_packet
+from IrisBackendv3.codec.packet_classes.packet import Packet
+from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket
 from IrisBackendv3.codec.payload import Payload, UplinkedPayload, DownlinkedPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 from IrisBackendv3.codec.metadata import DataPathway, DataSource, UplinkTimes, DownlinkTimes

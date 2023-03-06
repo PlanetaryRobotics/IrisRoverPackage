@@ -9,12 +9,12 @@ from __future__ import annotations  # Activate postponed annotations (for using 
 from typing import Any, List, Optional, Callable, Tuple, TypeVar, Dict, cast
 from abc import ABC, abstractmethod
 
-from ..container import ContainerCodec
-from ..payload_collection import EnhancedPayloadCollection
-from ..metadata import DataPathway, DataSource
+from IrisBackendv3.codec.container import ContainerCodec
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.metadata import DataPathway, DataSource
 
-from ..settings import ENDIANNESS_CODE
-from ..logging import logger
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE
+from IrisBackendv3.codec.logging import logger
 
 
 CT = TypeVar('CT')

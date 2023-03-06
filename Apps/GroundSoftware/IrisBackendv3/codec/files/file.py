@@ -2,9 +2,10 @@ from typing import TypeAlias, Dict, List, Final, ClassVar
 
 from dataclasses import dataclass
 
-from ..payload import FileMetadata, FileBlockPayload
+from IrisBackendv3.codec.payload import FileMetadata, FileBlockPayload
 
 HashedId: TypeAlias = int
+
 
 class File:
     _FILE_EXT: ClassVar[str] = '.iris.hex'

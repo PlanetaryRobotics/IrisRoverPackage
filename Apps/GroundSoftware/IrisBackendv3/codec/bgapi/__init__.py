@@ -16,7 +16,7 @@ from bgapi import serdeser
 
 
 # Expose our custom handlers:
-from .custom_listener import BGLibListener
+from IrisBackendv3.codec.bgapi.custom_listener import BGLibListener
 
 # Also expose API paths:
 BGAPI_DIR: Final = os.path.dirname(os.path.realpath(__file__))

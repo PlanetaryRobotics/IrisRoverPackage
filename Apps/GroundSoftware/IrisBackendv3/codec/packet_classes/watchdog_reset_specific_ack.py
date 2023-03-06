@@ -12,19 +12,19 @@ from __future__ import annotations
 # Activate postponed annotations (for using classes as return type in their own methods)
 from prompt_toolkit import formatted_text
 
-from .packet import Packet, CT
+from IrisBackendv3.codec.packet_classes.packet import Packet, CT
 
 from typing import List, Any, Optional
 
 from scapy.utils import hexdump  # type: ignore
 from termcolor import colored
 
-from ..payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
-from ..settings import ENDIANNESS_CODE
-from ..settings import settings as CodecSettings
-from ..logging import logger
-from ..exceptions import PacketDecodingException
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE
+from IrisBackendv3.codec.settings import settings as CodecSettings
+from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.exceptions import PacketDecodingException
 
 # Fixed prefix. All `RadioBgApiPacket`s start with b'DEBUG' then `RESET:`.
 # Note the b'DEBUG' prefix is there b/c this is sent from the Watchdog using

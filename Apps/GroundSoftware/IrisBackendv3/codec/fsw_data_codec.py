@@ -13,8 +13,8 @@ from enum import Enum
 from abc import ABC, abstractmethod
 import struct
 
-from .exceptions import PacketDecodingException, PacketEncodingException
-from .settings import ENDIANNESS_CODE
+from IrisBackendv3.codec.exceptions import PacketDecodingException, PacketEncodingException
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE
 
 from IrisBackendv3.data_standards.fsw_data_type import FswDataType
 from IrisBackendv3.data_standards.fsw_data_type import Category as FswDataCategory

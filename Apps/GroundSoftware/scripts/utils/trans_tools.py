@@ -27,7 +27,7 @@ import serial  # type: ignore # no type hints
 import scapy.all as scp  # type: ignore # no type hints
 import numpy as np
 import pandas as pd  # type: ignore
-from tabulate import tabulate # type: ignore
+from tabulate import tabulate  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore # no type hints
 import ulid
 import itertools
@@ -46,7 +46,13 @@ from IrisBackendv3.data_standards.logging import logger as DsLogger
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, EventPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket, WatchdogDetailedStatusPacket, RadioUartBytePacket
+from IrisBackendv3.codec.packet_classes.packet import Packet
+from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket
+from IrisBackendv3.codec.packet_classes.watchdog_tvac_heartbeat import WatchdogTvacHeartbeatPacket
+from IrisBackendv3.codec.packet_classes.watchdog_heartbeat import WatchdogHeartbeatPacket
+from IrisBackendv3.codec.packet_classes.watchdog_command_response import WatchdogCommandResponsePacket
+from IrisBackendv3.codec.packet_classes.watchdog_detailed_status import WatchdogDetailedStatusPacket
+from IrisBackendv3.codec.packet_classes.radio_uart_byte import RadioUartBytePacket
 from IrisBackendv3.codec.packet import parse_packet as core_parse_packet
 from IrisBackendv3.codec.exceptions import PacketDecodingException
 from IrisBackendv3.codec.metadata import DataPathway, DataSource

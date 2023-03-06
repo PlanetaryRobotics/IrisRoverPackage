@@ -48,7 +48,11 @@ from IrisBackendv3.utils.crc import crc32_fsw
 from IrisBackendv3.data_standards.module import Command, TelemetryChannel, Event
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, EventPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, RadioBgApiPacket, UnsupportedPacket, WatchdogDebugImportantPacket
+from IrisBackendv3.codec.packet_classes.packet import Packet
+from IrisBackendv3.codec.packet_classes.unsupported import UnsupportedPacket
+from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket
+from IrisBackendv3.codec.packet_classes.radio_bgapi_packet import RadioBgApiPacket
+from IrisBackendv3.codec.packet_classes.watchdog_debug_important import WatchdogDebugImportantPacket
 from IrisBackendv3.codec.packet import parse_packet as core_parse_packet
 from IrisBackendv3.codec.exceptions import PacketDecodingException
 from IrisBackendv3.codec.metadata import DataPathway, DataSource

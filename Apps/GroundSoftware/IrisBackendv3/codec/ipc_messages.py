@@ -12,8 +12,8 @@ from __future__ import annotations  # Activate postponed annotations (for using 
 from typing import Type, List
 import attr
 
-from .packet import Packet
-from .payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.packet_classes.packet import Packet
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
 from IrisBackendv3.ipc import InterProcessMessage
 

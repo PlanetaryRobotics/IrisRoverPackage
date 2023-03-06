@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from ..logging import logger
-from ..exceptions import TransceiverDecodingException
+from IrisBackendv3.transceiver.logging import logger
+from IrisBackendv3.transceiver.exceptions import TransceiverDecodingException
 
 
 class Endec(ABC):

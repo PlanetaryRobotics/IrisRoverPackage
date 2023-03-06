@@ -6,7 +6,7 @@ Defines a subclass of `WatchdogDebugPacket`, for any debug packets that include
 @author: Connor W. Colombo (CMU)
 @last-updated: 09/07/2022
 """
-from .watchdog_debug import *
+from IrisBackendv3.codec.packet_classes.watchdog_debug import *
 
 from typing import Final, List
 
@@ -20,6 +20,7 @@ IMPORTANT_DEBUG_KEYWORDS: Final[List[bytes]] = [
     b"Notice",
     b"Boot"
 ]
+
 
 class WatchdogDebugImportantPacket(WatchdogDebugPacket):
     """

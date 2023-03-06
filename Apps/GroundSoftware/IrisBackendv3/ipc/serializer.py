@@ -7,17 +7,24 @@ in `_IrisRestrictedUnpickler` for restrictions on where this is safe to use
 (like pickle itself, it should still be used with caution).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/05/2023
+@last-updated: 03/06/2023
 """
 
 from typing import Any, Final, ClassVar, Dict, List, Type
 from types import ModuleType
 
-from .signature import add_digest, extract_message_and_check_integrity
-from .restricted_pickler import (
+from IrisBackendv3.ipc.signature import add_digest, extract_message_and_check_integrity
+from IrisBackendv3.ipc.restricted_pickler import (
     _IrisRestrictedUnpickler,
-    restricted_dumps, restricted_loads, create_module_entry
+    _IrisRestrictedPickler,
+    create_module_entry
 )
+
+
+# Version of Iris Serializer. Inc. when there's a change that could
+# break backwards compatibility. (gets checked on receiving end to ensure
+# compatibility).
+IRIS_SERIALIZER_VERSION: Final[int] = 1
 
 
 class IrisGenericSerializer:
@@ -38,6 +45,7 @@ class IrisGenericSerializer:
     """
 
     _restricted_unpickler: Type[_IrisRestrictedUnpickler]
+    _restricted_pickler: Type[_IrisRestrictedPickler]
 
     def __init__(self, extra_modules: List[ModuleType] | None = None) -> None:
         """
@@ -67,14 +75,22 @@ class IrisGenericSerializer:
         if extra_modules is None:
             # Just use the default:
             self._restricted_unpickler = _IrisRestrictedUnpickler
+            self._restricted_pickler = _IrisRestrictedPickler
         else:
-            self._create_restricted_unpickler_from_modules(extra_modules)
+            self._use_extra_modules(extra_modules)
 
-    def _create_restricted_unpickler_from_modules(
+    def _use_extra_modules(
         self,
         extra_modules: List[ModuleType]
     ) -> None:
         """
+        Supports the use of extra modules by creating a custom restricted
+        pickler and unpickler for use by this serializer.
+
+        NOTE: All modules should be absolute imports, starting from the
+        IrisBackendv3 root, and not imported via script (importing via script
+        creates a duplicate import that's in the wrong place in `sys.modules`).
+
         **NOTE:**careful consideration should be given when adding any iris module
         to `approved_iris_modules` to ensure there are no ways for it to be used to
         allow remote code execution (i.e. modules should only contain basic
@@ -95,7 +111,7 @@ class IrisGenericSerializer:
         # Make sure all modules are modules:
         if any(not isinstance(m, ModuleType) for m in extra_modules):
             raise TypeError(
-                f"In `IrisGenericSerializer.__init__`, "
+                f"In `IrisGenericSerializer._use_extra_modules`, "
                 f"at least one of the given `{extra_modules=}` "
                 f"isn't a python module."
             )
@@ -119,11 +135,23 @@ class IrisGenericSerializer:
 
         class _CustomIrisRestrictedUnpicklerSubClass(_IrisRestrictedUnpickler):
             approved_iris_modules: ClassVar[Dict[str, ModuleType]] = {
-                k: v for e in mod_entries for k, v in e.items()
+                **{k: v for e in mod_entries for k, v in e.items()},
+                # Apply pre-existing `approved_iris_modules` *LAST* to prevent
+                # allowing overrides of anything that's already in there:
+                **_IrisRestrictedUnpickler.approved_iris_modules
+            }
+
+        class _CustomIrisRestrictedPicklerSubClass(_IrisRestrictedPickler):
+            approved_iris_modules: ClassVar[Dict[str, ModuleType]] = {
+                **{k: v for e in mod_entries for k, v in e.items()},
+                # Apply pre-existing `approved_iris_modules` *LAST* to prevent
+                # allowing overrides of anything that's already in there:
+                **_IrisRestrictedPickler.approved_iris_modules
             }
 
         # Use this new restricted unpickler:
         self._restricted_unpickler = _CustomIrisRestrictedUnpicklerSubClass
+        self._restricted_pickler = _CustomIrisRestrictedPicklerSubClass
 
     def deserialize(self, s: bytes) -> Any:
         """ Functionally analogous to  `restricted_loads` but uses the custom
@@ -131,13 +159,13 @@ class IrisGenericSerializer:
         verifies a double-signed message made using `serialize`."""
         layer1 = extract_message_and_check_integrity(s)
         layer0 = extract_message_and_check_integrity(layer1)
-        o = restricted_loads(layer0)
+        o = self._restricted_unpickler.restricted_loads(layer0)
         return o
 
     def serialize(self, o: Any) -> bytes:
         """ Wrapped for `restricted_dumps` that double signs the
         message."""
-        layer0 = restricted_dumps(o)
+        layer0 = self._restricted_pickler.restricted_dumps(o)
         layer1 = add_digest(layer0)
         layer2 = add_digest(layer1)
         return layer2

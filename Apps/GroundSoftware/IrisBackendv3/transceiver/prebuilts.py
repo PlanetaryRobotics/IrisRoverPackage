@@ -4,11 +4,11 @@ just a name (useful for referring to a particular Transceiver build by name in
 a CLI argument).
 """
 
-from .transceiver import Transceiver
-from .slip_transceiver import SlipTransceiver
-from .pcap_transceiver import PcapTransceiver, PcapParseOpts
+from IrisBackendv3.transceiver.transceiver import Transceiver
+from IrisBackendv3.transceiver.slip_transceiver import SlipTransceiver
+from IrisBackendv3.transceiver.pcap_transceiver import PcapTransceiver, PcapParseOpts
 
-from .endec import UnityEndec
+from IrisBackendv3.transceiver.endec import UnityEndec
 
 
 def build_xcvr_by_name(name: str, **kwargs) -> Transceiver:

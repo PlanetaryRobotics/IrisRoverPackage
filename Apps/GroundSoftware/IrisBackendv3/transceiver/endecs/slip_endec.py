@@ -1,4 +1,4 @@
-from .endec import *
+from IrisBackendv3.transceiver.endec import *
 
 from typing import cast, ClassVar
 

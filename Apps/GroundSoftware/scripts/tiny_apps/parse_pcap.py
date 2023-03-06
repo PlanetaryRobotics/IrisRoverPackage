@@ -19,7 +19,7 @@ from matplotlib import pyplot as plt  # type: ignore
 
 from IrisBackendv3.codec.payload import TelemetryPayload
 from IrisBackendv3.codec.logging import VALID_LOG_LEVELS, logger as CodecLogger
-from IrisBackendv3.codec.packet import Packet
+from IrisBackendv3.codec.packet_classes.packet import Packet
 
 from IrisBackendv3.codec.packet import parse_packet
 from scripts.utils.trans_tools import all_payloads, telemetry_streams, update_telemetry_streams_from_payloads, load_cache, cache, plot_stream

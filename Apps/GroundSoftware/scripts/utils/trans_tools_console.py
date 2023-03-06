@@ -20,7 +20,7 @@ except ImportError:
     pass
 import numpy as np
 import pandas as pd  # type: ignore
-from tabulate import tabulate # type: ignore
+from tabulate import tabulate  # type: ignore
 import scapy.all as scp  # type: ignore # no type hints
 import itertools
 import textwrap
@@ -39,7 +39,9 @@ from IrisBackendv3.data_standards.logging import logger as DsLogger
 from IrisBackendv3.data_standards.prebuilt import ALL_PREBUILT_MODULES, add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response, watchdog_detailed_status_heartbeat
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket, WatchdogDetailedStatusPacket
+from IrisBackendv3.codec.packet_classes.packet import Packet
+from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket
+
 from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
 from IrisBackendv3.codec.logging import logger as CodecLogger
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, set_codec_standards

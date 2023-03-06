@@ -12,7 +12,7 @@ from typing import _BaseGenericAlias  # type: ignore
 from typing import _SpecialForm, List, Any, Type, Tuple, Callable
 from typing_extensions import TypeAlias
 
-from .inter_process_message import InterProcessMessage
+from IrisBackendv3.ipc.inter_process_message import InterProcessMessage
 
 AnyType: TypeAlias = Type | _BaseGenericAlias | Tuple | Callable | _SpecialForm
 

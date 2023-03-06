@@ -8,20 +8,20 @@ important Watchdog statuses during cis-lunar transit.
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
-from .packet import CT
-from .custom_payload import CustomPayloadPacket, CPCT
+from IrisBackendv3.codec.packet_classes.packet import CT
+from IrisBackendv3.codec.packet_classes.custom_payload import CustomPayloadPacket, CPCT
 
 from typing import List, Any, Optional, ClassVar, Type
 
 import bitstruct  # type: ignore
 
-from ..payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
-from ..settings import ENDIANNESS_CODE
-from ..exceptions import PacketDecodingException
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE
+from IrisBackendv3.codec.exceptions import PacketDecodingException
 
 # Borrow conversions from Detailed status:
-from .watchdog_detailed_status import WatchdogDetailedStatusPacketInterface
+from IrisBackendv3.codec.packet_classes.watchdog_detailed_status import WatchdogDetailedStatusPacketInterface
 
 from IrisBackendv3.data_standards.module import Module
 

@@ -14,7 +14,7 @@ import os.path
 import argparse
 
 from IrisBackendv3 import data_standards
-from IrisBackendv3.data_standards.logging import logger as DsLogger
+from IrisBackendv3.data_standards.logging import logger_setConsoleLevel as DsLoggerLevel
 
 parser = argparse.ArgumentParser(
     description='IRIS Lunar Rover — DataStandards Cache Builder — CLI')
@@ -64,7 +64,7 @@ def get_opts():
 def build_datastandards_cache(opts) -> str:
     """Builds the datastandards, caches them.
     Returns absolute path to cache."""
-    DsLogger.setLevel(opts.log_level.upper())
+    DsLoggerLevel(opts.log_level.upper())
 
     filepath = data_standards.build_and_cache(
         cache_dir=opts.dir,

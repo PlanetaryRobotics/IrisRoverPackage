@@ -1,23 +1,15 @@
-# DataStandards Package-wide logging format standards.
-import logging
-import verboselogs  # type: ignore # mypy doesn't see type hints
-import coloredlogs  # type: ignore # mypy doesn't see type hints
-from typing import Any
+# Codec Package-wide logging format standards.
+from typing import Final
+from IrisBackendv3.logging.logger_template import create_logger_from_template
 
-verboselogs.install()
-# type = Any so errors aren't thrown on verboselogs levels
-logger: Any = logging.getLogger(__name__)
-"""
-Any logs at a level >= the level selected below will be displayed.
-Levels in ascending order are:
-    - SPAM (5)
-    - DEBUG (10)
-    - VERBOSE (15)
-    - INFO (20)
-    - NOTICE (25)
-    - WARNING (30)
-    - SUCCESS (35)
-    - ERROR (40)
-    - CRITICAL (50)
-"""
-coloredlogs.install(logger=logger, level='DEBUG')
+from IrisBackendv3.ipc.settings import settings
+
+logger_build: Final = create_logger_from_template(
+    logger_name='IrisBackendv3.DataStandards',
+    sub_folder='DataStandards',
+    save_to_file=True,
+    default_console_log_level="DEBUG"
+)
+logger: Final = logger_build[0]
+logger_setConsoleLevel: Final = logger_build[1]
+logger_setFileLevel: Final = logger_build[2]

@@ -12,6 +12,17 @@ it).
 """
 # Activate postponed annotations:
 from __future__ import annotations
+from IrisBackendv3.data_standards import DataStandards
+from IrisBackendv3.codec.packet import parse_packet
+from IrisBackendv3.data_standards.logging import (
+    logger as DsLogger,
+    logger_setConsoleLevel as DsLoggerLevel
+)
+from IrisBackendv3.data_standards.prebuilt import (
+    add_to_standards, ALL_PREBUILT_MODULES
+)
+from IrisBackendv3.codec.settings import set_codec_standards
+import warnings
 
 if __name__ == "__main__":
     # Loading dependencies can take a bit (builds DataStandards as part of
@@ -51,20 +62,12 @@ plt.rcParams['text.usetex'] = False
 sns.set()  # Initialize Seaborn. Use default theme.
 
 
-import warnings
 # Suppress PerformanceWarning about pytables needing to pickle some fields
 # (that's fine - this is a once daily script that runs in minutes, performance
 # really doesn't matter here):
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 # Load Dependencies:
-from IrisBackendv3.codec.settings import set_codec_standards
-from IrisBackendv3.data_standards.prebuilt import (
-    add_to_standards, ALL_PREBUILT_MODULES
-)
-from IrisBackendv3.data_standards.logging import logger as DsLogger
-from IrisBackendv3.codec.packet import parse_packet
-from IrisBackendv3.data_standards import DataStandards
 
 TITLE: Final[str] = 'IRIS Lunar Rover — Peregrine TVAC YAMCS Fetcher — CLI'
 
@@ -121,7 +124,7 @@ PLOT_TELEM_COLUMNS_AXIS_WATTS: Final[Dict[str, str]] = {
 # (WD Telem) Modules.
 # These `DataStandards` will serve as TMTC definitions be used by the `Codec`
 # layer used by the `Transceiver` layer to interpret packets.
-DsLogger.setLevel('CRITICAL')
+DsLoggerLevel('CRITICAL')
 standards = DataStandards.build_standards()
 add_to_standards(standards, ALL_PREBUILT_MODULES)
 set_codec_standards(standards)

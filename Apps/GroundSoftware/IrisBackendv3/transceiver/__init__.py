@@ -19,3 +19,4 @@ from IrisBackendv3.transceiver.xcvr_enum import TransceiverEnum
 from IrisBackendv3.transceiver import exceptions
 from IrisBackendv3.transceiver import prebuilts
 from IrisBackendv3.transceiver import settings
+from IrisBackendv3.transceiver import logging

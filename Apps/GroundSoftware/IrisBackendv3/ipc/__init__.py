@@ -29,3 +29,4 @@ from IrisBackendv3.ipc.app_manager import *
 from IrisBackendv3.ipc import port
 from IrisBackendv3.ipc import messages
 from IrisBackendv3.ipc import topics
+from IrisBackendv3.ipc import logging

@@ -24,7 +24,10 @@ import scapy.all as scp  # type: ignore
 # Load Dependencies:
 from IrisBackendv3.codec.settings import set_codec_standards
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
-from IrisBackendv3.data_standards.logging import logger as DsLogger
+from IrisBackendv3.data_standards.logging import (
+    logger as DsLogger,
+    logger_setConsoleLevel as DsLoggerLevel
+)
 from IrisBackendv3.codec.magic import Magic
 from IrisBackendv3.codec.payload import WatchdogCommandPayload, CommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
@@ -46,7 +49,7 @@ IRIS_TELEM_PARAM_NAME: Final[str] = '/Peregrine/payloads/iris/iris-payload-tm-rs
 # These `DataStandards` will serve as TMTC definitions be used by the `Codec`
 # layer used by the `Transceiver` layer to interpret packets.
 # TODO: Rebuild this once in the main IPC module, cache it, and load from cache in other IPC apps.
-DsLogger.setLevel('CRITICAL')
+DsLoggerLevel('CRITICAL')
 standards = DataStandards.build_standards()
 add_to_standards(standards, ALL_PREBUILT_MODULES)
 set_codec_standards(standards)

@@ -14,11 +14,12 @@ import IrisBackendv3 as IB3
 import IrisBackendv3.ipc as ipc
 from IrisBackendv3.ipc.messages import DownlinkedPacketsMessage, DownlinkedPacketsContent
 from IrisBackendv3.ipc.messages import UplinkPacketRequestMessage, UplinkPacketRequestContent
+from IrisBackendv3.transceiver.logging import logger_setConsoleLevel as xcvrLoggerLevel
 
 IB3.init_from_latest()
 
 # Load data:
-IB3.transceiver.logger.setLevel('NOTICE')
+xcvrLoggerLevel('NOTICE')
 xcvr = IB3.transceiver.prebuilts.build_xcvr_by_name(
     'PCAP-18H',
     packetgap=37000,  # skip first 37000 packets (of 37644)

@@ -18,7 +18,8 @@ import ulid
 from matplotlib import pyplot as plt  # type: ignore
 
 from IrisBackendv3.codec.payload import TelemetryPayload
-from IrisBackendv3.codec.logging import VALID_LOG_LEVELS, logger as CodecLogger
+from IrisBackendv3.logging import VALID_LOG_LEVELS
+from IrisBackendv3.codec.logging import logger_setConsoleLevel as CodecLoggerLevel
 from IrisBackendv3.codec.packet_classes.packet import Packet
 
 from IrisBackendv3.codec.packet import parse_packet
@@ -120,7 +121,7 @@ def parse_pcap(opts):
     """
     extracted_packets: List[Packet] = []
 
-    CodecLogger.setLevel(opts.log_level)
+    CodecLoggerLevel(opts.log_level)
 
     # if debugging_mode := True:
     #     cprint("WARNING. ARGS ARE BEING MODIFIED BECAUSE DEBUG MODE IS ACTIVE", 'red')

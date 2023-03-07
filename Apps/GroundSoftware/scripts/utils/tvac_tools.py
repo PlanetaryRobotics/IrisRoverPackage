@@ -34,6 +34,7 @@ from IrisBackendv3.utils.nameiddict import NameIdDict
 
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.logging import logger as DsLogger
+from IrisBackendv3.data_standards.logging import logger_setConsoleLevel as DsLoggerLevel
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection

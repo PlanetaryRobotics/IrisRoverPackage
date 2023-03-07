@@ -153,6 +153,7 @@
         "libreadline",
         "libsqlite",
         "libxmlsec",
+        "matplotlib",
         "maxxed",
         "mcu",
         "mcu's",

@@ -43,6 +43,7 @@ from IrisBackendv3.utils.nameiddict import NameIdDict
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.fsw_data_type import FswDataType
 from IrisBackendv3.data_standards.logging import logger as DsLogger
+from IrisBackendv3.data_standards.logging import logger_setConsoleLevel as DsLoggerLevel
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, EventPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
@@ -123,7 +124,7 @@ def err_print(*args, **kwargs):
         transLogger.error(*args, **kwargs)
 
 
-DsLogger.setLevel('CRITICAL')
+DsLoggerLevel('CRITICAL')
 standards = DataStandards.build_standards()
 add_to_standards(standards, ALL_PREBUILT_MODULES)
 set_codec_standards(standards)

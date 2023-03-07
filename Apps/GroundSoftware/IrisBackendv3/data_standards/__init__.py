@@ -27,6 +27,8 @@ from .fsw_data_type import *
 
 from .exceptions import *
 
+from IrisBackendv3.data_standards import logging
+
 # Private imports for use by helper functions:
 from .logging import logger as _logger
 from .prebuilt import (
@@ -57,7 +59,7 @@ def build_and_cache(
 ) -> str:
     """Builds the datastandards and caches them.
     Cache file is stored in `cache_dir` and uses `cache_name_base` as the base
-    of the file name (a ULID sufffix is added if `include_ulid_suffix` is left
+    of the file name (a ULID suffix is added if `include_ulid_suffix` is left
     on).
     Optionally including all prebuilt modules.
     Returns absolute path to cache."""

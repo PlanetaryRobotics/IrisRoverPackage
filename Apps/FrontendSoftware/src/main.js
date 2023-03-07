@@ -13,6 +13,9 @@ import store from './store';
 
 import { process } from '@electron/remote';
 
+import LoadScript from 'vue-plugin-load-script';
+Vue.use(LoadScript);
+
 /* Whether the Application is Currently being Run in Development Mode. Any
 experimental features can be wrapped in v-if="$isDev" and experimental functions
 in if(this.$isDev){} to keep them from being visible in production builds: */

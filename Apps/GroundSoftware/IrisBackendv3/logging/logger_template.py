@@ -41,7 +41,7 @@ VALID_LOG_LEVELS: Final[Tuple[str]] = (
 # Root directory where all log files are stored:
 _LOG_FILE_ROOT_DIR: Final[str] = f"./out/package-logs/"
 # Extension applied to all log files:
-_LOG_FILE_EXT: Final[str] = f".ib3.log"
+_LOG_FILE_EXT: Final[str] = f"ib3.log"
 
 verboselogs.install()
 

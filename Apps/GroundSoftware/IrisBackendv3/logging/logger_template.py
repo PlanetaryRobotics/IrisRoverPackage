@@ -19,6 +19,7 @@ Levels in ascending order are:
 from typing import Any, Final, Callable, Tuple
 import os.path
 import logging
+import logging.handlers
 import verboselogs  # type: ignore # mypy doesn't see type hints
 import coloredlogs  # type: ignore # mypy doesn't see type hints
 
@@ -104,10 +105,16 @@ def create_logger_from_template(
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
         # Build the handler:
-        file_handler = logging.FileHandler(
+        file_handler = logging.handlers.RotatingFileHandler(
             filename=file_path,
             mode='a',
-            delay=True  # don't make file until we write something to it
+            delay=True,  # don't make file until we write something to it
+            maxBytes=10e6,  # rollover log files after about 1MB
+            # create up to 5000 rollovers of the file (50GB max) (before
+            # trashing the oldest data - at this point, we likely have a
+            # runaway but we still want this threshold to be high in the case
+            # of log missions):
+            backupCount=5000
         )
         # Pull out the function necessary to set the file log level:
         file_level_changer = file_handler.setLevel

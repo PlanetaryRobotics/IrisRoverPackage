@@ -378,30 +378,22 @@ async def async_read_from(socket: AsyncSocket) -> IpcPayload:
 
 def read_msg(socket: Socket) -> Tuple[IpcPayload, InterProcessMessage]:
     """Reads a message from this given socket.
-    Only works when the message has a valid `Topic`.
+    Only works when the payload has a valid `Topic`.
     Returns a tuple of the raw `IpcPayload` and the decoded
     `InterProcessMessage`."""
     payload = read_from(socket)
-    # Grab the message def for this payload's topic:
-    msg_def = payload.topic.definition.message_def
-    # Decode using that def:
-    message = msg_def.from_ipc_bytes(payload.msg_bytes)
-    return payload, message
+    return payload, payload.message
 
 
 async def async_read_msg(
     socket: AsyncSocket
 ) -> Tuple[IpcPayload, InterProcessMessage]:
     """Asynchronously reads a message from this given socket.
-    Only works when the message has a valid `Topic`.
+    Only works when the payload has a valid `Topic`.
     Returns a tuple of the raw `IpcPayload` and the decoded
     `InterProcessMessage`."""
     payload = await async_read_from(socket)
-    # Grab the message def for this payload's topic:
-    msg_def = payload.topic.definition.message_def
-    # Decode using that def:
-    message = msg_def.from_ipc_bytes(payload.msg_bytes)
-    return payload, message
+    return payload, payload.message
 
 
 _IPMT = TypeVar('_IPMT', bound=InterProcessMessage)

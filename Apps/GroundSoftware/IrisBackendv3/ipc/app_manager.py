@@ -6,7 +6,16 @@ At this level, all IPC interface operations have been abstracted. For the
 low-level IPC interface and implementation, see `wrapper.py`.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/04/2023
+@last-updated: 03/07/2023
+
+#! NOTE: Many of the example docstrings in here are out of date. Updating soon.
+
+# ! TODO: async queue the packets received from IPC so nothing is missed.
+# ^- low priority rn b/c we can keep from sending multiple messages in rapid
+# succession by just sending lists.
+# - will need this though.
+# -- seems like ZMQ already does this. Might not need to double-queue it.
+#    Determine how slow is too slow...
 
 # ! TODO: (WORKING-HERE):
 # - Finish `SocketTopicHandler` sync and async versions (like in SocketHandler).
@@ -30,10 +39,12 @@ low-level IPC interface and implementation, see `wrapper.py`.
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Any, Awaitable, Callable, Generic, Optional, ClassVar, Protocol, Dict, List, cast, TypeVar, Tuple
+from typing import Any, Awaitable, Callable, Generic, Optional, ClassVar, Protocol, Dict, List, cast, TypeVar, Tuple, Coroutine, Generator, Type
 from typing_extensions import TypeAlias
 from types import NoneType
 import dataclasses
+import asyncio
+import traceback
 
 from IrisBackendv3.ipc.wrapper import (
     Context, AsyncContext,
@@ -42,12 +53,13 @@ from IrisBackendv3.ipc.wrapper import (
     create_socket, create_async_socket,
     subscribe,
     SocketType,
-    read_from, async_read_from,
+    read_from, read_msg, read_from_as,
+    async_read_from, async_read_msg, async_read_from_as,
     send_to, async_send_to,
 )
 
 from IrisBackendv3.ipc.ipc_payload import IpcPayload
-from IrisBackendv3.ipc.inter_process_message import InterProcessMessage, IPMHandler
+from IrisBackendv3.ipc.inter_process_message import InterProcessMessage
 
 from IrisBackendv3.ipc.port import Port
 from IrisBackendv3.ipc.topics_registry import Topic
@@ -65,6 +77,9 @@ _ST = TypeVar('_ST', bound=(Socket | AsyncSocket), covariant=True)
 _HT = TypeVar('_HT', bound='SocketHandler', covariant=True)
 # SocketHandlerType: same thing as `_HT`, but no variance specifiers (for self-reference)
 _SHT = TypeVar('_SHT', bound='SocketHandler')
+
+
+_IPMT = TypeVar('_IPMT', bound=InterProcessMessage)
 
 
 # Handler return type (options for sync and async versions):
@@ -224,7 +239,8 @@ class SocketTopicHandler(SocketHandler[_HRT, _AMT], Generic[_SHT, _HRT, _AMT]):
         class SomeHandler(SocketTopicHandlerAsync['SomeHandler']):
             _raise_on_unhandled_topics: ClassVar[bool] = False
             # Decorator shorthand (also plays more nicely with syntax highlighting):
-            topic_handler = SocketTopicHandlerAsync['SomeHandler'].TopicHandlerFactory()
+            topic_handler = SocketTopicHandlerAsync['SomeHandler'].TopicHandlerFactory(
+            )
 
             @topic_handler
             async def some_handler(self, manager: IpcAppManagerAsync, payload: IpcPayload) -> None:
@@ -303,7 +319,8 @@ class SocketTopicHandler(SocketHandler[_HRT, _AMT], Generic[_SHT, _HRT, _AMT]):
         ```py
         class SomeHandler(SocketTopicHandlerAsync['SomeHandler']):
             # Decorator shorthand (also plays more nicely with syntax highlighting):
-            topic_handler = SocketTopicHandlerAsync['SomeHandler'].TopicHandlerFactory()
+            topic_handler = SocketTopicHandlerAsync['SomeHandler'].TopicHandlerFactory(
+            )
 
             # Throws no errors:
             @topic_handler
@@ -436,8 +453,12 @@ class SocketSpec(Generic[_HT]):
     topics: Optional[Topic | List[Topic]] = None
     # Receive handler for payloads received on this socket (only
     # applicable if this socket is used to process incoming payloads - i.e.
-    # running a `socket_rx_task`):
+    # running a `socket_rx_coro`):
     rx_handler: Optional[_HT] = None
+    # Whether or not this socket should be binding the port:
+    # (if not given, AppManager chooses
+    # - servers & pubs bind, clients & subs don't)
+    bind: Optional[bool] = None
 
     def __str__(self) -> str:
         if self.topics is None:
@@ -503,7 +524,7 @@ class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
         for socket in self.sockets.values():
             socket.close()
         # Close context (waiting for all sockets to close first):
-        self.context.term()
+        self.context.destroy()  # closes any remaining ctx sockets then `term`
 
     def __str__(self) -> str:
         return (
@@ -538,6 +559,24 @@ class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
 
 
 class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerAsync_T]):
+    # `asyncio.Task`s this Manager is in charge of:
+    # (these get built progressively)
+    _tasks: List[asyncio.Task]
+
+    def __init__(
+        self,
+        socket_specs: Dict[str, SocketSpec[SocketHandlerAsync_T]],
+        context_io_threads: int = 2,  # default: 2 IO threads (RX and TX)
+        context: Optional[AsyncContext] = None,
+    ) -> None:
+        super().__init__(
+            socket_specs=socket_specs,
+            context_io_threads=context_io_threads,
+            context=context
+        )
+        # Start with no managed tasks (gets built progressively):
+        self._tasks = []
+
     @staticmethod
     def create_context(*args, **kwargs) -> AsyncContext:
         """Creates an async IPC context."""
@@ -548,20 +587,42 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
         return create_async_socket(
             context=self.context,
             socket_type=spec.sock_type,
-            ports=spec.port
+            ports=spec.port,
+            bind=spec.bind
         )
 
     async def read(self, sock_name: str) -> IpcPayload:
         """Asynchronously reads from the socket with the given name."""
         return await async_read_from(self.sockets[sock_name])
 
-    async def socket_rx_task(
+    async def read_msg(
+        self,
+        sock_name: str
+    ) -> Tuple[IpcPayload, InterProcessMessage]:
+        """Asynchronously reads from the socket with the given name and decodes
+        the message (based on the `Topic` of the `payload`).
+        """
+        return await async_read_msg(self.sockets[sock_name])
+
+    async def read_as(
+        self,
+        sock_name: str,
+        message_type: Type[_IPMT]
+    ) -> Tuple[IpcPayload, _IPMT]:
+        """Same as `read`, but instead of returning raw binary, it 
+        parses the data read as the given IPC `InterProcessMessage`.
+        Returns a tuple containing the raw `IpcPayload` alongside the
+        interpreted `InterProcessMessage`.
+        """
+        return await async_read_from_as(self.sockets[sock_name], message_type)
+
+    async def socket_rx_coro(
         self,
         sock_name: str,
         consume_only: bool = False
     ) -> None:
         """
-        Task for receiving data from a socket with the given name.
+        Coroutine for receiving data from a socket with the given name.
 
         Args:
             sock_name (str): Name of socket this task will read data from.
@@ -577,7 +638,7 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
 
         if not consume_only and self.socket_specs[sock_name].rx_handler is None:
             logger.warning(
-                f"Starting a `socket_rx_task` for a socket ({sock_name=}) "
+                f"Starting a `socket_rx_coro` for a socket ({sock_name=}) "
                 f"that doesn't have an `rx_handler` and `{consume_only}=False`. "
                 f"This will consume data on the socket interface but won't do "
                 f"anything with that data. This is likely undesirable behavior "
@@ -586,7 +647,7 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
 
         if consume_only and self.socket_specs[sock_name].rx_handler is not None:
             logger.notice(
-                f"Starting a `socket_rx_task` for a socket ({sock_name=}) "
+                f"Starting a `socket_rx_coro` for a socket ({sock_name=}) "
                 f"that has an `rx_handler` and `{consume_only}=True`. "
                 f"This will consume data on the socket interface but won't do "
                 f"anything with that data. `{consume_only}=True` indicates "
@@ -600,6 +661,90 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
             if not consume_only and rx_handler is not None:
                 await rx_handler(self, payload)
 
+    def spawn_core_tasks(self) -> None:
+        """Spawns all core internal tasks/coroutines for this app and adds
+        them to the list of managed tasks.
+        """
+        # Create Tasks for inner coros:
+        self._tasks.extend(
+            asyncio.create_task(self.socket_rx_coro(sock_name), name=sock_name)
+            for sock_name in self.socket_specs.keys()
+        )
+
+    def add_coros(self, other_coros: List[Generator | Coroutine]) -> None:
+        """Converts the given coroutines into `asyncio.Task`s and adds them to
+        the list of managed tasks to be run alongside this IPC App's core
+        tasks."""
+        self._tasks.extend(asyncio.create_task(c) for c in other_coros)
+
+    def add_tasks(self, other_tasks: List[asyncio.Task]) -> None:
+        """Adds the given `asyncio.Task`s to the list of managed tasks to be
+        run alongside this IPC App's core tasks."""
+        self._tasks.extend(other_tasks)
+
+    async def run(
+        self,
+        return_when: str = asyncio.FIRST_COMPLETED,
+        timeout: Optional[float] = None
+    ) -> None:
+        """Runs all tasks for this `IpcAppManager` alongside any other tasks
+        passed in. Manages the life-cycle of all these concurrent tasks and
+        based on the given `asyncio` `return_when` flag (see `asyncio.wait`
+        for more details on `return_when`).
+
+        Args:
+            other_coros (Optional[List[Generator | Coroutine]], optional):
+                Coroutines that get converted into `asyncio.Task`s and run
+                alongside this IPC App. Defaults to `None`.
+            other_tasks (Optional[List[asyncio.Task]], optional):
+                Other `asyncio.Task`s to run alongside this app. Defaults to
+                `None`.
+            return_when (str, optional): When to end app execution based on
+                status of internal tasks. From `asyncio.wait`.
+            timeout (Optional[float], optional): Max runtime (as a failsafe).
+                From `asyncio.wait`.
+        """
+        # Make sure there are tasks to run:
+        if len(self._tasks) == 0:
+            # There are no tasks to run.
+            # Log this since it's possibly weird but could be intentional:
+            logger.notice(
+                f"`IpcAppManagerAsync.run` was called for `{self}` "
+                f"but this manager isn't in charge of any tasks currently. "
+                f"Did you miss calling `manager.spawn_core_tasks()` first?"
+            )
+            # and just return:
+            return
+
+        # Clean up if the above closes for some reason:
+        try:
+            done, pending = await asyncio.wait(
+                self._tasks,
+                timeout=timeout,
+                return_when=return_when
+            )
+
+            # We're done. Log results:
+            for task in done:
+                result, exception, trace = None, None, None
+                try:
+                    result = task.result()
+                except Exception as e:
+                    exception = e
+                    trace = '\n'.join(traceback.format_tb(e.__traceback__))
+                logger.notice(
+                    f"Task {task.get_name()} ended "
+                    f"with `{result=}`, `{exception=}`,\n"
+                    f"`trace={trace}`."
+                )
+            for task in pending:
+                task.cancel()
+                logger.notice(
+                    f"Task {task.get_name()} didn't end. Now cancelled."
+                )
+        except Exception as e:
+            logger.error(f"Exception occurred while handling: \n\t{e}.")
+
 
 class IpcAppManagerSync(IpcAppManager[Context, Socket, SocketHandlerSync_T]):
     @staticmethod
@@ -612,9 +757,31 @@ class IpcAppManagerSync(IpcAppManager[Context, Socket, SocketHandlerSync_T]):
         return create_socket(
             context=self.context,
             socket_type=spec.sock_type,
-            ports=spec.port
+            ports=spec.port,
+            bind=spec.bind
         )
 
     def read(self, sock_name: str) -> IpcPayload:
         """Synchronously reads from the socket with the given name."""
         return read_from(self.sockets[sock_name])
+
+    def read_msg(
+        self,
+        sock_name: str
+    ) -> Tuple[IpcPayload, InterProcessMessage]:
+        """Synchronously reads from the socket with the given name and decodes
+        the message (based on the `Topic` of the `payload`).
+        """
+        return read_msg(self.sockets[sock_name])
+
+    def read_as(
+        self,
+        sock_name: str,
+        message_type: Type[_IPMT]
+    ) -> Tuple[IpcPayload, _IPMT]:
+        """Same as `read`, but instead of returning raw binary, it 
+        parses the data read as the given IPC `InterProcessMessage`.
+        Returns a tuple containing the raw `IpcPayload` alongside the
+        interpreted `InterProcessMessage`.
+        """
+        return read_from_as(self.sockets[sock_name], message_type)

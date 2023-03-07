@@ -1,5 +1,5 @@
 """
-Simple demo of synchronous publisher over IPC, without using an AppManager.
+Simple demo of synchronous subscriber over IPC, without using an AppManager.
 This demo is designed to be run alongside `ipc_sync_pub.py`.
 This demo uses a reverse topology where the **sub** binds the port and listens
 to 1 or more pubs but can be switched by flipping the `bind` variable in each

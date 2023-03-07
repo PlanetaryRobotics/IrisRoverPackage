@@ -22,6 +22,26 @@ class IpcException(Exception):
     pass
 
 
+class IpcEndAppRequest(IpcException):
+    """Exception to raise when a task / coroutine wants to end execution of the
+    entire app.
+    NOTE: Depending on how `return_when` of the app is configured, this may or
+    may not actually end the app. The app may close when it gets an
+    exception/completion from any task or it may end only when all of its
+    managed tasks end.
+    """
+
+    def __init__(self, why: str = "") -> None:
+        """Create a `IpcEndAppRequest`.
+
+        Args:
+            why (str, optional): Why the app is being ended. Defaults to "".
+        """
+        self.why = why
+        self.message = f"IpcEndAppRequest: because {why}."
+        super().__init__(self.why)
+
+
 class MessageIntegrityError(IpcException):
     """ Error to raise when a received message fails integrity check. """
 

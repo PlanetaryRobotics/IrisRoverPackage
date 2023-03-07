@@ -15,7 +15,7 @@ the only area that should **need** to be changed would be this file.
 """
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
-from typing import Optional, Union, List, cast, Tuple, Type, TypeVar
+from typing import Optional, Union, List, cast, Tuple, Type, TypeVar, TypeGuard
 import dataclasses
 from enum import Enum
 

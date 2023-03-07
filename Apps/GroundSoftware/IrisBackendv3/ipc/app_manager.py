@@ -39,9 +39,8 @@ low-level IPC interface and implementation, see `wrapper.py`.
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Any, Awaitable, Callable, Generic, Optional, ClassVar, Protocol, Dict, List, cast, TypeVar, Tuple, Coroutine, Generator, Type
+from typing import Awaitable, Callable, Generic, Optional, ClassVar, Dict, List, TypeVar, Tuple, Coroutine, Generator, Type
 from typing_extensions import TypeAlias
-from types import NoneType
 import dataclasses
 import asyncio
 import traceback
@@ -65,7 +64,7 @@ from IrisBackendv3.ipc.port import Port
 from IrisBackendv3.ipc.topics_registry import Topic
 from IrisBackendv3.ipc.settings import settings
 from IrisBackendv3.ipc.logging import logger
-from IrisBackendv3.ipc.exceptions import UnhandledTopicException
+from IrisBackendv3.ipc.exceptions import UnhandledTopicException, IpcEndAppRequest
 
 # Context Type (sync or async):
 _CT = TypeVar('_CT', bound=(Context | AsyncContext), covariant=True)
@@ -407,7 +406,7 @@ class SocketTopicHandler(SocketHandler[_HRT, _AMT], Generic[_SHT, _HRT, _AMT]):
                 return self.handle_unhandled_topic(manager=manager, payload=payload)
 
         # Everything checks out. Handle it:
-        res: _HRT = self._topic_handlers[topic](manager, payload)
+        res: _HRT = self._topic_handlers[topic](self, manager, payload)
         return res
 
 
@@ -454,22 +453,31 @@ class SocketSpec(Generic[_HT]):
     # Receive handler for payloads received on this socket (only
     # applicable if this socket is used to process incoming payloads - i.e.
     # running a `socket_rx_coro`):
+    # NOTE: This currently is only used in IpcAppManagerAsync.
     rx_handler: Optional[_HT] = None
     # Whether or not this socket should be binding the port:
     # (if not given, AppManager chooses
     # - servers & pubs bind, clients & subs don't)
     bind: Optional[bool] = None
+    # Whether this should just be treated as a consumer (i.e. ignore any
+    # rx_handler and just consume (rx & throw away) data on this
+    # socket/topics):
+    # Note: this will also happen, by necessity, if the socket doesn't have an
+    # `rx_handler`. Setting this to `True` in that case will flag that as not
+    # being a problem. Default: `False`.
+    blind_consumer: bool = False
 
     def __str__(self) -> str:
+        s = ""
         if self.topics is None:
-            return f"{self.sock_type.name} on {self.port}"
+            s = f"{self.sock_type.name} on {self.port}"
         else:
             ts: List[Topic]
             if isinstance(self.topics, list):
                 ts = self.topics
             else:
                 ts = [self.topics]
-            s = (
+            s += (
                 f"{self.sock_type.name} on {self.port} "
                 f"for [{', '.join(t.name for t in ts)}]"
             )
@@ -477,7 +485,12 @@ class SocketSpec(Generic[_HT]):
                 s += (
                     f" with RX handler: {self.rx_handler.__class__.__name__}"
                 )
-            return s
+        s += (
+            f" with settings: "
+            f"bind={self.bind}, "
+            f"blind_consumer={self.blind_consumer}"
+        )
+        return s
 
 
 class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
@@ -562,6 +575,9 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
     # `asyncio.Task`s this Manager is in charge of:
     # (these get built progressively)
     _tasks: List[asyncio.Task]
+    # Whether this app manager's core tasks have already been spawned
+    # (and are already in `_tasks`:
+    _core_tasks_spawned: bool
 
     def __init__(
         self,
@@ -576,6 +592,7 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
         )
         # Start with no managed tasks (gets built progressively):
         self._tasks = []
+        self._core_tasks_spawned = False
 
     @staticmethod
     def create_context(*args, **kwargs) -> AsyncContext:
@@ -618,39 +635,37 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
 
     async def socket_rx_coro(
         self,
-        sock_name: str,
-        consume_only: bool = False
+        sock_name: str
     ) -> None:
         """
         Coroutine for receiving data from a socket with the given name.
-
-        Args:
-            sock_name (str): Name of socket this task will read data from.
-            consume_only (bool): Whether this task should just consume data and
-                **NOT** do anything with incoming data. Note: this will also
-                happen, by necessity, if the socket doesn't have an `rx_handler`.
-                Setting this to `True` in that case will flag that as not being
-                a problem. Default: `False`.
         """
         # Validate inputs;
         if sock_name not in self.socket_specs:
             raise KeyError(f"Socket with {sock_name=} not found.")
 
-        if not consume_only and self.socket_specs[sock_name].rx_handler is None:
+        blind_consumer = self.socket_specs[sock_name].blind_consumer
+        if (
+            not blind_consumer
+            and self.socket_specs[sock_name].rx_handler is None
+        ):
             logger.warning(
                 f"Starting a `socket_rx_coro` for a socket ({sock_name=}) "
-                f"that doesn't have an `rx_handler` and `{consume_only}=False`. "
+                f"that doesn't have an `rx_handler` and `{blind_consumer}=False`. "
                 f"This will consume data on the socket interface but won't do "
                 f"anything with that data. This is likely undesirable behavior "
-                f"(if this were desirable, `consume_only` would be `True`.)"
+                f"(if this were desirable, `blind_consumer` would be `True`.)"
             )
 
-        if consume_only and self.socket_specs[sock_name].rx_handler is not None:
+        if (
+            blind_consumer
+            and self.socket_specs[sock_name].rx_handler is not None
+        ):
             logger.notice(
                 f"Starting a `socket_rx_coro` for a socket ({sock_name=}) "
-                f"that has an `rx_handler` and `{consume_only}=True`. "
+                f"that has an `rx_handler` and `{blind_consumer}=True`. "
                 f"This will consume data on the socket interface but won't do "
-                f"anything with that data. `{consume_only}=True` indicates "
+                f"anything with that data. `{blind_consumer}=True` indicates "
                 f"that this is likely **desired** behavior but it is strange."
             )
 
@@ -658,8 +673,10 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
             payload = await self.read(sock_name)
             # Dispatch payload to socket handler (if there is one):
             rx_handler = self.socket_specs[sock_name].rx_handler
-            if not consume_only and rx_handler is not None:
-                await rx_handler(self, payload)
+            if not blind_consumer and rx_handler is not None:
+                awaitable = rx_handler(self, payload)
+                if awaitable is not None:
+                    await awaitable
 
     def spawn_core_tasks(self) -> None:
         """Spawns all core internal tasks/coroutines for this app and adds
@@ -670,6 +687,7 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
             asyncio.create_task(self.socket_rx_coro(sock_name), name=sock_name)
             for sock_name in self.socket_specs.keys()
         )
+        self._core_tasks_spawned = True
 
     def add_coros(self, other_coros: List[Generator | Coroutine]) -> None:
         """Converts the given coroutines into `asyncio.Task`s and adds them to
@@ -693,17 +711,15 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
         for more details on `return_when`).
 
         Args:
-            other_coros (Optional[List[Generator | Coroutine]], optional):
-                Coroutines that get converted into `asyncio.Task`s and run
-                alongside this IPC App. Defaults to `None`.
-            other_tasks (Optional[List[asyncio.Task]], optional):
-                Other `asyncio.Task`s to run alongside this app. Defaults to
-                `None`.
             return_when (str, optional): When to end app execution based on
                 status of internal tasks. From `asyncio.wait`.
             timeout (Optional[float], optional): Max runtime (as a failsafe).
                 From `asyncio.wait`.
         """
+        # Spawn core tasks if not already spawned:
+        if not self._core_tasks_spawned:
+            self.spawn_core_tasks()
+
         # Make sure there are tasks to run:
         if len(self._tasks) == 0:
             # There are no tasks to run.
@@ -711,7 +727,9 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
             logger.notice(
                 f"`IpcAppManagerAsync.run` was called for `{self}` "
                 f"but this manager isn't in charge of any tasks currently. "
-                f"Did you miss calling `manager.spawn_core_tasks()` first?"
+                f"`spawn_core_tasks()` should have automatically been called "
+                f"if you didn't call it manually, so there should be tasks. "
+                f"Does this manager have no core tasks?"
             )
             # and just return:
             return
@@ -727,16 +745,26 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
             # We're done. Log results:
             for task in done:
                 result, exception, trace = None, None, None
+                end_request_reason: Optional[str] = None
                 try:
                     result = task.result()
+                except IpcEndAppRequest as ear:
+                    end_request_reason = ear.why
                 except Exception as e:
                     exception = e
                     trace = '\n'.join(traceback.format_tb(e.__traceback__))
-                logger.notice(
-                    f"Task {task.get_name()} ended "
-                    f"with `{result=}`, `{exception=}`,\n"
-                    f"`trace={trace}`."
-                )
+                if end_request_reason is not None:
+                    # This Task ended due to a request:
+                    logger.notice(
+                        f"Task {task.get_name()} requested end of app "
+                        f"because: `{end_request_reason}`."
+                    )
+                else:
+                    logger.notice(
+                        f"Task {task.get_name()} ended "
+                        f"with `{result=}`, `{exception=}`,\n"
+                        f"`trace={trace}`."
+                    )
             for task in pending:
                 task.cancel()
                 logger.notice(

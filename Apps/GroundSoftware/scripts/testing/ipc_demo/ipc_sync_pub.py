@@ -40,8 +40,8 @@ socket = IB3.ipc.create_socket(
 )
 
 # Wait for sub to connect:
-print("Waiting 10 sec  . . .")
-time.sleep(10)  # much longer than sub will take... but that's the point
+print("Waiting 5 sec  . . .")
+time.sleep(5)  # much longer than sub will take... but that's the point
 
 # Send 10 packets:
 print("Sending 10 messages to two topics:")

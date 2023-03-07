@@ -261,3 +261,28 @@ def IsIPMHandler(func: IPMHandler) -> IPMHandler:
     but
     """
     return func
+
+
+def check_msg(
+    msg: _IPMT,
+    msg_type: Type[_IPMT]
+) -> TypeGuard[_IPMT]:
+    """Narrowing `TypeGuard` to check if the given message is an instance of
+    the `InterProcessMessage` given.
+    If it is, returns `True` and type of `msg` is now `_IPMT`."""
+    return isinstance(msg, msg_type)
+
+
+def guard_msg(
+    msg: _IPMT,
+    msg_type: Type[_IPMT]
+) -> _IPMT:
+    """Narrowing type guard to make sure the given message is an instance of
+    the `InterProcessMessage` given."""
+    if check_msg(msg, msg_type):
+        return msg
+    else:
+        raise TypeError(
+            f"Expected `InterProcessMessage` to be `{msg_type=}`. "
+            f"Instead got `{type(msg)=}`. "
+        )

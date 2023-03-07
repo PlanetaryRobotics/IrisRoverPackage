@@ -17,6 +17,7 @@ from IrisBackendv3.ipc import restricted_pickler
 # Expose internal modules (allow them to be accessed directly):
 
 from IrisBackendv3.ipc.settings import settings
+from IrisBackendv3.ipc.exceptions import *
 from IrisBackendv3.ipc.inter_process_message import *
 from IrisBackendv3.ipc.ipc_payload import *
 from IrisBackendv3.ipc.topics_registry import *

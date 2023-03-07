@@ -24,6 +24,9 @@ class DownlinkedPacketsContent(MessageContentAttrMixin):
     """
     packets: List[Packet]
 
+    def simple_str(self) -> str:
+        return f"{self.__class__.__name__}({len(self.packets)} Packets)"
+
 
 """
 Defines the Message Structure and Serialization Scheme for a `Packet` 

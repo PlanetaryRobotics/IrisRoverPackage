@@ -30,5 +30,8 @@ class DownlinkedPayloadsContent(MessageContentAttrMixin):
     """
     payloads: EnhancedPayloadCollection
 
+    def simple_str(self) -> str:
+        return f"{self.__class__.__name__}({len(self.payloads)} Payloads)"
+
 
 DownlinkedPayloadsMessage = IpmSubclassFactory(DownlinkedPayloadsContent)

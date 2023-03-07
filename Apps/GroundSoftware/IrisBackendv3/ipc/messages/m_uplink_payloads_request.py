@@ -52,9 +52,18 @@ class UplinkPayloadsRequestContent(MessageContentAttrMixin):
             decisions based on packet contents, e.g. Pathway).
     """
     payloads: List[Payload]
-    split: UplinkPayloadsPacketSplit
+    split: UplinkPayloadsPacketSplit = UplinkPayloadsPacketSplit.ANY
     packet_class: Type[Packet] | None = None
     target_xcvr: TransceiverEnum = TransceiverEnum.ALL
+
+    def simple_str(self) -> str:
+        return (
+            f"{self.__class__.__name__}("
+            f"{len(self.payloads)} Payloads, "
+            f"{self.split=}, "
+            f"{self.packet_class=}, "
+            f"{self.target_xcvr=})"
+        )
 
 
 UplinkPayloadsRequestMessage = IpmSubclassFactory(UplinkPayloadsRequestContent)

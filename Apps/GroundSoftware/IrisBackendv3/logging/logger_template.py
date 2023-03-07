@@ -104,7 +104,11 @@ def create_logger_from_template(
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
         # Build the handler:
-        file_handler = logging.FileHandler(file_path)
+        file_handler = logging.FileHandler(
+            filename=file_path,
+            mode='a',
+            delay=True  # don't make file until we write something to it
+        )
         # Pull out the function necessary to set the file log level:
         file_level_changer = file_handler.setLevel
         file_level_changer(default_file_log_level)

@@ -166,9 +166,6 @@ export default {
             fontlink2.crossOrigin = 'true';
             document.head.appendChild(fontlink2);
 
-            // define function for fleur script
-            global.openModal = this.openModal;
-
             // trigger fleur script
             window.onload();
 
@@ -177,6 +174,9 @@ export default {
             // in fleur script
             forceRefresh();
         }
+
+        // define function for fleur script
+        global.openModal = this.openModal;
     },
     methods: {
         openModal () {

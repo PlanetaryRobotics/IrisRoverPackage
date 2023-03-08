@@ -7,6 +7,7 @@ __pycache__/
 
 # Ignore tester cache:
 .pytest_cache/
+.coverage
 
 # Ignore (unsupported) editor settings:
 .idea/

@@ -46,7 +46,8 @@ class LegacySuite(object):
     legacy packets (from 2021).
     """
 
-    def test_pcap_load_decode_pretest(self):
+    @pytest.mark.asyncio
+    async def test_pcap_load_decode_pretest(self):
         """Basic test of codec and transceiver
         pcap decode to make sure it works for the next step.
         Really belongs in codec/transceiver test suite but don't have time for
@@ -54,14 +55,15 @@ class LegacySuite(object):
         """
         xcvr = self.__class__.xcvr
         xcvr.begin()
-        while len(_ := xcvr.read()) != 0:
+        while len(_ := await xcvr.async_read()) != 0:
             # Make sure it's able to read and decode all packets
             pass
 
-    def test_pcap_replay_encode_decode(self):
+    @pytest.mark.asyncio
+    async def test_pcap_replay_encode_decode(self):
         xcvr = self.__class__.xcvr
         xcvr.begin()
-        while len(packets := xcvr.read()) != 0:
+        while len(packets := await xcvr.async_read()) != 0:
             # Make sure it's able to read and decode all packets
             dpm = DownlinkedPacketsMessage(DownlinkedPacketsContent(
                 packets=packets

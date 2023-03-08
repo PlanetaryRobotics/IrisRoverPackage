@@ -25,4 +25,4 @@ class File:
         # TODO: Make a cached property?
         pass
 
-    def save_file(self, path: str)
+    def save_file(self, path: str): pass

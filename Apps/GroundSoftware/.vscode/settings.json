@@ -14,6 +14,7 @@
     "cSpell.words": [
         "ABBRS",
         "af",
+        "akefile",
         "Alogdumpfilterstate",
         "Alogseteventreportfilter",
         "Alogsetidfilter",
@@ -33,6 +34,7 @@
         "asyncio",
         "attribs",
         "autocaching",
+        "autoload",
         "Autopopulate",
         "backendv",
         "BADCMD",
@@ -64,6 +66,7 @@
         "cntl",
         "coloredlogs",
         "compat",
+        "compinit",
         "comprehensioning",
         "coro",
         "coros",
@@ -269,7 +272,8 @@
         "xcvr",
         "xprop",
         "yamcs",
-        "Yeet"
+        "Yeet",
+        "zstyle"
     ],
     "cSpell.ignoreWords": [
         "atatype",

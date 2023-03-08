@@ -13,4 +13,4 @@ class FileManager:
         """
         raise NotImplementedError()
 
-    def save_all_files()
+    def save_all_files(): pass

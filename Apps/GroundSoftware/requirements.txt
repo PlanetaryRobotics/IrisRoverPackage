@@ -22,6 +22,7 @@ hvplot
 datashader
 lxml
 pytest
+pytest-asyncio
 requests
 # Need Protobuf <=3.20.x (after that is 4, which breaks yamcs protos)
 protobuf <= 3.20.999

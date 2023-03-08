@@ -912,7 +912,7 @@ def write_module(module: Module, writer: StyleFrame.ExcelWriter) -> None:
 def print_to_file(file_name: str) -> None:
     """Prints all datastandards data to an excel file."""
     # Create the writer:
-    path = f"{file_name}.xlsx"
+    path = f"./out/{file_name}.xlsx"
     cprint(f"Writing to `./{path}` . . .",  'blue')
     book = openpyxl.Workbook()
     with StyleFrame.ExcelWriter(path) as writer:
@@ -920,6 +920,7 @@ def print_to_file(file_name: str) -> None:
         for module in standards.modules.vals:
             write_module(module, writer)
         # writer.save()  # not part of public API, covered by .close()
+    cprint(f"CT&E written to `./{path}` . . .",  'green')
 
 
 def print_lookup(module_to_lookup: Optional[str] = None) -> None:

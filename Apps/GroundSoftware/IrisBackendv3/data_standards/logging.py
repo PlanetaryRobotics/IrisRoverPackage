@@ -8,7 +8,8 @@ logger_build: Final = create_logger_from_template(
     logger_name='IrisBackendv3.DataStandards',
     sub_folder='DataStandards',
     save_to_file=True,
-    default_console_log_level="DEBUG"
+    default_console_log_level="INFO",
+    default_file_log_level="NOTICE"
 )
 logger: Final = logger_build[0]
 logger_setConsoleLevel: Final = logger_build[1]

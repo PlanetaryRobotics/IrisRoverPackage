@@ -166,17 +166,15 @@ export default {
             fontlink2.crossOrigin = 'true';
             document.head.appendChild(fontlink2);
 
-            const stylesheetElem = document.createElement('link');
-            stylesheetElem.rel = 'stylesheet';
-            stylesheetElem.type = 'text/css';
-            stylesheetElem.href = join(fleurRoot, 'assets/styles/fleur_display.css');
-            document.head.appendChild(stylesheetElem);
+            // define function for fleur script
+            global.openModal = this.openModal;
 
-            // trigger fleur scripts
+            // trigger fleur script
             window.onload();
 
             this.$store.commit('fleurInitialized');
         } else {
+            // in fleur script
             forceRefresh();
         }
     },
@@ -192,8 +190,545 @@ export default {
 </script>
 
 <style>
-  .fleur-div {
-    width:100%;
-    height:100%;
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
   }
+
+  /* fleur root */
+  .fleur-div {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    opacity: 1;
+    background: #121212;
+    animation: fadeIn 5s;
+  }
+
+  /* remove all styles from outside fleur */
+  .fleur-div * {
+    all: revert;
+  }
+
+  /* START POPUP MODAL */
+  .fleur-div .modal {
+    position: fixed;
+    z-index: 1;
+    padding-top: 20px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+  }
+
+  .fleur-div .modal-content {
+    width: 85%;
+    height: 80%;
+    background-color: rgb(60, 60, 60);
+    background-color: rgba(33, 33, 33, 0.9);
+    margin: auto;
+    padding: 20px;
+    border: 2px solid rgb(30, 30, 30);
+    color: white;
+  }
+
+  .fleur-div .close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .fleur-div .close:hover,
+  .fleur-div .close:focus {
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  /* END POPUP MODAL */
+
+
+  /* START SANKEY DIAGRAM */
+
+  .fleur-div #chart {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fleur-div .node rect {
+    pointer-events: all;
+    cursor: move;
+    fill-opacity: .9;
+    shape-rendering: optimizeSpeed ;
+    border: 2px solid black;
+  }
+  .fleur-div .node text {
+    pointer-events: none;
+    fill: white;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    text-shadow: 0 1px 0 #0000;
+  }
+  .fleur-div .link {
+    fill: none;
+    stroke: limegreen;
+    stroke-opacity: .4;
+    cursor: pointer;
+  }
+  .fleur-div .link:hover {
+    stroke-opacity: .5;
+  }
+
+  /* END SANKEY DIAGRAM */
+
+
+
+  /* START MAIN INTERFACE */
+  .fleur-div #screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+    background-color: #121212
+  }
+
+  .fleur-div #header {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid #2a2a2a;
+
+  }
+  .fleur-div #back-box {
+    margin-left: 3%;
+    display: flex;
+    justify-content: left;
+  }
+  .fleur-div #back-box > a {
+    font-size: 4vh;
+    color: lightblue;
+    text-decoration: none;
+  }
+  .fleur-div #status-box {
+    color: white;
+    font-size: 1.5vh;
+    margin-right: 3%;
+  }
+  .fleur-div #status-box-value {
+  }
+  .fleur-div #header-center{
+    flex: 1;
+    width: 100%;
+    height: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fleur-div .phase {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fleur-div .phase > button {
+    width: 70%;
+    height: 70%;
+    outline: 1px solid lightblue;
+    border-radius: 10px;
+    border-color: #121212;
+    font-size: 1.6vh;
+    color: lightblue;
+    background: #121212;
+
+    /* better font here */
+    font-family: 'Share Tech Mono', monospace;
+    font-weight: 600;
+  }
+  .fleur-div .phase > button:hover {
+    outline: 2px solid orange;
+    cursor: pointer;
+  }
+  .fleur-div #component {
+    flex: 18;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fleur-div #component-left {
+    flex: 3;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Roboto', sans-serif;
+  }
+  .fleur-div #component-left-spacer {
+    width: 90%;
+    height: 90%;
+    align-items: center;
+    justify-content: flex-start;
+    border: 1px solid #2a2a2a;
+    border-right: 0px;
+    overflow-y: auto;
+    padding-left: 3%; /* adjust for scrollbar */
+
+    border-radius: 10px 0px 0px 10px;
+  }
+  .fleur-div #component-left-spacer::-webkit-scrollbar {
+    width: 4px;
+    background-color: transparent;
+  }
+  .fleur-div #component-left-spacer::-webkit-scrollbar-track {
+    background-color: rgb(21, 21, 21);
+  }
+
+  .fleur-div #component-left-spacer::-webkit-scrollbar-thumb {
+    background-color: #2a2a2a;
+    border-radius: 0px 0px 0px 0px;
+  }
+
+  .fleur-div .component-left-item {
+    width: 95%;
+    height: 25%;
+    margin-top: 3%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+    outline: 1px solid rgb(193, 193, 193);
+    background-color: rgb(8, 8, 8);
+    color: rgb(193, 193, 193);
+    /*filter: contrast(95%);*/
+    border: 2px solid transparent;
+  }
+  .fleur-div .component-left-item:hover {
+    cursor: pointer;
+    /*filter: contrast(300%);*/
+    outline: 2px solid lightblue !important;
+  }
+  .fleur-div #component-left-item-header {
+    flex: 1;
+    width: 100%;
+    height: 20%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fleur-div #component-left-item-header-spacer {
+    width: 95%;
+    height: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid lightblue;
+  }
+  .fleur-div #component-left-item-header-spacer > div {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fleur-div .item-header-title-spacer {
+    flex: 1;
+  }
+  .fleur-div #item-header-title {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    font-size: 1.8vh;
+  }
+  .fleur-div #item-header-title-status {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    font-size: 1.5vh;
+  }
+  .fleur-div #item-header-title-flowlink {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    font-size: 1.5vh;
+  }
+  .fleur-div #item-header-title-flowlink > a,
+  .fleur-div #item-header-title-flowlink > a:visited {
+    text-decoration: none;
+    color: rgb(89, 186, 218);
+  }
+  .fleur-div #item-header-title-flowlink > a:hover {
+    color: orange;
+  }
+  .fleur-div #item-header-title-time {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    font-size: 1.5vh;
+  }
+  .fleur-div #component-left-item-body {
+    flex: 2;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fleur-div #component-left-item-body-spacer {
+    width: 95%;
+    height: 85%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+    /* border: 1px solid rgb(21, 21, 21); */
+  }
+  .fleur-div #item-body-description {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    font-size: 1.2vh;
+  }
+  .fleur-div #item-body-content {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    font-size: 1.2vh;
+  }
+
+  .fleur-div #component-center {
+    flex: 4;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fleur-div #component-center-box {
+    width: 85vh;
+    height: 85vh;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+    /* border: 2px solid lightblue; */
+  }
+  .fleur-div .component-center-box-hover:hover {
+    filter: drop-shadow(6px 6px 8px lightblue) invert(10%);
+    cursor: pointer;
+  }
+  .fleur-div .fault-zone {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    outline: 1px solid lightblue;
+    /*noinspection CssUnknownTarget*/
+    background: url('/FLEUR/static/assets/images/starfield.JPG');
+    background-size: cover;
+
+  }
+  .fleur-div .fault-zone>* {
+    flex: 3 3 17%; /* this needs some tuning */
+    outline: .25px solid rgba(255, 255, 255, .5);
+    transition: background 6s;
+  }
+  .fleur-div .fault-zone > div:hover {
+    outline: 2px solid orange;
+    z-index: 1;
+  }
+  .fleur-div #center-box-top {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+  .fleur-div #center-box-top > div:first-child {
+    background-size: cover;
+  }
+  .fleur-div #center-box-middle {
+    flex: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+  .fleur-div .center-box-middle-sides {
+    flex: 1;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+  .fleur-div #center-box-middle-center {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    outline: 1px solid lightblue;
+    /*noinspection CssUnknownTarget*/
+    background: url('/FLEUR/static/assets/images/rover-placeholder-image.JPG');
+    background-size: cover;
+  }
+
+  .fleur-div #center-box-bottom {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .fleur-div #component-right {
+    flex: 2;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fleur-div #component-right-spacer {
+    width: 90%;
+    height: 90%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+  }
+  .fleur-div #fault-hover-box {
+    flex: 2;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+    outline: 2px solid #2a2a2a;
+    margin-bottom: 10%;
+
+    outline: 1px solid rgb(193, 193, 193);
+    background: rgba(0, 26, 51, .2);
+    background-size: cover;
+    color: rgb(193, 193, 193);
+
+    font-family: 'Roboto', sans-serif;
+  }
+  .fleur-div .fault-hover-box-spacer {
+    width: 80%;
+    height: 80%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: left;
+  }
+  .fleur-div #fault-hover-box-header {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8vh;
+    margin-top: 5%;
+  }
+  .fleur-div #fault-hover-box-body {
+    flex: 8;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5vh;
+  }
+
+  .fleur-div #notebook {
+    flex: 3;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(21, 21, 21);
+    color: white;
+    resize: none;
+  }
+  .fleur-div #fault-hover-box-header {
+    flex: 1;
+    width: 90%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fleur-div #fault-hover-box-header-title {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    font-size: 1.8vh;
+  }
+  .fleur-div #fault-hover-box-body-spacer {
+    width: 95%;
+    height: 85%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+  }
+  .fleur-div #fault-hover-box-body {
+    flex: 2;
+    width: 90%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fleur-div #fault-hover-body-description {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    font-size: 1.2vh;
+  }
+  .fleur-div #fault-hover-body-content {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    font-size: 1.2vh;
+  }
+  /* END MAIN INTERFACE */
 </style>

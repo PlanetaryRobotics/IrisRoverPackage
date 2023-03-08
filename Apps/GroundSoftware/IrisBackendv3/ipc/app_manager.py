@@ -886,7 +886,8 @@ class IpcAppHelper:
         logger_build = create_app_logger()
         self.logger, self._setLogLevel, self._setFileLogLevel = logger_build
         # Set the window title:
-        self.set_window_title()
+        if set_window_title:
+            self.set_window_title()
         # Log that this started:
         self.logger.notice(
             f"IRIS Lunar Rover - {name} - IPC App Started"

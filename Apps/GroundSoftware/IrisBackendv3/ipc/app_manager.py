@@ -44,6 +44,7 @@ from typing_extensions import TypeAlias
 import dataclasses
 import asyncio
 import traceback
+from verboselogs import VerboseLogger
 
 from IrisBackendv3.ipc.wrapper import (
     Context, AsyncContext,
@@ -63,7 +64,7 @@ from IrisBackendv3.ipc.inter_process_message import InterProcessMessage
 from IrisBackendv3.ipc.port import Port
 from IrisBackendv3.ipc.topics_registry import Topic
 from IrisBackendv3.ipc.settings import settings
-from IrisBackendv3.ipc.logging import logger
+from IrisBackendv3.ipc.logging import logger, create_app_logger
 from IrisBackendv3.ipc.exceptions import UnhandledTopicException, IpcEndAppRequest
 
 # Context Type (sync or async):
@@ -551,8 +552,9 @@ class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
         """
         self.sockets[name] = self.create_socket(spec)
 
-        # Subscribe to topics if the spec details topics:
-        if spec.topics is not None:
+        # Subscribe to topics if the spec details topics
+        # (and we can subscribe):
+        if spec.topics is not None and spec.sock_type == SocketType.SUBSCRIBER:
             subscribe(self.sockets[name], spec.topics)
 
     @abstractmethod
@@ -608,6 +610,23 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
             bind=spec.bind
         )
 
+    async def send_to(
+        self,
+        sock_name: str,
+        msg: InterProcessMessage,
+        subtopic_bytes: bytes = b''
+    ) -> None:
+        """Asynchronously sends to the socket with the given name using its
+        assigned topic (or all if no topic is assigned), optionally tagging the
+        message with the given subtopic."""
+        socket = self.sockets[sock_name]
+        specs = self.socket_specs[sock_name]
+        if len(specs.topics) == 0:
+            await async_send_to(socket, msg, subtopic_bytes, None)
+        else:
+            for topic in specs.topics:
+                await async_send_to(socket, msg, subtopic_bytes, topic)
+
     async def read(self, sock_name: str) -> IpcPayload:
         """Asynchronously reads from the socket with the given name."""
         return await async_read_from(self.sockets[sock_name])
@@ -626,7 +645,7 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
         sock_name: str,
         message_type: Type[_IPMT]
     ) -> Tuple[IpcPayload, _IPMT]:
-        """Same as `read`, but instead of returning raw binary, it 
+        """Same as `read`, but instead of returning raw binary, it
         parses the data read as the given IPC `InterProcessMessage`.
         Returns a tuple containing the raw `IpcPayload` alongside the
         interpreted `InterProcessMessage`.
@@ -716,6 +735,8 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
             timeout (Optional[float], optional): Max runtime (as a failsafe).
                 From `asyncio.wait`.
         """
+        logger.notice(f"Starting IPC processes for: {self!s}.")
+
         # Spawn core tasks if not already spawned:
         if not self._core_tasks_spawned:
             self.spawn_core_tasks()
@@ -789,6 +810,23 @@ class IpcAppManagerSync(IpcAppManager[Context, Socket, SocketHandlerSync_T]):
             bind=spec.bind
         )
 
+    def send_to(
+        self,
+        sock_name: str,
+        msg: InterProcessMessage,
+        subtopic_bytes: bytes = b''
+    ) -> None:
+        """Synchronously sends to the socket with the given name using its
+        assigned topic (or all if no topic is assigned), optionally tagging the
+        message with the given subtopic."""
+        socket = self.sockets[sock_name]
+        specs = self.socket_specs[sock_name]
+        if len(specs.topics) == 0:
+            send_to(socket, msg, subtopic_bytes, None)
+        else:
+            for topic in specs.topics:
+                send_to(socket, msg, subtopic_bytes, topic)
+
     def read(self, sock_name: str) -> IpcPayload:
         """Synchronously reads from the socket with the given name."""
         return read_from(self.sockets[sock_name])
@@ -807,9 +845,61 @@ class IpcAppManagerSync(IpcAppManager[Context, Socket, SocketHandlerSync_T]):
         sock_name: str,
         message_type: Type[_IPMT]
     ) -> Tuple[IpcPayload, _IPMT]:
-        """Same as `read`, but instead of returning raw binary, it 
+        """Same as `read`, but instead of returning raw binary, it
         parses the data read as the given IPC `InterProcessMessage`.
         Returns a tuple containing the raw `IpcPayload` alongside the
         interpreted `InterProcessMessage`.
         """
         return read_from_as(self.sockets[sock_name], message_type)
+
+
+class IpcAppHelper:
+    """Basic class to manage the configuration surrounding an IpcApp.
+    Essentially just a collection of convenience features to streamline the
+    setup that occurs outside of an `IpcAppManager`.
+    """
+    # Name of this IPC App:
+    name: str
+    # Logger instance:
+    logger: VerboseLogger
+    # Function Handle to set console logging level:
+    _setLogLevel: Callable[[str], None]
+    # Function Handle to set file logging level:
+    _setFileLogLevel: Callable[[str], None]
+
+    def __init__(
+        self,
+        name: str,
+        set_window_title: bool = True
+    ) -> None:
+        """Sets up the IPC App.
+
+        Args:
+            name (str): Name of the IPC App.
+            set_window_title (bool, optional): Whether or not to retitle the
+             terminal window. Defaults to `True`.
+        """
+        self.name = name
+        # Set the name in IPC settings:
+        settings['app_name'] = "PacketPrinter"
+        # Build the logger:
+        logger_build = create_app_logger()
+        self.logger, self._setLogLevel, self._setFileLogLevel = logger_build
+        # Set the window title:
+        self.set_window_title()
+        # Log that this started:
+        self.logger.notice(
+            f"IRIS Lunar Rover - {name} - IPC App Started"
+        )
+
+    def setLogLevel(self, level: str) -> None:
+        # Set logging level for logs printed to the console:
+        self._setLogLevel(level)
+
+    def setFileLogLevel(self, level: str) -> None:
+        # Set logging level for logs saved to file:
+        self._setFileLogLevel(level)
+
+    def set_window_title(self) -> None:
+        """Helper function to set the title of the terminal window:"""
+        print(f"\033]0;{self.name}\a")

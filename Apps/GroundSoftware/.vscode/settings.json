@@ -62,6 +62,7 @@
         "cmdevt",
         "Cmdnoop",
         "Cmdnoopstring",
+        "cmds",
         "cmsg",
         "cntl",
         "coloredlogs",

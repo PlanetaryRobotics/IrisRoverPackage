@@ -27,6 +27,7 @@ from types import ModuleType
 # from IrisBackendv3.utils.imports import import_package_modules
 from IrisBackendv3.ipc.logging import logger
 
+import IrisBackendv3.transceiver.xcvr_enum
 import IrisBackendv3.codec.packet_classes
 import IrisBackendv3.codec.packet
 import IrisBackendv3.codec.magic
@@ -109,6 +110,7 @@ _m = create_module_entry
 
 _DEFAULT_APPROVED_IRIS_MODULES: Final[Dict[str, ModuleType]] = {
     'datetime': datetime,
+    **_m(IrisBackendv3.transceiver.xcvr_enum),
     **_m(IrisBackendv3.codec.magic),
     **_m(IrisBackendv3.codec.metadata),
     **_m(IrisBackendv3.codec.payload),

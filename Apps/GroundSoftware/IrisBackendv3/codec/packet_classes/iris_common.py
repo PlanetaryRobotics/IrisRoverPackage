@@ -185,7 +185,16 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         return total_size
 
     def __str__(self) -> str:
-        # Grab the string of the lastest value for each unique telemetry channel:
+        # If this contains only commands just print the command(s):
+        cmds = [*self.payloads[CommandPayload]]
+        if len(cmds) == len(self.payloads):
+            return (
+                f"LEGACY2020 ICP["
+                f"#{self.common_packet_header.seq_num}::"
+                f"{self.common_packet_header.vlp_len}] > {', '.join(cmds)}"
+            )
+
+        # Grab the string of the latest value for each unique telemetry channel:
         # dict of module name -> channel_name -> payload string
         latest: OrderedDict[str, OrderedDict[str, Any]] = OrderedDict()
         for payload in self.payloads[TelemetryPayload]:
@@ -535,9 +544,19 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
         return total_size
 
     def __str__(self) -> str:
+        # If this contains only commands just print the command(s):
+        cmds = [*self.payloads[CommandPayload]]
+        if len(cmds) == len(self.payloads):
+            return (
+                f"LEGACY2020 ICP["
+                f"#{self.common_packet_header.seq_num}::"
+                f"{self.common_packet_header.vlp_len}] > {', '.join(cmds)}"
+            )
+
+        # Otherwise, just summarize the telemetry:
         base = self.__repr__()
 
-        # Grab the string of the lastest value for each unique telemetry channel:
+        # Grab the string of the latest value for each unique telemetry channel:
         latest = {}
         for payload in self.payloads[TelemetryPayload]:
             payload = cast(TelemetryPayload, payload)

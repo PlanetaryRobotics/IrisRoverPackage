@@ -85,8 +85,7 @@ def create_logger_from_template(
     # Set up console logging:
     console_handler = logging.StreamHandler()
     # Pull out the function necessary to set the console log level:
-    console_level_changer = console_handler.setLevel
-    console_level_changer(default_console_log_level)
+    console_handler.setLevel(default_console_log_level)
     console_handler.setFormatter(logging.Formatter(console_format_string))
     logger.addHandler(console_handler)
 
@@ -126,10 +125,20 @@ def create_logger_from_template(
         def file_level_changer(_: str): pass
 
     # Add colored logs:
+    # NOTE: This will replace (build upon) the `console_handler` made above,
+    # so, `console_level_changer` will need to be grabbed after this.
     coloredlogs.install(
         level=default_console_log_level,
         logger=logger,
         fmt=console_format_string
     )
+
+    # Grab the new stream handler:
+    for handler in logger.handlers:
+        if isinstance(handler, coloredlogs.StandardErrorHandler):
+            console_handler = handler
+            break
+    # Grab the handle to the level setter of that handler:
+    console_level_changer = console_handler.setLevel
 
     return logger, console_level_changer, file_level_changer

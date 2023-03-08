@@ -30,7 +30,7 @@ jsonpickle
 termcolor
 colorama
 verboselogs
-coloredlogs
+coloredlogs~=15.0.1
 ulid-py
 pyserial
 pyserial-asyncio

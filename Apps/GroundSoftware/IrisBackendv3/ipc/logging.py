@@ -29,6 +29,6 @@ def create_app_logger() -> Tuple[verboselogs.VerboseLogger, Callable[[str], None
     return create_logger_from_template(
         logger_name=f'IrisBackendv3.IpcApp.{app_name}',
         sub_folder=os.path.join("IpcApps", app_name),
-        log_file_name_suffix=app_name,
+        log_file_name_suffix="",
         default_console_log_level="DEBUG"
     )

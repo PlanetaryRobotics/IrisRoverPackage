@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run run-tests standards build-docs run-docs build-cte console xconsole xterm cloc
+.PHONY = help init update clean run run-tests standards build-docs run-docs build-cte console xconsole xterm-normal xterm-wide cloc
 
 .DEFAULT_GOAL = help
 all: help
@@ -33,6 +33,8 @@ help:
 	@echo "	make console: Run the Iris Console CLI application"
 	@echo " "
 	@echo "	make xconsole: Run the Iris Console CLI application in XTerm (for WSL users)"
+	@echo " "
+	@echo "	make xterm-normal: Launches the program in the PROG variable inside a new XTerm window with normal settings and the geometry given in GEOM. Run as: 'make xterm-normal GEOM=\"300x100+0+0\" PROG=\"./run-script.sh whatever.py\"'."
 	@echo " "
 	@echo "	make xterm-wide: Launches the program in the PROG variable inside a new XTerm window with wide settings and the geometry given in GEOM. Run as: 'make xterm-wide GEOM=\"300x100+0+0\" PROG=\"./run-script.sh whatever.py\"'."
 	@echo " "
@@ -97,6 +99,13 @@ clean:
 run:
 # Rebuild latest datastandards first so every app has access via cache:
 	make standards
+
+	make xterm-normal \
+		GEOM="90x70+0+0" \
+		PROG="./run-script.sh ipc_apps/packet_printer.py -n PacketBytesPrinter --no-full-packets --packet-bytes --no-message-packets --no-events"
+	make xterm-normal \
+		GEOM="90x70+300+0" \
+		PROG="./run-script.sh ipc_apps/packet_printer.py -n MessagePrinter --no-full-packets --message-packets --events --no-packet-bytes"
 #	./run-script.sh ./ipc-apps/packet-printer.py
 
 ####
@@ -144,13 +153,30 @@ xconsole:
 	make xterm-wide GEOM="300x100+0+0" PROG="make console"
 
 ####
+# Launches the program in the PROG variable inside a new XTerm window with 
+# normal settings and the geometry given in GEOM.
+# Run as: 'make xterm-normal GEOM="300x100+0+0" PROG="./run-script.sh whatever.py"'
+####
+xterm-normal:
+	xterm \
+	-xrm "XTerm*Background: Grey3" \
+	-xrm "XTerm*Foreground: white" \
+	-xrm "XTerm*faceName: DejaVu Sans Mono:size=11:antialias=true:hinting=true" \
+	-xrm "XTerm*font: 6x13bold" \
+	-xrm "XTerm*saveLines: 5000" \
+	-xrm "XTerm*HiForeColor: white" \
+	-xrm "XTerm*HiBackColor: Grey15" \
+	-xrm "XTerm*geometry: $(GEOM)" \
+	-hold -e $(PROG) &
+
+####
 # Launches the program in the PROG variable inside a new XTerm window with wide
 # settings and the geometry given in GEOM.
 # Run as: 'make xterm-wide GEOM="300x100+0+0" PROG="./run-script.sh whatever.py"'
 ####
 xterm-wide:
 	xterm \
-	-xrm "XTerm*Background: Grey15" \
+	-xrm "XTerm*Background: Grey3" \
 	-xrm "XTerm*Foreground: white" \
 	-xrm "XTerm*faceName: DejaVu Sans Mono:size=8:antialias=true:hinting=true" \
 	-xrm "XTerm*font: 6x10" \

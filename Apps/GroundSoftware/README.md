@@ -4,7 +4,7 @@ NOTE: All makefiles are designed to be run in an environment that supports `bash
 # Install Dependencies
 
 ## Automated Dependencies Setup on Ubuntu (incl. in WSL)
-**Note:** The following automated setup was testing on a `Ubuntu 18.04 WSL2` install but will likely also work on a stand-alone install of `Ubuntu`. It's also been verified to have worked on MacOS Ventura as a shortcut.
+**Note:** The following automated setup was testing on a `Ubuntu 18.04 WSL2` install but will likely also work on a stand-alone install of `Ubuntu`. The non-apt-get parts of this script have also been verified to have worked on MacOS Ventura as a shortcut.
 
 To install and setup the dependencies for this project on `Ubuntu`:
 - Run: `chmod +x ./__wsl-ubuntu-setup.sh`
@@ -99,18 +99,6 @@ export DISPLAY="`grep nameserver /etc/resolv.conf | sed 's/nameserver //'`:0"
 ```
   - 
     - Install XApps (`sudo apt install x11-apps`)
-    - Create or edit an XTerm config file at `~/XTerm` with the following contents:
-```bash
-XTerm*Background: Grey15
-XTerm*Foreground: white
-XTerm*faceName: DejaVu Sans Mono:size=8:antialias=true:hinting=true
-XTerm*font: 6x10
-XTerm*saveLines: 500
-XTerm*HiForeColor: white
-XTerm*HiBackColor: Grey15
-XTerm*geometry: 1920x1080+0+0
-```
-  -
     - Enable `systemd` by adding the following lines to `/etc/wsl.conf`:
 ```ini
 [boot]

@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run run-tests standards build-docs run-docs build-cte console xconsole cloc
+.PHONY = help init update clean run run-tests standards build-docs run-docs build-cte console xconsole xterm cloc
 
 .DEFAULT_GOAL = help
 all: help
@@ -28,11 +28,13 @@ help:
 	@echo " "
 	@echo "	make run-docs: Spins up an interactive documentation server (WIP)"
 	@echo " "
-	@echo "	make build-cte: Build the Commands, Telemetry, & Events (CT&E) Table. Run as: 'make build-cte FILE=your_file_name'"
+	@echo "	make build-cte: Build the Commands, Telemetry, & Events (CT&E) Table. Run as: 'make build-cte FILE=your_file_name'."
 	@echo " "
 	@echo "	make console: Run the Iris Console CLI application"
 	@echo " "
 	@echo "	make xconsole: Run the Iris Console CLI application in XTerm (for WSL users)"
+	@echo " "
+	@echo "	make xterm-wide: Launches the program in the PROG variable inside a new XTerm window with wide settings and the geometry given in GEOM. Run as: 'make xterm-wide GEOM=\"300x100+0+0\" PROG=\"./run-script.sh whatever.py\"'."
 	@echo " "
 	@echo "	make cloc: Count Lines Of Code (and comments) by language, excluding builds and libraries"
 	@echo "----------------------------------"
@@ -139,7 +141,24 @@ console:
 # Run the Iris Console CLI application in XTerm (for WSL users):
 ####
 xconsole:
-	xterm -hold -e make console &
+	make xterm-wide GEOM="300x100+0+0" PROG="make console"
+
+####
+# Launches the program in the PROG variable inside a new XTerm window with wide
+# settings and the geometry given in GEOM.
+# Run as: 'make xterm-wide GEOM="300x100+0+0" PROG="./run-script.sh whatever.py"'
+####
+xterm-wide:
+	xterm \
+	-xrm "XTerm*Background: Grey15" \
+	-xrm "XTerm*Foreground: white" \
+	-xrm "XTerm*faceName: DejaVu Sans Mono:size=8:antialias=true:hinting=true" \
+	-xrm "XTerm*font: 6x10" \
+	-xrm "XTerm*saveLines: 500" \
+	-xrm "XTerm*HiForeColor: white" \
+	-xrm "XTerm*HiBackColor: Grey15" \
+	-xrm "XTerm*geometry: $(GEOM)" \
+	-hold -e $(PROG) &
 
 ####
 # Count Lines of Code (for fun):

@@ -57,15 +57,15 @@ XTerm*HiForeColor: white
 XTerm*HiBackColor: Grey15
 XTerm*geometery: 1920x1080+0+0
 ```
-    - Enable `systemd` by adding the following lines to `/etc/wsl.conf`:
+  - Enable `systemd` by adding the following lines to `/etc/wsl.conf`:
 ```ini
 [boot]
 systemd=true
-``
-    - Restart WSL
-        - Close the WSL terminal
-        - Open Powershell in Windows and run `wsl --shutdown`
-    - Run a graphical application (example `make xconsole`)
+```
+  - Restart WSL
+      - Close the WSL terminal
+      - Open Powershell in Windows and run `wsl --shutdown`
+  - Run a graphical application (example `make xconsole`)
 
 ## Manual Setup
 It is advised you set up your environment using the automated scripts above; however, if you prefer or need not to run these scripts, the key setup steps are listed below. In addition, it is recommended that you look through each step in the automated scripts used above to make sure you're not missing anything critical.

@@ -712,7 +712,10 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
         """Converts the given coroutines into `asyncio.Task`s and adds them to
         the list of managed tasks to be run alongside this IPC App's core
         tasks."""
-        self._tasks.extend(asyncio.create_task(c) for c in other_coros)
+        self._tasks.extend(
+            asyncio.create_task(c, name=c.__name__)
+            for c in other_coros
+        )
 
     def add_tasks(self, other_tasks: List[asyncio.Task]) -> None:
         """Adds the given `asyncio.Task`s to the list of managed tasks to be

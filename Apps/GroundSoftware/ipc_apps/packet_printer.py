@@ -78,7 +78,7 @@ def get_opts():
 
 opts = get_opts()
 
-# Set app name (for logs, etc):
+# Set app name config:
 app = ipc.IpcAppHelper(opts.name)
 app.setLogLevel(opts.log_level)
 IB3.init_from_latest()

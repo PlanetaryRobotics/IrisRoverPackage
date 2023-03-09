@@ -303,11 +303,16 @@ def init_telemetry_payload_log_dataframe(telemetry_payload_log_dataframe: pd.Dat
         telemetry_payload_log_dataframe = pd.DataFrame(
             columns=[
                 'Opcode', 'Module', 'Channel', 'nRX', 'Updated', 'Current Value', 'H+1', 'H+2', 'H+3'
-            ], dtype=object).set_index('Opcode')
+            ],
+            dtype=object
+        ).set_index('Opcode')
     return telemetry_payload_log_dataframe
 
 
-def update_telemetry_payload_log_dataframe(telemetry_payload_log_dataframe: pd.DataFrame, t: TelemetryPayload) -> pd.DataFrame:
+def update_telemetry_payload_log_dataframe(
+    telemetry_payload_log_dataframe: pd.DataFrame,
+    t: TelemetryPayload
+) -> pd.DataFrame:
     # Update the given row in the telemetry payload log dataframe (used for tabular printing)
     # with data from the given telemetry payload `t`.
 
@@ -359,6 +364,14 @@ def update_telemetry_payload_log_dataframe(telemetry_payload_log_dataframe: pd.D
     return telemetry_payload_log_dataframe
 
 
+def update_telemetry_payload_log_from_packet(telemetry_payload_log_dataframe: pd.DataFrame, packet: Packet) -> pd.DataFrame:
+    telem = [*packet.payloads[TelemetryPayload]]
+    for t in telem:
+        telemetry_payload_log_dataframe = update_telemetry_payload_log_dataframe(
+            telemetry_payload_log_dataframe, t)
+    return telemetry_payload_log_dataframe
+
+
 def str_telemetry_payload_log_dataframe(telemetry_payload_log_dataframe: pd.DataFrame) -> str:
     # Pretty-Formats Telemetry Payload Log Dataframe:
     df_out = telemetry_payload_log_dataframe.copy()
@@ -394,7 +407,14 @@ def init_packet_log_dataframe(packet_log_dataframe: pd.DataFrame) -> pd.DataFram
     return packet_log_dataframe
 
 
-def update_packet_log_dataframe_row(packet_log_dataframe: pd.DataFrame, row_name: str, now: datetime, num_bytes: int, is_rs422: bool, is_wifi: bool) -> None:
+def update_packet_log_dataframe_row(
+    packet_log_dataframe: pd.DataFrame,
+    row_name: str,
+    now: datetime,
+    num_bytes: int,
+    is_rs422: bool,
+    is_wifi: bool
+) -> pd.DataFrame:
     # Update the given row in the packet log dataframe (used for tabular printing) for a packet
     # containing `num_bytes` received at time `now`.
 
@@ -434,9 +454,10 @@ def update_packet_log_dataframe_row(packet_log_dataframe: pd.DataFrame, row_name
         }
     packet_log_dataframe.loc[row_name, [*new_data.keys()]] = \
         [*new_data.values()]
+    return packet_log_dataframe
 
 
-def update_packet_log_dataframe(packet_log_dataframe: pd.DataFrame, packet: Packet) -> None:
+def update_packet_log_dataframe(packet_log_dataframe: pd.DataFrame, packet: Packet) -> pd.DataFrame:
     # Update packet log dataframe (used for tabular printing) after
     # receiving the given packet:
     if isinstance(packet, Packet):
@@ -451,16 +472,17 @@ def update_packet_log_dataframe(packet_log_dataframe: pd.DataFrame, packet: Pack
         is_rs422 = packet.pathway == DataPathway.WIRED
         is_wifi = packet.pathway == DataPathway.WIRELESS
 
-        update_packet_log_dataframe_row(
+        packet_log_dataframe = update_packet_log_dataframe_row(
             packet_log_dataframe,
             name, now, num_bytes, is_rs422, is_wifi
         )
 
         # Update total across all packets:
-        update_packet_log_dataframe_row(
+        packet_log_dataframe = update_packet_log_dataframe_row(
             packet_log_dataframe,
             'zTotal', now, num_bytes, is_rs422, is_wifi
         )
+    return packet_log_dataframe
 
 
 def str_packet_log_dataframe(packet_log_dataframe: pd.DataFrame) -> str:
@@ -468,6 +490,10 @@ def str_packet_log_dataframe(packet_log_dataframe: pd.DataFrame) -> str:
     df_out = packet_log_dataframe.copy()
     df_out['Current Dt [s]'] = [f"{x:.3f}" for x in df_out['Current Dt [s]']]
     df_out['Avg. Dt [s]'] = [f"{x:.3f}" for x in df_out['Avg. Dt [s]']]
+    df_out['Updated'] = [
+        x.isoformat(sep=' ', timespec='milliseconds')
+        for x in df_out['Updated']
+    ]
     return tabulate(df_out.fillna('').sort_index(ascending=True), headers='keys', tablefmt='fancy_grid', floatfmt=".3f", numalign='right', stralign='right')
 
 

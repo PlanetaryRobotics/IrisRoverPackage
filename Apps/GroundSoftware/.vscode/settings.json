@@ -282,6 +282,7 @@
         "wifi",
         "wlan",
         "WTHB",
+        "xconsole",
         "xcvr",
         "xprop",
         "yamcs",

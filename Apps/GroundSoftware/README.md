@@ -45,6 +45,7 @@ If you intend to author commits to this repo:
 ```bash
 export DISPLAY="`grep nameserver /etc/resolv.conf | sed 's/nameserver //'`:0"
 ```
+  - 
     - Install XApps (`sudo apt install x11-apps`)
     - Create or edit an XTerm config file at `~/XTerm` with the following contents:
 ```bash
@@ -55,9 +56,10 @@ XTerm*font: 6x10
 XTerm*saveLines: 500
 XTerm*HiForeColor: white
 XTerm*HiBackColor: Grey15
-XTerm*geometery: 1920x1080+0+0
+XTerm*geometry: 1920x1080+0+0
 ```
-  - Enable `systemd` by adding the following lines to `/etc/wsl.conf`:
+  -
+    - Enable `systemd` by adding the following lines to `/etc/wsl.conf`:
 ```ini
 [boot]
 systemd=true

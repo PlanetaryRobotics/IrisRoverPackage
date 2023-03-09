@@ -101,11 +101,14 @@ run:
 	make standards
 
 	make xterm-normal \
-		GEOM="90x70+0+0" \
-		PROG="./run-script.sh ipc_apps/packet_printer.py -n PacketBytesPrinter --no-full-packets --packet-bytes --no-message-packets --no-events"
+		GEOM="185x63+0+0" \
+		PROG="./run-script.sh ipc_apps/telemetry_display.py"
 	make xterm-normal \
-		GEOM="90x70+300+0" \
+		GEOM="185x10+0+800" \
 		PROG="./run-script.sh ipc_apps/packet_printer.py -n MessagePrinter --no-full-packets --message-packets --events --no-packet-bytes"
+	make xterm-normal \
+		GEOM="73x73+1000+0" \
+		PROG="./run-script.sh ipc_apps/packet_printer.py -n PacketBytesPrinter --no-full-packets --packet-bytes --no-message-packets --no-events"
 #	./run-script.sh ./ipc-apps/packet-printer.py
 
 ####
@@ -166,6 +169,7 @@ xterm-normal:
 	-xrm "XTerm*saveLines: 5000" \
 	-xrm "XTerm*HiForeColor: white" \
 	-xrm "XTerm*HiBackColor: Grey15" \
+	-xrm "XTerm*scrollTtyOutput: false" \
 	-xrm "XTerm*geometry: $(GEOM)" \
 	-hold -e $(PROG) &
 

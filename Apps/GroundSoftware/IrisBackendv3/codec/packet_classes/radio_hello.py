@@ -10,18 +10,18 @@ just printed to the console.
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
 
-from .packet import Packet, CT
+from IrisBackendv3.codec.packet_classes.packet import Packet, CT
 
 from typing import Any, Optional, Final, List, cast
 
 from scapy.utils import hexdump  # type: ignore
 
-from ..payload import EventPayload
-from ..payload_collection import EnhancedPayloadCollection
-from ..fsw_data_codec import StringPacker
+from IrisBackendv3.codec.payload import EventPayload
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.fsw_data_codec import StringPacker
 
-from ..settings import ENDIANNESS_CODE, settings
-from ..logging import logger
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE, settings
+from IrisBackendv3.codec.logging import logger
 
 
 class RadioHelloPacketInterface(Packet[CT]):

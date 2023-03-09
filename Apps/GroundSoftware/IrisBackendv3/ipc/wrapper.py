@@ -11,112 +11,24 @@ being used for IPC. That is, if we ever decide to migrate away from ZMQ for IPC,
 the only area that should **need** to be changed would be this file.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 11/22/2022
+@last-updated: 03/07/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
-from abc import ABC, abstractmethod, abstractclassmethod
-from typing import Any, Awaitable, Callable, Generic, Optional, ClassVar, Protocol, Union, Dict, List, cast, TypeVar, Tuple
-from typing_extensions import TypeAlias
+from typing import Optional, Union, List, cast, Tuple, Type, TypeVar, TypeGuard
 import dataclasses
 from enum import Enum
-from typeguard import check_type
 
 import zmq
 import zmq.asyncio
 
-from .port import Port
-from .topic import Topic
-from .settings import settings
-from .logging import logger
+from IrisBackendv3.ipc.port import Port
+from IrisBackendv3.ipc.topics_registry import Topic
+from IrisBackendv3.ipc.settings import settings
+from IrisBackendv3.ipc.logging import logger
 
-
-IPMC = TypeVar('IPMC')  # Inter-Process Message Content
-
-
-class InterProcessMessage(Generic[IPMC], ABC):
-    """
-    Interface for any message data which supports being sent between processes.
-    """
-
-    __slots__: List[str] = ['content']
-
-    content: IPMC
-
-    def __init__(self, content: IPMC) -> None:
-        self.content = content
-
-    @abstractmethod
-    def to_ipc_bytes(self) -> bytes:
-        """
-        Pack this object into bytes to be sent over the IPC network
-        (in a safe way, unlike pickle).
-        """
-        # ... use restricted_pickler
-        raise NotImplementedError()
-
-    @abstractclassmethod
-    def from_ipc_bytes(cls, data: bytes) -> IPMC:
-        """
-        Unpack bytes sent over IPC to reconstruct the sent object.
-        """
-        raise NotImplementedError()
-
-
-class IPMHandler(Protocol):
-    """ Structural typing `Protocol` defining a handler that decodes raw
-    IPC message bytes, performs some operation, and optionally returns an
-    `InterProcessMessage` if needed by the process type (i.e. server/client).
-
-    NOTE:
-    Can't do something as simple as `Callable[[bytes], InterProcessMessage])`
-    b/c of this still open (as of 2/26/22) issue:
-    https://github.com/python/mypy/issues/5485
-    which prevents `subtopic.handler(ipc_raw.msg)` or even
-    `subtopic.handler.__call__(ipc_raw.msg)` from working.
-    """
-
-    def __call__(self, __raw_msg: bytes) -> Optional[InterProcessMessage]: ...
-
-
-def IsIPMHandler(func: IPMHandler) -> IPMHandler:
-    """ Decorator to use before a function to have `mypy` make sure it complies
-    with the `IPMHandler` callback protocol.
-    Example:
-    ```py
-    @IsIPMHandler
-    def good_ipmh(msg_bytes: bytes) -> InterProcessMessage:
-        pass
-    ```
-    creates no errors.
-
-    ```py
-    @IsIPMHandler
-    def bad_ipmh(x: int, y: Dict) -> float:
-        pass
-    ```
-    gives a mypy error b/c it's argument and return type signatures are wrong.
-
-    but
-    """
-    return func
-
-
-@dataclasses.dataclass(order=True)
-class IpcPayload:
-    """
-    Data sent over IPC.
-    """
-    topic_bytes: bytes = b''  # if applicable
-    subtopic_bytes: bytes = b''  # if applicable
-    msg_bytes: bytes = b''  # message
-
-    @property
-    def topic(self) -> Topic:
-        # Type ignore note: mypy doesn't recognize that Enum() doesn't call
-        # __new__ but is instead an Enum indexing operation and, thus,
-        # doesn't need __new__'s arguments.
-        return Topic(self.topic_bytes)  # type: ignore
+from IrisBackendv3.ipc.ipc_payload import IpcPayload
+from IrisBackendv3.ipc.inter_process_message import InterProcessMessage
 
 
 class SocketType(Enum):
@@ -156,35 +68,24 @@ Socket = zmq.sugar.socket.Socket  # convenient type alias
 AsyncSocket = zmq.asyncio.Socket  # convenient type alias
 
 
-def create_socket(
-    context: Context,
-    socket_type: SocketType,
-    ports: Union[Port, List[Port]]
-) -> Socket:
-    return cast(Socket, _create_socket(context, socket_type, ports))
-
-
-def create_async_socket(
-    context: AsyncContext,
-    socket_type: SocketType,
-    ports: Union[Port, List[Port]]
-) -> AsyncSocket:
-    return cast(AsyncSocket, _create_socket(context, socket_type, ports))
-
-
 def _create_socket(
-    context: Union[Context, AsyncContext],
+    context: Context | AsyncContext,
     socket_type: SocketType,
-    ports: Union[Port, List[Port]]
+    ports: Port | List[Port],
+    bind: Optional[bool] = None
 ) -> Union[Socket, AsyncSocket]:
     """
-    Creates a socket of the given `socket_type` on the given `context` and binds
-    or connects it to the given port/ports.
+    Creates a socket of the given `socket_type` on the given `context` and
+    binds or connects it to the given port/ports. Binding occurs as needed.
 
-    Note: servers and publishers are to be bound and so they can only take
-    one port. Clients and subscribers can connect to multiple ports.
+    If `bind=True`, binding will be attempted no matter the `socket_type` (can
+    be useful for inverse topologies with many pubs and one sub which binds).
+    If `bind` is not given (`bind is None`), binding will be chosen by default
+    behavior: servers & pubs bind, clients & subs don't.
+
+    NOTE: Bound sockets can only take one port. Unbound sockets that are not
+    server or publisher can take multiple.
     """
-
     if isinstance(ports, Port):
         ports = [ports]
     elif not (isinstance(ports, list) and all(isinstance(p, Port) for p in ports)):
@@ -197,40 +98,124 @@ def _create_socket(
     # Create socket:
     socket = context.socket(socket_type._zmq_type)
 
-    if socket_type in [SocketType.SERVER, socket_type.PUBLISHER]:
+    # Make sure socket type is on whitelist of socket types we support
+    # (types we've tested this setup with):
+    if socket_type not in (whitelist := [
+            SocketType.SERVER,
+            SocketType.PUBLISHER,
+            SocketType.CLIENT,
+            SocketType.SUBSCRIBER
+    ]):
+        logger.error(
+            "ValueError: "
+            f"Unsupported/unimplemented `{socket_type=}`."
+        )
+
+    # Determine appropriate binding approach:
+    if bind is None:
+        # Use default binding (look it up):
+        bind = {
+            SocketType.SERVER: True,
+            SocketType.PUBLISHER: True,
+            SocketType.CLIENT: False,
+            SocketType.SUBSCRIBER: False
+        }[socket_type]
+        logger.verbose(
+            f"Using default binding scheme (`{bind=}`) for `{socket_type=}`."
+        )
+    else:
+        # Overriding the default. Make note of it:
+        logger.info(
+            f"Using forced binding scheme (`{bind=}`) for `{socket_type=}`."
+        )
+
+    # Start the socket and either bind or connect:
+    if bind:
         # Bind Servers and Publishers:
         if len(ports) > 1:
-            logger.error(
-                "ValueError: "
-                f"Sockets with type `{socket_type}` are bound and can only take "
-                f"one port but were given `{ports}`."
+            logger.warn(
+                f"Attempting to bind with `{socket_type=}` in `_create_socket`"
+                f"but multiple `{ports=}` were given. Need exactly 1."
+                f"Proceeding with the first port in the list: `{ports[0]=}`."
             )
-
         port = ports[0]
         addr = f"tcp://{settings['IP']}:{port.value}"
         socket.bind(addr)
-
         logger.info(  # type: ignore
-            f"Created a `{socket_type}` at `{addr}` "
+            f"Bound `{socket_type}` at `{addr}` "
             f"(port {port!s}: 0x{port.value:04X})."
         )
+    else:
+        # If we're not binding, then we're connecting:
+        # Make sure that we're not connecting to multiple ports if this is a
+        # server, publisher, etc where that's not allowed on a single socket:
+        if len(ports) > 1 and socket_type in [
+            SocketType.SERVER,
+            SocketType.PUBLISHER
+        ]:
+            logger.warn(
+                f"Socket with `{socket_type=}` given multiple ports in "
+                f"`_create_socket` (`{ports=}`) but exactly 1 should be given."
+                f"Proceeding with the first port in the list: `{ports[0]=}`."
+            )
+            ports = ports[:1]
 
-    elif socket_type in [SocketType.CLIENT, socket_type.SUBSCRIBER]:
-        # Connect Clients and Subscribers:
+        # Connect to all ports given:
+        addr_base = f"tcp://{settings['IP']}"
         for port in ports:
-            socket.connect(f"tcp://{settings['IP']}:{port}")
+            socket.connect(f"{addr_base}:{port.value}")
 
         logger.info(  # type: ignore
-            f"Created a `{socket_type}` connected to `tcp://{settings['IP']}` on ports `{ports}`."
+            f"Created a `{socket_type}` connected to `{addr_base}` "
+            f"on ports `{ports}` "
+            f"(`{', '.join([f'0x{p.value:04X}' for p in ports])}`)."
         )
 
-    else:
-        logger.error(
-            "ValueError: "
-            f"Unsupported/unimplemented socket type. Got {socket_type}."
-        )
+    # Indicate that the return type (sync vs async) is unknown since the
+    # context type (sync vs async) is also unknown:
+    return cast(Socket | AsyncSocket, socket)
 
-    return cast(Socket, socket)
+
+def create_socket(
+    context: Context,
+    socket_type: SocketType,
+    ports: Port | List[Port],
+    bind: Optional[bool] = None
+) -> Socket:
+    """
+    Creates a `Socket` of the given `socket_type` on the given `context` and
+    binds or connects it to the given port/ports. Binding occurs as needed.
+
+    If `bind=True`, binding will be attempted no matter the `socket_type` (can
+    be useful for inverse topologies with many pubs and one sub which binds).
+    If `bind` is not given (`bind is None`), binding will be chosen by default
+    behavior: servers & pubs bind, clients & subs don't.
+
+    NOTE: Bound sockets can only take one port. Unbound sockets that are not
+    server or publisher can take multiple.
+    """
+    return cast(Socket, _create_socket(context, socket_type, ports, bind))
+
+
+def create_async_socket(
+    context: AsyncContext,
+    socket_type: SocketType,
+    ports: Port | List[Port],
+    bind: Optional[bool] = None
+) -> AsyncSocket:
+    """
+    Creates an `AsyncSocket` of the given `socket_type` on the given `context`
+    and binds or connects it to the given port/ports. Binding occurs as needed.
+
+    If `bind=True`, binding will be attempted no matter the `socket_type` (can
+    be useful for inverse topologies with many pubs and one sub which binds).
+    If `bind` is not given (`bind is None`), binding will be chosen by default
+    behavior: servers & pubs bind, clients & subs don't.
+
+    NOTE: Bound sockets can only take one port. Unbound sockets that are not
+    server or publisher can take multiple.
+    """
+    return cast(AsyncSocket, _create_socket(context, socket_type, ports, bind))
 
 
 def subscribe(socket: Union[Socket, AsyncSocket], topics: Union[Topic, List[Topic]]) -> None:
@@ -250,7 +235,7 @@ def subscribe(socket: Union[Socket, AsyncSocket], topics: Union[Topic, List[Topi
     elif not (isinstance(topics, list) and all(isinstance(t, Topic) for t in topics)):
         logger.error(
             "TypeError: "
-            "`ports` must be a `Topic` or a `list` containing only `Topic`s. "
+            "`topics` must be a `Topic` or a `list` containing only `Topic`s. "
             f"instead got: `{topics}` of type `{type(topics)}`."
         )
 
@@ -284,7 +269,7 @@ def _prep_send_payload(
                 "ValueError: "
                 f"Given data `{data!r}` is not allowed on topic `{topic}` "
                 f"because its type `{type(data)}` is not a supported type. "
-                f"This topic allows: {topic.topic_type}."
+                f"This topic allows: {topic.definition.topic_type}."
             )
         payload.topic_bytes = topic.value
 
@@ -381,15 +366,62 @@ def _process_multipart(raw: List[bytes]) -> IpcPayload:
     return payload
 
 
-def read_from(
-    socket: Socket
-) -> IpcPayload:
+def read_from(socket: Socket) -> IpcPayload:
     raw: List[bytes] = socket.recv_multipart()
     return _process_multipart(raw)
 
 
-async def async_read_from(
-    socket: AsyncSocket
-) -> IpcPayload:
+async def async_read_from(socket: AsyncSocket) -> IpcPayload:
     raw: List[bytes] = await socket.recv_multipart()
     return _process_multipart(raw)
+
+
+def read_msg(socket: Socket) -> Tuple[IpcPayload, InterProcessMessage]:
+    """Reads a message from this given socket.
+    Only works when the payload has a valid `Topic`.
+    Returns a tuple of the raw `IpcPayload` and the decoded
+    `InterProcessMessage`."""
+    payload = read_from(socket)
+    return payload, payload.message
+
+
+async def async_read_msg(
+    socket: AsyncSocket
+) -> Tuple[IpcPayload, InterProcessMessage]:
+    """Asynchronously reads a message from this given socket.
+    Only works when the payload has a valid `Topic`.
+    Returns a tuple of the raw `IpcPayload` and the decoded
+    `InterProcessMessage`."""
+    payload = await async_read_from(socket)
+    return payload, payload.message
+
+
+_IPMT = TypeVar('_IPMT', bound=InterProcessMessage)
+
+
+def read_from_as(
+    socket: Socket,
+    message_type: Type[_IPMT]
+) -> Tuple[IpcPayload, _IPMT]:
+    """Same as `read_from`, but instead of returning raw binary, it
+    parses the data read as the given IPC `InterProcessMessage`.
+    Returns a tuple containing the raw `IpcPayload` alongside the interpreted
+    `InterProcessMessage`.
+    """
+    payload = read_from(socket)
+    message = message_type.from_ipc_bytes(payload.msg_bytes)
+    return (payload, message)
+
+
+async def async_read_from_as(
+    socket: AsyncSocket,
+    message_type: Type[_IPMT]
+) -> Tuple[IpcPayload, _IPMT]:
+    """Same as `async_read_from`, but instead of returning raw binary, it
+    parses the data read as the given IPC `InterProcessMessage`.
+    Returns a tuple containing the raw `IpcPayload` alongside the interpreted
+    `InterProcessMessage`.
+    """
+    payload = await async_read_from(socket)
+    message = message_type.from_ipc_bytes(payload.msg_bytes)
+    return (payload, message)

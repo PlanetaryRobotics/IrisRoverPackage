@@ -14,7 +14,7 @@ from typing import Any, Optional, Final, Dict, Tuple
 from collections import OrderedDict
 
 from IrisBackendv3.codec.payload import CommandPayload
-from IrisBackendv3.codec.packet import IrisCommonPacket
+from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.magic import Magic
 import IrisBackendv3.codec.bgapi as bgapi

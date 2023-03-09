@@ -1,7 +1,7 @@
 """
 Implementation of Watchdog Detailed Status Packet and its Interface.
 This is a maximally detailed status packet that contains status info for every
-sensor and interface the Watchdog has access to. Occassionally used as a
+sensor and interface the Watchdog has access to. Occasionally used as a
 detailed replacement for Heartbeat.
 
 @author: Connor W. Colombo (CMU)
@@ -9,8 +9,8 @@ detailed replacement for Heartbeat.
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
-from .packet import CT
-from .custom_payload import CustomPayloadPacket, CPCT
+from IrisBackendv3.codec.packet_classes.packet import CT
+from IrisBackendv3.codec.packet_classes.custom_payload import CustomPayloadPacket, CPCT
 
 from typing import List, Any, Optional, ClassVar, cast, Union, Type
 from collections import OrderedDict
@@ -19,10 +19,10 @@ import numpy as np  # type: ignore
 from scapy.utils import hexstr  # type: ignore
 from pandas import DataFrame  # type: ignore
 
-from ..payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
-from ..settings import ENDIANNESS_CODE
-from ..exceptions import PacketDecodingException
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE
+from IrisBackendv3.codec.exceptions import PacketDecodingException
 
 from IrisBackendv3.utils.basic import flip_all_bits_in_bytes
 from IrisBackendv3.data_standards.module import Module
@@ -55,8 +55,8 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
         #! TODO: Consider moving these (and even V divider values etc) into some common GSW "SYSTEM PROPERTIES" struct somewhere
         # TODO: 5k table taken from old Avionics conversion sheet. not yet checked/verified. (check it)
         BATT_5K_THERMISTOR_LOOKUP_TABLE = {  # for 5k thermistor: https://www.tdk-electronics.tdk.com/inf/50/db/ntc/NTC_Mini_sensors_S863.pdf
-            'degC': np.asarray([-15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155]),
-            'adc': np.asarray([3214, 3008, 2781, 2540, 2291, 2042, 1801, 1574, 1365, 1176, 1008, 861, 734, 625, 532, 453, 386, 329, 282, 242, 208, 179, 155, 134, 116, 102, 89, 78, 68, 60, 53, 47, 42, 37, 33])
+            'degC': np.asarray([-55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155]),
+            'adc': np.asarray([4012, 3977, 3929, 3866, 3784, 3680, 3551, 3395, 3214, 3008, 2781, 2540, 2291, 2042, 1801, 1574, 1365, 1176, 1008, 861, 734, 625, 532, 453, 386, 329, 282, 242, 208, 179, 155, 134, 116, 102, 89, 78, 68, 60, 53, 47, 42, 37, 33])
         }
         BATT_CHRG_10K_THERMISTOR_LOOKUP_TABLE = {  # for 10k thermistor (NTC10k_B57863S0103F040)
             'degC': np.asarray([-55, -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155]),
@@ -193,7 +193,8 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
             Fuses two sensor readings weighted based on their relative 
             uncertainties to estimated the true lander voltage.
             """
-            # TODO: Update these weights from empirical measurements of their accuracies and uncertainties
+            # TODO: Update these weights from empirical measurements of their
+            # accuracies and uncertainties
             dLander = 0.25  # [Volts] (uncertainty in LanderVoltage reading)
             dVcc28 = 0.5  # [Volts] (uncertainty in Vcc28Voltage reading)
 
@@ -1073,8 +1074,7 @@ class WatchdogDetailedStatusPacket(WDS_PI[WDS_PI, WDS_CP]):
         )
 
     def encode(self, **kwargs: Any) -> bytes:
-        #! TODO (not really a typical use case so not super necessary besides for completeness)
-        #!! TODO: IS NECESSARY FOR IPC (OR JUST ENCODE THAT STUFF IN A STATE) <- Not with new `Packet`-specific `__reduce__` strategy
+        # TODO (not really a typical use case so not super necessary besides for completeness)
         raise NotImplementedError()
 
     @ classmethod

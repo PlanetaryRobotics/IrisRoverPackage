@@ -56,6 +56,8 @@ from . import gsw_metadata_tools as GswMetadataTools
 _SEARCH_DIR: str = '../FlightSoftware/fprime'
 # Default directory to store cached files in:
 _CACHE_DIR: str = './out/DataStandardsCache'
+# Default filename base for stored cached files:
+_FILENAME_BASE_DEFAULT: str = 'IBv3_datastandards'
 # Relative Locations of FPrime XML Topology File w.r.t. `_SEARCH_DIR`:
 _URI_TOPOLOGY: str = './CubeRover/Top/CubeRoverTopologyAppAi.xml'
 
@@ -848,9 +850,10 @@ class DataStandards(object):
 
     def cache(self,
               cache_dir: str = _CACHE_DIR,
-              filename_base: str = "IBv3_DScache",
+              filename_base: str = _FILENAME_BASE_DEFAULT,
               ext: str = "dsc",
-              indent=0
+              indent: int = 0,
+              include_ulid_suffix: bool = True
               ) -> str:
         """
         Cache this DataStandards instance in a unique file in `cache_dir`.
@@ -863,7 +866,10 @@ class DataStandards(object):
         # Encode data:
         json = jsonpickle.encode(self.modules, keys=True, indent=indent)
         # Save:
-        filename = f'{filename_base}_{ulid.new()}.{ext}'
+        if include_ulid_suffix:
+            filename = f'{filename_base}_{ulid.new()}.{ext}'
+        else:
+            filename = f'{filename_base}.{ext}'
         with open(os.path.join(cache_dir, filename), 'w', encoding='utf-8') as file:
             print(json, file=file)
 
@@ -872,7 +878,7 @@ class DataStandards(object):
     @classmethod
     def load_cache(cls,
                    cache_dir: str = _CACHE_DIR,
-                   filename_base: str = "IBv3_DScache",
+                   filename_base: str = _FILENAME_BASE_DEFAULT,
                    ext: str = "dsc",
                    cache_filename: Optional[str] = None,
                    ) -> DataStandards:
@@ -886,6 +892,9 @@ class DataStandards(object):
         `filename_base` and has the given `ext` will considered a candidate
         cache file. The candidate cache file with the most recent creation date
         will be selected.
+
+        To abuse this slighly and load a cache based on an absolute path,
+        supply `cache_dir=''` and `cache_filename='/abolute/path/to_cache.dsc'`
         """
         # Find the latest file if a specific file isn't requested:
         if cache_filename is None:

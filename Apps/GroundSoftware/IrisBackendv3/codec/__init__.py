@@ -9,12 +9,21 @@ corresponding `DataStandards` and exporting a properly formatted stream of bytes
 to the `Transceiver` layer.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/08/2021
+@last-updated: 03/03/2023
 """
 
 # Expose internal modules (allow them to be accessed directly):
-from .magic import *
+from IrisBackendv3.codec.magic import *
 
-from .fsw_data_codec import *
+from IrisBackendv3.codec.fsw_data_codec import *
 
-from .exceptions import *
+from IrisBackendv3.codec.exceptions import *
+
+# Expose important codec modules as modules (so they can be dot-accessed when
+# including IrisBackendv3 as a package):
+from IrisBackendv3.codec import metadata
+from IrisBackendv3.codec import packet
+from IrisBackendv3.codec import payload_collection
+from IrisBackendv3.codec import payload
+from IrisBackendv3.codec import settings
+from IrisBackendv3.codec import logging

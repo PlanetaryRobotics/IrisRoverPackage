@@ -1,6 +1,6 @@
 from IrisBackendv3.codec.settings import set_codec_standards
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
-from IrisBackendv3.data_standards.logging import logger as DsLogger
+from IrisBackendv3.data_standards.logging import logger_setConsoleLevel as DsLoggerLevel
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.transceiver import SlipTransceiver
 from IrisBackendv3.transceiver.endec import IpUdpEndec
@@ -13,7 +13,7 @@ from scripts.utils.trans_tools import *
 # These `DataStandards` will serve as TMTC definitions be used by the `Codec`
 # layer used by the `Transceiver` layer to interpret packets.
 # TODO: Rebuild this once in the main IPC module, cache it, and load from cache in other IPC apps.
-DsLogger.setLevel('CRITICAL')
+DsLoggerLevel('CRITICAL')
 standards = DataStandards.build_standards()
 add_to_standards(standards, ALL_PREBUILT_MODULES)
 set_codec_standards(standards)

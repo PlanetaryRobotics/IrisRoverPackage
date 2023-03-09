@@ -35,18 +35,18 @@ from IrisBackendv3.utils.basic import full_dict_spec_check
 from IrisBackendv3.data_standards.module import Module, TelemetryChannel, Event, Argument
 from IrisBackendv3.data_standards.fsw_data_type import FswDataType
 
-from .packet import Packet, CT
-from ..payload import EventPayload, TelemetryPayload, TelemetryPayloadInterface
-from ..payload_collection import EnhancedPayloadCollection
-from ..fsw_data_codec import (
+from IrisBackendv3.codec.packet_classes.packet import Packet, CT
+from IrisBackendv3.codec.payload import EventPayload, TelemetryPayload, TelemetryPayloadInterface
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.fsw_data_codec import (
     decode as fsw_data_decode,
     encode as fsw_data_encode,
     StringPacker as FswStringPacker
 )
 
-from ..settings import ENDIANNESS_CODE, settings
-from ..exceptions import PacketDecodingException
-from ..logging import logger
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE, settings
+from IrisBackendv3.codec.exceptions import PacketDecodingException
+from IrisBackendv3.codec.logging import logger
 
 # Fixed header that starts off all Radio-Ground packets:
 RADIO_GROUND_FIXED_HEADER: Final[bytes] = b'RAD:'

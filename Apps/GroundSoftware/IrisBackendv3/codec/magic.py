@@ -17,10 +17,10 @@ from __future__ import annotations
 from typing import cast
 from enum import Enum
 
-from .settings import ENDIANNESS_CODE
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE
 
-from .logging import logger
-from .exceptions import PacketDecodingException
+from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.exceptions import PacketDecodingException
 
 import struct
 

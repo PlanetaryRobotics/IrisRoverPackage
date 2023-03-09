@@ -16,11 +16,11 @@ from __future__ import annotations
 from typing import Callable, Protocol
 from enum import Enum
 
-from .packet import parse_packet
-from .payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.packet import parse_packet
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
 import IrisBackendv3.ipc as ipc
-from IrisBackendv3.ipc.wrapper import InterProcessMessage, IPMHandler, IsIPMHandler
+from IrisBackendv3.ipc import InterProcessMessage, IPMHandler, IsIPMHandler
 
 
 @IsIPMHandler

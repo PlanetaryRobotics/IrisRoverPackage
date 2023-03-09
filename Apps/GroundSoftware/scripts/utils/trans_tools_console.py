@@ -1,8 +1,11 @@
 """
 Helper functions to handle the console functions of `trans_tools`.
 
+NOTE: This was project was a hackathon, so the code quality is pretty rough but
+it has been used a lot and seems to work fine.
+
 @author: Connor W. Colombo (CMU)
-@last-updated: 09/17/2022
+@last-updated: 03/08/2023
 """
 from __future__ import annotations  # Support things like OrderedDict[A,B]
 from typing import Any, Final, List, Type, cast, Union, Dict, Tuple, Optional
@@ -20,7 +23,7 @@ except ImportError:
     pass
 import numpy as np
 import pandas as pd  # type: ignore
-from tabulate import tabulate # type: ignore
+from tabulate import tabulate  # type: ignore
 import scapy.all as scp  # type: ignore # no type hints
 import itertools
 import textwrap
@@ -36,15 +39,27 @@ from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.data_standards.fsw_data_type import FswDataType
 from IrisBackendv3.data_standards.logging import logger as DsLogger
+from IrisBackendv3.data_standards.logging import logger_setConsoleLevel as DsLoggerLevel
 from IrisBackendv3.data_standards.prebuilt import ALL_PREBUILT_MODULES, add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response, watchdog_detailed_status_heartbeat
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket, WatchdogDetailedStatusPacket
+from IrisBackendv3.codec.packet_classes.packet import Packet
+from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket
+
 from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
 from IrisBackendv3.codec.logging import logger as CodecLogger
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, set_codec_standards
 
-from scripts.utils.__command_aliases import prepared_commands, Parameter
+from scripts.utils.__command_aliases import prepared_commands, Parameter, PreparedCommandType
+
+from IrisBackendv3.utils.console_display import *
+
+
+DsLoggerLevel('CRITICAL')
+standards = DataStandards.build_standards()
+add_to_standards(standards, ALL_PREBUILT_MODULES)
+set_codec_standards(standards)
+
 
 # Title of the window (helps with focus checking):
 IRIS_CONSOLE_WINDOW_TITLE: Final[str] = "Iris Console"
@@ -53,15 +68,10 @@ ACTUAL_REFERENCE_WINDOW_TITLE: Optional[str] = None
 # Whether or not the console is currently paused:
 console_paused: bool = False
 # All dataframes for storing data:
-telemetry_payload_log_dataframe: pd.DataFrame = pd.DataFrame(
-    columns=['Opcode', 'Module', 'Channel', 'nRX', 'Updated', 'Current Value', 'H+1', 'H+2', 'H+3'], dtype=object).set_index('Opcode')
-packet_log_dataframe: pd.DataFrame = pd.DataFrame(columns=['Packet Type', 'nRX', 'nRS422', 'nWIFI', 'Updated', 'Avg. Dt [s]',
-                                                  'Current Dt [s]', 'Bytes Received', 'Avg. bits/sec', 'Avg. bits/sec w/CCSDS'], dtype=object).set_index('Packet Type')
+telemetry_payload_log_dataframe: pd.DataFrame = pd.DataFrame()
+packet_log_dataframe: pd.DataFrame = pd.DataFrame()
 # LiFo Queue Log of the string prints of the most recent packets received that don't contain telemetry (i.e. logs, events, debug prints, etc.):
 nontelem_packet_prints: deque = deque(maxlen=50)
-# DataFrame of all prepared commands:
-prepared_commands_dataframe: pd.DataFrame = pd.DataFrame(
-    columns=['Alias', 'Pathway', 'Type', 'Command', 'Args'], dtype=object).set_index('Alias')
 # String of all keys pressed so far (the user's current input):
 user_cmd_input_str: str = ""
 # Any arguments the user has supplied
@@ -69,84 +79,19 @@ user_args: OrderedDict[str, Any] = OrderedDict()
 # Name of argument currently being filled:
 current_user_arg: str = ""
 # What the user is being asked to input:
-USER_PROMPT_COMMAND: Final[str] = "Command"
-USER_PROMPT_ARG: Final[str] = "Argument"
 user_prompt: str = USER_PROMPT_COMMAND
 # Name of the last sent command (for quick re-sending):
 last_sent_command_name: Optional[str] = None
 
-DsLogger.setLevel('CRITICAL')
-standards = DataStandards.build_standards()
-add_to_standards(standards, ALL_PREBUILT_MODULES)
-set_codec_standards(standards)
-
-# Small general helper functions:
-
-
-def tabs2spaces(x: str) -> str:
-    # tabs screw up spacing calculation.
-    # just replace with appropriate amount of spaces, accounting for tabstop:
-    return x.expandtabs(4)
-
-
-def remove_ansi_escape_codes(x: str) -> str:
-    # removes any ansi escape codes from given string:
-    return re.sub('\033\[[^m]*m', '', x)
-
-
-def len_noCodes(x: str) -> int:
-    # returns the length of the given string, excluding any escape codes in it:
-    return len(remove_ansi_escape_codes(x))
-
-
-def ljust_noCodes(x: str, targ_len: int, padding_char: str = ' ') -> str:
-    # Pads given string out to `targ_len` using `padding_char`
-    # (like `ljust`), **NOT** counting ANSI escape codes in
-    # the length.
-    # NOTE: If `padding_char` is more than one character long, only the
-    # first character will be used for padding. If it's no characters
-    # long, ' ' (space) will be used.
-    padding_char = padding_char[0] if len(padding_char) > 0 else ' '
-    x += padding_char * (targ_len - len_noCodes(x))
-    return x
-
-
-def set_window_title() -> None:
-    print(f"\033]0;{IRIS_CONSOLE_WINDOW_TITLE}\a")
-
-
-def get_active_window_title() -> Optional[str]:
-    # Gets the title of the current window (used for focus checking)
-    # Currently only works in linux:
-    root = subprocess.Popen(
-        ['xprop', '-root', '_NET_ACTIVE_WINDOW'], stdout=subprocess.PIPE)
-    stdout, stderr = root.communicate()
-
-    m = re.search(b'^_NET_ACTIVE_WINDOW.* ([\w]+)$', stdout)
-    if m is not None:
-        window_id = m.group(1)
-        window = subprocess.Popen(
-            ['xprop', '-id', window_id, 'WM_NAME'], stdout=subprocess.PIPE)
-        stdout, stderr = window.communicate()
-    else:
-        return None
-
-    match = re.match(b"WM_NAME\(\w+\) = (?P<name>.+)$", stdout)
-    if match is not None:
-        return match.group("name").strip(b'"').decode()
-    return None
-
-
-def update_reference_window_title():
-    global ACTUAL_REFERENCE_WINDOW_TITLE
-    ACTUAL_REFERENCE_WINDOW_TITLE = get_active_window_title()
-
-
-def window_is_focused() -> bool:
-    return get_active_window_title() == ACTUAL_REFERENCE_WINDOW_TITLE
+# DataFrame of all prepared commands:
+prepared_commands_dataframe: pd.DataFrame = pd.DataFrame()
 
 
 def init_console_view() -> None:
+    global ACTUAL_REFERENCE_WINDOW_TITLE
+    global prepared_commands_dataframe
+    global telemetry_payload_log_dataframe, packet_log_dataframe
+
     # Initializes the console view.
     # NOTE: Window needs to be in focus for this ... which it should be since the user *just* started the program.
 
@@ -155,139 +100,26 @@ def init_console_view() -> None:
     # Make sure the console only captures input if this window is focused
     # (only works in bash, but, the same goes for the rest of this program).
     # Likely doesn't work on Windows, even if running bash (though *might* work in WSL - untested):
-    set_window_title()
+    set_window_title(IRIS_CONSOLE_WINDOW_TITLE)
 
     # Immediately update the reference title (just in case setting the title didn't work on this platform):
-    update_reference_window_title()
+    ACTUAL_REFERENCE_WINDOW_TITLE = update_reference_window_title()
 
     # Make sure console starts unpaused:
     unpause_console()
 
+    # Initialize all dataframes:
+    packet_log_dataframe = init_packet_log_dataframe(packet_log_dataframe)
+    telemetry_payload_log_dataframe = init_telemetry_payload_log_dataframe(
+        telemetry_payload_log_dataframe)
+    prepared_commands_dataframe = init_command_dataframe(
+        prepared_commands_dataframe)
+
     # Build the first frame:
-    build_command_dataframe()
-
-
-def build_command_dataframe() -> None:
-    # Builds a DataFrame of all available prepared
-    # commands (from `__command_aliases.py`):
-
-    # Add each command alias to the dataframe:
-    for alias in prepared_commands:
-        pathway, magic, command_name, args, telem_pathway = prepared_commands[alias]
-        new_row = {
-            'Pathway': pathway.name,
-            'Type': magic.name,
-            'Command': ':\n'.join(command_name.split('_')),
-            'Args': tabs2spaces('\n'.join(f"{k}:\n\t{'XXX' if v == Parameter.PASTE else v}" for k, v in cast(Dict, args).items()))
-        }
-        # Save row:
-        prepared_commands_dataframe.loc[alias, [
-            *new_row.keys()]] = [*new_row.values()]
-
-
-def filter_command_dataframe(partial_cmd_alias: str) -> pd.DataFrame:
-    """
-    Returns a copy of `prepared_commands_dataframe` that:
-        A. only contains commands whose aliases contain `partial_cmd`.
-        B. are sorted by what percentage of the command name matches `partial_cmd_alias`.
-    """
-    filtered = prepared_commands_dataframe.copy()
-    # Grab only commands whose aliases contain the given partial_cmd_alias:
-    filtered = filtered[filtered.apply(
-        lambda row: partial_cmd_alias in row.name, axis=1)]
-    # Sort by match percentage:
-    filtered['match_percent'] = [
-        len(partial_cmd_alias) / len(i) for i in filtered.index]
-    filtered = filtered.sort_values(by='match_percent', ascending=False)
-    filtered = filtered.drop('match_percent', axis=1)
-
-    return filtered
-
-
-def str_command_dataframe(cdf: pd.DataFrame) -> str:
-    # Pretty-Formats the given Command Dataframe (possibly after being filtered):
-    table = tabulate(cdf.fillna(''), headers='keys',
-                     tablefmt='fancy_grid', numalign='left', stralign='left')
-
-    # If there's only one entry (we've locked it in), make table green:
-    if cdf.shape[0] == 1:
-        table_lines = table.split('\n')
-        for i, line in enumerate(table_lines):
-            table_lines[i] = f"\033[32m{line}\033[0m"
-        table = '\n'.join(table_lines)
-
-    # If there are no entries (no matches), make table red:
-    if cdf.shape[0] == 0:
-        table_lines = table.split('\n')
-        for i, line in enumerate(table_lines):
-            table_lines[i] = f"\033[31m{line}\033[0m"
-        table = '\n'.join(table_lines)
-
-    return table
-
-
-def str_user_command() -> str:
-    # Pretty formats the user command based on the `user_cmd_input_str`, highlighting the part that the user input (not auto-completed):
-    if user_cmd_input_str == '':
-        command = ""
-    else:
-        filtered_results = filter_command_dataframe(user_cmd_input_str)
-        if filtered_results.shape[0] == 0:
-            # There are no matches. Just return the input (but highlighted and red):
-            command = f"\033[31;1m{user_cmd_input_str}\033[0m"
-        else:
-            top_result = filtered_results.index[0]
-
-            command = top_result
-
-            # If there's only one result or out input matches the top result exactly (i.e. we've locked it in), make the whole thing green:
-            if filtered_results.shape[0] == 1 or user_cmd_input_str == filtered_results.index[0]:
-                command = f"\033[37;42m{command}\033[0m"
-                # And still highlight the part the user supplied:
-                command = command.replace(
-                    user_cmd_input_str, f"\033[37;42;1m{user_cmd_input_str}\033[37;42m")
-            else:
-                # Else, just highlight the part the user supplied:
-                command = command.replace(
-                    user_cmd_input_str, f"\033[1m{user_cmd_input_str}\033[0m")
-
-    if user_prompt == USER_PROMPT_ARG:
-        command += "["
-        command += ','.join(
-            f"{arg_name}: {arg_val if arg_val != Parameter.PASTE else 'XXX'}"
-            for arg_name, arg_val in user_args.items()  # type: ignore
-        )
-        command += "]"
-
-    return command
-
-
-def reset_console_command() -> None:
-    global user_cmd_input_str, current_user_arg, user_prompt
-    # Reset the command:
-    user_cmd_input_str = ""
-    current_user_arg = ""
-    user_prompt = USER_PROMPT_COMMAND
-
-
-def accept_top_suggestion() -> None:
-    """
-    Sets current command to top suggestion in command table if:
-    A. The user is currently being prompted for a command.
-    B. There is at least one suggestion present (i.e. the currently
-       entered next needs to at least partially match something).
-    C. At least one character has been entered so far (so you
-       can't just hit tab-enter to send the top suggestion -
-       could be accident prone).
-    """
-    global user_cmd_input_str, current_user_arg, user_prompt
-    filtered_results = filter_command_dataframe(user_cmd_input_str)
-    if (
-        user_prompt == USER_PROMPT_COMMAND
-        and filtered_results.shape[0] > 0
-        and user_cmd_input_str != ""
-    ):
-        user_cmd_input_str = filtered_results.index[0]
+    prepared_commands_dataframe = build_command_dataframe(
+        prepared_commands,
+        prepared_commands_dataframe
+    )
 
 
 def send_slip(dat: bytes, serial_writer) -> None:
@@ -325,7 +157,7 @@ def send_data_wd_serial(
     ip_src: str = '222.173.190.239',  # arbitrary (WD doesn't care)
     port: int = 8080  # arbitrary (WD doesn't care)
 ) -> None:
-    # Send WD command over the givenn serial interface (serial_writer)
+    # Send WD command over the given serial interface (serial_writer)
     # Build packet
     full_packet = scp.IP(dst=ip_dest, src=ip_src) / \
         scp.UDP(dport=port)/scp.Raw(load=raw_data)
@@ -380,10 +212,11 @@ def send_console_command(pathway: DataPathway, magic: Magic, command_name: str, 
     # Attempt to send the given console command:
 
     global last_sent_command_name, user_cmd_input_str
+    global current_user_arg, user_prompt
 
     # No matter what, we're done with this command now, so reset:
     source_user_cmd_input_str = user_cmd_input_str  # store before resetting
-    reset_console_command()
+    user_cmd_input_str, current_user_arg, user_prompt = reset_console_command()
 
     command_payload_type = {
         Magic.WATCHDOG_COMMAND: WatchdogCommandPayload,
@@ -457,7 +290,10 @@ def attempt_console_command_send(app_context, message_queue, serial_writer) -> N
     global user_args, current_user_arg, user_prompt
 
     # Only send if one command is locked in (only one result OR our input exactly matches the first result):
-    filtered_results = filter_command_dataframe(user_cmd_input_str)
+    filtered_results = filter_command_dataframe(
+        user_cmd_input_str,
+        prepared_commands_dataframe
+    )
     if filtered_results.shape[0] == 1 or filtered_results.shape[0] > 1 and user_cmd_input_str == filtered_results.index[0]:
         command_alias = filtered_results.index[0]
         pathway, magic, command_name, kwargs, telem_pathway = prepared_commands[command_alias]
@@ -486,12 +322,13 @@ def attempt_console_command_send(app_context, message_queue, serial_writer) -> N
 def handle_keypress(key: Any, message_queue, serial_writer, app_context) -> None:
     key = cast(Union[pynput.keyboard.Key, pynput.keyboard.KeyCode], key)
     # Handles new key input:
-    global user_cmd_input_str, user_prompt, last_sent_command_name
+    global user_cmd_input_str, last_sent_command_name
+    global user_prompt, current_user_arg
 
     something_changed: bool = False
 
     # If window is not focused, ignore input:
-    if not window_is_focused():
+    if not window_is_focused(ACTUAL_REFERENCE_WINDOW_TITLE):
         return
 
     if key == pynput.keyboard.Key.f2:
@@ -516,12 +353,14 @@ def handle_keypress(key: Any, message_queue, serial_writer, app_context) -> None
 
     if key == pynput.keyboard.Key.esc:
         # Reset the command:
-        reset_console_command()
+        user_cmd_input_str, current_user_arg, user_prompt = reset_console_command()
         something_changed = True
 
     elif key == pynput.keyboard.Key.tab:
         # Accept first auto-complete suggestion:
-        accept_top_suggestion()
+        user_cmd_input_str = accept_top_suggestion(
+            user_cmd_input_str, user_prompt, prepared_commands_dataframe
+        )
         something_changed = True
 
     elif key == pynput.keyboard.Key.up:
@@ -567,145 +406,13 @@ def handle_keypress(key: Any, message_queue, serial_writer, app_context) -> None
         refresh_console_view(app_context)
 
 
-def update_telemetry_payload_log_dataframe(t: TelemetryPayload) -> None:
-    # Update the given row in the telemetry payload log dataframe (used for tabular printing)
-    # with data from the given telemetry payload `t`.
-
-    # Format value (if enum):
-    if t.channel.is_enum:
-        if isinstance(t.data, str):
-            val = f"{t.data}[{t.channel.get_enum_value(t.data)}]"
-        else:
-            val = f"{t.channel.get_enum_name(t.data)}[{t.data}]"
-    elif type(t.data) == float:
-        val = f"{t.data:.3f}"
-    else:
-        val = t.data
-
-    # Create row:
-    if t.opcode in telemetry_payload_log_dataframe.index:
-        # Row already exists for this field, just update it (shifting older data over):
-        old_row = telemetry_payload_log_dataframe.loc[t.opcode]
-        new_data = {
-            'Module': t.module.name,
-            'Channel': t.channel.name,
-            'nRX': old_row['nRX'] + 1,
-            'Updated': datetime.now(),
-            'Current Value': val,
-            'H+1': old_row['Current Value'],
-            'H+2': old_row['H+1'],
-            'H+3': old_row['H+2']
-        }
-    else:
-        new_data = {
-            'Module': t.module.name,
-            'Channel': t.channel.name,
-            'nRX': 1,
-            'Updated': datetime.now(),
-            'Current Value': val,
-            'H+1': np.nan,
-            'H+2': np.nan,
-            'H+3': np.nan
-        }
-
-    # Save row:
-    telemetry_payload_log_dataframe.loc[t.opcode, [
-        *new_data.keys()]] = [*new_data.values()]
-
-
-def update_all_packet_log_times(now: datetime) -> None:
-    # Updates the `current_interval` times for every packet (done in response
-    # to ticks so we can see how long its been since we've received something):
-    for row_name in packet_log_dataframe.index:
-        row = packet_log_dataframe.loc[row_name]
-        current_interval = (now - row['Updated']).total_seconds()
-        row['Current Dt [s]'] = current_interval
-
-
-def update_packet_log_dataframe_row(row_name: str, now: datetime, num_bytes: int, is_rs422: bool, is_wifi: bool) -> None:
-    # Update the given row in the packet log dataframe (used for tabular printing) for a packet
-    # containing `num_bytes` received at time `now`.
-    if row_name in packet_log_dataframe.index:  # 'Packet Type',
-        # Row already exists for this field, just update it:
-        old_row = packet_log_dataframe.loc[row_name]
-        total_num_recv = old_row['nRX'] + 1
-        current_interval = (now - old_row['Updated']).total_seconds()
-        avg_interval = (
-            ((old_row['nRX']-1) * old_row['Avg. Dt [s]']) + current_interval) / old_row['nRX']
-        total_bytes_recv = old_row['Bytes Received'] + num_bytes
-        new_data = {
-            'Updated': now,
-            'nRX': total_num_recv,
-            'nRS422': old_row['nRS422'] + int(is_rs422),
-            'nWIFI': old_row['nWIFI'] + int(is_wifi),
-            'Avg. Dt [s]': avg_interval,
-            'Current Dt [s]': current_interval,
-            'Bytes Received': total_bytes_recv,
-            'Avg. bits/sec':  total_bytes_recv / total_num_recv / avg_interval,
-            'Avg. bits/sec w/CCSDS': (total_bytes_recv + total_num_recv*14*8) / total_num_recv / avg_interval
-        }
-    else:
-        new_data = {
-            'Updated': now,
-            'nRX': 1,
-            'nRS422': int(is_rs422),
-            'nWIFI': int(is_wifi),
-            'Avg. Dt [s]': 0,
-            'Current Dt [s]': 0,
-            'Bytes Received': num_bytes,
-            'Avg. bits/sec': 0,
-            'Avg. bits/sec w/CCSDS': 0
-        }
-    packet_log_dataframe.loc[row_name, [
-        *new_data.keys()]] = [*new_data.values()]
-
-
-def update_packet_log_dataframe(packet: Packet) -> None:
-    # Update packet log dataframe (used for tabular printing) after
-    # receiving the given packet:
-    if isinstance(packet, Packet):
-        # Update the dataframe for this packet:
-        now = datetime.now()
-        name = packet.__class__.__name__
-        num_bytes = len(
-            packet.raw if packet.raw is not None else packet.encode())
-
-        is_rs422 = packet.pathway == DataPathway.WIRED
-        is_wifi = packet.pathway == DataPathway.WIRELESS
-
-        update_packet_log_dataframe_row(
-            name, now, num_bytes, is_rs422, is_wifi
-        )
-
-        # Update total across all packets:
-        update_packet_log_dataframe_row(
-            'zTotal', now, num_bytes, is_rs422, is_wifi
-        )
-
-
-def str_telemetry_payload_log_dataframe() -> str:
-    # Pretty-Formats Telemetry Payload Log Dataframe:
-    df_out = telemetry_payload_log_dataframe.copy()
-    df_out.index = df_out.index.map(lambda x: f"0x{x:04X}")
-    df_out['Updated'] = [x.strftime('%H:%M:%S') for x in df_out['Updated']]
-    return tabulate(df_out.fillna('').sort_index(ascending=True), headers='keys', tablefmt='fancy_grid', numalign='right', stralign='right')
-
-
-def str_packet_log_dataframe() -> str:
-    # Pretty-Formats Packet Log Dataframe:
-    df_out = packet_log_dataframe.copy()
-    df_out['Current Dt [s]'] = [f"{x:.3f}" for x in df_out['Current Dt [s]']]
-    df_out['Avg. Dt [s]'] = [f"{x:.3f}" for x in df_out['Avg. Dt [s]']]
-    return tabulate(df_out.fillna('').sort_index(ascending=True), headers='keys', tablefmt='fancy_grid', floatfmt=".3f", numalign='right', stralign='right')
-
-
 def create_console_view(app_context) -> str:
     # Creates a new Console view by pretty-formatting all log DataFrames into one big string:
 
     # Settings:
     horiz_padding = tabs2spaces("\t\t")
     term_cols, term_lines = os.get_terminal_size()
-    # Adjust by subtracing bottom and right side buffers (from experimentation):
+    # Adjust by subtracting bottom and right side buffers (from experimentation):
     term_lines = term_lines - 2  # -1 for padding -1 for help message on bottom row
     term_cols = term_cols - 2
 
@@ -714,7 +421,7 @@ def create_console_view(app_context) -> str:
     # Telemetry Table:
     telem_view = (
         "\n\nTelemetry:\n"
-        + str_telemetry_payload_log_dataframe()
+        + str_telemetry_payload_log_dataframe(telemetry_payload_log_dataframe)
     )
     telem_view_lines = [tabs2spaces(x) for x in telem_view.split('\n')]
     telem_view_width = max(len(l) for l in telem_view_lines)
@@ -730,16 +437,20 @@ def create_console_view(app_context) -> str:
     # Packets Table:
     packets_view = (
         "\n\nPackets:\n"
-        + str_packet_log_dataframe()
+        + str_packet_log_dataframe(packet_log_dataframe)
     )
     packets_view_lines = [tabs2spaces(x) for x in packets_view.split('\n')]
 
     # Commands list:
-    command_view = f"\n\n{user_prompt}: {str_user_command()}\n"
+    usr_cmd = str_user_command(
+        user_prompt, user_cmd_input_str, prepared_commands_dataframe)
+    command_view = f"\n\n{user_prompt}: {usr_cmd}\n"
     if not app_context['collapse_command_table']:
         # Include the command table only if it's not collapsed:
         command_view += str_command_dataframe(
-            filter_command_dataframe(user_cmd_input_str))
+            filter_command_dataframe(user_cmd_input_str,
+                                     prepared_commands_dataframe)
+        )
     else:
         command_view += "[Table collapsed. F4 to uncollapse.]"
     command_view_lines = [tabs2spaces(x) for x in command_view.split('\n')]
@@ -760,8 +471,9 @@ def create_console_view(app_context) -> str:
         len(plog_header_lines) - len(packets_view_lines) - len(plog_footer_lines)
     # Build the raw (ideal / un-squeezed) output:
     # add escape close to ensure end of formatting for each line
-    plog_raw = tabs2spaces('\n\n'.join([tabs2spaces(
-        x).strip() + "\033[0m" for x in nontelem_packet_prints]))
+    plog_raw = tabs2spaces('\n\n'.join([
+        tabs2spaces(x).strip() + "\033[0m" for x in nontelem_packet_prints
+    ]))
     plog_lines = plog_raw.split('\n')
     # Wrap each line to the width:
     plog_line_wraps = []
@@ -875,11 +587,6 @@ def toggle_console_pause() -> None:
         pause_console()
 
 
-def clear_console() -> None:
-    # Clears the Console Window:
-    os.system('cls' if os.name in ('nt', 'dos') else 'clear')
-
-
 def refresh_console_view(app_context) -> None:
     # Refreshes (clears) the Console Window with High-level Dataview:
 
@@ -888,7 +595,7 @@ def refresh_console_view(app_context) -> None:
     if not console_is_paused():
         # Always use this opportunity to update the dataframe timestamps:
         now = datetime.now()
-        update_all_packet_log_times(now)
+        update_all_packet_log_times(packet_log_dataframe, now)
 
         # Build the screen string:
         data = create_console_view(app_context)

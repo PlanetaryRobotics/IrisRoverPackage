@@ -7,6 +7,7 @@ __pycache__/
 
 # Ignore tester cache:
 .pytest_cache/
+.coverage
 
 # Ignore (unsupported) editor settings:
 .idea/
@@ -25,6 +26,7 @@ pcap_logs/
 transceiver_logs/
 raw-console-logs/
 DataStandardsCache/
+tvac_export/
 # And ignore anything else in `out` (unless its explicitly added later via
 # `git add -f`):
 out/

@@ -27,7 +27,7 @@ import serial  # type: ignore # no type hints
 import scapy.all as scp  # type: ignore # no type hints
 import numpy as np
 import pandas as pd  # type: ignore
-from tabulate import tabulate # type: ignore
+from tabulate import tabulate  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore # no type hints
 import ulid
 import itertools
@@ -43,10 +43,17 @@ from IrisBackendv3.utils.nameiddict import NameIdDict
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.fsw_data_type import FswDataType
 from IrisBackendv3.data_standards.logging import logger as DsLogger
+from IrisBackendv3.data_standards.logging import logger_setConsoleLevel as DsLoggerLevel
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, EventPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket, WatchdogTvacHeartbeatPacket, WatchdogHeartbeatPacket, WatchdogCommandResponsePacket, WatchdogDetailedStatusPacket, RadioUartBytePacket
+from IrisBackendv3.codec.packet_classes.packet import Packet
+from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket
+from IrisBackendv3.codec.packet_classes.watchdog_tvac_heartbeat import WatchdogTvacHeartbeatPacket
+from IrisBackendv3.codec.packet_classes.watchdog_heartbeat import WatchdogHeartbeatPacket
+from IrisBackendv3.codec.packet_classes.watchdog_command_response import WatchdogCommandResponsePacket
+from IrisBackendv3.codec.packet_classes.watchdog_detailed_status import WatchdogDetailedStatusPacket
+from IrisBackendv3.codec.packet_classes.radio_uart_byte import RadioUartBytePacket
 from IrisBackendv3.codec.packet import parse_packet as core_parse_packet
 from IrisBackendv3.codec.exceptions import PacketDecodingException
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
@@ -117,7 +124,7 @@ def err_print(*args, **kwargs):
         transLogger.error(*args, **kwargs)
 
 
-DsLogger.setLevel('CRITICAL')
+DsLoggerLevel('CRITICAL')
 standards = DataStandards.build_standards()
 add_to_standards(standards, ALL_PREBUILT_MODULES)
 set_codec_standards(standards)
@@ -364,7 +371,8 @@ def update_telemetry_streams_from_payloads(payloads: EnhancedPayloadCollection, 
     """
     Updates the `telemetry_streams` from an EnhancedPayloadCollection.
     """
-    before = telemetry_payload_log_dataframe.copy()
+    global telemetry_payload_log_dataframe
+    # before = telemetry_payload_log_dataframe.copy()
     for t in payloads[TelemetryPayload]:
         # If this payload's channel is new (previously un-logged), add it:
         t = cast(TelemetryPayload, t)
@@ -377,7 +385,10 @@ def update_telemetry_streams_from_payloads(payloads: EnhancedPayloadCollection, 
 
         # Update the dataframe (used for tabular printing):
         if USE_LOG_DATAFRAMES and include_in_dataframe:
-            update_telemetry_payload_log_dataframe(t)
+            telemetry_payload_log_dataframe = update_telemetry_payload_log_dataframe(
+                telemetry_payload_log_dataframe,
+                t
+            )
 
     # Save the updated streams:
     if auto_cache:
@@ -541,15 +552,6 @@ def load_cache() -> None:
         pass  # Do nothing. This is the first go, there's just nothing to load.
 
 
-def packet_print_string(packet: Optional[Packet]) -> str:
-    # Creates a "Print" string of the given packet, along with accompanying metadata like the current time:
-    return (
-        f"\033[35;47;1m({datetime.now().strftime(DATETIME_FORMAT_STR)})\033[0m "
-        f"\033[48;5;248m\033[38;5;233m\033[1m {packet.pathway.name if packet is not None else 'NONE'} \033[0m "
-        f"{packet!s}"
-    )
-
-
 def save_packet_to_packet_prints(packet: Optional[Packet]) -> None:
     # Saves the given printout of the given packet into the current packet_prints log file:
     if packet is not None:
@@ -594,7 +596,7 @@ def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = 
 
         if USE_LOG_DATAFRAMES:
             # Normal packet. Load it:
-            update_packet_log_dataframe(packet)
+            update_packet_log_dataframe(packet_log_dataframe, packet)
             # If the packet doesn't contain any telemetry or events (i.e. log, debug print, etc.), add it to the non-telem packet log in LiFo manner:
             # - Also do this for WatchdogDetailedStatusPacket since they're *very* detailed (contain way too much data to display so we're just
             # going to display it here instead).
@@ -747,7 +749,7 @@ def stream_data_ip_udp_serial(use_console_view: bool = False) -> None:
 
             # Print what happened:
             msg = (
-                "While streaming data, a PacketDecodingException occured. The data "
+                "While streaming data, a PacketDecodingException occurred. The data "
                 "bytes at the time of the exception were: \n"
                 f"{scp.hexdump(data_bytes, dump=True)}\n."
                 f"The PacketDecodingException was: `{pde}`."

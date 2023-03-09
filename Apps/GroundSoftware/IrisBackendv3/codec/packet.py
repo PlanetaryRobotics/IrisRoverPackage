@@ -3,27 +3,38 @@ Defines Common Data Required for Packets. Support for Building and Parsing
 Packets.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 10/26/2022
+@last-updated: 03/05/2023
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
-from .packet_classes import *
+# Since we're instantiating `UnsupportedPacket` here, import it from root to prevent pickle problems:
+# Absolute imports are paramount here to make sure one and only one copy of every module exists (otherwise pickle gets thrown off)
+from IrisBackendv3.codec.packet_classes.packet import Packet
+from IrisBackendv3.codec.packet_classes.unsupported import UnsupportedPacket
+from IrisBackendv3.codec.packet_classes.watchdog_heartbeat import WatchdogHeartbeatPacket
+from IrisBackendv3.codec.packet_classes.watchdog_command_response import WatchdogCommandResponsePacket
+from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket, Legacy2020IrisCommonPacket
+from IrisBackendv3.codec.packet_classes.watchdog_detailed_status import WatchdogDetailedStatusPacket
+from IrisBackendv3.codec.packet_classes.watchdog_tvac_heartbeat import WatchdogTvacHeartbeatPacket
+from IrisBackendv3.codec.packet_classes.radio_ground import RadioGroundPacket
+from IrisBackendv3.codec.packet_classes.radio_hello import RadioHelloPacket
+from IrisBackendv3.codec.packet_classes.radio_bgapi_packet import RadioBgApiPacket
+from IrisBackendv3.codec.packet_classes.radio_uart_byte import RadioUartBytePacket
+from IrisBackendv3.codec.packet_classes.radio_direct_message import RadioDirectMessagePacket
+from IrisBackendv3.codec.packet_classes.watchdog_reset_specific_ack import WatchdogResetSpecificAckPacket
+from IrisBackendv3.codec.packet_classes.watchdog_hello import WatchdogHelloPacket
+from IrisBackendv3.codec.packet_classes.watchdog_radio_debug import WatchdogRadioDebugPacket
+from IrisBackendv3.codec.packet_classes.watchdog_debug_important import WatchdogDebugImportantPacket
+from IrisBackendv3.codec.packet_classes.watchdog_debug import WatchdogDebugPacket
 
 from typing import List, Optional, Type
 
+import inspect
 import traceback
 import scapy.all as scp  # type: ignore
 
-from .logging import logger
-
-
-# TODO: Add update hooks?
-# ^- I think IPC will just take care of this (make it redundant).
+from IrisBackendv3.codec.logging import logger
 
 # TODO: Add `__str__` / `__repr__`s
-
-#! TODO: Handle serialization (must replace container scheme, augment by storing payloads with their metadata)
-#! ^- or don't serialize as packets?... no, must be able to serialize to send over IPC network.
-#! ^- augmenting containers with __reduce__ and __getstate__ seems like it will work for IPC.
 
 
 def parse_packet(

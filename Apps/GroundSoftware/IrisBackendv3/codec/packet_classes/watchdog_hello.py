@@ -8,16 +8,16 @@ converted to a `EventPayload` eventually) and is just printed to the console.
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
-from .packet import Packet, CT
+from IrisBackendv3.codec.packet_classes.packet import Packet, CT
 
 from typing import List, Any, Optional
 
 from scapy.utils import hexdump  # type: ignore
 
-from ..payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
-from ..settings import ENDIANNESS_CODE
-from ..logging import logger
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE
+from IrisBackendv3.codec.logging import logger
 
 
 class WatchdogHelloPacketInterface(Packet[CT]):

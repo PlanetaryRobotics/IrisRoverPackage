@@ -4,23 +4,24 @@ is replaying logs from previous testing.
 
 Includes any supporting functions necessary for maintaining serial connection.
 
-TODO: Add playback that uses timestamps from the pcap to determine Dt.
-
 @author: Connor W. Colombo (CMU)
 @last-updated: 07/03/2022
 """
 from typing import Any, Optional, Callable, Dict, Deque, List, Union, Type, cast
 
 import attr
+import asyncio
 import scapy.all as scp  # type: ignore
 from time import time
+import logging
 
-from .transceiver import Transceiver
-from .endec import Endec, SlipEndec
-from .logging import logger, logging
-from .exceptions import TransceiverConnectionException, TransceiverDecodingException
+from IrisBackendv3.transceiver.transceiver import Transceiver
+from IrisBackendv3.transceiver.endec import Endec, SlipEndec
+from IrisBackendv3.transceiver.logging import logger
+from IrisBackendv3.transceiver.exceptions import TransceiverConnectionException, TransceiverDecodingException
 
-from IrisBackendv3.codec.packet import Packet, IrisCommonPacket
+from IrisBackendv3.codec.packet_classes.packet import Packet
+from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.utils.basic import type_guard_argument
@@ -32,18 +33,19 @@ class PcapParseOpts:
     # port to filter packets with (only select packets sent to here):
     filter_port: Union[str, int] = 'any'
     # protocol to filter packets with (only select packets with this protocol - e.g. `scp.UDP`):
-    filter_protocol: Optional[scp.base_classes.Packet_metaclass] = None
+    filter_protocol: Optional[Any] = None
     packetgap: int = 0  # 36000
     deadspace: int = 0
     logging_level: str = 'INFO'
 
 
-def parse_pcap(opts: PcapParseOpts) -> List[bytes]:
+def load_pcap(opts: PcapParseOpts) -> List[bytes]:
     """
     Extracts any valid packets from the pcap/pcapng file specified in
     `pcap_file` specified in `opts` using the settings given in `opts`.
 
-    Returns a list of the raw unparsed bytes of all (scapy) packets in the pcap.
+    Returns a list of the raw **unparsed** bytes of all (scapy) packets in
+    the pcap.
     """
     extracted_packet_bytes: List[bytes] = []
 
@@ -56,7 +58,7 @@ def parse_pcap(opts: PcapParseOpts) -> List[bytes]:
     logger.notice(  # type: ignore
         f"Parsing pcap file at {opts.pcap_file}, "
         f"looking for packets on port {opts.filter_port} "
-        f"{f'with packet using protcol {opts.filter_protocol}' if opts.filter_protocol else ''}"
+        f"{f'with packet using protocol {opts.filter_protocol}' if opts.filter_protocol else ''}"
         ".\nSubsequent parser status updates will be logged at "
         f"`{opts.logging_level}` level."
     )
@@ -139,8 +141,8 @@ class PcapTransceiver(Transceiver):
     packet_bytes_list: List[bytes]
     # Head (index of where we are in the list of all packet_bytes):
     _head: int
-    # The last time a packet was downlinked (from `time()`):
-    _last_downlink_time: float
+    # The last time a packet was downlinked [in seconds] (from `time()`):
+    _last_downlink_time_s: float
 
     def restart(self) -> None:
         """Sets the head back to the beginning of the `packet_bytes` list."""
@@ -153,7 +155,8 @@ class PcapTransceiver(Transceiver):
         loop: bool = False,
         endecs: Optional[List[Endec]] = None,
         pathway: DataPathway = DataPathway.WIRED,
-        source: DataSource = DataSource.PCAP
+        source: DataSource = DataSource.PCAP,
+        **kwargs
     ) -> None:
         """ Initializes a `PcapTransceiver`.
 
@@ -163,7 +166,8 @@ class PcapTransceiver(Transceiver):
         super().__init__(
             endecs=endecs,
             pathway=pathway,
-            source=source
+            source=source,
+            **kwargs  # fwd all other kwargs to parent
         )
 
         # Validate inputs:
@@ -195,17 +199,19 @@ class PcapTransceiver(Transceiver):
         )
         # (re)set the head:
         self._head = 0
+
+        # Load the packet_bytes_list from the pcap:
+        self.packet_bytes_list = load_pcap(self._pcap_opts)
+
+        # Only **after** the pcap is loaded...
         # reset the timer so that the amount of time until the first packet is
         # the expected value of a random start with packets being downlinked at
         # a fixed interval (half the mean period):
-        self._last_downlink_time = time() - self.fixed_period_ms / 1000.0
+        self._last_downlink_time_s = time() - self.fixed_period_ms / 1000.0
 
-        # Load the packet_bytes_list from the pcap:
-        self.packet_bytes_list = parse_pcap(self._pcap_opts)
-
-    def _downlink_byte_packets(self) -> List[bytes]:
-        """ Reads the next set of raw packet_bytes from `packet_bytes_list` (if
-        enough time has passed).
+    async def _async_downlink_byte_packets(self) -> List[bytes]:
+        """ Asynchronously treads the next set of raw packet_bytes from
+        `packet_bytes_list` (if enough time has passed).
 
         Returns a list of all packet_bytes that should have been "received"
             since the last time this function returned a packet. If not enough
@@ -216,18 +222,30 @@ class PcapTransceiver(Transceiver):
         if self._head < len(self.packet_bytes_list):
             # How much time has elapsed since the last return of a packet:
             now = time()  # for optimal timing, only grab `now` once.
-            Dt = now - self._last_downlink_time
+            Dt_ms = (now - self._last_downlink_time_s) * 1000
+            # Time until next packet needs to be emitted:
+            time_to_next_packet_ms = max(self.fixed_period_ms - Dt_ms, 0)
+
+            # if the time to emit a packet hasn't passed yet, wait:
+            if time_to_next_packet_ms > 0:
+                # wait until this period ends:
+                await asyncio.sleep(time_to_next_packet_ms/1000)
+                # Update Dt:
+                now = time()
+                Dt_ms = (now - self._last_downlink_time_s) * 1000
+
             # Determine how many full time periods have elapsed:
-            n_periods = int(Dt / (self.fixed_period_ms/1000))
+            n_periods = int(Dt_ms / self.fixed_period_ms)
 
             if n_periods >= 1:
                 # if more than one period has elapsed, we can downlink.
-                # Grab as many packets as the number of periods that have
+                # Grab as many packets as t he number of periods that have
                 # elapsed (or up to the end of the list):
                 end_idx = self._head + n_periods
                 _byte_packets = self.packet_bytes_list[self._head:end_idx]
                 self._head = end_idx  # update the `_head`
-                self._last_downlink_time = now  # update the last grab time
+                self._last_downlink_time_s = now  # update the last grab time
+
         else:
             logger.verbose(  # type: ignore
                 "`PcapTransceiver` has reached the end of the pcap loaded from "
@@ -240,7 +258,7 @@ class PcapTransceiver(Transceiver):
 
         return _byte_packets
 
-    def _uplink_byte_packets(self, packet_bytes: bytes, **_) -> bool:
+    def _uplink_byte_packet(self, packet_bytes: bytes, **_) -> bool:
         """ This would transmit the given packet of bytes on this
         `Transceiver`'s uplink transmission line. **HOWEVER** this is a
         recording. You can't send commands to a recording. So this will just
@@ -252,7 +270,7 @@ class PcapTransceiver(Transceiver):
         uplink.
         """
         logger.debug(  # type: ignore
-            "`PcapTransceiver._uplink_byte_packets` was called. "
+            "`PcapTransceiver._uplink_byte_packet` was called. "
             "This `Transceiver` replays a recording, so you can't send using "
             f"it. The data will be thrown out. Data was: `{packet_bytes!r}`."
         )

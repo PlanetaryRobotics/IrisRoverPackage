@@ -546,11 +546,11 @@ def create_console_view(app_context) -> str:
 
     # Add help message to bottom line:
     all_lines += [ljust_noCodes(
-        f"\033[37;40m    Type to enter command."
+        f"\033[37;40m    Type commands."
         f"    Press \033[1mTab\033[22m to accept autocomplete."
         f"    Press \033[1mEnter\033[22m when \033[32mgreen\033[37m to send."
-        f"    Press \033[1mEscape\033[22m to reset input."
-        f"    Press \033[1mF2\033[22m to pause/unpause console in/output (packets still received, just not displayed)."
+        f"    Press \033[1mEscape\033[22m to reset."
+        f"    Press \033[1mF2\033[22m to un/pause console in/output (packets RX'd, just not displayed)."
         f"    Press \033[1mF3\033[22m to start/stop printing bytes for \033[1mall\033[22m packets."
         f"    Press \033[1mF4\033[22m to un/collapse command table."
         f"    Press \033[1mCtrl+'\\'\033[22m to end session.", term_cols) + "\033[0m"]

@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run run-tests standards build-docs run-docs build-cte cloc
+.PHONY = help init update clean run run-tests standards build-docs run-docs build-cte console xconsole cloc
 
 .DEFAULT_GOAL = help
 all: help
@@ -29,6 +29,10 @@ help:
 	@echo "	make run-docs: Spins up an interactive documentation server (WIP)"
 	@echo " "
 	@echo "	make build-cte: Build the Commands, Telemetry, & Events (CT&E) Table. Run as: 'make build-cte FILE=your_file_name'"
+	@echo " "
+	@echo "	make console: Run the Iris Console CLI application"
+	@echo " "
+	@echo "	make xconsole: Run the Iris Console CLI application in XTerm (for WSL users)"
 	@echo " "
 	@echo "	make cloc: Count Lines Of Code (and comments) by language, excluding builds and libraries"
 	@echo "----------------------------------"
@@ -124,6 +128,18 @@ run-docs:
 ####
 build-cte:
 	./run-script.sh ./scripts/tiny_apps/datastandards_lookup.py -f $(FILE)
+
+####
+# Run the Iris Console CLI application:
+####
+console:
+	./run-script.sh __run_console.py
+
+####
+# Run the Iris Console CLI application in XTerm (for WSL users):
+####
+xconsole:
+	xterm -hold -e make console &
 
 ####
 # Count Lines of Code (for fun):

@@ -254,7 +254,8 @@ class PcapTransceiver(Transceiver):
             if self.loop:
                 logger.verbose("Looping the pcap file")  # type: ignore
                 self.restart()  # set the head back to 0
-                _byte_packets = self._downlink_byte_packets()  # try again.
+                # try again:
+                _byte_packets = await self._async_downlink_byte_packets()
 
         return _byte_packets
 

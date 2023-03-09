@@ -43,7 +43,7 @@ xcvr = IB3.transceiver.prebuilts.build_xcvr_by_name(
     'PCAP-18H',
     packetgap=37000,  # skip first 37000 packets (of 37644)
     fixed_period_ms=opts.period_ms,
-    loop=False,
+    loop=True,
     log_on_receive=False
 )
 xcvr.begin()
@@ -64,4 +64,6 @@ while len(packets := xcvr.read()) != 0:
     ))
     manager.send_to('pub', msg, b'pcap')
     app.logger.notice(
-        f"Sent {msg.content.simple_str()} -> {ipc.Topic.DL_PACKETS}")
+        f"Sent {msg.content.simple_str()} "
+        f"-> {ipc.Topic.DL_PACKETS}"
+    )

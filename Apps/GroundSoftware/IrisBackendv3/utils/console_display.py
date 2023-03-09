@@ -486,6 +486,8 @@ def packet_print_string(
 def packet_to_messages(
     packet: Packet,
     echo_packet_classes: bool = False,
+    echo_message_packets: bool = True,
+    echo_events: bool = True,
     echo_all_packet_bytes: bool = False,
     datetime_format: str = '%m-%d %H:%M:%S'
 ) -> List[str]:
@@ -493,6 +495,10 @@ def packet_to_messages(
 
     `echo_packet_classes` Whether or not to print the packet class when
         any packet is received.
+    `echo_message_packets` Whether or not to print message packets (i.e.
+        packets which are, themselves, a message - i.e. command response,
+        reset ack, etc.).
+    `echo_events` Whether or not to print events inside payloads.
     `echo_all_packet_bytes` Whether or not to print the packet bytes when
         any packet is received.
     """
@@ -501,7 +507,7 @@ def packet_to_messages(
     # Echo packet class:
     if echo_packet_classes:
         messages.append(
-            f"Received: {type(packet)}"
+            f"Received: {packet.__class__.__name__}"
         )
 
     # If the packet doesn't contain any telemetry or events (i.e. log,
@@ -510,27 +516,29 @@ def packet_to_messages(
     # going to display it here instead).
     # - Also push command responses to the prints section so they're seen explicitly (its packet printer includes a special parser to decode the command name)
     # - So long as it's not a `RadioUartBytePacket` (they clog the interface):
-    if (
-        (len([*packet.payloads[TelemetryPayload]]) == 0  # no telem
-         and len([*packet.payloads[EventPayload]]) == 0  # no events
-         or isinstance(packet, (  # has telem/events but is special:
-             WatchdogDetailedStatusPacket,
-             WatchdogCommandResponsePacket
-         )))
-        and not isinstance(packet, (  # just never print these:
-            RadioUartBytePacket
-        ))
-    ):
-        messages.append(packet_print_string(packet, datetime_format))
+    if echo_message_packets:
+        if (
+            (len([*packet.payloads[TelemetryPayload]]) == 0  # no telem
+             and len([*packet.payloads[EventPayload]]) == 0  # no events
+             or isinstance(packet, (  # has telem/events but is special:
+                WatchdogDetailedStatusPacket,
+                WatchdogCommandResponsePacket
+                 )))
+            and not isinstance(packet, (  # just never print these:
+                RadioUartBytePacket
+            ))
+        ):
+            messages.append(packet_print_string(packet, datetime_format))
 
     # Extract any events:
-    events = [*packet.payloads[EventPayload]]
-    for event in events:
-        # Push directly to the queue:
-        # ... the handle_streamed_packet will take care of the refreshing
-        messages.append(
-            f"\033[35;47;1m({datetime.now().strftime(datetime_format)})\033[0m {event!s}"
-        )
+    if echo_events:
+        events = [*packet.payloads[EventPayload]]
+        for event in events:
+            # Push directly to the queue:
+            # ... the handle_streamed_packet will take care of the refreshing
+            messages.append(
+                f"\033[35;47;1m({datetime.now().strftime(datetime_format)})\033[0m {event!s}"
+            )
 
     # If requested, tack on the packet bytes:
     if echo_all_packet_bytes:

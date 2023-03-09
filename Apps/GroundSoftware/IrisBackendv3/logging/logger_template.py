@@ -13,7 +13,7 @@ Levels in ascending order are:
     - CRITICAL (50)
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/07/2023
+@last-updated: 03/08/2023
 """
 
 from typing import Any, Final, Callable, Tuple
@@ -24,19 +24,6 @@ import verboselogs  # type: ignore # mypy doesn't see type hints
 import coloredlogs  # type: ignore # mypy doesn't see type hints
 
 import ulid
-
-# List of all valid log levels:
-VALID_LOG_LEVELS: Final[Tuple[str]] = (
-    'SPAM',
-    'DEBUG',
-    'VERBOSE',
-    'INFO',
-    'NOTICE',
-    'WARNING',
-    'SUCCESS',
-    'ERROR',
-    'CRITICAL'
-)
 
 # Root directory where all log files are stored:
 _LOG_FILE_ROOT_DIR: Final[str] = f"./out/package-logs/"

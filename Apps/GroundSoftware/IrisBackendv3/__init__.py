@@ -29,6 +29,7 @@ from IrisBackendv3 import codec
 from IrisBackendv3 import data_standards
 from IrisBackendv3 import ipc
 from IrisBackendv3 import transceiver
+from IrisBackendv3 import logging
 from IrisBackendv3 import utils
 
 

@@ -17,9 +17,10 @@ from collections import OrderedDict
 
 import typeguard
 
+import IrisBackendv3
 from IrisBackendv3.codec.magic import Magic
-from IrisBackendv3.codec.metadata import DataPathway
-from IrisBackendv3.codec.payload import CommandPayload
+from IrisBackendv3.codec.metadata import DataPathway, DataSource
+from IrisBackendv3.codec.payload import CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.data_standards.data_standards import DataStandards
 
 # Default directory containing all the `command_aliases` files (w.r.t.
@@ -71,6 +72,53 @@ def CommandAliasesBuilder(func: CommandAliasesBuilderType) -> CommandAliasesBuil
     return cast(CommandAliasesBuilderType, wrapper)
 
 
+def import_command_aliases_file(
+    file_name: str,
+    command_aliases_dir: str = DEFAULT_COMMAND_ALIASES_DIR
+) -> ModuleType:
+    """
+    Imports the `command_aliases` file called `file_name` from
+    `command_aliases_dir` (w.r.t. the `GroundSoftware` directory).
+
+    NOTE: The only requirement for `command_aliases` files is that they are
+    python modules containing a method called `ALIASES` with the signature
+    `CommandAliasesBuilderType`.
+    """
+    # Add the `py` ending if not there:
+    if not file_name.endswith('.py'):
+        file_name = file_name + '.py'
+
+    file_path = os.path.join(command_aliases_dir, file_name)
+    sfl = SourceFileLoader(file_name[:-3], file_path)
+    return sfl.load_module()
+
+
+def build_command_from_alias(prepared_cmd: PreparedCommand) -> CommandPayload:
+    """Builds the given `PreparedCommand` (and inherently checks it for
+    correctness).
+    """
+    # Grab the current datastandards:
+    standards = IrisBackendv3.get_codec_standards()
+
+    # Select standard payload class based on magic:
+    command_payload_type = {
+        Magic.WATCHDOG_COMMAND: WatchdogCommandPayload,
+        Magic.RADIO_COMMAND: CommandPayload,
+        Magic.COMMAND: CommandPayload
+    }[prepared_cmd.magic]
+
+    module, command = standards.global_command_lookup(prepared_cmd.name)
+
+    return command_payload_type(
+        pathway=prepared_cmd.pathway,
+        source=DataSource.GENERATED,
+        magic=prepared_cmd.magic,
+        module_id=module.ID,
+        command_id=command.ID,
+        args=prepared_cmd.args
+    )
+
+
 class CommandAliasesTable:
     @dataclass
     class Entry:
@@ -90,53 +138,34 @@ class CommandAliasesTable:
         cls: Type[CommandAliasesTable],
         aliases: CommandAliases
     ) -> CommandAliasesTable:
-        # validate
-        # build
-        # init
-        raise NotImplementedError()
+        # Build all `PreparedCommand`s:
+        # (inherently validating them for correctness)
+        table: Dict[str, CommandAliasesTable.Entry] = dict()
+        for name, prep in aliases.items():
+            # Build command:
+            compiled_cmd = build_command_from_alias(prep)
+            # Build table entry:
+            table[name] = CommandAliasesTable.Entry(
+                prepared_cmd=prep,
+                compiled_cmd=compiled_cmd
+            )
+        return cls(table=table)
 
     @classmethod
     def load_from_file(
         cls: Type[CommandAliasesTable],
         file_name: str,
-        file_dir: str = "./config/command_aliases/"
+        file_dir: str = DEFAULT_COMMAND_ALIASES_DIR
     ) -> CommandAliasesTable:
-        # build path to module
-        # import it (without doubling up in sys.modules?...)
-        # validate
-        # build
-        raise NotImplementedError()
+        if file_name.endswith('.py'):
+            # strip off '.py' if there (better strings):
+            file_name = file_name[:-3]
+        mod = import_command_aliases_file(file_name, file_dir)
+        standards = IrisBackendv3.get_codec_standards()
+        aliases: CommandAliases = mod.ALIASES(standards)
+        typeguard.check_type(f'{file_name}.ALIASES()', aliases, CommandAliases)
 
-
-def validate_and_build_commands(yaml_dict):
-    """Validates and (pre)builds all commands, both to cache and to validate
-    them at launch.
-    """
-    # ! Check types (explicitly of all PreparedCommands args)
-
-    raise NotImplementedError()
-
-
-def import_command_aliases_file(
-    file_name: str,
-    command_aliases_dir: str = DEFAULT_COMMAND_ALIASES_DIR
-) -> ModuleType:
-    """
-    Imports the `command_aliases` file called `file_name` from 
-    `command_aliases_dir` (w.r.t. the `GroundSoftware` directory).
-
-    NOTE: The only requirement for `command_aliases` files is that they are
-    python modules containing a method called `ALIASES` with the signature
-    `CommandAliasesBuilderType`.
-    """
-    # Add the `py` ending if not there:
-    if not file_name.endswith('.py'):
-        file_name = file_name + '.py'
-
-    file_path = os.path.join(command_aliases_dir, file_name)
-    sfl = SourceFileLoader(file_name[:-3], file_path)
-    return sfl.load_module()
-
+        return cls.from_aliases(aliases)
 
 # # input -> prepared command -> string -> input: edit string -> Command -> Send
 # f"{COMMAND}: {module}.{command}[{name_1}: {arg_1}, ...] -> {WIRED} -> {XCVR:ANY}"
@@ -145,25 +174,3 @@ def import_command_aliases_file(
 
 # # ... or truncate comments in table but always show comment for top command?
 # #! ^^
-
-
-# def get_command(alias: str, params: Optional[Any] = None) -> PreparedCommandType:
-#     """
-#     Grabs command package data (pathway, type, and payload) given a short-hand
-#     name (`alias`) and, optionally, a `param` that gets inserted as a command
-#     argument where necessary.
-
-#     See docstring for `Parameter` for more details about how `params` pasting works.
-#     """
-#     pathway, magic, command_name, kwargs, telem_pathway = prepared_commands[alias]
-
-#     # Paste the given parameters anywhere we're told:
-#     if not isinstance(params, list):
-#         params = [params]
-#     param_idx = 0
-#     for arg_name, arg_val in kwargs.items():
-#         if arg_val == Parameter.PASTE:
-#             kwargs[arg_name] = params[param_idx]
-#             param_idx = (param_idx + 1) % len(params)
-
-#     return (pathway, magic, command_name, kwargs, telem_pathway)

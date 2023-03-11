@@ -17,18 +17,7 @@ def print_modules():
 
 
 if __name__ == "__main__":
-    print_modules()
-
-    mod = IB3.config.command_aliases.import_command_aliases_file(
+    aliases_table = IB3.config.command_aliases.CommandAliasesTable.load_from_file(
         'standard_command_aliases'
     )
-
-    mod.ALIASES(IB3.get_codec_standards())
-
-    mods = {
-        m: k
-        for m, k in sys.modules.items()
-        if 'IrisBackend' in m or 'alias' in m.lower()
-    }
-
     print_modules()

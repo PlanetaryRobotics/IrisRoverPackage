@@ -35,7 +35,7 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
         ),
         'wd-echo-hi-watchdog': PreparedCommand(
             'WatchDogInterface_Echo',
-            OrderedDict(length='10', message="HiWatchdog"),
+            OrderedDict(length=10, message="HiWatchdog"),
             DataPathway.WIRED,
             Magic.WATCHDOG_COMMAND,
             comment="Command to tell the WD to Echo a string (might be broken)."

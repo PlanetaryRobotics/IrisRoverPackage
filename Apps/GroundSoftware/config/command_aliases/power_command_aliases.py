@@ -15,7 +15,7 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
     return {
         'power-cycle-vsa': PreparedCommand(
             'WatchDogInterface_ResetSpecific',
-            OrderedDict(reset_value='POWER_CYCLE_SYSTEM'),
+            OrderedDict(reset_value='SYSTEM_POWER_CYCLE'),
             DataPathway.WIRED,
             Magic.WATCHDOG_COMMAND,
             comment="Tell WD to turn off VSA then turn it back on."

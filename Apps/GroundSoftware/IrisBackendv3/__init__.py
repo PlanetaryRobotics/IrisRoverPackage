@@ -31,6 +31,7 @@ from IrisBackendv3 import ipc
 from IrisBackendv3 import transceiver
 from IrisBackendv3 import logging
 from IrisBackendv3 import utils
+from IrisBackendv3 import config
 
 
 # Private imports for use by helper functions:

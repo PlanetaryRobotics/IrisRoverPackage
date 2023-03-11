@@ -18,21 +18,21 @@
 #include "S25fl512l.hpp"
 
 // --- DUMMY IMAGE PARAMS ---
-#define __DUMMY_IMG_GRID__     2    // 0 - Take live image
-                                    // N - Dummy image is grid of NxN squares
-#define __DUMMY_VIA_FPGA__     0    // Read & Write dummy image w/ FPGA Flash
 
-#define IMAGE_WIDTH     10
-#define IMAGE_HEIGHT    10
+#define DUMMY_IMG_GRID     2    // Dummy image is grid of NxN squares
+#define DUMMY_VIA_FPGA     0    // Read & Write dummy image w/ FPGA Flash
+
+#define IMAGE_WIDTH     1500
+#define IMAGE_HEIGHT    1000
 
 // --- SYSTEM IMAGE PARAMS ---
 //#define IMAGE_WIDTH        2592
 //#define IMAGE_HEIGHT       1944
 
 // RAD TODO - isn't downsampling a user-defined parameter?
-//#define DOWNSAMPLING        1
-//#define DOWNSAMPLED_IMG_WIDTH   (IMAGE_WIDTH / DOWNSAMPLING)
-//#define DOWNSAMPLE_IMG_HEIGHT   (IMAGE_HEIGHT / DOWNSAMPLING)
+#define DOWNSAMPLING        1
+#define DOWNSAMPLED_IMG_WIDTH   (IMAGE_WIDTH / DOWNSAMPLING)
+#define DOWNSAMPLE_IMG_HEIGHT   (IMAGE_HEIGHT / DOWNSAMPLING)
 
 namespace CubeRover {
 
@@ -194,27 +194,15 @@ namespace CubeRover {
       // ----------------------------------------------------------------------
       // User Methods
       // ----------------------------------------------------------------------
-      
-        void eraseFpgaFlash();
-        void downsampleLine();
-        void selectCamera(int camera);
-        void triggerImageCapture(uint8_t camera, uint16_t callbackId);
-        void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime);
-      
-        void TEST__generateDummyImage();
-        void TEST__getLineDummyImage(int line, uint8_t *dstBuff);
-        void TEST__dummyFlashWrite();
-        void TEST__fpgaTriggerCameraCapture();
-        void TEST__getAndTransmitPicture();
 
-        S25fl512l m_fpgaFlash;
-        uint8_t m_imageLineBuffer[IMAGE_WIDTH];
-        U32 m_numComponentImgsReq;
-        U32 m_numGroundImgsReq;
-        U32 m_imagesSent;
-        U32 m_bytesSent;
+      void triggerImageCapture(uint8_t camera, uint16_t callbackId);
+      void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime);
 
-        uint8_t g_cameraSelect;
+      uint8_t m_imageLineBuffer[IMAGE_WIDTH];
+      U32 m_numComponentImgsReq;
+      U32 m_numGroundImgsReq;
+      U32 m_imagesSent;
+      U32 m_bytesSent;
 
     };
 

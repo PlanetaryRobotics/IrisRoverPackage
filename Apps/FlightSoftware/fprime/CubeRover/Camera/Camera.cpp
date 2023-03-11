@@ -50,6 +50,8 @@ namespace CubeRover {
     m_numGroundImgsReq = 0;
     m_imagesSent = 0;
     m_bytesSent = 0;
+
+    g_cameraSelect = 0;
   }
 
   CameraComponentImpl ::
@@ -199,6 +201,16 @@ namespace CubeRover {
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
   
+  // ----------------------------------------------------------------------
+  // User Methods
+  // ----------------------------------------------------------------------
+
+      void CameraComponentImpl::eraseFpgaFlash(){
+          for(int i=0; i< 40; i++){
+              m_fpgaFlash.sectorErase(i);
+          }
+      }
+
     void CameraComponentImpl::downsampleLine() {
         for(uint32_t x = 0; x < IMAGE_WIDTH/DOWNSAMPLING; x++) {
             m_imageLineBuffer[x] = m_imageLineBuffer[x*DOWNSAMPLING];
@@ -216,6 +228,12 @@ namespace CubeRover {
     // TODO: Implement dual queue image capture to allow for two threads to downlink an
     // image at once (ie navigation and science photo)
     void CameraComponentImpl::triggerImageCapture(uint8_t camera, uint16_t callbackId) {
+
+#ifdef __USE_DUMMY_IMAGE__
+        TEST__getAndTransmitPicture();
+        return;
+#endif
+
         uint16_t spiTxCmd = 0xFF;
         spiDAT1_t fpgaDataConfig;
         
@@ -230,6 +248,9 @@ namespace CubeRover {
         
         selectCamera(static_cast<int>(camera));
 
+        // RAD TODO - added
+        eraseFpgaFlash();
+
         gioSetBit(spiPORT1, 0, 0); // set CS LOW
         spiTransmitData(spiREG1, &fpgaDataConfig, 1, &spiTxCmd);    // send data
         gioSetBit(spiPORT1, 0, 1); // set CS HIGH
@@ -240,12 +261,12 @@ namespace CubeRover {
             
         // TODO: Operator should be able to specify DOWNSAMPLING (but for testing smaller images are faster
         for(int i = 0; i < IMAGE_HEIGHT; i+=DOWNSAMPLING) {
-#ifdef __USE_DUMMY_IMAGE__
-            getLineDummyImage(i, m_imageLineBuffer);
-#else
+//#ifdef __USE_DUMMY_IMAGE__
+//            getLineDummyImage(i, m_imageLineBuffer);
+//#else
             m_fpgaFlash.readDataFromFlash(&alloc, 0, m_imageLineBuffer, sizeof(m_imageLineBuffer));
             alloc.startAddress = 6 * PAGE_SIZE * i; // jump to next available block
-#endif
+//#endif
             downsampleLine();
             downlinkImage(m_imageLineBuffer, sizeof(m_imageLineBuffer), callbackId, createTime);
         }
@@ -260,5 +281,109 @@ namespace CubeRover {
         tlmWrite_Cam_BytesSent(m_bytesSent);
     }
     
+
+    // ---------------------------------------------------------------------------------
+    // RAD TODO START: THIS ENTIRE BLOCK IS FOR DUMMY IMAGES KEPT IN .__UNUSED__/FUNCTIONS.CPP
+
+  #ifdef __USE_DUMMY_IMAGE__
+
+    // TODO - Make this a grid
+      void CameraComponentImpl::TEST__generateDummyImage(){
+        for(int x=0; x < IMAGE_WIDTH; x++){
+            for(int y=0; y < IMAGE_HEIGHT; y++){
+                g_dummyImage[x+y*IMAGE_WIDTH] = x%255 + y%255;
+            }
+        }
+     }
+
+#ifdef __USE_FPGA_FLASH__
+
+     void CameraComponentImpl::TEST__fpgaTriggerCameraCapture(){
+       uint16_t spiTxCmd = 0xFF;
+       spiDAT1_t g_fpgaDataConfig;
+
+       g_fpgaDataConfig.CS_HOLD = false;
+       g_fpgaDataConfig.DFSEL = SPI_FMT_0;
+       g_fpgaDataConfig.WDEL = false;
+       g_fpgaDataConfig.CSNR = 0;
+
+       gioSetBit(spiPORT1, 0, 0); // set CS LOW
+
+       // send data
+       spiTransmitData(spiREG1, &g_fpgaDataConfig, 1, &spiTxCmd);
+
+       gioSetBit(spiPORT1, 0, 1); // set CS HIGH
+     }
+
+     void CameraComponentImpl::TEST__dummyFlashWrite(){
+        uint8_t buffer[IMAGE_WIDTH];
+        for(int i=0;i<sizeof(buffer);i++){
+            buffer[i] = i%128;
+        }
+        S25fl512l::MemAlloc alloc;
+        alloc.startAddress = 0;
+        alloc.reservedSize = sizeof(buffer);
+
+        for(int i=0; i<IMAGE_HEIGHT; i++){
+            m_fpgaFlash.writeDataToFlash(&alloc, 0, buffer, sizeof(buffer));
+            alloc.startAddress += PAGE_SIZE * 6;
+        }
+     }
+
+     void CameraComponentImpl::TEST__eraseFpgaFlash(){
+        for(int i=0; i< 40; i++){
+            m_fpgaFlash.sectorErase(i);
+        }
+     }
+
+#endif
+
+     void CameraComponentImpl::TEST__getLineDummyImage(int line, uint8_t *dstBuff){
+        memcpy(dstBuff, g_dummyImage + line*IMAGE_WIDTH, IMAGE_WIDTH);
+    }
+
+     void CameraComponentImpl::TEST__downsampleLine(){
+        for(uint32_t x=0; x<IMAGE_WIDTH/DOWNSAMPLING; x++){
+            m_imageLineBuffer[x] = m_imageLineBuffer[x*DOWNSAMPLING];
+        }
+     }
+
+      void CameraComponentImpl::TEST__getAndTransmitPicture(){
+   //      imageTransferStatus_t status = BEGIN_NEW_TRANSFER;
+        S25fl512l::MemAlloc alloc;
+        alloc.startAddress = 0;
+        alloc.reservedSize = 0;
+
+        // set bit to control camera
+        gioSetBit(linPORT, 1, g_cameraSelect & 0x01);
+
+        TEST__eraseFpgaFlash();
+
+        TEST__dummyFlashWrite();
+
+        // add small delays to make sure camera is selection is done
+        for(int delay=0; delay<500; delay++) asm("  NOP");
+
+        TEST__fpgaTriggerCameraCapture();
+        while(gioGetBit(gioPORTB, 1));
+
+        for(int i=0;i<IMAGE_HEIGHT; i++){
+   // #ifdef __USE_DUMMY_IMAGE__
+   //         TEST__getLineDummyImage(i, m_imageLineBuffer);
+   // #else
+            m_fpgaFlash.readDataFromFlash(&alloc, 0, m_imageLineBuffer, sizeof(m_imageLineBuffer));
+            alloc.startAddress = 6* PAGE_SIZE * i; // jump to next available block
+   // #endif
+            TEST__downsampleLine();
+   //          status = (i == IMAGE_HEIGHT - 1) ? LAST_TRANSFER : CONTINUE;
+            // sendCameraDataOverWifi(g_imageLineBuffer, sizeof(g_imageLineBuffer) / DOWNSAMPLING, status);
+        }
+    }
+
+  #endif
+
+    // RAD TODO END: THIS ENTIRE BLOCK IS FOR DUMMY IMAGES KEPT IN .__UNUSED__/FUNCTIONS.CPP
+    // ---------------------------------------------------------------------------------
+
 
 } // end namespace CubeRover

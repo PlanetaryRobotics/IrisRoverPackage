@@ -624,6 +624,22 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(),
         DataPathway.WIRED
     ),
+    # WD Select Camera
+    'select-cam-0': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_vaue='FPGA_CAM_0'),
+        DataPathway.WIRED
+    ),
+    'select-cam-1': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_vaue='FPGA_CAM_1'),
+        DataPathway.WIRED
+    ),
+    # Herc Take Image
     'take-image-0': (
         DataPathway.WIRED,
         Magic.COMMAND,

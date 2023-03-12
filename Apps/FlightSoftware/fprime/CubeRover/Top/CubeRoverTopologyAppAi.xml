@@ -212,6 +212,11 @@
     <source component = "watchDogInterface" port = "Time" type = "Time" num = "0" />
     <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
   </connection>
+ 
+  <connection name = "camera_to_cubeRoverTime">
+    <source component = "camera" port = "Time" type = "Time" num = "0" />
+    <target component = "cubeRoverTime" port = "timeGetPort" type = "Time" num = "0" />
+  </connection>
 
 <!-- *********************************************************************************************************
         CONNECTION OF MONITORED COMPONENTS TO TELEMETRY CHAN COMPONENT

@@ -84,12 +84,13 @@ struct FswFileHeader {
     uint8_t totalBlocks;
     uint8_t blockNumber;        // This is 1-indexed, 0-index is optional and contains file-specific metadata
     FileLength_t length;        // This is the size of the following data **not including this header**
-};
+} __attribute__((packed));
 
 struct FswFileMetadata {        // Block 0 of files
     uint16_t callbackId;
     uint32_t timestamp;
-};
+} __attribute__((packed));
+
 
 struct FswFile {
     struct FswFileHeader header;

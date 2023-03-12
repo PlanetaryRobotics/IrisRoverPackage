@@ -387,6 +387,7 @@ class SocketTopicHandler(SocketHandler[_HRT, _AMT], Generic[_SHT, _HRT, _AMT]):
         manager: _AMT,
         payload: IpcPayload
     ) -> _HRT | None:
+        logger.spam(f"{self} got: {payload = }")
         try:
             topic = payload.topic
         except Exception:
@@ -563,6 +564,7 @@ class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
         # Subscribe to topics if the spec details topics
         # (and we can subscribe):
         if spec.topics is not None and spec.sock_type == SocketType.SUBSCRIBER:
+            logger.verbose(f'Subscribing `{name}` to: {spec.topics} . . .')
             subscribe(self.sockets[name], spec.topics)
 
     @abstractmethod
@@ -765,6 +767,9 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
             )
             # and just return:
             return
+
+        task_list_str = '\n\t'.join(str(t) for t in self._tasks)
+        logger.verbose(f"Running with task list:\n\t{task_list_str}.")
 
         # Clean up if the above closes for some reason:
         try:

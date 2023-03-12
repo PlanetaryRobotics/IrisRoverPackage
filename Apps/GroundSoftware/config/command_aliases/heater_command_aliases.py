@@ -53,7 +53,7 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
                 DataPathway.WIRED,
                 Magic.WATCHDOG_COMMAND,
                 comment=(
-                    "Set heater power to {P}% "
+                    f"Set heater power to {P}% "
                     f"({round(100*power_level_to_duty_cycle(P)/10000):d}%V"
                     f"={power_level_to_duty_cycle(P)})."
                 )

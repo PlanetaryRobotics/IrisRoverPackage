@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run run-tests standards build-docs run-docs build-cte console xconsole xterm-normal xterm-wide cloc
+.PHONY = help init update clean run run-tests standards build-docs run-docs build-cte commander console xconsole xterm-normal xterm-wide cloc
 
 .DEFAULT_GOAL = help
 all: help
@@ -29,6 +29,8 @@ help:
 	@echo "	make run-docs: Spins up an interactive documentation server (WIP)"
 	@echo " "
 	@echo "	make build-cte: Build the Commands, Telemetry, & Events (CT&E) Table. Run as: 'make build-cte FILE=your_file_name'."
+	@echo " "
+	@echo "	make commander: Run the Commander IPC App."
 	@echo " "
 	@echo "	make console: Run the Iris Console CLI application"
 	@echo " "
@@ -142,6 +144,12 @@ run-docs:
 ####
 build-cte:
 	./run-script.sh ./scripts/tiny_apps/datastandards_lookup.py -f $(FILE)
+
+####
+# Run the Commander IPC App:
+####
+console:
+	./run-script.sh ipc_apps/commander.py
 
 ####
 # Run the Iris Console CLI application:

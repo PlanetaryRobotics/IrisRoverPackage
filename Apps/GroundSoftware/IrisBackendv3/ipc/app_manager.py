@@ -6,7 +6,7 @@ At this level, all IPC interface operations have been abstracted. For the
 low-level IPC interface and implementation, see `wrapper.py`.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/07/2023
+@last-updated: 03/10/2023
 
 #! NOTE: Many of the example docstrings in here are out of date. Updating soon.
 
@@ -44,6 +44,7 @@ from typing_extensions import TypeAlias
 import dataclasses
 import asyncio
 import traceback
+import atexit
 from verboselogs import VerboseLogger
 
 from IrisBackendv3.ipc.wrapper import (
@@ -532,13 +533,20 @@ class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
         for sock_name, spec in self.socket_specs.items():
             self.setup_socket(sock_name, spec)
 
+        # Register to make sure `__del__` gets called when program exits:
+        # (via interrupt or actual close)
+        atexit.register(self.__del__)
+
     def __del__(self):
         """Close everything on destruction."""
         # Close sockets:
+        print("Closing IPC socket and context . . .")
         for socket in self.sockets.values():
             socket.close()
         # Close context (waiting for all sockets to close first):
         self.context.destroy()  # closes any remaining ctx sockets then `term`
+        # Unregister from program exit handler:
+        atexit.unregister(self.__del__)
 
     def __str__(self) -> str:
         return (

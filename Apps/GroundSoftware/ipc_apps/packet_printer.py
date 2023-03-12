@@ -73,6 +73,9 @@ def get_opts():
     parser.add_argument('--packet-bytes', default=False,
                         action=argparse.BooleanOptionalAction,
                         help="Whether or not to print packet bytes.")
+    parser.add_argument('--bind', default=False,
+                        action=argparse.BooleanOptionalAction,
+                        help="Whether or not to bind the port.")
     return parser.parse_args()
 
 
@@ -209,13 +212,13 @@ class Sub(ipc.SocketTopicHandlerAsync['Sub']):
     }
 
 
-manager = IB3.ipc.IpcAppManagerAsync(socket_specs={
-    'sub': IB3.ipc.SocketSpec(
-        sock_type=IB3.ipc.SocketType.SUBSCRIBER,
-        port=IB3.ipc.Port.TRANSCEIVER,
+manager = ipc.IpcAppManagerAsync(socket_specs={
+    'sub': ipc.SocketSpec(
+        sock_type=ipc.SocketType.SUBSCRIBER,
+        port=ipc.Port.TRANSCEIVER,
         topics=Sub.TOPICS(),
         rx_handler=Sub(),
-        bind=False
+        bind=opts.bind
     )
 })
 

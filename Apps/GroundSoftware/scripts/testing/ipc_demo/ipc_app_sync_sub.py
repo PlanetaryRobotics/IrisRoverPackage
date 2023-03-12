@@ -9,14 +9,15 @@ demo.
 @last-updated: 03/07/2023
 """
 import IrisBackendv3 as IB3
+import IrisBackendv3.ipc as ipc
 IB3.init_from_latest()
 
 # Setup:
-manager = IB3.ipc.IpcAppManagerSync(socket_specs={
-    'sub': IB3.ipc.SocketSpec(
-        sock_type=IB3.ipc.SocketType.SUBSCRIBER,
-        port=IB3.ipc.Port.TRANSCEIVER,
-        topics=[IB3.ipc.Topic.DL_PACKETS],
+manager = ipc.IpcAppManagerSync(socket_specs={
+    'sub': ipc.SocketSpec(
+        sock_type=ipc.SocketType.SUBSCRIBER,
+        port=ipc.Port.TRANSCEIVER,
+        topics=[ipc.Topic.DL_PACKETS, ipc.Topic.UL_PACKET],
         bind=True
     )
 })
@@ -25,5 +26,5 @@ manager = IB3.ipc.IpcAppManagerSync(socket_specs={
 for _ in range(10):
     raw, msg = manager.read_msg('sub')
     print(
-        f"{raw.topic=}, {raw.subtopic_bytes=} with {msg.content.simple_str()}"
+        f"{raw.topic=}, {raw.subtopic_bytes=} with {msg.content!s}"
     )

@@ -1,7 +1,6 @@
 """
 CLI display of telemetry.
 
-
 Also serves as a demo/test of one of the simplest possible real-world IPC Apps
 that use `IpcAppManagerAsync` involving additional tasks outside of a
 manager (and inter-task communication).
@@ -48,7 +47,7 @@ def get_opts():
     return parser.parse_args()
 
 
-@ dataclass
+@dataclass
 class RedrawScreenRequest:
     # If this update is triggered from packets being received, packets will contain this list.
     # If this update is just because the screen needs to be redrawn, `packets is None`.

@@ -23,6 +23,8 @@ from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.payload import CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.data_standards.data_standards import DataStandards
 
+from IrisBackendv3.utils.console_display import PreparedCommandType as LegacyPreparedCommandType
+
 # Default directory containing all the `command_aliases` files (w.r.t.
 # `GroundSoftware`):
 DEFAULT_COMMAND_ALIASES_DIR: Final[str] = "./config/command_aliases"
@@ -103,7 +105,7 @@ def build_command_from_alias(prepared_cmd: PreparedCommand) -> CommandPayload:
     # Select standard payload class based on magic:
     command_payload_type = {
         Magic.WATCHDOG_COMMAND: WatchdogCommandPayload,
-        Magic.RADIO_COMMAND: CommandPayload,
+        Magic.RADIO_COMMAND: CommandPayload,  # Radio take standard ICP cmds
         Magic.COMMAND: CommandPayload
     }[prepared_cmd.magic]
 
@@ -122,6 +124,7 @@ def build_command_from_alias(prepared_cmd: PreparedCommand) -> CommandPayload:
 class CommandAliasesTable:
     @dataclass
     class Entry:
+        alias: str
         prepared_cmd: PreparedCommand
         compiled_cmd: CommandPayload
 
@@ -133,6 +136,26 @@ class CommandAliasesTable:
     ) -> None:
         self._table = table
 
+    def get_entry(self, alias_name: str) -> CommandAliasesTable.Entry:
+        """Returns the entry in the `CommandAliasesTable` corresponding with
+        the given `alias_name`."""
+        return self._table[alias_name]
+
+    def as_legacy_prepared_commands(self) -> Dict[str, LegacyPreparedCommandType]:
+        """Reformats the table as a legacy prepared commands table, as would
+        be expected by the legacy `IrisConsole` functions in
+        `IrisBackendv3.utils.console_display`."""
+        return {
+            k: (
+                e.prepared_cmd.pathway,  # send path (same)
+                e.prepared_cmd.magic,
+                e.prepared_cmd.name,
+                e.prepared_cmd.args,
+                e.prepared_cmd.pathway  # return path (same)
+            )
+            for k, e in self._table.items()
+        }
+
     @classmethod
     def from_aliases(
         cls: Type[CommandAliasesTable],
@@ -141,11 +164,12 @@ class CommandAliasesTable:
         # Build all `PreparedCommand`s:
         # (inherently validating them for correctness)
         table: Dict[str, CommandAliasesTable.Entry] = dict()
-        for name, prep in aliases.items():
+        for alias_name, prep in aliases.items():
             # Build command:
             compiled_cmd = build_command_from_alias(prep)
             # Build table entry:
-            table[name] = CommandAliasesTable.Entry(
+            table[alias_name] = CommandAliasesTable.Entry(
+                alias=alias_name,
                 prepared_cmd=prep,
                 compiled_cmd=compiled_cmd
             )
@@ -166,11 +190,3 @@ class CommandAliasesTable:
         typeguard.check_type(f'{file_name}.ALIASES()', aliases, CommandAliases)
 
         return cls.from_aliases(aliases)
-
-# # input -> prepared command -> string -> input: edit string -> Command -> Send
-# f"{COMMAND}: {module}.{command}[{name_1}: {arg_1}, ...] -> {WIRED} -> {XCVR:ANY}"
-# # (invert cursor character)
-# # place comment underneath (until edit?)
-
-# # ... or truncate comments in table but always show comment for top command?
-# #! ^^

@@ -5,6 +5,9 @@ Shorthand aliases for common ground commands used during testing.
 If you want to explore the Data Standards to build new commands, run:
 `pyenv exec python datastandards_lookup.py`.
 
+NOTE: THIS FILE IS DEPRECATED AS OF 03/10/2023. Don't use for new code. Use
+`IrisBackendv3/config/command_aliases`.
+
 Created: 10/29/2021
 Last Update: 01/01/2023
 """

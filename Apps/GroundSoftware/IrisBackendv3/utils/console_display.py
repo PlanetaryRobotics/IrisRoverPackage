@@ -21,8 +21,17 @@ from typing import Any, Final, List, Type, cast, Union, Dict, Tuple, Optional
 
 import re
 import os
+import sys
 import subprocess
 from datetime import datetime, timedelta
+
+if sys.platform == "darwin":
+    from AppKit import NSWorkspace
+    from Quartz import (
+        CGWindowListCopyWindowInfo,
+        kCGWindowListOptionOnScreenOnly,
+        kCGNullWindowID
+    )
 
 import socket
 try:
@@ -110,23 +119,43 @@ def set_window_title(title) -> None:
 def get_active_window_title() -> Optional[str]:
     # Gets the title of the current window (used for focus checking)
     # Currently only works in linux:
-    root = subprocess.Popen(
-        ['xprop', '-root', '_NET_ACTIVE_WINDOW'], stdout=subprocess.PIPE)
-    stdout, stderr = root.communicate()
+    try:
+        if sys.platform == "darwin":
+            app = NSWorkspace.sharedWorkspace().frontmostApplication()
+            active_app_name = app.localizedName()
 
-    m = re.search(b'^_NET_ACTIVE_WINDOW.* ([\w]+)$', stdout)
-    if m is not None:
-        window_id = m.group(1)
-        window = subprocess.Popen(
-            ['xprop', '-id', window_id, 'WM_NAME'], stdout=subprocess.PIPE)
-        stdout, stderr = window.communicate()
-    else:
+            options = kCGWindowListOptionOnScreenOnly
+            windowList = CGWindowListCopyWindowInfo(options, kCGNullWindowID)
+            windowTitle = 'Unknown'
+            for window in windowList:
+                ownerName = window['kCGWindowOwnerName']
+                winNum = window.get('kCGWindowNumber', u'Unknown')
+                # Grab the window name if there, otherwise just use number:
+                windowTitle = window.get('kCGWindowName', f'WinNum={winNum}')
+                if windowTitle and ownerName == active_app_name:
+                    break
+
+            return f"{active_app_name}: {windowTitle}"
+        else:
+            root = subprocess.Popen(
+                ['xprop', '-root', '_NET_ACTIVE_WINDOW'], stdout=subprocess.PIPE)
+            stdout, stderr = root.communicate()
+
+            m = re.search(b'^_NET_ACTIVE_WINDOW.* ([\w]+)$', stdout)
+            if m is not None:
+                window_id = m.group(1)
+                window = subprocess.Popen(
+                    ['xprop', '-id', window_id, 'WM_NAME'], stdout=subprocess.PIPE)
+                stdout, stderr = window.communicate()
+            else:
+                return None
+
+            match = re.match(b"WM_NAME\(\w+\) = (?P<name>.+)$", stdout)
+            if match is not None:
+                return match.group("name").strip(b'"').decode()
+            return None
+    except:
         return None
-
-    match = re.match(b"WM_NAME\(\w+\) = (?P<name>.+)$", stdout)
-    if match is not None:
-        return match.group("name").strip(b'"').decode()
-    return None
 
 
 def update_reference_window_title() -> str:
@@ -191,6 +220,9 @@ def filter_command_dataframe(
         A. only contains commands whose aliases contain `partial_cmd`.
         B. are sorted by what percentage of the command name matches `partial_cmd_alias`.
     """
+    if partial_cmd_alias == "":
+        # If the input is nothing, just return the input table:
+        return prepared_commands_dataframe
     filtered = prepared_commands_dataframe.copy()
     # Grab only commands whose aliases contain the given partial_cmd_alias:
     filtered = filtered[filtered.apply(
@@ -226,13 +258,23 @@ def str_command_dataframe(cdf: pd.DataFrame) -> str:
     return table
 
 
-def str_user_command(user_prompt, user_cmd_input_str, prepared_commands_dataframe) -> str:
+def str_user_command(
+    user_prompt: str,
+    user_cmd_input_str: str,
+    prepared_commands_dataframe: pd.DataFrame,
+    filter_input: bool = True  # whether the input still needs to be filtered
+) -> str:
     # Pretty formats the user command based on the `user_cmd_input_str`, highlighting the part that the user input (not auto-completed):
     if user_cmd_input_str == '':
         command = ""
     else:
-        filtered_results = filter_command_dataframe(
-            user_cmd_input_str, prepared_commands_dataframe)
+        if filter_input:
+            filtered_results = filter_command_dataframe(
+                partial_command_alias=user_cmd_input_str,
+                prepared_commands_dataframe=prepared_commands_dataframe
+            )
+        else:
+            filtered_results = prepared_commands_dataframe
         if filtered_results.shape[0] == 0:
             # There are no matches. Just return the input (but highlighted and red):
             command = f"\033[31;1m{user_cmd_input_str}\033[0m"

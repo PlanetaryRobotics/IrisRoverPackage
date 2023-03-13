@@ -1137,22 +1137,23 @@ class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
         timestamp: int = struct.unpack(endianness_code+'L', timestamp_bytes)[0]
 
         ptr, size = size, size+1  # `file_type_magic` is 1B
-        file_type_magic_val: int = int(data[ptr:size][0])
-        try:
-            file_type_magic = FileMetadata.FileTypeMagic(file_type_magic_val)
-        except ValueError as e:
-            # Invalid FTM received:
-            logger.error((
-                f"While decoding `FileMetadata` in a `FileBlockPayload` the "
-                f"the received `file_type_magic` value of {file_type_magic_val}` "
-                f"is not a valid `FileTypeMagic`. Valid values are: "
-                f"{[f'{m.name}=0x{m.value:02x}' for m in FileMetadata.FileTypeMagic if m != FileMetadata.FileTypeMagic.BAD]}"
-                f"\n For: FileMetadata{{callback_id={callback_id}, "
-                f"timestamp={timestamp}, "
-                f"file_type_magic_val={file_type_magic_val}}}"
-                f"\n Packet data supplied to `FileMetadata` extractor: {data!r}"
-            ))
-            file_type_magic = FileMetadata.FileTypeMagic.BAD
+        # file_type_magic_val: int = int(data[ptr:size][0])
+        # try:
+        #     file_type_magic = FileMetadata.FileTypeMagic(file_type_magic_val)
+        # except ValueError as e:
+        #     # Invalid FTM received:
+        #     logger.error((
+        #         f"While decoding `FileMetadata` in a `FileBlockPayload` the "
+        #         f"the received `file_type_magic` value of {file_type_magic_val}` "
+        #         f"is not a valid `FileTypeMagic`. Valid values are: "
+        #         f"{[f'{m.name}=0x{m.value:02x}' for m in FileMetadata.FileTypeMagic if m != FileMetadata.FileTypeMagic.BAD]}"
+        #         f"\n For: FileMetadata{{callback_id={callback_id}, "
+        #         f"timestamp={timestamp}, "
+        #         f"file_type_magic_val={file_type_magic_val}}}"
+        #         f"\n Packet data supplied to `FileMetadata` extractor: {data!r}"
+        #     ))
+        #     file_type_magic = FileMetadata.FileTypeMagic.BAD
+        file_type_magic = FileMetadata.FileTypeMagic.IMAGE
 
         # All data used by the metadata:
         data_used = data[:size]
@@ -1298,9 +1299,9 @@ class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
         ptr, header_size = header_size, header_size+1  # `block_number` is 1B
         block_number: int = int(data[ptr:header_size][0])
 
-        ptr, header_size = header_size, header_size+4  # `length` is 4B
+        ptr, header_size = header_size, header_size+2  # `length` is 2B
         length_bytes = data[ptr:header_size]
-        length: int = struct.unpack(endianness_code+'L', length_bytes)[0]
+        length: int = struct.unpack(endianness_code+'H', length_bytes)[0]
 
         max_length = (len(data)-header_size)
         if length > max_length:

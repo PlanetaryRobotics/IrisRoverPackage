@@ -22,8 +22,8 @@
 #define DUMMY_IMG_GRID     2    // Dummy image is grid of NxN squares
 #define DUMMY_VIA_FPGA     0    // Read & Write dummy image w/ FPGA Flash
 
-#define IMAGE_WIDTH     1500
-#define IMAGE_HEIGHT    1000
+#define IMAGE_WIDTH     500
+#define IMAGE_HEIGHT    500
 
 // --- SYSTEM IMAGE PARAMS ---
 //#define IMAGE_WIDTH        2592

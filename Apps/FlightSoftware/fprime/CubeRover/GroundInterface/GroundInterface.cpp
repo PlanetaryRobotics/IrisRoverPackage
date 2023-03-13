@@ -188,8 +188,8 @@ namespace CubeRover
             // ! (do this to avoid maxing out the radio Tx queue):
             flushTlmDownlinkBuffer(); // FLUSH BUFFER TO GET PACKET OUT
             int startUdpTxCount = networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount();
-            while(startUdpTxCount == networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount()){
-                vTaskDelay(50 / portTICK_PERIOD_MS); // Check back in 50ms
+            while(startUdpTxCount == networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount() && networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() < 1){
+                vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10ms
             }
         }
         else
@@ -223,8 +223,8 @@ namespace CubeRover
                     // !Forcibly halt the idle thread until Wf121TxTask sends the packet (tx count goes up):
                     // ! (do this to avoid maxing out the radio Tx queue):
                     int startUdpTxCount = networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount();
-                    while(startUdpTxCount == networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount()){
-                        vTaskDelay(50 / portTICK_PERIOD_MS); // Check back in 50ms
+                    while(startUdpTxCount == networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount() && networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() < 1){
+                        vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10ms
                     }
                 }
                 else

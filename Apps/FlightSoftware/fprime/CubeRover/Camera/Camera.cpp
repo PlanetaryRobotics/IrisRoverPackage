@@ -218,6 +218,14 @@ namespace CubeRover {
           for (int x = 0; x < IMAGE_WIDTH; x++) {
               // if camera == 0 then all black, else black and white grid, in theory...
               m_imageLineBuffer[x] = camera * 255 * (((x / grid_x_spacing) + (y / grid_y_spacing)) % 2);
+              // Make it a gradient in both x and y for debugging:
+              if(m_imageLineBuffer[x] == 0x00){
+                  m_imageLineBuffer[x] += 255 * x / IMAGE_WIDTH / 3;
+                  m_imageLineBuffer[x] += 255 * y / IMAGE_HEIGHT / 3;
+              } else {
+                  m_imageLineBuffer[x] -= 255 * x / IMAGE_WIDTH / 3;
+                  m_imageLineBuffer[x] -= 255 * y / IMAGE_HEIGHT / 3;
+              }
           }
           downlinkImage(m_imageLineBuffer, sizeof(m_imageLineBuffer), callbackId, createTime);
       }

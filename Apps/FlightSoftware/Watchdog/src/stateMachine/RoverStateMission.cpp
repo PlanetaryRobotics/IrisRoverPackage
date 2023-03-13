@@ -212,6 +212,9 @@ namespace iris
             disableHeater();
         }
 
+        DPRINTF("Defaulting MONITOR_HERCULES to ON in MISSION.");
+        theContext.m_watchdogOpts |= WDOPT_MONITOR_HERCULES; // default to monitoring Hercules for aliveness
+
         return getState();
     }
 

@@ -307,7 +307,7 @@ int watchdog_monitor(HerculesComms__State *hState,
 
                 // queue up hercules unreset
                 *watchdogFlags |= WDFLAG_UNRESET_HERCULES;
-                SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_RESET);
+                SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_WATCHDOG_RESET);
 
                 // if the issue was due to a comms breakdown, reset the comms state
                 if (NULL != hState)

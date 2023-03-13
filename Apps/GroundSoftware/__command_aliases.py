@@ -92,11 +92,18 @@ PreparedCommandType = Tuple[
 ]
 
 prepared_commands: Dict[str, PreparedCommandType] = {
-    'transit': (  # Tell the Watchdog to switch into service mode
+    'monitor-herc-on': (  # Tell the Watchdog to switch into service mode
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
-        'WatchDogInterface_SwitchToKeepAliveMode',
-        OrderedDict(confirm='CONFIRM_ALIVE'),
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='HERCULES_WATCHDOG_ENABLE'),
+        DataPathway.WIRED
+    ),
+    'monitor-herc-off': (  # Tell the Watchdog to switch into service mode
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='HERCULES_WATCHDOG_DISABLE'),
         DataPathway.WIRED
     ),
     'setup': (  # Tell the Watchdog to switch into service mode

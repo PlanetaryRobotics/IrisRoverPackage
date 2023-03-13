@@ -198,12 +198,13 @@ namespace CubeRover
             return;
         }
 
+
         // Copy it into the outbound payload:
         m_udpPayloadWorkingBuffer.copyIn(fwBuffer.getsize(), buffer);
+        sloppyResourceProtectionMutex.unLock(); // unlock before potentially getting stuck in Queue wait.
 
         // Queue up the Payload for downlink:
         m_pRadioDriver->m_networkInterface.sendUdpPayload(&m_udpPayloadWorkingBuffer);
-        sloppyResourceProtectionMutex.unLock();
     }
 
     void NetworkManagerComponentImpl ::

@@ -369,10 +369,14 @@ namespace Wf121
             SEND_SET_TRANSMIT_SIZE = 0x15,
             // Wait for acknowledgement of `SetTransmitSize`:
             WAIT_FOR_SET_TRANSMIT_SIZE_ACK = 0x20,
+            // Re-request ILOCK before each chunk:
+            ASK_FOR_PRE_CHUNK_UDP_INTERLOCK = 0x2A,
+            // Wait for requested ILOCK:
+            WAIT_FOR_PRE_CHUNK_UDP_INTERLOCK = 0x2B,
             // Send a UDP chunk:
-            SEND_UDP_CHUNK = 0x21,
+            SEND_UDP_CHUNK = 0x2C,
             // Wait for acknowledgement of last UDP chunk's `SendEndpoint`:
-            WAIT_FOR_UDP_CHUNK_ACK = 0x22,
+            WAIT_FOR_UDP_CHUNK_ACK = 0x2D,
             // Reset the set transmit size to 0 (so we can flush):
             SEND_SET_TRANSMIT_SIZE_RESET = 0x30,
             // Wait for acknowledgement of `SetTransmitSize` Reset:
@@ -394,7 +398,10 @@ namespace Wf121
         UdpTxUpdateState handleTxState_WAIT_FOR_NEXT_MESSAGE(bool *yieldData);
         UdpTxUpdateState handleTxState_START_SENDING_MESSAGE(bool *yieldData);
         UdpTxUpdateState handleTxState_ASK_FOR_UDP_INTERLOCK(bool *yieldData);
+        UdpTxUpdateState handleTxState_ASK_FOR_PRE_CHUNK_UDP_INTERLOCK(bool *yieldData);
         UdpTxUpdateState handleTxState_WAIT_FOR_UDP_INTERLOCK(bool *yieldData);
+        UdpTxUpdateState handleTxState_WAIT_FOR_PRE_CHUNK_UDP_INTERLOCK(bool *yieldData);
+        UdpTxUpdateState handleTxState_WAIT_FOR_UDP_INTERLOCK_Core(bool *yieldData, UdpTxUpdateState prevState, UdpTxUpdateState targetNextState);
         UdpTxUpdateState handleTxState_SEND_SET_TRANSMIT_SIZE(bool *yieldData);
         UdpTxUpdateState handleTxState_SEND_SET_TRANSMIT_SIZE_RESET(bool *yieldData);
         UdpTxUpdateState handleTxState_SEND_SET_TRANSMIT_SIZE_Core(bool *yieldData, const uint16_t targetTransmitSize, UdpTxUpdateState targetNextState);

@@ -574,6 +574,19 @@ namespace Wf121
     // Returns the next state to transition to.
     NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_BGAPI_READY(bool *yieldData)
     {
+        // Wait for ready:
+        handleTxState_WAIT_FOR_BGAPI_READY_Core(WF121_RADIO_COOLOFF);
+        // Go:
+        return UdpTxUpdateState::WAIT_FOR_NEXT_MESSAGE;
+    }
+
+    // Core impl. of waiting until BGAPI is ready:
+    void NetworkInterface::handleTxState_WAIT_FOR_BGAPI_READY_Core(uint16_t cooloff_ticks)
+    {
+        // Cool off briefly before allowing BGAPI to be used again (Radio BGS needs to catch up if this is going fast):
+        // Cool off briefly after downlinking to prevent spamming the radio.
+        // (Also kind of a hacky way of letting the radio process the ReleaseUdpInterlock message from prev DONE_DOWNLINKING)
+        vTaskDelay(cooloff_ticks);
         // Poll to make sure BGAPI is done processing the last command
         // and it's okay to another BGAPI command:
         //
@@ -589,7 +602,6 @@ namespace Wf121
             vTaskDelay(WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL);
         }
 
-        return UdpTxUpdateState::WAIT_FOR_NEXT_MESSAGE;
     }
 
     // Helper function to handle the `WAIT_FOR_NEXT_MESSAGE` `UdpTxUpdateState`
@@ -647,6 +659,10 @@ namespace Wf121
     // Returns the next state to transition to.
     NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_START_SENDING_MESSAGE(bool *yieldData)
     {
+        // In case we've come back to this state from a higher state, which may or may not have sent a command,
+        // check to make sure we are allowed to send data:
+        handleTxState_WAIT_FOR_BGAPI_READY_Core(1);
+
         // Perform any setup:
 
         // We're about to send a new UDP packet so, reset the status manager
@@ -1160,12 +1176,6 @@ namespace Wf121
         // Increment the successful TX packet count:
         m_protectedRadioStatus.incUdpTxPacketCount();
 
-        // Cool off briefly after downlinking to prevent spamming the radio.
-        // Also kind of a hacky way of letting hte radio process the
-        // ReleaseUdpInterlock message.
-        vTaskDelay(WF121_RADIO_COOLOFF);
-
-
         // Go back to the start:
         return UdpTxUpdateState::WAIT_FOR_BGAPI_READY;
     }
@@ -1410,6 +1420,8 @@ namespace Wf121
         }
 
         // If we're out here, we have BGAPI data to send to the radio:
+        // Pause this task briefly so we don't swamp the radio:
+        vTaskDelay(WF121_MIN_INTERMESSAGE_TICKS); // really should just time it, impl. a rate check, and delay for time remaining but since can only delay in ticks anyway, we couldn't do less than 1 tick which is the current value
         // Yield (pass) BGAPI Comm Buffer data to WF121:
         m_bgApiStatus.setProcessingCmd(true); // flag that WF121 is about to be processing a command
         return &m_bgApiCommandBuffer;

@@ -28,8 +28,8 @@
 
 // What period of time after sending a BGAPI command to the Radio should we
 // just assume that the command was either thrown or we lost the response and
-// let new commands be sent. In milliseconds since Hercules boot:
-static const uint32_t BGAPI_CMD_PROCESSING_TIMEOUT_MS = 2500; // Give the Radio 2.5s to send us a response
+// let new commands be sent. In milliseconds:
+static const uint32_t BGAPI_CMD_PROCESSING_TIMEOUT_MS = 4500; // Give the Radio 4.5s max to send us a response
 
 namespace Wf121
 {

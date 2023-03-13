@@ -72,9 +72,11 @@
 //   to give other Tasks room to work.
 // NOTE: This happens when servicing the `Wf121UdpTxTask` (so doesn't block the main Task).
 // NOTE: FreeRTOS scheduler ticks are every 1ms.
-static const TickType_t WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL = 200 / portTICK_PERIOD_MS; // every 200ms (200 ticks)
+static const TickType_t WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL = 25 / portTICK_PERIOD_MS; // every 200ms (200 ticks)
 // Amount of time for the TxTask to pause for after a packet downlink to prevent overwhelming the radio:
-static const TickType_t WF121_RADIO_COOLOFF = 5 / portTICK_PERIOD_MS; // every 2ms (2 ticks)
+static const TickType_t WF121_RADIO_COOLOFF = 5 / portTICK_PERIOD_MS; // 2ms (2 ticks)
+// Delay to add before yielding any data to prevent radio swamping:
+static const TickType_t WF121_MIN_INTERMESSAGE_TICKS = 1 / portTICK_PERIOD_MS; // 1ms (1 ticks)
 
 // Most number of times to try sending a BGAPI command without receiving a
 // response before giving up:
@@ -388,6 +390,7 @@ namespace Wf121
         };
         // State handlers:
         UdpTxUpdateState handleTxState_WAIT_FOR_BGAPI_READY(bool *yieldData);
+        void handleTxState_WAIT_FOR_BGAPI_READY_Core(uint16_t cooloff_ticks);
         UdpTxUpdateState handleTxState_WAIT_FOR_NEXT_MESSAGE(bool *yieldData);
         UdpTxUpdateState handleTxState_START_SENDING_MESSAGE(bool *yieldData);
         UdpTxUpdateState handleTxState_ASK_FOR_UDP_INTERLOCK(bool *yieldData);

@@ -73,10 +73,12 @@
 // NOTE: This happens when servicing the `Wf121UdpTxTask` (so doesn't block the main Task).
 // NOTE: FreeRTOS scheduler ticks are every 1ms.
 static const TickType_t WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL = 25 / portTICK_PERIOD_MS; // every 200ms (200 ticks)
+
+// These rate limiters were experimentally bumped up until system achieved stability:
 // Amount of time for the TxTask to pause for after a packet downlink to prevent overwhelming the radio:
-static const TickType_t WF121_RADIO_COOLOFF = 5 / portTICK_PERIOD_MS; // 2ms (2 ticks)
+static const TickType_t WF121_RADIO_COOLOFF = 15 / portTICK_PERIOD_MS; // 10ms (10 ticks)
 // Delay to add before yielding any data to prevent radio swamping:
-static const TickType_t WF121_MIN_INTERMESSAGE_TICKS = 1 / portTICK_PERIOD_MS; // 1ms (1 ticks)
+static const TickType_t WF121_MIN_INTERMESSAGE_TICKS = 2 / portTICK_PERIOD_MS; // 2ms (2 ticks)
 
 // Most number of times to try sending a BGAPI command without receiving a
 // response before giving up:
@@ -369,10 +371,18 @@ namespace Wf121
             SEND_SET_TRANSMIT_SIZE = 0x15,
             // Wait for acknowledgement of `SetTransmitSize`:
             WAIT_FOR_SET_TRANSMIT_SIZE_ACK = 0x20,
+
+            // We're going to skip these two pre-chunk ILOCK states for now but
+            // keeping the handlers for posterity. It seems this can crash the Radio
+            // (possibly via ilock semaphore growth in the now immutable Radio FW?)
+            // The only reason for this was to avoid losing ILOCK during a send.
+            // It's rare enough that we can instead just handle ILOCK loss better
+            // (flush the buffer and resend).
             // Re-request ILOCK before each chunk:
-            ASK_FOR_PRE_CHUNK_UDP_INTERLOCK = 0x2A,
-            // Wait for requested ILOCK:
-            WAIT_FOR_PRE_CHUNK_UDP_INTERLOCK = 0x2B,
+//            ASK_FOR_PRE_CHUNK_UDP_INTERLOCK = 0x2A,
+//            // Wait for requested ILOCK:
+//            WAIT_FOR_PRE_CHUNK_UDP_INTERLOCK = 0x2B,
+
             // Send a UDP chunk:
             SEND_UDP_CHUNK = 0x2C,
             // Wait for acknowledgement of last UDP chunk's `SendEndpoint`:
@@ -398,9 +408,9 @@ namespace Wf121
         UdpTxUpdateState handleTxState_WAIT_FOR_NEXT_MESSAGE(bool *yieldData);
         UdpTxUpdateState handleTxState_START_SENDING_MESSAGE(bool *yieldData);
         UdpTxUpdateState handleTxState_ASK_FOR_UDP_INTERLOCK(bool *yieldData);
-        UdpTxUpdateState handleTxState_ASK_FOR_PRE_CHUNK_UDP_INTERLOCK(bool *yieldData);
+//        UdpTxUpdateState handleTxState_ASK_FOR_PRE_CHUNK_UDP_INTERLOCK(bool *yieldData);
         UdpTxUpdateState handleTxState_WAIT_FOR_UDP_INTERLOCK(bool *yieldData);
-        UdpTxUpdateState handleTxState_WAIT_FOR_PRE_CHUNK_UDP_INTERLOCK(bool *yieldData);
+//        UdpTxUpdateState handleTxState_WAIT_FOR_PRE_CHUNK_UDP_INTERLOCK(bool *yieldData);
         UdpTxUpdateState handleTxState_WAIT_FOR_UDP_INTERLOCK_Core(bool *yieldData, UdpTxUpdateState prevState, UdpTxUpdateState targetNextState);
         UdpTxUpdateState handleTxState_SEND_SET_TRANSMIT_SIZE(bool *yieldData);
         UdpTxUpdateState handleTxState_SEND_SET_TRANSMIT_SIZE_RESET(bool *yieldData);

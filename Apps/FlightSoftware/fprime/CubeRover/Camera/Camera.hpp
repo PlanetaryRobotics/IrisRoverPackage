@@ -17,22 +17,23 @@
 
 #include "S25fl512l.hpp"
 
+// --- SYSTEM IMAGE PARAMS ---
+#define IMAGE_WIDTH        2592
+#define IMAGE_HEIGHT       1944
+
 // --- DUMMY IMAGE PARAMS ---
 
-#define DUMMY_IMG_GRID     2    // Dummy image is grid of NxN squares
-#define DUMMY_VIA_FPGA     0    // Read & Write dummy image w/ FPGA Flash
+//#define DUMMY_IMG_GRID  // Dummy image is grid of NxN squares
+#define DUMMY_IMG_GRID_n  5 // Dummy image is grid of NxN squares
+#define VIA_FLASH   // Read & Write dummy image w/ FPGA Flash
 
-#define IMAGE_WIDTH     500
-#define IMAGE_HEIGHT    500
-
-// --- SYSTEM IMAGE PARAMS ---
-//#define IMAGE_WIDTH        2592
-//#define IMAGE_HEIGHT       1944
+#define DUMMY_IMAGE_WIDTH     IMAGE_WIDTH
+#define DUMMY_IMAGE_HEIGHT    IMAGE_HEIGHT
 
 // RAD TODO - isn't downsampling a user-defined parameter?
-#define DOWNSAMPLING        1
-#define DOWNSAMPLED_IMG_WIDTH   (IMAGE_WIDTH / DOWNSAMPLING)
-#define DOWNSAMPLE_IMG_HEIGHT   (IMAGE_HEIGHT / DOWNSAMPLING)
+//#define DOWNSAMPLING        1
+//#define DOWNSAMPLED_IMG_WIDTH   (IMAGE_WIDTH / DOWNSAMPLING)
+//#define DOWNSAMPLE_IMG_HEIGHT   (IMAGE_HEIGHT / DOWNSAMPLING)
 
 namespace CubeRover {
 
@@ -195,15 +196,21 @@ namespace CubeRover {
       // User Methods
       // ----------------------------------------------------------------------
 
-      void triggerImageCapture(uint8_t camera, uint16_t callbackId);
+      void takeImage(uint8_t camera, uint16_t callbackId);
+      void generateDummyImage(void);
+      void triggerImageCapture(void);
+      void eraseFpgaFlash(void);
+      void sendImgFromFlash(uint32_t createTime);
       void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime);
 
+      S25fl512l m_fpgaFlash;
       uint8_t m_imageLineBuffer[IMAGE_WIDTH];
       U32 m_numComponentImgsReq;
       U32 m_numGroundImgsReq;
       U32 m_imagesSent;
       U32 m_bytesSent;
-
+      uint16_t m_lastCallbackId;
+      uint8_t m_cameraSelect;
     };
 
 } // end namespace CubeRover

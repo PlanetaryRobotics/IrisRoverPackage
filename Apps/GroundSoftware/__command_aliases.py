@@ -54,6 +54,21 @@ BGAPI_DFU_OFF_CMD: Final = bgapi.build_command(
 BGAPI_DFU_OFF_BYTES: Final[bytes] = bgapi.encode_command(
     bgapi.BGAPI_WIFI_ENCODER, BGAPI_DFU_OFF_CMD)
 
+BGAPI_STS10_CMD: Final = bgapi.build_command(
+    bgapi.BGAPI_WIFI_API, 'endpoint', 'set_transmit_size', dict(endpoint=3, size=10))
+BGAPI_STS10_BYTES: Final[bytes] = bgapi.encode_command(
+    bgapi.BGAPI_WIFI_ENCODER, BGAPI_STS10_CMD)
+
+BGAPI_STS0_CMD: Final = bgapi.build_command(
+    bgapi.BGAPI_WIFI_API, 'endpoint', 'set_transmit_size', dict(endpoint=3, size=0))
+BGAPI_STS0_BYTES: Final[bytes] = bgapi.encode_command(
+    bgapi.BGAPI_WIFI_ENCODER, BGAPI_STS0_CMD)
+
+BGAPI_DL5_CMD: Final = bgapi.build_command(
+    bgapi.BGAPI_WIFI_API, 'endpoint', 'send', dict(endpoint=3, data=b'hElLo'))
+BGAPI_DL5_BYTES: Final[bytes] = bgapi.encode_command(
+    bgapi.BGAPI_WIFI_ENCODER, BGAPI_DL5_CMD)
+
 
 class Parameter(Enum):
     """
@@ -92,6 +107,43 @@ PreparedCommandType = Tuple[
 ]
 
 prepared_commands: Dict[str, PreparedCommandType] = {
+    'radio-bgapi-set-transmit-size-10': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_SendBgApiCommand',
+        OrderedDict(
+            crc_32=crc32_fsw(BGAPI_STS10_BYTES),
+            packet_id=123,
+            expect_response='NM_BGAPI_CMD_DONTEXPECTRESPONSE' if BGAPI_STS10_CMD.no_response else 'NM_BGAPI_CMD_EXPECTRESPONSE',
+            bgapi_packet=BGAPI_STS10_BYTES
+        ),
+        DataPathway.WIRED
+    ),
+    'radio-bgapi-set-transmit-size-0': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_SendBgApiCommand',
+        OrderedDict(
+            crc_32=crc32_fsw(BGAPI_STS0_BYTES),
+            packet_id=124,
+            expect_response='NM_BGAPI_CMD_DONTEXPECTRESPONSE' if BGAPI_STS0_CMD.no_response else 'NM_BGAPI_CMD_EXPECTRESPONSE',
+            bgapi_packet=BGAPI_STS0_BYTES
+        ),
+        DataPathway.WIRED
+    ),
+    'radio-bgapi-downlink-5-bytes': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'NetworkManager_SendBgApiCommand',
+        OrderedDict(
+            crc_32=crc32_fsw(BGAPI_DL5_BYTES),
+            packet_id=125,
+            expect_response='NM_BGAPI_CMD_DONTEXPECTRESPONSE' if BGAPI_DL5_CMD.no_response else 'NM_BGAPI_CMD_EXPECTRESPONSE',
+            bgapi_packet=BGAPI_DL5_BYTES
+        ),
+        DataPathway.WIRED
+    ),
+    
     'monitor-herc-on': (  # Tell the Watchdog to switch into service mode
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,

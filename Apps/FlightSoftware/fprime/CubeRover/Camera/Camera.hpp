@@ -19,26 +19,27 @@
 
 // --- DUMMY IMAGE PARAMS ---
 
-#define DUMMY_IMG_GRID     2    // Dummy image is grid of NxN squares
-#define DUMMY_VIA_FPGA     0    // Read & Write dummy image w/ FPGA Flash
-
-#define IMAGE_WIDTH     1500
-#define IMAGE_HEIGHT    1000
+#define DUMMY_IMAGE_WIDTH     500
+#define DUMMY_IMAGE_HEIGHT    500
+#define DUMMY_IMG_GRID          2    // Dummy image is grid of NxN squares
 
 // --- SYSTEM IMAGE PARAMS ---
-//#define IMAGE_WIDTH        2592
-//#define IMAGE_HEIGHT       1944
-
-// RAD TODO - isn't downsampling a user-defined parameter?
-#define DOWNSAMPLING        1
-#define DOWNSAMPLED_IMG_WIDTH   (IMAGE_WIDTH / DOWNSAMPLING)
-#define DOWNSAMPLE_IMG_HEIGHT   (IMAGE_HEIGHT / DOWNSAMPLING)
+#define IMAGE_WIDTH        2592
+#define IMAGE_HEIGHT       1944
 
 namespace CubeRover {
 
   class CameraComponentImpl :
     public CameraComponentBase
   {
+
+      typedef enum CameraState {
+          SETUP_CAM_IMG = 0,
+          READ_IMG_LINE = 1,
+          SEND_IMG_LINE = 2,
+          WAIT_FOR_SEND = 3,
+
+      };
 
     public:
 
@@ -194,6 +195,10 @@ namespace CubeRover {
       // ----------------------------------------------------------------------
       // User Methods
       // ----------------------------------------------------------------------
+
+
+
+      void cameraStateMachine()
 
       void triggerImageCapture(uint8_t camera, uint16_t callbackId);
       void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime);
